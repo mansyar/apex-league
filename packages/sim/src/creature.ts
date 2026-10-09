@@ -47,6 +47,8 @@ export interface Creature {
   stage: LifeStage
   stats: CreatureStats
   conditions: CreatureConditions
+  /** True when a bonding action happened today; reset by the nightly settlement. */
+  bondedToday: boolean
 }
 
 /** Upper bound of every condition scale. */
@@ -101,5 +103,6 @@ export function createCreature(
     stage: "baby",
     stats: rollStats(rng, species),
     conditions: { ...CONDITION_START },
+    bondedToday: false,
   }
 }
