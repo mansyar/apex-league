@@ -21,13 +21,13 @@ with a verification & checkpoint task).
 
 ## Phase C — Vision-Model Silhouette Loop (manual verification)
 
-- [ ] Task: Grey-render outlier + random seed samples; vision-model review ("reads as a drake?")
-- [ ] Task: Iterate bounds from feedback until the sampled range passes (return to Phase B edits as needed)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Grey-render outlier + random seed samples; vision-model review ("reads as a drake?") (`bfc0847`)
+- [x] Task: Iterate bounds from feedback until the sampled range passes (return to Phase B edits as needed) (`bfc0847`)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: bfc0847]
 
 ## Phase D — Artifacts & Integration Gate
 
 - [x] Task: Regenerate `artifacts/draconic-42.glb` + manifest if seed-42 output changed (`5f9a719`)
 - [x] Task: Full gate — `bun run verify` green (`5f9a719`)
-- [ ] Task: Browser gallery spot check (`?archetype=draconic`) with visual evidence
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Browser gallery spot check (`?archetype=draconic`) with visual evidence (`bfc0847`)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: bfc0847]
