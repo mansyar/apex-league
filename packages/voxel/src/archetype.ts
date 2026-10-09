@@ -4,18 +4,12 @@
  * `generate(archetypeId, seed)` works uniformly for all species.
  */
 import { BOVINE_GRID, bovineTemplate, buildBovine } from "./bovine"
+import type { CreatureBuild } from "./build"
 import { buildDrake, DRAKE_GRID, drakeTemplate } from "./drake"
 import { sampleDna } from "./sample"
 import type { Dna, Template } from "./schema"
-import type { PartField } from "./voxelizer"
 
-/** Shape shared by every archetype's SDF assembly output. */
-export interface CreatureBuild {
-  fields: PartField[]
-  pivots: Record<string, [number, number, number]>
-  colors: Record<string, [number, number, number]>
-  parents: Record<string, string>
-}
+export type { CreatureBuild } from "./build"
 
 export interface ArchetypeDef {
   id: string

@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test"
-import { BOVINE_GRID, bovineTemplate, buildBovine } from "./bovine"
-import { buildDrake, DRAKE_GRID, drakeTemplate } from "./drake"
+import { generate } from "./archetype"
+import { BOVINE_GRID, bovineTemplate } from "./bovine"
+import { DRAKE_GRID, drakeTemplate } from "./drake"
 import { exportGlb } from "./glb"
 import { meshGrid } from "./mesher"
 import { sampleDna } from "./sample"
@@ -14,13 +15,12 @@ const VOXEL_SIZE = 0.045
 /** Spec NFR: committed creature GLBs stay within this budget. */
 const GLB_BUDGET_BYTES = 150 * 1024
 
-function pipeline(seed: number) {
-  const dna = sampleDna(drakeTemplate, seed)
-  const build = buildDrake(dna)
-  const grid = voxelize(build.fields, DRAKE_GRID)
-  const meshes = meshGrid(grid)
+/** Full generation pipeline through the registry, exactly as exporters run it. */
+function pipeline(archetypeId: string, seed: number) {
+  const { dna, build, def } = generate(archetypeId, seed)
+  const meshes = meshGrid(voxelize(build.fields, def.grid))
   return exportGlb({
-    archetype: drakeTemplate.id,
+    archetype: def.id,
     seed,
     dnaJson: JSON.stringify(dna),
     voxelSize: VOXEL_SIZE,
@@ -45,7 +45,7 @@ describe("drake fuzz", () => {
     const R = DRAKE_GRID - 1
     let violations = 0
     for (let seed = 0; seed < 40; seed++) {
-      const build = buildDrake(sampleDna(drakeTemplate, seed))
+      const { build } = generate("draconic", seed)
       const grid = voxelize(build.fields, DRAKE_GRID)
       for (const part of grid.parts) {
         for (const [x, y, z] of part.voxels) {
@@ -60,7 +60,7 @@ describe("drake fuzz", () => {
   test("8 seeds run the full pipeline within the GLB budget", () => {
     let maxBytes = 0
     for (let seed = 0; seed < 8; seed++) {
-      const { glb, manifest } = pipeline(seed)
+      const { glb, manifest } = pipeline("draconic", seed)
       const view = new DataView(glb.buffer, glb.byteOffset, glb.byteLength)
       expect(view.getUint32(0, true)).toBe(0x46546c67)
       expect(manifest.triCount).toBeGreaterThan(0)
@@ -85,7 +85,7 @@ describe("bovine fuzz", () => {
     const R = BOVINE_GRID - 1
     let violations = 0
     for (let seed = 0; seed < 40; seed++) {
-      const build = buildBovine(sampleDna(bovineTemplate, seed))
+      const { build } = generate("bovine", seed)
       const grid = voxelize(build.fields, BOVINE_GRID)
       for (const part of grid.parts) {
         for (const [x, y, z] of part.voxels) {
@@ -100,18 +100,7 @@ describe("bovine fuzz", () => {
   test("8 seeds run the full pipeline within the GLB budget", () => {
     let maxBytes = 0
     for (let seed = 0; seed < 8; seed++) {
-      const dna = sampleDna(bovineTemplate, seed)
-      const build = buildBovine(dna)
-      const meshes = meshGrid(voxelize(build.fields, BOVINE_GRID))
-      const { glb, manifest } = exportGlb({
-        archetype: bovineTemplate.id,
-        seed,
-        dnaJson: JSON.stringify(dna),
-        voxelSize: VOXEL_SIZE,
-        colors: build.colors,
-        pivots: build.pivots,
-        parts: meshes,
-      })
+      const { glb, manifest } = pipeline("bovine", seed)
       const view = new DataView(glb.buffer, glb.byteOffset, glb.byteLength)
       expect(view.getUint32(0, true)).toBe(0x46546c67)
       expect(manifest.triCount).toBeGreaterThan(0)
@@ -122,20 +111,8 @@ describe("bovine fuzz", () => {
 
   test("full pipeline is byte-identical per seed", () => {
     for (const seed of [3, 42, 99]) {
-      const dna = sampleDna(bovineTemplate, seed)
-      const build = buildBovine(dna)
-      const run = () =>
-        exportGlb({
-          archetype: bovineTemplate.id,
-          seed,
-          dnaJson: JSON.stringify(dna),
-          voxelSize: VOXEL_SIZE,
-          colors: build.colors,
-          pivots: build.pivots,
-          parts: meshGrid(voxelize(build.fields, BOVINE_GRID)),
-        })
-      const a = run()
-      const b = run()
+      const a = pipeline("bovine", seed)
+      const b = pipeline("bovine", seed)
       expect(Buffer.from(a.glb).equals(Buffer.from(b.glb))).toBe(true)
       expect(a.manifest.glbHash).toBe(b.manifest.glbHash)
     }

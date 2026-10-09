@@ -4,6 +4,7 @@ import { makeRng } from "./rng"
 // callers (tests, gallery) can stay archetype-typed.
 export { sampleDna as sampleBovineDna } from "./sample"
 
+import type { CreatureBuild } from "./build"
 import type { Dna, Template } from "./schema"
 import {
   type Sdf,
@@ -58,17 +59,7 @@ export const bovineTemplate: Template = {
   rarity: [{ id: "gilded", weight: 32 }],
 }
 
-export interface BovineBuild {
-  fields: PartField[]
-  pivots: Record<string, [number, number, number]>
-  colors: Record<string, [number, number, number]>
-  /**
-   * Rig parentage: child part name -> parent part name. Animating a parent
-   * must carry its children (head bob carries horns, body breath carries the
-   * tail), so renderers reparent meshes along these edges.
-   */
-  parents: Record<string, string>
-}
+export interface BovineBuild extends CreatureBuild {}
 
 const O = BOVINE_GRID / 2
 
@@ -160,7 +151,7 @@ export function buildBovine(dna: Dna): BovineBuild {
   function hornTip(sign: number): Vec3 {
     const outX = sign * (2.2 + 2.6 * spread) * hd
     if (hornStyle === "straight") {
-      return vec3(headC.x + outX, hornBaseY + 2.2, hornBaseZ)
+      return vec3(headC.x + outX, hornBaseY + 1.8 + 1.2 * hl, hornBaseZ)
     }
     if (hornStyle === "backSwept") {
       return vec3(headC.x + outX * 0.8, hornBaseY + 3.2, hornBaseZ - 1.8 * hl)

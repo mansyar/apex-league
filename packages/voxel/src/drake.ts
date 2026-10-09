@@ -1,3 +1,4 @@
+import type { CreatureBuild } from "./build"
 import { makeRng } from "./rng"
 import type { Dna, Template } from "./schema"
 import {
@@ -48,17 +49,7 @@ export const drakeTemplate: Template = {
   rarity: [{ id: "gilded", weight: 32 }],
 }
 
-export interface DrakeBuild {
-  fields: PartField[]
-  pivots: Record<string, [number, number, number]>
-  colors: Record<string, [number, number, number]>
-  /**
-   * Rig parentage: child part name -> parent part name. Animating a parent
-   * must carry its children (head bob carries horns, body breath carries the
-   * tail), so renderers reparent meshes along these edges.
-   */
-  parents: Record<string, string>
-}
+export interface DrakeBuild extends CreatureBuild {}
 
 const O = DRAKE_GRID / 2
 
