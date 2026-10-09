@@ -118,7 +118,7 @@ export function buildDrake(dna: Dna): DrakeBuild {
   const legBackZ = -5.5 - (ll - 1) * 2
 
   // Neck rises steeply from the shoulders then sweeps forward to the head —
-  // a near-vertical arch reads "dragon" and stair-steps far less than a ramp.
+  // a near-vertical arch reads "drake" and stair-steps far less than a ramp.
   const neckA = at(0, 17, 4.5 * bl)
   const neckB = at(0, 17 + 6 * nl, 4.5 * bl + 2.5 * nl)
   const neckC = at(0, 17 + 10 * nl, 4.5 * bl + 5.5 * nl)
@@ -161,7 +161,7 @@ export function buildDrake(dna: Dna): DrakeBuild {
   // -- Part fields (paint order: later parts claim overlapping voxels) -----
   const fields: PartField[] = []
 
-  // Deep chest + higher rump gives the arched back dragons are recognized by.
+  // Deep chest + higher rump gives the arched back drakes are recognized by.
   const chestField: Sdf = sdCapsule(chestA, chestB, 5.4 * bg)
   const rearField: Sdf = sdCapsule(rearA, rearB, 4.3 * bg)
   fields.push({
