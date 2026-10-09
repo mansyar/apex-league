@@ -38,8 +38,8 @@ lifecycle, checkpoints, and quality gates.
 - [x] Task: Grey default-seed renders → iterate template until silhouette
       reads "drake" (living-concept loop) — 2 iterations `9a51267`; user
       verdict: wingless quadruped = drake, wings belong to a future dragon
-      evolution stage (noted for later)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+      evolution stage (noted for later) `[checkpoint: 68f0f9e]`
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase D — Integration, Tooling & Vision Gate (manual-verification heavy)
 
