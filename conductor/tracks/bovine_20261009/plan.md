@@ -29,10 +29,10 @@ frozen — template authoring only.
 
 ## Phase D — Integration & Vision Gate (manual-verification heavy)
 
-- [ ] Task: Extend `export-artifact.ts` + determinism gate for
+- [x] Task: Extend `export-artifact.ts` + determinism gate for
       multi-archetype (`--archetype bovine`); regenerate + commit bovine
-      artifact
-- [ ] Task: Gallery shows bovines (mixed herd with drakes); wire Plant-green
-      into creature builder
-- [ ] Task: Herd test — 8-seed bovine lineup, rubric review with user
+      artifact  `e390bcb`
+- [x] Task: Gallery shows bovines (mixed herd with drakes); wire Plant-green
+      into creature builder  `dd9843b`
+- [x] Task: Herd test — 8-seed bovine lineup, rubric review with user  `dd9843b`
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
