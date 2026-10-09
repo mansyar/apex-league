@@ -13,6 +13,8 @@
     "apps/client": {
       "name": "@apex/client",
       "dependencies": {
+        "@apex/sim": "workspace:*",
+        "@apex/voxel": "workspace:*",
         "three": "^0.186.1",
       },
       "devDependencies": {

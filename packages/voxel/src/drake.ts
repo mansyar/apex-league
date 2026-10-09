@@ -5,6 +5,7 @@ import {
   sdBox,
   sdCapsule,
   sdSphere,
+  smoothUnion,
   union,
   type Vec3,
   vec3,
@@ -12,7 +13,7 @@ import {
 import type { PartField } from "./voxelizer"
 
 // Draconic archetype: a quadruped western drake. Authored in voxel units on a
-// 48^3 grid (y up, +z forward), creature roughly 40 voxels long and 30 tall.
+// 56^3 grid (y up, +z forward), creature roughly 40 voxels long and 30 tall.
 // The template owns the body plan and bounds; DNA only jitters within them,
 // so every seed is guaranteed to still read as a drake.
 
@@ -102,50 +103,56 @@ export function buildDrake(dna: Dna): DrakeBuild {
   const ll = p.legLength ?? 1
 
   // -- Key skeleton points -------------------------------------------------
-  const bodyA = at(0, 16, -7 * bl)
-  const bodyB = at(0, 16, 5 * bl)
-  const girth = 5.5 * bg
+  const chestA = at(0, 16.5, 5 * bl)
+  const chestB = at(0, 16.5, 0.5 * bl)
+  const rearA = at(0, 19, 0.5 * bl)
+  const rearB = at(0, 19, -7 * bl)
 
-  const tailBase = at(0, 14.5, -7 * bl)
-  const tailMid = at(0, 13, -14 * tl)
-  const tailEnd = at(0, 11.5, -18 * tl)
+  const tailBase = at(0, 17.5, -6.5 * bl)
+  const tailMid = at(0, 18.5, -6.5 * bl - 8 * tl)
+  const tailEnd = at(0, 21.5, -6.5 * bl - 12 * tl)
 
-  const hipY = 13.5
+  const hipY = 15
   const footY = 0.9 + 1.7 * bg
   const legFrontZ = 5 + (ll - 1) * 2
   const legBackZ = -5.5 - (ll - 1) * 2
 
-  const neckStart = at(0, 16.5, 5 * bl)
-  const neckEnd = at(0, 16.5 + 6.5 * nl, 5 * bl + 7 * nl)
-  const neckR = 2.8 * nt
+  // Neck rises steeply from the shoulders then sweeps forward to the head —
+  // a near-vertical arch reads "dragon" and stair-steps far less than a ramp.
+  const neckA = at(0, 17, 4.5 * bl)
+  const neckB = at(0, 17 + 6 * nl, 4.5 * bl + 2.5 * nl)
+  const neckC = at(0, 17 + 10 * nl, 4.5 * bl + 5.5 * nl)
+  const neckR = 3.4 * nt
 
-  const headC = vec3(neckEnd.x, neckEnd.y + 1.2, neckEnd.z + 3.2)
-  const headHalf = vec3(3.2 * hs, 2.6 * hs, 4.2 * hs)
-  const jawA = vec3(headC.x, headC.y - 1.7 * hs, headC.z + 0.5)
-  const jawB = vec3(headC.x, headC.y - 1.4 * hs, headC.z + 4.4 * hs)
+  const headC = vec3(neckC.x, neckC.y + 0.8, neckC.z + 2.2 * hs)
+  const skullHalf = vec3(3.4 * hs, 2.6 * hs, 3.4 * hs)
+  const snoutC = vec3(neckC.x, neckC.y + 0.5, neckC.z + 5.2 * hs)
+  const snoutHalf = vec3(2.5 * hs, 1.9 * hs, 3.6 * hs)
+  const jawA = vec3(headC.x, headC.y - 1.5 * hs, headC.z + 1.0)
+  const jawB = vec3(headC.x, headC.y - 1.2 * hs, headC.z + 4.8 * hs)
 
-  const hornBaseY = headC.y + 2.2 * hs
-  const hornBaseZ = headC.z - 1.5
+  const hornBaseY = headC.y + 2.4 * hs
+  const hornBaseZ = headC.z - 0.8
   const hornSpread = dna.styleParams.spread ?? 0.6
   const hornStyle = dna.styles.horns ?? "backSwept"
 
   function hornTip(sign: number): Vec3 {
     const bx = sign * 1.7 * hs
     if (hornStyle === "straight") {
-      return vec3(headC.x + bx, hornBaseY + 4.5 * hl, hornBaseZ + 0.3)
+      return vec3(headC.x + bx, hornBaseY + 5.5 * hl, hornBaseZ + 0.3)
     }
     if (hornStyle === "forward") {
       return vec3(
-        headC.x + bx + sign * 1.5 * hornSpread,
-        hornBaseY + 1.0,
-        hornBaseZ + 4.0 * hl,
+        headC.x + bx + sign * 2 * hornSpread,
+        hornBaseY + 1.2,
+        hornBaseZ + 5 * hl,
       )
     }
     // backSwept (default)
     return vec3(
-      headC.x + bx + sign * 2.2 * hornSpread,
-      hornBaseY + 1.5,
-      hornBaseZ - 4.5 * hl,
+      headC.x + bx + sign * 2.4 * hornSpread,
+      hornBaseY + 2,
+      hornBaseZ - 5.5 * hl,
     )
   }
 
@@ -154,17 +161,23 @@ export function buildDrake(dna: Dna): DrakeBuild {
   // -- Part fields (paint order: later parts claim overlapping voxels) -----
   const fields: PartField[] = []
 
-  const bodyField: Sdf = sdCapsule(bodyA, bodyB, girth)
-  fields.push({ name: "body", sdf: bodyField })
+  // Deep chest + higher rump gives the arched back dragons are recognized by.
+  const chestField: Sdf = sdCapsule(chestA, chestB, 5.4 * bg)
+  const rearField: Sdf = sdCapsule(rearA, rearB, 4.3 * bg)
+  fields.push({
+    name: "body",
+    sdf: smoothUnion(chestField, rearField, 3),
+  })
 
-  const tailField: Sdf = sdCapsule(tailBase, tailMid, 2.8 * bg)
+  const tailField: Sdf = sdCapsule(tailBase, tailMid, 3 * bg)
   fields.push({ name: "tail", sdf: tailField })
 
-  const tailTipPieces: Sdf[] = [sdCapsule(tailMid, tailEnd, 1.4)]
+  const tailTipZ = -6.5 * bl - 12 * tl
+  const tailTipPieces: Sdf[] = [sdCapsule(tailMid, tailEnd, 1.7)]
   if (tailStyle === "spade") {
-    tailTipPieces.push(sdBox(at(0, 11.5, -18 * tl - 0.9), vec3(1.9, 1.5, 1.2)))
+    tailTipPieces.push(sdBox(at(0, 19.8, tailTipZ - 1.1), vec3(2.4, 2.0, 1.5)))
   } else if (tailStyle === "club") {
-    tailTipPieces.push(sdSphere(tailEnd, 1.9))
+    tailTipPieces.push(sdSphere(tailEnd, 2.2))
   }
   const tailTipField: Sdf = tailTipPieces.reduce((acc, s) => union(acc, s))
   fields.push({ name: "tailTip", sdf: tailTipField })
@@ -177,42 +190,50 @@ export function buildDrake(dna: Dna): DrakeBuild {
   ]
   const legPivots: Record<string, [number, number, number]> = {}
   for (const leg of legDefs) {
-    const hip = at(
-      leg.sx * 4.8 * bg,
-      hipY,
-      leg.sz * (leg.sz > 0 ? legFrontZ : legBackZ),
-    )
-    const foot = at(
-      leg.sx * 5.4 * bg,
-      footY,
-      leg.sz * (leg.sz > 0 ? legFrontZ + 0.4 : legBackZ + 0.4),
-    )
+    const legZ = leg.sz > 0 ? legFrontZ : legBackZ
+    const hip = at(leg.sx * 4.8 * bg, hipY, legZ)
+    const knee = at(leg.sx * 5.2 * bg, (hipY + footY) / 2, legZ + 0.9)
+    const foot = at(leg.sx * 5.4 * bg, footY, legZ + 0.5)
     legPivots[leg.name] = [hip.x, hip.y, hip.z]
-    fields.push({ name: leg.name, sdf: sdCapsule(hip, foot, 1.7 * bg) })
+    // Thigh bulge + tapered shin reads as a real limb, not a stick.
+    const legField: Sdf = union(
+      union(sdSphere(hip, 2.6 * bg), sdCapsule(hip, knee, 2.1 * bg)),
+      sdCapsule(knee, foot, 1.5 * bg),
+    )
+    fields.push({ name: leg.name, sdf: legField })
   }
 
-  const neckField: Sdf = sdCapsule(neckStart, neckEnd, neckR)
+  const neckField: Sdf = union(
+    sdCapsule(neckA, neckB, neckR),
+    sdCapsule(neckB, neckC, neckR * 0.9),
+  )
   fields.push({ name: "neck", sdf: neckField })
 
   const headField: Sdf = union(
-    sdBox(headC, headHalf),
-    sdCapsule(jawA, jawB, 1.1 * hs),
+    union(sdBox(headC, skullHalf), sdBox(snoutC, snoutHalf)),
+    sdCapsule(jawA, jawB, 1.15 * hs),
   )
   fields.push({ name: "head", sdf: headField })
 
   const hornBaseL = vec3(headC.x - 1.7 * hs, hornBaseY, hornBaseZ)
   const hornBaseR = vec3(headC.x + 1.7 * hs, hornBaseY, hornBaseZ)
-  fields.push({ name: "hornLeft", sdf: sdCapsule(hornBaseL, hornTip(-1), 0.9) })
-  fields.push({ name: "hornRight", sdf: sdCapsule(hornBaseR, hornTip(1), 0.9) })
+  fields.push({
+    name: "hornLeft",
+    sdf: sdCapsule(hornBaseL, hornTip(-1), 1.15),
+  })
+  fields.push({
+    name: "hornRight",
+    sdf: sdCapsule(hornBaseR, hornTip(1), 1.15),
+  })
 
   // -- Pivots (rotation anchors for the procedural rig) --------------------
   const pivots: Record<string, [number, number, number]> = {
-    body: [bodyA.x, 16, bodyA.z + 7 * bl],
+    body: [O, 16.5, O - bl],
     tail: [tailBase.x, tailBase.y, tailBase.z],
     tailTip: [tailMid.x, tailMid.y, tailMid.z],
     ...legPivots,
-    neck: [neckStart.x, neckStart.y, neckStart.z],
-    head: [neckEnd.x, neckEnd.y, neckEnd.z],
+    neck: [neckA.x, neckA.y, neckA.z],
+    head: [neckC.x, neckC.y, neckC.z],
     hornLeft: [hornBaseL.x, hornBaseL.y, hornBaseL.z],
     hornRight: [hornBaseR.x, hornBaseR.y, hornBaseR.z],
   }
