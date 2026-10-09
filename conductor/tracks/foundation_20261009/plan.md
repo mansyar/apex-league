@@ -27,10 +27,10 @@ Status markers: `[ ]` pending · `[~]` in progress · `[x]` complete (+ commit S
 - [x] Task: Phase Verification & Checkpoint (refer to workflow.md)  `[checkpoint: 3e1ce78]`
 
 ## Phase D — App Shell (rendering — manual verification)
-- [ ] Task: Three.js canvas in `apps/client` with placeholder voxel performing
-      breathe idle animation
-- [ ] Task: DOM HUD stub bound to live sim state — day number, phase, action
-      points — plus dev "advance day" control
+- [x] Task: Three.js canvas in `apps/client` with placeholder voxel performing
+      breathe idle animation  `ed717a9`
+- [x] Task: DOM HUD stub bound to live sim state — day number, phase, action
+      points — plus dev "advance day" control  `067f6d0`
 - [ ] Task: Wire autosave on day advance + save load on boot (fresh-state
       fallback)
 - [ ] Task: Phase Verification & Checkpoint (refer to workflow.md)
