@@ -48,11 +48,11 @@ with a verification & checkpoint task).
 
 ## Phase E — Client: Starter Choice & Care UI (rendering/UI — manual verification)
 
-- [ ] Task: Starter choice screen (3 cards: Fire/Plant selectable, Water teased; writes creature into state)
-- [ ] Task: Creature condition panel (name, element badge, five 0–100 bars, sickness callout) — warm broadcast-overlay aesthetic per spec §5
-- [ ] Task: Care action menu (Feed/Rest/Treat/Play with AP costs; disabled states with reasons; Advance Day retained)
-- [ ] Task: Ranch scene via archetype registry — owned creature rendered instead of hardcoded drake
-- [ ] Task: Visual condition states — sluggish idle (low energy), droopy (sick), happy bounce (high mood) via existing rig
+- [x] Task: Starter choice screen (3 cards: Fire/Plant selectable, Water teased; writes creature into state) (`ef94929`)
+- [x] Task: Creature condition panel (name, element badge, five 0–100 bars, sickness callout) — warm broadcast-overlay aesthetic per spec §5 (`ef94929`)
+- [x] Task: Care action menu (Feed/Rest/Treat/Play with AP costs; disabled states with reasons; Advance Day retained) (`ef94929`)
+- [x] Task: Ranch scene via archetype registry — owned creature rendered instead of hardcoded drake (`ef94929`)
+- [x] Task: Visual condition states — sluggish idle (low energy), droopy (sick), happy bounce (high mood) via existing rig (`ef94929`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase F — Integration & Verification Gate
