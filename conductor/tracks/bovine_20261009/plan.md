@@ -24,8 +24,8 @@ frozen — template authoring only.
 
 - [x] Task: Add bovine cases to fuzz suite — 200-seed DNA validity, 40-seed
       boundary probe, 8-seed pipeline budget, byte-identical determinism  `b6e3256`
-- [~] Task: Grey-render silhouette iteration via preview page until it reads
-      "ox" (living-concept loop, user verdict)
+- [x] Task: Grey-render silhouette iteration via preview page until it reads
+      "ox" (living-concept loop, user verdict)  `d9e113a`
 
 ## Phase D — Integration & Vision Gate (manual-verification heavy)
 
