@@ -55,8 +55,11 @@ describe("union", () => {
     const a = sdSphere(vec3(-1, 0, 0), 1)
     const b = sdSphere(vec3(1, 0, 0), 1)
     const u = union(a, b)
-    expect(u(vec3(0, 0, 0))).toBeCloseTo(-1)
-    expect(u(vec3(0, 2, 0))).toBeCloseTo(1)
+    // Interior of A only: min is A's distance.
+    expect(u(vec3(-1, 0, 0))).toBeCloseTo(-1)
+    // Outside both: min picks the nearer field (surface distance = euclidean - radius).
+    expect(u(vec3(-3, 0, 0))).toBeCloseTo(1)
+    expect(u(vec3(3, 0, 0))).toBeCloseTo(1)
   })
 })
 
