@@ -8,4 +8,4 @@ condition-driven ranch scene.
 - [Implementation Plan](./plan.md)
 - [Metadata](./metadata.json)
 
-Status: **new** — branch `track/care_loop_20261010`.
+Status: **complete** — merged work on branch `track/care_loop_20261010`.
