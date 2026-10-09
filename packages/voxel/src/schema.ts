@@ -107,6 +107,23 @@ export function validateTemplate(template: Template): string[] {
       errors.push(`rarity "${gate.id}" must have an integer weight >= 1`)
     }
   }
+  // Style params share one flat Dna.styleParams map, so a name reused across
+  // slots would silently overwrite itself at sampling time. Forbid duplicates.
+  const seenParams = new Map<string, string>()
+  for (const slot of Object.keys(template.styles)) {
+    const styles = template.styles[slot]
+    for (const style of styles ?? []) {
+      for (const param of Object.keys(style.params)) {
+        const owner = seenParams.get(param)
+        if (owner !== undefined && owner !== slot) {
+          errors.push(
+            `style param "${param}" is declared in both "${owner}" and "${slot}" - param names must be unique across slots`,
+          )
+        }
+        seenParams.set(param, slot)
+      }
+    }
+  }
   return errors
 }
 

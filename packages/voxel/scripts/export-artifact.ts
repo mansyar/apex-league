@@ -10,6 +10,7 @@ import {
   exportGlb,
   meshGrid,
   sampleDna,
+  VOXEL_SIZE,
   voxelize,
 } from "@apex/voxel"
 
@@ -21,7 +22,7 @@ const { glb, manifest } = exportGlb({
   archetype: "draconic",
   seed,
   dnaJson: JSON.stringify(dna),
-  voxelSize: 0.045,
+  voxelSize: VOXEL_SIZE,
   colors: build.colors,
   pivots: build.pivots,
   parts: meshes,

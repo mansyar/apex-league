@@ -12,6 +12,7 @@ export {
   exportGlb,
   GENERATOR_VERSION,
   type GlbManifest,
+  VOXEL_SIZE,
 } from "./glb"
 export { type MeshePart, meshGrid } from "./mesher"
 export { makeRng, type Rng } from "./rng"

@@ -4,10 +4,14 @@
  * rotating a mesh around its pivot animates the joint.
  */
 import type { Dna, DrakeBuild } from "@apex/voxel"
-import { DRAKE_GRID, type MeshePart, meshGrid, voxelize } from "@apex/voxel"
+import {
+  DRAKE_GRID,
+  type MeshePart,
+  meshGrid,
+  VOXEL_SIZE,
+  voxelize,
+} from "@apex/voxel"
 import * as THREE from "three"
-
-export const VOXEL_SIZE = 0.045
 
 export function buildCreatureMeshes(
   build: DrakeBuild,
@@ -65,7 +69,8 @@ export function buildCreatureGroup(
   // bob, tail sway) now carries its children instead of separating at joints.
   const pivotOf = (name: string): THREE.Vector3 => {
     const p = build.pivots[name]
-    return new THREE.Vector3(p?.[0] ?? 0, p?.[1] ?? 0, p?.[2] ?? 0)
+    if (!p) throw new Error(`part "${name}" has no pivot`)
+    return new THREE.Vector3(p[0], p[1], p[2])
   }
   for (const [childName, parentName] of Object.entries(build.parents)) {
     const child = creature.getObjectByName(childName)

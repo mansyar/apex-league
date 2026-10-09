@@ -61,7 +61,12 @@ function rebuild() {
     c.traverse((obj) => {
       if (obj instanceof THREE.Mesh) {
         obj.geometry.dispose()
-        ;(obj.material as THREE.Material).dispose()
+        const mat = obj.material
+        if (Array.isArray(mat)) {
+          for (const m of mat) m.dispose()
+        } else {
+          mat.dispose()
+        }
       }
     })
   }

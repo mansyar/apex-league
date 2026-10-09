@@ -80,6 +80,29 @@ describe("validateTemplate", () => {
     gate.weight = 0
     expect(validateTemplate(t).length).toBeGreaterThan(0)
   })
+
+  test("rejects a style param name reused across slots", () => {
+    const t = makeTemplate()
+    const tail = {
+      id: "spade",
+      params: { curl: { min: 0, max: 1 } },
+    }
+    t.styles.tail = [tail]
+    const errors = validateTemplate(t)
+    expect(errors.some((e) => e.includes('"curl"') && e.includes("both"))).toBe(
+      true,
+    )
+  })
+
+  test("accepts the same param name reused within one slot", () => {
+    const t = makeTemplate()
+    const second = {
+      id: "straight",
+      params: { curl: { min: 0, max: 1 } },
+    }
+    t.styles.horns?.push(second)
+    expect(validateTemplate(t)).toEqual([])
+  })
 })
 
 describe("assertDnaInBounds", () => {

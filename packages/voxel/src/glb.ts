@@ -7,6 +7,10 @@ import type { MeshePart } from "./mesher"
 
 export const GENERATOR_VERSION = 1
 
+/** World units per voxel; the shared scale contract between the GLB root
+ * node and the live three.js scene. Single source of truth. */
+export const VOXEL_SIZE = 0.045
+
 const GLB_MAGIC = 0x46546c67 // "glTF"
 const CHUNK_JSON = 0x4e4f534a // "JSON"
 const CHUNK_BIN = 0x004e4942 // "BIN\0"
