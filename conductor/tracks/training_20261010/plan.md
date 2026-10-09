@@ -10,7 +10,7 @@ manually, not unit-tested.
   - [x] a new creature has `trained` zeros, `trainingFocus` null, and `trainingResult` null
   - [x] rolled `stats` are unchanged by the new fields and stay inside species bounds
 - [x] Task: Implement training fields on `Creature` and `createCreature` (`aa30970`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: aa30970]`
 
 ## Phase B — Assign training (sim)
 
