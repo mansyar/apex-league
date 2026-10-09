@@ -29,9 +29,9 @@ lifecycle, checkpoints, and quality gates.
 
 ## Phase C — Drake Archetype (template authoring — mix of TDD + visual iteration)
 
-- [ ] Task: Write failing tests — drake template: params within declared
-      bounds, style enums (horns/tail), rarity gate probabilities
-- [ ] Task: Implement drake archetype template to green
+- [x] Task: Write failing tests — drake template: params within declared
+      bounds, style enums (horns/tail), rarity gate probabilities `0bda590`
+- [x] Task: Implement drake archetype template to green `6b620ee`
 - [ ] Task: Write failing tests — property/fuzz: N random seeds all valid,
       in-bounds, DNA-distinct; rare-tier probabilities hold over large N
 - [ ] Task: Grey default-seed renders → iterate template until silhouette
