@@ -1,6 +1,8 @@
-import "@apex/sim"
+import { createInitialState } from "@apex/sim"
+import { createScene } from "./scene"
 
-const app = document.querySelector<HTMLDivElement>("#app")
-if (app) {
-  app.textContent = "Apex League"
-}
+const app = document.querySelector<HTMLElement>("#app")
+if (!app) throw new Error("#app container missing")
+
+createScene(app)
+void createInitialState()
