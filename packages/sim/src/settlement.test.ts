@@ -2,10 +2,11 @@ import { describe, expect, test } from "bun:test"
 
 import {
   advanceDay,
+  type Creature,
   chooseStarter,
   createInitialState,
-  makeRng,
   type GameState,
+  makeRng,
   type Rng,
 } from "./index"
 
@@ -13,7 +14,13 @@ import {
 function stateWith(conditions: Partial<Creature["conditions"]>): GameState {
   const s = chooseStarter(createInitialState(), "fire_drake", 42)
   if (!s.creature) throw new Error("starter not created")
-  return { ...s, creature: { ...s.creature, conditions: { ...s.creature.conditions, ...conditions } } }
+  return {
+    ...s,
+    creature: {
+      ...s.creature,
+      conditions: { ...s.creature.conditions, ...conditions },
+    },
+  }
 }
 
 /** Fixed rng whose next() always returns `value`. */
@@ -35,39 +42,60 @@ describe("settlement — hunger", () => {
 
 describe("settlement — night energy recovery", () => {
   test("well-fed healthy creature recovers a full night of energy", () => {
-    const s = advanceDay(stateWith({ hunger: 80, energy: 30, health: 100 }), fixedRng(0.99))
+    const s = advanceDay(
+      stateWith({ hunger: 80, energy: 30, health: 100 }),
+      fixedRng(0.99),
+    )
     expect(s.creature?.conditions.energy).toBe(30 + 60)
   })
 
   test("recovery clamps at 100", () => {
-    const s = advanceDay(stateWith({ hunger: 80, energy: 70, health: 100 }), fixedRng(0.99))
+    const s = advanceDay(
+      stateWith({ hunger: 80, energy: 70, health: 100 }),
+      fixedRng(0.99),
+    )
     expect(s.creature?.conditions.energy).toBe(100)
   })
 
   test("starving creature sleeps poorly — reduced recovery", () => {
-    const s = advanceDay(stateWith({ hunger: 0, energy: 30, health: 100 }), fixedRng(0.99))
+    const s = advanceDay(
+      stateWith({ hunger: 0, energy: 30, health: 100 }),
+      fixedRng(0.99),
+    )
     expect(s.creature?.conditions.energy).toBe(30 + 20)
   })
 
   test("sick creature sleeps poorly — reduced recovery", () => {
-    const s = advanceDay(stateWith({ hunger: 80, energy: 30, health: 40 }), fixedRng(0.99))
+    const s = advanceDay(
+      stateWith({ hunger: 80, energy: 30, health: 40 }),
+      fixedRng(0.99),
+    )
     expect(s.creature?.conditions.energy).toBe(30 + 30)
   })
 
   test("starving and sick — smallest recovery", () => {
-    const s = advanceDay(stateWith({ hunger: 0, energy: 30, health: 40 }), fixedRng(0.99))
+    const s = advanceDay(
+      stateWith({ hunger: 0, energy: 30, health: 40 }),
+      fixedRng(0.99),
+    )
     expect(s.creature?.conditions.energy).toBe(30 + 10)
   })
 })
 
 describe("settlement — sickness", () => {
   test("a roll under the base chance makes a healthy creature sick", () => {
-    const s = advanceDay(stateWith({ hunger: 80, energy: 80, health: 100 }), fixedRng(0.01))
+    const s = advanceDay(
+      stateWith({ hunger: 80, energy: 80, health: 100 }),
+      fixedRng(0.01),
+    )
     expect(s.creature?.conditions.health).toBeLessThan(100)
   })
 
   test("a good roll keeps a well-cared-for creature healthy", () => {
-    const s = advanceDay(stateWith({ hunger: 80, energy: 80, health: 100 }), fixedRng(0.99))
+    const s = advanceDay(
+      stateWith({ hunger: 80, energy: 80, health: 100 }),
+      fixedRng(0.99),
+    )
     expect(s.creature?.conditions.health).toBe(100)
   })
 
@@ -97,24 +125,39 @@ describe("settlement — sickness", () => {
 
 describe("settlement — mood", () => {
   test("well-cared-for creature gains mood overnight", () => {
-    const s = advanceDay(stateWith({ hunger: 80, energy: 60, health: 100, mood: 50 }), fixedRng(0.99))
+    const s = advanceDay(
+      stateWith({ hunger: 80, energy: 60, health: 100, mood: 50 }),
+      fixedRng(0.99),
+    )
     expect(s.creature?.conditions.mood).toBe(55)
   })
 
   test("waking starving drains mood", () => {
-    const s = advanceDay(stateWith({ hunger: 0, energy: 60, health: 100, mood: 50 }), fixedRng(0.99))
+    const s = advanceDay(
+      stateWith({ hunger: 0, energy: 60, health: 100, mood: 50 }),
+      fixedRng(0.99),
+    )
     expect(s.creature?.conditions.mood).toBe(50 - 15)
   })
 
   test("sickness drains mood", () => {
-    const s = advanceDay(stateWith({ hunger: 80, energy: 60, health: 40, mood: 50 }), fixedRng(0.99))
+    const s = advanceDay(
+      stateWith({ hunger: 80, energy: 60, health: 40, mood: 50 }),
+      fixedRng(0.99),
+    )
     expect(s.creature?.conditions.mood).toBe(50 - 10)
   })
 
   test("mood clamps within 0-100", () => {
-    const up = advanceDay(stateWith({ hunger: 80, energy: 60, health: 100, mood: 99 }), fixedRng(0.99))
+    const up = advanceDay(
+      stateWith({ hunger: 80, energy: 60, health: 100, mood: 99 }),
+      fixedRng(0.99),
+    )
     expect(up.creature?.conditions.mood).toBe(100)
-    const down = advanceDay(stateWith({ hunger: 0, energy: 60, health: 100, mood: 3 }), fixedRng(0.99))
+    const down = advanceDay(
+      stateWith({ hunger: 0, energy: 60, health: 100, mood: 3 }),
+      fixedRng(0.99),
+    )
     expect(down.creature?.conditions.mood).toBe(0)
   })
 })

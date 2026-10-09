@@ -3,7 +3,7 @@
  * Pure data only — no DOM, no rendering, no I/O.
  */
 
-import { createCreature, type Creature } from "./creature"
+import { type Creature, createCreature } from "./creature"
 
 /** Top-level game phases. Cup is a placeholder until the cup system lands. */
 export type Phase = "day" | "cup"

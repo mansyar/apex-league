@@ -58,8 +58,13 @@ export const MOOD_DRAINED_PENALTY = 5
 /** Bond lost overnight without a bonding action. */
 export const BOND_DECAY_PER_DAY = 3
 
-function clamp(value: number): number {
+/** Clamp a condition value into the 0-100 scale. */
+export function clampCondition(value: number): number {
   return Math.max(0, Math.min(100, value))
+}
+
+function clamp(value: number): number {
+  return clampCondition(value)
 }
 
 function isStarving(hunger: number): boolean {
@@ -79,13 +84,14 @@ export function settleCreature(creature: Creature, rng: Rng): Creature {
   const starving = isStarving(hunger)
 
   // 2. Night recovery — sleep quality modulated by condition.
-  const recovery = starving && c.health < 80
-    ? NIGHT_RECOVERY.starvingAndSick
-    : starving
-      ? NIGHT_RECOVERY.starving
-      : c.health < 80
-        ? NIGHT_RECOVERY.sick
-        : NIGHT_RECOVERY.rested
+  const recovery =
+    starving && c.health < 80
+      ? NIGHT_RECOVERY.starvingAndSick
+      : starving
+        ? NIGHT_RECOVERY.starving
+        : c.health < 80
+          ? NIGHT_RECOVERY.sick
+          : NIGHT_RECOVERY.rested
   const energy = clamp(c.energy + recovery)
 
   // 3. Sickness: roll for onset, or worsen an existing sickness.

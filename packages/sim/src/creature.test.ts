@@ -3,12 +3,12 @@ import { describe, expect, test } from "bun:test"
 import {
   CONDITION_MAX,
   CONDITION_START,
+  type Creature,
+  chooseStarter,
   createCreature,
   createInitialState,
-  chooseStarter,
   getSpecies,
   STARTER_SPECIES,
-  type Creature,
 } from "./index"
 
 describe("createCreature", () => {
@@ -102,7 +102,14 @@ describe("starter catalog", () => {
 
 describe("Creature type invariants", () => {
   test("every starter's element is one of the six league elements", () => {
-    const valid = new Set(["fire", "water", "plant", "electric", "earth", "wind"])
+    const valid = new Set([
+      "fire",
+      "water",
+      "plant",
+      "electric",
+      "earth",
+      "wind",
+    ])
     for (const s of STARTER_SPECIES) {
       expect(valid.has(s.element)).toBe(true)
     }
@@ -110,9 +117,13 @@ describe("Creature type invariants", () => {
 
   test("creatures carry their condition set of exactly five keys", () => {
     const c: Creature = createCreature("plant_ox", 3)
-    expect(Object.keys(c.conditions).sort()).toEqual(
-      ["bond", "energy", "health", "hunger", "mood"],
-    )
+    expect(Object.keys(c.conditions).sort()).toEqual([
+      "bond",
+      "energy",
+      "health",
+      "hunger",
+      "mood",
+    ])
   })
 })
 
