@@ -54,7 +54,7 @@ export const STARTER_SPECIES: readonly SpeciesDef[] = Object.freeze([
     archetypeId: "axolotl",
     displayName: "Tide Axolotl",
     element: "water",
-    flavor: "A easygoing swimmer that hums bubbles when it is happy.",
+    flavor: "An easygoing swimmer that hums bubbles when it is happy.",
     available: false,
     statBounds: { hp: [40, 48], atk: [8, 12], def: [8, 11], spd: [8, 11] },
   },

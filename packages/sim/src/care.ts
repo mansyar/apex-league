@@ -5,7 +5,7 @@
  */
 
 import type { Creature } from "./creature"
-import { clampCondition } from "./settlement"
+import { clampCondition, SICK_HEALTH } from "./settlement"
 import type { GameState } from "./state"
 
 /** The four daily care actions. */
@@ -48,11 +48,11 @@ export const PLAY_MOOD_GAIN = 10
 /** Bond gained per play session. */
 export const PLAY_BOND_GAIN = 10
 
+/** Hunger at or below which feeding grants mood relief (starvation lift). */
+export const STARVING_RELIEF_HUNGER = 20
+
 /** Energy drained per play session. */
 export const PLAY_ENERGY_COST = 20
-
-/** Health at or below which the creature counts as sick. */
-export const SICK_HEALTH = 80
 
 function clampAll(conditions: Creature["conditions"]): Creature["conditions"] {
   return {
@@ -84,7 +84,9 @@ export function careAction(state: GameState, action: CareAction): CareResult {
         hunger: conditions.hunger + FEED_HUNGER_RESTORE,
         energy: conditions.energy + FEED_ENERGY_GAIN,
         // Care quality: relieving starvation is an emotional moment.
-        mood: conditions.mood + (c.hunger <= 20 ? FEED_RELIEF_MOOD : 0),
+        mood:
+          conditions.mood +
+          (c.hunger <= STARVING_RELIEF_HUNGER ? FEED_RELIEF_MOOD : 0),
       }
       break
     }

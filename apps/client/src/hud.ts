@@ -1,10 +1,12 @@
 import {
   ACTION_POINTS_PER_DAY,
   type CareAction,
+  type CareRejection,
   type CreatureConditions,
   careAction,
+  EXHAUSTED_ENERGY,
   type GameState,
-  getSpecies,
+  SICK_HEALTH,
 } from "@apex/sim"
 
 export interface HudHandlers {
@@ -17,7 +19,8 @@ export interface Hud {
 }
 
 /** Coach-voice copy for disabled actions (≤ 2 sentences, never punishing). */
-const REJECTION_COPY: Record<string, string> = {
+const REJECTION_COPY: Record<CareRejection, string> = {
+  "no-creature": "No partner yet.",
   "no-ap": "No AP left today.",
   "not-sick": "Not sick — save the medicine.",
   "too-sick": "Too sick to play today.",
@@ -44,10 +47,12 @@ const ACTIONS: Array<{ action: CareAction; label: string }> = [
 ]
 
 function coachVoice(conditions: CreatureConditions, name: string): string {
-  if (conditions.health < 80) {
+  if (conditions.health < SICK_HEALTH) {
     return `${name} seems unwell — medicine would help.`
   }
-  if (conditions.energy <= 30) return `${name} seems sluggish today…`
+  if (conditions.energy <= EXHAUSTED_ENERGY) {
+    return `${name} seems sluggish today…`
+  }
   if (conditions.mood < 30) return `${name} seems a little down today.`
   if (conditions.hunger <= 20) return `${name} looks hungry.`
   return ""
@@ -161,18 +166,18 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     lowerThird.style.display = ""
     actionRow.style.display = ""
 
-    const species = getSpecies(creature.speciesId)
-    if (!species) throw new Error(`unknown species ${creature.speciesId}`)
-    creatureName.textContent = species.displayName
-    elementBadge.textContent = species.element
-    elementBadge.className = `element-badge el-${species.element}`
+    // The creature carries its own identity; the species catalog is only
+    // needed for starter-card display.
+    creatureName.textContent = creature.name
+    elementBadge.textContent = creature.element
+    elementBadge.className = `element-badge el-${creature.element}`
 
     for (const bar of bars) {
       const v = creature.conditions[bar.key]
       bar.fill.style.width = `${v}%`
       bar.value.textContent = String(v)
     }
-    status.textContent = coachVoice(creature.conditions, species.displayName)
+    status.textContent = coachVoice(creature.conditions, creature.name)
 
     // Disabled states come from the sim itself — a dry-run careAction is
     // the single source of truth for why an action can't happen.
@@ -183,7 +188,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
         entry.reason.textContent = ""
       } else {
         entry.button.disabled = true
-        entry.reason.textContent = REJECTION_COPY[result.reason] ?? ""
+        entry.reason.textContent = REJECTION_COPY[result.reason]
       }
     }
   }

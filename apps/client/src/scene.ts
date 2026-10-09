@@ -1,4 +1,8 @@
-import type { CreatureConditions } from "@apex/sim"
+import {
+  type CreatureConditions,
+  EXHAUSTED_ENERGY,
+  SICK_HEALTH,
+} from "@apex/sim"
 import { generate } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
@@ -36,8 +40,8 @@ const MOOD_PROFILES: Record<MoodMode, MoodProfile> = {
 }
 
 function moodModeFrom(conditions: CreatureConditions): MoodMode {
-  if (conditions.health < 80) return "droopy"
-  if (conditions.energy <= 30) return "sluggish"
+  if (conditions.health < SICK_HEALTH) return "droopy"
+  if (conditions.energy <= EXHAUSTED_ENERGY) return "sluggish"
   if (conditions.mood >= 80) return "happy"
   return "normal"
 }

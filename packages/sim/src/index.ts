@@ -36,6 +36,12 @@ export {
   type SaveAdapter,
   saveGame,
 } from "./save/storage"
+export {
+  EXHAUSTED_ENERGY,
+  NIGHT_RECOVERY,
+  SICK_HEALTH,
+  settleCreature,
+} from "./settlement"
 export { getSpecies, type SpeciesDef, STARTER_SPECIES } from "./species"
 export {
   ACTION_POINTS_PER_DAY,

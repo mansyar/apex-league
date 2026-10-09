@@ -19,6 +19,9 @@ export const NIGHT_RECOVERY = Object.freeze({
   starvingAndSick: 10,
 })
 
+/** Health below which the creature counts as sick. */
+export const SICK_HEALTH = 80
+
 /** Health level at which a newly-sick creature starts. */
 export const SICKNESS_ONSET_HEALTH = 60
 
@@ -63,10 +66,6 @@ export function clampCondition(value: number): number {
   return Math.max(0, Math.min(100, value))
 }
 
-function clamp(value: number): number {
-  return clampCondition(value)
-}
-
 function isStarving(hunger: number): boolean {
   return hunger <= STARVING_HUNGER
 }
@@ -80,23 +79,23 @@ export function settleCreature(creature: Creature, rng: Rng): Creature {
   const c = creature.conditions
 
   // 1. Hunger falls.
-  const hunger = clamp(c.hunger - HUNGER_DECAY_PER_DAY)
+  const hunger = clampCondition(c.hunger - HUNGER_DECAY_PER_DAY)
   const starving = isStarving(hunger)
 
   // 2. Night recovery — sleep quality modulated by condition.
   const recovery =
-    starving && c.health < 80
+    starving && c.health < SICK_HEALTH
       ? NIGHT_RECOVERY.starvingAndSick
       : starving
         ? NIGHT_RECOVERY.starving
-        : c.health < 80
+        : c.health < SICK_HEALTH
           ? NIGHT_RECOVERY.sick
           : NIGHT_RECOVERY.rested
-  const energy = clamp(c.energy + recovery)
+  const energy = clampCondition(c.energy + recovery)
 
   // 3. Sickness: roll for onset, or worsen an existing sickness.
   let health = c.health
-  const sick = c.health < 80
+  const sick = c.health < SICK_HEALTH
   if (sick) {
     health = Math.max(HEALTH_FLOOR, health - SICKNESS_WORSENING_PER_DAY)
   } else {
@@ -111,15 +110,22 @@ export function settleCreature(creature: Creature, rng: Rng): Creature {
   // 4. Mood settles toward what the day's care earned.
   let moodDelta = 0
   if (starving) moodDelta -= MOOD_STARVING_PENALTY
-  if (health < 80) moodDelta -= MOOD_MISERY_PENALTY
+  if (health < SICK_HEALTH) moodDelta -= MOOD_MISERY_PENALTY
   if (energy < 20) moodDelta -= MOOD_DRAINED_PENALTY
-  if (moodDelta === 0 && hunger >= 40 && energy >= 40 && health >= 80) {
+  if (
+    moodDelta === 0 &&
+    hunger >= 40 &&
+    energy >= 40 &&
+    health >= SICK_HEALTH
+  ) {
     moodDelta += MOOD_WELL_CARED_BONUS
   }
-  const mood = clamp(c.mood + moodDelta)
+  const mood = clampCondition(c.mood + moodDelta)
 
   // 5. Bond decays without a bonding action; the daily flag resets.
-  const bond = clamp(c.bond + (creature.bondedToday ? 0 : -BOND_DECAY_PER_DAY))
+  const bond = clampCondition(
+    c.bond + (creature.bondedToday ? 0 : -BOND_DECAY_PER_DAY),
+  )
 
   const conditions: CreatureConditions = { hunger, energy, health, mood, bond }
   return { ...creature, conditions, bondedToday: false }
