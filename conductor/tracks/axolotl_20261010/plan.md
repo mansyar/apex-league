@@ -12,12 +12,12 @@ gallery herd param); this branch is rebased on top of it.
 - [x] Task: Write failing tests — axolotl template: schema-valid, 3 slots ×
       ≥2 styles, param-name uniqueness across slots, Water-blue 205° hue
       contract, gilded weight 32 `[b84a0ec]`
-- [ ] Task: Write failing tests — sampleDna: in-bounds via
+- [x] Task: Write failing tests — sampleDna: in-bounds via
       assertDnaInBounds, determinism, seed divergence, style enums over 30
       seeds, gilded frequency over 2000 seeds, buildAxolotl part inventory +
       pivots/parents, voxelize sanity at AXOLOTL_GRID; registry resolves
       `generate("axolotl", seed)` once registered (unknown-id error behavior
-      for other ids unchanged)
+      for other ids unchanged) `[ae32714]`
 
 ## Phase B — Axolotl Implementation (green)
 
