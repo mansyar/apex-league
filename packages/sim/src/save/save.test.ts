@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test"
 
-import { createInitialState } from "../state"
+import { chooseStarter, createInitialState } from "../state"
 import { advanceDay } from "../ticker"
 import { migrate } from "./migrate"
-import { SAVE_VERSION, type SaveDataV1, serializeSave } from "./schema"
+import { SAVE_VERSION, type SaveData, serializeSave } from "./schema"
 import {
   createMemoryAdapter,
   loadGame,
@@ -11,20 +11,20 @@ import {
   saveGame,
 } from "./storage"
 
-describe("save schema v1", () => {
-  test("current version is 1", () => {
-    expect(SAVE_VERSION).toBe(1)
+describe("save schema", () => {
+  test("current version is 2", () => {
+    expect(SAVE_VERSION).toBe(2)
   })
 
   test("serializeSave wraps state with version metadata", () => {
-    const data: SaveDataV1 = {
-      version: 1,
+    const data: SaveData = {
+      version: SAVE_VERSION,
       state: createInitialState(),
       savedAt: 1000,
     }
     const json = serializeSave(data)
-    const parsed = JSON.parse(json) as SaveDataV1
-    expect(parsed.version).toBe(1)
+    const parsed = JSON.parse(json) as SaveData
+    expect(parsed.version).toBe(2)
     expect(parsed.state.day).toBe(1)
     expect(parsed.savedAt).toBe(1000)
   })
@@ -35,7 +35,7 @@ describe("migration chain", () => {
     // v0 predates the versioned schema: flat shape, no phase/AP.
     const v0 = { version: 0, day: 7 }
     const migrated = migrate(v0)
-    expect(migrated.version).toBe(1)
+    expect(migrated.version).toBe(2)
     expect(migrated.state.day).toBe(7)
     expect(migrated.state.phase).toBe("cup")
     expect(migrated.state.actionPoints).toBeGreaterThan(0)
@@ -46,14 +46,53 @@ describe("migration chain", () => {
     expect(migrated.state.phase).toBe("day")
   })
 
-  test("migrates a current-version save through unchanged", () => {
-    const v1: SaveDataV1 = {
+  test("migrates a v1 save to v2, granting the default Fire drake starter", () => {
+    // v1 shape: GameState without a creature (pre-care-loop saves).
+    const v1 = {
       version: 1,
+      state: { day: 4, phase: "day", actionPoints: 2 },
+      savedAt: 1234,
+    }
+    const migrated = migrate(v1)
+    expect(migrated.version).toBe(2)
+    expect(migrated.savedAt).toBe(1234)
+    expect(migrated.state.day).toBe(4)
+    expect(migrated.state.actionPoints).toBe(2)
+    const creature = migrated.state.creature
+    expect(creature).not.toBeNull()
+    expect(creature?.speciesId).toBe("fire_drake")
+    expect(creature?.element).toBe("fire")
+    expect(creature?.stage).toBe("baby")
+  })
+
+  test("v1 migration is deterministic — same payload, same creature", () => {
+    const v1 = () => ({
+      version: 1,
+      state: { day: 2, phase: "day", actionPoints: 3 },
+      savedAt: 0,
+    })
+    const a = migrate(v1())
+    const b = migrate(v1())
+    expect(a).toEqual(b)
+  })
+
+  test("rejects a v1 save with a semantically broken state", () => {
+    const v1 = {
+      version: 1,
+      state: { day: -1, phase: "day", actionPoints: 3 },
+      savedAt: 0,
+    }
+    expect(() => migrate(v1)).toThrow()
+  })
+
+  test("migrates a current-version save through unchanged", () => {
+    const v2: SaveData = {
+      version: SAVE_VERSION,
       state: advanceDay(createInitialState()),
       savedAt: 42,
     }
-    const migrated = migrate(v1)
-    expect(migrated).toEqual(v1)
+    const migrated = migrate(v2)
+    expect(migrated).toEqual(v2)
   })
 
   test("rejects saves from an unknown future version", () => {
@@ -128,5 +167,57 @@ describe("storage adapter", () => {
       adapter.setItem("apex.save", JSON.stringify(payload))
       expect(loadGame(adapter)).toBeNull()
     }
+  })
+
+  test("round-trips a save that owns a creature", () => {
+    const adapter: SaveAdapter = createMemoryAdapter()
+    const state = advanceDay(
+      chooseStarter(createInitialState(), "fire_drake", 42),
+    )
+    saveGame(adapter, state, 500)
+    const loaded = loadGame(adapter)
+    expect(loaded).not.toBeNull()
+    expect(loaded?.creature).not.toBeNull()
+    expect(loaded?.creature?.speciesId).toBe("fire_drake")
+    expect(loaded?.creature?.conditions).toEqual(state.creature?.conditions)
+  })
+
+  test("loadGame rejects a creature with out-of-range conditions", () => {
+    const adapter: SaveAdapter = createMemoryAdapter()
+    const state = chooseStarter(createInitialState(), "fire_drake", 42)
+    const broken = structuredClone(state)
+    if (broken.creature) broken.creature.conditions.hunger = 150
+    adapter.setItem(
+      "apex.save",
+      JSON.stringify({ version: 2, state: broken, savedAt: 0 }),
+    )
+    expect(loadGame(adapter)).toBeNull()
+  })
+
+  test("loadGame rejects a creature with non-positive stats", () => {
+    const adapter: SaveAdapter = createMemoryAdapter()
+    const state = chooseStarter(createInitialState(), "fire_drake", 42)
+    const broken = structuredClone(state)
+    if (broken.creature) broken.creature.stats.hp = 0
+    adapter.setItem(
+      "apex.save",
+      JSON.stringify({ version: 2, state: broken, savedAt: 0 }),
+    )
+    expect(loadGame(adapter)).toBeNull()
+  })
+
+  test("loadGame rejects a creature with a bad element", () => {
+    const adapter: SaveAdapter = createMemoryAdapter()
+    const state = chooseStarter(createInitialState(), "fire_drake", 42)
+    const broken = structuredClone(state)
+    if (broken.creature) {
+      // @ts-expect-error — deliberately corrupting the payload
+      broken.creature.element = "shadow"
+    }
+    adapter.setItem(
+      "apex.save",
+      JSON.stringify({ version: 2, state: broken, savedAt: 0 }),
+    )
+    expect(loadGame(adapter)).toBeNull()
   })
 })

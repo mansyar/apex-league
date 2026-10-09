@@ -28,7 +28,7 @@ export {
 export { beginCup, endCup } from "./machine"
 export { makeRng, type Rng } from "./rng"
 export { migrate } from "./save/migrate"
-export { SAVE_VERSION, type SaveDataV1, serializeSave } from "./save/schema"
+export { SAVE_VERSION, type SaveData, serializeSave } from "./save/schema"
 export {
   createMemoryAdapter,
   loadGame,

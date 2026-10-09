@@ -1,6 +1,7 @@
+import type { Creature } from "../creature"
 import type { GameState } from "../state"
 import { migrate } from "./migrate"
-import { SAVE_VERSION, type SaveDataV1, serializeSave } from "./schema"
+import { SAVE_VERSION, type SaveData, serializeSave } from "./schema"
 
 export const SAVE_KEY = "apex.save"
 
@@ -31,8 +32,40 @@ export function saveGame(
   state: GameState,
   savedAt: number,
 ): void {
-  const data: SaveDataV1 = { version: SAVE_VERSION, state, savedAt }
+  const data: SaveData = { version: SAVE_VERSION, state, savedAt }
   adapter.setItem(SAVE_KEY, serializeSave(data))
+}
+
+const ELEMENTS = ["fire", "water", "plant", "electric", "earth", "wind"]
+const STAGES = ["baby", "juvenile", "champion"]
+
+/** A creature is valid when every field is the right type and in range. */
+function isValidCreature(c: unknown): c is Creature {
+  if (typeof c !== "object" || c === null) return false
+  const creature = c as Record<string, unknown>
+  if (typeof creature.speciesId !== "string" || creature.speciesId.length === 0)
+    return false
+  if (typeof creature.bondedToday !== "boolean") return false
+  if (!ELEMENTS.includes(creature.element as string)) return false
+  if (!STAGES.includes(creature.stage as string)) return false
+  const stats = creature.stats
+  if (typeof stats !== "object" || stats === null) return false
+  for (const value of Object.values(stats as Record<string, unknown>)) {
+    if (typeof value !== "number" || !Number.isInteger(value) || value < 1)
+      return false
+  }
+  const conditions = creature.conditions
+  if (typeof conditions !== "object" || conditions === null) return false
+  for (const value of Object.values(conditions as Record<string, unknown>)) {
+    if (
+      typeof value !== "number" ||
+      !Number.isInteger(value) ||
+      value < 0 ||
+      value > 100
+    )
+      return false
+  }
+  return true
 }
 
 /**
@@ -51,7 +84,8 @@ export function loadGame(adapter: SaveAdapter): GameState | null {
       state.day < 1 ||
       (state.phase !== "day" && state.phase !== "cup") ||
       !Number.isInteger(state.actionPoints) ||
-      state.actionPoints < 0
+      state.actionPoints < 0 ||
+      (state.creature !== null && !isValidCreature(state.creature))
     ) {
       return null
     }
