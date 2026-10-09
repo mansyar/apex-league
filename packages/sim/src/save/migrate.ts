@@ -21,6 +21,7 @@ const migrations: Record<
       day,
       phase: isCupDay(day) ? "cup" : "day",
       actionPoints: ACTION_POINTS_PER_DAY,
+      creature: null,
     }
     return { version: 1, state, savedAt: 0 }
   },

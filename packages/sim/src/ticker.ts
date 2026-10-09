@@ -11,5 +11,6 @@ export function advanceDay(state: GameState): GameState {
     day,
     phase: isCupDay(day) ? "cup" : "day",
     actionPoints: ACTION_POINTS_PER_DAY,
+    creature: state.creature,
   }
 }
