@@ -1,6 +1,6 @@
-import "@apex/sim";
+import "@apex/sim"
 
-const app = document.querySelector<HTMLDivElement>("#app");
+const app = document.querySelector<HTMLDivElement>("#app")
 if (app) {
-  app.textContent = "Apex League";
+  app.textContent = "Apex League"
 }
