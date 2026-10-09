@@ -109,8 +109,9 @@ export function buildDrake(dna: Dna): DrakeBuild {
   const rearB = at(0, 19, -7 * bl)
 
   const tailBase = at(0, 17.5, -6.5 * bl)
-  const tailMid = at(0, 18.5, -6.5 * bl - 8 * tl)
-  const tailEnd = at(0, 21.5, -6.5 * bl - 12 * tl)
+  const tailMid = at(0, 13.5, -6.5 * bl - 5.5 * tl)
+  const tailKnee = at(0, 11.8, -6.5 * bl - 10.5 * tl)
+  const tailEnd = at(0, 14.5, -6.5 * bl - 13 * tl)
 
   const hipY = 15
   const footY = 0.9 + 1.7 * bg
@@ -169,13 +170,22 @@ export function buildDrake(dna: Dna): DrakeBuild {
     sdf: smoothUnion(chestField, rearField, 3),
   })
 
-  const tailField: Sdf = sdCapsule(tailBase, tailMid, 3 * bg)
+  // Tail: a three-segment taper that droops from the rump and flicks up at
+  // the tip — a straight horizontal tail reads as a plank. Radii step down
+  // aggressively: at 56-voxel resolution a gentle taper is invisible.
+  const tailField: Sdf = union(
+    sdCapsule(tailBase, tailMid, 2.6 * bg),
+    sdCapsule(tailMid, tailKnee, 1.6),
+  )
   fields.push({ name: "tail", sdf: tailField })
 
-  const tailTipZ = -6.5 * bl - 12 * tl
-  const tailTipPieces: Sdf[] = [sdCapsule(tailMid, tailEnd, 1.7)]
+  const tailTipZ = -6.5 * bl - 13 * tl
+  const tailTipPieces: Sdf[] = [sdCapsule(tailKnee, tailEnd, 1.0)]
   if (tailStyle === "spade") {
-    tailTipPieces.push(sdBox(at(0, 19.8, tailTipZ - 1.1), vec3(2.4, 2.0, 1.5)))
+    // Upright diamond fin at the very tip, facing up with the flick.
+    tailTipPieces.push(
+      sdBox(at(0, tailEnd.y + 0.4, tailTipZ), vec3(2.8, 2.6, 1.5)),
+    )
   } else if (tailStyle === "club") {
     tailTipPieces.push(sdSphere(tailEnd, 2.2))
   }
@@ -230,7 +240,7 @@ export function buildDrake(dna: Dna): DrakeBuild {
   const pivots: Record<string, [number, number, number]> = {
     body: [O, 16.5, O - bl],
     tail: [tailBase.x, tailBase.y, tailBase.z],
-    tailTip: [tailMid.x, tailMid.y, tailMid.z],
+    tailTip: [tailKnee.x, tailKnee.y, tailKnee.z],
     ...legPivots,
     neck: [neckA.x, neckA.y, neckA.z],
     head: [neckC.x, neckC.y, neckC.z],
