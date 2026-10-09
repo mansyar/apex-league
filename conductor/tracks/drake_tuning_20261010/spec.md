@@ -44,12 +44,24 @@ proportion-budget gate.
   rebalance actually shrank the artifact to ~137 KB vs 129 KB before; an
   interim 165 KiB deviation was reverted as unnecessary).
 
+## Scope Amendment (approved mid-track)
+
+- **Amended 2026-10-10** after the vision loop: bounds rebalance alone
+  fixes proportions but the silhouette still reads farm-animal/sauropod.
+  Scope extended to a **character polish pass over the drake's SDF field
+  plan** (head/jaw/snout, neck taper, back arch, tail sweep, shoulder
+  masses), keeping the part/pivot/rig contract intact. The proportion-budget
+  guardrail stays the hard gate.
+
 ## Acceptance Criteria
 
 1. Proportion-budget test passes for both archetypes across the sweep and
    fails with actionable output when violated.
 2. Vision-model review of outlier seeds reads them as drakes (evidence
-   recorded in git notes).
+   recorded in git notes). **Post-amendment:** agent-vision review from
+   ≥2 angles no longer misreads the creature as a farm animal or
+   sauropod — head, neck, back, tail carry drake character while
+   proportions stay in budget.
 3. All existing gates green (`bun run verify`); artifacts regenerated if
    needed.
 4. Bovine output unchanged.

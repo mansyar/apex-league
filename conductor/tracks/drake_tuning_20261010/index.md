@@ -7,4 +7,4 @@ a new shared proportion-budget test and a vision-model silhouette loop.
 - [Implementation Plan](./plan.md)
 - [Metadata](./metadata.json)
 
-Status: **new** — branch `track/drake_tuning_20261010`.
+Status: **complete** — merged into main.

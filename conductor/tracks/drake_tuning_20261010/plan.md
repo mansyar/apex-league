@@ -23,11 +23,12 @@ with a verification & checkpoint task).
 
 - [x] Task: Grey-render outlier + random seed samples; vision-model review ("reads as a drake?") (`bfc0847`)
 - [x] Task: Iterate bounds from feedback until the sampled range passes (return to Phase B edits as needed) (`bfc0847`)
+  - [x] scope amendment: SDF character-polish pass (throat fill, spine arch, brow/snout/jaw, tail sweep, haunches, shoulders) per agent-vision rounds 1–3 — commits `8cc5a02`, `04ca58a`; final verdict by user: accepted as final
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: bfc0847]
 
 ## Phase D — Artifacts & Integration Gate
 
 - [x] Task: Regenerate `artifacts/draconic-42.glb` + manifest if seed-42 output changed (`5f9a719`)
-- [x] Task: Full gate — `bun run verify` green (`5f9a719`)
+- [x] Task: Full gate — `bun run verify` green (`5f9a719`; re-verified exit 0 at `8cc5a02`, `04ca58a`)
 - [x] Task: Browser gallery spot check (`?archetype=draconic`) with visual evidence (`bfc0847`)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: bfc0847]
