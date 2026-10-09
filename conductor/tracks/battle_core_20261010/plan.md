@@ -11,13 +11,13 @@ only when the task says so.
 
 ## Phase A — Type Chart & Damage (sim)
 
-- [ ] Task: Failing tests — chart and damage
-  - [ ] each beats-edge is 2×, and the reverse pair is 0.5×
-  - [ ] a pair with no edge either way is 1× (Fire vs Electric)
-  - [ ] no pair is 0×
-  - [ ] hit damage matches `max(1, floor(power * atk * typeNum / (def * typeDen)))`, including the spec's ATK 11 / DEF 10 checks (basic 4, Blaze Bolt 13 / 26 / 6)
-  - [ ] a miss deals 0 and does not apply the minimum of 1
-- [ ] Task: Implement `battle/chart.ts` and `battle/damage.ts`
+- [x] Task: Failing tests — chart and damage (`9d0e8e1`)
+  - [x] each beats-edge is 2×, and the reverse pair is 0.5×
+  - [x] a pair with no edge either way is 1× (Fire vs Electric)
+  - [x] no pair is 0×
+  - [x] hit damage matches `max(1, floor(power * atk * typeNum / (def * typeDen)))`, including the spec's ATK 11 / DEF 10 checks (basic 4, Blaze Bolt 13 / 26 / 6)
+  - [x] a miss deals 0 and does not apply the minimum of 1
+- [x] Task: Implement `battle/chart.ts` and `battle/damage.ts` (`9d0e8e1`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase B — Catalog, Kits, Loadout, Cooldown (sim)
