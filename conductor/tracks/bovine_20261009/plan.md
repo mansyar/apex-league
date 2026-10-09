@@ -22,9 +22,9 @@ frozen — template authoring only.
 
 ## Phase C — Property & Fuzz
 
-- [ ] Task: Add bovine cases to fuzz suite — 200-seed DNA validity, 40-seed
-      boundary probe, 8-seed pipeline budget, byte-identical determinism
-- [ ] Task: Grey-render silhouette iteration via preview page until it reads
+- [x] Task: Add bovine cases to fuzz suite — 200-seed DNA validity, 40-seed
+      boundary probe, 8-seed pipeline budget, byte-identical determinism  `b6e3256`
+- [~] Task: Grey-render silhouette iteration via preview page until it reads
       "ox" (living-concept loop, user verdict)
 
 ## Phase D — Integration & Vision Gate (manual-verification heavy)
