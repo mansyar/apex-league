@@ -3,12 +3,12 @@
 	"seed": 42,
 	"generatorVersion": 1,
 	"dnaHash": "c4b3dd5ab136f78fbd5fe0a1bce6e468e080cf2514e9f56d326e149faca558a6",
-	"glbHash": "4e4e1ec50b204b515822658d51e56135fec59d62c223d42fc4342d71657f1836",
+	"glbHash": "c908a869a6e7f49deca4762dd64d2c588f920092b69c1085eb1dbe2426c11fbb",
 	"triCount": 1996,
 	"pivots": {
 		"body": [
 			28,
-			11.5,
+			15,
 			26.909558499231935
 		],
 		"tail": [

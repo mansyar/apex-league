@@ -109,7 +109,6 @@ export function createScene(container: HTMLElement): SceneHandle {
   const head = creature.getObjectByName("head")
   const tail = creature.getObjectByName("tail")
   const tailTip = creature.getObjectByName("tailTip")
-  const bodyBaseY = body?.position.y ?? 0
   const headBaseY = head?.position.y ?? 0
 
   const clockStart = performance.now()
@@ -117,17 +116,18 @@ export function createScene(container: HTMLElement): SceneHandle {
 
   const tick = (): void => {
     const t = (performance.now() - clockStart) / 1000
-    // Breathe idle: a gentle vertical BOB of the whole body hierarchy. No
-    // per-part scale — non-uniform scale makes the body's voxel pattern slide
-    // against the planted legs and reads as joint separation. The bob keeps
-    // every voxel aligned to the grid while the chest rises and falls; the
-    // head and tail add small secondary motion on top.
+    // Breathe idle: squash-and-stretch on the body around its HIP-LINE pivot.
+    // Scale never moves the pivot, so body voxels at the leg junction stay
+    // fixed and the legs remain visually attached; the chest and belly flex
+    // above/below it. Horizontal squash is kept small (it slides the body's
+    // voxel pattern against the planted legs); the vertical stretch carries
+    // the read. Neck/head/horns/tail ride along via the rig hierarchy.
     const breath = Math.sin(t * 2)
     if (body) {
-      body.position.y = bodyBaseY + breath * 0.5
+      body.scale.set(1 - breath * 0.01, 1 + breath * 0.035, 1 - breath * 0.01)
     }
     if (head) {
-      head.position.y = headBaseY + breath * 0.15
+      head.position.y = headBaseY + breath * 0.02
     }
     const sway = Math.sin(t * 1.3)
     if (tail) {
