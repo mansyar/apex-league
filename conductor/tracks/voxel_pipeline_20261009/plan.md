@@ -46,9 +46,9 @@ lifecycle, checkpoints, and quality gates.
 - [x] Task: Dev gallery page — seed input + variant grid (dev-only route)
       `abc0d69`; tail redesign after user feedback: droop + aggressive
       taper + tip spade `d89c4b6`; user approved all 3 tail styles
-- [~] Task: Wire drake GLB into ranch scene + procedural breathe idle via
-      hierarchy rig
-- [ ] Task: Determinism gate script (regenerate + hash-compare) wired into
+- [x] Task: Wire drake GLB into ranch scene + procedural breathe idle via
+      hierarchy rig `ef055fc`
+- [~] Task: Determinism gate script (regenerate + hash-compare) wired into
       verify/CI
 - [ ] Task: Herd test — render 8-seed lineup, rubric review with user, tune
       bounds if rejected

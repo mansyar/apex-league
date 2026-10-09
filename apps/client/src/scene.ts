@@ -30,8 +30,61 @@ export function createScene(container: HTMLElement): SceneHandle {
     0.1,
     100,
   )
-  camera.position.set(3.5, 3, 5.5)
-  camera.lookAt(0, 0.6, 0)
+
+  // Drag-to-orbit camera around the creature, so the breathe idle can be
+  // inspected from any angle. Wheel zooms, clamped to sane distances.
+  const target = new THREE.Vector3(0, 0.8, 0)
+  const orbit = { azimuth: 0.567, elevation: 0.326, radius: 6.9 }
+  const clamp = (v: number, lo: number, hi: number): number =>
+    Math.min(Math.max(v, lo), hi)
+  const applyOrbit = (): void => {
+    camera.position.set(
+      target.x +
+        orbit.radius * Math.cos(orbit.elevation) * Math.sin(orbit.azimuth),
+      target.y + orbit.radius * Math.sin(orbit.elevation),
+      target.z +
+        orbit.radius * Math.cos(orbit.elevation) * Math.cos(orbit.azimuth),
+    )
+    camera.lookAt(target)
+  }
+  applyOrbit()
+
+  let dragging = false
+  let lastX = 0
+  let lastY = 0
+  const onPointerDown = (e: PointerEvent): void => {
+    dragging = true
+    lastX = e.clientX
+    lastY = e.clientY
+  }
+  const onPointerMove = (e: PointerEvent): void => {
+    if (!dragging) return
+    orbit.azimuth -= (e.clientX - lastX) * 0.005
+    orbit.elevation = clamp(
+      orbit.elevation + (e.clientY - lastY) * 0.005,
+      0.05,
+      1.45,
+    )
+    lastX = e.clientX
+    lastY = e.clientY
+    applyOrbit()
+  }
+  const onPointerUp = (): void => {
+    dragging = false
+  }
+  const onWheel = (e: WheelEvent): void => {
+    orbit.radius = clamp(
+      orbit.radius * (1 + Math.sign(e.deltaY) * 0.1),
+      2.5,
+      14,
+    )
+    applyOrbit()
+  }
+  const canvas = renderer.domElement
+  canvas.addEventListener("pointerdown", onPointerDown)
+  window.addEventListener("pointermove", onPointerMove)
+  window.addEventListener("pointerup", onPointerUp)
+  canvas.addEventListener("wheel", onWheel)
 
   const ambient = new THREE.AmbientLight(0xffffff, 0.7)
   const sun = new THREE.DirectionalLight(0xfff4e0, 1.6)
@@ -54,6 +107,7 @@ export function createScene(container: HTMLElement): SceneHandle {
   // Grab the rig parts by name — the hierarchy contract guarantees they exist.
   const body = creature.getObjectByName("body")
   const head = creature.getObjectByName("head")
+  const neck = creature.getObjectByName("neck")
   const tail = creature.getObjectByName("tail")
   const tailTip = creature.getObjectByName("tailTip")
   const headBaseY = head?.position.y ?? 0
@@ -63,11 +117,15 @@ export function createScene(container: HTMLElement): SceneHandle {
 
   const tick = (): void => {
     const t = (performance.now() - clockStart) / 1000
-    // Breathe idle: squash-and-stretch on the body, a subtle head bob, and a
-    // slow tail sway — each animated around its declared pivot joint.
+    // Breathe idle: squash-and-stretch on the body with the neck stretching
+    // in sync around its base pivot (so the neck-body joint never separates),
+    // a subtle head bob, and a slow tail sway around the declared joints.
     const breath = Math.sin(t * 2)
     if (body) {
-      body.scale.set(1 - breath * 0.02, 1 + breath * 0.04, 1 - breath * 0.02)
+      body.scale.set(1 - breath * 0.02, 1 + breath * 0.03, 1 - breath * 0.02)
+    }
+    if (neck) {
+      neck.scale.y = 1 + breath * 0.03
     }
     if (head) {
       head.position.y = headBaseY + breath * 0.05
@@ -98,6 +156,10 @@ export function createScene(container: HTMLElement): SceneHandle {
     dispose() {
       cancelAnimationFrame(raf)
       window.removeEventListener("resize", onResize)
+      window.removeEventListener("pointermove", onPointerMove)
+      window.removeEventListener("pointerup", onPointerUp)
+      canvas.removeEventListener("pointerdown", onPointerDown)
+      canvas.removeEventListener("wheel", onWheel)
       // Free every geometry/material on the scene to avoid GPU leaks when
       // scenes are swapped (ranch <-> arena later).
       scene.traverse((obj) => {
