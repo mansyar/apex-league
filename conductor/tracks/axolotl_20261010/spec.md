@@ -9,9 +9,12 @@ Everything ships through the existing pure-TS pipeline (`@apex/voxel`) with
 zero pipeline-core changes expected; this track is mostly template authoring
 + validation.
 
-**Precondition:** the Bovine track's Phase D is complete first —
-multi-archetype `export-artifact.ts --archetype`, gallery herd wiring, and
-`buildCreatureGroup` generalized beyond `DrakeBuild`.
+**Precondition — satisfied.** The Bovine track's Phase D landed on `main`
+before this track started: archetype registry with `generate(archetypeId,
+seed)` API (`packages/voxel/src/archetype.ts`), single-sourced
+`CreatureBuild` (`packages/voxel/src/build.ts`), archetype-generic
+`export-artifact.ts` and determinism gate, gallery `?archetype=` param with
+mixed herd. Branch `track/aquatic_20261010` is rebased onto that tip.
 
 ## Functional Requirements
 
@@ -29,18 +32,23 @@ multi-archetype `export-artifact.ts --archetype`, gallery herd wiring, and
 - **FR4 — Palette**: fixed Water-blue hue 205° (type-hue contract) + value
   jitter; `gilded` rarity gate (weight 32) mirroring the drake/bovine
   (gold hue 45 override).
-- **FR5 — Rig contract**: `buildAxolotl(dna)` → fields, pivots at joints,
-  colors, `parents` map compatible with the shared `buildCreatureGroup`
-  renderer and breathe-idle.
+- **FR5 — Rig contract**: `buildAxolotl(dna)` returns a `CreatureBuild`
+  (`packages/voxel/src/build.ts` — fields, pivots at joints, colors,
+  `parents` map) compatible with the shared `buildCreatureGroup` renderer
+  and breathe-idle.
 - **FR6 — Tests**: template validation tests, sampleDna in-bounds /
   distinctness / rarity-frequency property tests, grid-boundary probe
   (0 edge-touching voxels), full-pipeline GLB budget + byte-identical
   determinism — mirroring the bovine suite.
-- **FR7 — Artifacts & gate**: canonical `artifacts/axolotl-<seed>.glb` +
-  manifest via the multi-archetype export script; determinism gate extended
-  to cover three archetypes.
-- **FR8 — Vision gate**: gallery renders axolotls (mixed herd); 8-seed
-  axolotl line-up judged by the user (recognizable axolotl / varied /
+- **FR7 — Artifacts & gate**: axolotl registered in the `archetypes`
+  registry (template, grid, build) so `generate("axolotl", seed)` works;
+  canonical `artifacts/axolotl-<seed>.glb` + manifest committed via the
+  existing archetype-generic export script. The determinism gate already
+  iterates every registered archetype — it must cover axolotl with **zero
+  script changes**.
+- **FR8 — Vision gate**: gallery/preview `?archetype=` params extended to
+  accept `axolotl` (and the mixed herd becoming a three-way rotation);
+  8-seed axolotl line-up judged by the user (recognizable axolotl / varied /
   appealing); grey-render silhouette iteration loop like the bovine's.
 
 ## Non-Functional Requirements

@@ -3,8 +3,9 @@
 TDD-ordered per workflow.md. Pipeline core (sdf/voxelizer/mesher/glb) is
 frozen — template authoring only.
 
-**Precondition:** bovine Phase D landed (multi-archetype export script,
-gallery herd, generalized creature builder).
+**Precondition — satisfied:** bovine Phase D landed on `main` (archetype
+registry + `generate()` API, generic export script + determinism gate,
+gallery herd param); this branch is rebased on top of it.
 
 ## Phase A — Template Tests (red)
 
@@ -14,13 +15,19 @@ gallery herd, generalized creature builder).
 - [ ] Task: Write failing tests — sampleDna: in-bounds via
       assertDnaInBounds, determinism, seed divergence, style enums over 30
       seeds, gilded frequency over 2000 seeds, buildAxolotl part inventory +
-      pivots/parents, voxelize sanity at AXOLOTL_GRID
+      pivots/parents, voxelize sanity at AXOLOTL_GRID; registry resolves
+      `generate("axolotl", seed)` once registered (unknown-id error behavior
+      for other ids unchanged)
 
 ## Phase B — Axolotl Implementation (green)
 
 - [ ] Task: Implement `axolotlTemplate` + `buildAxolotl` SDF assembly
       (elongated body, flat head, stubby legs, gill fronds, fin tail, dorsal
-      fin, barbels; pivots, parents, palette) to green
+      fin, barbels; CreatureBuild-compatible fields/pivots/parents/colors,
+      Water-blue palette) to green
+- [ ] Task: Register axolotl in the `archetypes` registry
+      (`packages/voxel/src/archetype.ts`) and export from
+      `packages/voxel/src/index.ts`
 - [ ] Task: Geometric hardening — grid-boundary probes over 400 seeds; fix
       overflows; commit artifact-ready build
 
@@ -33,9 +40,11 @@ gallery herd, generalized creature builder).
 
 ## Phase D — Integration & Vision Gate (manual-verification heavy)
 
-- [ ] Task: Extend `export-artifact.ts` + determinism gate for
-      `--archetype axolotl`; regenerate + commit axolotl artifact
-- [ ] Task: Gallery shows axolotls (mixed herd with drakes + bovines); wire
-      Water-blue into creature builder
+- [ ] Task: Run the existing archetype-generic export script to generate +
+      commit `artifacts/axolotl-42.glb` + manifest; confirm the determinism
+      gate auto-covers all three archetypes with zero script edits
+- [ ] Task: Gallery/preview accept `?archetype=axolotl` (extend the param
+      whitelist; mixed herd becomes a three-way rotation); verify Water-blue
+      palette renders correctly through `buildCreatureGroup`
 - [ ] Task: Herd test — 8-seed axolotl lineup, rubric review with user
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
