@@ -20,7 +20,9 @@ Style Guide, which is enforced by the `gts` tool.
         visibility with `private` or `protected` where possible.
 -   **Functions:** Prefer function declarations for named functions. Use arrow
     functions for anonymous functions/callbacks.
--   **String Literals:** Use single quotes (`'`). Use template literals (`` `
+-   **String Literals:** Use double quotes. **The Biome configuration is
+    authoritative for formatting where it conflicts with this guide.** Use
+    template literals for interpolation and multi-line strings.
     ``) for interpolation and multi-line strings.
 -   **Equality Checks:** Always use triple equals (`===`) and not equals
     (`!==`).
@@ -33,8 +35,8 @@ Style Guide, which is enforced by the `gts` tool.
 -   **`any` Type:** **Avoid `any`**. Prefer `unknown` or a more specific type.
 -   **Wrapper Objects:** Do not instantiate `String`, `Boolean`, or `Number`
     wrapper classes.
--   **Automatic Semicolon Insertion (ASI):** Do not rely on it. **Explicitly end
-    all statements with a semicolon.**
+-   **Semicolons:** Omit unnecessary semicolons (Biome `asNeeded`). Do not
+    rely on ASI for correctness - add one only where required.
 -   **`const enum`:** Do not use `const enum`. Use plain `enum` instead.
 -   **`eval()` and `Function(...string)`:** Forbidden.
 
