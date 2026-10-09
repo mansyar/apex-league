@@ -4,7 +4,7 @@
  * reasons the UI maps to copy. No DOM, no rendering, no I/O.
  */
 
-import type { Creature } from "./creature"
+import { type Creature, type StatKey, TRAINING_CAP } from "./creature"
 import { clampCondition, SICK_HEALTH } from "./settlement"
 import type { GameState } from "./state"
 
@@ -23,6 +23,14 @@ export type CareRejection =
 export type CareResult =
   | { ok: true; state: GameState }
   | { ok: false; reason: CareRejection }
+
+/** Friendly rejection reasons for assigning a training focus. */
+export type TrainingRejection = "no-creature" | "no-ap" | "stat-capped"
+
+/** Result of attempting to assign a training focus. */
+export type TrainingAttempt =
+  | { ok: true; state: GameState }
+  | { ok: false; reason: TrainingRejection }
 
 /** AP cost of every care action at MVP (tuned for 2-3 decisions per day). */
 export const CARE_AP_COST = 1
@@ -130,6 +138,43 @@ export function careAction(state: GameState, action: CareAction): CareResult {
       ...state,
       actionPoints: state.actionPoints - CARE_AP_COST,
       creature,
+    },
+  }
+}
+
+/**
+ * Assign tonight's training focus to one stat. The first assignment of the
+ * day costs 1 AP; re-pointing the focus later the same day is free. A stat
+ * already at the training cap is rejected before any AP is spent. Pure:
+ * on failure nothing changes.
+ */
+export function assignTraining(
+  state: GameState,
+  stat: StatKey,
+): TrainingAttempt {
+  if (!state.creature) return { ok: false, reason: "no-creature" }
+
+  const creature = state.creature
+  const costsAp = creature.trainingFocus === null
+  if (costsAp && state.actionPoints < CARE_AP_COST) {
+    return { ok: false, reason: "no-ap" }
+  }
+  if (creature.trained[stat] >= TRAINING_CAP) {
+    return { ok: false, reason: "stat-capped" }
+  }
+
+  return {
+    ok: true,
+    state: {
+      ...state,
+      actionPoints: costsAp
+        ? state.actionPoints - CARE_AP_COST
+        : state.actionPoints,
+      creature: {
+        ...creature,
+        trainingFocus: stat,
+        trainingResult: null,
+      },
     },
   }
 }

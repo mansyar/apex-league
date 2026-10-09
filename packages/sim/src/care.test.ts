@@ -2,11 +2,13 @@ import { describe, expect, test } from "bun:test"
 
 import {
   ACTION_POINTS_PER_DAY,
+  assignTraining,
   type Creature,
   careAction,
   chooseStarter,
   createInitialState,
   type GameState,
+  TRAINING_CAP,
 } from "./index"
 
 /** Day-1 state with an owned creature and hand-set conditions/AP. */
@@ -137,6 +139,92 @@ describe("careAction — rejections", () => {
     const s = stateWith({ hunger: 30 })
     const snapshot = structuredClone(s)
     careAction(s, "feed")
+    expect(s).toEqual(snapshot)
+  })
+})
+
+describe("assignTraining", () => {
+  /** Day-1 state with a creature carrying hand-set training fields. */
+  function trainingState(
+    fields: Partial<
+      Pick<Creature, "trained" | "trainingFocus" | "trainingResult">
+    >,
+    actionPoints = ACTION_POINTS_PER_DAY,
+  ): GameState {
+    const s = stateWith({}, actionPoints)
+    if (!s.creature) throw new Error("starter not created")
+    return { ...s, creature: { ...s.creature, ...fields } }
+  }
+
+  test("the first assignment sets the focus and spends 1 AP", () => {
+    const r = assignTraining(trainingState({}), "atk")
+    expect(r.ok).toBe(true)
+    if (!r.ok) throw new Error("unreachable")
+    expect(r.state.creature?.trainingFocus).toBe("atk")
+    expect(r.state.creature?.trainingResult).toBeNull()
+    expect(r.state.actionPoints).toBe(ACTION_POINTS_PER_DAY - 1)
+  })
+
+  test("swapping the focus the same day is free", () => {
+    const r = assignTraining(trainingState({ trainingFocus: "hp" }), "def")
+    expect(r.ok).toBe(true)
+    if (!r.ok) throw new Error("unreachable")
+    expect(r.state.creature?.trainingFocus).toBe("def")
+    expect(r.state.actionPoints).toBe(ACTION_POINTS_PER_DAY)
+  })
+
+  test("a swap resets tonight's training result", () => {
+    const r = assignTraining(
+      trainingState({ trainingFocus: "hp", trainingResult: "gained" }),
+      "spd",
+    )
+    if (!r.ok) throw new Error("unreachable")
+    expect(r.state.creature?.trainingResult).toBeNull()
+  })
+
+  test("a capped stat is rejected before spending AP — stat-capped", () => {
+    const s = trainingState({
+      trained: { hp: 0, atk: TRAINING_CAP, def: 0, spd: 0 },
+    })
+    const r = assignTraining(s, "atk")
+    expect(r).toEqual({ ok: false, reason: "stat-capped" })
+    expect(s.actionPoints).toBe(ACTION_POINTS_PER_DAY)
+  })
+
+  test("after a capped rejection other stats stay assignable", () => {
+    const s = trainingState({
+      trained: { hp: 0, atk: TRAINING_CAP, def: 0, spd: 0 },
+    })
+    const r = assignTraining(s, "def")
+    expect(r.ok).toBe(true)
+    if (!r.ok) throw new Error("unreachable")
+    expect(r.state.creature?.trainingFocus).toBe("def")
+  })
+
+  test("the first assignment is rejected without AP — no-ap", () => {
+    const r = assignTraining(trainingState({}, 0), "hp")
+    expect(r).toEqual({ ok: false, reason: "no-ap" })
+  })
+
+  test("a free swap works even with no AP left", () => {
+    const r = assignTraining(trainingState({ trainingFocus: "atk" }, 0), "hp")
+    expect(r.ok).toBe(true)
+    if (!r.ok) throw new Error("unreachable")
+    expect(r.state.creature?.trainingFocus).toBe("hp")
+    expect(r.state.actionPoints).toBe(0)
+  })
+
+  test("assignment is rejected without a creature — no-creature", () => {
+    expect(assignTraining(createInitialState(), "hp")).toEqual({
+      ok: false,
+      reason: "no-creature",
+    })
+  })
+
+  test("success is pure — does not mutate the input state", () => {
+    const s = trainingState({})
+    const snapshot = structuredClone(s)
+    assignTraining(s, "hp")
     expect(s).toEqual(snapshot)
   })
 })
