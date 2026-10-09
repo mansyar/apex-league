@@ -32,3 +32,6 @@ with a verification & checkpoint task).
 - [x] Task: Full gate — `bun run verify` green (`5f9a719`; re-verified exit 0 at `8cc5a02`, `04ca58a`)
 - [x] Task: Browser gallery spot check (`?archetype=draconic`) with visual evidence (`bfc0847`)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: bfc0847]
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions (c223e35)
+  - removed unused measureRatios exact-grid measurer, VoxelGrid import, RatioKey alias; report script repointed to keyof MeasuredRatios
