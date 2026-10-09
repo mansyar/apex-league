@@ -1,4 +1,4 @@
-import type { GameState } from "@apex/sim"
+import { ACTION_POINTS_PER_DAY, type GameState } from "@apex/sim"
 
 export interface HudHandlers {
   onAdvanceDay: () => void
@@ -38,9 +38,11 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     readout.textContent = `Day ${state.day} · ${
       state.phase === "cup" ? "Cup day" : "Day phase"
     }`
-    apRow.textContent = `AP: ${"●".repeat(state.actionPoints)}${"○".repeat(
-      Math.max(0, 3 - state.actionPoints),
-    )}`
+    const filled = "●".repeat(state.actionPoints)
+    const empty = "○".repeat(
+      Math.max(0, ACTION_POINTS_PER_DAY - state.actionPoints),
+    )
+    apRow.textContent = `AP: ${filled}${empty}`
     button.textContent =
       state.phase === "cup" ? "Continue past cup" : "Advance Day"
   }

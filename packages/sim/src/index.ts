@@ -26,4 +26,3 @@ export {
   type Phase,
 } from "./state"
 export { advanceDay } from "./ticker"
-export { SIM_VERSION } from "./version"

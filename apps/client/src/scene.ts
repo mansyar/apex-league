@@ -24,7 +24,7 @@ export function createScene(container: HTMLElement): SceneHandle {
 
   const camera = new THREE.PerspectiveCamera(
     45,
-    container.clientWidth / container.clientHeight,
+    container.clientWidth / (container.clientHeight || 1),
     0.1,
     100,
   )
@@ -87,6 +87,7 @@ export function createScene(container: HTMLElement): SceneHandle {
   const onResize = (): void => {
     const w = container.clientWidth
     const h = container.clientHeight
+    if (w === 0 || h === 0) return
     camera.aspect = w / h
     camera.updateProjectionMatrix()
     renderer.setSize(w, h)
@@ -97,6 +98,19 @@ export function createScene(container: HTMLElement): SceneHandle {
     dispose() {
       cancelAnimationFrame(raf)
       window.removeEventListener("resize", onResize)
+      // Free every geometry/material on the scene to avoid GPU leaks when
+      // scenes are swapped (ranch <-> arena later).
+      scene.traverse((obj) => {
+        if (obj instanceof THREE.Mesh) {
+          obj.geometry.dispose()
+          const mat = obj.material
+          if (Array.isArray(mat)) {
+            for (const m of mat) m.dispose()
+          } else {
+            mat.dispose()
+          }
+        }
+      })
       renderer.dispose()
       renderer.domElement.remove()
     },

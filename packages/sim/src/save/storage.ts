@@ -47,9 +47,11 @@ export function loadGame(adapter: SaveAdapter): GameState | null {
     const data = migrate(JSON.parse(raw) as unknown)
     const { state } = data
     if (
-      typeof state?.day !== "number" ||
-      typeof state?.phase !== "string" ||
-      typeof state?.actionPoints !== "number"
+      !Number.isInteger(state.day) ||
+      state.day < 1 ||
+      (state.phase !== "day" && state.phase !== "cup") ||
+      !Number.isInteger(state.actionPoints) ||
+      state.actionPoints < 0
     ) {
       return null
     }

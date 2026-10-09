@@ -99,4 +99,34 @@ describe("storage adapter", () => {
     adapter.setItem("apex.save", JSON.stringify("just a string"))
     expect(loadGame(adapter)).toBeNull()
   })
+
+  test("loadGame rejects semantically invalid states", () => {
+    const cases: unknown[] = [
+      {
+        version: 1,
+        state: { day: -5, phase: "day", actionPoints: 3 },
+        savedAt: 0,
+      },
+      {
+        version: 1,
+        state: { day: 1, phase: "banana", actionPoints: 3 },
+        savedAt: 0,
+      },
+      {
+        version: 1,
+        state: { day: 1, phase: "day", actionPoints: -2 },
+        savedAt: 0,
+      },
+      {
+        version: 1,
+        state: { day: 1.5, phase: "day", actionPoints: 3 },
+        savedAt: 0,
+      },
+    ]
+    for (const payload of cases) {
+      const adapter: SaveAdapter = createMemoryAdapter()
+      adapter.setItem("apex.save", JSON.stringify(payload))
+      expect(loadGame(adapter)).toBeNull()
+    }
+  })
 })
