@@ -25,7 +25,7 @@ lifecycle, checkpoints, and quality gates.
       pivots, manifest (dnaHash/glbSha/triCount), same-seed byte-identical
       output `4d4c67a`
 - [x] Task: Implement GLB exporter + manifest to green `6f9cefe`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: c63606a]`
 
 ## Phase C — Drake Archetype (template authoring — mix of TDD + visual iteration)
 
