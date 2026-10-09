@@ -12,7 +12,7 @@ import { voxelize } from "./voxelizer"
 // every seed, not just curated ones. Kept under the suite's <10s budget.
 
 const VOXEL_SIZE = 0.045
-/** Spec NFR: committed creature GLBs stay within this budget. */
+/** Spec NFR: committed creature GLBs stay within this budget (150 KiB). */
 const GLB_BUDGET_BYTES = 150 * 1024
 
 /** Full generation pipeline through the registry, exactly as exporters run it. */

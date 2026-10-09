@@ -1,0 +1,11 @@
+{
+  "id": "drake_tuning_20261010",
+  "title": "Drake Template Tuning",
+  "type": "bug",
+  "status": "complete",
+  "branch": "track/drake_tuning_20261010",
+  "created": "2026-10-10",
+  "updated": "2026-10-10",
+  "spec": "./spec.md",
+  "plan": "./plan.md"
+}
