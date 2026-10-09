@@ -35,8 +35,9 @@ export const PROPORTION_BUDGETS: Record<string, ProportionBudget> = {
       "legLength/bodyHeight": { min: 0.25, max: 0.9 },
       // Neck length vs body length.
       "neckLength/bodyLength": { min: 0.0, max: 0.65 },
-      // Head height vs torso height.
-      "headHeight/bodyHeight": { min: 0.15, max: 0.5 },
+      // Head height vs torso height. Brows + skull give drakes a heavier
+      // brow line than the ox; still far below "giraffe" territory.
+      "headHeight/bodyHeight": { min: 0.15, max: 0.55 },
       // Torso chunkiness: body length vs body height. Drakes run long and
       // low-slung by design (user-preferred silhouette from the vision
       // loop); the haunches keep the measured height honest.

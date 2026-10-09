@@ -109,9 +109,9 @@ export function buildDrake(dna: Dna): DrakeBuild {
   const rearB = at(0, 19, -7 * bl)
 
   const tailBase = at(0, 17.5, -6.5 * bl)
-  const tailMid = at(0, 14, -6.5 * bl - 5.5 * tl)
-  const tailKnee = at(0, 12.3, -6.5 * bl - 10.5 * tl)
-  const tailEnd = at(0, 15, -6.5 * bl - 13 * tl)
+  const tailMid = at(0, 12.8, -6.5 * bl - 5.5 * tl)
+  const tailKnee = at(0, 12, -6.5 * bl - 10.5 * tl)
+  const tailEnd = at(0, 16.5, -6.5 * bl - 13 * tl)
 
   // Legs emerge from the lower belly (hip line low): a deep chest over
   // short, stout legs is the silhouette fix for the leggy-drake defect.
@@ -125,14 +125,21 @@ export function buildDrake(dna: Dna): DrakeBuild {
   const neckA = at(0, 17.5, 4.5 * bl)
   const neckB = at(0, 17.5 + 6 * nl, 4.5 * bl + 2.5 * nl)
   const neckC = at(0, 17.5 + 8.5 * nl, 4.5 * bl + 5.5 * nl)
-  const neckR = 3.4 * nt
 
   const headC = vec3(neckC.x, neckC.y + 0.8, neckC.z + 2.2 * hs)
-  const skullHalf = vec3(3.4 * hs, 2.6 * hs, 3.4 * hs)
-  const snoutC = vec3(neckC.x, neckC.y + 0.5, neckC.z + 5.2 * hs)
-  const snoutHalf = vec3(2.5 * hs, 1.9 * hs, 3.6 * hs)
-  const jawA = vec3(headC.x, headC.y - 1.5 * hs, headC.z + 1.0)
-  const jawB = vec3(headC.x, headC.y - 1.2 * hs, headC.z + 4.8 * hs)
+  const skullHalf = vec3(3.6 * hs, 2.7 * hs, 3.6 * hs)
+  const snoutC = vec3(neckC.x, neckC.y + 0.4, neckC.z + 6 * hs)
+  const snoutHalf = vec3(2.4 * hs, 1.9 * hs, 3.8 * hs)
+  // Defined lower jaw and brow ridge: a boxy head reads as "farm animal";
+  // a protruding chin plus a brow instantly reads "reptile".
+  const jawBox = sdBox(
+    vec3(headC.x, headC.y - 2 * hs, headC.z + 3.8 * hs),
+    vec3(2.1 * hs, 1 * hs, 3.2 * hs),
+  )
+  const browBox = sdBox(
+    vec3(headC.x, headC.y + 2.6 * hs, headC.z + 1.6 * hs),
+    vec3(3.2 * hs, 0.6 * hs, 2.4 * hs),
+  )
 
   const hornBaseY = headC.y + 2.4 * hs
   const hornBaseZ = headC.z - 0.8
@@ -172,12 +179,27 @@ export function buildDrake(dna: Dna): DrakeBuild {
   // (fixing the floating-back-leg defect) and keep exposed leg short.
   const haunchL = sdSphere(at(-3.5 * bg, 13, legBackZ), 4 * bg)
   const haunchR = sdSphere(at(3.5 * bg, 13, legBackZ), 4 * bg)
+  // Shoulders: front counterpart of the haunches so the forelegs read as
+  // emerging from muscle, not pegs jammed into a block.
+  const shoulderL = sdSphere(at(-3.5 * bg, 12.5, legFrontZ), 3.4 * bg)
+  const shoulderR = sdSphere(at(3.5 * bg, 12.5, legFrontZ), 3.4 * bg)
+  // Subtle spine ridge: breaks the flat capsule top line into an arch.
+  const spine = sdCapsule(at(0, 14.5, 2 * bl), at(0, 17.5, -2 * bl), 2.4 * bg)
+  const spinePeak = sdSphere(at(0, 16.5, 0), 2.8 * bg)
   fields.push({
     name: "body",
     sdf: smoothUnion(
-      smoothUnion(chestField, rearField, 3),
-      union(haunchL, haunchR),
-      2,
+      smoothUnion(
+        smoothUnion(
+          smoothUnion(chestField, rearField, 3),
+          union(haunchL, haunchR),
+          2,
+        ),
+        union(shoulderL, shoulderR),
+        2,
+      ),
+      union(spine, spinePeak),
+      2.5,
     ),
   })
 
@@ -230,15 +252,21 @@ export function buildDrake(dna: Dna): DrakeBuild {
     fields.push({ name: leg.name, sdf: legField })
   }
 
+  // Three-segment taper: thick at the shoulders, thinner under the skull —
+  // a uniform neck reads sauropod, a tapering neck reads drake.
+  const neckMid = at(0, 17.5 + 3 * nl, 4.5 * bl + 1.2 * nl)
   const neckField: Sdf = union(
-    sdCapsule(neckA, neckB, neckR),
-    sdCapsule(neckB, neckC, neckR * 0.9),
+    union(
+      sdCapsule(neckA, neckMid, 3.8 * nt),
+      sdCapsule(neckMid, neckB, 3.2 * nt),
+    ),
+    sdCapsule(neckB, neckC, 2.6 * nt),
   )
   fields.push({ name: "neck", sdf: neckField })
 
   const headField: Sdf = union(
-    union(sdBox(headC, skullHalf), sdBox(snoutC, snoutHalf)),
-    sdCapsule(jawA, jawB, 1.15 * hs),
+    union(union(sdBox(headC, skullHalf), sdBox(snoutC, snoutHalf)), jawBox),
+    browBox,
   )
   fields.push({ name: "head", sdf: headField })
 
