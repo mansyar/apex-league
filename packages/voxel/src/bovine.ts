@@ -114,7 +114,6 @@ export function buildBovine(dna: Dna): BovineBuild {
   const hs = p.humpSize ?? 1
   const hd = p.headSize ?? 1
   const hl = p.hornLength ?? 1
-  const sp = p.hornSpread ?? 1
   const tl = p.tailLength ?? 1
   const ll = p.legLength ?? 1
 
