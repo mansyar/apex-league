@@ -6,7 +6,8 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "bun --cwd apps/client run dev",
+    "dev": "bun run --filter @apex/client dev",
+    "build": "bun run --filter @apex/client build",
     "check": "bun run --filter '*' check",
     "test": "bun test",
     "verify": "bun run check && bun test --check && biome check"
