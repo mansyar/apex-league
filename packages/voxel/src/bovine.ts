@@ -122,27 +122,33 @@ export function buildBovine(dna: Dna): BovineBuild {
   // over the shoulders — heavy forequarters are what make an ox read as an ox.
   const barrel = at(0, 13, 0)
   const barrelHalf = vec3(5.2 * bg, 4.4 * bg, 8 * bl)
-  const hump = at(0, 16.5, 3.5 * bl)
+  // Hump sits back over the shoulders (not the neck) as a broad wedge —
+  // heavy forequarters are what make an ox read as an ox.
+  const hump = at(0, 15, 1.5 * bl)
+  // Brisket: the chest hangs below the barrel line between the front legs.
+  const brisket = at(0, 10.5, 3 * bl)
 
-  const tailBase = at(0, 14.5, -7.5 * bl)
+  const tailBase = at(0, 12.5, -7.5 * bl)
   const tailMid = at(0, 9, -7.5 * bl - 3 * tl)
   const tailEnd = at(0, 7, -7.5 * bl - 5.5 * tl)
   const tailTipZ = -7.5 * bl - 5.5 * tl
 
   const hipY = 9
-  const footY = 0.9 + 1.9 * bg
+  const footY = 0.9 + 2.3 * bg
   const legFrontZ = 4.5 + (ll - 1) * 2
   const legBackZ = -5.5 - (ll - 1) * 2
 
-  // Short thick neck; the head hangs low and forward, below the hump line.
-  // neckB extends past the barrel's front face (z = 8*bl) so the collar has
-  // bare neck to wrap around instead of being swallowed by the body mass.
+  // Short thick neck ending just past the barrel's front face (z = 8*bl),
+  // leaving ~1.7 voxels of bare neck for the collar to wrap.
   const neckA = at(0, 15, 5.5 * bl)
-  const neckB = at(0, 15.2, 9 * bl)
-  const headC = at(0, 14.3, 8.6 * hd)
-  const skullHalf = vec3(2.8 * hd, 2.4 * hd, 2.6 * hd)
-  const snoutC = at(0, 13.4, 11.2 * hd)
-  const snoutHalf = vec3(2 * hd, 1.8 * hd, 2.4 * hd)
+  const neckB = at(0, 15.2, 8 * bl + 2.2)
+  // The head anchors to the BODY front (not to hd), so a guaranteed gap of
+  // bare neck always exists between face and barrel regardless of how DNA
+  // combines headSize with bodyLength.
+  const headC = at(0, 15.2, 8 * bl + 3.4 + 1.2 * hd)
+  const skullHalf = vec3(3.2 * hd, 2.4 * hd, 2.6 * hd)
+  const snoutC = at(0, 14.2, headC.z + 2.4 * hd)
+  const snoutHalf = vec3(2.4 * hd, 2.3 * hd, 2 * hd)
 
   // Horn bases sit just above the head-box top (2.4*hd) so the capsules
   // claim voxels of their own instead of being swallowed by the skull.
@@ -157,7 +163,7 @@ export function buildBovine(dna: Dna): BovineBuild {
       return vec3(headC.x + outX, hornBaseY + 2.2, hornBaseZ)
     }
     if (hornStyle === "backSwept") {
-      return vec3(headC.x + outX * 0.8, hornBaseY + 1.6, hornBaseZ - 3.2 * hl)
+      return vec3(headC.x + outX * 0.8, hornBaseY + 3, hornBaseZ - 3.2 * hl)
     }
     // curved (default): sweep out and up
     return vec3(headC.x + outX, hornBaseY + 2.5 * hl, hornBaseZ - 0.4)
@@ -169,10 +175,10 @@ export function buildBovine(dna: Dna): BovineBuild {
   // -- Part fields (paint order: later parts claim overlapping voxels) -----
   const fields: PartField[] = []
 
-  // Barrel + shoulder hump blend into one mass — smooth, no visible seam.
+  // Barrel + shoulder hump + brisket blend into one mass — smooth, no seam.
   const bodyField: Sdf = smoothUnion(
-    sdBox(barrel, barrelHalf),
-    sdSphere(hump, 4.2 * hs),
+    union(sdBox(barrel, barrelHalf), sdSphere(brisket, 3.4 * bg)),
+    sdSphere(hump, 4 * hs),
     3,
   )
   fields.push({ name: "body", sdf: bodyField })
@@ -180,8 +186,8 @@ export function buildBovine(dna: Dna): BovineBuild {
   // Tail: a thin drooping line down the rump — the opposite of the drake's
   // heavy taper. Styles decorate the tip only.
   const tailField: Sdf = union(
-    sdCapsule(tailBase, tailMid, 1.3),
-    sdCapsule(tailMid, tailEnd, 0.9),
+    sdCapsule(tailBase, tailMid, 1.7),
+    sdCapsule(tailMid, tailEnd, 1.0),
   )
   fields.push({ name: "tail", sdf: tailField })
 
@@ -221,25 +227,19 @@ export function buildBovine(dna: Dna): BovineBuild {
   const legPivots: Record<string, [number, number, number]> = {}
   for (const leg of legDefs) {
     const legZ = leg.sz > 0 ? legFrontZ : legBackZ
-    const hip = at(leg.sx * 3.6 * bg, hipY, legZ)
-    const foot = at(leg.sx * 3.8 * bg, footY, legZ)
+    const hip = at(leg.sx * 4.2 * bg, hipY, legZ)
+    const foot = at(leg.sx * 4.6 * bg, footY, legZ)
     legPivots[leg.name] = [hip.x, hip.y, hip.z]
     // Short, thick pillar legs — oxen stomp, they don't sprint.
     const legField: Sdf = union(
-      sdSphere(hip, 2.4 * bg),
-      sdCapsule(hip, foot, 1.9 * bg),
+      sdSphere(hip, 2.7 * bg),
+      sdCapsule(hip, foot, 2.3 * bg),
     )
     fields.push({ name: leg.name, sdf: legField })
   }
 
-  fields.push({ name: "neck", sdf: sdCapsule(neckA, neckB, 3.2 * bg) })
-
-  const headField: Sdf = union(
-    sdBox(headC, skullHalf),
-    sdBox(snoutC, snoutHalf),
-  )
-  fields.push({ name: "head", sdf: headField })
-
+  // Horns paint BEFORE head/neck: horn voxels inside the skull are claimed
+  // by the head (invisible), while tips outside everything stay horn-colored.
   const hornBaseL = vec3(headC.x - 1.6 * hd, hornBaseY, hornBaseZ)
   const hornBaseR = vec3(headC.x + 1.6 * hd, hornBaseY, hornBaseZ)
   fields.push({
@@ -251,16 +251,26 @@ export function buildBovine(dna: Dna): BovineBuild {
     sdf: sdCapsule(hornBaseR, hornTip(1), 1.1),
   })
 
+  // Head paints BEFORE neck: the head claims its own voxels so a fat neck
+  // can never swallow it; the neck paints the ring around the head base.
+  const headField: Sdf = union(
+    sdBox(headC, skullHalf),
+    sdBox(snoutC, snoutHalf),
+  )
+  fields.push({ name: "head", sdf: headField })
+
+  fields.push({ name: "neck", sdf: sdCapsule(neckA, neckB, 2.4 * bg) })
+
   // Charm part: a collar strap around the neck where it exits the body,
   // with a small bell hanging below the neck — pure livestock charm,
   // cosmetic only. Placed past the barrel's front face so the band and
   // bell claim their own voxels instead of being swallowed by the body.
-  const collarC = at(0, 15, 8.8 * bl)
+  const collarC = at(0, 15, 8 * bl + 1.2)
   fields.push({
     name: "collar",
     sdf: union(
       sdBox(collarC, vec3(3.7 * bg, 0.9, 0.9)),
-      sdSphere(at(0, 15 - 3.2 * bg - 1.4, 8.8 * bl), 1.3),
+      sdSphere(at(0, 15 - 2.4 * bg - 1.5, 8 * bl + 2.6), 1.3),
     ),
   })
 
