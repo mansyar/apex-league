@@ -20,10 +20,10 @@ Status markers: `[ ]` pending · `[~]` in progress · `[x]` complete (+ commit S
 - [x] Task: Phase Verification & Checkpoint (refer to workflow.md)  `[checkpoint: 3983382]`
 
 ## Phase C — Persistence (logic-bearing — TDD)
-- [ ] Task: Write failing tests — save schema `v1`, migration chain
+- [x] Task: Write failing tests — save schema `v1`, migration chain
       (`vN → vN+1`, proven with synthetic `v0`), localStorage adapter with
-      mocked storage (corrupt/absent-save fallback)
-- [ ] Task: Implement schema, migrations, adapter to green
+      mocked storage (corrupt/absent-save fallback)  `4d74c9a`
+- [x] Task: Implement schema, migrations, adapter to green  `f69b681`
 - [ ] Task: Phase Verification & Checkpoint (refer to workflow.md)
 
 ## Phase D — App Shell (rendering — manual verification)
