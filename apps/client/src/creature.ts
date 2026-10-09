@@ -58,6 +58,23 @@ export function buildCreatureGroup(
     mesh.name = part.name
     creature.add(mesh)
   }
+  // Wire the rig hierarchy declared by the archetype: re-parent each child
+  // under its parent with position compensation so meshes keep their world
+  // placement. Offsets come from the declared pivots (not live positions) so
+  // multi-level chains stay correct. Animating a parent (body breath, head
+  // bob, tail sway) now carries its children instead of separating at joints.
+  const pivotOf = (name: string): THREE.Vector3 => {
+    const p = build.pivots[name]
+    return new THREE.Vector3(p?.[0] ?? 0, p?.[1] ?? 0, p?.[2] ?? 0)
+  }
+  for (const [childName, parentName] of Object.entries(build.parents)) {
+    const child = creature.getObjectByName(childName)
+    const parent = creature.getObjectByName(parentName)
+    if (!child || !parent) continue
+    const offset = pivotOf(childName).sub(pivotOf(parentName))
+    parent.add(child)
+    child.position.copy(offset)
+  }
   creature.scale.setScalar(VOXEL_SIZE)
   creature.userData.dna = dna
   return creature

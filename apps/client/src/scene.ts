@@ -120,6 +120,8 @@ export function createScene(container: HTMLElement): SceneHandle {
     // Breathe idle: squash-and-stretch on the body with the neck stretching
     // in sync around its base pivot (so the neck-body joint never separates),
     // a subtle head bob, and a slow tail sway around the declared joints.
+    // The rig hierarchy carries children (horns ride the head, neck+tail ride
+    // the body), so nothing separates at the joints.
     const breath = Math.sin(t * 2)
     if (body) {
       body.scale.set(1 - breath * 0.02, 1 + breath * 0.03, 1 - breath * 0.02)
@@ -128,7 +130,7 @@ export function createScene(container: HTMLElement): SceneHandle {
       neck.scale.y = 1 + breath * 0.03
     }
     if (head) {
-      head.position.y = headBaseY + breath * 0.05
+      head.position.y = headBaseY + breath * 0.02
     }
     const sway = Math.sin(t * 1.3)
     if (tail) {

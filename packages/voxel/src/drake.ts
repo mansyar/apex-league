@@ -52,6 +52,12 @@ export interface DrakeBuild {
   fields: PartField[]
   pivots: Record<string, [number, number, number]>
   colors: Record<string, [number, number, number]>
+  /**
+   * Rig parentage: child part name -> parent part name. Animating a parent
+   * must carry its children (head bob carries horns, body breath carries the
+   * tail), so renderers reparent meshes along these edges.
+   */
+  parents: Record<string, string>
 }
 
 const O = DRAKE_GRID / 2
@@ -277,5 +283,17 @@ export function buildDrake(dna: Dna): DrakeBuild {
     hornRight: bone,
   }
 
-  return { fields, pivots, colors }
+  return {
+    fields,
+    pivots,
+    colors,
+    parents: {
+      neck: "body",
+      head: "neck",
+      hornLeft: "head",
+      hornRight: "head",
+      tail: "body",
+      tailTip: "tail",
+    },
+  }
 }
