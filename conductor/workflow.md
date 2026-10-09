@@ -104,6 +104,12 @@ a phase in `plan.md`.
 4.  **Propose a Detailed, Actionable Manual Verification Plan** covering the
     user-facing goals of the phase (commands, URLs, expected outcomes).
 
+    -   For user-facing changes, the agent performs its own browser-tool
+        verification first: open the app with `browser.tabs.open`, capture a
+        `browser.screenshot`, and check `browser.console` for errors. Present
+        the screenshot and console result as evidence alongside the manual
+        steps.
+
 5.  **Await Explicit User Feedback** before checkpointing. Do not proceed
     without an explicit yes or change requests.
 
