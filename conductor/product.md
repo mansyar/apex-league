@@ -40,8 +40,10 @@ evolution planning.
 - **Opponents**: generated rival rosters from the same creature data + 3-5
   hand-authored rival characters as tier bosses.
 - **Presentation**: Three.js; 3D ranch scene and top-down 3D arena with
-  procedurally generated voxel creatures (species-as-data → Blender recipes →
-  GLB), rendered 2D icons from the same models.
+  procedurally generated voxel creatures (species-as-data → pure-TS voxel
+  pipeline: archetype template + seeded DNA → SDF parts → voxel grid →
+  per-part greedy mesh → GLB with a rigid hierarchy rig; deterministic,
+  CI-hash-gated), rendered 2D icons from the same models.
 - **Meta**: local save + ElysiaJS backend for cloud save sync, leaderboards,
   and ghost data (async-PvP-ready design, PvE at launch).
 
