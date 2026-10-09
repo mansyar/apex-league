@@ -5,9 +5,9 @@ lifecycle, checkpoints, and quality gates.
 
 ## Phase A — Workspace & DNA Schema (logic-bearing — TDD)
 
-- [ ] Task: Scaffold `packages/voxel` workspace (package.json, tsconfig,
-      barrel export; wire into root scripts)
-- [ ] Task: Write failing tests — DNA schema: types, hard-bounds validation,
+- [x] Task: Scaffold `packages/voxel` workspace (package.json, tsconfig,
+      barrel export; wire into root scripts) `dd55522`
+- [~] Task: Write failing tests — DNA schema: types, hard-bounds validation,
       template declaration shape
 - [ ] Task: Implement DNA schema + bounds enforcement to green
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
