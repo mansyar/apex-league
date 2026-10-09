@@ -67,13 +67,17 @@ describe("validateTemplate", () => {
 
   test("rejects a style with an out-of-range param bound", () => {
     const t = makeTemplate()
-    t.styles.horns[0]!.params.curl = { min: 2, max: 1 }
+    const style = t.styles.horns?.[0]
+    if (!style) throw new Error("fixture missing horns style")
+    style.params.curl = { min: 2, max: 1 }
     expect(validateTemplate(t).length).toBeGreaterThan(0)
   })
 
   test("rejects non-positive rarity weight", () => {
     const t = makeTemplate()
-    t.rarity[0]!.weight = 0
+    const gate = t.rarity[0]
+    if (!gate) throw new Error("fixture missing rarity gate")
+    gate.weight = 0
     expect(validateTemplate(t).length).toBeGreaterThan(0)
   })
 })

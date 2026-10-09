@@ -5,3 +5,13 @@
  * Pipeline: archetype template + seed → DNA → SDF parts → voxel grid →
  * per-part greedy mesh → GLB with a rigid hierarchy contract.
  */
+export {
+  assertDnaInBounds,
+  type Dna,
+  type PaletteSpec,
+  type ParamRange,
+  type RaritySpec,
+  type StyleDef,
+  type Template,
+  validateTemplate,
+} from "./schema"
