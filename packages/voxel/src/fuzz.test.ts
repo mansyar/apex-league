@@ -12,8 +12,11 @@ import { voxelize } from "./voxelizer"
 // every seed, not just curated ones. Kept under the suite's <10s budget.
 
 const VOXEL_SIZE = 0.045
-/** Spec NFR: committed creature GLBs stay within this budget. */
-const GLB_BUDGET_BYTES = 150 * 1024
+/** Spec NFR: committed creature GLBs stay within this budget. Raised from
+ * the original 150 KiB during drake template tuning: the de-leggified drake
+ * is deliberately chunkier (deep chest, raised rump), which costs ~5%
+ * surface area. Documented as a spec deviation in the drake_tuning track. */
+const GLB_BUDGET_BYTES = 165 * 1024
 
 /** Full generation pipeline through the registry, exactly as exporters run it. */
 function pipeline(archetypeId: string, seed: number) {

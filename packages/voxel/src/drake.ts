@@ -24,14 +24,14 @@ export const drakeTemplate: Template = {
   id: "draconic",
   version: 1,
   proportions: {
-    bodyLength: { min: 0.85, max: 1.25 },
-    bodyGirth: { min: 0.8, max: 1.3 },
-    neckLength: { min: 0.8, max: 1.3 },
-    neckThickness: { min: 0.7, max: 1.3 },
-    headSize: { min: 0.8, max: 1.25 },
+    bodyLength: { min: 0.85, max: 1.0 },
+    bodyGirth: { min: 0.9, max: 1.25 },
+    neckLength: { min: 0.8, max: 1.15 },
+    neckThickness: { min: 0.75, max: 1.25 },
+    headSize: { min: 0.85, max: 1.15 },
     hornLength: { min: 0.7, max: 1.4 },
     tailLength: { min: 0.8, max: 1.3 },
-    legLength: { min: 0.75, max: 1.3 },
+    legLength: { min: 0.85, max: 1.15 },
   },
   styles: {
     horns: [
@@ -100,26 +100,32 @@ export function buildDrake(dna: Dna): DrakeBuild {
   const ll = p.legLength ?? 1
 
   // -- Key skeleton points -------------------------------------------------
-  const chestA = at(0, 16.5, 5 * bl)
-  const chestB = at(0, 16.5, 0.5 * bl)
-  const rearA = at(0, 19, 0.5 * bl)
-  const rearB = at(0, 19, -7 * bl)
+  // Low, chunky body: belly (16 - 6.4bg) sits close enough to the ground
+  // that exposed leg stays clearly shorter than the torso is tall, which is
+  // what separates "drake" from "long-legged lizard" (see proportion
+  // budgets). The raised rump keeps the arched-back silhouette.
+  const chestA = at(0, 16, 5 * bl)
+  const chestB = at(0, 16, 0.5 * bl)
+  const rearA = at(0, 21, 0.5 * bl)
+  const rearB = at(0, 21, -7 * bl)
 
-  const tailBase = at(0, 17.5, -6.5 * bl)
-  const tailMid = at(0, 13.5, -6.5 * bl - 5.5 * tl)
-  const tailKnee = at(0, 11.8, -6.5 * bl - 10.5 * tl)
-  const tailEnd = at(0, 14.5, -6.5 * bl - 13 * tl)
+  const tailBase = at(0, 19.5, -6.5 * bl)
+  const tailMid = at(0, 15, -6.5 * bl - 5.5 * tl)
+  const tailKnee = at(0, 13.3, -6.5 * bl - 10.5 * tl)
+  const tailEnd = at(0, 16, -6.5 * bl - 13 * tl)
 
-  const hipY = 15
+  // Legs emerge from the lower belly (hip line low): a deep chest over
+  // short, stout legs is the silhouette fix for the leggy-drake defect.
+  const hipY = 10
   const footY = 0.9 + 1.7 * bg
   const legFrontZ = 5 + (ll - 1) * 2
   const legBackZ = -5.5 - (ll - 1) * 2
 
   // Neck rises steeply from the shoulders then sweeps forward to the head —
   // a near-vertical arch reads "drake" and stair-steps far less than a ramp.
-  const neckA = at(0, 17, 4.5 * bl)
-  const neckB = at(0, 17 + 6 * nl, 4.5 * bl + 2.5 * nl)
-  const neckC = at(0, 17 + 10 * nl, 4.5 * bl + 5.5 * nl)
+  const neckA = at(0, 18, 4.5 * bl)
+  const neckB = at(0, 18 + 6 * nl, 4.5 * bl + 2.5 * nl)
+  const neckC = at(0, 18 + 10 * nl, 4.5 * bl + 5.5 * nl)
   const neckR = 3.4 * nt
 
   const headC = vec3(neckC.x, neckC.y + 0.8, neckC.z + 2.2 * hs)
@@ -160,8 +166,8 @@ export function buildDrake(dna: Dna): DrakeBuild {
   const fields: PartField[] = []
 
   // Deep chest + higher rump gives the arched back drakes are recognized by.
-  const chestField: Sdf = sdCapsule(chestA, chestB, 5.4 * bg)
-  const rearField: Sdf = sdCapsule(rearA, rearB, 4.3 * bg)
+  const chestField: Sdf = sdCapsule(chestA, chestB, 6.4 * bg)
+  const rearField: Sdf = sdCapsule(rearA, rearB, 5.2 * bg)
   fields.push({
     name: "body",
     sdf: smoothUnion(chestField, rearField, 3),
