@@ -71,11 +71,23 @@ AP + energy together gate how much a single day holds.
 
 ### 5. Care UI (client)
 
-- Creature panel: portrait area, name, element badge, 0–100 condition bars
-  (hunger/energy/health/mood/bond), sickness status callout.
-- Action menu: Feed / Rest / Treat / Play buttons with AP cost labels;
-  disabled states with reasons ("Too tired to play", "No AP left today");
-  existing Advance Day button remains.
+**Aesthetic direction (approved 2026-10-10): "broadcast overlays over a warm
+ranch"** — the 3D scene is the hero; UI is flat, edge-anchored overlay panels
+reading like sports-broadcast graphics but tinted warm/cozy (loud stadium
+styling is reserved for cup/battle screens later). Plain CSS custom-property
+tokens only (warm neutral panel surface, saturated element hues for badges and
+bar accents, one spacing scale, one font stack); no gradients/glassmorphism;
+motion purposeful only, honoring reduced-motion; copy in warm coach voice
+(gentle disabled reasons and status lines, never punitive).
+
+- Creature panel: portrait area (live three.js head snapshot or element-colored
+  placeholder — no new icon pipeline this track), name, element badge, 0–100
+  condition bars (hunger/energy/health/mood/bond) with label + numeric value +
+  fill so color is never the sole carrier, sickness status callout.
+- Action menu: Feed / Rest / Treat / Play buttons with AP cost chips; disabled
+  states show reasons ("Too tired to play", "No AP left today"); existing
+  Advance Day button retained and visually separated as the end-of-day
+  commitment.
 - Ranch scene: renders the owned creature via the **archetype registry**
   (`generate()`) instead of the hardcoded drake; visual condition states —
   sluggish idle at low energy, droopy when sick, happy bounce at high mood
