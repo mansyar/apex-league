@@ -23,7 +23,7 @@ with a verification & checkpoint task).
   - [x] mood settles toward care quality; bond slow-decay without bonding actions
   - [x] misery floor: no death, refusal-to-play state, recoverable
 - [x] Task: Implement settlement in `advanceDay` (pure, ordered steps 1–6) (`6894405`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: 6894405]
 
 ## Phase C — Care Actions (sim)
 
