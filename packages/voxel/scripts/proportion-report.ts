@@ -30,7 +30,7 @@ function stats(values: number[]): Stats {
   }
 }
 
-const ratioNames: Array<keyof ReturnType<typeof measureRatios>> = [
+const ratioNames: Array<keyof MeasuredRatios> = [
   "legLength/bodyHeight",
   "neckLength/bodyLength",
   "headHeight/bodyHeight",

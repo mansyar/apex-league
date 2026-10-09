@@ -1,4 +1,4 @@
-import type { PartField, VoxelGrid } from "./voxelizer"
+import type { PartField } from "./voxelizer"
 
 /**
  * Measured dimensional ratios for one creature build. Ratios are
@@ -44,8 +44,6 @@ function extentsOf(points: Iterable<[number, number, number]>): Extents {
   return { x: maxX - minX + 1, y: maxY - minY + 1, z: maxZ - minZ + 1 }
 }
 
-type RatioKey = keyof MeasuredRatios
-
 /**
  * Computes the standard ratio set from per-part extents. Leg parts are any
  * part whose name starts with "leg"; body/neck/head are exact names. Parts
@@ -70,17 +68,6 @@ function ratiosFromParts(
     "headHeight/bodyHeight": head.y / body.y,
     "bodyLength/bodyHeight": body.z / body.y,
   }
-}
-
-/** Measures ratios from an already-voxelized grid (exact, full cost). */
-export function measureRatios(grid: VoxelGrid): MeasuredRatios {
-  const extents = new Map<string, Extents>()
-  const legNames: string[] = []
-  for (const part of grid.parts) {
-    extents.set(part.name, extentsOf(part.voxels))
-    if (part.name.startsWith("leg")) legNames.push(part.name)
-  }
-  return ratiosFromParts(extents, legNames)
 }
 
 /**
@@ -148,5 +135,3 @@ export function measureRatiosFromFields(
   for (const [name, points] of owners) extents.set(name, extentsOf(points))
   return ratiosFromParts(extents, legNames)
 }
-
-export type { RatioKey }
