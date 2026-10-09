@@ -25,7 +25,7 @@ gallery herd param); this branch is rebased on top of it.
       (elongated body, flat head, stubby legs, gill fronds, fin tail, dorsal
       fin, barbels; CreatureBuild-compatible fields/pivots/parents/colors,
       Water-blue palette) to green `[73448d3]`
-- [ ] Task: Register axolotl in the `archetypes` registry
+- [~] Task: Register axolotl in the `archetypes` registry
       (`packages/voxel/src/archetype.ts`) and export from
       `packages/voxel/src/index.ts`
 - [ ] Task: Geometric hardening — grid-boundary probes over 400 seeds; fix

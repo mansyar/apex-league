@@ -14,6 +14,13 @@ export {
   generate,
 } from "./archetype"
 export {
+  AXOLOTL_GRID,
+  type AxolotlBuild,
+  axolotlTemplate,
+  buildAxolotl,
+  sampleAxolotlDna,
+} from "./axolotl"
+export {
   BOVINE_GRID,
   type BovineBuild,
   bovineTemplate,

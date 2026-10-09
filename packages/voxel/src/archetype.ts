@@ -3,6 +3,8 @@
  * registers its template, grid resolution, and SDF assembly function here, so
  * `generate(archetypeId, seed)` works uniformly for all species.
  */
+
+import { AXOLOTL_GRID, axolotlTemplate, buildAxolotl } from "./axolotl"
 import { BOVINE_GRID, bovineTemplate, buildBovine } from "./bovine"
 import type { CreatureBuild } from "./build"
 import { buildDrake, DRAKE_GRID, drakeTemplate } from "./drake"
@@ -30,6 +32,12 @@ export const archetypes: Record<string, ArchetypeDef> = {
     template: bovineTemplate,
     grid: BOVINE_GRID,
     build: buildBovine,
+  },
+  axolotl: {
+    id: "axolotl",
+    template: axolotlTemplate,
+    grid: AXOLOTL_GRID,
+    build: buildAxolotl,
   },
 }
 
