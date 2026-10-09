@@ -37,8 +37,10 @@ export const PROPORTION_BUDGETS: Record<string, ProportionBudget> = {
       "neckLength/bodyLength": { min: 0.0, max: 0.65 },
       // Head height vs torso height.
       "headHeight/bodyHeight": { min: 0.15, max: 0.5 },
-      // Torso chunkiness: body length vs body height.
-      "bodyLength/bodyHeight": { min: 0.7, max: 1.7 },
+      // Torso chunkiness: body length vs body height. Drakes run long and
+      // low-slung by design (user-preferred silhouette from the vision
+      // loop); the haunches keep the measured height honest.
+      "bodyLength/bodyHeight": { min: 0.7, max: 1.8 },
     },
   },
   bovine: {

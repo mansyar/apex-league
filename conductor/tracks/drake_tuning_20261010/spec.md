@@ -40,11 +40,9 @@ proportion-budget gate.
 
 - Pure-TS pipeline untouched structurally; determinism preserved; test suite
   stays < 10s; no sim/client behavior changes.
-- GLB size budget: the rebalanced drake is deliberately chunkier (deep chest,
-  raised rump), which costs surface area. The per-creature GLB budget is
-  raised from ~150 KiB to 165 KiB (worst fuzz seed measured 161,352 bytes).
-  This is a documented deviation from the voxel_pipeline/bovine spec NFRs,
-  approved during this track.
+- GLB size budget ~150 KiB per creature unchanged (the final haunch-based
+  rebalance actually shrank the artifact to ~137 KB vs 129 KB before; an
+  interim 165 KiB deviation was reverted as unnecessary).
 
 ## Acceptance Criteria
 

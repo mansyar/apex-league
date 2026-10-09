@@ -24,8 +24,8 @@ export const drakeTemplate: Template = {
   id: "draconic",
   version: 1,
   proportions: {
-    bodyLength: { min: 0.85, max: 1.0 },
-    bodyGirth: { min: 0.9, max: 1.25 },
+    bodyLength: { min: 0.85, max: 1.1 },
+    bodyGirth: { min: 0.85, max: 1.25 },
     neckLength: { min: 0.8, max: 1.15 },
     neckThickness: { min: 0.75, max: 1.25 },
     headSize: { min: 0.85, max: 1.15 },
@@ -100,19 +100,18 @@ export function buildDrake(dna: Dna): DrakeBuild {
   const ll = p.legLength ?? 1
 
   // -- Key skeleton points -------------------------------------------------
-  // Low, chunky body: belly (16 - 6.4bg) sits close enough to the ground
-  // that exposed leg stays clearly shorter than the torso is tall, which is
-  // what separates "drake" from "long-legged lizard" (see proportion
-  // budgets). The raised rump keeps the arched-back silhouette.
-  const chestA = at(0, 16, 5 * bl)
-  const chestB = at(0, 16, 0.5 * bl)
-  const rearA = at(0, 21, 0.5 * bl)
-  const rearB = at(0, 21, -7 * bl)
+  // Slimmer, longer body than the first rebalance pass (user feedback) but
+  // still low-slung: the belly line stays close enough to the ground that
+  // exposed leg remains shorter than the torso is tall (see budgets).
+  const chestA = at(0, 15.5, 5 * bl)
+  const chestB = at(0, 15.5, 0.5 * bl)
+  const rearA = at(0, 19, 0.5 * bl)
+  const rearB = at(0, 19, -7 * bl)
 
-  const tailBase = at(0, 19.5, -6.5 * bl)
-  const tailMid = at(0, 15, -6.5 * bl - 5.5 * tl)
-  const tailKnee = at(0, 13.3, -6.5 * bl - 10.5 * tl)
-  const tailEnd = at(0, 16, -6.5 * bl - 13 * tl)
+  const tailBase = at(0, 17.5, -6.5 * bl)
+  const tailMid = at(0, 14, -6.5 * bl - 5.5 * tl)
+  const tailKnee = at(0, 12.3, -6.5 * bl - 10.5 * tl)
+  const tailEnd = at(0, 15, -6.5 * bl - 13 * tl)
 
   // Legs emerge from the lower belly (hip line low): a deep chest over
   // short, stout legs is the silhouette fix for the leggy-drake defect.
@@ -123,9 +122,9 @@ export function buildDrake(dna: Dna): DrakeBuild {
 
   // Neck rises steeply from the shoulders then sweeps forward to the head —
   // a near-vertical arch reads "drake" and stair-steps far less than a ramp.
-  const neckA = at(0, 18, 4.5 * bl)
-  const neckB = at(0, 18 + 6 * nl, 4.5 * bl + 2.5 * nl)
-  const neckC = at(0, 18 + 10 * nl, 4.5 * bl + 5.5 * nl)
+  const neckA = at(0, 17.5, 4.5 * bl)
+  const neckB = at(0, 17.5 + 6 * nl, 4.5 * bl + 2.5 * nl)
+  const neckC = at(0, 17.5 + 8.5 * nl, 4.5 * bl + 5.5 * nl)
   const neckR = 3.4 * nt
 
   const headC = vec3(neckC.x, neckC.y + 0.8, neckC.z + 2.2 * hs)
@@ -166,11 +165,20 @@ export function buildDrake(dna: Dna): DrakeBuild {
   const fields: PartField[] = []
 
   // Deep chest + higher rump gives the arched back drakes are recognized by.
-  const chestField: Sdf = sdCapsule(chestA, chestB, 6.4 * bg)
-  const rearField: Sdf = sdCapsule(rearA, rearB, 5.2 * bg)
+  const chestField: Sdf = sdCapsule(chestA, chestB, 6.2 * bg)
+  const rearField: Sdf = sdCapsule(rearA, rearB, 5 * bg)
+  // Haunches: big rounded thigh mass as part of the torso silhouette —
+  // classic wyvern hindquarters. They anchor the rear legs to the rump
+  // (fixing the floating-back-leg defect) and keep exposed leg short.
+  const haunchL = sdSphere(at(-3.5 * bg, 13, legBackZ), 4 * bg)
+  const haunchR = sdSphere(at(3.5 * bg, 13, legBackZ), 4 * bg)
   fields.push({
     name: "body",
-    sdf: smoothUnion(chestField, rearField, 3),
+    sdf: smoothUnion(
+      smoothUnion(chestField, rearField, 3),
+      union(haunchL, haunchR),
+      2,
+    ),
   })
 
   // Tail: a three-segment taper that droops from the rump and flicks up at
@@ -208,10 +216,16 @@ export function buildDrake(dna: Dna): DrakeBuild {
     const knee = at(leg.sx * 5.2 * bg, (hipY + footY) / 2, legZ + 0.9)
     const foot = at(leg.sx * 5.4 * bg, footY, legZ + 0.5)
     legPivots[leg.name] = [hip.x, hip.y, hip.z]
-    // Thigh bulge + tapered shin reads as a real limb, not a stick.
+    // Thigh bridge angles up and inward into the flank so the leg visibly
+    // attaches to the body (a floating rear leg read as a defect), while
+    // the thigh bulge + tapered shin reads as a real limb, not a stick.
+    const thighTop = at(leg.sx * 3 * bg, 15.5, legZ + 0.3)
     const legField: Sdf = union(
-      union(sdSphere(hip, 2.6 * bg), sdCapsule(hip, knee, 2.1 * bg)),
-      sdCapsule(knee, foot, 1.5 * bg),
+      union(
+        union(sdSphere(hip, 2.6 * bg), sdCapsule(hip, knee, 2.1 * bg)),
+        sdCapsule(knee, foot, 1.5 * bg),
+      ),
+      sdCapsule(hip, thighTop, 2.3 * bg),
     )
     fields.push({ name: leg.name, sdf: legField })
   }
