@@ -36,4 +36,4 @@ Status markers: `[ ]` pending · `[~]` in progress · `[x]` complete (+ commit S
 - [x] Task: Phase Verification & Checkpoint (refer to workflow.md)  `[checkpoint: 5034a05]`
 
 ## Phase: Review Fixes
-- [~] Task: Apply review suggestions
+- [x] Task: Apply review suggestions  `6a4e1bb`
