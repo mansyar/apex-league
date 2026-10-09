@@ -44,7 +44,7 @@ with a verification & checkpoint task).
   - [x] v1 save migrates with default Fire drake starter granted
   - [x] corrupt/future-version saves still rejected
 - [x] Task: Implement `SAVE_VERSION = 2` + v1→v2 migration step in chain (`022d8aa`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: 022d8aa]
 
 ## Phase E — Client: Starter Choice & Care UI (rendering/UI — manual verification)
 
