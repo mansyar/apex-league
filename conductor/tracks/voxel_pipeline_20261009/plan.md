@@ -20,9 +20,7 @@ lifecycle, checkpoints, and quality gates.
 - [x] Task: Implement SDF part engine to green `e956cb0`
 - [x] Task: Write failing tests — voxelizer: grid sampling at ~40-voxel
       budget, per-part voxel labels, greedy mesh determinism `8e61daa`
-- [~] Task: Implement voxelizer + greedy mesher to green (voxelizer done
-      `f97a3ef`; greedy mesher pending)
-- [ ] Task: Implement voxelizer + greedy mesher to green
+- [x] Task: Implement voxelizer + greedy mesher to green `f97a3ef` + `4cebd58`
 - [ ] Task: Write failing tests — GLB export: node hierarchy contract,
       pivots, manifest (dnaHash/glbSha/triCount), same-seed byte-identical
       output
