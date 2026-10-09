@@ -57,6 +57,6 @@ with a verification & checkpoint task).
 
 ## Phase F — Integration & Verification Gate
 
-- [ ] Task: Full gate — `bun run verify` (check, tests, biome, determinism) green
-- [ ] Task: Browser manual verification pass (starter → care day → sickness → cure → visual states) with screenshot evidence
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Full gate — `bun run verify` (check, tests, biome, determinism) green (`ef94929`)
+- [x] Task: Browser manual verification pass (starter → care day → sickness → cure → visual states) with screenshot evidence (`ef94929`)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: ef94929]
