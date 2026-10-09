@@ -23,11 +23,17 @@
     "packages/sim": {
       "name": "@apex/sim",
     },
+    "packages/voxel": {
+      "name": "@apex/voxel",
+      "version": "0.1.0",
+    },
   },
   "packages": {
     "@apex/client": ["@apex/client@workspace:apps/client"],
 
     "@apex/sim": ["@apex/sim@workspace:packages/sim"],
+
+    "@apex/voxel": ["@apex/voxel@workspace:packages/voxel"],
 
     "@biomejs/biome": ["@biomejs/biome@2.5.15", "", { "optionalDependencies": { "@biomejs/cli-darwin-arm64": "2.5.15", "@biomejs/cli-darwin-x64": "2.5.15", "@biomejs/cli-linux-arm64": "2.5.15", "@biomejs/cli-linux-arm64-musl": "2.5.15", "@biomejs/cli-linux-x64": "2.5.15", "@biomejs/cli-linux-x64-musl": "2.5.15", "@biomejs/cli-win32-arm64": "2.5.15", "@biomejs/cli-win32-x64": "2.5.15" }, "bin": { "biome": "bin/biome" } }, "sha512-WZTW4slm/pdkh92K6t/3aEN++44JD1PQ7squ7RCMLI1flHGl43DVOIGXvCjHiZgBMO1V4uYxoFNtqrIA4qGuIQ=="],
 
