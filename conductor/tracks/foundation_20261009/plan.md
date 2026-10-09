@@ -17,7 +17,7 @@ Status markers: `[ ]` pending · `[~]` in progress · `[x]` complete (+ commit S
 - [x] Task: Write failing tests — phase state machine (Day ↔ Cup placeholder),
       action points stub, seeded/injectable RNG seam  `6cbe7c1`
 - [x] Task: Implement phase state machine to green  `f3213ad`
-- [ ] Task: Phase Verification & Checkpoint (refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (refer to workflow.md)  `[checkpoint: 3983382]`
 
 ## Phase C — Persistence (logic-bearing — TDD)
 - [ ] Task: Write failing tests — save schema `v1`, migration chain
