@@ -15,10 +15,10 @@ lifecycle, checkpoints, and quality gates.
 
 ## Phase B — Generator Core (logic-bearing — TDD)
 
-- [ ] Task: Write failing tests — SDF composition: primitive distance
-      functions, smooth blending, part labeling
-- [ ] Task: Implement SDF part engine to green
-- [ ] Task: Write failing tests — voxelizer: grid sampling at ~40-voxel
+- [x] Task: Write failing tests — SDF composition: primitive distance
+      functions, smooth blending, part labeling `c247b86`
+- [x] Task: Implement SDF part engine to green `e956cb0`
+- [~] Task: Write failing tests — voxelizer: grid sampling at ~40-voxel
       budget, per-part voxel labels, greedy mesh determinism
 - [ ] Task: Implement voxelizer + greedy mesher to green
 - [ ] Task: Write failing tests — GLB export: node hierarchy contract,
