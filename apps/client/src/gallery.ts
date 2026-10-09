@@ -4,7 +4,7 @@
  * tiers) and the vision-gate lineups. Usage: /gallery.html?seed=42
  */
 import "./style.css"
-import { buildDrake, drakeTemplate, sampleDna } from "@apex/voxel"
+import { generate } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
 
@@ -15,6 +15,11 @@ const app: HTMLDivElement = (() => {
 })()
 
 const VARIANTS = 8
+const archetypeParam = (() => {
+  const raw =
+    new URLSearchParams(window.location.search).get("archetype") ?? "draconic"
+  return raw in { draconic: 1, bovine: 1, mixed: 1 } ? raw : "draconic"
+})()
 
 const bar = document.createElement("div")
 bar.style.cssText =
@@ -75,8 +80,16 @@ function rebuild() {
   if (!Number.isFinite(base)) return
   for (let i = 0; i < VARIANTS; i++) {
     const seed = base + i
-    const dna = sampleDna(drakeTemplate, seed)
-    const creature = buildCreatureGroup(dna, buildDrake(dna))
+    // ?archetype=bovine|draconic picks one; "mixed" alternates both (herd test
+    // for cross-archetype scale/palette harmony).
+    const archetype =
+      archetypeParam === "mixed"
+        ? i % 2 === 0
+          ? "bovine"
+          : "draconic"
+        : archetypeParam
+    const { dna, build } = generate(archetype, seed)
+    const creature = buildCreatureGroup(dna, build)
     // Line them up along x, facing the camera (-z toward viewer). The rotated
     // body sits ~+0.9 ahead of the group origin, so shift the row to recenter.
     creature.position.x = (i - (VARIANTS - 1) / 2) * 2 - 0.9

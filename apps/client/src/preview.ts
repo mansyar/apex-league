@@ -4,7 +4,13 @@
  * Grey materials on purpose — palette is judged later in the vision gate.
  */
 import "./style.css"
-import { buildDrake, drakeTemplate, sampleDna } from "@apex/voxel"
+import {
+  bovineTemplate,
+  buildBovine,
+  buildDrake,
+  drakeTemplate,
+  sampleDna,
+} from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
 
@@ -14,13 +20,21 @@ const app: HTMLDivElement = (() => {
   return el
 })()
 
-const seed = Number.parseInt(
-  new URLSearchParams(window.location.search).get("seed") ?? "42",
-  10,
-)
+const params = new URLSearchParams(window.location.search)
+const seed = Number.parseInt(params.get("seed") ?? "42", 10)
 
-const dna = sampleDna(drakeTemplate, seed)
-const creature = buildCreatureGroup(dna, buildDrake(dna), { grey: true })
+const archetype = params.get("archetype") ?? "drake"
+const { dna, build } =
+  archetype === "bovine"
+    ? {
+        dna: sampleDna(bovineTemplate, seed),
+        build: buildBovine(sampleDna(bovineTemplate, seed)),
+      }
+    : {
+        dna: sampleDna(drakeTemplate, seed),
+        build: buildDrake(sampleDna(drakeTemplate, seed)),
+      }
+const creature = buildCreatureGroup(dna, build, { grey: true })
 
 const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setPixelRatio(window.devicePixelRatio)
