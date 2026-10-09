@@ -24,7 +24,7 @@ Status markers: `[ ]` pending · `[~]` in progress · `[x]` complete (+ commit S
       (`vN → vN+1`, proven with synthetic `v0`), localStorage adapter with
       mocked storage (corrupt/absent-save fallback)  `4d74c9a`
 - [x] Task: Implement schema, migrations, adapter to green  `f69b681`
-- [ ] Task: Phase Verification & Checkpoint (refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (refer to workflow.md)  `[checkpoint: 3e1ce78]`
 
 ## Phase D — App Shell (rendering — manual verification)
 - [ ] Task: Three.js canvas in `apps/client` with placeholder voxel performing
