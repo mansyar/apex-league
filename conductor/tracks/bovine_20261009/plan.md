@@ -35,4 +35,4 @@ frozen — template authoring only.
 - [x] Task: Gallery shows bovines (mixed herd with drakes); wire Plant-green
       into creature builder  `dd9843b`
 - [x] Task: Herd test — 8-seed bovine lineup, rubric review with user  `dd9843b`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)  [checkpoint: 12234b2]
