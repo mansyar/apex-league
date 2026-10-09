@@ -3,11 +3,15 @@ import { describe, expect, test } from "bun:test"
 import {
   advanceDay,
   type Creature,
+  careAction,
   chooseStarter,
   createInitialState,
   type GameState,
   makeRng,
+  previewTraining,
   type Rng,
+  SICKNESS_ONSET_HEALTH,
+  TRAINING_CAP,
 } from "./index"
 
 /** Build a day-1 state with an owned creature and hand-set conditions. */
@@ -26,6 +30,18 @@ function stateWith(conditions: Partial<Creature["conditions"]>): GameState {
 /** Fixed rng whose next() always returns `value`. */
 function fixedRng(value: number): Rng {
   return { next: () => value, int: () => 0 }
+}
+
+/** Day-1 state with an owned creature, hand-set conditions and training fields. */
+function focusState(
+  conditions: Partial<Creature["conditions"]>,
+  training: Partial<
+    Pick<Creature, "trained" | "trainingFocus" | "trainingResult">
+  >,
+): GameState {
+  const s = stateWith(conditions)
+  if (!s.creature) throw new Error("starter not created")
+  return { ...s, creature: { ...s.creature, ...training } }
 }
 
 describe("settlement — hunger", () => {
@@ -209,5 +225,172 @@ describe("settlement — frame mechanics", () => {
     const s = advanceDay(createInitialState())
     expect(s.day).toBe(2)
     expect(s.creature).toBeNull()
+  })
+})
+
+describe("settlement — training gain", () => {
+  test("a full-rest night adds +1 to the focused stat only; the rolled base never changes", () => {
+    const s = advanceDay(
+      focusState(
+        { hunger: 80, health: 100, energy: 60 },
+        { trainingFocus: "atk", trained: { hp: 0, atk: 0, def: 0, spd: 0 } },
+      ),
+      fixedRng(0.99),
+    )
+    const c = s.creature
+    if (!c) throw new Error("creature lost")
+    expect(c.trained).toEqual({ hp: 0, atk: 1, def: 0, spd: 0 })
+    expect(c.trainingResult).toBe("gained")
+    expect(c.trainingFocus).toBeNull()
+  })
+
+  test("the rolled base stats are untouched by training", () => {
+    const before = focusState(
+      { hunger: 80, health: 100 },
+      { trainingFocus: "atk" },
+    )
+    const base = before.creature?.stats.atk
+    const s = advanceDay(before, fixedRng(0.99))
+    expect(s.creature?.stats.atk).toBe(base)
+  })
+
+  test("the trained bonus never exceeds the cap, even for a focus already at it", () => {
+    const s = advanceDay(
+      focusState(
+        { hunger: 80, health: 100 },
+        {
+          trainingFocus: "atk",
+          trained: { hp: 0, atk: TRAINING_CAP, def: 0, spd: 0 },
+        },
+      ),
+      fixedRng(0.99),
+    )
+    expect(s.creature?.trained.atk).toBe(TRAINING_CAP)
+  })
+
+  test("sick at lights-out pays 0 and records the result", () => {
+    const s = advanceDay(
+      focusState({ hunger: 80, health: 60 }, { trainingFocus: "atk" }),
+      fixedRng(0.99),
+    )
+    expect(s.creature?.trained.atk).toBe(0)
+    expect(s.creature?.trainingResult).toBe("sick")
+    expect(s.creature?.trainingFocus).toBeNull()
+  })
+
+  test("waking starving pays 0 and records the result", () => {
+    const s = advanceDay(
+      focusState({ hunger: 10, health: 100 }, { trainingFocus: "def" }),
+      fixedRng(0.99),
+    )
+    expect(s.creature?.trained.def).toBe(0)
+    expect(s.creature?.trainingResult).toBe("hungry")
+  })
+
+  test("sickness wins when the creature is both sick and starving", () => {
+    const s = advanceDay(
+      focusState({ hunger: 10, health: 60 }, { trainingFocus: "hp" }),
+      fixedRng(0.99),
+    )
+    expect(s.creature?.trainingResult).toBe("sick")
+  })
+
+  test("exhaustion does not waste a night that otherwise meets the rested predicate", () => {
+    const s = advanceDay(
+      focusState(
+        { hunger: 80, health: 100, energy: 20 },
+        { trainingFocus: "spd" },
+      ),
+      fixedRng(0.99),
+    )
+    expect(s.creature?.trained.spd).toBe(1)
+    expect(s.creature?.trainingResult).toBe("gained")
+  })
+
+  test("the sickness roll does not claw back a granted gain, and draws no rng", () => {
+    // fixedRng(0.01) falls under the base chance — the creature falls sick —
+    // yet the training step must already have granted its +1 without
+    // consuming any rolls, so the sickness onset still happens exactly as
+    // it did before training existed.
+    const s = advanceDay(
+      focusState({ hunger: 80, health: 100 }, { trainingFocus: "atk" }),
+      fixedRng(0.01),
+    )
+    expect(s.creature?.trained.atk).toBe(1)
+    expect(s.creature?.trainingResult).toBe("gained")
+    expect(s.creature?.conditions.health).toBe(SICKNESS_ONSET_HEALTH)
+  })
+
+  test("a night with no focus clears the result and grants nothing", () => {
+    const s = advanceDay(
+      focusState(
+        { hunger: 80, health: 100 },
+        {
+          trainingResult: "gained",
+          trained: { hp: 2, atk: 0, def: 0, spd: 0 },
+        },
+      ),
+      fixedRng(0.99),
+    )
+    expect(s.creature?.trainingResult).toBeNull()
+    expect(s.creature?.trained.hp).toBe(2)
+  })
+})
+
+describe("previewTraining", () => {
+  test("a well-fed healthy focused creature expects a gain", () => {
+    const s = focusState({ hunger: 80, health: 100 }, { trainingFocus: "atk" })
+    if (!s.creature) throw new Error("no creature")
+    expect(previewTraining(s.creature)).toBe("gained")
+  })
+
+  test("a sick focused creature expects a wasted night", () => {
+    const s = focusState({ hunger: 80, health: 60 }, { trainingFocus: "atk" })
+    if (!s.creature) throw new Error("no creature")
+    expect(previewTraining(s.creature)).toBe("sick")
+  })
+
+  test("a creature that will wake starving expects a wasted night", () => {
+    const s = focusState({ hunger: 10, health: 100 }, { trainingFocus: "atk" })
+    if (!s.creature) throw new Error("no creature")
+    expect(previewTraining(s.creature)).toBe("hungry")
+  })
+
+  test("no focus means no preview", () => {
+    const s = focusState({ hunger: 80, health: 100 }, {})
+    if (!s.creature) throw new Error("no creature")
+    expect(previewTraining(s.creature)).toBeNull()
+  })
+
+  test("the preview is pure — it does not mutate the creature", () => {
+    const s = focusState({ hunger: 80, health: 60 }, { trainingFocus: "atk" })
+    if (!s.creature) throw new Error("no creature")
+    const snapshot = structuredClone(s.creature)
+    previewTraining(s.creature)
+    expect(s.creature).toEqual(snapshot)
+  })
+
+  test("feeding or treating after assigning turns a wasted preview into a gain", () => {
+    const sick = focusState(
+      { hunger: 80, health: 60 },
+      { trainingFocus: "atk" },
+    )
+    if (!sick.creature) throw new Error("no creature")
+    expect(previewTraining(sick.creature)).toBe("sick")
+    const treated = careAction(sick, "treat")
+    if (!treated.ok) throw new Error("treat rejected")
+    if (!treated.state.creature) throw new Error("creature lost")
+    expect(previewTraining(treated.state.creature)).toBe("gained")
+
+    const starving = focusState(
+      { hunger: 10, health: 100 },
+      { trainingFocus: "atk" },
+    )
+    if (!starving.creature) throw new Error("no creature")
+    expect(previewTraining(starving.creature)).toBe("hungry")
+    const fed = careAction(starving, "feed")
+    if (!fed.ok) throw new Error("feed rejected")
+    if (!fed.state.creature) throw new Error("creature lost")
+    expect(previewTraining(fed.state.creature)).toBe("gained")
   })
 })

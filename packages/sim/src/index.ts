@@ -46,7 +46,9 @@ export {
 export {
   EXHAUSTED_ENERGY,
   NIGHT_RECOVERY,
+  previewTraining,
   SICK_HEALTH,
+  SICKNESS_ONSET_HEALTH,
   settleCreature,
 } from "./settlement"
 export { getSpecies, type SpeciesDef, STARTER_SPECIES } from "./species"
