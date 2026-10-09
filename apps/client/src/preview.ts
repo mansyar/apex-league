@@ -4,7 +4,7 @@
  * Grey materials on purpose — palette is judged later in the vision gate.
  */
 import "./style.css"
-import { generate } from "@apex/voxel"
+import { DRAKE_GRID, generate } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
 
@@ -20,7 +20,7 @@ const seed = Number.parseInt(params.get("seed") ?? "42", 10)
 const archetypeParam = params.get("archetype") ?? "draconic"
 const archetype = archetypeParam === "bovine" ? "bovine" : "draconic"
 const { dna, build } = generate(archetype, seed)
-const creature = buildCreatureGroup(dna, build, { grey: true })
+const creature = buildCreatureGroup(dna, build, DRAKE_GRID, { grey: true })
 
 const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setPixelRatio(window.devicePixelRatio)
