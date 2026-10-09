@@ -171,6 +171,14 @@ Copy on the button is coach-warm. Copy in the log is announcer. Disabled reasons
 ## Non-Functional Requirements
 
 - Sim stays DOM-free and deterministic. Battle logic is test-first per `workflow.md`. The suite stays under 10 seconds. No real timers in unit tests.
+- **Suite-runtime deviation (2026-10-10, user-approved):** the fuzz property
+  suite in `@apex/voxel` was partitioned for `bun test --parallel` with zero
+  coverage change (fuzz wall 58 s → 11.5 s; full test leg now 15–20 s from a
+  64–66 s baseline). A test leg below 10 s is out of reach through
+  partitioning alone on this hardware: per-seed `voxelize` cost (~0.5–1 s of
+  CPU) is the structural floor. A dedicated voxelize-performance track is the
+  follow-up. This track commits full-coverage green suites, not the 10 s
+  number.
 - Client remains vanilla TypeScript and the typed store. No new runtime dependency. No UI framework.
 - `bun run verify` green, including the determinism gate.
 - No `SAVE_VERSION` bump. Temperament and kits live on species data, not on the saved creature.

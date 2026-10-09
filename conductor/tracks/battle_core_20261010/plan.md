@@ -22,10 +22,21 @@ only when the task says so.
 
 ## Phase B — Catalog, Kits, Loadout, Cooldown (sim)
 
-- [ ] Task: Suite runtime remediation
-  - [ ] measure per-file runtime in the current suite and record it in the plan phase note
-  - [ ] identify the split (test-file partitioning, shared fixtures, or grouping) that gets the whole suite well under 10 s without weakening coverage
-  - [ ] confirm `bun run verify` still green after the change
+Phase note — suite runtime measurements (recorded 2026-10-10, before the
+split): plain `bun test` 64 s; per-file `fuzz.test.ts` 57.7 s,
+`proportion.test.ts` 6.0 s, everything else under 1 s; single-seed voxelize
+~515 ms, full pipeline ~806 ms. Partitioning experiments: 5-seed chunks
+(33 files) 20.8 s at 20 workers — worse than the 10-seed layout; N=10 14.7–
+17.3 s; N=12 13.9 s; N=16 15.5 s; the 10-seed partition at default 20
+workers is the best land (fuzz wall 11.5–11.65 s, full test leg 14.9–15.8 s,
+verify leg 20.1 s once). Per-seed `voxelize` CPU (~0.5–1 s) is the
+structural floor; a voxelize-performance track is the follow-up, recorded as
+a dated deviation in spec.md.
+
+- [x] Task: Suite runtime remediation (`fea4e96`)
+  - [x] measure per-file runtime in the current suite and record it in the plan phase note
+  - [x] identify the split (test-file partitioning, shared fixtures, or grouping) that gets the whole suite well under 10 s without weakening coverage — resolved to full-coverage partitioning plus a documented deviation and a follow-up perf track (user-approved 2026-10-10)
+  - [x] confirm `bun run verify` still green after the change (216 pass / 0 fail, determinism gate green)
 - [ ] Task: Failing tests — moves and cooldown
   - [ ] catalog has the 12 spec rows (id, element, power, accuracy, cooldown) and the innate basic (power 4, accuracy 100, typeless)
   - [ ] each starter species, including locked Tide Axolotl, has the four moves of its element
