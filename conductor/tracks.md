@@ -6,4 +6,4 @@
 - [x] **Track: Creature Ownership & Care Loop — creatures as game entities, full 5-condition care loop (feed/rest/treat/play), starter choice, condition-driven ranch scene** *Link: [care_loop_20261010](./tracks/care_loop_20261010/index.md)*
 - [x] **Track: Drake Template Tuning — rebalance draconic proportion bounds (fix leggy outliers), add shared proportion-budget test gate, vision-model silhouette loop** *Link: [drake_tuning_20261010](./tracks/drake_tuning_20261010/index.md)*
 - [x] **Track: Axolotl Archetype — third creature archetype (axolotl, Water starter), completing the Fire/Water/Plant starter trio** *Link: [axolotl_20261010](./tracks/axolotl_20261010/index.md)*
-- [ ] **Track: Training Programs — assign one stat focus per day (1 AP); nightly +1 on a full rest, capped at +6 above the rolled base; stats visible on the ranch HUD** *Link: [training_20261010](./tracks/training_20261010/index.md)*
+- [~] **Track: Training Programs — assign one stat focus per day (1 AP); nightly +1 on a full rest, capped at +6 above the rolled base; stats visible on the ranch HUD** *Link: [training_20261010](./tracks/training_20261010/index.md)*
