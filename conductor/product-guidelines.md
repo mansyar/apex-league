@@ -27,6 +27,14 @@
   identically in badges, move icons, and particle effects.
 - **UI**: flat panels over the 3D scene; big touchable targets; rank/ladder
   visuals echo sports broadcast lower-thirds.
+- **Creature variation (decided 2026-10-09)**: "Wild" — same-species
+  individuals may look strongly different (aggressive proportion jitter
+  ±20-30%, multiple signature-part style swaps, rare near-bound mutant
+  builds from seeds). Species identity is carried by the archetype
+  contract (topology, rig, type hue), which is never seed-touchable.
+  Seeds can also roll **rare cosmetic tiers** (e.g. 1-in-N gilded/albino
+  markings) as a collection hook; rarity is cosmetic only and never
+  affects stats.
 
 ## UX Principles
 1. **Never block on the clock.** Accelerated days tick while playing, but the
