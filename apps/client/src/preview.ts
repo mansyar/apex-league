@@ -33,6 +33,8 @@ const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100)
 const angle = new URLSearchParams(window.location.search).get("angle") ?? "3-4"
 if (angle === "side") {
   camera.position.set(7, 2.2, 0.5)
+} else if (angle === "front") {
+  camera.position.set(0.5, 3.4, 10)
 } else {
   camera.position.set(4.5, 3.2, 6.5)
 }

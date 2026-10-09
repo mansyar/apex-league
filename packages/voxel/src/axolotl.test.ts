@@ -19,8 +19,8 @@ describe("axolotlTemplate", () => {
     expect(validateTemplate(axolotlTemplate)).toEqual([])
   })
 
-  test("declares 3 signature style slots with >=2 styles each", () => {
-    for (const slot of ["gills", "dorsalFin", "whiskers"]) {
+  test("declares 2 signature style slots with >=2 styles each", () => {
+    for (const slot of ["gills", "dorsalFin"]) {
       const styles = axolotlTemplate.styles[slot]
       expect(styles).toBeDefined()
       expect(styles?.length ?? 0).toBeGreaterThanOrEqual(2)
@@ -28,8 +28,9 @@ describe("axolotlTemplate", () => {
   })
 
   test("has unique style ids across slots", () => {
-    const ids = Object.values(axolotlTemplate.styles)
-      .flatMap((styles) => styles.map((s) => s.id))
+    const ids = Object.values(axolotlTemplate.styles).flatMap((styles) =>
+      styles.map((s) => s.id),
+    )
     expect(new Set(ids).size).toBe(ids.length)
   })
 
@@ -96,31 +97,12 @@ describe("buildAxolotl", () => {
     }
     // Gill fronds are the mandatory "axolotl read" — present for every seed.
     for (let seed = 1; seed <= 30; seed++) {
-      const gillNames = buildAxolotl(makeDna(seed)).fields
-        .map((f) => f.name)
+      const gillNames = buildAxolotl(makeDna(seed))
+        .fields.map((f) => f.name)
         .filter((n) => n.startsWith("gill"))
       expect(gillNames.length).toBeGreaterThanOrEqual(2)
     }
     expect(build.fields.length).toBeGreaterThan(4)
-  })
-
-  test("barbels appear only when the whiskers style is not none", () => {
-    let sawBarbels = false
-    let sawNone = false
-    for (let seed = 1; seed <= 30; seed++) {
-      const dna = makeDna(seed)
-      const build = buildAxolotl(dna)
-      const barbelParts = build.fields.filter((f) => f.name.startsWith("barbel"))
-      if (dna.styles.whiskers === "none") {
-        sawNone = true
-        expect(barbelParts.length).toBe(0)
-      } else {
-        sawBarbels = true
-        expect(barbelParts.length).toBeGreaterThanOrEqual(2)
-      }
-    }
-    expect(sawBarbels).toBe(true)
-    expect(sawNone).toBe(true)
   })
 
   test("defines pivots and colors for every part", () => {
@@ -137,7 +119,7 @@ describe("buildAxolotl", () => {
     const build = buildAxolotl(makeDna())
     const names = new Set(build.fields.map((f) => f.name))
     for (const field of build.fields) {
-      if (field.name.startsWith("gill") || field.name.startsWith("barbel")) {
+      if (field.name.startsWith("gill")) {
         expect(build.parents[field.name]).toBe("head")
       }
       if (field.name === "dorsalFin" || field.name === "tail") {

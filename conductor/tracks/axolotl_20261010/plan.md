@@ -23,7 +23,7 @@ gallery herd param); this branch is rebased on top of it.
 
 - [x] Task: Implement `axolotlTemplate` + `buildAxolotl` SDF assembly
       (elongated body, flat head, stubby legs, gill fronds, fin tail, dorsal
-      fin, barbels; CreatureBuild-compatible fields/pivots/parents/colors,
+      fin; CreatureBuild-compatible fields/pivots/parents/colors,
       Water-blue palette) to green `[73448d3]`
 - [x] Task: Register axolotl in the `archetypes` registry
       (`packages/voxel/src/archetype.ts`) and export from

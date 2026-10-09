@@ -23,12 +23,14 @@ mixed herd. Branch `track/aquatic_20261010` is rebased onto that tip.
   elongated soft body, wide flat head, four stubby legs, paddle tail; a
   silhouette distinct from the drake and bovine at a glance.
 - **FR2 — Style slots**: `gills` (sprightly/drooping/crown frond
-  arrangements), `dorsalFin` (low/ridged/sail), `whiskers`
-  (barbels/long/none) — 3 slots, ≥2 styles each; param names unique across
-  slots (enforced by `validateTemplate`).
-- **FR3 — Signature parts**: external gill fronds, fin tail (membrane
-  paddle), and barbels all present in the part inventory + rig `parents`
-  map. Gill fronds are the mandatory "axolotl read" feature.
+  arrangements) and `dorsalFin` (low/ridged/sail) — 2 slots, ≥2 styles
+  each; param names unique across slots (enforced by `validateTemplate`).
+  *(Revised 2026-10-10: the original `whiskers` slot was dropped — real
+  axolotls have no facial barbels, and the rendered feelers read as an
+  insect proboscis against the reference. User-approved spec change.)*
+- **FR3 — Signature parts**: external gill fronds and fin tail (membrane
+  paddle) present in the part inventory + rig `parents` map. Gill fronds
+  are the mandatory "axolotl read" feature.
 - **FR4 — Palette**: fixed Water-blue hue 205° (type-hue contract) + value
   jitter; `gilded` rarity gate (weight 32) mirroring the drake/bovine
   (gold hue 45 override).

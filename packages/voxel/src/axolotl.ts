@@ -49,11 +49,6 @@ export const axolotlTemplate: Template = {
       { id: "ridged", params: { ridge: { min: 0.2, max: 1 } } },
       { id: "sail", params: {} },
     ],
-    whiskers: [
-      { id: "barbels", params: {} },
-      { id: "long", params: { sweep: { min: 0.2, max: 1 } } },
-      { id: "none", params: {} },
-    ],
   },
   palette: { hue: 205, valueJitter: { min: 0.45, max: 0.62 } },
   rarity: [{ id: "gilded", weight: 32 }],
@@ -109,72 +104,89 @@ export function buildAxolotl(dna: Dna): AxolotlBuild {
   const ll = p.legLength ?? 1
 
   // -- Key skeleton points -------------------------------------------------
-  // A long, low, near-horizontal tube: the drake arches, the ox bulges, the
-  // axolotl slinks. Belly hangs close to the ground; legs are afterthoughts.
-  const chestA = at(0, 10.5, 5.5 * bl)
-  const chestB = at(0, 10.5, 0.5 * bl)
-  const rearA = at(0, 11, 0.5 * bl)
-  const rearB = at(0, 11.5, -6.5 * bl)
+  // Reference proportions (San Diego Zoo fact sheet: head ~15% of total
+  // length, tail ~35-40%, trunk ~45-50%; Britannica: continuous fin from
+  // behind the head to the tail tip). A long, low, near-horizontal tube:
+  // the drake arches, the ox bulges, the axolotl slinks. Belly hangs close
+  // to the ground; legs are afterthoughts.
+  const chestA = at(0, 9.8, 7 * bl)
+  const chestB = at(0, 9.8, 0.5 * bl)
+  const rearA = at(0, 10.4, 0.5 * bl)
+  const rearB = at(0, 10.8, -8 * bl)
 
   // Tail: droops off the rump and thins to a point — the fin membranes
-  // (tailFin) supply the paddle silhouette around it.
-  const tailBase = at(0, 11, -5.5 * bl)
-  const tailMid = at(0, 9.5, -5.5 * bl - 5 * tl)
-  const tailEnd = at(0, 8.5, -5.5 * bl - 9.5 * tl)
+  // (tailFin) supply the paddle silhouette around it. Long: the tail is a
+  // third or more of a real axolotl's length.
+  const tailBase = at(0, 10.6, -7.5 * bl)
+  const tailMid = at(0, 9.4, -7.5 * bl - 5.5 * tl)
+  const tailEnd = at(0, 8.4, -7.5 * bl - 11 * tl)
 
-  const hipY = 9.5
-  const footY = 1.3 + 1.6 * ll
-  const legFrontZ = 4.5 + (ll - 1) * 2
-  const legBackZ = -4.5 - (ll - 1) * 2
+  const hipY = 8.8
+  const footY = 1.7
+  const legFrontZ = 5.6 + (ll - 1) * 2
+  const legBackZ = -6.2 - (ll - 1) * 2
 
-  // Almost no neck: a short thick connector so the wide head sits right on
+  // Almost no neck: a short thick connector so the head sits right on
   // the shoulders — the neckless look is part of the axolotl read.
-  const neckA = at(0, 11, 5.8 * bl)
-  const neckB = at(0, 11.5, 7.2 * bl)
+  const neckA = at(0, 10.8, 6.5 * bl)
+  const neckB = at(0, 11.2, 8 * bl)
 
-  // Wide flat head: a broad low skull slab plus an even broader snout, with
-  // the corners left visible so the gill fronds have somewhere to anchor.
-  const headC = at(0, 12, 7.2 * bl + 2.8 * hw)
-  const skullHalf = vec3(4.8 * hw, 2.2 * hw, 3 * hw)
+  // Broad flat head, but SMALL in absolute terms: a real axolotl's head is
+  // only ~15% of its total length (40-46mm on a 30cm animal). One low slab
+  // with a rounded blunt front cap — a shovel face, not a muzzle.
+  const headC = at(0, 12.6, 7.6 * bl + 2.2 * hw)
+  const skullHalf = vec3(4.6 * hw, 1.6 * hw, 2 * hw)
   // NB: headC is in grid coords; never pass grid coords back through at().
-  const snoutC = vec3(O, 11.5, headC.z + 2.6 * hw)
-  const snoutHalf = vec3(4 * hw, 1.6 * hw, 2.4 * hw)
 
   const gillStyle = dna.styles.gills ?? "sprightly"
   const fan = dna.styleParams.fan ?? 0.6
   const finStyle = dna.styles.dorsalFin ?? "low"
   const ridge = dna.styleParams.ridge ?? 0.6
-  const whiskerStyle = dna.styles.whiskers ?? "barbels"
-  const sweep = dna.styleParams.sweep ?? 0.6
 
-  // Gill fronds sprout from the back corners of the skull. Voxel claiming is
-  // first-come-first-served, so each stalk gets a strong horizontal
-  // out-thrust that always clears the skull surface — the fronds stay
-  // frond-colored wherever they protrude. Three staggered capsules per side
-  // keep them feathery instead of reading as horns.
-  const gillBaseY = headC.y + 1.6 * hw
+  // Gill fronds sprout from the top-back corners of the skull. Voxel claiming
+  // is first-come-first-served, so each stalk is anchored at the skull edge
+  // and given a strong LATERAL out-thrust that always clears the skull
+  // surface — fronds that point up or back alone just get swallowed by the
+  // head volume. Three staggered capsules per side keep them feathery instead
+  // of reading as horns.
+  // Gill fronds: three near-vertical stalks fanning from the head's mid-side,
+  // each with small perpendicular nubs so the cluster reads feathery rather
+  // than as rigid antennae bars. Stalks are anchored at the skull edge with a
+  // lateral out-thrust so voxel claiming leaves them frond-colored.
+  const gillBaseY = headC.y + 0.9 * hw
   function gillFronds(side: number): { sdf: Sdf; base: Vec3 } {
-    const base = vec3(headC.x + side * 4.4 * hw, gillBaseY, headC.z - 1.4 * hw)
-    const fronds: Sdf[] = []
-    for (const [dy, dz, r] of [
-      [2.4, -0.6, 1.0],
-      [1.1, -1.9, 0.9],
-      [-0.6, -2.8, 0.8],
-    ] as const) {
-      const lift = gillStyle === "drooping" ? -Math.abs(dy) * gl * 0.9 : dy * gl
-      fronds.push(
-        sdCapsule(
-          base,
-          vec3(
-            base.x + side * (1.8 + 1.8 * fan) * gl,
-            gillBaseY + lift,
-            base.z + dz * gl,
-          ),
-          r,
-        ),
+    const base = vec3(headC.x + side * 4.2 * hw, gillBaseY, headC.z - 0.8 * hw)
+    const stalks: Sdf[] = []
+    const dirs = [
+      [1.2, 3.4, -0.4],
+      [3, 2.2, -0.9],
+      [2.6, 0.2, -2.2],
+    ] as const
+    // fan (sprightly) widens the whole fan; drooping tips it below horizontal.
+    const spread = 0.7 + 0.6 * fan
+    for (const [dx, dy, dz] of dirs) {
+      const tip = vec3(
+        base.x + side * dx * spread * gl,
+        base.y +
+          (gillStyle === "drooping" ? dy * spread - 1.6 * gl : dy * spread) *
+            gl,
+        base.z + dz * gl,
       )
+      stalks.push(sdCapsule(base, tip, 0.9))
+      for (const t of [0.3, 0.6, 0.85]) {
+        const px = base.x + side * dx * spread * gl * t
+        const py = base.y + (tip.y - base.y) * t
+        const pz = base.z + dz * gl * t
+        stalks.push(
+          sdCapsule(
+            vec3(px, py, pz),
+            vec3(px + side * 2.2, py + 0.7, pz - 0.4),
+            0.65,
+          ),
+        )
+      }
     }
-    return { sdf: fronds.reduce((acc, s) => union(acc, s)), base }
+    return { sdf: stalks.reduce((acc, s) => union(acc, s)), base }
   }
   const gillL = gillFronds(-1)
   const gillR = gillFronds(1)
@@ -193,7 +205,7 @@ export function buildAxolotl(dna: Dna): AxolotlBuild {
   const bodyField: Sdf = smoothUnion(
     sdCapsule(chestA, chestB, 4.7 * bg),
     sdCapsule(rearA, rearB, 4.2 * bg),
-    3,
+    5,
   )
   fields.push({ name: "body", sdf: bodyField })
 
@@ -207,42 +219,96 @@ export function buildAxolotl(dna: Dna): AxolotlBuild {
 
   // Fin tail: a thin vertical membrane wrapping the tail's back half — the
   // paddle silhouette. Painted AFTER the tail so the tail core stays
-  // main-colored and the membrane shows as its protruding edges.
+  // main-colored and the membrane shows as its protruding edges. The plate
+  // must stand clearly taller than the tail segment or the tail claims it.
   // tailBase/tailEnd are grid coords; center the plate between them directly.
-  const tailFinField: Sdf = sdBox(
-    vec3(O, 9.8, (tailBase.z + tailEnd.z) / 2),
-    vec3(0.7, 3.2 * fh, Math.abs(tailBase.z - tailEnd.z) / 2),
-  )
+  const tailFinField: Sdf = (() => {
+    const half = Math.abs(tailBase.z - tailEnd.z) / 2 + 1.5
+    const bladeH = 5.2 * fh
+    // Tapered paddle: three z-steps shrinking toward the tail tip, each
+    // plate overlapping the tail axis so it stays connected. The fin grows
+    // toward the end like a real axolotl tail fin, not a flat rectangle.
+    const pieces: Sdf[] = []
+    const tapers = [0.95, 0.65, 0.38]
+    for (let i = 0; i < 3; i++) {
+      const zHalf = half / 3 + 0.6
+      const zCenter = tailBase.z - zHalf - ((2 * (half - zHalf)) / 3) * i
+      // Each plate must clear the local tail radius (which thins toward the
+      // tip) or the tail claims it whole; clearance scales down along the
+      // tail so the plates still taper toward the tip.
+      const t = i / 2
+      const rLocal = 2.8 * bg * (1 - t) + 1.4 * t
+      const yHalf = Math.max(
+        ((tapers[i] ?? 0.95) * bladeH) / 2 + 1,
+        (rLocal + 2.8) / 2,
+      )
+      pieces.push(
+        sdBox(vec3(O, 9.4 + yHalf - 1.6, zCenter), vec3(0.8, yHalf, zHalf)),
+      )
+    }
+    // Ventral fin: a shorter downward membrane under the tail (Britannica:
+    // "a lower fin extends..."). Must dip below the fattest tail segment or
+    // the tail claims it whole.
+    const ventYHalf = 1.6 + 1.2 * fh
+    pieces.push(
+      sdBox(
+        vec3(O, 9.4 - ventYHalf + 0.8, (tailBase.z + tailEnd.z) / 2),
+        vec3(0.8, ventYHalf, half * 0.55),
+      ),
+    )
+    return pieces.reduce((acc, s) => union(acc, s))
+  })()
   fields.push({ name: "tailFin", sdf: tailFinField })
 
   // Dorsal fin: a thin ridge plate along the spine. Its base sits well inside
   // the body and its top always clears the tallest possible back line
-  // (clearY), so every style protrudes for every seed.
-  const finBaseY = 12
-  const clearY = 17.2
+  // (clearY), so every style protrudes for every seed. Real axolotls carry a
+  // continuous fin from behind the head to the tail tip, so the span reaches
+  // forward past the shoulders and heights GROW toward the tail to meet the
+  // tail fin — a finfold, not a dimetrodon's sail.
+  const finBaseY = 11.5
+  const clearY = 16.6
   const extra =
     finStyle === "sail"
-      ? 3.2 * fh
+      ? 1.3 * fh
       : finStyle === "ridged"
-        ? 1.2 * fh * ridge
-        : 0.6 * fh
+        ? 1.0 * fh * ridge
+        : 0.5 * fh
   const finTopY = clearY + extra
   const finPieces: Sdf[] =
     finStyle === "ridged"
-      ? [3.2, 0.6, -2, -4.6].map((z, i) => {
+      ? [4.4, 1.2, -2, -5.2, -8].map((z, i) => {
+          const grow = 0.5 + (i / 4) * 0.5
           const top =
-            i % 2 === 0 ? finTopY : finBaseY + 0.82 * (finTopY - finBaseY)
+            i % 2 === 0
+              ? finBaseY + grow * (finTopY - finBaseY)
+              : finBaseY + (grow - 0.18) * (finTopY - finBaseY)
           return sdBox(
             at(0, (finBaseY + top) / 2, z * bl),
             vec3(0.7, (top - finBaseY) / 2, 1.6),
           )
         })
-      : [
-          sdBox(
-            at(0, (finBaseY + finTopY) / 2, -0.5 * bl),
-            vec3(0.7, (finTopY - finBaseY) / 2, 5.2 * bl),
-          ),
-        ]
+      : finStyle === "sail"
+        ? // Crescendo crest: low behind the head, swelling toward the rump
+          // so it flows into the tail fin for one continuous ridge.
+          [
+            { z: 3.5, t: 0.45 },
+            { z: 0.4, t: 0.6 },
+            { z: -2.8, t: 0.78 },
+            { z: -6, t: 1 },
+          ].map(({ z, t }) => {
+            const top = finBaseY + t * (finTopY - finBaseY)
+            return sdBox(
+              at(0, (finBaseY + top) / 2, z * bl),
+              vec3(0.7, (top - finBaseY) / 2, 3 * bl),
+            )
+          })
+        : [
+            sdBox(
+              at(0, (finBaseY + finTopY) / 2, -0.5 * bl),
+              vec3(0.7, (finTopY - finBaseY) / 2, 8 * bl),
+            ),
+          ]
   fields.push({
     name: "dorsalFin",
     sdf: finPieces.reduce((acc, s) => union(acc, s)),
@@ -257,13 +323,14 @@ export function buildAxolotl(dna: Dna): AxolotlBuild {
   const legPivots: Record<string, [number, number, number]> = {}
   for (const leg of legDefs) {
     const legZ = leg.sz > 0 ? legFrontZ : legBackZ
-    const hip = at(leg.sx * 3.6 * bg, hipY, legZ)
-    const foot = at(leg.sx * 5.6 * bg, footY, legZ + leg.sz * 1.4)
+    const hip = at(leg.sx * 4.2 * bg, hipY, legZ)
+    const foot = at(leg.sx * 8.2 * bg, footY, legZ + leg.sz * 0.4)
     legPivots[leg.name] = [hip.x, hip.y, hip.z]
-    // Stubby splayed paddles — axolotl legs are suggestions, not stilts.
+    // Sprawling salamander stance: short limbs kicked out diagonally with a
+    // rounded foot pad — low to the ground, not pillar-straight.
     const legField: Sdf = union(
-      sdSphere(hip, 1.9 * bg),
-      sdCapsule(hip, foot, 1.6 * bg),
+      union(sdSphere(hip, 2.3 * bg), sdCapsule(hip, foot, 1.8 * bg)),
+      sdSphere(foot, 1.9),
     )
     fields.push({ name: leg.name, sdf: legField })
   }
@@ -272,7 +339,11 @@ export function buildAxolotl(dna: Dna): AxolotlBuild {
   // protrudes past the body front; the neck is already painted (first).
   fields.push({
     name: "head",
-    sdf: union(sdBox(headC, skullHalf), sdBox(snoutC, snoutHalf)),
+    sdf: union(
+      sdBox(headC, skullHalf),
+      // Rounded nose cap so the slab ends bluntly instead of in a muzzle box.
+      sdSphere(vec3(headC.x, headC.y, headC.z + 1.8 * hw), 1.8 * hw),
+    ),
   })
 
   // Gill fronds paint after the head, so only the voxels protruding past the
@@ -284,35 +355,17 @@ export function buildAxolotl(dna: Dna): AxolotlBuild {
       name: "gillCrown",
       sdf: union(
         sdCapsule(
-          vec3(headC.x, gillBaseY, headC.z - 1.8 * hw),
-          vec3(headC.x, gillBaseY + 3.4 * gl, headC.z - 2.8 * hw),
-          1.1,
+          vec3(headC.x, gillBaseY, headC.z - 0.8 * hw),
+          vec3(headC.x, gillBaseY + 4 * gl, headC.z - 2.2 * hw),
+          1.2,
         ),
         sdCapsule(
-          vec3(headC.x, gillBaseY, headC.z - 1.8 * hw),
-          vec3(headC.x, gillBaseY + 2.2 * gl, headC.z - 3.6 * hw),
-          0.9,
+          vec3(headC.x, gillBaseY, headC.z - 0.8 * hw),
+          vec3(headC.x, gillBaseY + 2.6 * gl, headC.z - 3.2 * hw),
+          1,
         ),
       ),
     })
-  }
-
-  // Barbels: thin feelers from the snout corners, sweeping forward-down.
-  const barbelBases: Record<string, Vec3> = {}
-  if (whiskerStyle !== "none") {
-    const barbelLen = whiskerStyle === "long" ? 4.5 + 2 * sweep : 2.6
-    const barbelBaseY = 11.2
-    for (const side of [-1, 1] as const) {
-      const name = side < 0 ? "barbelLeft" : "barbelRight"
-      const base = vec3(O + side * 3.2 * hw, barbelBaseY, snoutC.z + 1.4 * hw)
-      const tip = vec3(
-        O + side * (5.2 + 1.4 * sweep) * hw,
-        barbelBaseY - 2.2,
-        snoutC.z + 1.4 * hw + barbelLen,
-      )
-      fields.push({ name, sdf: sdCapsule(base, tip, 1.0) })
-      barbelBases[name] = base
-    }
   }
 
   // -- Pivots (rotation anchors for the procedural rig) --------------------
@@ -329,19 +382,7 @@ export function buildAxolotl(dna: Dna): AxolotlBuild {
     dorsalFin: [O, finBaseY, O - 0.5 * bl],
   }
   if (gillStyle === "crown") {
-    pivots.gillCrown = [headC.x, gillBaseY, headC.z - 1.8 * hw]
-  }
-  if (whiskerStyle !== "none") {
-    pivots.barbelLeft = [
-      barbelBases.barbelLeft?.x ?? 0,
-      barbelBases.barbelLeft?.y ?? 0,
-      barbelBases.barbelLeft?.z ?? 0,
-    ]
-    pivots.barbelRight = [
-      barbelBases.barbelRight?.x ?? 0,
-      barbelBases.barbelRight?.y ?? 0,
-      barbelBases.barbelRight?.z ?? 0,
-    ]
+    pivots.gillCrown = [headC.x, gillBaseY, headC.z - 0.8 * hw]
   }
 
   // -- Colors (deterministic per seed; fixed type hue, value jitter only) --
@@ -379,10 +420,6 @@ export function buildAxolotl(dna: Dna): AxolotlBuild {
   if (gillStyle === "crown") {
     colors.gillCrown = coral
   }
-  if (whiskerStyle !== "none") {
-    colors.barbelLeft = dark
-    colors.barbelRight = dark
-  }
 
   return {
     fields,
@@ -401,9 +438,6 @@ export function buildAxolotl(dna: Dna): AxolotlBuild {
       legBL: "body",
       legBR: "body",
       ...(gillStyle === "crown" ? { gillCrown: "head" } : {}),
-      ...(whiskerStyle !== "none"
-        ? { barbelLeft: "head", barbelRight: "head" }
-        : {}),
     },
   }
 }
