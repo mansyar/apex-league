@@ -45,9 +45,9 @@ gallery herd param); this branch is rebased on top of it.
 - [x] Task: Run the existing archetype-generic export script to generate +
       commit `artifacts/axolotl-42.glb` + manifest; confirm the determinism
       gate auto-covers all three archetypes with zero script edits `[b13c71e]`
-- [ ] Task: Gallery/preview accept `?archetype=axolotl` (extend the param
+- [x] Task: Gallery/preview accept `?archetype=axolotl` (extend the param
       whitelist; mixed herd becomes a three-way rotation); verify Water-blue
-      palette renders correctly through `buildCreatureGroup`
+      palette renders correctly through `buildCreatureGroup` `[c22bf96]`
 - [ ] Task: Herd test — 8-seed axolotl lineup, rubric review with user
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
