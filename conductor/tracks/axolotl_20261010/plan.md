@@ -49,6 +49,6 @@ gallery herd param); this branch is rebased on top of it.
       whitelist; mixed herd becomes a three-way rotation); verify Water-blue
       palette renders correctly through `buildCreatureGroup` `[c22bf96]`
 - [x] Task: Herd test — 8-seed axolotl lineup, rubric review with user
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-[checkpoint: 3013db0]
+[checkpoint: c22bf96]
