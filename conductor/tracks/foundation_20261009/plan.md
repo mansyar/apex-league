@@ -6,8 +6,8 @@ Status markers: `[ ]` pending · `[~]` in progress · `[x]` complete (+ commit S
 - [x] Task: Scaffold Bun workspaces monorepo — root `package.json`, shared
       `tsconfig.base.json`, `biome.json`, `apps/client`, `packages/sim`  `e1b00fc`
   - Verify workspaces resolve (`bun install` clean)
-- [~] Task: Wire tooling scripts — `dev`, `check`, `verify`
-      (`bun check && bun test --check && biome check`); strict TS everywhere
+- [x] Task: Wire tooling scripts — `dev`, `check`, `verify`
+      (`bun check && bun test --check && biome check`); strict TS everywhere  `c22e06d`
 - [ ] Task: Phase Verification & Checkpoint (refer to workflow.md)
 
 ## Phase B — Headless Sim Core (logic-bearing — TDD)
