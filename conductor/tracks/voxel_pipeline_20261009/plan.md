@@ -48,8 +48,8 @@ lifecycle, checkpoints, and quality gates.
       taper + tip spade `d89c4b6`; user approved all 3 tail styles
 - [x] Task: Wire drake GLB into ranch scene + procedural breathe idle via
       hierarchy rig `ef055fc`
-- [~] Task: Determinism gate script (regenerate + hash-compare) wired into
-      verify/CI
-- [ ] Task: Herd test — render 8-seed lineup, rubric review with user, tune
+- [x] Task: Determinism gate script (regenerate + hash-compare) wired into
+      verify/CI `8e81b95`
+- [~] Task: Herd test — render 8-seed lineup, rubric review with user, tune
       bounds if rejected
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
