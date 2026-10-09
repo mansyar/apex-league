@@ -54,4 +54,5 @@ lifecycle, checkpoints, and quality gates.
       bounds if rejected — user verdict: Pass (same species, varied,
       appealing); follow-up rig fix: breathing no longer separates
       head/horns or body/tail `d862632`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+      [checkpoint: 842cf0a]
