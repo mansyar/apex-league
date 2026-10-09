@@ -7,6 +7,13 @@
  */
 
 export {
+  type ArchetypeDef,
+  archetypes,
+  type CreatureBuild,
+  type Generated,
+  generate,
+} from "./archetype"
+export {
   BOVINE_GRID,
   type BovineBuild,
   bovineTemplate,

@@ -1,25 +1,23 @@
 /**
- * Canonical artifact exporter: generates the committed starter drake GLB and
- * its integrity manifest. Run: bun packages/voxel/scripts/export-artifact.ts [seed]
+ * Canonical artifact exporter: generates the committed starter creature GLB
+ * and its integrity manifest. Run:
+ * bun packages/voxel/scripts/export-artifact.ts [archetype] [seed]
  */
 import { mkdirSync, writeFileSync } from "node:fs"
 import {
-  buildDrake,
-  DRAKE_GRID,
-  drakeTemplate,
   exportGlb,
+  generate,
   meshGrid,
-  sampleDna,
   VOXEL_SIZE,
   voxelize,
 } from "@apex/voxel"
 
-const seed = Number.parseInt(process.argv[2] ?? "42", 10)
-const dna = sampleDna(drakeTemplate, seed)
-const build = buildDrake(dna)
-const meshes = meshGrid(voxelize(build.fields, DRAKE_GRID))
+const archetype = process.argv[2] ?? "draconic"
+const seed = Number.parseInt(process.argv[3] ?? "42", 10)
+const { dna, build, def } = generate(archetype, seed)
+const meshes = meshGrid(voxelize(build.fields, def.grid))
 const { glb, manifest } = exportGlb({
-  archetype: "draconic",
+  archetype: def.id,
   seed,
   dnaJson: JSON.stringify(dna),
   voxelSize: VOXEL_SIZE,
@@ -29,8 +27,8 @@ const { glb, manifest } = exportGlb({
 })
 
 mkdirSync("artifacts", { recursive: true })
-const glbPath = `artifacts/drake-${seed}.glb`
-const manifestPath = `artifacts/drake-${seed}.manifest.json`
+const glbPath = `artifacts/${archetype}-${seed}.glb`
+const manifestPath = `artifacts/${archetype}-${seed}.manifest.json`
 writeFileSync(glbPath, glb)
 writeFileSync(manifestPath, JSON.stringify(manifest, null, "\t"))
 console.log(
