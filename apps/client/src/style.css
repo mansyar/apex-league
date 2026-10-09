@@ -1,0 +1,18 @@
+/* Apex League — base shell styles */
+html,
+body,
+#app {
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+#app {
+  position: relative;
+  background: #1a1f2e;
+}
+
+#app canvas {
+  display: block;
+}

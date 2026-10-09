@@ -69,11 +69,11 @@ export function createScene(container: HTMLElement): SceneHandle {
   }
   scene.add(creature)
 
-  const clock = new THREE.Clock()
+  const clockStart = performance.now()
   let raf = 0
 
   const tick = (): void => {
-    const t = clock.getElapsedTime()
+    const t = (performance.now() - clockStart) / 1000
     // Breathe idle: gentle squash-and-stretch, ~0.33 Hz.
     const breath = Math.sin(t * 2)
     body.scale.set(1 - breath * 0.025, 1 + breath * 0.05, 1 - breath * 0.025)
