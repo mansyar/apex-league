@@ -42,9 +42,9 @@ gallery herd param); this branch is rebased on top of it.
 
 ## Phase D — Integration & Vision Gate (manual-verification heavy)
 
-- [ ] Task: Run the existing archetype-generic export script to generate +
+- [x] Task: Run the existing archetype-generic export script to generate +
       commit `artifacts/axolotl-42.glb` + manifest; confirm the determinism
-      gate auto-covers all three archetypes with zero script edits
+      gate auto-covers all three archetypes with zero script edits `[b13c71e]`
 - [ ] Task: Gallery/preview accept `?archetype=axolotl` (extend the param
       whitelist; mixed herd becomes a three-way rotation); verify Water-blue
       palette renders correctly through `buildCreatureGroup`
