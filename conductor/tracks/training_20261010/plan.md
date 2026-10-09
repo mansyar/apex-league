@@ -14,17 +14,17 @@ manually, not unit-tested.
 
 ## Phase B — Assign training (sim)
 
-- [ ] Task: Failing tests — `assignTraining`
-  - [ ] first assignment of the day spends 1 AP and sets the focus
-  - [ ] swapping to a different uncapped stat the same day spends no AP
-  - [ ] picking the already-focused stat is a no-op
-  - [ ] a stat at +6 is rejected before any spend; the previous focus stays; other stats remain assignable
-  - [ ] `no-ap` rejects only when no focus is set; a swap at 0 AP succeeds
-  - [ ] `no-creature` rejects
-  - [ ] assignment is allowed while sick, hungry, or exhausted
-  - [ ] a new assignment clears `trainingResult`
-- [ ] Task: Implement `assignTraining` (pure; rejections `no-creature`, `no-ap`, `at-cap`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Failing tests — `assignTraining` (`866c5a6`, `dc09bea`)
+  - [x] first assignment of the day spends 1 AP and sets the focus
+  - [x] swapping to a different uncapped stat the same day spends no AP
+  - [x] picking the already-focused stat is a no-op
+  - [x] a stat at +6 is rejected before any spend; the previous focus stays; other stats remain assignable
+  - [x] `no-ap` rejects only when no focus is set; a swap at 0 AP succeeds
+  - [x] `no-creature` rejects
+  - [x] assignment is allowed while sick, hungry, or exhausted
+  - [x] a new assignment clears `trainingResult`
+- [x] Task: Implement `assignTraining` (pure; rejections `no-creature`, `no-ap`, `at-cap`) (`866c5a6`, `dc09bea`)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: dc09bea]`
 
 ## Phase C — Nightly gain and preview (sim)
 
