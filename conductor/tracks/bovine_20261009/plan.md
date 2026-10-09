@@ -5,19 +5,19 @@ frozen — template authoring only.
 
 ## Phase A — Template Tests (red)
 
-- [ ] Task: Write failing tests — bovine template: schema-valid, 3 slots ×
+- [x] Task: Write failing tests — bovine template: schema-valid, 3 slots ×
       ≥2 styles, param-name uniqueness across slots, Plant-green hue
-      contract, gilded gate weight ≥16
-- [ ] Task: Write failing tests — sampleDna: in-bounds via
+      contract, gilded gate weight ≥16  `d77726a`
+- [x] Task: Write failing tests — sampleDna: in-bounds via
       assertDnaInBounds, determinism, seed divergence, style enums over 30
       seeds, gilded frequency over 2000 seeds, buildBovine part inventory +
-      pivots/parents, voxelize sanity at BOVINE_GRID
+      pivots/parents, voxelize sanity at BOVINE_GRID  `d77726a`
 
 ## Phase B — Bovine Implementation (green)
 
-- [ ] Task: Implement `bovineTemplate` + `buildBovine` SDF assembly (stocky
-      ox skeleton, charm part, pivots, parents, palette) to green
-- [ ] Task: Geometric hardening — grid-boundary probes over 400 seeds; fix
+- [x] Task: Implement `bovineTemplate` + `buildBovine` SDF assembly (stocky
+      ox skeleton, charm part, pivots, parents, palette) to green  `557c094`
+- [~] Task: Geometric hardening — grid-boundary probes over 400 seeds; fix
       overflows; commit artifact-ready build
 
 ## Phase C — Property & Fuzz
