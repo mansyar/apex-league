@@ -28,10 +28,18 @@
 
 ## Asset Pipeline
 - **Creatures**: species defined as versioned JSON data ("voxel DNA") — a
-  deterministic Blender Python generator builds models and exports GLB.
-  Generator scripts and specs are checked into the repo; generated GLBs are
-  committed, not generated at runtime.
-- **Icons**: 2D UI portraits rendered offline from the same GLBs.
+  deterministic **pure-TypeScript** generator (run by Bun at build time)
+  builds part-labeled voxel meshes (SDF parts → voxel grid → greedy mesh)
+  and exports GLB with a rigid hierarchy contract: named nodes + pivots,
+  animated procedurally in three.js (no skinning, no baked clips).
+  *2026-10-09 deviation: replaced the originally planned Blender Python
+  generator — the part-hierarchy rig makes weight painting unnecessary,
+  and pure TS keeps the stack single-language, CI-hash-verifiable, and
+  browser-capable for runtime seed variants (e.g. live breeding previews).*
+  Generator scripts and DNA specs are checked into the repo; generated
+  GLBs are committed, not generated at runtime.
+- **Icons**: 2D UI portraits rendered offline from the same GLBs
+  (headless three.js render step).
 - **Audio**: CC0 packs (freesound/Kenney), compressed for web delivery.
 
 ## Quality Gates
