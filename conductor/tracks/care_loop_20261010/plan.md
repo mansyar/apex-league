@@ -39,11 +39,11 @@ with a verification & checkpoint task).
 
 ## Phase D — Save Migration v1→v2 (sim)
 
-- [ ] Task: Failing tests — v2 schema & migration
-  - [ ] v2 save round-trips creature state
-  - [ ] v1 save migrates with default Fire drake starter granted
-  - [ ] corrupt/future-version saves still rejected
-- [ ] Task: Implement `SAVE_VERSION = 2` + v1→v2 migration step in chain
+- [x] Task: Failing tests — v2 schema & migration (`022d8aa`)
+  - [x] v2 save round-trips creature state
+  - [x] v1 save migrates with default Fire drake starter granted
+  - [x] corrupt/future-version saves still rejected
+- [x] Task: Implement `SAVE_VERSION = 2` + v1→v2 migration step in chain (`022d8aa`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase E — Client: Starter Choice & Care UI (rendering/UI — manual verification)
