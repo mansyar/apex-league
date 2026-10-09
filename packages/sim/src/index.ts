@@ -6,7 +6,10 @@
  * this package.
  */
 
+export { spendActionPoints } from "./ap"
 export { CUP_INTERVAL_DAYS, isCupDay } from "./calendar"
+export { beginCup, endCup } from "./machine"
+export { makeRng, type Rng } from "./rng"
 export {
   ACTION_POINTS_PER_DAY,
   createInitialState,
