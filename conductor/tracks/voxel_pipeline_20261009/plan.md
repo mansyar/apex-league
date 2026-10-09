@@ -50,6 +50,8 @@ lifecycle, checkpoints, and quality gates.
       hierarchy rig `ef055fc`
 - [x] Task: Determinism gate script (regenerate + hash-compare) wired into
       verify/CI `8e81b95`
-- [~] Task: Herd test — render 8-seed lineup, rubric review with user, tune
-      bounds if rejected
+- [x] Task: Herd test — render 8-seed lineup, rubric review with user, tune
+      bounds if rejected — user verdict: Pass (same species, varied,
+      appealing); follow-up rig fix: breathing no longer separates
+      head/horns or body/tail `d862632`
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
