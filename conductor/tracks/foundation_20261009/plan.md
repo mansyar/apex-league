@@ -31,6 +31,6 @@ Status markers: `[ ]` pending · `[~]` in progress · `[x]` complete (+ commit S
       breathe idle animation  `ed717a9`
 - [x] Task: DOM HUD stub bound to live sim state — day number, phase, action
       points — plus dev "advance day" control  `067f6d0`
-- [ ] Task: Wire autosave on day advance + save load on boot (fresh-state
+- [x] Task: Wire autosave on day advance + save load on boot (fresh-state
       fallback)  `3b6113d`
-- [ ] Task: Phase Verification & Checkpoint (refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (refer to workflow.md)  `[checkpoint: 5034a05]`
