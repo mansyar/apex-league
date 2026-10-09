@@ -53,7 +53,7 @@ with a verification & checkpoint task).
 - [x] Task: Care action menu (Feed/Rest/Treat/Play with AP costs; disabled states with reasons; Advance Day retained) (`ef94929`)
 - [x] Task: Ranch scene via archetype registry — owned creature rendered instead of hardcoded drake (`ef94929`)
 - [x] Task: Visual condition states — sluggish idle (low energy), droopy (sick), happy bounce (high mood) via existing rig (`ef94929`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: ef94929]
 
 ## Phase F — Integration & Verification Gate
 
