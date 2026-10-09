@@ -35,7 +35,7 @@ with a verification & checkpoint task).
   - [x] AP insufficiency rejections for all actions
   - [x] care quality modulates mood/bond gains (e.g. feeding starving vs. fed)
 - [x] Task: Implement care action module (pure functions over state + AP) (`b216855`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: b216855]
 
 ## Phase D — Save Migration v1→v2 (sim)
 
