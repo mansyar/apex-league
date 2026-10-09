@@ -21,10 +21,10 @@ lifecycle, checkpoints, and quality gates.
 - [x] Task: Write failing tests — voxelizer: grid sampling at ~40-voxel
       budget, per-part voxel labels, greedy mesh determinism `8e61daa`
 - [x] Task: Implement voxelizer + greedy mesher to green `f97a3ef` + `4cebd58`
-- [ ] Task: Write failing tests — GLB export: node hierarchy contract,
+- [x] Task: Write failing tests — GLB export: node hierarchy contract,
       pivots, manifest (dnaHash/glbSha/triCount), same-seed byte-identical
-      output
-- [ ] Task: Implement GLB exporter + manifest to green
+      output `4d4c67a`
+- [x] Task: Implement GLB exporter + manifest to green `6f9cefe`
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase C — Drake Archetype (template authoring — mix of TDD + visual iteration)
