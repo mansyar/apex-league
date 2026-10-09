@@ -50,3 +50,5 @@ gallery herd param); this branch is rebased on top of it.
       palette renders correctly through `buildCreatureGroup`
 - [ ] Task: Herd test — 8-seed axolotl lineup, rubric review with user
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+[checkpoint: 3013db0]
