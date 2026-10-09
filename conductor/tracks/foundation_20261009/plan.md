@@ -14,9 +14,9 @@ Status markers: `[ ]` pending · `[~]` in progress · `[x]` complete (+ commit S
 - [x] Task: Write failing tests — `GameState` shape, day ticker, calendar
       (day advance, cup flag every 7th day)  `3d82f2d`
 - [x] Task: Implement `GameState` + day ticker + calendar to green  `3d36cf9`
-- [~] Task: Write failing tests — phase state machine (Day ↔ Cup placeholder),
-      action points stub, seeded/injectable RNG seam
-- [ ] Task: Implement phase state machine to green
+- [x] Task: Write failing tests — phase state machine (Day ↔ Cup placeholder),
+      action points stub, seeded/injectable RNG seam  `6cbe7c1`
+- [x] Task: Implement phase state machine to green  `f3213ad`
 - [ ] Task: Phase Verification & Checkpoint (refer to workflow.md)
 
 ## Phase C — Persistence (logic-bearing — TDD)
