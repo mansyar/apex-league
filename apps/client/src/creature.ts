@@ -3,7 +3,7 @@
  * Parts are built pivot-relative (same contract as the GLB exporter), so
  * rotating a mesh around its pivot animates the joint.
  */
-import type { Dna, DrakeBuild } from "@apex/voxel"
+import type { CreatureBuild, Dna } from "@apex/voxel"
 import {
   DRAKE_GRID,
   type MeshePart,
@@ -14,10 +14,11 @@ import {
 import * as THREE from "three"
 
 export function buildCreatureMeshes(
-  build: DrakeBuild,
+  build: CreatureBuild,
+  grid: number = DRAKE_GRID,
 ): Array<{ part: MeshePart; geometry: THREE.BufferGeometry }> {
-  const grid = voxelize(build.fields, DRAKE_GRID)
-  const meshes = meshGrid(grid)
+  const voxels = voxelize(build.fields, grid)
+  const meshes = meshGrid(voxels)
   return meshes.map((part) => {
     const pivot = build.pivots[part.name]
     const px = pivot?.[0] ?? 0
@@ -42,11 +43,12 @@ export function buildCreatureMeshes(
 
 export function buildCreatureGroup(
   dna: Dna,
-  build: DrakeBuild,
+  build: CreatureBuild,
+  grid: number = DRAKE_GRID,
   options: { grey?: boolean } = {},
 ): THREE.Group {
   const creature = new THREE.Group()
-  for (const { part, geometry } of buildCreatureMeshes(build)) {
+  for (const { part, geometry } of buildCreatureMeshes(build, grid)) {
     const material = options.grey
       ? new THREE.MeshLambertMaterial({ color: 0x9a9a9a })
       : new THREE.MeshLambertMaterial({

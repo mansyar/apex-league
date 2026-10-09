@@ -1,7 +1,11 @@
 import { isCupDay } from "../calendar"
+import { createCreature } from "../creature"
 import type { GameState } from "../state"
 import { ACTION_POINTS_PER_DAY } from "../state"
-import { SAVE_VERSION, type SaveDataV1 } from "./schema"
+import { SAVE_VERSION, type SaveData } from "./schema"
+
+/** Seed used when a migrated save is granted its default starter. */
+export const STARTER_GRANT_SEED = 42
 
 /**
  * Migration chain: each entry upgrades a payload from key version to key + 1.
@@ -21,8 +25,40 @@ const migrations: Record<
       day,
       phase: isCupDay(day) ? "cup" : "day",
       actionPoints: ACTION_POINTS_PER_DAY,
+      creature: null,
     }
     return { version: 1, state, savedAt: 0 }
+  },
+
+  // v1 → v2: saves from before the care loop have no creature. Grant the
+  // default Fire drake starter so the creature is always owned going forward.
+  1: (raw) => {
+    const state = raw.state
+    if (typeof state !== "object" || state === null) {
+      throw new Error("invalid v1 save: missing state")
+    }
+    const s = state as Record<string, unknown>
+    const day = s.day
+    const phase = s.phase
+    const actionPoints = s.actionPoints
+    if (
+      typeof day !== "number" ||
+      !Number.isInteger(day) ||
+      day < 1 ||
+      (phase !== "day" && phase !== "cup") ||
+      typeof actionPoints !== "number" ||
+      !Number.isInteger(actionPoints) ||
+      actionPoints < 0
+    ) {
+      throw new Error("invalid v1 save: broken state")
+    }
+    const migrated: GameState = {
+      day,
+      phase,
+      actionPoints,
+      creature: createCreature("fire_drake", STARTER_GRANT_SEED),
+    }
+    return { version: 2, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
 }
 
@@ -30,7 +66,7 @@ const migrations: Record<
  * Migrate any versioned save payload to the current schema.
  * Throws on unknown/missing versions — callers treat throws as corrupt data.
  */
-export function migrate(raw: unknown): SaveDataV1 {
+export function migrate(raw: unknown): SaveData {
   if (typeof raw !== "object" || raw === null) {
     throw new Error("invalid save: not an object")
   }
@@ -51,5 +87,5 @@ export function migrate(raw: unknown): SaveDataV1 {
   if (version !== SAVE_VERSION) {
     throw new Error(`invalid save: future version ${version}`)
   }
-  return obj as unknown as SaveDataV1
+  return obj as unknown as SaveData
 }

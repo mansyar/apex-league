@@ -8,10 +8,27 @@
 
 export { spendActionPoints } from "./ap"
 export { CUP_INTERVAL_DAYS, isCupDay } from "./calendar"
+export {
+  CARE_AP_COST,
+  type CareAction,
+  type CareRejection,
+  type CareResult,
+  careAction,
+} from "./care"
+export {
+  CONDITION_MAX,
+  CONDITION_START,
+  type Creature,
+  type CreatureConditions,
+  type CreatureStats,
+  createCreature,
+  type Element,
+  type LifeStage,
+} from "./creature"
 export { beginCup, endCup } from "./machine"
 export { makeRng, type Rng } from "./rng"
 export { migrate } from "./save/migrate"
-export { SAVE_VERSION, type SaveDataV1, serializeSave } from "./save/schema"
+export { SAVE_VERSION, type SaveData, serializeSave } from "./save/schema"
 export {
   createMemoryAdapter,
   loadGame,
@@ -20,7 +37,15 @@ export {
   saveGame,
 } from "./save/storage"
 export {
+  EXHAUSTED_ENERGY,
+  NIGHT_RECOVERY,
+  SICK_HEALTH,
+  settleCreature,
+} from "./settlement"
+export { getSpecies, type SpeciesDef, STARTER_SPECIES } from "./species"
+export {
   ACTION_POINTS_PER_DAY,
+  chooseStarter,
   createInitialState,
   type GameState,
   type Phase,

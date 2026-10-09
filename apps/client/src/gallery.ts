@@ -88,8 +88,8 @@ function rebuild() {
           ? "bovine"
           : "draconic"
         : archetypeParam
-    const { dna, build } = generate(archetype, seed)
-    const creature = buildCreatureGroup(dna, build)
+    const { dna, build, def } = generate(archetype, seed)
+    const creature = buildCreatureGroup(dna, build, def.grid)
     // Line them up along x, facing the camera (-z toward viewer). The rotated
     // body sits ~+0.9 ahead of the group origin, so shift the row to recenter.
     creature.position.x = (i - (VARIANTS - 1) / 2) * 2 - 0.9

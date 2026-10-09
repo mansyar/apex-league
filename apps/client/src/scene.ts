@@ -1,19 +1,54 @@
-import { buildDrake, drakeTemplate, sampleDna } from "@apex/voxel"
+import {
+  type CreatureConditions,
+  EXHAUSTED_ENERGY,
+  SICK_HEALTH,
+} from "@apex/sim"
+import { generate } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
 
 export interface SceneHandle {
   /** Stop the render loop and free GPU resources. */
   dispose(): void
+  /** Replace (or add) the showcased creature, built from the archetype registry. */
+  setCreature(archetypeId: string, seed: number): void
+  /** Drive the condition visual states from the owned creature's conditions. */
+  updateConditions(conditions: CreatureConditions | null): void
 }
 
-const STARTER_SEED = 42
 const GROUND_COLOR = 0x2a3040
 const SKY_COLOR = 0x1a1f2e
 
+/** Visual idle modes derived from the creature's conditions. */
+type MoodMode = "normal" | "sluggish" | "droopy" | "happy"
+
+interface MoodProfile {
+  breathRate: number
+  breathAmp: number
+  headDroop: number
+  bounce: number
+}
+
+const MOOD_PROFILES: Record<MoodMode, MoodProfile> = {
+  normal: { breathRate: 2, breathAmp: 0.035, headDroop: 0, bounce: 0 },
+  // Low energy: slow, shallow breathing — the creature is dragging through the day.
+  sluggish: { breathRate: 0.9, breathAmp: 0.015, headDroop: 0.02, bounce: 0 },
+  // Sick: head hangs, breath weak.
+  droopy: { breathRate: 1.2, breathAmp: 0.02, headDroop: 0.06, bounce: 0 },
+  // High mood: lively breath and a periodic happy bounce.
+  happy: { breathRate: 2.6, breathAmp: 0.035, headDroop: 0, bounce: 0.08 },
+}
+
+function moodModeFrom(conditions: CreatureConditions): MoodMode {
+  if (conditions.health < SICK_HEALTH) return "droopy"
+  if (conditions.energy <= EXHAUSTED_ENERGY) return "sluggish"
+  if (conditions.mood >= 80) return "happy"
+  return "normal"
+}
+
 /**
- * Bootstrap the 3D scene: camera, lights, ground, and the generated starter
- * drake performing a breathe idle driven by the part-hierarchy rig.
+ * Bootstrap the 3D scene: camera, lights, ground, and the owned creature
+ * performing condition-driven procedural idles via the part-hierarchy rig.
  */
 export function createScene(container: HTMLElement): SceneHandle {
   const renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -31,7 +66,7 @@ export function createScene(container: HTMLElement): SceneHandle {
     100,
   )
 
-  // Drag-to-orbit camera around the creature, so the breathe idle can be
+  // Drag-to-orbit camera around the creature, so the idles can be
   // inspected from any angle. Wheel zooms, clamped to sane distances.
   const target = new THREE.Vector3(0, 0.8, 0)
   const orbit = { azimuth: 0.567, elevation: 0.326, radius: 6.9 }
@@ -98,61 +133,33 @@ export function createScene(container: HTMLElement): SceneHandle {
   ground.position.y = -0.1
   scene.add(ground)
 
-  // The player's starter drake, generated from a fixed seed (creature
-  // ownership comes with the raise loop later).
-  const dna = sampleDna(drakeTemplate, STARTER_SEED)
-  const creature = buildCreatureGroup(dna, buildDrake(dna))
-  scene.add(creature)
+  // Honor reduced motion: keep the gentle breath, drop the bounce.
+  const reducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches
 
-  // Grab the rig parts by name — the hierarchy contract guarantees they exist.
-  const body = creature.getObjectByName("body")
-  const head = creature.getObjectByName("head")
-  const tail = creature.getObjectByName("tail")
-  const tailTip = creature.getObjectByName("tailTip")
-  const headBaseY = head?.position.y ?? 0
+  let creatureGroup: THREE.Group | null = null
+  let mode: MoodMode = "normal"
+  let headBaseY = 0
 
-  const clockStart = performance.now()
-  let raf = 0
-
-  const tick = (): void => {
-    const t = (performance.now() - clockStart) / 1000
-    // Breathe idle: squash-and-stretch on the body around its HIP-LINE pivot.
-    // Scale never moves the pivot, so body voxels at the leg junction stay
-    // fixed and the legs remain visually attached; the chest and belly flex
-    // above/below it. Horizontal squash is kept small (it slides the body's
-    // voxel pattern against the planted legs); the vertical stretch carries
-    // the read. Neck/head/horns/tail ride along via the rig hierarchy.
-    const breath = Math.sin(t * 2)
-    if (body) {
-      body.scale.set(1 - breath * 0.01, 1 + breath * 0.035, 1 - breath * 0.01)
-    }
-    if (head) {
-      head.position.y = headBaseY + breath * 0.02
-    }
-    const sway = Math.sin(t * 1.3)
-    if (tail) {
-      tail.rotation.y = sway * 0.06
-    }
-    if (tailTip) {
-      tailTip.rotation.y = sway * 0.12
-    }
-    renderer.render(scene, camera)
-    raf = requestAnimationFrame(tick)
+  const disposeGroup = (group: THREE.Group): void => {
+    group.traverse((obj) => {
+      if (obj instanceof THREE.Mesh) {
+        obj.geometry.dispose()
+        const mat = obj.material
+        if (Array.isArray(mat)) {
+          for (const m of mat) m.dispose()
+        } else {
+          mat.dispose()
+        }
+      }
+    })
+    scene.remove(group)
   }
-  raf = requestAnimationFrame(tick)
 
-  const onResize = (): void => {
-    const w = container.clientWidth
-    const h = container.clientHeight
-    if (w === 0 || h === 0) return
-    camera.aspect = w / h
-    camera.updateProjectionMatrix()
-    renderer.setSize(w, h)
-  }
-  window.addEventListener("resize", onResize)
-
-  return {
+  const handle: SceneHandle = {
     dispose() {
+      if (creatureGroup) disposeGroup(creatureGroup)
       cancelAnimationFrame(raf)
       window.removeEventListener("resize", onResize)
       window.removeEventListener("pointermove", onPointerMove)
@@ -175,5 +182,75 @@ export function createScene(container: HTMLElement): SceneHandle {
       renderer.dispose()
       renderer.domElement.remove()
     },
+    setCreature(archetypeId, seed) {
+      if (creatureGroup) disposeGroup(creatureGroup)
+      const { dna, build, def } = generate(archetypeId, seed)
+      creatureGroup = buildCreatureGroup(dna, build, def.grid)
+      scene.add(creatureGroup)
+      headBaseY = creatureGroup.getObjectByName("head")?.position.y ?? 0
+    },
+    updateConditions(conditions) {
+      mode = conditions ? moodModeFrom(conditions) : "normal"
+    },
   }
+
+  const clockStart = performance.now()
+  let raf = 0
+
+  const tick = (): void => {
+    const t = (performance.now() - clockStart) / 1000
+    const profile = MOOD_PROFILES[mode]
+    if (creatureGroup) {
+      // Breathe idle: squash-and-stretch on the body around its HIP-LINE
+      // pivot. Scale never moves the pivot, so body voxels at the leg
+      // junction stay fixed and the legs remain visually attached; the chest
+      // and belly flex above/below it. Horizontal squash is kept small (it
+      // slides the body's voxel pattern against the planted legs); the
+      // vertical stretch carries the read. Neck/head/horns/tail ride along
+      // via the rig hierarchy.
+      const breath = Math.sin(t * profile.breathRate)
+      const body = creatureGroup.getObjectByName("body")
+      if (body) {
+        body.scale.set(
+          1 - breath * profile.breathAmp * 0.3,
+          1 + breath * profile.breathAmp,
+          1 - breath * profile.breathAmp * 0.3,
+        )
+      }
+      const head = creatureGroup.getObjectByName("head")
+      if (head) {
+        head.position.y =
+          headBaseY + breath * profile.breathAmp * 0.6 - profile.headDroop
+      }
+      const sway = Math.sin(t * 1.3)
+      const tail = creatureGroup.getObjectByName("tail")
+      if (tail) {
+        tail.rotation.y = sway * 0.06
+      }
+      const tailTip = creatureGroup.getObjectByName("tailTip")
+      if (tailTip) {
+        tailTip.rotation.y = sway * 0.12
+      }
+      if (!reducedMotion && profile.bounce > 0) {
+        creatureGroup.position.y = Math.abs(Math.sin(t * 3.2)) * profile.bounce
+      } else {
+        creatureGroup.position.y = 0
+      }
+    }
+    renderer.render(scene, camera)
+    raf = requestAnimationFrame(tick)
+  }
+  raf = requestAnimationFrame(tick)
+
+  const onResize = (): void => {
+    const w = container.clientWidth
+    const h = container.clientHeight
+    if (w === 0 || h === 0) return
+    camera.aspect = w / h
+    camera.updateProjectionMatrix()
+    renderer.setSize(w, h)
+  }
+  window.addEventListener("resize", onResize)
+
+  return handle
 }
