@@ -35,8 +35,9 @@ lifecycle, checkpoints, and quality gates.
 - [x] Task: Write failing tests — property/fuzz: N random seeds all valid,
       in-bounds, DNA-distinct; rare-tier probabilities hold over large N
 - [x] Task: Implement property/fuzz suite to green `aee789c`
-- [ ] Task: Grey default-seed renders → iterate template until silhouette
-      reads "dragon" (living-concept loop)
+- [~] Task: Grey default-seed renders → iterate template until silhouette
+      reads "dragon" (living-concept loop) — 2 iterations done `9a51267`,
+      awaiting user silhouette verdict
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase D — Integration, Tooling & Vision Gate (manual-verification heavy)
