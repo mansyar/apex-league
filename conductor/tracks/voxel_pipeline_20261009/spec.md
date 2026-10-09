@@ -56,6 +56,10 @@ via procedural three.js animation.
    silhouette unambiguously reads "dragon" before palette work.
 3. AI-generated mood piece for Fire palette direction (swatches only, never
    a shape target), produced during implementation.
+   *(Update 2026-10-09, review: layer 1 collage committed to
+   `docs/concept/drake-references.html`; layer 3 mood piece deferred to the
+   Fire/Water/Plant palette work in a later track — grey-render calibration
+   proved sufficient for this track's scope.)*
 
 ## Non-Functional Requirements
 
