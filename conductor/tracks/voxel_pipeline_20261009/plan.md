@@ -32,8 +32,9 @@ lifecycle, checkpoints, and quality gates.
 - [x] Task: Write failing tests — drake template: params within declared
       bounds, style enums (horns/tail), rarity gate probabilities `0bda590`
 - [x] Task: Implement drake archetype template to green `6b620ee`
-- [ ] Task: Write failing tests — property/fuzz: N random seeds all valid,
+- [x] Task: Write failing tests — property/fuzz: N random seeds all valid,
       in-bounds, DNA-distinct; rare-tier probabilities hold over large N
+- [x] Task: Implement property/fuzz suite to green `aee789c`
 - [ ] Task: Grey default-seed renders → iterate template until silhouette
       reads "dragon" (living-concept loop)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
