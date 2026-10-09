@@ -182,12 +182,12 @@ describe("assignTraining", () => {
     expect(r.state.creature?.trainingResult).toBeNull()
   })
 
-  test("a capped stat is rejected before spending AP — stat-capped", () => {
+  test("a capped stat is rejected before spending AP — at-cap", () => {
     const s = trainingState({
       trained: { hp: 0, atk: TRAINING_CAP, def: 0, spd: 0 },
     })
     const r = assignTraining(s, "atk")
-    expect(r).toEqual({ ok: false, reason: "stat-capped" })
+    expect(r).toEqual({ ok: false, reason: "at-cap" })
     expect(s.actionPoints).toBe(ACTION_POINTS_PER_DAY)
   })
 
@@ -199,6 +199,27 @@ describe("assignTraining", () => {
     expect(r.ok).toBe(true)
     if (!r.ok) throw new Error("unreachable")
     expect(r.state.creature?.trainingFocus).toBe("def")
+  })
+
+  test("picking the already-focused stat is a free no-op", () => {
+    const r = assignTraining(trainingState({ trainingFocus: "def" }), "def")
+    expect(r.ok).toBe(true)
+    if (!r.ok) throw new Error("unreachable")
+    expect(r.state.creature?.trainingFocus).toBe("def")
+    expect(r.state.actionPoints).toBe(ACTION_POINTS_PER_DAY)
+  })
+
+  test("assignment is allowed while sick, hungry, or exhausted", () => {
+    for (const conditions of [
+      { health: 50 },
+      { hunger: 0 },
+      { energy: 10 },
+    ]) {
+      const r = assignTraining(stateWith(conditions), "hp")
+      expect(r.ok).toBe(true)
+      if (!r.ok) throw new Error("unreachable")
+      expect(r.state.creature?.trainingFocus).toBe("hp")
+    }
   })
 
   test("the first assignment is rejected without AP — no-ap", () => {

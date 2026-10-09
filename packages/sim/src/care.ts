@@ -25,7 +25,7 @@ export type CareResult =
   | { ok: false; reason: CareRejection }
 
 /** Friendly rejection reasons for assigning a training focus. */
-export type TrainingRejection = "no-creature" | "no-ap" | "stat-capped"
+export type TrainingRejection = "no-creature" | "no-ap" | "at-cap"
 
 /** Result of attempting to assign a training focus. */
 export type TrainingAttempt =
@@ -160,7 +160,7 @@ export function assignTraining(
     return { ok: false, reason: "no-ap" }
   }
   if (creature.trained[stat] >= TRAINING_CAP) {
-    return { ok: false, reason: "stat-capped" }
+    return { ok: false, reason: "at-cap" }
   }
 
   return {
