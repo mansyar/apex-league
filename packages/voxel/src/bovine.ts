@@ -122,9 +122,9 @@ export function buildBovine(dna: Dna): BovineBuild {
   // over the shoulders — heavy forequarters are what make an ox read as an ox.
   const barrel = at(0, 13, 0)
   const barrelHalf = vec3(5.2 * bg, 4.4 * bg, 8 * bl)
-  // Hump sits back over the shoulders (not the neck) as a broad wedge —
-  // heavy forequarters are what make an ox read as an ox.
-  const hump = at(0, 15, 1.5 * bl)
+  // Hump sits back over the shoulders (not the neck) and rises well above
+  // the back line — a high shoulder silhouette is what makes an ox an ox.
+  const hump = at(0, 16.5, 1.5 * bl)
   // Brisket: the chest hangs below the barrel line between the front legs.
   const brisket = at(0, 10.5, 3 * bl)
 
@@ -163,7 +163,7 @@ export function buildBovine(dna: Dna): BovineBuild {
       return vec3(headC.x + outX, hornBaseY + 2.2, hornBaseZ)
     }
     if (hornStyle === "backSwept") {
-      return vec3(headC.x + outX * 0.8, hornBaseY + 3, hornBaseZ - 3.2 * hl)
+      return vec3(headC.x + outX * 0.8, hornBaseY + 3.2, hornBaseZ - 1.8 * hl)
     }
     // curved (default): sweep out and up
     return vec3(headC.x + outX, hornBaseY + 2.5 * hl, hornBaseZ - 0.4)
@@ -178,7 +178,7 @@ export function buildBovine(dna: Dna): BovineBuild {
   // Barrel + shoulder hump + brisket blend into one mass — smooth, no seam.
   const bodyField: Sdf = smoothUnion(
     union(sdBox(barrel, barrelHalf), sdSphere(brisket, 3.4 * bg)),
-    sdSphere(hump, 4 * hs),
+    sdSphere(hump, 4.6 * hs),
     3,
   )
   fields.push({ name: "body", sdf: bodyField })
@@ -209,9 +209,10 @@ export function buildBovine(dna: Dna): BovineBuild {
     fields.push({ name: "tailTip", sdf: tailTipField })
   }
 
-  // Crest: spine spikes between the hump and the tail base.
+  // Crest: spine spikes BEHIND the hump (which rises to ~y22 and would
+  // swallow spikes at the shoulder) — they run down the back toward the tail.
   if (crestStyle === "spikes") {
-    const spikePieces: Sdf[] = [4, 0.5, -3].map((z) =>
+    const spikePieces: Sdf[] = [-2, -4.5, -7].map((z) =>
       sdBox(at(0, 17.8 + 1.6 * hl, z * bl), vec3(0.8, 1.8 * hl, 0.8)),
     )
     const crestField: Sdf = spikePieces.reduce((acc, s) => union(acc, s))
@@ -259,7 +260,7 @@ export function buildBovine(dna: Dna): BovineBuild {
   )
   fields.push({ name: "head", sdf: headField })
 
-  fields.push({ name: "neck", sdf: sdCapsule(neckA, neckB, 2.4 * bg) })
+  fields.push({ name: "neck", sdf: sdCapsule(neckA, neckB, 2.9 * bg) })
 
   // Charm part: a collar strap around the neck where it exits the body,
   // with a small bell hanging below the neck — pure livestock charm,

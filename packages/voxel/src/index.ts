@@ -6,6 +6,12 @@
  * per-part greedy mesh → GLB with a rigid hierarchy contract.
  */
 
+export {
+  BOVINE_GRID,
+  type BovineBuild,
+  bovineTemplate,
+  buildBovine,
+} from "./bovine"
 export { buildDrake, DRAKE_GRID, type DrakeBuild, drakeTemplate } from "./drake"
 export {
   type ExportInput,
