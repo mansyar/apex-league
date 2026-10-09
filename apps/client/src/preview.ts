@@ -4,15 +4,9 @@
  * Grey materials on purpose — palette is judged later in the vision gate.
  */
 import "./style.css"
-import {
-  buildDrake,
-  DRAKE_GRID,
-  drakeTemplate,
-  meshGrid,
-  sampleDna,
-  voxelize,
-} from "@apex/voxel"
+import { buildDrake, drakeTemplate, sampleDna } from "@apex/voxel"
 import * as THREE from "three"
+import { buildCreatureGroup } from "./creature"
 
 const app: HTMLDivElement = (() => {
   const el = document.querySelector<HTMLDivElement>("#app")
@@ -26,9 +20,7 @@ const seed = Number.parseInt(
 )
 
 const dna = sampleDna(drakeTemplate, seed)
-const build = buildDrake(dna)
-const grid = voxelize(build.fields, DRAKE_GRID)
-const meshes = meshGrid(grid)
+const creature = buildCreatureGroup(dna, buildDrake(dna), { grey: true })
 
 const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setPixelRatio(window.devicePixelRatio)
@@ -57,36 +49,6 @@ const ground = new THREE.Mesh(
 )
 ground.position.y = -0.1
 scene.add(ground)
-
-const grey = new THREE.MeshLambertMaterial({ color: 0x9a9a9a })
-const creature = new THREE.Group()
-const VOXEL_SIZE = 0.045
-for (const part of meshes) {
-  const pivot = build.pivots[part.name]
-  const px = pivot?.[0] ?? 0
-  const py = pivot?.[1] ?? 0
-  const pz = pivot?.[2] ?? 0
-  // Pivot-relative vertices (same contract as the GLB exporter), so rotating
-  // a mesh around its pivot animates the joint.
-  const positions = new Float32Array(part.positions.length)
-  for (let i = 0; i < part.positions.length; i += 3) {
-    positions[i] = (part.positions[i] ?? 0) - px
-    positions[i + 1] = (part.positions[i + 1] ?? 0) - py
-    positions[i + 2] = (part.positions[i + 2] ?? 0) - pz
-  }
-  const geometry = new THREE.BufferGeometry()
-  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3))
-  geometry.setAttribute(
-    "normal",
-    new THREE.BufferAttribute(new Float32Array(part.normals), 3),
-  )
-  geometry.setIndex(part.indices)
-  const mesh = new THREE.Mesh(geometry, grey)
-  mesh.position.set(px, py, pz)
-  mesh.name = part.name
-  creature.add(mesh)
-}
-creature.scale.setScalar(VOXEL_SIZE)
 scene.add(creature)
 
 // DNA readout for context during iteration
