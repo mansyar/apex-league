@@ -36,3 +36,7 @@ frozen — template authoring only.
       into creature builder  `dd9843b`
 - [x] Task: Herd test — 8-seed bovine lineup, rubric review with user  `dd9843b`
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)  [checkpoint: 12234b2]
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions  `6c77ead`
