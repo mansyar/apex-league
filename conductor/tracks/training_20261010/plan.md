@@ -28,19 +28,19 @@ manually, not unit-tested.
 
 ## Phase C — Nightly gain and preview (sim)
 
-- [ ] Task: Failing tests — settlement gain
-  - [ ] a full-rest night adds +1 to the focused stat only; the rolled base never changes
-  - [ ] trained bonus never exceeds 6, including a focus already at the cap
-  - [ ] sick at lights-out pays 0 and records `trainingResult` `"sick"`
-  - [ ] hunger after the drop at or below 0 pays 0 and records `"hungry"`; sickness wins when both apply
-  - [ ] exhaustion does not waste a night that otherwise meets the rested predicate
-  - [ ] the sickness roll does not claw back a granted gain, and the new step draws no rng
-  - [ ] settlement clears the focus; a night with no focus sets `trainingResult` to null
-- [ ] Task: Failing tests — preview helper
-  - [ ] the helper uses the same rested predicate as settlement and does not mutate state
-  - [ ] feeding or treating after assigning turns a wasted preview into a gain
-- [ ] Task: Implement the settlement step (after hunger drop, before the sickness roll) and the preview helper
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Failing tests — settlement gain (`ae4b7cd`)
+  - [x] a full-rest night adds +1 to the focused stat only; the rolled base never changes
+  - [x] trained bonus never exceeds 6, including a focus already at the cap
+  - [x] sick at lights-out pays 0 and records `trainingResult` `"sick"`
+  - [x] hunger after the drop at or below 0 pays 0 and records `"hungry"`; sickness wins when both apply
+  - [x] exhaustion does not waste a night that otherwise meets the rested predicate
+  - [x] the sickness roll does not claw back a granted gain, and the new step draws no rng
+  - [x] settlement clears the focus; a night with no focus sets `trainingResult` to null
+- [x] Task: Failing tests — preview helper (`ae4b7cd`)
+  - [x] the helper uses the same rested predicate as settlement and does not mutate state
+  - [x] feeding or treating after assigning turns a wasted preview into a gain
+- [x] Task: Implement the settlement step (after hunger drop, before the sickness roll) and the preview helper (`ae4b7cd`)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: ae4b7cd]`
 
 ## Phase D — Save migration v2→v3 (sim)
 
