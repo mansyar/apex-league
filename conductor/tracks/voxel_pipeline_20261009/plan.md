@@ -10,7 +10,8 @@ lifecycle, checkpoints, and quality gates.
 - [x] Task: Write failing tests — DNA schema: types, hard-bounds validation,
       template declaration shape `59eb7b1`
 - [x] Task: Implement DNA schema + bounds enforcement to green `8b38d1e`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  [checkpoint: 0c3ede2]
 
 ## Phase B — Generator Core (logic-bearing — TDD)
 
