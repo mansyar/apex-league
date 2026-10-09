@@ -10,6 +10,15 @@ export { spendActionPoints } from "./ap"
 export { CUP_INTERVAL_DAYS, isCupDay } from "./calendar"
 export { beginCup, endCup } from "./machine"
 export { makeRng, type Rng } from "./rng"
+export { migrate } from "./save/migrate"
+export { SAVE_VERSION, type SaveDataV1, serializeSave } from "./save/schema"
+export {
+  createMemoryAdapter,
+  loadGame,
+  SAVE_KEY,
+  type SaveAdapter,
+  saveGame,
+} from "./save/storage"
 export {
   ACTION_POINTS_PER_DAY,
   createInitialState,
