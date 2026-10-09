@@ -28,8 +28,9 @@ gallery herd param); this branch is rebased on top of it.
 - [x] Task: Register axolotl in the `archetypes` registry
       (`packages/voxel/src/archetype.ts`) and export from
       `packages/voxel/src/index.ts` `[0d46af2]`
-- [ ] Task: Geometric hardening — grid-boundary probes over 400 seeds; fix
+- [x] Task: Geometric hardening — grid-boundary probes over 400 seeds; fix
       overflows; commit artifact-ready build
+      `[probe: 0 empty parts, 0 edge-touching across seeds 1-400; totals 1286-3098]`
 
 ## Phase C — Property & Fuzz
 
