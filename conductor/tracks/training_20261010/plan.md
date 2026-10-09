@@ -6,10 +6,10 @@ manually, not unit-tested.
 
 ## Phase A — Training fields on the creature (sim)
 
-- [ ] Task: Failing tests — training fields on creation
-  - [ ] a new creature has `trained` zeros, `trainingFocus` null, and `trainingResult` null
-  - [ ] rolled `stats` are unchanged by the new fields and stay inside species bounds
-- [ ] Task: Implement training fields on `Creature` and `createCreature`
+- [x] Task: Failing tests — training fields on creation (`aa30970`)
+  - [x] a new creature has `trained` zeros, `trainingFocus` null, and `trainingResult` null
+  - [x] rolled `stats` are unchanged by the new fields and stay inside species bounds
+- [x] Task: Implement training fields on `Creature` and `createCreature` (`aa30970`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase B — Assign training (sim)
