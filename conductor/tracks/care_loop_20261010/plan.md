@@ -12,7 +12,7 @@ with a verification & checkpoint task).
 - [x] Task: Implement creature module (state shape, seeded stat roll, element type, stage field) (`64dba27`)
 - [x] Task: Implement starter catalog (species data: archetype id, element, base-stat bounds, display name/flavor) (`64dba27`)
 - [x] Task: Integrate creature into `GameState` (nullable — pre-starter saves exist) (`64dba27`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: 64dba27]
 
 ## Phase B — Daily Settlement Tick (sim)
 
