@@ -27,14 +27,14 @@ with a verification & checkpoint task).
 
 ## Phase C — Care Actions (sim)
 
-- [ ] Task: Failing tests — care actions & AP economy
-  - [ ] feed: hunger restore (+small energy), AP cost
-  - [ ] rest (nap): energy restore, AP cost
-  - [ ] treat: cures sickness; severity affects recovery; AP cost
-  - [ ] play: mood + bond gain, energy cost; blocked when sick or exhausted (friendly rejection)
-  - [ ] AP insufficiency rejections for all actions
-  - [ ] care quality modulates mood/bond gains (e.g. feeding starving vs. fed)
-- [ ] Task: Implement care action module (pure functions over state + AP)
+- [x] Task: Failing tests — care actions & AP economy (`b216855`)
+  - [x] feed: hunger restore (+small energy), AP cost
+  - [x] rest (nap): energy restore, AP cost
+  - [x] treat: cures sickness; severity affects recovery; AP cost
+  - [x] play: mood + bond gain, energy cost; blocked when sick or exhausted (friendly rejection)
+  - [x] AP insufficiency rejections for all actions
+  - [x] care quality modulates mood/bond gains (e.g. feeding starving vs. fed)
+- [x] Task: Implement care action module (pure functions over state + AP) (`b216855`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase D — Save Migration v1→v2 (sim)
