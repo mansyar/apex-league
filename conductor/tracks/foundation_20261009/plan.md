@@ -11,10 +11,10 @@ Status markers: `[ ]` pending · `[~]` in progress · `[x]` complete (+ commit S
 - [x] Task: Phase Verification & Checkpoint (refer to workflow.md)  `[checkpoint: 099ab3e]`
 
 ## Phase B — Headless Sim Core (logic-bearing — TDD)
-- [ ] Task: Write failing tests — `GameState` shape, day ticker, calendar
-      (day advance, cup flag every 7th day)
-- [ ] Task: Implement `GameState` + day ticker + calendar to green
-- [ ] Task: Write failing tests — phase state machine (Day ↔ Cup placeholder),
+- [x] Task: Write failing tests — `GameState` shape, day ticker, calendar
+      (day advance, cup flag every 7th day)  `3d82f2d`
+- [x] Task: Implement `GameState` + day ticker + calendar to green  `3d36cf9`
+- [~] Task: Write failing tests — phase state machine (Day ↔ Cup placeholder),
       action points stub, seeded/injectable RNG seam
 - [ ] Task: Implement phase state machine to green
 - [ ] Task: Phase Verification & Checkpoint (refer to workflow.md)
