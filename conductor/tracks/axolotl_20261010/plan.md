@@ -9,9 +9,9 @@ gallery herd param); this branch is rebased on top of it.
 
 ## Phase A — Template Tests (red)
 
-- [ ] Task: Write failing tests — axolotl template: schema-valid, 3 slots ×
+- [x] Task: Write failing tests — axolotl template: schema-valid, 3 slots ×
       ≥2 styles, param-name uniqueness across slots, Water-blue 205° hue
-      contract, gilded weight 32
+      contract, gilded weight 32 `[b84a0ec]`
 - [ ] Task: Write failing tests — sampleDna: in-bounds via
       assertDnaInBounds, determinism, seed divergence, style enums over 30
       seeds, gilded frequency over 2000 seeds, buildAxolotl part inventory +
