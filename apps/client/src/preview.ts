@@ -4,7 +4,7 @@
  * Grey materials on purpose — palette is judged later in the vision gate.
  */
 import "./style.css"
-import { generate } from "@apex/voxel"
+import { archetypes, generate } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
 
@@ -18,7 +18,7 @@ const params = new URLSearchParams(window.location.search)
 const seed = Number.parseInt(params.get("seed") ?? "42", 10)
 
 const archetypeParam = params.get("archetype") ?? "draconic"
-const archetype = archetypeParam === "bovine" ? "bovine" : "draconic"
+const archetype = archetypeParam in archetypes ? archetypeParam : "draconic"
 const { dna, build } = generate(archetype, seed)
 const creature = buildCreatureGroup(dna, build, { grey: true })
 
