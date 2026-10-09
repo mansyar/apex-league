@@ -10,7 +10,8 @@
     "build": "bun run --filter @apex/client build",
     "check": "bun run --filter '*' check",
     "test": "bun test",
-    "verify": "bun run check && bun test --check && biome check"
+    "gate:determinism": "bun packages/voxel/scripts/determinism-gate.ts",
+    "verify": "bun run check && bun test --check && biome check && bun run gate:determinism"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",
