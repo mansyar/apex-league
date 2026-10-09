@@ -1,8 +1,12 @@
 import { describe, expect, test } from "bun:test"
-import { sdSphere, translate, vec3 } from "./sdf"
-import { voxelize, type PartField } from "./voxelizer"
+import { sdSphere, vec3 } from "./sdf"
+import { type PartField, voxelize } from "./voxelizer"
 
-function spherePart(name: string, center: [number, number, number], radius: number): PartField {
+function spherePart(
+  name: string,
+  center: [number, number, number],
+  radius: number,
+): PartField {
   return { name, sdf: sdSphere(vec3(...center), radius) }
 }
 
@@ -24,7 +28,9 @@ describe("voxelize", () => {
       expect(z).toBeGreaterThanOrEqual(0)
       expect(z).toBeLessThan(resolution)
       // Voxel center must satisfy the field (inside or on surface).
-      expect(bodyField.sdf(vec3(x + 0.5, y + 0.5, z + 0.5))).toBeLessThanOrEqual(0)
+      expect(
+        bodyField.sdf(vec3(x + 0.5, y + 0.5, z + 0.5)),
+      ).toBeLessThanOrEqual(0)
     }
   })
 
@@ -40,10 +46,7 @@ describe("voxelize", () => {
   test("later parts claim overlapping voxels (paint order)", () => {
     const resolution = 12
     const result = voxelize(
-      [
-        spherePart("body", [6, 6, 6], 3),
-        spherePart("head", [6, 8, 6], 2),
-      ],
+      [spherePart("body", [6, 6, 6], 3), spherePart("head", [6, 8, 6], 2)],
       resolution,
     )
     const body = result.parts[0]
