@@ -17,8 +17,8 @@ frozen — template authoring only.
 
 - [x] Task: Implement `bovineTemplate` + `buildBovine` SDF assembly (stocky
       ox skeleton, charm part, pivots, parents, palette) to green  `557c094`
-- [~] Task: Geometric hardening — grid-boundary probes over 400 seeds; fix
-      overflows; commit artifact-ready build
+- [x] Task: Geometric hardening — grid-boundary probes over 400 seeds; fix
+      overflows; commit artifact-ready build  `04e4660`
 
 ## Phase C — Property & Fuzz
 
