@@ -131,7 +131,7 @@ export function buildBovine(dna: Dna): BovineBuild {
   const tailTipZ = -7.5 * bl - 5.5 * tl
 
   const hipY = 9
-  const footY = 0.9 + 1.4 * bg
+  const footY = 0.9 + 1.9 * bg
   const legFrontZ = 4.5 + (ll - 1) * 2
   const legBackZ = -5.5 - (ll - 1) * 2
 
