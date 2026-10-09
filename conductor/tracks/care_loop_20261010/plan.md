@@ -5,13 +5,13 @@ with a verification & checkpoint task).
 
 ## Phase A — Creature Entity & Starter Catalog (sim)
 
-- [ ] Task: Failing tests — creature creation & catalog
+- [x] Task: Failing tests — creature creation & catalog (`64dba27`)
   - [ ] seeded creature creation produces deterministic stats within species bounds (Rng seam)
   - [ ] starter catalog exposes Fire drake + Plant ox selectable, Water axolotl locked/"coming soon"
   - [ ] creature rejected/invalid cases (unknown archetype, out-of-bounds rolls)
-- [ ] Task: Implement creature module (state shape, seeded stat roll, element type, stage field)
-- [ ] Task: Implement starter catalog (species data: archetype id, element, base-stat bounds, display name/flavor)
-- [ ] Task: Integrate creature into `GameState` (nullable — pre-starter saves exist)
+- [x] Task: Implement creature module (state shape, seeded stat roll, element type, stage field) (`64dba27`)
+- [x] Task: Implement starter catalog (species data: archetype id, element, base-stat bounds, display name/flavor) (`64dba27`)
+- [x] Task: Integrate creature into `GameState` (nullable — pre-starter saves exist) (`64dba27`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase B — Daily Settlement Tick (sim)
