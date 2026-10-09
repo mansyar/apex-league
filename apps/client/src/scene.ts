@@ -107,7 +107,6 @@ export function createScene(container: HTMLElement): SceneHandle {
   // Grab the rig parts by name — the hierarchy contract guarantees they exist.
   const body = creature.getObjectByName("body")
   const head = creature.getObjectByName("head")
-  const neck = creature.getObjectByName("neck")
   const tail = creature.getObjectByName("tail")
   const tailTip = creature.getObjectByName("tailTip")
   const headBaseY = head?.position.y ?? 0
@@ -117,17 +116,13 @@ export function createScene(container: HTMLElement): SceneHandle {
 
   const tick = (): void => {
     const t = (performance.now() - clockStart) / 1000
-    // Breathe idle: squash-and-stretch on the body with the neck stretching
-    // in sync around its base pivot (so the neck-body joint never separates),
-    // a subtle head bob, and a slow tail sway around the declared joints.
-    // The rig hierarchy carries children (horns ride the head, neck+tail ride
-    // the body), so nothing separates at the joints.
+    // Breathe idle: squash-and-stretch on the body only — the rig hierarchy
+    // carries the neck, head, horns, and tail along with it (same transform
+    // matrix, so joints cannot separate). The head and tail add small
+    // secondary motion on top.
     const breath = Math.sin(t * 2)
     if (body) {
       body.scale.set(1 - breath * 0.02, 1 + breath * 0.03, 1 - breath * 0.02)
-    }
-    if (neck) {
-      neck.scale.y = 1 + breath * 0.03
     }
     if (head) {
       head.position.y = headBaseY + breath * 0.02

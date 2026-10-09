@@ -243,8 +243,11 @@ export function buildDrake(dna: Dna): DrakeBuild {
   })
 
   // -- Pivots (rotation anchors for the procedural rig) --------------------
+  // The body pivot sits at the body's UNDERSIDE (not its center): breathe
+  // scaling then keeps the chest/leg junction planted while the expansion
+  // reads at the chest and withers, like real breathing.
   const pivots: Record<string, [number, number, number]> = {
-    body: [O, 16.5, O - bl],
+    body: [O, 11.5, O - bl],
     tail: [tailBase.x, tailBase.y, tailBase.z],
     tailTip: [tailKnee.x, tailKnee.y, tailKnee.z],
     ...legPivots,
