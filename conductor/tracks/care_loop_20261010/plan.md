@@ -60,3 +60,7 @@ with a verification & checkpoint task).
 - [x] Task: Full gate — `bun run verify` (check, tests, biome, determinism) green (`ef94929`)
 - [x] Task: Browser manual verification pass (starter → care day → sickness → cure → visual states) with screenshot evidence (`ef94929`)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: ef94929]
+
+## Review — Apply review suggestions
+
+- [x] Task: Apply review suggestions (threshold centralization, copy/doc nits) (`95a34cf`)
