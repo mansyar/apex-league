@@ -1,0 +1,57 @@
+# Plan: Axolotl Archetype
+
+TDD-ordered per workflow.md. Pipeline core (sdf/voxelizer/mesher/glb) is
+frozen — template authoring only.
+
+**Precondition — satisfied:** bovine Phase D landed on `main` (archetype
+registry + `generate()` API, generic export script + determinism gate,
+gallery herd param); this branch is rebased on top of it.
+
+## Phase A — Template Tests (red)
+
+- [x] Task: Write failing tests — axolotl template: schema-valid, 3 slots ×
+      ≥2 styles, param-name uniqueness across slots, Water-blue 205° hue
+      contract, gilded weight 32 `[b84a0ec]`
+- [x] Task: Write failing tests — sampleDna: in-bounds via
+      assertDnaInBounds, determinism, seed divergence, style enums over 30
+      seeds, gilded frequency over 2000 seeds, buildAxolotl part inventory +
+      pivots/parents, voxelize sanity at AXOLOTL_GRID; registry resolves
+      `generate("axolotl", seed)` once registered (unknown-id error behavior
+      for other ids unchanged) `[ae32714]`
+
+## Phase B — Axolotl Implementation (green)
+
+- [x] Task: Implement `axolotlTemplate` + `buildAxolotl` SDF assembly
+      (elongated body, flat head, stubby legs, gill fronds, fin tail, dorsal
+      fin; CreatureBuild-compatible fields/pivots/parents/colors,
+      Water-blue palette) to green `[73448d3]`
+- [x] Task: Register axolotl in the `archetypes` registry
+      (`packages/voxel/src/archetype.ts`) and export from
+      `packages/voxel/src/index.ts` `[0d46af2]`
+- [x] Task: Geometric hardening — grid-boundary probes over 400 seeds; fix
+      overflows; commit artifact-ready build
+      `[probe: 0 empty parts, 0 edge-touching across seeds 0-399 (tuple-indexed probe, corrected after the fuzz suite exposed a floor-clipping bug the original object-style probe masked); totals 1586-3476]`
+
+## Phase C — Property & Fuzz
+
+- [x] Task: Add axolotl cases to fuzz suite — 200-seed DNA validity, 40-seed
+      boundary probe, 8-seed pipeline budget, byte-identical determinism
+      `[3013db0]`
+- [x] Task: Grey-render silhouette iteration via preview page until it reads
+      "axolotl" (living-concept loop, user verdict) `[3a6d3ad]`
+
+## Phase D — Integration & Vision Gate (manual-verification heavy)
+
+- [x] Task: Run the existing archetype-generic export script to generate +
+      commit `artifacts/axolotl-42.glb` + manifest; confirm the determinism
+      gate auto-covers all three archetypes with zero script edits `[b13c71e]`
+- [x] Task: Gallery/preview accept `?archetype=axolotl` (extend the param
+      whitelist; mixed herd becomes a three-way rotation); verify Water-blue
+      palette renders correctly through `buildCreatureGroup` `[c22bf96]`
+- [x] Task: Herd test — 8-seed axolotl lineup, rubric review with user
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+[checkpoint: c22bf96]
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions `24e5888`

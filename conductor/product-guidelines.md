@@ -24,7 +24,9 @@
 - **Palette**: saturated team colors per element type; neutral arena floors so
   creature silhouettes read instantly.
 - **Type colors are a contract**: each of the 6 elements has one fixed hue used
-  identically in badges, move icons, and particle effects.
+  identically in badges, move icons, and particle effects. Implemented so far:
+  Fire = 18° (draconic), Plant = 110° (bovine), Water = 205° (axolotl);
+  Electric/Earth/Wind hues are unassigned until their archetypes exist.
 - **UI**: flat panels over the 3D scene; big touchable targets; rank/ladder
   visuals echo sports broadcast lower-thirds.
 - **Creature variation (decided 2026-10-09)**: "Wild" — same-species

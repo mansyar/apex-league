@@ -4,7 +4,7 @@
  * tiers) and the vision-gate lineups. Usage: /gallery.html?seed=42
  */
 import "./style.css"
-import { generate } from "@apex/voxel"
+import { archetypes, generate } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
 
@@ -15,10 +15,15 @@ const app: HTMLDivElement = (() => {
 })()
 
 const VARIANTS = 8
+// Mixed herds rotate every registered archetype in registration order, so a
+// newly registered archetype joins the rotation with zero edits here.
+const roster = Object.keys(archetypes)
 const archetypeParam = (() => {
   const raw =
     new URLSearchParams(window.location.search).get("archetype") ?? "draconic"
-  return raw in { draconic: 1, bovine: 1, mixed: 1 } ? raw : "draconic"
+  // "mixed" rotates the whole registry; anything else must be a real
+  // archetype id so unknown params fail loudly to the default.
+  return raw === "mixed" || raw in archetypes ? raw : "draconic"
 })()
 
 const bar = document.createElement("div")
@@ -80,13 +85,11 @@ function rebuild() {
   if (!Number.isFinite(base)) return
   for (let i = 0; i < VARIANTS; i++) {
     const seed = base + i
-    // ?archetype=bovine|draconic picks one; "mixed" alternates both (herd test
-    // for cross-archetype scale/palette harmony).
+    // ?archetype=<id> picks one; "mixed" rotates every registered archetype
+    // (herd test for cross-archetype scale/palette harmony).
     const archetype =
       archetypeParam === "mixed"
-        ? i % 2 === 0
-          ? "bovine"
-          : "draconic"
+        ? (roster[i % roster.length] ?? "draconic")
         : archetypeParam
     const { dna, build, def } = generate(archetype, seed)
     const creature = buildCreatureGroup(dna, build, def.grid)

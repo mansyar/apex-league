@@ -4,7 +4,7 @@
  * Grey materials on purpose — palette is judged later in the vision gate.
  */
 import "./style.css"
-import { DRAKE_GRID, generate } from "@apex/voxel"
+import { archetypes, generate } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
 
@@ -18,9 +18,9 @@ const params = new URLSearchParams(window.location.search)
 const seed = Number.parseInt(params.get("seed") ?? "42", 10)
 
 const archetypeParam = params.get("archetype") ?? "draconic"
-const archetype = archetypeParam === "bovine" ? "bovine" : "draconic"
-const { dna, build } = generate(archetype, seed)
-const creature = buildCreatureGroup(dna, build, DRAKE_GRID, { grey: true })
+const archetype = archetypeParam in archetypes ? archetypeParam : "draconic"
+const { dna, build, def } = generate(archetype, seed)
+const creature = buildCreatureGroup(dna, build, def.grid, { grey: true })
 
 const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setPixelRatio(window.devicePixelRatio)
@@ -33,6 +33,8 @@ const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100)
 const angle = new URLSearchParams(window.location.search).get("angle") ?? "3-4"
 if (angle === "side") {
   camera.position.set(7, 2.2, 0.5)
+} else if (angle === "front") {
+  camera.position.set(0.5, 3.4, 10)
 } else {
   camera.position.set(4.5, 3.2, 6.5)
 }
