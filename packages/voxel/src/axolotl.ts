@@ -146,12 +146,6 @@ export function buildAxolotl(dna: Dna): AxolotlBuild {
   const finStyle = dna.styles.dorsalFin ?? "low"
   const ridge = dna.styleParams.ridge ?? 0.6
 
-  // Gill fronds sprout from the top-back corners of the skull. Voxel claiming
-  // is first-come-first-served, so each stalk is anchored at the skull edge
-  // and given a strong LATERAL out-thrust that always clears the skull
-  // surface — fronds that point up or back alone just get swallowed by the
-  // head volume. Three staggered capsules per side keep them feathery instead
-  // of reading as horns.
   // Gill fronds: three near-vertical stalks fanning from the head's mid-side,
   // each with small perpendicular nubs so the cluster reads feathery rather
   // than as rigid antennae bars. Stalks are anchored at the skull edge with a
@@ -171,8 +165,7 @@ export function buildAxolotl(dna: Dna): AxolotlBuild {
       const tip = vec3(
         base.x + side * dx * spread * gl,
         base.y +
-          (gillStyle === "drooping" ? dy * spread - 1.6 * gl : dy * spread) *
-            gl,
+          (gillStyle === "drooping" ? dy * spread - 1.6 : dy * spread) * gl,
         base.z + dz * gl,
       )
       stalks.push(sdCapsule(base, tip, 0.9))

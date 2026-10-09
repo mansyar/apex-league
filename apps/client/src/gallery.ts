@@ -15,6 +15,9 @@ const app: HTMLDivElement = (() => {
 })()
 
 const VARIANTS = 8
+// Mixed herds rotate every registered archetype in registration order, so a
+// newly registered archetype joins the rotation with zero edits here.
+const roster = Object.keys(archetypes)
 const archetypeParam = (() => {
   const raw =
     new URLSearchParams(window.location.search).get("archetype") ?? "draconic"
@@ -86,7 +89,7 @@ function rebuild() {
     // (herd test for cross-archetype scale/palette harmony).
     const archetype =
       archetypeParam === "mixed"
-        ? ((["draconic", "bovine", "axolotl"] as const)[i % 3] ?? "draconic")
+        ? (roster[i % roster.length] ?? "draconic")
         : archetypeParam
     const { dna, build } = generate(archetype, seed)
     const creature = buildCreatureGroup(dna, build)
