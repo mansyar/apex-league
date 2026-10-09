@@ -1,16 +1,15 @@
+import { describe, expect, test } from "bun:test"
 import {
-  assertDnaInBounds,
-  buildBovine,
   BOVINE_GRID,
   bovineTemplate,
-  sampleDna,
-  validateTemplate,
-  type Dna,
+  buildBovine,
+  sampleBovineDna,
 } from "./bovine"
+import { assertDnaInBounds, type Dna, validateTemplate } from "./schema"
 import { voxelize } from "./voxelizer"
 
 function makeDna(seed = 42): Dna {
-  return sampleDna(bovineTemplate, seed)
+  return sampleBovineDna(bovineTemplate, seed)
 }
 
 describe("bovineTemplate", () => {
@@ -78,10 +77,10 @@ describe("buildBovine", () => {
   test("produces the full part inventory", () => {
     const build = buildBovine(makeDna())
     const names = new Set(build.fields.map((f) => f.name))
-    for (const required of ["body", "head", "legs"]) {
-      expect(names.has(required) || [...names].some((n) => n.startsWith(required))).toBe(
-        true,
-      )
+    for (const required of ["body", "head", "leg"]) {
+      expect(
+        names.has(required) || [...names].some((n) => n.startsWith(required)),
+      ).toBe(true)
     }
     expect(build.fields.length).toBeGreaterThan(4)
   })
