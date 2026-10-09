@@ -21,7 +21,7 @@ gallery herd param); this branch is rebased on top of it.
 
 ## Phase B — Axolotl Implementation (green)
 
-- [ ] Task: Implement `axolotlTemplate` + `buildAxolotl` SDF assembly
+- [~] Task: Implement `axolotlTemplate` + `buildAxolotl` SDF assembly
       (elongated body, flat head, stubby legs, gill fronds, fin tail, dorsal
       fin, barbels; CreatureBuild-compatible fields/pivots/parents/colors,
       Water-blue palette) to green
