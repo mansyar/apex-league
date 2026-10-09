@@ -30,14 +30,15 @@ gallery herd param); this branch is rebased on top of it.
       `packages/voxel/src/index.ts` `[0d46af2]`
 - [x] Task: Geometric hardening — grid-boundary probes over 400 seeds; fix
       overflows; commit artifact-ready build
-      `[probe: 0 empty parts, 0 edge-touching across seeds 1-400; totals 1286-3098]`
+      `[probe: 0 empty parts, 0 edge-touching across seeds 0-399 (tuple-indexed probe, corrected after the fuzz suite exposed a floor-clipping bug the original object-style probe masked); totals 1586-3476]`
 
 ## Phase C — Property & Fuzz
 
-- [ ] Task: Add axolotl cases to fuzz suite — 200-seed DNA validity, 40-seed
+- [x] Task: Add axolotl cases to fuzz suite — 200-seed DNA validity, 40-seed
       boundary probe, 8-seed pipeline budget, byte-identical determinism
-- [ ] Task: Grey-render silhouette iteration via preview page until it reads
-      "axolotl" (living-concept loop, user verdict)
+      `[3013db0]`
+- [x] Task: Grey-render silhouette iteration via preview page until it reads
+      "axolotl" (living-concept loop, user verdict) `[3a6d3ad]`
 
 ## Phase D — Integration & Vision Gate (manual-verification heavy)
 
