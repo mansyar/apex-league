@@ -3,10 +3,10 @@
 Status markers: `[ ]` pending · `[~]` in progress · `[x]` complete (+ commit SHA)
 
 ## Phase A — Repository Scaffolding
-- [ ] Task: Scaffold Bun workspaces monorepo — root `package.json`, shared
-      `tsconfig.base.json`, `biome.json`, `apps/client`, `packages/sim`
+- [x] Task: Scaffold Bun workspaces monorepo — root `package.json`, shared
+      `tsconfig.base.json`, `biome.json`, `apps/client`, `packages/sim`  `e1b00fc`
   - Verify workspaces resolve (`bun install` clean)
-- [ ] Task: Wire tooling scripts — `dev`, `check`, `verify`
+- [~] Task: Wire tooling scripts — `dev`, `check`, `verify`
       (`bun check && bun test --check && biome check`); strict TS everywhere
 - [ ] Task: Phase Verification & Checkpoint (refer to workflow.md)
 
