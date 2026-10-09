@@ -16,13 +16,13 @@ with a verification & checkpoint task).
 
 ## Phase B — Daily Settlement Tick (sim)
 
-- [ ] Task: Failing tests — day-advance settlement (fixed order, seeded)
-  - [ ] hunger falls; waking starving → mood penalty + raised sickness risk
-  - [ ] night energy recovery: full when well-fed/healthy; partial when starving/sick
-  - [ ] sickness roll probabilities (seeded); existing sickness worsens instead of re-rolling
-  - [ ] mood settles toward care quality; bond slow-decay without bonding actions
-  - [ ] misery floor: no death, refusal-to-play state, recoverable
-- [ ] Task: Implement settlement in `advanceDay` (pure, ordered steps 1–6)
+- [x] Task: Failing tests — day-advance settlement (fixed order, seeded) (`6894405`)
+  - [x] hunger falls; waking starving → mood penalty + raised sickness risk
+  - [x] night energy recovery: full when well-fed/healthy; partial when starving/sick
+  - [x] sickness roll probabilities (seeded); existing sickness worsens instead of re-rolling
+  - [x] mood settles toward care quality; bond slow-decay without bonding actions
+  - [x] misery floor: no death, refusal-to-play state, recoverable
+- [x] Task: Implement settlement in `advanceDay` (pure, ordered steps 1–6) (`6894405`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase C — Care Actions (sim)
