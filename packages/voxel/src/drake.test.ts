@@ -20,8 +20,8 @@ describe("drake template", () => {
 
   test("palette is fire-toned", () => {
     const hue = drakeTemplate.palette.hue
-    expect(hue.min).toBeGreaterThanOrEqual(0)
-    expect(hue.max).toBeLessThanOrEqual(60)
+    expect(hue).toBeGreaterThanOrEqual(0)
+    expect(hue).toBeLessThanOrEqual(60)
   })
 
   test("declares a gilded rarity gate", () => {
@@ -44,7 +44,9 @@ describe("sampleDna", () => {
   })
 
   test("different seeds produce different DNA", () => {
-    const dnas = new Set([1, 2, 3, 4, 5].map((s) => JSON.stringify(sampleDna(drakeTemplate, s))))
+    const dnas = new Set(
+      [1, 2, 3, 4, 5].map((s) => JSON.stringify(sampleDna(drakeTemplate, s))),
+    )
     expect(dnas.size).toBeGreaterThanOrEqual(4)
   })
 
@@ -80,8 +82,12 @@ describe("buildDrake", () => {
     const names = build.fields.map((field) => field.name)
     expect(names).toContain("body")
     expect(names).toContain("head")
-    expect(names.filter((n) => n.startsWith("horn")).length).toBeGreaterThanOrEqual(2)
-    expect(names.filter((n) => n.startsWith("tail")).length).toBeGreaterThanOrEqual(2)
+    expect(
+      names.filter((n) => n.startsWith("horn")).length,
+    ).toBeGreaterThanOrEqual(2)
+    expect(
+      names.filter((n) => n.startsWith("tail")).length,
+    ).toBeGreaterThanOrEqual(2)
     expect(names.filter((n) => n.startsWith("leg")).length).toBe(4)
     for (const name of names) {
       expect(build.pivots[name]).toBeDefined()
