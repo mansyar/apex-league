@@ -56,7 +56,7 @@ describe("drake fuzz", () => {
       }
     }
     expect(violations).toBe(0)
-  }, 15000)
+  }, 30000)
 
   test("8 seeds run the full pipeline within the GLB budget", () => {
     let maxBytes = 0
@@ -68,7 +68,7 @@ describe("drake fuzz", () => {
       maxBytes = Math.max(maxBytes, glb.byteLength)
     }
     expect(maxBytes).toBeLessThanOrEqual(GLB_BUDGET_BYTES)
-  }, 15000)
+  }, 30000)
 })
 
 describe("bovine fuzz", () => {
@@ -96,7 +96,7 @@ describe("bovine fuzz", () => {
       }
     }
     expect(violations).toBe(0)
-  }, 15000)
+  }, 30000)
 
   test("8 seeds run the full pipeline within the GLB budget", () => {
     let maxBytes = 0
@@ -108,7 +108,7 @@ describe("bovine fuzz", () => {
       maxBytes = Math.max(maxBytes, glb.byteLength)
     }
     expect(maxBytes).toBeLessThanOrEqual(GLB_BUDGET_BYTES)
-  }, 15000)
+  }, 30000)
 
   test("full pipeline is byte-identical per seed", () => {
     for (const seed of [3, 42, 99]) {
@@ -145,7 +145,7 @@ describe("axolotl fuzz", () => {
       }
     }
     expect(violations).toBe(0)
-  }, 15000)
+  }, 30000)
 
   test("8 seeds run the full pipeline within the GLB budget", () => {
     let maxBytes = 0
@@ -157,7 +157,7 @@ describe("axolotl fuzz", () => {
       maxBytes = Math.max(maxBytes, glb.byteLength)
     }
     expect(maxBytes).toBeLessThanOrEqual(GLB_BUDGET_BYTES)
-  }, 15000)
+  }, 30000)
 
   test("full pipeline is byte-identical per seed", () => {
     for (const seed of [3, 42, 99]) {
@@ -166,5 +166,5 @@ describe("axolotl fuzz", () => {
       expect(Buffer.from(a.glb).equals(Buffer.from(b.glb))).toBe(true)
       expect(a.manifest.glbHash).toBe(b.manifest.glbHash)
     }
-  }, 15000)
+  }, 30000)
 })

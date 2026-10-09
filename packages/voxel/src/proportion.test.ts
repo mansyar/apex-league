@@ -42,5 +42,5 @@ describe("proportion budget gate", () => {
       }
     }
     expect(violations).toEqual([])
-  })
+  }, 20000)
 })

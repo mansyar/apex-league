@@ -52,6 +52,18 @@ export const PROPORTION_BUDGETS: Record<string, ProportionBudget> = {
       "bodyLength/bodyHeight": { min: 0.7, max: 1.5 },
     },
   },
+  // Axolotl: aquatic, near-neckless and much longer/lower than the land
+  // archetypes by design — the body-length budget sits well above theirs
+  // and the neck budget well below. Measured 200-seed spread:
+  // legs 0.67-1.0, neck 0.12-0.33, head 0.08-0.33, body 1.6-3.0.
+  axolotl: {
+    ratios: {
+      "legLength/bodyHeight": { min: 0.6, max: 1.05 },
+      "neckLength/bodyLength": { min: 0.05, max: 0.4 },
+      "headHeight/bodyHeight": { min: 0.05, max: 0.4 },
+      "bodyLength/bodyHeight": { min: 1.5, max: 3.2 },
+    },
+  },
 }
 
 /** Inclusive check: a measured ratio inside its budget range. */
