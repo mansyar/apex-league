@@ -1,7 +1,7 @@
 {
   "track_id": "foundation_20261009",
   "type": "foundation",
-  "status": "new",
+  "status": "complete",
   "created": "2026-10-09",
   "updated": "2026-10-09",
   "description": "Phase 0 Foundation: Bun workspaces scaffolding, headless sim core, in-game calendar/day ticker, versioned save/load, runnable app shell (Three.js + HUD stub)."
