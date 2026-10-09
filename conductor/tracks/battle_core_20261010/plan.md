@@ -18,10 +18,14 @@ only when the task says so.
   - [x] hit damage matches `max(1, floor(power * atk * typeNum / (def * typeDen)))`, including the spec's ATK 11 / DEF 10 checks (basic 4, Blaze Bolt 13 / 26 / 6)
   - [x] a miss deals 0 and does not apply the minimum of 1
 - [x] Task: Implement `battle/chart.ts` and `battle/damage.ts` (`9d0e8e1`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: 9d0e8e1]
 
 ## Phase B — Catalog, Kits, Loadout, Cooldown (sim)
 
+- [ ] Task: Suite runtime remediation
+  - [ ] measure per-file runtime in the current suite and record it in the plan phase note
+  - [ ] identify the split (test-file partitioning, shared fixtures, or grouping) that gets the whole suite well under 10 s without weakening coverage
+  - [ ] confirm `bun run verify` still green after the change
 - [ ] Task: Failing tests — moves and cooldown
   - [ ] catalog has the 12 spec rows (id, element, power, accuracy, cooldown) and the innate basic (power 4, accuracy 100, typeless)
   - [ ] each starter species, including locked Tide Axolotl, has the four moves of its element
