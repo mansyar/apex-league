@@ -122,7 +122,10 @@ export function buildAxolotl(dna: Dna): AxolotlBuild {
   const tailEnd = at(0, 8.4, -7.5 * bl - 11 * tl)
 
   const hipY = 8.8
-  const footY = 1.7
+  // Foot sphere bottom must clear the y=0 grid floor: the lowest voxel-row
+  // center is y=0.5, so footY - footRadius must stay above 0.5 or the fuzz
+  // boundary gate fails (feet clip into the floor plane).
+  const footY = 2.5
   const legFrontZ = 5.6 + (ll - 1) * 2
   const legBackZ = -6.2 - (ll - 1) * 2
 
@@ -327,9 +330,12 @@ export function buildAxolotl(dna: Dna): AxolotlBuild {
     const foot = at(leg.sx * 8.2 * bg, footY, legZ + leg.sz * 0.4)
     legPivots[leg.name] = [hip.x, hip.y, hip.z]
     // Sprawling salamander stance: short limbs kicked out diagonally with a
-    // rounded foot pad — low to the ground, not pillar-straight.
+    // rounded foot pad — low to the ground, not pillar-straight. The shin
+    // capsule's end-cap (radius 1.5bg ≤ foot sphere 1.9) stays inside the
+    // foot sphere, and both clear the y=0 floor at the lowest voxel row
+    // (footY 2.5 − 1.9 = 0.6 > 0.5).
     const legField: Sdf = union(
-      union(sdSphere(hip, 2.3 * bg), sdCapsule(hip, foot, 1.8 * bg)),
+      union(sdSphere(hip, 2.3 * bg), sdCapsule(hip, foot, 1.5 * bg)),
       sdSphere(foot, 1.9),
     )
     fields.push({ name: leg.name, sdf: legField })
