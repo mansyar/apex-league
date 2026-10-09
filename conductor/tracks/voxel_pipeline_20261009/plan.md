@@ -43,8 +43,10 @@ lifecycle, checkpoints, and quality gates.
 
 ## Phase D — Integration, Tooling & Vision Gate (manual-verification heavy)
 
-- [ ] Task: Dev gallery page — seed input + variant grid (dev-only route)
-- [ ] Task: Wire drake GLB into ranch scene + procedural breathe idle via
+- [x] Task: Dev gallery page — seed input + variant grid (dev-only route)
+      `abc0d69`; tail redesign after user feedback: droop + aggressive
+      taper + tip spade `d89c4b6`; user approved all 3 tail styles
+- [~] Task: Wire drake GLB into ranch scene + procedural breathe idle via
       hierarchy rig
 - [ ] Task: Determinism gate script (regenerate + hash-compare) wired into
       verify/CI
