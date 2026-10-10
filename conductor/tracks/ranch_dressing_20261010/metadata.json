@@ -1,0 +1,11 @@
+{
+  "id": "ranch_dressing_20261010",
+  "title": "Ranch Dressing",
+  "type": "feature",
+  "status": "new",
+  "branch": "track/ranch_dressing_20261010",
+  "created": "2026-10-10",
+  "updated": "2026-10-10",
+  "spec": "spec.md",
+  "plan": "plan.md"
+}

@@ -250,4 +250,16 @@ describe("effectiveStats", () => {
     effectiveStats(c)
     expect(c).toEqual(snapshot)
   })
+
+  test("a new creature has fedToday false", () => {
+    const c = createCreature("fire_drake", 42)
+    expect(c.fedToday).toBe(false)
+  })
+
+  test("every available starter starts unfed", () => {
+    for (const species of STARTER_SPECIES) {
+      if (!species.available) continue
+      expect(createCreature(species.id, 5).fedToday).toBe(false)
+    }
+  })
 })

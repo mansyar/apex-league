@@ -61,6 +61,48 @@ const migrations: Record<
     return { version: 2, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
 
+  // v3 → v4: saves from before the daily food-pile flag and the move-kit
+  // ledger have neither fedToday nor trainingDays/loadout on the creature.
+  // Merged migration (ranch dressing + combat prep both bumped 3→4): wake
+  // every migrated creature unfed; credit 6 trained days so pre-gate
+  // creatures (who knew their full kit) suffer no surprise loss; loadout
+  // starts at the default slicing (null). Rolled stats are untouched.
+  3: (raw) => {
+    const state = raw.state
+    if (typeof state !== "object" || state === null) {
+      throw new Error("invalid v3 save: missing state")
+    }
+    const s = state as Record<string, unknown>
+    const day = s.day
+    const phase = s.phase
+    const actionPoints = s.actionPoints
+    if (
+      typeof day !== "number" ||
+      !Number.isInteger(day) ||
+      day < 1 ||
+      (phase !== "day" && phase !== "cup") ||
+      typeof actionPoints !== "number" ||
+      !Number.isInteger(actionPoints) ||
+      actionPoints < 0
+    ) {
+      throw new Error("invalid v3 save: broken state")
+    }
+    let creature: GameState["creature"] = null
+    if (s.creature !== null && s.creature !== undefined) {
+      if (typeof s.creature !== "object") {
+        throw new Error("invalid v3 save: broken creature")
+      }
+      creature = {
+        ...(s.creature as Record<string, unknown>),
+        fedToday: false,
+        trainingDays: 6,
+        loadout: null,
+      } as unknown as GameState["creature"]
+    }
+    const migrated: GameState = { day, phase, actionPoints, creature }
+    return { version: 4, state: migrated, savedAt: raw.savedAt ?? 0 }
+  },
+
   // v2 → v3: saves from before training have no training fields on the
   // creature. Grant neutral training state; rolled stats are untouched.
   2: (raw) => {
@@ -97,44 +139,6 @@ const migrations: Record<
     }
     const migrated: GameState = { day, phase, actionPoints, creature }
     return { version: 3, state: migrated, savedAt: raw.savedAt ?? 0 }
-  },
-  // v3 → v4: saves from before the move-kit ledger have no trainingDays or
-  // loadout. Pre-gate creatures already knew their full kit, so credit 6
-  // trained days (no surprise loss); the loadout starts at the default
-  // slicing (null). Rolled stats are untouched.
-  3: (raw) => {
-    const state = raw.state
-    if (typeof state !== "object" || state === null) {
-      throw new Error("invalid v3 save: missing state")
-    }
-    const s = state as Record<string, unknown>
-    const day = s.day
-    const phase = s.phase
-    const actionPoints = s.actionPoints
-    if (
-      typeof day !== "number" ||
-      !Number.isInteger(day) ||
-      day < 1 ||
-      (phase !== "day" && phase !== "cup") ||
-      typeof actionPoints !== "number" ||
-      !Number.isInteger(actionPoints) ||
-      actionPoints < 0
-    ) {
-      throw new Error("invalid v3 save: broken state")
-    }
-    let creature: GameState["creature"] = null
-    if (s.creature !== null && s.creature !== undefined) {
-      if (typeof s.creature !== "object") {
-        throw new Error("invalid v3 save: broken creature")
-      }
-      creature = {
-        ...(s.creature as Record<string, unknown>),
-        trainingDays: 6,
-        loadout: null,
-      } as unknown as GameState["creature"]
-    }
-    const migrated: GameState = { day, phase, actionPoints, creature }
-    return { version: 4, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
 }
 /**

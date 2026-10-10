@@ -88,6 +88,8 @@ function isValidCreature(c: unknown): c is Creature {
   const result = creature.trainingResult
   if (result !== null && !TRAINING_RESULTS.includes(result as string))
     return false
+  // v4: the daily food flag is a strict boolean and always present.
+  if (typeof creature.fedToday !== "boolean") return false
   return true
 }
 

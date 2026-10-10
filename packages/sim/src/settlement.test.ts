@@ -394,3 +394,22 @@ describe("previewTraining", () => {
     expect(previewTraining(fed.state.creature)).toBe("gained")
   })
 })
+
+describe("settlement — fedToday", () => {
+  test("a fed creature wakes unfed — the pile is gone in the morning", () => {
+    const s = stateWith({ hunger: 30 })
+    if (!s.creature) throw new Error("no creature")
+    const fed = careAction(s, "feed")
+    if (!fed.ok) throw new Error("feed rejected")
+    expect(fed.state.creature?.fedToday).toBe(true)
+    const morning = advanceDay(fed.state)
+    if (!morning.creature) throw new Error("creature lost")
+    expect(morning.creature.fedToday).toBe(false)
+  })
+
+  test("an unfed creature stays unfed across the night", () => {
+    const morning = advanceDay(stateWith({ hunger: 60 }))
+    if (!morning.creature) throw new Error("creature lost")
+    expect(morning.creature.fedToday).toBe(false)
+  })
+})

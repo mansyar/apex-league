@@ -47,7 +47,7 @@ describe("migration chain", () => {
     expect(migrated.state.phase).toBe("day")
   })
 
-  test("migrates a v1 save through to v3, granting the default Fire drake starter", () => {
+  test("migrates a v1 save through to v4, granting the default Fire drake starter", () => {
     // v1 shape: GameState without a creature (pre-care-loop saves).
     const v1 = {
       version: 1,
@@ -96,7 +96,7 @@ describe("migration chain", () => {
     expect(migrated).toEqual(v2)
   })
 
-  test("migrates a v2 save to v3, granting neutral training fields", () => {
+  test("migrates a v2 save through to v4, granting neutral training fields", () => {
     // v2 creatures carry no training fields — strip them from a fresh one.
     const creature = createCreature("fire_drake", 42)
     const legacy = structuredClone(creature) as unknown as Record<
@@ -144,15 +144,17 @@ describe("migration chain", () => {
     expect(migrated.state.creature?.trainingResult).toBeNull()
     expect(migrated.state.creature?.trainingDays).toBe(6)
     expect(migrated.state.creature?.loadout).toBeNull()
+    expect(migrated.state.creature?.fedToday).toBe(false)
   })
 
-  test("a v3 save migrates to v4: 6 trained days, null loadout, stats intact", () => {
-    // v3 creatures predate the move-kit ledger — strip the v4 fields.
+  test("a v3 save migrates to v4: fedToday false, 6 trained days, null loadout, stats intact", () => {
+    // v3 creatures predate the v4 fields — strip all of them.
     const creature = createCreature("fire_drake", 42)
     const legacy = structuredClone(creature) as unknown as Record<
       string,
       unknown
     >
+    delete legacy.fedToday
     delete legacy.trainingDays
     delete legacy.loadout
     const v3 = {
@@ -164,6 +166,7 @@ describe("migration chain", () => {
     expect(migrated.version).toBe(4)
     expect(migrated.savedAt).toBe(321)
     expect(migrated.state.day).toBe(9)
+    expect(migrated.state.creature?.fedToday).toBe(false)
     expect(migrated.state.creature?.trainingDays).toBe(6)
     expect(migrated.state.creature?.loadout).toBeNull()
     expect(migrated.state.creature?.stats).toEqual(creature.stats)
@@ -275,7 +278,7 @@ describe("storage adapter", () => {
     expect(loaded?.creature?.conditions).toEqual(state.creature?.conditions)
   })
 
-  test("round-trips training fields on a v3 save", () => {
+  test("round-trips training fields on a current save", () => {
     const adapter: SaveAdapter = createMemoryAdapter()
     const owned = chooseStarter(createInitialState(), "fire_drake", 42)
     if (!owned.creature) throw new Error("no creature")
@@ -286,6 +289,7 @@ describe("storage adapter", () => {
         trained: { hp: 0, atk: 3, def: 0, spd: 1 },
         trainingFocus: "atk" as const,
         trainingResult: "gained" as const,
+        fedToday: true,
       },
     }
     saveGame(adapter, state, 1)
@@ -293,6 +297,7 @@ describe("storage adapter", () => {
     expect(loaded?.creature?.trained).toEqual({ hp: 0, atk: 3, def: 0, spd: 1 })
     expect(loaded?.creature?.trainingFocus).toBe("atk")
     expect(loaded?.creature?.trainingResult).toBe("gained")
+    expect(loaded?.creature?.fedToday).toBe(true)
   })
 
   test("loadGame rejects trained bonuses outside [0, TRAINING_CAP]", () => {
@@ -343,6 +348,10 @@ describe("storage adapter", () => {
     saveGame(adapter, bad({ trainingResult: "banana" }), 1)
     expect(loadGame(adapter)).toBeNull()
     saveGame(adapter, bad({ trainingFocus: 3 }), 1)
+    expect(loadGame(adapter)).toBeNull()
+    saveGame(adapter, bad({ fedToday: "yes" }), 1)
+    expect(loadGame(adapter)).toBeNull()
+    saveGame(adapter, bad({ fedToday: undefined }), 1)
     expect(loadGame(adapter)).toBeNull()
   })
 

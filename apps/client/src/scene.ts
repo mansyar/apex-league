@@ -3,9 +3,10 @@ import {
   EXHAUSTED_ENERGY,
   SICK_HEALTH,
 } from "@apex/sim"
-import { generate } from "@apex/voxel"
+import { generate, makeRng } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
+import { buildPropGroup } from "./prop"
 
 export interface SceneHandle {
   /** Stop the render loop and free GPU resources. */
@@ -14,10 +15,29 @@ export interface SceneHandle {
   setCreature(archetypeId: string, seed: number): void
   /** Drive the condition visual states from the owned creature's conditions. */
   updateConditions(conditions: CreatureConditions | null): void
+  /**
+   * (Re)scatter the ranch scenery from the creature's visual seed. Same
+   * seed → identical scatter (determinism gate covered); no-op when the
+   * seed is unchanged so HUD updates never churn the props.
+   */
+  setProps(visualSeed: number): void
+  /** Show or hide the food pile (fedToday from the sim). */
+  setFedToday(fedToday: boolean): void
 }
 
-const GROUND_COLOR = 0x2a3040
-const SKY_COLOR = 0x1a1f2e
+const GROUND_COLOR = 0x3a4d34
+
+/**
+ * Ranch environment palette (golden hour). The ranch reads as late
+ * afternoon: amber light pooling at the horizon, cooling to navy
+ * overhead, with a warm key sun and a cool rim to silhouette the
+ * creature. These four tones are the identity of the ranch look —
+ * retune them together, never one alone.
+ */
+const SKY_HORIZON = 0xd98c4a // dusk amber, pools at the horizon
+const SKY_TOP = 0x1a1f2e // navy, cools the sky overhead
+const KEY_COLOR = 0xffd9a0 // warm low sun
+const RIM_COLOR = 0x8fb4d9 // cool skylight from the far side
 
 /** Visual idle modes derived from the creature's conditions. */
 type MoodMode = "normal" | "sluggish" | "droopy" | "happy"
@@ -57,7 +77,47 @@ export function createScene(container: HTMLElement): SceneHandle {
   container.appendChild(renderer.domElement)
 
   const scene = new THREE.Scene()
-  scene.background = new THREE.Color(SKY_COLOR)
+
+  // Golden-hour sky: a dome with a vertical gradient from the amber
+  // horizon up to navy, replacing the flat color background. The dome
+  // has no fog of its own — it IS the horizon color the ground fades into.
+  const sky = new THREE.Mesh(
+    new THREE.SphereGeometry(40, 16, 12),
+    new THREE.ShaderMaterial({
+      uniforms: {
+        top: { value: new THREE.Color(SKY_TOP) },
+        horizon: { value: new THREE.Color(SKY_HORIZON) },
+      },
+      vertexShader: `
+        varying vec3 vPos;
+        void main() {
+          vPos = position;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vPos;
+        uniform vec3 top;
+        uniform vec3 horizon;
+        void main() {
+          // Amber pools at the horizon, cools to navy overhead. The ramp
+          // is steep because the orbit camera looks slightly down — only
+          // the low band of the dome is ever on screen.
+          float h = normalize(vPos).y;
+          float t = pow(clamp(h * 2.4, 0.0, 1.0), 0.85);
+          gl_FragColor = vec4(mix(horizon, top, t), 1.0);
+        }
+      `,
+      side: THREE.BackSide,
+      depthWrite: false,
+    }),
+  )
+  scene.add(sky)
+
+  // Linear fog in the horizon tone: distant ground dissolves into the
+  // sunset while the creature (always well inside the near plane) stays
+  // crisp even at maximum zoom-out.
+  scene.fog = new THREE.Fog(SKY_HORIZON, 16, 30)
 
   const camera = new THREE.PerspectiveCamera(
     45,
@@ -121,16 +181,39 @@ export function createScene(container: HTMLElement): SceneHandle {
   window.addEventListener("pointerup", onPointerUp)
   canvas.addEventListener("wheel", onWheel)
 
-  const ambient = new THREE.AmbientLight(0xffffff, 0.7)
-  const sun = new THREE.DirectionalLight(0xfff4e0, 1.6)
+  // Lighting rig: warm key from the sun side, cool rim from the far
+  // side to keep shadowed voxels readable. A hemisphere ramp gives the
+  // creature amber light from above sky and a muted cool bounce from
+  // the moss below — the golden-hour bounce that makes the character read.
+  const ambient = new THREE.AmbientLight(0xbcc7d6, 0.3)
+  const hemi = new THREE.HemisphereLight(0xe8ab72, 0x3a4a44, 1.15)
+  const sun = new THREE.DirectionalLight(KEY_COLOR, 2.0)
   sun.position.set(4, 6, 2)
-  scene.add(ambient, sun)
+  const rim = new THREE.DirectionalLight(RIM_COLOR, 0.5)
+  rim.position.set(-5, 3, -4)
+  scene.add(ambient, hemi, sun, rim)
 
+  // Real drop-in shadows: the creature's parts cast, the ground receives.
+  renderer.shadowMap.enabled = true
+  renderer.shadowMap.type = THREE.PCFShadowMap
+  sun.castShadow = true
+  sun.shadow.mapSize.set(1024, 1024)
+  sun.shadow.camera.left = -9
+  sun.shadow.camera.right = 9
+  sun.shadow.camera.top = 9
+  sun.shadow.camera.bottom = -9
+  sun.shadow.camera.near = 1
+  sun.shadow.camera.far = 20
+
+  // Mossy ground: a disc as wide as the sky dome, so the moss always
+  // runs to the horizon and meets the dome at its equator — there is no
+  // visible ground edge to dissolve. Fog takes over at distance.
   const ground = new THREE.Mesh(
-    new THREE.BoxGeometry(12, 0.2, 12),
+    new THREE.CircleGeometry(40, 64),
     new THREE.MeshLambertMaterial({ color: GROUND_COLOR }),
   )
-  ground.position.y = -0.1
+  ground.rotation.x = -Math.PI / 2
+  ground.receiveShadow = true
   scene.add(ground)
 
   // Honor reduced motion: keep the gentle breath, drop the bounce.
@@ -139,6 +222,9 @@ export function createScene(container: HTMLElement): SceneHandle {
   ).matches
 
   let creatureGroup: THREE.Group | null = null
+  let ranchScenery: THREE.Group | null = null
+  let scenerySeed = -1
+  let foodPile: THREE.Group | null = null
   let mode: MoodMode = "normal"
   let headBaseY = 0
 
@@ -186,8 +272,64 @@ export function createScene(container: HTMLElement): SceneHandle {
       if (creatureGroup) disposeGroup(creatureGroup)
       const { dna, build, def } = generate(archetypeId, seed)
       creatureGroup = buildCreatureGroup(dna, build, def.grid)
+      creatureGroup.traverse((obj) => {
+        if (obj instanceof THREE.Mesh) obj.castShadow = true
+      })
       scene.add(creatureGroup)
       headBaseY = creatureGroup.getObjectByName("head")?.position.y ?? 0
+    },
+    setProps(visualSeed) {
+      if (scenerySeed === visualSeed) return
+      scenerySeed = visualSeed
+      if (ranchScenery) disposeGroup(ranchScenery)
+      const scenery = new THREE.Group()
+      scenery.name = "ranch-scenery"
+      const rng = makeRng(visualSeed)
+      const scatter = (propId: string, angle: number, radius: number): void => {
+        const prop = buildPropGroup(propId, rng.int(2 ** 30))
+        prop.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius)
+        prop.rotation.y = rng.next() * Math.PI * 2
+        scenery.add(prop)
+      }
+      // Seeded vegetation ring: the creature's visualSeed picks each
+      // tuft/bush position, variant, and facing. Ground radius keeps the
+      // footprint clear (2.2+) and the horizon clear (rho <= 8.8).
+      for (let i = 0; i < 16; i++) {
+        scatter("tuft", rng.next() * Math.PI * 2, 2.2 + rng.next() * 6.6)
+      }
+      for (let i = 0; i < 5; i++) {
+        scatter("bush", rng.next() * Math.PI * 2, 3.2 + rng.next() * 5.6)
+      }
+      // Landmark trees and rocks: fixed positions, fixed seeds — the
+      // silhouettes the ranch composition hangs on.
+      const landmark = (
+        propId: string,
+        x: number,
+        z: number,
+        rotY: number,
+        seed: number,
+      ): void => {
+        const prop = buildPropGroup(propId, seed)
+        prop.position.set(x, 0, z)
+        prop.rotation.y = rotY
+        scenery.add(prop)
+      }
+      landmark("broadleafTree", -6.5, -4.5, 0.65, 1101)
+      landmark("broadleafTree", 3, -5.5, -1.1, 1102)
+      landmark("rock", -4.2, -3, 0.3, 2201)
+      landmark("rock", 5.6, -4.4, -2.1, 2202)
+      landmark("rock", -7.5, -1.6, 1.4, 2203)
+      scene.add(scenery)
+      ranchScenery = scenery
+    },
+    setFedToday(fedToday) {
+      if (!foodPile) {
+        foodPile = buildPropGroup("foodPile", 3301)
+        foodPile.position.set(-2.4, 0, 0.4)
+        foodPile.rotation.y = -0.4
+        scene.add(foodPile)
+      }
+      foodPile.visible = fedToday
     },
     updateConditions(conditions) {
       mode = conditions ? moodModeFrom(conditions) : "normal"

@@ -66,6 +66,11 @@ export interface Creature {
   conditions: CreatureConditions
   /** True when a bonding action happened today; reset by the nightly settlement. */
   bondedToday: boolean
+  /**
+   * True when the creature was fed today; consumed by the ranch as the
+   * visible "fed" state of the food pile and reset by the nightly settlement.
+   */
+  fedToday: boolean
 }
 
 /** The four trainable stat keys. */
@@ -156,5 +161,6 @@ export function createCreature(
     loadout: null,
     conditions: { ...CONDITION_START },
     bondedToday: false,
+    fedToday: false,
   }
 }
