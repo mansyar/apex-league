@@ -1,5 +1,5 @@
 import { isCupDay } from "../calendar"
-import { createCreature } from "../creature"
+import { createCreature, TRAINED_START } from "../creature"
 import type { GameState } from "../state"
 import { ACTION_POINTS_PER_DAY } from "../state"
 import { SAVE_VERSION, type SaveData } from "./schema"
@@ -59,6 +59,44 @@ const migrations: Record<
       creature: createCreature("fire_drake", STARTER_GRANT_SEED),
     }
     return { version: 2, state: migrated, savedAt: raw.savedAt ?? 0 }
+  },
+
+  // v2 → v3: saves from before training have no training fields on the
+  // creature. Grant neutral training state; rolled stats are untouched.
+  2: (raw) => {
+    const state = raw.state
+    if (typeof state !== "object" || state === null) {
+      throw new Error("invalid v2 save: missing state")
+    }
+    const s = state as Record<string, unknown>
+    const day = s.day
+    const phase = s.phase
+    const actionPoints = s.actionPoints
+    if (
+      typeof day !== "number" ||
+      !Number.isInteger(day) ||
+      day < 1 ||
+      (phase !== "day" && phase !== "cup") ||
+      typeof actionPoints !== "number" ||
+      !Number.isInteger(actionPoints) ||
+      actionPoints < 0
+    ) {
+      throw new Error("invalid v2 save: broken state")
+    }
+    let creature: GameState["creature"] = null
+    if (s.creature !== null && s.creature !== undefined) {
+      if (typeof s.creature !== "object") {
+        throw new Error("invalid v2 save: broken creature")
+      }
+      creature = {
+        ...(s.creature as Record<string, unknown>),
+        trained: { ...TRAINED_START },
+        trainingFocus: null,
+        trainingResult: null,
+      } as unknown as GameState["creature"]
+    }
+    const migrated: GameState = { day, phase, actionPoints, creature }
+    return { version: 3, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
 }
 
