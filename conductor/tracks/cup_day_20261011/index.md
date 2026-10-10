@@ -1,6 +1,6 @@
 # Cup Day — weekly 8-bracket tournament
 
-*Status: **new** — branch `track/cup_day_20261011`*
+*Status: **in progress** — branch `track/cup_day_20261011`*
 
 Legend: `[ ]` pending / `[~]` in progress / `[x]` complete
 
