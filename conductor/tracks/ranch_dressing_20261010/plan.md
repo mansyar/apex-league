@@ -39,3 +39,6 @@
 - [x] Task: Full gate - `bun run verify` (typecheck, tests, biome, determinism incl. props) green *(246 pass / 0 fail; 5 prop digests match; verified on top of 3acca01)*
 - [x] Task: Browser manual verification of all 7 acceptance criteria with screenshot evidence *(reload parity, pile appear/disappear, gallery studio look) (3acca01)*
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: 3acca01]`
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions *(props.ts tree typo + first-paint-wins paint-order comment; color-helper extraction deferred to a future chore track) (29e52a2)*
