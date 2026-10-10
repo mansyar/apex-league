@@ -14,7 +14,7 @@ Verification & Checkpoint gate run before moving on.
   - [x] `prefers-reduced-motion` flattens every amplitude to 0
   - [x] boundary tests: gust continuity, amplitude table completeness for every registry prop id, phase-hash stability, reduced-motion zeroing (`9b7755c`)
 - [x] Task: Wire scene.ts — attach per-prop `{group, baseAmp, phase}` at scatter time; per-tick rotation around base axis; no geometry/material edits; landmark trees included, rocks/pile excluded (`d104fe7`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) — bun run check, targeted tests, biome, browser screenshot confirming visible sway across multiple props *(checkpoint: sha)*
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — bun run check, targeted tests, biome, browser screenshot confirming visible sway across multiple props *(checkpoint: d104fe7)*
 
 ## Phase B — Feeding ceremony
 
