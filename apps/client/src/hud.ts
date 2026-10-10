@@ -307,6 +307,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   const motionState = document.createElement("span")
   motionState.className = "motion-pill-state"
   motionPill.addEventListener("click", handlers.onToggleReducedMotion)
+  motionPill.append(motionState)
 
   root.append(dayChip, lowerThird, cluster, motionPill)
 
