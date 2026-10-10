@@ -23,10 +23,10 @@
 
 ## Phase C — voxel prop registry
 
-- [ ] Task: Failing tests — prop archetypes exist in the registry and generate deterministically (same seed → identical fields/colors) for: tuft, bush, broadleaf tree, rock, food pile
-- [ ] Task: Implement the five prop archetypes with 2-3 hue variants across vegetation; all static (no pivots, no animation)
-- [ ] Task: Extend `gate:determinism` to regenerate and hash the props
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Failing tests — prop archetypes exist in the registry and generate deterministically (same seed → identical fields/colors) for: tuft, bush, broadleaf tree, rock, food pile *(554429a — compared via voxelized output; SDF closures aren't comparable by value)*
+- [x] Task: Implement the five prop archetypes with 2-3 hue variants across vegetation; all static (no pivots, no animation) *(554429a)*
+- [x] Task: Extend `gate:determinism` to regenerate and hash the props *(554429a — per-prop sha256 in committed artifacts/props-42.json, gate `--write` re-commits)*
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: 554429a]`
 
 ## Phase D — scene composition
 
