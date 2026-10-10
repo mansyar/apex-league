@@ -8,11 +8,11 @@ Verification & Checkpoint gate run before moving on.
 
 ## Phase A — Wind sway on scenery
 
-- [ ] Task: Scene-logic module (failing tests) — extract pure wind math:
-  - [ ] per-class amplitude table (tuft > bush > tree, rocks/foodPile = 0) + position-hash phase offsets (stable per prop world position, seeded — no Math.random)
-  - [ ] gust envelope: low-frequency smooth noise mapped into [0.4, 1.2] × base amplitude, no discontinuities
-  - [ ] `prefers-reduced-motion` flattens every amplitude to 0
-  - [ ] boundary tests: gust continuity, amplitude table completeness for every registry prop id, phase-hash stability, reduced-motion zeroing
+- [x] Task: Scene-logic module (failing tests) — extract pure wind math:
+  - [x] per-class amplitude table (tuft > bush > tree, rocks/foodPile = 0) + position-hash phase offsets (stable per prop world position, seeded — no Math.random)
+  - [x] gust envelope: low-frequency smooth noise mapped into [0.4, 1.2] × base amplitude, no discontinuities
+  - [x] `prefers-reduced-motion` flattens every amplitude to 0
+  - [x] boundary tests: gust continuity, amplitude table completeness for every registry prop id, phase-hash stability, reduced-motion zeroing (`9b7755c`)
 - [ ] Task: Wire scene.ts — attach per-prop `{group, baseAmp, phase}` at scatter time; per-tick rotation around base axis; no geometry/material edits; landmark trees included, rocks/pile excluded
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) — bun run check, targeted tests, biome, browser screenshot confirming visible sway across multiple props *(checkpoint: sha)*
 
