@@ -10,6 +10,8 @@ import { buildPropGroup } from "./prop"
 import {
   type CeremonyState,
   createCeremony,
+  type GaitPose,
+  gaitPose,
   lerpAngle,
   phaseHash,
   swayAngle,
@@ -262,9 +264,28 @@ export function createScene(container: HTMLElement): SceneHandle {
 
   const smoothstep = (k: number): number => k * k * (3 - 2 * k)
 
+  /** Map a gait pose onto the creature rig: hip-pivot swings, weight-shift
+   * roll on the body, and the walk bob as the creature's ground height.
+   * Called every frame with a zero pose outside walks, so pivots always
+   * come back to rest. */
+  const applyGait = (creature: THREE.Group, pose: GaitPose): void => {
+    const setLeg = (name: string, angle: number): void => {
+      const pivot = creature.getObjectByName(name)
+      if (pivot) pivot.rotation.x = angle
+    }
+    setLeg("legFL", pose.fl)
+    setLeg("legBR", pose.br)
+    setLeg("legFR", pose.fr)
+    setLeg("legBL", pose.bl)
+    const body = creature.getObjectByName("body")
+    if (body) body.rotation.z = pose.roll
+    creature.position.y = pose.bob
+  }
+
   /**
    * Drive creature pos/yaw from a ceremony tick state. `head` receives the
-   * gentle dip overlay during the nibble phase.
+   * gentle dip overlay during the nibble phase. The walk gait itself is
+   * applied by `applyGait` in the tick loop.
    */
   const driveCeremony = (
     s: CeremonyState,
@@ -509,10 +530,16 @@ export function createScene(container: HTMLElement): SceneHandle {
       }
       // Ceremony drives position/yaw and suppresses the bounce; the mood
       // idle takes back over the moment ceremony (or its cancel) ends.
+      // The gait applies every frame with a zero pose outside walks, so
+      // leg pivots and the weight roll always come back to rest.
       const ce = ceremony.tick(now)
+      const traveling = ce.phase === "walk-out" || ce.phase === "walk-home"
+      const amp = traveling
+        ? smoothstep(ce.phaseElapsed / Math.max(ce.phaseDuration, 1e-6))
+        : 0
+      applyGait(creatureGroup, gaitPose(t, amp, reducedMotion))
       if (ce.phase !== "idle") {
         driveCeremony(ce, creatureGroup, head ?? undefined)
-        creatureGroup.position.y = 0
       } else if (!reducedMotion && profile.bounce > 0) {
         creatureGroup.position.y = Math.abs(Math.sin(t * 3.2)) * profile.bounce
       } else {
