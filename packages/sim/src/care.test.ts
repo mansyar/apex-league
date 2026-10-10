@@ -55,6 +55,13 @@ describe("careAction — feed", () => {
     if (!r.ok) throw new Error("unreachable")
     expect(r.state.creature?.conditions.mood).toBe(50)
   })
+
+  test("feeding marks the creature fed for today", () => {
+    const r = careAction(stateWith({ hunger: 30 }), "feed")
+    if (!r.ok) throw new Error("unreachable")
+    if (!r.state.creature) throw new Error("creature lost")
+    expect(r.state.creature.fedToday).toBe(true)
+  })
 })
 
 describe("careAction — rest", () => {
@@ -109,6 +116,18 @@ describe("careAction — play", () => {
     const s = stateWith({ energy: 15 })
     const r = careAction(s, "play")
     expect(r).toEqual({ ok: false, reason: "too-tired" })
+  })
+
+  test("rest, treat, and play never mark the creature fed", () => {
+    for (const action of ["rest", "treat", "play"] as const) {
+      const s =
+        action === "treat"
+          ? stateWith({ health: 60 })
+          : stateWith({ energy: 60 })
+      const r = careAction(s, action)
+      if (!r.ok) throw new Error(`unreachable: ${action} rejected`)
+      expect(r.state.creature?.fedToday).toBe(false)
+    }
   })
 })
 

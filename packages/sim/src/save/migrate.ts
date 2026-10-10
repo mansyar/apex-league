@@ -61,6 +61,42 @@ const migrations: Record<
     return { version: 2, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
 
+  // v3 → v4: saves from before the daily food-pile flag have no fedToday
+  // on the creature. Wake every migrated creature unfed.
+  3: (raw) => {
+    const state = raw.state
+    if (typeof state !== "object" || state === null) {
+      throw new Error("invalid v3 save: missing state")
+    }
+    const s = state as Record<string, unknown>
+    const day = s.day
+    const phase = s.phase
+    const actionPoints = s.actionPoints
+    if (
+      typeof day !== "number" ||
+      !Number.isInteger(day) ||
+      day < 1 ||
+      (phase !== "day" && phase !== "cup") ||
+      typeof actionPoints !== "number" ||
+      !Number.isInteger(actionPoints) ||
+      actionPoints < 0
+    ) {
+      throw new Error("invalid v3 save: broken state")
+    }
+    let creature: GameState["creature"] = null
+    if (s.creature !== null && s.creature !== undefined) {
+      if (typeof s.creature !== "object") {
+        throw new Error("invalid v3 save: broken creature")
+      }
+      creature = {
+        ...(s.creature as Record<string, unknown>),
+        fedToday: false,
+      } as unknown as GameState["creature"]
+    }
+    const migrated: GameState = { day, phase, actionPoints, creature }
+    return { version: 4, state: migrated, savedAt: raw.savedAt ?? 0 }
+  },
+
   // v2 → v3: saves from before training have no training fields on the
   // creature. Grant neutral training state; rolled stats are untouched.
   2: (raw) => {
