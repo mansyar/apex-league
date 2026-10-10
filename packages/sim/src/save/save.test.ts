@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 
 import { createCreature } from "../creature"
-import { chooseStarter, createInitialState } from "../state"
+import { chooseStarter, createInitialState, type GameState } from "../state"
 import { advanceDay } from "../ticker"
 import { migrate } from "./migrate"
 import { SAVE_VERSION, type SaveData, serializeSave } from "./schema"
@@ -249,6 +249,57 @@ describe("storage adapter", () => {
     expect(loaded?.creature?.trained).toEqual({ hp: 0, atk: 3, def: 0, spd: 1 })
     expect(loaded?.creature?.trainingFocus).toBe("atk")
     expect(loaded?.creature?.trainingResult).toBe("gained")
+  })
+
+  test("loadGame rejects trained bonuses outside [0, TRAINING_CAP]", () => {
+    const adapter: SaveAdapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!owned.creature) throw new Error("no creature")
+    saveGame(
+      adapter,
+      {
+        ...owned,
+        creature: {
+          ...owned.creature,
+          trained: { hp: 0, atk: 99, def: 0, spd: 0 },
+        },
+      },
+      1,
+    )
+    expect(loadGame(adapter)).toBeNull()
+    saveGame(
+      adapter,
+      {
+        ...owned,
+        creature: {
+          ...owned.creature,
+          trained: { hp: 0, atk: -1, def: 0, spd: 0 },
+        },
+      },
+      1,
+    )
+    expect(loadGame(adapter)).toBeNull()
+  })
+
+  test("loadGame rejects corrupt focus, result, or missing trained", () => {
+    const adapter: SaveAdapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!owned.creature) throw new Error("no creature")
+    // Ill-typed on purpose: the corrupt payload is a hand-edited save, and
+    // literal types cannot express what JSON allows.
+    const bad = (extra: Record<string, unknown>) =>
+      ({
+        ...owned,
+        creature: { ...owned.creature, ...extra },
+      }) as GameState
+    saveGame(adapter, bad({ trained: undefined }), 1)
+    expect(loadGame(adapter)).toBeNull()
+    saveGame(adapter, bad({ trainingFocus: "banana" }), 1)
+    expect(loadGame(adapter)).toBeNull()
+    saveGame(adapter, bad({ trainingResult: "banana" }), 1)
+    expect(loadGame(adapter)).toBeNull()
+    saveGame(adapter, bad({ trainingFocus: 3 }), 1)
+    expect(loadGame(adapter)).toBeNull()
   })
 
   test("loadGame rejects a creature with out-of-range conditions", () => {

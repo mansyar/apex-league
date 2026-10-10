@@ -57,11 +57,9 @@ const STATS: Array<{ key: StatKey; label: string }> = [
   { key: "spd", label: "SPD" },
 ]
 
-const STAT_LABEL: Record<StatKey, string> = {
-  hp: "HP",
-  atk: "ATK",
-  def: "DEF",
-  spd: "SPD",
+/** The display label for one of the four trainable stat keys. */
+function statLabel(key: StatKey): string {
+  return STATS.find((s) => s.key === key)?.label ?? key
 }
 
 /** What tonight would do, from the sim's own preview helper. */
@@ -93,7 +91,7 @@ function trainingStatus(
   lastFocus: StatKey | null,
 ): string {
   if (creature.trainingFocus) {
-    const stat = STAT_LABEL[creature.trainingFocus]
+    const stat = statLabel(creature.trainingFocus)
     const preview = previewTraining(creature)
     if (preview === "gained") {
       return `A full night's rest will sharpen ${stat}.`
@@ -106,7 +104,7 @@ function trainingStatus(
   switch (creature.trainingResult) {
     case "gained":
       return lastFocus
-        ? `Last night's rest sharpened ${STAT_LABEL[lastFocus]}.`
+        ? `Last night's rest sharpened ${statLabel(lastFocus)}.`
         : "A night of rest paid off in training."
     case "sick":
       return `${creature.name} was too unwell to gain from training.`
@@ -321,7 +319,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     } else {
       trainButton.disabled = false
       trainReason.textContent = creature.trainingFocus
-        ? `Focus: ${STAT_LABEL[creature.trainingFocus]}`
+        ? `Focus: ${statLabel(creature.trainingFocus)}`
         : ""
     }
 
@@ -343,7 +341,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
           : "focused"
       } else if (preview === "gained") {
         const total = creature.stats[entry.key] + creature.trained[entry.key]
-        entry.note.textContent = `${STAT_LABEL[entry.key]} ${total} → ${total + 1}`
+        entry.note.textContent = `${statLabel(entry.key)} ${total} → ${total + 1}`
       } else {
         entry.note.textContent = preview ? previewNote(preview) : "costs 1 AP"
       }

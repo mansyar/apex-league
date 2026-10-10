@@ -1,4 +1,4 @@
-import type { Creature } from "../creature"
+import { type Creature, type StatKey, TRAINING_CAP } from "../creature"
 import type { GameState } from "../state"
 import { migrate } from "./migrate"
 import { SAVE_VERSION, type SaveData, serializeSave } from "./schema"
@@ -38,6 +38,8 @@ export function saveGame(
 
 const ELEMENTS = ["fire", "water", "plant", "electric", "earth", "wind"]
 const STAGES = ["baby", "juvenile", "champion"]
+const STAT_KEYS = ["hp", "atk", "def", "spd"]
+const TRAINING_RESULTS = ["gained", "sick", "hungry"]
 
 /** A creature is valid when every field is the right type and in range. */
 function isValidCreature(c: unknown): c is Creature {
@@ -65,6 +67,27 @@ function isValidCreature(c: unknown): c is Creature {
     )
       return false
   }
+  // v3: training fields must be present and well-formed. Trained bonuses
+  // stay within [0, TRAINING_CAP]; focus and result are the sim's own
+  // unions (or the absent null after a focusless night).
+  const trained = creature.trained
+  if (typeof trained !== "object" || trained === null) return false
+  const t = trained as Record<string, unknown>
+  for (const key of STAT_KEYS) {
+    const value = t[key]
+    if (
+      typeof value !== "number" ||
+      !Number.isInteger(value) ||
+      value < 0 ||
+      value > TRAINING_CAP
+    )
+      return false
+  }
+  const focus = creature.trainingFocus
+  if (focus !== null && !STAT_KEYS.includes(focus as StatKey)) return false
+  const result = creature.trainingResult
+  if (result !== null && !TRAINING_RESULTS.includes(result as string))
+    return false
   return true
 }
 
