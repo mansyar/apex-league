@@ -19,7 +19,11 @@ phase ends with a verification & checkpoint task.
         round-trips, older saves load cleanly.
   - [ ] Extend migration chain to v5.
   - [ ] Run suite; commit + git note.
-- [ ] Task: Phase A verification & checkpoint (Refer to workflow.md)
+- [x] Task: Phase A verification & checkpoint (Refer to workflow.md)
+  - bun run verify fully green (typecheck, biome, tests, determinism gate) at
+    b8c4a57. Tests: 32 pass in save suite (v5 default/toggle/corrupt), 11 pass
+    in playback suite (1:1 mapping, beats, pass-through, monotonic ticks,
+    final-hp parity, KO down step, empty-log safety). [checkpoint: b8c4a57]
 
 ## Phase B — Arena scene & presentation (rendering, manual verification)
 
