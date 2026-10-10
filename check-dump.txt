@@ -1,0 +1,84 @@
+$ bun run --filter '*' check
+@apex/voxel check: <error file="src/axolotl.ts" line="417" column="1" code="TS1005">
+@apex/voxel check: '}' expected.
+@apex/voxel check: <source>
+@apex/voxel check: 414 |     },
+@apex/voxel check: 415 |   }
+@apex/voxel check: 416 | }
+@apex/voxel check: 417 | 
+@apex/voxel check:       ^
+@apex/voxel check: </source>
+@apex/voxel check: <related file="src/axolotl.ts" line="67" column="56">The parser expected to find a '}' to match the '{' token here.</related>
+@apex/voxel check: </error>
+@apex/voxel check: <error file="src/bovine.ts" line="315" column="1" code="TS1005">
+@apex/voxel check: '}' expected.
+@apex/voxel check: <source>
+@apex/voxel check: 312 |     },
+@apex/voxel check: 313 |   }
+@apex/voxel check: 314 | }
+@apex/voxel check: 315 | 
+@apex/voxel check:       ^
+@apex/voxel check: </source>
+@apex/voxel check: <related file="src/bovine.ts" line="72" column="56">The parser expected to find a '}' to match the '{' token here.</related>
+@apex/voxel check: </error>
+@apex/voxel check: <error file="src/drake.ts" line="317" column="1" code="TS1005">
+@apex/voxel check: '}' expected.
+@apex/voxel check: <source>
+@apex/voxel check: 314 |     },
+@apex/voxel check: 315 |   }
+@apex/voxel check: 316 | }
+@apex/voxel check: 317 | 
+@apex/voxel check:       ^
+@apex/voxel check: </source>
+@apex/voxel check: <related file="src/drake.ts" line="62" column="56">The parser expected to find a '}' to match the '{' token here.</related>
+@apex/voxel check: </error>
+@apex/voxel check: note: Stopped before type checking 49 files. Fix the errors above to see the rest.
+@apex/voxel check: Found 3 errors in 3 files, checked 0 files [83.68ms]
+@apex/voxel check: 
+@apex/voxel check:   1  src/axolotl.ts:417
+@apex/voxel check:   1  src/bovine.ts:315
+@apex/voxel check:   1  src/drake.ts:317
+@apex/sim check: Γ£ô No type errors in 35 files [102.02ms]
+@apex/voxel check: Exited with code 1
+@apex/sim check: Exited with code 0
+@apex/client check: <error file="C:/Users/Ansyar/.local/share/opencode/worktree/4b828e/glowing-star/packages/voxel/src/axolotl.ts" line="417" column="1" code="TS1005">
+@apex/client check: '}' expected.
+@apex/client check: <source>
+@apex/client check: 414 |     },
+@apex/client check: 415 |   }
+@apex/client check: 416 | }
+@apex/client check: 417 | 
+@apex/client check:       ^
+@apex/client check: </source>
+@apex/client check: <related file="C:/Users/Ansyar/.local/share/opencode/worktree/4b828e/glowing-star/packages/voxel/src/axolotl.ts" line="67" column="56">The parser expected to find a '}' to match the '{' token here.</related>
+@apex/client check: </error>
+@apex/client check: <error file="C:/Users/Ansyar/.local/share/opencode/worktree/4b828e/glowing-star/packages/voxel/src/bovine.ts" line="315" column="1" code="TS1005">
+@apex/client check: '}' expected.
+@apex/client check: <source>
+@apex/client check: 312 |     },
+@apex/client check: 313 |   }
+@apex/client check: 314 | }
+@apex/client check: 315 | 
+@apex/client check:       ^
+@apex/client check: </source>
+@apex/client check: <related file="C:/Users/Ansyar/.local/share/opencode/worktree/4b828e/glowing-star/packages/voxel/src/bovine.ts" line="72" column="56">The parser expected to find a '}' to match the '{' token here.</related>
+@apex/client check: </error>
+@apex/client check: <error file="C:/Users/Ansyar/.local/share/opencode/worktree/4b828e/glowing-star/packages/voxel/src/drake.ts" line="317" column="1" code="TS1005">
+@apex/client check: '}' expected.
+@apex/client check: <source>
+@apex/client check: 314 |     },
+@apex/client check: 315 |   }
+@apex/client check: 316 | }
+@apex/client check: 317 | 
+@apex/client check:       ^
+@apex/client check: </source>
+@apex/client check: <related file="C:/Users/Ansyar/.local/share/opencode/worktree/4b828e/glowing-star/packages/voxel/src/drake.ts" line="62" column="56">The parser expected to find a '}' to match the '{' token here.</related>
+@apex/client check: </error>
+@apex/client check: note: Stopped before type checking 46 files. Fix the errors above to see the rest.
+@apex/client check: Found 3 errors in 3 files, checked 0 files [146.73ms]
+@apex/client check: 
+@apex/client check:   1  C:/Users/Ansyar/.local/share/opencode/worktree/4b828e/glowing-star/packages/voxel/src/axolotl.ts:417
+@apex/client check:   1  C:/Users/Ansyar/.local/share/opencode/worktree/4b828e/glowing-star/packages/voxel/src/bovine.ts:315
+@apex/client check:   1  C:/Users/Ansyar/.local/share/opencode/worktree/4b828e/glowing-star/packages/voxel/src/drake.ts:317
+@apex/client check: Exited with code 1
+error: script "check" exited with code 1
