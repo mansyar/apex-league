@@ -1,7 +1,7 @@
 import type { GameState } from "../state"
 
 /** Current save schema version. Bump and add a migration on every change. */
-export const SAVE_VERSION = 2
+export const SAVE_VERSION = 3
 
 /** Versioned save payload. `state` is the full serializable sim state. */
 export interface SaveData {

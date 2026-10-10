@@ -45,11 +45,41 @@ export interface Creature {
   name: string
   element: Element
   stage: LifeStage
+  /** Rolled base stats. Never changed after creation. */
   stats: CreatureStats
+  /**
+   * Trained bonus per stat, on top of the rolled base. Each field stays
+   * within [0, TRAINING_CAP]; the display/combat value is stats + trained.
+   */
+  trained: CreatureStats
+  /** Tonight's assigned training focus, or null when nothing is assigned. */
+  trainingFocus: StatKey | null
+  /**
+   * Outcome of the last focused night, until the next assignment or a
+   * focusless night. Null when the last night had no focus.
+   */
+  trainingResult: TrainingResult | null
   conditions: CreatureConditions
   /** True when a bonding action happened today; reset by the nightly settlement. */
   bondedToday: boolean
 }
+
+/** The four trainable stat keys. */
+export type StatKey = keyof CreatureStats
+
+/** Outcome of a focused night: gained, or the reason it paid nothing. */
+export type TrainingResult = "gained" | "sick" | "hungry"
+
+/** Trained bonus cap per stat, above the rolled base. */
+export const TRAINING_CAP = 6
+
+/** Trained bonus of a newly hatched creature: nothing trained yet. */
+export const TRAINED_START: CreatureStats = Object.freeze({
+  hp: 0,
+  atk: 0,
+  def: 0,
+  spd: 0,
+})
 
 /** Upper bound of every condition scale. */
 export const CONDITION_MAX = 100
@@ -102,6 +132,9 @@ export function createCreature(
     element: species.element,
     stage: "baby",
     stats: rollStats(rng, species),
+    trained: { ...TRAINED_START },
+    trainingFocus: null,
+    trainingResult: null,
     conditions: { ...CONDITION_START },
     bondedToday: false,
   }

@@ -9,11 +9,14 @@
 export { spendActionPoints } from "./ap"
 export { CUP_INTERVAL_DAYS, isCupDay } from "./calendar"
 export {
+  assignTraining,
   CARE_AP_COST,
   type CareAction,
   type CareRejection,
   type CareResult,
   careAction,
+  type TrainingAttempt,
+  type TrainingRejection,
 } from "./care"
 export {
   CONDITION_MAX,
@@ -24,6 +27,10 @@ export {
   createCreature,
   type Element,
   type LifeStage,
+  type StatKey,
+  TRAINED_START,
+  TRAINING_CAP,
+  type TrainingResult,
 } from "./creature"
 export { beginCup, endCup } from "./machine"
 export { makeRng, type Rng } from "./rng"
@@ -39,7 +46,9 @@ export {
 export {
   EXHAUSTED_ENERGY,
   NIGHT_RECOVERY,
+  previewTraining,
   SICK_HEALTH,
+  SICKNESS_ONSET_HEALTH,
   settleCreature,
 } from "./settlement"
 export { getSpecies, type SpeciesDef, STARTER_SPECIES } from "./species"
