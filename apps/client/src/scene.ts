@@ -3,9 +3,10 @@ import {
   EXHAUSTED_ENERGY,
   SICK_HEALTH,
 } from "@apex/sim"
-import { generate } from "@apex/voxel"
+import { generate, makeRng } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
+import { buildPropGroup } from "./prop"
 
 export interface SceneHandle {
   /** Stop the render loop and free GPU resources. */
@@ -14,6 +15,14 @@ export interface SceneHandle {
   setCreature(archetypeId: string, seed: number): void
   /** Drive the condition visual states from the owned creature's conditions. */
   updateConditions(conditions: CreatureConditions | null): void
+  /**
+   * (Re)scatter the ranch scenery from the creature's visual seed. Same
+   * seed → identical scatter (determinism gate covered); no-op when the
+   * seed is unchanged so HUD updates never churn the props.
+   */
+  setProps(visualSeed: number): void
+  /** Show or hide the food pile (fedToday from the sim). */
+  setFedToday(fedToday: boolean): void
 }
 
 const GROUND_COLOR = 0x3a4d34
@@ -213,6 +222,9 @@ export function createScene(container: HTMLElement): SceneHandle {
   ).matches
 
   let creatureGroup: THREE.Group | null = null
+  let ranchScenery: THREE.Group | null = null
+  let scenerySeed = -1
+  let foodPile: THREE.Group | null = null
   let mode: MoodMode = "normal"
   let headBaseY = 0
 
@@ -265,6 +277,59 @@ export function createScene(container: HTMLElement): SceneHandle {
       })
       scene.add(creatureGroup)
       headBaseY = creatureGroup.getObjectByName("head")?.position.y ?? 0
+    },
+    setProps(visualSeed) {
+      if (scenerySeed === visualSeed) return
+      scenerySeed = visualSeed
+      if (ranchScenery) disposeGroup(ranchScenery)
+      const scenery = new THREE.Group()
+      scenery.name = "ranch-scenery"
+      const rng = makeRng(visualSeed)
+      const scatter = (propId: string, angle: number, radius: number): void => {
+        const prop = buildPropGroup(propId, rng.int(2 ** 30))
+        prop.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius)
+        prop.rotation.y = rng.next() * Math.PI * 2
+        scenery.add(prop)
+      }
+      // Seeded vegetation ring: the creature's visualSeed picks each
+      // tuft/bush position, variant, and facing. Ground radius keeps the
+      // footprint clear (2.2+) and the horizon clear (rho <= 8.8).
+      for (let i = 0; i < 16; i++) {
+        scatter("tuft", rng.next() * Math.PI * 2, 2.2 + rng.next() * 6.6)
+      }
+      for (let i = 0; i < 5; i++) {
+        scatter("bush", rng.next() * Math.PI * 2, 3.2 + rng.next() * 5.6)
+      }
+      // Landmark trees and rocks: fixed positions, fixed seeds — the
+      // silhouettes the ranch composition hangs on.
+      const landmark = (
+        propId: string,
+        x: number,
+        z: number,
+        rotY: number,
+        seed: number,
+      ): void => {
+        const prop = buildPropGroup(propId, seed)
+        prop.position.set(x, 0, z)
+        prop.rotation.y = rotY
+        scenery.add(prop)
+      }
+      landmark("broadleafTree", -6.5, -4.5, 0.65, 1101)
+      landmark("broadleafTree", 3, -5.5, -1.1, 1102)
+      landmark("rock", -4.2, -3, 0.3, 2201)
+      landmark("rock", 5.6, -4.4, -2.1, 2202)
+      landmark("rock", -7.5, -1.6, 1.4, 2203)
+      scene.add(scenery)
+      ranchScenery = scenery
+    },
+    setFedToday(fedToday) {
+      if (!foodPile) {
+        foodPile = buildPropGroup("foodPile", 3301)
+        foodPile.position.set(-2.4, 0, 0.4)
+        foodPile.rotation.y = -0.4
+        scene.add(foodPile)
+      }
+      foodPile.visible = fedToday
     },
     updateConditions(conditions) {
       mode = conditions ? moodModeFrom(conditions) : "normal"
