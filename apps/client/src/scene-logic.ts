@@ -82,3 +82,139 @@ export function swayAngle(
   if (reducedMotion || baseAmp === 0) return 0
   return baseAmp * gustEnvelope(t) * Math.sin(t * WIND_OMEGA + phase)
 }
+
+// -- Feeding ceremony ---------------------------------------------------------
+//
+// A pure state machine for the walk→nibble→home sequence the scene plays
+// after a successful Feed. Timings are fixed, transitions derive from tick
+// deltas, and cancel() is unconditional — it flips straight back to idle
+// and never queues. The scene reads the returned state to drive yaw,
+// travel, and the head-dip overlay as a visual layer on an already-committed
+// sim action.
+
+export type CeremonyPhase =
+  | "idle"
+  | "turn"
+  | "walk-out"
+  | "nibble"
+  | "walk-home"
+
+/** Fixed phase durations (seconds). Total lands mid-spec-window at ~5.5 s. */
+const CEREMONY_TURN = 0.5
+const CEREMONY_WALK_OUT = 1.2
+const CEREMONY_NIBBLE = 2.6
+const CEREMONY_WALK_HOME = 1.2
+/** Reduced motion: in-place nibble only — no travel, no turn. */
+const CEREMONY_NIBBLE_REDUCED = 2.0
+
+/** Snapshot returned by every tick; the scene's per-frame drive signal. */
+export interface CeremonyState {
+  phase: CeremonyPhase
+  /** Seconds elapsed inside the current phase (0 when idle). */
+  phaseElapsed: number
+  /** Current phase's full duration (0 when idle). */
+  phaseDuration: number
+  dipOffset: number
+  /** Completed head-dip cycles so far this nibble (2–3 by the end). */
+  dips: number
+  /** True only on the tick that crosses the walk-home → idle boundary. */
+  done: boolean
+}
+
+export interface CeremonyMachine {
+  /** Begin a ceremony anchored at time `now`. Safe mid-ceremony: resets. */
+  start(now: number): void
+  /** Instantly cancel from ANY phase; no-op when already idle. */
+  cancel(): void
+  /** Advance to `now` (monotonic wall/sim time) and sample the state. */
+  tick(now: number): CeremonyState
+}
+
+/** The fresh idle sample every idle tick copies. */
+function idleState(): CeremonyState {
+  return {
+    phase: "idle",
+    phaseElapsed: 0,
+    phaseDuration: 0,
+    dipOffset: 0,
+    dips: 0,
+    done: false,
+  }
+}
+
+/**
+ * Build the feeding-ceremony machine. Normal motion plays the full
+ * turn→walk-out→nibble→walk-home sequence; `reducedMotion` collapses it
+ * to an in-place nibble at the anchor (the direct feedback for the button
+ * pressed) that stays instantly cancellable.
+ */
+export function createCeremony(reducedMotion: boolean): CeremonyMachine {
+  let running = false
+  let startAt = 0
+
+  const bounds = reducedMotion
+    ? { turn: 0, walkOut: 0, nibble: CEREMONY_NIBBLE_REDUCED, walkHome: 0 }
+    : {
+        turn: CEREMONY_TURN,
+        walkOut: CEREMONY_WALK_OUT,
+        nibble: CEREMONY_NIBBLE,
+        walkHome: CEREMONY_WALK_HOME,
+      }
+  const total = bounds.turn + bounds.walkOut + bounds.nibble + bounds.walkHome
+
+  const tick = (now: number): CeremonyState => {
+    if (!running) return idleState()
+    const e = Math.max(0, now - startAt)
+    if (e >= total) {
+      running = false
+      return { ...idleState(), done: true }
+    }
+    // Walk the fixed-duration phases left to right.
+    let phase: CeremonyPhase = "idle"
+    let phaseDuration = 0
+    let phaseElapsed = 0
+    let offset = e
+    let dips = 0
+    for (const [name, dur] of [
+      ["turn", bounds.turn],
+      ["walk-out", bounds.walkOut],
+      ["nibble", bounds.nibble],
+      ["walk-home", bounds.walkHome],
+    ] as const) {
+      if (dur <= 0) continue
+      if (offset < dur) {
+        phase = name
+        phaseDuration = dur
+        phaseElapsed = offset
+        if (name === "nibble") {
+          const dipPeriod = dur / 2.5 // 2–3 gentle dip cycles
+          dips = Math.floor(phaseElapsed / dipPeriod)
+        }
+        break
+      }
+      offset -= dur
+    }
+    return {
+      phase,
+      phaseElapsed,
+      phaseDuration,
+      dipOffset:
+        phase === "nibble"
+          ? Math.abs(Math.sin((Math.PI * phaseElapsed) / (phaseDuration / 2.5)))
+          : 0,
+      dips,
+      done: false,
+    }
+  }
+
+  return {
+    start(now: number) {
+      running = true
+      startAt = now
+    },
+    cancel() {
+      running = false
+    },
+    tick,
+  }
+}
