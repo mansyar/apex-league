@@ -1,0 +1,11 @@
+{
+  "id": "training_20261010",
+  "title": "Training Programs",
+  "type": "feature",
+  "status": "new",
+  "branch": "track/training_20261010",
+  "created": "2026-10-10",
+  "updated": "2026-10-10",
+  "spec": "./spec.md",
+  "plan": "./plan.md"
+}

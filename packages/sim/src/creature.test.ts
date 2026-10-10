@@ -168,3 +168,45 @@ describe("GameState creature integration", () => {
     expect(() => chooseStarter(s, "plant_ox", 42)).toThrow()
   })
 })
+
+describe("training fields", () => {
+  test("a new creature has zero trained bonuses, no focus, and no result", () => {
+    const c = createCreature("fire_drake", 42)
+    expect(c.trained).toEqual({ hp: 0, atk: 0, def: 0, spd: 0 })
+    expect(c.trainingFocus).toBeNull()
+    expect(c.trainingResult).toBeNull()
+  })
+
+  test("every starter gets neutral training fields", () => {
+    for (const species of STARTER_SPECIES) {
+      if (!species.available) continue
+      const c = createCreature(species.id, 5)
+      expect(c.trained).toEqual({ hp: 0, atk: 0, def: 0, spd: 0 })
+      expect(c.trainingFocus).toBeNull()
+      expect(c.trainingResult).toBeNull()
+    }
+  })
+
+  test("training fields do not change the rolled stats", () => {
+    const drake = getSpecies("fire_drake")
+    if (!drake) throw new Error("fire_drake species missing")
+    for (let seed = 0; seed < 20; seed++) {
+      const c = createCreature("fire_drake", seed)
+      expect(c.stats.hp).toBeGreaterThanOrEqual(drake.statBounds.hp[0])
+      expect(c.stats.hp).toBeLessThanOrEqual(drake.statBounds.hp[1])
+      expect(c.stats.atk).toBeGreaterThanOrEqual(drake.statBounds.atk[0])
+      expect(c.stats.atk).toBeLessThanOrEqual(drake.statBounds.atk[1])
+      expect(c.stats.def).toBeGreaterThanOrEqual(drake.statBounds.def[0])
+      expect(c.stats.def).toBeLessThanOrEqual(drake.statBounds.def[1])
+      expect(c.stats.spd).toBeGreaterThanOrEqual(drake.statBounds.spd[0])
+      expect(c.stats.spd).toBeLessThanOrEqual(drake.statBounds.spd[1])
+    }
+  })
+
+  test("creatures carry exactly the three training fields", () => {
+    const c: Creature = createCreature("fire_drake", 42)
+    expect("trained" in c).toBe(true)
+    expect("trainingFocus" in c).toBe(true)
+    expect("trainingResult" in c).toBe(true)
+  })
+})

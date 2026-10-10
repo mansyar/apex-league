@@ -70,7 +70,9 @@ bun run dev
 
 The dev server prints a local URL (Vite, default `http://localhost:5173`).
 A fresh save opens the starter choice — pick a Fire drake or a Plant ox and
-begin the day loop. Dev pages are available at `/gallery.html` (creature
+begin the day loop. Each day you get 3 AP for care actions plus one training
+focus: a full night's rest adds +1 to the focused stat, capped at +6 above
+the rolled base. Dev pages are available at `/gallery.html` (creature
 lineup, `?archetype=draconic|bovine|mixed`) and `/preview.html` (grey
 silhouette viewer, `?seed=&archetype=&angle=`).
 
@@ -109,7 +111,7 @@ reproduced exactly from source.
 | Phase | Scope | State |
 |---|---|---|
 | 0 — Foundation | Workspaces, sim core, day ticker, versioned save/load, app shell | Done |
-| 1 — Vertical slice | Care loop, one lineage, battle system, one cup, Bronze ladder | In progress — care loop playable |
+| 1 — Vertical slice | Care loop, training, one lineage, battle system, one cup, Bronze ladder | In progress — care loop and training playable |
 | 2 — League depth | Full ladder, rivals and bosses, breeding, evolution discovery | Planned |
 | 3 — Content & meta | 20–40 species, ElysiaJS backend, cloud saves, leaderboards | Planned |
 | 4 — Post-MVP | Async ghost PvP, live PvP, mobile pass, audio | Planned |

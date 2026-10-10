@@ -5,7 +5,13 @@
  * hand. Pure: takes a creature and an Rng, returns a new creature.
  */
 
-import type { Creature, CreatureConditions } from "./creature"
+import {
+  type Creature,
+  type CreatureConditions,
+  type StatKey,
+  TRAINING_CAP,
+  type TrainingResult,
+} from "./creature"
 import type { Rng } from "./rng"
 
 /** Hunger lost every night (the creature wakes hungrier). */
@@ -72,8 +78,8 @@ function isStarving(hunger: number): boolean {
 
 /**
  * Apply the nightly settlement to a creature in fixed order:
- * hunger fall, night recovery, sickness roll/worsening, mood settle,
- * bond decay (and the bondedToday flag reset).
+ * hunger fall, training payout, night recovery, sickness roll/worsening,
+ * mood settle, bond decay (and the bondedToday flag reset).
  */
 export function settleCreature(creature: Creature, rng: Rng): Creature {
   const c = creature.conditions
@@ -81,6 +87,27 @@ export function settleCreature(creature: Creature, rng: Rng): Creature {
   // 1. Hunger falls.
   const hunger = clampCondition(c.hunger - HUNGER_DECAY_PER_DAY)
   const starving = isStarving(hunger)
+
+  // 1b. Training payout — the day's focus pays only if the creature slept
+  //     rested: not sick at lights-out and not waking starving. Sits before
+  //     the sickness roll so the roll can neither grant nor claw back a
+  //     gain, and the step draws no rng of its own. The focus is always
+  //     consumed; a new one must be assigned tomorrow.
+  let trained = creature.trained
+  let trainingResult: TrainingResult | null = null
+  const sickAtLightsOut = c.health < SICK_HEALTH
+  if (creature.trainingFocus) {
+    const stat: StatKey = creature.trainingFocus
+    if (!sickAtLightsOut && !starving) {
+      trained = {
+        ...creature.trained,
+        [stat]: Math.min(TRAINING_CAP, creature.trained[stat] + 1),
+      }
+      trainingResult = "gained"
+    } else {
+      trainingResult = sickAtLightsOut ? "sick" : "hungry"
+    }
+  }
 
   // 2. Night recovery — sleep quality modulated by condition.
   const recovery =
@@ -128,5 +155,29 @@ export function settleCreature(creature: Creature, rng: Rng): Creature {
   )
 
   const conditions: CreatureConditions = { hunger, energy, health, mood, bond }
-  return { ...creature, conditions, bondedToday: false }
+  return {
+    ...creature,
+    conditions,
+    bondedToday: false,
+    trained,
+    trainingFocus: null,
+    trainingResult,
+  }
+}
+
+/**
+ * What tonight would do to the focused stat if conditions held until
+ * lights-out. Uses the same rested predicate as the settlement step and
+ * mutates nothing. Returns null when no focus is set.
+ */
+export function previewTraining(creature: Creature): TrainingResult | null {
+  if (!creature.trainingFocus) return null
+  if (creature.conditions.health < SICK_HEALTH) return "sick"
+  if (
+    clampCondition(creature.conditions.hunger - HUNGER_DECAY_PER_DAY) <=
+    STARVING_HUNGER
+  ) {
+    return "hungry"
+  }
+  return "gained"
 }

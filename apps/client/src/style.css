@@ -203,6 +203,37 @@ body,
   min-height: 1em;
 }
 
+/* Stat row: rolled base + trained bonus, between name and conditions */
+.stat-row {
+  display: flex;
+  gap: 10px;
+  margin: 2px 0 8px;
+}
+
+.stat-cell {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-size: 10px;
+  color: var(--ink-dim);
+  letter-spacing: 0.05em;
+}
+
+.stat-total {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.stat-bonus {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
 /* Bottom-right action cluster */
 .action-cluster {
   position: absolute;
@@ -273,6 +304,64 @@ body,
 
 .advance-button:hover {
   background: #ffe08a;
+}
+
+/* Training: a separate row plus an inline four-stat picker */
+.train-row {
+  display: flex;
+}
+
+.train-row .care-button {
+  flex: 1;
+}
+
+.train-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: var(--panel-bg);
+}
+
+.train-entry {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 9px;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.train-entry:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.train-entry:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.train-entry.is-focus {
+  border-color: var(--accent);
+}
+
+.train-entry-name {
+  letter-spacing: 0.05em;
+}
+
+.train-note {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--ink-dim);
+  text-align: right;
 }
 
 /* First-run starter choice */
