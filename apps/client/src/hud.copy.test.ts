@@ -3,8 +3,8 @@ import { type Creature, createCreature } from "@apex/sim"
 import { flavorCallout, unlockCallout } from "./hud"
 
 describe("unlockCallout", () => {
-  const drake = createCreature("fire_drake", 42) as Creature
-  const ox = createCreature("plant_ox", 42) as Creature
+  const drake = createCreature("fire_drake", 42)
+  const ox = createCreature("plant_ox", 42)
 
   const cases: Array<{
     days: number
@@ -37,8 +37,8 @@ describe("unlockCallout", () => {
 })
 
 describe("flavorCallout", () => {
-  const drake = createCreature("fire_drake", 42) as Creature
-  const axolotl = createCreature("water_axolotl", 42) as Creature
+  const drake = createCreature("fire_drake", 42)
+  const axolotl = createCreature("water_axolotl", 42)
 
   test("a healthy water partner gets a water-flavored idle line", () => {
     expect(flavorCallout(axolotl)).toBe(
