@@ -7,6 +7,7 @@ import {
   chooseStarter,
   createCreature,
   createInitialState,
+  effectiveStats,
   getSpecies,
   STARTER_SPECIES,
 } from "./index"
@@ -203,10 +204,50 @@ describe("training fields", () => {
     }
   })
 
-  test("creatures carry exactly the three training fields", () => {
+  test("creatures carry exactly the four training fields", () => {
     const c: Creature = createCreature("fire_drake", 42)
     expect("trained" in c).toBe(true)
     expect("trainingFocus" in c).toBe(true)
     expect("trainingResult" in c).toBe(true)
+    expect("trainingDays" in c).toBe(true)
+  })
+
+  test("a new creature has zero trained days", () => {
+    const c = createCreature("fire_drake", 42)
+    expect(c.trainingDays).toBe(0)
+  })
+
+  test("every starter starts the move pool with zero trained days", () => {
+    for (const species of STARTER_SPECIES) {
+      if (!species.available) continue
+      const c = createCreature(species.id, 7)
+      expect(c.trainingDays).toBe(0)
+    }
+  })
+})
+
+describe("effectiveStats", () => {
+  test("returns stats + trained per stat", () => {
+    const c = createCreature("fire_drake", 42)
+    const trained: Creature["trained"] = { hp: 2, atk: 5, def: 1, spd: 3 }
+    const withTrained = { ...c, trained }
+    expect(effectiveStats(withTrained)).toEqual({
+      hp: c.stats.hp + 2,
+      atk: c.stats.atk + 5,
+      def: c.stats.def + 1,
+      spd: c.stats.spd + 3,
+    })
+  })
+
+  test("an untrained creature's effective stats equal its rolled stats", () => {
+    const c = createCreature("plant_ox", 9)
+    expect(effectiveStats(c)).toEqual(c.stats)
+  })
+
+  test("effectiveStats is pure — reading never mutates the creature", () => {
+    const c = createCreature("fire_drake", 4)
+    const snapshot = structuredClone(c)
+    effectiveStats(c)
+    expect(c).toEqual(snapshot)
   })
 })
