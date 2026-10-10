@@ -30,7 +30,7 @@ Verification & Checkpoint gate run before moving on.
 
 ## Phase C — Sparse wandering
 
-- [ ] Task: Wander scheduler (failing tests) in the scene-logic module:
+- [~] Task: Wander scheduler (failing tests) in the scene-logic module:
   - [ ] gap chooser 20–40 s from free-running Rng seeded `visualSeed ^ stepCount` (never wall-clock; no save interaction)
   - [ ] target chooser: near a visible tuft/bush, min distance from pile anchor and inside moss disc; deterministic per (seed, step)
   - [ ] visit pause with look-around head turns (1–2 s); droopy/sick mood profiles (from existing scenes mapping) suppress wandering; end state always `home-idle`
