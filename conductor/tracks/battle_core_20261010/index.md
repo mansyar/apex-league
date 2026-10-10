@@ -8,4 +8,4 @@ log. No arena, no cup, no save migration.
 - [Implementation Plan](./plan.md)
 - [Metadata](./metadata.json)
 
-Status: **new** — branch `track/battle_core_20261010`.
+Status: **complete** - branch `track/battle_core_20261010`.
