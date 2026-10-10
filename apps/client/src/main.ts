@@ -12,6 +12,7 @@ import {
   type StatKey,
   saveGame,
   setLoadout,
+  setReducedMotion,
 } from "@apex/sim"
 import { buildArena } from "./arena"
 import { createHud } from "./hud"
@@ -128,6 +129,12 @@ const hud = createHud(app, {
     // the other sim-mutating handlers do.
     spar.update(state.creature ?? null)
     syncScene()
+  },
+  onToggleReducedMotion: () => {
+    state = setReducedMotion(state, !state.settings.reducedMotion)
+    persist()
+    hud.update(state)
+    applyMotionPref()
   },
 })
 

@@ -302,6 +302,41 @@ body,
   cursor: pointer;
 }
 
+/* Reduced-motion settings pill (save v5): a quiet bottom-right control
+   that mirrors — and persists — the preference the arena honors. */
+.motion-pill {
+  position: fixed;
+  right: 20px;
+  bottom: 160px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: var(--panel-bg);
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+.motion-pill.is-on {
+  color: var(--ink);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--panel-bg));
+}
+
+.motion-pill:hover {
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-pill {
+    transition: none;
+  }
+}
+
 .advance-button:hover {
   background: #ffe08a;
 }
