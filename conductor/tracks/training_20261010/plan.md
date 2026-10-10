@@ -66,6 +66,6 @@ manually, not unit-tested.
 
 ## Phase F — Integration and Verification Gate
 
-- [ ] Task: Full gate — `bun run verify` (check, tests, biome, determinism) green
-- [ ] Task: Browser manual verification — assign, free swap, wasted night, saved night via Feed or Treat, cap rejection, stat row — with screenshot evidence
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Full gate — `bun run verify` (check, tests, biome, determinism) green (`44d4415`)
+- [x] Task: Browser manual verification — assign, free swap, wasted night, saved night via Feed or Treat, cap rejection, stat row — with screenshot evidence (`44d4415`)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: 44d4415]`
