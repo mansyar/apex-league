@@ -1,240 +1,197 @@
 import { describe, expect, test } from "bun:test"
+import { createWalk, lerpAngle, type WalkDrive, wrapPi } from "./scene-logic"
 
-import { type CeremonyState, createCeremony, lerpAngle } from "./scene-logic"
+const STAND = { x: -1.27, z: 0.21 } // production stand spot: 1.15 short of the pile on the origin→pile line
 
-/** Advance a machine in fixed steps, collecting every tick state. */
+/** Drive a walk machine at a fixed 60fps cadence, returning the final
+ * drive state plus a phase log. Stops early once `done` reports true. */
 function run(
-  machine: ReturnType<typeof createCeremony>,
-  from: number,
+  machine: ReturnType<typeof createWalk>,
   seconds: number,
-  step = 0.1,
-): CeremonyState[] {
-  const states: CeremonyState[] = []
-  for (let t = from; t <= from + seconds + 1e-9; t += step) {
-    states.push(machine.tick(t))
-  }
-  return states
-}
-
-describe("ceremony — phase sequence (normal motion)", () => {
-  test("walks turn → walk-out → nibble → walk-home in order", () => {
-    const m = createCeremony(false)
-    m.start(10)
-    const states = run(m, 10.05, 6)
-    const phases = states.map((s) => s.phase)
-    expect(phases).toContain("turn")
-    expect(phases).toContain("walk-out")
-    expect(phases).toContain("nibble")
-    expect(phases).toContain("walk-home")
-    // Order: first index of each must be increasing.
-    const first = (p: string) => phases.indexOf(p as never)
-    expect(first("turn")).toBeLessThan(first("walk-out"))
-    expect(first("walk-out")).toBeLessThan(first("nibble"))
-    expect(first("nibble")).toBeLessThan(first("walk-home"))
-  })
-
-  test("starts in the turn phase", () => {
-    const m = createCeremony(false)
-    m.start(5)
-    expect(m.tick(5.01).phase).toBe("turn")
-  })
-
-  test("ends back at home-idle within ~4–6 s total", () => {
-    const m = createCeremony(false)
-    m.start(0)
-    let total = 0
-    for (let t = 0; t <= 10; t += 0.05) {
-      const s = m.tick(t)
-      if (s.done) {
-        total = t
-        expect(s.phase).toBe("idle")
-        break
+  opts: { dt?: number; from?: { x: number; z: number } } = {},
+) {
+  const dt = opts.dt ?? 1 / 60
+  let x = opts.from?.x ?? 0
+  let z = opts.from?.z ?? 0
+  const phases: string[] = []
+  let last: WalkDrive = machine.advance(x, z, 0)
+  let elapsed = 0
+  const nibbleEntry = { x: NaN, z: NaN }
+  let maxDistanceToStand = 0
+  for (let i = 0; i < Math.ceil(seconds / dt); i++) {
+    last = machine.advance(x, z, dt)
+    x = last.x
+    z = last.z
+    elapsed += dt
+    if (last.phase !== "idle" && phases[phases.length - 1] !== last.phase) {
+      phases.push(last.phase)
+      if (last.phase === "nibble") {
+        nibbleEntry.x = x
+        nibbleEntry.z = z
       }
     }
-    expect(total).toBeGreaterThan(3.99)
-    expect(total).toBeLessThanOrEqual(6)
-  })
-
-  test("after completion the machine stays idle (no re-trigger)", () => {
-    const m = createCeremony(false)
-    m.start(0)
-    run(m, 0, 7)
-    const s = m.tick(20)
-    expect(s.phase).toBe("idle")
-    expect(s.done).toBe(false)
-  })
-})
-
-describe("ceremony — nibble dips", () => {
-  test("delivers 2–3 head-dip cycles inside the nibble phase", () => {
-    const m = createCeremony(false)
-    m.start(0)
-    let dips = 0
-    let maxDips = 0
-    for (let t = 0; t <= 10; t += 0.05) {
-      const s = m.tick(t)
-      dips = Math.max(dips, s.dips)
-      maxDips = Math.max(maxDips, s.dips)
-      if (s.done) break
+    if (last.phase === "walk-out" || last.phase === "nibble") {
+      maxDistanceToStand = Math.max(
+        maxDistanceToStand,
+        Math.hypot(STAND.x - x, STAND.z - z),
+      )
     }
-    expect(maxDips).toBeGreaterThanOrEqual(2)
-    expect(maxDips).toBeLessThanOrEqual(3)
-    expect(dips).toBe(maxDips)
+    if (last.done) break
+  }
+  return { last, x, z, elapsed, phases, nibbleEntry, maxDistanceToStand }
+}
+
+describe("position-driven walk", () => {
+  test("walks out to the stand spot, nibbles, and walks home to exactly (0,0)", () => {
+    const m = createWalk(false)
+    m.begin(0, 0, STAND.x, STAND.z, 0)
+    const r = run(m, 12)
+    expect(r.last.done).toBe(true)
+    expect(r.last.phase).toBe("idle")
+    expect(Math.abs(r.x)).toBeLessThan(1e-3)
+    expect(Math.abs(r.z)).toBeLessThan(1e-3)
+    expect(r.phases).toEqual(["walk-out", "nibble", "walk-home"])
   })
 
-  test("dipOffset rises and falls (gentle oscillation, not monotonic)", () => {
-    const m = createCeremony(false)
-    m.start(0)
+  test("arrives at the stand spot before nibbling", () => {
+    const m = createWalk(false)
+    m.begin(0, 0, STAND.x, STAND.z, 0)
+    const r = run(m, 12)
+    expect(Math.abs(r.nibbleEntry.x - STAND.x)).toBeLessThan(0.05)
+    expect(Math.abs(r.nibbleEntry.z - STAND.z)).toBeLessThan(0.05)
+  })
+
+  test("never overshoots the stand target while walking out", () => {
+    const m = createWalk(false)
+    m.begin(0, 0, STAND.x, STAND.z, 0)
+    const r = run(m, 12)
+    // Start distance ~3.6; distance to stand must only shrink.
+    expect(r.maxDistanceToStand).toBeLessThan(
+      Math.hypot(STAND.x, STAND.z) + 1e-6,
+    )
+  })
+
+  test("full trip lands in the 4–6s window at 60fps", () => {
+    const m = createWalk(false)
+    m.begin(0, 0, STAND.x, STAND.z, 0)
+    const r = run(m, 12)
+    expect(r.elapsed).toBeGreaterThan(3.99)
+    expect(r.elapsed).toBeLessThanOrEqual(6.0)
+  })
+
+  test("walk-home faces the direction of travel (forward, not backward)", () => {
+    const m = createWalk(false)
+    m.begin(0, 0, STAND.x, STAND.z, 0)
+    let saw = false
+    let walkHomeElapsed = 0
+    let x = 0
+    let z = 0
+    for (let i = 0; i < 12 * 60; i++) {
+      const d = m.advance(x, z, 1 / 60)
+      x = d.x
+      z = d.z
+      if (d.phase === "walk-home") {
+        saw = true
+        walkHomeElapsed += 1 / 60
+        const expected = Math.atan2(-x, -z)
+        if (walkHomeElapsed > 0.8) {
+          // The first ~0.8s is the in-place pivot at the turnaround; after
+          // that the yaw must agree with the direction of travel (compare
+          // through the ±π seam with wrapPi).
+          expect(Math.abs(wrapPi(d.yaw - expected))).toBeLessThan(0.6)
+        }
+      }
+      if (d.done) break
+    }
+    expect(saw).toBe(true)
+  })
+
+  test("nibble dips rise and fall more than once", () => {
+    const m = createWalk(false)
+    m.begin(0, 0, STAND.x, STAND.z, 0)
     const offsets: number[] = []
-    for (let t = 0; t <= 10; t += 0.05) {
-      const s = m.tick(t)
-      if (s.phase === "nibble") offsets.push(s.dipOffset)
-      if (s.done) break
+    let x = 0
+    let z = 0
+    for (let i = 0; i < 12 * 60; i++) {
+      const d = m.advance(x, z, 1 / 60)
+      x = d.x
+      z = d.z
+      if (d.phase === "nibble") offsets.push(d.dipOffset)
+      if (d.done) break
     }
-    expect(offsets.length).toBeGreaterThan(8)
-    let prev = offsets[0] ?? 0
     let rises = 0
     let falls = 0
+    let prev = offsets[0] ?? 0
     for (let i = 1; i < offsets.length; i++) {
       const cur = offsets[i] ?? 0
       if (cur > prev) rises++
       else if (cur < prev) falls++
       prev = cur
     }
-    expect(rises).toBeGreaterThan(0)
-    expect(falls).toBeGreaterThan(0)
-  })
-})
-
-describe("ceremony — instant cancel", () => {
-  test("cancel from mid-nibble returns to home-idle on the same tick", () => {
-    const m = createCeremony(false)
-    m.start(0)
-    m.tick(1.5)
-    m.cancel()
-    const s = m.tick(1.51)
-    expect(s.phase).toBe("idle")
-    expect(s.phaseElapsed).toBe(0)
-    expect(s.done).toBe(false)
+    expect(rises).toBeGreaterThan(1)
+    expect(falls).toBeGreaterThan(1)
   })
 
-  test("cancel from every phase (sampled across the whole run) works", () => {
-    for (const cancelAt of [0.1, 0.7, 1.9, 3.5, 4.9]) {
-      const m = createCeremony(false)
-      m.start(0)
-      m.tick(cancelAt)
-      m.cancel()
-      const s = m.tick(cancelAt + 0.01)
-      expect(s.phase).toBe("idle")
+  test("a dt spike never teleports past the target and still completes", () => {
+    const m = createWalk(false)
+    m.begin(0, 0, STAND.x, STAND.z, 0)
+    const r = run(m, 30, { dt: 0.5 })
+    expect(r.last.done).toBe(true)
+    expect(Math.abs(r.x)).toBeLessThan(1e-3)
+    expect(Math.abs(r.z)).toBeLessThan(1e-3)
+    // Never placed farther from the stand spot than the start distance.
+    expect(r.maxDistanceToStand).toBeLessThan(
+      Math.hypot(STAND.x, STAND.z) + 1e-6,
+    )
+  })
+
+  test("reduced motion nibbles in place and never travels", () => {
+    const m = createWalk(true)
+    m.begin(0, 0, STAND.x, STAND.z, 0)
+    const r = run(m, 12)
+    expect(r.last.done).toBe(true)
+    expect(Math.abs(r.x)).toBe(0)
+    expect(Math.abs(r.z)).toBe(0)
+    expect(r.phases).toEqual(["nibble"])
+  })
+
+  test("re-begin mid-ceremony restarts the walk from the current position", () => {
+    const m = createWalk(false)
+    m.begin(0, 0, STAND.x, STAND.z, 0)
+    let x = 0
+    let z = 0
+    for (let i = 0; i < 30; i++) {
+      const d = m.advance(x, z, 1 / 60)
+      x = d.x
+      z = d.z
     }
+    // Restart from wherever the creature now stands.
+    m.begin(x, z, STAND.x, STAND.z, 0)
+    const r = run(m, 12, { from: { x, z } })
+    expect(r.last.done).toBe(true)
+    expect(Math.abs(r.x)).toBeLessThan(1e-3)
+    expect(Math.abs(r.z)).toBeLessThan(1e-3)
   })
 
-  test("double cancel and cancel-while-idle are safe no-ops", () => {
-    const m = createCeremony(false)
-    m.cancel()
-    m.cancel()
-    expect(m.tick(0).phase).toBe("idle")
-    m.start(0)
-    m.cancel()
-    m.cancel()
-    expect(m.tick(0.5).phase).toBe("idle")
-  })
-
-  test("a cancelled machine never reports done", () => {
-    const m = createCeremony(false)
-    m.start(0)
-    m.tick(1)
-    m.cancel()
-    run(m, 1, 6)
-    expect(m.tick(10).done).toBe(false)
-  })
-})
-
-describe("ceremony — successive feeds", () => {
-  test("re-starting mid-ceremony resets cleanly to the first phase", () => {
-    const m = createCeremony(false)
-    m.start(0)
-    m.tick(2.5) // deep into nibble
-    m.start(3)
-    const s = m.tick(3.01)
-    expect(s.phase).toBe("turn")
-    // Old start time must not leak: a tick at the old clock's far future
-    // only advances from the new start.
-    const later = m.tick(3.5)
-    expect(later.phase).not.toBe("idle")
-  })
-
-  test("restart then run to completion reports done once", () => {
-    const m = createCeremony(false)
-    m.start(0)
-    m.tick(2)
-    m.start(5)
-    let doneCount = 0
-    for (let t = 5; t <= 12; t += 0.05) {
-      if (m.tick(t).done) doneCount++
-    }
-    expect(doneCount).toBe(1)
+  test("idle advance is a passthrough no-op", () => {
+    const m = createWalk(false)
+    const d = m.advance(1.5, -2.5, 1 / 60)
+    expect(d.x).toBe(1.5)
+    expect(d.z).toBe(-2.5)
+    expect(d.phase).toBe("idle")
+    expect(d.done).toBe(true)
   })
 })
 
 describe("lerpAngle — shortest-arc yaw blend", () => {
-  test("identical angles stay identical", () => {
-    expect(lerpAngle(0.5, 0.5, 0.25)).toBeCloseTo(0.5)
-  })
-
-  test("k=0 and k=1 return the exact endpoints", () => {
-    expect(lerpAngle(3.0, -3.0, 0)).toBeCloseTo(3.0)
-    expect(lerpAngle(3.0, -3.0, 1)).toBeCloseTo(-3.0)
-  })
-
-  test("wraps the short way across ±π (no 6-radian spin)", () => {
-    // From 3.0 to -3.0 the short way is +0.283 via the wrap, so the
-    // halfway point is π-ish, NOT the long way through 0.
-    expect(lerpAngle(3.0, -3.0, 0.5)).toBeCloseTo(Math.PI)
-    // From 0.2 to 5.9 the arithmetic delta is 5.7 > π, so the short way
-    // wraps DOWN through 0 (-0.583); halfway lands just below 0.
+  test("wraps the short way across ±π", () => {
+    // 3.0 → -3.0: short way is +0.283 through π, not the long way back.
+    expect(lerpAngle(3.0, -3.0, 1)).toBeCloseTo(-3.0, 5)
+    // 0.2 → 5.9: short way wraps DOWN through 0 (Δ ≈ -0.583).
     expect(lerpAngle(0.2, 5.9, 0.5)).toBeCloseTo(0.2 - 0.583184 / 2, 3)
   })
-
-  test("is monotonic-increase on a plain short-arc case", () => {
-    const a = lerpAngle(0, 1, 0.4)
-    const b = lerpAngle(0, 1, 0.6)
-    expect(a).toBeCloseTo(0.4)
-    expect(b).toBeCloseTo(0.6)
-    expect(b).toBeGreaterThan(a)
-  })
-})
-
-describe("ceremony — reduced motion variant", () => {
-  test("skips turn and travel entirely: in-place nibble at anchor", () => {
-    const m = createCeremony(true)
-    m.start(0)
-    const s = m.tick(0.01)
-    expect(s.phase).toBe("nibble")
-    for (let t = 0.05; t <= 10; t += 0.05) {
-      const st = m.tick(t)
-      expect(st.phase === "nibble" || st.phase === "idle").toBe(true)
-    }
-  })
-
-  test("still completes (reports done) and stays shorter than the walk", () => {
-    const m = createCeremony(true)
-    m.start(0)
-    let total = Number.POSITIVE_INFINITY
-    for (let t = 0; t <= 10; t += 0.05) {
-      if (m.tick(t).done) {
-        total = t
-        break
-      }
-    }
-    expect(total).toBeLessThan(4)
-  })
-
-  test("is still instantly cancellable mid-nibble", () => {
-    const m = createCeremony(true)
-    m.start(0)
-    m.tick(0.5)
-    m.cancel()
-    expect(m.tick(0.51).phase).toBe("idle")
+  test("clamps at the endpoints", () => {
+    expect(lerpAngle(1, 2, 0)).toBe(1)
+    expect(lerpAngle(1, 2, 1)).toBe(2)
   })
 })

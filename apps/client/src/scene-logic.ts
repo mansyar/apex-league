@@ -103,140 +103,183 @@ export function wrapPi(delta: number): number {
   return d
 }
 //
-// A pure state machine for the walk→nibble→home sequence the scene plays
-// after a successful Feed. Timings are fixed and transitions derive from
-// tick deltas. Policy (2026-10-10): the ceremony is non-cancelable — HUD
-// input applies to the sim immediately but never interrupts the motion, so
-// the scene never calls cancel(); the capability stays on the machine and
-// under test as a safety valve. The scene reads the returned state to drive
-// yaw, travel, and the head-dip overlay as a visual layer on an
-// already-committed sim action.
+// Position-driven feeding ceremony (rework, 2026-10-10): after a successful
+// Feed the creature strides by POSITION — walk from wherever it stands to
+// the stand spot by the pile, nibble in place, then walk back to the home
+// anchor — instead of riding a fixed clock. Movement is stepped by a
+// clamped dt, so a paused tab or a long frame can never skip a phase or
+// strand the body mid-path: the walk simply continues and converges.
+// Policy: the ceremony is non-cancelable — HUD input applies to the sim
+// immediately but never interrupts the motion.
 
-export type CeremonyPhase =
-  | "idle"
-  | "turn"
-  | "walk-out"
-  | "nibble"
-  | "walk-home"
+export type CeremonyPhase = "idle" | "walk-out" | "nibble" | "walk-home"
 
-/** Fixed phase durations (seconds). Total lands mid-spec-window at ~5.5 s. */
-const CEREMONY_TURN = 0.5
-const CEREMONY_WALK_OUT = 1.2
-const CEREMONY_NIBBLE = 2.6
-const CEREMONY_WALK_HOME = 1.2
-/** Reduced motion: in-place nibble only — no travel, no turn. */
-const CEREMONY_NIBBLE_REDUCED = 2.0
+/** Constant stride speed in world units per second. */
+const WALK_SPEED = 2.2
+/** In-place nibble time (seconds); 2.5 dip cycles fit inside it. */
+const NIBBLE_TIME = 2.2
+/** Pivot speed while turning in place (radians per second). */
+const TURN_SPEED = 6
+/** Yaw error above which the creature pivots before walking (radians).
+ * Small enough that any residual angle while striding is invisible. */
+const TURN_THRESHOLD = 0.12
 
-/** Snapshot returned by every tick; the scene's per-frame drive signal. */
-export interface CeremonyState {
+/** Per-frame drive signal the scene applies directly to the creature. */
+export interface WalkDrive {
+  x: number
+  z: number
+  yaw: number
   phase: CeremonyPhase
-  /** Seconds elapsed inside the current phase (0 when idle). */
-  phaseElapsed: number
-  /** Current phase's full duration (0 when idle). */
-  phaseDuration: number
   dipOffset: number
-  /** Completed head-dip cycles so far this nibble (2–3 by the end). */
-  dips: number
-  /** True only on the tick that crosses the walk-home → idle boundary. */
   done: boolean
+  /** True while the creature pivots in place (legs stay still). */
+  pivoting: boolean
 }
 
-export interface CeremonyMachine {
-  /** Begin a ceremony anchored at time `now`. Safe mid-ceremony: resets. */
-  start(now: number): void
-  /** Instantly cancel from ANY phase; no-op when already idle. */
-  cancel(): void
-  /** Advance to `now` (monotonic wall/sim time) and sample the state. */
-  tick(now: number): CeremonyState
+export interface WalkMachine {
+  /** Begin a walk from (fromX, fromZ) facing `fromYaw`, toward the stand
+   * spot. Safe to call mid-walk: the new walk starts from the given pose
+   * and eases the yaw rather than snapping it. */
+  begin(
+    fromX: number,
+    fromZ: number,
+    standX: number,
+    standZ: number,
+    fromYaw: number,
+  ): void
+  /** Advance one clamped-dt step from (x, z) and return the drive state. */
+  advance(x: number, z: number, dt: number): WalkDrive
 }
 
-/** The fresh idle sample every idle tick copies. */
-function idleState(): CeremonyState {
-  return {
-    phase: "idle",
-    phaseElapsed: 0,
-    phaseDuration: 0,
-    dipOffset: 0,
-    dips: 0,
-    done: false,
-  }
+/** The creature mesh faces +z at rest (confirmed live: with the
+ * visual-center anchor in place the walk-out toward −x read tail-first), so
+ * heading toward a world direction (dx, dz) is atan2(dx, dz) directly. */
+function heading(dx: number, dz: number): number {
+  return Math.atan2(dx, dz)
 }
 
-/**
- * Build the feeding-ceremony machine. Normal motion plays the full
- * turn→walk-out→nibble→walk-home sequence; `reducedMotion` collapses it
- * to a short in-place nibble at the anchor. The scene treats the whole
- * sequence as non-cancelable (2026-10-10); `cancel` remains on the
- * machine as a tested safety valve.
- */
-export function createCeremony(reducedMotion: boolean): CeremonyMachine {
-  let running = false
-  let startAt = 0
+export function createWalk(reducedMotion: boolean): WalkMachine {
+  let standX = 0
+  let standZ = 0
+  let phase: CeremonyPhase = "idle"
+  let yaw = 0
+  let nibbleElapsed = 0
 
-  const bounds = reducedMotion
-    ? { turn: 0, walkOut: 0, nibble: CEREMONY_NIBBLE_REDUCED, walkHome: 0 }
-    : {
-        turn: CEREMONY_TURN,
-        walkOut: CEREMONY_WALK_OUT,
-        nibble: CEREMONY_NIBBLE,
-        walkHome: CEREMONY_WALK_HOME,
-      }
-  const total = bounds.turn + bounds.walkOut + bounds.nibble + bounds.walkHome
-
-  const tick = (now: number): CeremonyState => {
-    if (!running) return idleState()
-    const e = Math.max(0, now - startAt)
-    if (e >= total) {
-      running = false
-      return { ...idleState(), done: true }
+  /** Move (x, z) one clamped step toward the target at WALK_SPEED. The
+   * creature turns IN PLACE until it faces the travel direction (within
+   * TURN_THRESHOLD), then walks dead straight — no crab-walking. Never
+   * overshoots. */
+  const stride = (
+    x: number,
+    z: number,
+    targetX: number,
+    targetZ: number,
+    step: number,
+  ): { x: number; z: number; arrived: boolean; pivoting: boolean } => {
+    const dx = targetX - x
+    const dz = targetZ - z
+    const d = Math.hypot(dx, dz)
+    const reach = WALK_SPEED * step
+    if (d <= reach + 1e-4)
+      return { x: targetX, z: targetZ, arrived: true, pivoting: false }
+    const want = heading(dx, dz)
+    const err = wrapPi(want - yaw)
+    if (Math.abs(err) > TURN_THRESHOLD) {
+      // Pivot first: rotate toward the heading without translating, so
+      // the subsequent travel is a visibly straight line.
+      const turn = Math.min(Math.abs(err), TURN_SPEED * step)
+      yaw += Math.sign(err) * turn
+      return { x, z, arrived: false, pivoting: true }
     }
-    // Walk the fixed-duration phases left to right.
-    let phase: CeremonyPhase = "idle"
-    let phaseDuration = 0
-    let phaseElapsed = 0
-    let offset = e
-    let dips = 0
-    for (const [name, dur] of [
-      ["turn", bounds.turn],
-      ["walk-out", bounds.walkOut],
-      ["nibble", bounds.nibble],
-      ["walk-home", bounds.walkHome],
-    ] as const) {
-      if (dur <= 0) continue
-      if (offset < dur) {
-        phase = name
-        phaseDuration = dur
-        phaseElapsed = offset
-        if (name === "nibble") {
-          const dipPeriod = dur / 2.5 // 2–3 gentle dip cycles
-          dips = Math.floor(phaseElapsed / dipPeriod)
-        }
-        break
+    const k = reach / d
+    return { x: x + dx * k, z: z + dz * k, arrived: false, pivoting: false }
+  }
+
+  const advance = (x: number, z: number, dt: number): WalkDrive => {
+    const step = Math.min(Math.max(dt, 0), 0.1)
+    if (phase === "idle") {
+      return { x, z, yaw, phase, dipOffset: 0, done: true, pivoting: false }
+    }
+    if (phase === "walk-out") {
+      const s = stride(x, z, standX, standZ, step)
+      if (s.arrived) {
+        phase = "nibble"
+        nibbleElapsed = 0
       }
-      offset -= dur
+      return {
+        x: s.x,
+        z: s.z,
+        yaw,
+        phase,
+        dipOffset: 0,
+        done: false,
+        pivoting: s.pivoting,
+      }
+    }
+    if (phase === "nibble") {
+      nibbleElapsed += step
+      const dipOffset = Math.abs(
+        Math.sin((Math.PI * nibbleElapsed) / (NIBBLE_TIME / 2.5)),
+      )
+      if (nibbleElapsed >= NIBBLE_TIME) {
+        // Reduced motion has no travel: the nibble ends the ceremony.
+        phase = reducedMotion ? "idle" : "walk-home"
+      }
+      return {
+        x,
+        z,
+        yaw,
+        phase,
+        dipOffset: phase === "nibble" ? dipOffset : 0,
+        done: phase === "idle",
+        pivoting: false,
+      }
+    }
+    // walk-home: back to the home anchor at the origin.
+    const s = stride(x, z, 0, 0, step)
+    if (s.arrived) {
+      phase = "idle"
+      return {
+        x: 0,
+        z: 0,
+        yaw,
+        phase,
+        dipOffset: 0,
+        done: true,
+        pivoting: false,
+      }
     }
     return {
+      x: s.x,
+      z: s.z,
+      yaw,
       phase,
-      phaseElapsed,
-      phaseDuration,
-      dipOffset:
-        phase === "nibble"
-          ? Math.abs(Math.sin((Math.PI * phaseElapsed) / (phaseDuration / 2.5)))
-          : 0,
-      dips,
+      dipOffset: 0,
       done: false,
+      pivoting: s.pivoting,
     }
   }
 
   return {
-    start(now: number) {
-      running = true
-      startAt = now
+    /** Begin a walk from the creature's CURRENT pose. `fromYaw` is the
+     * creature's rendered yaw; the machine eases from it instead of
+     * snapping, so the turn reads as a pivot rather than a teleport. */
+    begin(fromX, fromZ, sx, sz, fromYaw) {
+      nibbleElapsed = 0
+      yaw = fromYaw
+      if (reducedMotion) {
+        // No travel: nibble where you stand. The stand spot is ignored so
+        // the scene never needs to guard against reduced-motion travel.
+        standX = fromX
+        standZ = fromZ
+        phase = "nibble"
+        return
+      }
+      standX = sx
+      standZ = sz
+      phase = "walk-out"
     },
-    cancel() {
-      running = false
-    },
-    tick,
+    advance,
   }
 }
 

@@ -8,11 +8,9 @@ import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
 import { buildPropGroup } from "./prop"
 import {
-  type CeremonyState,
-  createCeremony,
+  createWalk,
   type GaitPose,
   gaitPose,
-  lerpAngle,
   phaseHash,
   swayAngle,
   windBaseAmp,
@@ -254,18 +252,16 @@ export function createScene(container: HTMLElement): SceneHandle {
   // is a fixed landmark. Ceremony visuals translate/rotate the creature as a
   // runtime transform only — the sim is untouched.
   const pilePos = new THREE.Vector3(-2.4, 0, 0.4)
-  const ceremony = createCeremony(reducedMotion)
-  /** Seconds, kept current by tick() — the machine's time base. */
-  let now = 0
-  /** Standing spot near the pile (seeded side offset), chosen at start. */
-  const standPos = new THREE.Vector3()
-  /** Yaw facing the pile from `standPos`. */
-  let pileYaw = 0
-  // Yaw facing the travel direction from the stand spot back to the home
-  // anchor — used during walk-home so the creature walks forward home.
-  let homeTravelYaw = 0
-  /** The creature's yaw before the ceremony began (restored at the end). */
-  let homeYaw = 0
+  const walk = createWalk(reducedMotion)
+  /** How deep the nibble head-dips go (in the head pivot's local units —
+   * the rig runs in grid units, so this scales with the creature). */
+  const DIP_DEPTH = 1.2
+  /** Standing spot near the pile, on the creature→pile line, chosen at
+   * start by startFeedCeremony. */
+  let standX = 0
+  let standZ = 0
+  /** Previous tick's time, for the clamped walk step. */
+  let lastT = 0
 
   const smoothstep = (k: number): number => k * k * (3 - 2 * k)
 
@@ -285,49 +281,6 @@ export function createScene(container: HTMLElement): SceneHandle {
     const body = creature.getObjectByName("body")
     if (body) body.rotation.z = pose.roll
     creature.position.y = pose.bob
-  }
-
-  /**
-   * Drive creature pos/yaw from a ceremony tick state. `head` receives the
-   * gentle dip overlay during the nibble phase. The walk gait itself is
-   * applied by `applyGait` in the tick loop.
-   */
-  const driveCeremony = (
-    s: CeremonyState,
-    creature: THREE.Group,
-    head: THREE.Object3D | undefined,
-  ): void => {
-    const ease = smoothstep(s.phaseElapsed / Math.max(s.phaseDuration, 1e-6))
-    switch (s.phase) {
-      case "turn":
-        creature.rotation.y = lerpAngle(homeYaw, pileYaw, ease)
-        creature.position.x = 0
-        creature.position.z = 0
-        break
-      case "walk-out":
-        creature.position.x = standPos.x * ease
-        creature.position.z = standPos.z * ease
-        creature.rotation.y = pileYaw
-        break
-      case "nibble": {
-        creature.position.x = standPos.x
-        creature.position.z = standPos.z
-        creature.rotation.y = pileYaw
-        // 2–3 gentle head-dips toward the pile over the existing head pivot.
-        if (head) head.position.y -= s.dipOffset * 0.3
-        break
-      }
-      case "walk-home":
-        creature.position.x = standPos.x * (1 - ease)
-        creature.position.z = standPos.z * (1 - ease)
-        // Face the travel direction the whole way home. Blending the yaw
-        // from pile-facing to idle-facing while the body still slides read
-        // as walking backward (user-reported 2026-10-10).
-        creature.rotation.y = homeTravelYaw
-        break
-      default:
-        break
-    }
   }
 
   /** Registered swayers: {group, baseAmp, phase} attached at scatter
@@ -401,12 +354,31 @@ export function createScene(container: HTMLElement): SceneHandle {
     setCreature(archetypeId, seed) {
       if (creatureGroup) disposeGroup(creatureGroup)
       const { dna, build, def } = generate(archetypeId, seed)
-      creatureGroup = buildCreatureGroup(dna, build, def.grid)
-      creatureGroup.traverse((obj) => {
+      // The rig is built in voxel GRID units inside an inner group that
+      // carries the tiny world scale — children positions are ~20× larger
+      // than world units, so mutating them to re-anchor went wrong by that
+      // factor (the visible mass kept sitting ~1.7 units off the origin and
+      // every yaw pivot swung the body around a distant axis — user-reported
+      // "arc/turn that moves the position"). Instead: keep the rig untouched
+      // inside its scaled group, measure the visual center of the WHOLE
+      // creature, and wrap it in an identity-scale holder whose child offset
+      // (in true world units) places the visual center on the holder origin.
+      // All motion code drives the holder afterwards.
+      const inner = buildCreatureGroup(dna, build, def.grid)
+      inner.updateMatrixWorld(true)
+      const innerBox = new THREE.Box3().setFromObject(inner)
+      const center = innerBox.getCenter(new THREE.Vector3())
+      const rig = new THREE.Group()
+      rig.add(inner)
+      inner.position.set(-center.x, 0, -center.z)
+      creatureGroup = rig
+      rig.traverse((obj) => {
         if (obj instanceof THREE.Mesh) obj.castShadow = true
       })
-      scene.add(creatureGroup)
-      headBaseY = creatureGroup.getObjectByName("head")?.position.y ?? 0
+      scene.add(rig)
+      // headBaseY stays in the head's LOCAL units — the tick writes it back
+      // to head.position.y in the same space (the rig runs in grid units).
+      headBaseY = rig.getObjectByName("head")?.position.y ?? 0
     },
     setProps(visualSeed) {
       if (scenerySeed === visualSeed) return
@@ -470,35 +442,23 @@ export function createScene(container: HTMLElement): SceneHandle {
     },
     startFeedCeremony() {
       if (!creatureGroup) return
-      ceremony.cancel() // safe even if none running
-      if (reducedMotion) {
-        // In-place nibble at the anchor: no turn, no travel.
-        standPos.set(0, 0, 0)
-        pileYaw = homeYaw
-        homeTravelYaw = homeYaw
-      } else {
-        // Seeded standing spot: the creature's visual seed picks the side
-        // of the anchor→pile line — same creature, same spot, every feed.
-        const rng = makeRng(scenerySeed ^ 0xfeec)
-        const side = rng.next() < 0.5 ? -1 : 1
-        const out = pilePos.clone().setY(0).normalize()
-        const perp = new THREE.Vector3(-out.z, 0, out.x)
-        standPos
-          .copy(pilePos)
-          .addScaledVector(out, 1.15)
-          .addScaledVector(perp, 0.45 * side)
-        standPos.y = 0
-        const face = new THREE.Vector3().subVectors(pilePos, standPos)
-        // The creature mesh faces -z at rest, so heading toward a world
-        // direction is atan2(dx, dz) + π — without the flip it shuffles
-        // backward toward the pile.
-        pileYaw = Math.atan2(face.x, face.z) + Math.PI
-        // Walk-home faces where it is going: from the stand spot toward
-        // the home anchor (the origin), computed once per ceremony.
-        homeTravelYaw = Math.atan2(-standPos.x, -standPos.z) + Math.PI
-      }
-      homeYaw = creatureGroup.rotation.y
-      ceremony.start(now)
+      // Straight-line approach: the stand point sits ON the line from the
+      // creature's current position to the pile center, stopped 1.15 world
+      // units short of the pile so the creature stands just before it and
+      // faces it — the shortest way, exactly as specified. (Reduced motion
+      // ignores the stand spot; the machine nibbles in place wherever the
+      // creature currently stands.)
+      const cx = creatureGroup.position.x
+      const cz = creatureGroup.position.z
+      const toPileX = pilePos.x - cx
+      const toPileZ = pilePos.z - cz
+      const dist = Math.hypot(toPileX, toPileZ) || 1
+      standX = pilePos.x - (toPileX / dist) * 1.15
+      standZ = pilePos.z - (toPileZ / dist) * 1.15
+      // The walk starts from wherever the creature currently stands and
+      // faces, so successive feeds re-trigger cleanly (non-cancelable
+      // policy) and the turn eases instead of snapping.
+      walk.begin(cx, cz, standX, standZ, creatureGroup.rotation.y)
     },
   }
 
@@ -507,7 +467,10 @@ export function createScene(container: HTMLElement): SceneHandle {
 
   const tick = (): void => {
     const t = (performance.now() - clockStart) / 1000
-    now = t
+    // Clamped frame delta for the walk machine — a long gap advances at
+    // most one clamped step, so phases can never be skipped.
+    const dt = Math.min(0.1, Math.max(0, t - lastT))
+    lastT = t
     const profile = MOOD_PROFILES[mode]
     if (creatureGroup) {
       // Breathe idle: squash-and-stretch on the body around its HIP-LINE
@@ -540,34 +503,61 @@ export function createScene(container: HTMLElement): SceneHandle {
       if (tailTip) {
         tailTip.rotation.y = sway * 0.12
       }
-      // Ceremony drives position/yaw and suppresses the bounce; the mood
-      // idle takes back over the moment ceremony (or its cancel) ends.
-      // The gait applies every frame with a zero pose outside walks, so
-      // leg pivots and the weight roll always come back to rest.
-      const ce = ceremony.tick(now)
-      const traveling = ce.phase === "walk-out" || ce.phase === "walk-home"
-      const amp = traveling
-        ? smoothstep(ce.phaseElapsed / Math.max(ce.phaseDuration, 1e-6))
+      // Position-driven walk: the machine strides toward its current
+      // target (the pile stand spot, then the home anchor) at a constant
+      // speed, so a paused tab or a long frame can never strand the body
+      // mid-path — the walk simply continues and converges. The gait
+      // applies every frame with a zero pose outside walks, so leg pivots
+      // and the weight roll always come back to rest.
+      const wd = walk.advance(
+        creatureGroup.position.x,
+        creatureGroup.position.z,
+        dt,
+      )
+      if (wd.phase !== "idle") {
+        // While walking, the machine owns the creature's pose. While idle
+        // it never touches it — a stale machine yaw must never yank the
+        // freshly rebuilt idle creature around (user-reported snap).
+        creatureGroup.position.x = wd.x
+        creatureGroup.position.z = wd.z
+        creatureGroup.rotation.y = wd.yaw
+      }
+      const traveling =
+        (wd.phase === "walk-out" || wd.phase === "walk-home") && !wd.pivoting
+      const remaining = traveling
+        ? Math.hypot(
+            (wd.phase === "walk-out" ? standX : 0) - wd.x,
+            (wd.phase === "walk-out" ? standZ : 0) - wd.z,
+          )
         : 0
-      applyGait(creatureGroup, gaitPose(t, amp, reducedMotion))
-      if (ce.phase !== "idle") {
-        driveCeremony(ce, creatureGroup, head ?? undefined)
-      } else if (!reducedMotion && profile.bounce > 0) {
+      applyGait(
+        creatureGroup,
+        gaitPose(
+          t,
+          traveling ? smoothstep(Math.min(1, remaining / 0.6)) : 0,
+          reducedMotion,
+        ),
+      )
+      if (wd.phase === "nibble" && head) {
+        // 2–3 gentle head-dips toward the pile over the existing pivot.
+        head.position.y -= wd.dipOffset * DIP_DEPTH
+      }
+      if (!reducedMotion && wd.phase === "idle" && profile.bounce > 0) {
         creatureGroup.position.y = Math.abs(Math.sin(t * 3.2)) * profile.bounce
       } else {
         creatureGroup.position.y = 0
       }
-      // Soft camera tracking: while the creature is away from home the
-      // orbit target eases toward it (ceremony today; wander in Phase C)
-      // and drifts back to the home anchor when idle. Only the look
-      // target moves — user drag/wheel keep full authority over the view.
-      const away = ce.phase !== "idle"
+      // Soft camera track: while the creature is in the ceremony it eases
+      // toward the creature's position; the rest of the time it drifts back
+      // to the home anchor. Frame-rate independent smoothing — drag and
+      // wheel still own the final say over azimuth/elevation/radius.
+      const away = wd.phase !== "idle"
       focusPoint.set(
         away ? creatureGroup.position.x : 0,
         0.8,
         away ? creatureGroup.position.z : 0,
       )
-      target.lerp(focusPoint, 0.08)
+      target.lerp(focusPoint, 1 - Math.exp(-2.5 * dt))
       applyOrbit()
     }
     // Wind sway: every registered vegetation prop rocks gently around its
