@@ -167,7 +167,7 @@ function propBush(): PropDef {
 
 // -- broadleaf tree ----------------------------------------------------------
 // Landmark tree: a single trunk claims the ground line, a blob-canopy of
-// 4 spheres caries the foliage well above the creature's head line.
+// 4 spheres carries the foliage well above the creature's head line.
 
 function propBroadleafTree(): PropDef {
   const grid = 48
@@ -234,6 +234,9 @@ function propRock(): PropDef {
 // -- food pile ---------------------------------------------------------------
 // The nightly feed: a grain mound with three berry bits on top. Presence in
 // the scene is driven by the sim's fedToday flag, never by its seed.
+// Bits sit on the mound's upper flank on purpose: voxelize is
+// first-paint-wins, so berries buried inside the mound get devoured
+// silently and the part ends up with zero voxels.
 
 function propFoodPile(): PropDef {
   const grid = 20
