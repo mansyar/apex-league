@@ -65,6 +65,7 @@ export {
   defaultLoadout,
   MOVE_TIER3_DAYS,
   MOVE_TIER4_DAYS,
+  requiredTierDays,
   setLoadout,
   unlockedKit,
 } from "./loadout"

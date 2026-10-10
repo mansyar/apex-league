@@ -123,3 +123,11 @@ Ground rules for this track:
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: ee941aa]
   - Manual verification report; docs propagation proposal (product.md combat
     bullet, tech-stack.md save v4 note) for the user's approval.
+
+## Phase: Review Fixes
+
+- [x] Task: Export `requiredTierDays` from `loadout.ts` (single owner of the
+  kit-index → trained-days rule) and replace the three duplicated inline gates
+  in `spar.ts` (progress line + chip loop) and `hud.ts` (inverse lookup in the
+  unlock callout). Verify green after the refactor (350 pass, Biome clean,
+  determinism ×3).

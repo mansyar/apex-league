@@ -94,13 +94,18 @@ export function setLoadout(
   }
 }
 
+/** Trained days a kit index needs; tiers 1-2 are known from birth. */
+export function requiredTierDays(kitIndex: number): number {
+  if (kitIndex < BIRTH_TIERS) return 0
+  if (kitIndex === BIRTH_TIERS) return MOVE_TIER3_DAYS
+  return MOVE_TIER4_DAYS
+}
+
 /** Trained days required before a kit id is equippable; null if not in kit. */
 function requiredDays(moveId: string, species: SpeciesDef): number | null {
   const index = [...species.kit].indexOf(moveId)
   if (index < 0) return null
-  if (index < BIRTH_TIERS) return 0
-  if (index === 2) return MOVE_TIER3_DAYS
-  return MOVE_TIER4_DAYS
+  return requiredTierDays(index)
 }
 
 /** Clears the chosen kit back to the default slicing (null loadout). Pure. */

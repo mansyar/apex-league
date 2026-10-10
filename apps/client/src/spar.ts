@@ -14,9 +14,8 @@ import {
   effectiveStats,
   getMove,
   getSpecies,
-  MOVE_TIER3_DAYS,
-  MOVE_TIER4_DAYS,
   makeExhibition,
+  requiredTierDays,
   resolveBattle,
   type SpeciesDef,
   type Tactic,
@@ -339,8 +338,7 @@ export function createSpar(
     if (nextId === undefined) {
       progress.textContent = ""
     } else {
-      const required =
-        nextIndex < 2 ? 0 : nextIndex === 2 ? MOVE_TIER3_DAYS : MOVE_TIER4_DAYS
+      const required = requiredTierDays(nextIndex)
       const remaining = required - creature.trainingDays
       const displayName = getMove(nextId)?.displayName ?? nextId
       const plural = remaining === 1 ? "day" : "days"
@@ -351,8 +349,7 @@ export function createSpar(
     kitStrip.replaceChildren()
     species.kit.forEach((id, index) => {
       const name = getMove(id)?.displayName ?? id
-      const required =
-        index < 2 ? 0 : index === 2 ? MOVE_TIER3_DAYS : MOVE_TIER4_DAYS
+      const required = requiredTierDays(index)
       const locked = creature.trainingDays < required
       const chip = document.createElement("button")
       chip.type = "button"

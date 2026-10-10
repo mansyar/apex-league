@@ -12,6 +12,7 @@ import {
   MOVE_TIER3_DAYS,
   MOVE_TIER4_DAYS,
   previewTraining,
+  requiredTierDays,
   SICK_HEALTH,
   type StatKey,
   TRAINING_CAP,
@@ -98,7 +99,10 @@ export function unlockCallout(creature: Creature): string {
   }
   const species = getSpecies(creature.speciesId)
   if (!species) return ""
-  const moveId = species.kit[days === MOVE_TIER3_DAYS ? 2 : 3]
+  const moveIndex = species.kit.findIndex(
+    (_, index) => requiredTierDays(index) === days,
+  )
+  const moveId = species.kit[moveIndex]
   if (moveId === undefined) return ""
   const move = getMove(moveId)
   if (!move) return ""
