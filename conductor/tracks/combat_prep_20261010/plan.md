@@ -104,12 +104,12 @@ Ground rules for this track:
 
 ## Phase F — Unlock callout (client)
 
-- [ ] Task: Coach callout at tier thresholds
+- [x] Task: Coach callout at tier thresholds (ee941aa)
   - `hud.ts` status callout derivation: at `trainingDays` exactly 3 or 6 the
     day-phase callout adds the present-tense unlock copy ("New move
     available: Cinder Shot. Train 3 more days for the next tier."); other
     callouts (unwell/sluggish/hungry) keep precedence per existing rules;
-    add a table-driven test/legal review for the copy thresholds.
+    add a table-driven test/legal review for the copy thresholds. [x]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase G — Integration & Verification Gate
