@@ -43,7 +43,9 @@ Verification & Checkpoint gate run before moving on.
 - [x] Task: Browser manual verification — screenshot evidence: swaying meadow, ceremony sequence (3 shots), one wander trip; reduced-motion check of both — sway pair (Day 8) + ceremony walk-out/nibble/walk-home (Day 9) + wander trip frames (Phase C run) + home-idle after trips captured fresh; reduced-motion verified at unit level (sway/gait/wander flatten, 14 cases) — OS-level toggle not automatable from the harness
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — verify green (377 pass / 0 fail, biome 128 files, types pass), determinism gate byte-identical (3 GLBs, 5 prop digests), coverage confirmed (scene-logic.ts + 4 test files), browser evidence on this worktree's dev server (:5200) after correcting an earlier wrong-checkout port mixup; reduced-motion unit-verified (14 cases) + user-confirmed; verification report attached as a git note on `b91abbf`; user approved checkpoint *(checkpoint: b91abbf)*
 
-## Notes
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions — stale-yaw snap at wander trip start (advance takes `yawNow`, easing from the creature's rendered facing) + tautological mood-drop test replaced with a real gate-flip ordering test and a trip-start yaw test (`6222130`)
 
 - Estimated diff surface: `apps/client/src/` only (scene-logic module new; scene.ts, main.ts touched) + one new test file. No sim, no save, no voxel data.
 - Also at lines 86 and 123 of spec.md: ceremony behavior referenced as "cancel + home" and
