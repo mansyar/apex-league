@@ -53,13 +53,17 @@ code; manual verification for rendering/UI wiring).
 
 ## Phase C — Balance review note
 
-- [ ] Task: Review axolotl statBounds/kit/temperament vs. drake + ox against
+- [x] Task: Review axolotl statBounds/kit/temperament vs. drake + ox against
   `conductor/product-guidelines.md`; record a balance note in
   `spec.md` § Post-Review Notes; no code change unless a deviation is
-  justified and documented
-- [ ] Task: Commit `docs(conductor): record axolotl balance review`
-  (only if notes/comments changed; skip if empty)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  justified and documented — verdict: within spec targets (Σ 64–82 between
+  drake 63–81 and ox 67–85; standard ladder; obedient = balanced policy),
+  no deviations, no code change
+- [x] Task: Commit `docs(conductor): record axolotl balance review`
+  (only if notes/comments changed; skip if empty) — `409ba32`
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  — `[checkpoint: 409ba32]` documentation-only phase; suite untouched and
+  still green (374/374 from Phase B); user-approved
 
 ## Phase D — Manual visual verification & closeout
 
