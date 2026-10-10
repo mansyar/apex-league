@@ -5,11 +5,11 @@ import { buildCreatureGroup } from "./creature"
 
 /**
  * Creature staging for the broadcast arena: two living fighters on the
- * show floor. Positions persist between playback steps and glide smoothly
- * (a driver loop composes idle bob + stage chasing + transient actions),
- * so the fight reads as two creatures circling, closing, striking, and
- * retreating — not a sequence of poses snapping home. Pure presentation:
- * nothing here reads or writes GameState; the fight is already resolved.
+ * show floor performing authored attack sequences. Each attack has real
+ * grammar — walk to contact with a gait bob, anticipation wind-up, a
+ * committed strike, follow-through, and a weighted victim reaction —
+ * instead of tweening between home posts. Pure presentation: nothing
+ * here reads or writes GameState; the fight is already resolved.
  */
 
 /**
@@ -23,30 +23,40 @@ export const visualSeedOf = (s: {
   spd: number
 }): number => (s.hp * 7 + s.atk * 13 + s.def * 17 + s.spd * 23) % 2 ** 31
 
-/** How long one scripted action animates for, in ms (spar pacing is 900). */
-const STEP_ANIM_MS = 600
+/** How long one scripted attack animates for, in ms (spar pacing is 900). */
+const STEP_ANIM_MS = 620
 
-/** Stage positions: the fighters start wide on the show floor's X axis. */
+/** Stage positions: the fighters start wide on the show floor's X lane. */
 const HOME_X = 2.6
 
-/** How close to the opponent's center the actor closes for a strike. */
-const STRIKE_GAP = 1.15
+/** Resting gap between fighters (the size of a neutral stance). */
+const STANCE_GAP = 1.9
+
+/** Contact distance an attack pushes into (bodies nearly touch). */
+const CONTACT_GAP = 0.72
 
 /**
  * Show-floor bounds: fighters are clamped well inside the painted
  * boundary ring (8.3) and comfortably inside the broadcast framing, so
- * nobody leaves the arena or the camera's view. 2026-10-11 feedback:
- * creature movement must stay in-arena and on-camera.
+ * nobody leaves the arena or the camera's view.
  */
 const BOUNDS_X = 3.2
 const BOUNDS_Z = 1.8
 
-/** Stage-glide rate, per second (higher = livelier chasing). */
-const GLIDE = 7
+/** Stage-glide rate (exp smoothing) — the pace of a purposeful walk. */
+const GLIDE = 4.5
 
-/** Idle bob: the life a fighter shows at rest. */
-const BOB_AMP = 0.045
-const BOB_FREQ = 2.4
+/** Idle breathing + gait amplitudes (reduced motion zeroes the gait). */
+const BREATH_AMP = 0.03
+const BREATH_FREQ = 2.2
+const GAIT_AMP = 0.085
+/** Forward lean into movement, radians per unit of speed. */
+const LEAN_PER_SPEED = 0.045
+const LEAN_MAX = 0.14
+
+/** Squash-and-stretch spring (weight): stiffness and damping. */
+const SQUASH_K = 210
+const SQUASH_D = 13
 
 /**
  * Element hues from the shared type-color contract (product guidelines:
@@ -85,6 +95,10 @@ const FLASH_MS = 180
 /** How long the frame freezes on a big hit, in ms (micro hit-stop). */
 const HIT_STOP_MS = 90
 
+/** Attack grammar, as fractions of the action's total length. */
+const WINDUP_END = 0.26
+const CONTACT_T = 0.46
+
 interface Projectile {
   mesh: THREE.Mesh
   trail: THREE.Mesh[]
@@ -110,7 +124,7 @@ export interface Staging {
   applyStep(step: PlaybackStep, instant?: boolean): void
   /** Big-hit hook: main.ts points this at the broadcast camera shake. */
   setBigHitHandler(handler: (strength: number) => void): void
-  /** 'reduced' suppresses bob, flash, and shake; combat stays legible. */
+  /** 'reduced' suppresses gait, flash, and shake; combat stays legible. */
   setMotionPref(pref: "full" | "reduced"): void
   /** Remove the combatants (panel closed, back to idle ranch bowl). */
   clear(): void
@@ -125,16 +139,26 @@ interface Combatant {
   down: boolean
   /** Per-part base colors captured at cast time, keyed by part name. */
   baseColors: Map<THREE.Mesh, THREE.Color>
-  /** Persistent show-floor position; the driver glides the mesh there. */
+  /** Persistent show-floor position; the driver walks the mesh there. */
   stage: THREE.Vector3
-  /** Smoothed current position (driver output, the glide state). */
+  /** Smoothed current position (driver output, the walk state). */
   smooth: THREE.Vector3
+  /** Frame-to-frame velocity, for gait and lean. */
+  velocity: THREE.Vector3
+  /** Gait phase, advanced by distance travelled (drives the walk bob). */
+  walkPhase: number
   /** Transient action offset (lunge/flinch/hop), composed by the driver. */
   offset: THREE.Vector3
+  /** Squash state: s is the deformation, v its velocity (a damped spring). */
+  squash: { s: number; v: number }
+  /** Attack lean: pitch (x) and roll (z) authored by the running action. */
+  lean: { pitch: number; roll: number }
   /** Fall progress 0..1 for the down step; 0 = upright. */
   fall: number
   /** Per-fighter bob phase so the pair never breathes in lockstep. */
   phase: number
+  /** The rig's baked voxel scale — the squash spring composes with it. */
+  baseScale: number
 }
 
 export function createStaging(arenaGroup: THREE.Group): Staging {
@@ -156,6 +180,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   let motionPref: "full" | "reduced" = "full"
 
   const easeOut = (t: number): number => 1 - (1 - t) * (1 - t)
+  const easeOutCubic = (t: number): number => 1 - (1 - t) ** 3
+  const clamp01 = (t: number): number => Math.min(1, Math.max(0, t))
 
   /** Wrap an angle delta into [-π, π) so yaw always takes the short way. */
   const shortestAngle = (a: number): number => {
@@ -163,9 +189,16 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     return ((((a + Math.PI) % turn) + turn) % turn) - Math.PI
   }
 
+  /** Kick the squash spring (positive = squash, negative = stretch). */
+  const impulse = (c: Combatant, amount: number): void => {
+    if (motionPref === "reduced") amount *= 0.4
+    c.squash.v += amount
+  }
+
   // ── Living-fight driver ────────────────────────────────────────────────
-  // One loop owns every fighter's pose every frame: glide to stage,
-  // idle bob, face the rival, fall poses. Steps only change intents.
+  // One loop owns every fighter's pose every frame: walk to stage with a
+  // gait, weight (squash spring), lean into movement, face the rival,
+  // render falls. Steps only set intents (stage targets, actions).
   const pair = (): Array<[Combatant, Combatant]> => {
     if (owned && rival)
       return [
@@ -179,34 +212,79 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     const now = performance.now()
     const dt = Math.min(0.1, (now - lastDrive) / 1000 || 1 / 60)
     lastDrive = now
-    const bob = motionPref === "reduced" ? 0 : 1
+    const life = motionPref === "reduced" ? 0 : 1
     for (const [c, other] of pair()) {
+      // Downed fighter: the driver keeps rendering the topple (the fall
+      // action only lives for the fall beat; afterwards the driver owns
+      // the pose). Head points away from the standing rival.
       if (c.down) {
-        // Topple onto the back, head away from the opponent, and stay.
+        // Topple onto the back, body along the floor, head away from the
+        // standing rival, at a slight lift so the body reads on the floor.
         c.group.rotation.z = -c.away * (Math.PI / 2) * c.fall
+        c.group.rotation.x = 0
         c.group.position.set(c.smooth.x, 0.28 * c.fall, c.smooth.z)
+        const sq = c.squash.s
+        const base = c.baseScale
+        c.group.scale.set(
+          base * (1 + sq * 0.34),
+          base * Math.max(0.05, 1 - sq * 0.5),
+          base * (1 + sq * 0.34),
+        )
         continue
       }
       // Keep the stage target inside the show floor (knockbacks, retreats
       // and approach overshoot all funnel back into the painted ring).
       c.stage.x = Math.max(-BOUNDS_X, Math.min(BOUNDS_X, c.stage.x))
       c.stage.z = Math.max(-BOUNDS_Z, Math.min(BOUNDS_Z, c.stage.z))
-      // Glide toward the stage target (exp smoothing, frame-rate safe).
+      // Walk toward the stage target (exp smoothing, frame-rate safe).
+      const before = c.smooth.clone()
       const k = 1 - Math.exp(-GLIDE * dt)
       c.smooth.lerp(c.stage, k)
+      // Frame velocity from measured motion — the gait's tempo source.
+      c.velocity.copy(c.smooth).sub(before).divideScalar(dt)
+      const speed = Math.hypot(c.velocity.x, c.velocity.z)
+      c.walkPhase += speed * dt * 5.2
+      // Squash spring integration (weight settles after every landing).
+      c.squash.v += (-SQUASH_K * c.squash.s - SQUASH_D * c.squash.v) * dt
+      c.squash.s += c.squash.v * dt
+      // Lean into movement: pitch with forward speed, roll with the gait.
+      const leanTarget = Math.min(LEAN_MAX, speed * LEAN_PER_SPEED)
+      c.lean.pitch += (leanTarget - c.lean.pitch) * (1 - Math.exp(-8 * dt))
+      c.lean.roll *= Math.exp(-6 * dt)
+
+      // Compose the pose: walk position + action offset + gait bob +
+      // breath at rest, all scaled by the squash spring (weight).
+      const gait = Math.abs(Math.sin(c.walkPhase * Math.PI)) * GAIT_AMP * life
+      const breath =
+        Math.sin(now * 0.001 * BREATH_FREQ * 2 + c.phase) *
+        BREATH_AMP *
+        (speed < 0.15 ? 1 : 0)
       c.group.position.set(
         c.smooth.x + c.offset.x,
-        c.smooth.y +
-          c.offset.y +
-          Math.sin(now * 0.001 * BOB_FREQ * 2 + c.phase) * BOB_AMP * bob,
+        Math.max(
+          0,
+          c.smooth.y + c.offset.y + gait + breath - c.squash.s * 0.42,
+        ),
         c.smooth.z + c.offset.z,
       )
-      // Keep turning toward the rival (the rig fronts its local +Z).
+      const sq = c.squash.s
+      // Compose with the rig's baked voxel scale, never replace it — a
+      // bare set() blows the voxel-local coordinates up 10× and the
+      // fighter's meshes land outside the arena.
+      const base = c.baseScale
+      c.group.scale.set(
+        base * (1 + sq * 0.34),
+        base * (1 - sq * 0.5),
+        base * (1 + sq * 0.34),
+      )
+      // Face the rival every frame; yaw leads, pitch/roll support.
       const dx = other.group.position.x - c.group.position.x
       const dz = other.group.position.z - c.group.position.z
       const desired = Math.atan2(dx, dz)
       c.group.rotation.y +=
-        shortestAngle(desired - c.group.rotation.y) * (1 - Math.exp(-6 * dt))
+        shortestAngle(desired - c.group.rotation.y) * (1 - Math.exp(-9 * dt))
+      c.group.rotation.x = c.lean.pitch
+      c.group.rotation.z = c.lean.roll
     }
     driveRaf = requestAnimationFrame(drive)
   }
@@ -349,7 +427,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     element: string | undefined,
   ): void => {
     const color = new THREE.Color(elementColor(element))
-    // Launch from the thrower's shoulder, land on the victim's chest.
+    // Launch from the thrower's mouth line, land on the victim's chest.
     const origin = from.group.position.clone()
     origin.y += 0.8
     const target = to.group.position.clone()
@@ -408,12 +486,31 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     return Math.min(0.9, Math.max(0.25, d / 8))
   }
 
-  /** Jump a fighter's whole glide state straight to its stage. */
+  /** Jump a fighter's whole walk state straight to its stage. */
   const snapTo = (c: Combatant): void => {
     c.smooth.copy(c.stage)
-    c.group.position.copy(c.stage)
+    c.velocity.set(0, 0, 0)
     c.offset.set(0, 0, 0)
   }
+
+  /**
+   * The victim reaction at an attack's contact moment: shove the stage
+   * (persistent), squash the body (weight), flash and stop the frame on
+   * big hits. One helper so basic and special hits look like the same
+   * physical impact.
+   */
+  const contactReaction = (damage: number | undefined, at: Combatant): void => {
+    const knock = strikeReach(damage)
+    at.stage.x -= at.away * knock
+    at.stage.z += (Math.random() - 0.5) * 0.3
+    impulse(at, 0.85)
+    startFlash(at)
+    bigHit(damage)
+  }
+
+  /** Lateral weave: alternate attack sides so no two hits share a lane. */
+  const weave = (step: PlaybackStep): number =>
+    (step.tick % 2 === 0 ? 1 : -1) * 0.55
 
   /**
    * Drive one step. Fighters hold their stage position between steps, so
@@ -430,37 +527,104 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       cancelAnimationFrame(actionRaf)
       actionRaf = null
     }
-    for (const c of [o, r]) c.offset.set(0, 0, 0)
+    for (const c of [o, r]) {
+      c.offset.set(0, 0, 0)
+      c.lean.pitch = 0
+      c.lean.roll = 0
+    }
     const side = spotOf(step.actor, o, r)
 
     switch (step.kind) {
       case "approach": {
-        // The acting fighter closes to striking distance; the rival holds
-        // ground (the glide does the walking).
+        // Walk to a strike-range stance on the target's flank: closes the
+        // lane and sets up the weave for the attack that follows.
         side.actor.stage.set(
-          side.target.stage.x + side.actor.away * STRIKE_GAP,
+          side.target.stage.x + side.actor.away * STANCE_GAP,
           0,
-          0,
+          side.target.stage.z + weave(step),
         )
         if (instant) snapTo(side.actor)
         break
       }
       case "idle":
-        // Hold the post; the driver keeps the breathing and facing alive.
+        // Hold ground; the driver keeps the breath and facing alive.
         break
       case "melee": {
-        // A real lunge: charge into contact on a sine, then recover. The
-        // victim flinches backward off the contact through the tail.
-        const contactX =
-          side.target.stage.x + side.actor.away * (STRIKE_GAP - 0.35)
-        const reach = -side.target.away * strikeReach(step.damage)
-        if (instant) break
+        // Authored attack: wind-up (coil back), committed strike into
+        // contact, then a weighted recovery. A hit lands at contact
+        // (knockback, squash, flash); a miss is a whiff the target
+        // slipped (dodge dash) or simply avoids.
+        const hit = step.hit !== false
+        const missed = !hit
+        const dodged = missed && step.missReason === "dodge"
+        if (instant) {
+          // Resolve instantly: run the contact consequences with no anim.
+          if (hit) contactReaction(step.damage, side.target)
+          if (dodged) {
+            side.target.stage.x += side.target.away * 0.85
+            snapTo(side.target)
+          }
+          side.actor.stage.set(
+            side.target.stage.x + side.actor.away * STANCE_GAP,
+            0,
+            side.target.stage.z,
+          )
+          snapTo(side.actor)
+          break
+        }
+        const from = side.actor.group.position.clone()
+        const toPos = side.target.group.position.clone()
+        // Strike into contact, stop just short of a body overlap.
+        const dir = toPos.clone().sub(from)
+        dir.y = 0
+        const dist = dir.length()
+        dir.normalize()
+        dir.x += weave(step) * 0.12
+        dir.normalize()
+        const contact = from
+          .clone()
+          .addScaledVector(dir, Math.max(0.45, dist - CONTACT_GAP))
+        let landed = false
         actionRaf = startAction(
           (t, ao, at) => {
-            ao.offset.x = (contactX - ao.stage.x) * Math.sin(t * Math.PI)
-            if (t > 0.45) {
-              const w = (t - 0.45) / 0.55
-              at.offset.x = reach * Math.sin(w * Math.PI)
+            if (t < WINDUP_END) {
+              // Anticipation: coil back on the approach line, drop weight.
+              const w = t / WINDUP_END
+              ao.offset.copy(dir).multiplyScalar(-0.22 * Math.sin(w * Math.PI))
+              ao.offset.y = -0.05 * Math.sin(w * Math.PI)
+              ao.lean.roll = 0.05 * Math.sin(w * Math.PI)
+            } else if (t < CONTACT_T) {
+              // The strike: uncoil fast down the line (easeOutCubic).
+              const w = clamp01((t - WINDUP_END) / (CONTACT_T - WINDUP_END))
+              ao.offset
+                .copy(dir)
+                .multiplyScalar(
+                  -0.22 + (contact.distanceTo(from) + 0.22) * easeOutCubic(w),
+                )
+              ao.offset.y = -0.05 * (1 - w) + 0.06 * w
+              ao.lean.pitch = 0.1 * Math.sin(w * Math.PI)
+              ao.lean.roll = -0.05 * (1 - w)
+              if (w > 0.3) impulse(ao, -0.28) // stretch while committing
+            } else {
+              // Follow-through + recovery: settle back to stance spacing.
+              const w = clamp01((t - CONTACT_T) / (1 - CONTACT_T))
+              ao.offset
+                .copy(contact)
+                .sub(from)
+                .multiplyScalar(1 - easeOut(w))
+              ao.lean.pitch = 0.1 * (1 - easeOut(w))
+              ao.lean.roll = -0.05 * (1 - easeOut(w))
+              if (!landed) {
+                landed = true
+                if (hit) {
+                  contactReaction(step.damage, at)
+                } else if (dodged) {
+                  // The target slipped: a quick dash off the lane.
+                  at.stage.x += at.away * 0.85
+                  impulse(at, -0.3)
+                }
+              }
+              if (hit && w > 0.6) impulse(ao, 0.12) // attacker settles heavy
             }
           },
           o,
@@ -469,51 +633,79 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         break
       }
       case "projectile": {
-        // Anchor and wind: a small counter-recoil as the shot leaves.
-        const recoil = side.actor.away * 0.35
-        if (!instant) {
+        // Ranged attack: rear coil, snap release at the launch moment,
+        // then a recoil the body carries. The shot leaves at CONTACT_T,
+        // not at step start, so the wind-up reads before the fire.
+        if (instant) {
           spawnProjectile(side.actor, side.target, step.element)
-          actionRaf = startAction(
-            (t, ao) => {
-              ao.offset.x = recoil * Math.sin(t * Math.PI)
-            },
-            o,
-            r,
-          )
+          break
         }
+        const firedRef = { done: false }
+        actionRaf = startAction(
+          (t, ao) => {
+            if (t < CONTACT_T) {
+              // Wind-up: rear coil, slight rise, mirrored roll.
+              const w = t / CONTACT_T
+              ao.lean.pitch = -0.16 * Math.sin(w * Math.PI)
+              ao.lean.roll = 0.06 * Math.sin(w * Math.PI)
+              ao.offset.y = 0.04 * Math.sin(w * Math.PI)
+              ao.offset.x = -side.actor.away * 0.14 * (w * w)
+            } else {
+              // Release: snap forward, launch, and ride the recoil back.
+              if (!firedRef.done) {
+                firedRef.done = true
+                spawnProjectile(side.actor, side.target, step.element)
+                impulse(ao, -0.35) // stretch on the snap
+              }
+              const w = clamp01((t - CONTACT_T) / (1 - CONTACT_T))
+              ao.lean.pitch = 0.09 * Math.sin(w * Math.PI)
+              ao.offset.x =
+                -side.actor.away * (0.14 - 0.34 * Math.sin(w * Math.PI))
+            }
+          },
+          o,
+          r,
+        )
         break
       }
       case "impact": {
+        // Specials report their own landing here (the launch already
+        // fired). A dodge is a real evasion: a dash off the lane.
         if (!step.hit) {
-          // A standing miss costs nothing; a dodge retreats off the lane
-          // (a real creature gets out of the way, backward, and settles).
           if (step.missReason === "dodge") {
-            side.target.stage.x += side.target.away * 0.9
-            if (instant) snapTo(side.target)
+            side.target.stage.x += side.target.away * 0.85
+            if (instant) {
+              impulse(side.target, -0.3)
+              snapTo(side.target)
+            }
           }
           break
         }
-        // Solid hit: the knockback persists in the victim's stage, so the
-        // next beat starts from the pushed-back position.
-        side.target.stage.x += side.target.away * strikeReach(step.damage)
-        if (!instant) {
-          startFlash(side.target)
-          bigHit(step.damage)
-        } else {
+        if (instant) {
+          contactReaction(step.damage, side.target)
           snapTo(side.target)
+        } else {
+          reactionAction(side.target)
         }
         break
       }
       case "down": {
-        // Fall on the back and stay down — the driver renders `fall`.
+        // Fall on the back and stay down — the action drives `fall`, the
+        // driver renders the topple while the squash adds landing weight.
         side.actor.down = true
         if (instant) {
           side.actor.fall = 1
           snapTo(side.actor)
+          impulse(side.actor, 0.9)
         } else {
+          let thudded = false
           actionRaf = startAction(
             (t, ao) => {
-              ao.fall = easeOut(t)
+              ao.fall = easeOut(clamp01(t / 0.7))
+              if (t > 0.55 && !thudded) {
+                thudded = true
+                impulse(ao, 0.9)
+              }
             },
             o,
             r,
@@ -522,16 +714,24 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         break
       }
       case "judge": {
-        // Result stamp: the standing winner takes a small double hop. On a
-        // draw both are already down and the pose stays as it fell.
+        // Result stamp: the standing winner takes a double victory hop —
+        // each hop stretches on the rise and squashes on the landing.
         const standing = [o, r].filter((c) => !c.down)
         if (instant || standing.length === 0) break
+        const hopRef = { hops: 0 }
         actionRaf = startAction(
-          (t, ao, at) => {
-            if (!ao.down) {
-              ao.offset.y = Math.abs(Math.sin(t * Math.PI * 2)) * 0.35
-            } else if (!at.down) {
-              at.offset.y = Math.abs(Math.sin(t * Math.PI * 2)) * 0.35
+          (t, ao) => {
+            if (ao.down) return
+            const w = t * Math.PI * 2
+            ao.offset.y = Math.abs(Math.sin(w)) * 0.35
+            const rising = Math.sin(w) > 0
+            const localT = (t * 2) % 1
+            if (rising && localT < 0.25 && hopRef.hops < 2) {
+              hopRef.hops++
+              impulse(ao, -0.4)
+            }
+            if (!rising && localT > 0.9 && hopRef.hops <= 2) {
+              impulse(ao, 0.55)
             }
           },
           o,
@@ -540,6 +740,14 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         break
       }
     }
+  }
+
+  /**
+   * The victim-only portion of a special landing: knockback persists in
+   * the stage, the body squashes and settles, flash + hit-stop fire.
+   */
+  const reactionAction = (at: Combatant): void => {
+    contactReaction(undefined, at)
   }
 
   /** One scripted action on staging's own clock (hit-stop aware). */
@@ -611,9 +819,14 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
           baseColors: new Map(),
           stage: new THREE.Vector3(HOME_X * away, 0, 0),
           smooth: new THREE.Vector3(HOME_X * away, 0, 0),
+          velocity: new THREE.Vector3(),
+          walkPhase: 0,
           offset: new THREE.Vector3(),
+          squash: { s: 0, v: 0 },
+          lean: { pitch: 0, roll: 0 },
           fall: 0,
           phase: Math.random() * Math.PI * 2,
+          baseScale: group.scale.x,
         }
         group.position.copy(combatant.stage)
         // The rig fronts its local +Z, so the left fighter turns +90° to
@@ -652,6 +865,18 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     },
     clear() {
       stop()
+      // Settle every palette back to base before disposal — a fighter
+      // hit mid-flash in the final beat would otherwise carry the white
+      // pop into the next fight (materials are fresh per cast, but the
+      // screenshot timeline showed lingering whites between fights).
+      for (const c of [owned, rival]) {
+        if (!c) continue
+        for (const [mesh, base] of c.baseColors) {
+          ;(mesh.material as THREE.MeshLambertMaterial).color.copy(base)
+        }
+        c.group.rotation.set(0, c.group.rotation.y, 0)
+        c.group.scale.setScalar(c.baseScale)
+      }
       for (const c of [owned, rival]) {
         if (!c) continue
         c.group.traverse((obj) => {
