@@ -5,10 +5,22 @@ import type { CreatureStats, Element } from "../creature"
 // the resolver come in later phases; this file pins gauges, order, range, and
 // the basic strike.
 
-import { BASIC, CLOSE, HOLD, createClock, createClockFighter, createTieOrder } from "./clock"
 import type { BattleFighter } from "./clock"
+import {
+  BASIC,
+  CLOSE,
+  createClock,
+  createClockFighter,
+  createTieOrder,
+  HOLD,
+} from "./clock"
 
-function stats(spd: number, atk?: number, def?: number, hp?: number): CreatureStats {
+function stats(
+  spd: number,
+  atk?: number,
+  def?: number,
+  hp?: number,
+): CreatureStats {
   return { hp: hp ?? 40, atk: atk ?? 11, def: def ?? 10, spd }
 }
 
@@ -28,7 +40,10 @@ function pair(
 }
 
 function clockOf(snaps: readonly BattleFighter[], seed: number) {
-  return createClock(snaps.map((s) => createClockFighter(s)), createTieOrder(seed, snaps))
+  return createClock(
+    snaps.map((s) => createClockFighter(s)),
+    createTieOrder(seed, snaps),
+  )
 }
 
 function firstFighter(clock: ReturnType<typeof createClock>) {
@@ -52,7 +67,7 @@ describe("action clock gauges", () => {
   })
 
   test("SPD 12 acts every tick and SPD 6 acts every other tick", () => {
-    const fast = clockOf([snap("Bolt", "fire", stats(12))], 5)
+    const fast = clockOf(pair(12, 1), 5)
     const fastHolds: number[] = []
     for (let i = 0; i < 3; i++) {
       const r = fast.advance(() => HOLD)
@@ -60,11 +75,12 @@ describe("action clock gauges", () => {
     }
     expect(fastHolds).toEqual([1, 2, 3])
 
-    const slow = clockOf([snap("Bolt", "fire", stats(6))], 5)
+    const slow = clockOf(pair(6, 1), 5)
     const slowHolds: number[] = []
     for (let i = 0; i < 4; i++) {
       const r = slow.advance(() => HOLD)
-      if (r.events.some((e) => e.kind === "hold")) slowHolds.push(slow.tick)
+      if (r.events.some((e) => e.kind === "hold" && e.actor === "Bolt"))
+        slowHolds.push(slow.tick)
     }
     expect(slowHolds).toEqual([2, 4])
   })
@@ -77,15 +93,18 @@ describe("action clock gauges", () => {
     const second = clock.advance(() => HOLD)
     expect(second.events.map((e) => e.actor)).toEqual(["Bolt", "Reed"])
 
-    const [tieA, tieB] = pair(9, 9)
+    const [tieA, tieB] = pair(12, 12)
     const order = createTieOrder(23, [tieA, tieB])
     expect(order).toEqual(createTieOrder(23, [tieA, tieB]))
     expect([...order].sort()).toEqual(["Bolt", "Reed"])
-    const tieClock = createClock([tieA, tieB].map((s) => createClockFighter(s)), order)
+    const tieClock = createClock(
+      [tieA, tieB].map((s) => createClockFighter(s)),
+      order,
+    )
     const first = tieClock.advance(() => HOLD)
     const secondTie = tieClock.advance(() => HOLD)
-    expect(first.events.map((e) => e.actor)).toEqual(order)
-    expect(secondTie.events.map((e) => e.actor)).toEqual(order)
+    expect(first.events.map((e) => e.actor)).toEqual([...order])
+    expect(secondTie.events.map((e) => e.actor)).toEqual([...order])
   })
 })
 
@@ -124,7 +143,7 @@ describe("range and the basic strike", () => {
   test("a basic at near always hits for formula damage", () => {
     const clock = clockOf(pair(12, 6), 5)
     clock.advance(() => CLOSE)
-    const r = clock.advance(() => BASIC)
+    const r = clock.advance((f) => (f.name === "Bolt" ? BASIC : HOLD))
     const ev = r.events.find((e) => e.kind === "basic")
     if (!ev) throw new Error("basic event missing")
     expect(ev.actor).toBe("Bolt")
