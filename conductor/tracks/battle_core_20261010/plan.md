@@ -103,11 +103,11 @@ Pure `chooseAction`. No clock required.
 
 No new runtime dependency. Battle result stays in client session state, not `GameState`.
 
-- [ ] Task: Spar control, separate from the care cluster and from Advance Day; available with a creature, including on a cup day; does not spend AP or advance the day
-- [ ] Task: One panel, two clicks to start — rival name, element word, temperament line, tactic, seed, and both fighters' HP/ATK/DEF/SPD; tactic buttons carry the spec's one-line previews
-- [ ] Task: Log playback — stepped delay, fast-forward shortens it, no skip-to-end; `prefers-reduced-motion` shows the full log with no timers
-- [ ] Task: Confirm in the client that a finished spar left AP, conditions, stats, and the save untouched
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Spar control, separate from the care cluster and from Advance Day; available with a creature, including on a cup day; does not spend AP or advance the day (`8c6f594`)
+- [x] Task: One panel, two clicks to start - rival name, element word, temperament line, tactic, seed, and both fighters' HP/ATK/DEF/SPD; tactic buttons carry the spec's one-line previews (`8c6f594`)
+- [x] Task: Log playback - stepped delay, fast-forward shortens it, no skip-to-end; `prefers-reduced-motion` shows the full log with no timers (`8c6f594`)
+- [x] Task: Confirm in the client that a finished spar left AP, conditions, stats, and the save untouched (browser-verified: localStorage clean, HUD unchanged)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: 8c6f594]
   - Manual: `bun run dev`, spar from the ranch, read one Balanced log and one Favor Specials log, confirm a dodge or a hit is announced in present tense, toggle reduced-motion, reload and confirm the save did not gain a battle result
 
 ## Phase H — Integration & Verification Gate
