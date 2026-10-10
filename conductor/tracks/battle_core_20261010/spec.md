@@ -173,6 +173,8 @@ Flow, two clicks from the ranch:
 
 Playback: the log steps forward on a short delay. **Fast-forward** shortens the delay. There is no skip-to-end control. `prefers-reduced-motion` shows the full log immediately, without timers. The ranch creature stays; the rival is not spawned in the scene.
 
+> Revision 2026-10-10, user-approved after Phase G verification: the reduced-motion test is hardened to `reduce` matching **and** `no-preference` not matching, so environments that wrongly report both media queries cannot silently collapse the playback into an instant dump. Reduced-motion users keep the instant full log, and a **Replay slowly** affordance then offers a text-only stepped replay (a line-by-line text reveal is content, not motion, so it stays inside the reduced-motion contract); the affordance is hidden outside reduced-motion mode.
+
 Copy on the button is coach-warm. Copy in the log is announcer. Disabled reasons, if any, are one gentle sentence.
 
 ## Non-Functional Requirements

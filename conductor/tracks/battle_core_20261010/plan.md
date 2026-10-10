@@ -110,6 +110,9 @@ No new runtime dependency. Battle result stays in client session state, not `Gam
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: 8c6f594]
   - Manual: `bun run dev`, spar from the ranch, read one Balanced log and one Favor Specials log, confirm a dodge or a hit is announced in present tense, toggle reduced-motion, reload and confirm the save did not gain a battle result
 
+Phase G revision (post-checkpoint, user-raised 2026-10-10):
+- [x] Task: Harden the reduced-motion guard (`reduce` AND NOT `no-preference` — an embedded Chromium reported both true and the playback collapsed) and add a Replay slowly pill for reduced-motion users (fe21160, spec annotated under FR11 first; verified live in both media-query branches)
+
 ## Phase H — Integration & Verification Gate
 
 - [x] Task: `bun run verify` green (types, tests, biome, determinism gate); suite still under 10 seconds (verify green at 14.77s — the user-approved Phase B suite-runtime deviation applies: floor-bound fuzz suite, voxelize-perf follow-up proposed)
