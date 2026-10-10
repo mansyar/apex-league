@@ -44,13 +44,13 @@ manually, not unit-tested.
 
 ## Phase D — Save migration v2→v3 (sim)
 
-- [ ] Task: Failing tests — v3 schema and migration
-  - [ ] a v3 save round-trips `trained`, `trainingFocus`, and `trainingResult`
-  - [ ] a v2 save migrates with trained zeros, null focus, null result, and unchanged rolled stats
-  - [ ] a v1 save still walks v1→v2→v3 into that same shape
-  - [ ] corrupt and future-version saves are still rejected
-- [ ] Task: Implement `SAVE_VERSION = 3` and the v2→v3 migration step
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Failing tests — v3 schema and migration (`ebc3c2a`)
+  - [x] a v3 save round-trips `trained`, `trainingFocus`, and `trainingResult`
+  - [x] a v2 save migrates with trained zeros, null focus, null result, and unchanged rolled stats
+  - [x] a v1 save still walks v1→v2→v3 into that same shape
+  - [x] corrupt and future-version saves are still rejected
+- [x] Task: Implement `SAVE_VERSION = 3` and the v2→v3 migration step (`ebc3c2a`)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: ebc3c2a]`
 
 ## Phase E — Client HUD (rendering/UI — manual verification)
 
