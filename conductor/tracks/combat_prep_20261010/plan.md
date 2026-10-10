@@ -69,7 +69,7 @@ Ground rules for this track:
 - [x] Task: Implement schema v4 and migration (save) (6077e14)
   - Version bump, migration function, storage untouched; `bun run
     gate:determinism` is voxel-only but `verify` runs all gates anyway. [x]
-
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: 6077e14]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase D — Exhibition reads prep (sim)
