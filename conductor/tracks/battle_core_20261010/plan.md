@@ -50,14 +50,14 @@ a dated deviation in spec.md.
 
 Scripted actions only. No tactics yet. A test driver feeds close / hold / basic / special so the clock can be proved without the AI.
 
-- [ ] Task: Failing tests — gauge and range
-  - [ ] gauges start at 0; a fighter acts when gauge ≥ 12, then subtracts 12; leftover carries
-  - [ ] SPD 12 acts every tick; SPD 6 acts every other tick
-  - [ ] same-tick ready fighters act highest SPD first; equal SPD is stable for a seed
-  - [ ] both start `far`; close is the only range change and it spends the action
-  - [ ] basic from `far` is rejected; basic at `near` always hits for formula damage
-  - [ ] a fighter at 0 HP does not act, including one downed earlier in the same tick
-- [ ] Task: Implement `battle/clock.ts` tick stepper with injected actions
+- [x] Task: Failing tests — gauge and range (`a9dc6ff`)
+  - [x] gauges start at 0; a fighter acts when gauge ≥ 12, then subtracts 12; leftover carries
+  - [x] SPD 12 acts every tick; SPD 6 acts every other tick
+  - [x] same-tick ready fighters act highest SPD first; equal SPD is stable for a seed
+  - [x] both start `far`; close is the only range change and it spends the action
+  - [x] basic from `far` is rejected; basic at `near` always hits for formula damage
+  - [x] a fighter at 0 HP does not act, including one downed earlier in the same tick
+- [x] Task: Implement `battle/clock.ts` tick stepper with injected actions (`4998193`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase D — Projectiles, Accuracy, Dodge (sim)
