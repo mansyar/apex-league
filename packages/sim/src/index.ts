@@ -51,6 +51,7 @@ export {
   type CreatureStats,
   createCreature,
   type Element,
+  effectiveStats,
   type LifeStage,
   type StatKey,
   TRAINED_START,

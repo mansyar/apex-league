@@ -174,6 +174,11 @@ export function assignTraining(
         ...creature,
         trainingFocus: stat,
         trainingResult: null,
+        // A training day is a spent AP: only the AP-spending assignment
+        // advances the move-kit ledger.
+        trainingDays: costsAp
+          ? creature.trainingDays + 1
+          : creature.trainingDays,
       },
     },
   }

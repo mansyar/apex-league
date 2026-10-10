@@ -27,6 +27,21 @@ function stateWith(
     },
   }
 }
+
+/** Day-1 state with a creature carrying hand-set training fields. */
+function trainingState(
+  fields: Partial<
+    Pick<
+      Creature,
+      "trained" | "trainingFocus" | "trainingResult" | "trainingDays"
+    >
+  >,
+  actionPoints = ACTION_POINTS_PER_DAY,
+): GameState {
+  const s = stateWith({}, actionPoints)
+  if (!s.creature) throw new Error("starter not created")
+  return { ...s, creature: { ...s.creature, ...fields } }
+}
 describe("careAction — feed", () => {
   test("restores hunger, adds a little energy, spends 1 AP", () => {
     const r = careAction(stateWith({ hunger: 30, energy: 40 }), "feed")
@@ -143,24 +158,6 @@ describe("careAction — rejections", () => {
 })
 
 describe("assignTraining", () => {
-  /** Day-1 state with a creature carrying hand-set training fields. */
-  function trainingState(
-    fields: Partial<
-      Pick<
-        Creature,
-        | "trained"
-        | "trainingFocus"
-        | "trainingResult"
-        | "trainingDays"
-      >
-    >,
-    actionPoints = ACTION_POINTS_PER_DAY,
-  ): GameState {
-    const s = stateWith({}, actionPoints)
-    if (!s.creature) throw new Error("starter not created")
-    return { ...s, creature: { ...s.creature, ...fields } }
-  }
-
   test("the first assignment sets the focus and spends 1 AP", () => {
     const r = assignTraining(trainingState({}), "atk")
     expect(r.ok).toBe(true)

@@ -59,6 +59,8 @@ export interface Creature {
    * focusless night. Null when the last night had no focus.
    */
   trainingResult: TrainingResult | null
+  /** Lifetime count of days on which a focus was assigned (AP spent). */
+  trainingDays: number
   conditions: CreatureConditions
   /** True when a bonding action happened today; reset by the nightly settlement. */
   bondedToday: boolean
@@ -95,6 +97,19 @@ export const CONDITION_START: CreatureConditions = Object.freeze({
   mood: 60,
   bond: 10,
 })
+
+/**
+ * The combat/display value of a creature's stats: the rolled base plus the
+ * trained bonus, per stat (the Training contract for what later systems read).
+ */
+export function effectiveStats(creature: Creature): CreatureStats {
+  return {
+    hp: creature.stats.hp + creature.trained.hp,
+    atk: creature.stats.atk + creature.trained.atk,
+    def: creature.stats.def + creature.trained.def,
+    spd: creature.stats.spd + creature.trained.spd,
+  }
+}
 
 function rollStat(rng: Rng, bounds: StatBounds): number {
   const [min, max] = bounds
@@ -135,6 +150,7 @@ export function createCreature(
     trained: { ...TRAINED_START },
     trainingFocus: null,
     trainingResult: null,
+    trainingDays: 0,
     conditions: { ...CONDITION_START },
     bondedToday: false,
   }
