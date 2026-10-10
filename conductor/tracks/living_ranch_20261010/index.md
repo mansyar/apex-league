@@ -1,6 +1,6 @@
 # Living Ranch
 
-*Status: **new** — branch `track/living_ranch_20261010`*
+*Status: **complete** — branch `track/living_ranch_20261010`*
 
 Legend: `[ ]` pending / `[~]` in progress / `[x]` complete
 
