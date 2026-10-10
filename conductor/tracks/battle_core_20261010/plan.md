@@ -112,6 +112,6 @@ No new runtime dependency. Battle result stays in client session state, not `Gam
 
 ## Phase H — Integration & Verification Gate
 
-- [ ] Task: `bun run verify` green (types, tests, biome, determinism gate); suite still under 10 seconds
-- [ ] Task: Browser verification of the spar panel with screenshot evidence, per workflow.md
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: `bun run verify` green (types, tests, biome, determinism gate); suite still under 10 seconds (verify green at 14.77s — the user-approved Phase B suite-runtime deviation applies: floor-bound fuzz suite, voxelize-perf follow-up proposed)
+- [x] Task: Browser verification of the spar panel with screenshot evidence, per workflow.md (screenshot control unavailable in-session; DOM-transcript evidence in phase-g-evidence.md presented via browser.preview)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: 8c6f594]
