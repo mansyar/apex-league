@@ -4,14 +4,14 @@
 
 ## Phase A — `fedToday` sim flag + save v4
 
-- [ ] Task: Failing tests — fedToday lifecycle
+- [x] Task: Failing tests — fedToday lifecycle *(9f594ea)*
   - fresh creature has `fedToday === false`; Feed sets it true; Rest/Treat/Play leave it false
   - settlement resets `fedToday` to false (night cleanup)
   - `migrate` walks a v3 save to v4 stamping `fedToday: false`, rolled stats/focus untouched
   - `serializeSave`/`loadGame` round-trip a fedToday-true save
   - `loadGame` rejects a save with a non-boolean `fedToday`
-- [ ] Task: Implement — `fedToday` on Creature + feed wiring + settle reset; `SAVE_VERSION = 4` with v3→v4 migration; validation extension
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Implement — `fedToday` on Creature + feed wiring + settle reset; `SAVE_VERSION = 4` with v3→v4 migration; validation extension *(9f594ea)*
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: 9f594ea]`
 
 ## Phase B — golden-hour atmosphere
 
