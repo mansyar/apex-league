@@ -1,0 +1,11 @@
+{
+  "id": "water_starter_20261010",
+  "title": "Water Axolotl Unlock",
+  "type": "feature",
+  "status": "new",
+  "branch": "track/water_starter_20261010",
+  "created": "2026-10-10",
+  "updated": "2026-10-10",
+  "spec": "./spec.md",
+  "plan": "./plan.md"
+}

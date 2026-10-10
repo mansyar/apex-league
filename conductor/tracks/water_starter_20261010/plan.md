@@ -1,0 +1,55 @@
+# Plan — water_starter_20261010
+
+Execution roadmap following `conductor/workflow.md` (TDD for logic-bearing
+code; manual verification for rendering/UI wiring).
+
+## Phase A — Sim: unlock the Tide Axolotl
+
+- [ ] Task: Write failing tests (Red)
+  - [ ] `packages/sim/src/creature.test.ts`: replace the water-axolotl-specific
+    "locked throws" test with a trio test (all 3 starters available, distinct
+    elements + archetypes); keep a generic unavailable-id throw case using a
+    synthetic species id (`bun test` red)
+  - [ ] `packages/sim/src/battle/exhibition.test.ts`: assert the rival pool
+    covers the full trio across seeds (`bun test` red)
+  - [ ] `packages/sim/src/battle/moves.test.ts`: flip/replace the locked
+    availability assertion (`bun test` red)
+- [ ] Task: Implement (Green)
+  - [ ] Flip `water_axolotl.available: true` in `packages/sim/src/species.ts`
+  - [ ] Update stale comments: `species.ts` catalog docblock ("Water is teased
+    as locked…"), `exhibition.ts` rival comment
+- [ ] Task: Run full suite, confirm green + runtime unchanged
+- [ ] Task: Commit `feat(sim): unlock the tide axolotl as the third starter` +
+  git note (workflow step 8)
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase B — Water-flavored coach copy
+
+- [ ] Task: Write failing copy test (Red)
+  - [ ] `apps/client/src/hud.copy.test.ts`: add a species/element-water coach
+    line case (≤2 sentences, never punishing)
+- [ ] Task: Implement copy path (Green)
+- [ ] Task: Run full suite, confirm green
+- [ ] Task: Commit `feat(hud): water-flavored coach callout for the tide axolotl` +
+  git note
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase C — Balance review note
+
+- [ ] Task: Review axolotl statBounds/kit/temperament vs. drake + ox against
+  `conductor/product-guidelines.md`; record a balance note in
+  `spec.md` § Post-Review Notes; no code change unless a deviation is
+  justified and documented
+- [ ] Task: Commit `docs(conductor): record axolotl balance review`
+  (only if notes/comments changed; skip if empty)
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase D — Manual visual verification & closeout
+
+- [ ] Task: Browser verification — starter overlay (3 enabled cards), pick
+  Tide Axolotl, ranch scene renders with breath/tail life, care + train +
+  advance day work, Spar vs. seeded rival incl. axolotl rivals; screenshot +
+  console evidence per workflow (`browser.tabs.open`, `browser.screenshot`,
+  `browser.console`)
+- [ ] Task: Resolve feedback / fix findings
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
