@@ -58,7 +58,7 @@ Scripted actions only. No tactics yet. A test driver feeds close / hold / basic 
   - [x] basic from `far` is rejected; basic at `near` always hits for formula damage
   - [x] a fighter at 0 HP does not act, including one downed earlier in the same tick
 - [x] Task: Implement `battle/clock.ts` tick stepper with injected actions (`4998193`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: 4998193]
 
 ## Phase D — Projectiles, Accuracy, Dodge (sim)
 
