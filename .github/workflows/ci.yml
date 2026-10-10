@@ -27,7 +27,10 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          # Pinned to the stable Bun that produced the first green CI run
+          # (2026-10-10). Local dev is currently a canary; bump the pin when
+          # CI should ride a new stable.
+          bun-version: 1.4.2
 
       - name: Restore Bun package cache
         uses: actions/cache@v4
