@@ -257,8 +257,16 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
 
   let pickerOpen = false
   let lastFocus: StatKey | null = null
+  let current: GameState | null = null
+
+  // Toggling the picker spends nothing — render only.
+  trainButton.addEventListener("click", () => {
+    pickerOpen = !pickerOpen
+    if (current) update(current)
+  })
 
   const update = (state: GameState): void => {
+    current = state
     dayReadout.textContent = `Day ${state.day} · ${
       state.phase === "cup" ? "Cup day" : "Day phase"
     }`
