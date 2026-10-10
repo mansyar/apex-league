@@ -39,7 +39,7 @@ Verification & Checkpoint gate run before moving on.
 
 ## Phase D — Integration and Verification Gate
 
-- [~] Task: Full gate — `bun run verify` green everywhere; `bun run gate:determinism` reports byte-identical creature GLBs and matching prop digests (zero geometry churn)
+- [x] Task: Full gate — `bun run verify` green everywhere; `bun run gate:determinism` reports byte-identical creature GLBs and matching prop digests (zero geometry churn) — 377 tests / biome 128 files / determinism OK (note on `b91abbf`)
 - [ ] Task: Browser manual verification — screenshot evidence: swaying meadow, ceremony sequence (3 shots), one wander trip; reduced-motion check of both
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) *(checkpoint: sha)*
 
