@@ -3,10 +3,13 @@
  * the player's tactic, and a seed. The rival is a seeded pick among
  * *available* starters only, rolled from `createCreature` with a seed
  * derived from the battle seed, and fights with its species kit and
- * temperament. Pure — the owned creature is never mutated.
+ * temperament. The owner's side reads combat prep: effective stats
+ * (stats + trained) and the chosen loadout, defaulting to the stage slicing
+ * of the kit gate. Pure — the owned creature is never mutated.
  */
 
-import { type Creature, createCreature } from "../creature"
+import { type Creature, createCreature, effectiveStats } from "../creature"
+import { defaultLoadout } from "../loadout"
 import { makeRng } from "../rng"
 import { getSpecies, STARTER_SPECIES } from "../species"
 import type { Tactic } from "./policy"
@@ -50,8 +53,8 @@ export function makeExhibition(
   const ownedSide: BattleSide = {
     name: owned.name,
     element: owned.element,
-    stats: owned.stats,
-    kit: species.kit,
+    stats: effectiveStats(owned),
+    kit: owned.loadout ?? defaultLoadout(owned, species),
     tactic,
     temperament: species.temperament,
   }
