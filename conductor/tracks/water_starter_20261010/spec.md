@@ -69,7 +69,13 @@ verification pass.
 - [ ] Balance note recorded; water-flavored copy lands with its copy test.
 
 ## Post-Review Notes
-- (Balance review lands here during Phase C.)
+- **Balance review (Phase C, 2026-10-10):** Tide Axolotl stats
+  hp 40–48 / atk 8–12 / def 8–11 / spd 8–11 (Σ 64–82) sit between the Ember
+  Drake burst build (Σ 63–81, rush) and the Bramble Ox tank build
+  (Σ 67–85, slow); temperament `obedient` maps onto the balanced battle
+  policy, matching the "easygoing" flavor. Kit ladder is the standard
+  4-tier curve (6/100 → 8/90 → 10/85 → 12/75) identical to the other two
+  elements. Verdict: **within spec targets, no deviations, no code change**.
 
 ## Out of Scope
 - Evolution stages, cups/ladder, arena replay, breeding/legacy.
