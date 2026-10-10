@@ -24,7 +24,8 @@ Verification & Checkpoint gate run before moving on.
   - [x] reduced-motion variant: turn+travel collapsed to in-place nibble at anchor, still cancellable
   - [x] successive feeds re-trigger cleanly even while pile already visible (`be47529`)
 - [x] Task: Wire scene.ts + main.ts — creature yaw target, walk target near pile (seeded side offset, pile anchor from existing scatter data), head-dip overlay on the existing head-bob pivot; main.ts onCare feed branch calls `scene.startFeedCeremony()` only after a successful feed; care/train/advance callers already flow through `scene.cancelFeedCeremony()` — add call, never the reverse (`4999be2`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) — unit tests green; browser evidence: feed → pile up + creature nibbling; mid-ceremony HUD input applies to sim while ceremony plays out (non-cancelable, 2026-10-10 decision) *(checkpoint: sha)*
+- [ ] Task: Diagonal-pair walk gait (failing tests) in the scene-logic module — `legFL`+`legBR` in phase, `legFR`+`legBL` counterphase, sinusoidal swing at a walking cadence, walk-bob overlay; amplitude eased with the walk phase so it blends in/out; reduced-motion → zero; applied to ceremony travel phases now, reused by wander travel in Phase C
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) — unit tests green; browser evidence: feed → pile up + creature nibbling; mid-ceremony HUD input applies to sim while ceremony plays out (non-cancelable, 2026-10-10 decision); legs visibly swing during ceremony travel *(checkpoint: sha)*
 
 ## Phase C — Sparse wandering
 
@@ -32,7 +33,7 @@ Verification & Checkpoint gate run before moving on.
   - [ ] gap chooser 20–40 s from free-running Rng seeded `visualSeed ^ stepCount` (never wall-clock; no save interaction)
   - [ ] target chooser: near a visible tuft/bush, min distance from pile anchor and inside moss disc; deterministic per (seed, step)
   - [ ] visit pause with look-around head turns (1–2 s); droopy/sick mood profiles (from existing scenes mapping) suppress wandering; end state always `home-idle`
-- [ ] Task: Locomotion + camera — leg-shuffle overlay on existing leg pivots at walking cadence; orbit target soft-lerps to creature pos, returns to home anchor; user drag/wheel remains authoritative
+- [ ] Task: Locomotion + camera — diagonal-pair gait (from the Phase B scene-logic module) on existing leg pivots at walking cadence; orbit target soft-lerps to creature pos, returns to home anchor; user drag/wheel remains authoritative
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) — unit tests; browser evidence: a full wander trip + camera tracking, reduced-motion shows no wandering *(checkpoint: sha)*
 
 ## Phase D — Integration and Verification Gate
