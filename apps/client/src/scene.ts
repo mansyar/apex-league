@@ -7,6 +7,7 @@ import { generate, makeRng } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
 import { buildPropGroup } from "./prop"
+import { phaseHash, swayAngle, windBaseAmp } from "./scene-logic"
 
 export interface SceneHandle {
   /** Stop the render loop and free GPU resources. */
@@ -228,6 +229,17 @@ export function createScene(container: HTMLElement): SceneHandle {
   let mode: MoodMode = "normal"
   let headBaseY = 0
 
+  /** Registered swayers: {group, baseAmp, phase} attached at scatter
+   * time, advanced per tick as a runtime transform. Rocks and the food
+   * pile never register (amplitude 0); rebuilt on every re-scatter. */
+  interface Swayer {
+    group: THREE.Group
+    baseAmp: number
+    phase: number
+  }
+  let windProps: Swayer[] = []
+  let windSalt = 0
+
   const disposeGroup = (group: THREE.Group): void => {
     group.traverse((obj) => {
       if (obj instanceof THREE.Mesh) {
@@ -241,6 +253,23 @@ export function createScene(container: HTMLElement): SceneHandle {
       }
     })
     scene.remove(group)
+  }
+
+  /**
+   * Attach a prop to the wind list if its class sways (tuft, bush,
+   * broadleaf tree; landmark trees use the same rule). Phase comes from
+   * a seeded hash of the prop's world position — each prop sways on its
+   * own clock, no shared uniform. Zero-amplitude ids (rocks, food pile)
+   * never register.
+   */
+  const registerSway = (propId: string, prop: THREE.Group): void => {
+    const baseAmp = windBaseAmp(propId)
+    if (baseAmp <= 0) return
+    windProps.push({
+      group: prop,
+      baseAmp,
+      phase: phaseHash(prop.position.x, prop.position.z, windSalt++),
+    })
   }
 
   const handle: SceneHandle = {
@@ -282,6 +311,8 @@ export function createScene(container: HTMLElement): SceneHandle {
       if (scenerySeed === visualSeed) return
       scenerySeed = visualSeed
       if (ranchScenery) disposeGroup(ranchScenery)
+      windProps = []
+      windSalt = 0
       const scenery = new THREE.Group()
       scenery.name = "ranch-scenery"
       const rng = makeRng(visualSeed)
@@ -289,6 +320,7 @@ export function createScene(container: HTMLElement): SceneHandle {
         const prop = buildPropGroup(propId, rng.int(2 ** 30))
         prop.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius)
         prop.rotation.y = rng.next() * Math.PI * 2
+        registerSway(propId, prop)
         scenery.add(prop)
       }
       // Seeded vegetation ring: the creature's visualSeed picks each
@@ -312,6 +344,7 @@ export function createScene(container: HTMLElement): SceneHandle {
         const prop = buildPropGroup(propId, seed)
         prop.position.set(x, 0, z)
         prop.rotation.y = rotY
+        registerSway(propId, prop)
         scenery.add(prop)
       }
       landmark("broadleafTree", -6.5, -4.5, 0.65, 1101)
@@ -378,6 +411,15 @@ export function createScene(container: HTMLElement): SceneHandle {
       } else {
         creatureGroup.position.y = 0
       }
+    }
+    // Wind sway: every registered vegetation prop rocks gently around its
+    // base, each on its own phase, driven through the gust envelope. Pure
+    // runtime rotation — geometry, palettes, and digests are untouched, and
+    // reduced-motion flattens every angle to 0.
+    for (const w of windProps) {
+      const angle = swayAngle(w.baseAmp, w.phase, t, reducedMotion)
+      w.group.rotation.x = angle
+      w.group.rotation.z = angle * 0.5
     }
     renderer.render(scene, camera)
     raf = requestAnimationFrame(tick)
