@@ -25,7 +25,10 @@
   *2026-10-10: battle core landed in `@apex/sim/battle` — type chart, damage,
   moves/kits/loadout, action clock, projectile resolver, tactic/temperament
   policy, endings, event log, exhibition helper (DOM-free, seeded, snapshot-
-  pure); the client Spar panel consumes it without a framework.*
+  pure); the client Spar panel consumes it without a framework.
+  2026-10-10: combat prep landed — `effectiveStats` (rolled + trained),
+  unlock-gated kit slicing with 2-4 loadout helpers, save v4 migration crediting
+  6 trained days, spar kit gate/picker, fresh-unlock coach callout.*
 
 ## Server
 - **Framework**: ElysiaJS on Bun (endpoints: save sync, leaderboard, ghost

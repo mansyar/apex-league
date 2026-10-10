@@ -64,7 +64,9 @@ Phased delivery plan (each phase is independently playable):
   clock, type chart, projectile specials with travel/accuracy/dodge, equip-4
   starter kits, cooldowns, tactic + temperament policy, ko/double_ko/time
   endings, announcer event log, and a free ranch Spar between the creature and
-  a seeded rival. Arena replay and cup/ladder still open.)*
+  a seeded rival. Landed prep 2026-10-10: battles read stats + trained, kits
+  grow at tier 3 @3 / tier 4 @6 trained days, Spar-panel loadout picker with
+  locked rows, save v4. Arena replay and cup/ladder still open.)*
 - Top-down 3D arena with voxel creatures (procedural generator online).
 - One weekly cup (8-bracket), Bronze tier ladder, ~5 opponent creatures.
 - Ranch scene (3D) with idle/breathe life. *(Landed.)*
