@@ -6,7 +6,7 @@ phase ends with a verification & checkpoint task.
 
 ## Phase A — Playback scripting & save v5 (logic, TDD)
 
-- [ ] Task: Playback script builder (event → animation script)
+- [x] Task: Playback script builder (event → animation script)
   - [ ] Failing tests: pure-TS mapping `BattleEvent[]` → ordered
         `AnimationStep[]` with durations; complete coverage of event kinds
         (move-up, launch, hit, miss/dodge, KO, endings); final state matches
