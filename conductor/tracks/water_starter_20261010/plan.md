@@ -85,3 +85,12 @@ code; manual verification for rendering/UI wiring).
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   — `[checkpoint: 6289a8b]` user-approved (last functional commit unchanged
   since Phase B); track finalized
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions — dropped the redundant `as Creature`
+  type assertions in `apps/client/src/hud.copy.test.ts` (both describe
+  blocks; the `type Creature` import stays — the cases table still types
+  `creature?: Creature`); biome + type check clean, full suite 374 pass /
+  0 fail (62.2s). Second Low finding (no direct coverage for the
+  unavailable-species guard in `createCreature`) accepted as a documented
+  trade-off, no action. — `cd2e00c`
