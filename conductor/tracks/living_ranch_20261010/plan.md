@@ -34,7 +34,7 @@ Verification & Checkpoint gate run before moving on.
   - [x] gap chooser 20–40 s from free-running Rng seeded `visualSeed ^ stepCount` (never wall-clock; no save interaction)
   - [x] target chooser: near a visible tuft/bush, min distance from pile anchor and inside moss disc; deterministic per (seed, step)
   - [x] visit pause with look-around head turns (1–2 s); droopy/sick mood profiles (from existing scenes mapping) suppress wandering; end state always `home-idle` (`955280a`)
-- [ ] Task: Locomotion + camera — diagonal-pair gait (from the Phase B scene-logic module) on existing leg pivots at walking cadence; orbit target soft-lerps to creature pos, returns to home anchor; user drag/wheel remains authoritative
+- [x] Task: Locomotion + camera — diagonal-pair gait (from the Phase B scene-logic module) on existing leg pivots at walking cadence; orbit target soft-lerps to creature pos, returns to home anchor; user drag/wheel remains authoritative (wired with the wander task — `drive = wandDrive ?? wd` gies trips the same applyGait path; camera eases toward the creature during trips and drifts home in idle; verified live on :5178 — trip frames show tracking + look-around sweep; commit `2d8d218`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) — unit tests; browser evidence: a full wander trip + camera tracking, reduced-motion shows no wandering *(checkpoint: sha)*
 
 ## Phase D — Integration and Verification Gate
