@@ -19,13 +19,17 @@ function run(
   seconds: number,
   opts: {
     dt?: number
-    allow?: () => boolean
+    allow?: (elapsed: number) => boolean
     startX?: number
     startZ?: number
+    yawNow?: () => number
+    onAdvance?: (result: ReturnType<typeof m.advance>) => void
   } = {},
 ) {
   const dt = opts.dt ?? 1 / 60
+  let elapsed = 0
   const allow = opts.allow ?? (() => true)
+  const yawNow = opts.yawNow ?? (() => 0)
   let x = opts.startX ?? 0
   let z = opts.startZ ?? 0
   const phases = new Set<string>()
@@ -33,13 +37,21 @@ function run(
   m.begin(x, z)
   let pauseTime = 0
   for (let i = 0; i < seconds / dt; i++) {
-    const d = m.advance(x, z, dt, allow())
+    const d = m.advance(x, z, yawNow(), dt, allow(elapsed))
     phases.add(d.phase)
+    opts.onAdvance?.(d)
     x = d.x
     z = d.z
     if (d.phase === "visit-pause") pauseTime += dt
+    elapsed += dt
   }
-  return { x, z, phases, pauseTime, last: m.advance(x, z, dt, allow()) }
+  return {
+    x,
+    z,
+    phases,
+    pauseTime,
+    last: m.advance(x, z, yawNow(), dt, allow(elapsed)),
+  }
 }
 
 describe("wander gap chooser", () => {
@@ -127,20 +139,25 @@ describe("wander machine", () => {
   })
 
   test("a mood drop mid-trip lets the trip finish, then no new trips", () => {
+    // Allow for the first half of the run (a trip starts or is under way),
+    // then flip the gate off. The in-flight trip must still finish through
+    // walk-home, and no second walk-out may ever start.
+    const gateOpen = 40
     const m = createWander(false, 500)
     m.setCandidates(props)
-    const tripStarted = false
+    const order: string[] = []
     const r = run(m, 80, {
-      allow: () => {
-        // Observe via phases inside the closure is awkward; flip the gate
-        // after 40 s (a trip will likely be under way or soon started).
-        return false
+      allow: (elapsed) => elapsed < gateOpen,
+      onAdvance: (d) => {
+        if (order[order.length - 1] !== d.phase) order.push(d.phase)
       },
     })
-    // The gate is false the whole run: per spec no trip may start at all,
-    // and the machine must stay home-idle the entire time.
-    expect(tripStarted).toBe(tripStarted) // tautology guard: keep the suite honest
-    expect(r.phases.has("walk-out")).toBe(false)
+    expect(order[0]).toBe("home-idle")
+    expect(order).toContain("walk-out")
+    expect(order).toContain("walk-home")
+    // Exactly one trip may ever start; after the gate closed no new one begins.
+    expect(order.filter((p) => p === "walk-out")).toEqual(["walk-out"])
+    expect(r.last.phase).toBe("home-idle")
   })
 
   test("reduced motion never wanders at all", () => {
@@ -160,7 +177,7 @@ describe("wander machine", () => {
     m.begin(x, z)
     const looks: number[] = []
     for (let i = 0; i < 90 * 60; i++) {
-      const d = m.advance(x, z, 1 / 60, true)
+      const d = m.advance(x, z, 0, 1 / 60, true)
       x = d.x
       z = d.z
       if (d.phase === "visit-pause") looks.push(d.lookOffset)
@@ -178,7 +195,7 @@ describe("wander machine", () => {
     m.setCandidates(props)
     run(m, 45) // likely mid-trip or at least started
     m.abort()
-    const d = m.advance(1.5, 0.4, 1 / 60, true)
+    const d = m.advance(1.5, 0.4, 0, 1 / 60, true)
     expect(d.phase).toBe("home-idle")
   })
 
@@ -188,9 +205,9 @@ describe("wander machine", () => {
     m.begin(0, 0) // establish rng + fresh gap (production lifecycle start)
     // Accrue exactly 19 s — no trip may fire inside the 20 s window edge.
     for (let i = 0; i < 19 * 60; i++) {
-      m.advance(0, 0, 1 / 60, true)
+      m.advance(0, 0, 0, 1 / 60, true)
     }
-    expect(m.advance(0, 0, 1 / 60, true).phase).toBe("home-idle")
+    expect(m.advance(0, 0, 0, 1 / 60, true).phase).toBe("home-idle")
     m.pause() // the scene rebuilt the creature (day advance, training)
     // The machine still owes only the remainder of the original 20–40 s
     // gap — a trip must fire well before another full 20 s accrues.
@@ -198,7 +215,7 @@ describe("wander machine", () => {
     let z = 0
     let tripped = false
     for (let i = 0; i < 25 * 60; i++) {
-      const d = m.advance(x, z, 1 / 60, true)
+      const d = m.advance(x, z, 0, 1 / 60, true)
       x = d.x
       z = d.z
       if (d.phase !== "home-idle") {
@@ -207,5 +224,33 @@ describe("wander machine", () => {
       }
     }
     expect(tripped).toBe(true)
+  })
+})
+
+describe("trip-start yaw easing (review fix)", () => {
+  test("the first drive of a trip eases from the creature's actual facing", () => {
+    const m = createWander(false, 123)
+    m.setCandidates(props)
+    // Face the creature somewhere unused elsewhere (~-2.4 rad) so a stale
+    // machine yaw (0 or a prior trip's) would be visibly wrong.
+    const FACING = -2.4
+    let tripStarted = false
+    const seenFirst: number[] = []
+    run(m, 60, {
+      yawNow: () => FACING,
+      onAdvance: (d) => {
+        if (d.phase !== "home-idle" && !tripStarted) {
+          tripStarted = true
+          seenFirst.push(d.yaw)
+        }
+      },
+    })
+    expect(tripStarted).toBe(true)
+    expect(seenFirst.length).toBeGreaterThan(0)
+    const first = seenFirst[0] ?? 0
+    // The first applied yaw must sit within the pivot turn rate of the
+    // creature's actual facing (TURN_SPEED * dt ≈ 0.1 rad/frame) — not a
+    // snap to a stale machine yaw.
+    expect(Math.abs(first - FACING)).toBeLessThan(0.3)
   })
 })

@@ -559,6 +559,7 @@ export function createScene(container: HTMLElement): SceneHandle {
         wandDrive = wander.advance(
           creatureGroup.position.x,
           creatureGroup.position.z,
+          creatureGroup.rotation.y,
           dt,
           mode !== "droopy",
         )

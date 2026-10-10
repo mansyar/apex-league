@@ -478,10 +478,19 @@ export interface WanderMachine {
    * rebuilds the creature (day advance, training) so the wandering rhythm
    * survives visual rebuilds instead of restarting its 20–40 s window. */
   pause(): void
-  /** Advance the machine. `allow` is the mood/reduced-motion/ceremony gate:
-   * gaps accrue only while allowed, and trips are started only while
-   * allowed (an already-running trip is always finished gracefully). */
-  advance(x: number, z: number, dt: number, allow: boolean): WanderDrive
+  /** Advance the machine. `yawNow` is the creature's actual rendered
+   * facing (the scene reads it off the rig every frame), `allow` is the
+   * mood/reduced-motion/ceremony gate: gaps accrue only while allowed,
+   * and trips are started only while allowed (an already-running trip is
+   * always finished gracefully). A starting trip eases from `yawNow` so
+   * no stale machine yaw ever snaps the creature on the first frame. */
+  advance(
+    x: number,
+    z: number,
+    yawNow: number,
+    dt: number,
+    allow: boolean,
+  ): WanderDrive
 }
 
 export function createWander(
@@ -500,7 +509,13 @@ export function createWander(
   let pauseDuration = 0
   let lookBase = 0
 
+  let yawNow = 0
+
   const startTrip = (fromX: number, fromZ: number) => {
+    // Ease from the creature's ACTUAL rendered facing, captured by advance
+    // this frame — never a stale yaw left over from a previous trip or a
+    // creature rebuild (review 2026-10-10: one-frame yaw snap at trip start).
+    yaw = yawNow
     const pick = pickVisitTarget(candidates, fromX, fromZ, rng)
     if (!pick) {
       // Nothing to visit this window — re-roll the gap and stay home.
@@ -513,7 +528,6 @@ export function createWander(
     pauseDuration = rng.next() + 1 // 1–2 s in the 1..2 window
     pauseElapsed = 0
     lookBase = heading(targetX - fromX, targetZ - fromZ)
-    yaw = 0 // the stride eases this from the creature's actual facing
     phase = "walk-out"
     return true
   }
@@ -543,8 +557,9 @@ export function createWander(
       // The countdown survives: this machine outlives visual rebuilds.
     },
 
-    advance(x, z, dt, allow) {
+    advance(x, z, yawActual, dt, allow) {
       const step = Math.min(Math.max(dt, 0), 0.1)
+      yawNow = yawActual
       if (phase === "home-idle") {
         if (allow && !reducedMotion) {
           gapAccum += step
