@@ -149,6 +149,8 @@ export function createScene(container: HTMLElement): SceneHandle {
   // inspected from any angle. Wheel zooms, clamped to sane distances.
   const target = new THREE.Vector3(0, 0.8, 0)
   const orbit = { azimuth: 0.567, elevation: 0.326, radius: 6.9 }
+  // Reusable scratch vector for the soft camera track (no per-frame alloc).
+  const focusPoint = new THREE.Vector3()
   const clamp = (v: number, lo: number, hi: number): number =>
     Math.min(Math.max(v, lo), hi)
   const applyOrbit = (): void => {
@@ -259,6 +261,9 @@ export function createScene(container: HTMLElement): SceneHandle {
   const standPos = new THREE.Vector3()
   /** Yaw facing the pile from `standPos`. */
   let pileYaw = 0
+  // Yaw facing the travel direction from the stand spot back to the home
+  // anchor — used during walk-home so the creature walks forward home.
+  let homeTravelYaw = 0
   /** The creature's yaw before the ceremony began (restored at the end). */
   let homeYaw = 0
 
@@ -315,7 +320,10 @@ export function createScene(container: HTMLElement): SceneHandle {
       case "walk-home":
         creature.position.x = standPos.x * (1 - ease)
         creature.position.z = standPos.z * (1 - ease)
-        creature.rotation.y = lerpAngle(pileYaw, homeYaw, ease)
+        // Face the travel direction the whole way home. Blending the yaw
+        // from pile-facing to idle-facing while the body still slides read
+        // as walking backward (user-reported 2026-10-10).
+        creature.rotation.y = homeTravelYaw
         break
       default:
         break
@@ -467,6 +475,7 @@ export function createScene(container: HTMLElement): SceneHandle {
         // In-place nibble at the anchor: no turn, no travel.
         standPos.set(0, 0, 0)
         pileYaw = homeYaw
+        homeTravelYaw = homeYaw
       } else {
         // Seeded standing spot: the creature's visual seed picks the side
         // of the anchor→pile line — same creature, same spot, every feed.
@@ -484,6 +493,9 @@ export function createScene(container: HTMLElement): SceneHandle {
         // direction is atan2(dx, dz) + π — without the flip it shuffles
         // backward toward the pile.
         pileYaw = Math.atan2(face.x, face.z) + Math.PI
+        // Walk-home faces where it is going: from the stand spot toward
+        // the home anchor (the origin), computed once per ceremony.
+        homeTravelYaw = Math.atan2(-standPos.x, -standPos.z) + Math.PI
       }
       homeYaw = creatureGroup.rotation.y
       ceremony.start(now)
@@ -545,6 +557,18 @@ export function createScene(container: HTMLElement): SceneHandle {
       } else {
         creatureGroup.position.y = 0
       }
+      // Soft camera tracking: while the creature is away from home the
+      // orbit target eases toward it (ceremony today; wander in Phase C)
+      // and drifts back to the home anchor when idle. Only the look
+      // target moves — user drag/wheel keep full authority over the view.
+      const away = ce.phase !== "idle"
+      focusPoint.set(
+        away ? creatureGroup.position.x : 0,
+        0.8,
+        away ? creatureGroup.position.z : 0,
+      )
+      target.lerp(focusPoint, 0.08)
+      applyOrbit()
     }
     // Wind sway: every registered vegetation prop rocks gently around its
     // base, each on its own phase, driven through the gust envelope. Pure
