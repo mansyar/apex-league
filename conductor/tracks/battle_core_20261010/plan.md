@@ -89,18 +89,14 @@ Pure `chooseAction`. No clock required.
 
 ## Phase F — Resolver, Log, Exhibition (sim)
 
-- [ ] Task: Failing tests — `resolveBattle`
-  - [ ] KO, same-step double down, and the 40-tick cap each set winner and reason as specced
-  - [ ] cap copy does not contain "judge"; down copy does not contain death
-  - [ ] event kinds, HP-after, and announcer patterns match spec §9
-  - [ ] conditions and stage are not inputs; two calls with the same input and seed match in full
-  - [ ] a starter-band fixture ends by KO before tick 40; a separate fixture hits the cap
-- [ ] Task: Implement `battle/resolve.ts`, wiring clock, projectiles, damage, and policy
-- [ ] Task: Failing tests — exhibition helper
-  - [ ] rival species is only an available starter
-  - [ ] rival stats, tactic, and both kits are a pure function of the seed
-  - [ ] the owned creature is unchanged
-- [ ] Task: Implement `battle/exhibition.ts` and export the public battle API from `packages/sim/src/index.ts`
+- [x] Task: Failing tests — `resolveBattle` and the exhibition rival (`6073e10`, one combined red commit)
+  - [x] KO, same-step double down, and the 40-tick cap each set winner and reason as specced
+  - [x] cap copy does not contain "judge"; down copy does not contain death
+  - [x] event kinds, HP-after, and announcer patterns match spec §9
+  - [x] conditions and stage are not inputs; two calls with the same input and seed match in full
+  - [x] a starter-band fixture ends by KO before tick 40; a separate fixture hits the cap
+- [x] Task: Implement `battle/resolver.ts` (plan said `battle/resolve.ts`; the resolver.ts spelling matches the test file) and `battle/exhibition.ts` (`b0517fe`)
+- [x] Task: Export the public battle API from `packages/sim/src/index.ts` via the `battle` barrel (`6b0afd4`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase G — Ranch Spar (client — manual verification)
