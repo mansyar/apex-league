@@ -49,8 +49,8 @@ phase ends with a verification & checkpoint task.
       color on big moments). [c357907]
 - [x] Task: Hit feedback — victim flash + micro hit-stop, camera shake on big
       hits. [81f2739]
-- [ ] Task: Finishers — KO/celebration moments + result banner (winner,
-      ending reason).
+- [x] Task: Finishers — KO/celebration moments + result banner (winner,
+      ending reason). [97439c1]
 - [ ] Task: Reduced-motion toggle — HUD settings control bound to the save v5
       pref; disables camera shake and flashes, all gameplay stays legible.
 - [ ] Task: Phase C verification & checkpoint (Refer to workflow.md)
