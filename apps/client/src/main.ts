@@ -67,6 +67,8 @@ const spar = createSpar(app, {
 
 const hud = createHud(app, {
   onAdvanceDay: () => {
+    // The ceremony is non-cancelable (FR2, 2026-10-10): HUD input applies
+    // to the sim immediately but never interrupts the creature's motion.
     state = advanceDay(state)
     persist()
     hud.update(state)
@@ -83,6 +85,10 @@ const hud = createHud(app, {
     spar.update(state.creature ?? null)
     // Feed toggles the food pile; conditions drive the mood idle.
     sceneVisuals()
+    // Ceremony is visual feedback for an already-committed action, so it
+    // starts only after the sim confirms the feed succeeded. The pile is
+    // visible immediately; successive feeds re-trigger cleanly.
+    if (action === "feed") scene.startFeedCeremony()
   },
   onTrain: (stat: StatKey) => {
     const result = assignTraining(state, stat)

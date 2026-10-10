@@ -7,6 +7,16 @@ import { generate, makeRng } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
 import { buildPropGroup } from "./prop"
+import {
+  createWalk,
+  createWander,
+  type GaitPose,
+  gaitPose,
+  phaseHash,
+  swayAngle,
+  type WanderDrive,
+  windBaseAmp,
+} from "./scene-logic"
 
 export interface SceneHandle {
   /** Stop the render loop and free GPU resources. */
@@ -23,6 +33,15 @@ export interface SceneHandle {
   setProps(visualSeed: number): void
   /** Show or hide the food pile (fedToday from the sim). */
   setFedToday(fedToday: boolean): void
+  /**
+   * Play the feeding ceremony: turn toward the pile, walk to a facing
+   * spot, nibble 2–3 dips, walk home. Purely visual — the sim already
+   * committed. Non-cancelable (2026-10-10 decision): HUD input applies to
+   * the sim immediately but never interrupts the creature's motion; safe
+   * to call mid-ceremony (successive feeds re-trigger). Reduced motion
+   * plays an in-place nibble at the anchor.
+   */
+  startFeedCeremony(): void
 }
 
 const GROUND_COLOR = 0x3a4d34
@@ -130,6 +149,8 @@ export function createScene(container: HTMLElement): SceneHandle {
   // inspected from any angle. Wheel zooms, clamped to sane distances.
   const target = new THREE.Vector3(0, 0.8, 0)
   const orbit = { azimuth: 0.567, elevation: 0.326, radius: 6.9 }
+  // Reusable scratch vector for the soft camera track (no per-frame alloc).
+  const focusPoint = new THREE.Vector3()
   const clamp = (v: number, lo: number, hi: number): number =>
     Math.min(Math.max(v, lo), hi)
   const applyOrbit = (): void => {
@@ -228,6 +249,58 @@ export function createScene(container: HTMLElement): SceneHandle {
   let mode: MoodMode = "normal"
   let headBaseY = 0
 
+  // -- Feeding ceremony (FR2) -------------------------------------------------
+  // The creature's home anchor is the origin where it idles; the food pile
+  // is a fixed landmark. Ceremony visuals translate/rotate the creature as a
+  // runtime transform only — the sim is untouched.
+  const pilePos = new THREE.Vector3(-2.4, 0, 0.4)
+  const walk = createWalk(reducedMotion)
+  /** Sparse wanderer (FR3). Created per creature in setCreature (it needs
+   * the visual seed); null before that and after dispose. */
+  let wander: ReturnType<typeof createWander> | null = null
+  /** Tuft/bush world positions the wanderer may visit (rebuilt on scatter). */
+  const wanderCandidates: { x: number; z: number }[] = []
+  /** How deep the nibble head-dips go (in the head pivot's local units —
+   * the rig runs in grid units, so this scales with the creature). */
+  const DIP_DEPTH = 1.2
+  /** Standing spot near the pile, on the creature→pile line, chosen at
+   * start by startFeedCeremony. */
+  let standX = 0
+  let standZ = 0
+  /** Previous tick's time, for the clamped walk step. */
+  let lastT = 0
+
+  const smoothstep = (k: number): number => k * k * (3 - 2 * k)
+
+  /** Map a gait pose onto the creature rig: hip-pivot swings, weight-shift
+   * roll on the body, and the walk bob as the creature's ground height.
+   * Called every frame with a zero pose outside walks, so pivots always
+   * come back to rest. */
+  const applyGait = (creature: THREE.Group, pose: GaitPose): void => {
+    const setLeg = (name: string, angle: number): void => {
+      const pivot = creature.getObjectByName(name)
+      if (pivot) pivot.rotation.x = angle
+    }
+    setLeg("legFL", pose.fl)
+    setLeg("legBR", pose.br)
+    setLeg("legFR", pose.fr)
+    setLeg("legBL", pose.bl)
+    const body = creature.getObjectByName("body")
+    if (body) body.rotation.z = pose.roll
+    creature.position.y = pose.bob
+  }
+
+  /** Registered swayers: {group, baseAmp, phase} attached at scatter
+   * time, advanced per tick as a runtime transform. Rocks and the food
+   * pile never register (amplitude 0); rebuilt on every re-scatter. */
+  interface Swayer {
+    group: THREE.Group
+    baseAmp: number
+    phase: number
+  }
+  let windProps: Swayer[] = []
+  let windSalt = 0
+
   const disposeGroup = (group: THREE.Group): void => {
     group.traverse((obj) => {
       if (obj instanceof THREE.Mesh) {
@@ -241,6 +314,28 @@ export function createScene(container: HTMLElement): SceneHandle {
       }
     })
     scene.remove(group)
+  }
+
+  /**
+   * Attach a prop to the wind list if its class sways (tuft, bush,
+   * broadleaf tree; landmark trees use the same rule). Phase comes from
+   * a seeded hash of the prop's world position — each prop sways on its
+   * own clock, no shared uniform. Zero-amplitude ids (rocks, food pile)
+   * never register.
+   */
+  const registerSway = (propId: string, prop: THREE.Group): void => {
+    // Wander candidates (FR3): tufts and bushes are legitimate visit
+    // spots; rocks, trees, and the food pile never register.
+    if (propId === "tuft" || propId === "bush") {
+      wanderCandidates.push({ x: prop.position.x, z: prop.position.z })
+    }
+    const baseAmp = windBaseAmp(propId)
+    if (baseAmp <= 0) return
+    windProps.push({
+      group: prop,
+      baseAmp,
+      phase: phaseHash(prop.position.x, prop.position.z, windSalt++),
+    })
   }
 
   const handle: SceneHandle = {
@@ -271,17 +366,48 @@ export function createScene(container: HTMLElement): SceneHandle {
     setCreature(archetypeId, seed) {
       if (creatureGroup) disposeGroup(creatureGroup)
       const { dna, build, def } = generate(archetypeId, seed)
-      creatureGroup = buildCreatureGroup(dna, build, def.grid)
-      creatureGroup.traverse((obj) => {
+      // The rig is built in voxel GRID units inside an inner group that
+      // carries the tiny world scale — children positions are ~20× larger
+      // than world units, so mutating them to re-anchor went wrong by that
+      // factor (the visible mass kept sitting ~1.7 units off the origin and
+      // every yaw pivot swung the body around a distant axis — user-reported
+      // "arc/turn that moves the position"). Instead: keep the rig untouched
+      // inside its scaled group, measure the visual center of the WHOLE
+      // creature, and wrap it in an identity-scale holder whose child offset
+      // (in true world units) places the visual center on the holder origin.
+      // All motion code drives the holder afterwards.
+      const inner = buildCreatureGroup(dna, build, def.grid)
+      inner.updateMatrixWorld(true)
+      const innerBox = new THREE.Box3().setFromObject(inner)
+      const center = innerBox.getCenter(new THREE.Vector3())
+      const rig = new THREE.Group()
+      rig.add(inner)
+      inner.position.set(-center.x, 0, -center.z)
+      creatureGroup = rig
+      rig.traverse((obj) => {
         if (obj instanceof THREE.Mesh) obj.castShadow = true
       })
-      scene.add(creatureGroup)
-      headBaseY = creatureGroup.getObjectByName("head")?.position.y ?? 0
+      scene.add(rig)
+      // One wanderer per scene lifetime (FR3): rebuilding the creature (day
+      // advance, training) pauses the machine — the 20–40 s rhythm survives
+      // visual rebuilds instead of restarting. A feed ceremony still aborts
+      // it cleanly via startFeedCeremony.
+      if (wander) {
+        wander.pause()
+      } else {
+        wander = createWander(reducedMotion, seed)
+      }
+      // headBaseY stays in the head's LOCAL units — the tick writes it back
+      // to head.position.y in the same space (the rig runs in grid units).
+      headBaseY = rig.getObjectByName("head")?.position.y ?? 0
     },
     setProps(visualSeed) {
       if (scenerySeed === visualSeed) return
       scenerySeed = visualSeed
       if (ranchScenery) disposeGroup(ranchScenery)
+      windProps = []
+      windSalt = 0
+      wanderCandidates.length = 0
       const scenery = new THREE.Group()
       scenery.name = "ranch-scenery"
       const rng = makeRng(visualSeed)
@@ -289,6 +415,7 @@ export function createScene(container: HTMLElement): SceneHandle {
         const prop = buildPropGroup(propId, rng.int(2 ** 30))
         prop.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius)
         prop.rotation.y = rng.next() * Math.PI * 2
+        registerSway(propId, prop)
         scenery.add(prop)
       }
       // Seeded vegetation ring: the creature's visualSeed picks each
@@ -312,6 +439,7 @@ export function createScene(container: HTMLElement): SceneHandle {
         const prop = buildPropGroup(propId, seed)
         prop.position.set(x, 0, z)
         prop.rotation.y = rotY
+        registerSway(propId, prop)
         scenery.add(prop)
       }
       landmark("broadleafTree", -6.5, -4.5, 0.65, 1101)
@@ -321,11 +449,13 @@ export function createScene(container: HTMLElement): SceneHandle {
       landmark("rock", -7.5, -1.6, 1.4, 2203)
       scene.add(scenery)
       ranchScenery = scenery
+      // Publish the fresh candidate list to the wanderer (FR3).
+      wander?.setCandidates(wanderCandidates)
     },
     setFedToday(fedToday) {
       if (!foodPile) {
         foodPile = buildPropGroup("foodPile", 3301)
-        foodPile.position.set(-2.4, 0, 0.4)
+        foodPile.position.copy(pilePos)
         foodPile.rotation.y = -0.4
         scene.add(foodPile)
       }
@@ -334,6 +464,30 @@ export function createScene(container: HTMLElement): SceneHandle {
     updateConditions(conditions) {
       mode = conditions ? moodModeFrom(conditions) : "normal"
     },
+    startFeedCeremony() {
+      if (!creatureGroup) return
+      // A feed takes the creature over: abandon any in-flight wander trip
+      // (FR3 — wander is suspended during the ceremony) and let the
+      // ceremony machine drive from the creature's current pose.
+      wander?.abort()
+      // Straight-line approach: the stand point sits ON the line from the
+      // creature's current position to the pile center, stopped 1.15 world
+      // units short of the pile so the creature stands just before it and
+      // faces it — the shortest way, exactly as specified. (Reduced motion
+      // ignores the stand spot; the machine nibbles in place wherever the
+      // creature currently stands.)
+      const cx = creatureGroup.position.x
+      const cz = creatureGroup.position.z
+      const toPileX = pilePos.x - cx
+      const toPileZ = pilePos.z - cz
+      const dist = Math.hypot(toPileX, toPileZ) || 1
+      standX = pilePos.x - (toPileX / dist) * 1.15
+      standZ = pilePos.z - (toPileZ / dist) * 1.15
+      // The walk starts from wherever the creature currently stands and
+      // faces, so successive feeds re-trigger cleanly (non-cancelable
+      // policy) and the turn eases instead of snapping.
+      walk.begin(cx, cz, standX, standZ, creatureGroup.rotation.y)
+    },
   }
 
   const clockStart = performance.now()
@@ -341,6 +495,10 @@ export function createScene(container: HTMLElement): SceneHandle {
 
   const tick = (): void => {
     const t = (performance.now() - clockStart) / 1000
+    // Clamped frame delta for the walk machine — a long gap advances at
+    // most one clamped step, so phases can never be skipped.
+    const dt = Math.min(0.1, Math.max(0, t - lastT))
+    lastT = t
     const profile = MOOD_PROFILES[mode]
     if (creatureGroup) {
       // Breathe idle: squash-and-stretch on the body around its HIP-LINE
@@ -373,11 +531,100 @@ export function createScene(container: HTMLElement): SceneHandle {
       if (tailTip) {
         tailTip.rotation.y = sway * 0.12
       }
-      if (!reducedMotion && profile.bounce > 0) {
+      // Position-driven walk: the machine strides toward its current
+      // target (the pile stand spot, then the home anchor) at a constant
+      // speed, so a paused tab or a long frame can never strand the body
+      // mid-path — the walk simply continues and converges. The gait
+      // applies every frame with a zero pose outside walks, so leg pivots
+      // and the weight roll always come back to rest.
+      const wd = walk.advance(
+        creatureGroup.position.x,
+        creatureGroup.position.z,
+        dt,
+      )
+      if (wd.phase !== "idle") {
+        // While walking, the machine owns the creature's pose. While idle
+        // it never touches it — a stale machine yaw must never yank the
+        // freshly rebuilt idle creature around (user-reported snap).
+        creatureGroup.position.x = wd.x
+        creatureGroup.position.z = wd.z
+        creatureGroup.rotation.y = wd.yaw
+      }
+      // Sparse wandering (FR3): while the ceremony is idle and the mood is
+      // eligible, the wander machine may start a trip to a nearby tuft or
+      // bush. A feed ceremony takes priority — startFeedCeremony aborts the
+      // wanderer, so the two machines never fight over the creature.
+      let wandDrive: WanderDrive | null = null
+      if (wd.phase === "idle" && wander) {
+        wandDrive = wander.advance(
+          creatureGroup.position.x,
+          creatureGroup.position.z,
+          creatureGroup.rotation.y,
+          dt,
+          mode !== "droopy",
+        )
+        if (wandDrive.phase !== "home-idle") {
+          creatureGroup.position.x = wandDrive.x
+          creatureGroup.position.z = wandDrive.z
+          creatureGroup.rotation.y = wandDrive.yaw + wandDrive.lookOffset
+        } else {
+          wandDrive = null
+        }
+      }
+      const drive = wandDrive ?? wd
+      const traveling =
+        (drive.phase === "walk-out" || drive.phase === "walk-home") &&
+        !drive.pivoting
+      const remaining = traveling
+        ? Math.hypot(
+            drive.targetX - creatureGroup.position.x,
+            drive.targetZ - creatureGroup.position.z,
+          )
+        : 0
+      applyGait(
+        creatureGroup,
+        gaitPose(
+          t,
+          traveling ? smoothstep(Math.min(1, remaining / 0.6)) : 0,
+          reducedMotion,
+        ),
+      )
+      if (wd.phase === "nibble" && head) {
+        // 2–3 gentle head-dips toward the pile over the existing pivot.
+        head.position.y -= wd.dipOffset * DIP_DEPTH
+      }
+      if (
+        !reducedMotion &&
+        drive.phase === "idle" &&
+        !wandDrive &&
+        profile.bounce > 0
+      ) {
         creatureGroup.position.y = Math.abs(Math.sin(t * 3.2)) * profile.bounce
       } else {
         creatureGroup.position.y = 0
       }
+      // Soft camera track: while the creature is in the ceremony or on a
+      // wander trip it eases toward the creature's position; the rest of
+      // the time it drifts back to the home anchor. Frame-rate independent
+      // smoothing — drag and wheel still own the final say over
+      // azimuth/elevation/radius.
+      const away = wd.phase !== "idle" || wandDrive !== null
+      focusPoint.set(
+        away ? creatureGroup.position.x : 0,
+        0.8,
+        away ? creatureGroup.position.z : 0,
+      )
+      target.lerp(focusPoint, 1 - Math.exp(-2.5 * dt))
+      applyOrbit()
+    }
+    // Wind sway: every registered vegetation prop rocks gently around its
+    // base, each on its own phase, driven through the gust envelope. Pure
+    // runtime rotation — geometry, palettes, and digests are untouched, and
+    // reduced-motion flattens every angle to 0.
+    for (const w of windProps) {
+      const angle = swayAngle(w.baseAmp, w.phase, t, reducedMotion)
+      w.group.rotation.x = angle
+      w.group.rotation.z = angle * 0.5
     }
     renderer.render(scene, camera)
     raf = requestAnimationFrame(tick)
