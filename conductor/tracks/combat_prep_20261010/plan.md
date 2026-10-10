@@ -110,7 +110,7 @@ Ground rules for this track:
     available: Cinder Shot. Train 3 more days for the next tier."); other
     callouts (unwell/sluggish/hungry) keep precedence per existing rules;
     add a table-driven test/legal review for the copy thresholds. [x]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: ee941aa]
 
 ## Phase G — Integration & Verification Gate
 
