@@ -41,7 +41,7 @@ Verification & Checkpoint gate run before moving on.
 
 - [x] Task: Full gate — `bun run verify` green everywhere; `bun run gate:determinism` reports byte-identical creature GLBs and matching prop digests (zero geometry churn) — 377 tests / biome 128 files / determinism OK (note on `b91abbf`)
 - [x] Task: Browser manual verification — screenshot evidence: swaying meadow, ceremony sequence (3 shots), one wander trip; reduced-motion check of both — sway pair (Day 8) + ceremony walk-out/nibble/walk-home (Day 9) + wander trip frames (Phase C run) + home-idle after trips captured fresh; reduced-motion verified at unit level (sway/gait/wander flatten, 14 cases) — OS-level toggle not automatable from the harness
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) *(checkpoint: sha)*
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — verify green (377 pass / 0 fail, biome 128 files, types pass), determinism gate byte-identical (3 GLBs, 5 prop digests), coverage confirmed (scene-logic.ts + 4 test files), browser evidence on this worktree's dev server (:5200) after correcting an earlier wrong-checkout port mixup; reduced-motion unit-verified (14 cases) + user-confirmed; verification report attached as a git note on `b91abbf`; user approved checkpoint *(checkpoint: b91abbf)*
 
 ## Notes
 
