@@ -115,6 +115,14 @@ function resultLine(verdict: Readonly<BattleResult>): string {
   return `${verdict.winner} wins the spar!`
 }
 
+/** Lower-third subline: what the fight ended on, in announcer voice. */
+function reasonLine(verdict: Readonly<BattleResult>): string {
+  if (verdict.reason === "time") return "The clock ran out on this one."
+  if (verdict.reason === "double_ko")
+    return "A double down — both went out together."
+  return "A knockout finish."
+}
+
 export function createSpar(
   root: HTMLElement,
   handlers: SparHandlers = {},
@@ -222,6 +230,15 @@ export function createSpar(
   const result = document.createElement("div")
   result.className = "spar-result"
 
+  // Result banner (Phase C): a big-moment stamp over the arena holding the
+  // verdict + ending reason while the finisher plays out beneath it.
+  const banner = document.createElement("div")
+  banner.className = "spar-banner"
+  banner.style.display = "none"
+  const bannerSub = document.createElement("span")
+  bannerSub.className = "spar-banner-sub"
+  banner.append(bannerSub)
+
   const close = document.createElement("button")
   close.className = "spar-close"
   close.type = "button"
@@ -229,6 +246,7 @@ export function createSpar(
   close.style.display = "none"
 
   panel.append(
+    banner,
     heading,
     intro,
     rivalRow,
@@ -282,9 +300,17 @@ export function createSpar(
     log.scrollTop = log.scrollHeight
   }
 
-  const finish = (text: string, isDraw: boolean): void => {
+  const finish = (
+    text: string,
+    isDraw: boolean,
+    verdict: Readonly<BattleResult>,
+  ): void => {
     clearTimer()
     result.textContent = text
+    // Result banner (Phase C): the verdict gets a reason subline in
+    // announcer voice. No stale banners: hidden again on open.
+    bannerSub.textContent = reasonLine(verdict)
+    banner.style.display = ""
     if (isDraw) {
       result.classList.add("spar-result-draw")
       result.classList.remove("spar-result-win")
@@ -317,7 +343,7 @@ export function createSpar(
     const event = events[index]
     if (!event) {
       timer = setTimeout(
-        () => finish(resultLine(verdict), verdict.winner === null),
+        () => finish(resultLine(verdict), verdict.winner === null, verdict),
         speed,
       )
       return
@@ -355,11 +381,12 @@ export function createSpar(
         if (step) handlers.onStep?.(step, true)
         i++
       }
-      finish(resultLine(verdict), verdict.winner === null)
+      finish(resultLine(verdict), verdict.winner === null, verdict)
       replayButton.style.display = ""
       return
     }
     speed = STEP_MS
+
     fastButton.textContent = "Fast-forward"
     fastButton.disabled = false
     fastButton.style.display = ""
@@ -449,6 +476,8 @@ export function createSpar(
     intro.textContent = "Pick how your partner fights. No AP, nothing saved."
     result.textContent = ""
     result.classList.remove("spar-result-draw", "spar-result-win")
+    banner.style.display = "none"
+    bannerSub.textContent = ""
     log.replaceChildren()
     close.style.display = "none"
     fastButton.style.display = "none"

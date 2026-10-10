@@ -711,6 +711,40 @@ body,
   color: var(--ink-dim);
 }
 
+/* Result banner (Phase C): a broadcast lower-third stamp over the arena
+   panel while the finisher plays. Reduced motion keeps it (it is a static
+   DOM element; nothing flashes or moves). */
+.spar-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin: 0 0 8px;
+  padding: 10px 18px;
+  border: 1px solid var(--accent-dim, var(--accent));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+.spar-banner-sub {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-dim);
+  letter-spacing: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spar-banner {
+    /* No entry animation anyway; belt and braces for any future one. */
+    animation: none;
+    transition: none;
+  }
+}
+
 .spar-close {
   align-self: center;
   padding: 10px 18px;
