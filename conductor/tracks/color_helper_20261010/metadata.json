@@ -1,0 +1,11 @@
+{
+  "id": "color_helper_20261010",
+  "title": "Shared hslToRgb color helper",
+  "type": "chore",
+  "status": "new",
+  "branch": "track/color_helper_20261010",
+  "created": "2026-10-10",
+  "updated": "2026-10-10",
+  "spec": "conductor/tracks/color_helper_20261010/spec.md",
+  "plan": "conductor/tracks/color_helper_20261010/plan.md"
+}
