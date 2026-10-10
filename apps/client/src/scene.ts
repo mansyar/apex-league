@@ -16,8 +16,19 @@ export interface SceneHandle {
   updateConditions(conditions: CreatureConditions | null): void
 }
 
-const GROUND_COLOR = 0x2a3040
-const SKY_COLOR = 0x1a1f2e
+const GROUND_COLOR = 0x3a4d34
+
+/**
+ * Ranch environment palette (golden hour). The ranch reads as late
+ * afternoon: amber light pooling at the horizon, cooling to navy
+ * overhead, with a warm key sun and a cool rim to silhouette the
+ * creature. These four tones are the identity of the ranch look —
+ * retune them together, never one alone.
+ */
+const SKY_HORIZON = 0xd98c4a // dusk amber, pools at the horizon
+const SKY_TOP = 0x1a1f2e // navy, cools the sky overhead
+const KEY_COLOR = 0xffd9a0 // warm low sun
+const RIM_COLOR = 0x8fb4d9 // cool skylight from the far side
 
 /** Visual idle modes derived from the creature's conditions. */
 type MoodMode = "normal" | "sluggish" | "droopy" | "happy"
@@ -57,7 +68,45 @@ export function createScene(container: HTMLElement): SceneHandle {
   container.appendChild(renderer.domElement)
 
   const scene = new THREE.Scene()
-  scene.background = new THREE.Color(SKY_COLOR)
+
+  // Golden-hour sky: a dome with a vertical gradient from the amber
+  // horizon up to navy, replacing the flat color background. The dome
+  // has no fog of its own — it IS the horizon color the ground fades into.
+  const sky = new THREE.Mesh(
+    new THREE.SphereGeometry(40, 16, 12),
+    new THREE.ShaderMaterial({
+      uniforms: {
+        top: { value: new THREE.Color(SKY_TOP) },
+        horizon: { value: new THREE.Color(SKY_HORIZON) },
+      },
+      vertexShader: `
+        varying vec3 vPos
+        void main() {
+          vPos = position
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0)
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vPos
+        uniform vec3 top
+        uniform vec3 horizon
+        void main() {
+          // Amber pools at the horizon, cools to navy overhead.
+          float h = normalize(vPos).y
+          float t = pow(clamp(h * 1.6, 0.0, 1.0), 0.7)
+          gl_FragColor = vec4(mix(horizon, top, t), 1.0)
+        }
+      `,
+      side: THREE.BackSide,
+      depthWrite: false,
+    }),
+  )
+  scene.add(sky)
+
+  // Linear fog in the horizon tone: distant ground dissolves into the
+  // sunset while the creature (always well inside the near plane) stays
+  // crisp even at maximum zoom-out.
+  scene.fog = new THREE.Fog(SKY_HORIZON, 16, 30)
 
   const camera = new THREE.PerspectiveCamera(
     45,
@@ -121,16 +170,35 @@ export function createScene(container: HTMLElement): SceneHandle {
   window.addEventListener("pointerup", onPointerUp)
   canvas.addEventListener("wheel", onWheel)
 
-  const ambient = new THREE.AmbientLight(0xffffff, 0.7)
-  const sun = new THREE.DirectionalLight(0xfff4e0, 1.6)
+  // Lighting rig: warm key from the sun side, cool rim from the far
+  // side to keep shadowed voxels readable, and a rebalanced ambient fill.
+  const ambient = new THREE.AmbientLight(0xbcc7d6, 0.55)
+  const sun = new THREE.DirectionalLight(KEY_COLOR, 1.6)
   sun.position.set(4, 6, 2)
-  scene.add(ambient, sun)
+  const rim = new THREE.DirectionalLight(RIM_COLOR, 0.5)
+  rim.position.set(-5, 3, -4)
+  scene.add(ambient, sun, rim)
 
+  // Real drop-in shadows: the creature's parts cast, the ground receives.
+  renderer.shadowMap.enabled = true
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap
+  sun.castShadow = true
+  sun.shadow.mapSize.set(1024, 1024)
+  sun.shadow.camera.left = -9
+  sun.shadow.camera.right = 9
+  sun.shadow.camera.top = 9
+  sun.shadow.camera.bottom = -9
+  sun.shadow.camera.near = 1
+  sun.shadow.camera.far = 20
+
+  // Mossy ground: a large disc so the ranch edge dissolves into the fog
+  // instead of ending at a hard box edge. Receives the creature's shadow.
   const ground = new THREE.Mesh(
-    new THREE.BoxGeometry(12, 0.2, 12),
+    new THREE.CircleGeometry(11, 48),
     new THREE.MeshLambertMaterial({ color: GROUND_COLOR }),
   )
-  ground.position.y = -0.1
+  ground.rotation.x = -Math.PI / 2
+  ground.receiveShadow = true
   scene.add(ground)
 
   // Honor reduced motion: keep the gentle breath, drop the bounce.
@@ -186,6 +254,9 @@ export function createScene(container: HTMLElement): SceneHandle {
       if (creatureGroup) disposeGroup(creatureGroup)
       const { dna, build, def } = generate(archetypeId, seed)
       creatureGroup = buildCreatureGroup(dna, build, def.grid)
+      creatureGroup.traverse((obj) => {
+        if (obj instanceof THREE.Mesh) obj.castShadow = true
+      })
       scene.add(creatureGroup)
       headBaseY = creatureGroup.getObjectByName("head")?.position.y ?? 0
     },
