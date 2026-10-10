@@ -210,11 +210,7 @@ describe("assignTraining", () => {
   })
 
   test("assignment is allowed while sick, hungry, or exhausted", () => {
-    for (const conditions of [
-      { health: 50 },
-      { hunger: 0 },
-      { energy: 10 },
-    ]) {
+    for (const conditions of [{ health: 50 }, { hunger: 0 }, { energy: 10 }]) {
       const r = assignTraining(stateWith(conditions), "hp")
       expect(r.ok).toBe(true)
       if (!r.ok) throw new Error("unreachable")
