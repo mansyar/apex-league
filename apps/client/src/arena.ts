@@ -10,11 +10,11 @@ import { RANCH_SKY } from "./scene"
  */
 
 /**
- * Broadcast camera framing. The arena is watched, not orbited: a fixed
- * side-elevated telephoto position, like a broadcast camera pit. Consumed
- * by the scene swap so the ranch's free-orbit camera hands over to this.
+ * Broadcast camera framing the ranch camera hands over to during a fight.
+ * A fixed side-elevated telephoto position, like a broadcast camera pit;
+ * the arena is watched, not orbited.
  */
-export const ARENA_FRAMING = {
+const ARENA_FRAMING = {
   azimuth: 0.28,
   elevation: 0.5,
   radius: 12.5,

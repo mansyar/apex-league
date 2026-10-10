@@ -30,7 +30,7 @@ phase ends with a verification & checkpoint task.
 - [x] Task: Arena scene module — top-down neutral floor, boundary ring,
       stands with crowd silhouettes, distinct broadcast lighting (no ranch
       golden-hour).
-- [ ] Task: Scene-swap orchestration — Spar start → ranch fades out, arena
+- [x] Task: Scene-swap orchestration — Spar start → ranch fades out, arena
       fades in; battle end → back to ranch with no state loss (fix
       update-fanout desyncs while wiring).
 - [ ] Task: Creature staging — both combatants positioned on opposing sides;

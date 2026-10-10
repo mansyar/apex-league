@@ -18,18 +18,15 @@ import { createHud } from "./hud"
 import { createScene } from "./scene"
 import { createSpar } from "./spar"
 import { createStarterChoice } from "./starter"
+import { createSwap } from "./swap"
 import "./style.css"
 
 const app = document.querySelector<HTMLElement>("#app")
 if (!app) throw new Error("#app container missing")
 
 const scene = createScene(app)
-
-// TEMP (arena track, Phase B task 1): force the arena on for visual
-// verification of the set alone. Replaced by scene-swap orchestration.
 const arena = buildArena(scene.sceneRoot)
-scene.setRanchBlend(0)
-arena.setBlend(1)
+const swap = createSwap(scene, arena)
 
 const storage: Storage = window.localStorage
 const saved = loadGame(storage)
@@ -70,6 +67,15 @@ const spar = createSpar(app, {
     persist()
     spar.update(state.creature ?? null)
   },
+  // Fight start: dissolve into the broadcast arena behind the panel;
+  // after the fight (or a mid-fight exit) dissolve back. No save state
+  // is touched by the swap either way.
+  onFightStart: () => {
+    void swap.enterArena()
+  },
+  onClose: () => {
+    void swap.exitArena()
+  },
 })
 
 const hud = createHud(app, {
@@ -97,6 +103,11 @@ const hud = createHud(app, {
     state = result.state
     persist()
     hud.update(state)
+    // Fanout fix: training also refreshes the spar preview (kit gate moved
+    // closer) and may shift the visual seed → resync both, exactly like
+    // the other sim-mutating handlers do.
+    spar.update(state.creature ?? null)
+    syncScene()
   },
 })
 

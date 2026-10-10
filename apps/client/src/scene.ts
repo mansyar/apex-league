@@ -11,6 +11,8 @@ import { buildPropGroup } from "./prop"
 export interface SceneHandle {
   /** Raw three.js scene root, for environment modules (e.g. the arena). */
   readonly sceneRoot: THREE.Scene
+  /** Fixed broadcast framing for battle playback (and back to free orbit). */
+  setCameraMode(mode: "ranch" | "arena"): void
   /** Cross-fade the ranch set (lighting rig + sunset dome), 1 → 0. */
   setRanchBlend(k: number): void
   /** Stop the render loop and free GPU resources. */
@@ -30,6 +32,18 @@ export interface SceneHandle {
 }
 
 const GROUND_COLOR = 0x3a4d34
+
+/**
+ * Broadcast camera framing the ranch orbit hands over to during a fight:
+ * a fixed side-elevated telephoto position, like a broadcast camera pit.
+ * The arena is watched, not orbited.
+ */
+const ARENA_FRAMING = {
+  azimuth: 0.28,
+  elevation: 0.5,
+  radius: 12.5,
+  targetY: 1.4,
+} as const
 
 /**
  * Ranch environment palette (golden hour). The ranch reads as late
@@ -133,6 +147,11 @@ export function createScene(container: HTMLElement): SceneHandle {
 
   // Drag-to-orbit camera around the creature, so the idles can be
   // inspected from any angle. Wheel zooms, clamped to sane distances.
+  // While a fight plays the camera is a broadcast pit member: fixed
+  // framing, no orbit input.
+  type CameraMode = "ranch" | "arena"
+  let cameraMode: CameraMode = "ranch"
+  let savedOrbit = { azimuth: 0, elevation: 0, radius: 0 }
   const target = new THREE.Vector3(0, 0.8, 0)
   const orbit = { azimuth: 0.567, elevation: 0.326, radius: 6.9 }
   const clamp = (v: number, lo: number, hi: number): number =>
@@ -149,6 +168,23 @@ export function createScene(container: HTMLElement): SceneHandle {
   }
   applyOrbit()
 
+  /** Hand the camera over to the broadcast pit (and back). */
+  const setCameraMode = (mode: CameraMode): void => {
+    if (cameraMode === mode) return
+    cameraMode = mode
+    if (mode === "arena") {
+      savedOrbit = { ...orbit }
+      orbit.azimuth = ARENA_FRAMING.azimuth
+      orbit.elevation = ARENA_FRAMING.elevation
+      orbit.radius = ARENA_FRAMING.radius
+      target.y = ARENA_FRAMING.targetY
+    } else {
+      Object.assign(orbit, savedOrbit)
+      target.y = 0.8
+    }
+    applyOrbit()
+  }
+
   let dragging = false
   let lastX = 0
   let lastY = 0
@@ -158,7 +194,7 @@ export function createScene(container: HTMLElement): SceneHandle {
     lastY = e.clientY
   }
   const onPointerMove = (e: PointerEvent): void => {
-    if (!dragging) return
+    if (!dragging || cameraMode !== "ranch") return
     orbit.azimuth -= (e.clientX - lastX) * 0.005
     orbit.elevation = clamp(
       orbit.elevation + (e.clientY - lastY) * 0.005,
@@ -173,6 +209,7 @@ export function createScene(container: HTMLElement): SceneHandle {
     dragging = false
   }
   const onWheel = (e: WheelEvent): void => {
+    if (cameraMode !== "ranch") return
     orbit.radius = clamp(
       orbit.radius * (1 + Math.sign(e.deltaY) * 0.1),
       2.5,
@@ -263,6 +300,7 @@ export function createScene(container: HTMLElement): SceneHandle {
 
   const handle: SceneHandle = {
     sceneRoot: scene,
+    setCameraMode,
     /** Cross-fade the ranch "set" (rig, sunset dome, ground, scenery). */
     setRanchBlend(k) {
       const blend = Math.min(1, Math.max(0, k))

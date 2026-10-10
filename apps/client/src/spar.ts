@@ -28,6 +28,12 @@ export interface SparHandlers {
    * the state flow. main.ts wires this to setLoadout/clearLoadout and saves.
    */
   onSetLoadout?: (moveIds: readonly string[] | null) => void
+  /**
+   * A fight is starting: the arena swaps in behind the panel (scene swap).
+   */
+  onFightStart?: () => void
+  /** The sparring panel closes: the scene swaps back to the ranch. */
+  onClose?: () => void
 }
 
 export interface Spar {
@@ -303,6 +309,7 @@ export function createSpar(
     intro.textContent = `${setup.rival.name} accepts the spar!`
     for (const { button } of tacticButtons) button.style.display = "none"
     lastRun = { events: verdict.events, verdict }
+    handlers.onFightStart?.()
     if (reducedMotion()) {
       // Full log at once, no timers (FR11); Replay slowly gives a text-only
       // stepped path for those who want the build-up anyway.
@@ -417,6 +424,7 @@ export function createSpar(
   close.addEventListener("click", () => {
     clearTimer()
     overlay.style.display = "none"
+    handlers.onClose?.()
   })
   sparButton.addEventListener("click", () => open(owned))
   resetPill.addEventListener("click", () => {
