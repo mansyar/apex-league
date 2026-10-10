@@ -55,7 +55,7 @@ Ground rules for this track:
     the spec reference accordingly) [x]; export the new API from
     `packages/sim/src/index.ts`. [x]
 
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: f10b857]
 
 ## Phase C — Save v4 migration (sim)
 
