@@ -44,9 +44,9 @@ phase ends with a verification & checkpoint task.
 
 ## Phase C — VFX & juice (rendering, manual verification)
 
-- [ ] Task: Projectile specials — type-hue colored projectiles with short
+- [x] Task: Projectile specials — type-hue colored projectiles with short
       trails (Fire 18° / Plant 110° / Water 205° contract; icon accompanies
-      color on big moments).
+      color on big moments). [c357907]
 - [ ] Task: Hit feedback — victim flash + micro hit-stop, camera shake on big
       hits.
 - [ ] Task: Finishers — KO/celebration moments + result banner (winner,
