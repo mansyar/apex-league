@@ -24,7 +24,7 @@ Verification & Checkpoint gate run before moving on.
   - [x] reduced-motion variant: turn+travel collapsed to in-place nibble at anchor, still cancellable
   - [x] successive feeds re-trigger cleanly even while pile already visible (`be47529`)
 - [x] Task: Wire scene.ts + main.ts — creature yaw target, walk target near pile (seeded side offset, pile anchor from existing scatter data), head-dip overlay on the existing head-bob pivot; main.ts onCare feed branch calls `scene.startFeedCeremony()` only after a successful feed; care/train/advance callers already flow through `scene.cancelFeedCeremony()` — add call, never the reverse (`4999be2`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) — unit tests green; browser evidence: feed → pile up + creature nibbling; mid-ceremony cancel snaps home *(checkpoint: sha)*
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) — unit tests green; browser evidence: feed → pile up + creature nibbling; mid-ceremony HUD input applies to sim while ceremony plays out (non-cancelable, 2026-10-10 decision) *(checkpoint: sha)*
 
 ## Phase C — Sparse wandering
 
@@ -44,4 +44,6 @@ Verification & Checkpoint gate run before moving on.
 ## Notes
 
 - Estimated diff surface: `apps/client/src/` only (scene-logic module new; scene.ts, main.ts touched) + one new test file. No sim, no save, no voxel data.
-- Cancel is a hard invariant: any HUD input path must reach the scene before the next tick semantics are observed.
+- Also at lines 86 and 123 of spec.md: ceremony behavior referenced as "cancel + home" and
+  "Any HUD input during ceremony cancels instantly" — superseded 2026-10-10: ceremony is
+  non-cancelable (see FR2 revision); those summary lines were updated in the same commit.

@@ -7,7 +7,8 @@ creature never leaves its spot, and feeding is only a pop-in. This track adds th
 of presentational life to the ranch scene, in increasing risk order:
 
 1. **Wind sway** — tufts, bushes, and trees gently sway on shader-time phase offsets.
-2. **Feeding ceremony** — a short, cancellable walk-turn-nibble sequence after Feed.
+2. **Feeding ceremony** — a short, non-cancelable walk-turn-nibble sequence after Feed
+   (revised 2026-10-10: inputs apply to the sim immediately but never interrupt the motion).
 3. **Sparse wandering** — the creature takes occasional trips to seeded prop targets.
 
 All three are **presentational only**: zero `@apex/sim` changes, zero save-format changes,
@@ -48,14 +49,16 @@ digests, creature GLBs) is untouched — motion is runtime transform only.
 - The ceremony is a **visual overlay on success only** — the sim state change is already
   committed when the ceremony starts (pile visible immediately; if the creature is still
   walking when the pile appears, that is correct: it is walking *to* it).
-- **Any subsequent HUD input** (care, train, advance) **instant-cancels** the ceremony:
-  the creature lerps/snap-homes and the normal update path takes over. The ceremony must
-  never queue, delay, or block a sim action.
+- **The ceremony is non-cancelable** *(revised 2026-10-10 after live play review — the
+  instant-cancel snap read as janky; user decision on record)*: HUD inputs (care, train,
+  advance) still **apply to the sim immediately** — no input is ever blocked, queued, or
+  delayed — but the creature's motion is never yanked back; the ceremony plays out to
+  completion and the mood idle resumes when it ends.
 - Successive Feeds while the pile is already visible still trigger the ceremony
   (the pile visibly remains; the creature still comes to eat).
 - Reduced-motion: turn+snap-to-pile is replaced by an **in-place head-dip** at anchor
-  (no travel); still cancellable. Wander may be off but the nibble gesture is kept
-  because it is the direct feedback for the button pressed.
+  (no travel); it also plays out without interruption, but is short (~2 s). Wander may be
+  off but the nibble gesture is kept because it is the direct feedback for the button pressed.
 - Feeding is the only ceremony. Treat/Rest/Play get no travel animations in this track.
 
 ### FR3 — Sparse wandering
@@ -83,7 +86,8 @@ digests, creature GLBs) is untouched — motion is runtime transform only.
 
 - A single creature-scene state machine owns position/intent:
   `home-idle → (walk-out → visit-pause → walk-home)*` with `feeding` as a forced
-  overlay; user input always wins (cancel + home).
+  overlay; user input always applies to the sim immediately but never interrupts
+  the ceremony motion (non-cancelable, revised 2026-10-10).
 - Exposed to `main.ts` via the existing scene handle pattern: `scene.startFeedCeremony()`
   (called by the onCare feed branch after a successful feed), and scene-internal
   scheduling for wander. No new sim imports in scene code.
@@ -120,8 +124,9 @@ digests, creature GLBs) is untouched — motion is runtime transform only.
    anchor).
 3. Feed → pile appears immediately, creature walks to pile and nibbles (~4–6 s total),
    walk-home, mood idle resumes.
-4. Any HUD input during ceremony cancels instantly; no input is ever delayed; sim state
-   correct regardless of ceremony state.
+4. HUD input during ceremony applies to the sim immediately and is never delayed, but
+   never interrupts the ceremony motion; the ceremony always plays out; sim state is
+   correct regardless of ceremony state. *(Non-cancelable, revised 2026-10-10.)*
 5. Creature occasionally wanders to props and pauses with look-around ~20–40 s apart,
    with leg shuffle; sick/droopy creatures never wander.
 6. Orbital camera target softly tracks the creature and returns to anchor when home.
