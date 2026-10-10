@@ -54,15 +54,15 @@ manually, not unit-tested.
 
 ## Phase E — Client HUD (rendering/UI — manual verification)
 
-- [ ] Task: Stat row under the name, above the condition bars — stat name, total (`stats + trained`), and trained bonus when above 0
-- [ ] Task: Train control and inline four-stat picker in the action cluster
-  - [ ] opening and closing the picker spends nothing
-  - [ ] entries show tonight's delta, or the waste reason; capped stats are disabled
-  - [ ] Train is disabled at 0 AP only when nothing is assigned; a set focus can still be swapped
-  - [ ] all-four-capped disables Train; the current focus is marked
-- [ ] Task: Status copy — preview while a focus is set; one-sentence morning result after Advance Day, without repeating the condition line
-- [ ] Task: Wire `assignTraining` into the ranch loop; cup day and Advance Day stay unchanged
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Stat row under the name, above the condition bars — stat name, total (`stats + trained`), and trained bonus when above 0 (`fbb05e9`)
+- [x] Task: Train control and inline four-stat picker in the action cluster (`fbb05e9`)
+  - [x] opening and closing the picker spends nothing
+  - [x] entries show tonight's delta, or the waste reason; capped stats are disabled
+  - [x] Train is disabled at 0 AP only when nothing is assigned; a set focus can still be swapped
+  - [x] all-four-capped disables Train; the current focus is marked
+- [x] Task: Status copy — preview while a focus is set; one-sentence morning result after Advance Day, without repeating the condition line (`fbb05e9`)
+- [x] Task: Wire `assignTraining` into the ranch loop; cup day and Advance Day stay unchanged (`fbb05e9`)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: fbb05e9]`
 
 ## Phase F — Integration and Verification Gate
 
