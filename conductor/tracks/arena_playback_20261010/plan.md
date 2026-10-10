@@ -27,7 +27,7 @@ phase ends with a verification & checkpoint task.
 
 ## Phase B — Arena scene & presentation (rendering, manual verification)
 
-- [ ] Task: Arena scene module — top-down neutral floor, boundary ring,
+- [x] Task: Arena scene module — top-down neutral floor, boundary ring,
       stands with crowd silhouettes, distinct broadcast lighting (no ranch
       golden-hour).
 - [ ] Task: Scene-swap orchestration — Spar start → ranch fades out, arena

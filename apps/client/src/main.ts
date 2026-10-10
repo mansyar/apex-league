@@ -13,6 +13,7 @@ import {
   saveGame,
   setLoadout,
 } from "@apex/sim"
+import { buildArena } from "./arena"
 import { createHud } from "./hud"
 import { createScene } from "./scene"
 import { createSpar } from "./spar"
@@ -23,6 +24,12 @@ const app = document.querySelector<HTMLElement>("#app")
 if (!app) throw new Error("#app container missing")
 
 const scene = createScene(app)
+
+// TEMP (arena track, Phase B task 1): force the arena on for visual
+// verification of the set alone. Replaced by scene-swap orchestration.
+const arena = buildArena(scene.sceneRoot)
+scene.setRanchBlend(0)
+arena.setBlend(1)
 
 const storage: Storage = window.localStorage
 const saved = loadGame(storage)

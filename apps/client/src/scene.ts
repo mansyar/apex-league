@@ -9,6 +9,10 @@ import { buildCreatureGroup } from "./creature"
 import { buildPropGroup } from "./prop"
 
 export interface SceneHandle {
+  /** Raw three.js scene root, for environment modules (e.g. the arena). */
+  readonly sceneRoot: THREE.Scene
+  /** Cross-fade the ranch set (lighting rig + sunset dome), 1 → 0. */
+  setRanchBlend(k: number): void
   /** Stop the render loop and free GPU resources. */
   dispose(): void
   /** Replace (or add) the showcased creature, built from the archetype registry. */
@@ -35,6 +39,7 @@ const GROUND_COLOR = 0x3a4d34
  * retune them together, never one alone.
  */
 const SKY_HORIZON = 0xd98c4a // dusk amber, pools at the horizon
+export const RANCH_SKY = SKY_HORIZON
 const SKY_TOP = 0x1a1f2e // navy, cools the sky overhead
 const KEY_COLOR = 0xffd9a0 // warm low sun
 const RIM_COLOR = 0x8fb4d9 // cool skylight from the far side
@@ -192,6 +197,14 @@ export function createScene(container: HTMLElement): SceneHandle {
   const rim = new THREE.DirectionalLight(RIM_COLOR, 0.5)
   rim.position.set(-5, 3, -4)
   scene.add(ambient, hemi, sun, rim)
+  // Ranch rig intensities kept so the set can be cross-faded away when the
+  // arena takes over (arena blend drives its own rig from zero).
+  const RANCH_RIG = {
+    ambient: ambient.intensity,
+    hemi: hemi.intensity,
+    sun: sun.intensity,
+    rim: rim.intensity,
+  } as const
 
   // Real drop-in shadows: the creature's parts cast, the ground receives.
   renderer.shadowMap.enabled = true
@@ -215,6 +228,9 @@ export function createScene(container: HTMLElement): SceneHandle {
   ground.rotation.x = -Math.PI / 2
   ground.receiveShadow = true
   scene.add(ground)
+  // The mossy ground belongs to the ranch set: arena views dissolve the
+  // horizon into fog, not moss.
+  ground.name = "ranch-ground"
 
   // Honor reduced motion: keep the gentle breath, drop the bounce.
   const reducedMotion = window.matchMedia(
@@ -225,6 +241,8 @@ export function createScene(container: HTMLElement): SceneHandle {
   let ranchScenery: THREE.Group | null = null
   let scenerySeed = -1
   let foodPile: THREE.Group | null = null
+  let fedTodayVisible = false
+  let ranchBlendK = 1
   let mode: MoodMode = "normal"
   let headBaseY = 0
 
@@ -244,6 +262,20 @@ export function createScene(container: HTMLElement): SceneHandle {
   }
 
   const handle: SceneHandle = {
+    sceneRoot: scene,
+    /** Cross-fade the ranch "set" (rig, sunset dome, ground, scenery). */
+    setRanchBlend(k) {
+      const blend = Math.min(1, Math.max(0, k))
+      ranchBlendK = blend
+      ambient.intensity = RANCH_RIG.ambient * blend
+      hemi.intensity = RANCH_RIG.hemi * blend
+      sun.intensity = RANCH_RIG.sun * blend
+      rim.intensity = RANCH_RIG.rim * blend
+      sky.visible = blend > 0.001
+      ground.visible = blend > 0.001
+      if (ranchScenery) ranchScenery.visible = blend > 0.001
+      if (foodPile) foodPile.visible = fedTodayVisible && blend > 0.5
+    },
     dispose() {
       if (creatureGroup) disposeGroup(creatureGroup)
       cancelAnimationFrame(raf)
@@ -329,7 +361,8 @@ export function createScene(container: HTMLElement): SceneHandle {
         foodPile.rotation.y = -0.4
         scene.add(foodPile)
       }
-      foodPile.visible = fedToday
+      fedTodayVisible = fedToday
+      foodPile.visible = fedToday && ranchBlendK > 0.5
     },
     updateConditions(conditions) {
       mode = conditions ? moodModeFrom(conditions) : "normal"
