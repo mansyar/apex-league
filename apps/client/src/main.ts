@@ -67,6 +67,9 @@ const spar = createSpar(app, {
 
 const hud = createHud(app, {
   onAdvanceDay: () => {
+    // Any HUD input instantly cancels a running ceremony (FR2): the
+    // creature snap-homes; the sim input itself is never queued/delayed.
+    scene.cancelFeedCeremony()
     state = advanceDay(state)
     persist()
     hud.update(state)
@@ -75,6 +78,7 @@ const hud = createHud(app, {
     syncScene()
   },
   onCare: (action: CareAction) => {
+    scene.cancelFeedCeremony()
     const result = careAction(state, action)
     if (!result.ok) return // buttons are already disabled; belt and braces
     state = result.state
@@ -83,8 +87,13 @@ const hud = createHud(app, {
     spar.update(state.creature ?? null)
     // Feed toggles the food pile; conditions drive the mood idle.
     sceneVisuals()
+    // Ceremony is visual feedback for an already-committed action, so it
+    // starts only after the sim confirms the feed succeeded. The pile is
+    // visible immediately; successive feeds re-trigger cleanly.
+    if (action === "feed") scene.startFeedCeremony()
   },
   onTrain: (stat: StatKey) => {
+    scene.cancelFeedCeremony()
     const result = assignTraining(state, stat)
     if (!result.ok) return // entries are already disabled; belt and braces
     state = result.state

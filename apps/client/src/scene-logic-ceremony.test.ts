@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 
-import { type CeremonyState, createCeremony } from "./scene-logic"
+import { type CeremonyState, createCeremony, lerpAngle } from "./scene-logic"
 
 /** Advance a machine in fixed steps, collecting every tick state. */
 function run(
@@ -174,6 +174,34 @@ describe("ceremony — successive feeds", () => {
       if (m.tick(t).done) doneCount++
     }
     expect(doneCount).toBe(1)
+  })
+})
+
+describe("lerpAngle — shortest-arc yaw blend", () => {
+  test("identical angles stay identical", () => {
+    expect(lerpAngle(0.5, 0.5, 0.25)).toBeCloseTo(0.5)
+  })
+
+  test("k=0 and k=1 return the exact endpoints", () => {
+    expect(lerpAngle(3.0, -3.0, 0)).toBeCloseTo(3.0)
+    expect(lerpAngle(3.0, -3.0, 1)).toBeCloseTo(-3.0)
+  })
+
+  test("wraps the short way across ±π (no 6-radian spin)", () => {
+    // From 3.0 to -3.0 the short way is +0.283 via the wrap, so the
+    // halfway point is π-ish, NOT the long way through 0.
+    expect(lerpAngle(3.0, -3.0, 0.5)).toBeCloseTo(Math.PI)
+    // From 0.2 to 5.9 the arithmetic delta is 5.7 > π, so the short way
+    // wraps DOWN through 0 (-0.583); halfway lands just below 0.
+    expect(lerpAngle(0.2, 5.9, 0.5)).toBeCloseTo(0.2 - 0.583184 / 2, 3)
+  })
+
+  test("is monotonic-increase on a plain short-arc case", () => {
+    const a = lerpAngle(0, 1, 0.4)
+    const b = lerpAngle(0, 1, 0.6)
+    expect(a).toBeCloseTo(0.4)
+    expect(b).toBeCloseTo(0.6)
+    expect(b).toBeGreaterThan(a)
   })
 })
 

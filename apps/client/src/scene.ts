@@ -7,7 +7,14 @@ import { generate, makeRng } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
 import { buildPropGroup } from "./prop"
-import { phaseHash, swayAngle, windBaseAmp } from "./scene-logic"
+import {
+  type CeremonyState,
+  createCeremony,
+  lerpAngle,
+  phaseHash,
+  swayAngle,
+  windBaseAmp,
+} from "./scene-logic"
 
 export interface SceneHandle {
   /** Stop the render loop and free GPU resources. */
@@ -24,6 +31,19 @@ export interface SceneHandle {
   setProps(visualSeed: number): void
   /** Show or hide the food pile (fedToday from the sim). */
   setFedToday(fedToday: boolean): void
+  /**
+   * Play the feeding ceremony: turn toward the pile, walk to a facing
+   * spot, nibble 2–3 dips, walk home. Purely visual — the sim already
+   * committed. Safe to call mid-ceremony (successive feeds re-trigger);
+   * reduced motion plays an in-place nibble at the anchor.
+   */
+  startFeedCeremony(): void
+  /**
+   * Instantly cancel the ceremony from any HUD input path: the creature
+   * snaps-homes and the normal mood idle takes over. Never blocks or
+   * queues input. Idempotent; no-op when no ceremony is running.
+   */
+  cancelFeedCeremony(): void
 }
 
 const GROUND_COLOR = 0x3a4d34
@@ -229,6 +249,62 @@ export function createScene(container: HTMLElement): SceneHandle {
   let mode: MoodMode = "normal"
   let headBaseY = 0
 
+  // -- Feeding ceremony (FR2) -------------------------------------------------
+  // The creature's home anchor is the origin where it idles; the food pile
+  // is a fixed landmark. Ceremony visuals translate/rotate the creature as a
+  // runtime transform only — the sim is untouched.
+  const pilePos = new THREE.Vector3(-2.4, 0, 0.4)
+  const ceremony = createCeremony(reducedMotion)
+  /** Seconds, kept current by tick() — the machine's time base. */
+  let now = 0
+  /** Standing spot near the pile (seeded side offset), chosen at start. */
+  const standPos = new THREE.Vector3()
+  /** Yaw facing the pile from `standPos`. */
+  let pileYaw = 0
+  /** The creature's yaw before the ceremony began (restored at the end). */
+  let homeYaw = 0
+
+  const smoothstep = (k: number): number => k * k * (3 - 2 * k)
+
+  /**
+   * Drive creature pos/yaw from a ceremony tick state. `head` receives the
+   * gentle dip overlay during the nibble phase.
+   */
+  const driveCeremony = (
+    s: CeremonyState,
+    creature: THREE.Group,
+    head: THREE.Object3D | undefined,
+  ): void => {
+    const ease = smoothstep(s.phaseElapsed / Math.max(s.phaseDuration, 1e-6))
+    switch (s.phase) {
+      case "turn":
+        creature.rotation.y = lerpAngle(homeYaw, pileYaw, ease)
+        creature.position.x = 0
+        creature.position.z = 0
+        break
+      case "walk-out":
+        creature.position.x = standPos.x * ease
+        creature.position.z = standPos.z * ease
+        creature.rotation.y = pileYaw
+        break
+      case "nibble": {
+        creature.position.x = standPos.x
+        creature.position.z = standPos.z
+        creature.rotation.y = pileYaw
+        // 2–3 gentle head-dips toward the pile over the existing head pivot.
+        if (head) head.position.y -= s.dipOffset * 0.3
+        break
+      }
+      case "walk-home":
+        creature.position.x = standPos.x * (1 - ease)
+        creature.position.z = standPos.z * (1 - ease)
+        creature.rotation.y = lerpAngle(pileYaw, homeYaw, ease)
+        break
+      default:
+        break
+    }
+  }
+
   /** Registered swayers: {group, baseAmp, phase} attached at scatter
    * time, advanced per tick as a runtime transform. Rocks and the food
    * pile never register (amplitude 0); rebuilt on every re-scatter. */
@@ -358,7 +434,7 @@ export function createScene(container: HTMLElement): SceneHandle {
     setFedToday(fedToday) {
       if (!foodPile) {
         foodPile = buildPropGroup("foodPile", 3301)
-        foodPile.position.set(-2.4, 0, 0.4)
+        foodPile.position.copy(pilePos)
         foodPile.rotation.y = -0.4
         scene.add(foodPile)
       }
@@ -367,6 +443,43 @@ export function createScene(container: HTMLElement): SceneHandle {
     updateConditions(conditions) {
       mode = conditions ? moodModeFrom(conditions) : "normal"
     },
+    startFeedCeremony() {
+      if (!creatureGroup) return
+      ceremony.cancel() // safe even if none running
+      if (reducedMotion) {
+        // In-place nibble at the anchor: no turn, no travel.
+        standPos.set(0, 0, 0)
+        pileYaw = homeYaw
+      } else {
+        // Seeded standing spot: the creature's visual seed picks the side
+        // of the anchor→pile line — same creature, same spot, every feed.
+        const rng = makeRng(scenerySeed ^ 0xfeec)
+        const side = rng.next() < 0.5 ? -1 : 1
+        const out = pilePos.clone().setY(0).normalize()
+        const perp = new THREE.Vector3(-out.z, 0, out.x)
+        standPos
+          .copy(pilePos)
+          .addScaledVector(out, 1.15)
+          .addScaledVector(perp, 0.45 * side)
+        standPos.y = 0
+        const face = new THREE.Vector3().subVectors(pilePos, standPos)
+        // The creature mesh faces -z at rest, so heading toward a world
+        // direction is atan2(dx, dz) + π — without the flip it shuffles
+        // backward toward the pile.
+        pileYaw = Math.atan2(face.x, face.z) + Math.PI
+      }
+      homeYaw = creatureGroup.rotation.y
+      ceremony.start(now)
+    },
+    cancelFeedCeremony() {
+      ceremony.cancel()
+      if (!creatureGroup) return
+      // Snap-home and let the mood idle take over — input is never queued
+      // or delayed behind a running ceremony.
+      creatureGroup.position.x = 0
+      creatureGroup.position.z = 0
+      creatureGroup.rotation.y = homeYaw
+    },
   }
 
   const clockStart = performance.now()
@@ -374,6 +487,7 @@ export function createScene(container: HTMLElement): SceneHandle {
 
   const tick = (): void => {
     const t = (performance.now() - clockStart) / 1000
+    now = t
     const profile = MOOD_PROFILES[mode]
     if (creatureGroup) {
       // Breathe idle: squash-and-stretch on the body around its HIP-LINE
@@ -406,7 +520,13 @@ export function createScene(container: HTMLElement): SceneHandle {
       if (tailTip) {
         tailTip.rotation.y = sway * 0.12
       }
-      if (!reducedMotion && profile.bounce > 0) {
+      // Ceremony drives position/yaw and suppresses the bounce; the mood
+      // idle takes back over the moment ceremony (or its cancel) ends.
+      const ce = ceremony.tick(now)
+      if (ce.phase !== "idle") {
+        driveCeremony(ce, creatureGroup, head ?? undefined)
+        creatureGroup.position.y = 0
+      } else if (!reducedMotion && profile.bounce > 0) {
         creatureGroup.position.y = Math.abs(Math.sin(t * 3.2)) * profile.bounce
       } else {
         creatureGroup.position.y = 0

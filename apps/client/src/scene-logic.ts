@@ -84,6 +84,24 @@ export function swayAngle(
 }
 
 // -- Feeding ceremony ---------------------------------------------------------
+
+/**
+ * Blend two yaw angles along the SHORTEST arc (shortest-arc turn for the
+ * ceremony's facing phase — never a 5-radian spin to look at the food).
+ */
+export function lerpAngle(a: number, b: number, k: number): number {
+  if (k <= 0) return a
+  if (k >= 1) return b
+  return a + wrapPi(b - a) * k
+}
+
+/** Wrap an angle delta into (-π, π]. */
+export function wrapPi(delta: number): number {
+  let d = delta
+  while (d > Math.PI) d -= Math.PI * 2
+  while (d < -Math.PI) d += Math.PI * 2
+  return d
+}
 //
 // A pure state machine for the walk→nibble→home sequence the scene plays
 // after a successful Feed. Timings are fixed, transitions derive from tick
