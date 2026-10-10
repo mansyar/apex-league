@@ -59,16 +59,16 @@ Ground rules for this track:
 
 ## Phase C — Save v4 migration (sim)
 
-- [ ] Task: Failing tests — schema v4 + migration v3→v4 (save)
+- [x] Task: Failing tests — schema v4 + migration v3→v4 (save) (037214b)
   - `save/schema.ts`: `SAVE_VERSION = 4`; creature schema adds
-    `trainingDays: number` and `loadout: readonly string[] | null`.
+    `trainingDays: number` and `loadout: readonly string[] | null`. [x]
   - `save/migrate.ts` + `save.test.ts`: a v3 save migrates to `trainingDays: 6`
     and `loadout: null` (pre-gate creatures knew their kit; no surprise loss);
     a v4 round-trip preserves both fields; older saves still load without
-    damage.
-- [ ] Task: Implement schema v4 and migration (save)
+    damage. [x]
+- [x] Task: Implement schema v4 and migration (save) (6077e14)
   - Version bump, migration function, storage untouched; `bun run
-    gate:determinism` is voxel-only but `verify` runs all gates anyway.
+    gate:determinism` is voxel-only but `verify` runs all gates anyway. [x]
 
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
