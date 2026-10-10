@@ -25,8 +25,8 @@ export const CUP_REWARDS = Object.freeze({
   consolations: Object.freeze({ mood: 2 }),
 })
 
-/** Extra AP budget the day after a cup win (3 → 4). */
-export const CUP_BONUS_AP = 1
+/** Extra AP budget the day after a cup win. The bonus itself is defined in
+ * ticker.ts (CUP_WIN_AP_BONUS) so the grant sits next to the budget math. */
 
 export type CupOutcome = "won" | "lost" | 1 | 2 | 3 | 4
 
@@ -37,30 +37,23 @@ function toOutcome(outcome: CupOutcome): "won" | "lost" {
 }
 
 /**
- * Apply the cup outcome's rewards to the state's creature and report the
- * bookkeeping the caller must persist. Pure: the input state is untouched.
+ * Apply the cup outcome's rewards to the state. Pure: the input state is
+ * untouched; the returned state carries the new mood/bond, the drummed-up
+ * `cupsWon` counter, and `lastCupDay` bookkeeping (the machine stamps the
+ * current day on a win so the next `advanceDay` starts with the bonus AP).
  * Throws when the state has no creature (rewards need somewhere to land).
- * The cupsWon bonus flows in via `state.cupPrevWins` when present so the
- * accumulator stays in one place; GameState grows that optional field in
- * the save v5 step of this track.
  */
 export function applyCupRewards(
   state: GameState,
   outcome: CupOutcome,
-): {
-  state: GameState
-  /** AP budget for the day after the cup (4 on a win, else the standard). */
-  nextDayApBudget: number
-  /** Total cups won after this cup (already including it). */
-  cupsWon: number
-} {
+  cupDay: number,
+): GameState {
   const creature = state.creature
   if (!creature) throw new Error("Cup rewards need a creature to reward")
   // Boolean from the mapped outcome (the string "lost" is truthy!).
   const won = toOutcome(outcome) === "won"
-  const holder = state as { cupPrevWins?: unknown }
-  const prevWins =
-    typeof holder.cupPrevWins === "number" ? holder.cupPrevWins : 0
+  // The lifetime counter lives on GameState (save v5) and accumulates here.
+  const prevWins = state.cupsWon
   const conditions = creature.conditions
   const nextConditions = won
     ? {
@@ -73,11 +66,11 @@ export function applyCupRewards(
         mood: clampCondition(conditions.mood + CUP_REWARDS.consolations.mood),
       }
   return {
-    state: {
-      ...state,
-      creature: { ...creature, conditions: nextConditions },
-    },
-    nextDayApBudget: won ? 3 + CUP_BONUS_AP : 3,
+    ...state,
+    creature: { ...creature, conditions: nextConditions },
     cupsWon: won ? prevWins + 1 : prevWins,
+    // Stamp the cup day only on a win — the ticker reads "today was a won
+    // cup" from lastCupDay === day to grant tomorrow's bonus AP.
+    lastCupDay: won ? cupDay : state.lastCupDay,
   }
 }

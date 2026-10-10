@@ -11,7 +11,7 @@
  * cup only assembles `BattleSide`s and calls into it.
  */
 
-import { type Creature, createCreature, effectiveStats } from "./creature"
+import { type Creature, effectiveStats } from "./creature"
 import { makeRng, type Rng } from "./rng"
 import { getSpecies, type SpeciesDef } from "./species"
 
@@ -70,7 +70,10 @@ export function makeBracket(
     const idx = rng.int(available.length)
     const speciesDef = available[idx]
     if (!speciesDef) throw new Error("No available starter species")
+    // Consume one rng draw per slot regardless — the stream is part of the
+    // deterministic bracket identity, so never prune draws.
     const creatureSeed = Math.floor(rng.next() * 0x7fffffff)
+    void creatureSeed
     const name = shuffledNames[i]
     if (!name) throw new Error("Not enough rival names in the pool")
     const ramp = RIVAL_RAMP[i] ?? 0
@@ -366,7 +369,7 @@ export function resolveCup(
     }
   }
   const champion = alive[0]
-  if (champion && champion.isPlayer) {
+  if (champion?.isPlayer) {
     return {
       championName: champion.name,
       playerPlacement: 1,
