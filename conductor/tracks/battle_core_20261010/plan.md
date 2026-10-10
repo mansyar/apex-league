@@ -76,15 +76,15 @@ Scripted actions only. No tactics yet. A test driver feeds close / hold / basic 
 
 Pure `chooseAction`. No clock required.
 
-- [ ] Task: Failing tests — policy
-  - [ ] `rush` while `far` closes under both tactics; once `near`, it obeys
-  - [ ] `slow` holds on its first action only; the second action follows the tactic
-  - [ ] `obedient` never holds or closes against the tactic
-  - [ ] Favor Specials uses the best ready special before closing or striking
-  - [ ] Balanced from `far` closes unless a super-effective or killing special is ready
-  - [ ] best-special ties break by expected damage, then power, then move id; the seed is not consulted
-  - [ ] a move on cooldown is not chosen
-- [ ] Task: Implement `battle/policy.ts`
+- [x] Task: Failing tests — policy (`8f8b368`)
+  - [x] `rush` while `far` closes under both tactics; once `near`, it obeys
+  - [x] `slow` holds on its first action only; the second action follows the tactic
+  - [x] `obedient` never holds or closes against the tactic
+  - [x] Favor Specials uses the best ready special before closing or striking
+  - [x] Balanced from `far` closes unless a super-effective or killing special is ready
+  - [x] best-special ties break by expected damage, then power, then move id; the seed is not consulted
+  - [x] a move on cooldown is not chosen
+- [x] Task: Implement `battle/policy.ts` (`ccf0ec9`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase F — Resolver, Log, Exhibition (sim)
