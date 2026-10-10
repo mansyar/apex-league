@@ -29,7 +29,10 @@ code; manual verification for rendering/UI wiring).
   fail across 47 files, ~64s (unchanged)
 - [x] Task: Commit `feat(sim): unlock the tide axolotl as the third starter` +
   git note (workflow step 8) — `2786ca0`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  — `[checkpoint: 2786ca0]` user-approved: starter overlay trio enabled,
+  axolotl ranch render + stat card in-bounds, care/day smoke, save persistence,
+  spar wiring, clean console
 
 ## Phase B — Water-flavored coach copy
 
