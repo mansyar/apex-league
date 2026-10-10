@@ -36,13 +36,16 @@ code; manual verification for rendering/UI wiring).
 
 ## Phase B — Water-flavored coach copy
 
-- [ ] Task: Write failing copy test (Red)
-  - [ ] `apps/client/src/hud.copy.test.ts`: add a species/element-water coach
-    line case (≤2 sentences, never punishing)
-- [ ] Task: Implement copy path (Green)
-- [ ] Task: Run full suite, confirm green
-- [ ] Task: Commit `feat(hud): water-flavored coach callout for the tide axolotl` +
-  git note
+- [x] Task: Write failing copy test (Red)
+  - [x] `apps/client/src/hud.copy.test.ts`: add a species/element-water coach
+    line case (≤2 sentences, never punishing) — red via 2 flavorCallout cases
+    (water idle line + other-elements-stay-quiet), table-driven style kept
+- [x] Task: Implement copy path (Green) — element-gated `flavorCallout` in
+  `hud.ts`, wired as the last link of the status chain (training → condition
+  coach → unlock → flavor)
+- [x] Task: Run full suite, confirm green — 374 pass / 0 fail
+- [x] Task: Commit `feat(hud): water-flavored coach callout for the tide axolotl` +
+  git note — `6289a8b`
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase C — Balance review note
