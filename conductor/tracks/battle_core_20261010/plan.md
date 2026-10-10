@@ -37,13 +37,13 @@ a dated deviation in spec.md.
   - [x] measure per-file runtime in the current suite and record it in the plan phase note
   - [x] identify the split (test-file partitioning, shared fixtures, or grouping) that gets the whole suite well under 10 s without weakening coverage — resolved to full-coverage partitioning plus a documented deviation and a follow-up perf track (user-approved 2026-10-10)
   - [x] confirm `bun run verify` still green after the change (216 pass / 0 fail, determinism gate green)
-- [ ] Task: Failing tests — moves and cooldown
-  - [ ] catalog has the 12 spec rows (id, element, power, accuracy, cooldown) and the innate basic (power 4, accuracy 100, typeless)
-  - [ ] each starter species, including locked Tide Axolotl, has the four moves of its element
-  - [ ] temperament is on the species definition: drake `rush`, ox `slow`, axolotl `obedient`
-  - [ ] loadout rejects length other than 4, unknown ids, and duplicates
-  - [ ] after a special is used, it is illegal for exactly N of that fighter's later actions, then legal again
-- [ ] Task: Implement `battle/moves.ts` and add temperament plus kit to species data (not to the saved creature)
+- [x] Task: Failing tests — moves and cooldown (`2967512`)
+  - [x] catalog has the 12 spec rows (id, element, power, accuracy, cooldown) and the innate basic (power 4, accuracy 100, typeless)
+  - [x] each starter species, including locked Tide Axolotl, has the four moves of its element
+  - [x] temperament is on the species definition: drake `rush`, ox `slow`, axolotl `obedient`
+  - [x] loadout rejects length other than 4, unknown ids, and duplicates
+  - [x] after a special is used, it is illegal for exactly N of that fighter's later actions, then legal again
+- [x] Task: Implement `battle/moves.ts` and add temperament plus kit to species data (not to the saved creature) (`336bbe2`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase C — Action Clock & Range (sim)
