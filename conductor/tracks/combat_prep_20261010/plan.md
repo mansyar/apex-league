@@ -74,15 +74,15 @@ Ground rules for this track:
 
 ## Phase D — Exhibition reads prep (sim)
 
-- [ ] Task: Failing tests — effectiveStats + chosen kit in makeExhibition (sim)
+- [x] Task: Failing tests — effectiveStats + chosen kit in makeExhibition (sim) (7b545b0)
   - `battle/exhibition.test.ts`: the owned side's stats equal
     `effectiveStats(owned)` across seeds (trained fixture creatures); an
     explicit loadout argument overrides the kit (chosen four — or two), and
     `loadout: null` resolves to `defaultLoadout`; the rival side is untouched
-    (full species kit, raw stats) in every case.
-- [ ] Task: Implement makeExhibition prep consumption (sim)
+    (full species kit, raw stats) in every case. [x]
+- [x] Task: Implement makeExhibition prep consumption (sim) (e5ff761)
   - `exhibition.ts` consumes the helpers; no seed changes for the rival;
-    export updates as needed.
+    export updates as needed. [x]
 
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
