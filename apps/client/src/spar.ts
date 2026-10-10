@@ -128,6 +128,14 @@ export function createSpar(root: HTMLElement): Spar {
   fastButton.textContent = "Fast-forward"
   fastButton.style.display = "none"
 
+  // Reduced-motion pill: replays the finished fight as a text-only stepped
+  // log so those users get agency instead of a wall of text (2026-10-10).
+  const replayButton = document.createElement("button")
+  replayButton.className = "spar-replay"
+  replayButton.type = "button"
+  replayButton.textContent = "Replay slowly"
+  replayButton.style.display = "none"
+
   const log = document.createElement("div")
   log.className = "spar-log"
 
@@ -148,6 +156,7 @@ export function createSpar(root: HTMLElement): Spar {
     cards,
     tactics,
     fastButton,
+    replayButton,
     log,
     result,
     close,
@@ -159,8 +168,21 @@ export function createSpar(root: HTMLElement): Spar {
   let owned: Creature | null = null
   let timer: ReturnType<typeof setTimeout> | null = null
   let speed = STEP_MS
+  let lastRun: {
+    events: readonly BattleEvent[]
+    verdict: Readonly<BattleResult>
+  } | null = null
+  // True while a Replay slowly pass is in flight; finish() keeps the pill
+  // visible so the user can replay again.
+  let replaying = false
+  // Both comparisons must be evaluated every call; calling matchMedia inside
+  // the function keeps a live read (deferred widget, standards mode).
   const reducedMotion = (): boolean =>
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    // Hardened per the 2026-10-10 spec revision: environments that report
+    // BOTH `reduce` and `no-preference` (seen in an embedded Chromium) must
+    // not collapse the playback into an instant dump.
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
+    !window.matchMedia("(prefers-reduced-motion: no-preference)").matches
 
   const clearTimer = (): void => {
     if (timer !== null) {
@@ -189,6 +211,13 @@ export function createSpar(root: HTMLElement): Spar {
     }
     close.style.display = ""
     fastButton.style.display = "none"
+    if (replaying) {
+      replaying = false
+      replayButton.disabled = false
+      replayButton.style.display = ""
+    } else {
+      replayButton.style.display = "none"
+    }
     for (const { button } of tacticButtons) button.style.display = "none"
   }
 
@@ -226,10 +255,13 @@ export function createSpar(root: HTMLElement): Spar {
 
     intro.textContent = `${setup.rival.name} accepts the spar!`
     for (const { button } of tacticButtons) button.style.display = "none"
+    lastRun = { events: verdict.events, verdict }
     if (reducedMotion()) {
-      // Full log at once, no timers, no fast-forward (FR11).
+      // Full log at once, no timers (FR11); Replay slowly gives a text-only
+      // stepped path for those who want the build-up anyway.
       for (const event of verdict.events) showLine(event.line)
       finish(resultLine(verdict), verdict.winner === null)
+      replayButton.style.display = ""
       return
     }
     speed = STEP_MS
@@ -263,6 +295,9 @@ export function createSpar(root: HTMLElement): Spar {
     log.replaceChildren()
     close.style.display = "none"
     fastButton.style.display = "none"
+    replayButton.style.display = "none"
+    replaying = false
+    lastRun = null
     for (const { button } of tacticButtons) button.style.display = ""
     overlay.style.display = ""
   }
@@ -278,6 +313,17 @@ export function createSpar(root: HTMLElement): Spar {
   fastButton.addEventListener("click", () => {
     speed = FAST_MS
     fastButton.disabled = true
+  })
+  replayButton.addEventListener("click", () => {
+    if (!lastRun) return
+    clearTimer()
+    log.replaceChildren()
+    result.textContent = ""
+    result.classList.remove("spar-result-draw", "spar-result-win")
+    replaying = true
+    replayButton.disabled = true
+    speed = STEP_MS
+    play(lastRun.events, 0, lastRun.verdict)
   })
 
   return {

@@ -485,7 +485,8 @@ body,
   color: var(--ink-dim);
 }
 
-.spar-fast {
+.spar-fast,
+.spar-replay {
   align-self: flex-end;
   padding: 4px 12px;
   border: 1px solid var(--panel-border);
@@ -496,7 +497,8 @@ body,
   cursor: pointer;
 }
 
-.spar-fast:disabled {
+.spar-fast:disabled,
+.spar-replay:disabled {
   opacity: 0.55;
   cursor: default;
 }
