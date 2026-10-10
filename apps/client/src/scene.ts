@@ -40,8 +40,8 @@ const GROUND_COLOR = 0x3a4d34
  */
 const ARENA_FRAMING = {
   azimuth: 0.28,
-  elevation: 0.5,
-  radius: 12.5,
+  elevation: 0.45,
+  radius: 9.5,
   targetY: 1.4,
 } as const
 

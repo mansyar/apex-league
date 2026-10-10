@@ -9,18 +9,22 @@
 import {
   type BattleEvent,
   type BattleResult,
+  buildPlaybackScript,
   type Creature,
   defaultLoadout,
   effectiveStats,
   getMove,
   getSpecies,
   makeExhibition,
+  type PlaybackStep,
   requiredTierDays,
   resolveBattle,
   type SpeciesDef,
   type Tactic,
   unlockedKit,
 } from "@apex/sim"
+import type { FightCasting } from "./staging"
+import { visualSeedOf } from "./staging"
 
 export interface SparHandlers {
   /**
@@ -29,9 +33,12 @@ export interface SparHandlers {
    */
   onSetLoadout?: (moveIds: readonly string[] | null) => void
   /**
-   * A fight is starting: the arena swaps in behind the panel (scene swap).
+   * A fight is starting: the arena swaps in behind the panel and the two
+   * combatants are cast onto the broadcast stage.
    */
-  onFightStart?: () => void
+  onFightStart?: (casting: FightCasting) => void
+  /** One playback step should now play in the arena. */
+  onStep?: (step: PlaybackStep, instant: boolean) => void
   /** The sparring panel closes: the scene swaps back to the ranch. */
   onClose?: () => void
 }
@@ -76,6 +83,28 @@ function statLine(
     return `${key.toUpperCase()} ${stats[key]}${chip}`
   })
   return parts.join(" · ")
+}
+
+type SparSetup = ReturnType<typeof makeExhibition>
+/** Both fighters as arena casts: species-preserving seeds, ranch-stable. */
+function castingFor(owned: Creature, setup: SparSetup): FightCasting {
+  const ownedSpecies = getSpecies(owned.speciesId)
+  const rivalSpecies = getSpecies(setup.rivalSpeciesId)
+  if (!ownedSpecies || !rivalSpecies) {
+    throw new Error("Unknown species: cannot cast the spar")
+  }
+  return {
+    owned: {
+      archetypeId: ownedSpecies.archetypeId,
+      seed: visualSeedOf(owned.stats),
+      name: owned.name,
+    },
+    rival: {
+      archetypeId: rivalSpecies.archetypeId,
+      seed: visualSeedOf(setup.rival.stats),
+      name: setup.rival.name,
+    },
+  }
 }
 
 /** The verdict in announcer voice — never punishment, never death. */
@@ -222,6 +251,7 @@ export function createSpar(
   let timer: ReturnType<typeof setTimeout> | null = null
   let speed = STEP_MS
   let lastRun: {
+    steps: readonly PlaybackStep[]
     events: readonly BattleEvent[]
     verdict: Readonly<BattleResult>
   } | null = null
@@ -282,6 +312,7 @@ export function createSpar(
     events: readonly BattleEvent[],
     index: number,
     verdict: Readonly<BattleResult>,
+    steps: readonly PlaybackStep[],
   ): void => {
     const event = events[index]
     if (!event) {
@@ -294,7 +325,9 @@ export function createSpar(
     timer = setTimeout(() => {
       clearTimer()
       showLine(event.line)
-      play(events, index + 1, verdict)
+      const step = steps[index]
+      if (step) handlers.onStep?.(step, false)
+      play(events, index + 1, verdict, steps)
     }, speed)
   }
 
@@ -308,12 +341,20 @@ export function createSpar(
 
     intro.textContent = `${setup.rival.name} accepts the spar!`
     for (const { button } of tacticButtons) button.style.display = "none"
-    lastRun = { events: verdict.events, verdict }
-    handlers.onFightStart?.()
+    const steps = buildPlaybackScript(verdict.events)
+    lastRun = { events: verdict.events, verdict, steps }
+    handlers.onFightStart?.(castingFor(owned, setup))
     if (reducedMotion()) {
       // Full log at once, no timers (FR11); Replay slowly gives a text-only
-      // stepped path for those who want the build-up anyway.
-      for (const event of verdict.events) showLine(event.line)
+      // stepped path for those who want the build-up anyway. The staging
+      // jumps straight to its final posture (post-step of the last event).
+      let i = 0
+      for (const event of verdict.events) {
+        showLine(event.line)
+        const step = steps[i] ?? steps[steps.length - 1]
+        if (step) handlers.onStep?.(step, true)
+        i++
+      }
       finish(resultLine(verdict), verdict.winner === null)
       replayButton.style.display = ""
       return
@@ -322,7 +363,7 @@ export function createSpar(
     fastButton.textContent = "Fast-forward"
     fastButton.disabled = false
     fastButton.style.display = ""
-    play(verdict.events, 0, verdict)
+    play(verdict.events, 0, verdict, steps)
   }
 
   /**
@@ -450,7 +491,7 @@ export function createSpar(
     replaying = true
     replayButton.disabled = true
     speed = STEP_MS
-    play(lastRun.events, 0, lastRun.verdict)
+    play(lastRun.events, 0, lastRun.verdict, lastRun.steps)
   })
 
   return {

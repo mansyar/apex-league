@@ -17,6 +17,7 @@ import { buildArena } from "./arena"
 import { createHud } from "./hud"
 import { createScene } from "./scene"
 import { createSpar } from "./spar"
+import { createStaging } from "./staging"
 import { createStarterChoice } from "./starter"
 import { createSwap } from "./swap"
 import "./style.css"
@@ -26,6 +27,7 @@ if (!app) throw new Error("#app container missing")
 
 const scene = createScene(app)
 const arena = buildArena(scene.sceneRoot)
+const staging = createStaging(arena.group)
 const swap = createSwap(scene, arena)
 
 const storage: Storage = window.localStorage
@@ -67,14 +69,17 @@ const spar = createSpar(app, {
     persist()
     spar.update(state.creature ?? null)
   },
-  // Fight start: dissolve into the broadcast arena behind the panel;
-  // after the fight (or a mid-fight exit) dissolve back. No save state
-  // is touched by the swap either way.
-  onFightStart: () => {
+  // Fight start: dissolve into the broadcast arena and cast both fighters
+  // on the stage; every event now also steps the arena playback. Back at
+  // the ranch the stage clears again. Nothing here touches the save.
+  onFightStart: (casting) => {
     void swap.enterArena()
+    staging.cast(casting)
   },
+  onStep: (step, instant) => staging.applyStep(step, instant),
   onClose: () => {
     void swap.exitArena()
+    staging.clear()
   },
 })
 

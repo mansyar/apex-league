@@ -33,7 +33,7 @@ phase ends with a verification & checkpoint task.
 - [x] Task: Scene-swap orchestration — Spar start → ranch fades out, arena
       fades in; battle end → back to ranch with no state loss (fix
       update-fanout desyncs while wiring).
-- [ ] Task: Creature staging — both combatants positioned on opposing sides;
+- [x] Task: Creature staging — both combatants positioned on opposing sides;
       positions, launch lunges, and hit reactions keyed to script steps.
 - [ ] Task: Phase B verification & checkpoint (Refer to workflow.md)
 
