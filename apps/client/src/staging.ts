@@ -4,11 +4,12 @@ import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
 
 /**
- * Creature staging for the broadcast arena (spec FR): both combatants
- * stand on opposing sides and answer the playback script — approach runs,
- * melee lunges, projectile recoil, impact recoil/dodges, and the fall.
- * Pure presentation: nothing here reads or writes GameState; the fight is
- * already resolved and the events only drive posture.
+ * Creature staging for the broadcast arena: two living fighters on the
+ * show floor. Positions persist between playback steps and glide smoothly
+ * (a driver loop composes idle bob + stage chasing + transient actions),
+ * so the fight reads as two creatures circling, closing, striking, and
+ * retreating — not a sequence of poses snapping home. Pure presentation:
+ * nothing here reads or writes GameState; the fight is already resolved.
  */
 
 /**
@@ -22,11 +23,30 @@ export const visualSeedOf = (s: {
   spd: number
 }): number => (s.hp * 7 + s.atk * 13 + s.def * 17 + s.spd * 23) % 2 ** 31
 
-/** How long one scripted step animates for, in ms (spar pacing is 900). */
+/** How long one scripted action animates for, in ms (spar pacing is 900). */
 const STEP_ANIM_MS = 600
 
 /** Stage positions: the fighters start wide on the show floor's X axis. */
 const HOME_X = 2.6
+
+/** How close to the opponent's center the actor closes for a strike. */
+const STRIKE_GAP = 1.15
+
+/**
+ * Show-floor bounds: fighters are clamped well inside the painted
+ * boundary ring (8.3) and comfortably inside the broadcast framing, so
+ * nobody leaves the arena or the camera's view. 2026-10-11 feedback:
+ * creature movement must stay in-arena and on-camera.
+ */
+const BOUNDS_X = 3.2
+const BOUNDS_Z = 1.8
+
+/** Stage-glide rate, per second (higher = livelier chasing). */
+const GLIDE = 7
+
+/** Idle bob: the life a fighter shows at rest. */
+const BOB_AMP = 0.045
+const BOB_FREQ = 2.4
 
 /**
  * Element hues from the shared type-color contract (product guidelines:
@@ -51,8 +71,19 @@ const elementColor = (element: string | undefined): string =>
         .setHSL(((ELEMENT_HUE[element] ?? 200) % 360) / 360, 0.75, 0.6)
         .getStyle()
 
-/** One in-flight shot: a small core with a tapered additive trail. */
-const PROJECTILE_LIFE_MS = 450
+/** One in-flight shot: a glowing core with an arced, lagging trail. */
+const PROJECTILE_LIFE_MS = 700
+const PROJECTILE_RADIUS = 0.22
+const PROJECTILE_ARC = 0.55
+
+/** Big-hit threshold: at/above this the punch lands as hit-stop + shake. */
+const BIG_HIT_DAMAGE = 4
+
+/** How long a victim's cells flash white, in ms. */
+const FLASH_MS = 180
+
+/** How long the frame freezes on a big hit, in ms (micro hit-stop). */
+const HIT_STOP_MS = 90
 
 interface Projectile {
   mesh: THREE.Mesh
@@ -63,15 +94,7 @@ interface Projectile {
 }
 
 /** Live shots, newest last; drained by the projectile frame loop in staging. */
-
-/** Big-hit threshold: at/above this the punch lands as hit-stop + shake. */
-const BIG_HIT_DAMAGE = 4
-
-/** How long a victim's cells flash white, in ms. */
-const FLASH_MS = 180
-
-/** How long the frame freezes on a big hit, in ms (micro hit-stop). */
-const HIT_STOP_MS = 90
+const projectiles: Projectile[] = []
 
 export interface FightCasting {
   /** Which creature stands on the left (home) side. */
@@ -83,12 +106,11 @@ export interface FightCasting {
 export interface Staging {
   /** Build and place both combatants facing each other. */
   cast(casting: FightCasting): void
-  /** Drive one playback step: positions, lunges, recoil, dodges, falls. */
+  /** Drive one playback step: closes, strikes, recoils, dodges, falls. */
   applyStep(step: PlaybackStep, instant?: boolean): void
-  /** Big-hit hook: main.ts points this at the broadcast camera shake. */ setBigHitHandler(
-    handler: (strength: number) => void,
-  ): void
-  /** 'reduced' suppresses camera shake (flashes stay off with it). */
+  /** Big-hit hook: main.ts points this at the broadcast camera shake. */
+  setBigHitHandler(handler: (strength: number) => void): void
+  /** 'reduced' suppresses bob, flash, and shake; combat stays legible. */
   setMotionPref(pref: "full" | "reduced"): void
   /** Remove the combatants (panel closed, back to idle ranch bowl). */
   clear(): void
@@ -98,34 +120,108 @@ interface Combatant {
   name: string
   group: THREE.Group
   home: THREE.Vector3
-  /** Local "away" direction (X axis, ±1): where lunges and dodges aim. */
+  /** Local "away" direction (X axis, ±1): where retreats and knockbacks go. */
   away: 1 | -1
   down: boolean
   /** Per-part base colors captured at cast time, keyed by part name. */
   baseColors: Map<THREE.Mesh, THREE.Color>
+  /** Persistent show-floor position; the driver glides the mesh there. */
+  stage: THREE.Vector3
+  /** Smoothed current position (driver output, the glide state). */
+  smooth: THREE.Vector3
+  /** Transient action offset (lunge/flinch/hop), composed by the driver. */
+  offset: THREE.Vector3
+  /** Fall progress 0..1 for the down step; 0 = upright. */
+  fall: number
+  /** Per-fighter bob phase so the pair never breathes in lockstep. */
+  phase: number
 }
 
 export function createStaging(arenaGroup: THREE.Group): Staging {
   let owned: Combatant | null = null
   let rival: Combatant | null = null
-  let raf: number | null = null
+  let actionRaf: number | null = null
   let projectileRaf: number | null = null
-  const projectiles: Projectile[] = []
-  let anim: {
-    start: number
-    run: (t: number, o: Combatant, r: Combatant) => void
-  } | null = null
+  let flashRaf: number | null = null
+  let driveRaf: number | null = null
+  let lastDrive = 0
   /** Hit state: who is flashing and how far into it (ms since start). */
   let flash: { victim: Combatant; start: number } | null = null
-  /** Freeze window on a big hit: pose time does not advance inside it. */
+  /** Freeze window on a big hit: action time does not advance inside it. */
   let hitStopUntil = 0
   /** Big-hit callback (camera punch); wired by main.ts to the scene shake. */
   let onBigHit: ((strength: number) => void) | null = null
 
+  /** Visual intensity preference: 'full' shakes; 'reduced' keeps it calm. */
+  let motionPref: "full" | "reduced" = "full"
+
+  const easeOut = (t: number): number => 1 - (1 - t) * (1 - t)
+
+  /** Wrap an angle delta into [-π, π) so yaw always takes the short way. */
+  const shortestAngle = (a: number): number => {
+    const turn = Math.PI * 2
+    return ((((a + Math.PI) % turn) + turn) % turn) - Math.PI
+  }
+
+  // ── Living-fight driver ────────────────────────────────────────────────
+  // One loop owns every fighter's pose every frame: glide to stage,
+  // idle bob, face the rival, fall poses. Steps only change intents.
+  const pair = (): Array<[Combatant, Combatant]> => {
+    if (owned && rival)
+      return [
+        [owned, rival],
+        [rival, owned],
+      ]
+    return []
+  }
+
+  const drive = (): void => {
+    const now = performance.now()
+    const dt = Math.min(0.1, (now - lastDrive) / 1000 || 1 / 60)
+    lastDrive = now
+    const bob = motionPref === "reduced" ? 0 : 1
+    for (const [c, other] of pair()) {
+      if (c.down) {
+        // Topple onto the back, head away from the opponent, and stay.
+        c.group.rotation.z = -c.away * (Math.PI / 2) * c.fall
+        c.group.position.set(c.smooth.x, 0.28 * c.fall, c.smooth.z)
+        continue
+      }
+      // Keep the stage target inside the show floor (knockbacks, retreats
+      // and approach overshoot all funnel back into the painted ring).
+      c.stage.x = Math.max(-BOUNDS_X, Math.min(BOUNDS_X, c.stage.x))
+      c.stage.z = Math.max(-BOUNDS_Z, Math.min(BOUNDS_Z, c.stage.z))
+      // Glide toward the stage target (exp smoothing, frame-rate safe).
+      const k = 1 - Math.exp(-GLIDE * dt)
+      c.smooth.lerp(c.stage, k)
+      c.group.position.set(
+        c.smooth.x + c.offset.x,
+        c.smooth.y +
+          c.offset.y +
+          Math.sin(now * 0.001 * BOB_FREQ * 2 + c.phase) * BOB_AMP * bob,
+        c.smooth.z + c.offset.z,
+      )
+      // Keep turning toward the rival (the rig fronts its local +Z).
+      const dx = other.group.position.x - c.group.position.x
+      const dz = other.group.position.z - c.group.position.z
+      const desired = Math.atan2(dx, dz)
+      c.group.rotation.y +=
+        shortestAngle(desired - c.group.rotation.y) * (1 - Math.exp(-6 * dt))
+    }
+    driveRaf = requestAnimationFrame(drive)
+  }
+
+  /** Start (or restart) the driver; idempotent per cast. */
+  const startDrive = (): void => {
+    if (driveRaf !== null) cancelAnimationFrame(driveRaf)
+    lastDrive = performance.now()
+    driveRaf = requestAnimationFrame(drive)
+  }
+
   const stop = (): void => {
-    if (raf !== null) {
-      cancelAnimationFrame(raf)
-      raf = null
+    if (actionRaf !== null) {
+      cancelAnimationFrame(actionRaf)
+      actionRaf = null
     }
     if (projectileRaf !== null) {
       cancelAnimationFrame(projectileRaf)
@@ -135,19 +231,19 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       cancelAnimationFrame(flashRaf)
       flashRaf = null
     }
+    if (driveRaf !== null) {
+      cancelAnimationFrame(driveRaf)
+      driveRaf = null
+    }
     disposeProjectiles()
     hitStopUntil = 0
   }
 
-  /** Visual intensity preference: 'full' shakes; 'reduced' keeps it calm. */
-  let motionPref: "full" | "reduced" = "full"
-
-  const easeOut = (t: number): number => 1 - (1 - t) * (1 - t)
-
+  // ── Hit fizz ───────────────────────────────────────────────────────────
   /**
    * Victim flash: push every Lambert color toward white for FLASH_MS,
-   * then restore the cast-time palette. Plural material/part per creature,
-   * so the capture lives on the Combatant, not a single shared material.
+   * then restore the cast-time palette. Per-mesh capture because a
+   * creature is many materials, not one shared material.
    */
   const startFlash = (victim: Combatant): void => {
     if (motionPref === "reduced") return // calm reads: no brightness pop
@@ -161,7 +257,6 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     if (flashRaf === null) flashRaf = requestAnimationFrame(tickFlashL)
   }
 
-  let flashRaf: number | null = null
   const tickFlashL = (): void => {
     tickFlash()
     flashRaf = flash ? requestAnimationFrame(tickFlashL) : null
@@ -192,6 +287,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       onBigHit(Math.min(0.09, 0.02 + d / 80))
   }
 
+  // ── Projectiles ───────────────────────────────────────────────────────
   /** Release the pooled projectiles (scene swap, panel close). */
   const disposeProjectiles = (): void => {
     for (const p of projectiles) {
@@ -214,11 +310,15 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       const t = (performance.now() - p.start) / PROJECTILE_LIFE_MS
       const dir = p.to.clone().sub(p.from)
       const travel = Math.min(1, t)
-      // Core flies, trail lags behind it along the same line.
-      p.mesh.position.copy(p.from).addScaledVector(dir, travel)
+      const pos = p.from.clone().addScaledVector(dir, travel)
+      pos.y += Math.sin(travel * Math.PI) * PROJECTILE_ARC
+      p.mesh.position.copy(pos)
+      // Trail lags behind it along the same line, with the same arc lift.
       for (let s = 0; s < p.trail.length; s++) {
-        const lag = Math.max(0, travel - (s + 1) * 0.08)
-        p.trail[s]?.position.copy(p.from).addScaledVector(dir, lag)
+        const lag = Math.max(0, travel - (s + 1) * 0.09)
+        const segPos = p.from.clone().addScaledVector(dir, lag)
+        segPos.y += Math.sin(lag * Math.PI) * PROJECTILE_ARC
+        p.trail[s]?.position.copy(segPos)
       }
       if (t >= 1) {
         // Impact punctures: vanish (the impact step supplies the reaction).
@@ -249,11 +349,13 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     element: string | undefined,
   ): void => {
     const color = new THREE.Color(elementColor(element))
-    // Launch from the thrower's shoulder line, land on the victim's chest.
-    const origin = new THREE.Vector3(from.home.x, 0.8, from.home.z)
-    const target = new THREE.Vector3(to.home.x, 0.8, to.home.z)
+    // Launch from the thrower's shoulder, land on the victim's chest.
+    const origin = from.group.position.clone()
+    origin.y += 0.8
+    const target = to.group.position.clone()
+    target.y += 0.6
     const core = new THREE.Mesh(
-      new THREE.SphereGeometry(0.11, 10, 8),
+      new THREE.SphereGeometry(PROJECTILE_RADIUS, 12, 10),
       new THREE.MeshBasicMaterial({ color }),
     )
     core.position.copy(origin)
@@ -262,11 +364,11 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     const trail: THREE.Mesh[] = []
     for (let i = 0; i < 4; i++) {
       const seg = new THREE.Mesh(
-        new THREE.SphereGeometry(0.09 - i * 0.015, 8, 6),
+        new THREE.SphereGeometry(PROJECTILE_RADIUS - (i + 1) * 0.033, 10, 8),
         new THREE.MeshBasicMaterial({
           color,
           transparent: true,
-          opacity: 0.4 - i * 0.08,
+          opacity: 0.55 - i * 0.1,
           blending: THREE.AdditiveBlending,
           depthWrite: false,
         }),
@@ -287,6 +389,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     }
   }
 
+  // ── Step choreography ──────────────────────────────────────────────────
   /** Which combatant is the acting side of a step. */
   const spotOf = (
     actor: string,
@@ -299,15 +402,23 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     return { actor: o, target: r }
   }
 
-  /** X distance for one step's motion, scaled by how hard it landed. */
+  /** Knockback distance for a landed hit, scaled by how hard it landed. */
   const strikeReach = (damage: number | undefined): number => {
     const d = damage ?? 0
     return Math.min(0.9, Math.max(0.25, d / 8))
   }
 
+  /** Jump a fighter's whole glide state straight to its stage. */
+  const snapTo = (c: Combatant): void => {
+    c.smooth.copy(c.stage)
+    c.group.position.copy(c.stage)
+    c.offset.set(0, 0, 0)
+  }
+
   /**
-   * Drive one step. Each step starts from the fighters' home posts so
-   * the script stays strictly treeless: kind → pose, never cumulative.
+   * Drive one step. Fighters hold their stage position between steps, so
+   * the fight stays continuous — an approach that never got answered is
+   * still standing there in the next beat.
    */
   const runStep = (
     step: PlaybackStep,
@@ -315,165 +426,150 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     o: Combatant,
     r: Combatant,
   ): void => {
-    o.group.position.copy(o.home)
-    r.group.position.copy(r.home)
-    o.group.rotation.set(0, o.group.rotation.y, 0)
-    r.group.rotation.set(0, r.group.rotation.y, 0)
-    o.group.position.y = 0
-    r.group.position.y = 0
+    if (actionRaf !== null) {
+      cancelAnimationFrame(actionRaf)
+      actionRaf = null
+    }
+    for (const c of [o, r]) c.offset.set(0, 0, 0)
     const side = spotOf(step.actor, o, r)
 
     switch (step.kind) {
       case "approach": {
-        // The acting fighter closes toward center, stopping at striking
-        // distance; the other plants.
-        const dx = (side.actor.away * -1.2) as number
-        anim = instant
-          ? null
-          : {
-              start: performance.now(),
-              run: (t, ao) => {
-                ao.group.position.x = ao.home.x + dx * easeOut(t)
-              },
-            }
+        // The acting fighter closes to striking distance; the rival holds
+        // ground (the glide does the walking).
+        side.actor.stage.set(
+          side.target.stage.x + side.actor.away * STRIKE_GAP,
+          0,
+          0,
+        )
+        if (instant) snapTo(side.actor)
         break
       }
       case "idle":
-        // Hold the post; motion stays procedural (steps keep both planted).
-        anim = null
+        // Hold the post; the driver keeps the breathing and facing alive.
         break
       case "melee": {
-        // Lunge in on a sine and return; the victim flinches on contact.
-        const reach = -side.actor.away * 1.1
-        const flinch = -side.target.away * strikeReach(step.damage)
-        anim = instant
-          ? null
-          : {
-              start: performance.now(),
-              run: (t, ao, at) => {
-                const swing = Math.sin(t * Math.PI)
-                ao.group.position.x = ao.home.x + reach * swing
-                if (t > 0.45) {
-                  const w = (t - 0.45) / 0.55
-                  at.group.position.x = at.home.x + flinch * w
-                }
-              },
+        // A real lunge: charge into contact on a sine, then recover. The
+        // victim flinches backward off the contact through the tail.
+        const contactX =
+          side.target.stage.x + side.actor.away * (STRIKE_GAP - 0.35)
+        const reach = -side.target.away * strikeReach(step.damage)
+        if (instant) break
+        actionRaf = startAction(
+          (t, ao, at) => {
+            ao.offset.x = (contactX - ao.stage.x) * Math.sin(t * Math.PI)
+            if (t > 0.45) {
+              const w = (t - 0.45) / 0.55
+              at.offset.x = reach * Math.sin(w * Math.PI)
             }
+          },
+          o,
+          r,
+        )
         break
       }
       case "projectile": {
         // Anchor and wind: a small counter-recoil as the shot leaves.
         const recoil = side.actor.away * 0.35
-        anim = instant
-          ? null
-          : {
-              start: performance.now(),
-              run: (t, ao) => {
-                ao.group.position.x = ao.home.x + recoil * easeOut(t)
-              },
-            }
         if (!instant) {
           spawnProjectile(side.actor, side.target, step.element)
+          actionRaf = startAction(
+            (t, ao) => {
+              ao.offset.x = recoil * Math.sin(t * Math.PI)
+            },
+            o,
+            r,
+          )
         }
         break
       }
       case "impact": {
         if (!step.hit) {
-          // A standing miss costs nothing; a dodge sidesteps off the lane.
-          const dodge = step.missReason === "dodge"
-          anim = instant
-            ? null
-            : {
-                start: performance.now(),
-                run: (t, _ao, at) => {
-                  if (!dodge) return
-                  const dx = Math.sin(t * Math.PI) * 0.8
-                  at.group.position.set(
-                    at.home.x,
-                    at.home.y,
-                    at.home.z + dx * at.away,
-                  )
-                },
-              }
-          if (instant && dodge) {
-            side.target.group.position.z =
-              side.target.home.z + 0.8 * side.target.away
+          // A standing miss costs nothing; a dodge retreats off the lane
+          // (a real creature gets out of the way, backward, and settles).
+          if (step.missReason === "dodge") {
+            side.target.stage.x += side.target.away * 0.9
+            if (instant) snapTo(side.target)
           }
           break
         }
-        // Solid hit: knock the victim back off their home post.
-        const knock = -side.target.away * strikeReach(step.damage)
+        // Solid hit: the knockback persists in the victim's stage, so the
+        // next beat starts from the pushed-back position.
+        side.target.stage.x += side.target.away * strikeReach(step.damage)
         if (!instant) {
           startFlash(side.target)
           bigHit(step.damage)
-        }
-        anim = instant
-          ? null
-          : {
-              start: performance.now(),
-              run: (t, _ao, at) => {
-                at.group.position.x = at.home.x + knock * easeOut(t)
-              },
-            }
-        if (instant) {
-          side.target.group.position.x = side.target.home.x + knock
+        } else {
+          snapTo(side.target)
         }
         break
       }
       case "down": {
-        // Fall on the back, away from the opponent, and stay down.
+        // Fall on the back and stay down — the driver renders `fall`.
         side.actor.down = true
-        const backTilt = -Math.PI / 2
-        const sink = side.actor.away * 0.6
-        const applyFall = (ao: Combatant, w: number): void => {
-          ao.group.rotation.x = backTilt * w
-          ao.group.position.y = 0.35 * w
-          ao.group.position.x = ao.home.x + sink * w
+        if (instant) {
+          side.actor.fall = 1
+          snapTo(side.actor)
+        } else {
+          actionRaf = startAction(
+            (t, ao) => {
+              ao.fall = easeOut(t)
+            },
+            o,
+            r,
+          )
         }
-        if (instant) applyFall(side.actor, 1)
-        else
-          anim = {
-            start: performance.now(),
-            run: (t) => applyFall(side.actor, easeOut(t)),
-          }
         break
       }
       case "judge": {
         // Result stamp: the standing winner takes a small double hop. On a
         // draw both are already down and the pose stays as it fell.
         const standing = [o, r].filter((c) => !c.down)
-        if (instant || standing.length === 0) {
-          anim = null
-          break
-        }
-        anim = {
-          start: performance.now(),
-          run: (t, ao) => {
-            if (ao.down) return
-            ao.group.position.y =
-              ao.home.y + Math.abs(Math.sin(t * Math.PI * 2)) * 0.35
+        if (instant || standing.length === 0) break
+        actionRaf = startAction(
+          (t, ao, at) => {
+            if (!ao.down) {
+              ao.offset.y = Math.abs(Math.sin(t * Math.PI * 2)) * 0.35
+            } else if (!at.down) {
+              at.offset.y = Math.abs(Math.sin(t * Math.PI * 2)) * 0.35
+            }
           },
-        }
+          o,
+          r,
+        )
         break
       }
     }
+  }
 
-    stop()
-    if (!anim) return
-    const a = anim
-    const tickAnim = (): void => {
-      // Micro hit-stop: while the freeze window is open, pose time holds
-      // still (the window itself continues draining on wall time).
+  /** One scripted action on staging's own clock (hit-stop aware). */
+  const startAction = (
+    run: (t: number, o: Combatant, r: Combatant) => void,
+    o: Combatant,
+    r: Combatant,
+  ): number => {
+    const start = performance.now()
+    let raf: number | null = null
+    const tick = (): void => {
+      // Micro hit-stop: while the freeze window is open, action time
+      // holds still (the window itself keeps draining on wall time).
       if (performance.now() < hitStopUntil) {
-        raf = requestAnimationFrame(tickAnim)
+        raf = requestAnimationFrame(tick)
         return
       }
-      const t = Math.min(1, (performance.now() - a.start) / STEP_ANIM_MS)
-      a.run(t, o, r)
-      if (t < 1) raf = requestAnimationFrame(tickAnim)
-      else raf = null
+      const t = Math.min(1, (performance.now() - start) / STEP_ANIM_MS)
+      run(t, o, r)
+      if (t < 1) {
+        raf = requestAnimationFrame(tick)
+      } else {
+        raf = null
+        actionRaf = null
+      }
     }
-    raf = requestAnimationFrame(tickAnim)
+    raf = requestAnimationFrame(tick)
+    // The tick writes back into the outer slot via mutation on complete;
+    // return the first frame id so cancel has something to cancel.
+    return raf
   }
 
   return {
@@ -513,13 +609,21 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
           away,
           down: false,
           baseColors: new Map(),
+          stage: new THREE.Vector3(HOME_X * away, 0, 0),
+          smooth: new THREE.Vector3(HOME_X * away, 0, 0),
+          offset: new THREE.Vector3(),
+          fall: 0,
+          phase: Math.random() * Math.PI * 2,
         }
-        group.position.copy(combatant.home)
-        // Face the opponent across the show floor.
-        group.rotation.y = away === 1 ? Math.PI / 2 : -Math.PI / 2
+        group.position.copy(combatant.stage)
+        // The rig fronts its local +Z, so the left fighter turns +90° to
+        // look down +X — the driver keeps the yaw continuously correct
+        // from here; this initial copy just avoids a first-frame spin.
+        const initialYaw = away === 1 ? -Math.PI / 2 : Math.PI / 2
+        group.rotation.set(0, initialYaw, 0)
         arenaGroup.add(group)
-        // Capture the cast-time palette per part so a hit flash returns it
-        // to base later (multiple Lambert materials per creature, so per-mesh).
+        // Capture the cast-time palette per part so a hit flash returns
+        // it to base later.
         group.traverse((obj) => {
           if (obj instanceof THREE.Mesh) {
             const mat = obj.material as THREE.MeshLambertMaterial
@@ -532,6 +636,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       owned = buildSpot(casting.owned, -1)
       rival = buildSpot(casting.rival, 1)
       flash = null
+      startDrive()
     },
     applyStep(step, instant = false) {
       const o = owned
@@ -561,7 +666,6 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       }
       owned = null
       rival = null
-      anim = null
       flash = null
       hitStopUntil = 0
     },

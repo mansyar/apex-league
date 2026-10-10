@@ -746,6 +746,15 @@ body,
   color: var(--ink-dim);
 }
 
+/* Arena mode: the ranch HUD (day chip, creature lower-third, care
+   cluster) hides while a fight frames the bowl — broadcast clarity.
+   The spar panel and motion pill stay visible. */
+.app-in-arena .day-chip,
+.app-in-arena .lower-third,
+.app-in-arena .action-cluster {
+  display: none;
+}
+
 /* Result banner (Phase C): a broadcast lower-third stamp over the arena
    panel while the finisher plays. Reduced motion keeps it (it is a static
    DOM element; nothing flashes or moves). */

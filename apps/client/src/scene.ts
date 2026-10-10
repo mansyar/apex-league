@@ -51,14 +51,15 @@ const GROUND_COLOR = 0x3a4d34
 
 /**
  * Broadcast camera framing the ranch orbit hands over to during a fight:
- * a fixed side-elevated telephoto position, like a broadcast camera pit.
- * The arena is watched, not orbited.
+ * a fixed side-elevated wide shot that keeps both ends of the show floor
+ * (STAGE bounds ±3.4 on X, ±2 on Z) in frame with margin. 2026-10-11:
+ * widened after live feedback — no fighter leaves the camera's view.
  */
 const ARENA_FRAMING = {
-  azimuth: 0.28,
-  elevation: 0.45,
-  radius: 9.5,
-  targetY: 1.4,
+  azimuth: 0.12,
+  elevation: 0.55,
+  radius: 12.5,
+  targetY: 0.9,
 } as const
 
 /**

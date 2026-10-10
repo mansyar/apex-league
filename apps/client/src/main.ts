@@ -78,12 +78,15 @@ const spar = createSpar(app, {
     scene.setRanchCreatureVisible(false)
     void swap.enterArena()
     staging.cast(casting)
+    // Broadcast clarity: the ranch HUD stands down while the bowl plays.
+    app.classList.add("app-in-arena")
   },
   onStep: (step, instant) => staging.applyStep(step, instant),
   onClose: () => {
     scene.setRanchCreatureVisible(true)
     void swap.exitArena()
     staging.clear()
+    app.classList.remove("app-in-arena")
   },
 })
 staging.setBigHitHandler((strength) => scene.shake(strength))
