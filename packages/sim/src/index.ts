@@ -7,6 +7,31 @@
  */
 
 export { spendActionPoints } from "./ap"
+export {
+  BASIC,
+  type BattleEvent,
+  type BattleEventKind,
+  type BattleFighter,
+  type BattleReason,
+  type BattleResult,
+  type BattleSide,
+  CLOSE,
+  type Clock,
+  type ClockFighter,
+  chooseAction,
+  createClock,
+  createClockFighter,
+  createTieOrder,
+  HOLD,
+  makeExhibition,
+  type PlannedAction,
+  type Range,
+  resolveBattle,
+  type SparSetup,
+  strikeDamage,
+  type Tactic,
+  typeFactor,
+} from "./battle"
 export { CUP_INTERVAL_DAYS, isCupDay } from "./calendar"
 export {
   CARE_AP_COST,
