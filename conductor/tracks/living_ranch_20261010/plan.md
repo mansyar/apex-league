@@ -30,10 +30,10 @@ Verification & Checkpoint gate run before moving on.
 
 ## Phase C — Sparse wandering
 
-- [~] Task: Wander scheduler (failing tests) in the scene-logic module:
-  - [ ] gap chooser 20–40 s from free-running Rng seeded `visualSeed ^ stepCount` (never wall-clock; no save interaction)
-  - [ ] target chooser: near a visible tuft/bush, min distance from pile anchor and inside moss disc; deterministic per (seed, step)
-  - [ ] visit pause with look-around head turns (1–2 s); droopy/sick mood profiles (from existing scenes mapping) suppress wandering; end state always `home-idle`
+- [x] Task: Wander scheduler (failing tests) in the scene-logic module:
+  - [x] gap chooser 20–40 s from free-running Rng seeded `visualSeed ^ stepCount` (never wall-clock; no save interaction)
+  - [x] target chooser: near a visible tuft/bush, min distance from pile anchor and inside moss disc; deterministic per (seed, step)
+  - [x] visit pause with look-around head turns (1–2 s); droopy/sick mood profiles (from existing scenes mapping) suppress wandering; end state always `home-idle` (`955280a`)
 - [ ] Task: Locomotion + camera — diagonal-pair gait (from the Phase B scene-logic module) on existing leg pivots at walking cadence; orbit target soft-lerps to creature pos, returns to home anchor; user drag/wheel remains authoritative
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) — unit tests; browser evidence: a full wander trip + camera tracking, reduced-motion shows no wandering *(checkpoint: sha)*
 
