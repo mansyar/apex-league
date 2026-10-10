@@ -123,10 +123,10 @@ describe("species kit", () => {
     }
   })
 
-  test("axolotl kit exists even while the species is locked", () => {
+  test("axolotl kit is complete now that the species is unlocked", () => {
     const axolotl = getSpecies("water_axolotl")
     if (!axolotl) throw new Error("water_axolotl species missing")
-    expect(axolotl.available).toBe(false)
+    expect(axolotl.available).toBe(true)
     expect(axolotl.kit.length).toBe(4)
   })
 })

@@ -64,11 +64,16 @@ describe("makeExhibition — prep consumption", () => {
 })
 
 describe("makeExhibition", () => {
-  test("the rival is always an available starter over many seeds", () => {
-    for (let seed = 0; seed < 60; seed++) {
+  test("every starter appears as a rival across many seeds", () => {
+    const seen = new Set<string>()
+    for (let seed = 0; seed < 240; seed++) {
       const spar = makeExhibition(buildOwned(seed + 1), "balanced", seed)
-      expect(["fire_drake", "plant_ox"]).toContain(spar.rivalSpeciesId)
+      expect(["fire_drake", "plant_ox", "water_axolotl"]).toContain(
+        spar.rivalSpeciesId,
+      )
+      seen.add(spar.rivalSpeciesId)
     }
+    expect(seen).toEqual(new Set(["fire_drake", "plant_ox", "water_axolotl"]))
   })
 
   test("the rival tactic is one of the two tactics", () => {
@@ -86,7 +91,6 @@ describe("makeExhibition", () => {
     expect(spar.ownedSide.kit).toEqual(defaultLoadout(buildOwned(1), owned))
     expect(spar.rivalSide.kit).toEqual(rival.kit)
     expect(spar.rivalSide.temperament).toBe(rival.temperament)
-    expect(spar.rivalSpeciesId).not.toBe("water_axolotl")
   })
 
   test("the rival's stats land inside the species stat bounds", () => {
