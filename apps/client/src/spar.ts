@@ -10,11 +10,25 @@ import {
   type BattleEvent,
   type BattleResult,
   type Creature,
+  defaultLoadout,
+  effectiveStats,
+  getMove,
+  getSpecies,
   makeExhibition,
+  requiredTierDays,
   resolveBattle,
   type SpeciesDef,
   type Tactic,
+  unlockedKit,
 } from "@apex/sim"
+
+export interface SparHandlers {
+  /**
+   * Persist a chosen kit (or reset it to null = default slicing) through
+   * the state flow. main.ts wires this to setLoadout/clearLoadout and saves.
+   */
+  onSetLoadout?: (moveIds: readonly string[] | null) => void
+}
 
 export interface Spar {
   /** Sync the button and live creature reference with the current state. */
@@ -44,10 +58,18 @@ const TACTIC_LABELS: Record<Tactic, string> = {
 const STEP_MS = 900
 const FAST_MS = 140
 
+/** Bigger stat label for readability on the card line. */
+const STAT_KEYS = ["hp", "atk", "def", "spd"] as const
 function statLine(
   stats: Readonly<{ hp: number; atk: number; def: number; spd: number }>,
+  trained?: Readonly<{ hp: number; atk: number; def: number; spd: number }>,
 ): string {
-  return `HP ${stats.hp} · ATK ${stats.atk} · DEF ${stats.def} · SPD ${stats.spd}`
+  const parts = STAT_KEYS.map((key) => {
+    const bonus = trained?.[key] ?? 0
+    const chip = bonus > 0 ? ` (+${bonus})` : ""
+    return `${key.toUpperCase()} ${stats[key]}${chip}`
+  })
+  return parts.join(" · ")
 }
 
 /** The verdict in announcer voice — never punishment, never death. */
@@ -58,7 +80,10 @@ function resultLine(verdict: Readonly<BattleResult>): string {
   return `${verdict.winner} wins the spar!`
 }
 
-export function createSpar(root: HTMLElement): Spar {
+export function createSpar(
+  root: HTMLElement,
+  handlers: SparHandlers = {},
+): Spar {
   // Top-right spar chip: its own control, separate from the care cluster.
   const sparButton = document.createElement("button")
   sparButton.className = "spar-button"
@@ -96,6 +121,10 @@ export function createSpar(root: HTMLElement): Spar {
   const rivalDetail = document.createElement("div")
   rivalDetail.className = "spar-detail"
 
+  // Kit-gate progress (FR5): the next locked tier and its remaining days.
+  const progress = document.createElement("div")
+  progress.className = "spar-progress"
+
   const cards = document.createElement("div")
   cards.className = "spar-cards"
   const ownedCard = document.createElement("div")
@@ -103,6 +132,22 @@ export function createSpar(root: HTMLElement): Spar {
   const rivalCard = document.createElement("div")
   rivalCard.className = "spar-card"
   cards.append(ownedCard, rivalCard)
+
+  // Loadout row (FR5): the kit picker feeding this spar through setLoadout.
+  const loadoutRow = document.createElement("div")
+  loadoutRow.className = "spar-loadout-row"
+  const loadoutLabel = document.createElement("span")
+  loadoutLabel.className = "spar-loadout-label"
+  loadoutLabel.textContent = "Kit"
+  const kitStrip = document.createElement("div")
+  kitStrip.className = "spar-kit"
+  const kitHint = document.createElement("span")
+  kitHint.className = "spar-loadout-hint"
+  const resetPill = document.createElement("button")
+  resetPill.className = "spar-kit-reset"
+  resetPill.type = "button"
+  resetPill.textContent = "Reset kit"
+  loadoutRow.append(loadoutLabel, kitStrip, resetPill, kitHint)
 
   const tactics = document.createElement("div")
   tactics.className = "spar-tactics"
@@ -153,7 +198,9 @@ export function createSpar(root: HTMLElement): Spar {
     intro,
     rivalRow,
     rivalDetail,
+    progress,
     cards,
+    loadoutRow,
     tactics,
     fastButton,
     replayButton,
@@ -271,6 +318,68 @@ export function createSpar(root: HTMLElement): Spar {
     play(verdict.events, 0, verdict)
   }
 
+  /**
+   * The combat-prep readout: effective stat card with trained chips, the
+   * kit-gate progress line, and the picker row (FR5). Called on open and
+   * whenever the creature reference changes while the panel is up.
+   */
+  const refreshPrep = (creature: Creature): void => {
+    const species = getSpecies(creature.speciesId)
+    if (!species) throw new Error(`Unknown species: ${creature.speciesId}`)
+
+    ownedCard.textContent = `${creature.name} — ${statLine(
+      effectiveStats(creature),
+      creature.trained,
+    )}`
+
+    const unlocked = unlockedKit(creature, species)
+    const nextIndex = unlocked.length
+    const nextId = species.kit[nextIndex]
+    if (nextId === undefined) {
+      progress.textContent = ""
+    } else {
+      const required = requiredTierDays(nextIndex)
+      const remaining = required - creature.trainingDays
+      const displayName = getMove(nextId)?.displayName ?? nextId
+      const plural = remaining === 1 ? "day" : "days"
+      progress.textContent = `Unlocked ${nextIndex} of 4 moves — train ${remaining} more ${plural} for ${displayName}.`
+    }
+
+    const chosen = creature.loadout ?? defaultLoadout(creature, species)
+    kitStrip.replaceChildren()
+    species.kit.forEach((id, index) => {
+      const name = getMove(id)?.displayName ?? id
+      const required = requiredTierDays(index)
+      const locked = creature.trainingDays < required
+      const chip = document.createElement("button")
+      chip.type = "button"
+      chip.className = locked
+        ? "spar-kit-move spar-kit-locked"
+        : chosen.includes(id)
+          ? "spar-kit-move spar-kit-chosen"
+          : "spar-kit-move"
+      chip.textContent = locked
+        ? `${name} — train ${required - creature.trainingDays} more days`
+        : name
+      chip.disabled = locked
+      if (!locked) {
+        chip.addEventListener("click", () => {
+          const next = chosen.includes(id)
+            ? chosen.filter((m) => m !== id)
+            : [...chosen, id]
+          kitHint.textContent = ""
+          try {
+            handlers.onSetLoadout?.(next)
+          } catch (error) {
+            kitHint.textContent =
+              error instanceof Error ? error.message : "That kit is not allowed"
+          }
+        })
+      }
+      kitStrip.append(chip)
+    })
+  }
+
   const open = (creature: Creature | null): void => {
     if (!creature) return
     clearTimer()
@@ -285,9 +394,9 @@ export function createSpar(root: HTMLElement): Spar {
       TACTIC_LABELS[setup.rivalTactic]
     } · ${TEMPERAMENT_LINES[setup.rivalSide.temperament]} · Seed ${battleSeed}`
     ownedCard.className = `spar-card el-border-${setup.ownedSide.element}`
-    ownedCard.textContent = `${setup.ownedSide.name} — ${statLine(setup.ownedSide.stats)}`
     rivalCard.className = `spar-card el-border-${setup.rivalSide.element}`
     rivalCard.textContent = `${setup.rivalSide.name} — ${statLine(setup.rivalSide.stats)}`
+    refreshPrep(creature)
 
     intro.textContent = "Pick how your partner fights. No AP, nothing saved."
     result.textContent = ""
@@ -310,6 +419,16 @@ export function createSpar(root: HTMLElement): Spar {
     overlay.style.display = "none"
   })
   sparButton.addEventListener("click", () => open(owned))
+  resetPill.addEventListener("click", () => {
+    kitHint.textContent = ""
+    try {
+      // null = back to the default slicing (clearLoadout in the sim).
+      handlers.onSetLoadout?.(null)
+    } catch (error) {
+      kitHint.textContent =
+        error instanceof Error ? error.message : "That kit is not allowed"
+    }
+  })
   fastButton.addEventListener("click", () => {
     speed = FAST_MS
     fastButton.disabled = true
@@ -332,6 +451,9 @@ export function createSpar(root: HTMLElement): Spar {
       // reads the partner as they are right now.
       owned = creature
       sparButton.disabled = creature === null
+      if (creature && overlay.style.display !== "none") {
+        refreshPrep(creature)
+      }
       if (!creature && overlay.style.display !== "none") {
         clearTimer()
         overlay.style.display = "none"

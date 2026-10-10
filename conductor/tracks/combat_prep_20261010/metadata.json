@@ -1,0 +1,11 @@
+{
+  "id": "combat_prep_20261010",
+  "title": "Combat Prep — trained stats in battle, growing move kits, equip-4",
+  "type": "feature",
+  "status": "complete",
+  "branch": "track/combat_prep_20261010",
+  "created": "2026-10-10",
+  "updated": "2026-10-10",
+  "spec": "spec.md",
+  "plan": "plan.md"
+}

@@ -61,8 +61,12 @@ const migrations: Record<
     return { version: 2, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
 
-  // v3 → v4: saves from before the daily food-pile flag have no fedToday
-  // on the creature. Wake every migrated creature unfed.
+  // v3 → v4: saves from before the daily food-pile flag and the move-kit
+  // ledger have neither fedToday nor trainingDays/loadout on the creature.
+  // Merged migration (ranch dressing + combat prep both bumped 3→4): wake
+  // every migrated creature unfed; credit 6 trained days so pre-gate
+  // creatures (who knew their full kit) suffer no surprise loss; loadout
+  // starts at the default slicing (null). Rolled stats are untouched.
   3: (raw) => {
     const state = raw.state
     if (typeof state !== "object" || state === null) {
@@ -91,6 +95,8 @@ const migrations: Record<
       creature = {
         ...(s.creature as Record<string, unknown>),
         fedToday: false,
+        trainingDays: 6,
+        loadout: null,
       } as unknown as GameState["creature"]
     }
     const migrated: GameState = { day, phase, actionPoints, creature }
@@ -135,7 +141,6 @@ const migrations: Record<
     return { version: 3, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
 }
-
 /**
  * Migrate any versioned save payload to the current schema.
  * Throws on unknown/missing versions — callers treat throws as corrupt data.

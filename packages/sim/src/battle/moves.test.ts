@@ -161,8 +161,19 @@ describe("validateLoadout", () => {
     }
   })
 
-  test("rejects a loadout that is not exactly four moves", () => {
-    expect(() => validateLoadout(["spark", "flame_charge"])).toThrow(/four/)
+  test("accepts two- and three-move loadouts (battle_core FR3 revision)", () => {
+    expect(validateLoadout(["spark", "flame_charge"]).map((m) => m.id)).toEqual(
+      ["spark", "flame_charge"],
+    )
+    expect(
+      validateLoadout(["cinder_shot", "spark", "flame_charge"]).map(
+        (m) => m.id,
+      ),
+    ).toEqual(["cinder_shot", "spark", "flame_charge"])
+  })
+
+  test("rejects a loadout with fewer than two or more than four moves", () => {
+    expect(() => validateLoadout(["spark"])).toThrow(/two to four/)
     expect(() =>
       validateLoadout([
         "spark",
@@ -171,7 +182,7 @@ describe("validateLoadout", () => {
         "blaze_bolt",
         "basic",
       ]),
-    ).toThrow(/four/)
+    ).toThrow(/two to four/)
   })
 
   test("rejects unknown moves", () => {

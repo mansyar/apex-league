@@ -4,12 +4,14 @@ import {
   type CareAction,
   careAction,
   chooseStarter,
+  clearLoadout,
   createInitialState,
   type GameState,
   getSpecies,
   loadGame,
   type StatKey,
   saveGame,
+  setLoadout,
 } from "@apex/sim"
 import { createHud } from "./hud"
 import { createScene } from "./scene"
@@ -52,8 +54,16 @@ const syncScene = (): void => {
   sceneVisuals()
 }
 
-// The spar reads the live state through this hook; it never mutates it.
-const spar = createSpar(app)
+// The spar reads the live state through this hook; kit changes write
+// through setLoadout/clearLoadout and persist like every other sim change.
+const spar = createSpar(app, {
+  onSetLoadout: (moveIds) => {
+    if (!state.creature) return
+    state = moveIds === null ? clearLoadout(state) : setLoadout(state, moveIds)
+    persist()
+    spar.update(state.creature ?? null)
+  },
+})
 
 const hud = createHud(app, {
   onAdvanceDay: () => {

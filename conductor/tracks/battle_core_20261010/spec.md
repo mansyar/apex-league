@@ -51,6 +51,8 @@ Names are original. No imported creature or move names.
 
 **Loadout** is four catalog ids. The resolver rejects a loadout that is not exactly four known ids, or that repeats an id. Each starter species has a fixed kit: the four moves of its element. The ranch spar uses that kit. `resolveBattle` still accepts any legal loadout, so a later equipping track does not need a new resolver.
 
+> Revision 2026-10-10, user-approved in `combat_prep_20261010`: the equipped special list is two to four moves, not exactly four. Early creatures legally spar with 2–3 specials; the basic strike and the close/hold fallbacks keep a 2-move fight legible. The clock/policy are unaffected (they never assumed a size).
+
 Electric, Earth, and Wind have chart rows and no catalog moves this track.
 
 ### 4. Range and projectiles

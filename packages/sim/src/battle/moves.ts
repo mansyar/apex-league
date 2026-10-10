@@ -93,18 +93,20 @@ export function stepCooldown(remainingCooldown: number): number {
 }
 
 /**
- * Resolves a loadout to its move definitions, throwing friendly errors for
- * anything that is not exactly four known ids with no repeats.
+ * Resolves an equipped list to its move definitions, throwing friendly
+ * errors for anything that is not two to four known ids with no repeats.
+ * (Battle core FR3 revision: early creatures legally spar with 2-3
+ * specials; the basic strike keeps short fights legible.)
  */
 export function validateLoadout(loadout: readonly unknown[]): MoveDef[] {
-  if (loadout.length !== 4) {
-    throw new Error("A loadout needs exactly four moves")
+  if (loadout.length < 2 || loadout.length > 4) {
+    throw new Error("A loadout needs two to four moves")
   }
   const seen = new Set<string>()
   const moves: MoveDef[] = []
   for (const id of loadout) {
     if (typeof id !== "string") {
-      throw new Error("A loadout is a list of four move ids")
+      throw new Error("A loadout is a list of two to four move ids")
     }
     const move = getMove(id)
     if (!move) {

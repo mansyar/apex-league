@@ -127,7 +127,7 @@ describe("migration chain", () => {
     expect(migrated.state.creature?.stats).toEqual(creature.stats)
   })
 
-  test("a v1 save walks v1→v2→v3→v4 into the same neutral shape", () => {
+  test("a v1 save walks v1→v2→v3→v4 with the credited trained days", () => {
     const migrated = migrate({
       version: 1,
       state: { day: 2, phase: "day", actionPoints: 3 },
@@ -142,28 +142,53 @@ describe("migration chain", () => {
     })
     expect(migrated.state.creature?.trainingFocus).toBeNull()
     expect(migrated.state.creature?.trainingResult).toBeNull()
+    expect(migrated.state.creature?.trainingDays).toBe(6)
+    expect(migrated.state.creature?.loadout).toBeNull()
     expect(migrated.state.creature?.fedToday).toBe(false)
   })
 
-  test("migrates a v3 save to v4, stamping fedToday false", () => {
-    // v3 creatures carry no fedToday field — strip it from a fresh one.
+  test("a v3 save migrates to v4: fedToday false, 6 trained days, null loadout, stats intact", () => {
+    // v3 creatures predate the v4 fields — strip all of them.
     const creature = createCreature("fire_drake", 42)
     const legacy = structuredClone(creature) as unknown as Record<
       string,
       unknown
     >
     delete legacy.fedToday
+    delete legacy.trainingDays
+    delete legacy.loadout
     const v3 = {
       version: 3,
-      state: { day: 6, phase: "day", actionPoints: 1, creature: legacy },
-      savedAt: 77,
+      state: { day: 9, phase: "day", actionPoints: 1, creature: legacy },
+      savedAt: 321,
     }
     const migrated = migrate(v3)
     expect(migrated.version).toBe(4)
-    expect(migrated.savedAt).toBe(77)
-    expect(migrated.state.day).toBe(6)
+    expect(migrated.savedAt).toBe(321)
+    expect(migrated.state.day).toBe(9)
     expect(migrated.state.creature?.fedToday).toBe(false)
+    expect(migrated.state.creature?.trainingDays).toBe(6)
+    expect(migrated.state.creature?.loadout).toBeNull()
     expect(migrated.state.creature?.stats).toEqual(creature.stats)
+    expect(migrated.state.creature?.trained).toEqual(creature.trained)
+  })
+
+  test("a v4 save round-trips trainingDays and the chosen loadout", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!owned.creature) throw new Error("no creature")
+    const state = {
+      ...owned,
+      creature: {
+        ...owned.creature,
+        trainingDays: 2,
+        loadout: ["spark", "flame_charge"],
+      },
+    }
+    saveGame(adapter, state, 8)
+    const loaded = loadGame(adapter)
+    expect(loaded?.creature?.trainingDays).toBe(2)
+    expect(loaded?.creature?.loadout).toEqual(["spark", "flame_charge"])
   })
 
   test("rejects saves from an unknown future version", () => {

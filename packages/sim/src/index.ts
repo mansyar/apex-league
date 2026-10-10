@@ -22,7 +22,9 @@ export {
   createClock,
   createClockFighter,
   createTieOrder,
+  getMove,
   HOLD,
+  type MoveDef,
   makeExhibition,
   type PlannedAction,
   type Range,
@@ -51,12 +53,22 @@ export {
   type CreatureStats,
   createCreature,
   type Element,
+  effectiveStats,
   type LifeStage,
   type StatKey,
   TRAINED_START,
   TRAINING_CAP,
   type TrainingResult,
 } from "./creature"
+export {
+  clearLoadout,
+  defaultLoadout,
+  MOVE_TIER3_DAYS,
+  MOVE_TIER4_DAYS,
+  requiredTierDays,
+  setLoadout,
+  unlockedKit,
+} from "./loadout"
 export { beginCup, endCup } from "./machine"
 export { makeRng, type Rng } from "./rng"
 export { migrate } from "./save/migrate"

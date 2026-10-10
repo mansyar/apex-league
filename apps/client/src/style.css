@@ -540,6 +540,92 @@ body,
   font-variant-numeric: tabular-nums;
 }
 
+/* Loadout picker row (combat prep, FR5). */
+.spar-progress {
+  font-size: 12px;
+  color: var(--accent);
+  margin-bottom: 12px;
+  min-height: 15px;
+}
+
+.spar-loadout-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.spar-loadout-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-dim);
+}
+
+.spar-kit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.spar-kit-move {
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.spar-kit-move:hover {
+  border-color: var(--accent);
+}
+
+.spar-kit-chosen {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.spar-kit-locked {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-style: dashed;
+}
+
+.spar-kit-locked:hover {
+  border-color: var(--panel-border);
+}
+
+.spar-kit-reset {
+  border: none;
+  background: none;
+  color: var(--ink-dim);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 4px;
+}
+
+.spar-kit-reset:hover {
+  color: var(--accent);
+}
+
+.spar-loadout-hint {
+  font-size: 11px;
+  color: #ff8f6b;
+  width: 100%;
+  min-height: 0;
+}
+
 .spar-tactics {
   display: grid;
   grid-template-columns: 1fr 1fr;
