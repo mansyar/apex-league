@@ -64,6 +64,15 @@ interface Projectile {
 
 /** Live shots, newest last; drained by the projectile frame loop in staging. */
 
+/** Big-hit threshold: at/above this the punch lands as hit-stop + shake. */
+const BIG_HIT_DAMAGE = 4
+
+/** How long a victim's cells flash white, in ms. */
+const FLASH_MS = 180
+
+/** How long the frame freezes on a big hit, in ms (micro hit-stop). */
+const HIT_STOP_MS = 90
+
 export interface FightCasting {
   /** Which creature stands on the left (home) side. */
   owned: { archetypeId: string; seed: number; name: string }
@@ -76,6 +85,11 @@ export interface Staging {
   cast(casting: FightCasting): void
   /** Drive one playback step: positions, lunges, recoil, dodges, falls. */
   applyStep(step: PlaybackStep, instant?: boolean): void
+  /** Big-hit hook: main.ts points this at the broadcast camera shake. */ setBigHitHandler(
+    handler: (strength: number) => void,
+  ): void
+  /** 'reduced' suppresses camera shake (flashes stay off with it). */
+  setMotionPref(pref: "full" | "reduced"): void
   /** Remove the combatants (panel closed, back to idle ranch bowl). */
   clear(): void
 }
@@ -87,6 +101,8 @@ interface Combatant {
   /** Local "away" direction (X axis, ±1): where lunges and dodges aim. */
   away: 1 | -1
   down: boolean
+  /** Per-part base colors captured at cast time, keyed by part name. */
+  baseColors: Map<THREE.Mesh, THREE.Color>
 }
 
 export function createStaging(arenaGroup: THREE.Group): Staging {
@@ -99,6 +115,12 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     start: number
     run: (t: number, o: Combatant, r: Combatant) => void
   } | null = null
+  /** Hit state: who is flashing and how far into it (ms since start). */
+  let flash: { victim: Combatant; start: number } | null = null
+  /** Freeze window on a big hit: pose time does not advance inside it. */
+  let hitStopUntil = 0
+  /** Big-hit callback (camera punch); wired by main.ts to the scene shake. */
+  let onBigHit: ((strength: number) => void) | null = null
 
   const stop = (): void => {
     if (raf !== null) {
@@ -109,10 +131,66 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       cancelAnimationFrame(projectileRaf)
       projectileRaf = null
     }
+    if (flashRaf !== null) {
+      cancelAnimationFrame(flashRaf)
+      flashRaf = null
+    }
     disposeProjectiles()
+    hitStopUntil = 0
   }
 
+  /** Visual intensity preference: 'full' shakes; 'reduced' keeps it calm. */
+  let motionPref: "full" | "reduced" = "full"
+
   const easeOut = (t: number): number => 1 - (1 - t) * (1 - t)
+
+  /**
+   * Victim flash: push every Lambert color toward white for FLASH_MS,
+   * then restore the cast-time palette. Plural material/part per creature,
+   * so the capture lives on the Combatant, not a single shared material.
+   */
+  const startFlash = (victim: Combatant): void => {
+    if (motionPref === "reduced") return // calm reads: no brightness pop
+    const now = performance.now()
+    flash = { victim, start: now }
+    // Snap to full white immediately; the decay loop unwinds it.
+    for (const mesh of victim.baseColors.keys()) {
+      const mat = mesh.material as THREE.MeshLambertMaterial
+      mat.color.setRGB(1, 1, 1)
+    }
+    if (flashRaf === null) flashRaf = requestAnimationFrame(tickFlashL)
+  }
+
+  let flashRaf: number | null = null
+  const tickFlashL = (): void => {
+    tickFlash()
+    flashRaf = flash ? requestAnimationFrame(tickFlashL) : null
+  }
+
+  /** Partway back from white by elapsed age (easeOut curve). */
+  const tickFlash = (): void => {
+    if (!flash) return
+    const age = performance.now() - flash.start
+    const w = 1 - easeOut(Math.min(1, age / FLASH_MS))
+    for (const [mesh, base] of flash.victim.baseColors) {
+      const mat = mesh.material as THREE.MeshLambertMaterial
+      mat.color.setRGB(
+        1 - w + base.r * w,
+        1 - w + base.g * w,
+        1 - w + base.b * w,
+      )
+    }
+    if (age >= FLASH_MS) flash = null
+  }
+
+  /** Big-hit punch: freeze the frame briefly and shake the broadcast cam. */
+  const bigHit = (damage: number | undefined): void => {
+    const d = damage ?? 0
+    if (d < BIG_HIT_DAMAGE) return
+    hitStopUntil = performance.now() + HIT_STOP_MS
+    if (motionPref === "full" && onBigHit)
+      onBigHit(Math.min(0.09, 0.02 + d / 80))
+  }
 
   /** Release the pooled projectiles (scene swap, panel close). */
   const disposeProjectiles = (): void => {
@@ -325,6 +403,10 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         }
         // Solid hit: knock the victim back off their home post.
         const knock = -side.target.away * strikeReach(step.damage)
+        if (!instant) {
+          startFlash(side.target)
+          bigHit(step.damage)
+        }
         anim = instant
           ? null
           : {
@@ -380,6 +462,12 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     if (!anim) return
     const a = anim
     const tickAnim = (): void => {
+      // Micro hit-stop: while the freeze window is open, pose time holds
+      // still (the window itself continues draining on wall time).
+      if (performance.now() < hitStopUntil) {
+        raf = requestAnimationFrame(tickAnim)
+        return
+      }
       const t = Math.min(1, (performance.now() - a.start) / STEP_ANIM_MS)
       a.run(t, o, r)
       if (t < 1) raf = requestAnimationFrame(tickAnim)
@@ -424,22 +512,38 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
           home: new THREE.Vector3(HOME_X * away, 0, 0),
           away,
           down: false,
+          baseColors: new Map(),
         }
         group.position.copy(combatant.home)
         // Face the opponent across the show floor.
         group.rotation.y = away === 1 ? Math.PI / 2 : -Math.PI / 2
         arenaGroup.add(group)
+        // Capture the cast-time palette per part so a hit flash returns it
+        // to base later (multiple Lambert materials per creature, so per-mesh).
+        group.traverse((obj) => {
+          if (obj instanceof THREE.Mesh) {
+            const mat = obj.material as THREE.MeshLambertMaterial
+            combatant.baseColors.set(obj, mat.color.clone())
+          }
+        })
         return combatant
       }
 
       owned = buildSpot(casting.owned, -1)
       rival = buildSpot(casting.rival, 1)
+      flash = null
     },
     applyStep(step, instant = false) {
       const o = owned
       const r = rival
       if (!o || !r) return
       runStep(step, instant, o, r)
+    },
+    setBigHitHandler(handler) {
+      onBigHit = handler
+    },
+    setMotionPref(pref) {
+      motionPref = pref
     },
     clear() {
       stop()
@@ -458,6 +562,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       owned = null
       rival = null
       anim = null
+      flash = null
+      hitStopUntil = 0
     },
   }
 }

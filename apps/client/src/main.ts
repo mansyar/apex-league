@@ -85,6 +85,18 @@ const spar = createSpar(app, {
     staging.clear()
   },
 })
+staging.setBigHitHandler((strength) => scene.shake(strength))
+
+/**
+ * Reduced-motion hand-off: the save v5 preference reaches the arena
+ * (no shake/flash in staging, no bounce/shake in scene) whenever it flips.
+ */
+const applyMotionPref = (): void => {
+  const reduced = state.settings.reducedMotion
+  staging.setMotionPref(reduced ? "reduced" : "full")
+  scene.setMotionReduced(reduced)
+}
+applyMotionPref()
 
 const hud = createHud(app, {
   onAdvanceDay: () => {

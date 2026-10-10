@@ -99,5 +99,6 @@ export {
   createInitialState,
   type GameState,
   type Phase,
+  setReducedMotion,
 } from "./state"
 export { advanceDay } from "./ticker"

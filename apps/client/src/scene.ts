@@ -30,6 +30,16 @@ export interface SceneHandle {
   /** Show or hide the food pile (fedToday from the sim). */
   setFedToday(fedToday: boolean): void
   /**
+   * Broadcast punch: kick a decaying camera shake of the given strength
+   * (arena mode only; reduced-motion callers pass 0). 0 ices it off.
+   */
+  shake(strength: number): void
+  /**
+   * Reduced-motion override (save v5 pref). true = no shake, no bounce;
+   * null = fall back to the OS media query. Callers may re-apply freely.
+   */
+  setMotionReduced(reduced: boolean | null): void
+  /**
    * The ranch's own star (the idle creature) hides while a battle is on:
    * the fighters already stand on the show floor, and the ranch pose
    * would bleed through the swap.
@@ -276,9 +286,12 @@ export function createScene(container: HTMLElement): SceneHandle {
   ground.name = "ranch-ground"
 
   // Honor reduced motion: keep the gentle breath, drop the bounce.
-  const reducedMotion = window.matchMedia(
+  const osReducedMotion = window.matchMedia(
     "(prefers-reduced-motion: reduce)",
   ).matches
+  /** Save v5 pref wins when set; null defers to the OS media query. */
+  let motionReduced: boolean | null = null
+  const reducedMotion = (): boolean => motionReduced ?? osReducedMotion
 
   let creatureGroup: THREE.Group | null = null
   let ranchScenery: THREE.Group | null = null
@@ -304,9 +317,24 @@ export function createScene(container: HTMLElement): SceneHandle {
     scene.remove(group)
   }
 
+  /** Broadcast punch: kick a decaying camera shake of the given strength. */
+  let shakeAmp = 0
+  let shakePhase = Math.PI * 2 * Math.random()
+  const SHAKE_DECAY_PER_S = 4.2
+  const SHAKE_FREQ = 26
+  const setShake = (strength: number): void => {
+    if (strength > shakeAmp) shakeAmp = strength
+    if (shakeAmp > 0) shakePhase = Math.PI * 2 * Math.random()
+  }
+
   const handle: SceneHandle = {
     sceneRoot: scene,
     setCameraMode,
+    shake: setShake,
+    setMotionReduced(v) {
+      motionReduced = v
+      if (reducedMotion()) shakeAmp = 0
+    },
     /** Cross-fade the ranch "set" (rig, sunset dome, ground, scenery). */
     setRanchBlend(k) {
       const blend = Math.min(1, Math.max(0, k))
@@ -418,6 +446,7 @@ export function createScene(container: HTMLElement): SceneHandle {
 
   const clockStart = performance.now()
   let raf = 0
+  let lastFrameT = 0
 
   const tick = (): void => {
     const t = (performance.now() - clockStart) / 1000
@@ -453,13 +482,25 @@ export function createScene(container: HTMLElement): SceneHandle {
       if (tailTip) {
         tailTip.rotation.y = sway * 0.12
       }
-      if (!reducedMotion && profile.bounce > 0) {
+      if (!reducedMotion() && profile.bounce > 0) {
         creatureGroup.position.y = Math.abs(Math.sin(t * 3.2)) * profile.bounce
       } else {
         creatureGroup.position.y = 0
       }
     }
+    // Broadcast punch: an additive camera offset only while a fight
+    // frames the set. Decays to zero; freeze-safe (time-based, no dt
+    // assumption), and arena-only so orbit stays untouched.
+    if (cameraMode === "arena" && shakeAmp > 0.001) {
+      const prev = t - lastFrameT
+      const dt = prev > 0 && prev < 0.5 ? prev : 1 / 60
+      shakeAmp = Math.max(0, shakeAmp - SHAKE_DECAY_PER_S * dt)
+      camera.position.x += Math.sin(t * SHAKE_FREQ + shakePhase) * shakeAmp
+      camera.position.y +=
+        Math.cos(t * SHAKE_FREQ * 1.3 + shakePhase) * shakeAmp * 0.6
+    }
     renderer.render(scene, camera)
+    lastFrameT = t
     raf = requestAnimationFrame(tick)
   }
   raf = requestAnimationFrame(tick)
