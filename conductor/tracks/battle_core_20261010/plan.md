@@ -85,7 +85,7 @@ Pure `chooseAction`. No clock required.
   - [x] best-special ties break by expected damage, then power, then move id; the seed is not consulted
   - [x] a move on cooldown is not chosen
 - [x] Task: Implement `battle/policy.ts` (`ccf0ec9`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: ccf0ec9]
 
 ## Phase F — Resolver, Log, Exhibition (sim)
 
