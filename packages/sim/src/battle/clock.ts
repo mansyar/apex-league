@@ -80,6 +80,8 @@ export type BattleEventKind =
   | "down"
   | "launch"
   | "impact"
+  | "time"
+  | "draw"
 
 /** One announcer-visible beat of the fight. */
 export interface BattleEvent {

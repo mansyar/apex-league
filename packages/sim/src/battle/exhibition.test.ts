@@ -1,4 +1,5 @@
-import { createCreature, type Creature } from "../creature"
+import { describe, expect, test } from "bun:test"
+import { type Creature, createCreature } from "../creature"
 import { getSpecies } from "../species"
 import { makeExhibition } from "./exhibition"
 
@@ -25,9 +26,10 @@ describe("makeExhibition", () => {
     const spar = makeExhibition(buildOwned(1), "specials", 3)
     const owned = getSpecies("fire_drake")
     const rival = getSpecies(spar.rivalSpeciesId)
-    expect(spar.ownedSide.kit).toEqual(owned?.kit)
-    expect(spar.rivalSide.kit).toEqual(rival?.kit)
-    expect(spar.rivalSide.temperament).toBe(rival?.temperament)
+    if (!owned || !rival) throw new Error("The starter species are missing")
+    expect(spar.ownedSide.kit).toEqual(owned.kit)
+    expect(spar.rivalSide.kit).toEqual(rival.kit)
+    expect(spar.rivalSide.temperament).toBe(rival.temperament)
     expect(spar.rivalSpeciesId).not.toBe("water_axolotl")
   })
 
