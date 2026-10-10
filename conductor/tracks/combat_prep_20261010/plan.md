@@ -24,18 +24,18 @@ Ground rules for this track:
 
 ## Phase A — Trained days & effective stats (sim)
 
-- [ ] Task: Failing tests — trained-days counter and effectiveStats (sim)
+- [x] Task: Failing tests — trained-days counter and effectiveStats (sim) (ae43fdb)
   - Creature gains `trainingDays` (0 at creation) in `creature.ts` type +
     `createCreature` + `TRAINED_START`-style frozen defaults (v3 save schema
-    untouched yet; the field is added in Phase C).
-  - `effectiveStats(creature)` in `creature.ts` = per-stat `stats + trained`.
+    untouched yet; the field is added in Phase C). [x]
+  - `effectiveStats(creature)` in `creature.ts` = per-stat `stats + trained`. [x]
   - Care tests in `care.test.ts`: first assignment of a day bumps
     `trainingDays` by exactly 1 along with the AP spend; a same-day free swap
     leaves it; an already-focused no-op and a capped-stat rejection leave it;
-    two assignment days accumulate to 2.
-- [ ] Task: Implement trained days and effectiveStats (sim)
+    two assignment days accumulate to 2. [x]
+- [x] Task: Implement trained days and effectiveStats (sim) (167b706)
   - `care.ts` accounting next to the AP logic; `creature.ts` helper; friendly
-    rejections unchanged; JSDoc on the new seam per style guides.
+    rejections unchanged; JSDoc on the new seam per style guides. [x]
 
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
