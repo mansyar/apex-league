@@ -44,7 +44,7 @@ a dated deviation in spec.md.
   - [x] loadout rejects length other than 4, unknown ids, and duplicates
   - [x] after a special is used, it is illegal for exactly N of that fighter's later actions, then legal again
 - [x] Task: Implement `battle/moves.ts` and add temperament plus kit to species data (not to the saved creature) (`336bbe2`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: 336bbe2]
 
 ## Phase C — Action Clock & Range (sim)
 
