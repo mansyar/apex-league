@@ -10,18 +10,6 @@ import { RANCH_SKY } from "./scene"
  */
 
 /**
- * Broadcast camera framing the ranch camera hands over to during a fight.
- * A fixed side-elevated telephoto position, like a broadcast camera pit;
- * the arena is watched, not orbited.
- */
-const ARENA_FRAMING = {
-  azimuth: 0.28,
-  elevation: 0.5,
-  radius: 12.5,
-  targetY: 1.4,
-} as const
-
-/**
  * Arena backdrop tone. Fog dissolves everything past the stands into this
  * navy, so the horizon behind the crowd reads as a darkened bowl instead
  * of the ranch's sunset.

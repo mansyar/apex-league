@@ -29,6 +29,12 @@ export interface SceneHandle {
   setProps(visualSeed: number): void
   /** Show or hide the food pile (fedToday from the sim). */
   setFedToday(fedToday: boolean): void
+  /**
+   * The ranch's own star (the idle creature) hides while a battle is on:
+   * the fighters already stand on the show floor, and the ranch pose
+   * would bleed through the swap.
+   */
+  setRanchCreatureVisible(visible: boolean): void
 }
 
 const GROUND_COLOR = 0x3a4d34
@@ -404,6 +410,9 @@ export function createScene(container: HTMLElement): SceneHandle {
     },
     updateConditions(conditions) {
       mode = conditions ? moodModeFrom(conditions) : "normal"
+    },
+    setRanchCreatureVisible(visible) {
+      if (creatureGroup) creatureGroup.visible = visible
     },
   }
 

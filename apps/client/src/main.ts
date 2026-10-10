@@ -70,14 +70,17 @@ const spar = createSpar(app, {
     spar.update(state.creature ?? null)
   },
   // Fight start: dissolve into the broadcast arena and cast both fighters
-  // on the stage; every event now also steps the arena playback. Back at
-  // the ranch the stage clears again. Nothing here touches the save.
+  // on the stage; every event now also steps the arena playback. The ranch
+  // creature retires while a fight plays. Back at the ranch the stage
+  // clears and the ranch star returns. Nothing here touches the save.
   onFightStart: (casting) => {
+    scene.setRanchCreatureVisible(false)
     void swap.enterArena()
     staging.cast(casting)
   },
   onStep: (step, instant) => staging.applyStep(step, instant),
   onClose: () => {
+    scene.setRanchCreatureVisible(true)
     void swap.exitArena()
     staging.clear()
   },
