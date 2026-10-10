@@ -13,7 +13,11 @@ function special(moveId: string): PlannedAction {
   return { kind: "special", moveId }
 }
 
-function fight(name: string, element: Element, s: Partial<CreatureStats> = {}): ClockFighter {
+function fight(
+  name: string,
+  element: Element,
+  s: Partial<CreatureStats> = {},
+): ClockFighter {
   const stats: CreatureStats = {
     hp: s.hp ?? 40,
     atk: s.atk ?? 10,
@@ -39,8 +43,18 @@ function near(f: ClockFighter): ClockFighter {
   return { ...f, range: "near" }
 }
 
-const DRAKE_KIT = ["spark", "flame_charge", "cinder_shot", "blaze_bolt"] as const
-const OX_KIT = ["seed_shot", "thorn_volley", "spore_burst", "bramble_dart"] as const
+const DRAKE_KIT = [
+  "spark",
+  "flame_charge",
+  "cinder_shot",
+  "blaze_bolt",
+] as const
+const OX_KIT = [
+  "seed_shot",
+  "thorn_volley",
+  "spore_burst",
+  "bramble_dart",
+] as const
 
 const drake = fight("Bolt", "fire", { hp: 45 })
 const ox = fight("Reed", "plant", { hp: 50 })
@@ -135,7 +149,14 @@ describe("temperament overrides", () => {
       expected: ReturnType<typeof chooseAction>,
     ) => {
       expect(
-        chooseAction({ fighter, opponent, kit, tactic, temperament: "obedient", actionCount: 0 }),
+        chooseAction({
+          fighter,
+          opponent,
+          kit,
+          tactic,
+          temperament: "obedient",
+          actionCount: 0,
+        }),
       ).toEqual(expected)
     }
     // From far: Balanced closes when nothing qualifies; Favor Specials
@@ -152,7 +173,8 @@ describe("temperament overrides", () => {
 })
 
 describe("tactic rules when obeyed", () => {
-  test("Favor Specials spends the best ready special before closing", () => {    expect(
+  test("Favor Specials spends the best ready special before closing", () => {
+    expect(
       chooseAction({
         fighter: drake,
         opponent: neutral,
