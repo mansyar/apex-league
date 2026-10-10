@@ -1,0 +1,11 @@
+{
+  "id": "battle_core_20261010",
+  "title": "Battle Resolution Core",
+  "type": "feature",
+  "status": "complete",
+  "branch": "track/battle_core_20261010",
+  "created": "2026-10-10",
+  "updated": "2026-10-10",
+  "spec": "./spec.md",
+  "plan": "./plan.md"
+}

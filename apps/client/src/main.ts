@@ -13,6 +13,7 @@ import {
 } from "@apex/sim"
 import { createHud } from "./hud"
 import { createScene } from "./scene"
+import { createSpar } from "./spar"
 import { createStarterChoice } from "./starter"
 import "./style.css"
 
@@ -41,11 +42,15 @@ const syncScene = (): void => {
   scene.updateConditions(creature.conditions)
 }
 
+// The spar reads the live state through this hook; it never mutates it.
+const spar = createSpar(app)
+
 const hud = createHud(app, {
   onAdvanceDay: () => {
     state = advanceDay(state)
     persist()
     hud.update(state)
+    spar.update(state.creature ?? null)
     scene.updateConditions(state.creature?.conditions ?? null)
   },
   onCare: (action: CareAction) => {
@@ -54,6 +59,7 @@ const hud = createHud(app, {
     state = result.state
     persist()
     hud.update(state)
+    spar.update(state.creature ?? null)
     scene.updateConditions(state.creature?.conditions ?? null)
   },
   onTrain: (stat: StatKey) => {
@@ -79,8 +85,10 @@ let starter = state.creature
         starter = null
         syncScene()
         hud.update(state)
+        spar.update(state.creature ?? null)
       },
     })
 
 syncScene()
 hud.update(state)
+spar.update(state.creature ?? null)

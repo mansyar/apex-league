@@ -1,0 +1,74 @@
+/**
+ * The exhibition helper (spec FR10): builds a spar from the owned creature,
+ * the player's tactic, and a seed. The rival is a seeded pick among
+ * *available* starters only, rolled from `createCreature` with a seed
+ * derived from the battle seed, and fights with its species kit and
+ * temperament. Pure — the owned creature is never mutated.
+ */
+
+import { type Creature, createCreature } from "../creature"
+import { makeRng } from "../rng"
+import { getSpecies, STARTER_SPECIES } from "../species"
+import type { Tactic } from "./policy"
+import type { BattleSide } from "./resolver"
+
+export interface SparSetup {
+  /** The player's side, assembled from the owned creature and its species. */
+  readonly ownedSide: BattleSide
+  /** The rival's side: seeded species, stats, kit, temperament, tactic. */
+  readonly rivalSide: BattleSide
+  /** The rival as a full creature, for the spar panel display. */
+  readonly rival: Creature
+  /** The seeded rival species id. Tide Axolotl is excluded while unavailable. */
+  readonly rivalSpeciesId: string
+  /** The seeded rival tactic. */
+  readonly rivalTactic: Tactic
+}
+
+const TACTICS: readonly Tactic[] = ["balanced", "specials"]
+
+export function makeExhibition(
+  owned: Readonly<Creature>,
+  tactic: Tactic,
+  seed: number,
+): SparSetup {
+  const species = getSpecies(owned.speciesId)
+  if (!species) throw new Error(`Unknown species: ${owned.speciesId}`)
+
+  const rng = makeRng(seed >>> 0)
+  const available = STARTER_SPECIES.filter((s) => s.available)
+  const rivalIndex = rng.int(available.length)
+  const rivalSpecies = available[rivalIndex]
+  if (!rivalSpecies) throw new Error("No starter species is available")
+  const creatureSeed = Math.floor(rng.next() * 0x7fffffff)
+  const rivalTactic = TACTICS[rng.int(TACTICS.length)] ?? "balanced"
+
+  const rival = createCreature(rivalSpecies.id, creatureSeed)
+  const rivalSpeciesDef = getSpecies(rival.speciesId)
+  if (!rivalSpeciesDef) throw new Error(`Unknown species: ${rival.speciesId}`)
+
+  const ownedSide: BattleSide = {
+    name: owned.name,
+    element: owned.element,
+    stats: owned.stats,
+    kit: species.kit,
+    tactic,
+    temperament: species.temperament,
+  }
+  const rivalSide: BattleSide = {
+    name: rival.name,
+    element: rival.element,
+    stats: rival.stats,
+    kit: rivalSpeciesDef.kit,
+    tactic: rivalTactic,
+    temperament: rivalSpeciesDef.temperament,
+  }
+
+  return {
+    ownedSide,
+    rivalSide,
+    rival,
+    rivalSpeciesId: rivalSpecies.id,
+    rivalTactic,
+  }
+}
