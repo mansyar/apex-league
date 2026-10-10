@@ -35,6 +35,14 @@ export {
   VOXEL_SIZE,
 } from "./glb"
 export { type MeshePart, meshGrid } from "./mesher"
+export {
+  generateProp,
+  type PropBuild,
+  type PropDef,
+  type PropDna,
+  type PropGenerated,
+  props,
+} from "./props"
 export { makeRng, type Rng } from "./rng"
 export { sampleDna } from "./sample"
 export {

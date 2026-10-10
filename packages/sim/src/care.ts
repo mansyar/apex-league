@@ -84,6 +84,7 @@ export function careAction(state: GameState, action: CareAction): CareResult {
   const c = state.creature.conditions
   let conditions = { ...c }
   let bondedToday = state.creature.bondedToday
+  let fedToday = state.creature.fedToday
 
   switch (action) {
     case "feed": {
@@ -96,6 +97,7 @@ export function careAction(state: GameState, action: CareAction): CareResult {
           conditions.mood +
           (c.hunger <= STARVING_RELIEF_HUNGER ? FEED_RELIEF_MOOD : 0),
       }
+      fedToday = true
       break
     }
     case "rest": {
@@ -131,6 +133,7 @@ export function careAction(state: GameState, action: CareAction): CareResult {
     ...state.creature,
     conditions: clampAll(conditions),
     bondedToday,
+    fedToday,
   }
   return {
     ok: true,

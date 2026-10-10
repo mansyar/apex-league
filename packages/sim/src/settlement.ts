@@ -159,6 +159,7 @@ export function settleCreature(creature: Creature, rng: Rng): Creature {
     ...creature,
     conditions,
     bondedToday: false,
+    fedToday: false,
     trained,
     trainingFocus: null,
     trainingResult,

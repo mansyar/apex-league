@@ -28,6 +28,15 @@ let state: GameState = saved ?? createInitialState()
 
 const persist = (): void => saveGame(storage, state, Date.now())
 
+/** Cheap scene reducers: pile visibility + mood idle. Fired after any
+ * sim mutation — the scene no-ops internally when nothing changed. */
+const sceneVisuals = (): void => {
+  const creature = state.creature
+  if (!creature) return
+  scene.setFedToday(creature.fedToday)
+  scene.updateConditions(creature.conditions)
+}
+
 const syncScene = (): void => {
   const creature = state.creature
   if (!creature) return
@@ -39,7 +48,8 @@ const syncScene = (): void => {
     getSpecies(creature.speciesId)?.archetypeId ?? "draconic",
     visualSeed,
   )
-  scene.updateConditions(creature.conditions)
+  scene.setProps(visualSeed)
+  sceneVisuals()
 }
 
 // The spar reads the live state through this hook; it never mutates it.
@@ -51,7 +61,8 @@ const hud = createHud(app, {
     persist()
     hud.update(state)
     spar.update(state.creature ?? null)
-    scene.updateConditions(state.creature?.conditions ?? null)
+    // A training gain changes the visual seed → scatter may shift.
+    syncScene()
   },
   onCare: (action: CareAction) => {
     const result = careAction(state, action)
@@ -60,7 +71,8 @@ const hud = createHud(app, {
     persist()
     hud.update(state)
     spar.update(state.creature ?? null)
-    scene.updateConditions(state.creature?.conditions ?? null)
+    // Feed toggles the food pile; conditions drive the mood idle.
+    sceneVisuals()
   },
   onTrain: (stat: StatKey) => {
     const result = assignTraining(state, stat)

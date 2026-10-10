@@ -34,11 +34,13 @@
   typed schema; schema kept Postgres-migratable.
 
 ## Asset Pipeline
-- **Creatures**: species defined as versioned JSON data ("voxel DNA") — a
-  deterministic **pure-TypeScript** generator (run by Bun at build time)
-  builds part-labeled voxel meshes (SDF parts → voxel grid → greedy mesh)
-  and exports GLB with a rigid hierarchy contract: named nodes + pivots,
-  animated procedurally in three.js (no skinning, no baked clips).
+- **Creatures and ranch props**: species and scenery defined as versioned JSON
+  data ("voxel DNA") - a deterministic **pure-TypeScript** generator (run by Bun
+  at build time) builds part-labeled voxel meshes (SDF parts → voxel grid →
+  greedy mesh) and exports GLB with a rigid hierarchy contract: named nodes +
+  pivots, animated procedurally in three.js (no skinning, no baked clips).
+  Ranch prop archetypes (tufts, bushes, landmark trees, rocks, food pile) use
+  the same generator and are digested by the determinism gate.
   *2026-10-09 deviation: replaced the originally planned Blender Python
   generator — the part-hierarchy rig makes weight painting unnecessary,
   and pure TS keeps the stack single-language, CI-hash-verifiable, and
