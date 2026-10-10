@@ -6,7 +6,7 @@ days, tier 4 @6), and the Spar panel gains the equip-4 loadout row with locked
 tiers visible. Save bumps to v4 (trainingDays + loadout; migrated creatures
 credit 6 trained days).
 
-- Status: in planning
+- Status: complete
 - Branch: `track/combat_prep_20261010`
 - Spec: [spec.md](./spec.md)
 - Plan: [plan.md](./plan.md)
