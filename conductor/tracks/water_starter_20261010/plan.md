@@ -67,10 +67,21 @@ code; manual verification for rendering/UI wiring).
 
 ## Phase D — Manual visual verification & closeout
 
-- [ ] Task: Browser verification — starter overlay (3 enabled cards), pick
+- [x] Task: Browser verification — starter overlay (3 enabled cards), pick
   Tide Axolotl, ranch scene renders with breath/tail life, care + train +
   advance day work, Spar vs. seeded rival incl. axolotl rivals; screenshot +
   console evidence per workflow (`browser.tabs.open`, `browser.screenshot`,
-  `browser.console`)
-- [ ] Task: Resolve feedback / fix findings
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  `browser.console`) — all FRs exercised live on the dev server (localhost:5174):
+  fresh save → 3 enabled overlay cards, no locked ribbon; axolotl ranch HUD
+  stat card within statBounds; feed/advance-day smoke (+ as drake: train ATK
+  +1 persisted across advance/save reload); save persistence after reload;
+  Spar rival pool renders Tide Axolotl as rival (seeded, "Balanced" tactic)
+  and as owned side the water kit strip shows Bubble/Tide Shot unlocked with
+  Foam Volley ("train 3 more days") and Splash Bolt ("train 6 more days");
+  console 0 errors / 0 warnings throughout. Screenshot of the spar screen
+  unavailable (capture window not visible), so evidence is taken from the
+  live accessibility tree per communication preference
+- [x] Task: Resolve feedback / fix findings — none; no findings to resolve
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  — `[checkpoint: 6289a8b]` user-approved (last functional commit unchanged
+  since Phase B); track finalized
