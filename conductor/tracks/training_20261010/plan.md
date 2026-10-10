@@ -69,3 +69,7 @@ manually, not unit-tested.
 - [x] Task: Full gate — `bun run verify` (check, tests, biome, determinism) green (`44d4415`)
 - [x] Task: Browser manual verification — assign, free swap, wasted night, saved night via Feed or Treat, cap rejection, stat row — with screenshot evidence (`44d4415`)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: 44d4415]`
+
+## Phase: Review Fixes
+
+- [ ] Task: Apply review suggestions — extend save validation to training fields (trained 0–TRAINING_CAP, focus/result shape) and de-duplicate the HUD stat-label constants (`~`)
