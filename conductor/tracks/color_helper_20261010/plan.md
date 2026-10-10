@@ -4,9 +4,9 @@ Branch: `track/color_helper_20261010` · Spec: [spec.md](./spec.md)
 
 ## Phase A — color.ts under props
 
-- [ ] Task: Failing tests — `packages/voxel/src/color.test.ts` (red corner, mid-hue, corners, hue wrap; assert module exists)
-- [ ] Task: Create `color.ts` with the canonical helper + module doc; point `props.ts` at it and delete its private copy
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Failing tests — `packages/voxel/src/color.test.ts` (red corner, mid-hue, corners, hue wrap; assert module exists) *(4a48cba)*
+- [x] Task: Create `color.ts` with the canonical helper + module doc; point `props.ts` at it and delete its private copy *(4a48cba)*
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — gates green, prop digests byte-identical *(4a48cba)*
 
 ## Phase B — the three archetypes
 
