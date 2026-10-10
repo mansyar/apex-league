@@ -84,7 +84,7 @@ Ground rules for this track:
   - `exhibition.ts` consumes the helpers; no seed changes for the rival;
     export updates as needed. [x]
 
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: e5ff761]
 
 ## Phase E — Spar panel loadout row & stat cards (client — manual verification)
 
