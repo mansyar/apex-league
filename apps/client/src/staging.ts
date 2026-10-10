@@ -28,6 +28,42 @@ const STEP_ANIM_MS = 600
 /** Stage positions: the fighters start wide on the show floor's X axis. */
 const HOME_X = 2.6
 
+/**
+ * Element hues from the shared type-color contract (product guidelines:
+ * Fire 18°, Plant 110°, Water 205°, Electric 50°, Earth 28°, Wind 165°).
+ * A projectile reads as its type at a glance, and the color survives
+ * color-blindness checks when paired with the move icon in the HUD.
+ */
+const ELEMENT_HUE: Record<string, number> = {
+  fire: 18,
+  water: 205,
+  plant: 110,
+  electric: 50,
+  earth: 28,
+  wind: 165,
+}
+const ELEMENT_COLOR_FALLBACK = "#cfd6e4"
+
+const elementColor = (element: string | undefined): string =>
+  element === undefined
+    ? ELEMENT_COLOR_FALLBACK
+    : new THREE.Color()
+        .setHSL(((ELEMENT_HUE[element] ?? 200) % 360) / 360, 0.75, 0.6)
+        .getStyle()
+
+/** One in-flight shot: a small core with a tapered additive trail. */
+const PROJECTILE_LIFE_MS = 450
+
+interface Projectile {
+  mesh: THREE.Mesh
+  trail: THREE.Mesh[]
+  from: THREE.Vector3
+  to: THREE.Vector3
+  start: number
+}
+
+/** Live shots, newest last; drained by the projectile frame loop in staging. */
+
 export interface FightCasting {
   /** Which creature stands on the left (home) side. */
   owned: { archetypeId: string; seed: number; name: string }
@@ -57,6 +93,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   let owned: Combatant | null = null
   let rival: Combatant | null = null
   let raf: number | null = null
+  let projectileRaf: number | null = null
+  const projectiles: Projectile[] = []
   let anim: {
     start: number
     run: (t: number, o: Combatant, r: Combatant) => void
@@ -67,9 +105,109 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       cancelAnimationFrame(raf)
       raf = null
     }
+    if (projectileRaf !== null) {
+      cancelAnimationFrame(projectileRaf)
+      projectileRaf = null
+    }
+    disposeProjectiles()
   }
 
   const easeOut = (t: number): number => 1 - (1 - t) * (1 - t)
+
+  /** Release the pooled projectiles (scene swap, panel close). */
+  const disposeProjectiles = (): void => {
+    for (const p of projectiles) {
+      arenaGroup.remove(p.mesh)
+      p.mesh.geometry.dispose()
+      ;(p.mesh.material as THREE.Material).dispose()
+      for (const seg of p.trail) {
+        arenaGroup.remove(seg)
+        seg.geometry.dispose()
+        ;(seg.material as THREE.Material).dispose()
+      }
+    }
+    projectiles.length = 0
+  }
+
+  const stepProjectiles = (): void => {
+    for (let i = projectiles.length - 1; i >= 0; i--) {
+      const p = projectiles[i]
+      if (!p) continue
+      const t = (performance.now() - p.start) / PROJECTILE_LIFE_MS
+      const dir = p.to.clone().sub(p.from)
+      const travel = Math.min(1, t)
+      // Core flies, trail lags behind it along the same line.
+      p.mesh.position.copy(p.from).addScaledVector(dir, travel)
+      for (let s = 0; s < p.trail.length; s++) {
+        const lag = Math.max(0, travel - (s + 1) * 0.08)
+        p.trail[s]?.position.copy(p.from).addScaledVector(dir, lag)
+      }
+      if (t >= 1) {
+        // Impact punctures: vanish (the impact step supplies the reaction).
+        arenaGroup.remove(p.mesh)
+        for (const seg of p.trail) arenaGroup.remove(seg)
+        p.mesh.geometry.dispose()
+        ;(p.mesh.material as THREE.Material).dispose()
+        for (const seg of p.trail) {
+          seg.geometry.dispose()
+          ;(seg.material as THREE.Material).dispose()
+        }
+        projectiles.splice(i, 1)
+      }
+    }
+  }
+
+  /** Drive shots each frame for as long as any are in flight. */
+  const tickProjectiles = (): void => {
+    stepProjectiles()
+    projectileRaf =
+      projectiles.length > 0 ? requestAnimationFrame(tickProjectiles) : null
+  }
+
+  /** A glowing core in the element hue plus a tapering additive orb trail. */
+  const spawnProjectile = (
+    from: Combatant,
+    to: Combatant,
+    element: string | undefined,
+  ): void => {
+    const color = new THREE.Color(elementColor(element))
+    // Launch from the thrower's shoulder line, land on the victim's chest.
+    const origin = new THREE.Vector3(from.home.x, 0.8, from.home.z)
+    const target = new THREE.Vector3(to.home.x, 0.8, to.home.z)
+    const core = new THREE.Mesh(
+      new THREE.SphereGeometry(0.11, 10, 8),
+      new THREE.MeshBasicMaterial({ color }),
+    )
+    core.position.copy(origin)
+    arenaGroup.add(core)
+
+    const trail: THREE.Mesh[] = []
+    for (let i = 0; i < 4; i++) {
+      const seg = new THREE.Mesh(
+        new THREE.SphereGeometry(0.09 - i * 0.015, 8, 6),
+        new THREE.MeshBasicMaterial({
+          color,
+          transparent: true,
+          opacity: 0.4 - i * 0.08,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        }),
+      )
+      seg.position.copy(origin)
+      arenaGroup.add(seg)
+      trail.push(seg)
+    }
+    projectiles.push({
+      mesh: core,
+      trail,
+      from: origin,
+      to: target,
+      start: performance.now(),
+    })
+    if (projectileRaf === null) {
+      projectileRaf = requestAnimationFrame(tickProjectiles)
+    }
+  }
 
   /** Which combatant is the acting side of a step. */
   const spotOf = (
@@ -156,6 +294,9 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
                 ao.group.position.x = ao.home.x + recoil * easeOut(t)
               },
             }
+        if (!instant) {
+          spawnProjectile(side.actor, side.target, step.element)
+        }
         break
       }
       case "impact": {
