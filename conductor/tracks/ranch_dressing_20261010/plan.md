@@ -30,9 +30,9 @@
 
 ## Phase D — scene composition
 
-- [ ] Task: Seeded scatter — tufts/bushes placed from the creature's `visualSeed`; landmark trees + rocks at fixed positions
-- [ ] Task: Food pile — scene API receives `fedToday`; present-iff-fed kept in sync with care actions and Advance Day via `main.ts`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) — browser evidence: same-seed reload parity, pile appear/disappear
+- [x] Task: Seeded scatter - tufts/bushes placed from the creature's `visualSeed`; landmark trees + rocks at fixed positions *(3acca01)*
+- [x] Task: Food pile - scene API receives `fedToday`; present-iff-fed kept in sync with care actions and Advance Day via `main.ts` *(3acca01)*
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) - browser evidence: same-seed reload parity, pile appear/disappear `[checkpoint: 3acca01]`
 
 ## Phase E — integration and verification gate
 
