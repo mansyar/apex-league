@@ -7,6 +7,7 @@
  * of each prop's world position, and a slow gust envelope. Sway is applied
  * by the scene as a runtime transform — the determinism gate sees nothing.
  */
+import { makeRng, type Rng } from "@apex/voxel"
 
 /**
  * Base sway amplitude (radians) per prop id, by class: tufts flutter most,
@@ -165,34 +166,13 @@ export function createWalk(reducedMotion: boolean): WalkMachine {
   let yaw = 0
   let nibbleElapsed = 0
 
-  /** Move (x, z) one clamped step toward the target at WALK_SPEED. The
-   * creature turns IN PLACE until it faces the travel direction (within
-   * TURN_THRESHOLD), then walks dead straight — no crab-walking. Never
-   * overshoots. */
-  const stride = (
-    x: number,
-    z: number,
-    targetX: number,
-    targetZ: number,
-    step: number,
-  ): { x: number; z: number; arrived: boolean; pivoting: boolean } => {
-    const dx = targetX - x
-    const dz = targetZ - z
-    const d = Math.hypot(dx, dz)
-    const reach = WALK_SPEED * step
-    if (d <= reach + 1e-4)
-      return { x: targetX, z: targetZ, arrived: true, pivoting: false }
-    const want = heading(dx, dz)
-    const err = wrapPi(want - yaw)
-    if (Math.abs(err) > TURN_THRESHOLD) {
-      // Pivot first: rotate toward the heading without translating, so
-      // the subsequent travel is a visibly straight line.
-      const turn = Math.min(Math.abs(err), TURN_SPEED * step)
-      yaw += Math.sign(err) * turn
-      return { x, z, arrived: false, pivoting: true }
-    }
-    const k = reach / d
-    return { x: x + dx * k, z: z + dz * k, arrived: false, pivoting: false }
+  /** Move (x, z) one clamped step toward the target at WALK_SPEED,
+   * turning in place first when misaligned. Shared by the ceremony and
+   * wander machines. Never overshoots. */
+  const stride = (x: number, z: number, targetX: number, targetZ: number, step: number) => {
+    const s = strideStep(x, z, yaw, targetX, targetZ, step)
+    yaw = s.yaw
+    return { x: s.x, z: s.z, arrived: s.arrived, pivoting: s.pivoting }
   }
 
   const advance = (x: number, z: number, dt: number): WalkDrive => {
@@ -335,3 +315,257 @@ export function gaitPose(
     roll: Math.sin(phase) * GAIT_ROLL * amp,
   }
 }
+
+/** One clamped step of straight-line travel, shared by the ceremony and
+ * wander machines: pivot in place until facing the target within
+ * TURN_THRESHOLD, then move at WALK_SPEED with yaw locked. Never
+ * overshoots. The caller owns the returned yaw. */
+function strideStep(
+  x: number,
+  z: number,
+  yaw: number,
+  targetX: number,
+  targetZ: number,
+  step: number,
+): { x: number; z: number; yaw: number; arrived: boolean; pivoting: boolean } {
+  const dx = targetX - x
+  const dz = targetZ - z
+  const d = Math.hypot(dx, dz)
+  const reach = WALK_SPEED * step
+  if (d <= reach + 1e-4)
+    return { x: targetX, z: targetZ, yaw, arrived: true, pivoting: false }
+  const want = heading(dx, dz)
+  const err = wrapPi(want - yaw)
+  if (Math.abs(err) > TURN_THRESHOLD) {
+    // Pivot first: rotate toward the heading without translating, so
+    // the subsequent travel is a visibly straight line.
+    const turn = Math.min(Math.abs(err), TURN_SPEED * step)
+    return {
+      x,
+      z,
+      yaw: yaw + Math.sign(err) * turn,
+      arrived: false,
+      pivoting: true,
+    }
+  }
+  const k = reach / d
+  return {
+    x: x + dx * k,
+    z: z + dz * k,
+    yaw,
+    arrived: false,
+    pivoting: false,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Sparse wandering (FR3). While the creature is home-idle and in an eligible
+// mood, it takes at most one trip per 20–40 s window to look at a tuft or
+// bush, then returns home. The gap and targets come from a free-running rng
+// seeded per scene (visualSeed ^ stepCount) — never wall-clock, never part
+// of a save, never passed to the sim.
+// ---------------------------------------------------------------------------
+
+/** The home anchor sits at the scene origin; the food pile never hosts a
+ * wander visit. */
+export const WANDER_PILE = { x: -2.4, z: 0.4 }
+export const WANDER_DISC_RADIUS = 8.5
+export const WANDER_MIN_PILE_DIST = 1.8/** Visits stop this far short of the chosen prop. */
+export const WANDER_VISIT_STOP = 0.9
+export const WANDER_VISIT_NEAR = 1.6
+export const WANDER_GAP_MIN = 20
+export const WANDER_GAP_MAX = 40
+/** How far, in radians, the head/yaw sweeps while sightseeing. */
+const VISIT_LOOK_SPAN = 0.45
+
+export type WanderPhase = "home-idle" | "walk-out" | "visit-pause" | "walk-home"
+
+export interface WanderProp {
+  x: number
+  z: number
+}
+
+export interface WanderDrive {
+  phase: WanderPhase
+  x: number
+  z: number
+  yaw: number
+  /** Extra yaw sweep while sightseeing (drive by the scene additively). */
+  lookOffset: number
+  pivoting: boolean
+}
+
+/** A free-running 20–40 s wander gap from the given rng (seeded per scene,
+ * deterministic under the gate). */
+export function nextGap(rng: Rng): number {
+  return WANDER_GAP_MIN + rng.next() * (WANDER_GAP_MAX - WANDER_GAP_MIN)
+}
+
+/** Choose a visit spot near one of the candidate props, but never near the
+ * food pile (which is anchored at the pile position and excluded by the
+ * scene) and never outside the moss disc. Deterministic in the rng state.
+ * Returns null when nothing qualifies. */
+export function pickVisitTarget(
+  props: WanderProp[],
+  fromX: number,
+  fromZ: number,
+  rng: Rng,
+): { x: number; z: number } | null {
+  if (props.length === 0) return null
+  // Try each candidate from a seeded starting index; every option is
+  // examined at most once so the chooser is exhaustive and finite.
+  const start = rng.int(props.length)
+  for (let i = 0; i < props.length; i++) {
+    const p = props[(start + i) % props.length]
+    if (!p) continue
+    const dx = p.x - fromX
+    const dz = p.z - fromZ
+    const d = Math.hypot(dx, dz) || 1
+    // Stand short of the prop on the line from where we are: the visit
+    // reads as "walked up to it and stopped".
+    const x = p.x - (dx / d) * WANDER_VISIT_STOP
+    const z = p.z - (dz / d) * WANDER_VISIT_STOP
+    if (Math.hypot(x, z) > WANDER_DISC_RADIUS) continue
+    const nearPile = Math.hypot(x - WANDER_PILE.x, z - WANDER_PILE.z)
+    if (nearPile < WANDER_MIN_PILE_DIST) continue
+    const nearProp = Math.hypot(x - p.x, z - p.z)
+    if (nearProp > WANDER_VISIT_NEAR) continue
+    return { x, z }
+  }
+  return null
+}
+
+export interface WanderMachine {
+  /** Feed the current world-space target candidates (tufts/bushes — the
+   * scene already filters to visible scenery and excludes the pile). */
+  setCandidates(props: WanderProp[]): void
+  /** (Re)seed the free-running rng and reset the countdown. */
+  begin(x: number, z: number): void
+  /** Cancel-free external reset (a feed ceremony taking the creature): end
+   * the trip immediately; the scene stops applying wander drives. */
+   abort(): void
+  /** Advance the machine. `allow` is the mood/reduced-motion/ceremony gate:
+   * gaps accrue only while allowed, and trips are started only while
+   * allowed (an already-running trip is always finished gracefully). */
+  advance(x: number, z: number, dt: number, allow: boolean): WanderDrive
+}
+
+export function createWander(reducedMotion: boolean, seed: number): WanderMachine {
+  let rng = makeRng(seed)
+  let candidates: WanderProp[] = []
+  let phase: WanderPhase = "home-idle"
+  let gap = nextGap(rng)
+  let gapAccum = 0
+  let targetX = 0
+  let targetZ = 0
+  let yaw = 0
+  let pauseElapsed = 0
+  let pauseDuration = 0
+  let lookBase = 0
+
+  const startTrip = (fromX: number, fromZ: number) => {
+    const pick = pickVisitTarget(candidates, fromX, fromZ, rng)
+    if (!pick) {
+      // Nothing to visit this window — re-roll the gap and stay home.
+      gap = nextGap(rng)
+      gapAccum = 0
+      return false
+    }
+    targetX = pick.x
+    targetZ = pick.z
+    pauseDuration = rng.next() + 1 // 1–2 s in the 1..2 window
+    pauseElapsed = 0
+    lookBase = heading(targetX - fromX, targetZ - fromZ)
+    yaw = 0 // the stride eases this from the creature's actual facing
+    phase = "walk-out"
+    return true
+  }
+
+  return {
+    setCandidates(list) {
+      candidates = list
+    },
+
+    begin(x, z) {
+      // Re-seed from the seed plus the outgoing gap so successive trips
+      // re-roll deterministically, without wall-clock or save input.
+      rng = makeRng((seed ^ Math.round(gap * 4096)) >>> 0)
+      gap = nextGap(rng)
+      gapAccum = 0
+      phase = "home-idle"
+    },
+
+    abort() {
+      phase = "home-idle"
+      gapAccum = 0
+      gap = nextGap(rng)
+    },
+
+    advance(x, z, dt, allow) {
+      const step = Math.min(Math.max(dt, 0), 0.1)
+      if (phase === "home-idle") {
+        if (allow && !reducedMotion) {
+          gapAccum += step
+          if (gapAccum >= gap && candidates.length > 0) {
+            startTrip(x, z)
+          }
+        }
+        return { phase, x, z, yaw, lookOffset: 0, pivoting: false }
+      }
+      if (phase === "walk-out") {
+        const s = strideStep(x, z, yaw, targetX, targetZ, step)
+        yaw = s.yaw
+        if (s.arrived) {
+          phase = "visit-pause"
+          pauseElapsed = 0
+        }
+        return {
+          phase,
+          x: s.x,
+          z: s.z,
+          yaw,
+          lookOffset: 0,
+          pivoting: s.pivoting,
+        }
+      }
+      if (phase === "visit-pause") {
+        pauseElapsed += step
+        // Gentle look-around: one full sweep over the pause.
+        const t = pauseElapsed / Math.max(pauseDuration, 1e-6)
+        const lookOffset =
+          reducedMotion
+            ? 0
+            : Math.sin(t * Math.PI * 2) * VISIT_LOOK_SPAN
+        if (pauseElapsed >= pauseDuration) {
+          phase = "walk-home"
+        }
+        return { phase, x, z, yaw: lookBase, lookOffset, pivoting: false }
+      }
+      // walk-home: back to the home anchor at the origin.
+      const s = strideStep(x, z, yaw, 0, 0, step)
+      yaw = s.yaw
+      if (s.arrived) {
+        phase = "home-idle"
+        gapAccum = 0
+        gap = nextGap(rng)
+        return {
+          phase,
+          x: 0,
+          z: 0,
+          yaw,
+          lookOffset: 0,
+          pivoting: false,
+        }
+      }
+      return {
+        phase,
+        x: s.x,
+        z: s.z,
+        yaw,
+        lookOffset: 0,
+        pivoting: s.pivoting,
+      }
+    },
+  }
+}
+
