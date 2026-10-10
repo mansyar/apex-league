@@ -97,7 +97,7 @@ Pure `chooseAction`. No clock required.
   - [x] a starter-band fixture ends by KO before tick 40; a separate fixture hits the cap
 - [x] Task: Implement `battle/resolver.ts` (plan said `battle/resolve.ts`; the resolver.ts spelling matches the test file) and `battle/exhibition.ts` (`b0517fe`)
 - [x] Task: Export the public battle API from `packages/sim/src/index.ts` via the `battle` barrel (`6b0afd4`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: b0517fe]
 
 ## Phase G — Ranch Spar (client — manual verification)
 
