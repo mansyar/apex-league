@@ -13,8 +13,8 @@ import {
 } from "./storage"
 
 describe("save schema", () => {
-  test("current version is 3", () => {
-    expect(SAVE_VERSION).toBe(3)
+  test("current version is 4", () => {
+    expect(SAVE_VERSION).toBe(4)
   })
 
   test("serializeSave wraps state with version metadata", () => {
@@ -25,7 +25,7 @@ describe("save schema", () => {
     }
     const json = serializeSave(data)
     const parsed = JSON.parse(json) as SaveData
-    expect(parsed.version).toBe(3)
+    expect(parsed.version).toBe(4)
     expect(parsed.state.day).toBe(1)
     expect(parsed.savedAt).toBe(1000)
   })
@@ -36,7 +36,7 @@ describe("migration chain", () => {
     // v0 predates the versioned schema: flat shape, no phase/AP.
     const v0 = { version: 0, day: 7 }
     const migrated = migrate(v0)
-    expect(migrated.version).toBe(3)
+    expect(migrated.version).toBe(4)
     expect(migrated.state.day).toBe(7)
     expect(migrated.state.phase).toBe("cup")
     expect(migrated.state.actionPoints).toBeGreaterThan(0)
@@ -55,7 +55,7 @@ describe("migration chain", () => {
       savedAt: 1234,
     }
     const migrated = migrate(v1)
-    expect(migrated.version).toBe(3)
+    expect(migrated.version).toBe(4)
     expect(migrated.savedAt).toBe(1234)
     expect(migrated.state.day).toBe(4)
     expect(migrated.state.actionPoints).toBe(2)
@@ -112,7 +112,7 @@ describe("migration chain", () => {
       savedAt: 99,
     }
     const migrated = migrate(v2)
-    expect(migrated.version).toBe(3)
+    expect(migrated.version).toBe(4)
     expect(migrated.savedAt).toBe(99)
     expect(migrated.state.day).toBe(5)
     expect(migrated.state.actionPoints).toBe(2)
@@ -127,13 +127,13 @@ describe("migration chain", () => {
     expect(migrated.state.creature?.stats).toEqual(creature.stats)
   })
 
-  test("a v1 save walks v1→v2→v3 into the same neutral training shape", () => {
+  test("a v1 save walks v1→v2→v3→v4 with the credited trained days", () => {
     const migrated = migrate({
       version: 1,
       state: { day: 2, phase: "day", actionPoints: 3 },
       savedAt: 0,
     })
-    expect(migrated.version).toBe(3)
+    expect(migrated.version).toBe(4)
     expect(migrated.state.creature?.trained).toEqual({
       hp: 0,
       atk: 0,
@@ -142,6 +142,50 @@ describe("migration chain", () => {
     })
     expect(migrated.state.creature?.trainingFocus).toBeNull()
     expect(migrated.state.creature?.trainingResult).toBeNull()
+    expect(migrated.state.creature?.trainingDays).toBe(6)
+    expect(migrated.state.creature?.loadout).toBeNull()
+  })
+
+  test("a v3 save migrates to v4: 6 trained days, null loadout, stats intact", () => {
+    // v3 creatures predate the move-kit ledger — strip the v4 fields.
+    const creature = createCreature("fire_drake", 42)
+    const legacy = structuredClone(creature) as unknown as Record<
+      string,
+      unknown
+    >
+    delete legacy.trainingDays
+    delete legacy.loadout
+    const v3 = {
+      version: 3,
+      state: { day: 9, phase: "day", actionPoints: 1, creature: legacy },
+      savedAt: 321,
+    }
+    const migrated = migrate(v3)
+    expect(migrated.version).toBe(4)
+    expect(migrated.savedAt).toBe(321)
+    expect(migrated.state.day).toBe(9)
+    expect(migrated.state.creature?.trainingDays).toBe(6)
+    expect(migrated.state.creature?.loadout).toBeNull()
+    expect(migrated.state.creature?.stats).toEqual(creature.stats)
+    expect(migrated.state.creature?.trained).toEqual(creature.trained)
+  })
+
+  test("a v4 save round-trips trainingDays and the chosen loadout", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!owned.creature) throw new Error("no creature")
+    const state = {
+      ...owned,
+      creature: {
+        ...owned.creature,
+        trainingDays: 2,
+        loadout: ["spark", "flame_charge"],
+      },
+    }
+    saveGame(adapter, state, 8)
+    const loaded = loadGame(adapter)
+    expect(loaded?.creature?.trainingDays).toBe(2)
+    expect(loaded?.creature?.loadout).toEqual(["spark", "flame_charge"])
   })
 
   test("rejects saves from an unknown future version", () => {
