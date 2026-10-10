@@ -80,21 +80,23 @@ export function createScene(container: HTMLElement): SceneHandle {
         horizon: { value: new THREE.Color(SKY_HORIZON) },
       },
       vertexShader: `
-        varying vec3 vPos
+        varying vec3 vPos;
         void main() {
-          vPos = position
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0)
+          vPos = position;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `,
       fragmentShader: `
-        varying vec3 vPos
-        uniform vec3 top
-        uniform vec3 horizon
+        varying vec3 vPos;
+        uniform vec3 top;
+        uniform vec3 horizon;
         void main() {
-          // Amber pools at the horizon, cools to navy overhead.
-          float h = normalize(vPos).y
-          float t = pow(clamp(h * 1.6, 0.0, 1.0), 0.7)
-          gl_FragColor = vec4(mix(horizon, top, t), 1.0)
+          // Amber pools at the horizon, cools to navy overhead. The ramp
+          // is steep because the orbit camera looks slightly down — only
+          // the low band of the dome is ever on screen.
+          float h = normalize(vPos).y;
+          float t = pow(clamp(h * 2.4, 0.0, 1.0), 0.85);
+          gl_FragColor = vec4(mix(horizon, top, t), 1.0);
         }
       `,
       side: THREE.BackSide,
@@ -171,17 +173,20 @@ export function createScene(container: HTMLElement): SceneHandle {
   canvas.addEventListener("wheel", onWheel)
 
   // Lighting rig: warm key from the sun side, cool rim from the far
-  // side to keep shadowed voxels readable, and a rebalanced ambient fill.
-  const ambient = new THREE.AmbientLight(0xbcc7d6, 0.55)
-  const sun = new THREE.DirectionalLight(KEY_COLOR, 1.6)
+  // side to keep shadowed voxels readable. A hemisphere ramp gives the
+  // creature amber light from above sky and a muted cool bounce from
+  // the moss below — the golden-hour bounce that makes the character read.
+  const ambient = new THREE.AmbientLight(0xbcc7d6, 0.3)
+  const hemi = new THREE.HemisphereLight(0xe8ab72, 0x3a4a44, 1.15)
+  const sun = new THREE.DirectionalLight(KEY_COLOR, 2.0)
   sun.position.set(4, 6, 2)
   const rim = new THREE.DirectionalLight(RIM_COLOR, 0.5)
   rim.position.set(-5, 3, -4)
-  scene.add(ambient, sun, rim)
+  scene.add(ambient, hemi, sun, rim)
 
   // Real drop-in shadows: the creature's parts cast, the ground receives.
   renderer.shadowMap.enabled = true
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap
+  renderer.shadowMap.type = THREE.PCFShadowMap
   sun.castShadow = true
   sun.shadow.mapSize.set(1024, 1024)
   sun.shadow.camera.left = -9
@@ -191,10 +196,11 @@ export function createScene(container: HTMLElement): SceneHandle {
   sun.shadow.camera.near = 1
   sun.shadow.camera.far = 20
 
-  // Mossy ground: a large disc so the ranch edge dissolves into the fog
-  // instead of ending at a hard box edge. Receives the creature's shadow.
+  // Mossy ground: a disc as wide as the sky dome, so the moss always
+  // runs to the horizon and meets the dome at its equator — there is no
+  // visible ground edge to dissolve. Fog takes over at distance.
   const ground = new THREE.Mesh(
-    new THREE.CircleGeometry(11, 48),
+    new THREE.CircleGeometry(40, 64),
     new THREE.MeshLambertMaterial({ color: GROUND_COLOR }),
   )
   ground.rotation.x = -Math.PI / 2
