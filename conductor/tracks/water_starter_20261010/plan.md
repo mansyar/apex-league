@@ -5,22 +5,30 @@ code; manual verification for rendering/UI wiring).
 
 ## Phase A — Sim: unlock the Tide Axolotl
 
-- [ ] Task: Write failing tests (Red)
-  - [ ] `packages/sim/src/creature.test.ts`: replace the water-axolotl-specific
+- [x] Task: Write failing tests (Red)
+  - [x] `packages/sim/src/creature.test.ts`: replace the water-axolotl-specific
     "locked throws" test with a trio test (all 3 starters available, distinct
     elements + archetypes); keep a generic unavailable-id throw case using a
     synthetic species id (`bun test` red)
-  - [ ] `packages/sim/src/battle/exhibition.test.ts`: assert the rival pool
-    covers the full trio across seeds (`bun test` red)
-  - [ ] `packages/sim/src/battle/moves.test.ts`: flip/replace the locked
+    — done as: red "creates the newly unlocked Tide Axolotl" test + red trio
+    tests; the "locked id throws" case was folded into the existing
+    unknown-species throw test (a synthetic id cannot reach the availability
+    branch without a locked catalog entry, where it would be indistinguishable
+    from the unknown-species throw)
+  - [x] `packages/sim/src/battle/exhibition.test.ts`: assert the rival pool
+    covers the full trio across seeds (`bun test` red) — 240 seeds, trio set
+    equality on observed rivals; one stale "rival is never water_axolotl"
+    assertion removed in the same ripple
+  - [x] `packages/sim/src/battle/moves.test.ts`: flip/replace the locked
     availability assertion (`bun test` red)
-- [ ] Task: Implement (Green)
-  - [ ] Flip `water_axolotl.available: true` in `packages/sim/src/species.ts`
-  - [ ] Update stale comments: `species.ts` catalog docblock ("Water is teased
+- [x] Task: Implement (Green)
+  - [x] Flip `water_axolotl.available: true` in `packages/sim/src/species.ts`
+  - [x] Update stale comments: `species.ts` catalog docblock ("Water is teased
     as locked…"), `exhibition.ts` rival comment
-- [ ] Task: Run full suite, confirm green + runtime unchanged
-- [ ] Task: Commit `feat(sim): unlock the tide axolotl as the third starter` +
-  git note (workflow step 8)
+- [x] Task: Run full suite, confirm green + runtime unchanged — 372 pass / 0
+  fail across 47 files, ~64s (unchanged)
+- [x] Task: Commit `feat(sim): unlock the tide axolotl as the third starter` +
+  git note (workflow step 8) — `2786ca0`
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase B — Water-flavored coach copy
