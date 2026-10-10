@@ -41,19 +41,19 @@ Ground rules for this track:
 
 ## Phase B — Unlock gate & loadout helpers (sim)
 
-- [ ] Task: Failing tests — unlockedKit, defaultLoadout, setLoadout (sim)
+- [x] Task: Failing tests — unlockedKit, defaultLoadout, setLoadout (sim) (5a24724)
   - New `packages/sim/src/loadout.test.ts`: `MOVE_TIER3_DAYS = 3`,
     `MOVE_TIER4_DAYS = 6`; `unlockedKit` slicing by `trainingDays` (0–2 →
     tiers 1–2, 3 → +tier 3, 6 → all four) across all three species; rivals are
     not handled here (they never read this path — assert the slice has no
     seed); `setLoadout` accepts 2–4 unique unlocked ids in any order, stores
     them, and rejects unknown/repeat/locked/mis-sized lists with the friendly
-    error strings from the spec; `clearLoadout` restores `null`.
-- [ ] Task: Implement loadout.ts and relax validateLoadout (sim)
+    error strings from the spec; `clearLoadout` restores `null`. [x]
+- [x] Task: Implement loadout.ts and relax validateLoadout (sim) (f10b857)
   - `loadout.ts` helpers; `battle/moves.ts` `validateLoadout` accepts 2–4
     (dated spec revision of battle_core FR3 — update the moves.test counts and
-    the spec reference accordingly); export the new API from
-    `packages/sim/src/index.ts`.
+    the spec reference accordingly) [x]; export the new API from
+    `packages/sim/src/index.ts`. [x]
 
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
