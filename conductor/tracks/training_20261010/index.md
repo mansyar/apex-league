@@ -8,4 +8,4 @@ trained bonus are visible on the ranch HUD.
 - [Implementation Plan](./plan.md)
 - [Metadata](./metadata.json)
 
-Status: **new** — branch `track/training_20261010`.
+Status: **complete** — branch `track/training_20261010`.
