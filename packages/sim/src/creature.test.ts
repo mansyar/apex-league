@@ -63,8 +63,12 @@ describe("createCreature", () => {
     expect(() => createCreature("no_such_species", 1)).toThrow()
   })
 
-  test("throws when creating a locked (unavailable) species", () => {
-    expect(() => createCreature("water_axolotl", 1)).toThrow()
+  test("creates the newly unlocked Tide Axolotl from its species data", () => {
+    const c = createCreature("water_axolotl", 42)
+    expect(c.name).toBe("Tide Axolotl")
+    expect(c.element).toBe("water")
+    expect(c.archetypeId).toBe("axolotl")
+    expect(c.stage).toBe("baby")
   })
 })
 
@@ -89,11 +93,21 @@ describe("starter catalog", () => {
     expect(s.archetypeId).toBe("bovine")
   })
 
-  test("water axolotl is present but locked (coming soon)", () => {
+  test("water axolotl is an available Water starter on the axolotl archetype", () => {
     const s = getSpecies("water_axolotl")
     if (!s) throw new Error("water_axolotl species missing")
-    expect(s.available).toBe(false)
+    expect(s.available).toBe(true)
     expect(s.element).toBe("water")
+    expect(s.archetypeId).toBe("axolotl")
+  })
+
+  test("the trio is fully playable — every starter is available", () => {
+    expect(STARTER_SPECIES.every((s) => s.available)).toBe(true)
+  })
+
+  test("the trio covers three distinct elements and archetypes", () => {
+    expect(new Set(STARTER_SPECIES.map((s) => s.element)).size).toBe(3)
+    expect(new Set(STARTER_SPECIES.map((s) => s.archetypeId)).size).toBe(3)
   })
 
   test("getSpecies returns undefined for unknown ids", () => {
@@ -158,10 +172,16 @@ describe("GameState creature integration", () => {
     expect(s).toEqual(snapshot)
   })
 
-  test("chooseStarter rejects unknown and locked species", () => {
+  test("chooseStarter accepts every starter in the trio", () => {
+    for (const species of STARTER_SPECIES) {
+      const s = chooseStarter(createInitialState(), species.id, 42)
+      expect(s.creature?.speciesId).toBe(species.id)
+    }
+  })
+
+  test("chooseStarter rejects an unknown species", () => {
     const s = createInitialState()
     expect(() => chooseStarter(s, "no_such_species", 1)).toThrow()
-    expect(() => chooseStarter(s, "water_axolotl", 1)).toThrow()
   })
 
   test("chooseStarter rejects a state that already has a creature", () => {

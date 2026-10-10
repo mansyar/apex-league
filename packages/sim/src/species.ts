@@ -34,8 +34,9 @@ export interface SpeciesDef {
 }
 
 /**
- * The starter roster. Water is teased as locked until the axolotl archetype
- * lands; the catalog shape already reserves its slot.
+ * The starter roster. All three elements (fire, plant, water) are playable;
+ * each species reserves its slot with `available` so future starters can be
+ * teased while locked.
  */
 export const STARTER_SPECIES: readonly SpeciesDef[] = Object.freeze([
   {
@@ -66,7 +67,7 @@ export const STARTER_SPECIES: readonly SpeciesDef[] = Object.freeze([
     displayName: "Tide Axolotl",
     element: "water",
     flavor: "An easygoing swimmer that hums bubbles when it is happy.",
-    available: false,
+    available: true,
     kit: ["bubble", "tide_shot", "foam_volley", "splash_bolt"],
     temperament: "obedient",
     statBounds: { hp: [40, 48], atk: [8, 12], def: [8, 11], spd: [8, 11] },

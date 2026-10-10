@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test"
 import { type Creature, createCreature } from "@apex/sim"
-import { unlockCallout } from "./hud"
+import { flavorCallout, unlockCallout } from "./hud"
 
 describe("unlockCallout", () => {
-  const drake = createCreature("fire_drake", 42) as Creature
-  const ox = createCreature("plant_ox", 42) as Creature
+  const drake = createCreature("fire_drake", 42)
+  const ox = createCreature("plant_ox", 42)
 
   const cases: Array<{
     days: number
@@ -34,4 +34,19 @@ describe("unlockCallout", () => {
       expect(unlockCallout({ ...creature, trainingDays })).toBe(expected)
     })
   }
+})
+
+describe("flavorCallout", () => {
+  const drake = createCreature("fire_drake", 42)
+  const axolotl = createCreature("water_axolotl", 42)
+
+  test("a healthy water partner gets a water-flavored idle line", () => {
+    expect(flavorCallout(axolotl)).toBe(
+      "Tide Axolotl hums a contented bubble song.",
+    )
+  })
+
+  test("partners of other elements stay quiet — the line is water-only", () => {
+    expect(flavorCallout(drake)).toBe("")
+  })
 })

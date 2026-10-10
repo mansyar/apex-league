@@ -22,7 +22,7 @@ export interface SparSetup {
   readonly rivalSide: BattleSide
   /** The rival as a full creature, for the spar panel display. */
   readonly rival: Creature
-  /** The seeded rival species id. Tide Axolotl is excluded while unavailable. */
+  /** The seeded rival species id, drawn from the available starters. */
   readonly rivalSpeciesId: string
   /** The seeded rival tactic. */
   readonly rivalTactic: Tactic

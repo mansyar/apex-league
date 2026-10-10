@@ -88,6 +88,16 @@ function coachVoice(conditions: CreatureConditions, name: string): string {
 }
 
 /**
+ * The element-flavored idle line: when nothing else needs saying, a water
+ * partner gets a small water-flavored moment (echoing its catalog flavor).
+ * Coach-voice, ≤ 2 sentences, never punishing. Empty for other elements.
+ */
+export function flavorCallout(creature: Creature): string {
+  if (creature.element !== "water") return ""
+  return `${creature.name} hums a contented bubble song.`
+}
+
+/**
  * The fresh-unlock coach line: while the trained-days counter sits exactly
  * on a tier threshold, the coach names the move that just became legal.
  * Under training and condition copy in precedence — a quiet morning only.
@@ -388,7 +398,8 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     status.textContent =
       training ||
       coachVoice(creature.conditions, creature.name) ||
-      unlockCallout(creature)
+      unlockCallout(creature) ||
+      flavorCallout(creature)
 
     // Disabled states come from the sim itself — a dry-run careAction is
     // the single source of truth for why an action can't happen.
