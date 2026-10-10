@@ -1,0 +1,9 @@
+{
+  "id": "cup_day_20261011",
+  "title": "Cup Day — weekly 8-bracket tournament",
+  "type": "feature",
+  "status": "new",
+  "createdAt": "2026-10-11",
+  "branch": "track/cup_day_20261011",
+  "base": "main @ 648814c"
+}
