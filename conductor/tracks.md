@@ -8,3 +8,4 @@
 - [x] **Track: Axolotl Archetype — third creature archetype (axolotl, Water starter), completing the Fire/Water/Plant starter trio** *Link: [axolotl_20261010](./tracks/axolotl_20261010/index.md)*
 - [x] **Track: Training Programs — assign one stat focus per day (1 AP); nightly +1 on a full rest, capped at +6 above the rolled base; stats visible on the ranch HUD** *Link: [training_20261010](./tracks/training_20261010/index.md)*
 - [x] **Track: Battle Resolution Core — headless 1v1 exhibition resolver (speed gauge, projectile dodge, equip-4, temperament) plus a ranch Spar log** *Link: [battle_core_20261010](./tracks/battle_core_20261010/index.md)*
+- [ ] **Track: Combat Prep — battles read stats + trained, move kits grow through focused training (tier 3 @3 days, tier 4 @6), Spar-panel loadout picker with locked rows, save v4** *Link: [combat_prep_20261010](./tracks/combat_prep_20261010/index.md)*
