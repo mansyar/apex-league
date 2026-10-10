@@ -9,10 +9,12 @@ import { buildCreatureGroup } from "./creature"
 import { buildPropGroup } from "./prop"
 import {
   createWalk,
+  createWander,
   type GaitPose,
   gaitPose,
   phaseHash,
   swayAngle,
+  type WanderDrive,
   windBaseAmp,
 } from "./scene-logic"
 
@@ -253,6 +255,11 @@ export function createScene(container: HTMLElement): SceneHandle {
   // runtime transform only — the sim is untouched.
   const pilePos = new THREE.Vector3(-2.4, 0, 0.4)
   const walk = createWalk(reducedMotion)
+  /** Sparse wanderer (FR3). Created per creature in setCreature (it needs
+   * the visual seed); null before that and after dispose. */
+  let wander: ReturnType<typeof createWander> | null = null
+  /** Tuft/bush world positions the wanderer may visit (rebuilt on scatter). */
+  const wanderCandidates: { x: number; z: number }[] = []
   /** How deep the nibble head-dips go (in the head pivot's local units —
    * the rig runs in grid units, so this scales with the creature). */
   const DIP_DEPTH = 1.2
@@ -317,6 +324,11 @@ export function createScene(container: HTMLElement): SceneHandle {
    * never register.
    */
   const registerSway = (propId: string, prop: THREE.Group): void => {
+    // Wander candidates (FR3): tufts and bushes are legitimate visit
+    // spots; rocks, trees, and the food pile never register.
+    if (propId === "tuft" || propId === "bush") {
+      wanderCandidates.push({ x: prop.position.x, z: prop.position.z })
+    }
     const baseAmp = windBaseAmp(propId)
     if (baseAmp <= 0) return
     windProps.push({
@@ -376,6 +388,9 @@ export function createScene(container: HTMLElement): SceneHandle {
         if (obj instanceof THREE.Mesh) obj.castShadow = true
       })
       scene.add(rig)
+      // Fresh wanderer for the new creature (FR3): its free-running rng is
+      // seeded from the visual seed — never wall-clock, never saved.
+      wander = createWander(reducedMotion, seed)
       // headBaseY stays in the head's LOCAL units — the tick writes it back
       // to head.position.y in the same space (the rig runs in grid units).
       headBaseY = rig.getObjectByName("head")?.position.y ?? 0
@@ -386,6 +401,7 @@ export function createScene(container: HTMLElement): SceneHandle {
       if (ranchScenery) disposeGroup(ranchScenery)
       windProps = []
       windSalt = 0
+      wanderCandidates.length = 0
       const scenery = new THREE.Group()
       scenery.name = "ranch-scenery"
       const rng = makeRng(visualSeed)
@@ -427,6 +443,8 @@ export function createScene(container: HTMLElement): SceneHandle {
       landmark("rock", -7.5, -1.6, 1.4, 2203)
       scene.add(scenery)
       ranchScenery = scenery
+      // Publish the fresh candidate list to the wanderer (FR3).
+      wander?.setCandidates(wanderCandidates)
     },
     setFedToday(fedToday) {
       if (!foodPile) {
@@ -442,6 +460,10 @@ export function createScene(container: HTMLElement): SceneHandle {
     },
     startFeedCeremony() {
       if (!creatureGroup) return
+      // A feed takes the creature over: abandon any in-flight wander trip
+      // (FR3 — wander is suspended during the ceremony) and let the
+      // ceremony machine drive from the creature's current pose.
+      wander?.abort()
       // Straight-line approach: the stand point sits ON the line from the
       // creature's current position to the pile center, stopped 1.15 world
       // units short of the pile so the creature stands just before it and
@@ -522,12 +544,34 @@ export function createScene(container: HTMLElement): SceneHandle {
         creatureGroup.position.z = wd.z
         creatureGroup.rotation.y = wd.yaw
       }
+      // Sparse wandering (FR3): while the ceremony is idle and the mood is
+      // eligible, the wander machine may start a trip to a nearby tuft or
+      // bush. A feed ceremony takes priority — startFeedCeremony aborts the
+      // wanderer, so the two machines never fight over the creature.
+      let wandDrive: WanderDrive | null = null
+      if (wd.phase === "idle" && wander) {
+        wandDrive = wander.advance(
+          creatureGroup.position.x,
+          creatureGroup.position.z,
+          dt,
+          mode !== "droopy",
+        )
+        if (wandDrive.phase !== "home-idle") {
+          creatureGroup.position.x = wandDrive.x
+          creatureGroup.position.z = wandDrive.z
+          creatureGroup.rotation.y = wandDrive.yaw + wandDrive.lookOffset
+        } else {
+          wandDrive = null
+        }
+      }
+      const drive = wandDrive ?? wd
       const traveling =
-        (wd.phase === "walk-out" || wd.phase === "walk-home") && !wd.pivoting
+        (drive.phase === "walk-out" || drive.phase === "walk-home") &&
+        !drive.pivoting
       const remaining = traveling
         ? Math.hypot(
-            (wd.phase === "walk-out" ? standX : 0) - wd.x,
-            (wd.phase === "walk-out" ? standZ : 0) - wd.z,
+            drive.targetX - creatureGroup.position.x,
+            drive.targetZ - creatureGroup.position.z,
           )
         : 0
       applyGait(
@@ -542,16 +586,22 @@ export function createScene(container: HTMLElement): SceneHandle {
         // 2–3 gentle head-dips toward the pile over the existing pivot.
         head.position.y -= wd.dipOffset * DIP_DEPTH
       }
-      if (!reducedMotion && wd.phase === "idle" && profile.bounce > 0) {
+      if (
+        !reducedMotion &&
+        drive.phase === "idle" &&
+        !wandDrive &&
+        profile.bounce > 0
+      ) {
         creatureGroup.position.y = Math.abs(Math.sin(t * 3.2)) * profile.bounce
       } else {
         creatureGroup.position.y = 0
       }
-      // Soft camera track: while the creature is in the ceremony it eases
-      // toward the creature's position; the rest of the time it drifts back
-      // to the home anchor. Frame-rate independent smoothing — drag and
-      // wheel still own the final say over azimuth/elevation/radius.
-      const away = wd.phase !== "idle"
+      // Soft camera track: while the creature is in the ceremony or on a
+      // wander trip it eases toward the creature's position; the rest of
+      // the time it drifts back to the home anchor. Frame-rate independent
+      // smoothing — drag and wheel still own the final say over
+      // azimuth/elevation/radius.
+      const away = wd.phase !== "idle" || wandDrive !== null
       focusPoint.set(
         away ? creatureGroup.position.x : 0,
         0.8,

@@ -135,6 +135,9 @@ export interface WalkDrive {
   done: boolean
   /** True while the creature pivots in place (legs stay still). */
   pivoting: boolean
+  /** Current stride destination (the stand spot or the home anchor). */
+  targetX: number
+  targetZ: number
 }
 
 export interface WalkMachine {
@@ -169,7 +172,13 @@ export function createWalk(reducedMotion: boolean): WalkMachine {
   /** Move (x, z) one clamped step toward the target at WALK_SPEED,
    * turning in place first when misaligned. Shared by the ceremony and
    * wander machines. Never overshoots. */
-  const stride = (x: number, z: number, targetX: number, targetZ: number, step: number) => {
+  const stride = (
+    x: number,
+    z: number,
+    targetX: number,
+    targetZ: number,
+    step: number,
+  ) => {
     const s = strideStep(x, z, yaw, targetX, targetZ, step)
     yaw = s.yaw
     return { x: s.x, z: s.z, arrived: s.arrived, pivoting: s.pivoting }
@@ -178,7 +187,17 @@ export function createWalk(reducedMotion: boolean): WalkMachine {
   const advance = (x: number, z: number, dt: number): WalkDrive => {
     const step = Math.min(Math.max(dt, 0), 0.1)
     if (phase === "idle") {
-      return { x, z, yaw, phase, dipOffset: 0, done: true, pivoting: false }
+      return {
+        x,
+        z,
+        yaw,
+        phase,
+        dipOffset: 0,
+        done: true,
+        pivoting: false,
+        targetX: x,
+        targetZ: z,
+      }
     }
     if (phase === "walk-out") {
       const s = stride(x, z, standX, standZ, step)
@@ -194,6 +213,8 @@ export function createWalk(reducedMotion: boolean): WalkMachine {
         dipOffset: 0,
         done: false,
         pivoting: s.pivoting,
+        targetX: standX,
+        targetZ: standZ,
       }
     }
     if (phase === "nibble") {
@@ -213,6 +234,8 @@ export function createWalk(reducedMotion: boolean): WalkMachine {
         dipOffset: phase === "nibble" ? dipOffset : 0,
         done: phase === "idle",
         pivoting: false,
+        targetX: standX,
+        targetZ: standZ,
       }
     }
     // walk-home: back to the home anchor at the origin.
@@ -227,6 +250,8 @@ export function createWalk(reducedMotion: boolean): WalkMachine {
         dipOffset: 0,
         done: true,
         pivoting: false,
+        targetX: 0,
+        targetZ: 0,
       }
     }
     return {
@@ -237,6 +262,8 @@ export function createWalk(reducedMotion: boolean): WalkMachine {
       dipOffset: 0,
       done: false,
       pivoting: s.pivoting,
+      targetX: 0,
+      targetZ: 0,
     }
   }
 
@@ -370,7 +397,7 @@ function strideStep(
  * wander visit. */
 export const WANDER_PILE = { x: -2.4, z: 0.4 }
 export const WANDER_DISC_RADIUS = 8.5
-export const WANDER_MIN_PILE_DIST = 1.8/** Visits stop this far short of the chosen prop. */
+export const WANDER_MIN_PILE_DIST = 1.8 /** Visits stop this far short of the chosen prop. */
 export const WANDER_VISIT_STOP = 0.9
 export const WANDER_VISIT_NEAR = 1.6
 export const WANDER_GAP_MIN = 20
@@ -393,6 +420,9 @@ export interface WanderDrive {
   /** Extra yaw sweep while sightseeing (drive by the scene additively). */
   lookOffset: number
   pivoting: boolean
+  /** Current stride destination (the visit spot or the home anchor). */
+  targetX: number
+  targetZ: number
 }
 
 /** A free-running 20–40 s wander gap from the given rng (seeded per scene,
@@ -443,14 +473,17 @@ export interface WanderMachine {
   begin(x: number, z: number): void
   /** Cancel-free external reset (a feed ceremony taking the creature): end
    * the trip immediately; the scene stops applying wander drives. */
-   abort(): void
+  abort(): void
   /** Advance the machine. `allow` is the mood/reduced-motion/ceremony gate:
    * gaps accrue only while allowed, and trips are started only while
    * allowed (an already-running trip is always finished gracefully). */
   advance(x: number, z: number, dt: number, allow: boolean): WanderDrive
 }
 
-export function createWander(reducedMotion: boolean, seed: number): WanderMachine {
+export function createWander(
+  reducedMotion: boolean,
+  seed: number,
+): WanderMachine {
   let rng = makeRng(seed)
   let candidates: WanderProp[] = []
   let phase: WanderPhase = "home-idle"
@@ -486,7 +519,7 @@ export function createWander(reducedMotion: boolean, seed: number): WanderMachin
       candidates = list
     },
 
-    begin(x, z) {
+    begin() {
       // Re-seed from the seed plus the outgoing gap so successive trips
       // re-roll deterministically, without wall-clock or save input.
       rng = makeRng((seed ^ Math.round(gap * 4096)) >>> 0)
@@ -510,7 +543,16 @@ export function createWander(reducedMotion: boolean, seed: number): WanderMachin
             startTrip(x, z)
           }
         }
-        return { phase, x, z, yaw, lookOffset: 0, pivoting: false }
+        return {
+          phase,
+          x,
+          z,
+          yaw,
+          lookOffset: 0,
+          pivoting: false,
+          targetX: targetX,
+          targetZ: targetZ,
+        }
       }
       if (phase === "walk-out") {
         const s = strideStep(x, z, yaw, targetX, targetZ, step)
@@ -526,20 +568,30 @@ export function createWander(reducedMotion: boolean, seed: number): WanderMachin
           yaw,
           lookOffset: 0,
           pivoting: s.pivoting,
+          targetX,
+          targetZ,
         }
       }
       if (phase === "visit-pause") {
         pauseElapsed += step
         // Gentle look-around: one full sweep over the pause.
         const t = pauseElapsed / Math.max(pauseDuration, 1e-6)
-        const lookOffset =
-          reducedMotion
-            ? 0
-            : Math.sin(t * Math.PI * 2) * VISIT_LOOK_SPAN
+        const lookOffset = reducedMotion
+          ? 0
+          : Math.sin(t * Math.PI * 2) * VISIT_LOOK_SPAN
         if (pauseElapsed >= pauseDuration) {
           phase = "walk-home"
         }
-        return { phase, x, z, yaw: lookBase, lookOffset, pivoting: false }
+        return {
+          phase,
+          x,
+          z,
+          yaw: lookBase,
+          lookOffset,
+          pivoting: false,
+          targetX,
+          targetZ,
+        }
       }
       // walk-home: back to the home anchor at the origin.
       const s = strideStep(x, z, yaw, 0, 0, step)
@@ -555,6 +607,8 @@ export function createWander(reducedMotion: boolean, seed: number): WanderMachin
           yaw,
           lookOffset: 0,
           pivoting: false,
+          targetX: 0,
+          targetZ: 0,
         }
       }
       return {
@@ -564,8 +618,9 @@ export function createWander(reducedMotion: boolean, seed: number): WanderMachin
         yaw,
         lookOffset: 0,
         pivoting: s.pivoting,
+        targetX: 0,
+        targetZ: 0,
       }
     },
   }
 }
-

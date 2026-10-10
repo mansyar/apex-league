@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { type WanderDrive, createWander, nextGap, pickVisitTarget } from "./scene-logic"
 import { makeRng } from "@apex/voxel"
+import { createWander, nextGap, pickVisitTarget } from "./scene-logic"
 
 const PILE = { x: -2.4, z: 0.4 }
 const DISC = 8.5 // moss-disc radius; drive targets must land inside
@@ -17,7 +17,12 @@ const props = [
 function run(
   m: ReturnType<typeof createWander>,
   seconds: number,
-  opts: { dt?: number; allow?: () => boolean; startX?: number; startZ?: number } = {},
+  opts: {
+    dt?: number
+    allow?: () => boolean
+    startX?: number
+    startZ?: number
+  } = {},
 ) {
   const dt = opts.dt ?? 1 / 60
   const allow = opts.allow ?? (() => true)
@@ -63,7 +68,9 @@ describe("wander target chooser", () => {
     const t = pickVisitTarget(props, PILE.x, PILE.z, makeRng(11))
     expect(t).not.toBeNull()
     const tt = t as { x: number; z: number }
-    expect(Math.hypot(tt.x - PILE.x, tt.z - PILE.z)).toBeGreaterThanOrEqual(MIN_PILE)
+    expect(Math.hypot(tt.x - PILE.x, tt.z - PILE.z)).toBeGreaterThanOrEqual(
+      MIN_PILE,
+    )
     expect(Math.hypot(tt.x, tt.z)).toBeLessThanOrEqual(DISC)
     const nearSomeProp = props.some(
       (p) => Math.hypot(tt.x - p.x, tt.z - p.z) < 1.6,
@@ -122,7 +129,7 @@ describe("wander machine", () => {
   test("a mood drop mid-trip lets the trip finish, then no new trips", () => {
     const m = createWander(false, 500)
     m.setCandidates(props)
-    let tripStarted = false
+    const tripStarted = false
     const r = run(m, 80, {
       allow: () => {
         // Observe via phases inside the closure is awkward; flip the gate
