@@ -58,10 +58,16 @@ Phased delivery plan (each phase is independently playable):
 ### Phase 1 — Vertical Slice (MVP) ✅ *first playable target*
 - One full lineage: 3-stage evolution tree, one species family (starter tier).
 - Full day loop: feeding, rest & sickness, assign-based training, bonding.
+  *(Landed: care loop with 5 conditions, AP day phase, 3 starters.)*
 - Battle system: 4 stats + 6 types, move pool + equip-4, type/HP battle AI.
+  *(Landed core 2026-10-10: headless deterministic resolver — speed-gauge action
+  clock, type chart, projectile specials with travel/accuracy/dodge, equip-4
+  starter kits, cooldowns, tactic + temperament policy, ko/double_ko/time
+  endings, announcer event log, and a free ranch Spar between the creature and
+  a seeded rival. Arena replay and cup/ladder still open.)*
 - Top-down 3D arena with voxel creatures (procedural generator online).
 - One weekly cup (8-bracket), Bronze tier ladder, ~5 opponent creatures.
-- Ranch scene (3D) with idle/breathe life.
+- Ranch scene (3D) with idle/breathe life. *(Landed.)*
 - Retirement → next egg with stat + trait inheritance (minimal legacy).
 
 ### Phase 2 — League Depth

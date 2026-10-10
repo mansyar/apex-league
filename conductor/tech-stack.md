@@ -9,8 +9,11 @@
 - **Lint + format**: Biome (`biome check --write`). Single tool replaces
   ESLint+Prettier.
 - **Tests**: `bun test` (bun:test). Pure-logic suites (battle resolution, sim
-  economy, evolution gates) are DOM-free and run in CI; `bun test --check` gates
-  types + tests in one step.
+  economy, evolution gates) are DOM-free and run in CI; `bun test --check --parallel`
+  gates types + tests in one step. *2026-10-10: `--parallel` adopted with the
+  voxel fuzz suite partitioned into small files (58s → ~11.5s wall; full test
+  leg ~14s, floor-bound by per-seed voxelize CPU — a voxelize-perf follow-up
+  track is the accepted path below the original 10s target).*
 
 ## Client
 - **Build/dev server**: Vite (driven by Bun) — HMR, static output.
@@ -19,6 +22,10 @@
   state bindings (no UI framework at MVP; revisit if HUD complexity demands it).
 - **State**: central typed game-state store; deterministic sim core separated
   from rendering so battles can run headless (future PvP/ghosts depend on this).
+  *2026-10-10: battle core landed in `@apex/sim/battle` — type chart, damage,
+  moves/kits/loadout, action clock, projectile resolver, tactic/temperament
+  policy, endings, event log, exhibition helper (DOM-free, seeded, snapshot-
+  pure); the client Spar panel consumes it without a framework.*
 
 ## Server
 - **Framework**: ElysiaJS on Bun (endpoints: save sync, leaderboard, ghost

@@ -5,6 +5,9 @@
 
 import type { Element, StatBounds } from "./creature"
 
+/** A species' in-battle behaviour, stored on the definition, never on a save. */
+export type Temperament = "rush" | "slow" | "obedient"
+
 /** A species definition: identity plus the legal range of its stat rolls. */
 export interface SpeciesDef {
   /** Stable species id used in saves and the encyclopedia. */
@@ -18,6 +21,10 @@ export interface SpeciesDef {
   flavor: string
   /** Whether the species can currently be acquired. */
   available: boolean
+  /** Fixed four-move battle kit, one row per element tier. */
+  kit: readonly string[]
+  /** Fixed in-battle behaviour. Not a damage modifier. */
+  temperament: Temperament
   statBounds: {
     hp: StatBounds
     atk: StatBounds
@@ -38,6 +45,8 @@ export const STARTER_SPECIES: readonly SpeciesDef[] = Object.freeze([
     element: "fire",
     flavor: "A bold little drake whose tail sparks when it gets excited.",
     available: true,
+    kit: ["spark", "flame_charge", "cinder_shot", "blaze_bolt"],
+    temperament: "rush",
     statBounds: { hp: [38, 46], atk: [9, 13], def: [7, 10], spd: [9, 12] },
   },
   {
@@ -47,6 +56,8 @@ export const STARTER_SPECIES: readonly SpeciesDef[] = Object.freeze([
     element: "plant",
     flavor: "A stocky, patient grazer that grows steadier by the day.",
     available: true,
+    kit: ["seed_shot", "thorn_volley", "spore_burst", "bramble_dart"],
+    temperament: "slow",
     statBounds: { hp: [44, 52], atk: [8, 11], def: [10, 14], spd: [5, 8] },
   },
   {
@@ -56,6 +67,8 @@ export const STARTER_SPECIES: readonly SpeciesDef[] = Object.freeze([
     element: "water",
     flavor: "An easygoing swimmer that hums bubbles when it is happy.",
     available: false,
+    kit: ["bubble", "tide_shot", "foam_volley", "splash_bolt"],
+    temperament: "obedient",
     statBounds: { hp: [40, 48], atk: [8, 12], def: [8, 11], spd: [8, 11] },
   },
 ])

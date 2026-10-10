@@ -13,6 +13,7 @@ import {
 } from "@apex/sim"
 import { createHud } from "./hud"
 import { createScene } from "./scene"
+import { createSpar } from "./spar"
 import { createStarterChoice } from "./starter"
 import "./style.css"
 
@@ -51,11 +52,15 @@ const syncScene = (): void => {
   sceneVisuals()
 }
 
+// The spar reads the live state through this hook; it never mutates it.
+const spar = createSpar(app)
+
 const hud = createHud(app, {
   onAdvanceDay: () => {
     state = advanceDay(state)
     persist()
     hud.update(state)
+    spar.update(state.creature ?? null)
     // A training gain changes the visual seed → scatter may shift.
     syncScene()
   },
@@ -65,6 +70,7 @@ const hud = createHud(app, {
     state = result.state
     persist()
     hud.update(state)
+    spar.update(state.creature ?? null)
     // Feed toggles the food pile; conditions drive the mood idle.
     sceneVisuals()
   },
@@ -91,8 +97,10 @@ let starter = state.creature
         starter = null
         syncScene()
         hud.update(state)
+        spar.update(state.creature ?? null)
       },
     })
 
 syncScene()
 hud.update(state)
+spar.update(state.creature ?? null)
