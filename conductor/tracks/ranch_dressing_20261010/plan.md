@@ -15,11 +15,11 @@
 
 ## Phase B — golden-hour atmosphere
 
-- [ ] Task: Gradient sky dome (amber horizon `#d98c4a` → navy top `#1a1f2e`) + linear fog tuned for horizon fade with a crisp creature
-- [ ] Task: Ground — warm moss re-hue (`#3a4d34`) on a soft-boundary disc; the hard box edge is retired
-- [ ] Task: Lighting rig — warm key re-tint (`#ffd9a0`) + cool rim from the opposite side + ambient rebalance
-- [ ] Task: Shadows — renderer shadow map, creature parts cast, ground receives
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) — browser screenshot of sky/ground/shadow
+- [x] Task: Gradient sky dome (amber horizon `#d98c4a` → navy top `#1a1f2e`) + linear fog tuned for horizon fade with a crisp creature *(84626cb, 7c401f0)*
+- [x] Task: Ground — warm moss re-hue (`#3a4d34`) on a soft-boundary disc; the hard box edge is retired *(84626cb, 7c401f0 — disc grows to the dome radius so the moss always meets the horizon)*
+- [x] Task: Lighting rig — warm key re-tint (`#ffd9a0`) + cool rim from the opposite side + ambient rebalance *(7c401f0 — warm/cool hemisphere ramp added for golden-hour bounce)*
+- [x] Task: Shadows — renderer shadow map, creature parts cast, ground receives *(84626cb — PCFShadowMap, 1024² key frustum ±9)*
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — browser screenshot of sky/ground/shadow `[checkpoint: 7c401f0]`
 
 ## Phase C — voxel prop registry
 
