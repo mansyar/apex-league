@@ -18,11 +18,11 @@ Verification & Checkpoint gate run before moving on.
 
 ## Phase B — Feeding ceremony
 
-- [ ] Task: Ceremony state machine (failing tests) in the scene-logic module:
-  - [ ] phases `turn → walk-out → nibble(2–3 dips) → walk-home` with fixed durations totaling ~4–6 s; phase transitions from tick deltas; invalid-phase guards
-  - [ ] instant-cancel from ANY user input path → single `cancel()` that returns the machine to `home-idle` (position lerps home); never queues
-  - [ ] reduced-motion variant: turn+travel collapsed to in-place nibble at anchor, still cancellable
-  - [ ] successive feeds re-trigger cleanly even while pile already visible
+- [x] Task: Ceremony state machine (failing tests) in the scene-logic module:
+  - [x] phases `turn → walk-out → nibble(2–3 dips) → walk-home` with fixed durations totaling ~4–6 s; phase transitions from tick deltas; invalid-phase guards
+  - [x] instant-cancel from ANY user input path → single `cancel()` that returns the machine to `home-idle` (position lerps home); never queues
+  - [x] reduced-motion variant: turn+travel collapsed to in-place nibble at anchor, still cancellable
+  - [x] successive feeds re-trigger cleanly even while pile already visible (`be47529`)
 - [ ] Task: Wire scene.ts + main.ts — creature yaw target, walk target near pile (seeded side offset, pile anchor from existing scatter data), head-dip overlay on the existing head-bob pivot; main.ts onCare feed branch calls `scene.startFeedCeremony()` only after a successful feed; care/train/advance callers already flow through `scene.cancelFeedCeremony()` — add call, never the reverse
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) — unit tests green; browser evidence: feed → pile up + creature nibbling; mid-ceremony cancel snaps home *(checkpoint: sha)*
 
