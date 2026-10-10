@@ -10,8 +10,8 @@ Branch: `track/color_helper_20261010` · Spec: [spec.md](./spec.md)
 
 ## Phase B — the three archetypes
 
-- [ ] Task: Swap `bovine.ts`, `drake.ts`, `axolotl.ts` to `./color` and delete their copies
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) — full gate incl. `bun run gate:determinism` byte-identity
+- [x] Task: Swap `bovine.ts`, `drake.ts`, `axolotl.ts` to `./color` and delete their copies *(9e05ca1; caught and fixed a brace-eating edit that briefly dropped `lerp`'s closing brace in all three files)*
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — full gate incl. `bun run gate:determinism` byte-identity *(9e05ca1)*
 
 ## Phase C — Integration and verification gate
 
