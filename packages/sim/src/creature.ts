@@ -61,6 +61,8 @@ export interface Creature {
   trainingResult: TrainingResult | null
   /** Lifetime count of days on which a focus was assigned (AP spent). */
   trainingDays: number
+  /** Chosen loadout of kit ids, or null to use the default slicing. */
+  loadout: readonly string[] | null
   conditions: CreatureConditions
   /** True when a bonding action happened today; reset by the nightly settlement. */
   bondedToday: boolean
@@ -151,6 +153,7 @@ export function createCreature(
     trainingFocus: null,
     trainingResult: null,
     trainingDays: 0,
+    loadout: null,
     conditions: { ...CONDITION_START },
     bondedToday: false,
   }

@@ -58,6 +58,14 @@ export {
   TRAINING_CAP,
   type TrainingResult,
 } from "./creature"
+export {
+  clearLoadout,
+  defaultLoadout,
+  MOVE_TIER3_DAYS,
+  MOVE_TIER4_DAYS,
+  setLoadout,
+  unlockedKit,
+} from "./loadout"
 export { beginCup, endCup } from "./machine"
 export { makeRng, type Rng } from "./rng"
 export { migrate } from "./save/migrate"

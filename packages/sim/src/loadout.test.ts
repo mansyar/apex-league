@@ -3,28 +3,25 @@
  * and the pure set/clear helpers over GameState.
  */
 
+import { describe, expect, test } from "bun:test"
 import {
+  type Creature,
   chooseStarter,
+  clearLoadout,
   createCreature,
   createInitialState,
-  type Creature,
+  defaultLoadout,
   type GameState,
   getSpecies,
-  type SpeciesDef,
-} from "./index"
-import {
-  clearLoadout,
-  defaultLoadout,
   MOVE_TIER3_DAYS,
   MOVE_TIER4_DAYS,
+  type SpeciesDef,
   setLoadout,
   unlockedKit,
 } from "./index"
 
 /** Day-1 state with an owned creature carrying hand-set training fields. */
-function stateWith(
-  fields: Partial<Pick<Creature, "trainingDays">>,
-): GameState {
+function stateWith(fields: Partial<Pick<Creature, "trainingDays">>): GameState {
   const s = chooseStarter(createInitialState(), "fire_drake", 42)
   if (!s.creature) throw new Error("starter not created")
   return { ...s, creature: { ...s.creature, ...fields } }
@@ -50,7 +47,7 @@ describe("unlockedKit", () => {
       for (const id of ["fire_drake", "plant_ox", "water_axolotl"]) {
         const species = speciesOf(id)
         const creature: Creature = {
-          ...createCreature(id, 5),
+          ...createCreature("fire_drake", 5),
           trainingDays: days,
         }
         expect(unlockedKit(creature, species)).toEqual(species.kit.slice(0, 2))
@@ -61,7 +58,10 @@ describe("unlockedKit", () => {
   test("3-5 trained days unlock tier 3", () => {
     for (const days of [3, 4, 5]) {
       const species = speciesOf("fire_drake")
-      const creature: Creature = { ...createCreature("fire_drake", 5), trainingDays: days }
+      const creature: Creature = {
+        ...createCreature("fire_drake", 5),
+        trainingDays: days,
+      }
       expect(unlockedKit(creature, species)).toEqual(species.kit.slice(0, 3))
     }
   })
@@ -70,7 +70,10 @@ describe("unlockedKit", () => {
     for (const days of [6, 9]) {
       for (const id of ["fire_drake", "plant_ox", "water_axolotl"]) {
         const species = speciesOf(id)
-        const creature: Creature = { ...createCreature(id, 5), trainingDays: days }
+        const creature: Creature = {
+          ...createCreature("fire_drake", 5),
+          trainingDays: days,
+        }
         expect(unlockedKit(creature, species)).toEqual([...species.kit])
       }
     }
@@ -101,27 +104,20 @@ describe("setLoadout", () => {
 
   test("stores three and four unlocked moves at higher gates", () => {
     const three = stateWith({ trainingDays: 3 })
-    expect(setLoadout(three, ["spark", "cinder_shot", "flame_charge"]).creature?.loadout).toEqual([
-      "spark",
-      "cinder_shot",
-      "flame_charge",
-    ])
+    expect(
+      setLoadout(three, ["spark", "cinder_shot", "flame_charge"]).creature
+        ?.loadout,
+    ).toEqual(["spark", "cinder_shot", "flame_charge"])
     const four = stateWith({ trainingDays: 6 })
     expect(
-      setLoadout(four, [
-        "blaze_bolt",
-        "cinder_shot",
-        "flame_charge",
-        "spark",
-      ]).creature?.loadout,
+      setLoadout(four, ["blaze_bolt", "cinder_shot", "flame_charge", "spark"])
+        .creature?.loadout,
     ).toEqual(["blaze_bolt", "cinder_shot", "flame_charge", "spark"])
   })
 
   test("rejects an unknown move", () => {
     const s = stateWith({ trainingDays: 6 })
-    expect(() => setLoadout(s, ["spark", "nope"])).toThrow(
-      "Unknown move: nope",
-    )
+    expect(() => setLoadout(s, ["spark", "nope"])).toThrow("Unknown move: nope")
   })
 
   test("rejects a repeated move", () => {
@@ -134,7 +130,7 @@ describe("setLoadout", () => {
   test("rejects a locked move with days-remaining flavor", () => {
     const s = stateWith({ trainingDays: 1 })
     expect(() => setLoadout(s, ["spark", "cinder_shot"])).toThrow(
-      "Not unlocked yet: cinder_shot. Train more days.",
+      "Not unlocked yet: cinder_shot. Train 2 more days.",
     )
   })
 
@@ -144,7 +140,13 @@ describe("setLoadout", () => {
       "A loadout needs two to four moves",
     )
     expect(() =>
-      setLoadout(s, ["spark", "flame_charge", "cinder_shot", "blaze_bolt", "seed_shot"]),
+      setLoadout(s, [
+        "spark",
+        "flame_charge",
+        "cinder_shot",
+        "blaze_bolt",
+        "seed_shot",
+      ]),
     ).toThrow("A loadout needs two to four moves")
   })
 
