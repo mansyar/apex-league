@@ -37,7 +37,7 @@ Ground rules for this track:
   - `care.ts` accounting next to the AP logic; `creature.ts` helper; friendly
     rejections unchanged; JSDoc on the new seam per style guides. [x]
 
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: 167b706]
 
 ## Phase B — Unlock gate & loadout helpers (sim)
 
