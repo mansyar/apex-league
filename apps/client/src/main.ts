@@ -1,5 +1,6 @@
 import {
   advanceDay,
+  assignTraining,
   type CareAction,
   careAction,
   chooseStarter,
@@ -7,6 +8,7 @@ import {
   type GameState,
   getSpecies,
   loadGame,
+  type StatKey,
   saveGame,
 } from "@apex/sim"
 import { createHud } from "./hud"
@@ -53,6 +55,13 @@ const hud = createHud(app, {
     persist()
     hud.update(state)
     scene.updateConditions(state.creature?.conditions ?? null)
+  },
+  onTrain: (stat: StatKey) => {
+    const result = assignTraining(state, stat)
+    if (!result.ok) return // entries are already disabled; belt and braces
+    state = result.state
+    persist()
+    hud.update(state)
   },
 })
 
