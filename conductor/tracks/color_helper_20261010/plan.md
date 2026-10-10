@@ -15,6 +15,6 @@ Branch: `track/color_helper_20261010` · Spec: [spec.md](./spec.md)
 
 ## Phase C — Integration and verification gate
 
-- [ ] Task: Full gate - `bun run verify` green
-- [ ] Task: Definition check — exactly one `hslToRgb` definition remains; no other doc or API change needed
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Full gate - `bun run verify` green *(327 pass / 0 fail; byte-identical GLBs; prop digests match)*
+- [x] Task: Definition check — exactly one `hslToRgb` definition remains; no other doc or API change needed *(grep: `color.ts:11` only)*
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) *[checkpoint: 88cfbd5]*
