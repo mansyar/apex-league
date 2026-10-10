@@ -51,8 +51,9 @@ phase ends with a verification & checkpoint task.
       hits. [81f2739]
 - [x] Task: Finishers — KO/celebration moments + result banner (winner,
       ending reason). [97439c1]
-- [ ] Task: Reduced-motion toggle — HUD settings control bound to the save v5
+- [x] Task: Reduced-motion toggle — HUD settings control bound to the save v5
       pref; disables camera shake and flashes, all gameplay stays legible.
+      [957dd78]
 - [ ] Task: Phase C verification & checkpoint (Refer to workflow.md)
 
 ## Phase D — Battle HUD, pacing & closeout
