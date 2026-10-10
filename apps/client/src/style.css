@@ -589,7 +589,7 @@ body,
 }
 
 .spar-kit-chosen {
-  background: rgba(255, 209, 102, 0.18);
+  background: var(--accent);
   border-color: var(--accent);
   color: var(--accent-ink);
 }

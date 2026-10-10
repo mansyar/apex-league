@@ -2,10 +2,15 @@ import {
   ACTION_POINTS_PER_DAY,
   type CareAction,
   type CareRejection,
+  type Creature,
   type CreatureConditions,
   careAction,
   EXHAUSTED_ENERGY,
   type GameState,
+  getMove,
+  getSpecies,
+  MOVE_TIER3_DAYS,
+  MOVE_TIER4_DAYS,
   previewTraining,
   SICK_HEALTH,
   type StatKey,
@@ -79,6 +84,29 @@ function coachVoice(conditions: CreatureConditions, name: string): string {
   if (conditions.mood < 30) return `${name} seems a little down today.`
   if (conditions.hunger <= 20) return `${name} looks hungry.`
   return ""
+}
+
+/**
+ * The fresh-unlock coach line: while the trained-days counter sits exactly
+ * on a tier threshold, the coach names the move that just became legal.
+ * Under training and condition copy in precedence — a quiet morning only.
+ */
+export function unlockCallout(creature: Creature): string {
+  const days = creature.trainingDays
+  if (days !== MOVE_TIER3_DAYS && days !== MOVE_TIER4_DAYS) {
+    return ""
+  }
+  const species = getSpecies(creature.speciesId)
+  if (!species) return ""
+  const moveId = species.kit[days === MOVE_TIER3_DAYS ? 2 : 3]
+  if (moveId === undefined) return ""
+  const move = getMove(moveId)
+  if (!move) return ""
+  const tail =
+    days === MOVE_TIER3_DAYS
+      ? ` Train ${MOVE_TIER4_DAYS - days} more days for the next tier.`
+      : ""
+  return `New move available: ${move.displayName}.${tail}`
 }
 
 /**
@@ -354,7 +382,9 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     }
     const training = trainingStatus(creature, lastFocus)
     status.textContent =
-      training || coachVoice(creature.conditions, creature.name)
+      training ||
+      coachVoice(creature.conditions, creature.name) ||
+      unlockCallout(creature)
 
     // Disabled states come from the sim itself — a dry-run careAction is
     // the single source of truth for why an action can't happen.

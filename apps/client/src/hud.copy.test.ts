@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { createCreature, type Creature } from "@apex/sim"
+import { type Creature, createCreature } from "@apex/sim"
 import { unlockCallout } from "./hud"
 
 describe("unlockCallout", () => {
