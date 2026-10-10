@@ -88,17 +88,17 @@ Ground rules for this track:
 
 ## Phase E — Spar panel loadout row & stat cards (client — manual verification)
 
-- [ ] Task: Effective stat cards + progress line in the Spar panel
-  - `statLine` shows `ATK 13 (+2)` when a bonus exists (none on the rival);
+- [x] Task: Effective stat cards + progress line in the Spar panel (e4f779f)
+  - `statLine` shows `ATK 13 (+2)` when a bonus exists (none on the rival); [x]
     an unlocked-progress line under the rival detail: next locked tier and
-    remaining days (hidden when everything is unlocked).
-- [ ] Task: Loadout row + picker with locked rows
+    remaining days (hidden when everything is unlocked). [x]
+- [x] Task: Loadout row + picker with locked rows (e4f779f)
   - Slots row above the tactic buttons; click opens a picker of the species
     kit; unlocked toggles write through `setLoadout`; locked rows render
     disabled with "Locked — train N more day(s)"; chosen kit feeds
     `makeExhibition` for this spar; `main.ts` wiring persists via the existing
-    state flow (spar result state never touches the save).
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+    state flow (spar result state never touches the save). [x]
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: e4f779f]
   - Manual: `bun run verify` green; browser pass — pick a loadout, spar, read
     the announcer log's moved names, reload and confirm the choice returns.
 
