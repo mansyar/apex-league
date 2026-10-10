@@ -23,7 +23,7 @@ Verification & Checkpoint gate run before moving on.
   - [x] instant-cancel from ANY user input path → single `cancel()` that returns the machine to `home-idle` (position lerps home); never queues
   - [x] reduced-motion variant: turn+travel collapsed to in-place nibble at anchor, still cancellable
   - [x] successive feeds re-trigger cleanly even while pile already visible (`be47529`)
-- [ ] Task: Wire scene.ts + main.ts — creature yaw target, walk target near pile (seeded side offset, pile anchor from existing scatter data), head-dip overlay on the existing head-bob pivot; main.ts onCare feed branch calls `scene.startFeedCeremony()` only after a successful feed; care/train/advance callers already flow through `scene.cancelFeedCeremony()` — add call, never the reverse
+- [x] Task: Wire scene.ts + main.ts — creature yaw target, walk target near pile (seeded side offset, pile anchor from existing scatter data), head-dip overlay on the existing head-bob pivot; main.ts onCare feed branch calls `scene.startFeedCeremony()` only after a successful feed; care/train/advance callers already flow through `scene.cancelFeedCeremony()` — add call, never the reverse (`4999be2`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) — unit tests green; browser evidence: feed → pile up + creature nibbling; mid-ceremony cancel snaps home *(checkpoint: sha)*
 
 ## Phase C — Sparse wandering
