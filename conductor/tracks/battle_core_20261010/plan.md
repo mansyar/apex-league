@@ -62,14 +62,14 @@ Scripted actions only. No tactics yet. A test driver feeds close / hold / basic 
 
 ## Phase D — Projectiles, Accuracy, Dodge (sim)
 
-- [ ] Task: Failing tests — shots in flight
-  - [ ] a far special emits `launch` on the acting tick and `impact` as the first step of the next tick
-  - [ ] a near special resolves during the action, accuracy only, no dodge roll
-  - [ ] accuracy roll is `0–99 < accuracy`; failure reason is `accuracy` and no dodge roll is consumed
-  - [ ] if the target closed between launch and impact, an accurate shot then takes `dodgePercent = min(70, 20 + targetSpd * 3)`; failure reason is `dodge`
-  - [ ] standing still (hold, shoot, or already near) never consumes a dodge roll
-  - [ ] shots still in flight when the fight ends are discarded and do not appear as impacts
-- [ ] Task: Implement projectile travel on the Phase C stepper
+- [x] Task: Failing tests — shots in flight (`7bbeef3`)
+  - [x] a far special emits `launch` on the acting tick and `impact` as the first step of the next tick
+  - [x] a near special resolves during the action, accuracy only, no dodge roll
+  - [x] accuracy roll is `0–99 < accuracy`; failure reason is `accuracy` and no dodge roll is consumed
+  - [x] if the target closed between launch and impact, an accurate shot then takes `dodgePercent = min(70, 20 + targetSpd * 3)`; failure reason is `dodge`
+  - [x] standing still (hold, shoot, or already near) never consumes a dodge roll
+  - [x] shots still in flight when the fight ends are discarded and do not appear as impacts
+- [x] Task: Implement projectile travel on the Phase C stepper (`2217770`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase E — Tactics & Temperament (sim)
