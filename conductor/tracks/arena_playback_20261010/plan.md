@@ -35,7 +35,12 @@ phase ends with a verification & checkpoint task.
       update-fanout desyncs while wiring).
 - [x] Task: Creature staging — both combatants positioned on opposing sides;
       positions, launch lunges, and hit reactions keyed to script steps.
-- [ ] Task: Phase B verification & checkpoint (Refer to workflow.md)
+- [x] Task: Phase B verification & checkpoint (Refer to workflow.md)
+  - bun run verify green at 67c33e6. Manual captures: broadcast bowl swap on
+    fight start with camera hand-off (ARENA_FRAMING radius 9.5), two staged
+    fighters on opposing posts with per-step reactions, and the ranch set
+    restored on close with no state loss. User-flagged ranch creature
+    overlap fixed (setRanchCreatureVisible). [checkpoint: 67c33e6]
 
 ## Phase C — VFX & juice (rendering, manual verification)
 
