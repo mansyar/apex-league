@@ -24,7 +24,7 @@ Verification & Checkpoint gate run before moving on.
   - [x] reduced-motion variant: turn+travel collapsed to in-place nibble at anchor, still cancellable
   - [x] successive feeds re-trigger cleanly even while pile already visible (`be47529`)
 - [x] Task: Wire scene.ts + main.ts — creature yaw target, walk target near pile (seeded side offset, pile anchor from existing scatter data), head-dip overlay on the existing head-bob pivot; main.ts onCare feed branch calls `scene.startFeedCeremony()` only after a successful feed; care/train/advance callers already flow through `scene.cancelFeedCeremony()` — add call, never the reverse (`4999be2`)
-- [ ] Task: Diagonal-pair walk gait (failing tests) in the scene-logic module — `legFL`+`legBR` in phase, `legFR`+`legBL` counterphase, sinusoidal swing at a walking cadence, walk-bob overlay; amplitude eased with the walk phase so it blends in/out; reduced-motion → zero; applied to ceremony travel phases now, reused by wander travel in Phase C
+- [x] Task: Diagonal-pair walk gait (failing tests) in the scene-logic module — `legFL`+`legBR` in phase, `legFR`+`legBL` counterphase, sinusoidal swing at a walking cadence, walk-bob overlay; amplitude eased with the walk phase so it blends in/out; reduced-motion → zero; applied to ceremony travel phases now, reused by wander travel in Phase C (`cbc6852`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) — unit tests green; browser evidence: feed → pile up + creature nibbling; mid-ceremony HUD input applies to sim while ceremony plays out (non-cancelable, 2026-10-10 decision); legs visibly swing during ceremony travel *(checkpoint: sha)*
 
 ## Phase C — Sparse wandering
