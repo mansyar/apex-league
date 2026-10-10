@@ -474,6 +474,10 @@ export interface WanderMachine {
   /** Cancel-free external reset (a feed ceremony taking the creature): end
    * the trip immediately; the scene stops applying wander drives. */
   abort(): void
+  /** Force home-idle while KEEPING the accrued gap — used when the scene
+   * rebuilds the creature (day advance, training) so the wandering rhythm
+   * survives visual rebuilds instead of restarting its 20–40 s window. */
+  pause(): void
   /** Advance the machine. `allow` is the mood/reduced-motion/ceremony gate:
    * gaps accrue only while allowed, and trips are started only while
    * allowed (an already-running trip is always finished gracefully). */
@@ -532,6 +536,11 @@ export function createWander(
       phase = "home-idle"
       gapAccum = 0
       gap = nextGap(rng)
+    },
+
+    pause() {
+      phase = "home-idle"
+      // The countdown survives: this machine outlives visual rebuilds.
     },
 
     advance(x, z, dt, allow) {

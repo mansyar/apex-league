@@ -388,9 +388,15 @@ export function createScene(container: HTMLElement): SceneHandle {
         if (obj instanceof THREE.Mesh) obj.castShadow = true
       })
       scene.add(rig)
-      // Fresh wanderer for the new creature (FR3): its free-running rng is
-      // seeded from the visual seed — never wall-clock, never saved.
-      wander = createWander(reducedMotion, seed)
+      // One wanderer per scene lifetime (FR3): rebuilding the creature (day
+      // advance, training) pauses the machine — the 20–40 s rhythm survives
+      // visual rebuilds instead of restarting. A feed ceremony still aborts
+      // it cleanly via startFeedCeremony.
+      if (wander) {
+        wander.pause()
+      } else {
+        wander = createWander(reducedMotion, seed)
+      }
       // headBaseY stays in the head's LOCAL units — the tick writes it back
       // to head.position.y in the same space (the rig runs in grid units).
       headBaseY = rig.getObjectByName("head")?.position.y ?? 0

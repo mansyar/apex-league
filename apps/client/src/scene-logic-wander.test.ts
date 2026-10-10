@@ -181,4 +181,31 @@ describe("wander machine", () => {
     const d = m.advance(1.5, 0.4, 1 / 60, true)
     expect(d.phase).toBe("home-idle")
   })
+
+  test("pause() keeps the accrued gap across rebuilds", () => {
+    const m = createWander(false, 321)
+    m.setCandidates(props)
+    m.begin(0, 0) // establish rng + fresh gap (production lifecycle start)
+    // Accrue exactly 19 s — no trip may fire inside the 20 s window edge.
+    for (let i = 0; i < 19 * 60; i++) {
+      m.advance(0, 0, 1 / 60, true)
+    }
+    expect(m.advance(0, 0, 1 / 60, true).phase).toBe("home-idle")
+    m.pause() // the scene rebuilt the creature (day advance, training)
+    // The machine still owes only the remainder of the original 20–40 s
+    // gap — a trip must fire well before another full 20 s accrues.
+    let x = 0
+    let z = 0
+    let tripped = false
+    for (let i = 0; i < 25 * 60; i++) {
+      const d = m.advance(x, z, 1 / 60, true)
+      x = d.x
+      z = d.z
+      if (d.phase !== "home-idle") {
+        tripped = true
+        break
+      }
+    }
+    expect(tripped).toBe(true)
+  })
 })
