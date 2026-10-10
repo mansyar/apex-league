@@ -1,0 +1,22 @@
+{
+  "tuft": {
+    "sha256": "ea34aa7a393df1b42fc7cd5ebe41c10c8ee6f2f7c030687ac6465cfec9acc35c",
+    "tris": 80
+  },
+  "bush": {
+    "sha256": "698d4cd240f12a4a39b9040811034d98a8e27af6ff708b52f919a6c7c83fa642",
+    "tris": 298
+  },
+  "broadleafTree": {
+    "sha256": "487baf28a703116429924e8a30678d6bbd1d4dbc010f17d14f4b3a1cfb24472e",
+    "tris": 754
+  },
+  "rock": {
+    "sha256": "e89616ea6a4b1fc697959089e4de995e3a384451a01cd2a6d02fa69dfae459fb",
+    "tris": 34
+  },
+  "foodPile": {
+    "sha256": "6feaa00e078d210edf8378e41feb4423d858047f58c2ebe9cda6fbf6743a73b3",
+    "tris": 174
+  }
+}
