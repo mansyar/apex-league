@@ -124,6 +124,13 @@ Worked neutral check, ATK 11 vs DEF 10: a basic deals 4; Blaze Bolt deals 13. Th
 
 - After each impact step and after each action, if exactly one fighter is at 0 HP, the other wins. Reason `ko`. Copy: "{Name} is down!" Never death, faint-as-grim, or retirement.
 - If both reach 0 HP in the same impact step, the exhibition is a draw. Reason `double_ko`.
+- Revision 2026-10-10, user-approved during Phase F: an impact step with
+  several shots in flight resolves all of them, in launch order, against the
+  pre-step HP, and the fight is judged after the whole step. A same-step
+  double down is therefore reachable as `double_ko`. Shots still airborne
+  after the fight is judged are discarded; in this 1v1 cut that state cannot
+  occur (each side has at most one shot in flight and both land before the
+  judgment), so the discard is a safety rule for future team battles.
 - **Safety cap:** 40 ticks. If both are still standing, the higher remaining HP% wins. Equal percent: higher SPD. Still tied: the battle seed. Reason `time`. Copy: "Time's up. {Name} is still standing." It must not say "judge." The cap is a runaway brake. A normal starter-band fight is expected to end by KO first; tests cover both the KO path and the cap path.
 
 ### 9. Event log

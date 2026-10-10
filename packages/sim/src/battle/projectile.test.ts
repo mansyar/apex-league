@@ -63,7 +63,7 @@ describe("projectiles", () => {
     expect(kinds(r1.events)).toEqual(["launch"])
     expect(r1.events[0]?.actor).toBe("Bolt")
     expect(r1.events[0]?.moveId).toBe("blaze_bolt")
-    expect(r1.events[0]?.line).toBe("Bolt launches Blaze Bolt.")
+    expect(r1.events[0]?.line).toBe("Bolt looses a Blaze Bolt!")
     expect(r1.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: 40 })
 
     const r2 = clock.advance(boltPlans)
@@ -202,11 +202,12 @@ describe("dodge against a moving target", () => {
 })
 
 describe("shots in flight at the end", () => {
-  test("a shot in flight when the fight ends is discarded", () => {
+  test("an impact step resolves every in-flight shot before the judgment", () => {
     // Bolt's ATK 20 Blaze Bolt deals 48 fire-into-plant and downs the 40-HP
-    // Reed at the tick-2 impact step, before Reed's launched Bramble Dart
-    // resolves. The still-flying shot never appears as an impact, and the
-    // fight-over tick runs no actions.
+    // Reed at the tick-2 impact step, but the whole step resolves first, so
+    // Reed's launched Bramble Dart still lands against the pre-step HP
+    // (0.5x into fire: 6). The disposition is judged after the step, and
+    // the fight-over tick runs no actions.
     const boltPlans: PlanFn_ = (f) =>
       f.range === "far" && (f.cooldowns.blaze_bolt ?? 0) === 0
         ? special("blaze_bolt")
@@ -227,12 +228,15 @@ describe("shots in flight at the end", () => {
     expect(r1.events[0]?.moveId).toBe("blaze_bolt")
     expect(r1.events[1]?.moveId).toBe("bramble_dart")
     const r2 = clock.advance(plan)
-    // Only the first-launch impact and the down event appear.
-    expect(kinds(r2.events)).toEqual(["impact", "down"])
+    // Both impacts land in launch order; the down follows its own impact.
+    expect(kinds(r2.events)).toEqual(["impact", "down", "impact"])
     expect(r2.events[0]?.damage).toBe(48)
     expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: -8 })
     expect(r2.events[1]?.line).toBe("Reed is down!")
-    // After the down, no pending shot fires and only a live fighter acts.
+    expect(r2.events[2]?.damage).toBe(6)
+    expect(r2.events[2]?.hpAfter).toEqual({ Bolt: 34, Reed: -8 })
+    // After the step is judged, no pending shot fires and only a live
+    // fighter acts.
     const r3 = clock.advance(() => HOLD)
     expect(kinds(r3.events)).toEqual(["hold"])
   })

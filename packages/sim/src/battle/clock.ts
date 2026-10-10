@@ -12,8 +12,11 @@
  * special resolves during the acting tick. At impact the accuracy roll
  * `0-99 < accuracy` runs first; a standing target consumes no dodge roll.
  * A target that closed between launch and impact then rolls
- * `0-99 < min(70, 20 + spd * 3)` against its own SPD. Shots in flight when
- * the fight ends are discarded.
+ * `0-99 < min(70, 20 + spd * 3)` against its own SPD. An impact step with
+ * several shots in flight resolves all of them in launch order (spec FR8
+ * revision 2026-10-10); the fight is judged after the whole step, so a
+ * same-step double down is reachable. Shots still airborne after the
+ * judgment are discarded.
  */
 
 import type { CreatureStats, Element } from "../creature"
@@ -294,19 +297,13 @@ export function createClock(
       const events: BattleEvent[] = []
 
       // First step of the tick: every in-flight shot launched on the
-      // previous tick, in launch order. The fight ends the moment someone
-      // goes down — further shots are discarded and no later step runs.
+      // previous tick, in launch order. All of them resolve against the
+      // pre-step HP, and the judgment happens after the whole step (FR8).
       const wasDown = run.some((f) => f.hp <= 0)
       while (shots.length > 0) {
-        if (!wasDown && run.some((f) => f.hp <= 0)) break
-        const shot = shots[0]
+        const shot = shots.shift()
         if (!shot) break
-        if (shot.shooter.hp <= 0) {
-          shots.shift()
-          continue
-        }
         resolveShot(shot, events)
-        shots.shift()
       }
       if (!wasDown && run.some((f) => f.hp <= 0)) {
         shots.length = 0
@@ -424,7 +421,7 @@ export function createClock(
                 target: opponent.name,
                 moveId: usedSpecial.id,
                 hpAfter: hpAfter(),
-                line: `${actor.name} launches ${usedSpecial.displayName}.`,
+                line: `${actor.name} looses a ${usedSpecial.displayName}!`,
               })
             } else {
               // Point-blank: no travel, so the target can never have moved.
