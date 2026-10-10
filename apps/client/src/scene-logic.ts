@@ -104,11 +104,13 @@ export function wrapPi(delta: number): number {
 }
 //
 // A pure state machine for the walk→nibble→home sequence the scene plays
-// after a successful Feed. Timings are fixed, transitions derive from tick
-// deltas, and cancel() is unconditional — it flips straight back to idle
-// and never queues. The scene reads the returned state to drive yaw,
-// travel, and the head-dip overlay as a visual layer on an already-committed
-// sim action.
+// after a successful Feed. Timings are fixed and transitions derive from
+// tick deltas. Policy (2026-10-10): the ceremony is non-cancelable — HUD
+// input applies to the sim immediately but never interrupts the motion, so
+// the scene never calls cancel(); the capability stays on the machine and
+// under test as a safety valve. The scene reads the returned state to drive
+// yaw, travel, and the head-dip overlay as a visual layer on an
+// already-committed sim action.
 
 export type CeremonyPhase =
   | "idle"
@@ -163,8 +165,9 @@ function idleState(): CeremonyState {
 /**
  * Build the feeding-ceremony machine. Normal motion plays the full
  * turn→walk-out→nibble→walk-home sequence; `reducedMotion` collapses it
- * to an in-place nibble at the anchor (the direct feedback for the button
- * pressed) that stays instantly cancellable.
+ * to a short in-place nibble at the anchor. The scene treats the whole
+ * sequence as non-cancelable (2026-10-10); `cancel` remains on the
+ * machine as a tested safety valve.
  */
 export function createCeremony(reducedMotion: boolean): CeremonyMachine {
   let running = false

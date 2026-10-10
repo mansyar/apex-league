@@ -34,16 +34,12 @@ export interface SceneHandle {
   /**
    * Play the feeding ceremony: turn toward the pile, walk to a facing
    * spot, nibble 2–3 dips, walk home. Purely visual — the sim already
-   * committed. Safe to call mid-ceremony (successive feeds re-trigger);
-   * reduced motion plays an in-place nibble at the anchor.
+   * committed. Non-cancelable (2026-10-10 decision): HUD input applies to
+   * the sim immediately but never interrupts the creature's motion; safe
+   * to call mid-ceremony (successive feeds re-trigger). Reduced motion
+   * plays an in-place nibble at the anchor.
    */
   startFeedCeremony(): void
-  /**
-   * Instantly cancel the ceremony from any HUD input path: the creature
-   * snaps-homes and the normal mood idle takes over. Never blocks or
-   * queues input. Idempotent; no-op when no ceremony is running.
-   */
-  cancelFeedCeremony(): void
 }
 
 const GROUND_COLOR = 0x3a4d34
@@ -470,15 +466,6 @@ export function createScene(container: HTMLElement): SceneHandle {
       }
       homeYaw = creatureGroup.rotation.y
       ceremony.start(now)
-    },
-    cancelFeedCeremony() {
-      ceremony.cancel()
-      if (!creatureGroup) return
-      // Snap-home and let the mood idle take over — input is never queued
-      // or delayed behind a running ceremony.
-      creatureGroup.position.x = 0
-      creatureGroup.position.z = 0
-      creatureGroup.rotation.y = homeYaw
     },
   }
 

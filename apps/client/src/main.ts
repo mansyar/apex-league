@@ -67,9 +67,8 @@ const spar = createSpar(app, {
 
 const hud = createHud(app, {
   onAdvanceDay: () => {
-    // Any HUD input instantly cancels a running ceremony (FR2): the
-    // creature snap-homes; the sim input itself is never queued/delayed.
-    scene.cancelFeedCeremony()
+    // The ceremony is non-cancelable (FR2, 2026-10-10): HUD input applies
+    // to the sim immediately but never interrupts the creature's motion.
     state = advanceDay(state)
     persist()
     hud.update(state)
@@ -78,7 +77,6 @@ const hud = createHud(app, {
     syncScene()
   },
   onCare: (action: CareAction) => {
-    scene.cancelFeedCeremony()
     const result = careAction(state, action)
     if (!result.ok) return // buttons are already disabled; belt and braces
     state = result.state
@@ -93,7 +91,6 @@ const hud = createHud(app, {
     if (action === "feed") scene.startFeedCeremony()
   },
   onTrain: (stat: StatKey) => {
-    scene.cancelFeedCeremony()
     const result = assignTraining(state, stat)
     if (!result.ok) return // entries are already disabled; belt and braces
     state = result.state
