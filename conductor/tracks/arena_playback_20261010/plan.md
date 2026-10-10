@@ -14,7 +14,7 @@ phase ends with a verification & checkpoint task.
   - [ ] Implement `buildPlaybackScript` (DOM-free, deterministic) in
         `@apex/sim` battle exports.
   - [ ] Run suite; commit + git note.
-- [ ] Task: Save v5 — reduced-motion preference
+- [x] Task: Save v5 — reduced-motion preference
   - [ ] Failing tests: v4→v5 migration (default full motion), persisted pref
         round-trips, older saves load cleanly.
   - [ ] Extend migration chain to v5.

@@ -19,6 +19,7 @@ export function advanceDay(state: GameState, rng?: Rng): GameState {
     phase: isCupDay(day) ? "cup" : "day",
     actionPoints: ACTION_POINTS_PER_DAY,
     creature: state.creature,
+    settings: state.settings,
   }
   if (!next.creature) return next
   const settled = settleCreature(next.creature, rng ?? makeRng(day))

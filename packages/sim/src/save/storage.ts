@@ -110,7 +110,11 @@ export function loadGame(adapter: SaveAdapter): GameState | null {
       (state.phase !== "day" && state.phase !== "cup") ||
       !Number.isInteger(state.actionPoints) ||
       state.actionPoints < 0 ||
-      (state.creature !== null && !isValidCreature(state.creature))
+      (state.creature !== null && !isValidCreature(state.creature)) ||
+      // v5: the settings block is required and strictly typed.
+      typeof state.settings !== "object" ||
+      state.settings === null ||
+      typeof state.settings.reducedMotion !== "boolean"
     ) {
       return null
     }

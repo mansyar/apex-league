@@ -15,6 +15,43 @@ const migrations: Record<
   number,
   (raw: Record<string, unknown>) => Record<string, unknown>
 > = {
+  // v4 → v5: saves from before the arena wake with full ornamental motion
+  // (reducedMotion defaults false). The preference lives in state.settings.
+  4: (raw) => {
+    const state = raw.state
+    if (typeof state !== "object" || state === null) {
+      throw new Error("invalid v4 save: missing state")
+    }
+    const s = state as Record<string, unknown>
+    const day = s.day
+    const phase = s.phase
+    const actionPoints = s.actionPoints
+    if (
+      typeof day !== "number" ||
+      !Number.isInteger(day) ||
+      day < 1 ||
+      (phase !== "day" && phase !== "cup") ||
+      typeof actionPoints !== "number" ||
+      !Number.isInteger(actionPoints) ||
+      actionPoints < 0
+    ) {
+      throw new Error("invalid v4 save: broken state")
+    }
+    const settings =
+      s.settings !== undefined && s.settings !== null
+        ? (s.settings as GameState["settings"])
+        : { reducedMotion: false }
+    const migrated: GameState = {
+      day,
+      phase,
+      actionPoints,
+      creature:
+        s.creature === undefined ? null : (s.creature as GameState["creature"]),
+      settings,
+    }
+    return { version: 5, state: migrated, savedAt: raw.savedAt ?? 0 }
+  },
+
   // v0 (pre-schema): { version: 0, day } — derive the rest of GameState.
   0: (raw) => {
     const day = raw.day
@@ -26,6 +63,7 @@ const migrations: Record<
       phase: isCupDay(day) ? "cup" : "day",
       actionPoints: ACTION_POINTS_PER_DAY,
       creature: null,
+      settings: { reducedMotion: false },
     }
     return { version: 1, state, savedAt: 0 }
   },
@@ -57,6 +95,7 @@ const migrations: Record<
       phase,
       actionPoints,
       creature: createCreature("fire_drake", STARTER_GRANT_SEED),
+      settings: { reducedMotion: false },
     }
     return { version: 2, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -99,7 +138,13 @@ const migrations: Record<
         loadout: null,
       } as unknown as GameState["creature"]
     }
-    const migrated: GameState = { day, phase, actionPoints, creature }
+    const migrated: GameState = {
+      day,
+      phase,
+      actionPoints,
+      creature,
+      settings: { reducedMotion: false },
+    }
     return { version: 4, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
 
@@ -137,7 +182,13 @@ const migrations: Record<
         trainingResult: null,
       } as unknown as GameState["creature"]
     }
-    const migrated: GameState = { day, phase, actionPoints, creature }
+    const migrated: GameState = {
+      day,
+      phase,
+      actionPoints,
+      creature,
+      settings: { reducedMotion: false },
+    }
     return { version: 3, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
 }

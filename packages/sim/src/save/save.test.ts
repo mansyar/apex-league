@@ -1,7 +1,12 @@
 import { describe, expect, test } from "bun:test"
 
 import { createCreature } from "../creature"
-import { chooseStarter, createInitialState, type GameState } from "../state"
+import {
+  chooseStarter,
+  createInitialState,
+  type GameState,
+  setReducedMotion,
+} from "../state"
 import { advanceDay } from "../ticker"
 import { migrate } from "./migrate"
 import { SAVE_VERSION, type SaveData, serializeSave } from "./schema"
@@ -13,8 +18,8 @@ import {
 } from "./storage"
 
 describe("save schema", () => {
-  test("current version is 4", () => {
-    expect(SAVE_VERSION).toBe(4)
+  test("current version is 5", () => {
+    expect(SAVE_VERSION).toBe(5)
   })
 
   test("serializeSave wraps state with version metadata", () => {
@@ -25,7 +30,7 @@ describe("save schema", () => {
     }
     const json = serializeSave(data)
     const parsed = JSON.parse(json) as SaveData
-    expect(parsed.version).toBe(4)
+    expect(parsed.version).toBe(5)
     expect(parsed.state.day).toBe(1)
     expect(parsed.savedAt).toBe(1000)
   })
@@ -36,7 +41,7 @@ describe("migration chain", () => {
     // v0 predates the versioned schema: flat shape, no phase/AP.
     const v0 = { version: 0, day: 7 }
     const migrated = migrate(v0)
-    expect(migrated.version).toBe(4)
+    expect(migrated.version).toBe(5)
     expect(migrated.state.day).toBe(7)
     expect(migrated.state.phase).toBe("cup")
     expect(migrated.state.actionPoints).toBeGreaterThan(0)
@@ -55,7 +60,7 @@ describe("migration chain", () => {
       savedAt: 1234,
     }
     const migrated = migrate(v1)
-    expect(migrated.version).toBe(4)
+    expect(migrated.version).toBe(5)
     expect(migrated.savedAt).toBe(1234)
     expect(migrated.state.day).toBe(4)
     expect(migrated.state.actionPoints).toBe(2)
@@ -112,7 +117,7 @@ describe("migration chain", () => {
       savedAt: 99,
     }
     const migrated = migrate(v2)
-    expect(migrated.version).toBe(4)
+    expect(migrated.version).toBe(5)
     expect(migrated.savedAt).toBe(99)
     expect(migrated.state.day).toBe(5)
     expect(migrated.state.actionPoints).toBe(2)
@@ -133,7 +138,7 @@ describe("migration chain", () => {
       state: { day: 2, phase: "day", actionPoints: 3 },
       savedAt: 0,
     })
-    expect(migrated.version).toBe(4)
+    expect(migrated.version).toBe(5)
     expect(migrated.state.creature?.trained).toEqual({
       hp: 0,
       atk: 0,
@@ -163,7 +168,7 @@ describe("migration chain", () => {
       savedAt: 321,
     }
     const migrated = migrate(v3)
-    expect(migrated.version).toBe(4)
+    expect(migrated.version).toBe(5)
     expect(migrated.savedAt).toBe(321)
     expect(migrated.state.day).toBe(9)
     expect(migrated.state.creature?.fedToday).toBe(false)
@@ -390,6 +395,58 @@ describe("storage adapter", () => {
     adapter.setItem(
       "apex.save",
       JSON.stringify({ version: 2, state: broken, savedAt: 0 }),
+    )
+    expect(loadGame(adapter)).toBeNull()
+  })
+})
+
+describe("reduced motion preference (v5)", () => {
+  test("fresh state defaults to full motion", () => {
+    expect(createInitialState().settings.reducedMotion).toBe(false)
+  })
+
+  test("a v4 save migrates with the reduced-motion default", () => {
+    const state = chooseStarter(createInitialState(), "fire_drake", 42)
+    const v4 = JSON.stringify({ version: 4, state, savedAt: 55 })
+    const adapter = createMemoryAdapter()
+    adapter.setItem("apex.save", v4)
+    const loaded = loadGame(adapter)
+    expect(loaded).not.toBeNull()
+    expect(loaded?.settings.reducedMotion).toBe(false)
+  })
+
+  test("the preference round-trips through saveGame/loadGame", () => {
+    const adapter = createMemoryAdapter()
+    const enabled = setReducedMotion(
+      chooseStarter(createInitialState(), "fire_drake", 42),
+      true,
+    )
+    saveGame(adapter, enabled, 900)
+    const loaded = loadGame(adapter)
+    expect(loaded?.settings.reducedMotion).toBe(true)
+  })
+
+  test("setReducedMotion turns the toggle both ways", () => {
+    const base = chooseStarter(createInitialState(), "fire_drake", 42)
+    const on = setReducedMotion(base, true)
+    const off = setReducedMotion(on, false)
+    expect(on.settings.reducedMotion).toBe(true)
+    expect(off.settings.reducedMotion).toBe(false)
+  })
+
+  test("loadGame rejects a corrupt settings object", () => {
+    const adapter = createMemoryAdapter()
+    const state = chooseStarter(createInitialState(), "fire_drake", 42)
+    const wrong = {
+      day: state.day,
+      phase: state.phase,
+      actionPoints: state.actionPoints,
+      creature: state.creature,
+      settings: { reducedMotion: "yes" },
+    }
+    adapter.setItem(
+      "apex.save",
+      JSON.stringify({ version: 4, state: wrong, savedAt: 0 }),
     )
     expect(loadGame(adapter)).toBeNull()
   })

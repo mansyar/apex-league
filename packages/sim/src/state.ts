@@ -8,6 +8,15 @@ import { type Creature, createCreature } from "./creature"
 /** Top-level game phases. Cup is a placeholder until the cup system lands. */
 export type Phase = "day" | "cup"
 
+/** Persisted player preferences (part of the versioned save). */
+export interface GameSettings {
+  /**
+   * Suppression flag for ornamental screen motion: when true the client
+   * disallows camera shake and impact flash effects. Gameplay stays legible.
+   */
+  reducedMotion: boolean
+}
+
 /** The single source of truth for a run's simulation state. */
 export interface GameState {
   /** Current in-game day, 1-based. */
@@ -21,6 +30,8 @@ export interface GameState {
    * (a brand-new save before the starter screen).
    */
   creature: Creature | null
+  /** Player preferences (arena juice toggles). */
+  settings: GameSettings
 }
 
 /** Action points granted at the start of each day. Stub value for Phase 0. */
@@ -33,7 +44,16 @@ export function createInitialState(): GameState {
     phase: "day",
     actionPoints: ACTION_POINTS_PER_DAY,
     creature: null,
+    settings: { reducedMotion: false },
   }
+}
+
+/**
+ * Flip the reduced-motion preference. Pure: the next state keeps everything
+ * else untouched, and callers persist via saveGame.
+ */
+export function setReducedMotion(state: GameState, value: boolean): GameState {
+  return { ...state, settings: { ...state.settings, reducedMotion: value } }
 }
 
 /**
