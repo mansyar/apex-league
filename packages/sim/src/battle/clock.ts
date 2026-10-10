@@ -213,12 +213,6 @@ export function createClock(
   const hpAfter = (): Readonly<Record<string, number>> =>
     Object.freeze(Object.fromEntries(run.map((f) => [f.name, f.hp])))
 
-  const _byName = (name: string): RunFighter => {
-    const f = run.find((x) => x.name === name)
-    if (!f) throw new Error(`No fighter named ${name}`)
-    return f
-  }
-
   /** Resolve one shot's accuracy, dodge, damage, and down events. */
   const resolveShot = (shot: FlyingShot, events: BattleEvent[]): void => {
     const { shooter, target, move } = shot
