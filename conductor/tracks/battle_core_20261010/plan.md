@@ -70,7 +70,7 @@ Scripted actions only. No tactics yet. A test driver feeds close / hold / basic 
   - [x] standing still (hold, shoot, or already near) never consumes a dodge roll
   - [x] shots still in flight when the fight ends are discarded and do not appear as impacts
 - [x] Task: Implement projectile travel on the Phase C stepper (`2217770`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: 2217770]
 
 ## Phase E — Tactics & Temperament (sim)
 
