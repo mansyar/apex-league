@@ -114,12 +114,12 @@ Ground rules for this track:
 
 ## Phase G — Integration & Verification Gate
 
-- [ ] Task: `bun run verify` green (types, typed tests, Biome, determinism)
-- [ ] Task: Browser verification with evidence
+- [x] Task: `bun run verify` green (types, typed tests, Biome, determinism)
+- [x] Task: Browser verification with evidence
   - Panel flows: default kit on a fresh game, unlock growth after the 3rd
     assignment day, picker states (unlocked/disabled-locked), choose → spar →
     reload persistence; rival cards chip-less; HUD callout at threshold; save
-    purity (no battle artifacts in localStorage, version 4).
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+    purity (no battle artifacts in localStorage, version 4). [x]
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: ee941aa]
   - Manual verification report; docs propagation proposal (product.md combat
     bullet, tech-stack.md save v4 note) for the user's approval.
