@@ -43,6 +43,7 @@ function clockOf(snaps: readonly BattleFighter[], seed: number) {
   return createClock(
     snaps.map((s) => createClockFighter(s)),
     createTieOrder(seed, snaps),
+    seed,
   )
 }
 
@@ -100,6 +101,7 @@ describe("action clock gauges", () => {
     const tieClock = createClock(
       [tieA, tieB].map((s) => createClockFighter(s)),
       order,
+      23,
     )
     const first = tieClock.advance(() => HOLD)
     const secondTie = tieClock.advance(() => HOLD)

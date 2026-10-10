@@ -1,15 +1,24 @@
 /**
- * Action clock: gauges, turn order, range, and immediate melee resolution.
- * Scripted actions only — tactics arrive in a later phase and projectiles
- * extend this stepper. Pure and deterministic.
+ * Action clock: gauges, turn order, range, melee, and projectile travel.
+ * Scripted actions only — tactics arrive in a later phase. Pure and
+ * deterministic given the seed.
  *
  * Cooldown semantics, pinned by the moves tests: the gate is checked before
  * the fighter's action, the entry steps after it. A newly used special is
  * set after the step, so it blocks exactly the move's next N actions.
+ *
+ * Projectile semantics (spec FR4): a far special launches on the acting
+ * tick and impacts as the first step of the next tick; a point-blank
+ * special resolves during the acting tick. At impact the accuracy roll
+ * `0-99 < accuracy` runs first; a standing target consumes no dodge roll.
+ * A target that closed between launch and impact then rolls
+ * `0-99 < min(70, 20 + spd * 3)` against its own SPD. Shots in flight when
+ * the fight ends are discarded.
  */
 
 import type { CreatureStats, Element } from "../creature"
-import { makeRng } from "../rng"
+import { makeRng, type Rng } from "../rng"
+import { typeFactor } from "./chart"
 import { strikeDamage } from "./damage"
 import type { MoveDef } from "./moves"
 import { BASIC_MOVE, getMove, stepCooldown } from "./moves"
@@ -61,9 +70,15 @@ export const BASIC = Object.freeze({
   kind: "basic",
 } as const) satisfies PlannedAction
 
-export type BattleEventKind = "close" | "hold" | "basic" | "down"
+export type BattleEventKind =
+  | "close"
+  | "hold"
+  | "basic"
+  | "down"
+  | "launch"
+  | "impact"
 
-/** One announcer-visible beat of the fight. Later phases add more kinds. */
+/** One announcer-visible beat of the fight. */
 export interface BattleEvent {
   readonly tick: number
   readonly kind: BattleEventKind
@@ -74,7 +89,7 @@ export interface BattleEvent {
   readonly moveId?: string
   readonly damage?: number
   readonly hit?: boolean
-  /** Why a hit flag is false; set by the projectile phase. */
+  /** Why a hit flag is false: `accuracy` or `dodge`. */
   readonly missReason?: "accuracy" | "dodge"
   /** Both fighters' HP right after the event. */
   readonly hpAfter: Readonly<Record<string, number>>
@@ -105,6 +120,15 @@ interface RunFighter {
   cooldowns: Map<string, number>
 }
 
+/** A special already in the air, awaiting the first step of the next tick. */
+interface FlyingShot {
+  readonly shooter: RunFighter
+  readonly target: RunFighter
+  readonly move: MoveDef
+  /** The target's range when the shot launched; closure during travel dodges. */
+  readonly targetRangeAtLaunch: Range
+}
+
 function view(f: RunFighter): ClockFighter {
   return {
     name: f.name,
@@ -125,6 +149,11 @@ function nameHash(name: string): number {
     hash = Math.imul(hash, 16777619)
   }
   return hash >>> 0
+}
+
+/** Dodge chance against a target that closed while a shot was in flight. */
+function dodgePercent(spd: number): number {
+  return Math.min(70, 20 + spd * 3)
 }
 
 /**
@@ -159,6 +188,7 @@ export function createClockFighter(fighter: BattleFighter): ClockFighter {
 export function createClock(
   initial: readonly ClockFighter[],
   tieOrder: readonly string[],
+  seed: number,
 ): Clock {
   const run = initial.map((f) => ({
     name: f.name,
@@ -170,10 +200,87 @@ export function createClock(
     cooldowns: new Map(Object.entries(f.cooldowns)),
   }))
   const tieIndex = new Map(tieOrder.map((name, i) => [name, i]))
+  const rng: Rng = makeRng(seed >>> 0)
+  /** Shots in the air, in launch order; at most one per fighter at a time. */
+  const shots: FlyingShot[] = []
   let tick = 0
 
   const hpAfter = (): Readonly<Record<string, number>> =>
     Object.freeze(Object.fromEntries(run.map((f) => [f.name, f.hp])))
+
+  const _byName = (name: string): RunFighter => {
+    const f = run.find((x) => x.name === name)
+    if (!f) throw new Error(`No fighter named ${name}`)
+    return f
+  }
+
+  /** Resolve one shot's accuracy, dodge, damage, and down events. */
+  const resolveShot = (shot: FlyingShot, events: BattleEvent[]): void => {
+    const { shooter, target, move } = shot
+    if (Math.floor(rng.next() * 100) >= move.accuracy) {
+      events.push({
+        tick,
+        kind: "impact",
+        actor: shooter.name,
+        target: target.name,
+        moveId: move.id,
+        damage: 0,
+        hit: false,
+        missReason: "accuracy",
+        hpAfter: hpAfter(),
+        line: `${move.displayName} misses ${target.name}.`,
+      })
+      return
+    }
+    // A dodge is only possible when the target closed during travel.
+    if (shot.targetRangeAtLaunch === "far" && target.range === "near") {
+      if (Math.floor(rng.next() * 100) < dodgePercent(target.stats.spd)) {
+        events.push({
+          tick,
+          kind: "impact",
+          actor: shooter.name,
+          target: target.name,
+          moveId: move.id,
+          damage: 0,
+          hit: false,
+          missReason: "dodge",
+          hpAfter: hpAfter(),
+          line: `${target.name} slips in. ${move.displayName} misses.`,
+        })
+        return
+      }
+    }
+    const type = typeFactor(shooter.element, target.element)
+    const damage = strikeDamage(
+      move.power,
+      shooter.stats.atk,
+      target.stats.def,
+      type.num,
+      type.den,
+      true,
+    )
+    target.hp -= damage
+    events.push({
+      tick,
+      kind: "impact",
+      actor: shooter.name,
+      target: target.name,
+      moveId: move.id,
+      damage,
+      hit: true,
+      hpAfter: hpAfter(),
+      line: `${move.displayName} hits ${target.name} for ${damage}.`,
+    })
+    if (target.hp <= 0) {
+      events.push({
+        tick,
+        kind: "down",
+        actor: target.name,
+        hpAfter: hpAfter(),
+        line: `${target.name} is down!`,
+      })
+    }
+  }
 
   return {
     get tick() {
@@ -184,6 +291,28 @@ export function createClock(
     },
     advance(plan) {
       tick += 1
+      const events: BattleEvent[] = []
+
+      // First step of the tick: every in-flight shot launched on the
+      // previous tick, in launch order. The fight ends the moment someone
+      // goes down — further shots are discarded and no later step runs.
+      const wasDown = run.some((f) => f.hp <= 0)
+      while (shots.length > 0) {
+        if (!wasDown && run.some((f) => f.hp <= 0)) break
+        const shot = shots[0]
+        if (!shot) break
+        if (shot.shooter.hp <= 0) {
+          shots.shift()
+          continue
+        }
+        resolveShot(shot, events)
+        shots.shift()
+      }
+      if (!wasDown && run.some((f) => f.hp <= 0)) {
+        shots.length = 0
+        return { events }
+      }
+
       for (const f of run) f.gauge += f.stats.spd
 
       const ready = [...run]
@@ -195,7 +324,6 @@ export function createClock(
           return ia - ib
         })
 
-      const events: BattleEvent[] = []
       for (const actor of ready) {
         if (actor.hp <= 0) continue
         const opponent = run.find((f) => f !== actor)
@@ -239,6 +367,7 @@ export function createClock(
             break
           case "close":
             actor.range = "near"
+            opponent.range = "near"
             events.push({
               tick,
               kind: "close",
@@ -279,9 +408,38 @@ export function createClock(
             }
             break
           }
-          case "special":
-            // The launch/impact events arrive with the projectile phase.
+          case "special": {
+            if (!usedSpecial) break
+            if (actor.range === "far") {
+              shots.push({
+                shooter: actor,
+                target: opponent,
+                move: usedSpecial,
+                targetRangeAtLaunch: opponent.range,
+              })
+              events.push({
+                tick,
+                kind: "launch",
+                actor: actor.name,
+                target: opponent.name,
+                moveId: usedSpecial.id,
+                hpAfter: hpAfter(),
+                line: `${actor.name} launches ${usedSpecial.displayName}.`,
+              })
+            } else {
+              // Point-blank: no travel, so the target can never have moved.
+              resolveShot(
+                {
+                  shooter: actor,
+                  target: opponent,
+                  move: usedSpecial,
+                  targetRangeAtLaunch: "near",
+                },
+                events,
+              )
+            }
             break
+          }
         }
 
         // After the action: step every tracked cooldown, then apply a newly

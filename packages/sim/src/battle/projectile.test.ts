@@ -7,15 +7,15 @@ import type { CreatureStats, Element } from "../creature"
 // dodge are seeded rolls; standing targets never roll a dodge.
 
 import {
+  type BattleEvent,
+  type BattleFighter,
   CLOSE,
+  type Clock,
+  type ClockFighter,
   createClock,
   createClockFighter,
   createTieOrder,
   HOLD,
-  type BattleEvent,
-  type BattleFighter,
-  type Clock,
-  type ClockFighter,
   type PlannedAction,
 } from "./clock"
 
@@ -50,7 +50,7 @@ describe("projectiles", () => {
     // Fire beats plant, so Blaze Bolt (12 power) from ATK 10 into DEF 10
     // deals 24 and takes Reed from 40 to 16.
     const boltPlans: PlanFn_ = (f) =>
-      f.range === "far" && (f.cooldowns["blaze_bolt"] ?? 0) === 0
+      f.range === "far" && (f.cooldowns.blaze_bolt ?? 0) === 0
         ? special("blaze_bolt")
         : HOLD
     const clock = clockOf(
@@ -84,7 +84,8 @@ describe("projectiles", () => {
     // Reed (plant, ox kit) closes tick 1 and fires Seed Shot tick 2: plant
     // is 0.5x into fire, so 6 power from ATK 8 into DEF 10 is 2 damage; no
     // launch event and no travel.
-    const reedPlans: PlanFn_ = (f) => (f.range === "far" ? CLOSE : special("seed_shot"))
+    const reedPlans: PlanFn_ = (f) =>
+      f.range === "far" ? CLOSE : special("seed_shot")
     const clock = clockOf(
       snap("Reed", "plant", stats(12, 8)),
       snap("Bolt", "fire", stats(5, 10, 10, 40)),
@@ -108,7 +109,7 @@ describe("projectiles", () => {
     // misses on accuracy. A dodge roll would belong only to a moving
     // target, so the standing Reed is untouched and no roll is spent.
     const boltPlans: PlanFn_ = (f) =>
-      f.range === "far" && (f.cooldowns["cinder_shot"] ?? 0) === 0
+      f.range === "far" && (f.cooldowns.cinder_shot ?? 0) === 0
         ? special("cinder_shot")
         : HOLD
     const clock = clockOf(
@@ -132,11 +133,12 @@ describe("dodge against a moving target", () => {
   // launches, Reed closes the same tick, and the shot is in flight while
   // Reed moved. Reed's SPD 12 dodge is min(70, 20 + 12 * 3) = 56.
   const boltPlans: PlanFn_ = (f) =>
-    f.range === "far" && (f.cooldowns["blaze_bolt"] ?? 0) === 0
+    f.range === "far" && (f.cooldowns.blaze_bolt ?? 0) === 0
       ? special("blaze_bolt")
       : HOLD
   const reedClosing: PlanFn_ = (f) => (f.range === "far" ? CLOSE : HOLD)
-  const planPair: PlanFn_ = (f) => (f.name === "Bolt" ? boltPlans(f) : reedClosing(f))
+  const planPair: PlanFn_ = (f) =>
+    f.name === "Bolt" ? boltPlans(f) : reedClosing(f)
 
   test("the accurate shot is dodged when the dodge roll wins (seed 22)", () => {
     // Seed 22 draws d1 = 62 (accuracy hit) and d2 = 23 (under 56): the
@@ -206,14 +208,15 @@ describe("shots in flight at the end", () => {
     // resolves. The still-flying shot never appears as an impact, and the
     // fight-over tick runs no actions.
     const boltPlans: PlanFn_ = (f) =>
-      f.range === "far" && (f.cooldowns["blaze_bolt"] ?? 0) === 0
+      f.range === "far" && (f.cooldowns.blaze_bolt ?? 0) === 0
         ? special("blaze_bolt")
         : HOLD
     const reedPlans: PlanFn_ = (f) =>
-      f.range === "far" && (f.cooldowns["bramble_dart"] ?? 0) === 0
+      f.range === "far" && (f.cooldowns.bramble_dart ?? 0) === 0
         ? special("bramble_dart")
         : HOLD
-    const plan: PlanFn_ = (f) => (f.name === "Bolt" ? boltPlans(f) : reedPlans(f))
+    const plan: PlanFn_ = (f) =>
+      f.name === "Bolt" ? boltPlans(f) : reedPlans(f)
     const clock = clockOf(
       snap("Bolt", "fire", stats(12, 20, 10, 40)),
       snap("Reed", "plant", stats(12, 10, 10, 40)),
