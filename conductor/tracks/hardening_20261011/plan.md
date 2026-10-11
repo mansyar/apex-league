@@ -104,12 +104,13 @@ notes per task, phase checkpoints with explicit user verification).
 
 ## Phase 4 — Docs & Close-out
 
-- [ ] Task: Save schema documentation (FR-D1)
-  - [ ] Write `docs/save-schema.md`: v6 shape, field meanings, migration chain
+- [x] Task: Save schema documentation (FR-D1) (83553b8)
+  - [x] Write `docs/save-schema.md`: v6 shape, field meanings, migration chain
         summary, add-v7 recipe
-  - [ ] Commit `docs: add save schema reference`
-- [ ] Task: Final sweep & registry close
-  - [ ] Full `bun run verify`; grep audit for leftover fanout/dupes
-  - [ ] Update conductor docs for track completion
+  - [x] Commit `docs: add save schema reference`
+- [x] Task: Final sweep & registry close (867d14e)
+  - [x] Full `bun run verify`; grep audit for leftover fanout/dupes
+  - [x] Update conductor docs for track completion
+  [checkpoint: 867d14e]
   - [ ] Commit `chore(conductor): finalize track 'Hardening & Quality Pass'`
 - [ ] Task: Phase 4 Verification & Checkpoint (Refer to workflow.md)

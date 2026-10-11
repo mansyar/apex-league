@@ -2,7 +2,7 @@
   "id": "hardening_20261011",
   "title": "Hardening & Quality Pass — store fanout, save robustness, dedupe, polish, save-schema docs",
   "type": "chore",
-  "status": "new",
+  "status": "complete",
   "createdAt": "2026-10-11",
   "branch": "hardening_20261011",
   "base": "main @ 90285e8"
