@@ -35,7 +35,8 @@ import {
   resolvePlayerMatch,
   type Tactic,
 } from "@apex/sim"
-import { CREST_GLYPHS, createBattleHud } from "./battleHud"
+import { createBattleHud } from "./battleHud"
+import { crestGlyph, elementHue } from "./element"
 import { createPlaybackDriver, type PlaybackFight } from "./playbackDriver"
 import { type FightCasting, visualSeedOf } from "./staging"
 
@@ -492,20 +493,11 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   // ------------------------------------------------------------------
   // Bracket rendering
   // ------------------------------------------------------------------
-  const crest = (element: string): string =>
-    CREST_GLYPHS[element] ?? CREST_GLYPHS.fire ?? ""
+  const crest = (element: string): string => crestGlyph(element)
 
-  /** Element hues (matches the arena projectile palette, staging.ts). */
-  const HUES: Record<string, number> = {
-    fire: 18,
-    water: 205,
-    plant: 110,
-    electric: 50,
-    earth: 28,
-    wind: 165,
-  }
+  /** Element hues now come from the shared module (arena palette). */
   const hueColor = (element: string): string =>
-    `hsl(${HUES[element] ?? 40} 70% 60%)`
+    `hsl(${elementHue(element)} 70% 60%)`
 
   const speciesElement = (speciesId: string): string =>
     getSpecies(speciesId)?.element ?? "fire"

@@ -2,6 +2,7 @@ import { EVOLUTION_STAT_BOOST, type PlaybackStep } from "@apex/sim"
 import { generate } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
+import { elementHue } from "./element"
 
 /**
  * Creature staging for the broadcast arena: two living fighters on the
@@ -85,26 +86,18 @@ const SQUASH_K = 210
 const SQUASH_D = 13
 
 /**
- * Element hues from the shared type-color contract (product guidelines:
- * Fire 18°, Plant 110°, Water 205°, Electric 50°, Earth 28°, Wind 165°).
- * A projectile reads as its type at a glance, and the color survives
- * color-blindness checks when paired with the move icon in the HUD.
+ * Element hues live in the shared element identity module (product
+ * guidelines: Fire 18°, Plant 110°, Water 205°, Electric 50°, Earth 28°,
+ * Wind 165°). A projectile reads as its type at a glance, and the color
+ * survives color-blindness checks when paired with the move icon in the HUD.
  */
-export const ELEMENT_HUE: Record<string, number> = {
-  fire: 18,
-  water: 205,
-  plant: 110,
-  electric: 50,
-  earth: 28,
-  wind: 165,
-}
 const ELEMENT_COLOR_FALLBACK = "#cfd6e4"
 
 const elementColor = (element: string | undefined): string =>
   element === undefined
     ? ELEMENT_COLOR_FALLBACK
     : new THREE.Color()
-        .setHSL(((ELEMENT_HUE[element] ?? 200) % 360) / 360, 0.75, 0.6)
+        .setHSL((elementHue(element) % 360) / 360, 0.75, 0.6)
         .getStyle()
 
 /** One in-flight shot: a glowing core with an arced, lagging trail. */
