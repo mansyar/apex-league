@@ -126,7 +126,9 @@ Verification & Checkpoint gate before moving on.
   cup unconsumed; reduced-motion pass — fresh save, CTA at ~104 ms,
   instant dump, full cup to results in seconds; solid dome backdrop per
   user preference)*
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  *(checkpoint: 032a382 — verify green; all five playthrough paths
+  browser-verified with evidence in the plan; approved by user 2026-10-11)*
 
 ## Notes
 
