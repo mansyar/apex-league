@@ -58,7 +58,7 @@ workflow checkpoint task.
 
 ## Phase E — Guidelines, docs, final verification
 
-- [ ] Task: Amend `conductor/product-guidelines.md` for the backdrop-blur scrim (dated note)
+- [x] Task: Amend `conductor/product-guidelines.md` for the backdrop-blur scrim (dated note) — `516e0d0`
 - [ ] Task: Sync README/docs where the HUD is described
 - [ ] Task: Final gate — `bun run verify` green; manual visual pass over all five surfaces with screenshots as evidence; reduced-motion on/off checked
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
