@@ -141,11 +141,10 @@
             <span class="kit-button-name">Rest</span>
             <span class="kit-button-cost">1 AP</span>
           </button>
-          <button class="kit-button is-disabled" type="button" disabled>
+          <button class="kit-button is-disabled" type="button" disabled data-reason="Not sick — save the medicine.">
             <span class="kit-button-glyph"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.5 3h5v6.5H21v5h-6.5V21h-5v-6.5H3v-5h6.5z"/></svg></span>
             <span class="kit-button-name">Treat</span>
             <span class="kit-button-cost">1 AP</span>
-            <span class="kit-button-reason">Not sick — save the medicine.</span>
           </button>
           <button class="kit-button" type="button">
             <span class="kit-button-glyph"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5.5 9.5c4 2 9 2 13 0M5.5 14.5c4-2 9-2 13 0" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span>
@@ -213,9 +212,9 @@
         <figure class="show-item">
           <div class="show-row is-tall">
             <button class="kit-button" type="button"><span class="kit-button-name">Button</span><span class="kit-button-cost">1 AP</span></button>
-            <button class="kit-button is-disabled" type="button" disabled><span class="kit-button-name">Disabled</span><span class="kit-button-cost">1 AP</span><span class="kit-button-reason">No AP left today.</span></button>
+            <button class="kit-button is-disabled" type="button" disabled data-reason="No AP left today."><span class="kit-button-name">Disabled</span><span class="kit-button-cost">1 AP</span></button>
           </div>
-          <figcaption>button — glyph slot, name, AP badge, rejection reason</figcaption>
+          <figcaption>button — glyph slot, name, AP badge; disabled reasons explain on hover (tooltip)</figcaption>
         </figure>
 
         <figure class="show-item">

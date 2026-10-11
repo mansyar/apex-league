@@ -195,7 +195,7 @@ h2 {
 .kit-button {
   display: grid;
   grid-template-columns: auto 1fr auto;
-  grid-template-areas: "glyph name cost" "reason reason reason";
+  grid-template-areas: "glyph name cost";
   align-items: center;
   gap: 2px 8px;
   padding: 9px 12px 10px;
@@ -246,15 +246,6 @@ h2 {
   font-weight: 700;
   letter-spacing: 0.14em;
   color: var(--accent);
-}
-
-.kit-button-reason {
-  grid-area: reason;
-  font-size: 11px;
-  font-weight: 400;
-  letter-spacing: 0.02em;
-  text-transform: none;
-  color: var(--ink-dim);
 }
 
 .shape-row {
@@ -1089,6 +1080,40 @@ h2 {
 
 .kit-button.is-shard {
   clip-path: polygon(9px 0, calc(100% - 9px) 0, 100% 100%, 0 100%);
+}
+
+.kit-button[data-reason] {
+  position: relative;
+}
+
+/* Rejection reasons live in a hover tooltip so every button keeps one
+   size; the plate language carries over. */
+.kit-button[data-reason]:hover::after,
+.kit-button[data-reason]:focus-visible::after {
+  content: attr(data-reason);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  z-index: 20;
+  padding: 8px 12px;
+  background: var(--panel-bg);
+  border: 1px solid var(--keyline);
+  backdrop-filter: var(--blur);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  white-space: nowrap;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 5px),
+    calc(100% - 5px) 100%,
+    0 100%
+  );
+  pointer-events: none;
+  translate: -50% 0;
 }
 
 body.is-reduced *,
