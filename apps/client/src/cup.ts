@@ -932,7 +932,7 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
       for (const row of kitRows) row.remove()
       kitRows.length = 0
       cs.kit.forEach((id, index) => {
-        const required = requiredTierDays(index)
+        const required = requiredTierDays(index, creature.stage)
         const locked = creature.trainingDays < required
         const name = getMove(id)?.displayName ?? id
         const rowEl = document.createElement("button")
