@@ -334,13 +334,10 @@ const SWELL = 0.18
 const OVERSHOOT = 0.08
 
 export interface EvolutionMachine {
-  /** Begin from the creature's CURRENT pose. Reduced motion swaps in place. */
-  begin(
-    fromX: number,
-    fromZ: number,
-    fromYaw: number,
-    reducedMotion: boolean,
-  ): void
+  /** Begin from the creature's current pose: only the yaw and the motion
+   * preference are needed (advance reads the live position). Reduced
+   * motion swaps in place. */
+  begin(fromYaw: number, reducedMotion: boolean): void
   /** Advance one clamped-dt step from (x, z). */
   advance(x: number, z: number, dt: number): EvolutionDrive
 }
@@ -351,12 +348,7 @@ export function createEvolutionCeremony(): EvolutionMachine {
   let elapsed = 0
   let swapPending = false
 
-  const begin = (
-    fromX: number,
-    _fromZ: number,
-    fromYaw: number,
-    reducedMotion: boolean,
-  ): void => {
+  const begin = (fromYaw: number, reducedMotion: boolean): void => {
     yaw = fromYaw
     elapsed = 0
     if (reducedMotion) {
@@ -366,7 +358,6 @@ export function createEvolutionCeremony(): EvolutionMachine {
       elapsed = SETTLE_TIME
       return
     }
-    void fromX
     phase = "walk"
   }
 

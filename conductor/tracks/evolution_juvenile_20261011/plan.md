@@ -65,3 +65,10 @@ manual verification for presentation tasks, phase checkpoints per
 - [x] Task: Docs sync — `product.md` landed annotation, README roadmap note, tech-stack dated note if warranted
   - product.md Phase 1 evolution bullet annotated (landed 2026-10-11, champion open); README roadmap row + night-settlement loop updated; tech-stack unchanged (no new stack)
 - [x] Task: Final review readiness — all tasks `[x]` with commit SHAs, ready for `conductor-review`
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions
+  - Untracked `.freebuff/` local tooling (gitignore + `git rm --cached`)
+  - `main.ts`: evolution branch now calls `sceneVisuals()` so post-settlement condition visuals aren't stale
+  - `scene-logic.ts`: ceremony `begin(fromYaw, reducedMotion)` — dropped unused params (styleguide `_`-prefix violation); caller + test helper updated

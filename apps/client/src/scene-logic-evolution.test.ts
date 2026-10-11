@@ -15,7 +15,7 @@ function run(
   opts: { dt?: number; reduced?: boolean; maxSeconds?: number } = {},
 ) {
   const dt = opts.dt ?? 1 / 60
-  machine.begin(from.x, from.z, from.yaw, opts.reduced ?? false)
+  machine.begin(from.yaw, opts.reduced ?? false)
   let x = from.x
   let z = from.z
   let yaw = from.yaw

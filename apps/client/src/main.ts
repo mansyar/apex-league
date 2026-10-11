@@ -157,6 +157,7 @@ const hud = createHud(app, {
       // seed is unchanged (stage-aware), so the props stay put.
       const archetypeId =
         getSpecies(creature.speciesId)?.archetypeId ?? "draconic"
+      sceneVisuals()
       scene.startEvolutionCeremony(
         archetypeId,
         visualSeedOf(creature.stats, creature.stage),

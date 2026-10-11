@@ -630,12 +630,7 @@ export function createScene(container: HTMLElement): SceneHandle {
       walk = createWalk(reducedMotion)
       wander?.abort()
       evolutionSwap = { archetypeId, seed }
-      evolution.begin(
-        creatureGroup.position.x,
-        creatureGroup.position.z,
-        creatureGroup.rotation.y,
-        reducedMotion,
-      )
+      evolution.begin(creatureGroup.rotation.y, reducedMotion)
     },
     setProps(visualSeed) {
       if (scenerySeed === visualSeed) return
