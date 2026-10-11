@@ -43,6 +43,9 @@ workflow checkpoint task.
   - [ ] Train button + inline four-stat picker styled like the cup kit list
   - [ ] Advance Day gold CTA (phase-aware label preserved)
 - [x] Task: Chip family + motion wiring (entrance settles, hover/press micro-feedback; everything gated by the reduced-motion setting + OS preference) — `daaf76c`
+- [x] Task: Collapsible corner clusters (user-requested during checkpoint review) — `4e7ee7f`
+  - [x] Creature head + ACTIONS dock header as accessible toggle buttons
+  - [x] Collapsed: head row readout (left) / ACTIONS label (right); session-only
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase D — Spar, starter, cup + arena adoption
