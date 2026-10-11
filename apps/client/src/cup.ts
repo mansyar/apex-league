@@ -1052,7 +1052,10 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   close.type = "button"
   close.textContent = "Back to the ranch"
   close.style.display = ""
-  overlay.append(close)
+  // In-flow bottom furniture of the bracket screen (between the CTA row and
+  // the feed) — absolutely positioning it over the grid made it overlap the
+  // semifinal cards on shorter viewports.
+  cta.after(close)
   close.addEventListener("click", () => {
     if (inBattle) return
     if (!committed) {
