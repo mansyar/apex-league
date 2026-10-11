@@ -50,7 +50,7 @@ workflow checkpoint task.
 
 ## Phase D — Spar, starter, cup + arena adoption
 
-- [ ] Task: Spar panel onto the kit (kit-gate progress, loadout rows, tactic buttons, log) — interaction unchanged
+- [x] Task: Spar panel onto the kit (kit-gate progress, loadout rows, tactic buttons, log) — interaction unchanged — `f0651d6`
 - [ ] Task: Starter overlay rebuilt in dome/broadcast language; remove the dead "Coming soon" ribbon
 - [ ] Task: Cup overlay + battle HUD chrome adopt kit classes (bracket, coach room, results, placard, lower-third) — layout/behavior unchanged
 - [ ] Task: Cup results AP copy fix — derive from `ACTION_POINTS_PER_DAY` + cup bonus instead of `${3 + 1}`
