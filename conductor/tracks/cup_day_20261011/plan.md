@@ -44,10 +44,11 @@ Verification & Checkpoint gate before moving on.
 
 ## Phase B — State machine & player UI wiring
 
-- [ ] Task: Wire `machine.ts` — fill in the placeholder bodies of
+- [x] Task: Wire `machine.ts` — fill in the placeholder bodies of
   `beginCup`/`endCup`: entry on cup day resolves the whole bracket, applies
   rewards, returns to day phase; unit-tested with seeded runs (same seed →
-  identical bracket + rewards)
+  identical bracket + rewards) *(implemented as `enterCup` — one-sitting
+  resolution; exports surfaced via `index.ts` — `d24dd93`, `0d00497`)*
 - [ ] Task: Client `cup.ts` panel — full-screen DOM overlay: bracket table
   QF→SF→F paced ~1.5 s per round, verdict + short round logs, announcer
   voice; Enter Cup chip in the Spar area on cup days (disabled after resolve
