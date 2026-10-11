@@ -87,18 +87,19 @@ notes per task, phase checkpoints with explicit user verification).
 - [x] Task: Meta tags & favicon (FR-C1) (fef6ba7)
   - [x] Add favicon + description/theme-color/OG tags to `index.html`
   - [x] Commit `style(client): add favicon and document meta tags`
-- [~] Task: Accessible status callout (FR-C2)
-  - [ ] Add `aria-live="polite"` to ranch `status-callout`
-  - [ ] Commit `style(client): announce ranch status callout to screen readers`
-- [ ] Task: Cup pacing toggle (FR-C3)
-  - [ ] Wire `playbackSpeed.ts` into the cup panel, replacing hardcoded
+- [x] Task: Accessible status callout (FR-C2) (c7054fc)
+  - [x] Add `aria-live="polite"` to ranch `status-callout`
+  - [x] Commit `style(client): announce ranch status callout to screen readers`
+- [x] Task: Cup pacing toggle (FR-C3) (f712687)
+  - [x] Wire `playbackSpeed.ts` into the cup panel, replacing hardcoded
         `PACE_MS`; reduced-motion default honored
-  - [ ] Manual verification: toggled speeds during a cup run
-  - [ ] Commit `feat(client): cup panel pacing speed toggle`
-- [ ] Task: Stale comment fixes (FR-C4)
-  - [ ] Fix `starter.ts:42-43` "Water locked" comment
-  - [ ] Commit `docs(client): fix stale starter and cup comments`
-- [ ] Task: Phase 3 Verification & Checkpoint (Refer to workflow.md)
+  - [x] Manual verification: toggled speeds during a cup run
+        (browser-verified: normal → fast mid-run, run completed, 0 errors)
+  - [x] Commit `feat(client): cup panel pacing speed toggle`
+- [x] Task: Stale comment fixes (FR-C4) (96f5a7a)
+  - [x] Fix `starter.ts:42-43` "Water locked" comment
+  - [x] Commit `docs(client): fix stale starter comment`
+- [~] Task: Phase 3 Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Docs & Close-out
 
