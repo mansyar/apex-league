@@ -312,11 +312,11 @@ h2 {
 /* AP meter — skewed pips in the placard's skew language. */
 .ap-pips {
   display: inline-flex;
-  gap: 5px;
+  gap: 7px;
 }
 
 .ap-pip {
-  width: 15px;
+  width: 13px;
   height: 20px;
   transform: skewX(-14deg);
   background: var(--accent);
@@ -677,25 +677,21 @@ h2 {
 
 .dock-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 7px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
 }
 
 .dock-row .kit-button {
-  grid-template-areas: "glyph" "name" "cost" "reason";
-  justify-items: center;
-  gap: 3px 0;
-  padding: 9px 4px 8px;
-  text-align: center;
+  grid-template-areas:
+    "glyph name cost"
+    "reason reason reason";
+  justify-items: start;
+  gap: 3px 8px;
+  padding: 9px 12px 9px;
 }
 
 .dock-row .kit-button-name {
-  font-size: 11px;
-}
-
-.dock-row .kit-button-reason {
-  text-align: center;
-  font-size: 9.5px;
+  font-size: 12px;
 }
 
 .dock-train {
@@ -704,8 +700,23 @@ h2 {
   gap: 7px;
 }
 
+.kit-button-tag {
+  grid-area: tag;
+  align-self: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  padding: 1px 7px;
+  background: rgb(255 209 102 / 0.14);
+  clip-path: polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
+}
+
 .dock-train .kit-button {
-  grid-template-areas: "glyph name cost" "reason reason reason";
+  grid-template-columns: auto 1fr auto auto;
+  grid-template-areas: "glyph name cost tag";
+  gap: 8px;
 }
 
 .train-picker {
@@ -755,6 +766,14 @@ h2 {
   right: 18px;
   display: flex;
   gap: 8px;
+  animation: settle-down 0.5s 0.24s var(--settle) both;
+}
+
+/* Settings chip — top-left, out of the gameplay path. */
+.hud-motion {
+  position: absolute;
+  top: 18px;
+  left: 18px;
   animation: settle-down 0.5s 0.24s var(--settle) both;
 }
 
