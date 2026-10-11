@@ -88,3 +88,5 @@ phase ends with a verification & checkpoint task.
       user (placard, lag bars, jolts, stamp, pacing, log, reduced
       motion, ranch sweep) with all gates green. [commit: 8aebc76]
       [checkpoint: 8aebc76]
+## Phase: Review Fixes
+- [~] Task: Apply review suggestions (conductor-review findings: staging RAF cancel race, stranded arena mode, impact juice, camera shake anchor, reduced-motion pref wiring, per-frame allocations, plus medium/low sweeps)
