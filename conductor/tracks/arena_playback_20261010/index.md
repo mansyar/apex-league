@@ -1,7 +1,7 @@
 # Track: Battle Arena Playback (`arena_playback_20261010`)
 
 - **Type:** Feature
-- **Status:** new
+- **Status:** complete
 - **Branch:** `track/arena_playback_20261010`
 
 ## Documents
