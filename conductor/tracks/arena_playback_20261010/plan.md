@@ -75,5 +75,12 @@ phase ends with a verification & checkpoint task.
       — `playbackSpeed.ts` + 3 unit cases; speed pill is now a real
       two-way toggle, log demoted to a collapsible box under the
       announcer. [commit: 6ccbba6] [checkpoint-note: 6ccbba6]
+- [x] Task: Broadcast HUD rework — replace the corner-box HUD with a
+      top-center placard: skewed plates with element crests, damage-lag
+      HP bars draining toward the center VS chip, hit jolts scaled by
+      damage, rangefinder chevrons; the spar panel exits during fights
+      (arena full-bleed, chips only) and the verdict lands as a
+      broadcast stamp. Design ref: `hud-mock.html` in this folder.
+      [commit: ed6d16a] [chore: f1004b4] [checkpoint-note: ed6d16a]
 - [ ] Task: Final polish pass & manual visual verification & checkpoint
       (Refer to workflow.md)
