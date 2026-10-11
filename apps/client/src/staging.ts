@@ -582,7 +582,10 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
    */
   const contactReaction = (damage: number | undefined, at: Combatant): void => {
     const knock = strikeReach(damage)
-    at.stage.x -= at.away * knock
+    // Knockback pushes the victim OUTWARD (own away side, same convention
+    // as the dodge dash) — a minus here drags the pair into each other
+    // with every landed hit.
+    at.stage.x += at.away * knock
     at.stage.z += (Math.random() - 0.5) * 0.3
     impulse(at, 0.85)
     startFlash(at)
