@@ -8,7 +8,7 @@ import {
   setReducedMotion,
 } from "../state"
 import { advanceDay } from "../ticker"
-import { migrate } from "./migrate"
+import { migrate, validateStateShape } from "./migrate"
 import { SAVE_VERSION, type SaveData, serializeSave } from "./schema"
 import {
   createMemoryAdapter,
@@ -207,6 +207,46 @@ describe("migration chain", () => {
   })
 })
 
+describe("validateStateShape — shared migration validator", () => {
+  const good = { day: 3, phase: "day", actionPoints: 2 }
+
+  const badCases: Array<[string, Record<string, unknown>]> = [
+    ["missing state", {}],
+    ["negative day", { day: -1, phase: "day", actionPoints: 2 }],
+    ["fractional day", { day: 1.5, phase: "day", actionPoints: 2 }],
+    ["bad phase", { day: 1, phase: "banana", actionPoints: 2 }],
+    ["negative AP", { day: 1, phase: "day", actionPoints: -2 }],
+    ["fractional AP", { day: 1, phase: "day", actionPoints: 1.5 }],
+    ["missing AP", { day: 1, phase: "day" }],
+  ]
+
+  test("accepts a well-shaped state and returns the validated scalars", () => {
+    const out = validateStateShape({ state: good }, 4)
+    expect(out).toEqual({ day: 3, phase: "day", actionPoints: 2, state: good })
+  })
+
+  for (const [label, state] of badCases) {
+    test(`rejects: ${label} (version-tagged message)`, () => {
+      try {
+        validateStateShape({ state }, 4)
+        throw new Error(`expected rejection for ${label}`)
+      } catch (err) {
+        expect((err as Error).message).toContain("invalid v4 save")
+        expect((err as Error).message).not.toContain("expected rejection")
+      }
+    })
+  }
+
+  test("the version tag follows the migration step, not the payload", () => {
+    try {
+      validateStateShape({ state: { day: -1 } }, 5)
+      throw new Error("expected rejection")
+    } catch (err) {
+      expect((err as Error).message).toContain("invalid v5 save")
+    }
+  })
+})
+
 describe("storage adapter", () => {
   test("saveGame then loadGame round-trips the state", () => {
     const adapter: SaveAdapter = createMemoryAdapter()
@@ -270,6 +310,35 @@ describe("storage adapter", () => {
       adapter.setItem("apex.save", JSON.stringify(payload))
       expect(loadGame(adapter)).toBeNull()
     }
+  })
+
+  test("saveGame reports failure instead of throwing when the adapter rejects writes", () => {
+    const state = chooseStarter(createInitialState(), "fire_drake", 42)
+    const boom: SaveAdapter = {
+      getItem: () => null,
+      setItem: () => {
+        throw new Error("quota exceeded")
+      },
+    }
+    expect(saveGame(boom, state, 1)).toBe(false)
+    expect(saveGame(createMemoryAdapter(), state, 1)).toBe(true)
+  })
+
+  test("loadGame rejects a save referencing an unknown species", () => {
+    // Hand-edited save: everything else is well-formed, but the speciesId
+    // does not exist in the catalog. The client would crash on first render
+    // ("Unknown species") — the load must reject it instead.
+    const adapter: SaveAdapter = createMemoryAdapter()
+    const state = advanceDay(
+      chooseStarter(createInitialState(), "fire_drake", 42),
+    )
+    saveGame(adapter, state, 500)
+    const data = JSON.parse(adapter.getItem("apex.save") ?? "{}") as {
+      state: { creature: { speciesId: string } }
+    }
+    data.state.creature.speciesId = "shadow_dragon"
+    adapter.setItem("apex.save", JSON.stringify(data))
+    expect(loadGame(adapter)).toBeNull()
   })
 
   test("round-trips a save that owns a creature", () => {

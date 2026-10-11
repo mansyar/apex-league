@@ -13,10 +13,11 @@ import type { GameState } from "./state"
 
 /**
  * The cup-phase machine. The Day ↔ Cup phase contract (begin/end) stays
- * for the loop; the real cup behavior lives in `enterCup`, which the
- * client calls on a cup day: it resolves the seeded bracket in one
- * sitting, applies the reward bundle, and returns the state plus the
- * resolved cup for presentation.
+ * for the loop (the live-cup client consumes the phase via `endCup` at
+ * the first coach commit); the real cup behavior lives in `enterCup`,
+ * which the client calls on a cup day: it resolves the seeded bracket in
+ * one sitting, applies the reward bundle, and returns the state plus the
+ * resolved cup for presentation (flipping the phase back to "day").
  */
 
 /** Enter the cup phase. Only allowed the day before a cup day. */
@@ -73,7 +74,13 @@ export function enterCup(state: GameState): {
   const seed = (day * 2654435761 + identity * 97 + 1) >>> 0
   const bracket = makeBracket(creature, day, seed)
   const cup = resolveCup(bracket, creature)
-  const rewarded = applyCupRewards(state, cup.playerPlacement, day)
+  // The machine owns the placement → outcome mapping (the reward layer
+  // accepts only a resolved "won"/"lost" — see cupRewards.ts).
+  const rewarded = applyCupRewards(
+    state,
+    cup.playerPlacement === 1 ? "won" : "lost",
+    day,
+  )
   // The cup has been played: leave the cup phase behind (back to the day
   // loop). Winning stamps lastCupDay (rewards); a loss leaves it null.
   return { state: { ...rewarded, phase: "day" }, ok: true, cup }
@@ -110,6 +117,12 @@ export function finalizeCup(state: GameState, session: CupSession): GameState {
   if (session.championName === null) {
     throw new Error("The cup has no champion yet — complete it first")
   }
-  const rewarded = applyCupRewards(state, cupPlacement(session), state.day)
+  // The machine owns the placement → outcome mapping (the reward layer
+  // accepts only a resolved "won"/"lost" — see cupRewards.ts).
+  const rewarded = applyCupRewards(
+    state,
+    cupPlacement(session) === 1 ? "won" : "lost",
+    state.day,
+  )
   return { ...rewarded, phase: "day" }
 }

@@ -1,5 +1,6 @@
 import { type Creature, type StatKey, TRAINING_CAP } from "../creature"
 import { SICK_COOLDOWN_NIGHTS } from "../evolution"
+import { getSpecies } from "../species"
 import type { GameState } from "../state"
 import { migrate } from "./migrate"
 import { SAVE_VERSION, type SaveData, serializeSave } from "./schema"
@@ -27,14 +28,23 @@ export function createMemoryAdapter(): SaveAdapter {
   }
 }
 
-/** Persist the current state as a versioned save. */
+/**
+ * Persist the current state as a versioned save. Returns false when the
+ * write fails (quota, private mode) — the caller decides how to surface
+ * it; saving must never crash the day.
+ */
 export function saveGame(
   adapter: SaveAdapter,
   state: GameState,
   savedAt: number,
-): void {
+): boolean {
   const data: SaveData = { version: SAVE_VERSION, state, savedAt }
-  adapter.setItem(SAVE_KEY, serializeSave(data))
+  try {
+    adapter.setItem(SAVE_KEY, serializeSave(data))
+    return true
+  } catch {
+    return false
+  }
 }
 
 const ELEMENTS = ["fire", "water", "plant", "electric", "earth", "wind"]
@@ -48,6 +58,9 @@ function isValidCreature(c: unknown): c is Creature {
   const creature = c as Record<string, unknown>
   if (typeof creature.speciesId !== "string" || creature.speciesId.length === 0)
     return false
+  // The species must exist in the catalog — a hand-edited save referencing
+  // an unknown species would crash the client on first render otherwise.
+  if (getSpecies(creature.speciesId) === undefined) return false
   if (typeof creature.bondedToday !== "boolean") return false
   if (!ELEMENTS.includes(creature.element as string)) return false
   if (!STAGES.includes(creature.stage as string)) return false
@@ -131,8 +144,7 @@ export function loadGame(adapter: SaveAdapter): GameState | null {
       !Number.isInteger(state.cupsWon) ||
       state.cupsWon < 0 ||
       (state.lastCupDay !== null &&
-        (!Number.isInteger(state.lastCupDay) || state.lastCupDay < 1)) ||
-      (state.creature !== null && !isValidCreature(state.creature))
+        (!Number.isInteger(state.lastCupDay) || state.lastCupDay < 1))
     ) {
       return null
     }

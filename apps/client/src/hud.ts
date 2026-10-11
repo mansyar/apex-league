@@ -37,6 +37,9 @@ export interface Hud {
   /** Show the evolution-moment coach line (called once, right after the
    * ceremony starts; the next routine update replaces it). */
   announceEvolution(creature: NonNullable<GameState["creature"]>): void
+  /** Show the save-failure coach line (called once per failed persist;
+   * the next routine update replaces it). Non-blocking by design. */
+  announceSaveFailure(): void
 }
 
 /** Coach-voice copy for disabled actions (≤ 2 sentences, never punishing). */
@@ -166,6 +169,14 @@ export function evolveCallout(creature: Creature): string {
 }
 
 /**
+ * The save-failure coach line: calm, blame-free, non-blocking. Shown once
+ * when a persist fails (quota, private mode) — the day carries on.
+ */
+export function saveFailureNotice(): string {
+  return "Heads up — that progress didn't save. Your partner's day carries on anyway."
+}
+
+/**
  * The status line leads with training: the preview while a focus is set,
  * the morning result after Advance Day, and the condition coach line only
  * when training has nothing to say.
@@ -275,6 +286,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   }
   const status = document.createElement("div")
   status.className = "status-callout"
+  status.setAttribute("aria-live", "polite")
   lowerThird.append(nameRow, statRow, barList, status)
 
   // Bottom-right action cluster.
@@ -506,6 +518,9 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     update,
     announceEvolution(creature) {
       status.textContent = evolveCallout(creature)
+    },
+    announceSaveFailure() {
+      status.textContent = saveFailureNotice()
     },
   }
 }

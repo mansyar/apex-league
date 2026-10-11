@@ -1,4 +1,9 @@
-import { EVOLUTION_STAT_BOOST, type PlaybackStep } from "@apex/sim"
+import {
+  CHAMPION_STAT_BOOST,
+  ELEMENT_HUE,
+  EVOLUTION_STAT_BOOST,
+  type PlaybackStep,
+} from "@apex/sim"
 import { generate } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
@@ -35,7 +40,7 @@ export const visualSeedOf = (
     stage === "juvenile"
       ? EVOLUTION_STAT_BOOST
       : stage === "champion"
-        ? { hp: 6, atk: 4, def: 4, spd: 2 } // juvenile + champion boost
+        ? CHAMPION_STAT_BOOST // cumulative: juvenile + champion boost
         : { hp: 0, atk: 0, def: 0, spd: 0 }
   return (
     ((s.hp - off.hp) * 7 +
@@ -84,20 +89,6 @@ const LEAN_MAX = 0.14
 const SQUASH_K = 210
 const SQUASH_D = 13
 
-/**
- * Element hues from the shared type-color contract (product guidelines:
- * Fire 18°, Plant 110°, Water 205°, Electric 50°, Earth 28°, Wind 165°).
- * A projectile reads as its type at a glance, and the color survives
- * color-blindness checks when paired with the move icon in the HUD.
- */
-export const ELEMENT_HUE: Record<string, number> = {
-  fire: 18,
-  water: 205,
-  plant: 110,
-  electric: 50,
-  earth: 28,
-  wind: 165,
-}
 const ELEMENT_COLOR_FALLBACK = "#cfd6e4"
 
 const elementColor = (element: string | undefined): string =>

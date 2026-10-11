@@ -65,17 +65,22 @@ export function makeBracket(
   // 7 rivals: each rolled from an available species, named from the pool,
   // ramped by slot position (final rival most likely the toughest).
   const available = STARTERS.filter((s) => s.available)
-  const shuffledNames: readonly string[] = pickNames(
-    rng,
-    RIVAL_NAME_POOL.length - 1,
-  )
+  // STREAM-NEUTRAL: pickNames shuffles the whole pool (fixed draw count),
+  // so the requested slice size never changes the rng stream — the slice
+  // is exactly the rivals we need.
+  const shuffledNames: readonly string[] = pickNames(rng, BRACKET_SLOTS - 1)
   const rivals: CupSlot[] = []
   for (let i = 0; i < BRACKET_SLOTS - 1; i++) {
     const idx = rng.int(available.length)
     const speciesDef = available[idx]
     if (!speciesDef) throw new Error("No available starter species")
-    // Consume one rng draw per slot regardless — the stream is part of the
-    // deterministic bracket identity, so never prune draws.
+    // RNG STREAM INVARIANT (do not prune): the bracket's identity is the
+    // full draw sequence, not just the seed — species picks, names, and
+    // stat jitters all read positions in one stream. This discarded draw
+    // is load-bearing spacing: removing it shifts every later draw and
+    // changes which opponents a given (day, save) meets, silently
+    // rewriting cup history for existing saves. The golden test in
+    // cup.test.ts ("draw stream is stable") enforces this.
     const creatureSeed = Math.floor(rng.next() * 0x7fffffff)
     void creatureSeed
     const name = shuffledNames[i]
@@ -558,6 +563,20 @@ function slotPlayerSide(
   }
 }
 
+/** Deterministic double-KO tiebreak: the slot with the higher remaining HP
+ * advances; an exact tie (or a missing finalHp entry, treated as 0) falls to
+ * the earlier slot in field order. Pure — the verdict line still reports the
+ * draw; only bracket advancement is decided here. */
+export function doubleKoWinner(
+  a: CupSlot,
+  b: CupSlot,
+  finalHp: Readonly<Record<string, number>>,
+): CupSlot {
+  const hpA = finalHp[a.name] ?? 0
+  const hpB = finalHp[b.name] ?? 0
+  return hpB > hpA ? b : a
+}
+
 /** Resolve one pairing into a verdict (pure). */
 function resolvePairing(
   round: number,
@@ -585,8 +604,12 @@ function resolvePairing(
     ? `${result.winner} takes the ${roundLabel(round)}!`
     : `Both fighters are down — the ${roundLabel(round)} is a draw.`
   const winnerSlot = result.winner === a.name ? a : b
-  const fallback = a.isPlayer ? a : b
-  const advancing = result.winner ? winnerSlot : fallback
+  // On a draw (double-ko) the verdict still reads "draw", but the bracket
+  // must keep shrinking: the slot with the higher remaining HP advances
+  // (exact tie → the earlier slot). See doubleKoWinner.
+  const advancing = result.winner
+    ? winnerSlot
+    : doubleKoWinner(a, b, result.finalHp)
   return {
     verdict: {
       round,
@@ -596,9 +619,6 @@ function resolvePairing(
       line,
       battle: result,
     },
-    // On a draw (double-ko) nobody advanced cleanly; the fallback favors
-    // the player's slot so the field always keeps shrinking. The resolver
-    // guarantees exactly one winner unless double_ko.
     winner: advancing,
     loser: advancing === a ? b : a,
   }

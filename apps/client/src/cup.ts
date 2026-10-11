@@ -20,6 +20,7 @@ import {
   completeCup,
   cupPlacement,
   defaultLoadout,
+  ELEMENT_HUE,
   effectiveStats,
   endCup,
   finalizeCup,
@@ -36,6 +37,7 @@ import {
   type Tactic,
 } from "@apex/sim"
 import { CREST_GLYPHS, createBattleHud } from "./battleHud"
+import { prefersReducedMotionOs } from "./motion"
 import { createPlaybackDriver, type PlaybackFight } from "./playbackDriver"
 import { type FightCasting, visualSeedOf } from "./staging"
 
@@ -377,9 +379,7 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   }
 
   const reducedMotion = (): boolean =>
-    state?.settings.reducedMotion === true ||
-    (window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
-      !window.matchMedia("(prefers-reduced-motion: no-preference)").matches)
+    state?.settings.reducedMotion === true || prefersReducedMotionOs()
 
   const beat = (ms: number): number => (reducedMotion() ? 0 : ms)
 
@@ -495,17 +495,9 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   const crest = (element: string): string =>
     CREST_GLYPHS[element] ?? CREST_GLYPHS.fire ?? ""
 
-  /** Element hues (matches the arena projectile palette, staging.ts). */
-  const HUES: Record<string, number> = {
-    fire: 18,
-    water: 205,
-    plant: 110,
-    electric: 50,
-    earth: 28,
-    wind: 165,
-  }
+  /** Element hues (the canonical ELEMENT_HUE contract, staging.ts agrees). */
   const hueColor = (element: string): string =>
-    `hsl(${HUES[element] ?? 40} 70% 60%)`
+    `hsl(${ELEMENT_HUE[element] ?? 40} 70% 60%)`
 
   const speciesElement = (speciesId: string): string =>
     getSpecies(speciesId)?.element ?? "fire"

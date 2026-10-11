@@ -10,7 +10,6 @@ import {
   getSpecies,
   loadGame,
   type StatKey,
-  saveGame,
   setLoadout,
   setReducedMotion,
 } from "@apex/sim"
@@ -21,6 +20,7 @@ import { createScene } from "./scene"
 import { createSpar } from "./spar"
 import { createStaging, visualSeedOf } from "./staging"
 import { createStarterChoice } from "./starter"
+import { createGameStore } from "./store"
 import { createSwap } from "./swap"
 import "./style.css"
 
@@ -34,21 +34,24 @@ const swap = createSwap(scene, arena)
 
 const storage: Storage = window.localStorage
 const saved = loadGame(storage)
-let state: GameState = saved ?? createInitialState()
-
-const persist = (): void => saveGame(storage, state, Date.now())
+// The store is the single mutation path: handlers adopt a new state with
+// commit(), which persists and notifies the hud/spar/cup subscribers in a
+// fixed order — no handler hand-rolls that fanout anymore.
+const store = createGameStore(saved ?? createInitialState(), storage, {
+  onPersistError: () => hud.announceSaveFailure(),
+})
 
 /** Cheap scene reducers: pile visibility + mood idle. Fired after any
  * sim mutation — the scene no-ops internally when nothing changed. */
 const sceneVisuals = (): void => {
-  const creature = state.creature
+  const creature = store.get().creature
   if (!creature) return
   scene.setFedToday(creature.fedToday)
   scene.updateConditions(creature.conditions)
 }
 
 const syncScene = (): void => {
-  const creature = state.creature
+  const creature = store.get().creature
   if (!creature) return
   // Visual DNA seed: derived from the creature's rolled base so the look
   // is stable across sessions and days, yet varies per partner. Training
@@ -66,13 +69,14 @@ const syncScene = (): void => {
 }
 
 // The spar reads the live state through this hook; kit changes write
-// through setLoadout/clearLoadout and persist like every other sim change.
+// through the store like every other sim change.
 const spar = createSpar(app, {
   onSetLoadout: (moveIds) => {
-    if (!state.creature) return
-    state = moveIds === null ? clearLoadout(state) : setLoadout(state, moveIds)
-    persist()
-    spar.update(state.creature ?? null)
+    const current = store.get()
+    if (!current.creature) return
+    store.commit(
+      moveIds === null ? clearLoadout(current) : setLoadout(current, moveIds),
+    )
   },
   // Fight start: dissolve into the broadcast arena and cast both fighters
   // on the stage; every event now also steps the arena playback. The ranch
@@ -97,7 +101,7 @@ const spar = createSpar(app, {
   onPace: (msPerStep) => staging.setPace(msPerStep),
   // The saved setting gates the playback too — an in-app "reduced" holds
   // even when the OS reports motion-ok.
-  motionPref: () => state.settings.reducedMotion,
+  motionPref: () => store.get().settings.reducedMotion,
 })
 staging.setBigHitHandler((strength) => scene.shake(strength))
 
@@ -106,7 +110,7 @@ staging.setBigHitHandler((strength) => scene.shake(strength))
  * (no shake/flash in staging, no bounce/shake in scene) whenever it flips.
  */
 const applyMotionPref = (): void => {
-  const reduced = state.settings.reducedMotion
+  const reduced = store.get().settings.reducedMotion
   staging.setMotionPref(reduced ? "reduced" : "full")
   scene.setMotionReduced(reduced)
   // The swap honors the save too: in-app reduced means instant cuts.
@@ -116,7 +120,8 @@ applyMotionPref()
 
 // The live cup: prepareCup opens the bracket view, rival matches reveal
 // at their own pace, the player's branch resolves live in the arena, and
-// finalizeCup lands the rewards. Nothing here re-resolves the sim.
+// finalizeCup lands the rewards. Nothing here re-resolves the sim — every
+// state adoption flows through the store (persist + hud/spar/cup fanout).
 const cup = createCup(app, {
   onFightStart: (casting) => {
     scene.setRanchCreatureVisible(false)
@@ -133,20 +138,16 @@ const cup = createCup(app, {
     staging.clear()
     app.classList.remove("app-in-arena")
   },
-  // The first arena fight consumes the cup (endCup flips the phase);
-  // persist so a mid-cup refresh keeps the commitment.
+  // The first arena fight consumes the cup (endCup flips the phase) —
+  // adopted through the store so a mid-cup refresh keeps the commitment.
   onCommit: (next) => {
-    state = next
-    persist()
-    cup.update(state)
+    store.commit(next)
   },
-  // Results are in and finalizeCup applied the rewards — refresh the ranch.
+  // Results are in and finalizeCup applied the rewards — the store's fixed
+  // fanout updates hud/spar/cup; only the site-specific scene refresh is
+  // added here.
   onFinalize: (next) => {
-    state = next
-    persist()
-    hud.update(state)
-    spar.update(state.creature ?? null)
-    cup.update(state)
+    store.commit(next)
     // Conditions may carry the reward bump (mood/bond) — refresh the idle.
     sceneVisuals()
   },
@@ -156,13 +157,9 @@ const hud = createHud(app, {
   onAdvanceDay: () => {
     // The ceremony is non-cancelable (FR2, 2026-10-10): HUD input applies
     // to the sim immediately but never interrupts the creature's motion.
-    const stageBefore = state.creature?.stage
-    state = advanceDay(state)
-    persist()
-    hud.update(state)
-    spar.update(state.creature ?? null)
-    cup.update(state)
-    const creature = state.creature
+    const stageBefore = store.get().creature?.stage
+    store.commit(advanceDay(store.get()))
+    const creature = store.get().creature
     if (stageBefore === "baby" && creature?.stage === "juvenile") {
       // Evolution moment (spec R5): the scene walks the creature to the
       // ranch center, swells, and swaps the baby rig for the juvenile
@@ -184,13 +181,9 @@ const hud = createHud(app, {
     }
   },
   onCare: (action: CareAction) => {
-    const result = careAction(state, action)
+    const result = careAction(store.get(), action)
     if (!result.ok) return // buttons are already disabled; belt and braces
-    state = result.state
-    persist()
-    hud.update(state)
-    spar.update(state.creature ?? null)
-    cup.update(state)
+    store.commit(result.state)
     // Feed toggles the food pile; conditions drive the mood idle.
     sceneVisuals()
     // Ceremony is visual feedback for an already-committed action, so it
@@ -199,45 +192,44 @@ const hud = createHud(app, {
     if (action === "feed") scene.startFeedCeremony()
   },
   onTrain: (stat: StatKey) => {
-    const result = assignTraining(state, stat)
+    const result = assignTraining(store.get(), stat)
     if (!result.ok) return // entries are already disabled; belt and braces
-    state = result.state
-    persist()
-    hud.update(state)
-    // Fanout fix: training also refreshes the spar preview (kit gate moved
-    // closer) and may shift the visual seed → resync both, exactly like
-    // the other sim-mutating handlers do.
-    spar.update(state.creature ?? null)
+    store.commit(result.state)
+    // Training may shift the visual seed → resync the scene after the
+    // store's standard hud/spar/cup fanout.
     syncScene()
   },
   onToggleReducedMotion: () => {
-    state = setReducedMotion(state, !state.settings.reducedMotion)
-    persist()
-    hud.update(state)
+    const current = store.get()
+    store.commit(setReducedMotion(current, !current.settings.reducedMotion))
     applyMotionPref()
   },
 })
 
+// The store's fixed fanout: every commit persists (inside commit) and then
+// updates the hud, the spar preview, and the cup chip — in that order —
+// exactly like the old per-handler fanout did. Handlers only add their
+// site-specific scene work on top.
+store.subscribe((s) => hud.update(s))
+store.subscribe((s) => spar.update(s.creature ?? null))
+store.subscribe((s) => cup.update(s))
+
 // First run (or a migrated v1 save without a creature): offer the starter.
-let starter = state.creature
+let starter = store.get().creature
   ? null
   : createStarterChoice(app, {
       onChoose: (speciesId) => {
         // Runtime seed: each new game rolls a distinct partner, and every
         // roll is reproducible from the saved state afterwards.
         const seed = Date.now() % 2 ** 31
-        state = chooseStarter(state, speciesId, seed)
-        persist()
+        store.commit(chooseStarter(store.get(), speciesId, seed))
         starter?.remove()
         starter = null
         syncScene()
-        hud.update(state)
-        spar.update(state.creature ?? null)
-        cup.update(state)
       },
     })
 
 syncScene()
-hud.update(state)
-spar.update(state.creature ?? null)
-cup.update(state)
+hud.update(store.get())
+spar.update(store.get().creature ?? null)
+cup.update(store.get())

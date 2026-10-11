@@ -13,6 +13,7 @@ import {
   buildPlaybackScript,
 } from "@apex/sim"
 import type { BattleHudFighter } from "./battleHud"
+import { prefersReducedMotionOs } from "./motion"
 import {
   PLAYBACK_SPEED_MS,
   type PlaybackSpeed,
@@ -109,19 +110,10 @@ export function createPlaybackDriver(
     }
   }
 
-  // Reduced motion = the saved in-app setting, or a hardened OS query.
-  // Both comparisons of the OS query must be evaluated every call;
-  // calling matchMedia inside the function keeps a live read (deferred
-  // widget, standards mode). The window guard keeps headless test runs
-  // (bun test, no DOM) on the callback-only path.
+  // Reduced motion = the saved in-app setting, or the hardened OS query
+  // (see motion.ts for the double-report hardening and window guard).
   const reducedMotion = (): boolean =>
-    handlers.motionPref?.() === true ||
-    (typeof window !== "undefined" &&
-      // Hardened per the 2026-10-10 spec revision: environments that report
-      // BOTH `reduce` and `no-preference` (seen in an embedded Chromium) must
-      // not collapse the playback into an instant dump.
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
-      !window.matchMedia("(prefers-reduced-motion: no-preference)").matches)
+    handlers.motionPref?.() === true || prefersReducedMotionOs()
 
   const finish = (verdict: Readonly<BattleResult>): void => {
     clearTimer()
