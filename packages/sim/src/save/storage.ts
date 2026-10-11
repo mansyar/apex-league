@@ -135,8 +135,7 @@ export function loadGame(adapter: SaveAdapter): GameState | null {
       !Number.isInteger(state.cupsWon) ||
       state.cupsWon < 0 ||
       (state.lastCupDay !== null &&
-        (!Number.isInteger(state.lastCupDay) || state.lastCupDay < 1)) ||
-      (state.creature !== null && !isValidCreature(state.creature))
+        (!Number.isInteger(state.lastCupDay) || state.lastCupDay < 1))
     ) {
       return null
     }

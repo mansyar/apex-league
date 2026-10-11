@@ -1,4 +1,5 @@
 import type { ArenaHandle } from "./arena"
+import { prefersReducedMotionOs } from "./motion"
 import type { SceneHandle } from "./scene"
 
 /**
@@ -10,11 +11,6 @@ import type { SceneHandle } from "./scene"
 
 /** Duration of the automatic dissolve, in ms. */
 const FADE_MS = 700
-
-/** Shared reduced-motion read (live; deferred widgets may flip it). */
-export const prefersReducedMotion = (): boolean =>
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
-  !window.matchMedia("(prefers-reduced-motion: no-preference)").matches
 
 export interface Swap {
   /** Move to the arena: camera hand-off + cross-fade (instant cut when
@@ -51,10 +47,7 @@ export function createSwap(scene: SceneHandle, arena: ArenaHandle): Swap {
   }
 
   /** The saved setting or the OS query — either one forces instant cuts. */
-  const reduced = (): boolean =>
-    motionReduced ||
-    (window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
-      !window.matchMedia("(prefers-reduced-motion: no-preference)").matches)
+  const reduced = (): boolean => motionReduced || prefersReducedMotionOs()
 
   /** Drive k 0→1 (toward) or 0→1 reversed over FADE_MS frames. */
   const fade = (towardArena: boolean): Promise<void> => {

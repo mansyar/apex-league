@@ -10,13 +10,8 @@
  * next-day AP budget and the cupsWon counter are persisted.
  */
 
+import { clampCondition } from "./settlement"
 import type { GameState } from "./state"
-
-const CONDITION_TOP = 100
-
-function clampCondition(value: number): number {
-  return Math.min(CONDITION_TOP, Math.max(0, value))
-}
 
 /** The approved win bundle (2026-10-11 decision). */
 export const CUP_REWARDS = Object.freeze({

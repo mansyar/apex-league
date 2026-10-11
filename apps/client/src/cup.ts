@@ -16,6 +16,7 @@ import {
   type GameState,
   isCupDay,
 } from "@apex/sim"
+import { prefersReducedMotionOs } from "./motion"
 
 export interface CupHandlers {
   /**
@@ -85,9 +86,7 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   let timer: ReturnType<typeof setTimeout> | null = null
   let playing = false
 
-  const reducedMotion = (): boolean =>
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
-    !window.matchMedia("(prefers-reduced-motion: no-preference)").matches
+  const reducedMotion = (): boolean => prefersReducedMotionOs()
 
   const clearTimer = (): void => {
     if (timer !== null) {
