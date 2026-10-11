@@ -14,6 +14,7 @@ import {
   type Vec3,
   vec3,
 } from "./sdf"
+import { matureProportions, type Stage } from "./stage"
 import type { PartField } from "./voxelizer"
 
 export { sampleDna as sampleAxolotlDna } from "./sample"
@@ -68,8 +69,8 @@ function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t
 }
 
-export function buildAxolotl(dna: Dna): AxolotlBuild {
-  const p = dna.proportions
+export function buildAxolotl(dna: Dna, stage: Stage = "baby"): AxolotlBuild {
+  const p = matureProportions(dna.proportions, stage)
   const bl = p.bodyLength ?? 1
   const bg = p.bodyGirth ?? 1
   const hw = p.headWidth ?? 1
@@ -96,7 +97,7 @@ export function buildAxolotl(dna: Dna): AxolotlBuild {
   const tailMid = at(0, 9.4, -7.5 * bl - 5.5 * tl)
   const tailEnd = at(0, 8.4, -7.5 * bl - 11 * tl)
 
-  const hipY = 8.8
+  const hipY = 8.8 + 0.8 * (stage === "juvenile" ? 1 : 0)
   // Foot sphere bottom must clear the y=0 grid floor: the lowest voxel-row
   // center is y=0.5, so footY - footRadius must stay above 0.5 or the fuzz
   // boundary gate fails (feet clip into the floor plane).
@@ -324,6 +325,36 @@ export function buildAxolotl(dna: Dna): AxolotlBuild {
   // skull stay frond-colored — the anchor points merge into the skull.
   fields.push({ name: "gillLeft", sdf: gillL.sdf })
   fields.push({ name: "gillRight", sdf: gillR.sdf })
+
+  // Juvenile signature: the external gills branch outward — a second,
+  // smaller frill set hangs below the primary fan. Same seed-derived fan
+  // and coral family; the primary fronds are the identity layer and stay
+  // untouched. Painted after the primary gills so the branch tips claim
+  // their own voxels.
+  if (stage === "juvenile") {
+    for (const side of [-1, 1]) {
+      const base = vec3(
+        headC.x + side * 3.4 * hw,
+        gillBaseY - 1.1 * hw,
+        headC.z + 0.4 * hw,
+      )
+      const branches: Sdf[] = []
+      for (const [dx, dy, dz] of [
+        [1.6, -1.4, -0.6],
+        [2.8, -0.6, -1.4],
+      ] as const) {
+        const tip = vec3(
+          base.x + side * dx * gl,
+          base.y + dy * gl,
+          base.z + dz * gl,
+        )
+        branches.push(sdCapsule(base, tip, 0.75))
+        branches.push(sdSphere(tip, 0.7))
+      }
+      const sdf = branches.reduce((acc, s) => union(acc, s))
+      fields.push({ name: side < 0 ? "gillFrillLeft" : "gillFrillRight", sdf })
+    }
+  }
   if (gillStyle === "crown") {
     fields.push({
       name: "gillCrown",
@@ -358,6 +389,18 @@ export function buildAxolotl(dna: Dna): AxolotlBuild {
   if (gillStyle === "crown") {
     pivots.gillCrown = [headC.x, gillBaseY, headC.z - 0.8 * hw]
   }
+  if (stage === "juvenile") {
+    pivots.gillFrillLeft = [
+      headC.x - 3.4 * hw,
+      gillBaseY - 1.1 * hw,
+      headC.z + 0.4 * hw,
+    ]
+    pivots.gillFrillRight = [
+      headC.x + 3.4 * hw,
+      gillBaseY - 1.1 * hw,
+      headC.z + 0.4 * hw,
+    ]
+  }
 
   // -- Colors (deterministic per seed; fixed type hue, value jitter only) --
   const rng = makeRng(dna.seed)
@@ -366,7 +409,10 @@ export function buildAxolotl(dna: Dna): AxolotlBuild {
   const hue = gilded ? 45 : axolotlTemplate.palette.hue
   const light = gilded ? 0.55 : lerp(jit.min, jit.max, rng.next())
   const sat = gilded ? 0.85 : 0.6
-  const main = hslToRgb(hue, sat, light)
+  // Juveniles read a touch brighter and more saturated — same hue family,
+  // same seed jitter, just a maturing coat (see stage.ts).
+  const lift = stage === "juvenile" ? 0.05 : 0
+  const main = hslToRgb(hue, Math.min(1, sat + lift), Math.min(1, light + lift))
   const dark: [number, number, number] = [
     main[0] * 0.7,
     main[1] * 0.7,
@@ -394,6 +440,10 @@ export function buildAxolotl(dna: Dna): AxolotlBuild {
   if (gillStyle === "crown") {
     colors.gillCrown = coral
   }
+  if (stage === "juvenile") {
+    colors.gillFrillLeft = coral
+    colors.gillFrillRight = coral
+  }
 
   return {
     fields,
@@ -412,6 +462,9 @@ export function buildAxolotl(dna: Dna): AxolotlBuild {
       legBL: "body",
       legBR: "body",
       ...(gillStyle === "crown" ? { gillCrown: "head" } : {}),
+      ...(stage === "juvenile"
+        ? { gillFrillLeft: "head", gillFrillRight: "head" }
+        : {}),
     },
   }
 }
