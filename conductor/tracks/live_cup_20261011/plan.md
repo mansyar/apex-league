@@ -28,32 +28,38 @@ Verification & Checkpoint gate before moving on.
 
 ## Phase B — Cup session model in `@apex/sim` (pure, TDD)
 
-- [ ] Task: Failing tests — `RoundVerdict`/`CupRoundResult` carry the full
+- [x] Task: Failing tests — `RoundVerdict`/`CupRoundResult` carry the full
   `BattleResult` (events) for rival pairings; `resolvePairing` stops
-  discarding it
-- [ ] Task: Implement verdict-carried results *(existing cup tests updated
-  for the richer result)*
-- [ ] Task: Failing tests — `prepareCup(state)`: returns a cup session
+  discarding it *(red: 3 fail / 22 pass → green: 25 pass)*
+- [x] Task: Implement verdict-carried results *(existing cup tests updated
+  for the richer result)* *(eccb2e3)*
+- [x] Task: Failing tests — `prepareCup(state)`: returns a cup session
   (bracket + pre-resolved player-independent rival verdicts
   QF2/QF3/QF4/SF2), preserves phase `"cup"`, mutation-pure, deterministic
-  from `(day, identity)`
-- [ ] Task: Implement `prepareCup` (restructures one-sitting `enterCup`)
-- [ ] Task: Failing tests — `resolvePlayerMatch(session, loadout, tactic)`:
+  from `(day, identity)` *(red: export missing → 8 tests)*
+- [x] Task: Implement `prepareCup` (restructures one-sitting `enterCup`)
+  *(6554f5c — incl. legacy-equivalence test: rival verdicts byte-identical
+  with resolveCup at the same bracket positions)*
+- [x] Task: Failing tests — `resolvePlayerMatch(session, loadout, tactic)`:
   resolves the player's current-branch match live; deterministic seed from
   `(day, round, matchup)`; returns `BattleResult` + advanced session;
   `playerSide` accepts loadout **and** tactic (drops the hardcoded
-  "balanced")
-- [ ] Task: Implement player-match resolution + `playerSide`
-  parameterization
-- [ ] Task: Failing tests — `completeCup` (auto-complete after loss:
+  "balanced") *(red: export missing → 8 tests)*
+- [x] Task: Implement player-match resolution + `playerSide`
+  parameterization *(72d8578 — default picks reproduce legacy battles
+  byte-identically; frozen slot stats honored)*
+- [x] Task: Failing tests — `completeCup` (auto-complete after loss:
   remaining player-branch rival matches resolve deterministically; placement
   4/3/2 mapping) and `forfeitCup` (give-up = as-if-lost current round,
   mood +2, no `cupsWon`), and `finalizeCup` (win-path rewards at tournament
-  end + phase flip to `"day"`)
-- [ ] Task: Implement completion/forfeit/finalize; sim barrel exports
-  updated
-- [ ] Task: Determinism contract test — same state + same coach picks ⇒
+  end + phase flip to `"day"`) *(red: exports missing → 8 tests)*
+- [x] Task: Implement completion/forfeit/finalize; sim barrel exports
+  updated *(91b517e — completion seeds identical with the legacy resolver;
+  forfeit verdict carries a null battle)*
+- [x] Task: Determinism contract test — same state + same coach picks ⇒
   identical battles/logs across 3 seeded runs; spar/exhibition untouched
+  *(8f9c229 — full-run replays identical; pick-sensitivity + spar
+  independence guards)*
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase C — Shared playback driver extraction (client)
