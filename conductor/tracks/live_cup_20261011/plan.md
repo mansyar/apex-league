@@ -109,7 +109,10 @@ Verification & Checkpoint gate before moving on.
   manual verification)* *(718d00c — onFightStart/onStep/onArenaExit mirror
   the spar wiring; chips hidden during battles; onCommit persists the
   endCup flip at the first fight)*
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  *(checkpoint: 9552e75 — verify green; all six tasks browser-verified live
+  incl. a full champion run and a forfeit run; git note attached; approved
+  by user)*
 
 ## Phase E — Verification gate
 
