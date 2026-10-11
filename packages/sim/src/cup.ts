@@ -65,17 +65,22 @@ export function makeBracket(
   // 7 rivals: each rolled from an available species, named from the pool,
   // ramped by slot position (final rival most likely the toughest).
   const available = STARTERS.filter((s) => s.available)
-  const shuffledNames: readonly string[] = pickNames(
-    rng,
-    RIVAL_NAME_POOL.length - 1,
-  )
+  // STREAM-NEUTRAL: pickNames shuffles the whole pool (fixed draw count),
+  // so the requested slice size never changes the rng stream — the slice
+  // is exactly the rivals we need.
+  const shuffledNames: readonly string[] = pickNames(rng, BRACKET_SLOTS - 1)
   const rivals: CupSlot[] = []
   for (let i = 0; i < BRACKET_SLOTS - 1; i++) {
     const idx = rng.int(available.length)
     const speciesDef = available[idx]
     if (!speciesDef) throw new Error("No available starter species")
-    // Consume one rng draw per slot regardless — the stream is part of the
-    // deterministic bracket identity, so never prune draws.
+    // RNG STREAM INVARIANT (do not prune): the bracket's identity is the
+    // full draw sequence, not just the seed — species picks, names, and
+    // stat jitters all read positions in one stream. This discarded draw
+    // is load-bearing spacing: removing it shifts every later draw and
+    // changes which opponents a given (day, save) meets, silently
+    // rewriting cup history for existing saves. The golden test in
+    // cup.test.ts ("draw stream is stable") enforces this.
     const creatureSeed = Math.floor(rng.next() * 0x7fffffff)
     void creatureSeed
     const name = shuffledNames[i]
