@@ -30,9 +30,9 @@ workflow checkpoint task.
 
 ## Phase C — Ranch HUD rebuild
 
-- [ ] Task: Score bug on the kit
-  - [ ] Hero day numeral + phase tab; AP segmented meter wired to `state.actionPoints` with spend flash
-  - [ ] Trophy tally from `state.cupsWon` (designed overflow, no silent ×5 cap)
+- [x] Task: Score bug on the kit — `185d66a`
+  - [x] Hero day numeral + phase tab; AP segmented meter wired to `state.actionPoints` with spend flash
+  - [x] Trophy tally from `state.cupsWon` (designed overflow, no silent ×5 cap)
 - [ ] Task: Creature lower-third on the kit
   - [ ] Crest + name plate + stage tab (uses shared `element.ts`)
   - [ ] Stat cells with `+N` trained chips
