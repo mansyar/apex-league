@@ -209,13 +209,16 @@
     50% { box-shadow: 0 0 26px rgba(255, 210, 87, 0.30), inset 0 0 22px rgba(255, 210, 87, 0.10); }
   }
   .your-ribbon {
-    position: absolute; top: -0.9cqw; left: 0.8cqw;
+    display: none;
+    justify-self: start;
+    margin-left: 14px;
     background: var(--gold); color: #241a06;
     font-family: "Barlow Condensed", sans-serif; font-weight: 800;
     font-size: 0.85cqw; letter-spacing: 0.18em; text-indent: 0.18em;
-    padding: 0.25cqw 0.8cqw;
+    padding: 0.25cqw 0.8cqw 0.2cqw;
     clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
   }
+  .match.yours .your-ribbon { display: block; }
 
   /* champion pedestal */
   .champ { display: grid; justify-items: center; gap: 1cqw; align-self: center; }
@@ -547,7 +550,7 @@
           <div class="col-head">Quarterfinals</div>
           <div class="matches">
             <div class="match" id="m-qf1">
-              <div class="your-ribbon" style="display:none" id="rib-qf1">YOUR MATCH</div>
+              <div class="your-ribbon" id="rib-qf1">YOUR MATCH</div>
               <div class="slot" data-side="a"></div>
               <div class="slot" data-side="b"></div>
             </div>
@@ -569,7 +572,7 @@
           <div class="col-head">Semifinals</div>
           <div class="matches">
             <div class="match" id="m-sf1">
-              <div class="your-ribbon" style="display:none" id="rib-sf1">YOUR MATCH</div>
+              <div class="your-ribbon" id="rib-sf1">YOUR MATCH</div>
               <div class="slot" data-side="a"></div>
               <div class="slot" data-side="b"></div>
             </div>
@@ -583,7 +586,7 @@
           <div class="col-head">Final</div>
           <div class="matches">
             <div class="match" id="m-f1">
-              <div class="your-ribbon" style="display:none" id="rib-f1">YOUR MATCH</div>
+              <div class="your-ribbon" id="rib-f1">YOUR MATCH</div>
               <div class="slot" data-side="a"></div>
               <div class="slot" data-side="b"></div>
             </div>
@@ -814,15 +817,12 @@
     const el = $(m.id)
     fillSlot(el.querySelector('[data-side="a"]'), data.a)
     fillSlot(el.querySelector('[data-side="b"]'), data.b)
-    const ribbon = data.ribbon ? $(data.ribbon) : null
-    if (ribbon) ribbon.style.display = ""
     if (data.you) el.classList.add("yours")
   }
 
   function resolveMatch(m, data) {
     const el = $(m.id)
     el.classList.remove("yours")
-    if (data.ribbon) $(data.ribbon).style.display = "none"
     const winner = data[data.winner]
     const loser = data[data.winner === "a" ? "b" : "a"]
     const winSlot = el.querySelector('[data-side="' + data.winner + '"]')
@@ -851,7 +851,6 @@
       el.classList.remove("yours", "resolved", "in")
       fillSlot(el.querySelector('[data-side="a"]'), null)
       fillSlot(el.querySelector('[data-side="b"]'), null)
-      if (m.ribbon) $(m.ribbon).style.display = "none"
     }
     $("champ").classList.remove("crowned")
     $("champ-name").textContent = "—"
@@ -877,7 +876,7 @@
       el.closest(".col").querySelector(".col-head").classList.add("in")
       if (m.you) {
         el.classList.add("in", "yours")
-        if (m.ribbon) $(m.ribbon).style.display = ""
+        renderMatch(m, m)
         setLine("Your match. The coaching room is open.")
         $("your-cta").classList.add("show")
         // demo: auto-fight after a beat (in the real flow the player clicks)
@@ -890,9 +889,12 @@
         return
       }
       el.classList.add("in")
+      renderMatch(m, m)
       setLine(m.line)
-      resolveMatch(m, m)
-      play(i + 1)
+      wait(700, () => {
+        resolveMatch(m, m)
+        play(i + 1)
+      })
     })
   }
 
