@@ -88,6 +88,12 @@ const spar = createSpar(app, {
     staging.clear()
     app.classList.remove("app-in-arena")
   },
+  // The arena scales its action animations to the playback pace, so
+  // fast-forward speeds the whole fight up instead of cutting swings.
+  onPace: (msPerStep) => staging.setPace(msPerStep),
+  // The saved setting gates the playback too — an in-app "reduced" holds
+  // even when the OS reports motion-ok.
+  motionPref: () => state.settings.reducedMotion,
 })
 staging.setBigHitHandler((strength) => scene.shake(strength))
 
@@ -99,6 +105,8 @@ const applyMotionPref = (): void => {
   const reduced = state.settings.reducedMotion
   staging.setMotionPref(reduced ? "reduced" : "full")
   scene.setMotionReduced(reduced)
+  // The swap honors the save too: in-app reduced means instant cuts.
+  swap.setMotionReduced(reduced)
 }
 applyMotionPref()
 

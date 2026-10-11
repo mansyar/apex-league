@@ -17,6 +17,8 @@ export type RangeState = "close" | "hold"
 /**
  * Range after a step: only an approach closes the distance (the clock's
  * `close` sets *both* fighters near); every other kind keeps the state.
+ * The transition is therefore monotonic hold→close — correct while the
+ * sim has no knockback; revisit if a step kind ever reopens distance.
  */
 export function rangeAfterStep(
   kind: PlaybackStep["kind"],
@@ -100,6 +102,9 @@ const replayClass = (el: HTMLElement, cls: string): void => {
   el.classList.add(cls)
 }
 
+/** Build the broadcast HUD (placard, lower third, verdict stamp) and
+ *  prepend it to the spar overlay; it derives everything from the
+ *  PlaybackStep stream the spar panel already renders. */
 export function createBattleHud(overlay: HTMLElement): BattleHud {
   const root = document.createElement("div")
   root.className = "spar-hud"
@@ -138,11 +143,18 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
   lowerTab.textContent = "APEX FEED"
   const line = document.createElement("span")
   line.className = "spar-hud-line"
+  // Fight narration lives here while the log is collapsed, so keep it
+  // audible to assistive tech too.
+  line.setAttribute("aria-live", "polite")
   lower.append(lowerTab, line)
 
   // --- verdict stamp ---------------------------------------------------
   const stamp = document.createElement("div")
   stamp.className = "spar-stamp"
+  // Announced as a status change: screen readers hear the verdict even
+  // though the panel (and the log inside it) is hidden during fights.
+  stamp.setAttribute("role", "status")
+  stamp.setAttribute("aria-live", "polite")
   const stampTitle = document.createElement("div")
   stampTitle.className = "spar-stamp-title"
   const stampRule = document.createElement("div")
@@ -166,6 +178,8 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
     maxHp: number
     /** Previous fill fraction, so the lag chunk can restart its drain. */
     prevFraction: number
+    /** Last known raw HP, so victims are detected by an actual drop. */
+    lastHp: number
   }
   const sides: Record<"owned" | "rival", Side | null> = {
     owned: null,
@@ -182,7 +196,9 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
     const crest = document.createElement("span")
     crest.className = `spar-crest el-${f.element}`
     crest.style.setProperty("--hue", String(ELEMENT_HUE[f.element] ?? 200))
-    crest.innerHTML = CREST_GLYPHS[f.element] ?? f.element.charAt(0)
+    const glyph = CREST_GLYPHS[f.element]
+    if (glyph) crest.innerHTML = glyph
+    else crest.textContent = f.element.charAt(0)
 
     const body = document.createElement("div")
     body.className = "spar-plate-body"
@@ -221,6 +237,7 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
       key: f.key,
       maxHp: f.maxHp,
       prevFraction: 1,
+      lastHp: f.maxHp,
     }
   }
 
@@ -228,6 +245,9 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
    *  restarts from the previous HP and drains away a beat later. */
   const applyHp = (side: Side, hp: number): void => {
     const fraction = hpFraction(hp, side.maxHp)
+    // HP never heals, so an unchanged value means this side wasn't
+    // involved in the event — keep the bar and its pop still.
+    if (fraction === side.prevFraction) return
     side.fill.style.width = `${fraction * 100}%`
     side.fill.classList.toggle("spar-hud-low", fraction < LOW_HP_FRACTION)
     // The lag chunk restarts from the previous fill with its transition
@@ -239,20 +259,21 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
     side.lag.style.width = `${fraction * 100}%`
     side.lag.classList.toggle("spar-hud-low", fraction < LOW_HP_FRACTION)
     side.prevFraction = fraction
+    side.lastHp = hp
     replayClass(side.num, "spar-hp-pop")
     side.num.textContent = String(Math.max(0, hp))
   }
 
-  /** Jolt the plate(s) the step hit. Events name targets by display name,
-   *  so a mirror match jolts both plates — cosmetic and correct enough. */
-  const joltVictim = (step: PlaybackStep): void => {
-    const reaction = hitReaction(step.damage)
+  /** Jolt the plate(s) the step actually hit: the victim is whichever
+   *  side's HP dropped this step — no display-name matching, so a mirror
+   *  match jolts exactly one plate. */
+  const joltVictims = (
+    victims: readonly { side: Side; joltClass: string }[],
+    reaction: { jolt: boolean; kick: boolean },
+  ): void => {
     if (!reaction.jolt) return
-    for (const [side, joltClass] of [
-      [sides.owned, "spar-plate-jolt-left"],
-      [sides.rival, "spar-plate-jolt-right"],
-    ] as const) {
-      if (side && side.name === step.target) replayClass(side.el, joltClass)
+    for (const { side, joltClass } of victims) {
+      replayClass(side.el, joltClass)
     }
     if (reaction.kick) replayClass(top, "spar-hud-kick")
   }
@@ -291,13 +312,19 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
       root.style.display = ""
     },
     update(step) {
-      for (const side of [sides.owned, sides.rival]) {
+      const reaction = hitReaction(step.damage)
+      const victims: { side: Side; joltClass: string }[] = []
+      for (const [side, joltClass] of [
+        [sides.owned, "spar-plate-jolt-left"],
+        [sides.rival, "spar-plate-jolt-right"],
+      ] as const) {
         if (!side) continue
         const hp = step.hpAfter[side.key]
         if (hp === undefined) continue
+        if (hp < side.lastHp) victims.push({ side, joltClass })
         applyHp(side, hp)
       }
-      joltVictim(step)
+      joltVictims(victims, reaction)
       rangeState = rangeAfterStep(step.kind, rangeState)
       applyRange()
       setLine(step.line)

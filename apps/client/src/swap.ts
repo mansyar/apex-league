@@ -24,18 +24,37 @@ export interface Swap {
   exitArena(): Promise<void>
   /** True while the arena set is on screen. */
   isArena(): boolean
+  /**
+   * Wire the save's reduced-motion setting in: an in-app "reduced" must
+   * produce instant cuts even when the OS is motion-ok.
+   */
+  setMotionReduced(reduced: boolean): void
 }
 
 export function createSwap(scene: SceneHandle, arena: ArenaHandle): Swap {
   let inArena = false
   let raf: number | null = null
+  /** Saved in-app preference; OR'd with the OS query at swap time. */
+  let motionReduced = false
+  /** Resolve for the fade in flight, so an interrupt settles it. */
+  let pendingResolve: (() => void) | null = null
 
   const stopFade = (): void => {
     if (raf !== null) {
       cancelAnimationFrame(raf)
       raf = null
     }
+    // An interrupted fade still settles its promise; future awaiters
+    // must not hang on a swap that was superseded.
+    pendingResolve?.()
+    pendingResolve = null
   }
+
+  /** The saved setting or the OS query — either one forces instant cuts. */
+  const reduced = (): boolean =>
+    motionReduced ||
+    (window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
+      !window.matchMedia("(prefers-reduced-motion: no-preference)").matches)
 
   /** Drive k 0→1 (toward) or 0→1 reversed over FADE_MS frames. */
   const fade = (towardArena: boolean): Promise<void> => {
@@ -47,6 +66,7 @@ export function createSwap(scene: SceneHandle, arena: ArenaHandle): Swap {
       raf = null
     }
     return new Promise((resolve) => {
+      pendingResolve = resolve
       const step = (t: number): void => {
         const k = Math.min(1, (t - start) / FADE_MS)
         scene.setRanchBlend(towardArena ? 1 - k : k)
@@ -55,6 +75,7 @@ export function createSwap(scene: SceneHandle, arena: ArenaHandle): Swap {
           raf = requestAnimationFrame(step)
         } else {
           finish()
+          pendingResolve = null
           resolve()
         }
       }
@@ -67,7 +88,7 @@ export function createSwap(scene: SceneHandle, arena: ArenaHandle): Swap {
       if (inArena) return Promise.resolve()
       inArena = true
       stopFade()
-      if (prefersReducedMotion()) {
+      if (reduced()) {
         // Reduced motion: the swaps are cuts, no dissolve (FR envelope).
         scene.setCameraMode("arena")
         scene.setRanchBlend(0)
@@ -80,7 +101,7 @@ export function createSwap(scene: SceneHandle, arena: ArenaHandle): Swap {
       if (!inArena) return Promise.resolve()
       inArena = false
       stopFade()
-      if (prefersReducedMotion()) {
+      if (reduced()) {
         scene.setCameraMode("ranch")
         scene.setRanchBlend(1)
         arena.setBlend(0)
@@ -89,5 +110,8 @@ export function createSwap(scene: SceneHandle, arena: ArenaHandle): Swap {
       return fade(false)
     },
     isArena: () => inArena,
+    setMotionReduced(value) {
+      motionReduced = value
+    },
   }
 }

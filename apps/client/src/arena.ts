@@ -143,7 +143,8 @@ export function buildArena(scene: THREE.Scene): ArenaHandle {
   // Crowd: instanced capsule silhouettes packed on the two upper tiers.
   // In the arena fog they read as a dark bowl of heads, no detail needed.
   const tierDefsForCrowd = [tierDefs[1], tierDefs[2]]
-  const crowdCount = 44 * tierDefsForCrowd.length
+  const CROWD_PER_TIER = 44
+  const crowdCount = CROWD_PER_TIER * tierDefsForCrowd.length
   const crowd = new THREE.InstancedMesh(
     new THREE.CapsuleGeometry(0.16, 0.34, 2, 6),
     new THREE.MeshBasicMaterial({ color: CROWD_COLOR }),
@@ -155,8 +156,8 @@ export function buildArena(scene: THREE.Scene): ArenaHandle {
   const scale = new THREE.Vector3()
   let placed = 0
   for (const tier of tierDefsForCrowd) {
-    for (let i = 0; i < 44; i++) {
-      const angle = (i / 44) * Math.PI * 2 + crowdRng.next() * 0.05
+    for (let i = 0; i < CROWD_PER_TIER; i++) {
+      const angle = (i / CROWD_PER_TIER) * Math.PI * 2 + crowdRng.next() * 0.05
       const self = new THREE.Vector3(
         Math.sin(angle) * tier.radius,
         // Sit on the step's top lip, scaled crowd slightly uneven.

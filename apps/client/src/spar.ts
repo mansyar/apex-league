@@ -47,6 +47,16 @@ export interface SparHandlers {
   onStep?: (step: PlaybackStep, instant: boolean) => void
   /** The sparring panel closes: the scene swaps back to the ranch. */
   onClose?: () => void
+  /**
+   * The playback pacing changed (normal ⇄ fast): the arena should scale
+   * its action animations to match (ms per playback step).
+   */
+  onPace?: (msPerStep: number) => void
+  /**
+   * Live read of the saved reduced-motion preference, so an in-app
+   * "reduced" setting gates the playback even when the OS is motion-ok.
+   */
+  motionPref?: () => boolean
 }
 
 export interface Spar {
@@ -278,14 +288,17 @@ export function createSpar(
   // True while a Replay slowly pass is in flight; finish() keeps the pill
   // visible so the user can replay again.
   let replaying = false
-  // Both comparisons must be evaluated every call; calling matchMedia inside
-  // the function keeps a live read (deferred widget, standards mode).
+  // Reduced motion = the saved in-app setting, or a hardened OS query.
+  // Both comparisons of the OS query must be evaluated every call;
+  // calling matchMedia inside the function keeps a live read (deferred
+  // widget, standards mode).
   const reducedMotion = (): boolean =>
+    handlers.motionPref?.() === true ||
     // Hardened per the 2026-10-10 spec revision: environments that report
     // BOTH `reduce` and `no-preference` (seen in an embedded Chromium) must
     // not collapse the playback into an instant dump.
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
-    !window.matchMedia("(prefers-reduced-motion: no-preference)").matches
+    (window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
+      !window.matchMedia("(prefers-reduced-motion: no-preference)").matches)
 
   const clearTimer = (): void => {
     if (timer !== null) {
@@ -302,14 +315,42 @@ export function createSpar(
     if (!log.hidden) log.scrollTop = log.scrollHeight
   }
 
+  /**
+   * The stamp title names the winner; in a mirror match both plates read
+   * the same display name, so the label is qualified by side (the sim
+   * reports hpAfter/finalHp under stable side keys, not names).
+   */
+  const winnerTitle = (verdict: Readonly<BattleResult>): string => {
+    if (verdict.winner === null) return "A drawn spar"
+    const fight = lastRun?.fight
+    if (!fight) return `Victory — ${verdict.winner}`
+    let key: string | null = null
+    let best = -Infinity
+    for (const [side, hp] of Object.entries(verdict.finalHp)) {
+      if (hp > best) {
+        best = hp
+        key = side
+      }
+    }
+    const mirror = fight.owned.name === fight.rival.name
+    if (key === fight.owned.key) {
+      return mirror
+        ? `Victory — your ${verdict.winner}`
+        : `Victory — ${verdict.winner}`
+    }
+    if (key === fight.rival.key) {
+      return mirror
+        ? `Victory — rival ${verdict.winner}`
+        : `Victory — ${verdict.winner}`
+    }
+    return `Victory — ${verdict.winner}`
+  }
+
   const finish = (verdict: Readonly<BattleResult>): void => {
     clearTimer()
     // Verdict as a broadcast stamp over the full-bleed arena (the panel
     // stays out of the way); the subline carries the ending reason.
-    battleHud.stamp(
-      verdict.winner === null ? "A drawn spar" : `Victory — ${verdict.winner}`,
-      reasonLine(verdict),
-    )
+    battleHud.stamp(winnerTitle(verdict), reasonLine(verdict))
     close.style.display = ""
     fastButton.style.display = "none"
     if (replaying) {
@@ -360,6 +401,14 @@ export function createSpar(
     intro.textContent = `${setup.rival.name} accepts the spar!`
     for (const { button } of tacticButtons) button.style.display = "none"
     const steps = buildPlaybackScript(verdict.events)
+    // buildPlaybackScript is a 1:1 event→step map; fail loud if the sim
+    // ever grows an unmapped event kind instead of silently desyncing
+    // the HUD from the log.
+    if (steps.length !== verdict.events.length) {
+      throw new Error(
+        `Playback script out of sync: ${steps.length} steps for ${verdict.events.length} events`,
+      )
+    }
     const fight = {
       owned: {
         name: setup.ownedSide.name,
@@ -401,6 +450,7 @@ export function createSpar(
       return
     }
     speed = "normal"
+    handlers.onPace?.(PLAYBACK_SPEED_MS[speed])
 
     fastButton.textContent = "Fast-forward"
     fastButton.style.display = ""
@@ -498,6 +548,9 @@ export function createSpar(
     close.style.display = "none"
     fastButton.style.display = "none"
     replayButton.style.display = "none"
+    // A close mid-replay leaves the pill disabled; re-arm it here or a
+    // reduced-motion spar after that stays permanently dead.
+    replayButton.disabled = false
     replaying = false
     lastRun = null
     for (const { button } of tacticButtons) button.style.display = ""
@@ -537,6 +590,7 @@ export function createSpar(
   fastButton.addEventListener("click", () => {
     speed = toggleSpeed(speed)
     fastButton.textContent = speed === "fast" ? "Normal speed" : "Fast-forward"
+    handlers.onPace?.(PLAYBACK_SPEED_MS[speed])
   })
   replayButton.addEventListener("click", () => {
     if (!lastRun) return
@@ -550,6 +604,7 @@ export function createSpar(
     replayButton.disabled = true
     speed = "normal"
     fastButton.textContent = "Fast-forward"
+    handlers.onPace?.(PLAYBACK_SPEED_MS[speed])
     battleHud.show(lastRun.fight)
     play(lastRun.events, 0, lastRun.verdict, lastRun.steps)
   })
@@ -568,6 +623,10 @@ export function createSpar(
         overlay.style.display = "none"
         battleHud.hide()
         sparButton.style.display = ""
+        // Same teardown as a manual close — main.ts must drop
+        // app-in-arena and re-show the ranch creature, or the app
+        // strands itself in arena mode.
+        handlers.onClose?.()
       }
     },
   }

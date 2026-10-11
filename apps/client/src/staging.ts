@@ -23,8 +23,11 @@ export const visualSeedOf = (s: {
   spd: number
 }): number => (s.hp * 7 + s.atk * 13 + s.def * 17 + s.spd * 23) % 2 ** 31
 
-/** How long one scripted attack animates for, in ms (spar pacing is 900). */
-const STEP_ANIM_MS = 620
+/** Spar pacing at normal speed, in ms per step (the playback baseline). */
+const NORMAL_STEP_MS = 900
+
+/** How long one scripted attack animates for at the normal pace, in ms. */
+const BASE_STEP_ANIM_MS = 620
 
 /** Stage positions: the fighters start wide on the show floor's X lane. */
 const HOME_X = 2.6
@@ -104,11 +107,9 @@ interface Projectile {
   trail: THREE.Mesh[]
   from: THREE.Vector3
   to: THREE.Vector3
-  start: number
+  /** Accumulated in-flight time (ms), frozen during a hit-stop. */
+  elapsed: number
 }
-
-/** Live shots, newest last; drained by the projectile frame loop in staging. */
-const projectiles: Projectile[] = []
 
 export interface FightCasting {
   /** Which creature stands on the left (home) side. */
@@ -126,6 +127,12 @@ export interface Staging {
   setBigHitHandler(handler: (strength: number) => void): void
   /** 'reduced' suppresses gait, flash, and shake; combat stays legible. */
   setMotionPref(pref: "full" | "reduced"): void
+  /**
+   * Current spar pacing (ms per playback step) — action animations scale
+   * with it so fast-forward speeds the whole fight up instead of cutting
+   * swings off mid-animation.
+   */
+  setPace(msPerStep: number): void
   /** Remove the combatants (panel closed, back to idle ranch bowl). */
   clear(): void
 }
@@ -169,8 +176,18 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   let flashRaf: number | null = null
   let driveRaf: number | null = null
   let lastDrive = 0
-  /** Hit state: who is flashing and how far into it (ms since start). */
-  let flash: { victim: Combatant; start: number } | null = null
+  /** Live shots, newest last; drained by the projectile frame loop. */
+  const projectiles: Projectile[] = []
+  /** Wall-clock anchors for the per-loop dt accumulation. */
+  let lastProjectileTick = 0
+  let lastFlashTick = 0
+  /** Current spar pacing (ms per playback step); animations scale off it. */
+  let paceMs = NORMAL_STEP_MS
+  /** Action animation length at the current pace, floor-clamped. */
+  const animMs = (): number =>
+    Math.max(120, BASE_STEP_ANIM_MS * (paceMs / NORMAL_STEP_MS))
+  /** Hit state: who is flashing and how far into it (accumulated ms). */
+  let flash: { victim: Combatant; age: number } | null = null
   /** Freeze window on a big hit: action time does not advance inside it. */
   let hitStopUntil = 0
   /** Big-hit callback (camera punch); wired by main.ts to the scene shake. */
@@ -208,12 +225,21 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     return []
   }
 
+  // Scratch vector hoisted out of the always-running driver loop.
+  const glideFrom = new THREE.Vector3()
+
   const drive = (): void => {
     const now = performance.now()
-    const dt = Math.min(0.1, (now - lastDrive) / 1000 || 1 / 60)
+    // 1/30 cap keeps the SQUASH spring (ω ≈ 14.5 rad/s) well inside its
+    // symplectic-Euler stability window even after a tab-return hitch.
+    const dt = Math.min(1 / 30, (now - lastDrive) / 1000 || 1 / 60)
     lastDrive = now
     const life = motionPref === "reduced" ? 0 : 1
     for (const [c, other] of pair()) {
+      // Squash spring integrates for everyone — the KO landing impulse
+      // needs it even while the down branch owns the pose.
+      c.squash.v += (-SQUASH_K * c.squash.s - SQUASH_D * c.squash.v) * dt
+      c.squash.s += c.squash.v * dt
       // Downed fighter: the driver keeps rendering the topple (the fall
       // action only lives for the fall beat; afterwards the driver owns
       // the pose). Head points away from the standing rival.
@@ -237,16 +263,13 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       c.stage.x = Math.max(-BOUNDS_X, Math.min(BOUNDS_X, c.stage.x))
       c.stage.z = Math.max(-BOUNDS_Z, Math.min(BOUNDS_Z, c.stage.z))
       // Walk toward the stage target (exp smoothing, frame-rate safe).
-      const before = c.smooth.clone()
+      glideFrom.copy(c.smooth)
       const k = 1 - Math.exp(-GLIDE * dt)
       c.smooth.lerp(c.stage, k)
       // Frame velocity from measured motion — the gait's tempo source.
-      c.velocity.copy(c.smooth).sub(before).divideScalar(dt)
+      c.velocity.copy(c.smooth).sub(glideFrom).divideScalar(dt)
       const speed = Math.hypot(c.velocity.x, c.velocity.z)
       c.walkPhase += speed * dt * 5.2
-      // Squash spring integration (weight settles after every landing).
-      c.squash.v += (-SQUASH_K * c.squash.s - SQUASH_D * c.squash.v) * dt
-      c.squash.s += c.squash.v * dt
       // Lean into movement: pitch with forward speed, roll with the gait.
       const leanTarget = Math.min(LEAN_MAX, speed * LEAN_PER_SPEED)
       c.lean.pitch += (leanTarget - c.lean.pitch) * (1 - Math.exp(-8 * dt))
@@ -323,14 +346,26 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
    * then restore the cast-time palette. Per-mesh capture because a
    * creature is many materials, not one shared material.
    */
+  const lambertOf = (mesh: THREE.Mesh): THREE.MeshLambertMaterial | null =>
+    mesh.material instanceof THREE.MeshLambertMaterial ? mesh.material : null
+
+  /** Put a victim's palette back exactly as captured at cast time. */
+  const restoreVictim = (victim: Combatant): void => {
+    for (const [mesh, base] of victim.baseColors) {
+      lambertOf(mesh)?.color.copy(base)
+    }
+  }
+
   const startFlash = (victim: Combatant): void => {
     if (motionPref === "reduced") return // calm reads: no brightness pop
-    const now = performance.now()
-    flash = { victim, start: now }
+    // Restore the outgoing victim first — replacing the slot mid-decay
+    // would otherwise strand them partially white until clear().
+    if (flash) restoreVictim(flash.victim)
+    flash = { victim, age: 0 }
+    lastFlashTick = performance.now()
     // Snap to full white immediately; the decay loop unwinds it.
     for (const mesh of victim.baseColors.keys()) {
-      const mat = mesh.material as THREE.MeshLambertMaterial
-      mat.color.setRGB(1, 1, 1)
+      lambertOf(mesh)?.color.setRGB(1, 1, 1)
     }
     if (flashRaf === null) flashRaf = requestAnimationFrame(tickFlashL)
   }
@@ -340,20 +375,27 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     flashRaf = flash ? requestAnimationFrame(tickFlashL) : null
   }
 
-  /** Partway back from white by elapsed age (easeOut curve). */
+  /** Partway back from white by accumulated age (easeOut curve). */
   const tickFlash = (): void => {
     if (!flash) return
-    const age = performance.now() - flash.start
-    const w = 1 - easeOut(Math.min(1, age / FLASH_MS))
+    const now = performance.now()
+    // Hit-stop freezes the flash too — the whole frame holds.
+    flash.age += now < hitStopUntil ? 0 : Math.min(100, now - lastFlashTick)
+    lastFlashTick = now
+    const w = 1 - easeOut(Math.min(1, flash.age / FLASH_MS))
     for (const [mesh, base] of flash.victim.baseColors) {
-      const mat = mesh.material as THREE.MeshLambertMaterial
+      const mat = lambertOf(mesh)
+      if (!mat) continue
       mat.color.setRGB(
         1 - w + base.r * w,
         1 - w + base.g * w,
         1 - w + base.b * w,
       )
     }
-    if (age >= FLASH_MS) flash = null
+    if (flash.age >= FLASH_MS) {
+      restoreVictim(flash.victim)
+      flash = null
+    }
   }
 
   /** Big-hit punch: freeze the frame briefly and shake the broadcast cam. */
@@ -381,20 +423,32 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     projectiles.length = 0
   }
 
+  // Scratch vectors hoisted out of the frame loop — the quality gate
+  // forbids per-frame allocations while the fight is live.
+  const shotDir = new THREE.Vector3()
+  const shotPos = new THREE.Vector3()
+  const segPos = new THREE.Vector3()
+
   const stepProjectiles = (): void => {
+    const now = performance.now()
+    // Hit-stop freezes the shot mid-air along with everything else.
+    const dtMs =
+      now < hitStopUntil ? 0 : Math.min(100, now - lastProjectileTick || 16.7)
+    lastProjectileTick = now
     for (let i = projectiles.length - 1; i >= 0; i--) {
       const p = projectiles[i]
       if (!p) continue
-      const t = (performance.now() - p.start) / PROJECTILE_LIFE_MS
-      const dir = p.to.clone().sub(p.from)
+      p.elapsed += dtMs
+      const t = p.elapsed / PROJECTILE_LIFE_MS
+      shotDir.copy(p.to).sub(p.from)
       const travel = Math.min(1, t)
-      const pos = p.from.clone().addScaledVector(dir, travel)
-      pos.y += Math.sin(travel * Math.PI) * PROJECTILE_ARC
-      p.mesh.position.copy(pos)
+      shotPos.copy(p.from).addScaledVector(shotDir, travel)
+      shotPos.y += Math.sin(travel * Math.PI) * PROJECTILE_ARC
+      p.mesh.position.copy(shotPos)
       // Trail lags behind it along the same line, with the same arc lift.
       for (let s = 0; s < p.trail.length; s++) {
         const lag = Math.max(0, travel - (s + 1) * 0.09)
-        const segPos = p.from.clone().addScaledVector(dir, lag)
+        segPos.copy(p.from).addScaledVector(shotDir, lag)
         segPos.y += Math.sin(lag * Math.PI) * PROJECTILE_ARC
         p.trail[s]?.position.copy(segPos)
       }
@@ -460,7 +514,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       trail,
       from: origin,
       to: target,
-      start: performance.now(),
+      elapsed: 0,
     })
     if (projectileRaf === null) {
       projectileRaf = requestAnimationFrame(tickProjectiles)
@@ -637,7 +691,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         // then a recoil the body carries. The shot leaves at CONTACT_T,
         // not at step start, so the wind-up reads before the fire.
         if (instant) {
-          spawnProjectile(side.actor, side.target, step.element)
+          // No flight to show: the following impact step resolves the
+          // hit on the spot, so spawning a 700ms orb would just hang.
           break
         }
         const firedRef = { done: false }
@@ -685,7 +740,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
           contactReaction(step.damage, side.target)
           snapTo(side.target)
         } else {
-          reactionAction(side.target)
+          reactionAction(step.damage, side.target)
         }
         break
       }
@@ -719,6 +774,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         const standing = [o, r].filter((c) => !c.down)
         if (instant || standing.length === 0) break
         const hopRef = { hops: 0 }
+        const landedRef = { count: 0 }
         actionRaf = startAction(
           (t, ao) => {
             if (ao.down) return
@@ -730,7 +786,10 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
               hopRef.hops++
               impulse(ao, -0.4)
             }
-            if (!rising && localT > 0.9 && hopRef.hops <= 2) {
+            // One thud per completed hop — an edge trigger, not a
+            // per-frame repeat.
+            if (!rising && localT > 0.9 && landedRef.count < hopRef.hops) {
+              landedRef.count++
               impulse(ao, 0.55)
             }
           },
@@ -746,8 +805,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
    * The victim-only portion of a special landing: knockback persists in
    * the stage, the body squashes and settles, flash + hit-stop fire.
    */
-  const reactionAction = (at: Combatant): void => {
-    contactReaction(undefined, at)
+  const reactionAction = (damage: number | undefined, at: Combatant): void => {
+    contactReaction(damage, at)
   }
 
   /** One scripted action on staging's own clock (hit-stop aware). */
@@ -757,27 +816,25 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     r: Combatant,
   ): number => {
     const start = performance.now()
-    let raf: number | null = null
     const tick = (): void => {
       // Micro hit-stop: while the freeze window is open, action time
       // holds still (the window itself keeps draining on wall time).
       if (performance.now() < hitStopUntil) {
-        raf = requestAnimationFrame(tick)
+        actionRaf = requestAnimationFrame(tick)
         return
       }
-      const t = Math.min(1, (performance.now() - start) / STEP_ANIM_MS)
+      const t = Math.min(1, (performance.now() - start) / animMs())
       run(t, o, r)
       if (t < 1) {
-        raf = requestAnimationFrame(tick)
+        actionRaf = requestAnimationFrame(tick)
       } else {
-        raf = null
         actionRaf = null
       }
     }
-    raf = requestAnimationFrame(tick)
-    // The tick writes back into the outer slot via mutation on complete;
-    // return the first frame id so cancel has something to cancel.
-    return raf
+    // Every reschedule writes the CURRENT frame id into the shared slot,
+    // so a cancel from the next step always reaches the live loop.
+    actionRaf = requestAnimationFrame(tick)
+    return actionRaf
   }
 
   return {
@@ -839,7 +896,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         // it to base later.
         group.traverse((obj) => {
           if (obj instanceof THREE.Mesh) {
-            const mat = obj.material as THREE.MeshLambertMaterial
+            const mat = lambertOf(obj)
+            if (!mat) return
             combatant.baseColors.set(obj, mat.color.clone())
           }
         })
@@ -862,6 +920,9 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     },
     setMotionPref(pref) {
       motionPref = pref
+    },
+    setPace(msPerStep) {
+      paceMs = msPerStep
     },
     clear() {
       stop()

@@ -6,7 +6,7 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!artifacts", "!conductor/tracks/**/hud-mock.html"]
+    "includes": ["**", "!artifacts", "!conductor/**/*.html"]
   },
   "formatter": {
     "enabled": true,

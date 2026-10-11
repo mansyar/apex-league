@@ -189,6 +189,10 @@ export function createScene(container: HTMLElement): SceneHandle {
   const setCameraMode = (mode: CameraMode): void => {
     if (cameraMode === mode) return
     cameraMode = mode
+    // A mode change re-frames the camera outright; drop any live shake
+    // so a stale anchor can't fight the new framing.
+    shakeAmp = 0
+    shakeBase = null
     if (mode === "arena") {
       savedOrbit = { ...orbit }
       orbit.azimuth = ARENA_FRAMING.azimuth
@@ -263,6 +267,9 @@ export function createScene(container: HTMLElement): SceneHandle {
   // Real drop-in shadows: the creature's parts cast, the ground receives.
   renderer.shadowMap.enabled = true
   renderer.shadowMap.type = THREE.PCFShadowMap
+  // Palettes are hand-tuned for a linear response; tone mapping stays off
+  // explicitly so a three.js default flip can't silently retune the look.
+  renderer.toneMapping = THREE.NoToneMapping
   sun.castShadow = true
   sun.shadow.mapSize.set(1024, 1024)
   sun.shadow.camera.left = -9
@@ -295,6 +302,13 @@ export function createScene(container: HTMLElement): SceneHandle {
   const reducedMotion = (): boolean => motionReduced ?? osReducedMotion
 
   let creatureGroup: THREE.Group | null = null
+  /** Rig part refs cached at setCreature time (avoids per-frame lookups). */
+  let rigParts: {
+    body?: THREE.Object3D
+    head?: THREE.Object3D
+    tail?: THREE.Object3D
+    tailTip?: THREE.Object3D
+  } = {}
   let ranchScenery: THREE.Group | null = null
   let scenerySeed = -1
   let foodPile: THREE.Group | null = null
@@ -321,9 +335,16 @@ export function createScene(container: HTMLElement): SceneHandle {
   /** Broadcast punch: kick a decaying camera shake of the given strength. */
   let shakeAmp = 0
   let shakePhase = Math.PI * 2 * Math.random()
+  /**
+   * The camera's resting position when the shake began. The shake writes
+   * position = base + offset every frame (never `+=`), so the residual
+   * can't random-walk the broadcast framing off its mark.
+   */
+  let shakeBase: THREE.Vector3 | null = null
   const SHAKE_DECAY_PER_S = 4.2
   const SHAKE_FREQ = 26
   const setShake = (strength: number): void => {
+    if (shakeAmp <= 0.001) shakeBase = camera.position.clone()
     if (strength > shakeAmp) shakeAmp = strength
     if (shakeAmp > 0) shakePhase = Math.PI * 2 * Math.random()
   }
@@ -382,6 +403,14 @@ export function createScene(container: HTMLElement): SceneHandle {
       })
       scene.add(creatureGroup)
       headBaseY = creatureGroup.getObjectByName("head")?.position.y ?? 0
+      // Cache the rig part refs once per build — the idle loop would
+      // otherwise run five O(n) scene-graph searches every frame.
+      rigParts = {
+        body: creatureGroup.getObjectByName("body") ?? undefined,
+        head: creatureGroup.getObjectByName("head") ?? undefined,
+        tail: creatureGroup.getObjectByName("tail") ?? undefined,
+        tailTip: creatureGroup.getObjectByName("tailTip") ?? undefined,
+      }
     },
     setProps(visualSeed) {
       if (scenerySeed === visualSeed) return
@@ -461,7 +490,7 @@ export function createScene(container: HTMLElement): SceneHandle {
       // vertical stretch carries the read. Neck/head/horns/tail ride along
       // via the rig hierarchy.
       const breath = Math.sin(t * profile.breathRate)
-      const body = creatureGroup.getObjectByName("body")
+      const body = rigParts.body
       if (body) {
         body.scale.set(
           1 - breath * profile.breathAmp * 0.3,
@@ -469,17 +498,17 @@ export function createScene(container: HTMLElement): SceneHandle {
           1 - breath * profile.breathAmp * 0.3,
         )
       }
-      const head = creatureGroup.getObjectByName("head")
+      const head = rigParts.head
       if (head) {
         head.position.y =
           headBaseY + breath * profile.breathAmp * 0.6 - profile.headDroop
       }
       const sway = Math.sin(t * 1.3)
-      const tail = creatureGroup.getObjectByName("tail")
+      const tail = rigParts.tail
       if (tail) {
         tail.rotation.y = sway * 0.06
       }
-      const tailTip = creatureGroup.getObjectByName("tailTip")
+      const tailTip = rigParts.tailTip
       if (tailTip) {
         tailTip.rotation.y = sway * 0.12
       }
@@ -489,16 +518,25 @@ export function createScene(container: HTMLElement): SceneHandle {
         creatureGroup.position.y = 0
       }
     }
-    // Broadcast punch: an additive camera offset only while a fight
-    // frames the set. Decays to zero; freeze-safe (time-based, no dt
-    // assumption), and arena-only so orbit stays untouched.
-    if (cameraMode === "arena" && shakeAmp > 0.001) {
+    // Broadcast punch: the camera is written back to its pre-shake anchor
+    // plus a decaying offset — never accumulated additively — so the
+    // broadcast framing survives the shake exactly. Arena-only so the
+    // orbit camera stays untouched; freeze-safe (time-based, no dt
+    // assumption).
+    if (cameraMode === "arena" && shakeAmp > 0.001 && shakeBase) {
       const prev = t - lastFrameT
       const dt = prev > 0 && prev < 0.5 ? prev : 1 / 60
       shakeAmp = Math.max(0, shakeAmp - SHAKE_DECAY_PER_S * dt)
-      camera.position.x += Math.sin(t * SHAKE_FREQ + shakePhase) * shakeAmp
-      camera.position.y +=
-        Math.cos(t * SHAKE_FREQ * 1.3 + shakePhase) * shakeAmp * 0.6
+      camera.position.set(
+        shakeBase.x + Math.sin(t * SHAKE_FREQ + shakePhase) * shakeAmp,
+        shakeBase.y +
+          Math.cos(t * SHAKE_FREQ * 1.3 + shakePhase) * shakeAmp * 0.6,
+        shakeBase.z,
+      )
+      if (shakeAmp <= 0.001) {
+        camera.position.copy(shakeBase)
+        shakeBase = null
+      }
     }
     renderer.render(scene, camera)
     lastFrameT = t

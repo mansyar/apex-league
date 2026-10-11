@@ -445,16 +445,8 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       }
     }
 
-    // Reduced motion (save v5): the pill mirrors the persisted pref and
-    // reads before any creature gate — it is a settings control, not care.
-    motionPill.setAttribute(
-      "aria-pressed",
-      state.settings.reducedMotion ? "true" : "false",
-    )
-    motionPill.classList.toggle("is-on", state.settings.reducedMotion)
-    motionState.textContent = state.settings.reducedMotion
-      ? "Motion: reduced"
-      : "Motion: full"
+    // (The motion pill was already mirrored by capturePrefUpdate above —
+    // it runs on every update path.)
 
     // Remember the focus across Advance Day so the morning result can
     // name the stat it sharpened.

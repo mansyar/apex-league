@@ -87,6 +87,12 @@ describe("hpFraction", () => {
   }
 })
 
+describe("hpFraction", () => {
+  test("caps at 1 when hp somehow exceeds max", () => {
+    expect(hpFraction(50, 45)).toBe(1)
+  })
+})
+
 describe("hitReaction", () => {
   const cases: Array<{
     name: string
