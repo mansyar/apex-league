@@ -79,12 +79,12 @@ notes per task, phase checkpoints with explicit user verification).
 
 ## Phase 3 — Robustness & UX Polish
 
-- [ ] Task: Save-failure handling (FR-B1)
-  - [ ] Write failing test for the save-failure notice decision (coach-voice
+- [x] Task: Save-failure handling (FR-B1) (d7924f9)
+  - [x] Write failing test for the save-failure notice decision (coach-voice
         copy, non-blocking)
-  - [ ] Wrap `saveGame` `setItem` in try/catch; surface HUD notice on failure
-  - [ ] Commit `feat(client): friendly save-failure notice`
-- [ ] Task: Meta tags & favicon (FR-C1)
+  - [x] Wrap `saveGame` `setItem` in try/catch; surface HUD notice on failure
+  - [x] Commit `feat(client): friendly save-failure notice`
+- [~] Task: Meta tags & favicon (FR-C1)
   - [ ] Add favicon + description/theme-color/OG tags to `index.html`
   - [ ] Commit `style(client): add favicon and document meta tags`
 - [ ] Task: Accessible status callout (FR-C2)
