@@ -52,6 +52,7 @@ export function makeExhibition(
 
   const ownedSide: BattleSide = {
     name: owned.name,
+    id: "owned",
     element: owned.element,
     stats: effectiveStats(owned),
     kit: owned.loadout ?? defaultLoadout(owned, species),
@@ -60,6 +61,7 @@ export function makeExhibition(
   }
   const rivalSide: BattleSide = {
     name: rival.name,
+    id: "rival",
     element: rival.element,
     stats: rival.stats,
     kit: rivalSpeciesDef.kit,

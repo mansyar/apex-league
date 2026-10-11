@@ -29,8 +29,22 @@ import { BASIC_MOVE, getMove, stepCooldown } from "./moves"
 /** A fighter snapshot: identity plus battle stats. No conditions, no stage. */
 export interface BattleFighter {
   readonly name: string
+  /**
+   * Stable side key used for hp snapshots and tie-order maps. Display
+   * names alone cannot distinguish a mirror match (rival rolled the
+   * same species), so keyed data must never trust the name.
+   */
+  readonly id?: string
   readonly element: Element
   readonly stats: CreatureStats
+}
+
+/** The stable map key for a fighter: its side id, else its display name. */
+export function fighterKey(f: {
+  readonly id?: string
+  readonly name: string
+}): string {
+  return f.id ?? f.name
 }
 
 /** Distance on the arena floor: `far` to start, `near` after a close. */
@@ -39,6 +53,8 @@ export type Range = "far" | "near"
 /** A fighter mid-fight: snapshot plus live hp, range, gauge, and cooldowns. */
 export interface ClockFighter {
   readonly name: string
+  /** The stable side key; see BattleFighter.id. */
+  readonly id?: string
   readonly element: Element
   readonly stats: CreatureStats
   /** Current hit points; a fighter at 0 or below never acts again. */
@@ -117,6 +133,7 @@ export interface Clock {
 
 interface RunFighter {
   readonly name: string
+  readonly id?: string
   readonly element: Element
   readonly stats: CreatureStats
   hp: number
@@ -137,6 +154,7 @@ interface FlyingShot {
 function view(f: RunFighter): ClockFighter {
   return {
     name: f.name,
+    id: f.id,
     element: f.element,
     stats: f.stats,
     hp: f.hp,
@@ -146,11 +164,11 @@ function view(f: RunFighter): ClockFighter {
   }
 }
 
-/** A stable, seed-derived hash for one name (FNV-1a over UTF-16 units). */
-function nameHash(name: string): number {
+/** A stable, seed-derived hash for one fighter key (FNV-1a over UTF-16). */
+function keyHash(key: string): number {
   let hash = 2166136261
-  for (let i = 0; i < name.length; i++) {
-    hash ^= name.charCodeAt(i)
+  for (let i = 0; i < key.length; i++) {
+    hash ^= key.charCodeAt(i)
     hash = Math.imul(hash, 16777619)
   }
   return hash >>> 0
@@ -170,17 +188,18 @@ export function createTieOrder(
   fighters: readonly BattleFighter[],
 ): readonly string[] {
   const ranked = fighters.map((f) => ({
-    name: f.name,
-    priority: makeRng((seed >>> 0) ^ nameHash(f.name)).next(),
+    key: fighterKey(f),
+    priority: makeRng((seed >>> 0) ^ keyHash(fighterKey(f))).next(),
   }))
   ranked.sort((a, b) => a.priority - b.priority)
-  return ranked.map((r) => r.name)
+  return ranked.map((r) => r.key)
 }
 
 /** A fresh fighter: full HP, far, empty gauge, nothing on cooldown. */
 export function createClockFighter(fighter: BattleFighter): ClockFighter {
   return {
     name: fighter.name,
+    id: fighter.id,
     element: fighter.element,
     stats: fighter.stats,
     hp: fighter.stats.hp,
@@ -197,6 +216,7 @@ export function createClock(
 ): Clock {
   const run = initial.map((f) => ({
     name: f.name,
+    id: f.id,
     element: f.element,
     stats: f.stats,
     hp: f.hp,
@@ -204,14 +224,14 @@ export function createClock(
     gauge: f.gauge,
     cooldowns: new Map(Object.entries(f.cooldowns)),
   }))
-  const tieIndex = new Map(tieOrder.map((name, i) => [name, i]))
+  const tieIndex = new Map(tieOrder.map((key, i) => [key, i]))
   const rng: Rng = makeRng(seed >>> 0)
   /** Shots in the air, in launch order; at most one per fighter at a time. */
   const shots: FlyingShot[] = []
   let tick = 0
 
   const hpAfter = (): Readonly<Record<string, number>> =>
-    Object.freeze(Object.fromEntries(run.map((f) => [f.name, f.hp])))
+    Object.freeze(Object.fromEntries(run.map((f) => [fighterKey(f), f.hp])))
 
   /** Resolve one shot's accuracy, dodge, damage, and down events. */
   const resolveShot = (shot: FlyingShot, events: BattleEvent[]): void => {
@@ -312,8 +332,8 @@ export function createClock(
         .filter((f) => f.gauge >= 12)
         .sort((a, b) => {
           if (b.stats.spd !== a.stats.spd) return b.stats.spd - a.stats.spd
-          const ia = tieIndex.get(a.name) ?? run.length
-          const ib = tieIndex.get(b.name) ?? run.length
+          const ia = tieIndex.get(fighterKey(a)) ?? run.length
+          const ib = tieIndex.get(fighterKey(b)) ?? run.length
           return ia - ib
         })
 
