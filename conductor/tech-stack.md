@@ -19,7 +19,11 @@
 - **Build/dev server**: Vite (driven by Bun) — HMR, static output.
 - **3D rendering**: Three.js — ranch scene and battle arena.
 - **UI layer**: DOM/HTML overlay styled with plain CSS, driven by TypeScript
-  state bindings (no UI framework at MVP; revisit if HUD complexity demands it).
+  state bindings (no UI framework at MVP; revisit if HUD complexity demands
+  it). All surfaces are built from a shared imperative broadcast kit
+  (`apps/client/src/ui/kit.ts` + `ui/kit.css`) with per-surface CSS files
+  (ranch/spar/cup/starter/battle-hud); `ui/element.ts` single-sources element
+  glyphs + hues.
 - **State**: central typed game-state store; deterministic sim core separated
   from rendering so battles can run headless (future PvP/ghosts depend on this).
   *2026-10-10: battle core landed in `@apex/sim/battle` — type chart, damage,
