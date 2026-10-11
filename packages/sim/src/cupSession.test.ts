@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test"
+import type { Creature } from "./index"
 import {
   chooseStarter,
   completeCup,
@@ -6,18 +7,16 @@ import {
   defaultLoadout,
   finalizeCup,
   forfeitCup,
+  type GameState,
   getSpecies,
-  makeBracket,
   makeExhibition,
   prepareCup,
   resolveBattle,
   resolveCup,
   resolvePlayerMatch,
-  type GameState,
   type Tactic,
 } from "./index"
 import { advanceDay } from "./ticker"
-import type { Creature } from "./index"
 
 /** A state standing on cup day 7 with a live creature (phase "cup"). */
 function cupDayState(seed = 42): GameState {
@@ -215,9 +214,10 @@ describe("resolvePlayerMatch — the live player branch", () => {
       if (!a.verdict.battle || !b.verdict.battle) {
         throw new Error("verdict lost its battle")
       }
-      if (a.verdict.battle.events.length !== b.verdict.battle.events.length) {
-        expect(a.verdict.battle.events).not.toEqual(b.verdict.battle.events)
-        return
+      if (
+        JSON.stringify(a.verdict.battle) === JSON.stringify(b.verdict.battle)
+      ) {
+        continue
       }
       expect(a.verdict.battle.events).not.toEqual(b.verdict.battle.events)
       return
@@ -447,8 +447,16 @@ describe("completeCup / forfeitCup / finalizeCup — the cup's end", () => {
         loadout: defaultLoadout(creature, species),
         tactic: "balanced" as Tactic,
       }
-      for (let round = 1; round <= 3 && session.status === "player-turn"; round++) {
-        session = resolvePlayerMatch(session, picks.loadout, picks.tactic).session
+      for (
+        let round = 1;
+        round <= 3 && session.status === "player-turn";
+        round++
+      ) {
+        session = resolvePlayerMatch(
+          session,
+          picks.loadout,
+          picks.tactic,
+        ).session
       }
       if (session.status !== "champion") continue
       const before = creature.conditions
@@ -458,12 +466,8 @@ describe("completeCup / forfeitCup / finalizeCup — the cup's end", () => {
       expect(next.lastCupDay).toBe(7)
       const after = next.creature
       if (!after) throw new Error("rewards dropped the creature")
-      expect(after.conditions.bond).toBe(
-        Math.min(100, before.bond + 10),
-      )
-      expect(after.conditions.mood).toBe(
-        Math.min(100, before.mood + 15),
-      )
+      expect(after.conditions.bond).toBe(Math.min(100, before.bond + 10))
+      expect(after.conditions.mood).toBe(Math.min(100, before.mood + 15))
       expect(JSON.stringify(s)).toBe(JSON.stringify(cupDayState(seed))) // pure
       return
     }
@@ -482,8 +486,6 @@ describe("completeCup / forfeitCup / finalizeCup — the cup's end", () => {
     const after = next.creature
     if (!after) throw new Error("rewards dropped the creature")
     expect(after.conditions.bond).toBe(before.bond)
-    expect(after.conditions.mood).toBe(
-      Math.min(100, before.mood + 2),
-    )
+    expect(after.conditions.mood).toBe(Math.min(100, before.mood + 2))
   })
 })

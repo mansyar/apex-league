@@ -169,7 +169,12 @@ function pickNames(rng: Rng, count: number): readonly string[] {
 }
 
 // Re-exported for test imports (STARTERS is from ./species in reality).
-import { type BattleResult, type BattleSide, type Tactic, resolveBattle } from "./battle"
+import {
+  type BattleResult,
+  type BattleSide,
+  resolveBattle,
+  type Tactic,
+} from "./battle"
 import { defaultLoadout } from "./loadout"
 import { STARTER_SPECIES as STARTERS } from "./species"
 
@@ -273,12 +278,7 @@ export function startCupSession(
   // The round-2 field is the round-1 winners in slot order, so SF2 pairs
   // the QF3 and QF4 winners (SF1 would pair the QF1/QF2 winners).
   const sf2 = resolvePairing(2, qf3.winner, qf4.winner, owned, rivalSeed(2, 1))
-  const rivalResolutions: readonly RivalResolution[] = [
-    qf2,
-    qf3,
-    qf4,
-    sf2,
-  ]
+  const rivalResolutions: readonly RivalResolution[] = [qf2, qf3, qf4, sf2]
   return {
     bracket,
     seed,
@@ -381,10 +381,7 @@ export function resolvePlayerMatch(
  * (live-cup spec: the bracket always plays out). Uses the same per-pairing
  * seeds as the one-sitting resolver, so completed brackets are identical
  * with the legacy flow. Pure. */
-function completeBracket(
-  session: CupSession,
-  conqueror: CupSlot,
-): CupSession {
+function completeBracket(session: CupSession, conqueror: CupSlot): CupSession {
   const wins = session.playerVerdicts.filter(
     (v) => v.winner === session.bracket.slots[0]?.name,
   ).length
@@ -394,7 +391,8 @@ function completeBracket(
   const completion: RoundVerdict[] = []
   // A player who lost the final (2 wins) left the SF2 winner as champion.
   if (wins >= CUP_ROUNDS - 1) {
-    const champion = session.rivalResolutions[session.rivalResolutions.length - 1]?.winner
+    const champion =
+      session.rivalResolutions[session.rivalResolutions.length - 1]?.winner
     return {
       ...session,
       completionVerdicts: completion,
@@ -412,7 +410,8 @@ function completeBracket(
     completion.push(sf1.verdict)
     a = sf1.winner
   }
-  const sf2Winner = session.rivalResolutions[session.rivalResolutions.length - 1]?.winner
+  const sf2Winner =
+    session.rivalResolutions[session.rivalResolutions.length - 1]?.winner
   if (!sf2Winner) throw new Error("Missing SF2 winner")
   const final = resolvePairing(3, a, sf2Winner, null, seedFor(3, 0))
   completion.push(final.verdict)

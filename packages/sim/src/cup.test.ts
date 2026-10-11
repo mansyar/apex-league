@@ -8,7 +8,6 @@ import {
   runRound,
 } from "./cup"
 import {
-  type BattleResult,
   buildPlaybackScript,
   type Creature,
   createCreature,
