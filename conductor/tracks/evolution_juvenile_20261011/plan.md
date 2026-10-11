@@ -53,7 +53,10 @@ manual verification for presentation tasks, phase checkpoints per
   - Rows recompute through the stage-aware sim helpers; freshly evolved juveniles see "Evolution unlocked move 3 — …"
 - [x] Task: Baby scale — 0.6× holder scale for baby stage (respecting rig-units contract from learnings.md)
   - Holder-scale only (BABY_SCALE 0.6 / JUVENILE_SCALE 1.0), never on rig children; arena casts are stage-seed-aware so the individual never re-rolls
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: 69a87b5]
+  - Browser-driven verification (2026-10-11): dev server + sim-generated v6 save seeded via localStorage, screenshots at each step
+  - Verified: baby 0.6× + BABY badge + growth hint (day 9) → advance → JUVENILE badge, boosted stat row (47/14/12/12), evolve callout with gains, walk/glow/swap/settle ceremony → settled juvenile with horn nubs and matured proportions → spar prep shows "Evolution unlocked move 3" with Cinder Shot unlocked at 0 trained days → arena cast preserves the juvenile look → reduced-motion pref gives instant in-place swap
+  - Full report attached as a git note on 69a87b5; seed helper committed as checkpoint tooling
 
 ## Phase 4 — Wrap-up
 
