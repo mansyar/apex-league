@@ -78,6 +78,9 @@ const cup = createCup(app, {
     // Conditions may carry the reward bump (mood/bond) — refresh the idle.
     sceneVisuals()
   },
+  // Leaving the presentation before the bracket ends: one droopy idle
+  // window (spec FR4), purely visual — the sim result already stands.
+  onEarlyExit: () => scene.droopyMoment(),
 })
 
 const hud = createHud(app, {

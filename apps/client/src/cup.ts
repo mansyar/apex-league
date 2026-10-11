@@ -23,6 +23,12 @@ export interface CupHandlers {
    * HUD refresh). Called exactly once per resolution, before pacing starts.
    */
   onResolved: (state: GameState, result: CupResult) => void
+  /**
+   * The player left the presentation before the bracket finished (spec FR4
+   * "early exit"). The sim result stands; the ranch shows one droopy idle
+   * window as the creature's reaction.
+   */
+  onEarlyExit: () => void
 }
 
 export interface Cup {
@@ -62,9 +68,6 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   const bracket = document.createElement("div")
   bracket.className = "cup-bracket"
 
-  const log = document.createElement("div")
-  log.className = "cup-log"
-
   const result = document.createElement("div")
   result.className = "cup-result"
 
@@ -74,7 +77,7 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   close.textContent = "Back to the ranch"
   close.style.display = "none"
 
-  panel.append(heading, intro, bracket, log, result, close)
+  panel.append(heading, intro, bracket, result, close)
   overlay.append(panel)
   root.append(overlay)
 
@@ -91,14 +94,6 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
       clearTimeout(timer)
       timer = null
     }
-  }
-
-  const showLine = (text: string): void => {
-    const line = document.createElement("div")
-    line.className = "cup-line"
-    line.textContent = text
-    log.append(line)
-    log.scrollTop = log.scrollHeight
   }
 
   /** One bracket-table row: the fighters and the verdict. */
@@ -124,7 +119,7 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
     bracket.append(row)
   }
 
-  const finish = (cup: CupResult, championName: string | null): void => {
+  const finish = (championName: string | null): void => {
     clearTimer()
     playing = false
     if (championName) {
@@ -144,7 +139,7 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
     const round = cup.rounds[index]
     if (!round) {
       timer = setTimeout(
-        () => finish(cup, cup.championName),
+        () => finish(cup.championName),
         reducedMotion() ? 0 : PACE_MS,
       )
       return
@@ -163,7 +158,6 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
     if (!current.creature) return
     clearTimer()
     bracket.replaceChildren()
-    log.replaceChildren()
     result.textContent = ""
     result.classList.remove("cup-result-win", "cup-result-loss")
     close.style.display = "none"
@@ -187,6 +181,8 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
     if (state) open(state)
   })
   close.addEventListener("click", () => {
+    // Leaving before the last round is shown is the spec's "early exit".
+    if (playing) handlers.onEarlyExit()
     clearTimer()
     playing = false
     overlay.style.display = "none"

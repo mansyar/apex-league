@@ -42,6 +42,12 @@ export interface SceneHandle {
    * plays an in-place nibble at the anchor.
    */
   startFeedCeremony(): void
+  /**
+   * One droopy idle window (cup early exit, spec FR4): force the droopy
+   * profile for a short moment, then fall back to the condition-driven
+   * idle. Purely visual — the sim is untouched.
+   */
+  droopyMoment(durationMs?: number): void
 }
 
 const GROUND_COLOR = 0x3a4d34
@@ -247,6 +253,11 @@ export function createScene(container: HTMLElement): SceneHandle {
   let scenerySeed = -1
   let foodPile: THREE.Group | null = null
   let mode: MoodMode = "normal"
+  /** Last conditions seen by updateConditions, so a momentary idle window
+   * (cup early exit) can restore the condition-driven mode when it ends. */
+  let lastConditions: CreatureConditions | null = null
+  /** performance.now() deadline of the momentary droopy window; 0 = none. */
+  let droopyUntil = 0
   let headBaseY = 0
 
   // -- Feeding ceremony (FR2) -------------------------------------------------
@@ -462,7 +473,15 @@ export function createScene(container: HTMLElement): SceneHandle {
       foodPile.visible = fedToday
     },
     updateConditions(conditions) {
-      mode = conditions ? moodModeFrom(conditions) : "normal"
+      lastConditions = conditions
+      // An active momentary droopy window owns the mode until it expires.
+      if (droopyUntil === 0 || performance.now() >= droopyUntil) {
+        mode = conditions ? moodModeFrom(conditions) : "normal"
+      }
+    },
+    droopyMoment(durationMs = 6000) {
+      mode = "droopy"
+      droopyUntil = performance.now() + durationMs
     },
     startFeedCeremony() {
       if (!creatureGroup) return
@@ -499,6 +518,12 @@ export function createScene(container: HTMLElement): SceneHandle {
     // most one clamped step, so phases can never be skipped.
     const dt = Math.min(0.1, Math.max(0, t - lastT))
     lastT = t
+    // Momentary droopy window (cup early exit): once it expires, fall back
+    // to the condition-driven idle.
+    if (droopyUntil !== 0 && performance.now() >= droopyUntil) {
+      droopyUntil = 0
+      mode = lastConditions ? moodModeFrom(lastConditions) : "normal"
+    }
     const profile = MOOD_PROFILES[mode]
     if (creatureGroup) {
       // Breathe idle: squash-and-stretch on the body around its HIP-LINE
