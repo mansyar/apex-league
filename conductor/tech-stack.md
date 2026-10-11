@@ -29,6 +29,11 @@
   2026-10-10: combat prep landed — `effectiveStats` (rolled + trained),
   unlock-gated kit slicing with 2-4 loadout helpers, save v4 migration crediting
   6 trained days, spar kit gate/picker, fresh-unlock coach callout.*
+  2026-10-11: cup day landed — pure `makeBracket`/`resolveCup`/`applyCupRewards`
+  in `@apex/sim` (seeded from day + save, mutation-pure), `enterCup` one-sitting
+  resolution in the phase machine, save v5 (`cupsWon`, `lastCupDay` with
+  v4→v5 migration), full-screen client cup panel with ~1.5s pacing and a
+  droopy-idle early-exit hook in the ranch scene.*
 
 ## Server
 - **Framework**: ElysiaJS on Bun (endpoints: save sync, leaderboard, ghost
