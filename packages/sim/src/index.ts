@@ -23,6 +23,7 @@ export {
   createClock,
   createClockFighter,
   createTieOrder,
+  ELEMENT_HUE,
   getMove,
   HOLD,
   type MoveDef,

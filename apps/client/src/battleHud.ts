@@ -8,8 +8,7 @@
  * contradict the resolver (hpAfter travels with every step, keyed by the
  * stable side id from the mirror-match fix).
  */
-import type { PlaybackStep } from "@apex/sim"
-import { ELEMENT_HUE } from "./staging"
+import { ELEMENT_HUE, type PlaybackStep } from "@apex/sim"
 
 /** The rangefinder's two states: bodies touching, or holding at range. */
 export type RangeState = "close" | "hold"

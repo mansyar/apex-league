@@ -39,3 +39,20 @@ export function typeFactor(attack: Element, defense: Element): TypeFactor {
   if (beats(defense, attack)) return { num: 1, den: 2 }
   return { num: 1, den: 1 }
 }
+
+/**
+ * Element hues from the shared type-color contract (product guidelines:
+ * Fire 18°, Plant 110°, Water 205°, Electric 50°, Earth 28°, Wind 165°).
+ * A projectile reads as its type at a glance, and the color survives
+ * color-blindness checks when paired with the move icon in the HUD.
+ * Presentation-facing, but it is part of the element contract — one
+ * canonical table next to the matchup math.
+ */
+export const ELEMENT_HUE: Record<string, number> = {
+  fire: 18,
+  water: 205,
+  plant: 110,
+  electric: 50,
+  earth: 28,
+  wind: 165,
+}
