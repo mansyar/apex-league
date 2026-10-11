@@ -9,18 +9,28 @@
 import {
   type BattleEvent,
   type BattleResult,
+  buildPlaybackScript,
   type Creature,
   defaultLoadout,
   effectiveStats,
   getMove,
   getSpecies,
   makeExhibition,
+  type PlaybackStep,
   requiredTierDays,
   resolveBattle,
   type SpeciesDef,
   type Tactic,
   unlockedKit,
 } from "@apex/sim"
+import { type BattleHudFighter, createBattleHud } from "./battleHud"
+import {
+  PLAYBACK_SPEED_MS,
+  type PlaybackSpeed,
+  toggleSpeed,
+} from "./playbackSpeed"
+import type { FightCasting } from "./staging"
+import { visualSeedOf } from "./staging"
 
 export interface SparHandlers {
   /**
@@ -28,6 +38,25 @@ export interface SparHandlers {
    * the state flow. main.ts wires this to setLoadout/clearLoadout and saves.
    */
   onSetLoadout?: (moveIds: readonly string[] | null) => void
+  /**
+   * A fight is starting: the arena swaps in behind the panel and the two
+   * combatants are cast onto the broadcast stage.
+   */
+  onFightStart?: (casting: FightCasting) => void
+  /** One playback step should now play in the arena. */
+  onStep?: (step: PlaybackStep, instant: boolean) => void
+  /** The sparring panel closes: the scene swaps back to the ranch. */
+  onClose?: () => void
+  /**
+   * The playback pacing changed (normal ⇄ fast): the arena should scale
+   * its action animations to match (ms per playback step).
+   */
+  onPace?: (msPerStep: number) => void
+  /**
+   * Live read of the saved reduced-motion preference, so an in-app
+   * "reduced" setting gates the playback even when the OS is motion-ok.
+   */
+  motionPref?: () => boolean
 }
 
 export interface Spar {
@@ -55,9 +84,6 @@ const TACTIC_LABELS: Record<Tactic, string> = {
   specials: "Favor Specials",
 }
 
-const STEP_MS = 900
-const FAST_MS = 140
-
 /** Bigger stat label for readability on the card line. */
 const STAT_KEYS = ["hp", "atk", "def", "spd"] as const
 function statLine(
@@ -72,12 +98,34 @@ function statLine(
   return parts.join(" · ")
 }
 
-/** The verdict in announcer voice — never punishment, never death. */
-function resultLine(verdict: Readonly<BattleResult>): string {
-  if (verdict.winner === null) {
-    return "Both fighters are down. The spar is a draw."
+type SparSetup = ReturnType<typeof makeExhibition>
+/** Both fighters as arena casts: species-preserving seeds, ranch-stable. */
+function castingFor(owned: Creature, setup: SparSetup): FightCasting {
+  const ownedSpecies = getSpecies(owned.speciesId)
+  const rivalSpecies = getSpecies(setup.rivalSpeciesId)
+  if (!ownedSpecies || !rivalSpecies) {
+    throw new Error("Unknown species: cannot cast the spar")
   }
-  return `${verdict.winner} wins the spar!`
+  return {
+    owned: {
+      archetypeId: ownedSpecies.archetypeId,
+      seed: visualSeedOf(owned.stats),
+      name: owned.name,
+    },
+    rival: {
+      archetypeId: rivalSpecies.archetypeId,
+      seed: visualSeedOf(setup.rival.stats),
+      name: setup.rival.name,
+    },
+  }
+}
+
+/** Lower-third subline: what the fight ended on, in announcer voice. */
+function reasonLine(verdict: Readonly<BattleResult>): string {
+  if (verdict.reason === "time") return "The clock ran out on this one."
+  if (verdict.reason === "double_ko")
+    return "A double down — both went out together."
+  return "A knockout finish."
 }
 
 export function createSpar(
@@ -181,11 +229,20 @@ export function createSpar(
   replayButton.textContent = "Replay slowly"
   replayButton.style.display = "none"
 
+  // Secondary log (Phase D): the battle-HUD announcer carries the live
+  // line, so the full log demotes to a compact collapsible box — closed
+  // by default, opens on demand, still records every event.
+  const logBox = document.createElement("div")
+  logBox.className = "spar-logbox"
+  const logToggle = document.createElement("button")
+  logToggle.className = "spar-log-toggle"
+  logToggle.type = "button"
+  logToggle.textContent = "Battle log"
+  logToggle.setAttribute("aria-expanded", "false")
   const log = document.createElement("div")
   log.className = "spar-log"
-
-  const result = document.createElement("div")
-  result.className = "spar-result"
+  log.hidden = true
+  logBox.append(logToggle, log)
 
   const close = document.createElement("button")
   close.className = "spar-close"
@@ -202,34 +259,46 @@ export function createSpar(
     cards,
     loadoutRow,
     tactics,
-    fastButton,
-    replayButton,
-    log,
-    result,
-    close,
   )
   overlay.append(panel)
+
+  // Fight chrome (Phase D broadcast rework): while the panel is hidden the
+  // arena plays full-bleed and these chips are the only controls left.
+  const chips = document.createElement("div")
+  chips.className = "spar-chips"
+  chips.style.display = "none"
+  chips.append(fastButton, replayButton, logBox, close)
+  overlay.append(chips)
   root.append(overlay)
+  // Broadcast HUD riding the overlay's margins (Phase D): created after
+  // the overlay exists; createBattleHud prepends itself so the panel
+  // paints above it.
+  const battleHud = createBattleHud(overlay)
 
   let battleSeed = 0
   let owned: Creature | null = null
   let timer: ReturnType<typeof setTimeout> | null = null
-  let speed = STEP_MS
+  let speed: PlaybackSpeed = "normal"
   let lastRun: {
+    steps: readonly PlaybackStep[]
     events: readonly BattleEvent[]
     verdict: Readonly<BattleResult>
+    fight: { owned: BattleHudFighter; rival: BattleHudFighter }
   } | null = null
   // True while a Replay slowly pass is in flight; finish() keeps the pill
   // visible so the user can replay again.
   let replaying = false
-  // Both comparisons must be evaluated every call; calling matchMedia inside
-  // the function keeps a live read (deferred widget, standards mode).
+  // Reduced motion = the saved in-app setting, or a hardened OS query.
+  // Both comparisons of the OS query must be evaluated every call;
+  // calling matchMedia inside the function keeps a live read (deferred
+  // widget, standards mode).
   const reducedMotion = (): boolean =>
+    handlers.motionPref?.() === true ||
     // Hardened per the 2026-10-10 spec revision: environments that report
     // BOTH `reduce` and `no-preference` (seen in an embedded Chromium) must
     // not collapse the playback into an instant dump.
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
-    !window.matchMedia("(prefers-reduced-motion: no-preference)").matches
+    (window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
+      !window.matchMedia("(prefers-reduced-motion: no-preference)").matches)
 
   const clearTimer = (): void => {
     if (timer !== null) {
@@ -243,19 +312,45 @@ export function createSpar(
     line.className = "spar-line"
     line.textContent = text
     log.append(line)
-    log.scrollTop = log.scrollHeight
+    if (!log.hidden) log.scrollTop = log.scrollHeight
   }
 
-  const finish = (text: string, isDraw: boolean): void => {
-    clearTimer()
-    result.textContent = text
-    if (isDraw) {
-      result.classList.add("spar-result-draw")
-      result.classList.remove("spar-result-win")
-    } else {
-      result.classList.add("spar-result-win")
-      result.classList.remove("spar-result-draw")
+  /**
+   * The stamp title names the winner; in a mirror match both plates read
+   * the same display name, so the label is qualified by side (the sim
+   * reports hpAfter/finalHp under stable side keys, not names).
+   */
+  const winnerTitle = (verdict: Readonly<BattleResult>): string => {
+    if (verdict.winner === null) return "A drawn spar"
+    const fight = lastRun?.fight
+    if (!fight) return `Victory — ${verdict.winner}`
+    let key: string | null = null
+    let best = -Infinity
+    for (const [side, hp] of Object.entries(verdict.finalHp)) {
+      if (hp > best) {
+        best = hp
+        key = side
+      }
     }
+    const mirror = fight.owned.name === fight.rival.name
+    if (key === fight.owned.key) {
+      return mirror
+        ? `Victory — your ${verdict.winner}`
+        : `Victory — ${verdict.winner}`
+    }
+    if (key === fight.rival.key) {
+      return mirror
+        ? `Victory — rival ${verdict.winner}`
+        : `Victory — ${verdict.winner}`
+    }
+    return `Victory — ${verdict.winner}`
+  }
+
+  const finish = (verdict: Readonly<BattleResult>): void => {
+    clearTimer()
+    // Verdict as a broadcast stamp over the full-bleed arena (the panel
+    // stays out of the way); the subline carries the ending reason.
+    battleHud.stamp(winnerTitle(verdict), reasonLine(verdict))
     close.style.display = ""
     fastButton.style.display = "none"
     if (replaying) {
@@ -276,20 +371,23 @@ export function createSpar(
     events: readonly BattleEvent[],
     index: number,
     verdict: Readonly<BattleResult>,
+    steps: readonly PlaybackStep[],
   ): void => {
     const event = events[index]
     if (!event) {
-      timer = setTimeout(
-        () => finish(resultLine(verdict), verdict.winner === null),
-        speed,
-      )
+      timer = setTimeout(() => finish(verdict), PLAYBACK_SPEED_MS[speed])
       return
     }
     timer = setTimeout(() => {
       clearTimer()
       showLine(event.line)
-      play(events, index + 1, verdict)
-    }, speed)
+      const step = steps[index]
+      if (step) {
+        handlers.onStep?.(step, false)
+        battleHud.update(step)
+      }
+      play(events, index + 1, verdict, steps)
+    }, PLAYBACK_SPEED_MS[speed])
   }
 
   const runBattle = (playerTactic: Tactic): void => {
@@ -302,20 +400,61 @@ export function createSpar(
 
     intro.textContent = `${setup.rival.name} accepts the spar!`
     for (const { button } of tacticButtons) button.style.display = "none"
-    lastRun = { events: verdict.events, verdict }
+    const steps = buildPlaybackScript(verdict.events)
+    // buildPlaybackScript is a 1:1 event→step map; fail loud if the sim
+    // ever grows an unmapped event kind instead of silently desyncing
+    // the HUD from the log.
+    if (steps.length !== verdict.events.length) {
+      throw new Error(
+        `Playback script out of sync: ${steps.length} steps for ${verdict.events.length} events`,
+      )
+    }
+    const fight = {
+      owned: {
+        name: setup.ownedSide.name,
+        key: setup.ownedSide.id ?? setup.ownedSide.name,
+        element: setup.ownedSide.element,
+        maxHp: setup.ownedSide.stats.hp,
+      },
+      rival: {
+        name: setup.rivalSide.name,
+        key: setup.rivalSide.id ?? setup.rivalSide.name,
+        element: setup.rivalSide.element,
+        maxHp: setup.rivalSide.stats.hp,
+      },
+    }
+    battleHud.show(fight)
+    lastRun = { events: verdict.events, verdict, steps, fight }
+    handlers.onFightStart?.(castingFor(owned, setup))
+    // Broadcast rework: the panel exits, the arena plays full-bleed, and
+    // the chips row is the only control surface left.
+    panel.style.display = "none"
+    chips.style.display = ""
+    showLine(intro.textContent ?? "")
     if (reducedMotion()) {
       // Full log at once, no timers (FR11); Replay slowly gives a text-only
-      // stepped path for those who want the build-up anyway.
-      for (const event of verdict.events) showLine(event.line)
-      finish(resultLine(verdict), verdict.winner === null)
+      // stepped path for those who want the build-up anyway. The staging
+      // jumps straight to its final posture (post-step of the last event).
+      let i = 0
+      for (const event of verdict.events) {
+        showLine(event.line)
+        const step = steps[i] ?? steps[steps.length - 1]
+        if (step) {
+          handlers.onStep?.(step, true)
+          battleHud.update(step)
+        }
+        i++
+      }
+      finish(verdict)
       replayButton.style.display = ""
       return
     }
-    speed = STEP_MS
+    speed = "normal"
+    handlers.onPace?.(PLAYBACK_SPEED_MS[speed])
+
     fastButton.textContent = "Fast-forward"
-    fastButton.disabled = false
     fastButton.style.display = ""
-    play(verdict.events, 0, verdict)
+    play(verdict.events, 0, verdict, steps)
   }
 
   /**
@@ -399,15 +538,24 @@ export function createSpar(
     refreshPrep(creature)
 
     intro.textContent = "Pick how your partner fights. No AP, nothing saved."
-    result.textContent = ""
-    result.classList.remove("spar-result-draw", "spar-result-win")
     log.replaceChildren()
+    log.hidden = true
+    logToggle.textContent = "Battle log ▸"
+    logToggle.setAttribute("aria-expanded", "false")
+    battleHud.hide()
+    panel.style.display = ""
+    chips.style.display = "none"
     close.style.display = "none"
     fastButton.style.display = "none"
     replayButton.style.display = "none"
+    // A close mid-replay leaves the pill disabled; re-arm it here or a
+    // reduced-motion spar after that stays permanently dead.
+    replayButton.disabled = false
     replaying = false
     lastRun = null
     for (const { button } of tacticButtons) button.style.display = ""
+    // The Spar chip would collide with the placard's right plate.
+    sparButton.style.display = "none"
     overlay.style.display = ""
   }
 
@@ -417,6 +565,9 @@ export function createSpar(
   close.addEventListener("click", () => {
     clearTimer()
     overlay.style.display = "none"
+    battleHud.hide()
+    sparButton.style.display = ""
+    handlers.onClose?.()
   })
   sparButton.addEventListener("click", () => open(owned))
   resetPill.addEventListener("click", () => {
@@ -429,20 +580,33 @@ export function createSpar(
         error instanceof Error ? error.message : "That kit is not allowed"
     }
   })
+  logToggle.addEventListener("click", () => {
+    log.hidden = !log.hidden
+    logToggle.setAttribute("aria-expanded", String(!log.hidden))
+    logToggle.textContent = log.hidden ? "Battle log ▸" : "Battle log ▴"
+    if (!log.hidden) log.scrollTop = log.scrollHeight
+  })
+
   fastButton.addEventListener("click", () => {
-    speed = FAST_MS
-    fastButton.disabled = true
+    speed = toggleSpeed(speed)
+    fastButton.textContent = speed === "fast" ? "Normal speed" : "Fast-forward"
+    handlers.onPace?.(PLAYBACK_SPEED_MS[speed])
   })
   replayButton.addEventListener("click", () => {
     if (!lastRun) return
     clearTimer()
     log.replaceChildren()
-    result.textContent = ""
-    result.classList.remove("spar-result-draw", "spar-result-win")
+    log.hidden = true
+    logToggle.textContent = "Battle log ▸"
+    logToggle.setAttribute("aria-expanded", "false")
+    battleHud.hideStamp()
     replaying = true
     replayButton.disabled = true
-    speed = STEP_MS
-    play(lastRun.events, 0, lastRun.verdict)
+    speed = "normal"
+    fastButton.textContent = "Fast-forward"
+    handlers.onPace?.(PLAYBACK_SPEED_MS[speed])
+    battleHud.show(lastRun.fight)
+    play(lastRun.events, 0, lastRun.verdict, lastRun.steps)
   })
 
   return {
@@ -457,6 +621,12 @@ export function createSpar(
       if (!creature && overlay.style.display !== "none") {
         clearTimer()
         overlay.style.display = "none"
+        battleHud.hide()
+        sparButton.style.display = ""
+        // Same teardown as a manual close — main.ts must drop
+        // app-in-arena and re-show the ranch creature, or the app
+        // strands itself in arena mode.
+        handlers.onClose?.()
       }
     },
   }

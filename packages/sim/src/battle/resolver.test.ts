@@ -40,6 +40,29 @@ function side(
 }
 
 describe("resolveBattle", () => {
+  test("side ids keep the log unambiguous when both fighters share a name", () => {
+    // A mirror match (rival rolled the same species) gives both fighters
+    // the same display name. With ids on the sides, every hp snapshot
+    // must key the two fighters apart instead of collapsing them.
+    const a = side("Ember Drake", "fire", { hp: 45, atk: 12 }, { id: "owned" })
+    const b = side(
+      "Ember Drake",
+      "fire",
+      { hp: 43 },
+      {
+        kit: OX_KIT,
+        id: "rival",
+      },
+    )
+    const result = resolveBattle(a, b, 22)
+
+    expect(result.events.length).toBeGreaterThan(0)
+    for (const event of result.events) {
+      expect(Object.keys(event.hpAfter).sort()).toEqual(["owned", "rival"])
+    }
+    expect(Object.keys(result.finalHp).sort()).toEqual(["owned", "rival"])
+  })
+
   test("a one-sided KO ends with winner, reason ko, and a down event", () => {
     // Seed 22's first two rolls (62, 23) are under both accuracies, so the
     // ATK 20 Blaze Bolt downs the 40-HP Reed with 48 and Reed's Bramble

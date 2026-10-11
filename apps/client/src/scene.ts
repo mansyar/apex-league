@@ -19,6 +19,12 @@ import {
 } from "./scene-logic"
 
 export interface SceneHandle {
+  /** Raw three.js scene root, for environment modules (e.g. the arena). */
+  readonly sceneRoot: THREE.Scene
+  /** Fixed broadcast framing for battle playback (and back to free orbit). */
+  setCameraMode(mode: "ranch" | "arena"): void
+  /** Cross-fade the ranch set (lighting rig + sunset dome), 1 → 0. */
+  setRanchBlend(k: number): void
   /** Stop the render loop and free GPU resources. */
   dispose(): void
   /** Replace (or add) the showcased creature, built from the archetype registry. */
@@ -33,6 +39,22 @@ export interface SceneHandle {
   setProps(visualSeed: number): void
   /** Show or hide the food pile (fedToday from the sim). */
   setFedToday(fedToday: boolean): void
+  /**
+   * Broadcast punch: kick a decaying camera shake of the given strength
+   * (arena mode only; reduced-motion callers pass 0). 0 ices it off.
+   */
+  shake(strength: number): void
+  /**
+   * Reduced-motion override (save v5 pref). true = no shake, no bounce;
+   * null = fall back to the OS media query. Callers may re-apply freely.
+   */
+  setMotionReduced(reduced: boolean | null): void
+  /**
+   * The ranch's own star (the idle creature) hides while a battle is on:
+   * the fighters already stand on the show floor, and the ranch pose
+   * would bleed through the swap.
+   */
+  setRanchCreatureVisible(visible: boolean): void
   /**
    * Play the feeding ceremony: turn toward the pile, walk to a facing
    * spot, nibble 2–3 dips, walk home. Purely visual — the sim already
@@ -53,6 +75,19 @@ export interface SceneHandle {
 const GROUND_COLOR = 0x3a4d34
 
 /**
+ * Broadcast camera framing the ranch orbit hands over to during a fight:
+ * a fixed side-elevated wide shot that keeps both ends of the show floor
+ * (STAGE bounds ±3.4 on X, ±2 on Z) in frame with margin. 2026-10-11:
+ * widened after live feedback — no fighter leaves the camera's view.
+ */
+const ARENA_FRAMING = {
+  azimuth: 0.12,
+  elevation: 0.55,
+  radius: 12.5,
+  targetY: 0.9,
+} as const
+
+/**
  * Ranch environment palette (golden hour). The ranch reads as late
  * afternoon: amber light pooling at the horizon, cooling to navy
  * overhead, with a warm key sun and a cool rim to silhouette the
@@ -60,6 +95,7 @@ const GROUND_COLOR = 0x3a4d34
  * retune them together, never one alone.
  */
 const SKY_HORIZON = 0xd98c4a // dusk amber, pools at the horizon
+export const RANCH_SKY = SKY_HORIZON
 const SKY_TOP = 0x1a1f2e // navy, cools the sky overhead
 const KEY_COLOR = 0xffd9a0 // warm low sun
 const RIM_COLOR = 0x8fb4d9 // cool skylight from the far side
@@ -153,6 +189,11 @@ export function createScene(container: HTMLElement): SceneHandle {
 
   // Drag-to-orbit camera around the creature, so the idles can be
   // inspected from any angle. Wheel zooms, clamped to sane distances.
+  // While a fight plays the camera is a broadcast pit member: fixed
+  // framing, no orbit input.
+  type CameraMode = "ranch" | "arena"
+  let cameraMode: CameraMode = "ranch"
+  let savedOrbit = { azimuth: 0, elevation: 0, radius: 0 }
   const target = new THREE.Vector3(0, 0.8, 0)
   const orbit = { azimuth: 0.567, elevation: 0.326, radius: 6.9 }
   // Reusable scratch vector for the soft camera track (no per-frame alloc).
@@ -171,6 +212,27 @@ export function createScene(container: HTMLElement): SceneHandle {
   }
   applyOrbit()
 
+  /** Hand the camera over to the broadcast pit (and back). */
+  const setCameraMode = (mode: CameraMode): void => {
+    if (cameraMode === mode) return
+    cameraMode = mode
+    // A mode change re-frames the camera outright; drop any live shake
+    // so a stale anchor can't fight the new framing.
+    shakeAmp = 0
+    shakeBase = null
+    if (mode === "arena") {
+      savedOrbit = { ...orbit }
+      orbit.azimuth = ARENA_FRAMING.azimuth
+      orbit.elevation = ARENA_FRAMING.elevation
+      orbit.radius = ARENA_FRAMING.radius
+      target.y = ARENA_FRAMING.targetY
+    } else {
+      Object.assign(orbit, savedOrbit)
+      target.y = 0.8
+    }
+    applyOrbit()
+  }
+
   let dragging = false
   let lastX = 0
   let lastY = 0
@@ -180,7 +242,7 @@ export function createScene(container: HTMLElement): SceneHandle {
     lastY = e.clientY
   }
   const onPointerMove = (e: PointerEvent): void => {
-    if (!dragging) return
+    if (!dragging || cameraMode !== "ranch") return
     orbit.azimuth -= (e.clientX - lastX) * 0.005
     orbit.elevation = clamp(
       orbit.elevation + (e.clientY - lastY) * 0.005,
@@ -195,6 +257,7 @@ export function createScene(container: HTMLElement): SceneHandle {
     dragging = false
   }
   const onWheel = (e: WheelEvent): void => {
+    if (cameraMode !== "ranch") return
     orbit.radius = clamp(
       orbit.radius * (1 + Math.sign(e.deltaY) * 0.1),
       2.5,
@@ -219,10 +282,21 @@ export function createScene(container: HTMLElement): SceneHandle {
   const rim = new THREE.DirectionalLight(RIM_COLOR, 0.5)
   rim.position.set(-5, 3, -4)
   scene.add(ambient, hemi, sun, rim)
+  // Ranch rig intensities kept so the set can be cross-faded away when the
+  // arena takes over (arena blend drives its own rig from zero).
+  const RANCH_RIG = {
+    ambient: ambient.intensity,
+    hemi: hemi.intensity,
+    sun: sun.intensity,
+    rim: rim.intensity,
+  } as const
 
   // Real drop-in shadows: the creature's parts cast, the ground receives.
   renderer.shadowMap.enabled = true
   renderer.shadowMap.type = THREE.PCFShadowMap
+  // Palettes are hand-tuned for a linear response; tone mapping stays off
+  // explicitly so a three.js default flip can't silently retune the look.
+  renderer.toneMapping = THREE.NoToneMapping
   sun.castShadow = true
   sun.shadow.mapSize.set(1024, 1024)
   sun.shadow.camera.left = -9
@@ -242,16 +316,36 @@ export function createScene(container: HTMLElement): SceneHandle {
   ground.rotation.x = -Math.PI / 2
   ground.receiveShadow = true
   scene.add(ground)
+  // The mossy ground belongs to the ranch set: arena views dissolve the
+  // horizon into fog, not moss.
+  ground.name = "ranch-ground"
 
   // Honor reduced motion: keep the gentle breath, drop the bounce.
-  const reducedMotion = window.matchMedia(
+  const osReducedMotion = window.matchMedia(
     "(prefers-reduced-motion: reduce)",
   ).matches
+  /** Save v5 pref wins when set; null defers to the OS media query. */
+  let motionReduced: boolean | null = null
+  /**
+   * Live effective motion flag — re-derived by setMotionReduced. The idle
+   * machines below capture it at creation and are rebuilt on a flip, so
+   * every consumer reads a current value.
+   */
+  let reducedMotion = osReducedMotion
 
   let creatureGroup: THREE.Group | null = null
+  /** Rig part refs cached at setCreature time (avoids per-frame lookups). */
+  let rigParts: {
+    body?: THREE.Object3D
+    head?: THREE.Object3D
+    tail?: THREE.Object3D
+    tailTip?: THREE.Object3D
+  } = {}
   let ranchScenery: THREE.Group | null = null
   let scenerySeed = -1
   let foodPile: THREE.Group | null = null
+  let fedTodayVisible = false
+  let ranchBlendK = 1
   let mode: MoodMode = "normal"
   /** Last conditions seen by updateConditions, so a momentary idle window
    * (cup early exit) can restore the condition-driven mode when it ends. */
@@ -265,10 +359,12 @@ export function createScene(container: HTMLElement): SceneHandle {
   // is a fixed landmark. Ceremony visuals translate/rotate the creature as a
   // runtime transform only — the sim is untouched.
   const pilePos = new THREE.Vector3(-2.4, 0, 0.4)
-  const walk = createWalk(reducedMotion)
+  let walk = createWalk(reducedMotion)
   /** Sparse wanderer (FR3). Created per creature in setCreature (it needs
    * the visual seed); null before that and after dispose. */
   let wander: ReturnType<typeof createWander> | null = null
+  /** The visual seed the wanderer was built with (setMotionReduced rebuilds). */
+  let wanderSeed = 0
   /** Tuft/bush world positions the wanderer may visit (rebuilt on scatter). */
   const wanderCandidates: { x: number; z: number }[] = []
   /** How deep the nibble head-dips go (in the head pivot's local units —
@@ -327,6 +423,23 @@ export function createScene(container: HTMLElement): SceneHandle {
     scene.remove(group)
   }
 
+  /** Broadcast punch: kick a decaying camera shake of the given strength. */
+  let shakeAmp = 0
+  let shakePhase = Math.PI * 2 * Math.random()
+  /**
+   * The camera's resting position when the shake began. The shake writes
+   * position = base + offset every frame (never `+=`), so the residual
+   * can't random-walk the broadcast framing off its mark.
+   */
+  let shakeBase: THREE.Vector3 | null = null
+  const SHAKE_DECAY_PER_S = 4.2
+  const SHAKE_FREQ = 26
+  const setShake = (strength: number): void => {
+    if (shakeAmp <= 0.001) shakeBase = camera.position.clone()
+    if (strength > shakeAmp) shakeAmp = strength
+    if (shakeAmp > 0) shakePhase = Math.PI * 2 * Math.random()
+  }
+
   /**
    * Attach a prop to the wind list if its class sways (tuft, bush,
    * broadleaf tree; landmark trees use the same rule). Phase comes from
@@ -350,6 +463,38 @@ export function createScene(container: HTMLElement): SceneHandle {
   }
 
   const handle: SceneHandle = {
+    sceneRoot: scene,
+    setCameraMode,
+    shake: setShake,
+    setMotionReduced(v) {
+      motionReduced = v
+      const next = motionReduced ?? osReducedMotion
+      if (next === reducedMotion) return
+      reducedMotion = next
+      shakeAmp = 0
+      // The idle machines captured the previous flag at creation; rebuild
+      // them so the new motion mode applies immediately (the wanderer
+      // pauses its rhythm, the walk restarts from home — an accessibility
+      // flip legitimately resets ornamental motion).
+      walk = createWalk(reducedMotion)
+      if (wander) {
+        wander.pause()
+        wander = createWander(reducedMotion, wanderSeed)
+      }
+    },
+    /** Cross-fade the ranch "set" (rig, sunset dome, ground, scenery). */
+    setRanchBlend(k) {
+      const blend = Math.min(1, Math.max(0, k))
+      ranchBlendK = blend
+      ambient.intensity = RANCH_RIG.ambient * blend
+      hemi.intensity = RANCH_RIG.hemi * blend
+      sun.intensity = RANCH_RIG.sun * blend
+      rim.intensity = RANCH_RIG.rim * blend
+      sky.visible = blend > 0.001
+      ground.visible = blend > 0.001
+      if (ranchScenery) ranchScenery.visible = blend > 0.001
+      if (foodPile) foodPile.visible = fedTodayVisible && blend > 0.5
+    },
     dispose() {
       if (creatureGroup) disposeGroup(creatureGroup)
       cancelAnimationFrame(raf)
@@ -399,6 +544,14 @@ export function createScene(container: HTMLElement): SceneHandle {
         if (obj instanceof THREE.Mesh) obj.castShadow = true
       })
       scene.add(rig)
+      // Cache the rig part refs once per build — the idle loop would
+      // otherwise run five O(n) scene-graph searches every frame.
+      rigParts = {
+        body: rig.getObjectByName("body") ?? undefined,
+        head: rig.getObjectByName("head") ?? undefined,
+        tail: rig.getObjectByName("tail") ?? undefined,
+        tailTip: rig.getObjectByName("tailTip") ?? undefined,
+      }
       // One wanderer per scene lifetime (FR3): rebuilding the creature (day
       // advance, training) pauses the machine — the 20–40 s rhythm survives
       // visual rebuilds instead of restarting. A feed ceremony still aborts
@@ -408,6 +561,7 @@ export function createScene(container: HTMLElement): SceneHandle {
       } else {
         wander = createWander(reducedMotion, seed)
       }
+      wanderSeed = seed
       // headBaseY stays in the head's LOCAL units — the tick writes it back
       // to head.position.y in the same space (the rig runs in grid units).
       headBaseY = rig.getObjectByName("head")?.position.y ?? 0
@@ -470,7 +624,8 @@ export function createScene(container: HTMLElement): SceneHandle {
         foodPile.rotation.y = -0.4
         scene.add(foodPile)
       }
-      foodPile.visible = fedToday
+      fedTodayVisible = fedToday
+      foodPile.visible = fedToday && ranchBlendK > 0.5
     },
     updateConditions(conditions) {
       lastConditions = conditions
@@ -507,10 +662,14 @@ export function createScene(container: HTMLElement): SceneHandle {
       // policy) and the turn eases instead of snapping.
       walk.begin(cx, cz, standX, standZ, creatureGroup.rotation.y)
     },
+    setRanchCreatureVisible(visible) {
+      if (creatureGroup) creatureGroup.visible = visible
+    },
   }
 
   const clockStart = performance.now()
   let raf = 0
+  let lastFrameT = 0
 
   const tick = (): void => {
     const t = (performance.now() - clockStart) / 1000
@@ -534,7 +693,7 @@ export function createScene(container: HTMLElement): SceneHandle {
       // vertical stretch carries the read. Neck/head/horns/tail ride along
       // via the rig hierarchy.
       const breath = Math.sin(t * profile.breathRate)
-      const body = creatureGroup.getObjectByName("body")
+      const body = rigParts.body
       if (body) {
         body.scale.set(
           1 - breath * profile.breathAmp * 0.3,
@@ -542,17 +701,17 @@ export function createScene(container: HTMLElement): SceneHandle {
           1 - breath * profile.breathAmp * 0.3,
         )
       }
-      const head = creatureGroup.getObjectByName("head")
+      const head = rigParts.head
       if (head) {
         head.position.y =
           headBaseY + breath * profile.breathAmp * 0.6 - profile.headDroop
       }
       const sway = Math.sin(t * 1.3)
-      const tail = creatureGroup.getObjectByName("tail")
+      const tail = rigParts.tail
       if (tail) {
         tail.rotation.y = sway * 0.06
       }
-      const tailTip = creatureGroup.getObjectByName("tailTip")
+      const tailTip = rigParts.tailTip
       if (tailTip) {
         tailTip.rotation.y = sway * 0.12
       }
@@ -651,7 +810,28 @@ export function createScene(container: HTMLElement): SceneHandle {
       w.group.rotation.x = angle
       w.group.rotation.z = angle * 0.5
     }
+    // Broadcast punch: the camera is written back to its pre-shake anchor
+    // plus a decaying offset — never accumulated additively — so the
+    // broadcast framing survives the shake exactly. Arena-only so the
+    // orbit camera stays untouched; freeze-safe (time-based, no dt
+    // assumption).
+    if (cameraMode === "arena" && shakeAmp > 0.001 && shakeBase) {
+      const prev = t - lastFrameT
+      const dt = prev > 0 && prev < 0.5 ? prev : 1 / 60
+      shakeAmp = Math.max(0, shakeAmp - SHAKE_DECAY_PER_S * dt)
+      camera.position.set(
+        shakeBase.x + Math.sin(t * SHAKE_FREQ + shakePhase) * shakeAmp,
+        shakeBase.y +
+          Math.cos(t * SHAKE_FREQ * 1.3 + shakePhase) * shakeAmp * 0.6,
+        shakeBase.z,
+      )
+      if (shakeAmp <= 0.001) {
+        camera.position.copy(shakeBase)
+        shakeBase = null
+      }
+    }
     renderer.render(scene, camera)
+    lastFrameT = t
     raf = requestAnimationFrame(tick)
   }
   raf = requestAnimationFrame(tick)

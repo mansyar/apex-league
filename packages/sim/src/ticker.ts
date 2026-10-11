@@ -28,6 +28,7 @@ export function advanceDay(state: GameState, rng?: Rng): GameState {
     phase: isCupDay(day) ? "cup" : "day",
     actionPoints: budget,
     creature: state.creature,
+    settings: state.settings,
     cupsWon: state.cupsWon,
     lastCupDay: state.lastCupDay,
   }

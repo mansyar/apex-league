@@ -6,7 +6,7 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!artifacts"]
+    "includes": ["**", "!artifacts", "!conductor/**/*.html"]
   },
   "formatter": {
     "enabled": true,

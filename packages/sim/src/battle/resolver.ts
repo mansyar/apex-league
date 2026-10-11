@@ -17,6 +17,7 @@ import {
   createClock,
   createClockFighter,
   createTieOrder,
+  fighterKey,
   type PlanFn,
 } from "./clock"
 import { chooseAction, type Tactic } from "./policy"
@@ -25,6 +26,11 @@ export type BattleReason = "ko" | "double_ko" | "time"
 
 export interface BattleSide {
   readonly name: string
+  /**
+   * Stable side key (the exhibition uses "owned"/"rival") carried into
+   * hp snapshots and tie order; keeps a mirror match unambiguous.
+   */
+  readonly id?: string
   readonly element: Element
   readonly stats: CreatureStats
   /** The fighter's four equipped special move ids, in kit order. */
@@ -49,17 +55,18 @@ function planFor(
   actions: Map<string, number>,
 ): PlanFn {
   return (fighter, opponent) => {
-    const side = sides.find((s) => s.name === fighter.name)
-    if (!side) throw new Error(`No side named ${fighter.name}`)
+    const key = fighterKey(fighter)
+    const side = sides.find((s) => fighterKey(s) === key)
+    if (!side) throw new Error(`No side keyed ${key}`)
     const action = chooseAction({
       fighter,
       opponent,
       kit: side.kit,
       tactic: side.tactic,
       temperament: side.temperament,
-      actionCount: actions.get(fighter.name) ?? 0,
+      actionCount: actions.get(key) ?? 0,
     })
-    actions.set(fighter.name, (actions.get(fighter.name) ?? 0) + 1)
+    actions.set(key, (actions.get(key) ?? 0) + 1)
     return action
   }
 }
@@ -121,7 +128,7 @@ export function resolveBattle(
       kind: "time",
       actor: top.name,
       hpAfter: Object.freeze(
-        Object.fromEntries(fighters.map((f) => [f.name, f.hp])),
+        Object.fromEntries(fighters.map((f) => [fighterKey(f), f.hp])),
       ),
       line: `Time's up. ${top.name} is still standing.`,
     })
@@ -129,7 +136,7 @@ export function resolveBattle(
 
   if (reason === "double_ko") {
     const finalSnapshot = Object.freeze(
-      Object.fromEntries(clock.fighters.map((f) => [f.name, f.hp])),
+      Object.fromEntries(clock.fighters.map((f) => [fighterKey(f), f.hp])),
     )
     events.push({
       tick: clock.tick,
@@ -141,7 +148,7 @@ export function resolveBattle(
   }
 
   const finalHp = Object.freeze(
-    Object.fromEntries(clock.fighters.map((f) => [f.name, f.hp])),
+    Object.fromEntries(clock.fighters.map((f) => [fighterKey(f), f.hp])),
   )
   return { winner, reason, finalHp, events }
 }

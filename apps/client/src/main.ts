@@ -12,18 +12,25 @@ import {
   type StatKey,
   saveGame,
   setLoadout,
+  setReducedMotion,
 } from "@apex/sim"
+import { buildArena } from "./arena"
 import { createCup } from "./cup"
 import { createHud } from "./hud"
 import { createScene } from "./scene"
 import { createSpar } from "./spar"
+import { createStaging } from "./staging"
 import { createStarterChoice } from "./starter"
+import { createSwap } from "./swap"
 import "./style.css"
 
 const app = document.querySelector<HTMLElement>("#app")
 if (!app) throw new Error("#app container missing")
 
 const scene = createScene(app)
+const arena = buildArena(scene.sceneRoot)
+const staging = createStaging(arena.group)
+const swap = createSwap(scene, arena)
 
 const storage: Storage = window.localStorage
 const saved = loadGame(storage)
@@ -64,7 +71,45 @@ const spar = createSpar(app, {
     persist()
     spar.update(state.creature ?? null)
   },
+  // Fight start: dissolve into the broadcast arena and cast both fighters
+  // on the stage; every event now also steps the arena playback. The ranch
+  // creature retires while a fight plays. Back at the ranch the stage
+  // clears and the ranch star returns. Nothing here touches the save.
+  onFightStart: (casting) => {
+    scene.setRanchCreatureVisible(false)
+    void swap.enterArena()
+    staging.cast(casting)
+    // Broadcast clarity: the ranch HUD stands down while the bowl plays.
+    app.classList.add("app-in-arena")
+  },
+  onStep: (step, instant) => staging.applyStep(step, instant),
+  onClose: () => {
+    scene.setRanchCreatureVisible(true)
+    void swap.exitArena()
+    staging.clear()
+    app.classList.remove("app-in-arena")
+  },
+  // The arena scales its action animations to the playback pace, so
+  // fast-forward speeds the whole fight up instead of cutting swings.
+  onPace: (msPerStep) => staging.setPace(msPerStep),
+  // The saved setting gates the playback too — an in-app "reduced" holds
+  // even when the OS reports motion-ok.
+  motionPref: () => state.settings.reducedMotion,
 })
+staging.setBigHitHandler((strength) => scene.shake(strength))
+
+/**
+ * Reduced-motion hand-off: the save v5 preference reaches the arena
+ * (no shake/flash in staging, no bounce/shake in scene) whenever it flips.
+ */
+const applyMotionPref = (): void => {
+  const reduced = state.settings.reducedMotion
+  staging.setMotionPref(reduced ? "reduced" : "full")
+  scene.setMotionReduced(reduced)
+  // The swap honors the save too: in-app reduced means instant cuts.
+  swap.setMotionReduced(reduced)
+}
+applyMotionPref()
 
 // The cup panel owns the cup-day flow: entry resolves through the sim's
 // enterCup in one call, the committed state flows back here to persist,
@@ -123,6 +168,17 @@ const hud = createHud(app, {
     state = result.state
     persist()
     hud.update(state)
+    // Fanout fix: training also refreshes the spar preview (kit gate moved
+    // closer) and may shift the visual seed → resync both, exactly like
+    // the other sim-mutating handlers do.
+    spar.update(state.creature ?? null)
+    syncScene()
+  },
+  onToggleReducedMotion: () => {
+    state = setReducedMotion(state, !state.settings.reducedMotion)
+    persist()
+    hud.update(state)
+    applyMotionPref()
   },
 })
 

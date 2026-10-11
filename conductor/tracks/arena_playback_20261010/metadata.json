@@ -1,0 +1,11 @@
+{
+  "type": "feature",
+  "created": "2026-10-10",
+  "id": "arena_playback_20261010",
+  "status": "new",
+  "title": "Battle Arena Playback",
+  "branch": "track/arena_playback_20261010",
+  "spec": "./spec.md",
+  "updated": "2026-10-10",
+  "plan": "./plan.md"
+}

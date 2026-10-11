@@ -22,6 +22,11 @@ export interface HudHandlers {
   onAdvanceDay: () => void
   onCare: (action: CareAction) => void
   onTrain: (stat: StatKey) => void
+  /**
+   * Flip the save v5 reduced-motion preference (persists like every other
+   * sim change). The HUD only mirrors state; wiring stays in main.ts.
+   */
+  onToggleReducedMotion: () => void
 }
 
 export interface Hud {
@@ -297,7 +302,18 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   advance.addEventListener("click", handlers.onAdvanceDay)
   cluster.append(actionRow, trainRow, picker, advance)
 
-  root.append(dayChip, lowerThird, cluster)
+  // Settings pill (save v5): one toggle mirrors the reduced-motion
+  // preference. Persists through the main.ts handler like every other
+  // sim change; the arena and ranch scene read it live.
+  const motionPill = document.createElement("button")
+  motionPill.className = "motion-pill"
+  motionPill.type = "button"
+  const motionState = document.createElement("span")
+  motionState.className = "motion-pill-state"
+  motionPill.addEventListener("click", handlers.onToggleReducedMotion)
+  motionPill.append(motionState)
+
+  root.append(dayChip, lowerThird, cluster, motionPill)
 
   let pickerOpen = false
   let lastFocus: StatKey | null = null
@@ -308,6 +324,18 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     pickerOpen = !pickerOpen
     if (current) update(current)
   })
+
+  /** Mirror the motion preference onto the settings pill. */
+  function capturePrefUpdate(state: GameState): void {
+    motionPill.setAttribute(
+      "aria-pressed",
+      state.settings.reducedMotion ? "true" : "false",
+    )
+    motionPill.classList.toggle("is-on", state.settings.reducedMotion)
+    motionState.textContent = state.settings.reducedMotion
+      ? "Motion: reduced"
+      : "Motion: full"
+  }
 
   const update = (state: GameState): void => {
     current = state
@@ -326,14 +354,17 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
 
     const creature = state.creature
     if (!creature) {
-      // Pre-starter: only the day chip is meaningful.
+      // Pre-starter: day chip + settings pill are the meaningful bits.
       lowerThird.style.display = "none"
       actionRow.style.display = "none"
       trainRow.style.display = "none"
       picker.style.display = "none"
       status.textContent = ""
+      motionPill.style.display = ""
+      capturePrefUpdate(state)
       return
     }
+    capturePrefUpdate(state)
     lowerThird.style.display = ""
     actionRow.style.display = ""
     trainRow.style.display = ""
@@ -419,6 +450,9 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
         entry.reason.textContent = REJECTION_COPY[result.reason]
       }
     }
+
+    // (The motion pill was already mirrored by capturePrefUpdate above —
+    // it runs on every update path.)
 
     // Remember the focus across Advance Day so the morning result can
     // name the stat it sharpened.

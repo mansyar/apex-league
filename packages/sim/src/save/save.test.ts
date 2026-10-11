@@ -1,7 +1,12 @@
 import { describe, expect, test } from "bun:test"
 
 import { createCreature } from "../creature"
-import { chooseStarter, createInitialState, type GameState } from "../state"
+import {
+  chooseStarter,
+  createInitialState,
+  type GameState,
+  setReducedMotion,
+} from "../state"
 import { advanceDay } from "../ticker"
 import { migrate } from "./migrate"
 import { SAVE_VERSION, type SaveData, serializeSave } from "./schema"
@@ -392,6 +397,58 @@ describe("storage adapter", () => {
     adapter.setItem(
       "apex.save",
       JSON.stringify({ version: 2, state: broken, savedAt: 0 }),
+    )
+    expect(loadGame(adapter)).toBeNull()
+  })
+})
+
+describe("reduced motion preference (v5)", () => {
+  test("fresh state defaults to full motion", () => {
+    expect(createInitialState().settings.reducedMotion).toBe(false)
+  })
+
+  test("a v4 save migrates with the reduced-motion default", () => {
+    const state = chooseStarter(createInitialState(), "fire_drake", 42)
+    const v4 = JSON.stringify({ version: 4, state, savedAt: 55 })
+    const adapter = createMemoryAdapter()
+    adapter.setItem("apex.save", v4)
+    const loaded = loadGame(adapter)
+    expect(loaded).not.toBeNull()
+    expect(loaded?.settings.reducedMotion).toBe(false)
+  })
+
+  test("the preference round-trips through saveGame/loadGame", () => {
+    const adapter = createMemoryAdapter()
+    const enabled = setReducedMotion(
+      chooseStarter(createInitialState(), "fire_drake", 42),
+      true,
+    )
+    saveGame(adapter, enabled, 900)
+    const loaded = loadGame(adapter)
+    expect(loaded?.settings.reducedMotion).toBe(true)
+  })
+
+  test("setReducedMotion turns the toggle both ways", () => {
+    const base = chooseStarter(createInitialState(), "fire_drake", 42)
+    const on = setReducedMotion(base, true)
+    const off = setReducedMotion(on, false)
+    expect(on.settings.reducedMotion).toBe(true)
+    expect(off.settings.reducedMotion).toBe(false)
+  })
+
+  test("loadGame rejects a corrupt settings object", () => {
+    const adapter = createMemoryAdapter()
+    const state = chooseStarter(createInitialState(), "fire_drake", 42)
+    const wrong = {
+      day: state.day,
+      phase: state.phase,
+      actionPoints: state.actionPoints,
+      creature: state.creature,
+      settings: { reducedMotion: "yes" },
+    }
+    adapter.setItem(
+      "apex.save",
+      JSON.stringify({ version: 4, state: wrong, savedAt: 0 }),
     )
     expect(loadGame(adapter)).toBeNull()
   })

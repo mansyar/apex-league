@@ -25,6 +25,12 @@ export {
 export { strikeDamage } from "./damage"
 export { makeExhibition, type SparSetup } from "./exhibition"
 export { BASIC_MOVE, getMove, type MoveDef } from "./moves"
+export {
+  buildPlaybackScript,
+  PLAYBACK_BEATS,
+  type PlaybackStep,
+  type PlaybackStepKind,
+} from "./playback"
 export { chooseAction, type Tactic } from "./policy"
 export {
   type BattleReason,

@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apex League — Arena HUD mock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --panel: rgba(21, 17, 13, 0.86);
+    --panel-border: rgba(255, 236, 200, 0.18);
+    --ink: #f4ecdf;
+    --ink-dim: #b8ad9c;
+    --gold: #ffd257;
+    --danger: #ff5a4e;
+    --fire: #ff8a3c;
+    --plant: #6fca4f;
+    --water: #4fa8e8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    background: #0b0d12;
+    color: var(--ink);
+    font-family: "Barlow", system-ui, sans-serif;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+  }
+
+  .frame { width: min(1280px, 100%); }
+
+  .mock-note {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 0 0 10px 4px;
+    font-weight: 600;
+  }
+  .mock-note b { color: var(--gold); font-weight: 700; }
+
+  /* ── the stage: a stand-in for the full-bleed arena ─────────────── */
+  .stage {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--panel-border);
+    background:
+      radial-gradient(58% 42% at 50% 86%, rgba(255, 210, 130, 0.10), transparent 70%),
+      radial-gradient(120% 90% at 50% 0%, #1a2030 0%, #0f1320 55%, #0a0d14 100%);
+    box-shadow: inset 0 -80px 120px rgba(0, 0, 0, 0.55);
+  }
+  /* floor disc + crowd bokeh */
+  .stage::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(46% 16% at 50% 78%, rgba(122, 134, 158, 0.30), transparent 75%),
+      radial-gradient(70% 24% at 50% 70%, rgba(90, 100, 122, 0.18), transparent 80%);
+  }
+  .stage::after {
+    content: "";
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(2px 2px at 12% 34%, rgba(255, 240, 210, 0.16) 50%, transparent 51%),
+      radial-gradient(2px 2px at 22% 30%, rgba(255, 240, 210, 0.10) 50%, transparent 51%),
+      radial-gradient(2px 2px at 34% 33%, rgba(255, 240, 210, 0.14) 50%, transparent 51%),
+      radial-gradient(2px 2px at 47% 29%, rgba(255, 240, 210, 0.09) 50%, transparent 51%),
+      radial-gradient(2px 2px at 61% 32%, rgba(255, 240, 210, 0.15) 50%, transparent 51%),
+      radial-gradient(2px 2px at 74% 29%, rgba(255, 240, 210, 0.10) 50%, transparent 51%),
+      radial-gradient(2px 2px at 86% 33%, rgba(255, 240, 210, 0.14) 50%, transparent 51%);
+    pointer-events: none;
+  }
+
+  /* two quiet voxel silhouettes to anchor scale */
+  .fighter-sil { position: absolute; bottom: 21%; width: 9%; height: 26%; }
+  .fighter-sil.left  { left: 28%; }
+  .fighter-sil.right { right: 28%; }
+  .fighter-sil i {
+    position: absolute; inset: auto 0 0 0; height: 100%;
+    background:
+      linear-gradient(#0000 0 0) padding-box,
+      var(--tint);
+    clip-path: polygon(12% 100%, 12% 46%, 4% 46%, 4% 30%, 16% 30%, 16% 14%, 40% 14%, 40% 4%, 66% 4%, 66% 16%, 88% 16%, 88% 40%, 96% 40%, 96% 62%, 84% 62%, 84% 100%);
+    opacity: 0.5;
+  }
+  .fighter-sil.left  i { background-color: #2a1608; }
+  .fighter-sil.right i { background-color: #10230e; }
+  .fighter-sil .shadow {
+    position: absolute; left: -12%; right: -12%; bottom: -7%; height: 9%;
+    border-radius: 50%; background: rgba(0, 0, 0, 0.5); filter: blur(6px);
+  }
+
+  /* ── 1 · the scoreboard placard ─────────────────────────────────── */
+  .placard {
+    position: absolute;
+    top: 4.5%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(86%, 980px);
+    display: flex;
+    align-items: stretch;
+    filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.45));
+    transition: transform 0.18s ease;
+  }
+  .placard.kick { transform: translateX(-50%) translateY(3px) scale(0.995); }
+
+  .plate {
+    flex: 1 1 0;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 12px;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    padding: 10px 16px 12px;
+    min-height: 64px;
+    position: relative;
+  }
+  .plate.left  { clip-path: polygon(0 0, 100% 0, calc(100% - 18px) 100%, 0 100%); border-right: none; }
+  .plate.right { clip-path: polygon(18px 0, 100% 0, 100% 100%, 0 100%); border-left: none;
+                 grid-template-columns: 1fr auto; }
+
+  /* hit reaction: the victim's plate is shoved away from the blow */
+  .plate.jolt-left  { animation: jolt-left 0.32s ease-out; }
+  .plate.jolt-right { animation: jolt-right 0.32s ease-out; }
+  @keyframes jolt-left  { 0% { transform: translateX(-9px) rotate(-0.6deg); } 100% { transform: none; } }
+  @keyframes jolt-right { 0% { transform: translateX(9px) rotate(0.6deg); } 100% { transform: none; } }
+
+  .crest {
+    width: 40px; height: 40px;
+    display: grid; place-items: center;
+    clip-path: polygon(50% 0, 100% 26%, 100% 74%, 50% 100%, 0 74%, 0 26%);
+    color: #14100c;
+  }
+  .crest.fire  { background: var(--fire); }
+  .crest.plant { background: var(--plant); }
+  .crest.water { background: var(--water); }
+  .crest svg { width: 22px; height: 22px; }
+
+  .plate-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .plate.right .plate-head { flex-direction: row-reverse; }
+  .fighter-name {
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 800;
+    font-size: 21px;
+    letter-spacing: 0.06em;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
+    white-space: nowrap;
+  }
+  .hp-num {
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink-dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .hp-num.pop { animation: pop 0.25s ease-out; }
+  @keyframes pop { 40% { transform: scale(1.25); color: var(--gold); } }
+
+  /* layered HP bar: track → lag chunk → main fill, draining toward center */
+  .hp-bar {
+    position: relative;
+    height: 14px;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 236, 200, 0.22);
+    overflow: hidden;
+  }
+  .plate.left  .hp-bar { transform: skewX(-14deg); }
+  .plate.right .hp-bar { transform: skewX(14deg); }
+
+  .hp-lag {
+    background: rgba(255, 244, 224, 0.55);
+    transition: width 0.9s cubic-bezier(0.2, 0.6, 0.3, 1) 0.4s;
+  }
+  .hp-fill { transition: width 0.15s ease-out; }
+  .hp-lag, .hp-fill {
+    position: absolute; inset: 1px auto 1px 1px;
+    width: 100%;
+  }
+  .plate.right .hp-lag, .plate.right .hp-fill { inset: 1px 1px 1px auto; }
+
+  .plate.left .hp-fill,
+  .plate.left .hp-lag { box-shadow: inset -2px 0 0 rgba(0, 0, 0, 0.35); }
+  .plate.right .hp-fill,
+  .plate.right .hp-lag { box-shadow: inset 2px 0 0 rgba(0, 0, 0, 0.35); }
+
+  .plate[data-element="fire"]  .hp-fill { background: linear-gradient(180deg, #ffb066, var(--fire)); }
+  .plate[data-element="plant"] .hp-fill { background: linear-gradient(180deg, #9ce47a, var(--plant)); }
+  .plate[data-element="water"] .hp-fill { background: linear-gradient(180deg, #7cc4f4, var(--water)); }
+
+  /* caution: edge pulse under 25% */
+  .plate.caution .hp-bar { animation: caution 0.9s ease-in-out infinite; }
+  .plate.caution .fighter-name { color: var(--danger); }
+  @keyframes caution {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 90, 78, 0); }
+    50% { box-shadow: 0 0 10px 1px rgba(255, 90, 78, 0.55); }
+  }
+
+  /* center column: VS + rangefinder */
+  .center {
+    width: 118px;
+    display: grid;
+    place-items: center;
+    gap: 5px;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    padding: 8px 6px 10px;
+    margin: 0 -1px;
+    z-index: 1;
+    clip-path: polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%);
+  }
+  .vs {
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+  }
+  .range-chip {
+    display: grid;
+    justify-items: center;
+    gap: 3px;
+  }
+  .range-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    white-space: nowrap;
+  }
+  .range-label.close { color: var(--gold); }
+  .chevrons { display: flex; gap: 3px; }
+  .chevrons i {
+    width: 12px; height: 7px;
+    clip-path: polygon(0 100%, 50% 0, 100% 100%);
+    background: rgba(255, 236, 200, 0.14);
+    transition: background 0.2s ease;
+  }
+  .chevrons i.lit { background: var(--gold); }
+  .chevrons.flip i { transform: scaleX(-1); }
+
+  /* ── 2 · announcer lower-third ──────────────────────────────────── */
+  .lower-third {
+    position: absolute;
+    left: 3.5%;
+    bottom: 7%;
+    display: flex;
+    align-items: stretch;
+    max-width: 60%;
+  }
+  .lt-tab {
+    background: var(--gold);
+    color: #241a06;
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    padding: 8px 12px;
+    display: grid;
+    place-items: center;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  }
+  .lt-line {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-left: none;
+    padding: 8px 18px 8px 14px;
+    font-size: 15px;
+    font-weight: 500;
+    min-width: 260px;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  }
+  .lt-line.swap { animation: lt-in 0.35s ease-out; }
+  @keyframes lt-in {
+    0% { opacity: 0; transform: translateX(-14px); }
+    100% { opacity: 1; transform: none; }
+  }
+
+  /* ── 3 · the only other chrome: chips + mini log ────────────────── */
+  .chips {
+    position: absolute;
+    right: 3.5%;
+    bottom: 7%;
+    display: grid;
+    justify-items: end;
+    gap: 8px;
+  }
+  .chip {
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    color: var(--ink);
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 999px;
+    padding: 6px 14px;
+    cursor: pointer;
+  }
+  .chip:hover { border-color: rgba(255, 236, 200, 0.4); }
+  .mini-log {
+    width: 250px;
+    max-height: 150px;
+    overflow-y: auto;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 8px 12px;
+    display: grid;
+    gap: 3px;
+    font-size: 12px;
+    color: var(--ink-dim);
+  }
+  .mini-log[hidden] { display: none; }
+  .mini-log span:last-child { color: var(--ink); }
+
+  /* ── 4 · verdict stamp ──────────────────────────────────────────── */
+  .verdict {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(60% 50% at 50% 50%, rgba(8, 9, 12, 0.55), rgba(8, 9, 12, 0.8));
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  .verdict.show { opacity: 1; }
+  .stamp {
+    text-align: center;
+    transform: scale(1.2);
+    transition: transform 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  }
+  .verdict.show .stamp { transform: scale(1); }
+  .stamp-rule {
+    height: 3px;
+    background: var(--gold);
+    margin: 12px auto;
+    width: 0;
+    transition: width 0.5s ease 0.15s;
+  }
+  .verdict.show .stamp-rule { width: 260px; }
+  .stamp-title {
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 800;
+    font-size: 58px;
+    letter-spacing: 0.28em;
+    text-indent: 0.28em;
+    color: var(--gold);
+    text-shadow: 0 4px 0 rgba(0, 0, 0, 0.45);
+  }
+  .stamp-sub {
+    font-size: 15px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  /* ── legend ─────────────────────────────────────────────────────── */
+  .legend {
+    margin-top: 14px;
+    display: grid;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--ink-dim);
+    line-height: 1.5;
+  }
+  .legend b { color: var(--ink); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <p class="mock-note"><b>Design mock</b> · Apex League arena broadcast HUD · plays a scripted fight on a loop</p>
+
+  <div class="stage">
+    <div class="fighter-sil left"><i></i><div class="shadow"></div></div>
+    <div class="fighter-sil right"><i></i><div class="shadow"></div></div>
+
+    <!-- the placard -->
+    <div class="placard" id="placard">
+      <div class="plate left" data-element="fire" id="plate-owned">
+        <div class="crest fire" id="crest-owned"></div>
+        <div>
+          <div class="plate-head">
+            <span class="fighter-name" id="name-owned">Ember Drake</span>
+            <span class="hp-num" id="hp-owned">45</span>
+          </div>
+          <div class="hp-bar">
+            <div class="hp-lag" id="lag-owned"></div>
+            <div class="hp-fill" id="fill-owned"></div>
+          </div>
+        </div>
+      </div>
+      <div class="center">
+        <span class="vs">VS</span>
+        <div class="range-chip">
+          <span class="range-label" id="range-label">At range</span>
+          <div class="chevrons" id="chevrons"><i></i><i></i><i></i></div>
+        </div>
+      </div>
+      <div class="plate right" data-element="plant" id="plate-rival">
+        <div>
+          <div class="plate-head">
+            <span class="fighter-name" id="name-rival">Bramble Ox</span>
+            <span class="hp-num" id="hp-rival">49</span>
+          </div>
+          <div class="hp-bar">
+            <div class="hp-lag" id="lag-rival"></div>
+            <div class="hp-fill" id="fill-rival"></div>
+          </div>
+        </div>
+        <div class="crest plant" id="crest-rival"></div>
+      </div>
+    </div>
+
+    <!-- announcer lower-third -->
+    <div class="lower-third">
+      <div class="lt-tab">APEX<br>FEED</div>
+      <div class="lt-line" id="lt-line">Ember Drake closes in.</div>
+    </div>
+
+    <!-- the only other chrome -->
+    <div class="chips">
+      <div class="mini-log" id="mini-log" hidden></div>
+      <button class="chip" id="chip-speed">Fast-forward ▸▸</button>
+      <button class="chip" id="chip-log">Battle log ▾</button>
+    </div>
+
+    <!-- verdict -->
+    <div class="verdict" id="verdict">
+      <div class="stamp">
+        <div class="stamp-title">VICTORY</div>
+        <div class="stamp-rule"></div>
+        <div class="stamp-sub" id="stamp-sub">Ember Drake · A knockout finish.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div><b>1 · Placard</b> — one top-center strip; bars drain toward the center VS chip; crests carry the element. Mirrored names so a mirror match still reads.</div>
+    <div><b>2 · Damage-lag bars</b> — the pale chunk behind the main fill lingers a beat, then drains (watch any hit). Below 25% the bar edge pulses caution.</div>
+    <div><b>3 · Hit jolt</b> — the victim's plate is shoved away, HP number pops; big hits also kick the whole placard.</div>
+    <div><b>4 · Rangefinder</b> — broadcast "field position" chevrons: At range → In close, riding the placard's spine.</div>
+    <div><b>5 · Chrome</b> — speed toggle + collapsible log are the only other widgets; the fight owns the screen. Try the chips — they work.</div>
+    <div><b>6 · Verdict</b> — full-width stamp with rule-draw, arena dims behind it. Loops every ~14s.</div>
+  </div>
+</div>
+
+<script>
+  const FIRE_FLAME = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 4-3 5-3 9a3 3 0 0 0 6 0c0-1.5-.8-2.5-.8-2.5S17 10 17 13.5A5.5 5.5 0 0 1 6 13.5C6 8 11 6.5 12 2z"/></svg>'
+  const PLANT_LEAF = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4C10 4 4 9 4 16c0 2 .6 3.4 1.2 4.2l1.6-1.2C6.3 18.3 6 17.2 6 16c0-5 4.5-9 12-9.6C14 9 9 11 7.5 16.5c2.8 1.7 8.2 1.7 10.6-1.6C20 12.2 20 7.6 20 4z"/></svg>'
+  const WATER_DROP = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s7 8 7 13a7 7 0 0 1-14 0c0-5 7-13 7-13z"/></svg>'
+
+  const CRESTS = { fire: FIRE_FLAME, plant: PLANT_LEAF, water: WATER_DROP }
+  const SPEED_MS = { normal: 900, fast: 140 }
+
+  const FIGHT = {
+    owned: { name: "Ember Drake", element: "fire", max: 45 },
+    rival: { name: "Bramble Ox", element: "plant", max: 49 },
+    events: [
+      { kind: "approach", line: "Ember Drake closes in.", hp: { owned: 45, rival: 49 } },
+      { kind: "projectile", victim: "rival", dmg: 14, line: "Spark hits Bramble Ox for 14.", hp: { owned: 45, rival: 35 } },
+      { kind: "melee", victim: "owned", dmg: 5, line: "Bramble Ox strikes Ember Drake for 5.", hp: { owned: 40, rival: 35 } },
+      { kind: "projectile", victim: "rival", dmg: 19, line: "Flame Charge hits Bramble Ox for 19.", hp: { owned: 40, rival: 16 } },
+      { kind: "idle", line: "Bramble Ox hesitates.", hp: { owned: 40, rival: 16 } },
+      { kind: "melee", victim: "owned", dmg: 11, line: "Bramble Ox strikes Ember Drake for 11.", hp: { owned: 29, rival: 16 } },
+      { kind: "melee", victim: "rival", dmg: 7, line: "Ember Drake strikes Bramble Ox for 7.", hp: { owned: 29, rival: 9 } },
+      { kind: "projectile", victim: "rival", dmg: 9, down: "rival", line: "Flame Charge hits Bramble Ox for 9.", hp: { owned: 29, rival: 0 } },
+      { kind: "down", line: "Bramble Ox is down!", hp: { owned: 29, rival: 0 } },
+    ],
+    verdict: { title: "VICTORY", sub: "Ember Drake · A knockout finish." },
+  }
+
+  const $ = (id) => document.getElementById(id)
+  const el = {
+    placard: $("placard"), lt: $("lt-line"), log: $("mini-log"),
+    verdict: $("verdict"), stampSub: $("stamp-sub"),
+    rangeLabel: $("range-label"), chevrons: $("chevrons"),
+    chipSpeed: $("chip-speed"), chipLog: $("chip-log"),
+  }
+
+  const sides = {
+    owned: { plate: $("plate-owned"), fill: $("fill-owned"), lag: $("lag-owned"), num: $("hp-owned"), name: $("name-owned"), crest: $("crest-owned") },
+    rival: { plate: $("plate-rival"), fill: $("fill-rival"), lag: $("lag-rival"), num: $("hp-rival"), name: $("name-rival"), crest: $("crest-rival") },
+  }
+
+  for (const [key, side] of Object.entries(sides)) {
+    const f = FIGHT[key]
+    side.name.textContent = f.name
+    side.crest.innerHTML = CRESTS[f.element]
+    side.plate.dataset.element = f.element
+  }
+
+  let speed = "normal"
+  let timer = null
+
+  const setBars = (key, hp) => {
+    const side = sides[key]
+    const max = FIGHT[key].max
+    const pct = `${Math.max(0, hp / max) * 100}%`
+    side.fill.style.width = pct
+    side.lag.style.width = pct
+    side.num.textContent = hp
+    side.num.classList.remove("pop")
+    void side.num.offsetWidth
+    side.num.classList.add("pop")
+    side.plate.classList.toggle("caution", hp > 0 && hp / max < 0.25)
+  }
+
+  const jolt = (key) => {
+    const side = sides[key]
+    const cls = key === "owned" ? "jolt-left" : "jolt-right"
+    side.plate.classList.remove(cls)
+    void side.plate.offsetWidth
+    side.plate.classList.add(cls)
+  }
+
+  const setLine = (text) => {
+    el.lt.classList.remove("swap")
+    void el.lt.offsetWidth
+    el.lt.textContent = text
+    el.lt.classList.add("swap")
+  }
+
+  const setRange = (close) => {
+    el.rangeLabel.textContent = close ? "In close" : "At range"
+    el.rangeLabel.classList.toggle("close", close)
+    const lit = close ? 3 : 1
+    for (const [i, chev] of Object.entries(el.chevrons.children)) {
+      chev.classList.toggle("lit", Number(i) < lit)
+    }
+  }
+
+  const logLine = (text) => {
+    const span = document.createElement("span")
+    span.textContent = text
+    el.log.append(span)
+    el.log.scrollTop = el.log.scrollHeight
+  }
+
+  const schedule = (fn, ms) => { timer = setTimeout(fn, SPEED_MS[speed]) }
+
+  const play = (i) => {
+    const event = FIGHT.events[i]
+    if (!event) {
+      schedule(showVerdict, 600)
+      return
+    }
+    schedule(() => {
+      setLine(event.line)
+      logLine(event.line)
+      if (event.kind === "approach") setRange(true)
+      if (event.victim) {
+        setBars(event.victim, event.hp[event.victim])
+        jolt(event.victim)
+        if (event.dmg >= 15) {
+          el.placard.classList.add("kick")
+          setTimeout(() => el.placard.classList.remove("kick"), 200)
+        }
+      }
+      for (const key of ["owned", "rival"]) {
+        if (!event.victim || event.victim !== key) {
+          const prev = FIGHT.events[i - 1]
+          if (prev) setBars(key, prev.hp[key])
+        }
+      }
+      play(i + 1)
+    })
+  }
+
+  const showVerdict = () => {
+    el.stampSub.textContent = FIGHT.verdict.sub
+    el.verdict.classList.add("show")
+    setTimeout(() => {
+      el.verdict.classList.remove("show")
+      setTimeout(reset, 700)
+    }, 2800)
+  }
+
+  const reset = () => {
+    setBars("owned", FIGHT.owned.max)
+    setBars("rival", FIGHT.rival.max)
+    setRange(false)
+    el.log.replaceChildren()
+    play(0)
+  }
+
+  el.chipSpeed.addEventListener("click", () => {
+    speed = speed === "normal" ? "fast" : "normal"
+    el.chipSpeed.textContent = speed === "fast" ? "Normal speed ▸" : "Fast-forward ▸▸"
+  })
+  el.chipLog.addEventListener("click", () => {
+    el.log.hidden = !el.log.hidden
+    el.chipLog.textContent = el.log.hidden ? "Battle log ▾" : "Battle log ▴"
+  })
+
+  reset()
+</script>
+</body>
+</html>
