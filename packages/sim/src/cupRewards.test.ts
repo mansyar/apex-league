@@ -93,13 +93,32 @@ describe("applyCupRewards — loss path", () => {
   })
 })
 
-describe("placement mapping", () => {
-  test("placement 1 → won; anything else → lost", () => {
+describe("outcome contract", () => {
+  test("rejects numeric placements — the machine maps placement → outcome", () => {
+    // Boundary hardening (track hardening_20261011 FR-A5): the reward layer
+    // accepts only a resolved "won"/"lost". Numeric placements from the cup
+    // result are collapsed by the machine (machine.ts), never passed through.
     const s = stateWith()
-    expect(applyCupRewards(s, 1, CUP_DAY).cupsWon).toBe(1)
-    expect(applyCupRewards(s, 2, CUP_DAY).cupsWon).toBe(0)
-    expect(applyCupRewards(s, 3, CUP_DAY).cupsWon).toBe(0)
-    expect(applyCupRewards(s, 4, CUP_DAY).cupsWon).toBe(0)
+    expect(() =>
+      applyCupRewards(
+        s,
+        1 as unknown as Parameters<typeof applyCupRewards>[1],
+        CUP_DAY,
+      ),
+    ).toThrow()
+    expect(() =>
+      applyCupRewards(
+        s,
+        2 as unknown as Parameters<typeof applyCupRewards>[1],
+        CUP_DAY,
+      ),
+    ).toThrow()
+  })
+
+  test("accepts only the resolved 'won' / 'lost' outcomes", () => {
+    const s = stateWith()
+    expect(applyCupRewards(s, "won", CUP_DAY).cupsWon).toBe(1)
+    expect(applyCupRewards(s, "lost", CUP_DAY).cupsWon).toBe(0)
   })
 
   test("the ticker grants the bonus AP the day after a stamped win", () => {

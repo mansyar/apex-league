@@ -28,13 +28,10 @@ export const CUP_REWARDS = Object.freeze({
 /** Extra AP budget the day after a cup win. The bonus itself is defined in
  * ticker.ts (CUP_WIN_AP_BONUS) so the grant sits next to the budget math. */
 
-export type CupOutcome = "won" | "lost" | 1 | 2 | 3 | 4
-
-/** Map a placement (or a pre-resolved won/lost) to the outcome. */
-function toOutcome(outcome: CupOutcome): "won" | "lost" {
-  if (outcome === "won" || outcome === 1) return "won"
-  return "lost"
-}
+/** The resolved cup outcome. The machine (machine.ts) collapses the cup
+ * result's numeric placement into this — the reward layer never sees raw
+ * placements. */
+export type CupOutcome = "won" | "lost"
 
 /**
  * Apply the cup outcome's rewards to the state. Pure: the input state is
@@ -50,8 +47,10 @@ export function applyCupRewards(
 ): GameState {
   const creature = state.creature
   if (!creature) throw new Error("Cup rewards need a creature to reward")
-  // Boolean from the mapped outcome (the string "lost" is truthy!).
-  const won = toOutcome(outcome) === "won"
+  if (outcome !== "won" && outcome !== "lost") {
+    throw new Error(`Unknown cup outcome: ${String(outcome)}`)
+  }
+  const won = outcome === "won"
   // The lifetime counter lives on GameState (save v5) and accumulates here.
   const prevWins = state.cupsWon
   const conditions = creature.conditions

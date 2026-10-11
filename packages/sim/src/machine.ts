@@ -66,7 +66,13 @@ export function enterCup(state: GameState): {
   const seed = (day * 2654435761 + identity * 97 + 1) >>> 0
   const bracket = makeBracket(creature, day, seed)
   const cup = resolveCup(bracket, creature)
-  const rewarded = applyCupRewards(state, cup.playerPlacement, day)
+  // The machine owns the placement → outcome mapping (the reward layer
+  // accepts only a resolved "won"/"lost" — see cupRewards.ts).
+  const rewarded = applyCupRewards(
+    state,
+    cup.playerPlacement === 1 ? "won" : "lost",
+    day,
+  )
   // The cup has been played: leave the cup phase behind (back to the day
   // loop). Winning stamps lastCupDay (rewards); a loss leaves it null.
   return { state: { ...rewarded, phase: "day" }, ok: true, cup }
