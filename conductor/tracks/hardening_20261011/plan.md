@@ -84,10 +84,10 @@ notes per task, phase checkpoints with explicit user verification).
         copy, non-blocking)
   - [x] Wrap `saveGame` `setItem` in try/catch; surface HUD notice on failure
   - [x] Commit `feat(client): friendly save-failure notice`
-- [~] Task: Meta tags & favicon (FR-C1)
-  - [ ] Add favicon + description/theme-color/OG tags to `index.html`
-  - [ ] Commit `style(client): add favicon and document meta tags`
-- [ ] Task: Accessible status callout (FR-C2)
+- [x] Task: Meta tags & favicon (FR-C1) (fef6ba7)
+  - [x] Add favicon + description/theme-color/OG tags to `index.html`
+  - [x] Commit `style(client): add favicon and document meta tags`
+- [~] Task: Accessible status callout (FR-C2)
   - [ ] Add `aria-live="polite"` to ranch `status-callout`
   - [ ] Commit `style(client): announce ranch status callout to screen readers`
 - [ ] Task: Cup pacing toggle (FR-C3)
