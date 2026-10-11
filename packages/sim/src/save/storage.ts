@@ -114,7 +114,13 @@ export function loadGame(adapter: SaveAdapter): GameState | null {
       // v5: the settings block is required and strictly typed.
       typeof state.settings !== "object" ||
       state.settings === null ||
-      typeof state.settings.reducedMotion !== "boolean"
+      typeof state.settings.reducedMotion !== "boolean" ||
+      // v5: cup bookkeeping must be present and well-formed.
+      !Number.isInteger(state.cupsWon) ||
+      state.cupsWon < 0 ||
+      (state.lastCupDay !== null &&
+        (!Number.isInteger(state.lastCupDay) || state.lastCupDay < 1)) ||
+      (state.creature !== null && !isValidCreature(state.creature))
     ) {
       return null
     }

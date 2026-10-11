@@ -15,8 +15,11 @@ const migrations: Record<
   number,
   (raw: Record<string, unknown>) => Record<string, unknown>
 > = {
-  // v4 → v5: saves from before the arena wake with full ornamental motion
-  // (reducedMotion defaults false). The preference lives in state.settings.
+  // v4 → v5: merged migration (arena playback + cup day both bumped 4→5).
+  // Saves from before the arena wake with full ornamental motion
+  // (reducedMotion defaults false; the preference lives in state.settings)
+  // and from before the cup system with no cup bookkeeping (never won a
+  // cup, never entered one).
   4: (raw) => {
     const state = raw.state
     if (typeof state !== "object" || state === null) {
@@ -41,13 +44,18 @@ const migrations: Record<
       s.settings !== undefined && s.settings !== null
         ? (s.settings as GameState["settings"])
         : { reducedMotion: false }
+    const creature =
+      s.creature !== null && s.creature !== undefined
+        ? (s.creature as GameState["creature"])
+        : null
     const migrated: GameState = {
       day,
       phase,
       actionPoints,
-      creature:
-        s.creature === undefined ? null : (s.creature as GameState["creature"]),
+      creature,
       settings,
+      cupsWon: 0,
+      lastCupDay: null,
     }
     return { version: 5, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -64,6 +72,8 @@ const migrations: Record<
       actionPoints: ACTION_POINTS_PER_DAY,
       creature: null,
       settings: { reducedMotion: false },
+      cupsWon: 0,
+      lastCupDay: null,
     }
     return { version: 1, state, savedAt: 0 }
   },
@@ -96,6 +106,8 @@ const migrations: Record<
       actionPoints,
       creature: createCreature("fire_drake", STARTER_GRANT_SEED),
       settings: { reducedMotion: false },
+      cupsWon: 0,
+      lastCupDay: null,
     }
     return { version: 2, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -144,6 +156,8 @@ const migrations: Record<
       actionPoints,
       creature,
       settings: { reducedMotion: false },
+      cupsWon: 0,
+      lastCupDay: null,
     }
     return { version: 4, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -188,6 +202,8 @@ const migrations: Record<
       actionPoints,
       creature,
       settings: { reducedMotion: false },
+      cupsWon: 0,
+      lastCupDay: null,
     }
     return { version: 3, state: migrated, savedAt: raw.savedAt ?? 0 }
   },

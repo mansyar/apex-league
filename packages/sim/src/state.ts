@@ -5,7 +5,7 @@
 
 import { type Creature, createCreature } from "./creature"
 
-/** Top-level game phases. Cup is a placeholder until the cup system lands. */
+/** Top-level game phases: the day loop and the cup-day loop. */
 export type Phase = "day" | "cup"
 
 /** Persisted player preferences (part of the versioned save). */
@@ -32,6 +32,10 @@ export interface GameState {
   creature: Creature | null
   /** Player preferences (arena juice toggles). */
   settings: GameSettings
+  /** Lifetime cup championships (banner counter, save v5). */
+  cupsWon: number
+  /** The last cup day the player entered, if any (save v5). */
+  lastCupDay: number | null
 }
 
 /** Action points granted at the start of each day. Stub value for Phase 0. */
@@ -45,6 +49,8 @@ export function createInitialState(): GameState {
     actionPoints: ACTION_POINTS_PER_DAY,
     creature: null,
     settings: { reducedMotion: false },
+    cupsWon: 0,
+    lastCupDay: null,
   }
 }
 

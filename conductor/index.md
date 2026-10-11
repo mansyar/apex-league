@@ -9,6 +9,7 @@
 ## Workflow
 
 -   [Workflow](./workflow.md)
+-   [Learnings — scene & animation lessons](./learnings.md)
 -   [Code Style Guides](./code_styleguides/)
 
 ## Tracks

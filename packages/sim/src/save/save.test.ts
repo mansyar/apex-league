@@ -44,6 +44,8 @@ describe("migration chain", () => {
     expect(migrated.version).toBe(5)
     expect(migrated.state.day).toBe(7)
     expect(migrated.state.phase).toBe("cup")
+    expect(migrated.state.cupsWon).toBe(0)
+    expect(migrated.state.lastCupDay).toBeNull()
     expect(migrated.state.actionPoints).toBeGreaterThan(0)
   })
 
@@ -52,7 +54,7 @@ describe("migration chain", () => {
     expect(migrated.state.phase).toBe("day")
   })
 
-  test("migrates a v1 save through to v4, granting the default Fire drake starter", () => {
+  test("migrates a v1 save through to v5, granting the default Fire drake starter", () => {
     // v1 shape: GameState without a creature (pre-care-loop saves).
     const v1 = {
       version: 1,
@@ -101,7 +103,7 @@ describe("migration chain", () => {
     expect(migrated).toEqual(v2)
   })
 
-  test("migrates a v2 save through to v4, granting neutral training fields", () => {
+  test("migrates a v2 save through to v5, granting neutral training fields", () => {
     // v2 creatures carry no training fields — strip them from a fresh one.
     const creature = createCreature("fire_drake", 42)
     const legacy = structuredClone(creature) as unknown as Record<
@@ -132,7 +134,7 @@ describe("migration chain", () => {
     expect(migrated.state.creature?.stats).toEqual(creature.stats)
   })
 
-  test("a v1 save walks v1→v2→v3→v4 with the credited trained days", () => {
+  test("a v1 save walks v1→v5 with the credited trained days", () => {
     const migrated = migrate({
       version: 1,
       state: { day: 2, phase: "day", actionPoints: 3 },
@@ -152,7 +154,7 @@ describe("migration chain", () => {
     expect(migrated.state.creature?.fedToday).toBe(false)
   })
 
-  test("a v3 save migrates to v4: fedToday false, 6 trained days, null loadout, stats intact", () => {
+  test("a v3 save migrates to v5: fedToday false, 6 trained days, null loadout, stats intact", () => {
     // v3 creatures predate the v4 fields — strip all of them.
     const creature = createCreature("fire_drake", 42)
     const legacy = structuredClone(creature) as unknown as Record<

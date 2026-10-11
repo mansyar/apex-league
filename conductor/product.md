@@ -75,7 +75,13 @@ Phased delivery plan (each phase is independently playable):
 - Top-down 3D arena with voxel creatures (procedural generator online).
   *(Landed.)*
 - One weekly cup (8-bracket), Bronze tier ladder, ~5 opponent creatures.
-- Ranch scene (3D) with idle/breathe life. *(Landed.)*
+  *(Landed 2026-10-11: seeded 8-bracket cup on days 7/14/21 — enter from the
+  ranch chip, one-sitting text resolution with paced QF→SF→F announcer
+  presentation, ramped named rivals, win → +1 AP next day / bond +10 /
+  mood +15 / cupsWon tally; early exit → +2 mood consolation. Save v5.
+  Arena replay and Bronze ladder still open.)*
+- Ranch scene (3D) with idle/breathe life; living-ranch dressing (wind sway,
+  feeding ceremony, seeded wandering with camera follow). *(Landed 2026-10-10.)*
 - Retirement → next egg with stat + trait inheritance (minimal legacy).
 
 ### Phase 2 — League Depth

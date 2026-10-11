@@ -1,0 +1,11 @@
+{
+  "id": "living_ranch_20261010",
+  "title": "Living Ranch",
+  "type": "feature",
+  "status": "new",
+  "branch": "track/living_ranch_20261010",
+  "created": "2026-10-10",
+  "updated": "2026-10-10",
+  "spec": "conductor/tracks/living_ranch_20261010/spec.md",
+  "plan": "conductor/tracks/living_ranch_20261010/plan.md"
+}

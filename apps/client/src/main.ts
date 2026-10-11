@@ -15,6 +15,7 @@ import {
   setReducedMotion,
 } from "@apex/sim"
 import { buildArena } from "./arena"
+import { createCup } from "./cup"
 import { createHud } from "./hud"
 import { createScene } from "./scene"
 import { createSpar } from "./spar"
@@ -110,12 +111,39 @@ const applyMotionPref = (): void => {
 }
 applyMotionPref()
 
+// The cup panel owns the cup-day flow: entry resolves through the sim's
+// enterCup in one call, the committed state flows back here to persist,
+// and the panel presents the already-resolved bracket at its own pace.
+const cup = createCup(app, {
+  onResolved: (resolved) => {
+    state = resolved
+    persist()
+    hud.update(state)
+    spar.update(state.creature ?? null)
+    // One entry per cup: the resolve flips the phase back to "day", so the
+    // chip must re-sync or it would stay visible for the rest of the day.
+    cup.update(state)
+    // Conditions may carry the reward bump (mood/bond) — refresh the idle.
+    sceneVisuals()
+  },
+  // Leaving the presentation before the bracket ends: one droopy idle
+  // window (spec FR4), purely visual — the sim result already stands. The
+  // chip re-syncs too: the entry already resolved, so it must hide.
+  onEarlyExit: () => {
+    scene.droopyMoment()
+    cup.update(state)
+  },
+})
+
 const hud = createHud(app, {
   onAdvanceDay: () => {
+    // The ceremony is non-cancelable (FR2, 2026-10-10): HUD input applies
+    // to the sim immediately but never interrupts the creature's motion.
     state = advanceDay(state)
     persist()
     hud.update(state)
     spar.update(state.creature ?? null)
+    cup.update(state)
     // A training gain changes the visual seed → scatter may shift.
     syncScene()
   },
@@ -126,8 +154,13 @@ const hud = createHud(app, {
     persist()
     hud.update(state)
     spar.update(state.creature ?? null)
+    cup.update(state)
     // Feed toggles the food pile; conditions drive the mood idle.
     sceneVisuals()
+    // Ceremony is visual feedback for an already-committed action, so it
+    // starts only after the sim confirms the feed succeeded. The pile is
+    // visible immediately; successive feeds re-trigger cleanly.
+    if (action === "feed") scene.startFeedCeremony()
   },
   onTrain: (stat: StatKey) => {
     const result = assignTraining(state, stat)
@@ -164,9 +197,11 @@ let starter = state.creature
         syncScene()
         hud.update(state)
         spar.update(state.creature ?? null)
+        cup.update(state)
       },
     })
 
 syncScene()
 hud.update(state)
 spar.update(state.creature ?? null)
+cup.update(state)
