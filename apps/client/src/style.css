@@ -708,7 +708,6 @@ body,
   cursor: pointer;
 }
 
-.spar-fast:disabled,
 .spar-replay:disabled {
   opacity: 0.55;
   cursor: default;
