@@ -99,7 +99,8 @@ notes per task, phase checkpoints with explicit user verification).
 - [x] Task: Stale comment fixes (FR-C4) (96f5a7a)
   - [x] Fix `starter.ts:42-43` "Water locked" comment
   - [x] Commit `docs(client): fix stale starter comment`
-- [~] Task: Phase 3 Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase 3 Verification & Checkpoint (Refer to workflow.md)
+  [checkpoint: f712687]
 
 ## Phase 4 — Docs & Close-out
 
