@@ -70,7 +70,10 @@ phase ends with a verification & checkpoint task.
       overlay with per-step fill/range/announcer updates; mirror-match
       hpAfter collision fixed in sim via stable side ids (0d72852).
       [commit: a4bee13] [checkpoint-note: a4bee13]
-- [ ] Task: Log demotion & pacing — compact collapsible secondary log;
+- [x] Task: Log demotion & pacing — compact collapsible secondary log;
       playback speed = normal + fast-forward toggle, no skip.
+      — `playbackSpeed.ts` + 3 unit cases; speed pill is now a real
+      two-way toggle, log demoted to a collapsible box under the
+      announcer. [commit: 6ccbba6] [checkpoint-note: 6ccbba6]
 - [ ] Task: Final polish pass & manual visual verification & checkpoint
       (Refer to workflow.md)
