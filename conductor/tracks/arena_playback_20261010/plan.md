@@ -64,8 +64,12 @@ phase ends with a verification & checkpoint task.
 
 ## Phase D — Battle HUD, pacing & closeout
 
-- [ ] Task: Battle HUD — dual HP bars with names, rangefinder state
+- [x] Task: Battle HUD — dual HP bars with names, rangefinder state
       (close/hold), announcer lower-third synced to the active event.
+      — `battleHud.ts` + 13 unit cases; `spar-hud` mounted on the spar
+      overlay with per-step fill/range/announcer updates; mirror-match
+      hpAfter collision fixed in sim via stable side ids (0d72852).
+      [commit: a4bee13] [checkpoint-note: a4bee13]
 - [ ] Task: Log demotion & pacing — compact collapsible secondary log;
       playback speed = normal + fast-forward toggle, no skip.
 - [ ] Task: Final polish pass & manual visual verification & checkpoint
