@@ -74,7 +74,8 @@ notes per task, phase checkpoints with explicit user verification).
         `spar.ts`/`cup.ts`/`swap.ts`
   - [x] Remove duplicated creature-condition branch in `storage.ts`
   - [x] Commit `refactor(client): dedupe clampCondition and reduced-motion predicate`
-- [~] Task: Phase 2 Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase 2 Verification & Checkpoint (Refer to workflow.md)
+  [checkpoint: becd670]
 
 ## Phase 3 — Robustness & UX Polish
 
