@@ -12,6 +12,7 @@
  */
 
 import {
+  ACTION_POINTS_PER_DAY,
   type BattleResult,
   type Creature,
   CUP_REWARDS,
@@ -659,7 +660,7 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
     resultRewards.replaceChildren()
     const rows = won
       ? [
-          `+1 action point tomorrow (${3 + 1} total)`,
+          `+1 action point tomorrow (${ACTION_POINTS_PER_DAY + 1} total)`,
           `Bond +${CUP_REWARDS.bond}`,
           `Mood +${CUP_REWARDS.mood}`,
           "🏆 Cup won",
