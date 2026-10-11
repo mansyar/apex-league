@@ -39,11 +39,11 @@ notes per task, phase checkpoints with explicit user verification).
   - [x] Export `CHAMPION_STAT_BOOST {hp:6, atk:4, def:4, spd:2}` with JSDoc
         noting sim-unused-today; `staging.ts` consumes it
   - [x] Commit `chore(sim): pin champion stat boost constant`
-- [ ] Task: Species-existence load validation (FR-B2)
-  - [ ] Write failing test in `storage.test.ts`: unknown `speciesId` rejected
-        with friendly reason
-  - [ ] Add catalog lookup check to `isValidCreature`
-  - [ ] Commit `fix(sim): reject saves referencing unknown species`
+- [x] Task: Species-existence load validation (FR-B2) (d8d7720)
+  - [x] Write failing test in `save.test.ts` storage suite: hand-edited save
+        with unknown `speciesId` rejected by `loadGame`
+  - [x] Add catalog lookup check to `isValidCreature`
+  - [x] Commit `fix(sim): reject saves referencing unknown species`
 - [ ] Task: Dead RNG draw audit (FR-B3)
   - [ ] Verify `void creatureSeed` / over-drawn `pickNames` stream-stability
         requirements; remove draws only if digests/streams provably unchanged,
