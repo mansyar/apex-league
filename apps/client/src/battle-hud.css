@@ -21,7 +21,7 @@
   align-items: stretch;
   width: min(86%, 980px);
   margin: 0 auto;
-  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 10px 24px rgb(0 0 0 / 0.45));
   transition: transform 0.18s ease;
 }
 
@@ -35,8 +35,8 @@
   grid-template-columns: auto 1fr;
   align-items: center;
   gap: 12px;
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
+  background: var(--kit-panel-bg);
+  border: 1px solid var(--kit-keyline);
   padding: 10px 16px 12px;
   min-height: 64px;
 }
@@ -139,8 +139,8 @@
 .spar-hp-bar {
   position: relative;
   height: 12px;
-  background: rgba(0, 0, 0, 0.55);
-  border: 1px solid rgba(255, 236, 200, 0.22);
+  background: rgb(0 0 0 / 0.55);
+  border: 1px solid rgb(255 236 200 / 0.22);
   overflow: hidden;
 }
 
@@ -172,12 +172,12 @@
 /* …the lag chunk follows a beat later and drains slowly (set from JS with
    a suspended transition on the reset, restored here for the drain). */
 .spar-hp-lag {
-  background: rgba(255, 244, 224, 0.55);
+  background: rgb(255 244 224 / 0.55);
   transition: width 0.9s ease 0.4s;
 }
 
 .spar-hp-lag.spar-hud-low {
-  background: rgba(226, 85, 74, 0.5);
+  background: rgb(226 85 74 / 0.5);
 }
 
 /* Danger state: the whole plate pulses once the fighter is nearly out. */
@@ -191,7 +191,7 @@
     box-shadow: none;
   }
   50% {
-    box-shadow: 0 0 18px rgba(255, 90, 78, 0.55);
+    box-shadow: 0 0 18px rgb(255 90 78 / 0.55);
   }
 }
 
@@ -201,8 +201,8 @@
   display: grid;
   place-items: center;
   gap: 5px;
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
+  background: var(--kit-panel-bg);
+  border: 1px solid var(--kit-keyline);
   padding: 8px 6px 10px;
   margin: 0 -1px;
   z-index: 1;
@@ -233,7 +233,7 @@
 }
 
 .spar-hud-chevron {
-  color: rgba(255, 236, 200, 0.25);
+  color: rgb(255 236 200 / 0.25);
   font-size: 9px;
   line-height: 1;
 }
@@ -266,9 +266,9 @@
 .spar-hud-line {
   display: inline-block;
   padding: 8px 18px 8px 14px;
-  border: 1px solid var(--panel-border);
+  border: 1px solid var(--kit-keyline);
   border-left: none;
-  background: var(--panel-bg);
+  background: var(--kit-panel-bg);
   color: var(--ink);
   font-style: italic;
   font-size: 14px;
@@ -312,7 +312,7 @@
   place-items: center;
   align-content: center;
   gap: 0;
-  background: radial-gradient(circle, rgba(8, 6, 4, 0.55), rgba(8, 6, 4, 0.8));
+  background: radial-gradient(circle, rgb(8 6 4 / 0.55), rgb(8 6 4 / 0.8));
   text-align: center;
   padding-bottom: 8vh;
 }
@@ -338,7 +338,7 @@
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--accent);
-  text-shadow: 0 2px 24px rgba(255, 209, 102, 0.35);
+  text-shadow: 0 2px 24px rgb(255 209 102 / 0.35);
 }
 
 .spar-stamp-rule {

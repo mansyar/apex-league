@@ -443,38 +443,25 @@
 }
 
 /* Top-right spar chip — its own control, separate from the care cluster. */
+/* Enter Cup chip — kit-chip plate with the broadcast title/sub stack. */
 .cup-button {
   position: absolute;
-  top: 16px;
+  top: 18px;
   right: 110px;
-  display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 2px;
-  padding: 10px 16px;
-  border: 1px solid var(--panel-border);
-  border-radius: 12px;
-  background: var(--panel-bg);
-  color: var(--ink);
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  user-select: none;
+  gap: 8px;
+  text-align: left;
+  animation: settle-down 0.5s var(--kit-settle) 0.24s both;
 }
 
-.cup-button:hover:not(:disabled) {
-  border-color: var(--accent);
+.cup-button .kit-chip-glyph {
+  color: var(--accent);
 }
 
 .cup-button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
-}
-
-.cup-button span:last-child {
-  font-size: 10px;
-  font-weight: 400;
-  color: var(--ink-dim);
 }
 
 /* Spar chip — kit-chip plate with the broadcast title/sub stack. */

@@ -39,6 +39,7 @@ import { createBattleHud } from "./battleHud"
 import { crestGlyph, elementHue } from "./element"
 import { createPlaybackDriver, type PlaybackFight } from "./playbackDriver"
 import { type FightCasting, visualSeedOf } from "./staging"
+import { icons } from "./ui/icons"
 
 export interface CupHandlers {
   /** A player match starts: dissolve into the arena and cast both. */
@@ -97,14 +98,23 @@ const STAMP_HOLD_REDUCED = 900
 
 export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   // The Enter Cup chip sits beside the Spar chip (top-right cluster).
+  // Kit chip with the broadcast title/sub stack, matching Spar.
   const cupButton = document.createElement("button")
-  cupButton.className = "cup-button"
+  cupButton.className = "cup-button kit-chip"
   cupButton.type = "button"
+  const cupGlyph = document.createElement("span")
+  cupGlyph.className = "kit-chip-glyph"
+  cupGlyph.innerHTML = icons.trophy
+  const cupText = document.createElement("span")
+  cupText.className = "spar-text"
   const cupLabel = document.createElement("span")
+  cupLabel.className = "spar-title"
   cupLabel.textContent = "Enter Cup"
   const cupHint = document.createElement("span")
+  cupHint.className = "spar-sub"
   cupHint.textContent = "Cup day · free"
-  cupButton.append(cupLabel, cupHint)
+  cupText.append(cupLabel, cupHint)
+  cupButton.append(cupGlyph, cupText)
   root.append(cupButton)
 
   // Full-screen overlay, hidden until entry.
