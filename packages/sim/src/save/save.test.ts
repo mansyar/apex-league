@@ -8,7 +8,7 @@ import {
   setReducedMotion,
 } from "../state"
 import { advanceDay } from "../ticker"
-import { migrate } from "./migrate"
+import { migrate, validateStateShape } from "./migrate"
 import { SAVE_VERSION, type SaveData, serializeSave } from "./schema"
 import {
   createMemoryAdapter,
@@ -204,6 +204,46 @@ describe("migration chain", () => {
 
   test("rejects saves without a version", () => {
     expect(() => migrate({ day: 5 })).toThrow()
+  })
+})
+
+describe("validateStateShape — shared migration validator", () => {
+  const good = { day: 3, phase: "day", actionPoints: 2 }
+
+  const badCases: Array<[string, Record<string, unknown>]> = [
+    ["missing state", {}],
+    ["negative day", { day: -1, phase: "day", actionPoints: 2 }],
+    ["fractional day", { day: 1.5, phase: "day", actionPoints: 2 }],
+    ["bad phase", { day: 1, phase: "banana", actionPoints: 2 }],
+    ["negative AP", { day: 1, phase: "day", actionPoints: -2 }],
+    ["fractional AP", { day: 1, phase: "day", actionPoints: 1.5 }],
+    ["missing AP", { day: 1, phase: "day" }],
+  ]
+
+  test("accepts a well-shaped state and returns the validated scalars", () => {
+    const out = validateStateShape({ state: good }, 4)
+    expect(out).toEqual({ day: 3, phase: "day", actionPoints: 2, state: good })
+  })
+
+  for (const [label, state] of badCases) {
+    test(`rejects: ${label} (version-tagged message)`, () => {
+      try {
+        validateStateShape({ state }, 4)
+        throw new Error(`expected rejection for ${label}`)
+      } catch (err) {
+        expect((err as Error).message).toContain("invalid v4 save")
+        expect((err as Error).message).not.toContain("expected rejection")
+      }
+    })
+  }
+
+  test("the version tag follows the migration step, not the payload", () => {
+    try {
+      validateStateShape({ state: { day: -1 } }, 5)
+      throw new Error("expected rejection")
+    } catch (err) {
+      expect((err as Error).message).toContain("invalid v5 save")
+    }
   })
 })
 
