@@ -81,6 +81,6 @@ phase ends with a verification & checkpoint task.
       damage, rangefinder chevrons; the spar panel exits during fights
       (arena full-bleed, chips only) and the verdict lands as a
       broadcast stamp. Design ref: `hud-mock.html` in this folder.
-      [commit: ed6d16a] [chore: f1004b4] [checkpoint-note: ed6d16a]
+      [commit: ed6d16a] [fix: 329d605] [chore: f1004b4] [checkpoint-note: ed6d16a]
 - [ ] Task: Final polish pass & manual visual verification & checkpoint
       (Refer to workflow.md)
