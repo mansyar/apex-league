@@ -256,7 +256,17 @@ export function createSpar(
   close.textContent = "Back to the ranch"
   close.style.display = "none"
 
+  // Always-available exit on the pre-fight panel: a compact X chip pinned
+  // to the panel's top-right corner. Hiding the panel (battle start)
+  // hides it with the rest of the panel contents.
+  const panelClose = document.createElement("button")
+  panelClose.className = "spar-panel-close kit-chip is-dim"
+  panelClose.type = "button"
+  panelClose.setAttribute("aria-label", "Close sparring")
+  panelClose.innerHTML = icons.close
+
   panel.append(
+    panelClose,
     heading,
     intro,
     rivalRow,
@@ -518,6 +528,15 @@ export function createSpar(
     button.addEventListener("click", () => runBattle(tactic))
   }
   close.addEventListener("click", () => {
+    driver.stop()
+    overlay.style.display = "none"
+    battleHud.hide()
+    sparButton.style.display = ""
+    handlers.onClose?.()
+  })
+  panelClose.addEventListener("click", () => {
+    // Same teardown as the post-fight exit; safe before any fight since
+    // stopping an idle driver is a no-op.
     driver.stop()
     overlay.style.display = "none"
     battleHud.hide()

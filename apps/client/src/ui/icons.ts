@@ -33,6 +33,8 @@ export const icons = {
   arrow: stroked('<path d="M5 12h13M12 6l6 6-6 6"/>', 2.4),
   /** Collapse toggle chevron (points down while expanded; CSS rotates it). */
   chevron: stroked('<path d="M6 9l6 6 6-6"/>', 2.4),
+  /** Close affordance (X) for overlay panels. */
+  close: stroked('<path d="M6 6l12 12M18 6 6 18"/>', 2.4),
 
   /** Condition glyphs (creature lower-third bars). */
   hunger: svg(
