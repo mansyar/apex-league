@@ -1,5 +1,6 @@
 import { type Creature, type StatKey, TRAINING_CAP } from "../creature"
 import { SICK_COOLDOWN_NIGHTS } from "../evolution"
+import { getSpecies } from "../species"
 import type { GameState } from "../state"
 import { migrate } from "./migrate"
 import { SAVE_VERSION, type SaveData, serializeSave } from "./schema"
@@ -48,6 +49,9 @@ function isValidCreature(c: unknown): c is Creature {
   const creature = c as Record<string, unknown>
   if (typeof creature.speciesId !== "string" || creature.speciesId.length === 0)
     return false
+  // The species must exist in the catalog — a hand-edited save referencing
+  // an unknown species would crash the client on first render otherwise.
+  if (getSpecies(creature.speciesId) === undefined) return false
   if (typeof creature.bondedToday !== "boolean") return false
   if (!ELEMENTS.includes(creature.element as string)) return false
   if (!STAGES.includes(creature.stage as string)) return false

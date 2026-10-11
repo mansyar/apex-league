@@ -312,6 +312,23 @@ describe("storage adapter", () => {
     }
   })
 
+  test("loadGame rejects a save referencing an unknown species", () => {
+    // Hand-edited save: everything else is well-formed, but the speciesId
+    // does not exist in the catalog. The client would crash on first render
+    // ("Unknown species") — the load must reject it instead.
+    const adapter: SaveAdapter = createMemoryAdapter()
+    const state = advanceDay(
+      chooseStarter(createInitialState(), "fire_drake", 42),
+    )
+    saveGame(adapter, state, 500)
+    const data = JSON.parse(adapter.getItem("apex.save") ?? "{}") as {
+      state: { creature: { speciesId: string } }
+    }
+    data.state.creature.speciesId = "shadow_dragon"
+    adapter.setItem("apex.save", JSON.stringify(data))
+    expect(loadGame(adapter)).toBeNull()
+  })
+
   test("round-trips a save that owns a creature", () => {
     const adapter: SaveAdapter = createMemoryAdapter()
     const state = advanceDay(
