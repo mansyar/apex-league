@@ -1,0 +1,21 @@
+/* Base document styles (split from style.css, broadcast_hud_20261011 Phase B). */
+
+html,
+body,
+#app {
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+#app {
+  position: relative;
+  background: #1a1f2e;
+  font-family: system-ui, sans-serif;
+  color: var(--ink);
+}
+
+#app canvas {
+  display: block;
+}

@@ -1,0 +1,515 @@
+/* Ranch HUD surface (split from style.css, Phase B): day chip, creature lower-third, care + training cluster, chip family, cup banner. */
+
+/* Top-center scoreboard chip */
+.day-chip {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 8px 18px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  user-select: none;
+}
+
+.day-readout {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.ap-row {
+  font-size: 14px;
+  color: var(--accent);
+  letter-spacing: 0.12em;
+}
+
+/* Bottom-left creature lower-third */
+.lower-third {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  width: 260px;
+  padding: 12px 14px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  user-select: none;
+}
+
+.creature-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.creature-name {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.element-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #17130c;
+}
+
+/* Life-stage badge (evolution track): rides the name row beside the
+ * element badge. Juvenile gets a warm accent so the growth reads at a
+ * glance; baby stays neutral. */
+.stage-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #17130c;
+  background: #d8d2c2;
+}
+
+.stage-badge.is-juvenile {
+  background: #ffd77a;
+}
+
+.stage-badge.is-champion {
+  background: #ffb0e0;
+}
+
+.el-border-fire {
+  border-color: var(--el-fire);
+}
+.el-border-water {
+  border-color: var(--el-water);
+}
+.el-border-plant {
+  border-color: var(--el-plant);
+}
+.el-border-electric {
+  border-color: var(--el-electric);
+}
+.el-border-earth {
+  border-color: var(--el-earth);
+}
+.el-border-wind {
+  border-color: var(--el-wind);
+}
+
+.condition-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.condition-row {
+  display: grid;
+  grid-template-columns: 52px 1fr 28px;
+  align-items: center;
+  gap: 8px;
+}
+
+.condition-label {
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+
+.condition-track {
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.09);
+  overflow: hidden;
+}
+
+.condition-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 240ms ease;
+}
+
+.bar-hunger {
+  background: var(--bar-hunger);
+}
+.bar-energy {
+  background: var(--bar-energy);
+}
+.bar-health {
+  background: var(--bar-health);
+}
+.bar-mood {
+  background: var(--bar-mood);
+}
+.bar-bond {
+  background: var(--bar-bond);
+}
+
+.condition-value {
+  font-size: 11px;
+  text-align: right;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.status-callout {
+  margin-top: 9px;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--accent);
+  min-height: 1em;
+}
+
+/* Stat row: rolled base + trained bonus, between name and conditions */
+.stat-row {
+  display: flex;
+  gap: 10px;
+  margin: 2px 0 8px;
+}
+
+.stat-cell {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-size: 10px;
+  color: var(--ink-dim);
+  letter-spacing: 0.05em;
+}
+
+.stat-total {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.stat-bonus {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* Bottom-right action cluster */
+.action-cluster {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  user-select: none;
+}
+
+.action-row {
+  display: flex;
+  gap: 8px;
+}
+
+.care-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 74px;
+  min-height: 56px;
+  padding: 8px 10px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: var(--panel-bg);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.care-button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.care-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ap-cost {
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+}
+
+.action-reason {
+  font-size: 10px;
+  color: var(--ink-dim);
+  max-width: 80px;
+  text-align: center;
+  min-height: 1em;
+}
+
+.advance-button {
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  cursor: pointer;
+}
+
+/* Reduced-motion settings pill (save v5): a quiet bottom-right control
+   that mirrors — and persists — the preference the arena honors. Sits
+   just above the action cluster (its measured height is ~190px). */
+.motion-pill {
+  position: fixed;
+  right: 20px;
+  bottom: 212px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: var(--panel-bg);
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+.motion-pill.is-on {
+  color: var(--ink);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--panel-bg));
+}
+
+.motion-pill:hover {
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-pill {
+    transition: none;
+  }
+}
+
+.advance-button:hover {
+  background: #ffe08a;
+}
+
+/* Training: a separate row plus an inline four-stat picker */
+.train-row {
+  display: flex;
+}
+
+.train-row .care-button {
+  flex: 1;
+}
+
+.train-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: var(--panel-bg);
+}
+
+.train-entry {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 9px;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.train-entry:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.train-entry:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.train-entry.is-focus {
+  border-color: var(--accent);
+}
+
+.train-entry-name {
+  letter-spacing: 0.05em;
+}
+
+.train-note {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--ink-dim);
+  text-align: right;
+}
+
+/* First-run starter choice */
+.starter-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  background: rgba(12, 10, 8, 0.6);
+}
+
+.starter-heading {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.starter-grid {
+  display: flex;
+  gap: 16px;
+}
+
+.starter-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 190px;
+  min-height: 170px;
+  padding: 18px 14px;
+  border: 2px solid var(--panel-border);
+  border-radius: 14px;
+  background: var(--panel-bg);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.starter-card:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-width: 2px;
+}
+
+.starter-card:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.starter-name {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.starter-flavor {
+  font-size: 12px;
+  color: var(--ink-dim);
+  text-align: center;
+}
+
+.starter-ribbon {
+  position: absolute;
+  top: 10px;
+  right: -8px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--ink-dim);
+  color: #17130c;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Top-right spar chip — its own control, separate from the care cluster. */
+.cup-button {
+  position: absolute;
+  top: 16px;
+  right: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 16px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: var(--panel-bg);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+}
+
+.cup-button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.cup-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.cup-button span:last-child {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--ink-dim);
+}
+
+.spar-button {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 16px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: var(--panel-bg);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+}
+
+.spar-button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.spar-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.spar-button span:last-child {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--ink-dim);
+}
+
+/* Cup banner: trophy glyph per lifetime championship (day chip, top). */
+.cup-banner {
+  margin-left: 10px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--accent);
+}

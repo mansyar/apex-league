@@ -22,7 +22,13 @@ import { createSpar } from "./spar"
 import { createStaging, visualSeedOf } from "./staging"
 import { createStarterChoice } from "./starter"
 import { createSwap } from "./swap"
-import "./style.css"
+import "./ui/kit.css"
+import "./base.css"
+import "./ranch.css"
+import "./starter.css"
+import "./cup.css"
+import "./spar.css"
+import "./battle-hud.css"
 
 const app = document.querySelector<HTMLElement>("#app")
 if (!app) throw new Error("#app container missing")

@@ -3,7 +3,8 @@
  * (no GLB round-trip) for silhouette iteration. Usage: /preview.html?seed=42
  * Grey materials on purpose — palette is judged later in the vision gate.
  */
-import "./style.css"
+import "./ui/kit.css"
+import "./base.css"
 import { archetypes, generate } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
