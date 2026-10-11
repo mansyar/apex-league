@@ -25,6 +25,7 @@ import { icons } from "./ui/icons"
 import {
   bar,
   button,
+  chip,
   crest,
   cta,
   meter,
@@ -376,18 +377,19 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   const advanceLabel = advance.querySelector<HTMLElement>(".kit-cta-label")
   cluster.append(dockRow, dockTrain, picker, advance)
 
-  // Settings pill (save v5): one toggle mirrors the reduced-motion
+  // Settings chip (save v5): one toggle mirrors the reduced-motion
   // preference. Persists through the main.ts handler like every other
   // sim change; the arena and ranch scene read it live.
-  const motionPill = document.createElement("button")
-  motionPill.className = "motion-pill"
-  motionPill.type = "button"
-  const motionState = document.createElement("span")
-  motionState.className = "motion-pill-state"
-  motionPill.addEventListener("click", handlers.onToggleReducedMotion)
-  motionPill.append(motionState)
+  const motionChip = chip({
+    label: "Motion: full",
+    variant: "dim",
+    onClick: handlers.onToggleReducedMotion,
+  })
+  const motionWrap = document.createElement("div")
+  motionWrap.className = "hud-motion"
+  motionWrap.append(motionChip)
 
-  root.append(scoreBug, lowerThird, cluster, motionPill)
+  root.append(scoreBug, lowerThird, cluster, motionWrap)
 
   let pickerOpen = false
   let lastFocus: StatKey | null = null
@@ -402,16 +404,18 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     if (current) update(current)
   })
 
-  /** Mirror the motion preference onto the settings pill. */
+  /** Mirror the motion preference onto the settings chip. */
   function capturePrefUpdate(state: GameState): void {
-    motionPill.setAttribute(
+    motionChip.setAttribute(
       "aria-pressed",
       state.settings.reducedMotion ? "true" : "false",
     )
-    motionPill.classList.toggle("is-on", state.settings.reducedMotion)
-    motionState.textContent = state.settings.reducedMotion
-      ? "Motion: reduced"
-      : "Motion: full"
+    const label = motionChip.querySelector<HTMLElement>(".kit-chip-label")
+    if (label) {
+      label.textContent = state.settings.reducedMotion
+        ? "Motion: reduced"
+        : "Motion: full"
+    }
   }
 
   const update = (state: GameState): void => {
@@ -457,7 +461,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       dockTrain.style.display = "none"
       picker.style.display = "none"
       statusTicker.say("")
-      motionPill.style.display = ""
+      motionWrap.style.display = ""
       capturePrefUpdate(state)
       return
     }
