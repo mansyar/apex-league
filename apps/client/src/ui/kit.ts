@@ -103,7 +103,8 @@ export interface ButtonOptions {
   glyph?: string
   /** AP badge text, e.g. "1 AP". */
   cost?: string
-  /** Small accent tag, e.g. "Focus: DEF". */
+  /** Small accent tag, e.g. "Focus: DEF". Passing `""` renders the span
+   * empty so callers can fill it in later without re-creating the button. */
   tag?: string
   /** Disabled explanation, shown as a hover/focus tooltip. */
   reason?: string
@@ -127,7 +128,8 @@ export function button(opts: ButtonOptions): HTMLButtonElement {
   }
   node.append(el("span", "kit-button-name", opts.label))
   if (opts.cost) node.append(el("span", "kit-button-cost", opts.cost))
-  if (opts.tag) node.append(el("span", "kit-button-tag", opts.tag))
+  if (opts.tag !== undefined)
+    node.append(el("span", "kit-button-tag", opts.tag))
   if (opts.reason) node.dataset.reason = opts.reason
   if (opts.focus) node.classList.add("is-focus")
   node.disabled = opts.disabled === true

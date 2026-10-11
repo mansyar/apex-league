@@ -360,20 +360,7 @@
   pointer-events: auto;
 }
 
-/* Reduced motion: static bar widths, no jolts, no stamp punch, no
-   lower-third entrance — every state still lands, just instantly. */
-@media (prefers-reduced-motion: reduce) {
-  .spar-hp-fill,
-  .spar-hp-lag {
-    transition: none;
-  }
-
-  .spar-plate-jolt-left,
-  .spar-plate-jolt-right,
-  .spar-hp-num.spar-hp-pop,
-  .spar-stamp.spar-stamp-in,
-  .spar-hud-line-in,
-  .spar-plate:has(.spar-hud-low) {
-    animation: none;
-  }
-}
+/* Reduced motion: the kit's global kill (ui/kit.css) already stops every
+   animation and transition; nothing battle-specific needs a rescue here,
+   since no entrance in this file relies on a forwards fill that must end
+   visible. */

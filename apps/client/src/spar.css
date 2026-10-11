@@ -60,7 +60,7 @@
 
 .spar-card {
   padding: 10px 12px;
-  border: 1px solid var(--kit-keyline);
+  border: 1px solid var(--el-border-color, var(--kit-keyline));
   border-left-width: 3px;
   background: rgb(255 236 200 / 0.04);
   font-size: 12px;
@@ -265,7 +265,6 @@
    The spar panel and motion pill stay visible. */
 .app-in-arena .score-bug,
 .app-in-arena .creature-plate,
-.app-in-arena .action-cluster,
 .app-in-arena .spar-button,
 .app-in-arena .cup-button {
   display: none;

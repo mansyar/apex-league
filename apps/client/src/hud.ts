@@ -371,6 +371,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     label: "Train",
     glyph: icons.train,
     cost: "1 AP",
+    tag: "",
   })
   const trainTag = trainButton.querySelector<HTMLElement>(".kit-button-tag")
   dockTrain.append(trainButton)

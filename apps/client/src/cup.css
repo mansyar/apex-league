@@ -830,25 +830,16 @@
   border-color: var(--accent);
 }
 
-/* Reduced motion: kill the reveal/pulse animations. */
+/* Reduced motion: the kit's global kill (ui/kit.css) already stops every
+   animation and transition. These opacity restores are load-bearing: the
+   bracket reveal and reward rows animate with `forwards` fills to end
+   visible, and the global `animation: none` would otherwise leave them
+   stuck at their pre-entrance opacity 0. */
 @media (prefers-reduced-motion: reduce) {
-  .cup-match,
-  .cup-col-head,
-  .cup-champ-cup,
-  .cup-champ-label,
-  .cup-champ-name {
-    transition: none;
-  }
-
-  .cup-match.yours {
-    animation: none;
-  }
-
   .cup-result-title,
   .cup-result-rule,
   .cup-reward-row,
   .cup-ticker-line.swap {
-    animation: none;
     opacity: 1;
   }
 }

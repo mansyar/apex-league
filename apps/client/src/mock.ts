@@ -43,7 +43,7 @@ const figure = (caption: string, ...nodes: Node[]): HTMLElement => {
 
 const header = el("header", "mock-header")
 header.append(
-  el("span", "mock-tag", "DESIGN MOCK · BROADCAST_HUD_20261011 · PHASE B"),
+  el("span", "mock-tag", "DESIGN MOCK · BROADCAST_HUD_20261011 · APPROVED"),
 )
 header.append(el("h1", undefined, "Broadcast HUD Overhaul"))
 header.append(

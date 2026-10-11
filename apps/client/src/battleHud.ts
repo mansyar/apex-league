@@ -185,7 +185,7 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
       : "spar-plate spar-plate-left"
 
     const crest = document.createElement("span")
-    crest.className = `spar-crest el-${f.element}`
+    crest.className = "spar-crest"
     crest.style.setProperty("--hue", String(elementHue(f.element)))
     crest.innerHTML = crestGlyph(f.element)
 

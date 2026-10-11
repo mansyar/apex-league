@@ -1,10 +1,12 @@
 /**
- * Broadcast HUD mock — page chrome and cluster layout only.
+ * Broadcast HUD mock - page chrome and cluster layout only.
  *
  * Every kit primitive (plates, tabs, chips, buttons, meters, bars,
  * crests, stamps, tickers) lives in ui/kit.css; this file positions the
- * mock's stage clusters and lays out the showcase. Phases C/D absorb the
- * cluster layouts into their surface files.
+ * mock's stage clusters and lays out the showcase. The cluster rules
+ * here deliberately mirror the production surface files (ranch.css,
+ * starter.css) because the mock page is a standalone harness that does
+ * not import them - keep the two in sync when cluster layout changes.
  */
 
 body {
@@ -83,7 +85,7 @@ p {
   /* Full-bleed like the real game: the HUD overlays an edge-to-edge 3D scene. */
   width: 100vw;
   margin-left: calc(50% - 50vw);
-  border: 1px solid var(--keyline);
+  border: 1px solid var(--kit-keyline);
 }
 
 .stage-scene {
@@ -195,7 +197,7 @@ p {
 .score-divider {
   width: 1px;
   height: 22px;
-  background: var(--keyline);
+  background: var(--kit-keyline);
 }
 
 .score-ap {
@@ -263,7 +265,7 @@ p {
 .stat-cell {
   padding: 6px 4px 7px;
   background: rgb(255 236 200 / 0.04);
-  border: 1px solid var(--keyline);
+  border: 1px solid var(--kit-keyline);
   text-align: center;
 }
 
@@ -338,7 +340,7 @@ p {
 
 .train-picker {
   margin-bottom: 10px;
-  border-top: 1px solid var(--keyline);
+  border-top: 1px solid var(--kit-keyline);
 }
 
 .train-entry {
@@ -347,7 +349,7 @@ p {
   justify-content: space-between;
   gap: 12px;
   padding: 8px 2px;
-  border-bottom: 1px solid var(--keyline);
+  border-bottom: 1px solid var(--kit-keyline);
 }
 
 .train-entry-name {
@@ -417,7 +419,7 @@ p {
   margin: 0;
   padding: 14px;
   background: rgb(255 236 200 / 0.03);
-  border: 1px solid var(--keyline);
+  border: 1px solid var(--kit-keyline);
 }
 
 .show-row {
@@ -471,7 +473,7 @@ p {
   position: relative;
   overflow: hidden;
   padding: 42px 38px 46px;
-  border: 1px solid var(--keyline);
+  border: 1px solid var(--kit-keyline);
   border-radius: 18px;
   background:
     radial-gradient(60% 30% at 50% 100%, rgb(255 210 130 / 0.12), transparent),
@@ -507,7 +509,7 @@ p {
   gap: 10px;
   padding: 22px 16px;
   background: rgb(255 236 200 / 0.05);
-  border: 1px solid var(--keyline);
+  border: 1px solid var(--kit-keyline);
   clip-path: polygon(
     12px 0,
     calc(100% - 12px) 0,

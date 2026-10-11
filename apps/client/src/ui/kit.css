@@ -27,10 +27,8 @@
   --kit-blur: blur(8px) saturate(1.1);
   --kit-settle: cubic-bezier(0.2, 0.9, 0.3, 1.2);
 
-  /* Legacy surface tokens (pre-kit surfaces still consume these until
-     each surface is rebuilt on the kit in Phases C/D). */
-  --panel-bg: rgba(24, 20, 16, 0.82);
-  --panel-border: rgba(255, 236, 200, 0.18);
+  /* Element identity palette (full colors; hues live in ui/element.ts).
+     Consumed by .el-border-* custom-property setters and legacy styles. */
   --el-fire: #ff6b4a;
   --el-water: #4aa8ff;
   --el-plant: #66cc66;
@@ -339,56 +337,26 @@
   outline-offset: 2px;
 }
 
-/* Element identity badges — legacy pill style still worn by the spar
-   panel and starter cards until Phase D adopts the kit crests. */
-.element-badge {
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #17130c;
-}
-
+/* Element border accents: custom-property setters so a surface's own
+   `border` shorthand can pick them up without cascade-order fights:
+   border: 1px solid var(--el-border-color, var(--kit-keyline)). */
 .el-border-fire {
-  border-color: var(--el-fire);
+  --el-border-color: var(--el-fire);
 }
 .el-border-water {
-  border-color: var(--el-water);
+  --el-border-color: var(--el-water);
 }
 .el-border-plant {
-  border-color: var(--el-plant);
+  --el-border-color: var(--el-plant);
 }
 .el-border-electric {
-  border-color: var(--el-electric);
+  --el-border-color: var(--el-electric);
 }
 .el-border-earth {
-  border-color: var(--el-earth);
+  --el-border-color: var(--el-earth);
 }
 .el-border-wind {
-  border-color: var(--el-wind);
-}
-
-/* ---- Element badges (shared: ranch badges + spar crests) ------------- */
-
-.el-fire {
-  background: var(--el-fire);
-}
-.el-water {
-  background: var(--el-water);
-}
-.el-plant {
-  background: var(--el-plant);
-}
-.el-electric {
-  background: var(--el-electric);
-}
-.el-earth {
-  background: var(--el-earth);
-}
-.el-wind {
-  background: var(--el-wind);
+  --el-border-color: var(--el-wind);
 }
 
 /* ---- AP meter --------------------------------------------------------- */
