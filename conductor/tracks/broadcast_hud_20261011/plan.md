@@ -19,9 +19,9 @@ workflow checkpoint task.
 
 ## Phase B — Shared kit + shared modules
 
-- [ ] Task: Tests first — pure logic for shared modules
-  - [ ] `element.ts` (shared crest + hue module): all 6 elements have glyph + hue; single fallback; fire/plant/water glyphs byte-match the current battleHud set
-  - [ ] `prefersReducedMotion()` helper (injected media-query matcher): true/false paths, no direct `matchMedia` access
+- [x] Task: Tests first — pure logic for shared modules — `4a8b073`
+  - [x] `element.ts` (shared crest + hue module): all 6 elements have glyph + hue; single fallback; fire/plant/water glyphs byte-match the current battleHud set
+  - [x] `prefersReducedMotion()` helper (injected media-query matcher): true/false paths, no direct `matchMedia` access
 - [ ] Task: Implement `element.ts`; delete duplicated `CREST_GLYPHS` (battleHud), `ELEMENT_HUE` (staging) and the `HUES` copy (cup.ts); fix the 40-vs-200 fallback mismatch
 - [ ] Task: Implement the `ui/` kit (factories for plate/chip/button/tab/meter/bar/stamp) + kit.css; wiring stays imperative DOM, factories run at build time
 - [ ] Task: Split CSS: `kit.css` + per-surface files (ranch / spar / cup / starter / arena); retire `style.css`
