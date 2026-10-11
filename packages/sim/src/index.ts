@@ -99,7 +99,7 @@ export {
   setLoadout,
   unlockedKit,
 } from "./loadout"
-export { beginCup, endCup, enterCup } from "./machine"
+export { enterCup } from "./machine"
 export { makeRng, type Rng } from "./rng"
 export { migrate } from "./save/migrate"
 export { SAVE_VERSION, type SaveData, serializeSave } from "./save/schema"

@@ -5,28 +5,12 @@ import { applyCupRewards } from "./cupRewards"
 import type { GameState } from "./state"
 
 /**
- * The cup-phase machine. The Day ↔ Cup phase contract (begin/end) stays
- * for the loop; the real cup behavior lives in `enterCup`, which the
- * client calls on a cup day: it resolves the seeded bracket in one
- * sitting, applies the reward bundle, and returns the state plus the
- * resolved cup for presentation.
+ * The cup-phase machine. The phase itself is granted by the ticker on a
+ * cup day; the real cup behavior lives in `enterCup`, which the client
+ * calls on a cup day: it resolves the seeded bracket in one sitting,
+ * applies the reward bundle, and returns the state plus the resolved cup
+ * for presentation (flipping the phase back to "day").
  */
-
-/** Enter the cup phase. Only allowed the day before a cup day. */
-export function beginCup(state: GameState): { state: GameState; ok: boolean } {
-  if (state.phase !== "day" || !isCupDay(state.day + 1)) {
-    return { state, ok: false }
-  }
-  return { state: { ...state, phase: "cup" }, ok: true }
-}
-
-/** Leave the cup phase and return to the day phase. */
-export function endCup(state: GameState): { state: GameState; ok: boolean } {
-  if (state.phase !== "cup") {
-    return { state, ok: false }
-  }
-  return { state: { ...state, phase: "day" }, ok: true }
-}
 
 /** Guards: entering needs a creature, the cup phase (which is what the
  * ticker grants on a cup day), and a day not yet played. The phase gate
