@@ -31,10 +31,10 @@ notes per task, phase checkpoints with explicit user verification).
   - [x] Verify full v0→v6 migration test chain still green (byte-level state
         parity)
   - [x] Commit `refactor(sim): extract shared save state-shape validator`
-- [ ] Task: Type-color contract into sim (FR-A4)
-  - [ ] Move `ELEMENT_HUE` to `@apex/sim` (beside `typeFactor`); update
+- [x] Task: Type-color contract into sim (FR-A4) (c2dd5ea)
+  - [x] Move `ELEMENT_HUE` to `@apex/sim` (beside `typeFactor`); update
         `staging`/`battleHud` imports; delete client copy
-  - [ ] Commit `refactor(sim): canonicalize ELEMENT_HUE type-color contract`
+  - [x] Commit `refactor(sim): canonicalize ELEMENT_HUE type-color contract`
 - [ ] Task: Pin champion stat constant (FR-A7)
   - [ ] Export `CHAMPION_STAT_BOOST {hp:6, atk:4, def:4, spd:2}` with JSDoc
         noting sim-unused-today; `staging.ts` consumes it
