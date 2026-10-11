@@ -8,7 +8,9 @@ import {
   forfeitCup,
   getSpecies,
   makeBracket,
+  makeExhibition,
   prepareCup,
+  resolveBattle,
   resolveCup,
   resolvePlayerMatch,
   type GameState,
@@ -266,6 +268,63 @@ describe("resolvePlayerMatch — the live player branch", () => {
       return
     }
     throw new Error("no champion seed found in the sweep")
+  })
+})
+
+describe("determinism contract — the live cup is replayable", () => {
+  /** Play one full tournament (win or lose) with fixed picks; return the
+   * complete record: rival verdicts, player battles, champion. */
+  function fullRun(seed: number): unknown {
+    const s = cupDayState(seed)
+    let session = prepareCup(s)
+    if (!session) throw new Error("session did not resolve")
+    const picks = defaultPicks(s)
+    // A deliberate non-default loadout order to exercise the coach path.
+    const loadout = [...picks.loadout].reverse()
+    let champion: string | null = null
+    for (let i = 0; i < 3; i++) {
+      if (session.status !== "player-turn") break
+      const r = resolvePlayerMatch(session, loadout, "specials")
+      session = r.session
+    }
+    if (session.status === "eliminated") session = completeCup(session)
+    champion = session.championName
+    return {
+      rivals: session.rivalVerdicts.map((v) => [v.winner, v.battle?.events]),
+      players: session.playerVerdicts.map((v) => [v.winner, v.battle?.events]),
+      champion,
+    }
+  }
+
+  test("same state + same picks → identical tournaments across three runs", () => {
+    const a = fullRun(42)
+    expect(a).toEqual(fullRun(42))
+    expect(a).toEqual(fullRun(42))
+  })
+
+  test("different coach picks → (expected) different player battles", () => {
+    const s = cupDayState(42)
+    const session = prepareCup(s)
+    if (!session) throw new Error("session did not resolve")
+    const picks = defaultPicks(s)
+    const balanced = resolvePlayerMatch(session, picks.loadout, "balanced")
+    const specials = resolvePlayerMatch(session, picks.loadout, "specials")
+    expect(balanced.verdict.battle).not.toEqual(specials.verdict.battle)
+  })
+
+  test("spar exhibition resolution stays independent of the cup session", () => {
+    // The spectator spar flow keeps its own pre-resolved model; the cup
+    // session machinery must not have coupled into it.
+    const s = cupDayState()
+    const creature = s.creature as Creature
+    const species = getSpecies(creature.speciesId)
+    if (!species) throw new Error("unknown species")
+    const a = makeExhibition(creature, "balanced", 12345)
+    const b = makeExhibition(creature, "balanced", 12345)
+    // A SparSetup is unresolved — the spar flow resolves it itself.
+    const ra = resolveBattle(a.ownedSide, a.rivalSide, 12345)
+    const rb = resolveBattle(b.ownedSide, b.rivalSide, 12345)
+    expect(ra.events).toEqual(rb.events)
   })
 })
 
