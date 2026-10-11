@@ -20,6 +20,8 @@ import {
   type StatKey,
   TRAINING_CAP,
 } from "@apex/sim"
+import { icons } from "./ui/icons"
+import { meter, plate, tab } from "./ui/kit"
 
 export interface HudHandlers {
   onAdvanceDay: () => void
@@ -200,23 +202,49 @@ function trainingStatus(
 }
 
 /**
+ * Index of the AP pip that just drained when the spend total goes down
+ * (drives the one-shot spend flash), or null when nothing was spent.
+ */
+export const spendFlashIndex = (prev: number, next: number): number | null =>
+  next < prev ? next : null
+
+/**
  * The care HUD: broadcast-style overlays over the 3D ranch — a top-center
- * day scoreboard, a bottom-left creature lower-third with condition bars,
- * and a bottom-right action cluster. Flat translucent panels, no gradients.
+ * score bug, a bottom-left creature lower-third with condition bars, and a
+ * bottom-right command dock. Built from the shared broadcast kit
+ * (ui/kit.ts): warm keyline plates, chamfered corners, skewed AP pips.
  */
 export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
-  // Top-center scoreboard chip.
-  const dayChip = document.createElement("div")
-  dayChip.className = "day-chip"
-  const dayReadout = document.createElement("span")
-  dayReadout.className = "day-readout"
-  const apRow = document.createElement("span")
-  apRow.className = "ap-row"
-  // Lifetime championship banner (save v5): a trophy glyph per cup won.
-  const banner = document.createElement("span")
-  banner.className = "cup-banner"
-  banner.title = "Cup championships"
-  dayChip.append(dayReadout, apRow, banner)
+  // Top-center score bug.
+  const scoreBug = plate({ className: "score-bug" })
+  const phaseTab = tab("Day phase", "outline")
+  const dayNum = document.createElement("span")
+  dayNum.className = "score-day-num"
+  const dayLabel = document.createElement("span")
+  dayLabel.className = "score-day-label"
+  dayLabel.textContent = "Day"
+  const scoreDay = document.createElement("span")
+  scoreDay.className = "score-day"
+  scoreDay.append(dayLabel, dayNum)
+  const divider = document.createElement("span")
+  divider.className = "score-divider"
+  const divider2 = divider.cloneNode() as HTMLElement
+  const apLabel = document.createElement("span")
+  apLabel.className = "score-ap-label"
+  apLabel.textContent = "AP"
+  const scoreAp = document.createElement("span")
+  scoreAp.className = "score-ap"
+  const apMeter = meter(0, ACTION_POINTS_PER_DAY)
+  scoreAp.append(apLabel, apMeter.root)
+  // Lifetime championships (save v5): one gold tally, no silent cap.
+  const trophy = document.createElement("span")
+  trophy.className = "score-trophy"
+  trophy.title = "Cup championships"
+  const trophyCount = document.createElement("span")
+  trophyCount.className = "score-trophy-count"
+  trophy.innerHTML = icons.trophy
+  trophy.append(trophyCount)
+  scoreBug.append(phaseTab, scoreDay, divider, scoreAp, divider2, trophy)
 
   // Bottom-left creature lower-third.
   const lowerThird = document.createElement("div")
@@ -353,11 +381,14 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   motionPill.addEventListener("click", handlers.onToggleReducedMotion)
   motionPill.append(motionState)
 
-  root.append(dayChip, lowerThird, cluster, motionPill)
+  root.append(scoreBug, lowerThird, cluster, motionPill)
 
   let pickerOpen = false
   let lastFocus: StatKey | null = null
   let current: GameState | null = null
+  // Previous AP total — drives the one-shot spend flash on the meter.
+  let prevAp: number | null = null
+  let apPips = apMeter.pips
 
   // Toggling the picker spends nothing — render only.
   trainButton.addEventListener("click", () => {
@@ -379,16 +410,34 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
 
   const update = (state: GameState): void => {
     current = state
-    dayReadout.textContent = `Day ${state.day} · ${
-      state.phase === "cup" ? "Cup day" : "Day phase"
-    }`
-    const filled = "●".repeat(state.actionPoints)
-    const maxAp = Math.max(ACTION_POINTS_PER_DAY, state.actionPoints)
-    const empty = "○".repeat(Math.max(0, maxAp - state.actionPoints))
-    apRow.textContent = `AP ${filled}${empty}`
-    // Championship banner: one 🏆 per cup won. Hidden at zero.
-    banner.textContent = "🏆".repeat(Math.min(5, state.cupsWon))
-    banner.style.display = state.cupsWon > 0 ? "" : "none"
+    // Score bug: the phase tab flips to accent gold on cup day.
+    const cupDay = state.phase === "cup"
+    phaseTab.textContent = cupDay ? "Cup day" : "Day phase"
+    phaseTab.className = cupDay ? "kit-tab" : "kit-tab is-outline"
+    dayNum.textContent = String(state.day)
+
+    // AP segmented meter. Cup bonus points extend past the daily max as
+    // chevron-cut bonus pips; a fresh spend flashes the drained pip out.
+    const bonus = Math.max(0, state.actionPoints - ACTION_POINTS_PER_DAY)
+    const clamped = Math.min(state.actionPoints, ACTION_POINTS_PER_DAY)
+    const wantPips = ACTION_POINTS_PER_DAY + bonus
+    if (apPips.length !== wantPips) {
+      const rebuilt = meter(clamped, ACTION_POINTS_PER_DAY, bonus)
+      apMeter.root.replaceChildren(...rebuilt.pips)
+      apPips = rebuilt.pips
+    }
+    const flash =
+      prevAp === null ? null : spendFlashIndex(prevAp, state.actionPoints)
+    apPips.forEach((pip, i) => {
+      pip.classList.toggle("is-bonus", i >= ACTION_POINTS_PER_DAY)
+      pip.classList.toggle("is-empty", i >= clamped)
+      pip.classList.toggle("is-spent", i === flash)
+    })
+    prevAp = state.actionPoints
+
+    // Championship tally: designed overflow — "× N" scales to any count.
+    trophyCount.textContent = `× ${state.cupsWon}`
+    trophy.style.display = state.cupsWon > 0 ? "" : "none"
     advance.textContent =
       state.phase === "cup" ? "Continue past cup" : "Advance Day"
 

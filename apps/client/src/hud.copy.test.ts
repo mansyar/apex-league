@@ -4,9 +4,23 @@ import {
   evolveCallout,
   flavorCallout,
   growthHint,
+  spendFlashIndex,
   stageLabel,
   unlockCallout,
 } from "./hud"
+
+describe("spendFlashIndex", () => {
+  test("returns the pip that just drained when AP goes down", () => {
+    expect(spendFlashIndex(3, 2)).toBe(2)
+    expect(spendFlashIndex(2, 1)).toBe(1)
+    expect(spendFlashIndex(1, 0)).toBe(0)
+  })
+
+  test("no flash when AP is unchanged or restored", () => {
+    expect(spendFlashIndex(3, 3)).toBe(null)
+    expect(spendFlashIndex(0, 3)).toBe(null)
+  })
+})
 
 describe("unlockCallout", () => {
   const drake = createCreature("fire_drake", 42)

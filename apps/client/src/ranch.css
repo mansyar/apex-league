@@ -1,31 +1,99 @@
-/* Ranch HUD surface (split from style.css, Phase B): day chip, creature lower-third, care + training cluster, chip family, cup banner. */
+/* Ranch HUD surface (split from style.css, Phase B): score bug, creature lower-third, care + training cluster, chip family. */
 
-/* Top-center scoreboard chip */
-.day-chip {
+/* Top-center score bug (broadcast kit) */
+.score-bug {
   position: absolute;
   top: 16px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 14px;
   align-items: center;
-  padding: 8px 18px;
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  border-radius: 999px;
+  gap: 14px;
+  padding: 10px 20px 11px;
+  clip-path: polygon(
+    12px 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    0 100%,
+    0 12px
+  );
+  filter: drop-shadow(0 8px 24px rgb(0 0 0 / 0.35));
+  animation: settle-down-centered 0.55s var(--kit-settle) both;
   user-select: none;
 }
 
-.day-readout {
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
+@keyframes settle-down-centered {
+  from {
+    transform: translate(-50%, -14px);
+    opacity: 0;
+  }
+
+  60% {
+    transform: translate(-50%, 2px);
+    opacity: 1;
+  }
+
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
 }
 
-.ap-row {
-  font-size: 14px;
+.score-day {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.score-day-label,
+.score-ap-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.score-ap-label {
   color: var(--accent);
-  letter-spacing: 0.12em;
+}
+
+.score-day-num {
+  font-size: 30px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.score-divider {
+  width: 1px;
+  height: 22px;
+  background: var(--keyline);
+}
+
+.score-ap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.score-trophy {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+}
+
+.score-trophy svg {
+  width: 17px;
+  height: 17px;
+}
+
+.score-trophy-count {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
 }
 
 /* Bottom-left creature lower-third */
@@ -504,12 +572,4 @@
   font-size: 10px;
   font-weight: 400;
   color: var(--ink-dim);
-}
-
-/* Cup banner: trophy glyph per lifetime championship (day chip, top). */
-.cup-banner {
-  margin-left: 10px;
-  font-size: 12px;
-  letter-spacing: 1px;
-  color: var(--accent);
 }
