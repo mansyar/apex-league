@@ -169,7 +169,7 @@ function pickNames(rng: Rng, count: number): readonly string[] {
 }
 
 // Re-exported for test imports (STARTERS is from ./species in reality).
-import { type BattleResult, type BattleSide, resolveBattle } from "./battle"
+import { type BattleResult, type BattleSide, type Tactic, resolveBattle } from "./battle"
 import { defaultLoadout } from "./loadout"
 import { STARTER_SPECIES as STARTERS } from "./species"
 
@@ -211,16 +211,38 @@ export interface CupResult {
   readonly roundsPlayed: number
 }
 
+/** One pre-resolved rival pairing of the player-independent subtree: the
+ * verdict for display, plus the slots that advance/exit (progression). */
+export interface RivalResolution {
+  readonly verdict: RoundVerdict
+  readonly winner: CupSlot
+  readonly loser: CupSlot
+}
+
 /** A live cup session (live-cup spec FR2): the seeded bracket plus the
  * player-independent subtree resolved at entry. The player's own branch
  * (QF1, SF1, Final) resolves on demand at fight time, with the loadout
- * and tactic picked in the coaching room. */
+ * and tactic picked in the coaching room. Immutable: every resolution
+ * returns a new session. */
 export interface CupSession {
   readonly bracket: CupBracket
   /** The bracket seed — the determinism anchor (day + creature identity). */
   readonly seed: number
-  /** Pre-resolved rival verdicts in reveal order: QF2, QF3, QF4, SF2. */
+  /** Pre-resolved rival pairings in reveal order: QF2, QF3, QF4, SF2. */
+  readonly rivalResolutions: readonly RivalResolution[]
+  /** The rival verdicts (display contract, in reveal order). */
   readonly rivalVerdicts: readonly RoundVerdict[]
+  /** The player's live-resolved verdicts, in round order. */
+  readonly playerVerdicts: readonly RoundVerdict[]
+  /** Rival matches resolved after the player's exit (auto-complete). */
+  readonly completionVerdicts: readonly RoundVerdict[]
+  /** The round the player fights next (1-3); 0 once eliminated or crowned. */
+  readonly nextPlayerRound: number
+  /** The player's next opponent, or null when the player is done. */
+  readonly nextOpponent: CupSlot | null
+  readonly status: "player-turn" | "eliminated" | "champion"
+  /** The champion once the cup completes; null while the player is live. */
+  readonly championName: string | null
 }
 
 /** Start a live cup session: build the seeded bracket and pre-resolve the
@@ -248,10 +270,107 @@ export function startCupSession(
   // The round-2 field is the round-1 winners in slot order, so SF2 pairs
   // the QF3 and QF4 winners (SF1 would pair the QF1/QF2 winners).
   const sf2 = resolvePairing(2, qf3.winner, qf4.winner, owned, rivalSeed(2, 1))
+  const rivalResolutions: readonly RivalResolution[] = [
+    qf2,
+    qf3,
+    qf4,
+    sf2,
+  ]
   return {
     bracket,
     seed,
-    rivalVerdicts: [qf2.verdict, qf3.verdict, qf4.verdict, sf2.verdict],
+    rivalResolutions,
+    rivalVerdicts: rivalResolutions.map((r) => r.verdict),
+    playerVerdicts: [],
+    completionVerdicts: [],
+    nextPlayerRound: 1,
+    nextOpponent: slotAt(1),
+    status: "player-turn",
+    championName: null,
+  }
+}
+
+/**
+ * Resolve the player's current match live with the coaching room's picks
+ * (live-cup spec FR3/FR5). The battle seed follows the legacy per-pairing
+ * formula `(day*97 + round*13 + i*7)` with the player's pairing always
+ * first in its round (i = 0), so default picks reproduce the legacy
+ * one-sitting battles exactly. Pure: returns a fresh advanced session;
+ * throws when the session is not waiting on the player.
+ */
+export function resolvePlayerMatch(
+  session: CupSession,
+  loadout: readonly string[],
+  tactic: Tactic,
+): { session: CupSession; verdict: RoundVerdict } {
+  if (session.status !== "player-turn") {
+    throw new Error("The cup is not waiting on the player")
+  }
+  const round = session.nextPlayerRound
+  const opponent = session.nextOpponent
+  const playerSlot = session.bracket.slots[0]
+  if (!opponent || !playerSlot) {
+    throw new Error("The session has no pending player pairing")
+  }
+  const seed = (session.bracket.day * 97 + round * 13) >>> 0
+  const result: BattleResult = resolveBattle(
+    slotPlayerSide(playerSlot, loadout, tactic),
+    sideFor(opponent, seed),
+    seed,
+  )
+  const line = result.winner
+    ? `${result.winner} takes the ${roundLabel(round)}!`
+    : `Both fighters are down — the ${roundLabel(round)} is a draw.`
+  const verdict: RoundVerdict = {
+    round,
+    slotA: playerSlot.name,
+    slotB: opponent.name,
+    winner: result.winner,
+    line,
+    battle: result,
+  }
+  // On a draw the legacy fallback favors the player slot (slot a here).
+  const playerWon = result.winner === null || result.winner === playerSlot.name
+  if (playerWon && round === CUP_ROUNDS) {
+    return {
+      session: {
+        ...session,
+        playerVerdicts: [...session.playerVerdicts, verdict],
+        nextPlayerRound: 0,
+        nextOpponent: null,
+        status: "champion",
+        championName: playerSlot.name,
+      },
+      verdict,
+    }
+  }
+  if (!playerWon) {
+    return {
+      session: {
+        ...session,
+        playerVerdicts: [...session.playerVerdicts, verdict],
+        nextPlayerRound: 0,
+        nextOpponent: null,
+        status: "eliminated",
+      },
+      verdict,
+    }
+  }
+  // Advanced to the next round: the player now meets the winner of the
+  // opposing pairing (QF2's winner in the semifinal, SF2's in the final).
+  const nextOpponent =
+    round === 1
+      ? session.rivalResolutions[0]?.winner
+      : session.rivalResolutions[3]?.winner
+  if (!nextOpponent) throw new Error("Missing rival winner for the next round")
+  return {
+    session: {
+      ...session,
+      playerVerdicts: [...session.playerVerdicts, verdict],
+      nextPlayerRound: round + 1,
+      nextOpponent,
+    },
+    verdict,
   }
 }
 
@@ -292,16 +411,41 @@ function sideFor(slot: CupSlot, seed: number): BattleSide {
   }
 }
 
-/** The player's own BattleSide: effective stats + the chosen loadout. */
-function playerSide(owned: Readonly<Creature>): BattleSide {
+/** The player's own BattleSide: effective stats + the chosen loadout and
+ * tactic. The live cup passes the coaching room's picks; the legacy
+ * one-sitting path omits them (equipped loadout, balanced tactic). */
+function playerSide(
+  owned: Readonly<Creature>,
+  loadout?: readonly string[],
+  tactic?: Tactic,
+): BattleSide {
   const species = getSpecies(owned.speciesId)
   if (!species) throw new Error(`Unknown species: ${owned.speciesId}`)
   return {
     name: owned.name,
     element: owned.element,
     stats: effectiveStats(owned),
-    kit: owned.loadout ?? defaultLoadout(owned, species),
-    tactic: "balanced",
+    kit: loadout ?? owned.loadout ?? defaultLoadout(owned, species),
+    tactic: tactic ?? "balanced",
+    temperament: species.temperament,
+  }
+}
+
+/** The player's BattleSide from their frozen bracket slot (live cup): the
+ * snapshot stats taken at entry, plus the coaching room's loadout/tactic. */
+function slotPlayerSide(
+  slot: CupSlot,
+  loadout: readonly string[],
+  tactic: Tactic,
+): BattleSide {
+  const species = getSpecies(slot.speciesId)
+  if (!species) throw new Error(`Unknown species: ${slot.speciesId}`)
+  return {
+    name: slot.name,
+    element: species.element,
+    stats: slot.stats,
+    kit: loadout,
+    tactic,
     temperament: species.temperament,
   }
 }
@@ -313,7 +457,7 @@ function resolvePairing(
   b: CupSlot,
   player: Readonly<Creature>,
   seed: number,
-): { verdict: RoundVerdict; winner: CupSlot } {
+): { verdict: RoundVerdict; winner: CupSlot; loser: CupSlot } {
   let aSide: BattleSide
   let bSide: BattleSide
   if (a.isPlayer) {
@@ -332,6 +476,7 @@ function resolvePairing(
     : `Both fighters are down — the ${roundLabel(round)} is a draw.`
   const winnerSlot = result.winner === a.name ? a : b
   const fallback = a.isPlayer ? a : b
+  const advancing = result.winner ? winnerSlot : fallback
   return {
     verdict: {
       round,
@@ -344,7 +489,8 @@ function resolvePairing(
     // On a draw (double-ko) neither advanced cleanly; pick the slot with the
     // higher remaining HP via resolver's finalHp to keep the field shrinking.
     // The resolver already guarantees exactly one winner unless double_ko.
-    winner: result.winner ? winnerSlot : fallback,
+    winner: advancing,
+    loser: advancing === a ? b : a,
   }
 }
 

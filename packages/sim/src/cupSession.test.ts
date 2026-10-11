@@ -2,12 +2,17 @@ import { describe, expect, test } from "bun:test"
 import {
   chooseStarter,
   createInitialState,
+  defaultLoadout,
+  getSpecies,
   makeBracket,
+  prepareCup,
   resolveCup,
+  resolvePlayerMatch,
   type GameState,
+  type Tactic,
 } from "./index"
 import { advanceDay } from "./ticker"
-import { prepareCup } from "./machine"
+import type { Creature } from "./index"
 
 /** A state standing on cup day 7 with a live creature (phase "cup"). */
 function cupDayState(seed = 42): GameState {
@@ -109,5 +114,149 @@ describe("prepareCup — the live cup session (design locked, pre-resolution)", 
 
   test("returns null without a creature (illegal entry)", () => {
     expect(prepareCup(createInitialState())).toBeNull()
+  })
+})
+
+describe("resolvePlayerMatch — the live player branch", () => {
+  /** Default coach picks for a state's creature. */
+  function defaultPicks(s: GameState): {
+    loadout: readonly string[]
+    tactic: Tactic
+    creature: Creature
+  } {
+    const creature = s.creature as Creature
+    const species = getSpecies(creature.speciesId)
+    if (!species) throw new Error("unknown species")
+    return {
+      loadout: defaultLoadout(creature, species),
+      tactic: "balanced",
+      creature,
+    }
+  }
+
+  test("resolves QF1 live on a fresh session", () => {
+    const s = cupDayState()
+    const session = prepareCup(s)
+    if (!session) throw new Error("session did not resolve")
+    const picks = defaultPicks(s)
+    const r = resolvePlayerMatch(session, picks.loadout, picks.tactic)
+    expect(r.session.playerVerdicts.length).toBe(1)
+    expect(r.verdict.battle.events.length).toBeGreaterThan(0)
+    const winner = r.verdict.winner
+    if (!winner) throw new Error("no winner in the live QF1")
+    expect([picks.creature.name, r.verdict.slotB]).toContain(winner)
+  })
+
+  test("with default picks the live battle equals the legacy one-sitting QF1", () => {
+    const s = cupDayState()
+    const session = prepareCup(s)
+    if (!session || !s.creature) throw new Error("session did not resolve")
+    const picks = defaultPicks(s)
+    const r = resolvePlayerMatch(session, picks.loadout, picks.tactic)
+    const legacy = resolveCup(session.bracket, s.creature)
+    const legacyQf1 = legacy.rounds[0]?.verdicts[0]
+    if (!legacyQf1) throw new Error("legacy cup has no QF1 verdict")
+    expect(r.verdict).toEqual(legacyQf1)
+  })
+
+  test("a win advances to the next round against the pre-resolved winner", () => {
+    // Sweep seeds until the player takes their quarterfinal.
+    for (let seed = 1; seed <= 40; seed++) {
+      const s = cupDayState(seed)
+      const session = prepareCup(s)
+      if (!session) throw new Error("session did not resolve")
+      const picks = defaultPicks(s)
+      const r = resolvePlayerMatch(session, picks.loadout, picks.tactic)
+      if (r.verdict.winner !== picks.creature.name) continue
+      expect(r.session.nextPlayerRound).toBe(2)
+      expect(r.session.status).toBe("player-turn")
+      const rivalWinner = session.rivalVerdicts[0]?.winner
+      if (rivalWinner === undefined || rivalWinner === null) {
+        throw new Error("QF2 resolved without a winner")
+      }
+      expect(r.session.nextOpponent?.name).toBe(rivalWinner)
+      return
+    }
+    throw new Error("no winning seed found in the sweep")
+  })
+
+  test("a loss marks the session eliminated (the bracket rest is separate)", () => {
+    for (let seed = 1; seed <= 40; seed++) {
+      const s = cupDayState(seed)
+      const session = prepareCup(s)
+      if (!session) throw new Error("session did not resolve")
+      const picks = defaultPicks(s)
+      const r = resolvePlayerMatch(session, picks.loadout, picks.tactic)
+      if (r.verdict.winner === picks.creature.name) continue
+      expect(r.session.status).toBe("eliminated")
+      expect(r.session.nextPlayerRound).toBe(0)
+      expect(r.session.championName).toBeNull()
+      return
+    }
+    throw new Error("no losing seed found in the sweep")
+  })
+
+  test("the coach's tactic changes the battle (specials vs balanced)", () => {
+    // Pin a seed where the two tactics produce different exchanges.
+    for (let seed = 1; seed <= 40; seed++) {
+      const s = cupDayState(seed)
+      const session = prepareCup(s)
+      if (!session) throw new Error("session did not resolve")
+      const picks = defaultPicks(s)
+      const a = resolvePlayerMatch(session, picks.loadout, "balanced")
+      const b = resolvePlayerMatch(session, picks.loadout, "specials")
+      if (a.verdict.battle.events.length !== b.verdict.battle.events.length) {
+        expect(a.verdict.battle.events).not.toEqual(b.verdict.battle.events)
+        return
+      }
+      expect(a.verdict.battle.events).not.toEqual(b.verdict.battle.events)
+      return
+    }
+    throw new Error("no tactic-sensitive seed found in the sweep")
+  })
+
+  test("is deterministic: same session + same picks → same battle", () => {
+    const s = cupDayState()
+    const session = prepareCup(s)
+    if (!session) throw new Error("session did not resolve")
+    const picks = defaultPicks(s)
+    const a = resolvePlayerMatch(session, picks.loadout, picks.tactic)
+    const b = resolvePlayerMatch(session, picks.loadout, picks.tactic)
+    expect(a.verdict.battle).toEqual(b.verdict.battle)
+    expect(a.session).toEqual(b.session)
+  })
+
+  test("is pure: the input session is untouched", () => {
+    const s = cupDayState()
+    const session = prepareCup(s)
+    if (!session) throw new Error("session did not resolve")
+    const picks = defaultPicks(s)
+    const before = JSON.stringify(session)
+    resolvePlayerMatch(session, picks.loadout, picks.tactic)
+    expect(JSON.stringify(session)).toBe(before)
+  })
+
+  test("a full win path crowns the player through three live matches", () => {
+    for (let seed = 1; seed <= 60; seed++) {
+      const s = cupDayState(seed)
+      let session = prepareCup(s)
+      if (!session) throw new Error("session did not resolve")
+      const picks = defaultPicks(s)
+      let crowned = false
+      for (let round = 1; round <= 3; round++) {
+        if (session.status !== "player-turn") break
+        const r = resolvePlayerMatch(session, picks.loadout, picks.tactic)
+        session = r.session
+        if (r.verdict.winner !== picks.creature.name) break
+        if (session.status === "champion") crowned = true
+      }
+      if (!crowned) continue
+      expect(session.status).toBe("champion")
+      expect(session.championName).toBe(picks.creature.name)
+      expect(session.nextPlayerRound).toBe(0)
+      expect(session.playerVerdicts.length).toBe(3)
+      return
+    }
+    throw new Error("no champion seed found in the sweep")
   })
 })
