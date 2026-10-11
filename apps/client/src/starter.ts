@@ -39,7 +39,8 @@ function starterCard(species: SpeciesDef, onChoose: (id: string) => void) {
 
 /**
  * First-run starter choice: three cards over the ranch, one per element
- * line. Water is present but locked — the tease stays visible.
+ * line — all three species available (water included; the ribbon branch
+ * above only fires for future unlisted species).
  */
 export function createStarterChoice(
   root: HTMLElement,
