@@ -259,6 +259,20 @@ function playerSide(owned: Readonly<Creature>): BattleSide {
   }
 }
 
+/** Deterministic double-KO tiebreak: the slot with the higher remaining HP
+ * advances; an exact tie (or a missing finalHp entry, treated as 0) falls to
+ * the earlier slot in field order. Pure — the verdict line still reports the
+ * draw; only bracket advancement is decided here. */
+export function doubleKoWinner(
+  a: CupSlot,
+  b: CupSlot,
+  finalHp: Readonly<Record<string, number>>,
+): CupSlot {
+  const hpA = finalHp[a.name] ?? 0
+  const hpB = finalHp[b.name] ?? 0
+  return hpB > hpA ? b : a
+}
+
 /** Resolve one pairing into a verdict (pure). */
 function resolvePairing(
   round: number,
@@ -284,7 +298,6 @@ function resolvePairing(
     ? `${result.winner} takes the ${roundLabel(round)}!`
     : `Both fighters are down — the ${roundLabel(round)} is a draw.`
   const winnerSlot = result.winner === a.name ? a : b
-  const fallback = a.isPlayer ? a : b
   return {
     verdict: {
       round,
@@ -293,10 +306,10 @@ function resolvePairing(
       winner: result.winner,
       line,
     },
-    // On a draw (double-ko) neither advanced cleanly; pick the slot with the
-    // higher remaining HP via resolver's finalHp to keep the field shrinking.
-    // The resolver already guarantees exactly one winner unless double_ko.
-    winner: result.winner ? winnerSlot : fallback,
+    // On a draw (double-ko) the verdict still reads "draw", but the bracket
+    // must keep shrinking: the slot with the higher remaining HP advances
+    // (exact tie → the earlier slot). See doubleKoWinner.
+    winner: result.winner ? winnerSlot : doubleKoWinner(a, b, result.finalHp),
   }
 }
 
