@@ -303,11 +303,12 @@ body,
 }
 
 /* Reduced-motion settings pill (save v5): a quiet bottom-right control
-   that mirrors — and persists — the preference the arena honors. */
+   that mirrors — and persists — the preference the arena honors. Sits
+   just above the action cluster (its measured height is ~190px). */
 .motion-pill {
   position: fixed;
   right: 20px;
-  bottom: 160px;
+  bottom: 212px;
   display: flex;
   align-items: center;
   gap: 8px;
