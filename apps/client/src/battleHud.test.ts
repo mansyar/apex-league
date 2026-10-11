@@ -1,5 +1,11 @@
 import { describe, expect, test } from "bun:test"
-import { hpFraction, type RangeState, rangeAfterStep } from "./battleHud"
+import {
+  chevronsFor,
+  hitReaction,
+  hpFraction,
+  type RangeState,
+  rangeAfterStep,
+} from "./battleHud"
 
 describe("rangeAfterStep", () => {
   const cases: Array<{
@@ -79,4 +85,58 @@ describe("hpFraction", () => {
       expect(hpFraction(hp, max)).toBe(expected)
     })
   }
+})
+
+describe("hitReaction", () => {
+  const cases: Array<{
+    name: string
+    damage: number | undefined
+    expected: { jolt: boolean; kick: boolean }
+  }> = [
+    {
+      name: "a missed shot causes no reaction",
+      damage: undefined,
+      expected: { jolt: false, kick: false },
+    },
+    {
+      name: "a zero-damage chip causes no reaction",
+      damage: 0,
+      expected: { jolt: false, kick: false },
+    },
+    {
+      name: "a light hit jolts the plate",
+      damage: 5,
+      expected: { jolt: true, kick: false },
+    },
+    {
+      name: "a heavy special kicks the whole placard",
+      damage: 19,
+      expected: { jolt: true, kick: true },
+    },
+    // The kick threshold itself: 14 stays a jolt, 15 crosses over.
+    {
+      name: "14 damage is still a jolt",
+      damage: 14,
+      expected: { jolt: true, kick: false },
+    },
+    {
+      name: "15 damage crosses the kick line",
+      damage: 15,
+      expected: { jolt: true, kick: true },
+    },
+  ]
+  for (const { name, damage, expected } of cases) {
+    test(name, () => {
+      expect(hitReaction(damage)).toEqual(expected)
+    })
+  }
+})
+
+describe("chevronsFor", () => {
+  test("holding range lights one chevron", () => {
+    expect(chevronsFor("hold")).toBe(1)
+  })
+  test("close quarters lights all three", () => {
+    expect(chevronsFor("close")).toBe(3)
+  })
 })

@@ -245,15 +245,6 @@ export function createSpar(
   const result = document.createElement("div")
   result.className = "spar-result"
 
-  // Result banner (Phase C): a big-moment stamp over the arena holding the
-  // verdict + ending reason while the finisher plays out beneath it.
-  const banner = document.createElement("div")
-  banner.className = "spar-banner"
-  banner.style.display = "none"
-  const bannerSub = document.createElement("span")
-  bannerSub.className = "spar-banner-sub"
-  banner.append(bannerSub)
-
   const close = document.createElement("button")
   close.className = "spar-close"
   close.type = "button"
@@ -261,7 +252,6 @@ export function createSpar(
   close.style.display = "none"
 
   panel.append(
-    banner,
     heading,
     intro,
     rivalRow,
@@ -270,13 +260,17 @@ export function createSpar(
     cards,
     loadoutRow,
     tactics,
-    fastButton,
-    replayButton,
-    logBox,
     result,
-    close,
   )
   overlay.append(panel)
+
+  // Fight chrome (Phase D broadcast rework): while the panel is hidden the
+  // arena plays full-bleed and these chips are the only controls left.
+  const chips = document.createElement("div")
+  chips.className = "spar-chips"
+  chips.style.display = "none"
+  chips.append(fastButton, replayButton, logBox, close)
+  overlay.append(chips)
   root.append(overlay)
   // Broadcast HUD riding the overlay's margins (Phase D): created after
   // the overlay exists; createBattleHud prepends itself so the panel
@@ -327,10 +321,12 @@ export function createSpar(
   ): void => {
     clearTimer()
     result.textContent = text
-    // Result banner (Phase C): the verdict gets a reason subline in
-    // announcer voice. No stale banners: hidden again on open.
-    bannerSub.textContent = reasonLine(verdict)
-    banner.style.display = ""
+    // Verdict as a broadcast stamp over the full-bleed arena (the panel
+    // stays out of the way); the subline carries the ending reason.
+    battleHud.stamp(
+      verdict.winner === null ? "A drawn spar" : `Victory — ${verdict.winner}`,
+      reasonLine(verdict),
+    )
     if (isDraw) {
       result.classList.add("spar-result-draw")
       result.classList.remove("spar-result-win")
@@ -408,6 +404,11 @@ export function createSpar(
     battleHud.show(fight)
     lastRun = { events: verdict.events, verdict, steps, fight }
     handlers.onFightStart?.(castingFor(owned, setup))
+    // Broadcast rework: the panel exits, the arena plays full-bleed, and
+    // the chips row is the only control surface left.
+    panel.style.display = "none"
+    chips.style.display = ""
+    showLine(intro.textContent ?? "")
     if (reducedMotion()) {
       // Full log at once, no timers (FR11); Replay slowly gives a text-only
       // stepped path for those who want the build-up anyway. The staging
@@ -516,13 +517,13 @@ export function createSpar(
     intro.textContent = "Pick how your partner fights. No AP, nothing saved."
     result.textContent = ""
     result.classList.remove("spar-result-draw", "spar-result-win")
-    banner.style.display = "none"
-    bannerSub.textContent = ""
     log.replaceChildren()
     log.hidden = true
     logToggle.textContent = "Battle log ▸"
     logToggle.setAttribute("aria-expanded", "false")
     battleHud.hide()
+    panel.style.display = ""
+    chips.style.display = "none"
     close.style.display = "none"
     fastButton.style.display = "none"
     replayButton.style.display = "none"
@@ -572,6 +573,7 @@ export function createSpar(
     logToggle.setAttribute("aria-expanded", "false")
     result.textContent = ""
     result.classList.remove("spar-result-draw", "spar-result-win")
+    battleHud.hideStamp()
     replaying = true
     replayButton.disabled = true
     speed = "normal"
