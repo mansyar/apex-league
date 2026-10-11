@@ -66,10 +66,12 @@ Verification & Checkpoint gate before moving on.
 
 ## Phase C — Shared playback driver extraction (client)
 
-- [ ] Task: Extract the playback driver from `spar.ts` (timer chain,
+- [x] Task: Extract the playback driver from `spar.ts` (timer chain,
   fast-forward toggle, reduced-motion instant dump, slow-replay fallback,
   step callbacks) into a reusable module; `spar.ts` consumes it with **zero
-  behavior change** — all existing spar/HUD tests stay green
+  behavior change** - all existing spar/HUD tests stay green
+  *(0b603cb — playbackDriver.ts + 6 tests; spar rewired via callbacks,
+  91 client tests green)*
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase D — Bracket HUD + live cup flow (client, implements the approved mocks)
