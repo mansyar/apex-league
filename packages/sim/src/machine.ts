@@ -1,8 +1,8 @@
 import { isCupDay } from "./calendar"
-import { makeRng } from "./rng"
 import { type Creature, effectiveStats } from "./creature"
-import { makeBracket, resolveCup, type CupResult } from "./cup"
+import { type CupResult, makeBracket, resolveCup } from "./cup"
 import { applyCupRewards } from "./cupRewards"
+import { makeRng } from "./rng"
 import type { GameState } from "./state"
 
 /**
@@ -55,14 +55,14 @@ export function enterCup(state: GameState): {
   if (!canEnterCup(state)) {
     return { state, ok: false, cup: null }
   }
-  const creature: Creature = state.creature
+  // canEnterCup guarantees the creature exists past this point.
+  const creature = state.creature as Creature
   const day = state.day
   // The seed folds in the creature's identity + training so an identical
   // day with a different roster draws a different bracket, while the same
   // save at the same day always draws the same one.
   const eff = effectiveStats(creature)
-  const identity =
-    eff.hp * 7 + eff.atk * 13 + eff.def * 17 + eff.spd * 23
+  const identity = eff.hp * 7 + eff.atk * 13 + eff.def * 17 + eff.spd * 23
   const seed = (day * 2654435761 + identity * 97 + 1) >>> 0
   const bracket = makeBracket(creature, day)
   const cup = resolveCup(bracket, creature)

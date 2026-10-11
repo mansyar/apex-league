@@ -1,16 +1,18 @@
 import { describe, expect, test } from "bun:test"
 import {
   type Creature,
+  chooseStarter,
   createCreature,
   createInitialState,
-  chooseStarter,
+  type GameState,
 } from "./index"
-import { advanceDay } from "./ticker"
 import { enterCup } from "./machine"
+import { advanceDay } from "./ticker"
 
 function ownedState(seed = 42): GameState {
   return chooseStarter(createInitialState(), "fire_drake", seed)
 }
+void createCreature
 
 describe("enterCup — the cup-day action", () => {
   test("resolves the entire cup in one sitting and returns to day phase", () => {
@@ -67,7 +69,7 @@ describe("enterCup — the cup-day action", () => {
     const bare = createInitialState() // day 1, no creature
     expect(enterCup(bare).ok).toBe(false)
 
-    let s = advanceDay(ownedState()) // day 2
+    const s = advanceDay(ownedState()) // day 2
     expect(enterCup(s).ok).toBe(false)
   })
 

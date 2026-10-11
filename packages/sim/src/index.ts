@@ -60,6 +60,21 @@ export {
   TRAINING_CAP,
   type TrainingResult,
 } from "./creature"
+export type {
+  CupBracket,
+  CupResult,
+  CupRoundResult,
+  CupSlot,
+  RoundVerdict,
+} from "./cup"
+export {
+  BRACKET_SLOTS,
+  CUP_ROUNDS,
+  makeBracket,
+  resolveCup,
+  runRound,
+} from "./cup"
+export { applyCupRewards, CUP_REWARDS, type CupOutcome } from "./cupRewards"
 export {
   clearLoadout,
   defaultLoadout,
@@ -69,7 +84,7 @@ export {
   setLoadout,
   unlockedKit,
 } from "./loadout"
-export { beginCup, endCup } from "./machine"
+export { beginCup, endCup, enterCup } from "./machine"
 export { makeRng, type Rng } from "./rng"
 export { migrate } from "./save/migrate"
 export { SAVE_VERSION, type SaveData, serializeSave } from "./save/schema"
@@ -96,4 +111,4 @@ export {
   type GameState,
   type Phase,
 } from "./state"
-export { advanceDay } from "./ticker"
+export { advanceDay, CUP_WIN_AP_BONUS } from "./ticker"
