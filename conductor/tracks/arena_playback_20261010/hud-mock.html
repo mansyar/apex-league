@@ -105,7 +105,7 @@
     width: min(86%, 980px);
     display: flex;
     align-items: stretch;
-    gap: 6px;
+    filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.45));
     transition: transform 0.18s ease;
   }
   .placard.kick { transform: translateX(-50%) translateY(3px) scale(0.995); }
@@ -118,14 +118,13 @@
     gap: 12px;
     background: var(--panel);
     border: 1px solid var(--panel-border);
-    border-radius: 14px;
     padding: 10px 16px 12px;
     min-height: 64px;
     position: relative;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
   }
-
-  .plate.right { grid-template-columns: 1fr auto; }
+  .plate.left  { clip-path: polygon(0 0, 100% 0, calc(100% - 18px) 100%, 0 100%); border-right: none; }
+  .plate.right { clip-path: polygon(18px 0, 100% 0, 100% 100%, 0 100%); border-left: none;
+                 grid-template-columns: 1fr auto; }
 
   /* hit reaction: the victim's plate is shoved away from the blow */
   .plate.jolt-left  { animation: jolt-left 0.32s ease-out; }
@@ -175,14 +174,14 @@
     height: 14px;
     background: rgba(0, 0, 0, 0.55);
     border: 1px solid rgba(255, 236, 200, 0.22);
-    border-radius: 999px;
     overflow: hidden;
   }
+  .plate.left  .hp-bar { transform: skewX(-14deg); }
+  .plate.right .hp-bar { transform: skewX(14deg); }
 
   .hp-lag, .hp-fill {
     position: absolute; inset: 1px auto 1px 1px;
     width: 100%;
-    border-radius: 999px;
   }
   .plate.right .hp-lag, .plate.right .hp-fill { inset: 1px 1px 1px auto; }
 
@@ -217,9 +216,10 @@
     gap: 5px;
     background: var(--panel);
     border: 1px solid var(--panel-border);
-    border-radius: 14px;
     padding: 8px 6px 10px;
+    margin: 0 -1px;
     z-index: 1;
+    clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 100%, 0 100%);
   }
   .vs {
     font-family: "Barlow Condensed", sans-serif;
@@ -259,7 +259,6 @@
     bottom: 7%;
     display: flex;
     align-items: stretch;
-    gap: 6px;
     max-width: 60%;
   }
   .lt-tab {
@@ -269,19 +268,20 @@
     font-weight: 800;
     font-size: 13px;
     letter-spacing: 0.18em;
-    padding: 8px 14px;
+    padding: 8px 12px;
     display: grid;
     place-items: center;
-    border-radius: 10px;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
   }
   .lt-line {
     background: var(--panel);
     border: 1px solid var(--panel-border);
-    border-radius: 10px;
-    padding: 8px 18px;
+    border-left: none;
+    padding: 8px 18px 8px 14px;
     font-size: 15px;
     font-weight: 500;
     min-width: 260px;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
   }
   .lt-line.swap { animation: lt-in 0.35s ease-out; }
   @keyframes lt-in {
@@ -348,7 +348,6 @@
   .stamp-rule {
     height: 3px;
     background: var(--gold);
-    border-radius: 2px;
     margin: 12px auto;
     width: 0;
     transition: width 0.5s ease 0.15s;
