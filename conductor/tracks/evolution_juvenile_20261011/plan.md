@@ -23,7 +23,9 @@ manual verification for presentation tasks, phase checkpoints per
 - [x] Task: Save v6 migration — [checkpoint: deda2f1]
   - [x] Tests: v5 fixture migrates to v6 (sickCooldown stamped clean, stage/stats untouched — migrated babies mature on their next well-cared night via the gate); v6 validation rejects malformed sickCooldown; round-trip save/load; migrated day-10 creature evolves on its next settled night
   - [x] Implement schema bump (SAVE_VERSION 6) + v5→v6 migration step + `isValidCreature` cooldown validation in `save/`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Tests: all sim suites green (332 pass) — evolution gate, settlement hook, stat boost/kit gate, save v6 migration
+  - [x] Manual verification: scripted headless playthrough `artifacts/evolution-demo.ts` — Path 1 matures night of day 10 with exact +3/+2/+2/+1 boost; Path 2 sick night stamps cooldown 3 and delays to night of day 13; Path 3 v5 payload (day 12, no cooldown field) loads as baby and matures next settled night. Browser verification deferred to Phase 3 checkpoint (ceremony/HUD UI does not exist yet). **[checkpoint: deda2f1]** (verification note appended to deda2f1)
 
 ## Phase 2 — Voxel Pipeline: Juvenile Stage Builds
 
