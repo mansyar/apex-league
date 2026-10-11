@@ -43,11 +43,16 @@ manual verification for presentation tasks, phase checkpoints per
 
 *(presentation — manual verification path)*
 
-- [ ] Task: Evolution ceremony — walk-to-center, glow/scale-up mesh swap, coach callout with stat gains; reduced-motion instant variant; non-blocking HUD input
-- [ ] Task: HUD stage badge + stat row — nameplate badge, boosted stats visible
-- [ ] Task: Growth hint line — coach-voice hint from day 5, threshold undisclosed
-- [ ] Task: Kit picker rows — locked/unlocked rows reflect new tier-3 rule
-- [ ] Task: Baby scale — 0.6× holder scale for baby stage (respecting rig-units contract from learnings.md)
+- [x] Task: Evolution ceremony — walk-to-center, glow/scale-up mesh swap, coach callout with stat gains; reduced-motion instant variant; non-blocking HUD input — [checkpoint: 69a87b5]
+  - Position-driven machine (walk → glow swell → one-frame swap → settle), reduced-motion swaps in place, dt-clamped convergence; `hud.announceEvolution` carries the stat-gain callout
+- [x] Task: HUD stage badge + stat row — nameplate badge, boosted stats visible
+  - `.stage-badge` on the name row; the stat row reflects boosted base automatically (sim mutated `stats`)
+- [x] Task: Growth hint line — coach-voice hint from day 5, threshold undisclosed
+  - `growthHint(day, creature)` below condition coach lines in the status priority chain; `EVOLUTION_HINT_DAY = 5` lives in the sim
+- [x] Task: Kit picker rows — locked/unlocked rows reflect new tier-3 rule
+  - Rows recompute through the stage-aware sim helpers; freshly evolved juveniles see "Evolution unlocked move 3 — …"
+- [x] Task: Baby scale — 0.6× holder scale for baby stage (respecting rig-units contract from learnings.md)
+  - Holder-scale only (BABY_SCALE 0.6 / JUVENILE_SCALE 1.0), never on rig children; arena casts are stage-seed-aware so the individual never re-rolls
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Wrap-up
