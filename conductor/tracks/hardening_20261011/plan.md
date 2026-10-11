@@ -13,11 +13,12 @@ notes per task, phase checkpoints with explicit user verification).
         (FR-C4 part 1)
   - [x] Commit `fix(sim): cup double_ko resolves by remaining HP tiebreak` +
         git note
-- [ ] Task: Resolve CupOutcome at machine boundary (FR-A5)
-  - [ ] Write failing tests pinning `"won" | "lost"` at `applyCupRewards` input
-  - [ ] Move numeric-placement collapse into `machine.ts`/`cup.ts`; shrink
-        `CupOutcome` union
-  - [ ] Commit `refactor(sim): normalize cup outcome at machine boundary`
+- [x] Task: Resolve CupOutcome at machine boundary (FR-A5) (556ef30)
+  - [x] Write failing tests pinning `"won" | "lost"` at `applyCupRewards` input
+        (numeric placements rejected at the boundary)
+  - [x] Move numeric-placement collapse into `machine.ts` (`enterCup`); shrink
+        `CupOutcome` union; delete `toOutcome`
+  - [x] Commit `refactor(sim): normalize cup outcome at machine boundary`
 - [ ] Task: Retire vestigial cup machine paths (FR-A6)
   - [ ] Delete `beginCup`/`endCup`; update/delete their tests; confirm
         `enterCup` covers phase flips
