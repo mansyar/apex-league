@@ -7,6 +7,7 @@ import {
 import { generate, makeRng, type Stage } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
+import { prefersReducedMotionOs } from "./motion"
 import { buildPropGroup } from "./prop"
 import {
   BABY_SCALE,
@@ -336,9 +337,7 @@ export function createScene(container: HTMLElement): SceneHandle {
   ground.name = "ranch-ground"
 
   // Honor reduced motion: keep the gentle breath, drop the bounce.
-  const osReducedMotion = window.matchMedia(
-    "(prefers-reduced-motion: reduce)",
-  ).matches
+  const osReducedMotion = prefersReducedMotionOs()
   /** Save v5 pref wins when set; null defers to the OS media query. */
   let motionReduced: boolean | null = null
   /**
