@@ -261,8 +261,14 @@ h2 {
 
 .kit-button.is-disabled,
 .kit-button:disabled {
-  opacity: 0.62;
   cursor: not-allowed;
+}
+
+/* Dim the content spans, never the button itself: the hover tooltip is a
+   ::after child and must stay fully opaque. */
+.kit-button.is-disabled > span,
+.kit-button:disabled > span {
+  opacity: 0.62;
 }
 
 .kit-button.is-focus {
