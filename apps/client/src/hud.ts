@@ -170,7 +170,11 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   dayReadout.className = "day-readout"
   const apRow = document.createElement("span")
   apRow.className = "ap-row"
-  dayChip.append(dayReadout, apRow)
+  // Lifetime championship banner (save v5): a trophy glyph per cup won.
+  const banner = document.createElement("span")
+  banner.className = "cup-banner"
+  banner.title = "Cup championships"
+  dayChip.append(dayReadout, apRow, banner)
 
   // Bottom-left creature lower-third.
   const lowerThird = document.createElement("div")
@@ -311,10 +315,12 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       state.phase === "cup" ? "Cup day" : "Day phase"
     }`
     const filled = "●".repeat(state.actionPoints)
-    const empty = "○".repeat(
-      Math.max(0, ACTION_POINTS_PER_DAY - state.actionPoints),
-    )
+    const maxAp = Math.max(ACTION_POINTS_PER_DAY, state.actionPoints)
+    const empty = "○".repeat(Math.max(0, maxAp - state.actionPoints))
     apRow.textContent = `AP ${filled}${empty}`
+    // Championship banner: one 🏆 per cup won. Hidden at zero.
+    banner.textContent = "🏆".repeat(Math.min(5, state.cupsWon))
+    banner.style.display = state.cupsWon > 0 ? "" : "none"
     advance.textContent =
       state.phase === "cup" ? "Continue past cup" : "Advance Day"
 

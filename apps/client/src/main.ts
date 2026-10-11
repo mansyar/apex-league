@@ -13,6 +13,7 @@ import {
   saveGame,
   setLoadout,
 } from "@apex/sim"
+import { createCup } from "./cup"
 import { createHud } from "./hud"
 import { createScene } from "./scene"
 import { createSpar } from "./spar"
@@ -65,6 +66,20 @@ const spar = createSpar(app, {
   },
 })
 
+// The cup panel owns the cup-day flow: entry resolves through the sim's
+// enterCup in one call, the committed state flows back here to persist,
+// and the panel presents the already-resolved bracket at its own pace.
+const cup = createCup(app, {
+  onResolved: (resolved) => {
+    state = resolved
+    persist()
+    hud.update(state)
+    spar.update(state.creature ?? null)
+    // Conditions may carry the reward bump (mood/bond) — refresh the idle.
+    sceneVisuals()
+  },
+})
+
 const hud = createHud(app, {
   onAdvanceDay: () => {
     // The ceremony is non-cancelable (FR2, 2026-10-10): HUD input applies
@@ -73,6 +88,7 @@ const hud = createHud(app, {
     persist()
     hud.update(state)
     spar.update(state.creature ?? null)
+    cup.update(state)
     // A training gain changes the visual seed → scatter may shift.
     syncScene()
   },
@@ -83,6 +99,7 @@ const hud = createHud(app, {
     persist()
     hud.update(state)
     spar.update(state.creature ?? null)
+    cup.update(state)
     // Feed toggles the food pile; conditions drive the mood idle.
     sceneVisuals()
     // Ceremony is visual feedback for an already-committed action, so it
@@ -114,9 +131,11 @@ let starter = state.creature
         syncScene()
         hud.update(state)
         spar.update(state.creature ?? null)
+        cup.update(state)
       },
     })
 
 syncScene()
 hud.update(state)
 spar.update(state.creature ?? null)
+cup.update(state)
