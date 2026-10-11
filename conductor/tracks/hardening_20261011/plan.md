@@ -67,14 +67,14 @@ notes per task, phase checkpoints with explicit user verification).
         (browser-verified: care, train, motion, advance, reload; cup entry
         verified at the Phase 1 checkpoint)
   - [x] Commit `refactor(client): route all state mutations through commit()`
-- [~] Task: Client dedupe pass (FR-A3)
-  - [ ] Import `clampCondition` from settlement in `cupRewards.ts` (delete
+- [x] Task: Client dedupe pass (FR-A3) (0da0b65)
+  - [x] Import `clampCondition` from settlement in `cupRewards.ts` (delete
         local copy)
-  - [ ] Create shared reduced-motion predicate module; consume in
+  - [x] Create shared reduced-motion predicate module; consume in
         `spar.ts`/`cup.ts`/`swap.ts`
-  - [ ] Remove duplicated creature-condition branch in `storage.ts`
-  - [ ] Commit `refactor(client): dedupe clampCondition and reduced-motion predicate`
-- [ ] Task: Phase 2 Verification & Checkpoint (Refer to workflow.md)
+  - [x] Remove duplicated creature-condition branch in `storage.ts`
+  - [x] Commit `refactor(client): dedupe clampCondition and reduced-motion predicate`
+- [~] Task: Phase 2 Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — Robustness & UX Polish
 
