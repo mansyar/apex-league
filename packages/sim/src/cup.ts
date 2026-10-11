@@ -190,6 +190,9 @@ export interface RoundVerdict {
   readonly winner: string | null
   /** One announcer line (product voice). */
   readonly line: string
+  /** The full resolver output — the arena replays the battle from
+   * `battle.events` (live-cup spec FR5). */
+  readonly battle: BattleResult
 }
 
 export interface CupRoundResult {
@@ -292,6 +295,7 @@ function resolvePairing(
       slotB: b.name,
       winner: result.winner,
       line,
+      battle: result,
     },
     // On a draw (double-ko) neither advanced cleanly; pick the slot with the
     // higher remaining HP via resolver's finalHp to keep the field shrinking.
