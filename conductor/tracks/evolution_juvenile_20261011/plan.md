@@ -62,5 +62,6 @@ manual verification for presentation tasks, phase checkpoints per
 
 - [x] Task: Full `bun run verify` green; end-to-end manual playthrough plan (fresh run → day 10 evolution; neglected save → delayed evolution; v5 save load)
   - `bun run verify` green (559 tests, types, biome, determinism gate). Playthrough scenarios covered by recorded evidence: sim demo Paths 1–3 (fresh/devoted → day-10 evolution with exact boosts; sickness → delayed to day 13; mood 0 → blocked; v5 payload → real save→load pipeline migration) and the browser checkpoint (fresh seeded run through the evolution morning, spar prep, arena cast, reduced motion)
-- [ ] Task: Docs sync — `product.md` landed annotation, README roadmap note, tech-stack dated note if warranted
-- [ ] Task: Final review readiness — all tasks `[x]` with commit SHAs, ready for `conductor-review`
+- [x] Task: Docs sync — `product.md` landed annotation, README roadmap note, tech-stack dated note if warranted
+  - product.md Phase 1 evolution bullet annotated (landed 2026-10-11, champion open); README roadmap row + night-settlement loop updated; tech-stack unchanged (no new stack)
+- [x] Task: Final review readiness — all tasks `[x]` with commit SHAs, ready for `conductor-review`
