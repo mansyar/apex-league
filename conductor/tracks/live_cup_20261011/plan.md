@@ -9,19 +9,22 @@ Verification & Checkpoint gate before moving on.
 
 ## Phase A — Screen mocks (design gate, no app code)
 
-- [ ] Task: Static screen mocks in the track folder (self-contained
+- [x] Task: Static screen mocks in the track folder (self-contained
   HTML/CSS, like the arena track's `hud-mock.html`): **bracket HUD**
   (3-column QF/SF/F, slot states: pending/alive/eliminated/player/winner,
   staggered-reveal feel), **coach screen** (rival card, kit picker, tactic
   selector), **give-up modal**, **results screen** (podium/placement +
-  reward breakdown)
-- [ ] Task: Iterate mocks with the user toward an AAA-game-grade broadcast
+  reward breakdown) *(4dca029)*
+- [x] Task: Iterate mocks with the user toward an AAA-game-grade broadcast
   look (typography, plate/skew language matching the arena's battle HUD,
   motion cues described as annotations) — each screen approved individually
-- [ ] Task: Encode approved design decisions (palette accents, plate
+  *(spacing/scaling/header-reveal/crowning iterations → a5d7b28; bracket,
+  coach, modal, results all user-approved)*
+- [x] Task: Encode approved design decisions (palette accents, plate
   language, reveal motion) as a design-notes addendum in the track folder
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) — user
-  sign-off on all mocks
+  *(design-notes.md)*
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — user
+  sign-off on all mocks *(approved 2026-10-11; [checkpoint: a5d7b28])*
 
 ## Phase B — Cup session model in `@apex/sim` (pure, TDD)
 
