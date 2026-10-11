@@ -90,7 +90,7 @@
   .cup-head .tab {
     background: var(--gold); color: #241a06;
     font-family: "Barlow Condensed", sans-serif; font-weight: 800;
-    font-size: clamp(10px, 1.15cqw, 15px); letter-spacing: 0.2em; text-indent: 0.2em;
+    font-size: 1.15cqw; letter-spacing: 0.2em; text-indent: 0.2em;
     padding: 0.6cqw 1.1cqw; display: grid; place-items: center;
     clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
   }
@@ -101,10 +101,10 @@
   }
   .cup-title {
     font-family: "Barlow Condensed", sans-serif; font-weight: 800;
-    font-size: clamp(15px, 1.9cqw, 24px); letter-spacing: 0.14em;
+    font-size: 1.9cqw; letter-spacing: 0.14em;
   }
   .cup-sub {
-    font-size: clamp(9px, 0.85cqw, 11px); font-weight: 600; letter-spacing: 0.22em;
+    font-size: 0.85cqw; font-weight: 600; letter-spacing: 0.22em;
     text-transform: uppercase; color: var(--ink-dim);
   }
 
@@ -117,7 +117,7 @@
   }
   .col { display: flex; flex-direction: column; min-height: 0; }
   .col-head {
-    font-size: clamp(8px, 0.8cqw, 10px); font-weight: 700; letter-spacing: 0.28em;
+    font-size: 0.8cqw; font-weight: 700; letter-spacing: 0.28em;
     text-transform: uppercase; color: var(--ink-dim);
     text-align: center; padding: 0 0 1.1cqw;
     opacity: 0; transform: translateX(-16px);
@@ -171,7 +171,7 @@
   }
   .slot + .slot { border-top: 1px solid rgba(255, 236, 200, 0.08); }
   .slot .mini-crest {
-    width: clamp(14px, 2cqw, 25px); height: clamp(14px, 2cqw, 25px); flex: none;
+    width: 2cqw; height: 2cqw; flex: none;
     display: grid; place-items: center;
     clip-path: polygon(50% 0, 100% 26%, 100% 74%, 50% 100%, 0 74%, 0 26%);
     color: #14100c;
@@ -179,11 +179,11 @@
   .slot .mini-crest svg { width: 55%; height: 55%; }
   .slot .s-name {
     font-family: "Barlow Condensed", sans-serif; font-weight: 700;
-    font-size: clamp(12px, 1.3cqw, 17px); letter-spacing: 0.05em; white-space: nowrap;
+    font-size: 1.3cqw; letter-spacing: 0.05em; white-space: nowrap;
     overflow: hidden; text-overflow: ellipsis;
   }
   .slot .s-tag {
-    margin-left: auto; font-size: clamp(7px, 0.7cqw, 9px); font-weight: 700;
+    margin-left: auto; font-size: 0.7cqw; font-weight: 700;
     letter-spacing: 0.16em; text-transform: uppercase;
     color: var(--ink-dim);
   }
@@ -212,7 +212,7 @@
     position: absolute; top: -0.9cqw; left: 0.8cqw;
     background: var(--gold); color: #241a06;
     font-family: "Barlow Condensed", sans-serif; font-weight: 800;
-    font-size: clamp(8px, 0.85cqw, 11px); letter-spacing: 0.18em; text-indent: 0.18em;
+    font-size: 0.85cqw; letter-spacing: 0.18em; text-indent: 0.18em;
     padding: 0.25cqw 0.8cqw;
     clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
   }
@@ -220,7 +220,7 @@
   /* champion pedestal */
   .champ { display: grid; justify-items: center; gap: 1cqw; align-self: center; }
   .champ-cup {
-    width: clamp(40px, 6cqw, 78px); height: clamp(40px, 6cqw, 78px); display: grid; place-items: center;
+    width: 6cqw; height: 6cqw; display: grid; place-items: center;
     color: var(--gold); opacity: 0; transform: scale(0.6);
     transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3);
   }
@@ -228,13 +228,13 @@
   .champ-cup svg { width: 100%; height: 100%; filter: drop-shadow(0 4px 10px rgba(255, 210, 87, 0.35)); }
   .champ-name {
     font-family: "Barlow Condensed", sans-serif; font-weight: 800;
-    font-size: clamp(13px, 1.7cqw, 22px); letter-spacing: 0.1em; color: var(--gold);
+    font-size: 1.7cqw; letter-spacing: 0.1em; color: var(--gold);
     text-align: center; line-height: 1.2; max-width: 12cqw;
     opacity: 0; transform: scale(0.9);
     transition: opacity 0.45s ease 0.3s, transform 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3) 0.3s;
   }
   .champ-label {
-    font-size: clamp(8px, 0.8cqw, 10px); font-weight: 700; letter-spacing: 0.24em;
+    font-size: 0.8cqw; font-weight: 700; letter-spacing: 0.24em;
     text-transform: uppercase; color: var(--ink-dim);
     opacity: 0; transform: scale(0.9);
     transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3);
@@ -252,13 +252,13 @@
   .ticker .tab {
     background: var(--gold); color: #241a06;
     font-family: "Barlow Condensed", sans-serif; font-weight: 800;
-    font-size: clamp(9px, 0.95cqw, 12px); letter-spacing: 0.18em; padding: 0.55cqw 1cqw;
+    font-size: 0.95cqw; letter-spacing: 0.18em; padding: 0.55cqw 1cqw;
     display: grid; place-items: center;
     clip-path: polygon(0 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
   }
   .ticker .line {
     background: var(--panel); border: 1px solid var(--panel-border); border-left: none;
-    padding: 0.55cqw 1.3cqw; font-size: clamp(11px, 1.1cqw, 14px); font-weight: 500; flex: 1;
+    padding: 0.55cqw 1.3cqw; font-size: 1.1cqw; font-weight: 500; flex: 1;
     clip-path: polygon(0 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
   }
   .ticker .line.swap { animation: t-in 0.35s ease-out; }
@@ -271,7 +271,7 @@
   .your-cta.show { display: flex; }
   .cta-btn {
     font-family: "Barlow Condensed", sans-serif; font-weight: 800;
-    font-size: clamp(12px, 1.35cqw, 17px); letter-spacing: 0.14em; text-indent: 0.14em;
+    font-size: 1.35cqw; letter-spacing: 0.14em; text-indent: 0.14em;
     background: var(--gold); color: #241a06; border: none;
     padding: 0.95cqw 2cqw; cursor: pointer;
     clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
@@ -281,7 +281,7 @@
   .cta-btn:hover { transform: translateY(-1px) scale(1.02); }
   .cta-ghost {
     font-family: "Barlow Condensed", sans-serif; font-weight: 700;
-    font-size: clamp(11px, 1.1cqw, 14px); letter-spacing: 0.1em;
+    font-size: 1.1cqw; letter-spacing: 0.1em;
     color: var(--ink-dim); background: var(--panel);
     border: 1px solid var(--panel-border); cursor: pointer;
     padding: 0.85cqw 1.4cqw;
