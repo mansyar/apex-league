@@ -7,14 +7,19 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
 
 ## Phase 0 — Arena Anchor Fix & Battle-Feel Sim *(core)*
 
-- [ ] **Task: Arena pivot-anchor fix** *(rendering — manual verification)*
-  - [ ] Wrap the arena rig in the identity-scale holder (scene.ts pattern):
+- [x] **Task: Arena pivot-anchor fix** *(rendering — manual verification)*
+      (6b8532d, dbcdfec, 23327ad)
+  - [x] Wrap the arena rig in the identity-scale holder (scene.ts pattern):
         Box3-measured visual center, `-center` child offset, holder-driven
-        motion in `buildSpot` (`apps/client/src/staging.ts`)
-  - [ ] Route KO topple, squash scale composition, and `clear()` reset
-        through the holder
-  - [ ] Manual: turning + KO topple pivot on visual center
-        (learnings §1–3)
+        motion in `buildSpot` (`apps/client/src/staging.ts`) — 6b8532d
+  - [x] Route KO topple, squash scale composition, and `clear()` reset
+        through the holder — 6b8532d
+  - [x] Manual: turning + KO topple pivot on visual center
+        (learnings §1–3) — user-verified
+  - [x] Fallout fixes from honest origins: arena footprint normalization
+        to a canonical 1.7 slot (STANCE_GAP 2.1 / CONTACT_GAP 1.8) —
+        dbcdfec; knockback direction sign fix in contactReaction —
+        23327ad. User-verified builds 3–4.
 - [ ] **Task: Sim stagger on heavy blows** *(TDD)*
   - [ ] Red: failing tests — heavy/super-effective hit applies a
         1-action-window lock; edges (KO blow, final tick, no double-stagger)
