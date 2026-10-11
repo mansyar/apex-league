@@ -38,11 +38,11 @@ workflow checkpoint task.
   - [x] Stat cells with `+N` trained chips
   - [x] Five condition bars with glyph labels + up/down change feedback
   - [x] Status line as announcer ticker (existing copy priority chain preserved; copy tests still pass)
-- [ ] Task: Command dock on the kit
+- [x] Task: Command dock on the kit — `02ece7e`
   - [ ] Care plates: glyph + AP badge + rejection reason; disabled states still derive from `careAction` dry-run
   - [ ] Train button + inline four-stat picker styled like the cup kit list
   - [ ] Advance Day gold CTA (phase-aware label preserved)
-- [ ] Task: Chip family + motion wiring (entrance settles, hover/press micro-feedback; everything gated by the reduced-motion setting + OS preference)
+- [x] Task: Chip family + motion wiring (entrance settles, hover/press micro-feedback; everything gated by the reduced-motion setting + OS preference) — `daaf76c`
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase D — Spar, starter, cup + arena adoption
