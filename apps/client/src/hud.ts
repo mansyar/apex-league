@@ -37,6 +37,9 @@ export interface Hud {
   /** Show the evolution-moment coach line (called once, right after the
    * ceremony starts; the next routine update replaces it). */
   announceEvolution(creature: NonNullable<GameState["creature"]>): void
+  /** Show the save-failure coach line (called once per failed persist;
+   * the next routine update replaces it). Non-blocking by design. */
+  announceSaveFailure(): void
 }
 
 /** Coach-voice copy for disabled actions (≤ 2 sentences, never punishing). */
@@ -163,6 +166,14 @@ export function growthHint(day: number, creature: Creature): string {
 export function evolveCallout(creature: Creature): string {
   const b = EVOLUTION_STAT_BOOST
   return `Evolution! ${creature.name} grew into a ${stageLabel(creature.stage)} — +${b.hp} HP · +${b.atk} ATK · +${b.def} DEF · +${b.spd} SPD. The ranch just got livelier.`
+}
+
+/**
+ * The save-failure coach line: calm, blame-free, non-blocking. Shown once
+ * when a persist fails (quota, private mode) — the day carries on.
+ */
+export function saveFailureNotice(): string {
+  return "Heads up — that progress didn't save. Your partner's day carries on anyway."
 }
 
 /**
@@ -506,6 +517,9 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     update,
     announceEvolution(creature) {
       status.textContent = evolveCallout(creature)
+    },
+    announceSaveFailure() {
+      status.textContent = saveFailureNotice()
     },
   }
 }

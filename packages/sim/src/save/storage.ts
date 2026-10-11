@@ -28,14 +28,23 @@ export function createMemoryAdapter(): SaveAdapter {
   }
 }
 
-/** Persist the current state as a versioned save. */
+/**
+ * Persist the current state as a versioned save. Returns false when the
+ * write fails (quota, private mode) — the caller decides how to surface
+ * it; saving must never crash the day.
+ */
 export function saveGame(
   adapter: SaveAdapter,
   state: GameState,
   savedAt: number,
-): void {
+): boolean {
   const data: SaveData = { version: SAVE_VERSION, state, savedAt }
-  adapter.setItem(SAVE_KEY, serializeSave(data))
+  try {
+    adapter.setItem(SAVE_KEY, serializeSave(data))
+    return true
+  } catch {
+    return false
+  }
 }
 
 const ELEMENTS = ["fire", "water", "plant", "electric", "earth", "wind"]

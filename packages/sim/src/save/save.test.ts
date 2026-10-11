@@ -312,6 +312,18 @@ describe("storage adapter", () => {
     }
   })
 
+  test("saveGame reports failure instead of throwing when the adapter rejects writes", () => {
+    const state = chooseStarter(createInitialState(), "fire_drake", 42)
+    const boom: SaveAdapter = {
+      getItem: () => null,
+      setItem: () => {
+        throw new Error("quota exceeded")
+      },
+    }
+    expect(saveGame(boom, state, 1)).toBe(false)
+    expect(saveGame(createMemoryAdapter(), state, 1)).toBe(true)
+  })
+
   test("loadGame rejects a save referencing an unknown species", () => {
     // Hand-edited save: everything else is well-formed, but the speciesId
     // does not exist in the catalog. The client would crash on first render

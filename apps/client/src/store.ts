@@ -54,10 +54,10 @@ export function createGameStore(
     },
     commit(state) {
       current = state
-      try {
-        saveGame(adapter, state, now())
-      } catch (error) {
-        onPersistError?.(error)
+      // saveGame never throws — it reports failure. Either way the
+      // notification below always runs: a failed save must not eat the day.
+      if (!saveGame(adapter, state, now())) {
+        onPersistError?.(new Error("saveGame reported a failed write"))
       }
       // Snapshot so (un)subscribing mid-notification cannot skip or repeat
       // a listener; a throwing subscriber never starves the later ones.

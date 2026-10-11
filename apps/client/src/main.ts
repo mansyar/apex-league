@@ -37,7 +37,9 @@ const saved = loadGame(storage)
 // The store is the single mutation path: handlers adopt a new state with
 // commit(), which persists and notifies the hud/spar/cup subscribers in a
 // fixed order — no handler hand-rolls that fanout anymore.
-const store = createGameStore(saved ?? createInitialState(), storage)
+const store = createGameStore(saved ?? createInitialState(), storage, {
+  onPersistError: () => hud.announceSaveFailure(),
+})
 
 /** Cheap scene reducers: pile visibility + mood idle. Fired after any
  * sim mutation — the scene no-ops internally when nothing changed. */
