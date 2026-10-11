@@ -89,4 +89,4 @@ phase ends with a verification & checkpoint task.
       motion, ranch sweep) with all gates green. [commit: 8aebc76]
       [checkpoint: 8aebc76]
 ## Phase: Review Fixes
-- [~] Task: Apply review suggestions (conductor-review findings: staging RAF cancel race, stranded arena mode, impact juice, camera shake anchor, reduced-motion pref wiring, per-frame allocations, plus medium/low sweeps)
+- [x] Task: Apply review suggestions (conductor-review findings: staging RAF cancel race, stranded arena mode, impact juice, camera shake anchor, reduced-motion pref wiring, per-frame allocations, plus medium/low sweeps) — all severities fixed in one pass; 416 tests, live fast-forward smoke clean. [commit: 8bc6ac3] [checkpoint-note: 8bc6ac3]
