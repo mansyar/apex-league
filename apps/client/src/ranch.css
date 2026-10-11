@@ -96,173 +96,89 @@
   letter-spacing: 0.06em;
 }
 
-/* Bottom-left creature lower-third */
-.lower-third {
+/* Bottom-left creature lower-third (broadcast kit plate) */
+.creature-plate {
   position: absolute;
-  bottom: 16px;
-  left: 16px;
-  width: 260px;
-  padding: 12px 14px;
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  border-radius: 12px;
+  bottom: 18px;
+  left: 18px;
+  width: 300px;
+  padding: 14px;
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+  animation: settle-up 0.5s var(--kit-settle) 0.08s both;
   user-select: none;
 }
 
-.creature-name-row {
+.creature-head {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .creature-name {
-  font-weight: 700;
-  font-size: 15px;
-}
-
-.element-badge {
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #17130c;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Life-stage badge (evolution track): rides the name row beside the
- * element badge. Juvenile gets a warm accent so the growth reads at a
- * glance; baby stays neutral. */
-.stage-badge {
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #17130c;
-  background: #d8d2c2;
-}
-
-.stage-badge.is-juvenile {
-  background: #ffd77a;
-}
-
-.stage-badge.is-champion {
-  background: #ffb0e0;
-}
-
-.el-border-fire {
-  border-color: var(--el-fire);
-}
-.el-border-water {
-  border-color: var(--el-water);
-}
-.el-border-plant {
-  border-color: var(--el-plant);
-}
-.el-border-electric {
-  border-color: var(--el-electric);
-}
-.el-border-earth {
-  border-color: var(--el-earth);
-}
-.el-border-wind {
-  border-color: var(--el-wind);
-}
-
-.condition-bars {
+.condition-list {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 7px;
+  margin-bottom: 10px;
 }
 
-.condition-row {
-  display: grid;
-  grid-template-columns: 52px 1fr 28px;
-  align-items: center;
-  gap: 8px;
-}
-
-.condition-label {
-  font-size: 11px;
-  color: var(--ink-dim);
-}
-
-.condition-track {
-  height: 8px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.09);
-  overflow: hidden;
-}
-
-.condition-fill {
-  height: 100%;
-  border-radius: 4px;
-  transition: width 240ms ease;
-}
-
-.bar-hunger {
-  background: var(--bar-hunger);
-}
-.bar-energy {
-  background: var(--bar-energy);
-}
-.bar-health {
-  background: var(--bar-health);
-}
-.bar-mood {
-  background: var(--bar-mood);
-}
-.bar-bond {
-  background: var(--bar-bond);
-}
-
-.condition-value {
-  font-size: 11px;
-  text-align: right;
-  color: var(--ink-dim);
-  font-variant-numeric: tabular-nums;
-}
-
-.status-callout {
-  margin-top: 9px;
-  font-size: 12px;
-  font-style: italic;
-  color: var(--accent);
-  min-height: 1em;
+.creature-plate .kit-ticker {
+  margin-top: 2px;
 }
 
 /* Stat row: rolled base + trained bonus, between name and conditions */
 .stat-row {
-  display: flex;
-  gap: 10px;
-  margin: 2px 0 8px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin: 0 0 10px;
 }
 
 .stat-cell {
   display: flex;
-  align-items: baseline;
-  gap: 3px;
-  font-variant-numeric: tabular-nums;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 7px 4px 6px;
+  background: rgb(255 236 200 / 0.04);
+  border: 1px solid var(--keyline);
 }
 
 .stat-label {
-  font-size: 10px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--ink-dim);
-  letter-spacing: 0.05em;
 }
 
 .stat-total {
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 17px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
 }
 
-.stat-bonus {
+.stat-chip {
   font-size: 10px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--accent-ink);
+  background: var(--accent);
+  clip-path: polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
+  padding: 1px 5px;
+  margin-top: 2px;
 }
 
 /* Bottom-right action cluster */

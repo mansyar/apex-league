@@ -43,7 +43,7 @@ const el = <K extends keyof HTMLElementTagNameMap>(
 }
 
 /** Restart a one-shot CSS animation (remove → reflow → re-add). */
-const replay = (node: HTMLElement, animation: string): void => {
+export const replay = (node: HTMLElement, animation: string): void => {
   node.classList.remove(animation)
   void node.offsetWidth
   node.classList.add(animation)

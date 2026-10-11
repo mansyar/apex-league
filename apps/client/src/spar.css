@@ -246,11 +246,11 @@
   line-height: 1.45;
 }
 
-/* Arena mode: the ranch HUD (day chip, creature lower-third, care
+/* Arena mode: the ranch HUD (score bug, creature lower-third, care
    cluster) hides while a fight frames the bowl — broadcast clarity.
    The spar panel and motion pill stay visible. */
-.app-in-arena .day-chip,
-.app-in-arena .lower-third,
+.app-in-arena .score-bug,
+.app-in-arena .creature-plate,
 .app-in-arena .action-cluster,
 .app-in-arena .spar-button,
 .app-in-arena .cup-button {

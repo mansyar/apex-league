@@ -20,8 +20,9 @@ import {
   type StatKey,
   TRAINING_CAP,
 } from "@apex/sim"
+import { crestGlyph, elementHue } from "./element"
 import { icons } from "./ui/icons"
-import { meter, plate, tab } from "./ui/kit"
+import { bar, crest, meter, plate, replay, tab, ticker } from "./ui/kit"
 
 export interface HudHandlers {
   onAdvanceDay: () => void
@@ -53,13 +54,29 @@ const REJECTION_COPY: Record<CareRejection, string> = {
 const CONDITIONS: Array<{
   key: keyof CreatureConditions
   label: string
-  className: string
+  glyph: string
+  color: string
 }> = [
-  { key: "hunger", label: "Hunger", className: "bar-hunger" },
-  { key: "energy", label: "Energy", className: "bar-energy" },
-  { key: "health", label: "Health", className: "bar-health" },
-  { key: "mood", label: "Mood", className: "bar-mood" },
-  { key: "bond", label: "Bond", className: "bar-bond" },
+  {
+    key: "hunger",
+    label: "Hunger",
+    glyph: icons.hunger,
+    color: "var(--bar-hunger)",
+  },
+  {
+    key: "energy",
+    label: "Energy",
+    glyph: icons.energy,
+    color: "var(--bar-energy)",
+  },
+  {
+    key: "health",
+    label: "Health",
+    glyph: icons.health,
+    color: "var(--bar-health)",
+  },
+  { key: "mood", label: "Mood", glyph: icons.mood, color: "var(--bar-mood)" },
+  { key: "bond", label: "Bond", glyph: icons.bond, color: "var(--bar-bond)" },
 ]
 
 const ACTIONS: Array<{ action: CareAction; label: string }> = [
@@ -246,26 +263,16 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   trophy.append(trophyCount)
   scoreBug.append(phaseTab, scoreDay, divider, scoreAp, divider2, trophy)
 
-  // Bottom-left creature lower-third.
-  const lowerThird = document.createElement("div")
-  lowerThird.className = "lower-third"
-  const nameRow = document.createElement("div")
-  nameRow.className = "creature-name-row"
+  // Bottom-left creature lower-third (broadcast kit plate).
+  const lowerThird = plate({ className: "creature-plate" })
+  const creatureHead = document.createElement("div")
+  creatureHead.className = "creature-head"
+  const crestEl = crest("fire")
   const creatureName = document.createElement("span")
   creatureName.className = "creature-name"
-  const elementBadge = document.createElement("span")
-  elementBadge.className = "element-badge"
-  const stageBadge = document.createElement("span")
-  stageBadge.className = "stage-badge"
-  stageBadge.title = "Life stage"
-  nameRow.append(creatureName, elementBadge, stageBadge)
+  const stageTab = tab("Baby", "stage")
+  creatureHead.append(crestEl, creatureName, stageTab)
 
-  const bars: Array<{
-    row: HTMLElement
-    fill: HTMLElement
-    value: HTMLElement
-    key: keyof CreatureConditions
-  }> = []
   const statRow = document.createElement("div")
   statRow.className = "stat-row"
   const statCells = STATS.map(({ key, label }) => {
@@ -277,33 +284,37 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     const total = document.createElement("span")
     total.className = "stat-total"
     const bonus = document.createElement("span")
-    bonus.className = "stat-bonus"
+    bonus.className = "stat-chip"
     cell.append(statLabel, total, bonus)
     statRow.append(cell)
     return { total, bonus, key }
   })
-  const barList = document.createElement("div")
-  barList.className = "condition-bars"
-  for (const def of CONDITIONS) {
-    const row = document.createElement("div")
-    row.className = "condition-row"
-    const label = document.createElement("span")
-    label.className = "condition-label"
-    label.textContent = def.label
-    const track = document.createElement("div")
-    track.className = "condition-track"
-    const fill = document.createElement("div")
-    fill.className = `condition-fill ${def.className}`
-    track.append(fill)
-    const value = document.createElement("span")
-    value.className = "condition-value"
-    row.append(label, track, value)
-    barList.append(row)
-    bars.push({ row, fill, value, key: def.key })
-  }
-  const status = document.createElement("div")
-  status.className = "status-callout"
-  lowerThird.append(nameRow, statRow, barList, status)
+  const conditionList = document.createElement("div")
+  conditionList.className = "condition-list"
+  const bars: Array<{
+    handle: ReturnType<typeof bar>
+    delta: HTMLElement
+    key: keyof CreatureConditions
+    prev: number | null
+  }> = CONDITIONS.map((def) => {
+    const handle = bar({
+      label: def.label,
+      glyph: def.glyph,
+      value: 0,
+      max: 100,
+      color: def.color,
+    })
+    // Transient change chip: pinned next to the value for ~1.2s on a
+    // meaningful swing, then hidden again (mock "bar change feedback").
+    const delta = document.createElement("em")
+    delta.className = "condition-delta"
+    delta.style.display = "none"
+    handle.value.append(delta)
+    conditionList.append(handle.root)
+    return { handle, delta, key: def.key, prev: null }
+  })
+  const statusTicker = ticker()
+  lowerThird.append(creatureHead, statRow, conditionList, statusTicker.root)
 
   // Bottom-right action cluster.
   const cluster = document.createElement("div")
@@ -448,7 +459,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       actionRow.style.display = "none"
       trainRow.style.display = "none"
       picker.style.display = "none"
-      status.textContent = ""
+      statusTicker.say("")
       motionPill.style.display = ""
       capturePrefUpdate(state)
       return
@@ -460,11 +471,11 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
 
     // The creature carries its own identity; the species catalog is only
     // needed for starter-card display.
+    crestEl.innerHTML = crestGlyph(creature.element)
+    crestEl.style.setProperty("--hue", String(elementHue(creature.element)))
     creatureName.textContent = creature.name
-    elementBadge.textContent = creature.element
-    elementBadge.className = `element-badge el-${creature.element}`
-    stageBadge.textContent = stageLabel(creature.stage)
-    stageBadge.className = `stage-badge is-${creature.stage}`
+    stageTab.textContent = stageLabel(creature.stage)
+    stageTab.className = "kit-tab is-stage"
 
     // Stat row: name, total (rolled base + trained), bonus when above 0.
     for (const cell of statCells) {
@@ -519,16 +530,26 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
 
     for (const bar of bars) {
       const v = creature.conditions[bar.key]
-      bar.fill.style.width = `${v}%`
-      bar.value.textContent = String(v)
+      bar.handle.set(v, 100)
+      const swing = bar.prev === null ? 0 : v - bar.prev
+      if (Math.abs(swing) >= 2) {
+        replay(bar.handle.fill, "is-flashing")
+        bar.delta.textContent = `${swing > 0 ? "+" : "−"}${Math.abs(swing)}`
+        bar.delta.style.display = ""
+        replay(bar.delta, "chip-pop")
+      } else {
+        bar.delta.style.display = "none"
+      }
+      bar.prev = v
+      bar.handle.fill.classList.toggle("is-low", v <= 25)
     }
-    const training = trainingStatus(creature, lastFocus)
-    status.textContent =
-      training ||
-      coachVoice(creature.conditions, creature.name) ||
-      unlockCallout(creature) ||
-      growthHint(state.day, creature) ||
-      flavorCallout(creature)
+    statusTicker.say(
+      trainingStatus(creature, lastFocus) ||
+        coachVoice(creature.conditions, creature.name) ||
+        unlockCallout(creature) ||
+        growthHint(state.day, creature) ||
+        flavorCallout(creature),
+    )
 
     // Disabled states come from the sim itself — a dry-run careAction is
     // the single source of truth for why an action can't happen.
@@ -554,7 +575,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   return {
     update,
     announceEvolution(creature) {
-      status.textContent = evolveCallout(creature)
+      statusTicker.say(evolveCallout(creature))
     },
   }
 }
