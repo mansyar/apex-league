@@ -72,9 +72,11 @@ Verification & Checkpoint gate before moving on.
   behavior change** - all existing spar/HUD tests stay green
   *(0b603cb — playbackDriver.ts + 6 tests; spar rewired via callbacks,
   91 client tests green)*
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  *(checkpoint: 0b603cb — verify green; spar parity via 91/91 client tests;
+  browser smoke deferred to Phase E by user decision)*
 
-## Phase D — Bracket HUD + live cup flow (client, implements the approved mocks)
+## Phase D - Bracket HUD + live cup flow (client, implements the approved mocks)
 
 - [ ] Task: Bracket HUD per mock — 3-column QF/SF/F, slot states, staggered
   rival verdicts (300–500 ms), next-player-match highlight; reduced motion =
