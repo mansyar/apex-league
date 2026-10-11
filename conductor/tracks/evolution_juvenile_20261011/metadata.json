@@ -1,0 +1,10 @@
+{
+  "trackId": "evolution_juvenile_20261011",
+  "title": "Evolution I: Juvenile stage",
+  "type": "feature",
+  "status": "new",
+  "created": "2026-10-11",
+  "branch": "evolution_juvenile_20261011",
+  "spec": "./spec.md",
+  "plan": "./plan.md"
+}
