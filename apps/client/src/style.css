@@ -1067,6 +1067,11 @@ body,
   color: var(--ink-dim);
 }
 
+.spar-hud-chevrons {
+  display: flex;
+  gap: 3px;
+}
+
 .spar-hud-chevron {
   color: rgba(255, 236, 200, 0.25);
   font-size: 9px;
@@ -1125,15 +1130,16 @@ body,
   }
 }
 
-/* Fight chrome row (bottom-left): speed toggle, replay pill, collapsible
-   log, and the close button once the verdict lands. */
+/* Fight chrome row (bottom-right): speed toggle, replay pill, collapsible
+   log, and the close button once the verdict lands. Kept clear of the
+   lower-third, which owns the bottom-left corner. */
 .spar-chips {
   position: absolute;
-  left: 20px;
+  right: 20px;
   bottom: 20px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: flex-end;
   gap: 8px;
   max-width: min(320px, 60vw);
 }

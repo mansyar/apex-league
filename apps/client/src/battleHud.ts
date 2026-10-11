@@ -115,17 +115,19 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
   vs.textContent = "VS"
   const rangeChip = document.createElement("span")
   rangeChip.className = "spar-hud-range"
+  const rangeLabel = document.createElement("span")
+  rangeLabel.className = "spar-hud-range-label"
+  const chevronRow = document.createElement("span")
+  chevronRow.className = "spar-hud-chevrons"
   const chevrons: HTMLElement[] = []
   for (let i = 0; i < 3; i++) {
     const chevron = document.createElement("span")
     chevron.className = "spar-hud-chevron"
     chevron.textContent = "▲"
     chevrons.push(chevron)
-    rangeChip.append(chevron)
+    chevronRow.append(chevron)
   }
-  const rangeLabel = document.createElement("span")
-  rangeLabel.className = "spar-hud-range-label"
-  rangeChip.append(rangeLabel)
+  rangeChip.append(rangeLabel, chevronRow)
   center.append(vs, rangeChip)
 
   // --- lower-third -----------------------------------------------------
@@ -207,8 +209,9 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
     bar.append(lag, fill)
 
     body.append(nameRow, bar)
-    el.append(crest, body)
-    top.append(el)
+    // Mirror plates hang their crest off the outside edge, like the mock.
+    if (mirror) el.append(body, crest)
+    else el.append(crest, body)
     return {
       el,
       fill,
@@ -275,8 +278,8 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
       top.replaceChildren()
       const ownedSide = buildSide(fight.owned, false)
       const rivalSide = buildSide(fight.rival, true)
-      // The VS chip sits between the two plates.
-      top.append(center)
+      // Mock order: left plate, VS chip, right plate.
+      top.append(ownedSide.el, center, rivalSide.el)
       center.replaceChildren(vs, rangeChip)
       sides.owned = ownedSide
       sides.rival = rivalSide
