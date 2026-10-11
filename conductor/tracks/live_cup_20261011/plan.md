@@ -60,7 +60,9 @@ Verification & Checkpoint gate before moving on.
   identical battles/logs across 3 seeded runs; spar/exhibition untouched
   *(8f9c229 — full-run replays identical; pick-sensitivity + spar
   independence guards)*
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  *(checkpoint: d096b9c — verify green; coverage confirmed on cup.ts/
+  machine.ts/index.ts; git note attached; approved by user)*
 
 ## Phase C — Shared playback driver extraction (client)
 
