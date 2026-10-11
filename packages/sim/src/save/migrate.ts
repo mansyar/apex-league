@@ -15,6 +15,43 @@ const migrations: Record<
   number,
   (raw: Record<string, unknown>) => Record<string, unknown>
 > = {
+  // v4 → v5: saves from before the cup system have no cup bookkeeping.
+  // Defaults: never won a cup, never entered one.
+  4: (raw) => {
+    const rawState = raw.state
+    if (typeof rawState !== "object" || rawState === null) {
+      throw new Error("invalid v4 save: missing state")
+    }
+    const s = rawState as Record<string, unknown>
+    const day = s.day
+    const phase = s.phase
+    const actionPoints = s.actionPoints
+    if (
+      typeof day !== "number" ||
+      !Number.isInteger(day) ||
+      day < 1 ||
+      (phase !== "day" && phase !== "cup") ||
+      typeof actionPoints !== "number" ||
+      !Number.isInteger(actionPoints) ||
+      actionPoints < 0
+    ) {
+      throw new Error("invalid v4 save: broken state")
+    }
+    const creature =
+      s.creature !== null && s.creature !== undefined
+        ? (s.creature as GameState["creature"])
+        : null
+    const migrated: GameState = {
+      day,
+      phase,
+      actionPoints,
+      creature,
+      cupsWon: 0,
+      lastCupDay: null,
+    }
+    return { version: 5, state: migrated, savedAt: raw.savedAt ?? 0 }
+  },
+
   // v0 (pre-schema): { version: 0, day } — derive the rest of GameState.
   0: (raw) => {
     const day = raw.day
@@ -26,6 +63,8 @@ const migrations: Record<
       phase: isCupDay(day) ? "cup" : "day",
       actionPoints: ACTION_POINTS_PER_DAY,
       creature: null,
+      cupsWon: 0,
+      lastCupDay: null,
     }
     return { version: 1, state, savedAt: 0 }
   },
@@ -57,6 +96,8 @@ const migrations: Record<
       phase,
       actionPoints,
       creature: createCreature("fire_drake", STARTER_GRANT_SEED),
+      cupsWon: 0,
+      lastCupDay: null,
     }
     return { version: 2, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -99,7 +140,14 @@ const migrations: Record<
         loadout: null,
       } as unknown as GameState["creature"]
     }
-    const migrated: GameState = { day, phase, actionPoints, creature }
+    const migrated: GameState = {
+      day,
+      phase,
+      actionPoints,
+      creature,
+      cupsWon: 0,
+      lastCupDay: null,
+    }
     return { version: 4, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
 
@@ -137,7 +185,14 @@ const migrations: Record<
         trainingResult: null,
       } as unknown as GameState["creature"]
     }
-    const migrated: GameState = { day, phase, actionPoints, creature }
+    const migrated: GameState = {
+      day,
+      phase,
+      actionPoints,
+      creature,
+      cupsWon: 0,
+      lastCupDay: null,
+    }
     return { version: 3, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
 }

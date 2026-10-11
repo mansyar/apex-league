@@ -13,8 +13,8 @@ import {
 } from "./storage"
 
 describe("save schema", () => {
-  test("current version is 4", () => {
-    expect(SAVE_VERSION).toBe(4)
+  test("current version is 5", () => {
+    expect(SAVE_VERSION).toBe(5)
   })
 
   test("serializeSave wraps state with version metadata", () => {
@@ -25,7 +25,7 @@ describe("save schema", () => {
     }
     const json = serializeSave(data)
     const parsed = JSON.parse(json) as SaveData
-    expect(parsed.version).toBe(4)
+    expect(parsed.version).toBe(5)
     expect(parsed.state.day).toBe(1)
     expect(parsed.savedAt).toBe(1000)
   })
@@ -36,9 +36,11 @@ describe("migration chain", () => {
     // v0 predates the versioned schema: flat shape, no phase/AP.
     const v0 = { version: 0, day: 7 }
     const migrated = migrate(v0)
-    expect(migrated.version).toBe(4)
+    expect(migrated.version).toBe(5)
     expect(migrated.state.day).toBe(7)
     expect(migrated.state.phase).toBe("cup")
+    expect(migrated.state.cupsWon).toBe(0)
+    expect(migrated.state.lastCupDay).toBeNull()
     expect(migrated.state.actionPoints).toBeGreaterThan(0)
   })
 
@@ -47,7 +49,7 @@ describe("migration chain", () => {
     expect(migrated.state.phase).toBe("day")
   })
 
-  test("migrates a v1 save through to v4, granting the default Fire drake starter", () => {
+  test("migrates a v1 save through to v5, granting the default Fire drake starter", () => {
     // v1 shape: GameState without a creature (pre-care-loop saves).
     const v1 = {
       version: 1,
@@ -55,7 +57,7 @@ describe("migration chain", () => {
       savedAt: 1234,
     }
     const migrated = migrate(v1)
-    expect(migrated.version).toBe(4)
+    expect(migrated.version).toBe(5)
     expect(migrated.savedAt).toBe(1234)
     expect(migrated.state.day).toBe(4)
     expect(migrated.state.actionPoints).toBe(2)
@@ -96,7 +98,7 @@ describe("migration chain", () => {
     expect(migrated).toEqual(v2)
   })
 
-  test("migrates a v2 save through to v4, granting neutral training fields", () => {
+  test("migrates a v2 save through to v5, granting neutral training fields", () => {
     // v2 creatures carry no training fields — strip them from a fresh one.
     const creature = createCreature("fire_drake", 42)
     const legacy = structuredClone(creature) as unknown as Record<
@@ -112,7 +114,7 @@ describe("migration chain", () => {
       savedAt: 99,
     }
     const migrated = migrate(v2)
-    expect(migrated.version).toBe(4)
+    expect(migrated.version).toBe(5)
     expect(migrated.savedAt).toBe(99)
     expect(migrated.state.day).toBe(5)
     expect(migrated.state.actionPoints).toBe(2)
@@ -127,13 +129,13 @@ describe("migration chain", () => {
     expect(migrated.state.creature?.stats).toEqual(creature.stats)
   })
 
-  test("a v1 save walks v1→v2→v3→v4 with the credited trained days", () => {
+  test("a v1 save walks v1→v5 with the credited trained days", () => {
     const migrated = migrate({
       version: 1,
       state: { day: 2, phase: "day", actionPoints: 3 },
       savedAt: 0,
     })
-    expect(migrated.version).toBe(4)
+    expect(migrated.version).toBe(5)
     expect(migrated.state.creature?.trained).toEqual({
       hp: 0,
       atk: 0,
@@ -147,7 +149,7 @@ describe("migration chain", () => {
     expect(migrated.state.creature?.fedToday).toBe(false)
   })
 
-  test("a v3 save migrates to v4: fedToday false, 6 trained days, null loadout, stats intact", () => {
+  test("a v3 save migrates to v5: fedToday false, 6 trained days, null loadout, stats intact", () => {
     // v3 creatures predate the v4 fields — strip all of them.
     const creature = createCreature("fire_drake", 42)
     const legacy = structuredClone(creature) as unknown as Record<
@@ -163,7 +165,7 @@ describe("migration chain", () => {
       savedAt: 321,
     }
     const migrated = migrate(v3)
-    expect(migrated.version).toBe(4)
+    expect(migrated.version).toBe(5)
     expect(migrated.savedAt).toBe(321)
     expect(migrated.state.day).toBe(9)
     expect(migrated.state.creature?.fedToday).toBe(false)
