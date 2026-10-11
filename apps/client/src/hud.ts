@@ -276,13 +276,22 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
 
   // Bottom-left creature lower-third (broadcast kit plate).
   const lowerThird = plate({ className: "creature-plate" })
-  const creatureHead = document.createElement("div")
+  // The creature head doubles as the collapse toggle: clicking it folds
+  // the plate down to just the head row (crest + name + stage), leaving
+  // the briefest useful readout pinned to the corner.
+  const creatureHead = document.createElement("button")
   creatureHead.className = "creature-head"
+  creatureHead.type = "button"
+  creatureHead.setAttribute("aria-expanded", "true")
+  creatureHead.title = "Collapse panel"
   const crestEl = crest("fire")
   const creatureName = document.createElement("span")
   creatureName.className = "creature-name"
   const stageTab = tab("Baby", "stage")
-  creatureHead.append(crestEl, creatureName, stageTab)
+  const creatureChev = document.createElement("span")
+  creatureChev.className = "collapse-chev"
+  creatureChev.innerHTML = icons.chevron
+  creatureHead.append(crestEl, creatureName, stageTab, creatureChev)
 
   const statRow = document.createElement("div")
   statRow.className = "stat-row"
@@ -327,8 +336,21 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   const statusTicker = ticker()
   lowerThird.append(creatureHead, statRow, conditionList, statusTicker.root)
 
-  // Bottom-right command dock (broadcast kit plate).
+  // Bottom-right command dock (broadcast kit plate). A slim header row
+  // doubles as the collapse toggle; collapsed, only the "ACTIONS" label
+  // remains pinned to the corner.
   const cluster = plate({ className: "command-dock" })
+  const dockHead = document.createElement("button")
+  dockHead.className = "dock-head"
+  dockHead.type = "button"
+  dockHead.setAttribute("aria-expanded", "true")
+  dockHead.title = "Collapse panel"
+  const dockHeadLabel = document.createElement("span")
+  dockHeadLabel.textContent = "Actions"
+  const dockChev = document.createElement("span")
+  dockChev.className = "collapse-chev"
+  dockChev.innerHTML = icons.chevron
+  dockHead.append(dockHeadLabel, dockChev)
   const dockRow = document.createElement("div")
   dockRow.className = "dock-row"
   const actionButtons = ACTIONS.map(({ action, label, glyph }) => {
@@ -375,7 +397,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   })
   const advance = cta("Advance Day", handlers.onAdvanceDay)
   const advanceLabel = advance.querySelector<HTMLElement>(".kit-cta-label")
-  cluster.append(dockRow, dockTrain, picker, advance)
+  cluster.append(dockHead, dockRow, dockTrain, picker, advance)
 
   // Settings chip (save v5): one toggle mirrors the reduced-motion
   // preference. Persists through the main.ts handler like every other
@@ -394,6 +416,10 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   let pickerOpen = false
   let lastFocus: StatKey | null = null
   let current: GameState | null = null
+  // Corner clusters collapse by clicking their headers (session-only:
+  // always expanded on load).
+  let creatureOpen = true
+  let dockOpen = true
   // Previous AP total — drives the one-shot spend flash on the meter.
   let prevAp: number | null = null
   let apPips = apMeter.pips
@@ -401,6 +427,20 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   // Toggling the picker spends nothing — render only.
   trainButton.addEventListener("click", () => {
     pickerOpen = !pickerOpen
+    if (current) update(current)
+  })
+
+  creatureHead.addEventListener("click", () => {
+    creatureOpen = !creatureOpen
+    lowerThird.classList.toggle("is-collapsed", !creatureOpen)
+    creatureHead.setAttribute("aria-expanded", creatureOpen ? "true" : "false")
+  })
+
+  dockHead.addEventListener("click", () => {
+    dockOpen = !dockOpen
+    if (!dockOpen) pickerOpen = false
+    cluster.classList.toggle("is-collapsed", !dockOpen)
+    dockHead.setAttribute("aria-expanded", dockOpen ? "true" : "false")
     if (current) update(current)
   })
 

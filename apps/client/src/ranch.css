@@ -108,11 +108,55 @@
   user-select: none;
 }
 
+/* The creature head doubles as the collapse toggle — a real button so
+   keyboard focus and aria-expanded come for free. */
 .creature-head {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 10px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.creature-head:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+/* Collapsed lower-third: only the head row (crest + name + stage) stays,
+   the briefest useful readout pinned to the corner. */
+.creature-plate.is-collapsed .stat-row,
+.creature-plate.is-collapsed .condition-list,
+.creature-plate.is-collapsed .kit-ticker {
+  display: none;
+}
+
+.creature-plate.is-collapsed .creature-head {
+  margin-bottom: 0;
+}
+
+/* Shared collapse chevron: points down while expanded, right when
+   collapsed. */
+.collapse-chev {
+  display: inline-flex;
+  color: var(--ink-dim);
+  transition: transform 0.2s var(--kit-settle);
+}
+
+.collapse-chev svg {
+  width: 13px;
+  height: 13px;
+}
+
+.is-collapsed .collapse-chev {
+  transform: rotate(-90deg);
 }
 
 .creature-name {
@@ -194,6 +238,50 @@
   clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%, 0 14px);
   animation: settle-up 0.5s var(--kit-settle) 0.16s both;
   user-select: none;
+}
+
+/* Dock collapse toggle: a slim always-visible header row. Collapsed,
+   only "ACTIONS" stays pinned to the corner. */
+.dock-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: -2px 0 4px;
+  padding: 0 2px 6px;
+  border-bottom: 1px solid var(--kit-keyline);
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+.dock-head:hover {
+  color: var(--ink);
+}
+
+.dock-head:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.command-dock.is-collapsed .dock-row,
+.command-dock.is-collapsed .dock-train,
+.command-dock.is-collapsed .train-picker,
+.command-dock.is-collapsed .kit-cta {
+  display: none;
+}
+
+.command-dock.is-collapsed .dock-head {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .dock-row {
