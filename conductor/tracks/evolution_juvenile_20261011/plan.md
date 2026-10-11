@@ -11,12 +11,12 @@ manual verification for presentation tasks, phase checkpoints per
 
 *(all logic-bearing — strict TDD)*
 
-- [ ] Task: Evolution gate pure function *(write failing tests first)*
-  - [ ] Tests: `evaluateEvolution` — passes at day ≥ 10 with clean last-3-days + mood ≥ 40; fails on recent sickness onset; fails on mood < 40; re-check semantics on later nights; deterministic (seeded fixtures)
-  - [ ] Implement `evaluateEvolution` in `packages/sim/src/` (new `evolution.ts` or `creature.ts`), pure + DOM-free
-- [ ] Task: Settlement integration
-  - [ ] Tests: settlement calls the gate nightly; delayed evolution resolves on a later night; evolution applies before same-night training payout (documented order)
-  - [ ] Implement hook in `settlement.ts`
+- [x] Task: Evolution gate pure function *(write failing tests first)* — [checkpoint: a72e962]
+  - [x] Tests: `evaluateEvolution` — passes at day ≥ 10 with clean last-3-days + mood ≥ 40; fails on recent sickness onset; fails on mood < 40; re-check semantics on later nights; deterministic (seeded fixtures)
+  - [x] Implement `evaluateEvolution` in `packages/sim/src/` (new `evolution.ts`), pure + DOM-free
+- [x] Task: Settlement integration — [checkpoint: a72e962] *(folded into the gate commit: the gate verdict is meaningless without the hook, and the settlement tests were written red first in the same cycle)*
+  - [x] Tests: settlement calls the gate nightly; delayed evolution resolves on a later night; evolution applies **after** the full settlement (mood/health the gate judges are the settled values)
+  - [x] Implement hook in `settlement.ts` (new closing-day parameter from `advanceDay`; sick-cooldown bookkeeping stamps post-settlement health)
 - [ ] Task: Stat boost + kit gate change
   - [ ] Tests: +3/+2/+2/+1 applied to rolled base within bounds; `effectiveStats` reflects it; tier-3 unlocked at evolution, tier-4 still gated at 6 trained days; loadout helpers agree
   - [ ] Implement boost + extend `loadout.ts` gate helpers
