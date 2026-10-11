@@ -23,6 +23,7 @@ import {
   type Tactic,
   unlockedKit,
 } from "@apex/sim"
+import { type BattleHudFighter, createBattleHud } from "./battleHud"
 import type { FightCasting } from "./staging"
 import { visualSeedOf } from "./staging"
 
@@ -263,6 +264,10 @@ export function createSpar(
   )
   overlay.append(panel)
   root.append(overlay)
+  // Broadcast HUD riding the overlay's margins (Phase D): created after
+  // the overlay exists; createBattleHud prepends itself so the panel
+  // paints above it.
+  const battleHud = createBattleHud(overlay)
 
   let battleSeed = 0
   let owned: Creature | null = null
@@ -272,6 +277,7 @@ export function createSpar(
     steps: readonly PlaybackStep[]
     events: readonly BattleEvent[]
     verdict: Readonly<BattleResult>
+    fight: { owned: BattleHudFighter; rival: BattleHudFighter }
   } | null = null
   // True while a Replay slowly pass is in flight; finish() keeps the pill
   // visible so the user can replay again.
@@ -352,7 +358,10 @@ export function createSpar(
       clearTimer()
       showLine(event.line)
       const step = steps[index]
-      if (step) handlers.onStep?.(step, false)
+      if (step) {
+        handlers.onStep?.(step, false)
+        battleHud.update(step)
+      }
       play(events, index + 1, verdict, steps)
     }, speed)
   }
@@ -368,7 +377,22 @@ export function createSpar(
     intro.textContent = `${setup.rival.name} accepts the spar!`
     for (const { button } of tacticButtons) button.style.display = "none"
     const steps = buildPlaybackScript(verdict.events)
-    lastRun = { events: verdict.events, verdict, steps }
+    const fight = {
+      owned: {
+        name: setup.ownedSide.name,
+        key: setup.ownedSide.id ?? setup.ownedSide.name,
+        element: setup.ownedSide.element,
+        maxHp: setup.ownedSide.stats.hp,
+      },
+      rival: {
+        name: setup.rivalSide.name,
+        key: setup.rivalSide.id ?? setup.rivalSide.name,
+        element: setup.rivalSide.element,
+        maxHp: setup.rivalSide.stats.hp,
+      },
+    }
+    battleHud.show(fight)
+    lastRun = { events: verdict.events, verdict, steps, fight }
     handlers.onFightStart?.(castingFor(owned, setup))
     if (reducedMotion()) {
       // Full log at once, no timers (FR11); Replay slowly gives a text-only
@@ -378,7 +402,10 @@ export function createSpar(
       for (const event of verdict.events) {
         showLine(event.line)
         const step = steps[i] ?? steps[steps.length - 1]
-        if (step) handlers.onStep?.(step, true)
+        if (step) {
+          handlers.onStep?.(step, true)
+          battleHud.update(step)
+        }
         i++
       }
       finish(resultLine(verdict), verdict.winner === null, verdict)
@@ -479,6 +506,7 @@ export function createSpar(
     banner.style.display = "none"
     bannerSub.textContent = ""
     log.replaceChildren()
+    battleHud.hide()
     close.style.display = "none"
     fastButton.style.display = "none"
     replayButton.style.display = "none"
@@ -494,6 +522,7 @@ export function createSpar(
   close.addEventListener("click", () => {
     clearTimer()
     overlay.style.display = "none"
+    battleHud.hide()
     handlers.onClose?.()
   })
   sparButton.addEventListener("click", () => open(owned))
@@ -520,6 +549,7 @@ export function createSpar(
     replaying = true
     replayButton.disabled = true
     speed = STEP_MS
+    battleHud.show(lastRun.fight)
     play(lastRun.events, 0, lastRun.verdict, lastRun.steps)
   })
 
@@ -535,6 +565,7 @@ export function createSpar(
       if (!creature && overlay.style.display !== "none") {
         clearTimer()
         overlay.style.display = "none"
+        battleHud.hide()
       }
     },
   }

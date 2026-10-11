@@ -64,7 +64,7 @@ const SQUASH_D = 13
  * A projectile reads as its type at a glance, and the color survives
  * color-blindness checks when paired with the move icon in the HUD.
  */
-const ELEMENT_HUE: Record<string, number> = {
+export const ELEMENT_HUE: Record<string, number> = {
   fire: 18,
   water: 205,
   plant: 110,

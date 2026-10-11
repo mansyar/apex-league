@@ -817,3 +817,126 @@ body,
     transform: none;
   }
 }
+
+/* Battle HUD (Phase D) — broadcast overlays riding the spar overlay's
+   margins: dual HP bars with names up top, a rangefinder chip between
+   them, and the announcer lower-third at the bottom edge. Read-only
+   broadcast furniture: pointer-events stay off so the panel below keeps
+   every click. */
+.spar-hud {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 18px 24px;
+  pointer-events: none;
+}
+
+.spar-hud-top {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.spar-hud-side {
+  width: min(320px, 36vw);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.spar-hud-right {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.spar-hud-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spar-hud-right .spar-hud-name-row {
+  flex-direction: row-reverse;
+}
+
+.spar-hud-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.spar-hud-hp {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--panel-border);
+  overflow: hidden;
+}
+
+.spar-hud-hp-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: hsl(var(--hue) 72% 56%);
+  transition: width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.spar-hud-hp-fill.spar-hud-low {
+  background: #e2554a;
+}
+
+.spar-hud-range {
+  margin-top: 2px;
+  padding: 4px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: var(--panel-bg);
+  color: var(--ink-dim);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.spar-hud-lower {
+  align-self: center;
+  max-width: min(560px, 80%);
+  text-align: center;
+}
+
+.spar-hud-line {
+  display: inline-block;
+  padding: 8px 16px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: var(--panel-bg);
+  color: var(--ink);
+  font-style: italic;
+  font-size: 14px;
+}
+
+.spar-hud-line-in {
+  animation: spar-hud-line-in 0.4s ease-out;
+}
+
+@keyframes spar-hud-line-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* Reduced motion: static bar widths, no lower-third entrance. */
+@media (prefers-reduced-motion: reduce) {
+  .spar-hud-hp-fill {
+    transition: none;
+  }
+
+  .spar-hud-line-in {
+    animation: none;
+  }
+}
