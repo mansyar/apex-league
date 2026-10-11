@@ -64,14 +64,26 @@ Verification & Checkpoint gate before moving on.
   forces the droopy profile ~6 s then restores the condition-driven idle;
   cup panel fires `onEarlyExit` on close-before-finish; rendering, manual
   verification at checkpoint)*
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — coverage
+  check 9d3b2e5..HEAD: only logic-bearing change is `machine.ts` enterCup
+  (covered by `cupMachine.test.ts`); client files are rendering → verified in
+  browser; `bun run verify` green (466 pass / 0 fail, determinism gate OK);
+  browser evidence: chip visibility on/off cup days, paced QF→SF→F
+  presentation, early-exit +2 mood, win-path AP bonus + 🏆 banner, save v5
+  reload survival, console clean *(checkpoint: cd35fa5)*
 
 ## Phase C — Verification gate
 
-- [ ] Task: Full gate — `bun run verify` green everywhere; manual cup
+- [x] Task: Full gate — `bun run verify` green everywhere; manual cup
   playthrough on the dev server (enter → 3 rounds → rewards visible the
-  next day; loss path; reduced-motion pass); evidence recorded
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  next day; loss path; reduced-motion pass); evidence recorded *(verify
+  green EXIT=0; browser playthrough: day 7 entry + resolve, day 14/21 early
+  exit, simulated win → day 8 AP 4 + banner; user confirmed manual pass —
+  two presentation bugs caught and fixed pre-checkpoint: chip re-sync after
+  resolve, close button reachable during pacing — `cd35fa5`)*
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — full
+  gate green after the fixes; verification report attached as git note
+  *(checkpoint: cd35fa5)*
 
 ## Notes
 
