@@ -33,11 +33,11 @@ workflow checkpoint task.
 - [x] Task: Score bug on the kit — `185d66a`
   - [x] Hero day numeral + phase tab; AP segmented meter wired to `state.actionPoints` with spend flash
   - [x] Trophy tally from `state.cupsWon` (designed overflow, no silent ×5 cap)
-- [ ] Task: Creature lower-third on the kit
-  - [ ] Crest + name plate + stage tab (uses shared `element.ts`)
-  - [ ] Stat cells with `+N` trained chips
-  - [ ] Five condition bars with glyph labels + up/down change feedback
-  - [ ] Status line as announcer ticker (existing copy priority chain preserved; copy tests still pass)
+- [x] Task: Creature lower-third on the kit — `2d3c488`
+  - [x] Crest + name plate + stage tab (uses shared `element.ts`)
+  - [x] Stat cells with `+N` trained chips
+  - [x] Five condition bars with glyph labels + up/down change feedback
+  - [x] Status line as announcer ticker (existing copy priority chain preserved; copy tests still pass)
 - [ ] Task: Command dock on the kit
   - [ ] Care plates: glyph + AP badge + rejection reason; disabled states still derive from `careAction` dry-run
   - [ ] Train button + inline four-stat picker styled like the cup kit list
