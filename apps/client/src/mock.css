@@ -207,7 +207,6 @@ h2 {
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  clip-path: polygon(9px 0, 100% 0, 100% 100%, 0 100%);
   cursor: pointer;
   transition:
     transform 0.15s var(--settle),
@@ -256,6 +255,17 @@ h2 {
   letter-spacing: 0.02em;
   text-transform: none;
   color: var(--ink-dim);
+}
+
+.shape-row {
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.shape-row .kit-button {
+  min-width: 64px;
+  justify-items: center;
 }
 
 .kit-button.is-disabled,
@@ -1067,6 +1077,20 @@ h2 {
 }
 
 /* Reduced motion: everything collapses to a crossfade or stillness. */
+/* Button shape modifiers — appended last so the neutral base rule stays
+   plain; the dock wears .is-slant, the showcase compares all four. */
+.kit-button.is-slant {
+  clip-path: polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
+}
+
+.kit-button.is-notch {
+  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 0 100%);
+}
+
+.kit-button.is-shard {
+  clip-path: polygon(9px 0, calc(100% - 9px) 0, 100% 100%, 0 100%);
+}
+
 body.is-reduced *,
 body.is-reduced *::before,
 body.is-reduced *::after {
