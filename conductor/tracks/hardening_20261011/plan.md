@@ -5,12 +5,13 @@ notes per task, phase checkpoints with explicit user verification).
 
 ## Phase 1 — Sim Core Hardening (TDD-able, DOM-free)
 
-- [ ] Task: Cup draw HP tiebreak (FR-A8)
-  - [ ] Write failing tests in `cup.test.ts`: `double_ko` resolves by higher
-        `finalHp`; exact-tie falls to lower seed index; loser path unchanged
-  - [ ] Implement tiebreak in `resolvePairing` using `BattleResult.finalHp`;
-        update stale comment (FR-C4 part 1)
-  - [ ] Commit `fix(sim): cup double_ko resolves by remaining HP tiebreak` +
+- [x] Task: Cup draw HP tiebreak (FR-A8) (2780b3b)
+  - [x] Write failing tests in `cup.test.ts`: `double_ko` resolves by higher
+        `finalHp`; exact-tie falls to the earlier slot; draw rounds still halve
+  - [x] Implement tiebreak in `resolvePairing` via new exported pure
+        `doubleKoWinner` using `BattleResult.finalHp`; update stale comment
+        (FR-C4 part 1)
+  - [x] Commit `fix(sim): cup double_ko resolves by remaining HP tiebreak` +
         git note
 - [ ] Task: Resolve CupOutcome at machine boundary (FR-A5)
   - [ ] Write failing tests pinning `"won" | "lost"` at `applyCupRewards` input
