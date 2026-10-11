@@ -78,27 +78,37 @@ Verification & Checkpoint gate before moving on.
 
 ## Phase D - Bracket HUD + live cup flow (client, implements the approved mocks)
 
-- [ ] Task: Bracket HUD per mock — 3-column QF/SF/F, slot states, staggered
+- [x] Task: Bracket HUD per mock — 3-column QF/SF/F, slot states, staggered
   rival verdicts (300–500 ms), next-player-match highlight; reduced motion =
-  instant *(rendering, manual verification at checkpoint)*
-- [ ] Task: Coach screen per mock — rival card (name/species/element/stat
+  instant *(rendering, manual verification at checkpoint)* *(718d00c —
+  browser-verified: strict-order reveal, 700 ms stagger, YOUR MATCH highlight,
+  solid dome backdrop)*
+- [x] Task: Coach screen per mock — rival card (name/species/element/stat
   bars/kit), loadout picker (reuse spar picker rules: 2–4 unique,
   tier-gated locked rows), tactic selector, "Back to bracket" free back-out,
-  "Step into the arena" commit *(rendering, manual verification)*
-- [ ] Task: Arena battle wiring — fight → `resolvePlayerMatch` live →
+  "Step into the arena" commit *(rendering, manual verification)* *(718d00c —
+  browser-verified: scouting report, locked tier rows, 2–4 enforcement,
+  free back-out)*
+- [x] Task: Arena battle wiring — fight → `resolvePlayerMatch` live →
   swap/staging.cast/battleHud playback of the fresh `BattleResult` → verdict
   stamp → exit to bracket (win) or auto-complete (loss) *(rendering, manual
-  verification)*
-- [ ] Task: Give-up modal + close semantics per mock — free look before
+  verification)* *(718d00c — browser-verified: QF win → walk resumed to SF;
+  SF loss → auto-complete → results)*
+- [x] Task: Give-up modal + close semantics per mock — free look before
   first fight (chip returns, cup not consumed); confirmation modal after
   commit; forfeit path through `forfeitCup` before persisting *(rendering +
-  logic wiring)*
-- [ ] Task: Results screen per mock — champion, placement, reward breakdown;
+  logic wiring)* *(718d00c — browser-verified: pre-commit close is free;
+  post-commit close at SF → modal → forfeit → 3rd-place results)*
+- [x] Task: Results screen per mock — champion, placement, reward breakdown;
   rewards shown from `finalizeCup` timing; ranch idle reactions preserved
-  (victory bounce / droopy) *(rendering, manual verification)*
-- [ ] Task: `main.ts` integration — chip/update semantics, session lifecycle
+  (victory bounce / droopy) *(rendering, manual verification)* *(718d00c —
+  browser-verified champion run: 1st plate, full reward rows, phase flipped,
+  🏆 in the day chip)*
+- [x] Task: `main.ts` integration — chip/update semantics, session lifecycle
   in memory, arena-mode HUD suppression during cup battles *(rendering,
-  manual verification)*
+  manual verification)* *(718d00c — onFightStart/onStep/onArenaExit mirror
+  the spar wiring; chips hidden during battles; onCommit persists the
+  endCup flip at the first fight)*
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase E — Verification gate
