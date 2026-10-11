@@ -62,3 +62,7 @@ workflow checkpoint task.
 - [x] Task: Sync README/docs where the HUD is described — `9a21a17`
 - [x] Task: Final gate — `bun run verify` green; manual visual pass over all five surfaces with screenshots as evidence; reduced-motion on/off checked — `c94b07a`
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: c94b07a]
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions - H1 undefined --keyline (12 uses -> --kit-keyline), H2 Train tag dead code (kit.ts renders tag when defined; hud passes tag: ""), M1 superseded starter block + legacy tokens deleted, M2 element tint via --el-border-color custom-property hand-off, M3 orphaned .element-badge/.el-* removed, L1/L2 dead selectors + redundant reduced-motion blocks, L3 mock.css doc honesty, L4 badge text - 60aa2ce
