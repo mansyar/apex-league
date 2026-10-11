@@ -54,7 +54,13 @@ phase ends with a verification & checkpoint task.
 - [x] Task: Reduced-motion toggle — HUD settings control bound to the save v5
       pref; disables camera shake and flashes, all gameplay stays legible.
       [957dd78]
-- [ ] Task: Phase C verification & checkpoint (Refer to workflow.md)
+- [x] Task: Phase C verification & checkpoint (Refer to workflow.md)
+  - bun run verify green at 50f0942 (types, 390 tests, biome, determinism
+    gate). Browser evidence: arena swap, staged fighters, live log, KO
+    finish + banner, ranch restore with no state loss, reduced-motion
+    toggle persists across reload, console clean. User-flagged motion-pill
+    overlap on the Play button fixed (pill lifted above the cluster).
+    [checkpoint: 50f0942]
 
 ## Phase D — Battle HUD, pacing & closeout
 
