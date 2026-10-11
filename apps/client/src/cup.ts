@@ -160,9 +160,12 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
     bracket.replaceChildren()
     result.textContent = ""
     result.classList.remove("cup-result-win", "cup-result-loss")
-    close.style.display = "none"
     intro.textContent = `${current.creature.name} steps into the bracket!`
     overlay.style.display = ""
+    // The way out is open the whole time (spec FR4): leaving before the
+    // champion is crowned is an "early exit", after the finish it is just
+    // going home.
+    close.style.display = ""
 
     // Resolve everything through the sim in one call; the returned state
     // is already committed semantics-wise, the handler persists it.

@@ -75,6 +75,9 @@ const cup = createCup(app, {
     persist()
     hud.update(state)
     spar.update(state.creature ?? null)
+    // One entry per cup: the resolve flips the phase back to "day", so the
+    // chip must re-sync or it would stay visible for the rest of the day.
+    cup.update(state)
     // Conditions may carry the reward bump (mood/bond) — refresh the idle.
     sceneVisuals()
   },
