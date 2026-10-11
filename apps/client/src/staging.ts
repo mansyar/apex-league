@@ -1,4 +1,9 @@
-import { ELEMENT_HUE, EVOLUTION_STAT_BOOST, type PlaybackStep } from "@apex/sim"
+import {
+  CHAMPION_STAT_BOOST,
+  ELEMENT_HUE,
+  EVOLUTION_STAT_BOOST,
+  type PlaybackStep,
+} from "@apex/sim"
 import { generate } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
@@ -35,7 +40,7 @@ export const visualSeedOf = (
     stage === "juvenile"
       ? EVOLUTION_STAT_BOOST
       : stage === "champion"
-        ? { hp: 6, atk: 4, def: 4, spd: 2 } // juvenile + champion boost
+        ? CHAMPION_STAT_BOOST // cumulative: juvenile + champion boost
         : { hp: 0, atk: 0, def: 0, spd: 0 }
   return (
     ((s.hp - off.hp) * 7 +

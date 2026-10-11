@@ -24,6 +24,21 @@ export const EVOLUTION_STAT_BOOST: CreatureStats = Object.freeze({
 })
 
 /**
+ * The cumulative stat offset for champion-stage presentation. Today this is
+ * sim-unused (champion evolution is not implemented yet — see the roadmap);
+ * it is pinned here so the renderer's visual stat seed for a champion is
+ * exactly juvenile + champion boost ({hp:6, atk:4, def:4, spd:2} = two
+ * juvenile steps) and can never drift from the contract. When the champion
+ * evolution gate lands, this is the number the sim applies.
+ */
+export const CHAMPION_STAT_BOOST: CreatureStats = Object.freeze({
+  hp: 6,
+  atk: 4,
+  def: 4,
+  spd: 2,
+})
+
+/**
  * Maturation itself: flip the stage and apply the juvenile stat boost to
  * the rolled base. Pure: returns a new creature; everything else (trained,
  * conditions, loadout) is carried over untouched.
