@@ -1,16 +1,20 @@
 import { describe, expect, test } from "bun:test"
 import type { Creature } from "./index"
 import {
+  type CupSession,
   chooseStarter,
   completeCup,
   createInitialState,
+  cupPlacement,
   defaultLoadout,
   finalizeCup,
   forfeitCup,
   type GameState,
   getSpecies,
+  makeBracket,
   makeExhibition,
   prepareCup,
+  type RoundVerdict,
   resolveBattle,
   resolveCup,
   resolvePlayerMatch,
@@ -487,5 +491,68 @@ describe("completeCup / forfeitCup / finalizeCup — the cup's end", () => {
     if (!after) throw new Error("rewards dropped the creature")
     expect(after.conditions.bond).toBe(before.bond)
     expect(after.conditions.mood).toBe(Math.min(100, before.mood + 2))
+  })
+})
+
+describe("placement regression — a draw cannot under-place the player", () => {
+  const verdict = (
+    round: number,
+    winner: string | null,
+    opponent: string,
+  ): RoundVerdict => ({
+    round,
+    slotA: "Ember Drake",
+    slotB: opponent,
+    winner,
+    line: winner
+      ? `${winner} takes the round.`
+      : "Both fighters are down — the round is a draw.",
+    battle: null,
+  })
+
+  const stubSession = (
+    status: CupSession["status"],
+    playerVerdicts: readonly RoundVerdict[],
+    championName: string | null,
+  ): CupSession => {
+    const s = cupDayState(42)
+    const creature = s.creature
+    if (!creature) throw new Error("no creature on cup day")
+    return {
+      bracket: makeBracket(creature, s.day),
+      seed: 0,
+      rivalResolutions: [],
+      rivalVerdicts: [],
+      playerVerdicts,
+      completionVerdicts: [],
+      nextPlayerRound: 0,
+      nextOpponent: null,
+      status,
+      championName,
+    }
+  }
+
+  test("a drawn final still crowns the champion at 1st", () => {
+    const me = "Ember Drake"
+    const session = stubSession(
+      "champion",
+      [
+        verdict(1, me, "Cindersnout"),
+        verdict(2, me, "Bonfire Brook"),
+        verdict(3, null, "Reedle Mirefin"),
+      ],
+      me,
+    )
+    expect(cupPlacement(session)).toBe(1)
+  })
+
+  test("a drawn quarterfinal followed by a semifinal loss places 3rd", () => {
+    const me = "Ember Drake"
+    const session = stubSession(
+      "eliminated",
+      [verdict(1, null, "Cindersnout"), verdict(2, "Bonfire Brook", me)],
+      "Bonfire Brook",
+    )
+    expect(cupPlacement(session)).toBe(3)
   })
 })

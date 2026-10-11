@@ -195,8 +195,6 @@ export interface RoundVerdict {
   readonly winner: string | null
   /** One announcer line (product voice). */
   readonly line: string
-  /** The full resolver output — the arena replays the battle from
-   * `battle.events` (live-cup spec FR5). */
   /** The full battle replay (live cup): the arena replays from these
    * events (spec FR5). Null only on a forfeit verdict — the round was
    * given away without a fight. */
@@ -475,12 +473,13 @@ export function forfeitCup(session: CupSession): CupSession {
 }
 
 /** The player's placement from a finished session: champion 1, else by
- * rounds survived (QF exit 4, SF exit 3, final loss 2). */
+ * rounds survived (QF exit 4, SF exit 3, final loss 2). Placement counts
+ * rounds played rather than wins so a drawn verdict (double-KO, winner
+ * null) that still advanced the player cannot under-place them. */
 export function cupPlacement(session: CupSession): 1 | 2 | 3 | 4 {
-  const wins = session.playerVerdicts.filter(
-    (v) => v.winner === session.bracket.slots[0]?.name,
-  ).length
-  return wins === CUP_ROUNDS ? 1 : wins === 2 ? 2 : wins === 1 ? 3 : 4
+  if (session.status === "champion") return 1
+  const played = session.playerVerdicts.length
+  return played >= CUP_ROUNDS ? 2 : played === 2 ? 3 : 4
 }
 
 /** A pairing of two slots for one battle. */
@@ -597,9 +596,9 @@ function resolvePairing(
       line,
       battle: result,
     },
-    // On a draw (double-ko) neither advanced cleanly; pick the slot with the
-    // higher remaining HP via resolver's finalHp to keep the field shrinking.
-    // The resolver already guarantees exactly one winner unless double_ko.
+    // On a draw (double-ko) nobody advanced cleanly; the fallback favors
+    // the player's slot so the field always keeps shrinking. The resolver
+    // guarantees exactly one winner unless double_ko.
     winner: advancing,
     loser: advancing === a ? b : a,
   }

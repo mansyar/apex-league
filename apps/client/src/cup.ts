@@ -631,7 +631,9 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   const showResults = (): void => {
     if (!session) return
     const placement = cupPlacement(session)
-    const won = placement === 1
+    // The title follows the session's status, not the placement: a drawn
+    // final (double-KO) crowns the player while placement rounds survive.
+    const won = session.status === "champion"
     resultTitle.textContent = won ? "Champion" : "Eliminated"
     resultStamp.classList.toggle("lost", !won)
     resultSub.textContent = won
@@ -778,9 +780,9 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
     // The commit moment (spec): the FIRST step into the arena consumes
     // the cup — the phase flips to "day", so no second entry is possible.
     if (!committed) {
-      committed = true
       const consumed = endCup(state)
       if (consumed.ok) {
+        committed = true
         state = consumed.state
         handlers.onCommit(consumed.state)
       }

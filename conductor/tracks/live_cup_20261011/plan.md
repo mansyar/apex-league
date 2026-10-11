@@ -144,3 +144,7 @@ Verification & Checkpoint gate before moving on.
   auto-complete).
 - Spar's pre-resolved spectator model is explicitly unchanged; only the cup
   gains live resolution.
+
+## Phase: Review Fixes
+
+- [x] Task: Review fixes — drawn-final placement regression (cupPlacement counts rounds played, champion from session.status; client title likewise; 2 regression tests), deduped RoundVerdict.battle JSDoc, corrected double-KO comment, committed set inside endCup ok branch *(verify green; review approved 2026-10-11)*
