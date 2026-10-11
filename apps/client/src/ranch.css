@@ -477,36 +477,39 @@
   color: var(--ink-dim);
 }
 
+/* Spar chip — kit-chip plate with the broadcast title/sub stack. */
 .spar-button {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 18px;
+  right: 18px;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  animation: settle-down 0.5s var(--kit-settle) 0.24s both;
+}
+
+.spar-button .kit-chip-glyph {
+  color: var(--accent);
+}
+
+.spar-text {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 10px 16px;
-  border: 1px solid var(--panel-border);
-  border-radius: 12px;
-  background: var(--panel-bg);
-  color: var(--ink);
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  user-select: none;
+  gap: 1px;
 }
 
-.spar-button:hover:not(:disabled) {
-  border-color: var(--accent);
+.spar-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-.spar-button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.spar-button span:last-child {
-  font-size: 10px;
+.spar-sub {
+  font-size: 9px;
   font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--ink-dim);
 }
