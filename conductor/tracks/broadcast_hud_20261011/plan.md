@@ -6,7 +6,7 @@ workflow checkpoint task.
 
 ## Phase A — Mock-first design gate
 
-- [ ] Task: Build the mock dev page (`apps/client/mock.html` + `mock.css`)
+- [x] Task: Build the mock dev page (`apps/client/mock.html` + `mock.css`) — `90ebfca`
   - [ ] Kit primitive showcase: plate, chip, button, tab, meter, bar, stamp (all variants)
   - [ ] Score bug cluster: hero day numeral, phase tab, AP segmented meter (full/empty/spent states), trophy tally
   - [ ] Creature lower-third cluster: crest + name plate + stage tab, stat cells with `+N` chips, five condition bars (glyph labels, change-feedback states), announcer ticker line
