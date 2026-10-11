@@ -34,6 +34,12 @@
   resolution in the phase machine, save v5 (`cupsWon`, `lastCupDay` with
   v4→v5 migration), full-screen client cup panel with ~1.5s pacing and a
   droopy-idle early-exit hook in the ranch scene.*
+  *2026-10-11: hardening pass landed — the central typed game-state store is
+  now real: `apps/client/src/store.ts` (`createGameStore`, `commit(state)` =
+  persist → notify hud/spar/cup/scene in fixed order); `main.ts` has no
+  per-handler fanout. `saveGame` returns a boolean and never throws
+  (save-failure surfaces as a HUD notice). Reduced-motion OS reads
+  single-sourced in `apps/client/src/motion.ts` (hardened double-report).*
 
 ## Server
 - **Framework**: ElysiaJS on Bun (endpoints: save sync, leaderboard, ghost
