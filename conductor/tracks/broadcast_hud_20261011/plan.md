@@ -1,0 +1,60 @@
+# Plan — Broadcast HUD Overhaul (`broadcast_hud_20261011`)
+
+Methodology: `conductor/workflow.md`. Logic-bearing tasks are test-first;
+rendering/asset tasks carry manual verification. Every phase ends with a
+workflow checkpoint task.
+
+## Phase A — Mock-first design gate
+
+- [ ] Task: Build the mock dev page (`apps/client/mock.html` + `mock.css`)
+  - [ ] Kit primitive showcase: plate, chip, button, tab, meter, bar, stamp (all variants)
+  - [ ] Score bug cluster: hero day numeral, phase tab, AP segmented meter (full/empty/spent states), trophy tally
+  - [ ] Creature lower-third cluster: crest + name plate + stage tab, stat cells with `+N` chips, five condition bars (glyph labels, change-feedback states), announcer ticker line
+  - [ ] Command dock cluster: care plates (glyph + AP badge + rejection reason states), train picker rows, gold Advance Day CTA
+  - [ ] Top-right chip family (Spar / Cup / Motion) + starter overlay treatment
+  - [ ] Motion notes: entrance settle / spend flash / bar feedback shown as CSS animations in the mock
+- [ ] Task: Present mock to the user; iterate until approved; record the approval in the track notes
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase B — Shared kit + shared modules
+
+- [ ] Task: Tests first — pure logic for shared modules
+  - [ ] `element.ts` (shared crest + hue module): all 6 elements have glyph + hue; single fallback; fire/plant/water glyphs byte-match the current battleHud set
+  - [ ] `prefersReducedMotion()` helper (injected media-query matcher): true/false paths, no direct `matchMedia` access
+- [ ] Task: Implement `element.ts`; delete duplicated `CREST_GLYPHS` (battleHud), `ELEMENT_HUE` (staging) and the `HUES` copy (cup.ts); fix the 40-vs-200 fallback mismatch
+- [ ] Task: Implement the `ui/` kit (factories for plate/chip/button/tab/meter/bar/stamp) + kit.css; wiring stays imperative DOM, factories run at build time
+- [ ] Task: Split CSS: `kit.css` + per-surface files (ranch / spar / cup / starter / arena); retire `style.css`
+- [ ] Task: Repoint the mock page at the real kit so the approved look is reproduced from production code
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase C — Ranch HUD rebuild
+
+- [ ] Task: Score bug on the kit
+  - [ ] Hero day numeral + phase tab; AP segmented meter wired to `state.actionPoints` with spend flash
+  - [ ] Trophy tally from `state.cupsWon` (designed overflow, no silent ×5 cap)
+- [ ] Task: Creature lower-third on the kit
+  - [ ] Crest + name plate + stage tab (uses shared `element.ts`)
+  - [ ] Stat cells with `+N` trained chips
+  - [ ] Five condition bars with glyph labels + up/down change feedback
+  - [ ] Status line as announcer ticker (existing copy priority chain preserved; copy tests still pass)
+- [ ] Task: Command dock on the kit
+  - [ ] Care plates: glyph + AP badge + rejection reason; disabled states still derive from `careAction` dry-run
+  - [ ] Train button + inline four-stat picker styled like the cup kit list
+  - [ ] Advance Day gold CTA (phase-aware label preserved)
+- [ ] Task: Chip family + motion wiring (entrance settles, hover/press micro-feedback; everything gated by the reduced-motion setting + OS preference)
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase D — Spar, starter, cup + arena adoption
+
+- [ ] Task: Spar panel onto the kit (kit-gate progress, loadout rows, tactic buttons, log) — interaction unchanged
+- [ ] Task: Starter overlay rebuilt in dome/broadcast language; remove the dead "Coming soon" ribbon
+- [ ] Task: Cup overlay + battle HUD chrome adopt kit classes (bracket, coach room, results, placard, lower-third) — layout/behavior unchanged
+- [ ] Task: Cup results AP copy fix — derive from `ACTION_POINTS_PER_DAY` + cup bonus instead of `${3 + 1}`
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase E — Guidelines, docs, final verification
+
+- [ ] Task: Amend `conductor/product-guidelines.md` for the backdrop-blur scrim (dated note)
+- [ ] Task: Sync README/docs where the HUD is described
+- [ ] Task: Final gate — `bun run verify` green; manual visual pass over all five surfaces with screenshots as evidence; reduced-motion on/off checked
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
