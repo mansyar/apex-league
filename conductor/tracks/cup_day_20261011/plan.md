@@ -58,9 +58,12 @@ Verification & Checkpoint gate before moving on.
   (cup day surfaces the chip rather than auto-running); HUD shows the
   `cupsWon` banner *(bd2aa45 — one 🏆 per cup, hidden at zero; rendering,
   manual verification at checkpoint)*
-- [ ] Task: Ranch idle hooks — scene reacts to placement (victory → happy
+- [x] Task: Ranch idle hooks — scene reacts to placement (victory → happy
   bounce next day already exists; early exit → one droopy idle window);
-  scene/scene-logic otherwise untouched
+  scene/scene-logic otherwise untouched *(c6d836d — `scene.droopyMoment()`
+  forces the droopy profile ~6 s then restores the condition-driven idle;
+  cup panel fires `onEarlyExit` on close-before-finish; rendering, manual
+  verification at checkpoint)*
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase C — Verification gate
