@@ -604,6 +604,29 @@ body,
   font-weight: 800;
 }
 
+/* Cup pacing toggle — same pill look as .motion-pill, inline in the panel. */
+.cup-pace {
+  align-self: flex-start;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: var(--panel-bg);
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+.cup-pace[aria-pressed="true"] {
+  color: var(--ink);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--panel-bg));
+}
+
+.cup-pace:hover {
+  color: var(--ink);
+}
+
 .cup-intro {
   font-size: 14px;
   color: var(--ink-dim);

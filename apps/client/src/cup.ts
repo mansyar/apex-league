@@ -17,6 +17,11 @@ import {
   isCupDay,
 } from "@apex/sim"
 import { prefersReducedMotionOs } from "./motion"
+import {
+  PLAYBACK_SPEED_MS,
+  type PlaybackSpeed,
+  toggleSpeed,
+} from "./playbackSpeed"
 
 export interface CupHandlers {
   /**
@@ -36,8 +41,6 @@ export interface Cup {
   /** Sync the chip and live state with the current sim state. */
   update(state: GameState): void
 }
-
-const PACE_MS = 1500
 
 export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   // The Enter Cup chip sits beside the Spar chip (top-right cluster).
@@ -63,6 +66,22 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   heading.className = "cup-heading"
   heading.textContent = "Cup Day"
 
+  // Pacing shares the spar arena's two-speed contract (no skipping — a
+  // fast cup still plays every verdict in order). Reduced motion keeps
+  // the instant dump regardless of this toggle.
+  const pace = document.createElement("button")
+  pace.className = "cup-pace"
+  pace.type = "button"
+  pace.setAttribute("aria-pressed", "false")
+  let speed: PlaybackSpeed = "normal"
+  const paceLabel = (): string => `Speed: ${speed}`
+  pace.textContent = paceLabel()
+  pace.addEventListener("click", () => {
+    speed = toggleSpeed(speed)
+    pace.setAttribute("aria-pressed", speed === "fast" ? "true" : "false")
+    pace.textContent = paceLabel()
+  })
+
   const intro = document.createElement("div")
   intro.className = "cup-intro"
 
@@ -78,7 +97,7 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   close.textContent = "Back to the ranch"
   close.style.display = "none"
 
-  panel.append(heading, intro, bracket, result, close)
+  panel.append(heading, pace, intro, bracket, result, close)
   overlay.append(panel)
   root.append(overlay)
 
@@ -136,10 +155,11 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   /** Walk the resolved rounds with pacing (or all at once, reduced motion). */
   const play = (cup: CupResult, index: number): void => {
     const round = cup.rounds[index]
+    const paceMs = PLAYBACK_SPEED_MS[speed]
     if (!round) {
       timer = setTimeout(
         () => finish(cup.championName),
-        reducedMotion() ? 0 : PACE_MS,
+        reducedMotion() ? 0 : paceMs,
       )
       return
     }
@@ -149,7 +169,7 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
         showVerdict(round)
         play(cup, index + 1)
       },
-      reducedMotion() ? 0 : PACE_MS,
+      reducedMotion() ? 0 : paceMs,
     )
   }
 
