@@ -35,10 +35,10 @@ notes per task, phase checkpoints with explicit user verification).
   - [x] Move `ELEMENT_HUE` to `@apex/sim` (beside `typeFactor`); update
         `staging`/`battleHud` imports; delete client copy
   - [x] Commit `refactor(sim): canonicalize ELEMENT_HUE type-color contract`
-- [ ] Task: Pin champion stat constant (FR-A7)
-  - [ ] Export `CHAMPION_STAT_BOOST {hp:6, atk:4, def:4, spd:2}` with JSDoc
+- [x] Task: Pin champion stat constant (FR-A7) (fb07035)
+  - [x] Export `CHAMPION_STAT_BOOST {hp:6, atk:4, def:4, spd:2}` with JSDoc
         noting sim-unused-today; `staging.ts` consumes it
-  - [ ] Commit `chore(sim): pin champion stat boost constant`
+  - [x] Commit `chore(sim): pin champion stat boost constant`
 - [ ] Task: Species-existence load validation (FR-B2)
   - [ ] Write failing test in `storage.test.ts`: unknown `speciesId` rejected
         with friendly reason
