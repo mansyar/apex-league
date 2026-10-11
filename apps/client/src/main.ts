@@ -82,8 +82,12 @@ const cup = createCup(app, {
     sceneVisuals()
   },
   // Leaving the presentation before the bracket ends: one droopy idle
-  // window (spec FR4), purely visual — the sim result already stands.
-  onEarlyExit: () => scene.droopyMoment(),
+  // window (spec FR4), purely visual — the sim result already stands. The
+  // chip re-syncs too: the entry already resolved, so it must hide.
+  onEarlyExit: () => {
+    scene.droopyMoment()
+    cup.update(state)
+  },
 })
 
 const hud = createHud(app, {

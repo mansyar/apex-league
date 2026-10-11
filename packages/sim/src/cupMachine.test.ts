@@ -1,6 +1,5 @@
 import { describe, expect, test } from "bun:test"
 import {
-  type Creature,
   chooseStarter,
   createCreature,
   createInitialState,
@@ -25,23 +24,14 @@ describe("enterCup — the cup-day action", () => {
     const r = enterCup(s)
     expect(r.ok).toBe(true)
     expect(r.state.phase).toBe("day")
-    expect(r.cup).not.toBeNull()
-    const cup = r.cup!
-    expect(cup.roundsPlayed).toBe(3)
+    if (!r.ok || !r.cup) throw new Error("cup did not resolve")
+    expect(r.cup.roundsPlayed).toBe(3)
   })
 
   test("a win stamps cupsWon +1 and lastCupDay = today", () => {
-    // Find a winning (day, seed) pair via the pure resolver first.
-    let found: { seed: number; day: number } | null = null
-    for (const day of [7, 14, 21]) {
-      for (let seed = 1; seed <= 60 && !found; seed++) {
-        const c = createCreature("plant_ox", seed)
-        const trained = { hp: 3, atk: 3, def: 3, spd: 3 }
-        void trained
-        found = null
-      }
-    }
-    // Fallback contract simply checks the stamp logic on a LOSS path too.
+    // Seed-search scaffolding (a guaranteed winning day/seed pair) was
+    // removed — the reward logic is covered exhaustively in cupRewards
+    // tests; here the stamp bookkeeping is what matters.
     let s = advanceDay(ownedState())
     while (s.day < 7) s = advanceDay(s)
     const r = enterCup(s)

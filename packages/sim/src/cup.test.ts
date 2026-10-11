@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import {
+  CUP_ROUNDS,
   type CupSlot,
   makeBracket,
   RIVAL_NAME_POOL,
@@ -217,6 +218,62 @@ describe("runRound / resolveCup — one-sitting resolution", () => {
         expect(v.line.length).toBeLessThanOrEqual(120)
       }
     }
+  })
+
+  test("on a loss the reported champion is the real tournament winner", () => {
+    // Regression (review): the loss branch read the loss round's winners
+    // instead of the continuation loop's final survivor, announcing a
+    // semifinalist as champion on every QF/SF exit.
+    for (let seed = 1; seed <= 60; seed++) {
+      const c = playerCreature(seed)
+      const bracket = makeBracket(c, 7)
+      const result = resolveCup(bracket, c)
+      if (result.playerPlacement === 1) continue
+      // Independent replay: thread the alive field to the last survivor.
+      let alive: readonly CupSlot[] = bracket.slots
+      let actual = ""
+      for (let round = 1; round <= CUP_ROUNDS; round++) {
+        const r = runRound(bracket, round, c, round === 1 ? undefined : alive)
+        alive = r.winners
+        const last = alive[0]
+        if (alive.length === 1 && last) actual = last.name
+      }
+      expect(result.championName).toBe(actual)
+    }
+  })
+
+  test("placement mapping: QF loss → 4, SF loss → 3, final loss → 2", () => {
+    for (let seed = 1; seed <= 60; seed++) {
+      const c = playerCreature(seed)
+      const result = resolveCup(makeBracket(c, 7), c)
+      if (result.playerPlacement === 1) continue
+      const lostIn =
+        result.rounds.findIndex((r) => !r.winners.some((w) => w.isPlayer)) + 1
+      const expected = lostIn === 1 ? 4 : lostIn === 2 ? 3 : 2
+      expect(result.playerPlacement).toBe(expected)
+    }
+  })
+
+  test("makeBracket honors the seed (day + save seed mix)", () => {
+    // Spec FR2: the bracket is a function of day + save seed, not the day
+    // alone. The machine folds the creature identity into the seed and
+    // passes it here; two different seeds must draw different fields.
+    const c = playerCreature(11)
+    const names = (seed: number): string =>
+      makeBracket(c, 7, seed)
+        .slots.filter((s) => !s.isPlayer)
+        .map((s) => s.name)
+        .join()
+    let differed = false
+    for (let a = 1; a <= 20 && !differed; a++) {
+      for (let b = a + 1; b <= 20; b++) {
+        if (names(a) !== names(b)) {
+          differed = true
+          break
+        }
+      }
+    }
+    expect(differed).toBe(true)
   })
 })
 

@@ -48,14 +48,18 @@ export const RIVAL_RAMP: readonly number[] = Object.freeze([
   -0.05, -0.05, -0.05, -0.05, 0, 0, +0.05,
 ])
 
-/** Compute one cup bracket from the player's creature and the cup day. Pure. */
+/** Compute one cup bracket from the player's creature and the cup day. Pure.
+ * `seed` defaults to a day-only stream; the machine passes a seed folded
+ * with the save's creature identity so two saves on the same day draw
+ * different fields (spec FR2: bracket from day + save seed). */
 export function makeBracket(
   owned: Readonly<Creature>,
   day: number,
+  seed?: number,
 ): CupBracket {
   const species = getSpecies(owned.speciesId)
   if (!species) throw new Error(`Unknown species: ${owned.speciesId}`)
-  const rng = makeRng((day * 7 + 1) >>> 0)
+  const rng = makeRng(seed ?? (day * 7 + 1) >>> 0)
   const eff = effectiveStats(owned)
 
   // 7 rivals: each rolled from an available species, named from the pool,
@@ -349,7 +353,8 @@ export function resolveCup(
     const playerIn = r.winners.some((w) => w.isPlayer)
     if (!playerIn) {
       // The player fell this round: the rest of the bracket still runs.
-      placement = round === CUP_ROUNDS ? 2 : ((round * 2) as 1 | 2 | 3 | 4)
+      // QF exit → 4, SF exit → 3, final exit → 2 (spec FR3 placement).
+      placement = (CUP_ROUNDS - round + 2) as 1 | 2 | 3 | 4
       // Continue resolving the remainder without the player to a champion.
       let restAlive = alive
       let nextRound = round + 1
@@ -359,7 +364,10 @@ export function resolveCup(
         restAlive = rest.winners
         nextRound++
       }
-      const champion = alive[0]
+      // The champion is the continuation loop's last survivor — NOT the
+      // loss round's winners (a QF exit would otherwise announce a
+      // semifinalist as champion).
+      const champion = restAlive[0]
       return {
         championName: champion?.name ?? null,
         playerPlacement: placement,

@@ -15,7 +15,6 @@ export interface GameState {
   /** Current phase of the game loop. */
   phase: Phase
   /** Action points remaining for the current day. */
-  /** Action points remaining for the current day. */
   actionPoints: number
   /**
    * The player's creature, or null while the starter choice is pending
