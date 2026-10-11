@@ -19,10 +19,11 @@ notes per task, phase checkpoints with explicit user verification).
   - [x] Move numeric-placement collapse into `machine.ts` (`enterCup`); shrink
         `CupOutcome` union; delete `toOutcome`
   - [x] Commit `refactor(sim): normalize cup outcome at machine boundary`
-- [ ] Task: Retire vestigial cup machine paths (FR-A6)
-  - [ ] Delete `beginCup`/`endCup`; update/delete their tests; confirm
-        `enterCup` covers phase flips
-  - [ ] Commit `refactor(sim): remove bypassed beginCup/endCup cup machine paths`
+- [x] Task: Retire vestigial cup machine paths (FR-A6) (e331c48)
+  - [x] Delete `beginCup`/`endCup`; barrel export reduced to `enterCup`; the
+        phase suite in `loop.test.ts` now pins the real contract (ticker
+        grants cup phase, `enterCup` flips back — covered in cupMachine tests)
+  - [x] Commit `refactor(sim): remove bypassed beginCup/endCup cup machine paths`
 - [ ] Task: Shared migration validator (FR-A2)
   - [ ] Add unit test for `validateStateShape(raw, version)` accept/reject table
   - [ ] Extract helper; reduce six migrations to pure field-shapers; reorder
