@@ -1,4 +1,5 @@
 import { type SpeciesDef, STARTER_SPECIES } from "@apex/sim"
+import { crest, tab } from "./ui/kit"
 
 export interface StarterHandlers {
   onChoose: (speciesId: string) => void
@@ -11,35 +12,29 @@ export interface StarterChoice {
 function starterCard(species: SpeciesDef, onChoose: (id: string) => void) {
   const card = document.createElement("button")
   card.type = "button"
-  card.className = `starter-card el-border-${species.element}`
+  card.className = "starter-card kit-plate"
   if (!species.available) {
     card.disabled = true
     card.classList.add("locked")
   }
+  const badge = crest(species.element)
   const name = document.createElement("span")
   name.className = "starter-name"
   name.textContent = species.displayName
-  const badge = document.createElement("span")
-  badge.className = `element-badge el-${species.element}`
-  badge.textContent = species.element
   const flavor = document.createElement("span")
   flavor.className = "starter-flavor"
   flavor.textContent = species.flavor
   card.append(badge, name, flavor)
   if (species.available) {
     card.addEventListener("click", () => onChoose(species.id))
-  } else {
-    const ribbon = document.createElement("span")
-    ribbon.className = "starter-ribbon"
-    ribbon.textContent = "Coming soon"
-    card.append(ribbon)
   }
   return card
 }
 
 /**
- * First-run starter choice: three cards over the ranch, one per element
- * line. Water is present but locked — the tease stays visible.
+ * First-run starter choice: the draft-day dome. Three kit cards over a
+ * broadcast backdrop, one per element line. Water is present but locked -
+ * the tease stays visible.
  */
 export function createStarterChoice(
   root: HTMLElement,
@@ -48,9 +43,13 @@ export function createStarterChoice(
   const overlay = document.createElement("div")
   overlay.className = "starter-overlay"
 
-  const heading = document.createElement("div")
+  const head = document.createElement("div")
+  head.className = "starter-head"
+  head.append(tab("Draft day"))
+  const heading = document.createElement("span")
   heading.className = "starter-heading"
   heading.textContent = "Choose your first partner"
+  head.append(heading)
 
   const grid = document.createElement("div")
   grid.className = "starter-grid"
@@ -58,7 +57,7 @@ export function createStarterChoice(
     grid.append(starterCard(species, handlers.onChoose))
   }
 
-  overlay.append(heading, grid)
+  overlay.append(head, grid)
   root.appendChild(overlay)
   return {
     remove() {
