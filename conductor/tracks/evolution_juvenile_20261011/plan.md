@@ -20,9 +20,9 @@ manual verification for presentation tasks, phase checkpoints per
 - [x] Task: Stat boost + kit gate change — [checkpoint: dd9ec78]
   - [x] Tests: +3/+2/+2/+1 applied to rolled base (flat boost, no clamp — statBounds are roll ranges, not combat caps); `effectiveStats` reflects it; tier-3 unlocked at evolution, tier-4 still gated at 6 trained days; loadout helpers agree
   - [x] Implement boost (`evolveCreature` + `EVOLUTION_STAT_BOOST`) + stage-aware `loadout.ts` gate helpers (required stage param; client call sites pass `creature.stage`)
-- [ ] Task: Save v6 migration
-  - [ ] Tests: v5 fixture migrates to v6 (stage = baby, gate bookkeeping derived from day); v6 schema validation rejects malformed stage; round-trip save/load
-  - [ ] Implement schema bump + v5→v6 migration in `save/`
+- [x] Task: Save v6 migration — [checkpoint: <sha pending commit>]
+  - [x] Tests: v5 fixture migrates to v6 (sickCooldown stamped clean, stage/stats untouched — migrated babies mature on their next well-cared night via the gate); v6 validation rejects malformed sickCooldown; round-trip save/load; migrated day-10 creature evolves on its next settled night
+  - [x] Implement schema bump (SAVE_VERSION 6) + v5→v6 migration step + `isValidCreature` cooldown validation in `save/`
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Voxel Pipeline: Juvenile Stage Builds
