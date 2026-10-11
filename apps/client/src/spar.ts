@@ -110,14 +110,6 @@ function castingFor(owned: Creature, setup: SparSetup): FightCasting {
   }
 }
 
-/** The verdict in announcer voice — never punishment, never death. */
-function resultLine(verdict: Readonly<BattleResult>): string {
-  if (verdict.winner === null) {
-    return "Both fighters are down. The spar is a draw."
-  }
-  return `${verdict.winner} wins the spar!`
-}
-
 /** Lower-third subline: what the fight ended on, in announcer voice. */
 function reasonLine(verdict: Readonly<BattleResult>): string {
   if (verdict.reason === "time") return "The clock ran out on this one."
@@ -242,9 +234,6 @@ export function createSpar(
   log.hidden = true
   logBox.append(logToggle, log)
 
-  const result = document.createElement("div")
-  result.className = "spar-result"
-
   const close = document.createElement("button")
   close.className = "spar-close"
   close.type = "button"
@@ -260,7 +249,6 @@ export function createSpar(
     cards,
     loadoutRow,
     tactics,
-    result,
   )
   overlay.append(panel)
 
@@ -314,26 +302,14 @@ export function createSpar(
     if (!log.hidden) log.scrollTop = log.scrollHeight
   }
 
-  const finish = (
-    text: string,
-    isDraw: boolean,
-    verdict: Readonly<BattleResult>,
-  ): void => {
+  const finish = (verdict: Readonly<BattleResult>): void => {
     clearTimer()
-    result.textContent = text
     // Verdict as a broadcast stamp over the full-bleed arena (the panel
     // stays out of the way); the subline carries the ending reason.
     battleHud.stamp(
       verdict.winner === null ? "A drawn spar" : `Victory — ${verdict.winner}`,
       reasonLine(verdict),
     )
-    if (isDraw) {
-      result.classList.add("spar-result-draw")
-      result.classList.remove("spar-result-win")
-    } else {
-      result.classList.add("spar-result-win")
-      result.classList.remove("spar-result-draw")
-    }
     close.style.display = ""
     fastButton.style.display = "none"
     if (replaying) {
@@ -358,10 +334,7 @@ export function createSpar(
   ): void => {
     const event = events[index]
     if (!event) {
-      timer = setTimeout(
-        () => finish(resultLine(verdict), verdict.winner === null, verdict),
-        PLAYBACK_SPEED_MS[speed],
-      )
+      timer = setTimeout(() => finish(verdict), PLAYBACK_SPEED_MS[speed])
       return
     }
     timer = setTimeout(() => {
@@ -423,7 +396,7 @@ export function createSpar(
         }
         i++
       }
-      finish(resultLine(verdict), verdict.winner === null, verdict)
+      finish(verdict)
       replayButton.style.display = ""
       return
     }
@@ -515,8 +488,6 @@ export function createSpar(
     refreshPrep(creature)
 
     intro.textContent = "Pick how your partner fights. No AP, nothing saved."
-    result.textContent = ""
-    result.classList.remove("spar-result-draw", "spar-result-win")
     log.replaceChildren()
     log.hidden = true
     logToggle.textContent = "Battle log ▸"
@@ -574,8 +545,6 @@ export function createSpar(
     log.hidden = true
     logToggle.textContent = "Battle log ▸"
     logToggle.setAttribute("aria-expanded", "false")
-    result.textContent = ""
-    result.classList.remove("spar-result-draw", "spar-result-win")
     battleHud.hideStamp()
     replaying = true
     replayButton.disabled = true
