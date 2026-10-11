@@ -54,9 +54,10 @@ Verification & Checkpoint gate before moving on.
   voice; Enter Cup chip in the Spar area on cup days (disabled after resolve
   or on non-cup days); reduced motion honored (instant resolve, no bounce)
   *(6a38162 — rendering, manual verification at checkpoint)*
-- [ ] Task: Main.ts integration — hook the machine into the Advance Day flow
+- [x] Task: Main.ts integration — hook the machine into the Advance Day flow
   (cup day surfaces the chip rather than auto-running); HUD shows the
-  `cupsWon` banner counter
+  `cupsWon` banner *(bd2aa45 — one 🏆 per cup, hidden at zero; rendering,
+  manual verification at checkpoint)*
 - [ ] Task: Ranch idle hooks — scene reacts to placement (victory → happy
   bounce next day already exists; early exit → one droopy idle window);
   scene/scene-logic otherwise untouched
