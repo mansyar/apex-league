@@ -85,6 +85,16 @@ Verification & Checkpoint gate before moving on.
   gate green after the fixes; verification report attached as git note
   *(checkpoint: cd35fa5)*
 
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions *(ad348e0 — review found: [High]
+  wrong champion on QF/SF loss (`alive[0]` → `restAlive[0]`), [Medium]
+  inverted placement mapping (QF→4, SF→3, F→2), [Medium] FR2 save-seed
+  never wired (`makeBracket` gained a seed param, `enterCup` passes the
+  identity seed, dead `void makeRng` removed); plus [Low] chip re-sync on
+  early exit, duplicate JSDoc in state.ts, unused imports/`!` in test
+  files. 3 regression tests added; verify green 469 pass / 0 fail)*
+
 ## Notes
 
 - Diff surface (estimate): `packages/sim/src/{cup.ts, cupRewards.ts,
