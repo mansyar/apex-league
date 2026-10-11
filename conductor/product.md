@@ -66,8 +66,14 @@ Phased delivery plan (each phase is independently playable):
   endings, announcer event log, and a free ranch Spar between the creature and
   a seeded rival. Landed prep 2026-10-10: battles read stats + trained, kits
   grow at tier 3 @3 / tier 4 @6 trained days, Spar-panel loadout picker with
-  locked rows, save v4. Arena replay and cup/ladder still open.)*
+  locked rows, save v4. Landed arena playback 2026-10-10: a top-down 3D
+  arena that swaps in on Spar and replays the deterministic event stream —
+  broadcast placard HUD (element crests, damage-lag HP bars, rangefinder
+  chevrons), hit juice behind a reduced-motion toggle, play/fast-forward
+  pacing, collapsible battle log, gold verdict stamp, save v5. Cup/ladder
+  still open.)*
 - Top-down 3D arena with voxel creatures (procedural generator online).
+  *(Landed.)*
 - One weekly cup (8-bracket), Bronze tier ladder, ~5 opponent creatures.
 - Ranch scene (3D) with idle/breathe life. *(Landed.)*
 - Retirement → next egg with stat + trait inheritance (minimal legacy).
