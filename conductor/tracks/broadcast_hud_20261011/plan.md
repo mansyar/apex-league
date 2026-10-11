@@ -26,7 +26,7 @@ workflow checkpoint task.
 - [x] Task: Implement the `ui/` kit (factories for plate/chip/button/tab/meter/bar/stamp) + kit.css; wiring stays imperative DOM, factories run at build time — `ac3db7a`
 - [x] Task: Split CSS: `kit.css` + per-surface files (ranch / spar / cup / starter / arena); retire `style.css` — `1d69472`
 - [x] Task: Repoint the mock page at the real kit so the approved look is reproduced from production code — `ff2e970`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: ff2e970]
 
 ## Phase C — Ranch HUD rebuild
 
