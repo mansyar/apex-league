@@ -17,9 +17,9 @@ manual verification for presentation tasks, phase checkpoints per
 - [x] Task: Settlement integration — [checkpoint: a72e962] *(folded into the gate commit: the gate verdict is meaningless without the hook, and the settlement tests were written red first in the same cycle)*
   - [x] Tests: settlement calls the gate nightly; delayed evolution resolves on a later night; evolution applies **after** the full settlement (mood/health the gate judges are the settled values)
   - [x] Implement hook in `settlement.ts` (new closing-day parameter from `advanceDay`; sick-cooldown bookkeeping stamps post-settlement health)
-- [ ] Task: Stat boost + kit gate change
-  - [ ] Tests: +3/+2/+2/+1 applied to rolled base within bounds; `effectiveStats` reflects it; tier-3 unlocked at evolution, tier-4 still gated at 6 trained days; loadout helpers agree
-  - [ ] Implement boost + extend `loadout.ts` gate helpers
+- [x] Task: Stat boost + kit gate change — [checkpoint: dd9ec78]
+  - [x] Tests: +3/+2/+2/+1 applied to rolled base (flat boost, no clamp — statBounds are roll ranges, not combat caps); `effectiveStats` reflects it; tier-3 unlocked at evolution, tier-4 still gated at 6 trained days; loadout helpers agree
+  - [x] Implement boost (`evolveCreature` + `EVOLUTION_STAT_BOOST`) + stage-aware `loadout.ts` gate helpers (required stage param; client call sites pass `creature.stage`)
 - [ ] Task: Save v6 migration
   - [ ] Tests: v5 fixture migrates to v6 (stage = baby, gate bookkeeping derived from day); v6 schema validation rejects malformed stage; round-trip save/load
   - [ ] Implement schema bump + v5→v6 migration in `save/`
