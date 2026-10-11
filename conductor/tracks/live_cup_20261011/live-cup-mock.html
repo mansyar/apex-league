@@ -1,0 +1,921 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apex League — Live Cup mock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --panel: rgba(21, 17, 13, 0.86);
+    --panel-solid: #15110d;
+    --panel-border: rgba(255, 236, 200, 0.18);
+    --ink: #f4ecdf;
+    --ink-dim: #b8ad9c;
+    --gold: #ffd257;
+    --danger: #ff5a4e;
+    --fire: #ff8a3c;
+    --plant: #6fca4f;
+    --water: #4fa8e8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    background: #0b0d12;
+    color: var(--ink);
+    font-family: "Barlow", system-ui, sans-serif;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+  }
+
+  .frame { width: min(1280px, 100%); }
+
+  .mock-note {
+    font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-dim); margin: 0 0 10px 4px; font-weight: 600;
+  }
+  .mock-note b { color: var(--gold); font-weight: 700; }
+
+  /* screen switcher (mock-only chrome) */
+  .screen-tabs { display: flex; gap: 8px; margin: 0 0 12px 4px; }
+  .screen-tabs button {
+    font-family: "Barlow Condensed", sans-serif; font-weight: 700;
+    font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink-dim); background: transparent;
+    border: 1px solid var(--panel-border); border-radius: 999px;
+    padding: 6px 16px; cursor: pointer;
+  }
+  .screen-tabs button.on { color: #241a06; background: var(--gold); border-color: var(--gold); }
+
+  .screen { display: none; }
+  .screen.on { display: block; }
+
+  /* ── the stage: dimmed ranch behind every cup screen ─────────────── */
+  .stage {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--panel-border);
+    background:
+      radial-gradient(58% 42% at 50% 86%, rgba(255, 210, 130, 0.10), transparent 70%),
+      radial-gradient(120% 90% at 50% 0%, #1a2030 0%, #0f1320 55%, #0a0d14 100%);
+    box-shadow: inset 0 -80px 120px rgba(0, 0, 0, 0.55);
+  }
+  .stage::before {
+    content: ""; position: absolute; inset: 0;
+    background:
+      radial-gradient(46% 16% at 50% 78%, rgba(122, 134, 158, 0.30), transparent 75%),
+      radial-gradient(70% 24% at 50% 70%, rgba(90, 100, 122, 0.18), transparent 80%);
+  }
+
+  /* scrim behind cup chrome — the ranch dims, the broadcast owns the screen */
+  .scrim {
+    position: absolute; inset: 0;
+    background: radial-gradient(80% 70% at 50% 40%, rgba(8, 9, 12, 0.38), rgba(8, 9, 12, 0.78));
+  }
+
+  /* ════════════════════════ SCREEN 1 · BRACKET ════════════════════ */
+  .cup-head {
+    position: absolute; top: 5%; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: stretch; filter: drop-shadow(0 10px 24px rgba(0,0,0,0.45));
+    z-index: 2;
+  }
+  .cup-head .tab {
+    background: var(--gold); color: #241a06;
+    font-family: "Barlow Condensed", sans-serif; font-weight: 800;
+    font-size: 15px; letter-spacing: 0.2em; text-indent: 0.2em;
+    padding: 8px 14px; display: grid; place-items: center;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  }
+  .cup-head .line {
+    background: var(--panel); border: 1px solid var(--panel-border); border-left: none;
+    padding: 8px 22px 8px 14px; display: flex; align-items: baseline; gap: 12px;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  }
+  .cup-title {
+    font-family: "Barlow Condensed", sans-serif; font-weight: 800;
+    font-size: 24px; letter-spacing: 0.14em;
+  }
+  .cup-sub {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--ink-dim);
+  }
+
+  .bracket {
+    position: absolute; inset: 18% 4.5% 16%;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 0.8fr;
+    column-gap: 34px;
+    z-index: 2;
+  }
+  .col { display: flex; flex-direction: column; }
+  .col-head {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.28em;
+    text-transform: uppercase; color: var(--ink-dim);
+    text-align: center; padding: 0 0 14px;
+  }
+  .col-qf .col-head, .col-sf .col-head { text-align: left; padding-left: 8px; }
+  .col-f .col-head { text-align: right; padding-right: 8px; }
+  .col .matches { display: flex; flex-direction: column; justify-content: space-around; flex: 1; gap: 10px; }
+
+  .match {
+    position: relative;
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    padding: 10px 12px;
+    display: grid; gap: 6px;
+    opacity: 0;
+    transform: translateX(-16px);
+    transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.3, 1.1);
+  }
+  .match.in { opacity: 1; transform: none; }
+  .col-qf  .match { clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%); }
+  .col-sf  .match { clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 12px 100%); }
+  .col-f   .match { clip-path: polygon(12px 0, 100% 0, 100% 100%, 12px 100%); }
+
+  /* connectors between columns */
+  .match::after {
+    content: ""; position: absolute; top: 50%; left: 100%;
+    width: 34px; height: 1px;
+    background: linear-gradient(90deg, rgba(255, 236, 200, 0.35), rgba(255, 236, 200, 0.10));
+  }
+  .col-qf .match::after { z-index: 1; }
+  .col-qf .match:nth-child(1)::before,
+  .col-qf .match:nth-child(2)::before {
+    content: ""; position: absolute; left: 100%; width: 17px; height: 1px;
+    background: rgba(255, 236, 200, 0.10);
+  }
+  .col-qf .match:nth-child(1)::before { top: 25%; }
+  .col-qf .match:nth-child(2)::before { top: 75%; }
+  .col-sf .match::before {
+    content: ""; position: absolute; left: -17px; width: 17px; height: 1px;
+    background: rgba(255, 236, 200, 0.10);
+  }
+  .col-sf .match:nth-child(1)::before { top: 25%; }
+  .col-sf .match:nth-child(2)::before { top: 75%; }
+
+  .slot {
+    display: flex; align-items: center; gap: 10px;
+    padding: 5px 8px; min-height: 38px;
+  }
+  .slot + .slot { border-top: 1px solid rgba(255, 236, 200, 0.08); }
+  .slot .mini-crest {
+    width: 24px; height: 24px; flex: none;
+    display: grid; place-items: center;
+    clip-path: polygon(50% 0, 100% 26%, 100% 74%, 50% 100%, 0 74%, 0 26%);
+    color: #14100c;
+  }
+  .slot .mini-crest svg { width: 14px; height: 14px; }
+  .slot .s-name {
+    font-family: "Barlow Condensed", sans-serif; font-weight: 700;
+    font-size: 17px; letter-spacing: 0.05em; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .slot .s-tag {
+    margin-left: auto; font-size: 9px; font-weight: 700;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .slot.tbd .s-name { color: rgba(244, 236, 223, 0.28); letter-spacing: 0.3em; }
+  .slot.tbd .mini-crest { background: rgba(255, 236, 200, 0.10); }
+  .slot.won .s-name { color: var(--gold); }
+  .slot.lost { opacity: 0.45; }
+  .slot.lost .s-name { text-decoration: line-through; text-decoration-thickness: 1px; }
+  .slot.lost .s-tag { color: var(--danger); }
+
+  .mini-crest.fire  { background: var(--fire); }
+  .mini-crest.plant { background: var(--plant); }
+  .mini-crest.water { background: var(--water); }
+
+  /* your match: the bracket points at you */
+  .match.yours {
+    border-color: var(--gold);
+    box-shadow: 0 0 22px rgba(255, 210, 87, 0.18), inset 0 0 18px rgba(255, 210, 87, 0.06);
+    animation: yours-pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes yours-pulse {
+    0%, 100% { box-shadow: 0 0 14px rgba(255, 210, 87, 0.12), inset 0 0 12px rgba(255, 210, 87, 0.05); }
+    50% { box-shadow: 0 0 26px rgba(255, 210, 87, 0.30), inset 0 0 22px rgba(255, 210, 87, 0.10); }
+  }
+  .your-ribbon {
+    position: absolute; top: -11px; left: 10px;
+    background: var(--gold); color: #241a06;
+    font-family: "Barlow Condensed", sans-serif; font-weight: 800;
+    font-size: 11px; letter-spacing: 0.18em; text-indent: 0.18em;
+    padding: 3px 10px;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+  }
+  .match .m-verdict {
+    font-size: 11px; color: var(--ink-dim); letter-spacing: 0.04em;
+    padding: 5px 6px 2px; margin-top: 2px;
+    border-top: 1px solid rgba(255, 236, 200, 0.08);
+    display: none;
+  }
+  .match.resolved .m-verdict { display: block; }
+
+  /* champion pedestal */
+  .champ { display: grid; justify-items: center; gap: 12px; align-self: center; }
+  .champ-cup {
+    width: 78px; height: 78px; display: grid; place-items: center;
+    color: var(--gold); opacity: 0; transform: scale(0.6);
+    transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+  }
+  .champ.crowned .champ-cup { opacity: 1; transform: scale(1); }
+  .champ-cup svg { width: 100%; height: 100%; filter: drop-shadow(0 4px 10px rgba(255, 210, 87, 0.35)); }
+  .champ-name {
+    font-family: "Barlow Condensed", sans-serif; font-weight: 800;
+    font-size: 20px; letter-spacing: 0.1em; color: var(--gold);
+    text-align: center; line-height: 1.2; max-width: 150px;
+  }
+  .champ-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.24em;
+    text-transform: uppercase; color: var(--ink-dim);
+  }
+
+  /* live ticker under the bracket */
+  .ticker {
+    position: absolute; left: 6%; right: 6%; bottom: 5.5%;
+    display: flex; align-items: stretch; z-index: 2;
+    filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.45));
+  }
+  .ticker .tab {
+    background: var(--gold); color: #241a06;
+    font-family: "Barlow Condensed", sans-serif; font-weight: 800;
+    font-size: 12px; letter-spacing: 0.18em; padding: 7px 12px;
+    display: grid; place-items: center;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
+  }
+  .ticker .line {
+    background: var(--panel); border: 1px solid var(--panel-border); border-left: none;
+    padding: 7px 16px; font-size: 14px; font-weight: 500; flex: 1;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
+  }
+  .ticker .line.swap { animation: t-in 0.35s ease-out; }
+  @keyframes t-in { 0% { opacity: 0; transform: translateX(-12px); } 100% { opacity: 1; transform: none; } }
+
+  .your-cta {
+    position: absolute; right: 6%; bottom: 13%; z-index: 3;
+    display: none; align-items: center; gap: 10px;
+  }
+  .your-cta.show { display: flex; }
+  .cta-btn {
+    font-family: "Barlow Condensed", sans-serif; font-weight: 800;
+    font-size: 17px; letter-spacing: 0.14em; text-indent: 0.14em;
+    background: var(--gold); color: #241a06; border: none;
+    padding: 12px 26px; cursor: pointer;
+    clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+    filter: drop-shadow(0 8px 18px rgba(255, 210, 87, 0.35));
+    transition: transform 0.15s ease;
+  }
+  .cta-btn:hover { transform: translateY(-1px) scale(1.02); }
+  .cta-ghost {
+    font-family: "Barlow Condensed", sans-serif; font-weight: 700;
+    font-size: 14px; letter-spacing: 0.1em;
+    color: var(--ink-dim); background: var(--panel);
+    border: 1px solid var(--panel-border); cursor: pointer;
+    padding: 11px 18px;
+    clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+  }
+  .cta-ghost:hover { color: var(--ink); border-color: rgba(255, 236, 200, 0.4); }
+
+  /* ════════════════════════ SCREEN 2 · COACH ══════════════════════ */
+  .coach {
+    position: absolute; inset: 6% 7%;
+    display: grid; grid-template-rows: auto 1fr auto; gap: 14px;
+    z-index: 2;
+  }
+  .coach-head {
+    display: flex; align-items: stretch; filter: drop-shadow(0 8px 20px rgba(0,0,0,0.45));
+  }
+  .coach-head .tab {
+    background: var(--gold); color: #241a06;
+    font-family: "Barlow Condensed", sans-serif; font-weight: 800;
+    font-size: 13px; letter-spacing: 0.18em; padding: 7px 12px;
+    display: grid; place-items: center;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
+  }
+  .coach-head .line {
+    background: var(--panel); border: 1px solid var(--panel-border); border-left: none;
+    padding: 7px 18px; font-family: "Barlow Condensed", sans-serif;
+    font-weight: 700; font-size: 17px; letter-spacing: 0.1em;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
+  }
+  .coach-body { display: grid; grid-template-columns: 1fr 0.9fr 1.1fr; gap: 14px; min-height: 0; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--panel-border);
+    padding: 14px 16px; display: grid; gap: 10px; align-content: start;
+  }
+  .card-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.24em;
+    text-transform: uppercase; color: var(--ink-dim);
+  }
+  .card-label.gold { color: var(--gold); }
+
+  .fighter-id { display: flex; align-items: center; gap: 12px; }
+  .big-crest {
+    width: 46px; height: 46px; flex: none;
+    display: grid; place-items: center;
+    clip-path: polygon(50% 0, 100% 26%, 100% 74%, 50% 100%, 0 74%, 0 26%);
+    color: #14100c;
+  }
+  .big-crest svg { width: 26px; height: 26px; }
+  .fighter-id .n {
+    font-family: "Barlow Condensed", sans-serif; font-weight: 800;
+    font-size: 24px; letter-spacing: 0.06em; line-height: 1.1;
+  }
+  .fighter-id .s {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--ink-dim);
+  }
+
+  .stat-row { display: grid; grid-template-columns: 34px 1fr 26px; gap: 8px; align-items: center; }
+  .stat-row .k {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.14em; color: var(--ink-dim);
+  }
+  .stat-row .v {
+    font-family: "Barlow Condensed", sans-serif; font-weight: 700;
+    font-size: 15px; text-align: right; font-variant-numeric: tabular-nums;
+  }
+  .stat-bar { height: 8px; background: rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 236, 200, 0.16); }
+  .stat-bar i { display: block; height: 100%; background: linear-gradient(180deg, #ffb066, var(--fire)); }
+  .card[data-element="plant"] .stat-bar i { background: linear-gradient(180deg, #9ce47a, var(--plant)); }
+  .card[data-element="water"] .stat-bar i { background: linear-gradient(180deg, #7cc4f4, var(--water)); }
+
+  .kit-list { display: grid; gap: 5px; }
+  .kit-move {
+    display: flex; align-items: baseline; gap: 8px;
+    font-size: 13px; padding: 5px 8px;
+    background: rgba(0, 0, 0, 0.28); border-left: 2px solid var(--panel-border);
+  }
+  .kit-move b { font-weight: 700; letter-spacing: 0.03em; }
+  .kit-move span { color: var(--ink-dim); font-size: 11px; margin-left: auto; }
+
+  /* loadout picker */
+  .picker { display: grid; gap: 6px; }
+  .pick-row {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(255, 236, 200, 0.12);
+    padding: 8px 10px; cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .pick-row:hover { border-color: rgba(255, 236, 200, 0.35); }
+  .pick-row.picked { border-color: var(--gold); background: rgba(255, 210, 87, 0.08); }
+  .pick-row.locked { opacity: 0.42; cursor: not-allowed; }
+  .pick-box {
+    width: 18px; height: 18px; flex: none;
+    border: 1px solid rgba(255, 236, 200, 0.3);
+    display: grid; place-items: center;
+  }
+  .pick-row.picked .pick-box { background: var(--gold); border-color: var(--gold); }
+  .pick-row.picked .pick-box::after {
+    content: ""; width: 10px; height: 6px;
+    border-left: 2px solid #241a06; border-bottom: 2px solid #241a06;
+    transform: rotate(-45deg) translateY(-1px);
+  }
+  .pick-row .m-name { font-weight: 700; font-size: 13px; letter-spacing: 0.03em; }
+  .pick-row .m-info { color: var(--ink-dim); font-size: 11px; margin-left: auto; }
+  .pick-row .lock-note {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--ink-dim); margin-left: auto;
+  }
+
+  .tactic-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tactic {
+    background: rgba(0, 0, 0, 0.28); border: 1px solid rgba(255, 236, 200, 0.12);
+    padding: 9px 10px; cursor: pointer; text-align: left;
+    color: var(--ink); font-family: "Barlow", sans-serif;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .tactic:hover { border-color: rgba(255, 236, 200, 0.35); }
+  .tactic.picked { border-color: var(--gold); background: rgba(255, 210, 87, 0.08); }
+  .tactic .t-name {
+    font-family: "Barlow Condensed", sans-serif; font-weight: 800;
+    font-size: 15px; letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .tactic.picked .t-name { color: var(--gold); }
+  .tactic .t-desc { font-size: 11px; color: var(--ink-dim); margin-top: 2px; line-height: 1.35; }
+
+  .coach-foot { display: flex; justify-content: space-between; align-items: center; }
+  .coach-foot .note { font-size: 12px; color: var(--ink-dim); letter-spacing: 0.04em; }
+
+  /* ════════════════════════ SCREEN 3 · GIVE-UP MODAL ═════════════ */
+  .giveup-wrap { position: absolute; inset: 0; display: grid; place-items: center; z-index: 3; }
+  .giveup {
+    width: min(460px, 86%);
+    background: var(--panel-solid);
+    border: 1px solid rgba(255, 90, 78, 0.45);
+    padding: 26px 28px 22px;
+    display: grid; gap: 12px; justify-items: center; text-align: center;
+    filter: drop-shadow(0 20px 50px rgba(0, 0, 0, 0.6));
+    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  }
+  .giveup .g-tab {
+    background: var(--danger); color: #2a0805;
+    font-family: "Barlow Condensed", sans-serif; font-weight: 800;
+    font-size: 12px; letter-spacing: 0.22em; text-indent: 0.22em;
+    padding: 4px 12px;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+  }
+  .giveup .g-title {
+    font-family: "Barlow Condensed", sans-serif; font-weight: 800;
+    font-size: 30px; letter-spacing: 0.12em;
+  }
+  .giveup .g-copy { font-size: 14px; color: var(--ink-dim); line-height: 1.55; max-width: 360px; }
+  .giveup .g-copy b { color: var(--ink); font-weight: 600; }
+  .giveup .g-actions { display: flex; gap: 10px; margin-top: 6px; }
+  .g-stay {
+    font-family: "Barlow Condensed", sans-serif; font-weight: 800;
+    font-size: 15px; letter-spacing: 0.12em; text-indent: 0.12em;
+    background: var(--gold); color: #241a06; border: none;
+    padding: 10px 24px; cursor: pointer;
+    clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+  }
+  .g-quit {
+    font-family: "Barlow Condensed", sans-serif; font-weight: 700;
+    font-size: 14px; letter-spacing: 0.1em;
+    background: transparent; color: var(--danger);
+    border: 1px solid rgba(255, 90, 78, 0.55); cursor: pointer;
+    padding: 10px 20px;
+    clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+  }
+  .g-quit:hover { background: rgba(255, 90, 78, 0.12); }
+
+  /* ════════════════════════ SCREEN 4 · RESULTS ════════════════════ */
+  .results { position: absolute; inset: 0; display: grid; place-items: center; z-index: 2; }
+  .result-card {
+    width: min(560px, 88%);
+    display: grid; gap: 14px; justify-items: center; text-align: center;
+  }
+  .result-stamp {
+    transform: scale(1.15); opacity: 0;
+    animation: stamp-in 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+  }
+  @keyframes stamp-in { to { transform: scale(1); opacity: 1; } }
+  .result-title {
+    font-family: "Barlow Condensed", sans-serif; font-weight: 800;
+    font-size: 64px; letter-spacing: 0.26em; text-indent: 0.26em;
+    color: var(--gold); text-shadow: 0 4px 0 rgba(0, 0, 0, 0.45);
+  }
+  .result-title.lost { color: var(--danger); }
+  .result-rule { height: 3px; background: var(--gold); width: 260px; margin: 0 auto; }
+  .result-rule.lost { background: var(--danger); }
+  .result-sub { font-size: 15px; letter-spacing: 0.2em; text-transform: uppercase; }
+
+  .placement-plate {
+    display: flex; align-items: stretch;
+    filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.5));
+  }
+  .placement-plate .tab {
+    background: var(--gold); color: #241a06;
+    font-family: "Barlow Condensed", sans-serif; font-weight: 800;
+    font-size: 14px; letter-spacing: 0.16em; padding: 8px 14px;
+    display: grid; place-items: center;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
+  }
+  .placement-plate .line {
+    background: var(--panel); border: 1px solid var(--panel-border); border-left: none;
+    padding: 8px 20px 8px 14px;
+    font-family: "Barlow Condensed", sans-serif; font-weight: 700;
+    font-size: 19px; letter-spacing: 0.08em;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
+  }
+
+  .rewards { display: grid; gap: 6px; width: 100%; max-width: 380px; }
+  .reward-row {
+    display: flex; align-items: baseline; gap: 10px;
+    background: var(--panel); border: 1px solid var(--panel-border);
+    padding: 8px 14px; font-size: 14px;
+    opacity: 0; transform: translateY(8px);
+    animation: reward-in 0.4s ease-out forwards;
+  }
+  @keyframes reward-in { to { opacity: 1; transform: none; } }
+  .reward-row .r-label { color: var(--ink-dim); letter-spacing: 0.05em; }
+  .reward-row .r-val {
+    margin-left: auto; font-family: "Barlow Condensed", sans-serif;
+    font-weight: 800; font-size: 17px; color: var(--gold);
+    letter-spacing: 0.06em;
+  }
+  .reward-row .r-val.neutral { color: var(--ink); }
+
+  /* ── legend ─────────────────────────────────────────────────────── */
+  .legend {
+    margin-top: 14px; display: grid; gap: 6px;
+    font-size: 13px; color: var(--ink-dim); line-height: 1.5;
+  }
+  .legend b { color: var(--ink); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <p class="mock-note"><b>Design mock</b> · Apex League Live Cup · four screens, one broadcast family</p>
+
+  <div class="screen-tabs">
+    <button data-screen="bracket" class="on">1 · Bracket</button>
+    <button data-screen="coach">2 · Coach screen</button>
+    <button data-screen="giveup">3 · Give-up modal</button>
+    <button data-screen="results">4 · Results</button>
+  </div>
+
+  <!-- ════════ SCREEN 1 · BRACKET ════════ -->
+  <div class="screen on" data-screen="bracket">
+    <div class="stage">
+      <div class="scrim"></div>
+
+      <div class="cup-head">
+        <div class="tab">CUP<br>DAY</div>
+        <div class="line">
+          <span class="cup-title">BRONZE CUP</span>
+          <span class="cup-sub">Day 7 · single elimination</span>
+        </div>
+      </div>
+
+      <div class="bracket">
+        <div class="col col-qf">
+          <div class="col-head">Quarterfinals</div>
+          <div class="matches">
+            <div class="match" id="m-qf1">
+              <div class="your-ribbon" style="display:none" id="rib-qf1">YOUR MATCH</div>
+              <div class="slot" data-side="a"></div>
+              <div class="slot" data-side="b"></div>
+              <div class="m-verdict"></div>
+            </div>
+            <div class="match" id="m-qf2">
+              <div class="slot" data-side="a"></div>
+              <div class="slot" data-side="b"></div>
+              <div class="m-verdict"></div>
+            </div>
+            <div class="match" id="m-qf3">
+              <div class="slot" data-side="a"></div>
+              <div class="slot" data-side="b"></div>
+              <div class="m-verdict"></div>
+            </div>
+            <div class="match" id="m-qf4">
+              <div class="slot" data-side="a"></div>
+              <div class="slot" data-side="b"></div>
+              <div class="m-verdict"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col col-sf">
+          <div class="col-head">Semifinals</div>
+          <div class="matches">
+            <div class="match" id="m-sf1">
+              <div class="your-ribbon" style="display:none" id="rib-sf1">YOUR MATCH</div>
+              <div class="slot" data-side="a"></div>
+              <div class="slot" data-side="b"></div>
+              <div class="m-verdict"></div>
+            </div>
+            <div class="match" id="m-sf2">
+              <div class="slot" data-side="a"></div>
+              <div class="slot" data-side="b"></div>
+              <div class="m-verdict"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col col-f">
+          <div class="col-head">Final</div>
+          <div class="matches">
+            <div class="match" id="m-f1">
+              <div class="your-ribbon" style="display:none" id="rib-f1">YOUR MATCH</div>
+              <div class="slot" data-side="a"></div>
+              <div class="slot" data-side="b"></div>
+              <div class="m-verdict"></div>
+            </div>
+            <div class="champ" id="champ">
+              <div class="champ-cup">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12v2h3v3c0 2.8-2 5-4.6 5.4A6 6 0 0 1 13 16.9V19h3v2H8v-2h3v-2.1a6 6 0 0 1-3.4-3.5C5 13 3 10.8 3 8V5h3V3zm-1 4v1c0 1.6 1 3 2.4 3.5A9 9 0 0 1 7 8V7H5zm14 0h-2v1c0 1.2-.14 2.4-.4 3.5C18 11 19 9.6 19 8V7z"/></svg>
+              </div>
+              <div>
+                <div class="champ-label">Champion</div>
+                <div class="champ-name" id="champ-name">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="your-cta" id="your-cta">
+        <button class="cta-ghost" onclick="show('coach')">Scout the rival</button>
+        <button class="cta-btn" onclick="show('coach')">STEP INTO THE ARENA</button>
+      </div>
+
+      <div class="ticker">
+        <div class="tab">APEX<br>FEED</div>
+        <div class="line" id="ticker-line">The bracket is set. Ember Drake draws the first fight.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SCREEN 2 · COACH ════════ -->
+  <div class="screen" data-screen="coach">
+    <div class="stage">
+      <div class="scrim"></div>
+      <div class="coach">
+        <div class="coach-head">
+          <div class="tab">QF1</div>
+          <div class="line">COACHING ROOM — EMBER DRAKE VS CINDERSNOUT</div>
+        </div>
+
+        <div class="coach-body">
+          <!-- your fighter -->
+          <div class="card" data-element="fire">
+            <div class="card-label">Your fighter</div>
+            <div class="fighter-id">
+              <div class="mini-crest fire big-crest" style="width:46px;height:46px">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="26" height="26"><path d="M12 2c1 4-3 5-3 9a3 3 0 0 0 6 0c0-1.5-.8-2.5-.8-2.5S17 10 17 13.5A5.5 5.5 0 0 1 6 13.5C6 8 11 6.5 12 2z"/></svg>
+              </div>
+              <div>
+                <div class="n">Ember Drake</div>
+                <div class="s">Fire drake · ready</div>
+              </div>
+            </div>
+            <div class="stat-row"><span class="k">HP</span><span class="stat-bar"><i style="width:82%"></i></span><span class="v">41</span></div>
+            <div class="stat-row"><span class="k">ATK</span><span class="stat-bar"><i style="width:74%"></i></span><span class="v">14</span></div>
+            <div class="stat-row"><span class="k">DEF</span><span class="stat-bar"><i style="width:52%"></i></span><span class="v">9</span></div>
+            <div class="stat-row"><span class="k">SPD</span><span class="stat-bar"><i style="width:66%"></i></span><span class="v">12</span></div>
+          </div>
+
+          <!-- rival scouting card -->
+          <div class="card" data-element="fire">
+            <div class="card-label gold">Scouting report</div>
+            <div class="fighter-id">
+              <div class="mini-crest fire big-crest" style="width:46px;height:46px">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="26" height="26"><path d="M12 2c1 4-3 5-3 9a3 3 0 0 0 6 0c0-1.5-.8-2.5-.8-2.5S17 10 17 13.5A5.5 5.5 0 0 1 6 13.5C6 8 11 6.5 12 2z"/></svg>
+              </div>
+              <div>
+                <div class="n">Cindersnout</div>
+                <div class="s">Fire drake · rival</div>
+              </div>
+            </div>
+            <div class="stat-row"><span class="k">HP</span><span class="stat-bar"><i style="width:76%"></i></span><span class="v">38</span></div>
+            <div class="stat-row"><span class="k">ATK</span><span class="stat-bar"><i style="width:70%"></i></span><span class="v">13</span></div>
+            <div class="stat-row"><span class="k">DEF</span><span class="stat-bar"><i style="width:58%"></i></span><span class="v">10</span></div>
+            <div class="stat-row"><span class="k">SPD</span><span class="stat-bar"><i style="width:60%"></i></span><span class="v">11</span></div>
+            <div class="kit-list">
+              <div class="kit-move"><b>Strike</b><span>basic</span></div>
+              <div class="kit-move"><b>Spark</b><span>special</span></div>
+            </div>
+            <div class="card-label" style="opacity:0.6">Tactic unknown — watch the first exchanges</div>
+          </div>
+
+          <!-- your loadout + tactic -->
+          <div class="card">
+            <div class="card-label gold">Your kit — pick 4</div>
+            <div class="picker" id="picker">
+              <div class="pick-row picked"><div class="pick-box"></div><span class="m-name">Strike</span><span class="m-info">basic · always</span></div>
+              <div class="pick-row picked"><div class="pick-box"></div><span class="m-name">Ember Bite</span><span class="m-info">special · tier 1</span></div>
+              <div class="pick-row picked"><div class="pick-box"></div><span class="m-name">Flame Charge</span><span class="m-info">special · tier 2</span></div>
+              <div class="pick-row picked"><div class="pick-box"></div><span class="m-name">Cinder Veil</span><span class="m-info">special · tier 3</span></div>
+              <div class="pick-row locked"><div class="pick-box"></div><span class="m-name">Ashen Roar</span><span class="lock-note">🔒 6 trained days</span></div>
+            </div>
+            <div class="card-label gold" style="margin-top:4px">Battle tactic</div>
+            <div class="tactic-row">
+              <button class="tactic picked"><div class="t-name">Balanced</div><div class="t-desc">Weighs types, HP and cooldowns evenly.</div></button>
+              <button class="tactic"><div class="t-name">Specials</div><div class="t-desc">Pushes elemental specials hard, accepts cooldown risk.</div></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="coach-foot">
+          <span class="note">Nothing is committed until you step in — backing out is free.</span>
+          <div style="display:flex; gap:10px">
+            <button class="cta-ghost" onclick="show('bracket')">Back to bracket</button>
+            <button class="cta-btn" onclick="show('bracket')">STEP INTO THE ARENA</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SCREEN 3 · GIVE-UP MODAL ════════ -->
+  <div class="screen" data-screen="giveup">
+    <div class="stage">
+      <div class="scrim"></div>
+      <div class="bracket" style="opacity:0.35">
+        <div class="col col-qf" style="justify-content:space-around">
+          <div class="match in" style="opacity:1;transform:none"><div class="slot"><span class="s-name">Ember Drake</span></div><div class="slot"><span class="s-name">Cindersnout</span></div></div>
+          <div class="match in" style="opacity:1;transform:none"><div class="slot"><span class="s-name">Mossbottom Brute</span></div><div class="slot"><span class="s-name">Driftbelle</span></div></div>
+        </div>
+        <div class="col col-sf" style="justify-content:space-around"><div class="match in" style="opacity:1;transform:none"><div class="slot tbd"><span class="s-name">—— —</span></div><div class="slot tbd"><span class="s-name">—— —</span></div></div></div>
+        <div class="col col-f" style="justify-content:space-around"><div class="match in" style="opacity:1;transform:none"><div class="slot tbd"><span class="s-name">—— —</span></div><div class="slot tbd"><span class="s-name">—— —</span></div></div></div>
+        <div class="col" style="justify-content:space-around"><div class="champ"><div class="champ-label">Champion</div><div class="champ-name">—</div></div></div>
+      </div>
+      <div class="giveup-wrap">
+        <div class="giveup">
+          <div class="g-tab">FORFEIT</div>
+          <div class="g-title">WALK AWAY?</div>
+          <div class="g-copy">
+            Leaving now counts as a <b>loss in this round</b> — the cup continues
+            without you and your placement stands as a
+            <b>quarterfinal exit</b>. The consolation (+2 mood) still applies;
+            no cup is won.
+          </div>
+          <div class="g-actions">
+            <button class="g-stay" onclick="show('bracket')">STAY IN THE BRACKET</button>
+            <button class="g-quit" onclick="show('results')">GIVE UP</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SCREEN 4 · RESULTS ════════ -->
+  <div class="screen" data-screen="results">
+    <div class="stage">
+      <div class="scrim"></div>
+      <div class="results">
+        <div class="result-card">
+          <div class="result-stamp">
+            <div class="result-title">CHAMPION</div>
+            <div class="result-rule"></div>
+            <div class="result-sub">Ember Drake takes the Bronze Cup</div>
+          </div>
+          <div class="placement-plate">
+            <div class="tab">1ST</div>
+            <div class="line">Ember Drake · unbeaten through three rounds</div>
+          </div>
+          <div class="rewards">
+            <div class="reward-row" style="animation-delay:0.3s"><span class="r-label">Action points · tomorrow</span><span class="r-val">4 AP</span></div>
+            <div class="reward-row" style="animation-delay:0.55s"><span class="r-label">Bond</span><span class="r-val">+10</span></div>
+            <div class="reward-row" style="animation-delay:0.8s"><span class="r-label">Mood</span><span class="r-val">+15</span></div>
+            <div class="reward-row" style="animation-delay:1.05s"><span class="r-label">Cups won</span><span class="r-val">🏆 ×1</span></div>
+          </div>
+          <button class="cta-btn" style="margin-top:6px" onclick="show('bracket')">BACK TO THE RANCH</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div><b>1 · Bracket</b> — column-headed tournament graphic (Quarterfinals → Final → Champion) filling in strict match order, left to right; each resolved match stamps a winner line in the ticker. Your next match gets the gold pulse + "YOUR MATCH" ribbon and a CTA pair. Loop replays automatically.</div>
+    <div><b>2 · Coach screen</b> — scouting report (rival card, known kit, tactic withheld) sits beside your kit picker and the tactic call. Nothing commits until "Step into the arena".</div>
+    <div><b>3 · Give-up modal</b> — only after your run has started; names the exact cost (as-if-lost placement, consolation still applies) before you commit.</div>
+    <div><b>4 · Results</b> — the verdict-stamp language from the arena, reused as an end-of-broadcast beat: champion title, placement plate, rewards counting in one by one.</div>
+  </div>
+</div>
+
+<script>
+  const FIRE_FLAME = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 4-3 5-3 9a3 3 0 0 0 6 0c0-1.5-.8-2.5-.8-2.5S17 10 17 13.5A5.5 5.5 0 0 1 6 13.5C6 8 11 6.5 12 2z"/></svg>'
+  const PLANT_LEAF = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4C10 4 4 9 4 16c0 2 .6 3.4 1.2 4.2l1.6-1.2C6.3 18.3 6 17.2 6 16c0-5 4.5-9 12-9.6C14 9 9 11 7.5 16.5c2.8 1.7 8.2 1.7 10.6-1.6C20 12.2 20 7.6 20 4z"/></svg>'
+  const WATER_DROP = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s7 8 7 13a7 7 0 0 1-14 0c0-5 7-13 7-13z"/></svg>'
+  const CRESTS = { fire: FIRE_FLAME, plant: PLANT_LEAF, water: WATER_DROP }
+
+  // The demo tournament — player first (slot 1), matching the sim's pairing order.
+  const RUN = [
+    { id: "m-qf1", ribbon: "rib-qf1", a: { name: "Ember Drake", el: "fire", you: true }, b: { name: "Cindersnout", el: "fire" }, you: true,
+      winner: "a", line: "Ember Drake burns past Cindersnout." },
+    { id: "m-qf2", a: { name: "Mossbottom Brute", el: "plant" }, b: { name: "Driftbelle", el: "water" },
+      winner: "b", line: "Driftbelle rides the tide over Mossbottom Brute." },
+    { id: "m-qf3", a: { name: "Tidecaller Nibbles", el: "water" }, b: { name: "Emberhold Flicker", el: "fire" },
+      winner: "a", line: "Tidecaller Nibbles douses Emberhold Flicker." },
+    { id: "m-qf4", a: { name: "Ash-ledger", el: "fire" }, b: { name: "Pondskipper Grub", el: "water" },
+      winner: "b", line: "Pondskipper Grub skims past Ash-ledger." },
+    { id: "m-sf1", ribbon: "rib-sf1", a: { name: "Ember Drake", el: "fire", you: true }, b: { name: "Driftbelle", el: "water" }, you: true,
+      winner: "a", line: "Ember Drake holds the current against Driftbelle." },
+    { id: "m-sf2", a: { name: "Tidecaller Nibbles", el: "water" }, b: { name: "Pondskipper Grub", el: "water" },
+      winner: "a", line: "Tidecaller Nibbles outlasts Pondskipper Grub." },
+    { id: "m-f1", ribbon: "rib-f1", a: { name: "Ember Drake", el: "fire", you: true }, b: { name: "Tidecaller Nibbles", el: "water" }, you: true,
+      winner: "a", line: "The final: Ember Drake crowns the Bronze Cup!" },
+  ]
+
+  const $ = (id) => document.getElementById(id)
+  const ticker = $("ticker-line")
+
+  function show(name) {
+    for (const s of document.querySelectorAll(".screen"))
+      s.classList.toggle("on", s.dataset.screen === name)
+    for (const b of document.querySelectorAll(".screen-tabs button"))
+      b.classList.toggle("on", b.dataset.screen === name)
+    if (name === "bracket") startRun()
+  }
+  for (const b of document.querySelectorAll(".screen-tabs button"))
+    b.addEventListener("click", () => show(b.dataset.screen))
+
+  function fillSlot(slotEl, side) {
+    if (!side) {
+      slotEl.classList.add("tbd")
+      slotEl.innerHTML = '<span class="s-name">— — —</span>'
+      return
+    }
+    slotEl.className = "slot"
+    slotEl.innerHTML =
+      '<div class="mini-crest ' + side.el + '">' + CRESTS[side.el] + "</div>" +
+      '<span class="s-name">' + side.name + "</span>" +
+      (side.you ? '<span class="s-tag">you</span>' : "")
+  }
+
+  function renderMatch(m, data) {
+    const el = $(m.id)
+    fillSlot(el.querySelector('[data-side="a"]'), data.a)
+    fillSlot(el.querySelector('[data-side="b"]'), data.b)
+    const ribbon = data.ribbon ? $(data.ribbon) : null
+    if (ribbon) ribbon.style.display = ""
+    if (data.you) el.classList.add("yours")
+  }
+
+  function resolveMatch(m, data) {
+    const el = $(m.id)
+    el.classList.remove("yours")
+    if (data.ribbon) $(data.ribbon).style.display = "none"
+    const winner = data[data.winner]
+    const loser = data[data.winner === "a" ? "b" : "a"]
+    const winSlot = el.querySelector('[data-side="' + data.winner + '"]')
+    const loseSlot = el.querySelector('[data-side="' + (data.winner === "a" ? "b" : "a") + '"]')
+    winSlot.classList.add("won")
+    loseSlot.classList.add("lost")
+    loseSlot.querySelector(".s-tag") && (loseSlot.querySelector(".s-tag").textContent = "out")
+    el.querySelector(".m-verdict").textContent = data.line
+    el.classList.add("resolved")
+  }
+
+  const setLine = (text) => {
+    ticker.classList.remove("swap")
+    void ticker.offsetWidth
+    ticker.textContent = text
+    ticker.classList.add("swap")
+  }
+
+  let timer = null
+  const wait = (ms, fn) => { timer = setTimeout(fn, ms) }
+
+  function startRun() {
+    if (timer) clearTimeout(timer)
+    // reset
+    for (const m of RUN) {
+      const el = $(m.id)
+      el.classList.remove("yours", "resolved", "in")
+      el.querySelector(".m-verdict").textContent = ""
+      fillSlot(el.querySelector('[data-side="a"]'), null)
+      fillSlot(el.querySelector('[data-side="b"]'), null)
+      if (m.ribbon) $(m.ribbon).style.display = "none"
+    }
+    $("champ").classList.remove("crowned")
+    $("champ-name").textContent = "—"
+    $("your-cta").classList.remove("show")
+    setLine("The bracket is set. Ember Drake draws the first fight.")
+    play(0)
+  }
+
+  function play(i) {
+    const m = RUN[i]
+    if (!m) {
+      wait(700, () => {
+        $("champ-name").textContent = "Ember Drake"
+        $("champ").classList.add("crowned")
+        setLine("Ember Drake takes the Bronze Cup! The crowd is on its feet.")
+        wait(2600, startRun)
+      })
+      return
+    }
+    wait(i === 0 ? 1400 : 400, () => {
+      const el = $(m.id)
+      if (m.you) {
+        el.classList.add("in", "yours")
+        if (m.ribbon) $(m.ribbon).style.display = ""
+        setLine("Your match. The coaching room is open.")
+        $("your-cta").classList.add("show")
+        // demo: auto-fight after a beat (in the real flow the player clicks)
+        wait(2200, () => {
+          $("your-cta").classList.remove("show")
+          setLine(m.line)
+          resolveMatch(m, m)
+          play(i + 1)
+        })
+        return
+      }
+      el.classList.add("in")
+      setLine(m.line)
+      resolveMatch(m, m)
+      play(i + 1)
+    })
+  }
+
+  // loadout picker + tactic toggles (mock interactions)
+  const pickRows = [...document.querySelectorAll("#picker .pick-row:not(.locked)")]
+  for (const row of pickRows) {
+    row.addEventListener("click", () => {
+      row.classList.toggle("picked")
+      const n = document.querySelectorAll("#picker .pick-row.picked").length
+      if (n > 4) row.classList.remove("picked")
+      if (n < 2) row.classList.add("picked")
+    })
+  }
+  for (const t of document.querySelectorAll(".tactic")) {
+    t.addEventListener("click", () => {
+      for (const o of document.querySelectorAll(".tactic")) o.classList.remove("picked")
+      t.classList.add("picked")
+    })
+  }
+
+  startRun()
+</script>
+</body>
+</html>
