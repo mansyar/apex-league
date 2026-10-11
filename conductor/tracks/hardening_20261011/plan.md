@@ -49,7 +49,8 @@ notes per task, phase checkpoints with explicit user verification).
         requirements; pickNames count normalized (proven stream-neutral via
         golden test), creatureSeed kept + documented as load-bearing
   - [x] Commit `refactor(sim): audit cup RNG draws; pin stream invariant`
-- [~] Task: Phase 1 Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase 1 Verification & Checkpoint (Refer to workflow.md)
+  [checkpoint: becd670]
 
 ## Phase 2 — Client Store & Dedupe (parity refactor)
 
