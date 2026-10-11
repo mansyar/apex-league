@@ -82,5 +82,9 @@ phase ends with a verification & checkpoint task.
       (arena full-bleed, chips only) and the verdict lands as a
       broadcast stamp. Design ref: `hud-mock.html` in this folder.
       [commit: ed6d16a] [fix: 329d605] [fix: 456513e] [chore: f1004b4] [checkpoint-note: ed6d16a]
-- [ ] Task: Final polish pass & manual visual verification & checkpoint
-      (Refer to workflow.md)
+- [x] Task: Final polish pass & manual visual verification & checkpoint
+      (Refer to workflow.md) — dead-code sweep removed the pre-rework
+      result/banner UI (`8aebc76`); broadcast HUD verified live by the
+      user (placard, lag bars, jolts, stamp, pacing, log, reduced
+      motion, ranch sweep) with all gates green. [commit: 8aebc76]
+      [checkpoint: 8aebc76]
