@@ -1,0 +1,1069 @@
+/* Broadcast HUD mock — design reference for broadcast_hud_20261011.
+   This file is the draft of kit.css: the primitives shown here become the
+   shared kit in Phase B. Warm tokens, layered chamfered plates, weighty
+   motion, everything muted under reduced motion. */
+
+/* ---- Tokens -------------------------------------------------------- */
+
+:root {
+  --panel-bg: rgb(20 16 12 / 0.72);
+  --panel-bg-solid: #14100c;
+  --keyline: rgb(255 236 200 / 0.22);
+  --keyline-warm: rgb(255 209 102 / 0.45);
+  --ink: #f4ecdf;
+  --ink-dim: #b8ad9c;
+  --accent: #ffd166;
+  --accent-ink: #241c10;
+  --danger: #ff8a7a;
+
+  --el-fire: 14;
+  --el-water: 210;
+  --el-plant: 120;
+  --el-electric: 48;
+  --el-earth: 28;
+  --el-wind: 167;
+
+  --bar-hunger: #e8985a;
+  --bar-energy: #6ec6ff;
+  --bar-health: #7ee08a;
+  --bar-mood: #ffd166;
+  --bar-bond: #ff9ec4;
+
+  --blur: blur(8px) saturate(1.1);
+  --settle: cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+/* ---- Mock page base ------------------------------------------------ */
+
+body {
+  margin: 0;
+  background: #171310;
+  color: var(--ink);
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+  padding: 32px clamp(16px, 4vw, 64px) 96px;
+}
+
+h1 {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 8px 0 4px;
+}
+
+h2 {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin: 0 0 18px;
+}
+
+.mock-header {
+  max-width: 1080px;
+  margin: 0 auto 28px;
+}
+
+.mock-header p {
+  color: var(--ink-dim);
+  max-width: 62ch;
+  margin: 0 0 12px;
+}
+
+.mock-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgb(255 209 102 / 0.1);
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+}
+
+.mock-toggle {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+/* ---- Kit primitives ------------------------------------------------ */
+
+/* Keyline trick: a transparent 1px border reserves the edge; the
+   border-box background layer paints the keyline, the padding-box layer
+   paints the fill. clip-path cuts both, so chamfered diagonals keep a
+   crisp keyline. Backdrop blur sits behind translucent panels. */
+.kit-plate {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--panel-bg), var(--panel-bg)) padding-box,
+    linear-gradient(var(--keyline), var(--keyline)) border-box;
+  backdrop-filter: var(--blur);
+  color: var(--ink);
+}
+
+.kit-tab {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  clip-path: polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+}
+
+.kit-tab.is-outline {
+  background: rgb(255 209 102 / 0.12);
+  color: var(--accent);
+}
+
+.kit-tab.is-stage {
+  padding: 2px 9px;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+}
+
+.kit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  background: var(--panel-bg);
+  border: 1px solid var(--keyline);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 7px),
+    calc(100% - 7px) 100%,
+    0 100%
+  );
+  cursor: pointer;
+  transition:
+    transform 0.15s var(--settle),
+    border-color 0.15s ease;
+}
+
+.kit-chip svg {
+  width: 14px;
+  height: 14px;
+}
+
+.kit-chip:hover {
+  transform: translateY(-1px);
+  border-color: var(--keyline-warm);
+}
+
+.kit-chip.is-accent {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.kit-chip.is-dim {
+  color: var(--ink-dim);
+  font-weight: 600;
+}
+
+.kit-crest {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  clip-path: polygon(50% 0, 100% 26%, 100% 74%, 50% 100%, 0 74%, 0 26%);
+  background: hsl(var(--hue) 70% 55%);
+  color: #14100c;
+}
+
+.kit-crest svg {
+  width: 22px;
+  height: 22px;
+}
+
+.kit-button {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas: "glyph name cost" "reason reason reason";
+  align-items: center;
+  gap: 2px 8px;
+  padding: 9px 12px 10px;
+  background: rgb(255 236 200 / 0.06);
+  border: 1px solid var(--keyline);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  clip-path: polygon(9px 0, 100% 0, 100% 100%, 0 100%);
+  cursor: pointer;
+  transition:
+    transform 0.15s var(--settle),
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.kit-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: var(--keyline-warm);
+  background: rgb(255 236 200 / 0.1);
+}
+
+.kit-button:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98);
+}
+
+.kit-button-glyph {
+  grid-area: glyph;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+}
+
+.kit-button-glyph svg {
+  width: 18px;
+  height: 18px;
+}
+
+.kit-button-name {
+  grid-area: name;
+}
+
+.kit-button-cost {
+  grid-area: cost;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+}
+
+.kit-button-reason {
+  grid-area: reason;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--ink-dim);
+}
+
+.kit-button.is-disabled,
+.kit-button:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+}
+
+.kit-button.is-focus {
+  border-color: var(--keyline-warm);
+  background: rgb(255 209 102 / 0.1);
+}
+
+.kit-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 18px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 12px),
+    calc(100% - 12px) 100%,
+    0 100%
+  );
+  cursor: pointer;
+  border: 0;
+  transition:
+    transform 0.15s var(--settle),
+    filter 0.15s ease;
+}
+
+.kit-cta svg {
+  width: 18px;
+  height: 18px;
+}
+
+.kit-cta:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+
+.kit-cta:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+/* AP meter — skewed pips in the placard's skew language. */
+.ap-pips {
+  display: inline-flex;
+  gap: 5px;
+}
+
+.ap-pip {
+  width: 15px;
+  height: 20px;
+  transform: skewX(-14deg);
+  background: var(--accent);
+}
+
+.ap-pip.is-spent {
+  background: rgb(255 236 200 / 0.08);
+  box-shadow: inset 0 0 0 1px var(--keyline);
+}
+
+.ap-pip.is-bonus {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--keyline-warm);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 6px) 0,
+    100% 50%,
+    calc(100% - 6px) 100%,
+    0 100%
+  );
+}
+
+/* Condition bars */
+.condition-track {
+  display: inline-block;
+  flex: 1;
+  height: 6px;
+  background: rgb(255 255 255 / 0.08);
+  overflow: hidden;
+}
+
+.condition-fill {
+  display: block;
+  height: 100%;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
+  transition: width 0.4s var(--settle);
+}
+
+.condition-fill.is-low {
+  animation: bar-pulse 1.6s ease-in-out infinite;
+}
+
+.condition-fill.is-flashing {
+  animation: bar-flash 1.2s ease-out infinite alternate;
+}
+
+/* Ticker — the announcer line under the creature plate. */
+.kit-ticker {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 9px 2px 1px;
+  border-top: 1px solid var(--keyline);
+  font-size: 12.5px;
+  color: var(--ink-dim);
+}
+
+.kit-ticker-tick {
+  align-self: center;
+  width: 4px;
+  height: 14px;
+  flex: none;
+  background: var(--accent);
+}
+
+.kit-ticker-line {
+  min-width: 0;
+  animation: ticker-in 7s var(--settle) infinite;
+}
+
+/* Stamp — verdict language carried over from the arena. */
+.kit-stamp {
+  display: inline-block;
+  padding: 6px 22px;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  transform: skewX(-8deg) rotate(-2deg);
+}
+
+.kit-stamp.is-loss {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+/* ---- Stage: the ranch mock ------------------------------------------ */
+
+.stage {
+  position: relative;
+  height: 620px;
+  max-width: 1080px;
+  margin: 0 auto;
+  border: 1px solid var(--keyline);
+  overflow: hidden;
+}
+
+.stage-scene {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    #1a1f2e 0%,
+    #2a2f3c 42%,
+    #d98c4a 78%,
+    #b06f3c 100%
+  );
+}
+
+.stage-sun {
+  position: absolute;
+  left: 50%;
+  bottom: 18%;
+  width: 340px;
+  height: 340px;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, rgb(255 217 160 / 0.5), transparent 65%);
+}
+
+.stage-ground {
+  position: absolute;
+  inset: 62% 0 0;
+  background: linear-gradient(#3a4d34, #2c3a28);
+  box-shadow: inset 0 40px 60px rgb(0 0 0 / 0.35);
+}
+
+/* Score bug */
+.score-bug {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 18px 8px 10px;
+  clip-path: polygon(
+    12px 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    0 100%,
+    0 12px
+  );
+  transform: translateX(-50%);
+  filter: drop-shadow(0 8px 22px rgb(0 0 0 / 0.4));
+  animation: settle-down 0.5s var(--settle) both;
+}
+
+.score-day {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.score-day-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.score-day-num {
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.score-divider {
+  width: 1px;
+  height: 26px;
+  background: var(--keyline);
+}
+
+.score-ap,
+.score-trophy {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.score-ap-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  color: var(--ink-dim);
+}
+
+.score-trophy svg {
+  width: 17px;
+  height: 17px;
+  color: var(--accent);
+}
+
+.score-trophy-count {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+
+/* Creature lower-third */
+.creature-plate {
+  position: absolute;
+  bottom: 18px;
+  left: 18px;
+  width: 300px;
+  padding: 14px 16px 10px;
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+  filter: drop-shadow(0 10px 26px rgb(0 0 0 / 0.42));
+  animation: settle-up 0.5s 0.08s var(--settle) both;
+}
+
+.creature-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 12px;
+}
+
+.creature-id {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.creature-name {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-bottom: 12px;
+  border: 1px solid var(--keyline);
+}
+
+.stat-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 7px 4px 6px;
+}
+
+.stat-cell + .stat-cell {
+  border-left: 1px solid var(--keyline);
+}
+
+.stat-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  color: var(--ink-dim);
+}
+
+.stat-total {
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-chip {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: var(--accent-ink);
+  background: var(--accent);
+  padding: 0 5px;
+  clip-path: polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
+}
+
+.condition-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 10px;
+}
+
+.condition-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.condition-label {
+  width: 52px;
+  flex: none;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.condition-row.is-changed .condition-label {
+  color: var(--accent);
+}
+
+.condition-glyph {
+  display: grid;
+  place-items: center;
+  width: 14px;
+  flex: none;
+}
+
+.condition-glyph svg {
+  width: 13px;
+  height: 13px;
+  color: var(--ink-dim);
+}
+
+.condition-row.is-changed .condition-glyph svg {
+  color: var(--accent);
+}
+
+.condition-value {
+  flex: none;
+  min-width: 30px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.condition-delta {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 4px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 9.5px;
+  font-weight: 800;
+  font-style: normal;
+  animation: chip-pop 1.4s var(--settle) infinite;
+}
+
+/* Command dock */
+.command-dock {
+  position: absolute;
+  bottom: 18px;
+  right: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 328px;
+  padding: 14px;
+  clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%, 0 14px);
+  filter: drop-shadow(0 10px 26px rgb(0 0 0 / 0.42));
+  animation: settle-up 0.5s 0.16s var(--settle) both;
+}
+
+.dock-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+}
+
+.dock-row .kit-button {
+  grid-template-areas: "glyph" "name" "cost" "reason";
+  justify-items: center;
+  gap: 3px 0;
+  padding: 9px 4px 8px;
+  text-align: center;
+}
+
+.dock-row .kit-button-name {
+  font-size: 11px;
+}
+
+.dock-row .kit-button-reason {
+  text-align: center;
+  font-size: 9.5px;
+}
+
+.dock-train {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.dock-train .kit-button {
+  grid-template-areas: "glyph name cost" "reason reason reason";
+}
+
+.train-picker {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--keyline);
+  background: rgb(0 0 0 / 0.25);
+}
+
+.train-entry {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 11px;
+  font-size: 12px;
+}
+
+.train-entry + .train-entry {
+  border-top: 1px solid rgb(255 236 200 / 0.1);
+}
+
+.train-entry-name {
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 10.5px;
+}
+
+.train-note {
+  color: var(--ink-dim);
+}
+
+.train-entry.is-focus .train-note {
+  color: var(--accent);
+}
+
+.train-entry.is-capped .train-note {
+  color: rgb(184 173 156 / 0.65);
+  font-style: italic;
+}
+
+/* Chip family */
+.hud-chips {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  gap: 8px;
+  animation: settle-down 0.5s 0.24s var(--settle) both;
+}
+
+/* ---- Showcase ------------------------------------------------------- */
+
+.showcase {
+  max-width: 1080px;
+  margin: 64px auto 0;
+}
+
+.show-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 22px;
+}
+
+.show-item {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 18px;
+  background: rgb(255 255 255 / 0.03);
+  border: 1px solid rgb(255 255 255 / 0.07);
+}
+
+.show-item figcaption {
+  font-size: 12px;
+  color: var(--ink-dim);
+}
+
+.show-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.show-row.is-tall {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.show-plates {
+  display: flex;
+  gap: 10px;
+}
+
+.show-plate {
+  padding: 14px 18px;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.show-plate.is-chamfer-left {
+  clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.show-plate.is-chamfer-right {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%);
+}
+
+.show-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ---- Starter mock ---------------------------------------------------- */
+
+.starter-mock {
+  max-width: 1080px;
+  margin: 64px auto 0;
+}
+
+.starter-frame {
+  border: 1px solid var(--keyline);
+}
+
+.starter-dome {
+  position: relative;
+  padding: 44px 40px 40px;
+  background:
+    radial-gradient(
+      58% 42% at 50% 86%,
+      rgb(255 210 130 / 0.12),
+      transparent 70%
+    ),
+    radial-gradient(120% 90% at 50% 0%, #1a2030 0%, #0f1320 55%, #0a0d14 100%);
+}
+
+.starter-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 26px;
+}
+
+.starter-title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.starter-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.starter-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  padding: 22px 14px 18px;
+  background: rgb(20 16 12 / 0.72);
+  border: 1px solid var(--keyline);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  clip-path: polygon(12px 0, 100% 0, 100% 100%, 0 100%);
+  transition:
+    transform 0.2s var(--settle),
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.starter-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--keyline-warm);
+  background: rgb(30 24 18 / 0.85);
+}
+
+.starter-name {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.starter-flavor {
+  font-size: 12px;
+  color: var(--ink-dim);
+}
+
+/* ---- Motion notes ---------------------------------------------------- */
+
+.notes {
+  max-width: 720px;
+  margin: 64px auto 0;
+}
+
+.notes ul {
+  padding-left: 20px;
+  color: var(--ink-dim);
+  font-size: 14px;
+}
+
+.notes li + li {
+  margin-top: 10px;
+}
+
+.notes strong {
+  color: var(--ink);
+}
+
+.notes code {
+  color: var(--accent);
+  font-size: 12.5px;
+}
+
+/* ---- Animations ------------------------------------------------------ */
+
+@keyframes settle-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes settle-down {
+  from {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.score-bug {
+  animation-name: settle-down-centered;
+}
+
+@keyframes settle-down-centered {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-14px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes bar-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes bar-flash {
+  from {
+    filter: brightness(1);
+  }
+  to {
+    filter: brightness(1.6);
+  }
+}
+
+@keyframes chip-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(3px) scale(0.85);
+  }
+  15%,
+  85% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-2px) scale(0.95);
+  }
+}
+
+@keyframes ticker-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  8%,
+  88% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes pip-spent {
+  0% {
+    background: var(--accent);
+  }
+  45% {
+    filter: brightness(2.2);
+    transform: skewX(-14deg) scale(1.15);
+  }
+  100% {
+    filter: brightness(1);
+    transform: skewX(-14deg) scale(1);
+  }
+}
+
+.score-bug .ap-pip.is-spent {
+  animation: pip-spent 0.9s ease-out 1.2s both;
+}
+
+/* Reduced motion: everything collapses to a crossfade or stillness. */
+body.is-reduced *,
+body.is-reduced *::before,
+body.is-reduced *::after {
+  /* biome-ignore lint/complexity/noImportantStyles: reduced-motion overrides must win over every animation and transition */
+  animation: none !important;
+  /* biome-ignore lint/complexity/noImportantStyles: reduced-motion overrides must win over every animation and transition */
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    /* biome-ignore lint/complexity/noImportantStyles: reduced-motion overrides must win over every animation and transition */
+    animation: none !important;
+    /* biome-ignore lint/complexity/noImportantStyles: reduced-motion overrides must win over every animation and transition */
+    transition: none !important;
+  }
+}

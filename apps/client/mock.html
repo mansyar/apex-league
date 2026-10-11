@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Apex League — Broadcast HUD mock</title>
+    <link rel="stylesheet" href="./src/mock.css" />
+  </head>
+  <body>
+    <header class="mock-header">
+      <span class="mock-tag">Design mock · v1 · broadcast_hud_20261011 Phase A</span>
+      <h1>Broadcast HUD Overhaul</h1>
+      <p>
+        The approved look for the shared kit. Ranch clusters are the money
+        shot; the showcase below lists every primitive the kit will ship.
+        Toggle reduced motion to preview the muted state.
+      </p>
+      <label class="mock-toggle">
+        <input type="checkbox" id="reduced-toggle" />
+        Reduced motion
+      </label>
+    </header>
+
+    <!-- ============================================================
+         Section 1 — the ranch, full-bleed. A warm gradient stands in
+         for the 3D scene; clusters sit exactly where they will live.
+         ============================================================ -->
+    <section class="stage" aria-label="Ranch HUD mock">
+      <div class="stage-scene" aria-hidden="true">
+        <div class="stage-sun"></div>
+        <div class="stage-ground"></div>
+      </div>
+
+      <!-- Top-right chip family -->
+      <div class="hud-chips">
+        <button class="kit-chip" type="button">
+          <svg viewBox="0 0 24 24" style="color: var(--accent)" aria-hidden="true"><path d="M6 4l8 8-8 8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16.5" cy="12" r="2.5" fill="currentColor"/></svg>
+          <span>Spar</span>
+        </button>
+        <button class="kit-chip is-accent" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M17 4H7v4a5 5 0 0 0 10 0V4zM7 5H4a3 3 0 0 0 3 5M17 5h3a3 3 0 0 1-3 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <span>Cup day</span>
+        </button>
+        <button class="kit-chip is-dim" type="button">
+          <span>Motion · full</span>
+        </button>
+      </div>
+
+      <!-- Score bug, top-center -->
+      <div class="score-bug kit-plate">
+        <span class="kit-tab">Day phase</span>
+        <div class="score-day">
+          <span class="score-day-label">Day</span>
+          <span class="score-day-num">12</span>
+        </div>
+        <div class="score-divider" aria-hidden="true"></div>
+        <div class="score-ap">
+          <span class="score-ap-label">AP</span>
+          <span class="ap-pips" role="img" aria-label="2 of 3 action points left">
+            <i class="ap-pip is-full"></i>
+            <i class="ap-pip is-full"></i>
+            <i class="ap-pip is-spent"></i>
+            <i class="ap-pip is-bonus"></i>
+          </span>
+        </div>
+        <div class="score-divider" aria-hidden="true"></div>
+        <div class="score-trophy">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M17 4H7v4a5 5 0 0 0 10 0V4zM7 5H4a3 3 0 0 0 3 5M17 5h3a3 3 0 0 1-3 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <span class="score-trophy-count">× 2</span>
+        </div>
+      </div>
+
+      <!-- Creature lower-third, bottom-left -->
+      <div class="creature-plate kit-plate">
+        <div class="creature-head">
+          <span class="kit-crest" style="--hue: 14">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4-.2 6.8-1.6 8.4C9 9.6 8.4 8.6 8.3 7 6.2 9 5 11.6 5 14a7 7 0 0 0 14 0c0-4.6-4-8.4-7-12zm0 18a4 4 0 0 1-4-4c0-1.6.8-3 2-4.3.3 1 .9 1.9 1.9 2.5.2-1.4.7-2.6 1.4-3.7C14.6 12 16 13.8 16 16a4 4 0 0 1-4 4z"/></svg>
+          </span>
+          <div class="creature-id">
+            <span class="creature-name">Ember</span>
+            <span class="kit-tab is-outline is-stage">Juvenile</span>
+          </div>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-cell"><span class="stat-label">HP</span><span class="stat-total">26</span><span class="stat-chip">+4</span></div>
+          <div class="stat-cell"><span class="stat-label">ATK</span><span class="stat-total">18</span><span class="stat-chip">+2</span></div>
+          <div class="stat-cell"><span class="stat-label">DEF</span><span class="stat-total">15</span><span class="stat-chip">+3</span></div>
+          <div class="stat-cell"><span class="stat-label">SPD</span><span class="stat-total">12</span><span class="stat-chip">+6</span></div>
+        </div>
+
+        <div class="condition-list">
+          <div class="condition-row">
+            <span class="condition-glyph"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 7c-3.5-1-7 1.5-7 6 0 4 2.5 8 5 8 1 0 1.4-.5 2-.5s1 .5 2 .5c2.5 0 5-4 5-8 0-4.5-3.5-7-7-6z"/><path d="M12 6c0-2 1-3 3-3.5.3 2-.8 3.5-3 3.5z"/></svg></span>
+            <span class="condition-label">Hunger</span>
+            <span class="condition-track"><i class="condition-fill" style="width: 72%; background: var(--bar-hunger)"></i></span>
+            <span class="condition-value">72</span>
+          </div>
+          <div class="condition-row">
+            <span class="condition-glyph"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4.5 13.5H11L9.5 22 19 9.5h-6.5L13 2z"/></svg></span>
+            <span class="condition-label">Energy</span>
+            <span class="condition-track"><i class="condition-fill" style="width: 58%; background: var(--bar-energy)"></i></span>
+            <span class="condition-value">58</span>
+          </div>
+          <div class="condition-row">
+            <span class="condition-glyph"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21S4.5 16.4 2.9 11.9A5.2 5.2 0 0 1 12 7a5.2 5.2 0 0 1 9.1 4.9C19.5 16.4 12 21 12 21z"/></svg></span>
+            <span class="condition-label">Health</span>
+            <span class="condition-track"><i class="condition-fill" style="width: 100%; background: var(--bar-health)"></i></span>
+            <span class="condition-value">100</span>
+          </div>
+          <div class="condition-row is-changed">
+            <span class="condition-glyph"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.5 13.5a4.5 4.5 0 0 0 7 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="9.5" r="1.3" fill="currentColor"/><circle cx="15" cy="9.5" r="1.3" fill="currentColor"/></svg></span>
+            <span class="condition-label">Mood</span>
+            <span class="condition-track"><i class="condition-fill is-flashing" style="width: 80%; background: var(--bar-mood)"></i></span>
+            <span class="condition-value">80<em class="condition-delta">+2</em></span>
+          </div>
+          <div class="condition-row">
+            <span class="condition-glyph"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21S4.5 16.4 2.9 11.9A5.2 5.2 0 0 1 12 7a5.2 5.2 0 0 1 9.1 4.9C19.5 16.4 12 21 12 21z"/><path d="M17.5 3.5c1.8 0 3 1.4 3 3 0 2.4-3 4.5-3 4.5s-3-2.1-3-4.5c0-1.6 1.2-3 3-3z" opacity="0.55"/></svg></span>
+            <span class="condition-label">Bond</span>
+            <span class="condition-track"><i class="condition-fill" style="width: 64%; background: var(--bar-bond)"></i></span>
+            <span class="condition-value">64</span>
+          </div>
+        </div>
+
+        <div class="kit-ticker">
+          <span class="kit-ticker-tick" aria-hidden="true"></span>
+          <span class="kit-ticker-line">A full night's rest will sharpen DEF.</span>
+        </div>
+      </div>
+
+      <!-- Command dock, bottom-right -->
+      <div class="command-dock kit-plate">
+        <div class="dock-row">
+          <button class="kit-button" type="button">
+            <span class="kit-button-glyph"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 12h18a9 9 0 0 1-18 0z"/><path d="M8 8c0-1.2.8-1.6.8-2.6M12 8c0-1.2.8-1.6.8-2.6M16 8c0-1.2.8-1.6.8-2.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+            <span class="kit-button-name">Feed</span>
+            <span class="kit-button-cost">1 AP</span>
+          </button>
+          <button class="kit-button" type="button">
+            <span class="kit-button-glyph"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11z"/></svg></span>
+            <span class="kit-button-name">Rest</span>
+            <span class="kit-button-cost">1 AP</span>
+          </button>
+          <button class="kit-button is-disabled" type="button" disabled>
+            <span class="kit-button-glyph"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.5 3h5v6.5H21v5h-6.5V21h-5v-6.5H3v-5h6.5z"/></svg></span>
+            <span class="kit-button-name">Treat</span>
+            <span class="kit-button-cost">1 AP</span>
+            <span class="kit-button-reason">Not sick — save the medicine.</span>
+          </button>
+          <button class="kit-button" type="button">
+            <span class="kit-button-glyph"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5.5 9.5c4 2 9 2 13 0M5.5 14.5c4-2 9-2 13 0" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span>
+            <span class="kit-button-name">Play</span>
+            <span class="kit-button-cost">1 AP</span>
+          </button>
+        </div>
+
+        <div class="dock-train">
+          <button class="kit-button is-focus" type="button">
+            <span class="kit-button-glyph"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 9h3v6H2zM19 9h3v6h-3zM5 10h14v4H5zM7 12h10" /></svg></span>
+            <span class="kit-button-name">Train</span>
+            <span class="kit-button-cost">1 AP</span>
+            <span class="kit-button-reason">Focus: DEF</span>
+          </button>
+          <div class="train-picker">
+            <div class="train-entry"><span class="train-entry-name">HP</span><span class="train-note">26 → 27</span></div>
+            <div class="train-entry"><span class="train-entry-name">ATK</span><span class="train-note">18 → 19</span></div>
+            <div class="train-entry is-focus"><span class="train-entry-name">DEF</span><span class="train-note">focused · +1 tonight</span></div>
+            <div class="train-entry is-capped"><span class="train-entry-name">SPD</span><span class="train-note">as sharp as it can get for now</span></div>
+          </div>
+        </div>
+
+        <button class="kit-cta" type="button">
+          <span>Advance Day</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M12 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         Section 2 — kit showcase: every primitive with its variants.
+         ============================================================ -->
+    <section class="showcase">
+      <h2>Kit primitives</h2>
+
+      <div class="show-grid">
+        <figure class="show-item">
+          <div class="show-plates">
+            <div class="kit-plate show-plate">Plate</div>
+            <div class="kit-plate show-plate is-chamfer-left">Chamfer L</div>
+            <div class="kit-plate show-plate is-chamfer-right">Chamfer R</div>
+          </div>
+          <figcaption>plate — blurred dark base, warm keyline, angular cuts</figcaption>
+        </figure>
+
+        <figure class="show-item">
+          <div class="show-row">
+            <span class="kit-chip"><span>Chip</span></span>
+            <span class="kit-chip is-accent"><span>Accent</span></span>
+            <span class="kit-chip is-dim"><span>Dim</span></span>
+          </div>
+          <figcaption>chip — top-right family, glyph + label</figcaption>
+        </figure>
+
+        <figure class="show-item">
+          <div class="show-row">
+            <span class="kit-tab">Tab</span>
+            <span class="kit-tab is-outline">Outline</span>
+            <span class="kit-tab is-stage">Stage</span>
+          </div>
+          <figcaption>tab — accent header / outline badge</figcaption>
+        </figure>
+
+        <figure class="show-item">
+          <div class="show-row is-tall">
+            <button class="kit-button" type="button"><span class="kit-button-name">Button</span><span class="kit-button-cost">1 AP</span></button>
+            <button class="kit-button is-disabled" type="button" disabled><span class="kit-button-name">Disabled</span><span class="kit-button-cost">1 AP</span><span class="kit-button-reason">No AP left today.</span></button>
+          </div>
+          <figcaption>button — glyph slot, name, AP badge, rejection reason</figcaption>
+        </figure>
+
+        <figure class="show-item">
+          <div class="show-row">
+            <span class="ap-pips">
+              <i class="ap-pip is-full"></i><i class="ap-pip is-full"></i><i class="ap-pip is-spent"></i><i class="ap-pip is-bonus"></i>
+            </span>
+          </div>
+          <figcaption>meter — AP pips: full · spent (flashes) · cup bonus (chevron cut)</figcaption>
+        </figure>
+
+        <figure class="show-item">
+          <div class="show-bars">
+            <span class="condition-track"><i class="condition-fill" style="width: 82%; background: var(--bar-health)"></i></span>
+            <span class="condition-track"><i class="condition-fill is-low" style="width: 18%; background: var(--bar-health)"></i></span>
+          </div>
+          <figcaption>bar — healthy and low states (low pulses)</figcaption>
+        </figure>
+
+        <figure class="show-item">
+          <div class="show-row">
+            <span class="kit-crest" style="--hue: 14"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4-.2 6.8-1.6 8.4C9 9.6 8.4 8.6 8.3 7 6.2 9 5 11.6 5 14a7 7 0 0 0 14 0c0-4.6-4-8.4-7-12zm0 18a4 4 0 0 1-4-4c0-1.6.8-3 2-4.3.3 1 .9 1.9 1.9 2.5.2-1.4.7-2.6 1.4-3.7C14.6 12 16 13.8 16 16a4 4 0 0 1-4 4z"/></svg></span>
+            <span class="kit-crest" style="--hue: 210"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2s6.5 7.8 6.5 12.2A6.5 6.5 0 0 1 12 21a6.5 6.5 0 0 1-6.5-6.8C5.5 9.8 12 2 12 2zm0 15.5a3 3 0 0 0 3-3c0-1.4-1.2-3.4-3-5.6-1.8 2.2-3 4.2-3 5.6a3 3 0 0 0 3 3z"/></svg></span>
+            <span class="kit-crest" style="--hue: 120"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22v-8m0 0C12 8.5 8.6 5 4 5c0 5.5 3.5 9 8 9zm0 0c0-4 3.2-6.8 8-6.8 0 4.6-3.2 6.8-8 6.8z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg></span>
+            <span class="kit-crest" style="--hue: 48"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4.5 13.5H11L9.5 22 19 9.5h-6.5L13 2z"/></svg></span>
+            <span class="kit-crest" style="--hue: 28"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 19 9.5 7l3.2 5.6L15 9l6 10H3z"/></svg></span>
+            <span class="kit-crest" style="--hue: 167"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8h10a2.5 2.5 0 1 0-2.5-2.5M3 12.5h14a2.5 2.5 0 1 1-2.5 2.5M3 17h8a2 2 0 1 1-2 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+          </div>
+          <figcaption>crest — all 6 elements, hex cut, currentColor glyph</figcaption>
+        </figure>
+
+        <figure class="show-item">
+          <div class="show-row is-tall">
+            <span class="kit-stamp">Victory</span>
+            <span class="kit-stamp is-loss">Defeat</span>
+          </div>
+          <figcaption>stamp — verdict over the arena (existing language)</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         Section 3 — starter overlay treatment (dome language).
+         ============================================================ -->
+    <section class="starter-mock">
+      <h2>Starter overlay</h2>
+      <div class="starter-frame">
+        <div class="starter-dome">
+          <div class="starter-head">
+            <span class="kit-tab">Draft day</span>
+            <span class="starter-title">Choose your first partner</span>
+          </div>
+          <div class="starter-cards">
+            <button class="starter-card" type="button">
+              <span class="kit-crest" style="--hue: 14"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4-.2 6.8-1.6 8.4C9 9.6 8.4 8.6 8.3 7 6.2 9 5 11.6 5 14a7 7 0 0 0 14 0c0-4.6-4-8.4-7-12zm0 18a4 4 0 0 1-4-4c0-1.6.8-3 2-4.3.3 1 .9 1.9 1.9 2.5.2-1.4.7-2.6 1.4-3.7C14.6 12 16 13.8 16 16a4 4 0 0 1-4 4z"/></svg></span>
+              <span class="starter-name">Fire Drake</span>
+              <span class="starter-flavor">Runs hot on the gauge.</span>
+            </button>
+            <button class="starter-card" type="button">
+              <span class="kit-crest" style="--hue: 120"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22v-8m0 0C12 8.5 8.6 5 4 5c0 5.5 3.5 9 8 9zm0 0c0-4 3.2-6.8 8-6.8 0 4.6-3.2 6.8-8 6.8z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg></span>
+              <span class="starter-name">Plant Ox</span>
+              <span class="starter-flavor">Grows on the routine.</span>
+            </button>
+            <button class="starter-card" type="button">
+              <span class="kit-crest" style="--hue: 210"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2s6.5 7.8 6.5 12.2A6.5 6.5 0 0 1 12 21a6.5 6.5 0 0 1-6.5-6.8C5.5 9.8 12 2 12 2zm0 15.5a3 3 0 0 0 3-3c0-1.4-1.2-3.4-3-5.6-1.8 2.2-3 4.2-3 5.6a3 3 0 0 0 3 3z"/></svg></span>
+              <span class="starter-name">Water Axolotl</span>
+              <span class="starter-flavor">Keeps its cool.</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         Section 4 — motion notes (what animates, how, muted how).
+         ============================================================ -->
+    <section class="notes">
+      <h2>Motion notes</h2>
+      <ul>
+        <li><strong>Entrance settle</strong> — clusters slide in from their
+          anchor edge with a slight overshoot, staggered ~60ms
+          (score bug → lower-third → dock), on load and screen returns.</li>
+        <li><strong>AP spend</strong> — the spent pip flashes out (scale +
+          fade), the remainder re-seat. Bonus pips (cup win) cut in with a
+          chevron notch and glow once.</li>
+        <li><strong>Bar change feedback</strong> — a delta ≥ 2 flashes the
+          fill and pins a small <code>+N/−N</code> chip on the value for
+          ~1.2s; low bars (≤ 25) pulse their label.</li>
+        <li><strong>Ticker</strong> — status lines swap in with a short
+          slide-settle; priority chain unchanged (training → condition →
+          unlock → growth hint → flavor).</li>
+        <li><strong>Hover / press</strong> — buttons lift 1px with a warm
+          keyline brighten on hover; press squashes 0.98. CTA idles with a
+          soft glow when AP is unspent late in the day.</li>
+        <li><strong>Reduced motion</strong> — every animation collapses to
+          an opacity crossfade or nothing, honoring the saved setting and
+          <code>prefers-reduced-motion</code>.</li>
+      </ul>
+    </section>
+
+    <script>
+      document
+        .getElementById("reduced-toggle")
+        .addEventListener("change", (event) => {
+          document.body.classList.toggle(
+            "is-reduced",
+            event.currentTarget.checked,
+          )
+        })
+    </script>
+  </body>
+</html>
