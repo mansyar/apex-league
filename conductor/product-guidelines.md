@@ -24,11 +24,21 @@
 - **Palette**: saturated team colors per element type; neutral arena floors so
   creature silhouettes read instantly.
 - **Type colors are a contract**: each of the 6 elements has one fixed hue used
-  identically in badges, move icons, and particle effects. Implemented so far:
-  Fire = 18° (draconic), Plant = 110° (bovine), Water = 205° (axolotl);
-  Electric/Earth/Wind hues are unassigned until their archetypes exist.
+  identically in badges, move icons, and particle effects (single-sourced in
+  `apps/client/src/ui/element.ts`): Fire = 18° (draconic), Plant = 110°
+  (bovine), Water = 205° (axolotl), Electric = 50°, Earth = 28°, Wind = 165°;
+  crest glyphs for all 6 exist ahead of the remaining archetypes.
 - **UI**: flat panels over the 3D scene; big touchable targets; rank/ladder
   visuals echo sports broadcast lower-thirds.
+- **UI amendment (2026-10-12, Broadcast HUD Overhaul)**: all UI surfaces are
+  built from one shared broadcast kit (`apps/client/src/ui/`) — chamfered
+  plates, slanted tabs, hex crests, skewed meters. "Flat panels" now means a
+  dark translucent scrim **plus a subtle backdrop-filter blur + saturate**
+  behind plates; gradients remain banned on panels. Motion is weighty and
+  broadcast-style (settle entrances, spend flashes, change feedback) and must
+  honor both the in-game reduced-motion setting and
+  `prefers-reduced-motion`. Element hues are single-sourced per element in
+  code; all 6 element crests exist as glyphs ahead of their archetypes.
 - **Creature variation (decided 2026-10-09)**: "Wild" — same-species
   individuals may look strongly different (aggressive proportion jitter
   ±20-30%, multiple signature-part style swaps, rare near-bound mutant
