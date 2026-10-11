@@ -1096,7 +1096,7 @@ h2 {
   left: 50%;
   z-index: 20;
   padding: 9px 13px;
-  background: rgb(32 25 17 / 0.97);
+  background: #201911;
   border: 1px solid var(--keyline-warm);
   box-shadow: 0 10px 24px rgb(0 0 0 / 0.5);
   color: var(--ink);
