@@ -7,9 +7,7 @@
  */
 
 import {
-  type BattleEvent,
   type BattleResult,
-  buildPlaybackScript,
   type Creature,
   defaultLoadout,
   effectiveStats,
@@ -25,12 +23,7 @@ import {
   unlockedKit,
 } from "@apex/sim"
 import { type BattleHudFighter, createBattleHud } from "./battleHud"
-import { prefersReducedMotionOs } from "./motion"
-import {
-  PLAYBACK_SPEED_MS,
-  type PlaybackSpeed,
-  toggleSpeed,
-} from "./playbackSpeed"
+import { createPlaybackDriver, type PlaybackRun } from "./playbackDriver"
 import type { FightCasting } from "./staging"
 import { visualSeedOf } from "./staging"
 
@@ -279,28 +272,47 @@ export function createSpar(
 
   let battleSeed = 0
   let owned: Creature | null = null
-  let timer: ReturnType<typeof setTimeout> | null = null
-  let speed: PlaybackSpeed = "normal"
-  let lastRun: {
-    steps: readonly PlaybackStep[]
-    events: readonly BattleEvent[]
-    verdict: Readonly<BattleResult>
-    fight: { owned: BattleHudFighter; rival: BattleHudFighter }
-  } | null = null
-  // True while a Replay slowly pass is in flight; finish() keeps the pill
-  // visible so the user can replay again.
-  let replaying = false
-  // Reduced motion = the saved in-app setting, or the hardened OS query
-  // (see motion.ts for the double-report hardening).
-  const reducedMotion = (): boolean =>
-    handlers.motionPref?.() === true || prefersReducedMotionOs()
+  // The current fight's HUD fighters (mirror-match stamp wording reads it).
+  let fight: { owned: BattleHudFighter; rival: BattleHudFighter } | null = null
 
-  const clearTimer = (): void => {
-    if (timer !== null) {
-      clearTimeout(timer)
-      timer = null
-    }
-  }
+  // The shared playback driver (live-cup Phase C): pacing, speed toggle,
+  // reduced-motion dump, and slow replay all live here now; spar wires
+  // its chrome onto the callbacks.
+  const driver = createPlaybackDriver({
+    onStep: (step, instant) => {
+      handlers.onStep?.(step, instant)
+      battleHud.update(step)
+    },
+    onLine: (text) => showLine(text),
+    onReplayStart: (run: PlaybackRun) => {
+      log.replaceChildren()
+      log.hidden = true
+      logToggle.textContent = "Battle log ▸"
+      logToggle.setAttribute("aria-expanded", "false")
+      battleHud.hideStamp()
+      replayButton.disabled = true
+      battleHud.show(run.fight)
+    },
+    onFinish: ({ verdict, replayed, instant }) => {
+      // Verdict as a broadcast stamp over the full-bleed arena (the panel
+      // stays out of the way); the subline carries the ending reason.
+      battleHud.stamp(winnerTitle(verdict), reasonLine(verdict))
+      close.style.display = ""
+      fastButton.style.display = "none"
+      if (replayed) {
+        replayButton.disabled = false
+        replayButton.style.display = ""
+      } else if (instant) {
+        // A reduced-motion dump offers the text-only slow replay.
+        replayButton.style.display = ""
+      } else {
+        replayButton.style.display = "none"
+      }
+      for (const { button } of tacticButtons) button.style.display = "none"
+    },
+    onPace: (msPerStep) => handlers.onPace?.(msPerStep),
+    motionPref: handlers.motionPref,
+  })
 
   const showLine = (text: string): void => {
     const line = document.createElement("div")
@@ -317,8 +329,8 @@ export function createSpar(
    */
   const winnerTitle = (verdict: Readonly<BattleResult>): string => {
     if (verdict.winner === null) return "A drawn spar"
-    const fight = lastRun?.fight
-    if (!fight) return `Victory — ${verdict.winner}`
+    const fightNow = fight
+    if (!fightNow) return `Victory — ${verdict.winner}`
     let key: string | null = null
     let best = -Infinity
     for (const [side, hp] of Object.entries(verdict.finalHp)) {
@@ -327,13 +339,13 @@ export function createSpar(
         key = side
       }
     }
-    const mirror = fight.owned.name === fight.rival.name
-    if (key === fight.owned.key) {
+    const mirror = fightNow.owned.name === fightNow.rival.name
+    if (key === fightNow.owned.key) {
       return mirror
         ? `Victory — your ${verdict.winner}`
         : `Victory — ${verdict.winner}`
     }
-    if (key === fight.rival.key) {
+    if (key === fightNow.rival.key) {
       return mirror
         ? `Victory — rival ${verdict.winner}`
         : `Victory — ${verdict.winner}`
@@ -341,53 +353,9 @@ export function createSpar(
     return `Victory — ${verdict.winner}`
   }
 
-  const finish = (verdict: Readonly<BattleResult>): void => {
-    clearTimer()
-    // Verdict as a broadcast stamp over the full-bleed arena (the panel
-    // stays out of the way); the subline carries the ending reason.
-    battleHud.stamp(winnerTitle(verdict), reasonLine(verdict))
-    close.style.display = ""
-    fastButton.style.display = "none"
-    if (replaying) {
-      replaying = false
-      replayButton.disabled = false
-      replayButton.style.display = ""
-    } else {
-      replayButton.style.display = "none"
-    }
-    for (const { button } of tacticButtons) button.style.display = "none"
-  }
-
-  /**
-   * Step the log with a delay. Reduced motion already showed everything;
-   * fast-forward only shortens the delay — there is no skip-to-end (FR11).
-   */
-  const play = (
-    events: readonly BattleEvent[],
-    index: number,
-    verdict: Readonly<BattleResult>,
-    steps: readonly PlaybackStep[],
-  ): void => {
-    const event = events[index]
-    if (!event) {
-      timer = setTimeout(() => finish(verdict), PLAYBACK_SPEED_MS[speed])
-      return
-    }
-    timer = setTimeout(() => {
-      clearTimer()
-      showLine(event.line)
-      const step = steps[index]
-      if (step) {
-        handlers.onStep?.(step, false)
-        battleHud.update(step)
-      }
-      play(events, index + 1, verdict, steps)
-    }, PLAYBACK_SPEED_MS[speed])
-  }
-
   const runBattle = (playerTactic: Tactic): void => {
     if (!owned) return
-    clearTimer()
+    driver.stop()
     // Same seed re-rolls the exact rival the player just previewed; only
     // the player's tactic changes.
     const setup = makeExhibition(owned, playerTactic, battleSeed)
@@ -395,16 +363,7 @@ export function createSpar(
 
     intro.textContent = `${setup.rival.name} accepts the spar!`
     for (const { button } of tacticButtons) button.style.display = "none"
-    const steps = buildPlaybackScript(verdict.events)
-    // buildPlaybackScript is a 1:1 event→step map; fail loud if the sim
-    // ever grows an unmapped event kind instead of silently desyncing
-    // the HUD from the log.
-    if (steps.length !== verdict.events.length) {
-      throw new Error(
-        `Playback script out of sync: ${steps.length} steps for ${verdict.events.length} events`,
-      )
-    }
-    const fight = {
+    const fightNow = {
       owned: {
         name: setup.ownedSide.name,
         key: setup.ownedSide.id ?? setup.ownedSide.name,
@@ -418,38 +377,21 @@ export function createSpar(
         maxHp: setup.rivalSide.stats.hp,
       },
     }
-    battleHud.show(fight)
-    lastRun = { events: verdict.events, verdict, steps, fight }
+    fight = fightNow
+    battleHud.show(fightNow)
     handlers.onFightStart?.(castingFor(owned, setup))
     // Broadcast rework: the panel exits, the arena plays full-bleed, and
     // the chips row is the only control surface left.
     panel.style.display = "none"
     chips.style.display = ""
     showLine(intro.textContent ?? "")
-    if (reducedMotion()) {
-      // Full log at once, no timers (FR11); Replay slowly gives a text-only
-      // stepped path for those who want the build-up anyway. The staging
-      // jumps straight to its final posture (post-step of the last event).
-      let i = 0
-      for (const event of verdict.events) {
-        showLine(event.line)
-        const step = steps[i] ?? steps[steps.length - 1]
-        if (step) {
-          handlers.onStep?.(step, true)
-          battleHud.update(step)
-        }
-        i++
-      }
-      finish(verdict)
-      replayButton.style.display = ""
-      return
+    // The driver builds the playback script, honors the reduced-motion
+    // preference (instant dump + finish), and paces the timer chain. The
+    // fast-forward pill only belongs to a paced run.
+    if (driver.start(fightNow, verdict) === "paced") {
+      fastButton.textContent = "Fast-forward"
+      fastButton.style.display = ""
     }
-    speed = "normal"
-    handlers.onPace?.(PLAYBACK_SPEED_MS[speed])
-
-    fastButton.textContent = "Fast-forward"
-    fastButton.style.display = ""
-    play(verdict.events, 0, verdict, steps)
   }
 
   /**
@@ -522,7 +464,7 @@ export function createSpar(
 
   const open = (creature: Creature | null): void => {
     if (!creature) return
-    clearTimer()
+    driver.stop()
     // A fresh seed per spar, shown in the panel so the rival is honest.
     battleSeed = Date.now() % 2 ** 31
     const setup = makeExhibition(creature, "balanced", battleSeed)
@@ -552,8 +494,6 @@ export function createSpar(
     // A close mid-replay leaves the pill disabled; re-arm it here or a
     // reduced-motion spar after that stays permanently dead.
     replayButton.disabled = false
-    replaying = false
-    lastRun = null
     for (const { button } of tacticButtons) button.style.display = ""
     // The Spar chip would collide with the placard's right plate.
     sparButton.style.display = "none"
@@ -564,7 +504,7 @@ export function createSpar(
     button.addEventListener("click", () => runBattle(tactic))
   }
   close.addEventListener("click", () => {
-    clearTimer()
+    driver.stop()
     overlay.style.display = "none"
     battleHud.hide()
     sparButton.style.display = ""
@@ -589,25 +529,12 @@ export function createSpar(
   })
 
   fastButton.addEventListener("click", () => {
-    speed = toggleSpeed(speed)
-    fastButton.textContent = speed === "fast" ? "Normal speed" : "Fast-forward"
-    handlers.onPace?.(PLAYBACK_SPEED_MS[speed])
+    const next = driver.speedToggle()
+    fastButton.textContent = next === "fast" ? "Normal speed" : "Fast-forward"
   })
   replayButton.addEventListener("click", () => {
-    if (!lastRun) return
-    clearTimer()
-    log.replaceChildren()
-    log.hidden = true
-    logToggle.textContent = "Battle log ▸"
-    logToggle.setAttribute("aria-expanded", "false")
-    battleHud.hideStamp()
-    replaying = true
-    replayButton.disabled = true
-    speed = "normal"
     fastButton.textContent = "Fast-forward"
-    handlers.onPace?.(PLAYBACK_SPEED_MS[speed])
-    battleHud.show(lastRun.fight)
-    play(lastRun.events, 0, lastRun.verdict, lastRun.steps)
+    driver.replay()
   })
 
   return {
@@ -620,7 +547,7 @@ export function createSpar(
         refreshPrep(creature)
       }
       if (!creature && overlay.style.display !== "none") {
-        clearTimer()
+        driver.stop()
         overlay.style.display = "none"
         battleHud.hide()
         sparButton.style.display = ""

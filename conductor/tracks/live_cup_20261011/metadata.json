@@ -1,0 +1,9 @@
+{
+  "id": "live_cup_20261011",
+  "title": "Live Cup - viewable stepwise tournament",
+  "type": "feature",
+  "status": "complete",
+  "createdAt": "2026-10-11",
+  "branch": "track/live_cup_20261011",
+  "base": "main @ f0d338b"
+}

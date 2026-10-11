@@ -21,7 +21,8 @@ evolution planning.
 1. **Day phase** (accelerated in-game days, action points per day):
    feed, rest/medicine, assign training programs, play/bond, plan evolution.
 2. **Cup phase** (every 7 in-game days): optional entry into an 8-bracket
-   single-elimination cup; battles auto-resolve as spectator fights.
+   single-elimination cup; rival matches resolve as spectator verdicts while
+   the player's matches are fought in the broadcast arena.
 3. **Progression**: wins climb the tier ladder (Bronze → Legend) with promotion
    matches; higher tiers gate better opponents, rewards, and rare eggs.
 4. **Legacy phase**: creatures retire at ~60-90 in-game days. Retirement passes
@@ -84,11 +85,17 @@ Phased delivery plan (each phase is independently playable):
 - Top-down 3D arena with voxel creatures (procedural generator online).
   *(Landed.)*
 - One weekly cup (8-bracket), Bronze tier ladder, ~5 opponent creatures.
-  *(Landed 2026-10-11: seeded 8-bracket cup on days 7/14/21 — enter from the
-  ranch chip, one-sitting text resolution with paced QF→SF→F announcer
-  presentation, ramped named rivals, win → +1 AP next day / bond +10 /
-  mood +15 / cupsWon tally; early exit → +2 mood consolation. Save v5.
-  Arena replay and Bronze ladder still open.)*
+  *(Landed 2026-10-11: seeded 8-bracket cup on days 7/14/21 - enter from the
+  ranch chip; the bracket is free to view and the cup commits at the first
+  arena step. The bracket fills in strict match order with a broadcast
+  presentation; a coaching room re-picks kit + tactic before each of the
+  player's three matches, which play in the 3D arena via the shared playback
+  driver; rival-vs-rival matches resolve as instant verdicts. Give up =
+  forfeit the current round with an as-if-lost placement; a loss
+  auto-completes the bracket to a named champion; a results screen shows
+  placement + rewards - win +1 AP next day / bond +10 / mood +15 / cupsWon
+  tally, loss +2 mood consolation. Save v5, no schema change. Bronze ladder
+  still open.)*
 - Ranch scene (3D) with idle/breathe life; living-ranch dressing (wind sway,
   feeding ceremony, seeded wandering with camera follow). *(Landed 2026-10-10.)*
 - Retirement → next egg with stat + trait inheritance (minimal legacy).
