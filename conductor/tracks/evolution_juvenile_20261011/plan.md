@@ -68,7 +68,7 @@ manual verification for presentation tasks, phase checkpoints per
 
 ## Phase: Review Fixes
 
-- [x] Task: Apply review suggestions
+- [x] Task: Apply review suggestions — 5da281f
   - Untracked `.freebuff/` local tooling (gitignore + `git rm --cached`)
   - `main.ts`: evolution branch now calls `sceneVisuals()` so post-settlement condition visuals aren't stale
   - `scene-logic.ts`: ceremony `begin(fromYaw, reducedMotion)` — dropped unused params (styleguide `_`-prefix violation); caller + test helper updated
