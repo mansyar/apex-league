@@ -1,17 +1,21 @@
 import {
   type CreatureConditions,
   EXHAUSTED_ENERGY,
+  type LifeStage,
   SICK_HEALTH,
 } from "@apex/sim"
-import { generate, makeRng } from "@apex/voxel"
+import { generate, makeRng, type Stage } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
 import { buildPropGroup } from "./prop"
 import {
+  BABY_SCALE,
+  createEvolutionCeremony,
   createWalk,
   createWander,
   type GaitPose,
   gaitPose,
+  JUVENILE_SCALE,
   phaseHash,
   swayAngle,
   type WanderDrive,
@@ -27,8 +31,11 @@ export interface SceneHandle {
   setRanchBlend(k: number): void
   /** Stop the render loop and free GPU resources. */
   dispose(): void
-  /** Replace (or add) the showcased creature, built from the archetype registry. */
-  setCreature(archetypeId: string, seed: number): void
+  /** Replace (or add) the showcased creature, built from the archetype
+   * registry. The stage picks the life-stage variant and its world scale.
+   * Takes the sim's LifeStage; champions render as juveniles until their
+   * own build lands. */
+  setCreature(archetypeId: string, seed: number, stage?: LifeStage): void
   /** Drive the condition visual states from the owned creature's conditions. */
   updateConditions(conditions: CreatureConditions | null): void
   /**
@@ -64,6 +71,14 @@ export interface SceneHandle {
    * plays an in-place nibble at the anchor.
    */
   startFeedCeremony(): void
+  /**
+   * Play the evolution ceremony (baby → juvenile, spec R5): walk to the
+   * ranch center, glow and swell, swap the baby rig for the juvenile rig
+   * at the pulse's peak, settle. Purely visual — the sim already evolved.
+   * Non-cancelable like the feed ceremony; it preempts an in-flight feed
+   * walk. Reduced motion swaps in place with no travel or glow.
+   */
+  startEvolutionCeremony(archetypeId: string, seed: number): void
   /**
    * One droopy idle window (cup early exit, spec FR4): force the droopy
    * profile for a short moment, then fall back to the condition-driven
@@ -353,6 +368,9 @@ export function createScene(container: HTMLElement): SceneHandle {
   /** performance.now() deadline of the momentary droopy window; 0 = none. */
   let droopyUntil = 0
   let headBaseY = 0
+  /** Life stage of the current ranch creature (picks the static holder
+   * scale when no ceremony is driving). */
+  let currentStage: Stage = "baby"
 
   // -- Feeding ceremony (FR2) -------------------------------------------------
   // The creature's home anchor is the origin where it idles; the food pile
@@ -367,6 +385,84 @@ export function createScene(container: HTMLElement): SceneHandle {
   let wanderSeed = 0
   /** Tuft/bush world positions the wanderer may visit (rebuilt on scatter). */
   const wanderCandidates: { x: number; z: number }[] = []
+
+  // -- Evolution ceremony (baby → juvenile, spec R5) ---------------------------
+  // The machine drives the walk-to-center, the glow swell, and the one-frame
+  // swap signal; the scene owns the actual rig rebuild and the glow paint.
+  let evolution = createEvolutionCeremony()
+  /** The juvenile rebuild the ceremony's swap frame should perform. */
+  let evolutionSwap: { archetypeId: string; seed: number } | null = null
+
+  /** Paint the glow: emissive lift on every mesh of the current rig. The
+   * decay tail writes the materials back to black before the machine goes
+   * idle, so no explicit reset is needed. */
+  const applyGlow = (group: THREE.Object3D, intensity: number): void => {
+    group.traverse((obj) => {
+      if (obj instanceof THREE.Mesh) {
+        const mat = obj.material as THREE.MeshLambertMaterial
+        mat.emissive?.setScalar(intensity * 0.85)
+      }
+    })
+  }
+
+  /** Build a creature rig (archetype + seed + stage) with the visual-center
+   * holder contract and the stage's world scale. Extracted from setCreature
+   * so the evolution ceremony's swap reuses the exact same path. */
+  const rebuildCreature = (
+    archetypeId: string,
+    seed: number,
+    stage: Stage,
+  ): void => {
+    if (creatureGroup) disposeGroup(creatureGroup)
+    const { dna, build, def } = generate(archetypeId, seed, stage)
+    // The rig is built in voxel GRID units inside an inner group that
+    // carries the tiny world scale — children positions are ~20× larger
+    // than world units, so mutating them to re-anchor went wrong by that
+    // factor (the visible mass kept sitting ~1.7 units off the origin and
+    // every yaw pivot swung the body around a distant axis — user-reported
+    // "arc/turn that moves the position"). Instead: keep the rig untouched
+    // inside its scaled group, measure the visual center of the WHOLE
+    // creature, and wrap it in an identity-scale holder whose child offset
+    // (in true world units) places the visual center on the holder origin.
+    // All motion code drives the holder afterwards. The stage scale lives
+    // on the holder too (never on rig children — learnings.md), so babies
+    // measure the same visual center the adult would.
+    const inner = buildCreatureGroup(dna, build, def.grid)
+    inner.updateMatrixWorld(true)
+    const innerBox = new THREE.Box3().setFromObject(inner)
+    const center = innerBox.getCenter(new THREE.Vector3())
+    const rig = new THREE.Group()
+    rig.add(inner)
+    inner.position.set(-center.x, 0, -center.z)
+    rig.scale.setScalar(stage === "baby" ? BABY_SCALE : JUVENILE_SCALE)
+    creatureGroup = rig
+    currentStage = stage
+    rig.traverse((obj) => {
+      if (obj instanceof THREE.Mesh) obj.castShadow = true
+    })
+    scene.add(rig)
+    // Cache the rig part refs once per build — the idle loop would
+    // otherwise run five O(n) scene-graph searches every frame.
+    rigParts = {
+      body: rig.getObjectByName("body") ?? undefined,
+      head: rig.getObjectByName("head") ?? undefined,
+      tail: rig.getObjectByName("tail") ?? undefined,
+      tailTip: rig.getObjectByName("tailTip") ?? undefined,
+    }
+    // One wanderer per scene lifetime (FR3): rebuilding the creature (day
+    // advance, training) pauses the machine — the 20–40 s rhythm survives
+    // visual rebuilds instead of restarting. A feed ceremony still aborts
+    // it cleanly via startFeedCeremony.
+    if (wander) {
+      wander.pause()
+    } else {
+      wander = createWander(reducedMotion, seed)
+    }
+    wanderSeed = seed
+    // headBaseY stays in the head's LOCAL units — the tick writes it back
+    // to head.position.y in the same space (the rig runs in grid units).
+    headBaseY = rig.getObjectByName("head")?.position.y ?? 0
+  }
   /** How deep the nibble head-dips go (in the head pivot's local units —
    * the rig runs in grid units, so this scales with the creature). */
   const DIP_DEPTH = 1.2
@@ -519,52 +615,22 @@ export function createScene(container: HTMLElement): SceneHandle {
       renderer.dispose()
       renderer.domElement.remove()
     },
-    setCreature(archetypeId, seed) {
-      if (creatureGroup) disposeGroup(creatureGroup)
-      const { dna, build, def } = generate(archetypeId, seed)
-      // The rig is built in voxel GRID units inside an inner group that
-      // carries the tiny world scale — children positions are ~20× larger
-      // than world units, so mutating them to re-anchor went wrong by that
-      // factor (the visible mass kept sitting ~1.7 units off the origin and
-      // every yaw pivot swung the body around a distant axis — user-reported
-      // "arc/turn that moves the position"). Instead: keep the rig untouched
-      // inside its scaled group, measure the visual center of the WHOLE
-      // creature, and wrap it in an identity-scale holder whose child offset
-      // (in true world units) places the visual center on the holder origin.
-      // All motion code drives the holder afterwards.
-      const inner = buildCreatureGroup(dna, build, def.grid)
-      inner.updateMatrixWorld(true)
-      const innerBox = new THREE.Box3().setFromObject(inner)
-      const center = innerBox.getCenter(new THREE.Vector3())
-      const rig = new THREE.Group()
-      rig.add(inner)
-      inner.position.set(-center.x, 0, -center.z)
-      creatureGroup = rig
-      rig.traverse((obj) => {
-        if (obj instanceof THREE.Mesh) obj.castShadow = true
-      })
-      scene.add(rig)
-      // Cache the rig part refs once per build — the idle loop would
-      // otherwise run five O(n) scene-graph searches every frame.
-      rigParts = {
-        body: rig.getObjectByName("body") ?? undefined,
-        head: rig.getObjectByName("head") ?? undefined,
-        tail: rig.getObjectByName("tail") ?? undefined,
-        tailTip: rig.getObjectByName("tailTip") ?? undefined,
-      }
-      // One wanderer per scene lifetime (FR3): rebuilding the creature (day
-      // advance, training) pauses the machine — the 20–40 s rhythm survives
-      // visual rebuilds instead of restarting. A feed ceremony still aborts
-      // it cleanly via startFeedCeremony.
-      if (wander) {
-        wander.pause()
-      } else {
-        wander = createWander(reducedMotion, seed)
-      }
-      wanderSeed = seed
-      // headBaseY stays in the head's LOCAL units — the tick writes it back
-      // to head.position.y in the same space (the rig runs in grid units).
-      headBaseY = rig.getObjectByName("head")?.position.y ?? 0
+    setCreature(archetypeId, seed, stage = "baby") {
+      rebuildCreature(archetypeId, seed, stage === "baby" ? "baby" : "juvenile")
+      // A plain rebuild cancels an in-flight evolution ceremony (the new
+      // mesh already reflects the caller's intent); the ceremony's own
+      // swap calls rebuildCreature directly, so it survives.
+      evolutionSwap = null
+      evolution = createEvolutionCeremony()
+    },
+    startEvolutionCeremony(archetypeId, seed) {
+      if (!creatureGroup) return
+      // Preempt an in-flight feed walk (the growth moment takes over) and
+      // abandon any wander trip, then begin from the current pose.
+      walk = createWalk(reducedMotion)
+      wander?.abort()
+      evolutionSwap = { archetypeId, seed }
+      evolution.begin(creatureGroup.rotation.y, reducedMotion)
     },
     setProps(visualSeed) {
       if (scenerySeed === visualSeed) return
@@ -715,76 +781,114 @@ export function createScene(container: HTMLElement): SceneHandle {
       if (tailTip) {
         tailTip.rotation.y = sway * 0.12
       }
+      // Evolution ceremony (spec R5): while active it owns the creature's
+      // pose, scale, and glow outright — the feed walk and the wanderer
+      // stay parked (startEvolutionCeremony preempted them). The swap
+      // rebuilds the rig to the juvenile build mid-ceremony; afterwards
+      // the machine keeps driving the fresh rig until it settles.
+      const evo = evolution.advance(
+        creatureGroup.position.x,
+        creatureGroup.position.z,
+        dt,
+      )
+      const evoActive = evo.active
+      let evoGait = false
+      if (evoActive) {
+        creatureGroup.position.x = evo.x
+        creatureGroup.position.z = evo.z
+        creatureGroup.rotation.y = evo.yaw
+        creatureGroup.scale.setScalar(evo.scale)
+        applyGlow(creatureGroup, evo.glow)
+        if (evo.swap && evolutionSwap) {
+          const swap = evolutionSwap
+          evolutionSwap = null
+          rebuildCreature(swap.archetypeId, swap.seed, "juvenile")
+        }
+        evoGait = evo.phase === "walk" && !evo.pivoting
+      }
       // Position-driven walk: the machine strides toward its current
       // target (the pile stand spot, then the home anchor) at a constant
       // speed, so a paused tab or a long frame can never strand the body
       // mid-path — the walk simply continues and converges. The gait
       // applies every frame with a zero pose outside walks, so leg pivots
       // and the weight roll always come back to rest.
-      const wd = walk.advance(
-        creatureGroup.position.x,
-        creatureGroup.position.z,
-        dt,
-      )
-      if (wd.phase !== "idle") {
-        // While walking, the machine owns the creature's pose. While idle
-        // it never touches it — a stale machine yaw must never yank the
-        // freshly rebuilt idle creature around (user-reported snap).
-        creatureGroup.position.x = wd.x
-        creatureGroup.position.z = wd.z
-        creatureGroup.rotation.y = wd.yaw
-      }
-      // Sparse wandering (FR3): while the ceremony is idle and the mood is
-      // eligible, the wander machine may start a trip to a nearby tuft or
-      // bush. A feed ceremony takes priority — startFeedCeremony aborts the
-      // wanderer, so the two machines never fight over the creature.
-      let wandDrive: WanderDrive | null = null
-      if (wd.phase === "idle" && wander) {
-        wandDrive = wander.advance(
+      let away = evoActive
+      if (!evoActive) {
+        creatureGroup.scale.setScalar(
+          currentStage === "baby" ? BABY_SCALE : JUVENILE_SCALE,
+        )
+        const wd = walk.advance(
           creatureGroup.position.x,
           creatureGroup.position.z,
-          creatureGroup.rotation.y,
           dt,
-          mode !== "droopy",
         )
-        if (wandDrive.phase !== "home-idle") {
-          creatureGroup.position.x = wandDrive.x
-          creatureGroup.position.z = wandDrive.z
-          creatureGroup.rotation.y = wandDrive.yaw + wandDrive.lookOffset
-        } else {
-          wandDrive = null
+        if (wd.phase !== "idle") {
+          // While walking, the machine owns the creature's pose. While idle
+          // it never touches it — a stale machine yaw must never yank the
+          // freshly rebuilt idle creature around (user-reported snap).
+          creatureGroup.position.x = wd.x
+          creatureGroup.position.z = wd.z
+          creatureGroup.rotation.y = wd.yaw
         }
-      }
-      const drive = wandDrive ?? wd
-      const traveling =
-        (drive.phase === "walk-out" || drive.phase === "walk-home") &&
-        !drive.pivoting
-      const remaining = traveling
-        ? Math.hypot(
-            drive.targetX - creatureGroup.position.x,
-            drive.targetZ - creatureGroup.position.z,
+        // Sparse wandering (FR3): while the ceremony is idle and the mood is
+        // eligible, the wander machine may start a trip to a nearby tuft or
+        // bush. A feed ceremony takes priority — startFeedCeremony aborts the
+        // wanderer, so the two machines never fight over the creature.
+        let wandDrive: WanderDrive | null = null
+        if (wd.phase === "idle" && wander) {
+          wandDrive = wander.advance(
+            creatureGroup.position.x,
+            creatureGroup.position.z,
+            creatureGroup.rotation.y,
+            dt,
+            mode !== "droopy",
           )
-        : 0
-      applyGait(
-        creatureGroup,
-        gaitPose(
-          t,
-          traveling ? smoothstep(Math.min(1, remaining / 0.6)) : 0,
-          reducedMotion,
-        ),
-      )
-      if (wd.phase === "nibble" && head) {
-        // 2–3 gentle head-dips toward the pile over the existing pivot.
-        head.position.y -= wd.dipOffset * DIP_DEPTH
-      }
-      if (
-        !reducedMotion &&
-        drive.phase === "idle" &&
-        !wandDrive &&
-        profile.bounce > 0
-      ) {
-        creatureGroup.position.y = Math.abs(Math.sin(t * 3.2)) * profile.bounce
+          if (wandDrive.phase !== "home-idle") {
+            creatureGroup.position.x = wandDrive.x
+            creatureGroup.position.z = wandDrive.z
+            creatureGroup.rotation.y = wandDrive.yaw + wandDrive.lookOffset
+          } else {
+            wandDrive = null
+          }
+        }
+        const drive = wandDrive ?? wd
+        const traveling =
+          (drive.phase === "walk-out" || drive.phase === "walk-home") &&
+          !drive.pivoting
+        const remaining = traveling
+          ? Math.hypot(
+              drive.targetX - creatureGroup.position.x,
+              drive.targetZ - creatureGroup.position.z,
+            )
+          : 0
+        applyGait(
+          creatureGroup,
+          gaitPose(
+            t,
+            traveling ? smoothstep(Math.min(1, remaining / 0.6)) : 0,
+            reducedMotion,
+          ),
+        )
+        if (wd.phase === "nibble" && head) {
+          // 2–3 gentle head-dips toward the pile over the existing pivot.
+          head.position.y -= wd.dipOffset * DIP_DEPTH
+        }
+        if (
+          !reducedMotion &&
+          drive.phase === "idle" &&
+          !wandDrive &&
+          profile.bounce > 0
+        ) {
+          creatureGroup.position.y =
+            Math.abs(Math.sin(t * 3.2)) * profile.bounce
+        } else {
+          creatureGroup.position.y = 0
+        }
+        away = away || wd.phase !== "idle" || wandDrive !== null
       } else {
+        // During the ceremony the legs stride only on the walk phase; the
+        // glow/settle phases hold the pose. The holder sits on the ground.
+        applyGait(creatureGroup, gaitPose(t, evoGait ? 1 : 0, reducedMotion))
         creatureGroup.position.y = 0
       }
       // Soft camera track: while the creature is in the ceremony or on a
@@ -792,7 +896,6 @@ export function createScene(container: HTMLElement): SceneHandle {
       // the time it drifts back to the home anchor. Frame-rate independent
       // smoothing — drag and wheel still own the final say over
       // azimuth/elevation/radius.
-      const away = wd.phase !== "idle" || wandDrive !== null
       focusPoint.set(
         away ? creatureGroup.position.x : 0,
         0.8,

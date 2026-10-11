@@ -1,6 +1,12 @@
 import { describe, expect, test } from "bun:test"
 import { type Creature, createCreature } from "@apex/sim"
-import { flavorCallout, unlockCallout } from "./hud"
+import {
+  evolveCallout,
+  flavorCallout,
+  growthHint,
+  stageLabel,
+  unlockCallout,
+} from "./hud"
 
 describe("unlockCallout", () => {
   const drake = createCreature("fire_drake", 42)
@@ -48,5 +54,52 @@ describe("flavorCallout", () => {
 
   test("partners of other elements stay quiet — the line is water-only", () => {
     expect(flavorCallout(drake)).toBe("")
+  })
+})
+
+describe("growthHint", () => {
+  const baby = createCreature("fire_drake", 42)
+
+  test("quiet before the hinted day", () => {
+    expect(growthHint(4, baby)).toBe("")
+  })
+
+  test("teases growth from the hinted day on, without naming the threshold", () => {
+    expect(growthHint(5, baby)).toContain(baby.name)
+    expect(growthHint(5, baby)).toContain("filling out")
+    expect(growthHint(9, baby)).not.toBe("")
+  })
+
+  test("stays quiet on and after the evolution day (the moment speaks)", () => {
+    expect(growthHint(10, baby)).toBe("")
+    expect(growthHint(12, baby)).toBe("")
+  })
+
+  test("juveniles get no hint — they already grew", () => {
+    const juvenile = { ...baby, stage: "juvenile" as const }
+    expect(growthHint(7, juvenile)).toBe("")
+  })
+})
+
+describe("evolveCallout", () => {
+  const drake = createCreature("fire_drake", 42)
+
+  test("names the stage and the stat gains", () => {
+    const juvenile = { ...drake, stage: "juvenile" as const }
+    const line = evolveCallout(juvenile)
+    expect(line).toContain(drake.name)
+    expect(line).toContain("Juvenile")
+    expect(line).toContain("+3 HP")
+    expect(line).toContain("+2 ATK")
+    expect(line).toContain("+2 DEF")
+    expect(line).toContain("+1 SPD")
+  })
+})
+
+describe("stageLabel", () => {
+  test("display names per stage", () => {
+    expect(stageLabel("baby")).toBe("Baby")
+    expect(stageLabel("juvenile")).toBe("Juvenile")
+    expect(stageLabel("champion")).toBe("Champion")
   })
 })

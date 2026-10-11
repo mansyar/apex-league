@@ -12,6 +12,11 @@ import {
   TRAINING_CAP,
   type TrainingResult,
 } from "./creature"
+import {
+  evaluateEvolution,
+  evolveCreature,
+  SICK_COOLDOWN_NIGHTS,
+} from "./evolution"
 import type { Rng } from "./rng"
 
 /** Hunger lost every night (the creature wakes hungrier). */
@@ -79,9 +84,18 @@ function isStarving(hunger: number): boolean {
 /**
  * Apply the nightly settlement to a creature in fixed order:
  * hunger fall, training payout, night recovery, sickness roll/worsening,
- * mood settle, bond decay (and the bondedToday flag reset).
+ * mood settle, bond decay (and the bondedToday flag reset), then the
+ * evolution gate over the settled creature.
+ *
+ * `day` is the in-game day this night *closes* — the evolution gate uses it
+ * ("a baby may evolve on the night that ends day 10"). The settlement that
+ * runs during advanceDay(D) therefore passes D.
  */
-export function settleCreature(creature: Creature, rng: Rng): Creature {
+export function settleCreature(
+  creature: Creature,
+  rng: Rng,
+  day: number,
+): Creature {
   const c = creature.conditions
 
   // 1. Hunger falls.
@@ -134,6 +148,15 @@ export function settleCreature(creature: Creature, rng: Rng): Creature {
     }
   }
 
+  // 3b. Sickness cooldown bookkeeping: any night involving sickness (already
+  //     sick at lights-out or a fresh onset above) stamps the full cooldown;
+  //     clean nights count it down. Read from the post-settlement health so
+  //     an onset night is stamped the same as a chronic one.
+  const sickCooldown =
+    health < SICK_HEALTH
+      ? SICK_COOLDOWN_NIGHTS
+      : Math.max(0, creature.sickCooldown - 1)
+
   // 4. Mood settles toward what the day's care earned.
   let moodDelta = 0
   if (starving) moodDelta -= MOOD_STARVING_PENALTY
@@ -155,15 +178,22 @@ export function settleCreature(creature: Creature, rng: Rng): Creature {
   )
 
   const conditions: CreatureConditions = { hunger, energy, health, mood, bond }
-  return {
+  const settled: Creature = {
     ...creature,
     conditions,
+    sickCooldown,
     bondedToday: false,
     fedToday: false,
     trained,
     trainingFocus: null,
     trainingResult,
   }
+
+  // 6. The evolution gate reads the settled creature: the night's care
+  //    outcome (mood, health) is what the gate judged, so a creature that
+  //    slept sick or woke miserable waits, never evolves mid-misery.
+  const verdict = evaluateEvolution(settled, day)
+  return verdict.evolved ? evolveCreature(settled) : settled
 }
 
 /**

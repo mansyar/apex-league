@@ -1,4 +1,5 @@
 import { type Creature, type StatKey, TRAINING_CAP } from "../creature"
+import { SICK_COOLDOWN_NIGHTS } from "../evolution"
 import type { GameState } from "../state"
 import { migrate } from "./migrate"
 import { SAVE_VERSION, type SaveData, serializeSave } from "./schema"
@@ -90,6 +91,17 @@ function isValidCreature(c: unknown): c is Creature {
     return false
   // v4: the daily food flag is a strict boolean and always present.
   if (typeof creature.fedToday !== "boolean") return false
+  // v6: the sickness cooldown is a small non-negative integer — the sim
+  // only ever writes 0..SICK_COOLDOWN_NIGHTS.
+  const cooldown = creature.sickCooldown
+  if (
+    typeof cooldown !== "number" ||
+    !Number.isInteger(cooldown) ||
+    cooldown < 0 ||
+    cooldown > SICK_COOLDOWN_NIGHTS
+  ) {
+    return false
+  }
   return true
 }
 

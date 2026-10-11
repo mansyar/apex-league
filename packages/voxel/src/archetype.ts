@@ -10,6 +10,7 @@ import type { CreatureBuild } from "./build"
 import { buildDrake, DRAKE_GRID, drakeTemplate } from "./drake"
 import { sampleDna } from "./sample"
 import type { Dna, Template } from "./schema"
+import { parseStage, type Stage } from "./stage"
 
 export type { CreatureBuild } from "./build"
 
@@ -17,7 +18,7 @@ export interface ArchetypeDef {
   id: string
   template: Template
   grid: number
-  build: (dna: Dna) => CreatureBuild
+  build: (dna: Dna, stage?: Stage) => CreatureBuild
 }
 
 export const archetypes: Record<string, ArchetypeDef> = {
@@ -47,14 +48,25 @@ export interface Generated {
   def: ArchetypeDef
 }
 
-/** Sample DNA for the archetype at `seed` and assemble its SDF parts. */
-export function generate(archetypeId: string, seed: number): Generated {
+/**
+ * Sample DNA for the archetype at `seed` and assemble its SDF parts.
+ * `stage` selects the life-stage variant (default "baby" — byte-identical
+ * to the committed artifacts). The DNA itself is stage-independent: the
+ * same seed always describes the same individual, only its maturity
+ * presentation changes.
+ */
+export function generate(
+  archetypeId: string,
+  seed: number,
+  stage: Stage = "baby",
+): Generated {
   const def = archetypes[archetypeId]
   if (!def) {
     throw new Error(
       `unknown archetype "${archetypeId}" - known: ${Object.keys(archetypes).join(", ")}`,
     )
   }
+  const validated = parseStage(stage)
   const dna = sampleDna(def.template, seed)
-  return { dna, build: def.build(dna), def }
+  return { dna, build: def.build(dna, validated), def }
 }

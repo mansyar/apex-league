@@ -5,9 +5,9 @@ import { migrate } from "./migrate"
 import { SAVE_VERSION } from "./schema"
 import { createMemoryAdapter, loadGame, saveGame } from "./storage"
 
-describe("save schema v5 — cup fields", () => {
+describe("save schema cup fields (v5 origin)", () => {
   test("current version is 5", () => {
-    expect(SAVE_VERSION).toBe(5)
+    expect(SAVE_VERSION).toBe(6)
   })
 
   test("a v4 save migrates to v5 with cupsWon 0 and lastCupDay null", () => {
@@ -23,14 +23,14 @@ describe("save schema v5 — cup fields", () => {
       savedAt: 55,
     }
     const migrated = migrate(v4)
-    expect(migrated.version).toBe(5)
+    expect(migrated.version).toBe(6)
     expect(migrated.savedAt).toBe(55)
     expect(migrated.state.day).toBe(7)
     expect(migrated.state.cupsWon).toBe(0)
     expect(migrated.state.lastCupDay).toBeNull()
   })
 
-  test("a v4 save round-trips training/loadout through to v5", () => {
+  test("a v4 save round-trips training/loadout through to current", () => {
     const owned = chooseStarter(createInitialState(), "fire_drake", 42)
     if (!owned.creature) throw new Error("no creature")
     const v4 = {
@@ -75,13 +75,13 @@ describe("save schema v5 — cup fields", () => {
     }
   })
 
-  test("old chain still reaches v5: a v1 save walks to v5 with cup defaults", () => {
+  test("old chain still reaches current: a v1 save walks to v5 with cup defaults", () => {
     const migrated = migrate({
       version: 1,
       state: { day: 2, phase: "day", actionPoints: 3 },
       savedAt: 0,
     })
-    expect(migrated.version).toBe(5)
+    expect(migrated.version).toBe(6)
     expect(migrated.state.cupsWon).toBe(0)
     expect(migrated.state.lastCupDay).toBeNull()
   })

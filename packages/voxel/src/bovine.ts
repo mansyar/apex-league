@@ -1,4 +1,5 @@
 import { makeRng } from "./rng"
+import { matureProportions, type Stage } from "./stage"
 
 // Re-export the archetype-agnostic sampler under the archetype name so
 // callers (tests, gallery) can stay archetype-typed.
@@ -73,8 +74,8 @@ function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t
 }
 
-export function buildBovine(dna: Dna): BovineBuild {
-  const p = dna.proportions
+export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
+  const p = matureProportions(dna.proportions, stage)
   const bl = p.bodyLength ?? 1
   const bg = p.bodyGirth ?? 1
   const hs = p.humpSize ?? 1
@@ -99,7 +100,10 @@ export function buildBovine(dna: Dna): BovineBuild {
   const tailEnd = at(0, 7, -7.5 * bl - 5.5 * tl)
   const tailTipZ = -7.5 * bl - 5.5 * tl
 
-  const hipY = 9
+  // Juveniles stand a touch taller at the hip — legs read longer as the
+  // body matures (see stage.ts for the maturity frame).
+  const j = stage === "juvenile" ? 1 : 0
+  const hipY = 9 + 0.6 * j
   const footY = 0.9 + 2.3 * bg
   const legFrontZ = 4.5 + (ll - 1) * 2
   const legBackZ = -5.5 - (ll - 1) * 2
@@ -226,6 +230,26 @@ export function buildBovine(dna: Dna): BovineBuild {
   )
   fields.push({ name: "head", sdf: headField })
 
+  // Juvenile signature: the brow ridge swells into small horn bases — the
+  // buds sit on the brow line, forward of the adult horns. The adult horn
+  // shape is the identity layer and stays untouched; the buds are new
+  // growth the calf does not have yet. Painted after the head so they
+  // claim their own voxels on the brow.
+  if (stage === "juvenile") {
+    const budBaseL = vec3(
+      headC.x - 1.6 * hd,
+      headC.y + 2.2 * hd,
+      headC.z + 1.2 * hd,
+    )
+    const budBaseR = vec3(
+      headC.x + 1.6 * hd,
+      headC.y + 2.2 * hd,
+      headC.z + 1.2 * hd,
+    )
+    fields.push({ name: "hornBudLeft", sdf: sdSphere(budBaseL, 1.05) })
+    fields.push({ name: "hornBudRight", sdf: sdSphere(budBaseR, 1.05) })
+  }
+
   fields.push({ name: "neck", sdf: sdCapsule(neckA, neckB, 2.9 * bg) })
 
   // Charm part: a collar strap around the neck where it exits the body,
@@ -260,6 +284,18 @@ export function buildBovine(dna: Dna): BovineBuild {
   if (crestStyle === "spikes") {
     pivots.crest = [O, 17.8, O - 3 * bl]
   }
+  if (stage === "juvenile") {
+    pivots.hornBudLeft = [
+      headC.x - 1.6 * hd,
+      headC.y + 2.2 * hd,
+      headC.z + 1.2 * hd,
+    ]
+    pivots.hornBudRight = [
+      headC.x + 1.6 * hd,
+      headC.y + 2.2 * hd,
+      headC.z + 1.2 * hd,
+    ]
+  }
 
   // -- Colors (deterministic per seed; fixed type hue, value jitter only) --
   const rng = makeRng(dna.seed)
@@ -268,7 +304,10 @@ export function buildBovine(dna: Dna): BovineBuild {
   const hue = gilded ? 45 : bovineTemplate.palette.hue
   const light = gilded ? 0.55 : lerp(jit.min, jit.max, rng.next())
   const sat = gilded ? 0.85 : 0.55
-  const main = hslToRgb(hue, sat, light)
+  // Juveniles read a touch brighter and more saturated — same hue family,
+  // same seed jitter, just a maturing coat (see stage.ts).
+  const lift = stage === "juvenile" ? 0.05 : 0
+  const main = hslToRgb(hue, Math.min(1, sat + lift), Math.min(1, light + lift))
   const dark: [number, number, number] = [
     main[0] * 0.7,
     main[1] * 0.7,
@@ -296,6 +335,10 @@ export function buildBovine(dna: Dna): BovineBuild {
   if (crestStyle === "spikes") {
     colors.crest = bone
   }
+  if (stage === "juvenile") {
+    colors.hornBudLeft = bone
+    colors.hornBudRight = bone
+  }
 
   return {
     fields,
@@ -310,6 +353,9 @@ export function buildBovine(dna: Dna): BovineBuild {
       collar: "neck",
       ...(tailStyle !== "plain" ? { tailTip: "tail" } : {}),
       ...(crestStyle === "spikes" ? { crest: "body" } : {}),
+      ...(stage === "juvenile"
+        ? { hornBudLeft: "head", hornBudRight: "head" }
+        : {}),
     },
   }
 }

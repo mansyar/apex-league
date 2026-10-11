@@ -60,6 +60,53 @@ const migrations: Record<
     return { version: 5, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
 
+  // v5 → v6: saves from before evolution have no sickness-cooldown
+  // bookkeeping on the creature. Stamp it clean (0): a migrated creature
+  // wakes exactly as it slept — maturity stays whatever it was, and the
+  // next settlement's evolution gate decides the stage (so a long-lived
+  // v5 baby matures on its next well-cared night).
+  5: (raw) => {
+    const state = raw.state
+    if (typeof state !== "object" || state === null) {
+      throw new Error("invalid v5 save: missing state")
+    }
+    const s = state as Record<string, unknown>
+    const day = s.day
+    const phase = s.phase
+    const actionPoints = s.actionPoints
+    if (
+      typeof day !== "number" ||
+      !Number.isInteger(day) ||
+      day < 1 ||
+      (phase !== "day" && phase !== "cup") ||
+      typeof actionPoints !== "number" ||
+      !Number.isInteger(actionPoints) ||
+      actionPoints < 0
+    ) {
+      throw new Error("invalid v5 save: broken state")
+    }
+    let creature: GameState["creature"] = null
+    if (s.creature !== null && s.creature !== undefined) {
+      if (typeof s.creature !== "object") {
+        throw new Error("invalid v5 save: broken creature")
+      }
+      creature = {
+        ...(s.creature as Record<string, unknown>),
+        sickCooldown: 0,
+      } as unknown as GameState["creature"]
+    }
+    const migrated: GameState = {
+      day,
+      phase,
+      actionPoints,
+      creature,
+      settings: s.settings as GameState["settings"],
+      cupsWon: s.cupsWon as GameState["cupsWon"],
+      lastCupDay: s.lastCupDay as GameState["lastCupDay"],
+    }
+    return { version: 6, state: migrated, savedAt: raw.savedAt ?? 0 }
+  },
+
   // v0 (pre-schema): { version: 0, day } — derive the rest of GameState.
   0: (raw) => {
     const day = raw.day

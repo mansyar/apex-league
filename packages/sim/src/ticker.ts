@@ -33,6 +33,6 @@ export function advanceDay(state: GameState, rng?: Rng): GameState {
     lastCupDay: state.lastCupDay,
   }
   if (!next.creature) return next
-  const settled = settleCreature(next.creature, rng ?? makeRng(day))
+  const settled = settleCreature(next.creature, rng ?? makeRng(day), state.day)
   return { ...next, creature: settled }
 }
