@@ -116,9 +116,16 @@ Verification & Checkpoint gate before moving on.
 
 ## Phase E — Verification gate
 
-- [ ] Task: Full gate — `bun run verify` green; manual browser playthrough:
+- [x] Task: Full gate - `bun run verify` green; manual browser playthrough:
   win path (all 3 arena battles → rewards next day), loss path, give-up
   path, free-look close, reduced-motion pass; evidence recorded
+  *(verify green (determinism gate OK); browser evidence: win path — full
+  champion run day 63 (1st plate, +1 AP/bond/mood/🏆 in day chip); loss
+  path — QF exit → 4th + consolation, SF loss → 3rd + named champion;
+  give-up path — forfeit at SF → 3rd; free-look close — chip returns,
+  cup unconsumed; reduced-motion pass — fresh save, CTA at ~104 ms,
+  instant dump, full cup to results in seconds; solid dome backdrop per
+  user preference)*
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Notes
