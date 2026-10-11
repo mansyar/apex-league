@@ -530,6 +530,8 @@ export function createSpar(
     replaying = false
     lastRun = null
     for (const { button } of tacticButtons) button.style.display = ""
+    // The Spar chip would collide with the placard's right plate.
+    sparButton.style.display = "none"
     overlay.style.display = ""
   }
 
@@ -540,6 +542,7 @@ export function createSpar(
     clearTimer()
     overlay.style.display = "none"
     battleHud.hide()
+    sparButton.style.display = ""
     handlers.onClose?.()
   })
   sparButton.addEventListener("click", () => open(owned))
@@ -595,6 +598,7 @@ export function createSpar(
         clearTimer()
         overlay.style.display = "none"
         battleHud.hide()
+        sparButton.style.display = ""
       }
     },
   }
