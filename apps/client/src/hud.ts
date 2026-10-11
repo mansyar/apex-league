@@ -286,6 +286,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   }
   const status = document.createElement("div")
   status.className = "status-callout"
+  status.setAttribute("aria-live", "polite")
   lowerThird.append(nameRow, statRow, barList, status)
 
   // Bottom-right action cluster.
