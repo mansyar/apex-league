@@ -211,6 +211,50 @@ export interface CupResult {
   readonly roundsPlayed: number
 }
 
+/** A live cup session (live-cup spec FR2): the seeded bracket plus the
+ * player-independent subtree resolved at entry. The player's own branch
+ * (QF1, SF1, Final) resolves on demand at fight time, with the loadout
+ * and tactic picked in the coaching room. */
+export interface CupSession {
+  readonly bracket: CupBracket
+  /** The bracket seed — the determinism anchor (day + creature identity). */
+  readonly seed: number
+  /** Pre-resolved rival verdicts in reveal order: QF2, QF3, QF4, SF2. */
+  readonly rivalVerdicts: readonly RoundVerdict[]
+}
+
+/** Start a live cup session: build the seeded bracket and pre-resolve the
+ * player-independent subtree — QF2/QF3/QF4, then SF2 from their winners —
+ * with the same per-pairing seed formula the one-sitting resolver uses, so
+ * rival battles stay byte-identical with the legacy flow. Pure. */
+export function startCupSession(
+  owned: Readonly<Creature>,
+  day: number,
+  seed: number,
+): CupSession {
+  const bracket = makeBracket(owned, day, seed)
+  const slotAt = (i: number): CupSlot => {
+    const slot = bracket.slots[i]
+    if (!slot) throw new Error("Bracket slot missing")
+    return slot
+  }
+  // Same formula as runRound: (day*97 + round*13 + i*7) with i the pairing
+  // index inside its round.
+  const rivalSeed = (round: number, i: number): number =>
+    (day * 97 + round * 13 + i * 7) >>> 0
+  const qf2 = resolvePairing(1, slotAt(2), slotAt(3), owned, rivalSeed(1, 1))
+  const qf3 = resolvePairing(1, slotAt(4), slotAt(5), owned, rivalSeed(1, 2))
+  const qf4 = resolvePairing(1, slotAt(6), slotAt(7), owned, rivalSeed(1, 3))
+  // The round-2 field is the round-1 winners in slot order, so SF2 pairs
+  // the QF3 and QF4 winners (SF1 would pair the QF1/QF2 winners).
+  const sf2 = resolvePairing(2, qf3.winner, qf4.winner, owned, rivalSeed(2, 1))
+  return {
+    bracket,
+    seed,
+    rivalVerdicts: [qf2.verdict, qf3.verdict, qf4.verdict, sf2.verdict],
+  }
+}
+
 /** A pairing of two slots for one battle. */
 interface Pairing {
   readonly a: CupSlot
