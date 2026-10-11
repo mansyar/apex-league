@@ -12,6 +12,7 @@ import {
   type Vec3,
   vec3,
 } from "./sdf"
+import { matureProportions, type Stage } from "./stage"
 import type { PartField } from "./voxelizer"
 
 // Draconic archetype: a quadruped western drake. Authored in voxel units on a
@@ -63,8 +64,8 @@ function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t
 }
 
-export function buildDrake(dna: Dna): DrakeBuild {
-  const p = dna.proportions
+export function buildDrake(dna: Dna, stage: Stage = "baby"): DrakeBuild {
+  const p = matureProportions(dna.proportions, stage)
   const bl = p.bodyLength ?? 1
   const bg = p.bodyGirth ?? 1
   const nl = p.neckLength ?? 1
@@ -90,7 +91,10 @@ export function buildDrake(dna: Dna): DrakeBuild {
 
   // Legs emerge from the lower belly (hip line low): a deep chest over
   // short, stout legs is the silhouette fix for the leggy-drake defect.
-  const hipY = 10
+  // Juveniles stand a touch taller at the hip — legs read longer as the
+  // body matures (see stage.ts for the maturity frame).
+  const j = stage === "juvenile" ? 1 : 0
+  const hipY = 10 + 0.8 * j
   const footY = 0.9 + 1.7 * bg
   const legFrontZ = 5 + (ll - 1) * 2
   const legBackZ = -5.5 - (ll - 1) * 2
@@ -256,6 +260,32 @@ export function buildDrake(dna: Dna): DrakeBuild {
     sdf: sdCapsule(hornBaseR, hornTip(1), 1.15),
   })
 
+  // Juvenile signature: a pair of horn nubs breaking through on the
+  // forehead, between the horns. Seed-derived placement (the horn spread
+  // jitters them) — the existing horns are the identity layer and stay
+  // untouched; the nubs are new growth the baby does not have yet.
+  if (stage === "juvenile") {
+    const nubBaseL = vec3(headC.x - 1.1 * hs, headC.y + 2.5 * hs, headC.z - 0.2)
+    const nubBaseR = vec3(headC.x + 1.1 * hs, headC.y + 2.5 * hs, headC.z - 0.2)
+    const nubLean = 0.6 + 0.8 * hornSpread
+    fields.push({
+      name: "hornNubLeft",
+      sdf: sdCapsule(
+        nubBaseL,
+        vec3(nubBaseL.x - nubLean, nubBaseL.y + 2.2, nubBaseL.z - nubLean),
+        0.9,
+      ),
+    })
+    fields.push({
+      name: "hornNubRight",
+      sdf: sdCapsule(
+        nubBaseR,
+        vec3(nubBaseR.x + nubLean, nubBaseR.y + 2.2, nubBaseR.z - nubLean),
+        0.9,
+      ),
+    })
+  }
+
   // -- Pivots (rotation anchors for the procedural rig) --------------------
   // The body pivot sits at the HIP LINE (hipY), not the body center: breathe
   // squash-stretch around this pivot keeps the body voxels at the leg
@@ -271,6 +301,14 @@ export function buildDrake(dna: Dna): DrakeBuild {
     hornLeft: [hornBaseL.x, hornBaseL.y, hornBaseL.z],
     hornRight: [hornBaseR.x, hornBaseR.y, hornBaseR.z],
   }
+  if (stage === "juvenile") {
+    pivots.hornNubLeft = [headC.x - 1.1 * hs, headC.y + 2.5 * hs, headC.z - 0.2]
+    pivots.hornNubRight = [
+      headC.x + 1.1 * hs,
+      headC.y + 2.5 * hs,
+      headC.z - 0.2,
+    ]
+  }
 
   // -- Colors (deterministic per seed; fixed type hue, value jitter only) --
   const rng = makeRng(dna.seed)
@@ -279,7 +317,10 @@ export function buildDrake(dna: Dna): DrakeBuild {
   const hue = gilded ? 45 : drakeTemplate.palette.hue
   const light = gilded ? 0.55 : lerp(jit.min, jit.max, rng.next())
   const sat = gilded ? 0.85 : 0.72
-  const main = hslToRgb(hue, sat, light)
+  // Juveniles read a touch brighter and more saturated — same hue family,
+  // same seed jitter, just a maturing coat (see stage.ts).
+  const lift = stage === "juvenile" ? 0.05 : 0
+  const main = hslToRgb(hue, Math.min(1, sat + lift), Math.min(1, light + lift))
   const dark: [number, number, number] = [
     main[0] * 0.7,
     main[1] * 0.7,
@@ -300,6 +341,10 @@ export function buildDrake(dna: Dna): DrakeBuild {
     hornLeft: bone,
     hornRight: bone,
   }
+  if (stage === "juvenile") {
+    colors.hornNubLeft = bone
+    colors.hornNubRight = bone
+  }
 
   return {
     fields,
@@ -312,6 +357,9 @@ export function buildDrake(dna: Dna): DrakeBuild {
       hornRight: "head",
       tail: "body",
       tailTip: "tail",
+      ...(stage === "juvenile"
+        ? { hornNubLeft: "head", hornNubRight: "head" }
+        : {}),
     },
   }
 }

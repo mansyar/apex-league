@@ -18,8 +18,8 @@ import {
 } from "./storage"
 
 describe("save schema", () => {
-  test("current version is 5", () => {
-    expect(SAVE_VERSION).toBe(5)
+  test("current version is 6", () => {
+    expect(SAVE_VERSION).toBe(6)
   })
 
   test("serializeSave wraps state with version metadata", () => {
@@ -30,7 +30,7 @@ describe("save schema", () => {
     }
     const json = serializeSave(data)
     const parsed = JSON.parse(json) as SaveData
-    expect(parsed.version).toBe(5)
+    expect(parsed.version).toBe(6)
     expect(parsed.state.day).toBe(1)
     expect(parsed.savedAt).toBe(1000)
   })
@@ -41,7 +41,7 @@ describe("migration chain", () => {
     // v0 predates the versioned schema: flat shape, no phase/AP.
     const v0 = { version: 0, day: 7 }
     const migrated = migrate(v0)
-    expect(migrated.version).toBe(5)
+    expect(migrated.version).toBe(6)
     expect(migrated.state.day).toBe(7)
     expect(migrated.state.phase).toBe("cup")
     expect(migrated.state.cupsWon).toBe(0)
@@ -62,7 +62,7 @@ describe("migration chain", () => {
       savedAt: 1234,
     }
     const migrated = migrate(v1)
-    expect(migrated.version).toBe(5)
+    expect(migrated.version).toBe(6)
     expect(migrated.savedAt).toBe(1234)
     expect(migrated.state.day).toBe(4)
     expect(migrated.state.actionPoints).toBe(2)
@@ -119,7 +119,7 @@ describe("migration chain", () => {
       savedAt: 99,
     }
     const migrated = migrate(v2)
-    expect(migrated.version).toBe(5)
+    expect(migrated.version).toBe(6)
     expect(migrated.savedAt).toBe(99)
     expect(migrated.state.day).toBe(5)
     expect(migrated.state.actionPoints).toBe(2)
@@ -140,7 +140,7 @@ describe("migration chain", () => {
       state: { day: 2, phase: "day", actionPoints: 3 },
       savedAt: 0,
     })
-    expect(migrated.version).toBe(5)
+    expect(migrated.version).toBe(6)
     expect(migrated.state.creature?.trained).toEqual({
       hp: 0,
       atk: 0,
@@ -170,7 +170,7 @@ describe("migration chain", () => {
       savedAt: 321,
     }
     const migrated = migrate(v3)
-    expect(migrated.version).toBe(5)
+    expect(migrated.version).toBe(6)
     expect(migrated.savedAt).toBe(321)
     expect(migrated.state.day).toBe(9)
     expect(migrated.state.creature?.fedToday).toBe(false)
@@ -450,6 +450,110 @@ describe("reduced motion preference (v5)", () => {
       "apex.save",
       JSON.stringify({ version: 4, state: wrong, savedAt: 0 }),
     )
+    expect(loadGame(adapter)).toBeNull()
+  })
+})
+
+describe("evolution stage (v6)", () => {
+  /** Rng stub that never rolls a sickness onset (see evolution.test.ts). */
+  const CALM_RNG = { next: () => 0.99, int: () => 0 }
+
+  test("a v5 save migrates to v6 with the sickness cooldown stamped clean", () => {
+    // v5 creatures predate the cooldown field — strip it from a fresh one.
+    const creature = createCreature("fire_drake", 42)
+    const legacy = structuredClone(creature) as unknown as Record<
+      string,
+      unknown
+    >
+    delete legacy.sickCooldown
+    const v5 = {
+      version: 5,
+      state: { day: 8, phase: "day", actionPoints: 2, creature: legacy },
+      savedAt: 321,
+    }
+    const migrated = migrate(v5)
+    expect(migrated.version).toBe(6)
+    expect(migrated.savedAt).toBe(321)
+    expect(migrated.state.day).toBe(8)
+    expect(migrated.state.creature?.sickCooldown).toBe(0)
+    // Migration rewrites nothing about maturity: a v5 creature wakes as it
+    // slept, and the next settlement's gate decides its stage.
+    expect(migrated.state.creature?.stage).toBe("baby")
+    expect(migrated.state.creature?.stats).toEqual(creature.stats)
+  })
+
+  test("a chain-migrated save (v1 to v6) keeps a clean cooldown too", () => {
+    const migrated = migrate({
+      version: 1,
+      state: { day: 2, phase: "day", actionPoints: 3 },
+      savedAt: 0,
+    })
+    expect(migrated.version).toBe(6)
+    expect(migrated.state.creature?.sickCooldown).toBe(0)
+  })
+
+  test("a migrated v5 creature at day 10 evolves on its next settled night", () => {
+    const creature = createCreature("fire_drake", 42)
+    const legacy = structuredClone(creature) as unknown as Record<
+      string,
+      unknown
+    >
+    delete legacy.sickCooldown
+    const v5 = {
+      version: 5,
+      state: {
+        day: 10,
+        phase: "day",
+        actionPoints: 2,
+        creature: legacy,
+        settings: { reducedMotion: false },
+        cupsWon: 0,
+        lastCupDay: null,
+      },
+      savedAt: 0,
+    }
+    const adapter = createMemoryAdapter()
+    adapter.setItem("apex.save", JSON.stringify(v5))
+    const loaded = loadGame(adapter)
+    expect(loaded).not.toBeNull()
+    const next = advanceDay(
+      loaded as Parameters<typeof advanceDay>[0],
+      CALM_RNG,
+    )
+    expect(next.creature?.stage).toBe("juvenile")
+  })
+
+  test("sickCooldown round-trips through saveGame/loadGame", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!owned.creature) throw new Error("no creature")
+    saveGame(
+      adapter,
+      { ...owned, creature: { ...owned.creature, sickCooldown: 2 } },
+      1,
+    )
+    const loaded = loadGame(adapter)
+    expect(loaded?.creature?.sickCooldown).toBe(2)
+  })
+
+  test("loadGame rejects a corrupt sickCooldown", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!owned.creature) throw new Error("no creature")
+    // Ill-typed on purpose: the corrupt payload is a hand-edited save, and
+    // literal types cannot express what JSON allows.
+    const bad = (extra: Record<string, unknown>) =>
+      ({
+        ...owned,
+        creature: { ...owned.creature, ...extra },
+      }) as GameState
+    saveGame(adapter, bad({ sickCooldown: 4 }), 1)
+    expect(loadGame(adapter)).toBeNull()
+    saveGame(adapter, bad({ sickCooldown: -1 }), 1)
+    expect(loadGame(adapter)).toBeNull()
+    saveGame(adapter, bad({ sickCooldown: "soon" }), 1)
+    expect(loadGame(adapter)).toBeNull()
+    saveGame(adapter, bad({ sickCooldown: undefined }), 1)
     expect(loadGame(adapter)).toBeNull()
   })
 })

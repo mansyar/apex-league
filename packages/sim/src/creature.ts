@@ -9,7 +9,7 @@ import { getSpecies, type SpeciesDef } from "./species"
 /** The six league elements. Each has one fixed hue (type-color contract). */
 export type Element = "fire" | "water" | "plant" | "electric" | "earth" | "wind"
 
-/** Life stages. Stage progression (evolution) lands in a later track. */
+/** Life stages. Champions arrive in a later track; babies mature here. */
 export type LifeStage = "baby" | "juvenile" | "champion"
 
 /** Inclusive [min, max] bounds for a rolled stat. */
@@ -45,6 +45,12 @@ export interface Creature {
   name: string
   element: Element
   stage: LifeStage
+  /**
+   * Clean nights since the last sickness night, capped at
+   * SICK_COOLDOWN_NIGHTS. Zero for a healthy run; the evolution care gate
+   * (and later systems) read it as "recently sick" bookkeeping.
+   */
+  sickCooldown: number
   /** Rolled base stats. Never changed after creation. */
   stats: CreatureStats
   /**
@@ -153,6 +159,7 @@ export function createCreature(
     name: species.displayName,
     element: species.element,
     stage: "baby",
+    sickCooldown: 0,
     stats: rollStats(rng, species),
     trained: { ...TRAINED_START },
     trainingFocus: null,

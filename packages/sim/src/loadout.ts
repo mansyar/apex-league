@@ -4,7 +4,7 @@
  */
 
 import { BASIC_MOVE, getMove } from "./battle/moves"
-import type { Creature } from "./creature"
+import type { Creature, LifeStage } from "./creature"
 import { getSpecies, type SpeciesDef } from "./species"
 import type { GameState } from "./state"
 
@@ -17,26 +17,31 @@ export const MOVE_TIER4_DAYS = 6
 /** The kit ids known from birth (tiers 1-2). */
 const BIRTH_TIERS = 2
 
-function tierCount(trainingDays: number): number {
-  if (trainingDays >= MOVE_TIER4_DAYS) return 4
-  if (trainingDays >= MOVE_TIER3_DAYS) return 3
+function tierCount(creature: Pick<Creature, "trainingDays" | "stage">): number {
+  if (creature.trainingDays >= MOVE_TIER4_DAYS) return 4
+  // Evolution itself is training: a juvenile knows its tier-3 move from
+  // the morning it matures, regardless of trained days.
+  if (creature.stage !== "baby" || creature.trainingDays >= MOVE_TIER3_DAYS) {
+    return 3
+  }
   return BIRTH_TIERS
 }
 
 /**
- * The prefix of the species kit unlocked by the creature's trained days.
- * Order follows catalog (tier) order; no randomness is involved.
+ * The prefix of the species kit unlocked by the creature's stage and
+ * trained days. Order follows catalog (tier) order; no randomness is
+ * involved.
  */
 export function unlockedKit(
-  creature: Pick<Creature, "trainingDays">,
+  creature: Pick<Creature, "trainingDays" | "stage">,
   species: SpeciesDef,
 ): readonly string[] {
-  return species.kit.slice(0, tierCount(creature.trainingDays))
+  return species.kit.slice(0, tierCount(creature))
 }
 
 /** A fresh creature's loadout is the whole unlocked slice, in kit order. */
 export function defaultLoadout(
-  creature: Pick<Creature, "trainingDays">,
+  creature: Pick<Creature, "trainingDays" | "stage">,
   species: SpeciesDef,
 ): readonly string[] {
   return unlockedKit(creature, species)
@@ -76,7 +81,7 @@ export function setLoadout(
     if (seen.has(id)) {
       throw new Error("This loadout repeats a move")
     }
-    const required = requiredDays(id, species)
+    const required = requiredDays(id, species, creature.stage)
     if (required === null) {
       throw new Error(`Not in this partner's kit: ${id}`)
     }
@@ -94,18 +99,26 @@ export function setLoadout(
   }
 }
 
-/** Trained days a kit index needs; tiers 1-2 are known from birth. */
-export function requiredTierDays(kitIndex: number): number {
+/**
+ * Trained days a kit index needs for the given stage; tiers 1-2 are known
+ * from birth, and evolution teaches tier 3 outright (a juvenile needs no
+ * trained days for it). Tier 4 always costs the full six days.
+ */
+export function requiredTierDays(kitIndex: number, stage: LifeStage): number {
   if (kitIndex < BIRTH_TIERS) return 0
-  if (kitIndex === BIRTH_TIERS) return MOVE_TIER3_DAYS
+  if (kitIndex === BIRTH_TIERS) return stage === "baby" ? MOVE_TIER3_DAYS : 0
   return MOVE_TIER4_DAYS
 }
 
 /** Trained days required before a kit id is equippable; null if not in kit. */
-function requiredDays(moveId: string, species: SpeciesDef): number | null {
+function requiredDays(
+  moveId: string,
+  species: SpeciesDef,
+  stage: LifeStage,
+): number | null {
   const index = [...species.kit].indexOf(moveId)
   if (index < 0) return null
-  return requiredTierDays(index)
+  return requiredTierDays(index, stage)
 }
 
 /** Clears the chosen kit back to the default slicing (null loadout). Pure. */

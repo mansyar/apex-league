@@ -67,6 +67,13 @@ export {
   vec3,
 } from "./sdf"
 export {
+  JUVENILE_MATURITY,
+  matureProportions,
+  parseStage,
+  STAGES,
+  type Stage,
+} from "./stage"
+export {
   type PartField,
   type Voxel,
   type VoxeledPart,

@@ -25,9 +25,11 @@ the roadmap.
    Feed, rest, treat sickness, and play. Care quality shapes mood and bond.
 2. **Night settlement** — advancing the day means the creature sleeps. Hunger
    falls, energy recovers (sleep quality depends on care), sickness rolls or
-   worsens, mood settles, bond decays without bonding. No permadeath: the
-   worst case is misery, and recovery is always possible.
-3. **Cup phase** - every 7th day, an optional 8-bracket
+   worsens, mood settles, bond decays without bonding. The nightly check also
+   watches for growth: a well-cared-for baby evolves into its juvenile form
+   (stat boost, new signature feature, a third move slot) ten days in. No
+   permadeath: the worst case is misery, and recovery is always possible.
+3. **Cup phase** — every 7th day, an optional 8-bracket
    single-elimination cup: scout the rival, re-pick your kit, and step into
    the arena for each of your matches. Rival-vs-rival matches resolve as
    spectator verdicts.
@@ -119,7 +121,7 @@ reproduced exactly from source.
 | Phase | Scope | State |
 |---|---|---|
 | 0 — Foundation | Workspaces, sim core, day ticker, versioned save/load, app shell | Done |
-| 1 - Vertical slice | Care loop, training, one lineage, battle system, one cup, Bronze ladder | In progress - care loop, training, arena battles, and live cups playable |
+| 1 — Vertical slice | Care loop, training, one lineage, battle system, one cup, Bronze ladder | In progress — care loop, training, baby→juvenile evolution, arena battles, and live cups playable |
 | 2 — League depth | Full ladder, rivals and bosses, breeding, evolution discovery | Planned |
 | 3 — Content & meta | 20–40 species, ElysiaJS backend, cloud saves, leaderboards | Planned |
 | 4 — Post-MVP | Async ghost PvP, live PvP, mobile pass, audio | Planned |

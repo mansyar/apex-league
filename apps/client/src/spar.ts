@@ -13,6 +13,7 @@ import {
   effectiveStats,
   getMove,
   getSpecies,
+  MOVE_TIER3_DAYS,
   makeExhibition,
   type PlaybackStep,
   requiredTierDays,
@@ -103,12 +104,12 @@ function castingFor(owned: Creature, setup: SparSetup): FightCasting {
   return {
     owned: {
       archetypeId: ownedSpecies.archetypeId,
-      seed: visualSeedOf(owned.stats),
+      seed: visualSeedOf(owned.stats, owned.stage),
       name: owned.name,
     },
     rival: {
       archetypeId: rivalSpecies.archetypeId,
-      seed: visualSeedOf(setup.rival.stats),
+      seed: visualSeedOf(setup.rival.stats, setup.rival.stage),
       name: setup.rival.name,
     },
   }
@@ -413,18 +414,24 @@ export function createSpar(
     if (nextId === undefined) {
       progress.textContent = ""
     } else {
-      const required = requiredTierDays(nextIndex)
+      const required = requiredTierDays(nextIndex, creature.stage)
       const remaining = required - creature.trainingDays
       const displayName = getMove(nextId)?.displayName ?? nextId
       const plural = remaining === 1 ? "day" : "days"
-      progress.textContent = `Unlocked ${nextIndex} of 4 moves — train ${remaining} more ${plural} for ${displayName}.`
+      // A freshly evolved juvenile woke up with the third move unlocked —
+      // say so instead of the generic count (spec R3 presentation).
+      const evolvedUnlock =
+        creature.stage !== "baby" && creature.trainingDays < MOVE_TIER3_DAYS
+      progress.textContent = evolvedUnlock
+        ? `Evolution unlocked move 3 — train ${remaining} more ${plural} for ${displayName}.`
+        : `Unlocked ${nextIndex} of 4 moves — train ${remaining} more ${plural} for ${displayName}.`
     }
 
     const chosen = creature.loadout ?? defaultLoadout(creature, species)
     kitStrip.replaceChildren()
     species.kit.forEach((id, index) => {
       const name = getMove(id)?.displayName ?? id
-      const required = requiredTierDays(index)
+      const required = requiredTierDays(index, creature.stage)
       const locked = creature.trainingDays < required
       const chip = document.createElement("button")
       chip.type = "button"

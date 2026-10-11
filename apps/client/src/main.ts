@@ -19,7 +19,7 @@ import { createCup } from "./cup"
 import { createHud } from "./hud"
 import { createScene } from "./scene"
 import { createSpar } from "./spar"
-import { createStaging } from "./staging"
+import { createStaging, visualSeedOf } from "./staging"
 import { createStarterChoice } from "./starter"
 import { createSwap } from "./swap"
 import "./style.css"
@@ -50,13 +50,16 @@ const sceneVisuals = (): void => {
 const syncScene = (): void => {
   const creature = state.creature
   if (!creature) return
-  // Visual DNA seed: derived from the creature's own stat roll so the look
-  // is stable across sessions and days, yet varies per partner.
-  const s = creature.stats
-  const visualSeed = (s.hp * 7 + s.atk * 13 + s.def * 17 + s.spd * 23) % 2 ** 31
+  // Visual DNA seed: derived from the creature's rolled base so the look
+  // is stable across sessions and days, yet varies per partner. Training
+  // gains ride the `trained` counters and never touch the seed; the stage
+  // offset cancels evolution's stat boost so the individual stays the one
+  // rolled at creation — only its stage presentation changes.
+  const visualSeed = visualSeedOf(creature.stats, creature.stage)
   scene.setCreature(
     getSpecies(creature.speciesId)?.archetypeId ?? "draconic",
     visualSeed,
+    creature.stage,
   )
   scene.setProps(visualSeed)
   sceneVisuals()
@@ -153,13 +156,32 @@ const hud = createHud(app, {
   onAdvanceDay: () => {
     // The ceremony is non-cancelable (FR2, 2026-10-10): HUD input applies
     // to the sim immediately but never interrupts the creature's motion.
+    const stageBefore = state.creature?.stage
     state = advanceDay(state)
     persist()
     hud.update(state)
     spar.update(state.creature ?? null)
     cup.update(state)
-    // A training gain changes the visual seed → scatter may shift.
-    syncScene()
+    const creature = state.creature
+    if (stageBefore === "baby" && creature?.stage === "juvenile") {
+      // Evolution moment (spec R5): the scene walks the creature to the
+      // ranch center, swells, and swaps the baby rig for the juvenile
+      // build at the pulse's peak — so the plain rebuild is skipped. The
+      // HUD announces the stat gains while the ceremony plays. The visual
+      // seed is unchanged (stage-aware), so the props stay put.
+      const archetypeId =
+        getSpecies(creature.speciesId)?.archetypeId ?? "draconic"
+      sceneVisuals()
+      scene.startEvolutionCeremony(
+        archetypeId,
+        visualSeedOf(creature.stats, creature.stage),
+      )
+      hud.announceEvolution(creature)
+    } else {
+      // No evolution: the plain rebuild (training does not move the seed;
+      // a v5-migrated creature settles the same way).
+      syncScene()
+    }
   },
   onCare: (action: CareAction) => {
     const result = careAction(state, action)
