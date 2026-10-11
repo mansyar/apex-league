@@ -297,7 +297,7 @@ describe("verdict-carried battle results (live cup)", () => {
     const result = resolveCup(makeBracket(c, 7), c)
     for (const round of result.rounds) {
       for (const v of round.verdicts) {
-        expect(v.battle).toBeDefined()
+        if (!v.battle) throw new Error("verdict lost its battle")
         expect(v.battle.winner).toBe(v.winner)
         expect(v.battle.events.length).toBeGreaterThan(0)
         for (const e of v.battle.events) {
@@ -317,6 +317,7 @@ describe("verdict-carried battle results (live cup)", () => {
     )
     expect(rivalOnly?.length).toBeGreaterThan(0)
     for (const v of rivalOnly ?? []) {
+      if (!v.battle) throw new Error("verdict lost its battle")
       expect(v.battle.events.length).toBeGreaterThan(0)
       expect(v.battle.finalHp).toBeDefined()
     }
@@ -329,6 +330,7 @@ describe("verdict-carried battle results (live cup)", () => {
       (v) => v.slotA === c.name || v.slotB === c.name,
     )
     if (!playerVerdict) throw new Error("no player verdict in round 1")
+    if (!playerVerdict.battle) throw new Error("verdict lost its battle")
     const script = buildPlaybackScript(playerVerdict.battle.events)
     expect(script.length).toBe(playerVerdict.battle.events.length)
     expect(script[0]?.tick).toBe(playerVerdict.battle.events[0]?.tick)

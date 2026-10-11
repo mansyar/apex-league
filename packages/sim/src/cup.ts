@@ -192,7 +192,10 @@ export interface RoundVerdict {
   readonly line: string
   /** The full resolver output — the arena replays the battle from
    * `battle.events` (live-cup spec FR5). */
-  readonly battle: BattleResult
+  /** The full battle replay (live cup): the arena replays from these
+   * events (spec FR5). Null only on a forfeit verdict — the round was
+   * given away without a fight. */
+  readonly battle: BattleResult | null
 }
 
 export interface CupRoundResult {
@@ -374,6 +377,113 @@ export function resolvePlayerMatch(
   }
 }
 
+/** Resolve the remaining rival pairings from `conqueror` to a champion
+ * (live-cup spec: the bracket always plays out). Uses the same per-pairing
+ * seeds as the one-sitting resolver, so completed brackets are identical
+ * with the legacy flow. Pure. */
+function completeBracket(
+  session: CupSession,
+  conqueror: CupSlot,
+): CupSession {
+  const wins = session.playerVerdicts.filter(
+    (v) => v.winner === session.bracket.slots[0]?.name,
+  ).length
+  const day = session.bracket.day
+  const seedFor = (round: number, i: number): number =>
+    (day * 97 + round * 13 + i * 7) >>> 0
+  const completion: RoundVerdict[] = []
+  // A player who lost the final (2 wins) left the SF2 winner as champion.
+  if (wins >= CUP_ROUNDS - 1) {
+    const champion = session.rivalResolutions[session.rivalResolutions.length - 1]?.winner
+    return {
+      ...session,
+      completionVerdicts: completion,
+      championName: champion?.name ?? null,
+    }
+  }
+  let a: CupSlot = conqueror
+  // The player lost the quarterfinal: their conqueror meets the QF2
+  // winner in SF1 (pairing index 0 of round 2, matching the legacy field
+  // order where the player's branch feeds the top half).
+  if (wins === 0) {
+    const rival = session.rivalResolutions[0]?.winner
+    if (!rival) throw new Error("Missing QF2 winner")
+    const sf1 = resolvePairing(2, a, rival, null, seedFor(2, 0))
+    completion.push(sf1.verdict)
+    a = sf1.winner
+  }
+  const sf2Winner = session.rivalResolutions[session.rivalResolutions.length - 1]?.winner
+  if (!sf2Winner) throw new Error("Missing SF2 winner")
+  const final = resolvePairing(3, a, sf2Winner, null, seedFor(3, 0))
+  completion.push(final.verdict)
+  return {
+    ...session,
+    completionVerdicts: completion,
+    championName: final.winner.name,
+  }
+}
+
+/**
+ * Resolve the remaining rival matches after the player's exit so the cup
+ * crowns a champion (live-cup spec). Throws on a live session — the player
+ * still has fights to play.
+ */
+export function completeCup(session: CupSession): CupSession {
+  if (session.status !== "eliminated") {
+    throw new Error("The player is still live in this cup")
+  }
+  const last = session.playerVerdicts[session.playerVerdicts.length - 1]
+  if (!last) throw new Error("The player left without a verdict")
+  const conqueror = session.bracket.slots.find((s) => s.name === last.slotB)
+  if (!conqueror) throw new Error("Unknown conqueror slot")
+  return completeBracket(session, conqueror)
+}
+
+/**
+ * Forfeit the current round (the give-up modal, live-cup spec): the
+ * opponent advances without a battle, the bracket auto-completes, and the
+ * placement lands as-if-lost. Pure; throws when the player has no fight
+ * pending.
+ */
+export function forfeitCup(session: CupSession): CupSession {
+  if (session.status !== "player-turn") {
+    throw new Error("The cup is not waiting on the player")
+  }
+  const round = session.nextPlayerRound
+  const opponent = session.nextOpponent
+  const playerSlot = session.bracket.slots[0]
+  if (!opponent || !playerSlot) {
+    throw new Error("The session has no pending player pairing")
+  }
+  const verdict: RoundVerdict = {
+    round,
+    slotA: playerSlot.name,
+    slotB: opponent.name,
+    winner: opponent.name,
+    line: `${opponent.name} advances — ${playerSlot.name} forfeits the ${roundLabel(round)}.`,
+    battle: null,
+  }
+  return completeBracket(
+    {
+      ...session,
+      playerVerdicts: [...session.playerVerdicts, verdict],
+      nextPlayerRound: 0,
+      nextOpponent: null,
+      status: "eliminated",
+    },
+    opponent,
+  )
+}
+
+/** The player's placement from a finished session: champion 1, else by
+ * rounds survived (QF exit 4, SF exit 3, final loss 2). */
+export function cupPlacement(session: CupSession): 1 | 2 | 3 | 4 {
+  const wins = session.playerVerdicts.filter(
+    (v) => v.winner === session.bracket.slots[0]?.name,
+  ).length
+  return wins === CUP_ROUNDS ? 1 : wins === 2 ? 2 : wins === 1 ? 3 : 4
+}
+
 /** A pairing of two slots for one battle. */
 interface Pairing {
   readonly a: CupSlot
@@ -455,15 +565,17 @@ function resolvePairing(
   round: number,
   a: CupSlot,
   b: CupSlot,
-  player: Readonly<Creature>,
+  player: Readonly<Creature> | null,
   seed: number,
 ): { verdict: RoundVerdict; winner: CupSlot; loser: CupSlot } {
   let aSide: BattleSide
   let bSide: BattleSide
   if (a.isPlayer) {
+    if (!player) throw new Error("Player side needs the player creature")
     aSide = playerSide(player)
     bSide = sideFor(b, seed)
   } else if (b.isPlayer) {
+    if (!player) throw new Error("Player side needs the player creature")
     aSide = sideFor(a, seed)
     bSide = playerSide(player)
   } else {

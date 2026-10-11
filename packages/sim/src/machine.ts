@@ -3,6 +3,7 @@ import { type Creature, effectiveStats } from "./creature"
 import {
   type CupResult,
   type CupSession,
+  cupPlacement,
   makeBracket,
   resolveCup,
   startCupSession,
@@ -96,4 +97,19 @@ export function prepareCup(state: GameState): CupSession | null {
   const identity = eff.hp * 7 + eff.atk * 13 + eff.def * 17 + eff.spd * 23
   const seed = (day * 2654435761 + identity * 97 + 1) >>> 0
   return startCupSession(creature, day, seed)
+}
+
+/**
+ * Close out a finished cup session (live-cup spec FR5): map the player's
+ * placement (champion 1, final loss 2, semifinal exit 3, quarterfinal exit
+ * 4 — forfeits count as a loss in their round) to the reward bundle, stamp
+ * the bookkeeping, and flip the phase back to "day". Pure; throws when the
+ * session has no champion yet (call `completeCup` first).
+ */
+export function finalizeCup(state: GameState, session: CupSession): GameState {
+  if (session.championName === null) {
+    throw new Error("The cup has no champion yet — complete it first")
+  }
+  const rewarded = applyCupRewards(state, cupPlacement(session), state.day)
+  return { ...rewarded, phase: "day" }
 }

@@ -75,6 +75,9 @@ export type {
 export {
   BRACKET_SLOTS,
   CUP_ROUNDS,
+  completeCup,
+  cupPlacement,
+  forfeitCup,
   makeBracket,
   resolveCup,
   resolvePlayerMatch,
@@ -95,6 +98,7 @@ export {
   beginCup,
   endCup,
   enterCup,
+  finalizeCup,
   prepareCup,
 } from "./machine"
 export { makeRng, type Rng } from "./rng"

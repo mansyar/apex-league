@@ -1,8 +1,11 @@
 import { describe, expect, test } from "bun:test"
 import {
   chooseStarter,
+  completeCup,
   createInitialState,
   defaultLoadout,
+  finalizeCup,
+  forfeitCup,
   getSpecies,
   makeBracket,
   prepareCup,
@@ -19,6 +22,22 @@ function cupDayState(seed = 42): GameState {
   let s = advanceDay(chooseStarter(createInitialState(), "fire_drake", seed))
   while (s.day < 7) s = advanceDay(s)
   return s
+}
+
+/** Default coach picks for a state's creature (equipped kit, balanced). */
+function defaultPicks(s: GameState): {
+  loadout: readonly string[]
+  tactic: Tactic
+  creature: Creature
+} {
+  const creature = s.creature as Creature
+  const species = getSpecies(creature.speciesId)
+  if (!species) throw new Error("unknown species")
+  return {
+    loadout: defaultLoadout(creature, species),
+    tactic: "balanced",
+    creature,
+  }
 }
 
 describe("prepareCup — the live cup session (design locked, pre-resolution)", () => {
@@ -68,6 +87,7 @@ describe("prepareCup — the live cup session (design locked, pre-resolution)", 
     const session = prepareCup(s)
     if (!session) throw new Error("session did not resolve")
     for (const v of session.rivalVerdicts) {
+      if (!v.battle) throw new Error("verdict lost its battle")
       expect(v.battle.events.length).toBeGreaterThan(0)
       expect(v.battle.winner).toBe(v.winner)
     }
@@ -118,22 +138,6 @@ describe("prepareCup — the live cup session (design locked, pre-resolution)", 
 })
 
 describe("resolvePlayerMatch — the live player branch", () => {
-  /** Default coach picks for a state's creature. */
-  function defaultPicks(s: GameState): {
-    loadout: readonly string[]
-    tactic: Tactic
-    creature: Creature
-  } {
-    const creature = s.creature as Creature
-    const species = getSpecies(creature.speciesId)
-    if (!species) throw new Error("unknown species")
-    return {
-      loadout: defaultLoadout(creature, species),
-      tactic: "balanced",
-      creature,
-    }
-  }
-
   test("resolves QF1 live on a fresh session", () => {
     const s = cupDayState()
     const session = prepareCup(s)
@@ -141,6 +145,7 @@ describe("resolvePlayerMatch — the live player branch", () => {
     const picks = defaultPicks(s)
     const r = resolvePlayerMatch(session, picks.loadout, picks.tactic)
     expect(r.session.playerVerdicts.length).toBe(1)
+    if (!r.verdict.battle) throw new Error("verdict lost its battle")
     expect(r.verdict.battle.events.length).toBeGreaterThan(0)
     const winner = r.verdict.winner
     if (!winner) throw new Error("no winner in the live QF1")
@@ -205,6 +210,9 @@ describe("resolvePlayerMatch — the live player branch", () => {
       const picks = defaultPicks(s)
       const a = resolvePlayerMatch(session, picks.loadout, "balanced")
       const b = resolvePlayerMatch(session, picks.loadout, "specials")
+      if (!a.verdict.battle || !b.verdict.battle) {
+        throw new Error("verdict lost its battle")
+      }
       if (a.verdict.battle.events.length !== b.verdict.battle.events.length) {
         expect(a.verdict.battle.events).not.toEqual(b.verdict.battle.events)
         return
@@ -258,5 +266,165 @@ describe("resolvePlayerMatch — the live player branch", () => {
       return
     }
     throw new Error("no champion seed found in the sweep")
+  })
+})
+
+describe("completeCup / forfeitCup / finalizeCup — the cup's end", () => {
+  /** Sweep to a session where the player lost in the given round. */
+  function eliminatedAt(round: 1 | 2 | 3): {
+    s: GameState
+    session: ReturnType<typeof prepareCup> & NonNullable<unknown>
+    creature: Creature
+  } {
+    for (let seed = 1; seed <= 60; seed++) {
+      const s = cupDayState(seed)
+      let session = prepareCup(s)
+      if (!session) throw new Error("session did not resolve")
+      const creature = s.creature as Creature
+      const species = getSpecies(creature.speciesId)
+      if (!species) throw new Error("unknown species")
+      const picks = {
+        loadout: defaultLoadout(creature, species),
+        tactic: "balanced" as Tactic,
+      }
+      for (let r = 1; r < round; r++) {
+        const step = resolvePlayerMatch(session, picks.loadout, picks.tactic)
+        if (step.verdict.winner !== creature.name) break // lost early — try next seed
+        session = step.session
+      }
+      if (session.playerVerdicts.length !== round - 1) continue
+      const last = resolvePlayerMatch(session, picks.loadout, picks.tactic)
+      if (last.verdict.winner === creature.name) continue
+      if (last.session.playerVerdicts.length !== round) continue
+      return { s, session: last.session, creature }
+    }
+    throw new Error(`no seed eliminates the player in round ${round}`)
+  }
+
+  test("completeCup resolves the remaining rival matches after a QF exit", () => {
+    const { s, session } = eliminatedAt(1)
+    const done = completeCup(session)
+    expect(done.status).toBe("eliminated")
+    expect(done.completionVerdicts.length).toBe(2) // SF1 + Final
+    for (const v of done.completionVerdicts) {
+      expect(v.battle).not.toBeNull()
+      expect(v.battle?.events.length).toBeGreaterThan(0)
+    }
+    expect(done.championName).not.toBeNull()
+    expect(done.championName).not.toBe(s.creature?.name)
+    // The final's winner is the champion.
+    expect(done.completionVerdicts[1]?.winner).toBe(done.championName)
+  })
+
+  test("completeCup after a final loss: the SF2 winner is champion", () => {
+    const { s, session } = eliminatedAt(3)
+    const done = completeCup(session)
+    expect(done.completionVerdicts.length).toBe(0)
+    const sf2Winner = session.rivalResolutions[3]?.winner.name
+    if (sf2Winner === undefined) throw new Error("missing SF2 winner")
+    expect(done.championName).toBe(sf2Winner)
+    expect(done.championName).not.toBe(s.creature?.name)
+  })
+
+  test("completion battles equal the legacy one-sitting resolver's", () => {
+    const { s, session } = eliminatedAt(1)
+    const creature = s.creature as Creature
+    const done = completeCup(session)
+    const legacy = resolveCup(session.bracket, creature)
+    expect(done.completionVerdicts[0]).toEqual(legacy.rounds[1]?.verdicts[0])
+    expect(done.completionVerdicts[1]).toEqual(legacy.rounds[2]?.verdicts[0])
+  })
+
+  test("completeCup rejects a live session (the player is still in it)", () => {
+    const s = cupDayState()
+    const session = prepareCup(s)
+    if (!session || !s.creature) throw new Error("session did not resolve")
+    expect(() => completeCup(session)).toThrow()
+  })
+
+  test("forfeitCup awards the current round to the opponent and completes", () => {
+    const s = cupDayState()
+    const session = prepareCup(s)
+    if (!session) throw new Error("session did not resolve")
+    const done = forfeitCup(session)
+    expect(done.status).toBe("eliminated")
+    expect(done.championName).not.toBeNull()
+    // The forfeit verdict: no battle, opponent wins, line says forfeit.
+    const forfeit = done.playerVerdicts[done.playerVerdicts.length - 1]
+    expect(forfeit?.battle).toBeNull()
+    expect(forfeit?.winner).toBe(session.nextOpponent?.name)
+    expect(forfeit?.line.toLowerCase()).toContain("forfeit")
+    // SF1 + Final still resolve as real battles after the forfeit.
+    expect(done.completionVerdicts.length).toBe(2)
+    expect(done.completionVerdicts[0]?.battle).not.toBeNull()
+    expect(done.completionVerdicts[1]?.battle).not.toBeNull()
+  })
+
+  test("forfeitCup rejects a session that is not waiting on the player", () => {
+    const s = cupDayState()
+    const session = prepareCup(s)
+    if (!session) throw new Error("session did not resolve")
+    const picks = defaultPicks(s)
+    const r = resolvePlayerMatch(session, picks.loadout, picks.tactic)
+    if (r.session.status !== "player-turn") {
+      expect(() => forfeitCup(r.session)).toThrow()
+      return
+    }
+    // If the player won, forfeiting the semifinal must work — assert the
+    // round advanced instead.
+    expect(r.session.nextPlayerRound).toBe(2)
+  })
+
+  test("finalizeCup: the champion gets the win bundle and the phase flips", () => {
+    // Sweep to a full championship.
+    for (let seed = 1; seed <= 60; seed++) {
+      const s = cupDayState(seed)
+      let session = prepareCup(s)
+      if (!session) throw new Error("session did not resolve")
+      const creature = s.creature as Creature
+      const species = getSpecies(creature.speciesId)
+      if (!species) throw new Error("unknown species")
+      const picks = {
+        loadout: defaultLoadout(creature, species),
+        tactic: "balanced" as Tactic,
+      }
+      for (let round = 1; round <= 3 && session.status === "player-turn"; round++) {
+        session = resolvePlayerMatch(session, picks.loadout, picks.tactic).session
+      }
+      if (session.status !== "champion") continue
+      const before = creature.conditions
+      const next = finalizeCup(s, session)
+      expect(next.phase).toBe("day")
+      expect(next.cupsWon).toBe(s.cupsWon + 1)
+      expect(next.lastCupDay).toBe(7)
+      const after = next.creature
+      if (!after) throw new Error("rewards dropped the creature")
+      expect(after.conditions.bond).toBe(
+        Math.min(100, before.bond + 10),
+      )
+      expect(after.conditions.mood).toBe(
+        Math.min(100, before.mood + 15),
+      )
+      expect(JSON.stringify(s)).toBe(JSON.stringify(cupDayState(seed))) // pure
+      return
+    }
+    throw new Error("no champion seed found in the sweep")
+  })
+
+  test("finalizeCup: a QF exit pays only the +2 mood consolation", () => {
+    const { s, session } = eliminatedAt(1)
+    const done = completeCup(session)
+    const before = s.creature?.conditions
+    if (!before) throw new Error("cup day without a creature")
+    const next = finalizeCup(s, done)
+    expect(next.phase).toBe("day")
+    expect(next.cupsWon).toBe(s.cupsWon)
+    expect(next.lastCupDay).toBe(s.lastCupDay)
+    const after = next.creature
+    if (!after) throw new Error("rewards dropped the creature")
+    expect(after.conditions.bond).toBe(before.bond)
+    expect(after.conditions.mood).toBe(
+      Math.min(100, before.mood + 2),
+    )
   })
 })
