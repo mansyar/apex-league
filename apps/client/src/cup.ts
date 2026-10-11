@@ -1,0 +1,205 @@
+/**
+ * The client cup (spec FR4): an Enter Cup chip in the spar area on cup
+ * days and a full-screen bracket panel that walks QF → SF → F with gentle
+ * pacing before naming the champion. Battles resolve through the sim's
+ * `enterCup` in one call — the panel only presents the already-committed
+ * result, so HUD input is never blocked and nothing is queued.
+ *
+ * Announcer voice (product guidelines): short, punchy, present tense.
+ * Reduced motion: the whole bracket dumps at once, no timers.
+ */
+
+import {
+  type Creature,
+  type CupResult,
+  enterCup,
+  type GameState,
+  isCupDay,
+} from "@apex/sim"
+
+export interface CupHandlers {
+  /**
+   * Commit the resolved cup state through the main state flow (persist +
+   * HUD refresh). Called exactly once per resolution, before pacing starts.
+   */
+  onResolved: (state: GameState, result: CupResult) => void
+}
+
+export interface Cup {
+  /** Sync the chip and live state with the current sim state. */
+  update(state: GameState): void
+}
+
+const PACE_MS = 1500
+
+export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
+  // The Enter Cup chip sits beside the Spar chip (top-right cluster).
+  const cupButton = document.createElement("button")
+  cupButton.className = "cup-button"
+  cupButton.type = "button"
+  const cupLabel = document.createElement("span")
+  cupLabel.textContent = "Enter Cup"
+  const cupHint = document.createElement("span")
+  cupHint.textContent = "Cup day · free"
+  cupButton.append(cupLabel, cupHint)
+  root.append(cupButton)
+
+  // Full-screen overlay, hidden until entry.
+  const overlay = document.createElement("div")
+  overlay.className = "cup-overlay"
+  overlay.style.display = "none"
+
+  const panel = document.createElement("div")
+  panel.className = "cup-panel"
+
+  const heading = document.createElement("div")
+  heading.className = "cup-heading"
+  heading.textContent = "Cup Day"
+
+  const intro = document.createElement("div")
+  intro.className = "cup-intro"
+
+  const bracket = document.createElement("div")
+  bracket.className = "cup-bracket"
+
+  const log = document.createElement("div")
+  log.className = "cup-log"
+
+  const result = document.createElement("div")
+  result.className = "cup-result"
+
+  const close = document.createElement("button")
+  close.className = "cup-close"
+  close.type = "button"
+  close.textContent = "Back to the ranch"
+  close.style.display = "none"
+
+  panel.append(heading, intro, bracket, log, result, close)
+  overlay.append(panel)
+  root.append(overlay)
+
+  let state: GameState | null = null
+  let timer: ReturnType<typeof setTimeout> | null = null
+  let playing = false
+
+  const reducedMotion = (): boolean =>
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
+    !window.matchMedia("(prefers-reduced-motion: no-preference)").matches
+
+  const clearTimer = (): void => {
+    if (timer !== null) {
+      clearTimeout(timer)
+      timer = null
+    }
+  }
+
+  const showLine = (text: string): void => {
+    const line = document.createElement("div")
+    line.className = "cup-line"
+    line.textContent = text
+    log.append(line)
+    log.scrollTop = log.scrollHeight
+  }
+
+  /** One bracket-table row: the fighters and the verdict. */
+  const showVerdict = (round: CupResult["rounds"][number]): void => {
+    const row = document.createElement("div")
+    row.className = "cup-round"
+    const title = document.createElement("div")
+    title.className = "cup-round-title"
+    const label =
+      round.round === 1
+        ? "Quarterfinals"
+        : round.round === 2
+          ? "Semifinals"
+          : "Final"
+    title.textContent = label
+    row.append(title)
+    for (const v of round.verdicts) {
+      const line = document.createElement("div")
+      line.className = "cup-match"
+      line.textContent = v.line
+      row.append(line)
+    }
+    bracket.append(row)
+  }
+
+  const finish = (cup: CupResult, championName: string | null): void => {
+    clearTimer()
+    playing = false
+    if (championName) {
+      result.textContent = `${championName} takes the cup!`
+      result.classList.add("cup-result-win")
+      result.classList.remove("cup-result-loss")
+    } else {
+      result.textContent = "The cup ends without a champion."
+      result.classList.add("cup-result-loss")
+      result.classList.remove("cup-result-win")
+    }
+    close.style.display = ""
+  }
+
+  /** Walk the resolved rounds with pacing (or all at once, reduced motion). */
+  const play = (cup: CupResult, index: number): void => {
+    const round = cup.rounds[index]
+    if (!round) {
+      timer = setTimeout(
+        () => finish(cup, cup.championName),
+        reducedMotion() ? 0 : PACE_MS,
+      )
+      return
+    }
+    timer = setTimeout(
+      () => {
+        clearTimer()
+        showVerdict(round)
+        play(cup, index + 1)
+      },
+      reducedMotion() ? 0 : PACE_MS,
+    )
+  }
+
+  const open = (current: GameState): void => {
+    if (!current.creature) return
+    clearTimer()
+    bracket.replaceChildren()
+    log.replaceChildren()
+    result.textContent = ""
+    result.classList.remove("cup-result-win", "cup-result-loss")
+    close.style.display = "none"
+    intro.textContent = `${current.creature.name} steps into the bracket!`
+    overlay.style.display = ""
+
+    // Resolve everything through the sim in one call; the returned state
+    // is already committed semantics-wise, the handler persists it.
+    const entry = enterCup(current)
+    const cup = entry.cup
+    if (!entry.ok || !cup) {
+      overlay.style.display = "none"
+      return
+    }
+    handlers.onResolved(entry.state, cup)
+    playing = true
+    play(cup, 0)
+  }
+
+  cupButton.addEventListener("click", () => {
+    if (state) open(state)
+  })
+  close.addEventListener("click", () => {
+    clearTimer()
+    playing = false
+    overlay.style.display = "none"
+  })
+
+  return {
+    update(next) {
+      state = next
+      const creature: Creature | null = next.creature
+      const cupToday =
+        isCupDay(next.day) && next.phase === "cup" && creature !== null
+      cupButton.style.display = cupToday ? "" : "none"
+      cupButton.disabled = !cupToday || playing
+    },
+  }
+}

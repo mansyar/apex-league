@@ -439,6 +439,40 @@ body,
 }
 
 /* Top-right spar chip — its own control, separate from the care cluster. */
+.cup-button {
+  position: absolute;
+  top: 16px;
+  right: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 16px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: var(--panel-bg);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+}
+
+.cup-button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.cup-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.cup-button span:last-child {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--ink-dim);
+}
+
 .spar-button {
   position: absolute;
   top: 16px;
@@ -471,6 +505,115 @@ body,
   font-size: 10px;
   font-weight: 400;
   color: var(--ink-dim);
+}
+
+/* Cup banner: trophy glyph per lifetime championship (day chip, top). */
+.cup-banner {
+  margin-left: 10px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--accent);
+}
+
+/* Cup overlay panel: full-screen center card for the bracket walk. */
+.cup-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 0.55);
+  z-index: 40;
+}
+
+.cup-panel {
+  width: min(560px, 92vw);
+  max-height: 84vh;
+  overflow-y: auto;
+  padding: 22px 26px;
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  background: var(--panel-bg);
+  backdrop-filter: blur(6px);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cup-heading {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.cup-intro {
+  font-size: 14px;
+  color: var(--ink-dim);
+}
+
+.cup-bracket {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cup-round {
+  padding: 10px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+}
+
+.cup-round-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--ink-dim);
+  margin-bottom: 6px;
+}
+
+.cup-match {
+  font-size: 14px;
+  padding: 2px 0;
+}
+
+.cup-log {
+  display: none;
+}
+
+.cup-result {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.cup-result-win {
+  color: var(--accent);
+}
+
+.cup-result-loss {
+  color: var(--ink-dim);
+}
+
+.cup-close {
+  align-self: center;
+  padding: 10px 22px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cup-close:hover {
+  border-color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cup-panel {
+    backdrop-filter: none;
+  }
 }
 
 /* Spar overlay panel */
