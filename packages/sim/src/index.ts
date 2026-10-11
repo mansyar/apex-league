@@ -68,15 +68,21 @@ export type {
   CupBracket,
   CupResult,
   CupRoundResult,
+  CupSession,
   CupSlot,
   RoundVerdict,
 } from "./cup"
 export {
   BRACKET_SLOTS,
   CUP_ROUNDS,
+  completeCup,
+  cupPlacement,
+  forfeitCup,
   makeBracket,
   resolveCup,
+  resolvePlayerMatch,
   runRound,
+  startCupSession,
 } from "./cup"
 export { applyCupRewards, CUP_REWARDS, type CupOutcome } from "./cupRewards"
 export {
@@ -99,7 +105,13 @@ export {
   setLoadout,
   unlockedKit,
 } from "./loadout"
-export { beginCup, endCup, enterCup } from "./machine"
+export {
+  beginCup,
+  endCup,
+  enterCup,
+  finalizeCup,
+  prepareCup,
+} from "./machine"
 export { makeRng, type Rng } from "./rng"
 export { migrate } from "./save/migrate"
 export { SAVE_VERSION, type SaveData, serializeSave } from "./save/schema"

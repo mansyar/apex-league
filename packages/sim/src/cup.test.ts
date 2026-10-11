@@ -8,6 +8,7 @@ import {
   runRound,
 } from "./cup"
 import {
+  buildPlaybackScript,
   type Creature,
   createCreature,
   effectiveStats,
@@ -283,5 +284,63 @@ describe("edge cases", () => {
     const bracket = makeBracket(c, 7)
     const broken = { ...bracket, slots: bracket.slots.slice(0, 4) }
     expect(() => resolveCup(broken, c)).toThrow()
+  })
+})
+
+describe("verdict-carried battle results (live cup)", () => {
+  // The live-cup track (spec FR4/FR5): the arena replays each cup battle
+  // from the resolver's event log, so every verdict must carry the full
+  // BattleResult — resolvePairing may no longer discard it.
+  test("every verdict carries the full BattleResult with events", () => {
+    const c = playerCreature(11)
+    const result = resolveCup(makeBracket(c, 7), c)
+    for (const round of result.rounds) {
+      for (const v of round.verdicts) {
+        if (!v.battle) throw new Error("verdict lost its battle")
+        expect(v.battle.winner).toBe(v.winner)
+        expect(v.battle.events.length).toBeGreaterThan(0)
+        for (const e of v.battle.events) {
+          expect([v.slotA, v.slotB]).toContain(e.actor)
+        }
+      }
+    }
+  })
+
+  test("rival-vs-rival verdicts also carry replayable events", () => {
+    // Player-independent pairings (e.g. QF2) must be replayable too — the
+    // bracket reveals rival battles as text only, but the contract is uniform.
+    const c = playerCreature(11)
+    const result = resolveCup(makeBracket(c, 7), c)
+    const rivalOnly = result.rounds[0]?.verdicts.filter(
+      (v) => v.slotA !== c.name && v.slotB !== c.name,
+    )
+    expect(rivalOnly?.length).toBeGreaterThan(0)
+    for (const v of rivalOnly ?? []) {
+      if (!v.battle) throw new Error("verdict lost its battle")
+      expect(v.battle.events.length).toBeGreaterThan(0)
+      expect(v.battle.finalHp).toBeDefined()
+    }
+  })
+
+  test("the player's verdict events feed the arena playback script 1:1", () => {
+    const c = playerCreature(11)
+    const result = resolveCup(makeBracket(c, 7), c)
+    const playerVerdict = result.rounds[0]?.verdicts.find(
+      (v) => v.slotA === c.name || v.slotB === c.name,
+    )
+    if (!playerVerdict) throw new Error("no player verdict in round 1")
+    if (!playerVerdict.battle) throw new Error("verdict lost its battle")
+    const script = buildPlaybackScript(playerVerdict.battle.events)
+    expect(script.length).toBe(playerVerdict.battle.events.length)
+    expect(script[0]?.tick).toBe(playerVerdict.battle.events[0]?.tick)
+  })
+
+  test("battle results are deterministic across runs (same inputs)", () => {
+    const c = playerCreature(11)
+    const a = resolveCup(makeBracket(c, 7), c)
+    const b = resolveCup(makeBracket(c, 7), c)
+    expect(a.rounds.map((r) => r.verdicts.map((v) => v.battle))).toEqual(
+      b.rounds.map((r) => r.verdicts.map((v) => v.battle)),
+    )
   })
 })

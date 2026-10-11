@@ -114,27 +114,41 @@ const applyMotionPref = (): void => {
 }
 applyMotionPref()
 
-// The cup panel owns the cup-day flow: entry resolves through the sim's
-// enterCup in one call, the committed state flows back here to persist,
-// and the panel presents the already-resolved bracket at its own pace.
+// The live cup: prepareCup opens the bracket view, rival matches reveal
+// at their own pace, the player's branch resolves live in the arena, and
+// finalizeCup lands the rewards. Nothing here re-resolves the sim.
 const cup = createCup(app, {
-  onResolved: (resolved) => {
-    state = resolved
+  onFightStart: (casting) => {
+    scene.setRanchCreatureVisible(false)
+    void swap.enterArena()
+    staging.cast(casting)
+    // Broadcast clarity: the ranch HUD stands down while the bowl plays.
+    app.classList.add("app-in-arena")
+  },
+  onStep: (step, instant) => staging.applyStep(step, instant),
+  onPace: (msPerStep) => staging.setPace(msPerStep),
+  onArenaExit: () => {
+    scene.setRanchCreatureVisible(true)
+    void swap.exitArena()
+    staging.clear()
+    app.classList.remove("app-in-arena")
+  },
+  // The first arena fight consumes the cup (endCup flips the phase);
+  // persist so a mid-cup refresh keeps the commitment.
+  onCommit: (next) => {
+    state = next
+    persist()
+    cup.update(state)
+  },
+  // Results are in and finalizeCup applied the rewards — refresh the ranch.
+  onFinalize: (next) => {
+    state = next
     persist()
     hud.update(state)
     spar.update(state.creature ?? null)
-    // One entry per cup: the resolve flips the phase back to "day", so the
-    // chip must re-sync or it would stay visible for the rest of the day.
     cup.update(state)
     // Conditions may carry the reward bump (mood/bond) — refresh the idle.
     sceneVisuals()
-  },
-  // Leaving the presentation before the bracket ends: one droopy idle
-  // window (spec FR4), purely visual — the sim result already stands. The
-  // chip re-syncs too: the entry already resolved, so it must hide.
-  onEarlyExit: () => {
-    scene.droopyMoment()
-    cup.update(state)
   },
 })
 

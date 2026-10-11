@@ -29,11 +29,22 @@
   2026-10-10: combat prep landed — `effectiveStats` (rolled + trained),
   unlock-gated kit slicing with 2-4 loadout helpers, save v4 migration crediting
   6 trained days, spar kit gate/picker, fresh-unlock coach callout.*
-  2026-10-11: cup day landed — pure `makeBracket`/`resolveCup`/`applyCupRewards`
+  2026-10-11: cup day landed - pure `makeBracket`/`resolveCup`/`applyCupRewards`
   in `@apex/sim` (seeded from day + save, mutation-pure), `enterCup` one-sitting
   resolution in the phase machine, save v5 (`cupsWon`, `lastCupDay` with
   v4→v5 migration), full-screen client cup panel with ~1.5s pacing and a
-  droopy-idle early-exit hook in the ranch scene.*
+  droopy-idle early-exit hook in the ranch scene.
+  2026-10-11: live cup landed - hybrid-resolution session API in `@apex/sim`
+  (`prepareCup` opens a session with the player-independent subtree
+  pre-resolved byte-identically to `resolveCup`; `resolvePlayerMatch` resolves
+  the player's match live from the picked kit + tactic; `completeCup`/
+  `forfeitCup`/`finalizeCup` close it), the shared `playbackDriver` extracted
+  from spar (timer chain, speed toggle, reduced-motion dump, slow replay -
+  no DOM) now powers both Spar and the cup arena, and the client cup flow
+  became DOM broadcast screens (strict-order bracket walk, coaching room,
+  forfeit modal, results) with commit-at-first-fight phase bookkeeping.
+  No save-schema change (v5 stays); `enterCup` remains as the headless
+  one-sitting reference.*
 
 ## Server
 - **Framework**: ElysiaJS on Bun (endpoints: save sync, leaderboard, ghost
