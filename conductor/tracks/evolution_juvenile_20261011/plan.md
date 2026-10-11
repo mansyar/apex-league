@@ -35,7 +35,9 @@ manual verification for presentation tasks, phase checkpoints per
 - [x] Task: Determinism gate + artifacts — [checkpoint: b888979]
   - [x] Extend `scripts/determinism-gate.ts` to byte-compare both stages; export-artifact stage argv; committed 3 juvenile GLB + manifest artifacts
   - [x] Verify `bun run gate:determinism` green (6 creature artifacts byte-identical, 5 props digest-match)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: b888979]
+  - [x] Tests: 129 voxel tests pass (incl. stage suite + 200-seed juvenile budget audits); bun run check clean; gate:determinism green
+  - [x] Manual visual verification deferred to the Phase 3 browser checkpoint (user-approved); evidence recorded as a git note on b888979
 
 ## Phase 3 — Client: Evolution Moment, HUD & Hints
 
