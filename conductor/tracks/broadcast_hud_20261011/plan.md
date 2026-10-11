@@ -54,7 +54,7 @@ workflow checkpoint task.
 - [x] Task: Starter overlay rebuilt in dome/broadcast language; remove the dead "Coming soon" ribbon — `4ac7fdc`
 - [x] Task: Cup overlay + battle HUD chrome adopt kit classes (bracket, coach room, results, placard, lower-third) — layout/behavior unchanged — `1cc5276`
 - [x] Task: Cup results AP copy fix — derive from `ACTION_POINTS_PER_DAY` + cup bonus instead of `${3 + 1}` — `2766c26`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: 1cc5276]
 
 ## Phase E — Guidelines, docs, final verification
 
