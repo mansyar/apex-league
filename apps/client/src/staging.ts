@@ -60,11 +60,20 @@ const BASE_STEP_ANIM_MS = 620
 /** Stage positions: the fighters start wide on the show floor's X lane. */
 const HOME_X = 2.6
 
+/**
+ * Canonical arena slot: every fighter's horizontal footprint is scaled to
+ * this length at cast time (fighting-game stage normalization). Gap
+ * constants, camera framing, and authored choreography then stay
+ * species-independent; silhouette and bulk still read, only overall
+ * scale is equalized. The ranch and gallery keep natural sizes.
+ */
+const ARENA_FOOTPRINT = 1.7
+
 /** Resting gap between fighters (the size of a neutral stance). */
-const STANCE_GAP = 1.9
+const STANCE_GAP = 2.1
 
 /** Contact distance an attack pushes into (bodies nearly touch). */
-const CONTACT_GAP = 0.72
+const CONTACT_GAP = 1.8
 
 /**
  * Show-floor bounds: fighters are clamped well inside the painted
@@ -898,6 +907,13 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         const group = new THREE.Group()
         group.add(inner)
         inner.position.set(-center.x, 0, -center.z)
+        // Arena normalization: scale the holder so the whole-creature
+        // footprint fits the canonical slot. Applied to the holder (not
+        // the rig) so the baked voxel scale contract is untouched and the
+        // squash spring keeps composing on top of it.
+        const size = innerBox.getSize(new THREE.Vector3())
+        const footprint = Math.max(size.x, size.z)
+        group.scale.setScalar(ARENA_FOOTPRINT / footprint)
         const combatant: Combatant = {
           name: info.name,
           group,
