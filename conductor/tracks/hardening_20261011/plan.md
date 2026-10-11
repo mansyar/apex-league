@@ -24,13 +24,13 @@ notes per task, phase checkpoints with explicit user verification).
         phase suite in `loop.test.ts` now pins the real contract (ticker
         grants cup phase, `enterCup` flips back — covered in cupMachine tests)
   - [x] Commit `refactor(sim): remove bypassed beginCup/endCup cup machine paths`
-- [ ] Task: Shared migration validator (FR-A2)
-  - [ ] Add unit test for `validateStateShape(raw, version)` accept/reject table
-  - [ ] Extract helper; reduce six migrations to pure field-shapers; reorder
+- [x] Task: Shared migration validator (FR-A2) (c67d106)
+  - [x] Add unit test for `validateStateShape(raw, version)` accept/reject table
+  - [x] Extract helper; reduce six migrations to pure field-shapers; reorder
         `Record` keys ascending (v0→v5)
-  - [ ] Verify full v0→v6 migration test chain still green (byte-level state
+  - [x] Verify full v0→v6 migration test chain still green (byte-level state
         parity)
-  - [ ] Commit `refactor(sim): extract shared save state-shape validator`
+  - [x] Commit `refactor(sim): extract shared save state-shape validator`
 - [ ] Task: Type-color contract into sim (FR-A4)
   - [ ] Move `ELEMENT_HUE` to `@apex/sim` (beside `typeFactor`); update
         `staging`/`battleHud` imports; delete client copy
