@@ -112,5 +112,16 @@ notes per task, phase checkpoints with explicit user verification).
   - [x] Full `bun run verify`; grep audit for leftover fanout/dupes
   - [x] Update conductor docs for track completion
   [checkpoint: 867d14e]
-  - [ ] Commit `chore(conductor): finalize track 'Hardening & Quality Pass'`
-- [ ] Task: Phase 4 Verification & Checkpoint (Refer to workflow.md)
+  - [x] Commit `chore(conductor): finalize track 'Hardening & Quality Pass'` (f9123a8)
+- [x] Task: Phase 4 Verification & Checkpoint (Refer to workflow.md)
+      - Verified via the post-completion `conductor-review` pass: full diff
+        audit (29 files), `bun run verify` green, styleguide check, docs
+        accuracy review. No sim/client logic changed after the Phase 3
+        browser verifications; docs-only changes reviewed directly.
+  [checkpoint: 867d14e]
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions (e03df24)
+  - [x] docs/save-schema.md: `cupsWon`/`lastCupDay` version tags (v4+) → (v5+)
+        to match the migration-chain table
+  - [x] Commit `fix(conductor): Apply review suggestions for track 'hardening_20261011'`
