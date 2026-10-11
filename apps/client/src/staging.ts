@@ -178,7 +178,10 @@ interface Combatant {
   fall: number
   /** Per-fighter bob phase so the pair never breathes in lockstep. */
   phase: number
-  /** The rig's baked voxel scale — the squash spring composes with it. */
+  /**
+   * The holder's base scale (identity) — the squash spring composes with
+   * it. The rig's baked voxel scale lives untouched on the inner rig.
+   */
   baseScale: number
 }
 
@@ -305,9 +308,10 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         c.smooth.z + c.offset.z,
       )
       const sq = c.squash.s
-      // Compose with the rig's baked voxel scale, never replace it — a
-      // bare set() blows the voxel-local coordinates up 10× and the
-      // fighter's meshes land outside the arena.
+      // Compose with the holder's base scale, never replace it. The baked
+      // voxel scale lives on the inner rig; a bare set() here would blow
+      // the voxel-local coordinates up 10× and the fighter's meshes would
+      // land outside the arena.
       const base = c.baseScale
       c.group.scale.set(
         base * (1 + sq * 0.34),
@@ -877,10 +881,23 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         away: 1 | -1,
       ): Combatant => {
         const { dna, build, def } = generate(info.archetypeId, info.seed)
-        const group = buildCreatureGroup(dna, build, def.grid)
-        group.traverse((obj) => {
+        const inner = buildCreatureGroup(dna, build, def.grid)
+        inner.traverse((obj) => {
           if (obj instanceof THREE.Mesh) obj.castShadow = true
         })
+        // Learnings §1: the rig is built in voxel grid units and its group
+        // origin is the rig grid origin — not the creature's visible mass —
+        // so yaw turns and KO topples on the raw rig read as an arc.
+        // Re-anchor exactly like the ranch scene: measure the whole-
+        // creature visual center, wrap the rig in an identity-scale holder,
+        // and offset the child so the visual center sits on the holder
+        // origin. All motion code below drives the holder.
+        inner.updateMatrixWorld(true)
+        const innerBox = new THREE.Box3().setFromObject(inner)
+        const center = innerBox.getCenter(new THREE.Vector3())
+        const group = new THREE.Group()
+        group.add(inner)
+        inner.position.set(-center.x, 0, -center.z)
         const combatant: Combatant = {
           name: info.name,
           group,
