@@ -78,6 +78,8 @@
     position: absolute; inset: 0;
     background: radial-gradient(80% 70% at 50% 40%, rgba(8, 9, 12, 0.38), rgba(8, 9, 12, 0.78));
   }
+  /* everything inside the stage scales with its width (container queries) */
+  .stage { container-type: inline-size; }
 
   /* ════════════════════════ SCREEN 1 · BRACKET ════════════════════ */
   .cup-head {
@@ -88,48 +90,51 @@
   .cup-head .tab {
     background: var(--gold); color: #241a06;
     font-family: "Barlow Condensed", sans-serif; font-weight: 800;
-    font-size: 15px; letter-spacing: 0.2em; text-indent: 0.2em;
-    padding: 8px 14px; display: grid; place-items: center;
+    font-size: clamp(10px, 1.15cqw, 15px); letter-spacing: 0.2em; text-indent: 0.2em;
+    padding: 0.6cqw 1.1cqw; display: grid; place-items: center;
     clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
   }
   .cup-head .line {
     background: var(--panel); border: 1px solid var(--panel-border); border-left: none;
-    padding: 8px 22px 8px 14px; display: flex; align-items: baseline; gap: 12px;
+    padding: 0.6cqw 1.7cqw 0.6cqw 1.1cqw; display: flex; align-items: baseline; gap: 1cqw;
     clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
   }
   .cup-title {
     font-family: "Barlow Condensed", sans-serif; font-weight: 800;
-    font-size: 24px; letter-spacing: 0.14em;
+    font-size: clamp(15px, 1.9cqw, 24px); letter-spacing: 0.14em;
   }
   .cup-sub {
-    font-size: 11px; font-weight: 600; letter-spacing: 0.22em;
+    font-size: clamp(9px, 0.85cqw, 11px); font-weight: 600; letter-spacing: 0.22em;
     text-transform: uppercase; color: var(--ink-dim);
   }
 
   .bracket {
-    position: absolute; inset: 18% 4.5% 16%;
+    position: absolute; inset: 15% 4.5% 15%;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 0.8fr;
-    column-gap: 34px;
+    column-gap: 2.6cqw;
     z-index: 2;
   }
-  .col { display: flex; flex-direction: column; }
+  .col { display: flex; flex-direction: column; min-height: 0; }
   .col-head {
-    font-size: 10px; font-weight: 700; letter-spacing: 0.28em;
+    font-size: clamp(8px, 0.8cqw, 10px); font-weight: 700; letter-spacing: 0.28em;
     text-transform: uppercase; color: var(--ink-dim);
-    text-align: center; padding: 0 0 14px;
+    text-align: center; padding: 0 0 1.1cqw;
+    opacity: 0; transform: translateX(-16px);
+    transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.3, 1.1);
   }
-  .col-qf .col-head, .col-sf .col-head { text-align: left; padding-left: 8px; }
-  .col-f .col-head { text-align: right; padding-right: 8px; }
-  .col .matches { display: flex; flex-direction: column; justify-content: space-around; flex: 1; gap: 10px; }
+  .col-head.in { opacity: 1; transform: none; }
+  .col-qf .col-head, .col-sf .col-head { text-align: left; padding-left: 0.6cqw; }
+  .col-f .col-head { text-align: right; padding-right: 0.6cqw; }
+  .col .matches { display: flex; flex-direction: column; justify-content: space-around; flex: 1; gap: 0.8cqw; min-height: 0; }
 
   .match {
     position: relative;
     width: 100%;
     background: var(--panel);
     border: 1px solid var(--panel-border);
-    padding: 10px 12px;
-    display: grid; gap: 6px;
+    padding: 0.7cqw 1cqw;
+    display: grid; gap: 0.4cqw;
     opacity: 0;
     transform: translateX(-16px);
     transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.3, 1.1);
@@ -161,24 +166,24 @@
   .col-sf .match:nth-child(2)::before { top: 75%; }
 
   .slot {
-    display: flex; align-items: center; gap: 10px;
-    padding: 5px 8px; min-height: 38px;
+    display: flex; align-items: center; gap: 0.8cqw;
+    padding: 0.35cqw 0.7cqw; min-height: 2.5cqw;
   }
   .slot + .slot { border-top: 1px solid rgba(255, 236, 200, 0.08); }
   .slot .mini-crest {
-    width: 24px; height: 24px; flex: none;
+    width: clamp(14px, 2cqw, 25px); height: clamp(14px, 2cqw, 25px); flex: none;
     display: grid; place-items: center;
     clip-path: polygon(50% 0, 100% 26%, 100% 74%, 50% 100%, 0 74%, 0 26%);
     color: #14100c;
   }
-  .slot .mini-crest svg { width: 14px; height: 14px; }
+  .slot .mini-crest svg { width: 55%; height: 55%; }
   .slot .s-name {
     font-family: "Barlow Condensed", sans-serif; font-weight: 700;
-    font-size: 17px; letter-spacing: 0.05em; white-space: nowrap;
+    font-size: clamp(12px, 1.3cqw, 17px); letter-spacing: 0.05em; white-space: nowrap;
     overflow: hidden; text-overflow: ellipsis;
   }
   .slot .s-tag {
-    margin-left: auto; font-size: 9px; font-weight: 700;
+    margin-left: auto; font-size: clamp(7px, 0.7cqw, 9px); font-weight: 700;
     letter-spacing: 0.16em; text-transform: uppercase;
     color: var(--ink-dim);
   }
@@ -204,25 +209,25 @@
     50% { box-shadow: 0 0 26px rgba(255, 210, 87, 0.30), inset 0 0 22px rgba(255, 210, 87, 0.10); }
   }
   .your-ribbon {
-    position: absolute; top: -11px; left: 10px;
+    position: absolute; top: -0.9cqw; left: 0.8cqw;
     background: var(--gold); color: #241a06;
     font-family: "Barlow Condensed", sans-serif; font-weight: 800;
-    font-size: 11px; letter-spacing: 0.18em; text-indent: 0.18em;
-    padding: 3px 10px;
+    font-size: clamp(8px, 0.85cqw, 11px); letter-spacing: 0.18em; text-indent: 0.18em;
+    padding: 0.25cqw 0.8cqw;
     clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
   }
   .match .m-verdict {
-    font-size: 11px; color: var(--ink-dim); letter-spacing: 0.04em;
-    padding: 5px 6px 2px; margin-top: 2px;
+    font-size: clamp(9px, 0.85cqw, 11px); color: var(--ink-dim); letter-spacing: 0.04em;
+    padding: 0.4cqw 0.5cqw 0.1cqw; margin-top: 0.15cqw;
     border-top: 1px solid rgba(255, 236, 200, 0.08);
     display: none;
   }
   .match.resolved .m-verdict { display: block; }
 
   /* champion pedestal */
-  .champ { display: grid; justify-items: center; gap: 12px; align-self: center; }
+  .champ { display: grid; justify-items: center; gap: 1cqw; align-self: center; }
   .champ-cup {
-    width: 78px; height: 78px; display: grid; place-items: center;
+    width: clamp(40px, 6cqw, 78px); height: clamp(40px, 6cqw, 78px); display: grid; place-items: center;
     color: var(--gold); opacity: 0; transform: scale(0.6);
     transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3);
   }
@@ -230,45 +235,45 @@
   .champ-cup svg { width: 100%; height: 100%; filter: drop-shadow(0 4px 10px rgba(255, 210, 87, 0.35)); }
   .champ-name {
     font-family: "Barlow Condensed", sans-serif; font-weight: 800;
-    font-size: 20px; letter-spacing: 0.1em; color: var(--gold);
-    text-align: center; line-height: 1.2; max-width: 150px;
+    font-size: clamp(13px, 1.7cqw, 22px); letter-spacing: 0.1em; color: var(--gold);
+    text-align: center; line-height: 1.2; max-width: 12cqw;
   }
   .champ-label {
-    font-size: 10px; font-weight: 700; letter-spacing: 0.24em;
+    font-size: clamp(8px, 0.8cqw, 10px); font-weight: 700; letter-spacing: 0.24em;
     text-transform: uppercase; color: var(--ink-dim);
   }
 
   /* live ticker under the bracket */
   .ticker {
-    position: absolute; left: 6%; right: 6%; bottom: 5.5%;
+    position: absolute; left: 4.5%; right: 4.5%; bottom: 4.5%;
     display: flex; align-items: stretch; z-index: 2;
     filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.45));
   }
   .ticker .tab {
     background: var(--gold); color: #241a06;
     font-family: "Barlow Condensed", sans-serif; font-weight: 800;
-    font-size: 12px; letter-spacing: 0.18em; padding: 7px 12px;
+    font-size: clamp(9px, 0.95cqw, 12px); letter-spacing: 0.18em; padding: 0.55cqw 1cqw;
     display: grid; place-items: center;
     clip-path: polygon(0 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
   }
   .ticker .line {
     background: var(--panel); border: 1px solid var(--panel-border); border-left: none;
-    padding: 7px 16px; font-size: 14px; font-weight: 500; flex: 1;
+    padding: 0.55cqw 1.3cqw; font-size: clamp(11px, 1.1cqw, 14px); font-weight: 500; flex: 1;
     clip-path: polygon(0 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
   }
   .ticker .line.swap { animation: t-in 0.35s ease-out; }
   @keyframes t-in { 0% { opacity: 0; transform: translateX(-12px); } 100% { opacity: 1; transform: none; } }
 
   .your-cta {
-    position: absolute; right: 6%; bottom: 13%; z-index: 3;
+    position: absolute; right: 4.5%; bottom: 14%; z-index: 3;
     display: none; align-items: center; gap: 10px;
   }
   .your-cta.show { display: flex; }
   .cta-btn {
     font-family: "Barlow Condensed", sans-serif; font-weight: 800;
-    font-size: 17px; letter-spacing: 0.14em; text-indent: 0.14em;
+    font-size: clamp(12px, 1.35cqw, 17px); letter-spacing: 0.14em; text-indent: 0.14em;
     background: var(--gold); color: #241a06; border: none;
-    padding: 12px 26px; cursor: pointer;
+    padding: 0.95cqw 2cqw; cursor: pointer;
     clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
     filter: drop-shadow(0 8px 18px rgba(255, 210, 87, 0.35));
     transition: transform 0.15s ease;
@@ -276,10 +281,10 @@
   .cta-btn:hover { transform: translateY(-1px) scale(1.02); }
   .cta-ghost {
     font-family: "Barlow Condensed", sans-serif; font-weight: 700;
-    font-size: 14px; letter-spacing: 0.1em;
+    font-size: clamp(11px, 1.1cqw, 14px); letter-spacing: 0.1em;
     color: var(--ink-dim); background: var(--panel);
     border: 1px solid var(--panel-border); cursor: pointer;
-    padding: 11px 18px;
+    padding: 0.85cqw 1.4cqw;
     clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
   }
   .cta-ghost:hover { color: var(--ink); border-color: rgba(255, 236, 200, 0.4); }
@@ -860,6 +865,7 @@
     $("champ").classList.remove("crowned")
     $("champ-name").textContent = "—"
     $("your-cta").classList.remove("show")
+    for (const h of document.querySelectorAll(".col-head")) h.classList.remove("in")
     setLine("The bracket is set. Ember Drake draws the first fight.")
     play(0)
   }
@@ -877,6 +883,7 @@
     }
     wait(i === 0 ? 1400 : 400, () => {
       const el = $(m.id)
+      el.closest(".col").querySelector(".col-head").classList.add("in")
       if (m.you) {
         el.classList.add("in", "yours")
         if (m.ribbon) $(m.ribbon).style.display = ""
