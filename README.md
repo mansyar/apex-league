@@ -13,9 +13,10 @@ focus, move loadouts, and evolution planning. Battles resolve as spectator
 events — the tension is in watching a plan come together.
 
 Status: **pre-release vertical slice.** The raise-and-care loop is playable
-end to end, and training programs shape the stats cycle by cycle. The golden-hour
+end to end, training programs shape the stats cycle by cycle, and weekly cups
+put your creature in a broadcast arena. The golden-hour
 ranch is dressed with voxel scenery that feeds back on care (a food pile appears
-when the creature is fed). The battle system, cup brackets, and ladder are on
+when the creature is fed). The Bronze ladder is on
 the roadmap.
 
 ## Core loop
@@ -26,8 +27,10 @@ the roadmap.
    falls, energy recovers (sleep quality depends on care), sickness rolls or
    worsens, mood settles, bond decays without bonding. No permadeath: the
    worst case is misery, and recovery is always possible.
-3. **Cup phase** *(roadmap)* — every 7th day, an optional 8-bracket
-   single-elimination cup. Battles auto-resolve.
+3. **Cup phase** - every 7th day, an optional 8-bracket
+   single-elimination cup: scout the rival, re-pick your kit, and step into
+   the arena for each of your matches. Rival-vs-rival matches resolve as
+   spectator verdicts.
 4. **Legacy** *(roadmap)* — creatures retire and pass stat inheritance,
    traits, and family prestige into the next egg.
 
@@ -116,7 +119,7 @@ reproduced exactly from source.
 | Phase | Scope | State |
 |---|---|---|
 | 0 — Foundation | Workspaces, sim core, day ticker, versioned save/load, app shell | Done |
-| 1 — Vertical slice | Care loop, training, one lineage, battle system, one cup, Bronze ladder | In progress — care loop and training playable |
+| 1 - Vertical slice | Care loop, training, one lineage, battle system, one cup, Bronze ladder | In progress - care loop, training, arena battles, and live cups playable |
 | 2 — League depth | Full ladder, rivals and bosses, breeding, evolution discovery | Planned |
 | 3 — Content & meta | 20–40 species, ElysiaJS backend, cloud saves, leaderboards | Planned |
 | 4 — Post-MVP | Async ghost PvP, live PvP, mobile pass, audio | Planned |
