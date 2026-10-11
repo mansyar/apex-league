@@ -7,14 +7,15 @@ workflow checkpoint task.
 ## Phase A — Mock-first design gate
 
 - [x] Task: Build the mock dev page (`apps/client/mock.html` + `mock.css`) — `90ebfca`
-  - [ ] Kit primitive showcase: plate, chip, button, tab, meter, bar, stamp (all variants)
-  - [ ] Score bug cluster: hero day numeral, phase tab, AP segmented meter (full/empty/spent states), trophy tally
-  - [ ] Creature lower-third cluster: crest + name plate + stage tab, stat cells with `+N` chips, five condition bars (glyph labels, change-feedback states), announcer ticker line
-  - [ ] Command dock cluster: care plates (glyph + AP badge + rejection reason states), train picker rows, gold Advance Day CTA
-  - [ ] Top-right chip family (Spar / Cup / Motion) + starter overlay treatment
-  - [ ] Motion notes: entrance settle / spend flash / bar feedback shown as CSS animations in the mock
-- [ ] Task: Present mock to the user; iterate until approved; record the approval in the track notes
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Kit primitive showcase: plate, chip, button, tab, meter, bar, stamp (all variants)
+  - [x] Score bug cluster: hero day numeral, phase tab, AP segmented meter (full/empty/spent states), trophy tally
+  - [x] Creature lower-third cluster: crest + name plate + stage tab, stat cells with `+N` chips, five condition bars (glyph labels, change-feedback states), announcer ticker line
+  - [x] Command dock cluster: care plates (glyph + AP badge + rejection reason states), train picker rows, gold Advance Day CTA
+  - [x] Top-right chip family (Spar / Cup / Motion) + starter overlay treatment — review moved Cup day into the phase tab and Motion to top-left; rejection reasons became hover tooltips (`data-reason`); dock buttons settled on neutral rect
+  - [x] Motion notes: entrance settle / spend flash / bar feedback shown as CSS animations in the mock
+- [x] Task: Present mock to the user; iterate until approved; record the approval in the track notes — `2029244`
+  - v1→v4 iterations from live in-browser review; user approved final look ("Looks good")
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — `[checkpoint: 2029244]`
 
 ## Phase B — Shared kit + shared modules
 
