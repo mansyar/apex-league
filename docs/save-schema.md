@@ -23,8 +23,8 @@ interface SaveData {
 | `actionPoints` | integer ≥ 0 | AP left today (max from `ACTION_POINTS_PER_DAY` + cup-win bonus). |
 | `creature` | `Creature \| null` | The partner; null until a starter is chosen. |
 | `settings` | `{ reducedMotion: boolean }` | In-app motion preference (v5+). |
-| `cupsWon` | integer ≥ 0 | Permanent cup-win counter (v4+). |
-| `lastCupDay` | integer ≥ 1 \| null | Day of the last cup win; the ticker grants +1 AP the next day (v4+). |
+| `cupsWon` | integer ≥ 0 | Permanent cup-win counter (v5+). |
+| `lastCupDay` | integer ≥ 1 \| null | Day of the last cup win; the ticker grants +1 AP the next day (v5+). |
 
 ### `Creature`
 
