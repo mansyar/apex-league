@@ -15,10 +15,10 @@ export const ELEMENT_GLYPHS: Record<Element, string> = {
   plant:
     '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22v-8m0 0C12 8.5 8.6 5 4 5c0 5.5 3.5 9 8 9zm0 0c0-4 3.2-6.8 8-6.8 0 4.6-3.2 6.8-8 6.8z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>',
   electric:
-    '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>',
+    '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4.5 13.5H11L9.5 22 19 9.5h-6.5L13 2z"/></svg>',
   earth:
-    '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 20 8.5 8.5l3.8 6.2L15 10l7 10H2z"/></svg>',
-  wind: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 8h10.5a2.5 2.5 0 1 0-2.4-3.2M3 12h15.5a3 3 0 1 1-2.9 3.8M3 16h8.5a2.2 2.2 0 1 1-2.1 2.8"/></svg>',
+    '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 19 9.5 7l3.2 5.6L15 9l6 10H3z"/></svg>',
+  wind: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8h10a2.5 2.5 0 1 0-2.5-2.5M3 12.5h14a2.5 2.5 0 1 1-2.5 2.5M3 17h8a2 2 0 1 1-2 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
 }
 
 /** Hue per element — matches the arena projectile palette (staging). */

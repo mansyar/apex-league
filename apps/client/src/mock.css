@@ -1,426 +1,89 @@
-/* Broadcast HUD mock — design reference for broadcast_hud_20261011.
-   This file is the draft of kit.css: the primitives shown here become the
-   shared kit in Phase B. Warm tokens, layered chamfered plates, weighty
-   motion, everything muted under reduced motion. */
-
-/* ---- Tokens -------------------------------------------------------- */
-
-:root {
-  --panel-bg: rgb(20 16 12 / 0.72);
-  --panel-bg-solid: #14100c;
-  --keyline: rgb(255 236 200 / 0.22);
-  --keyline-warm: rgb(255 209 102 / 0.45);
-  --ink: #f4ecdf;
-  --ink-dim: #b8ad9c;
-  --accent: #ffd166;
-  --accent-ink: #241c10;
-  --danger: #ff8a7a;
-
-  --el-fire: 14;
-  --el-water: 210;
-  --el-plant: 120;
-  --el-electric: 48;
-  --el-earth: 28;
-  --el-wind: 167;
-
-  --bar-hunger: #e8985a;
-  --bar-energy: #6ec6ff;
-  --bar-health: #7ee08a;
-  --bar-mood: #ffd166;
-  --bar-bond: #ff9ec4;
-
-  --blur: blur(8px) saturate(1.1);
-  --settle: cubic-bezier(0.2, 0.9, 0.3, 1.2);
-}
-
-/* ---- Mock page base ------------------------------------------------ */
+/**
+ * Broadcast HUD mock — page chrome and cluster layout only.
+ *
+ * Every kit primitive (plates, tabs, chips, buttons, meters, bars,
+ * crests, stamps, tickers) lives in ui/kit.css; this file positions the
+ * mock's stage clusters and lays out the showcase. Phases C/D absorb the
+ * cluster layouts into their surface files.
+ */
 
 body {
-  margin: 0;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
   background: #171310;
   color: var(--ink);
   font-family: system-ui, sans-serif;
   line-height: 1.5;
-  padding: 32px clamp(16px, 4vw, 64px) 96px;
 }
 
 h1 {
+  margin: 10px 0 8px;
   font-size: 28px;
   font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin: 8px 0 4px;
+  letter-spacing: 0.02em;
 }
 
 h2 {
+  margin: 44px 0 16px;
   font-size: 15px;
   font-weight: 800;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--ink-dim);
-  margin: 0 0 18px;
 }
+
+p {
+  margin: 0 0 14px;
+  max-width: 62ch;
+  color: var(--ink-dim);
+  font-size: 14px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Header chrome                                                       */
+/* ------------------------------------------------------------------ */
 
 .mock-header {
-  max-width: 1080px;
-  margin: 0 auto 28px;
-}
-
-.mock-header p {
-  color: var(--ink-dim);
-  max-width: 62ch;
-  margin: 0 0 12px;
+  margin-bottom: 28px;
 }
 
 .mock-tag {
   display: inline-block;
-  padding: 3px 10px;
-  font-size: 11px;
+  padding: 5px 12px 6px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--accent);
-  background: rgb(255 209 102 / 0.1);
+  letter-spacing: 0.2em;
   clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
 }
 
 .mock-toggle {
   display: inline-flex;
+  align-items: center;
   gap: 8px;
-  align-items: center;
+  color: var(--ink-dim);
   font-size: 13px;
-  color: var(--ink-dim);
   cursor: pointer;
+  user-select: none;
 }
 
-/* ---- Kit primitives ------------------------------------------------ */
-
-/* Keyline trick: a transparent 1px border reserves the edge; the
-   border-box background layer paints the keyline, the padding-box layer
-   paints the fill. clip-path cuts both, so chamfered diagonals keep a
-   crisp keyline. Backdrop blur sits behind translucent panels. */
-.kit-plate {
-  border: 1px solid transparent;
-  background:
-    linear-gradient(var(--panel-bg), var(--panel-bg)) padding-box,
-    linear-gradient(var(--keyline), var(--keyline)) border-box;
-  backdrop-filter: var(--blur);
-  color: var(--ink);
+.mock-toggle input {
+  accent-color: var(--accent);
 }
 
-.kit-tab {
-  display: inline-block;
-  padding: 4px 12px;
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  clip-path: polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
-}
-
-.kit-tab.is-outline {
-  background: rgb(255 209 102 / 0.12);
-  color: var(--accent);
-}
-
-.kit-tab.is-stage {
-  padding: 2px 9px;
-  font-size: 10px;
-  letter-spacing: 0.16em;
-}
-
-.kit-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 14px;
-  background: var(--panel-bg);
-  border: 1px solid var(--keyline);
-  color: var(--ink);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  clip-path: polygon(
-    0 0,
-    100% 0,
-    100% calc(100% - 7px),
-    calc(100% - 7px) 100%,
-    0 100%
-  );
-  cursor: pointer;
-  transition:
-    transform 0.15s var(--settle),
-    border-color 0.15s ease;
-}
-
-.kit-chip svg {
-  width: 14px;
-  height: 14px;
-}
-
-.kit-chip:hover {
-  transform: translateY(-1px);
-  border-color: var(--keyline-warm);
-}
-
-.kit-chip.is-accent {
-  background: var(--accent);
-  color: var(--accent-ink);
-}
-
-.kit-chip.is-dim {
-  color: var(--ink-dim);
-  font-weight: 600;
-}
-
-.kit-crest {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  flex: none;
-  clip-path: polygon(50% 0, 100% 26%, 100% 74%, 50% 100%, 0 74%, 0 26%);
-  background: hsl(var(--hue) 70% 55%);
-  color: #14100c;
-}
-
-.kit-crest svg {
-  width: 22px;
-  height: 22px;
-}
-
-.kit-button {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  grid-template-areas: "glyph name cost";
-  align-items: center;
-  gap: 2px 8px;
-  padding: 9px 12px 10px;
-  background: rgb(255 236 200 / 0.06);
-  border: 1px solid var(--keyline);
-  color: var(--ink);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition:
-    transform 0.15s var(--settle),
-    border-color 0.15s ease,
-    background 0.15s ease;
-}
-
-.kit-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  border-color: var(--keyline-warm);
-  background: rgb(255 236 200 / 0.1);
-}
-
-.kit-button:active:not(:disabled) {
-  transform: translateY(1px) scale(0.98);
-}
-
-.kit-button-glyph {
-  grid-area: glyph;
-  display: grid;
-  place-items: center;
-  color: var(--accent);
-}
-
-.kit-button-glyph svg {
-  width: 18px;
-  height: 18px;
-}
-
-.kit-button-name {
-  grid-area: name;
-}
-
-.kit-button-cost {
-  grid-area: cost;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  color: var(--accent);
-}
-
-.shape-row {
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-}
-
-.shape-row .kit-button {
-  min-width: 64px;
-  justify-items: center;
-}
-
-.kit-button.is-disabled,
-.kit-button:disabled {
-  cursor: not-allowed;
-}
-
-/* Dim the content spans, never the button itself: the hover tooltip is a
-   ::after child and must stay fully opaque. */
-.kit-button.is-disabled > span,
-.kit-button:disabled > span {
-  opacity: 0.62;
-}
-
-.kit-button.is-focus {
-  border-color: var(--keyline-warm);
-  background: rgb(255 209 102 / 0.1);
-}
-
-.kit-cta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 13px 18px;
-  background: var(--accent);
-  color: var(--accent-ink);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  clip-path: polygon(
-    0 0,
-    100% 0,
-    100% calc(100% - 12px),
-    calc(100% - 12px) 100%,
-    0 100%
-  );
-  cursor: pointer;
-  border: 0;
-  transition:
-    transform 0.15s var(--settle),
-    filter 0.15s ease;
-}
-
-.kit-cta svg {
-  width: 18px;
-  height: 18px;
-}
-
-.kit-cta:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.06);
-}
-
-.kit-cta:active {
-  transform: translateY(1px) scale(0.99);
-}
-
-/* AP meter — skewed pips in the placard's skew language. */
-.ap-pips {
-  display: inline-flex;
-  gap: 7px;
-}
-
-.ap-pip {
-  width: 13px;
-  height: 20px;
-  transform: skewX(-14deg);
-  background: var(--accent);
-}
-
-.ap-pip.is-spent {
-  background: rgb(255 236 200 / 0.08);
-  box-shadow: inset 0 0 0 1px var(--keyline);
-}
-
-.ap-pip.is-bonus {
-  background: transparent;
-  box-shadow: inset 0 0 0 1px var(--keyline-warm);
-  clip-path: polygon(
-    0 0,
-    calc(100% - 6px) 0,
-    100% 50%,
-    calc(100% - 6px) 100%,
-    0 100%
-  );
-}
-
-/* Condition bars */
-.condition-track {
-  display: inline-block;
-  flex: 1;
-  height: 6px;
-  background: rgb(255 255 255 / 0.08);
-  overflow: hidden;
-}
-
-.condition-fill {
-  display: block;
-  height: 100%;
-  clip-path: polygon(0 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
-  transition: width 0.4s var(--settle);
-}
-
-.condition-fill.is-low {
-  animation: bar-pulse 1.6s ease-in-out infinite;
-}
-
-.condition-fill.is-flashing {
-  animation: bar-flash 1.2s ease-out infinite alternate;
-}
-
-/* Ticker — the announcer line under the creature plate. */
-.kit-ticker {
-  display: flex;
-  align-items: baseline;
-  gap: 9px;
-  padding: 9px 2px 1px;
-  border-top: 1px solid var(--keyline);
-  font-size: 12.5px;
-  color: var(--ink-dim);
-}
-
-.kit-ticker-tick {
-  align-self: center;
-  width: 4px;
-  height: 14px;
-  flex: none;
-  background: var(--accent);
-}
-
-.kit-ticker-line {
-  min-width: 0;
-  animation: ticker-in 7s var(--settle) infinite;
-}
-
-/* Stamp — verdict language carried over from the arena. */
-.kit-stamp {
-  display: inline-block;
-  padding: 6px 22px;
-  border: 2px solid var(--accent);
-  color: var(--accent);
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: 0.34em;
-  text-transform: uppercase;
-  transform: skewX(-8deg) rotate(-2deg);
-}
-
-.kit-stamp.is-loss {
-  border-color: var(--danger);
-  color: var(--danger);
-}
-
-/* ---- Stage: the ranch mock ------------------------------------------ */
+/* ------------------------------------------------------------------ */
+/* Ranch stage                                                         */
+/* ------------------------------------------------------------------ */
 
 .stage {
   position: relative;
   height: 620px;
-  max-width: 1080px;
-  margin: 0 auto;
-  border: 1px solid var(--keyline);
   overflow: hidden;
+  /* Full-bleed like the real game: the HUD overlays an edge-to-edge 3D scene. */
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  border: 1px solid var(--keyline);
 }
 
 .stage-scene {
@@ -436,30 +99,44 @@ h2 {
 
 .stage-sun {
   position: absolute;
+  bottom: 30%;
   left: 50%;
-  bottom: 18%;
-  width: 340px;
-  height: 340px;
+  width: 300px;
+  height: 300px;
   transform: translateX(-50%);
-  background: radial-gradient(circle, rgb(255 217 160 / 0.5), transparent 65%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgb(255 214 150 / 0.5) 0%,
+    rgb(255 214 150 / 0) 68%
+  );
 }
 
 .stage-ground {
   position: absolute;
-  inset: 62% 0 0;
-  background: linear-gradient(#3a4d34, #2c3a28);
-  box-shadow: inset 0 40px 60px rgb(0 0 0 / 0.35);
+  inset: auto 0 0 0;
+  height: 34%;
+  background: linear-gradient(#2a3a24, #16220f);
 }
 
-/* Score bug */
+/* Motion chip — top-left, out of the gameplay path. */
+.hud-motion {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  animation: settle-down 0.5s var(--kit-settle) 0.24s both;
+}
+
+/* Score bug — top-center broadcast furniture. */
 .score-bug {
   position: absolute;
   top: 18px;
   left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 8px 18px 8px 10px;
+  padding: 10px 20px 11px;
   clip-path: polygon(
     12px 0,
     calc(100% - 12px) 0,
@@ -468,137 +145,150 @@ h2 {
     0 100%,
     0 12px
   );
-  transform: translateX(-50%);
-  filter: drop-shadow(0 8px 22px rgb(0 0 0 / 0.4));
-  animation: settle-down 0.5s var(--settle) both;
+  filter: drop-shadow(0 8px 24px rgb(0 0 0 / 0.35));
+  animation: settle-down-centered 0.55s var(--kit-settle) both;
+}
+
+@keyframes settle-down-centered {
+  from {
+    transform: translate(-50%, -14px);
+    opacity: 0;
+  }
+
+  60% {
+    transform: translate(-50%, 2px);
+    opacity: 1;
+  }
+
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
 }
 
 .score-day {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 7px;
 }
 
-.score-day-label {
+.score-day-label,
+.score-ap-label {
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--ink-dim);
 }
 
+.score-ap-label {
+  color: var(--accent);
+}
+
 .score-day-num {
   font-size: 30px;
   font-weight: 800;
-  line-height: 1;
   font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
 .score-divider {
   width: 1px;
-  height: 26px;
+  height: 22px;
   background: var(--keyline);
 }
 
-.score-ap,
-.score-trophy {
+.score-ap {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.score-ap-label {
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.24em;
-  color: var(--ink-dim);
+.score-trophy {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
 }
 
 .score-trophy svg {
   width: 17px;
   height: 17px;
-  color: var(--accent);
 }
 
 .score-trophy-count {
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
 }
 
-/* Creature lower-third */
+/* Creature lower-third — bottom-left. */
 .creature-plate {
   position: absolute;
   bottom: 18px;
   left: 18px;
   width: 300px;
-  padding: 14px 16px 10px;
+  padding: 14px 16px 16px;
   clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
-  filter: drop-shadow(0 10px 26px rgb(0 0 0 / 0.42));
-  animation: settle-up 0.5s 0.08s var(--settle) both;
+  animation: settle-up 0.55s var(--kit-settle) 0.08s both;
 }
 
 .creature-head {
   display: flex;
   align-items: center;
-  gap: 11px;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .creature-id {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-width: 0;
+  gap: 8px;
 }
 
 .creature-name {
   font-size: 19px;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .stat-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  margin-bottom: 12px;
-  border: 1px solid var(--keyline);
+  gap: 6px;
+  margin-bottom: 10px;
 }
 
 .stat-cell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 7px 4px 6px;
-}
-
-.stat-cell + .stat-cell {
-  border-left: 1px solid var(--keyline);
+  padding: 6px 4px 7px;
+  background: rgb(255 236 200 / 0.04);
+  border: 1px solid var(--keyline);
+  text-align: center;
 }
 
 .stat-label {
+  display: block;
   font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.22em;
+  font-weight: 700;
+  letter-spacing: 0.14em;
   color: var(--ink-dim);
 }
 
 .stat-total {
+  display: block;
   font-size: 17px;
   font-weight: 800;
-  line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
 .stat-chip {
-  font-size: 9.5px;
-  font-weight: 800;
-  color: var(--accent-ink);
+  display: inline-block;
+  padding: 1px 5px 2px;
   background: var(--accent);
-  padding: 0 5px;
+  color: var(--accent-ink);
+  font-size: 9px;
+  font-weight: 700;
   clip-path: polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
 }
 
@@ -609,207 +299,125 @@ h2 {
   margin-bottom: 10px;
 }
 
-.condition-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.condition-label {
-  width: 52px;
-  flex: none;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-dim);
-}
-
-.condition-row.is-changed .condition-label {
-  color: var(--accent);
-}
-
-.condition-glyph {
-  display: grid;
-  place-items: center;
-  width: 14px;
-  flex: none;
-}
-
-.condition-glyph svg {
-  width: 13px;
-  height: 13px;
-  color: var(--ink-dim);
-}
-
-.condition-row.is-changed .condition-glyph svg {
-  color: var(--accent);
-}
-
-.condition-value {
-  flex: none;
-  min-width: 30px;
-  text-align: right;
-  font-size: 12px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.condition-delta {
-  display: inline-block;
-  margin-left: 4px;
-  padding: 0 4px;
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-size: 9.5px;
-  font-weight: 800;
-  font-style: normal;
-  animation: chip-pop 1.4s var(--settle) infinite;
-}
-
-/* Command dock */
+/* Command dock — bottom-right. */
 .command-dock {
   position: absolute;
   bottom: 18px;
   right: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
   width: 328px;
-  padding: 14px;
+  padding: 12px;
   clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%, 0 14px);
-  filter: drop-shadow(0 10px 26px rgb(0 0 0 / 0.42));
-  animation: settle-up 0.5s 0.16s var(--settle) both;
+  animation: settle-up 0.55s var(--kit-settle) 0.16s both;
 }
 
 .dock-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
+  margin-bottom: 8px;
 }
 
 .dock-row .kit-button {
-  grid-template-areas:
-    "glyph name cost"
-    "reason reason reason";
   justify-items: start;
-  gap: 3px 8px;
-  padding: 9px 12px 9px;
 }
 
-.dock-row .kit-button-name {
+.dock-row .kit-button .kit-button-name {
   font-size: 12px;
 }
 
 .dock-train {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.kit-button-tag {
-  grid-area: tag;
-  align-self: center;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--accent);
-  padding: 1px 7px;
-  background: rgb(255 209 102 / 0.14);
-  clip-path: polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
+  margin-bottom: 8px;
 }
 
 .dock-train .kit-button {
+  width: 100%;
   grid-template-columns: auto 1fr auto auto;
   grid-template-areas: "glyph name cost tag";
   gap: 8px;
 }
 
 .train-picker {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--keyline);
-  background: rgb(0 0 0 / 0.25);
+  margin-bottom: 10px;
+  border-top: 1px solid var(--keyline);
 }
 
 .train-entry {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 10px;
-  padding: 7px 11px;
-  font-size: 12px;
-}
-
-.train-entry + .train-entry {
-  border-top: 1px solid rgb(255 236 200 / 0.1);
+  gap: 12px;
+  padding: 8px 2px;
+  border-bottom: 1px solid var(--keyline);
 }
 
 .train-entry-name {
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
   font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .train-note {
+  font-size: 11px;
   color: var(--ink-dim);
 }
 
 .train-entry.is-focus .train-note {
   color: var(--accent);
+  font-weight: 600;
 }
 
 .train-entry.is-capped .train-note {
-  color: rgb(184 173 156 / 0.65);
   font-style: italic;
+  color: rgb(184 173 156 / 0.65);
 }
 
-/* Chip family */
+/* Chip family — top-right. */
 .hud-chips {
   position: absolute;
   top: 18px;
   right: 18px;
   display: flex;
   gap: 8px;
-  animation: settle-down 0.5s 0.24s var(--settle) both;
+  animation: settle-down 0.5s var(--kit-settle) 0.24s both;
 }
 
-/* Settings chip — top-left, out of the gameplay path. */
-.hud-motion {
-  position: absolute;
-  top: 18px;
-  left: 18px;
-  animation: settle-down 0.5s 0.24s var(--settle) both;
+.spar-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.15;
 }
 
-/* ---- Showcase ------------------------------------------------------- */
-
-.showcase {
-  max-width: 1080px;
-  margin: 64px auto 0;
+.spar-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
+
+.spar-sub {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+/* ------------------------------------------------------------------ */
+/* Kit showcase                                                        */
+/* ------------------------------------------------------------------ */
 
 .show-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 22px;
+  gap: 12px;
 }
 
 .show-item {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
   margin: 0;
-  padding: 18px;
-  background: rgb(255 255 255 / 0.03);
-  border: 1px solid rgb(255 255 255 / 0.07);
-}
-
-.show-item figcaption {
-  font-size: 12px;
-  color: var(--ink-dim);
+  padding: 14px;
+  background: rgb(255 236 200 / 0.03);
+  border: 1px solid var(--keyline);
 }
 
 .show-row {
@@ -824,65 +432,65 @@ h2 {
   align-items: stretch;
 }
 
+.show-item figcaption {
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+
 .show-plates {
   display: flex;
   gap: 10px;
 }
 
 .show-plate {
-  padding: 14px 18px;
-  font-weight: 700;
-  font-size: 13px;
+  padding: 10px 14px 11px;
+  font-size: 12px;
 }
 
-.show-plate.is-chamfer-left {
-  clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%);
+.shape-row .kit-button {
+  min-width: 64px;
+  justify-items: center;
 }
 
-.show-plate.is-chamfer-right {
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%);
-}
-
-.show-bars {
-  display: flex;
-  flex-direction: column;
+.show-crests {
+  flex-direction: row;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
-/* ---- Starter mock ---------------------------------------------------- */
-
-.starter-mock {
-  max-width: 1080px;
-  margin: 64px auto 0;
+.show-stamps {
+  gap: 10px;
 }
 
-.starter-frame {
-  border: 1px solid var(--keyline);
-}
+/* ------------------------------------------------------------------ */
+/* Starter treatment                                                   */
+/* ------------------------------------------------------------------ */
 
 .starter-dome {
   position: relative;
-  padding: 44px 40px 40px;
+  overflow: hidden;
+  padding: 42px 38px 46px;
+  border: 1px solid var(--keyline);
+  border-radius: 18px;
   background:
-    radial-gradient(
-      58% 42% at 50% 86%,
-      rgb(255 210 130 / 0.12),
-      transparent 70%
-    ),
+    radial-gradient(60% 30% at 50% 100%, rgb(255 210 130 / 0.12), transparent),
     radial-gradient(120% 90% at 50% 0%, #1a2030 0%, #0f1320 55%, #0a0d14 100%);
+  text-align: center;
 }
 
 .starter-head {
   display: flex;
-  align-items: baseline;
-  gap: 14px;
-  margin-bottom: 26px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 22px;
 }
 
 .starter-title {
   font-size: 22px;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -896,248 +504,64 @@ h2 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 9px;
-  padding: 22px 14px 18px;
-  background: rgb(20 16 12 / 0.72);
+  gap: 10px;
+  padding: 22px 16px;
+  background: rgb(255 236 200 / 0.05);
   border: 1px solid var(--keyline);
+  clip-path: polygon(
+    12px 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    calc(100% - 12px) 100%,
+    0 calc(100% - 12px),
+    0 12px
+  );
   color: var(--ink);
   font: inherit;
   cursor: pointer;
-  clip-path: polygon(12px 0, 100% 0, 100% 100%, 0 100%);
   transition:
-    transform 0.2s var(--settle),
-    border-color 0.2s ease,
-    background 0.2s ease;
+    transform 0.2s var(--kit-settle),
+    background 0.2s;
 }
 
 .starter-card:hover {
-  transform: translateY(-3px);
-  border-color: var(--keyline-warm);
-  background: rgb(30 24 18 / 0.85);
+  transform: translateY(-2px);
+  background: rgb(255 236 200 / 0.09);
 }
 
 .starter-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .starter-flavor {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--ink-dim);
 }
 
-/* ---- Motion notes ---------------------------------------------------- */
+/* ------------------------------------------------------------------ */
+/* Motion notes                                                        */
+/* ------------------------------------------------------------------ */
 
 .notes {
   max-width: 720px;
-  margin: 64px auto 0;
 }
 
 .notes ul {
-  padding-left: 20px;
-  color: var(--ink-dim);
-  font-size: 14px;
+  padding-left: 18px;
+  margin: 0;
 }
 
-.notes li + li {
-  margin-top: 10px;
+.notes li {
+  margin: 8px 0;
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 .notes strong {
-  color: var(--ink);
-}
-
-.notes code {
   color: var(--accent);
-  font-size: 12.5px;
-}
-
-/* ---- Animations ------------------------------------------------------ */
-
-@keyframes settle-up {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  60% {
-    opacity: 1;
-    transform: translateY(-2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes settle-down {
-  from {
-    opacity: 0;
-    transform: translateY(-14px);
-  }
-  60% {
-    opacity: 1;
-    transform: translateY(2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.score-bug {
-  animation-name: settle-down-centered;
-}
-
-@keyframes settle-down-centered {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-14px);
-  }
-  60% {
-    opacity: 1;
-    transform: translateX(-50%) translateY(2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-}
-
-@keyframes bar-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.45;
-  }
-}
-
-@keyframes bar-flash {
-  from {
-    filter: brightness(1);
-  }
-  to {
-    filter: brightness(1.6);
-  }
-}
-
-@keyframes chip-pop {
-  0% {
-    opacity: 0;
-    transform: translateY(3px) scale(0.85);
-  }
-  15%,
-  85% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-2px) scale(0.95);
-  }
-}
-
-@keyframes ticker-in {
-  0% {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  8%,
-  88% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
-@keyframes pip-spent {
-  0% {
-    background: var(--accent);
-  }
-  45% {
-    filter: brightness(2.2);
-    transform: skewX(-14deg) scale(1.15);
-  }
-  100% {
-    filter: brightness(1);
-    transform: skewX(-14deg) scale(1);
-  }
-}
-
-.score-bug .ap-pip.is-spent {
-  animation: pip-spent 0.9s ease-out 1.2s both;
-}
-
-/* Reduced motion: everything collapses to a crossfade or stillness. */
-/* Button shape modifiers — appended last so the neutral base rule stays
-   plain; the dock wears .is-slant, the showcase compares all four. */
-.kit-button.is-slant {
-  clip-path: polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
-}
-
-.kit-button.is-notch {
-  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 0 100%);
-}
-
-.kit-button.is-shard {
-  clip-path: polygon(9px 0, calc(100% - 9px) 0, 100% 100%, 0 100%);
-}
-
-.kit-button[data-reason] {
-  position: relative;
-}
-
-/* Rejection reasons live in a hover tooltip so every button keeps one
-   size; the plate language carries over. */
-.kit-button[data-reason]:hover::after,
-.kit-button[data-reason]:focus-visible::after {
-  content: attr(data-reason);
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  z-index: 20;
-  padding: 9px 13px;
-  background: #201911;
-  border: 1px solid var(--keyline-warm);
-  box-shadow: 0 10px 24px rgb(0 0 0 / 0.5);
-  color: var(--ink);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  text-transform: none;
-  white-space: nowrap;
-  clip-path: polygon(
-    0 0,
-    100% 0,
-    100% calc(100% - 5px),
-    calc(100% - 5px) 100%,
-    0 100%
-  );
-  pointer-events: none;
-  translate: -50% 0;
-}
-
-body.is-reduced *,
-body.is-reduced *::before,
-body.is-reduced *::after {
-  /* biome-ignore lint/complexity/noImportantStyles: reduced-motion overrides must win over every animation and transition */
-  animation: none !important;
-  /* biome-ignore lint/complexity/noImportantStyles: reduced-motion overrides must win over every animation and transition */
-  transition: none !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    /* biome-ignore lint/complexity/noImportantStyles: reduced-motion overrides must win over every animation and transition */
-    animation: none !important;
-    /* biome-ignore lint/complexity/noImportantStyles: reduced-motion overrides must win over every animation and transition */
-    transition: none !important;
-  }
+  font-weight: 700;
 }

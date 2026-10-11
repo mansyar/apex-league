@@ -13,6 +13,7 @@
  */
 
 import { crestGlyph, elementHue } from "../element"
+import { icons } from "./icons"
 
 /**
  * The AP meter's static states. A pip is `full` while its action point is
@@ -140,8 +141,7 @@ export function cta(label: string, onClick?: () => void): HTMLButtonElement {
   const node = el("button", "kit-cta", label)
   node.type = "button"
   const arrow = el("span", "kit-cta-arrow")
-  arrow.innerHTML =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>'
+  arrow.innerHTML = icons.arrow
   node.append(arrow)
   if (onClick) node.addEventListener("click", onClick)
   return node
