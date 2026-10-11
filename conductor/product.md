@@ -57,6 +57,15 @@ Phased delivery plan (each phase is independently playable):
 
 ### Phase 1 — Vertical Slice (MVP) ✅ *first playable target*
 - One full lineage: 3-stage evolution tree, one species family (starter tier).
+  *(Landed 2026-10-11: care-gated baby→juvenile evolution on the night of day
+  10 — no sickness in the last 3 settled nights, mood ≥ 40; neglect delays but
+  never blocks. Evolution applies +3 HP / +2 ATK / +2 DEF / +1 SPD, unlocks
+  tier-3 moves, and the juvenile keeps its identity (seed, palette family,
+  horn/snout plan) while gaining a per-archetype signature feature (drake horn
+  nubs, bovine horn buds, axolotl gill frills) plus matured proportions at
+  1.0× world scale (baby 0.6×). Ranch ceremony with glow/swap (reduced-motion
+  aware), stage badge, growth hint from day 5, save v6 with v5 migration.
+  Champion stage + branching still open.)*
 - Full day loop: feeding, rest & sickness, assign-based training, bonding.
   *(Landed: care loop with 5 conditions, AP day phase, 3 starters.)*
 - Battle system: 4 stats + 6 types, move pool + equip-4, type/HP battle AI.
