@@ -54,18 +54,20 @@ notes per task, phase checkpoints with explicit user verification).
 
 ## Phase 2 — Client Store & Dedupe (parity refactor)
 
-- [ ] Task: Typed store module (TDD)
-  - [ ] Write failing tests (DOM-free): get/set/subscribe semantics,
+- [x] Task: Typed store module (TDD) (a32b1bd)
+  - [x] Write failing tests (DOM-free): get/set/subscribe semantics,
         `commit(state)` = persist → notify hud/spar/cup/scene in fixed order,
         persistence failure does not break notification
-  - [ ] Implement `store.ts` with fake `SaveAdapter`
-  - [ ] Commit `feat(client): typed game-state store with commit fanout`
-- [ ] Task: Rewire main.ts through commit() (FR-A1)
-  - [ ] Route every handler through `commit()`; remove per-handler
+  - [x] Implement `store.ts` with fake `SaveAdapter`
+  - [x] Commit `feat(client): typed game-state store with commit fanout`
+- [x] Task: Rewire main.ts through commit() (FR-A1) (09e2d71)
+  - [x] Route every handler through `commit()`; remove per-handler
         persist/update pairs; strict behavior parity — no visual/timing changes
-  - [ ] Manual smoke: all HUD actions, spar, cup entry, save/reload
-  - [ ] Commit `refactor(client): route all state mutations through commit()`
-- [ ] Task: Client dedupe pass (FR-A3)
+  - [x] Manual smoke: all HUD actions, spar, cup entry, save/reload
+        (browser-verified: care, train, motion, advance, reload; cup entry
+        verified at the Phase 1 checkpoint)
+  - [x] Commit `refactor(client): route all state mutations through commit()`
+- [~] Task: Client dedupe pass (FR-A3)
   - [ ] Import `clampCondition` from settlement in `cupRewards.ts` (delete
         local copy)
   - [ ] Create shared reduced-motion predicate module; consume in
