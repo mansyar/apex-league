@@ -138,8 +138,9 @@ export function button(opts: ButtonOptions): HTMLButtonElement {
 
 /** The gold Advance Day CTA: label left, arrow right, 12px chamfer. */
 export function cta(label: string, onClick?: () => void): HTMLButtonElement {
-  const node = el("button", "kit-cta", label)
+  const node = el("button", "kit-cta")
   node.type = "button"
+  node.append(el("span", "kit-cta-label", label))
   const arrow = el("span", "kit-cta-arrow")
   arrow.innerHTML = icons.arrow
   node.append(arrow)

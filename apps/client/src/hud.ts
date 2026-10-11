@@ -22,7 +22,17 @@ import {
 } from "@apex/sim"
 import { crestGlyph, elementHue } from "./element"
 import { icons } from "./ui/icons"
-import { bar, crest, meter, plate, replay, tab, ticker } from "./ui/kit"
+import {
+  bar,
+  button,
+  crest,
+  cta,
+  meter,
+  plate,
+  replay,
+  tab,
+  ticker,
+} from "./ui/kit"
 
 export interface HudHandlers {
   onAdvanceDay: () => void
@@ -79,11 +89,11 @@ const CONDITIONS: Array<{
   { key: "bond", label: "Bond", glyph: icons.bond, color: "var(--bar-bond)" },
 ]
 
-const ACTIONS: Array<{ action: CareAction; label: string }> = [
-  { action: "feed", label: "Feed" },
-  { action: "rest", label: "Rest" },
-  { action: "treat", label: "Treat" },
-  { action: "play", label: "Play" },
+const ACTIONS: Array<{ action: CareAction; label: string; glyph: string }> = [
+  { action: "feed", label: "Feed", glyph: icons.feed },
+  { action: "rest", label: "Rest", glyph: icons.rest },
+  { action: "treat", label: "Treat", glyph: icons.treat },
+  { action: "play", label: "Play", glyph: icons.play },
 ]
 
 const STATS: Array<{ key: StatKey; label: string }> = [
@@ -316,70 +326,55 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   const statusTicker = ticker()
   lowerThird.append(creatureHead, statRow, conditionList, statusTicker.root)
 
-  // Bottom-right action cluster.
-  const cluster = document.createElement("div")
-  cluster.className = "action-cluster"
-  const actionRow = document.createElement("div")
-  actionRow.className = "action-row"
-  const actionButtons = ACTIONS.map(({ action, label }) => {
-    const button = document.createElement("button")
-    button.className = "care-button"
-    button.type = "button"
-    const name = document.createElement("span")
-    name.textContent = label
-    const cost = document.createElement("span")
-    cost.className = "ap-cost"
-    cost.textContent = "1 AP"
-    const reason = document.createElement("span")
-    reason.className = "action-reason"
-    button.append(name, cost, reason)
-    button.addEventListener("click", () => handlers.onCare(action))
-    actionRow.append(button)
-    return { button, reason, action }
+  // Bottom-right command dock (broadcast kit plate).
+  const cluster = plate({ className: "command-dock" })
+  const dockRow = document.createElement("div")
+  dockRow.className = "dock-row"
+  const actionButtons = ACTIONS.map(({ action, label, glyph }) => {
+    const btn = button({
+      label,
+      glyph,
+      cost: "1 AP",
+      onClick: () => handlers.onCare(action),
+    })
+    dockRow.append(btn)
+    return { button: btn, action }
   })
   // Train control and its inline four-stat picker. Opening or closing
   // the picker spends nothing — only an assignment can.
-  const trainRow = document.createElement("div")
-  trainRow.className = "train-row"
-  const trainButton = document.createElement("button")
-  trainButton.className = "care-button"
-  trainButton.type = "button"
-  const trainName = document.createElement("span")
-  trainName.textContent = "Train"
-  const trainCost = document.createElement("span")
-  trainCost.className = "ap-cost"
-  trainCost.textContent = "1 AP"
-  const trainReason = document.createElement("span")
-  trainReason.className = "action-reason"
-  trainButton.append(trainName, trainCost, trainReason)
-  trainRow.append(trainButton)
+  const dockTrain = document.createElement("div")
+  dockTrain.className = "dock-train"
+  const trainButton = button({
+    label: "Train",
+    glyph: icons.train,
+    cost: "1 AP",
+  })
+  const trainTag = trainButton.querySelector<HTMLElement>(".kit-button-tag")
+  dockTrain.append(trainButton)
 
   const picker = document.createElement("div")
   picker.className = "train-picker"
   picker.style.display = "none"
   const pickerButtons = STATS.map(({ key, label }) => {
-    const button = document.createElement("button")
-    button.className = "train-entry"
-    button.type = "button"
+    const entry = document.createElement("button")
+    entry.className = "train-entry"
+    entry.type = "button"
     const name = document.createElement("span")
     name.className = "train-entry-name"
     name.textContent = label
     const note = document.createElement("span")
     note.className = "train-note"
-    button.append(name, note)
-    button.addEventListener("click", () => {
+    entry.append(name, note)
+    entry.addEventListener("click", () => {
       pickerOpen = false
       handlers.onTrain(key)
     })
-    picker.append(button)
-    return { button, note, key }
+    picker.append(entry)
+    return { button: entry, note, key }
   })
-  const advance = document.createElement("button")
-  advance.className = "advance-button"
-  advance.type = "button"
-  advance.textContent = "Advance Day"
-  advance.addEventListener("click", handlers.onAdvanceDay)
-  cluster.append(actionRow, trainRow, picker, advance)
+  const advance = cta("Advance Day", handlers.onAdvanceDay)
+  const advanceLabel = advance.querySelector<HTMLElement>(".kit-cta-label")
+  cluster.append(dockRow, dockTrain, picker, advance)
 
   // Settings pill (save v5): one toggle mirrors the reduced-motion
   // preference. Persists through the main.ts handler like every other
@@ -449,15 +444,17 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     // Championship tally: designed overflow — "× N" scales to any count.
     trophyCount.textContent = `× ${state.cupsWon}`
     trophy.style.display = state.cupsWon > 0 ? "" : "none"
-    advance.textContent =
-      state.phase === "cup" ? "Continue past cup" : "Advance Day"
+    if (advanceLabel) {
+      advanceLabel.textContent =
+        state.phase === "cup" ? "Continue past cup" : "Advance Day"
+    }
 
     const creature = state.creature
     if (!creature) {
-      // Pre-starter: day chip + settings pill are the meaningful bits.
+      // Pre-starter: score bug + settings pill are the meaningful bits.
       lowerThird.style.display = "none"
-      actionRow.style.display = "none"
-      trainRow.style.display = "none"
+      dockRow.style.display = "none"
+      dockTrain.style.display = "none"
       picker.style.display = "none"
       statusTicker.say("")
       motionPill.style.display = ""
@@ -466,8 +463,8 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     }
     capturePrefUpdate(state)
     lowerThird.style.display = ""
-    actionRow.style.display = ""
-    trainRow.style.display = ""
+    dockRow.style.display = ""
+    dockTrain.style.display = ""
 
     // The creature carries its own identity; the species catalog is only
     // needed for starter-card display.
@@ -493,16 +490,25 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     )
     if (allCapped) {
       trainButton.disabled = true
-      trainReason.textContent = "Nothing left to train for now."
+      trainButton.classList.add("is-disabled")
+      trainButton.dataset.reason = "Nothing left to train for now."
+      if (trainTag) trainTag.textContent = ""
     } else if (state.actionPoints === 0 && !creature.trainingFocus) {
       trainButton.disabled = true
-      trainReason.textContent = REJECTION_COPY["no-ap"]
+      trainButton.classList.add("is-disabled")
+      trainButton.dataset.reason = REJECTION_COPY["no-ap"]
+      if (trainTag) trainTag.textContent = ""
     } else {
       trainButton.disabled = false
-      trainReason.textContent = creature.trainingFocus
-        ? `Focus: ${statLabel(creature.trainingFocus)}`
-        : ""
+      trainButton.classList.remove("is-disabled")
+      delete trainButton.dataset.reason
+      if (trainTag) {
+        trainTag.textContent = creature.trainingFocus
+          ? `Focus: ${statLabel(creature.trainingFocus)}`
+          : ""
+      }
     }
+    trainButton.classList.toggle("is-focus", Boolean(creature.trainingFocus))
 
     // Picker entries: tonight's delta, or the waste reason. Capped stats
     // are disabled; the current focus is marked.
@@ -510,6 +516,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     for (const entry of pickerButtons) {
       const capped = creature.trained[entry.key] >= TRAINING_CAP
       entry.button.disabled = capped
+      entry.button.classList.toggle("is-capped", capped)
       entry.button.classList.toggle(
         "is-focus",
         creature.trainingFocus === entry.key,
@@ -552,15 +559,18 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     )
 
     // Disabled states come from the sim itself — a dry-run careAction is
-    // the single source of truth for why an action can't happen.
+    // the single source of truth for why an action can't happen. The
+    // reason explains on hover (kit tooltip), never inside the plate.
     for (const entry of actionButtons) {
       const result = careAction(state, entry.action)
       if (result.ok) {
         entry.button.disabled = false
-        entry.reason.textContent = ""
+        entry.button.classList.remove("is-disabled")
+        delete entry.button.dataset.reason
       } else {
         entry.button.disabled = true
-        entry.reason.textContent = REJECTION_COPY[result.reason]
+        entry.button.classList.add("is-disabled")
+        entry.button.dataset.reason = REJECTION_COPY[result.reason]
       }
     }
 

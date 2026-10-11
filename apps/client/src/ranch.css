@@ -181,72 +181,40 @@
   margin-top: 2px;
 }
 
-/* Bottom-right action cluster */
-.action-cluster {
+/* Bottom-right command dock (broadcast kit plate) */
+.command-dock {
   position: absolute;
-  bottom: 16px;
-  right: 16px;
+  bottom: 18px;
+  right: 18px;
+  width: 328px;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  gap: 10px;
+  gap: 8px;
+  padding: 12px;
+  clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%, 0 14px);
+  animation: settle-up 0.5s var(--kit-settle) 0.16s both;
   user-select: none;
 }
 
-.action-row {
-  display: flex;
+.dock-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
 }
 
-.care-button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  min-width: 74px;
-  min-height: 56px;
-  padding: 8px 10px;
-  border: 1px solid var(--panel-border);
-  border-radius: 10px;
-  background: var(--panel-bg);
-  color: var(--ink);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
+.dock-row .kit-button {
+  justify-items: start;
 }
 
-.care-button:hover:not(:disabled) {
-  border-color: var(--accent);
+.dock-row .kit-button-name {
+  font-size: 12px;
 }
 
-.care-button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.ap-cost {
-  font-size: 10px;
-  color: var(--accent);
-  letter-spacing: 0.08em;
-}
-
-.action-reason {
-  font-size: 10px;
-  color: var(--ink-dim);
-  max-width: 80px;
-  text-align: center;
-  min-height: 1em;
-}
-
-.advance-button {
-  padding: 12px 18px;
-  font-size: 14px;
-  font-weight: 700;
-  border: 0;
-  border-radius: 10px;
-  background: var(--accent);
-  color: var(--accent-ink);
-  cursor: pointer;
+.dock-train .kit-button {
+  width: 100%;
+  grid-template-columns: auto 1fr auto auto;
+  grid-template-areas: "glyph name cost tag";
+  gap: 8px;
 }
 
 /* Reduced-motion settings pill (save v5): a quiet bottom-right control
@@ -285,27 +253,11 @@
   }
 }
 
-.advance-button:hover {
-  background: #ffe08a;
-}
-
 /* Training: a separate row plus an inline four-stat picker */
-.train-row {
-  display: flex;
-}
-
-.train-row .care-button {
-  flex: 1;
-}
-
 .train-picker {
+  border-top: 1px solid var(--keyline);
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 8px;
-  border: 1px solid var(--panel-border);
-  border-radius: 10px;
-  background: var(--panel-bg);
 }
 
 .train-entry {
@@ -313,9 +265,9 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
-  padding: 6px 9px;
-  border: 1px solid var(--panel-border);
-  border-radius: 8px;
+  padding: 8px 2px;
+  border: 0;
+  border-bottom: 1px solid var(--keyline);
   background: transparent;
   color: var(--ink);
   font-size: 12px;
@@ -324,7 +276,7 @@
 }
 
 .train-entry:hover:not(:disabled) {
-  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .train-entry:disabled {
@@ -332,16 +284,23 @@
   cursor: not-allowed;
 }
 
-.train-entry.is-focus {
-  border-color: var(--accent);
+.train-entry.is-focus .train-note {
+  color: var(--accent);
 }
 
 .train-entry-name {
-  letter-spacing: 0.05em;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.train-entry.is-capped .train-note {
+  font-style: italic;
+  color: rgb(184 173 156 / 0.65);
 }
 
 .train-note {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 400;
   color: var(--ink-dim);
   text-align: right;
