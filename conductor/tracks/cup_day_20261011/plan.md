@@ -49,10 +49,11 @@ Verification & Checkpoint gate before moving on.
   rewards, returns to day phase; unit-tested with seeded runs (same seed →
   identical bracket + rewards) *(implemented as `enterCup` — one-sitting
   resolution; exports surfaced via `index.ts` — `d24dd93`, `0d00497`)*
-- [ ] Task: Client `cup.ts` panel — full-screen DOM overlay: bracket table
+- [x] Task: Client `cup.ts` panel — full-screen DOM overlay: bracket table
   QF→SF→F paced ~1.5 s per round, verdict + short round logs, announcer
   voice; Enter Cup chip in the Spar area on cup days (disabled after resolve
   or on non-cup days); reduced motion honored (instant resolve, no bounce)
+  *(6a38162 — rendering, manual verification at checkpoint)*
 - [ ] Task: Main.ts integration — hook the machine into the Advance Day flow
   (cup day surfaces the chip rather than auto-running); HUD shows the
   `cupsWon` banner counter
