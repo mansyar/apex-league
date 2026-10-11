@@ -44,13 +44,12 @@ notes per task, phase checkpoints with explicit user verification).
         with unknown `speciesId` rejected by `loadGame`
   - [x] Add catalog lookup check to `isValidCreature`
   - [x] Commit `fix(sim): reject saves referencing unknown species`
-- [ ] Task: Dead RNG draw audit (FR-B3)
-  - [ ] Verify `void creatureSeed` / over-drawn `pickNames` stream-stability
-        requirements; remove draws only if digests/streams provably unchanged,
-        else document invariant
-  - [ ] Commit `docs(sim): document cup RNG stream invariants` (or
-        `refactor(sim)` if removed)
-- [ ] Task: Phase 1 Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Dead RNG draw audit (FR-B3) (becd670)
+  - [x] Verify `void creatureSeed` / over-drawn `pickNames` stream-stability
+        requirements; pickNames count normalized (proven stream-neutral via
+        golden test), creatureSeed kept + documented as load-bearing
+  - [x] Commit `refactor(sim): audit cup RNG draws; pin stream invariant`
+- [~] Task: Phase 1 Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Client Store & Dedupe (parity refactor)
 
