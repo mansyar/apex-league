@@ -24,6 +24,11 @@ import {
   unlockedKit,
 } from "@apex/sim"
 import { type BattleHudFighter, createBattleHud } from "./battleHud"
+import {
+  PLAYBACK_SPEED_MS,
+  type PlaybackSpeed,
+  toggleSpeed,
+} from "./playbackSpeed"
 import type { FightCasting } from "./staging"
 import { visualSeedOf } from "./staging"
 
@@ -68,9 +73,6 @@ const TACTIC_LABELS: Record<Tactic, string> = {
   balanced: "Balanced",
   specials: "Favor Specials",
 }
-
-const STEP_MS = 900
-const FAST_MS = 140
 
 /** Bigger stat label for readability on the card line. */
 const STAT_KEYS = ["hp", "atk", "def", "spd"] as const
@@ -225,8 +227,20 @@ export function createSpar(
   replayButton.textContent = "Replay slowly"
   replayButton.style.display = "none"
 
+  // Secondary log (Phase D): the battle-HUD announcer carries the live
+  // line, so the full log demotes to a compact collapsible box — closed
+  // by default, opens on demand, still records every event.
+  const logBox = document.createElement("div")
+  logBox.className = "spar-logbox"
+  const logToggle = document.createElement("button")
+  logToggle.className = "spar-log-toggle"
+  logToggle.type = "button"
+  logToggle.textContent = "Battle log"
+  logToggle.setAttribute("aria-expanded", "false")
   const log = document.createElement("div")
   log.className = "spar-log"
+  log.hidden = true
+  logBox.append(logToggle, log)
 
   const result = document.createElement("div")
   result.className = "spar-result"
@@ -258,7 +272,7 @@ export function createSpar(
     tactics,
     fastButton,
     replayButton,
-    log,
+    logBox,
     result,
     close,
   )
@@ -272,7 +286,7 @@ export function createSpar(
   let battleSeed = 0
   let owned: Creature | null = null
   let timer: ReturnType<typeof setTimeout> | null = null
-  let speed = STEP_MS
+  let speed: PlaybackSpeed = "normal"
   let lastRun: {
     steps: readonly PlaybackStep[]
     events: readonly BattleEvent[]
@@ -303,7 +317,7 @@ export function createSpar(
     line.className = "spar-line"
     line.textContent = text
     log.append(line)
-    log.scrollTop = log.scrollHeight
+    if (!log.hidden) log.scrollTop = log.scrollHeight
   }
 
   const finish = (
@@ -350,7 +364,7 @@ export function createSpar(
     if (!event) {
       timer = setTimeout(
         () => finish(resultLine(verdict), verdict.winner === null, verdict),
-        speed,
+        PLAYBACK_SPEED_MS[speed],
       )
       return
     }
@@ -363,7 +377,7 @@ export function createSpar(
         battleHud.update(step)
       }
       play(events, index + 1, verdict, steps)
-    }, speed)
+    }, PLAYBACK_SPEED_MS[speed])
   }
 
   const runBattle = (playerTactic: Tactic): void => {
@@ -412,10 +426,9 @@ export function createSpar(
       replayButton.style.display = ""
       return
     }
-    speed = STEP_MS
+    speed = "normal"
 
     fastButton.textContent = "Fast-forward"
-    fastButton.disabled = false
     fastButton.style.display = ""
     play(verdict.events, 0, verdict, steps)
   }
@@ -506,6 +519,9 @@ export function createSpar(
     banner.style.display = "none"
     bannerSub.textContent = ""
     log.replaceChildren()
+    log.hidden = true
+    logToggle.textContent = "Battle log ▸"
+    logToggle.setAttribute("aria-expanded", "false")
     battleHud.hide()
     close.style.display = "none"
     fastButton.style.display = "none"
@@ -536,19 +552,30 @@ export function createSpar(
         error instanceof Error ? error.message : "That kit is not allowed"
     }
   })
+  logToggle.addEventListener("click", () => {
+    log.hidden = !log.hidden
+    logToggle.setAttribute("aria-expanded", String(!log.hidden))
+    logToggle.textContent = log.hidden ? "Battle log ▸" : "Battle log ▴"
+    if (!log.hidden) log.scrollTop = log.scrollHeight
+  })
+
   fastButton.addEventListener("click", () => {
-    speed = FAST_MS
-    fastButton.disabled = true
+    speed = toggleSpeed(speed)
+    fastButton.textContent = speed === "fast" ? "Normal speed" : "Fast-forward"
   })
   replayButton.addEventListener("click", () => {
     if (!lastRun) return
     clearTimer()
     log.replaceChildren()
+    log.hidden = true
+    logToggle.textContent = "Battle log ▸"
+    logToggle.setAttribute("aria-expanded", "false")
     result.textContent = ""
     result.classList.remove("spar-result-draw", "spar-result-win")
     replaying = true
     replayButton.disabled = true
-    speed = STEP_MS
+    speed = "normal"
+    fastButton.textContent = "Fast-forward"
     battleHud.show(lastRun.fight)
     play(lastRun.events, 0, lastRun.verdict, lastRun.steps)
   })
