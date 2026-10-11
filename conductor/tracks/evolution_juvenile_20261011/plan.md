@@ -29,12 +29,12 @@ manual verification for presentation tasks, phase checkpoints per
 
 ## Phase 2 — Voxel Pipeline: Juvenile Stage Builds
 
-- [ ] Task: Stage-variant build API (TDD)
-  - [ ] Tests: same seed → identical juvenile build across runs; baby build unchanged (digest-stable); stage variant passes proportion-budget audit; signature part absent in baby build, present in juvenile
-  - [ ] Implement stage-gating + per-archetype signature parts (drake horn nubs / bovine brow horns / axolotl gill branch) in `packages/voxel/src/`
-- [ ] Task: Determinism gate + artifacts
-  - [ ] Extend `scripts/determinism-gate.ts` to hash juvenile-variant GLBs; generate + commit stage-variant artifacts
-  - [ ] Verify `bun run gate:determinism` green
+- [x] Task: Stage-variant build API (TDD) — [checkpoint: 0cd197d]
+  - [x] Tests: same seed → identical juvenile build across runs; baby build unchanged (digest-stable); stage variant passes proportion-budget audit (200 seeds × 3 archetypes); signature part absent in baby build, present in juvenile; pivot-level hip maturation
+  - [x] Implement stage-gating + per-archetype signature parts (drake horn nubs / bovine horn buds / axolotl gill frills) + hip-lift/slim/palette-lift maturation in `packages/voxel/src/stage.ts` + builders
+- [x] Task: Determinism gate + artifacts — [checkpoint: b888979]
+  - [x] Extend `scripts/determinism-gate.ts` to byte-compare both stages; export-artifact stage argv; committed 3 juvenile GLB + manifest artifacts
+  - [x] Verify `bun run gate:determinism` green (6 creature artifacts byte-identical, 5 props digest-match)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — Client: Evolution Moment, HUD & Hints
