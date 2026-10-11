@@ -1,4 +1,4 @@
-import type { PlaybackStep } from "@apex/sim"
+import { EVOLUTION_STAT_BOOST, type PlaybackStep } from "@apex/sim"
 import { generate } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
@@ -15,13 +15,36 @@ import { buildCreatureGroup } from "./creature"
 /**
  * Visual DNA seed shared with the ranch view: same creature, same look,
  * in the arena and on the ranch.
+ *
+ * Stage-aware: evolution boosts the rolled base stats (+3/+2/+2/+1), which
+ * would otherwise re-roll the individual's DNA mid-life. The juvenile's
+ * boosted contributions are subtracted back out so the visual seed — and
+ * therefore the individual — stays the one rolled at creation. If a later
+ * stage adds another boost, extend the offset here.
  */
-export const visualSeedOf = (s: {
-  hp: number
-  atk: number
-  def: number
-  spd: number
-}): number => (s.hp * 7 + s.atk * 13 + s.def * 17 + s.spd * 23) % 2 ** 31
+export const visualSeedOf = (
+  s: {
+    hp: number
+    atk: number
+    def: number
+    spd: number
+  },
+  stage: "baby" | "juvenile" | "champion" = "baby",
+): number => {
+  const off =
+    stage === "juvenile"
+      ? EVOLUTION_STAT_BOOST
+      : stage === "champion"
+        ? { hp: 6, atk: 4, def: 4, spd: 2 } // juvenile + champion boost
+        : { hp: 0, atk: 0, def: 0, spd: 0 }
+  return (
+    ((s.hp - off.hp) * 7 +
+      (s.atk - off.atk) * 13 +
+      (s.def - off.def) * 17 +
+      (s.spd - off.spd) * 23) %
+    2 ** 31
+  )
+}
 
 /** Spar pacing at normal speed, in ms per step (the playback baseline). */
 const NORMAL_STEP_MS = 900

@@ -49,6 +49,12 @@ export function evolveCreature(creature: Creature): Creature {
  */
 export const EVOLUTION_DAY = 10
 
+/**
+ * Baby-to-juvenile coach copy may tease growth from this day on (the
+ * threshold itself stays undisclosed — part of the raising mystery).
+ */
+export const EVOLUTION_HINT_DAY = 5
+
 /** Mood at or above which the care gate passes. */
 export const EVOLUTION_MOOD = 40
 

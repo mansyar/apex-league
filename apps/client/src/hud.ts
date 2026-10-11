@@ -5,6 +5,9 @@ import {
   type Creature,
   type CreatureConditions,
   careAction,
+  EVOLUTION_DAY,
+  EVOLUTION_HINT_DAY,
+  EVOLUTION_STAT_BOOST,
   EXHAUSTED_ENERGY,
   type GameState,
   getMove,
@@ -31,6 +34,9 @@ export interface HudHandlers {
 
 export interface Hud {
   update(state: GameState): void
+  /** Show the evolution-moment coach line (called once, right after the
+   * ceremony starts; the next routine update replaces it). */
+  announceEvolution(creature: NonNullable<GameState["creature"]>): void
 }
 
 /** Coach-voice copy for disabled actions (≤ 2 sentences, never punishing). */
@@ -129,6 +135,37 @@ export function unlockCallout(creature: Creature): string {
 }
 
 /**
+ * Life-stage display name for the nameplate badge.
+ */
+export function stageLabel(stage: Creature["stage"]): string {
+  if (stage === "juvenile") return "Juvenile"
+  if (stage === "champion") return "Champion"
+  return "Baby"
+}
+
+/**
+ * The growth hint (evolution track): from a hinted day on, the coach
+ * occasionally teases that the baby is maturing — without disclosing the
+ * threshold. Priority sits below unlock news and condition coach lines,
+ * above flavor: raising is the game, but urgent care still leads.
+ * Requires the current day, so the caller passes it in.
+ */
+export function growthHint(day: number, creature: Creature): string {
+  if (creature.stage !== "baby") return ""
+  if (day < EVOLUTION_HINT_DAY || day >= EVOLUTION_DAY) return ""
+  return `${creature.name} is filling out — keep the routine steady and one morning soon it will surprise you.`
+}
+
+/**
+ * The evolution-moment coach line: what changed, in stat numbers. Shown
+ * once by the HUD right after the ceremony, ahead of the routine status.
+ */
+export function evolveCallout(creature: Creature): string {
+  const b = EVOLUTION_STAT_BOOST
+  return `Evolution! ${creature.name} grew into a ${stageLabel(creature.stage)} — +${b.hp} HP · +${b.atk} ATK · +${b.def} DEF · +${b.spd} SPD. The ranch just got livelier.`
+}
+
+/**
  * The status line leads with training: the preview while a focus is set,
  * the morning result after Advance Day, and the condition coach line only
  * when training has nothing to say.
@@ -190,7 +227,10 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   creatureName.className = "creature-name"
   const elementBadge = document.createElement("span")
   elementBadge.className = "element-badge"
-  nameRow.append(creatureName, elementBadge)
+  const stageBadge = document.createElement("span")
+  stageBadge.className = "stage-badge"
+  stageBadge.title = "Life stage"
+  nameRow.append(creatureName, elementBadge, stageBadge)
 
   const bars: Array<{
     row: HTMLElement
@@ -374,6 +414,8 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     creatureName.textContent = creature.name
     elementBadge.textContent = creature.element
     elementBadge.className = `element-badge el-${creature.element}`
+    stageBadge.textContent = stageLabel(creature.stage)
+    stageBadge.className = `stage-badge is-${creature.stage}`
 
     // Stat row: name, total (rolled base + trained), bonus when above 0.
     for (const cell of statCells) {
@@ -436,6 +478,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       training ||
       coachVoice(creature.conditions, creature.name) ||
       unlockCallout(creature) ||
+      growthHint(state.day, creature) ||
       flavorCallout(creature)
 
     // Disabled states come from the sim itself — a dry-run careAction is
@@ -459,5 +502,10 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     if (creature.trainingFocus) lastFocus = creature.trainingFocus
   }
 
-  return { update }
+  return {
+    update,
+    announceEvolution(creature) {
+      status.textContent = evolveCallout(creature)
+    },
+  }
 }
