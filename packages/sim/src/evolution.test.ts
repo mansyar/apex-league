@@ -8,11 +8,16 @@ import {
   createInitialState,
   EVOLUTION_DAY,
   EVOLUTION_MOOD,
+  effectiveStats,
   evaluateEvolution,
+  evolveCreature,
   type GameState,
+  getSpecies,
   SICK_COOLDOWN_NIGHTS,
   SICK_HEALTH,
+  setLoadout,
   settleCreature,
+  unlockedKit,
 } from "./index"
 
 /**
@@ -148,5 +153,95 @@ describe("advanceDay - evolution integration", () => {
     const s = scenarioState({ stage: "juvenile" }, 10)
     const next = advanceDay(s, CALM_RNG)
     expect(next.creature?.stage).toBe("juvenile")
+  })
+})
+
+describe("evolveCreature - the maturation boost", () => {
+  test("flips the stage and boosts the rolled base by +3/+2/+2/+1", () => {
+    const baby = createCreature("fire_drake", 7)
+    const juvenile = evolveCreature(baby)
+    expect(juvenile.stage).toBe("juvenile")
+    expect(juvenile.stats.hp).toBe(baby.stats.hp + 3)
+    expect(juvenile.stats.atk).toBe(baby.stats.atk + 2)
+    expect(juvenile.stats.def).toBe(baby.stats.def + 2)
+    expect(juvenile.stats.spd).toBe(baby.stats.spd + 1)
+  })
+
+  test("leaves trained bonuses and conditions untouched", () => {
+    const baby = createCreature("plant_ox", 9)
+    baby.trained = { hp: 1, atk: 2, def: 0, spd: 3 }
+    const juvenile = evolveCreature(baby)
+    expect(juvenile.trained).toEqual(baby.trained)
+    expect(juvenile.conditions).toEqual(baby.conditions)
+    expect(juvenile.trainingDays).toBe(baby.trainingDays)
+  })
+
+  test("effectiveStats shows base + trained including the boost", () => {
+    const baby = createCreature("water_axolotl", 11)
+    baby.trained = { hp: 2, atk: 1, def: 1, spd: 1 }
+    const juvenile = evolveCreature(baby)
+    const before = effectiveStats(baby)
+    const after = effectiveStats(juvenile)
+    expect(after.hp).toBe(before.hp + 3)
+    expect(after.atk).toBe(before.atk + 2)
+    expect(after.def).toBe(before.def + 2)
+    expect(after.spd).toBe(before.spd + 1)
+  })
+
+  test("an evolved settlement boosts stats, not just the stage", () => {
+    const s = scenarioState({}, 10)
+    const before = s.creature?.stats
+    const next = advanceDay(s, CALM_RNG)
+    const after = next.creature?.stats
+    if (!before || !after) throw new Error("creature missing")
+    expect(after.hp).toBe(before.hp + 3)
+    expect(next.creature?.stage).toBe("juvenile")
+  })
+})
+
+describe("kit gate at evolution", () => {
+  const species = getSpecies("fire_drake")
+  if (!species) throw new Error("species missing")
+
+  test("a juvenile unlocks tier 3 with zero trained days", () => {
+    const kit = unlockedKit(
+      { trainingDays: 0, stage: "juvenile" } as Creature,
+      species,
+    )
+    expect(kit).toEqual(species.kit.slice(0, 3))
+  })
+
+  test("a baby with zero trained days still knows only the birth kit", () => {
+    const kit = unlockedKit(
+      { trainingDays: 0, stage: "baby" } as Creature,
+      species,
+    )
+    expect(kit).toEqual(species.kit.slice(0, 2))
+  })
+
+  test("tier 4 still requires six trained days even when juvenile", () => {
+    const kit = unlockedKit(
+      { trainingDays: 5, stage: "juvenile" } as Creature,
+      species,
+    )
+    expect(kit).toEqual(species.kit.slice(0, 3))
+    const full = unlockedKit(
+      { trainingDays: 6, stage: "juvenile" } as Creature,
+      species,
+    )
+    expect(full).toEqual(species.kit)
+  })
+
+  test("an evolved creature can equip its tier-3 move immediately", () => {
+    const s = scenarioState({ stage: "juvenile" }, 11)
+    const equipped = setLoadout(s, ["spark", "cinder_shot"])
+    expect(equipped.creature?.loadout).toEqual(["spark", "cinder_shot"])
+  })
+
+  test("an evolved creature still waits six trained days for tier 4", () => {
+    const s = scenarioState({ stage: "juvenile" }, 11)
+    expect(() => setLoadout(s, ["spark", "blaze_bolt"])).toThrow(
+      /Not unlocked yet/,
+    )
   })
 })

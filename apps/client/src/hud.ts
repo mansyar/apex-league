@@ -115,7 +115,7 @@ export function unlockCallout(creature: Creature): string {
   const species = getSpecies(creature.speciesId)
   if (!species) return ""
   const moveIndex = species.kit.findIndex(
-    (_, index) => requiredTierDays(index) === days,
+    (_, index) => requiredTierDays(index, creature.stage) === days,
   )
   const moveId = species.kit[moveIndex]
   if (moveId === undefined) return ""

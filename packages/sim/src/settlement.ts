@@ -12,7 +12,11 @@ import {
   TRAINING_CAP,
   type TrainingResult,
 } from "./creature"
-import { evaluateEvolution, SICK_COOLDOWN_NIGHTS } from "./evolution"
+import {
+  evaluateEvolution,
+  evolveCreature,
+  SICK_COOLDOWN_NIGHTS,
+} from "./evolution"
 import type { Rng } from "./rng"
 
 /** Hunger lost every night (the creature wakes hungrier). */
@@ -189,7 +193,7 @@ export function settleCreature(
   //    outcome (mood, health) is what the gate judged, so a creature that
   //    slept sick or woke miserable waits, never evolves mid-misery.
   const verdict = evaluateEvolution(settled, day)
-  return verdict.evolved ? { ...settled, stage: "juvenile" } : settled
+  return verdict.evolved ? evolveCreature(settled) : settled
 }
 
 /**

@@ -477,7 +477,7 @@ export function createSpar(
     if (nextId === undefined) {
       progress.textContent = ""
     } else {
-      const required = requiredTierDays(nextIndex)
+      const required = requiredTierDays(nextIndex, creature.stage)
       const remaining = required - creature.trainingDays
       const displayName = getMove(nextId)?.displayName ?? nextId
       const plural = remaining === 1 ? "day" : "days"
@@ -488,7 +488,7 @@ export function createSpar(
     kitStrip.replaceChildren()
     species.kit.forEach((id, index) => {
       const name = getMove(id)?.displayName ?? id
-      const required = requiredTierDays(index)
+      const required = requiredTierDays(index, creature.stage)
       const locked = creature.trainingDays < required
       const chip = document.createElement("button")
       chip.type = "button"

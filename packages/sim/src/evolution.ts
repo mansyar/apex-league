@@ -8,7 +8,39 @@
  * it happens, but neglect can never block it forever.
  */
 
-import type { Creature } from "./creature"
+import type { Creature, CreatureStats } from "./creature"
+
+/**
+ * The maturation boost applied to the rolled base the night a baby becomes
+ * a juvenile. Applied directly to `stats` (trained bonuses are separate and
+ * stay capped on their own), so `effectiveStats` shows base + boost +
+ * trained.
+ */
+export const EVOLUTION_STAT_BOOST: CreatureStats = Object.freeze({
+  hp: 3,
+  atk: 2,
+  def: 2,
+  spd: 1,
+})
+
+/**
+ * Maturation itself: flip the stage and apply the juvenile stat boost to
+ * the rolled base. Pure: returns a new creature; everything else (trained,
+ * conditions, loadout) is carried over untouched.
+ */
+export function evolveCreature(creature: Creature): Creature {
+  const b = EVOLUTION_STAT_BOOST
+  return {
+    ...creature,
+    stage: "juvenile",
+    stats: {
+      hp: creature.stats.hp + b.hp,
+      atk: creature.stats.atk + b.atk,
+      def: creature.stats.def + b.def,
+      spd: creature.stats.spd + b.spd,
+    },
+  }
+}
 
 /**
  * The night of this day (inclusive) is the earliest a baby may evolve.

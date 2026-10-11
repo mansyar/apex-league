@@ -82,9 +82,11 @@ export { applyCupRewards, CUP_REWARDS, type CupOutcome } from "./cupRewards"
 export {
   EVOLUTION_DAY,
   EVOLUTION_MOOD,
+  EVOLUTION_STAT_BOOST,
   type EvolutionReason,
   type EvolutionVerdict,
   evaluateEvolution,
+  evolveCreature,
   SICK_COOLDOWN_NIGHTS,
 } from "./evolution"
 export {
