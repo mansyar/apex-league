@@ -7,17 +7,21 @@
 import { describe, expect, test } from "bun:test"
 import type { PlaybackPhases } from "@apex/sim"
 import {
+  approach,
+  breath,
   clamp01,
   composePose,
   easeInOutCubic,
   easeOut,
   easeOutBack,
   easeOutCubic,
+  gait,
   hashString,
   jitter,
   phaseAt,
   sampleTrack,
   sampleVecTrack,
+  stepSquash,
 } from "./anim"
 
 describe("easings", () => {
@@ -153,5 +157,68 @@ describe("seed-derived variation", () => {
 
   test("zero spread is exactly zero", () => {
     expect(jitter(42, "anything", 0)).toBe(0)
+  })
+})
+
+describe("exponential approach — frame-rate-safe smoothing", () => {
+  test("stays put when already at the target", () => {
+    expect(approach(5, 5, 100, 0.5)).toBe(5)
+  })
+
+  test("moves toward the target without overshooting", () => {
+    const v = approach(0, 10, 4, 0.016)
+    expect(v).toBeGreaterThan(0)
+    expect(v).toBeLessThan(10)
+  })
+
+  test("two half-steps land close to one full step (frame-rate independence)", () => {
+    const once = approach(0, 10, 4, 0.016)
+    const twice = approach(approach(0, 10, 4, 0.008), 10, 4, 0.008)
+    expect(Math.abs(once - twice)).toBeLessThan(0.01)
+  })
+})
+
+describe("gait and breath — idle-body loops", () => {
+  test("gait is zero at the stride's ends and peaks mid-stride", () => {
+    expect(gait(0, 0.085, 1)).toBe(0)
+    expect(gait(0.5, 0.085, 1)).toBeCloseTo(0.085)
+    expect(gait(1, 0.085, 1)).toBeCloseTo(0)
+  })
+
+  test("gait is symmetric for negative phase and scales with life", () => {
+    expect(gait(-0.5, 0.085, 1)).toBeCloseTo(0.085)
+    expect(gait(0.5, 0.085, 0)).toBe(0)
+  })
+
+  test("breath is a clean sine over wall-clock milliseconds", () => {
+    expect(breath(0, 2.2 * 2, 0.03, 0)).toBeCloseTo(0)
+    // Sine peak: (t/1000) * freq = pi/2 -> t = 500*pi/freq.
+    expect(breath((500 * Math.PI) / (2.2 * 2), 2.2 * 2, 0.03, 0)).toBeCloseTo(
+      0.03,
+    )
+    // The phase offset shifts the cycle per fighter.
+    expect(breath(0, 2.2 * 2, 0.03, Math.PI / 2)).toBeCloseTo(0.03)
+  })
+})
+
+describe("stepSquash — the damped weight spring", () => {
+  const K = 210
+  const D = 13
+
+  test("a resting spring stays at rest", () => {
+    const s = stepSquash({ s: 0, v: 0 }, 1 / 30, K, D)
+    expect(s.s).toBe(0)
+    expect(s.v).toBe(0)
+  })
+
+  test("a displaced spring pulls back and settles (deterministic)", () => {
+    let state = { s: 0.1, v: 0 }
+    for (let i = 0; i < 600; i++) state = stepSquash(state, 1 / 30, K, D)
+    expect(Math.abs(state.s)).toBeLessThan(0.001)
+    // Same inputs, same trajectory.
+    let again = { s: 0.1, v: 0 }
+    for (let i = 0; i < 600; i++) again = stepSquash(again, 1 / 30, K, D)
+    expect(again.s).toBe(state.s)
+    expect(again.v).toBe(state.v)
   })
 })

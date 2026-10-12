@@ -207,3 +207,64 @@ export function jitter(seed: number, key: string, spread: number): number {
   const h = (hashString(key) ^ Math.imul(seed >>> 0, 0x9e3779b1)) >>> 0
   return ((h / 0xffffffff) * 2 - 1) * spread
 }
+
+/**
+ * Frame-rate-independent exponential approach (learnings §7): moves
+ * `current` toward `target` by the fraction `1 - e^(-rate*dt)` of the
+ * remaining distance. Two half-steps land where one full step does.
+ */
+export function approach(
+  current: number,
+  target: number,
+  rate: number,
+  dt: number,
+): number {
+  return current + (target - current) * (1 - Math.exp(-rate * dt))
+}
+
+/**
+ * The walk bob: |sin| over the gait phase, scaled by amplitude and the
+ * fighter's motion "life" (0 under reduced motion).
+ */
+export function gait(
+  walkPhase: number,
+  amplitude: number,
+  life: number,
+): number {
+  return Math.abs(Math.sin(walkPhase * Math.PI)) * amplitude * life
+}
+
+/**
+ * Idle breathing: a sine over wall-clock milliseconds with a per-fighter
+ * phase offset. Frequency is in cycles-per-second-of-sine-argument —
+ * callers multiply their base rate to taste.
+ */
+export function breath(
+  nowMs: number,
+  freq: number,
+  amplitude: number,
+  phase: number,
+): number {
+  return Math.sin((nowMs / 1000) * freq + phase) * amplitude
+}
+
+/** Mutable squash state: s is the deformation, v its velocity. */
+export interface SpringState {
+  s: number
+  v: number
+}
+
+/**
+ * One symplectic-Euler step of the damped weight spring the arena uses
+ * for squash-and-stretch. Callers cap dt (the arena caps at 1/30s) for
+ * stability. Pure: returns the next state.
+ */
+export function stepSquash(
+  state: SpringState,
+  dt: number,
+  stiffness: number,
+  damping: number,
+): SpringState {
+  const v = state.v + (-stiffness * state.s - damping * state.v) * dt
+  return { s: state.s + v * dt, v }
+}

@@ -2,10 +2,21 @@ import {
   CHAMPION_STAT_BOOST,
   ELEMENT_HUE,
   EVOLUTION_STAT_BOOST,
+  PLAYBACK_PHASES,
   type PlaybackStep,
 } from "@apex/sim"
 import { generate } from "@apex/voxel"
 import * as THREE from "three"
+import {
+  approach,
+  breath as breathSine,
+  clamp01,
+  easeOut,
+  easeOutCubic,
+  gait as gaitBob,
+  phaseAt,
+  stepSquash,
+} from "./anim"
 import { buildCreatureGroup } from "./creature"
 
 /**
@@ -121,8 +132,13 @@ const FLASH_MS = 180
 /** How long the frame freezes on a big hit, in ms (micro hit-stop). */
 const HIT_STOP_MS = 90
 
-/** Attack grammar, as fractions of the action's total length. */
-const WINDUP_END = 0.26
+/**
+ * Attack grammar, as fractions of the action's total length. The melee
+ * strike now reads its boundaries from the enriched playback contract
+ * (PLAYBACK_PHASES.melee — windup ends 0.26, contact lands 0.46); the
+ * projectile shot still times its launch off CONTACT_T until its
+ * bespoke Phase 2 choreography retunes the row.
+ */
 const CONTACT_T = 0.46
 
 interface Projectile {
@@ -222,10 +238,6 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   /** Visual intensity preference: 'full' shakes; 'reduced' keeps it calm. */
   let motionPref: "full" | "reduced" = "full"
 
-  const easeOut = (t: number): number => 1 - (1 - t) * (1 - t)
-  const easeOutCubic = (t: number): number => 1 - (1 - t) ** 3
-  const clamp01 = (t: number): number => Math.min(1, Math.max(0, t))
-
   /** Wrap an angle delta into [-π, π) so yaw always takes the short way. */
   const shortestAngle = (a: number): number => {
     const turn = Math.PI * 2
@@ -264,8 +276,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     for (const [c, other] of pair()) {
       // Squash spring integrates for everyone — the KO landing impulse
       // needs it even while the down branch owns the pose.
-      c.squash.v += (-SQUASH_K * c.squash.s - SQUASH_D * c.squash.v) * dt
-      c.squash.s += c.squash.v * dt
+      c.squash = stepSquash(c.squash, dt, SQUASH_K, SQUASH_D)
       // Downed fighter: the driver keeps rendering the topple (the fall
       // action only lives for the fall beat; afterwards the driver owns
       // the pose). Head points away from the standing rival.
@@ -290,24 +301,25 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       c.stage.z = Math.max(-BOUNDS_Z, Math.min(BOUNDS_Z, c.stage.z))
       // Walk toward the stage target (exp smoothing, frame-rate safe).
       glideFrom.copy(c.smooth)
-      const k = 1 - Math.exp(-GLIDE * dt)
-      c.smooth.lerp(c.stage, k)
+      c.smooth.lerp(c.stage, approach(0, 1, GLIDE, dt))
       // Frame velocity from measured motion — the gait's tempo source.
       c.velocity.copy(c.smooth).sub(glideFrom).divideScalar(dt)
       const speed = Math.hypot(c.velocity.x, c.velocity.z)
       c.walkPhase += speed * dt * 5.2
       // Lean into movement: pitch with forward speed, roll with the gait.
       const leanTarget = Math.min(LEAN_MAX, speed * LEAN_PER_SPEED)
-      c.lean.pitch += (leanTarget - c.lean.pitch) * (1 - Math.exp(-8 * dt))
-      c.lean.roll *= Math.exp(-6 * dt)
+      c.lean.pitch = approach(c.lean.pitch, leanTarget, 8, dt)
+      c.lean.roll = approach(c.lean.roll, 0, 6, dt)
 
       // Compose the pose: walk position + action offset + gait bob +
       // breath at rest, all scaled by the squash spring (weight).
-      const gait = Math.abs(Math.sin(c.walkPhase * Math.PI)) * GAIT_AMP * life
-      const breath =
-        Math.sin(now * 0.001 * BREATH_FREQ * 2 + c.phase) *
-        BREATH_AMP *
-        (speed < 0.15 ? 1 : 0)
+      const gait = gaitBob(c.walkPhase, GAIT_AMP, life)
+      const breath = breathSine(
+        now,
+        BREATH_FREQ * 2,
+        BREATH_AMP * (speed < 0.15 ? 1 : 0),
+        c.phase,
+      )
       c.group.position.set(
         c.smooth.x + c.offset.x,
         Math.max(
@@ -332,7 +344,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       const dz = other.group.position.z - c.group.position.z
       const desired = Math.atan2(dx, dz)
       c.group.rotation.y +=
-        shortestAngle(desired - c.group.rotation.y) * (1 - Math.exp(-9 * dt))
+        shortestAngle(desired - c.group.rotation.y) * approach(0, 1, 9, dt)
       c.group.rotation.x = c.lean.pitch
       c.group.rotation.z = c.lean.roll
     }
@@ -671,15 +683,19 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         let landed = false
         actionRaf = startAction(
           (t, ao, at) => {
-            if (t < WINDUP_END) {
+            // Phase timing comes from the enriched playback contract
+            // (FR3) — the melee boundaries here are the contract's own
+            // numbers, so choreography and script agree by construction.
+            const melee = phaseAt(t, PLAYBACK_PHASES.melee)
+            if (melee.phase === "windup") {
               // Anticipation: coil back on the approach line, drop weight.
-              const w = t / WINDUP_END
+              const w = melee.local
               ao.offset.copy(dir).multiplyScalar(-0.22 * Math.sin(w * Math.PI))
               ao.offset.y = -0.05 * Math.sin(w * Math.PI)
               ao.lean.roll = 0.05 * Math.sin(w * Math.PI)
-            } else if (t < CONTACT_T) {
+            } else if (melee.phase === "contact") {
               // The strike: uncoil fast down the line (easeOutCubic).
-              const w = clamp01((t - WINDUP_END) / (CONTACT_T - WINDUP_END))
+              const w = melee.local
               ao.offset
                 .copy(dir)
                 .multiplyScalar(
@@ -691,7 +707,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
               if (w > 0.3) impulse(ao, -0.28) // stretch while committing
             } else {
               // Follow-through + recovery: settle back to stance spacing.
-              const w = clamp01((t - CONTACT_T) / (1 - CONTACT_T))
+              const w = melee.local
               ao.offset
                 .copy(contact)
                 .sub(from)
