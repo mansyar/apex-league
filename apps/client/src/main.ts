@@ -257,8 +257,13 @@ const hud = createHud(app, {
     return true
   },
   onReset: () => {
-    clearSave(storage)
-    window.location.reload()
+    try {
+      clearSave(storage)
+    } finally {
+      // Reload even if the wipe threw — a stranded player on a hidden
+      // modal is worse than a save that survived one more boot.
+      window.location.reload()
+    }
   },
   onHintSeen: (hintId) => {
     store.commit(markHintSeen(store.get(), hintId))

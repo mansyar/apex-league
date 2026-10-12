@@ -494,6 +494,8 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   const resetModal = document.createElement("div")
   resetModal.className = "kit-modal"
   resetModal.style.display = "none"
+  resetModal.setAttribute("role", "dialog")
+  resetModal.setAttribute("aria-modal", "true")
   const resetBox = document.createElement("div")
   resetBox.className = "kit-plate kit-modal-box"
   const resetTitle = document.createElement("h2")
@@ -523,8 +525,27 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     resetModal.style.display = "none"
     handlers.onReset()
   })
-  // Escape backs out; a backdrop click means "not today".
+  // Escape backs out; a backdrop click means "not today". The focus trap
+  // keeps Tab inside the dialog — the scrim hides the page, so focus
+  // wandering into it would be invisible.
+  const trapFocus = (event: KeyboardEvent): void => {
+    if (event.key !== "Tab") return
+    const focusable = resetBox.querySelectorAll<HTMLElement>(
+      "button, [href], input",
+    )
+    if (focusable.length === 0) return
+    const first = focusable[0] as HTMLElement
+    const last = focusable[focusable.length - 1] as HTMLElement
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault()
+      first.focus()
+    }
+  }
   resetModal.addEventListener("keydown", (event) => {
+    trapFocus(event)
     if (event.key === "Escape") resetModal.style.display = "none"
   })
   resetModal.addEventListener("click", (event) => {

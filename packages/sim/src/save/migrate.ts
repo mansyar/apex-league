@@ -212,8 +212,9 @@ const migrations: Record<
   // v6 → v7 (merged migration, save-safety track): saves gain the persisted
   // cup-session slot (null — a migrated save never has a live session) and
   // a clean onboarding hint ledger in settings. A v6 payload's settings
-  // predate the ledger, so stamp it here; reducedMotion stays whatever the
-  // save said (defaulting false on a corrupt value, matching the v5 recipe).
+  // predate the ledger, so stamp it here; reducedMotion is forwarded
+  // unchanged so corrupt values still fail load-time validation (the same
+  // gate the v5→v6 flow relies on).
   6: (raw) => {
     const { day, phase, actionPoints, state: s } = validateStateShape(raw, 6)
     const rawSettings =

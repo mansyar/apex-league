@@ -55,3 +55,8 @@ verification for DOM/scene tasks, phase checkpoints with git notes.
 - [x] Task: Full `bun run verify`; browser walkthrough of all spec acceptance
       criteria; README/docs touch-ups if needed `[9cbc4a3]`
 - [x] Task: Final Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: 9cbc4a3]`
+
+## Phase: Review Fixes
+
+- [~] Task: Apply review suggestions (migrate.ts comment correction, modal
+      dialog a11y + focus trap, reset try/finally, --danger token)

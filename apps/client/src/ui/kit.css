@@ -16,6 +16,8 @@
   --ink-dim: #b8ad9c;
   --accent: #ffd166;
   --accent-ink: #241c10;
+  /* The one destructive affordance in the game (new-game confirm). */
+  --danger: #ff6b6b;
   --kit-danger: #ff8a7a;
 
   --bar-hunger: #e8985a;
