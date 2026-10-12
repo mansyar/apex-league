@@ -7,6 +7,7 @@ import {
 import { generate, makeRng, type Stage } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
+import type { CameraIntent } from "./director"
 import { prefersReducedMotionOs } from "./motion"
 import { buildPropGroup } from "./prop"
 import {
@@ -52,6 +53,10 @@ export interface SceneHandle {
    * (arena mode only; reduced-motion callers pass 0). 0 ices it off.
    */
   shake(strength: number): void
+  /** Arena camera style (FR6): broadcast framing or the cinematic director. */
+  setArenaCameraStyle(style: "broadcast" | "cinematic"): void
+  /** Feed the director's latest shot intent (stale intents expire). */
+  applyDirectorIntent(intent: CameraIntent): void
   /**
    * Reduced-motion override (save v5 pref). true = no shake, no bounce;
    * null = fall back to the OS media query. Callers may re-apply freely.
@@ -209,6 +214,14 @@ export function createScene(container: HTMLElement): SceneHandle {
   // framing, no orbit input.
   type CameraMode = "ranch" | "arena"
   let cameraMode: CameraMode = "ranch"
+  // -- Cinematic director (FR6) ----------------------------------------------
+  type ArenaStyle = "broadcast" | "cinematic"
+  let arenaStyle: ArenaStyle = "broadcast"
+  let directorIntent: CameraIntent | null = null
+  let intentAt = 0
+  // Scratch vectors for the director ease (no per-frame allocations).
+  const directorDesired = new THREE.Vector3()
+  const directorLook = new THREE.Vector3()
   let savedOrbit = { azimuth: 0, elevation: 0, radius: 0 }
   const target = new THREE.Vector3(0, 0.8, 0)
   const orbit = { azimuth: 0.567, elevation: 0.326, radius: 6.9 }
@@ -247,7 +260,9 @@ export function createScene(container: HTMLElement): SceneHandle {
       target.set(0, ARENA_FRAMING.targetY, 0)
     } else {
       Object.assign(orbit, savedOrbit)
-      target.y = 0.8
+      // Reset the full aim, not just the height - a cinematic director
+      // may have left the target tracking a fighter.
+      target.set(0, 0.8, 0)
     }
     applyOrbit()
   }
@@ -564,6 +579,15 @@ export function createScene(container: HTMLElement): SceneHandle {
     sceneRoot: scene,
     setCameraMode,
     shake: setShake,
+    /** Choose the arena camera style (FR6). */
+    setArenaCameraStyle(style: ArenaStyle) {
+      arenaStyle = style
+    },
+    /** Feed the director's latest shot; stale intents settle to broadcast. */
+    applyDirectorIntent(intent: CameraIntent) {
+      directorIntent = intent
+      intentAt = performance.now()
+    },
     setMotionReduced(v) {
       motionReduced = v
       const next = motionReduced ?? osReducedMotion
@@ -940,6 +964,61 @@ export function createScene(container: HTMLElement): SceneHandle {
         camera.position.copy(shakeBase)
         shakeBase = null
       }
+    }
+    // Cinematic director (FR6): ease (or cut) toward the latest intent.
+    // Intents offset the broadcast framing, so a stale or absent intent
+    // settles the shot back to the fixed framing. Reduced motion pins
+    // the broadcast camera; an active shake owns the frame until it
+    // decays so the punch-in can't fight the shake offsets.
+    if (
+      cameraMode === "arena" &&
+      arenaStyle === "cinematic" &&
+      !reducedMotion &&
+      !(shakeAmp > 0.001 && shakeBase)
+    ) {
+      const prev = t - lastFrameT
+      const dt = prev > 0 && prev < 0.5 ? prev : 1 / 60
+      const fresh =
+        directorIntent !== null && performance.now() - intentAt < 400
+      if (fresh && directorIntent) {
+        const intent = directorIntent
+        const radius = ARENA_FRAMING.radius * intent.radiusMult
+        const azimuth = ARENA_FRAMING.azimuth + intent.azimuthDelta
+        const elevation = ARENA_FRAMING.elevation + intent.elevationDelta
+        directorDesired.set(
+          intent.look.x + radius * Math.cos(elevation) * Math.sin(azimuth),
+          intent.look.y + radius * Math.sin(elevation),
+          intent.look.z + radius * Math.cos(elevation) * Math.cos(azimuth),
+        )
+        directorLook.set(intent.look.x, intent.look.y, intent.look.z)
+        if (intent.cut) {
+          camera.position.copy(directorDesired)
+          target.copy(directorLook)
+        } else {
+          // Frame-rate-independent ease (learnings 7).
+          const k = 1 - Math.exp(-3.5 * dt)
+          camera.position.lerp(directorDesired, k)
+          target.lerp(directorLook, k)
+        }
+      } else {
+        // No live coverage: glide home to the broadcast framing.
+        directorLook.set(0, ARENA_FRAMING.targetY, 0)
+        const k = 1 - Math.exp(-2 * dt)
+        target.lerp(directorLook, k)
+        directorDesired.set(
+          target.x +
+            ARENA_FRAMING.radius *
+              Math.cos(ARENA_FRAMING.elevation) *
+              Math.sin(ARENA_FRAMING.azimuth),
+          target.y + ARENA_FRAMING.radius * Math.sin(ARENA_FRAMING.elevation),
+          target.z +
+            ARENA_FRAMING.radius *
+              Math.cos(ARENA_FRAMING.elevation) *
+              Math.cos(ARENA_FRAMING.azimuth),
+        )
+        camera.position.lerp(directorDesired, k)
+      }
+      camera.lookAt(target)
     }
     renderer.render(scene, camera)
     lastFrameT = t

@@ -15,6 +15,7 @@ import {
 } from "@apex/sim"
 import { buildArena } from "./arena"
 import { createCup } from "./cup"
+import { nextShot } from "./director"
 import { createHud } from "./hud"
 import { createScene } from "./scene"
 import { createSpar } from "./spar"
@@ -26,6 +27,14 @@ import "./style.css"
 
 const app = document.querySelector<HTMLElement>("#app")
 if (!app) throw new Error("#app container missing")
+
+// TEMPORARY build tag (learnings #9): distinguishes stale tabs from the
+// agent's bundle during feel iterations. REMOVE BEFORE FINAL COMMIT.
+const buildTag = document.createElement("div")
+buildTag.textContent = "arena build 20"
+buildTag.style.cssText =
+  "position:fixed;bottom:4px;right:8px;font:10px monospace;opacity:0.5;z-index:99;pointer-events:none"
+document.body.appendChild(buildTag)
 
 const scene = createScene(app)
 const arena = buildArena(scene.sceneRoot)
@@ -104,6 +113,11 @@ const spar = createSpar(app, {
   motionPref: () => store.get().settings.reducedMotion,
 })
 staging.setBigHitHandler((strength) => scene.shake(strength))
+// Cinematic director (FR6): the stage reports the live battle context;
+// nextShot turns it into a camera intent. Reduced motion pins the
+// broadcast camera inside the scene, so no extra guard here.
+staging.setDirectorHandler((ctx) => scene.applyDirectorIntent(nextShot(ctx)))
+scene.setArenaCameraStyle("cinematic")
 
 /**
  * Reduced-motion hand-off: the save v5 preference reaches the arena

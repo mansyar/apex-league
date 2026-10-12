@@ -25,6 +25,7 @@ import {
   reactionFor,
 } from "./choreo"
 import { buildCreatureGroup } from "./creature"
+import type { DirectorContext } from "./director"
 
 /**
  * Creature staging for the broadcast arena: two living fighters on the
@@ -231,6 +232,11 @@ export interface Staging {
   applyStep(step: PlaybackStep, instant?: boolean): void
   /** Big-hit hook: main.ts points this at the broadcast camera shake. */
   setBigHitHandler(handler: (strength: number) => void): void
+  /**
+   * Camera-director hook (FR6): the drive loop reports the live battle
+   * context each frame; main.ts feeds it through nextShot into the scene.
+   */
+  setDirectorHandler(handler: ((ctx: DirectorContext) => void) | null): void
   /** 'reduced' suppresses gait, flash, and shake; combat stays legible. */
   setMotionPref(pref: "full" | "reduced"): void
   /**
@@ -299,6 +305,10 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   /** Kind of the previously applied step - tells a ranged arrival
    * (projectile → impact) from a point-blank special (impact alone). */
   let prevStepKind: PlaybackStep["kind"] | null = null
+  /** Camera-director plumbing: the latest step + when it started. */
+  let directorHandler: ((ctx: DirectorContext) => void) | null = null
+  let lastStep: PlaybackStep | null = null
+  let lastStepAt = 0
   /** Action animation length at the current pace, floor-clamped. */
   const animMs = (): number =>
     Math.max(120, BASE_STEP_ANIM_MS * (paceMs / NORMAL_STEP_MS))
@@ -427,6 +437,34 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         shortestAngle(desired - c.group.rotation.y) * approach(0, 1, 9, dt)
       c.group.rotation.x = c.lean.pitch
       c.group.rotation.z = c.lean.roll
+    }
+    // Camera-director feed (FR6): report the live battle context every
+    // frame. Melee/projectile steps run on the action clock; every other
+    // beat paces by the step duration.
+    if (directorHandler && owned && rival) {
+      const step = lastStep
+      const span =
+        step !== null && (step.kind === "melee" || step.kind === "projectile")
+          ? animMs()
+          : paceMs
+      const t =
+        step === null ? 0 : clamp01((now - lastStepAt) / Math.max(1, span))
+      directorHandler({
+        step:
+          step === null
+            ? null
+            : {
+                kind: step.kind,
+                t,
+                tick: step.tick,
+                reaction: step.reaction,
+                damage: step.damage,
+                ko: step.ko,
+              },
+        actor: owned.group.position,
+        target: rival.group.position,
+        projectile: projectiles[0]?.mesh.position ?? null,
+      })
     }
     driveRaf = requestAnimationFrame(drive)
   }
@@ -1262,7 +1300,6 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   ): void => {
     const fx = fxFor(step.moveId)
     const away = side.actor.away
-    const volley = fx.shots.length > 1
     const wind = compressed ? (fx.compressed?.wind ?? 0.32) : fx.wind
     const flight = compressed
       ? (fx.compressed?.flight ?? Math.min(300, animMs() * 0.5))
@@ -1721,11 +1758,16 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       const r = rival
       if (!o || !r) return
       const kind = step.kind
+      lastStep = step
+      lastStepAt = performance.now()
       runStep(step, instant, o, r)
       prevStepKind = kind
     },
     setBigHitHandler(handler) {
       onBigHit = handler
+    },
+    setDirectorHandler(handler) {
+      directorHandler = handler
     },
     setMotionPref(pref) {
       motionPref = pref
