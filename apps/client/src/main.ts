@@ -32,7 +32,7 @@ if (!app) throw new Error("#app container missing")
 // TEMPORARY build tag (learnings #9): distinguishes stale tabs from the
 // agent's bundle during feel iterations. REMOVE BEFORE FINAL COMMIT.
 const buildTag = document.createElement("div")
-buildTag.textContent = "arena build 27"
+buildTag.textContent = "arena build 28"
 buildTag.style.cssText =
   "position:fixed;bottom:4px;right:8px;font:10px monospace;opacity:0.5;z-index:99;pointer-events:none"
 document.body.appendChild(buildTag)

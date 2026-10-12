@@ -367,8 +367,10 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       if (c.down) {
         // Topple onto the back, body along the floor, head away from the
         // standing rival, at a slight lift so the body reads on the floor.
+        // The KO reel (FR8) pitches the body back through lean before the
+        // topple takes over - the same lean channel the strike phases use.
         c.group.rotation.z = -c.away * (Math.PI / 2) * c.fall
-        c.group.rotation.x = 0
+        c.group.rotation.x = c.lean.pitch
         c.group.position.set(c.smooth.x, 0.28 * c.fall, c.smooth.z)
         const sq = c.squash.s
         const base = c.baseScale
@@ -716,6 +718,10 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     flashGrow?: number
     /** Radius multiplier for flash and fragments (default 1). */
     size?: number
+    /** Override the element hue (e.g. dust grays). */
+    tint?: string
+    /** Set false for non-emissive bursts (dust) with no glow shell. */
+    flash?: boolean
   }
 
   /**
@@ -757,23 +763,26 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     style: BurstStyle = {},
   ): void => {
     if (motionPref === "reduced") return
-    const color = new THREE.Color(elementColor(element))
+    const color = new THREE.Color(style.tint ?? elementColor(element))
     const size = style.size ?? 1
     const puffs = style.puffs ?? 6
     const base = at.clone()
     base.y += 0.6
-    const flash = new THREE.Mesh(
-      new THREE.SphereGeometry(PROJECTILE_RADIUS * 1.2 * size, 12, 10),
-      new THREE.MeshBasicMaterial({
-        color,
-        transparent: true,
-        opacity: 0.55,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      }),
-    )
-    flash.position.copy(base)
-    arenaGroup.add(flash)
+    let flash: THREE.Mesh | null = null
+    if (style.flash !== false) {
+      flash = new THREE.Mesh(
+        new THREE.SphereGeometry(PROJECTILE_RADIUS * 1.2 * size, 12, 10),
+        new THREE.MeshBasicMaterial({
+          color,
+          transparent: true,
+          opacity: 0.55,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        }),
+      )
+      flash.position.copy(base)
+      arenaGroup.add(flash)
+    }
     const particles: BurstParticle[] = []
     for (let i = 0; i < puffs; i++) {
       const mesh = new THREE.Mesh(
@@ -1696,6 +1705,40 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
           side.actor.fall = 1
           snapTo(side.actor)
           impulse(side.actor, spec.impulse)
+        } else if (step.ko === true) {
+          // FR8 signature: the legs give in stages. A stagger wind-up
+          // pitches the body back, then the collapse takes over - the
+          // dilated pace (driver FR8) stretches the whole beat, and the
+          // landing kicks up a dust ring instead of an element pop.
+          let thudded = false
+          actionRaf = startAction(
+            (t, ao) => {
+              if (t < 0.35) {
+                const w = t / 0.35
+                ao.lean.pitch = -0.32 * Math.sin(w * Math.PI * 0.5)
+                return
+              }
+              const u = clamp01((t - 0.35) / 0.65)
+              ao.fall = easeOut(u)
+              ao.lean.pitch = -0.32 * (1 - u * 0.4)
+              if (u > 0.3 && !thudded) {
+                thudded = true
+                impulse(ao, spec.impulse)
+                spawnBurst(ao.group.position, step.element, {
+                  puffs: 9,
+                  ring: true,
+                  gravity: 2.2,
+                  life: 750,
+                  flash: false,
+                  tint: "#9a9184",
+                  size: 1.3,
+                  flashGrow: 0,
+                })
+              }
+            },
+            side.actor,
+            side.target,
+          )
         } else {
           let thudded = false
           actionRaf = startAction(
