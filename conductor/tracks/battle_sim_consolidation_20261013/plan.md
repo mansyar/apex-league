@@ -185,7 +185,7 @@ its own objective (expected damage vs sustained per window).
   - [x] All tactics inside the 25–60% band in both matrices (mirrors 51.5/48.6; cross 50.0/50.0); 40-tick stalls 0% on the varied pass; the frozen-mirror non-decisive rate (37%) is entirely double KOs between stat-identical twins — 0 timeouts, 0 stalls
   - [x] Thresholds met without touching specials' powers, cooldowns, accuracy, the type chart, or species bounds — no second re-scope needed
 - [x] Task: Commit (`fix(battle): per-tactic move ranking and the sustained-score qualifier on Balanced`) + git note + record SHA
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: 8e6b7ca]
 
 ### Phase 3 notes
 
