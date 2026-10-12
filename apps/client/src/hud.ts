@@ -44,6 +44,11 @@ export interface HudHandlers {
    * sim change). The HUD only mirrors state; wiring stays in main.ts.
    */
   onToggleReducedMotion: () => void
+  /**
+   * Rename the partner through the sim (save v7 QoL). Returns false when
+   * the sim rejects (e.g. mid-cup) so the HUD can coach instead of acting.
+   */
+  onRename: (name: string) => boolean
 }
 
 export interface Hud {
@@ -54,9 +59,6 @@ export interface Hud {
   /** Show the save-failure coach line (called once per failed persist;
    * the next routine update replaces it). Non-blocking by design. */
   announceSaveFailure(): void
-  /** Show the corrupt-save coach line (called once at boot when an
-   * existing save cannot be read). Non-blocking by design. */
-  announceCorruptSave(): void
 }
 
 /** Coach-voice copy for disabled actions (≤ 2 sentences, never punishing). */
@@ -316,6 +318,40 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   creatureChev.innerHTML = icons.chevron
   creatureHead.append(crestEl, creatureName, stageTab, creatureChev)
 
+  // Rename affordance: a sibling button (never nested inside the collapse
+  // toggle) that swaps the head row for an inline edit form.
+  const renameButton = document.createElement("button")
+  renameButton.className = "rename-button"
+  renameButton.type = "button"
+  renameButton.title = "Rename partner"
+  renameButton.setAttribute("aria-label", "Rename partner")
+  renameButton.innerHTML = icons.pencil
+  const headRow = document.createElement("div")
+  headRow.className = "creature-headrow"
+  headRow.append(creatureHead, renameButton)
+
+  // Inline edit form: name input + confirm/cancel. Hidden until the
+  // pencil is pressed; Enter confirms, Escape cancels.
+  const nameInput = document.createElement("input")
+  nameInput.className = "creature-name-input"
+  nameInput.type = "text"
+  nameInput.maxLength = 16
+  nameInput.setAttribute("aria-label", "Creature name")
+  const renameConfirm = document.createElement("button")
+  renameConfirm.className = "kit-button rename-confirm"
+  renameConfirm.type = "button"
+  renameConfirm.textContent = "Save"
+  renameConfirm.setAttribute("aria-label", "Save name")
+  const renameCancel = document.createElement("button")
+  renameCancel.className = "kit-button rename-cancel"
+  renameCancel.type = "button"
+  renameCancel.textContent = "Cancel"
+  renameCancel.setAttribute("aria-label", "Cancel rename")
+  const editRow = document.createElement("div")
+  editRow.className = "creature-name-edit"
+  editRow.style.display = "none"
+  editRow.append(nameInput, renameConfirm, renameCancel)
+
   const statRow = document.createElement("div")
   statRow.className = "stat-row"
   const statCells = STATS.map(({ key, label }) => {
@@ -360,7 +396,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   // Hardening: the announcer strip is live region (screen readers hear
   // routine callouts without focus).
   statusTicker.root.setAttribute("aria-live", "polite")
-  lowerThird.append(creatureHead, statRow, conditionList, statusTicker.root)
+  lowerThird.append(headRow, editRow, statRow, conditionList, statusTicker.root)
 
   // Bottom-right command dock (broadcast kit plate). A slim header row
   // doubles as the collapse toggle; collapsed, only the "ACTIONS" label
@@ -463,6 +499,36 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     creatureHead.setAttribute("aria-expanded", creatureOpen ? "true" : "false")
   })
 
+  // Rename flow: pencil opens the inline edit, Enter/click confirms,
+  // Escape/cancel backs out. A sim rejection (mid-cup) coaches and stays.
+  let renaming = false
+  const openRename = () => {
+    if (!current?.creature || current.phase === "cup") return
+    renaming = true
+    nameInput.value = current.creature.name
+    headRow.style.display = "none"
+    editRow.style.display = ""
+    nameInput.focus()
+    nameInput.select()
+  }
+  const closeRename = () => {
+    renaming = false
+    editRow.style.display = "none"
+    headRow.style.display = ""
+  }
+  const confirmRename = () => {
+    if (!current) return
+    if (handlers.onRename(nameInput.value)) closeRename()
+    else statusTicker.say("Renaming waits until the cup is done.")
+  }
+  renameButton.addEventListener("click", openRename)
+  renameCancel.addEventListener("click", closeRename)
+  renameConfirm.addEventListener("click", confirmRename)
+  nameInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") confirmRename()
+    if (event.key === "Escape") closeRename()
+  })
+
   dockHead.addEventListener("click", () => {
     dockOpen = !dockOpen
     if (!dockOpen) pickerOpen = false
@@ -542,6 +608,10 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     crestEl.innerHTML = crestGlyph(creature.element)
     crestEl.style.setProperty("--hue", String(elementHue(creature.element)))
     creatureName.textContent = creature.name
+    // Rename is a day-phase affordance; mid-cup the pencil hides and an
+    // open editor folds away (the sim would reject anyway).
+    renameButton.style.display = state.phase === "cup" ? "none" : ""
+    if (renaming && state.phase === "cup") closeRename()
     stageTab.textContent = stageLabel(creature.stage)
     stageTab.className = "kit-tab is-stage"
 
@@ -660,9 +730,6 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     },
     announceSaveFailure() {
       statusTicker.say(saveFailureNotice())
-    },
-    announceCorruptSave() {
-      statusTicker.say(corruptSaveNotice())
     },
   }
 }

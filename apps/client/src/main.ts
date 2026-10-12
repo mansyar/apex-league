@@ -9,13 +9,14 @@ import {
   type GameState,
   getSpecies,
   loadBoot,
+  renameCreature,
   type StatKey,
   setLoadout,
   setReducedMotion,
 } from "@apex/sim"
 import { buildArena } from "./arena"
 import { createCup } from "./cup"
-import { createHud } from "./hud"
+import { corruptSaveNotice, createHud } from "./hud"
 import { createScene } from "./scene"
 import { createSpar } from "./spar"
 import { createStaging, visualSeedOf } from "./staging"
@@ -45,8 +46,18 @@ const storage: Storage = window.localStorage
 // the riding cup session).
 const boot = loadBoot(storage)
 const saved = boot && "state" in boot ? boot : null
-// The hud is created below; the notice fires right after it exists.
+// A corrupt save gets a calm banner instead of silence: the status ticker
+// hides with the creature plate pre-starter, so the only moment this news
+// matters is exactly where it would be invisible. It clears once the new
+// ranch exists.
 const corruptBoot = boot !== null && "corrupt" in boot
+let corruptNotice: HTMLElement | null = null
+if (corruptBoot) {
+  corruptNotice = document.createElement("div")
+  corruptNotice.className = "kit-plate kit-notice"
+  corruptNotice.textContent = corruptSaveNotice()
+  app.appendChild(corruptNotice)
+}
 // A restored session is only resumable while its cup day is current: the
 // walk lives on the day it was entered, and a day that moved on is over.
 const restoredSession =
@@ -237,9 +248,13 @@ const hud = createHud(app, {
     store.commit(setReducedMotion(current, !current.settings.reducedMotion))
     applyMotionPref()
   },
+  onRename: (name) => {
+    const next = renameCreature(store.get(), name)
+    if (!next.ok) return false
+    store.commit(next.state)
+    return true
+  },
 })
-
-if (corruptBoot) hud.announceCorruptSave()
 
 // The store's fixed fanout: every commit persists (inside commit) and then
 // updates the hud, the spar preview, and the cup chip — in that order —
@@ -258,6 +273,8 @@ let starter = store.get().creature
         // roll is reproducible from the saved state afterwards.
         const seed = Date.now() % 2 ** 31
         store.commit(chooseStarter(store.get(), speciesId, seed))
+        corruptNotice?.remove()
+        corruptNotice = null
         starter?.remove()
         starter = null
         syncScene()

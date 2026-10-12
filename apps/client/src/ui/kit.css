@@ -60,6 +60,24 @@
   clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%);
 }
 
+/* ---- Notice ----------------------------------------------------------- */
+
+/* A calm, boot-time banner for news the player must see before any HUD
+ * exists (e.g. an unreadable save). Independent of the creature plate so
+ * it stays visible through starter selection. */
+.kit-notice {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  max-width: min(560px, 90vw);
+  padding: 10px 18px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 /* ---- Tab ------------------------------------------------------------ */
 
 .kit-tab {

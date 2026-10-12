@@ -130,6 +130,88 @@
   outline-offset: 4px;
 }
 
+/* Head row: collapse toggle flexes to full width, the rename pencil sits
+   beside it — two real buttons, no nesting. */
+.creature-headrow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.creature-headrow .creature-head {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.creature-plate.is-collapsed .creature-headrow {
+  margin-bottom: 0;
+}
+
+.rename-button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+.rename-button:hover {
+  color: var(--ink);
+  background: var(--kit-panel-bg);
+}
+
+.rename-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.rename-button svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* Inline rename form replaces the head row while editing. */
+.creature-name-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.creature-name-input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--kit-keyline);
+  border-radius: 6px;
+  background: var(--kit-panel-bg);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.creature-name-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.creature-name-edit .kit-button {
+  flex: none;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
 /* Collapsed lower-third: only the head row (crest + name + stage) stays,
    the briefest useful readout pinned to the corner. */
 .creature-plate.is-collapsed .stat-row,
