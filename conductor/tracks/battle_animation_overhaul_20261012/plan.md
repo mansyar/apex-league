@@ -46,6 +46,12 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
     fire 1.3–4.0×/fight and knockbacks up to 4×/fight in melee
     matchups (0 in ranged-only exchanges, where the victim is far —
     silent no-op as designed): rich choreography material for Phase 1+.
+  - **Stagger tuning pass (user feel-check feedback — too overpowering):**
+    fraction 0.25→0.35, super-effective now also needs ≥15% max HP, and a
+    3-tick re-stagger grace (a recovered fighter always gets to act;
+    knockback separation deliberately stays ungated). Post-tuning probe:
+    staggers halved to 1.0–2.2/fight, knockbacks unchanged, win rates and
+    0-draw health identical, ticks slightly shorter (e932f88).
 - [ ] **Task: Phase Verification & Checkpoint (Refer to workflow.md)**
 
 ## Phase 1 — Enriched Playback Contract & Primitive Layer *(core)*
