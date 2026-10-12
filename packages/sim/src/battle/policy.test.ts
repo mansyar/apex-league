@@ -32,6 +32,7 @@ function fight(
     range: "far",
     gauge: 0,
     cooldowns: {},
+    staggered: false,
   }
 }
 
@@ -355,5 +356,75 @@ describe("best-special ranking", () => {
     } as const
     const first = chooseAction(input)
     expect(chooseAction(input)).toEqual(first)
+  })
+})
+
+/**
+ * Finishing-move preference (battle-animation-overhaul spec FR2): when
+ * any ready special would KO the opponent, the policy fires the most
+ * cinematic one — highest power, then move id ascending — under either
+ * tactic. With the current catalog this coincides with the
+ * expected-damage ranking (power * accuracy is monotonic in power:
+ * 600/720/850/900 across the four tiers), so these tests pin the
+ * CONTRACT for future kits whose accuracy curve could invert it.
+ */
+describe("finishing-move preference", () => {
+  test("an all-lethal matchup fires the biggest special under Balanced", () => {
+    // Every drake special deals 12+ into the plant ox at atk 10; ox at
+    // 12 HP is inside kill range of the whole kit. Blaze Bolt (power 12)
+    // is the finisher.
+    expect(
+      chooseAction({
+        fighter: drake,
+        opponent: { ...ox, hp: 12 },
+        kit: DRAKE_KIT,
+        tactic: "balanced",
+        temperament: "obedient",
+        actionCount: 3,
+      }),
+    ).toEqual(special("blaze_bolt"))
+  })
+
+  test("a cooled-down finisher falls through to the next lethal", () => {
+    // Blaze Bolt on cooldown: Cinder Shot (power 10, 20 damage) still
+    // kills at 12 HP and is the next-most-cinematic finisher.
+    expect(
+      chooseAction({
+        fighter: cooled(drake, "blaze_bolt", 1),
+        opponent: { ...ox, hp: 12 },
+        kit: DRAKE_KIT,
+        tactic: "balanced",
+        temperament: "obedient",
+        actionCount: 3,
+      }),
+    ).toEqual(special("cinder_shot"))
+  })
+
+  test("equal-power lethal specials break the tie by move id", () => {
+    // Spark and Bubble both deal 12 fire-into-plant at atk 10 — both
+    // lethal at 12 HP, same power, same accuracy: bubble < spark.
+    expect(
+      chooseAction({
+        fighter: drake,
+        opponent: { ...ox, hp: 12 },
+        kit: ["spark", "bubble"],
+        tactic: "balanced",
+        temperament: "obedient",
+        actionCount: 3,
+      }),
+    ).toEqual(special("bubble"))
+  })
+
+  test("Favor Specials also prefers the cinematic finisher", () => {
+    expect(
+      chooseAction({
+        fighter: drake,
+        opponent: { ...ox, hp: 12 },
+        kit: DRAKE_KIT,
+        tactic: "specials",
+        temperament: "obedient",
+        actionCount: 3,
+      }),
+    ).toEqual(special("blaze_bolt"))
   })
 })

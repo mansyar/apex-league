@@ -5,6 +5,7 @@ import {
   createInitialState,
   type GameState,
   prepareCup,
+  SAVE_VERSION,
   type SaveAdapter,
 } from "@apex/sim"
 import { createGameStore } from "./store"
@@ -55,7 +56,7 @@ describe("createGameStore", () => {
       savedAt: number
       state: { day: number }
     }
-    expect(saved.version).toBe(8)
+    expect(saved.version).toBe(SAVE_VERSION)
     expect(saved.savedAt).toBe(0)
     expect(saved.state.day).toBe(9)
   })

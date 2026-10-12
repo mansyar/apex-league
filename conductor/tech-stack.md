@@ -83,6 +83,31 @@
   rank plate in the score bug (progress-to-next-sub-tier, aria-labeled),
   the cup entry chip, a promotion-aware results row, and a coach-ticker
   climb announcement that reuses the hint ledger for the Silver teaser.*
+-   *2026-10-12: battle animation overhaul landed (track
+  `battle_animation_overhaul_20261012`). Sim side: `BattleEvent` grew
+  `stagger`/`knockback` kinds plus an optional `actorKey` (stable side key
+  so mirror matches stage correctly); heavy/super-effective blows stagger
+  (>= 35% max HP, or super-effective >= 15%, with a 3-tick re-stagger grace)
+  and knock melee-range fighters apart (the range shift costs a closing
+  action); policy prefers the most cinematic lethal special. The playback
+  contract is enriched additively: `PLAYBACK_PHASES`
+  (windup/contact/recovery per step kind), reaction kinds
+  (glance/stagger/knockback/down), dodge direction, terminal `ko` flags -
+  battle outcomes untouched. Client side, all pure and unit-tested:
+  `anim.ts` (easing/phase/keyframe-track/pose-composition/spring
+  primitives), `choreo.ts` (per-archetype `BodyProfile` body language +
+  reaction library), `director.ts` (camera-director decision logic from a
+  per-step-kind shot table). `staging.ts` renders through declarative
+  registries - `MOVE_FX` (per-move launch choreography, shots, muzzle and
+  arrival bursts; point-blank specials replay the launch compressed with a
+  micro-flight so every special reads at every range) and `SHOT_LOOK`
+  (per-element shot identity) - so new moves and elements are single-entry
+  additions. `playbackDriver` paces the KO signature (2.5x dilation around
+  the terminal blow + a stamp-settle hold). The arena camera is
+  broadcast/cinematic (director intents ease between framings; bloom post
+  pass, element particles, hit decals, big-hit vignette); the style is a
+  saved v9 setting with live mid-battle switching, auto-pinned to broadcast
+  under reduced motion.*
 
 ## Server
 - **Framework**: ElysiaJS on Bun (endpoints: save sync, leaderboard, ghost

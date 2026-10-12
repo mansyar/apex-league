@@ -103,3 +103,20 @@ A one-line `div` build tag ("scene build N") at the bottom of the screen
 sets whether the user's stale tab vs. the agent's bundle is the
 difference — it ended three rounds of stale-bundle doubt instantly.
 Remove before commit.
+
+## 10. The free Strike out-sustains every special (known meta imbalance)
+
+Found during the battle-animation-overhaul rebalance probe (2026-10-12),
+invisible until cross-tactic mirror matches were measured: the typeless
+basic Strike (power 4, 100% accuracy, no cooldown) deals 4 damage per
+action window, while the best special's sustained output is Flame
+Charge at 3.6/window (expected damage divided by 1 + cooldown). Favor
+Specials never Strikes, so it loses every mirror attrition race —
+balanced beats specials 100% in drake/axolotl mirrors (ox kit2/3
+mirrors stall into 40-tick draws instead; ox kit4 is 94.5% for
+balanced). Cross-type matchups are tactic-invariant because the type
+triangle decides them outright. Fix candidates (a dedicated balance
+track, not ad hoc): nerf the basic, buff special powers, or make Favor
+Specials cooldown-DPS-aware (fall back to Strike when a special's
+sustained output loses to 4/window). Any fix reshuffles the whole meta
+and needs its own seed-batch rebalance pass.

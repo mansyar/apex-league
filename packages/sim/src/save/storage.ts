@@ -206,6 +206,9 @@ export function loadSave(adapter: SaveAdapter): SaveData | null {
       // v7: the hint ledger is a plain array of string ids.
       !Array.isArray(state.settings.seenHints) ||
       !state.settings.seenHints.every((hint) => typeof hint === "string") ||
+      // v9: the camera preference must be one of the two styles.
+      (state.settings.arenaCamera !== "cinematic" &&
+        state.settings.arenaCamera !== "broadcast") ||
       // v5: cup bookkeeping must be present and well-formed.
       !Number.isInteger(state.cupsWon) ||
       state.cupsWon < 0 ||

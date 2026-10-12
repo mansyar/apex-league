@@ -290,3 +290,13 @@
   width: 14px;
   height: 14px;
 }
+
+/* Camera chip (save v9): a battle-presentation control, so it lives in
+   the settings row but only appears inside the arena. */
+.camera-chip {
+  display: none;
+}
+
+.app-in-arena .camera-chip {
+  display: inline-flex;
+}

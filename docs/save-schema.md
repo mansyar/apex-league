@@ -8,14 +8,14 @@ writes through the `SaveAdapter` seam.
 ```ts
 // packages/sim/src/save/schema.ts
 interface SaveData {
-  version: number // current: 8 (SAVE_VERSION)
+  version: number // current: 9 (SAVE_VERSION)
   state: GameState
   savedAt: number // Date.now() of the persist
   session: CupSession | null // live cup walk (v7+; null outside a cup)
 }
 ```
 
-## `GameState` at v8
+## `GameState` at v9
 
 | Field | Type | Meaning |
 |---|---|---|
@@ -23,7 +23,7 @@ interface SaveData {
 | `phase` | `"day" \| "cup"` | Cup phase is granted by the ticker on cup days; `enterCup` returns the game to the day phase. |
 | `actionPoints` | integer ≥ 0 | AP left today (max from `ACTION_POINTS_PER_DAY` + cup-win bonus). |
 | `creature` | `Creature \| null` | The partner; null until a starter is chosen. |
-| `settings` | `{ reducedMotion: boolean, seenHints: string[] }` | In-app motion preference (v5+); dismissed onboarding hint ids (v7+). |
+| `settings` | `{ reducedMotion: boolean, seenHints: string[], arenaCamera: "cinematic" \| "broadcast" }` | In-app motion preference (v5+); dismissed onboarding hint ids (v7+); arena camera style for the battle presentation (v9+, default `"cinematic"`). |
 | `cupsWon` | integer ≥ 0 | Permanent cup-win counter (v5+). |
 | `lastCupDay` | integer ≥ 1 \| null | Day of the last cup win; the ticker grants +1 AP the next day (v5+). |
 | `ladder` | `{ points: integer ≥ 0, subTier: "III"\|"II"\|"I" }` | Bronze-ladder standing: placement points and current sub-tier (v8+). Always fresh at 0 after migration — no backfill for cups won before v8. |
@@ -34,7 +34,7 @@ interface SaveData {
 |---|---|---|
 | `name` | string | Player-facing name (rivals draw from a separate pool). |
 | `speciesId` | non-empty string, must exist in the species catalog | Drives stats bounds, element, kit. Hand-edited unknown species are rejected on load. |
-| `seed` | integer | Deterministic identity — colors, axes, battle flavor. |
+| `archetypeId` | non-empty string | Voxel archetype used for rendering ("draconic", "bovine", ...). |
 | `stage` | `"baby" \| "juvenile" \| "champion"` | Evolution stage. |
 | `stats` | `{hp, atk, def, spd}` | Rolled base stats; effective = base + evolution boost + trained. |
 | `trained` | `{hp, atk, def, spd}` | Training bonuses, each capped (`TRAINED_START` … cap). |
@@ -60,7 +60,7 @@ interface SaveData {
 | v5 → v6 | Adds `creature.sickCooldown: 0` (evolution gate field). |
 | v6 → v7 | Adds `settings.seenHints: []` (onboarding ledger) and the top-level `session: null` cup-session slot. The v6→v7 step forwards `reducedMotion` unchanged so corrupt values still fail load-time validation; an invalid persisted session is dropped (not fatal) by `loadSave`. |
 | v7 → v8 | Adds the `ladder` slice (`{points: 0, subTier: "III"}`) and forwards the live cup session unchanged. No backfill: every migrated save starts the ladder fresh, even with `cupsWon` history. |
-
+| v8 → v9 | Adds `settings.arenaCamera: "cinematic"` (arena camera style for the battle presentation; reduced-motion players stay pinned at render time). |
 The `session` slot holds a `CupSession` exactly as `prepareCup` produced
 it (bracket, rival resolutions, verdicts, cursor position). It is
 presentation bookkeeping: the client persists it on every session mutation

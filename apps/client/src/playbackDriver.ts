@@ -85,6 +85,28 @@ export interface PlaybackDriverOptions {
   pace?: (speed: PlaybackSpeed) => number
 }
 
+/**
+ * The final blow plays in slow motion (FR8): the wait around a terminal
+ * KO step (and the live pace the arena animates to) stretches by this
+ * factor, then eases back to the broadcast rhythm.
+ */
+export const KO_DILATION = 2.5
+
+/** The pacing math, pure: a KO step dilates the base wait, others do not. */
+export const dilatedPace = (base: number, ko: boolean): number =>
+  ko ? Math.round(base * KO_DILATION) : base
+
+/** How many step-lengths the dust settles for before the stamp lands. */
+export const STAMP_BEATS = 1.2
+
+/**
+ * The verdict stamp beat (FR8): the run's terminal wait before the stamp
+ * fires. It stretches on a KO so the collapse and dust ring finish
+ * breathing before the verdict slams in.
+ */
+export const stampDelay = (base: number, ko: boolean): number =>
+  Math.round(base * (ko ? KO_DILATION : 1) * STAMP_BEATS)
+
 export function createPlaybackDriver(
   handlers: PlaybackDriverHandlers,
   options: PlaybackDriverOptions = {},
@@ -115,8 +137,15 @@ export function createPlaybackDriver(
   const reducedMotion = (): boolean =>
     handlers.motionPref?.() === true || prefersReducedMotionOs()
 
+  // True while the current run sits in the KO slow-motion beat.
+  let dilated = false
+
   const finish = (verdict: Readonly<BattleResult>): void => {
     clearTimer()
+    if (dilated) {
+      dilated = false
+      handlers.onPace?.(pace())
+    }
     const replayed = replaying
     replaying = false
     handlers.onFinish({ verdict, replayed, instant: runInstant })
@@ -125,6 +154,8 @@ export function createPlaybackDriver(
   /**
    * Step the log with a delay. Reduced motion already showed everything;
    * fast-forward only shortens the delay — there is no skip-to-end (FR11).
+   * A terminal KO step dilates: the arena's live pace rises for the slow
+   * beat and the wait after the blow stretches, then both ease back.
    */
   const play = (
     events: readonly BattleEvent[],
@@ -134,21 +165,50 @@ export function createPlaybackDriver(
   ): void => {
     const event = events[index]
     if (!event) {
-      timer = setTimeout(() => finish(verdict), pace())
+      // Terminal branch: the dust-settle hold before the verdict stamp
+      // lands (FR8). A KO run ends on a dilated beat, so the hold rides
+      // the slow motion instead of snapping back to speed.
+      const last = steps[steps.length - 1]
+      timer = setTimeout(
+        () => finish(verdict),
+        stampDelay(pace(), last?.ko === true),
+      )
       return
     }
-    timer = setTimeout(() => {
-      clearTimer()
-      handlers.onLine(event.line)
-      const step = steps[index]
-      if (step) handlers.onStep(step, false)
-      play(events, index + 1, verdict, steps)
-    }, pace())
+    // The wait BEFORE this event belongs to the previous step: a KO blow
+    // holds the arena in slow motion through its aftermath.
+    const prior = index > 0 ? steps[index - 1] : undefined
+    timer = setTimeout(
+      () => {
+        clearTimer()
+        handlers.onLine(event.line)
+        const step = steps[index]
+        if (step) {
+          handlers.onStep(step, false)
+          // The KO beat itself: raise the live pace so the arena animates
+          // the blow in slow motion (staging scales action lengths to it).
+          if (step.ko === true && !dilated) {
+            dilated = true
+            handlers.onPace?.(dilatedPace(pace(), true))
+          } else if (step.ko !== true && dilated) {
+            dilated = false
+            handlers.onPace?.(pace())
+          }
+        }
+        play(events, index + 1, verdict, steps)
+      },
+      // Dilation is announced when the KO step fires (above); the wall
+      // clock wait after it stretches so the beat can breathe.
+      index > 0 && prior?.ko === true ? dilatedPace(pace(), true) : pace(),
+    )
   }
 
   return {
     start(fight, verdict) {
       clearTimer()
+      // A run stopped mid-KO-beat must not leak slow motion into the
+      // next one (the flag self-heals later, but announce cleanly).
+      dilated = false
       const steps = buildPlaybackScript(verdict.events)
       // buildPlaybackScript is a 1:1 event→step map; fail loud if the sim
       // ever grows an unmapped event kind instead of silently desyncing
@@ -185,6 +245,7 @@ export function createPlaybackDriver(
     replay() {
       if (!lastRun) return
       clearTimer()
+      dilated = false
       replaying = true
       speed = "normal"
       handlers.onPace?.(pace())
@@ -194,7 +255,9 @@ export function createPlaybackDriver(
 
     speedToggle() {
       speed = toggleSpeed(speed)
-      handlers.onPace?.(pace())
+      // Keep the KO slow motion through a mid-beat toggle: the arena
+      // would otherwise snap back to full speed mid-collapse.
+      handlers.onPace?.(dilatedPace(pace(), dilated))
       return speed
     },
 

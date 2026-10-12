@@ -364,3 +364,19 @@
    animation and transition; nothing battle-specific needs a rescue here,
    since no entrance in this file relies on a forwards fill that must end
    visible. */
+
+/* Big-hit vignette (FR7): screen-edge darkening that pulses on heavy
+   blows. Fast flash in, slow ease back out. */
+.hit-vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+  opacity: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 52%,
+    rgba(8, 6, 12, 0.62) 100%
+  );
+  transition: opacity 300ms ease-in;
+}

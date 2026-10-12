@@ -46,7 +46,11 @@ export interface HudHandlers {
    */
   onToggleReducedMotion: () => void
   /**
-   * Rename the partner through the sim (save v7 QoL). Returns false when
+   * Flip the save v9 arena-camera preference (cinematic ↔ broadcast).
+   * The HUD only mirrors state; wiring stays in main.ts.
+   */
+  onToggleArenaCamera: () => void
+  /** Rename the partner through the sim (save v7 QoL). Returns false when
    * the sim rejects (e.g. mid-cup) so the HUD can coach instead of acting.
    */
   onRename: (name: string) => boolean
@@ -500,6 +504,15 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   motionWrap.className = "hud-motion"
   motionWrap.append(motionChip)
 
+  // Camera chip (save v9): the arena presentation toggle - cinematic
+  // director or fixed broadcast framing.
+  const cameraChip = chip({
+    label: "Camera: cinematic",
+    variant: "dim",
+    onClick: handlers.onToggleArenaCamera,
+  })
+  cameraChip.classList.add("camera-chip")
+  motionWrap.append(cameraChip)
   // New game (save v7 QoL): a quiet chip beside the motion toggle. The
   // confirm modal does the scary part — one deliberate click, not a misclick.
   const resetChip = chip({
@@ -689,7 +702,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     if (current) update(current)
   })
 
-  /** Mirror the motion preference onto the settings chip. */
+  /** Mirror the motion and camera preferences onto the settings chips. */
   function capturePrefUpdate(state: GameState): void {
     motionChip.setAttribute(
       "aria-pressed",
@@ -700,6 +713,14 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       label.textContent = state.settings.reducedMotion
         ? "Motion: reduced"
         : "Motion: full"
+    }
+    const cinematic = state.settings.arenaCamera === "cinematic"
+    cameraChip.setAttribute("aria-pressed", cinematic ? "true" : "false")
+    const cameraLabel = cameraChip.querySelector<HTMLElement>(".kit-chip-label")
+    if (cameraLabel) {
+      cameraLabel.textContent = cinematic
+        ? "Camera: cinematic"
+        : "Camera: broadcast"
     }
   }
 

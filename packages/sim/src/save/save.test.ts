@@ -11,6 +11,7 @@ import {
   createInitialState,
   type GameState,
   markHintSeen,
+  setArenaCamera,
   setReducedMotion,
 } from "../state"
 import { advanceDay } from "../ticker"
@@ -29,7 +30,7 @@ import {
 
 describe("save schema", () => {
   test("current version matches the schema", () => {
-    expect(SAVE_VERSION).toBe(8)
+    expect(SAVE_VERSION).toBe(9)
   })
 
   test("serializeSave wraps state with version metadata", () => {
@@ -642,7 +643,7 @@ describe("evolution stage (v6)", () => {
 
 describe("save v7 — cup session, rename, hints", () => {
   test("current version matches the schema", () => {
-    expect(SAVE_VERSION).toBe(8)
+    expect(SAVE_VERSION).toBe(9)
   })
 
   test("a v6 save migrates cleanly: null session + a clean hint ledger", () => {
@@ -736,9 +737,13 @@ describe("save v7 — cup session, rename, hints", () => {
   test("seenHints round-trips through saveGame/loadGame", () => {
     const adapter = createMemoryAdapter()
     const owned = chooseStarter(createInitialState(), "fire_drake", 42)
-    const marked = {
+    const marked: GameState = {
       ...owned,
-      settings: { reducedMotion: false, seenHints: ["ap"] },
+      settings: {
+        reducedMotion: false,
+        seenHints: ["ap"],
+        arenaCamera: "cinematic",
+      },
     }
     saveGame(adapter, marked, 1)
     expect(loadGame(adapter)?.settings.seenHints).toEqual(["ap"])
@@ -748,11 +753,27 @@ describe("save v7 — cup session, rename, hints", () => {
     const adapter = createMemoryAdapter()
     const owned = chooseStarter(createInitialState(), "fire_drake", 42)
     const bad = (settings: unknown) => ({ ...owned, settings }) as GameState
-    saveGame(adapter, bad({ reducedMotion: false, seenHints: "ap" }), 1)
+    saveGame(
+      adapter,
+      bad({ reducedMotion: false, seenHints: "ap", arenaCamera: "cinematic" }),
+      1,
+    )
     expect(loadGame(adapter)).toBeNull()
-    saveGame(adapter, bad({ reducedMotion: false, seenHints: [3] }), 1)
+    saveGame(
+      adapter,
+      bad({ reducedMotion: false, seenHints: [3], arenaCamera: "cinematic" }),
+      1,
+    )
     expect(loadGame(adapter)).toBeNull()
-    saveGame(adapter, bad({ reducedMotion: false, seenHints: undefined }), 1)
+    saveGame(
+      adapter,
+      bad({
+        reducedMotion: false,
+        seenHints: undefined,
+        arenaCamera: "cinematic",
+      }),
+      1,
+    )
     expect(loadGame(adapter)).toBeNull()
   })
 })
@@ -868,9 +889,9 @@ describe("save v8 — the ladder (bronze ladder)", () => {
     return { version: 7, state, session: null, savedAt: 99 }
   }
 
-  test("a v7 save migrates to v8 with a fresh ladder (no backfill)", () => {
+  test("a v7 save migrates to the current version with a fresh ladder (no backfill)", () => {
     const migrated = migrate(v7Payload())
-    expect(migrated.version).toBe(8)
+    expect(migrated.version).toBe(SAVE_VERSION)
     expect(migrated.state.ladder).toEqual({ points: 0, subTier: "III" })
   })
 
@@ -941,6 +962,61 @@ describe("save v8 — the ladder (bronze ladder)", () => {
     const state = raw.state as Record<string, unknown>
     delete state.ladder
     adapter.setItem(SAVE_KEY, JSON.stringify(raw))
+    expect(loadGame(adapter)).toBeNull()
+  })
+})
+
+describe("arena camera preference (v9)", () => {
+  test("fresh state defaults to the cinematic director", () => {
+    expect(createInitialState().settings.arenaCamera).toBe("cinematic")
+  })
+
+  test("a v8 save migrates with the arena-camera default", () => {
+    const state = structuredClone(
+      chooseStarter(createInitialState(), "fire_drake", 42),
+    ) as unknown as Record<string, unknown>
+    const settings = state.settings as Record<string, unknown>
+    delete settings.arenaCamera
+    const adapter = createMemoryAdapter()
+    adapter.setItem(
+      SAVE_KEY,
+      JSON.stringify({ version: 8, state, session: null, savedAt: 55 }),
+    )
+    const loaded = loadGame(adapter)
+    expect(loaded).not.toBeNull()
+    expect(loaded?.settings.arenaCamera).toBe("cinematic")
+  })
+
+  test("the camera preference round-trips through saveGame/loadGame", () => {
+    const adapter = createMemoryAdapter()
+    const tuned = setArenaCamera(
+      chooseStarter(createInitialState(), "fire_drake", 42),
+      "broadcast",
+    )
+    saveGame(adapter, tuned, 900)
+    const loaded = loadGame(adapter)
+    expect(loaded?.settings.arenaCamera).toBe("broadcast")
+  })
+
+  test("setArenaCamera turns the toggle both ways", () => {
+    const base = chooseStarter(createInitialState(), "fire_drake", 42)
+    const calm = setArenaCamera(base, "broadcast")
+    const cine = setArenaCamera(calm, "cinematic")
+    expect(calm.settings.arenaCamera).toBe("broadcast")
+    expect(cine.settings.arenaCamera).toBe("cinematic")
+  })
+
+  test("loadGame rejects a corrupt camera preference", () => {
+    const adapter = createMemoryAdapter()
+    const state = structuredClone(
+      chooseStarter(createInitialState(), "fire_drake", 42),
+    ) as unknown as Record<string, unknown>
+    const settings = state.settings as Record<string, unknown>
+    settings.arenaCamera = "wall"
+    adapter.setItem(
+      SAVE_KEY,
+      JSON.stringify({ version: SAVE_VERSION, state, savedAt: 0 }),
+    )
     expect(loadGame(adapter)).toBeNull()
   })
 })

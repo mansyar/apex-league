@@ -21,7 +21,6 @@ import {
   completeCup,
   cupPlacement,
   defaultLoadout,
-  ELEMENT_HUE,
   effectiveStats,
   endCup,
   finalizeCup,
@@ -60,7 +59,7 @@ export interface CupHandlers {
   onCommit: (state: GameState) => void
   /**
    * The cup concluded (champion, loss, or forfeit): the placement is
-   * final and the rewards are applied — persist the returned state.
+   * final and the rewards are applied - persist the returned state.
    */
   onFinalize: (state: GameState, session: CupSession) => void
   /**

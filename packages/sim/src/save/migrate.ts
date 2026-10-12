@@ -84,7 +84,11 @@ const migrations: Record<
       phase: isCupDay(day) ? "cup" : "day",
       actionPoints: ACTION_POINTS_PER_DAY,
       creature: null,
-      settings: { reducedMotion: false, seenHints: [] },
+      settings: {
+        reducedMotion: false,
+        seenHints: [],
+        arenaCamera: "cinematic",
+      },
       cupsWon: 0,
       lastCupDay: null,
       // The ladder starts fresh for every migrated save (bronze ladder,
@@ -103,7 +107,11 @@ const migrations: Record<
       phase,
       actionPoints,
       creature: createCreature("fire_drake", STARTER_GRANT_SEED),
-      settings: { reducedMotion: false, seenHints: [] },
+      settings: {
+        reducedMotion: false,
+        seenHints: [],
+        arenaCamera: "cinematic",
+      },
       cupsWon: 0,
       lastCupDay: null,
       // The ladder starts fresh for every migrated save (bronze ladder,
@@ -131,7 +139,11 @@ const migrations: Record<
       phase,
       actionPoints,
       creature,
-      settings: { reducedMotion: false, seenHints: [] },
+      settings: {
+        reducedMotion: false,
+        seenHints: [],
+        arenaCamera: "cinematic",
+      },
       cupsWon: 0,
       lastCupDay: null,
       // The ladder starts fresh for every migrated save (bronze ladder,
@@ -163,7 +175,11 @@ const migrations: Record<
       phase,
       actionPoints,
       creature,
-      settings: { reducedMotion: false, seenHints: [] },
+      settings: {
+        reducedMotion: false,
+        seenHints: [],
+        arenaCamera: "cinematic",
+      },
       cupsWon: 0,
       lastCupDay: null,
       // The ladder starts fresh for every migrated save (bronze ladder,
@@ -193,7 +209,7 @@ const migrations: Record<
       phase,
       actionPoints,
       creature,
-      settings,
+      settings: { ...settings, arenaCamera: "cinematic" },
       cupsWon: 0,
       lastCupDay: null,
       // The ladder starts fresh for every migrated save (bronze ladder,
@@ -255,6 +271,9 @@ const migrations: Record<
         reducedMotion:
           rawSettings.reducedMotion as GameState["settings"]["reducedMotion"],
         seenHints,
+        // Stamped early so the intermediate GameState literal type-checks;
+        // the v8 → v9 step below stamps it again for direct v8 saves.
+        arenaCamera: "cinematic",
       },
       cupsWon: s.cupsWon as GameState["cupsWon"],
       lastCupDay: s.lastCupDay as GameState["lastCupDay"],
@@ -294,6 +313,35 @@ const migrations: Record<
       savedAt: raw.savedAt ?? 0,
       // The live cup session predates this step (save v7) and is forwarded
       // untouched — the ladder migration only adds a fresh ladder slice.
+      session: (raw.session as CupSession | null) ?? null,
+    }
+  },
+
+  // v8 → v9 (merged migration, battle-animation track): saves from before
+  // the camera director have no arena-camera preference. Stamp the
+  // cinematic default: the director is the intended presentation, and
+  // reduced-motion players are pinned to the broadcast feel at render time
+  // regardless of this value. Ladder and cup session predate this step and
+  // are forwarded untouched.
+  8: (raw) => {
+    const { day, phase, actionPoints, state: s } = validateStateShape(raw, 8)
+    const migrated: GameState = {
+      day,
+      phase,
+      actionPoints,
+      creature: s.creature as GameState["creature"],
+      settings: {
+        ...(s.settings as GameState["settings"]),
+        arenaCamera: "cinematic",
+      },
+      cupsWon: s.cupsWon as GameState["cupsWon"],
+      lastCupDay: s.lastCupDay as GameState["lastCupDay"],
+      ladder: s.ladder as GameState["ladder"],
+    }
+    return {
+      version: 9,
+      state: migrated,
+      savedAt: raw.savedAt ?? 0,
       session: (raw.session as CupSession | null) ?? null,
     }
   },

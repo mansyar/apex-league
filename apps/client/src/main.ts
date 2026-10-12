@@ -7,18 +7,20 @@ import {
   clearLoadout,
   clearSave,
   createInitialState,
-  type GameState,
   getSpecies,
   loadBoot,
   markHintSeen,
   renameCreature,
   type StatKey,
+  setArenaCamera,
   setLoadout,
   setReducedMotion,
 } from "@apex/sim"
 import { buildArena } from "./arena"
 import { createCup } from "./cup"
+import { nextShot } from "./director"
 import { corruptSaveNotice, createHud } from "./hud"
+import { prefersReducedMotionOs } from "./motion"
 import { createScene } from "./scene"
 import { createSpar } from "./spar"
 import { createStaging, visualSeedOf } from "./staging"
@@ -102,6 +104,25 @@ const syncScene = (): void => {
   sceneVisuals()
 }
 
+// The camera style is a saved preference (v7); reduced motion pins the
+// broadcast camera inside the scene regardless.
+const applyCameraStyle = (): void => {
+  scene.setArenaCameraStyle(store.get().settings.arenaCamera)
+}
+applyCameraStyle()
+
+/** Flip the saved camera preference and apply it live (FR6). */
+const toggleArenaCamera = (): void => {
+  const current = store.get()
+  store.commit(
+    setArenaCamera(
+      current,
+      current.settings.arenaCamera === "cinematic" ? "broadcast" : "cinematic",
+    ),
+  )
+  applyCameraStyle()
+}
+
 // The spar reads the live state through this hook; kit changes write
 // through the store like every other sim change.
 const spar = createSpar(app, {
@@ -137,7 +158,47 @@ const spar = createSpar(app, {
   // even when the OS reports motion-ok.
   motionPref: () => store.get().settings.reducedMotion,
 })
-staging.setBigHitHandler((strength) => scene.shake(strength))
+
+// Big-hit vignette (FR7): a screen-edge darkening that pulses with the
+// same strength the camera shake uses. A DOM overlay - cheap, and it
+// rides above both the spar and cup battles. Reduced motion skips it.
+const vignette = document.createElement("div")
+vignette.className = "hit-vignette"
+document.body.appendChild(vignette)
+let vignetteFade: number | null = null
+const flashVignette = (strength: number): void => {
+  // Both the saved preference and the OS query gate the flash - the CSS
+  // media query alone cannot (the opacity is driven inline).
+  if (store.get().settings.reducedMotion || prefersReducedMotionOs()) return
+  // Fast flash in, slow ease back out - the two-phase transition swap.
+  vignette.style.transition = "opacity 60ms ease-out"
+  vignette.style.opacity = String(Math.min(0.85, strength * 9))
+  if (vignetteFade !== null) window.clearTimeout(vignetteFade)
+  vignetteFade = window.setTimeout(() => {
+    vignette.style.transition = "opacity 300ms ease-in"
+    vignette.style.opacity = "0"
+  }, 110)
+}
+
+staging.setBigHitHandler((strength) => {
+  scene.shake(strength)
+  flashVignette(strength)
+})
+// Cinematic director (FR6): the stage reports the live battle context;
+// nextShot turns it into a camera intent. Reduced motion pins the
+// broadcast camera inside the scene, so no extra guard here.
+// The intent object is reused across frames: nextShot fully rewrites it,
+// and the feed runs on every render tick (no per-frame allocation).
+const directorIntent: Parameters<typeof nextShot>[1] = {
+  look: { x: 0, y: 0, z: 0 },
+  radiusMult: 1,
+  azimuthDelta: 0,
+  elevationDelta: 0,
+  cut: false,
+}
+staging.setDirectorHandler((ctx) =>
+  scene.applyDirectorIntent(nextShot(ctx, directorIntent)),
+)
 
 /**
  * Reduced-motion hand-off: the save v5 preference reaches the arena
@@ -249,6 +310,9 @@ const hud = createHud(app, {
     const current = store.get()
     store.commit(setReducedMotion(current, !current.settings.reducedMotion))
     applyMotionPref()
+  },
+  onToggleArenaCamera: () => {
+    toggleArenaCamera()
   },
   onRename: (name) => {
     const next = renameCreature(store.get(), name)

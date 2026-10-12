@@ -9,4 +9,9 @@ export default defineConfig({
       ),
     },
   },
+  // Tailscale Serve proxies the dev server through the tailnet hostname;
+  // Vite's Host allowlist otherwise rejects that Host header.
+  server: {
+    allowedHosts: ["msi-1.tail7dcc44.ts.net"],
+  },
 })

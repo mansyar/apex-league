@@ -9,10 +9,18 @@ import {
   type BattleResult,
   createCreature,
   makeExhibition,
+  PLAYBACK_PHASES,
+  type PlaybackStep,
   resolveBattle,
 } from "@apex/sim"
 import type { PlaybackDriverHandlers, PlaybackRun } from "./playbackDriver"
-import { createPlaybackDriver } from "./playbackDriver"
+import {
+  createPlaybackDriver,
+  dilatedPace,
+  KO_DILATION,
+  STAMP_BEATS,
+  stampDelay,
+} from "./playbackDriver"
 import type { PlaybackSpeed } from "./playbackSpeed"
 
 /** A real resolved battle to drive: owned fire drake, seeded rival. */
@@ -41,6 +49,7 @@ function realVerdict(seed: number) {
 function harness(motionPref: () => boolean = () => false): {
   handlers: PlaybackDriverHandlers
   steps: Array<{ instant: boolean; index: number }>
+  seen: PlaybackStep[]
   lines: string[]
   finishes: Array<{
     verdict: Readonly<BattleResult>
@@ -53,6 +62,7 @@ function harness(motionPref: () => boolean = () => false): {
   waitForFinishes: (n: number) => Promise<void>
 } {
   const steps: Array<{ instant: boolean; index: number }> = []
+  const seen: PlaybackStep[] = []
   const lines: string[] = []
   const finishes: Array<{
     verdict: Readonly<BattleResult>
@@ -68,7 +78,7 @@ function harness(motionPref: () => boolean = () => false): {
   const handlers: PlaybackDriverHandlers = {
     onStep: (step, instant) => {
       steps.push({ instant, index: steps.length })
-      void step
+      seen.push(step)
     },
     onLine: (text) => lines.push(text),
     onReplayStart: (run) => replayStarts.push(run),
@@ -91,6 +101,7 @@ function harness(motionPref: () => boolean = () => false): {
   return {
     handlers,
     steps,
+    seen,
     lines,
     finishes,
     paces,
@@ -150,8 +161,9 @@ describe("playbackDriver — paced runs", () => {
     expect(h.steps.length).toBe(verdict.events.length)
     expect(h.steps.every((s) => !s.instant)).toBe(true)
     expect(h.finishes).toEqual([{ verdict, replayed: false, instant: false }])
-    // Pacing is announced once at the start (normal speed).
-    expect(h.paces).toEqual([2])
+    // Pacing: announced once at the start (normal speed), raised for the
+    // terminal KO beat (FR8 dilation), restored at the finish.
+    expect(h.paces).toEqual([2, 5, 2])
   })
 
   test("speedToggle flips normal⇄fast and re-announces the pace", () => {
@@ -179,5 +191,68 @@ describe("playbackDriver — paced runs", () => {
     driver.replay()
     expect(h.replayStarts.length).toBe(0)
     expect(h.steps.length).toBe(0)
+  })
+})
+
+describe("playbackDriver — enriched playback contract (FR3)", () => {
+  test("enriched step fields pass through untouched in paced runs and reduced dumps", async () => {
+    for (const reduced of [false, true]) {
+      const h = harness(() => reduced)
+      const driver = createPlaybackDriver(h.handlers, { pace: TEST_PACE })
+      const { fight, verdict } = realVerdict(7)
+      driver.start(fight, verdict)
+      await h.waitForFinishes(1)
+      expect(h.seen.length).toBe(verdict.events.length)
+      for (const step of h.seen) {
+        expect(step.phases).toEqual(PLAYBACK_PHASES[step.kind])
+        if ((step.kind === "melee" || step.kind === "impact") && step.hit) {
+          expect(step.reaction).toBeDefined()
+        }
+        if (step.missReason === "dodge") {
+          expect(step.dodgeDirection).toBeDefined()
+        }
+      }
+      const down = h.seen.find((s) => s.kind === "down")
+      if (down) expect(down.ko).toBe(true)
+    }
+  })
+
+  describe("playbackDriver - time-dilated final blow (FR8)", () => {
+    for (const reduced of [false, true]) {
+      test(`the terminal KO step dilates the pacing around it (reduced=${reduced})`, async () => {
+        const h = harness(() => reduced)
+        const driver = createPlaybackDriver(h.handlers, { pace: TEST_PACE })
+        const { fight, verdict } = realVerdict(22)
+        driver.start(fight, verdict)
+        await h.waitForFinishes(1)
+
+        // The pure pacing contract: a KO step stretches the base wait.
+        expect(KO_DILATION).toBeGreaterThan(1)
+        expect(dilatedPace(900, false)).toBe(900)
+        expect(dilatedPace(900, true)).toBe(Math.round(900 * KO_DILATION))
+        expect(dilatedPace(140, true)).toBe(Math.round(140 * KO_DILATION))
+        // The verdict stamp lands after a dust-settle hold that stretches
+        // on the KO beat: base * KO_DILATION * STAMP_BEATS, else base * STAMP_BEATS.
+        expect(STAMP_BEATS).toBeGreaterThan(1)
+        expect(stampDelay(900, false)).toBe(Math.round(900 * STAMP_BEATS))
+        expect(stampDelay(900, true)).toBe(
+          Math.round(900 * KO_DILATION * STAMP_BEATS),
+        )
+
+        if (reduced) {
+          // The instant dump has no timers, so no dilation calls happen.
+          expect(h.paces).toEqual([])
+          return
+        }
+        // start announces the base pace exactly once...
+        expect(h.paces[0]).toBe(2)
+        // ...the KO beat raises the live pace to base * KO_DILATION...
+        expect(h.paces).toContain(5)
+        // ...and the pace returns to base after the KO beat.
+        expect(h.paces[h.paces.length - 1]).toBe(2)
+        // Only one dilation ramp up (the KO step) and one ramp down.
+        expect(h.paces.filter((p) => p === 5)).toHaveLength(1)
+      })
+    }
   })
 })

@@ -1,0 +1,9 @@
+{
+  "id": "battle_animation_overhaul_20261012",
+  "title": "Battle Animation Overhaul - arena playback to AAA grade: pivot fix, battle-feel sim changes (stagger/knockback/finisher), enriched playback contract, procedural animation primitive layer, tiered bespoke choreography, cinematic camera director, VFX post pass, KO signature moment",
+  "type": "feature",
+  "status": "complete",
+  "createdAt": "2026-10-12",
+  "branch": "battle_animation_overhaul_20261012",
+  "base": "main @ 5c2a5fa"
+}

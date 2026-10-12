@@ -21,6 +21,13 @@ export interface GameSettings {
    * once, then records its id here so it never nags again.
    */
   seenHints: string[]
+  /**
+   * Arena camera presentation (save v9): "cinematic" drives the battle
+   * through the shot-grammar director, "broadcast" pins the fixed wide
+   * framing. Reduced motion always forces the broadcast feel at render
+   * time regardless of this preference.
+   */
+  arenaCamera: "cinematic" | "broadcast"
 }
 
 /** The single source of truth for a run's simulation state. */
@@ -56,7 +63,7 @@ export function createInitialState(): GameState {
     phase: "day",
     actionPoints: ACTION_POINTS_PER_DAY,
     creature: null,
-    settings: { reducedMotion: false, seenHints: [] },
+    settings: { reducedMotion: false, seenHints: [], arenaCamera: "cinematic" },
     cupsWon: 0,
     lastCupDay: null,
     ladder: initialLadder(),
@@ -82,6 +89,17 @@ export function markHintSeen(state: GameState, hintId: string): GameState {
     ...state,
     settings: { ...state.settings, seenHints: [...seen, hintId] },
   }
+}
+
+/**
+ * Pick the arena camera presentation (save v9). Pure: the next state keeps
+ * everything else untouched, and callers persist via saveGame.
+ */
+export function setArenaCamera(
+  state: GameState,
+  value: "cinematic" | "broadcast",
+): GameState {
+  return { ...state, settings: { ...state.settings, arenaCamera: value } }
 }
 
 /**

@@ -6,7 +6,11 @@ import {
 } from "@apex/sim"
 import { generate, makeRng, type Stage } from "@apex/voxel"
 import * as THREE from "three"
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js"
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js"
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js"
 import { buildCreatureGroup } from "./creature"
+import type { CameraIntent } from "./director"
 import { prefersReducedMotionOs } from "./motion"
 import { buildPropGroup } from "./prop"
 import {
@@ -52,6 +56,10 @@ export interface SceneHandle {
    * (arena mode only; reduced-motion callers pass 0). 0 ices it off.
    */
   shake(strength: number): void
+  /** Arena camera style (FR6): broadcast framing or the cinematic director. */
+  setArenaCameraStyle(style: "broadcast" | "cinematic"): void
+  /** Feed the director's latest shot intent (stale intents expire). */
+  applyDirectorIntent(intent: CameraIntent): void
   /**
    * Reduced-motion override (save v5 pref). true = no shake, no bounce;
    * null = fall back to the OS media query. Callers may re-apply freely.
@@ -203,12 +211,42 @@ export function createScene(container: HTMLElement): SceneHandle {
     100,
   )
 
+  // -- Bloom post pass (FR7) --------------------------------------------------
+  // Arena-only post processing: bright additive VFX (projectile glows,
+  // hit flashes, bursts) bloom softly over the dark show floor. Built
+  // defensively - a weak GPU or missing addon support degrades to the
+  // plain renderer instead of breaking the game.
+  let composer: EffectComposer | null = null
+  try {
+    composer = new EffectComposer(renderer)
+    composer.addPass(new RenderPass(scene, camera))
+    composer.addPass(
+      new UnrealBloomPass(
+        new THREE.Vector2(container.clientWidth, container.clientHeight),
+        0.32,
+        0.4,
+        0.72,
+      ),
+    )
+    composer.setSize(container.clientWidth, container.clientHeight)
+  } catch {
+    composer = null
+  }
+
   // Drag-to-orbit camera around the creature, so the idles can be
   // inspected from any angle. Wheel zooms, clamped to sane distances.
   // While a fight plays the camera is a broadcast pit member: fixed
   // framing, no orbit input.
   type CameraMode = "ranch" | "arena"
   let cameraMode: CameraMode = "ranch"
+  // -- Cinematic director (FR6) ----------------------------------------------
+  type ArenaStyle = "broadcast" | "cinematic"
+  let arenaStyle: ArenaStyle = "broadcast"
+  let directorIntent: CameraIntent | null = null
+  let intentAt = 0
+  // Scratch vectors for the director ease (no per-frame allocations).
+  const directorDesired = new THREE.Vector3()
+  const directorLook = new THREE.Vector3()
   let savedOrbit = { azimuth: 0, elevation: 0, radius: 0 }
   const target = new THREE.Vector3(0, 0.8, 0)
   const orbit = { azimuth: 0.567, elevation: 0.326, radius: 6.9 }
@@ -241,10 +279,15 @@ export function createScene(container: HTMLElement): SceneHandle {
       orbit.azimuth = ARENA_FRAMING.azimuth
       orbit.elevation = ARENA_FRAMING.elevation
       orbit.radius = ARENA_FRAMING.radius
-      target.y = ARENA_FRAMING.targetY
+      // The arena is centered at the world origin — a ranch camera that
+      // was soft-tracking a wandering creature must not carry that aim
+      // offset into the broadcast framing.
+      target.set(0, ARENA_FRAMING.targetY, 0)
     } else {
       Object.assign(orbit, savedOrbit)
-      target.y = 0.8
+      // Reset the full aim, not just the height - a cinematic director
+      // may have left the target tracking a fighter.
+      target.set(0, 0.8, 0)
     }
     applyOrbit()
   }
@@ -561,6 +604,24 @@ export function createScene(container: HTMLElement): SceneHandle {
     sceneRoot: scene,
     setCameraMode,
     shake: setShake,
+    /** Choose the arena camera style (FR6). */
+    setArenaCameraStyle(style: ArenaStyle) {
+      if (style === arenaStyle) return
+      arenaStyle = style
+      if (style === "broadcast") {
+        // Leaving cinematic: nothing else writes the camera in broadcast
+        // arena mode, so re-frame NOW or the shot freezes at the last
+        // director pose until the fight ends.
+        target.set(0, ARENA_FRAMING.targetY, 0)
+        applyOrbit()
+        directorIntent = null
+      }
+    },
+    /** Feed the director's latest shot; stale intents settle to broadcast. */
+    applyDirectorIntent(intent: CameraIntent) {
+      directorIntent = intent
+      intentAt = performance.now()
+    },
     setMotionReduced(v) {
       motionReduced = v
       const next = motionReduced ?? osReducedMotion
@@ -593,6 +654,7 @@ export function createScene(container: HTMLElement): SceneHandle {
     dispose() {
       if (creatureGroup) disposeGroup(creatureGroup)
       cancelAnimationFrame(raf)
+      composer?.dispose()
       window.removeEventListener("resize", onResize)
       window.removeEventListener("pointermove", onPointerMove)
       window.removeEventListener("pointerup", onPointerUp)
@@ -749,7 +811,13 @@ export function createScene(container: HTMLElement): SceneHandle {
       mode = lastConditions ? moodModeFrom(lastConditions) : "normal"
     }
     const profile = MOOD_PROFILES[mode]
-    if (creatureGroup) {
+    // The ranch block owns the ranch creature AND the soft camera track.
+    // Guarded on camera mode: in the arena the ranch creature is hidden
+    // but its wander/walk machines would keep running — and the camera
+    // track would drag the broadcast framing off the arena toward the
+    // invisible wanderer, then ease back when the trip ends. (The
+    // "camera thrown away mid-fight" bug.)
+    if (creatureGroup && cameraMode === "ranch") {
       // Breathe idle: squash-and-stretch on the body around its HIP-LINE
       // pivot. Scale never moves the pivot, so body voxels at the leg
       // junction stay fixed and the legs remain visually attached; the chest
@@ -932,7 +1000,73 @@ export function createScene(container: HTMLElement): SceneHandle {
         shakeBase = null
       }
     }
-    renderer.render(scene, camera)
+    // Cinematic director (FR6): ease (or cut) toward the latest intent.
+    // Intents offset the broadcast framing, so a stale or absent intent
+    // settles the shot back to the fixed framing. Reduced motion pins
+    // the broadcast camera; an active shake owns the frame until it
+    // decays so the punch-in can't fight the shake offsets.
+    if (
+      cameraMode === "arena" &&
+      arenaStyle === "cinematic" &&
+      !reducedMotion &&
+      !(shakeAmp > 0.001 && shakeBase)
+    ) {
+      const prev = t - lastFrameT
+      const dt = prev > 0 && prev < 0.5 ? prev : 1 / 60
+      const fresh =
+        directorIntent !== null && performance.now() - intentAt < 400
+      if (fresh && directorIntent) {
+        const intent = directorIntent
+        const radius = ARENA_FRAMING.radius * intent.radiusMult
+        const azimuth = ARENA_FRAMING.azimuth + intent.azimuthDelta
+        const elevation = ARENA_FRAMING.elevation + intent.elevationDelta
+        directorDesired.set(
+          intent.look.x + radius * Math.cos(elevation) * Math.sin(azimuth),
+          intent.look.y + radius * Math.sin(elevation),
+          intent.look.z + radius * Math.cos(elevation) * Math.cos(azimuth),
+        )
+        directorLook.set(intent.look.x, intent.look.y, intent.look.z)
+        if (intent.cut) {
+          camera.position.copy(directorDesired)
+          target.copy(directorLook)
+        } else {
+          // Frame-rate-independent ease (learnings 7). Deliberately slow:
+          // a film camera glides between framings; fast panning dizzy.
+          const k = 1 - Math.exp(-2 * dt)
+          camera.position.lerp(directorDesired, k)
+          target.lerp(directorLook, k)
+        }
+      } else {
+        // No live coverage: glide home to the broadcast framing.
+        directorLook.set(0, ARENA_FRAMING.targetY, 0)
+        const k = 1 - Math.exp(-2 * dt)
+        target.lerp(directorLook, k)
+        directorDesired.set(
+          target.x +
+            ARENA_FRAMING.radius *
+              Math.cos(ARENA_FRAMING.elevation) *
+              Math.sin(ARENA_FRAMING.azimuth),
+          target.y + ARENA_FRAMING.radius * Math.sin(ARENA_FRAMING.elevation),
+          target.z +
+            ARENA_FRAMING.radius *
+              Math.cos(ARENA_FRAMING.elevation) *
+              Math.cos(ARENA_FRAMING.azimuth),
+        )
+        camera.position.lerp(directorDesired, k)
+      }
+      camera.lookAt(target)
+    }
+    // Bloom rides arena fights only - the ranch keeps its clean look. A
+    // runtime composer failure (context loss) degrades to the plain
+    // renderer instead of killing the frame loop.
+    if (cameraMode === "arena" && composer) {
+      try {
+        composer.render()
+      } catch {
+        composer = null
+        renderer.render(scene, camera)
+      }
+    } else renderer.render(scene, camera)
     lastFrameT = t
     raf = requestAnimationFrame(tick)
   }
@@ -945,6 +1079,7 @@ export function createScene(container: HTMLElement): SceneHandle {
     camera.aspect = w / h
     camera.updateProjectionMatrix()
     renderer.setSize(w, h)
+    composer?.setSize(w, h)
   }
   window.addEventListener("resize", onResize)
 

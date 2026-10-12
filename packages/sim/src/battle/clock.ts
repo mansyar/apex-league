@@ -17,6 +17,19 @@
  * revision 2026-10-10); the fight is judged after the whole step, so a
  * same-step double down is reachable. Shots still airborne after the
  * judgment are discarded.
+ *
+ * Stagger semantics (battle-animation-overhaul spec FR2): a hit dealing
+ * >= STAGGER_DAMAGE_FRACTION of the victim's max HP — or a
+ * super-effective hit that also clears STAGGER_SE_FRACTION — staggers a
+ * standing victim. The victim's next action window is consumed reeling (a `stagger` event, gauge spent, no
+ * action planned); cooldowns do not step during it. Downing blows never
+ * stagger and the lock never stacks, and a fighter cannot be staggered
+ * again until STAGGER_GRACE_TICKS have passed since the trigger (the
+ * recovered fighter always gets to act). The same heavy blow also knocks
+ * both fighters apart when the victim was in melee range (a `knockback`
+ * event, both ranges to far) — re-engaging costs each side a closing
+ * action; the separation is not grace-gated; against an already-far
+ * victim it is a silent no-op.
  */
 
 import type { CreatureStats, Element } from "../creature"
@@ -50,6 +63,27 @@ export function fighterKey(f: {
 /** Distance on the arena floor: `far` to start, `near` after a close. */
 export type Range = "far" | "near"
 
+/**
+ * Stagger threshold (battle-animation-overhaul spec FR2, tunable): a
+ * single hit dealing at least this fraction of the victim's max HP
+ * staggers it, whatever the type chart says.
+ */
+export const STAGGER_DAMAGE_FRACTION = 0.35
+
+/**
+ * Super-effective stagger floor (FR2, tunable): a super-effective hit
+ * must ALSO deal at least this fraction of the victim's max HP to
+ * stagger — a light type-chart chip no longer locks a fighter.
+ */
+export const STAGGER_SE_FRACTION = 0.15
+
+/**
+ * Stagger grace (FR2, tunable): ticks that must pass after a stagger
+ * trigger before the same fighter can be staggered again. Kills the
+ * chain-lock death spiral: a recovered fighter always gets to act.
+ */
+export const STAGGER_GRACE_TICKS = 3
+
 /** A fighter mid-fight: snapshot plus live hp, range, gauge, and cooldowns. */
 export interface ClockFighter {
   readonly name: string
@@ -64,6 +98,11 @@ export interface ClockFighter {
   readonly gauge: number
   /** Remaining own-action cooldowns keyed by move id. */
   readonly cooldowns: Readonly<Record<string, number>>
+  /**
+   * True while the fighter owes a stagger recovery: its next action
+   * window is consumed reeling instead of acting.
+   */
+  readonly staggered: boolean
 }
 
 /** One scripted choice for an acting fighter. */
@@ -93,6 +132,8 @@ export type BattleEventKind =
   | "close"
   | "hold"
   | "basic"
+  | "stagger"
+  | "knockback"
   | "down"
   | "launch"
   | "impact"
@@ -105,6 +146,12 @@ export interface BattleEvent {
   readonly kind: BattleEventKind
   /** The acting fighter; for a `down` event, the fighter that went down. */
   readonly actor: string
+  /**
+   * The acting fighter's stable side key (`id ?? name`) — display names
+   * alone cannot distinguish mirror matches (two "Ember Drake"s), so
+   * client-side actor mapping keys off this when present.
+   */
+  readonly actorKey?: string
   /** The receiving fighter, where relevant. */
   readonly target?: string
   readonly moveId?: string
@@ -116,6 +163,13 @@ export interface BattleEvent {
   readonly hpAfter: Readonly<Record<string, number>>
   /** One present-tense announcer sentence. */
   readonly line: string
+  /**
+   * Additive playback hint (battle-animation-overhaul FR3), set only on
+   * heavy landing blows: the victim's non-down reaction — reeling where
+   * it stands, or being knocked out of melee range. The `down` reaction
+   * is derived by the playback contract from the adjacent down event.
+   */
+  readonly reaction?: "stagger" | "knockback"
 }
 
 /** What one tick produced. The resolver reads events and HP to rule endings. */
@@ -136,10 +190,13 @@ interface RunFighter {
   readonly id?: string
   readonly element: Element
   readonly stats: CreatureStats
+  /** Tick of the last stagger trigger; grace counts from here. */
+  lastStaggerTick: number
   hp: number
   range: Range
   gauge: number
   cooldowns: Map<string, number>
+  staggered: boolean
 }
 
 /** A special already in the air, awaiting the first step of the next tick. */
@@ -161,6 +218,7 @@ function view(f: RunFighter): ClockFighter {
     range: f.range,
     gauge: f.gauge,
     cooldowns: Object.freeze(Object.fromEntries(f.cooldowns)),
+    staggered: f.staggered,
   }
 }
 
@@ -206,6 +264,7 @@ export function createClockFighter(fighter: BattleFighter): ClockFighter {
     range: "far",
     gauge: 0,
     cooldowns: Object.freeze({}),
+    staggered: false,
   }
 }
 
@@ -223,6 +282,8 @@ export function createClock(
     range: f.range,
     gauge: f.gauge,
     cooldowns: new Map(Object.entries(f.cooldowns)),
+    staggered: f.staggered,
+    lastStaggerTick: Number.NEGATIVE_INFINITY,
   }))
   const tieIndex = new Map(tieOrder.map((key, i) => [key, i]))
   const rng: Rng = makeRng(seed >>> 0)
@@ -241,6 +302,7 @@ export function createClock(
         tick,
         kind: "impact",
         actor: shooter.name,
+        actorKey: fighterKey(shooter),
         target: target.name,
         moveId: move.id,
         damage: 0,
@@ -258,6 +320,7 @@ export function createClock(
           tick,
           kind: "impact",
           actor: shooter.name,
+          actorKey: fighterKey(shooter),
           target: target.name,
           moveId: move.id,
           damage: 0,
@@ -279,22 +342,67 @@ export function createClock(
       true,
     )
     target.hp -= damage
+    // A heavy hit staggers a standing victim (FR2): heavy means the
+    // damage crosses the fraction floor, or a super-effective blow that
+    // also clears its own (lighter) floor. The victim's next action
+    // window is consumed reeling. A downing blow never staggers, an
+    // already-staggered victim never re-locks (one lock, never stacked),
+    // and the grace window keeps a freshly recovered fighter acting.
+    // A heavy blow against a NEAR victim also knocks BOTH fighters apart
+    // (range-shifting knockback): re-engaging costs each side a closing
+    // action, and the separation itself is NOT grace-gated — spacing
+    // stays dynamic even when the reel is suppressed. A far victim has
+    // nothing to shift — the knockback is a silent no-op.
+    const heavy =
+      target.hp > 0 &&
+      (damage >= target.stats.hp * STAGGER_DAMAGE_FRACTION ||
+        (type.num > type.den &&
+          damage >= target.stats.hp * STAGGER_SE_FRACTION))
+    // The lock applies only through the grace gate; the reaction hint
+    // advertises the ACTUAL outcome, not the raw heaviness - a
+    // grace-blocked blow must not promise a reel the client never sees.
+    const staggers =
+      heavy &&
+      !target.staggered &&
+      tick - target.lastStaggerTick >= STAGGER_GRACE_TICKS
+    const knockedBack = heavy && target.range === "near"
     events.push({
       tick,
       kind: "impact",
       actor: shooter.name,
+      actorKey: fighterKey(shooter),
       target: target.name,
       moveId: move.id,
       damage,
       hit: true,
       hpAfter: hpAfter(),
       line: `${move.displayName} hits ${target.name} for ${damage}.`,
+      reaction: knockedBack ? "knockback" : staggers ? "stagger" : undefined,
     })
+    if (heavy) {
+      if (staggers) {
+        target.staggered = true
+        target.lastStaggerTick = tick
+      }
+      if (knockedBack) {
+        target.range = "far"
+        shooter.range = "far"
+        events.push({
+          tick,
+          kind: "knockback",
+          actor: target.name,
+          actorKey: fighterKey(target),
+          hpAfter: hpAfter(),
+          line: `${target.name} is knocked back.`,
+        })
+      }
+    }
     if (target.hp <= 0) {
       events.push({
         tick,
         kind: "down",
         actor: target.name,
+        actorKey: fighterKey(target),
         hpAfter: hpAfter(),
         line: `${target.name} is down!`,
       })
@@ -339,6 +447,22 @@ export function createClock(
 
       for (const actor of ready) {
         if (actor.hp <= 0) continue
+        // A staggered fighter's window is consumed reeling: the gauge is
+        // spent, no action is planned, and cooldowns do not step (they
+        // count actions, and this window is not one).
+        if (actor.staggered) {
+          actor.staggered = false
+          actor.gauge -= 12
+          events.push({
+            tick,
+            kind: "stagger",
+            actor: actor.name,
+            actorKey: fighterKey(actor),
+            hpAfter: hpAfter(),
+            line: `${actor.name} reels from the blow.`,
+          })
+          continue
+        }
         const opponent = run.find((f) => f !== actor)
         if (!opponent) throw new Error("The battle needs two fighters")
         const action = plan(view(actor), view(opponent))
@@ -374,6 +498,7 @@ export function createClock(
               tick,
               kind: "hold",
               actor: actor.name,
+              actorKey: fighterKey(actor),
               hpAfter: hpAfter(),
               line: `${actor.name} hesitates.`,
             })
@@ -385,6 +510,7 @@ export function createClock(
               tick,
               kind: "close",
               actor: actor.name,
+              actorKey: fighterKey(actor),
               hpAfter: hpAfter(),
               line: `${actor.name} closes in.`,
             })
@@ -399,22 +525,59 @@ export function createClock(
               true,
             )
             opponent.hp -= damage
+            // The typeless basic can only stagger by sheer size (FR2);
+            // the same heavy blow knocks both fighters apart when the
+            // victim was in melee range. Grace applies identically - the
+            // reaction hint advertises the ACTUAL outcome.
+            const heavy =
+              opponent.hp > 0 &&
+              damage >= opponent.stats.hp * STAGGER_DAMAGE_FRACTION
+            const staggers =
+              heavy &&
+              !opponent.staggered &&
+              tick - opponent.lastStaggerTick >= STAGGER_GRACE_TICKS
+            const knockedBack = heavy && opponent.range === "near"
             events.push({
               tick,
               kind: "basic",
               actor: actor.name,
+              actorKey: fighterKey(actor),
               target: opponent.name,
               moveId: BASIC_MOVE.id,
               damage,
               hit: true,
               hpAfter: hpAfter(),
               line: `${actor.name} strikes ${opponent.name} for ${damage}.`,
+              reaction: knockedBack
+                ? "knockback"
+                : staggers
+                  ? "stagger"
+                  : undefined,
             })
+            if (heavy) {
+              if (staggers) {
+                opponent.staggered = true
+                opponent.lastStaggerTick = tick
+              }
+              if (knockedBack) {
+                opponent.range = "far"
+                actor.range = "far"
+                events.push({
+                  tick,
+                  kind: "knockback",
+                  actor: opponent.name,
+                  actorKey: fighterKey(opponent),
+                  hpAfter: hpAfter(),
+                  line: `${opponent.name} is knocked back.`,
+                })
+              }
+            }
             if (opponent.hp <= 0) {
               events.push({
                 tick,
                 kind: "down",
                 actor: opponent.name,
+                actorKey: fighterKey(opponent),
                 hpAfter: hpAfter(),
                 line: `${opponent.name} is down!`,
               })
@@ -434,6 +597,7 @@ export function createClock(
                 tick,
                 kind: "launch",
                 actor: actor.name,
+                actorKey: fighterKey(actor),
                 target: opponent.name,
                 moveId: usedSpecial.id,
                 hpAfter: hpAfter(),

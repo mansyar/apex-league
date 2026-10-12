@@ -29,10 +29,13 @@ export {
   type MoveDef,
   makeExhibition,
   PLAYBACK_BEATS,
+  PLAYBACK_PHASES,
   type PlannedAction,
+  type PlaybackPhases,
   type PlaybackStep,
   type PlaybackStepKind,
   type Range,
+  type ReactionKind,
   resolveBattle,
   type SparSetup,
   strikeDamage,
@@ -156,6 +159,7 @@ export {
   type GameState,
   markHintSeen,
   type Phase,
+  setArenaCamera,
   setReducedMotion,
 } from "./state"
 export { advanceDay, CUP_WIN_AP_BONUS } from "./ticker"

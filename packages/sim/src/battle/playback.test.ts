@@ -5,6 +5,7 @@ import { getMove } from "./moves"
 import {
   buildPlaybackScript,
   PLAYBACK_BEATS,
+  PLAYBACK_PHASES,
   type PlaybackStep,
 } from "./playback"
 import { type BattleSide, resolveBattle } from "./resolver"
@@ -34,6 +35,33 @@ function side(
     ...over,
   }
 }
+
+describe("mirror-match actor keys", () => {
+  test("steps carry the stable side key so mirror matches map correctly", () => {
+    // Two fighters with the SAME display name: the name cannot say which
+    // side acted, so the sim must expose its stable fighter key.
+    const result = resolveBattle(
+      side("Ember Drake", "fire", { hp: 45, atk: 30 }, { id: "owned" }),
+      side("Ember Drake", "fire", { hp: 45 }, { id: "rival" }),
+      11,
+    )
+    const script = buildPlaybackScript(result.events)
+    expect(script.length).toBeGreaterThan(0)
+    const keys = new Set(
+      script.map((s) => s.actorKey).filter((k) => k !== undefined),
+    )
+    expect([...keys].sort()).toEqual(["owned", "rival"])
+    // Every key-labeled step keeps its display name — the key is an
+    // addition for mapping, not a rename.
+    for (const step of script) {
+      if (step.actorKey !== undefined) expect(step.actor).toBe("Ember Drake")
+    }
+    // The down step exists and is keyed to exactly one side.
+    const down = script.find((s) => s.kind === "down")
+    expect(down).toBeDefined()
+    expect(["owned", "rival"]).toContain(down?.actorKey ?? "unkeyed")
+  })
+})
 
 describe("buildPlaybackScript", () => {
   test("maps a resolved battle one-to-one: one step per event, in order", () => {
@@ -207,5 +235,193 @@ describe("buildPlaybackScript", () => {
 
   test("an empty event log yields an empty script (no throw)", () => {
     expect(buildPlaybackScript([])).toEqual([])
+  })
+})
+
+describe("enriched playback contract (FR3)", () => {
+  const hp = (a: number, b: number) => ({ Bolt: a, Reed: b })
+  const event = (
+    tick: number,
+    kind: BattleEvent["kind"],
+    actor: string,
+    extra: Partial<BattleEvent> = {},
+  ): BattleEvent => ({
+    tick,
+    kind,
+    actor,
+    hpAfter: extra.hpAfter ?? hp(40, 40),
+    line: extra.line ?? `${actor} acts.`,
+    ...extra,
+  })
+  /** The resolver's canonical heavy-mirror blow: Bolt basic-strikes Reed. */
+  const struck = (extra: Partial<BattleEvent> = {}) =>
+    event(2, "basic", "Bolt", {
+      target: "Reed",
+      damage: 12,
+      hit: true,
+      line: "Bolt strikes Reed for 12.",
+      ...extra,
+    })
+
+  test("every step carries phased timing and the melee phases match the arena constants", () => {
+    // WINDUP_END = 0.26 and CONTACT_T = 0.46 in the arena staging — the
+    // contract bakes those boundaries in so choreography and script agree.
+    expect(PLAYBACK_PHASES.melee).toEqual({
+      windup: 0.26,
+      contact: 0.2,
+      recovery: 0.54,
+    })
+    for (const key of Object.keys(PLAYBACK_PHASES)) {
+      const p = PLAYBACK_PHASES[key as keyof typeof PLAYBACK_PHASES]
+      expect(p.windup + p.contact + p.recovery).toBeCloseTo(1)
+    }
+    const result = resolveBattle(
+      side("Bolt", "fire", { atk: 20 }),
+      side("Reed", "plant", {}, { kit: OX_KIT }),
+      22,
+    )
+    for (const step of buildPlaybackScript(result.events)) {
+      expect(step.phases).toEqual(PLAYBACK_PHASES[step.kind])
+    }
+  })
+
+  test("a heavy blow announces a stagger reaction on the damage step", () => {
+    const script = buildPlaybackScript([
+      event(2, "close", "Bolt", { line: "Bolt closes in." }),
+      struck({ reaction: "stagger" }),
+      event(3, "stagger", "Reed", { line: "Reed reels from the blow." }),
+    ])
+    const melee = script.find((s) => s.kind === "melee")
+    expect(melee?.reaction).toBe("stagger")
+  })
+
+  test("a knockback blow announces knockback and the separation step follows", () => {
+    const script = buildPlaybackScript([
+      struck({ reaction: "knockback" }),
+      event(2, "knockback", "Reed", { line: "Reed is knocked back." }),
+    ])
+    const melee = script.find((s) => s.kind === "melee")
+    expect(melee?.reaction).toBe("knockback")
+    const separation = script.find((s) => s.kind === "knockback")
+    expect(separation?.actor).toBe("Reed")
+    expect(separation?.phases).toEqual(PLAYBACK_PHASES.knockback)
+  })
+
+  test("a killing blow announces the victim goes down", () => {
+    const script = buildPlaybackScript([
+      struck({ damage: 40, line: "Bolt strikes Reed for 40." }),
+      event(2, "down", "Reed", {
+        hpAfter: hp(40, 0),
+        line: "Reed is down!",
+      }),
+    ])
+    const melee = script.find((s) => s.kind === "melee")
+    expect(melee?.reaction).toBe("down")
+  })
+
+  test("an ordinary landed hit reads as a glance", () => {
+    const script = buildPlaybackScript([struck()])
+    const melee = script.find((s) => s.kind === "melee")
+    expect(melee?.reaction).toBe("glance")
+  })
+
+  test("a missed special is not a reaction — no reaction on misses", () => {
+    const script = buildPlaybackScript([
+      event(1, "launch", "Bolt", {
+        target: "Reed",
+        moveId: "blaze_bolt",
+        line: "Bolt looses a Blaze Bolt!",
+      }),
+      event(2, "impact", "Bolt", {
+        target: "Reed",
+        moveId: "blaze_bolt",
+        hit: false,
+        missReason: "accuracy",
+        damage: 0,
+        line: "Bolt misses Reed.",
+      }),
+    ])
+    const impact = script.find((s) => s.kind === "impact")
+    expect(impact?.reaction).toBeUndefined()
+  })
+
+  test("a dodged shot carries a deterministic dodge direction", () => {
+    const dodge = (tick: number) =>
+      buildPlaybackScript([
+        event(tick, "impact", "Bolt", {
+          target: "Reed",
+          moveId: "blaze_bolt",
+          hit: false,
+          missReason: "dodge",
+          damage: 0,
+          line: "Reed slips in. Bolt misses.",
+        }),
+      ]).find((s) => s.kind === "impact")
+    expect(dodge(4)?.dodgeDirection).toBe("left")
+    expect(dodge(5)?.dodgeDirection).toBe("right")
+  })
+
+  test("the terminal down step is flagged as the KO state", () => {
+    const ko = buildPlaybackScript([
+      event(9, "impact", "Bolt", {
+        target: "Reed",
+        moveId: "blaze_bolt",
+        hit: true,
+        damage: 48,
+        hpAfter: hp(40, 0),
+        line: "Blaze Bolt hits Reed for 48.",
+      }),
+      event(9, "down", "Reed", {
+        hpAfter: hp(40, 0),
+        line: "Reed is down!",
+      }),
+    ]).find((s) => s.kind === "down")
+    expect(ko?.ko).toBe(true)
+
+    // Double KO: both terminal downs are flagged.
+    const double = buildPlaybackScript([
+      event(9, "down", "Reed", { hpAfter: hp(40, 0), line: "Reed is down!" }),
+      event(9, "down", "Bolt", { hpAfter: hp(0, 40), line: "Bolt is down!" }),
+    ])
+    expect(double.every((s) => s.kind !== "down" || s.ko === true)).toBe(true)
+
+    // Negative control: a down with real actions after it is not the KO.
+    const mid = buildPlaybackScript([
+      event(4, "down", "Reed", { hpAfter: hp(40, 0), line: "Reed is down!" }),
+      event(5, "hold", "Bolt", { line: "Bolt hesitates." }),
+    ]).find((s) => s.kind === "down")
+    expect(mid?.ko).toBe(false)
+  })
+
+  test("a genuine same-step double KO flags both down steps (real stream)", () => {
+    // The clock emits [impact1, down1, impact2, down2] when two in-flight
+    // lethal shots land in one tick - a trailing impact after down1 is an
+    // already-judged shot, not a live action. Both downs must read ko.
+    const kit = [...DRAKE_KIT]
+    const a = side(
+      "Ash",
+      "fire",
+      { hp: 12, atk: 21, spd: 20 },
+      {
+        id: "owned",
+        kit,
+      },
+    )
+    const b = side(
+      "Singe",
+      "fire",
+      { hp: 12, atk: 21, spd: 20 },
+      {
+        id: "rival",
+        kit,
+      },
+    )
+    const verdict = resolveBattle(a, b, 7)
+    expect(verdict.reason).toBe("double_ko")
+    const downs = buildPlaybackScript(verdict.events).filter(
+      (s) => s.kind === "down",
+    )
+    expect(downs).toHaveLength(2)
+    expect(downs.every((d) => d.ko === true)).toBe(true)
   })
 })

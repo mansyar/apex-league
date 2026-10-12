@@ -109,11 +109,14 @@ function castingFor(owned: Creature, setup: SparSetup): FightCasting {
       archetypeId: ownedSpecies.archetypeId,
       seed: visualSeedOf(owned.stats, owned.stage),
       name: owned.name,
+      // Mirror matches share a display name; the side key disambiguates.
+      key: setup.ownedSide.id ?? owned.name,
     },
     rival: {
       archetypeId: rivalSpecies.archetypeId,
       seed: visualSeedOf(setup.rival.stats, setup.rival.stage),
       name: setup.rival.name,
+      key: setup.rivalSide.id ?? setup.rival.name,
     },
   }
 }
