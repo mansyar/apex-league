@@ -1431,6 +1431,30 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
             impulse(side.target, -0.5)
           } else {
             spawnBurst(at.clone(), step.element)
+            // Tier 1-2 point-blank: no launch step exists, so the
+            // attacker still answers with a quick element-flavored jab
+            // instead of the damage just happening.
+            if (!instant && pointBlank && step.moveId !== undefined) {
+              const jab = side.actor
+              const jabElement = step.element
+              actionRaf = startAction(
+                (t, ao) => {
+                  const w = Math.sin(clamp01(t / 0.5) * Math.PI)
+                  if (jabElement === "fire") {
+                    ao.lean.pitch = 0.22 * w // sharp forward snap
+                  } else if (jabElement === "water") {
+                    ao.offset.y = 0.06 * w // buoyant pop upward
+                    ao.lean.pitch = 0.12 * w
+                  } else {
+                    ao.offset.y = -0.05 * w // stomp down through the hit
+                    ao.lean.pitch = 0.18 * w
+                  }
+                  ao.offset.x = -ao.away * 0.14 * w
+                },
+                jab,
+                side.target,
+              )
+            }
           }
           if (!instant && pointBlank && step.moveId !== undefined) {
             const bespoke =
