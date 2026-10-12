@@ -99,8 +99,10 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
 
 ## Phase 2 — Choreography Library *(core)*
 
-- [ ] **Task: Per-archetype body language** — drake/ox/axolotl locomotion,
+- [x] **Task: Per-archetype body language** — drake/ox/axolotl locomotion,
         idle, and hurt profiles *(pure parts tested; rendering manual)*
+        (cb76f92 — choreo.ts BodyProfile table + staging wiring; camera-track
+        arena-mode guard fallout fix a877677; user feel-check builds 6-7)
 - [ ] **Task: Upgraded shared attack archetype per element** — tier 1–2
         fire/water/plant *(manual)*
 - [ ] **Task: Bespoke tier 3 special choreography** — 3 moves *(manual)*
