@@ -23,12 +23,12 @@ consume, then the mock/CSS polish.
   - [ ] Replace the duplicated "pref ?? OS-fallback" sites: `scene.ts`,
         `staging.ts` (`setMotionPref`), `swap.ts`, `cup.ts`,
         `playbackDriver.ts`, `main.ts` (flashVignette gate)
-- [ ] Task: Dependency & cast hygiene
-  - [ ] Move `RANCH_SKY` out of `scene.ts` into a shared palette/sky module;
+- [x] Task: Dependency & cast hygiene <!-- 115e72a -->
+  - [x] Move `RANCH_SKY` out of `scene.ts` into a shared palette/sky module;
         update `arena.ts` to import from the new home
-  - [ ] Replace raw `as THREE.MeshLambertMaterial` casts in `scene.ts` and
+  - [x] Replace raw `as THREE.MeshLambertMaterial` casts in `scene.ts` and
         `staging.ts` with `lambertMaterialOf` from `scene-utils.ts`
-  - [ ] Fix the TDZ trap in `cup.ts` (give-up modal close button referenced
+  - [x] Fix the TDZ trap in `cup.ts` (give-up modal close button referenced
         before declaration)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [ ] `bun run verify` green; existing scene/staging/spar/cup behavior
