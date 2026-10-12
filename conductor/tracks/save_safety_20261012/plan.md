@@ -10,10 +10,10 @@ verification for DOM/scene tasks, phase checkpoints with git notes.
       fidelity (extend `packages/sim/src/save/save.test.ts` style) `[3faff8b]`
 - [x] Task: Implement schema v7 + v6→v7 migration in `packages/sim/src/save/`
       `[3faff8b]`
-- [ ] Task: Write failing tests — cup-session persist/restore round-trip
+- [x] Task: Write failing tests — cup-session persist/restore round-trip
       through the save adapter (committed and pre-commit states; a finalized
-      session does not resurrect)
-- [ ] Task: Implement session persistence in the client store commit path
+      session does not resurrect) `[store.test.ts suite]`
+- [x] Task: Implement session persistence in the client store commit path
       (`apps/client/src/store.ts` + cup `onCommit`/`onFinalize` hooks)
 - [ ] Task: Sync `docs/save-schema.md` (v7 recipe)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
