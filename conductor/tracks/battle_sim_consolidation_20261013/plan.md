@@ -122,7 +122,7 @@ element, and `heavy-hit.test.ts` fails if that ever changes.
 - [x] Task: Verify
   - [x] `bun test` = 817 pass / 0 fail; `bun run verify` green; no save schema change (`SAVE_VERSION` still 9, no `docs/save-schema.md` edit)
 - [x] Task: Commit (`fix(cup): bracket advances the higher-HP fighter on a double-KO`) + git note + record SHA
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: 5e95ce9]`
 
 ### Phase 2 notes
 
