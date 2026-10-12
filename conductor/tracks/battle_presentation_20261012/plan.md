@@ -39,10 +39,11 @@ phase checkpoints).
 
 ## Phase 3 — CSS consolidation (style-only)
 
-- [ ] Task: Class-ownership cleanup
-  - [ ] `.cup-button` → cup.css; `.spar-*` chrome rules gathered into spar.css (out of ranch.css/battle-hud.css); `starter-*` dedupe (starter.css canonical)
-- [ ] Task: Scope mock.css under `.mock`
-  - [ ] Nest all mock.css selectors; verify mock.html renders identically at `/mock.html`
+- [x] Task: Class-ownership cleanup — `561c45b`
+  - [x] `.cup-button` → cup.css; `.spar-*` chrome rules gathered into spar.css (out of ranch.css/battle-hud.css); `starter-*` dedupe (starter.css canonical)
+  - [x] Note: `starter-*` rules already lived only in starter.css; the duplicate was in mock.css's mirrored harness copy, which is intentional (mock.html does not import the production sheets) and is now fully scoped
+- [x] Task: Scope mock.css under `.mock` — `561c45b`
+  - [x] Nest all mock.css selectors; verify mock.html renders identically at `/mock.html`
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Full gate & docs
