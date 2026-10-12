@@ -1,10 +1,10 @@
 /**
  * Cup engine contracts — pinned for `cup_engine_consolidation_20261012`.
  *
- * The consolidation retires the legacy one-sitting cup engine
- * (`enterCup`/`resolveCup`/`runRound`) and leaves the live session path
- * (`startCupSession`/`resolvePlayerMatch`/`completeCup`/`forfeitCup`) as the
- * sole resolver. These tests re-express what the old golden parity tests
+ * The consolidation retired the legacy one-sitting cup engine
+ * (`enterCup`/`resolveCup`/`runRound`); the live session path
+ * (`startCupSession`/`resolvePlayerMatch`/`completeCup`/`forfeitCup`) is now
+ * the sole resolver. These tests re-express what the old golden parity tests
  * guaranteed, as direct contracts on the surviving engine:
  *
  *   1. The full draw stream (species picks, names, stat jitters) and the
