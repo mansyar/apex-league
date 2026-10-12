@@ -7,7 +7,10 @@
  *
  * Best-special ranking (spec FR6): highest expected damage
  * (integer damage assuming a hit times accuracy / 100), then higher
- * power, then move id ascending.
+ * power, then move id ascending. A ready special that would KO the
+ * opponent overrides the ranking: the most cinematic finisher (highest
+ * power, then move id) fires under either tactic
+ * (battle-animation-overhaul spec FR2).
  */
 
 import type { Temperament } from "../species"
@@ -113,6 +116,20 @@ export function chooseAction(input: PolicyInput): PlannedAction {
   if (temperament === "slow" && input.actionCount === 0) return HOLD
 
   const ready = rankedReady(input)
+
+  // Finishing-move preference (battle-animation-overhaul spec FR2): any
+  // ready special that would KO is a finisher — fire the most cinematic
+  // one (highest power, then move id ascending) under either tactic.
+  // With the current catalog this matches the expected-damage ranking,
+  // but the contract is explicit so future kits cannot trade the KO
+  // blow for a safer chip shot.
+  const lethal = ready.filter((r) => r.damage >= input.opponent.hp)
+  if (lethal.length > 0) {
+    const finisher = [...lethal].sort(
+      (a, b) => b.power - a.power || a.moveId.localeCompare(b.moveId),
+    )[0]
+    if (finisher) return { kind: "special", moveId: finisher.moveId }
+  }
 
   if (tactic === "specials") {
     const best = ready[0]
