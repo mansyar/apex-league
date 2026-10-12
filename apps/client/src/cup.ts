@@ -32,12 +32,18 @@ import {
   type PlaybackStep,
   prepareCup,
   type RoundVerdict,
-  requiredTierDays,
   resolvePlayerMatch,
   type Tactic,
 } from "@apex/sim"
 import { createBattleHud } from "./battleHud"
-import { reasonLine, winningSideKey } from "./battleUI"
+import {
+  buildKitPicker,
+  buildTacticRow,
+  castFighter,
+  reasonLine,
+  toggleKitChoice,
+  winningSideKey,
+} from "./battleUI"
 import { crestGlyph, elementHue } from "./element"
 import { prefersReducedMotionOs } from "./motion"
 import { createPlaybackDriver, type PlaybackFight } from "./playbackDriver"
@@ -783,26 +789,23 @@ export function createCup(
   }
 
   const castingFor = (creature: Creature, opponent: CupSlot): FightCasting => {
-    const cs = getSpecies(creature.speciesId)
-    const rs = getSpecies(opponent.speciesId)
-    if (!cs || !rs) {
-      throw new Error("Unknown species: cannot cast the cup match")
-    }
     return {
-      owned: {
-        archetypeId: cs.archetypeId,
+      owned: castFighter({
+        speciesId: creature.speciesId,
+        name: creature.name,
         // Stage-aware: a juvenile's boosted stats must fold back to the
         // creation seed, or the cup arena re-rolls the partner's DNA.
         seed: visualSeedOf(creature.stats, creature.stage),
-        name: creature.name,
-      },
-      rival: {
-        archetypeId: rs.archetypeId,
-        // Rivals carry no stage in the sim — the stats-only seed keeps
+        context: "the cup match",
+      }),
+      rival: castFighter({
+        speciesId: opponent.speciesId,
+        name: opponent.name,
+        // Rivals carry no stage in the sim - the stats-only seed keeps
         // their look stable for the whole bracket.
         seed: visualSeedOf(opponent.stats),
-        name: opponent.name,
-      },
+        context: "the cup match",
+      }),
     }
   }
 
@@ -965,60 +968,39 @@ export function createCup(
       const chosen = picks.loadout
       for (const row of kitRows) row.remove()
       kitRows.length = 0
-      cs.kit.forEach((id, index) => {
-        const required = requiredTierDays(index, creature.stage)
-        const locked = creature.trainingDays < required
-        const name = getMove(id)?.displayName ?? id
-        const rowEl = document.createElement("button")
-        rowEl.type = "button"
-        rowEl.className = locked
-          ? "cup-pick locked"
-          : chosen.includes(id)
-            ? "cup-pick on"
-            : "cup-pick"
-        rowEl.textContent = locked ? `${name} 🔒` : name
-        rowEl.disabled = locked
-        if (!locked) {
-          rowEl.addEventListener("click", () => {
-            if (!picks) return
-            if (picks.loadout.includes(id)) {
-              if (picks.loadout.length > 2) {
-                picks.loadout = picks.loadout.filter((m) => m !== id)
-              }
-            } else if (picks.loadout.length < 4) {
-              picks.loadout = [...picks.loadout, id]
-            }
+      const picker = buildKitPicker({
+        species: cs,
+        creature,
+        chosen: () => chosen,
+        classes: { base: "cup-pick", locked: "locked", chosen: "on" },
+        // Locked kit slots stay mysterious until trained (cup UX).
+        lockedText: (name) => name + " ??",
+        onToggle: (id) => {
+          if (!picks) return
+          const next = toggleKitChoice(picks.loadout, id, 2, 4)
+          if (next) {
+            picks.loadout = next
             renderKit()
-          })
-        }
-        kitRows.push(rowEl)
-        kitCard.append(rowEl)
+          }
+        },
       })
+      kitRows.push(...picker.rows)
+      kitCard.append(picker.fragment)
     }
     renderKit()
     const tacticHead = document.createElement("div")
     tacticHead.className = "cup-card-title tactic"
     tacticHead.textContent = "Tactic"
     kitCard.append(tacticHead)
-    const tacticRow = document.createElement("div")
-    tacticRow.className = "cup-tactic-row"
-    const tacticButtons: Array<{ el: HTMLElement; tactic: Tactic }> = []
-    for (const t of ["balanced", "specials"] as const) {
-      const btn = document.createElement("button")
-      btn.type = "button"
-      btn.className = "cup-tactic"
-      btn.textContent = t === "balanced" ? "Balanced" : "Specials"
-      btn.addEventListener("click", () => {
-        if (!picks) return
-        picks.tactic = t
-        for (const { el, tactic } of tacticButtons) {
-          el.classList.toggle("on", tactic === t)
-        }
-      })
-      tacticButtons.push({ el: btn, tactic: t })
-      tacticRow.append(btn)
-    }
-    tacticButtons[0]?.el.classList.add("on")
+    const { row: tacticRow, buttons: tacticButtons } = buildTacticRow({
+      rowClass: "cup-tactic-row",
+      describe: (t) => ({ label: t === "balanced" ? "Balanced" : "Specials" }),
+      classes: { base: "cup-tactic", on: "on" },
+      initialOn: "balanced",
+      onPick: (t) => {
+        if (picks) picks.tactic = t
+      },
+    })
     kitCard.append(tacticRow)
 
     showScreen("coach")

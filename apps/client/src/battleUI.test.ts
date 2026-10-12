@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import type { BattleResult } from "@apex/sim"
-import { reasonLine, winningSideKey } from "./battleUI"
+import { reasonLine, toggleKitChoice, winningSideKey } from "./battleUI"
 
 /** A minimal BattleResult with only the fields the helpers read. */
 function result(
@@ -47,5 +47,27 @@ describe("winningSideKey", () => {
 
   test("an empty record resolves to null", () => {
     expect(winningSideKey(result({}))).toBeNull()
+  })
+})
+
+describe("toggleKitChoice", () => {
+  test("adds an unchosen move below the cap", () => {
+    expect(toggleKitChoice(["a", "b"], "c", 2, 4)).toEqual(["a", "b", "c"])
+  })
+
+  test("refuses to add at the cap", () => {
+    expect(toggleKitChoice(["a", "b", "c", "d"], "e", 2, 4)).toBeNull()
+  })
+
+  test("removes a chosen move above the floor", () => {
+    expect(toggleKitChoice(["a", "b", "c"], "b", 2, 4)).toEqual(["a", "c"])
+  })
+
+  test("refuses to drop below the floor", () => {
+    expect(toggleKitChoice(["a", "b"], "a", 2, 4)).toBeNull()
+  })
+
+  test("exact floor removal is refused (min-2 rule)", () => {
+    expect(toggleKitChoice(["a"], "a", 2, 4)).toBeNull()
   })
 })
