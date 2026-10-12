@@ -1,0 +1,9 @@
+{
+  "id": "battle_sim_consolidation_20261013",
+  "title": "Battle Sim Consolidation & Rebalance - dedupe the clock's heavy-hit rule and event construction, one cup match-seed formula, double-KO bracket parity, plus a cooldown-DPS-aware specials tactic and a smaller innate Strike",
+  "type": "refactor",
+  "status": "new",
+  "createdAt": "2026-10-13",
+  "branch": "battle_sim_consolidation_20261013",
+  "base": "main @ 19700d7"
+}
