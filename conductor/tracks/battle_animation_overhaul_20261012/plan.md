@@ -30,10 +30,22 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
         costs tempo, edge cases (knockback at range boundary — decided:
         silent no-op; separation is mutual)
   - [x] Green: implement; golden tests updated
-- [ ] **Task: Finishing-move preference in policy** *(TDD)* — prefer the
-        most cinematic lethal special; policy test updated
-- [ ] **Task: Rebalance pass** — seed-batch simulations across
+- [x] **Task: Finishing-move preference in policy** *(TDD)* — prefer the
+        most cinematic lethal special; policy test updated (f9d3474)
+- [x] **Task: Rebalance pass** — seed-batch simulations across
         starters/kit stages; record a meta-health note in plan
+  - **Meta-health note (400 seeds × 6 starter pairings × kit stages 2/3/4
+    × both tactics, baseline via main worktree pre-stagger):** win rates
+    are byte-identical to baseline in every cell — the stagger/knockback
+    changes flipped no matchup (the type triangle remains fully
+    decisive, a pre-existing property: outcomes are seed-independent at
+    fixed stats). Zero draws anywhere; average ticks lengthened
+    moderately (drake-vs-ox 6.7→8.8–11.6, drake-vs-axolotl 3.9–4.5→
+    4.9–5.4, axolotl-vs-ox ~unchanged) — re-close tempo costs stretch
+    melee slugfests, still far from the 40-tick cap. Stagger events now
+    fire 1.3–4.0×/fight and knockbacks up to 4×/fight in melee
+    matchups (0 in ranged-only exchanges, where the victim is far —
+    silent no-op as designed): rich choreography material for Phase 1+.
 - [ ] **Task: Phase Verification & Checkpoint (Refer to workflow.md)**
 
 ## Phase 1 — Enriched Playback Contract & Primitive Layer *(core)*
