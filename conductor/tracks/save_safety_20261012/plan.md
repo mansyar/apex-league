@@ -16,7 +16,7 @@ verification for DOM/scene tasks, phase checkpoints with git notes.
 - [x] Task: Implement session persistence in the client store commit path
       (`apps/client/src/store.ts` + cup `onCommit`/`onFinalize` hooks)
 - [x] Task: Sync `docs/save-schema.md` (v7 recipe)
-- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: 9366343]`
 
 ## Phase B — Bug fixes: corrupt-save notice + juvenile cup seed
 
