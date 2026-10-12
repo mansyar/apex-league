@@ -410,6 +410,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       cancelAnimationFrame(actionRaf)
       actionRaf = null
     }
+    clearCharge()
     if (projectileRaf !== null) {
       cancelAnimationFrame(projectileRaf)
       projectileRaf = null
@@ -759,6 +760,41 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     if (bursts.length > 0) burstRaf = requestAnimationFrame(tickBursts)
   }
 
+  /** The tier-4 Lance's charging orb, swelling at the thrower's mouth. */
+  let chargeMesh: THREE.Mesh | null = null
+
+  /** Grow (or create) the charge orb at the caster's mouth line. */
+  const setCharge = (
+    who: Combatant,
+    element: string | undefined,
+    scale: number,
+  ): void => {
+    if (motionPref === "reduced") return
+    if (!chargeMesh) {
+      chargeMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(PROJECTILE_RADIUS * 1.1, 12, 10),
+        new THREE.MeshBasicMaterial({
+          color: new THREE.Color(elementColor(element)),
+          transparent: true,
+          opacity: 0.75,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        }),
+      )
+      const at = who.group.position
+      chargeMesh.position.set(at.x, at.y + 0.8, at.z)
+      arenaGroup.add(chargeMesh)
+    }
+    chargeMesh.scale.setScalar(scale)
+  }
+
+  /** Release (and free) the charge orb. */
+  const clearCharge = (): void => {
+    if (!chargeMesh) return
+    killShotMesh(chargeMesh)
+    chargeMesh = null
+  }
+
   /** A glowing core in the element hue plus a tapering additive orb trail. */
   const spawnProjectile = (
     from: Combatant,
@@ -925,6 +961,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       cancelAnimationFrame(actionRaf)
       actionRaf = null
     }
+    // A step that interrupts a charging Lance must not leave the orb.
+    clearCharge()
     for (const c of [o, r]) {
       c.offset.set(0, 0, 0)
       c.lean.pitch = 0
@@ -1041,6 +1079,117 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         if (instant) {
           // No flight to show: the following impact step resolves the
           // hit on the spot, so spawning a 700ms orb would just hang.
+          break
+        }
+        if (step.moveId === "blaze_bolt") {
+          // The Lance: a long charge-up gathers a burning orb at the
+          // mouth, then a FAST flat bolt snaps downrange - charge long,
+          // arrive almost instantly, land like a truck.
+          const firedRef = { done: false }
+          const WIND = 0.6
+          actionRaf = startAction(
+            (t, ao) => {
+              if (t < WIND) {
+                const w = t / WIND
+                // The charge orb swells at the mouth as the body coils.
+                setCharge(side.actor, step.element, 0.25 + w * 1.05)
+                ao.lean.pitch = -0.26 * Math.sin((w * Math.PI) / 2)
+                ao.lean.roll = 0.09 * Math.sin(w * Math.PI)
+                ao.offset.y = 0.06 * Math.sin(w * Math.PI)
+                ao.offset.x = -side.actor.away * 0.24 * (w * w)
+              } else {
+                if (!firedRef.done) {
+                  firedRef.done = true
+                  clearCharge()
+                  spawnProjectile(side.actor, side.target, step.element, {
+                    size: 1.05,
+                    life: 300,
+                  })
+                  const mouth = side.actor.group.position.clone()
+                  mouth.y += 0.2
+                  spawnBurst(mouth, step.element, {
+                    puffs: 7,
+                    size: 1.2,
+                    life: 380,
+                    gravity: 6,
+                    flashGrow: 2.6,
+                  })
+                  impulse(ao, -0.6)
+                }
+                const w = clamp01((t - WIND) / (1 - WIND))
+                ao.lean.pitch = 0.16 * Math.sin(w * Math.PI)
+                ao.offset.x =
+                  -side.actor.away * (0.24 - 0.55 * Math.sin(w * Math.PI))
+              }
+            },
+            side.actor,
+            side.target,
+          )
+          break
+        }
+        if (step.moveId === "bramble_dart") {
+          // The Spear: a huge rear-hurl coils the whole body, then a
+          // massive dart lofts downrange and plants itself on arrival.
+          const firedRef = { done: false }
+          const WIND = 0.5
+          actionRaf = startAction(
+            (t, ao) => {
+              if (t < WIND) {
+                const w = t / WIND
+                ao.lean.pitch = -0.3 * Math.sin((w * Math.PI) / 2)
+                ao.offset.x = -side.actor.away * 0.26 * (w * w)
+                ao.offset.y = -0.04 * Math.sin(w * Math.PI)
+              } else {
+                if (!firedRef.done) {
+                  firedRef.done = true
+                  spawnProjectile(side.actor, side.target, step.element, {
+                    size: 2.2,
+                    life: 1000,
+                  })
+                  impulse(ao, -0.5)
+                }
+                const w = clamp01((t - WIND) / (1 - WIND))
+                ao.lean.pitch = 0.2 * Math.sin(w * Math.PI)
+                ao.offset.x =
+                  -side.actor.away * (0.26 - 0.6 * Math.sin(w * Math.PI))
+              }
+            },
+            side.actor,
+            side.target,
+          )
+          break
+        }
+        if (step.moveId === "splash_bolt") {
+          // The Wave: the body sinks low gathering the surge, then a
+          // big rolling droplet crashes downrange.
+          const firedRef = { done: false }
+          const WIND = 0.52
+          actionRaf = startAction(
+            (t, ao) => {
+              if (t < WIND) {
+                const w = t / WIND
+                ao.lean.pitch = -0.18 * Math.sin(w * Math.PI)
+                ao.offset.y = -0.08 * Math.sin(w * Math.PI)
+                ao.offset.x = -side.actor.away * 0.18 * (w * w)
+              } else {
+                if (!firedRef.done) {
+                  firedRef.done = true
+                  spawnProjectile(side.actor, side.target, step.element, {
+                    size: 1.6,
+                    life: 620,
+                  })
+                  impulse(ao, -0.45)
+                }
+                const w = clamp01((t - WIND) / (1 - WIND))
+                ao.lean.pitch = 0.13 * Math.sin(w * Math.PI)
+                ao.offset.y = 0.05 * Math.sin(w * Math.PI)
+                ao.offset.x =
+                  -side.actor.away * (0.18 - 0.45 * Math.sin(w * Math.PI))
+              }
+            },
+            side.actor,
+            side.target,
+          )
           break
         }
         if (step.moveId === "cinder_shot") {
@@ -1206,10 +1355,18 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
               spawnBurst(p, step.element, { size: 0.8, life: 380 })
             }
             impulse(side.target, -0.4)
-          } else if (step.moveId === "cinder_shot" && pointBlank) {
-            // The Hammer point-blank: a compressed coil-beat on the
-            // attacker, then a big concussive blast that shoves the
+          } else if (
+            (step.moveId === "cinder_shot" || step.moveId === "blaze_bolt") &&
+            pointBlank
+          ) {
+            // The Hammer/Lance point-blank: a compressed coil-beat on
+            // the attacker, then a big concussive blast that shoves the
             // victim - never a plain pop.
+            const hammerStyle =
+              step.moveId === "blaze_bolt"
+                ? { puffs: 10, size: 1.5, life: 480, gravity: 9, flashGrow: 3 }
+                : { puffs: 9, size: 1.6, life: 460, gravity: 9, flashGrow: 2.8 }
+            const hammerShove = step.moveId === "blaze_bolt" ? -0.55 : -0.5
             if (!instant) {
               const shooter = side.actor
               const victim = side.target
@@ -1223,14 +1380,12 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
                   } else {
                     if (!blastRef.done) {
                       blastRef.done = true
-                      spawnBurst(victim.group.position.clone(), step.element, {
-                        puffs: 9,
-                        size: 1.6,
-                        life: 460,
-                        gravity: 9,
-                        flashGrow: 2.8,
-                      })
-                      impulse(victim, -0.5)
+                      spawnBurst(
+                        victim.group.position.clone(),
+                        step.element,
+                        hammerStyle,
+                      )
+                      impulse(victim, hammerShove)
                     }
                     const w = clamp01((t - 0.4) / 0.6)
                     ao.lean.pitch = 0.14 * Math.sin(w * Math.PI)
@@ -1241,32 +1396,65 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
                 victim,
               )
             } else {
-              spawnBurst(at.clone(), step.element, {
-                puffs: 9,
-                size: 1.6,
-                life: 460,
-                gravity: 9,
-                flashGrow: 2.8,
-              })
-              impulse(side.target, -0.5)
+              spawnBurst(at.clone(), step.element, hammerStyle)
+              impulse(side.target, hammerShove)
             }
+          } else if (step.moveId === "blaze_bolt") {
+            // The Lance lands like a truck wherever it arrives.
+            spawnBurst(at.clone(), step.element, {
+              puffs: 9,
+              size: 1.5,
+              life: 460,
+              gravity: 9,
+              flashGrow: 2.8,
+            })
+            impulse(side.target, -0.55)
+          } else if (step.moveId === "bramble_dart") {
+            // The Spear plants itself - a heavy, lingering scatter.
+            spawnBurst(at.clone(), step.element, {
+              puffs: 10,
+              size: 1.3,
+              life: 700,
+              gravity: 6,
+              flashGrow: 3,
+            })
+            impulse(side.target, -0.45)
+          } else if (step.moveId === "splash_bolt") {
+            // The Wave crashes - a big, wide splash.
+            spawnBurst(at.clone(), step.element, {
+              puffs: 12,
+              size: 1.2,
+              life: 600,
+              gravity: 8,
+              flashGrow: 3,
+            })
+            impulse(side.target, -0.5)
           } else {
             spawnBurst(at.clone(), step.element)
           }
           if (!instant && pointBlank && step.moveId !== undefined) {
             const bespoke =
-              step.moveId === "spore_burst" || step.moveId === "foam_volley"
+              step.moveId === "spore_burst" ||
+              step.moveId === "foam_volley" ||
+              step.moveId === "bramble_dart" ||
+              step.moveId === "splash_bolt"
             if (bespoke) {
-              // Spore answers with a full-body spin release; foam with a
-              // recoil. (Cinder authored its own coil-beat above.)
+              // Spore and Bramble answer with a full-body spin release;
+              // Splash with a heavy slam; foam with a recoil. (The
+              // Hammer/Lance authored their own coil-beat above.)
               const shooter = side.actor
-              const spin = step.moveId === "spore_burst"
+              const spin =
+                step.moveId === "spore_burst" || step.moveId === "bramble_dart"
+              const slam = step.moveId === "splash_bolt"
               actionRaf = startAction(
                 (t, ao) => {
-                  const w = clamp01(t / (spin ? 0.8 : 0.6))
+                  const w = clamp01(t / (spin ? 0.8 : slam ? 0.7 : 0.6))
                   if (spin) {
                     ao.lean.roll = 0.35 * Math.sin(w * Math.PI * 2)
                     ao.offset.y = 0.05 * Math.sin(w * Math.PI)
+                  } else if (slam) {
+                    ao.offset.y = -0.07 * Math.sin(w * Math.PI)
+                    ao.lean.pitch = 0.16 * Math.sin(w * Math.PI)
                   } else {
                     ao.lean.pitch = 0.12 * Math.sin(w * Math.PI)
                     ao.offset.x =
