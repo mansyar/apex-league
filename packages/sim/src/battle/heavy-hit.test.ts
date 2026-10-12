@@ -66,20 +66,28 @@ function drive(
  * formula. Bolt is `fire`, Reed is `plant`, so the type chart is live in
  * every case and the "innate Strike is typeless" guard has teeth.
  */
-const PATHS = [
+/** One attack path: the attacker's stats and the scripted action queue that
+ * reaches the hit. Declared up front so the literal queues need no casts. */
+interface AttackPath {
+  name: string
+  bolt: CreatureStats
+  queue: PlannedAction[]
+}
+
+const PATHS: readonly AttackPath[] = [
   {
     // Strike: floor(4 * 60 / 10) = 24.
     name: "melee",
     bolt: stats(13, 60, 10, 40),
-    queue: [CLOSE, BASIC] as PlannedAction[],
+    queue: [CLOSE, BASIC],
   },
   {
     // Spark, point-blank and type-neutral on its own: floor(6 * 40 / 10) = 24.
     name: "projectile",
     bolt: stats(13, 40, 10, 40),
-    queue: [CLOSE, { kind: "special", moveId: "spark" }] as PlannedAction[],
+    queue: [CLOSE, { kind: "special", moveId: "spark" }],
   },
-] as const
+]
 
 /** Neutral pairing for the equal-damage paths above: two fire fighters make
  * `spark` type-neutral, isolating the damage-fraction branch. */

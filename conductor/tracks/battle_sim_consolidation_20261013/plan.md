@@ -295,6 +295,23 @@ Branch history: `0c82414` (in progress) → `f9f3793` → `ab894d2` → `bae782b
 
 ---
 
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestion #2 — type the `PATHS` table in `heavy-hit.test.ts` (`AttackPath` interface, `readonly AttackPath[]`) so the literal action queues need no `as PlannedAction[]` casts
+- [x] Task: Commit review fixes and record the SHA
+
+### Review notes (2026-10-13)
+
+Review verdict: clean — no Critical/High findings. Findings #1 (defensive
+`!finalHp` fallback, already documented in-code) and #3 (intentional kit-wide
+`kitSustained` recomputation, documented in JSDoc) accepted as informational.
+Finding #2 fixed: the two `as PlannedAction[]` casts are gone; `bun test` 3/3
+and `@apex/sim` type-check green after the change.
+
+Review-fix commit SHA: `PENDING`
+
+---
+
 ## Open questions — resolved
 
 - **Probe budget**: narrowed the matrix to 6 battle seeds per cell (216 mirror + 432 cross battles) — same coverage, ~200ms.
