@@ -20,8 +20,8 @@ phase checkpoints).
   - [x] Rewire `spar.ts` and `cup.ts` to consume the shared layer; delete the duplicated copies
 - [x] Task: a11y additions (manual verification path) — 13a7ee9
   - [x] Cup give-up modal: focus trap + Escape + `role="dialog"`/`aria-modal` + focus restore (hud.ts's `trapFocus` extracted to shared `battleUI.focusTrap`; Escape closes to Stay; opener focuses Stay; dismiss restores focus to the close control)
-  - [x] `aria-pressed` on fast-forward controls (spar + cup) via shared `renderSpeedButton`; spar overlay close restores focus to the spar chip (cup overlay-level chip restore is a hud.ts cross-dependency — noted as follow-up)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] `aria-pressed` on fast-forward controls (spar + cup) via shared `renderSpeedButton`; spar overlay close restores focus to the spar chip (cup overlay-level chip restore is a hud.ts cross-dependency - noted as follow-up)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — checkpoint `13a7ee9` (user confirmed; visual QA folded into the Phase 4 gate)
 
 ## Phase 2 - staging.ts split (complete, checkpoint: e265467)
 
@@ -35,7 +35,7 @@ phase checkpoints).
   - [x] Migrate the action clock and drive loop to consume the shared `HitStop` (semantics unchanged: action clock re-queues without advancing)
 - [x] Task: Slim `staging.ts` to driver + `runStep` + cast/clear builders
   - [x] Verify public `Staging` interface unchanged; all call sites untouched (verified post-extraction: cast/applyStep/setBigHitHandler/setDirectorHandler/setMotionPref/setPace/clear intact; importers = main.ts `createStaging` + type-only `FightCasting` in battleUI/cup/spar)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — checkpoint `e265467` (user confirmed; visual QA folded into the Phase 4 gate)
 
 ## Phase 3 - CSS consolidation (style-only) (complete, checkpoint: 561c45b)
 
@@ -46,7 +46,7 @@ phase checkpoints).
   - [x] Nest all mock.css selectors; verify mock.html renders identically at `/mock.html`
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — checkpoint `561c45b` (user confirmed; visual QA folded into the Phase 4 gate)
 
-## Phase 4 — Full gate & docs
+## Phase 4 - Full gate & docs (complete, checkpoint: 8c38ebc)
 
 - [x] Task: Full verification
   - [x] `bun run verify` green; suite runtime unchanged or faster — EXIT 0, 823 tests / 0 fail across 75 files in 7.2s, types clean in all 3 packages, determinism gate OK
@@ -54,10 +54,7 @@ phase checkpoints).
 - [x] Task: Docs update
   - [x] README dev-pages note if module map changed - not needed: the layout section is package-level and unchanged; the new modules are internal to `apps/client/src`
   - [x] conductor/learnings.md entry - entry #11 in `7bc0ee5` (injected test doubles hide broken default bindings; prove a regression test red against the old code; headless Chromium as the browser-QA fallback)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) §Phase protocol
-- [ ] Task: Docs update
-  - [ ] README dev-pages note if module map changed; conductor/learnings.md entry if any lesson emerges
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) - checkpoint `8c38ebc` (user confirmed)
 
 ## Notes
 - Phase 2's `EffectLoop` consolidation is the only place where timing could subtly shift — the loop core gets real tests (fake timers) and the phase checkpoint includes side-by-side visual QA.
