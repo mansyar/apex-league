@@ -37,3 +37,6 @@ checkpoints, git notes, `bun run verify` before commits).
 - [x] Task: Browser-tool verification of the full loop — win a cup → points land → climb fires → plate updates → save v8 round-trips
 - [x] Task: Update `README.md` phase table + `conductor/product.md` landed note; mark Phase 1 fully complete
 - [x] Task: Track Verification & Checkpoint (Refer to workflow.md) — [checkpoint: 8b196d6]
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions decf25d (stale test titles retitled; forfeit results row reads "Forfeit — no ladder points"; climb-line comment corrected — the ticker holds its last line, so the promotion stays visible after the overlay closes)
