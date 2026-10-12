@@ -157,6 +157,13 @@ export interface BattleEvent {
   readonly hpAfter: Readonly<Record<string, number>>
   /** One present-tense announcer sentence. */
   readonly line: string
+  /**
+   * Additive playback hint (battle-animation-overhaul FR3), set only on
+   * heavy landing blows: the victim's non-down reaction — reeling where
+   * it stands, or being knocked out of melee range. The `down` reaction
+   * is derived by the playback contract from the adjacent down event.
+   */
+  readonly reaction?: "stagger" | "knockback"
 }
 
 /** What one tick produced. The resolver reads events and HP to rule endings. */
@@ -327,17 +334,6 @@ export function createClock(
       true,
     )
     target.hp -= damage
-    events.push({
-      tick,
-      kind: "impact",
-      actor: shooter.name,
-      target: target.name,
-      moveId: move.id,
-      damage,
-      hit: true,
-      hpAfter: hpAfter(),
-      line: `${move.displayName} hits ${target.name} for ${damage}.`,
-    })
     // A heavy hit staggers a standing victim (FR2): heavy means the
     // damage crosses the fraction floor, or a super-effective blow that
     // also clears its own (lighter) floor. The victim's next action
@@ -354,6 +350,19 @@ export function createClock(
       (damage >= target.stats.hp * STAGGER_DAMAGE_FRACTION ||
         (type.num > type.den &&
           damage >= target.stats.hp * STAGGER_SE_FRACTION))
+    const knockedBack = heavy && target.range === "near"
+    events.push({
+      tick,
+      kind: "impact",
+      actor: shooter.name,
+      target: target.name,
+      moveId: move.id,
+      damage,
+      hit: true,
+      hpAfter: hpAfter(),
+      line: `${move.displayName} hits ${target.name} for ${damage}.`,
+      reaction: heavy ? (knockedBack ? "knockback" : "stagger") : undefined,
+    })
     if (heavy) {
       if (
         !target.staggered &&
@@ -362,7 +371,7 @@ export function createClock(
         target.staggered = true
         target.lastStaggerTick = tick
       }
-      if (target.range === "near") {
+      if (knockedBack) {
         target.range = "far"
         shooter.range = "far"
         events.push({
@@ -498,6 +507,13 @@ export function createClock(
               true,
             )
             opponent.hp -= damage
+            // The typeless basic can only stagger by sheer size (FR2);
+            // the same heavy blow knocks both fighters apart when the
+            // victim was in melee range. Grace applies identically.
+            const heavy =
+              opponent.hp > 0 &&
+              damage >= opponent.stats.hp * STAGGER_DAMAGE_FRACTION
+            const knockedBack = heavy && opponent.range === "near"
             events.push({
               tick,
               kind: "basic",
@@ -508,13 +524,12 @@ export function createClock(
               hit: true,
               hpAfter: hpAfter(),
               line: `${actor.name} strikes ${opponent.name} for ${damage}.`,
+              reaction: heavy
+                ? knockedBack
+                  ? "knockback"
+                  : "stagger"
+                : undefined,
             })
-            // The typeless basic can only stagger by sheer size (FR2);
-            // the same heavy blow knocks both fighters apart when the
-            // victim was in melee range. Grace applies identically.
-            const heavy =
-              opponent.hp > 0 &&
-              damage >= opponent.stats.hp * STAGGER_DAMAGE_FRACTION
             if (heavy) {
               if (
                 !opponent.staggered &&
@@ -523,7 +538,7 @@ export function createClock(
                 opponent.staggered = true
                 opponent.lastStaggerTick = tick
               }
-              if (opponent.range === "near") {
+              if (knockedBack) {
                 opponent.range = "far"
                 actor.range = "far"
                 events.push({
