@@ -17,11 +17,11 @@ checkpoints, git notes, `bun run verify` before commits).
 
 ## Phase B — Save v8 (TDD)
 
-- [ ] Task: Write failing tests — v8 schema validation, v7→v8 migration initializing points at 0, round-trip save/load, corrupt-save tolerance unchanged
-- [ ] Task: Implement `SAVE_VERSION=8` + migration step + storage validator for ladder state
-- [ ] Task: Update `docs/save-schema.md` with the v8 field and migration note
-- [ ] Task: Refactor & commit (`feat(save): save v8 — ladder state, v7→v8 migration`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Write failing tests — v8 schema validation, v7→v8 migration initializing points at 0, round-trip save/load, corrupt-save tolerance unchanged
+- [x] Task: Implement `SAVE_VERSION=8` + migration step + storage validator for ladder state
+- [x] Task: Update `docs/save-schema.md` with the v8 field and migration note
+- [x] Task: Refactor & commit (`feat(save): save v8 — ladder state, v7→v8 migration`) — 692d37c
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: 692d37c] (full verify gate green; visual verification deferred to Phase C)
 
 ## Phase C — Client presentation (manual-verification track)
 
