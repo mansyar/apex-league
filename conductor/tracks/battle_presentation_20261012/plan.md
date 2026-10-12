@@ -15,9 +15,9 @@ phase checkpoints).
 - [x] Task: `battleUI.ts` pure helpers (TDD) — 22fe6c7
   - [x] Write failing tests for `reasonLine` (ko / double_ko / forfeit / time endings), verdict-stamp title selection (winner-side scan incl. mirror-match), kit-picker lock rule (tier gating, min-2 toggle), tactic-row selection contract — implemented `reasonLine` + `winningSideKey` (ko / double_ko / time; winner-side scan incl. all-zero tie rule); kit-picker/tactic-row helpers land with the DOM factories task below
   - [x] Implement helpers as pure functions taking data/callbacks (no DOM in tests)
-- [ ] Task: `battleUI.ts` DOM factories (manual verification path)
-  - [ ] Extract kit-picker and tactic-row factories (read/write callback strategy), `castingFor`, arena enter/exit choreography into `battleUI.ts`
-  - [ ] Rewire `spar.ts` and `cup.ts` to consume the shared layer; delete the duplicated copies
+- [x] Task: `battleUI.ts` DOM factories (manual verification path) — 0f4a9d1
+  - [x] Extract kit-picker and tactic-row factories (read/write callback strategy), `castingFor`, arena enter/exit choreography into `battleUI.ts` — done as castFighter + buildKitPicker + buildTacticRow + pure toggleKitChoice (TDD); arena enter/exit choreography extracted as main.ts-local helpers instead (needs scene/swap/staging wiring, not shared UI code — noted deviation)
+  - [x] Rewire `spar.ts` and `cup.ts` to consume the shared layer; delete the duplicated copies
 - [ ] Task: a11y additions (manual verification path)
   - [ ] Cup give-up modal: focus trap + Escape + `role="dialog"`/`aria-modal` + focus restore (reuse hud.ts's `trapFocus` pattern — extract to shared util if identical)
   - [ ] `aria-pressed` on fast-forward controls (spar + cup); focus restoration on overlay close
