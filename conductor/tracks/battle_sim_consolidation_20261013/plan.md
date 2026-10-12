@@ -33,16 +33,34 @@ streams have to be pinned *first*. This is the one place where a test is
 expected to pass both before and after the refactor — its job is to be the
 witness, not a red phase.
 
-- [ ] Task: Add a seeded battle event-stream contract test (new `packages/sim/src/battle/clock.contract.test.ts`)
-  - [ ] Cover all three archetypes (draconic, bovine, axolotl) × kit tiers 2/3/4 × both tactics × both temperaments worth covering, over a fixed seed batch
-  - [ ] Assert a stable digest of the full `BattleEvent[]` stream per case (kind order, damage, hpAfter, reaction, line copy), so any behavioral drift fails loudly
-  - [ ] Ensure the chosen seeds actually exercise **both** heavy-hit paths: a projectile heavy hit (including a super-effective one) and a melee basic heavy hit
-  - [ ] Confirm the test is fast (target: well under 1s for the whole matrix)
-- [ ] Task: Confirm existing save compatibility coverage exists for the shapes this track may touch
-  - [ ] Verify `packages/sim/src/save/save.test.ts` + `cupSession.test.ts` already round-trip a session with verdicts
-  - [ ] Record the baseline: `SAVE_VERSION` is 9 and no new save field is planned (spec FR4 rationale)
-- [ ] Task: Commit the safety net (`test(battle): pin seeded event-stream contract before core consolidation`) and attach a git note
+- [x] Task: Add a seeded battle event-stream contract test (new `packages/sim/src/battle/clock.contract.test.ts`) `f9f3793`
+  - [x] Cover all three archetypes (draconic, bovine, axolotl) × kit tiers 2/3/4 × both tactics × both temperaments worth covering, over a fixed seed batch — 27 golden cases / 216 battles; matrix is 3 mirrors + 3 cross-element pairings (both side orders) × kit tiers 2/3/4 × 4 tactic pairings × seeds `[11, 29, 47]`
+  - [x] Assert a stable digest of the full `BattleEvent[]` stream per case (kind order, damage, hpAfter, reaction, line copy), so any behavioral drift fails loudly — FNV-1a over a canonical serialization of every event field
+  - [x] Ensure the chosen seeds actually exercise **both** heavy-hit paths: a projectile heavy hit (including a super-effective one) and a melee basic heavy hit — see the deviation below
+  - [x] Confirm the test is fast (target: well under 1s for the whole matrix) — 197ms for the file
+- [x] Task: Confirm existing save compatibility coverage exists for the shapes this track may touch
+  - [x] Verify `packages/sim/src/save/save.test.ts` + `cupSession.test.ts` already round-trip a session with verdicts — confirmed; `cupSave.test.ts` and `cup-contracts.test.ts` cover the session shape too
+  - [x] Record the baseline: `SAVE_VERSION` is 9 and no new save field is planned (spec FR4 rationale)
+- [x] Task: Commit the safety net (`test(battle): pin seeded event-stream contract before core consolidation`) and attach a git note — `f9f3793`
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+### Phase 0 notes
+
+**Deviation from the task list (resolved, not deferred).** The plan asked the
+matrix to exercise the melee-basic heavy hit. It cannot: the innate Strike's
+best attainable damage (7, at max ATK vs min DEF across every starter pairing)
+never reaches the lightest heavy threshold (`0.35 × 38 HP = 13.3`). The
+duplicated melee block in `clock.ts` is therefore defensive code in practice.
+Resolution: the matrix asserts projectile-path coverage (stagger, knockback,
+downs — all present), a new test pins the unreachable arithmetic over the real
+`statBounds`, and the melee rules stay pinned by the synthetic-stat unit tests
+already in `clock.test.ts` (fraction stagger, knockback, no-stack, grace,
+downing blow). Phase 1 must still route the melee path through the shared
+helper — this is a dedupe obligation, not a coverage one.
+
+**Second finding (design input for Phase 1).** The super-effective stagger branch
+only fires on cross-element matchups, so a mirror-only matrix would have left
+half the heavy-hit rule unpinned. The matrix mixes both on purpose.
 
 ---
 
