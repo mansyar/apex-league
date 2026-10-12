@@ -17,11 +17,12 @@ import { PLAYBACK_PHASES } from "@apex/sim"
 /** Minimum melee damage that earns a punch-in (tier-3+ blows). */
 export const BIG_PUNCH_DAMAGE = 8
 
-/** Subtle framing angle applied to every beat, alternating by parity. */
-export const AZIMUTH_SWING = 0.18
+/** Subtle framing angle applied to every beat, holding its side for a
+ * 4-beat window so the camera never flip-flops (motion comfort). */
+export const AZIMUTH_SWING = 0.1
 
 /** The KO orbit's total sweep (radians) across the down step. */
-export const KO_ORBIT_SWEEP = 0.55
+export const KO_ORBIT_SWEEP = 0.4
 
 export interface FocusPoint {
   readonly x: number
@@ -80,7 +81,7 @@ const SHOTS: Record<PlaybackStep["kind"], ShotSpec> = {
   projectile: { radiusMult: 0.9, look: "thrower", cut: false },
   impact: { radiusMult: 0.72, look: "victim", cut: false },
   stagger: { radiusMult: 0.75, look: "victim", cut: false },
-  knockback: { radiusMult: 1.08, look: "pair", cut: true },
+  knockback: { radiusMult: 1.08, look: "pair", cut: false },
   down: { radiusMult: 0.8, look: "victim", cut: false },
   judge: { radiusMult: 1.15, look: "pair", cut: true },
 }
@@ -110,7 +111,10 @@ const toward = (from: FocusPoint, to: FocusPoint, k: number): FocusPoint => ({
 
 /** Resolve the camera intent for this instant. Pure and deterministic. */
 export function nextShot(ctx: DirectorContext): CameraIntent {
-  const side = ctx.step === null || ctx.step.tick % 2 === 0 ? 1 : -1
+  // The swing holds its side across a 4-tick window: flip-flopping the
+  // angle every beat pans the camera constantly and reads as dizzying.
+  const side =
+    ctx.step === null || Math.floor(ctx.step.tick / 4) % 2 === 0 ? 1 : -1
   const spec = ctx.step === null ? SHOTS.approach : SHOTS[ctx.step.kind]
   const actor = ctx.actor
   const victim = ctx.target

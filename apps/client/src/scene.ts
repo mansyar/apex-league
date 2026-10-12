@@ -995,8 +995,9 @@ export function createScene(container: HTMLElement): SceneHandle {
           camera.position.copy(directorDesired)
           target.copy(directorLook)
         } else {
-          // Frame-rate-independent ease (learnings 7).
-          const k = 1 - Math.exp(-3.5 * dt)
+          // Frame-rate-independent ease (learnings 7). Deliberately slow:
+          // a film camera glides between framings; fast panning dizzy.
+          const k = 1 - Math.exp(-2 * dt)
           camera.position.lerp(directorDesired, k)
           target.lerp(directorLook, k)
         }

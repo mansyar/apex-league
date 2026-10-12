@@ -109,11 +109,8 @@ describe("camera director core (FR6)", () => {
     expect(windup.look.x).toBeLessThan(0)
   })
 
-  test("coverage cuts land on knockback and judge beats only", () => {
-    const cutKinds = ["knockback", "judge"] as const
-    for (const kind of cutKinds) {
-      expect(nextShot({ ...pair(), step: step(kind) }).cut).toBe(true)
-    }
+  test("coverage cuts land on judge beats only", () => {
+    expect(nextShot({ ...pair(), step: step("judge") }).cut).toBe(true)
     const eased = [
       "approach",
       "idle",
@@ -121,37 +118,42 @@ describe("camera director core (FR6)", () => {
       "projectile",
       "impact",
       "stagger",
+      "knockback",
     ] as const
     for (const kind of eased) {
       expect(nextShot({ ...pair(), step: step(kind) }).cut).toBe(false)
     }
   })
 
-  test("the KO down beat orbits deterministically by tick parity", () => {
+  test("the KO down beat orbits deterministically within its window", () => {
     const ko = (tick: number): CameraIntent =>
       nextShot({ ...pair(), step: step("down", { t: 0.6, tick, ko: true }) })
-    const even = ko(4)
+    const first = ko(2)
     const odd = ko(5)
     // Same inputs, same orbit position.
-    expect(ko(4).azimuthDelta).toBe(even.azimuthDelta)
-    // The two sides sweep opposite ways.
-    expect(even.azimuthDelta).toBeGreaterThan(0)
+    expect(ko(2).azimuthDelta).toBe(first.azimuthDelta)
+    // The two windows sweep opposite ways.
+    expect(first.azimuthDelta).toBeGreaterThan(0)
     expect(odd.azimuthDelta).toBeLessThan(0)
     // The orbit has swept by mid-beat.
-    expect(Math.abs(even.azimuthDelta)).toBeGreaterThan(0.1)
+    expect(Math.abs(first.azimuthDelta)).toBeGreaterThan(0.1)
     // A non-KO down holds a steadier angle.
     const plain = nextShot({
       ...pair(),
-      step: step("down", { t: 0.6, tick: 4 }),
+      step: step("down", { t: 0.6, tick: 2 }),
     })
     expect(Math.abs(plain.azimuthDelta)).toBeLessThan(
-      Math.abs(even.azimuthDelta),
+      Math.abs(first.azimuthDelta),
     )
   })
 
-  test("subtle angle variety alternates by tick parity", () => {
+  test("subtle angle variety holds its side across a 4-tick window", () => {
+    // Within the same window the side is stable (no flip-flop panning).
     const a = nextShot({ ...pair(0), step: step("idle", { tick: 0 }) })
-    const b = nextShot({ ...pair(1), step: step("idle", { tick: 1 }) })
+    const a2 = nextShot({ ...pair(1), step: step("idle", { tick: 1 }) })
+    expect(a.azimuthDelta).toBeCloseTo(a2.azimuthDelta)
+    // The next window swings the other way.
+    const b = nextShot({ ...pair(4), step: step("idle", { tick: 4 }) })
     expect(a.azimuthDelta).toBeGreaterThan(b.azimuthDelta)
   })
 })
