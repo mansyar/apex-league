@@ -46,7 +46,7 @@ cannot silently change outcomes), then delete, then refactor the client last
 
 ## Phase 4 — Final verification
 
-- [ ] Task: Full verify & manual walkthrough — `bun run verify`; manual:
+- [~] Task: Full verify & manual walkthrough — `bun run verify`; manual:
       full cup run (enter → coaching room → 3 matches → results → ladder
       points), refresh mid-walk resume, forfeit path, visual parity of all
       cup screens; then conductor-review handoff.
