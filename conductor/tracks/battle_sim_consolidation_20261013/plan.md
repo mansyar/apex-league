@@ -85,7 +85,7 @@ The drift-risk removal: one heavy-hit rule, one event-construction path.
   - [x] `CI=true bun test packages/sim` green — 473 pass / 0 fail in 173ms
 - [x] Task: Update phase notes — which tests moved, and why (expect: none) — none moved
 - [x] Task: Commit (`refactor(battle): single heavy-hit rule and event-construction path in the clock`) + git note + record SHA
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: fc952f2]`
 
 ### Phase 1 notes
 
