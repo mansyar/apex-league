@@ -120,6 +120,7 @@ export { SAVE_VERSION, type SaveData, serializeSave } from "./save/schema"
 export {
   createMemoryAdapter,
   loadGame,
+  loadSave,
   SAVE_KEY,
   type SaveAdapter,
   saveGame,

@@ -15,6 +15,11 @@ export interface GameSettings {
    * disallows camera shake and impact flash effects. Gameplay stays legible.
    */
   reducedMotion: boolean
+  /**
+   * Dismissed onboarding hint ids (save v7). Each first-day callout shows
+   * once, then records its id here so it never nags again.
+   */
+  seenHints: string[]
 }
 
 /** The single source of truth for a run's simulation state. */
@@ -48,7 +53,7 @@ export function createInitialState(): GameState {
     phase: "day",
     actionPoints: ACTION_POINTS_PER_DAY,
     creature: null,
-    settings: { reducedMotion: false },
+    settings: { reducedMotion: false, seenHints: [] },
     cupsWon: 0,
     lastCupDay: null,
   }

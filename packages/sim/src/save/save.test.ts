@@ -1,6 +1,10 @@
 import { describe, expect, test } from "bun:test"
 
 import { createCreature } from "../creature"
+import { resolvePlayerMatch } from "../cup"
+import { defaultLoadout } from "../loadout"
+import { prepareCup } from "../machine"
+import { getSpecies, type SpeciesDef } from "../species"
 import {
   chooseStarter,
   createInitialState,
@@ -13,24 +17,26 @@ import { SAVE_VERSION, type SaveData, serializeSave } from "./schema"
 import {
   createMemoryAdapter,
   loadGame,
+  loadSave,
   type SaveAdapter,
   saveGame,
 } from "./storage"
 
 describe("save schema", () => {
-  test("current version is 6", () => {
-    expect(SAVE_VERSION).toBe(6)
+  test("current version is 7", () => {
+    expect(SAVE_VERSION).toBe(7)
   })
 
   test("serializeSave wraps state with version metadata", () => {
     const data: SaveData = {
       version: SAVE_VERSION,
       state: createInitialState(),
+      session: null,
       savedAt: 1000,
     }
     const json = serializeSave(data)
     const parsed = JSON.parse(json) as SaveData
-    expect(parsed.version).toBe(6)
+    expect(parsed.version).toBe(7)
     expect(parsed.state.day).toBe(1)
     expect(parsed.savedAt).toBe(1000)
   })
@@ -41,7 +47,7 @@ describe("migration chain", () => {
     // v0 predates the versioned schema: flat shape, no phase/AP.
     const v0 = { version: 0, day: 7 }
     const migrated = migrate(v0)
-    expect(migrated.version).toBe(6)
+    expect(migrated.version).toBe(7)
     expect(migrated.state.day).toBe(7)
     expect(migrated.state.phase).toBe("cup")
     expect(migrated.state.cupsWon).toBe(0)
@@ -62,7 +68,7 @@ describe("migration chain", () => {
       savedAt: 1234,
     }
     const migrated = migrate(v1)
-    expect(migrated.version).toBe(6)
+    expect(migrated.version).toBe(7)
     expect(migrated.savedAt).toBe(1234)
     expect(migrated.state.day).toBe(4)
     expect(migrated.state.actionPoints).toBe(2)
@@ -97,6 +103,7 @@ describe("migration chain", () => {
     const v2: SaveData = {
       version: SAVE_VERSION,
       state: advanceDay(createInitialState()),
+      session: null,
       savedAt: 42,
     }
     const migrated = migrate(v2)
@@ -119,7 +126,7 @@ describe("migration chain", () => {
       savedAt: 99,
     }
     const migrated = migrate(v2)
-    expect(migrated.version).toBe(6)
+    expect(migrated.version).toBe(7)
     expect(migrated.savedAt).toBe(99)
     expect(migrated.state.day).toBe(5)
     expect(migrated.state.actionPoints).toBe(2)
@@ -140,7 +147,7 @@ describe("migration chain", () => {
       state: { day: 2, phase: "day", actionPoints: 3 },
       savedAt: 0,
     })
-    expect(migrated.version).toBe(6)
+    expect(migrated.version).toBe(7)
     expect(migrated.state.creature?.trained).toEqual({
       hp: 0,
       atk: 0,
@@ -170,7 +177,7 @@ describe("migration chain", () => {
       savedAt: 321,
     }
     const migrated = migrate(v3)
-    expect(migrated.version).toBe(6)
+    expect(migrated.version).toBe(7)
     expect(migrated.savedAt).toBe(321)
     expect(migrated.state.day).toBe(9)
     expect(migrated.state.creature?.fedToday).toBe(false)
@@ -541,7 +548,7 @@ describe("evolution stage (v6)", () => {
       savedAt: 321,
     }
     const migrated = migrate(v5)
-    expect(migrated.version).toBe(6)
+    expect(migrated.version).toBe(7)
     expect(migrated.savedAt).toBe(321)
     expect(migrated.state.day).toBe(8)
     expect(migrated.state.creature?.sickCooldown).toBe(0)
@@ -557,7 +564,7 @@ describe("evolution stage (v6)", () => {
       state: { day: 2, phase: "day", actionPoints: 3 },
       savedAt: 0,
     })
-    expect(migrated.version).toBe(6)
+    expect(migrated.version).toBe(7)
     expect(migrated.state.creature?.sickCooldown).toBe(0)
   })
 
@@ -623,6 +630,123 @@ describe("evolution stage (v6)", () => {
     saveGame(adapter, bad({ sickCooldown: "soon" }), 1)
     expect(loadGame(adapter)).toBeNull()
     saveGame(adapter, bad({ sickCooldown: undefined }), 1)
+    expect(loadGame(adapter)).toBeNull()
+  })
+})
+
+describe("save v7 — cup session, rename, hints", () => {
+  test("current version is 7", () => {
+    expect(SAVE_VERSION).toBe(7)
+  })
+
+  test("a v6 save migrates to v7: null session + a clean hint ledger", () => {
+    const state = chooseStarter(createInitialState(), "fire_drake", 42)
+    const migrated = migrate({ version: 6, state, savedAt: 321 })
+    expect(migrated.version).toBe(7)
+    expect(migrated.savedAt).toBe(321)
+    expect(migrated.session).toBeNull()
+    expect(migrated.state.settings.seenHints).toEqual([])
+  })
+
+  test("a chain-migrated save (v0 to v7) carries the v7 defaults too", () => {
+    const migrated = migrate({ version: 0, day: 7 })
+    expect(migrated.version).toBe(7)
+    expect(migrated.session).toBeNull()
+    expect(migrated.state.settings.seenHints).toEqual([])
+  })
+
+  test("a fresh cup session round-trips through saveGame/loadSave", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    const session = prepareCup(owned)
+    if (!session) throw new Error("no session")
+    saveGame(adapter, owned, 1000, session)
+    const loaded = loadSave(adapter)
+    expect(loaded).not.toBeNull()
+    expect(loaded?.session).toEqual(session)
+    // The restored session is live: the player's first match still pends.
+    expect(loaded?.session?.status).toBe("player-turn")
+    expect(loaded?.session?.nextPlayerRound).toBe(1)
+  })
+
+  test("a mid-cup session (one match played) survives the round-trip", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!owned.creature) throw new Error("no creature")
+    const fresh = prepareCup(owned)
+    if (!fresh) throw new Error("no session")
+    const resolved = resolvePlayerMatch(
+      fresh,
+      defaultLoadout(
+        owned.creature,
+        getSpecies(owned.creature.speciesId) as SpeciesDef,
+      ),
+      "balanced",
+    )
+    saveGame(adapter, owned, 1000, resolved.session)
+    const loaded = loadSave(adapter)
+    // Outcome-agnostic: whatever the seeded bracket decided, the persisted
+    // session must come back byte-identical so the walk can resume.
+    expect(loaded?.session).toEqual(resolved.session)
+    expect(loaded?.session?.status).toBe(resolved.session.status)
+  })
+
+  test("saveGame defaults the session to null when none is passed", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    saveGame(adapter, owned, 1)
+    expect(loadSave(adapter)?.session).toBeNull()
+  })
+
+  test("loadSave drops a corrupt session but keeps the state", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    const session = prepareCup(owned)
+    if (!session) throw new Error("no session")
+    saveGame(adapter, owned, 1000, session)
+    const data = JSON.parse(adapter.getItem("apex.save") ?? "{}") as Record<
+      string,
+      unknown
+    >
+    data.session = { bracket: 5 } // hand-corrupted payload
+    adapter.setItem("apex.save", JSON.stringify(data))
+    const loaded = loadSave(adapter)
+    expect(loaded).not.toBeNull()
+    expect(loaded?.state.day).toBe(owned.day)
+    expect(loaded?.session).toBeNull()
+  })
+
+  test("loadGame still returns just the state", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    const session = prepareCup(owned)
+    if (!session) throw new Error("no session")
+    saveGame(adapter, owned, 1000, session)
+    const state = loadGame(adapter)
+    expect(state).not.toBeNull()
+    expect(state?.day).toBe(1)
+  })
+
+  test("seenHints round-trips through saveGame/loadGame", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    const marked = {
+      ...owned,
+      settings: { reducedMotion: false, seenHints: ["ap"] },
+    }
+    saveGame(adapter, marked, 1)
+    expect(loadGame(adapter)?.settings.seenHints).toEqual(["ap"])
+  })
+
+  test("loadGame rejects a corrupt seenHints ledger", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    const bad = (settings: unknown) => ({ ...owned, settings }) as GameState
+    saveGame(adapter, bad({ reducedMotion: false, seenHints: "ap" }), 1)
+    expect(loadGame(adapter)).toBeNull()
+    saveGame(adapter, bad({ reducedMotion: false, seenHints: [3] }), 1)
+    expect(loadGame(adapter)).toBeNull()
+    saveGame(adapter, bad({ reducedMotion: false, seenHints: undefined }), 1)
     expect(loadGame(adapter)).toBeNull()
   })
 })
