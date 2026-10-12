@@ -20,10 +20,10 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
         to a canonical 1.7 slot (STANCE_GAP 2.1 / CONTACT_GAP 1.8) —
         dbcdfec; knockback direction sign fix in contactReaction —
         23327ad. User-verified builds 3–4.
-- [ ] **Task: Sim stagger on heavy blows** *(TDD)*
-  - [ ] Red: failing tests — heavy/super-effective hit applies a
+- [x] **Task: Sim stagger on heavy blows** *(TDD)* (8a1dbbd)
+  - [x] Red: failing tests — heavy/super-effective hit applies a
         1-action-window lock; edges (KO blow, final tick, no double-stagger)
-  - [ ] Green: implement in resolver/clock; update golden stream tests
+  - [x] Green: implement in resolver/clock; update golden stream tests
         deliberately
 - [ ] **Task: Sim range-shifting knockback** *(TDD)*
   - [ ] Red: failing tests — knockback shifts far/near state, closing
