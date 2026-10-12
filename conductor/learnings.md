@@ -120,3 +120,27 @@ track, not ad hoc): nerf the basic, buff special powers, or make Favor
 Specials cooldown-DPS-aware (fall back to Strike when a special's
 sustained output loses to 4/window). Any fix reshuffles the whole meta
 and needs its own seed-batch rebalance pass.
+
+   **RESOLVED 2026-10-13** (track `battle_sim_consolidation_20261013`,
+   Phase 3): the probe disproved this finding's central claim before any
+   fix was chosen. Measured on 216 mirror battles, `specials` won 80.8%
+   (not lost) and `balanced` 25.5% — the inverse of this note. The real
+   defect: `balancedQualifiers()` only admitted KO or super-effective
+   specials, neither reachable in a neutral matchup, so Balanced could
+   never fire its kit and degenerated into a pure Striker (20 total
+   damage in an instrumented drake mirror vs Specials' 44). The fix
+   (spec FR6 as revised): both tactics read the same sustained-score bar
+   (`kitSustained >= strikeSustained`, i.e. the sum of expected/(1 +
+   cooldown) vs the Strike's 4/window) — Balanced as a third qualifier
+   after KO/SE, Specials as its fallback gate — and each tactic ranks
+   the ready kit by its own objective (expected damage vs sustained per
+   window), which also cured a first-cut convergence where both tactics
+   produced byte-identical battles. Strike power stayed 4 (the nerf
+   candidate was withdrawn: it would have hit the losing tactic's only
+   attack). AFTER: mirrors 51.5%/48.6%, cross-element 50%/50%, 0 40-tick
+   stalls on the varied-stats pass. Probe lives in
+   `packages/sim/src/battle/tactics.balance.test.ts`
+   (`APEX_BALANCE_REPORT=1`); before/after reports in
+   `conductor/tracks/battle_sim_consolidation_20261013/probe-{before,after}.md`.
+   Lesson: the documented imbalance was backwards — measure first, then
+   choose the fix.

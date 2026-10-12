@@ -222,24 +222,52 @@ byte-identical.
 
 ## Phase 4 — Ripples: fixtures, docs, and the player-facing check (FR8, FR9, FR10)
 
-- [ ] Task: Reconcile tests that pinned pre-rebalance numbers (FR8)
-  - [ ] Sweep `clock.test.ts`, `resolver.test.ts`, `policy.test.ts`, `moves.test.ts`, `cup*.test.ts`, and client `hud.copy.test.ts` for damage/stagger/outcome expectations
-  - [ ] Update only what FR5/FR6 authorized; each edit carries a comment naming the FR
-  - [ ] List every changed expectation in the phase notes
-- [ ] Task: Documentation (FR9)
-  - [ ] Append a resolution note to `conductor/learnings.md` finding 10: the fix chosen, the before/after probe numbers, and where the probe lives
-  - [ ] Confirm `docs/save-schema.md` needs no change; if it does, document the migration
-- [ ] Task: Ladder and cup ripple review (FR10)
-  - [ ] A saved in-progress session loads and completes
-  - [ ] A fresh cup still reaches a champion
-  - [ ] Bronze promotions remain reachable for a well-raised creature
-  - [ ] No ladder tuning changes — verification only
-- [ ] Task: Manual verification note (workflow phase protocol)
-  - [ ] Agent browser check first: open the app, run a spar to completion, capture a screenshot, confirm the console is clean
-  - [ ] Then present the user with: run a full weekly cup in the browser, confirm the bracket reveals in order and the champion screen shows, with no console errors
+- [x] Task: Reconcile tests that pinned pre-rebalance numbers (FR8)
+  - [x] Sweep `clock.test.ts`, `resolver.test.ts`, `policy.test.ts`, `moves.test.ts`, `cup*.test.ts`, and client `hud.copy.test.ts` for damage/stagger/outcome expectations
+  - [x] Update only what FR5/FR6 authorized; each edit carries a comment naming the FR
+  - [x] List every changed expectation in the phase notes
+- [x] Task: Documentation (FR9)
+  - [x] Append a resolution note to `conductor/learnings.md` finding 10: the fix chosen, the before/after probe numbers, and where the probe lives
+  - [x] Confirm `docs/save-schema.md` needs no change; if it does, document the migration
+- [x] Task: Ladder and cup ripple review (FR10)
+  - [x] A saved in-progress session loads and completes (save.test.ts + cupSession.test.ts round-trips green at SAVE_VERSION 9, no migration added)
+  - [x] A fresh cup still reaches a champion (cup.test.ts property test over seeds 1–60, champion derived through `doubleKoAdvancingName`)
+  - [x] Bronze promotions remain reachable for a well-raised creature (ladder.test.ts climb tests + cup-contracts Bronze topology test green)
+  - [x] No ladder tuning changes — verification only
+- [x] Task: Manual verification note (workflow phase protocol)
+  - [x] Agent browser check first: open the app, run a spar to completion, capture a screenshot, confirm the console is clean
+  - [x] Then present the user with: run a full weekly cup in the browser, confirm the bracket reveals in order and the champion screen shows, with no console errors
 - [ ] Task: Full gate: `bun run verify` green, suite runtime unchanged or faster
 - [ ] Task: Commit (`docs(battle): record the tactic rebalance in learnings`) + git note + record SHA
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+### Phase 4 notes
+
+**FR8 residual sweep found two things the Phase 3 sweep missed:**
+1. `apps/client/src/spar.ts` `TACTIC_PREVIEWS` described the old tactics
+   ("Saves specials for a type advantage or a finisher" / "Fires specials
+   whenever they are ready"). Rewritten to describe the revised FR6
+   behavior on both buttons; `hud.copy.test.ts` pins none of this copy, so
+   no test moved.
+2. `cup.test.ts` champion property test needed `doubleKoAdvancingName`
+   (done in Phase 3). Everything else (`clock.test.ts`, `moves.test.ts`,
+   `hud.copy.test.ts`) pins nothing the rebalance touched — full suite
+   green without further edits.
+
+**FR9:** learnings.md #10 now carries a RESOLVED note with the corrected
+diagnosis (the probe inverted the finding's claim), the revised rule, the
+after numbers, and the probe's location. `docs/save-schema.md` makes no
+behavioral claims about tactics or the double-KO tiebreak and the schema
+shape is unchanged (winner stays `string | null`, finalHp already
+persisted) — no doc change needed.
+
+**FR10 + agent browser check (Playwright CLI, desktop browser still not
+attached):** started the dev server, drafted an Ember Drake, and ran a spar
+under **each** tactic to completion — Balanced finished "Victory — rival
+Ember Drake / A knockout finish", Favor Specials finished "Victory — Ember
+Drake / A knockout finish", and the console showed **0 errors / 0 warnings**
+after both battles. The new tactic previews render live on the setup
+screen. Dev server stopped after the check.
 
 ---
 
