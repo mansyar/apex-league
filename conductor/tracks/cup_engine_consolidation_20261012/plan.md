@@ -42,11 +42,13 @@ cannot silently change outcomes), then delete, then refactor the client last
 - [x] Task: Extract `bracket-model.ts` — implement the model from
       `createCup`'s DOM factory; rewire client `cup.ts` to consume it; green
       tests; no visual diff. [cb31de9]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  [checkpoint: cb31de9] Phase 3 complete — 16/16 bracket-model tests green, cup.ts rewired to the pure model, bun run verify green; checkpoint verified together with the Phase 4 walkthrough, user-approved.
 
-## Phase 4 — Final verification
+## Phase 4 - Final verification
 
-- [~] Task: Full verify & manual walkthrough — `bun run verify`; manual:
+- [x] Task: Full verify & manual walkthrough — `bun run verify`; manual:
       full cup run (enter → coaching room → 3 matches → results → ladder
       points), refresh mid-walk resume, forfeit path, visual parity of all
-      cup screens; then conductor-review handoff.
+      cup screens; then conductor-review handoff. [d55ad98]
+  [checkpoint: 7628a1b] Phase 4 complete — full walkthrough passed (championship run, refresh resume, forfeit); 808/808 pass, verify green, user-approved.
