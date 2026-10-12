@@ -22,19 +22,14 @@ import { buildCreatureGroup } from "./creature"
 import type { DirectorContext, DirectorStep } from "./director"
 import { elementHue } from "./element"
 import {
-  type BurstStyle,
-  CONTACT_T,
-  elementColor,
   fxFor,
-  lookFor,
   type MoveFx,
   type Posture,
-  PROJECTILE_ARC,
   PROJECTILE_LIFE_MS,
-  type ShotLook,
   type ShotSpec,
 } from "./move-fx"
 import { disposeObject3D } from "./scene-utils"
+import { createBattleEffects } from "./staging-fx"
 
 /**
  * Creature staging for the broadcast arena: two living fighters on the
@@ -91,31 +86,6 @@ const LEAN_MAX = 0.14
 /** Squash-and-stretch spring (weight): stiffness and damping. */
 const SQUASH_K = 210
 const SQUASH_D = 13
-
-/** One in-flight shot: a glowing core with an arced, lagging trail. */
-const PROJECTILE_RADIUS = 0.22
-
-/** Big-hit threshold: at/above this the punch lands as hit-stop + shake. */
-const BIG_HIT_DAMAGE = 4
-
-/** How long a victim's cells flash white, in ms. */
-const FLASH_MS = 180
-
-/** How long the frame freezes on a big hit, in ms (micro hit-stop). */
-const HIT_STOP_MS = 90
-
-interface Projectile {
-  mesh: THREE.Object3D
-  trail: THREE.Mesh[]
-  from: THREE.Vector3
-  to: THREE.Vector3
-  /** Accumulated in-flight time (ms), frozen during a hit-stop. */
-  elapsed: number
-  /** Flight duration (ms) - bespoke shots can fly slower or faster. */
-  life: number
-  /** How this shot reads in flight (FR5). */
-  look: ShotLook
-}
 
 export interface FightCasting {
   /** Which creature stands on the left (home) side. */
@@ -190,15 +160,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   let owned: Combatant | null = null
   let rival: Combatant | null = null
   let actionRaf: number | null = null
-  let projectileRaf: number | null = null
-  let flashRaf: number | null = null
   let driveRaf: number | null = null
   let lastDrive = 0
-  /** Live shots, newest last; drained by the projectile frame loop. */
-  const projectiles: Projectile[] = []
-  /** Wall-clock anchors for the per-loop dt accumulation. */
-  let lastProjectileTick = 0
-  let lastFlashTick = 0
   /** Current spar pacing (ms per playback step); animations scale off it. */
   let paceMs = NORMAL_STEP_MS
   /** Kind of the previously applied step - tells a ranged arrival
@@ -234,15 +197,34 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   /** Action animation length at the current pace, floor-clamped. */
   const animMs = (): number =>
     Math.max(120, BASE_STEP_ANIM_MS * (paceMs / NORMAL_STEP_MS))
-  /** Hit state: who is flashing and how far into it (accumulated ms). */
-  let flash: { victim: Combatant; age: number } | null = null
-  /** Freeze window on a big hit: action time does not advance inside it. */
-  let hitStopUntil = 0
   /** Big-hit callback (camera punch); wired by main.ts to the scene shake. */
-  let onBigHit: ((strength: number) => void) | null = null
+  const onBigHit: { current: ((strength: number) => void) | null } = {
+    current: null,
+  }
 
   /** Visual intensity preference: 'full' shakes; 'reduced' keeps it calm. */
   let motionPref: "full" | "reduced" = "full"
+
+  /**
+   * The shared effect machinery: one loop drives flash, projectiles,
+   * bursts, decals and the charge orb; the hit-stop clock it owns also
+   * freezes the action clock and drive loop below.
+   */
+  const effects = createBattleEffects({
+    arenaGroup,
+    pref: () => motionPref,
+    onBigHit,
+  })
+
+  const lambertOf = (mesh: THREE.Mesh): THREE.MeshLambertMaterial | null =>
+    mesh.material instanceof THREE.MeshLambertMaterial ? mesh.material : null
+
+  /** Big-hit punch: freeze the frame briefly and shake the broadcast cam. */
+  const bigHit = (damage: number | undefined): void => {
+    effects.hitStop.trigger(damage, (s) => {
+      if (motionPref === "full" && onBigHit.current) onBigHit.current(s)
+    })
+  }
 
   /** Wrap an angle delta into [-π, π) so yaw always takes the short way. */
   const shortestAngle = (a: number): number => {
@@ -386,7 +368,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       }
       feedCtx.actor = owned.group.position
       feedCtx.target = rival.group.position
-      feedCtx.projectile = projectiles[0]?.mesh.position ?? null
+      feedCtx.projectile = effects.firstProjectilePosition()
       directorHandler(feedCtx)
     }
     driveRaf = requestAnimationFrame(drive)
@@ -404,612 +386,17 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       cancelAnimationFrame(actionRaf)
       actionRaf = null
     }
-    clearCharge()
+    if (driveRaf !== null) {
+      cancelAnimationFrame(driveRaf)
+      driveRaf = null
+    }
     // Cross-fight staleness: a fight ending on a projectile must not make
     // the NEXT fight's first point-blank special skip its launch body,
     // and stale last-step context must not fire a director cut at cast.
     prevStepKind = null
     lastStep = null
     lastStepAt = 0
-    if (projectileRaf !== null) {
-      cancelAnimationFrame(projectileRaf)
-      projectileRaf = null
-    }
-    if (burstRaf !== null) {
-      cancelAnimationFrame(burstRaf)
-      burstRaf = null
-    }
-    if (flashRaf !== null) {
-      cancelAnimationFrame(flashRaf)
-      flashRaf = null
-    }
-    if (driveRaf !== null) {
-      cancelAnimationFrame(driveRaf)
-      driveRaf = null
-    }
-    disposeProjectiles()
-    hitStopUntil = 0
-  }
-
-  // ── Hit fizz ───────────────────────────────────────────────────────────
-  /**
-   * Victim flash: push every Lambert color toward white for FLASH_MS,
-   * then restore the cast-time palette. Per-mesh capture because a
-   * creature is many materials, not one shared material.
-   */
-  const lambertOf = (mesh: THREE.Mesh): THREE.MeshLambertMaterial | null =>
-    mesh.material instanceof THREE.MeshLambertMaterial ? mesh.material : null
-
-  /** Put a victim's palette back exactly as captured at cast time. */
-  const restoreVictim = (victim: Combatant): void => {
-    for (const [mesh, base] of victim.baseColors) {
-      lambertOf(mesh)?.color.copy(base)
-    }
-  }
-
-  const startFlash = (victim: Combatant): void => {
-    if (motionPref === "reduced") return // calm reads: no brightness pop
-    // Restore the outgoing victim first — replacing the slot mid-decay
-    // would otherwise strand them partially white until clear().
-    if (flash) restoreVictim(flash.victim)
-    flash = { victim, age: 0 }
-    lastFlashTick = performance.now()
-    // Snap to full white immediately; the decay loop unwinds it.
-    for (const mesh of victim.baseColors.keys()) {
-      lambertOf(mesh)?.color.setRGB(1, 1, 1)
-    }
-    if (flashRaf === null) flashRaf = requestAnimationFrame(tickFlashL)
-  }
-
-  const tickFlashL = (): void => {
-    tickFlash()
-    flashRaf = flash ? requestAnimationFrame(tickFlashL) : null
-  }
-
-  /** Partway back from white by accumulated age (easeOut curve). */
-  const tickFlash = (): void => {
-    if (!flash) return
-    const now = performance.now()
-    // Hit-stop freezes the flash too — the whole frame holds.
-    flash.age += now < hitStopUntil ? 0 : Math.min(100, now - lastFlashTick)
-    lastFlashTick = now
-    const w = 1 - easeOut(Math.min(1, flash.age / FLASH_MS))
-    for (const [mesh, base] of flash.victim.baseColors) {
-      const mat = lambertOf(mesh)
-      if (!mat) continue
-      mat.color.setRGB(
-        1 - w + base.r * w,
-        1 - w + base.g * w,
-        1 - w + base.b * w,
-      )
-    }
-    if (flash.age >= FLASH_MS) {
-      restoreVictim(flash.victim)
-      flash = null
-    }
-  }
-
-  /** Big-hit punch: freeze the frame briefly and shake the broadcast cam. */
-  const bigHit = (damage: number | undefined): void => {
-    const d = damage ?? 0
-    if (d < BIG_HIT_DAMAGE) return
-    hitStopUntil = performance.now() + HIT_STOP_MS
-    if (motionPref === "full" && onBigHit)
-      onBigHit(Math.min(0.09, 0.02 + d / 80))
-  }
-
-  // ── Projectiles ───────────────────────────────────────────────────────
-  /** Release the pooled projectiles (scene swap, panel close). */
-  const disposeProjectiles = (): void => {
-    for (const p of projectiles) {
-      killShotMesh(p.mesh)
-      for (const seg of p.trail) {
-        arenaGroup.remove(seg)
-        seg.geometry.dispose()
-        ;(seg.material as THREE.Material).dispose()
-      }
-    }
-    projectiles.length = 0
-    for (const b of bursts) disposeBurst(b)
-    bursts.length = 0
-  }
-
-  // Scratch vectors hoisted out of the frame loop — the quality gate
-  // forbids per-frame allocations while the fight is live.
-  const shotDir = new THREE.Vector3()
-  const shotPos = new THREE.Vector3()
-  const segPos = new THREE.Vector3()
-
-  /** Free a shot's meshes - cores may be Groups (fire/plant flavors). */
-  const killShotMesh = (mesh: THREE.Object3D): void => {
-    disposeObject3D(mesh)
-    arenaGroup.remove(mesh)
-  }
-
-  const stepProjectiles = (): void => {
-    const now = performance.now()
-    // Hit-stop freezes the shot mid-air along with everything else.
-    const dtMs =
-      now < hitStopUntil ? 0 : Math.min(100, now - lastProjectileTick || 16.7)
-    lastProjectileTick = now
-    for (let i = projectiles.length - 1; i >= 0; i--) {
-      const p = projectiles[i]
-      if (!p) continue
-      p.elapsed += dtMs
-      const t = p.elapsed / p.life
-      shotDir.copy(p.to).sub(p.from)
-      const travel = Math.min(1, t)
-      shotPos.copy(p.from).addScaledVector(shotDir, travel)
-      // Look-driven flight: arc lift, wobble, spin, pulse per element.
-      shotPos.y +=
-        Math.sin(travel * Math.PI) * PROJECTILE_ARC * (p.look.arc ?? 1)
-      if (p.look.wobble !== undefined && p.look.wobble > 0) {
-        // Water streams with a slight side-to-side ripple across the lane.
-        shotPos.z += Math.sin(p.elapsed * 0.02) * p.look.wobble
-      }
-      p.mesh.position.copy(shotPos)
-      if (p.look.spin !== undefined && p.look.spin > 0) {
-        // Seeds tumble; embers corkscrew around the travel axis.
-        p.mesh.rotation.z += p.look.spin * dtMs
-        p.mesh.rotation.x += p.look.spin * 0.6 * dtMs
-      }
-      if (p.look.pulse !== undefined && p.look.pulse > 0) {
-        const s = 1 + p.look.pulse * Math.sin(p.elapsed * 0.045)
-        p.mesh.scale.setScalar(s)
-      } else if ((p.look.stretch ?? 1) > 1.2) {
-        // Teardrops and seeds keep facing downrange (their +Z is stretched).
-        p.mesh.lookAt(
-          shotPos.x + shotDir.x,
-          p.mesh.position.y,
-          shotPos.z + shotDir.z,
-        )
-      }
-      // Trail lags behind it along the same line, with the same arc lift.
-      for (let s = 0; s < p.trail.length; s++) {
-        const lag = Math.max(0, travel - (s + 1) * 0.09)
-        segPos.copy(p.from).addScaledVector(shotDir, lag)
-        segPos.y += Math.sin(lag * Math.PI) * PROJECTILE_ARC * (p.look.arc ?? 1)
-        p.trail[s]?.position.copy(segPos)
-      }
-      if (t >= 1) {
-        // Impact punctures: vanish (the impact step supplies the reaction).
-        killShotMesh(p.mesh)
-        for (const seg of p.trail) {
-          arenaGroup.remove(seg)
-          seg.geometry.dispose()
-          ;(seg.material as THREE.Material).dispose()
-        }
-        projectiles.splice(i, 1)
-      }
-    }
-  }
-
-  /** Drive shots each frame for as long as any are in flight. */
-  const tickProjectiles = (): void => {
-    stepProjectiles()
-    projectileRaf =
-      projectiles.length > 0 ? requestAnimationFrame(tickProjectiles) : null
-  }
-
-  // ─── Element bursts ─────────────────────────────────────────────
-  /** One flying fragment of the element burst. */
-  interface BurstParticle {
-    mesh: THREE.Mesh
-    /** World-space velocity, units per second. */
-    vel: THREE.Vector3
-    /** Angular speed around the travel axis, radians per second. */
-    spin: number
-    /** Phase offset for the lateral sway sine, radians. */
-    swayPhase: number
-  }
-
-  /**
-   * A live elemental burst: an expanding glow flash plus fragments that
-   * scatter outward, fall under gravity, shrink and fade.
-   */
-  interface Burst {
-    /** Expanding glow shell, removed once its fade completes. */
-    flash: THREE.Mesh | null
-    /** Flying fragments, scattered outward and falling. */
-    particles: BurstParticle[]
-    /** Accumulated burst age (ms), frozen during a hit-stop. */
-    elapsed: number
-    /** Total burst duration (ms). */
-    life: number
-    /** How far the glow shell swells over the burst (scale units). */
-    flashGrow: number
-    /** Downward pull on the fragments, units per second squared. */
-    gravity: number
-    /** Lateral sine drift on the fragments, units per second. */
-    sway: number
-  }
-
-  /** Tunables for one burst - element styles share the same machine. */
-
-  /**
-   * Element-flavored fragment physics (FR7): fire embers are buoyant and
-   * rise while flickering, water droplets fall heavy and fast, plant motes
-   * float on a sideways drift. Anything else keeps the neutral scatter.
-   */
-  const ELEMENT_BURST: Record<string, { gravity: number; sway: number }> = {
-    fire: { gravity: -2.2, sway: 0.5 },
-    water: { gravity: 10, sway: 0 },
-    plant: { gravity: 1.8, sway: 1.0 },
-  }
-
-  const bursts: Burst[] = []
-  let burstRaf: number | null = null
-  let lastBurstTick = 0
-
-  const disposeBurst = (burst: Burst): void => {
-    if (burst.flash) {
-      killShotMesh(burst.flash)
-      burst.flash = null
-    }
-    for (const part of burst.particles) {
-      arenaGroup.remove(part.mesh)
-      part.mesh.geometry.dispose()
-      ;(part.mesh.material as THREE.Material).dispose()
-    }
-    burst.particles.length = 0
-  }
-
-  /**
-   * An elemental pop where a blow connects or a shot lands: a growing,
-   * fading glow shell plus fragments that scatter outward and fall.
-   * Style presets give each tier-3 special its own kind of bloom.
-   */
-  const spawnBurst = (
-    at: THREE.Vector3,
-    element: string | undefined,
-    style: BurstStyle = {},
-  ): void => {
-    if (motionPref === "reduced") return
-    const color = new THREE.Color(style.tint ?? elementColor(element))
-    const size = style.size ?? 1
-    const puffs = style.puffs ?? 6
-    const base = at.clone()
-    base.y += 0.6
-    let flash: THREE.Mesh | null = null
-    if (style.flash !== false) {
-      flash = new THREE.Mesh(
-        new THREE.SphereGeometry(PROJECTILE_RADIUS * 1.2 * size, 12, 10),
-        new THREE.MeshBasicMaterial({
-          color,
-          transparent: true,
-          opacity: 0.55,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false,
-        }),
-      )
-      flash.position.copy(base)
-      arenaGroup.add(flash)
-    }
-    const particles: BurstParticle[] = []
-    for (let i = 0; i < puffs; i++) {
-      const mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(PROJECTILE_RADIUS * 0.4 * size, 8, 6),
-        new THREE.MeshBasicMaterial({
-          color,
-          transparent: true,
-          opacity: 0.85,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false,
-        }),
-      )
-      mesh.position.copy(base)
-      const angle = (i / puffs) * Math.PI * 2 + Math.random() * 0.8
-      const speed = (style.ring ? 1.1 : 1.4) + Math.random() * 1.2
-      particles.push({
-        mesh,
-        vel: new THREE.Vector3(
-          Math.cos(angle) * speed,
-          style.ring ? 0.15 + Math.random() * 0.25 : 0.9 + Math.random() * 1.1,
-          Math.sin(angle) * speed * (style.ring ? 1 : 0.6),
-        ),
-        spin: (Math.random() - 0.5) * 0.02,
-        swayPhase: Math.random() * Math.PI * 2,
-      })
-      arenaGroup.add(mesh)
-    }
-    bursts.push({
-      flash,
-      particles,
-      elapsed: 0,
-      life: style.life ?? 520,
-      flashGrow: style.flashGrow ?? 2.4,
-      gravity: style.gravity ?? ELEMENT_BURST[element ?? ""]?.gravity ?? 7,
-      sway: style.sway ?? ELEMENT_BURST[element ?? ""]?.sway ?? 0,
-    })
-    if (burstRaf === null) {
-      lastBurstTick = performance.now()
-      burstRaf = requestAnimationFrame(tickBursts)
-    }
-  }
-
-  /** Advance every live burst: flash swells and fades, fragments scatter. */
-  const tickBursts = (): void => {
-    burstRaf = null
-    const now = performance.now()
-    const dtMs =
-      now < hitStopUntil ? 0 : Math.min(100, now - lastBurstTick || 16.7)
-    lastBurstTick = now
-    const dt = dtMs / 1000
-    for (let i = bursts.length - 1; i >= 0; i--) {
-      const burst = bursts[i]
-      if (!burst) continue
-      burst.elapsed += dtMs
-      const k = Math.min(1, burst.elapsed / burst.life)
-      if (burst.flash) {
-        const flashMat = burst.flash.material as THREE.MeshBasicMaterial
-        burst.flash.scale.setScalar(1 + k * burst.flashGrow)
-        flashMat.opacity = 0.55 * (1 - k)
-      }
-      for (const part of burst.particles) {
-        part.vel.y -= burst.gravity * dt
-        part.mesh.position.addScaledVector(part.vel, dt)
-        if (burst.sway > 0) {
-          part.mesh.position.x +=
-            Math.sin(burst.elapsed * 0.004 + part.swayPhase) * burst.sway * dt
-        }
-        part.mesh.rotation.x += part.spin * dtMs
-        part.mesh.rotation.y += part.spin * 0.7 * dtMs
-        part.mesh.scale.setScalar(Math.max(0.05, 1 - k))
-        ;(part.mesh.material as THREE.MeshBasicMaterial).opacity =
-          0.85 * (1 - k)
-      }
-      if (k >= 1) {
-        disposeBurst(burst)
-        bursts.splice(i, 1)
-      }
-    }
-    if (bursts.length > 0) burstRaf = requestAnimationFrame(tickBursts)
-  }
-
-  // -- Hit decals (FR7) ---------------------------------------------------
-  // Scorch marks burned into the show floor where blows land: a dark
-  // element-tinted circle that pops in and fades. Pooled - the oldest
-  // mark yields once the cap is hit.
-
-  interface Decal {
-    mesh: THREE.Mesh
-    /** Accumulated age (ms), frozen during a hit-stop. */
-    elapsed: number
-    life: number
-  }
-
-  const decals: Decal[] = []
-  let decalRaf: number | null = null
-  let lastDecalTick = 0
-  const DECAL_MAX = 6
-  const DECAL_LIFE_MS = 1800
-
-  const disposeDecal = (decal: Decal): void => {
-    arenaGroup.remove(decal.mesh)
-    decal.mesh.geometry.dispose()
-    ;(decal.mesh.material as THREE.Material).dispose()
-  }
-
-  /** Burn a floor mark under a landed blow; strength scales the mark. */
-  const spawnDecal = (
-    at: THREE.Vector3,
-    element: string | undefined,
-    strength: number,
-  ): void => {
-    if (motionPref === "reduced") return
-    if (decals.length >= DECAL_MAX) {
-      const oldest = decals.shift()
-      if (oldest) disposeDecal(oldest)
-    }
-    const color = new THREE.Color(elementColor(element)).multiplyScalar(0.22)
-    const mesh = new THREE.Mesh(
-      new THREE.CircleGeometry(Math.min(0.55, 0.22 + strength * 0.02), 14),
-      new THREE.MeshBasicMaterial({
-        color,
-        transparent: true,
-        opacity: 0,
-        depthWrite: false,
-      }),
-    )
-    mesh.rotation.x = -Math.PI / 2
-    // A touch above the floor, stacked per decal, so marks never z-fight.
-    mesh.position.set(at.x, 0.026 + decals.length * 0.004, at.z)
-    mesh.scale.setScalar(0.2)
-    arenaGroup.add(mesh)
-    decals.push({ mesh, elapsed: 0, life: DECAL_LIFE_MS })
-    if (decalRaf === null) {
-      lastDecalTick = performance.now()
-      decalRaf = requestAnimationFrame(tickDecals)
-    }
-  }
-
-  /** Advance every decal: quick pop-in, long fade. */
-  const tickDecals = (): void => {
-    decalRaf = null
-    const now = performance.now()
-    const dtMs =
-      now < hitStopUntil ? 0 : Math.min(100, now - lastDecalTick || 16.7)
-    lastDecalTick = now
-    for (let i = decals.length - 1; i >= 0; i--) {
-      const decal = decals[i]
-      if (!decal) continue
-      decal.elapsed += dtMs
-      const k = Math.min(1, decal.elapsed / decal.life)
-      decal.mesh.scale.setScalar(easeOut(Math.min(1, k * 5)))
-      ;(decal.mesh.material as THREE.MeshBasicMaterial).opacity = 0.55 * (1 - k)
-      if (k >= 1) {
-        disposeDecal(decal)
-        decals.splice(i, 1)
-      }
-    }
-    if (decals.length > 0) decalRaf = requestAnimationFrame(tickDecals)
-  }
-
-  /** Strip every decal (panel teardown). */
-  const disposeAllDecals = (): void => {
-    for (const decal of decals) disposeDecal(decal)
-    decals.length = 0
-  }
-
-  /** The tier-4 Lance's charging orb, swelling at the thrower's mouth. */
-  let chargeMesh: THREE.Mesh | null = null
-
-  /** Grow (or create) the charge orb at the caster's mouth line. */
-  const setCharge = (
-    who: Combatant,
-    element: string | undefined,
-    scale: number,
-  ): void => {
-    if (motionPref === "reduced") return
-    if (!chargeMesh) {
-      chargeMesh = new THREE.Mesh(
-        new THREE.SphereGeometry(PROJECTILE_RADIUS * 1.1, 12, 10),
-        new THREE.MeshBasicMaterial({
-          color: new THREE.Color(elementColor(element)),
-          transparent: true,
-          opacity: 0.75,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false,
-        }),
-      )
-      const at = who.group.position
-      chargeMesh.position.set(at.x, at.y + 0.8, at.z)
-      arenaGroup.add(chargeMesh)
-    }
-    // The caster may drift while charging - keep the orb on the mouth line.
-    const at = who.group.position
-    chargeMesh.position.set(at.x, at.y + 0.8, at.z)
-    chargeMesh.scale.setScalar(scale)
-  }
-
-  /** Release (and free) the charge orb. */
-  const clearCharge = (): void => {
-    if (!chargeMesh) return
-    killShotMesh(chargeMesh)
-    chargeMesh = null
-  }
-
-  /** Build the shot's core meshes from its look descriptor (FR5). */
-  const buildShotCore = (
-    look: ShotLook,
-    color: THREE.Color,
-    size: number,
-  ): THREE.Object3D => {
-    if (look.geometry === "ember") {
-      // Ember: a faceted hot shard inside an additive glow halo.
-      const core = new THREE.Group()
-      core.add(
-        new THREE.Mesh(
-          new THREE.IcosahedronGeometry(PROJECTILE_RADIUS * 0.8 * size, 0),
-          new THREE.MeshBasicMaterial({ color }),
-        ),
-      )
-      core.add(
-        new THREE.Mesh(
-          new THREE.SphereGeometry(PROJECTILE_RADIUS * 1.55 * size, 12, 10),
-          new THREE.MeshBasicMaterial({
-            color,
-            transparent: true,
-            opacity: look.glow ?? 0.3,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false,
-          }),
-        ),
-      )
-      return core
-    }
-    if (look.geometry === "seedCluster") {
-      // Seed cluster: three facets orbiting a shared center, tumbling.
-      const core = new THREE.Group()
-      const geo = new THREE.OctahedronGeometry(
-        PROJECTILE_RADIUS * 0.55 * size,
-        0,
-      )
-      const mat = new THREE.MeshBasicMaterial({ color })
-      for (let i = 0; i < 3; i++) {
-        const seed = new THREE.Mesh(geo, mat)
-        const angle = (i / 3) * Math.PI * 2
-        seed.position.set(
-          Math.cos(angle) * 0.15 * size,
-          Math.sin(angle) * 0.15 * size,
-          0,
-        )
-        core.add(seed)
-      }
-      return core
-    }
-    // Teardrop and orb share the sphere core; stretch points it downrange.
-    const core = new THREE.Mesh(
-      new THREE.SphereGeometry(PROJECTILE_RADIUS * size, 12, 10),
-      new THREE.MeshBasicMaterial({ color }),
-    )
-    if ((look.stretch ?? 1) > 1.2) core.scale.set(0.72, 0.72, look.stretch ?? 1)
-    return core
-  }
-
-  /** A glowing core in the element hue plus a tapering additive orb trail. */
-  const spawnProjectile = (
-    from: Combatant,
-    to: Combatant,
-    element: string | undefined,
-    opts?: { size?: number; life?: number; spread?: number },
-  ): void => {
-    const size = opts?.size ?? 1
-    const color = new THREE.Color(elementColor(element))
-    const look = lookFor(element)
-    // Launch from the thrower's mouth line, land on the victim's chest.
-    // `spread` fans the landing point sideways across the lane (z) for
-    // volley choreography.
-    const origin = from.group.position.clone()
-    origin.y += 0.8
-    const target = to.group.position.clone()
-    target.y += 0.6
-    if (opts?.spread) target.z += opts.spread
-    // Core built from the look descriptor (FR5): ember + halo, seed
-    // cluster, teardrop, or the neutral orb.
-    const core = buildShotCore(look, color, size)
-    core.position.copy(origin)
-    arenaGroup.add(core)
-
-    // Trail segments stream behind the shot in its element's family.
-    const trail: THREE.Mesh[] = []
-    for (let i = 0; i < 4; i++) {
-      const r = Math.max(0.05, PROJECTILE_RADIUS * size - (i + 1) * 0.033)
-      const geo =
-        look.trail === "embers"
-          ? new THREE.IcosahedronGeometry(r * 0.8, 0)
-          : look.trail === "seeds"
-            ? new THREE.OctahedronGeometry(r * 0.8, 0)
-            : new THREE.SphereGeometry(r, 10, 8)
-      const seg = new THREE.Mesh(
-        geo,
-        new THREE.MeshBasicMaterial({
-          color,
-          transparent: true,
-          opacity: 0.55 - i * 0.1,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false,
-        }),
-      )
-      seg.position.copy(origin)
-      arenaGroup.add(seg)
-      trail.push(seg)
-    }
-    projectiles.push({
-      mesh: core,
-      trail,
-      from: origin,
-      to: target,
-      elapsed: 0,
-      life: opts?.life ?? PROJECTILE_LIFE_MS,
-      look,
-    })
-    // Re-anchor the clock so a shot fired right after a volley drained
-    // does not inherit the drained loop's stale tick as free flight.
-    lastProjectileTick = performance.now()
-    if (projectileRaf === null) {
-      projectileRaf = requestAnimationFrame(tickProjectiles)
-    }
+    effects.disposeAll()
   }
 
   // ── Step choreography ──────────────────────────────────────────────────
@@ -1070,9 +457,9 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     }
     const kind: ReactionKind = heavy ? "stagger" : "glance"
     impulse(at, reactionFor(kind, at.profile).impulse)
-    startFlash(at)
+    effects.startFlash(at)
     bigHit(damage)
-    spawnDecal(at.group.position, element, damage ?? 4)
+    effects.spawnDecal(at.group.position, element, damage ?? 4)
   }
 
   /** Lateral weave: alternate attack sides so no two hits share a lane. */
@@ -1132,10 +519,10 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       for (const dz of fx.arrival.lanes) {
         const p = at.clone()
         p.z += dz
-        spawnBurst(p, step.element, fx.arrival.burst)
+        effects.spawnBurst(p, step.element, fx.arrival.burst)
       }
     } else {
-      spawnBurst(at, step.element, fx.arrival.burst)
+      effects.spawnBurst(at, step.element, fx.arrival.burst)
     }
     if (fx.arrival.shove !== 0) impulse(side.target, fx.arrival.shove)
   }
@@ -1183,7 +570,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
           const w = t / wind
           applyPosture(fx.pose.windup, w, ao, away)
           if (fx.charge) {
-            setCharge(
+            effects.setCharge(
               side.actor,
               step.element,
               fx.charge.from + w * (fx.charge.to - fx.charge.from),
@@ -1196,18 +583,18 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
           const beat = beats[firedRef.n]
           const shot = fx.shots[firedRef.n]
           if (beat === undefined || shot === undefined || t < beat) break
-          spawnProjectile(side.actor, side.target, step.element, {
+          effects.spawnProjectile(side.actor, side.target, step.element, {
             size: shot.size,
             life: compressed ? flight : shot.life,
             spread: shot.spread ?? 0,
           })
           impulse(ao, fx.kick)
           if (firedRef.n === 0) {
-            if (fx.charge) clearCharge()
+            if (fx.charge) effects.clearCharge()
             if (fx.muzzle) {
               const mouth = side.actor.group.position.clone()
               mouth.y += 0.2
-              spawnBurst(mouth, step.element, fx.muzzle)
+              effects.spawnBurst(mouth, step.element, fx.muzzle)
             }
           }
           firedRef.n += 1
@@ -1243,7 +630,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       actionRaf = null
     }
     // A step that interrupts a charging Lance must not leave the orb.
-    clearCharge()
+    effects.clearCharge()
     for (const c of [o, r]) {
       c.offset.set(0, 0, 0)
       c.lean.pitch = 0
@@ -1465,7 +852,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
               if (u > 0.3 && !thudded) {
                 thudded = true
                 impulse(ao, spec.impulse)
-                spawnBurst(ao.group.position, step.element, {
+                effects.spawnBurst(ao.group.position, step.element, {
                   puffs: 9,
                   ring: true,
                   gravity: 2.2,
@@ -1552,7 +939,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     const tick = (): void => {
       // Micro hit-stop: while the freeze window is open, action time
       // holds still (the window itself keeps draining on wall time).
-      if (performance.now() < hitStopUntil) {
+      if (effects.hitStop.active()) {
         actionRaf = requestAnimationFrame(tick)
         return
       }
@@ -1574,7 +961,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     cast(casting) {
       stop()
       // The previous fight's scorch marks do not belong on the new floor.
-      disposeAllDecals()
+      effects.disposeAllDecals()
       // Drop the previous cast before building the new one.
       const disposeOld = (c: Combatant | null): void => {
         if (!c) return
@@ -1656,7 +1043,6 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
 
       owned = buildSpot(casting.owned, -1)
       rival = buildSpot(casting.rival, 1)
-      flash = null
       startDrive()
     },
     applyStep(step, instant = false) {
@@ -1670,7 +1056,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       prevStepKind = kind
     },
     setBigHitHandler(handler) {
-      onBigHit = handler
+      onBigHit.current = handler
     },
     setDirectorHandler(handler) {
       directorHandler = handler
@@ -1683,7 +1069,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     },
     clear() {
       stop()
-      disposeAllDecals()
+      effects.disposeAllDecals()
       // Settle every palette back to base before disposal — a fighter
       // hit mid-flash in the final beat would otherwise carry the white
       // pop into the next fight (materials are fresh per cast, but the
@@ -1703,10 +1089,6 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       }
       owned = null
       rival = null
-      flash = null
-      hitStopUntil = 0
-      for (const b of bursts) disposeBurst(b)
-      bursts.length = 0
     },
   }
 }
