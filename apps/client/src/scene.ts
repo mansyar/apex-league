@@ -6,6 +6,9 @@ import {
 } from "@apex/sim"
 import { generate, makeRng, type Stage } from "@apex/voxel"
 import * as THREE from "three"
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js"
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js"
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js"
 import { buildCreatureGroup } from "./creature"
 import type { CameraIntent } from "./director"
 import { prefersReducedMotionOs } from "./motion"
@@ -207,6 +210,28 @@ export function createScene(container: HTMLElement): SceneHandle {
     0.1,
     100,
   )
+
+  // -- Bloom post pass (FR7) --------------------------------------------------
+  // Arena-only post processing: bright additive VFX (projectile glows,
+  // hit flashes, bursts) bloom softly over the dark show floor. Built
+  // defensively - a weak GPU or missing addon support degrades to the
+  // plain renderer instead of breaking the game.
+  let composer: EffectComposer | null = null
+  try {
+    composer = new EffectComposer(renderer)
+    composer.addPass(new RenderPass(scene, camera))
+    composer.addPass(
+      new UnrealBloomPass(
+        new THREE.Vector2(container.clientWidth, container.clientHeight),
+        0.55,
+        0.4,
+        0.6,
+      ),
+    )
+    composer.setSize(container.clientWidth, container.clientHeight)
+  } catch {
+    composer = null
+  }
 
   // Drag-to-orbit camera around the creature, so the idles can be
   // inspected from any angle. Wheel zooms, clamped to sane distances.
@@ -620,6 +645,7 @@ export function createScene(container: HTMLElement): SceneHandle {
     dispose() {
       if (creatureGroup) disposeGroup(creatureGroup)
       cancelAnimationFrame(raf)
+      composer?.dispose()
       window.removeEventListener("resize", onResize)
       window.removeEventListener("pointermove", onPointerMove)
       window.removeEventListener("pointerup", onPointerUp)
@@ -1021,7 +1047,9 @@ export function createScene(container: HTMLElement): SceneHandle {
       }
       camera.lookAt(target)
     }
-    renderer.render(scene, camera)
+    // Bloom rides arena fights only - the ranch keeps its clean look.
+    if (cameraMode === "arena" && composer) composer.render()
+    else renderer.render(scene, camera)
     lastFrameT = t
     raf = requestAnimationFrame(tick)
   }
@@ -1034,6 +1062,7 @@ export function createScene(container: HTMLElement): SceneHandle {
     camera.aspect = w / h
     camera.updateProjectionMatrix()
     renderer.setSize(w, h)
+    composer?.setSize(w, h)
   }
   window.addEventListener("resize", onResize)
 
