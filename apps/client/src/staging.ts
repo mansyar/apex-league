@@ -409,6 +409,10 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       cancelAnimationFrame(projectileRaf)
       projectileRaf = null
     }
+    if (burstRaf !== null) {
+      cancelAnimationFrame(burstRaf)
+      burstRaf = null
+    }
     if (flashRaf !== null) {
       cancelAnimationFrame(flashRaf)
       flashRaf = null
@@ -500,6 +504,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       }
     }
     projectiles.length = 0
+    for (const b of bursts) disposeBurst(b)
+    bursts.length = 0
   }
 
   // Scratch vectors hoisted out of the frame loop — the quality gate
@@ -581,6 +587,137 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     stepProjectiles()
     projectileRaf =
       projectiles.length > 0 ? requestAnimationFrame(tickProjectiles) : null
+  }
+
+  // ─── Element bursts ─────────────────────────────────────────────
+  /** One flying fragment of the element burst. */
+  interface BurstParticle {
+    mesh: THREE.Mesh
+    /** World-space velocity, units per second. */
+    vel: THREE.Vector3
+    /** Angular speed around the travel axis, radians per second. */
+    spin: number
+  }
+
+  /**
+   * A live elemental burst: an expanding glow flash plus fragments that
+   * scatter outward, fall under gravity, shrink and fade.
+   */
+  interface Burst {
+    /** Expanding glow shell, removed once its fade completes. */
+    flash: THREE.Mesh | null
+    /** Flying fragments, scattered outward and falling. */
+    particles: BurstParticle[]
+    /** Accumulated burst age (ms), frozen during a hit-stop. */
+    elapsed: number
+    /** Total burst duration (ms). */
+    life: number
+  }
+
+  const bursts: Burst[] = []
+  let burstRaf: number | null = null
+  let lastBurstTick = 0
+
+  const disposeBurst = (burst: Burst): void => {
+    if (burst.flash) {
+      killShotMesh(burst.flash)
+      burst.flash = null
+    }
+    for (const part of burst.particles) {
+      arenaGroup.remove(part.mesh)
+      part.mesh.geometry.dispose()
+      ;(part.mesh.material as THREE.Material).dispose()
+    }
+    burst.particles.length = 0
+  }
+
+  /**
+   * An elemental pop where a blow connects or a shot lands: a growing,
+   * fading glow shell plus fragments that scatter outward and fall.
+   */
+  const spawnBurst = (at: THREE.Vector3, element: string | undefined): void => {
+    if (motionPref === "reduced") return
+    const color = new THREE.Color(elementColor(element))
+    const base = at.clone()
+    base.y += 0.6
+    const flash = new THREE.Mesh(
+      new THREE.SphereGeometry(PROJECTILE_RADIUS * 1.2, 12, 10),
+      new THREE.MeshBasicMaterial({
+        color,
+        transparent: true,
+        opacity: 0.55,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      }),
+    )
+    flash.position.copy(base)
+    arenaGroup.add(flash)
+    const particles: BurstParticle[] = []
+    const count = 6
+    for (let i = 0; i < count; i++) {
+      const mesh = new THREE.Mesh(
+        new THREE.SphereGeometry(PROJECTILE_RADIUS * 0.4, 8, 6),
+        new THREE.MeshBasicMaterial({
+          color,
+          transparent: true,
+          opacity: 0.85,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        }),
+      )
+      mesh.position.copy(base)
+      const angle = (i / count) * Math.PI * 2 + Math.random() * 0.8
+      const speed = 1.4 + Math.random() * 1.2
+      particles.push({
+        mesh,
+        vel: new THREE.Vector3(
+          Math.cos(angle) * speed,
+          0.9 + Math.random() * 1.1,
+          Math.sin(angle) * speed * 0.6,
+        ),
+        spin: (Math.random() - 0.5) * 0.02,
+      })
+      arenaGroup.add(mesh)
+    }
+    bursts.push({ flash, particles, elapsed: 0, life: 520 })
+    if (burstRaf === null) {
+      lastBurstTick = performance.now()
+      burstRaf = requestAnimationFrame(tickBursts)
+    }
+  }
+
+  /** Advance every live burst: flash swells and fades, fragments scatter. */
+  const tickBursts = (): void => {
+    burstRaf = null
+    const now = performance.now()
+    const dtMs =
+      now < hitStopUntil ? 0 : Math.min(100, now - lastBurstTick || 16.7)
+    lastBurstTick = now
+    const dt = dtMs / 1000
+    for (let i = bursts.length - 1; i >= 0; i--) {
+      const burst = bursts[i]!
+      burst.elapsed += dtMs
+      const k = Math.min(1, burst.elapsed / burst.life)
+      if (burst.flash) {
+        const flashMat = burst.flash.material as THREE.MeshBasicMaterial
+        burst.flash.scale.setScalar(1 + k * 2.4)
+        flashMat.opacity = 0.55 * (1 - k)
+      }
+      for (const part of burst.particles) {
+        part.vel.y -= 7 * dt
+        part.mesh.position.addScaledVector(part.vel, dt)
+        part.mesh.rotation.x += part.spin * dtMs
+        part.mesh.rotation.y += part.spin * 0.7 * dtMs
+        part.mesh.scale.setScalar(Math.max(0.05, 1 - k))
+        ;(part.mesh.material as THREE.MeshBasicMaterial).opacity =
+          0.85 * (1 - k)
+      }
+      if (k >= 1) {
+        disposeBurst(burst)
+        bursts.splice(i, 1)
+      }
+    }
+    if (bursts.length > 0) burstRaf = requestAnimationFrame(tickBursts)
   }
 
   /** A glowing core in the element hue plus a tapering additive orb trail. */
@@ -897,6 +1034,10 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         } else {
           reactionAction(step.damage, side.target)
         }
+        // Elemental burst at the strike point for specials (FR5).
+        if (step.element) {
+          spawnBurst(side.target.group.position, step.element)
+        }
         break
       }
       case "down": {
@@ -1131,6 +1272,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       rival = null
       flash = null
       hitStopUntil = 0
+      for (const b of bursts) disposeBurst(b)
+      bursts.length = 0
     },
   }
 }
