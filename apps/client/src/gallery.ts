@@ -8,6 +8,7 @@ import "./base.css"
 import { archetypes, generate } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
+import { disposeObject3D } from "./scene-utils"
 
 const app: HTMLDivElement = (() => {
   const el = document.querySelector<HTMLDivElement>("#app")
@@ -69,17 +70,7 @@ function rebuild() {
   for (const c of creatures) {
     scene.remove(c)
     c.userData.tag?.remove()
-    c.traverse((obj) => {
-      if (obj instanceof THREE.Mesh) {
-        obj.geometry.dispose()
-        const mat = obj.material
-        if (Array.isArray(mat)) {
-          for (const m of mat) m.dispose()
-        } else {
-          mat.dispose()
-        }
-      }
-    })
+    disposeObject3D(c)
   }
   creatures = []
   const base = Number.parseInt(input.value, 10)

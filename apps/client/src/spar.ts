@@ -23,10 +23,18 @@ import {
   unlockedKit,
 } from "@apex/sim"
 import { type BattleHudFighter, createBattleHud } from "./battleHud"
+import {
+  buildKitPicker,
+  buildTacticRow,
+  castFighter,
+  reasonLine,
+  renderSpeedButton,
+  winningSideKey,
+} from "./battleUI"
 import { crestGlyph, elementHue } from "./element"
 import { createPlaybackDriver, type PlaybackRun } from "./playbackDriver"
 import type { FightCasting } from "./staging"
-import { visualSeedOf } from "./staging"
+import { visualSeedOf } from "./staging-seed"
 import { icons } from "./ui/icons"
 import { crest } from "./ui/kit"
 
@@ -102,34 +110,23 @@ function statLine(
 type SparSetup = ReturnType<typeof makeExhibition>
 /** Both fighters as arena casts: species-preserving seeds, ranch-stable. */
 function castingFor(owned: Creature, setup: SparSetup): FightCasting {
-  const ownedSpecies = getSpecies(owned.speciesId)
-  const rivalSpecies = getSpecies(setup.rivalSpeciesId)
-  if (!ownedSpecies || !rivalSpecies) {
-    throw new Error("Unknown species: cannot cast the spar")
-  }
   return {
-    owned: {
-      archetypeId: ownedSpecies.archetypeId,
-      seed: visualSeedOf(owned.stats, owned.stage),
+    owned: castFighter({
+      speciesId: owned.speciesId,
       name: owned.name,
+      seed: visualSeedOf(owned.stats, owned.stage),
       // Mirror matches share a display name; the side key disambiguates.
       key: setup.ownedSide.id ?? owned.name,
-    },
-    rival: {
-      archetypeId: rivalSpecies.archetypeId,
-      seed: visualSeedOf(setup.rival.stats, setup.rival.stage),
+      context: "the spar",
+    }),
+    rival: castFighter({
+      speciesId: setup.rivalSpeciesId,
       name: setup.rival.name,
+      seed: visualSeedOf(setup.rival.stats, setup.rival.stage),
       key: setup.rivalSide.id ?? setup.rival.name,
-    },
+      context: "the spar",
+    }),
   }
-}
-
-/** Lower-third subline: what the fight ended on, in announcer voice. */
-function reasonLine(verdict: Readonly<BattleResult>): string {
-  if (verdict.reason === "time") return "The clock ran out on this one."
-  if (verdict.reason === "double_ko")
-    return "A double down — both went out together."
-  return "A knockout finish."
 }
 
 export function createSpar(
@@ -209,28 +206,22 @@ export function createSpar(
   resetPill.textContent = "Reset kit"
   loadoutRow.append(loadoutLabel, kitStrip, resetPill, kitHint)
 
-  const tactics = document.createElement("div")
-  tactics.className = "spar-tactics"
-  const tacticButtons: Array<{ button: HTMLButtonElement; tactic: Tactic }> = []
-  for (const tactic of ["balanced", "specials"] as const) {
-    const button = document.createElement("button")
-    button.className = "spar-tactic"
-    button.type = "button"
-    const label = document.createElement("span")
-    label.className = "spar-tactic-label"
-    label.textContent = TACTIC_LABELS[tactic]
-    const preview = document.createElement("span")
-    preview.className = "spar-preview"
-    preview.textContent = TACTIC_PREVIEWS[tactic]
-    button.append(label, preview)
-    tactics.append(button)
-    tacticButtons.push({ button, tactic })
-  }
+  const { row: tactics, buttons: tacticButtons } = buildTacticRow({
+    rowClass: "spar-tactics",
+    describe: (tactic) => ({
+      label: TACTIC_LABELS[tactic],
+      preview: TACTIC_PREVIEWS[tactic],
+      labelClass: "spar-tactic-label",
+      previewClass: "spar-preview",
+    }),
+    classes: { base: "spar-tactic" },
+    onPick: (tactic) => runBattle(tactic),
+  })
 
   const fastButton = document.createElement("button")
   fastButton.className = "spar-fast"
   fastButton.type = "button"
-  fastButton.textContent = "Fast-forward"
+  renderSpeedButton(fastButton, "paced")
   fastButton.style.display = "none"
 
   // Reduced-motion pill: replays the finished fight as a text-only stepped
@@ -358,14 +349,7 @@ export function createSpar(
     if (verdict.winner === null) return "A drawn spar"
     const fightNow = fight
     if (!fightNow) return `Victory — ${verdict.winner}`
-    let key: string | null = null
-    let best = -Infinity
-    for (const [side, hp] of Object.entries(verdict.finalHp)) {
-      if (hp > best) {
-        best = hp
-        key = side
-      }
-    }
+    const key = winningSideKey(verdict)
     const mirror = fightNow.owned.name === fightNow.rival.name
     if (key === fightNow.owned.key) {
       return mirror
@@ -416,7 +400,7 @@ export function createSpar(
     // preference (instant dump + finish), and paces the timer chain. The
     // fast-forward pill only belongs to a paced run.
     if (driver.start(fightNow, verdict) === "paced") {
-      fastButton.textContent = "Fast-forward"
+      renderSpeedButton(fastButton, "paced")
       fastButton.style.display = ""
     }
   }
@@ -455,38 +439,30 @@ export function createSpar(
     }
 
     const chosen = creature.loadout ?? defaultLoadout(creature, species)
-    kitStrip.replaceChildren()
-    species.kit.forEach((id, index) => {
-      const name = getMove(id)?.displayName ?? id
-      const required = requiredTierDays(index, creature.stage)
-      const locked = creature.trainingDays < required
-      const chip = document.createElement("button")
-      chip.type = "button"
-      chip.className = locked
-        ? "spar-kit-move spar-kit-locked"
-        : chosen.includes(id)
-          ? "spar-kit-move spar-kit-chosen"
-          : "spar-kit-move"
-      chip.textContent = locked
-        ? `${name} — train ${required - creature.trainingDays} more days`
-        : name
-      chip.disabled = locked
-      if (!locked) {
-        chip.addEventListener("click", () => {
-          const next = chosen.includes(id)
-            ? chosen.filter((m) => m !== id)
-            : [...chosen, id]
-          kitHint.textContent = ""
-          try {
-            handlers.onSetLoadout?.(next)
-          } catch (error) {
-            kitHint.textContent =
-              error instanceof Error ? error.message : "That kit is not allowed"
-          }
-        })
-      }
-      kitStrip.append(chip)
+    const picker = buildKitPicker({
+      species,
+      creature,
+      chosen: () => chosen,
+      classes: {
+        base: "spar-kit-move",
+        locked: "spar-kit-locked",
+        chosen: "spar-kit-chosen",
+      },
+      lockedText: (name, remaining) => `${name} - train ${remaining} more days`,
+      onToggle: (id) => {
+        kitHint.textContent = ""
+        const next = chosen.includes(id)
+          ? chosen.filter((m) => m !== id)
+          : [...chosen, id]
+        try {
+          handlers.onSetLoadout?.(next)
+        } catch (error) {
+          kitHint.textContent =
+            error instanceof Error ? error.message : "That kit is not allowed"
+        }
+      },
     })
+    kitStrip.replaceChildren(picker.fragment)
   }
 
   const open = (creature: Creature | null): void => {
@@ -530,14 +506,12 @@ export function createSpar(
     overlay.style.display = ""
   }
 
-  for (const { button, tactic } of tacticButtons) {
-    button.addEventListener("click", () => runBattle(tactic))
-  }
   close.addEventListener("click", () => {
     driver.stop()
     overlay.style.display = "none"
     battleHud.hide()
     sparButton.style.display = ""
+    sparButton.focus()
     handlers.onClose?.()
   })
   panelClose.addEventListener("click", () => {
@@ -547,6 +521,7 @@ export function createSpar(
     overlay.style.display = "none"
     battleHud.hide()
     sparButton.style.display = ""
+    sparButton.focus()
     handlers.onClose?.()
   })
   sparButton.addEventListener("click", () => open(owned))
@@ -569,10 +544,10 @@ export function createSpar(
 
   fastButton.addEventListener("click", () => {
     const next = driver.speedToggle()
-    fastButton.textContent = next === "fast" ? "Normal speed" : "Fast-forward"
+    renderSpeedButton(fastButton, next)
   })
   replayButton.addEventListener("click", () => {
-    fastButton.textContent = "Fast-forward"
+    renderSpeedButton(fastButton, "paced")
     driver.replay()
   })
 

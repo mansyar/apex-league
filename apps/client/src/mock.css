@@ -7,9 +7,13 @@
  * here deliberately mirror the production surface files (ranch.css,
  * starter.css) because the mock page is a standalone harness that does
  * not import them - keep the two in sync when cluster layout changes.
+ *
+ * Every selector is scoped under the mock page root (`body.mock` in
+ * mock.html) so the file can never restyle a production class even if
+ * it is ever co-loaded with the app stylesheets.
  */
 
-body {
+body.mock {
   max-width: 1040px;
   margin: 0 auto;
   padding: 32px 20px 80px;
@@ -19,14 +23,14 @@ body {
   line-height: 1.5;
 }
 
-h1 {
+.mock h1 {
   margin: 10px 0 8px;
   font-size: 28px;
   font-weight: 800;
   letter-spacing: 0.02em;
 }
 
-h2 {
+.mock h2 {
   margin: 44px 0 16px;
   font-size: 15px;
   font-weight: 800;
@@ -34,7 +38,7 @@ h2 {
   text-transform: uppercase;
 }
 
-p {
+.mock p {
   margin: 0 0 14px;
   max-width: 62ch;
   color: var(--ink-dim);
@@ -45,11 +49,11 @@ p {
 /* Header chrome                                                       */
 /* ------------------------------------------------------------------ */
 
-.mock-header {
+.mock .mock-header {
   margin-bottom: 28px;
 }
 
-.mock-tag {
+.mock .mock-tag {
   display: inline-block;
   padding: 5px 12px 6px;
   background: var(--accent);
@@ -60,7 +64,7 @@ p {
   clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
 }
 
-.mock-toggle {
+.mock .mock-toggle {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -70,7 +74,7 @@ p {
   user-select: none;
 }
 
-.mock-toggle input {
+.mock .mock-toggle input {
   accent-color: var(--accent);
 }
 
@@ -78,7 +82,7 @@ p {
 /* Ranch stage                                                         */
 /* ------------------------------------------------------------------ */
 
-.stage {
+.mock .stage {
   position: relative;
   height: 620px;
   overflow: hidden;
@@ -88,7 +92,7 @@ p {
   border: 1px solid var(--kit-keyline);
 }
 
-.stage-scene {
+.mock .stage-scene {
   position: absolute;
   inset: 0;
   background: linear-gradient(
@@ -99,7 +103,7 @@ p {
   );
 }
 
-.stage-sun {
+.mock .stage-sun {
   position: absolute;
   bottom: 30%;
   left: 50%;
@@ -114,7 +118,7 @@ p {
   );
 }
 
-.stage-ground {
+.mock .stage-ground {
   position: absolute;
   inset: auto 0 0 0;
   height: 34%;
@@ -122,7 +126,7 @@ p {
 }
 
 /* Motion chip — top-left, out of the gameplay path. */
-.hud-motion {
+.mock .hud-motion {
   position: absolute;
   top: 18px;
   left: 18px;
@@ -130,7 +134,7 @@ p {
 }
 
 /* Score bug — top-center broadcast furniture. */
-.score-bug {
+.mock .score-bug {
   position: absolute;
   top: 18px;
   left: 50%;
@@ -168,14 +172,14 @@ p {
   }
 }
 
-.score-day {
+.mock .score-day {
   display: flex;
   align-items: baseline;
   gap: 7px;
 }
 
-.score-day-label,
-.score-ap-label {
+.mock .score-day-label,
+.mock .score-ap-label {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.24em;
@@ -183,49 +187,49 @@ p {
   color: var(--ink-dim);
 }
 
-.score-ap-label {
+.mock .score-ap-label {
   color: var(--accent);
 }
 
-.score-day-num {
+.mock .score-day-num {
   font-size: 30px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 
-.score-divider {
+.mock .score-divider {
   width: 1px;
   height: 22px;
   background: var(--kit-keyline);
 }
 
-.score-ap {
+.mock .score-ap {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.score-trophy {
+.mock .score-trophy {
   display: flex;
   align-items: center;
   gap: 6px;
   color: var(--accent);
 }
 
-.score-trophy svg {
+.mock .score-trophy svg {
   width: 17px;
   height: 17px;
 }
 
-.score-trophy-count {
+.mock .score-trophy-count {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
 }
 
 /* Creature lower-third — bottom-left. */
-.creature-plate {
+.mock .creature-plate {
   position: absolute;
   bottom: 18px;
   left: 18px;
@@ -235,41 +239,41 @@ p {
   animation: settle-up 0.55s var(--kit-settle) 0.08s both;
 }
 
-.creature-head {
+.mock .creature-head {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 10px;
 }
 
-.creature-id {
+.mock .creature-id {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.creature-name {
+.mock .creature-name {
   font-size: 19px;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
-.stat-row {
+.mock .stat-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 6px;
   margin-bottom: 10px;
 }
 
-.stat-cell {
+.mock .stat-cell {
   padding: 6px 4px 7px;
   background: rgb(255 236 200 / 0.04);
   border: 1px solid var(--kit-keyline);
   text-align: center;
 }
 
-.stat-label {
+.mock .stat-label {
   display: block;
   font-size: 9px;
   font-weight: 700;
@@ -277,14 +281,14 @@ p {
   color: var(--ink-dim);
 }
 
-.stat-total {
+.mock .stat-total {
   display: block;
   font-size: 17px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
-.stat-chip {
+.mock .stat-chip {
   display: inline-block;
   padding: 1px 5px 2px;
   background: var(--accent);
@@ -294,7 +298,7 @@ p {
   clip-path: polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
 }
 
-.condition-list {
+.mock .condition-list {
   display: flex;
   flex-direction: column;
   gap: 7px;
@@ -302,7 +306,7 @@ p {
 }
 
 /* Command dock — bottom-right. */
-.command-dock {
+.mock .command-dock {
   position: absolute;
   bottom: 18px;
   right: 18px;
@@ -312,38 +316,38 @@ p {
   animation: settle-up 0.55s var(--kit-settle) 0.16s both;
 }
 
-.dock-row {
+.mock .dock-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
   margin-bottom: 8px;
 }
 
-.dock-row .kit-button {
+.mock .dock-row .kit-button {
   justify-items: start;
 }
 
-.dock-row .kit-button .kit-button-name {
+.mock .dock-row .kit-button .kit-button-name {
   font-size: 12px;
 }
 
-.dock-train {
+.mock .dock-train {
   margin-bottom: 8px;
 }
 
-.dock-train .kit-button {
+.mock .dock-train .kit-button {
   width: 100%;
   grid-template-columns: auto 1fr auto auto;
   grid-template-areas: "glyph name cost tag";
   gap: 8px;
 }
 
-.train-picker {
+.mock .train-picker {
   margin-bottom: 10px;
   border-top: 1px solid var(--kit-keyline);
 }
 
-.train-entry {
+.mock .train-entry {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -352,30 +356,30 @@ p {
   border-bottom: 1px solid var(--kit-keyline);
 }
 
-.train-entry-name {
+.mock .train-entry-name {
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.train-note {
+.mock .train-note {
   font-size: 11px;
   color: var(--ink-dim);
 }
 
-.train-entry.is-focus .train-note {
+.mock .train-entry.is-focus .train-note {
   color: var(--accent);
   font-weight: 600;
 }
 
-.train-entry.is-capped .train-note {
+.mock .train-entry.is-capped .train-note {
   font-style: italic;
   color: rgb(184 173 156 / 0.65);
 }
 
 /* Chip family — top-right. */
-.hud-chips {
+.mock .hud-chips {
   position: absolute;
   top: 18px;
   right: 18px;
@@ -384,21 +388,21 @@ p {
   animation: settle-down 0.5s var(--kit-settle) 0.24s both;
 }
 
-.spar-text {
+.mock .spar-text {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   line-height: 1.15;
 }
 
-.spar-title {
+.mock .spar-title {
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.spar-sub {
+.mock .spar-sub {
   font-size: 9px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -409,59 +413,59 @@ p {
 /* Kit showcase                                                        */
 /* ------------------------------------------------------------------ */
 
-.show-grid {
+.mock .show-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 12px;
 }
 
-.show-item {
+.mock .show-item {
   margin: 0;
   padding: 14px;
   background: rgb(255 236 200 / 0.03);
   border: 1px solid var(--kit-keyline);
 }
 
-.show-row {
+.mock .show-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
 }
 
-.show-row.is-tall {
+.mock .show-row.is-tall {
   flex-direction: column;
   align-items: stretch;
 }
 
-.show-item figcaption {
+.mock .show-item figcaption {
   margin-top: 10px;
   font-size: 11px;
   color: var(--ink-dim);
 }
 
-.show-plates {
+.mock .show-plates {
   display: flex;
   gap: 10px;
 }
 
-.show-plate {
+.mock .show-plate {
   padding: 10px 14px 11px;
   font-size: 12px;
 }
 
-.shape-row .kit-button {
+.mock .shape-row .kit-button {
   min-width: 64px;
   justify-items: center;
 }
 
-.show-crests {
+.mock .show-crests {
   flex-direction: row;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.show-stamps {
+.mock .show-stamps {
   gap: 10px;
 }
 
@@ -469,7 +473,7 @@ p {
 /* Starter treatment                                                   */
 /* ------------------------------------------------------------------ */
 
-.starter-dome {
+.mock .starter-dome {
   position: relative;
   overflow: hidden;
   padding: 42px 38px 46px;
@@ -481,7 +485,7 @@ p {
   text-align: center;
 }
 
-.starter-head {
+.mock .starter-head {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -489,20 +493,20 @@ p {
   margin-bottom: 22px;
 }
 
-.starter-title {
+.mock .starter-title {
   font-size: 22px;
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
-.starter-cards {
+.mock .starter-cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
 }
 
-.starter-card {
+.mock .starter-card {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -527,19 +531,19 @@ p {
     background 0.2s;
 }
 
-.starter-card:hover {
+.mock .starter-card:hover {
   transform: translateY(-2px);
   background: rgb(255 236 200 / 0.09);
 }
 
-.starter-name {
+.mock .starter-name {
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
-.starter-flavor {
+.mock .starter-flavor {
   font-size: 11px;
   color: var(--ink-dim);
 }
@@ -548,22 +552,22 @@ p {
 /* Motion notes                                                        */
 /* ------------------------------------------------------------------ */
 
-.notes {
+.mock .notes {
   max-width: 720px;
 }
 
-.notes ul {
+.mock .notes ul {
   padding-left: 18px;
   margin: 0;
 }
 
-.notes li {
+.mock .notes li {
   margin: 8px 0;
   font-size: 13px;
   line-height: 1.55;
 }
 
-.notes strong {
+.mock .notes strong {
   color: var(--accent);
   font-weight: 700;
 }
