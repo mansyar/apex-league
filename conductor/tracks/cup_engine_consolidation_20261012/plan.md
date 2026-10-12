@@ -34,12 +34,12 @@ cannot silently change outcomes), then delete, then refactor the client last
 
 ## Phase 3 - Client bracket model extraction
 
-- [ ] Task: Bracket-model tests (red) — failing tests for the pure model:
+- [x] Task: Bracket-model tests (red) — failing tests for the pure model:
       strict match-order slot filling, verdict display state,
       placement/results rows, forfeit early-exit, promotion-aware row, and
       topology-agnostic round/slot derivation (prove with synthetic 4- and
-      16-entrant brackets).
-- [ ] Task: Extract `bracket-model.ts` — implement the model from
+      16-entrant brackets). [red confirmed: module absent]
+- [~] Task: Extract `bracket-model.ts` — implement the model from
       `createCup`'s DOM factory; rewire client `cup.ts` to consume it; green
       tests; no visual diff.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
