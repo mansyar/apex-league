@@ -617,6 +617,26 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     elapsed: number
     /** Total burst duration (ms). */
     life: number
+    /** How far the glow shell swells over the burst (scale units). */
+    flashGrow: number
+    /** Downward pull on the fragments, units per second squared. */
+    gravity: number
+  }
+
+  /** Tunables for one burst - element styles share the same machine. */
+  interface BurstStyle {
+    /** Fragment count. */
+    puffs?: number
+    /** Scatter on a flat horizontal ring instead of a random sphere. */
+    ring?: boolean
+    /** Downward pull, units per second squared (default 7). */
+    gravity?: number
+    /** Burst duration in ms (default 520). */
+    life?: number
+    /** How far the glow shell swells (default 2.4). */
+    flashGrow?: number
+    /** Radius multiplier for flash and fragments (default 1). */
+    size?: number
   }
 
   const bursts: Burst[] = []
@@ -639,14 +659,21 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   /**
    * An elemental pop where a blow connects or a shot lands: a growing,
    * fading glow shell plus fragments that scatter outward and fall.
+   * Style presets give each tier-3 special its own kind of bloom.
    */
-  const spawnBurst = (at: THREE.Vector3, element: string | undefined): void => {
+  const spawnBurst = (
+    at: THREE.Vector3,
+    element: string | undefined,
+    style: BurstStyle = {},
+  ): void => {
     if (motionPref === "reduced") return
     const color = new THREE.Color(elementColor(element))
+    const size = style.size ?? 1
+    const puffs = style.puffs ?? 6
     const base = at.clone()
     base.y += 0.6
     const flash = new THREE.Mesh(
-      new THREE.SphereGeometry(PROJECTILE_RADIUS * 1.2, 12, 10),
+      new THREE.SphereGeometry(PROJECTILE_RADIUS * 1.2 * size, 12, 10),
       new THREE.MeshBasicMaterial({
         color,
         transparent: true,
@@ -658,10 +685,9 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     flash.position.copy(base)
     arenaGroup.add(flash)
     const particles: BurstParticle[] = []
-    const count = 6
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < puffs; i++) {
       const mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(PROJECTILE_RADIUS * 0.4, 8, 6),
+        new THREE.SphereGeometry(PROJECTILE_RADIUS * 0.4 * size, 8, 6),
         new THREE.MeshBasicMaterial({
           color,
           transparent: true,
@@ -671,20 +697,27 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         }),
       )
       mesh.position.copy(base)
-      const angle = (i / count) * Math.PI * 2 + Math.random() * 0.8
-      const speed = 1.4 + Math.random() * 1.2
+      const angle = (i / puffs) * Math.PI * 2 + Math.random() * 0.8
+      const speed = (style.ring ? 1.1 : 1.4) + Math.random() * 1.2
       particles.push({
         mesh,
         vel: new THREE.Vector3(
           Math.cos(angle) * speed,
-          0.9 + Math.random() * 1.1,
-          Math.sin(angle) * speed * 0.6,
+          style.ring ? 0.15 + Math.random() * 0.25 : 0.9 + Math.random() * 1.1,
+          Math.sin(angle) * speed * (style.ring ? 1 : 0.6),
         ),
         spin: (Math.random() - 0.5) * 0.02,
       })
       arenaGroup.add(mesh)
     }
-    bursts.push({ flash, particles, elapsed: 0, life: 520 })
+    bursts.push({
+      flash,
+      particles,
+      elapsed: 0,
+      life: style.life ?? 520,
+      flashGrow: style.flashGrow ?? 2.4,
+      gravity: style.gravity ?? 7,
+    })
     if (burstRaf === null) {
       lastBurstTick = performance.now()
       burstRaf = requestAnimationFrame(tickBursts)
@@ -706,11 +739,11 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       const k = Math.min(1, burst.elapsed / burst.life)
       if (burst.flash) {
         const flashMat = burst.flash.material as THREE.MeshBasicMaterial
-        burst.flash.scale.setScalar(1 + k * 2.4)
+        burst.flash.scale.setScalar(1 + k * burst.flashGrow)
         flashMat.opacity = 0.55 * (1 - k)
       }
       for (const part of burst.particles) {
-        part.vel.y -= 7 * dt
+        part.vel.y -= burst.gravity * dt
         part.mesh.position.addScaledVector(part.vel, dt)
         part.mesh.rotation.x += part.spin * dtMs
         part.mesh.rotation.y += part.spin * 0.7 * dtMs
@@ -1153,19 +1186,24 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         if (step.element) {
           const pointBlank = prevStepKind !== "projectile"
           const at = side.target.group.position
-          if (step.moveId === "spore_burst" && pointBlank) {
-            // The fan lands as one wide triple pop.
-            for (const dz of [-0.45, 0, 0.45]) {
-              const p = at.clone()
-              p.z += dz
-              spawnBurst(p, step.element)
-            }
+          // Spore Burst blooms as a wide, lingering cloud - its kind of
+          // hit, not just its count, both from the fan's arrival and
+          // point-blank.
+          if (step.moveId === "spore_burst") {
+            spawnBurst(at.clone(), step.element, {
+              puffs: 10,
+              ring: true,
+              gravity: 1.2,
+              life: 900,
+              flashGrow: 3.4,
+              size: 1.4,
+            })
           } else if (step.moveId === "foam_volley" && pointBlank) {
             // Three rapid pops strung across the lane.
             for (const dz of [-0.3, 0, 0.3]) {
               const p = at.clone()
               p.z += dz
-              spawnBurst(p, step.element)
+              spawnBurst(p, step.element, { size: 0.8, life: 380 })
             }
             impulse(side.target, -0.4)
           } else {
@@ -1180,14 +1218,21 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
               step.moveId === "spore_burst" ||
               step.moveId === "foam_volley"
             if (bespoke) {
-              // Quick unleash recoil on the attacker - nothing flew, so
-              // the body still answers the shot.
+              // Spore answers with a full-body spin release; the others
+              // with a recoil. Nothing flew, so the body still speaks.
               const shooter = side.actor
+              const spin = step.moveId === "spore_burst"
               actionRaf = startAction(
                 (t, ao) => {
-                  const w = clamp01(t / 0.6)
-                  ao.lean.pitch = 0.12 * Math.sin(w * Math.PI)
-                  ao.offset.x = -ao.away * (0.16 - 0.36 * Math.sin(w * Math.PI))
+                  const w = clamp01(t / (spin ? 0.8 : 0.6))
+                  if (spin) {
+                    ao.lean.roll = 0.35 * Math.sin(w * Math.PI * 2)
+                    ao.offset.y = 0.05 * Math.sin(w * Math.PI)
+                  } else {
+                    ao.lean.pitch = 0.12 * Math.sin(w * Math.PI)
+                    ao.offset.x =
+                      -ao.away * (0.16 - 0.36 * Math.sin(w * Math.PI))
+                  }
                 },
                 shooter,
                 side.target,
