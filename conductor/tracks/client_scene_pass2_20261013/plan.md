@@ -15,7 +15,7 @@ consume, then the mock/CSS polish.
 
 ## Phase 1 — Foundations & Small Cleanups
 
-- [ ] Task: Consolidate reduced-motion resolution
+- [x] Task: Consolidate reduced-motion resolution <!-- f1aa595 -->
   - [ ] Add `resolveMotionPref(pref)` to `apps/client/src/motion.ts`
         (pref ?? hardened OS fallback, single implementation)
   - [ ] Write failing unit tests for `resolveMotionPref` (explicit pref,
