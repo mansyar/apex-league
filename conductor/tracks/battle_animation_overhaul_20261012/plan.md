@@ -25,11 +25,11 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
         1-action-window lock; edges (KO blow, final tick, no double-stagger)
   - [x] Green: implement in resolver/clock; update golden stream tests
         deliberately
-- [ ] **Task: Sim range-shifting knockback** *(TDD)*
-  - [ ] Red: failing tests — knockback shifts far/near state, closing
-        costs tempo, edge cases (knockback at range boundary — decide and
-        test)
-  - [ ] Green: implement; golden tests updated
+- [x] **Task: Sim range-shifting knockback** *(TDD)* (2019295)
+  - [x] Red: failing tests — knockback shifts far/near state, closing
+        costs tempo, edge cases (knockback at range boundary — decided:
+        silent no-op; separation is mutual)
+  - [x] Green: implement; golden tests updated
 - [ ] **Task: Finishing-move preference in policy** *(TDD)* — prefer the
         most cinematic lethal special; policy test updated
 - [ ] **Task: Rebalance pass** — seed-batch simulations across
