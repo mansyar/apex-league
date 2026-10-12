@@ -58,5 +58,5 @@ verification for DOM/scene tasks, phase checkpoints with git notes.
 
 ## Phase: Review Fixes
 
-- [~] Task: Apply review suggestions (migrate.ts comment correction, modal
-      dialog a11y + focus trap, reset try/finally, --danger token)
+- [x] Task: Apply review suggestions (migrate.ts comment correction, modal
+      dialog a11y + focus trap, reset try/finally, --danger token) `[f777813]`
