@@ -12,14 +12,12 @@
  */
 
 import {
-  ACTION_POINTS_PER_DAY,
   type BattleResult,
+  BRACKET_SLOTS,
   type Creature,
-  CUP_REWARDS,
   type CupSession,
   type CupSlot,
   completeCup,
-  cupPlacement,
   defaultLoadout,
   effectiveStats,
   endCup,
@@ -37,6 +35,15 @@ import {
   type Tactic,
 } from "@apex/sim"
 import { createBattleHud } from "./battleHud"
+import {
+  type BracketMatch,
+  bracketPlan,
+  buildBracketModel,
+  cupPlacement,
+  exitStage,
+  ordinalOf,
+  resultRows,
+} from "./bracket-model"
 import { crestGlyph, elementHue } from "./element"
 import { prefersReducedMotionOs } from "./motion"
 import { createPlaybackDriver, type PlaybackFight } from "./playbackDriver"
@@ -76,25 +83,8 @@ export interface Cup {
 }
 
 /** The strict reveal plan, in true tournament order. */
-type MatchId = "qf1" | "qf2" | "qf3" | "qf4" | "sf1" | "sf2" | "f1"
-
-const PLAN: ReadonlyArray<{ id: MatchId; label: string }> = [
-  { id: "qf1", label: "Quarterfinal" },
-  { id: "qf2", label: "Quarterfinal" },
-  { id: "qf3", label: "Quarterfinal" },
-  { id: "qf4", label: "Quarterfinal" },
-  { id: "sf1", label: "Semifinal" },
-  { id: "sf2", label: "Semifinal" },
-  { id: "f1", label: "Final" },
-]
-
-/** Column of a match id, for the bracket grid + clip-path language. */
-const columnOf = (id: MatchId): "qf" | "sf" | "f" =>
-  id === "qf1" || id === "qf2" || id === "qf3" || id === "qf4"
-    ? "qf"
-    : id === "sf1" || id === "sf2"
-      ? "sf"
-      : "f"
+/** Display id of a bracket match ("qf1".."f1"), derived by the model. */
+type MatchId = string
 
 /** Pacing beats for the bracket walk (ms). */
 const WALK_SETTLE = 600
@@ -190,6 +180,8 @@ export function createCup(
     el: HTMLElement
     ribbon: HTMLElement
     slots: { a: HTMLElement; b: HTMLElement }
+    /** Grid column the card lives in (for the column-head reveal states). */
+    column: "qf" | "sf" | "f"
   }
   const cards = new Map<MatchId, MatchCard>()
   const colHeadEls: Record<"qf" | "sf" | "f", HTMLElement> = {
@@ -202,8 +194,10 @@ export function createCup(
     sf: cols.sf.querySelector(".cup-matches") as HTMLElement,
     f: cols.f.querySelector(".cup-matches") as HTMLElement,
   }
-  for (const entry of PLAN) {
-    const col = columnOf(entry.id)
+  // The card plan is pure topology (bracket-model): ids, columns, labels —
+  // no session needed to build the board.
+  for (const entry of bracketPlan(BRACKET_SLOTS)) {
+    const col = entry.column
     const el = document.createElement("div")
     el.className = `cup-match m-${entry.id}`
     el.dataset.match = entry.id
@@ -216,7 +210,12 @@ export function createCup(
     slotB.className = "cup-slot slot-b"
     el.append(ribbon, slotA, slotB)
     matchBoxes[col].append(el)
-    cards.set(entry.id, { el, ribbon, slots: { a: slotA, b: slotB } })
+    cards.set(entry.id, {
+      el,
+      ribbon,
+      slots: { a: slotA, b: slotB },
+      column: entry.column,
+    })
   }
 
   const champ = document.createElement("div")
@@ -390,7 +389,7 @@ export function createCup(
   let ladderBefore: GameState["ladder"] | null = null
   /** The cup is consumed (endCup applied) — set at the first coach commit. */
   let committed = false
-  /** Reveal cursor into PLAN. */
+  /** Reveal cursor into the bracket's walk order. */
   let cursor = 0
   let timer: ReturnType<typeof setTimeout> | null = null
   let inBattle = false
@@ -431,92 +430,29 @@ export function createCup(
   }
 
   // ------------------------------------------------------------------
-  // Session views: verdicts, winners, match slots
+  // Session views: verdicts, winners, match slots — all derived by the
+  // pure bracket model (bracket-model.ts), never from list positions.
   // ------------------------------------------------------------------
   const playerName = (): string => session?.bracket.slots[0]?.name ?? ""
 
-  const verdictOf = (id: MatchId): RoundVerdict | null => {
-    if (!session) return null
-    const pv = session.playerVerdicts
-    const rv = session.rivalVerdicts
-    const cv = session.completionVerdicts
-    switch (id) {
-      case "qf1":
-        return pv[0] ?? null
-      case "qf2":
-        return rv[0] ?? null
-      case "qf3":
-        return rv[1] ?? null
-      case "qf4":
-        return rv[2] ?? null
-      case "sf1":
-        if (pv[1]) return pv[1]
-        // Eliminated (or forfeited) in the QF: SF1 is a completion match.
-        return pv.length === 1 ? (cv[0] ?? null) : null
-      case "sf2":
-        return rv[3] ?? null
-      case "f1":
-        if (pv[2]) return pv[2]
-        if (session.status !== "player-turn") {
-          const last = cv[cv.length - 1]
-          return last ?? null
-        }
-        return null
-    }
-  }
+  const matchOf = (id: MatchId): BracketMatch | null =>
+    session
+      ? (buildBracketModel(session).find((m) => m.id === id) ?? null)
+      : null
+
+  const verdictOf = (id: MatchId): RoundVerdict | null =>
+    matchOf(id)?.verdict ?? null
 
   /** Is this match the player's own fight (given the current session)? */
-  const isPlayerMatch = (id: MatchId): boolean => {
-    if (!session) return false
-    const me = playerName()
-    if (id === "qf1") return true
-    if (id === "sf1") {
-      const qf1 = session.playerVerdicts[0]
-      return qf1 !== undefined && qf1.winner === me
-    }
-    if (id === "f1") {
-      const sf1 = verdictOf("sf1")
-      return sf1 !== null && sf1.winner === me
-    }
-    return false
-  }
+  const isPlayerMatch = (id: MatchId): boolean =>
+    matchOf(id)?.isPlayerMatch ?? false
 
   const winnerNameOf = (id: MatchId): string | null =>
     verdictOf(id)?.winner ?? null
 
-  const slotOf = (name: string | null): CupSlot | null => {
-    if (!session || name === null) return null
-    return session.bracket.slots.find((s) => s.name === name) ?? null
-  }
-
   const slotsOf = (id: MatchId): { a: CupSlot | null; b: CupSlot | null } => {
-    if (!session) return { a: null, b: null }
-    const s = session.bracket.slots
-    switch (id) {
-      case "qf1":
-        return { a: s[0] ?? null, b: s[1] ?? null }
-      case "qf2":
-        return { a: s[2] ?? null, b: s[3] ?? null }
-      case "qf3":
-        return { a: s[4] ?? null, b: s[5] ?? null }
-      case "qf4":
-        return { a: s[6] ?? null, b: s[7] ?? null }
-      case "sf1":
-        return {
-          a: slotOf(winnerNameOf("qf1")),
-          b: slotOf(winnerNameOf("qf2")),
-        }
-      case "sf2":
-        return {
-          a: slotOf(winnerNameOf("qf3")),
-          b: slotOf(winnerNameOf("qf4")),
-        }
-      case "f1":
-        return {
-          a: slotOf(winnerNameOf("sf1")),
-          b: slotOf(winnerNameOf("sf2")),
-        }
-    }
+    const match = matchOf(id)
+    return { a: match?.a ?? null, b: match?.b ?? null }
   }
 
   // ------------------------------------------------------------------
@@ -601,7 +537,7 @@ export function createCup(
   const walk = (): void => {
     clearTimer()
     ctaHide()
-    const entry = PLAN[cursor]
+    const entry = session ? buildBracketModel(session)[cursor] : undefined
     if (!entry) {
       conclude()
       return
@@ -610,7 +546,7 @@ export function createCup(
     if (!card) return
     renderMatch(entry.id)
     card.el.classList.add("in")
-    colHeadEls[columnOf(entry.id)].classList.add("in")
+    colHeadEls[entry.column].classList.add("in")
 
     const v = verdictOf(entry.id)
     if (isPlayerMatch(entry.id) && !v) {
@@ -663,48 +599,12 @@ export function createCup(
       : session.championName
         ? `${session.championName} takes the Bronze Cup.`
         : "The cup ends without a champion."
-    resultPlateTab.textContent =
-      placement === 1
-        ? "1st"
-        : `${placement}${placement === 2 ? "nd" : placement === 3 ? "rd" : "th"}`
+    resultPlateTab.textContent = ordinalOf(placement)
     resultPlateLine.textContent = won
       ? `${playerName()} · unbeaten through three rounds`
-      : `${playerName()} · out in the ${
-          placement === 2
-            ? "final"
-            : placement === 3
-              ? "semifinal"
-              : "quarterfinal"
-        }`
+      : `${playerName()} · out in the ${exitStage(placement)}`
     resultRewards.replaceChildren()
-    let ladderRow: string
-    if (ladderBefore === null) {
-      // Resumed walk without a snapshot: report the standing as-is.
-      ladderRow = `Ladder: Bronze ${state.ladder.subTier} · ${state.ladder.points} pts`
-    } else {
-      // A forfeit zeroes the run's points (bronze ladder): say so plainly
-      // instead of the neutral "unchanged".
-      const lastVerdict = session.playerVerdicts.at(-1)
-      const forfeited = lastVerdict !== undefined && lastVerdict.battle === null
-      const earned = state.ladder.points - ladderBefore.points
-      ladderRow =
-        earned > 0
-          ? state.ladder.subTier !== ladderBefore.subTier
-            ? `Ladder +${earned} — promoted to Bronze ${state.ladder.subTier}`
-            : `Ladder +${earned} · Bronze ${state.ladder.subTier}`
-          : forfeited
-            ? "Forfeit — no ladder points"
-            : "Ladder unchanged"
-    }
-    const rows = won
-      ? [
-          `+1 action point tomorrow (${ACTION_POINTS_PER_DAY + 1} total)`,
-          `Bond +${CUP_REWARDS.bond}`,
-          `Mood +${CUP_REWARDS.mood}`,
-          "🏆 Cup won",
-          ladderRow,
-        ]
-      : [`Consolation: mood +${CUP_REWARDS.consolations.mood}`, ladderRow]
+    const rows = resultRows(session, state.ladder, ladderBefore)
     rows.forEach((text, i) => {
       const row = document.createElement("div")
       row.className = "cup-reward-row"
@@ -904,7 +804,7 @@ export function createCup(
     const cs = getSpecies(creature.speciesId)
     const rs = getSpecies(opponent.speciesId)
     if (!cs || !rs) throw new Error("Unknown species: cannot open the coach")
-    const entry = PLAN.find((p) => p.id === pendingId)
+    const entry = matchOf(pendingId)
     if (!entry) return
     coachTab.textContent = `${entry.label} · ready`
     picks = {
@@ -1102,13 +1002,11 @@ export function createCup(
     battleHud.hide()
     champ.classList.remove("crowned")
     champName.textContent = "—"
-    for (const entry of PLAN) {
-      const card = cards.get(entry.id)
-      if (!card) continue
-      card.el.className = `cup-match m-${entry.id}`
+    for (const [id, card] of cards) {
+      card.el.className = `cup-match m-${id}`
       card.slots.a.replaceChildren()
       card.slots.b.replaceChildren()
-      colHeadEls[columnOf(entry.id)].classList.remove("in")
+      colHeadEls[card.column].classList.remove("in")
     }
     ctaHide()
     giveup.style.display = "none"
@@ -1176,11 +1074,9 @@ export function createCup(
     champ.classList.remove("crowned")
     champName.textContent = "—"
     // Reset the board, then start the strict-order reveal.
-    for (const entry of PLAN) {
-      const card = cards.get(entry.id)
-      if (!card) continue
-      card.el.className = `cup-match m-${entry.id}`
-      colHeadEls[columnOf(entry.id)].classList.remove("in")
+    for (const [id, card] of cards) {
+      card.el.className = `cup-match m-${id}`
+      colHeadEls[card.column].classList.remove("in")
     }
     showScreen("bracket")
     overlay.style.display = ""

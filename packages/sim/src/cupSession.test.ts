@@ -16,7 +16,6 @@ import {
   prepareCup,
   type RoundVerdict,
   resolveBattle,
-  resolveCup,
   resolvePlayerMatch,
   type Tactic,
 } from "./index"
@@ -121,22 +120,6 @@ describe("prepareCup — the live cup session (design locked, pre-resolution)", 
     )
   })
 
-  test("rival battles are byte-identical with the legacy one-sitting resolver", () => {
-    // The per-pairing seed formula and side assembly are unchanged, so the
-    // pre-resolved verdicts must equal the legacy resolveCup verdicts at
-    // the same bracket positions — the live flow is a reorganization of
-    // the same tournament, not a re-roll of it.
-    const s = cupDayState()
-    const session = prepareCup(s)
-    if (!session || !s.creature) throw new Error("session did not resolve")
-    const legacy = resolveCup(session.bracket, s.creature)
-    const legacyRound1 = legacy.rounds[0]?.verdicts ?? []
-    expect(session.rivalVerdicts[0]).toEqual(legacyRound1[1])
-    expect(session.rivalVerdicts[1]).toEqual(legacyRound1[2])
-    expect(session.rivalVerdicts[2]).toEqual(legacyRound1[3])
-    expect(session.rivalVerdicts[3]).toEqual(legacy.rounds[1]?.verdicts[1])
-  })
-
   test("returns null without a creature (illegal entry)", () => {
     expect(prepareCup(createInitialState())).toBeNull()
   })
@@ -155,18 +138,6 @@ describe("resolvePlayerMatch — the live player branch", () => {
     const winner = r.verdict.winner
     if (!winner) throw new Error("no winner in the live QF1")
     expect([picks.creature.name, r.verdict.slotB]).toContain(winner)
-  })
-
-  test("with default picks the live battle equals the legacy one-sitting QF1", () => {
-    const s = cupDayState()
-    const session = prepareCup(s)
-    if (!session || !s.creature) throw new Error("session did not resolve")
-    const picks = defaultPicks(s)
-    const r = resolvePlayerMatch(session, picks.loadout, picks.tactic)
-    const legacy = resolveCup(session.bracket, s.creature)
-    const legacyQf1 = legacy.rounds[0]?.verdicts[0]
-    if (!legacyQf1) throw new Error("legacy cup has no QF1 verdict")
-    expect(r.verdict).toEqual(legacyQf1)
   })
 
   test("a win advances to the next round against the pre-resolved winner", () => {
@@ -387,15 +358,6 @@ describe("completeCup / forfeitCup / finalizeCup — the cup's end", () => {
     if (sf2Winner === undefined) throw new Error("missing SF2 winner")
     expect(done.championName).toBe(sf2Winner)
     expect(done.championName).not.toBe(s.creature?.name)
-  })
-
-  test("completion battles equal the legacy one-sitting resolver's", () => {
-    const { s, session } = eliminatedAt(1)
-    const creature = s.creature as Creature
-    const done = completeCup(session)
-    const legacy = resolveCup(session.bracket, creature)
-    expect(done.completionVerdicts[0]).toEqual(legacy.rounds[1]?.verdicts[0])
-    expect(done.completionVerdicts[1]).toEqual(legacy.rounds[2]?.verdicts[0])
   })
 
   test("completeCup rejects a live session (the player is still in it)", () => {

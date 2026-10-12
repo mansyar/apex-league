@@ -108,6 +108,16 @@
   pass, element particles, hit decals, big-hit vignette); the style is a
   saved v9 setting with live mid-battle switching, auto-pinned to broadcast
   under reduced motion.*
+-   *2026-10-12: cup engine consolidated (track
+  `cup_engine_consolidation_20261012`) — the legacy one-sitting path
+  (`enterCup`, `resolveCup`, `runRound`, `playerSide`, `CupResult`/
+  `CupRoundResult`) is deleted; the live session path
+  (`prepareCup`/`resolvePlayerMatch`/`completeCup`/`forfeitCup`/
+  `finalizeCup`) is the sole resolver and `resolvePairing` is
+  rival-vs-rival only. Contract goldens (`cup-contracts.test.ts`) now pin
+  the draw stream, seed formula, placement table and double-KO tiebreak;
+  the temporary parity bridge was removed after proving byte-identical
+  behavior. Net −520 LOC; save schema unchanged (no migration).*
 
 ## Server
 - **Framework**: ElysiaJS on Bun (endpoints: save sync, leaderboard, ghost

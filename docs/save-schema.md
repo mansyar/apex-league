@@ -20,7 +20,7 @@ interface SaveData {
 | Field | Type | Meaning |
 |---|---|---|
 | `day` | integer ≥ 1 | Current in-game day (1-based). |
-| `phase` | `"day" \| "cup"` | Cup phase is granted by the ticker on cup days; `enterCup` returns the game to the day phase. |
+| `phase` | `"day" \| "cup"` | Cup phase is granted by the ticker on cup days; `finalizeCup` returns the game to the day phase. |
 | `actionPoints` | integer ≥ 0 | AP left today (max from `ACTION_POINTS_PER_DAY` + cup-win bonus). |
 | `creature` | `Creature \| null` | The partner; null until a starter is chosen. |
 | `settings` | `{ reducedMotion: boolean, seenHints: string[], arenaCamera: "cinematic" \| "broadcast" }` | In-app motion preference (v5+); dismissed onboarding hint ids (v7+); arena camera style for the battle presentation (v9+, default `"cinematic"`). |
