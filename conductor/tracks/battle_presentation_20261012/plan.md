@@ -29,10 +29,10 @@ phase checkpoints).
   - [x] Move `MOVE_FX`, `SHOT_LOOKS`, `elementColor` + `MoveFx`/`ShotSpec`/`ShotLook` types; zero imports from the driver; update importers — also carried BurstStyle/Posture and the CONTACT_T/PROJECTILE_LIFE_MS/PROJECTILE_ARC constants (data shared by tables + flight interpreter); staging.ts imports from `./move-fx`
 - [x] Task: Extract `staging-seed.ts` — 418d72e
   - [x] Move `visualSeedOf`; update main/spar/cup imports; keep `staging-seed.test.ts` green (path updates only)
-- [ ] Task: Extract `staging-fx.ts` with consolidated `EffectLoop` (TDD for the loop core)
-  - [ ] Write failing tests for the `HitStop` object (trigger below/above threshold, dt=0 during freeze, dt clamp + 16.7 fallback) and the EffectLoop idle/stopped contract (fake RAF/timers, no real timers per workflow)
-  - [ ] Implement `staging-fx.ts`: flash, projectiles, bursts, decals, charge orb behind one `step(dt)`/alive contract; single RAF; `HitStop` owned by the loop
-  - [ ] Migrate the action clock and drive loop to consume the shared `HitStop` (semantics unchanged: action clock re-queues without advancing)
+- [x] Task: Extract `staging-fx.ts` with consolidated `EffectLoop` (TDD for the loop core) — commit e265467
+  - [x] Write failing tests for the `HitStop` object (trigger below/above threshold, dt=0 during freeze, dt clamp + 16.7 fallback) and the EffectLoop idle/stopped contract (fake RAF/timers, no real timers per workflow)
+  - [x] Implement `staging-fx.ts`: flash, projectiles, bursts, decals, charge orb behind one `step(dt)`/alive contract; single RAF; `HitStop` owned by the loop
+  - [x] Migrate the action clock and drive loop to consume the shared `HitStop` (semantics unchanged: action clock re-queues without advancing)
 - [ ] Task: Slim `staging.ts` to driver + `runStep` + cast/clear builders
   - [ ] Verify public `Staging` interface unchanged; all call sites untouched
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
