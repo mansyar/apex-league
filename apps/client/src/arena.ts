@@ -1,6 +1,7 @@
 import { makeRng } from "@apex/voxel"
 import * as THREE from "three"
 import { RANCH_SKY } from "./scene"
+import { disposeObject3D } from "./scene-utils"
 
 /**
  * Broadcast arena environment: a neutral show floor (no moss, no golden
@@ -219,17 +220,7 @@ export function buildArena(scene: THREE.Scene): ArenaHandle {
     },
     dispose() {
       handle.setBlend(0)
-      group.traverse((obj) => {
-        if (obj instanceof THREE.Mesh) {
-          obj.geometry.dispose()
-          const mat = obj.material
-          if (Array.isArray(mat)) {
-            for (const m of mat) m.dispose()
-          } else {
-            mat.dispose()
-          }
-        }
-      })
+      disposeObject3D(group)
       scene.remove(group)
     },
   }

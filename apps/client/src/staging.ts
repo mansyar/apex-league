@@ -26,6 +26,7 @@ import {
 import { buildCreatureGroup } from "./creature"
 import type { DirectorContext, DirectorStep } from "./director"
 import { elementHue } from "./element"
+import { disposeObject3D } from "./scene-utils"
 
 /**
  * Creature staging for the broadcast arena: two living fighters on the
@@ -628,15 +629,10 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   const shotPos = new THREE.Vector3()
   const segPos = new THREE.Vector3()
 
-  /** Free a shot's meshes — cores may be Groups (fire/plant flavors). */
+  /** Free a shot's meshes - cores may be Groups (fire/plant flavors). */
   const killShotMesh = (mesh: THREE.Object3D): void => {
+    disposeObject3D(mesh)
     arenaGroup.remove(mesh)
-    mesh.traverse((o) => {
-      if (o instanceof THREE.Mesh) {
-        o.geometry.dispose()
-        ;(o.material as THREE.Material).dispose()
-      }
-    })
   }
 
   const stepProjectiles = (): void => {
@@ -1884,14 +1880,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       // Drop the previous cast before building the new one.
       const disposeOld = (c: Combatant | null): void => {
         if (!c) return
-        c.group.traverse((obj) => {
-          if (obj instanceof THREE.Mesh) {
-            obj.geometry.dispose()
-            const mat = obj.material
-            if (Array.isArray(mat)) for (const m of mat) m.dispose()
-            else mat.dispose()
-          }
-        })
+        disposeObject3D(c.group)
         arenaGroup.remove(c.group)
       }
       disposeOld(owned)
@@ -2011,14 +2000,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       }
       for (const c of [owned, rival]) {
         if (!c) continue
-        c.group.traverse((obj) => {
-          if (obj instanceof THREE.Mesh) {
-            obj.geometry.dispose()
-            const mat = obj.material
-            if (Array.isArray(mat)) for (const m of mat) m.dispose()
-            else mat.dispose()
-          }
-        })
+        disposeObject3D(c.group)
         arenaGroup.remove(c.group)
       }
       owned = null
