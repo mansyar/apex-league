@@ -19,14 +19,17 @@
  * judgment are discarded.
  *
  * Stagger semantics (battle-animation-overhaul spec FR2): a hit dealing
- * >= STAGGER_DAMAGE_FRACTION of the victim's max HP, or any
- * super-effective hit, staggers a standing victim. The victim's next
- * action window is consumed reeling (a `stagger` event, gauge spent, no
+ * >= STAGGER_DAMAGE_FRACTION of the victim's max HP — or a
+ * super-effective hit that also clears STAGGER_SE_FRACTION — staggers a
+ * standing victim. The victim's next action window is consumed reeling (a `stagger` event, gauge spent, no
  * action planned); cooldowns do not step during it. Downing blows never
- * stagger and the lock never stacks. The same heavy blow also knocks
+ * stagger and the lock never stacks, and a fighter cannot be staggered
+ * again until STAGGER_GRACE_TICKS have passed since the trigger (the
+ * recovered fighter always gets to act). The same heavy blow also knocks
  * both fighters apart when the victim was in melee range (a `knockback`
  * event, both ranges to far) — re-engaging costs each side a closing
- * action; against an already-far victim it is a silent no-op.
+ * action; the separation is not grace-gated; against an already-far
+ * victim it is a silent no-op.
  */
 
 import type { CreatureStats, Element } from "../creature"
@@ -63,9 +66,23 @@ export type Range = "far" | "near"
 /**
  * Stagger threshold (battle-animation-overhaul spec FR2, tunable): a
  * single hit dealing at least this fraction of the victim's max HP
- * staggers it. Super-effective hits stagger at any size (see `staggers`).
+ * staggers it, whatever the type chart says.
  */
-export const STAGGER_DAMAGE_FRACTION = 0.25
+export const STAGGER_DAMAGE_FRACTION = 0.35
+
+/**
+ * Super-effective stagger floor (FR2, tunable): a super-effective hit
+ * must ALSO deal at least this fraction of the victim's max HP to
+ * stagger — a light type-chart chip no longer locks a fighter.
+ */
+export const STAGGER_SE_FRACTION = 0.15
+
+/**
+ * Stagger grace (FR2, tunable): ticks that must pass after a stagger
+ * trigger before the same fighter can be staggered again. Kills the
+ * chain-lock death spiral: a recovered fighter always gets to act.
+ */
+export const STAGGER_GRACE_TICKS = 3
 
 /** A fighter mid-fight: snapshot plus live hp, range, gauge, and cooldowns. */
 export interface ClockFighter {
@@ -160,6 +177,8 @@ interface RunFighter {
   readonly id?: string
   readonly element: Element
   readonly stats: CreatureStats
+  /** Tick of the last stagger trigger; grace counts from here. */
+  lastStaggerTick: number
   hp: number
   range: Range
   gauge: number
@@ -251,6 +270,7 @@ export function createClock(
     gauge: f.gauge,
     cooldowns: new Map(Object.entries(f.cooldowns)),
     staggered: f.staggered,
+    lastStaggerTick: Number.NEGATIVE_INFINITY,
   }))
   const tieIndex = new Map(tieOrder.map((key, i) => [key, i]))
   const rng: Rng = makeRng(seed >>> 0)
@@ -318,19 +338,30 @@ export function createClock(
       hpAfter: hpAfter(),
       line: `${move.displayName} hits ${target.name} for ${damage}.`,
     })
-    // A heavy or super-effective hit staggers a standing victim (FR2):
-    // its next action window is consumed reeling. A downing blow never
-    // staggers, and re-staggering an already-staggered victim is a no-op
-    // (one lock, never stacked). A heavy blow against a NEAR victim also
-    // knocks BOTH fighters apart (range-shifting knockback): re-engaging
-    // costs each side a closing action. A far victim has nothing to
-    // shift — the knockback is a silent no-op.
+    // A heavy hit staggers a standing victim (FR2): heavy means the
+    // damage crosses the fraction floor, or a super-effective blow that
+    // also clears its own (lighter) floor. The victim's next action
+    // window is consumed reeling. A downing blow never staggers, an
+    // already-staggered victim never re-locks (one lock, never stacked),
+    // and the grace window keeps a freshly recovered fighter acting.
+    // A heavy blow against a NEAR victim also knocks BOTH fighters apart
+    // (range-shifting knockback): re-engaging costs each side a closing
+    // action, and the separation itself is NOT grace-gated — spacing
+    // stays dynamic even when the reel is suppressed. A far victim has
+    // nothing to shift — the knockback is a silent no-op.
     const heavy =
       target.hp > 0 &&
       (damage >= target.stats.hp * STAGGER_DAMAGE_FRACTION ||
-        type.num > type.den)
+        (type.num > type.den &&
+          damage >= target.stats.hp * STAGGER_SE_FRACTION))
     if (heavy) {
-      target.staggered = true
+      if (
+        !target.staggered &&
+        tick - target.lastStaggerTick >= STAGGER_GRACE_TICKS
+      ) {
+        target.staggered = true
+        target.lastStaggerTick = tick
+      }
       if (target.range === "near") {
         target.range = "far"
         shooter.range = "far"
@@ -480,12 +511,18 @@ export function createClock(
             })
             // The typeless basic can only stagger by sheer size (FR2);
             // the same heavy blow knocks both fighters apart when the
-            // victim was in melee range.
+            // victim was in melee range. Grace applies identically.
             const heavy =
               opponent.hp > 0 &&
               damage >= opponent.stats.hp * STAGGER_DAMAGE_FRACTION
             if (heavy) {
-              opponent.staggered = true
+              if (
+                !opponent.staggered &&
+                tick - opponent.lastStaggerTick >= STAGGER_GRACE_TICKS
+              ) {
+                opponent.staggered = true
+                opponent.lastStaggerTick = tick
+              }
               if (opponent.range === "near") {
                 opponent.range = "far"
                 actor.range = "far"

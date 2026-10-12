@@ -236,11 +236,12 @@ describe("stagger on heavy blows", () => {
   })
 
   test("a big neutral hit staggers on the damage fraction alone", () => {
-    // atk 30: basic deals floor(4*30/10) = 12 of 40 (30%) — heavy while
-    // type-neutral. The victim must still lose its next window.
+    // atk 36: basic deals floor(4*36/10) = 14 of 40 (35%) — exactly at
+    // the heavy fraction while type-neutral. The victim must still lose
+    // its next window.
     const clock = clockOf(
       [
-        snap("Bolt", "fire", stats(13, 30, 10, 40)),
+        snap("Bolt", "fire", stats(13, 36, 10, 40)),
         snap("Reed", "plant", stats(5, 11, 10, 40)),
       ],
       7,
@@ -252,9 +253,10 @@ describe("stagger on heavy blows", () => {
     expect(stagger.tick).toBe(3)
   })
 
-  test("a small super-effective hit staggers regardless of size", () => {
+  test("a light super-effective chip does not stagger", () => {
     // atk 4: Spark deals floor(6*4*2/10) = 4 of 40 (10%) — under the
-    // fraction, but super-effective blows always stagger.
+    // 15% super-effective floor, so no stagger even though the type
+    // chart favors the blow.
     const clock = clockOf(
       [
         snap("Bolt", "fire", stats(13, 4, 10, 40)),
@@ -268,7 +270,7 @@ describe("stagger on heavy blows", () => {
       4,
     )
     expect(events.some((e) => e.kind === "stagger" && e.actor === "Reed")).toBe(
-      true,
+      false,
     )
   })
 
@@ -294,22 +296,23 @@ describe("stagger on heavy blows", () => {
   })
 
   test("an already-staggered victim does not stack a second lock", () => {
-    // atk 30: the basic deals floor(4*30/10) = 12 (30%) — heavy, and two
-    // of them (40 HP victim) stay non-lethal. t2 basic staggers AND
-    // knocks both apart; t3 Reed staggers through its window; t3 Bolt
-    // re-closes (mutual separation), t4 his second heavy basic re-sets
-    // the flag — Reed still loses exactly ONE window per hit (t3, t5),
-    // never two from a single blow.
+    // atk 36: the basic deals floor(4*36/10) = 14 (35%) — heavy, and two
+    // of them (40 HP victim) stay non-lethal. The blows are spaced past
+    // the grace window (triggers t2 and t5) so each is allowed to lock:
+    // t2 basic staggers AND knocks both apart; t3 Reed staggers through
+    // its window; t3 Bolt re-closes (mutual separation), t5 his second
+    // heavy basic re-sets the flag — Reed still loses exactly ONE window
+    // per stagger (t3, t5), never two from a single blow.
     const clock = clockOf(
       [
-        snap("Bolt", "fire", stats(13, 30, 10, 40)),
+        snap("Bolt", "fire", stats(13, 36, 10, 40)),
         snap("Reed", "plant", stats(5, 11, 10, 40)),
       ],
       7,
     )
     const events = drive(
       clock,
-      scripted({ Bolt: [CLOSE, BASIC, CLOSE, BASIC] }),
+      scripted({ Bolt: [CLOSE, BASIC, HOLD, CLOSE, BASIC] }),
       8,
     )
     const staggers = events.filter((e) => e.kind === "stagger")
@@ -344,6 +347,38 @@ describe("stagger on heavy blows", () => {
     expect(staggered.cooldowns.seed_shot).toBe(1)
     clock.advance(plan) // t3: Reed acts again — the cooldown steps
     expect(clock.fighters[1]?.cooldowns.seed_shot).toBe(0)
+  })
+
+  test("a recovered fighter is immune to re-staggering for 3 ticks", () => {
+    // Bolt spd 13 acts every tick; Reed spd 5 hp 40. Two sparks from far
+    // land at t2 and t4 — both heavy (SE 6 of 40 = 15%, at the floor).
+    // The t2 blow staggers (Reed's window consumed at t3), but the t4
+    // blow lands inside the 3-tick grace measured from the t2 trigger,
+    // so Reed keeps acting: exactly one stagger event, and Reed plans
+    // real actions again afterward.
+    const clock = clockOf(
+      [
+        snap("Bolt", "fire", stats(13, 5, 10, 40)),
+        snap("Reed", "plant", stats(5, 11, 10, 40)),
+      ],
+      7,
+    )
+    const events = drive(
+      clock,
+      scripted({
+        Bolt: [
+          { kind: "special", moveId: "spark" },
+          HOLD,
+          { kind: "special", moveId: "spark" },
+        ],
+      }),
+      5,
+    )
+    const staggers = events.filter((e) => e.kind === "stagger")
+    expect(staggers.map((e) => e.tick)).toEqual([3])
+    // Reed is acting normally again after the single lock.
+    const holds = events.filter((e) => e.kind === "hold" && e.actor === "Reed")
+    expect(holds.length).toBeGreaterThan(0)
   })
 })
 
@@ -394,12 +429,12 @@ describe("range-shifting knockback", () => {
   }
 
   test("a heavy melee blow knocks both fighters apart", () => {
-    // Bolt atk 30: the basic deals 12 of 40 (30%) — heavy. t1 close,
+    // Bolt atk 36: the basic deals 14 of 40 (35%) — heavy. t1 close,
     // t2 heavy basic at near: both ranges must read far and a knockback
     // event names the victim.
     const clock = clockOf(
       [
-        snap("Bolt", "fire", stats(13, 30, 10, 40)),
+        snap("Bolt", "fire", stats(13, 36, 10, 40)),
         snap("Reed", "plant", stats(5, 11, 10, 40)),
       ],
       7,
@@ -421,7 +456,7 @@ describe("range-shifting knockback", () => {
     // again, can Reed's basic land — the tempo cost is real.
     const clock = clockOf(
       [
-        snap("Bolt", "fire", stats(13, 30, 10, 40)),
+        snap("Bolt", "fire", stats(13, 36, 10, 40)),
         snap("Reed", "plant", stats(5, 11, 10, 40)),
       ],
       7,
