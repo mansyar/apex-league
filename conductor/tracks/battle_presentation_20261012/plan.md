@@ -8,10 +8,10 @@ phase checkpoints).
 
 ## Phase 1 — Foundations: utilities & shared battle UI (logic-bearing)
 
-- [ ] Task: `disposeObject3D` utility (TDD)
-  - [ ] Write failing tests for `scene-utils.ts::disposeObject3D` (Mesh vs Group traversal, array vs single material, geometry+material disposed)
-  - [ ] Implement; make tests pass
-  - [ ] Replace the 6 traversal copies in `scene.ts` (×2), `arena.ts`, `staging.ts` (×3)
+- [x] Task: `disposeObject3D` utility (TDD) — 8e96168
+  - [x] Write failing tests for `scene-utils.ts::disposeObject3D` (Mesh vs Group traversal, array vs single material, geometry+material disposed)
+  - [x] Implement; make tests pass
+  - [x] Replace the traversal copies in `scene.ts` (×2), `arena.ts`, `gallery.ts`, `staging.ts` (×3) — 7 sites total (gallery.ts found during implementation)
 - [ ] Task: `battleUI.ts` pure helpers (TDD)
   - [ ] Write failing tests for `reasonLine` (ko / double_ko / forfeit / time endings), verdict-stamp title selection (winner-side scan incl. mirror-match), kit-picker lock rule (tier gating, min-2 toggle), tactic-row selection contract
   - [ ] Implement helpers as pure functions taking data/callbacks (no DOM in tests)
