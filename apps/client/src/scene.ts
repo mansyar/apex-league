@@ -11,7 +11,7 @@ import { RenderPass } from "three/addons/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js"
 import { buildCreatureGroup } from "./creature"
 import type { CameraIntent } from "./director"
-import { prefersReducedMotionOs } from "./motion"
+import { resolveMotionPref } from "./motion"
 import { buildPropGroup } from "./prop"
 import {
   BABY_SCALE,
@@ -381,7 +381,6 @@ export function createScene(container: HTMLElement): SceneHandle {
   ground.name = "ranch-ground"
 
   // Honor reduced motion: keep the gentle breath, drop the bounce.
-  const osReducedMotion = prefersReducedMotionOs()
   /** Save v5 pref wins when set; null defers to the OS media query. */
   let motionReduced: boolean | null = null
   /**
@@ -389,7 +388,7 @@ export function createScene(container: HTMLElement): SceneHandle {
    * machines below capture it at creation and are rebuilt on a flip, so
    * every consumer reads a current value.
    */
-  let reducedMotion = osReducedMotion
+  let reducedMotion = resolveMotionPref(motionReduced)
 
   let creatureGroup: THREE.Group | null = null
   /** Rig part refs cached at setCreature time (avoids per-frame lookups). */
@@ -615,7 +614,7 @@ export function createScene(container: HTMLElement): SceneHandle {
     },
     setMotionReduced(v) {
       motionReduced = v
-      const next = motionReduced ?? osReducedMotion
+      const next = resolveMotionPref(motionReduced)
       if (next === reducedMotion) return
       reducedMotion = next
       shakeAmp = 0

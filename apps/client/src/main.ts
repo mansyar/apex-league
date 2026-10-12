@@ -20,7 +20,7 @@ import { buildArena } from "./arena"
 import { createCup } from "./cup"
 import { nextShot } from "./director"
 import { corruptSaveNotice, createHud } from "./hud"
-import { prefersReducedMotionOs } from "./motion"
+import { resolveMotionPref } from "./motion"
 import { createScene } from "./scene"
 import { createSpar } from "./spar"
 import { createStaging, type FightCasting } from "./staging"
@@ -176,7 +176,7 @@ let vignetteFade: number | null = null
 const flashVignette = (strength: number): void => {
   // Both the saved preference and the OS query gate the flash - the CSS
   // media query alone cannot (the opacity is driven inline).
-  if (store.get().settings.reducedMotion || prefersReducedMotionOs()) return
+  if (resolveMotionPref(store.get().settings.reducedMotion)) return
   // Fast flash in, slow ease back out - the two-phase transition swap.
   vignette.style.transition = "opacity 60ms ease-out"
   vignette.style.opacity = String(Math.min(0.85, strength * 9))

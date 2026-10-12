@@ -13,7 +13,7 @@ import {
   buildPlaybackScript,
 } from "@apex/sim"
 import type { BattleHudFighter } from "./battleHud"
-import { prefersReducedMotionOs } from "./motion"
+import { resolveMotionPref } from "./motion"
 import {
   PLAYBACK_SPEED_MS,
   type PlaybackSpeed,
@@ -135,7 +135,7 @@ export function createPlaybackDriver(
   // Reduced motion = the saved in-app setting, or the hardened OS query
   // (see motion.ts for the double-report hardening and window guard).
   const reducedMotion = (): boolean =>
-    handlers.motionPref?.() === true || prefersReducedMotionOs()
+    resolveMotionPref(handlers.motionPref?.())
 
   // True while the current run sits in the KO slow-motion beat.
   let dilated = false

@@ -54,7 +54,7 @@ import {
   resultRows,
 } from "./bracket-model"
 import { crestGlyph, elementHue } from "./element"
-import { prefersReducedMotionOs } from "./motion"
+import { resolveMotionPref } from "./motion"
 import { createPlaybackDriver, type PlaybackFight } from "./playbackDriver"
 import type { FightCasting } from "./staging"
 import { visualSeedOf } from "./staging-seed"
@@ -432,7 +432,7 @@ export function createCup(
   }
 
   const reducedMotion = (): boolean =>
-    state?.settings.reducedMotion === true || prefersReducedMotionOs()
+    resolveMotionPref(state?.settings.reducedMotion)
 
   const beat = (ms: number): number => (reducedMotion() ? 0 : ms)
 
@@ -470,9 +470,6 @@ export function createCup(
   /** Is this match the player's own fight (given the current session)? */
   const isPlayerMatch = (id: MatchId): boolean =>
     matchOf(id)?.isPlayerMatch ?? false
-
-  const winnerNameOf = (id: MatchId): string | null =>
-    verdictOf(id)?.winner ?? null
 
   const slotsOf = (id: MatchId): { a: CupSlot | null; b: CupSlot | null } => {
     const match = matchOf(id)
@@ -891,7 +888,7 @@ export function createCup(
         chosen: () => chosen,
         classes: { base: "cup-pick", locked: "locked", chosen: "on" },
         // Locked kit slots stay mysterious until trained (cup UX).
-        lockedText: (name) => name + " ??",
+        lockedText: (name) => `${name} ??`,
         onToggle: (id) => {
           if (!picks) return
           const next = toggleKitChoice(picks.loadout, id, 2, 4)

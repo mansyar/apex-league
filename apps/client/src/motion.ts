@@ -33,3 +33,17 @@ export function prefersReducedMotionOs(): boolean {
     !window.matchMedia("(prefers-reduced-motion: no-preference)").matches
   )
 }
+
+/**
+ * Resolve the effective reduced-motion flag from an in-app preference.
+ *
+ * The single implementation of the "saved-reduced OR OS-reduced" contract
+ * every consumer used to re-implement: an explicit `true` forces reduced
+ * motion; an explicit `false` or an unset preference (`null`/`undefined`)
+ * defers to the hardened OS read (`prefersReducedMotionOs`). In a headless
+ * environment (no `window`) the OS read is always false, so only an
+ * explicit `true` reduces.
+ */
+export function resolveMotionPref(pref?: boolean | null): boolean {
+  return pref === true || prefersReducedMotionOs()
+}
