@@ -92,4 +92,14 @@ describe("enterCup — the cup-day action", () => {
       expect(c.conditions.mood).toBe(Math.min(100, beforeMood + 15))
     }
   })
+
+  test("the placement banks its ladder points (bronze ladder)", () => {
+    let s = advanceDay(ownedState())
+    while (s.day < 7) s = advanceDay(s)
+    const r = enterCup(s)
+    if (!r.ok || !r.cup) throw new Error("cup did not resolve")
+    const byPlacement = { 1: 3, 2: 2, 3: 1, 4: 0 } as const
+    expect(r.state.ladder.points).toBe(byPlacement[r.cup.playerPlacement])
+    expect(r.state.ladder.subTier).toBe("III")
+  })
 })

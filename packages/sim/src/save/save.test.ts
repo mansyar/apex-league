@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test"
 
 import { createCreature } from "../creature"
 import { type CupSession, resolvePlayerMatch } from "../cup"
+import { applyCupPlacement } from "../ladder"
 import { defaultLoadout } from "../loadout"
 import { prepareCup } from "../machine"
 import { getSpecies, type SpeciesDef } from "../species"
@@ -27,8 +28,8 @@ import {
 } from "./storage"
 
 describe("save schema", () => {
-  test("current version is 7", () => {
-    expect(SAVE_VERSION).toBe(7)
+  test("current version matches the schema", () => {
+    expect(SAVE_VERSION).toBe(8)
   })
 
   test("serializeSave wraps state with version metadata", () => {
@@ -40,7 +41,7 @@ describe("save schema", () => {
     }
     const json = serializeSave(data)
     const parsed = JSON.parse(json) as SaveData
-    expect(parsed.version).toBe(7)
+    expect(parsed.version).toBe(SAVE_VERSION)
     expect(parsed.state.day).toBe(1)
     expect(parsed.savedAt).toBe(1000)
   })
@@ -51,7 +52,7 @@ describe("migration chain", () => {
     // v0 predates the versioned schema: flat shape, no phase/AP.
     const v0 = { version: 0, day: 7 }
     const migrated = migrate(v0)
-    expect(migrated.version).toBe(7)
+    expect(migrated.version).toBe(SAVE_VERSION)
     expect(migrated.state.day).toBe(7)
     expect(migrated.state.phase).toBe("cup")
     expect(migrated.state.cupsWon).toBe(0)
@@ -72,7 +73,7 @@ describe("migration chain", () => {
       savedAt: 1234,
     }
     const migrated = migrate(v1)
-    expect(migrated.version).toBe(7)
+    expect(migrated.version).toBe(SAVE_VERSION)
     expect(migrated.savedAt).toBe(1234)
     expect(migrated.state.day).toBe(4)
     expect(migrated.state.actionPoints).toBe(2)
@@ -130,7 +131,7 @@ describe("migration chain", () => {
       savedAt: 99,
     }
     const migrated = migrate(v2)
-    expect(migrated.version).toBe(7)
+    expect(migrated.version).toBe(SAVE_VERSION)
     expect(migrated.savedAt).toBe(99)
     expect(migrated.state.day).toBe(5)
     expect(migrated.state.actionPoints).toBe(2)
@@ -151,7 +152,7 @@ describe("migration chain", () => {
       state: { day: 2, phase: "day", actionPoints: 3 },
       savedAt: 0,
     })
-    expect(migrated.version).toBe(7)
+    expect(migrated.version).toBe(SAVE_VERSION)
     expect(migrated.state.creature?.trained).toEqual({
       hp: 0,
       atk: 0,
@@ -181,7 +182,7 @@ describe("migration chain", () => {
       savedAt: 321,
     }
     const migrated = migrate(v3)
-    expect(migrated.version).toBe(7)
+    expect(migrated.version).toBe(SAVE_VERSION)
     expect(migrated.savedAt).toBe(321)
     expect(migrated.state.day).toBe(9)
     expect(migrated.state.creature?.fedToday).toBe(false)
@@ -553,7 +554,7 @@ describe("evolution stage (v6)", () => {
       savedAt: 321,
     }
     const migrated = migrate(v5)
-    expect(migrated.version).toBe(7)
+    expect(migrated.version).toBe(SAVE_VERSION)
     expect(migrated.savedAt).toBe(321)
     expect(migrated.state.day).toBe(8)
     expect(migrated.state.creature?.sickCooldown).toBe(0)
@@ -569,7 +570,7 @@ describe("evolution stage (v6)", () => {
       state: { day: 2, phase: "day", actionPoints: 3 },
       savedAt: 0,
     })
-    expect(migrated.version).toBe(7)
+    expect(migrated.version).toBe(SAVE_VERSION)
     expect(migrated.state.creature?.sickCooldown).toBe(0)
   })
 
@@ -640,22 +641,22 @@ describe("evolution stage (v6)", () => {
 })
 
 describe("save v7 — cup session, rename, hints", () => {
-  test("current version is 7", () => {
-    expect(SAVE_VERSION).toBe(7)
+  test("current version matches the schema", () => {
+    expect(SAVE_VERSION).toBe(8)
   })
 
-  test("a v6 save migrates to v7: null session + a clean hint ledger", () => {
+  test("a v6 save migrates cleanly: null session + a clean hint ledger", () => {
     const state = chooseStarter(createInitialState(), "fire_drake", 42)
     const migrated = migrate({ version: 6, state, savedAt: 321 })
-    expect(migrated.version).toBe(7)
+    expect(migrated.version).toBe(SAVE_VERSION)
     expect(migrated.savedAt).toBe(321)
     expect(migrated.session).toBeNull()
     expect(migrated.state.settings.seenHints).toEqual([])
   })
 
-  test("a chain-migrated save (v0 to v7) carries the v7 defaults too", () => {
+  test("a chain-migrated save carries the v7 defaults too", () => {
     const migrated = migrate({ version: 0, day: 7 })
-    expect(migrated.version).toBe(7)
+    expect(migrated.version).toBe(SAVE_VERSION)
     expect(migrated.session).toBeNull()
     expect(migrated.state.settings.seenHints).toEqual([])
   })
@@ -853,5 +854,93 @@ describe("clearSave + hint ledger (v7)", () => {
     saveGame(adapter, withHints, 900)
     const loaded = loadSave(adapter)
     expect(loaded?.state.settings.seenHints).toEqual(["ap-basics", "cup-eve"])
+  })
+})
+
+describe("save v8 — the ladder (bronze ladder)", () => {
+  /** A genuine v7-shaped payload: today's state minus the ladder slice. */
+  function v7Payload(): Record<string, unknown> {
+    const state = structuredClone(createInitialState()) as unknown as Record<
+      string,
+      unknown
+    >
+    delete state.ladder
+    return { version: 7, state, session: null, savedAt: 99 }
+  }
+
+  test("a v7 save migrates to v8 with a fresh ladder (no backfill)", () => {
+    const migrated = migrate(v7Payload())
+    expect(migrated.version).toBe(8)
+    expect(migrated.state.ladder).toEqual({ points: 0, subTier: "III" })
+  })
+
+  test("the migrated v8 save loads and plays a cup into the ladder", () => {
+    const adapter = createMemoryAdapter()
+    adapter.setItem(SAVE_KEY, JSON.stringify(v7Payload()))
+    const state = loadGame(adapter)
+    if (!state) throw new Error("the migrated v7 save failed to load")
+    const laddered = applyCupPlacement(state, 1, false)
+    expect(laddered.state.ladder).toEqual({ points: 3, subTier: "III" })
+  })
+
+  test("saveGame then loadGame round-trips ladder points", () => {
+    const adapter = createMemoryAdapter()
+    const laddered = applyCupPlacement(createInitialState(), 1, false).state
+    const climbed = applyCupPlacement(laddered, 1, false).state // 6 → Bronze II
+    expect(saveGame(adapter, climbed, 123)).toBe(true)
+    const loaded = loadGame(adapter)
+    expect(loaded?.ladder).toEqual({ points: 6, subTier: "II" })
+  })
+
+  test("loadGame rejects a ladder with a negative point total", () => {
+    const adapter = createMemoryAdapter()
+    saveGame(adapter, createInitialState(), 1)
+    const raw = JSON.parse(adapter.getItem(SAVE_KEY) as string) as Record<
+      string,
+      unknown
+    >
+    const state = raw.state as Record<string, unknown>
+    state.ladder = { points: -1, subTier: "III" }
+    adapter.setItem(SAVE_KEY, JSON.stringify(raw))
+    expect(loadGame(adapter)).toBeNull()
+  })
+
+  test("loadGame rejects a ladder with a non-integer point total", () => {
+    const adapter = createMemoryAdapter()
+    saveGame(adapter, createInitialState(), 1)
+    const raw = JSON.parse(adapter.getItem(SAVE_KEY) as string) as Record<
+      string,
+      unknown
+    >
+    const state = raw.state as Record<string, unknown>
+    state.ladder = { points: 2.5, subTier: "II" }
+    adapter.setItem(SAVE_KEY, JSON.stringify(raw))
+    expect(loadGame(adapter)).toBeNull()
+  })
+
+  test("loadGame rejects a ladder with an unknown sub-tier", () => {
+    const adapter = createMemoryAdapter()
+    saveGame(adapter, createInitialState(), 1)
+    const raw = JSON.parse(adapter.getItem(SAVE_KEY) as string) as Record<
+      string,
+      unknown
+    >
+    const state = raw.state as Record<string, unknown>
+    state.ladder = { points: 6, subTier: "IV" }
+    adapter.setItem(SAVE_KEY, JSON.stringify(raw))
+    expect(loadGame(adapter)).toBeNull()
+  })
+
+  test("loadGame rejects a save whose ladder slice is missing entirely", () => {
+    const adapter = createMemoryAdapter()
+    saveGame(adapter, createInitialState(), 1)
+    const raw = JSON.parse(adapter.getItem(SAVE_KEY) as string) as Record<
+      string,
+      unknown
+    >
+    const state = raw.state as Record<string, unknown>
+    delete state.ladder
+    adapter.setItem(SAVE_KEY, JSON.stringify(raw))
+    expect(loadGame(adapter)).toBeNull()
   })
 })

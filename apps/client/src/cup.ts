@@ -386,6 +386,9 @@ export function createCup(
   // ------------------------------------------------------------------
   let state: GameState | null = null
   let session: CupSession | null = options?.restoredSession ?? null
+  // Ladder snapshot at cup entry (save v8): the results screen diffs the
+  // post-finalize standing against it to report what the run earned.
+  let ladderBefore: GameState["ladder"] | null = null
   /** The cup is consumed (endCup applied) — set at the first coach commit. */
   let committed = false
   /** Reveal cursor into PLAN. */
@@ -649,7 +652,7 @@ export function createCup(
   // Results screen
   // ------------------------------------------------------------------
   const showResults = (): void => {
-    if (!session) return
+    if (!session || !state) return
     const placement = cupPlacement(session)
     // The title follows the session's status, not the placement: a drawn
     // final (double-KO) crowns the player while placement rounds survive.
@@ -675,14 +678,34 @@ export function createCup(
               : "quarterfinal"
         }`
     resultRewards.replaceChildren()
+    let ladderRow: string
+    if (ladderBefore === null) {
+      // Resumed walk without a snapshot: report the standing as-is.
+      ladderRow = `Ladder: Bronze ${state.ladder.subTier} · ${state.ladder.points} pts`
+    } else {
+      // A forfeit zeroes the run's points (bronze ladder): say so plainly
+      // instead of the neutral "unchanged".
+      const lastVerdict = session.playerVerdicts.at(-1)
+      const forfeited = lastVerdict !== undefined && lastVerdict.battle === null
+      const earned = state.ladder.points - ladderBefore.points
+      ladderRow =
+        earned > 0
+          ? state.ladder.subTier !== ladderBefore.subTier
+            ? `Ladder +${earned} — promoted to Bronze ${state.ladder.subTier}`
+            : `Ladder +${earned} · Bronze ${state.ladder.subTier}`
+          : forfeited
+            ? "Forfeit — no ladder points"
+            : "Ladder unchanged"
+    }
     const rows = won
       ? [
           `+1 action point tomorrow (${ACTION_POINTS_PER_DAY + 1} total)`,
           `Bond +${CUP_REWARDS.bond}`,
           `Mood +${CUP_REWARDS.mood}`,
           "🏆 Cup won",
+          ladderRow,
         ]
-      : [`Consolation: mood +${CUP_REWARDS.consolations.mood}`]
+      : [`Consolation: mood +${CUP_REWARDS.consolations.mood}`, ladderRow]
     rows.forEach((text, i) => {
       const row = document.createElement("div")
       row.className = "cup-reward-row"
@@ -1051,7 +1074,10 @@ export function createCup(
     const creature = state.creature
     const cupToday =
       isCupDay(state.day) && state.phase === "cup" && creature !== null
-    // A persisted session keeps the chip alive across refreshes — even
+    // Standing tie-in (save v8): the entry chip reads the ladder, so the
+    // player sees what tonight's cup is worth before committing.
+    cupHint.textContent = `Bronze ${state.ladder.subTier} · ${state.ladder.points} pts`
+    // A persisted session keeps the chip alive across refreshes - even
     // once the entry is consumed (phase "day"), the walk can resume.
     const resumable = session !== null
     cupButton.style.display = cupToday || resumable ? "" : "none"
@@ -1120,6 +1146,8 @@ export function createCup(
   // ------------------------------------------------------------------
   const open = (): void => {
     if (!state?.creature) return
+    // Standing snapshot for the results screen's ladder row.
+    ladderBefore = { ...state.ladder }
     if (!session || session.bracket.day !== state.day) {
       const prepared = prepareCup(state)
       if (!prepared) return

@@ -12,6 +12,7 @@ import {
   type GameState,
   getMove,
   getSpecies,
+  LADDER_THRESHOLDS,
   MOVE_TIER3_DAYS,
   MOVE_TIER4_DAYS,
   previewTraining,
@@ -302,7 +303,27 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   trophyCount.className = "score-trophy-count"
   trophy.innerHTML = icons.trophy
   trophy.append(trophyCount)
-  scoreBug.append(phaseTab, scoreDay, divider, scoreAp, divider2, trophy)
+  // Bronze ladder standing (save v8): sub-tier tab + points, mirroring
+  // the trophy's one-segment-one-fact grammar.
+  const divider3 = divider.cloneNode() as HTMLElement
+  const rank = document.createElement("span")
+  rank.className = "score-ladder"
+  rank.title = "League standing"
+  const rankRank = document.createElement("span")
+  rankRank.className = "score-ladder-rank"
+  const rankPts = document.createElement("span")
+  rankPts.className = "score-ladder-pts"
+  rank.append(rankRank, rankPts)
+  scoreBug.append(
+    phaseTab,
+    scoreDay,
+    divider,
+    scoreAp,
+    divider2,
+    trophy,
+    divider3,
+    rank,
+  )
 
   // Bottom-left creature lower-third (broadcast kit plate).
   const lowerThird = plate({ className: "creature-plate" })
@@ -577,6 +598,14 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       when: (s) => s.phase === "day" && s.day % 7 === 6 && s.creature !== null,
       text: "Cup day is tomorrow. The bracket takes your partner as they are — spend today wisely.",
     },
+    {
+      // Bronze ladder top (save v8): one-time coach line setting up the
+      // Silver division (Phase 2) without shipping it.
+      id: "silver-awaits",
+      when: (s) =>
+        s.creature !== null && s.ladder.subTier === "I" && s.ladder.points > 0,
+      text: "You've topped Bronze — the Silver division awaits. Keep banking cup wins; the climb continues soon.",
+    },
   ]
   const callout = document.createElement("div")
   callout.className = "kit-plate hud-callout"
@@ -604,6 +633,10 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   let dockOpen = true
   // Previous AP total — drives the one-shot spend flash on the meter.
   let prevAp: number | null = null
+  // Ladder climb detection: the ticker announces a sub-tier promotion
+  // exactly once, the update after the cup finalize that caused it.
+  let prevLadderSubTier: string | null = null
+  let climbLine: string | null = null
   let apPips = apMeter.pips
 
   // Toggling the picker spends nothing — render only.
@@ -700,6 +733,35 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     // Championship tally: designed overflow — "× N" scales to any count.
     trophyCount.textContent = `× ${state.cupsWon}`
     trophy.style.display = state.cupsWon > 0 ? "" : "none"
+
+    // Bronze ladder standing (save v8). Below the top the read is
+    // progress-to-next (4/6); at Bronze I the points are banked toward
+    // Silver (Phase 2), so the raw total is the honest number.
+    const ladder = state.ladder
+    rankRank.textContent = `Bronze ${ladder.subTier}`
+    const nextThreshold =
+      ladder.subTier === "III"
+        ? LADDER_THRESHOLDS.bronzeII
+        : LADDER_THRESHOLDS.bronzeI
+    const nextTier = ladder.subTier === "III" ? "II" : "I"
+    if (ladder.subTier === "I") {
+      rankPts.textContent = `${ladder.points} pts`
+      rank.setAttribute(
+        "aria-label",
+        `League standing: Bronze I, ${ladder.points} points banked`,
+      )
+    } else {
+      rankPts.textContent = `${ladder.points}/${nextThreshold}`
+      rank.setAttribute(
+        "aria-label",
+        `League standing: Bronze ${ladder.subTier}, ${ladder.points} of ${nextThreshold} points toward Bronze ${nextTier}`,
+      )
+    }
+    if (prevLadderSubTier !== null && ladder.subTier !== prevLadderSubTier) {
+      climbLine = `Promotion — Bronze ${ladder.subTier}!`
+      replay(rank, "chip-pop")
+    }
+    prevLadderSubTier = ladder.subTier
     if (advanceLabel) {
       advanceLabel.textContent =
         state.phase === "cup" ? "Continue past cup" : "Advance Day"
@@ -823,8 +885,15 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       bar.prev = v
       bar.handle.fill.classList.toggle("is-low", v <= 25)
     }
+    // A ladder promotion outranks routine chatter for one update —
+    // consumed here so the next routine line resumes the chain. (The
+    // ticker holds its last line until the next update, so the promotion
+    // stays visible after the cup overlay closes.)
+    const climb = climbLine
+    climbLine = null
     statusTicker.say(
-      trainingStatus(creature, lastFocus) ||
+      climb ||
+        trainingStatus(creature, lastFocus) ||
         coachVoice(creature.conditions, creature.name) ||
         unlockCallout(creature) ||
         growthHint(state.day, creature) ||
