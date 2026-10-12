@@ -12,11 +12,12 @@ cannot silently change outcomes), then delete, then refactor the client last
       per (day, round, slot) and the `cupPlacement` mapping (champion +3 /
       runner-up +2 / semifinal +1 / else 0). Characterization tests:
       expected green on arrival (refactor-pinning, not red/green).
-- [ ] Task: Temporary bridge parity test — resolve one fully seeded cup
+- [x] Task: Temporary bridge parity test — resolve one fully seeded cup `83bd0e9`
       through the legacy path and through the live path; assert identical
       winners, verdicts, placements, rewards. Safety net for Phase 2;
       deleted with it.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  [checkpoint: 83bd0e9] Phase 1 complete — contract + bridge goldens green, 811/811 pass (58.85s), verify/check/biome clean, user-approved.
 
 ## Phase 2 — Retire the legacy engine (sim)
 
