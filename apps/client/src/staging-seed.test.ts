@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { CHAMPION_STAT_BOOST, EVOLUTION_STAT_BOOST } from "@apex/sim"
-import { visualSeedOf } from "./staging"
+import { visualSeedOf } from "./staging-seed"
 
 const base = { hp: 43, atk: 11, def: 10, spd: 11 }
 const boosted = {

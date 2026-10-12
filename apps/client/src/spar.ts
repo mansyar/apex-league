@@ -34,7 +34,7 @@ import {
 import { crestGlyph, elementHue } from "./element"
 import { createPlaybackDriver, type PlaybackRun } from "./playbackDriver"
 import type { FightCasting } from "./staging"
-import { visualSeedOf } from "./staging"
+import { visualSeedOf } from "./staging-seed"
 import { icons } from "./ui/icons"
 import { crest } from "./ui/kit"
 

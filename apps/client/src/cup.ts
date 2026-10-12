@@ -49,7 +49,8 @@ import {
 import { crestGlyph, elementHue } from "./element"
 import { prefersReducedMotionOs } from "./motion"
 import { createPlaybackDriver, type PlaybackFight } from "./playbackDriver"
-import { type FightCasting, visualSeedOf } from "./staging"
+import type { FightCasting } from "./staging"
+import { visualSeedOf } from "./staging-seed"
 import { icons } from "./ui/icons"
 
 export interface CupHandlers {
