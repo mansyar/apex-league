@@ -77,8 +77,11 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
         pose composition, per-part phased timelines, easing library,
         seed-derived variation; new shared module (arena-first, ranch-ready)
         (ea9a229 — apps/client/src/anim.ts, 17 tests)
-- [ ] **Task: Refactor staging.ts onto primitives** — behavior-preserving
+- [x] **Task: Refactor staging.ts onto primitives** — behavior-preserving
         for existing moves; squash/gait/breath reuse; manual diff-check
+        (051903e — helpers → anim.ts imports, drive loop on stepSquash/approach/
+        gaitBob/breathSine, melee timing via phaseAt(PLAYBACK_PHASES.melee);
+        user spar on build 5: identical feel)
 - [ ] **Task: Phase Verification & Checkpoint (Refer to workflow.md)**
 
 ## Phase 2 — Choreography Library *(core)*
