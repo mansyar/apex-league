@@ -62,6 +62,16 @@
   one-sitting cup panel's pace pill (superseded by the arena fast-forward
   control) and the `beginCup` retirement were conceded to the live-cup
   architecture (`beginCup`/`endCup` restored).*
+  *2026-10-12: save-safety & QoL pass — save v7 (`CupSession | null` slot
+  riding the save so refresh mid-walk never strands rewards;
+  `settings.seenHints` ledger), `loadBoot` distinguishes absent vs corrupt
+  saves at boot (corrupt → calm kit-notice banner above the starter screen),
+  `SaveAdapter` gains `removeItem` + `clearSave` powers the confirm-gated
+  "New game" reset, `renameCreature` (trim / ≤16 cap / empty → species
+  default, cup-blocked), and `markHintSeen` drives the persisted onboarding
+  callout chain (day-1 AP, day-5 training tier, cup-eve). The cup arena cast
+  is now stage-aware (`visualSeedOf(stats, stage)`) so a juvenile fights as
+  the same individual the ranch shows.*
 
 ## Server
 - **Framework**: ElysiaJS on Bun (endpoints: save sync, leaderboard, ghost
