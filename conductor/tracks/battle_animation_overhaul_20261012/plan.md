@@ -156,7 +156,9 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
 
 ## Phase 4 - KO Signature & Polish *(stretch - re-scopeable)*
 
-- [~] **Task: Time-dilated final blow** *(TDD on pacing math in driver)*
+- [x] **Task: Time-dilated final blow** *(TDD on pacing math in driver)*
+        (c739ccc - KO_DILATION 2.5 + dilatedPace pure math; live pace
+        raises on the KO step and restores after; golden pace pin updated)
 - [ ] **Task: KO staging** — camera orbit, stagger-collapse, dust puff
         *(manual)*
 - [ ] **Task: Verdict stamp beat timing** *(driver test + manual)*
