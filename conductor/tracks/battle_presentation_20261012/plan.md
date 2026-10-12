@@ -37,7 +37,7 @@ phase checkpoints).
   - [x] Verify public `Staging` interface unchanged; all call sites untouched (verified post-extraction: cast/applyStep/setBigHitHandler/setDirectorHandler/setMotionPref/setPace/clear intact; importers = main.ts `createStaging` + type-only `FightCasting` in battleUI/cup/spar)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3 — CSS consolidation (style-only)
+## Phase 3 - CSS consolidation (style-only) (complete, checkpoint: 561c45b)
 
 - [x] Task: Class-ownership cleanup — `561c45b`
   - [x] `.cup-button` → cup.css; `.spar-*` chrome rules gathered into spar.css (out of ranch.css/battle-hud.css); `starter-*` dedupe (starter.css canonical)
