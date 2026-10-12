@@ -886,7 +886,9 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       bar.handle.fill.classList.toggle("is-low", v <= 25)
     }
     // A ladder promotion outranks routine chatter for one update —
-    // consumed here so the next routine line resumes the chain.
+    // consumed here so the next routine line resumes the chain. (The
+    // ticker holds its last line until the next update, so the promotion
+    // stays visible after the cup overlay closes.)
     const climb = climbLine
     climbLine = null
     statusTicker.say(

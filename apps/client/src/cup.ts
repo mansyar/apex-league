@@ -683,13 +683,19 @@ export function createCup(
       // Resumed walk without a snapshot: report the standing as-is.
       ladderRow = `Ladder: Bronze ${state.ladder.subTier} · ${state.ladder.points} pts`
     } else {
+      // A forfeit zeroes the run's points (bronze ladder): say so plainly
+      // instead of the neutral "unchanged".
+      const lastVerdict = session.playerVerdicts.at(-1)
+      const forfeited = lastVerdict !== undefined && lastVerdict.battle === null
       const earned = state.ladder.points - ladderBefore.points
       ladderRow =
         earned > 0
           ? state.ladder.subTier !== ladderBefore.subTier
             ? `Ladder +${earned} — promoted to Bronze ${state.ladder.subTier}`
             : `Ladder +${earned} · Bronze ${state.ladder.subTier}`
-          : "Ladder unchanged"
+          : forfeited
+            ? "Forfeit — no ladder points"
+            : "Ladder unchanged"
     }
     const rows = won
       ? [

@@ -28,7 +28,7 @@ import {
 } from "./storage"
 
 describe("save schema", () => {
-  test("current version is 7", () => {
+  test("current version matches the schema", () => {
     expect(SAVE_VERSION).toBe(8)
   })
 
@@ -641,11 +641,11 @@ describe("evolution stage (v6)", () => {
 })
 
 describe("save v7 — cup session, rename, hints", () => {
-  test("current version is 7", () => {
+  test("current version matches the schema", () => {
     expect(SAVE_VERSION).toBe(8)
   })
 
-  test("a v6 save migrates to v7: null session + a clean hint ledger", () => {
+  test("a v6 save migrates cleanly: null session + a clean hint ledger", () => {
     const state = chooseStarter(createInitialState(), "fire_drake", 42)
     const migrated = migrate({ version: 6, state, savedAt: 321 })
     expect(migrated.version).toBe(SAVE_VERSION)
@@ -654,7 +654,7 @@ describe("save v7 — cup session, rename, hints", () => {
     expect(migrated.state.settings.seenHints).toEqual([])
   })
 
-  test("a chain-migrated save (v0 to v7) carries the v7 defaults too", () => {
+  test("a chain-migrated save carries the v7 defaults too", () => {
     const migrated = migrate({ version: 0, day: 7 })
     expect(migrated.version).toBe(SAVE_VERSION)
     expect(migrated.session).toBeNull()
