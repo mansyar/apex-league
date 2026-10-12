@@ -96,6 +96,28 @@
   letter-spacing: 0.06em;
 }
 
+/* Bronze ladder standing (save v8): rank tab + points, matching the
+ * trophy segment's one-fact-per-segment grammar. */
+.score-ladder {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.score-ladder-rank {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.score-ladder-pts {
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Bottom-left creature lower-third (broadcast kit plate) */
 .creature-plate {
   position: absolute;
