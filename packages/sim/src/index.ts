@@ -142,6 +142,7 @@ export {
   createInitialState,
   type GameState,
   type Phase,
+  setArenaCamera,
   setReducedMotion,
 } from "./state"
 export { advanceDay, CUP_WIN_AP_BONUS } from "./ticker"

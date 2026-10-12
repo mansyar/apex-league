@@ -344,6 +344,11 @@ body,
   cursor: pointer;
 }
 
+/* Camera pill stacks right under the motion pill (save v7). */
+.camera-pill {
+  bottom: 172px;
+}
+
 .motion-pill.is-on {
   color: var(--ink);
   border-color: var(--accent);

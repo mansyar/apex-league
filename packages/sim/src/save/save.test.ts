@@ -5,6 +5,7 @@ import {
   chooseStarter,
   createInitialState,
   type GameState,
+  setArenaCamera,
   setReducedMotion,
 } from "../state"
 import { advanceDay } from "../ticker"
@@ -19,7 +20,7 @@ import {
 
 describe("save schema", () => {
   test("current version is 6", () => {
-    expect(SAVE_VERSION).toBe(6)
+    expect(SAVE_VERSION).toBe(7)
   })
 
   test("serializeSave wraps state with version metadata", () => {
@@ -30,7 +31,7 @@ describe("save schema", () => {
     }
     const json = serializeSave(data)
     const parsed = JSON.parse(json) as SaveData
-    expect(parsed.version).toBe(6)
+    expect(parsed.version).toBe(7)
     expect(parsed.state.day).toBe(1)
     expect(parsed.savedAt).toBe(1000)
   })
@@ -41,7 +42,7 @@ describe("migration chain", () => {
     // v0 predates the versioned schema: flat shape, no phase/AP.
     const v0 = { version: 0, day: 7 }
     const migrated = migrate(v0)
-    expect(migrated.version).toBe(6)
+    expect(migrated.version).toBe(7)
     expect(migrated.state.day).toBe(7)
     expect(migrated.state.phase).toBe("cup")
     expect(migrated.state.cupsWon).toBe(0)
@@ -62,7 +63,7 @@ describe("migration chain", () => {
       savedAt: 1234,
     }
     const migrated = migrate(v1)
-    expect(migrated.version).toBe(6)
+    expect(migrated.version).toBe(7)
     expect(migrated.savedAt).toBe(1234)
     expect(migrated.state.day).toBe(4)
     expect(migrated.state.actionPoints).toBe(2)
@@ -119,7 +120,7 @@ describe("migration chain", () => {
       savedAt: 99,
     }
     const migrated = migrate(v2)
-    expect(migrated.version).toBe(6)
+    expect(migrated.version).toBe(7)
     expect(migrated.savedAt).toBe(99)
     expect(migrated.state.day).toBe(5)
     expect(migrated.state.actionPoints).toBe(2)
@@ -140,7 +141,7 @@ describe("migration chain", () => {
       state: { day: 2, phase: "day", actionPoints: 3 },
       savedAt: 0,
     })
-    expect(migrated.version).toBe(6)
+    expect(migrated.version).toBe(7)
     expect(migrated.state.creature?.trained).toEqual({
       hp: 0,
       atk: 0,
@@ -170,7 +171,7 @@ describe("migration chain", () => {
       savedAt: 321,
     }
     const migrated = migrate(v3)
-    expect(migrated.version).toBe(6)
+    expect(migrated.version).toBe(7)
     expect(migrated.savedAt).toBe(321)
     expect(migrated.state.day).toBe(9)
     expect(migrated.state.creature?.fedToday).toBe(false)
@@ -541,7 +542,7 @@ describe("evolution stage (v6)", () => {
       savedAt: 321,
     }
     const migrated = migrate(v5)
-    expect(migrated.version).toBe(6)
+    expect(migrated.version).toBe(7)
     expect(migrated.savedAt).toBe(321)
     expect(migrated.state.day).toBe(8)
     expect(migrated.state.creature?.sickCooldown).toBe(0)
@@ -557,7 +558,7 @@ describe("evolution stage (v6)", () => {
       state: { day: 2, phase: "day", actionPoints: 3 },
       savedAt: 0,
     })
-    expect(migrated.version).toBe(6)
+    expect(migrated.version).toBe(7)
     expect(migrated.state.creature?.sickCooldown).toBe(0)
   })
 
@@ -623,6 +624,67 @@ describe("evolution stage (v6)", () => {
     saveGame(adapter, bad({ sickCooldown: "soon" }), 1)
     expect(loadGame(adapter)).toBeNull()
     saveGame(adapter, bad({ sickCooldown: undefined }), 1)
+    expect(loadGame(adapter)).toBeNull()
+  })
+})
+
+describe("arena camera preference (v7)", () => {
+  test("fresh state defaults to the cinematic director", () => {
+    expect(createInitialState().settings.arenaCamera).toBe("cinematic")
+  })
+
+  test("a v6 save migrates with the arena-camera default", () => {
+    const state = chooseStarter(createInitialState(), "fire_drake", 42)
+    const v6 = {
+      version: 6,
+      state: {
+        ...state,
+        settings: { reducedMotion: false },
+      },
+      savedAt: 55,
+    }
+    const adapter = createMemoryAdapter()
+    adapter.setItem("apex.save", JSON.stringify(v6))
+    const loaded = loadGame(adapter)
+    expect(loaded).not.toBeNull()
+    expect(loaded?.settings.arenaCamera).toBe("cinematic")
+  })
+
+  test("the camera preference round-trips through saveGame/loadGame", () => {
+    const adapter = createMemoryAdapter()
+    const tuned = setArenaCamera(
+      chooseStarter(createInitialState(), "fire_drake", 42),
+      "broadcast",
+    )
+    saveGame(adapter, tuned, 900)
+    const loaded = loadGame(adapter)
+    expect(loaded?.settings.arenaCamera).toBe("broadcast")
+  })
+
+  test("setArenaCamera turns the toggle both ways", () => {
+    const base = chooseStarter(createInitialState(), "fire_drake", 42)
+    const calm = setArenaCamera(base, "broadcast")
+    const cine = setArenaCamera(calm, "cinematic")
+    expect(calm.settings.arenaCamera).toBe("broadcast")
+    expect(cine.settings.arenaCamera).toBe("cinematic")
+  })
+
+  test("loadGame rejects a corrupt camera preference", () => {
+    const adapter = createMemoryAdapter()
+    const state = chooseStarter(createInitialState(), "fire_drake", 42)
+    const wrong = {
+      day: state.day,
+      phase: state.phase,
+      actionPoints: state.actionPoints,
+      creature: state.creature,
+      cupsWon: 0,
+      lastCupDay: null,
+      settings: { reducedMotion: false, arenaCamera: "wall" },
+    }
+    adapter.setItem(
+      "apex.save",
+      JSON.stringify({ version: 7, state: wrong, savedAt: 0 }),
+    )
     expect(loadGame(adapter)).toBeNull()
   })
 })

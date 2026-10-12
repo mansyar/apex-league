@@ -15,6 +15,13 @@ export interface GameSettings {
    * disallows camera shake and impact flash effects. Gameplay stays legible.
    */
   reducedMotion: boolean
+  /**
+   * Arena camera presentation (save v7): "cinematic" drives the battle
+   * through the shot-grammar director, "broadcast" pins the fixed wide
+   * framing. Reduced motion always forces the broadcast feel at render
+   * time regardless of this preference.
+   */
+  arenaCamera: "cinematic" | "broadcast"
 }
 
 /** The single source of truth for a run's simulation state. */
@@ -48,7 +55,7 @@ export function createInitialState(): GameState {
     phase: "day",
     actionPoints: ACTION_POINTS_PER_DAY,
     creature: null,
-    settings: { reducedMotion: false },
+    settings: { reducedMotion: false, arenaCamera: "cinematic" },
     cupsWon: 0,
     lastCupDay: null,
   }
@@ -60,6 +67,17 @@ export function createInitialState(): GameState {
  */
 export function setReducedMotion(state: GameState, value: boolean): GameState {
   return { ...state, settings: { ...state.settings, reducedMotion: value } }
+}
+
+/**
+ * Pick the arena camera presentation. Pure: the next state keeps everything
+ * else untouched, and callers persist via saveGame.
+ */
+export function setArenaCamera(
+  state: GameState,
+  value: "cinematic" | "broadcast",
+): GameState {
+  return { ...state, settings: { ...state.settings, arenaCamera: value } }
 }
 
 /**

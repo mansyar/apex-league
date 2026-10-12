@@ -10,6 +10,7 @@ import {
   getSpecies,
   loadGame,
   type StatKey,
+  setArenaCamera,
   setLoadout,
   setReducedMotion,
 } from "@apex/sim"
@@ -31,7 +32,7 @@ if (!app) throw new Error("#app container missing")
 // TEMPORARY build tag (learnings #9): distinguishes stale tabs from the
 // agent's bundle during feel iterations. REMOVE BEFORE FINAL COMMIT.
 const buildTag = document.createElement("div")
-buildTag.textContent = "arena build 20"
+buildTag.textContent = "arena build 22"
 buildTag.style.cssText =
   "position:fixed;bottom:4px;right:8px;font:10px monospace;opacity:0.5;z-index:99;pointer-events:none"
 document.body.appendChild(buildTag)
@@ -77,9 +78,29 @@ const syncScene = (): void => {
   sceneVisuals()
 }
 
+// The camera style is a saved preference (v7); reduced motion pins the
+// broadcast camera inside the scene regardless.
+const applyCameraStyle = (): void => {
+  scene.setArenaCameraStyle(store.get().settings.arenaCamera)
+}
+applyCameraStyle()
+
+/** Flip the saved camera preference and apply it live (FR6). */
+const toggleArenaCamera = (): void => {
+  const current = store.get()
+  store.commit(
+    setArenaCamera(
+      current,
+      current.settings.arenaCamera === "cinematic" ? "broadcast" : "cinematic",
+    ),
+  )
+  applyCameraStyle()
+}
+
 // The spar reads the live state through this hook; kit changes write
 // through the store like every other sim change.
 const spar = createSpar(app, {
+  onToggleCamera: toggleArenaCamera,
   onSetLoadout: (moveIds) => {
     const current = store.get()
     if (!current.creature) return
@@ -117,7 +138,6 @@ staging.setBigHitHandler((strength) => scene.shake(strength))
 // nextShot turns it into a camera intent. Reduced motion pins the
 // broadcast camera inside the scene, so no extra guard here.
 staging.setDirectorHandler((ctx) => scene.applyDirectorIntent(nextShot(ctx)))
-scene.setArenaCameraStyle("cinematic")
 
 /**
  * Reduced-motion hand-off: the save v5 preference reaches the arena
@@ -137,6 +157,7 @@ applyMotionPref()
 // finalizeCup lands the rewards. Nothing here re-resolves the sim — every
 // state adoption flows through the store (persist + hud/spar/cup fanout).
 const cup = createCup(app, {
+  onToggleCamera: toggleArenaCamera,
   onFightStart: (casting) => {
     scene.setRanchCreatureVisible(false)
     void swap.enterArena()
@@ -218,6 +239,9 @@ const hud = createHud(app, {
     store.commit(setReducedMotion(current, !current.settings.reducedMotion))
     applyMotionPref()
   },
+  onToggleArenaCamera: () => {
+    toggleArenaCamera()
+  },
 })
 
 // The store's fixed fanout: every commit persists (inside commit) and then
@@ -225,7 +249,7 @@ const hud = createHud(app, {
 // exactly like the old per-handler fanout did. Handlers only add their
 // site-specific scene work on top.
 store.subscribe((s) => hud.update(s))
-store.subscribe((s) => spar.update(s.creature ?? null))
+store.subscribe((s) => spar.update(s.creature ?? null, s.settings.arenaCamera))
 store.subscribe((s) => cup.update(s))
 
 // First run (or a migrated v1 save without a creature): offer the starter.

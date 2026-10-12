@@ -89,6 +89,8 @@ export interface BattleHud {
   hideStamp(): void
   /** Strip the HUD (panel closed, back to the ranch). */
   hide(): void
+  /** Mirror the live arena-camera style onto the toggle (FR6). */
+  setCameraStyle(style: "cinematic" | "broadcast"): void
 }
 
 /**
@@ -104,7 +106,10 @@ const replayClass = (el: HTMLElement, cls: string): void => {
 /** Build the broadcast HUD (placard, lower third, verdict stamp) and
  *  prepend it to the spar overlay; it derives everything from the
  *  PlaybackStep stream the spar panel already renders. */
-export function createBattleHud(overlay: HTMLElement): BattleHud {
+export function createBattleHud(
+  overlay: HTMLElement,
+  opts: { onToggleCamera?: () => void } = {},
+): BattleHud {
   const root = document.createElement("div")
   root.className = "spar-hud"
 
@@ -293,6 +298,17 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
     line.classList.add("spar-hud-line-in")
   }
 
+  // --- camera toggle (FR6) ----------------------------------------------
+  // A live mid-battle switch between the cinematic director and the fixed
+  // broadcast framing. The label mirrors the saved preference; main.ts
+  // owns the commit and pushes updates back through setCameraStyle.
+  const cameraButton = document.createElement("button")
+  cameraButton.className = "spar-fast spar-camera"
+  cameraButton.type = "button"
+  cameraButton.textContent = "Camera: cinematic"
+  cameraButton.addEventListener("click", () => opts.onToggleCamera?.())
+  root.append(cameraButton)
+
   return {
     show(fight) {
       top.replaceChildren()
@@ -342,6 +358,10 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
       root.style.display = "none"
       sides.owned = null
       sides.rival = null
+    },
+    setCameraStyle(style) {
+      cameraButton.textContent =
+        style === "cinematic" ? "Camera: cinematic" : "Camera: broadcast"
     },
   }
 }

@@ -140,6 +140,9 @@ export function loadGame(adapter: SaveAdapter): GameState | null {
       typeof state.settings !== "object" ||
       state.settings === null ||
       typeof state.settings.reducedMotion !== "boolean" ||
+      // v7: the camera preference must be one of the two styles.
+      (state.settings.arenaCamera !== "cinematic" &&
+        state.settings.arenaCamera !== "broadcast") ||
       // v5: cup bookkeeping must be present and well-formed.
       !Number.isInteger(state.cupsWon) ||
       state.cupsWon < 0 ||

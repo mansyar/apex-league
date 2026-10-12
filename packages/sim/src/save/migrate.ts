@@ -82,7 +82,7 @@ const migrations: Record<
       phase: isCupDay(day) ? "cup" : "day",
       actionPoints: ACTION_POINTS_PER_DAY,
       creature: null,
-      settings: { reducedMotion: false },
+      settings: { reducedMotion: false, arenaCamera: "cinematic" },
       cupsWon: 0,
       lastCupDay: null,
     }
@@ -98,7 +98,7 @@ const migrations: Record<
       phase,
       actionPoints,
       creature: createCreature("fire_drake", STARTER_GRANT_SEED),
-      settings: { reducedMotion: false },
+      settings: { reducedMotion: false, arenaCamera: "cinematic" },
       cupsWon: 0,
       lastCupDay: null,
     }
@@ -123,7 +123,7 @@ const migrations: Record<
       phase,
       actionPoints,
       creature,
-      settings: { reducedMotion: false },
+      settings: { reducedMotion: false, arenaCamera: "cinematic" },
       cupsWon: 0,
       lastCupDay: null,
     }
@@ -152,7 +152,7 @@ const migrations: Record<
       phase,
       actionPoints,
       creature,
-      settings: { reducedMotion: false },
+      settings: { reducedMotion: false, arenaCamera: "cinematic" },
       cupsWon: 0,
       lastCupDay: null,
     }
@@ -179,7 +179,7 @@ const migrations: Record<
       phase,
       actionPoints,
       creature,
-      settings,
+      settings: { ...settings, arenaCamera: "cinematic" },
       cupsWon: 0,
       lastCupDay: null,
     }
@@ -207,6 +207,25 @@ const migrations: Record<
       lastCupDay: s.lastCupDay as GameState["lastCupDay"],
     }
     return { version: 6, state: migrated, savedAt: raw.savedAt ?? 0 }
+  },
+
+  // v6 → v7: saves from before the camera director have no arena-camera
+  // preference. Stamp the cinematic default: the director is the intended
+  // presentation, and reduced-motion players are pinned to the broadcast
+  // feel at render time regardless of this value.
+  6: (raw) => {
+    const { day, phase, actionPoints, state: s } = validateStateShape(raw, 6)
+    const settings = s.settings as GameState["settings"]
+    const migrated: GameState = {
+      day,
+      phase,
+      actionPoints,
+      creature: s.creature as GameState["creature"],
+      settings: { ...settings, arenaCamera: "cinematic" },
+      cupsWon: s.cupsWon as GameState["cupsWon"],
+      lastCupDay: s.lastCupDay as GameState["lastCupDay"],
+    }
+    return { version: 7, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
 }
 /**

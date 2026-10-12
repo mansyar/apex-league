@@ -30,6 +30,11 @@ export interface HudHandlers {
    * sim change). The HUD only mirrors state; wiring stays in main.ts.
    */
   onToggleReducedMotion: () => void
+  /**
+   * Flip the save v7 arena-camera preference (cinematic ↔ broadcast).
+   * The HUD only mirrors state; wiring stays in main.ts.
+   */
+  onToggleArenaCamera: () => void
 }
 
 export interface Hud {
@@ -365,7 +370,17 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   motionPill.addEventListener("click", handlers.onToggleReducedMotion)
   motionPill.append(motionState)
 
-  root.append(dayChip, lowerThird, cluster, motionPill)
+  // Camera pill (save v7): the arena presentation toggle — cinematic
+  // director or fixed broadcast framing.
+  const cameraPill = document.createElement("button")
+  cameraPill.className = "motion-pill camera-pill"
+  cameraPill.type = "button"
+  const cameraState = document.createElement("span")
+  cameraState.className = "motion-pill-state"
+  cameraPill.addEventListener("click", handlers.onToggleArenaCamera)
+  cameraPill.append(cameraState)
+
+  root.append(dayChip, lowerThird, cluster, motionPill, cameraPill)
 
   let pickerOpen = false
   let lastFocus: StatKey | null = null
@@ -377,7 +392,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     if (current) update(current)
   })
 
-  /** Mirror the motion preference onto the settings pill. */
+  /** Mirror the motion and camera preferences onto the settings pills. */
   function capturePrefUpdate(state: GameState): void {
     motionPill.setAttribute(
       "aria-pressed",
@@ -387,6 +402,12 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     motionState.textContent = state.settings.reducedMotion
       ? "Motion: reduced"
       : "Motion: full"
+    const cinematic = state.settings.arenaCamera === "cinematic"
+    cameraPill.setAttribute("aria-pressed", cinematic ? "true" : "false")
+    cameraPill.classList.toggle("is-on", cinematic)
+    cameraState.textContent = cinematic
+      ? "Camera: cinematic"
+      : "Camera: broadcast"
   }
 
   const update = (state: GameState): void => {
@@ -413,6 +434,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       picker.style.display = "none"
       status.textContent = ""
       motionPill.style.display = ""
+      cameraPill.style.display = ""
       capturePrefUpdate(state)
       return
     }
