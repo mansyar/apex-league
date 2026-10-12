@@ -5,10 +5,11 @@ verification for DOM/scene tasks, phase checkpoints with git notes.
 
 ## Phase A — Save v7: session, rename, hints schema
 
-- [ ] Task: Write failing tests — save v7 schema shape, v6→v7 migration
+- [x] Task: Write failing tests — save v7 schema shape, v6→v7 migration
       (adds cup session / creature name / hint-dismissal defaults), round-trip
-      fidelity (extend `packages/sim/src/save/save.test.ts` style)
-- [ ] Task: Implement schema v7 + v6→v7 migration in `packages/sim/src/save/`
+      fidelity (extend `packages/sim/src/save/save.test.ts` style) `[3faff8b]`
+- [x] Task: Implement schema v7 + v6→v7 migration in `packages/sim/src/save/`
+      `[3faff8b]`
 - [ ] Task: Write failing tests — cup-session persist/restore round-trip
       through the save adapter (committed and pre-commit states; a finalized
       session does not resurrect)
