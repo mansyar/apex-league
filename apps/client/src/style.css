@@ -355,6 +355,28 @@ body,
   display: flex;
 }
 
+/* Big-hit vignette (FR7): screen-edge darkening that pulses on heavy
+   blows. Fast flash in, slow ease back out. */
+.hit-vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+  opacity: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 52%,
+    rgba(8, 6, 12, 0.62) 100%
+  );
+  transition: opacity 300ms ease-in;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hit-vignette {
+    transition: none;
+  }
+}
+
 .motion-pill.is-on {
   color: var(--ink);
   border-color: var(--accent);

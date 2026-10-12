@@ -675,6 +675,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     vel: THREE.Vector3
     /** Angular speed around the travel axis, radians per second. */
     spin: number
+    /** Phase offset for the lateral sway sine, radians. */
+    swayPhase: number
   }
 
   /**
@@ -694,6 +696,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     flashGrow: number
     /** Downward pull on the fragments, units per second squared. */
     gravity: number
+    /** Lateral sine drift on the fragments, units per second. */
+    sway: number
   }
 
   /** Tunables for one burst - element styles share the same machine. */
@@ -702,14 +706,27 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     puffs?: number
     /** Scatter on a flat horizontal ring instead of a random sphere. */
     ring?: boolean
-    /** Downward pull, units per second squared (default 7). */
+    /** Downward pull, units per second squared (element default). */
     gravity?: number
+    /** Lateral sine drift on fragments, units per second (element default). */
+    sway?: number
     /** Burst duration in ms (default 520). */
     life?: number
     /** How far the glow shell swells (default 2.4). */
     flashGrow?: number
     /** Radius multiplier for flash and fragments (default 1). */
     size?: number
+  }
+
+  /**
+   * Element-flavored fragment physics (FR7): fire embers are buoyant and
+   * rise while flickering, water droplets fall heavy and fast, plant motes
+   * float on a sideways drift. Anything else keeps the neutral scatter.
+   */
+  const ELEMENT_BURST: Record<string, { gravity: number; sway: number }> = {
+    fire: { gravity: -2.2, sway: 0.5 },
+    water: { gravity: 10, sway: 0 },
+    plant: { gravity: 1.8, sway: 1.0 },
   }
 
   const bursts: Burst[] = []
@@ -780,6 +797,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
           Math.sin(angle) * speed * (style.ring ? 1 : 0.6),
         ),
         spin: (Math.random() - 0.5) * 0.02,
+        swayPhase: Math.random() * Math.PI * 2,
       })
       arenaGroup.add(mesh)
     }
@@ -789,7 +807,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       elapsed: 0,
       life: style.life ?? 520,
       flashGrow: style.flashGrow ?? 2.4,
-      gravity: style.gravity ?? 7,
+      gravity: style.gravity ?? ELEMENT_BURST[element ?? ""]?.gravity ?? 7,
+      sway: style.sway ?? ELEMENT_BURST[element ?? ""]?.sway ?? 0,
     })
     if (burstRaf === null) {
       lastBurstTick = performance.now()
@@ -818,6 +837,10 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       for (const part of burst.particles) {
         part.vel.y -= burst.gravity * dt
         part.mesh.position.addScaledVector(part.vel, dt)
+        if (burst.sway > 0) {
+          part.mesh.position.x +=
+            Math.sin(burst.elapsed * 0.004 + part.swayPhase) * burst.sway * dt
+        }
         part.mesh.rotation.x += part.spin * dtMs
         part.mesh.rotation.y += part.spin * 0.7 * dtMs
         part.mesh.scale.setScalar(Math.max(0.05, 1 - k))
@@ -830,6 +853,91 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       }
     }
     if (bursts.length > 0) burstRaf = requestAnimationFrame(tickBursts)
+  }
+
+  // -- Hit decals (FR7) ---------------------------------------------------
+  // Scorch marks burned into the show floor where blows land: a dark
+  // element-tinted circle that pops in and fades. Pooled - the oldest
+  // mark yields once the cap is hit.
+
+  interface Decal {
+    mesh: THREE.Mesh
+    /** Accumulated age (ms), frozen during a hit-stop. */
+    elapsed: number
+    life: number
+  }
+
+  const decals: Decal[] = []
+  let decalRaf: number | null = null
+  let lastDecalTick = 0
+  const DECAL_MAX = 6
+  const DECAL_LIFE_MS = 1800
+
+  const disposeDecal = (decal: Decal): void => {
+    arenaGroup.remove(decal.mesh)
+    decal.mesh.geometry.dispose()
+    ;(decal.mesh.material as THREE.Material).dispose()
+  }
+
+  /** Burn a floor mark under a landed blow; strength scales the mark. */
+  const spawnDecal = (
+    at: THREE.Vector3,
+    element: string | undefined,
+    strength: number,
+  ): void => {
+    if (motionPref === "reduced") return
+    if (decals.length >= DECAL_MAX) {
+      const oldest = decals.shift()
+      if (oldest) disposeDecal(oldest)
+    }
+    const color = new THREE.Color(elementColor(element)).multiplyScalar(0.22)
+    const mesh = new THREE.Mesh(
+      new THREE.CircleGeometry(Math.min(0.55, 0.22 + strength * 0.02), 14),
+      new THREE.MeshBasicMaterial({
+        color,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+      }),
+    )
+    mesh.rotation.x = -Math.PI / 2
+    // A touch above the floor, stacked per decal, so marks never z-fight.
+    mesh.position.set(at.x, 0.02 + decals.length * 0.004, at.z)
+    mesh.scale.setScalar(0.2)
+    arenaGroup.add(mesh)
+    decals.push({ mesh, elapsed: 0, life: DECAL_LIFE_MS })
+    if (decalRaf === null) {
+      lastDecalTick = performance.now()
+      decalRaf = requestAnimationFrame(tickDecals)
+    }
+  }
+
+  /** Advance every decal: quick pop-in, long fade. */
+  const tickDecals = (): void => {
+    decalRaf = null
+    const now = performance.now()
+    const dtMs =
+      now < hitStopUntil ? 0 : Math.min(100, now - lastDecalTick || 16.7)
+    lastDecalTick = now
+    for (let i = decals.length - 1; i >= 0; i--) {
+      const decal = decals[i]
+      if (!decal) continue
+      decal.elapsed += dtMs
+      const k = Math.min(1, decal.elapsed / decal.life)
+      decal.mesh.scale.setScalar(easeOut(Math.min(1, k * 5)))
+      ;(decal.mesh.material as THREE.MeshBasicMaterial).opacity = 0.55 * (1 - k)
+      if (k >= 1) {
+        disposeDecal(decal)
+        decals.splice(i, 1)
+      }
+    }
+    if (decals.length > 0) decalRaf = requestAnimationFrame(tickDecals)
+  }
+
+  /** Strip every decal (panel teardown). */
+  const disposeAllDecals = (): void => {
+    for (const decal of decals) disposeDecal(decal)
+    decals.length = 0
   }
 
   /** The tier-4 Lance's charging orb, swelling at the thrower's mouth. */
@@ -1033,6 +1141,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     damage: number | undefined,
     at: Combatant,
     heavy = false,
+    element?: string,
   ): void => {
     if (!heavy) {
       const knock = strikeReach(damage)
@@ -1046,6 +1155,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     impulse(at, reactionFor(kind, at.profile).impulse)
     startFlash(at)
     bigHit(damage)
+    spawnDecal(at.group.position, element, damage ?? 4)
   }
 
   /** Lateral weave: alternate attack sides so no two hits share a lane. */
@@ -1356,7 +1466,12 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         if (compressed && !landedRef.done && t >= landBeat) {
           landedRef.done = true
           arriveSpecial(step, side)
-          contactReaction(step.damage, side.target, heavyHit(step))
+          contactReaction(
+            step.damage,
+            side.target,
+            heavyHit(step),
+            step.element,
+          )
         }
         const release = beats[0] ?? wind
         const w = clamp01((t - release) / Math.max(0.01, 1 - release))
@@ -1411,7 +1526,13 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         const dodged = missed && step.missReason === "dodge"
         if (instant) {
           // Resolve instantly: run the contact consequences with no anim.
-          if (hit) contactReaction(step.damage, side.target, heavyHit(step))
+          if (hit)
+            contactReaction(
+              step.damage,
+              side.target,
+              heavyHit(step),
+              step.element,
+            )
           if (dodged) {
             side.target.stage.x += side.target.away * 0.85
             snapTo(side.target)
@@ -1473,7 +1594,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
               if (!landed) {
                 landed = true
                 if (hit) {
-                  contactReaction(step.damage, at, heavyHit(step))
+                  contactReaction(step.damage, at, heavyHit(step), step.element)
                 } else if (dodged) {
                   // The target slipped: a quick dash off the lane.
                   at.stage.x += at.away * 0.85
@@ -1518,7 +1639,12 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
           break
         }
         if (instant) {
-          contactReaction(step.damage, side.target, heavyHit(step))
+          contactReaction(
+            step.damage,
+            side.target,
+            heavyHit(step),
+            step.element,
+          )
           snapTo(side.target)
           if (step.element) arriveSpecial(step, side)
           break
@@ -1530,7 +1656,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
           fireSpecial(step, side, true)
           break
         }
-        reactionAction(step.damage, side.target, heavyHit(step))
+        reactionAction(step.damage, side.target, heavyHit(step), step.element)
         if (step.element) arriveSpecial(step, side)
         break
       }
@@ -1627,8 +1753,9 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     damage: number | undefined,
     at: Combatant,
     heavy = false,
+    element?: string,
   ): void => {
-    contactReaction(damage, at, heavy)
+    contactReaction(damage, at, heavy, element)
   }
 
   /** One scripted action on staging's own clock (hit-stop aware). */
@@ -1777,6 +1904,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     },
     clear() {
       stop()
+      disposeAllDecals()
       // Settle every palette back to base before disposal — a fighter
       // hit mid-flash in the final beat would otherwise carry the white
       // pop into the next fight (materials are fresh per cast, but the

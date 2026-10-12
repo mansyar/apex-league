@@ -132,7 +132,30 @@ const spar = createSpar(app, {
   // even when the OS reports motion-ok.
   motionPref: () => store.get().settings.reducedMotion,
 })
-staging.setBigHitHandler((strength) => scene.shake(strength))
+
+// Big-hit vignette (FR7): a screen-edge darkening that pulses with the
+// same strength the camera shake uses. A DOM overlay - cheap, and it
+// rides above both the spar and cup battles. Reduced motion skips it.
+const vignette = document.createElement("div")
+vignette.className = "hit-vignette"
+document.body.appendChild(vignette)
+let vignetteFade: number | null = null
+const flashVignette = (strength: number): void => {
+  if (store.get().settings.reducedMotion) return
+  // Fast flash in, slow ease back out - the two-phase transition swap.
+  vignette.style.transition = "opacity 60ms ease-out"
+  vignette.style.opacity = String(Math.min(0.85, strength * 9))
+  if (vignetteFade !== null) window.clearTimeout(vignetteFade)
+  vignetteFade = window.setTimeout(() => {
+    vignette.style.transition = "opacity 300ms ease-in"
+    vignette.style.opacity = "0"
+  }, 110)
+}
+
+staging.setBigHitHandler((strength) => {
+  scene.shake(strength)
+  flashVignette(strength)
+})
 // Cinematic director (FR6): the stage reports the live battle context;
 // nextShot turns it into a camera intent. Reduced motion pins the
 // broadcast camera inside the scene, so no extra guard here.
