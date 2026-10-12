@@ -113,13 +113,15 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
   user verified all three across species, builds 12-15)
 - [x] **Task: Bespoke tier 4 special choreography** - 3 moves *(manual)*
         (02b16f8; user-approved in feel-checks)
-- [~] **Task: Unified special-fire pipeline** — data-driven MOVE_FX
+- [x] **Task: Unified special-fire pipeline** - data-driven MOVE_FX
         registry (launch schedule + posture curves + arrival treatment
         per move); point-blank specials replay their launch body
         compressed with a micro-flight and land the arrival burst at
         the landing beat; victim reaction moves to the landing beat;
-        sim untouched — presentation only (user-directed design change;
+        sim untouched - presentation only (user-directed design change;
         new moves slot in by adding one registry entry)
+        (a376c29 + aa5ce63 SHOT_LOOK per-element shot identity;
+        user approved builds 18-19)
 - [ ] **Task: Reaction library** - dodge/hurt/stagger/knockback/down
         mapped from enriched events *(pure mapping tested; rendering
         manual)*
