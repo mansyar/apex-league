@@ -33,8 +33,8 @@ phase checkpoints).
   - [x] Write failing tests for the `HitStop` object (trigger below/above threshold, dt=0 during freeze, dt clamp + 16.7 fallback) and the EffectLoop idle/stopped contract (fake RAF/timers, no real timers per workflow)
   - [x] Implement `staging-fx.ts`: flash, projectiles, bursts, decals, charge orb behind one `step(dt)`/alive contract; single RAF; `HitStop` owned by the loop
   - [x] Migrate the action clock and drive loop to consume the shared `HitStop` (semantics unchanged: action clock re-queues without advancing)
-- [ ] Task: Slim `staging.ts` to driver + `runStep` + cast/clear builders
-  - [ ] Verify public `Staging` interface unchanged; all call sites untouched
+- [x] Task: Slim `staging.ts` to driver + `runStep` + cast/clear builders
+  - [x] Verify public `Staging` interface unchanged; all call sites untouched (verified post-extraction: cast/applyStep/setBigHitHandler/setDirectorHandler/setMotionPref/setPace/clear intact; importers = main.ts `createStaging` + type-only `FightCasting` in battleUI/cup/spar)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — CSS consolidation (style-only)
