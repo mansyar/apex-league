@@ -26,9 +26,9 @@ cannot silently change outcomes), then delete, then refactor the client last
       barrel exports, and the one-sitting test suite; keep the bridge green
       throughout; remove the bridge test last; fold any uniquely-covered
       cases into live-path tests. [7628a1b]
-- [ ] Task: Docs — fix the stale `enterCup` phase row in
+- [x] Task: Docs — fix the stale `enterCup` phase row in
       `docs/save-schema.md`; add dated consolidation note to
-      `conductor/tech-stack.md`.
+      `conductor/tech-stack.md`. [c77af9a]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — Client bracket model extraction
