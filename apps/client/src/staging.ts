@@ -1206,20 +1206,59 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
               spawnBurst(p, step.element, { size: 0.8, life: 380 })
             }
             impulse(side.target, -0.4)
+          } else if (step.moveId === "cinder_shot" && pointBlank) {
+            // The Hammer point-blank: a compressed coil-beat on the
+            // attacker, then a big concussive blast that shoves the
+            // victim - never a plain pop.
+            if (!instant) {
+              const shooter = side.actor
+              const victim = side.target
+              const blastRef = { done: false }
+              actionRaf = startAction(
+                (t, ao) => {
+                  if (t < 0.4) {
+                    const w = t / 0.4
+                    ao.lean.pitch = -0.24 * Math.sin((w * Math.PI) / 2)
+                    ao.offset.x = -ao.away * 0.2 * (w * w)
+                  } else {
+                    if (!blastRef.done) {
+                      blastRef.done = true
+                      spawnBurst(victim.group.position.clone(), step.element, {
+                        puffs: 9,
+                        size: 1.6,
+                        life: 460,
+                        gravity: 9,
+                        flashGrow: 2.8,
+                      })
+                      impulse(victim, -0.5)
+                    }
+                    const w = clamp01((t - 0.4) / 0.6)
+                    ao.lean.pitch = 0.14 * Math.sin(w * Math.PI)
+                    ao.offset.x = -ao.away * (0.2 - 0.5 * Math.sin(w * Math.PI))
+                  }
+                },
+                shooter,
+                victim,
+              )
+            } else {
+              spawnBurst(at.clone(), step.element, {
+                puffs: 9,
+                size: 1.6,
+                life: 460,
+                gravity: 9,
+                flashGrow: 2.8,
+              })
+              impulse(side.target, -0.5)
+            }
           } else {
             spawnBurst(at.clone(), step.element)
-            if (pointBlank && step.moveId === "cinder_shot") {
-              impulse(side.target, -0.6) // the Hammer shoves
-            }
           }
           if (!instant && pointBlank && step.moveId !== undefined) {
             const bespoke =
-              step.moveId === "cinder_shot" ||
-              step.moveId === "spore_burst" ||
-              step.moveId === "foam_volley"
+              step.moveId === "spore_burst" || step.moveId === "foam_volley"
             if (bespoke) {
-              // Spore answers with a full-body spin release; the others
-              // with a recoil. Nothing flew, so the body still speaks.
+              // Spore answers with a full-body spin release; foam with a
+              // recoil. (Cinder authored its own coil-beat above.)
               const shooter = side.actor
               const spin = step.moveId === "spore_burst"
               actionRaf = startAction(
