@@ -42,13 +42,13 @@ verification for DOM/scene tasks, phase checkpoints with git notes.
 
 ## Phase D — Reset-save + onboarding callouts
 
-- [ ] Task: Write failing tests — `clearSave` on the storage adapter;
-      callout dismissal-state persistence
-- [ ] Task: Implement dock "New game" button + confirm modal → wipe + reload
-      to starter choice (manual verification)
-- [ ] Task: Extend the callout precedence chain (day-1 AP, training-tier ~day 5,
-      cup-eve day 6) with persisted dismissal (manual verification of copy)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Write failing tests — `clearSave` + `markHintSeen` / seenHints
+      dismissal persistence `[ca8940b]`
+- [x] Task: Implement dock "New game" button + confirm modal → wipe +
+      reload to starter `[ca8940b]`
+- [x] Task: Callout precedence chain extension (day-1 AP, training-tier
+      ~day 5, cup-eve day 6) with persisted dismissal `[ca8940b]`
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: ca8940b]`
 
 ## Phase E — Final verification
 
