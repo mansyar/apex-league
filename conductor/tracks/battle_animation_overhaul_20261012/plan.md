@@ -122,9 +122,12 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
         new moves slot in by adding one registry entry)
         (a376c29 + aa5ce63 SHOT_LOOK per-element shot identity;
         user approved builds 18-19)
-- [ ] **Task: Reaction library** - dodge/hurt/stagger/knockback/down
+- [x] **Task: Reaction library** - dodge/hurt/stagger/knockback/down
         mapped from enriched events *(pure mapping tested; rendering
         manual)*
+        (21aeb7d - REACTION_BASES table + reactionFor in choreo.ts,
+        staging reel/knockback/dodge/down wiring, heavy-blow contact
+        no longer double-nudges; user approved build 20)
 - [ ] **Task: Phase Verification & Checkpoint (Refer to workflow.md)** —
         full-battle feel-check
 
