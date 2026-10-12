@@ -4,6 +4,7 @@
  */
 
 import { type Creature, createCreature } from "./creature"
+import { initialLadder, type LadderState } from "./ladder"
 
 /** Top-level game phases: the day loop and the cup-day loop. */
 export type Phase = "day" | "cup"
@@ -41,6 +42,8 @@ export interface GameState {
   cupsWon: number
   /** The last cup day the player entered, if any (save v5). */
   lastCupDay: number | null
+  /** The Bronze ladder slice: points + sub-tier (save v8). */
+  ladder: LadderState
 }
 
 /** Action points granted at the start of each day. Stub value for Phase 0. */
@@ -56,6 +59,7 @@ export function createInitialState(): GameState {
     settings: { reducedMotion: false, seenHints: [] },
     cupsWon: 0,
     lastCupDay: null,
+    ladder: initialLadder(),
   }
 }
 

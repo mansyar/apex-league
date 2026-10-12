@@ -556,3 +556,83 @@ describe("placement regression — a draw cannot under-place the player", () => 
     expect(cupPlacement(session)).toBe(3)
   })
 })
+
+describe("finalizeCup — ladder points (bronze ladder)", () => {
+  test("the champion banks +3 ladder points", () => {
+    // Sweep for a champion seed (same scaffolding as the win-bundle test).
+    for (let seed = 1; seed <= 60; seed++) {
+      const s = cupDayState(seed)
+      let session = prepareCup(s)
+      if (!session) throw new Error("session did not resolve")
+      const creature = s.creature as Creature
+      const species = getSpecies(creature.speciesId)
+      if (!species) throw new Error("unknown species")
+      const picks = {
+        loadout: defaultLoadout(creature, species),
+        tactic: "balanced" as Tactic,
+      }
+      for (
+        let round = 1;
+        round <= 3 && session.status === "player-turn";
+        round++
+      ) {
+        session = resolvePlayerMatch(
+          session,
+          picks.loadout,
+          picks.tactic,
+        ).session
+      }
+      if (session.status !== "champion") continue
+      const next = finalizeCup(s, session)
+      expect(next.ladder).toEqual({ points: 3, subTier: "III" })
+      return
+    }
+    throw new Error("no champion seed found in the sweep")
+  })
+
+  test("a QF exit banks 0 ladder points", () => {
+    // Same sweep as eliminatedAt(1) above (that helper is describe-scoped):
+    // find a seed where the player loses the quarterfinal outright.
+    for (let seed = 1; seed <= 60; seed++) {
+      const s = cupDayState(seed)
+      const session = prepareCup(s)
+      if (!session) throw new Error("session did not resolve")
+      const creature = s.creature as Creature
+      const species = getSpecies(creature.speciesId)
+      if (!species) throw new Error("unknown species")
+      const picks = {
+        loadout: defaultLoadout(creature, species),
+        tactic: "balanced" as Tactic,
+      }
+      const last = resolvePlayerMatch(session, picks.loadout, picks.tactic)
+      if (last.verdict.winner === creature.name) continue
+      const next = finalizeCup(s, completeCup(last.session))
+      expect(next.ladder).toEqual({ points: 0, subTier: "III" })
+      return
+    }
+    throw new Error("no seed eliminates the player in round 1")
+  })
+
+  test("a forfeited cup banks 0 points even from the semifinal round", () => {
+    // Win the QF, then give away the semifinal: the placement reads 3 but
+    // the null-battle forfeit verdict must zero the points.
+    for (let seed = 1; seed <= 60; seed++) {
+      const s = cupDayState(seed)
+      const session = prepareCup(s)
+      if (!session) throw new Error("session did not resolve")
+      const creature = s.creature as Creature
+      const species = getSpecies(creature.speciesId)
+      if (!species) throw new Error("unknown species")
+      const picks = {
+        loadout: defaultLoadout(creature, species),
+        tactic: "balanced" as Tactic,
+      }
+      const r = resolvePlayerMatch(session, picks.loadout, picks.tactic)
+      if (r.session.status !== "player-turn") continue // lost the QF
+      const next = finalizeCup(s, forfeitCup(r.session))
+      expect(next.ladder).toEqual({ points: 0, subTier: "III" })
+      return
+    }
+    throw new Error("no QF-win seed found in the sweep")
+  })
+})

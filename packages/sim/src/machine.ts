@@ -9,6 +9,7 @@ import {
   startCupSession,
 } from "./cup"
 import { applyCupRewards } from "./cupRewards"
+import { applyCupPlacement } from "./ladder"
 import type { GameState } from "./state"
 
 /**
@@ -81,9 +82,12 @@ export function enterCup(state: GameState): {
     cup.playerPlacement === 1 ? "won" : "lost",
     day,
   )
+  // The legacy path never forfeits — the placement maps straight to
+  // points on the same seam as the rewards (bronze ladder).
+  const laddered = applyCupPlacement(rewarded, cup.playerPlacement, false)
   // The cup has been played: leave the cup phase behind (back to the day
   // loop). Winning stamps lastCupDay (rewards); a loss leaves it null.
-  return { state: { ...rewarded, phase: "day" }, ok: true, cup }
+  return { state: { ...laddered.state, phase: "day" }, ok: true, cup }
 }
 
 /**
@@ -124,5 +128,11 @@ export function finalizeCup(state: GameState, session: CupSession): GameState {
     cupPlacement(session) === 1 ? "won" : "lost",
     state.day,
   )
-  return { ...rewarded, phase: "day" }
+  // A forfeit verdict is the only one with a null battle replay (see
+  // RoundVerdict): it zeroes the placement's ladder points (bronze ladder
+  // spec — giving a round away earns nothing, whatever the round).
+  const lastVerdict = session.playerVerdicts.at(-1)
+  const forfeited = lastVerdict !== undefined && lastVerdict.battle === null
+  const laddered = applyCupPlacement(rewarded, cupPlacement(session), forfeited)
+  return { ...laddered.state, phase: "day" }
 }
