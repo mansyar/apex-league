@@ -39,9 +39,9 @@ cannot silently change outcomes), then delete, then refactor the client last
       placement/results rows, forfeit early-exit, promotion-aware row, and
       topology-agnostic round/slot derivation (prove with synthetic 4- and
       16-entrant brackets). [red confirmed: module absent]
-- [~] Task: Extract `bracket-model.ts` — implement the model from
+- [x] Task: Extract `bracket-model.ts` — implement the model from
       `createCup`'s DOM factory; rewire client `cup.ts` to consume it; green
-      tests; no visual diff.
+      tests; no visual diff. [cb31de9]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Final verification
