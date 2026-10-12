@@ -7,7 +7,7 @@ cannot silently change outcomes), then delete, then refactor the client last
 
 ## Phase 1 — Pin the contract (sim, tests only)
 
-- [ ] Task: Seed & placement contract tests — new tests against the *live*
+- [x] Task: Seed & placement contract tests — new tests against the *live* `9103a94`
       engine pinning the rival-seed formula `(day*97 + round*13 + i*7) >>> 0`
       per (day, round, slot) and the `cupPlacement` mapping (champion +3 /
       runner-up +2 / semifinal +1 / else 0). Characterization tests:
