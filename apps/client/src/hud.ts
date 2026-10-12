@@ -434,7 +434,6 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       picker.style.display = "none"
       status.textContent = ""
       motionPill.style.display = ""
-      cameraPill.style.display = ""
       capturePrefUpdate(state)
       return
     }

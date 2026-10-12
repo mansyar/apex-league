@@ -344,9 +344,15 @@ body,
   cursor: pointer;
 }
 
-/* Camera pill stacks right under the motion pill (save v7). */
+/* Camera pill stacks right under the motion pill (save v7) — but it is a
+   battle-presentation control, so it only appears inside the arena. */
 .camera-pill {
   bottom: 172px;
+  display: none;
+}
+
+.app-in-arena .camera-pill {
+  display: flex;
 }
 
 .motion-pill.is-on {
