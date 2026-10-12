@@ -52,3 +52,8 @@ cannot silently change outcomes), then delete, then refactor the client last
       points), refresh mid-walk resume, forfeit path, visual parity of all
       cup screens; then conductor-review handoff. [d55ad98]
   [checkpoint: 7628a1b] Phase 4 complete — full walkthrough passed (championship run, refresh resume, forfeit); 808/808 pass, verify green, user-approved.
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions — justify the `as CupSlot` assertion
+      in bracket-model tests (Low); `MatchId = string` noted as an accepted
+      tradeoff of topology-agnostic ids. [9c68ea1]
