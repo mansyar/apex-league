@@ -31,14 +31,14 @@ verification for DOM/scene tasks, phase checkpoints with git notes.
 
 ## Phase C — Creature renaming
 
-- [ ] Task: Write failing tests — sim `renameCreature`: trim/length cap (≤16),
+- [x] Task: Write failing tests — sim `renameCreature`: trim/length cap (≤16),
       empty → species default name, rejection while phase is `"cup"`
-      (success AND failure cases)
-- [ ] Task: Implement `renameCreature` in `packages/sim` + wire through the
-      store commit path
-- [ ] Task: HUD inline edit on the creature lower-third (manual verification;
-      kit styling; aria conventions)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+      (success AND failure cases) `[819cb1a]`
+- [x] Task: Implement `renameCreature` in `packages/sim` + wire through the
+      store commit path `[819cb1a]`
+- [x] Task: HUD inline edit on the creature lower-third (manual verification;
+      kit styling; aria conventions) `[819cb1a]`
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: 819cb1a]`
 
 ## Phase D — Reset-save + onboarding callouts
 
