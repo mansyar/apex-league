@@ -82,7 +82,7 @@ const migrations: Record<
       phase: isCupDay(day) ? "cup" : "day",
       actionPoints: ACTION_POINTS_PER_DAY,
       creature: null,
-      settings: { reducedMotion: false },
+      settings: { reducedMotion: false, seenHints: [] },
       cupsWon: 0,
       lastCupDay: null,
     }
@@ -98,7 +98,7 @@ const migrations: Record<
       phase,
       actionPoints,
       creature: createCreature("fire_drake", STARTER_GRANT_SEED),
-      settings: { reducedMotion: false },
+      settings: { reducedMotion: false, seenHints: [] },
       cupsWon: 0,
       lastCupDay: null,
     }
@@ -123,7 +123,7 @@ const migrations: Record<
       phase,
       actionPoints,
       creature,
-      settings: { reducedMotion: false },
+      settings: { reducedMotion: false, seenHints: [] },
       cupsWon: 0,
       lastCupDay: null,
     }
@@ -152,7 +152,7 @@ const migrations: Record<
       phase,
       actionPoints,
       creature,
-      settings: { reducedMotion: false },
+      settings: { reducedMotion: false, seenHints: [] },
       cupsWon: 0,
       lastCupDay: null,
     }
@@ -169,7 +169,7 @@ const migrations: Record<
     const settings =
       s.settings !== undefined && s.settings !== null
         ? (s.settings as GameState["settings"])
-        : { reducedMotion: false }
+        : { reducedMotion: false, seenHints: [] }
     const creature =
       s.creature !== null && s.creature !== undefined
         ? (s.creature as GameState["creature"])
@@ -207,6 +207,44 @@ const migrations: Record<
       lastCupDay: s.lastCupDay as GameState["lastCupDay"],
     }
     return { version: 6, state: migrated, savedAt: raw.savedAt ?? 0 }
+  },
+
+  // v6 → v7 (merged migration, save-safety track): saves gain the persisted
+  // cup-session slot (null — a migrated save never has a live session) and
+  // a clean onboarding hint ledger in settings. A v6 payload's settings
+  // predate the ledger, so stamp it here; reducedMotion is forwarded
+  // unchanged so corrupt values still fail load-time validation (the same
+  // gate the v5→v6 flow relies on).
+  6: (raw) => {
+    const { day, phase, actionPoints, state: s } = validateStateShape(raw, 6)
+    const rawSettings =
+      s.settings !== undefined && s.settings !== null
+        ? (s.settings as Record<string, unknown>)
+        : {}
+    const seenHints = Array.isArray(rawSettings.seenHints)
+      ? (rawSettings.seenHints as unknown[]).filter(
+          (hint): hint is string => typeof hint === "string",
+        )
+      : []
+    const migrated: GameState = {
+      day,
+      phase,
+      actionPoints,
+      creature: s.creature as GameState["creature"],
+      settings: {
+        reducedMotion:
+          rawSettings.reducedMotion as GameState["settings"]["reducedMotion"],
+        seenHints,
+      },
+      cupsWon: s.cupsWon as GameState["cupsWon"],
+      lastCupDay: s.lastCupDay as GameState["lastCupDay"],
+    }
+    return {
+      version: 7,
+      state: migrated,
+      savedAt: raw.savedAt ?? 0,
+      session: null,
+    }
   },
 }
 /**

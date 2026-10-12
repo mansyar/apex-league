@@ -5,6 +5,7 @@
 
 import { makeRng, type Rng } from "./rng"
 import { getSpecies, type SpeciesDef } from "./species"
+import type { GameState } from "./state"
 
 /** The six league elements. Each has one fixed hue (type-color contract). */
 export type Element = "fire" | "water" | "plant" | "electric" | "earth" | "wind"
@@ -169,5 +170,36 @@ export function createCreature(
     conditions: { ...CONDITION_START },
     bondedToday: false,
     fedToday: false,
+  }
+}
+
+/** How long a player-chosen name may be after trimming. */
+export const NAME_MAX_LENGTH = 16
+
+export type RenameResult =
+  | { ok: true; state: GameState }
+  | { ok: false; reason: "no-creature" | "cup-phase" }
+
+/**
+ * Rename the partner (save v7 QoL). Free — no AP, no day cost. The name is
+ * trimmed and clamped to NAME_MAX_LENGTH; an empty result resets to the
+ * species' default display name. Blocked mid-cup so a rename can never
+ * fight the bracket's identity bookkeeping.
+ */
+export function renameCreature(state: GameState, name: string): RenameResult {
+  if (!state.creature) return { ok: false, reason: "no-creature" }
+  if (state.phase === "cup") return { ok: false, reason: "cup-phase" }
+  const trimmed = name.trim().slice(0, NAME_MAX_LENGTH)
+  const nextName =
+    trimmed.length > 0
+      ? trimmed
+      : (getSpecies(state.creature.speciesId)?.displayName ??
+        state.creature.name)
+  return {
+    ok: true,
+    state: {
+      ...state,
+      creature: { ...state.creature, name: nextName },
+    },
   }
 }

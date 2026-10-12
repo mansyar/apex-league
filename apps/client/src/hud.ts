@@ -44,6 +44,16 @@ export interface HudHandlers {
    * sim change). The HUD only mirrors state; wiring stays in main.ts.
    */
   onToggleReducedMotion: () => void
+  /**
+   * Rename the partner through the sim (save v7 QoL). Returns false when
+   * the sim rejects (e.g. mid-cup) so the HUD can coach instead of acting.
+   */
+  onRename: (name: string) => boolean
+  /** Wipe the save and boot back to the starter picker (main.ts owns the
+   * clearSave + reload). Only called after the modal confirm. */
+  onReset: () => void
+  /** Persist a dismissed onboarding hint id into settings.seenHints. */
+  onHintSeen: (hintId: string) => void
 }
 
 export interface Hud {
@@ -207,6 +217,15 @@ export function saveFailureNotice(): string {
 }
 
 /**
+ * The corrupt-save coach line: calm, blame-free, non-blocking. Shown once
+ * at boot when an existing save cannot be read — the game starts fresh,
+ * and the player deserves to know why.
+ */
+export function corruptSaveNotice(): string {
+  return "That old save couldn't be read — starting fresh. Sorry about that."
+}
+
+/**
  * The status line leads with training: the preview while a focus is set,
  * the morning result after Advance Day, and the condition coach line only
  * when training has nothing to say.
@@ -304,6 +323,40 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   creatureChev.innerHTML = icons.chevron
   creatureHead.append(crestEl, creatureName, stageTab, creatureChev)
 
+  // Rename affordance: a sibling button (never nested inside the collapse
+  // toggle) that swaps the head row for an inline edit form.
+  const renameButton = document.createElement("button")
+  renameButton.className = "rename-button"
+  renameButton.type = "button"
+  renameButton.title = "Rename partner"
+  renameButton.setAttribute("aria-label", "Rename partner")
+  renameButton.innerHTML = icons.pencil
+  const headRow = document.createElement("div")
+  headRow.className = "creature-headrow"
+  headRow.append(creatureHead, renameButton)
+
+  // Inline edit form: name input + confirm/cancel. Hidden until the
+  // pencil is pressed; Enter confirms, Escape cancels.
+  const nameInput = document.createElement("input")
+  nameInput.className = "creature-name-input"
+  nameInput.type = "text"
+  nameInput.maxLength = 16
+  nameInput.setAttribute("aria-label", "Creature name")
+  const renameConfirm = document.createElement("button")
+  renameConfirm.className = "kit-button rename-confirm"
+  renameConfirm.type = "button"
+  renameConfirm.textContent = "Save"
+  renameConfirm.setAttribute("aria-label", "Save name")
+  const renameCancel = document.createElement("button")
+  renameCancel.className = "kit-button rename-cancel"
+  renameCancel.type = "button"
+  renameCancel.textContent = "Cancel"
+  renameCancel.setAttribute("aria-label", "Cancel rename")
+  const editRow = document.createElement("div")
+  editRow.className = "creature-name-edit"
+  editRow.style.display = "none"
+  editRow.append(nameInput, renameConfirm, renameCancel)
+
   const statRow = document.createElement("div")
   statRow.className = "stat-row"
   const statCells = STATS.map(({ key, label }) => {
@@ -348,7 +401,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   // Hardening: the announcer strip is live region (screen readers hear
   // routine callouts without focus).
   statusTicker.root.setAttribute("aria-live", "polite")
-  lowerThird.append(creatureHead, statRow, conditionList, statusTicker.root)
+  lowerThird.append(headRow, editRow, statRow, conditionList, statusTicker.root)
 
   // Bottom-right command dock (broadcast kit plate). A slim header row
   // doubles as the collapse toggle; collapsed, only the "ACTIONS" label
@@ -426,7 +479,121 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   motionWrap.className = "hud-motion"
   motionWrap.append(motionChip)
 
-  root.append(scoreBug, lowerThird, cluster, motionWrap)
+  // New game (save v7 QoL): a quiet chip beside the motion toggle. The
+  // confirm modal does the scary part — one deliberate click, not a misclick.
+  const resetChip = chip({
+    label: "New game",
+    variant: "dim",
+    onClick: () => {
+      resetModal.style.display = ""
+      resetConfirm.focus()
+    },
+  })
+  motionWrap.append(resetChip)
+
+  const resetModal = document.createElement("div")
+  resetModal.className = "kit-modal"
+  resetModal.style.display = "none"
+  resetModal.setAttribute("role", "dialog")
+  resetModal.setAttribute("aria-modal", "true")
+  const resetBox = document.createElement("div")
+  resetBox.className = "kit-plate kit-modal-box"
+  const resetTitle = document.createElement("h2")
+  resetTitle.className = "kit-modal-title"
+  resetTitle.textContent = "Start a fresh ranch?"
+  const resetText = document.createElement("p")
+  resetText.className = "kit-modal-text"
+  resetText.textContent =
+    "This partner, their training, and every cup win will be gone for good."
+  const resetActions = document.createElement("div")
+  resetActions.className = "kit-modal-actions"
+  const resetCancel = chip({
+    label: "Keep playing",
+    variant: "dim",
+    onClick: () => {
+      resetModal.style.display = "none"
+    },
+  })
+  const resetConfirm = document.createElement("button")
+  resetConfirm.className = "kit-button kit-button-danger"
+  resetConfirm.type = "button"
+  resetConfirm.textContent = "Start over"
+  resetActions.append(resetCancel, resetConfirm)
+  resetBox.append(resetTitle, resetText, resetActions)
+  resetModal.append(resetBox)
+  resetConfirm.addEventListener("click", () => {
+    resetModal.style.display = "none"
+    handlers.onReset()
+  })
+  // Escape backs out; a backdrop click means "not today". The focus trap
+  // keeps Tab inside the dialog — the scrim hides the page, so focus
+  // wandering into it would be invisible.
+  const trapFocus = (event: KeyboardEvent): void => {
+    if (event.key !== "Tab") return
+    const focusable = resetBox.querySelectorAll<HTMLElement>(
+      "button, [href], input",
+    )
+    if (focusable.length === 0) return
+    const first = focusable[0] as HTMLElement
+    const last = focusable[focusable.length - 1] as HTMLElement
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault()
+      first.focus()
+    }
+  }
+  resetModal.addEventListener("keydown", (event) => {
+    trapFocus(event)
+    if (event.key === "Escape") resetModal.style.display = "none"
+  })
+  resetModal.addEventListener("click", (event) => {
+    if (event.target === resetModal) resetModal.style.display = "none"
+  })
+
+  // Onboarding callouts (save v7): coach-voice nudges that appear once at
+  // the moment they matter, then never again — dismissal persists in
+  // settings.seenHints. First match wins (the precedence order below is
+  // the teaching order: AP first, kit depth second, cup last).
+  let shownHintId: string | null = null
+  const HINTS: Array<{
+    id: string
+    when: (state: GameState) => boolean
+    text: string
+  }> = [
+    {
+      id: "ap-basics",
+      when: (s) => s.phase === "day" && s.day === 1 && s.creature !== null,
+      text: "Three action points a day — feed, rest, treat, play. Spend them like they matter.",
+    },
+    {
+      id: "training-tier",
+      when: (s) => s.phase === "day" && s.day === 5 && s.creature !== null,
+      text: "Training focus sticks between days, and the kit keeps growing — one more move unlocks tomorrow.",
+    },
+    {
+      id: "cup-eve",
+      when: (s) => s.phase === "day" && s.day % 7 === 6 && s.creature !== null,
+      text: "Cup day is tomorrow. The bracket takes your partner as they are — spend today wisely.",
+    },
+  ]
+  const callout = document.createElement("div")
+  callout.className = "kit-plate hud-callout"
+  callout.style.display = "none"
+  const calloutText = document.createElement("p")
+  calloutText.className = "hud-callout-text"
+  const calloutOk = chip({
+    label: "Got it",
+    variant: "accent",
+    onClick: () => {
+      if (shownHintId) handlers.onHintSeen(shownHintId)
+      shownHintId = null
+      callout.style.display = "none"
+    },
+  })
+  callout.append(calloutText, calloutOk)
+  root.append(scoreBug, lowerThird, cluster, motionWrap, resetModal, callout)
 
   let pickerOpen = false
   let lastFocus: StatKey | null = null
@@ -449,6 +616,36 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     creatureOpen = !creatureOpen
     lowerThird.classList.toggle("is-collapsed", !creatureOpen)
     creatureHead.setAttribute("aria-expanded", creatureOpen ? "true" : "false")
+  })
+
+  // Rename flow: pencil opens the inline edit, Enter/click confirms,
+  // Escape/cancel backs out. A sim rejection (mid-cup) coaches and stays.
+  let renaming = false
+  const openRename = () => {
+    if (!current?.creature || current.phase === "cup") return
+    renaming = true
+    nameInput.value = current.creature.name
+    headRow.style.display = "none"
+    editRow.style.display = ""
+    nameInput.focus()
+    nameInput.select()
+  }
+  const closeRename = () => {
+    renaming = false
+    editRow.style.display = "none"
+    headRow.style.display = ""
+  }
+  const confirmRename = () => {
+    if (!current) return
+    if (handlers.onRename(nameInput.value)) closeRename()
+    else statusTicker.say("Renaming waits until the cup is done.")
+  }
+  renameButton.addEventListener("click", openRename)
+  renameCancel.addEventListener("click", closeRename)
+  renameConfirm.addEventListener("click", confirmRename)
+  nameInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") confirmRename()
+    if (event.key === "Escape") closeRename()
   })
 
   dockHead.addEventListener("click", () => {
@@ -530,6 +727,23 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     crestEl.innerHTML = crestGlyph(creature.element)
     crestEl.style.setProperty("--hue", String(elementHue(creature.element)))
     creatureName.textContent = creature.name
+    // Rename is a day-phase affordance; mid-cup the pencil hides and an
+    // open editor folds away (the sim would reject anyway).
+    renameButton.style.display = state.phase === "cup" ? "none" : ""
+    if (renaming && state.phase === "cup") closeRename()
+
+    // Onboarding callout: the first unseen hint whose moment is now.
+    // Dismissal persists through the sim, so a hint never asks twice.
+    const seen = new Set(state.settings.seenHints)
+    const active = HINTS.find((h) => h.when(state) && !seen.has(h.id))
+    if (active && active.id !== shownHintId) {
+      shownHintId = active.id
+      calloutText.textContent = active.text
+      callout.style.display = ""
+    } else if (!active && shownHintId !== null) {
+      shownHintId = null
+      callout.style.display = "none"
+    }
     stageTab.textContent = stageLabel(creature.stage)
     stageTab.className = "kit-tab is-stage"
 

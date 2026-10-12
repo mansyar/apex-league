@@ -1,0 +1,9 @@
+{
+  "id": "save_safety_20261012",
+  "title": "Save Safety & QoL Pass — cup-session persistence (save v7), corrupt-save notice, juvenile cup seed fix, creature rename, reset-save, onboarding callouts",
+  "type": "bug+feature",
+  "status": "complete",
+  "createdAt": "2026-10-12",
+  "branch": "track/save_safety_20261012",
+  "base": "main @ 0c90e48"
+}

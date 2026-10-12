@@ -15,6 +15,11 @@ export interface GameSettings {
    * disallows camera shake and impact flash effects. Gameplay stays legible.
    */
   reducedMotion: boolean
+  /**
+   * Dismissed onboarding hint ids (save v7). Each first-day callout shows
+   * once, then records its id here so it never nags again.
+   */
+  seenHints: string[]
 }
 
 /** The single source of truth for a run's simulation state. */
@@ -48,7 +53,7 @@ export function createInitialState(): GameState {
     phase: "day",
     actionPoints: ACTION_POINTS_PER_DAY,
     creature: null,
-    settings: { reducedMotion: false },
+    settings: { reducedMotion: false, seenHints: [] },
     cupsWon: 0,
     lastCupDay: null,
   }
@@ -60,6 +65,19 @@ export function createInitialState(): GameState {
  */
 export function setReducedMotion(state: GameState, value: boolean): GameState {
   return { ...state, settings: { ...state.settings, reducedMotion: value } }
+}
+
+/**
+ * Record an onboarding hint as dismissed (save v7's seenHints ledger).
+ * Pure and idempotent: an already-seen id keeps the list unchanged.
+ */
+export function markHintSeen(state: GameState, hintId: string): GameState {
+  const seen = state.settings.seenHints
+  if (seen.includes(hintId)) return state
+  return {
+    ...state,
+    settings: { ...state.settings, seenHints: [...seen, hintId] },
+  }
 }
 
 /**

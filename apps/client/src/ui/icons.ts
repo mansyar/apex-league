@@ -35,6 +35,11 @@ export const icons = {
   chevron: stroked('<path d="M6 9l6 6 6-6"/>', 2.4),
   /** Close affordance (X) for overlay panels. */
   close: stroked('<path d="M6 6l12 12M18 6 6 18"/>', 2.4),
+  /** Rename affordance (pencil) beside the creature name. */
+  pencil: stroked(
+    '<path d="M4 20h4L19.5 8.5a2.12 2.12 0 0 0-3-3L5 17l-1 4z"/><path d="M13.5 6.5l3 3"/>',
+    2,
+  ),
 
   /** Condition glyphs (creature lower-third bars). */
   hunger: svg(

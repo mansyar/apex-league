@@ -60,6 +60,9 @@ export {
   type Element,
   effectiveStats,
   type LifeStage,
+  NAME_MAX_LENGTH,
+  type RenameResult,
+  renameCreature,
   type StatKey,
   TRAINED_START,
   TRAINING_CAP,
@@ -118,8 +121,11 @@ export { makeRng, type Rng } from "./rng"
 export { migrate } from "./save/migrate"
 export { SAVE_VERSION, type SaveData, serializeSave } from "./save/schema"
 export {
+  clearSave,
   createMemoryAdapter,
+  loadBoot,
   loadGame,
+  loadSave,
   SAVE_KEY,
   type SaveAdapter,
   saveGame,
@@ -138,6 +144,7 @@ export {
   chooseStarter,
   createInitialState,
   type GameState,
+  markHintSeen,
   type Phase,
   setReducedMotion,
 } from "./state"

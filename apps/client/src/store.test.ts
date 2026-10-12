@@ -1,8 +1,10 @@
 import { describe, expect, test } from "bun:test"
 import {
+  type CupSession,
   chooseStarter,
   createInitialState,
   type GameState,
+  prepareCup,
   type SaveAdapter,
 } from "@apex/sim"
 import { createGameStore } from "./store"
@@ -27,6 +29,9 @@ function fakeAdapter(): SaveAdapter & { writes: string[]; failNext: boolean } {
       adapter.writes.push(value)
       map.set(key, value)
     },
+    removeItem: (key: string) => {
+      map.delete(key)
+    },
   }
   return adapter
 }
@@ -50,7 +55,7 @@ describe("createGameStore", () => {
       savedAt: number
       state: { day: number }
     }
-    expect(saved.version).toBe(6)
+    expect(saved.version).toBe(7)
     expect(saved.savedAt).toBe(0)
     expect(saved.state.day).toBe(9)
   })
@@ -111,5 +116,96 @@ describe("createGameStore", () => {
     store.subscribe((state) => seen.push(`second:${state.day}`))
     expect(() => store.commit({ ...store.get(), day: 4 })).toThrow("boom")
     expect(seen).toEqual(["second:4"])
+  })
+})
+
+describe("game store — cup session persistence", () => {
+  /** A live session fixture for a fresh cup. */
+  function liveSession(): CupSession {
+    const session = prepareCup(startState())
+    if (!session) throw new Error("no session")
+    return session
+  }
+
+  test("getSession returns null by default", () => {
+    const store = createGameStore(startState(), fakeAdapter(), { now: () => 0 })
+    expect(store.getSession()).toBeNull()
+  })
+
+  test("boot options can seed the session from a restored save", () => {
+    const session = liveSession()
+    const store = createGameStore(startState(), fakeAdapter(), {
+      now: () => 0,
+      initialSession: session,
+    })
+    expect(store.getSession()).toEqual(session)
+  })
+
+  test("setSession stores the session, persists it, and notifies nobody", () => {
+    const adapter = fakeAdapter()
+    const store = createGameStore(startState(), adapter, { now: () => 7 })
+    const calls: number[] = []
+    store.subscribe(() => calls.push(1))
+    const session = liveSession()
+    store.setSession(session)
+    expect(calls).toHaveLength(0)
+    const saved = JSON.parse(adapter.writes[0] ?? "{}") as {
+      session: CupSession | null
+      savedAt: number
+    }
+    expect(saved.session).toEqual(session)
+    expect(saved.savedAt).toBe(7)
+  })
+
+  test("commit persists the live session attached to the save", () => {
+    const adapter = fakeAdapter()
+    const store = createGameStore(startState(), adapter, { now: () => 0 })
+    const session = liveSession()
+    store.setSession(session)
+    store.commit({ ...store.get(), day: 2 })
+    const saved = JSON.parse(
+      adapter.writes[adapter.writes.length - 1] ?? "{}",
+    ) as { session: CupSession | null }
+    expect(saved.session).toEqual(session)
+    expect(store.getSession()).toEqual(session)
+  })
+
+  test("commit keeps riding a previously set session until it is cleared", () => {
+    const adapter = fakeAdapter()
+    const store = createGameStore(startState(), adapter, { now: () => 0 })
+    const session = liveSession()
+    store.setSession(session)
+    store.commit({ ...store.get(), day: 2 })
+    store.commit({ ...store.get(), day: 3 })
+    for (const write of adapter.writes) {
+      const saved = JSON.parse(write) as { session: CupSession | null }
+      expect(saved.session).toEqual(session)
+    }
+  })
+
+  test("setSession(null) clears the session from the store and the save", () => {
+    const adapter = fakeAdapter()
+    const store = createGameStore(startState(), adapter, { now: () => 0 })
+    store.setSession(liveSession())
+    store.setSession(null)
+    expect(store.getSession()).toBeNull()
+    const saved = JSON.parse(
+      adapter.writes[adapter.writes.length - 1] ?? "{}",
+    ) as { session: CupSession | null }
+    expect(saved.session).toBeNull()
+  })
+
+  test("a finalized session does not resurrect: cleared, later commits stay clean", () => {
+    const adapter = fakeAdapter()
+    const store = createGameStore(startState(), adapter, { now: () => 0 })
+    store.setSession(liveSession())
+    // The finalize handler calls setSession(null) before its commit.
+    store.setSession(null)
+    store.commit({ ...store.get(), day: 9 })
+    const saved = JSON.parse(
+      adapter.writes[adapter.writes.length - 1] ?? "{}",
+    ) as { session: CupSession | null }
+    expect(saved.session).toBeNull()
+    expect(store.getSession()).toBeNull()
   })
 })
