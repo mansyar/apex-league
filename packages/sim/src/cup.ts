@@ -238,6 +238,24 @@ export interface CupSession {
   readonly championName: string | null
 }
 
+/**
+ * The per-pairing battle seed for one cup matchup: a linear mix of the cup
+ * day, the round number, and the pairing index inside that round.
+ *
+ * Every cup battle derives its seed here — the pre-resolved rival subtree,
+ * the player's own matches, and the bracket completion all read this one
+ * function, so a pairing's battle cannot silently change meaning because a
+ * second copy of the formula drifted. Contract pinned in
+ * cup-contracts.test.ts and the draw-stream goldens.
+ */
+export function cupMatchSeed(
+  day: number,
+  round: number,
+  pairingIndex: number,
+): number {
+  return (day * 97 + round * 13 + pairingIndex * 7) >>> 0
+}
+
 /** Start a live cup session: build the seeded bracket and pre-resolve the
  * player-independent subtree — QF2/QF3/QF4, then SF2 from their winners —
  * with the same per-pairing seed formula the one-sitting resolver uses, so
@@ -253,10 +271,9 @@ export function startCupSession(
     if (!slot) throw new Error("Bracket slot missing")
     return slot
   }
-  // Per-pairing battle seed: (day*97 + round*13 + i*7) with i the pairing
-  // index inside its round (contract pinned in cup-contracts.test.ts).
+  // Per-pairing battle seed: the pairing index inside its round.
   const rivalSeed = (round: number, i: number): number =>
-    (day * 97 + round * 13 + i * 7) >>> 0
+    cupMatchSeed(day, round, i)
   const qf2 = resolvePairing(1, slotAt(2), slotAt(3), rivalSeed(1, 1))
   const qf3 = resolvePairing(1, slotAt(4), slotAt(5), rivalSeed(1, 2))
   const qf4 = resolvePairing(1, slotAt(6), slotAt(7), rivalSeed(1, 3))
@@ -298,7 +315,8 @@ export function resolvePlayerMatch(
   if (!opponent || !playerSlot) {
     throw new Error("The session has no pending player pairing")
   }
-  const seed = (session.bracket.day * 97 + round * 13) >>> 0
+  // The player's own pairing is index 0 of its round.
+  const seed = cupMatchSeed(session.bracket.day, round, 0)
   const result: BattleResult = resolveBattle(
     slotPlayerSide(playerSlot, loadout, tactic),
     sideFor(opponent, seed),
@@ -370,7 +388,7 @@ function completeBracket(session: CupSession, conqueror: CupSlot): CupSession {
   ).length
   const day = session.bracket.day
   const seedFor = (round: number, i: number): number =>
-    (day * 97 + round * 13 + i * 7) >>> 0
+    cupMatchSeed(day, round, i)
   const completion: RoundVerdict[] = []
   // A player who lost the final (2 wins) left the SF2 winner as champion.
   if (wins >= CUP_ROUNDS - 1) {
@@ -503,18 +521,29 @@ function slotPlayerSide(
   }
 }
 
-/** Deterministic double-KO tiebreak: the slot with the higher remaining HP
- * advances; an exact tie (or a missing finalHp entry, treated as 0) falls to
- * the earlier slot in field order. Pure — the verdict line still reports the
- * draw; only bracket advancement is decided here. */
+/** Deterministic double-KO tiebreak by name: the fighter with the higher
+ * remaining HP advances; an exact tie (or a missing finalHp entry, treated as
+ * 0) falls to the earlier slot in field order. Pure — the verdict line still
+ * reports the draw; only bracket advancement is decided here.
+ *
+ * Name-level because the bracket screen must render the same advancement from
+ * a stored verdict, and a verdict carries names plus finalHp, not slots.
+ * {@link doubleKoWinner} is this rule over slot objects. */
+export function doubleKoAdvancingName(
+  a: string,
+  b: string,
+  finalHp: Readonly<Record<string, number>>,
+): string {
+  return (finalHp[b] ?? 0) > (finalHp[a] ?? 0) ? b : a
+}
+
+/** {@link doubleKoAdvancingName} over the pair's bracket slots. */
 export function doubleKoWinner(
   a: CupSlot,
   b: CupSlot,
   finalHp: Readonly<Record<string, number>>,
 ): CupSlot {
-  const hpA = finalHp[a.name] ?? 0
-  const hpB = finalHp[b.name] ?? 0
-  return hpB > hpA ? b : a
+  return doubleKoAdvancingName(a.name, b.name, finalHp) === a.name ? a : b
 }
 
 /** Resolve one rival-vs-rival pairing into a verdict (pure). The player's

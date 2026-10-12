@@ -160,9 +160,12 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
       rivalWinners: readonly (string | null)[]
     }> = [
       {
+        // FR6 rebalance ripple: QF1 at this seed is now a double-KO — the
+        // first golden exercise of the higher-HP tiebreak the bracket model
+        // must mirror (FR4).
         seed: 101,
         rivalWinners: [
-          "Tidecaller Nibbles",
+          null,
           "Ash-ledger",
           "Mossbottom Brute",
           "Mossbottom Brute",
@@ -177,10 +180,16 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
           "Cindersnout",
         ],
       },
-      // Seed 19 pins a double-KO in the rival subtree (QF4 winner null).
+      // FR6 rebalance ripple: the double-KO that used to sit at QF4 moved
+      // off this seed entirely (QF3 winner changed with it).
       {
         seed: 19,
-        rivalWinners: ["Driftbelle", "Thistledown Ash", null, "Reedle Mirefin"],
+        rivalWinners: [
+          "Driftbelle",
+          "Gilded Horn",
+          "Reedle Mirefin",
+          "Reedle Mirefin",
+        ],
       },
     ]
     for (const { seed, rivalWinners } of cases) {
@@ -195,22 +204,29 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
 })
 
 describe("cup engine contracts: player lifecycle golden (default picks)", () => {
-  test("champion path: seed 1, specials tactic — QF/SF/F all won, placement 1", () => {
+  test("champion path: seed 17, placement 1 — and the tactic cannot change it", () => {
+    // On cup day the default kit is two moves of cooldown 1, so both
+    // tactics rank identically (the objectives only diverge when a
+    // cooldown-2 move joins the kit). The champion path is therefore
+    // pinned under BOTH tactics as a tactic-invariance guard for the
+    // day-7 baby cup specifically.
     const creature = cupDayCreature()
-    const done = playToCompletion(creature, 7, 1, "specials")
-    expect(done.status).toBe("champion")
-    expect(done.championName).toBe("Ember Drake")
-    expect(cupPlacement(done)).toBe(1)
-    expect(done.playerVerdicts.map((v) => v.line)).toEqual([
-      "Ember Drake takes the Quarterfinal!",
-      "Ember Drake takes the Semifinal!",
-      "Ember Drake takes the Final!",
-    ])
-    expect(done.playerVerdicts.map((v) => v.winner)).toEqual([
-      "Ember Drake",
-      "Ember Drake",
-      "Ember Drake",
-    ])
+    for (const tactic of ["specials", "balanced"] as const) {
+      const done = playToCompletion(creature, 7, 17, tactic)
+      expect(done.status).toBe("champion")
+      expect(done.championName).toBe("Ember Drake")
+      expect(cupPlacement(done)).toBe(1)
+      expect(done.playerVerdicts.map((v) => v.line)).toEqual([
+        "Ember Drake takes the Quarterfinal!",
+        "Ember Drake takes the Semifinal!",
+        "Ember Drake takes the Final!",
+      ])
+      expect(done.playerVerdicts.map((v) => v.winner)).toEqual([
+        "Ember Drake",
+        "Ember Drake",
+        "Ember Drake",
+      ])
+    }
   })
 
   test("final loss: seed 6, balanced — placement 2, champion via completeCup", () => {
@@ -218,25 +234,25 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     const elim = playToCompletion(creature, 7, 6, "balanced")
     expect(elim.status).toBe("eliminated")
     expect(elim.playerVerdicts).toHaveLength(3)
-    expect(elim.playerVerdicts[2]?.winner).toBe("Thistledown Ash")
+    expect(elim.playerVerdicts[2]?.winner).toBe("Pondskipper Grub")
     expect(cupPlacement(elim)).toBe(2)
     // The final loss leaves the SF2 winner as champion: no more fights.
     const done = completeCup(elim)
-    expect(done.championName).toBe("Thistledown Ash")
+    expect(done.championName).toBe("Pondskipper Grub")
     expect(done.completionVerdicts).toHaveLength(0)
   })
 
-  test("SF exit: seed 1, balanced — placement 3, conqueror runs the final", () => {
+  test("SF exit: seed 2, balanced — placement 3, conqueror runs the final", () => {
     const creature = cupDayCreature()
-    const elim = playToCompletion(creature, 7, 1, "balanced")
+    const elim = playToCompletion(creature, 7, 2, "balanced")
     expect(elim.status).toBe("eliminated")
     expect(elim.playerVerdicts).toHaveLength(2)
     expect(cupPlacement(elim)).toBe(3)
     const done = completeCup(elim)
-    expect(done.championName).toBe("Reedle Mirefin")
+    expect(done.championName).toBe("Bonfire Brook")
     expect(
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
-    ).toEqual([[3, "Reedle Mirefin", "Cindersnout", "Reedle Mirefin"]])
+    ).toEqual([[3, "Bramble Knoll Ox", "Bonfire Brook", "Bonfire Brook"]])
   })
 
   test("QF exit: seed 101, balanced — placement 4, bracket completes in order", () => {
@@ -246,12 +262,12 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     expect(elim.playerVerdicts).toHaveLength(1)
     expect(cupPlacement(elim)).toBe(4)
     const done = completeCup(elim)
-    expect(done.championName).toBe("Tidecaller Nibbles")
+    expect(done.championName).toBe("Reedle Mirefin")
     expect(
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
     ).toEqual([
-      [2, "Bonfire Brook", "Tidecaller Nibbles", "Tidecaller Nibbles"],
-      [3, "Tidecaller Nibbles", "Mossbottom Brute", "Tidecaller Nibbles"],
+      [2, "Bonfire Brook", "Reedle Mirefin", "Reedle Mirefin"],
+      [3, "Reedle Mirefin", "Mossbottom Brute", "Reedle Mirefin"],
     ])
   })
 
@@ -260,7 +276,7 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     const done = forfeitCup(startCupSession(creature, 7, 101))
     expect(done.status).toBe("eliminated")
     expect(cupPlacement(done)).toBe(4)
-    expect(done.championName).toBe("Tidecaller Nibbles")
+    expect(done.championName).toBe("Reedle Mirefin")
     // The forfeit verdict names the opponent, no battle attached.
     const ff = done.playerVerdicts[0]
     expect(ff?.winner).toBe("Bonfire Brook")
@@ -272,20 +288,20 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     expect(
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
     ).toEqual([
-      [2, "Bonfire Brook", "Tidecaller Nibbles", "Tidecaller Nibbles"],
-      [3, "Tidecaller Nibbles", "Mossbottom Brute", "Tidecaller Nibbles"],
+      [2, "Bonfire Brook", "Reedle Mirefin", "Reedle Mirefin"],
+      [3, "Reedle Mirefin", "Mossbottom Brute", "Reedle Mirefin"],
     ])
   })
 
   test("forfeit at the QF: seed 1 — SF1 pairs the conqueror with the QF2 winner", () => {
     const creature = cupDayCreature()
     const done = forfeitCup(startCupSession(creature, 7, 1))
-    expect(done.championName).toBe("Reedle Mirefin")
+    expect(done.championName).toBe("Cindersnout")
     expect(
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
     ).toEqual([
       [2, "Mossbottom Brute", "Reedle Mirefin", "Reedle Mirefin"],
-      [3, "Reedle Mirefin", "Cindersnout", "Reedle Mirefin"],
+      [3, "Reedle Mirefin", "Cindersnout", "Cindersnout"],
     ])
   })
 
