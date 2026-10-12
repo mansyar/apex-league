@@ -25,9 +25,9 @@ verification for DOM/scene tasks, phase checkpoints with git notes.
 - [x] Task: Implement corrupt-save notice in the boot path (`main.ts` +
       broadcast-kit notice); manual verification note for the DOM surface
       `[ede940f]`
-- [ ] Task: Extend the staging-seed test for the `visualSeedOf(stage)`
-      contract; fix `apps/client/src/cup.ts` to pass `owned.stage`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Extend the staging-seed test for the `visualSeedOf(stage)`
+      contract; fix `apps/client/src/cup.ts` to pass `owned.stage` `[b7a36b3]`
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: b8e9f2c]`
 
 ## Phase C — Creature renaming
 
