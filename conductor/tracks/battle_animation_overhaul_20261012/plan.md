@@ -147,11 +147,14 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
         *(manual perf check)*
         (1f3d49d arena-only composer + fallback; e4da28a softened to
         0.72/0.32 after user feedback, builds 25-26 approved)
-- [ ] **Task: Particles + decals + vignette** — per-element GPU particles,
+- [~] **Task: Particles + decals + vignette** - per-element GPU particles,
         hit decals, big-hit vignette *(manual)*
-- [ ] **Task: Phase Verification & Checkpoint (Refer to workflow.md)**
+- [x] **Task: Phase Verification & Checkpoint (Refer to workflow.md)**
+        [checkpoint: 537a367] - verification report attached as git note;
+        sim 411 / client 164 green, verify green; 8 scope commits
+        (ff4937c..537a367, 864 insertions); user approved 2026-10-12.
 
-## Phase 4 — KO Signature & Polish *(stretch — re-scopeable)*
+## Phase 4 - KO Signature & Polish *(stretch - re-scopeable)*
 
 - [ ] **Task: Time-dilated final blow** *(TDD on pacing math in driver)*
 - [ ] **Task: KO staging** — camera orbit, stagger-collapse, dust puff
