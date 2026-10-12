@@ -1,0 +1,9 @@
+{
+  "id": "bronze_ladder_20261012",
+  "title": "Bronze Ladder - cup placements convert to ladder points, automatic climbs through Bronze III/II/I, rank plate HUD + cup tie-ins, save v8",
+  "type": "feature",
+  "status": "new",
+  "createdAt": "2026-10-12",
+  "branch": "track/bronze_ladder_20261012",
+  "base": "main @ eba72d5"
+}
