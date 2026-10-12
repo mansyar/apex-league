@@ -26,6 +26,11 @@ export type PlaybackStepKind =
    * playback contract (Phase 1); for now it reads as a held beat.
    */
   | "stagger"
+  /**
+   * `knockback`: a heavy blow separates both fighters — both ranges go
+   * far and the next engagement starts with a fresh approach.
+   */
+  | "knockback"
   /** `launch`: the actor fires a special projectile toward its target. */
   | "projectile"
   /** `impact`: the shot arrives — hit, dodge, or fizzle. */
@@ -42,6 +47,7 @@ export const PLAYBACK_BEATS: Readonly<Record<PlaybackStepKind, number>> =
     idle: 2,
     melee: 3,
     stagger: 2,
+    knockback: 2,
     projectile: 2,
     impact: 2,
     down: 3,
@@ -73,6 +79,7 @@ const KINDS: StepTable = Object.freeze({
   hold: "idle",
   basic: "melee",
   stagger: "stagger",
+  knockback: "knockback",
   down: "down",
   launch: "projectile",
   impact: "impact",

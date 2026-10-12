@@ -295,10 +295,11 @@ describe("stagger on heavy blows", () => {
 
   test("an already-staggered victim does not stack a second lock", () => {
     // atk 30: the basic deals floor(4*30/10) = 12 (30%) — heavy, and two
-    // of them (40 HP victim) stay non-lethal. t2 basic staggers Reed;
-    // t3 Bolt's second heavy basic lands the same tick Reed is ready
-    // (Bolt sorts first) — Reed still loses exactly one window (t3),
-    // then acts normally at its next readiness (t5).
+    // of them (40 HP victim) stay non-lethal. t2 basic staggers AND
+    // knocks both apart; t3 Reed staggers through its window; t3 Bolt
+    // re-closes (mutual separation), t4 his second heavy basic re-sets
+    // the flag — Reed still loses exactly ONE window per hit (t3, t5),
+    // never two from a single blow.
     const clock = clockOf(
       [
         snap("Bolt", "fire", stats(13, 30, 10, 40)),
@@ -308,13 +309,12 @@ describe("stagger on heavy blows", () => {
     )
     const events = drive(
       clock,
-      scripted({ Bolt: [CLOSE, BASIC, BASIC], Reed: [HOLD] }),
-      5,
+      scripted({ Bolt: [CLOSE, BASIC, CLOSE, BASIC] }),
+      8,
     )
     const staggers = events.filter((e) => e.kind === "stagger")
-    expect(staggers.length).toBe(1)
-    expect(staggers[0]?.tick).toBe(3)
-    // Recovered: Reed's next real window is its scripted hold.
+    expect(staggers.map((e) => e.tick)).toEqual([3, 5])
+    // Recovered: Reed acts normally again after the last lock.
     expect(events.some((e) => e.kind === "hold" && e.actor === "Reed")).toBe(
       true,
     )
@@ -363,5 +363,139 @@ describe("downed fighters", () => {
     expect(down.line).toBe("Reed is down!")
     expect(down.hpAfter).toEqual({ Bolt: 40, Reed: 0 })
     expect(clock.fighters[1]?.hp).toBe(0)
+  })
+})
+
+/**
+ * Range-shifting knockback (battle-animation-overhaul spec FR2): a heavy
+ * blow (same trigger as the stagger) against a NEAR victim knocks both
+ * fighters apart — victim and attacker both go far, so re-engaging costs
+ * each side a closing action (tempo). A heavy hit on an already-far
+ * victim (projectiles at range) is a no-op: no event, no shift. Ranges
+ * stay symmetric in every path.
+ */
+describe("range-shifting knockback", () => {
+  function scripted(queues: Readonly<Record<string, PlannedAction[]>>): PlanFn {
+    return (fighter) => {
+      const queue = queues[fighter.name]
+      const action = queue?.shift()
+      return action ?? HOLD
+    }
+  }
+
+  function drive(
+    clock: ReturnType<typeof createClock>,
+    plan: PlanFn,
+    ticks = 12,
+  ): BattleEvent[] {
+    const all: BattleEvent[] = []
+    for (let i = 0; i < ticks; i++) all.push(...clock.advance(plan).events)
+    return all
+  }
+
+  test("a heavy melee blow knocks both fighters apart", () => {
+    // Bolt atk 30: the basic deals 12 of 40 (30%) — heavy. t1 close,
+    // t2 heavy basic at near: both ranges must read far and a knockback
+    // event names the victim.
+    const clock = clockOf(
+      [
+        snap("Bolt", "fire", stats(13, 30, 10, 40)),
+        snap("Reed", "plant", stats(5, 11, 10, 40)),
+      ],
+      7,
+    )
+    const events = drive(clock, scripted({ Bolt: [CLOSE, BASIC] }), 2)
+    const knockback = events.find((e) => e.kind === "knockback")
+    if (!knockback) throw new Error("no knockback event")
+    expect(knockback.actor).toBe("Reed")
+    expect(knockback.tick).toBe(2)
+    expect(knockback.line).toBe("Reed is knocked back.")
+    expect(clock.fighters[0]?.range).toBe("far")
+    expect(clock.fighters[1]?.range).toBe("far")
+  })
+
+  test("re-engaging costs both sides a closing action", () => {
+    // After the t2 knockback, Reed staggers through t3 (a staggered
+    // window plans nothing, so Reed's queue starts fresh), then must
+    // spend its t5 window closing (Bolt idles). Only at t8, both near
+    // again, can Reed's basic land — the tempo cost is real.
+    const clock = clockOf(
+      [
+        snap("Bolt", "fire", stats(13, 30, 10, 40)),
+        snap("Reed", "plant", stats(5, 11, 10, 40)),
+      ],
+      7,
+    )
+    const events = drive(
+      clock,
+      scripted({ Bolt: [CLOSE, BASIC], Reed: [CLOSE, BASIC] }),
+      8,
+    )
+    const close = events.find((e) => e.kind === "close" && e.actor === "Reed")
+    if (!close) throw new Error("Reed never closed")
+    expect(close.tick).toBe(5)
+    expect(clock.fighters[0]?.range).toBe("near")
+    expect(clock.fighters[1]?.range).toBe("near")
+    const strike = events.find((e) => e.kind === "basic" && e.actor === "Reed")
+    if (!strike) throw new Error("Reed never struck")
+    expect(strike.tick).toBe(8)
+  })
+
+  test("a heavy hit on an already-far victim is a no-op", () => {
+    // Bolt (atk 20) looses Blaze Bolt from far; it lands for 48 — far
+    // past the heavy threshold — but Reed was never near, so there is
+    // nothing to shift: no knockback event, both stay far. (The stagger
+    // still fires — range is irrelevant to reeling.)
+    const clock = clockOf(
+      [
+        snap("Bolt", "fire", stats(13, 20, 10, 40)),
+        snap("Reed", "plant", stats(5, 11, 10, 40)),
+      ],
+      7,
+    )
+    const events = drive(
+      clock,
+      scripted({ Bolt: [{ kind: "special", moveId: "blaze_bolt" }] }),
+      2,
+    )
+    expect(events.some((e) => e.kind === "knockback")).toBe(false)
+    expect(clock.fighters[0]?.range).toBe("far")
+    expect(clock.fighters[1]?.range).toBe("far")
+  })
+
+  test("a heavy point-blank special knocks both fighters apart", () => {
+    // Spark at point blank: super-effective, 13 of 40 — heavy at near.
+    const clock = clockOf(
+      [
+        snap("Bolt", "fire", stats(13, 11, 10, 40)),
+        snap("Reed", "plant", stats(5, 11, 10, 40)),
+      ],
+      7,
+    )
+    const events = drive(
+      clock,
+      scripted({ Bolt: [CLOSE, { kind: "special", moveId: "spark" }] }),
+      2,
+    )
+    expect(events.some((e) => e.kind === "knockback")).toBe(true)
+    expect(clock.fighters[0]?.range).toBe("far")
+    expect(clock.fighters[1]?.range).toBe("far")
+  })
+
+  test("a downing blow never knocks back", () => {
+    // Reed hp 12: the heavy basic downs it outright — a down event, no
+    // knockback for the fallen fighter.
+    const clock = clockOf(
+      [
+        snap("Bolt", "fire", stats(13, 30, 10, 40)),
+        snap("Reed", "plant", stats(5, 11, 10, 12)),
+      ],
+      7,
+    )
+    const events = drive(clock, scripted({ Bolt: [CLOSE, BASIC] }), 2)
+    expect(events.some((e) => e.kind === "down" && e.actor === "Reed")).toBe(
+      true,
+    )
+    expect(events.some((e) => e.kind === "knockback")).toBe(false)
   })
 })

@@ -23,7 +23,10 @@
  * super-effective hit, staggers a standing victim. The victim's next
  * action window is consumed reeling (a `stagger` event, gauge spent, no
  * action planned); cooldowns do not step during it. Downing blows never
- * stagger and the lock never stacks.
+ * stagger and the lock never stacks. The same heavy blow also knocks
+ * both fighters apart when the victim was in melee range (a `knockback`
+ * event, both ranges to far) — re-engaging costs each side a closing
+ * action; against an already-far victim it is a silent no-op.
  */
 
 import type { CreatureStats, Element } from "../creature"
@@ -113,6 +116,7 @@ export type BattleEventKind =
   | "hold"
   | "basic"
   | "stagger"
+  | "knockback"
   | "down"
   | "launch"
   | "impact"
@@ -317,13 +321,27 @@ export function createClock(
     // A heavy or super-effective hit staggers a standing victim (FR2):
     // its next action window is consumed reeling. A downing blow never
     // staggers, and re-staggering an already-staggered victim is a no-op
-    // (one lock, never stacked).
-    if (
+    // (one lock, never stacked). A heavy blow against a NEAR victim also
+    // knocks BOTH fighters apart (range-shifting knockback): re-engaging
+    // costs each side a closing action. A far victim has nothing to
+    // shift — the knockback is a silent no-op.
+    const heavy =
       target.hp > 0 &&
       (damage >= target.stats.hp * STAGGER_DAMAGE_FRACTION ||
         type.num > type.den)
-    ) {
+    if (heavy) {
       target.staggered = true
+      if (target.range === "near") {
+        target.range = "far"
+        shooter.range = "far"
+        events.push({
+          tick,
+          kind: "knockback",
+          actor: target.name,
+          hpAfter: hpAfter(),
+          line: `${target.name} is knocked back.`,
+        })
+      }
     }
     if (target.hp <= 0) {
       events.push({
@@ -460,12 +478,25 @@ export function createClock(
               hpAfter: hpAfter(),
               line: `${actor.name} strikes ${opponent.name} for ${damage}.`,
             })
-            // The typeless basic can only stagger by sheer size (FR2).
-            if (
+            // The typeless basic can only stagger by sheer size (FR2);
+            // the same heavy blow knocks both fighters apart when the
+            // victim was in melee range.
+            const heavy =
               opponent.hp > 0 &&
               damage >= opponent.stats.hp * STAGGER_DAMAGE_FRACTION
-            ) {
+            if (heavy) {
               opponent.staggered = true
+              if (opponent.range === "near") {
+                opponent.range = "far"
+                actor.range = "far"
+                events.push({
+                  tick,
+                  kind: "knockback",
+                  actor: opponent.name,
+                  hpAfter: hpAfter(),
+                  line: `${opponent.name} is knocked back.`,
+                })
+              }
             }
             if (opponent.hp <= 0) {
               events.push({
