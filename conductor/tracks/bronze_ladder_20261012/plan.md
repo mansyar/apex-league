@@ -33,7 +33,7 @@ checkpoints, git notes, `bun run verify` before commits).
 
 ## Phase D — Final verification & docs
 
-- [ ] Task: `bun run verify` green; determinism gate untouched (no voxel/artifact changes in the diff)
-- [ ] Task: Browser-tool verification of the full loop — win a cup → points land → climb fires → plate updates → save v8 round-trips
-- [ ] Task: Update `README.md` phase table + `conductor/product.md` landed note; mark Phase 1 fully complete
-- [ ] Task: Commit (`docs(readme): bronze ladder lands — phase 1 complete`) + Track Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: `bun run verify` green; determinism gate untouched (no voxel/artifact changes in the diff)
+- [x] Task: Browser-tool verification of the full loop — win a cup → points land → climb fires → plate updates → save v8 round-trips
+- [x] Task: Update `README.md` phase table + `conductor/product.md` landed note; mark Phase 1 fully complete
+- [x] Task: Track Verification & Checkpoint (Refer to workflow.md) — [checkpoint: 8b196d6]
