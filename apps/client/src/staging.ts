@@ -149,6 +149,8 @@ interface Projectile {
   to: THREE.Vector3
   /** Accumulated in-flight time (ms), frozen during a hit-stop. */
   elapsed: number
+  /** Flight duration (ms) - bespoke shots can fly slower or faster. */
+  life: number
   /** Element look of this shot (FR5 shared archetype, flavored per element). */
   flavor: ShotFlavor
 }
@@ -535,7 +537,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       const p = projectiles[i]
       if (!p) continue
       p.elapsed += dtMs
-      const t = p.elapsed / PROJECTILE_LIFE_MS
+      const t = p.elapsed / p.life
       shotDir.copy(p.to).sub(p.from)
       const travel = Math.min(1, t)
       shotPos.copy(p.from).addScaledVector(shotDir, travel)
@@ -695,7 +697,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     lastBurstTick = now
     const dt = dtMs / 1000
     for (let i = bursts.length - 1; i >= 0; i--) {
-      const burst = bursts[i]!
+      const burst = bursts[i]
+      if (!burst) continue
       burst.elapsed += dtMs
       const k = Math.min(1, burst.elapsed / burst.life)
       if (burst.flash) {
@@ -725,25 +728,30 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     from: Combatant,
     to: Combatant,
     element: string | undefined,
+    opts?: { size?: number; life?: number; spread?: number },
   ): void => {
+    const size = opts?.size ?? 1
     const color = new THREE.Color(elementColor(element))
     const flavor = shotFlavor(element)
     // Launch from the thrower's mouth line, land on the victim's chest.
+    // `spread` fans the landing point sideways across the lane (z) for
+    // volley choreography.
     const origin = from.group.position.clone()
     origin.y += 0.8
     const target = to.group.position.clone()
     target.y += 0.6
+    if (opts?.spread) target.z += opts.spread
     // Core geometry per flavor (FR5): fire = ember + additive glow halo;
     // plant = a tumbling seed cluster; water = teardrop; else the orb.
     let core: THREE.Object3D
     if (element === "fire") {
       core = new THREE.Group()
       const ember = new THREE.Mesh(
-        new THREE.IcosahedronGeometry(PROJECTILE_RADIUS * 0.8, 0),
+        new THREE.IcosahedronGeometry(PROJECTILE_RADIUS * 0.8 * size, 0),
         new THREE.MeshBasicMaterial({ color }),
       )
       const halo = new THREE.Mesh(
-        new THREE.SphereGeometry(PROJECTILE_RADIUS * 1.55, 12, 10),
+        new THREE.SphereGeometry(PROJECTILE_RADIUS * 1.55 * size, 12, 10),
         new THREE.MeshBasicMaterial({
           color,
           transparent: true,
@@ -755,17 +763,24 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       core.add(ember, halo)
     } else if (element === "plant") {
       core = new THREE.Group()
-      const seedGeo = new THREE.OctahedronGeometry(PROJECTILE_RADIUS * 0.55, 0)
+      const seedGeo = new THREE.OctahedronGeometry(
+        PROJECTILE_RADIUS * 0.55 * size,
+        0,
+      )
       const seedMat = new THREE.MeshBasicMaterial({ color })
       for (let i = 0; i < 3; i++) {
         const seed = new THREE.Mesh(seedGeo, seedMat)
         const angle = (i / 3) * Math.PI * 2
-        seed.position.set(Math.cos(angle) * 0.15, Math.sin(angle) * 0.15, 0)
+        seed.position.set(
+          Math.cos(angle) * 0.15 * size,
+          Math.sin(angle) * 0.15 * size,
+          0,
+        )
         core.add(seed)
       }
     } else {
       core = new THREE.Mesh(
-        new THREE.SphereGeometry(PROJECTILE_RADIUS, 12, 10),
+        new THREE.SphereGeometry(PROJECTILE_RADIUS * size, 12, 10),
         new THREE.MeshBasicMaterial({ color }),
       )
       if (flavor.stretch > 1.2) core.scale.set(0.72, 0.72, flavor.stretch)
@@ -776,7 +791,11 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     const trail: THREE.Mesh[] = []
     for (let i = 0; i < 4; i++) {
       const seg = new THREE.Mesh(
-        new THREE.SphereGeometry(PROJECTILE_RADIUS - (i + 1) * 0.033, 10, 8),
+        new THREE.SphereGeometry(
+          Math.max(0.05, PROJECTILE_RADIUS * size - (i + 1) * 0.033),
+          10,
+          8,
+        ),
         new THREE.MeshBasicMaterial({
           color,
           transparent: true,
@@ -795,6 +814,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       from: origin,
       to: target,
       elapsed: 0,
+      life: opts?.life ?? PROJECTILE_LIFE_MS,
       flavor,
     })
     if (projectileRaf === null) {
@@ -980,11 +1000,99 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       }
       case "projectile": {
         // Ranged attack: rear coil, snap release at the launch moment,
-        // then a recoil the body carries. The shot leaves at CONTACT_T,
-        // not at step start, so the wind-up reads before the fire.
+        // then a recoil the body carries. Tier 3 specials branch into
+        // bespoke bodies (FR5); tier 1-2 keep the shared archetype.
         if (instant) {
           // No flight to show: the following impact step resolves the
           // hit on the spot, so spawning a 700ms orb would just hang.
+          break
+        }
+        if (step.moveId === "cinder_shot") {
+          // The Hammer: a long deep wind-up that holds at full coil,
+          // then one big slow ember leaves with a muzzle flash and a
+          // heavy recoil the body rides back on.
+          const firedRef = { done: false }
+          const WIND = 0.55
+          actionRaf = startAction(
+            (t, ao) => {
+              if (t < WIND) {
+                const w = t / WIND
+                ao.lean.pitch = -0.24 * Math.sin((w * Math.PI) / 2)
+                ao.lean.roll = 0.08 * Math.sin(w * Math.PI)
+                ao.offset.y = 0.05 * Math.sin(w * Math.PI)
+                ao.offset.x = -side.actor.away * 0.2 * (w * w)
+              } else {
+                if (!firedRef.done) {
+                  firedRef.done = true
+                  spawnProjectile(side.actor, side.target, step.element, {
+                    size: 1.8,
+                    life: 850,
+                  })
+                  // Muzzle flash at the thrower's mouth line.
+                  const mouth = side.actor.group.position.clone()
+                  mouth.y += 0.2
+                  spawnBurst(mouth, step.element)
+                  impulse(ao, -0.55)
+                }
+                const w = clamp01((t - WIND) / (1 - WIND))
+                ao.lean.pitch = 0.14 * Math.sin(w * Math.PI)
+                ao.offset.x =
+                  -side.actor.away * (0.2 - 0.5 * Math.sin(w * Math.PI))
+              }
+            },
+            o,
+            r,
+          )
+          break
+        }
+        if (step.moveId === "spore_burst" || step.moveId === "foam_volley") {
+          // The volley family: a quick crouch, then three fast shots.
+          // Spore fans them sideways for one big triple pop on arrival;
+          // foam rattles them straight down the lane in rapid rhythm.
+          const fan = step.moveId === "spore_burst"
+          const volley = fan
+            ? ({
+                beats: [0.36, 0.48, 0.6],
+                spreads: [-0.5, 0, 0.5],
+                size: 1,
+                life: 700,
+              } as const)
+            : ({
+                beats: [0.28, 0.4, 0.52],
+                spreads: [0, 0, 0],
+                size: 0.75,
+                life: 520,
+              } as const)
+          const firedRef = { n: 0 }
+          actionRaf = startAction(
+            (t, ao) => {
+              const WIND = 0.26
+              if (t < WIND) {
+                const w = t / WIND
+                ao.lean.pitch = -0.1 * Math.sin(w * Math.PI)
+                ao.offset.y = -0.05 * Math.sin(w * Math.PI)
+                ao.offset.x = -side.actor.away * 0.1 * w
+              } else {
+                while (firedRef.n < 3) {
+                  const beat = volley.beats[firedRef.n]
+                  if (beat === undefined || t < beat) break
+                  spawnProjectile(side.actor, side.target, step.element, {
+                    size: volley.size,
+                    life: volley.life,
+                    spread: volley.spreads[firedRef.n] ?? 0,
+                  })
+                  impulse(ao, fan ? -0.18 : -0.12)
+                  firedRef.n += 1
+                }
+                const w = clamp01((t - volley.beats[0]) / (1 - volley.beats[0]))
+                ao.lean.pitch = 0.06 * Math.sin(w * Math.PI)
+                ao.offset.x =
+                  -side.actor.away * (0.1 - 0.3 * Math.sin(w * Math.PI))
+              }
+            },
+            o,
+            r,
+          )
           break
         }
         const firedRef = { done: false }
