@@ -17,6 +17,7 @@ import {
   phaseAt,
   stepSquash,
 } from "./anim"
+import { type BodyProfile, hurtImpulse, idleSway, profileFor } from "./choreo"
 import { buildCreatureGroup } from "./creature"
 
 /**
@@ -185,6 +186,8 @@ interface Combatant {
   down: boolean
   /** Per-part base colors captured at cast time, keyed by part name. */
   baseColors: Map<THREE.Mesh, THREE.Color>
+  /** The archetype's motion identity (FR5) — weights gait, breath, hurt. */
+  profile: BodyProfile
   /** Persistent show-floor position; the driver walks the mesh there. */
   stage: THREE.Vector3
   /** Smoothed current position (driver output, the walk state). */
@@ -305,28 +308,34 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       // Frame velocity from measured motion — the gait's tempo source.
       c.velocity.copy(c.smooth).sub(glideFrom).divideScalar(dt)
       const speed = Math.hypot(c.velocity.x, c.velocity.z)
-      c.walkPhase += speed * dt * 5.2
+      c.walkPhase += speed * dt * 5.2 * c.profile.gaitFreq
       // Lean into movement: pitch with forward speed, roll with the gait.
-      const leanTarget = Math.min(LEAN_MAX, speed * LEAN_PER_SPEED)
+      const leanTarget = Math.min(
+        LEAN_MAX,
+        speed * LEAN_PER_SPEED * c.profile.leanPitch,
+      )
       c.lean.pitch = approach(c.lean.pitch, leanTarget, 8, dt)
       c.lean.roll = approach(c.lean.roll, 0, 6, dt)
 
       // Compose the pose: walk position + action offset + gait bob +
-      // breath at rest, all scaled by the squash spring (weight).
-      const gait = gaitBob(c.walkPhase, GAIT_AMP, life)
+      // breath at rest, all scaled by the squash spring (weight). The
+      // archetype's body-language profile (FR5) weights every term.
+      const rest = speed < 0.15 ? 1 : 0
+      const gait = gaitBob(c.walkPhase, GAIT_AMP * c.profile.gaitAmp, life)
       const breath = breathSine(
         now,
-        BREATH_FREQ * 2,
-        BREATH_AMP * (speed < 0.15 ? 1 : 0),
+        BREATH_FREQ * 2 * c.profile.breathFreq,
+        BREATH_AMP * c.profile.breathAmp * rest,
         c.phase,
       )
+      const sway = idleSway(c.profile, now, c.phase) * rest
       c.group.position.set(
         c.smooth.x + c.offset.x,
         Math.max(
           0,
           c.smooth.y + c.offset.y + gait + breath - c.squash.s * 0.42,
         ),
-        c.smooth.z + c.offset.z,
+        c.smooth.z + c.offset.z + sway,
       )
       const sq = c.squash.s
       // Compose with the holder's base scale, never replace it. The baked
@@ -599,7 +608,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     // with every landed hit.
     at.stage.x += at.away * knock
     at.stage.z += (Math.random() - 0.5) * 0.3
-    impulse(at, 0.85)
+    impulse(at, hurtImpulse(at.profile, 0.85))
     startFlash(at)
     bigHit(damage)
   }
@@ -940,6 +949,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
           away,
           down: false,
           baseColors: new Map(),
+          profile: profileFor(info.archetypeId),
           stage: new THREE.Vector3(HOME_X * away, 0, 0),
           smooth: new THREE.Vector3(HOME_X * away, 0, 0),
           velocity: new THREE.Vector3(),
