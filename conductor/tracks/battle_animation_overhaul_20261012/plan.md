@@ -52,6 +52,12 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
     knockback separation deliberately stays ungated). Post-tuning probe:
     staggers halved to 1.0–2.2/fight, knockbacks unchanged, win rates and
     0-draw health identical, ticks slightly shorter (e932f88).
+  - **Known pre-existing imbalance discovered and deferred** (learnings
+    §10): Favor Specials never Strikes, and the free basic's 4
+    damage/window out-sustains every special (best sustained: Flame
+    Charge 3.6/window) — Balanced wins 100% of cross-tactic mirror
+    matches; ox kit2/3 mirrors stall into draws. Deliberately out of
+    this track's scope; candidate for a dedicated balance track.
 - [ ] **Task: Phase Verification & Checkpoint (Refer to workflow.md)**
 
 ## Phase 1 — Enriched Playback Contract & Primitive Layer *(core)*
