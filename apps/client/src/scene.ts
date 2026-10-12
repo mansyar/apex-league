@@ -223,9 +223,9 @@ export function createScene(container: HTMLElement): SceneHandle {
     composer.addPass(
       new UnrealBloomPass(
         new THREE.Vector2(container.clientWidth, container.clientHeight),
-        0.55,
+        0.32,
         0.4,
-        0.6,
+        0.72,
       ),
     )
     composer.setSize(container.clientWidth, container.clientHeight)
