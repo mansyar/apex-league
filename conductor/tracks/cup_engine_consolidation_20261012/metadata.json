@@ -2,7 +2,7 @@
   "id": "cup_engine_consolidation_20261012",
   "title": "Cup Engine Consolidation - retire the legacy one-sitting cup engine, single live session path, pure testable client bracket model, seed/placement contract tests",
   "type": "refactor",
-  "status": "new",
+  "status": "complete",
   "createdAt": "2026-10-12",
   "branch": "cup_engine_consolidation_20261012",
   "base": "main @ 0ebfcc9"
