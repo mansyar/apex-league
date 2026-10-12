@@ -103,8 +103,10 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
         idle, and hurt profiles *(pure parts tested; rendering manual)*
         (cb76f92 — choreo.ts BodyProfile table + staging wiring; camera-track
         arena-mode guard fallout fix a877677; user feel-check builds 6-7)
-- [ ] **Task: Upgraded shared attack archetype per element** — tier 1–2
+- [x] **Task: Upgraded shared attack archetype per element** - tier 1-2
         fire/water/plant *(manual)*
+  (a6f6ad0 element-flavored shots + mirror-match actorKey fix; 9c27037 point-blank elemental
+  bursts; user approved builds 8-11)
 - [ ] **Task: Bespoke tier 3 special choreography** — 3 moves *(manual)*
 - [ ] **Task: Bespoke tier 4 special choreography** — 3 moves *(manual)*
 - [ ] **Task: Reaction library** — dodge/hurt/stagger/knockback/down
