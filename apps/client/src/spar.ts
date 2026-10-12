@@ -23,6 +23,7 @@ import {
   unlockedKit,
 } from "@apex/sim"
 import { type BattleHudFighter, createBattleHud } from "./battleHud"
+import { reasonLine, winningSideKey } from "./battleUI"
 import { crestGlyph, elementHue } from "./element"
 import { createPlaybackDriver, type PlaybackRun } from "./playbackDriver"
 import type { FightCasting } from "./staging"
@@ -119,14 +120,6 @@ function castingFor(owned: Creature, setup: SparSetup): FightCasting {
       key: setup.rivalSide.id ?? setup.rival.name,
     },
   }
-}
-
-/** Lower-third subline: what the fight ended on, in announcer voice. */
-function reasonLine(verdict: Readonly<BattleResult>): string {
-  if (verdict.reason === "time") return "The clock ran out on this one."
-  if (verdict.reason === "double_ko")
-    return "A double down — both went out together."
-  return "A knockout finish."
 }
 
 export function createSpar(
@@ -354,15 +347,8 @@ export function createSpar(
   const winnerTitle = (verdict: Readonly<BattleResult>): string => {
     if (verdict.winner === null) return "A drawn spar"
     const fightNow = fight
-    if (!fightNow) return `Victory — ${verdict.winner}`
-    let key: string | null = null
-    let best = -Infinity
-    for (const [side, hp] of Object.entries(verdict.finalHp)) {
-      if (hp > best) {
-        best = hp
-        key = side
-      }
-    }
+    if (!fightNow) return `Victory - ${verdict.winner}`
+    const key = winningSideKey(verdict)
     const mirror = fightNow.owned.name === fightNow.rival.name
     if (key === fightNow.owned.key) {
       return mirror

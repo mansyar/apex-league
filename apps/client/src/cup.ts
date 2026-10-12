@@ -37,6 +37,7 @@ import {
   type Tactic,
 } from "@apex/sim"
 import { createBattleHud } from "./battleHud"
+import { reasonLine, winningSideKey } from "./battleUI"
 import { crestGlyph, elementHue } from "./element"
 import { prefersReducedMotionOs } from "./motion"
 import { createPlaybackDriver, type PlaybackFight } from "./playbackDriver"
@@ -776,24 +777,9 @@ export function createCup(
       return verdict.winner === fight.owned.name ? "Victory" : "Defeat"
     }
     // Mirror match: qualify by side (the sim reports under stable keys).
-    let best = -Infinity
-    let key: string | null = null
-    for (const [side, hp] of Object.entries(verdict.finalHp)) {
-      if (hp > best) {
-        best = hp
-        key = side
-      }
-    }
-    return key === fight.owned.key
-      ? "Victory — your fighter"
-      : "Defeat — the rival"
-  }
-
-  const reasonLine = (verdict: BattleResult): string => {
-    if (verdict.reason === "time") return "The clock ran out on this one."
-    if (verdict.reason === "double_ko")
-      return "A double down — both went out together."
-    return "A knockout finish."
+    return winningSideKey(verdict) === fight.owned.key
+      ? "Victory - your fighter"
+      : "Defeat - the rival"
   }
 
   const castingFor = (creature: Creature, opponent: CupSlot): FightCasting => {
