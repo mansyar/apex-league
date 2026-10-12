@@ -239,7 +239,7 @@ byte-identical.
   - [x] Then present the user with: run a full weekly cup in the browser, confirm the bracket reveals in order and the champion screen shows, with no console errors
 - [ ] Task: Full gate: `bun run verify` green, suite runtime unchanged or faster
 - [ ] Task: Commit (`docs(battle): record the tactic rebalance in learnings`) + git note + record SHA
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: 13b5e9b]
 
 ### Phase 4 notes
 
