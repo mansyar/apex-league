@@ -33,8 +33,9 @@ function starterCard(species: SpeciesDef, onChoose: (id: string) => void) {
 
 /**
  * First-run starter choice: the draft-day dome. Three kit cards over a
- * broadcast backdrop, one per element line. Water is present but locked -
- * the tease stays visible.
+ * broadcast backdrop, one per element line — all three species available
+ * (water included; the ribbon branch above only fires for future unlisted
+ * species).
  */
 export function createStarterChoice(
   root: HTMLElement,

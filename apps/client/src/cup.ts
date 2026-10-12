@@ -21,6 +21,7 @@ import {
   completeCup,
   cupPlacement,
   defaultLoadout,
+  ELEMENT_HUE,
   effectiveStats,
   endCup,
   finalizeCup,
@@ -38,6 +39,7 @@ import {
 } from "@apex/sim"
 import { createBattleHud } from "./battleHud"
 import { crestGlyph, elementHue } from "./element"
+import { prefersReducedMotionOs } from "./motion"
 import { createPlaybackDriver, type PlaybackFight } from "./playbackDriver"
 import { type FightCasting, visualSeedOf } from "./staging"
 import { icons } from "./ui/icons"
@@ -389,9 +391,7 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   }
 
   const reducedMotion = (): boolean =>
-    state?.settings.reducedMotion === true ||
-    (window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
-      !window.matchMedia("(prefers-reduced-motion: no-preference)").matches)
+    state?.settings.reducedMotion === true || prefersReducedMotionOs()
 
   const beat = (ms: number): number => (reducedMotion() ? 0 : ms)
 
@@ -506,7 +506,8 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   // ------------------------------------------------------------------
   const crest = (element: string): string => crestGlyph(element)
 
-  /** Element hues now come from the shared module (arena palette). */
+  /** Element hues: ui/element.ts re-derives from the sim's canonical
+   * ELEMENT_HUE contract (single source of truth next to the matchup math). */
   const hueColor = (element: string): string =>
     `hsl(${elementHue(element)} 70% 60%)`
 
@@ -1063,7 +1064,10 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   close.type = "button"
   close.textContent = "Back to the ranch"
   close.style.display = ""
-  overlay.append(close)
+  // In-flow bottom furniture of the bracket screen (between the CTA row and
+  // the feed) — absolutely positioning it over the grid made it overlap the
+  // semifinal cards on shorter viewports.
+  cta.after(close)
   close.addEventListener("click", () => {
     if (inBattle) return
     if (!committed) {

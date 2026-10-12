@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { spendActionPoints } from "./ap"
 import { isCupDay } from "./calendar"
-import { beginCup, endCup } from "./machine"
 import { makeRng, type Rng } from "./rng"
 import { createInitialState, type GameState } from "./state"
 import { advanceDay } from "./ticker"
@@ -13,40 +12,20 @@ function stateAfterDays(days: number): GameState {
 }
 
 describe("phase state machine", () => {
-  test("beginCup enters the cup phase on a cup day", () => {
-    const d = stateAfterDays(5) // day 6, day phase
-    expect(isCupDay(d.day + 1)).toBe(true)
-    const r = beginCup(d)
-    expect(r.ok).toBe(true)
-    expect(r.state.phase).toBe("cup")
+  test("the ticker grants the cup phase on a cup day", () => {
+    const d = stateAfterDays(6) // day 7 — a cup day
+    expect(isCupDay(d.day)).toBe(true)
+    expect(d.phase).toBe("cup")
   })
 
-  test("beginCup is rejected on a non-cup day", () => {
-    const d = createInitialState() // day 1
-    const r = beginCup(d)
-    expect(r.ok).toBe(false)
-    expect(r.state.phase).toBe("day")
+  test("non-cup days stay in the day phase", () => {
+    const d = stateAfterDays(5) // day 6
+    expect(isCupDay(d.day)).toBe(false)
+    expect(d.phase).toBe("day")
   })
 
-  test("endCup returns to the day phase", () => {
-    const s = stateAfterDays(6) // day 7, cup phase
-    const r = endCup(s)
-    expect(r.ok).toBe(true)
-    expect(r.state.phase).toBe("day")
-  })
-
-  test("endCup is rejected outside the cup phase", () => {
-    const d = createInitialState()
-    const r = endCup(d)
-    expect(r.ok).toBe(false)
-  })
-
-  test("transitions are pure", () => {
-    const s = stateAfterDays(6)
-    const snapshot = structuredClone(s)
-    endCup(s)
-    beginCup(s)
-    expect(s).toEqual(snapshot)
+  test("day 1 starts in the day phase", () => {
+    expect(createInitialState().phase).toBe("day")
   })
 })
 

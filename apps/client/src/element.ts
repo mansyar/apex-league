@@ -1,10 +1,12 @@
-import type { Element } from "@apex/sim"
+import { ELEMENT_HUE, type Element } from "@apex/sim"
 
 /**
  * Single source of truth for element identity in the broadcast kit:
- * one crest glyph and one hue per element, one shared fallback.
- * Previously these tables lived three times (battleHud crests, staging
- * projectile palette, cup bracket hues) with mismatched fallbacks.
+ * one crest glyph and one hue per element, one shared fallback. Hues
+ * re-export the sim's canonical ELEMENT_HUE contract (hardening moved the
+ * table next to the matchup math); this module unifies the client
+ * consumers (crest badges, arena projectile palette, cup bracket hues)
+ * that previously drifted apart with mismatched fallbacks.
  */
 
 /** Crest glyphs as inline SVG (currentColor inherits the crest block). */
@@ -21,15 +23,11 @@ export const ELEMENT_GLYPHS: Record<Element, string> = {
   wind: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8h10a2.5 2.5 0 1 0-2.5-2.5M3 12.5h14a2.5 2.5 0 1 1-2.5 2.5M3 17h8a2 2 0 1 1-2 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
 }
 
-/** Hue per element — matches the arena projectile palette (staging). */
-export const ELEMENT_HUES: Record<Element, number> = {
-  fire: 18,
-  water: 205,
-  plant: 110,
-  electric: 50,
-  earth: 28,
-  wind: 165,
-}
+/** Hue per element — re-exported from the sim's canonical contract. */
+export const ELEMENT_HUES: Record<Element, number> = ELEMENT_HUE as Record<
+  Element,
+  number
+>
 
 /** Shared fallback hue for unknown elements (was 40 in cup.ts, 200 elsewhere). */
 export const ELEMENT_FALLBACK_HUE = 200

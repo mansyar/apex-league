@@ -37,8 +37,14 @@
   in `@apex/sim` (seeded from day + save, mutation-pure), `enterCup` one-sitting
   resolution in the phase machine, save v5 (`cupsWon`, `lastCupDay` with
   v4→v5 migration), full-screen client cup panel with ~1.5s pacing and a
-  droopy-idle early-exit hook in the ranch scene.
-  2026-10-11: live cup landed - hybrid-resolution session API in `@apex/sim`
+  droopy-idle early-exit hook in the ranch scene.*
+  *2026-10-11: hardening pass landed - the central typed game-state store is
+  now real: `apps/client/src/store.ts` (`createGameStore`, `commit(state)` =
+  persist → notify hud/spar/cup in fixed order); `main.ts` has no
+  per-handler fanout. `saveGame` returns a boolean and never throws
+  (save-failure surfaces as a HUD notice). Reduced-motion OS reads
+  single-sourced in `apps/client/src/motion.ts` (hardened double-report).*
+  *2026-10-11: live cup landed - hybrid-resolution session API in `@apex/sim`
   (`prepareCup` opens a session with the player-independent subtree
   pre-resolved byte-identically to `resolveCup`; `resolvePlayerMatch` resolves
   the player's match live from the picked kit + tactic; `completeCup`/
@@ -47,8 +53,15 @@
   no DOM) now powers both Spar and the cup arena, and the client cup flow
   became DOM broadcast screens (strict-order bracket walk, coaching room,
   forfeit modal, results) with commit-at-first-fight phase bookkeeping.
-  No save-schema change (v5 stays); `enterCup` remains as the headless
+  No save-schema change (v6 stays); `enterCup` remains as the headless
   one-sitting reference.*
+  *2026-10-12: hardening rebased onto the live cup - all store commits flow
+  through `commit()` including the cup's `onCommit`/`onFinalize`; the cup's
+  double-KO advances the higher-remaining-HP slot (`doubleKoWinner`);
+  `finalizeCup` maps placement → outcome at the machine boundary; the
+  one-sitting cup panel's pace pill (superseded by the arena fast-forward
+  control) and the `beginCup` retirement were conceded to the live-cup
+  architecture (`beginCup`/`endCup` restored).*
 
 ## Server
 - **Framework**: ElysiaJS on Bun (endpoints: save sync, leaderboard, ghost

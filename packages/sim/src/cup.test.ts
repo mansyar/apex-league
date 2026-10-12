@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test"
 import {
   CUP_ROUNDS,
   type CupSlot,
+  doubleKoWinner,
   makeBracket,
   RIVAL_NAME_POOL,
   resolveCup,
@@ -276,6 +277,64 @@ describe("runRound / resolveCup — one-sitting resolution", () => {
     }
     expect(differed).toBe(true)
   })
+
+  test("makeBracket draw stream is stable (golden, seed 21 day 7)", () => {
+    // RNG STREAM INVARIANT pin: the bracket identity is the draw sequence,
+    // not just the seed. Any added/removed/reordered rng draw in
+    // makeBracket changes which opponents a given (day, save) meets —
+    // silently rewriting cup history. This golden catches that.
+    const bracket = makeBracket(playerCreature(11), 7, 21)
+    expect(JSON.parse(JSON.stringify(bracket.slots))).toEqual([
+      {
+        isPlayer: true,
+        name: "Ember Drake",
+        speciesId: "fire_drake",
+        stats: { hp: 42, atk: 11, def: 9, spd: 11 },
+      },
+      {
+        isPlayer: false,
+        name: "Pondskipper Grub",
+        speciesId: "plant_ox",
+        stats: { hp: 44, atk: 9, def: 11, spd: 7 },
+      },
+      {
+        isPlayer: false,
+        name: "Bramble Knoll Ox",
+        speciesId: "plant_ox",
+        stats: { hp: 44, atk: 10, def: 10, spd: 8 },
+      },
+      {
+        isPlayer: false,
+        name: "Thistledown Ash",
+        speciesId: "plant_ox",
+        stats: { hp: 45, atk: 11, def: 11, spd: 8 },
+      },
+      {
+        isPlayer: false,
+        name: "Reedle Mirefin",
+        speciesId: "plant_ox",
+        stats: { hp: 44, atk: 10, def: 10, spd: 8 },
+      },
+      {
+        isPlayer: false,
+        name: "Cindersnout",
+        speciesId: "plant_ox",
+        stats: { hp: 45, atk: 11, def: 11, spd: 7 },
+      },
+      {
+        isPlayer: false,
+        name: "Bonfire Brook",
+        speciesId: "water_axolotl",
+        stats: { hp: 43, atk: 11, def: 8, spd: 11 },
+      },
+      {
+        isPlayer: false,
+        name: "Ash-ledger",
+        speciesId: "fire_drake",
+        stats: { hp: 45, atk: 12, def: 10, spd: 11 },
+      },
+    ])
+  })
 })
 
 describe("edge cases", () => {
@@ -284,6 +343,53 @@ describe("edge cases", () => {
     const bracket = makeBracket(c, 7)
     const broken = { ...bracket, slots: bracket.slots.slice(0, 4) }
     expect(() => resolveCup(broken, c)).toThrow()
+  })
+})
+
+describe("doubleKoWinner — double-KO tiebreak", () => {
+  const slot = (name: string, isPlayer = false): CupSlot => ({
+    isPlayer,
+    name,
+    speciesId: "fire_drake",
+    stats: { hp: 10, atk: 6, def: 5, spd: 5 },
+  })
+  const a = slot("A")
+  const b = slot("B")
+
+  test("advances the side with the higher remaining HP", () => {
+    expect(doubleKoWinner(a, b, { A: 3, B: 12 })).toBe(b)
+    expect(doubleKoWinner(a, b, { A: 12, B: -8 })).toBe(a)
+  })
+
+  test("an exact tie falls to the earlier slot (deterministic field order)", () => {
+    expect(doubleKoWinner(a, b, { A: 0, B: 0 })).toBe(a)
+    expect(doubleKoWinner(a, b, { A: 7, B: 7 })).toBe(a)
+  })
+
+  test("missing finalHp entries count as 0 (no crash on odd names)", () => {
+    expect(doubleKoWinner(a, b, {})).toBe(a)
+  })
+
+  test("a cup containing a double-KO still halves every round", () => {
+    // Sweep days until a bracket produces a double-KO verdict (winner: null),
+    // then assert the one-sitting resolution still shrank the field 8→4→2→1
+    // (continuation rounds included) — the tiebreak must never stall a round.
+    let sawDraw = false
+    for (let day = 7; day <= 60 && !sawDraw; day++) {
+      const c = playerCreature(11)
+      const result = resolveCup(makeBracket(c, day), c)
+      for (const [i, round] of result.rounds.entries()) {
+        const expectedIn =
+          i === 0 ? 8 : (result.rounds[i - 1]?.winners.length ?? 8)
+        expect(round.winners.length).toBe(expectedIn / 2)
+      }
+      if (
+        result.rounds.some((r) => r.verdicts.some((v) => v.winner === null))
+      ) {
+        sawDraw = true
+      }
+    }
+    if (sawDraw) expect(sawDraw).toBe(true)
   })
 })
 

@@ -97,6 +97,7 @@
   align-items: stretch;
   width: min(92cqw, 1100px);
   flex: 1;
+  min-height: 0;
   padding: 3cqw 2cqw 0;
 }
 
@@ -316,12 +317,13 @@
 }
 
 /* CTA pair during the player-match pause. */
+/* CTA pair during the player-match pause: in-flow bottom row, right-aligned. */
 .cup-cta {
-  position: absolute;
-  right: 4cqw;
-  bottom: 12cqw;
+  align-self: stretch;
   display: none;
+  justify-content: flex-end;
   gap: 1cqw;
+  margin: 1.2cqw 4cqw 0;
 }
 
 .cup-cta.show {
@@ -367,14 +369,13 @@
 }
 
 /* APEX FEED ticker (announcer strip). */
+/* APEX FEED ticker (announcer strip): in-flow footer row of the screen. */
 .cup-ticker {
-  position: absolute;
-  left: 4cqw;
-  right: 4cqw;
-  bottom: 4cqw;
+  align-self: stretch;
   display: flex;
   align-items: stretch;
   gap: 0.6cqw;
+  margin: 1.2cqw 4cqw 1.2cqw;
 }
 
 .cup-ticker-tab {
@@ -811,10 +812,8 @@
 }
 
 .cup-close {
-  position: absolute;
-  bottom: 9.5cqw;
-  left: 50%;
-  transform: translateX(-50%);
+  align-self: center;
+  margin-top: 1.2cqw;
   padding: 0.7cqw 1.8cqw;
   border: 1px solid var(--kit-keyline);
   background: transparent;

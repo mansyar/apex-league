@@ -1,4 +1,8 @@
-import { EVOLUTION_STAT_BOOST, type PlaybackStep } from "@apex/sim"
+import {
+  CHAMPION_STAT_BOOST,
+  EVOLUTION_STAT_BOOST,
+  type PlaybackStep,
+} from "@apex/sim"
 import { generate } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
@@ -36,7 +40,7 @@ export const visualSeedOf = (
     stage === "juvenile"
       ? EVOLUTION_STAT_BOOST
       : stage === "champion"
-        ? { hp: 6, atk: 4, def: 4, spd: 2 } // juvenile + champion boost
+        ? CHAMPION_STAT_BOOST // cumulative: juvenile + champion boost
         : { hp: 0, atk: 0, def: 0, spd: 0 }
   return (
     ((s.hp - off.hp) * 7 +
@@ -86,10 +90,11 @@ const SQUASH_K = 210
 const SQUASH_D = 13
 
 /**
- * Element hues live in the shared element identity module (product
- * guidelines: Fire 18°, Plant 110°, Water 205°, Electric 50°, Earth 28°,
- * Wind 165°). A projectile reads as its type at a glance, and the color
- * survives color-blindness checks when paired with the move icon in the HUD.
+ * Element hues come from ui/element.ts, which re-derives them from the
+ * sim's canonical ELEMENT_HUE contract (Fire 18°, Plant 110°, Water 205°,
+ * Electric 50°, Earth 28°, Wind 165°). A projectile reads as its type at
+ * a glance, and the color survives color-blindness checks when paired
+ * with the move icon in the HUD.
  */
 const ELEMENT_COLOR_FALLBACK = "#cfd6e4"
 

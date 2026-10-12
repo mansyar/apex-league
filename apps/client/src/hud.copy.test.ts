@@ -4,10 +4,26 @@ import {
   evolveCallout,
   flavorCallout,
   growthHint,
+  saveFailureNotice,
   spendFlashIndex,
   stageLabel,
   unlockCallout,
 } from "./hud"
+
+describe("saveFailureNotice", () => {
+  test("speaks in coach voice, non-blocking, names the setback", () => {
+    const line = saveFailureNotice()
+    expect(line.length).toBeGreaterThan(0)
+    expect(line.length).toBeLessThanOrEqual(120)
+    // Coach voice: encouraging, no blame, no tech jargon.
+    expect(line).toMatch(/save/i)
+    expect(line).not.toMatch(/quota|exception|error|failed/i)
+  })
+
+  test("is stable — the same line every time (pinned copy)", () => {
+    expect(saveFailureNotice()).toBe(saveFailureNotice())
+  })
+})
 
 describe("spendFlashIndex", () => {
   test("returns the pip that just drained when AP goes down", () => {
