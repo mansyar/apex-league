@@ -170,8 +170,12 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
         pass; bit-identical replay test green
         (1e1092d - sim 411 / client 166 green, verify green; replay pin
         covers enriched fields; user full-battle pass approved build 29)
-- [ ] **Task: Phase Verification & Checkpoint (Refer to workflow.md)** —
+- [x] **Task: Phase Verification & Checkpoint (Refer to workflow.md)** —
         plus `conductor-review` prep
+        [checkpoint: 1e1092d] - verification report attached as git note;
+        sim 411 / client 166 green, verify green; Phase 4 scope commits
+        c739ccc + c0bef44 + 1e1092d (190 insertions); user approved
+        2026-10-12.
 
 ## Notes
 
