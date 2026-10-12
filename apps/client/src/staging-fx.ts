@@ -81,10 +81,12 @@ export class EffectLoop {
     /** True while a hit-stop is holding the frame (dt becomes 0). */
     private readonly isFrozen: () => boolean = () => false,
     private readonly now: () => number = () => performance.now(),
-    private readonly schedule: (
-      cb: (t: number) => void,
-    ) => number = requestAnimationFrame,
-    private readonly cancel: (id: number) => void = cancelAnimationFrame,
+    // Wrapped, never passed by reference: `requestAnimationFrame` throws
+    // "Illegal invocation" when invoked with a foreign receiver.
+    private readonly schedule: (cb: (t: number) => void) => number = (cb) =>
+      requestAnimationFrame(cb),
+    private readonly cancel: (id: number) => void = (id) =>
+      cancelAnimationFrame(id),
   ) {}
 
   /** Register a step; starts the loop if it is not running. */

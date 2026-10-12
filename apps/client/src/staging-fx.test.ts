@@ -205,4 +205,51 @@ describe("EffectLoop", () => {
     clock.advance(50)
     clock.frame() // must be a no-op
   })
+
+  // Regression: the production defaults must stay callable. Passing
+  // `requestAnimationFrame` by reference made the loop call it with the
+  // loop as receiver, which throws "Illegal invocation" in a browser -
+  // invisible to every other test here because they inject a fake.
+  test("defaults to the global frame scheduler without losing its receiver", () => {
+    const g = globalThis as unknown as {
+      requestAnimationFrame: (cb: (t: number) => void) => number
+      cancelAnimationFrame: (id: number) => void
+    }
+    const realRaf = g.requestAnimationFrame
+    const realCancel = g.cancelAnimationFrame
+    const queued: Array<(t: number) => void> = []
+    const cancelled: number[] = []
+    // A real `window.requestAnimationFrame` throws "Illegal invocation"
+    // when reached through a foreign object (`loop.schedule(...)` passing
+    // the loop as receiver), while a plain unqualified call is fine. The
+    // stub mirrors that split. An arrow stub cannot: it ignores the
+    // receiver entirely, which is how the by-reference default slipped
+    // through every other test here.
+    g.requestAnimationFrame = function rafStub(
+      this: unknown,
+      cb: (t: number) => void,
+    ) {
+      if (this !== undefined && this !== globalThis) {
+        throw new TypeError("Illegal invocation")
+      }
+      queued.push(cb)
+      return queued.length
+    } as unknown as typeof g.requestAnimationFrame
+    g.cancelAnimationFrame = function cancelStub(this: unknown, id: number) {
+      if (this !== undefined && this !== globalThis) {
+        throw new TypeError("Illegal invocation")
+      }
+      cancelled.push(id)
+    } as unknown as typeof g.cancelAnimationFrame
+    try {
+      const loop = new EffectLoop()
+      loop.add(() => true)
+      expect(queued.length).toBe(1)
+      loop.stop()
+      expect(cancelled.length).toBe(1)
+    } finally {
+      g.requestAnimationFrame = realRaf
+      g.cancelAnimationFrame = realCancel
+    }
+  })
 })
