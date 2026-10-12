@@ -3,7 +3,8 @@
  * input. This is the instrument for herd tests (wild variation + rare
  * tiers) and the vision-gate lineups. Usage: /gallery.html?seed=42
  */
-import "./style.css"
+import "./ui/kit.css"
+import "./base.css"
 import { archetypes, generate } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"

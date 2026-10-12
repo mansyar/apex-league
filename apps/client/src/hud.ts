@@ -20,6 +20,20 @@ import {
   type StatKey,
   TRAINING_CAP,
 } from "@apex/sim"
+import { crestGlyph, elementHue } from "./element"
+import { icons } from "./ui/icons"
+import {
+  bar,
+  button,
+  chip,
+  crest,
+  cta,
+  meter,
+  plate,
+  replay,
+  tab,
+  ticker,
+} from "./ui/kit"
 
 export interface HudHandlers {
   onAdvanceDay: () => void
@@ -54,20 +68,36 @@ const REJECTION_COPY: Record<CareRejection, string> = {
 const CONDITIONS: Array<{
   key: keyof CreatureConditions
   label: string
-  className: string
+  glyph: string
+  color: string
 }> = [
-  { key: "hunger", label: "Hunger", className: "bar-hunger" },
-  { key: "energy", label: "Energy", className: "bar-energy" },
-  { key: "health", label: "Health", className: "bar-health" },
-  { key: "mood", label: "Mood", className: "bar-mood" },
-  { key: "bond", label: "Bond", className: "bar-bond" },
+  {
+    key: "hunger",
+    label: "Hunger",
+    glyph: icons.hunger,
+    color: "var(--bar-hunger)",
+  },
+  {
+    key: "energy",
+    label: "Energy",
+    glyph: icons.energy,
+    color: "var(--bar-energy)",
+  },
+  {
+    key: "health",
+    label: "Health",
+    glyph: icons.health,
+    color: "var(--bar-health)",
+  },
+  { key: "mood", label: "Mood", glyph: icons.mood, color: "var(--bar-mood)" },
+  { key: "bond", label: "Bond", glyph: icons.bond, color: "var(--bar-bond)" },
 ]
 
-const ACTIONS: Array<{ action: CareAction; label: string }> = [
-  { action: "feed", label: "Feed" },
-  { action: "rest", label: "Rest" },
-  { action: "treat", label: "Treat" },
-  { action: "play", label: "Play" },
+const ACTIONS: Array<{ action: CareAction; label: string; glyph: string }> = [
+  { action: "feed", label: "Feed", glyph: icons.feed },
+  { action: "rest", label: "Rest", glyph: icons.rest },
+  { action: "treat", label: "Treat", glyph: icons.treat },
+  { action: "play", label: "Play", glyph: icons.play },
 ]
 
 const STATS: Array<{ key: StatKey; label: string }> = [
@@ -211,44 +241,69 @@ function trainingStatus(
 }
 
 /**
+ * Index of the AP pip that just drained when the spend total goes down
+ * (drives the one-shot spend flash), or null when nothing was spent.
+ */
+export const spendFlashIndex = (prev: number, next: number): number | null =>
+  next < prev ? next : null
+
+/**
  * The care HUD: broadcast-style overlays over the 3D ranch — a top-center
- * day scoreboard, a bottom-left creature lower-third with condition bars,
- * and a bottom-right action cluster. Flat translucent panels, no gradients.
+ * score bug, a bottom-left creature lower-third with condition bars, and a
+ * bottom-right command dock. Built from the shared broadcast kit
+ * (ui/kit.ts): warm keyline plates, chamfered corners, skewed AP pips.
  */
 export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
-  // Top-center scoreboard chip.
-  const dayChip = document.createElement("div")
-  dayChip.className = "day-chip"
-  const dayReadout = document.createElement("span")
-  dayReadout.className = "day-readout"
-  const apRow = document.createElement("span")
-  apRow.className = "ap-row"
-  // Lifetime championship banner (save v5): a trophy glyph per cup won.
-  const banner = document.createElement("span")
-  banner.className = "cup-banner"
-  banner.title = "Cup championships"
-  dayChip.append(dayReadout, apRow, banner)
+  // Top-center score bug.
+  const scoreBug = plate({ className: "score-bug" })
+  const phaseTab = tab("Day phase", "outline")
+  const dayNum = document.createElement("span")
+  dayNum.className = "score-day-num"
+  const dayLabel = document.createElement("span")
+  dayLabel.className = "score-day-label"
+  dayLabel.textContent = "Day"
+  const scoreDay = document.createElement("span")
+  scoreDay.className = "score-day"
+  scoreDay.append(dayLabel, dayNum)
+  const divider = document.createElement("span")
+  divider.className = "score-divider"
+  const divider2 = divider.cloneNode() as HTMLElement
+  const apLabel = document.createElement("span")
+  apLabel.className = "score-ap-label"
+  apLabel.textContent = "AP"
+  const scoreAp = document.createElement("span")
+  scoreAp.className = "score-ap"
+  const apMeter = meter(0, ACTION_POINTS_PER_DAY)
+  scoreAp.append(apLabel, apMeter.root)
+  // Lifetime championships (save v5): one gold tally, no silent cap.
+  const trophy = document.createElement("span")
+  trophy.className = "score-trophy"
+  trophy.title = "Cup championships"
+  const trophyCount = document.createElement("span")
+  trophyCount.className = "score-trophy-count"
+  trophy.innerHTML = icons.trophy
+  trophy.append(trophyCount)
+  scoreBug.append(phaseTab, scoreDay, divider, scoreAp, divider2, trophy)
 
-  // Bottom-left creature lower-third.
-  const lowerThird = document.createElement("div")
-  lowerThird.className = "lower-third"
-  const nameRow = document.createElement("div")
-  nameRow.className = "creature-name-row"
+  // Bottom-left creature lower-third (broadcast kit plate).
+  const lowerThird = plate({ className: "creature-plate" })
+  // The creature head doubles as the collapse toggle: clicking it folds
+  // the plate down to just the head row (crest + name + stage), leaving
+  // the briefest useful readout pinned to the corner.
+  const creatureHead = document.createElement("button")
+  creatureHead.className = "creature-head"
+  creatureHead.type = "button"
+  creatureHead.setAttribute("aria-expanded", "true")
+  creatureHead.title = "Collapse panel"
+  const crestEl = crest("fire")
   const creatureName = document.createElement("span")
   creatureName.className = "creature-name"
-  const elementBadge = document.createElement("span")
-  elementBadge.className = "element-badge"
-  const stageBadge = document.createElement("span")
-  stageBadge.className = "stage-badge"
-  stageBadge.title = "Life stage"
-  nameRow.append(creatureName, elementBadge, stageBadge)
+  const stageTab = tab("Baby", "stage")
+  const creatureChev = document.createElement("span")
+  creatureChev.className = "collapse-chev"
+  creatureChev.innerHTML = icons.chevron
+  creatureHead.append(crestEl, creatureName, stageTab, creatureChev)
 
-  const bars: Array<{
-    row: HTMLElement
-    fill: HTMLElement
-    value: HTMLElement
-    key: keyof CreatureConditions
-  }> = []
   const statRow = document.createElement("div")
   statRow.className = "stat-row"
   const statCells = STATS.map(({ key, label }) => {
@@ -260,116 +315,129 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     const total = document.createElement("span")
     total.className = "stat-total"
     const bonus = document.createElement("span")
-    bonus.className = "stat-bonus"
+    bonus.className = "stat-chip"
     cell.append(statLabel, total, bonus)
     statRow.append(cell)
     return { total, bonus, key }
   })
-  const barList = document.createElement("div")
-  barList.className = "condition-bars"
-  for (const def of CONDITIONS) {
-    const row = document.createElement("div")
-    row.className = "condition-row"
-    const label = document.createElement("span")
-    label.className = "condition-label"
-    label.textContent = def.label
-    const track = document.createElement("div")
-    track.className = "condition-track"
-    const fill = document.createElement("div")
-    fill.className = `condition-fill ${def.className}`
-    track.append(fill)
-    const value = document.createElement("span")
-    value.className = "condition-value"
-    row.append(label, track, value)
-    barList.append(row)
-    bars.push({ row, fill, value, key: def.key })
-  }
-  const status = document.createElement("div")
-  status.className = "status-callout"
-  status.setAttribute("aria-live", "polite")
-  lowerThird.append(nameRow, statRow, barList, status)
+  const conditionList = document.createElement("div")
+  conditionList.className = "condition-list"
+  const bars: Array<{
+    handle: ReturnType<typeof bar>
+    delta: HTMLElement
+    key: keyof CreatureConditions
+    prev: number | null
+  }> = CONDITIONS.map((def) => {
+    const handle = bar({
+      label: def.label,
+      glyph: def.glyph,
+      value: 0,
+      max: 100,
+      color: def.color,
+    })
+    // Transient change chip: pinned next to the value for ~1.2s on a
+    // meaningful swing, then hidden again (mock "bar change feedback").
+    const delta = document.createElement("em")
+    delta.className = "condition-delta"
+    delta.style.display = "none"
+    handle.value.append(delta)
+    conditionList.append(handle.root)
+    return { handle, delta, key: def.key, prev: null }
+  })
+  const statusTicker = ticker()
+  // Hardening: the announcer strip is live region (screen readers hear
+  // routine callouts without focus).
+  statusTicker.root.setAttribute("aria-live", "polite")
+  lowerThird.append(creatureHead, statRow, conditionList, statusTicker.root)
 
-  // Bottom-right action cluster.
-  const cluster = document.createElement("div")
-  cluster.className = "action-cluster"
-  const actionRow = document.createElement("div")
-  actionRow.className = "action-row"
-  const actionButtons = ACTIONS.map(({ action, label }) => {
-    const button = document.createElement("button")
-    button.className = "care-button"
-    button.type = "button"
-    const name = document.createElement("span")
-    name.textContent = label
-    const cost = document.createElement("span")
-    cost.className = "ap-cost"
-    cost.textContent = "1 AP"
-    const reason = document.createElement("span")
-    reason.className = "action-reason"
-    button.append(name, cost, reason)
-    button.addEventListener("click", () => handlers.onCare(action))
-    actionRow.append(button)
-    return { button, reason, action }
+  // Bottom-right command dock (broadcast kit plate). A slim header row
+  // doubles as the collapse toggle; collapsed, only the "ACTIONS" label
+  // remains pinned to the corner.
+  const cluster = plate({ className: "command-dock" })
+  const dockHead = document.createElement("button")
+  dockHead.className = "dock-head"
+  dockHead.type = "button"
+  dockHead.setAttribute("aria-expanded", "true")
+  dockHead.title = "Collapse panel"
+  const dockHeadLabel = document.createElement("span")
+  dockHeadLabel.textContent = "Actions"
+  const dockChev = document.createElement("span")
+  dockChev.className = "collapse-chev"
+  dockChev.innerHTML = icons.chevron
+  dockHead.append(dockHeadLabel, dockChev)
+  const dockRow = document.createElement("div")
+  dockRow.className = "dock-row"
+  const actionButtons = ACTIONS.map(({ action, label, glyph }) => {
+    const btn = button({
+      label,
+      glyph,
+      cost: "1 AP",
+      onClick: () => handlers.onCare(action),
+    })
+    dockRow.append(btn)
+    return { button: btn, action }
   })
   // Train control and its inline four-stat picker. Opening or closing
   // the picker spends nothing — only an assignment can.
-  const trainRow = document.createElement("div")
-  trainRow.className = "train-row"
-  const trainButton = document.createElement("button")
-  trainButton.className = "care-button"
-  trainButton.type = "button"
-  const trainName = document.createElement("span")
-  trainName.textContent = "Train"
-  const trainCost = document.createElement("span")
-  trainCost.className = "ap-cost"
-  trainCost.textContent = "1 AP"
-  const trainReason = document.createElement("span")
-  trainReason.className = "action-reason"
-  trainButton.append(trainName, trainCost, trainReason)
-  trainRow.append(trainButton)
+  const dockTrain = document.createElement("div")
+  dockTrain.className = "dock-train"
+  const trainButton = button({
+    label: "Train",
+    glyph: icons.train,
+    cost: "1 AP",
+    tag: "",
+  })
+  const trainTag = trainButton.querySelector<HTMLElement>(".kit-button-tag")
+  dockTrain.append(trainButton)
 
   const picker = document.createElement("div")
   picker.className = "train-picker"
   picker.style.display = "none"
   const pickerButtons = STATS.map(({ key, label }) => {
-    const button = document.createElement("button")
-    button.className = "train-entry"
-    button.type = "button"
+    const entry = document.createElement("button")
+    entry.className = "train-entry"
+    entry.type = "button"
     const name = document.createElement("span")
     name.className = "train-entry-name"
     name.textContent = label
     const note = document.createElement("span")
     note.className = "train-note"
-    button.append(name, note)
-    button.addEventListener("click", () => {
+    entry.append(name, note)
+    entry.addEventListener("click", () => {
       pickerOpen = false
       handlers.onTrain(key)
     })
-    picker.append(button)
-    return { button, note, key }
+    picker.append(entry)
+    return { button: entry, note, key }
   })
-  const advance = document.createElement("button")
-  advance.className = "advance-button"
-  advance.type = "button"
-  advance.textContent = "Advance Day"
-  advance.addEventListener("click", handlers.onAdvanceDay)
-  cluster.append(actionRow, trainRow, picker, advance)
+  const advance = cta("Advance Day", handlers.onAdvanceDay)
+  const advanceLabel = advance.querySelector<HTMLElement>(".kit-cta-label")
+  cluster.append(dockHead, dockRow, dockTrain, picker, advance)
 
-  // Settings pill (save v5): one toggle mirrors the reduced-motion
+  // Settings chip (save v5): one toggle mirrors the reduced-motion
   // preference. Persists through the main.ts handler like every other
   // sim change; the arena and ranch scene read it live.
-  const motionPill = document.createElement("button")
-  motionPill.className = "motion-pill"
-  motionPill.type = "button"
-  const motionState = document.createElement("span")
-  motionState.className = "motion-pill-state"
-  motionPill.addEventListener("click", handlers.onToggleReducedMotion)
-  motionPill.append(motionState)
+  const motionChip = chip({
+    label: "Motion: full",
+    variant: "dim",
+    onClick: handlers.onToggleReducedMotion,
+  })
+  const motionWrap = document.createElement("div")
+  motionWrap.className = "hud-motion"
+  motionWrap.append(motionChip)
 
-  root.append(dayChip, lowerThird, cluster, motionPill)
+  root.append(scoreBug, lowerThird, cluster, motionWrap)
 
   let pickerOpen = false
   let lastFocus: StatKey | null = null
   let current: GameState | null = null
+  // Corner clusters collapse by clicking their headers (session-only:
+  // always expanded on load).
+  let creatureOpen = true
+  let dockOpen = true
+  // Previous AP total — drives the one-shot spend flash on the meter.
+  let prevAp: number | null = null
+  let apPips = apMeter.pips
 
   // Toggling the picker spends nothing — render only.
   trainButton.addEventListener("click", () => {
@@ -377,57 +445,93 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     if (current) update(current)
   })
 
-  /** Mirror the motion preference onto the settings pill. */
+  creatureHead.addEventListener("click", () => {
+    creatureOpen = !creatureOpen
+    lowerThird.classList.toggle("is-collapsed", !creatureOpen)
+    creatureHead.setAttribute("aria-expanded", creatureOpen ? "true" : "false")
+  })
+
+  dockHead.addEventListener("click", () => {
+    dockOpen = !dockOpen
+    if (!dockOpen) pickerOpen = false
+    cluster.classList.toggle("is-collapsed", !dockOpen)
+    dockHead.setAttribute("aria-expanded", dockOpen ? "true" : "false")
+    if (current) update(current)
+  })
+
+  /** Mirror the motion preference onto the settings chip. */
   function capturePrefUpdate(state: GameState): void {
-    motionPill.setAttribute(
+    motionChip.setAttribute(
       "aria-pressed",
       state.settings.reducedMotion ? "true" : "false",
     )
-    motionPill.classList.toggle("is-on", state.settings.reducedMotion)
-    motionState.textContent = state.settings.reducedMotion
-      ? "Motion: reduced"
-      : "Motion: full"
+    const label = motionChip.querySelector<HTMLElement>(".kit-chip-label")
+    if (label) {
+      label.textContent = state.settings.reducedMotion
+        ? "Motion: reduced"
+        : "Motion: full"
+    }
   }
 
   const update = (state: GameState): void => {
     current = state
-    dayReadout.textContent = `Day ${state.day} · ${
-      state.phase === "cup" ? "Cup day" : "Day phase"
-    }`
-    const filled = "●".repeat(state.actionPoints)
-    const maxAp = Math.max(ACTION_POINTS_PER_DAY, state.actionPoints)
-    const empty = "○".repeat(Math.max(0, maxAp - state.actionPoints))
-    apRow.textContent = `AP ${filled}${empty}`
-    // Championship banner: one 🏆 per cup won. Hidden at zero.
-    banner.textContent = "🏆".repeat(Math.min(5, state.cupsWon))
-    banner.style.display = state.cupsWon > 0 ? "" : "none"
-    advance.textContent =
-      state.phase === "cup" ? "Continue past cup" : "Advance Day"
+    // Score bug: the phase tab flips to accent gold on cup day.
+    const cupDay = state.phase === "cup"
+    phaseTab.textContent = cupDay ? "Cup day" : "Day phase"
+    phaseTab.className = cupDay ? "kit-tab" : "kit-tab is-outline"
+    dayNum.textContent = String(state.day)
+
+    // AP segmented meter. Cup bonus points extend past the daily max as
+    // chevron-cut bonus pips; a fresh spend flashes the drained pip out.
+    const bonus = Math.max(0, state.actionPoints - ACTION_POINTS_PER_DAY)
+    const clamped = Math.min(state.actionPoints, ACTION_POINTS_PER_DAY)
+    const wantPips = ACTION_POINTS_PER_DAY + bonus
+    if (apPips.length !== wantPips) {
+      const rebuilt = meter(clamped, ACTION_POINTS_PER_DAY, bonus)
+      apMeter.root.replaceChildren(...rebuilt.pips)
+      apPips = rebuilt.pips
+    }
+    const flash =
+      prevAp === null ? null : spendFlashIndex(prevAp, state.actionPoints)
+    apPips.forEach((pip, i) => {
+      pip.classList.toggle("is-bonus", i >= ACTION_POINTS_PER_DAY)
+      pip.classList.toggle("is-empty", i >= clamped)
+      pip.classList.toggle("is-spent", i === flash)
+    })
+    prevAp = state.actionPoints
+
+    // Championship tally: designed overflow — "× N" scales to any count.
+    trophyCount.textContent = `× ${state.cupsWon}`
+    trophy.style.display = state.cupsWon > 0 ? "" : "none"
+    if (advanceLabel) {
+      advanceLabel.textContent =
+        state.phase === "cup" ? "Continue past cup" : "Advance Day"
+    }
 
     const creature = state.creature
     if (!creature) {
-      // Pre-starter: day chip + settings pill are the meaningful bits.
+      // Pre-starter: score bug + settings pill are the meaningful bits.
       lowerThird.style.display = "none"
-      actionRow.style.display = "none"
-      trainRow.style.display = "none"
+      dockRow.style.display = "none"
+      dockTrain.style.display = "none"
       picker.style.display = "none"
-      status.textContent = ""
-      motionPill.style.display = ""
+      statusTicker.say("")
+      motionWrap.style.display = ""
       capturePrefUpdate(state)
       return
     }
     capturePrefUpdate(state)
     lowerThird.style.display = ""
-    actionRow.style.display = ""
-    trainRow.style.display = ""
+    dockRow.style.display = ""
+    dockTrain.style.display = ""
 
     // The creature carries its own identity; the species catalog is only
     // needed for starter-card display.
+    crestEl.innerHTML = crestGlyph(creature.element)
+    crestEl.style.setProperty("--hue", String(elementHue(creature.element)))
     creatureName.textContent = creature.name
-    elementBadge.textContent = creature.element
-    elementBadge.className = `element-badge el-${creature.element}`
-    stageBadge.textContent = stageLabel(creature.stage)
-    stageBadge.className = `stage-badge is-${creature.stage}`
+    stageTab.textContent = stageLabel(creature.stage)
+    stageTab.className = "kit-tab is-stage"
 
     // Stat row: name, total (rolled base + trained), bonus when above 0.
     for (const cell of statCells) {
@@ -445,16 +549,25 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     )
     if (allCapped) {
       trainButton.disabled = true
-      trainReason.textContent = "Nothing left to train for now."
+      trainButton.classList.add("is-disabled")
+      trainButton.dataset.reason = "Nothing left to train for now."
+      if (trainTag) trainTag.textContent = ""
     } else if (state.actionPoints === 0 && !creature.trainingFocus) {
       trainButton.disabled = true
-      trainReason.textContent = REJECTION_COPY["no-ap"]
+      trainButton.classList.add("is-disabled")
+      trainButton.dataset.reason = REJECTION_COPY["no-ap"]
+      if (trainTag) trainTag.textContent = ""
     } else {
       trainButton.disabled = false
-      trainReason.textContent = creature.trainingFocus
-        ? `Focus: ${statLabel(creature.trainingFocus)}`
-        : ""
+      trainButton.classList.remove("is-disabled")
+      delete trainButton.dataset.reason
+      if (trainTag) {
+        trainTag.textContent = creature.trainingFocus
+          ? `Focus: ${statLabel(creature.trainingFocus)}`
+          : ""
+      }
     }
+    trainButton.classList.toggle("is-focus", Boolean(creature.trainingFocus))
 
     // Picker entries: tonight's delta, or the waste reason. Capped stats
     // are disabled; the current focus is marked.
@@ -462,6 +575,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     for (const entry of pickerButtons) {
       const capped = creature.trained[entry.key] >= TRAINING_CAP
       entry.button.disabled = capped
+      entry.button.classList.toggle("is-capped", capped)
       entry.button.classList.toggle(
         "is-focus",
         creature.trainingFocus === entry.key,
@@ -482,27 +596,40 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
 
     for (const bar of bars) {
       const v = creature.conditions[bar.key]
-      bar.fill.style.width = `${v}%`
-      bar.value.textContent = String(v)
+      bar.handle.set(v, 100)
+      const swing = bar.prev === null ? 0 : v - bar.prev
+      if (Math.abs(swing) >= 2) {
+        replay(bar.handle.fill, "is-flashing")
+        bar.delta.textContent = `${swing > 0 ? "+" : "−"}${Math.abs(swing)}`
+        bar.delta.style.display = ""
+        replay(bar.delta, "chip-pop")
+      } else {
+        bar.delta.style.display = "none"
+      }
+      bar.prev = v
+      bar.handle.fill.classList.toggle("is-low", v <= 25)
     }
-    const training = trainingStatus(creature, lastFocus)
-    status.textContent =
-      training ||
-      coachVoice(creature.conditions, creature.name) ||
-      unlockCallout(creature) ||
-      growthHint(state.day, creature) ||
-      flavorCallout(creature)
+    statusTicker.say(
+      trainingStatus(creature, lastFocus) ||
+        coachVoice(creature.conditions, creature.name) ||
+        unlockCallout(creature) ||
+        growthHint(state.day, creature) ||
+        flavorCallout(creature),
+    )
 
     // Disabled states come from the sim itself — a dry-run careAction is
-    // the single source of truth for why an action can't happen.
+    // the single source of truth for why an action can't happen. The
+    // reason explains on hover (kit tooltip), never inside the plate.
     for (const entry of actionButtons) {
       const result = careAction(state, entry.action)
       if (result.ok) {
         entry.button.disabled = false
-        entry.reason.textContent = ""
+        entry.button.classList.remove("is-disabled")
+        delete entry.button.dataset.reason
       } else {
         entry.button.disabled = true
-        entry.reason.textContent = REJECTION_COPY[result.reason]
+        entry.button.classList.add("is-disabled")
+        entry.button.dataset.reason = REJECTION_COPY[result.reason]
       }
     }
 
@@ -517,10 +644,10 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   return {
     update,
     announceEvolution(creature) {
-      status.textContent = evolveCallout(creature)
+      statusTicker.say(evolveCallout(creature))
     },
     announceSaveFailure() {
-      status.textContent = saveFailureNotice()
+      statusTicker.say(saveFailureNotice())
     },
   }
 }

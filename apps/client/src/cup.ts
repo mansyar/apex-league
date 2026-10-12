@@ -12,6 +12,7 @@
  */
 
 import {
+  ACTION_POINTS_PER_DAY,
   type BattleResult,
   type Creature,
   CUP_REWARDS,
@@ -36,10 +37,12 @@ import {
   resolvePlayerMatch,
   type Tactic,
 } from "@apex/sim"
-import { CREST_GLYPHS, createBattleHud } from "./battleHud"
+import { createBattleHud } from "./battleHud"
+import { crestGlyph, elementHue } from "./element"
 import { prefersReducedMotionOs } from "./motion"
 import { createPlaybackDriver, type PlaybackFight } from "./playbackDriver"
 import { type FightCasting, visualSeedOf } from "./staging"
+import { icons } from "./ui/icons"
 
 export interface CupHandlers {
   /** A player match starts: dissolve into the arena and cast both. */
@@ -98,14 +101,23 @@ const STAMP_HOLD_REDUCED = 900
 
 export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   // The Enter Cup chip sits beside the Spar chip (top-right cluster).
+  // Kit chip with the broadcast title/sub stack, matching Spar.
   const cupButton = document.createElement("button")
-  cupButton.className = "cup-button"
+  cupButton.className = "cup-button kit-chip"
   cupButton.type = "button"
+  const cupGlyph = document.createElement("span")
+  cupGlyph.className = "kit-chip-glyph"
+  cupGlyph.innerHTML = icons.trophy
+  const cupText = document.createElement("span")
+  cupText.className = "spar-text"
   const cupLabel = document.createElement("span")
+  cupLabel.className = "spar-title"
   cupLabel.textContent = "Enter Cup"
   const cupHint = document.createElement("span")
+  cupHint.className = "spar-sub"
   cupHint.textContent = "Cup day · free"
-  cupButton.append(cupLabel, cupHint)
+  cupText.append(cupLabel, cupHint)
+  cupButton.append(cupGlyph, cupText)
   root.append(cupButton)
 
   // Full-screen overlay, hidden until entry.
@@ -492,12 +504,12 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   // ------------------------------------------------------------------
   // Bracket rendering
   // ------------------------------------------------------------------
-  const crest = (element: string): string =>
-    CREST_GLYPHS[element] ?? CREST_GLYPHS.fire ?? ""
+  const crest = (element: string): string => crestGlyph(element)
 
-  /** Element hues (the canonical ELEMENT_HUE contract, staging.ts agrees). */
+  /** Element hues: ui/element.ts re-derives from the sim's canonical
+   * ELEMENT_HUE contract (single source of truth next to the matchup math). */
   const hueColor = (element: string): string =>
-    `hsl(${ELEMENT_HUE[element] ?? 40} 70% 60%)`
+    `hsl(${elementHue(element)} 70% 60%)`
 
   const speciesElement = (speciesId: string): string =>
     getSpecies(speciesId)?.element ?? "fire"
@@ -649,7 +661,7 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
     resultRewards.replaceChildren()
     const rows = won
       ? [
-          `+1 action point tomorrow (${3 + 1} total)`,
+          `+1 action point tomorrow (${ACTION_POINTS_PER_DAY + 1} total)`,
           `Bond +${CUP_REWARDS.bond}`,
           `Mood +${CUP_REWARDS.mood}`,
           "🏆 Cup won",

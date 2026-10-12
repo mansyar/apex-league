@@ -1,0 +1,9 @@
+{
+  "id": "broadcast_hud_20261011",
+  "title": "Broadcast HUD Overhaul - unified AAA-grade broadcast UI kit",
+  "type": "feature",
+  "status": "new",
+  "createdAt": "2026-10-11",
+  "branch": "track/broadcast_hud_20261011",
+  "base": "main @ 3720bfd"
+}

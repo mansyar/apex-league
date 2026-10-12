@@ -1,0 +1,844 @@
+/* Live cup surface (split from style.css, Phase B): backdrop dome, bracket, coach room, forfeit, results, battle chrome. */
+
+/* Live cup: full-screen broadcast panel — bracket reveal, coach room,
+   forfeit modal, results. Design language from live-cup-mock.html:
+   clipped plates, gold accents, container-unit scaling. */
+
+.cup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  container-type: inline-size;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 0.55);
+}
+
+/* Battle mode: the screens step aside and the arena plays behind the
+   scrim with the battle HUD floating — same broadcast dim as spar. */
+.cup-overlay.cup-battling {
+  background: rgb(12 10 8 / 0.6);
+}
+
+/* The approved mock's dome: opaque navy base, warm floor glow, cool haze
+   bands, inset vignette — the broadcast owns the screen. */
+.cup-backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(58% 42% at 50% 86%, rgb(255 210 130 / 0.1), transparent 70%),
+    radial-gradient(120% 90% at 50% 0%, #1a2030 0%, #0f1320 55%, #0a0d14 100%);
+  box-shadow: inset 0 -80px 120px rgb(0 0 0 / 0.55);
+}
+
+.cup-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(46% 16% at 50% 78%, rgb(122 134 158 / 0.3), transparent 75%),
+    radial-gradient(70% 24% at 50% 70%, rgb(90 100 122 / 0.18), transparent 80%);
+}
+
+/* Battles play in the real 3D arena: the dome steps aside. */
+.cup-overlay.cup-battling .cup-backdrop {
+  display: none;
+}
+
+.cup-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---- Bracket screen ------------------------------------------------ */
+
+.cup-head {
+  display: flex;
+  align-items: baseline;
+  gap: 1cqw;
+  margin-bottom: 1.2cqw;
+}
+
+.cup-head-tab {
+  padding: 0.35cqw 0.7cqw;
+  background: var(--accent);
+  color: #241a06;
+  font-family: var(--font-display, inherit);
+  font-size: 0.85cqw;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+}
+
+.cup-head-title {
+  font-size: 2.2cqw;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--ink);
+}
+
+.cup-head-sub {
+  font-size: 0.95cqw;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.cup-bracket {
+  display: grid;
+  grid-template-columns: 1fr 1fr 0.72fr;
+  column-gap: 2.6cqw;
+  align-items: stretch;
+  width: min(92cqw, 1100px);
+  flex: 1;
+  min-height: 0;
+  padding: 3cqw 2cqw 0;
+}
+
+.cup-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.cup-col-head {
+  font-size: 0.8cqw;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin-bottom: 1cqw;
+  opacity: 0;
+  transform: translateX(-16px);
+  transition:
+    opacity 0.45s ease,
+    transform 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+.cup-col-head.in {
+  opacity: 1;
+  transform: none;
+}
+
+.cup-col-f .cup-col-head {
+  text-align: right;
+}
+
+.cup-matches {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 0.8cqw;
+}
+
+.cup-match {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4cqw;
+  padding: 0.7cqw 1cqw;
+  background: var(--kit-panel-bg);
+  border: 1px solid var(--kit-keyline);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.cup-match.in {
+  opacity: 1;
+}
+
+/* Column corner cuts read as the funnel: QF cut left, F cut right. */
+.cup-col-qf .cup-match {
+  clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+}
+
+.cup-col-sf .cup-match,
+.cup-col-f .cup-match {
+  clip-path: polygon(12px 0, 100% 0, 100% 100%, 12px 100%);
+}
+
+.cup-match.yours {
+  border-color: var(--accent);
+  animation: cup-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes cup-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(255 210 87 / 0.35);
+  }
+  50% {
+    box-shadow: 0 0 1.2cqw 0 rgb(255 210 87 / 0.35);
+  }
+}
+
+.cup-ribbon {
+  display: none;
+  justify-self: start;
+  margin-left: 14px;
+  padding: 0.25cqw 0.8cqw 0.2cqw;
+  background: var(--accent);
+  color: #241a06;
+  font-size: 0.85cqw;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.cup-match.yours .cup-ribbon {
+  display: block;
+}
+
+.cup-slot {
+  display: flex;
+  align-items: center;
+  gap: 0.5cqw;
+  min-height: 2.5cqw;
+  padding: 0.35cqw 0.7cqw;
+}
+
+.cup-s-name {
+  font-size: 1.3cqw;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.cup-slot.tbd .cup-s-name {
+  color: rgb(244 236 223 / 0.35);
+}
+
+.cup-dash {
+  font-size: 1.3cqw;
+  letter-spacing: 0.3em;
+  color: rgb(244 236 223 / 0.3);
+}
+
+.cup-mini-crest {
+  display: inline-flex;
+  width: 2cqw;
+  height: 2cqw;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  clip-path: polygon(50% 0, 100% 26%, 100% 74%, 50% 100%, 0 74%, 0 26%);
+  background: currentcolor;
+}
+
+.cup-mini-crest svg {
+  width: 1.3cqw;
+  height: 1.3cqw;
+  color: #14100c;
+}
+
+.cup-slot.won .cup-s-name {
+  color: var(--accent);
+}
+
+.cup-slot.lost {
+  opacity: 0.45;
+}
+
+.cup-slot.lost .cup-s-name {
+  text-decoration: line-through;
+}
+
+.cup-you-tag {
+  margin-left: auto;
+  padding: 0.1cqw 0.5cqw;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 0.7cqw;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* Champion pedestal: materializes only at crowning. */
+.cup-champ {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8cqw;
+  margin-top: 1.4cqw;
+}
+
+.cup-champ-cup {
+  font-size: 4.5cqw;
+  line-height: 1;
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity 0.4s ease,
+    transform 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+
+.cup-champ-name,
+.cup-champ-label {
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease;
+}
+
+.cup-champ-label {
+  font-size: 0.8cqw;
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.cup-champ-name {
+  font-size: 1.7cqw;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.cup-champ.crowned .cup-champ-cup {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.cup-champ.crowned .cup-champ-label,
+.cup-champ.crowned .cup-champ-name {
+  opacity: 1;
+  transform: none;
+}
+
+.cup-champ.crowned .cup-champ-name {
+  transition-delay: 0.3s;
+}
+
+/* CTA pair during the player-match pause. */
+/* CTA pair during the player-match pause: in-flow bottom row, right-aligned. */
+.cup-cta {
+  align-self: stretch;
+  display: none;
+  justify-content: flex-end;
+  gap: 1cqw;
+  margin: 1.2cqw 4cqw 0;
+}
+
+.cup-cta.show {
+  display: flex;
+}
+
+.cup-cta-go {
+  padding: 0.8cqw 1.6cqw;
+  border: 0;
+  background: var(--accent);
+  color: #241a06;
+  font-size: 1.1cqw;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
+
+.cup-cta-go:hover {
+  filter: brightness(1.08);
+}
+
+.cup-cta-danger {
+  background: #ff5a4e;
+  color: #2a0705;
+}
+
+.cup-cta-ghost {
+  padding: 0.8cqw 1.4cqw;
+  border: 1px solid var(--kit-keyline);
+  background: transparent;
+  color: var(--ink);
+  font-size: 1cqw;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.cup-cta-ghost:hover {
+  border-color: var(--accent);
+}
+
+/* APEX FEED ticker (announcer strip). */
+/* APEX FEED ticker (announcer strip): in-flow footer row of the screen. */
+.cup-ticker {
+  align-self: stretch;
+  display: flex;
+  align-items: stretch;
+  gap: 0.6cqw;
+  margin: 1.2cqw 4cqw 1.2cqw;
+}
+
+.cup-ticker-tab {
+  display: flex;
+  align-items: center;
+  padding: 0.35cqw 0.9cqw;
+  background: var(--accent);
+  color: #241a06;
+  font-size: 0.95cqw;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.cup-ticker-line {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0.35cqw 1.2cqw;
+  background: var(--kit-panel-bg);
+  border: 1px solid var(--kit-keyline);
+  font-size: 1.1cqw;
+  color: var(--ink);
+}
+
+.cup-ticker-line.swap {
+  animation: cup-swap 0.35s ease;
+}
+
+@keyframes cup-swap {
+  from {
+    opacity: 0;
+    transform: translateY(0.6cqw);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- Coach screen --------------------------------------------------- */
+
+.cup-coach-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.6cqw;
+  width: min(88cqw, 1060px);
+  flex: 1;
+  align-content: center;
+  padding: 2cqw 0;
+}
+
+.cup-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8cqw;
+  padding: 1.2cqw 1.4cqw;
+  background: var(--kit-panel-bg);
+  border: 1px solid var(--kit-keyline);
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 10px),
+    calc(100% - 10px) 100%,
+    0 100%
+  );
+}
+
+.cup-card-title {
+  font-size: 0.85cqw;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.cup-fighter-name {
+  font-size: 1.5cqw;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.cup-fighter-name.rival {
+  color: var(--accent);
+}
+
+.cup-fighter-species {
+  font-size: 0.9cqw;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.cup-stat {
+  display: grid;
+  grid-template-columns: 3.2cqw 1fr 2.4cqw;
+  align-items: center;
+  gap: 0.6cqw;
+}
+
+.cup-stat-name {
+  font-size: 0.8cqw;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: var(--ink-dim);
+}
+
+.cup-stat-bar {
+  height: 0.8cqw;
+  background: rgb(255 236 200 / 0.12);
+  clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
+}
+
+.cup-stat-fill {
+  height: 100%;
+  background: var(--accent);
+}
+
+.cup-stat-num {
+  font-size: 0.9cqw;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: right;
+}
+
+.cup-kit-move {
+  padding: 0.45cqw 0.8cqw;
+  border: 1px solid var(--kit-keyline);
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.95cqw;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cup-kit-move.on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.cup-kit-move.locked {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.cup-kit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4cqw;
+  font-size: 0.95cqw;
+  color: var(--ink);
+}
+
+.cup-tactic-row {
+  display: flex;
+  gap: 0.6cqw;
+}
+
+.cup-tactic {
+  flex: 1;
+  padding: 0.5cqw 0.8cqw;
+  border: 1px solid var(--kit-keyline);
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.9cqw;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.cup-tactic.on {
+  border-color: var(--accent);
+  background: rgb(255 210 87 / 0.14);
+  color: var(--accent);
+}
+
+.cup-tactic-unknown {
+  font-size: 0.9cqw;
+  font-style: italic;
+  color: var(--ink-dim);
+}
+
+.cup-coach-note {
+  font-size: 0.9cqw;
+  font-style: italic;
+  color: var(--ink-dim);
+}
+
+.cup-coach-foot {
+  display: flex;
+  align-items: center;
+  gap: 1.2cqw;
+  margin-bottom: 3cqw;
+}
+
+/* ---- Forfeit modal --------------------------------------------------- */
+
+.cup-giveup {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 0.5);
+  z-index: 2;
+}
+
+.cup-giveup-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1cqw;
+  width: min(46cqw, 520px);
+  padding: 1.6cqw 2cqw;
+  background: var(--kit-panel-bg);
+  border: 1px solid #ff5a4e;
+  clip-path: polygon(
+    14px 0,
+    100% 0,
+    100% calc(100% - 14px),
+    calc(100% - 14px) 100%,
+    0 100%,
+    0 14px
+  );
+}
+
+.cup-giveup-tab {
+  align-self: flex-start;
+  padding: 0.3cqw 0.8cqw;
+  background: #ff5a4e;
+  color: #2a0705;
+  font-size: 0.85cqw;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.cup-giveup-title {
+  font-size: 1.9cqw;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.cup-giveup-copy {
+  font-size: 1cqw;
+  line-height: 1.55;
+  color: var(--ink-dim);
+}
+
+.cup-giveup-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1cqw;
+  margin-top: 0.4cqw;
+}
+
+/* ---- Results screen --------------------------------------------------- */
+
+.cup-result-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1cqw;
+  padding: 2.4cqw 3.2cqw;
+  background: var(--kit-panel-bg);
+  border: 1px solid var(--kit-keyline);
+  clip-path: polygon(
+    18px 0,
+    100% 0,
+    100% calc(100% - 18px),
+    calc(100% - 18px) 100%,
+    0 100%,
+    0 18px
+  );
+}
+
+.cup-result-stamp {
+  font-size: 0.9cqw;
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.cup-result-title {
+  font-size: 4.4cqw;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  color: var(--accent);
+  animation: cup-stamp 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+.cup-result-title.lost {
+  color: #ff5a4e;
+}
+
+@keyframes cup-stamp {
+  from {
+    opacity: 0;
+    transform: scale(1.2);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.cup-result-rule {
+  width: 16cqw;
+  height: 3px;
+  background: var(--accent);
+  animation: cup-rule 0.6s ease 0.2s both;
+}
+
+@keyframes cup-rule {
+  from {
+    width: 0;
+  }
+  to {
+    width: 16cqw;
+  }
+}
+
+.cup-result-sub {
+  font-size: 1.05cqw;
+  color: var(--ink-dim);
+}
+
+.cup-result-plate {
+  display: flex;
+  align-items: center;
+  gap: 0.9cqw;
+  margin-top: 0.6cqw;
+  padding: 0.6cqw 1.2cqw;
+  border: 1px solid var(--kit-keyline);
+  background: rgb(255 236 200 / 0.05);
+}
+
+.cup-result-tab {
+  padding: 0.25cqw 0.7cqw;
+  background: var(--accent);
+  color: #241a06;
+  font-size: 0.95cqw;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.cup-result-line {
+  font-size: 1.05cqw;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.cup-result-rewards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5cqw;
+  margin-top: 0.8cqw;
+}
+
+.cup-reward-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 2cqw;
+  min-width: 22cqw;
+  padding: 0.45cqw 0.9cqw;
+  border: 1px solid var(--kit-keyline);
+  font-size: 1cqw;
+  color: var(--ink);
+  opacity: 0;
+  animation: cup-rise 0.4s ease forwards;
+}
+
+.cup-reward-row:nth-child(1) {
+  animation-delay: 0.3s;
+}
+.cup-reward-row:nth-child(2) {
+  animation-delay: 0.55s;
+}
+.cup-reward-row:nth-child(3) {
+  animation-delay: 0.8s;
+}
+.cup-reward-row:nth-child(4) {
+  animation-delay: 1.05s;
+}
+
+@keyframes cup-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.cup-result-card:not(.play) .cup-reward-row {
+  animation: none;
+  opacity: 1;
+}
+
+.cup-result-card:not(.play) .cup-result-title,
+.cup-result-card:not(.play) .cup-result-rule {
+  animation: none;
+}
+
+/* ---- Battle chrome + close -------------------------------------------- */
+
+.cup-battle-chips {
+  position: absolute;
+  top: 3cqw;
+  right: 3cqw;
+  display: none;
+  gap: 1cqw;
+}
+
+.cup-speed {
+  padding: 0.6cqw 1.2cqw;
+  border: 1px solid var(--kit-keyline);
+  background: var(--kit-panel-bg);
+  color: var(--ink);
+  font-size: 1cqw;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.cup-speed:hover {
+  border-color: var(--accent);
+}
+
+.cup-close {
+  align-self: center;
+  margin-top: 1.2cqw;
+  padding: 0.7cqw 1.8cqw;
+  border: 1px solid var(--kit-keyline);
+  background: transparent;
+  color: var(--ink);
+  font-size: 1cqw;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.cup-close:hover {
+  border-color: var(--accent);
+}
+
+/* Reduced motion: the kit's global kill (ui/kit.css) already stops every
+   animation and transition. These opacity restores are load-bearing: the
+   bracket reveal and reward rows animate with `forwards` fills to end
+   visible, and the global `animation: none` would otherwise leave them
+   stuck at their pre-entrance opacity 0. */
+@media (prefers-reduced-motion: reduce) {
+  .cup-result-title,
+  .cup-result-rule,
+  .cup-reward-row,
+  .cup-ticker-line.swap {
+    opacity: 1;
+  }
+}

@@ -81,10 +81,11 @@ A fresh save opens the starter choice — pick a Fire drake or a Plant ox and
 begin the day loop. Each day you get 3 AP for care actions plus one training
 focus: a full night's rest adds +1 to the focused stat, capped at +6 above
 the rolled base. The ranch itself is golden-hour lit — gradient dusk sky,
-moss ground, drop shadows — and dressing reacts to care: feeding your creature
+moss ground, drop shadows - and dressing reacts to care: feeding your creature
 places a voxel food pile beside it until the night resets. Dev pages are
-available at `/gallery.html` (creature lineup, `?archetype=draconic|bovine|mixed`)
-and `/preview.html` (grey silhouette viewer, `?seed=&archetype=&angle=`).
+available at `/gallery.html` (creature lineup, `?archetype=draconic|bovine|mixed`),
+`/preview.html` (grey silhouette viewer, `?seed=&archetype=&angle=`), and
+`/mock.html` (broadcast HUD design mock built from the production kit).
 
 ## Development
 

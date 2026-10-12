@@ -1,0 +1,101 @@
+/* Starter overlay surface (split from style.css, Phase B; rebuilt on the
+   broadcast kit in Phase D): the draft-day dome borrows the approved
+   cup-backdrop dome language, cards wear the kit plate. */
+
+/* First-run starter choice */
+.starter-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  background:
+    radial-gradient(120% 90% at 50% 0%, #1a2030 0%, #0f1320 52%, #0a0d14 100%),
+    #0a0d14;
+  animation: settle-up 0.5s var(--kit-settle) both;
+}
+
+/* Warm floor glow, like the cup dome. */
+.starter-overlay::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 34%;
+  background: radial-gradient(
+    60% 100% at 50% 100%,
+    rgb(255 210 130 / 0.1) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.starter-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: settle-down 0.55s var(--kit-settle) 0.1s both;
+}
+
+.starter-heading {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.starter-grid {
+  display: flex;
+  gap: 16px;
+  animation: settle-up 0.55s var(--kit-settle) 0.2s both;
+}
+
+/* Kit plate card: keyline + blur come from .kit-plate; the dome card cuts
+   its own chamfers and stacks crest / name / flavor. */
+.starter-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 190px;
+  min-height: 170px;
+  padding: 20px 14px 16px;
+  color: var(--ink);
+  cursor: pointer;
+  clip-path: polygon(
+    12px 0,
+    100% 0,
+    100% calc(100% - 12px),
+    calc(100% - 12px) 100%,
+    0 100%,
+    0 12px
+  );
+}
+
+.starter-card:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background-image:
+    linear-gradient(rgb(36 29 20 / 0.85), rgb(36 29 20 / 0.85)),
+    linear-gradient(var(--kit-keyline-warm), var(--kit-keyline-warm));
+}
+
+.starter-card:disabled,
+.starter-card.locked {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.starter-name {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.starter-flavor {
+  font-size: 12px;
+  color: var(--ink-dim);
+  text-align: center;
+}
