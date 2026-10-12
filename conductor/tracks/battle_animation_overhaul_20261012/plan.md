@@ -107,7 +107,10 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
         fire/water/plant *(manual)*
   (a6f6ad0 element-flavored shots + mirror-match actorKey fix; 9c27037 point-blank elemental
   bursts; user approved builds 8-11)
-- [ ] **Task: Bespoke tier 3 special choreography** — 3 moves *(manual)*
+- [x] **Task: Bespoke tier 3 special choreography** - 3 moves *(manual)*
+  (47f83fd bespoke bodies + spawn size/life/spread; 190a54e systemic actor-body fix +
+  point-blank signatures; ec82b2c spore cloud bloom; c8d2879 cinder coil-beat blast;
+  user verified all three across species, builds 12-15)
 - [ ] **Task: Bespoke tier 4 special choreography** — 3 moves *(manual)*
 - [ ] **Task: Reaction library** — dodge/hurt/stagger/knockback/down
         mapped from enriched events *(pure mapping tested; rendering
