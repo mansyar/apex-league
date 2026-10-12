@@ -1,7 +1,7 @@
 # Track: Battle Animation Overhaul — Arena to AAA (`battle_animation_overhaul_20261012`)
 
 - **Type:** Feature
-- **Status:** New
+- **Status:** Complete
 - **Branch:** `battle_animation_overhaul_20261012` (base: `main @ 5c2a5fa`)
 
 Transform the arena battle playback into AAA-grade spectator battle — AAA
