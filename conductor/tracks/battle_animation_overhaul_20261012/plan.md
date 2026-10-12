@@ -159,10 +159,14 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
 - [x] **Task: Time-dilated final blow** *(TDD on pacing math in driver)*
         (c739ccc - KO_DILATION 2.5 + dilatedPace pure math; live pace
         raises on the KO step and restores after; golden pace pin updated)
-- [ ] **Task: KO staging** — camera orbit, stagger-collapse, dust puff
+- [x] **Task: KO staging** - camera orbit, stagger-collapse, dust puff
         *(manual)*
-- [ ] **Task: Verdict stamp beat timing** *(driver test + manual)*
-- [ ] **Task: Final polish + replay determinism check** — full-battle
+        (c0bef44 - staged KO: lean-channel wind-up 0.35 then easeOut
+        collapse; thud + neutral dust ring at 30%; user approved build 28)
+- [x] **Task: Verdict stamp beat timing** *(driver test + manual)*
+        (1e1092d - stampDelay pure math STAMP_BEATS 1.2, terminal wait
+        rides the KO dilation; stamp lands as the pace snaps back)
+- [~] **Task: Final polish + replay determinism check** — full-battle
         pass; bit-identical replay test green
 - [ ] **Task: Phase Verification & Checkpoint (Refer to workflow.md)** —
         plus `conductor-review` prep
