@@ -166,8 +166,10 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
 - [x] **Task: Verdict stamp beat timing** *(driver test + manual)*
         (1e1092d - stampDelay pure math STAMP_BEATS 1.2, terminal wait
         rides the KO dilation; stamp lands as the pace snaps back)
-- [~] **Task: Final polish + replay determinism check** — full-battle
+- [x] **Task: Final polish + replay determinism check** — full-battle
         pass; bit-identical replay test green
+        (1e1092d - sim 411 / client 166 green, verify green; replay pin
+        covers enriched fields; user full-battle pass approved build 29)
 - [ ] **Task: Phase Verification & Checkpoint (Refer to workflow.md)** —
         plus `conductor-review` prep
 
