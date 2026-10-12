@@ -48,9 +48,13 @@ phase checkpoints).
 
 ## Phase 4 — Full gate & docs
 
-- [ ] Task: Full verification
-  - [ ] `bun run verify` green; suite runtime unchanged or faster
-  - [ ] Visual QA script: Spar (full match, fast-forward, big hit, KO), full cup player match (coach re-pick, give-up modal a11y), mock.html, reduced-motion toggle on/off; browser screenshots + console check per workflow §Phase protocol
+- [x] Task: Full verification
+  - [x] `bun run verify` green; suite runtime unchanged or faster — EXIT 0, 823 tests / 0 fail across 75 files in 7.2s, types clean in all 3 packages, determinism gate OK
+  - [x] Visual QA script (driven headless - desktop browser tool unavailable this session): Spar full match to KO with fast-forward + `aria-pressed`, cup bracket -> coach -> arena -> result, give-up modal (`role=dialog`, `aria-modal`, `aria-labelledby`, focus on "Stay in the bracket", Escape closes + focus returns to `.cup-close`), mock.html under `body.mock`, reduced-motion spar (no flash/burst/decal). Screenshots reviewed; **0 page errors** after the `EffectLoop` default-binding fix `8c38ebc` (before it: 6 `Illegal invocation` page errors)
+- [x] Task: Docs update
+  - [x] README dev-pages note if module map changed - not needed: the layout section is package-level and unchanged; the new modules are internal to `apps/client/src`
+  - [x] conductor/learnings.md entry - entry #11 in `7bc0ee5` (injected test doubles hide broken default bindings; prove a regression test red against the old code; headless Chromium as the browser-QA fallback)
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) §Phase protocol
 - [ ] Task: Docs update
   - [ ] README dev-pages note if module map changed; conductor/learnings.md entry if any lesson emerges
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
