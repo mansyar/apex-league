@@ -56,6 +56,10 @@ phase checkpoints).
   - [x] conductor/learnings.md entry - entry #11 in `7bc0ee5` (injected test doubles hide broken default bindings; prove a regression test red against the old code; headless Chromium as the browser-QA fallback)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) - checkpoint `8c38ebc` (user confirmed)
 
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions - `eb5b78e` (restore 9 em-dash strings dropped by the extraction; `EffectLoop.stop()` clears steps + test; reused frame snapshot instead of `[...steps]`; `lambertMaterialOf` hoisted to `scene-utils.ts`; `battleUI.ts` imports to the top, `focusTrap` guard instead of assertions, named `SpeedButtonMode`; `spec.md` records the unmet line-size ceilings)
+
 ## Notes
 - Phase 2's `EffectLoop` consolidation is the only place where timing could subtly shift — the loop core gets real tests (fake timers) and the phase checkpoint includes side-by-side visual QA.
 - Zero sim/voxel diff expected; if any sneaks in, stop and re-check the spec.
