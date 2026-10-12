@@ -25,8 +25,8 @@ phase checkpoints).
 
 ## Phase 2 — staging.ts split (mostly rendering; seed & loop core test-covered)
 
-- [ ] Task: Extract `move-fx.ts` data module
-  - [ ] Move `MOVE_FX`, `SHOT_LOOKS`, `elementColor` + `MoveFx`/`ShotSpec`/`ShotLook` types; zero imports from the driver; update importers
+- [x] Task: Extract `move-fx.ts` data module — 50a6389
+  - [x] Move `MOVE_FX`, `SHOT_LOOKS`, `elementColor` + `MoveFx`/`ShotSpec`/`ShotLook` types; zero imports from the driver; update importers — also carried BurstStyle/Posture and the CONTACT_T/PROJECTILE_LIFE_MS/PROJECTILE_ARC constants (data shared by tables + flight interpreter); staging.ts imports from `./move-fx`
 - [ ] Task: Extract `staging-seed.ts`
   - [ ] Move `visualSeedOf`; update main/spar/cup imports; keep `staging-seed.test.ts` green (path updates only)
 - [ ] Task: Extract `staging-fx.ts` with consolidated `EffectLoop` (TDD for the loop core)
