@@ -25,11 +25,11 @@ checkpoints, git notes, `bun run verify` before commits).
 
 ## Phase C — Client presentation (manual-verification track)
 
-- [ ] Task: Broadcast-kit rank plate on the ranch HUD (sub-tier, points, progress-to-next; aria-label; reduced-motion aware)
-- [ ] Task: Cup tie-ins — standing on the entry chip, points + climb callout on the results screen, ticker announcement via the existing precedence chain
-- [ ] Task: Store wiring through `commit()` fanout; hud subscriber update
-- [ ] Task: Commit (`feat(client): ladder rank plate + cup results tie-ins`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Broadcast-kit rank plate on the ranch HUD (sub-tier, points, progress-to-next; aria-label; reduced-motion aware) — replay via kit helper, promotion flash gated by the global motion mechanism
+- [x] Task: Cup tie-ins — standing on the entry chip, points + climb callout on the results screen, ticker announcement via the existing precedence chain — climb line consumes the ticker first; "silver-awaits" one-time hint added
+- [x] Task: Store wiring through `commit()` fanout; hud subscriber update — existing commit() fanout already drives hud.update/cup.update; no new wiring needed
+- [x] Task: Commit (`feat(client): ladder rank plate + cup results tie-ins`) — 32903b2
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: 32903b2] (verify gate green; full-loop browser verification scheduled as the Phase D checkpoint)
 
 ## Phase D — Final verification & docs
 
