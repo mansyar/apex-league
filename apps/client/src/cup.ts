@@ -60,11 +60,6 @@ export interface CupHandlers {
    * final and the rewards are applied - persist the returned state.
    */
   onFinalize: (state: GameState, session: CupSession) => void
-  /**
-   * Live camera-style switch (FR6): the battle HUD carries a toggle;
-   * main.ts owns the store commit and applies the style to the scene.
-   */
-  onToggleCamera?: () => void
 }
 
 export interface Cup {
@@ -124,9 +119,7 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   backdrop.className = "cup-backdrop"
   overlay.append(backdrop)
 
-  const battleHud = createBattleHud(overlay, {
-    onToggleCamera: () => handlers.onToggleCamera?.(),
-  })
+  const battleHud = createBattleHud(overlay)
 
   // ------------------------------------------------------------------
   // Bracket screen
@@ -1116,7 +1109,6 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   return {
     update(next) {
       state = next
-      battleHud.setCameraStyle(next.settings.arenaCamera)
       syncChip()
     },
   }

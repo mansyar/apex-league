@@ -52,19 +52,11 @@ export interface SparHandlers {
    * "reduced" setting gates the playback even when the OS is motion-ok.
    */
   motionPref?: () => boolean
-  /**
-   * Live camera-style switch (FR6): the battle HUD carries a toggle;
-   * main.ts owns the store commit and applies the style to the scene.
-   */
-  onToggleCamera?: () => void
 }
 
 export interface Spar {
   /** Sync the button and live creature reference with the current state. */
-  update(
-    creature: Creature | null,
-    arenaCamera?: "cinematic" | "broadcast",
-  ): void
+  update(creature: Creature | null): void
 }
 
 /** FR6 temperament lines, coach-side. */
@@ -279,9 +271,7 @@ export function createSpar(
   // Broadcast HUD riding the overlay's margins (Phase D): created after
   // the overlay exists; createBattleHud prepends itself so the panel
   // paints above it.
-  const battleHud = createBattleHud(overlay, {
-    onToggleCamera: () => handlers.onToggleCamera?.(),
-  })
+  const battleHud = createBattleHud(overlay)
 
   let battleSeed = 0
   let owned: Creature | null = null
@@ -551,11 +541,10 @@ export function createSpar(
   })
 
   return {
-    update: (creature, arenaCamera) => {
+    update: (creature) => {
       // The live creature reference stays current, so the fight always
       // reads the partner as they are right now.
       owned = creature
-      if (arenaCamera) battleHud.setCameraStyle(arenaCamera)
       sparButton.disabled = creature === null
       if (creature && overlay.style.display !== "none") {
         refreshPrep(creature)

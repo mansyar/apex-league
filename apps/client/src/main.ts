@@ -32,7 +32,7 @@ if (!app) throw new Error("#app container missing")
 // TEMPORARY build tag (learnings #9): distinguishes stale tabs from the
 // agent's bundle during feel iterations. REMOVE BEFORE FINAL COMMIT.
 const buildTag = document.createElement("div")
-buildTag.textContent = "arena build 23"
+buildTag.textContent = "arena build 24"
 buildTag.style.cssText =
   "position:fixed;bottom:4px;right:8px;font:10px monospace;opacity:0.5;z-index:99;pointer-events:none"
 document.body.appendChild(buildTag)
@@ -100,7 +100,6 @@ const toggleArenaCamera = (): void => {
 // The spar reads the live state through this hook; kit changes write
 // through the store like every other sim change.
 const spar = createSpar(app, {
-  onToggleCamera: toggleArenaCamera,
   onSetLoadout: (moveIds) => {
     const current = store.get()
     if (!current.creature) return
@@ -157,7 +156,6 @@ applyMotionPref()
 // finalizeCup lands the rewards. Nothing here re-resolves the sim — every
 // state adoption flows through the store (persist + hud/spar/cup fanout).
 const cup = createCup(app, {
-  onToggleCamera: toggleArenaCamera,
   onFightStart: (casting) => {
     scene.setRanchCreatureVisible(false)
     void swap.enterArena()
@@ -249,7 +247,7 @@ const hud = createHud(app, {
 // exactly like the old per-handler fanout did. Handlers only add their
 // site-specific scene work on top.
 store.subscribe((s) => hud.update(s))
-store.subscribe((s) => spar.update(s.creature ?? null, s.settings.arenaCamera))
+store.subscribe((s) => spar.update(s.creature ?? null))
 store.subscribe((s) => cup.update(s))
 
 // First run (or a migrated v1 save without a creature): offer the starter.
