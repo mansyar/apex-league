@@ -98,6 +98,7 @@ function syntheticSession(
     bracket: {
       day: 7,
       slots,
+      // noUncheckedIndexedAccess: array bounds are guaranteed by construction.
       finalRival: (slots[slots.length - 1] ?? slots[0]) as CupSlot,
       rounds,
       roundLabels: labels,
