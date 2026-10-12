@@ -273,18 +273,29 @@ screen. Dev server stopped after the check.
 
 ## Phase 5 — Close the track
 
-- [ ] Task: Update `metadata.json` → `status: "complete"`, record the closing commit base
-- [ ] Task: Mark the registry entry in `conductor/tracks.md` as `[x]` with the final title
-- [ ] Task: Record phase checkpoint SHAs and per-phase outcomes in this plan
-- [ ] Task: Commit (`conductor(plan): mark track 'Battle Sim Consolidation & Rebalance' complete`)
+- [x] Task: Update `metadata.json` → `status: "complete"`, record the closing commit base
+- [x] Task: Mark the registry entry in `conductor/tracks.md` as `[x]` with the final title
+- [x] Task: Record phase checkpoint SHAs and per-phase outcomes in this plan
+- [x] Task: Commit (`conductor(plan): mark track 'Battle Sim Consolidation & Rebalance' complete`)
 
 ---
 
-## Open questions to resolve during implementation
+## Track outcomes (closed 2026-10-13)
 
-- Does the 200-seed × full-kit matrix stay inside the suite budget? (Phase 3
-  task 2 — narrow the matrix rather than the time budget.)
-- Does the threshold band need an archetype-specific exception for bovine
-  (learnings #10 notes ox kit2/3 mirrors stall into 40-tick draws)? Resolve with
-  the user if the draw rate cannot reach <20% for bovine without changing the
-  `balanced` rule.
+| Phase | Checkpoint | Outcome |
+|---|---|---|
+| 0 — Safety net | `f9f3793` | 27-case seeded event-stream contract pinned (216 battles, <1s); found the melee heavy-hit is unreachable with starter stats (defensive code) and the SE stagger branch only fires cross-element |
+| 1 — Clock consolidation | `fc952f2` | Heavy-hit rule implemented once (`landHit`, melee passes the named `TYPELESS` constant); `pushEvent` replaces nine event literals; −28 lines; all 27 digests unchanged |
+| 2 — Cup seed + double-KO | `5e95ce9` | One exported `cupMatchSeed` replaces three copies; the real double-KO bracket bug fixed via `doubleKoAdvancingName` (red test reproduced `Expected Bravo / Received Alpha`); no save change |
+| 3 — Rebalance | `8e6b7ca` | FR5 withdrawn after the probe inverted learnings #10; revised FR6 shipped: shared sustained-score bar for both tactics + per-tactic ranking (expected vs sustained); goldens recaptured; 834 pass |
+| 4 — Ripples | `13b5e9b` | spar.ts tactic previews rewritten; learnings #10 RESOLVED; save-schema confirmed unchanged; browser check clean (0 console errors, both tactics finish); verify 834/0 |
+| 5 — Close | this commit | metadata complete, registry `[x]` |
+
+Branch history: `0c82414` (in progress) → `f9f3793` → `ab894d2` → `bae782b` → `fc952f2` → `664b882` → `5e95ce9` → `25538b9` → `6c3d05c` → `8e6b7ca` → `c265d2d` → `13b5e9b` → `25b83ec` → close commit.
+
+---
+
+## Open questions — resolved
+
+- **Probe budget**: narrowed the matrix to 6 battle seeds per cell (216 mirror + 432 cross battles) — same coverage, ~200ms.
+- **Bovine draw exception**: not needed — the 40.7% draw spike was entirely double KOs between stat-identical frozen twins; with varied rival stats there are 0 double KOs and 0 40-tick stalls.

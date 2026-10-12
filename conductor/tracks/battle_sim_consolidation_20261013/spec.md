@@ -91,26 +91,50 @@ falls out of the touched code for free.
 
 ### Part C — Rebalance: make tactics matter
 
-**FR5 — Strike power 4 → 3.**
-`BASIC_MOVE.power` drops from 4 to 3 (`packages/sim/src/battle/moves.ts`).
-Strike stays the innate typeless melee basic with 100% accuracy and no
-cooldown; only its power base changes. Rationale: sustained output 3/window
-sits below the best special's ~3.6/window while keeping Strike a real fallback
-(e.g. when no equipped special is ready, or when closing distance costs more
-than the chip damage is worth).
+**FR5 — Strike power 4 → 3. WITHDRAWN 2026-10-13.**
+*Superseded by the FR6 revision below; implemented as nothing.* The original
+text: `BASIC_MOVE.power` drops from 4 to 3
+(`packages/sim/src/battle/moves.ts`). Strike stays the innate typeless melee
+basic with 100% accuracy and no cooldown; only its power base changes.
+Rationale: sustained output 3/window sits below the best special's
+~3.6/window while keeping Strike a real fallback (e.g. when no equipped special
+is ready, or when closing distance costs more than the chip damage is worth).
 
-**FR6 — Cooldown-DPS-aware "Favor Specials".**
+**Withdrawn because the probe disproved its premise.** The premise was that the
+free Strike out-sustains every special. Measurement says the Strike is the only
+move `balanced` is allowed to make in a neutral matchup — nerfing it would
+weaken the losing tactic further and widen the gap. Strike keeps power 4.
+
+**FR6 — One shared "is firing this worth it?" test, used by both tactics.**
 `chooseAction` in `packages/sim/src/battle/policy.ts` gains a sustained-output
 comparison. Each ready equipped special gets a sustained score
 `expected / (1 + cooldown)` (expected = `damage * accuracy / 100`, as already
 computed by `rankedReady`). The Strike baseline is the same computation with
-the typeless factor `1/1`, 100% accuracy and cooldown 0. Under the
-`specials` tactic, when the best ready special's sustained score does not beat
-the Strike baseline, the fighter falls back to the existing no-special path
-(`far ? CLOSE : BASIC`) instead of firing the weaker special. The finisher
-override (any ready special that would KO, `policy.ts` ~126–132) is evaluated
-**before** this comparison and is never suppressed. The `balanced` tactic's
-qualifier rule is **unchanged**.
+the typeless factor `1/1`, 100% accuracy and cooldown 0.
+
+- Under the `specials` tactic, when the best ready special's sustained score
+  does not beat the Strike baseline, the fighter falls back to the existing
+  no-special path (`far ? CLOSE : BASIC`) instead of firing the weaker special.
+- Under the `balanced` tactic, a special additionally **qualifies** when its
+  sustained score beats the Strike baseline, alongside the existing
+  KO and super-effective qualifiers.
+- The finisher override (any ready special that would KO, `policy.ts` ~126–132)
+  is evaluated **before** this comparison and is never suppressed.
+
+> **Revision (2026-10-13, after the FR7 probe went red).** As originally
+> written this FR left the `balanced` qualifier rule untouched and asserted
+> that the Strike out-sustained every special, so only `specials` needed the
+> comparison. The probe measured the opposite: `specials` won 100% of every
+> drake and axolotl mirror and `balanced` 25.5% overall, because a neutral
+> matchup can never satisfy the KO or super-effective qualifier — "Balanced"
+> literally cannot fire a special in a mirror and degenerates to a pure
+> Striker (see `probe-before.md`). Meeting the FR7 band therefore requires the
+> qualifier change above. The tactics keep distinct identities: `balanced`
+> still leads with KO and super-effective picks and plays elementally, while
+> `specials` commits to the best-ranked ready special and only yields when
+> nothing in the kit is worth firing. **FR5 is withdrawn** — the Strike keeps
+> power 4, because the measurement shows the free Strike is not what is out-
+> sustaining the specials.
 
 **FR7 — Deterministic probe matrix with thresholds.**
 Add a fast test that sweeps mirror matches over a fixed seed batch of **200
@@ -196,6 +220,13 @@ part of this track — only verification that nothing is now unwinnable.
 - Ladder re-tuning (Silver tier), breeding, boss rivals, new species.
 - Buffing or re-typing catalog specials; only the innate basic changes power.
 - Saving a probe report as generated artifacts in `artifacts/`.
-- Any change to move cooldowns, accuracy, type chart, or the `balanced`
-  tactic's qualifier rule. If the thresholds cannot be met without touching
-  those, that is the signal to stop and re-scope with the user.
+- Any change to move cooldowns, accuracy, the type chart, or species stat
+  bounds. If the thresholds cannot be met without touching those, that is the
+  signal to stop and re-scope with the user.
+
+> **Revised 2026-10-13.** The `balanced` qualifier rule *was* out of scope; the
+> FR7 probe measured that it is the actual bug, so FR6 now amends it (see the
+> FR6 revision note). The innate basic's power (FR5) is out of scope instead:
+> it is withdrawn. Species stat bounds remain untouched — if the ox draw
+> stalls cannot be brought under the 20% ceiling without retuning them, that is
+> the signal to stop and re-scope again.
