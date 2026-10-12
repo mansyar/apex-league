@@ -136,12 +136,14 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
 
 ## Phase 3 — Camera Director & VFX *(stretch — re-scopeable)*
 
-- [ ] **Task: Camera director core** *(TDD on decision logic)* —
+- [~] **Task: Camera director core** *(TDD on decision logic)* -
         beat-driven cuts/dollies/projectile tracking/punch-ins; rendering
         manual
-- [ ] **Task: Camera modes UX** — settings toggle + live mid-battle
+- [x] **Task: Camera modes UX** - settings toggle + live mid-battle
         switch + reduced-motion auto-off *(store test; UI manual)*
-- [ ] **Task: Bloom post pass** — graceful degradation on weak GPUs
+        (5404f58 - save v7 arenaCamera pref, hud pill, live toggle; e0f3bf0 -
+        single arena-scoped toggle after user feedback, feed layout restored)
+- [ ] **Task: Bloom post pass** - graceful degradation on weak GPUs
         *(manual perf check)*
 - [ ] **Task: Particles + decals + vignette** — per-element GPU particles,
         hit decals, big-hit vignette *(manual)*
