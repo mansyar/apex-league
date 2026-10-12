@@ -52,6 +52,6 @@ verification for DOM/scene tasks, phase checkpoints with git notes.
 
 ## Phase E — Final verification
 
-- [ ] Task: Full `bun run verify`; browser walkthrough of all spec acceptance
-      criteria; README/docs touch-ups if needed
-- [ ] Task: Final Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Full `bun run verify`; browser walkthrough of all spec acceptance
+      criteria; README/docs touch-ups if needed `[3a91c0d]`
+- [x] Task: Final Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: 3a91c0d]`
