@@ -263,6 +263,9 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   let lastFlashTick = 0
   /** Current spar pacing (ms per playback step); animations scale off it. */
   let paceMs = NORMAL_STEP_MS
+  /** Kind of the previously applied step - tells a ranged arrival
+   * (projectile → impact) from a point-blank special (impact alone). */
+  let prevStepKind: PlaybackStep["kind"] | null = null
   /** Action animation length at the current pace, floor-clamped. */
   const animMs = (): number =>
     Math.max(120, BASE_STEP_ANIM_MS * (paceMs / NORMAL_STEP_MS))
@@ -993,8 +996,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
               if (hit && w > 0.6) impulse(ao, 0.12) // attacker settles heavy
             }
           },
-          o,
-          r,
+          side.actor,
+          side.target,
         )
         break
       }
@@ -1040,8 +1043,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
                   -side.actor.away * (0.2 - 0.5 * Math.sin(w * Math.PI))
               }
             },
-            o,
-            r,
+            side.actor,
+            side.target,
           )
           break
         }
@@ -1090,8 +1093,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
                   -side.actor.away * (0.1 - 0.3 * Math.sin(w * Math.PI))
               }
             },
-            o,
-            r,
+            side.actor,
+            side.target,
           )
           break
         }
@@ -1118,8 +1121,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
                 -side.actor.away * (0.14 - 0.34 * Math.sin(w * Math.PI))
             }
           },
-          o,
-          r,
+          side.actor,
+          side.target,
         )
         break
       }
@@ -1142,9 +1145,55 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         } else {
           reactionAction(step.damage, side.target)
         }
-        // Elemental burst at the strike point for specials (FR5).
+        // Elemental burst at the strike point for specials (FR5). A
+        // point-blank special never produced a launch step, so its
+        // signature lives here: tier-3 specials get a bespoke unleash
+        // body on the attacker plus a patterned burst on the victim;
+        // ranged arrivals and tier 1-2 keep the single pop.
         if (step.element) {
-          spawnBurst(side.target.group.position, step.element)
+          const pointBlank = prevStepKind !== "projectile"
+          const at = side.target.group.position
+          if (step.moveId === "spore_burst" && pointBlank) {
+            // The fan lands as one wide triple pop.
+            for (const dz of [-0.45, 0, 0.45]) {
+              const p = at.clone()
+              p.z += dz
+              spawnBurst(p, step.element)
+            }
+          } else if (step.moveId === "foam_volley" && pointBlank) {
+            // Three rapid pops strung across the lane.
+            for (const dz of [-0.3, 0, 0.3]) {
+              const p = at.clone()
+              p.z += dz
+              spawnBurst(p, step.element)
+            }
+            impulse(side.target, -0.4)
+          } else {
+            spawnBurst(at.clone(), step.element)
+            if (pointBlank && step.moveId === "cinder_shot") {
+              impulse(side.target, -0.6) // the Hammer shoves
+            }
+          }
+          if (!instant && pointBlank && step.moveId !== undefined) {
+            const bespoke =
+              step.moveId === "cinder_shot" ||
+              step.moveId === "spore_burst" ||
+              step.moveId === "foam_volley"
+            if (bespoke) {
+              // Quick unleash recoil on the attacker - nothing flew, so
+              // the body still answers the shot.
+              const shooter = side.actor
+              actionRaf = startAction(
+                (t, ao) => {
+                  const w = clamp01(t / 0.6)
+                  ao.lean.pitch = 0.12 * Math.sin(w * Math.PI)
+                  ao.offset.x = -ao.away * (0.16 - 0.36 * Math.sin(w * Math.PI))
+                },
+                shooter,
+                side.target,
+              )
+            }
+          }
         }
         break
       }
@@ -1166,8 +1215,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
                 impulse(ao, 0.9)
               }
             },
-            o,
-            r,
+            side.actor,
+            side.target,
           )
         }
         break
@@ -1176,12 +1225,12 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         // Result stamp: the standing winner takes a double victory hop —
         // each hop stretches on the rise and squashes on the landing.
         const standing = [o, r].filter((c) => !c.down)
-        if (instant || standing.length === 0) break
+        const winner = standing[0]
+        if (instant || !winner) break
         const hopRef = { hops: 0 }
         const landedRef = { count: 0 }
         actionRaf = startAction(
           (t, ao) => {
-            if (ao.down) return
             const w = t * Math.PI * 2
             ao.offset.y = Math.abs(Math.sin(w)) * 0.35
             const rising = Math.sin(w) > 0
@@ -1197,8 +1246,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
               impulse(ao, 0.55)
             }
           },
-          o,
-          r,
+          winner,
+          winner === o ? r : o,
         )
         break
       }
@@ -1339,7 +1388,9 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       const o = owned
       const r = rival
       if (!o || !r) return
+      const kind = step.kind
       runStep(step, instant, o, r)
+      prevStepKind = kind
     },
     setBigHitHandler(handler) {
       onBigHit = handler
