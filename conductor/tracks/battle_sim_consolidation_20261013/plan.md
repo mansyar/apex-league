@@ -107,22 +107,44 @@ element, and `heavy-hit.test.ts` fails if that ever changes.
 
 ## Phase 2 — Cup seed extraction and double-KO advancement parity (FR3, FR4)
 
-- [ ] Task: Extract the cup match-seed formula
-  - [ ] Export `cupMatchSeed(day, round, pairingIndex)` in `packages/sim/src/cup.ts`
-  - [ ] Route all three call sites through it: the `rivalSeed` helper, the inline call in `resolvePlayerMatch`, and `seedFor` in `completeBracket`
-  - [ ] Existing cup seed/placement contract tests must pass **unmodified**
-  - [ ] Note: the mid-file `battle` imports (`cup.ts` ~177–183) move to the top only if they are in the lines being touched
-- [ ] Task: Write the failing/red test for double-KO advancement
-  - [ ] A drawn pairing where the higher-`finalHp` fighter is **not** `slotA` must report *that* fighter as advancing
-  - [ ] A forfeit verdict (`battle: null`, `winner` set) must still report `winner`
-  - [ ] Run and confirm the current code fails it (today it returns `slotA`)
-- [ ] Task: Fix `advancingName` in `apps/client/src/bracket-model.ts`
-  - [ ] Call the sim's exported `doubleKoWinner(a, b, verdict.battle.finalHp)` when `verdict.winner === null` and both slots are known
-  - [ ] Keep the module pure and DOM-free; update the stale comment that claims the `slotA` fallback *is* the sim's tiebreak
-- [ ] Task: Verify
-  - [ ] `CI=true bun test` green; no save schema change (`SAVE_VERSION` still 9, no `docs/save-schema.md` edit)
-- [ ] Task: Commit (`fix(cup): bracket advances the higher-HP fighter on a double-KO`) + git note + record SHA
+- [x] Task: Extract the cup match-seed formula
+  - [x] Export `cupMatchSeed(day, round, pairingIndex)` in `packages/sim/src/cup.ts`
+  - [x] Route all three call sites through it: the `rivalSeed` helper, the inline call in `resolvePlayerMatch`, and `seedFor` in `completeBracket`
+  - [x] Existing cup seed/placement contract tests pass **unmodified** — the player's own match is pairing index 0 of its round, which the old inline formula already was, so the extraction is arithmetic-identical
+  - [x] Note: the mid-file `battle` imports (`cup.ts` ~177–183) were **not** touched (outside the lines being changed — kept surgical)
+- [x] Task: Write the failing/red test for double-KO advancement
+  - [x] A drawn pairing where the higher-`finalHp` fighter is **not** `slotA` must place *that* fighter in the next round
+  - [x] An exact final-HP tie still falls to the earlier slot; a forfeit verdict (`battle: null`) still advances `slotA`
+  - [x] Confirmed red on today's code: `Expected: "Bravo" / Received: "Alpha"` — the sim advanced Bravo on 7 HP, the screen highlighted slotA
+- [x] Task: Fix `advancingName` in `apps/client/src/bracket-model.ts`
+  - [x] Use the sim's tiebreak when `verdict.winner === null`; call the newly exported name-level `doubleKoAdvancingName(verdict.slotA, verdict.slotB, verdict.battle.finalHp)`
+  - [x] Keep the module pure and DOM-free; corrected the stale comment that claimed the `slotA` fallback *is* the sim's tiebreak
+- [x] Task: Verify
+  - [x] `bun test` = 817 pass / 0 fail; `bun run verify` green; no save schema change (`SAVE_VERSION` still 9, no `docs/save-schema.md` edit)
+- [x] Task: Commit (`fix(cup): bracket advances the higher-HP fighter on a double-KO`) + git note + record SHA
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+### Phase 2 notes
+
+**Deviation — the client calls `doubleKoAdvancingName`, not `doubleKoWinner`.**
+The plan called for `doubleKoWinner(a, b, verdict.battle.finalHp)`, but that
+function is slot-shaped: it takes `CupSlot` objects. A stored `RoundVerdict`
+carries `slotA`/`slotB` **names** plus `battle.finalHp` — no slots — so the
+client cannot build the argument. Rather than duplicate the rule or cast fake
+slots, the sim now exports the name-level primitive `doubleKoAdvancingName(a,
+b, finalHp)` and `doubleKoWinner` delegates to it. One implementation, two
+callers, same rule; the plan's intent (do not reimplement the tiebreak in the
+client) is satisfied.
+
+**The two local seed wrappers stay.** `rivalSeed` and `seedFor` remain as
+one-line closures that bind `day`; the formula itself is now single-sourced in
+`cupMatchSeed`. Inlining six call sites would trade a named helper for longer
+argument lists and buy nothing.
+
+**Red-phase record.** The double-KO test is a genuine red → green. Two fixture
+corrections came first: the bracket walk pairs slots (0,1) and (2,3), and a
+4-slot plan is `qf1, qf2, sf1` — so the semifinal is `matches[2]`, not
+`matches[1]`.
 
 ---
 

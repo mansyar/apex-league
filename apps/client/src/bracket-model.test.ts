@@ -115,6 +115,66 @@ function syntheticSession(
   }
 }
 
+/**
+ * Double-KO advancement (battle-sim-consolidation FR4). A drawn pairing has
+ * no `winner`, but the bracket still advances exactly one fighter — the sim
+ * decides that by remaining HP (`doubleKoWinner`), and the bracket screen
+ * must show the same fighter it put into the next round. Falling back to
+ * `slotA` highlighted a fighter the sim had already eliminated.
+ */
+describe("double-KO advancement matches the sim tiebreak", () => {
+  /** A drawn pairing whose fighters survived on very different HP. */
+  function doubleKo(
+    slotA: string,
+    slotB: string,
+    finalHp: Record<string, number>,
+  ): RoundVerdict {
+    return {
+      round: 1,
+      slotA,
+      slotB,
+      winner: null,
+      line: "Both fighters are down — the Quarterfinal is a draw.",
+      battle: {
+        winner: null,
+        reason: "double_ko",
+        finalHp,
+        events: [],
+      },
+    }
+  }
+
+  test("the fighter with the higher remaining HP advances, not slotA", () => {
+    // slotB ("Bravo") survived on 7 HP, slotA ("Alpha") on 2 — the sim's
+    // doubleKoWinner advances Bravo, so the semifinal must place Bravo in
+    // the slot he actually occupies (qf1's slot B).
+    const session = syntheticSession(
+      [slot("Alpha"), slot("Bravo"), slot("Cinder"), slot("Dune")],
+      { rv: [doubleKo("Alpha", "Bravo", { Alpha: 2, Bravo: 7 })] },
+    )
+    const matches = buildBracketModel(session)
+    expect(matches[0]?.verdict?.winner).toBe(null)
+    // The semifinal's slot A is whoever won qf1 — by HP, not by position.
+    expect(matches[2]?.a?.name).toBe("Bravo")
+  })
+
+  test("an exact final-HP tie falls to the earlier slot", () => {
+    const session = syntheticSession(
+      [slot("Alpha"), slot("Bravo"), slot("Cinder"), slot("Dune")],
+      { rv: [doubleKo("Alpha", "Bravo", { Alpha: 4, Bravo: 4 })] },
+    )
+    expect(buildBracketModel(session)[2]?.a?.name).toBe("Alpha")
+  })
+
+  test("a forfeit still advances slotA (no battle to read HP from)", () => {
+    const session = syntheticSession(
+      [slot("Alpha"), slot("Bravo"), slot("Cinder"), slot("Dune")],
+      { rv: [verdict(1, "Alpha", "Bravo", null)] },
+    )
+    expect(buildBracketModel(session)[2]?.a?.name).toBe("Alpha")
+  })
+})
+
 describe("bracketPlan — the static match plan", () => {
   test("the 8-entrant plan matches the walk-order ids", () => {
     expect(bracketPlan(8).map((m) => m.id)).toEqual([
