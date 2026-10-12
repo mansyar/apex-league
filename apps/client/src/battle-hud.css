@@ -290,21 +290,6 @@
   }
 }
 
-/* Fight chrome row (bottom-right): speed toggle, replay pill, collapsible
-   log, and the close button once the verdict lands. Kept clear of the
-   lower-third, which owns the bottom-left corner. */
-.spar-chips {
-  position: absolute;
-  right: 20px;
-  bottom: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-  max-width: min(320px, 60vw);
-}
-
-/* Verdict stamp: the arena dims and the gold stamp lands over it. */
 .spar-stamp {
   position: absolute;
   inset: 0;
@@ -352,12 +337,6 @@
   font-size: 15px;
   font-style: italic;
   color: var(--ink);
-}
-
-/* The close button moves into the chips row when the fight ends; it must
-   stay clickable even though the HUD around it ignores the pointer. */
-.spar-chips .spar-close {
-  pointer-events: auto;
 }
 
 /* Reduced motion: the kit's global kill (ui/kit.css) already stops every

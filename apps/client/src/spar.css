@@ -265,8 +265,7 @@
    The spar panel and motion pill stay visible. */
 .app-in-arena .score-bug,
 .app-in-arena .creature-plate,
-.app-in-arena .spar-button,
-.app-in-arena .cup-button {
+.app-in-arena .spar-button {
   display: none;
 }
 
@@ -289,6 +288,62 @@
 .spar-panel-close svg {
   width: 14px;
   height: 14px;
+}
+
+/* Spar chip - kit-chip plate with the broadcast title/sub stack.
+   Its own control on the ranch screen, separate from the care cluster. */
+.spar-button {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  animation: settle-down 0.5s var(--kit-settle) 0.24s both;
+}
+
+.spar-button .kit-chip-glyph {
+  color: var(--accent);
+}
+
+.spar-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.spar-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.spar-sub {
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+/* Battle-log chips cluster (verdict stamp, speed toggle, close button). */
+.spar-chips {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: min(320px, 60vw);
+}
+
+/* The close button must stay clickable even though the HUD around it
+   ignores the pointer. */
+.spar-chips .spar-close {
+  pointer-events: auto;
 }
 
 /* Camera chip (save v9): a battle-presentation control, so it lives in

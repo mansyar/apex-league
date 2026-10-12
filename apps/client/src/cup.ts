@@ -1009,7 +1009,7 @@ export function createCup(
     tacticHead.className = "cup-card-title tactic"
     tacticHead.textContent = "Tactic"
     kitCard.append(tacticHead)
-    const { row: tacticRow, buttons: tacticButtons } = buildTacticRow({
+    const { row: tacticRow } = buildTacticRow({
       rowClass: "cup-tactic-row",
       describe: (t) => ({ label: t === "balanced" ? "Balanced" : "Specials" }),
       classes: { base: "cup-tactic", on: "on" },
