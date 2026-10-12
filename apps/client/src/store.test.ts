@@ -55,7 +55,7 @@ describe("createGameStore", () => {
       savedAt: number
       state: { day: number }
     }
-    expect(saved.version).toBe(7)
+    expect(saved.version).toBe(8)
     expect(saved.savedAt).toBe(0)
     expect(saved.state.day).toBe(9)
   })

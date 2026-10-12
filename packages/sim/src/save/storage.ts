@@ -210,7 +210,16 @@ export function loadSave(adapter: SaveAdapter): SaveData | null {
       !Number.isInteger(state.cupsWon) ||
       state.cupsWon < 0 ||
       (state.lastCupDay !== null &&
-        (!Number.isInteger(state.lastCupDay) || state.lastCupDay < 1))
+        (!Number.isInteger(state.lastCupDay) || state.lastCupDay < 1)) ||
+      // v8: the ladder slice is required and strictly typed (bronze
+      // ladder) — a hand-edited points total or sub-tier fails the load.
+      typeof state.ladder !== "object" ||
+      state.ladder === null ||
+      !Number.isInteger(state.ladder.points) ||
+      state.ladder.points < 0 ||
+      (state.ladder.subTier !== "III" &&
+        state.ladder.subTier !== "II" &&
+        state.ladder.subTier !== "I")
     ) {
       return null
     }

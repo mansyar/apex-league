@@ -1,5 +1,6 @@
 import { isCupDay } from "../calendar"
 import { createCreature, TRAINED_START } from "../creature"
+import type { CupSession } from "../cup"
 import { initialLadder } from "../ladder"
 import type { GameState } from "../state"
 import { ACTION_POINTS_PER_DAY } from "../state"
@@ -266,6 +267,34 @@ const migrations: Record<
       state: migrated,
       savedAt: raw.savedAt ?? 0,
       session: null,
+    }
+  },
+
+  // v7 → v8 (bronze ladder track): saves gain the ladder slice. The
+  // no-backfill decision stamps a fresh ladder (0 points, Bronze III) for
+  // every migrated save — cups already won are history, the ladder starts
+  // with the tier it will climb.
+  7: (raw) => {
+    const { day, phase, actionPoints, state: s } = validateStateShape(raw, 7)
+    const migrated: GameState = {
+      day,
+      phase,
+      actionPoints,
+      creature: s.creature as GameState["creature"],
+      settings: s.settings as GameState["settings"],
+      cupsWon: s.cupsWon as GameState["cupsWon"],
+      lastCupDay: s.lastCupDay as GameState["lastCupDay"],
+      // Always fresh: a hand-edited or future ladder value in a v7 payload
+      // cannot smuggle points past the migration gate.
+      ladder: initialLadder(),
+    }
+    return {
+      version: 8,
+      state: migrated,
+      savedAt: raw.savedAt ?? 0,
+      // The live cup session predates this step (save v7) and is forwarded
+      // untouched — the ladder migration only adds a fresh ladder slice.
+      session: (raw.session as CupSession | null) ?? null,
     }
   },
 }
