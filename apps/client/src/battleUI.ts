@@ -1,11 +1,21 @@
-import type { BattleResult } from "@apex/sim"
+import {
+  type BattleResult,
+  type Creature,
+  getMove,
+  getSpecies,
+  requiredTierDays,
+  type SpeciesDef,
+  type Tactic,
+} from "@apex/sim"
+import type { PlaybackSpeed } from "./playbackSpeed"
+import type { FightCasting } from "./staging"
 
 /** Lower-third subline: what the fight ended on, in announcer voice.
  * Shared verbatim by the spar results screen and the cup results screen. */
 export function reasonLine(verdict: Readonly<BattleResult>): string {
   if (verdict.reason === "time") return "The clock ran out on this one."
   if (verdict.reason === "double_ko")
-    return "A double down - both went out together."
+    return "A double down — both went out together."
   return "A knockout finish."
 }
 
@@ -26,17 +36,6 @@ export function winningSideKey(verdict: Readonly<BattleResult>): string | null {
   }
   return key
 }
-
-import {
-  type Creature,
-  getMove,
-  getSpecies,
-  requiredTierDays,
-  type SpeciesDef,
-  type Tactic,
-} from "@apex/sim"
-import type { PlaybackSpeed } from "./playbackSpeed"
-import type { FightCasting } from "./staging"
 
 /** One arena fighter: species-resolved archetype plus the visual seed. */
 export type CastFighter = FightCasting["owned"]
@@ -209,12 +208,13 @@ export function focusTrap(
 ): (event: KeyboardEvent) => void {
   return (event) => {
     if (event.key !== "Tab") return
+    const first = container.querySelector<HTMLElement>("button, [href], input")
+    if (!first) return
     const focusable = container.querySelectorAll<HTMLElement>(
       "button, [href], input",
     )
-    if (focusable.length === 0) return
-    const first = focusable[0] as HTMLElement
-    const last = focusable[focusable.length - 1] as HTMLElement
+    const last = focusable[focusable.length - 1]
+    if (!last) return
     if (event.shiftKey && document.activeElement === first) {
       event.preventDefault()
       last.focus()
@@ -226,14 +226,18 @@ export function focusTrap(
 }
 
 /**
+ * What a speed button should show: the driver's own toggle speeds, plus
+ * "paced" for a paced run's start state (which reads as normal speed).
+ */
+export type SpeedButtonMode = PlaybackSpeed | "paced"
+
+/**
  * Fast-forward toggle copy + pressed state, shared by the spar and cup
  * playback controls so the two never drift (mode is the driver's pace).
  */
 export function renderSpeedButton(
   button: HTMLButtonElement,
-  // "paced" = a paced run's start state (normal speed); "fast" | "normal"
-  // are the driver's toggle speeds.
-  mode: PlaybackSpeed | "paced",
+  mode: SpeedButtonMode,
 ): void {
   const fast = mode === "fast"
   button.textContent = fast ? "Normal speed" : "Fast-forward"

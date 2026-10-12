@@ -801,8 +801,8 @@ export function createCup(
     }
     // Mirror match: qualify by side (the sim reports under stable keys).
     return winningSideKey(verdict) === fight.owned.key
-      ? "Victory - your fighter"
-      : "Defeat - the rival"
+      ? "Victory — your fighter"
+      : "Defeat — the rival"
   }
 
   const castingFor = (creature: Creature, opponent: CupSlot): FightCasting => {

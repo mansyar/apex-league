@@ -206,6 +206,25 @@ describe("EffectLoop", () => {
     clock.frame() // must be a no-op
   })
 
+  test("stop() drops registered steps so a later run starts clean", () => {
+    const clock = makeClock()
+    const loop = new EffectLoop(
+      () => false,
+      clock.now,
+      clock.schedule,
+      clock.cancel,
+    )
+    let stale = 0
+    loop.add(() => {
+      stale += 1
+      return true // never finishes on its own
+    })
+    loop.stop()
+    loop.add(() => true) // next fight restarts the loop
+    clock.frame()
+    expect(stale).toBe(0)
+  })
+
   // Regression: the production defaults must stay callable. Passing
   // `requestAnimationFrame` by reference made the loop call it with the
   // loop as receiver, which throws "Illegal invocation" in a browser -

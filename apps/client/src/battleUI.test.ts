@@ -19,7 +19,7 @@ describe("reasonLine", () => {
 
   test("the double-down line covers a double knockout", () => {
     expect(reasonLine(result({}, "double_ko"))).toBe(
-      "A double down - both went out together.",
+      "A double down — both went out together.",
     )
   })
 

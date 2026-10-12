@@ -17,7 +17,7 @@ import {
   PROJECTILE_LIFE_MS,
   type ShotLook,
 } from "./move-fx"
-import { disposeObject3D } from "./scene-utils"
+import { disposeObject3D, lambertMaterialOf } from "./scene-utils"
 
 /** Big-hit threshold: at/above this the punch lands as hit-stop + shake. */
 export const BIG_HIT_DAMAGE = 4
@@ -76,6 +76,12 @@ export class EffectLoop {
   private steps = new Set<(dtMs: number) => boolean>()
   private raf: number | null = null
   private last = 0
+  /**
+   * Snapshot buffer for the frame walk. Reused every frame - the quality
+   * gate forbids per-frame allocations - because a step that spawns
+   * another effect must not be visited in the same frame.
+   */
+  private readonly snapshot: Array<(dtMs: number) => boolean> = []
 
   constructor(
     /** True while a hit-stop is holding the frame (dt becomes 0). */
@@ -98,11 +104,16 @@ export class EffectLoop {
     }
   }
 
-  /** Cancel the pending frame (panel close / scene swap). */
+  /**
+   * Cancel the pending frame and drop every registered step (panel close
+   * / scene swap). Clearing matters: a step left behind would run again
+   * the next time something restarts the loop.
+   */
   stop(): void {
     if (this.raf !== null) this.cancel(this.raf)
     this.raf = null
     this.last = 0
+    this.steps.clear()
   }
 
   private readonly tick = (): void => {
@@ -112,7 +123,10 @@ export class EffectLoop {
     // frozen span.
     const dt = this.isFrozen() ? 0 : Math.min(100, now - this.last || 16.7)
     this.last = now
-    for (const step of [...this.steps]) {
+    const snapshot = this.snapshot
+    snapshot.length = 0
+    for (const step of this.steps) snapshot.push(step)
+    for (const step of snapshot) {
       if (!step(dt)) this.steps.delete(step)
     }
     this.raf = this.steps.size > 0 ? this.schedule(this.tick) : null
@@ -254,13 +268,10 @@ export function createBattleEffects(host: {
   const hitStop = new HitStop()
   const loop = new EffectLoop(() => hitStop.active())
 
-  const lambertOf = (mesh: THREE.Mesh): THREE.MeshLambertMaterial | null =>
-    mesh.material instanceof THREE.MeshLambertMaterial ? mesh.material : null
-
   /** Put a victim's palette back exactly as captured at cast time. */
   const restoreVictim = (victim: FlashVictim): void => {
     for (const [mesh, base] of victim.baseColors) {
-      lambertOf(mesh)?.color.copy(base)
+      lambertMaterialOf(mesh)?.color.copy(base)
     }
   }
 
@@ -274,7 +285,7 @@ export function createBattleEffects(host: {
     flash.age += dt
     const w = 1 - easeOut(Math.min(1, flash.age / FLASH_MS))
     for (const [mesh, base] of flash.victim.baseColors) {
-      const mat = lambertOf(mesh)
+      const mat = lambertMaterialOf(mesh)
       if (!mat) continue
       mat.color.setRGB(
         1 - w + base.r * w,
@@ -297,7 +308,7 @@ export function createBattleEffects(host: {
     flash = { victim, age: 0 }
     // Snap to full white immediately; the decay loop unwinds it.
     for (const mesh of victim.baseColors.keys()) {
-      lambertOf(mesh)?.color.setRGB(1, 1, 1)
+      lambertMaterialOf(mesh)?.color.setRGB(1, 1, 1)
     }
     loop.add(flashStep)
   }

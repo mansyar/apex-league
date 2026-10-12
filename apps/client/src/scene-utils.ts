@@ -16,3 +16,14 @@ export function disposeObject3D(root: THREE.Object3D): void {
     }
   })
 }
+
+/** The mesh's Lambert material, or null for any other material type.
+ *  Voxel creatures are Lambert-shaded; the palette capture at cast time
+ *  and the hit-flash restore both need this exact material. */
+export function lambertMaterialOf(
+  mesh: THREE.Mesh,
+): THREE.MeshLambertMaterial | null {
+  return mesh.material instanceof THREE.MeshLambertMaterial
+    ? mesh.material
+    : null
+}

@@ -28,7 +28,7 @@ import {
   PROJECTILE_LIFE_MS,
   type ShotSpec,
 } from "./move-fx"
-import { disposeObject3D } from "./scene-utils"
+import { disposeObject3D, lambertMaterialOf } from "./scene-utils"
 import { createBattleEffects } from "./staging-fx"
 
 /**
@@ -215,9 +215,6 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     pref: () => motionPref,
     onBigHit,
   })
-
-  const lambertOf = (mesh: THREE.Mesh): THREE.MeshLambertMaterial | null =>
-    mesh.material instanceof THREE.MeshLambertMaterial ? mesh.material : null
 
   /** Big-hit punch: freeze the frame briefly and shake the broadcast cam. */
   const bigHit = (damage: number | undefined): void => {
@@ -1033,7 +1030,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         // it to base later.
         group.traverse((obj) => {
           if (obj instanceof THREE.Mesh) {
-            const mat = lambertOf(obj)
+            const mat = lambertMaterialOf(obj)
             if (!mat) return
             combatant.baseColors.set(obj, mat.color.clone())
           }

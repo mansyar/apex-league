@@ -345,7 +345,7 @@ export function createSpar(
   const winnerTitle = (verdict: Readonly<BattleResult>): string => {
     if (verdict.winner === null) return "A drawn spar"
     const fightNow = fight
-    if (!fightNow) return `Victory - ${verdict.winner}`
+    if (!fightNow) return `Victory — ${verdict.winner}`
     const key = winningSideKey(verdict)
     const mirror = fightNow.owned.name === fightNow.rival.name
     if (key === fightNow.owned.key) {

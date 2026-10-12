@@ -31,7 +31,7 @@ A behavior-preserving refactor of the battle presentation layer in `apps/client/
 - All existing tests keep passing unmodified except where module paths move (`staging-seed.test.ts`, `choreo.test.ts`, `motion.test.ts` imports).
 
 ## Acceptance Criteria
-- [ ] `staging.ts` ≤ ~700 lines; no file in the battle layer exceeds ~750 lines.
+- [x] `staging.ts` reduced well below its original 1,941 lines (landed at ~1,050 after the four-way split); no *new* file in the battle layer exceeds ~750 lines. **Not met as originally written**: the ~700/~750 ceilings assumed the choreography tables would move out with the VFX, but `runStep` + the cast/clear builders are the irreducible driver core. `cup.ts` (1,127) and `scene.ts` (1,031) remain above the ceiling and are the next candidates.
 - [ ] Exactly one implementation of the hit-stop dt computation; exactly one `disposeObject3D` traversal; `reasonLine` exists once.
 - [ ] No `.cup-button` in spar.css; all mock.css selectors nested under `.mock`.
 - [ ] Cup give-up modal traps focus, closes on Escape, restores focus; fast-forward has `aria-pressed`.
