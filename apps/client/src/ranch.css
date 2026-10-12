@@ -224,6 +224,58 @@
   margin-bottom: 0;
 }
 
+/* Modal (new-game confirm): a full-screen scrim with one centered plate.
+   The scrim click and Escape both back out — only the explicit buttons act. */
+.kit-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, #000 55%, transparent);
+}
+
+.kit-modal-box {
+  display: grid;
+  gap: 10px;
+  max-width: min(420px, 88vw);
+  padding: 18px 20px;
+  text-align: center;
+}
+
+.kit-modal-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.kit-modal-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-dim);
+}
+
+.kit-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* The one destructive action in the game earns its own color. */
+.kit-button-danger {
+  color: var(--danger, #ff6b6b);
+}
+
+.kit-button-danger:focus-visible {
+  outline: 2px solid var(--danger, #ff6b6b);
+  outline-offset: 2px;
+}
+
 /* Shared collapse chevron: points down while expanded, right when
    collapsed. */
 .collapse-chev {
@@ -251,6 +303,28 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Onboarding callout: the teaching banner. Fixed top-center like the
+   corrupt-save notice — visible no matter which panel is collapsed. */
+.hud-callout {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: min(560px, 90vw);
+  padding: 10px 14px 10px 18px;
+}
+
+.hud-callout-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: left;
 }
 
 .condition-list {

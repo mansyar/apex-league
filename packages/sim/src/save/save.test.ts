@@ -9,16 +9,19 @@ import {
   chooseStarter,
   createInitialState,
   type GameState,
+  markHintSeen,
   setReducedMotion,
 } from "../state"
 import { advanceDay } from "../ticker"
 import { migrate, validateStateShape } from "./migrate"
 import { SAVE_VERSION, type SaveData, serializeSave } from "./schema"
 import {
+  clearSave,
   createMemoryAdapter,
   loadBoot,
   loadGame,
   loadSave,
+  SAVE_KEY,
   type SaveAdapter,
   saveGame,
 } from "./storage"
@@ -327,6 +330,7 @@ describe("storage adapter", () => {
       setItem: () => {
         throw new Error("quota exceeded")
       },
+      removeItem: () => {},
     }
     expect(saveGame(boom, state, 1)).toBe(false)
     expect(saveGame(createMemoryAdapter(), state, 1)).toBe(true)
@@ -800,5 +804,54 @@ describe("loadBoot — absent vs corrupt", () => {
     saveGame(adapter, state, 1000, { bracket: 5 } as unknown as CupSession)
     const boot = loadBoot(adapter)
     expect(boot).toEqual({ state, session: null })
+  })
+})
+
+const startState = (): GameState => {
+  const state = advanceDay(createInitialState())
+  return chooseStarter(state, "fire_drake", 42)
+}
+
+describe("clearSave + hint ledger (v7)", () => {
+  test("clearSave wipes the save so boot reads as absent, not corrupt", () => {
+    const adapter = createMemoryAdapter()
+    saveGame(adapter, startState(), 500)
+    clearSave(adapter)
+    expect(adapter.getItem(SAVE_KEY)).toBe(null)
+    expect(loadBoot(adapter)).toBe(null)
+  })
+
+  test("clearSave on an empty adapter is a no-op", () => {
+    const adapter = createMemoryAdapter()
+    expect(() => clearSave(adapter)).not.toThrow()
+    expect(loadBoot(adapter)).toBe(null)
+  })
+
+  test("markHintSeen appends a hint id once (idempotent)", () => {
+    const base = startState()
+    const seen = markHintSeen(base, "ap-basics")
+    expect(seen.settings.seenHints).toEqual(["ap-basics"])
+    const again = markHintSeen(seen, "ap-basics")
+    expect(again.settings.seenHints).toEqual(["ap-basics"])
+    const more = markHintSeen(again, "cup-eve")
+    expect(more.settings.seenHints).toEqual(["ap-basics", "cup-eve"])
+  })
+
+  test("markHintSeen is pure — the input state is untouched", () => {
+    const base = startState()
+    const snapshot = structuredClone(base)
+    markHintSeen(base, "training-tier")
+    expect(base).toEqual(snapshot)
+  })
+
+  test("seen hint ledger survives a save round-trip", () => {
+    const adapter = createMemoryAdapter()
+    const withHints = markHintSeen(
+      markHintSeen(startState(), "ap-basics"),
+      "cup-eve",
+    )
+    saveGame(adapter, withHints, 900)
+    const loaded = loadSave(adapter)
+    expect(loaded?.state.settings.seenHints).toEqual(["ap-basics", "cup-eve"])
   })
 })

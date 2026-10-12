@@ -68,6 +68,19 @@ export function setReducedMotion(state: GameState, value: boolean): GameState {
 }
 
 /**
+ * Record an onboarding hint as dismissed (save v7's seenHints ledger).
+ * Pure and idempotent: an already-seen id keeps the list unchanged.
+ */
+export function markHintSeen(state: GameState, hintId: string): GameState {
+  const seen = state.settings.seenHints
+  if (seen.includes(hintId)) return state
+  return {
+    ...state,
+    settings: { ...state.settings, seenHints: [...seen, hintId] },
+  }
+}
+
+/**
  * Record the player's starter choice: create the creature from a seed and
  * return a new state with it set. Pure. Throws on unknown/locked species and
  * on states that already own a creature.

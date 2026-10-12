@@ -49,6 +49,11 @@ export interface HudHandlers {
    * the sim rejects (e.g. mid-cup) so the HUD can coach instead of acting.
    */
   onRename: (name: string) => boolean
+  /** Wipe the save and boot back to the starter picker (main.ts owns the
+   * clearSave + reload). Only called after the modal confirm. */
+  onReset: () => void
+  /** Persist a dismissed onboarding hint id into settings.seenHints. */
+  onHintSeen: (hintId: string) => void
 }
 
 export interface Hud {
@@ -474,7 +479,100 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   motionWrap.className = "hud-motion"
   motionWrap.append(motionChip)
 
-  root.append(scoreBug, lowerThird, cluster, motionWrap)
+  // New game (save v7 QoL): a quiet chip beside the motion toggle. The
+  // confirm modal does the scary part — one deliberate click, not a misclick.
+  const resetChip = chip({
+    label: "New game",
+    variant: "dim",
+    onClick: () => {
+      resetModal.style.display = ""
+      resetConfirm.focus()
+    },
+  })
+  motionWrap.append(resetChip)
+
+  const resetModal = document.createElement("div")
+  resetModal.className = "kit-modal"
+  resetModal.style.display = "none"
+  const resetBox = document.createElement("div")
+  resetBox.className = "kit-plate kit-modal-box"
+  const resetTitle = document.createElement("h2")
+  resetTitle.className = "kit-modal-title"
+  resetTitle.textContent = "Start a fresh ranch?"
+  const resetText = document.createElement("p")
+  resetText.className = "kit-modal-text"
+  resetText.textContent =
+    "This partner, their training, and every cup win will be gone for good."
+  const resetActions = document.createElement("div")
+  resetActions.className = "kit-modal-actions"
+  const resetCancel = chip({
+    label: "Keep playing",
+    variant: "dim",
+    onClick: () => {
+      resetModal.style.display = "none"
+    },
+  })
+  const resetConfirm = document.createElement("button")
+  resetConfirm.className = "kit-button kit-button-danger"
+  resetConfirm.type = "button"
+  resetConfirm.textContent = "Start over"
+  resetActions.append(resetCancel, resetConfirm)
+  resetBox.append(resetTitle, resetText, resetActions)
+  resetModal.append(resetBox)
+  resetConfirm.addEventListener("click", () => {
+    resetModal.style.display = "none"
+    handlers.onReset()
+  })
+  // Escape backs out; a backdrop click means "not today".
+  resetModal.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") resetModal.style.display = "none"
+  })
+  resetModal.addEventListener("click", (event) => {
+    if (event.target === resetModal) resetModal.style.display = "none"
+  })
+
+  // Onboarding callouts (save v7): coach-voice nudges that appear once at
+  // the moment they matter, then never again — dismissal persists in
+  // settings.seenHints. First match wins (the precedence order below is
+  // the teaching order: AP first, kit depth second, cup last).
+  let shownHintId: string | null = null
+  const HINTS: Array<{
+    id: string
+    when: (state: GameState) => boolean
+    text: string
+  }> = [
+    {
+      id: "ap-basics",
+      when: (s) => s.phase === "day" && s.day === 1 && s.creature !== null,
+      text: "Three action points a day — feed, rest, treat, play. Spend them like they matter.",
+    },
+    {
+      id: "training-tier",
+      when: (s) => s.phase === "day" && s.day === 5 && s.creature !== null,
+      text: "Training focus sticks between days, and the kit keeps growing — one more move unlocks tomorrow.",
+    },
+    {
+      id: "cup-eve",
+      when: (s) => s.phase === "day" && s.day % 7 === 6 && s.creature !== null,
+      text: "Cup day is tomorrow. The bracket takes your partner as they are — spend today wisely.",
+    },
+  ]
+  const callout = document.createElement("div")
+  callout.className = "kit-plate hud-callout"
+  callout.style.display = "none"
+  const calloutText = document.createElement("p")
+  calloutText.className = "hud-callout-text"
+  const calloutOk = chip({
+    label: "Got it",
+    variant: "accent",
+    onClick: () => {
+      if (shownHintId) handlers.onHintSeen(shownHintId)
+      shownHintId = null
+      callout.style.display = "none"
+    },
+  })
+  callout.append(calloutText, calloutOk)
+  root.append(scoreBug, lowerThird, cluster, motionWrap, resetModal, callout)
 
   let pickerOpen = false
   let lastFocus: StatKey | null = null
@@ -612,6 +710,19 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     // open editor folds away (the sim would reject anyway).
     renameButton.style.display = state.phase === "cup" ? "none" : ""
     if (renaming && state.phase === "cup") closeRename()
+
+    // Onboarding callout: the first unseen hint whose moment is now.
+    // Dismissal persists through the sim, so a hint never asks twice.
+    const seen = new Set(state.settings.seenHints)
+    const active = HINTS.find((h) => h.when(state) && !seen.has(h.id))
+    if (active && active.id !== shownHintId) {
+      shownHintId = active.id
+      calloutText.textContent = active.text
+      callout.style.display = ""
+    } else if (!active && shownHintId !== null) {
+      shownHintId = null
+      callout.style.display = "none"
+    }
     stageTab.textContent = stageLabel(creature.stage)
     stageTab.className = "kit-tab is-stage"
 

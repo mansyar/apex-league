@@ -121,6 +121,7 @@ export { makeRng, type Rng } from "./rng"
 export { migrate } from "./save/migrate"
 export { SAVE_VERSION, type SaveData, serializeSave } from "./save/schema"
 export {
+  clearSave,
   createMemoryAdapter,
   loadBoot,
   loadGame,
@@ -143,6 +144,7 @@ export {
   chooseStarter,
   createInitialState,
   type GameState,
+  markHintSeen,
   type Phase,
   setReducedMotion,
 } from "./state"

@@ -29,6 +29,9 @@ function fakeAdapter(): SaveAdapter & { writes: string[]; failNext: boolean } {
       adapter.writes.push(value)
       map.set(key, value)
     },
+    removeItem: (key: string) => {
+      map.delete(key)
+    },
   }
   return adapter
 }

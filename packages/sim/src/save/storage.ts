@@ -16,6 +16,7 @@ export const SAVE_KEY = "apex.save"
 export interface SaveAdapter {
   getItem(key: string): string | null
   setItem(key: string, value: string): void
+  removeItem(key: string): void
 }
 
 /** In-memory adapter for tests and headless use. */
@@ -25,6 +26,9 @@ export function createMemoryAdapter(): SaveAdapter {
     getItem: (key) => map.get(key) ?? null,
     setItem: (key, value) => {
       map.set(key, value)
+    },
+    removeItem: (key) => {
+      map.delete(key)
     },
   }
 }
@@ -233,6 +237,15 @@ export function loadSave(adapter: SaveAdapter): SaveData | null {
  */
 export function loadGame(adapter: SaveAdapter): GameState | null {
   return loadSave(adapter)?.state ?? null
+}
+
+/**
+ * Wipe the persisted save. The next boot reads as "no save yet" — a silent
+ * fresh start with the starter picker, never the corrupt-save banner.
+ * Backed by SaveAdapter.removeItem (localStorage has it natively).
+ */
+export function clearSave(adapter: SaveAdapter): void {
+  adapter.removeItem(SAVE_KEY)
 }
 
 /**

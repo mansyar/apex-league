@@ -5,10 +5,12 @@ import {
   careAction,
   chooseStarter,
   clearLoadout,
+  clearSave,
   createInitialState,
   type GameState,
   getSpecies,
   loadBoot,
+  markHintSeen,
   renameCreature,
   type StatKey,
   setLoadout,
@@ -253,6 +255,13 @@ const hud = createHud(app, {
     if (!next.ok) return false
     store.commit(next.state)
     return true
+  },
+  onReset: () => {
+    clearSave(storage)
+    window.location.reload()
+  },
+  onHintSeen: (hintId) => {
+    store.commit(markHintSeen(store.get(), hintId))
   },
 })
 
