@@ -64,12 +64,12 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
 
 ## Phase 1 — Enriched Playback Contract & Primitive Layer *(core)*
 
-- [ ] **Task: Enrich playback contract** *(TDD)*
-  - [ ] Red: failing playback tests for additive step fields —
+- [x] **Task: Enrich playback contract** *(TDD)*
+  - [x] Red: failing playback tests for additive step fields —
         windup/contact/recovery phases, reaction kind, dodge direction,
         KO state, knockback events
-  - [ ] Green: extend `packages/sim/battle/playback.ts`; resolver outcomes
-        untouched
+  - [x] Green: extend `packages/sim/battle/playback.ts`; resolver outcomes
+        untouched (49b7439)
 - [ ] **Task: playbackDriver passthrough** *(TDD)* — extend
         `playbackDriver.test.ts` for the new fields
 - [ ] **Task: Animation primitive layer** *(TDD on pure functions)* —
