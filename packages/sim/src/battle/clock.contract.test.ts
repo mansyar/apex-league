@@ -125,39 +125,43 @@ function serialize(result: BattleResult): string {
 /**
  * Captured from the pre-consolidation code. Every digest here must survive
  * Phase 1 and Phase 2 untouched. It may only change when an FR authorizes a
- * behavioral change (FR5 Strike power, FR6 the DPS-aware tactic), and the
- * change must be justified in the track's phase notes.
+ * behavioral change, and the change must be justified in the track's phase
+ * notes. Recaptured once during Phase 3: the revised FR6 (per-tactic
+ * ranking + the sustained-score qualifier) changed every mirror and every
+ * fire-vs-plant / plant-vs-fire / ox-vs-axolotl battle — the authorized
+ * rebalance — while fire-vs-water kit2 and water-vs-fire kit2 happened to
+ * keep their streams.
  */
 const GOLDEN: Readonly<Record<string, string>> = {
   // Mirrors: each species fights itself (three kit tiers).
-  "fire_drake|fire_drake|kit2": "2a7b046d",
-  "fire_drake|fire_drake|kit3": "906a57b1",
-  "fire_drake|fire_drake|kit4": "321b34d5",
-  "plant_ox|plant_ox|kit2": "0801175f",
-  "plant_ox|plant_ox|kit3": "a8aa24af",
-  "plant_ox|plant_ox|kit4": "09b3fc9e",
-  "water_axolotl|water_axolotl|kit2": "aa8d12bb",
-  "water_axolotl|water_axolotl|kit3": "5aee0d31",
-  "water_axolotl|water_axolotl|kit4": "872df8a6",
+  "fire_drake|fire_drake|kit2": "54ae99b1",
+  "fire_drake|fire_drake|kit3": "7799241f",
+  "fire_drake|fire_drake|kit4": "a3bc4673",
+  "plant_ox|plant_ox|kit2": "d520307d",
+  "plant_ox|plant_ox|kit3": "590f1652",
+  "plant_ox|plant_ox|kit4": "4cbfae23",
+  "water_axolotl|water_axolotl|kit2": "47ca14ed",
+  "water_axolotl|water_axolotl|kit3": "753d30b3",
+  "water_axolotl|water_axolotl|kit4": "7da6e7f1",
   // Cross-element: fire>plant, water>fire, plant>water, both side orders.
-  "fire_drake|plant_ox|kit2": "3d99f849",
-  "fire_drake|plant_ox|kit3": "db4fb8dd",
-  "fire_drake|plant_ox|kit4": "937a57cd",
-  "plant_ox|fire_drake|kit2": "feba1d9f",
-  "plant_ox|fire_drake|kit3": "f94e4935",
-  "plant_ox|fire_drake|kit4": "f0108695",
+  "fire_drake|plant_ox|kit2": "a7457695",
+  "fire_drake|plant_ox|kit3": "c7952963",
+  "fire_drake|plant_ox|kit4": "f5aa8526",
+  "plant_ox|fire_drake|kit2": "394c0101",
+  "plant_ox|fire_drake|kit3": "09c04b63",
+  "plant_ox|fire_drake|kit4": "4b3d551a",
   "fire_drake|water_axolotl|kit2": "cf2ee3dd",
-  "fire_drake|water_axolotl|kit3": "19563a45",
-  "fire_drake|water_axolotl|kit4": "5ac3c61d",
+  "fire_drake|water_axolotl|kit3": "cfb802e3",
+  "fire_drake|water_axolotl|kit4": "9b9f49b1",
   "water_axolotl|fire_drake|kit2": "6085f84d",
-  "water_axolotl|fire_drake|kit3": "6fe20895",
-  "water_axolotl|fire_drake|kit4": "23c2c19d",
-  "plant_ox|water_axolotl|kit2": "bb1431bf",
-  "plant_ox|water_axolotl|kit3": "9f0b6aa9",
-  "plant_ox|water_axolotl|kit4": "ba2f8b67",
-  "water_axolotl|plant_ox|kit2": "0159be9d",
-  "water_axolotl|plant_ox|kit3": "cf727fad",
-  "water_axolotl|plant_ox|kit4": "88f73cd5",
+  "water_axolotl|fire_drake|kit3": "18e08fd9",
+  "water_axolotl|fire_drake|kit4": "01dcbfc1",
+  "plant_ox|water_axolotl|kit2": "8f3249bd",
+  "plant_ox|water_axolotl|kit3": "ca375c89",
+  "plant_ox|water_axolotl|kit4": "888bbc11",
+  "water_axolotl|plant_ox|kit2": "b134375d",
+  "water_axolotl|plant_ox|kit3": "82188917",
+  "water_axolotl|plant_ox|kit4": "070a742f",
 }
 
 interface RunSummary {

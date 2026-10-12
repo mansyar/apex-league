@@ -13,6 +13,7 @@ import {
   createCreature,
   cupPlacement,
   defaultLoadout,
+  doubleKoAdvancingName,
   effectiveStats,
   getSpecies,
   type RoundVerdict,
@@ -312,10 +313,21 @@ describe("the live cup engine — session resolution", () => {
       expect(session.championName).not.toBe(c.name)
       // The champion is whoever won the last resolved pairing: the final
       // completion verdict, or the SF2 winner if the player lost the final.
-      const lastCompletion =
-        session.completionVerdicts[session.completionVerdicts.length - 1]
+      // A double-KO in that pairing crowns the higher-HP slot via the sim's
+      // tiebreak (FR4) — the naive winner lookup mis-derives there.
+      const finalVerdict =
+        session.completionVerdicts[session.completionVerdicts.length - 1] ??
+        session.rivalVerdicts[3] ??
+        null
       const expected =
-        lastCompletion?.winner ?? session.rivalVerdicts[3]?.winner ?? null
+        finalVerdict?.winner ??
+        (finalVerdict?.battle
+          ? doubleKoAdvancingName(
+              finalVerdict.slotA,
+              finalVerdict.slotB,
+              finalVerdict.battle.finalHp,
+            )
+          : null)
       expect(session.championName).toBe(expected)
     }
   })

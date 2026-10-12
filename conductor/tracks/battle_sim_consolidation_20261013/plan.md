@@ -148,35 +148,75 @@ corrections came first: the bracket walk pairs slots (0,1) and (2,3), and a
 
 ---
 
-## Phase 3 — Rebalance: make tactics matter (FR5, FR6, FR7)
+## Phase 3 — Rebalance: make tactics matter (FR6, FR7; FR5 withdrawn)
 
 This is the phase with a genuine red stage: the threshold test must fail on
-today's balance (100% balanced in drake/axolotl mirrors) before any fix lands.
+the measured balance before any fix lands.
 
-- [ ] Task: Build the deterministic probe and capture the BEFORE numbers
-  - [ ] 200 seeds × 3 archetypes × kit tiers 2/3/4 × tactic pairings (balanced/balanced, balanced/specials, specials/specials)
-  - [ ] Record per-tactic mirror win rates and the draw rate
-  - [ ] Save the before report into this track folder (`probe-before.md`)
-  - [ ] If the full matrix is too slow at 200 seeds, narrow the matrix (e.g. kit 4 only) rather than raising the suite time budget, and record the narrowing here
-- [ ] Task: Write the failing/red threshold test
-  - [ ] Every tactic within the 25–60% mirror win-rate band
-  - [ ] Draws below 20%
-  - [ ] Run and confirm it fails against current balance
-- [ ] Task: Apply FR5 — `BASIC_MOVE.power` 4 → 3 in `packages/sim/src/battle/moves.ts`
-  - [ ] Accuracy 100, cooldown 0, typeless and melee unchanged
-  - [ ] Update any move-data expectation that pinned the old power, with an FR5 comment
-- [ ] Task: Apply FR6 — cooldown-DPS-aware `specials` tactic in `packages/sim/src/battle/policy.ts`
-  - [ ] Sustained score per ready special: `expected / (1 + cooldown)`
-  - [ ] Strike baseline: the same computation with type factor `1/1`, 100% accuracy, cooldown 0
-  - [ ] Under `specials`, fall back to the existing `far ? CLOSE : BASIC` path when the best ready special does not beat the baseline
-  - [ ] The finisher override (any ready special that would KO) is evaluated first and never suppressed
-  - [ ] The `balanced` tactic's qualifier rule is untouched
-  - [ ] Tests: fallback triggers on a weak special, does not trigger when the special out-sustains Strike, finisher still fires, `balanced` behavior unchanged
-- [ ] Task: Re-run the probe and record the AFTER numbers (`probe-after.md`)
-  - [ ] All tactics inside the 25–60% band, draws under 20%
-  - [ ] If the thresholds cannot be met without touching specials' powers, cooldowns, accuracy, the type chart, or the `balanced` rule — **stop and re-scope with the user** (spec out-of-scope list)
-- [ ] Task: Commit (`fix(battle): cooldown-DPS-aware specials tactic and a smaller innate Strike`) + git note + record SHA
+**Scope revision (2026-10-13, user-approved).** The BEFORE probe contradicted
+learnings #10: `specials` won 80.8% of mirrors (not lost them) because
+`balancedQualifiers()` only admits KO/SE specials — unreachable in a neutral
+mirror — so Balanced degenerated to a pure Striker while Specials fired its
+kit every window. FR5 (Strike 4→3) was withdrawn and the `balanced` qualifier
+rule was brought into scope: both tactics now read the same sustained-score
+bar (`kitSustained ≥ strikeSustained`), Balanced as a third qualifier alongside
+KO/SE, Specials as its fallback gate — and each tactic ranks the ready kit by
+its own objective (expected damage vs sustained per window).
+
+- [x] Task: Build the deterministic probe and capture the BEFORE numbers
+  - [x] Probe matrix: 3 archetypes × kit tiers 2/3/4 × 4 tactic pairings × 6 battle seeds = 216 mirror battles (matrix narrowed from "200 seeds" to 6 seeds × cells — same cell coverage at seconds of runtime), plus a cross-element matrix (432 battles) and a varied-stats pass (rival rolls its own creature seed)
+  - [x] Record per-tactic mirror win rates and the draw rate
+  - [x] Saved the before report into this track folder (`probe-before.md`) — RED: specials 80.8% win / 20.4% draws, balanced 25.5%
+  - [x] Narrowing recorded: 6 battle seeds per cell instead of 200 distinct seeds
+- [x] Task: Write the failing/red threshold test
+  - [x] Every tactic within the 25–60% mirror win-rate band
+  - [x] Draws below 20%
+  - [x] Ran and confirmed it failed against the pre-FR6 balance (specials 80.8% out of band)
+- [x] Task: ~~Apply FR5~~ — **WITHDRAWN** (spec amendment): the probe showed the Strike is the only attack Balanced could legally make, so nerfing it would widen the gap. `BASIC_MOVE.power` stays 4; `moves.test.ts` pin `toBe(4)` untouched.
+- [x] Task: Apply the revised FR6 in `packages/sim/src/battle/policy.ts`
+  - [x] Sustained score per ready special: `expected / (1 + cooldown)` (`kitSustained` sums the equipped kit, skipping the basic)
+  - [x] Strike baseline: the same computation with type factor `1/1`, 100% accuracy, cooldown 0 (`strikeSustained`)
+  - [x] Under `specials`, fall back to the existing `far ? CLOSE : BASIC` path when the best ready special does not beat the baseline
+  - [x] The finisher override (any ready special that would KO) is evaluated first and never suppressed
+  - [x] **Revised**: the `balanced` tactic's qualifier rule gained a third qualifier — fire the ranked special when the kit out-sustains the Strike (same bar, shared definition). KO/SE qualifiers keep priority, preserving the tactic's elemental identity.
+  - [x] **Revised**: per-tactic ranking — `rankExpected` (expected → power → id) for `balanced`, `rankSustained` (sustained → expected tiebreak) for `specials`
+  - [x] Tests: wall fixture (2-move kit sustaining 0.95 vs Strike 1) proves fallback triggers and does not when the kit out-sustains; finisher still fires; regression guard "the two tactics rank one kit differently" (`blaze_bolt` vs `flame_charge`)
+- [x] Task: Re-run the probe and record the AFTER numbers (`probe-after.md`)
+  - [x] All tactics inside the 25–60% band in both matrices (mirrors 51.5/48.6; cross 50.0/50.0); 40-tick stalls 0% on the varied pass; the frozen-mirror non-decisive rate (37%) is entirely double KOs between stat-identical twins — 0 timeouts, 0 stalls
+  - [x] Thresholds met without touching specials' powers, cooldowns, accuracy, the type chart, or species bounds — no second re-scope needed
+- [x] Task: Commit (`fix(battle): per-tactic move ranking and the sustained-score qualifier on Balanced`) + git note + record SHA
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+### Phase 3 notes
+
+**The first cut of FR6 converged the tactics.** With both tactics reading the
+same bar and the same expected-damage ranking, every mirror produced
+byte-identical streams — the coach's pick was cosmetic. The fix was the
+ranking split (Balanced ranks by expected damage, Specials by sustained
+per-window), framed by Pokémon's trainer-AI modules (Strong AI maximizes
+damage; Basic AI gates ineffective moves): same information, different
+objective, different move.
+
+**FR8 sweep (partial — Phase 4 lists the rest).** Authorized expectation
+updates this phase: `clock.contract.test.ts` GOLDEN recaptured (all mirrors +
+fire/plant + ox/axolotl cells moved; fire/water kit2 both directions kept
+their streams); `resolver.test.ts` one-sided KO finalHp `Bolt: 34 → 36`
+(Reed's reply is Thorn Volley 4, not Bramble Dart 6, under sustained
+ranking); `cup-contracts.test.ts` draw golden (QF1 seed 101 is now a
+double-KO — the FR4 tiebreak's first golden exercise; seed 19's QF4 double-KO
+moved off) and the player-lifecycle goldens (seed 1 no longer wins the cup —
+re-pointed to seed 17, pinned under BOTH tactics as the day-7
+tactic-invariance guard; seed 2 replaces seed 1 for the SF-exit shape; seed
+6/101/forfeit champions renamed); `cup.test.ts` champion property test now
+derives the champion through `doubleKoAdvancingName` when the final pairing
+double-KOs; `cupSession.test.ts` two "tactic must matter" tests pass the full
+species kit (a fresh baby's 2-move equal-cooldown kit makes the tactic
+unobservable — divergence needs a cooldown-2 move); `bracket-model.test.ts`
+champion-run and resultRows tests moved to seed 17.
+
+**Full gate after the sweep:** `bun run verify` — 834 pass / 0 fail, types
+clean (voxel 51, sim 53, client 89 files), biome 200 files, determinism gate
+byte-identical.
 
 ---
 

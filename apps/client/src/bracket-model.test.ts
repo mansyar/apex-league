@@ -257,7 +257,10 @@ describe("buildBracketModel — the 8-slot bracket", () => {
   })
 
   test("a champion run: the player's matches are exactly qf1, sf1, f1", () => {
-    const session = play(creature(), CUP_DAY, 1, "specials")
+    // Seed 17 still wins the cup after the FR6 rebalance (seed 1 now falls
+    // in the final); on cup day the tactic cannot change the run (a fresh
+    // baby's two-move kit ranks identically under both tactics).
+    const session = play(creature(), CUP_DAY, 17, "specials")
     expect(session.status).toBe("champion")
     const model = buildBracketModel(session)
     const playerMatches = model.filter((m) => m.isPlayerMatch).map((m) => m.id)
@@ -454,7 +457,9 @@ describe("results presentation", () => {
   })
 
   test("resultRows: a champion lists the win bundle", () => {
-    const session = play(creature(), CUP_DAY, 1, "specials")
+    // Seed 17 still wins the cup after the FR6 rebalance (see the champion
+    // run test above).
+    const session = play(creature(), CUP_DAY, 17, "specials")
     expect(cupPlacement(session)).toBe(1)
     const rows = resultRows(
       session,
