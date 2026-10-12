@@ -119,6 +119,7 @@ export { migrate } from "./save/migrate"
 export { SAVE_VERSION, type SaveData, serializeSave } from "./save/schema"
 export {
   createMemoryAdapter,
+  loadBoot,
   loadGame,
   loadSave,
   SAVE_KEY,

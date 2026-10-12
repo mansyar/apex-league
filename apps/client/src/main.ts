@@ -8,7 +8,7 @@ import {
   createInitialState,
   type GameState,
   getSpecies,
-  loadSave,
+  loadBoot,
   type StatKey,
   setLoadout,
   setReducedMotion,
@@ -39,7 +39,14 @@ const staging = createStaging(arena.group)
 const swap = createSwap(scene, arena)
 
 const storage: Storage = window.localStorage
-const saved = loadSave(storage)
+// Boot reads once and distinguishes three worlds: no save (silent fresh
+// start), an unreadable save (fresh start + a calm notice — the player is
+// never silently robbed of their ranch), and a healthy payload (state +
+// the riding cup session).
+const boot = loadBoot(storage)
+const saved = boot && "state" in boot ? boot : null
+// The hud is created below; the notice fires right after it exists.
+const corruptBoot = boot !== null && "corrupt" in boot
 // A restored session is only resumable while its cup day is current: the
 // walk lives on the day it was entered, and a day that moved on is over.
 const restoredSession =
@@ -231,6 +238,8 @@ const hud = createHud(app, {
     applyMotionPref()
   },
 })
+
+if (corruptBoot) hud.announceCorruptSave()
 
 // The store's fixed fanout: every commit persists (inside commit) and then
 // updates the hud, the spar preview, and the cup chip — in that order —

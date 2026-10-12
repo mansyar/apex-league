@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 
 import { createCreature } from "../creature"
-import { resolvePlayerMatch } from "../cup"
+import { type CupSession, resolvePlayerMatch } from "../cup"
 import { defaultLoadout } from "../loadout"
 import { prepareCup } from "../machine"
 import { getSpecies, type SpeciesDef } from "../species"
@@ -16,6 +16,7 @@ import { migrate, validateStateShape } from "./migrate"
 import { SAVE_VERSION, type SaveData, serializeSave } from "./schema"
 import {
   createMemoryAdapter,
+  loadBoot,
   loadGame,
   loadSave,
   type SaveAdapter,
@@ -748,5 +749,56 @@ describe("save v7 — cup session, rename, hints", () => {
     expect(loadGame(adapter)).toBeNull()
     saveGame(adapter, bad({ reducedMotion: false, seenHints: undefined }), 1)
     expect(loadGame(adapter)).toBeNull()
+  })
+})
+
+describe("loadBoot — absent vs corrupt", () => {
+  const startState = (): GameState => {
+    const state = advanceDay(createInitialState())
+    return chooseStarter(state, "fire_drake", 42)
+  }
+
+  test("returns null when no save exists (fresh start, no notice)", () => {
+    const adapter: SaveAdapter = createMemoryAdapter()
+    expect(loadBoot(adapter)).toBeNull()
+  })
+
+  test("flags corrupt JSON as unreadable (notice-worthy)", () => {
+    const adapter: SaveAdapter = createMemoryAdapter()
+    adapter.setItem("apex.save", "{not valid json!!")
+    expect(loadBoot(adapter)).toEqual({ corrupt: true })
+  })
+
+  test("flags a shape-corrupt state as unreadable (notice-worthy)", () => {
+    const adapter: SaveAdapter = createMemoryAdapter()
+    const good = startState()
+    saveGame(adapter, good, 1)
+    adapter.setItem(
+      "apex.save",
+      JSON.stringify({ version: SAVE_VERSION, state: { day: "seven" } }),
+    )
+    expect(loadBoot(adapter)).toEqual({ corrupt: true })
+  })
+
+  test("flags an unreadable future version as unreadable", () => {
+    const adapter: SaveAdapter = createMemoryAdapter()
+    adapter.setItem("apex.save", JSON.stringify({ version: 99, state: {} }))
+    expect(loadBoot(adapter)).toEqual({ corrupt: true })
+  })
+
+  test("returns state + session when the save is healthy", () => {
+    const adapter: SaveAdapter = createMemoryAdapter()
+    const state = startState()
+    const session = prepareCup(state)
+    saveGame(adapter, state, 1000, session)
+    expect(loadBoot(adapter)).toEqual({ state, session })
+  })
+
+  test("a healthy save with a dropped session still boots clean", () => {
+    const adapter: SaveAdapter = createMemoryAdapter()
+    const state = startState()
+    saveGame(adapter, state, 1000, { bracket: 5 } as unknown as CupSession)
+    const boot = loadBoot(adapter)
+    expect(boot).toEqual({ state, session: null })
   })
 })

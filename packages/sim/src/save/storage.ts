@@ -234,3 +234,20 @@ export function loadSave(adapter: SaveAdapter): SaveData | null {
 export function loadGame(adapter: SaveAdapter): GameState | null {
   return loadSave(adapter)?.state ?? null
 }
+
+/**
+ * Boot probe: distinguishes "no save yet" (null — a silent fresh start)
+ * from "a save exists but is unreadable" ({corrupt: true} — fresh start
+ * plus a calm notice, so the player is never silently robbed of a ranch).
+ * A healthy save boots state + session in one read.
+ */
+export type BootPayload =
+  | { state: GameState; session: CupSession | null }
+  | { corrupt: true }
+
+export function loadBoot(adapter: SaveAdapter): BootPayload | null {
+  if (adapter.getItem(SAVE_KEY) === null) return null
+  const data = loadSave(adapter)
+  if (data === null) return { corrupt: true }
+  return { state: data.state, session: data.session }
+}

@@ -20,7 +20,7 @@ verification for DOM/scene tasks, phase checkpoints with git notes.
 
 ## Phase B — Bug fixes: corrupt-save notice + juvenile cup seed
 
-- [ ] Task: Write failing tests — storage distinguishes "no save yet" vs
+- [~] Task: Write failing tests — storage distinguishes "no save yet" vs
       "save exists but unreadable"
 - [ ] Task: Implement corrupt-save notice in the boot path (`main.ts` +
       broadcast-kit notice); manual verification note for the DOM surface

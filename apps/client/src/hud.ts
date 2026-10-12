@@ -54,6 +54,9 @@ export interface Hud {
   /** Show the save-failure coach line (called once per failed persist;
    * the next routine update replaces it). Non-blocking by design. */
   announceSaveFailure(): void
+  /** Show the corrupt-save coach line (called once at boot when an
+   * existing save cannot be read). Non-blocking by design. */
+  announceCorruptSave(): void
 }
 
 /** Coach-voice copy for disabled actions (≤ 2 sentences, never punishing). */
@@ -204,6 +207,15 @@ export function evolveCallout(creature: Creature): string {
  */
 export function saveFailureNotice(): string {
   return "Heads up — that progress didn't save. Your partner's day carries on anyway."
+}
+
+/**
+ * The corrupt-save coach line: calm, blame-free, non-blocking. Shown once
+ * at boot when an existing save cannot be read — the game starts fresh,
+ * and the player deserves to know why.
+ */
+export function corruptSaveNotice(): string {
+  return "That old save couldn't be read — starting fresh. Sorry about that."
 }
 
 /**
@@ -648,6 +660,9 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     },
     announceSaveFailure() {
       statusTicker.say(saveFailureNotice())
+    },
+    announceCorruptSave() {
+      statusTicker.say(corruptSaveNotice())
     },
   }
 }
