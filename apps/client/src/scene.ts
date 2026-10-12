@@ -26,6 +26,7 @@ import {
   type WanderDrive,
   windBaseAmp,
 } from "./scene-logic"
+import { disposeObject3D } from "./scene-utils"
 
 export interface SceneHandle {
   /** Raw three.js scene root, for environment modules (e.g. the arena). */
@@ -547,17 +548,7 @@ export function createScene(container: HTMLElement): SceneHandle {
   let windSalt = 0
 
   const disposeGroup = (group: THREE.Group): void => {
-    group.traverse((obj) => {
-      if (obj instanceof THREE.Mesh) {
-        obj.geometry.dispose()
-        const mat = obj.material
-        if (Array.isArray(mat)) {
-          for (const m of mat) m.dispose()
-        } else {
-          mat.dispose()
-        }
-      }
-    })
+    disposeObject3D(group)
     scene.remove(group)
   }
 
@@ -662,17 +653,7 @@ export function createScene(container: HTMLElement): SceneHandle {
       canvas.removeEventListener("wheel", onWheel)
       // Free every geometry/material on the scene to avoid GPU leaks when
       // scenes are swapped (ranch <-> arena later).
-      scene.traverse((obj) => {
-        if (obj instanceof THREE.Mesh) {
-          obj.geometry.dispose()
-          const mat = obj.material
-          if (Array.isArray(mat)) {
-            for (const m of mat) m.dispose()
-          } else {
-            mat.dispose()
-          }
-        }
-      })
+      disposeObject3D(scene)
       renderer.dispose()
       renderer.domElement.remove()
     },

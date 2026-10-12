@@ -30,11 +30,20 @@ import {
   type PlaybackStep,
   prepareCup,
   type RoundVerdict,
-  requiredTierDays,
   resolvePlayerMatch,
   type Tactic,
 } from "@apex/sim"
 import { createBattleHud } from "./battleHud"
+import {
+  buildKitPicker,
+  buildTacticRow,
+  castFighter,
+  focusTrap,
+  reasonLine,
+  renderSpeedButton,
+  toggleKitChoice,
+  winningSideKey,
+} from "./battleUI"
 import {
   type BracketMatch,
   bracketPlan,
@@ -47,7 +56,8 @@ import {
 import { crestGlyph, elementHue } from "./element"
 import { prefersReducedMotionOs } from "./motion"
 import { createPlaybackDriver, type PlaybackFight } from "./playbackDriver"
-import { type FightCasting, visualSeedOf } from "./staging"
+import type { FightCasting } from "./staging"
+import { visualSeedOf } from "./staging-seed"
 import { icons } from "./ui/icons"
 
 export interface CupHandlers {
@@ -326,6 +336,21 @@ export function createCup(
   giveupRow.append(giveupStay, giveupQuit)
   giveupCard.append(giveupTab, giveupTitle, giveupCopy, giveupRow)
   giveup.append(giveupCard)
+  // Dialog semantics + focus management (a11y): the scrim hides the
+  // bracket, so Tab must cycle inside the card, Escape must bail out to
+  // Stay, and closing hands focus back to the control that opened it.
+  giveupCard.setAttribute("role", "dialog")
+  giveupCard.setAttribute("aria-modal", "true")
+  giveupTitle.id = "cup-giveup-title"
+  giveupCard.setAttribute("aria-labelledby", "cup-giveup-title")
+  const giveupTrap = focusTrap(giveupCard)
+  giveup.addEventListener("keydown", (event) => {
+    giveupTrap(event)
+    if (event.key === "Escape") {
+      giveup.style.display = "none"
+      close.focus()
+    }
+  })
 
   // ------------------------------------------------------------------
   // Results screen
@@ -373,9 +398,8 @@ export function createCup(
   const fastButton = document.createElement("button")
   fastButton.type = "button"
   fastButton.className = "cup-speed"
-  fastButton.textContent = "Fast-forward"
+  renderSpeedButton(fastButton, "paced")
   battleChips.append(fastButton)
-
   overlay.append(bracketScreen, coachScreen, resultsScreen, giveup, battleChips)
   root.append(overlay)
 
@@ -676,47 +700,29 @@ export function createCup(
       return verdict.winner === fight.owned.name ? "Victory" : "Defeat"
     }
     // Mirror match: qualify by side (the sim reports under stable keys).
-    let best = -Infinity
-    let key: string | null = null
-    for (const [side, hp] of Object.entries(verdict.finalHp)) {
-      if (hp > best) {
-        best = hp
-        key = side
-      }
-    }
-    return key === fight.owned.key
+    return winningSideKey(verdict) === fight.owned.key
       ? "Victory — your fighter"
       : "Defeat — the rival"
   }
 
-  const reasonLine = (verdict: BattleResult): string => {
-    if (verdict.reason === "time") return "The clock ran out on this one."
-    if (verdict.reason === "double_ko")
-      return "A double down — both went out together."
-    return "A knockout finish."
-  }
-
   const castingFor = (creature: Creature, opponent: CupSlot): FightCasting => {
-    const cs = getSpecies(creature.speciesId)
-    const rs = getSpecies(opponent.speciesId)
-    if (!cs || !rs) {
-      throw new Error("Unknown species: cannot cast the cup match")
-    }
     return {
-      owned: {
-        archetypeId: cs.archetypeId,
+      owned: castFighter({
+        speciesId: creature.speciesId,
+        name: creature.name,
         // Stage-aware: a juvenile's boosted stats must fold back to the
         // creation seed, or the cup arena re-rolls the partner's DNA.
         seed: visualSeedOf(creature.stats, creature.stage),
-        name: creature.name,
-      },
-      rival: {
-        archetypeId: rs.archetypeId,
-        // Rivals carry no stage in the sim — the stats-only seed keeps
+        context: "the cup match",
+      }),
+      rival: castFighter({
+        speciesId: opponent.speciesId,
+        name: opponent.name,
+        // Rivals carry no stage in the sim - the stats-only seed keeps
         // their look stable for the whole bracket.
         seed: visualSeedOf(opponent.stats),
-        name: opponent.name,
-      },
+        context: "the cup match",
+      }),
     }
   }
 
@@ -768,7 +774,7 @@ export function createCup(
     overlay.classList.add("cup-battling")
     battleHud.show(fightNow)
     battleChips.style.display = ""
-    fastButton.textContent = "Fast-forward"
+    renderSpeedButton(fastButton, "paced")
     fastButton.style.display = ""
     handlers.onFightStart(castingFor(creature, opponent))
     driver.start(fightNow, verdict.battle)
@@ -879,60 +885,39 @@ export function createCup(
       const chosen = picks.loadout
       for (const row of kitRows) row.remove()
       kitRows.length = 0
-      cs.kit.forEach((id, index) => {
-        const required = requiredTierDays(index, creature.stage)
-        const locked = creature.trainingDays < required
-        const name = getMove(id)?.displayName ?? id
-        const rowEl = document.createElement("button")
-        rowEl.type = "button"
-        rowEl.className = locked
-          ? "cup-pick locked"
-          : chosen.includes(id)
-            ? "cup-pick on"
-            : "cup-pick"
-        rowEl.textContent = locked ? `${name} 🔒` : name
-        rowEl.disabled = locked
-        if (!locked) {
-          rowEl.addEventListener("click", () => {
-            if (!picks) return
-            if (picks.loadout.includes(id)) {
-              if (picks.loadout.length > 2) {
-                picks.loadout = picks.loadout.filter((m) => m !== id)
-              }
-            } else if (picks.loadout.length < 4) {
-              picks.loadout = [...picks.loadout, id]
-            }
+      const picker = buildKitPicker({
+        species: cs,
+        creature,
+        chosen: () => chosen,
+        classes: { base: "cup-pick", locked: "locked", chosen: "on" },
+        // Locked kit slots stay mysterious until trained (cup UX).
+        lockedText: (name) => name + " ??",
+        onToggle: (id) => {
+          if (!picks) return
+          const next = toggleKitChoice(picks.loadout, id, 2, 4)
+          if (next) {
+            picks.loadout = next
             renderKit()
-          })
-        }
-        kitRows.push(rowEl)
-        kitCard.append(rowEl)
+          }
+        },
       })
+      kitRows.push(...picker.rows)
+      kitCard.append(picker.fragment)
     }
     renderKit()
     const tacticHead = document.createElement("div")
     tacticHead.className = "cup-card-title tactic"
     tacticHead.textContent = "Tactic"
     kitCard.append(tacticHead)
-    const tacticRow = document.createElement("div")
-    tacticRow.className = "cup-tactic-row"
-    const tacticButtons: Array<{ el: HTMLElement; tactic: Tactic }> = []
-    for (const t of ["balanced", "specials"] as const) {
-      const btn = document.createElement("button")
-      btn.type = "button"
-      btn.className = "cup-tactic"
-      btn.textContent = t === "balanced" ? "Balanced" : "Specials"
-      btn.addEventListener("click", () => {
-        if (!picks) return
-        picks.tactic = t
-        for (const { el, tactic } of tacticButtons) {
-          el.classList.toggle("on", tactic === t)
-        }
-      })
-      tacticButtons.push({ el: btn, tactic: t })
-      tacticRow.append(btn)
-    }
-    tacticButtons[0]?.el.classList.add("on")
+    const { row: tacticRow } = buildTacticRow({
+      rowClass: "cup-tactic-row",
+      describe: (t) => ({ label: t === "balanced" ? "Balanced" : "Specials" }),
+      classes: { base: "cup-tactic", on: "on" },
+      initialOn: "balanced",
+      onPick: (t) => {
+        if (picks) picks.tactic = t
+      },
+    })
     kitCard.append(tacticRow)
 
     showScreen("coach")
@@ -947,7 +932,7 @@ export function createCup(
   ctaGo.addEventListener("click", openCoach)
   fastButton.addEventListener("click", () => {
     const next = driver.speedToggle()
-    fastButton.textContent = next === "fast" ? "Normal speed" : "Fast-forward"
+    renderSpeedButton(fastButton, next)
   })
 
   // ------------------------------------------------------------------
@@ -955,10 +940,12 @@ export function createCup(
   // ------------------------------------------------------------------
   giveupStay.addEventListener("click", () => {
     giveup.style.display = "none"
+    close.focus()
   })
   giveupQuit.addEventListener("click", () => {
     if (!session) return
     giveup.style.display = "none"
+    close.focus()
     ctaHide()
     // Forfeit the current round: the opponent advances without a fight,
     // then the bracket auto-completes to a champion.
@@ -1031,6 +1018,7 @@ export function createCup(
     }
     if (session && session.status === "player-turn") {
       giveup.style.display = ""
+      giveupStay.focus()
       return
     }
     closeFree()

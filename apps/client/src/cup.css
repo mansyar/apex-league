@@ -842,3 +842,29 @@
     opacity: 1;
   }
 }
+
+/* Enter Cup chip - kit-chip plate with the broadcast title/sub stack. */
+.cup-button {
+  position: absolute;
+  top: 18px;
+  right: 110px;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  animation: settle-down 0.5s var(--kit-settle) 0.24s both;
+}
+
+.cup-button .kit-chip-glyph {
+  color: var(--accent);
+}
+
+.cup-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Hidden once a battle takes over the screen (spar.css owns the spar twin). */
+.app-in-arena .cup-button {
+  display: none;
+}

@@ -120,3 +120,27 @@ track, not ad hoc): nerf the basic, buff special powers, or make Favor
 Specials cooldown-DPS-aware (fall back to Strike when a special's
 sustained output loses to 4/window). Any fix reshuffles the whole meta
 and needs its own seed-batch rebalance pass.
+## 11. Injected test doubles hide broken default bindings
+
+EffectLoop (staging-fx) took schedule / cancel as constructor
+parameters defaulting to the globals. Every test injected a fake clock,
+so the by-reference default was never exercised - until a headless
+browser run threw TypeError: Illegal invocation out of spawnProjectile
+and spawnBurst: the loop called 	his.schedule(cb), and
+window.requestAnimationFrame rejects a foreign receiver.
+
+Two lessons, both general:
+
+- A test double for an *injected* dependency says nothing about the
+  *default*. When a default matters, test it: stub the global and
+  construct with no arguments.
+- The stub must reproduce the contract you are protecting. An arrow
+  function stub ignores 	his, so it passes even with the bug present;
+  a unction stub that throws when the receiver is a foreign object
+  catches it. Verify a regression test fails against the old code before
+  trusting it.
+- Browser-side rendering work needs a real browser check even when every
+  unit test is green. When the desktop browser tool is unavailable,
+  headless Chromium driven by Playwright (screenshots + pageerror +
+  computed-style assertions) is an acceptable substitute and caught what
+  three phases of green gates did not.

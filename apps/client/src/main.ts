@@ -23,7 +23,8 @@ import { corruptSaveNotice, createHud } from "./hud"
 import { prefersReducedMotionOs } from "./motion"
 import { createScene } from "./scene"
 import { createSpar } from "./spar"
-import { createStaging, visualSeedOf } from "./staging"
+import { createStaging, type FightCasting } from "./staging"
+import { visualSeedOf } from "./staging-seed"
 import { createStarterChoice } from "./starter"
 import { createGameStore } from "./store"
 import { createSwap } from "./swap"
@@ -123,6 +124,23 @@ const toggleArenaCamera = (): void => {
   applyCameraStyle()
 }
 
+// The arena handoff is shared choreography: both the spar and the cup
+// dissolve into the broadcast bowl the same way and restore the ranch on
+// the way out. Nothing here touches the save.
+const enterArena = (casting: FightCasting): void => {
+  scene.setRanchCreatureVisible(false)
+  void swap.enterArena()
+  staging.cast(casting)
+  // Broadcast clarity: the ranch HUD stands down while the bowl plays.
+  app.classList.add("app-in-arena")
+}
+const exitArena = (): void => {
+  scene.setRanchCreatureVisible(true)
+  void swap.exitArena()
+  staging.clear()
+  app.classList.remove("app-in-arena")
+}
+
 // The spar reads the live state through this hook; kit changes write
 // through the store like every other sim change.
 const spar = createSpar(app, {
@@ -136,21 +154,10 @@ const spar = createSpar(app, {
   // Fight start: dissolve into the broadcast arena and cast both fighters
   // on the stage; every event now also steps the arena playback. The ranch
   // creature retires while a fight plays. Back at the ranch the stage
-  // clears and the ranch star returns. Nothing here touches the save.
-  onFightStart: (casting) => {
-    scene.setRanchCreatureVisible(false)
-    void swap.enterArena()
-    staging.cast(casting)
-    // Broadcast clarity: the ranch HUD stands down while the bowl plays.
-    app.classList.add("app-in-arena")
-  },
+  // clears and the ranch star returns.
+  onFightStart: enterArena,
   onStep: (step, instant) => staging.applyStep(step, instant),
-  onClose: () => {
-    scene.setRanchCreatureVisible(true)
-    void swap.exitArena()
-    staging.clear()
-    app.classList.remove("app-in-arena")
-  },
+  onClose: exitArena,
   // The arena scales its action animations to the playback pace, so
   // fast-forward speeds the whole fight up instead of cutting swings.
   onPace: (msPerStep) => staging.setPace(msPerStep),
@@ -220,21 +227,10 @@ applyMotionPref()
 const cup = createCup(
   app,
   {
-    onFightStart: (casting) => {
-      scene.setRanchCreatureVisible(false)
-      void swap.enterArena()
-      staging.cast(casting)
-      // Broadcast clarity: the ranch HUD stands down while the bowl plays.
-      app.classList.add("app-in-arena")
-    },
+    onFightStart: enterArena,
     onStep: (step, instant) => staging.applyStep(step, instant),
     onPace: (msPerStep) => staging.setPace(msPerStep),
-    onArenaExit: () => {
-      scene.setRanchCreatureVisible(true)
-      void swap.exitArena()
-      staging.clear()
-      app.classList.remove("app-in-arena")
-    },
+    onArenaExit: exitArena,
     // The first arena fight consumes the cup (endCup flips the phase) —
     // adopted through the store so a mid-cup refresh keeps the commitment.
     onCommit: (next) => {

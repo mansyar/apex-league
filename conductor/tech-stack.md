@@ -97,12 +97,22 @@
   `anim.ts` (easing/phase/keyframe-track/pose-composition/spring
   primitives), `choreo.ts` (per-archetype `BodyProfile` body language +
   reaction library), `director.ts` (camera-director decision logic from a
-  per-step-kind shot table). `staging.ts` renders through declarative
-  registries - `MOVE_FX` (per-move launch choreography, shots, muzzle and
-  arrival bursts; point-blank specials replay the launch compressed with a
-  micro-flight so every special reads at every range) and `SHOT_LOOK`
-  (per-element shot identity) - so new moves and elements are single-entry
-  additions. `playbackDriver` paces the KO signature (2.5x dilation around
+  per-step-kind shot table). Battle presentation is split into four client
+  modules: `move-fx.ts` holds the declarative registries - `MOVE_FX`
+  (per-move launch choreography, shots, muzzle and arrival bursts;
+  point-blank specials replay the launch compressed with a micro-flight so
+  every special reads at every range) and `SHOT_LOOK` (per-element shot
+  identity) - so new moves and elements are single-entry additions;
+  `staging-seed.ts` owns `visualSeedOf` (stat+stage folded to a stable
+  look seed); `staging-fx.ts` owns every transient effect (hit flash,
+  projectiles, element bursts, floor decals, charge orb) behind ONE
+  `EffectLoop` frame scheduler plus a `HitStop` object that is the single
+  owner of hit-stop time, so the driver clock and the effect clock can
+  never disagree; `staging.ts` stays the driver (creature casting,
+  `runStep`, action clock). Shared spar-vs-cup screen logic lives in
+  `battleUI.ts` (pure helpers + DOM factories) and GPU teardown in
+  `scene-utils.ts::disposeObject3D`.
+  `playbackDriver` paces the KO signature (2.5x dilation around
   the terminal blow + a stamp-settle hold). The arena camera is
   broadcast/cinematic (director intents ease between framings; bloom post
   pass, element particles, hit decals, big-hit vignette); the style is a
