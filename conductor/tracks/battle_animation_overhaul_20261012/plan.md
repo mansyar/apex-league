@@ -73,9 +73,10 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
 - [x] **Task: playbackDriver passthrough** *(TDD)* — extend
         `playbackDriver.test.ts` for the new fields (c9bd79f; red phase
         vacuous — driver forwards steps verbatim, test pins the contract)
-- [ ] **Task: Animation primitive layer** *(TDD on pure functions)* —
+- [x] **Task: Animation primitive layer** *(TDD on pure functions)* —
         pose composition, per-part phased timelines, easing library,
         seed-derived variation; new shared module (arena-first, ranch-ready)
+        (ea9a229 — apps/client/src/anim.ts, 17 tests)
 - [ ] **Task: Refactor staging.ts onto primitives** — behavior-preserving
         for existing moves; squash/gait/breath reuse; manual diff-check
 - [ ] **Task: Phase Verification & Checkpoint (Refer to workflow.md)**
