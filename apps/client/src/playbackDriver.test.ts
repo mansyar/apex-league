@@ -18,6 +18,8 @@ import {
   createPlaybackDriver,
   dilatedPace,
   KO_DILATION,
+  STAMP_BEATS,
+  stampDelay,
 } from "./playbackDriver"
 import type { PlaybackSpeed } from "./playbackSpeed"
 
@@ -229,6 +231,13 @@ describe("playbackDriver — enriched playback contract (FR3)", () => {
         expect(dilatedPace(900, false)).toBe(900)
         expect(dilatedPace(900, true)).toBe(Math.round(900 * KO_DILATION))
         expect(dilatedPace(140, true)).toBe(Math.round(140 * KO_DILATION))
+        // The verdict stamp lands after a dust-settle hold that stretches
+        // on the KO beat: base * KO_DILATION * STAMP_BEATS, else base * STAMP_BEATS.
+        expect(STAMP_BEATS).toBeGreaterThan(1)
+        expect(stampDelay(900, false)).toBe(Math.round(900 * STAMP_BEATS))
+        expect(stampDelay(900, true)).toBe(
+          Math.round(900 * KO_DILATION * STAMP_BEATS),
+        )
 
         if (reduced) {
           // The instant dump has no timers, so no dilation calls happen.

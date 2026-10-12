@@ -96,6 +96,17 @@ export const KO_DILATION = 2.5
 export const dilatedPace = (base: number, ko: boolean): number =>
   ko ? Math.round(base * KO_DILATION) : base
 
+/** How many step-lengths the dust settles for before the stamp lands. */
+export const STAMP_BEATS = 1.2
+
+/**
+ * The verdict stamp beat (FR8): the run's terminal wait before the stamp
+ * fires. It stretches on a KO so the collapse and dust ring finish
+ * breathing before the verdict slams in.
+ */
+export const stampDelay = (base: number, ko: boolean): number =>
+  Math.round(base * (ko ? KO_DILATION : 1) * STAMP_BEATS)
+
 export function createPlaybackDriver(
   handlers: PlaybackDriverHandlers,
   options: PlaybackDriverOptions = {},
@@ -154,7 +165,14 @@ export function createPlaybackDriver(
   ): void => {
     const event = events[index]
     if (!event) {
-      timer = setTimeout(() => finish(verdict), pace())
+      // Terminal branch: the dust-settle hold before the verdict stamp
+      // lands (FR8). A KO run ends on a dilated beat, so the hold rides
+      // the slow motion instead of snapping back to speed.
+      const last = steps[steps.length - 1]
+      timer = setTimeout(
+        () => finish(verdict),
+        stampDelay(pace(), last?.ko === true),
+      )
       return
     }
     // The wait BEFORE this event belongs to the previous step: a KO blow
