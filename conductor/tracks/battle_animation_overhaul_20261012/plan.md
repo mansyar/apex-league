@@ -179,7 +179,7 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
 
 ## Phase: Review Fixes (conductor-review)
 
-- [~] **Task: Apply review suggestions** — fix the High (fast-pace
+- [x] **Task: Apply review suggestions** — fix the High (fast-pace
         point-blank landing drop) and the four Mediums (double-KO ko flag,
         cross-fight staging staleness, cinematic→broadcast camera freeze,
         grace-blocked phantom stagger) plus the Low polish batch (per-frame
@@ -188,6 +188,8 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
         vignette OS gate + dead media query, charge-orb drift, stale
         docblocks/titles, migrate null-settings repair, driver dilation
         reset, unused import, director/anim edge pins).
+        (56f07d1 — 17 files, 319+/91−; bun test 711 pass, bun run check
+        green, bun run verify green incl. determinism gate.)
 
 ## Notes
 
