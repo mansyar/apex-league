@@ -116,3 +116,97 @@ export function idleSway(
 
 // Freeze the table so no choreography can quietly rewrite an identity.
 for (const p of Object.values(PROFILES)) Object.freeze(p)
+
+/**
+ * Reaction library (FR5): how a fighter takes a hit. The sim's enriched
+ * playback contract names the reaction kind; the archetype profile
+ * weights the body's response. Movement (slide/dash) stays global —
+ * it must agree with the sim's far/near semantics, not a species'
+ * personality.
+ */
+export type ReactionKind = "glance" | "stagger" | "knockback" | "dodge" | "down"
+
+/** One reaction's choreography, resolved for a specific body. */
+export interface ReactionSpec {
+  /** Squash spring kick at the moment of impact (sign per staging). */
+  readonly impulse: number
+  /** Reel duration as a fraction of the reaction step (0 = none). */
+  readonly reel: number
+  /** Off-balance backward lean amplitude through the reel. */
+  readonly reelPitch: number
+  /** Persistent outward stage slide (the sim's range shift). */
+  readonly slide: number
+  /** Instant dash distance (evasion). */
+  readonly dash: number
+}
+
+interface ReactionBase extends ReactionSpec {
+  /** Which profile weight scales the body response ("none" = global). */
+  readonly weight: "hurt" | "stagger" | "none"
+}
+
+const REACTION_BASES: Record<ReactionKind, ReactionBase> = {
+  glance: {
+    impulse: 0.85,
+    reel: 0,
+    reelPitch: 0,
+    slide: 0,
+    dash: 0,
+    weight: "hurt",
+  },
+  stagger: {
+    impulse: 0.85,
+    reel: 0.85,
+    reelPitch: 0.2,
+    slide: 0.3,
+    dash: 0,
+    weight: "stagger",
+  },
+  knockback: {
+    impulse: 0.85,
+    reel: 0.65,
+    reelPitch: 0.14,
+    slide: 0.9,
+    dash: 0,
+    weight: "stagger",
+  },
+  dodge: {
+    impulse: -0.3,
+    reel: 0,
+    reelPitch: 0,
+    slide: 0,
+    dash: 0.85,
+    weight: "none",
+  },
+  down: {
+    impulse: 0.9,
+    reel: 0.7,
+    reelPitch: 0,
+    slide: 0,
+    dash: 0,
+    weight: "hurt",
+  },
+}
+
+/** Resolve a reaction for a body; unknown kinds read as a plain glance. */
+export function reactionFor(
+  kind: ReactionKind,
+  profile: BodyProfile,
+): ReactionSpec {
+  const base = REACTION_BASES[kind] ?? REACTION_BASES.glance
+  const weight =
+    base.weight === "hurt"
+      ? profile.hurtMult
+      : base.weight === "stagger"
+        ? profile.staggerMult
+        : 1
+  return Object.freeze({
+    impulse: base.impulse * weight,
+    reel: base.reel,
+    reelPitch: base.reelPitch * weight,
+    slide: base.slide,
+    dash: base.dash,
+  })
+}
+
+for (const r of Object.values(REACTION_BASES)) Object.freeze(r)

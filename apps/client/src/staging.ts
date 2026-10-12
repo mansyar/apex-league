@@ -17,7 +17,13 @@ import {
   phaseAt,
   stepSquash,
 } from "./anim"
-import { type BodyProfile, hurtImpulse, idleSway, profileFor } from "./choreo"
+import {
+  type BodyProfile,
+  idleSway,
+  profileFor,
+  type ReactionKind,
+  reactionFor,
+} from "./choreo"
 import { buildCreatureGroup } from "./creature"
 
 /**
@@ -973,20 +979,33 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     c.offset.set(0, 0, 0)
   }
 
+  /** True when a landing blow carries a heavy reaction (the victim reels). */
+  const heavyHit = (step: PlaybackStep): boolean =>
+    step.reaction === "stagger" || step.reaction === "knockback"
+
   /**
-   * The victim reaction at an attack's contact moment: shove the stage
-   * (persistent), squash the body (weight), flash and stop the frame on
-   * big hits. One helper so basic and special hits look like the same
-   * physical impact.
+   * The victim reaction at an attack's contact moment: squash the body
+   * (profile-weighted from the reaction library), flash and stop the
+   * frame on big hits. Heavy reactions skip the stage shove - the
+   * outward movement belongs to the follow-up stagger/knockback reel
+   * (the sim's range shift), not a second nudge. One helper so basic
+   * and special hits look like the same physical impact.
    */
-  const contactReaction = (damage: number | undefined, at: Combatant): void => {
-    const knock = strikeReach(damage)
-    // Knockback pushes the victim OUTWARD (own away side, same convention
-    // as the dodge dash) — a minus here drags the pair into each other
-    // with every landed hit.
-    at.stage.x += at.away * knock
-    at.stage.z += (Math.random() - 0.5) * 0.3
-    impulse(at, hurtImpulse(at.profile, 0.85))
+  const contactReaction = (
+    damage: number | undefined,
+    at: Combatant,
+    heavy = false,
+  ): void => {
+    if (!heavy) {
+      const knock = strikeReach(damage)
+      // Knockback pushes the victim OUTWARD (own away side, same convention
+      // as the dodge dash) - a minus here drags the pair into each other
+      // with every landed hit.
+      at.stage.x += at.away * knock
+      at.stage.z += (Math.random() - 0.5) * 0.3
+    }
+    const kind: ReactionKind = heavy ? "stagger" : "glance"
+    impulse(at, reactionFor(kind, at.profile).impulse)
     startFlash(at)
     bigHit(damage)
   }
@@ -1300,7 +1319,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         if (compressed && !landedRef.done && t >= landBeat) {
           landedRef.done = true
           arriveSpecial(step, side)
-          contactReaction(step.damage, side.target)
+          contactReaction(step.damage, side.target, heavyHit(step))
         }
         const release = beats[0] ?? wind
         const w = clamp01((t - release) / Math.max(0.01, 1 - release))
@@ -1355,7 +1374,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         const dodged = missed && step.missReason === "dodge"
         if (instant) {
           // Resolve instantly: run the contact consequences with no anim.
-          if (hit) contactReaction(step.damage, side.target)
+          if (hit) contactReaction(step.damage, side.target, heavyHit(step))
           if (dodged) {
             side.target.stage.x += side.target.away * 0.85
             snapTo(side.target)
@@ -1417,7 +1436,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
               if (!landed) {
                 landed = true
                 if (hit) {
-                  contactReaction(step.damage, at)
+                  contactReaction(step.damage, at, heavyHit(step))
                 } else if (dodged) {
                   // The target slipped: a quick dash off the lane.
                   at.stage.x += at.away * 0.85
@@ -1449,16 +1468,20 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         // fired). A dodge is a real evasion: a dash off the lane.
         if (!step.hit) {
           if (step.missReason === "dodge") {
-            side.target.stage.x += side.target.away * 0.85
+            // A real evasion: dash off the lane in the contract's
+            // dodge direction, weighted by the reaction library.
+            const spec = reactionFor("dodge", side.target.profile)
+            side.target.stage.x += side.target.away * spec.dash
+            side.target.stage.z += step.dodgeDirection === "left" ? 0.45 : -0.45
             if (instant) {
-              impulse(side.target, -0.3)
+              impulse(side.target, spec.impulse)
               snapTo(side.target)
             }
           }
           break
         }
         if (instant) {
-          contactReaction(step.damage, side.target)
+          contactReaction(step.damage, side.target, heavyHit(step))
           snapTo(side.target)
           if (step.element) arriveSpecial(step, side)
           break
@@ -1470,26 +1493,54 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
           fireSpecial(step, side, true)
           break
         }
-        reactionAction(step.damage, side.target)
+        reactionAction(step.damage, side.target, heavyHit(step))
         if (step.element) arriveSpecial(step, side)
         break
       }
+      case "stagger":
+      case "knockback": {
+        // The reel beat (FR5): the victim is off-balance after a heavy
+        // blow. Knockback also carries the sim's range change outward -
+        // the glide does the traveling, the reel sells the physics.
+        const spec = reactionFor(step.kind, side.actor.profile)
+        if (spec.slide > 0) side.actor.stage.x += side.actor.away * spec.slide
+        if (instant) {
+          snapTo(side.actor)
+          break
+        }
+        actionRaf = startAction(
+          (t, ao) => {
+            if (t >= spec.reel) {
+              ao.lean.pitch = 0
+              ao.lean.roll = 0
+              return
+            }
+            const w = Math.sin((clamp01(t / spec.reel) * Math.PI) / 2)
+            ao.lean.pitch = -spec.reelPitch * w
+            ao.lean.roll = spec.reelPitch * 0.4 * Math.sin(t * Math.PI * 3)
+          },
+          side.actor,
+          side.target,
+        )
+        break
+      }
       case "down": {
-        // Fall on the back and stay down — the action drives `fall`, the
+        // Fall on the back and stay down - the action drives `fall`, the
         // driver renders the topple while the squash adds landing weight.
         side.actor.down = true
+        const spec = reactionFor("down", side.actor.profile)
         if (instant) {
           side.actor.fall = 1
           snapTo(side.actor)
-          impulse(side.actor, 0.9)
+          impulse(side.actor, spec.impulse)
         } else {
           let thudded = false
           actionRaf = startAction(
             (t, ao) => {
-              ao.fall = easeOut(clamp01(t / 0.7))
+              ao.fall = easeOut(clamp01(t / spec.reel))
               if (t > 0.55 && !thudded) {
                 thudded = true
-                impulse(ao, 0.9)
+                impulse(ao, spec.impulse)
               }
             },
             side.actor,
@@ -1535,8 +1586,12 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
    * The victim-only portion of a special landing: knockback persists in
    * the stage, the body squashes and settles, flash + hit-stop fire.
    */
-  const reactionAction = (damage: number | undefined, at: Combatant): void => {
-    contactReaction(damage, at)
+  const reactionAction = (
+    damage: number | undefined,
+    at: Combatant,
+    heavy = false,
+  ): void => {
+    contactReaction(damage, at, heavy)
   }
 
   /** One scripted action on staging's own clock (hit-stop aware). */

@@ -5,6 +5,7 @@ import {
   hurtImpulse,
   idleSway,
   profileFor,
+  reactionFor,
   staggerReel,
 } from "./choreo"
 
@@ -90,5 +91,66 @@ describe("idleSway — the resting body drift", () => {
   test("is periodic (repeats with the sway frequency)", () => {
     const period = (2 * Math.PI * 1000) / drake.swayFreq
     expect(idleSway(drake, period, 0)).toBeCloseTo(idleSway(drake, 0, 0))
+  })
+})
+
+describe("reaction library (FR5)", () => {
+  test("every reaction kind resolves to a distinct spec", () => {
+    const kinds = ["glance", "stagger", "knockback", "dodge", "down"] as const
+    const specs = kinds.map((k) => reactionFor(k, profileFor("draconic")))
+    // All five kinds exist and no two share a full spec.
+    expect(specs.length).toBe(5)
+    const keys = new Set(specs.map((s) => JSON.stringify(s)))
+    expect(keys.size).toBe(5)
+  })
+
+  test("stagger weight follows the profile's stagger multiplier", () => {
+    const ox = reactionFor("stagger", profileFor("bovine"))
+    const drake = reactionFor("stagger", profileFor("draconic"))
+    const axo = reactionFor("stagger", profileFor("axolotl"))
+    expect(ox.impulse).toBeGreaterThan(drake.impulse)
+    expect(drake.impulse).toBeGreaterThan(axo.impulse)
+    // Matches the staggerReel contract: base * staggerMult.
+    expect(ox.impulse).toBeCloseTo(staggerReel(profileFor("bovine"), 0.85))
+  })
+
+  test("glance weight follows the profile's hurt multiplier", () => {
+    const ox = reactionFor("glance", profileFor("bovine"))
+    expect(ox.impulse).toBeCloseTo(hurtImpulse(profileFor("bovine"), 0.85))
+    // A glance never moves the fighter.
+    expect(ox.slide).toBe(0)
+    expect(ox.dash).toBe(0)
+  })
+
+  test("knockback slides farther than a stagger (the range shift)", () => {
+    const p = profileFor("draconic")
+    expect(reactionFor("knockback", p).slide).toBeGreaterThan(
+      reactionFor("stagger", p).slide,
+    )
+  })
+
+  test("a dodge dashes off the lane without a reel", () => {
+    const spec = reactionFor("dodge", profileFor("draconic"))
+    expect(spec.dash).toBeGreaterThan(0)
+    expect(spec.reel).toBe(0)
+    expect(spec.reelPitch).toBe(0)
+  })
+
+  test("falling weight scales with the body (profile-aware)", () => {
+    const ox = reactionFor("down", profileFor("bovine")).impulse
+    const axo = reactionFor("down", profileFor("axolotl")).impulse
+    expect(ox).toBeGreaterThan(axo)
+  })
+
+  test("unknown kinds fall back to the glance spec", () => {
+    // Cast through unknown: runtime data, not a compile-time union.
+    const bogus = reactionFor("blink" as "glance", profileFor("draconic"))
+    expect(bogus).toEqual(reactionFor("glance", profileFor("draconic")))
+  })
+
+  test("reaction specs are frozen", () => {
+    expect(Object.isFrozen(reactionFor("stagger", profileFor("bovine")))).toBe(
+      true,
+    )
   })
 })
