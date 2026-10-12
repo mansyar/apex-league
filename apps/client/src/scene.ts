@@ -241,7 +241,10 @@ export function createScene(container: HTMLElement): SceneHandle {
       orbit.azimuth = ARENA_FRAMING.azimuth
       orbit.elevation = ARENA_FRAMING.elevation
       orbit.radius = ARENA_FRAMING.radius
-      target.y = ARENA_FRAMING.targetY
+      // The arena is centered at the world origin — a ranch camera that
+      // was soft-tracking a wandering creature must not carry that aim
+      // offset into the broadcast framing.
+      target.set(0, ARENA_FRAMING.targetY, 0)
     } else {
       Object.assign(orbit, savedOrbit)
       target.y = 0.8
@@ -749,7 +752,13 @@ export function createScene(container: HTMLElement): SceneHandle {
       mode = lastConditions ? moodModeFrom(lastConditions) : "normal"
     }
     const profile = MOOD_PROFILES[mode]
-    if (creatureGroup) {
+    // The ranch block owns the ranch creature AND the soft camera track.
+    // Guarded on camera mode: in the arena the ranch creature is hidden
+    // but its wander/walk machines would keep running — and the camera
+    // track would drag the broadcast framing off the arena toward the
+    // invisible wanderer, then ease back when the trip ends. (The
+    // "camera thrown away mid-fight" bug.)
+    if (creatureGroup && cameraMode === "ranch") {
       // Breathe idle: squash-and-stretch on the body around its HIP-LINE
       // pivot. Scale never moves the pivot, so body voxels at the leg
       // junction stay fixed and the legs remain visually attached; the chest
