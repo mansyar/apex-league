@@ -128,8 +128,11 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
         (21aeb7d - REACTION_BASES table + reactionFor in choreo.ts,
         staging reel/knockback/dodge/down wiring, heavy-blow contact
         no longer double-nudges; user approved build 20)
-- [ ] **Task: Phase Verification & Checkpoint (Refer to workflow.md)** —
-        full-battle feel-check
+- [x] **Task: Phase Verification & Checkpoint (Refer to workflow.md)** -
+        full-battle feel-check `[checkpoint: 21aeb7d]` - verification
+        report attached as a git note; sim 406 / client 156 tests
+        green; verify green; full-battle pass on build 20 approved by
+        user 2026-10-12
 
 ## Phase 3 — Camera Director & VFX *(stretch — re-scopeable)*
 
