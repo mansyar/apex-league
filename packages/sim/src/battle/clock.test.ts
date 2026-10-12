@@ -5,7 +5,7 @@ import type { CreatureStats, Element } from "../creature"
 // the resolver come in later phases; this file pins gauges, order, range, and
 // the basic strike.
 
-import type { BattleFighter } from "./clock"
+import type { BattleEvent, BattleFighter, PlanFn, PlannedAction } from "./clock"
 import {
   BASIC,
   CLOSE,
@@ -156,6 +156,194 @@ describe("range and the basic strike", () => {
     expect(ev.line).toBe("Bolt strikes Reed for 4.")
     expect(ev.hpAfter).toEqual({ Bolt: 40, Reed: 36 })
     expect(clock.fighters[1]?.hp).toBe(36)
+  })
+})
+
+/**
+ * Stagger on heavy blows (battle-animation-overhaul spec FR2): a single
+ * hit dealing >= 25% of the victim's max HP, or any super-effective hit,
+ * staggers the victim — its next action window is consumed recovering.
+ * A downing blow never staggers, and an already-staggered victim does
+ * not stack a second lock. Cooldowns count actions, and a staggered
+ * window is not an action, so they do not step during it.
+ */
+describe("stagger on heavy blows", () => {
+  /** A plan driven by per-fighter action queues, HOLD as the fallback. */
+  function scripted(queues: Readonly<Record<string, PlannedAction[]>>): PlanFn {
+    return (fighter) => {
+      const queue = queues[fighter.name]
+      const action = queue?.shift()
+      return action ?? HOLD
+    }
+  }
+
+  /** All events collected across a driven fight, in order. */
+  function drive(
+    clock: ReturnType<typeof createClock>,
+    plan: PlanFn,
+    ticks = 12,
+  ): BattleEvent[] {
+    const all: BattleEvent[] = []
+    for (let i = 0; i < ticks; i++) all.push(...clock.advance(plan).events)
+    return all
+  }
+
+  test("a super-effective special staggers: the next window is consumed", () => {
+    // Bolt (fire) spd 13 acts from t1; Reed (plant) spd 5 is ready at t3.
+    // t1 close, t2 point-blank Spark: super-effective, 13 of 40 HP (32%).
+    // Reed's t3 window must be the stagger, not an action.
+    const clock = clockOf(
+      [
+        snap("Bolt", "fire", stats(13, 11, 10, 40)),
+        snap("Reed", "plant", stats(5, 11, 10, 40)),
+      ],
+      7,
+    )
+    const events = drive(
+      clock,
+      scripted({ Bolt: [CLOSE, { kind: "special", moveId: "spark" }] }),
+      3,
+    )
+    const stagger = events.find((e) => e.kind === "stagger")
+    if (!stagger) throw new Error("no stagger event")
+    expect(stagger.actor).toBe("Reed")
+    expect(stagger.tick).toBe(3)
+    expect(stagger.line).toBe("Reed reels from the blow.")
+    // The window was spent: no basic/hold/special from Reed at t3.
+    expect(
+      events.some(
+        (e) =>
+          e.actor === "Reed" &&
+          e.tick === 3 &&
+          (e.kind === "basic" || e.kind === "hold" || e.kind === "launch"),
+      ),
+    ).toBe(false)
+    // The gauge was consumed: 15 ready − 12 = 3 left over.
+    expect(clock.fighters[1]?.gauge).toBe(3)
+    expect(clock.fighters[1]?.staggered).toBe(false)
+  })
+
+  test("a light neutral basic does not stagger", () => {
+    // Default atk 11 vs def 10: a basic deals 4 of 40 (10%) — under 25%,
+    // and the typeless basic is never super-effective. Reed acts normally.
+    const clock = clockOf(pair(13, 5), 7)
+    const events = drive(clock, scripted({ Bolt: [CLOSE, BASIC] }), 4)
+    expect(events.some((e) => e.kind === "stagger")).toBe(false)
+    // Reed's t3 window is a normal (scripted hold) action.
+    expect(events.some((e) => e.kind === "hold" && e.actor === "Reed")).toBe(
+      true,
+    )
+  })
+
+  test("a big neutral hit staggers on the damage fraction alone", () => {
+    // atk 30: basic deals floor(4*30/10) = 12 of 40 (30%) — heavy while
+    // type-neutral. The victim must still lose its next window.
+    const clock = clockOf(
+      [
+        snap("Bolt", "fire", stats(13, 30, 10, 40)),
+        snap("Reed", "plant", stats(5, 11, 10, 40)),
+      ],
+      7,
+    )
+    const events = drive(clock, scripted({ Bolt: [CLOSE, BASIC] }), 4)
+    const stagger = events.find((e) => e.kind === "stagger")
+    if (!stagger) throw new Error("no stagger event")
+    expect(stagger.actor).toBe("Reed")
+    expect(stagger.tick).toBe(3)
+  })
+
+  test("a small super-effective hit staggers regardless of size", () => {
+    // atk 4: Spark deals floor(6*4*2/10) = 4 of 40 (10%) — under the
+    // fraction, but super-effective blows always stagger.
+    const clock = clockOf(
+      [
+        snap("Bolt", "fire", stats(13, 4, 10, 40)),
+        snap("Reed", "plant", stats(5, 11, 10, 40)),
+      ],
+      7,
+    )
+    const events = drive(
+      clock,
+      scripted({ Bolt: [CLOSE, { kind: "special", moveId: "spark" }] }),
+      4,
+    )
+    expect(events.some((e) => e.kind === "stagger" && e.actor === "Reed")).toBe(
+      true,
+    )
+  })
+
+  test("a downing blow never staggers", () => {
+    // Reed hp 12: Spark's 13 damage downs it outright — a down event, no
+    // stagger for the fallen fighter.
+    const clock = clockOf(
+      [
+        snap("Bolt", "fire", stats(13, 11, 10, 40)),
+        snap("Reed", "plant", stats(5, 11, 10, 12)),
+      ],
+      7,
+    )
+    const events = drive(
+      clock,
+      scripted({ Bolt: [CLOSE, { kind: "special", moveId: "spark" }] }),
+      4,
+    )
+    expect(events.some((e) => e.kind === "down" && e.actor === "Reed")).toBe(
+      true,
+    )
+    expect(events.some((e) => e.kind === "stagger")).toBe(false)
+  })
+
+  test("an already-staggered victim does not stack a second lock", () => {
+    // atk 30: the basic deals floor(4*30/10) = 12 (30%) — heavy, and two
+    // of them (40 HP victim) stay non-lethal. t2 basic staggers Reed;
+    // t3 Bolt's second heavy basic lands the same tick Reed is ready
+    // (Bolt sorts first) — Reed still loses exactly one window (t3),
+    // then acts normally at its next readiness (t5).
+    const clock = clockOf(
+      [
+        snap("Bolt", "fire", stats(13, 30, 10, 40)),
+        snap("Reed", "plant", stats(5, 11, 10, 40)),
+      ],
+      7,
+    )
+    const events = drive(
+      clock,
+      scripted({ Bolt: [CLOSE, BASIC, BASIC], Reed: [HOLD] }),
+      5,
+    )
+    const staggers = events.filter((e) => e.kind === "stagger")
+    expect(staggers.length).toBe(1)
+    expect(staggers[0]?.tick).toBe(3)
+    // Recovered: Reed's next real window is its scripted hold.
+    expect(events.some((e) => e.kind === "hold" && e.actor === "Reed")).toBe(
+      true,
+    )
+  })
+
+  test("cooldowns do not step during a staggered window", () => {
+    // Reed spd 12 acts at t1 (launching a light seed_shot — 3 resisted
+    // damage, too small to stagger Bolt) putting Spark on a 1-action
+    // cooldown; t2 Bolt's point-blank Spark staggers Reed and Reed's
+    // own t2 window is the stagger — Spark's cooldown must still read 1
+    // (not stepped), then step on Reed's t3 action.
+    const clock = clockOf(
+      [
+        snap("Bolt", "fire", stats(13, 11, 10, 40)),
+        snap("Reed", "plant", stats(12, 11, 10, 40)),
+      ],
+      7,
+    )
+    const plan = scripted({
+      Bolt: [CLOSE, { kind: "special", moveId: "spark" }],
+      Reed: [{ kind: "special", moveId: "seed_shot" }, HOLD],
+    })
+    clock.advance(plan) // t1: Bolt closes; Reed launches seed_shot
+    clock.advance(plan) // t2: shot lands (3); Bolt staggers Reed; Reed's window is the stagger
+    const staggered = clock.fighters[1]
+    if (!staggered) throw new Error("no Reed")
+    expect(staggered.cooldowns.seed_shot).toBe(1)
+    clock.advance(plan) // t3: Reed acts again — the cooldown steps
+    expect(clock.fighters[1]?.cooldowns.seed_shot).toBe(0)
   })
 })
 

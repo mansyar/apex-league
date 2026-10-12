@@ -32,6 +32,7 @@ function fight(
     range: "far",
     gauge: 0,
     cooldowns: {},
+    staggered: false,
   }
 }
 

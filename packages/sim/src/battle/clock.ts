@@ -17,6 +17,13 @@
  * revision 2026-10-10); the fight is judged after the whole step, so a
  * same-step double down is reachable. Shots still airborne after the
  * judgment are discarded.
+ *
+ * Stagger semantics (battle-animation-overhaul spec FR2): a hit dealing
+ * >= STAGGER_DAMAGE_FRACTION of the victim's max HP, or any
+ * super-effective hit, staggers a standing victim. The victim's next
+ * action window is consumed reeling (a `stagger` event, gauge spent, no
+ * action planned); cooldowns do not step during it. Downing blows never
+ * stagger and the lock never stacks.
  */
 
 import type { CreatureStats, Element } from "../creature"
@@ -50,6 +57,13 @@ export function fighterKey(f: {
 /** Distance on the arena floor: `far` to start, `near` after a close. */
 export type Range = "far" | "near"
 
+/**
+ * Stagger threshold (battle-animation-overhaul spec FR2, tunable): a
+ * single hit dealing at least this fraction of the victim's max HP
+ * staggers it. Super-effective hits stagger at any size (see `staggers`).
+ */
+export const STAGGER_DAMAGE_FRACTION = 0.25
+
 /** A fighter mid-fight: snapshot plus live hp, range, gauge, and cooldowns. */
 export interface ClockFighter {
   readonly name: string
@@ -64,6 +78,11 @@ export interface ClockFighter {
   readonly gauge: number
   /** Remaining own-action cooldowns keyed by move id. */
   readonly cooldowns: Readonly<Record<string, number>>
+  /**
+   * True while the fighter owes a stagger recovery: its next action
+   * window is consumed reeling instead of acting.
+   */
+  readonly staggered: boolean
 }
 
 /** One scripted choice for an acting fighter. */
@@ -93,6 +112,7 @@ export type BattleEventKind =
   | "close"
   | "hold"
   | "basic"
+  | "stagger"
   | "down"
   | "launch"
   | "impact"
@@ -140,6 +160,7 @@ interface RunFighter {
   range: Range
   gauge: number
   cooldowns: Map<string, number>
+  staggered: boolean
 }
 
 /** A special already in the air, awaiting the first step of the next tick. */
@@ -161,6 +182,7 @@ function view(f: RunFighter): ClockFighter {
     range: f.range,
     gauge: f.gauge,
     cooldowns: Object.freeze(Object.fromEntries(f.cooldowns)),
+    staggered: f.staggered,
   }
 }
 
@@ -206,6 +228,7 @@ export function createClockFighter(fighter: BattleFighter): ClockFighter {
     range: "far",
     gauge: 0,
     cooldowns: Object.freeze({}),
+    staggered: false,
   }
 }
 
@@ -223,6 +246,7 @@ export function createClock(
     range: f.range,
     gauge: f.gauge,
     cooldowns: new Map(Object.entries(f.cooldowns)),
+    staggered: f.staggered,
   }))
   const tieIndex = new Map(tieOrder.map((key, i) => [key, i]))
   const rng: Rng = makeRng(seed >>> 0)
@@ -290,6 +314,17 @@ export function createClock(
       hpAfter: hpAfter(),
       line: `${move.displayName} hits ${target.name} for ${damage}.`,
     })
+    // A heavy or super-effective hit staggers a standing victim (FR2):
+    // its next action window is consumed reeling. A downing blow never
+    // staggers, and re-staggering an already-staggered victim is a no-op
+    // (one lock, never stacked).
+    if (
+      target.hp > 0 &&
+      (damage >= target.stats.hp * STAGGER_DAMAGE_FRACTION ||
+        type.num > type.den)
+    ) {
+      target.staggered = true
+    }
     if (target.hp <= 0) {
       events.push({
         tick,
@@ -339,6 +374,21 @@ export function createClock(
 
       for (const actor of ready) {
         if (actor.hp <= 0) continue
+        // A staggered fighter's window is consumed reeling: the gauge is
+        // spent, no action is planned, and cooldowns do not step (they
+        // count actions, and this window is not one).
+        if (actor.staggered) {
+          actor.staggered = false
+          actor.gauge -= 12
+          events.push({
+            tick,
+            kind: "stagger",
+            actor: actor.name,
+            hpAfter: hpAfter(),
+            line: `${actor.name} reels from the blow.`,
+          })
+          continue
+        }
         const opponent = run.find((f) => f !== actor)
         if (!opponent) throw new Error("The battle needs two fighters")
         const action = plan(view(actor), view(opponent))
@@ -410,6 +460,13 @@ export function createClock(
               hpAfter: hpAfter(),
               line: `${actor.name} strikes ${opponent.name} for ${damage}.`,
             })
+            // The typeless basic can only stagger by sheer size (FR2).
+            if (
+              opponent.hp > 0 &&
+              damage >= opponent.stats.hp * STAGGER_DAMAGE_FRACTION
+            ) {
+              opponent.staggered = true
+            }
             if (opponent.hp <= 0) {
               events.push({
                 tick,

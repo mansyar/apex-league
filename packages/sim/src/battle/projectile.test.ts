@@ -185,6 +185,11 @@ describe("dodge against a moving target", () => {
     // Seed 1 draws d1 = 62 (accuracy hit) and d2 = 0. Reed holds, so the
     // engine must not draw a dodge roll at all: a wrongly drawn 0 would
     // dodge the shot, and this test pins that it does not.
+    // Golden update (stagger, FR2): 24 of 40 HP is 60% — the victim now
+    // staggers instead of holding its second window. Bolt sorts before
+    // Reed in the t2 ready loop, so the tail is ["impact", "hold",
+    // "stagger"]. The dodge-roll pin is unchanged: hit true, full 24
+    // damage, no dodge drawn.
     const plan: PlanFn_ = (f) => (f.name === "Bolt" ? boltPlans(f) : HOLD)
     const clock = clockOf(
       snap("Bolt", "fire", stats(12)),
@@ -194,7 +199,7 @@ describe("dodge against a moving target", () => {
     const r1 = clock.advance(plan)
     expect(kinds(r1.events)).toEqual(["launch", "hold"])
     const r2 = clock.advance(plan)
-    expect(kinds(r2.events)).toEqual(["impact", "hold", "hold"])
+    expect(kinds(r2.events)).toEqual(["impact", "hold", "stagger"])
     expect(r2.events[0]?.hit).toBe(true)
     expect(r2.events[0]?.damage).toBe(24)
     expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: 16 })
