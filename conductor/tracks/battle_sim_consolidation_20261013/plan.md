@@ -308,7 +308,7 @@ Review verdict: clean — no Critical/High findings. Findings #1 (defensive
 Finding #2 fixed: the two `as PlannedAction[]` casts are gone; `bun test` 3/3
 and `@apex/sim` type-check green after the change.
 
-Review-fix commit SHA: `PENDING`
+Review-fix commit SHA: `e24d526`
 
 ---
 
