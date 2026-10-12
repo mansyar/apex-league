@@ -8,7 +8,7 @@ import {
   createInitialState,
   type GameState,
   getSpecies,
-  loadGame,
+  loadSave,
   type StatKey,
   setLoadout,
   setReducedMotion,
@@ -39,12 +39,20 @@ const staging = createStaging(arena.group)
 const swap = createSwap(scene, arena)
 
 const storage: Storage = window.localStorage
-const saved = loadGame(storage)
+const saved = loadSave(storage)
+// A restored session is only resumable while its cup day is current: the
+// walk lives on the day it was entered, and a day that moved on is over.
+const restoredSession =
+  saved?.session && saved.session.bracket.day === saved.state.day
+    ? saved.session
+    : null
 // The store is the single mutation path: handlers adopt a new state with
 // commit(), which persists and notifies the hud/spar/cup subscribers in a
-// fixed order — no handler hand-rolls that fanout anymore.
-const store = createGameStore(saved ?? createInitialState(), storage, {
+// fixed order — no handler hand-rolls that fanout anymore. The cup session
+// (save v7) rides every save so a refresh mid-walk resumes exactly here.
+const store = createGameStore(saved?.state ?? createInitialState(), storage, {
   onPersistError: () => hud.announceSaveFailure(),
+  initialSession: restoredSession,
 })
 
 /** Cheap scene reducers: pile visibility + mood idle. Fired after any
@@ -128,36 +136,48 @@ applyMotionPref()
 // at their own pace, the player's branch resolves live in the arena, and
 // finalizeCup lands the rewards. Nothing here re-resolves the sim — every
 // state adoption flows through the store (persist + hud/spar/cup fanout).
-const cup = createCup(app, {
-  onFightStart: (casting) => {
-    scene.setRanchCreatureVisible(false)
-    void swap.enterArena()
-    staging.cast(casting)
-    // Broadcast clarity: the ranch HUD stands down while the bowl plays.
-    app.classList.add("app-in-arena")
+const cup = createCup(
+  app,
+  {
+    onFightStart: (casting) => {
+      scene.setRanchCreatureVisible(false)
+      void swap.enterArena()
+      staging.cast(casting)
+      // Broadcast clarity: the ranch HUD stands down while the bowl plays.
+      app.classList.add("app-in-arena")
+    },
+    onStep: (step, instant) => staging.applyStep(step, instant),
+    onPace: (msPerStep) => staging.setPace(msPerStep),
+    onArenaExit: () => {
+      scene.setRanchCreatureVisible(true)
+      void swap.exitArena()
+      staging.clear()
+      app.classList.remove("app-in-arena")
+    },
+    // The first arena fight consumes the cup (endCup flips the phase) —
+    // adopted through the store so a mid-cup refresh keeps the commitment.
+    onCommit: (next) => {
+      store.commit(next)
+    },
+    // Results are in and finalizeCup applied the rewards — the store's fixed
+    // fanout updates hud/spar/cup; only the site-specific scene refresh is
+    // added here.
+    onFinalize: (next) => {
+      // The cup is consumed: the persisted session must not resurrect —
+      // clear it first so the finalize commit writes the cleared save.
+      store.setSession(null)
+      store.commit(next)
+      // Conditions may carry the reward bump (mood/bond) — refresh the idle.
+      sceneVisuals()
+    },
+    // Every session mutation rides the save (prepare, fight, forfeit,
+    // completion) so a refresh anywhere in the walk resumes exactly here.
+    onSession: (session) => {
+      store.setSession(session)
+    },
   },
-  onStep: (step, instant) => staging.applyStep(step, instant),
-  onPace: (msPerStep) => staging.setPace(msPerStep),
-  onArenaExit: () => {
-    scene.setRanchCreatureVisible(true)
-    void swap.exitArena()
-    staging.clear()
-    app.classList.remove("app-in-arena")
-  },
-  // The first arena fight consumes the cup (endCup flips the phase) —
-  // adopted through the store so a mid-cup refresh keeps the commitment.
-  onCommit: (next) => {
-    store.commit(next)
-  },
-  // Results are in and finalizeCup applied the rewards — the store's fixed
-  // fanout updates hud/spar/cup; only the site-specific scene refresh is
-  // added here.
-  onFinalize: (next) => {
-    store.commit(next)
-    // Conditions may carry the reward bump (mood/bond) — refresh the idle.
-    sceneVisuals()
-  },
-})
+  { restoredSession },
+)
 
 const hud = createHud(app, {
   onAdvanceDay: () => {

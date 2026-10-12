@@ -63,6 +63,12 @@ export interface CupHandlers {
    * final and the rewards are applied — persist the returned state.
    */
   onFinalize: (state: GameState, session: CupSession) => void
+  /**
+   * The live session changed (prepared, advanced, forfeited, or cleared):
+   * persist it so a refresh anywhere in the walk resumes exactly here.
+   * Optional — callers without session persistence may omit it.
+   */
+  onSession?: (session: CupSession | null) => void
 }
 
 export interface Cup {
@@ -99,7 +105,17 @@ const WALK_CROWN = 1800
 const STAMP_HOLD = 2200
 const STAMP_HOLD_REDUCED = 900
 
-export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
+export function createCup(
+  root: HTMLElement,
+  handlers: CupHandlers,
+  options?: {
+    /**
+     * A session restored from the save (save v7): the bracket walk resumes
+     * exactly where it stopped — no fresh entry, no re-resolution.
+     */
+    restoredSession?: CupSession | null
+  },
+): Cup {
   // The Enter Cup chip sits beside the Spar chip (top-right cluster).
   // Kit chip with the broadcast title/sub stack, matching Spar.
   const cupButton = document.createElement("button")
@@ -369,7 +385,7 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   // Session state
   // ------------------------------------------------------------------
   let state: GameState | null = null
-  let session: CupSession | null = null
+  let session: CupSession | null = options?.restoredSession ?? null
   /** The cup is consumed (endCup applied) — set at the first coach commit. */
   let committed = false
   /** Reveal cursor into PLAN. */
@@ -720,6 +736,7 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
           // A loss auto-completes the rival bracket to a champion.
           if (session && session.status === "eliminated") {
             session = completeCup(session)
+            handlers.onSession?.(session)
           }
           walk()
         },
@@ -795,6 +812,7 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
     if (!creature) return
     const resolved = resolvePlayerMatch(session, picks.loadout, picks.tactic)
     session = resolved.session
+    handlers.onSession?.(resolved.session)
     const verdict = resolved.verdict
     if (!verdict?.battle) {
       throw new Error("The cup match resolved without a battle log")
@@ -1019,6 +1037,7 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
     // Forfeit the current round: the opponent advances without a fight,
     // then the bracket auto-completes to a champion.
     session = forfeitCup(session)
+    handlers.onSession?.(session)
     setLine(`${playerName()} forfeits — the rival advances.`)
     walk()
   })
@@ -1028,14 +1047,22 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
     const creature = state.creature
     const cupToday =
       isCupDay(state.day) && state.phase === "cup" && creature !== null
-    cupButton.style.display = cupToday ? "" : "none"
-    cupButton.disabled = !cupToday || session !== null
+    // A persisted session keeps the chip alive across refreshes — even
+    // once the entry is consumed (phase "day"), the walk can resume.
+    const resumable = session !== null
+    cupButton.style.display = cupToday || resumable ? "" : "none"
+    cupButton.disabled = !cupToday && !resumable
   }
 
   const closeFree = (): void => {
     clearTimer()
     driver.stop()
-    session = null
+    // A live player-turn session rides the save and stays resumable from
+    // the chip; anything else (finalized, consumed) is dropped here.
+    if (session && session.status !== "player-turn") {
+      session = null
+      handlers.onSession?.(null)
+    }
     committed = false
     cursor = 0
     pendingId = null
@@ -1089,10 +1116,15 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   // ------------------------------------------------------------------
   const open = (): void => {
     if (!state?.creature) return
-    const prepared = prepareCup(state)
-    if (!prepared) return
-    session = prepared
-    committed = false
+    if (!session || session.bracket.day !== state.day) {
+      const prepared = prepareCup(state)
+      if (!prepared) return
+      session = prepared
+      handlers.onSession?.(prepared)
+    }
+    // A consumed cup (phase "day" — the entry commit already ran) must not
+    // try to endCup again; derive the flag instead of trusting the closure.
+    committed = state.phase === "day"
     cursor = 0
     pendingId = null
     picks = null
@@ -1121,6 +1153,13 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   return {
     update(next) {
       state = next
+      // A session belongs to its cup day: if the day moved on (the walk
+      // was abandoned and the save advanced), the bracket is over — drop
+      // it so a stale session can never double-claim rewards.
+      if (session && next.day !== session.bracket.day) {
+        session = null
+        handlers.onSession?.(null)
+      }
       syncChip()
     },
   }
