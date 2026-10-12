@@ -1,0 +1,606 @@
+/* Ranch HUD surface (split from style.css, Phase B): score bug, creature lower-third, care + training cluster, chip family. */
+
+/* Top-center score bug (broadcast kit) */
+.score-bug {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 20px 11px;
+  clip-path: polygon(
+    12px 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    0 100%,
+    0 12px
+  );
+  filter: drop-shadow(0 8px 24px rgb(0 0 0 / 0.35));
+  animation: settle-down-centered 0.55s var(--kit-settle) both;
+  user-select: none;
+}
+
+@keyframes settle-down-centered {
+  from {
+    transform: translate(-50%, -14px);
+    opacity: 0;
+  }
+
+  60% {
+    transform: translate(-50%, 2px);
+    opacity: 1;
+  }
+
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+.score-day {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.score-day-label,
+.score-ap-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.score-ap-label {
+  color: var(--accent);
+}
+
+.score-day-num {
+  font-size: 30px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.score-divider {
+  width: 1px;
+  height: 22px;
+  background: var(--kit-keyline);
+}
+
+.score-ap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.score-trophy {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+}
+
+.score-trophy svg {
+  width: 17px;
+  height: 17px;
+}
+
+.score-trophy-count {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+/* Bronze ladder standing (save v8): rank tab + points, matching the
+ * trophy segment's one-fact-per-segment grammar. */
+.score-ladder {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.score-ladder-rank {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.score-ladder-pts {
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Bottom-left creature lower-third (broadcast kit plate) */
+.creature-plate {
+  position: absolute;
+  bottom: 18px;
+  left: 18px;
+  width: 300px;
+  padding: 14px;
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+  animation: settle-up 0.5s var(--kit-settle) 0.08s both;
+  user-select: none;
+}
+
+/* The creature head doubles as the collapse toggle — a real button so
+   keyboard focus and aria-expanded come for free. */
+.creature-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.creature-head:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+/* Head row: collapse toggle flexes to full width, the rename pencil sits
+   beside it — two real buttons, no nesting. */
+.creature-headrow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.creature-headrow .creature-head {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.creature-plate.is-collapsed .creature-headrow {
+  margin-bottom: 0;
+}
+
+.rename-button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+.rename-button:hover {
+  color: var(--ink);
+  background: var(--kit-panel-bg);
+}
+
+.rename-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.rename-button svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* Inline rename form replaces the head row while editing. */
+.creature-name-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.creature-name-input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--kit-keyline);
+  border-radius: 6px;
+  background: var(--kit-panel-bg);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.creature-name-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.creature-name-edit .kit-button {
+  flex: none;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+/* Collapsed lower-third: only the head row (crest + name + stage) stays,
+   the briefest useful readout pinned to the corner. */
+.creature-plate.is-collapsed .stat-row,
+.creature-plate.is-collapsed .condition-list,
+.creature-plate.is-collapsed .kit-ticker {
+  display: none;
+}
+
+.creature-plate.is-collapsed .creature-head {
+  margin-bottom: 0;
+}
+
+/* Modal (new-game confirm): a full-screen scrim with one centered plate.
+   The scrim click and Escape both back out — only the explicit buttons act. */
+.kit-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, #000 55%, transparent);
+}
+
+.kit-modal-box {
+  display: grid;
+  gap: 10px;
+  max-width: min(420px, 88vw);
+  padding: 18px 20px;
+  text-align: center;
+}
+
+.kit-modal-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.kit-modal-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-dim);
+}
+
+.kit-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* The one destructive action in the game earns its own color. */
+.kit-button-danger {
+  color: var(--danger, #ff6b6b);
+}
+
+.kit-button-danger:focus-visible {
+  outline: 2px solid var(--danger, #ff6b6b);
+  outline-offset: 2px;
+}
+
+/* Shared collapse chevron: points down while expanded, right when
+   collapsed. */
+.collapse-chev {
+  display: inline-flex;
+  color: var(--ink-dim);
+  transition: transform 0.2s var(--kit-settle);
+}
+
+.collapse-chev svg {
+  width: 13px;
+  height: 13px;
+}
+
+.is-collapsed .collapse-chev {
+  transform: rotate(-90deg);
+}
+
+.creature-name {
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Onboarding callout: the teaching banner. Fixed top-center like the
+   corrupt-save notice — visible no matter which panel is collapsed. */
+.hud-callout {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: min(560px, 90vw);
+  padding: 10px 14px 10px 18px;
+}
+
+.hud-callout-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.condition-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 10px;
+}
+
+.creature-plate .kit-ticker {
+  margin-top: 2px;
+}
+
+/* Stat row: rolled base + trained bonus, between name and conditions */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin: 0 0 10px;
+}
+
+.stat-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 7px 4px 6px;
+  background: rgb(255 236 200 / 0.04);
+  border: 1px solid var(--kit-keyline);
+}
+
+.stat-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.stat-total {
+  font-size: 17px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.stat-chip {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent-ink);
+  background: var(--accent);
+  clip-path: polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
+  padding: 1px 5px;
+  margin-top: 2px;
+}
+
+/* Bottom-right command dock (broadcast kit plate) */
+.command-dock {
+  position: absolute;
+  bottom: 18px;
+  right: 18px;
+  width: 328px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%, 0 14px);
+  animation: settle-up 0.5s var(--kit-settle) 0.16s both;
+  user-select: none;
+}
+
+/* Dock collapse toggle: a slim always-visible header row. Collapsed,
+   only "ACTIONS" stays pinned to the corner. */
+.dock-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: -2px 0 4px;
+  padding: 0 2px 6px;
+  border-bottom: 1px solid var(--kit-keyline);
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+.dock-head:hover {
+  color: var(--ink);
+}
+
+.dock-head:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.command-dock.is-collapsed .dock-row,
+.command-dock.is-collapsed .dock-train,
+.command-dock.is-collapsed .train-picker,
+.command-dock.is-collapsed .kit-cta {
+  display: none;
+}
+
+.command-dock.is-collapsed .dock-head {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.dock-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.dock-row .kit-button {
+  justify-items: start;
+}
+
+.dock-row .kit-button-name {
+  font-size: 12px;
+}
+
+.dock-train .kit-button {
+  width: 100%;
+  grid-template-columns: auto 1fr auto auto;
+  grid-template-areas: "glyph name cost tag";
+  gap: 8px;
+}
+
+/* Reduced-motion settings chip (save v5): top-left, mirrors — and
+   persists — the preference the arena honors. */
+.hud-motion {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  animation: settle-down 0.5s var(--kit-settle) 0.24s both;
+  user-select: none;
+}
+
+/* Training: a separate row plus an inline four-stat picker */
+.train-picker {
+  border-top: 1px solid var(--kit-keyline);
+  display: flex;
+  flex-direction: column;
+}
+
+.train-entry {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 2px;
+  border: 0;
+  border-bottom: 1px solid var(--kit-keyline);
+  background: transparent;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.train-entry:hover:not(:disabled) {
+  color: var(--accent);
+}
+
+.train-entry:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.train-entry.is-focus .train-note {
+  color: var(--accent);
+}
+
+.train-entry-name {
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.train-entry.is-capped .train-note {
+  font-style: italic;
+  color: rgb(184 173 156 / 0.65);
+}
+
+.train-note {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ink-dim);
+  text-align: right;
+}
+
+/* Top-right spar chip - its own control, separate from the care cluster. */
+/* Enter Cup chip - kit-chip plate with the broadcast title/sub stack. */
+.cup-button {
+  position: absolute;
+  top: 18px;
+  right: 110px;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  animation: settle-down 0.5s var(--kit-settle) 0.24s both;
+}
+
+.cup-button .kit-chip-glyph {
+  color: var(--accent);
+}
+
+.cup-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Spar chip — kit-chip plate with the broadcast title/sub stack. */
+.spar-button {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  animation: settle-down 0.5s var(--kit-settle) 0.24s both;
+}
+
+.spar-button .kit-chip-glyph {
+  color: var(--accent);
+}
+
+.spar-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.spar-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.spar-sub {
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}

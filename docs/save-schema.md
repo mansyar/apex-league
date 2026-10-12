@@ -8,13 +8,14 @@ writes through the `SaveAdapter` seam.
 ```ts
 // packages/sim/src/save/schema.ts
 interface SaveData {
-  version: number // current: 7 (SAVE_VERSION)
+  version: number // current: 9 (SAVE_VERSION)
   state: GameState
   savedAt: number // Date.now() of the persist
+  session: CupSession | null // live cup walk (v7+; null outside a cup)
 }
 ```
 
-## `GameState` at v7
+## `GameState` at v9
 
 | Field | Type | Meaning |
 |---|---|---|
@@ -22,9 +23,10 @@ interface SaveData {
 | `phase` | `"day" \| "cup"` | Cup phase is granted by the ticker on cup days; `enterCup` returns the game to the day phase. |
 | `actionPoints` | integer ≥ 0 | AP left today (max from `ACTION_POINTS_PER_DAY` + cup-win bonus). |
 | `creature` | `Creature \| null` | The partner; null until a starter is chosen. |
-| `settings` | `{ reducedMotion: boolean, arenaCamera: "cinematic" \| "broadcast" }` | In-app motion preference (v5+); arena camera style for the battle presentation (v7+, default `"cinematic"`). |
+| `settings` | `{ reducedMotion: boolean, seenHints: string[], arenaCamera: "cinematic" \| "broadcast" }` | In-app motion preference (v5+); dismissed onboarding hint ids (v7+); arena camera style for the battle presentation (v9+, default `"cinematic"`). |
 | `cupsWon` | integer ≥ 0 | Permanent cup-win counter (v5+). |
 | `lastCupDay` | integer ≥ 1 \| null | Day of the last cup win; the ticker grants +1 AP the next day (v5+). |
+| `ladder` | `{ points: integer ≥ 0, subTier: "III"\|"II"\|"I" }` | Bronze-ladder standing: placement points and current sub-tier (v8+). Always fresh at 0 after migration — no backfill for cups won before v8. |
 
 ### `Creature`
 
@@ -56,7 +58,15 @@ interface SaveData {
 | v3 → v4 | Adds care fields: `fedToday: false`, `trainingDays: 6`, `loadout: null`. |
 | v4 → v5 | Adds `settings` (`{reducedMotion: false}` fallback) + `cupsWon: 0`, `lastCupDay: null`. |
 | v5 → v6 | Adds `creature.sickCooldown: 0` (evolution gate field). |
-| v6 → v7 | Adds `settings.arenaCamera: "cinematic"` (arena camera style for the battle presentation; reduced-motion players stay pinned at render time). |
+| v6 → v7 | Adds `settings.seenHints: []` (onboarding ledger) and the top-level `session: null` cup-session slot. The v6→v7 step forwards `reducedMotion` unchanged so corrupt values still fail load-time validation; an invalid persisted session is dropped (not fatal) by `loadSave`. |
+| v7 → v8 | Adds the `ladder` slice (`{points: 0, subTier: "III"}`) and forwards the live cup session unchanged. No backfill: every migrated save starts the ladder fresh, even with `cupsWon` history. |
+| v8 → v9 | Adds `settings.arenaCamera: "cinematic"` (arena camera style for the battle presentation; reduced-motion players stay pinned at render time). |
+The `session` slot holds a `CupSession` exactly as `prepareCup` produced
+it (bracket, rival resolutions, verdicts, cursor position). It is
+presentation bookkeeping: the client persists it on every session mutation
+(prepare, after each fight, forfeit, auto-completion) and clears it when
+the cup finalizes, so a refresh anywhere in the walk resumes exactly where
+it stopped and committed cups can never strand their rewards.
 
 Shared invariants, enforced by `validateStateShape(raw, version)` for every
 state-bearing step: the state must be an object with integer `day ≥ 1`,
@@ -64,19 +74,22 @@ phase `"day"|"cup"`, integer `actionPoints ≥ 0` — otherwise the save is
 rejected with `"invalid vN save: …"` and `loadGame` returns null (never
 throws at callers).
 
-## Adding a v8 field (recipe)
+## Adding a new field (recipe)
 
-1. Bump `SAVE_VERSION` to 8 in `packages/sim/src/save/schema.ts`.
-2. Add a migration entry keyed `7` to the `migrations` record in
-   `migrate.ts`. Destructure `validateStateShape(raw, 7)`, shape only the
-   new field (defaults must be safe for a mid-life creature), and return
-   `{version: 8, state, savedAt}`.
-3. Extend the v7 state validation in `storage.ts` (`isValidCreature` and/or
+1. Bump `SAVE_VERSION` in `packages/sim/src/save/schema.ts`.
+2. Add a migration entry keyed to the previous version in the `migrations`
+   record in `migrate.ts`. Destructure
+   `validateStateShape(raw, <previous>)`, shape only the new field
+   (defaults must be safe for a mid-life creature), and return
+   `{version: <current>, state, savedAt, session}` (forward the incoming
+   session unchanged — see the v7 → v8 step).
+3. Extend the state validation in `storage.ts` (`isValidCreature` and/or
    the scalar checks) so corrupt values of the new field are rejected.
 4. Tests, following `save.test.ts`:
    - the full chain test (`v0 → current`) still passes unchanged;
-   - a v6 fixture migrates to v7 with the new field defaulted;
+   - a fixture at the previous version migrates to the new one with the
+     field defaulted;
    - corrupt new field → `loadGame` returns null;
-   - round-trip: `saveGame` → `loadGame` equality.
+   - round-trip: `saveGame` → `loadSave` equality (state + session).
 5. Keep the chain ascending and never edit an existing step — old saves
    must migrate the same way forever.

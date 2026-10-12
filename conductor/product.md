@@ -96,6 +96,14 @@ Phased delivery plan (each phase is independently playable):
   placement + rewards - win +1 AP next day / bond +10 / mood +15 / cupsWon
   tally, loss +2 mood consolation. Save v5, no schema change. Bronze ladder
   still open.)*
+- Bronze ladder. *(Landed 2026-10-12: placement points — champion +3,
+  runner-up +2, semifinal +1 — climb Bronze III → II → I at 6 and 12 points,
+  automatically on points with no demotion; forfeits and losses earn zero.
+  A rank plate on the ranch HUD shows the standing and progress to the next
+  sub-tier, the cup entry chip reads it live, the results screen reports the
+  run's points and any promotion, and the coach ticker announces climbs.
+  Wins beyond Bronze I bank points toward Silver (Phase 2, hinted once).
+  Save v8 with a fresh-start migration — no backfill for pre-ladder cups.)*
 - Ranch scene (3D) with idle/breathe life; living-ranch dressing (wind sway,
   feeding ceremony, seeded wandering with camera follow). *(Landed 2026-10-10.)*
 - Retirement → next egg with stat + trait inheritance (minimal legacy).

@@ -16,8 +16,8 @@ Status: **pre-release vertical slice.** The raise-and-care loop is playable
 end to end, training programs shape the stats cycle by cycle, and weekly cups
 put your creature in a broadcast arena. The golden-hour
 ranch is dressed with voxel scenery that feeds back on care (a food pile appears
-when the creature is fed). The Bronze ladder is on
-the roadmap.
+when the creature is fed). Every cup run banks ladder points: climb from
+Bronze III to Bronze I, one promotion at a time.
 
 ## Core loop
 
@@ -80,11 +80,16 @@ The dev server prints a local URL (Vite, default `http://localhost:5173`).
 A fresh save opens the starter choice — pick a Fire drake or a Plant ox and
 begin the day loop. Each day you get 3 AP for care actions plus one training
 focus: a full night's rest adds +1 to the focused stat, capped at +6 above
-the rolled base. The ranch itself is golden-hour lit — gradient dusk sky,
-moss ground, drop shadows — and dressing reacts to care: feeding your creature
+the rolled base. Small comforts: the pencil by your partner's name renames
+them (free, anytime outside a cup), the "New game" chip beside the motion
+toggle resets the ranch behind a confirm, and one-time onboarding hints
+teach AP, training tiers, and cup eve exactly when they first matter.
+The ranch itself is golden-hour lit — gradient dusk sky,
+moss ground, drop shadows - and dressing reacts to care: feeding your creature
 places a voxel food pile beside it until the night resets. Dev pages are
-available at `/gallery.html` (creature lineup, `?archetype=draconic|bovine|mixed`)
-and `/preview.html` (grey silhouette viewer, `?seed=&archetype=&angle=`).
+available at `/gallery.html` (creature lineup, `?archetype=draconic|bovine|mixed`),
+`/preview.html` (grey silhouette viewer, `?seed=&archetype=&angle=`), and
+`/mock.html` (broadcast HUD design mock built from the production kit).
 
 ## Development
 
@@ -121,7 +126,7 @@ reproduced exactly from source.
 | Phase | Scope | State |
 |---|---|---|
 | 0 — Foundation | Workspaces, sim core, day ticker, versioned save/load, app shell | Done |
-| 1 — Vertical slice | Care loop, training, one lineage, battle system, one cup, Bronze ladder | In progress — care loop, training, baby→juvenile evolution, arena battles, and live cups playable |
+| 1 — Vertical slice | Care loop, training, one lineage, battle system, one cup, Bronze ladder | Done — care loop, training, baby→juvenile evolution, arena battles, live cups, and the Bronze ladder playable |
 | 2 — League depth | Full ladder, rivals and bosses, breeding, evolution discovery | Planned |
 | 3 — Content & meta | 20–40 species, ElysiaJS backend, cloud saves, leaderboards | Planned |
 | 4 — Post-MVP | Async ghost PvP, live PvP, mobile pass, audio | Planned |

@@ -19,7 +19,11 @@
 - **Build/dev server**: Vite (driven by Bun) — HMR, static output.
 - **3D rendering**: Three.js — ranch scene and battle arena.
 - **UI layer**: DOM/HTML overlay styled with plain CSS, driven by TypeScript
-  state bindings (no UI framework at MVP; revisit if HUD complexity demands it).
+  state bindings (no UI framework at MVP; revisit if HUD complexity demands
+  it). All surfaces are built from a shared imperative broadcast kit
+  (`apps/client/src/ui/kit.ts` + `ui/kit.css`) with per-surface CSS files
+  (ranch/spar/cup/starter/battle-hud); `ui/element.ts` single-sources element
+  glyphs + hues.
 - **State**: central typed game-state store; deterministic sim core separated
   from rendering so battles can run headless (future PvP/ghosts depend on this).
   *2026-10-10: battle core landed in `@apex/sim/battle` — type chart, damage,
@@ -58,7 +62,28 @@
   one-sitting cup panel's pace pill (superseded by the arena fast-forward
   control) and the `beginCup` retirement were conceded to the live-cup
   architecture (`beginCup`/`endCup` restored).*
-  *2026-10-12: battle animation overhaul landed (track
+  *2026-10-12: save-safety & QoL pass — save v7 (`CupSession | null` slot
+  riding the save so refresh mid-walk never strands rewards;
+  `settings.seenHints` ledger), `loadBoot` distinguishes absent vs corrupt
+  saves at boot (corrupt → calm kit-notice banner above the starter screen),
+  `SaveAdapter` gains `removeItem` + `clearSave` powers the confirm-gated
+  "New game" reset, `renameCreature` (trim / ≤16 cap / empty → species
+  default, cup-blocked), and `markHintSeen` drives the persisted onboarding
+  callout chain (day-1 AP, day-5 training tier, cup-eve). The cup arena cast
+  is now stage-aware (`visualSeedOf(stats, stage)`) so a juvenile fights as
+  the same individual the ranch shows.*
+- *2026-10-12: Bronze ladder landed — save v8 adds the `ladder` slice
+  (`{points, subTier}`) with a fresh-start v7→v8 migration (no backfill;
+  live cup session forwarded untouched) and load-time validation of
+  points/subTier. `@apex/sim/ladder` keeps the placement model pure:
+  champion +3 / runner-up +2 / semifinal +1, automatic climbs through
+  Bronze III→II→I at 6/12 points, forfeits and losses earn zero — wired
+  into both cup paths (`enterCup` legacy and `finalizeCup` live) and
+  forwarded through `advanceDay`. The client surfaces the standing as a
+  rank plate in the score bug (progress-to-next-sub-tier, aria-labeled),
+  the cup entry chip, a promotion-aware results row, and a coach-ticker
+  climb announcement that reuses the hint ledger for the Silver teaser.*
+-   *2026-10-12: battle animation overhaul landed (track
   `battle_animation_overhaul_20261012`). Sim side: `BattleEvent` grew
   `stagger`/`knockback` kinds plus an optional `actorKey` (stable side key
   so mirror matches stage correctly); heavy/super-effective blows stagger
@@ -81,7 +106,7 @@
   the terminal blow + a stamp-settle hold). The arena camera is
   broadcast/cinematic (director intents ease between framings; bloom post
   pass, element particles, hit decals, big-hit vignette); the style is a
-  saved v7 setting with live mid-battle switching, auto-pinned to broadcast
+  saved v9 setting with live mid-battle switching, auto-pinned to broadcast
   under reduced motion.*
 
 ## Server

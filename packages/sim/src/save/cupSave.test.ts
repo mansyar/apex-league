@@ -6,8 +6,8 @@ import { SAVE_VERSION } from "./schema"
 import { createMemoryAdapter, loadGame, saveGame } from "./storage"
 
 describe("save schema cup fields (v5 origin)", () => {
-  test("current version is 7", () => {
-    expect(SAVE_VERSION).toBe(7)
+  test("current version matches the schema", () => {
+    expect(SAVE_VERSION).toBe(9)
   })
 
   test("a v4 save migrates to v5 with cupsWon 0 and lastCupDay null", () => {
@@ -23,7 +23,7 @@ describe("save schema cup fields (v5 origin)", () => {
       savedAt: 55,
     }
     const migrated = migrate(v4)
-    expect(migrated.version).toBe(7)
+    expect(migrated.version).toBe(SAVE_VERSION)
     expect(migrated.savedAt).toBe(55)
     expect(migrated.state.day).toBe(7)
     expect(migrated.state.cupsWon).toBe(0)
@@ -81,7 +81,7 @@ describe("save schema cup fields (v5 origin)", () => {
       state: { day: 2, phase: "day", actionPoints: 3 },
       savedAt: 0,
     })
-    expect(migrated.version).toBe(7)
+    expect(migrated.version).toBe(SAVE_VERSION)
     expect(migrated.state.cupsWon).toBe(0)
     expect(migrated.state.lastCupDay).toBeNull()
   })

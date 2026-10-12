@@ -1,4 +1,5 @@
 import { type Creature, type StatKey, TRAINING_CAP } from "../creature"
+import { BRACKET_SLOTS, CUP_ROUNDS, type CupSession } from "../cup"
 import { SICK_COOLDOWN_NIGHTS } from "../evolution"
 import { getSpecies } from "../species"
 import type { GameState } from "../state"
@@ -15,6 +16,7 @@ export const SAVE_KEY = "apex.save"
 export interface SaveAdapter {
   getItem(key: string): string | null
   setItem(key: string, value: string): void
+  removeItem(key: string): void
 }
 
 /** In-memory adapter for tests and headless use. */
@@ -25,20 +27,24 @@ export function createMemoryAdapter(): SaveAdapter {
     setItem: (key, value) => {
       map.set(key, value)
     },
+    removeItem: (key) => {
+      map.delete(key)
+    },
   }
 }
 
 /**
- * Persist the current state as a versioned save. Returns false when the
- * write fails (quota, private mode) — the caller decides how to surface
- * it; saving must never crash the day.
+ * Persist the current state (and optionally the live cup session) as a
+ * versioned save. Returns false when the write fails (quota, private mode)
+ * — the caller decides how to surface it; saving must never crash the day.
  */
 export function saveGame(
   adapter: SaveAdapter,
   state: GameState,
   savedAt: number,
+  session: CupSession | null = null,
 ): boolean {
-  const data: SaveData = { version: SAVE_VERSION, state, savedAt }
+  const data: SaveData = { version: SAVE_VERSION, state, savedAt, session }
   try {
     adapter.setItem(SAVE_KEY, serializeSave(data))
     return true
@@ -119,11 +125,68 @@ function isValidCreature(c: unknown): c is Creature {
 }
 
 /**
- * Load and migrate the saved state.
- * Returns null on absent, corrupt, or unreadable saves — the caller
- * falls back to a fresh run.
+ * A persisted cup session is valid when its shape matches the sim contract
+ * closely enough to hand back to the client: the bracket, the verdict
+ * arrays, the pending round, and the champion stamp. This is defense against
+ * a corrupt/hand-edited payload — the client renders names and species from
+ * a restored session, so the deep fields it reads are checked here.
  */
-export function loadGame(adapter: SaveAdapter): GameState | null {
+function isValidSession(s: unknown): s is CupSession {
+  if (typeof s !== "object" || s === null) return false
+  const session = s as Record<string, unknown>
+  if (typeof session.seed !== "number" || !Number.isInteger(session.seed))
+    return false
+  const bracket = session.bracket
+  if (typeof bracket !== "object" || bracket === null) return false
+  const b = bracket as Record<string, unknown>
+  if (!Number.isInteger(b.day) || (b.day as number) < 1) return false
+  if (!Array.isArray(b.slots) || b.slots.length !== BRACKET_SLOTS) return false
+  for (const slot of b.slots) {
+    if (typeof slot !== "object" || slot === null) return false
+    const c = slot as Record<string, unknown>
+    if (typeof c.name !== "string" || c.name.length === 0) return false
+    if (
+      typeof c.speciesId !== "string" ||
+      getSpecies(c.speciesId) === undefined
+    )
+      return false
+    if (typeof c.stats !== "object" || c.stats === null) return false
+    for (const value of Object.values(c.stats as Record<string, unknown>)) {
+      if (typeof value !== "number" || !Number.isInteger(value) || value < 1)
+        return false
+    }
+  }
+  for (const key of ["rivalVerdicts", "playerVerdicts", "completionVerdicts"]) {
+    if (!Array.isArray(session[key])) return false
+  }
+  if (
+    session.status !== "player-turn" &&
+    session.status !== "eliminated" &&
+    session.status !== "champion"
+  )
+    return false
+  const round = session.nextPlayerRound
+  if (
+    typeof round !== "number" ||
+    !Number.isInteger(round) ||
+    (round as number) < 0 ||
+    (round as number) > CUP_ROUNDS
+  )
+    return false
+  const opponent = session.nextOpponent
+  if (opponent !== null && typeof opponent !== "object") return false
+  const champion = session.championName
+  if (champion !== null && typeof champion !== "string") return false
+  return true
+}
+
+/**
+ * Load and migrate the full save payload — state plus the live cup session.
+ * Returns null on absent, corrupt, or unreadable saves; a corrupt session
+ * inside an otherwise-valid save is dropped (state survives, the cup walk
+ * is lost) rather than failing the whole load.
+ */
+export function loadSave(adapter: SaveAdapter): SaveData | null {
   const raw = adapter.getItem(SAVE_KEY)
   if (raw === null) return null
   try {
@@ -140,19 +203,76 @@ export function loadGame(adapter: SaveAdapter): GameState | null {
       typeof state.settings !== "object" ||
       state.settings === null ||
       typeof state.settings.reducedMotion !== "boolean" ||
-      // v7: the camera preference must be one of the two styles.
+      // v7: the hint ledger is a plain array of string ids.
+      !Array.isArray(state.settings.seenHints) ||
+      !state.settings.seenHints.every((hint) => typeof hint === "string") ||
+      // v9: the camera preference must be one of the two styles.
       (state.settings.arenaCamera !== "cinematic" &&
         state.settings.arenaCamera !== "broadcast") ||
       // v5: cup bookkeeping must be present and well-formed.
       !Number.isInteger(state.cupsWon) ||
       state.cupsWon < 0 ||
       (state.lastCupDay !== null &&
-        (!Number.isInteger(state.lastCupDay) || state.lastCupDay < 1))
+        (!Number.isInteger(state.lastCupDay) || state.lastCupDay < 1)) ||
+      // v8: the ladder slice is required and strictly typed (bronze
+      // ladder) — a hand-edited points total or sub-tier fails the load.
+      typeof state.ladder !== "object" ||
+      state.ladder === null ||
+      !Number.isInteger(state.ladder.points) ||
+      state.ladder.points < 0 ||
+      (state.ladder.subTier !== "III" &&
+        state.ladder.subTier !== "II" &&
+        state.ladder.subTier !== "I")
     ) {
       return null
     }
-    return state
+    // A session is presentation bookkeeping: it rides the save even after
+    // the first fight commits (phase "day") so a refresh mid-walk can
+    // never strand the rewards. An invalid session is dropped, not fatal.
+    const session =
+      data.session !== undefined &&
+      data.session !== null &&
+      isValidSession(data.session)
+        ? data.session
+        : null
+    return { ...data, session }
   } catch {
     return null
   }
+}
+
+/**
+ * Load and migrate the saved state.
+ * Returns null on absent, corrupt, or unreadable saves — the caller
+ * falls back to a fresh run. Callers that need the persisted cup session
+ * use loadSave instead.
+ */
+export function loadGame(adapter: SaveAdapter): GameState | null {
+  return loadSave(adapter)?.state ?? null
+}
+
+/**
+ * Wipe the persisted save. The next boot reads as "no save yet" — a silent
+ * fresh start with the starter picker, never the corrupt-save banner.
+ * Backed by SaveAdapter.removeItem (localStorage has it natively).
+ */
+export function clearSave(adapter: SaveAdapter): void {
+  adapter.removeItem(SAVE_KEY)
+}
+
+/**
+ * Boot probe: distinguishes "no save yet" (null — a silent fresh start)
+ * from "a save exists but is unreadable" ({corrupt: true} — fresh start
+ * plus a calm notice, so the player is never silently robbed of a ranch).
+ * A healthy save boots state + session in one read.
+ */
+export type BootPayload =
+  | { state: GameState; session: CupSession | null }
+  | { corrupt: true }
+
+export function loadBoot(adapter: SaveAdapter): BootPayload | null {
+  if (adapter.getItem(SAVE_KEY) === null) return null
+  const data = loadSave(adapter)
+  if (data === null) return { corrupt: true }
+  return { state: data.state, session: data.session }
 }

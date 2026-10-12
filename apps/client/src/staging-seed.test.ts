@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { EVOLUTION_STAT_BOOST } from "@apex/sim"
+import { CHAMPION_STAT_BOOST, EVOLUTION_STAT_BOOST } from "@apex/sim"
 import { visualSeedOf } from "./staging"
 
 const base = { hp: 43, atk: 11, def: 10, spd: 11 }
@@ -26,5 +26,17 @@ describe("visualSeedOf stage awareness", () => {
     // The regression this guard exists for: an arena cast or ranch rebuild
     // that forgets the stage must not silently change the DNA seed.
     expect(visualSeedOf(boosted)).not.toBe(visualSeedOf(base, "baby"))
+  })
+
+  test("a champion's cumulative boost also folds back to the creation seed", () => {
+    // CHAMPION_STAT_BOOST is already the cumulative total (juvenile +
+    // champion steps), so the champion's stats are base + that one boost.
+    const champion = {
+      hp: base.hp + CHAMPION_STAT_BOOST.hp,
+      atk: base.atk + CHAMPION_STAT_BOOST.atk,
+      def: base.def + CHAMPION_STAT_BOOST.def,
+      spd: base.spd + CHAMPION_STAT_BOOST.spd,
+    }
+    expect(visualSeedOf(champion, "champion")).toBe(visualSeedOf(base, "baby"))
   })
 })

@@ -12,6 +12,7 @@
  */
 
 import {
+  ACTION_POINTS_PER_DAY,
   type BattleResult,
   type Creature,
   CUP_REWARDS,
@@ -20,7 +21,6 @@ import {
   completeCup,
   cupPlacement,
   defaultLoadout,
-  ELEMENT_HUE,
   effectiveStats,
   endCup,
   finalizeCup,
@@ -36,10 +36,12 @@ import {
   resolvePlayerMatch,
   type Tactic,
 } from "@apex/sim"
-import { CREST_GLYPHS, createBattleHud } from "./battleHud"
+import { createBattleHud } from "./battleHud"
+import { crestGlyph, elementHue } from "./element"
 import { prefersReducedMotionOs } from "./motion"
 import { createPlaybackDriver, type PlaybackFight } from "./playbackDriver"
 import { type FightCasting, visualSeedOf } from "./staging"
+import { icons } from "./ui/icons"
 
 export interface CupHandlers {
   /** A player match starts: dissolve into the arena and cast both. */
@@ -60,6 +62,12 @@ export interface CupHandlers {
    * final and the rewards are applied - persist the returned state.
    */
   onFinalize: (state: GameState, session: CupSession) => void
+  /**
+   * The live session changed (prepared, advanced, forfeited, or cleared):
+   * persist it so a refresh anywhere in the walk resumes exactly here.
+   * Optional — callers without session persistence may omit it.
+   */
+  onSession?: (session: CupSession | null) => void
 }
 
 export interface Cup {
@@ -96,16 +104,35 @@ const WALK_CROWN = 1800
 const STAMP_HOLD = 2200
 const STAMP_HOLD_REDUCED = 900
 
-export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
+export function createCup(
+  root: HTMLElement,
+  handlers: CupHandlers,
+  options?: {
+    /**
+     * A session restored from the save (save v7): the bracket walk resumes
+     * exactly where it stopped — no fresh entry, no re-resolution.
+     */
+    restoredSession?: CupSession | null
+  },
+): Cup {
   // The Enter Cup chip sits beside the Spar chip (top-right cluster).
+  // Kit chip with the broadcast title/sub stack, matching Spar.
   const cupButton = document.createElement("button")
-  cupButton.className = "cup-button"
+  cupButton.className = "cup-button kit-chip"
   cupButton.type = "button"
+  const cupGlyph = document.createElement("span")
+  cupGlyph.className = "kit-chip-glyph"
+  cupGlyph.innerHTML = icons.trophy
+  const cupText = document.createElement("span")
+  cupText.className = "spar-text"
   const cupLabel = document.createElement("span")
+  cupLabel.className = "spar-title"
   cupLabel.textContent = "Enter Cup"
   const cupHint = document.createElement("span")
+  cupHint.className = "spar-sub"
   cupHint.textContent = "Cup day · free"
-  cupButton.append(cupLabel, cupHint)
+  cupText.append(cupLabel, cupHint)
+  cupButton.append(cupGlyph, cupText)
   root.append(cupButton)
 
   // Full-screen overlay, hidden until entry.
@@ -357,7 +384,10 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   // Session state
   // ------------------------------------------------------------------
   let state: GameState | null = null
-  let session: CupSession | null = null
+  let session: CupSession | null = options?.restoredSession ?? null
+  // Ladder snapshot at cup entry (save v8): the results screen diffs the
+  // post-finalize standing against it to report what the run earned.
+  let ladderBefore: GameState["ladder"] | null = null
   /** The cup is consumed (endCup applied) — set at the first coach commit. */
   let committed = false
   /** Reveal cursor into PLAN. */
@@ -492,12 +522,12 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   // ------------------------------------------------------------------
   // Bracket rendering
   // ------------------------------------------------------------------
-  const crest = (element: string): string =>
-    CREST_GLYPHS[element] ?? CREST_GLYPHS.fire ?? ""
+  const crest = (element: string): string => crestGlyph(element)
 
-  /** Element hues (the canonical ELEMENT_HUE contract, staging.ts agrees). */
+  /** Element hues: ui/element.ts re-derives from the sim's canonical
+   * ELEMENT_HUE contract (single source of truth next to the matchup math). */
   const hueColor = (element: string): string =>
-    `hsl(${ELEMENT_HUE[element] ?? 40} 70% 60%)`
+    `hsl(${elementHue(element)} 70% 60%)`
 
   const speciesElement = (speciesId: string): string =>
     getSpecies(speciesId)?.element ?? "fire"
@@ -621,7 +651,7 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   // Results screen
   // ------------------------------------------------------------------
   const showResults = (): void => {
-    if (!session) return
+    if (!session || !state) return
     const placement = cupPlacement(session)
     // The title follows the session's status, not the placement: a drawn
     // final (double-KO) crowns the player while placement rounds survive.
@@ -647,14 +677,34 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
               : "quarterfinal"
         }`
     resultRewards.replaceChildren()
+    let ladderRow: string
+    if (ladderBefore === null) {
+      // Resumed walk without a snapshot: report the standing as-is.
+      ladderRow = `Ladder: Bronze ${state.ladder.subTier} · ${state.ladder.points} pts`
+    } else {
+      // A forfeit zeroes the run's points (bronze ladder): say so plainly
+      // instead of the neutral "unchanged".
+      const lastVerdict = session.playerVerdicts.at(-1)
+      const forfeited = lastVerdict !== undefined && lastVerdict.battle === null
+      const earned = state.ladder.points - ladderBefore.points
+      ladderRow =
+        earned > 0
+          ? state.ladder.subTier !== ladderBefore.subTier
+            ? `Ladder +${earned} — promoted to Bronze ${state.ladder.subTier}`
+            : `Ladder +${earned} · Bronze ${state.ladder.subTier}`
+          : forfeited
+            ? "Forfeit — no ladder points"
+            : "Ladder unchanged"
+    }
     const rows = won
       ? [
-          `+1 action point tomorrow (${3 + 1} total)`,
+          `+1 action point tomorrow (${ACTION_POINTS_PER_DAY + 1} total)`,
           `Bond +${CUP_REWARDS.bond}`,
           `Mood +${CUP_REWARDS.mood}`,
           "🏆 Cup won",
+          ladderRow,
         ]
-      : [`Consolation: mood +${CUP_REWARDS.consolations.mood}`]
+      : [`Consolation: mood +${CUP_REWARDS.consolations.mood}`, ladderRow]
     rows.forEach((text, i) => {
       const row = document.createElement("div")
       row.className = "cup-reward-row"
@@ -708,6 +758,7 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
           // A loss auto-completes the rival bracket to a champion.
           if (session && session.status === "eliminated") {
             session = completeCup(session)
+            handlers.onSession?.(session)
           }
           walk()
         },
@@ -754,11 +805,15 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
     return {
       owned: {
         archetypeId: cs.archetypeId,
-        seed: visualSeedOf(creature.stats),
+        // Stage-aware: a juvenile's boosted stats must fold back to the
+        // creation seed, or the cup arena re-rolls the partner's DNA.
+        seed: visualSeedOf(creature.stats, creature.stage),
         name: creature.name,
       },
       rival: {
         archetypeId: rs.archetypeId,
+        // Rivals carry no stage in the sim — the stats-only seed keeps
+        // their look stable for the whole bracket.
         seed: visualSeedOf(opponent.stats),
         name: opponent.name,
       },
@@ -783,6 +838,7 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
     if (!creature) return
     const resolved = resolvePlayerMatch(session, picks.loadout, picks.tactic)
     session = resolved.session
+    handlers.onSession?.(resolved.session)
     const verdict = resolved.verdict
     if (!verdict?.battle) {
       throw new Error("The cup match resolved without a battle log")
@@ -1007,6 +1063,7 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
     // Forfeit the current round: the opponent advances without a fight,
     // then the bracket auto-completes to a champion.
     session = forfeitCup(session)
+    handlers.onSession?.(session)
     setLine(`${playerName()} forfeits — the rival advances.`)
     walk()
   })
@@ -1016,14 +1073,25 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
     const creature = state.creature
     const cupToday =
       isCupDay(state.day) && state.phase === "cup" && creature !== null
-    cupButton.style.display = cupToday ? "" : "none"
-    cupButton.disabled = !cupToday || session !== null
+    // Standing tie-in (save v8): the entry chip reads the ladder, so the
+    // player sees what tonight's cup is worth before committing.
+    cupHint.textContent = `Bronze ${state.ladder.subTier} · ${state.ladder.points} pts`
+    // A persisted session keeps the chip alive across refreshes - even
+    // once the entry is consumed (phase "day"), the walk can resume.
+    const resumable = session !== null
+    cupButton.style.display = cupToday || resumable ? "" : "none"
+    cupButton.disabled = !cupToday && !resumable
   }
 
   const closeFree = (): void => {
     clearTimer()
     driver.stop()
-    session = null
+    // A live player-turn session rides the save and stays resumable from
+    // the chip; anything else (finalized, consumed) is dropped here.
+    if (session && session.status !== "player-turn") {
+      session = null
+      handlers.onSession?.(null)
+    }
     committed = false
     cursor = 0
     pendingId = null
@@ -1077,10 +1145,27 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   // ------------------------------------------------------------------
   const open = (): void => {
     if (!state?.creature) return
-    const prepared = prepareCup(state)
-    if (!prepared) return
-    session = prepared
-    committed = false
+    // Standing snapshot for the results screen's ladder row.
+    ladderBefore = { ...state.ladder }
+    if (!session || session.bracket.day !== state.day) {
+      const prepared = prepareCup(state)
+      if (!prepared) return
+      session = prepared
+      handlers.onSession?.(prepared)
+    }
+    // A refresh can land inside the window between the fight resolving and
+    // the rival bracket auto-completing (the stamp hold): the persisted
+    // session is eliminated but has no champion yet, and the resumed walk
+    // would stall on a rival match that has no verdict to show. Finish the
+    // rival bracket now — the per-pairing seeds make it deterministic and
+    // idempotent.
+    if (session.status === "eliminated" && session.championName === null) {
+      session = completeCup(session)
+      handlers.onSession?.(session)
+    }
+    // A consumed cup (phase "day" — the entry commit already ran) must not
+    // try to endCup again; derive the flag instead of trusting the closure.
+    committed = state.phase === "day"
     cursor = 0
     pendingId = null
     picks = null
@@ -1109,6 +1194,13 @@ export function createCup(root: HTMLElement, handlers: CupHandlers): Cup {
   return {
     update(next) {
       state = next
+      // A session belongs to its cup day: if the day moved on (the walk
+      // was abandoned and the save advanced), the bracket is over — drop
+      // it so a stale session can never double-claim rewards.
+      if (session && next.day !== session.bracket.day) {
+        session = null
+        handlers.onSession?.(null)
+      }
       syncChip()
     },
   }

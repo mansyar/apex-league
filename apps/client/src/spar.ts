@@ -23,9 +23,12 @@ import {
   unlockedKit,
 } from "@apex/sim"
 import { type BattleHudFighter, createBattleHud } from "./battleHud"
+import { crestGlyph, elementHue } from "./element"
 import { createPlaybackDriver, type PlaybackRun } from "./playbackDriver"
 import type { FightCasting } from "./staging"
 import { visualSeedOf } from "./staging"
+import { icons } from "./ui/icons"
+import { crest } from "./ui/kit"
 
 export interface SparHandlers {
   /**
@@ -131,14 +134,23 @@ export function createSpar(
   handlers: SparHandlers = {},
 ): Spar {
   // Top-right spar chip: its own control, separate from the care cluster.
+  // Kit chip with the mock's title/sub text stack.
   const sparButton = document.createElement("button")
-  sparButton.className = "spar-button"
+  sparButton.className = "spar-button kit-chip"
   sparButton.type = "button"
+  const sparGlyph = document.createElement("span")
+  sparGlyph.className = "kit-chip-glyph"
+  sparGlyph.innerHTML = icons.spar
+  const sparText = document.createElement("span")
+  sparText.className = "spar-text"
   const sparLabel = document.createElement("span")
+  sparLabel.className = "spar-title"
   sparLabel.textContent = "Spar"
   const sparHint = document.createElement("span")
+  sparHint.className = "spar-sub"
   sparHint.textContent = "Free match · no AP"
-  sparButton.append(sparLabel, sparHint)
+  sparText.append(sparLabel, sparHint)
+  sparButton.append(sparGlyph, sparText)
   root.append(sparButton)
 
   // Center overlay panel, hidden until the whistle.
@@ -147,7 +159,7 @@ export function createSpar(
   overlay.style.display = "none"
 
   const panel = document.createElement("div")
-  panel.className = "spar-panel"
+  panel.className = "spar-panel kit-plate"
 
   const heading = document.createElement("div")
   heading.className = "spar-heading"
@@ -160,9 +172,8 @@ export function createSpar(
   rivalRow.className = "spar-rival"
   const rivalName = document.createElement("span")
   rivalName.className = "spar-rival-name"
-  const rivalElement = document.createElement("span")
-  rivalElement.className = "element-badge"
-  rivalRow.append(rivalName, rivalElement)
+  const rivalCrest = crest("fire")
+  rivalRow.append(rivalName, rivalCrest)
 
   const rivalDetail = document.createElement("div")
   rivalDetail.className = "spar-detail"
@@ -243,12 +254,22 @@ export function createSpar(
   logBox.append(logToggle, log)
 
   const close = document.createElement("button")
-  close.className = "spar-close"
+  close.className = "spar-close kit-chip is-accent"
   close.type = "button"
   close.textContent = "Back to the ranch"
   close.style.display = "none"
 
+  // Always-available exit on the pre-fight panel: a compact X chip pinned
+  // to the panel's top-right corner. Hiding the panel (battle start)
+  // hides it with the rest of the panel contents.
+  const panelClose = document.createElement("button")
+  panelClose.className = "spar-panel-close kit-chip is-dim"
+  panelClose.type = "button"
+  panelClose.setAttribute("aria-label", "Close sparring")
+  panelClose.innerHTML = icons.close
+
   panel.append(
+    panelClose,
     heading,
     intro,
     rivalRow,
@@ -473,8 +494,11 @@ export function createSpar(
     const setup = makeExhibition(creature, "balanced", battleSeed)
 
     rivalName.textContent = setup.rival.name
-    rivalElement.textContent = setup.rival.element
-    rivalElement.className = `element-badge el-${setup.rival.element}`
+    rivalCrest.innerHTML = crestGlyph(setup.rival.element)
+    rivalCrest.style.setProperty(
+      "--hue",
+      String(elementHue(setup.rival.element)),
+    )
     rivalDetail.textContent = `Rival tactic: ${
       TACTIC_LABELS[setup.rivalTactic]
     } · ${TEMPERAMENT_LINES[setup.rivalSide.temperament]} · Seed ${battleSeed}`
@@ -507,6 +531,15 @@ export function createSpar(
     button.addEventListener("click", () => runBattle(tactic))
   }
   close.addEventListener("click", () => {
+    driver.stop()
+    overlay.style.display = "none"
+    battleHud.hide()
+    sparButton.style.display = ""
+    handlers.onClose?.()
+  })
+  panelClose.addEventListener("click", () => {
+    // Same teardown as the post-fight exit; safe before any fight since
+    // stopping an idle driver is a no-op.
     driver.stop()
     overlay.style.display = "none"
     battleHud.hide()

@@ -12,6 +12,7 @@ import {
   type GameState,
   getMove,
   getSpecies,
+  LADDER_THRESHOLDS,
   MOVE_TIER3_DAYS,
   MOVE_TIER4_DAYS,
   previewTraining,
@@ -20,6 +21,20 @@ import {
   type StatKey,
   TRAINING_CAP,
 } from "@apex/sim"
+import { crestGlyph, elementHue } from "./element"
+import { icons } from "./ui/icons"
+import {
+  bar,
+  button,
+  chip,
+  crest,
+  cta,
+  meter,
+  plate,
+  replay,
+  tab,
+  ticker,
+} from "./ui/kit"
 
 export interface HudHandlers {
   onAdvanceDay: () => void
@@ -31,10 +46,19 @@ export interface HudHandlers {
    */
   onToggleReducedMotion: () => void
   /**
-   * Flip the save v7 arena-camera preference (cinematic ↔ broadcast).
+   * Flip the save v9 arena-camera preference (cinematic ↔ broadcast).
    * The HUD only mirrors state; wiring stays in main.ts.
    */
   onToggleArenaCamera: () => void
+  /** Rename the partner through the sim (save v7 QoL). Returns false when
+   * the sim rejects (e.g. mid-cup) so the HUD can coach instead of acting.
+   */
+  onRename: (name: string) => boolean
+  /** Wipe the save and boot back to the starter picker (main.ts owns the
+   * clearSave + reload). Only called after the modal confirm. */
+  onReset: () => void
+  /** Persist a dismissed onboarding hint id into settings.seenHints. */
+  onHintSeen: (hintId: string) => void
 }
 
 export interface Hud {
@@ -59,20 +83,36 @@ const REJECTION_COPY: Record<CareRejection, string> = {
 const CONDITIONS: Array<{
   key: keyof CreatureConditions
   label: string
-  className: string
+  glyph: string
+  color: string
 }> = [
-  { key: "hunger", label: "Hunger", className: "bar-hunger" },
-  { key: "energy", label: "Energy", className: "bar-energy" },
-  { key: "health", label: "Health", className: "bar-health" },
-  { key: "mood", label: "Mood", className: "bar-mood" },
-  { key: "bond", label: "Bond", className: "bar-bond" },
+  {
+    key: "hunger",
+    label: "Hunger",
+    glyph: icons.hunger,
+    color: "var(--bar-hunger)",
+  },
+  {
+    key: "energy",
+    label: "Energy",
+    glyph: icons.energy,
+    color: "var(--bar-energy)",
+  },
+  {
+    key: "health",
+    label: "Health",
+    glyph: icons.health,
+    color: "var(--bar-health)",
+  },
+  { key: "mood", label: "Mood", glyph: icons.mood, color: "var(--bar-mood)" },
+  { key: "bond", label: "Bond", glyph: icons.bond, color: "var(--bar-bond)" },
 ]
 
-const ACTIONS: Array<{ action: CareAction; label: string }> = [
-  { action: "feed", label: "Feed" },
-  { action: "rest", label: "Rest" },
-  { action: "treat", label: "Treat" },
-  { action: "play", label: "Play" },
+const ACTIONS: Array<{ action: CareAction; label: string; glyph: string }> = [
+  { action: "feed", label: "Feed", glyph: icons.feed },
+  { action: "rest", label: "Rest", glyph: icons.rest },
+  { action: "treat", label: "Treat", glyph: icons.treat },
+  { action: "play", label: "Play", glyph: icons.play },
 ]
 
 const STATS: Array<{ key: StatKey; label: string }> = [
@@ -182,6 +222,15 @@ export function saveFailureNotice(): string {
 }
 
 /**
+ * The corrupt-save coach line: calm, blame-free, non-blocking. Shown once
+ * at boot when an existing save cannot be read — the game starts fresh,
+ * and the player deserves to know why.
+ */
+export function corruptSaveNotice(): string {
+  return "That old save couldn't be read — starting fresh. Sorry about that."
+}
+
+/**
  * The status line leads with training: the preview while a focus is set,
  * the morning result after Advance Day, and the condition coach line only
  * when training has nothing to say.
@@ -216,44 +265,123 @@ function trainingStatus(
 }
 
 /**
+ * Index of the AP pip that just drained when the spend total goes down
+ * (drives the one-shot spend flash), or null when nothing was spent.
+ */
+export const spendFlashIndex = (prev: number, next: number): number | null =>
+  next < prev ? next : null
+
+/**
  * The care HUD: broadcast-style overlays over the 3D ranch — a top-center
- * day scoreboard, a bottom-left creature lower-third with condition bars,
- * and a bottom-right action cluster. Flat translucent panels, no gradients.
+ * score bug, a bottom-left creature lower-third with condition bars, and a
+ * bottom-right command dock. Built from the shared broadcast kit
+ * (ui/kit.ts): warm keyline plates, chamfered corners, skewed AP pips.
  */
 export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
-  // Top-center scoreboard chip.
-  const dayChip = document.createElement("div")
-  dayChip.className = "day-chip"
-  const dayReadout = document.createElement("span")
-  dayReadout.className = "day-readout"
-  const apRow = document.createElement("span")
-  apRow.className = "ap-row"
-  // Lifetime championship banner (save v5): a trophy glyph per cup won.
-  const banner = document.createElement("span")
-  banner.className = "cup-banner"
-  banner.title = "Cup championships"
-  dayChip.append(dayReadout, apRow, banner)
+  // Top-center score bug.
+  const scoreBug = plate({ className: "score-bug" })
+  const phaseTab = tab("Day phase", "outline")
+  const dayNum = document.createElement("span")
+  dayNum.className = "score-day-num"
+  const dayLabel = document.createElement("span")
+  dayLabel.className = "score-day-label"
+  dayLabel.textContent = "Day"
+  const scoreDay = document.createElement("span")
+  scoreDay.className = "score-day"
+  scoreDay.append(dayLabel, dayNum)
+  const divider = document.createElement("span")
+  divider.className = "score-divider"
+  const divider2 = divider.cloneNode() as HTMLElement
+  const apLabel = document.createElement("span")
+  apLabel.className = "score-ap-label"
+  apLabel.textContent = "AP"
+  const scoreAp = document.createElement("span")
+  scoreAp.className = "score-ap"
+  const apMeter = meter(0, ACTION_POINTS_PER_DAY)
+  scoreAp.append(apLabel, apMeter.root)
+  // Lifetime championships (save v5): one gold tally, no silent cap.
+  const trophy = document.createElement("span")
+  trophy.className = "score-trophy"
+  trophy.title = "Cup championships"
+  const trophyCount = document.createElement("span")
+  trophyCount.className = "score-trophy-count"
+  trophy.innerHTML = icons.trophy
+  trophy.append(trophyCount)
+  // Bronze ladder standing (save v8): sub-tier tab + points, mirroring
+  // the trophy's one-segment-one-fact grammar.
+  const divider3 = divider.cloneNode() as HTMLElement
+  const rank = document.createElement("span")
+  rank.className = "score-ladder"
+  rank.title = "League standing"
+  const rankRank = document.createElement("span")
+  rankRank.className = "score-ladder-rank"
+  const rankPts = document.createElement("span")
+  rankPts.className = "score-ladder-pts"
+  rank.append(rankRank, rankPts)
+  scoreBug.append(
+    phaseTab,
+    scoreDay,
+    divider,
+    scoreAp,
+    divider2,
+    trophy,
+    divider3,
+    rank,
+  )
 
-  // Bottom-left creature lower-third.
-  const lowerThird = document.createElement("div")
-  lowerThird.className = "lower-third"
-  const nameRow = document.createElement("div")
-  nameRow.className = "creature-name-row"
+  // Bottom-left creature lower-third (broadcast kit plate).
+  const lowerThird = plate({ className: "creature-plate" })
+  // The creature head doubles as the collapse toggle: clicking it folds
+  // the plate down to just the head row (crest + name + stage), leaving
+  // the briefest useful readout pinned to the corner.
+  const creatureHead = document.createElement("button")
+  creatureHead.className = "creature-head"
+  creatureHead.type = "button"
+  creatureHead.setAttribute("aria-expanded", "true")
+  creatureHead.title = "Collapse panel"
+  const crestEl = crest("fire")
   const creatureName = document.createElement("span")
   creatureName.className = "creature-name"
-  const elementBadge = document.createElement("span")
-  elementBadge.className = "element-badge"
-  const stageBadge = document.createElement("span")
-  stageBadge.className = "stage-badge"
-  stageBadge.title = "Life stage"
-  nameRow.append(creatureName, elementBadge, stageBadge)
+  const stageTab = tab("Baby", "stage")
+  const creatureChev = document.createElement("span")
+  creatureChev.className = "collapse-chev"
+  creatureChev.innerHTML = icons.chevron
+  creatureHead.append(crestEl, creatureName, stageTab, creatureChev)
 
-  const bars: Array<{
-    row: HTMLElement
-    fill: HTMLElement
-    value: HTMLElement
-    key: keyof CreatureConditions
-  }> = []
+  // Rename affordance: a sibling button (never nested inside the collapse
+  // toggle) that swaps the head row for an inline edit form.
+  const renameButton = document.createElement("button")
+  renameButton.className = "rename-button"
+  renameButton.type = "button"
+  renameButton.title = "Rename partner"
+  renameButton.setAttribute("aria-label", "Rename partner")
+  renameButton.innerHTML = icons.pencil
+  const headRow = document.createElement("div")
+  headRow.className = "creature-headrow"
+  headRow.append(creatureHead, renameButton)
+
+  // Inline edit form: name input + confirm/cancel. Hidden until the
+  // pencil is pressed; Enter confirms, Escape cancels.
+  const nameInput = document.createElement("input")
+  nameInput.className = "creature-name-input"
+  nameInput.type = "text"
+  nameInput.maxLength = 16
+  nameInput.setAttribute("aria-label", "Creature name")
+  const renameConfirm = document.createElement("button")
+  renameConfirm.className = "kit-button rename-confirm"
+  renameConfirm.type = "button"
+  renameConfirm.textContent = "Save"
+  renameConfirm.setAttribute("aria-label", "Save name")
+  const renameCancel = document.createElement("button")
+  renameCancel.className = "kit-button rename-cancel"
+  renameCancel.type = "button"
+  renameCancel.textContent = "Cancel"
+  renameCancel.setAttribute("aria-label", "Cancel rename")
+  const editRow = document.createElement("div")
+  editRow.className = "creature-name-edit"
+  editRow.style.display = "none"
+  editRow.append(nameInput, renameConfirm, renameCancel)
+
   const statRow = document.createElement("div")
   statRow.className = "stat-row"
   const statCells = STATS.map(({ key, label }) => {
@@ -265,126 +393,264 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     const total = document.createElement("span")
     total.className = "stat-total"
     const bonus = document.createElement("span")
-    bonus.className = "stat-bonus"
+    bonus.className = "stat-chip"
     cell.append(statLabel, total, bonus)
     statRow.append(cell)
     return { total, bonus, key }
   })
-  const barList = document.createElement("div")
-  barList.className = "condition-bars"
-  for (const def of CONDITIONS) {
-    const row = document.createElement("div")
-    row.className = "condition-row"
-    const label = document.createElement("span")
-    label.className = "condition-label"
-    label.textContent = def.label
-    const track = document.createElement("div")
-    track.className = "condition-track"
-    const fill = document.createElement("div")
-    fill.className = `condition-fill ${def.className}`
-    track.append(fill)
-    const value = document.createElement("span")
-    value.className = "condition-value"
-    row.append(label, track, value)
-    barList.append(row)
-    bars.push({ row, fill, value, key: def.key })
-  }
-  const status = document.createElement("div")
-  status.className = "status-callout"
-  status.setAttribute("aria-live", "polite")
-  lowerThird.append(nameRow, statRow, barList, status)
+  const conditionList = document.createElement("div")
+  conditionList.className = "condition-list"
+  const bars: Array<{
+    handle: ReturnType<typeof bar>
+    delta: HTMLElement
+    key: keyof CreatureConditions
+    prev: number | null
+  }> = CONDITIONS.map((def) => {
+    const handle = bar({
+      label: def.label,
+      glyph: def.glyph,
+      value: 0,
+      max: 100,
+      color: def.color,
+    })
+    // Transient change chip: pinned next to the value for ~1.2s on a
+    // meaningful swing, then hidden again (mock "bar change feedback").
+    const delta = document.createElement("em")
+    delta.className = "condition-delta"
+    delta.style.display = "none"
+    handle.value.append(delta)
+    conditionList.append(handle.root)
+    return { handle, delta, key: def.key, prev: null }
+  })
+  const statusTicker = ticker()
+  // Hardening: the announcer strip is live region (screen readers hear
+  // routine callouts without focus).
+  statusTicker.root.setAttribute("aria-live", "polite")
+  lowerThird.append(headRow, editRow, statRow, conditionList, statusTicker.root)
 
-  // Bottom-right action cluster.
-  const cluster = document.createElement("div")
-  cluster.className = "action-cluster"
-  const actionRow = document.createElement("div")
-  actionRow.className = "action-row"
-  const actionButtons = ACTIONS.map(({ action, label }) => {
-    const button = document.createElement("button")
-    button.className = "care-button"
-    button.type = "button"
-    const name = document.createElement("span")
-    name.textContent = label
-    const cost = document.createElement("span")
-    cost.className = "ap-cost"
-    cost.textContent = "1 AP"
-    const reason = document.createElement("span")
-    reason.className = "action-reason"
-    button.append(name, cost, reason)
-    button.addEventListener("click", () => handlers.onCare(action))
-    actionRow.append(button)
-    return { button, reason, action }
+  // Bottom-right command dock (broadcast kit plate). A slim header row
+  // doubles as the collapse toggle; collapsed, only the "ACTIONS" label
+  // remains pinned to the corner.
+  const cluster = plate({ className: "command-dock" })
+  const dockHead = document.createElement("button")
+  dockHead.className = "dock-head"
+  dockHead.type = "button"
+  dockHead.setAttribute("aria-expanded", "true")
+  dockHead.title = "Collapse panel"
+  const dockHeadLabel = document.createElement("span")
+  dockHeadLabel.textContent = "Actions"
+  const dockChev = document.createElement("span")
+  dockChev.className = "collapse-chev"
+  dockChev.innerHTML = icons.chevron
+  dockHead.append(dockHeadLabel, dockChev)
+  const dockRow = document.createElement("div")
+  dockRow.className = "dock-row"
+  const actionButtons = ACTIONS.map(({ action, label, glyph }) => {
+    const btn = button({
+      label,
+      glyph,
+      cost: "1 AP",
+      onClick: () => handlers.onCare(action),
+    })
+    dockRow.append(btn)
+    return { button: btn, action }
   })
   // Train control and its inline four-stat picker. Opening or closing
   // the picker spends nothing — only an assignment can.
-  const trainRow = document.createElement("div")
-  trainRow.className = "train-row"
-  const trainButton = document.createElement("button")
-  trainButton.className = "care-button"
-  trainButton.type = "button"
-  const trainName = document.createElement("span")
-  trainName.textContent = "Train"
-  const trainCost = document.createElement("span")
-  trainCost.className = "ap-cost"
-  trainCost.textContent = "1 AP"
-  const trainReason = document.createElement("span")
-  trainReason.className = "action-reason"
-  trainButton.append(trainName, trainCost, trainReason)
-  trainRow.append(trainButton)
+  const dockTrain = document.createElement("div")
+  dockTrain.className = "dock-train"
+  const trainButton = button({
+    label: "Train",
+    glyph: icons.train,
+    cost: "1 AP",
+    tag: "",
+  })
+  const trainTag = trainButton.querySelector<HTMLElement>(".kit-button-tag")
+  dockTrain.append(trainButton)
 
   const picker = document.createElement("div")
   picker.className = "train-picker"
   picker.style.display = "none"
   const pickerButtons = STATS.map(({ key, label }) => {
-    const button = document.createElement("button")
-    button.className = "train-entry"
-    button.type = "button"
+    const entry = document.createElement("button")
+    entry.className = "train-entry"
+    entry.type = "button"
     const name = document.createElement("span")
     name.className = "train-entry-name"
     name.textContent = label
     const note = document.createElement("span")
     note.className = "train-note"
-    button.append(name, note)
-    button.addEventListener("click", () => {
+    entry.append(name, note)
+    entry.addEventListener("click", () => {
       pickerOpen = false
       handlers.onTrain(key)
     })
-    picker.append(button)
-    return { button, note, key }
+    picker.append(entry)
+    return { button: entry, note, key }
   })
-  const advance = document.createElement("button")
-  advance.className = "advance-button"
-  advance.type = "button"
-  advance.textContent = "Advance Day"
-  advance.addEventListener("click", handlers.onAdvanceDay)
-  cluster.append(actionRow, trainRow, picker, advance)
+  const advance = cta("Advance Day", handlers.onAdvanceDay)
+  const advanceLabel = advance.querySelector<HTMLElement>(".kit-cta-label")
+  cluster.append(dockHead, dockRow, dockTrain, picker, advance)
 
-  // Settings pill (save v5): one toggle mirrors the reduced-motion
+  // Settings chip (save v5): one toggle mirrors the reduced-motion
   // preference. Persists through the main.ts handler like every other
   // sim change; the arena and ranch scene read it live.
-  const motionPill = document.createElement("button")
-  motionPill.className = "motion-pill"
-  motionPill.type = "button"
-  const motionState = document.createElement("span")
-  motionState.className = "motion-pill-state"
-  motionPill.addEventListener("click", handlers.onToggleReducedMotion)
-  motionPill.append(motionState)
+  const motionChip = chip({
+    label: "Motion: full",
+    variant: "dim",
+    onClick: handlers.onToggleReducedMotion,
+  })
+  const motionWrap = document.createElement("div")
+  motionWrap.className = "hud-motion"
+  motionWrap.append(motionChip)
 
-  // Camera pill (save v7): the arena presentation toggle — cinematic
+  // Camera chip (save v9): the arena presentation toggle - cinematic
   // director or fixed broadcast framing.
-  const cameraPill = document.createElement("button")
-  cameraPill.className = "motion-pill camera-pill"
-  cameraPill.type = "button"
-  const cameraState = document.createElement("span")
-  cameraState.className = "motion-pill-state"
-  cameraPill.addEventListener("click", handlers.onToggleArenaCamera)
-  cameraPill.append(cameraState)
+  const cameraChip = chip({
+    label: "Camera: cinematic",
+    variant: "dim",
+    onClick: handlers.onToggleArenaCamera,
+  })
+  cameraChip.classList.add("camera-chip")
+  motionWrap.append(cameraChip)
+  // New game (save v7 QoL): a quiet chip beside the motion toggle. The
+  // confirm modal does the scary part — one deliberate click, not a misclick.
+  const resetChip = chip({
+    label: "New game",
+    variant: "dim",
+    onClick: () => {
+      resetModal.style.display = ""
+      resetConfirm.focus()
+    },
+  })
+  motionWrap.append(resetChip)
 
-  root.append(dayChip, lowerThird, cluster, motionPill, cameraPill)
+  const resetModal = document.createElement("div")
+  resetModal.className = "kit-modal"
+  resetModal.style.display = "none"
+  resetModal.setAttribute("role", "dialog")
+  resetModal.setAttribute("aria-modal", "true")
+  const resetBox = document.createElement("div")
+  resetBox.className = "kit-plate kit-modal-box"
+  const resetTitle = document.createElement("h2")
+  resetTitle.className = "kit-modal-title"
+  resetTitle.textContent = "Start a fresh ranch?"
+  const resetText = document.createElement("p")
+  resetText.className = "kit-modal-text"
+  resetText.textContent =
+    "This partner, their training, and every cup win will be gone for good."
+  const resetActions = document.createElement("div")
+  resetActions.className = "kit-modal-actions"
+  const resetCancel = chip({
+    label: "Keep playing",
+    variant: "dim",
+    onClick: () => {
+      resetModal.style.display = "none"
+    },
+  })
+  const resetConfirm = document.createElement("button")
+  resetConfirm.className = "kit-button kit-button-danger"
+  resetConfirm.type = "button"
+  resetConfirm.textContent = "Start over"
+  resetActions.append(resetCancel, resetConfirm)
+  resetBox.append(resetTitle, resetText, resetActions)
+  resetModal.append(resetBox)
+  resetConfirm.addEventListener("click", () => {
+    resetModal.style.display = "none"
+    handlers.onReset()
+  })
+  // Escape backs out; a backdrop click means "not today". The focus trap
+  // keeps Tab inside the dialog — the scrim hides the page, so focus
+  // wandering into it would be invisible.
+  const trapFocus = (event: KeyboardEvent): void => {
+    if (event.key !== "Tab") return
+    const focusable = resetBox.querySelectorAll<HTMLElement>(
+      "button, [href], input",
+    )
+    if (focusable.length === 0) return
+    const first = focusable[0] as HTMLElement
+    const last = focusable[focusable.length - 1] as HTMLElement
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault()
+      first.focus()
+    }
+  }
+  resetModal.addEventListener("keydown", (event) => {
+    trapFocus(event)
+    if (event.key === "Escape") resetModal.style.display = "none"
+  })
+  resetModal.addEventListener("click", (event) => {
+    if (event.target === resetModal) resetModal.style.display = "none"
+  })
+
+  // Onboarding callouts (save v7): coach-voice nudges that appear once at
+  // the moment they matter, then never again — dismissal persists in
+  // settings.seenHints. First match wins (the precedence order below is
+  // the teaching order: AP first, kit depth second, cup last).
+  let shownHintId: string | null = null
+  const HINTS: Array<{
+    id: string
+    when: (state: GameState) => boolean
+    text: string
+  }> = [
+    {
+      id: "ap-basics",
+      when: (s) => s.phase === "day" && s.day === 1 && s.creature !== null,
+      text: "Three action points a day — feed, rest, treat, play. Spend them like they matter.",
+    },
+    {
+      id: "training-tier",
+      when: (s) => s.phase === "day" && s.day === 5 && s.creature !== null,
+      text: "Training focus sticks between days, and the kit keeps growing — one more move unlocks tomorrow.",
+    },
+    {
+      id: "cup-eve",
+      when: (s) => s.phase === "day" && s.day % 7 === 6 && s.creature !== null,
+      text: "Cup day is tomorrow. The bracket takes your partner as they are — spend today wisely.",
+    },
+    {
+      // Bronze ladder top (save v8): one-time coach line setting up the
+      // Silver division (Phase 2) without shipping it.
+      id: "silver-awaits",
+      when: (s) =>
+        s.creature !== null && s.ladder.subTier === "I" && s.ladder.points > 0,
+      text: "You've topped Bronze — the Silver division awaits. Keep banking cup wins; the climb continues soon.",
+    },
+  ]
+  const callout = document.createElement("div")
+  callout.className = "kit-plate hud-callout"
+  callout.style.display = "none"
+  const calloutText = document.createElement("p")
+  calloutText.className = "hud-callout-text"
+  const calloutOk = chip({
+    label: "Got it",
+    variant: "accent",
+    onClick: () => {
+      if (shownHintId) handlers.onHintSeen(shownHintId)
+      shownHintId = null
+      callout.style.display = "none"
+    },
+  })
+  callout.append(calloutText, calloutOk)
+  root.append(scoreBug, lowerThird, cluster, motionWrap, resetModal, callout)
 
   let pickerOpen = false
   let lastFocus: StatKey | null = null
   let current: GameState | null = null
+  // Corner clusters collapse by clicking their headers (session-only:
+  // always expanded on load).
+  let creatureOpen = true
+  let dockOpen = true
+  // Previous AP total — drives the one-shot spend flash on the meter.
+  let prevAp: number | null = null
+  // Ladder climb detection: the ticker announces a sub-tier promotion
+  // exactly once, the update after the cup finalize that caused it.
+  let prevLadderSubTier: string | null = null
+  let climbLine: string | null = null
+  let apPips = apMeter.pips
 
   // Toggling the picker spends nothing — render only.
   trainButton.addEventListener("click", () => {
@@ -392,63 +658,177 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     if (current) update(current)
   })
 
-  /** Mirror the motion and camera preferences onto the settings pills. */
+  creatureHead.addEventListener("click", () => {
+    creatureOpen = !creatureOpen
+    lowerThird.classList.toggle("is-collapsed", !creatureOpen)
+    creatureHead.setAttribute("aria-expanded", creatureOpen ? "true" : "false")
+  })
+
+  // Rename flow: pencil opens the inline edit, Enter/click confirms,
+  // Escape/cancel backs out. A sim rejection (mid-cup) coaches and stays.
+  let renaming = false
+  const openRename = () => {
+    if (!current?.creature || current.phase === "cup") return
+    renaming = true
+    nameInput.value = current.creature.name
+    headRow.style.display = "none"
+    editRow.style.display = ""
+    nameInput.focus()
+    nameInput.select()
+  }
+  const closeRename = () => {
+    renaming = false
+    editRow.style.display = "none"
+    headRow.style.display = ""
+  }
+  const confirmRename = () => {
+    if (!current) return
+    if (handlers.onRename(nameInput.value)) closeRename()
+    else statusTicker.say("Renaming waits until the cup is done.")
+  }
+  renameButton.addEventListener("click", openRename)
+  renameCancel.addEventListener("click", closeRename)
+  renameConfirm.addEventListener("click", confirmRename)
+  nameInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") confirmRename()
+    if (event.key === "Escape") closeRename()
+  })
+
+  dockHead.addEventListener("click", () => {
+    dockOpen = !dockOpen
+    if (!dockOpen) pickerOpen = false
+    cluster.classList.toggle("is-collapsed", !dockOpen)
+    dockHead.setAttribute("aria-expanded", dockOpen ? "true" : "false")
+    if (current) update(current)
+  })
+
+  /** Mirror the motion and camera preferences onto the settings chips. */
   function capturePrefUpdate(state: GameState): void {
-    motionPill.setAttribute(
+    motionChip.setAttribute(
       "aria-pressed",
       state.settings.reducedMotion ? "true" : "false",
     )
-    motionPill.classList.toggle("is-on", state.settings.reducedMotion)
-    motionState.textContent = state.settings.reducedMotion
-      ? "Motion: reduced"
-      : "Motion: full"
+    const label = motionChip.querySelector<HTMLElement>(".kit-chip-label")
+    if (label) {
+      label.textContent = state.settings.reducedMotion
+        ? "Motion: reduced"
+        : "Motion: full"
+    }
     const cinematic = state.settings.arenaCamera === "cinematic"
-    cameraPill.setAttribute("aria-pressed", cinematic ? "true" : "false")
-    cameraPill.classList.toggle("is-on", cinematic)
-    cameraState.textContent = cinematic
-      ? "Camera: cinematic"
-      : "Camera: broadcast"
+    cameraChip.setAttribute("aria-pressed", cinematic ? "true" : "false")
+    const cameraLabel = cameraChip.querySelector<HTMLElement>(".kit-chip-label")
+    if (cameraLabel) {
+      cameraLabel.textContent = cinematic
+        ? "Camera: cinematic"
+        : "Camera: broadcast"
+    }
   }
 
   const update = (state: GameState): void => {
     current = state
-    dayReadout.textContent = `Day ${state.day} · ${
-      state.phase === "cup" ? "Cup day" : "Day phase"
-    }`
-    const filled = "●".repeat(state.actionPoints)
-    const maxAp = Math.max(ACTION_POINTS_PER_DAY, state.actionPoints)
-    const empty = "○".repeat(Math.max(0, maxAp - state.actionPoints))
-    apRow.textContent = `AP ${filled}${empty}`
-    // Championship banner: one 🏆 per cup won. Hidden at zero.
-    banner.textContent = "🏆".repeat(Math.min(5, state.cupsWon))
-    banner.style.display = state.cupsWon > 0 ? "" : "none"
-    advance.textContent =
-      state.phase === "cup" ? "Continue past cup" : "Advance Day"
+    // Score bug: the phase tab flips to accent gold on cup day.
+    const cupDay = state.phase === "cup"
+    phaseTab.textContent = cupDay ? "Cup day" : "Day phase"
+    phaseTab.className = cupDay ? "kit-tab" : "kit-tab is-outline"
+    dayNum.textContent = String(state.day)
+
+    // AP segmented meter. Cup bonus points extend past the daily max as
+    // chevron-cut bonus pips; a fresh spend flashes the drained pip out.
+    const bonus = Math.max(0, state.actionPoints - ACTION_POINTS_PER_DAY)
+    const clamped = Math.min(state.actionPoints, ACTION_POINTS_PER_DAY)
+    const wantPips = ACTION_POINTS_PER_DAY + bonus
+    if (apPips.length !== wantPips) {
+      const rebuilt = meter(clamped, ACTION_POINTS_PER_DAY, bonus)
+      apMeter.root.replaceChildren(...rebuilt.pips)
+      apPips = rebuilt.pips
+    }
+    const flash =
+      prevAp === null ? null : spendFlashIndex(prevAp, state.actionPoints)
+    apPips.forEach((pip, i) => {
+      pip.classList.toggle("is-bonus", i >= ACTION_POINTS_PER_DAY)
+      pip.classList.toggle("is-empty", i >= clamped)
+      pip.classList.toggle("is-spent", i === flash)
+    })
+    prevAp = state.actionPoints
+
+    // Championship tally: designed overflow — "× N" scales to any count.
+    trophyCount.textContent = `× ${state.cupsWon}`
+    trophy.style.display = state.cupsWon > 0 ? "" : "none"
+
+    // Bronze ladder standing (save v8). Below the top the read is
+    // progress-to-next (4/6); at Bronze I the points are banked toward
+    // Silver (Phase 2), so the raw total is the honest number.
+    const ladder = state.ladder
+    rankRank.textContent = `Bronze ${ladder.subTier}`
+    const nextThreshold =
+      ladder.subTier === "III"
+        ? LADDER_THRESHOLDS.bronzeII
+        : LADDER_THRESHOLDS.bronzeI
+    const nextTier = ladder.subTier === "III" ? "II" : "I"
+    if (ladder.subTier === "I") {
+      rankPts.textContent = `${ladder.points} pts`
+      rank.setAttribute(
+        "aria-label",
+        `League standing: Bronze I, ${ladder.points} points banked`,
+      )
+    } else {
+      rankPts.textContent = `${ladder.points}/${nextThreshold}`
+      rank.setAttribute(
+        "aria-label",
+        `League standing: Bronze ${ladder.subTier}, ${ladder.points} of ${nextThreshold} points toward Bronze ${nextTier}`,
+      )
+    }
+    if (prevLadderSubTier !== null && ladder.subTier !== prevLadderSubTier) {
+      climbLine = `Promotion — Bronze ${ladder.subTier}!`
+      replay(rank, "chip-pop")
+    }
+    prevLadderSubTier = ladder.subTier
+    if (advanceLabel) {
+      advanceLabel.textContent =
+        state.phase === "cup" ? "Continue past cup" : "Advance Day"
+    }
 
     const creature = state.creature
     if (!creature) {
-      // Pre-starter: day chip + settings pill are the meaningful bits.
+      // Pre-starter: score bug + settings pill are the meaningful bits.
       lowerThird.style.display = "none"
-      actionRow.style.display = "none"
-      trainRow.style.display = "none"
+      dockRow.style.display = "none"
+      dockTrain.style.display = "none"
       picker.style.display = "none"
-      status.textContent = ""
-      motionPill.style.display = ""
+      statusTicker.say("")
+      motionWrap.style.display = ""
       capturePrefUpdate(state)
       return
     }
     capturePrefUpdate(state)
     lowerThird.style.display = ""
-    actionRow.style.display = ""
-    trainRow.style.display = ""
+    dockRow.style.display = ""
+    dockTrain.style.display = ""
 
     // The creature carries its own identity; the species catalog is only
     // needed for starter-card display.
+    crestEl.innerHTML = crestGlyph(creature.element)
+    crestEl.style.setProperty("--hue", String(elementHue(creature.element)))
     creatureName.textContent = creature.name
-    elementBadge.textContent = creature.element
-    elementBadge.className = `element-badge el-${creature.element}`
-    stageBadge.textContent = stageLabel(creature.stage)
-    stageBadge.className = `stage-badge is-${creature.stage}`
+    // Rename is a day-phase affordance; mid-cup the pencil hides and an
+    // open editor folds away (the sim would reject anyway).
+    renameButton.style.display = state.phase === "cup" ? "none" : ""
+    if (renaming && state.phase === "cup") closeRename()
+
+    // Onboarding callout: the first unseen hint whose moment is now.
+    // Dismissal persists through the sim, so a hint never asks twice.
+    const seen = new Set(state.settings.seenHints)
+    const active = HINTS.find((h) => h.when(state) && !seen.has(h.id))
+    if (active && active.id !== shownHintId) {
+      shownHintId = active.id
+      calloutText.textContent = active.text
+      callout.style.display = ""
+    } else if (!active && shownHintId !== null) {
+      shownHintId = null
+      callout.style.display = "none"
+    }
+    stageTab.textContent = stageLabel(creature.stage)
+    stageTab.className = "kit-tab is-stage"
 
     // Stat row: name, total (rolled base + trained), bonus when above 0.
     for (const cell of statCells) {
@@ -466,16 +846,25 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     )
     if (allCapped) {
       trainButton.disabled = true
-      trainReason.textContent = "Nothing left to train for now."
+      trainButton.classList.add("is-disabled")
+      trainButton.dataset.reason = "Nothing left to train for now."
+      if (trainTag) trainTag.textContent = ""
     } else if (state.actionPoints === 0 && !creature.trainingFocus) {
       trainButton.disabled = true
-      trainReason.textContent = REJECTION_COPY["no-ap"]
+      trainButton.classList.add("is-disabled")
+      trainButton.dataset.reason = REJECTION_COPY["no-ap"]
+      if (trainTag) trainTag.textContent = ""
     } else {
       trainButton.disabled = false
-      trainReason.textContent = creature.trainingFocus
-        ? `Focus: ${statLabel(creature.trainingFocus)}`
-        : ""
+      trainButton.classList.remove("is-disabled")
+      delete trainButton.dataset.reason
+      if (trainTag) {
+        trainTag.textContent = creature.trainingFocus
+          ? `Focus: ${statLabel(creature.trainingFocus)}`
+          : ""
+      }
     }
+    trainButton.classList.toggle("is-focus", Boolean(creature.trainingFocus))
 
     // Picker entries: tonight's delta, or the waste reason. Capped stats
     // are disabled; the current focus is marked.
@@ -483,6 +872,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     for (const entry of pickerButtons) {
       const capped = creature.trained[entry.key] >= TRAINING_CAP
       entry.button.disabled = capped
+      entry.button.classList.toggle("is-capped", capped)
       entry.button.classList.toggle(
         "is-focus",
         creature.trainingFocus === entry.key,
@@ -503,27 +893,47 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
 
     for (const bar of bars) {
       const v = creature.conditions[bar.key]
-      bar.fill.style.width = `${v}%`
-      bar.value.textContent = String(v)
+      bar.handle.set(v, 100)
+      const swing = bar.prev === null ? 0 : v - bar.prev
+      if (Math.abs(swing) >= 2) {
+        replay(bar.handle.fill, "is-flashing")
+        bar.delta.textContent = `${swing > 0 ? "+" : "−"}${Math.abs(swing)}`
+        bar.delta.style.display = ""
+        replay(bar.delta, "chip-pop")
+      } else {
+        bar.delta.style.display = "none"
+      }
+      bar.prev = v
+      bar.handle.fill.classList.toggle("is-low", v <= 25)
     }
-    const training = trainingStatus(creature, lastFocus)
-    status.textContent =
-      training ||
-      coachVoice(creature.conditions, creature.name) ||
-      unlockCallout(creature) ||
-      growthHint(state.day, creature) ||
-      flavorCallout(creature)
+    // A ladder promotion outranks routine chatter for one update —
+    // consumed here so the next routine line resumes the chain. (The
+    // ticker holds its last line until the next update, so the promotion
+    // stays visible after the cup overlay closes.)
+    const climb = climbLine
+    climbLine = null
+    statusTicker.say(
+      climb ||
+        trainingStatus(creature, lastFocus) ||
+        coachVoice(creature.conditions, creature.name) ||
+        unlockCallout(creature) ||
+        growthHint(state.day, creature) ||
+        flavorCallout(creature),
+    )
 
     // Disabled states come from the sim itself — a dry-run careAction is
-    // the single source of truth for why an action can't happen.
+    // the single source of truth for why an action can't happen. The
+    // reason explains on hover (kit tooltip), never inside the plate.
     for (const entry of actionButtons) {
       const result = careAction(state, entry.action)
       if (result.ok) {
         entry.button.disabled = false
-        entry.reason.textContent = ""
+        entry.button.classList.remove("is-disabled")
+        delete entry.button.dataset.reason
       } else {
         entry.button.disabled = true
-        entry.reason.textContent = REJECTION_COPY[result.reason]
+        entry.button.classList.add("is-disabled")
+        entry.button.dataset.reason = REJECTION_COPY[result.reason]
       }
     }
 
@@ -538,10 +948,10 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   return {
     update,
     announceEvolution(creature) {
-      status.textContent = evolveCallout(creature)
+      statusTicker.say(evolveCallout(creature))
     },
     announceSaveFailure() {
-      status.textContent = saveFailureNotice()
+      statusTicker.say(saveFailureNotice())
     },
   }
 }

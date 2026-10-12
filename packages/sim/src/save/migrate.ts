@@ -1,5 +1,7 @@
 import { isCupDay } from "../calendar"
 import { createCreature, TRAINED_START } from "../creature"
+import type { CupSession } from "../cup"
+import { initialLadder } from "../ladder"
 import type { GameState } from "../state"
 import { ACTION_POINTS_PER_DAY } from "../state"
 import { SAVE_VERSION, type SaveData } from "./schema"
@@ -82,9 +84,16 @@ const migrations: Record<
       phase: isCupDay(day) ? "cup" : "day",
       actionPoints: ACTION_POINTS_PER_DAY,
       creature: null,
-      settings: { reducedMotion: false, arenaCamera: "cinematic" },
+      settings: {
+        reducedMotion: false,
+        seenHints: [],
+        arenaCamera: "cinematic",
+      },
       cupsWon: 0,
       lastCupDay: null,
+      // The ladder starts fresh for every migrated save (bronze ladder,
+      // no-backfill decision): cups already won are history.
+      ladder: initialLadder(),
     }
     return { version: 1, state, savedAt: 0 }
   },
@@ -98,9 +107,16 @@ const migrations: Record<
       phase,
       actionPoints,
       creature: createCreature("fire_drake", STARTER_GRANT_SEED),
-      settings: { reducedMotion: false, arenaCamera: "cinematic" },
+      settings: {
+        reducedMotion: false,
+        seenHints: [],
+        arenaCamera: "cinematic",
+      },
       cupsWon: 0,
       lastCupDay: null,
+      // The ladder starts fresh for every migrated save (bronze ladder,
+      // no-backfill decision): cups already won are history.
+      ladder: initialLadder(),
     }
     return { version: 2, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -123,9 +139,16 @@ const migrations: Record<
       phase,
       actionPoints,
       creature,
-      settings: { reducedMotion: false, arenaCamera: "cinematic" },
+      settings: {
+        reducedMotion: false,
+        seenHints: [],
+        arenaCamera: "cinematic",
+      },
       cupsWon: 0,
       lastCupDay: null,
+      // The ladder starts fresh for every migrated save (bronze ladder,
+      // no-backfill decision): cups already won are history.
+      ladder: initialLadder(),
     }
     return { version: 3, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -152,9 +175,16 @@ const migrations: Record<
       phase,
       actionPoints,
       creature,
-      settings: { reducedMotion: false, arenaCamera: "cinematic" },
+      settings: {
+        reducedMotion: false,
+        seenHints: [],
+        arenaCamera: "cinematic",
+      },
       cupsWon: 0,
       lastCupDay: null,
+      // The ladder starts fresh for every migrated save (bronze ladder,
+      // no-backfill decision): cups already won are history.
+      ladder: initialLadder(),
     }
     return { version: 4, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -169,7 +199,7 @@ const migrations: Record<
     const settings =
       s.settings !== undefined && s.settings !== null
         ? (s.settings as GameState["settings"])
-        : { reducedMotion: false }
+        : { reducedMotion: false, seenHints: [] }
     const creature =
       s.creature !== null && s.creature !== undefined
         ? (s.creature as GameState["creature"])
@@ -182,6 +212,9 @@ const migrations: Record<
       settings: { ...settings, arenaCamera: "cinematic" },
       cupsWon: 0,
       lastCupDay: null,
+      // The ladder starts fresh for every migrated save (bronze ladder,
+      // no-backfill decision): cups already won are history.
+      ladder: initialLadder(),
     }
     return { version: 5, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -205,32 +238,112 @@ const migrations: Record<
       settings: s.settings as GameState["settings"],
       cupsWon: s.cupsWon as GameState["cupsWon"],
       lastCupDay: s.lastCupDay as GameState["lastCupDay"],
+      // The ladder starts fresh for every migrated save (bronze ladder,
+      // no-backfill decision): cups already won are history.
+      ladder: initialLadder(),
     }
     return { version: 6, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
 
-  // v6 → v7: saves from before the camera director have no arena-camera
-  // preference. Stamp the cinematic default: the director is the intended
-  // presentation, and reduced-motion players are pinned to the broadcast
-  // feel at render time regardless of this value.
+  // v6 → v7 (merged migration, save-safety track): saves gain the persisted
+  // cup-session slot (null — a migrated save never has a live session) and
+  // a clean onboarding hint ledger in settings. A v6 payload's settings
+  // predate the ledger, so stamp it here; reducedMotion is forwarded
+  // unchanged so corrupt values still fail load-time validation (the same
+  // gate the v5→v6 flow relies on).
   6: (raw) => {
     const { day, phase, actionPoints, state: s } = validateStateShape(raw, 6)
-    // Repair instead of reject: a corrupt v6 settings block still becomes
-    // a valid v7 save (the v4 step established this leniency).
-    const settings =
+    const rawSettings =
       s.settings !== undefined && s.settings !== null
-        ? (s.settings as GameState["settings"])
-        : { reducedMotion: false }
+        ? (s.settings as Record<string, unknown>)
+        : {}
+    const seenHints = Array.isArray(rawSettings.seenHints)
+      ? (rawSettings.seenHints as unknown[]).filter(
+          (hint): hint is string => typeof hint === "string",
+        )
+      : []
     const migrated: GameState = {
       day,
       phase,
       actionPoints,
       creature: s.creature as GameState["creature"],
-      settings: { ...settings, arenaCamera: "cinematic" },
+      settings: {
+        reducedMotion:
+          rawSettings.reducedMotion as GameState["settings"]["reducedMotion"],
+        seenHints,
+        // Stamped early so the intermediate GameState literal type-checks;
+        // the v8 → v9 step below stamps it again for direct v8 saves.
+        arenaCamera: "cinematic",
+      },
       cupsWon: s.cupsWon as GameState["cupsWon"],
       lastCupDay: s.lastCupDay as GameState["lastCupDay"],
+      // The ladder starts fresh for every migrated save (bronze ladder,
+      // no-backfill decision): cups already won are history.
+      ladder: initialLadder(),
     }
-    return { version: 7, state: migrated, savedAt: raw.savedAt ?? 0 }
+    return {
+      version: 7,
+      state: migrated,
+      savedAt: raw.savedAt ?? 0,
+      session: null,
+    }
+  },
+
+  // v7 → v8 (bronze ladder track): saves gain the ladder slice. The
+  // no-backfill decision stamps a fresh ladder (0 points, Bronze III) for
+  // every migrated save — cups already won are history, the ladder starts
+  // with the tier it will climb.
+  7: (raw) => {
+    const { day, phase, actionPoints, state: s } = validateStateShape(raw, 7)
+    const migrated: GameState = {
+      day,
+      phase,
+      actionPoints,
+      creature: s.creature as GameState["creature"],
+      settings: s.settings as GameState["settings"],
+      cupsWon: s.cupsWon as GameState["cupsWon"],
+      lastCupDay: s.lastCupDay as GameState["lastCupDay"],
+      // Always fresh: a hand-edited or future ladder value in a v7 payload
+      // cannot smuggle points past the migration gate.
+      ladder: initialLadder(),
+    }
+    return {
+      version: 8,
+      state: migrated,
+      savedAt: raw.savedAt ?? 0,
+      // The live cup session predates this step (save v7) and is forwarded
+      // untouched — the ladder migration only adds a fresh ladder slice.
+      session: (raw.session as CupSession | null) ?? null,
+    }
+  },
+
+  // v8 → v9 (merged migration, battle-animation track): saves from before
+  // the camera director have no arena-camera preference. Stamp the
+  // cinematic default: the director is the intended presentation, and
+  // reduced-motion players are pinned to the broadcast feel at render time
+  // regardless of this value. Ladder and cup session predate this step and
+  // are forwarded untouched.
+  8: (raw) => {
+    const { day, phase, actionPoints, state: s } = validateStateShape(raw, 8)
+    const migrated: GameState = {
+      day,
+      phase,
+      actionPoints,
+      creature: s.creature as GameState["creature"],
+      settings: {
+        ...(s.settings as GameState["settings"]),
+        arenaCamera: "cinematic",
+      },
+      cupsWon: s.cupsWon as GameState["cupsWon"],
+      lastCupDay: s.lastCupDay as GameState["lastCupDay"],
+      ladder: s.ladder as GameState["ladder"],
+    }
+    return {
+      version: 9,
+      state: migrated,
+      savedAt: raw.savedAt ?? 0,
+      session: (raw.session as CupSession | null) ?? null,
+    }
   },
 }
 /**

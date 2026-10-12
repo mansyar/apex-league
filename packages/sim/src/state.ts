@@ -4,6 +4,7 @@
  */
 
 import { type Creature, createCreature } from "./creature"
+import { initialLadder, type LadderState } from "./ladder"
 
 /** Top-level game phases: the day loop and the cup-day loop. */
 export type Phase = "day" | "cup"
@@ -16,7 +17,12 @@ export interface GameSettings {
    */
   reducedMotion: boolean
   /**
-   * Arena camera presentation (save v7): "cinematic" drives the battle
+   * Dismissed onboarding hint ids (save v7). Each first-day callout shows
+   * once, then records its id here so it never nags again.
+   */
+  seenHints: string[]
+  /**
+   * Arena camera presentation (save v9): "cinematic" drives the battle
    * through the shot-grammar director, "broadcast" pins the fixed wide
    * framing. Reduced motion always forces the broadcast feel at render
    * time regardless of this preference.
@@ -43,6 +49,8 @@ export interface GameState {
   cupsWon: number
   /** The last cup day the player entered, if any (save v5). */
   lastCupDay: number | null
+  /** The Bronze ladder slice: points + sub-tier (save v8). */
+  ladder: LadderState
 }
 
 /** Action points granted at the start of each day. Stub value for Phase 0. */
@@ -55,9 +63,10 @@ export function createInitialState(): GameState {
     phase: "day",
     actionPoints: ACTION_POINTS_PER_DAY,
     creature: null,
-    settings: { reducedMotion: false, arenaCamera: "cinematic" },
+    settings: { reducedMotion: false, seenHints: [], arenaCamera: "cinematic" },
     cupsWon: 0,
     lastCupDay: null,
+    ladder: initialLadder(),
   }
 }
 
@@ -70,8 +79,21 @@ export function setReducedMotion(state: GameState, value: boolean): GameState {
 }
 
 /**
- * Pick the arena camera presentation. Pure: the next state keeps everything
- * else untouched, and callers persist via saveGame.
+ * Record an onboarding hint as dismissed (save v7's seenHints ledger).
+ * Pure and idempotent: an already-seen id keeps the list unchanged.
+ */
+export function markHintSeen(state: GameState, hintId: string): GameState {
+  const seen = state.settings.seenHints
+  if (seen.includes(hintId)) return state
+  return {
+    ...state,
+    settings: { ...state.settings, seenHints: [...seen, hintId] },
+  }
+}
+
+/**
+ * Pick the arena camera presentation (save v9). Pure: the next state keeps
+ * everything else untouched, and callers persist via saveGame.
  */
 export function setArenaCamera(
   state: GameState,

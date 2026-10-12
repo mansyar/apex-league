@@ -9,6 +9,7 @@ import {
   createInitialState,
   effectiveStats,
   getSpecies,
+  renameCreature,
   STARTER_SPECIES,
 } from "./index"
 
@@ -281,5 +282,50 @@ describe("effectiveStats", () => {
       if (!species.available) continue
       expect(createCreature(species.id, 5).fedToday).toBe(false)
     }
+  })
+})
+
+describe("renameCreature", () => {
+  const started = chooseStarter(createInitialState(), "fire_drake", 42)
+
+  test("trims surrounding whitespace and persists the name", () => {
+    const next = renameCreature(started, "  Blaze  ")
+    expect(next.ok).toBe(true)
+    if (next.ok) expect(next.state.creature?.name).toBe("Blaze")
+  })
+
+  test("clamps a too-long name to 16 characters", () => {
+    const next = renameCreature(started, "Countess Emberflame")
+    expect(next.ok).toBe(true)
+    if (next.ok) expect(next.state.creature?.name).toHaveLength(16)
+  })
+
+  test("an empty name resets to the species default", () => {
+    const renamed = renameCreature(started, "Blaze")
+    if (!renamed.ok) throw new Error("rename should succeed")
+    const reset = renameCreature(renamed.state, "   ")
+    expect(reset.ok).toBe(true)
+    if (reset.ok) {
+      expect(reset.state.creature?.name).toBe("Ember Drake")
+    }
+  })
+
+  test("rejects during the cup phase and leaves the state untouched", () => {
+    const cupState = { ...started, phase: "cup" as const }
+    const snapshot = structuredClone(cupState)
+    const next = renameCreature(cupState, "Blaze")
+    expect(next).toEqual({ ok: false, reason: "cup-phase" })
+    expect(cupState).toEqual(snapshot)
+  })
+
+  test("rejects when there is no creature yet", () => {
+    const next = renameCreature(createInitialState(), "Blaze")
+    expect(next).toEqual({ ok: false, reason: "no-creature" })
+  })
+
+  test("is pure — does not mutate the input state", () => {
+    const snapshot = structuredClone(started)
+    renameCreature(started, "Blaze")
+    expect(started).toEqual(snapshot)
   })
 })

@@ -1,4 +1,9 @@
-import { type GameState, type SaveAdapter, saveGame } from "@apex/sim"
+import {
+  type CupSession,
+  type GameState,
+  type SaveAdapter,
+  saveGame,
+} from "@apex/sim"
 
 /**
  * The typed game-state store — the single mutation path for the client.
@@ -13,19 +18,33 @@ export interface GameStore {
   /** The current state. Never mutated in place — `commit` swaps it. */
   get(): GameState
   /**
+   * The live cup session riding the save (save v7), or null. Sessions are
+   * presentation bookkeeping: they must survive a refresh so a cup walk —
+   * committed or not — can always resume where it stopped.
+   */
+  getSession(): CupSession | null
+  /**
    * Register a subscriber; it fires on every later `commit`, in
    * registration order. Returns an unsubscribe function.
    */
   subscribe(listener: (state: GameState) => void): () => void
   /**
-   * Adopt `state`, persist it, then notify subscribers in registration
-   * order. Persistence failure never blocks notification — the game loop
-   * must keep running when the adapter fails; the failure is reported
-   * through `onPersistError` instead. A subscriber that throws does not
-   * starve the subscribers after it; the first error is rethrown after
-   * the full pass so the failure stays loud.
+   * Adopt `state`, persist it (with the current session attached), then
+   * notify subscribers in registration order. Persistence failure never
+   * blocks notification — the game loop must keep running when the adapter
+   * fails; the failure is reported through `onPersistError` instead. A
+   * subscriber that throws does not starve the subscribers after it; the
+   * first error is rethrown after the full pass so the failure stays loud.
    */
   commit(state: GameState): void
+  /**
+   * Store a new cup session (or null on finalize) and persist it with the
+   * unchanged state. This is the only way the session rides the save before
+   * the first cup commit — `prepareCup` deliberately does not commit, so a
+   * pre-fight refresh must still find the session here. Never notifies:
+   * subscribers react to game states, not to bookkeeping.
+   */
+  setSession(session: CupSession | null): void
 }
 
 /** Create a store over an initial state and a save adapter. */
@@ -37,14 +56,24 @@ export function createGameStore(
     now?: () => number
     /** Called when persistence fails; the default swallows. */
     onPersistError?: (error: unknown) => void
+    /** A session restored from the save payload at boot (save v7). */
+    initialSession?: CupSession | null
   },
 ): GameStore {
   const now = options?.now ?? (() => Date.now())
   const onPersistError = options?.onPersistError
   let current = initial
+  let currentSession = options?.initialSession ?? null
   const listeners: Array<(state: GameState) => void> = []
+  /** Persist current+session; reports failure through onPersistError. */
+  const persist = () => {
+    if (!saveGame(adapter, current, now(), currentSession)) {
+      onPersistError?.(new Error("saveGame reported a failed write"))
+    }
+  }
   return {
     get: () => current,
+    getSession: () => currentSession,
     subscribe(listener) {
       listeners.push(listener)
       return () => {
@@ -52,13 +81,13 @@ export function createGameStore(
         if (at !== -1) listeners.splice(at, 1)
       }
     },
+    setSession(session) {
+      currentSession = session
+      persist()
+    },
     commit(state) {
       current = state
-      // saveGame never throws — it reports failure. Either way the
-      // notification below always runs: a failed save must not eat the day.
-      if (!saveGame(adapter, state, now())) {
-        onPersistError?.(new Error("saveGame reported a failed write"))
-      }
+      persist()
       // Snapshot so (un)subscribing mid-notification cannot skip or repeat
       // a listener; a throwing subscriber never starves the later ones.
       let firstError: unknown
