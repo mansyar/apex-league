@@ -151,38 +151,65 @@ interface Projectile {
   elapsed: number
   /** Flight duration (ms) - bespoke shots can fly slower or faster. */
   life: number
-  /** Element look of this shot (FR5 shared archetype, flavored per element). */
-  flavor: ShotFlavor
+  /** How this shot reads in flight (FR5). */
+  look: ShotLook
 }
 
 /**
- * One shared ranged attack choreography (FR5 tier 1–2): the launch body
- * and flight timing never change — only the shot's *look* does. Fire
- * flies flat and hot, water streams low, plant lobs high; anything else
- * keeps the neutral orb.
+ * How a shot reads in flight (FR5): geometry family, glow, flight
+ * dynamics, and trail style - declared per element and interpreted by
+ * the shot builder. A new element slots in by adding one entry.
  */
-interface ShotFlavor {
-  /** Arc-lift multiplier over PROJECTILE_ARC. */
-  arc: number
+interface ShotLook {
+  /** Core geometry family built by the interpreter. */
+  geometry: "ember" | "teardrop" | "seedCluster" | "orb"
+  /** Additive halo opacity at the core (0 = none). */
+  glow?: number
   /** Core size pulse amplitude (0 = none). */
-  pulse: number
+  pulse?: number
   /** Lateral wobble amplitude in world units (0 = none). */
-  wobble: number
+  wobble?: number
   /** Spin rate around the travel axis, radians per ms. */
-  spin: number
-  /** Stretches the core along travel (teardrop) — 1 = round. */
-  stretch: number
+  spin?: number
+  /** Stretches the core along travel (teardrop) - 1 = round. */
+  stretch?: number
+  /** Arc-lift multiplier over PROJECTILE_ARC. */
+  arc?: number
+  /** Trail segment family streaming behind the shot. */
+  trail: "embers" | "droplets" | "seeds" | "orbs"
 }
 
-const SHOT_FLAVORS: Record<string, ShotFlavor> = {
-  fire: { arc: 0.7, pulse: 0.18, wobble: 0, spin: 0.012, stretch: 1 },
-  water: { arc: 0.55, pulse: 0.05, wobble: 0.05, spin: 0, stretch: 1.5 },
-  plant: { arc: 1.4, pulse: 0, wobble: 0, spin: 0.02, stretch: 1 },
+const SHOT_LOOKS: Record<string, ShotLook> = {
+  fire: {
+    geometry: "ember",
+    glow: 0.32,
+    pulse: 0.18,
+    arc: 0.7,
+    spin: 0.012,
+    trail: "embers",
+  },
+  water: {
+    geometry: "teardrop",
+    stretch: 1.5,
+    wobble: 0.05,
+    pulse: 0.05,
+    arc: 0.55,
+    trail: "droplets",
+  },
+  plant: {
+    geometry: "seedCluster",
+    spin: 0.02,
+    arc: 1.4,
+    trail: "seeds",
+  },
 }
 
-const shotFlavor = (element: string | undefined): ShotFlavor =>
-  (element !== undefined ? SHOT_FLAVORS[element] : undefined) ??
-  ({ arc: 1, pulse: 0, wobble: 0, spin: 0, stretch: 1 } satisfies ShotFlavor)
+const lookFor = (element: string | undefined): ShotLook =>
+  (element !== undefined ? SHOT_LOOKS[element] : undefined) ?? {
+    geometry: "orb",
+    arc: 1,
+    trail: "orbs",
+  }
 
 export interface FightCasting {
   /** Which creature stands on the left (home) side. */
@@ -545,22 +572,23 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       shotDir.copy(p.to).sub(p.from)
       const travel = Math.min(1, t)
       shotPos.copy(p.from).addScaledVector(shotDir, travel)
-      // Flavored arc lift: fire flat and hot, water low, plant a high lob.
-      shotPos.y += Math.sin(travel * Math.PI) * PROJECTILE_ARC * p.flavor.arc
-      if (p.flavor.wobble > 0) {
+      // Look-driven flight: arc lift, wobble, spin, pulse per element.
+      shotPos.y +=
+        Math.sin(travel * Math.PI) * PROJECTILE_ARC * (p.look.arc ?? 1)
+      if (p.look.wobble !== undefined && p.look.wobble > 0) {
         // Water streams with a slight side-to-side ripple.
-        shotPos.x += Math.sin(p.elapsed * 0.02) * p.flavor.wobble
+        shotPos.x += Math.sin(p.elapsed * 0.02) * p.look.wobble
       }
       p.mesh.position.copy(shotPos)
-      if (p.flavor.spin > 0) {
+      if (p.look.spin !== undefined && p.look.spin > 0) {
         // Seeds tumble; embers corkscrew around the travel axis.
-        p.mesh.rotation.z += p.flavor.spin * dtMs
-        p.mesh.rotation.x += p.flavor.spin * 0.6 * dtMs
+        p.mesh.rotation.z += p.look.spin * dtMs
+        p.mesh.rotation.x += p.look.spin * 0.6 * dtMs
       }
-      if (p.flavor.pulse > 0) {
-        const s = 1 + p.flavor.pulse * Math.sin(p.elapsed * 0.045)
+      if (p.look.pulse !== undefined && p.look.pulse > 0) {
+        const s = 1 + p.look.pulse * Math.sin(p.elapsed * 0.045)
         p.mesh.scale.setScalar(s)
-      } else if (p.flavor.stretch > 1.2) {
+      } else if ((p.look.stretch ?? 1) > 1.2) {
         // Teardrops and seeds keep facing downrange (their +Z is stretched).
         p.mesh.lookAt(
           shotPos.x + shotDir.x,
@@ -572,7 +600,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       for (let s = 0; s < p.trail.length; s++) {
         const lag = Math.max(0, travel - (s + 1) * 0.09)
         segPos.copy(p.from).addScaledVector(shotDir, lag)
-        segPos.y += Math.sin(lag * Math.PI) * PROJECTILE_ARC * p.flavor.arc
+        segPos.y += Math.sin(lag * Math.PI) * PROJECTILE_ARC * (p.look.arc ?? 1)
         p.trail[s]?.position.copy(segPos)
       }
       if (t >= 1) {
@@ -795,6 +823,64 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     chargeMesh = null
   }
 
+  /** Build the shot's core meshes from its look descriptor (FR5). */
+  const buildShotCore = (
+    look: ShotLook,
+    color: THREE.Color,
+    size: number,
+  ): THREE.Object3D => {
+    if (look.geometry === "ember") {
+      // Ember: a faceted hot shard inside an additive glow halo.
+      const core = new THREE.Group()
+      core.add(
+        new THREE.Mesh(
+          new THREE.IcosahedronGeometry(PROJECTILE_RADIUS * 0.8 * size, 0),
+          new THREE.MeshBasicMaterial({ color }),
+        ),
+      )
+      core.add(
+        new THREE.Mesh(
+          new THREE.SphereGeometry(PROJECTILE_RADIUS * 1.55 * size, 12, 10),
+          new THREE.MeshBasicMaterial({
+            color,
+            transparent: true,
+            opacity: look.glow ?? 0.3,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+          }),
+        ),
+      )
+      return core
+    }
+    if (look.geometry === "seedCluster") {
+      // Seed cluster: three facets orbiting a shared center, tumbling.
+      const core = new THREE.Group()
+      const geo = new THREE.OctahedronGeometry(
+        PROJECTILE_RADIUS * 0.55 * size,
+        0,
+      )
+      const mat = new THREE.MeshBasicMaterial({ color })
+      for (let i = 0; i < 3; i++) {
+        const seed = new THREE.Mesh(geo, mat)
+        const angle = (i / 3) * Math.PI * 2
+        seed.position.set(
+          Math.cos(angle) * 0.15 * size,
+          Math.sin(angle) * 0.15 * size,
+          0,
+        )
+        core.add(seed)
+      }
+      return core
+    }
+    // Teardrop and orb share the sphere core; stretch points it downrange.
+    const core = new THREE.Mesh(
+      new THREE.SphereGeometry(PROJECTILE_RADIUS * size, 12, 10),
+      new THREE.MeshBasicMaterial({ color }),
+    )
+    if ((look.stretch ?? 1) > 1.2) core.scale.set(0.72, 0.72, look.stretch ?? 1)
+    return core
+  }
+
   /** A glowing core in the element hue plus a tapering additive orb trail. */
   const spawnProjectile = (
     from: Combatant,
@@ -804,7 +890,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   ): void => {
     const size = opts?.size ?? 1
     const color = new THREE.Color(elementColor(element))
-    const flavor = shotFlavor(element)
+    const look = lookFor(element)
     // Launch from the thrower's mouth line, land on the victim's chest.
     // `spread` fans the landing point sideways across the lane (z) for
     // volley choreography.
@@ -813,61 +899,24 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     const target = to.group.position.clone()
     target.y += 0.6
     if (opts?.spread) target.z += opts.spread
-    // Core geometry per flavor (FR5): fire = ember + additive glow halo;
-    // plant = a tumbling seed cluster; water = teardrop; else the orb.
-    let core: THREE.Object3D
-    if (element === "fire") {
-      core = new THREE.Group()
-      const ember = new THREE.Mesh(
-        new THREE.IcosahedronGeometry(PROJECTILE_RADIUS * 0.8 * size, 0),
-        new THREE.MeshBasicMaterial({ color }),
-      )
-      const halo = new THREE.Mesh(
-        new THREE.SphereGeometry(PROJECTILE_RADIUS * 1.55 * size, 12, 10),
-        new THREE.MeshBasicMaterial({
-          color,
-          transparent: true,
-          opacity: 0.32,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false,
-        }),
-      )
-      core.add(ember, halo)
-    } else if (element === "plant") {
-      core = new THREE.Group()
-      const seedGeo = new THREE.OctahedronGeometry(
-        PROJECTILE_RADIUS * 0.55 * size,
-        0,
-      )
-      const seedMat = new THREE.MeshBasicMaterial({ color })
-      for (let i = 0; i < 3; i++) {
-        const seed = new THREE.Mesh(seedGeo, seedMat)
-        const angle = (i / 3) * Math.PI * 2
-        seed.position.set(
-          Math.cos(angle) * 0.15 * size,
-          Math.sin(angle) * 0.15 * size,
-          0,
-        )
-        core.add(seed)
-      }
-    } else {
-      core = new THREE.Mesh(
-        new THREE.SphereGeometry(PROJECTILE_RADIUS * size, 12, 10),
-        new THREE.MeshBasicMaterial({ color }),
-      )
-      if (flavor.stretch > 1.2) core.scale.set(0.72, 0.72, flavor.stretch)
-    }
+    // Core built from the look descriptor (FR5): ember + halo, seed
+    // cluster, teardrop, or the neutral orb.
+    const core = buildShotCore(look, color, size)
     core.position.copy(origin)
     arenaGroup.add(core)
 
+    // Trail segments stream behind the shot in its element's family.
     const trail: THREE.Mesh[] = []
     for (let i = 0; i < 4; i++) {
+      const r = Math.max(0.05, PROJECTILE_RADIUS * size - (i + 1) * 0.033)
+      const geo =
+        look.trail === "embers"
+          ? new THREE.IcosahedronGeometry(r * 0.8, 0)
+          : look.trail === "seeds"
+            ? new THREE.OctahedronGeometry(r * 0.8, 0)
+            : new THREE.SphereGeometry(r, 10, 8)
       const seg = new THREE.Mesh(
-        new THREE.SphereGeometry(
-          Math.max(0.05, PROJECTILE_RADIUS * size - (i + 1) * 0.033),
-          10,
-          8,
-        ),
+        geo,
         new THREE.MeshBasicMaterial({
           color,
           transparent: true,
@@ -887,7 +936,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       to: target,
       elapsed: 0,
       life: opts?.life ?? PROJECTILE_LIFE_MS,
-      flavor,
+      look,
     })
     if (projectileRaf === null) {
       projectileRaf = requestAnimationFrame(tickProjectiles)
