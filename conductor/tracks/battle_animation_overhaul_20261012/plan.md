@@ -111,8 +111,16 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
   (47f83fd bespoke bodies + spawn size/life/spread; 190a54e systemic actor-body fix +
   point-blank signatures; ec82b2c spore cloud bloom; c8d2879 cinder coil-beat blast;
   user verified all three across species, builds 12-15)
-- [ ] **Task: Bespoke tier 4 special choreography** — 3 moves *(manual)*
-- [ ] **Task: Reaction library** — dodge/hurt/stagger/knockback/down
+- [x] **Task: Bespoke tier 4 special choreography** - 3 moves *(manual)*
+        (02b16f8; user-approved in feel-checks)
+- [~] **Task: Unified special-fire pipeline** — data-driven MOVE_FX
+        registry (launch schedule + posture curves + arrival treatment
+        per move); point-blank specials replay their launch body
+        compressed with a micro-flight and land the arrival burst at
+        the landing beat; victim reaction moves to the landing beat;
+        sim untouched — presentation only (user-directed design change;
+        new moves slot in by adding one registry entry)
+- [ ] **Task: Reaction library** - dodge/hurt/stagger/knockback/down
         mapped from enriched events *(pure mapping tested; rendering
         manual)*
 - [ ] **Task: Phase Verification & Checkpoint (Refer to workflow.md)** —

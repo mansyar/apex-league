@@ -951,6 +951,317 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
    * the fight stays continuous — an approach that never got answered is
    * still standing there in the next beat.
    */
+
+  /**
+   * Declarative per-move fire choreography (FR5, unified fire): every
+   * special - ranged or point-blank - launches through the same
+   * pipeline. A new move slots in by adding one registry entry; tuning
+   * a move is editing that entry, never the engine.
+   */
+  interface Posture {
+    /** Windup coil pitch amplitude (signed; hold => half-sine). */
+    pitch?: number
+    /** Hold the coil at full depth (half-sine) instead of a full sine. */
+    hold?: boolean
+    /** Windup roll amplitude (full sine). */
+    roll?: number
+    /** Windup vertical rise amplitude (full sine, signed). */
+    rise?: number
+    /** Quadratic backward pull into the windup. */
+    coilX?: number
+    /** Recoil pitch amplitude (positive, full sine). */
+    pitchOut?: number
+    /** Recoil horizontal sweep: [pull-back, overshoot]. */
+    sweepX?: [number, number]
+    /** Recoil vertical rise. */
+    riseOut?: number
+  }
+
+  /** Apply a posture phase to a fighter at normalized progress w. */
+  const applyPosture = (
+    p: Posture,
+    w: number,
+    ao: Combatant,
+    away: number,
+  ): void => {
+    const half = Math.sin((w * Math.PI) / 2)
+    const full = Math.sin(w * Math.PI)
+    if (p.pitch !== undefined) {
+      ao.lean.pitch = p.pitch * (p.hold ? half : full)
+    }
+    if (p.roll !== undefined) ao.lean.roll = p.roll * full
+    if (p.rise !== undefined) ao.offset.y = p.rise * full
+    if (p.coilX !== undefined) ao.offset.x = -away * p.coilX * (w * w)
+    if (p.pitchOut !== undefined) ao.lean.pitch = p.pitchOut * full
+    if (p.sweepX !== undefined) {
+      ao.offset.x = -away * (p.sweepX[0] + p.sweepX[1] * full)
+    }
+    if (p.riseOut !== undefined) ao.offset.y = p.riseOut * full
+  }
+
+  /** One projectile release: geometry, flight time, lateral offset. */
+  interface ShotSpec {
+    size: number
+    life: number
+    /** Lateral z offset for fanned volleys. */
+    spread?: number
+    /** Release beat as a fraction of the launch action. */
+    at: number
+  }
+
+  /** Everything a move declares about firing and landing. */
+  interface MoveFx {
+    /** Windup fraction of the launch action at full pacing. */
+    wind: number
+    /** Projectiles released (one entry per shot; volleys list several). */
+    shots: ShotSpec[]
+    /** Flash at the thrower's mouth on the first release. */
+    muzzle?: BurstStyle
+    /** Backward impulse on each release beat. */
+    kick: number
+    /** A charge orb swelling at the mouth through the windup. */
+    charge?: { from: number; to: number }
+    /** Launch body posture: windup curve and recoil curve. */
+    pose: { windup: Posture; recoil: Posture }
+    /** Arrival treatment where the shot lands, plus the victim shove. */
+    arrival: { burst: BurstStyle; lanes?: number[]; shove: number }
+    /** Point-blank compression: squeezed windup, micro-flight, beats. */
+    compressed?: { wind: number; flight: number; beats: number[] }
+  }
+
+  const MOVE_FX: Record<string, MoveFx> = {
+    cinder_shot: {
+      wind: 0.55,
+      shots: [{ size: 1.8, life: 850, at: 0.55 }],
+      muzzle: {},
+      kick: -0.55,
+      pose: {
+        windup: {
+          pitch: -0.24,
+          hold: true,
+          roll: 0.08,
+          rise: 0.05,
+          coilX: 0.2,
+        },
+        recoil: { pitchOut: 0.14, sweepX: [0.2, -0.5] },
+      },
+      arrival: {
+        burst: { puffs: 9, size: 1.6, life: 460, gravity: 9, flashGrow: 2.8 },
+        shove: -0.5,
+      },
+    },
+    blaze_bolt: {
+      wind: 0.6,
+      shots: [{ size: 1.05, life: 300, at: 0.6 }],
+      muzzle: { puffs: 7, size: 1.2, life: 380, gravity: 6, flashGrow: 2.6 },
+      kick: -0.6,
+      charge: { from: 0.25, to: 1.3 },
+      pose: {
+        windup: {
+          pitch: -0.26,
+          hold: true,
+          roll: 0.09,
+          rise: 0.06,
+          coilX: 0.24,
+        },
+        recoil: { pitchOut: 0.16, sweepX: [0.24, -0.55] },
+      },
+      arrival: {
+        burst: { puffs: 9, size: 1.5, life: 460, gravity: 9, flashGrow: 2.8 },
+        shove: -0.55,
+      },
+    },
+    bramble_dart: {
+      wind: 0.5,
+      shots: [{ size: 2.2, life: 1000, at: 0.5 }],
+      kick: -0.5,
+      pose: {
+        windup: { pitch: -0.3, hold: true, rise: -0.04, coilX: 0.26 },
+        recoil: { pitchOut: 0.2, sweepX: [0.26, -0.6] },
+      },
+      arrival: {
+        burst: { puffs: 10, size: 1.3, life: 700, gravity: 6, flashGrow: 3 },
+        shove: -0.45,
+      },
+    },
+    splash_bolt: {
+      wind: 0.52,
+      shots: [{ size: 1.6, life: 620, at: 0.52 }],
+      kick: -0.45,
+      pose: {
+        windup: { pitch: -0.18, rise: -0.08, coilX: 0.18 },
+        recoil: { pitchOut: 0.13, sweepX: [0.18, -0.45], riseOut: 0.05 },
+      },
+      arrival: {
+        burst: { puffs: 12, size: 1.2, life: 600, gravity: 8, flashGrow: 3 },
+        shove: -0.5,
+      },
+    },
+    spore_burst: {
+      wind: 0.26,
+      shots: [
+        { size: 1, life: 700, spread: -0.5, at: 0.36 },
+        { size: 1, life: 700, spread: 0, at: 0.48 },
+        { size: 1, life: 700, spread: 0.5, at: 0.6 },
+      ],
+      kick: -0.18,
+      pose: {
+        windup: { pitch: -0.1, rise: -0.05, coilX: 0.1 },
+        recoil: { pitchOut: 0.06, sweepX: [0.1, -0.3] },
+      },
+      arrival: {
+        burst: {
+          puffs: 10,
+          ring: true,
+          gravity: 1.2,
+          life: 900,
+          flashGrow: 3.4,
+          size: 1.4,
+        },
+        shove: 0,
+      },
+      compressed: { wind: 0.3, flight: 220, beats: [0.38, 0.44, 0.5] },
+    },
+    foam_volley: {
+      wind: 0.26,
+      shots: [
+        { size: 0.75, life: 520, spread: 0, at: 0.28 },
+        { size: 0.75, life: 520, spread: 0, at: 0.4 },
+        { size: 0.75, life: 520, spread: 0, at: 0.52 },
+      ],
+      kick: -0.12,
+      pose: {
+        windup: { pitch: -0.1, rise: -0.05, coilX: 0.1 },
+        recoil: { pitchOut: 0.06, sweepX: [0.1, -0.3] },
+      },
+      arrival: {
+        burst: { size: 0.8, life: 380 },
+        lanes: [-0.3, 0, 0.3],
+        shove: -0.4,
+      },
+      compressed: { wind: 0.3, flight: 220, beats: [0.38, 0.44, 0.5] },
+    },
+  }
+
+  /** Shared tier 1-2 launch archetype; also the fallback for unknown ids. */
+  const DEFAULT_FX: MoveFx = {
+    wind: CONTACT_T,
+    shots: [{ size: 1, life: PROJECTILE_LIFE_MS, at: CONTACT_T }],
+    kick: -0.35,
+    pose: {
+      windup: { pitch: -0.16, roll: 0.06, rise: 0.04, coilX: 0.14 },
+      recoil: { pitchOut: 0.09, sweepX: [0.14, -0.34] },
+    },
+    arrival: { burst: {}, shove: 0 },
+  }
+
+  const fxFor = (moveId: string | undefined): MoveFx =>
+    (moveId !== undefined ? MOVE_FX[moveId] : undefined) ?? DEFAULT_FX
+
+  /**
+   * The per-move arrival treatment where a special lands - shared by
+   * ranged arrivals (the impact step) and point-blank micro-flights.
+   */
+  const arriveSpecial = (
+    step: PlaybackStep,
+    side: { actor: Combatant; target: Combatant },
+  ): void => {
+    const fx = fxFor(step.moveId)
+    const at = side.target.group.position.clone()
+    if (fx.arrival.lanes) {
+      for (const dz of fx.arrival.lanes) {
+        const p = at.clone()
+        p.z += dz
+        spawnBurst(p, step.element, fx.arrival.burst)
+      }
+    } else {
+      spawnBurst(at, step.element, fx.arrival.burst)
+    }
+    if (fx.arrival.shove !== 0) impulse(side.target, fx.arrival.shove)
+  }
+
+  /**
+   * Unified special fire (FR5): run the move's launch body and release
+   * its shots. Ranged fire runs at full pacing from the projectile
+   * step (arrival is a separate impact step); point-blank fire
+   * compresses the same body into the impact step with a micro-flight,
+   * and the victim reacts when the shot actually lands.
+   */
+  const fireSpecial = (
+    step: PlaybackStep,
+    side: { actor: Combatant; target: Combatant },
+    compressed: boolean,
+  ): void => {
+    const fx = fxFor(step.moveId)
+    const away = side.actor.away
+    const volley = fx.shots.length > 1
+    const wind = compressed ? (fx.compressed?.wind ?? 0.32) : fx.wind
+    const flight = compressed
+      ? (fx.compressed?.flight ?? Math.min(300, animMs() * 0.5))
+      : (fx.shots[0]?.life ?? PROJECTILE_LIFE_MS)
+    const beats =
+      compressed && fx.compressed?.beats !== undefined
+        ? fx.compressed.beats
+        : compressed
+          ? fx.shots.map(() => wind)
+          : fx.shots.map((s) => s.at)
+    const firedRef = { n: 0 }
+    const landedRef = { done: false }
+    // Point-blank: the shot lands inside this action; the victim
+    // reacts at the landing beat, not before it.
+    const landBeat = compressed
+      ? (beats[0] ?? wind) + flight / animMs()
+      : Number.POSITIVE_INFINITY
+    actionRaf = startAction(
+      (t, ao) => {
+        if (t < wind) {
+          const w = t / wind
+          applyPosture(fx.pose.windup, w, ao, away)
+          if (fx.charge) {
+            setCharge(
+              side.actor,
+              step.element,
+              fx.charge.from + w * (fx.charge.to - fx.charge.from),
+            )
+          }
+          return
+        }
+        // Release the shots on their beats.
+        while (firedRef.n < fx.shots.length) {
+          const beat = beats[firedRef.n]
+          const shot = fx.shots[firedRef.n]
+          if (beat === undefined || shot === undefined || t < beat) break
+          spawnProjectile(side.actor, side.target, step.element, {
+            size: shot.size,
+            life: compressed ? flight : shot.life,
+            spread: shot.spread ?? 0,
+          })
+          impulse(ao, fx.kick)
+          if (firedRef.n === 0) {
+            if (fx.charge) clearCharge()
+            if (fx.muzzle) {
+              const mouth = side.actor.group.position.clone()
+              mouth.y += 0.2
+              spawnBurst(mouth, step.element, fx.muzzle)
+            }
+          }
+          firedRef.n += 1
+        }
+        // Point-blank: the shot lands inside this action.
+        if (compressed && !landedRef.done && t >= landBeat) {
+          landedRef.done = true
+          arriveSpecial(step, side)
+          contactReaction(step.damage, side.target)
+        }
+        const release = beats[0] ?? wind
+        const w = clamp01((t - release) / Math.max(0.01, 1 - release))
+        applyPosture(fx.pose.recoil, w, ao, away)
+      },
+      side.actor,
+      side.target,
+    )
+  }
+
   const runStep = (
     step: PlaybackStep,
     instant: boolean,
@@ -1073,239 +1384,15 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         break
       }
       case "projectile": {
-        // Ranged attack: rear coil, snap release at the launch moment,
-        // then a recoil the body carries. Tier 3 specials branch into
-        // bespoke bodies (FR5); tier 1-2 keep the shared archetype.
+        // Ranged special: the full-pacing launch body. Point-blank
+        // specials replay the same body compressed from the impact
+        // step - unified fire (FR5).
         if (instant) {
           // No flight to show: the following impact step resolves the
-          // hit on the spot, so spawning a 700ms orb would just hang.
+          // hit on the spot.
           break
         }
-        if (step.moveId === "blaze_bolt") {
-          // The Lance: a long charge-up gathers a burning orb at the
-          // mouth, then a FAST flat bolt snaps downrange - charge long,
-          // arrive almost instantly, land like a truck.
-          const firedRef = { done: false }
-          const WIND = 0.6
-          actionRaf = startAction(
-            (t, ao) => {
-              if (t < WIND) {
-                const w = t / WIND
-                // The charge orb swells at the mouth as the body coils.
-                setCharge(side.actor, step.element, 0.25 + w * 1.05)
-                ao.lean.pitch = -0.26 * Math.sin((w * Math.PI) / 2)
-                ao.lean.roll = 0.09 * Math.sin(w * Math.PI)
-                ao.offset.y = 0.06 * Math.sin(w * Math.PI)
-                ao.offset.x = -side.actor.away * 0.24 * (w * w)
-              } else {
-                if (!firedRef.done) {
-                  firedRef.done = true
-                  clearCharge()
-                  spawnProjectile(side.actor, side.target, step.element, {
-                    size: 1.05,
-                    life: 300,
-                  })
-                  const mouth = side.actor.group.position.clone()
-                  mouth.y += 0.2
-                  spawnBurst(mouth, step.element, {
-                    puffs: 7,
-                    size: 1.2,
-                    life: 380,
-                    gravity: 6,
-                    flashGrow: 2.6,
-                  })
-                  impulse(ao, -0.6)
-                }
-                const w = clamp01((t - WIND) / (1 - WIND))
-                ao.lean.pitch = 0.16 * Math.sin(w * Math.PI)
-                ao.offset.x =
-                  -side.actor.away * (0.24 - 0.55 * Math.sin(w * Math.PI))
-              }
-            },
-            side.actor,
-            side.target,
-          )
-          break
-        }
-        if (step.moveId === "bramble_dart") {
-          // The Spear: a huge rear-hurl coils the whole body, then a
-          // massive dart lofts downrange and plants itself on arrival.
-          const firedRef = { done: false }
-          const WIND = 0.5
-          actionRaf = startAction(
-            (t, ao) => {
-              if (t < WIND) {
-                const w = t / WIND
-                ao.lean.pitch = -0.3 * Math.sin((w * Math.PI) / 2)
-                ao.offset.x = -side.actor.away * 0.26 * (w * w)
-                ao.offset.y = -0.04 * Math.sin(w * Math.PI)
-              } else {
-                if (!firedRef.done) {
-                  firedRef.done = true
-                  spawnProjectile(side.actor, side.target, step.element, {
-                    size: 2.2,
-                    life: 1000,
-                  })
-                  impulse(ao, -0.5)
-                }
-                const w = clamp01((t - WIND) / (1 - WIND))
-                ao.lean.pitch = 0.2 * Math.sin(w * Math.PI)
-                ao.offset.x =
-                  -side.actor.away * (0.26 - 0.6 * Math.sin(w * Math.PI))
-              }
-            },
-            side.actor,
-            side.target,
-          )
-          break
-        }
-        if (step.moveId === "splash_bolt") {
-          // The Wave: the body sinks low gathering the surge, then a
-          // big rolling droplet crashes downrange.
-          const firedRef = { done: false }
-          const WIND = 0.52
-          actionRaf = startAction(
-            (t, ao) => {
-              if (t < WIND) {
-                const w = t / WIND
-                ao.lean.pitch = -0.18 * Math.sin(w * Math.PI)
-                ao.offset.y = -0.08 * Math.sin(w * Math.PI)
-                ao.offset.x = -side.actor.away * 0.18 * (w * w)
-              } else {
-                if (!firedRef.done) {
-                  firedRef.done = true
-                  spawnProjectile(side.actor, side.target, step.element, {
-                    size: 1.6,
-                    life: 620,
-                  })
-                  impulse(ao, -0.45)
-                }
-                const w = clamp01((t - WIND) / (1 - WIND))
-                ao.lean.pitch = 0.13 * Math.sin(w * Math.PI)
-                ao.offset.y = 0.05 * Math.sin(w * Math.PI)
-                ao.offset.x =
-                  -side.actor.away * (0.18 - 0.45 * Math.sin(w * Math.PI))
-              }
-            },
-            side.actor,
-            side.target,
-          )
-          break
-        }
-        if (step.moveId === "cinder_shot") {
-          // The Hammer: a long deep wind-up that holds at full coil,
-          // then one big slow ember leaves with a muzzle flash and a
-          // heavy recoil the body rides back on.
-          const firedRef = { done: false }
-          const WIND = 0.55
-          actionRaf = startAction(
-            (t, ao) => {
-              if (t < WIND) {
-                const w = t / WIND
-                ao.lean.pitch = -0.24 * Math.sin((w * Math.PI) / 2)
-                ao.lean.roll = 0.08 * Math.sin(w * Math.PI)
-                ao.offset.y = 0.05 * Math.sin(w * Math.PI)
-                ao.offset.x = -side.actor.away * 0.2 * (w * w)
-              } else {
-                if (!firedRef.done) {
-                  firedRef.done = true
-                  spawnProjectile(side.actor, side.target, step.element, {
-                    size: 1.8,
-                    life: 850,
-                  })
-                  // Muzzle flash at the thrower's mouth line.
-                  const mouth = side.actor.group.position.clone()
-                  mouth.y += 0.2
-                  spawnBurst(mouth, step.element)
-                  impulse(ao, -0.55)
-                }
-                const w = clamp01((t - WIND) / (1 - WIND))
-                ao.lean.pitch = 0.14 * Math.sin(w * Math.PI)
-                ao.offset.x =
-                  -side.actor.away * (0.2 - 0.5 * Math.sin(w * Math.PI))
-              }
-            },
-            side.actor,
-            side.target,
-          )
-          break
-        }
-        if (step.moveId === "spore_burst" || step.moveId === "foam_volley") {
-          // The volley family: a quick crouch, then three fast shots.
-          // Spore fans them sideways for one big triple pop on arrival;
-          // foam rattles them straight down the lane in rapid rhythm.
-          const fan = step.moveId === "spore_burst"
-          const volley = fan
-            ? ({
-                beats: [0.36, 0.48, 0.6],
-                spreads: [-0.5, 0, 0.5],
-                size: 1,
-                life: 700,
-              } as const)
-            : ({
-                beats: [0.28, 0.4, 0.52],
-                spreads: [0, 0, 0],
-                size: 0.75,
-                life: 520,
-              } as const)
-          const firedRef = { n: 0 }
-          actionRaf = startAction(
-            (t, ao) => {
-              const WIND = 0.26
-              if (t < WIND) {
-                const w = t / WIND
-                ao.lean.pitch = -0.1 * Math.sin(w * Math.PI)
-                ao.offset.y = -0.05 * Math.sin(w * Math.PI)
-                ao.offset.x = -side.actor.away * 0.1 * w
-              } else {
-                while (firedRef.n < 3) {
-                  const beat = volley.beats[firedRef.n]
-                  if (beat === undefined || t < beat) break
-                  spawnProjectile(side.actor, side.target, step.element, {
-                    size: volley.size,
-                    life: volley.life,
-                    spread: volley.spreads[firedRef.n] ?? 0,
-                  })
-                  impulse(ao, fan ? -0.18 : -0.12)
-                  firedRef.n += 1
-                }
-                const w = clamp01((t - volley.beats[0]) / (1 - volley.beats[0]))
-                ao.lean.pitch = 0.06 * Math.sin(w * Math.PI)
-                ao.offset.x =
-                  -side.actor.away * (0.1 - 0.3 * Math.sin(w * Math.PI))
-              }
-            },
-            side.actor,
-            side.target,
-          )
-          break
-        }
-        const firedRef = { done: false }
-        actionRaf = startAction(
-          (t, ao) => {
-            if (t < CONTACT_T) {
-              // Wind-up: rear coil, slight rise, mirrored roll.
-              const w = t / CONTACT_T
-              ao.lean.pitch = -0.16 * Math.sin(w * Math.PI)
-              ao.lean.roll = 0.06 * Math.sin(w * Math.PI)
-              ao.offset.y = 0.04 * Math.sin(w * Math.PI)
-              ao.offset.x = -side.actor.away * 0.14 * (w * w)
-            } else {
-              // Release: snap forward, launch, and ride the recoil back.
-              if (!firedRef.done) {
-                firedRef.done = true
-                spawnProjectile(side.actor, side.target, step.element)
-                impulse(ao, -0.35) // stretch on the snap
-              }
-              const w = clamp01((t - CONTACT_T) / (1 - CONTACT_T))
-              ao.lean.pitch = 0.09 * Math.sin(w * Math.PI)
-              ao.offset.x =
-                -side.actor.away * (0.14 - 0.34 * Math.sin(w * Math.PI))
-            }
-          },
-          side.actor,
-          side.target,
-        )
+        fireSpecial(step, side, false)
         break
       }
       case "impact": {
@@ -1324,173 +1411,18 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         if (instant) {
           contactReaction(step.damage, side.target)
           snapTo(side.target)
-        } else {
-          reactionAction(step.damage, side.target)
+          if (step.element) arriveSpecial(step, side)
+          break
         }
-        // Elemental burst at the strike point for specials (FR5). A
-        // point-blank special never produced a launch step, so its
-        // signature lives here: tier-3 specials get a bespoke unleash
-        // body on the attacker plus a patterned burst on the victim;
-        // ranged arrivals and tier 1-2 keep the single pop.
-        if (step.element) {
-          const pointBlank = prevStepKind !== "projectile"
-          const at = side.target.group.position
-          // Spore Burst blooms as a wide, lingering cloud - its kind of
-          // hit, not just its count, both from the fan's arrival and
-          // point-blank.
-          if (step.moveId === "spore_burst") {
-            spawnBurst(at.clone(), step.element, {
-              puffs: 10,
-              ring: true,
-              gravity: 1.2,
-              life: 900,
-              flashGrow: 3.4,
-              size: 1.4,
-            })
-          } else if (step.moveId === "foam_volley" && pointBlank) {
-            // Three rapid pops strung across the lane.
-            for (const dz of [-0.3, 0, 0.3]) {
-              const p = at.clone()
-              p.z += dz
-              spawnBurst(p, step.element, { size: 0.8, life: 380 })
-            }
-            impulse(side.target, -0.4)
-          } else if (
-            (step.moveId === "cinder_shot" || step.moveId === "blaze_bolt") &&
-            pointBlank
-          ) {
-            // The Hammer/Lance point-blank: a compressed coil-beat on
-            // the attacker, then a big concussive blast that shoves the
-            // victim - never a plain pop.
-            const hammerStyle =
-              step.moveId === "blaze_bolt"
-                ? { puffs: 10, size: 1.5, life: 480, gravity: 9, flashGrow: 3 }
-                : { puffs: 9, size: 1.6, life: 460, gravity: 9, flashGrow: 2.8 }
-            const hammerShove = step.moveId === "blaze_bolt" ? -0.55 : -0.5
-            if (!instant) {
-              const shooter = side.actor
-              const victim = side.target
-              const blastRef = { done: false }
-              actionRaf = startAction(
-                (t, ao) => {
-                  if (t < 0.4) {
-                    const w = t / 0.4
-                    ao.lean.pitch = -0.24 * Math.sin((w * Math.PI) / 2)
-                    ao.offset.x = -ao.away * 0.2 * (w * w)
-                  } else {
-                    if (!blastRef.done) {
-                      blastRef.done = true
-                      spawnBurst(
-                        victim.group.position.clone(),
-                        step.element,
-                        hammerStyle,
-                      )
-                      impulse(victim, hammerShove)
-                    }
-                    const w = clamp01((t - 0.4) / 0.6)
-                    ao.lean.pitch = 0.14 * Math.sin(w * Math.PI)
-                    ao.offset.x = -ao.away * (0.2 - 0.5 * Math.sin(w * Math.PI))
-                  }
-                },
-                shooter,
-                victim,
-              )
-            } else {
-              spawnBurst(at.clone(), step.element, hammerStyle)
-              impulse(side.target, hammerShove)
-            }
-          } else if (step.moveId === "blaze_bolt") {
-            // The Lance lands like a truck wherever it arrives.
-            spawnBurst(at.clone(), step.element, {
-              puffs: 9,
-              size: 1.5,
-              life: 460,
-              gravity: 9,
-              flashGrow: 2.8,
-            })
-            impulse(side.target, -0.55)
-          } else if (step.moveId === "bramble_dart") {
-            // The Spear plants itself - a heavy, lingering scatter.
-            spawnBurst(at.clone(), step.element, {
-              puffs: 10,
-              size: 1.3,
-              life: 700,
-              gravity: 6,
-              flashGrow: 3,
-            })
-            impulse(side.target, -0.45)
-          } else if (step.moveId === "splash_bolt") {
-            // The Wave crashes - a big, wide splash.
-            spawnBurst(at.clone(), step.element, {
-              puffs: 12,
-              size: 1.2,
-              life: 600,
-              gravity: 8,
-              flashGrow: 3,
-            })
-            impulse(side.target, -0.5)
-          } else {
-            spawnBurst(at.clone(), step.element)
-            // Tier 1-2 point-blank: no launch step exists, so the
-            // attacker still answers with a quick element-flavored jab
-            // instead of the damage just happening.
-            if (!instant && pointBlank && step.moveId !== undefined) {
-              const jab = side.actor
-              const jabElement = step.element
-              actionRaf = startAction(
-                (t, ao) => {
-                  const w = Math.sin(clamp01(t / 0.5) * Math.PI)
-                  if (jabElement === "fire") {
-                    ao.lean.pitch = 0.22 * w // sharp forward snap
-                  } else if (jabElement === "water") {
-                    ao.offset.y = 0.06 * w // buoyant pop upward
-                    ao.lean.pitch = 0.12 * w
-                  } else {
-                    ao.offset.y = -0.05 * w // stomp down through the hit
-                    ao.lean.pitch = 0.18 * w
-                  }
-                  ao.offset.x = -ao.away * 0.14 * w
-                },
-                jab,
-                side.target,
-              )
-            }
-          }
-          if (!instant && pointBlank && step.moveId !== undefined) {
-            const bespoke =
-              step.moveId === "spore_burst" ||
-              step.moveId === "foam_volley" ||
-              step.moveId === "bramble_dart" ||
-              step.moveId === "splash_bolt"
-            if (bespoke) {
-              // Spore and Bramble answer with a full-body spin release;
-              // Splash with a heavy slam; foam with a recoil. (The
-              // Hammer/Lance authored their own coil-beat above.)
-              const shooter = side.actor
-              const spin =
-                step.moveId === "spore_burst" || step.moveId === "bramble_dart"
-              const slam = step.moveId === "splash_bolt"
-              actionRaf = startAction(
-                (t, ao) => {
-                  const w = clamp01(t / (spin ? 0.8 : slam ? 0.7 : 0.6))
-                  if (spin) {
-                    ao.lean.roll = 0.35 * Math.sin(w * Math.PI * 2)
-                    ao.offset.y = 0.05 * Math.sin(w * Math.PI)
-                  } else if (slam) {
-                    ao.offset.y = -0.07 * Math.sin(w * Math.PI)
-                    ao.lean.pitch = 0.16 * Math.sin(w * Math.PI)
-                  } else {
-                    ao.lean.pitch = 0.12 * Math.sin(w * Math.PI)
-                    ao.offset.x =
-                      -ao.away * (0.16 - 0.36 * Math.sin(w * Math.PI))
-                  }
-                },
-                shooter,
-                side.target,
-              )
-            }
-          }
+        if (step.element && prevStepKind !== "projectile") {
+          // Unified fire (FR5): point-blank specials replay their
+          // launch body compressed - windup, micro-flight, then the
+          // arrival burst and the victim's reaction when the shot lands.
+          fireSpecial(step, side, true)
+          break
         }
+        reactionAction(step.damage, side.target)
+        if (step.element) arriveSpecial(step, side)
         break
       }
       case "down": {
