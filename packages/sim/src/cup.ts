@@ -180,15 +180,13 @@ import {
   resolveBattle,
   type Tactic,
 } from "./battle"
-import { defaultLoadout } from "./loadout"
 import { STARTER_SPECIES as STARTERS } from "./species"
 
 // ----------------------------------------------------------------------------
-// Round resolution (spec FR3): three rounds resolved in one sitting.
-// Pairing: slot order pairs (0,1), (2,3), (4,5), (6,7) in the quarterfinal,
-// then standard single-elim reductions. The player's side is assembled from
-// the owned creature (effective stats + chosen loadout); rivals carry their
-// ramped stats, their species kit, and a balanced tactic.
+// Cup resolution (live-cup spec): the bracket pre-resolves its
+// player-independent rival subtree at entry; the player's branch resolves
+// on demand with the coaching room's picks, and the bracket always plays
+// out to a champion.
 // ----------------------------------------------------------------------------
 
 /** The verdict of one pairing inside a cup round. */
@@ -204,22 +202,6 @@ export interface RoundVerdict {
    * events (spec FR5). Null only on a forfeit verdict — the round was
    * given away without a fight. */
   readonly battle: BattleResult | null
-}
-
-export interface CupRoundResult {
-  readonly round: number
-  /** The fighters who advanced. */
-  readonly winners: readonly CupSlot[]
-  readonly verdicts: readonly RoundVerdict[]
-}
-
-export interface CupResult {
-  /** Champion (winner name), or null on a pathological final double-KO. */
-  readonly championName: string | null
-  /** Player's placement: 1 / 2 / 3-4 (rendered as 3). */
-  readonly playerPlacement: 1 | 2 | 3 | 4
-  readonly rounds: readonly CupRoundResult[]
-  readonly roundsPlayed: number
 }
 
 /** One pre-resolved rival pairing of the player-independent subtree: the
@@ -271,16 +253,16 @@ export function startCupSession(
     if (!slot) throw new Error("Bracket slot missing")
     return slot
   }
-  // Same formula as runRound: (day*97 + round*13 + i*7) with i the pairing
-  // index inside its round.
+  // Per-pairing battle seed: (day*97 + round*13 + i*7) with i the pairing
+  // index inside its round (contract pinned in cup-contracts.test.ts).
   const rivalSeed = (round: number, i: number): number =>
     (day * 97 + round * 13 + i * 7) >>> 0
-  const qf2 = resolvePairing(1, slotAt(2), slotAt(3), owned, rivalSeed(1, 1))
-  const qf3 = resolvePairing(1, slotAt(4), slotAt(5), owned, rivalSeed(1, 2))
-  const qf4 = resolvePairing(1, slotAt(6), slotAt(7), owned, rivalSeed(1, 3))
+  const qf2 = resolvePairing(1, slotAt(2), slotAt(3), rivalSeed(1, 1))
+  const qf3 = resolvePairing(1, slotAt(4), slotAt(5), rivalSeed(1, 2))
+  const qf4 = resolvePairing(1, slotAt(6), slotAt(7), rivalSeed(1, 3))
   // The round-2 field is the round-1 winners in slot order, so SF2 pairs
   // the QF3 and QF4 winners (SF1 would pair the QF1/QF2 winners).
-  const sf2 = resolvePairing(2, qf3.winner, qf4.winner, owned, rivalSeed(2, 1))
+  const sf2 = resolvePairing(2, qf3.winner, qf4.winner, rivalSeed(2, 1))
   const rivalResolutions: readonly RivalResolution[] = [qf2, qf3, qf4, sf2]
   return {
     bracket,
@@ -296,12 +278,10 @@ export function startCupSession(
   }
 }
 
-/**
- * Resolve the player's current match live with the coaching room's picks
- * (live-cup spec FR3/FR5). The battle seed follows the legacy per-pairing
- * formula `(day*97 + round*13 + i*7)` with the player's pairing always
- * first in its round (i = 0), so default picks reproduce the legacy
- * one-sitting battles exactly. Pure: returns a fresh advanced session;
+/** Resolve the player's current match live with the coaching room's picks
+ * (live-cup spec FR3/FR5). The battle seed follows the per-pairing formula
+ * `(day*97 + round*13 + i*7)` with the player's pairing always first in
+ * its round (i = 0). Pure: returns a fresh advanced session;
  * throws when the session is not waiting on the player.
  */
 export function resolvePlayerMatch(
@@ -335,7 +315,7 @@ export function resolvePlayerMatch(
     line,
     battle: result,
   }
-  // On a draw the legacy fallback favors the player slot (slot a here).
+  // On a draw the player holds their slot: they advance (slot a here).
   const playerWon = result.winner === null || result.winner === playerSlot.name
   if (playerWon && round === CUP_ROUNDS) {
     return {
@@ -382,8 +362,8 @@ export function resolvePlayerMatch(
 
 /** Resolve the remaining rival pairings from `conqueror` to a champion
  * (live-cup spec: the bracket always plays out). Uses the same per-pairing
- * seeds as the one-sitting resolver, so completed brackets are identical
- * with the legacy flow. Pure. */
+ * seeds as the pre-resolved subtree, so a finished bracket matches the
+ * draw-stream goldens. Pure. */
 function completeBracket(session: CupSession, conqueror: CupSlot): CupSession {
   const wins = session.playerVerdicts.filter(
     (v) => v.winner === session.bracket.slots[0]?.name,
@@ -404,19 +384,19 @@ function completeBracket(session: CupSession, conqueror: CupSlot): CupSession {
   }
   let a: CupSlot = conqueror
   // The player lost the quarterfinal: their conqueror meets the QF2
-  // winner in SF1 (pairing index 0 of round 2, matching the legacy field
-  // order where the player's branch feeds the top half).
+  // winner in SF1 (pairing index 0 of round 2 — the player's branch feeds
+  // the top half of the field).
   if (wins === 0) {
     const rival = session.rivalResolutions[0]?.winner
     if (!rival) throw new Error("Missing QF2 winner")
-    const sf1 = resolvePairing(2, a, rival, null, seedFor(2, 0))
+    const sf1 = resolvePairing(2, a, rival, seedFor(2, 0))
     completion.push(sf1.verdict)
     a = sf1.winner
   }
   const sf2Winner =
     session.rivalResolutions[session.rivalResolutions.length - 1]?.winner
   if (!sf2Winner) throw new Error("Missing SF2 winner")
-  const final = resolvePairing(3, a, sf2Winner, null, seedFor(3, 0))
+  const final = resolvePairing(3, a, sf2Winner, seedFor(3, 0))
   completion.push(final.verdict)
   return {
     ...session,
@@ -487,26 +467,6 @@ export function cupPlacement(session: CupSession): 1 | 2 | 3 | 4 {
   return played >= CUP_ROUNDS ? 2 : played === 2 ? 3 : 4
 }
 
-/** A pairing of two slots for one battle. */
-interface Pairing {
-  readonly a: CupSlot
-  readonly b: CupSlot
-}
-
-/** Standard single-elim pairings of an ordered field: (0,1), (2,3), ... */
-function pairings(field: readonly CupSlot[]): readonly Pairing[] {
-  if (field.length % 2 !== 0)
-    throw new Error("The field is odd and cannot pair")
-  const out: Pairing[] = []
-  for (let i = 0; i < field.length; i += 2) {
-    const a = field[i]
-    const b = field[i + 1]
-    if (!a || !b) throw new Error("The field is broken and cannot pair")
-    out.push({ a, b })
-  }
-  return out
-}
-
 /** Assemble a BattleSide from a bracket slot. */
 function sideFor(slot: CupSlot, seed: number): BattleSide {
   const species = getSpecies(slot.speciesId)
@@ -520,26 +480,6 @@ function sideFor(slot: CupSlot, seed: number): BattleSide {
     stats: slot.stats,
     kit: species.kit,
     tactic,
-    temperament: species.temperament,
-  }
-}
-
-/** The player's own BattleSide: effective stats + the chosen loadout and
- * tactic. The live cup passes the coaching room's picks; the legacy
- * one-sitting path omits them (equipped loadout, balanced tactic). */
-function playerSide(
-  owned: Readonly<Creature>,
-  loadout?: readonly string[],
-  tactic?: Tactic,
-): BattleSide {
-  const species = getSpecies(owned.speciesId)
-  if (!species) throw new Error(`Unknown species: ${owned.speciesId}`)
-  return {
-    name: owned.name,
-    element: owned.element,
-    stats: effectiveStats(owned),
-    kit: loadout ?? owned.loadout ?? defaultLoadout(owned, species),
-    tactic: tactic ?? "balanced",
     temperament: species.temperament,
   }
 }
@@ -577,28 +517,17 @@ export function doubleKoWinner(
   return hpB > hpA ? b : a
 }
 
-/** Resolve one pairing into a verdict (pure). */
+/** Resolve one rival-vs-rival pairing into a verdict (pure). The player's
+ * own matches resolve through resolvePlayerMatch instead — the coaching
+ * room's picks never ride the bracket resolver. */
 function resolvePairing(
   round: number,
   a: CupSlot,
   b: CupSlot,
-  player: Readonly<Creature> | null,
   seed: number,
 ): { verdict: RoundVerdict; winner: CupSlot; loser: CupSlot } {
-  let aSide: BattleSide
-  let bSide: BattleSide
-  if (a.isPlayer) {
-    if (!player) throw new Error("Player side needs the player creature")
-    aSide = playerSide(player)
-    bSide = sideFor(b, seed)
-  } else if (b.isPlayer) {
-    if (!player) throw new Error("Player side needs the player creature")
-    aSide = sideFor(a, seed)
-    bSide = playerSide(player)
-  } else {
-    aSide = sideFor(a, seed)
-    bSide = sideFor(b, seed ^ 1)
-  }
+  const aSide = sideFor(a, seed)
+  const bSide = sideFor(b, seed ^ 1)
   const result: BattleResult = resolveBattle(aSide, bSide, seed)
   const line = result.winner
     ? `${result.winner} takes the ${roundLabel(round)}!`
@@ -626,94 +555,4 @@ function resolvePairing(
 
 function roundLabel(round: number): string {
   return ["Quarterfinal", "Semifinal", "Final"][round - 1] ?? `Round ${round}`
-}
-
-/** One complete round: pair the field, resolve each pairing, halve it.
- * `alive` defaults to the full bracket on round 1; pass the previous
- * round's winners for rounds 2-3 (the test contract that drove this API). */
-export function runRound(
-  bracket: CupBracket,
-  round: number,
-  player: Readonly<Creature>,
-  alive?: readonly CupSlot[],
-): CupRoundResult {
-  if (round < 1 || round > CUP_ROUNDS)
-    throw new Error(`No round ${round} in this cup`)
-  if (bracket.slots.length !== BRACKET_SLOTS) {
-    throw new Error("The cup needs a full 8-slot bracket")
-  }
-  const field = alive ?? bracket.slots
-  const pairs = pairings(field)
-  const verdicts: RoundVerdict[] = []
-  const winners: CupSlot[] = []
-  for (let i = 0; i < pairs.length; i++) {
-    const p = pairs[i]
-    if (!p) throw new Error("Pairing broken")
-    const seed = (bracket.day * 97 + round * 13 + i * 7) >>> 0
-    const { verdict, winner } = resolvePairing(round, p.a, p.b, player, seed)
-    verdicts.push(verdict)
-    winners.push(winner)
-  }
-  return { round, winners, verdicts }
-}
-
-/**
- * Resolve an entire cup in one sitting: three rounds of single elimination
- * starting from the full bracket, then a champion and the player's placement.
- * The player's field runs alongside; on a player loss the bracket still
- * completes so standings make sense.
- */
-export function resolveCup(
-  bracket: CupBracket,
-  player: Readonly<Creature>,
-): CupResult {
-  const allRounds: CupRoundResult[] = []
-  let alive: readonly CupSlot[] = bracket.slots
-  let placement: 1 | 2 | 3 | 4 = 4
-  for (let round = 1; round <= CUP_ROUNDS; round++) {
-    const r = runRound(bracket, round, player, round === 1 ? undefined : alive)
-    allRounds.push(r)
-    alive = r.winners
-    const playerIn = r.winners.some((w) => w.isPlayer)
-    if (!playerIn) {
-      // The player fell this round: the rest of the bracket still runs.
-      // QF exit → 4, SF exit → 3, final exit → 2 (spec FR3 placement).
-      placement = (CUP_ROUNDS - round + 2) as 1 | 2 | 3 | 4
-      // Continue resolving the remainder without the player to a champion.
-      let restAlive = alive
-      let nextRound = round + 1
-      while (restAlive.length > 1) {
-        const rest = runRound(bracket, nextRound, player, restAlive)
-        allRounds.push(rest)
-        restAlive = rest.winners
-        nextRound++
-      }
-      // The champion is the continuation loop's last survivor — NOT the
-      // loss round's winners (a QF exit would otherwise announce a
-      // semifinalist as champion).
-      const champion = restAlive[0]
-      return {
-        championName: champion?.name ?? null,
-        playerPlacement: placement,
-        rounds: allRounds,
-        roundsPlayed: allRounds.length,
-      }
-    }
-  }
-  const champion = alive[0]
-  if (champion?.isPlayer) {
-    return {
-      championName: champion.name,
-      playerPlacement: 1,
-      rounds: allRounds,
-      roundsPlayed: allRounds.length,
-    }
-  }
-  // Player was in every round but lost inside the final — placement 2.
-  return {
-    championName: champion?.name ?? null,
-    playerPlacement: 2,
-    rounds: allRounds,
-    roundsPlayed: allRounds.length,
-  }
 }

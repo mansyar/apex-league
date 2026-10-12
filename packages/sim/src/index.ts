@@ -73,8 +73,6 @@ export {
 } from "./creature"
 export type {
   CupBracket,
-  CupResult,
-  CupRoundResult,
   CupSession,
   CupSlot,
   RoundVerdict,
@@ -86,9 +84,7 @@ export {
   cupPlacement,
   forfeitCup,
   makeBracket,
-  resolveCup,
   resolvePlayerMatch,
-  runRound,
   startCupSession,
 } from "./cup"
 export { applyCupRewards, CUP_REWARDS, type CupOutcome } from "./cupRewards"
@@ -126,7 +122,6 @@ export {
 export {
   beginCup,
   endCup,
-  enterCup,
   finalizeCup,
   prepareCup,
 } from "./machine"

@@ -1,20 +1,24 @@
 import { describe, expect, test } from "bun:test"
 import {
-  CUP_ROUNDS,
   type CupSlot,
   doubleKoWinner,
   makeBracket,
   RIVAL_NAME_POOL,
-  resolveCup,
-  runRound,
 } from "./cup"
 import {
   buildPlaybackScript,
   type Creature,
+  type CupSession,
+  completeCup,
   createCreature,
+  cupPlacement,
+  defaultLoadout,
   effectiveStats,
   getSpecies,
+  type RoundVerdict,
+  resolvePlayerMatch,
   STARTER_SPECIES,
+  startCupSession,
 } from "./index"
 
 /** Build a live player creature (mirrors chooseStarter). */
@@ -23,6 +27,47 @@ function playerCreature(seed = 11): Creature {
 }
 
 const cupDay = 7
+
+/** Play a cup to completion with the default picks (equipped loadout,
+ * balanced tactic) and finish the bracket. The live engine's fixed-pick
+ * equivalent of a fully resolved cup. */
+function playLive(c: Creature, day: number, seed?: number): CupSession {
+  const species = getSpecies(c.speciesId)
+  if (!species) throw new Error(`unknown species ${c.speciesId}`)
+  const loadout = defaultLoadout(c, species)
+  // Same default as makeBracket: an unseeded cup derives its seed from the
+  // day alone.
+  let cur = startCupSession(c, day, seed ?? (day * 7 + 1) >>> 0)
+  while (cur.status === "player-turn") {
+    cur = resolvePlayerMatch(cur, loadout, "balanced").session
+  }
+  if (cur.status === "eliminated") cur = completeCup(cur)
+  return cur
+}
+
+/** Every verdict of a finished session, grouped by round. */
+function verdictsByRound(session: CupSession): Map<number, RoundVerdict[]> {
+  const all = [
+    ...session.rivalVerdicts,
+    ...session.playerVerdicts,
+    ...session.completionVerdicts,
+  ]
+  const byRound = new Map<number, RoundVerdict[]>()
+  for (const v of all) {
+    const list = byRound.get(v.round) ?? []
+    list.push(v)
+    byRound.set(v.round, list)
+  }
+  return byRound
+}
+
+/** An 8-bracket halves 4 → 2 → 1: round 1 resolves 4 pairings, round 2
+ * resolves 2, round 3 resolves the final. */
+function expectHalving(session: CupSession): void {
+  const byRound = verdictsByRound(session)
+  const counts = [1, 2, 3].map((r) => byRound.get(r)?.length ?? 0)
+  expect(counts).toEqual([4, 2, 1])
+}
 
 describe("makeBracket — cup bracket generation", () => {
   test("returns 8 slots with the player at slot 1 and 7 rivals", () => {
@@ -118,143 +163,6 @@ describe("makeBracket — cup bracket generation", () => {
   test("round-count constants line up with an 8-bracket", () => {
     expect(makeBracket(playerCreature(), cupDay).rounds).toBe(3)
   })
-})
-
-describe("RIVAL_NAME_POOL", () => {
-  test("has at least 8 unique, non-player names", () => {
-    expect(new Set(RIVAL_NAME_POOL).size).toBeGreaterThanOrEqual(8)
-    expect(RIVAL_NAME_POOL.length).toBeLessThanOrEqual(24)
-  })
-})
-
-describe("runRound / resolveCup — one-sitting resolution", () => {
-  test("a winning run: champion = the player, 3 rounds, placement 1", () => {
-    // Rivals are even with the player by design (QF −5% / SF 0 / F +5%),
-    // so a winning run needs a creature at the top of its roll band —
-    // sweep seeds until the player takes a cup, then pin the contract.
-    let won: ReturnType<typeof resolveCup> | null = null
-    let winnerCreature: Creature | null = null
-    for (const sp of STARTER_SPECIES) {
-      for (const day of [7, 14, 21]) {
-        for (let seed = 1; seed <= 30; seed++) {
-          const c = createCreature(sp.id, seed)
-          const grown = { ...c, trained: { hp: 3, atk: 3, def: 3, spd: 3 } }
-          const result = resolveCup(makeBracket(grown, day), grown)
-          if (result.playerPlacement === 1) {
-            won = result
-            winnerCreature = grown
-            break
-          }
-        }
-      }
-    }
-    expect(won).not.toBeNull()
-    if (!won || !winnerCreature) throw new Error("no winning seed found")
-    expect(won.championName).toBe(winnerCreature.name)
-    expect(won.roundsPlayed).toBe(3)
-    expect(won.playerPlacement).toBe(1)
-  })
-
-  test("each round halves the field: 8→4→2→1 via explicit alive threading", () => {
-    const c = playerCreature(11)
-    const bracket = makeBracket(c, 7)
-    let alive: readonly CupSlot[] = bracket.slots
-    for (let round = 1; round <= 3; round++) {
-      const r = runRound(bracket, round, c, round === 1 ? undefined : alive)
-      expect(r.winners.length).toBe(alive.length / 2)
-      alive = r.winners
-    }
-    expect(alive.length).toBe(1)
-  })
-
-  test("results are deterministic for the same inputs", () => {
-    const c = playerCreature(11)
-    const a = resolveCup(makeBracket(c, 7), c)
-    const b = resolveCup(makeBracket(c, 7), c)
-    expect(a.rounds.map((r) => r.verdicts)).toEqual(
-      b.rounds.map((r) => r.verdicts),
-    )
-    expect(a.championName).toBe(b.championName)
-    expect(a.playerPlacement).toBe(b.playerPlacement)
-  })
-
-  test("resolveCup does not mutate the player creature or bracket", () => {
-    const c = playerCreature(11)
-    const bracket = makeBracket(c, 7)
-    const before = JSON.stringify({ c, bracket })
-    resolveCup(bracket, c)
-    expect(JSON.stringify({ c, bracket })).toBe(before)
-  })
-
-  test("the player's loadout is honored (not the default kit slice)", () => {
-    const c = playerCreature(11)
-    const kit = getSpecies("fire_drake")?.kit ?? []
-    const loadout = kit.slice(0, 2)
-    const bracket = makeBracket(c, 7)
-    const withLoadout: Creature = { ...c, loadout }
-    const result = resolveCup(bracket, withLoadout)
-    expect(result.roundsPlayed).toBe(3)
-  })
-
-  test("placement: 1st on win, 2nd on final loss, 3rd-4th on semifinal loss", () => {
-    for (const seed of [3, 11, 42, 77]) {
-      const c = playerCreature(seed)
-      const bracket = makeBracket(c, 7)
-      const result = resolveCup(bracket, c)
-      if (result.playerPlacement === 1) {
-        expect(result.championName).toBe(c.name)
-      } else {
-        expect(result.championName).not.toBe(c.name)
-      }
-      expect([1, 2, 3, 4]).toContain(result.playerPlacement)
-    }
-  })
-
-  test("every round logs a short verdict line (announcer feed)", () => {
-    const c = playerCreature(11)
-    const bracket = makeBracket(c, 7)
-    const result = resolveCup(bracket, c)
-    for (const round of result.rounds) {
-      for (const v of round.verdicts) {
-        expect(v.line.length).toBeGreaterThan(0)
-        expect(v.line.length).toBeLessThanOrEqual(120)
-      }
-    }
-  })
-
-  test("on a loss the reported champion is the real tournament winner", () => {
-    // Regression (review): the loss branch read the loss round's winners
-    // instead of the continuation loop's final survivor, announcing a
-    // semifinalist as champion on every QF/SF exit.
-    for (let seed = 1; seed <= 60; seed++) {
-      const c = playerCreature(seed)
-      const bracket = makeBracket(c, 7)
-      const result = resolveCup(bracket, c)
-      if (result.playerPlacement === 1) continue
-      // Independent replay: thread the alive field to the last survivor.
-      let alive: readonly CupSlot[] = bracket.slots
-      let actual = ""
-      for (let round = 1; round <= CUP_ROUNDS; round++) {
-        const r = runRound(bracket, round, c, round === 1 ? undefined : alive)
-        alive = r.winners
-        const last = alive[0]
-        if (alive.length === 1 && last) actual = last.name
-      }
-      expect(result.championName).toBe(actual)
-    }
-  })
-
-  test("placement mapping: QF loss → 4, SF loss → 3, final loss → 2", () => {
-    for (let seed = 1; seed <= 60; seed++) {
-      const c = playerCreature(seed)
-      const result = resolveCup(makeBracket(c, 7), c)
-      if (result.playerPlacement === 1) continue
-      const lostIn =
-        result.rounds.findIndex((r) => !r.winners.some((w) => w.isPlayer)) + 1
-      const expected = lostIn === 1 ? 4 : lostIn === 2 ? 3 : 2
-      expect(result.playerPlacement).toBe(expected)
-    }
-  })
 
   test("makeBracket honors the seed (day + save seed mix)", () => {
     // Spec FR2: the bracket is a function of day + save seed, not the day
@@ -337,12 +245,93 @@ describe("runRound / resolveCup — one-sitting resolution", () => {
   })
 })
 
-describe("edge cases", () => {
-  test("resolveCup rejects a bracket without 8 slots", () => {
+describe("RIVAL_NAME_POOL", () => {
+  test("has at least 8 unique, non-player names", () => {
+    expect(new Set(RIVAL_NAME_POOL).size).toBeGreaterThanOrEqual(8)
+    expect(RIVAL_NAME_POOL.length).toBeLessThanOrEqual(24)
+  })
+})
+
+describe("the live cup engine — session resolution", () => {
+  test("a winning run: champion = the player, 3 rounds, placement 1", () => {
+    // Rivals are even with the player by design (QF −5% / SF 0 / F +5%),
+    // so a winning run needs a creature at the top of its roll band —
+    // sweep seeds until the player takes a cup, then pin the contract.
+    let winner: Creature | null = null
+    let wonDay = 0
+    let wonSeed = 0
+    outer: for (const sp of STARTER_SPECIES) {
+      for (const day of [7, 14, 21]) {
+        for (let seed = 1; seed <= 30; seed++) {
+          const c = createCreature(sp.id, seed)
+          const grown = { ...c, trained: { hp: 3, atk: 3, def: 3, spd: 3 } }
+          if (playLive(grown, day, seed).status === "champion") {
+            winner = grown
+            wonDay = day
+            wonSeed = seed
+            break outer
+          }
+        }
+      }
+    }
+    expect(winner).not.toBeNull()
+    if (!winner) throw new Error("no winning seed found")
+    const session = playLive(winner, wonDay, wonSeed)
+    expect(session.status).toBe("champion")
+    expect(session.championName).toBe(winner.name)
+    expect(session.playerVerdicts.length).toBe(3)
+    expect(cupPlacement(session)).toBe(1)
+  })
+
+  test("each round halves the field: 4 → 2 → 1 verdicts per round", () => {
     const c = playerCreature(11)
-    const bracket = makeBracket(c, 7)
-    const broken = { ...bracket, slots: bracket.slots.slice(0, 4) }
-    expect(() => resolveCup(broken, c)).toThrow()
+    expectHalving(playLive(c, 7))
+  })
+
+  test("every round logs a short verdict line (announcer feed)", () => {
+    const c = playerCreature(11)
+    const byRound = verdictsByRound(playLive(c, 7))
+    for (const verdicts of byRound.values()) {
+      for (const v of verdicts) {
+        expect(v.line.length).toBeGreaterThan(0)
+        expect(v.line.length).toBeLessThanOrEqual(120)
+      }
+    }
+  })
+
+  test("on a loss the reported champion is the real tournament winner", () => {
+    // Regression (review): a QF/SF exit must crown the last survivor of
+    // the remaining bracket — not a semifinalist from the loss round.
+    for (let seed = 1; seed <= 60; seed++) {
+      const c = playerCreature(seed)
+      const session = playLive(c, 7, seed)
+      if (session.status === "champion") {
+        expect(session.championName).toBe(c.name)
+        continue
+      }
+      expect(session.championName).not.toBe(c.name)
+      // The champion is whoever won the last resolved pairing: the final
+      // completion verdict, or the SF2 winner if the player lost the final.
+      const lastCompletion =
+        session.completionVerdicts[session.completionVerdicts.length - 1]
+      const expected =
+        lastCompletion?.winner ?? session.rivalVerdicts[3]?.winner ?? null
+      expect(session.championName).toBe(expected)
+    }
+  })
+
+  test("placement follows the rounds the player actually fought", () => {
+    for (let seed = 1; seed <= 60; seed++) {
+      const c = playerCreature(seed)
+      const session = playLive(c, 7, seed)
+      const placement = cupPlacement(session)
+      if (session.status === "champion") {
+        expect(placement).toBe(1)
+        continue
+      }
+      const played = session.playerVerdicts.length
+      expect(placement).toBe(played >= 3 ? 2 : played === 2 ? 3 : 4)
+    }
   })
 })
 
@@ -372,42 +361,42 @@ describe("doubleKoWinner — double-KO tiebreak", () => {
 
   test("a cup containing a double-KO still halves every round", () => {
     // Sweep days until a bracket produces a double-KO verdict (winner: null),
-    // then assert the one-sitting resolution still shrank the field 8→4→2→1
-    // (continuation rounds included) — the tiebreak must never stall a round.
+    // then assert the live resolution still shrank the field 4 → 2 → 1
+    // verdicts per round (completion rounds included) — the tiebreak must
+    // never stall a round.
     let sawDraw = false
     for (let day = 7; day <= 60 && !sawDraw; day++) {
       const c = playerCreature(11)
-      const result = resolveCup(makeBracket(c, day), c)
-      for (const [i, round] of result.rounds.entries()) {
-        const expectedIn =
-          i === 0 ? 8 : (result.rounds[i - 1]?.winners.length ?? 8)
-        expect(round.winners.length).toBe(expectedIn / 2)
-      }
-      if (
-        result.rounds.some((r) => r.verdicts.some((v) => v.winner === null))
-      ) {
-        sawDraw = true
-      }
+      const session = playLive(c, day)
+      expectHalving(session)
+      const hasDraw = [
+        ...session.rivalVerdicts,
+        ...session.playerVerdicts,
+        ...session.completionVerdicts,
+      ].some((v) => v.winner === null)
+      if (hasDraw) sawDraw = true
     }
     if (sawDraw) expect(sawDraw).toBe(true)
   })
 })
 
 describe("verdict-carried battle results (live cup)", () => {
-  // The live-cup track (spec FR4/FR5): the arena replays each cup battle
-  // from the resolver's event log, so every verdict must carry the full
-  // BattleResult — resolvePairing may no longer discard it.
+  // The arena replays each cup battle from the resolver's event log, so
+  // every verdict must carry the full BattleResult.
+  const allVerdicts = (session: CupSession): RoundVerdict[] => [
+    ...session.rivalVerdicts,
+    ...session.playerVerdicts,
+    ...session.completionVerdicts,
+  ]
+
   test("every verdict carries the full BattleResult with events", () => {
     const c = playerCreature(11)
-    const result = resolveCup(makeBracket(c, 7), c)
-    for (const round of result.rounds) {
-      for (const v of round.verdicts) {
-        if (!v.battle) throw new Error("verdict lost its battle")
-        expect(v.battle.winner).toBe(v.winner)
-        expect(v.battle.events.length).toBeGreaterThan(0)
-        for (const e of v.battle.events) {
-          expect([v.slotA, v.slotB]).toContain(e.actor)
-        }
+    for (const v of allVerdicts(playLive(c, 7))) {
+      if (!v.battle) throw new Error("verdict lost its battle")
+      expect(v.battle.winner).toBe(v.winner)
+      expect(v.battle.events.length).toBeGreaterThan(0)
+      for (const e of v.battle.events) {
+        expect([v.slotA, v.slotB]).toContain(e.actor)
       }
     }
   })
@@ -416,12 +405,12 @@ describe("verdict-carried battle results (live cup)", () => {
     // Player-independent pairings (e.g. QF2) must be replayable too — the
     // bracket reveals rival battles as text only, but the contract is uniform.
     const c = playerCreature(11)
-    const result = resolveCup(makeBracket(c, 7), c)
-    const rivalOnly = result.rounds[0]?.verdicts.filter(
+    const session = playLive(c, 7)
+    const rivalOnly = session.rivalVerdicts.filter(
       (v) => v.slotA !== c.name && v.slotB !== c.name,
     )
-    expect(rivalOnly?.length).toBeGreaterThan(0)
-    for (const v of rivalOnly ?? []) {
+    expect(rivalOnly.length).toBeGreaterThan(0)
+    for (const v of rivalOnly) {
       if (!v.battle) throw new Error("verdict lost its battle")
       expect(v.battle.events.length).toBeGreaterThan(0)
       expect(v.battle.finalHp).toBeDefined()
@@ -430,11 +419,9 @@ describe("verdict-carried battle results (live cup)", () => {
 
   test("the player's verdict events feed the arena playback script 1:1", () => {
     const c = playerCreature(11)
-    const result = resolveCup(makeBracket(c, 7), c)
-    const playerVerdict = result.rounds[0]?.verdicts.find(
-      (v) => v.slotA === c.name || v.slotB === c.name,
-    )
-    if (!playerVerdict) throw new Error("no player verdict in round 1")
+    const session = playLive(c, 7)
+    const playerVerdict = session.playerVerdicts[0]
+    if (!playerVerdict) throw new Error("no player verdict")
     if (!playerVerdict.battle) throw new Error("verdict lost its battle")
     const script = buildPlaybackScript(playerVerdict.battle.events)
     expect(script.length).toBe(playerVerdict.battle.events.length)
@@ -443,10 +430,8 @@ describe("verdict-carried battle results (live cup)", () => {
 
   test("battle results are deterministic across runs (same inputs)", () => {
     const c = playerCreature(11)
-    const a = resolveCup(makeBracket(c, 7), c)
-    const b = resolveCup(makeBracket(c, 7), c)
-    expect(a.rounds.map((r) => r.verdicts.map((v) => v.battle))).toEqual(
-      b.rounds.map((r) => r.verdicts.map((v) => v.battle)),
-    )
+    const a = allVerdicts(playLive(c, 7))
+    const b = allVerdicts(playLive(c, 7))
+    expect(a.map((v) => v.battle)).toEqual(b.map((v) => v.battle))
   })
 })
