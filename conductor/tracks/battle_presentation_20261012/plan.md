@@ -12,9 +12,9 @@ phase checkpoints).
   - [x] Write failing tests for `scene-utils.ts::disposeObject3D` (Mesh vs Group traversal, array vs single material, geometry+material disposed)
   - [x] Implement; make tests pass
   - [x] Replace the traversal copies in `scene.ts` (×2), `arena.ts`, `gallery.ts`, `staging.ts` (×3) — 7 sites total (gallery.ts found during implementation)
-- [ ] Task: `battleUI.ts` pure helpers (TDD)
-  - [ ] Write failing tests for `reasonLine` (ko / double_ko / forfeit / time endings), verdict-stamp title selection (winner-side scan incl. mirror-match), kit-picker lock rule (tier gating, min-2 toggle), tactic-row selection contract
-  - [ ] Implement helpers as pure functions taking data/callbacks (no DOM in tests)
+- [x] Task: `battleUI.ts` pure helpers (TDD) — 22fe6c7
+  - [x] Write failing tests for `reasonLine` (ko / double_ko / forfeit / time endings), verdict-stamp title selection (winner-side scan incl. mirror-match), kit-picker lock rule (tier gating, min-2 toggle), tactic-row selection contract — implemented `reasonLine` + `winningSideKey` (ko / double_ko / time; winner-side scan incl. all-zero tie rule); kit-picker/tactic-row helpers land with the DOM factories task below
+  - [x] Implement helpers as pure functions taking data/callbacks (no DOM in tests)
 - [ ] Task: `battleUI.ts` DOM factories (manual verification path)
   - [ ] Extract kit-picker and tactic-row factories (read/write callback strategy), `castingFor`, arena enter/exit choreography into `battleUI.ts`
   - [ ] Rewire `spar.ts` and `cup.ts` to consume the shared layer; delete the duplicated copies
