@@ -1,0 +1,10 @@
+{
+  "id": "battle_presentation_20261012",
+  "title": "Battle Presentation Layer Refactor",
+  "type": "refactor",
+  "status": "new",
+  "created": "2026-10-12T23:39:57Z",
+  "updated": "2026-10-12T23:39:57Z",
+  "branch": "battle_presentation_20261012",
+  "summary": "Behavior-preserving split of the client battle presentation layer: staging.ts god-file into staging-seed/staging-fx (one consolidated EffectLoop + HitStop)/move-fx data module, shared battleUI.ts deduping spar-vs-cup screen logic, one disposeObject3D utility, CSS class-ownership cleanup with mock.css scoped under .mock, and small a11y additions (cup modal focus trap/Escape/aria-modal, aria-pressed fast-forward, focus restore)."
+}
