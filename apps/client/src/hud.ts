@@ -21,6 +21,7 @@ import {
   type StatKey,
   TRAINING_CAP,
 } from "@apex/sim"
+import { focusTrap } from "./battleUI"
 import { crestGlyph, elementHue } from "./element"
 import { icons } from "./ui/icons"
 import {
@@ -562,22 +563,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   // Escape backs out; a backdrop click means "not today". The focus trap
   // keeps Tab inside the dialog — the scrim hides the page, so focus
   // wandering into it would be invisible.
-  const trapFocus = (event: KeyboardEvent): void => {
-    if (event.key !== "Tab") return
-    const focusable = resetBox.querySelectorAll<HTMLElement>(
-      "button, [href], input",
-    )
-    if (focusable.length === 0) return
-    const first = focusable[0] as HTMLElement
-    const last = focusable[focusable.length - 1] as HTMLElement
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault()
-      last.focus()
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault()
-      first.focus()
-    }
-  }
+  const trapFocus = focusTrap(resetBox)
   resetModal.addEventListener("keydown", (event) => {
     trapFocus(event)
     if (event.key === "Escape") resetModal.style.display = "none"

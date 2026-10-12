@@ -35,6 +35,7 @@ import {
   type SpeciesDef,
   type Tactic,
 } from "@apex/sim"
+import type { PlaybackSpeed } from "./playbackSpeed"
 import type { FightCasting } from "./staging"
 
 /** One arena fighter: species-resolved archetype plus the visual seed. */
@@ -195,4 +196,46 @@ export function buildTacticRow(options: {
     first?.button.classList.add(options.classes.on)
   }
   return { row, buttons }
+}
+
+/**
+ * Keep Tab cycling inside a dialog's focusable elements (the hud reset
+ * modal, the cup give-up modal). Attach the returned handler as a keydown
+ * listener on the dialog root. The scrim hides the page, so focus
+ * wandering outside would be invisible.
+ */
+export function focusTrap(
+  container: HTMLElement,
+): (event: KeyboardEvent) => void {
+  return (event) => {
+    if (event.key !== "Tab") return
+    const focusable = container.querySelectorAll<HTMLElement>(
+      "button, [href], input",
+    )
+    if (focusable.length === 0) return
+    const first = focusable[0] as HTMLElement
+    const last = focusable[focusable.length - 1] as HTMLElement
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault()
+      first.focus()
+    }
+  }
+}
+
+/**
+ * Fast-forward toggle copy + pressed state, shared by the spar and cup
+ * playback controls so the two never drift (mode is the driver's pace).
+ */
+export function renderSpeedButton(
+  button: HTMLButtonElement,
+  // "paced" = a paced run's start state (normal speed); "fast" | "normal"
+  // are the driver's toggle speeds.
+  mode: PlaybackSpeed | "paced",
+): void {
+  const fast = mode === "fast"
+  button.textContent = fast ? "Normal speed" : "Fast-forward"
+  button.setAttribute("aria-pressed", fast ? "true" : "false")
 }

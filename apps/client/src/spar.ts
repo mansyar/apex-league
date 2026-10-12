@@ -28,6 +28,7 @@ import {
   buildTacticRow,
   castFighter,
   reasonLine,
+  renderSpeedButton,
   winningSideKey,
 } from "./battleUI"
 import { crestGlyph, elementHue } from "./element"
@@ -217,7 +218,7 @@ export function createSpar(
   const fastButton = document.createElement("button")
   fastButton.className = "spar-fast"
   fastButton.type = "button"
-  fastButton.textContent = "Fast-forward"
+  renderSpeedButton(fastButton, "paced")
   fastButton.style.display = "none"
 
   // Reduced-motion pill: replays the finished fight as a text-only stepped
@@ -396,7 +397,7 @@ export function createSpar(
     // preference (instant dump + finish), and paces the timer chain. The
     // fast-forward pill only belongs to a paced run.
     if (driver.start(fightNow, verdict) === "paced") {
-      fastButton.textContent = "Fast-forward"
+      renderSpeedButton(fastButton, "paced")
       fastButton.style.display = ""
     }
   }
@@ -507,6 +508,7 @@ export function createSpar(
     overlay.style.display = "none"
     battleHud.hide()
     sparButton.style.display = ""
+    sparButton.focus()
     handlers.onClose?.()
   })
   panelClose.addEventListener("click", () => {
@@ -516,6 +518,7 @@ export function createSpar(
     overlay.style.display = "none"
     battleHud.hide()
     sparButton.style.display = ""
+    sparButton.focus()
     handlers.onClose?.()
   })
   sparButton.addEventListener("click", () => open(owned))
@@ -538,10 +541,10 @@ export function createSpar(
 
   fastButton.addEventListener("click", () => {
     const next = driver.speedToggle()
-    fastButton.textContent = next === "fast" ? "Normal speed" : "Fast-forward"
+    renderSpeedButton(fastButton, next)
   })
   replayButton.addEventListener("click", () => {
-    fastButton.textContent = "Fast-forward"
+    renderSpeedButton(fastButton, "paced")
     driver.replay()
   })
 

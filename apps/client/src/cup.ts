@@ -40,7 +40,9 @@ import {
   buildKitPicker,
   buildTacticRow,
   castFighter,
+  focusTrap,
   reasonLine,
+  renderSpeedButton,
   toggleKitChoice,
   winningSideKey,
 } from "./battleUI"
@@ -334,6 +336,21 @@ export function createCup(
   giveupRow.append(giveupStay, giveupQuit)
   giveupCard.append(giveupTab, giveupTitle, giveupCopy, giveupRow)
   giveup.append(giveupCard)
+  // Dialog semantics + focus management (a11y): the scrim hides the
+  // bracket, so Tab must cycle inside the card, Escape must bail out to
+  // Stay, and closing hands focus back to the control that opened it.
+  giveupCard.setAttribute("role", "dialog")
+  giveupCard.setAttribute("aria-modal", "true")
+  giveupTitle.id = "cup-giveup-title"
+  giveupCard.setAttribute("aria-labelledby", "cup-giveup-title")
+  const giveupTrap = focusTrap(giveupCard)
+  giveup.addEventListener("keydown", (event) => {
+    giveupTrap(event)
+    if (event.key === "Escape") {
+      giveup.style.display = "none"
+      close.focus()
+    }
+  })
 
   // ------------------------------------------------------------------
   // Results screen
@@ -381,9 +398,8 @@ export function createCup(
   const fastButton = document.createElement("button")
   fastButton.type = "button"
   fastButton.className = "cup-speed"
-  fastButton.textContent = "Fast-forward"
+  renderSpeedButton(fastButton, "paced")
   battleChips.append(fastButton)
-
   overlay.append(bracketScreen, coachScreen, resultsScreen, giveup, battleChips)
   root.append(overlay)
 
@@ -857,7 +873,7 @@ export function createCup(
     overlay.classList.add("cup-battling")
     battleHud.show(fightNow)
     battleChips.style.display = ""
-    fastButton.textContent = "Fast-forward"
+    renderSpeedButton(fastButton, "paced")
     fastButton.style.display = ""
     handlers.onFightStart(castingFor(creature, opponent))
     driver.start(fightNow, verdict.battle)
@@ -1015,7 +1031,7 @@ export function createCup(
   ctaGo.addEventListener("click", openCoach)
   fastButton.addEventListener("click", () => {
     const next = driver.speedToggle()
-    fastButton.textContent = next === "fast" ? "Normal speed" : "Fast-forward"
+    renderSpeedButton(fastButton, next)
   })
 
   // ------------------------------------------------------------------
@@ -1023,10 +1039,12 @@ export function createCup(
   // ------------------------------------------------------------------
   giveupStay.addEventListener("click", () => {
     giveup.style.display = "none"
+    close.focus()
   })
   giveupQuit.addEventListener("click", () => {
     if (!session) return
     giveup.style.display = "none"
+    close.focus()
     ctaHide()
     // Forfeit the current round: the opponent advances without a fight,
     // then the bracket auto-completes to a champion.
@@ -1101,6 +1119,7 @@ export function createCup(
     }
     if (session && session.status === "player-turn") {
       giveup.style.display = ""
+      giveupStay.focus()
       return
     }
     closeFree()
