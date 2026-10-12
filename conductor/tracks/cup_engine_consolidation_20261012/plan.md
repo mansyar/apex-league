@@ -30,8 +30,9 @@ cannot silently change outcomes), then delete, then refactor the client last
       `docs/save-schema.md`; add dated consolidation note to
       `conductor/tech-stack.md`. [c77af9a]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  [checkpoint: 7628a1b] Phase 2 complete — legacy engine deleted (net −520 LOC), 791/791 pass, verify green, user-approved.
 
-## Phase 3 — Client bracket model extraction
+## Phase 3 - Client bracket model extraction
 
 - [ ] Task: Bracket-model tests (red) — failing tests for the pure model:
       strict match-order slot filling, verdict display state,
