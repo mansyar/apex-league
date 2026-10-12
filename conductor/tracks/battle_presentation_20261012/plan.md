@@ -6,7 +6,7 @@ TDD applies to logic-bearing code (pure helpers, loop core). Rendering/DOM wirin
 is verified manually per `workflow.md` (browser screenshots + console check at
 phase checkpoints).
 
-## Phase 1 — Foundations: utilities & shared battle UI (logic-bearing)
+## Phase 1 - Foundations (complete, checkpoint: 13a7ee9): utilities & shared battle UI (logic-bearing)
 
 - [x] Task: `disposeObject3D` utility (TDD) — 8e96168
   - [x] Write failing tests for `scene-utils.ts::disposeObject3D` (Mesh vs Group traversal, array vs single material, geometry+material disposed)
