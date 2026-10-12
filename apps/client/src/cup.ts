@@ -783,11 +783,15 @@ export function createCup(
     return {
       owned: {
         archetypeId: cs.archetypeId,
-        seed: visualSeedOf(creature.stats),
+        // Stage-aware: a juvenile's boosted stats must fold back to the
+        // creation seed, or the cup arena re-rolls the partner's DNA.
+        seed: visualSeedOf(creature.stats, creature.stage),
         name: creature.name,
       },
       rival: {
         archetypeId: rs.archetypeId,
+        // Rivals carry no stage in the sim — the stats-only seed keeps
+        // their look stable for the whole bracket.
         seed: visualSeedOf(opponent.stats),
         name: opponent.name,
       },

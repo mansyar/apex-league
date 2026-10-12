@@ -20,10 +20,11 @@ verification for DOM/scene tasks, phase checkpoints with git notes.
 
 ## Phase B — Bug fixes: corrupt-save notice + juvenile cup seed
 
-- [~] Task: Write failing tests — storage distinguishes "no save yet" vs
-      "save exists but unreadable"
-- [ ] Task: Implement corrupt-save notice in the boot path (`main.ts` +
+- [x] Task: Write failing tests — storage distinguishes "no save yet" vs
+      "save exists but unreadable" `[ede940f]`
+- [x] Task: Implement corrupt-save notice in the boot path (`main.ts` +
       broadcast-kit notice); manual verification note for the DOM surface
+      `[ede940f]`
 - [ ] Task: Extend the staging-seed test for the `visualSeedOf(stage)`
       contract; fix `apps/client/src/cup.ts` to pass `owned.stage`
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
