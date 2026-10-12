@@ -72,6 +72,17 @@
   callout chain (day-1 AP, day-5 training tier, cup-eve). The cup arena cast
   is now stage-aware (`visualSeedOf(stats, stage)`) so a juvenile fights as
   the same individual the ranch shows.*
+- *2026-10-12: Bronze ladder landed — save v8 adds the `ladder` slice
+  (`{points, subTier}`) with a fresh-start v7→v8 migration (no backfill;
+  live cup session forwarded untouched) and load-time validation of
+  points/subTier. `@apex/sim/ladder` keeps the placement model pure:
+  champion +3 / runner-up +2 / semifinal +1, automatic climbs through
+  Bronze III→II→I at 6/12 points, forfeits and losses earn zero — wired
+  into both cup paths (`enterCup` legacy and `finalizeCup` live) and
+  forwarded through `advanceDay`. The client surfaces the standing as a
+  rank plate in the score bug (progress-to-next-sub-tier, aria-labeled),
+  the cup entry chip, a promotion-aware results row, and a coach-ticker
+  climb announcement that reuses the hint ledger for the Silver teaser.*
 
 ## Server
 - **Framework**: ElysiaJS on Bun (endpoints: save sync, leaderboard, ghost
