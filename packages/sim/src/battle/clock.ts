@@ -146,6 +146,12 @@ export interface BattleEvent {
   readonly kind: BattleEventKind
   /** The acting fighter; for a `down` event, the fighter that went down. */
   readonly actor: string
+  /**
+   * The acting fighter's stable side key (`id ?? name`) — display names
+   * alone cannot distinguish mirror matches (two "Ember Drake"s), so
+   * client-side actor mapping keys off this when present.
+   */
+  readonly actorKey?: string
   /** The receiving fighter, where relevant. */
   readonly target?: string
   readonly moveId?: string
@@ -296,6 +302,7 @@ export function createClock(
         tick,
         kind: "impact",
         actor: shooter.name,
+        actorKey: fighterKey(shooter),
         target: target.name,
         moveId: move.id,
         damage: 0,
@@ -313,6 +320,7 @@ export function createClock(
           tick,
           kind: "impact",
           actor: shooter.name,
+          actorKey: fighterKey(shooter),
           target: target.name,
           moveId: move.id,
           damage: 0,
@@ -355,6 +363,7 @@ export function createClock(
       tick,
       kind: "impact",
       actor: shooter.name,
+      actorKey: fighterKey(shooter),
       target: target.name,
       moveId: move.id,
       damage,
@@ -378,6 +387,7 @@ export function createClock(
           tick,
           kind: "knockback",
           actor: target.name,
+          actorKey: fighterKey(target),
           hpAfter: hpAfter(),
           line: `${target.name} is knocked back.`,
         })
@@ -388,6 +398,7 @@ export function createClock(
         tick,
         kind: "down",
         actor: target.name,
+        actorKey: fighterKey(target),
         hpAfter: hpAfter(),
         line: `${target.name} is down!`,
       })
@@ -442,6 +453,7 @@ export function createClock(
             tick,
             kind: "stagger",
             actor: actor.name,
+            actorKey: fighterKey(actor),
             hpAfter: hpAfter(),
             line: `${actor.name} reels from the blow.`,
           })
@@ -482,6 +494,7 @@ export function createClock(
               tick,
               kind: "hold",
               actor: actor.name,
+              actorKey: fighterKey(actor),
               hpAfter: hpAfter(),
               line: `${actor.name} hesitates.`,
             })
@@ -493,6 +506,7 @@ export function createClock(
               tick,
               kind: "close",
               actor: actor.name,
+              actorKey: fighterKey(actor),
               hpAfter: hpAfter(),
               line: `${actor.name} closes in.`,
             })
@@ -518,6 +532,7 @@ export function createClock(
               tick,
               kind: "basic",
               actor: actor.name,
+              actorKey: fighterKey(actor),
               target: opponent.name,
               moveId: BASIC_MOVE.id,
               damage,
@@ -545,6 +560,7 @@ export function createClock(
                   tick,
                   kind: "knockback",
                   actor: opponent.name,
+                  actorKey: fighterKey(opponent),
                   hpAfter: hpAfter(),
                   line: `${opponent.name} is knocked back.`,
                 })
@@ -555,6 +571,7 @@ export function createClock(
                 tick,
                 kind: "down",
                 actor: opponent.name,
+                actorKey: fighterKey(opponent),
                 hpAfter: hpAfter(),
                 line: `${opponent.name} is down!`,
               })
@@ -574,6 +591,7 @@ export function createClock(
                 tick,
                 kind: "launch",
                 actor: actor.name,
+                actorKey: fighterKey(actor),
                 target: opponent.name,
                 moveId: usedSpecial.id,
                 hpAfter: hpAfter(),

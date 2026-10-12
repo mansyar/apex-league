@@ -36,6 +36,33 @@ function side(
   }
 }
 
+describe("mirror-match actor keys", () => {
+  test("steps carry the stable side key so mirror matches map correctly", () => {
+    // Two fighters with the SAME display name: the name cannot say which
+    // side acted, so the sim must expose its stable fighter key.
+    const result = resolveBattle(
+      side("Ember Drake", "fire", { hp: 45, atk: 30 }, { id: "owned" }),
+      side("Ember Drake", "fire", { hp: 45 }, { id: "rival" }),
+      11,
+    )
+    const script = buildPlaybackScript(result.events)
+    expect(script.length).toBeGreaterThan(0)
+    const keys = new Set(
+      script.map((s) => s.actorKey).filter((k) => k !== undefined),
+    )
+    expect([...keys].sort()).toEqual(["owned", "rival"])
+    // Every key-labeled step keeps its display name — the key is an
+    // addition for mapping, not a rename.
+    for (const step of script) {
+      if (step.actorKey !== undefined) expect(step.actor).toBe("Ember Drake")
+    }
+    // The down step exists and is keyed to exactly one side.
+    const down = script.find((s) => s.kind === "down")
+    expect(down).toBeDefined()
+    expect(["owned", "rival"]).toContain(down?.actorKey ?? "unkeyed")
+  })
+})
+
 describe("buildPlaybackScript", () => {
   test("maps a resolved battle one-to-one: one step per event, in order", () => {
     const result = resolveBattle(

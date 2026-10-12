@@ -92,6 +92,11 @@ export interface PlaybackStep {
   readonly tick: number
   readonly kind: PlaybackStepKind
   readonly actor: string
+  /**
+   * The actor's stable side key when the sim supplied one — mirror-match
+   * safe actor mapping for the client stage.
+   */
+  readonly actorKey?: string
   readonly target?: string
   readonly moveId?: string
   /** Resolved from the catalog for tinting; `undefined` for the basic strike. */
@@ -170,6 +175,7 @@ export function buildPlaybackScript(
       tick: event.tick,
       kind,
       actor: event.actor,
+      actorKey: event.actorKey,
       target: event.target,
       moveId: event.moveId,
       element: move?.element,

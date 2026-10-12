@@ -143,19 +143,50 @@ const HIT_STOP_MS = 90
 const CONTACT_T = 0.46
 
 interface Projectile {
-  mesh: THREE.Mesh
+  mesh: THREE.Object3D
   trail: THREE.Mesh[]
   from: THREE.Vector3
   to: THREE.Vector3
   /** Accumulated in-flight time (ms), frozen during a hit-stop. */
   elapsed: number
+  /** Element look of this shot (FR5 shared archetype, flavored per element). */
+  flavor: ShotFlavor
 }
+
+/**
+ * One shared ranged attack choreography (FR5 tier 1–2): the launch body
+ * and flight timing never change — only the shot's *look* does. Fire
+ * flies flat and hot, water streams low, plant lobs high; anything else
+ * keeps the neutral orb.
+ */
+interface ShotFlavor {
+  /** Arc-lift multiplier over PROJECTILE_ARC. */
+  arc: number
+  /** Core size pulse amplitude (0 = none). */
+  pulse: number
+  /** Lateral wobble amplitude in world units (0 = none). */
+  wobble: number
+  /** Spin rate around the travel axis, radians per ms. */
+  spin: number
+  /** Stretches the core along travel (teardrop) — 1 = round. */
+  stretch: number
+}
+
+const SHOT_FLAVORS: Record<string, ShotFlavor> = {
+  fire: { arc: 0.7, pulse: 0.18, wobble: 0, spin: 0.012, stretch: 1 },
+  water: { arc: 0.55, pulse: 0.05, wobble: 0.05, spin: 0, stretch: 1.5 },
+  plant: { arc: 1.4, pulse: 0, wobble: 0, spin: 0.02, stretch: 1 },
+}
+
+const shotFlavor = (element: string | undefined): ShotFlavor =>
+  (element !== undefined ? SHOT_FLAVORS[element] : undefined) ??
+  ({ arc: 1, pulse: 0, wobble: 0, spin: 0, stretch: 1 } satisfies ShotFlavor)
 
 export interface FightCasting {
   /** Which creature stands on the left (home) side. */
-  owned: { archetypeId: string; seed: number; name: string }
+  owned: { archetypeId: string; seed: number; name: string; key?: string }
   /** Which creature stands on the right (away) side. */
-  rival: { archetypeId: string; seed: number; name: string }
+  rival: { archetypeId: string; seed: number; name: string; key?: string }
 }
 
 export interface Staging {
@@ -179,6 +210,8 @@ export interface Staging {
 
 interface Combatant {
   name: string
+  /** Stable side key (`id ?? name`) — display names collide in mirrors. */
+  key?: string
   group: THREE.Group
   home: THREE.Vector3
   /** Local "away" direction (X axis, ±1): where retreats and knockbacks go. */
@@ -459,9 +492,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   /** Release the pooled projectiles (scene swap, panel close). */
   const disposeProjectiles = (): void => {
     for (const p of projectiles) {
-      arenaGroup.remove(p.mesh)
-      p.mesh.geometry.dispose()
-      ;(p.mesh.material as THREE.Material).dispose()
+      killShotMesh(p.mesh)
       for (const seg of p.trail) {
         arenaGroup.remove(seg)
         seg.geometry.dispose()
@@ -477,6 +508,17 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   const shotPos = new THREE.Vector3()
   const segPos = new THREE.Vector3()
 
+  /** Free a shot's meshes — cores may be Groups (fire/plant flavors). */
+  const killShotMesh = (mesh: THREE.Object3D): void => {
+    arenaGroup.remove(mesh)
+    mesh.traverse((o) => {
+      if (o instanceof THREE.Mesh) {
+        o.geometry.dispose()
+        ;(o.material as THREE.Material).dispose()
+      }
+    })
+  }
+
   const stepProjectiles = (): void => {
     const now = performance.now()
     // Hit-stop freezes the shot mid-air along with everything else.
@@ -491,22 +533,41 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       shotDir.copy(p.to).sub(p.from)
       const travel = Math.min(1, t)
       shotPos.copy(p.from).addScaledVector(shotDir, travel)
-      shotPos.y += Math.sin(travel * Math.PI) * PROJECTILE_ARC
+      // Flavored arc lift: fire flat and hot, water low, plant a high lob.
+      shotPos.y += Math.sin(travel * Math.PI) * PROJECTILE_ARC * p.flavor.arc
+      if (p.flavor.wobble > 0) {
+        // Water streams with a slight side-to-side ripple.
+        shotPos.x += Math.sin(p.elapsed * 0.02) * p.flavor.wobble
+      }
       p.mesh.position.copy(shotPos)
+      if (p.flavor.spin > 0) {
+        // Seeds tumble; embers corkscrew around the travel axis.
+        p.mesh.rotation.z += p.flavor.spin * dtMs
+        p.mesh.rotation.x += p.flavor.spin * 0.6 * dtMs
+      }
+      if (p.flavor.pulse > 0) {
+        const s = 1 + p.flavor.pulse * Math.sin(p.elapsed * 0.045)
+        p.mesh.scale.setScalar(s)
+      } else if (p.flavor.stretch > 1.2) {
+        // Teardrops and seeds keep facing downrange (their +Z is stretched).
+        p.mesh.lookAt(
+          shotPos.x + shotDir.x,
+          p.mesh.position.y,
+          shotPos.z + shotDir.z,
+        )
+      }
       // Trail lags behind it along the same line, with the same arc lift.
       for (let s = 0; s < p.trail.length; s++) {
         const lag = Math.max(0, travel - (s + 1) * 0.09)
         segPos.copy(p.from).addScaledVector(shotDir, lag)
-        segPos.y += Math.sin(lag * Math.PI) * PROJECTILE_ARC
+        segPos.y += Math.sin(lag * Math.PI) * PROJECTILE_ARC * p.flavor.arc
         p.trail[s]?.position.copy(segPos)
       }
       if (t >= 1) {
         // Impact punctures: vanish (the impact step supplies the reaction).
-        arenaGroup.remove(p.mesh)
-        for (const seg of p.trail) arenaGroup.remove(seg)
-        p.mesh.geometry.dispose()
-        ;(p.mesh.material as THREE.Material).dispose()
+        killShotMesh(p.mesh)
         for (const seg of p.trail) {
+          arenaGroup.remove(seg)
           seg.geometry.dispose()
           ;(seg.material as THREE.Material).dispose()
         }
@@ -529,15 +590,49 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     element: string | undefined,
   ): void => {
     const color = new THREE.Color(elementColor(element))
+    const flavor = shotFlavor(element)
     // Launch from the thrower's mouth line, land on the victim's chest.
     const origin = from.group.position.clone()
     origin.y += 0.8
     const target = to.group.position.clone()
     target.y += 0.6
-    const core = new THREE.Mesh(
-      new THREE.SphereGeometry(PROJECTILE_RADIUS, 12, 10),
-      new THREE.MeshBasicMaterial({ color }),
-    )
+    // Core geometry per flavor (FR5): fire = ember + additive glow halo;
+    // plant = a tumbling seed cluster; water = teardrop; else the orb.
+    let core: THREE.Object3D
+    if (element === "fire") {
+      core = new THREE.Group()
+      const ember = new THREE.Mesh(
+        new THREE.IcosahedronGeometry(PROJECTILE_RADIUS * 0.8, 0),
+        new THREE.MeshBasicMaterial({ color }),
+      )
+      const halo = new THREE.Mesh(
+        new THREE.SphereGeometry(PROJECTILE_RADIUS * 1.55, 12, 10),
+        new THREE.MeshBasicMaterial({
+          color,
+          transparent: true,
+          opacity: 0.32,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        }),
+      )
+      core.add(ember, halo)
+    } else if (element === "plant") {
+      core = new THREE.Group()
+      const seedGeo = new THREE.OctahedronGeometry(PROJECTILE_RADIUS * 0.55, 0)
+      const seedMat = new THREE.MeshBasicMaterial({ color })
+      for (let i = 0; i < 3; i++) {
+        const seed = new THREE.Mesh(seedGeo, seedMat)
+        const angle = (i / 3) * Math.PI * 2
+        seed.position.set(Math.cos(angle) * 0.15, Math.sin(angle) * 0.15, 0)
+        core.add(seed)
+      }
+    } else {
+      core = new THREE.Mesh(
+        new THREE.SphereGeometry(PROJECTILE_RADIUS, 12, 10),
+        new THREE.MeshBasicMaterial({ color }),
+      )
+      if (flavor.stretch > 1.2) core.scale.set(0.72, 0.72, flavor.stretch)
+    }
     core.position.copy(origin)
     arenaGroup.add(core)
 
@@ -563,6 +658,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       from: origin,
       to: target,
       elapsed: 0,
+      flavor,
     })
     if (projectileRaf === null) {
       projectileRaf = requestAnimationFrame(tickProjectiles)
@@ -576,7 +672,11 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     o: Combatant,
     r: Combatant,
   ): { actor: Combatant; target: Combatant } => {
-    if (actor === "" || (o.name !== actor && r.name === actor)) {
+    // Match on the stable key when present: in a mirror match both
+    // fighters answer to the same display name, so name matching maps
+    // every step onto the same (wrong) combatant.
+    const keyOf = (c: Combatant): string => c.key ?? c.name
+    if (actor === "" || (keyOf(o) !== actor && keyOf(r) === actor)) {
       return { actor: r, target: o }
     }
     return { actor: o, target: r }
@@ -637,7 +737,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       c.lean.pitch = 0
       c.lean.roll = 0
     }
-    const side = spotOf(step.actor, o, r)
+    const side = spotOf(step.actorKey ?? step.actor, o, r)
 
     switch (step.kind) {
       case "approach": {
@@ -944,6 +1044,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         group.scale.setScalar(ARENA_FOOTPRINT / footprint)
         const combatant: Combatant = {
           name: info.name,
+          key: info.key,
           group,
           home: new THREE.Vector3(HOME_X * away, 0, 0),
           away,
