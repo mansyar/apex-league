@@ -58,7 +58,9 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
     Charge 3.6/window) — Balanced wins 100% of cross-tactic mirror
     matches; ox kit2/3 mirrors stall into draws. Deliberately out of
     this track's scope; candidate for a dedicated balance track.
-- [ ] **Task: Phase Verification & Checkpoint (Refer to workflow.md)**
+- [x] **Task: Phase Verification & Checkpoint (Refer to workflow.md)**
+  [checkpoint: e932f88] — verification report attached as a git note on
+  e932f88; user approved 2026-10-12.
 
 ## Phase 1 — Enriched Playback Contract & Primitive Layer *(core)*
 
