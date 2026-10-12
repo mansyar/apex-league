@@ -18,9 +18,9 @@ phase checkpoints).
 - [x] Task: `battleUI.ts` DOM factories (manual verification path) — 0f4a9d1
   - [x] Extract kit-picker and tactic-row factories (read/write callback strategy), `castingFor`, arena enter/exit choreography into `battleUI.ts` — done as castFighter + buildKitPicker + buildTacticRow + pure toggleKitChoice (TDD); arena enter/exit choreography extracted as main.ts-local helpers instead (needs scene/swap/staging wiring, not shared UI code — noted deviation)
   - [x] Rewire `spar.ts` and `cup.ts` to consume the shared layer; delete the duplicated copies
-- [ ] Task: a11y additions (manual verification path)
-  - [ ] Cup give-up modal: focus trap + Escape + `role="dialog"`/`aria-modal` + focus restore (reuse hud.ts's `trapFocus` pattern — extract to shared util if identical)
-  - [ ] `aria-pressed` on fast-forward controls (spar + cup); focus restoration on overlay close
+- [x] Task: a11y additions (manual verification path) — 13a7ee9
+  - [x] Cup give-up modal: focus trap + Escape + `role="dialog"`/`aria-modal` + focus restore (hud.ts's `trapFocus` extracted to shared `battleUI.focusTrap`; Escape closes to Stay; opener focuses Stay; dismiss restores focus to the close control)
+  - [x] `aria-pressed` on fast-forward controls (spar + cup) via shared `renderSpeedButton`; spar overlay close restores focus to the spar chip (cup overlay-level chip restore is a hud.ts cross-dependency — noted as follow-up)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — staging.ts split (mostly rendering; seed & loop core test-covered)
