@@ -1122,6 +1122,16 @@ export function createCup(
       session = prepared
       handlers.onSession?.(prepared)
     }
+    // A refresh can land inside the window between the fight resolving and
+    // the rival bracket auto-completing (the stamp hold): the persisted
+    // session is eliminated but has no champion yet, and the resumed walk
+    // would stall on a rival match that has no verdict to show. Finish the
+    // rival bracket now — the per-pairing seeds make it deterministic and
+    // idempotent.
+    if (session.status === "eliminated" && session.championName === null) {
+      session = completeCup(session)
+      handlers.onSession?.(session)
+    }
     // A consumed cup (phase "day" — the entry commit already ran) must not
     // try to endCup again; derive the flag instead of trusting the closure.
     committed = state.phase === "day"
