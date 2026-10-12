@@ -42,7 +42,7 @@ witness, not a red phase.
   - [x] Verify `packages/sim/src/save/save.test.ts` + `cupSession.test.ts` already round-trip a session with verdicts — confirmed; `cupSave.test.ts` and `cup-contracts.test.ts` cover the session shape too
   - [x] Record the baseline: `SAVE_VERSION` is 9 and no new save field is planned (spec FR4 rationale)
 - [x] Task: Commit the safety net (`test(battle): pin seeded event-stream contract before core consolidation`) and attach a git note — `f9f3793`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: ab894d2]`
 
 ### Phase 0 notes
 
