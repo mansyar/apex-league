@@ -68,24 +68,40 @@ half the heavy-hit rule unpinned. The matrix mixes both on purpose.
 
 The drift-risk removal: one heavy-hit rule, one event-construction path.
 
-- [ ] Task: Write failing/red tests for the shared heavy-hit rule
-  - [ ] Table-driven cases: heavy by damage fraction; heavy by super-effective fraction; grace-blocked heavy (reaction must report the actual outcome, not the raw heaviness); downing blow (never staggers); already-staggered victim (never re-locks); near-victim knockback (both fighters go far); far-victim knockback (no-op)
-  - [ ] Each case exercised through **both** the projectile path and the melee-basic path, asserting identical rule outcomes
-  - [ ] Run and confirm the new tests fail before implementation
-- [ ] Task: Extract `applyHeavyHit` in `packages/sim/src/battle/clock.ts`
-  - [ ] Signature takes victim, attacker, damage, current tick, and the type factor numerator/denominator
-  - [ ] Apply heaviness test, stagger grace gate, knockback range shift, and push the `stagger` / `knockback` / `down` events
-  - [ ] Call it from `resolveShot` **and** `case "basic"` — the melee path passes `1/1` so the super-effective branch is inert (no simplified variant)
-  - [ ] Move the FR-tagged rule comments with the code they describe
-- [ ] Task: Extract the `pushEvent(kind, partial)` helper
-  - [ ] Supplies the invariant `tick`, `actor`, `actorKey`, `hpAfter` fields
-  - [ ] Convert the event literals in the clock; event shapes, order and `line` copy unchanged
-- [ ] Task: Verify behavior-identity
-  - [ ] The Phase 0 contract digests are unchanged
-  - [ ] `CI=true bun test packages/sim` green
-- [ ] Task: Update phase notes — which tests moved, and why (expect: none)
-- [ ] Task: Commit (`refactor(battle): single heavy-hit rule and event-construction path in the clock`) + git note + record SHA
+- [x] Task: Write failing/red tests for the shared heavy-hit rule
+  - [x] Table-driven cases: heavy by damage fraction; heavy by super-effective fraction; grace-blocked heavy (reaction must report the actual outcome, not the raw heaviness); downing blow (never staggers); already-staggered victim (never re-locks); near-victim knockback (both fighters go far); far-victim knockback (no-op) — `packages/sim/src/battle/heavy-hit.test.ts`
+  - [x] Each case exercised through **both** the projectile path and the melee-basic path, asserting identical rule outcomes — a two-row path table (`melee` / `projectile`) tuned to deal *identical damage*, so only the rule differs
+  - [x] Run and confirm the new tests fail before implementation — **deviation**: a behavior-preserving dedupe has no red phase (same as Phase 0). See the phase notes; the typeless-strike guard is the test that catches a *wrong* dedupe.
+- [x] Task: Extract the shared heavy-hit rule in `packages/sim/src/battle/clock.ts`
+  - [x] Signature takes the attacker, the victim, the damage, the type factor, and the hit's own `kind` / `moveId` / `line`
+  - [x] Apply heaviness test, stagger grace gate, knockback range shift, and push the `stagger` / `knockback` / `down` events
+  - [x] Call it from `resolveShot` **and** `case "basic"` — the melee path passes the module-level `TYPELESS` factor (`1/1`) so the super-effective branch is inert (no simplified variant)
+  - [x] Move the FR-tagged rule comments with the code they describe — both copies' comments merged into the one helper's doc comment
+- [x] Task: Extract the `pushEvent(kind, partial)` helper
+  - [x] Supplies the invariant `tick`, `actor`, `actorKey`, `hpAfter` fields
+  - [x] Convert the event literals in the clock; event shapes, order and `line` copy unchanged — all nine literal sites converted; one `events.push` remains, inside `pushEvent` itself
+- [x] Task: Verify behavior-identity
+  - [x] The Phase 0 contract digests are unchanged — all 27 pass untouched
+  - [x] `CI=true bun test packages/sim` green — 473 pass / 0 fail in 173ms
+- [x] Task: Update phase notes — which tests moved, and why (expect: none) — none moved
+- [x] Task: Commit (`refactor(battle): single heavy-hit rule and event-construction path in the clock`) + git note + record SHA
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+### Phase 1 notes
+
+**Naming.** FR1 named the helper `applyHeavyHit`; it ships as `landHit`. The
+helper also subtracts the damage and pushes the hit's own event (it has to:
+the `reaction` hint is the rule's output, so the hit event cannot be pushed by
+the caller without splitting the rule in half again). `landHit` says what it
+does; `applyHeavyHit` would have read as "apply the heavy rule" while doing
+three other things.
+
+**Why `TYPELESS` is a constant and not an argument default.** A default of
+`1/1` would silently let a future melee caller skip the chart. An explicit
+named constant forces the melee path to state that the innate Strike has no
+element, and `heavy-hit.test.ts` fails if that ever changes.
+
+**Test count.** +3 tests, +1 file. No existing test moved or changed.
 
 ---
 
