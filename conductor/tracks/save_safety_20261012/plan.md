@@ -27,7 +27,7 @@ verification for DOM/scene tasks, phase checkpoints with git notes.
       `[ede940f]`
 - [x] Task: Extend the staging-seed test for the `visualSeedOf(stage)`
       contract; fix `apps/client/src/cup.ts` to pass `owned.stage` `[b7a36b3]`
-- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: b8e9f2c]`
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: 1b265ed]`
 
 ## Phase C — Creature renaming
 
