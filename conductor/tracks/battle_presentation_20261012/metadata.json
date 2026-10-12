@@ -3,9 +3,10 @@
   "title": "Battle Presentation Layer Refactor",
   "type": "refactor",
   "status": "complete",
-  "completedAt": "2026-10-13T09:59:10Z",
   "created": "2026-10-12T23:39:57Z",
-  updated": "2026-10-13T09:59:10Z",
+  "updated": "2026-10-13T09:59:10Z",
+  "completedAt": "2026-10-13T09:59:10Z",
   "branch": "battle_presentation_20261012",
-  "summary": "Behavior-preserving split of the client battle presentation layer: staging.ts god-file into staging-seed/staging-fx (one consolidated EffectLoop + HitStop)/move-fx data module, shared battleUI.ts deduping spar-vs-cup screen logic, one disposeObject3D utility, CSS class-ownership cleanup with mock.css scoped under .mock, and small a11y additions (cup modal focus trap/Escape/aria-modal, aria-pressed fast-forward, focus restore)."
+  "checkpoints": ["13a7ee9", "e265467", "561c45b", "8c38ebc"],
+  "summary": "Behavior-preserving split of the client battle presentation layer: staging.ts god-file (1941 -> 1094 lines) into staging-seed.ts / staging-fx.ts (one consolidated EffectLoop + HitStop owning hit-stop and the VFX subsystems) / move-fx.ts pure data module; shared battleUI.ts deduping spar-vs-cup screen logic (reasonLine, winningSideKey, castFighter, kit picker, tactic row, focus trap, speed button); one disposeObject3D utility across 7 sites; CSS class-ownership cleanup with mock.css scoped under .mock; a11y additions (cup give-up modal dialog role/aria-modal/focus trap/Escape/focus restore, aria-pressed fast-forward, spar overlay focus return). Phase 4 headless visual QA caught and fixed an EffectLoop default-binding regression (Illegal invocation on every projectile/burst) now covered by a red-verified regression test."
 }
