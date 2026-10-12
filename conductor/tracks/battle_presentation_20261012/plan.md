@@ -23,7 +23,7 @@ phase checkpoints).
   - [x] `aria-pressed` on fast-forward controls (spar + cup) via shared `renderSpeedButton`; spar overlay close restores focus to the spar chip (cup overlay-level chip restore is a hud.ts cross-dependency — noted as follow-up)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2 — staging.ts split (mostly rendering; seed & loop core test-covered)
+## Phase 2 - staging.ts split (complete, checkpoint: e265467)
 
 - [x] Task: Extract `move-fx.ts` data module — 50a6389
   - [x] Move `MOVE_FX`, `SHOT_LOOKS`, `elementColor` + `MoveFx`/`ShotSpec`/`ShotLook` types; zero imports from the driver; update importers — also carried BurstStyle/Posture and the CONTACT_T/PROJECTILE_LIFE_MS/PROJECTILE_ARC constants (data shared by tables + flight interpreter); staging.ts imports from `./move-fx`
