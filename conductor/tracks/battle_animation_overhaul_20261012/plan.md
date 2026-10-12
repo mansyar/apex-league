@@ -70,8 +70,9 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
         KO state, knockback events
   - [x] Green: extend `packages/sim/battle/playback.ts`; resolver outcomes
         untouched (49b7439)
-- [ ] **Task: playbackDriver passthrough** *(TDD)* — extend
-        `playbackDriver.test.ts` for the new fields
+- [x] **Task: playbackDriver passthrough** *(TDD)* — extend
+        `playbackDriver.test.ts` for the new fields (c9bd79f; red phase
+        vacuous — driver forwards steps verbatim, test pins the contract)
 - [ ] **Task: Animation primitive layer** *(TDD on pure functions)* —
         pose composition, per-part phased timelines, easing library,
         seed-derived variation; new shared module (arena-first, ranch-ready)
