@@ -1,0 +1,11 @@
+{
+  "id": "client_scene_pass2_20261013",
+  "title": "Client Scene Architecture Pass II",
+  "type": "refactor",
+  "status": "new",
+  "created": "2026-10-13T00:00:00Z",
+  "updated": "2026-10-13T00:00:00Z",
+  "branch": "client_scene_pass2_20261013",
+  "checkpoints": [],
+  "summary": "Behavior-preserving client architecture pass completing the 20261012 presentation refactor: split scene.ts (1031 ln) into scene-setup (renderer/bloom/sky GLSL), orbit-camera (input + shake), and a ranch-motion unit composing the existing scene-logic machines; convert staging.ts's runStep switch into per-move step modules behind a registry table plus a FighterDriver class and roster module; extract a shared battle-session.ts factory finishing the spar-vs-cup wiring dedup (driver wiring, finish choreography, chip buttons); consolidate the 6x duplicated reduced-motion resolution into motion.ts resolveMotionPref; fix the arena.ts -> scene.ts inverted dependency, the cup.ts TDZ trap, and lambertMaterialOf casts; rebuild mock.ts from the real hud factories to stop design-mock drift; rename spar-* battle-HUD CSS classes to battle-*. Newly pure modules get deterministic unit tests."
+}
