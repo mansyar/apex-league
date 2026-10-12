@@ -9,6 +9,8 @@ import {
   type BattleResult,
   createCreature,
   makeExhibition,
+  PLAYBACK_PHASES,
+  type PlaybackStep,
   resolveBattle,
 } from "@apex/sim"
 import type { PlaybackDriverHandlers, PlaybackRun } from "./playbackDriver"
@@ -41,6 +43,7 @@ function realVerdict(seed: number) {
 function harness(motionPref: () => boolean = () => false): {
   handlers: PlaybackDriverHandlers
   steps: Array<{ instant: boolean; index: number }>
+  seen: PlaybackStep[]
   lines: string[]
   finishes: Array<{
     verdict: Readonly<BattleResult>
@@ -53,6 +56,7 @@ function harness(motionPref: () => boolean = () => false): {
   waitForFinishes: (n: number) => Promise<void>
 } {
   const steps: Array<{ instant: boolean; index: number }> = []
+  const seen: PlaybackStep[] = []
   const lines: string[] = []
   const finishes: Array<{
     verdict: Readonly<BattleResult>
@@ -68,7 +72,7 @@ function harness(motionPref: () => boolean = () => false): {
   const handlers: PlaybackDriverHandlers = {
     onStep: (step, instant) => {
       steps.push({ instant, index: steps.length })
-      void step
+      seen.push(step)
     },
     onLine: (text) => lines.push(text),
     onReplayStart: (run) => replayStarts.push(run),
@@ -91,6 +95,7 @@ function harness(motionPref: () => boolean = () => false): {
   return {
     handlers,
     steps,
+    seen,
     lines,
     finishes,
     paces,
@@ -179,5 +184,29 @@ describe("playbackDriver — paced runs", () => {
     driver.replay()
     expect(h.replayStarts.length).toBe(0)
     expect(h.steps.length).toBe(0)
+  })
+})
+
+describe("playbackDriver — enriched playback contract (FR3)", () => {
+  test("enriched step fields pass through untouched in paced runs and reduced dumps", async () => {
+    for (const reduced of [false, true]) {
+      const h = harness(() => reduced)
+      const driver = createPlaybackDriver(h.handlers, { pace: TEST_PACE })
+      const { fight, verdict } = realVerdict(7)
+      driver.start(fight, verdict)
+      await h.waitForFinishes(1)
+      expect(h.seen.length).toBe(verdict.events.length)
+      for (const step of h.seen) {
+        expect(step.phases).toEqual(PLAYBACK_PHASES[step.kind])
+        if ((step.kind === "melee" || step.kind === "impact") && step.hit) {
+          expect(step.reaction).toBeDefined()
+        }
+        if (step.missReason === "dodge") {
+          expect(step.dodgeDirection).toBeDefined()
+        }
+      }
+      const down = h.seen.find((s) => s.kind === "down")
+      if (down) expect(down.ko).toBe(true)
+    }
   })
 })

@@ -28,8 +28,11 @@ export { BASIC_MOVE, getMove, type MoveDef } from "./moves"
 export {
   buildPlaybackScript,
   PLAYBACK_BEATS,
+  PLAYBACK_PHASES,
+  type PlaybackPhases,
   type PlaybackStep,
   type PlaybackStepKind,
+  type ReactionKind,
 } from "./playback"
 export { chooseAction, type Tactic } from "./policy"
 export {
