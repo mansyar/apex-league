@@ -82,7 +82,20 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
         (051903e — helpers → anim.ts imports, drive loop on stepSquash/approach/
         gaitBob/breathSine, melee timing via phaseAt(PLAYBACK_PHASES.melee);
         user spar on build 5: identical feel)
-- [ ] **Task: Phase Verification & Checkpoint (Refer to workflow.md)**
+- [x] **Task: Phase Verification & Checkpoint (Refer to workflow.md)**
+        [checkpoint: 051903e]
+
+        Phase 1 scope: 49b7439 (enriched playback contract — phases/reaction/
+        dodgeDirection/ko, clock reaction hints), c9bd79f (driver passthrough
+        pinned both paths; @apex/sim re-exports), ea9a229 (animation primitive
+        layer — 25 tests), 051903e (staging refactor onto primitives).
+        Automated: bun test packages/sim 405 green, apps/client 139 green,
+        bun run verify green. Diff 6f4617d..HEAD: 850 insertions across
+        clock/playback/driver/anim/staging. Manual: user sparred on build 5
+        (fresh reload, zero console errors) — gait, breath, squash and melee
+        timing confirmed identical; stagger/knockback steps hold beats until
+        Phase 2 choreography, as planned. Verification report attached as
+        git note on 051903e; user approved 2026-10-12.
 
 ## Phase 2 — Choreography Library *(core)*
 
