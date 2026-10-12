@@ -1,6 +1,6 @@
 import { makeRng } from "@apex/voxel"
 import * as THREE from "three"
-import { RANCH_SKY } from "./scene"
+import { RANCH_SKY } from "./environment"
 import { disposeObject3D } from "./scene-utils"
 
 /**

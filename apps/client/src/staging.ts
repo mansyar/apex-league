@@ -1074,7 +1074,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       for (const c of [owned, rival]) {
         if (!c) continue
         for (const [mesh, base] of c.baseColors) {
-          ;(mesh.material as THREE.MeshLambertMaterial).color.copy(base)
+          lambertMaterialOf(mesh)?.color.copy(base)
         }
         c.group.rotation.set(0, c.group.rotation.y, 0)
         c.group.scale.setScalar(c.baseScale)

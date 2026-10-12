@@ -305,6 +305,15 @@ export function createCup(
   coachFoot.append(coachNote, coachBack, coachGo)
   coachScreen.append(coachHead, coachBody, coachFoot)
 
+  // The bracket's global close button is declared before the give-up
+  // modal because that modal's Escape/Stay handlers hand focus back to
+  // it — declaring it later left a latent TDZ trap in those listeners.
+  const close = document.createElement("button")
+  close.className = "cup-close"
+  close.type = "button"
+  close.textContent = "Back to the ranch"
+  close.style.display = ""
+
   // ------------------------------------------------------------------
   // Give-up modal (over the bracket)
   // ------------------------------------------------------------------
@@ -997,11 +1006,6 @@ export function createCup(
     syncChip()
   }
 
-  const close = document.createElement("button")
-  close.className = "cup-close"
-  close.type = "button"
-  close.textContent = "Back to the ranch"
-  close.style.display = ""
   // In-flow bottom furniture of the bracket screen (between the CTA row and
   // the feed) — absolutely positioning it over the grid made it overlap the
   // semifinal cards on shorter viewports.

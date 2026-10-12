@@ -11,6 +11,7 @@ import { RenderPass } from "three/addons/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js"
 import { buildCreatureGroup } from "./creature"
 import type { CameraIntent } from "./director"
+import { RANCH_SKY } from "./environment"
 import { resolveMotionPref } from "./motion"
 import { buildPropGroup } from "./prop"
 import {
@@ -26,7 +27,7 @@ import {
   type WanderDrive,
   windBaseAmp,
 } from "./scene-logic"
-import { disposeObject3D } from "./scene-utils"
+import { disposeObject3D, lambertMaterialOf } from "./scene-utils"
 
 export interface SceneHandle {
   /** Raw three.js scene root, for environment modules (e.g. the arena). */
@@ -119,8 +120,7 @@ const ARENA_FRAMING = {
  * creature. These four tones are the identity of the ranch look —
  * retune them together, never one alone.
  */
-const SKY_HORIZON = 0xd98c4a // dusk amber, pools at the horizon
-export const RANCH_SKY = SKY_HORIZON
+const SKY_HORIZON = RANCH_SKY // dusk amber, pools at the horizon
 const SKY_TOP = 0x1a1f2e // navy, cools the sky overhead
 const KEY_COLOR = 0xffd9a0 // warm low sun
 const RIM_COLOR = 0x8fb4d9 // cool skylight from the far side
@@ -441,8 +441,7 @@ export function createScene(container: HTMLElement): SceneHandle {
   const applyGlow = (group: THREE.Object3D, intensity: number): void => {
     group.traverse((obj) => {
       if (obj instanceof THREE.Mesh) {
-        const mat = obj.material as THREE.MeshLambertMaterial
-        mat.emissive?.setScalar(intensity * 0.85)
+        lambertMaterialOf(obj)?.emissive.setScalar(intensity * 0.85)
       }
     })
   }
