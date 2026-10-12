@@ -30,6 +30,13 @@ export interface FocusPoint {
   readonly z: number
 }
 
+/** A writable point - scratch objects and reused intent storage. */
+export interface Point3 {
+  x: number
+  y: number
+  z: number
+}
+
 /** The slice of a playback step the director reasons about. */
 export interface DirectorStep {
   readonly kind: PlaybackStep["kind"]
@@ -52,17 +59,19 @@ export interface DirectorContext {
   readonly projectile: FocusPoint | null
 }
 
-/** One camera instruction; the scene eases (or cuts) toward it. */
+/** One camera instruction; the scene eases (or cuts) toward it. Fully
+ * writable so a reused intent object can be overwritten in place - the
+ * camera-director feed runs on every render tick and must not allocate. */
 export interface CameraIntent {
-  readonly look: FocusPoint
+  look: Point3
   /** Multiplier over the broadcast arena radius. */
-  readonly radiusMult: number
+  radiusMult: number
   /** Offset added to the broadcast azimuth (radians). */
-  readonly azimuthDelta: number
+  azimuthDelta: number
   /** Offset added to the broadcast elevation (radians). */
-  readonly elevationDelta: number
+  elevationDelta: number
   /** Snap immediately (hard cut) instead of easing. */
-  readonly cut: boolean
+  cut: boolean
 }
 
 type Look = "pair" | "victim" | "thrower"
@@ -86,31 +95,51 @@ const SHOTS: Record<PlaybackStep["kind"], ShotSpec> = {
   judge: { radiusMult: 1.15, look: "pair", cut: true },
 }
 
+// Allocation-free helpers: every field is fully overwritten per call, so
+// the reused scratch objects keep nextShot deterministic (the pure output
+// never depends on their prior contents).
+const scratchA: Point3 = { x: 0, y: 0, z: 0 }
+const scratchB: Point3 = { x: 0, y: 0, z: 0 }
+const scratchWin: { from: number; to: number } = { from: 0, to: 0 }
+
 const punchWindow = (): { from: number; to: number } => {
   const phases = PLAYBACK_PHASES.melee
-  return { from: phases.windup, to: phases.windup + phases.contact }
+  scratchWin.from = phases.windup
+  scratchWin.to = phases.windup + phases.contact
+  return scratchWin
 }
 
-const mid = (a: FocusPoint, b: FocusPoint): FocusPoint => ({
-  x: (a.x + b.x) / 2,
-  y: (a.y + b.y) / 2,
-  z: (a.z + b.z) / 2,
-})
+const mid = (a: FocusPoint, b: FocusPoint, out: Point3): Point3 => {
+  out.x = (a.x + b.x) / 2
+  out.y = (a.y + b.y) / 2
+  out.z = (a.z + b.z) / 2
+  return out
+}
 
-const lift = (p: FocusPoint, dy: number): FocusPoint => ({
-  x: p.x,
-  y: p.y + dy,
-  z: p.z,
-})
+const lift = (p: FocusPoint, dy: number, out: Point3): Point3 => {
+  out.x = p.x
+  out.y = p.y + dy
+  out.z = p.z
+  return out
+}
 
-const toward = (from: FocusPoint, to: FocusPoint, k: number): FocusPoint => ({
-  x: from.x + (to.x - from.x) * k,
-  y: from.y + (to.y - from.y) * k,
-  z: from.z + (to.z - from.z) * k,
-})
+const toward = (
+  from: FocusPoint,
+  to: FocusPoint,
+  k: number,
+  out: Point3,
+): Point3 => {
+  out.x = from.x + (to.x - from.x) * k
+  out.y = from.y + (to.y - from.y) * k
+  out.z = from.z + (to.z - from.z) * k
+  return out
+}
 
 /** Resolve the camera intent for this instant. Pure and deterministic. */
-export function nextShot(ctx: DirectorContext): CameraIntent {
+export function nextShot(
+  ctx: DirectorContext,
+  out?: CameraIntent,
+): CameraIntent {
   // The swing holds its side across a 4-tick window: flip-flopping the
   // angle every beat pans the camera constantly and reads as dizzying.
   const side =
@@ -118,10 +147,17 @@ export function nextShot(ctx: DirectorContext): CameraIntent {
   const spec = ctx.step === null ? SHOTS.approach : SHOTS[ctx.step.kind]
   const actor = ctx.actor
   const victim = ctx.target
-  const pairMid = lift(mid(actor, victim), 0.6)
+  const pairMid = lift(mid(actor, victim, scratchA), 0.6, scratchB)
   let look: FocusPoint = pairMid
-  if (spec.look === "victim") look = lift(victim, 0.7)
-  if (spec.look === "thrower") look = lift(actor, 0.8)
+  if (spec.look === "victim") look = lift(victim, 0.7, scratchA)
+  if (spec.look === "thrower") look = lift(actor, 0.8, scratchA)
+  const intent = out ?? {
+    look: { x: 0, y: 0, z: 0 },
+    radiusMult: 1,
+    azimuthDelta: 0,
+    elevationDelta: 0,
+    cut: false,
+  }
   let radiusMult = spec.radiusMult
   let azimuthDelta = side * AZIMUTH_SWING
   const cut = spec.cut
@@ -139,12 +175,18 @@ export function nextShot(ctx: DirectorContext): CameraIntent {
       const win = punchWindow()
       if ((heavy || big) && step.t >= win.from && step.t <= win.to) {
         radiusMult = 0.7
-        look = toward(pairMid, lift(victim, 0.7), 0.65)
+        look = toward(pairMid, lift(victim, 0.7, scratchA), 0.65, intent.look)
       }
     }
     if (step.kind === "projectile") {
       // Track the shot in flight; before release, eye the thrower.
-      look = ctx.projectile ? { ...ctx.projectile } : lift(actor, 0.8)
+      const shot = ctx.projectile
+      if (shot) {
+        scratchA.x = shot.x
+        scratchA.y = shot.y
+        scratchA.z = shot.z
+      }
+      look = scratchA
     }
     if (step.kind === "down" && step.ko) {
       // The signature KO orbit: a slow deterministic sweep around the
@@ -155,5 +197,14 @@ export function nextShot(ctx: DirectorContext): CameraIntent {
     }
   }
 
-  return { look, radiusMult, azimuthDelta, elevationDelta, cut }
+  intent.radiusMult = radiusMult
+  intent.azimuthDelta = azimuthDelta
+  intent.elevationDelta = elevationDelta
+  intent.cut = cut
+  if (look !== intent.look) {
+    intent.look.x = look.x
+    intent.look.y = look.y
+    intent.look.z = look.z
+  }
+  return intent
 }

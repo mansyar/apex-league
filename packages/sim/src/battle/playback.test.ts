@@ -392,4 +392,36 @@ describe("enriched playback contract (FR3)", () => {
     ]).find((s) => s.kind === "down")
     expect(mid?.ko).toBe(false)
   })
+
+  test("a genuine same-step double KO flags both down steps (real stream)", () => {
+    // The clock emits [impact1, down1, impact2, down2] when two in-flight
+    // lethal shots land in one tick - a trailing impact after down1 is an
+    // already-judged shot, not a live action. Both downs must read ko.
+    const kit = [...DRAKE_KIT]
+    const a = side(
+      "Ash",
+      "fire",
+      { hp: 12, atk: 21, spd: 20 },
+      {
+        id: "owned",
+        kit,
+      },
+    )
+    const b = side(
+      "Singe",
+      "fire",
+      { hp: 12, atk: 21, spd: 20 },
+      {
+        id: "rival",
+        kit,
+      },
+    )
+    const verdict = resolveBattle(a, b, 7)
+    expect(verdict.reason).toBe("double_ko")
+    const downs = buildPlaybackScript(verdict.events).filter(
+      (s) => s.kind === "down",
+    )
+    expect(downs).toHaveLength(2)
+    expect(downs.every((d) => d.ko === true)).toBe(true)
+  })
 })

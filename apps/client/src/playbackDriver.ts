@@ -206,6 +206,9 @@ export function createPlaybackDriver(
   return {
     start(fight, verdict) {
       clearTimer()
+      // A run stopped mid-KO-beat must not leak slow motion into the
+      // next one (the flag self-heals later, but announce cleanly).
+      dilated = false
       const steps = buildPlaybackScript(verdict.events)
       // buildPlaybackScript is a 1:1 event→step map; fail loud if the sim
       // ever grows an unmapped event kind instead of silently desyncing
@@ -242,6 +245,7 @@ export function createPlaybackDriver(
     replay() {
       if (!lastRun) return
       clearTimer()
+      dilated = false
       replaying = true
       speed = "normal"
       handlers.onPace?.(pace())
@@ -251,7 +255,9 @@ export function createPlaybackDriver(
 
     speedToggle() {
       speed = toggleSpeed(speed)
-      handlers.onPace?.(pace())
+      // Keep the KO slow motion through a mid-beat toggle: the arena
+      // would otherwise snap back to full speed mid-collapse.
+      handlers.onPace?.(dilatedPace(pace(), dilated))
       return speed
     },
 

@@ -6,7 +6,6 @@ import {
   chooseStarter,
   clearLoadout,
   createInitialState,
-  type GameState,
   getSpecies,
   loadGame,
   type StatKey,
@@ -18,6 +17,7 @@ import { buildArena } from "./arena"
 import { createCup } from "./cup"
 import { nextShot } from "./director"
 import { createHud } from "./hud"
+import { prefersReducedMotionOs } from "./motion"
 import { createScene } from "./scene"
 import { createSpar } from "./spar"
 import { createStaging, visualSeedOf } from "./staging"
@@ -133,7 +133,9 @@ vignette.className = "hit-vignette"
 document.body.appendChild(vignette)
 let vignetteFade: number | null = null
 const flashVignette = (strength: number): void => {
-  if (store.get().settings.reducedMotion) return
+  // Both the saved preference and the OS query gate the flash - the CSS
+  // media query alone cannot (the opacity is driven inline).
+  if (store.get().settings.reducedMotion || prefersReducedMotionOs()) return
   // Fast flash in, slow ease back out - the two-phase transition swap.
   vignette.style.transition = "opacity 60ms ease-out"
   vignette.style.opacity = String(Math.min(0.85, strength * 9))
@@ -151,7 +153,18 @@ staging.setBigHitHandler((strength) => {
 // Cinematic director (FR6): the stage reports the live battle context;
 // nextShot turns it into a camera intent. Reduced motion pins the
 // broadcast camera inside the scene, so no extra guard here.
-staging.setDirectorHandler((ctx) => scene.applyDirectorIntent(nextShot(ctx)))
+// The intent object is reused across frames: nextShot fully rewrites it,
+// and the feed runs on every render tick (no per-frame allocation).
+const directorIntent: Parameters<typeof nextShot>[1] = {
+  look: { x: 0, y: 0, z: 0 },
+  radiusMult: 1,
+  azimuthDelta: 0,
+  elevationDelta: 0,
+  cut: false,
+}
+staging.setDirectorHandler((ctx) =>
+  scene.applyDirectorIntent(nextShot(ctx, directorIntent)),
+)
 
 /**
  * Reduced-motion hand-off: the save v5 preference reaches the arena

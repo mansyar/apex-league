@@ -119,6 +119,7 @@ describe("camera director core (FR6)", () => {
       "impact",
       "stagger",
       "knockback",
+      "down",
     ] as const
     for (const kind of eased) {
       expect(nextShot({ ...pair(), step: step(kind) }).cut).toBe(false)

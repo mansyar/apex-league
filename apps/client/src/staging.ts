@@ -25,7 +25,7 @@ import {
   reactionFor,
 } from "./choreo"
 import { buildCreatureGroup } from "./creature"
-import type { DirectorContext } from "./director"
+import type { DirectorContext, DirectorStep } from "./director"
 
 /**
  * Creature staging for the broadcast arena: two living fighters on the
@@ -308,6 +308,29 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   /** Camera-director plumbing: the latest step + when it started. */
   let directorHandler: ((ctx: DirectorContext) => void) | null = null
   let lastStep: PlaybackStep | null = null
+  // Reused per frame - the feed runs on every drive tick, so allocating
+  // fresh objects here would churn the GC in the render loop. The mapped
+  // twin strips readonly for the scratch only; the public contract stays.
+  type MutableDirectorStep = {
+    -readonly [K in keyof DirectorStep]: DirectorStep[K]
+  }
+  type MutableDirectorContext = {
+    -readonly [K in keyof DirectorContext]: DirectorContext[K]
+  }
+  const feedStep: MutableDirectorStep = {
+    kind: "idle",
+    t: 0,
+    tick: 0,
+    reaction: undefined,
+    damage: undefined,
+    ko: undefined,
+  }
+  const feedCtx: MutableDirectorContext = {
+    step: null,
+    actor: { x: 0, y: 0, z: 0 },
+    target: { x: 0, y: 0, z: 0 },
+    projectile: null,
+  }
   let lastStepAt = 0
   /** Action animation length at the current pace, floor-clamped. */
   const animMs = (): number =>
@@ -451,22 +474,21 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
           : paceMs
       const t =
         step === null ? 0 : clamp01((now - lastStepAt) / Math.max(1, span))
-      directorHandler({
-        step:
-          step === null
-            ? null
-            : {
-                kind: step.kind,
-                t,
-                tick: step.tick,
-                reaction: step.reaction,
-                damage: step.damage,
-                ko: step.ko,
-              },
-        actor: owned.group.position,
-        target: rival.group.position,
-        projectile: projectiles[0]?.mesh.position ?? null,
-      })
+      if (step === null) {
+        feedCtx.step = null
+      } else {
+        feedStep.kind = step.kind
+        feedStep.t = t
+        feedStep.tick = step.tick
+        feedStep.reaction = step.reaction
+        feedStep.damage = step.damage
+        feedStep.ko = step.ko
+        feedCtx.step = feedStep
+      }
+      feedCtx.actor = owned.group.position
+      feedCtx.target = rival.group.position
+      feedCtx.projectile = projectiles[0]?.mesh.position ?? null
+      directorHandler(feedCtx)
     }
     driveRaf = requestAnimationFrame(drive)
   }
@@ -484,6 +506,12 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       actionRaf = null
     }
     clearCharge()
+    // Cross-fight staleness: a fight ending on a projectile must not make
+    // the NEXT fight's first point-blank special skip its launch body,
+    // and stale last-step context must not fire a director cut at cast.
+    prevStepKind = null
+    lastStep = null
+    lastStepAt = 0
     if (projectileRaf !== null) {
       cancelAnimationFrame(projectileRaf)
       projectileRaf = null
@@ -622,8 +650,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       shotPos.y +=
         Math.sin(travel * Math.PI) * PROJECTILE_ARC * (p.look.arc ?? 1)
       if (p.look.wobble !== undefined && p.look.wobble > 0) {
-        // Water streams with a slight side-to-side ripple.
-        shotPos.x += Math.sin(p.elapsed * 0.02) * p.look.wobble
+        // Water streams with a slight side-to-side ripple across the lane.
+        shotPos.z += Math.sin(p.elapsed * 0.02) * p.look.wobble
       }
       p.mesh.position.copy(shotPos)
       if (p.look.spin !== undefined && p.look.spin > 0) {
@@ -911,7 +939,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     )
     mesh.rotation.x = -Math.PI / 2
     // A touch above the floor, stacked per decal, so marks never z-fight.
-    mesh.position.set(at.x, 0.02 + decals.length * 0.004, at.z)
+    mesh.position.set(at.x, 0.026 + decals.length * 0.004, at.z)
     mesh.scale.setScalar(0.2)
     arenaGroup.add(mesh)
     decals.push({ mesh, elapsed: 0, life: DECAL_LIFE_MS })
@@ -974,6 +1002,9 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       chargeMesh.position.set(at.x, at.y + 0.8, at.z)
       arenaGroup.add(chargeMesh)
     }
+    // The caster may drift while charging - keep the orb on the mouth line.
+    const at = who.group.position
+    chargeMesh.position.set(at.x, at.y + 0.8, at.z)
     chargeMesh.scale.setScalar(scale)
   }
 
@@ -1099,6 +1130,9 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       life: opts?.life ?? PROJECTILE_LIFE_MS,
       look,
     })
+    // Re-anchor the clock so a shot fired right after a volley drained
+    // does not inherit the drained loop's stale tick as free flight.
+    lastProjectileTick = performance.now()
     if (projectileRaf === null) {
       projectileRaf = requestAnimationFrame(tickProjectiles)
     }
@@ -1420,8 +1454,13 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     const fx = fxFor(step.moveId)
     const away = side.actor.away
     const wind = compressed ? (fx.compressed?.wind ?? 0.32) : fx.wind
+    // Scale the fixed micro-flight with the live pace, exactly like
+    // animMs() does - otherwise fast-forward clamps animMs() to 120 ms
+    // while the flight stays at full length and landBeat escapes [0, 1],
+    // silently dropping the victim's reaction, burst, and decal.
     const flight = compressed
-      ? (fx.compressed?.flight ?? Math.min(300, animMs() * 0.5))
+      ? (fx.compressed?.flight ?? Math.min(300, animMs() * 0.5)) *
+        (paceMs / NORMAL_STEP_MS)
       : (fx.shots[0]?.life ?? PROJECTILE_LIFE_MS)
     const beats =
       compressed && fx.compressed?.beats !== undefined
@@ -1432,9 +1471,10 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     const firedRef = { n: 0 }
     const landedRef = { done: false }
     // Point-blank: the shot lands inside this action; the victim
-    // reacts at the landing beat, not before it.
+    // reacts at the landing beat, not before it. Clamped so a degenerate
+    // schedule still fires the landing at the action's end.
     const landBeat = compressed
-      ? (beats[0] ?? wind) + flight / animMs()
+      ? Math.min(1, (beats[0] ?? wind) + flight / animMs())
       : Number.POSITIVE_INFINITY
     actionRaf = startAction(
       (t, ao) => {
@@ -1832,6 +1872,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   return {
     cast(casting) {
       stop()
+      // The previous fight's scorch marks do not belong on the new floor.
+      disposeAllDecals()
       // Drop the previous cast before building the new one.
       const disposeOld = (c: Combatant | null): void => {
         if (!c) return
@@ -1877,7 +1919,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         // the rig) so the baked voxel scale contract is untouched and the
         // squash spring keeps composing on top of it.
         const size = innerBox.getSize(new THREE.Vector3())
-        const footprint = Math.max(size.x, size.z)
+        const footprint = Math.max(size.x, size.z, 0.001)
         group.scale.setScalar(ARENA_FOOTPRINT / footprint)
         const combatant: Combatant = {
           name: info.name,

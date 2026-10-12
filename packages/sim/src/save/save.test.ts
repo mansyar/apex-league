@@ -19,7 +19,7 @@ import {
 } from "./storage"
 
 describe("save schema", () => {
-  test("current version is 6", () => {
+  test("current version is 7", () => {
     expect(SAVE_VERSION).toBe(7)
   })
 

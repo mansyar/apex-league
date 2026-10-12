@@ -177,6 +177,18 @@ logic-bearing tasks only; rendering tasks carry a manual verification path.
         c739ccc + c0bef44 + 1e1092d (190 insertions); user approved
         2026-10-12.
 
+## Phase: Review Fixes (conductor-review)
+
+- [~] **Task: Apply review suggestions** — fix the High (fast-pace
+        point-blank landing drop) and the four Mediums (double-KO ko flag,
+        cross-fight staging staleness, cinematic→broadcast camera freeze,
+        grace-blocked phantom stagger) plus the Low polish batch (per-frame
+        director-feed allocations, decal z-fight, volley clock re-anchor,
+        water wobble axis, composer runtime guard, footprint ÷0 guard,
+        vignette OS gate + dead media query, charge-orb drift, stale
+        docblocks/titles, migrate null-settings repair, driver dilation
+        reset, unused import, director/anim edge pins).
+
 ## Notes
 
 - P0–P2 are the non-negotiable core; P3–P4 are explicitly re-scopeable

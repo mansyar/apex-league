@@ -163,13 +163,21 @@ export function buildPlaybackScript(
       next.kind === "down" &&
       next.actor === event.target
     // A down step is the KO state iff nothing but other downs / judge
-    // calls follow it — covers single KO (last event) and double KO.
+    // calls follow it - covers single KO (last event) and double KO.
+    // A trailing impact from the same tick is an in-flight shot that
+    // landed after its shooter was already judged down (double KO) -
+    // the resolver judged the step as a whole, so it cannot restart
+    // the fight (FR3).
     const terminal =
       kind === "down" &&
       events
         .slice(i + 1)
         .every(
-          (e) => e.kind === "down" || e.kind === "time" || e.kind === "draw",
+          (e) =>
+            e.kind === "down" ||
+            e.kind === "time" ||
+            e.kind === "draw" ||
+            (e.kind === "impact" && e.tick === event.tick),
         )
     return {
       tick: event.tick,

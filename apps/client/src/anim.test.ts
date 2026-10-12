@@ -73,6 +73,16 @@ describe("phaseAt — normalized step phases", () => {
     expect(phaseAt(1.1, MELEE).phase).toBe("recovery")
     expect(phaseAt(1.1, MELEE).local).toBe(1)
   })
+
+  test("degenerate zero-length phases resolve sanely, never NaN", () => {
+    const flat = { windup: 0, contact: 0.2, recovery: 0.8 } as const
+    // A zero-length windup cannot contain t=0; the instant falls through
+    // to contact's first frame.
+    expect(phaseAt(0, flat)).toEqual({ phase: "contact", local: 0 })
+    // A zero-length recovery resolves to its end at the step's last instant.
+    const noRecovery = { windup: 0.4, contact: 0.6, recovery: 0 } as const
+    expect(phaseAt(1, noRecovery)).toEqual({ phase: "recovery", local: 1 })
+  })
 })
 
 describe("sampleTrack — per-part phased timelines", () => {
@@ -91,6 +101,10 @@ describe("sampleTrack — per-part phased timelines", () => {
   test("clamps before the first and after the last keyframe", () => {
     expect(sampleTrack(track, -1)).toBe(0)
     expect(sampleTrack(track, 2)).toBe(4)
+  })
+
+  test("an empty track samples to a neutral zero (no NaN)", () => {
+    expect(sampleTrack([], 0.5)).toBe(0)
   })
 
   test("vector tracks interpolate per axis", () => {
@@ -175,6 +189,10 @@ describe("exponential approach — frame-rate-safe smoothing", () => {
     const once = approach(0, 10, 4, 0.016)
     const twice = approach(approach(0, 10, 4, 0.008), 10, 4, 0.008)
     expect(Math.abs(once - twice)).toBeLessThan(0.01)
+  })
+
+  test("a zero dt is a no-op (paused frame)", () => {
+    expect(approach(5, 3, 1, 0)).toBe(5)
   })
 })
 

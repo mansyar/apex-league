@@ -6,7 +6,7 @@ import { SAVE_VERSION } from "./schema"
 import { createMemoryAdapter, loadGame, saveGame } from "./storage"
 
 describe("save schema cup fields (v5 origin)", () => {
-  test("current version is 5", () => {
+  test("current version is 7", () => {
     expect(SAVE_VERSION).toBe(7)
   })
 

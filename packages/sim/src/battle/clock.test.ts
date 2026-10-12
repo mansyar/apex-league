@@ -161,8 +161,9 @@ describe("range and the basic strike", () => {
 
 /**
  * Stagger on heavy blows (battle-animation-overhaul spec FR2): a single
- * hit dealing >= 25% of the victim's max HP, or any super-effective hit,
- * staggers the victim — its next action window is consumed recovering.
+ * hit dealing >= 35% of the victim's max HP - or a super-effective hit
+ * that also clears 15% - staggers the victim; its next action window is
+ * consumed recovering.
  * A downing blow never staggers, and an already-staggered victim does
  * not stack a second lock. Cooldowns count actions, and a staggered
  * window is not an action, so they do not step during it.
@@ -224,7 +225,7 @@ describe("stagger on heavy blows", () => {
   })
 
   test("a light neutral basic does not stagger", () => {
-    // Default atk 11 vs def 10: a basic deals 4 of 40 (10%) — under 25%,
+    // Default atk 11 vs def 10: a basic deals 4 of 40 (10%) - under the 35%
     // and the typeless basic is never super-effective. Reed acts normally.
     const clock = clockOf(pair(13, 5), 7)
     const events = drive(clock, scripted({ Bolt: [CLOSE, BASIC] }), 4)
@@ -518,7 +519,7 @@ describe("range-shifting knockback", () => {
   })
 
   test("a downing blow never knocks back", () => {
-    // Reed hp 12: the heavy basic downs it outright — a down event, no
+    // Reed hp 12: the heavy basic downs it outright - a down event, no
     // knockback for the fallen fighter.
     const clock = clockOf(
       [
@@ -532,5 +533,27 @@ describe("range-shifting knockback", () => {
       true,
     )
     expect(events.some((e) => e.kind === "knockback")).toBe(false)
+  })
+
+  test("the separation is not grace-gated", () => {
+    // Two heavies land within the 3-tick grace (t2 and t4): the second
+    // lock is suppressed, but the separation still fires so spacing stays
+    // dynamic (clock.ts header contract).
+    const clock = clockOf(
+      [
+        snap("Bolt", "fire", stats(13, 36, 10, 40)),
+        snap("Reed", "plant", stats(5, 11, 10, 40)),
+      ],
+      7,
+    )
+    const events = drive(
+      clock,
+      scripted({ Bolt: [CLOSE, BASIC, CLOSE, BASIC] }),
+      6,
+    )
+    const knockbacks = events.filter((e) => e.kind === "knockback")
+    expect(knockbacks.map((e) => e.tick)).toEqual([2, 4])
+    const staggers = events.filter((e) => e.kind === "stagger")
+    expect(staggers.map((e) => e.tick)).toEqual([3])
   })
 })

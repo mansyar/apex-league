@@ -606,7 +606,16 @@ export function createScene(container: HTMLElement): SceneHandle {
     shake: setShake,
     /** Choose the arena camera style (FR6). */
     setArenaCameraStyle(style: ArenaStyle) {
+      if (style === arenaStyle) return
       arenaStyle = style
+      if (style === "broadcast") {
+        // Leaving cinematic: nothing else writes the camera in broadcast
+        // arena mode, so re-frame NOW or the shot freezes at the last
+        // director pose until the fight ends.
+        target.set(0, ARENA_FRAMING.targetY, 0)
+        applyOrbit()
+        directorIntent = null
+      }
     },
     /** Feed the director's latest shot; stale intents settle to broadcast. */
     applyDirectorIntent(intent: CameraIntent) {
@@ -1047,9 +1056,17 @@ export function createScene(container: HTMLElement): SceneHandle {
       }
       camera.lookAt(target)
     }
-    // Bloom rides arena fights only - the ranch keeps its clean look.
-    if (cameraMode === "arena" && composer) composer.render()
-    else renderer.render(scene, camera)
+    // Bloom rides arena fights only - the ranch keeps its clean look. A
+    // runtime composer failure (context loss) degrades to the plain
+    // renderer instead of killing the frame loop.
+    if (cameraMode === "arena" && composer) {
+      try {
+        composer.render()
+      } catch {
+        composer = null
+        renderer.render(scene, camera)
+      }
+    } else renderer.render(scene, camera)
     lastFrameT = t
     raf = requestAnimationFrame(tick)
   }

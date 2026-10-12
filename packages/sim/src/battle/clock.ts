@@ -358,6 +358,13 @@ export function createClock(
       (damage >= target.stats.hp * STAGGER_DAMAGE_FRACTION ||
         (type.num > type.den &&
           damage >= target.stats.hp * STAGGER_SE_FRACTION))
+    // The lock applies only through the grace gate; the reaction hint
+    // advertises the ACTUAL outcome, not the raw heaviness - a
+    // grace-blocked blow must not promise a reel the client never sees.
+    const staggers =
+      heavy &&
+      !target.staggered &&
+      tick - target.lastStaggerTick >= STAGGER_GRACE_TICKS
     const knockedBack = heavy && target.range === "near"
     events.push({
       tick,
@@ -370,13 +377,10 @@ export function createClock(
       hit: true,
       hpAfter: hpAfter(),
       line: `${move.displayName} hits ${target.name} for ${damage}.`,
-      reaction: heavy ? (knockedBack ? "knockback" : "stagger") : undefined,
+      reaction: knockedBack ? "knockback" : staggers ? "stagger" : undefined,
     })
     if (heavy) {
-      if (
-        !target.staggered &&
-        tick - target.lastStaggerTick >= STAGGER_GRACE_TICKS
-      ) {
+      if (staggers) {
         target.staggered = true
         target.lastStaggerTick = tick
       }
@@ -523,10 +527,15 @@ export function createClock(
             opponent.hp -= damage
             // The typeless basic can only stagger by sheer size (FR2);
             // the same heavy blow knocks both fighters apart when the
-            // victim was in melee range. Grace applies identically.
+            // victim was in melee range. Grace applies identically - the
+            // reaction hint advertises the ACTUAL outcome.
             const heavy =
               opponent.hp > 0 &&
               damage >= opponent.stats.hp * STAGGER_DAMAGE_FRACTION
+            const staggers =
+              heavy &&
+              !opponent.staggered &&
+              tick - opponent.lastStaggerTick >= STAGGER_GRACE_TICKS
             const knockedBack = heavy && opponent.range === "near"
             events.push({
               tick,
@@ -539,17 +548,14 @@ export function createClock(
               hit: true,
               hpAfter: hpAfter(),
               line: `${actor.name} strikes ${opponent.name} for ${damage}.`,
-              reaction: heavy
-                ? knockedBack
-                  ? "knockback"
-                  : "stagger"
-                : undefined,
+              reaction: knockedBack
+                ? "knockback"
+                : staggers
+                  ? "stagger"
+                  : undefined,
             })
             if (heavy) {
-              if (
-                !opponent.staggered &&
-                tick - opponent.lastStaggerTick >= STAGGER_GRACE_TICKS
-              ) {
+              if (staggers) {
                 opponent.staggered = true
                 opponent.lastStaggerTick = tick
               }

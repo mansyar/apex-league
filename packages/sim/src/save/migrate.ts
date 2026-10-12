@@ -215,7 +215,12 @@ const migrations: Record<
   // feel at render time regardless of this value.
   6: (raw) => {
     const { day, phase, actionPoints, state: s } = validateStateShape(raw, 6)
-    const settings = s.settings as GameState["settings"]
+    // Repair instead of reject: a corrupt v6 settings block still becomes
+    // a valid v7 save (the v4 step established this leniency).
+    const settings =
+      s.settings !== undefined && s.settings !== null
+        ? (s.settings as GameState["settings"])
+        : { reducedMotion: false }
     const migrated: GameState = {
       day,
       phase,
