@@ -5,15 +5,15 @@ checkpoints, git notes, `bun run verify` before commits).
 
 ## Phase A — Sim ladder core (TDD)
 
-- [ ] Task: Write failing tests for the ladder core (`packages/sim/src/ladder.test.ts`)
-  - [ ] Placement→points table: champion +3, runner-up +2, semifinal +1, earlier exit +0
-  - [ ] Threshold crossings: promote at 6 (III→II) and 12 (II→I), including one-point-below cases
-  - [ ] Top of Bronze I: points keep banking; the Silver-awaits flag fires exactly once
-  - [ ] Losses and forfeits award 0 and never subtract
-- [ ] Task: Implement `ladder.ts` — `LadderState`, `POINTS_BY_PLACEMENT`, `SUBTIERS`, `applyCupPlacement` (pure, DOM-free)
-- [ ] Task: Wire the ladder into the cup rewards seam (`applyCupRewards` / `completeCup` / `forfeitCup` paths) so legacy and live cup flows stay in parity; extend `GameState` with `ladder`
-- [ ] Task: Refactor & commit (`feat(sim): bronze ladder core — placement points, sub-tier climbs`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Write failing tests for the ladder core (`packages/sim/src/ladder.test.ts`)
+  - [x] Placement→points table: champion +3, runner-up +2, semifinal +1, earlier exit +0
+  - [x] Threshold crossings: promote at 6 (III→II) and 12 (II→I), including one-point-below cases
+  - [x] Top of Bronze I: points keep banking; the Silver-awaits flag fires exactly once
+  - [x] Losses and forfeits award 0 and never subtract
+- [x] Task: Implement `ladder.ts` — `LadderState`, `POINTS_BY_PLACEMENT`, `SUBTIERS`, `applyCupPlacement` (pure, DOM-free)
+- [x] Task: Wire the ladder into the cup rewards seam (`applyCupRewards` / `completeCup` / `forfeitCup` paths) so legacy and live cup flows stay in parity; extend `GameState` with `ladder`
+- [x] Task: Refactor & commit (`feat(sim): bronze ladder core — placement points, sub-tier climbs`) — b93e2ef
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: b93e2ef] (automated gates green; visual verification deferred to Phase C)
 
 ## Phase B — Save v8 (TDD)
 
