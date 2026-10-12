@@ -21,11 +21,11 @@ cannot silently change outcomes), then delete, then refactor the client last
 
 ## Phase 2 — Retire the legacy engine (sim)
 
-- [~] Task: Delete the one-sitting path — remove `enterCup`/`resolveCup`/
+- [x] Task: Delete the one-sitting path — remove `enterCup`/`resolveCup`/
       `runRound` from `cup.ts`, the `enterCup` step from `machine.ts`, their
       barrel exports, and the one-sitting test suite; keep the bridge green
       throughout; remove the bridge test last; fold any uniquely-covered
-      cases into live-path tests.
+      cases into live-path tests. [7628a1b]
 - [ ] Task: Docs — fix the stale `enterCup` phase row in
       `docs/save-schema.md`; add dated consolidation note to
       `conductor/tech-stack.md`.
