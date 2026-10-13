@@ -25,7 +25,7 @@ manual verification for presentation tasks, phase checkpoints per
     eligible`; a champion at day 60+ stays eligible forever; a
     baby/juvenile is `not-champion`
   - Implement `canGraduate` + `GRADUATION_DAY = 60` + `GRADUATION_HINT_DAY = 55`
-- [~] Task: Inheritance math *(tests first)*
+- [x] Task: Inheritance math *(tests first)* — 549d9c5
   - Tests: `inheritedFloor` = `round(0.5 × parent effective)` per stat,
     clamped into species `statBounds`, `+1`/stat at prestige ≥
     `PRESTIGE_ESTABLISHED_LINE`; `createInheritedCreature` never rolls below
@@ -34,7 +34,7 @@ manual verification for presentation tasks, phase checkpoints per
     → identical successor)
   - Implement `INHERITANCE_FRACTION`, `inheritedFloor`,
     `createInheritedCreature` (built on `createCreature`)
-- [ ] Task: Succession *(tests first)*
+- [~] Task: Succession *(tests first)*
   - Tests: `graduate` appends a `RetiredRecord` (fields captured from the
     champion), increments `generation`, swaps in the successor, resets
     `actionPoints` to `ACTION_POINTS_PER_DAY`, and carries
