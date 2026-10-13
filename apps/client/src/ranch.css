@@ -449,6 +449,17 @@
   outline-offset: 4px;
 }
 
+/* Graduation send-off row (legacy track): revealed only when the champion is
+   eligible, so the dock never offers a dead end. */
+.dock-graduate {
+  border-top: 1px solid var(--kit-keyline);
+  padding-top: 8px;
+}
+
+.dock-graduate .kit-button {
+  width: 100%;
+}
+
 .command-dock.is-collapsed .dock-row,
 .command-dock.is-collapsed .dock-train,
 .command-dock.is-collapsed .dock-graduate,
@@ -482,17 +493,6 @@
   grid-template-columns: auto 1fr auto auto;
   grid-template-areas: "glyph name cost tag";
   gap: 8px;
-}
-
-/* Graduation send-off row (legacy track): revealed only when the champion is
-   eligible, so the dock never offers a dead end. */
-.dock-graduate {
-  border-top: 1px solid var(--kit-keyline);
-  padding-top: 8px;
-}
-
-.dock-graduate .kit-button {
-  width: 100%;
 }
 
 /* Reduced-motion settings chip (save v5): top-left, mirrors — and
