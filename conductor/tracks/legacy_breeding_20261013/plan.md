@@ -126,6 +126,65 @@ manual verification for presentation tasks, phase checkpoints per
 - [x] Task: Final review readiness — all tasks `[x]` with commit SHAs, ready
   for `conductor-review` — f24ab5f
 
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions a9053ab
+
+Review pass (`conductor-review`) over the whole track: no correctness or
+security defects; five maintainability/a11y findings and one coordination
+risk, all recorded below. Every acceptance criterion's failure path is
+tested (reason precedence, both clamp directions, cross-species succession,
+unknown-species throw, mutation purity, corrupt-save rejection).
+
+### Phase notes (review)
+
+- **Fixed — milestone constants.** `hud.ts` hardcoded the callout
+  thresholds (3/5) instead of the sim's `PRESTIGE_WARM_BLOODLINE` /
+  `PRESTIGE_ESTABLISHED_LINE`. The *effect* already used the shared
+  `lineagePerks`; now the teaching does too, so retuning a milestone can't
+  leave the coach announcing a stale one.
+- **Fixed — the send-off was cut short by a timer.** `main.ts` opened the egg
+  screen on a flat `2200ms`, but the reused ceremony runs
+  walk (distance-dependent) + `GLOW_TIME 1.4s` + `SETTLE_TIME 0.6s` ≈
+  2.5–5s, so a champion standing far from the center had its farewell
+  truncated mid-walk. `startEvolution`/`startEvolutionCeremony` now take an
+  `onDone` that fires on the machine's settle edge and the flow sequences
+  off it — measured **2966ms** in the browser (vs the old fixed 2200ms) and
+  **667ms** under reduced motion, with no special case and no timer left.
+  The callback deliberately survives a plain rebuild's `clearEvolution()`,
+  so a send-off can never be stranded with no egg screen.
+- **Fixed — `effectiveStats` reuse.** The egg screen re-added the four
+  stat/trained pairs by hand; it now derives the previewed floor from the
+  sim's own sum, so the preview can't drift from what `graduate` applies.
+- **Fixed — focus return.** The modals trapped Tab and closed on Escape but
+  left focus on `<body>`; Escape / backdrop / "Not yet" now hand it back to
+  the opener (the spar overlay's established practice), and the egg screen
+  opens with focus on the first pickable egg. Browser-verified:
+  `focusAfterEscape` = the Graduate chip, `focusedWhenEggOpened` = the first
+  `starter-card`.
+- **Fixed — the first runtime cycle in `@apex/sim`.** `state.ts` imported
+  `initialLineage` as a value while `legacy.ts` imports the action-point
+  constant from `state`, so the two were mutually dependent at runtime.
+  `state.ts` now inlines the fresh-lineage literal (as it already inlines
+  `cupsWon`/`lastCupDay`) and imports `LineageState` as a type only, leaving
+  `legacy → state` as the single direction. Safe before the fix in both
+  evaluation orders, but fragile in a way nothing else in the package was.
+- **Open — save v10 collides with `audio_foundation_20261013`.** Verified,
+  not hypothetical: that branch's worktree (`3c6eff4`) also ships
+  `SAVE_VERSION = 10` with its own `migrations[9]`. This track is complete
+  and verified, so it should land as v10; the audio track rebases and takes
+  11 with a `v10 → v11` step. Both steps stay individually reversible, so
+  the renumber is mechanical (spec R5 anticipated exactly this).
+- **Fixed beyond the review — the top-band collision the user reported.**
+  The lineage plate (top: 58px, left: 18px) grew rightward into the centered
+  score bug once a dynasty name got long, and the fixed top-center teaching
+  callout sat on top of the bug's day/AP/ladder readout. The plate now sits
+  below the top band (top: 100px) with a bounded, ellipsized family name,
+  and the callout stacks in the left column under it (the fix this plan's
+  Phase 3 note proposed). Measured clear at 1400 / 925 / 420 px against the
+  score bug, the plate, the spar chip, the lower-third, and the dock; no
+  horizontal overflow.
+
 ### Phase notes (Phase 3)
 
 - **Accepted divergence — Lineage plate visibility.** The spec's prestige table
