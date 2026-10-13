@@ -136,13 +136,14 @@ consume, then the mock/CSS polish.
 
 ## Phase 5 — Mock Drift Fix
 
-- [ ] Task: Rebuild mock from real HUD factories
-  - [ ] `mock.ts` renders through the real `hud.ts` DOM factories fed a
+- [x] Task: Rebuild mock from real HUD factories <!-- b49519d -->
+  - [x] `mock.ts` renders through the real `hud.ts` DOM factories fed a
         canned state object (incl. the ladder-rank element the mock is
-        currently missing)
-  - [ ] Remove `mock.css` rules that duplicate `ranch.css` class definitions
-        (`.command-dock`, `.is-capped`, `.is-focus` and any other mirrors)
-  - [ ] Update `mock.css`/`ranch.css` cross-file reach-ins where trivial
+        currently missing) — extracted five cluster builders
+        (buildScoreBug/buildCreaturePlate/buildCommandDock/
+        buildSettingsChips/buildResetModal) that createHud itself now
+        consumes; mock.css cluster mirrors deleted, mock imports the real
+        ranch.css + spar.css (camera-chip visibility)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [ ] `bun run verify` green
   - [ ] Manual verification: `/mock.html` matches the live ranch HUD
