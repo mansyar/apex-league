@@ -17,7 +17,10 @@ end to end, training programs shape the stats cycle by cycle, and weekly cups
 put your creature in a broadcast arena. The golden-hour
 ranch is dressed with voxel scenery that feeds back on care (a food pile appears
 when the creature is fed). Every cup run banks ladder points: climb from
-Bronze III to Bronze I, one promotion at a time.
+Bronze III to Bronze I, one promotion at a time. When a champion's career is
+full, graduate them into a successor — the bloodline keeps the family name,
+inherits a stat floor from the champion's peak, and earns prestige perks that
+make the next run start a little stronger.
 
 ## Core loop
 
@@ -33,8 +36,11 @@ Bronze III to Bronze I, one promotion at a time.
    single-elimination cup: scout the rival, re-pick your kit, and step into
    the arena for each of your matches. Rival-vs-rival matches resolve as
    spectator verdicts.
-4. **Legacy** *(roadmap)* — creatures retire and pass stat inheritance,
-   traits, and family prestige into the next egg.
+4. **Legacy** — a champion that has lived a full career can be **graduated**
+   (a proud send-off, never death): its career is archived to the Hall of Fame
+   and its stats seed a **stat floor** for the next egg, while the family name,
+   generation, and derived **prestige** carry into a dynasty. Full breeding
+   between retired pairs is Phase 2.
 
 ## Tech stack
 
@@ -126,7 +132,7 @@ reproduced exactly from source.
 | Phase | Scope | State |
 |---|---|---|
 | 0 — Foundation | Workspaces, sim core, day ticker, versioned save/load, app shell | Done |
-| 1 — Vertical slice | Care loop, training, one lineage, battle system, one cup, Bronze ladder | Done — care loop, training, baby→juvenile→champion evolution, arena battles, live cups, and the Bronze ladder playable |
+| 1 — Vertical slice | Care loop, training, one lineage, battle system, one cup, Bronze ladder | Done — care loop, training, baby→juvenile→champion evolution, arena battles, live cups, the Bronze ladder, and the minimal legacy loop (graduation → inherited next egg) playable |
 | 2 — League depth | Full ladder, rivals and bosses, breeding, evolution discovery | Planned |
 | 3 — Content & meta | 20–40 species, ElysiaJS backend, cloud saves, leaderboards | Planned |
 | 4 — Post-MVP | Async ghost PvP, live PvP, mobile pass, audio | Planned |

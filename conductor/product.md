@@ -113,6 +113,14 @@ Phased delivery plan (each phase is independently playable):
 - Ranch scene (3D) with idle/breathe life; living-ranch dressing (wind sway,
   feeding ceremony, seeded wandering with camera follow). *(Landed 2026-10-10.)*
 - Retirement → next egg with stat + trait inheritance (minimal legacy).
+  *(Landed 2026-10-13: the legacy phase opens the core loop — a champion at
+  day 60+ can be graduated by the player (never automatic, never death) with
+  an eligibility gate, a Hall of Fame archive, and a 50% parent-derived stat
+  floor carried into the next egg plus a warm-bond start, family name and
+  generation, and derived family prestige (generations + cups) granting
+  milestone perks. Confirm → ranch send-off ceremony → egg screen → successor
+  hatch, reduced-motion aware; save v10. Full breeding between retired pairs
+  stays Phase 2.)*
 
 ### Phase 2 — League Depth
 - Full ladder: Bronze → Silver → Gold with promotion matches.
