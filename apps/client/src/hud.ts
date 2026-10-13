@@ -977,6 +977,19 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       when: (s) => canGraduate(s).eligible,
       text: "A full career. Graduating retires this champion to the Hall of Fame and passes a stat floor to the next egg.",
     },
+    {
+      // Legacy prestige milestones (v10): teach each perk the first time it
+      // takes effect. Gated on a founded line (>0 generations) so a
+      // pre-legacy save's cup tally can never trigger them early.
+      id: "prestige-warm-bloodline",
+      when: (s) => s.lineage.generation > 0 && lineagePrestige(s) >= 3,
+      text: "Warm bloodline — your next egg will start with a stronger bond.",
+    },
+    {
+      id: "prestige-established-line",
+      when: (s) => s.lineage.generation > 0 && lineagePrestige(s) >= 5,
+      text: "Established line — every inherited stat floor gains +1 from here on.",
+    },
   ]
   const callout = document.createElement("div")
   callout.className = "kit-plate hud-callout"
