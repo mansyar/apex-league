@@ -56,7 +56,7 @@ consume, then the mock/CSS polish.
   - [ ] Create `apps/client/src/orbit-camera.ts`: camera state, pointer/
         wheel listeners, camera-shake offset API
   - [ ] Wire through the (now smaller) `SceneHandle`
-- [ ] Task: Extract ranch motion unit
+- [~] Task: Extract ranch motion unit
   - [ ] Create a `ranch-motion` module owning rig state (former
         `scene.ts` closure lets) and driving the existing pure machines
         from `scene-logic.ts`: mood idle/breath, evolution advance/swap,
