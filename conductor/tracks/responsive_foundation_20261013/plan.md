@@ -60,13 +60,13 @@ verified manually per the workflow's rendering scope.
 
 ## Phase 5 — Arena camera framing & renderer hygiene
 
-- [ ] Task: Extract aspect-compensation framing as pure logic (TDD)
+- [x] Task: Extract aspect-compensation framing as pure logic (TDD)
   - Write failing tests in the `scene-logic-*.test.ts` style: portrait
     aspect → FOV/radius compensation keeps both fighters framed; landscape
     unchanged
-  - Implement in `scene.ts` camera path
-- [ ] Task: Refresh `setPixelRatio` on resize/DPR change
-- [ ] Task: Full verify and manual walkthrough
+  - Implement in `scene.ts` camera path - f2af77c
+- [x] Task: Refresh `setPixelRatio` on resize/DPR change - 691dcd3
+- [x] Task: Full verify and manual walkthrough
   - `bun run verify`; manual: portrait + landscape arena battles at
-    phone/tablet widths
+    phone/tablet widths - 691dcd3
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
