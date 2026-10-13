@@ -42,6 +42,19 @@ export interface LineageState {
   hallOfFame: RetiredRecord[]
 }
 
+/**
+ * The night of this day (inclusive) is the earliest a champion may graduate.
+ * A full career: two months of care. No upper limit — once eligible, the
+ * send-off is the player's to choose.
+ */
+export const GRADUATION_DAY = 60
+
+/**
+ * Coach copy may tease a full career from this day on (the send-off itself
+ * stays player-triggered — discovered, not demanded).
+ */
+export const GRADUATION_HINT_DAY = 55
+
 /** Prestige milestone at which a lineage is founded (Hall of Fame recorded). */
 export const PRESTIGE_FOUNDED = 1
 
@@ -89,4 +102,39 @@ export function lineagePerks(prestige: number): LineagePerks {
     warmBloodline: prestige >= PRESTIGE_WARM_BLOODLINE,
     establishedLine: prestige >= PRESTIGE_ESTABLISHED_LINE,
   }
+}
+
+/**
+ * Why the graduation gate answered the way it did, checked in precedence
+ * order: `no-creature > cup-phase > not-champion > too-young > eligible`.
+ */
+export type GraduationReason =
+  | "eligible"
+  | "no-creature"
+  | "cup-phase"
+  | "not-champion"
+  | "too-young"
+
+/** The graduation gate's verdict for the current state. */
+export interface GraduationVerdict {
+  eligible: boolean
+  reason: GraduationReason
+}
+
+/**
+ * May the player graduate the active creature right now? Eligible only when
+ * the state is in the day phase, a creature is owned, it has reached its
+ * **champion** form, and the in-game day is at least `GRADUATION_DAY`. The
+ * gate delays but never blocks — past the floor it stays eligible forever.
+ *
+ * Pure: reads the state, returns a verdict; the caller decides what to do.
+ */
+export function canGraduate(state: GameState): GraduationVerdict {
+  if (!state.creature) return { eligible: false, reason: "no-creature" }
+  if (state.phase === "cup") return { eligible: false, reason: "cup-phase" }
+  if (state.creature.stage !== "champion")
+    return { eligible: false, reason: "not-champion" }
+  if (state.day < GRADUATION_DAY)
+    return { eligible: false, reason: "too-young" }
+  return { eligible: true, reason: "eligible" }
 }

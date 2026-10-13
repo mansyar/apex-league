@@ -117,6 +117,11 @@ export {
   subTierFor,
 } from "./ladder"
 export {
+  canGraduate,
+  GRADUATION_DAY,
+  GRADUATION_HINT_DAY,
+  type GraduationReason,
+  type GraduationVerdict,
   initialLineage,
   type LineagePerks,
   type LineageState,
