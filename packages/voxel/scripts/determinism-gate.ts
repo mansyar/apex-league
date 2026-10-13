@@ -23,7 +23,7 @@ import {
 const SEED = 42
 
 /** Life stages with committed GLB artifacts; baby keeps the bare filename. */
-const GATED_STAGES = ["baby", "juvenile"] as const
+const GATED_STAGES = ["baby", "juvenile", "champion"] as const
 
 const fail = (why: string): never => {
   console.error(`DETERMINISM GATE FAILED: ${why}`)
