@@ -107,23 +107,23 @@ consume, then the mock/CSS polish.
 
 ## Phase 4 — Shared Battle-Session Shell
 
-- [~] Task: Extract battle-session factory
-  - [ ] Create `apps/client/src/battle-session.ts`: driver wiring (onStep →
+- [x] Task: Extract battle-session factory <!-- 4b0cc1e -->
+  - [x] Create `apps/client/src/battle-session.ts`: driver wiring (onStep →
         handlers + `battleHud.update`; onFinish → verdict stamp + hold
         timer → exit callback), speed-pill wiring, winner/reason line
         building
-  - [ ] Add a `chipButton(label, glyph, badge)` helper to `ui/kit.ts`;
+  - [x] Add a `chipButton(label, glyph, badge)` helper to `ui/kit.ts`;
         replace the hand-rolled chip constructions in spar.ts/cup.ts
-  - [ ] Write unit tests for the pure helpers (winner/reason lines,
+  - [x] Write unit tests for the pure helpers (winner/reason lines,
         finish-choreography timing state machine with a fake clock) —
         Red → Green
-- [ ] Task: Migrate spar.ts onto the shell
-  - [ ] spar.ts consumes `battle-session.ts`; duplicated wiring deleted
-- [ ] Task: Migrate cup.ts onto the shell
-  - [ ] cup.ts consumes `battle-session.ts`; duplicated wiring deleted;
+- [x] Task: Migrate spar.ts onto the shell <!-- 4b0cc1e -->
+  - [x] spar.ts consumes `battle-session.ts`; duplicated wiring deleted
+- [x] Task: Migrate cup.ts onto the shell <!-- 4b0cc1e -->
+  - [x] cup.ts consumes `battle-session.ts`; duplicated wiring deleted;
         divergent finish behaviors (follow-up actions) become shell options
-- [ ] Task: Rename shared battle-HUD CSS classes
-  - [ ] Rename `spar-*` classes in `battle-hud.css` (+ TS literals) to
+- [x] Task: Rename shared battle-HUD CSS classes <!-- 4b0cc1e -->
+  - [x] Rename `spar-*` classes in `battle-hud.css` (+ TS literals) to
         `battle-*`; update `mock.css` references
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [ ] `bun run verify` green; no duplicated driver-wiring remains
