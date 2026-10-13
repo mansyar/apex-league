@@ -155,6 +155,7 @@ const {
   onCare: () => {},
   onTrain: () => {},
   onAdvanceDay: () => {},
+  onGraduate: () => {},
 })
 for (const { button: btn, action } of actionButtons) {
   if (action === "treat") {
@@ -394,6 +395,7 @@ phoneStack.append(
     onCare: () => {},
     onTrain: () => {},
     onAdvanceDay: () => {},
+    onGraduate: () => {},
   }).root,
 )
 phoneScene.append(
