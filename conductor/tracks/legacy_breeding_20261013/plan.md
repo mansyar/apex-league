@@ -42,7 +42,7 @@ manual verification for presentation tasks, phase checkpoints per
     state is never mutated; ineligible states reject with the correct reason
     and no change; records accumulate oldest-first across two graduations
   - Implement `graduate(state, speciesId, seed)`
-- [~] Task: Save v10 migration + validation *(tests first)*
+- [x] Task: Save v10 migration + validation *(tests first)* — 5518301
   - Tests: a v9 payload migrates to v10 with `lineage` initialized
     (`generation 0`, empty `hallOfFame`); round-trip save/load preserves the
     lineage slice; malformed lineage (bad `generation` type, non-array
@@ -52,7 +52,7 @@ manual verification for presentation tasks, phase checkpoints per
   - Implement `SAVE_VERSION = 10` + the `v9 → v10` step in
     `packages/sim/src/save/migrate.ts` + `lineage` validation in
     `save/storage.ts`; update `docs/save-schema.md`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - Tests: all sim suites green (legacy, gate, inheritance, succession,
     migration); `bun run check` clean
   - Manual verification: scripted headless playthrough
