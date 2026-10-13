@@ -52,7 +52,7 @@ consume, then the mock/CSS polish.
   - [x] Create `apps/client/src/scene-setup.ts`: renderer, scene, composer,
         bloom (try/catch fallback), inline GLSL sky-dome shaders
   - [x] `scene.ts` consumes it; no behavior change
-- [ ] Task: Extract orbit camera module
+- [~] Task: Extract orbit camera module
   - [ ] Create `apps/client/src/orbit-camera.ts`: camera state, pointer/
         wheel listeners, camera-shake offset API
   - [ ] Wire through the (now smaller) `SceneHandle`
