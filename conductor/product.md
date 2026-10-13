@@ -121,7 +121,10 @@ Phased delivery plan (each phase is independently playable):
 
 ### Phase 4 — Post-MVP
 - Async ghost PvP; live PvP (battle code designed for it from Phase 1).
-- Mobile-responsive pass; audio expansion; polish & release funnel.
+- Mobile-responsive pass (foundation landed 2026-10-13: breakpoint
+  tiers + responsive surfaces + portrait-aware arena camera; remaining:
+  touch ergonomics, device-lab verification pass); audio expansion;
+  polish & release funnel.
 
 ## Target Audience
 Creature-collector fans who love the raising sim subgenre (Digimon World
