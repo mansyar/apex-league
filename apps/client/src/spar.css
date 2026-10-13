@@ -265,8 +265,16 @@
    The spar panel and motion pill stay visible. */
 .app-in-arena .score-bug,
 .app-in-arena .creature-plate,
+.app-in-arena .command-dock,
 .app-in-arena .spar-button {
   display: none;
+}
+
+/* In arena the battle placard owns the top edge (it did overlap the
+   chips even on desktop), so the motion/camera/reset chip cluster
+   drops below it (responsive_foundation_20261013). */
+.app-in-arena .hud-motion {
+  top: calc(116px + var(--kit-safe-top));
 }
 
 .spar-close {
@@ -309,6 +317,22 @@
   .spar-button {
     top: calc(58px + var(--kit-safe-top));
     right: calc(14px + var(--kit-safe-right));
+  }
+}
+
+/* Phone tier (responsive_foundation_20261013): below 520px the fixed
+   460px panel goes full-width minus the 14px phone margins + safe
+   insets, and the edge-pinned battle-log chips clear the safe areas. */
+@media (max-width: 519.98px) {
+  .spar-panel {
+    width: calc(100vw - 28px - var(--kit-safe-left) - var(--kit-safe-right));
+    max-width: none;
+    padding: 14px 16px;
+  }
+
+  .spar-chips {
+    right: calc(14px + var(--kit-safe-right));
+    bottom: calc(14px + var(--kit-safe-bottom));
   }
 }
 

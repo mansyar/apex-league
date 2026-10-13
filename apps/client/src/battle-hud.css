@@ -359,3 +359,76 @@
   );
   transition: opacity 300ms ease-in;
 }
+
+/* Phone tier (responsive_foundation_20261013): the broadcast composition
+   assumes a wide screen. On phones the placard plates slim down, the
+   center rangefinder folds away (the VS badge stays), the announcer
+   lower-third gets the full width, and the extra bottom padding keeps
+   the line clear of the corner battle-log chips. */
+@media (max-width: 767.98px) {
+  .spar-hud {
+    padding: 12px 14px calc(96px + var(--kit-safe-bottom));
+  }
+
+  .spar-hud-top {
+    width: min(100%, 980px);
+  }
+
+  .spar-plate {
+    gap: 8px;
+    padding: 8px 10px 10px;
+    min-height: 52px;
+  }
+
+  .spar-crest {
+    width: 28px;
+    height: 28px;
+  }
+
+  .spar-crest svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .spar-hud-name {
+    font-size: 13px;
+  }
+
+  .spar-hp-num {
+    font-size: 11px;
+  }
+
+  .spar-hp-bar {
+    height: 9px;
+  }
+
+  .spar-hud-center {
+    width: 56px;
+    padding: 6px 4px 8px;
+  }
+
+  .spar-hud-range {
+    display: none;
+  }
+
+  .spar-hud-lower {
+    max-width: 100%;
+  }
+
+  .spar-hud-line {
+    max-width: 100%;
+  }
+
+  .spar-stamp-title {
+    font-size: 30px;
+    letter-spacing: 0.2em;
+  }
+
+  .spar-stamp-rule {
+    width: min(60vw, 260px);
+  }
+
+  .spar-stamp-sub {
+    font-size: 13px;
+  }
+}
