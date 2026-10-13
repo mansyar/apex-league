@@ -11,7 +11,7 @@ manual verification for presentation tasks, phase checkpoints per
 
 *(all logic-bearing — strict TDD)*
 
-- [ ] Task: Lineage slice + prestige model *(write failing tests first)*
+- [x] Task: Lineage slice + prestige model *(write failing tests first)* — 4a67a35
   - Tests: `LineageState`/`RetiredRecord` shapes; `createInitialState` starts
     `{ generation: 0, hallOfFame: [] }`; `lineagePrestige = generation +
     cupsWon`; milestone resolution returns the right perk set at prestige
@@ -19,7 +19,7 @@ manual verification for presentation tasks, phase checkpoints per
   - Implement `packages/sim/src/legacy.ts` (types + `lineagePrestige` +
     `PRESTIGE_*` constants + a `lineagePerks(prestige)` helper), extend
     `state.ts`, export from `index.ts`
-- [ ] Task: Graduation eligibility gate *(tests first)*
+- [~] Task: Graduation eligibility gate *(tests first)*
   - Tests: eligible only for day-phase + creature + champion + day ≥ 60;
     reason precedence `no-creature > cup-phase > not-champion > too-young >
     eligible`; a champion at day 60+ stays eligible forever; a
