@@ -121,6 +121,8 @@ export {
   createInheritedCreature,
   GRADUATION_DAY,
   GRADUATION_HINT_DAY,
+  type GraduateResult,
+  graduate,
   type GraduationReason,
   type GraduationVerdict,
   INHERITANCE_FRACTION,

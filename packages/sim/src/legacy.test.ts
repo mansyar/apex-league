@@ -5,10 +5,11 @@
  */
 
 import { describe, expect, it } from "bun:test"
-import type { CreatureStats } from "./creature"
+import { type CreatureStats, effectiveStats } from "./creature"
 import {
   canGraduate,
   createInheritedCreature,
+  graduate,
   GRADUATION_DAY,
   GRADUATION_HINT_DAY,
   INHERITANCE_FRACTION,
@@ -22,7 +23,12 @@ import {
   WARM_BOND_START,
 } from "./legacy"
 import { getSpecies, type SpeciesDef } from "./species"
-import { chooseStarter, createInitialState, type GameState } from "./state"
+import {
+  ACTION_POINTS_PER_DAY,
+  chooseStarter,
+  createInitialState,
+  type GameState,
+} from "./state"
 
 type Stage = "baby" | "juvenile" | "champion"
 
@@ -292,5 +298,118 @@ describe("createInheritedCreature", () => {
 
   it("throws on an unknown species", () => {
     expect(() => createInheritedCreature("nope", 1, parentStats, 0)).toThrow()
+  })
+})
+
+function creatureOf(state: GameState) {
+  const c = state.creature
+  if (!c) throw new Error("expected a creature")
+  return c
+}
+
+describe("graduate — succession", () => {
+  it("rejects every ineligible state with its reason", () => {
+    expect(graduate(createInitialState(), "plant_ox", 1)).toEqual({
+      ok: false,
+      reason: "no-creature",
+    })
+    expect(
+      graduate(stateWith("juvenile", GRADUATION_DAY), "plant_ox", 1),
+    ).toEqual({ ok: false, reason: "not-champion" })
+    expect(
+      graduate(stateWith("champion", GRADUATION_DAY - 1), "plant_ox", 1),
+    ).toEqual({ ok: false, reason: "too-young" })
+    expect(
+      graduate(stateWith("champion", GRADUATION_DAY, "cup"), "plant_ox", 1),
+    ).toEqual({ ok: false, reason: "cup-phase" })
+  })
+
+  it("hatches the chosen species as a baby and archives the retiree", () => {
+    const before = stateWith("champion", GRADUATION_DAY)
+    const retiree = creatureOf(before)
+    const res = graduate(before, "plant_ox", 99)
+    expect(res.ok).toBe(true)
+    if (!res.ok) return
+    expect(res.state.creature?.speciesId).toBe("plant_ox")
+    expect(res.state.creature?.stage).toBe("baby")
+    expect(res.state.lineage.generation).toBe(1)
+    expect(res.state.lineage.hallOfFame).toHaveLength(1)
+    expect(res.state.lineage.hallOfFame[0]).toMatchObject({
+      name: retiree.name,
+      speciesId: "fire_drake",
+      archetypeId: retiree.archetypeId,
+      element: "fire",
+      stats: effectiveStats(retiree),
+      trained: retiree.trained,
+      cupsWon: 0,
+      generation: 0,
+      retiredOnDay: GRADUATION_DAY,
+    })
+  })
+
+  it("resets the day's action points and carries day/cups/ladder/settings", () => {
+    const before = {
+      ...stateWith("champion", GRADUATION_DAY),
+      cupsWon: 2,
+      lastCupDay: 56,
+    }
+    const res = graduate(before, "water_axolotl", 7)
+    if (!res.ok) throw new Error("expected ok")
+    expect(res.state.actionPoints).toBe(ACTION_POINTS_PER_DAY)
+    expect(res.state.day).toBe(before.day)
+    expect(res.state.cupsWon).toBe(2)
+    expect(res.state.lastCupDay).toBe(56)
+    expect(res.state.ladder).toEqual(before.ladder)
+    expect(res.state.settings).toEqual(before.settings)
+  })
+
+  it("is mutation-pure", () => {
+    const before = stateWith("champion", GRADUATION_DAY)
+    const snapshot = structuredClone(before)
+    graduate(before, "plant_ox", 5)
+    expect(before).toEqual(snapshot)
+  })
+
+  it("accumulates Hall of Fame records oldest-first across generations", () => {
+    const first = graduate(stateWith("champion", GRADUATION_DAY), "plant_ox", 5)
+    if (!first.ok) throw new Error("expected ok")
+    const promoted: GameState = {
+      ...first.state,
+      creature: { ...creatureOf(first.state), stage: "champion" },
+    }
+    const second = graduate(promoted, "plant_ox", 6)
+    if (!second.ok) throw new Error("expected ok")
+    expect(second.state.lineage.generation).toBe(2)
+    expect(second.state.lineage.hallOfFame.map((r) => r.generation)).toEqual([
+      0, 1,
+    ])
+    expect(second.state.lineage.hallOfFame.map((r) => r.speciesId)).toEqual([
+      "fire_drake",
+      "plant_ox",
+    ])
+  })
+
+  it("passes the family's prestige (generations + cups) to the successor", () => {
+    const before = { ...stateWith("champion", GRADUATION_DAY), cupsWon: 5 }
+    const res = graduate(before, "plant_ox", 42)
+    if (!res.ok) throw new Error("expected ok")
+    expect(lineagePrestige(res.state)).toBe(res.state.lineage.generation + 5)
+    expect(res.state.creature?.conditions.bond).toBe(WARM_BOND_START)
+    const ox = getSpecies("plant_ox")
+    if (!ox) throw new Error("expected plant_ox")
+    const floor = inheritedFloor(
+      effectiveStats(creatureOf(before)),
+      ox,
+      lineagePrestige(res.state),
+    )
+    const successor = creatureOf(res.state)
+    expect(successor.stats.hp).toBeGreaterThanOrEqual(floor.hp)
+    expect(successor.stats.atk).toBeGreaterThanOrEqual(floor.atk)
+  })
+
+  it("leaves the successor cold when the family has not reached a milestone", () => {
+    const res = graduate(stateWith("champion", GRADUATION_DAY), "plant_ox", 42)
+    if (!res.ok) throw new Error("expected ok")
+    expect(res.state.creature?.conditions.bond).toBe(10)
   })
 })

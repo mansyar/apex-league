@@ -12,9 +12,14 @@
  * Pure data and pure functions only — no DOM, no rendering, no I/O.
  */
 
-import { type Creature, type CreatureStats, createCreature } from "./creature"
+import {
+  type Creature,
+  type CreatureStats,
+  createCreature,
+  effectiveStats,
+} from "./creature"
 import { getSpecies, type SpeciesDef } from "./species"
-import type { GameState } from "./state"
+import { ACTION_POINTS_PER_DAY, type GameState } from "./state"
 
 /** One archived career, appended to the Hall of Fame on graduation. */
 export interface RetiredRecord {
@@ -203,4 +208,64 @@ export function createInheritedCreature(
     ? { ...base.conditions, bond: Math.max(base.conditions.bond, WARM_BOND_START) }
     : base.conditions
   return { ...base, stats, conditions }
+}
+
+/** The outcome of a graduation attempt. */
+export type GraduateResult =
+  | { ok: true; state: GameState }
+  | { ok: false; reason: GraduationReason }
+
+/**
+ * Graduate the active champion into the next generation (R4). Pure: the input
+ * state is never mutated. On success the retiree is archived to the Hall of
+ * Fame, the chosen species hatches as the successor (with the parent's
+ * inheritance), the generation advances, and the day's action points reset.
+ * The in-game day, cups, ladder, and settings carry over untouched — a dynasty
+ * inherits its standing.
+ *
+ * The successor's perks read the family's prestige **at the moment the egg is
+ * laid** (the incremented generation + lifetime cups), so a family that has
+ * reached a milestone passes its boon to the next creature.
+ *
+ * Rejects (with no change) whenever `canGraduate` is not eligible.
+ */
+export function graduate(
+  state: GameState,
+  speciesId: string,
+  seed: number,
+): GraduateResult {
+  const verdict = canGraduate(state)
+  if (!verdict.eligible) return { ok: false, reason: verdict.reason }
+  const creature = state.creature
+  // Unreachable after the gate, but narrows the type for the archive below.
+  if (!creature) return { ok: false, reason: "no-creature" }
+
+  const eff = effectiveStats(creature)
+  const generation = state.lineage.generation + 1
+  // Prestige as of the new generation (spec R4): the egg belongs to it.
+  const prestige = generation + state.cupsWon
+  const record: RetiredRecord = {
+    name: creature.name,
+    speciesId: creature.speciesId,
+    archetypeId: creature.archetypeId,
+    element: creature.element,
+    stats: eff,
+    trained: { ...creature.trained },
+    cupsWon: state.cupsWon,
+    generation: state.lineage.generation,
+    retiredOnDay: state.day,
+  }
+  const successor = createInheritedCreature(speciesId, seed, eff, prestige)
+  return {
+    ok: true,
+    state: {
+      ...state,
+      actionPoints: ACTION_POINTS_PER_DAY,
+      creature: successor,
+      lineage: {
+        generation,
+        hallOfFame: [...state.lineage.hallOfFame, record],
+      },
+    },
+  }
 }
