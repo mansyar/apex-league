@@ -265,8 +265,21 @@
    The spar panel and motion pill stay visible. */
 .app-in-arena .score-bug,
 .app-in-arena .creature-plate,
+.app-in-arena .command-dock,
 .app-in-arena .spar-button {
   display: none;
+}
+
+/* In arena the battle placard owns the top edge (it did overlap the
+   chips even on desktop), so the motion/camera/reset chip cluster
+   drops below it (responsive_foundation_20261013). --spar-placard-clear
+   mirrors the placard's height: bump it if the placard ever grows. */
+.app-in-arena {
+  --spar-placard-clear: 116px;
+}
+
+.app-in-arena .hud-motion {
+  top: calc(var(--spar-placard-clear) + var(--kit-safe-top));
 }
 
 .spar-close {
@@ -301,6 +314,31 @@
   gap: 8px;
   text-align: left;
   animation: settle-down 0.5s var(--kit-settle) 0.24s both;
+}
+
+/* Phone tier: the compact score bug owns the top-right corner, so the
+   spar chip drops below it (responsive_foundation_20261013). */
+@media (max-width: 767.98px) {
+  .spar-button {
+    top: calc(58px + var(--kit-safe-top));
+    right: calc(14px + var(--kit-safe-right));
+  }
+}
+
+/* Phone tier (responsive_foundation_20261013): below 520px the fixed
+   460px panel goes full-width minus the 14px phone margins + safe
+   insets, and the edge-pinned battle-log chips clear the safe areas. */
+@media (max-width: 519.98px) {
+  .spar-panel {
+    width: calc(100vw - 28px - var(--kit-safe-left) - var(--kit-safe-right));
+    max-width: none;
+    padding: 14px 16px;
+  }
+
+  .spar-chips {
+    right: calc(14px + var(--kit-safe-right));
+    bottom: calc(14px + var(--kit-safe-bottom));
+  }
 }
 
 .spar-button .kit-chip-glyph {

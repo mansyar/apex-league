@@ -1,0 +1,9 @@
+{
+  "id": "responsive_foundation_20261013",
+  "title": "Responsive Layout Foundation - mobile-first breakpoint tiers + fluid kit tokens, ranch HUD & starter reflow, cup/battle/spar responsive layouts, portrait-aware arena camera framing",
+  "type": "feature",
+  "status": "new",
+  "createdAt": "2026-10-13",
+  "branch": "responsive_foundation_20261013",
+  "base": "main @ 3245a6b"
+}

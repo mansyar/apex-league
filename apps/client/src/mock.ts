@@ -75,166 +75,191 @@ stage.append(
   el("div", "stage-ground"),
 )
 
-// Motion chip — top-left, out of the gameplay path.
-const hudMotion = el("div", "hud-motion")
-hudMotion.append(
-  chip({
-    label: "Motion · full",
-    variant: "dim",
-    onClick: () => {
-      motionBox.checked = !motionBox.checked
-      document.body.classList.toggle("is-reduced", motionBox.checked)
-    },
-  }),
-)
+/* Cluster builders — the stage mounts them once, and the responsive
+   section at the bottom of the page re-mounts the same factories inside
+   a phone-width frame: the mock-first gate for the
+   responsive_foundation_20261013 reflow. */
 
-// Score bug — top-center.
-const scoreBug = plate({ className: "score-bug" })
-const scorePhase = el("div", "score-phase")
-scorePhase.append(tab("Day phase"))
-const scoreDay = el("div", "score-day")
-scoreDay.append(
-  el("span", "score-day-label", "Day"),
-  el("span", "score-day-num", "12"),
-)
-const scoreAp = el("div", "score-ap")
-scoreAp.append(el("span", "score-ap-label", "AP"), meter(3, 3).root)
-const scoreTrophy = el("div", "score-trophy")
-scoreTrophy.innerHTML = `${icons.trophy}<span class="score-trophy-count">× 2</span>`
-scoreBug.append(
-  scorePhase,
-  scoreDay,
-  el("div", "score-divider"),
-  scoreAp,
-  el("div", "score-divider"),
-  scoreTrophy,
-)
-
-// Creature lower-third — bottom-left.
-const creaturePlate = plate({ className: "creature-plate" })
-const creatureHead = el("div", "creature-head")
-const creatureId = el("div", "creature-id")
-creatureId.append(
-  crest("fire"),
-  el("span", "creature-name", "Ember"),
-  tab("Juvenile", "stage"),
-)
-creatureHead.append(creatureId)
-
-const statRow = el("div", "stat-row")
-for (const [label, total, bonus] of [
-  ["HP", "26", "+4"],
-  ["ATK", "18", "+2"],
-  ["DEF", "15", "+3"],
-  ["SPD", "12", "+6"],
-] as const) {
-  const cell = el("div", "stat-cell")
-  cell.append(el("span", "stat-label", label), el("span", "stat-total", total))
-  if (bonus) cell.append(el("span", "stat-chip", bonus))
-  statRow.append(cell)
-}
-
-const conditionList = el("div", "condition-list")
-const bars = [
-  bar({
-    label: "Hunger",
-    glyph: icons.hunger,
-    value: 72,
-    max: 100,
-    color: "var(--bar-hunger)",
-  }),
-  bar({
-    label: "Energy",
-    glyph: icons.energy,
-    value: 58,
-    max: 100,
-    color: "var(--bar-energy)",
-  }),
-  bar({
-    label: "Health",
-    glyph: icons.health,
-    value: 100,
-    max: 100,
-    color: "var(--bar-health)",
-  }),
-  bar({
-    label: "Mood",
-    glyph: icons.mood,
-    value: 80,
-    max: 100,
-    color: "var(--bar-mood)",
-  }),
-  bar({
-    label: "Bond",
-    glyph: icons.bond,
-    value: 64,
-    max: 100,
-    color: "var(--bar-bond)",
-  }),
-]
-conditionList.append(...bars.map((b) => b.root))
-
-const announce = ticker()
-announce.say("A full night's rest will sharpen DEF.")
-creaturePlate.append(creatureHead, statRow, conditionList, announce.root)
-
-// Command dock — bottom-right.
-const dock = plate({ className: "command-dock" })
-const dockRow = el("div", "dock-row")
-dockRow.append(
-  button({ label: "Feed", glyph: icons.feed, cost: "1 AP" }),
-  button({ label: "Rest", glyph: icons.rest, cost: "1 AP" }),
-  button({
-    label: "Treat",
-    glyph: icons.treat,
-    cost: "1 AP",
-    disabled: true,
-    reason: "Not sick — save the medicine.",
-  }),
-  button({ label: "Play", glyph: icons.play, cost: "1 AP" }),
-)
-const dockTrain = el("div", "dock-train")
-dockTrain.append(
-  button({
-    label: "Train",
-    glyph: icons.train,
-    cost: "1 AP",
-    tag: "Focus: DEF",
-  }),
-)
-const trainPicker = el("div", "train-picker")
-for (const [name, note, cls] of [
-  ["HP", "26 → 27", ""],
-  ["ATK", "18 → 19", ""],
-  ["DEF", "focused · +1 tonight", "is-focus"],
-  ["SPD", "as sharp as it can get for now", "is-capped"],
-] as const) {
-  const entry = el("div", `train-entry ${cls}`.trim())
-  entry.append(
-    el("span", "train-entry-name", name),
-    el("span", "train-note", note),
+const buildHudMotion = (): HTMLElement => {
+  const hudMotion = el("div", "hud-motion")
+  hudMotion.append(
+    chip({
+      label: "Motion · full",
+      variant: "dim",
+      onClick: () => {
+        motionBox.checked = !motionBox.checked
+        document.body.classList.toggle("is-reduced", motionBox.checked)
+      },
+    }),
   )
-  trainPicker.append(entry)
+  return hudMotion
 }
-dock.append(dockRow, dockTrain, trainPicker, cta("Advance Day"))
 
-// Chip family — top-right.
-const hudChips = el("div", "hud-chips")
-const sparChip = document.createElement("button")
-sparChip.type = "button"
-sparChip.className = "kit-chip"
-const sparGlyph = el("span", "kit-chip-glyph")
-sparGlyph.innerHTML = icons.spar
-sparGlyph.style.color = "var(--accent)"
-const sparText = el("span", "spar-text")
-sparText.append(
-  el("span", "spar-title", "Spar"),
-  el("span", "spar-sub", "Free match · no AP"),
+const buildScoreBug = (): HTMLElement => {
+  const scoreBug = plate({ className: "score-bug" })
+  const scorePhase = el("div", "score-phase")
+  scorePhase.append(tab("Day phase"))
+  const scoreDay = el("div", "score-day")
+  scoreDay.append(
+    el("span", "score-day-label", "Day"),
+    el("span", "score-day-num", "12"),
+  )
+  const scoreAp = el("div", "score-ap")
+  scoreAp.append(el("span", "score-ap-label", "AP"), meter(3, 3).root)
+  const scoreTrophy = el("div", "score-trophy")
+  scoreTrophy.innerHTML = `${icons.trophy}<span class="score-trophy-count">× 2</span>`
+  scoreBug.append(
+    scorePhase,
+    scoreDay,
+    el("div", "score-divider"),
+    scoreAp,
+    el("div", "score-divider"),
+    scoreTrophy,
+  )
+  return scoreBug
+}
+
+const buildCreaturePlate = (collapsed = false): HTMLElement => {
+  const creaturePlate = plate({ className: "creature-plate" })
+  if (collapsed) creaturePlate.classList.add("is-collapsed")
+  const creatureHead = el("div", "creature-head")
+  const creatureId = el("div", "creature-id")
+  creatureId.append(
+    crest("fire"),
+    el("span", "creature-name", "Ember"),
+    tab("Juvenile", "stage"),
+  )
+  creatureHead.append(creatureId)
+
+  const statRow = el("div", "stat-row")
+  for (const [label, total, bonus] of [
+    ["HP", "26", "+4"],
+    ["ATK", "18", "+2"],
+    ["DEF", "15", "+3"],
+    ["SPD", "12", "+6"],
+  ] as const) {
+    const cell = el("div", "stat-cell")
+    cell.append(
+      el("span", "stat-label", label),
+      el("span", "stat-total", total),
+    )
+    if (bonus) cell.append(el("span", "stat-chip", bonus))
+    statRow.append(cell)
+  }
+
+  const conditionList = el("div", "condition-list")
+  const bars = [
+    bar({
+      label: "Hunger",
+      glyph: icons.hunger,
+      value: 72,
+      max: 100,
+      color: "var(--bar-hunger)",
+    }),
+    bar({
+      label: "Energy",
+      glyph: icons.energy,
+      value: 58,
+      max: 100,
+      color: "var(--bar-energy)",
+    }),
+    bar({
+      label: "Health",
+      glyph: icons.health,
+      value: 100,
+      max: 100,
+      color: "var(--bar-health)",
+    }),
+    bar({
+      label: "Mood",
+      glyph: icons.mood,
+      value: 80,
+      max: 100,
+      color: "var(--bar-mood)",
+    }),
+    bar({
+      label: "Bond",
+      glyph: icons.bond,
+      value: 64,
+      max: 100,
+      color: "var(--bar-bond)",
+    }),
+  ]
+  conditionList.append(...bars.map((b) => b.root))
+
+  const announce = ticker()
+  announce.say("A full night's rest will sharpen DEF.")
+  creaturePlate.append(creatureHead, statRow, conditionList, announce.root)
+  return creaturePlate
+}
+
+const buildDock = (): HTMLElement => {
+  const dock = plate({ className: "command-dock" })
+  const dockRow = el("div", "dock-row")
+  dockRow.append(
+    button({ label: "Feed", glyph: icons.feed, cost: "1 AP" }),
+    button({ label: "Rest", glyph: icons.rest, cost: "1 AP" }),
+    button({
+      label: "Treat",
+      glyph: icons.treat,
+      cost: "1 AP",
+      disabled: true,
+      reason: "Not sick — save the medicine.",
+    }),
+    button({ label: "Play", glyph: icons.play, cost: "1 AP" }),
+  )
+  const dockTrain = el("div", "dock-train")
+  dockTrain.append(
+    button({
+      label: "Train",
+      glyph: icons.train,
+      cost: "1 AP",
+      tag: "Focus: DEF",
+    }),
+  )
+  const trainPicker = el("div", "train-picker")
+  for (const [name, note, cls] of [
+    ["HP", "26 → 27", ""],
+    ["ATK", "18 → 19", ""],
+    ["DEF", "focused · +1 tonight", "is-focus"],
+    ["SPD", "as sharp as it can get for now", "is-capped"],
+  ] as const) {
+    const entry = el("div", `train-entry ${cls}`.trim())
+    entry.append(
+      el("span", "train-entry-name", name),
+      el("span", "train-note", note),
+    )
+    trainPicker.append(entry)
+  }
+  dock.append(dockRow, dockTrain, trainPicker, cta("Advance Day"))
+  return dock
+}
+
+const buildHudChips = (): HTMLElement => {
+  const hudChips = el("div", "hud-chips")
+  const sparChip = document.createElement("button")
+  sparChip.type = "button"
+  sparChip.className = "kit-chip"
+  const sparGlyph = el("span", "kit-chip-glyph")
+  sparGlyph.innerHTML = icons.spar
+  sparGlyph.style.color = "var(--accent)"
+  const sparText = el("span", "spar-text")
+  sparText.append(
+    el("span", "spar-title", "Spar"),
+    el("span", "spar-sub", "Free match · no AP"),
+  )
+  sparChip.append(sparGlyph, sparText)
+  hudChips.append(sparChip)
+  return hudChips
+}
+
+stage.append(
+  buildHudMotion(),
+  buildScoreBug(),
+  buildCreaturePlate(),
+  buildDock(),
+  buildHudChips(),
 )
-sparChip.append(sparGlyph, sparText)
-hudChips.append(sparChip)
-
-stage.append(hudMotion, scoreBug, creaturePlate, dock, hudChips)
 
 // ---------------------------------------------------------------------------
 // Kit showcase
@@ -409,6 +434,50 @@ starterFrame.append(starterDome)
 starterSection.append(starterFrame)
 
 // ---------------------------------------------------------------------------
+// Responsive tiers (responsive_foundation_20261013)
+// ---------------------------------------------------------------------------
+
+const responsive = el("section", "resp")
+responsive.append(el("h2", undefined, "Responsive tiers"))
+responsive.append(
+  el(
+    "p",
+    undefined,
+    "Mobile-first breakpoint tiers — the base styles target a phone and each tier restores density and full layouts. Surfaces write their own media queries against these exact widths.",
+  ),
+)
+const tierList = el("ul", "resp-tiers")
+for (const [tier, note] of [
+  ["base", "phone portrait — HUD plates stack, dock collapsed by default"],
+  ["≥480px", "large phone / small tablet — plates may expand"],
+  ["≥768px", "tablet portrait — two-column arrangements"],
+  ["≥1024px", "tablet landscape — near-full layouts"],
+  ["≥1200px", "desktop — the pre-responsive corner-pinned layout"],
+] as const) {
+  const li = el("li")
+  li.append(el("span", "resp-tier-tag", tier), document.createTextNode(note))
+  tierList.append(li)
+}
+responsive.append(tierList)
+
+/* Phone frame — a 390px container-query island showing the base-tier
+   ranch HUD arrangement with the same cluster factories as the stage. */
+const phoneFrame = el("div", "resp-phone")
+const phoneScene = el("div", "resp-scene")
+const phoneStack = el("div", "resp-dock-stack")
+phoneStack.append(buildCreaturePlate(true), buildDock())
+phoneScene.append(buildHudMotion(), buildScoreBug(), phoneStack)
+phoneFrame.append(phoneScene)
+responsive.append(
+  el(
+    "p",
+    "resp-caption",
+    "The 390px frame previews the base (phone) tier: stacked bottom plates, collapsed lower-third, compacted score bug. Container-query driven, so it renders the phone arrangement at any window width.",
+  ),
+)
+responsive.append(phoneFrame)
+
+// ---------------------------------------------------------------------------
 // Motion notes
 // ---------------------------------------------------------------------------
 
@@ -447,4 +516,4 @@ for (const [term, rest] of [
 }
 notes.append(list)
 
-document.body.append(header, stage, showcase, starterSection, notes)
+document.body.append(header, stage, showcase, starterSection, responsive, notes)

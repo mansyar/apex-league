@@ -844,10 +844,12 @@
 }
 
 /* Enter Cup chip - kit-chip plate with the broadcast title/sub stack. */
+/* Stacks under the spar chip: the old right:110px offset coupled the
+   two chips' widths and they collided whenever both showed (cup days). */
 .cup-button {
   position: absolute;
-  top: 18px;
-  right: 110px;
+  top: calc(72px + var(--kit-safe-top));
+  right: 18px;
   flex-direction: row;
   align-items: center;
   gap: 8px;
@@ -867,4 +869,374 @@
 /* Hidden once a battle takes over the screen (spar.css owns the spar twin). */
 .app-in-arena .cup-button {
   display: none;
+}
+
+/* ---- Responsive tiers (responsive_foundation_20261013) ----
+   The cup surface scales in cqw units, which floors out unreadable on
+   small screens (~3px type at a 390px container). Under 1024px every
+   size gets a px floor; under 768px the bracket becomes a scroll-first
+   single-column list and the coach room stacks. Tier definitions live
+   in ui/kit.css. */
+
+/* px twin of the results rule keyframe: the original animates to a
+   cqw width that would override the px floor below. */
+@keyframes cup-rule-px {
+  from {
+    width: 0;
+  }
+
+  to {
+    width: 140px;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .cup-head {
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .cup-head-tab {
+    padding: 4px 9px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  .cup-head-title {
+    font-size: 18px;
+    white-space: nowrap;
+  }
+
+  .cup-head-sub {
+    font-size: 10px;
+  }
+
+  .cup-col-head {
+    font-size: 10px;
+    margin-bottom: 6px;
+  }
+
+  .cup-matches {
+    gap: 6px;
+  }
+
+  .cup-match {
+    gap: 4px;
+    padding: 8px 10px;
+  }
+
+  .cup-ribbon {
+    margin-left: 10px;
+    padding: 2px 8px 2px;
+    font-size: 9px;
+  }
+
+  .cup-slot {
+    gap: 6px;
+    min-height: 30px;
+    padding: 4px 8px;
+  }
+
+  .cup-s-name {
+    font-size: 13px;
+  }
+
+  .cup-dash {
+    font-size: 12px;
+  }
+
+  .cup-mini-crest {
+    width: 16px;
+    height: 16px;
+  }
+
+  .cup-mini-crest svg {
+    width: 11px;
+    height: 11px;
+  }
+
+  .cup-you-tag {
+    padding: 1px 5px;
+    font-size: 9px;
+  }
+
+  .cup-champ {
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .cup-champ-cup {
+    font-size: 36px;
+  }
+
+  .cup-champ-label {
+    font-size: 9px;
+  }
+
+  .cup-champ-name {
+    font-size: 16px;
+  }
+
+  .cup-cta {
+    gap: 8px;
+    margin: 12px 16px 0;
+  }
+
+  .cup-cta-go {
+    padding: 10px 16px;
+    font-size: 12px;
+  }
+
+  .cup-cta-ghost {
+    padding: 10px 14px;
+    font-size: 11px;
+  }
+
+  .cup-ticker {
+    gap: 6px;
+    margin: 12px 16px;
+  }
+
+  .cup-ticker-tab {
+    padding: 5px 10px;
+    font-size: 10px;
+  }
+
+  .cup-ticker-line {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .cup-coach-body {
+    gap: 12px;
+    padding: 12px 0;
+  }
+
+  .cup-card {
+    gap: 8px;
+    padding: 12px 14px;
+  }
+
+  .cup-card-title {
+    font-size: 10px;
+  }
+
+  .cup-fighter-name {
+    font-size: 15px;
+  }
+
+  .cup-fighter-species {
+    font-size: 10px;
+  }
+
+  .cup-stat {
+    grid-template-columns: 40px 1fr 30px;
+    gap: 8px;
+  }
+
+  .cup-stat-name {
+    font-size: 9px;
+  }
+
+  .cup-stat-bar {
+    height: 7px;
+  }
+
+  .cup-stat-num {
+    font-size: 11px;
+  }
+
+  .cup-kit-move {
+    padding: 7px 10px;
+    font-size: 12px;
+  }
+
+  .cup-kit-list {
+    gap: 6px;
+    font-size: 12px;
+  }
+
+  .cup-tactic-row {
+    gap: 8px;
+  }
+
+  .cup-tactic {
+    padding: 9px 10px;
+    font-size: 11px;
+  }
+
+  .cup-tactic-unknown {
+    font-size: 11px;
+  }
+
+  .cup-coach-note {
+    font-size: 11px;
+  }
+
+  .cup-coach-foot {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .cup-giveup-card {
+    gap: 8px;
+    width: min(88vw, 520px);
+    padding: 16px;
+  }
+
+  .cup-giveup-tab {
+    padding: 3px 9px;
+    font-size: 10px;
+  }
+
+  .cup-giveup-title {
+    font-size: 17px;
+  }
+
+  .cup-giveup-copy {
+    font-size: 12px;
+  }
+
+  .cup-giveup-row {
+    gap: 8px;
+  }
+
+  .cup-result-card {
+    gap: 8px;
+    width: min(90vw, 440px);
+    padding: 22px 18px;
+  }
+
+  .cup-result-stamp {
+    font-size: 10px;
+  }
+
+  .cup-result-title {
+    font-size: 26px;
+  }
+
+  .cup-result-rule {
+    width: 140px;
+    animation-name: cup-rule-px;
+  }
+
+  .cup-result-sub {
+    font-size: 12px;
+  }
+
+  .cup-result-plate {
+    gap: 8px;
+    padding: 6px 10px;
+  }
+
+  .cup-result-tab {
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+
+  .cup-result-line {
+    font-size: 12px;
+  }
+
+  .cup-reward-row {
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .cup-battle-chips {
+    top: calc(12px + var(--kit-safe-top));
+    right: calc(12px + var(--kit-safe-right));
+    gap: 6px;
+  }
+
+  .cup-speed {
+    padding: 7px 11px;
+    font-size: 11px;
+  }
+
+  .cup-close {
+    margin-top: 10px;
+    padding: 8px 14px;
+    font-size: 11px;
+  }
+}
+
+/* Phone: the bracket reads as one scrollable round-by-round column and
+   the coach room stacks fighter → rival → kit/tactic. */
+@media (max-width: 767.98px) {
+  .cup-screen {
+    justify-content: flex-start;
+    padding: calc(12px + var(--kit-safe-top)) 0
+      calc(16px + var(--kit-safe-bottom));
+    overflow-y: auto;
+  }
+
+  .cup-bracket {
+    display: grid;
+    grid-template-columns: 1fr;
+    column-gap: 0;
+    row-gap: 14px;
+    width: auto;
+    flex: none;
+    margin: 0 14px;
+    padding: 8px 0 0;
+  }
+
+  .cup-matches {
+    flex: none;
+    justify-content: flex-start;
+  }
+
+  .cup-col-f .cup-col-head {
+    text-align: left;
+  }
+
+  .cup-coach-body {
+    display: flex;
+    flex-direction: column;
+    width: auto;
+    margin: 0 14px;
+    flex: none;
+  }
+
+  .cup-result-card {
+    margin: auto;
+  }
+}
+
+/* Tablet: two rounds side by side, the final spanning below. */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .cup-bracket {
+    grid-template-columns: 1fr 1fr;
+    width: min(92cqw, 760px);
+  }
+
+  .cup-col-f {
+    grid-column: 1 / -1;
+  }
+
+  .cup-col-f .cup-col-head {
+    text-align: left;
+  }
+
+  .cup-coach-body {
+    grid-template-columns: 1fr 1fr;
+    width: min(92cqw, 760px);
+  }
+
+  .cup-card-kit {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Phone: margins tighten to match the ranch phone tier. */
+@media (max-width: 767.98px) {
+  .cup-button {
+    top: calc(112px + var(--kit-safe-top));
+    right: calc(14px + var(--kit-safe-right));
+  }
 }

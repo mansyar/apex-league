@@ -3,6 +3,17 @@
  * Warm tokens, layered chamfered plates, weighty motion; everything
  * muted under reduced motion. Surfaces consume these primitives and add
  * only their own layout; nothing here knows about a specific screen.
+ *
+ * Breakpoint tiers (responsive_foundation_20261013) — mobile-first:
+ * the base styles target a phone; each tier below progressively
+ * restores density and full layouts. Surfaces write their own media
+ * queries against these exact widths (CSS cannot interpolate custom
+ * properties into @media conditions):
+ *   base   — phone portrait (default)
+ *   ≥480px — large phone / small tablet portrait
+ *   ≥768px — tablet portrait
+ *   ≥1024px— tablet landscape
+ *   ≥1200px— desktop (the pre-responsive layout)
  */
 
 /* ---- Tokens -------------------------------------------------------- */
@@ -28,6 +39,21 @@
 
   --kit-blur: blur(8px) saturate(1.1);
   --kit-settle: cubic-bezier(0.2, 0.9, 0.3, 1.2);
+
+  /* Fluid type scale — floors keep narrow-viewport text readable while
+     allowing gentle growth on wide screens. Surfaces adopt these as
+     they are reflowed; desktop values match the pre-responsive kit. */
+  --kit-step--2: clamp(10px, 0.36vw + 9.3px, 11px); /* labels, costs */
+  --kit-step--1: clamp(12px, 0.36vw + 11.3px, 13px); /* body */
+  --kit-step-0: clamp(14px, 0.4vw + 13px, 15px); /* headings, CTAs */
+  --kit-step-1: clamp(16px, 0.7vw + 14.3px, 18px); /* section titles */
+  --kit-step-2: clamp(19px, 1.2vw + 16.4px, 24px); /* display */
+
+  /* Safe-area insets for notched devices (0 default off-device). */
+  --kit-safe-top: env(safe-area-inset-top, 0px);
+  --kit-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --kit-safe-left: env(safe-area-inset-left, 0px);
+  --kit-safe-right: env(safe-area-inset-right, 0px);
 
   /* Element identity palette (full colors; hues live in ui/element.ts).
      Consumed by .el-border-* custom-property setters and legacy styles. */

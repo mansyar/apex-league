@@ -9,6 +9,17 @@ body,
   overflow: hidden;
 }
 
+/* Mobile browsers: dvh tracks the collapsing URL bar so the canvas and
+   overlays always fill the visible viewport. The @supports guard keeps
+   the 100% fallback for engines without dynamic-viewport units. */
+@supports (height: 100dvh) {
+  html,
+  body,
+  #app {
+    height: 100dvh;
+  }
+}
+
 #app {
   position: relative;
   background: #1a1f2e;
