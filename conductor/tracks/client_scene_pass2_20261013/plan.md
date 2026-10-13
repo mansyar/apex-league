@@ -144,10 +144,15 @@ consume, then the mock/CSS polish.
         buildSettingsChips/buildResetModal) that createHud itself now
         consumes; mock.css cluster mirrors deleted, mock imports the real
         ranch.css + spar.css (camera-chip visibility)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] `bun run verify` green
-  - [ ] Manual verification: `/mock.html` matches the live ranch HUD
-        structurally (same regions, same class ownership)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) <!-- b49519d -->
+  - [x] `bun run verify` green (typecheck, tests, biome, determinism gate)
+  - [x] Manual verification: `/mock.html` matches the live ranch HUD
+        structurally (same regions, same class ownership) — headless
+        Playwright probe: mock vs live child sequences identical across
+        score-bug / creature-plate / command-dock / hud-motion, zero
+        console errors; report attached to b49519d
+
+[checkpoint: b49519d]
 
 ## Phase 6 — (Stretch) Cup Screens Extraction
 
