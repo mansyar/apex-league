@@ -64,7 +64,7 @@ consume, then the mock/CSS polish.
   - [ ] `scene.ts` `tick()` shrinks to per-system updater calls
   - [ ] Write unit tests for any newly-pure math extracted along the way
         (seeded, no I/O) — Red → Green
-- [ ] Task: Shrink SceneHandle
+- [~] Task: Shrink SceneHandle
   - [ ] Reduce `SceneHandle` to the surface `main.ts` actually uses;
         update `main.ts` wiring
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)

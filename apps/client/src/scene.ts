@@ -73,12 +73,6 @@ export interface SceneHandle {
    * walk. Reduced motion swaps in place with no travel or glow.
    */
   startEvolutionCeremony(archetypeId: string, seed: number): void
-  /**
-   * One droopy idle window (cup early exit, spec FR4): force the droopy
-   * profile for a short moment, then fall back to the condition-driven
-   * idle. Purely visual — the sim is untouched.
-   */
-  droopyMoment(durationMs?: number): void
 }
 
 /**
@@ -256,9 +250,6 @@ export function createScene(container: HTMLElement): SceneHandle {
     },
     updateConditions(conditions) {
       motion.updateConditions(conditions)
-    },
-    droopyMoment(durationMs = 6000) {
-      motion.droopyMoment(durationMs)
     },
     startFeedCeremony() {
       motion.startFeed()
