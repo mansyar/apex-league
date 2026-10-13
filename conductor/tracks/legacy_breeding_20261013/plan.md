@@ -19,13 +19,13 @@ manual verification for presentation tasks, phase checkpoints per
   - Implement `packages/sim/src/legacy.ts` (types + `lineagePrestige` +
     `PRESTIGE_*` constants + a `lineagePerks(prestige)` helper), extend
     `state.ts`, export from `index.ts`
-- [~] Task: Graduation eligibility gate *(tests first)*
+- [x] Task: Graduation eligibility gate *(tests first)* — 699e5ab
   - Tests: eligible only for day-phase + creature + champion + day ≥ 60;
     reason precedence `no-creature > cup-phase > not-champion > too-young >
     eligible`; a champion at day 60+ stays eligible forever; a
     baby/juvenile is `not-champion`
   - Implement `canGraduate` + `GRADUATION_DAY = 60` + `GRADUATION_HINT_DAY = 55`
-- [ ] Task: Inheritance math *(tests first)*
+- [~] Task: Inheritance math *(tests first)*
   - Tests: `inheritedFloor` = `round(0.5 × parent effective)` per stat,
     clamped into species `statBounds`, `+1`/stat at prestige ≥
     `PRESTIGE_ESTABLISHED_LINE`; `createInheritedCreature` never rolls below
