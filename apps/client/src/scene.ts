@@ -14,6 +14,7 @@ import type { CameraIntent } from "./director"
 import { prefersReducedMotionOs } from "./motion"
 import { buildPropGroup } from "./prop"
 import {
+  arenaFramingAdjust,
   BABY_SCALE,
   createEvolutionCeremony,
   createWalk,
@@ -112,6 +113,10 @@ const ARENA_FRAMING = {
   targetY: 0.9,
 } as const
 
+/** Base vertical FOV; narrow viewports widen the lens on top of this
+ * (see arenaFramingAdjust). */
+const BASE_FOV = 45
+
 /**
  * Ranch environment palette (golden hour). The ranch reads as late
  * afternoon: amber light pooling at the horizon, cooling to navy
@@ -205,8 +210,18 @@ export function createScene(container: HTMLElement): SceneHandle {
   // crisp even at maximum zoom-out.
   scene.fog = new THREE.Fog(SKY_HORIZON, 16, 30)
 
+  // F6 (responsive_foundation_20261013): the broadcast framing was tuned
+  // for wide desktop viewports; narrow/portrait ones crop the stage
+  // corners out of frame. Back the arena shot off and widen the lens,
+  // recomputed on resize (onResize). Applies to the whole camera, so the
+  // ranch also shows more world on tall screens.
+  let arenaAdjust = arenaFramingAdjust(
+    container.clientWidth / (container.clientHeight || 1),
+  )
+  let arenaRadius = ARENA_FRAMING.radius * arenaAdjust.radiusMult
+
   const camera = new THREE.PerspectiveCamera(
-    45,
+    BASE_FOV + arenaAdjust.fovAdd,
     container.clientWidth / (container.clientHeight || 1),
     0.1,
     100,
@@ -279,7 +294,7 @@ export function createScene(container: HTMLElement): SceneHandle {
       savedOrbit = { ...orbit }
       orbit.azimuth = ARENA_FRAMING.azimuth
       orbit.elevation = ARENA_FRAMING.elevation
-      orbit.radius = ARENA_FRAMING.radius
+      orbit.radius = arenaRadius
       // The arena is centered at the world origin — a ranch camera that
       // was soft-tracking a wandering creature must not carry that aim
       // offset into the broadcast framing.
@@ -998,7 +1013,7 @@ export function createScene(container: HTMLElement): SceneHandle {
         directorIntent !== null && performance.now() - intentAt < 400
       if (fresh && directorIntent) {
         const intent = directorIntent
-        const radius = ARENA_FRAMING.radius * intent.radiusMult
+        const radius = arenaRadius * intent.radiusMult
         const azimuth = ARENA_FRAMING.azimuth + intent.azimuthDelta
         const elevation = ARENA_FRAMING.elevation + intent.elevationDelta
         directorDesired.set(
@@ -1024,12 +1039,12 @@ export function createScene(container: HTMLElement): SceneHandle {
         target.lerp(directorLook, k)
         directorDesired.set(
           target.x +
-            ARENA_FRAMING.radius *
+            arenaRadius *
               Math.cos(ARENA_FRAMING.elevation) *
               Math.sin(ARENA_FRAMING.azimuth),
-          target.y + ARENA_FRAMING.radius * Math.sin(ARENA_FRAMING.elevation),
+          target.y + arenaRadius * Math.sin(ARENA_FRAMING.elevation),
           target.z +
-            ARENA_FRAMING.radius *
+            arenaRadius *
               Math.cos(ARENA_FRAMING.elevation) *
               Math.cos(ARENA_FRAMING.azimuth),
         )
@@ -1058,6 +1073,9 @@ export function createScene(container: HTMLElement): SceneHandle {
     const h = container.clientHeight
     if (w === 0 || h === 0) return
     camera.aspect = w / h
+    arenaAdjust = arenaFramingAdjust(w / h)
+    arenaRadius = ARENA_FRAMING.radius * arenaAdjust.radiusMult
+    camera.fov = BASE_FOV + arenaAdjust.fovAdd
     camera.updateProjectionMatrix()
     renderer.setSize(w, h)
     composer?.setSize(w, h)
