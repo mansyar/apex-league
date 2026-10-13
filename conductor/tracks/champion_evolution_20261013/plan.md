@@ -65,4 +65,4 @@ manual verification for presentation tasks, phase checkpoints per
   - Playthrough coverage: happy path (fresh → day-25 champion) verified in browser (Phase 3: hint → ceremony → badge → arena cast, stats 52/17/16/14); blocked paths verified at sim level (demo Paths 2/3: `low_bond` with feed-only care / `no_cup_win` with cupsWon 0); reduced motion verified in browser (instant swap)
 - [x] Task: Docs sync — `product.md` landed annotation (Phase 1 evolution tree complete), README roadmap note, tech-stack dated note only if warranted — committed (docs(conductor) commit)
   - product.md Phase 1 annotation extended (champion gate/boost/look/ceremony/hint/cast, branching still open); README Phase 1 row → "baby→juvenile→champion evolution"; tech-stack note not warranted (no new tooling — the champion stage reuses the existing pipeline, save v9 unchanged)
-- [ ] Task: Final review readiness — all tasks `[x]` with commit SHAs, ready for `conductor-review`
+- [x] Task: Final review readiness — all tasks `[x]` with commit SHAs, ready for `conductor-review` — registry marked complete 2026-10-13
