@@ -28,11 +28,11 @@ verified manually per the workflow's rendering scope.
   - Default-collapsed plates on narrow viewports (keep existing toggles
     functional)
   - Top chip rows wrap; modals/callouts full-width-minus-margin on phones
-- [ ] Task: Starter choice reflow (`starter.css`)
+- [x] Task: Starter choice reflow (`starter.css`) - a4abbd3
   - Cards wrap/scale to fit 390px; comfortable tap targets
-- [ ] Task: Manual verification — ranch + starter at 390 / 768 / 1024 / 1280
-  (browser screenshots + console check)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Manual verification — ranch + starter at 390 / 768 / 1024 / 1280
+  (browser screenshots + console check) - a4abbd3
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) - a4abbd3
 
 ## Phase 3 — Cup screens reflow
 
