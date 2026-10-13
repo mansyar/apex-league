@@ -72,7 +72,11 @@ export interface SceneHandle {
    * Non-cancelable like the feed ceremony; it preempts an in-flight feed
    * walk. Reduced motion swaps in place with no travel or glow.
    */
-  startEvolutionCeremony(archetypeId: string, seed: number): void
+  startEvolutionCeremony(
+    archetypeId: string,
+    seed: number,
+    targetStage: LifeStage,
+  ): void
 }
 
 /**
@@ -180,14 +184,14 @@ export function createScene(container: HTMLElement): SceneHandle {
       renderer.domElement.remove()
     },
     setCreature(archetypeId, seed, stage = "baby") {
-      motion.rebuild(archetypeId, seed, stage === "baby" ? "baby" : "juvenile")
+      motion.rebuild(archetypeId, seed, stage)
       // A plain rebuild cancels an in-flight evolution ceremony (the new
       // mesh already reflects the caller's intent); the ceremony's own
       // swap calls rebuild directly, so it survives.
       motion.clearEvolution()
     },
-    startEvolutionCeremony(archetypeId, seed) {
-      motion.startEvolution(archetypeId, seed)
+    startEvolutionCeremony(archetypeId, seed, targetStage) {
+      motion.startEvolution(archetypeId, seed, targetStage)
     },
     setProps(visualSeed) {
       if (scenerySeed === visualSeed) return

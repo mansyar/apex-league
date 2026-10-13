@@ -1,4 +1,5 @@
 import { generate } from "@apex/voxel"
+import type { LifeStage } from "@apex/sim"
 import * as THREE from "three"
 import { profileFor } from "./choreo"
 import { buildCreatureGroup } from "./creature"
@@ -26,12 +27,15 @@ export interface Combatant extends DriveFighter {
   home: THREE.Vector3
 }
 
-/** Casting entry: the sim-side description of one side of a fight. */
+/** Casting entry: the sim-side description of one side of a fight. The
+ * stage selects the life-stage build (defaults to the baby build when
+ * omitted — rivals carry no stage in the sim). */
 export interface CastInfo {
   archetypeId: string
   seed: number
   name: string
   key?: string
+  stage?: LifeStage
 }
 
 /** Build one fighter at its home spot. The rig is re-anchored onto its
@@ -42,7 +46,11 @@ export function buildSpot(
   away: 1 | -1,
   arenaGroup: THREE.Group,
 ): Combatant {
-  const { dna, build, def } = generate(info.archetypeId, info.seed)
+  const { dna, build, def } = generate(
+    info.archetypeId,
+    info.seed,
+    info.stage ?? "baby",
+  )
   const inner = buildCreatureGroup(dna, build, def.grid)
   inner.traverse((obj) => {
     if (obj instanceof THREE.Mesh) obj.castShadow = true

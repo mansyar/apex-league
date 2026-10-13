@@ -1,4 +1,4 @@
-import type { PlaybackStep } from "@apex/sim"
+import type { LifeStage, PlaybackStep } from "@apex/sim"
 import type * as THREE from "three"
 import { clamp01 } from "./anim"
 import type { DirectorContext, DirectorStep } from "./director"
@@ -35,10 +35,23 @@ const BASE_STEP_ANIM_MS = 620
  * clamps stage targets against them).
  */
 export interface FightCasting {
-  /** Which creature stands on the left (home) side. */
-  owned: { archetypeId: string; seed: number; name: string; key?: string }
+  /** Which creature stands on the left (home) side. The stage selects
+   * the voxel build (champion track) — rivals may omit it. */
+  owned: {
+    archetypeId: string
+    seed: number
+    name: string
+    key?: string
+    stage?: LifeStage
+  }
   /** Which creature stands on the right (away) side. */
-  rival: { archetypeId: string; seed: number; name: string; key?: string }
+  rival: {
+    archetypeId: string
+    seed: number
+    name: string
+    key?: string
+    stage?: LifeStage
+  }
 }
 
 export interface Staging {

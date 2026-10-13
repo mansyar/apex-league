@@ -112,6 +112,8 @@ function castingFor(owned: Creature, setup: SparSetup): FightCasting {
       speciesId: owned.speciesId,
       name: owned.name,
       seed: visualSeedOf(owned.stats, owned.stage),
+      // The stage rides along: a champion casts its grander arena build.
+      stage: owned.stage,
       // Mirror matches share a display name; the side key disambiguates.
       key: setup.ownedSide.id ?? owned.name,
       context: "the spar",
