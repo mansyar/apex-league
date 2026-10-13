@@ -615,15 +615,25 @@ body.mock {
    stacked full-width, lower-third collapsed to its head row. */
 
 .mock .resp-phone .hud-motion {
-  top: calc(10px + var(--kit-safe-top));
+  top: calc(52px + var(--kit-safe-top));
   left: 10px;
 }
 
 .mock .resp-phone .score-bug {
   top: calc(10px + var(--kit-safe-top));
+  right: calc(10px + var(--kit-safe-right));
+  left: auto;
+  transform: none;
   gap: 9px;
   padding: 8px 13px 9px;
   animation: none;
+}
+
+/* Narrow score bug: divider and trophy count fold away so the motion
+   chip keeps its corner. */
+.mock .resp-phone .score-divider,
+.mock .resp-phone .score-trophy {
+  display: none;
 }
 
 .mock .resp-phone .score-day-num {
