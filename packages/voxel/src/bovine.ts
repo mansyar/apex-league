@@ -102,7 +102,7 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
 
   // Juveniles stand a touch taller at the hip — legs read longer as the
   // body matures (see stage.ts for the maturity frame).
-  const j = stage === "juvenile" ? 1 : 0
+  const j = stage === "baby" ? 0 : stage === "juvenile" ? 1 : 2
   const hipY = 9 + 0.6 * j
   const footY = 0.9 + 2.3 * bg
   const legFrontZ = 4.5 + (ll - 1) * 2
@@ -235,7 +235,7 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
   // shape is the identity layer and stays untouched; the buds are new
   // growth the calf does not have yet. Painted after the head so they
   // claim their own voxels on the brow.
-  if (stage === "juvenile") {
+  if (stage === "juvenile" || stage === "champion") {
     const budBaseL = vec3(
       headC.x - 1.6 * hd,
       headC.y + 2.2 * hd,
@@ -248,6 +248,37 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
     )
     fields.push({ name: "hornBudLeft", sdf: sdSphere(budBaseL, 1.05) })
     fields.push({ name: "hornBudRight", sdf: sdSphere(budBaseR, 1.05) })
+  }
+
+  // Champion signature: full horn curls — the adult horns grow into the
+  // sweeping curl of a record bull. Two capsules per side: out-and-up from
+  // above the horn base, then curling up and inward at the tip. Painted
+  // after the head so the curl claims its own voxels.
+  if (stage === "champion") {
+    for (const sign of [-1, 1] as const) {
+      const curlBase = vec3(
+        headC.x + sign * 1.9 * hd,
+        headC.y + 2.8 * hd,
+        headC.z + 0.2,
+      )
+      const curlMid = vec3(
+        headC.x + sign * (3.4 + 1.4 * spread) * hd,
+        headC.y + 4.4 * hd,
+        headC.z,
+      )
+      const curlTip = vec3(
+        headC.x + sign * (2.6 + 1.2 * spread) * hd,
+        headC.y + 6.2 * hd,
+        headC.z - 0.4,
+      )
+      fields.push({
+        name: sign < 0 ? "hornCurlLeft" : "hornCurlRight",
+        sdf: union(
+          sdCapsule(curlBase, curlMid, 0.95),
+          sdCapsule(curlMid, curlTip, 0.8),
+        ),
+      })
+    }
   }
 
   fields.push({ name: "neck", sdf: sdCapsule(neckA, neckB, 2.9 * bg) })
@@ -284,7 +315,7 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
   if (crestStyle === "spikes") {
     pivots.crest = [O, 17.8, O - 3 * bl]
   }
-  if (stage === "juvenile") {
+  if (stage === "juvenile" || stage === "champion") {
     pivots.hornBudLeft = [
       headC.x - 1.6 * hd,
       headC.y + 2.2 * hd,
@@ -294,6 +325,18 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
       headC.x + 1.6 * hd,
       headC.y + 2.2 * hd,
       headC.z + 1.2 * hd,
+    ]
+  }
+  if (stage === "champion") {
+    pivots.hornCurlLeft = [
+      headC.x - 1.9 * hd,
+      headC.y + 2.8 * hd,
+      headC.z + 0.2,
+    ]
+    pivots.hornCurlRight = [
+      headC.x + 1.9 * hd,
+      headC.y + 2.8 * hd,
+      headC.z + 0.2,
     ]
   }
 
@@ -306,7 +349,7 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
   const sat = gilded ? 0.85 : 0.55
   // Juveniles read a touch brighter and more saturated — same hue family,
   // same seed jitter, just a maturing coat (see stage.ts).
-  const lift = stage === "juvenile" ? 0.05 : 0
+  const lift = stage === "baby" ? 0 : stage === "juvenile" ? 0.05 : 0.1
   const main = hslToRgb(hue, Math.min(1, sat + lift), Math.min(1, light + lift))
   const dark: [number, number, number] = [
     main[0] * 0.7,
@@ -335,9 +378,13 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
   if (crestStyle === "spikes") {
     colors.crest = bone
   }
-  if (stage === "juvenile") {
+  if (stage === "juvenile" || stage === "champion") {
     colors.hornBudLeft = bone
     colors.hornBudRight = bone
+  }
+  if (stage === "champion") {
+    colors.hornCurlLeft = bone
+    colors.hornCurlRight = bone
   }
 
   return {
@@ -353,8 +400,11 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
       collar: "neck",
       ...(tailStyle !== "plain" ? { tailTip: "tail" } : {}),
       ...(crestStyle === "spikes" ? { crest: "body" } : {}),
-      ...(stage === "juvenile"
+      ...(stage === "juvenile" || stage === "champion"
         ? { hornBudLeft: "head", hornBudRight: "head" }
+        : {}),
+      ...(stage === "champion"
+        ? { hornCurlLeft: "head", hornCurlRight: "head" }
         : {}),
     },
   }

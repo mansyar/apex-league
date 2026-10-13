@@ -17,6 +17,15 @@ const ARCHETYPE_SIGNATURES: Record<string, string[]> = {
   axolotl: ["gillFrillLeft", "gillFrillRight"],
 }
 
+// The champion layer adds one more signature upgrade per archetype —
+// the crown a champion earns (spec R3): drake crown horns, bovine full
+// horn curls, axolotl grand frills + a tail fin.
+const CHAMPION_SIGNATURES: Record<string, string[]> = {
+  draconic: ["crownHornLeft", "crownHornRight"],
+  bovine: ["hornCurlLeft", "hornCurlRight"],
+  axolotl: ["grandFrillLeft", "grandFrillRight", "grandFin"],
+}
+
 describe("stage-variant build API", () => {
   test("stage defaults to baby and baby builds carry no signature parts", () => {
     for (const id of Object.keys(archetypes)) {
@@ -122,6 +131,74 @@ describe("stage-variant build API", () => {
           if (!ratioInBudget(value, range)) {
             violations.push(
               `${id} juvenile seed ${seed}: ${ratio} = ${value.toFixed(3)} outside [${range.min}, ${range.max}]`,
+            )
+          }
+        }
+      }
+    }
+    expect(violations).toEqual([])
+  }, 40000)
+
+  test("same seed twice produces an identical champion build", () => {
+    for (const id of Object.keys(archetypes)) {
+      const a = generate(id, 42, "champion")
+      const b = generate(id, 42, "champion")
+      expect(JSON.stringify(a.build)).toBe(JSON.stringify(b.build))
+    }
+  })
+
+  test("champion adds exactly the champion signature parts", () => {
+    for (const id of Object.keys(archetypes)) {
+      const baby = generate(id, 42)
+      const juv = generate(id, 42, "juvenile")
+      const champ = generate(id, 42, "champion")
+      const babyNames = baby.build.fields.map((f) => f.name)
+      const juvNames = juv.build.fields.map((f) => f.name)
+      const champNames = champ.build.fields.map((f) => f.name)
+      for (const part of CHAMPION_SIGNATURES[id] ?? []) {
+        expect(babyNames).not.toContain(part)
+        expect(juvNames).not.toContain(part)
+        expect(champNames).toContain(part)
+        // Rigged like every signature part: a pivot, a color, and a parent.
+        expect(champ.build.pivots[part]).toBeDefined()
+        expect(champ.build.colors[part]).toBeDefined()
+        expect(champ.build.parents[part]?.length ?? 0).toBeGreaterThan(0)
+      }
+      // Identity layer: every juvenile part survives into the champion.
+      for (const name of juvNames) expect(champNames).toContain(name)
+      // And the baby parts too (double-check the full lineage).
+      for (const name of babyNames) expect(champNames).toContain(name)
+    }
+  })
+
+  test("champion keeps the palette family but shifts the shade again", () => {
+    for (const id of Object.keys(archetypes)) {
+      const juv = generate(id, 42, "juvenile")
+      const champ = generate(id, 42, "champion")
+      expect(champ.build.colors.body).not.toEqual(juv.build.colors.body)
+    }
+  })
+
+  test("champion builds pass the proportion-budget audit across seeds", () => {
+    const SEEDS = 200
+    const violations: string[] = []
+    for (const id of Object.keys(archetypes)) {
+      const budget = PROPORTION_BUDGETS[id]
+      if (!budget) throw new Error(`no budget for archetype ${id}`)
+      for (let seed = 1; seed <= SEEDS; seed++) {
+        const { build, def } = generate(id, seed, "champion")
+        const measured = measureRatiosFromFields(build.fields, def.grid)
+        for (const [ratio, range] of Object.entries(budget.ratios)) {
+          const value = measured[ratio as keyof typeof measured]
+          if (value === undefined) {
+            violations.push(
+              `${id} champion seed ${seed}: ${ratio} not measured`,
+            )
+            continue
+          }
+          if (!ratioInBudget(value, range)) {
+            violations.push(
+              `${id} champion seed ${seed}: ${ratio} = ${value.toFixed(3)} outside [${range.min}, ${range.max}]`,
             )
           }
         }

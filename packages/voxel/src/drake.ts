@@ -93,7 +93,7 @@ export function buildDrake(dna: Dna, stage: Stage = "baby"): DrakeBuild {
   // short, stout legs is the silhouette fix for the leggy-drake defect.
   // Juveniles stand a touch taller at the hip — legs read longer as the
   // body matures (see stage.ts for the maturity frame).
-  const j = stage === "juvenile" ? 1 : 0
+  const j = stage === "baby" ? 0 : stage === "juvenile" ? 1 : 2
   const hipY = 10 + 0.8 * j
   const footY = 0.9 + 1.7 * bg
   const legFrontZ = 5 + (ll - 1) * 2
@@ -264,7 +264,7 @@ export function buildDrake(dna: Dna, stage: Stage = "baby"): DrakeBuild {
   // forehead, between the horns. Seed-derived placement (the horn spread
   // jitters them) — the existing horns are the identity layer and stay
   // untouched; the nubs are new growth the baby does not have yet.
-  if (stage === "juvenile") {
+  if (stage === "juvenile" || stage === "champion") {
     const nubBaseL = vec3(headC.x - 1.1 * hs, headC.y + 2.5 * hs, headC.z - 0.2)
     const nubBaseR = vec3(headC.x + 1.1 * hs, headC.y + 2.5 * hs, headC.z - 0.2)
     const nubLean = 0.6 + 0.8 * hornSpread
@@ -286,6 +286,39 @@ export function buildDrake(dna: Dna, stage: Stage = "baby"): DrakeBuild {
     })
   }
 
+  // Champion signature: a crown pair — taller horns rising from the upper
+  // skull behind the horn line, sweeping back and outward. The earned
+  // crown reads at broadcast distance without changing the body plan.
+  if (stage === "champion") {
+    const crownBaseL = vec3(
+      headC.x - 2.1 * hs,
+      headC.y + 2.9 * hs,
+      headC.z - 0.6,
+    )
+    const crownBaseR = vec3(
+      headC.x + 2.1 * hs,
+      headC.y + 2.9 * hs,
+      headC.z - 0.6,
+    )
+    const crownLean = 2 + 1.8 * hornSpread
+    fields.push({
+      name: "crownHornLeft",
+      sdf: sdCapsule(
+        crownBaseL,
+        vec3(crownBaseL.x - crownLean, crownBaseL.y + 3, crownBaseL.z - 3.2),
+        1,
+      ),
+    })
+    fields.push({
+      name: "crownHornRight",
+      sdf: sdCapsule(
+        crownBaseR,
+        vec3(crownBaseR.x + crownLean, crownBaseR.y + 3, crownBaseR.z - 3.2),
+        1,
+      ),
+    })
+  }
+
   // -- Pivots (rotation anchors for the procedural rig) --------------------
   // The body pivot sits at the HIP LINE (hipY), not the body center: breathe
   // squash-stretch around this pivot keeps the body voxels at the leg
@@ -301,12 +334,24 @@ export function buildDrake(dna: Dna, stage: Stage = "baby"): DrakeBuild {
     hornLeft: [hornBaseL.x, hornBaseL.y, hornBaseL.z],
     hornRight: [hornBaseR.x, hornBaseR.y, hornBaseR.z],
   }
-  if (stage === "juvenile") {
+  if (stage === "juvenile" || stage === "champion") {
     pivots.hornNubLeft = [headC.x - 1.1 * hs, headC.y + 2.5 * hs, headC.z - 0.2]
     pivots.hornNubRight = [
       headC.x + 1.1 * hs,
       headC.y + 2.5 * hs,
       headC.z - 0.2,
+    ]
+  }
+  if (stage === "champion") {
+    pivots.crownHornLeft = [
+      headC.x - 2.1 * hs,
+      headC.y + 2.9 * hs,
+      headC.z - 0.6,
+    ]
+    pivots.crownHornRight = [
+      headC.x + 2.1 * hs,
+      headC.y + 2.9 * hs,
+      headC.z - 0.6,
     ]
   }
 
@@ -318,8 +363,9 @@ export function buildDrake(dna: Dna, stage: Stage = "baby"): DrakeBuild {
   const light = gilded ? 0.55 : lerp(jit.min, jit.max, rng.next())
   const sat = gilded ? 0.85 : 0.72
   // Juveniles read a touch brighter and more saturated — same hue family,
-  // same seed jitter, just a maturing coat (see stage.ts).
-  const lift = stage === "juvenile" ? 0.05 : 0
+  // same seed jitter, just a maturing coat (see stage.ts). Champions lift
+  // a step further: the same individual wearing its record.
+  const lift = stage === "baby" ? 0 : stage === "juvenile" ? 0.05 : 0.1
   const main = hslToRgb(hue, Math.min(1, sat + lift), Math.min(1, light + lift))
   const dark: [number, number, number] = [
     main[0] * 0.7,
@@ -341,9 +387,13 @@ export function buildDrake(dna: Dna, stage: Stage = "baby"): DrakeBuild {
     hornLeft: bone,
     hornRight: bone,
   }
-  if (stage === "juvenile") {
+  if (stage === "juvenile" || stage === "champion") {
     colors.hornNubLeft = bone
     colors.hornNubRight = bone
+  }
+  if (stage === "champion") {
+    colors.crownHornLeft = bone
+    colors.crownHornRight = bone
   }
 
   return {
@@ -357,8 +407,11 @@ export function buildDrake(dna: Dna, stage: Stage = "baby"): DrakeBuild {
       hornRight: "head",
       tail: "body",
       tailTip: "tail",
-      ...(stage === "juvenile"
+      ...(stage === "juvenile" || stage === "champion"
         ? { hornNubLeft: "head", hornNubRight: "head" }
+        : {}),
+      ...(stage === "champion"
+        ? { crownHornLeft: "head", crownHornRight: "head" }
         : {}),
     },
   }
