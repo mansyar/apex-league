@@ -3,6 +3,7 @@ import {
   type Creature,
   getMove,
   getSpecies,
+  type LifeStage,
   requiredTierDays,
   type SpeciesDef,
   type Tactic,
@@ -50,6 +51,7 @@ export function castFighter(input: {
   name: string
   seed: number
   key?: string
+  stage?: LifeStage
   context: string
 }): CastFighter {
   const species = getSpecies(input.speciesId)
@@ -61,6 +63,7 @@ export function castFighter(input: {
     seed: input.seed,
     name: input.name,
     key: input.key,
+    stage: input.stage,
   }
 }
 

@@ -1,0 +1,47 @@
+
+ΓòöΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòù
+Γòæ Update available for @playwright/cli: 0.1.18 ΓåÆ 0.1.22              Γòæ
+Γòæ Run `npm install -g @playwright/cli@latest` (global) or            Γòæ
+Γòæ `npm install --save-dev @playwright/cli@latest` (local) to update. Γòæ
+ΓòÜΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓò¥
+
+### Page
+- Page URL: http://localhost:5174/
+- Page Title: Apex League
+### Snapshot
+```yaml
+- generic [ref=f5e2]:
+  - generic [ref=f5e169]:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - generic: Ember Drake
+              - generic: "46"
+        - generic:
+          - generic: VS
+          - generic:
+            - generic: In close
+            - generic:
+              - generic: Γû▓
+              - generic: Γû▓
+              - generic: Γû▓
+        - generic:
+          - generic:
+            - generic:
+              - generic: Ember Drake
+              - generic: "0"
+      - generic:
+        - generic: APEX FEED
+        - generic: Ember Drake is down!
+      - status:
+        - generic: Victory ΓÇö your Ember Drake
+        - generic: A knockout finish.
+    - generic [ref=f5e213]:
+      - button "Battle log Γû╕" [ref=f5e216] [cursor=pointer]
+      - button "Back to the ranch" [ref=f5e219] [cursor=pointer]
+  - generic [ref=f5e33]:
+    - 'button "Motion: full" [ref=f5e34] [cursor=pointer]'
+    - 'button "Camera: cinematic" [pressed] [ref=f5e217] [cursor=pointer]'
+```

@@ -91,6 +91,10 @@ export {
 } from "./cup"
 export { applyCupRewards, CUP_REWARDS, type CupOutcome } from "./cupRewards"
 export {
+  CHAMPION_BOND,
+  CHAMPION_CUPS,
+  CHAMPION_EVOLUTION_DAY,
+  CHAMPION_HINT_DAY,
   CHAMPION_STAT_BOOST,
   EVOLUTION_DAY,
   EVOLUTION_HINT_DAY,

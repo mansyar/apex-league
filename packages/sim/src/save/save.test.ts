@@ -211,6 +211,37 @@ describe("migration chain", () => {
     expect(loaded?.creature?.loadout).toEqual(["spark", "flame_charge"])
   })
 
+  test("a champion-stage creature round-trips on the current save version", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!owned.creature) throw new Error("no creature")
+    const state = {
+      ...owned,
+      creature: { ...owned.creature, stage: "champion" as const },
+    }
+    saveGame(adapter, state, 8)
+    const loaded = loadGame(adapter)
+    expect(loaded?.creature?.stage).toBe("champion")
+  })
+
+  test("an unknown stage still rejects the load", () => {
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!owned.creature) throw new Error("no creature")
+    const adapter: SaveAdapter = createMemoryAdapter()
+    adapter.setItem(
+      "apex.save",
+      JSON.stringify({
+        version: SAVE_VERSION,
+        state: {
+          ...owned,
+          creature: { ...owned.creature, stage: "elder" },
+        },
+        savedAt: 8,
+      }),
+    )
+    expect(loadGame(adapter)).toBeNull()
+  })
+
   test("rejects saves from an unknown future version", () => {
     expect(() => migrate({ version: 99, state: {} })).toThrow()
   })

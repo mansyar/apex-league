@@ -305,6 +305,19 @@ export function createWalk(reducedMotion: boolean): WalkMachine {
 export const BABY_SCALE = 0.6
 /** World-units holder scale from the juvenile stage on. */
 export const JUVENILE_SCALE = 1
+/** World-units holder scale for the champion stage: the grander silhouette
+ * comes from the holder only (learnings.md — the rig children keep their
+ * rig-unit contract; the proportion maturation happens in the voxel build). */
+export const CHAMPION_SCALE = 1.15
+
+/** Holder scale for a life stage — single-sources the ranch stage ladder. */
+export function stageScale(stage: "baby" | "juvenile" | "champion"): number {
+  return stage === "baby"
+    ? BABY_SCALE
+    : stage === "champion"
+      ? CHAMPION_SCALE
+      : JUVENILE_SCALE
+}
 
 export type EvolutionPhase = "idle" | "walk" | "glow" | "settle"
 
@@ -336,8 +349,15 @@ const OVERSHOOT = 0.08
 export interface EvolutionMachine {
   /** Begin from the creature's current pose: only the yaw and the motion
    * preference are needed (advance reads the live position). Reduced
-   * motion swaps in place. */
-  begin(fromYaw: number, reducedMotion: boolean): void
+   * motion swaps in place. The scale journey is parametrized so a
+   * champion ceremony (juvenile → champion) can start at the juvenile
+   * scale and settle grander; the defaults keep the classic baby →
+   * juvenile journey. */
+  begin(
+    fromYaw: number,
+    reducedMotion: boolean,
+    scales?: { fromScale?: number; toScale?: number },
+  ): void
   /** Advance one clamped-dt step from (x, z). */
   advance(x: number, z: number, dt: number): EvolutionDrive
 }
@@ -347,10 +367,18 @@ export function createEvolutionCeremony(): EvolutionMachine {
   let yaw = 0
   let elapsed = 0
   let swapPending = false
+  let fromScale = BABY_SCALE
+  let toScale = JUVENILE_SCALE
 
-  const begin = (fromYaw: number, reducedMotion: boolean): void => {
+  const begin = (
+    fromYaw: number,
+    reducedMotion: boolean,
+    scales?: { fromScale?: number; toScale?: number },
+  ): void => {
     yaw = fromYaw
     elapsed = 0
+    fromScale = scales?.fromScale ?? BABY_SCALE
+    toScale = scales?.toScale ?? JUVENILE_SCALE
     if (reducedMotion) {
       // Instant variant: swap where you stand — no travel, no glow.
       swapPending = true
@@ -375,7 +403,7 @@ export function createEvolutionCeremony(): EvolutionMachine {
         z: s.z,
         yaw,
         phase: "walk",
-        scale: BABY_SCALE,
+        scale: fromScale,
         glow: 0,
         swap: false,
         pivoting: s.pivoting,
@@ -395,7 +423,7 @@ export function createEvolutionCeremony(): EvolutionMachine {
         z,
         yaw,
         phase: "glow",
-        scale: BABY_SCALE + SWELL * k,
+        scale: fromScale + SWELL * k,
         glow: k * (0.6 + 0.4 * Math.sin(elapsed * 7)),
         swap: false,
         pivoting: false,
@@ -413,7 +441,7 @@ export function createEvolutionCeremony(): EvolutionMachine {
         z,
         yaw,
         phase: "settle",
-        scale: JUVENILE_SCALE + OVERSHOOT * (1 - k),
+        scale: toScale + OVERSHOOT * (1 - k),
         glow: (1 - k) * 0.4,
         swap,
         pivoting: false,
@@ -425,7 +453,7 @@ export function createEvolutionCeremony(): EvolutionMachine {
       z,
       yaw,
       phase: "idle",
-      scale: JUVENILE_SCALE,
+      scale: toScale,
       glow: 0,
       swap: false,
       pivoting: false,

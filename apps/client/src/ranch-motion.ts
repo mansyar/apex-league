@@ -7,14 +7,13 @@ import { generate, type Stage } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
 import {
-  BABY_SCALE,
   createEvolutionCeremony,
   createWalk,
   createWander,
   type GaitPose,
   gaitPose,
-  JUVENILE_SCALE,
   phaseHash,
+  stageScale,
   swayAngle,
   type WanderDrive,
   windBaseAmp,
@@ -124,8 +123,9 @@ export interface RanchMotion {
   droopyMoment(durationMs?: number): void
   /** Begin the feed ceremony (aborts any in-flight wander trip). */
   startFeed(): void
-  /** Begin the baby→juvenile evolution ceremony from the current pose. */
-  startEvolution(archetypeId: string, seed: number): void
+  /** Begin the evolution ceremony (juvenile→champion or baby→juvenile)
+   * from the current pose; the swap rebuilds to the target stage. */
+  startEvolution(archetypeId: string, seed: number, targetStage: Stage): void
   /** A plain rebuild cancels an in-flight evolution ceremony. */
   clearEvolution(): void
   /** Drop all registered swayers + wander candidates (re-scatter). */
@@ -177,7 +177,11 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
   // swap signal; this unit owns the actual rig rebuild and the glow paint.
   let evolution = createEvolutionCeremony()
   /** The juvenile rebuild the ceremony's swap frame should perform. */
-  let evolutionSwap: { archetypeId: string; seed: number } | null = null
+  let evolutionSwap: {
+    archetypeId: string
+    seed: number
+    stage: Stage
+  } | null = null
 
   /** How deep the nibble head-dips go (in the head pivot's local units —
    * the rig runs in grid units, so this scales with the creature). */
@@ -244,7 +248,7 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
     const rig = new THREE.Group()
     rig.add(inner)
     inner.position.set(-center.x, 0, -center.z)
-    rig.scale.setScalar(stage === "baby" ? BABY_SCALE : JUVENILE_SCALE)
+    rig.scale.setScalar(stageScale(stage))
     creatureGroup = rig
     currentStage = stage
     rig.traverse((obj) => {
@@ -332,7 +336,7 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
         if (evo.swap && evolutionSwap) {
           const swap = evolutionSwap
           evolutionSwap = null
-          rebuild(swap.archetypeId, swap.seed, "juvenile")
+          rebuild(swap.archetypeId, swap.seed, swap.stage)
         }
         evoGait = evo.phase === "walk" && !evo.pivoting
       }
@@ -344,9 +348,7 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
       // and the weight roll always come back to rest.
       let away = evoActive
       if (!evoActive) {
-        creatureGroup.scale.setScalar(
-          currentStage === "baby" ? BABY_SCALE : JUVENILE_SCALE,
-        )
+        creatureGroup.scale.setScalar(stageScale(currentStage))
         const wd = walk.advance(
           creatureGroup.position.x,
           creatureGroup.position.z,
@@ -484,14 +486,19 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
         creatureGroup.rotation.y,
       )
     },
-    startEvolution(archetypeId, seed) {
+    startEvolution(archetypeId, seed, targetStage) {
       if (!creatureGroup) return
       // Preempt an in-flight feed walk (the growth moment takes over) and
-      // abandon any wander trip, then begin from the current pose.
+      // abandon any wander trip, then begin from the current pose. The
+      // scale journey follows the stage ladder: a champion ceremony starts
+      // at the juvenile's scale and settles grander.
       walk = createWalk(reducedMotion)
       wander?.abort()
-      evolutionSwap = { archetypeId, seed }
-      evolution.begin(creatureGroup.rotation.y, reducedMotion)
+      evolutionSwap = { archetypeId, seed, stage: targetStage }
+      evolution.begin(creatureGroup.rotation.y, reducedMotion, {
+        fromScale: stageScale(currentStage),
+        toScale: stageScale(targetStage),
+      })
     },
     clearEvolution() {
       evolutionSwap = null

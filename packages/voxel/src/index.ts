@@ -67,6 +67,7 @@ export {
   vec3,
 } from "./sdf"
 export {
+  CHAMPION_MATURITY,
   JUVENILE_MATURITY,
   matureProportions,
   parseStage,

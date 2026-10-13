@@ -1,5 +1,5 @@
 import { isCupDay } from "./calendar"
-import { type Creature, effectiveStats } from "./creature"
+import { effectiveStats } from "./creature"
 import { type CupSession, cupPlacement, startCupSession } from "./cup"
 import { applyCupRewards } from "./cupRewards"
 import { applyCupPlacement } from "./ladder"

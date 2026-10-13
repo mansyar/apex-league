@@ -1,9 +1,11 @@
 import { describe, expect, test } from "bun:test"
 import {
   BABY_SCALE,
+  CHAMPION_SCALE,
   createEvolutionCeremony,
   type EvolutionDrive,
   JUVENILE_SCALE,
+  stageScale,
 } from "./scene-logic"
 
 /** Drive the evolution machine at a fixed 60fps cadence from a starting
@@ -12,10 +14,19 @@ import {
 function run(
   machine: ReturnType<typeof createEvolutionCeremony>,
   from: { x: number; z: number; yaw: number },
-  opts: { dt?: number; reduced?: boolean; maxSeconds?: number } = {},
+  opts: {
+    dt?: number
+    reduced?: boolean
+    maxSeconds?: number
+    fromScale?: number
+    toScale?: number
+  } = {},
 ) {
   const dt = opts.dt ?? 1 / 60
-  machine.begin(from.yaw, opts.reduced ?? false)
+  machine.begin(from.yaw, opts.reduced ?? false, {
+    fromScale: opts.fromScale,
+    toScale: opts.toScale,
+  })
   let x = from.x
   let z = from.z
   let yaw = from.yaw
@@ -87,6 +98,54 @@ describe("evolution ceremony machine", () => {
     const last = frames[frames.length - 1]
     expect(last?.phase).toBe("idle")
     expect(last?.scale).toBeCloseTo(JUVENILE_SCALE, 5)
+  })
+
+  test("stageScale maps every life stage", () => {
+    expect(stageScale("baby")).toBe(BABY_SCALE)
+    expect(stageScale("juvenile")).toBe(JUVENILE_SCALE)
+    expect(stageScale("champion")).toBe(CHAMPION_SCALE)
+    // The champion stands grander than the juvenile, same holder contract.
+    expect(CHAMPION_SCALE).toBeGreaterThan(JUVENILE_SCALE)
+  })
+
+  test("the champion ceremony starts at the juvenile scale and settles at the champion scale", () => {
+    const m = createEvolutionCeremony()
+    const { frames } = run(
+      m,
+      { x: 3, z: -4, yaw: 0.7 },
+      {
+        fromScale: JUVENILE_SCALE,
+        toScale: CHAMPION_SCALE,
+      },
+    )
+    const walkFrames = frames.filter((f) => f.phase === "walk")
+    for (const f of walkFrames) {
+      expect(f.scale).toBeCloseTo(JUVENILE_SCALE, 5)
+    }
+    const settleFrames = frames.filter((f) => f.phase === "settle")
+    const lastSettle = settleFrames[settleFrames.length - 1]
+    expect(lastSettle?.scale).toBeCloseTo(CHAMPION_SCALE, 5)
+    // The glow still swells above the start scale — a grander pulse.
+    const glowFrames = frames.filter((f) => f.phase === "glow")
+    const peak = Math.max(...glowFrames.map((f) => f.scale))
+    expect(peak).toBeGreaterThan(JUVENILE_SCALE)
+  })
+
+  test("reduced-motion champion ceremony swaps in place at the champion scale", () => {
+    const m = createEvolutionCeremony()
+    const { frames } = run(
+      m,
+      { x: 1.5, z: 2, yaw: 0.4 },
+      {
+        reduced: true,
+        fromScale: JUVENILE_SCALE,
+        toScale: CHAMPION_SCALE,
+      },
+    )
+    const swaps = frames.filter((f) => f.swap)
+    expect(swaps.length).toBe(1)
+    const last = frames[frames.length - 1]
+    expect(last?.scale).toBeCloseTo(CHAMPION_SCALE, 5)
   })
 
   test("a paused tab or a huge frame step still converges (dt clamped)", () => {

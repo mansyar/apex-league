@@ -2,6 +2,10 @@ import { describe, expect, test } from "bun:test"
 
 import {
   advanceDay,
+  CHAMPION_BOND,
+  CHAMPION_CUPS,
+  CHAMPION_EVOLUTION_DAY,
+  CHAMPION_HINT_DAY,
   type Creature,
   chooseStarter,
   createCreature,
@@ -96,10 +100,108 @@ describe("evaluateEvolution", () => {
     expect(v.reason).toBe("too_young")
   })
 
-  test("a juvenile never re-evolves", () => {
+  test("a juvenile is judged by the champion gate, not waved through", () => {
     const v = evaluateEvolution(gateCreature({ stage: "juvenile" }), 50)
     expect(v.evolved).toBe(false)
-    expect(v.reason).toBe("not_baby")
+    expect(v.reason).toBe("low_bond")
+  })
+})
+
+describe("evaluateEvolution - champion gate", () => {
+  /** A qualified juvenile: day 25, great care, bonded, cup winner. */
+  function championReady(fields?: {
+    stage?: Creature["stage"]
+    sickCooldown?: number
+    conditions?: Partial<Creature["conditions"]>
+  }): Creature {
+    return gateCreature({
+      stage: fields?.stage ?? "juvenile",
+      sickCooldown: fields?.sickCooldown ?? 0,
+      conditions: { mood: 80, bond: 80, ...fields?.conditions } as never,
+    })
+  }
+
+  test("a qualified juvenile evolves on the night of day 25", () => {
+    const v = evaluateEvolution(championReady(), CHAMPION_EVOLUTION_DAY, 1)
+    expect(v.evolved).toBe(true)
+    expect(v.reason).toBe("ready")
+  })
+
+  test("day 24 is too young", () => {
+    const v = evaluateEvolution(championReady(), CHAMPION_EVOLUTION_DAY - 1, 1)
+    expect(v.evolved).toBe(false)
+    expect(v.reason).toBe("too_young")
+  })
+
+  test("a recent sickness night blocks the champion gate", () => {
+    const v = evaluateEvolution(
+      championReady({ sickCooldown: 1 }),
+      CHAMPION_EVOLUTION_DAY,
+      1,
+    )
+    expect(v.evolved).toBe(false)
+    expect(v.reason).toBe("recently_sick")
+  })
+
+  test("low mood blocks the champion gate", () => {
+    const v = evaluateEvolution(
+      championReady({ conditions: { mood: EVOLUTION_MOOD - 1 } as never }),
+      CHAMPION_EVOLUTION_DAY,
+      1,
+    )
+    expect(v.evolved).toBe(false)
+    expect(v.reason).toBe("low_mood")
+  })
+
+  test("low bond blocks the champion gate", () => {
+    const v = evaluateEvolution(
+      championReady({ conditions: { bond: CHAMPION_BOND - 1 } as never }),
+      CHAMPION_EVOLUTION_DAY,
+      1,
+    )
+    expect(v.evolved).toBe(false)
+    expect(v.reason).toBe("low_bond")
+  })
+
+  test("bond exactly at the threshold passes (inclusive gate)", () => {
+    const v = evaluateEvolution(
+      championReady({ conditions: { bond: CHAMPION_BOND } as never }),
+      CHAMPION_EVOLUTION_DAY,
+      1,
+    )
+    expect(v.evolved).toBe(true)
+  })
+
+  test("no cup win blocks the champion gate", () => {
+    const v = evaluateEvolution(
+      championReady(),
+      CHAMPION_EVOLUTION_DAY,
+      CHAMPION_CUPS - 1,
+    )
+    expect(v.evolved).toBe(false)
+    expect(v.reason).toBe("no_cup_win")
+  })
+
+  test("age is checked before bond and cups (reason precedence)", () => {
+    const v = evaluateEvolution(
+      championReady({ conditions: { bond: 0 } as never }),
+      CHAMPION_EVOLUTION_DAY - 1,
+      0,
+    )
+    expect(v.reason).toBe("too_young")
+  })
+
+  test("a champion never evolves again", () => {
+    const v = evaluateEvolution(
+      gateCreature({
+        stage: "champion",
+        conditions: { mood: 100, bond: 100 } as never,
+      }),
+      CHAMPION_EVOLUTION_DAY + 10,
+      5,
+    )
+    expect(v.evolved).toBe(false)
+    expect(v.reason).toBe("not_juvenile")
   })
 })
 
@@ -196,6 +298,105 @@ describe("evolveCreature - the maturation boost", () => {
     if (!before || !after) throw new Error("creature missing")
     expect(after.hp).toBe(before.hp + 3)
     expect(next.creature?.stage).toBe("juvenile")
+  })
+})
+
+describe("evolveCreature - the champion boost", () => {
+  test("a juvenile becomes a champion with the pinned +6/+4/+4/+2", () => {
+    const juvenile = gateCreature({ stage: "juvenile" })
+    const champion = evolveCreature(juvenile)
+    expect(champion.stage).toBe("champion")
+    expect(champion.stats.hp).toBe(juvenile.stats.hp + 6)
+    expect(champion.stats.atk).toBe(juvenile.stats.atk + 4)
+    expect(champion.stats.def).toBe(juvenile.stats.def + 4)
+    expect(champion.stats.spd).toBe(juvenile.stats.spd + 2)
+  })
+
+  test("the baby path is untouched: +3/+2/+2/+1 to juvenile", () => {
+    const baby = createCreature("fire_drake", 7)
+    const juvenile = evolveCreature(baby)
+    expect(juvenile.stage).toBe("juvenile")
+    expect(juvenile.stats.hp).toBe(baby.stats.hp + 3)
+    expect(juvenile.stats.atk).toBe(baby.stats.atk + 2)
+    expect(juvenile.stats.def).toBe(baby.stats.def + 2)
+    expect(juvenile.stats.spd).toBe(baby.stats.spd + 1)
+  })
+
+  test("the champion boost lands in effectiveStats too", () => {
+    const juvenile = gateCreature({ stage: "juvenile" })
+    juvenile.trained = { hp: 1, atk: 0, def: 2, spd: 0 }
+    const champion = evolveCreature(juvenile)
+    const before = effectiveStats(juvenile)
+    const after = effectiveStats(champion)
+    expect(after.hp).toBe(before.hp + 6)
+    expect(after.atk).toBe(before.atk + 4)
+    expect(after.def).toBe(before.def + 4)
+    expect(after.spd).toBe(before.spd + 2)
+  })
+})
+
+describe("advanceDay - champion evolution integration", () => {
+  /** A qualified juvenile state: bonded, good mood, one cup won. */
+  function championState(day: number, cupsWon = 1): GameState {
+    const s = scenarioState(
+      {
+        stage: "juvenile",
+        sickCooldown: 0,
+        conditions: { mood: 80, bond: 80 } as never,
+      },
+      day,
+    )
+    return { ...s, cupsWon }
+  }
+
+  test("a qualified juvenile becomes a champion on the night of day 25", () => {
+    const s = championState(CHAMPION_EVOLUTION_DAY)
+    const next = advanceDay(s, CALM_RNG)
+    expect(next.creature?.stage).toBe("champion")
+  })
+
+  test("the champion settlement applies the pinned boost", () => {
+    const s = championState(CHAMPION_EVOLUTION_DAY)
+    const before = s.creature?.stats
+    const next = advanceDay(s, CALM_RNG)
+    if (!before || !next.creature) throw new Error("creature missing")
+    expect(next.creature.stats.hp).toBe(before.hp + 6)
+    expect(next.creature.stats.atk).toBe(before.atk + 4)
+    expect(next.creature.stats.def).toBe(before.def + 4)
+    expect(next.creature.stats.spd).toBe(before.spd + 2)
+  })
+
+  test("a juvenile without a cup win waits at the champion gate", () => {
+    const s = championState(CHAMPION_EVOLUTION_DAY, 0)
+    const next = advanceDay(s, CALM_RNG)
+    expect(next.creature?.stage).toBe("juvenile")
+  })
+
+  test("a juvenile below the bond floor waits", () => {
+    const s = championState(CHAMPION_EVOLUTION_DAY)
+    if (!s.creature) throw new Error("creature missing")
+    const weak = {
+      ...s,
+      creature: {
+        ...s.creature,
+        conditions: { ...s.creature.conditions, bond: 20 },
+      },
+    }
+    const next = advanceDay(weak, CALM_RNG)
+    expect(next.creature?.stage).toBe("juvenile")
+  })
+
+  test("a young juvenile is untouched by the champion gate", () => {
+    const s = championState(11)
+    const next = advanceDay(s, CALM_RNG)
+    expect(next.creature?.stage).toBe("juvenile")
+  })
+})
+
+describe("CHAMPION_HINT_DAY", () => {
+  test("the hint teases before the gate, never after", () => {
+    expect(CHAMPION_HINT_DAY).toBe(20)
+    expect(CHAMPION_HINT_DAY).toBeLessThan(CHAMPION_EVOLUTION_DAY)
   })
 })
 

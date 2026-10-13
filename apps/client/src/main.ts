@@ -263,18 +263,22 @@ const hud = createHud(app, {
     const stageBefore = store.get().creature?.stage
     store.commit(advanceDay(store.get()))
     const creature = store.get().creature
-    if (stageBefore === "baby" && creature?.stage === "juvenile") {
+    const evolved =
+      (stageBefore === "baby" && creature?.stage === "juvenile") ||
+      (stageBefore === "juvenile" && creature?.stage === "champion")
+    if (evolved && creature) {
       // Evolution moment (spec R5): the scene walks the creature to the
-      // ranch center, swells, and swaps the baby rig for the juvenile
-      // build at the pulse's peak — so the plain rebuild is skipped. The
-      // HUD announces the stat gains while the ceremony plays. The visual
-      // seed is unchanged (stage-aware), so the props stay put.
+      // ranch center, swells, and swaps the rig for the next stage's build
+      // at the pulse's peak — so the plain rebuild is skipped. The HUD
+      // announces the stat gains while the ceremony plays. The visual seed
+      // is unchanged (stage-aware), so the props stay put.
       const archetypeId =
         getSpecies(creature.speciesId)?.archetypeId ?? "draconic"
       sceneVisuals()
       scene.startEvolutionCeremony(
         archetypeId,
         visualSeedOf(creature.stats, creature.stage),
+        creature.stage,
       )
       hud.announceEvolution(creature)
     } else {

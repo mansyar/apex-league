@@ -1,0 +1,107 @@
+
+ΓòöΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòù
+Γòæ Update available for @playwright/cli: 0.1.18 ΓåÆ 0.1.22              Γòæ
+Γòæ Run `npm install -g @playwright/cli@latest` (global) or            Γòæ
+Γòæ `npm install --save-dev @playwright/cli@latest` (local) to update. Γòæ
+ΓòÜΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓò¥
+
+### Page
+- Page URL: http://localhost:5174/
+- Page Title: Apex League
+### Snapshot
+```yaml
+- generic [ref=f5e2]:
+  - generic [ref=f5e170]:
+    - button "Close sparring" [ref=f5e171] [cursor=pointer]
+    - generic [ref=f5e174]: Sparring
+    - generic [ref=f5e175]: Pick how your partner fights. No AP, nothing saved.
+    - generic [ref=f5e176]: Ember Drake
+    - generic [ref=f5e181]: "Rival tactic: Favor Specials ┬╖ Rushes in. May ignore a cautious plan. ┬╖ Seed 867086777"
+    - generic [ref=f5e182]: Evolution unlocked move 3 ΓÇö train 6 more days for Blaze Bolt.
+    - generic [ref=f5e183]:
+      - generic [ref=f5e184]: Ember Drake ΓÇö HP 52 ┬╖ ATK 17 ┬╖ DEF 16 ┬╖ SPD 14
+      - generic [ref=f5e185]: Ember Drake ΓÇö HP 39 ┬╖ ATK 12 ┬╖ DEF 7 ┬╖ SPD 9
+    - generic [ref=f5e186]:
+      - generic [ref=f5e187]: Kit
+      - generic [ref=f5e188]:
+        - button "Spark" [ref=f5e201] [cursor=pointer]
+        - button "Flame Charge" [ref=f5e202] [cursor=pointer]
+        - button "Cinder Shot" [ref=f5e203] [cursor=pointer]
+        - button "Blaze Bolt - train 6 more days" [disabled] [ref=f5e204]
+      - button "Reset kit" [ref=f5e193] [cursor=pointer]
+    - generic [ref=f5e194]:
+      - button "Balanced Closes in and strikes. Saves specials for a type advantage, a finisher, or when the kit out-damages the Strike." [ref=f5e195] [cursor=pointer]:
+        - generic [ref=f5e196]: Balanced
+        - generic [ref=f5e197]: Closes in and strikes. Saves specials for a type advantage, a finisher, or when the kit out-damages the Strike.
+      - button "Favor Specials Fires the kit's best sustained special. Closes or Strikes only when nothing out-damages the Strike." [ref=f5e198] [cursor=pointer]:
+        - generic [ref=f5e199]: Favor Specials
+        - generic [ref=f5e200]: Fires the kit's best sustained special. Closes or Strikes only when nothing out-damages the Strike.
+  - generic [ref=f5e12]:
+    - generic [ref=f5e13]: Day phase
+    - generic [ref=f5e14]:
+      - generic [ref=f5e15]: Day
+      - generic [ref=f5e16]: "26"
+    - generic [ref=f5e18]: AP
+    - generic "Cup championships" [ref=f5e25]: ├ù 1
+    - 'generic "League standing: Bronze III, 0 of 6 points toward Bronze II" [ref=f5e30]':
+      - generic [ref=f5e31]: Bronze III
+      - generic [ref=f5e32]: 0/6
+  - generic [ref=f5e33]:
+    - 'button "Motion: full" [ref=f5e34] [cursor=pointer]'
+    - button "New game" [ref=f5e36] [cursor=pointer]
+  - generic [ref=f5e38]:
+    - generic [ref=f5e39]:
+      - generic [ref=f5e40]:
+        - button "Ember Drake Champion" [expanded] [ref=f5e165] [cursor=pointer]:
+          - generic [ref=f5e45]: Ember Drake
+          - generic [ref=f5e46]: Champion
+        - button "Rename partner" [ref=f5e50] [cursor=pointer]
+      - generic [ref=f5e54]:
+        - generic [ref=f5e55]:
+          - generic [ref=f5e56]: HP
+          - generic [ref=f5e57]: "52"
+        - generic [ref=f5e59]:
+          - generic [ref=f5e60]: ATK
+          - generic [ref=f5e61]: "17"
+        - generic [ref=f5e63]:
+          - generic [ref=f5e64]: DEF
+          - generic [ref=f5e65]: "16"
+        - generic [ref=f5e67]:
+          - generic [ref=f5e68]: SPD
+          - generic [ref=f5e69]: "14"
+      - generic [ref=f5e71]:
+        - generic [ref=f5e72]:
+          - generic [ref=f5e77]: Hunger
+          - generic [ref=f5e80]: "70"
+        - generic [ref=f5e81]:
+          - generic [ref=f5e85]: Energy
+          - generic [ref=f5e88]: "100"
+        - generic [ref=f5e89]:
+          - generic [ref=f5e93]: Health
+          - generic [ref=f5e96]: "100"
+        - generic [ref=f5e97]:
+          - generic [ref=f5e104]: Mood
+          - generic [ref=f5e107]: "100"
+        - generic [ref=f5e108]:
+          - generic [ref=f5e113]: Bond
+          - generic [ref=f5e116]: "97"
+    - generic [ref=f5e119]:
+      - button "Actions" [expanded] [ref=f5e120] [cursor=pointer]
+      - generic [ref=f5e125]:
+        - button "Feed 1 AP" [ref=f5e126] [cursor=pointer]:
+          - generic [ref=f5e131]: Feed
+          - generic [ref=f5e132]: 1 AP
+        - button "Rest 1 AP" [ref=f5e133] [cursor=pointer]:
+          - generic [ref=f5e137]: Rest
+          - generic [ref=f5e138]: 1 AP
+        - button "Treat 1 AP" [disabled] [ref=f5e139]:
+          - generic [ref=f5e143]: Treat
+          - generic [ref=f5e144]: 1 AP
+        - button "Play 1 AP" [ref=f5e145] [cursor=pointer]:
+          - generic [ref=f5e150]: Play
+          - generic [ref=f5e151]: 1 AP
+      - button "Train 1 AP" [ref=f5e153] [cursor=pointer]:
+        - generic [ref=f5e157]: Train
+        - generic [ref=f5e158]: 1 AP
+      - button "Advance Day" [ref=f5e160] [cursor=pointer]
+```

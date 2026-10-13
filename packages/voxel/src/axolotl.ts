@@ -331,7 +331,7 @@ export function buildAxolotl(dna: Dna, stage: Stage = "baby"): AxolotlBuild {
   // and coral family; the primary fronds are the identity layer and stay
   // untouched. Painted after the primary gills so the branch tips claim
   // their own voxels.
-  if (stage === "juvenile") {
+  if (stage === "juvenile" || stage === "champion") {
     for (const side of [-1, 1]) {
       const base = vec3(
         headC.x + side * 3.4 * hw,
@@ -354,6 +354,46 @@ export function buildAxolotl(dna: Dna, stage: Stage = "baby"): AxolotlBuild {
       const sdf = branches.reduce((acc, s) => union(acc, s))
       fields.push({ name: side < 0 ? "gillFrillLeft" : "gillFrillRight", sdf })
     }
+  }
+
+  // Champion signature: a grand third frill tier sweeping above the primary
+  // fan, plus a grand fin membrane crowning the tail tip — the full regalia
+  // of a record axolotl. Painted after the primary gills and juvenile
+  // frills so the grand tips claim their own voxels.
+  if (stage === "champion") {
+    for (const side of [-1, 1]) {
+      const base = vec3(
+        headC.x + side * 4.4 * hw,
+        gillBaseY + 0.5 * hw,
+        headC.z - 0.6 * hw,
+      )
+      const branches: Sdf[] = []
+      for (const [dx, dy, dz] of [
+        [2.4, 3.4, -0.5],
+        [4, 2, -1.2],
+      ] as const) {
+        const tip = vec3(
+          base.x + side * dx * gl * 1.15,
+          base.y + dy * gl * 1.15,
+          base.z + dz * gl,
+        )
+        branches.push(sdCapsule(base, tip, 0.85))
+        branches.push(sdSphere(tip, 0.8))
+      }
+      const sdf = branches.reduce((acc, s) => union(acc, s))
+      fields.push({
+        name: side < 0 ? "grandFrillLeft" : "grandFrillRight",
+        sdf,
+      })
+    }
+    // Grand fin: a tall membrane past the tail tip, extending the paddle.
+    // Centered on the tail axis, rising well clear of the tip so it reads
+    // as a grand fan from broadcast distance.
+    const grandYHalf = 2.8 + 1.6 * fh
+    fields.push({
+      name: "grandFin",
+      sdf: sdBox(vec3(O, 9.4, tailEnd.z - 2), vec3(0.8, grandYHalf, 1.8)),
+    })
   }
   if (gillStyle === "crown") {
     fields.push({
@@ -389,7 +429,7 @@ export function buildAxolotl(dna: Dna, stage: Stage = "baby"): AxolotlBuild {
   if (gillStyle === "crown") {
     pivots.gillCrown = [headC.x, gillBaseY, headC.z - 0.8 * hw]
   }
-  if (stage === "juvenile") {
+  if (stage === "juvenile" || stage === "champion") {
     pivots.gillFrillLeft = [
       headC.x - 3.4 * hw,
       gillBaseY - 1.1 * hw,
@@ -401,6 +441,19 @@ export function buildAxolotl(dna: Dna, stage: Stage = "baby"): AxolotlBuild {
       headC.z + 0.4 * hw,
     ]
   }
+  if (stage === "champion") {
+    pivots.grandFrillLeft = [
+      headC.x - 4.4 * hw,
+      gillBaseY + 0.5 * hw,
+      headC.z - 0.6 * hw,
+    ]
+    pivots.grandFrillRight = [
+      headC.x + 4.4 * hw,
+      gillBaseY + 0.5 * hw,
+      headC.z - 0.6 * hw,
+    ]
+    pivots.grandFin = [O, 9.4, tailEnd.z - 2]
+  }
 
   // -- Colors (deterministic per seed; fixed type hue, value jitter only) --
   const rng = makeRng(dna.seed)
@@ -411,7 +464,7 @@ export function buildAxolotl(dna: Dna, stage: Stage = "baby"): AxolotlBuild {
   const sat = gilded ? 0.85 : 0.6
   // Juveniles read a touch brighter and more saturated — same hue family,
   // same seed jitter, just a maturing coat (see stage.ts).
-  const lift = stage === "juvenile" ? 0.05 : 0
+  const lift = stage === "baby" ? 0 : stage === "juvenile" ? 0.05 : 0.1
   const main = hslToRgb(hue, Math.min(1, sat + lift), Math.min(1, light + lift))
   const dark: [number, number, number] = [
     main[0] * 0.7,
@@ -440,9 +493,16 @@ export function buildAxolotl(dna: Dna, stage: Stage = "baby"): AxolotlBuild {
   if (gillStyle === "crown") {
     colors.gillCrown = coral
   }
-  if (stage === "juvenile") {
+  if (stage === "juvenile" || stage === "champion") {
     colors.gillFrillLeft = coral
     colors.gillFrillRight = coral
+  }
+  if (stage === "champion") {
+    colors.grandFrillLeft = coral
+    colors.grandFrillRight = coral
+    // Coral, not dark: the grand fin is the champion's accent flag, and a
+    // dark fin vanishes against the broadcast backdrop.
+    colors.grandFin = coral
   }
 
   return {
@@ -462,8 +522,15 @@ export function buildAxolotl(dna: Dna, stage: Stage = "baby"): AxolotlBuild {
       legBL: "body",
       legBR: "body",
       ...(gillStyle === "crown" ? { gillCrown: "head" } : {}),
-      ...(stage === "juvenile"
+      ...(stage === "juvenile" || stage === "champion"
         ? { gillFrillLeft: "head", gillFrillRight: "head" }
+        : {}),
+      ...(stage === "champion"
+        ? {
+            grandFrillLeft: "head",
+            grandFrillRight: "head",
+            grandFin: "tail",
+          }
         : {}),
     },
   }
