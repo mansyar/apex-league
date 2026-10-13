@@ -17,8 +17,8 @@ manual verification for presentation tasks, phase checkpoints per
 - [x] Task: Champion stat application + settlement hook *(tests first)* — 591429f
   - Tests: `evolveCreature` champion branch applies pinned +6/+4/+4/+2 to rolled base; juvenile boost unchanged; settlement calls the gate on the juvenile path and applies the boost **after** the full settlement; bond/cups judged from settled values; integration: night ending day 25 evolves a qualified juvenile
   - Implement in `evolution.ts` (generalized `evolveCreature`) + `settlement.ts` hook
-- [ ] Task: Hint constant *(tests first)*
-  - Tests: `CHAMPION_HINT_DAY = 20` exposed from the sim; hint copy function returns direction-only guidance per the discovered-not-hidden guideline
+- [x] Task: Hint constant *(tests first)* — 46f873a *(constant) / 641b2cb *(guard test)*
+  - Tests: `CHAMPION_HINT_DAY = 20` exposed from the sim; hint copy function returns direction-only guidance per the discovered-not-hidden guideline *(client copy lands in the Phase 3 HUD task, per the juvenile track's layering)*
   - Implement constant + hint entry in the evolution module
 - [ ] Task: Save roundtrip *(tests first)*
   - Tests: champion-stage creature saves and loads through the existing validator (SAVE_VERSION stays 9); no migration step; malformed stages still rejected
