@@ -1075,6 +1075,11 @@ export function createScene(container: HTMLElement): SceneHandle {
     camera.aspect = w / h
     arenaAdjust = arenaFramingAdjust(w / h)
     arenaRadius = ARENA_FRAMING.radius * arenaAdjust.radiusMult
+    // A mid-battle resize must reach the orbit too — the broadcast
+    // modes that drive the camera from applyOrbit (motion style,
+    // reduced motion) would otherwise hold the stale radius until the
+    // mode is re-entered.
+    if (cameraMode === "arena") orbit.radius = arenaRadius
     camera.fov = BASE_FOV + arenaAdjust.fovAdd
     camera.updateProjectionMatrix()
     // Refresh the pixel ratio too: browser zoom and monitor moves change

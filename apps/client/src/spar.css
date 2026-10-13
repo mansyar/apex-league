@@ -272,9 +272,14 @@
 
 /* In arena the battle placard owns the top edge (it did overlap the
    chips even on desktop), so the motion/camera/reset chip cluster
-   drops below it (responsive_foundation_20261013). */
+   drops below it (responsive_foundation_20261013). --spar-placard-clear
+   mirrors the placard's height: bump it if the placard ever grows. */
+.app-in-arena {
+  --spar-placard-clear: 116px;
+}
+
 .app-in-arena .hud-motion {
-  top: calc(116px + var(--kit-safe-top));
+  top: calc(var(--spar-placard-clear) + var(--kit-safe-top));
 }
 
 .spar-close {
