@@ -28,7 +28,6 @@ export interface BracketScreenRefs {
   screen: HTMLElement
   headSub: HTMLElement
   colHeadEls: Record<"qf" | "sf" | "f", HTMLElement>
-  matchBoxes: Record<"qf" | "sf" | "f", HTMLElement>
   cards: Map<MatchId, MatchCard>
   champ: HTMLElement
   champName: HTMLElement
@@ -154,7 +153,6 @@ export function buildBracketScreen(): BracketScreenRefs {
     screen,
     headSub,
     colHeadEls,
-    matchBoxes,
     cards,
     champ,
     champName,

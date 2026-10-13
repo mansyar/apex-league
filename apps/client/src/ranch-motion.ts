@@ -116,8 +116,6 @@ export interface RanchMotionDeps {
 export interface RanchMotion {
   /** The creature's holder group, or null before the first rebuild. */
   readonly group: THREE.Group | null
-  /** Life stage of the currently built rig. */
-  readonly stage: Stage
   /** Build a creature rig (archetype + seed + stage). */
   rebuild(archetypeId: string, seed: number, stage: Stage): void
   /** Drive the condition visual states from the creature's conditions. */
@@ -441,9 +439,6 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
   return {
     get group() {
       return creatureGroup
-    },
-    get stage() {
-      return currentStage
     },
     rebuild,
     updateConditions(conditions) {
