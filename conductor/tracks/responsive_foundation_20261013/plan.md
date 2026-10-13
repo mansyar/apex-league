@@ -6,15 +6,15 @@ verified manually per the workflow's rendering scope.
 
 ## Phase 1 — Breakpoint system & fluid tokens
 
-- [ ] Task: Define the breakpoint tier system in `ui/kit.css`
+- [x] Task: Define the breakpoint tier system in `ui/kit.css` - 54c2aa3
   - Document tiers (base mobile / ≥480 / ≥768 / ≥1024 / ≥1200) as a comment
     header + custom-property tokens
   - Add fluid type/spacing scale with `clamp()` floors (body text never
     below ~12px)
-- [ ] Task: Viewport-safe overlays in `base.css`/`kit.css`
+- [x] Task: Viewport-safe overlays in `base.css`/`kit.css` - 5164fd6
   - `dvh` (with `vh` fallback) for full-height overlays;
     `env(safe-area-inset-*)` padding
-- [ ] Task: Responsive section in the design mock (`mock.css` / `mock.ts`)
+- [x] Task: Responsive section in the design mock (`mock.css` / `mock.ts`) - 501a2bb
   - A `/mock.html` section demonstrating kit behavior at each tier
     (mock-first gate for later phases)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
