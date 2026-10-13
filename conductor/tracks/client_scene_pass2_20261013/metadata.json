@@ -1,0 +1,19 @@
+{
+  "id": "client_scene_pass2_20261013",
+  "title": "Client Scene Architecture Pass II",
+  "type": "refactor",
+  "status": "complete",
+  "created": "2026-10-13T00:00:00Z",
+  "updated": "2026-10-13T00:00:00Z",
+  "completedAt": "2026-10-13T00:00:00Z",
+  "branch": "client_scene_pass2_20261013",
+  "checkpoints": [
+    "15ffb8a",
+    "4183b4b",
+    "d61e554",
+    "1470452",
+    "b49519d",
+    "ac36db1"
+  ],
+  "summary": "Behavior-preserving client architecture pass completing the 20261012 presentation refactor: split scene.ts (1031 -> 313 ln) into scene-setup (renderer/bloom/sky GLSL), orbit-camera (input + shake), and a ranch-motion unit composing the existing scene-logic machines; staging.ts (1045 -> 295 ln) converted into per-move step modules behind a registry table plus a FighterDriver class and roster module; shared battle-session.ts factory finished the spar-vs-cup wiring dedup (driver wiring, finish choreography, chipButton, spar-* -> battle-* CSS rename); reduced-motion resolution consolidated into resolveMotionPref; cup-screens.ts (stretch) extracted the bracket/coach/results/give-up builders; mock.ts rebuilt from the real hud builders so structural drift is impossible; fixed the arena.ts -> scene.ts inverted dependency, the cup.ts TDZ trap, lambertMaterialOf casts, a pre-existing cup fast-forward pill bug (1470452), a pre-existing arena HUD bleed (15ffb8a), and the Advance Day no-op regression introduced during Phase 5 (d4b411e). Newly pure modules got deterministic TDD tests (motion 11, ranch-motion 13, fighter-driver 22, steps/pure 24+, battle-session 9)."
+}

@@ -272,15 +272,32 @@ function trainingStatus(
 export const spendFlashIndex = (prev: number, next: number): number | null =>
   next < prev ? next : null
 
+// ---------------------------------------------------------------------------
+// DOM builders — the exact cluster structures createHud composes. The mock
+// page (mock.ts) renders these same factories fed canned values, so the
+// mock can never drift from the live HUD's structure or class ownership.
+// ---------------------------------------------------------------------------
+
+/** The score-bug elements the daily update writes into. */
+export interface ScoreBugRefs {
+  root: HTMLElement
+  phaseTab: HTMLElement
+  dayNum: HTMLElement
+  apMeter: ReturnType<typeof meter>
+  trophy: HTMLElement
+  trophyCount: HTMLElement
+  rank: HTMLElement
+  rankRank: HTMLElement
+  rankPts: HTMLElement
+}
+
 /**
- * The care HUD: broadcast-style overlays over the 3D ranch — a top-center
- * score bug, a bottom-left creature lower-third with condition bars, and a
- * bottom-right command dock. Built from the shared broadcast kit
- * (ui/kit.ts): warm keyline plates, chamfered corners, skewed AP pips.
+ * Top-center score bug: phase tab, day, AP segmented meter, championship
+ * tally, and the Bronze ladder standing (save v8). Pure DOM — values are
+ * owned by createHud's update().
  */
-export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
-  // Top-center score bug.
-  const scoreBug = plate({ className: "score-bug" })
+export function buildScoreBug(): ScoreBugRefs {
+  const root = plate({ className: "score-bug" })
   const phaseTab = tab("Day phase", "outline")
   const dayNum = document.createElement("span")
   dayNum.className = "score-day-num"
@@ -319,7 +336,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   const rankPts = document.createElement("span")
   rankPts.className = "score-ladder-pts"
   rank.append(rankRank, rankPts)
-  scoreBug.append(
+  root.append(
     phaseTab,
     scoreDay,
     divider,
@@ -329,9 +346,50 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     divider3,
     rank,
   )
+  return {
+    root,
+    phaseTab,
+    dayNum,
+    apMeter,
+    trophy,
+    trophyCount,
+    rank,
+    rankRank,
+    rankPts,
+  }
+}
 
-  // Bottom-left creature lower-third (broadcast kit plate).
-  const lowerThird = plate({ className: "creature-plate" })
+/** The creature lower-third elements the daily update writes into. */
+export interface CreaturePlateRefs {
+  root: HTMLElement
+  creatureHead: HTMLButtonElement
+  headRow: HTMLElement
+  creatureName: HTMLElement
+  stageTab: HTMLElement
+  crestEl: HTMLElement
+  renameButton: HTMLButtonElement
+  nameInput: HTMLInputElement
+  renameConfirm: HTMLButtonElement
+  renameCancel: HTMLButtonElement
+  editRow: HTMLElement
+  statCells: Array<{ total: HTMLElement; bonus: HTMLElement; key: StatKey }>
+  bars: Array<{
+    handle: ReturnType<typeof bar>
+    delta: HTMLElement
+    key: keyof CreatureConditions
+    prev: number | null
+  }>
+  statusTicker: ReturnType<typeof ticker>
+}
+
+/**
+ * Bottom-left creature lower-third (broadcast kit plate): head row with
+ * collapse/rename affordances, stat cells, condition bars with transient
+ * delta chips, and the live-region status ticker. Pure DOM — interaction
+ * wiring and values stay with createHud.
+ */
+export function buildCreaturePlate(): CreaturePlateRefs {
+  const root = plate({ className: "creature-plate" })
   // The creature head doubles as the collapse toggle: clicking it folds
   // the plate down to just the head row (crest + name + stage), leaving
   // the briefest useful readout pinned to the corner.
@@ -427,12 +485,59 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   // Hardening: the announcer strip is live region (screen readers hear
   // routine callouts without focus).
   statusTicker.root.setAttribute("aria-live", "polite")
-  lowerThird.append(headRow, editRow, statRow, conditionList, statusTicker.root)
+  root.append(headRow, editRow, statRow, conditionList, statusTicker.root)
+  return {
+    root,
+    creatureHead,
+    headRow,
+    creatureName,
+    stageTab,
+    crestEl,
+    renameButton,
+    nameInput,
+    renameConfirm,
+    renameCancel,
+    editRow,
+    statCells,
+    bars,
+    statusTicker,
+  }
+}
 
-  // Bottom-right command dock (broadcast kit plate). A slim header row
-  // doubles as the collapse toggle; collapsed, only the "ACTIONS" label
-  // remains pinned to the corner.
-  const cluster = plate({ className: "command-dock" })
+/** The command-dock elements the daily update writes into. */
+export interface CommandDockRefs {
+  root: HTMLElement
+  dockHead: HTMLButtonElement
+  dockRow: HTMLElement
+  actionButtons: Array<{ button: HTMLButtonElement; action: CareAction }>
+  dockTrain: HTMLElement
+  trainButton: HTMLButtonElement
+  trainTag: HTMLElement | null
+  picker: HTMLElement
+  pickerButtons: Array<{
+    button: HTMLButtonElement
+    note: HTMLElement
+    key: StatKey
+  }>
+  advance: HTMLElement
+  advanceLabel: HTMLElement | null
+}
+
+/**
+ * Bottom-right command dock (broadcast kit plate): care buttons, the
+ * train control with its inline four-stat picker, and the Advance Day
+ * CTA. Care/pick clicks call the given handlers; the train-toggle and
+ * collapse interactions stay with createHud (they re-render).
+ */
+export function buildCommandDock(handlers: {
+  onCare: (action: CareAction) => void
+  /** A stat picked from the inline picker (closes it + spends 1 AP). */
+  onTrain: (key: StatKey) => void
+  onAdvanceDay: () => void
+}): CommandDockRefs {
+  // A slim header row doubles as the collapse toggle; collapsed, only
+  // the "ACTIONS" label remains pinned to the corner.
+  const root = plate({ className: "command-dock" })
   const dockHead = document.createElement("button")
   dockHead.className = "dock-head"
   dockHead.type = "button"
@@ -483,7 +588,6 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     note.className = "train-note"
     entry.append(name, note)
     entry.addEventListener("click", () => {
-      pickerOpen = false
       handlers.onTrain(key)
     })
     picker.append(entry)
@@ -491,41 +595,81 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   })
   const advance = cta("Advance Day", handlers.onAdvanceDay)
   const advanceLabel = advance.querySelector<HTMLElement>(".kit-cta-label")
-  cluster.append(dockHead, dockRow, dockTrain, picker, advance)
+  root.append(dockHead, dockRow, dockTrain, picker, advance)
+  return {
+    root,
+    dockHead,
+    dockRow,
+    actionButtons,
+    dockTrain,
+    trainButton,
+    trainTag,
+    picker,
+    pickerButtons,
+    advance,
+    advanceLabel,
+  }
+}
 
-  // Settings chip (save v5): one toggle mirrors the reduced-motion
-  // preference. Persists through the main.ts handler like every other
-  // sim change; the arena and ranch scene read it live.
+/** The settings-pill elements the preference capture mirrors into. */
+export interface SettingsChipRefs {
+  motionWrap: HTMLElement
+  motionChip: HTMLButtonElement
+  cameraChip: HTMLButtonElement
+  resetChip: HTMLButtonElement
+}
+
+/**
+ * Settings cluster (top-left): the reduced-motion toggle (save v5), the
+ * arena camera toggle (save v9), and the New game chip (save v7 QoL —
+ * the confirm modal does the scary part, one deliberate click).
+ */
+export function buildSettingsChips(opts: {
+  onToggleReducedMotion: () => void
+  onToggleArenaCamera: () => void
+  /** Opens the reset-confirm modal (built by buildResetModal). */
+  onNewGame: () => void
+}): SettingsChipRefs {
   const motionChip = chip({
     label: "Motion: full",
     variant: "dim",
-    onClick: handlers.onToggleReducedMotion,
+    onClick: opts.onToggleReducedMotion,
   })
   const motionWrap = document.createElement("div")
   motionWrap.className = "hud-motion"
   motionWrap.append(motionChip)
 
-  // Camera chip (save v9): the arena presentation toggle - cinematic
-  // director or fixed broadcast framing.
   const cameraChip = chip({
     label: "Camera: cinematic",
     variant: "dim",
-    onClick: handlers.onToggleArenaCamera,
+    onClick: opts.onToggleArenaCamera,
   })
   cameraChip.classList.add("camera-chip")
   motionWrap.append(cameraChip)
-  // New game (save v7 QoL): a quiet chip beside the motion toggle. The
-  // confirm modal does the scary part — one deliberate click, not a misclick.
   const resetChip = chip({
     label: "New game",
     variant: "dim",
-    onClick: () => {
-      resetModal.style.display = ""
-      resetConfirm.focus()
-    },
+    onClick: opts.onNewGame,
   })
+  // Ranch-only: the arena hide-list targets this class.
+  resetChip.classList.add("new-game-chip")
   motionWrap.append(resetChip)
+  return { motionWrap, motionChip, cameraChip, resetChip }
+}
 
+/** The reset-confirm modal elements. */
+export interface ResetModalRefs {
+  resetModal: HTMLElement
+  resetConfirm: HTMLButtonElement
+}
+
+/**
+ * New game confirm modal: a deliberate two-step for a destructive action.
+ * Escape backs out; a backdrop click means "not today". The focus trap
+ * keeps Tab inside the dialog — the scrim hides the page, so focus
+ * wandering into it would be invisible.
+ */
+export function buildResetModal(onReset: () => void): ResetModalRefs {
   const resetModal = document.createElement("div")
   resetModal.className = "kit-modal"
   resetModal.style.display = "none"
@@ -558,11 +702,8 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   resetModal.append(resetBox)
   resetConfirm.addEventListener("click", () => {
     resetModal.style.display = "none"
-    handlers.onReset()
+    onReset()
   })
-  // Escape backs out; a backdrop click means "not today". The focus trap
-  // keeps Tab inside the dialog — the scrim hides the page, so focus
-  // wandering into it would be invisible.
   const trapFocus = focusTrap(resetBox)
   resetModal.addEventListener("keydown", (event) => {
     trapFocus(event)
@@ -570,6 +711,82 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   })
   resetModal.addEventListener("click", (event) => {
     if (event.target === resetModal) resetModal.style.display = "none"
+  })
+  return { resetModal, resetConfirm }
+}
+
+/**
+ * The care HUD: broadcast-style overlays over the 3D ranch — a top-center
+ * score bug, a bottom-left creature lower-third with condition bars, and a
+ * bottom-right command dock. Built from the shared broadcast kit
+ * (ui/kit.ts): warm keyline plates, chamfered corners, skewed AP pips.
+ */
+export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
+  // Top-center score bug — the shared builder; update() owns the values.
+  const {
+    root: scoreBug,
+    phaseTab,
+    dayNum,
+    apMeter,
+    trophy,
+    trophyCount,
+    rank,
+    rankRank,
+    rankPts,
+  } = buildScoreBug()
+
+  // Bottom-left creature lower-third — the shared builder; createHud
+  // wires its interactions and update() owns the values.
+  const {
+    root: lowerThird,
+    creatureHead,
+    headRow,
+    creatureName,
+    stageTab,
+    crestEl,
+    renameButton,
+    nameInput,
+    renameConfirm,
+    renameCancel,
+    editRow,
+    statCells,
+    bars,
+    statusTicker,
+  } = buildCreaturePlate()
+
+  // Bottom-right command dock — the shared builder. Care/pick clicks go
+  // straight to the handlers; the train-toggle and collapse interactions
+  // stay local (they re-render through update()).
+  const {
+    root: cluster,
+    dockHead,
+    dockRow,
+    actionButtons,
+    dockTrain,
+    trainButton,
+    trainTag,
+    picker,
+    pickerButtons,
+    advanceLabel,
+  } = buildCommandDock({
+    onCare: (action) => handlers.onCare(action),
+    onTrain: (key) => {
+      pickerOpen = false
+      handlers.onTrain(key)
+    },
+    onAdvanceDay: () => handlers.onAdvanceDay(),
+  })
+
+  // Settings cluster (top-left) + reset modal — the shared builders. The
+  // modal is built first so the New game chip can open it.
+  const { resetModal, resetConfirm } = buildResetModal(() => handlers.onReset())
+  const { motionWrap, motionChip, cameraChip } = buildSettingsChips({
+    onToggleReducedMotion: () => handlers.onToggleReducedMotion(),
+    onToggleArenaCamera: () => handlers.onToggleArenaCamera(),
+    onNewGame: () => {
+      resetModal.style.display = ""
+      resetConfirm.focus()
+    },
   })
 
   // Onboarding callouts (save v7): coach-voice nudges that appear once at

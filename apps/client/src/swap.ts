@@ -1,5 +1,5 @@
 import type { ArenaHandle } from "./arena"
-import { prefersReducedMotionOs } from "./motion"
+import { resolveMotionPref } from "./motion"
 import type { SceneHandle } from "./scene"
 
 /**
@@ -47,7 +47,7 @@ export function createSwap(scene: SceneHandle, arena: ArenaHandle): Swap {
   }
 
   /** The saved setting or the OS query — either one forces instant cuts. */
-  const reduced = (): boolean => motionReduced || prefersReducedMotionOs()
+  const reduced = (): boolean => resolveMotionPref(motionReduced)
 
   /** Drive k 0→1 (toward) or 0→1 reversed over FADE_MS frames. */
   const fade = (towardArena: boolean): Promise<void> => {

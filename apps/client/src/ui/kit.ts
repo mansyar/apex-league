@@ -98,6 +98,39 @@ export function chip(opts: ChipOptions): HTMLButtonElement {
   return node
 }
 
+export interface ChipButtonOptions {
+  /** Inline SVG glyph (icons.*). */
+  glyph: string
+  /** The broadcast title, e.g. "Spar". */
+  title: string
+  /** The muted sub-line under the title. */
+  sub: string
+}
+
+/**
+ * A launcher chip with the broadcast title/sub stack (Spar, Enter Cup).
+ * The caller adds its positioning class and click wiring; the title/sub
+ * classes are shared battle chrome styled in battle-hud.css. The sub
+ * element is returned because consumers re-write it live (the cup chip
+ * reads the ladder).
+ */
+export function chipButton(opts: ChipButtonOptions): {
+  button: HTMLButtonElement
+  title: HTMLSpanElement
+  sub: HTMLSpanElement
+} {
+  const node = el("button", "kit-chip")
+  node.type = "button"
+  const glyph = el("span", "kit-chip-glyph")
+  glyph.innerHTML = opts.glyph
+  const title = el("span", "battle-title", opts.title)
+  const sub = el("span", "battle-sub", opts.sub)
+  const text = el("span", "battle-text")
+  text.append(title, sub)
+  node.append(glyph, text)
+  return { button: node, title, sub }
+}
+
 export interface ButtonOptions {
   label: string
   glyph?: string

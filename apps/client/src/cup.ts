@@ -12,8 +12,6 @@
  */
 
 import {
-  type BattleResult,
-  BRACKET_SLOTS,
   type Creature,
   type CupSession,
   type CupSlot,
@@ -33,32 +31,39 @@ import {
   resolvePlayerMatch,
   type Tactic,
 } from "@apex/sim"
+import {
+  createBattleSession,
+  cupStampTitle,
+  type PlaybackFight,
+} from "./battle-session"
 import { createBattleHud } from "./battleHud"
 import {
   buildKitPicker,
   buildTacticRow,
   castFighter,
-  focusTrap,
-  reasonLine,
-  renderSpeedButton,
   toggleKitChoice,
-  winningSideKey,
 } from "./battleUI"
 import {
   type BracketMatch,
-  bracketPlan,
   buildBracketModel,
   cupPlacement,
   exitStage,
   ordinalOf,
   resultRows,
 } from "./bracket-model"
+import {
+  buildBattleChips,
+  buildBracketScreen,
+  buildCoachScreen,
+  buildGiveupModal,
+  buildResultsScreen,
+} from "./cup-screens"
 import { crestGlyph, elementHue } from "./element"
-import { prefersReducedMotionOs } from "./motion"
-import { createPlaybackDriver, type PlaybackFight } from "./playbackDriver"
+import { resolveMotionPref } from "./motion"
 import type { FightCasting } from "./staging"
 import { visualSeedOf } from "./staging-seed"
 import { icons } from "./ui/icons"
+import { chipButton } from "./ui/kit"
 
 export interface CupHandlers {
   /** A player match starts: dissolve into the arena and cast both. */
@@ -117,22 +122,12 @@ export function createCup(
 ): Cup {
   // The Enter Cup chip sits beside the Spar chip (top-right cluster).
   // Kit chip with the broadcast title/sub stack, matching Spar.
-  const cupButton = document.createElement("button")
+  const { button: cupButton, sub: cupHint } = chipButton({
+    glyph: icons.trophy,
+    title: "Enter Cup",
+    sub: "Cup day · free",
+  })
   cupButton.className = "cup-button kit-chip"
-  cupButton.type = "button"
-  const cupGlyph = document.createElement("span")
-  cupGlyph.className = "kit-chip-glyph"
-  cupGlyph.innerHTML = icons.trophy
-  const cupText = document.createElement("span")
-  cupText.className = "spar-text"
-  const cupLabel = document.createElement("span")
-  cupLabel.className = "spar-title"
-  cupLabel.textContent = "Enter Cup"
-  const cupHint = document.createElement("span")
-  cupHint.className = "spar-sub"
-  cupHint.textContent = "Cup day · free"
-  cupText.append(cupLabel, cupHint)
-  cupButton.append(cupGlyph, cupText)
   root.append(cupButton)
 
   // Full-screen overlay, hidden until entry.
@@ -149,257 +144,56 @@ export function createCup(
   const battleHud = createBattleHud(overlay)
 
   // ------------------------------------------------------------------
-  // Bracket screen
+  // Screens — the DOM builders live in cup-screens.ts; cup.ts owns the
+  // session state machine, timers and the listeners that touch them.
   // ------------------------------------------------------------------
-  const bracketScreen = document.createElement("div")
-  bracketScreen.className = "cup-screen cup-screen-bracket"
+  const {
+    screen: bracketScreen,
+    headSub,
+    colHeadEls,
+    cards,
+    champ,
+    champName,
+    cta,
+    ctaGhost,
+    ctaGo,
+    tickerLine,
+  } = buildBracketScreen()
 
-  const head = document.createElement("div")
-  head.className = "cup-head"
-  const headTab = document.createElement("span")
-  headTab.className = "cup-head-tab"
-  headTab.textContent = "Cup day"
-  const headTitle = document.createElement("span")
-  headTitle.className = "cup-head-title"
-  headTitle.textContent = "Bronze Cup"
-  const headSub = document.createElement("span")
-  headSub.className = "cup-head-sub"
-  head.append(headTab, headTitle, headSub)
+  const {
+    screen: coachScreen,
+    coachTab,
+    fighterCard,
+    rivalCard,
+    kitCard,
+    coachBack,
+    coachGo,
+  } = buildCoachScreen()
 
-  const bracket = document.createElement("div")
-  bracket.className = "cup-bracket"
-  const cols: Record<"qf" | "sf" | "f", HTMLElement> = {
-    qf: document.createElement("div"),
-    sf: document.createElement("div"),
-    f: document.createElement("div"),
-  }
-  for (const key of ["qf", "sf", "f"] as const) {
-    const col = cols[key]
-    col.className = `cup-col cup-col-${key}`
-    const colHead = document.createElement("div")
-    colHead.className = "cup-col-head"
-    colHead.textContent =
-      key === "qf" ? "Quarterfinals" : key === "sf" ? "Semifinals" : "Final"
-    const matches = document.createElement("div")
-    matches.className = "cup-matches"
-    col.append(colHead, matches)
-    bracket.append(col)
-  }
+  // The bracket's global close button is declared before the give-up
+  // modal because that modal's Escape/Stay handlers hand focus back to
+  // it — declaring it later left a latent TDZ trap in those listeners.
+  const close = document.createElement("button")
+  close.className = "cup-close"
+  close.type = "button"
+  close.textContent = "Back to the ranch"
+  close.style.display = ""
 
-  interface MatchCard {
-    el: HTMLElement
-    ribbon: HTMLElement
-    slots: { a: HTMLElement; b: HTMLElement }
-    /** Grid column the card lives in (for the column-head reveal states). */
-    column: "qf" | "sf" | "f"
-  }
-  const cards = new Map<MatchId, MatchCard>()
-  const colHeadEls: Record<"qf" | "sf" | "f", HTMLElement> = {
-    qf: cols.qf.querySelector(".cup-col-head") as HTMLElement,
-    sf: cols.sf.querySelector(".cup-col-head") as HTMLElement,
-    f: cols.f.querySelector(".cup-col-head") as HTMLElement,
-  }
-  const matchBoxes: Record<"qf" | "sf" | "f", HTMLElement> = {
-    qf: cols.qf.querySelector(".cup-matches") as HTMLElement,
-    sf: cols.sf.querySelector(".cup-matches") as HTMLElement,
-    f: cols.f.querySelector(".cup-matches") as HTMLElement,
-  }
-  // The card plan is pure topology (bracket-model): ids, columns, labels —
-  // no session needed to build the board.
-  for (const entry of bracketPlan(BRACKET_SLOTS)) {
-    const col = entry.column
-    const el = document.createElement("div")
-    el.className = `cup-match m-${entry.id}`
-    el.dataset.match = entry.id
-    const ribbon = document.createElement("div")
-    ribbon.className = "cup-ribbon"
-    ribbon.textContent = "Your match"
-    const slotA = document.createElement("div")
-    slotA.className = "cup-slot slot-a"
-    const slotB = document.createElement("div")
-    slotB.className = "cup-slot slot-b"
-    el.append(ribbon, slotA, slotB)
-    matchBoxes[col].append(el)
-    cards.set(entry.id, {
-      el,
-      ribbon,
-      slots: { a: slotA, b: slotB },
-      column: entry.column,
-    })
-  }
+  const { root: giveup, giveupStay, giveupQuit } = buildGiveupModal(close)
 
-  const champ = document.createElement("div")
-  champ.className = "cup-champ"
-  const champCup = document.createElement("div")
-  champCup.className = "cup-champ-cup"
-  champCup.textContent = "🏆"
-  const champLabel = document.createElement("div")
-  champLabel.className = "cup-champ-label"
-  champLabel.textContent = "Champion"
-  const champName = document.createElement("div")
-  champName.className = "cup-champ-name"
-  champName.textContent = "—"
-  champ.append(champCup, champLabel, champName)
-  cols.f.append(champ)
-
-  const cta = document.createElement("div")
-  cta.className = "cup-cta"
-  const ctaGhost = document.createElement("button")
-  ctaGhost.type = "button"
-  ctaGhost.className = "cup-cta-ghost"
-  ctaGhost.textContent = "Scout the rival"
-  const ctaGo = document.createElement("button")
-  ctaGo.type = "button"
-  ctaGo.className = "cup-cta-go"
-  ctaGo.textContent = "Step into the arena"
-  cta.append(ctaGhost, ctaGo)
-
-  const ticker = document.createElement("div")
-  ticker.className = "cup-ticker"
-  const tickerTab = document.createElement("span")
-  tickerTab.className = "cup-ticker-tab"
-  tickerTab.textContent = "Apex feed"
-  const tickerLine = document.createElement("span")
-  tickerLine.className = "cup-ticker-line"
-  ticker.append(tickerTab, tickerLine)
-
-  bracketScreen.append(head, bracket, cta, ticker)
-
-  // ------------------------------------------------------------------
-  // Coach screen
-  // ------------------------------------------------------------------
-  const coachScreen = document.createElement("div")
-  coachScreen.className = "cup-screen cup-screen-coach"
-  const coachHead = document.createElement("div")
-  coachHead.className = "cup-head"
-  const coachTab = document.createElement("span")
-  coachTab.className = "cup-head-tab"
-  const coachTitle = document.createElement("span")
-  coachTitle.className = "cup-head-title"
-  coachTitle.textContent = "Coaching room"
-  coachHead.append(coachTab, coachTitle)
-  const coachBody = document.createElement("div")
-  coachBody.className = "cup-coach-body"
-
-  const fighterCard = document.createElement("div")
-  fighterCard.className = "cup-card cup-card-fighter"
-  const rivalCard = document.createElement("div")
-  rivalCard.className = "cup-card cup-card-rival"
-  const kitCard = document.createElement("div")
-  kitCard.className = "cup-card cup-card-kit"
-  coachBody.append(fighterCard, rivalCard, kitCard)
-
-  const coachFoot = document.createElement("div")
-  coachFoot.className = "cup-coach-foot"
-  const coachNote = document.createElement("div")
-  coachNote.className = "cup-coach-note"
-  coachNote.textContent = "Nothing is committed until you step in."
-  const coachBack = document.createElement("button")
-  coachBack.type = "button"
-  coachBack.className = "cup-cta-ghost"
-  coachBack.textContent = "Back to bracket"
-  const coachGo = document.createElement("button")
-  coachGo.type = "button"
-  coachGo.className = "cup-cta-go"
-  coachGo.textContent = "Step into the arena"
-  coachFoot.append(coachNote, coachBack, coachGo)
-  coachScreen.append(coachHead, coachBody, coachFoot)
-
-  // ------------------------------------------------------------------
-  // Give-up modal (over the bracket)
-  // ------------------------------------------------------------------
-  const giveup = document.createElement("div")
-  giveup.className = "cup-giveup"
-  giveup.style.display = "none"
-  const giveupCard = document.createElement("div")
-  giveupCard.className = "cup-giveup-card"
-  const giveupTab = document.createElement("span")
-  giveupTab.className = "cup-giveup-tab"
-  giveupTab.textContent = "Forfeit"
-  const giveupTitle = document.createElement("div")
-  giveupTitle.className = "cup-giveup-title"
-  giveupTitle.textContent = "Walk away?"
-  const giveupCopy = document.createElement("div")
-  giveupCopy.className = "cup-giveup-copy"
-  giveupCopy.textContent =
-    "Giving up counts as a loss in this round — your placement stands as if you lost it, and the consolation (+2 mood) still applies. No cup is won."
-  const giveupRow = document.createElement("div")
-  giveupRow.className = "cup-giveup-row"
-  const giveupStay = document.createElement("button")
-  giveupStay.type = "button"
-  giveupStay.className = "cup-cta-ghost"
-  giveupStay.textContent = "Stay in the bracket"
-  const giveupQuit = document.createElement("button")
-  giveupQuit.type = "button"
-  giveupQuit.className = "cup-cta-go cup-cta-danger"
-  giveupQuit.textContent = "Give up"
-  giveupRow.append(giveupStay, giveupQuit)
-  giveupCard.append(giveupTab, giveupTitle, giveupCopy, giveupRow)
-  giveup.append(giveupCard)
-  // Dialog semantics + focus management (a11y): the scrim hides the
-  // bracket, so Tab must cycle inside the card, Escape must bail out to
-  // Stay, and closing hands focus back to the control that opened it.
-  giveupCard.setAttribute("role", "dialog")
-  giveupCard.setAttribute("aria-modal", "true")
-  giveupTitle.id = "cup-giveup-title"
-  giveupCard.setAttribute("aria-labelledby", "cup-giveup-title")
-  const giveupTrap = focusTrap(giveupCard)
-  giveup.addEventListener("keydown", (event) => {
-    giveupTrap(event)
-    if (event.key === "Escape") {
-      giveup.style.display = "none"
-      close.focus()
-    }
-  })
-
-  // ------------------------------------------------------------------
-  // Results screen
-  // ------------------------------------------------------------------
-  const resultsScreen = document.createElement("div")
-  resultsScreen.className = "cup-screen cup-screen-results"
-  const resultCard = document.createElement("div")
-  resultCard.className = "cup-result-card"
-  const resultStamp = document.createElement("div")
-  resultStamp.className = "cup-result-stamp"
-  const resultTitle = document.createElement("div")
-  resultTitle.className = "cup-result-title"
-  const resultRule = document.createElement("div")
-  resultRule.className = "cup-result-rule"
-  const resultSub = document.createElement("div")
-  resultSub.className = "cup-result-sub"
-  const resultPlate = document.createElement("div")
-  resultPlate.className = "cup-result-plate"
-  const resultPlateTab = document.createElement("span")
-  resultPlateTab.className = "cup-result-tab"
-  const resultPlateLine = document.createElement("span")
-  resultPlateLine.className = "cup-result-line"
-  resultPlate.append(resultPlateTab, resultPlateLine)
-  const resultRewards = document.createElement("div")
-  resultRewards.className = "cup-result-rewards"
-  const resultBack = document.createElement("button")
-  resultBack.type = "button"
-  resultBack.className = "cup-cta-go"
-  resultBack.textContent = "Back to the ranch"
-  resultCard.append(
+  const {
+    screen: resultsScreen,
+    resultCard,
     resultStamp,
     resultTitle,
-    resultRule,
     resultSub,
-    resultPlate,
+    resultPlateTab,
+    resultPlateLine,
     resultRewards,
     resultBack,
-  )
-  resultsScreen.append(resultCard)
+  } = buildResultsScreen()
 
-  // Battle chrome: speed pill floats over the arena during a fight.
-  const battleChips = document.createElement("div")
-  battleChips.className = "cup-battle-chips"
-  battleChips.style.display = "none"
-  const fastButton = document.createElement("button")
-  fastButton.type = "button"
-  fastButton.className = "cup-speed"
-  renderSpeedButton(fastButton, "paced")
-  battleChips.append(fastButton)
+  const { battleChips, fastButton } = buildBattleChips()
   overlay.append(bracketScreen, coachScreen, resultsScreen, giveup, battleChips)
   root.append(overlay)
 
@@ -429,10 +223,13 @@ export function createCup(
       clearTimeout(timer)
       timer = null
     }
+    // The battle shell's stamp-hold pends under the same "nothing may
+    // fire while we reset" contract.
+    battle.hold.cancel()
   }
 
   const reducedMotion = (): boolean =>
-    state?.settings.reducedMotion === true || prefersReducedMotionOs()
+    resolveMotionPref(state?.settings.reducedMotion)
 
   const beat = (ms: number): number => (reducedMotion() ? 0 : ms)
 
@@ -470,9 +267,6 @@ export function createCup(
   /** Is this match the player's own fight (given the current session)? */
   const isPlayerMatch = (id: MatchId): boolean =>
     matchOf(id)?.isPlayerMatch ?? false
-
-  const winnerNameOf = (id: MatchId): string | null =>
-    verdictOf(id)?.winner ?? null
 
   const slotsOf = (id: MatchId): { a: CupSlot | null; b: CupSlot | null } => {
     const match = matchOf(id)
@@ -655,24 +449,26 @@ export function createCup(
   // ------------------------------------------------------------------
   // Arena battle (player matches)
   // ------------------------------------------------------------------
-  const driver = createPlaybackDriver({
+  const battle = createBattleSession({
+    hud: battleHud,
+    speedButton: fastButton,
     onStep: (step, instant) => {
       handlers.onStep(step, instant)
-      battleHud.update(step)
     },
     onLine: setLine,
-    onFinish: ({ verdict, instant }) => {
+    onFightStart: (casting) => handlers.onFightStart(casting),
+    onPace: (msPerStep) => handlers.onPace(msPerStep),
+    motionPref: () => state?.settings.reducedMotion === true,
+    stampTitle: cupStampTitle,
+    onFinish: ({ instant }) => {
       if (!fightNow) return
-      battleHud.stamp(stampTitle(verdict, fightNow), reasonLine(verdict))
-      fastButton.style.display = "none"
       battleChips.style.display = "none"
       // Hold the stamp, then back to the bracket. The cursor stays on the
       // match just fought: the walk re-stamps it on the bracket, then
       // continues with the rival reveals.
       clearTimer()
-      timer = setTimeout(
+      battle.hold.begin(
         () => {
-          timer = null
           inBattle = false
           fightNow = null
           handlers.onArenaExit()
@@ -689,21 +485,8 @@ export function createCup(
         instant ? STAMP_HOLD_REDUCED : STAMP_HOLD,
       )
     },
-    onPace: (msPerStep) => handlers.onPace(msPerStep),
-    motionPref: () => state?.settings.reducedMotion === true,
   })
-
-  /** Stamp wording: side-qualified for mirror matches. */
-  const stampTitle = (verdict: BattleResult, fight: PlaybackFight): string => {
-    if (verdict.winner === null) return "A draw"
-    if (fight.owned.name !== fight.rival.name) {
-      return verdict.winner === fight.owned.name ? "Victory" : "Defeat"
-    }
-    // Mirror match: qualify by side (the sim reports under stable keys).
-    return winningSideKey(verdict) === fight.owned.key
-      ? "Victory — your fighter"
-      : "Defeat — the rival"
-  }
+  const driver = battle.driver
 
   const castingFor = (creature: Creature, opponent: CupSlot): FightCasting => {
     return {
@@ -772,12 +555,8 @@ export function createCup(
     showScreen(null)
     giveup.style.display = "none"
     overlay.classList.add("cup-battling")
-    battleHud.show(fightNow)
     battleChips.style.display = ""
-    renderSpeedButton(fastButton, "paced")
-    fastButton.style.display = ""
-    handlers.onFightStart(castingFor(creature, opponent))
-    driver.start(fightNow, verdict.battle)
+    battle.begin(fightNow, verdict.battle, castingFor(creature, opponent))
   }
 
   // ------------------------------------------------------------------
@@ -891,7 +670,7 @@ export function createCup(
         chosen: () => chosen,
         classes: { base: "cup-pick", locked: "locked", chosen: "on" },
         // Locked kit slots stay mysterious until trained (cup UX).
-        lockedText: (name) => name + " ??",
+        lockedText: (name) => `${name} ??`,
         onToggle: (id) => {
           if (!picks) return
           const next = toggleKitChoice(picks.loadout, id, 2, 4)
@@ -930,10 +709,6 @@ export function createCup(
   coachGo.addEventListener("click", fight)
   ctaGhost.addEventListener("click", openCoach)
   ctaGo.addEventListener("click", openCoach)
-  fastButton.addEventListener("click", () => {
-    const next = driver.speedToggle()
-    renderSpeedButton(fastButton, next)
-  })
 
   // ------------------------------------------------------------------
   // Give-up modal + close semantics
@@ -1000,11 +775,6 @@ export function createCup(
     syncChip()
   }
 
-  const close = document.createElement("button")
-  close.className = "cup-close"
-  close.type = "button"
-  close.textContent = "Back to the ranch"
-  close.style.display = ""
   // In-flow bottom furniture of the bracket screen (between the CTA row and
   // the feed) — absolutely positioning it over the grid made it overlap the
   // semifinal cards on shorter viewports.

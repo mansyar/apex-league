@@ -7,7 +7,6 @@
  */
 
 import {
-  type BattleResult,
   type Creature,
   defaultLoadout,
   effectiveStats,
@@ -22,21 +21,19 @@ import {
   type Tactic,
   unlockedKit,
 } from "@apex/sim"
-import { type BattleHudFighter, createBattleHud } from "./battleHud"
+import { createBattleSession, sparStampTitle } from "./battle-session"
+import { createBattleHud } from "./battleHud"
 import {
   buildKitPicker,
   buildTacticRow,
   castFighter,
-  reasonLine,
   renderSpeedButton,
-  winningSideKey,
 } from "./battleUI"
 import { crestGlyph, elementHue } from "./element"
-import { createPlaybackDriver, type PlaybackRun } from "./playbackDriver"
 import type { FightCasting } from "./staging"
 import { visualSeedOf } from "./staging-seed"
 import { icons } from "./ui/icons"
-import { crest } from "./ui/kit"
+import { chipButton, crest } from "./ui/kit"
 
 export interface SparHandlers {
   /**
@@ -135,22 +132,12 @@ export function createSpar(
 ): Spar {
   // Top-right spar chip: its own control, separate from the care cluster.
   // Kit chip with the mock's title/sub text stack.
-  const sparButton = document.createElement("button")
+  const { button: sparButton } = chipButton({
+    glyph: icons.spar,
+    title: "Spar",
+    sub: "Free match · no AP",
+  })
   sparButton.className = "spar-button kit-chip"
-  sparButton.type = "button"
-  const sparGlyph = document.createElement("span")
-  sparGlyph.className = "kit-chip-glyph"
-  sparGlyph.innerHTML = icons.spar
-  const sparText = document.createElement("span")
-  sparText.className = "spar-text"
-  const sparLabel = document.createElement("span")
-  sparLabel.className = "spar-title"
-  sparLabel.textContent = "Spar"
-  const sparHint = document.createElement("span")
-  sparHint.className = "spar-sub"
-  sparHint.textContent = "Free match · no AP"
-  sparText.append(sparLabel, sparHint)
-  sparButton.append(sparGlyph, sparText)
   root.append(sparButton)
 
   // Center overlay panel, hidden until the whistle.
@@ -290,19 +277,17 @@ export function createSpar(
 
   let battleSeed = 0
   let owned: Creature | null = null
-  // The current fight's HUD fighters (mirror-match stamp wording reads it).
-  let fight: { owned: BattleHudFighter; rival: BattleHudFighter } | null = null
 
-  // The shared playback driver (live-cup Phase C): pacing, speed toggle,
-  // reduced-motion dump, and slow replay all live here now; spar wires
-  // its chrome onto the callbacks.
-  const driver = createPlaybackDriver({
+  // The shared battle-session shell: driver wiring, HUD updates, the
+  // speed pill, and the verdict stamp live there; spar owns its chrome.
+  const session = createBattleSession({
+    hud: battleHud,
+    speedButton: fastButton,
     onStep: (step, instant) => {
       handlers.onStep?.(step, instant)
-      battleHud.update(step)
     },
     onLine: (text) => showLine(text),
-    onReplayStart: (run: PlaybackRun) => {
+    onReplayStart: (run) => {
       log.replaceChildren()
       log.hidden = true
       logToggle.textContent = "Battle log ▸"
@@ -311,12 +296,12 @@ export function createSpar(
       replayButton.disabled = true
       battleHud.show(run.fight)
     },
-    onFinish: ({ verdict, replayed, instant }) => {
-      // Verdict as a broadcast stamp over the full-bleed arena (the panel
-      // stays out of the way); the subline carries the ending reason.
-      battleHud.stamp(winnerTitle(verdict), reasonLine(verdict))
+    onFightStart: (casting) => handlers.onFightStart?.(casting),
+    onPace: (msPerStep) => handlers.onPace?.(msPerStep),
+    motionPref: handlers.motionPref,
+    stampTitle: sparStampTitle,
+    onFinish: ({ replayed, instant }) => {
       close.style.display = ""
-      fastButton.style.display = "none"
       if (replayed) {
         replayButton.disabled = false
         replayButton.style.display = ""
@@ -328,9 +313,8 @@ export function createSpar(
       }
       for (const { button } of tacticButtons) button.style.display = "none"
     },
-    onPace: (msPerStep) => handlers.onPace?.(msPerStep),
-    motionPref: handlers.motionPref,
   })
+  const driver = session.driver
 
   const showLine = (text: string): void => {
     const line = document.createElement("div")
@@ -340,33 +324,9 @@ export function createSpar(
     if (!log.hidden) log.scrollTop = log.scrollHeight
   }
 
-  /**
-   * The stamp title names the winner; in a mirror match both plates read
-   * the same display name, so the label is qualified by side (the sim
-   * reports hpAfter/finalHp under stable side keys, not names).
-   */
-  const winnerTitle = (verdict: Readonly<BattleResult>): string => {
-    if (verdict.winner === null) return "A drawn spar"
-    const fightNow = fight
-    if (!fightNow) return `Victory — ${verdict.winner}`
-    const key = winningSideKey(verdict)
-    const mirror = fightNow.owned.name === fightNow.rival.name
-    if (key === fightNow.owned.key) {
-      return mirror
-        ? `Victory — your ${verdict.winner}`
-        : `Victory — ${verdict.winner}`
-    }
-    if (key === fightNow.rival.key) {
-      return mirror
-        ? `Victory — rival ${verdict.winner}`
-        : `Victory — ${verdict.winner}`
-    }
-    return `Victory — ${verdict.winner}`
-  }
-
   const runBattle = (playerTactic: Tactic): void => {
     if (!owned) return
-    driver.stop()
+    session.stop()
     // Same seed re-rolls the exact rival the player just previewed; only
     // the player's tactic changes.
     const setup = makeExhibition(owned, playerTactic, battleSeed)
@@ -388,21 +348,15 @@ export function createSpar(
         maxHp: setup.rivalSide.stats.hp,
       },
     }
-    fight = fightNow
-    battleHud.show(fightNow)
-    handlers.onFightStart?.(castingFor(owned, setup))
     // Broadcast rework: the panel exits, the arena plays full-bleed, and
     // the chips row is the only control surface left.
     panel.style.display = "none"
     chips.style.display = ""
     showLine(intro.textContent ?? "")
-    // The driver builds the playback script, honors the reduced-motion
-    // preference (instant dump + finish), and paces the timer chain. The
-    // fast-forward pill only belongs to a paced run.
-    if (driver.start(fightNow, verdict) === "paced") {
-      renderSpeedButton(fastButton, "paced")
-      fastButton.style.display = ""
-    }
+    // The shell shows the HUD fighters, casts the combatants, starts the
+    // playback (honoring the reduced-motion preference), and arms the
+    // fast-forward pill on the paced path only.
+    session.begin(fightNow, verdict, castingFor(owned, setup))
   }
 
   /**
@@ -467,7 +421,7 @@ export function createSpar(
 
   const open = (creature: Creature | null): void => {
     if (!creature) return
-    driver.stop()
+    session.stop()
     // A fresh seed per spar, shown in the panel so the rival is honest.
     battleSeed = Date.now() % 2 ** 31
     const setup = makeExhibition(creature, "balanced", battleSeed)
@@ -507,7 +461,7 @@ export function createSpar(
   }
 
   close.addEventListener("click", () => {
-    driver.stop()
+    session.stop()
     overlay.style.display = "none"
     battleHud.hide()
     sparButton.style.display = ""
@@ -517,7 +471,7 @@ export function createSpar(
   panelClose.addEventListener("click", () => {
     // Same teardown as the post-fight exit; safe before any fight since
     // stopping an idle driver is a no-op.
-    driver.stop()
+    session.stop()
     overlay.style.display = "none"
     battleHud.hide()
     sparButton.style.display = ""
@@ -542,13 +496,9 @@ export function createSpar(
     if (!log.hidden) log.scrollTop = log.scrollHeight
   })
 
-  fastButton.addEventListener("click", () => {
-    const next = driver.speedToggle()
-    renderSpeedButton(fastButton, next)
-  })
   replayButton.addEventListener("click", () => {
     renderSpeedButton(fastButton, "paced")
-    driver.replay()
+    session.replay()
   })
 
   return {
@@ -561,7 +511,7 @@ export function createSpar(
         refreshPrep(creature)
       }
       if (!creature && overlay.style.display !== "none") {
-        driver.stop()
+        session.stop()
         overlay.style.display = "none"
         battleHud.hide()
         sparButton.style.display = ""

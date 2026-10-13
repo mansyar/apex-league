@@ -98,27 +98,27 @@ const replayClass = (el: HTMLElement, cls: string): void => {
  *  PlaybackStep stream the spar panel already renders. */
 export function createBattleHud(overlay: HTMLElement): BattleHud {
   const root = document.createElement("div")
-  root.className = "spar-hud"
+  root.className = "battle-hud"
 
   // --- placard ---------------------------------------------------------
   const top = document.createElement("div")
-  top.className = "spar-hud-top"
+  top.className = "battle-hud-top"
 
   const center = document.createElement("div")
-  center.className = "spar-hud-center"
+  center.className = "battle-hud-center"
   const vs = document.createElement("span")
-  vs.className = "spar-hud-vs"
+  vs.className = "battle-hud-vs"
   vs.textContent = "VS"
   const rangeChip = document.createElement("span")
-  rangeChip.className = "spar-hud-range"
+  rangeChip.className = "battle-hud-range"
   const rangeLabel = document.createElement("span")
-  rangeLabel.className = "spar-hud-range-label"
+  rangeLabel.className = "battle-hud-range-label"
   const chevronRow = document.createElement("span")
-  chevronRow.className = "spar-hud-chevrons"
+  chevronRow.className = "battle-hud-chevrons"
   const chevrons: HTMLElement[] = []
   for (let i = 0; i < 3; i++) {
     const chevron = document.createElement("span")
-    chevron.className = "spar-hud-chevron"
+    chevron.className = "battle-hud-chevron"
     chevron.textContent = "▲"
     chevrons.push(chevron)
     chevronRow.append(chevron)
@@ -128,12 +128,12 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
 
   // --- lower-third -----------------------------------------------------
   const lower = document.createElement("div")
-  lower.className = "spar-hud-lower"
+  lower.className = "battle-hud-lower"
   const lowerTab = document.createElement("span")
-  lowerTab.className = "spar-hud-lower-tab"
+  lowerTab.className = "battle-hud-lower-tab"
   lowerTab.textContent = "APEX FEED"
   const line = document.createElement("span")
-  line.className = "spar-hud-line"
+  line.className = "battle-hud-line"
   // Fight narration lives here while the log is collapsed, so keep it
   // audible to assistive tech too.
   line.setAttribute("aria-live", "polite")
@@ -141,17 +141,17 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
 
   // --- verdict stamp ---------------------------------------------------
   const stamp = document.createElement("div")
-  stamp.className = "spar-stamp"
+  stamp.className = "battle-stamp"
   // Announced as a status change: screen readers hear the verdict even
   // though the panel (and the log inside it) is hidden during fights.
   stamp.setAttribute("role", "status")
   stamp.setAttribute("aria-live", "polite")
   const stampTitle = document.createElement("div")
-  stampTitle.className = "spar-stamp-title"
+  stampTitle.className = "battle-stamp-title"
   const stampRule = document.createElement("div")
-  stampRule.className = "spar-stamp-rule"
+  stampRule.className = "battle-stamp-rule"
   const stampSub = document.createElement("div")
-  stampSub.className = "spar-stamp-sub"
+  stampSub.className = "battle-stamp-sub"
   stamp.append(stampTitle, stampRule, stampSub)
 
   root.append(top, lower, stamp)
@@ -181,34 +181,34 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
   const buildSide = (f: BattleHudFighter, mirror: boolean): Side => {
     const el = document.createElement("div")
     el.className = mirror
-      ? "spar-plate spar-plate-right"
-      : "spar-plate spar-plate-left"
+      ? "battle-plate battle-plate-right"
+      : "battle-plate battle-plate-left"
 
     const crest = document.createElement("span")
-    crest.className = "spar-crest"
+    crest.className = "battle-crest"
     crest.style.setProperty("--hue", String(elementHue(f.element)))
     crest.innerHTML = crestGlyph(f.element)
 
     const body = document.createElement("div")
-    body.className = "spar-plate-body"
+    body.className = "battle-plate-body"
 
     const nameRow = document.createElement("div")
-    nameRow.className = "spar-plate-head"
+    nameRow.className = "battle-plate-head"
     const name = document.createElement("span")
-    name.className = "spar-hud-name"
+    name.className = "battle-hud-name"
     name.textContent = f.name
     const num = document.createElement("span")
-    num.className = "spar-hp-num"
+    num.className = "battle-hp-num"
     num.textContent = String(f.maxHp)
     nameRow.append(name, num)
 
     const bar = document.createElement("div")
-    bar.className = "spar-hp-bar"
+    bar.className = "battle-hp-bar"
     const fill = document.createElement("div")
-    fill.className = "spar-hp-fill"
+    fill.className = "battle-hp-fill"
     fill.style.setProperty("--hue", String(elementHue(f.element)))
     const lag = document.createElement("div")
-    lag.className = "spar-hp-lag"
+    lag.className = "battle-hp-lag"
     fill.style.width = "100%"
     lag.style.width = "100%"
     bar.append(lag, fill)
@@ -238,7 +238,7 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
     // involved in the event — keep the bar and its pop still.
     if (fraction === side.prevFraction) return
     side.fill.style.width = `${fraction * 100}%`
-    side.fill.classList.toggle("spar-hud-low", fraction < LOW_HP_FRACTION)
+    side.fill.classList.toggle("battle-hud-low", fraction < LOW_HP_FRACTION)
     // The lag chunk restarts from the previous fill with its transition
     // suspended, then drains to the new value on its delayed easing.
     side.lag.style.transition = "none"
@@ -246,10 +246,10 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
     void side.lag.offsetWidth
     side.lag.style.transition = ""
     side.lag.style.width = `${fraction * 100}%`
-    side.lag.classList.toggle("spar-hud-low", fraction < LOW_HP_FRACTION)
+    side.lag.classList.toggle("battle-hud-low", fraction < LOW_HP_FRACTION)
     side.prevFraction = fraction
     side.lastHp = hp
-    replayClass(side.num, "spar-hp-pop")
+    replayClass(side.num, "battle-hp-pop")
     side.num.textContent = String(Math.max(0, hp))
   }
 
@@ -264,23 +264,23 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
     for (const { side, joltClass } of victims) {
       replayClass(side.el, joltClass)
     }
-    if (reaction.kick) replayClass(top, "spar-hud-kick")
+    if (reaction.kick) replayClass(top, "battle-hud-kick")
   }
 
   const applyRange = (): void => {
     const lit = chevronsFor(rangeState)
     chevrons.forEach((chevron, i) => {
-      chevron.classList.toggle("spar-hud-chevron-lit", i < lit)
+      chevron.classList.toggle("battle-hud-chevron-lit", i < lit)
     })
     rangeLabel.textContent = RANGE_LABELS[rangeState]
   }
 
   /** Restart the lower-third's entrance animation on every new line. */
   const setLine = (text: string): void => {
-    line.classList.remove("spar-hud-line-in")
+    line.classList.remove("battle-hud-line-in")
     void line.offsetWidth // reflow so the animation genuinely restarts
     line.textContent = text
-    line.classList.add("spar-hud-line-in")
+    line.classList.add("battle-hud-line-in")
   }
 
   return {
@@ -296,16 +296,16 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
       rangeState = "hold"
       applyRange()
       line.textContent = ""
-      stamp.classList.remove("spar-stamp-in")
-      stamp.classList.remove("spar-stamp-show")
+      stamp.classList.remove("battle-stamp-in")
+      stamp.classList.remove("battle-stamp-show")
       root.style.display = ""
     },
     update(step) {
       const reaction = hitReaction(step.damage)
       const victims: { side: Side; joltClass: string }[] = []
       for (const [side, joltClass] of [
-        [sides.owned, "spar-plate-jolt-left"],
-        [sides.rival, "spar-plate-jolt-right"],
+        [sides.owned, "battle-plate-jolt-left"],
+        [sides.rival, "battle-plate-jolt-right"],
       ] as const) {
         if (!side) continue
         const hp = step.hpAfter[side.key]
@@ -321,12 +321,12 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
     stamp(title, sub) {
       stampTitle.textContent = title
       stampSub.textContent = sub
-      stamp.classList.add("spar-stamp-show")
-      replayClass(stamp, "spar-stamp-in")
+      stamp.classList.add("battle-stamp-show")
+      replayClass(stamp, "battle-stamp-in")
     },
     hideStamp() {
-      stamp.classList.remove("spar-stamp-show")
-      stamp.classList.remove("spar-stamp-in")
+      stamp.classList.remove("battle-stamp-show")
+      stamp.classList.remove("battle-stamp-in")
     },
     hide() {
       root.style.display = "none"
