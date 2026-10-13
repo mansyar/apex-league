@@ -16,13 +16,15 @@ consume, then the mock/CSS polish.
 ## Phase 1 — Foundations & Small Cleanups
 
 - [x] Task: Consolidate reduced-motion resolution <!-- f1aa595 -->
-  - [ ] Add `resolveMotionPref(pref)` to `apps/client/src/motion.ts`
+  - [x] Add `resolveMotionPref(pref)` to `apps/client/src/motion.ts`
         (pref ?? hardened OS fallback, single implementation)
-  - [ ] Write failing unit tests for `resolveMotionPref` (explicit pref,
+  - [x] Write failing unit tests for `resolveMotionPref` (explicit pref,
         null pref with matchMedia variants) — Red → Green
-  - [ ] Replace the duplicated "pref ?? OS-fallback" sites: `scene.ts`,
+  - [x] Replace the duplicated "pref ?? OS-fallback" sites: `scene.ts`,
         `staging.ts` (`setMotionPref`), `swap.ts`, `cup.ts`,
         `playbackDriver.ts`, `main.ts` (flashVignette gate)
+        (staging.ts kept as a consumer of the resolved flag — documented
+        decision in the f1aa595 note)
 - [x] Task: Dependency & cast hygiene <!-- 115e72a -->
   - [x] Move `RANCH_SKY` out of `scene.ts` into a shared palette/sky module;
         update `arena.ts` to import from the new home
@@ -34,11 +36,15 @@ consume, then the mock/CSS polish.
       (Added from Phase 1 verification feedback: the ranch Actions dock and
       New game chip stayed visible over the arena; pre-existing on main.
       `.app-in-arena` hide-list extended; headless-verified hide + restore.)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] `bun run verify` green; existing scene/staging/spar/cup behavior
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] `bun run verify` green; existing scene/staging/spar/cup behavior
         unchanged
-  - [ ] Manual verification: ranch loads, orbit input works, reduced-motion
+  - [x] Manual verification: ranch loads, orbit input works, reduced-motion
         toggle still respected; browser screenshots + console clean
+        (Verification report attached as a git note on 15ffb8a; the HUD-bleed
+        change request was fixed and re-verified within the gate.)
+
+[checkpoint: 15ffb8a]
 
 ## Phase 2 — scene.ts Decomposition
 
