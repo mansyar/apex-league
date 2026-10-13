@@ -17,7 +17,7 @@ verified manually per the workflow's rendering scope.
 - [x] Task: Responsive section in the design mock (`mock.css` / `mock.ts`) - 501a2bb
   - A `/mock.html` section demonstrating kit behavior at each tier
     (mock-first gate for later phases)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) - d8ad638 [checkpoint: d8ad638]
 
 ## Phase 2 — Ranch & starter reflow
 
