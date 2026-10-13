@@ -1,12 +1,14 @@
 import type { PlaybackStep } from "@apex/sim"
-import { generate } from "@apex/voxel"
-import * as THREE from "three"
+import type * as THREE from "three"
 import { clamp01 } from "./anim"
-import { type BodyProfile, profileFor } from "./choreo"
-import { buildCreatureGroup } from "./creature"
 import type { DirectorContext, DirectorStep } from "./director"
 import { createFighterDriver, type DriveFighter } from "./fighter-driver"
-import { disposeObject3D, lambertMaterialOf } from "./scene-utils"
+import {
+  buildSpot,
+  type Combatant,
+  disposeFighter,
+  settlePalettes,
+} from "./roster"
 import { createBattleEffects } from "./staging-fx"
 import { createStepChoreo } from "./steps"
 
@@ -24,18 +26,6 @@ const NORMAL_STEP_MS = 900
 
 /** How long one scripted attack animates for at the normal pace, in ms. */
 const BASE_STEP_ANIM_MS = 620
-
-/** Stage positions: the fighters start wide on the show floor's X lane. */
-const HOME_X = 2.6
-
-/**
- * Canonical arena slot: every fighter's horizontal footprint is scaled to
- * this length at cast time (fighting-game stage normalization). Gap
- * constants, camera framing, and authored choreography then stay
- * species-independent; silhouette and bulk still read, only overall
- * scale is equalized. The ranch and gallery keep natural sizes.
- */
-const ARENA_FOOTPRINT = 1.7
 
 /** Resting gap between fighters and the contact distance now live in
  * the steps registry (steps/pure.ts) - the only places they're used. */
@@ -73,44 +63,6 @@ export interface Staging {
   setPace(msPerStep: number): void
   /** Remove the combatants (panel closed, back to idle ranch bowl). */
   clear(): void
-}
-
-interface Combatant {
-  name: string
-  /** Stable side key (`id ?? name`) — display names collide in mirrors. */
-  key?: string
-  group: THREE.Group
-  home: THREE.Vector3
-  /** Local "away" direction (X axis, ±1): where retreats and knockbacks go. */
-  away: 1 | -1
-  down: boolean
-  /** Per-part base colors captured at cast time, keyed by part name. */
-  baseColors: Map<THREE.Mesh, THREE.Color>
-  /** The archetype's motion identity (FR5) — weights gait, breath, hurt. */
-  profile: BodyProfile
-  /** Persistent show-floor position; the driver walks the mesh there. */
-  stage: THREE.Vector3
-  /** Smoothed current position (driver output, the walk state). */
-  smooth: THREE.Vector3
-  /** Frame-to-frame velocity, for gait and lean. */
-  velocity: THREE.Vector3
-  /** Gait phase, advanced by distance travelled (drives the walk bob). */
-  walkPhase: number
-  /** Transient action offset (lunge/flinch/hop), composed by the driver. */
-  offset: THREE.Vector3
-  /** Squash state: s is the deformation, v its velocity (a damped spring). */
-  squash: { s: number; v: number }
-  /** Attack lean: pitch (x) and roll (z) authored by the running action. */
-  lean: { pitch: number; roll: number }
-  /** Fall progress 0..1 for the down step; 0 = upright. */
-  fall: number
-  /** Per-fighter bob phase so the pair never breathes in lockstep. */
-  phase: number
-  /**
-   * The holder's base scale (identity) — the squash spring composes with
-   * it. The rig's baked voxel scale lives untouched on the inner rig.
-   */
-  baseScale: number
 }
 
 export function createStaging(arenaGroup: THREE.Group): Staging {
@@ -318,86 +270,13 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       // The previous fight's scorch marks do not belong on the new floor.
       effects.disposeAllDecals()
       // Drop the previous cast before building the new one.
-      const disposeOld = (c: Combatant | null): void => {
-        if (!c) return
-        disposeObject3D(c.group)
-        arenaGroup.remove(c.group)
-      }
-      disposeOld(owned)
-      disposeOld(rival)
+      disposeFighter(owned, arenaGroup)
+      disposeFighter(rival, arenaGroup)
       owned = null
       rival = null
 
-      const buildSpot = (
-        info: FightCasting["owned"],
-        away: 1 | -1,
-      ): Combatant => {
-        const { dna, build, def } = generate(info.archetypeId, info.seed)
-        const inner = buildCreatureGroup(dna, build, def.grid)
-        inner.traverse((obj) => {
-          if (obj instanceof THREE.Mesh) obj.castShadow = true
-        })
-        // Learnings §1: the rig is built in voxel grid units and its group
-        // origin is the rig grid origin — not the creature's visible mass —
-        // so yaw turns and KO topples on the raw rig read as an arc.
-        // Re-anchor exactly like the ranch scene: measure the whole-
-        // creature visual center, wrap the rig in an identity-scale holder,
-        // and offset the child so the visual center sits on the holder
-        // origin. All motion code below drives the holder.
-        inner.updateMatrixWorld(true)
-        const innerBox = new THREE.Box3().setFromObject(inner)
-        const center = innerBox.getCenter(new THREE.Vector3())
-        const group = new THREE.Group()
-        group.add(inner)
-        inner.position.set(-center.x, 0, -center.z)
-        // Arena normalization: scale the holder so the whole-creature
-        // footprint fits the canonical slot. Applied to the holder (not
-        // the rig) so the baked voxel scale contract is untouched and the
-        // squash spring keeps composing on top of it.
-        const size = innerBox.getSize(new THREE.Vector3())
-        const footprint = Math.max(size.x, size.z, 0.001)
-        group.scale.setScalar(ARENA_FOOTPRINT / footprint)
-        const combatant: Combatant = {
-          name: info.name,
-          key: info.key,
-          group,
-          home: new THREE.Vector3(HOME_X * away, 0, 0),
-          away,
-          down: false,
-          baseColors: new Map(),
-          profile: profileFor(info.archetypeId),
-          stage: new THREE.Vector3(HOME_X * away, 0, 0),
-          smooth: new THREE.Vector3(HOME_X * away, 0, 0),
-          velocity: new THREE.Vector3(),
-          walkPhase: 0,
-          offset: new THREE.Vector3(),
-          squash: { s: 0, v: 0 },
-          lean: { pitch: 0, roll: 0 },
-          fall: 0,
-          phase: Math.random() * Math.PI * 2,
-          baseScale: group.scale.x,
-        }
-        group.position.copy(combatant.stage)
-        // The rig fronts its local +Z, so the left fighter turns +90° to
-        // look down +X — the driver keeps the yaw continuously correct
-        // from here; this initial copy just avoids a first-frame spin.
-        const initialYaw = away === 1 ? -Math.PI / 2 : Math.PI / 2
-        group.rotation.set(0, initialYaw, 0)
-        arenaGroup.add(group)
-        // Capture the cast-time palette per part so a hit flash returns
-        // it to base later.
-        group.traverse((obj) => {
-          if (obj instanceof THREE.Mesh) {
-            const mat = lambertMaterialOf(obj)
-            if (!mat) return
-            combatant.baseColors.set(obj, mat.color.clone())
-          }
-        })
-        return combatant
-      }
-
-      owned = buildSpot(casting.owned, -1)
-      rival = buildSpot(casting.rival, 1)
+      owned = buildSpot(casting.owned, -1, arenaGroup)
+      rival = buildSpot(casting.rival, 1, arenaGroup)
       startDrive()
     },
     applyStep(step, instant = false) {
@@ -425,23 +304,9 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     clear() {
       stop()
       effects.disposeAllDecals()
-      // Settle every palette back to base before disposal — a fighter
-      // hit mid-flash in the final beat would otherwise carry the white
-      // pop into the next fight (materials are fresh per cast, but the
-      // screenshot timeline showed lingering whites between fights).
-      for (const c of [owned, rival]) {
-        if (!c) continue
-        for (const [mesh, base] of c.baseColors) {
-          lambertMaterialOf(mesh)?.color.copy(base)
-        }
-        c.group.rotation.set(0, c.group.rotation.y, 0)
-        c.group.scale.setScalar(c.baseScale)
-      }
-      for (const c of [owned, rival]) {
-        if (!c) continue
-        disposeObject3D(c.group)
-        arenaGroup.remove(c.group)
-      }
+      settlePalettes([owned, rival])
+      disposeFighter(owned, arenaGroup)
+      disposeFighter(rival, arenaGroup)
       owned = null
       rival = null
     },
