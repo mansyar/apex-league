@@ -6,6 +6,9 @@ import {
   chooseStarter,
   createCreature,
   createInitialState,
+  CHAMPION_BOND,
+  CHAMPION_CUPS,
+  CHAMPION_EVOLUTION_DAY,
   EVOLUTION_DAY,
   EVOLUTION_MOOD,
   effectiveStats,
@@ -96,10 +99,109 @@ describe("evaluateEvolution", () => {
     expect(v.reason).toBe("too_young")
   })
 
-  test("a juvenile never re-evolves", () => {
+  test("a juvenile is judged by the champion gate, not waved through", () => {
     const v = evaluateEvolution(gateCreature({ stage: "juvenile" }), 50)
     expect(v.evolved).toBe(false)
-    expect(v.reason).toBe("not_baby")
+    expect(v.reason).toBe("low_bond")
+  })
+})
+
+describe("evaluateEvolution - champion gate", () => {
+  /** A qualified juvenile: day 25, great care, bonded, cup winner. */
+  function championReady(fields?: {
+    stage?: Creature["stage"]
+    sickCooldown?: number
+    conditions?: Partial<Creature["conditions"]>
+  }): Creature {
+    return gateCreature({
+      stage: "juvenile",
+      sickCooldown: 0,
+      conditions: { mood: 80, bond: 80 } as never,
+      ...fields,
+    })
+  }
+
+  test("a qualified juvenile evolves on the night of day 25", () => {
+    const v = evaluateEvolution(championReady(), CHAMPION_EVOLUTION_DAY, 1)
+    expect(v.evolved).toBe(true)
+    expect(v.reason).toBe("ready")
+  })
+
+  test("day 24 is too young", () => {
+    const v = evaluateEvolution(championReady(), CHAMPION_EVOLUTION_DAY - 1, 1)
+    expect(v.evolved).toBe(false)
+    expect(v.reason).toBe("too_young")
+  })
+
+  test("a recent sickness night blocks the champion gate", () => {
+    const v = evaluateEvolution(
+      championReady({ sickCooldown: 1 }),
+      CHAMPION_EVOLUTION_DAY,
+      1,
+    )
+    expect(v.evolved).toBe(false)
+    expect(v.reason).toBe("recently_sick")
+  })
+
+  test("low mood blocks the champion gate", () => {
+    const v = evaluateEvolution(
+      championReady({ conditions: { mood: EVOLUTION_MOOD - 1 } as never }),
+      CHAMPION_EVOLUTION_DAY,
+      1,
+    )
+    expect(v.evolved).toBe(false)
+    expect(v.reason).toBe("low_mood")
+  })
+
+  test("low bond blocks the champion gate", () => {
+    const v = evaluateEvolution(
+      championReady({ conditions: { bond: CHAMPION_BOND - 1 } as never }),
+      CHAMPION_EVOLUTION_DAY,
+      1,
+    )
+    expect(v.evolved).toBe(false)
+    expect(v.reason).toBe("low_bond")
+  })
+
+  test("bond exactly at the threshold passes (inclusive gate)", () => {
+    const v = evaluateEvolution(
+      championReady({ conditions: { bond: CHAMPION_BOND } as never }),
+      CHAMPION_EVOLUTION_DAY,
+      1,
+    )
+    expect(v.evolved).toBe(true)
+  })
+
+  test("no cup win blocks the champion gate", () => {
+    const v = evaluateEvolution(
+      championReady(),
+      CHAMPION_EVOLUTION_DAY,
+      CHAMPION_CUPS - 1,
+    )
+    expect(v.evolved).toBe(false)
+    expect(v.reason).toBe("no_cup_win")
+  })
+
+  test("age is checked before bond and cups (reason precedence)", () => {
+    const v = evaluateEvolution(
+      championReady({ conditions: { bond: 0 } as never }),
+      CHAMPION_EVOLUTION_DAY - 1,
+      0,
+    )
+    expect(v.reason).toBe("too_young")
+  })
+
+  test("a champion never evolves again", () => {
+    const v = evaluateEvolution(
+      gateCreature({
+        stage: "champion",
+        conditions: { mood: 100, bond: 100 } as never,
+      }),
+      CHAMPION_EVOLUTION_DAY + 10,
+      5,
+    )
+    expect(v.evolved).toBe(false)
+    expect(v.reason).toBe("not_juvenile")
   })
 })
 
