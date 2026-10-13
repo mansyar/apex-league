@@ -52,9 +52,9 @@ manual verification for presentation tasks, phase checkpoints per
   - Implement `SAVE_VERSION = 10` + the `v9 → v10` step in
     `packages/sim/src/save/migrate.ts` + `lineage` validation in
     `save/storage.ts`; update `docs/save-schema.md`
-- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — **[checkpoint: af187f0]**
   - Tests: all sim suites green (legacy, gate, inheritance, succession,
-    migration); `bun run check` clean
+    migration); `bun run check` clean; `bun run verify` green (1026 pass / 1 skip / 0 fail; determinism gate byte-identical)
   - Manual verification: scripted headless playthrough
     (`artifacts/legacy-demo.ts`) — Path 1 a day-60 champion graduates →
     successor inherits the 50% floor → generation 1; Path 2 a juvenile
@@ -67,7 +67,7 @@ manual verification for presentation tasks, phase checkpoints per
 *(presentation — manual verification path; copy stays unit-tested via
 `hud.copy.test.ts`)*
 
-- [ ] Task: Lineage plate + family name
+- [~] Task: Lineage plate + family name
   - Broadcast-kit plate on the ranch HUD: family name with a Roman-numeral
     generation suffix (e.g. `"Bramble Ox II"`), generation, prestige, lifetime
     cups; aria-labeled; reduced-motion aware
