@@ -34,7 +34,7 @@ manual verification for presentation tasks, phase checkpoints per
     → identical successor)
   - Implement `INHERITANCE_FRACTION`, `inheritedFloor`,
     `createInheritedCreature` (built on `createCreature`)
-- [~] Task: Succession *(tests first)*
+- [x] Task: Succession *(tests first)* — 9a8080d
   - Tests: `graduate` appends a `RetiredRecord` (fields captured from the
     champion), increments `generation`, swaps in the successor, resets
     `actionPoints` to `ACTION_POINTS_PER_DAY`, and carries
@@ -42,7 +42,7 @@ manual verification for presentation tasks, phase checkpoints per
     state is never mutated; ineligible states reject with the correct reason
     and no change; records accumulate oldest-first across two graduations
   - Implement `graduate(state, speciesId, seed)`
-- [ ] Task: Save v10 migration + validation *(tests first)*
+- [~] Task: Save v10 migration + validation *(tests first)*
   - Tests: a v9 payload migrates to v10 with `lineage` initialized
     (`generation 0`, empty `hallOfFame`); round-trip save/load preserves the
     lineage slice; malformed lineage (bad `generation` type, non-array
