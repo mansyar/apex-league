@@ -32,6 +32,9 @@ export function advanceDay(state: GameState, rng?: Rng): GameState {
     cupsWon: state.cupsWon,
     lastCupDay: state.lastCupDay,
     ladder: state.ladder,
+    // The bloodline carries across every day (save v10) — ticking a day can
+    // never touch generations or the Hall of Fame.
+    lineage: state.lineage,
   }
   if (!next.creature) return next
   const settled = settleCreature(

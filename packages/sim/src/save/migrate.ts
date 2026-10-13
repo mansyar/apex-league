@@ -2,6 +2,7 @@ import { isCupDay } from "../calendar"
 import { createCreature, TRAINED_START } from "../creature"
 import type { CupSession } from "../cup"
 import { initialLadder } from "../ladder"
+import { initialLineage } from "../legacy"
 import type { GameState } from "../state"
 import { ACTION_POINTS_PER_DAY } from "../state"
 import { SAVE_VERSION, type SaveData } from "./schema"
@@ -94,6 +95,7 @@ const migrations: Record<
       // The ladder starts fresh for every migrated save (bronze ladder,
       // no-backfill decision): cups already won are history.
       ladder: initialLadder(),
+      lineage: initialLineage(),
     }
     return { version: 1, state, savedAt: 0 }
   },
@@ -117,6 +119,7 @@ const migrations: Record<
       // The ladder starts fresh for every migrated save (bronze ladder,
       // no-backfill decision): cups already won are history.
       ladder: initialLadder(),
+      lineage: initialLineage(),
     }
     return { version: 2, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -149,6 +152,7 @@ const migrations: Record<
       // The ladder starts fresh for every migrated save (bronze ladder,
       // no-backfill decision): cups already won are history.
       ladder: initialLadder(),
+      lineage: initialLineage(),
     }
     return { version: 3, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -185,6 +189,7 @@ const migrations: Record<
       // The ladder starts fresh for every migrated save (bronze ladder,
       // no-backfill decision): cups already won are history.
       ladder: initialLadder(),
+      lineage: initialLineage(),
     }
     return { version: 4, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -215,6 +220,7 @@ const migrations: Record<
       // The ladder starts fresh for every migrated save (bronze ladder,
       // no-backfill decision): cups already won are history.
       ladder: initialLadder(),
+      lineage: initialLineage(),
     }
     return { version: 5, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -241,6 +247,7 @@ const migrations: Record<
       // The ladder starts fresh for every migrated save (bronze ladder,
       // no-backfill decision): cups already won are history.
       ladder: initialLadder(),
+      lineage: initialLineage(),
     }
     return { version: 6, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -280,6 +287,7 @@ const migrations: Record<
       // The ladder starts fresh for every migrated save (bronze ladder,
       // no-backfill decision): cups already won are history.
       ladder: initialLadder(),
+      lineage: initialLineage(),
     }
     return {
       version: 7,
@@ -306,6 +314,7 @@ const migrations: Record<
       // Always fresh: a hand-edited or future ladder value in a v7 payload
       // cannot smuggle points past the migration gate.
       ladder: initialLadder(),
+      lineage: initialLineage(),
     }
     return {
       version: 8,
@@ -337,6 +346,7 @@ const migrations: Record<
       cupsWon: s.cupsWon as GameState["cupsWon"],
       lastCupDay: s.lastCupDay as GameState["lastCupDay"],
       ladder: s.ladder as GameState["ladder"],
+      lineage: initialLineage(),
     }
     return {
       version: 9,

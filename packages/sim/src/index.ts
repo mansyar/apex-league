@@ -117,6 +117,17 @@ export {
   subTierFor,
 } from "./ladder"
 export {
+  initialLineage,
+  type LineagePerks,
+  type LineageState,
+  lineagePerks,
+  lineagePrestige,
+  PRESTIGE_ESTABLISHED_LINE,
+  PRESTIGE_FOUNDED,
+  PRESTIGE_WARM_BLOODLINE,
+  type RetiredRecord,
+} from "./legacy"
+export {
   clearLoadout,
   defaultLoadout,
   MOVE_TIER3_DAYS,

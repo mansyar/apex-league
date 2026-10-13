@@ -5,6 +5,7 @@
 
 import { type Creature, createCreature } from "./creature"
 import { initialLadder, type LadderState } from "./ladder"
+import { initialLineage, type LineageState } from "./legacy"
 
 /** Top-level game phases: the day loop and the cup-day loop. */
 export type Phase = "day" | "cup"
@@ -51,6 +52,8 @@ export interface GameState {
   lastCupDay: number | null
   /** The Bronze ladder slice: points + sub-tier (save v8). */
   ladder: LadderState
+  /** The bloodline slice: generation + Hall of Fame (save v10). */
+  lineage: LineageState
 }
 
 /** Action points granted at the start of each day. Stub value for Phase 0. */
@@ -67,6 +70,7 @@ export function createInitialState(): GameState {
     cupsWon: 0,
     lastCupDay: null,
     ladder: initialLadder(),
+    lineage: initialLineage(),
   }
 }
 
