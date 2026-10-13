@@ -70,3 +70,6 @@ verified manually per the workflow's rendering scope.
   - `bun run verify`; manual: portrait + landscape arena battles at
     phone/tablet widths - 691dcd3
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) - 691dcd3 [checkpoint: 691dcd3]
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions - 55b8a27
