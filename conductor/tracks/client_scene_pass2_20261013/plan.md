@@ -85,14 +85,14 @@ consume, then the mock/CSS polish.
         compose
   - [x] Write unit tests for pure pose math extracted from the driver
         (seeded, no renderer) — Red → Green
-- [~] Task: Convert runStep to step modules + registry
-  - [ ] Create `steps/` modules keyed by move/event kind: approach/idle,
+- [x] Task: Convert runStep to step modules + registry <!-- ef0958e -->
+  - [x] Create `steps/` modules keyed by move/event kind: approach/idle,
         melee (incl. `phaseAt(PLAYBACK_PHASES)` block), projectile/
         fireSpecial, impact, stagger/knockback, down/KO + dust ring,
         judge hop
-  - [ ] Replace the switch with a registry table; step functions stay pure
+  - [x] Replace the switch with a registry table; step functions stay pure
         geometry given combatant pose + effects handle
-  - [ ] Write unit tests for at least the melee phase-timing and KO/dust
+  - [x] Write unit tests for at least the melee phase-timing and KO/dust
         step math where extractable as pure functions — Red → Green
 - [ ] Task: Extract roster module
   - [ ] Move cast/clear (palette capture/restore, `ARENA_FOOTPRINT`
