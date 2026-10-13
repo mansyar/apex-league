@@ -9,7 +9,6 @@
 import {
   type CreatureStats,
   type GameState,
-  getSpecies,
   inheritedFloor,
   lineagePerks,
   lineagePrestige,
