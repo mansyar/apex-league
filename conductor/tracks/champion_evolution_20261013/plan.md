@@ -46,14 +46,15 @@ manual verification for presentation tasks, phase checkpoints per
 
 *(presentation — manual verification path)*
 
-- [ ] Task: Champion rendering
-  - Ranch + arena build paths accept champion; `CHAMPION_SCALE` (~1.15×) holder-scale only (rig-units contract from learnings.md); no per-frame regressions
-- [ ] Task: Ceremony champion variant
-  - Grander glow/swap in the existing position-driven ceremony machine; reduced-motion instant variant; non-cancelable; dt-clamped
-- [ ] Task: HUD badge, hint & callout
-  - "Champion" stage badge on the name row; day-20 hint line in the coach priority chain; unlock callout with stat gains; condition-plate reflects the boost automatically
-- [ ] Task: Arena cast check
-  - Cup and spar opponents + player cast champion correctly via the stage-aware `visualSeedOf`; no re-roll between ranch and arena
+- [x] Task: Champion rendering — 743ee6b
+  - Ranch + arena build paths accept champion; `CHAMPION_SCALE` (1.15×) holder-scale only (rig-units contract from learnings.md); no per-frame regressions
+  - `stageScale()` single-sources the ladder in scene-logic (replaces the scattered baby/juvenile ternaries in ranch-motion); scene `setCreature` no longer coerces champion → juvenile
+- [x] Task: Ceremony champion variant — 743ee6b
+  - Grander glow/swap in the existing position-driven ceremony machine (`begin` takes `{fromScale, toScale}` — champion starts at the juvenile scale, settles at 1.15×); reduced-motion instant variant; non-cancelable; dt-clamped; main.ts triggers on the juvenile→champion transition
+- [x] Task: HUD badge, hint & callout — 9a7147b
+  - "Champion" stage badge was already stage-aware (`stageLabel`); day-20 hint line added to the coach priority chain (direction-only: bond + cups, no thresholds); `evolveCallout` picks the boost by stage (+6/+4/+4/+2 for champion); condition-plate reflects the boost automatically via effectiveStats
+- [x] Task: Arena cast check — 743ee6b
+  - `FightCasting`/`CastInfo`/`castFighter` carry an optional `stage`; `roster.buildSpot` passes it to `generate` — this also fixes the pre-existing gap where arena fighters always rendered as baby builds; cup + spar pass the owned creature's stage (rivals keep the stats-only seed); no re-roll between ranch and arena (same `visualSeedOf(stats, stage)`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - Browser-driven verification: dev server + sim-generated v9 save seeded via localStorage; screenshots at each step (hint → ceremony → badge → arena cast → reduced motion); console clean; **[checkpoint: <sha>]** (verification note appended)
 
