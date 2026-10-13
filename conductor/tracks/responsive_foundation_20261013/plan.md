@@ -50,13 +50,13 @@ verified manually per the workflow's rendering scope.
 
 ## Phase 4 — Battle HUD & spar panel reflow
 
-- [ ] Task: Spar panel fluid width + prep UI reflow (`spar.css`)
-- [ ] Task: Battle placard/HP bars/announcer/lower-third reflow
-  (`battle-hud.css`)
+- [x] Task: Spar panel fluid width + prep UI reflow (`spar.css`) - bf0bf19
+- [x] Task: Battle placard/HP bars/announcer/lower-third reflow
+  (`battle-hud.css`) - bf0bf19
   - Center chip shrinks/hides gracefully; announcer line usable width;
     verdict stamp + battle log reachable
-- [ ] Task: Manual verification — spar battle + cup match at all four tiers
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Manual verification — spar battle + cup match at all four tiers - bf0bf19
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) - bf0bf19 [checkpoint: bf0bf19]
 
 ## Phase 5 — Arena camera framing & renderer hygiene
 
