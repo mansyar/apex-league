@@ -1,0 +1,10 @@
+{
+  "trackId": "champion_evolution_20261013",
+  "title": "Champion Evolution: third stage",
+  "type": "feature",
+  "status": "new",
+  "created": "2026-10-13",
+  "branch": "champion_evolution_20261013",
+  "spec": "./spec.md",
+  "plan": "./plan.md"
+}
