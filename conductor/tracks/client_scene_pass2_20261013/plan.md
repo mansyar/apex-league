@@ -48,10 +48,10 @@ consume, then the mock/CSS polish.
 
 ## Phase 2 — scene.ts Decomposition
 
-- [ ] Task: Extract scene setup module
-  - [ ] Create `apps/client/src/scene-setup.ts`: renderer, scene, composer,
+- [x] Task: Extract scene setup module <!-- 1995bee -->
+  - [x] Create `apps/client/src/scene-setup.ts`: renderer, scene, composer,
         bloom (try/catch fallback), inline GLSL sky-dome shaders
-  - [ ] `scene.ts` consumes it; no behavior change
+  - [x] `scene.ts` consumes it; no behavior change
 - [ ] Task: Extract orbit camera module
   - [ ] Create `apps/client/src/orbit-camera.ts`: camera state, pointer/
         wheel listeners, camera-shake offset API
