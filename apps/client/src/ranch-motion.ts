@@ -177,8 +177,11 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
   // swap signal; this unit owns the actual rig rebuild and the glow paint.
   let evolution = createEvolutionCeremony()
   /** The juvenile rebuild the ceremony's swap frame should perform. */
-  let evolutionSwap: { archetypeId: string; seed: number; stage: Stage } | null =
-    null
+  let evolutionSwap: {
+    archetypeId: string
+    seed: number
+    stage: Stage
+  } | null = null
 
   /** How deep the nibble head-dips go (in the head pivot's local units —
    * the rig runs in grid units, so this scales with the creature). */

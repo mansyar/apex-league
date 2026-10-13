@@ -1,5 +1,5 @@
-import { generate } from "@apex/voxel"
 import type { LifeStage } from "@apex/sim"
+import { generate } from "@apex/voxel"
 import * as THREE from "three"
 import { profileFor } from "./choreo"
 import { buildCreatureGroup } from "./creature"

@@ -110,10 +110,14 @@ describe("evolution ceremony machine", () => {
 
   test("the champion ceremony starts at the juvenile scale and settles at the champion scale", () => {
     const m = createEvolutionCeremony()
-    const { frames } = run(m, { x: 3, z: -4, yaw: 0.7 }, {
-      fromScale: JUVENILE_SCALE,
-      toScale: CHAMPION_SCALE,
-    })
+    const { frames } = run(
+      m,
+      { x: 3, z: -4, yaw: 0.7 },
+      {
+        fromScale: JUVENILE_SCALE,
+        toScale: CHAMPION_SCALE,
+      },
+    )
     const walkFrames = frames.filter((f) => f.phase === "walk")
     for (const f of walkFrames) {
       expect(f.scale).toBeCloseTo(JUVENILE_SCALE, 5)
@@ -129,11 +133,15 @@ describe("evolution ceremony machine", () => {
 
   test("reduced-motion champion ceremony swaps in place at the champion scale", () => {
     const m = createEvolutionCeremony()
-    const { frames } = run(m, { x: 1.5, z: 2, yaw: 0.4 }, {
-      reduced: true,
-      fromScale: JUVENILE_SCALE,
-      toScale: CHAMPION_SCALE,
-    })
+    const { frames } = run(
+      m,
+      { x: 1.5, z: 2, yaw: 0.4 },
+      {
+        reduced: true,
+        fromScale: JUVENILE_SCALE,
+        toScale: CHAMPION_SCALE,
+      },
+    )
     const swaps = frames.filter((f) => f.swap)
     expect(swaps.length).toBe(1)
     const last = frames[frames.length - 1]

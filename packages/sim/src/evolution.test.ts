@@ -2,14 +2,14 @@ import { describe, expect, test } from "bun:test"
 
 import {
   advanceDay,
-  type Creature,
-  chooseStarter,
-  createCreature,
-  createInitialState,
   CHAMPION_BOND,
   CHAMPION_CUPS,
   CHAMPION_EVOLUTION_DAY,
   CHAMPION_HINT_DAY,
+  type Creature,
+  chooseStarter,
+  createCreature,
+  createInitialState,
   EVOLUTION_DAY,
   EVOLUTION_MOOD,
   effectiveStats,
