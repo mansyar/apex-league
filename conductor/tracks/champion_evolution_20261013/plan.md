@@ -66,3 +66,12 @@ manual verification for presentation tasks, phase checkpoints per
 - [x] Task: Docs sync — `product.md` landed annotation (Phase 1 evolution tree complete), README roadmap note, tech-stack dated note only if warranted — committed (docs(conductor) commit)
   - product.md Phase 1 annotation extended (champion gate/boost/look/ceremony/hint/cast, branching still open); README Phase 1 row → "baby→juvenile→champion evolution"; tech-stack note not warranted (no new tooling — the champion stage reuses the existing pipeline, save v9 unchanged)
 - [x] Task: Final review readiness — all tasks `[x]` with commit SHAs, ready for `conductor-review` — registry marked complete 2026-10-13
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions — 3093255
+  - bovine `hornCurl` pivots aligned with their field base (leftover from the first tuning iteration); champion GLB re-exported for the determinism gate (93344 bytes)
+  - `growthHint`: a still-juvenile creature past day 25 keeps a direction-only hint (`ready to become a champion`) instead of going silent — test updated to the discovered-not-hidden contract
+  - `stageScale` converted from const arrow to function declaration (styleguide)
+  - Stray debug files (`hint-save.b64`, `pw-trivial.cjs`) removed before the amend; browser-verification screenshots and save fixtures retained as evidence
+  - `bun run verify` green; full suite 982 tests / 0 fail
