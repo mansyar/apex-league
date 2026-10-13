@@ -14,7 +14,7 @@ manual verification for presentation tasks, phase checkpoints per
 - [x] Task: Champion evolution gate *(write failing tests first)* — 46f873a
   - Tests: juvenile at day ≥ 25 with mood ≥ 40, sickCooldown 0, bond ≥ 60, cupsWon ≥ 1 → `ready`; each failing condition yields its reason (`too_young`, `recently_sick`, `low_mood`, `low_bond`, `no_cup_win`); `not_juvenile` for baby/champion stages; baby→juvenile path byte-identical to current behavior; deterministic (seeded fixtures)
   - Implement `CHAMPION_EVOLUTION_DAY = 25`, `CHAMPION_BOND = 60`, `CHAMPION_CUPS = 1` + stage-aware gate in `packages/sim/src/evolution.ts`
-- [ ] Task: Champion stat application + settlement hook *(tests first)*
+- [x] Task: Champion stat application + settlement hook *(tests first)* — 591429f
   - Tests: `evolveCreature` champion branch applies pinned +6/+4/+4/+2 to rolled base; juvenile boost unchanged; settlement calls the gate on the juvenile path and applies the boost **after** the full settlement; bond/cups judged from settled values; integration: night ending day 25 evolves a qualified juvenile
   - Implement in `evolution.ts` (generalized `evolveCreature`) + `settlement.ts` hook
 - [ ] Task: Hint constant *(tests first)*
