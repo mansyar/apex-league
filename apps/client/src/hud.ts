@@ -207,8 +207,13 @@ export function growthHint(day: number, creature: Creature): string {
   if (creature.stage === "juvenile") {
     // The champion tease (champion track): same direction-only contract —
     // it points at the bond and the cups without naming the thresholds.
-    if (day < CHAMPION_HINT_DAY || day >= CHAMPION_EVOLUTION_DAY) return ""
-    return `${creature.name} is growing into something grand — keep the bond strong and win another cup together.`
+    if (day < CHAMPION_HINT_DAY) return ""
+    if (day < CHAMPION_EVOLUTION_DAY) {
+      return `${creature.name} is growing into something grand — keep the bond strong and win another cup together.`
+    }
+    // Past the gate age and still juvenile: the climb is still open, so
+    // the hint keeps pointing (discovered-not-hidden — never a dead end).
+    return `${creature.name} is ready to become a champion — keep the bond strong and win another cup.`
   }
   if (day < EVOLUTION_HINT_DAY || day >= EVOLUTION_DAY) return ""
   return `${creature.name} is filling out — keep the routine steady and one morning soon it will surprise you.`

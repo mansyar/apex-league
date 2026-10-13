@@ -120,9 +120,14 @@ describe("growthHint", () => {
     expect(growthHint(24, juvenile)).not.toBe("")
   })
 
-  test("stays quiet on and after the champion evolution day", () => {
+  test("past the gate age a still-juvenile creature keeps direction, never a dead end", () => {
     const juvenile = { ...baby, stage: "juvenile" as const }
-    expect(growthHint(25, juvenile)).toBe("")
+    const hint = growthHint(25, juvenile)
+    expect(hint).toContain(juvenile.name)
+    // Direction-only: the prestige levers stay the pointers, no thresholds.
+    expect(hint).toContain("champion")
+    expect(hint).toContain("cup")
+    expect(growthHint(31, juvenile)).not.toBe("")
   })
 
   test("champions get no hint — they are finished growing", () => {

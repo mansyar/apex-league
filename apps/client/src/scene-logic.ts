@@ -311,12 +311,13 @@ export const JUVENILE_SCALE = 1
 export const CHAMPION_SCALE = 1.15
 
 /** Holder scale for a life stage — single-sources the ranch stage ladder. */
-export const stageScale = (stage: "baby" | "juvenile" | "champion"): number =>
-  stage === "baby"
+export function stageScale(stage: "baby" | "juvenile" | "champion"): number {
+  return stage === "baby"
     ? BABY_SCALE
     : stage === "champion"
       ? CHAMPION_SCALE
       : JUVENILE_SCALE
+}
 
 export type EvolutionPhase = "idle" | "walk" | "glow" | "settle"
 

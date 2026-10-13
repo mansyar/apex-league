@@ -329,14 +329,14 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
   }
   if (stage === "champion") {
     pivots.hornCurlLeft = [
-      headC.x - 1.9 * hd,
-      headC.y + 3.2 * hd,
-      headC.z - 0.2,
+      headC.x - 1.5 * hd,
+      headC.y + 3.4 * hd,
+      headC.z - 0.3,
     ]
     pivots.hornCurlRight = [
-      headC.x + 1.9 * hd,
-      headC.y + 3.2 * hd,
-      headC.z - 0.2,
+      headC.x + 1.5 * hd,
+      headC.y + 3.4 * hd,
+      headC.z - 0.3,
     ]
   }
 
