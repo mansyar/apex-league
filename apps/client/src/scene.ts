@@ -70,12 +70,15 @@ export interface SceneHandle {
    * ranch center, glow and swell, swap the baby rig for the juvenile rig
    * at the pulse's peak, settle. Purely visual — the sim already evolved.
    * Non-cancelable like the feed ceremony; it preempts an in-flight feed
-   * walk. Reduced motion swaps in place with no travel or glow.
+   * walk. Reduced motion swaps in place with no travel or glow. `onDone`
+   * fires when the machine settles, so callers can sequence off the
+   * ceremony itself instead of guessing at its length.
    */
   startEvolutionCeremony(
     archetypeId: string,
     seed: number,
     targetStage: LifeStage,
+    onDone?: () => void,
   ): void
 }
 
@@ -190,8 +193,8 @@ export function createScene(container: HTMLElement): SceneHandle {
       // swap calls rebuild directly, so it survives.
       motion.clearEvolution()
     },
-    startEvolutionCeremony(archetypeId, seed, targetStage) {
-      motion.startEvolution(archetypeId, seed, targetStage)
+    startEvolutionCeremony(archetypeId, seed, targetStage, onDone) {
+      motion.startEvolution(archetypeId, seed, targetStage, onDone)
     },
     setProps(visualSeed) {
       if (scenerySeed === visualSeed) return

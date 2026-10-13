@@ -327,13 +327,17 @@
   text-overflow: ellipsis;
 }
 
-/* Onboarding callout: the teaching banner. Fixed top-center like the
-   corrupt-save notice — visible no matter which panel is collapsed. */
+/* Onboarding callout: the teaching banner, stacked in the left column under
+   the lineage plate (top: 100px). It used to be a fixed top-center banner,
+   where it sat on top of the centered score bug and buried the day / AP /
+   ladder readout for as long as a hint was up. Still fixed, so it stays
+   visible whichever panel is collapsed; the banner is transient, the
+   readouts are not. */
 .hud-callout {
   position: fixed;
-  top: 18px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: calc(146px + var(--kit-safe-top));
+  left: calc(18px + var(--kit-safe-left));
+  transform: none;
   z-index: 60;
   display: flex;
   align-items: center;
@@ -505,12 +509,14 @@
   user-select: none;
 }
 
-/* Lineage plate (save v10): top-left under the settings pill — the family
-   name with its generation numeral, the bloodline counters, and the Hall of
-   Fame opener in one surface. */
+/* Lineage plate (save v10): the family name with its generation numeral, the
+   bloodline counters, and the Hall of Fame opener in one surface. It sits
+   BELOW the top band — the centered score bug and the fixed top-center
+   teaching callout both live there, and a long dynasty name reaching right
+   used to slide under the bug's left corner. */
 .hud-lineage {
   position: absolute;
-  top: 58px;
+  top: 100px;
   left: 18px;
   display: flex;
   align-items: center;
@@ -537,6 +543,12 @@
   font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  /* A renamed creature plus its numeral is still short; this only bounds a
+     pathological name so the plate can never march across the screen. */
+  max-width: min(280px, 36vw);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .lineage-meta {
@@ -676,6 +688,8 @@
   }
 
   .hud-callout {
+    /* Below the phone-band plate (top: 126px). */
+    top: calc(176px + var(--kit-safe-top));
     left: calc(14px + var(--kit-safe-left));
     right: calc(14px + var(--kit-safe-right));
     transform: none;

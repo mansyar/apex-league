@@ -21,6 +21,8 @@ import {
   lineagePrestige,
   MOVE_TIER3_DAYS,
   MOVE_TIER4_DAYS,
+  PRESTIGE_ESTABLISHED_LINE,
+  PRESTIGE_WARM_BLOODLINE,
   previewTraining,
   requiredTierDays,
   SICK_HEALTH,
@@ -980,14 +982,20 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     {
       // Legacy prestige milestones (v10): teach each perk the first time it
       // takes effect. Gated on a founded line (>0 generations) so a
-      // pre-legacy save's cup tally can never trigger them early.
+      // pre-legacy save's cup tally can never trigger them early. The
+      // thresholds are the sim's constants, never literals — retuning a
+      // milestone there must retune the coach line with it.
       id: "prestige-warm-bloodline",
-      when: (s) => s.lineage.generation > 0 && lineagePrestige(s) >= 3,
+      when: (s) =>
+        s.lineage.generation > 0 &&
+        lineagePrestige(s) >= PRESTIGE_WARM_BLOODLINE,
       text: "Warm bloodline — your next egg will start with a stronger bond.",
     },
     {
       id: "prestige-established-line",
-      when: (s) => s.lineage.generation > 0 && lineagePrestige(s) >= 5,
+      when: (s) =>
+        s.lineage.generation > 0 &&
+        lineagePrestige(s) >= PRESTIGE_ESTABLISHED_LINE,
       text: "Established line — every inherited stat floor gains +1 from here on.",
     },
   ]

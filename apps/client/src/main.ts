@@ -270,13 +270,18 @@ const graduation = createGraduation(app, {
     const creature = state.creature
     if (!creature) return
     // Send-off: reuse the evolution ceremony as a farewell walk-to-center.
+    // The egg screen opens when the scene reports the ceremony settled —
+    // never on a timer, so a long walk can't be cut short and the reduced
+    // path needs no special case (it settles a frame later).
     scene.startEvolutionCeremony(
       creature.archetypeId,
       visualSeedOf(creature.stats, creature.stage),
       creature.stage,
+      () => {
+        if (!store.get().creature) return
+        graduation.showEggScreen(store.get())
+      },
     )
-    const delay = resolveMotionPref(state.settings.reducedMotion) ? 0 : 2200
-    window.setTimeout(() => graduation.showEggScreen(store.get()), delay)
   },
   onPick: (speciesId) => {
     const before = store.get()

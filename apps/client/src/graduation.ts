@@ -8,6 +8,7 @@
 
 import {
   type CreatureStats,
+  effectiveStats,
   type GameState,
   inheritedFloor,
   lineagePerks,
@@ -125,6 +126,16 @@ function wireModal(
 }
 
 /**
+ * The element that opened a surface, remembered so focus can return to it
+ * when the surface closes — the same courtesy the spar overlay pays its chip.
+ * Null when nothing focusable was active (a programmatic open).
+ */
+function openerElement(): HTMLElement | null {
+  const active = document.activeElement
+  return active instanceof HTMLElement ? active : null
+}
+
+/**
  * Build the graduation surfaces: a confirm modal, an egg screen (starter-kit
  * grid with an inherited-floor line per species), and a Hall of Fame modal.
  * All three start hidden; callers open them explicitly.
@@ -135,12 +146,21 @@ export function createGraduation(
 ): GraduationFlow {
   // -- Confirm modal ---------------------------------------------------------
   const confirm = modalShell()
+  /** Where focus goes when a surface closes (nothing to do if it is gone). */
+  let confirmOpener: HTMLElement | null = null
+  let hallOpener: HTMLElement | null = null
+  const restoreFocus = (target: HTMLElement | null): void => {
+    if (target?.isConnected) target.focus()
+  }
+  /** Dismiss the confirm modal and hand focus back to the Graduate chip. */
+  const dismissConfirm = (): void => {
+    confirm.root.style.display = "none"
+    restoreFocus(confirmOpener)
+  }
   const keepChip = chip({
     label: "Not yet",
     variant: "dim",
-    onClick: () => {
-      confirm.root.style.display = "none"
-    },
+    onClick: dismissConfirm,
   })
   const confirmButton = document.createElement("button")
   confirmButton.className = "kit-button"
@@ -166,6 +186,8 @@ export function createGraduation(
   const eggGrid = document.createElement("div")
   eggGrid.className = "starter-grid"
   const eggFloors = new Map<string, HTMLElement>()
+  /** The first pickable card: where focus lands when the screen opens. */
+  let firstEggCard: HTMLButtonElement | null = null
   for (const species of STARTER_SPECIES) {
     const card = document.createElement("button")
     card.type = "button"
@@ -183,6 +205,7 @@ export function createGraduation(
     card.append(name, floorLine)
     if (species.available) {
       card.addEventListener("click", () => handlers.onPick(species.id))
+      firstEggCard ??= card
     }
     eggGrid.append(card)
     eggFloors.set(species.id, floorLine)
@@ -195,23 +218,22 @@ export function createGraduation(
   const hallList = document.createElement("ul")
   hallList.className = "hall-list"
   hall.box.append(hallList)
+  /** Dismiss the Hall of Fame and hand focus back to the Lineage plate. */
+  const dismissHall = (): void => {
+    hall.root.style.display = "none"
+    restoreFocus(hallOpener)
+  }
   const hallClose = chip({
     label: "Close",
     variant: "dim",
-    onClick: () => {
-      hall.root.style.display = "none"
-    },
+    onClick: dismissHall,
   })
   hall.actions.append(hallClose)
   hall.box.append(hall.actions)
 
   root.append(confirm.root, egg, hall.root)
-  wireModal(confirm.root, confirm.box, () => {
-    confirm.root.style.display = "none"
-  })
-  wireModal(hall.root, hall.box, () => {
-    hall.root.style.display = "none"
-  })
+  wireModal(confirm.root, confirm.box, dismissConfirm)
+  wireModal(hall.root, hall.box, dismissHall)
 
   const close = (): void => {
     confirm.root.style.display = "none"
@@ -227,16 +249,9 @@ export function createGraduation(
     for (const species of STARTER_SPECIES) {
       const line = eggFloors.get(species.id)
       if (!line) continue
-      const floor = inheritedFloor(
-        {
-          hp: creature.stats.hp + creature.trained.hp,
-          atk: creature.stats.atk + creature.trained.atk,
-          def: creature.stats.def + creature.trained.def,
-          spd: creature.stats.spd + creature.trained.spd,
-        },
-        species,
-        prestige,
-      )
+      // effectiveStats is the sim's own sum — never re-added here, so the
+      // previewed floor can never drift from the floor `graduate` applies.
+      const floor = inheritedFloor(effectiveStats(creature), species, prestige)
       line.textContent = `Inherited floor — ${floorSummary(floor)}`
     }
     eggSummary.textContent = lineageSummary(state)
@@ -276,6 +291,7 @@ export function createGraduation(
     openConfirm(state) {
       const creature = state.creature
       if (!creature) return
+      confirmOpener = openerElement()
       confirm.title.textContent = confirmLabel(creature.name)
       confirm.text.textContent = confirmCopy(creature.name)
       confirmButton.textContent = "Graduate"
@@ -290,9 +306,13 @@ export function createGraduation(
     showEggScreen(state) {
       update(state)
       egg.style.display = ""
+      // The send-off ends here: put the keyboard on the first egg, not on a
+      // body that just stopped being the champion.
+      firstEggCard?.focus()
     },
     openHallOfFame(state) {
       update(state)
+      hallOpener = openerElement()
       hall.root.style.display = ""
       hallClose.focus()
     },

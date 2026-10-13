@@ -5,7 +5,11 @@
 
 import { type Creature, createCreature } from "./creature"
 import { initialLadder, type LadderState } from "./ladder"
-import { initialLineage, type LineageState } from "./legacy"
+// Type-only on purpose: `legacy` reads the action-point constant from this
+// module, so a value import here would close a runtime cycle
+// (state → legacy → state). Nothing else in the sim imports values from
+// `state`, and the fresh-lineage literal below keeps it that way.
+import type { LineageState } from "./legacy"
 
 /** Top-level game phases: the day loop and the cup-day loop. */
 export type Phase = "day" | "cup"
@@ -70,7 +74,9 @@ export function createInitialState(): GameState {
     cupsWon: 0,
     lastCupDay: null,
     ladder: initialLadder(),
-    lineage: initialLineage(),
+    // The literal (rather than `initialLineage()`) is what keeps this module
+    // free of a runtime import from `legacy` — see the import note above.
+    lineage: { generation: 0, hallOfFame: [] },
   }
 }
 
