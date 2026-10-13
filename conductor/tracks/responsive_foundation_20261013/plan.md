@@ -36,17 +36,17 @@ verified manually per the workflow's rendering scope.
 
 ## Phase 3 — Cup screens reflow
 
-- [ ] Task: Bracket re-grid (`cup.css`)
+- [x] Task: Bracket re-grid (`cup.css`) - e0fe9b3
   - Phone: scroll-first round-by-round stacked column list; tablet:
     2-column rounds
   - Readable type floors over `cqw` scaling
-- [ ] Task: Coach room + results + give-up modal reflow
+- [x] Task: Coach room + results + give-up modal reflow - e0fe9b3
   - Phone: stack kit → tactic → confirm; single-column results/give-up
-- [ ] Task: Corner chip stacking (remove hardcoded `right: 110px` coupling
-  at narrow tiers)
-- [ ] Task: Manual verification — full cup run at all four tiers (browser
-  screenshots + console check)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Corner chip stacking (remove hardcoded `right: 110px` coupling
+  at narrow tiers) - e0fe9b3
+- [x] Task: Manual verification — full cup run at all four tiers (browser
+  screenshots + console check) - e0fe9b3
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) - e0fe9b3 [checkpoint: e0fe9b3]
 
 ## Phase 4 — Battle HUD & spar panel reflow
 
