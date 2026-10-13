@@ -99,3 +99,34 @@
   color: var(--ink-dim);
   text-align: center;
 }
+
+/* ---- Phone + large-phone tier (responsive_foundation_20261013) ----
+   The three-card row (~602px minimum) overflows phones: cards stack
+   under 480px and wrap from 480px up; the original single row returns
+   at ≥768px. Tier definitions live in ui/kit.css. */
+@media (max-width: 479.98px) {
+  .starter-overlay {
+    gap: 18px;
+  }
+
+  .starter-heading {
+    font-size: 18px;
+  }
+
+  .starter-grid {
+    flex-direction: column;
+    width: min(100%, 340px);
+  }
+
+  .starter-card {
+    width: auto;
+    min-height: 0;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .starter-grid {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}

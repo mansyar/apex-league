@@ -303,6 +303,15 @@
   animation: settle-down 0.5s var(--kit-settle) 0.24s both;
 }
 
+/* Phone tier: the compact score bug owns the top-right corner, so the
+   spar chip drops below it (responsive_foundation_20261013). */
+@media (max-width: 767.98px) {
+  .spar-button {
+    top: calc(58px + var(--kit-safe-top));
+    right: calc(14px + var(--kit-safe-right));
+  }
+}
+
 .spar-button .kit-chip-glyph {
   color: var(--accent);
 }

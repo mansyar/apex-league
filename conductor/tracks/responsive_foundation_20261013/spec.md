@@ -116,6 +116,10 @@ replacements) are a separate follow-up track.
   no gameplay behavior change. Scene changes are camera/render plumbing only
   (digest-neutral — the determinism gate must stay green).
 - Mobile-first CSS per F1; no new JS dependencies; no framework introduction.
+  The only JS touches are presentation-level mount-time changes: the HUD
+  stack wrapper (`hud-stack`, display:contents on desktop) and the
+  narrow-viewport default-collapse initialization — plus the portrait-aware
+  framing below.
 - All new styles respect reduced-motion, aria conventions, and broadcast-kit
   patterns; the mock-first design gate (`/mock.html`) gains a responsive
   section demonstrating the kit breakpoints.
