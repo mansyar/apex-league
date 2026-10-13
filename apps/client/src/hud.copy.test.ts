@@ -105,9 +105,29 @@ describe("growthHint", () => {
     expect(growthHint(12, baby)).toBe("")
   })
 
-  test("juveniles get no hint — they already grew", () => {
+  test("juveniles get no hint before the champion tease window", () => {
     const juvenile = { ...baby, stage: "juvenile" as const }
     expect(growthHint(7, juvenile)).toBe("")
+    expect(growthHint(19, juvenile)).toBe("")
+  })
+
+  test("teases the champion growth from the champion hinted day on", () => {
+    const juvenile = { ...baby, stage: "juvenile" as const }
+    const hint = growthHint(20, juvenile)
+    expect(hint).toContain(juvenile.name)
+    // Direction-only: points at bond and cups without naming thresholds.
+    expect(hint).toContain("cup")
+    expect(growthHint(24, juvenile)).not.toBe("")
+  })
+
+  test("stays quiet on and after the champion evolution day", () => {
+    const juvenile = { ...baby, stage: "juvenile" as const }
+    expect(growthHint(25, juvenile)).toBe("")
+  })
+
+  test("champions get no hint — they are finished growing", () => {
+    const champion = { ...baby, stage: "champion" as const }
+    expect(growthHint(30, champion)).toBe("")
   })
 })
 
@@ -123,6 +143,16 @@ describe("evolveCallout", () => {
     expect(line).toContain("+2 ATK")
     expect(line).toContain("+2 DEF")
     expect(line).toContain("+1 SPD")
+  })
+
+  test("a champion callout announces the champion boost", () => {
+    const champion = { ...drake, stage: "champion" as const }
+    const line = evolveCallout(champion)
+    expect(line).toContain("Champion")
+    expect(line).toContain("+6 HP")
+    expect(line).toContain("+4 ATK")
+    expect(line).toContain("+4 DEF")
+    expect(line).toContain("+2 SPD")
   })
 })
 

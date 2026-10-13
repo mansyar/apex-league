@@ -2,6 +2,9 @@ import {
   ACTION_POINTS_PER_DAY,
   type CareAction,
   type CareRejection,
+  CHAMPION_EVOLUTION_DAY,
+  CHAMPION_HINT_DAY,
+  CHAMPION_STAT_BOOST,
   type Creature,
   type CreatureConditions,
   careAction,
@@ -200,7 +203,13 @@ export function stageLabel(stage: Creature["stage"]): string {
  * Requires the current day, so the caller passes it in.
  */
 export function growthHint(day: number, creature: Creature): string {
-  if (creature.stage !== "baby") return ""
+  if (creature.stage === "champion") return ""
+  if (creature.stage === "juvenile") {
+    // The champion tease (champion track): same direction-only contract —
+    // it points at the bond and the cups without naming the thresholds.
+    if (day < CHAMPION_HINT_DAY || day >= CHAMPION_EVOLUTION_DAY) return ""
+    return `${creature.name} is growing into something grand — keep the bond strong and win another cup together.`
+  }
   if (day < EVOLUTION_HINT_DAY || day >= EVOLUTION_DAY) return ""
   return `${creature.name} is filling out — keep the routine steady and one morning soon it will surprise you.`
 }
@@ -208,9 +217,12 @@ export function growthHint(day: number, creature: Creature): string {
 /**
  * The evolution-moment coach line: what changed, in stat numbers. Shown
  * once by the HUD right after the ceremony, ahead of the routine status.
+ * The boost follows the stage: the champion's grander leap gets its own
+ * pinned numbers.
  */
 export function evolveCallout(creature: Creature): string {
-  const b = EVOLUTION_STAT_BOOST
+  const b =
+    creature.stage === "champion" ? CHAMPION_STAT_BOOST : EVOLUTION_STAT_BOOST
   return `Evolution! ${creature.name} grew into a ${stageLabel(creature.stage)} — +${b.hp} HP · +${b.atk} ATK · +${b.def} DEF · +${b.spd} SPD. The ranch just got livelier.`
 }
 
