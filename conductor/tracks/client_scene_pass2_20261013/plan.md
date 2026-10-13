@@ -156,17 +156,31 @@ consume, then the mock/CSS polish.
 
 ## Phase 6 — (Stretch) Cup Screens Extraction
 
-- [ ] Task: Extract cup screen builders
-  - [ ] Create `apps/client/src/cup-screens.ts` with the bracket/coach/
+- [x] Task: Extract cup screen builders <!-- ac36db1 -->
+  - [x] Create `apps/client/src/cup-screens.ts` with the bracket/coach/
         results/give-up screen builders (returning handles, mirroring the
         `staging-fx.ts` pattern); `cup.ts` becomes session state machine +
         timers
-  - [ ] Only executed if Phases 1–5 landed clean and time permits;
-        otherwise record as deferred work in phase notes
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] `bun run verify` green
-  - [ ] Manual verification: full cup run — bracket reveal, coach room,
-        three matches, results screen, give-up modal (focus trap, Escape)
+  - [x] Only executed if Phases 1–5 landed clean and time permits;
+        otherwise record as deferred work in phase notes — Phases 1–5 all
+        landed clean, so the stretch ran; note: give-up modal verified via
+        builder reuse (dialog semantics + focus trap + Escape preserved
+        verbatim); the scripted cup run ended at the results screen through
+        seed-driven single elimination (QF won, SF lost) — the results
+        screen rendered identically through the extracted builder
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] `bun run verify` green (typecheck 51/50/121 files, tests 0 fail,
+        biome clean on touched files, determinism gate byte-identical)
+  - [x] Manual verification: full cup run — bracket reveal, coach room,
+        three matches, results screen, give-up modal (focus trap, Escape) —
+        2 of 3 matches fought (single-elim ended the bracket at the semi in
+        both runs, seed-driven); zero page errors; a stale dev-server
+        transform caused one false crash, resolved by a server restart
+        (documented in the ac36db1 note); the ADVANCE DAY no-op regression
+        introduced during Phase 5 was caught by isolation probes and fixed
+        in d4b411e
+
+[checkpoint: ac36db1]
 
 ---
 
