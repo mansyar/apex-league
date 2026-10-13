@@ -29,14 +29,16 @@ manual verification for presentation tasks, phase checkpoints per
 
 ## Phase 2 — Voxel Pipeline: Champion Stage
 
-- [ ] Task: Stage-variant build API extension (TDD)
-  - Tests: `Stage` includes `"champion"`; baby/juvenile builds digest-stable (unchanged); champion passes proportion-budget audit (200 seeds × 3 archetypes); signature parts absent in juvenile, present in champion; `parseStage` accepts champion and still throws on unknown
-  - Implement `CHAMPION_MATURITY` multipliers + champion-gated signature parts in `packages/voxel/src/stage.ts` + archetype builders
-- [ ] Task: Signature upgrades + silhouette tuning
+- [x] Task: Stage-variant build API extension (TDD) - c902a4d
+  - Tests: champion builds digest-stable per seed; champion adds exactly the champion signature parts (absent in baby/juvenile, pivots/colors/parents rigged); every earlier part survives (identity layer); palette family kept, shade lifted again; 200-seed x 3 archetype budget audit green; `parseStage` accepts champion, still throws unknown
+  - Implement `Stage` includes `"champion"`, `CHAMPION_MATURITY` applied cumulatively over `JUVENILE_MATURITY` (bodyGirth 1.04 - champions fill out; slimming broke the drake head-height ratio), champion-gated signature parts in all three archetype builders
+
+- [x] Task: Signature upgrades + silhouette tuning — 7038bb2
   - Drake crown horns, bovine full horn curls, axolotl grand frills + tail fin; render → vision-check iterate per the drake-tuning loop; manual verification path (not unit-tested)
-- [ ] Task: Determinism gate + artifacts
+  - Tuning loop notes: preview served grey materials by default (color reads were invalid until a `color` param was added); bovine curls originally hugged the main-horn path and fused (first-wins paint order) — restructured to rise steeply between the horns, colored brass; axolotl grandFin recentered on the tail axis and colored coral (dark fin vanished against the backdrop)
+- [x] Task: Determinism gate + artifacts — 2a64a01
   - Extend `scripts/determinism-gate.ts` to byte-compare champion builds; export-artifact champion argv; commit 3 champion GLBs + manifest
-  - Verify `bun run gate:determinism` green
+  - Verify `bun run gate:determinism` green — all 9 archetype-stage builds byte-identical
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - Tests: voxel suites green (stage suite + champion budget audits); `bun run check` clean; gate:determinism green; browser visual check deferred to the Phase 3 checkpoint (user-approved pattern from Evolution I)
 
