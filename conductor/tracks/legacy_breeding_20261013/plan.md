@@ -101,11 +101,43 @@ manual verification for presentation tasks, phase checkpoints per
 
 ## Phase 3 — Wrap-up
 
-- [ ] Task: Full `bun run verify` green; end-to-end manual playthrough plan
+- [x] Task: Full `bun run verify` green; end-to-end manual playthrough plan
   (fresh run → day-60 champion → graduate → generation 2; blocked paths: not
-  champion / too young / mid-cup; reduced motion)
-- [ ] Task: Docs sync — `product.md` Phase 1 annotation (legacy phase
+  champion / too young / mid-cup; reduced motion) — f24ab5f
+  - Evidence: `bun run verify` green (1043 pass / 1 skip / 0 fail; determinism
+    gate byte-identical). Browser playthrough with
+    `artifacts/legacy-phase3-fixture.ts` (three seeded v10 saves):
+    **blocked** — day-1 founder baby, no Graduate chip and no "graduate" copy;
+    **too-young** — day-59 champion, no chip; **eligible** — day-60 champion
+    generation 1, chip live → confirm modal (focus trap, Escape) → egg screen
+    (warm-bloodline badge, per-species inherited floors) → Tide/Bramble pick →
+    **generation 2** persisted with Hall of Fame ×2, successor bond 20, stats
+    at or above the inherited floor, and `day`/`cupsWon`/`ladder` carried
+    while AP resets. Hall of Fame lists gen 1 then gen 0 (newest first).
+    **Reduced motion** — chip → confirm → egg screen in **19 ms**, no ceremony
+    interlude; graduation to **generation 3** with a Tide Axolotl successor.
+    Console clean across every step (only Vite's connect debug lines).
+- [x] Task: Docs sync — `product.md` Phase 1 annotation (legacy phase
   landed), README roadmap note, `docs/save-schema.md` v10 entry, tech-stack
-  dated note only if warranted
-- [ ] Task: Final review readiness — all tasks `[x]` with commit SHAs, ready
-  for `conductor-review`
+  dated note only if warranted — f24ab5f
+  - `docs/save-schema.md` v10 field + migration row already landed in Phase 1
+    (5518301), so no change here; `tech-stack.md` needs no dated note — the
+    track added no dependency or architectural seam.
+- [x] Task: Final review readiness — all tasks `[x]` with commit SHAs, ready
+  for `conductor-review` — f24ab5f
+
+### Phase notes (Phase 3)
+
+- **Accepted divergence — Lineage plate visibility.** The spec's prestige table
+  pairs `PRESTIGE_FOUNDED = 1` with "Lineage plate appears"; the implementation
+  shows the plate whenever a creature exists (gen 0 founder included) and lets
+  the milestone govern the Hall of Fame archive instead. Rationale: the plate is
+  the only readout of generation/prestige, and hiding your own bloodline status
+  until the first graduation withholds information the player needs to plan it.
+  The perk's *effect* (a recorded Hall of Fame) is unchanged.
+- **Known cosmetic nit — callout vs. plate.** A teaching callout is a fixed
+  top-center banner (`z-index: 60`) and momentarily overlaps the lineage plate
+  on the desktop band, exactly as it already overlaps the centered score bug.
+  Established behavior in this codebase, not a new regression; if the collision
+  is worth removing, the clean fix is to collapse the banner to the left column
+  alongside the plate rather than to reshape it.
