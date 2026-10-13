@@ -39,8 +39,8 @@ manual verification for presentation tasks, phase checkpoints per
 - [x] Task: Determinism gate + artifacts — 2a64a01
   - Extend `scripts/determinism-gate.ts` to byte-compare champion builds; export-artifact champion argv; commit 3 champion GLBs + manifest
   - Verify `bun run gate:determinism` green — all 9 archetype-stage builds byte-identical
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - Tests: voxel suites green (stage suite + champion budget audits); `bun run check` clean; gate:determinism green; browser visual check deferred to the Phase 3 checkpoint (user-approved pattern from Evolution I)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - Tests: voxel suites green (stage suite + champion budget audits); `bun run check` clean; gate:determinism green; browser visual check deferred to the Phase 3 checkpoint (user-approved pattern from Evolution I) — **[checkpoint: 4472809]**
 
 ## Phase 3 — Client: Ceremony, HUD & Casting
 
