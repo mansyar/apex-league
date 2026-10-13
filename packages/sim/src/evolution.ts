@@ -40,15 +40,16 @@ export const CHAMPION_STAT_BOOST: CreatureStats = Object.freeze({
 })
 
 /**
- * Maturation itself: flip the stage and apply the juvenile stat boost to
- * the rolled base. Pure: returns a new creature; everything else (trained,
- * conditions, loadout) is carried over untouched.
+ * Maturation itself: flip to the next stage and apply that stage's stat
+ * boost to the rolled base. Pure: returns a new creature; everything else
+ * (trained, conditions, loadout) is carried over untouched.
  */
 export function evolveCreature(creature: Creature): Creature {
-  const b = EVOLUTION_STAT_BOOST
+  const b =
+    creature.stage === "baby" ? EVOLUTION_STAT_BOOST : CHAMPION_STAT_BOOST
   return {
     ...creature,
-    stage: "juvenile",
+    stage: creature.stage === "baby" ? "juvenile" : "champion",
     stats: {
       hp: creature.stats.hp + b.hp,
       atk: creature.stats.atk + b.atk,
