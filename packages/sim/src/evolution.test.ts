@@ -9,6 +9,7 @@ import {
   CHAMPION_BOND,
   CHAMPION_CUPS,
   CHAMPION_EVOLUTION_DAY,
+  CHAMPION_HINT_DAY,
   EVOLUTION_DAY,
   EVOLUTION_MOOD,
   effectiveStats,
@@ -389,6 +390,13 @@ describe("advanceDay - champion evolution integration", () => {
     const s = championState(11)
     const next = advanceDay(s, CALM_RNG)
     expect(next.creature?.stage).toBe("juvenile")
+  })
+})
+
+describe("CHAMPION_HINT_DAY", () => {
+  test("the hint teases before the gate, never after", () => {
+    expect(CHAMPION_HINT_DAY).toBe(20)
+    expect(CHAMPION_HINT_DAY).toBeLessThan(CHAMPION_EVOLUTION_DAY)
   })
 })
 
