@@ -118,10 +118,13 @@ export {
 } from "./ladder"
 export {
   canGraduate,
+  createInheritedCreature,
   GRADUATION_DAY,
   GRADUATION_HINT_DAY,
   type GraduationReason,
   type GraduationVerdict,
+  INHERITANCE_FRACTION,
+  inheritedFloor,
   initialLineage,
   type LineagePerks,
   type LineageState,
@@ -131,6 +134,7 @@ export {
   PRESTIGE_FOUNDED,
   PRESTIGE_WARM_BLOODLINE,
   type RetiredRecord,
+  WARM_BOND_START,
 } from "./legacy"
 export {
   clearLoadout,

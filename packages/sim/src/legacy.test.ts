@@ -5,17 +5,23 @@
  */
 
 import { describe, expect, it } from "bun:test"
+import type { CreatureStats } from "./creature"
 import {
   canGraduate,
+  createInheritedCreature,
   GRADUATION_DAY,
   GRADUATION_HINT_DAY,
+  INHERITANCE_FRACTION,
+  inheritedFloor,
   initialLineage,
   lineagePerks,
   lineagePrestige,
   PRESTIGE_ESTABLISHED_LINE,
   PRESTIGE_FOUNDED,
   PRESTIGE_WARM_BLOODLINE,
+  WARM_BOND_START,
 } from "./legacy"
+import { getSpecies, type SpeciesDef } from "./species"
 import { chooseStarter, createInitialState, type GameState } from "./state"
 
 type Stage = "baby" | "juvenile" | "champion"
@@ -171,5 +177,120 @@ describe("canGraduate — eligibility gate", () => {
       eligible: true,
       reason: "eligible",
     })
+  })
+})
+
+const drake: SpeciesDef = (() => {
+  const s = getSpecies("fire_drake")
+  if (!s) throw new Error("expected the fire_drake species")
+  return s
+})()
+
+/** A neutral parent stat spread for inheritance tests. */
+const parentStats: CreatureStats = { hp: 80, atk: 24, def: 16, spd: 18 }
+
+describe("inheritedFloor", () => {
+  it("uses half the pinned fraction", () => {
+    expect(INHERITANCE_FRACTION).toBe(0.5)
+  })
+
+  it("returns half the parent's effective stats when inside bounds", () => {
+    expect(inheritedFloor(parentStats, drake, 0)).toEqual({
+      hp: 40,
+      atk: 12,
+      def: 8,
+      spd: 9,
+    })
+  })
+
+  it("clamps a huge parent down to the species maximums", () => {
+    const huge: CreatureStats = { hp: 500, atk: 500, def: 500, spd: 500 }
+    expect(inheritedFloor(huge, drake, 0)).toEqual({ hp: 46, atk: 13, def: 10, spd: 12 })
+  })
+
+  it("clamps a weak parent up to the species minimums", () => {
+    const weak: CreatureStats = { hp: 2, atk: 2, def: 2, spd: 2 }
+    expect(inheritedFloor(weak, drake, 0)).toEqual({ hp: 38, atk: 9, def: 7, spd: 9 })
+  })
+
+  it("adds +1 per stat at the established-line milestone (pre-clamp)", () => {
+    expect(inheritedFloor(parentStats, drake, PRESTIGE_ESTABLISHED_LINE)).toEqual({
+      hp: 41,
+      atk: 13,
+      def: 9,
+      spd: 10,
+    })
+  })
+
+  it("grants no bonus below the milestone", () => {
+    expect(inheritedFloor(parentStats, drake, PRESTIGE_ESTABLISHED_LINE - 1)).toEqual({
+      hp: 40,
+      atk: 12,
+      def: 8,
+      spd: 9,
+    })
+  })
+})
+
+describe("createInheritedCreature", () => {
+  it("is seed-reproducible", () => {
+    const a = createInheritedCreature("fire_drake", 7, parentStats, 0)
+    const b = createInheritedCreature("fire_drake", 7, parentStats, 0)
+    expect(a).toEqual(b)
+  })
+
+  it("never rolls below the parent-derived floor and stays within bounds", () => {
+    const floor = inheritedFloor(parentStats, drake, 0)
+    for (let seed = 0; seed < 60; seed++) {
+      const c = createInheritedCreature("fire_drake", seed, parentStats, 0)
+      expect(c.stats.hp).toBeGreaterThanOrEqual(floor.hp)
+      expect(c.stats.atk).toBeGreaterThanOrEqual(floor.atk)
+      expect(c.stats.def).toBeGreaterThanOrEqual(floor.def)
+      expect(c.stats.spd).toBeGreaterThanOrEqual(floor.spd)
+      expect(c.stats.hp).toBeLessThanOrEqual(drake.statBounds.hp[1])
+      expect(c.stats.atk).toBeLessThanOrEqual(drake.statBounds.atk[1])
+      expect(c.stats.def).toBeLessThanOrEqual(drake.statBounds.def[1])
+      expect(c.stats.spd).toBeLessThanOrEqual(drake.statBounds.spd[1])
+    }
+  })
+
+  it("raises the starting bond under the warm-bloodline perk", () => {
+    const cold = createInheritedCreature("fire_drake", 3, parentStats, 0)
+    expect(cold.conditions.bond).toBe(10)
+    const warm = createInheritedCreature(
+      "fire_drake",
+      3,
+      parentStats,
+      PRESTIGE_WARM_BLOODLINE,
+    )
+    expect(warm.conditions.bond).toBe(WARM_BOND_START)
+  })
+
+  it("applies the established-line floor bonus to the successor", () => {
+    const floor = inheritedFloor(parentStats, drake, PRESTIGE_ESTABLISHED_LINE)
+    const c = createInheritedCreature(
+      "fire_drake",
+      11,
+      parentStats,
+      PRESTIGE_ESTABLISHED_LINE,
+    )
+    expect(c.stats.hp).toBeGreaterThanOrEqual(floor.hp)
+    expect(c.stats.atk).toBeGreaterThanOrEqual(floor.atk)
+    expect(c.stats.def).toBeGreaterThanOrEqual(floor.def)
+    expect(c.stats.spd).toBeGreaterThanOrEqual(floor.spd)
+  })
+
+  it("honors the chosen species while inheriting (cross-species succession)", () => {
+    const ox = createInheritedCreature("plant_ox", 5, parentStats, 0)
+    expect(ox.speciesId).toBe("plant_ox")
+    expect(ox.stage).toBe("baby")
+    const oxSpecies = getSpecies("plant_ox")
+    if (!oxSpecies) throw new Error("expected plant_ox")
+    const oxFloor = inheritedFloor(parentStats, oxSpecies, 0)
+    expect(ox.stats.hp).toBeGreaterThanOrEqual(oxFloor.hp)
+  })
+
+  it("throws on an unknown species", () => {
+    expect(() => createInheritedCreature("nope", 1, parentStats, 0)).toThrow()
   })
 })
