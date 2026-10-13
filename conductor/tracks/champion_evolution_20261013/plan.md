@@ -20,12 +20,12 @@ manual verification for presentation tasks, phase checkpoints per
 - [x] Task: Hint constant *(tests first)* — 46f873a *(constant) / 641b2cb *(guard test)*
   - Tests: `CHAMPION_HINT_DAY = 20` exposed from the sim; hint copy function returns direction-only guidance per the discovered-not-hidden guideline *(client copy lands in the Phase 3 HUD task, per the juvenile track's layering)*
   - Implement constant + hint entry in the evolution module
-- [ ] Task: Save roundtrip *(tests first)*
+- [x] Task: Save roundtrip *(tests first)* — f8601db
   - Tests: champion-stage creature saves and loads through the existing validator (SAVE_VERSION stays 9); no migration step; malformed stages still rejected
-  - Implement only if a gap appears (validator already accepts `"champion"`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - Implement only if a gap appears (validator already accepts `"champion"` — none did)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — **[checkpoint: 12e05e1]**
   - Tests: all sim suites green — champion gate, stat application, settlement hook, hint, save roundtrip
-  - Manual verification: scripted headless playthrough `artifacts/champion-demo.ts` — Path 1 qualified juvenile evolves night of day 25 with exact +6/+4/+4/+2; Path 2 low bond blocks with `low_bond`; Path 3 no cup win blocks with `no_cup_win`; **[checkpoint: <sha>]** (verification note appended)
+  - Manual verification: scripted headless playthrough `artifacts/champion-demo.ts` — Path 1 qualified juvenile evolves night of day 25 with exact +6/+4/+4/+2; Path 2 low bond blocks with `low_bond`; Path 3 no cup win blocks with `no_cup_win`; **[checkpoint: 12e05e1]** (verification note appended)
 
 ## Phase 2 — Voxel Pipeline: Champion Stage
 
