@@ -134,6 +134,23 @@
   the draw stream, seed formula, placement table and double-KO tiebreak;
   the temporary parity bridge was removed after proving byte-identical
   behavior. Net −520 LOC; save schema unchanged (no migration).*
+-   *2026-10-13: legacy & breeding landed (track `legacy_breeding_20261013`)
+  — the sim's first cross-generation seam, pure and unit-tested in
+  `packages/sim/src/legacy.ts`: `canGraduate` with the precedence
+  `no-creature > cup-phase > not-champion > too-young > eligible`
+  (`GRADUATION_DAY = 60`, a direction-only hint from day 55),
+  `inheritedFloor` (50% of the parent's effective stat, clamped to the
+  species bounds, +1 per stat from the Established line),
+  `createInheritedCreature` (never below the floor, warm-bond start at the
+  Warm bloodline milestone, seed-reproducible) and the mutation-pure
+  `graduate` succession; `lineagePrestige = generation + cupsWon` drives the
+  milestones. Save v10 adds the `lineage` slice (`generation` +
+  `hallOfFame`) with load-time validation and a v9→v10 migration. The client
+  adds the graduation flow (confirm modal → ranch send-off ceremony → egg
+  screen → successor hatch) plus the lineage plate, Hall of Fame panel and
+  the milestone callouts — the ceremony reuses the evolution machinery and
+  is reduced-motion aware. No new dependency; the determinism gate is
+  untouched.*
 
 ## Server
 - **Framework**: ElysiaJS on Bun (endpoints: save sync, leaderboard, ghost

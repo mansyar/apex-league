@@ -7,17 +7,22 @@ import {
   CHAMPION_STAT_BOOST,
   type Creature,
   type CreatureConditions,
+  canGraduate,
   careAction,
   EVOLUTION_DAY,
   EVOLUTION_HINT_DAY,
   EVOLUTION_STAT_BOOST,
   EXHAUSTED_ENERGY,
   type GameState,
+  GRADUATION_HINT_DAY,
   getMove,
   getSpecies,
   LADDER_THRESHOLDS,
+  lineagePrestige,
   MOVE_TIER3_DAYS,
   MOVE_TIER4_DAYS,
+  PRESTIGE_ESTABLISHED_LINE,
+  PRESTIGE_WARM_BLOODLINE,
   previewTraining,
   requiredTierDays,
   SICK_HEALTH,
@@ -63,6 +68,10 @@ export interface HudHandlers {
   onReset: () => void
   /** Persist a dismissed onboarding hint id into settings.seenHints. */
   onHintSeen: (hintId: string) => void
+  /** Open the graduation confirm flow (the HUD only asks; main owns it). */
+  onGraduate: () => void
+  /** Open the Hall of Fame panel (main owns the modal). */
+  onOpenHallOfFame: () => void
 }
 
 export interface Hud {
@@ -70,6 +79,13 @@ export interface Hud {
   /** Show the evolution-moment coach line (called once, right after the
    * ceremony starts; the next routine update replaces it). */
   announceEvolution(creature: NonNullable<GameState["creature"]>): void
+  /** Show the graduation send-off line (legacy track): the retiree, the
+   * generation it starts, and the successor's name. */
+  announceGraduation(
+    retireeName: string,
+    successorName: string,
+    generation: number,
+  ): void
   /** Show the save-failure coach line (called once per failed persist;
    * the next routine update replaces it). Non-blocking by design. */
   announceSaveFailure(): void
@@ -195,6 +211,49 @@ export function stageLabel(stage: Creature["stage"]): string {
   return "Baby"
 }
 
+/** Roman tally symbols, descending — the generation numeral alphabet. */
+const ROMAN: ReadonlyArray<readonly [number, string]> = [
+  [1000, "M"],
+  [900, "CM"],
+  [500, "D"],
+  [400, "CD"],
+  [100, "C"],
+  [90, "XC"],
+  [50, "L"],
+  [40, "XL"],
+  [10, "X"],
+  [9, "IX"],
+  [5, "V"],
+  [4, "IV"],
+  [1, "I"],
+]
+
+/**
+ * A generation as a Roman numeral (1 → "I", 2 → "II"). Out-of-range or
+ * non-integer input falls back to "#n" so the plate never renders "NaN".
+ */
+export function romanNumeral(n: number): string {
+  if (!Number.isInteger(n) || n < 1 || n > 3999) return `#${n}`
+  let rest = n
+  let out = ""
+  for (const [value, symbol] of ROMAN) {
+    while (rest >= value) {
+      out += symbol
+      rest -= value
+    }
+  }
+  return out
+}
+
+/**
+ * The bloodline's display name: the founder is unnumbered, every successor
+ * carries its Roman numeral (generation 1 → "<Name> II"), so a dynasty reads
+ * as one family rather than a list of strangers.
+ */
+export function familyName(name: string, generation: number): string {
+  return generation > 0 ? `${name} ${romanNumeral(generation + 1)}` : name
+}
+
 /**
  * The growth hint (evolution track): from a hinted day on, the coach
  * occasionally teases that the baby is maturing — without disclosing the
@@ -220,6 +279,16 @@ export function growthHint(day: number, creature: Creature): string {
 }
 
 /**
+ * The graduation hint (legacy track): from the hinted day on, a champion
+ * gets one direction-only coach line about the send-off — what graduating
+ * does, never a threshold or a demand. Ranks above flavor, below care.
+ */
+export function graduationHint(day: number, creature: Creature): string {
+  if (creature.stage !== "champion" || day < GRADUATION_HINT_DAY) return ""
+  return `${creature.name} has had a full career — graduating passes a stat floor to the next egg.`
+}
+
+/**
  * The evolution-moment coach line: what changed, in stat numbers. Shown
  * once by the HUD right after the ceremony, ahead of the routine status.
  * The boost follows the stage: the champion's grander leap gets its own
@@ -229,6 +298,19 @@ export function evolveCallout(creature: Creature): string {
   const b =
     creature.stage === "champion" ? CHAMPION_STAT_BOOST : EVOLUTION_STAT_BOOST
   return `Evolution! ${creature.name} grew into a ${stageLabel(creature.stage)} — +${b.hp} HP · +${b.atk} ATK · +${b.def} DEF · +${b.spd} SPD. The ranch just got livelier.`
+}
+
+/**
+ * The graduation send-off coach line (legacy track): names the retiree, the
+ * generation the bloodline just started, and the successor. Warm, proud —
+ * a hand-off, never a loss.
+ */
+export function graduationCallout(
+  retireeName: string,
+  successorName: string,
+  generation: number,
+): string {
+  return `${retireeName} graduated to the Hall of Fame — generation ${generation} begins with ${successorName}.`
 }
 
 /**
@@ -374,6 +456,32 @@ export function buildScoreBug(): ScoreBugRefs {
     rankRank,
     rankPts,
   }
+}
+
+/** The lineage-plate elements the daily update writes into. */
+export interface LineagePlateRefs {
+  root: HTMLButtonElement
+  familyEl: HTMLElement
+  metaEl: HTMLElement
+}
+
+/**
+ * Top-left lineage plate (legacy track): the family name with its
+ * generation numeral and the bloodline's counters. Doubles as the Hall of
+ * Fame opener — one surface, one story.
+ */
+export function buildLineagePlate(): LineagePlateRefs {
+  const root = document.createElement("button")
+  root.type = "button"
+  root.className = "kit-plate hud-lineage"
+  root.setAttribute("aria-label", "Lineage and Hall of Fame")
+  const tagEl = tab("Lineage", "outline")
+  const familyEl = document.createElement("span")
+  familyEl.className = "lineage-family"
+  const metaEl = document.createElement("span")
+  metaEl.className = "lineage-meta"
+  root.append(tagEl, familyEl, metaEl)
+  return { root, familyEl, metaEl }
 }
 
 /** The creature lower-third elements the daily update writes into. */
@@ -538,6 +646,9 @@ export interface CommandDockRefs {
   }>
   advance: HTMLElement
   advanceLabel: HTMLElement | null
+  /** Graduation send-off container + chip (shown only when eligible). */
+  dockGraduate: HTMLElement
+  graduateChip: HTMLButtonElement
 }
 
 /**
@@ -551,6 +662,8 @@ export function buildCommandDock(handlers: {
   /** A stat picked from the inline picker (closes it + spends 1 AP). */
   onTrain: (key: StatKey) => void
   onAdvanceDay: () => void
+  /** Open the graduation send-off confirm (legacy track). */
+  onGraduate: () => void
 }): CommandDockRefs {
   // A slim header row doubles as the collapse toggle; collapsed, only
   // the "ACTIONS" label remains pinned to the corner.
@@ -612,7 +725,18 @@ export function buildCommandDock(handlers: {
   })
   const advance = cta("Advance Day", handlers.onAdvanceDay)
   const advanceLabel = advance.querySelector<HTMLElement>(".kit-cta-label")
-  root.append(dockHead, dockRow, dockTrain, picker, advance)
+  // Graduation send-off (legacy track): hidden until the sim reports the
+  // champion eligible (canGraduate), so the dock never offers a dead end.
+  const dockGraduate = document.createElement("div")
+  dockGraduate.className = "dock-graduate"
+  dockGraduate.style.display = "none"
+  const graduateChip = button({
+    label: "Graduate",
+    tag: "",
+    onClick: () => handlers.onGraduate(),
+  })
+  dockGraduate.append(graduateChip)
+  root.append(dockHead, dockRow, dockTrain, dockGraduate, picker, advance)
   return {
     root,
     dockHead,
@@ -625,6 +749,8 @@ export function buildCommandDock(handlers: {
     pickerButtons,
     advance,
     advanceLabel,
+    dockGraduate,
+    graduateChip,
   }
 }
 
@@ -785,6 +911,8 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     picker,
     pickerButtons,
     advanceLabel,
+    dockGraduate,
+    graduateChip,
   } = buildCommandDock({
     onCare: (action) => handlers.onCare(action),
     onTrain: (key) => {
@@ -792,6 +920,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       handlers.onTrain(key)
     },
     onAdvanceDay: () => handlers.onAdvanceDay(),
+    onGraduate: () => handlers.onGraduate(),
   })
 
   // Settings cluster (top-left) + reset modal — the shared builders. The
@@ -805,6 +934,11 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       resetConfirm.focus()
     },
   })
+
+  // Lineage plate (top-left, under the settings pill): the family name +
+  // generation, and the Hall of Fame opener.
+  const { root: lineagePlate, familyEl, metaEl } = buildLineagePlate()
+  lineagePlate.addEventListener("click", () => handlers.onOpenHallOfFame())
 
   // Onboarding callouts (save v7): coach-voice nudges that appear once at
   // the moment they matter, then never again — dismissal persists in
@@ -839,6 +973,31 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
         s.creature !== null && s.ladder.subTier === "I" && s.ladder.points > 0,
       text: "You've topped Bronze — the Silver division awaits. Keep banking cup wins; the climb continues soon.",
     },
+    {
+      // Legacy (v10): the send-off unlocks — teach what graduating does.
+      id: "graduation-ready",
+      when: (s) => canGraduate(s).eligible,
+      text: "A full career. Graduating retires this champion to the Hall of Fame and passes a stat floor to the next egg.",
+    },
+    {
+      // Legacy prestige milestones (v10): teach each perk the first time it
+      // takes effect. Gated on a founded line (>0 generations) so a
+      // pre-legacy save's cup tally can never trigger them early. The
+      // thresholds are the sim's constants, never literals — retuning a
+      // milestone there must retune the coach line with it.
+      id: "prestige-warm-bloodline",
+      when: (s) =>
+        s.lineage.generation > 0 &&
+        lineagePrestige(s) >= PRESTIGE_WARM_BLOODLINE,
+      text: "Warm bloodline — your next egg will start with a stronger bond.",
+    },
+    {
+      id: "prestige-established-line",
+      when: (s) =>
+        s.lineage.generation > 0 &&
+        lineagePrestige(s) >= PRESTIGE_ESTABLISHED_LINE,
+      text: "Established line — every inherited stat floor gains +1 from here on.",
+    },
   ]
   const callout = document.createElement("div")
   callout.className = "kit-plate hud-callout"
@@ -861,7 +1020,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   const hudStack = document.createElement("div")
   hudStack.className = "hud-stack"
   hudStack.append(lowerThird, cluster)
-  root.append(scoreBug, motionWrap, hudStack, resetModal, callout)
+  root.append(scoreBug, motionWrap, lineagePlate, hudStack, resetModal, callout)
 
   let pickerOpen = false
   let lastFocus: StatKey | null = null
@@ -1024,7 +1183,9 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       lowerThird.style.display = "none"
       dockRow.style.display = "none"
       dockTrain.style.display = "none"
+      dockGraduate.style.display = "none"
       picker.style.display = "none"
+      lineagePlate.style.display = "none"
       statusTicker.say("")
       motionWrap.style.display = ""
       capturePrefUpdate(state)
@@ -1034,6 +1195,15 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     lowerThird.style.display = ""
     dockRow.style.display = ""
     dockTrain.style.display = ""
+    lineagePlate.style.display = ""
+
+    // Legacy (v10): the lineage plate mirrors the bloodline, and the
+    // graduate chip appears only when the sim says the champion is eligible.
+    familyEl.textContent = familyName(creature.name, state.lineage.generation)
+    metaEl.textContent = `Gen ${state.lineage.generation} · Prestige ${lineagePrestige(state)} · ${state.cupsWon} cup${state.cupsWon === 1 ? "" : "s"}`
+    const gradVerdict = canGraduate(state)
+    dockGraduate.style.display = gradVerdict.eligible ? "" : "none"
+    graduateChip.disabled = !gradVerdict.eligible
 
     // The creature carries its own identity; the species catalog is only
     // needed for starter-card display.
@@ -1148,6 +1318,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
         coachVoice(creature.conditions, creature.name) ||
         unlockCallout(creature) ||
         growthHint(state.day, creature) ||
+        graduationHint(state.day, creature) ||
         flavorCallout(creature),
     )
 
@@ -1179,6 +1350,11 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     update,
     announceEvolution(creature) {
       statusTicker.say(evolveCallout(creature))
+    },
+    announceGraduation(retireeName, successorName, generation) {
+      statusTicker.say(
+        graduationCallout(retireeName, successorName, generation),
+      )
     },
     announceSaveFailure() {
       statusTicker.say(saveFailureNotice())

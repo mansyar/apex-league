@@ -1,0 +1,60 @@
+/* Graduation surfaces (legacy_breeding_20261013): the egg screen (reuses the
+   starter overlay + card kit) and the Hall of Fame list. */
+
+/* The egg screen sits above the ranch HUD but below the modals (z-70). */
+.graduation-overlay {
+  z-index: 55;
+}
+
+/* Inherited stat floor under each species card. */
+.graduation-floor {
+  font-size: 12px;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.graduation-perks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  max-width: min(640px, 90vw);
+}
+
+.graduation-perk {
+  font-size: 11px;
+}
+
+/* Hall of Fame: newest first, scrollable when the line grows long. */
+.hall-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: min(50vh, 320px);
+  overflow-y: auto;
+  text-align: left;
+}
+
+.hall-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hall-entry .kit-crest {
+  width: 20px;
+  height: 20px;
+}
+
+.hall-entry-label {
+  font-size: 13px;
+}
+
+.hall-entry.is-empty {
+  color: var(--ink-dim);
+  font-size: 13px;
+}

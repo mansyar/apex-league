@@ -1,6 +1,7 @@
 import { type Creature, type StatKey, TRAINING_CAP } from "../creature"
 import { BRACKET_SLOTS, CUP_ROUNDS, type CupSession } from "../cup"
 import { SICK_COOLDOWN_NIGHTS } from "../evolution"
+import type { RetiredRecord } from "../legacy"
 import { getSpecies } from "../species"
 import type { GameState } from "../state"
 import { migrate } from "./migrate"
@@ -125,6 +126,48 @@ function isValidCreature(c: unknown): c is Creature {
 }
 
 /**
+ * A Hall of Fame record (save v10) is valid when every field the client
+ * displays is well-typed: a known species, an element, integer stats/trained
+ * in range, and non-negative counters.
+ */
+function isValidRetiredRecord(r: unknown): r is RetiredRecord {
+  if (typeof r !== "object" || r === null) return false
+  const rec = r as Record<string, unknown>
+  if (typeof rec.name !== "string" || rec.name.length === 0) return false
+  if (
+    typeof rec.speciesId !== "string" ||
+    getSpecies(rec.speciesId) === undefined
+  )
+    return false
+  if (typeof rec.archetypeId !== "string") return false
+  if (!ELEMENTS.includes(rec.element as string)) return false
+  const stats = rec.stats
+  if (typeof stats !== "object" || stats === null) return false
+  for (const value of Object.values(stats as Record<string, unknown>)) {
+    if (typeof value !== "number" || !Number.isInteger(value) || value < 1)
+      return false
+  }
+  const trained = rec.trained
+  if (typeof trained !== "object" || trained === null) return false
+  for (const value of Object.values(trained as Record<string, unknown>)) {
+    if (
+      typeof value !== "number" ||
+      !Number.isInteger(value) ||
+      value < 0 ||
+      value > TRAINING_CAP
+    )
+      return false
+  }
+  if (!Number.isInteger(rec.cupsWon) || (rec.cupsWon as number) < 0)
+    return false
+  if (!Number.isInteger(rec.generation) || (rec.generation as number) < 0)
+    return false
+  if (!Number.isInteger(rec.retiredOnDay) || (rec.retiredOnDay as number) < 1)
+    return false
+  return true
+}
+
+/**
  * A persisted cup session is valid when its shape matches the sim contract
  * closely enough to hand back to the client: the bracket, the verdict
  * arrays, the pending round, and the champion stamp. This is defense against
@@ -222,7 +265,16 @@ export function loadSave(adapter: SaveAdapter): SaveData | null {
       state.ladder.points < 0 ||
       (state.ladder.subTier !== "III" &&
         state.ladder.subTier !== "II" &&
-        state.ladder.subTier !== "I")
+        state.ladder.subTier !== "I") ||
+      // v10: the bloodline slice is required and strictly typed (legacy
+      // track) — a hand-edited generation or a malformed Hall of Fame
+      // record fails the load.
+      typeof state.lineage !== "object" ||
+      state.lineage === null ||
+      !Number.isInteger(state.lineage.generation) ||
+      state.lineage.generation < 0 ||
+      !Array.isArray(state.lineage.hallOfFame) ||
+      !state.lineage.hallOfFame.every(isValidRetiredRecord)
     ) {
       return null
     }

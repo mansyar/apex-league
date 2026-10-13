@@ -1,0 +1,10 @@
+{
+  "trackId": "legacy_breeding_20261013",
+  "title": "Legacy & Breeding: retirement, inheritance & the next egg",
+  "type": "feature",
+  "status": "new",
+  "created": "2026-10-13",
+  "branch": "legacy_breeding_20261013",
+  "spec": "./spec.md",
+  "plan": "./plan.md"
+}

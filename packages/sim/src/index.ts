@@ -117,6 +117,28 @@ export {
   subTierFor,
 } from "./ladder"
 export {
+  canGraduate,
+  createInheritedCreature,
+  GRADUATION_DAY,
+  GRADUATION_HINT_DAY,
+  type GraduateResult,
+  type GraduationReason,
+  type GraduationVerdict,
+  graduate,
+  INHERITANCE_FRACTION,
+  inheritedFloor,
+  initialLineage,
+  type LineagePerks,
+  type LineageState,
+  lineagePerks,
+  lineagePrestige,
+  PRESTIGE_ESTABLISHED_LINE,
+  PRESTIGE_FOUNDED,
+  PRESTIGE_WARM_BLOODLINE,
+  type RetiredRecord,
+  WARM_BOND_START,
+} from "./legacy"
+export {
   clearLoadout,
   defaultLoadout,
   MOVE_TIER3_DAYS,

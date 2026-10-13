@@ -8,6 +8,7 @@ import {
   clearSave,
   createInitialState,
   getSpecies,
+  graduate,
   loadBoot,
   markHintSeen,
   renameCreature,
@@ -19,6 +20,7 @@ import {
 import { buildArena } from "./arena"
 import { createCup } from "./cup"
 import { nextShot } from "./director"
+import { createGraduation } from "./graduation"
 import { corruptSaveNotice, createHud } from "./hud"
 import { resolveMotionPref } from "./motion"
 import { createScene } from "./scene"
@@ -31,6 +33,7 @@ import { createSwap } from "./swap"
 import "./ui/kit.css"
 import "./base.css"
 import "./ranch.css"
+import "./graduation.css"
 import "./starter.css"
 import "./cup.css"
 import "./spar.css"
@@ -256,6 +259,51 @@ const cup = createCup(
   { restoredSession },
 )
 
+// The legacy flow (v10): a champion's send-off. The confirm modal leads to a
+// ceremony (the evolution ceremony machinery, reused as a farewell), then the
+// egg screen collects the successor's species and `graduate` hands the
+// bloodline on. Nothing commits until the player picks — closing early keeps
+// the champion.
+const graduation = createGraduation(app, {
+  onConfirm: () => {
+    const state = store.get()
+    const creature = state.creature
+    if (!creature) return
+    // Send-off: reuse the evolution ceremony as a farewell walk-to-center.
+    // The egg screen opens when the scene reports the ceremony settled —
+    // never on a timer, so a long walk can't be cut short and the reduced
+    // path needs no special case (it settles a frame later).
+    scene.startEvolutionCeremony(
+      creature.archetypeId,
+      visualSeedOf(creature.stats, creature.stage),
+      creature.stage,
+      () => {
+        if (!store.get().creature) return
+        graduation.showEggScreen(store.get())
+      },
+    )
+  },
+  onPick: (speciesId) => {
+    const before = store.get()
+    const retiree = before.creature
+    if (!retiree) return
+    const seed = Date.now() % 2 ** 31
+    const result = graduate(before, speciesId, seed)
+    if (!result.ok) return
+    store.commit(result.state)
+    graduation.close()
+    syncScene()
+    const successor = store.get().creature
+    if (successor) {
+      hud.announceGraduation(
+        retiree.name,
+        successor.name,
+        store.get().lineage.generation,
+      )
+    }
+  },
+})
+
 const hud = createHud(app, {
   onAdvanceDay: () => {
     // The ceremony is non-cancelable (FR2, 2026-10-10): HUD input applies
@@ -332,6 +380,8 @@ const hud = createHud(app, {
   onHintSeen: (hintId) => {
     store.commit(markHintSeen(store.get(), hintId))
   },
+  onGraduate: () => graduation.openConfirm(store.get()),
+  onOpenHallOfFame: () => graduation.openHallOfFame(store.get()),
 })
 
 // The store's fixed fanout: every commit persists (inside commit) and then
@@ -341,6 +391,7 @@ const hud = createHud(app, {
 store.subscribe((s) => hud.update(s))
 store.subscribe((s) => spar.update(s.creature ?? null))
 store.subscribe((s) => cup.update(s))
+store.subscribe((s) => graduation.update(s))
 
 // First run (or a migrated v1 save without a creature): offer the starter.
 let starter = store.get().creature

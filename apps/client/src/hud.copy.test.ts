@@ -2,8 +2,12 @@ import { describe, expect, test } from "bun:test"
 import { type Creature, createCreature } from "@apex/sim"
 import {
   evolveCallout,
+  familyName,
   flavorCallout,
+  graduationCallout,
+  graduationHint,
   growthHint,
+  romanNumeral,
   saveFailureNotice,
   spendFlashIndex,
   stageLabel,
@@ -166,5 +170,65 @@ describe("stageLabel", () => {
     expect(stageLabel("baby")).toBe("Baby")
     expect(stageLabel("juvenile")).toBe("Juvenile")
     expect(stageLabel("champion")).toBe("Champion")
+  })
+})
+
+describe("romanNumeral", () => {
+  test("renders the classic numerals", () => {
+    expect(romanNumeral(1)).toBe("I")
+    expect(romanNumeral(2)).toBe("II")
+    expect(romanNumeral(4)).toBe("IV")
+    expect(romanNumeral(9)).toBe("IX")
+    expect(romanNumeral(14)).toBe("XIV")
+    expect(romanNumeral(3999)).toBe("MMMCMXCIX")
+  })
+
+  test("falls back to #n out of range (never NaN or a crash)", () => {
+    expect(romanNumeral(0)).toBe("#0")
+    expect(romanNumeral(-3)).toBe("#-3")
+    expect(romanNumeral(4000)).toBe("#4000")
+    expect(romanNumeral(1.5)).toBe("#1.5")
+  })
+})
+
+describe("familyName", () => {
+  test("the founder is unnumbered", () => {
+    expect(familyName("Ember Drake", 0)).toBe("Ember Drake")
+  })
+
+  test("every successor carries its generation numeral (gen 1 → II)", () => {
+    expect(familyName("Ember Drake", 1)).toBe("Ember Drake II")
+    expect(familyName("Bramble Ox", 2)).toBe("Bramble Ox III")
+  })
+})
+
+describe("graduationHint", () => {
+  const champion = {
+    ...createCreature("fire_drake", 42),
+    stage: "champion" as const,
+  }
+
+  test("quiet for a non-champion", () => {
+    expect(graduationHint(60, createCreature("fire_drake", 42))).toBe("")
+  })
+
+  test("quiet before the hinted day", () => {
+    expect(graduationHint(54, champion)).toBe("")
+  })
+
+  test("teases the send-off from the hinted day on, direction-only", () => {
+    const hint = graduationHint(55, champion)
+    expect(hint).toContain(champion.name)
+    expect(hint).toContain("stat floor")
+    expect(graduationHint(90, champion)).not.toBe("")
+  })
+})
+
+describe("graduationCallout", () => {
+  test("names the retiree, the new generation, and the successor", () => {
+    const line = graduationCallout("Ember Drake", "Bramble Ox", 1)
+    expect(line).toContain("Ember Drake")
+    expect(line).toContain("Bramble Ox")
+    expect(line).toContain("generation 1")
   })
 })

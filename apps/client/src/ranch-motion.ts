@@ -124,8 +124,17 @@ export interface RanchMotion {
   /** Begin the feed ceremony (aborts any in-flight wander trip). */
   startFeed(): void
   /** Begin the evolution ceremony (juvenile→champion or baby→juvenile)
-   * from the current pose; the swap rebuilds to the target stage. */
-  startEvolution(archetypeId: string, seed: number, targetStage: Stage): void
+   * from the current pose; the swap rebuilds to the target stage. `onDone`
+   * fires once the machine has settled — the cue that the ceremony is over
+   * (the legacy send-off opens its egg screen on it, never on a timer, so
+   * a long walk can't be cut short). It survives a ceremony that a plain
+   * rebuild cancels, so a pending send-off still completes. */
+  startEvolution(
+    archetypeId: string,
+    seed: number,
+    targetStage: Stage,
+    onDone?: () => void,
+  ): void
   /** A plain rebuild cancels an in-flight evolution ceremony. */
   clearEvolution(): void
   /** Drop all registered swayers + wander candidates (re-scatter). */
@@ -182,6 +191,10 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
     seed: number
     stage: Stage
   } | null = null
+  /** Invoked once when the ceremony settles; null when nobody is waiting. */
+  let evolutionDone: (() => void) | null = null
+  /** True while the machine owns the creature — the settle edge ends it. */
+  let evolutionActive = false
 
   /** How deep the nibble head-dips go (in the head pivot's local units —
    * the rig runs in grid units, so this scales with the creature). */
@@ -326,6 +339,17 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
         dt,
       )
       const evoActive = evo.active
+      // The ceremony hands control back exactly once, on the frame it
+      // settles. Every phase — walk, glow, settle — reports active, and only
+      // the idle fallthrough reports false, so the falling edge is a
+      // reliable "the farewell is over" signal (the reduced-motion variant
+      // reaches it one frame later).
+      if (evolutionActive && !evoActive) {
+        const done = evolutionDone
+        evolutionDone = null
+        done?.()
+      }
+      evolutionActive = evoActive
       let evoGait = false
       if (evoActive) {
         creatureGroup.position.x = evo.x
@@ -486,12 +510,13 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
         creatureGroup.rotation.y,
       )
     },
-    startEvolution(archetypeId, seed, targetStage) {
+    startEvolution(archetypeId, seed, targetStage, onDone) {
       if (!creatureGroup) return
       // Preempt an in-flight feed walk (the growth moment takes over) and
       // abandon any wander trip, then begin from the current pose. The
       // scale journey follows the stage ladder: a champion ceremony starts
       // at the juvenile's scale and settles grander.
+      if (onDone) evolutionDone = onDone
       walk = createWalk(reducedMotion)
       wander?.abort()
       evolutionSwap = { archetypeId, seed, stage: targetStage }
