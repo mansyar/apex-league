@@ -11,7 +11,7 @@ manual verification for presentation tasks, phase checkpoints per
 
 *(all logic-bearing — strict TDD)*
 
-- [ ] Task: Champion evolution gate *(write failing tests first)*
+- [x] Task: Champion evolution gate *(write failing tests first)* — 46f873a
   - Tests: juvenile at day ≥ 25 with mood ≥ 40, sickCooldown 0, bond ≥ 60, cupsWon ≥ 1 → `ready`; each failing condition yields its reason (`too_young`, `recently_sick`, `low_mood`, `low_bond`, `no_cup_win`); `not_juvenile` for baby/champion stages; baby→juvenile path byte-identical to current behavior; deterministic (seeded fixtures)
   - Implement `CHAMPION_EVOLUTION_DAY = 25`, `CHAMPION_BOND = 60`, `CHAMPION_CUPS = 1` + stage-aware gate in `packages/sim/src/evolution.ts`
 - [ ] Task: Champion stat application + settlement hook *(tests first)*
