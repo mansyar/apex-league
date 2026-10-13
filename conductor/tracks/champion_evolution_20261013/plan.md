@@ -60,6 +60,9 @@ manual verification for presentation tasks, phase checkpoints per
 
 ## Phase 4 — Wrap-up
 
-- [ ] Task: Full `bun run verify` green; end-to-end manual playthrough plan (fresh run → day-25 champion; blocked paths: low bond / no cup win; reduced motion)
-- [ ] Task: Docs sync — `product.md` landed annotation (Phase 1 evolution tree complete), README roadmap note, tech-stack dated note only if warranted
+- [x] Task: Full `bun run verify` green; end-to-end manual playthrough plan (fresh run → day-25 champion; blocked paths: low bond / no cup win; reduced motion) — verified 2026-10-13
+  - `bun run verify` green end-to-end: `bun run check` (voxel 51 / sim 53 / client 122 files), `bun test --check --parallel` 982 tests / 0 fail across 85 files, biome check, determinism gate (9 archetype-stage builds + 5 props byte-identical)
+  - Playthrough coverage: happy path (fresh → day-25 champion) verified in browser (Phase 3: hint → ceremony → badge → arena cast, stats 52/17/16/14); blocked paths verified at sim level (demo Paths 2/3: `low_bond` with feed-only care / `no_cup_win` with cupsWon 0); reduced motion verified in browser (instant swap)
+- [x] Task: Docs sync — `product.md` landed annotation (Phase 1 evolution tree complete), README roadmap note, tech-stack dated note only if warranted — committed (docs(conductor) commit)
+  - product.md Phase 1 annotation extended (champion gate/boost/look/ceremony/hint/cast, branching still open); README Phase 1 row → "baby→juvenile→champion evolution"; tech-stack note not warranted (no new tooling — the champion stage reuses the existing pipeline, save v9 unchanged)
 - [ ] Task: Final review readiness — all tasks `[x]` with commit SHAs, ready for `conductor-review`
