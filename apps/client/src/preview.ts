@@ -5,7 +5,7 @@
  */
 import "./ui/kit.css"
 import "./base.css"
-import { archetypes, generate } from "@apex/voxel"
+import { archetypes, generate, parseStage } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
 
@@ -20,8 +20,11 @@ const seed = Number.parseInt(params.get("seed") ?? "42", 10)
 
 const archetypeParam = params.get("archetype") ?? "draconic"
 const archetype = archetypeParam in archetypes ? archetypeParam : "draconic"
-const { dna, build, def } = generate(archetype, seed)
-const creature = buildCreatureGroup(dna, build, def.grid, { grey: true })
+const stage = parseStage(params.get("stage") ?? "baby")
+const { dna, build, def } = generate(archetype, seed, stage)
+const creature = buildCreatureGroup(dna, build, def.grid, {
+  grey: params.get("color") === null,
+})
 
 const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setPixelRatio(window.devicePixelRatio)
@@ -32,14 +35,17 @@ scene.background = new THREE.Color(0x1a1f2e)
 
 const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100)
 const angle = new URLSearchParams(window.location.search).get("angle") ?? "3-4"
+const zoom = Number(
+  new URLSearchParams(window.location.search).get("zoom") ?? "1",
+)
 if (angle === "side") {
-  camera.position.set(7, 2.2, 0.5)
+  camera.position.set(7 * zoom, 2.2 * zoom + (1 - zoom) * 1.5, 0.5)
 } else if (angle === "front") {
-  camera.position.set(0.5, 3.4, 10)
+  camera.position.set(0.5, 3.4 * zoom, 10 * zoom)
 } else {
-  camera.position.set(4.5, 3.2, 6.5)
+  camera.position.set(4.5 * zoom, 3.2 * zoom, 6.5 * zoom)
 }
-camera.lookAt(0, 0.75, 0)
+camera.lookAt(0, 0.75 + (1 - zoom) * 1.2, 0)
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.7))
 const sun = new THREE.DirectionalLight(0xffffff, 1.6)
@@ -61,7 +67,7 @@ info.style.cssText =
 const styles = Object.entries(dna.styles)
   .map(([slot, id]) => `${slot}=${id}`)
   .join(" ")
-info.textContent = `seed ${seed} · ${styles}`
+info.textContent = `seed ${seed} · ${stage} · ${styles}`
 app.appendChild(info)
 
 function onResize() {

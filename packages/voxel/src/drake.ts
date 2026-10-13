@@ -305,7 +305,7 @@ export function buildDrake(dna: Dna, stage: Stage = "baby"): DrakeBuild {
       name: "crownHornLeft",
       sdf: sdCapsule(
         crownBaseL,
-        vec3(crownBaseL.x - crownLean, crownBaseL.y + 3, crownBaseL.z - 3.2),
+        vec3(crownBaseL.x - crownLean, crownBaseL.y + 3.8, crownBaseL.z - 3.4),
         1,
       ),
     })
@@ -313,7 +313,7 @@ export function buildDrake(dna: Dna, stage: Stage = "baby"): DrakeBuild {
       name: "crownHornRight",
       sdf: sdCapsule(
         crownBaseR,
-        vec3(crownBaseR.x + crownLean, crownBaseR.y + 3, crownBaseR.z - 3.2),
+        vec3(crownBaseR.x + crownLean, crownBaseR.y + 3.8, crownBaseR.z - 3.4),
         1,
       ),
     })

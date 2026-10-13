@@ -386,15 +386,13 @@ export function buildAxolotl(dna: Dna, stage: Stage = "baby"): AxolotlBuild {
         sdf,
       })
     }
-    // Grand fin: a taller membrane past the tail tip, extending the paddle.
-    // Centered beyond tailEnd so the thin tip cannot claim it whole.
-    const grandYHalf = 3 + 1.6 * fh
+    // Grand fin: a tall membrane past the tail tip, extending the paddle.
+    // Centered on the tail axis, rising well clear of the tip so it reads
+    // as a grand fan from broadcast distance.
+    const grandYHalf = 2.8 + 1.6 * fh
     fields.push({
       name: "grandFin",
-      sdf: sdBox(
-        vec3(O, 9.4 + grandYHalf / 2 - 1.2, tailEnd.z - 1.4),
-        vec3(0.8, grandYHalf / 2, 1.6),
-      ),
+      sdf: sdBox(vec3(O, 9.4, tailEnd.z - 2), vec3(0.8, grandYHalf, 1.8)),
     })
   }
   if (gillStyle === "crown") {
@@ -454,7 +452,7 @@ export function buildAxolotl(dna: Dna, stage: Stage = "baby"): AxolotlBuild {
       gillBaseY + 0.5 * hw,
       headC.z - 0.6 * hw,
     ]
-    pivots.grandFin = [O, 9.4, tailEnd.z - 1.4]
+    pivots.grandFin = [O, 9.4, tailEnd.z - 2]
   }
 
   // -- Colors (deterministic per seed; fixed type hue, value jitter only) --
@@ -502,7 +500,9 @@ export function buildAxolotl(dna: Dna, stage: Stage = "baby"): AxolotlBuild {
   if (stage === "champion") {
     colors.grandFrillLeft = coral
     colors.grandFrillRight = coral
-    colors.grandFin = dark
+    // Coral, not dark: the grand fin is the champion's accent flag, and a
+    // dark fin vanishes against the broadcast backdrop.
+    colors.grandFin = coral
   }
 
   return {

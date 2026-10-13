@@ -257,25 +257,25 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
   if (stage === "champion") {
     for (const sign of [-1, 1] as const) {
       const curlBase = vec3(
-        headC.x + sign * 1.9 * hd,
-        headC.y + 2.8 * hd,
-        headC.z + 0.2,
+        headC.x + sign * 1.5 * hd,
+        headC.y + 3.4 * hd,
+        headC.z - 0.3,
       )
       const curlMid = vec3(
-        headC.x + sign * (3.4 + 1.4 * spread) * hd,
-        headC.y + 4.4 * hd,
+        headC.x + sign * 2.8 * hd,
+        headC.y + 6.5 * hd,
         headC.z,
       )
       const curlTip = vec3(
-        headC.x + sign * (2.6 + 1.2 * spread) * hd,
-        headC.y + 6.2 * hd,
-        headC.z - 0.4,
+        headC.x + sign * 1.2 * hd,
+        headC.y + 9.2 * hd,
+        headC.z - 0.6,
       )
       fields.push({
         name: sign < 0 ? "hornCurlLeft" : "hornCurlRight",
         sdf: union(
-          sdCapsule(curlBase, curlMid, 0.95),
-          sdCapsule(curlMid, curlTip, 0.8),
+          sdCapsule(curlBase, curlMid, 1),
+          sdCapsule(curlMid, curlTip, 0.85),
         ),
       })
     }
@@ -330,13 +330,13 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
   if (stage === "champion") {
     pivots.hornCurlLeft = [
       headC.x - 1.9 * hd,
-      headC.y + 2.8 * hd,
-      headC.z + 0.2,
+      headC.y + 3.2 * hd,
+      headC.z - 0.2,
     ]
     pivots.hornCurlRight = [
       headC.x + 1.9 * hd,
-      headC.y + 2.8 * hd,
-      headC.z + 0.2,
+      headC.y + 3.2 * hd,
+      headC.z - 0.2,
     ]
   }
 
@@ -383,8 +383,8 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
     colors.hornBudRight = bone
   }
   if (stage === "champion") {
-    colors.hornCurlLeft = bone
-    colors.hornCurlRight = bone
+    colors.hornCurlLeft = brass
+    colors.hornCurlRight = brass
   }
 
   return {
