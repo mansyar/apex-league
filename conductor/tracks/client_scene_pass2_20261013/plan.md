@@ -85,7 +85,7 @@ consume, then the mock/CSS polish.
         compose
   - [x] Write unit tests for pure pose math extracted from the driver
         (seeded, no renderer) — Red → Green
-- [ ] Task: Convert runStep to step modules + registry
+- [~] Task: Convert runStep to step modules + registry
   - [ ] Create `steps/` modules keyed by move/event kind: approach/idle,
         melee (incl. `phaseAt(PLAYBACK_PHASES)` block), projectile/
         fireSpecial, impact, stagger/knockback, down/KO + dust ring,

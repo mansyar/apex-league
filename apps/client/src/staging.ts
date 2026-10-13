@@ -1,20 +1,14 @@
-import { PLAYBACK_PHASES, type PlaybackStep } from "@apex/sim"
+import type { PlaybackStep } from "@apex/sim"
 import { generate } from "@apex/voxel"
 import * as THREE from "three"
-import { clamp01, easeOut, easeOutCubic, phaseAt } from "./anim"
-import {
-  type BodyProfile,
-  idleSway,
-  profileFor,
-  type ReactionKind,
-  reactionFor,
-} from "./choreo"
+import { clamp01 } from "./anim"
+import { type BodyProfile, profileFor } from "./choreo"
 import { buildCreatureGroup } from "./creature"
 import type { DirectorContext, DirectorStep } from "./director"
-import { createFighterDriver } from "./fighter-driver"
-import { fxFor, type Posture, PROJECTILE_LIFE_MS } from "./move-fx"
+import { createFighterDriver, type DriveFighter } from "./fighter-driver"
 import { disposeObject3D, lambertMaterialOf } from "./scene-utils"
 import { createBattleEffects } from "./staging-fx"
+import { createStepChoreo } from "./steps"
 
 /**
  * Creature staging for the broadcast arena: two living fighters on the
@@ -43,11 +37,8 @@ const HOME_X = 2.6
  */
 const ARENA_FOOTPRINT = 1.7
 
-/** Resting gap between fighters (the size of a neutral stance). */
-const STANCE_GAP = 2.1
-
-/** Contact distance an attack pushes into (bodies nearly touch). */
-const CONTACT_GAP = 1.8
+/** Resting gap between fighters and the contact distance now live in
+ * the steps registry (steps/pure.ts) - the only places they're used. */
 
 /**
  * Show-floor bounds live in the fighter-driver module (the pose loop
@@ -188,12 +179,6 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     })
   }
 
-  /** Kick the squash spring (positive = squash, negative = stretch). */
-  const impulse = (c: Combatant, amount: number): void => {
-    if (motionPref === "reduced") amount *= 0.4
-    c.squash.v += amount
-  }
-
   // ── Living-fight driver ────────────────────────────────────────────────
   // One loop owns every fighter's pose every frame: walk to stage with a
   // gait, weight (squash spring), lean into movement, face the rival,
@@ -274,540 +259,36 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   }
 
   // ── Step choreography ──────────────────────────────────────────────────
-  /** Which combatant is the acting side of a step. */
-  const spotOf = (
-    actor: string,
-    o: Combatant,
-    r: Combatant,
-  ): { actor: Combatant; target: Combatant } => {
-    // Match on the stable key when present: in a mirror match both
-    // fighters answer to the same display name, so name matching maps
-    // every step onto the same (wrong) combatant.
-    const keyOf = (c: Combatant): string => c.key ?? c.name
-    if (actor === "" || (keyOf(o) !== actor && keyOf(r) === actor)) {
-      return { actor: r, target: o }
-    }
-    return { actor: o, target: r }
-  }
-
-  /** Knockback distance for a landed hit, scaled by how hard it landed. */
-  const strikeReach = (damage: number | undefined): number => {
-    const d = damage ?? 0
-    return Math.min(0.9, Math.max(0.25, d / 8))
-  }
-
-  /** Jump a fighter's whole walk state straight to its stage. */
-  const snapTo = (c: Combatant): void => {
-    c.smooth.copy(c.stage)
-    c.velocity.set(0, 0, 0)
-    c.offset.set(0, 0, 0)
-  }
-
-  /** True when a landing blow carries a heavy reaction (the victim reels). */
-  const heavyHit = (step: PlaybackStep): boolean =>
-    step.reaction === "stagger" || step.reaction === "knockback"
-
-  /**
-   * The victim reaction at an attack's contact moment: squash the body
-   * (profile-weighted from the reaction library), flash and stop the
-   * frame on big hits. Heavy reactions skip the stage shove - the
-   * outward movement belongs to the follow-up stagger/knockback reel
-   * (the sim's range shift), not a second nudge. One helper so basic
-   * and special hits look like the same physical impact.
-   */
-  const contactReaction = (
-    damage: number | undefined,
-    at: Combatant,
-    heavy = false,
-    element?: string,
-  ): void => {
-    if (!heavy) {
-      const knock = strikeReach(damage)
-      // Knockback pushes the victim OUTWARD (own away side, same convention
-      // as the dodge dash) - a minus here drags the pair into each other
-      // with every landed hit.
-      at.stage.x += at.away * knock
-      at.stage.z += (Math.random() - 0.5) * 0.3
-    }
-    const kind: ReactionKind = heavy ? "stagger" : "glance"
-    impulse(at, reactionFor(kind, at.profile).impulse)
-    effects.startFlash(at)
-    bigHit(damage)
-    effects.spawnDecal(at.group.position, element, damage ?? 4)
-  }
-
-  /** Lateral weave: alternate attack sides so no two hits share a lane. */
-  const weave = (step: PlaybackStep): number =>
-    (step.tick % 2 === 0 ? 1 : -1) * 0.55
-
   /**
    * Drive one step. Fighters hold their stage position between steps, so
    * the fight stays continuous — an approach that never got answered is
-   * still standing there in the next beat.
+   * still standing there in the next beat. The per-kind choreography
+   * lives in the steps/ registry; staging supplies the clocks and the
+   * effect machinery through the StepIO port.
    */
-
-  /**
-   * Declarative per-move fire choreography (FR5, unified fire): every
-   * special - ranged or point-blank - launches through the same
-   * pipeline. A new move slots in by adding one registry entry; tuning
-   * a move is editing that entry, never the engine.
-   */
-
-  /** Apply a posture phase to a fighter at normalized progress w. */
-  const applyPosture = (
-    p: Posture,
-    w: number,
-    ao: Combatant,
-    away: number,
-  ): void => {
-    const half = Math.sin((w * Math.PI) / 2)
-    const full = Math.sin(w * Math.PI)
-    if (p.pitch !== undefined) {
-      ao.lean.pitch = p.pitch * (p.hold ? half : full)
-    }
-    if (p.roll !== undefined) ao.lean.roll = p.roll * full
-    if (p.rise !== undefined) ao.offset.y = p.rise * full
-    if (p.coilX !== undefined) ao.offset.x = -away * p.coilX * (w * w)
-    if (p.pitchOut !== undefined) ao.lean.pitch = p.pitchOut * full
-    if (p.sweepX !== undefined) {
-      ao.offset.x = -away * (p.sweepX[0] + p.sweepX[1] * full)
-    }
-    if (p.riseOut !== undefined) ao.offset.y = p.riseOut * full
-  }
-
-  /** One projectile release: geometry, flight time, lateral offset. */
-
-  /** Everything a move declares about firing and landing. */
-
-  /**
-   * The per-move arrival treatment where a special lands - shared by
-   * ranged arrivals (the impact step) and point-blank micro-flights.
-   */
-  const arriveSpecial = (
-    step: PlaybackStep,
-    side: { actor: Combatant; target: Combatant },
-  ): void => {
-    const fx = fxFor(step.moveId)
-    const at = side.target.group.position.clone()
-    if (fx.arrival.lanes) {
-      for (const dz of fx.arrival.lanes) {
-        const p = at.clone()
-        p.z += dz
-        effects.spawnBurst(p, step.element, fx.arrival.burst)
+  const choreo = createStepChoreo({
+    effects,
+    bigHit: (damage) => bigHit(damage),
+    startAction: (run, ao, at) => {
+      startAction(run, ao, at)
+    },
+    cancelAction: () => {
+      if (actionRaf !== null) {
+        cancelAnimationFrame(actionRaf)
+        actionRaf = null
       }
-    } else {
-      effects.spawnBurst(at, step.element, fx.arrival.burst)
-    }
-    if (fx.arrival.shove !== 0) impulse(side.target, fx.arrival.shove)
-  }
-
-  /**
-   * Unified special fire (FR5): run the move's launch body and release
-   * its shots. Ranged fire runs at full pacing from the projectile
-   * step (arrival is a separate impact step); point-blank fire
-   * compresses the same body into the impact step with a micro-flight,
-   * and the victim reacts when the shot actually lands.
-   */
-  const fireSpecial = (
-    step: PlaybackStep,
-    side: { actor: Combatant; target: Combatant },
-    compressed: boolean,
-  ): void => {
-    const fx = fxFor(step.moveId)
-    const away = side.actor.away
-    const wind = compressed ? (fx.compressed?.wind ?? 0.32) : fx.wind
-    // Scale the fixed micro-flight with the live pace, exactly like
-    // animMs() does - otherwise fast-forward clamps animMs() to 120 ms
-    // while the flight stays at full length and landBeat escapes [0, 1],
-    // silently dropping the victim's reaction, burst, and decal.
-    const flight = compressed
-      ? (fx.compressed?.flight ?? Math.min(300, animMs() * 0.5)) *
-        (paceMs / NORMAL_STEP_MS)
-      : (fx.shots[0]?.life ?? PROJECTILE_LIFE_MS)
-    const beats =
-      compressed && fx.compressed?.beats !== undefined
-        ? fx.compressed.beats
-        : compressed
-          ? fx.shots.map(() => wind)
-          : fx.shots.map((s) => s.at)
-    const firedRef = { n: 0 }
-    const landedRef = { done: false }
-    // Point-blank: the shot lands inside this action; the victim
-    // reacts at the landing beat, not before it. Clamped so a degenerate
-    // schedule still fires the landing at the action's end.
-    const landBeat = compressed
-      ? Math.min(1, (beats[0] ?? wind) + flight / animMs())
-      : Number.POSITIVE_INFINITY
-    actionRaf = startAction(
-      (t, ao) => {
-        if (t < wind) {
-          const w = t / wind
-          applyPosture(fx.pose.windup, w, ao, away)
-          if (fx.charge) {
-            effects.setCharge(
-              side.actor,
-              step.element,
-              fx.charge.from + w * (fx.charge.to - fx.charge.from),
-            )
-          }
-          return
-        }
-        // Release the shots on their beats.
-        while (firedRef.n < fx.shots.length) {
-          const beat = beats[firedRef.n]
-          const shot = fx.shots[firedRef.n]
-          if (beat === undefined || shot === undefined || t < beat) break
-          effects.spawnProjectile(side.actor, side.target, step.element, {
-            size: shot.size,
-            life: compressed ? flight : shot.life,
-            spread: shot.spread ?? 0,
-          })
-          impulse(ao, fx.kick)
-          if (firedRef.n === 0) {
-            if (fx.charge) effects.clearCharge()
-            if (fx.muzzle) {
-              const mouth = side.actor.group.position.clone()
-              mouth.y += 0.2
-              effects.spawnBurst(mouth, step.element, fx.muzzle)
-            }
-          }
-          firedRef.n += 1
-        }
-        // Point-blank: the shot lands inside this action.
-        if (compressed && !landedRef.done && t >= landBeat) {
-          landedRef.done = true
-          arriveSpecial(step, side)
-          contactReaction(
-            step.damage,
-            side.target,
-            heavyHit(step),
-            step.element,
-          )
-        }
-        const release = beats[0] ?? wind
-        const w = clamp01((t - release) / Math.max(0.01, 1 - release))
-        applyPosture(fx.pose.recoil, w, ao, away)
-      },
-      side.actor,
-      side.target,
-    )
-  }
-
-  const runStep = (
-    step: PlaybackStep,
-    instant: boolean,
-    o: Combatant,
-    r: Combatant,
-  ): void => {
-    if (actionRaf !== null) {
-      cancelAnimationFrame(actionRaf)
-      actionRaf = null
-    }
-    // A step that interrupts a charging Lance must not leave the orb.
-    effects.clearCharge()
-    for (const c of [o, r]) {
-      c.offset.set(0, 0, 0)
-      c.lean.pitch = 0
-      c.lean.roll = 0
-    }
-    const side = spotOf(step.actorKey ?? step.actor, o, r)
-
-    switch (step.kind) {
-      case "approach": {
-        // Walk to a strike-range stance on the target's flank: closes the
-        // lane and sets up the weave for the attack that follows.
-        side.actor.stage.set(
-          side.target.stage.x + side.actor.away * STANCE_GAP,
-          0,
-          side.target.stage.z + weave(step),
-        )
-        if (instant) snapTo(side.actor)
-        break
-      }
-      case "idle":
-        // Hold ground; the driver keeps the breath and facing alive.
-        break
-      case "melee": {
-        // Authored attack: wind-up (coil back), committed strike into
-        // contact, then a weighted recovery. A hit lands at contact
-        // (knockback, squash, flash); a miss is a whiff the target
-        // slipped (dodge dash) or simply avoids.
-        const hit = step.hit !== false
-        const missed = !hit
-        const dodged = missed && step.missReason === "dodge"
-        if (instant) {
-          // Resolve instantly: run the contact consequences with no anim.
-          if (hit)
-            contactReaction(
-              step.damage,
-              side.target,
-              heavyHit(step),
-              step.element,
-            )
-          if (dodged) {
-            side.target.stage.x += side.target.away * 0.85
-            snapTo(side.target)
-          }
-          side.actor.stage.set(
-            side.target.stage.x + side.actor.away * STANCE_GAP,
-            0,
-            side.target.stage.z,
-          )
-          snapTo(side.actor)
-          break
-        }
-        const from = side.actor.group.position.clone()
-        const toPos = side.target.group.position.clone()
-        // Strike into contact, stop just short of a body overlap.
-        const dir = toPos.clone().sub(from)
-        dir.y = 0
-        const dist = dir.length()
-        dir.normalize()
-        dir.x += weave(step) * 0.12
-        dir.normalize()
-        const contact = from
-          .clone()
-          .addScaledVector(dir, Math.max(0.45, dist - CONTACT_GAP))
-        let landed = false
-        actionRaf = startAction(
-          (t, ao, at) => {
-            // Phase timing comes from the enriched playback contract
-            // (FR3) — the melee boundaries here are the contract's own
-            // numbers, so choreography and script agree by construction.
-            const melee = phaseAt(t, PLAYBACK_PHASES.melee)
-            if (melee.phase === "windup") {
-              // Anticipation: coil back on the approach line, drop weight.
-              const w = melee.local
-              ao.offset.copy(dir).multiplyScalar(-0.22 * Math.sin(w * Math.PI))
-              ao.offset.y = -0.05 * Math.sin(w * Math.PI)
-              ao.lean.roll = 0.05 * Math.sin(w * Math.PI)
-            } else if (melee.phase === "contact") {
-              // The strike: uncoil fast down the line (easeOutCubic).
-              const w = melee.local
-              ao.offset
-                .copy(dir)
-                .multiplyScalar(
-                  -0.22 + (contact.distanceTo(from) + 0.22) * easeOutCubic(w),
-                )
-              ao.offset.y = -0.05 * (1 - w) + 0.06 * w
-              ao.lean.pitch = 0.1 * Math.sin(w * Math.PI)
-              ao.lean.roll = -0.05 * (1 - w)
-              if (w > 0.3) impulse(ao, -0.28) // stretch while committing
-            } else {
-              // Follow-through + recovery: settle back to stance spacing.
-              const w = melee.local
-              ao.offset
-                .copy(contact)
-                .sub(from)
-                .multiplyScalar(1 - easeOut(w))
-              ao.lean.pitch = 0.1 * (1 - easeOut(w))
-              ao.lean.roll = -0.05 * (1 - easeOut(w))
-              if (!landed) {
-                landed = true
-                if (hit) {
-                  contactReaction(step.damage, at, heavyHit(step), step.element)
-                } else if (dodged) {
-                  // The target slipped: a quick dash off the lane.
-                  at.stage.x += at.away * 0.85
-                  impulse(at, -0.3)
-                }
-              }
-              if (hit && w > 0.6) impulse(ao, 0.12) // attacker settles heavy
-            }
-          },
-          side.actor,
-          side.target,
-        )
-        break
-      }
-      case "projectile": {
-        // Ranged special: the full-pacing launch body. Point-blank
-        // specials replay the same body compressed from the impact
-        // step - unified fire (FR5).
-        if (instant) {
-          // No flight to show: the following impact step resolves the
-          // hit on the spot.
-          break
-        }
-        fireSpecial(step, side, false)
-        break
-      }
-      case "impact": {
-        // Specials report their own landing here (the launch already
-        // fired). A dodge is a real evasion: a dash off the lane.
-        if (!step.hit) {
-          if (step.missReason === "dodge") {
-            // A real evasion: dash off the lane in the contract's
-            // dodge direction, weighted by the reaction library.
-            const spec = reactionFor("dodge", side.target.profile)
-            side.target.stage.x += side.target.away * spec.dash
-            side.target.stage.z += step.dodgeDirection === "left" ? 0.45 : -0.45
-            if (instant) {
-              impulse(side.target, spec.impulse)
-              snapTo(side.target)
-            }
-          }
-          break
-        }
-        if (instant) {
-          contactReaction(
-            step.damage,
-            side.target,
-            heavyHit(step),
-            step.element,
-          )
-          snapTo(side.target)
-          if (step.element) arriveSpecial(step, side)
-          break
-        }
-        if (step.element && prevStepKind !== "projectile") {
-          // Unified fire (FR5): point-blank specials replay their
-          // launch body compressed - windup, micro-flight, then the
-          // arrival burst and the victim's reaction when the shot lands.
-          fireSpecial(step, side, true)
-          break
-        }
-        reactionAction(step.damage, side.target, heavyHit(step), step.element)
-        if (step.element) arriveSpecial(step, side)
-        break
-      }
-      case "stagger":
-      case "knockback": {
-        // The reel beat (FR5): the victim is off-balance after a heavy
-        // blow. Knockback also carries the sim's range change outward -
-        // the glide does the traveling, the reel sells the physics.
-        const spec = reactionFor(step.kind, side.actor.profile)
-        if (spec.slide > 0) side.actor.stage.x += side.actor.away * spec.slide
-        if (instant) {
-          snapTo(side.actor)
-          break
-        }
-        actionRaf = startAction(
-          (t, ao) => {
-            if (t >= spec.reel) {
-              ao.lean.pitch = 0
-              ao.lean.roll = 0
-              return
-            }
-            const w = Math.sin((clamp01(t / spec.reel) * Math.PI) / 2)
-            ao.lean.pitch = -spec.reelPitch * w
-            ao.lean.roll = spec.reelPitch * 0.4 * Math.sin(t * Math.PI * 3)
-          },
-          side.actor,
-          side.target,
-        )
-        break
-      }
-      case "down": {
-        // Fall on the back and stay down - the action drives `fall`, the
-        // driver renders the topple while the squash adds landing weight.
-        side.actor.down = true
-        const spec = reactionFor("down", side.actor.profile)
-        if (instant) {
-          side.actor.fall = 1
-          snapTo(side.actor)
-          impulse(side.actor, spec.impulse)
-        } else if (step.ko === true) {
-          // FR8 signature: the legs give in stages. A stagger wind-up
-          // pitches the body back, then the collapse takes over - the
-          // dilated pace (driver FR8) stretches the whole beat, and the
-          // landing kicks up a dust ring instead of an element pop.
-          let thudded = false
-          actionRaf = startAction(
-            (t, ao) => {
-              if (t < 0.35) {
-                const w = t / 0.35
-                ao.lean.pitch = -0.32 * Math.sin(w * Math.PI * 0.5)
-                return
-              }
-              const u = clamp01((t - 0.35) / 0.65)
-              ao.fall = easeOut(u)
-              ao.lean.pitch = -0.32 * (1 - u * 0.4)
-              if (u > 0.3 && !thudded) {
-                thudded = true
-                impulse(ao, spec.impulse)
-                effects.spawnBurst(ao.group.position, step.element, {
-                  puffs: 9,
-                  ring: true,
-                  gravity: 2.2,
-                  life: 750,
-                  flash: false,
-                  tint: "#9a9184",
-                  size: 1.3,
-                  flashGrow: 0,
-                })
-              }
-            },
-            side.actor,
-            side.target,
-          )
-        } else {
-          let thudded = false
-          actionRaf = startAction(
-            (t, ao) => {
-              ao.fall = easeOut(clamp01(t / spec.reel))
-              if (t > 0.55 && !thudded) {
-                thudded = true
-                impulse(ao, spec.impulse)
-              }
-            },
-            side.actor,
-            side.target,
-          )
-        }
-        break
-      }
-      case "judge": {
-        // Result stamp: the standing winner takes a double victory hop —
-        // each hop stretches on the rise and squashes on the landing.
-        const standing = [o, r].filter((c) => !c.down)
-        const winner = standing[0]
-        if (instant || !winner) break
-        const hopRef = { hops: 0 }
-        const landedRef = { count: 0 }
-        actionRaf = startAction(
-          (t, ao) => {
-            const w = t * Math.PI * 2
-            ao.offset.y = Math.abs(Math.sin(w)) * 0.35
-            const rising = Math.sin(w) > 0
-            const localT = (t * 2) % 1
-            if (rising && localT < 0.25 && hopRef.hops < 2) {
-              hopRef.hops++
-              impulse(ao, -0.4)
-            }
-            // One thud per completed hop — an edge trigger, not a
-            // per-frame repeat.
-            if (!rising && localT > 0.9 && landedRef.count < hopRef.hops) {
-              landedRef.count++
-              impulse(ao, 0.55)
-            }
-          },
-          winner,
-          winner === o ? r : o,
-        )
-        break
-      }
-    }
-  }
-
-  /**
-   * The victim-only portion of a special landing: knockback persists in
-   * the stage, the body squashes and settles, flash + hit-stop fire.
-   */
-  const reactionAction = (
-    damage: number | undefined,
-    at: Combatant,
-    heavy = false,
-    element?: string,
-  ): void => {
-    contactReaction(damage, at, heavy, element)
-  }
+    },
+    animMs,
+    paceRatio: () => paceMs / NORMAL_STEP_MS,
+    reduced: () => motionPref === "reduced",
+    prevKind: () => prevStepKind,
+  })
 
   /** One scripted action on staging's own clock (hit-stop aware). */
   const startAction = (
-    run: (t: number, o: Combatant, r: Combatant) => void,
-    o: Combatant,
-    r: Combatant,
+    run: (t: number, o: DriveFighter, r: DriveFighter) => void,
+    o: DriveFighter,
+    r: DriveFighter,
   ): number => {
     const start = performance.now()
     const tick = (): void => {
@@ -926,7 +407,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       const kind = step.kind
       lastStep = step
       lastStepAt = performance.now()
-      runStep(step, instant, o, r)
+      choreo.apply(step, instant, o, r)
       prevStepKind = kind
     },
     setBigHitHandler(handler) {

@@ -146,6 +146,10 @@ export function topplePose(
  * the pose loop owns.
  */
 export interface DriveFighter {
+  /** Display name - the step registry's fallback identity match. */
+  name: string
+  /** Stable side key ("left"/"right") - wins over the name in mirror matches. */
+  key?: string
   group: THREE.Group
   stage: THREE.Vector3
   smooth: THREE.Vector3
@@ -167,6 +171,12 @@ export interface DriveFighter {
   fall: number
   /** Attack lean: pitch (x) and roll (z) authored by the running action. */
   lean: { pitch: number; roll: number }
+  /**
+   * Each Lambert mesh's unlit color, captured at cast - the white-out
+   * flash restores from it. Carried here so the step handlers can flash
+   * a victim without downcasting to staging's concrete combatant.
+   */
+  baseColors: Map<THREE.Mesh, THREE.Color>
 }
 
 export interface FighterDriver {
