@@ -55,8 +55,8 @@ manual verification for presentation tasks, phase checkpoints per
   - "Champion" stage badge was already stage-aware (`stageLabel`); day-20 hint line added to the coach priority chain (direction-only: bond + cups, no thresholds); `evolveCallout` picks the boost by stage (+6/+4/+4/+2 for champion); condition-plate reflects the boost automatically via effectiveStats
 - [x] Task: Arena cast check — 743ee6b
   - `FightCasting`/`CastInfo`/`castFighter` carry an optional `stage`; `roster.buildSpot` passes it to `generate` — this also fixes the pre-existing gap where arena fighters always rendered as baby builds; cup + spar pass the owned creature's stage (rivals keep the stats-only seed); no re-roll between ranch and arena (same `visualSeedOf(stats, stage)`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - Browser-driven verification: dev server + sim-generated v9 save seeded via localStorage; screenshots at each step (hint → ceremony → badge → arena cast → reduced motion); console clean; **[checkpoint: <sha>]** (verification note appended)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - Browser-driven verification: dev server + sim-generated v9 save seeded via localStorage; screenshots at each step (hint → ceremony → badge → arena cast → reduced motion); console clean; **[checkpoint: 9a7147b]** (verification note appended)
 
 ## Phase 4 — Wrap-up
 
