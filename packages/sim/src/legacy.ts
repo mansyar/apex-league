@@ -205,7 +205,10 @@ export function createInheritedCreature(
     spd: Math.max(base.stats.spd, floor.spd),
   }
   const conditions = lineagePerks(prestige).warmBloodline
-    ? { ...base.conditions, bond: Math.max(base.conditions.bond, WARM_BOND_START) }
+    ? {
+        ...base.conditions,
+        bond: Math.max(base.conditions.bond, WARM_BOND_START),
+      }
     : base.conditions
   return { ...base, stats, conditions }
 }

@@ -9,9 +9,9 @@ import { type CreatureStats, effectiveStats } from "./creature"
 import {
   canGraduate,
   createInheritedCreature,
-  graduate,
   GRADUATION_DAY,
   GRADUATION_HINT_DAY,
+  graduate,
   INHERITANCE_FRACTION,
   inheritedFloor,
   initialLineage,
@@ -33,7 +33,11 @@ import {
 type Stage = "baby" | "juvenile" | "champion"
 
 /** A single-creature state at a chosen stage/day/phase. */
-function stateWith(stage: Stage, day: number, phase: "day" | "cup" = "day"): GameState {
+function stateWith(
+  stage: Stage,
+  day: number,
+  phase: "day" | "cup" = "day",
+): GameState {
   const owned = chooseStarter(createInitialState(), "fire_drake", 42)
   const creature = owned.creature
   if (!creature) throw new Error("expected a starter creature")
@@ -211,16 +215,28 @@ describe("inheritedFloor", () => {
 
   it("clamps a huge parent down to the species maximums", () => {
     const huge: CreatureStats = { hp: 500, atk: 500, def: 500, spd: 500 }
-    expect(inheritedFloor(huge, drake, 0)).toEqual({ hp: 46, atk: 13, def: 10, spd: 12 })
+    expect(inheritedFloor(huge, drake, 0)).toEqual({
+      hp: 46,
+      atk: 13,
+      def: 10,
+      spd: 12,
+    })
   })
 
   it("clamps a weak parent up to the species minimums", () => {
     const weak: CreatureStats = { hp: 2, atk: 2, def: 2, spd: 2 }
-    expect(inheritedFloor(weak, drake, 0)).toEqual({ hp: 38, atk: 9, def: 7, spd: 9 })
+    expect(inheritedFloor(weak, drake, 0)).toEqual({
+      hp: 38,
+      atk: 9,
+      def: 7,
+      spd: 9,
+    })
   })
 
   it("adds +1 per stat at the established-line milestone (pre-clamp)", () => {
-    expect(inheritedFloor(parentStats, drake, PRESTIGE_ESTABLISHED_LINE)).toEqual({
+    expect(
+      inheritedFloor(parentStats, drake, PRESTIGE_ESTABLISHED_LINE),
+    ).toEqual({
       hp: 41,
       atk: 13,
       def: 9,
@@ -229,7 +245,9 @@ describe("inheritedFloor", () => {
   })
 
   it("grants no bonus below the milestone", () => {
-    expect(inheritedFloor(parentStats, drake, PRESTIGE_ESTABLISHED_LINE - 1)).toEqual({
+    expect(
+      inheritedFloor(parentStats, drake, PRESTIGE_ESTABLISHED_LINE - 1),
+    ).toEqual({
       hp: 40,
       atk: 12,
       def: 8,
