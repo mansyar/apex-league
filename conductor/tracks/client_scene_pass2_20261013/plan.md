@@ -79,7 +79,7 @@ consume, then the mock/CSS polish.
 
 ## Phase 3 — staging.ts Decomposition
 
-- [ ] Task: Extract FighterDriver
+- [~] Task: Extract FighterDriver
   - [ ] Create `FighterDriver` class owning `drive()` closure state:
         squash spring, topple, bounds, glide/lerp walk, gait/breath/sway
         compose

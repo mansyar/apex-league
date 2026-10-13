@@ -1,16 +1,7 @@
 import { PLAYBACK_PHASES, type PlaybackStep } from "@apex/sim"
 import { generate } from "@apex/voxel"
 import * as THREE from "three"
-import {
-  approach,
-  breath as breathSine,
-  clamp01,
-  easeOut,
-  easeOutCubic,
-  gait as gaitBob,
-  phaseAt,
-  stepSquash,
-} from "./anim"
+import { clamp01, easeOut, easeOutCubic, phaseAt } from "./anim"
 import {
   type BodyProfile,
   idleSway,
@@ -20,6 +11,7 @@ import {
 } from "./choreo"
 import { buildCreatureGroup } from "./creature"
 import type { DirectorContext, DirectorStep } from "./director"
+import { createFighterDriver } from "./fighter-driver"
 import { fxFor, type Posture, PROJECTILE_LIFE_MS } from "./move-fx"
 import { disposeObject3D, lambertMaterialOf } from "./scene-utils"
 import { createBattleEffects } from "./staging-fx"
@@ -58,28 +50,9 @@ const STANCE_GAP = 2.1
 const CONTACT_GAP = 1.8
 
 /**
- * Show-floor bounds: fighters are clamped well inside the painted
- * boundary ring (8.3) and comfortably inside the broadcast framing, so
- * nobody leaves the arena or the camera's view.
+ * Show-floor bounds live in the fighter-driver module (the pose loop
+ * clamps stage targets against them).
  */
-const BOUNDS_X = 3.2
-const BOUNDS_Z = 1.8
-
-/** Stage-glide rate (exp smoothing) — the pace of a purposeful walk. */
-const GLIDE = 4.5
-
-/** Idle breathing + gait amplitudes (reduced motion zeroes the gait). */
-const BREATH_AMP = 0.03
-const BREATH_FREQ = 2.2
-const GAIT_AMP = 0.085
-/** Forward lean into movement, radians per unit of speed. */
-const LEAN_PER_SPEED = 0.045
-const LEAN_MAX = 0.14
-
-/** Squash-and-stretch spring (weight): stiffness and damping. */
-const SQUASH_K = 210
-const SQUASH_D = 13
-
 export interface FightCasting {
   /** Which creature stands on the left (home) side. */
   owned: { archetypeId: string; seed: number; name: string; key?: string }
@@ -154,7 +127,6 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   let rival: Combatant | null = null
   let actionRaf: number | null = null
   let driveRaf: number | null = null
-  let lastDrive = 0
   /** Current spar pacing (ms per playback step); animations scale off it. */
   let paceMs = NORMAL_STEP_MS
   /** Kind of the previously applied step - tells a ranged arrival
@@ -216,12 +188,6 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     })
   }
 
-  /** Wrap an angle delta into [-π, π) so yaw always takes the short way. */
-  const shortestAngle = (a: number): number => {
-    const turn = Math.PI * 2
-    return ((((a + Math.PI) % turn) + turn) % turn) - Math.PI
-  }
-
   /** Kick the squash spring (positive = squash, negative = stretch). */
   const impulse = (c: Combatant, amount: number): void => {
     if (motionPref === "reduced") amount *= 0.4
@@ -241,99 +207,17 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     return []
   }
 
-  // Scratch vector hoisted out of the always-running driver loop.
-  const glideFrom = new THREE.Vector3()
+  // The pose loop itself lives in the fighter-driver module; the staging
+  // factory keeps the rAF wiring, the step choreography, and the
+  // camera-director feed.
+  const driver = createFighterDriver({
+    pair,
+    pref: () => motionPref,
+  })
 
   const drive = (): void => {
     const now = performance.now()
-    // 1/30 cap keeps the SQUASH spring (ω ≈ 14.5 rad/s) well inside its
-    // symplectic-Euler stability window even after a tab-return hitch.
-    const dt = Math.min(1 / 30, (now - lastDrive) / 1000 || 1 / 60)
-    lastDrive = now
-    const life = motionPref === "reduced" ? 0 : 1
-    for (const [c, other] of pair()) {
-      // Squash spring integrates for everyone — the KO landing impulse
-      // needs it even while the down branch owns the pose.
-      c.squash = stepSquash(c.squash, dt, SQUASH_K, SQUASH_D)
-      // Downed fighter: the driver keeps rendering the topple (the fall
-      // action only lives for the fall beat; afterwards the driver owns
-      // the pose). Head points away from the standing rival.
-      if (c.down) {
-        // Topple onto the back, body along the floor, head away from the
-        // standing rival, at a slight lift so the body reads on the floor.
-        // The KO reel (FR8) pitches the body back through lean before the
-        // topple takes over - the same lean channel the strike phases use.
-        c.group.rotation.z = -c.away * (Math.PI / 2) * c.fall
-        c.group.rotation.x = c.lean.pitch
-        c.group.position.set(c.smooth.x, 0.28 * c.fall, c.smooth.z)
-        const sq = c.squash.s
-        const base = c.baseScale
-        c.group.scale.set(
-          base * (1 + sq * 0.34),
-          base * Math.max(0.05, 1 - sq * 0.5),
-          base * (1 + sq * 0.34),
-        )
-        continue
-      }
-      // Keep the stage target inside the show floor (knockbacks, retreats
-      // and approach overshoot all funnel back into the painted ring).
-      c.stage.x = Math.max(-BOUNDS_X, Math.min(BOUNDS_X, c.stage.x))
-      c.stage.z = Math.max(-BOUNDS_Z, Math.min(BOUNDS_Z, c.stage.z))
-      // Walk toward the stage target (exp smoothing, frame-rate safe).
-      glideFrom.copy(c.smooth)
-      c.smooth.lerp(c.stage, approach(0, 1, GLIDE, dt))
-      // Frame velocity from measured motion — the gait's tempo source.
-      c.velocity.copy(c.smooth).sub(glideFrom).divideScalar(dt)
-      const speed = Math.hypot(c.velocity.x, c.velocity.z)
-      c.walkPhase += speed * dt * 5.2 * c.profile.gaitFreq
-      // Lean into movement: pitch with forward speed, roll with the gait.
-      const leanTarget = Math.min(
-        LEAN_MAX,
-        speed * LEAN_PER_SPEED * c.profile.leanPitch,
-      )
-      c.lean.pitch = approach(c.lean.pitch, leanTarget, 8, dt)
-      c.lean.roll = approach(c.lean.roll, 0, 6, dt)
-
-      // Compose the pose: walk position + action offset + gait bob +
-      // breath at rest, all scaled by the squash spring (weight). The
-      // archetype's body-language profile (FR5) weights every term.
-      const rest = speed < 0.15 ? 1 : 0
-      const gait = gaitBob(c.walkPhase, GAIT_AMP * c.profile.gaitAmp, life)
-      const breath = breathSine(
-        now,
-        BREATH_FREQ * 2 * c.profile.breathFreq,
-        BREATH_AMP * c.profile.breathAmp * rest,
-        c.phase,
-      )
-      const sway = idleSway(c.profile, now, c.phase) * rest
-      c.group.position.set(
-        c.smooth.x + c.offset.x,
-        Math.max(
-          0,
-          c.smooth.y + c.offset.y + gait + breath - c.squash.s * 0.42,
-        ),
-        c.smooth.z + c.offset.z + sway,
-      )
-      const sq = c.squash.s
-      // Compose with the holder's base scale, never replace it. The baked
-      // voxel scale lives on the inner rig; a bare set() here would blow
-      // the voxel-local coordinates up 10× and the fighter's meshes would
-      // land outside the arena.
-      const base = c.baseScale
-      c.group.scale.set(
-        base * (1 + sq * 0.34),
-        base * (1 - sq * 0.5),
-        base * (1 + sq * 0.34),
-      )
-      // Face the rival every frame; yaw leads, pitch/roll support.
-      const dx = other.group.position.x - c.group.position.x
-      const dz = other.group.position.z - c.group.position.z
-      const desired = Math.atan2(dx, dz)
-      c.group.rotation.y +=
-        shortestAngle(desired - c.group.rotation.y) * approach(0, 1, 9, dt)
-      c.group.rotation.x = c.lean.pitch
-      c.group.rotation.z = c.lean.roll
-    }
+    driver.step(now)
     // Camera-director feed (FR6): report the live battle context every
     // frame. Melee/projectile steps run on the action clock; every other
     // beat paces by the step duration.
@@ -367,7 +251,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   /** Start (or restart) the driver; idempotent per cast. */
   const startDrive = (): void => {
     if (driveRaf !== null) cancelAnimationFrame(driveRaf)
-    lastDrive = performance.now()
+    driver.syncClock(performance.now())
     driveRaf = requestAnimationFrame(drive)
   }
 
