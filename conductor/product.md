@@ -66,7 +66,13 @@ Phased delivery plan (each phase is independently playable):
   nubs, bovine horn buds, axolotl gill frills) plus matured proportions at
   1.0× world scale (baby 0.6×). Ranch ceremony with glow/swap (reduced-motion
   aware), stage badge, growth hint from day 5, save v6 with v5 migration.
-  Champion stage + branching still open.)*
+  Landed 2026-10-13: the champion stage completes the 3-stage tree — prestige
+  gate on the night of day 25 (mood ≥ 40, clean sickness nights, bond ≥ 60,
+  at least one cup win), pinned +6 HP / +4 ATK / +4 DEF / +2 SPD, voxel
+  champion build with per-archetype signature upgrades (drake crown horns,
+  bovine full horn curls, axolotl grand frills + tail fin) at 1.15× holder
+  scale, grander ceremony, day-20 hint, stage-aware arena cast. Stage
+  branching still open.)*
 - Full day loop: feeding, rest & sickness, assign-based training, bonding.
   *(Landed: care loop with 5 conditions, AP day phase, 3 starters.)*
 - Battle system: 4 stats + 6 types, move pool + equip-4, type/HP battle AI.
