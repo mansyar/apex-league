@@ -97,11 +97,13 @@ consume, then the mock/CSS polish.
 - [x] Task: Extract roster module <!-- d61e554 -->
   - [x] Move cast/clear (palette capture/restore, `ARENA_FOOTPRINT`
         normalization) into a roster module
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] `bun run verify` green; arena playback identical (event-for-event)
-  - [ ] Manual verification: Spar + cup matches in the arena — melee,
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] `bun run verify` green; arena playback identical (event-for-event)
+  - [x] Manual verification: Spar + cup matches in the arena — melee,
         projectile, dodge, stagger, knockback, KO/dust, double-KO,
         time-out endings; fast-forward and reduced-motion dump paths
+
+[checkpoint: d61e554]
 
 ## Phase 4 — Shared Battle-Session Shell
 
