@@ -20,14 +20,7 @@ import {
 } from "./choreo"
 import { buildCreatureGroup } from "./creature"
 import type { DirectorContext, DirectorStep } from "./director"
-import { elementHue } from "./element"
-import {
-  fxFor,
-  type MoveFx,
-  type Posture,
-  PROJECTILE_LIFE_MS,
-  type ShotSpec,
-} from "./move-fx"
+import { fxFor, type Posture, PROJECTILE_LIFE_MS } from "./move-fx"
 import { disposeObject3D, lambertMaterialOf } from "./scene-utils"
 import { createBattleEffects } from "./staging-fx"
 
