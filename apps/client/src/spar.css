@@ -262,10 +262,13 @@
 
 /* Arena mode: the ranch HUD (score bug, creature lower-third, care
    cluster) hides while a fight frames the bowl — broadcast clarity.
-   The spar panel and motion pill stay visible. */
+   The spar panel, motion pill and camera chip stay visible; the new
+   game chip is a ranch-world control and hides with the dock. */
 .app-in-arena .score-bug,
 .app-in-arena .creature-plate,
-.app-in-arena .spar-button {
+.app-in-arena .spar-button,
+.app-in-arena .command-dock,
+.app-in-arena .new-game-chip {
   display: none;
 }
 

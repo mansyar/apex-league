@@ -516,6 +516,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   motionWrap.append(cameraChip)
   // New game (save v7 QoL): a quiet chip beside the motion toggle. The
   // confirm modal does the scary part — one deliberate click, not a misclick.
+  // Ranch-only: the arena hide-list targets this class.
   const resetChip = chip({
     label: "New game",
     variant: "dim",
@@ -524,6 +525,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       resetConfirm.focus()
     },
   })
+  resetChip.classList.add("new-game-chip")
   motionWrap.append(resetChip)
 
   const resetModal = document.createElement("div")
