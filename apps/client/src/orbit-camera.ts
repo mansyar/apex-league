@@ -1,5 +1,10 @@
 import * as THREE from "three"
 import type { CameraIntent } from "./director"
+import { arenaFramingAdjust } from "./scene-logic"
+
+/** Base vertical FOV; narrow viewports widen the lens on top of this
+ * (see arenaFramingAdjust). */
+export const BASE_FOV = 45
 
 /**
  * The ranch orbit camera and its arena alter-ego. One module owns every
@@ -48,6 +53,8 @@ export interface OrbitCameraRig {
   shake(strength: number): void
   /** Kill any live shake without re-anchoring (motion-pref flips). */
   resetShake(): void
+  /** Recompute the viewport-driven framing (F6); call on resize. */
+  resize(width: number, height: number): void
   /**
    * Soft ranch track: while the creature is in the ceremony or on a wander
    * trip the aim eases toward its position; otherwise it drifts back to the
@@ -75,6 +82,14 @@ export function createOrbitCamera(
   let savedOrbit = { azimuth: 0, elevation: 0, radius: 0 }
   const target = new THREE.Vector3(0, 0.8, 0)
   const orbit = { azimuth: 0.567, elevation: 0.326, radius: 6.9 }
+  // F6 (responsive_foundation_20261013): the broadcast framing was tuned
+  // for wide desktop viewports; narrow/portrait ones crop the stage
+  // corners out of frame. Back the arena shot off and widen the lens,
+  // recomputed on resize (resize()).
+  let arenaAdjust = arenaFramingAdjust(
+    canvas.clientWidth / (canvas.clientHeight || 1),
+  )
+  let arenaRadius = ARENA_FRAMING.radius * arenaAdjust.radiusMult
   // Reusable scratch vectors (no per-frame allocations).
   const focusPoint = new THREE.Vector3()
   const directorDesired = new THREE.Vector3()
@@ -105,7 +120,7 @@ export function createOrbitCamera(
       savedOrbit = { ...orbit }
       orbit.azimuth = ARENA_FRAMING.azimuth
       orbit.elevation = ARENA_FRAMING.elevation
-      orbit.radius = ARENA_FRAMING.radius
+      orbit.radius = arenaRadius
       // The arena is centered at the world origin — a ranch camera that
       // was soft-tracking a wandering creature must not carry that aim
       // offset into the broadcast framing.
@@ -238,7 +253,7 @@ export function createOrbitCamera(
         directorIntent !== null && performance.now() - intentAt < 400
       if (fresh && directorIntent) {
         const intent = directorIntent
-        const radius = ARENA_FRAMING.radius * intent.radiusMult
+        const radius = arenaRadius * intent.radiusMult
         const azimuth = ARENA_FRAMING.azimuth + intent.azimuthDelta
         const elevation = ARENA_FRAMING.elevation + intent.elevationDelta
         directorDesired.set(
@@ -264,12 +279,12 @@ export function createOrbitCamera(
         target.lerp(directorLook, k)
         directorDesired.set(
           target.x +
-            ARENA_FRAMING.radius *
+            arenaRadius *
               Math.cos(ARENA_FRAMING.elevation) *
               Math.sin(ARENA_FRAMING.azimuth),
-          target.y + ARENA_FRAMING.radius * Math.sin(ARENA_FRAMING.elevation),
+          target.y + arenaRadius * Math.sin(ARENA_FRAMING.elevation),
           target.z +
-            ARENA_FRAMING.radius *
+            arenaRadius *
               Math.cos(ARENA_FRAMING.elevation) *
               Math.cos(ARENA_FRAMING.azimuth),
         )
@@ -288,6 +303,15 @@ export function createOrbitCamera(
     resetShake,
     track,
     updateArena,
+    /** Recompute the viewport-driven framing (F6). Call before the
+     * camera's updateProjectionMatrix; also refreshes the arena orbit
+     * radius so mid-battle resizes reach the broadcast shot. */
+    resize(width: number, height: number): void {
+      arenaAdjust = arenaFramingAdjust(width / (height || 1))
+      arenaRadius = ARENA_FRAMING.radius * arenaAdjust.radiusMult
+      camera.fov = BASE_FOV + arenaAdjust.fovAdd
+      if (cameraMode === "arena") orbit.radius = arenaRadius
+    },
     dispose() {
       canvas.removeEventListener("pointerdown", onPointerDown)
       window.removeEventListener("pointermove", onPointerMove)

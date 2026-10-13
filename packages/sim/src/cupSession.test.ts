@@ -178,14 +178,21 @@ describe("resolvePlayerMatch — the live player branch", () => {
   })
 
   test("the coach's tactic changes the battle (specials vs balanced)", () => {
-    // Pin a seed where the two tactics produce different exchanges.
+    // FR6: the two tactics rank by different objectives (expected damage vs
+    // damage per window), so they only diverge when the kit holds moves of
+    // *different* cooldowns — dividing by `1 + cooldown` is a no-op when every
+    // move cools for the same number of actions. A fresh baby unlocks two
+    // cooldown-1 moves (`unlockedKit`), so the full species kit is what makes
+    // the choice observable.
     for (let seed = 1; seed <= 40; seed++) {
       const s = cupDayState(seed)
       const session = prepareCup(s)
       if (!session) throw new Error("session did not resolve")
       const picks = defaultPicks(s)
-      const a = resolvePlayerMatch(session, picks.loadout, "balanced")
-      const b = resolvePlayerMatch(session, picks.loadout, "specials")
+      const species = getSpecies(picks.creature.speciesId)
+      if (!species) throw new Error("unknown species")
+      const a = resolvePlayerMatch(session, species.kit, "balanced")
+      const b = resolvePlayerMatch(session, species.kit, "specials")
       if (!a.verdict.battle || !b.verdict.battle) {
         throw new Error("verdict lost its battle")
       }
@@ -282,8 +289,12 @@ describe("determinism contract — the live cup is replayable", () => {
     const session = prepareCup(s)
     if (!session) throw new Error("session did not resolve")
     const picks = defaultPicks(s)
-    const balanced = resolvePlayerMatch(session, picks.loadout, "balanced")
-    const specials = resolvePlayerMatch(session, picks.loadout, "specials")
+    const species = getSpecies(picks.creature.speciesId)
+    if (!species) throw new Error("unknown species")
+    // Full kit: the two objectives coincide on a kit of equal cooldowns (see
+    // the tactic test above), so the divergence needs a cd-2 move in play.
+    const balanced = resolvePlayerMatch(session, species.kit, "balanced")
+    const specials = resolvePlayerMatch(session, species.kit, "specials")
     expect(balanced.verdict.battle).not.toEqual(specials.verdict.battle)
   })
 

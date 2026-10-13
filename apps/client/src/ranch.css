@@ -547,3 +547,92 @@
 }
 
 /* Top-right spar chip - its own control, separate from the care cluster. */
+
+/* ---- Phone tier (responsive_foundation_20261013) ----
+   Under 768px the ranch HUD rearranges: the two bottom plates stack
+   full-width inside .hud-stack (wrapped by hud.ts), the score bug
+   compacts to the top-right corner, and anchored overlays hug the
+   margins plus the safe-area insets. At ≥768px the original
+   corner-pinned layout above applies unchanged. Tier definitions live
+   in ui/kit.css. */
+
+/* Stack wrapper: a transparent box on desktop (display:contents keeps
+   the children positioned against the root), a real column on phones. */
+.hud-stack {
+  display: contents;
+}
+
+@media (max-width: 767.98px) {
+  .score-bug {
+    top: calc(10px + var(--kit-safe-top));
+    left: auto;
+    right: calc(14px + var(--kit-safe-right));
+    transform: none;
+    gap: 10px;
+    padding: 8px 14px 9px;
+    animation: settle-down 0.5s var(--kit-settle) both;
+  }
+
+  .score-day-num {
+    font-size: 22px;
+  }
+
+  /* Day + AP is the load-bearing readout; the rest folds away. */
+  .score-divider,
+  .score-trophy,
+  .score-ladder {
+    display: none;
+  }
+
+  /* The "Day phase" tab is decorative — the DAY label says it. */
+  .score-bug .kit-tab {
+    display: none;
+  }
+
+  .hud-stack {
+    position: absolute;
+    inset: auto calc(14px + var(--kit-safe-right))
+      calc(14px + var(--kit-safe-bottom)) calc(14px + var(--kit-safe-left));
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  .hud-stack > * {
+    pointer-events: auto;
+  }
+
+  .creature-plate,
+  .command-dock {
+    position: static;
+    width: auto;
+  }
+
+  .hud-motion {
+    top: calc(14px + var(--kit-safe-top));
+    left: calc(14px + var(--kit-safe-left));
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .hud-callout {
+    left: calc(14px + var(--kit-safe-left));
+    right: calc(14px + var(--kit-safe-right));
+    transform: none;
+    max-width: none;
+  }
+}
+
+/* Tablet band (768–1023): the centered full score bug still crowds the
+   top-left chips, so the chip cluster stacks vertically here too. */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .hud-motion {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}

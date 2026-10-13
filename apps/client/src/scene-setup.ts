@@ -3,6 +3,8 @@ import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js"
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js"
 import { RANCH_SKY } from "./environment"
+import { BASE_FOV } from "./orbit-camera"
+import { arenaFramingAdjust } from "./scene-logic"
 
 const GROUND_COLOR = 0x3a4d34
 
@@ -97,8 +99,12 @@ export function setupRanchScene(container: HTMLElement): RanchSetup {
   // crisp even at maximum zoom-out.
   scene.fog = new THREE.Fog(SKY_HORIZON, 16, 30)
 
+  // F6 (responsive_foundation_20261013): narrow viewports widen the lens
+  // on top of the base FOV (see orbit-camera's BASE_FOV / resize()).
   const camera = new THREE.PerspectiveCamera(
-    45,
+    BASE_FOV +
+      arenaFramingAdjust(container.clientWidth / (container.clientHeight || 1))
+        .fovAdd,
     container.clientWidth / (container.clientHeight || 1),
     0.1,
     100,

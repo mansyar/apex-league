@@ -65,15 +65,17 @@ describe("resolveBattle", () => {
 
   test("a one-sided KO ends with winner, reason ko, and a down event", () => {
     // Seed 22's first two rolls (62, 23) are under both accuracies, so the
-    // ATK 20 Blaze Bolt downs the 40-HP Reed with 48 and Reed's Bramble
-    // Dart still lands 6 into fire (0.5x).
+    // ATK 20 Blaze Bolt downs the 40-HP Reed with 48. Reed's reply is Thorn
+    // Volley for 4 into fire (0.5x) — under the FR6 sustained ranking the
+    // cooldown-1 Thorn Volley outranks the cooldown-2 Bramble Dart, so
+    // Bolt keeps 2 more HP than the pre-FR6 pin.
     const bolt = side("Bolt", "fire", { atk: 20 })
     const reed = side("Reed", "plant", {}, { kit: OX_KIT })
     const result = resolveBattle(bolt, reed, 22)
 
     expect(result.reason).toBe("ko")
     expect(result.winner).toBe("Bolt")
-    expect(result.finalHp).toEqual({ Bolt: 34, Reed: -8 })
+    expect(result.finalHp).toEqual({ Bolt: 36, Reed: -8 })
     // The down lands mid-log now: the whole impact step resolves before the
     // judgment, so Reed's own Bramble Dart still appears after the down.
     const down = result.events.find(

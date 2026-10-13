@@ -16,6 +16,7 @@ import {
   type CupSession,
   type CupSlot,
   cupPlacement,
+  doubleKoAdvancingName,
   type RoundVerdict,
 } from "@apex/sim"
 
@@ -57,9 +58,16 @@ function columnOf(round: number, totalRounds: number): "qf" | "sf" | "f" {
 }
 
 /** The name that advances from a resolved pairing: the verdict's winner, or
- * — on a double-KO draw — the earlier slot (the sim's tiebreak). */
+ * — on a double-KO draw — the sim's tiebreak, the fighter with more HP left
+ * standing (battle-sim-consolidation FR4). Falling back to `slotA` here
+ * highlighted a fighter the sim had already eliminated, so the next round
+ * showed the wrong contender. A forfeit carries no battle to read HP from,
+ * so it keeps the earlier slot. */
 function advancingName(verdict: RoundVerdict): string {
-  return verdict.winner ?? verdict.slotA
+  if (verdict.winner) return verdict.winner
+  const finalHp = verdict.battle?.finalHp
+  if (!finalHp) return verdict.slotA
+  return doubleKoAdvancingName(verdict.slotA, verdict.slotB, finalHp)
 }
 
 /** One entry of the bracket's static match plan (walk order): the display

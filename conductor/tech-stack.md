@@ -24,6 +24,12 @@
   (`apps/client/src/ui/kit.ts` + `ui/kit.css`) with per-surface CSS files
   (ranch/spar/cup/starter/battle-hud); `ui/element.ts` single-sources element
   glyphs + hues.
+- **Responsive layout**: mobile-first breakpoint tiers (base phone,
+  ≥480, ≥768, ≥1024, ≥1200) documented in `ui/kit.css`, which also
+  carries the fluid type-scale and safe-area tokens; surfaces write
+  their own media queries against those widths. Overlays use
+  `100dvh`/safe-area insets; arena camera framing is portrait-aware via
+  `scene-logic.ts` `arenaFramingAdjust` (TDD'd projection tests).
 - **State**: central typed game-state store; deterministic sim core separated
   from rendering so battles can run headless (future PvP/ghosts depend on this).
   *2026-10-10: battle core landed in `@apex/sim/battle` — type chart, damage,

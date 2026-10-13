@@ -10,7 +10,7 @@ import {
 import { buildPropGroup } from "./prop"
 import { createRanchMotion } from "./ranch-motion"
 import { setupRanchScene } from "./scene-setup"
-import { disposeObject3D, lambertMaterialOf } from "./scene-utils"
+import { disposeObject3D } from "./scene-utils"
 
 export interface SceneHandle {
   /** Raw three.js scene root, for environment modules (e.g. the arena). */
@@ -306,9 +306,13 @@ export function createScene(container: HTMLElement): SceneHandle {
     const w = container.clientWidth
     const h = container.clientHeight
     if (w === 0 || h === 0) return
+    cameraRig.resize(w, h)
     camera.aspect = w / h
     camera.updateProjectionMatrix()
     renderer.setSize(w, h)
+    // Browser zoom and monitor moves change devicePixelRatio without
+    // recreating the renderer; refresh it here (F6).
+    renderer.setPixelRatio(window.devicePixelRatio)
     composer?.setSize(w, h)
   }
   window.addEventListener("resize", onResize)

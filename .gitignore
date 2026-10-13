@@ -6,3 +6,5 @@ dist/
 .env.*
 .playwright-cli/
 .freebuff/
+# Verification screenshots land in the repo root; don't track them.
+/*.png

@@ -74,12 +74,15 @@ const TEMPERAMENT_LINES: Record<SpeciesDef["temperament"], string> = {
   obedient: "Follows the tactic.",
 }
 
-/** One-line previews shown on the tactic buttons before the whistle (FR11). */
+/** One-line previews shown on the tactic buttons before the whistle (FR11).
+ * Copy describes the revised FR6 behavior: Balanced now also fires specials
+ * whose sustained damage beats the innate Strike, and Favor Specials falls
+ * back to the Strike only when the kit cannot out-damage it. */
 const TACTIC_PREVIEWS: Record<Tactic, string> = {
   balanced:
-    "Closes in and strikes. Saves specials for a type advantage or a finisher.",
+    "Closes in and strikes. Saves specials for a type advantage, a finisher, or when the kit out-damages the Strike.",
   specials:
-    "Fires specials whenever they are ready. Closes only when the kit is cooling down.",
+    "Fires the kit's best sustained special. Closes or Strikes only when nothing out-damages the Strike.",
 }
 
 const TACTIC_LABELS: Record<Tactic, string> = {

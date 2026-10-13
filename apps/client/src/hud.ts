@@ -838,15 +838,25 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     },
   })
   callout.append(calloutText, calloutOk)
-  root.append(scoreBug, lowerThird, cluster, motionWrap, resetModal, callout)
+  // The two bottom plates live in a stack wrapper so the phone tier can
+  // lay them out as a column; display:contents keeps the desktop
+  // corner-pinned layout untouched (children position against the root).
+  const hudStack = document.createElement("div")
+  hudStack.className = "hud-stack"
+  hudStack.append(lowerThird, cluster)
+  root.append(scoreBug, motionWrap, hudStack, resetModal, callout)
 
   let pickerOpen = false
   let lastFocus: StatKey | null = null
   let current: GameState | null = null
   // Corner clusters collapse by clicking their headers (session-only:
-  // always expanded on load).
-  let creatureOpen = true
-  let dockOpen = true
+  // always expanded on load). Narrow viewports start collapsed — the
+  // stacked plates would otherwise eat the whole scene.
+  const startsCollapsed = window.matchMedia("(max-width: 767.98px)").matches
+  let creatureOpen = !startsCollapsed
+  let dockOpen = !startsCollapsed
+  lowerThird.classList.toggle("is-collapsed", !creatureOpen)
+  cluster.classList.toggle("is-collapsed", !dockOpen)
   // Previous AP total — drives the one-shot spend flash on the meter.
   let prevAp: number | null = null
   // Ladder climb detection: the ticker announces a sub-tier promotion

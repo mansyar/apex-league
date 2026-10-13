@@ -267,6 +267,175 @@ body.mock {
 }
 
 /* ------------------------------------------------------------------ */
+/* Responsive tiers (responsive_foundation_20261013)                   */
+/* ------------------------------------------------------------------ */
+
+.mock .resp-tiers {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 18px;
+  padding: 0;
+  list-style: none;
+}
+
+.mock .resp-tiers li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--ink-dim);
+}
+
+.mock .resp-tier-tag {
+  min-width: 74px;
+  padding: 3px 9px;
+  background: rgb(255 209 102 / 0.12);
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-align: center;
+  clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+}
+
+.mock .resp-caption {
+  margin: 0 auto 14px;
+  max-width: 62ch;
+  font-size: 12px;
+}
+
+/* The phone frame is a named container so the tier rules inside read
+   like the production media queries they preview. */
+.mock .resp-phone {
+  container: resp-hud / inline-size;
+  position: relative;
+  width: 390px;
+  max-width: 100%;
+  height: 560px;
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid var(--kit-keyline);
+  border-radius: 22px;
+  background: linear-gradient(
+    #1a1f2e 0%,
+    #2a2f3c 42%,
+    #d98c4a 78%,
+    #b06f3c 100%
+  );
+}
+
+.mock .resp-phone .resp-scene {
+  position: absolute;
+  inset: 0;
+}
+
+/* Base-tier arrangement preview: score bug compacted, bottom plates
+   stacked full-width, lower-third collapsed to its head row. */
+
+.mock .resp-phone .hud-motion {
+  top: calc(52px + var(--kit-safe-top));
+  left: 10px;
+}
+
+.mock .resp-phone .score-bug {
+  top: calc(10px + var(--kit-safe-top));
+  right: calc(10px + var(--kit-safe-right));
+  left: auto;
+  transform: none;
+  gap: 9px;
+  padding: 8px 13px 9px;
+  animation: none;
+}
+
+/* Narrow score bug: divider and trophy count fold away so the motion
+   chip keeps its corner. */
+.mock .resp-phone .score-divider,
+.mock .resp-phone .score-trophy {
+  display: none;
+}
+
+.mock .resp-phone .score-day-num {
+  font-size: 22px;
+}
+
+.mock .resp-phone .score-divider {
+  height: 18px;
+}
+
+.mock .resp-phone .score-trophy svg {
+  width: 15px;
+  height: 15px;
+}
+
+.mock .resp-phone .resp-dock-stack {
+  position: absolute;
+  inset: auto calc(10px + var(--kit-safe-right))
+    calc(10px + var(--kit-safe-bottom)) calc(10px + var(--kit-safe-left));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mock .resp-phone .creature-plate,
+.mock .resp-phone .command-dock {
+  position: static;
+  width: auto;
+  animation: none;
+}
+
+.mock .resp-phone .creature-plate.is-collapsed {
+  padding: 9px 13px;
+}
+
+.mock .resp-phone .creature-plate.is-collapsed .creature-head {
+  margin-bottom: 0;
+}
+
+.mock .resp-phone .creature-plate.is-collapsed .stat-row,
+.mock .resp-phone .creature-plate.is-collapsed .condition-list,
+.mock .resp-phone .creature-plate.is-collapsed .kit-ticker {
+  display: none;
+}
+
+/* Dock collapsed by default: care actions only, picker + train tucked. */
+.mock .resp-phone .command-dock .train-picker {
+  display: none;
+}
+
+.mock .resp-phone .command-dock {
+  padding: 10px;
+}
+
+.mock .resp-phone .command-dock .kit-cta {
+  margin-top: 8px;
+}
+
+@container resp-hud (max-width: 480px) {
+  .mock .resp-phone .creature-name {
+    font-size: 15px;
+  }
+
+  .mock .resp-phone .dock-row {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+
+  .mock .resp-phone .dock-row .kit-button {
+    grid-template-columns: auto;
+    grid-template-areas:
+      "glyph"
+      "name"
+      "cost";
+    justify-items: center;
+    padding: 8px 4px;
+  }
+
+  .mock .resp-phone .dock-row .kit-button .kit-button-name {
+    font-size: 10px;
+  }
+}
+
+/* ------------------------------------------------------------------ */
 /* Motion notes                                                        */
 /* ------------------------------------------------------------------ */
 

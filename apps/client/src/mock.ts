@@ -351,6 +351,71 @@ starterFrame.append(starterDome)
 starterSection.append(starterFrame)
 
 // ---------------------------------------------------------------------------
+// Responsive tiers (responsive_foundation_20261013)
+// ---------------------------------------------------------------------------
+
+const responsive = el("section", "resp")
+responsive.append(el("h2", undefined, "Responsive tiers"))
+responsive.append(
+  el(
+    "p",
+    undefined,
+    "Mobile-first breakpoint tiers — the base styles target a phone and each tier restores density and full layouts. Surfaces write their own media queries against these exact widths.",
+  ),
+)
+const tierList = el("ul", "resp-tiers")
+for (const [tier, note] of [
+  ["base", "phone portrait — HUD plates stack, dock collapsed by default"],
+  ["≥480px", "large phone / small tablet — plates may expand"],
+  ["≥768px", "tablet portrait — two-column arrangements"],
+  ["≥1024px", "tablet landscape — near-full layouts"],
+  ["≥1200px", "desktop — the pre-responsive corner-pinned layout"],
+] as const) {
+  const li = el("li")
+  li.append(el("span", "resp-tier-tag", tier), document.createTextNode(note))
+  tierList.append(li)
+}
+responsive.append(tierList)
+
+/* Phone frame — a 390px container-query island showing the base-tier
+   ranch HUD arrangement with the same cluster factories as the stage. */
+/* Phone frame — a 390px container-query island showing the base-tier
+   ranch HUD arrangement. The clusters are re-mounted from the same real
+   hud.ts builders as the stage (each call builds fresh DOM), so the
+   responsive preview cannot drift from the live HUD either. */
+const phoneFrame = el("div", "resp-phone")
+const phoneScene = el("div", "resp-scene")
+const phoneStack = el("div", "resp-dock-stack")
+const phonePlate = buildCreaturePlate().root
+phonePlate.classList.add("is-collapsed")
+phoneStack.append(
+  phonePlate,
+  buildCommandDock({
+    onCare: () => {},
+    onTrain: () => {},
+    onAdvanceDay: () => {},
+  }).root,
+)
+phoneScene.append(
+  buildSettingsChips({
+    onToggleReducedMotion: () => {},
+    onToggleArenaCamera: () => {},
+    onNewGame: () => {},
+  }).motionWrap,
+  buildScoreBug().root,
+  phoneStack,
+)
+phoneFrame.append(phoneScene)
+responsive.append(
+  el(
+    "p",
+    "resp-caption",
+    "The 390px frame previews the base (phone) tier: stacked bottom plates, collapsed lower-third, compacted score bug. Container-query driven, so it renders the phone arrangement at any window width.",
+  ),
+)
+responsive.append(phoneFrame)
+
+// ---------------------------------------------------------------------------
 // Motion notes
 // ---------------------------------------------------------------------------
 
@@ -389,4 +454,4 @@ for (const [term, rest] of [
 }
 notes.append(list)
 
-document.body.append(header, stage, showcase, starterSection, notes)
+document.body.append(header, stage, showcase, starterSection, responsive, notes)
