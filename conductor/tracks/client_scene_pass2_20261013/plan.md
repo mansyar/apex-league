@@ -65,13 +65,17 @@ consume, then the mock/CSS polish.
   - [ ] Write unit tests for any newly-pure math extracted along the way
         (seeded, no I/O) — Red → Green
 - [x] Task: Shrink SceneHandle <!-- 4183b4b -->
-  - [ ] Reduce `SceneHandle` to the surface `main.ts` actually uses;
+  - [x] Reduce `SceneHandle` to the surface `main.ts` actually uses;
         update `main.ts` wiring
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] `bun run verify` green; `scene.ts` ≤ ~400 ln
-  - [ ] Manual verification: full ranch pass — feed ceremony, wander trips,
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] `bun run verify` green; `scene.ts` ≤ ~400 ln (703 → 313)
+  - [x] Manual verification: full ranch pass — feed ceremony, wander trips,
         evolution preview (dev), wind sway, camera shake on hits, orbit
         controls; screenshots + console clean
+  - [x] Verification report attached as git note on 4183b4b; user sign-off
+        approved 2026-10-13
+
+[checkpoint: 4183b4b]
 
 ## Phase 3 — staging.ts Decomposition
 
