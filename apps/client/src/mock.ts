@@ -1,26 +1,27 @@
 /**
- * Design mock driver (broadcast_hud_20261011): rebuilds the approved
- * mock entirely from the production kit — ui/kit factories + ui/kit.css
- * — so the approved look is reproduced from real code, not a static
- * drawing. mock.css holds only page chrome and cluster layout, which the
- * surface rebuilds in Phases C/D absorb into their own files.
+ * Design mock driver (broadcast_hud_20261011): rebuilds the approved mock
+ * entirely from production code — the hud.ts cluster builders fed canned
+ * values, the ui/kit primitives, and the real ranch.css surface styles.
+ * Structural drift with the live HUD is impossible by construction: the
+ * mock renders the same DOM the game does. mock.css holds only page
+ * chrome, the stage scenery, and showcase layout.
  */
 
 import "./ui/kit.css"
+import "./ranch.css"
+// spar.css owns the camera-chip visibility rule (ranch hides it; the
+// arena shows it) — importing it keeps the pill row identical to live.
+import "./spar.css"
 import "./mock.css"
-import { icons } from "./ui/icons"
+import type { CreatureConditions } from "@apex/sim"
 import {
-  bar,
-  button,
-  chip,
-  crest,
-  cta,
-  meter,
-  plate,
-  stamp,
-  tab,
-  ticker,
-} from "./ui/kit"
+  buildCommandDock,
+  buildCreaturePlate,
+  buildScoreBug,
+  buildSettingsChips,
+} from "./hud"
+import { icons } from "./ui/icons"
+import { bar, button, chip, crest, meter, plate, stamp, tab } from "./ui/kit"
 
 const el = (tag: string, className?: string, text?: string): HTMLElement => {
   const node = document.createElement(tag)
@@ -75,166 +76,107 @@ stage.append(
   el("div", "stage-ground"),
 )
 
-// Motion chip — top-left, out of the gameplay path.
-const hudMotion = el("div", "hud-motion")
-hudMotion.append(
-  chip({
-    label: "Motion · full",
-    variant: "dim",
-    onClick: () => {
-      motionBox.checked = !motionBox.checked
-      document.body.classList.toggle("is-reduced", motionBox.checked)
-    },
-  }),
-)
+// Settings cluster — the real top-left pills. The motion chip drives the
+// page's reduced-motion demo toggle; the camera/reset chips render for
+// structural parity with the live HUD (no-ops on a static page).
+const { motionWrap } = buildSettingsChips({
+  onToggleReducedMotion: () => {
+    motionBox.checked = !motionBox.checked
+    document.body.classList.toggle("is-reduced", motionBox.checked)
+  },
+  onToggleArenaCamera: () => {},
+  onNewGame: () => {},
+})
 
-// Score bug — top-center.
-const scoreBug = plate({ className: "score-bug" })
-const scorePhase = el("div", "score-phase")
-scorePhase.append(tab("Day phase"))
-const scoreDay = el("div", "score-day")
-scoreDay.append(
-  el("span", "score-day-label", "Day"),
-  el("span", "score-day-num", "12"),
-)
-const scoreAp = el("div", "score-ap")
-scoreAp.append(el("span", "score-ap-label", "AP"), meter(3, 3).root)
-const scoreTrophy = el("div", "score-trophy")
-scoreTrophy.innerHTML = `${icons.trophy}<span class="score-trophy-count">× 2</span>`
-scoreBug.append(
-  scorePhase,
-  scoreDay,
-  el("div", "score-divider"),
-  scoreAp,
-  el("div", "score-divider"),
-  scoreTrophy,
-)
+// Score bug — top-center, canned day 12 with a full AP meter, two
+// championships and a Bronze III standing.
+const {
+  root: scoreBug,
+  dayNum,
+  apMeter,
+  trophy,
+  trophyCount,
+  rankRank,
+  rankPts,
+} = buildScoreBug()
+dayNum.textContent = "12"
+// The meter handle is immutable in the kit (hud rebuilds it on AP
+// changes); a static mock simply swaps in a full meter.
+apMeter.root.replaceWith(meter(3, 3).root)
+trophyCount.textContent = "× 2"
+trophy.style.display = ""
+rankRank.textContent = "Bronze III"
+rankPts.textContent = "40/60"
 
-// Creature lower-third — bottom-left.
-const creaturePlate = plate({ className: "creature-plate" })
-const creatureHead = el("div", "creature-head")
-const creatureId = el("div", "creature-id")
-creatureId.append(
-  crest("fire"),
-  el("span", "creature-name", "Ember"),
-  tab("Juvenile", "stage"),
-)
-creatureHead.append(creatureId)
-
-const statRow = el("div", "stat-row")
-for (const [label, total, bonus] of [
-  ["HP", "26", "+4"],
-  ["ATK", "18", "+2"],
-  ["DEF", "15", "+3"],
-  ["SPD", "12", "+6"],
-] as const) {
-  const cell = el("div", "stat-cell")
-  cell.append(el("span", "stat-label", label), el("span", "stat-total", total))
-  if (bonus) cell.append(el("span", "stat-chip", bonus))
-  statRow.append(cell)
-}
-
-const conditionList = el("div", "condition-list")
-const bars = [
-  bar({
-    label: "Hunger",
-    glyph: icons.hunger,
-    value: 72,
-    max: 100,
-    color: "var(--bar-hunger)",
-  }),
-  bar({
-    label: "Energy",
-    glyph: icons.energy,
-    value: 58,
-    max: 100,
-    color: "var(--bar-energy)",
-  }),
-  bar({
-    label: "Health",
-    glyph: icons.health,
-    value: 100,
-    max: 100,
-    color: "var(--bar-health)",
-  }),
-  bar({
-    label: "Mood",
-    glyph: icons.mood,
-    value: 80,
-    max: 100,
-    color: "var(--bar-mood)",
-  }),
-  bar({
-    label: "Bond",
-    glyph: icons.bond,
-    value: 64,
-    max: 100,
-    color: "var(--bar-bond)",
-  }),
+// Creature lower-third — bottom-left, canned juvenile Ember Drake with
+// trained stats, condition values and a ticker line.
+const {
+  root: creaturePlate,
+  creatureName,
+  stageTab,
+  statCells,
+  bars,
+  statusTicker,
+} = buildCreaturePlate()
+creatureName.textContent = "Ember"
+stageTab.textContent = "Juvenile"
+const cannedStats: Array<[string, number, number]> = [
+  ["hp", 26, 4],
+  ["atk", 18, 2],
+  ["def", 15, 3],
+  ["spd", 12, 6],
 ]
-conditionList.append(...bars.map((b) => b.root))
-
-const announce = ticker()
-announce.say("A full night's rest will sharpen DEF.")
-creaturePlate.append(creatureHead, statRow, conditionList, announce.root)
-
-// Command dock — bottom-right.
-const dock = plate({ className: "command-dock" })
-const dockRow = el("div", "dock-row")
-dockRow.append(
-  button({ label: "Feed", glyph: icons.feed, cost: "1 AP" }),
-  button({ label: "Rest", glyph: icons.rest, cost: "1 AP" }),
-  button({
-    label: "Treat",
-    glyph: icons.treat,
-    cost: "1 AP",
-    disabled: true,
-    reason: "Not sick — save the medicine.",
-  }),
-  button({ label: "Play", glyph: icons.play, cost: "1 AP" }),
-)
-const dockTrain = el("div", "dock-train")
-dockTrain.append(
-  button({
-    label: "Train",
-    glyph: icons.train,
-    cost: "1 AP",
-    tag: "Focus: DEF",
-  }),
-)
-const trainPicker = el("div", "train-picker")
-for (const [name, note, cls] of [
-  ["HP", "26 → 27", ""],
-  ["ATK", "18 → 19", ""],
-  ["DEF", "focused · +1 tonight", "is-focus"],
-  ["SPD", "as sharp as it can get for now", "is-capped"],
-] as const) {
-  const entry = el("div", `train-entry ${cls}`.trim())
-  entry.append(
-    el("span", "train-entry-name", name),
-    el("span", "train-note", note),
-  )
-  trainPicker.append(entry)
+for (const [key, total, trained] of cannedStats) {
+  const cell = statCells.find((c) => c.key === key)
+  if (!cell) continue
+  cell.total.textContent = String(total)
+  if (trained > 0) cell.bonus.textContent = `+${trained}`
 }
-dock.append(dockRow, dockTrain, trainPicker, cta("Advance Day"))
+const cannedConditions: Array<[keyof CreatureConditions, number]> = [
+  ["hunger", 72],
+  ["energy", 58],
+  ["health", 100],
+  ["mood", 80],
+  ["bond", 64],
+]
+for (const [key, value] of cannedConditions) {
+  const entry = bars.find((b) => b.key === key)
+  if (entry) entry.handle.set(value, 100)
+}
+statusTicker.say("A full night's rest will sharpen DEF.")
 
-// Chip family — top-right.
-const hudChips = el("div", "hud-chips")
-const sparChip = document.createElement("button")
-sparChip.type = "button"
-sparChip.className = "kit-chip"
-const sparGlyph = el("span", "kit-chip-glyph")
-sparGlyph.innerHTML = icons.spar
-sparGlyph.style.color = "var(--accent)"
-const sparText = el("span", "battle-text")
-sparText.append(
-  el("span", "battle-title", "Spar"),
-  el("span", "battle-sub", "Free match · no AP"),
-)
-sparChip.append(sparGlyph, sparText)
-hudChips.append(sparChip)
+// Command dock — bottom-right, canned focus (DEF) with one capped stat.
+const {
+  root: dock,
+  actionButtons,
+  trainTag,
+  pickerButtons,
+} = buildCommandDock({
+  onCare: () => {},
+  onTrain: () => {},
+  onAdvanceDay: () => {},
+})
+for (const { button: btn, action } of actionButtons) {
+  if (action === "treat") {
+    btn.disabled = true
+    btn.title = "Not sick — save the medicine."
+  }
+}
+if (trainTag) trainTag.textContent = "Focus: DEF"
+for (const { button: btn, note, key } of pickerButtons) {
+  if (key === "def") {
+    btn.classList.add("is-focus")
+    note.textContent = "focused · +1 tonight"
+  } else if (key === "spd") {
+    btn.classList.add("is-capped")
+    btn.disabled = true
+    note.textContent = "as sharp as it can get for now"
+  } else {
+    note.textContent = key === "hp" ? "26 → 27" : "18 → 19"
+  }
+}
 
-stage.append(hudMotion, scoreBug, creaturePlate, dock, hudChips)
+stage.append(motionWrap, scoreBug, creaturePlate, dock)
 
 // ---------------------------------------------------------------------------
 // Kit showcase
