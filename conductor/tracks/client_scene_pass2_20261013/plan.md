@@ -79,11 +79,11 @@ consume, then the mock/CSS polish.
 
 ## Phase 3 — staging.ts Decomposition
 
-- [~] Task: Extract FighterDriver
-  - [ ] Create `FighterDriver` class owning `drive()` closure state:
+- [x] Task: Extract FighterDriver <!-- 9a83319 -->
+  - [x] Create `FighterDriver` class owning `drive()` closure state:
         squash spring, topple, bounds, glide/lerp walk, gait/breath/sway
         compose
-  - [ ] Write unit tests for pure pose math extracted from the driver
+  - [x] Write unit tests for pure pose math extracted from the driver
         (seeded, no renderer) — Red → Green
 - [ ] Task: Convert runStep to step modules + registry
   - [ ] Create `steps/` modules keyed by move/event kind: approach/idle,
