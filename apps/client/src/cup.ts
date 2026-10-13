@@ -12,8 +12,6 @@
  */
 
 import {
-  type BattleResult,
-  BRACKET_SLOTS,
   type Creature,
   type CupSession,
   type CupSlot,
@@ -43,18 +41,23 @@ import {
   buildKitPicker,
   buildTacticRow,
   castFighter,
-  focusTrap,
   toggleKitChoice,
 } from "./battleUI"
 import {
   type BracketMatch,
-  bracketPlan,
   buildBracketModel,
   cupPlacement,
   exitStage,
   ordinalOf,
   resultRows,
 } from "./bracket-model"
+import {
+  buildBattleChips,
+  buildBracketScreen,
+  buildCoachScreen,
+  buildGiveupModal,
+  buildResultsScreen,
+} from "./cup-screens"
 import { crestGlyph, elementHue } from "./element"
 import { resolveMotionPref } from "./motion"
 import type { FightCasting } from "./staging"
@@ -141,161 +144,31 @@ export function createCup(
   const battleHud = createBattleHud(overlay)
 
   // ------------------------------------------------------------------
-  // Bracket screen
+  // Screens — the DOM builders live in cup-screens.ts; cup.ts owns the
+  // session state machine, timers and the listeners that touch them.
   // ------------------------------------------------------------------
-  const bracketScreen = document.createElement("div")
-  bracketScreen.className = "cup-screen cup-screen-bracket"
+  const {
+    screen: bracketScreen,
+    headSub,
+    colHeadEls,
+    cards,
+    champ,
+    champName,
+    cta,
+    ctaGhost,
+    ctaGo,
+    tickerLine,
+  } = buildBracketScreen()
 
-  const head = document.createElement("div")
-  head.className = "cup-head"
-  const headTab = document.createElement("span")
-  headTab.className = "cup-head-tab"
-  headTab.textContent = "Cup day"
-  const headTitle = document.createElement("span")
-  headTitle.className = "cup-head-title"
-  headTitle.textContent = "Bronze Cup"
-  const headSub = document.createElement("span")
-  headSub.className = "cup-head-sub"
-  head.append(headTab, headTitle, headSub)
-
-  const bracket = document.createElement("div")
-  bracket.className = "cup-bracket"
-  const cols: Record<"qf" | "sf" | "f", HTMLElement> = {
-    qf: document.createElement("div"),
-    sf: document.createElement("div"),
-    f: document.createElement("div"),
-  }
-  for (const key of ["qf", "sf", "f"] as const) {
-    const col = cols[key]
-    col.className = `cup-col cup-col-${key}`
-    const colHead = document.createElement("div")
-    colHead.className = "cup-col-head"
-    colHead.textContent =
-      key === "qf" ? "Quarterfinals" : key === "sf" ? "Semifinals" : "Final"
-    const matches = document.createElement("div")
-    matches.className = "cup-matches"
-    col.append(colHead, matches)
-    bracket.append(col)
-  }
-
-  interface MatchCard {
-    el: HTMLElement
-    ribbon: HTMLElement
-    slots: { a: HTMLElement; b: HTMLElement }
-    /** Grid column the card lives in (for the column-head reveal states). */
-    column: "qf" | "sf" | "f"
-  }
-  const cards = new Map<MatchId, MatchCard>()
-  const colHeadEls: Record<"qf" | "sf" | "f", HTMLElement> = {
-    qf: cols.qf.querySelector(".cup-col-head") as HTMLElement,
-    sf: cols.sf.querySelector(".cup-col-head") as HTMLElement,
-    f: cols.f.querySelector(".cup-col-head") as HTMLElement,
-  }
-  const matchBoxes: Record<"qf" | "sf" | "f", HTMLElement> = {
-    qf: cols.qf.querySelector(".cup-matches") as HTMLElement,
-    sf: cols.sf.querySelector(".cup-matches") as HTMLElement,
-    f: cols.f.querySelector(".cup-matches") as HTMLElement,
-  }
-  // The card plan is pure topology (bracket-model): ids, columns, labels —
-  // no session needed to build the board.
-  for (const entry of bracketPlan(BRACKET_SLOTS)) {
-    const col = entry.column
-    const el = document.createElement("div")
-    el.className = `cup-match m-${entry.id}`
-    el.dataset.match = entry.id
-    const ribbon = document.createElement("div")
-    ribbon.className = "cup-ribbon"
-    ribbon.textContent = "Your match"
-    const slotA = document.createElement("div")
-    slotA.className = "cup-slot slot-a"
-    const slotB = document.createElement("div")
-    slotB.className = "cup-slot slot-b"
-    el.append(ribbon, slotA, slotB)
-    matchBoxes[col].append(el)
-    cards.set(entry.id, {
-      el,
-      ribbon,
-      slots: { a: slotA, b: slotB },
-      column: entry.column,
-    })
-  }
-
-  const champ = document.createElement("div")
-  champ.className = "cup-champ"
-  const champCup = document.createElement("div")
-  champCup.className = "cup-champ-cup"
-  champCup.textContent = "🏆"
-  const champLabel = document.createElement("div")
-  champLabel.className = "cup-champ-label"
-  champLabel.textContent = "Champion"
-  const champName = document.createElement("div")
-  champName.className = "cup-champ-name"
-  champName.textContent = "—"
-  champ.append(champCup, champLabel, champName)
-  cols.f.append(champ)
-
-  const cta = document.createElement("div")
-  cta.className = "cup-cta"
-  const ctaGhost = document.createElement("button")
-  ctaGhost.type = "button"
-  ctaGhost.className = "cup-cta-ghost"
-  ctaGhost.textContent = "Scout the rival"
-  const ctaGo = document.createElement("button")
-  ctaGo.type = "button"
-  ctaGo.className = "cup-cta-go"
-  ctaGo.textContent = "Step into the arena"
-  cta.append(ctaGhost, ctaGo)
-
-  const ticker = document.createElement("div")
-  ticker.className = "cup-ticker"
-  const tickerTab = document.createElement("span")
-  tickerTab.className = "cup-ticker-tab"
-  tickerTab.textContent = "Apex feed"
-  const tickerLine = document.createElement("span")
-  tickerLine.className = "cup-ticker-line"
-  ticker.append(tickerTab, tickerLine)
-
-  bracketScreen.append(head, bracket, cta, ticker)
-
-  // ------------------------------------------------------------------
-  // Coach screen
-  // ------------------------------------------------------------------
-  const coachScreen = document.createElement("div")
-  coachScreen.className = "cup-screen cup-screen-coach"
-  const coachHead = document.createElement("div")
-  coachHead.className = "cup-head"
-  const coachTab = document.createElement("span")
-  coachTab.className = "cup-head-tab"
-  const coachTitle = document.createElement("span")
-  coachTitle.className = "cup-head-title"
-  coachTitle.textContent = "Coaching room"
-  coachHead.append(coachTab, coachTitle)
-  const coachBody = document.createElement("div")
-  coachBody.className = "cup-coach-body"
-
-  const fighterCard = document.createElement("div")
-  fighterCard.className = "cup-card cup-card-fighter"
-  const rivalCard = document.createElement("div")
-  rivalCard.className = "cup-card cup-card-rival"
-  const kitCard = document.createElement("div")
-  kitCard.className = "cup-card cup-card-kit"
-  coachBody.append(fighterCard, rivalCard, kitCard)
-
-  const coachFoot = document.createElement("div")
-  coachFoot.className = "cup-coach-foot"
-  const coachNote = document.createElement("div")
-  coachNote.className = "cup-coach-note"
-  coachNote.textContent = "Nothing is committed until you step in."
-  const coachBack = document.createElement("button")
-  coachBack.type = "button"
-  coachBack.className = "cup-cta-ghost"
-  coachBack.textContent = "Back to bracket"
-  const coachGo = document.createElement("button")
-  coachGo.type = "button"
-  coachGo.className = "cup-cta-go"
-  coachGo.textContent = "Step into the arena"
-  coachFoot.append(coachNote, coachBack, coachGo)
-  coachScreen.append(coachHead, coachBody, coachFoot)
+  const {
+    screen: coachScreen,
+    coachTab,
+    fighterCard,
+    rivalCard,
+    kitCard,
+    coachBack,
+    coachGo,
+  } = buildCoachScreen()
 
   // The bracket's global close button is declared before the give-up
   // modal because that modal's Escape/Stay handlers hand focus back to
@@ -306,100 +179,21 @@ export function createCup(
   close.textContent = "Back to the ranch"
   close.style.display = ""
 
-  // ------------------------------------------------------------------
-  // Give-up modal (over the bracket)
-  // ------------------------------------------------------------------
-  const giveup = document.createElement("div")
-  giveup.className = "cup-giveup"
-  giveup.style.display = "none"
-  const giveupCard = document.createElement("div")
-  giveupCard.className = "cup-giveup-card"
-  const giveupTab = document.createElement("span")
-  giveupTab.className = "cup-giveup-tab"
-  giveupTab.textContent = "Forfeit"
-  const giveupTitle = document.createElement("div")
-  giveupTitle.className = "cup-giveup-title"
-  giveupTitle.textContent = "Walk away?"
-  const giveupCopy = document.createElement("div")
-  giveupCopy.className = "cup-giveup-copy"
-  giveupCopy.textContent =
-    "Giving up counts as a loss in this round — your placement stands as if you lost it, and the consolation (+2 mood) still applies. No cup is won."
-  const giveupRow = document.createElement("div")
-  giveupRow.className = "cup-giveup-row"
-  const giveupStay = document.createElement("button")
-  giveupStay.type = "button"
-  giveupStay.className = "cup-cta-ghost"
-  giveupStay.textContent = "Stay in the bracket"
-  const giveupQuit = document.createElement("button")
-  giveupQuit.type = "button"
-  giveupQuit.className = "cup-cta-go cup-cta-danger"
-  giveupQuit.textContent = "Give up"
-  giveupRow.append(giveupStay, giveupQuit)
-  giveupCard.append(giveupTab, giveupTitle, giveupCopy, giveupRow)
-  giveup.append(giveupCard)
-  // Dialog semantics + focus management (a11y): the scrim hides the
-  // bracket, so Tab must cycle inside the card, Escape must bail out to
-  // Stay, and closing hands focus back to the control that opened it.
-  giveupCard.setAttribute("role", "dialog")
-  giveupCard.setAttribute("aria-modal", "true")
-  giveupTitle.id = "cup-giveup-title"
-  giveupCard.setAttribute("aria-labelledby", "cup-giveup-title")
-  const giveupTrap = focusTrap(giveupCard)
-  giveup.addEventListener("keydown", (event) => {
-    giveupTrap(event)
-    if (event.key === "Escape") {
-      giveup.style.display = "none"
-      close.focus()
-    }
-  })
+  const { root: giveup, giveupStay, giveupQuit } = buildGiveupModal(close)
 
-  // ------------------------------------------------------------------
-  // Results screen
-  // ------------------------------------------------------------------
-  const resultsScreen = document.createElement("div")
-  resultsScreen.className = "cup-screen cup-screen-results"
-  const resultCard = document.createElement("div")
-  resultCard.className = "cup-result-card"
-  const resultStamp = document.createElement("div")
-  resultStamp.className = "cup-result-stamp"
-  const resultTitle = document.createElement("div")
-  resultTitle.className = "cup-result-title"
-  const resultRule = document.createElement("div")
-  resultRule.className = "cup-result-rule"
-  const resultSub = document.createElement("div")
-  resultSub.className = "cup-result-sub"
-  const resultPlate = document.createElement("div")
-  resultPlate.className = "cup-result-plate"
-  const resultPlateTab = document.createElement("span")
-  resultPlateTab.className = "cup-result-tab"
-  const resultPlateLine = document.createElement("span")
-  resultPlateLine.className = "cup-result-line"
-  resultPlate.append(resultPlateTab, resultPlateLine)
-  const resultRewards = document.createElement("div")
-  resultRewards.className = "cup-result-rewards"
-  const resultBack = document.createElement("button")
-  resultBack.type = "button"
-  resultBack.className = "cup-cta-go"
-  resultBack.textContent = "Back to the ranch"
-  resultCard.append(
+  const {
+    screen: resultsScreen,
+    resultCard,
     resultStamp,
     resultTitle,
-    resultRule,
     resultSub,
-    resultPlate,
+    resultPlateTab,
+    resultPlateLine,
     resultRewards,
     resultBack,
-  )
-  resultsScreen.append(resultCard)
+  } = buildResultsScreen()
 
-  // Battle chrome: speed pill floats over the arena during a fight.
-  const battleChips = document.createElement("div")
-  battleChips.className = "cup-battle-chips"
-  battleChips.style.display = "none"
-  const fastButton = document.createElement("button")
-  fastButton.type = "button"
-  fastButton.className = "cup-speed"
-  battleChips.append(fastButton)
+  const { battleChips, fastButton } = buildBattleChips()
   overlay.append(bracketScreen, coachScreen, resultsScreen, giveup, battleChips)
   root.append(overlay)
 
@@ -666,7 +460,7 @@ export function createCup(
     onPace: (msPerStep) => handlers.onPace(msPerStep),
     motionPref: () => state?.settings.reducedMotion === true,
     stampTitle: cupStampTitle,
-    onFinish: ({ verdict, instant }) => {
+    onFinish: ({ instant }) => {
       if (!fightNow) return
       battleChips.style.display = "none"
       // Hold the stamp, then back to the bracket. The cursor stays on the
