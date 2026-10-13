@@ -774,7 +774,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       pickerOpen = false
       handlers.onTrain(key)
     },
-    onAdvanceDay: () => handlers.onAdvanceDay,
+    onAdvanceDay: () => handlers.onAdvanceDay(),
   })
 
   // Settings cluster (top-left) + reset modal — the shared builders. The
