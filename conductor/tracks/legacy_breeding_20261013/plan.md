@@ -135,6 +135,13 @@ manual verification for presentation tasks, phase checkpoints per
   the only readout of generation/prestige, and hiding your own bloodline status
   until the first graduation withholds information the player needs to plan it.
   The perk's *effect* (a recorded Hall of Fame) is unchanged.
+- **Post-checkpoint lint cleanup.** The final `bun run verify` surfaced one
+  warning this track introduced: the `.dock-graduate` base rule sat *after* the
+  `.command-dock.is-collapsed` group it belongs before, which Biome reads as
+  descending specificity. Reordered in `ec96514` — declarations untouched and
+  no property overlap, so the collapsed/expanded rendering is unchanged — then
+  re-verified green. The remaining warnings in `ranch.css` are pre-existing and
+  untouched.
 - **Known cosmetic nit — callout vs. plate.** A teaching callout is a fixed
   top-center banner (`z-index: 60`) and momentarily overlaps the lineage plate
   on the desktop band, exactly as it already overlaps the centered score bug.
