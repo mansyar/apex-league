@@ -67,33 +67,33 @@ manual verification for presentation tasks, phase checkpoints per
 *(presentation — manual verification path; copy stays unit-tested via
 `hud.copy.test.ts`)*
 
-- [~] Task: Lineage plate + family name
+- [x] Task: Lineage plate + family name — 4b98ce8
   - Broadcast-kit plate on the ranch HUD: family name with a Roman-numeral
     generation suffix (e.g. `"Bramble Ox II"`), generation, prestige, lifetime
     cups; aria-labeled; reduced-motion aware
   - Family-name formatting helper with unit tests (`hud.copy.test.ts`)
-- [ ] Task: Graduate affordance + hint
+- [x] Task: Graduate affordance + hint — 4b98ce8
   - Chip in the command dock, rendered **only when eligible**; a
     direction-only hint from `GRADUATION_HINT_DAY = 55` deduped through the
     existing `seenHints` ledger; copy + hint logic unit-tested
-- [ ] Task: Confirm modal + graduation ceremony
+- [x] Task: Confirm modal + graduation ceremony — 4b98ce8
   - Confirm → ranch ceremony reusing the evolution ceremony machinery (walk to
     center → glow / farewell → rig retires); instant variant under reduced
     motion; cancel changes nothing; focus trap / Escape per the shared modal
     contract
-- [ ] Task: Egg screen + successor hatch
+- [x] Task: Egg screen + successor hatch — 4b98ce8
   - Starter-style screen: lineage summary + the inherited stat floor vs the
     species bounds, player picks any available species, the egg hatches the
     successor through `graduate`, HUD resets to the new baby
-- [ ] Task: Hall of Fame panel
+- [x] Task: Hall of Fame panel — 4b98ce8
   - Modal reachable from the Lineage plate; lists retired records newest-first
     (name, element crest, stats, generation, retired day); empty state before
     the first graduation
-- [ ] Task: Prestige perk callouts
+- [x] Task: Prestige perk callouts — c3074d1
   - Coach callouts when a milestone first unlocks (Hall of Fame / Warm
     bloodline / Established line), routed through the status-ticker
     precedence chain
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — **[checkpoint: 31289c8]**
   - Browser-driven verification: dev server + a sim-generated save seeded into
     localStorage; screenshots of hint → chip → confirm → ceremony → egg
     screen → successor on the ranch → Lineage plate → Hall of Fame; reduced
