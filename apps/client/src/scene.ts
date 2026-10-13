@@ -1077,6 +1077,10 @@ export function createScene(container: HTMLElement): SceneHandle {
     arenaRadius = ARENA_FRAMING.radius * arenaAdjust.radiusMult
     camera.fov = BASE_FOV + arenaAdjust.fovAdd
     camera.updateProjectionMatrix()
+    // Refresh the pixel ratio too: browser zoom and monitor moves change
+    // devicePixelRatio without recreating the renderer, and the ratio was
+    // previously captured once at creation.
+    renderer.setPixelRatio(window.devicePixelRatio)
     renderer.setSize(w, h)
     composer?.setSize(w, h)
   }
