@@ -30,6 +30,10 @@ consume, then the mock/CSS polish.
         `staging.ts` with `lambertMaterialOf` from `scene-utils.ts`
   - [x] Fix the TDZ trap in `cup.ts` (give-up modal close button referenced
         before declaration)
+- [x] Task: Arena HUD bleed fix <!-- 15ffb8a -->
+      (Added from Phase 1 verification feedback: the ranch Actions dock and
+      New game chip stayed visible over the arena; pre-existing on main.
+      `.app-in-arena` hide-list extended; headless-verified hide + restore.)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [ ] `bun run verify` green; existing scene/staging/spar/cup behavior
         unchanged
