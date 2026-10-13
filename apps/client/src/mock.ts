@@ -226,10 +226,10 @@ sparChip.className = "kit-chip"
 const sparGlyph = el("span", "kit-chip-glyph")
 sparGlyph.innerHTML = icons.spar
 sparGlyph.style.color = "var(--accent)"
-const sparText = el("span", "spar-text")
+const sparText = el("span", "battle-text")
 sparText.append(
-  el("span", "spar-title", "Spar"),
-  el("span", "spar-sub", "Free match · no AP"),
+  el("span", "battle-title", "Spar"),
+  el("span", "battle-sub", "Free match · no AP"),
 )
 sparChip.append(sparGlyph, sparText)
 hudChips.append(sparChip)

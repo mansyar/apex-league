@@ -388,21 +388,21 @@ body.mock {
   animation: settle-down 0.5s var(--kit-settle) 0.24s both;
 }
 
-.mock .spar-text {
+.mock .battle-text {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   line-height: 1.15;
 }
 
-.mock .spar-title {
+.mock .battle-title {
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.mock .spar-sub {
+.mock .battle-sub {
   font-size: 9px;
   letter-spacing: 0.06em;
   text-transform: uppercase;

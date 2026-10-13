@@ -107,7 +107,7 @@ consume, then the mock/CSS polish.
 
 ## Phase 4 — Shared Battle-Session Shell
 
-- [ ] Task: Extract battle-session factory
+- [~] Task: Extract battle-session factory
   - [ ] Create `apps/client/src/battle-session.ts`: driver wiring (onStep →
         handlers + `battleHud.update`; onFinish → verdict stamp + hold
         timer → exit callback), speed-pill wiring, winner/reason line

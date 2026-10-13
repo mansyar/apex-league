@@ -4,7 +4,7 @@
    skewed plates drain toward the VS chip, a rangefinder with chevrons,
    the announcer lower-third, and the verdict stamp. Read-only broadcast
    furniture: pointer-events stay off so the arena keeps its clicks. */
-.spar-hud {
+.battle-hud {
   position: absolute;
   inset: 0;
   display: flex;
@@ -15,7 +15,7 @@
 }
 
 /* The placard: two skewed plates meeting the center chip, one silhouette. */
-.spar-hud-top {
+.battle-hud-top {
   display: flex;
   justify-content: center;
   align-items: stretch;
@@ -25,11 +25,11 @@
   transition: transform 0.18s ease;
 }
 
-.spar-hud-top.spar-hud-kick {
+.battle-hud-top.battle-hud-kick {
   transform: translateY(3px) scale(0.995);
 }
 
-.spar-plate {
+.battle-plate {
   flex: 1 1 0;
   display: grid;
   grid-template-columns: auto 1fr;
@@ -41,39 +41,39 @@
   min-height: 64px;
 }
 
-.spar-plate-left {
+.battle-plate-left {
   clip-path: polygon(0 0, 100% 0, calc(100% - 18px) 100%, 0 100%);
   border-right: none;
 }
 
-.spar-plate-right {
+.battle-plate-right {
   clip-path: polygon(18px 0, 100% 0, 100% 100%, 0 100%);
   border-left: none;
   grid-template-columns: 1fr auto;
 }
 
 /* Hit reaction: the victim's plate is shoved away from the blow. */
-.spar-plate-jolt-left {
-  animation: spar-plate-jolt-left 0.32s ease-out;
+.battle-plate-jolt-left {
+  animation: battle-plate-jolt-left 0.32s ease-out;
 }
 
-.spar-plate-jolt-right {
-  animation: spar-plate-jolt-right 0.32s ease-out;
+.battle-plate-jolt-right {
+  animation: battle-plate-jolt-right 0.32s ease-out;
 }
 
-@keyframes spar-plate-jolt-left {
+@keyframes battle-plate-jolt-left {
   0% {
     transform: translateX(-9px) rotate(-0.6deg);
   }
 }
 
-@keyframes spar-plate-jolt-right {
+@keyframes battle-plate-jolt-right {
   0% {
     transform: translateX(9px) rotate(0.6deg);
   }
 }
 
-.spar-crest {
+.battle-crest {
   width: 40px;
   height: 40px;
   display: grid;
@@ -83,30 +83,30 @@
   color: #14100c;
 }
 
-.spar-crest svg {
+.battle-crest svg {
   width: 22px;
   height: 22px;
 }
 
-.spar-plate-body {
+.battle-plate-body {
   display: flex;
   flex-direction: column;
   gap: 6px;
   min-width: 0;
 }
 
-.spar-plate-head {
+.battle-plate-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
 }
 
-.spar-plate-right .spar-plate-head {
+.battle-plate-right .battle-plate-head {
   flex-direction: row-reverse;
 }
 
-.spar-hud-name {
+.battle-hud-name {
   font-size: 17px;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -116,18 +116,18 @@
   text-overflow: ellipsis;
 }
 
-.spar-hp-num {
+.battle-hp-num {
   font-size: 14px;
   font-weight: 700;
   color: var(--ink-dim);
   font-variant-numeric: tabular-nums;
 }
 
-.spar-hp-num.spar-hp-pop {
-  animation: spar-hp-pop 0.3s ease-out;
+.battle-hp-num.battle-hp-pop {
+  animation: battle-hp-pop 0.3s ease-out;
 }
 
-@keyframes spar-hp-pop {
+@keyframes battle-hp-pop {
   0% {
     transform: scale(1.3);
     color: var(--accent);
@@ -136,7 +136,7 @@
 
 /* Layered HP bar: pale lag chunk behind the main fill, both draining
    toward the center. The skew matches the plate diagonals. */
-.spar-hp-bar {
+.battle-hp-bar {
   position: relative;
   height: 12px;
   background: rgb(0 0 0 / 0.55);
@@ -144,48 +144,48 @@
   overflow: hidden;
 }
 
-.spar-plate-left .spar-hp-bar {
+.battle-plate-left .battle-hp-bar {
   transform: skewX(-14deg);
 }
 
-.spar-plate-right .spar-hp-bar {
+.battle-plate-right .battle-hp-bar {
   transform: skewX(14deg);
 }
 
-.spar-hp-lag,
-.spar-hp-fill {
+.battle-hp-lag,
+.battle-hp-fill {
   position: absolute;
   inset: 1px auto 1px 1px;
   width: 100%;
 }
 
 /* The main fill snaps down instantly… */
-.spar-hp-fill {
+.battle-hp-fill {
   background: hsl(var(--hue) 72% 56%);
   transition: width 0.15s ease-out;
 }
 
-.spar-hp-fill.spar-hud-low {
+.battle-hp-fill.battle-hud-low {
   background: #e2554a;
 }
 
 /* …the lag chunk follows a beat later and drains slowly (set from JS with
    a suspended transition on the reset, restored here for the drain). */
-.spar-hp-lag {
+.battle-hp-lag {
   background: rgb(255 244 224 / 0.55);
   transition: width 0.9s ease 0.4s;
 }
 
-.spar-hp-lag.spar-hud-low {
+.battle-hp-lag.battle-hud-low {
   background: rgb(226 85 74 / 0.5);
 }
 
 /* Danger state: the whole plate pulses once the fighter is nearly out. */
-.spar-plate:has(.spar-hud-low) {
-  animation: spar-plate-caution 1.2s ease-in-out infinite;
+.battle-plate:has(.battle-hud-low) {
+  animation: battle-plate-caution 1.2s ease-in-out infinite;
 }
 
-@keyframes spar-plate-caution {
+@keyframes battle-plate-caution {
   0%,
   100% {
     box-shadow: none;
@@ -196,7 +196,7 @@
 }
 
 /* Center chip: VS over the rangefinder chevrons, same lean as the plates. */
-.spar-hud-center {
+.battle-hud-center {
   width: 110px;
   display: grid;
   place-items: center;
@@ -209,14 +209,14 @@
   clip-path: polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%);
 }
 
-.spar-hud-vs {
+.battle-hud-vs {
   font-size: 15px;
   font-weight: 900;
   letter-spacing: 0.2em;
   color: var(--accent);
 }
 
-.spar-hud-range {
+.battle-hud-range {
   display: grid;
   justify-items: center;
   gap: 2px;
@@ -227,30 +227,30 @@
   color: var(--ink-dim);
 }
 
-.spar-hud-chevrons {
+.battle-hud-chevrons {
   display: flex;
   gap: 3px;
 }
 
-.spar-hud-chevron {
+.battle-hud-chevron {
   color: rgb(255 236 200 / 0.25);
   font-size: 9px;
   line-height: 1;
 }
 
-.spar-hud-chevron-lit {
+.battle-hud-chevron-lit {
   color: var(--accent);
 }
 
 /* Lower-third: gold feed tab + the announcer line. */
-.spar-hud-lower {
+.battle-hud-lower {
   align-self: flex-start;
   display: flex;
   align-items: stretch;
   max-width: 60%;
 }
 
-.spar-hud-lower-tab {
+.battle-hud-lower-tab {
   background: var(--accent);
   color: var(--accent-ink);
   font-size: 11px;
@@ -263,7 +263,7 @@
   clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
 }
 
-.spar-hud-line {
+.battle-hud-line {
   display: inline-block;
   padding: 8px 18px 8px 14px;
   border: 1px solid var(--kit-keyline);
@@ -279,18 +279,18 @@
   clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
 }
 
-.spar-hud-line-in {
-  animation: spar-hud-line-in 0.4s ease-out;
+.battle-hud-line-in {
+  animation: battle-hud-line-in 0.4s ease-out;
 }
 
-@keyframes spar-hud-line-in {
+@keyframes battle-hud-line-in {
   from {
     opacity: 0;
     transform: translateY(6px);
   }
 }
 
-.spar-stamp {
+.battle-stamp {
   position: absolute;
   inset: 0;
   display: none;
@@ -302,22 +302,22 @@
   padding-bottom: 8vh;
 }
 
-.spar-stamp.spar-stamp-show {
+.battle-stamp.battle-stamp-show {
   display: grid;
 }
 
-.spar-stamp.spar-stamp-in {
-  animation: spar-stamp-in 0.55s cubic-bezier(0.18, 1.4, 0.4, 1);
+.battle-stamp.battle-stamp-in {
+  animation: battle-stamp-in 0.55s cubic-bezier(0.18, 1.4, 0.4, 1);
 }
 
-@keyframes spar-stamp-in {
+@keyframes battle-stamp-in {
   from {
     opacity: 0;
     transform: scale(1.25);
   }
 }
 
-.spar-stamp-title {
+.battle-stamp-title {
   font-size: 44px;
   font-weight: 900;
   letter-spacing: 0.28em;
@@ -326,14 +326,14 @@
   text-shadow: 0 2px 24px rgb(255 209 102 / 0.35);
 }
 
-.spar-stamp-rule {
+.battle-stamp-rule {
   height: 3px;
   background: var(--accent);
   margin: 12px auto;
   width: 260px;
 }
 
-.spar-stamp-sub {
+.battle-stamp-sub {
   font-size: 15px;
   font-style: italic;
   color: var(--ink);

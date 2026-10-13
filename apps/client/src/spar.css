@@ -310,20 +310,20 @@
   color: var(--accent);
 }
 
-.spar-text {
+.battle-text {
   display: flex;
   flex-direction: column;
   gap: 1px;
 }
 
-.spar-title {
+.battle-title {
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
-.spar-sub {
+.battle-sub {
   font-size: 9px;
   font-weight: 400;
   letter-spacing: 0.08em;

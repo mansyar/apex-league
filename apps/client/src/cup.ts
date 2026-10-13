@@ -33,16 +33,18 @@ import {
   resolvePlayerMatch,
   type Tactic,
 } from "@apex/sim"
+import {
+  createBattleSession,
+  cupStampTitle,
+  type PlaybackFight,
+} from "./battle-session"
 import { createBattleHud } from "./battleHud"
 import {
   buildKitPicker,
   buildTacticRow,
   castFighter,
   focusTrap,
-  reasonLine,
-  renderSpeedButton,
   toggleKitChoice,
-  winningSideKey,
 } from "./battleUI"
 import {
   type BracketMatch,
@@ -55,10 +57,10 @@ import {
 } from "./bracket-model"
 import { crestGlyph, elementHue } from "./element"
 import { resolveMotionPref } from "./motion"
-import { createPlaybackDriver, type PlaybackFight } from "./playbackDriver"
 import type { FightCasting } from "./staging"
 import { visualSeedOf } from "./staging-seed"
 import { icons } from "./ui/icons"
+import { chipButton } from "./ui/kit"
 
 export interface CupHandlers {
   /** A player match starts: dissolve into the arena and cast both. */
@@ -117,22 +119,12 @@ export function createCup(
 ): Cup {
   // The Enter Cup chip sits beside the Spar chip (top-right cluster).
   // Kit chip with the broadcast title/sub stack, matching Spar.
-  const cupButton = document.createElement("button")
+  const { button: cupButton, sub: cupHint } = chipButton({
+    glyph: icons.trophy,
+    title: "Enter Cup",
+    sub: "Cup day · free",
+  })
   cupButton.className = "cup-button kit-chip"
-  cupButton.type = "button"
-  const cupGlyph = document.createElement("span")
-  cupGlyph.className = "kit-chip-glyph"
-  cupGlyph.innerHTML = icons.trophy
-  const cupText = document.createElement("span")
-  cupText.className = "spar-text"
-  const cupLabel = document.createElement("span")
-  cupLabel.className = "spar-title"
-  cupLabel.textContent = "Enter Cup"
-  const cupHint = document.createElement("span")
-  cupHint.className = "spar-sub"
-  cupHint.textContent = "Cup day · free"
-  cupText.append(cupLabel, cupHint)
-  cupButton.append(cupGlyph, cupText)
   root.append(cupButton)
 
   // Full-screen overlay, hidden until entry.
@@ -407,7 +399,6 @@ export function createCup(
   const fastButton = document.createElement("button")
   fastButton.type = "button"
   fastButton.className = "cup-speed"
-  renderSpeedButton(fastButton, "paced")
   battleChips.append(fastButton)
   overlay.append(bracketScreen, coachScreen, resultsScreen, giveup, battleChips)
   root.append(overlay)
@@ -438,6 +429,9 @@ export function createCup(
       clearTimeout(timer)
       timer = null
     }
+    // The battle shell's stamp-hold pends under the same "nothing may
+    // fire while we reset" contract.
+    battle.hold.cancel()
   }
 
   const reducedMotion = (): boolean =>
@@ -661,24 +655,26 @@ export function createCup(
   // ------------------------------------------------------------------
   // Arena battle (player matches)
   // ------------------------------------------------------------------
-  const driver = createPlaybackDriver({
+  const battle = createBattleSession({
+    hud: battleHud,
+    speedButton: fastButton,
     onStep: (step, instant) => {
       handlers.onStep(step, instant)
-      battleHud.update(step)
     },
     onLine: setLine,
+    onFightStart: (casting) => handlers.onFightStart(casting),
+    onPace: (msPerStep) => handlers.onPace(msPerStep),
+    motionPref: () => state?.settings.reducedMotion === true,
+    stampTitle: cupStampTitle,
     onFinish: ({ verdict, instant }) => {
       if (!fightNow) return
-      battleHud.stamp(stampTitle(verdict, fightNow), reasonLine(verdict))
-      fastButton.style.display = "none"
       battleChips.style.display = "none"
       // Hold the stamp, then back to the bracket. The cursor stays on the
       // match just fought: the walk re-stamps it on the bracket, then
       // continues with the rival reveals.
       clearTimer()
-      timer = setTimeout(
+      battle.hold.begin(
         () => {
-          timer = null
           inBattle = false
           fightNow = null
           handlers.onArenaExit()
@@ -695,21 +691,8 @@ export function createCup(
         instant ? STAMP_HOLD_REDUCED : STAMP_HOLD,
       )
     },
-    onPace: (msPerStep) => handlers.onPace(msPerStep),
-    motionPref: () => state?.settings.reducedMotion === true,
   })
-
-  /** Stamp wording: side-qualified for mirror matches. */
-  const stampTitle = (verdict: BattleResult, fight: PlaybackFight): string => {
-    if (verdict.winner === null) return "A draw"
-    if (fight.owned.name !== fight.rival.name) {
-      return verdict.winner === fight.owned.name ? "Victory" : "Defeat"
-    }
-    // Mirror match: qualify by side (the sim reports under stable keys).
-    return winningSideKey(verdict) === fight.owned.key
-      ? "Victory — your fighter"
-      : "Defeat — the rival"
-  }
+  const driver = battle.driver
 
   const castingFor = (creature: Creature, opponent: CupSlot): FightCasting => {
     return {
@@ -778,12 +761,8 @@ export function createCup(
     showScreen(null)
     giveup.style.display = "none"
     overlay.classList.add("cup-battling")
-    battleHud.show(fightNow)
     battleChips.style.display = ""
-    renderSpeedButton(fastButton, "paced")
-    fastButton.style.display = ""
-    handlers.onFightStart(castingFor(creature, opponent))
-    driver.start(fightNow, verdict.battle)
+    battle.begin(fightNow, verdict.battle, castingFor(creature, opponent))
   }
 
   // ------------------------------------------------------------------
@@ -936,10 +915,6 @@ export function createCup(
   coachGo.addEventListener("click", fight)
   ctaGhost.addEventListener("click", openCoach)
   ctaGo.addEventListener("click", openCoach)
-  fastButton.addEventListener("click", () => {
-    const next = driver.speedToggle()
-    renderSpeedButton(fastButton, next)
-  })
 
   // ------------------------------------------------------------------
   // Give-up modal + close semantics
