@@ -125,10 +125,14 @@ consume, then the mock/CSS polish.
 - [x] Task: Rename shared battle-HUD CSS classes <!-- 4b0cc1e -->
   - [x] Rename `spar-*` classes in `battle-hud.css` (+ TS literals) to
         `battle-*`; update `mock.css` references
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] `bun run verify` green; no duplicated driver-wiring remains
-  - [ ] Manual verification: Spar flow and all three cup matches — same
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) <!-- 1470452 -->
+  - [x] `bun run verify` green; no duplicated driver-wiring remains
+  - [x] Manual verification: Spar flow and cup matches — same
         HUD updates, verdict stamps, hold timings, exit transitions
+        (2 of 3 cup matches fought: single-elim ended the bracket at the
+        semi in both runs; documented in the 1470452 note)
+
+[checkpoint: 1470452]
 
 ## Phase 5 — Mock Drift Fix
 
