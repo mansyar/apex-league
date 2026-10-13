@@ -94,8 +94,8 @@ consume, then the mock/CSS polish.
         geometry given combatant pose + effects handle
   - [x] Write unit tests for at least the melee phase-timing and KO/dust
         step math where extractable as pure functions — Red → Green
-- [~] Task: Extract roster module
-  - [ ] Move cast/clear (palette capture/restore, `ARENA_FOOTPRINT`
+- [x] Task: Extract roster module <!-- d61e554 -->
+  - [x] Move cast/clear (palette capture/restore, `ARENA_FOOTPRINT`
         normalization) into a roster module
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [ ] `bun run verify` green; arena playback identical (event-for-event)
