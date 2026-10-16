@@ -295,6 +295,7 @@
 
 /* Spar chip - kit-chip plate with the broadcast title/sub stack.
    Its own control on the ranch screen, separate from the care cluster. */
+/* biome-ignore lint/style/noDescendingSpecificity: the in-arena-state override above is intentionally more specific than this base rule */
 .spar-button {
   position: absolute;
   top: 18px;

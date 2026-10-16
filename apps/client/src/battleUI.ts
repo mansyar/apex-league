@@ -122,9 +122,9 @@ export function buildKitPicker(options: {
     const row = document.createElement("button")
     row.type = "button"
     row.className = locked
-      ? options.classes.base + " " + options.classes.locked
+      ? `${options.classes.base} ${options.classes.locked}`
       : chosen.includes(id)
-        ? options.classes.base + " " + options.classes.chosen
+        ? `${options.classes.base} ${options.classes.chosen}`
         : options.classes.base
     row.textContent = locked
       ? options.lockedText(name, required - creature.trainingDays)

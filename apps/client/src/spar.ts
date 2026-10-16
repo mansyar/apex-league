@@ -316,7 +316,6 @@ export function createSpar(
       for (const { button } of tacticButtons) button.style.display = "none"
     },
   })
-  const driver = session.driver
 
   const showLine = (text: string): void => {
     const line = document.createElement("div")
