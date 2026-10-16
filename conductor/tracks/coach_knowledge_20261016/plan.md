@@ -45,9 +45,10 @@ and DOM wiring verified manually; `bun run verify` gates every commit.
 
 ## Phase 5 — Settings modal (client, 1:1 chip relocation)
 
-- [ ] Task: New module `settings-modal.ts` — motion / camera style / new game
-      (confirm-gated); wire commit() paths unchanged
-- [ ] Task: Remove the three floating chips; verify no orphaned CSS/ids
+- [x] Task: New module `settings-modal.ts` — motion / camera style / new game
+      (confirm-gated); wire commit() paths unchanged (5c445a1)
+- [x] Task: Remove the three floating chips; verify no orphaned CSS/ids
+      (5c445a1 — removal is atomic with the module)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 6 — Wrap-up
