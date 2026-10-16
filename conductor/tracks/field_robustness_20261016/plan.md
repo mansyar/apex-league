@@ -242,7 +242,7 @@ tested in Phase 1)*
 
 *(presentation — measured in the browser, not asserted by inspection)*
 
-- [ ] Task: Phone-tier tap targets (F8)
+- [x] Task: Phone-tier tap targets (F8) — fde1597
   - Raise `.cup-slot` (`cup.css:939-943`, `min-height: 30px`) to a ≥44px hit
     area at the phone tier, then audit every other interactive plate in
     `cup.css`, `spar.css`, `starter.css`, `battle-hud.css` and `ranch.css` at
@@ -250,7 +250,7 @@ tested in Phase 1)*
   - Desktop density is untouched (decision 4 — the phone tier only)
   - Manual verification: at the phone tier every audited plate measures ≥44px
     on its smallest axis in the browser
-- [ ] Task: Phone-tier HUD collision — spar entry reachability (F10)
+- [~] Task: Phone-tier HUD collision — spar entry reachability (F10)
   - Found during Phase 2: at 360x732 `.spar-button` `[192,18,150,45]` is
     overlapped by `.score-bug` `[183,10,163,42]`, `elementFromPoint` at the
     chip's centre returns the score bug, and only 110 of 407 sampled points
