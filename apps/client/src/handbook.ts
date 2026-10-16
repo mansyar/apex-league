@@ -61,34 +61,54 @@ type HandbookTab = {
   build: (panel: HTMLElement) => void
 }
 
+/**
+ * Append a trusted, static glyph SVG without assigning innerHTML on a
+ * live element — template parsing keeps the same trusted-source contract
+ * with a narrower blast radius.
+ */
+function appendGlyph(target: HTMLElement, svg: string): void {
+  const template = document.createElement("template")
+  template.innerHTML = svg
+  target.append(template.content)
+}
+
 /** The 6×6 matchup grid: attacker rows, defender columns, sim-sourced. */
 function buildTypeChart(panel: HTMLElement): void {
   const grid = document.createElement("div")
   grid.className = "handbook-chart"
   grid.setAttribute("role", "table")
   grid.setAttribute("aria-label", "Type matchups")
+  // Header row: attack-direction legend + defender crests.
+  const headRow = document.createElement("div")
+  headRow.className = "handbook-chart-row"
+  headRow.setAttribute("role", "row")
   // Corner cell: attack direction legend.
   const corner = document.createElement("span")
   corner.className = "handbook-chart-corner"
+  corner.setAttribute("role", "columnheader")
   corner.textContent = "↓ into"
-  grid.append(corner)
+  headRow.append(corner)
   for (const def of CHART_ELEMENTS) {
     const head = document.createElement("span")
     head.className = "handbook-chart-head"
     head.setAttribute("role", "columnheader")
     head.title = ELEMENT_LABELS[def] ?? def
-    head.innerHTML = crestGlyph(def)
+    appendGlyph(head, crestGlyph(def))
     head.style.color = `hsl(${elementHue(def)} 70% 62%)`
-    grid.append(head)
+    headRow.append(head)
   }
+  grid.append(headRow)
   for (const atk of CHART_ELEMENTS) {
+    const row = document.createElement("div")
+    row.className = "handbook-chart-row"
+    row.setAttribute("role", "row")
     const rowHead = document.createElement("span")
     rowHead.className = "handbook-chart-head"
     rowHead.setAttribute("role", "rowheader")
     rowHead.title = ELEMENT_LABELS[atk] ?? atk
-    rowHead.innerHTML = crestGlyph(atk)
+    appendGlyph(rowHead, crestGlyph(atk))
     rowHead.style.color = `hsl(${elementHue(atk)} 70% 62%)`
-    grid.append(rowHead)
+    row.append(rowHead)
     for (const def of CHART_ELEMENTS) {
       const cell = document.createElement("span")
       cell.className = "handbook-chart-cell"
@@ -114,8 +134,9 @@ function buildTypeChart(panel: HTMLElement): void {
           `${ELEMENT_LABELS[atk] ?? atk} into ${ELEMENT_LABELS[def] ?? def}: even`,
         )
       }
-      grid.append(cell)
+      row.append(cell)
     }
+    grid.append(row)
   }
   panel.append(grid)
   const note = document.createElement("p")
@@ -240,7 +261,7 @@ export function buildHandbook(): HandbookRefs {
   let opener: HTMLElement | null = null
   const closeNow = (): void => {
     root.style.display = "none"
-    opener?.focus()
+    if (opener?.isConnected) opener.focus()
     opener = null
   }
   close.addEventListener("click", closeNow)

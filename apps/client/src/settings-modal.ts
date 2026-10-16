@@ -70,6 +70,34 @@ export interface SettingsModalRefs {
 }
 
 /**
+ * The top-left preference cluster: the Settings entry chip and the
+ * Handbook entry chip inside the shared `.hud-motion` wrapper. Both the
+ * live HUD and the design mock assemble it identically — one builder so
+ * the parity stays structural (coach_knowledge_20261016 review).
+ */
+export function buildPrefCluster(
+  openSettings: () => void,
+  openHandbook: () => void,
+): HTMLElement {
+  const wrap = document.createElement("div")
+  wrap.className = "hud-motion"
+  const settingsChip = chip({
+    label: "Settings",
+    variant: "dim",
+    onClick: openSettings,
+  })
+  settingsChip.classList.add("settings-chip")
+  const handbookChip = chip({
+    label: "Handbook",
+    variant: "dim",
+    onClick: openHandbook,
+  })
+  handbookChip.classList.add("handbook-chip")
+  wrap.append(settingsChip, handbookChip)
+  return wrap
+}
+
+/**
  * Build the settings modal around the chip trio. Hidden until open();
  * Escape, the backdrop, and the footer button all close it, restoring
  * focus to the opener. New game closes this modal first, then hands off
@@ -119,7 +147,7 @@ export function buildSettingsModal(
   let opener: HTMLElement | null = null
   function closeNow(): void {
     root.style.display = "none"
-    opener?.focus()
+    if (opener?.isConnected) opener.focus()
     opener = null
   }
   close.addEventListener("click", closeNow)

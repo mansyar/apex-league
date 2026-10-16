@@ -34,7 +34,7 @@ import { focusTrap } from "./battleUI"
 import { buildCreatureDetail } from "./creature-detail"
 import { crestGlyph, elementHue } from "./element"
 import { buildHandbook } from "./handbook"
-import { buildSettingsModal } from "./settings-modal"
+import { buildPrefCluster, buildSettingsModal } from "./settings-modal"
 import { icons } from "./ui/icons"
 import {
   bar,
@@ -207,47 +207,12 @@ export function unlockCallout(creature: Creature): string {
 }
 
 /**
- * Life-stage display name for the nameplate badge.
+ * Life-stage display name + generation numeral, shared with the
+ * creature-detail modal (single source of truth in ui/labels).
  */
-export function stageLabel(stage: Creature["stage"]): string {
-  if (stage === "juvenile") return "Juvenile"
-  if (stage === "champion") return "Champion"
-  return "Baby"
-}
+import { romanNumeral, stageLabel } from "./ui/labels"
 
-/** Roman tally symbols, descending — the generation numeral alphabet. */
-const ROMAN: ReadonlyArray<readonly [number, string]> = [
-  [1000, "M"],
-  [900, "CM"],
-  [500, "D"],
-  [400, "CD"],
-  [100, "C"],
-  [90, "XC"],
-  [50, "L"],
-  [40, "XL"],
-  [10, "X"],
-  [9, "IX"],
-  [5, "V"],
-  [4, "IV"],
-  [1, "I"],
-]
-
-/**
- * A generation as a Roman numeral (1 → "I", 2 → "II"). Out-of-range or
- * non-integer input falls back to "#n" so the plate never renders "NaN".
- */
-export function romanNumeral(n: number): string {
-  if (!Number.isInteger(n) || n < 1 || n > 3999) return `#${n}`
-  let rest = n
-  let out = ""
-  for (const [value, symbol] of ROMAN) {
-    while (rest >= value) {
-      out += symbol
-      rest -= value
-    }
-  }
-  return out
-}
+export { romanNumeral, stageLabel }
 
 /**
  * The bloodline's display name: the founder is unnumbered, every successor
@@ -903,29 +868,17 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     },
   })
   const { motionChip, cameraChip } = settings
-  const motionWrap = document.createElement("div")
-  motionWrap.className = "hud-motion"
-  const settingsChip = chip({
-    label: "Settings",
-    variant: "dim",
-    onClick: () => settings.open(),
-  })
-  settingsChip.classList.add("settings-chip")
-  motionWrap.append(settingsChip)
-  // Partner-details modal: opened by tapping the creature plate head; it
-  // reads state fresh on every open.
-  const creatureDetail = buildCreatureDetail()
   // Coach's Handbook: type chart, ladder rules, raising guidance — one
   // persistent ranch chip (Phase 5 moved the settings chips into their
   // own modal behind the Settings chip).
   const handbook = buildHandbook()
-  const handbookChip = chip({
-    label: "Handbook",
-    variant: "dim",
-    onClick: () => handbook.open(),
-  })
-  handbookChip.classList.add("handbook-chip")
-  motionWrap.append(handbookChip)
+  const motionWrap = buildPrefCluster(
+    () => settings.open(),
+    () => handbook.open(),
+  )
+  // Partner-details modal: opened by tapping the creature plate head; it
+  // reads state fresh on every open.
+  const creatureDetail = buildCreatureDetail()
 
   // Lineage plate (top-left, under the settings pill): the family name +
   // generation, and the Hall of Fame opener.

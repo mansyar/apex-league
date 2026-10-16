@@ -15,6 +15,7 @@ import {
 } from "@apex/sim"
 import { focusTrap } from "./battleUI"
 import { crest, tab } from "./ui/kit"
+import { romanNumeral, stageLabel } from "./ui/labels"
 
 const STAT_LABELS: Array<{ key: StatKey; label: string }> = [
   { key: "hp", label: "HP" },
@@ -23,32 +24,9 @@ const STAT_LABELS: Array<{ key: StatKey; label: string }> = [
   { key: "spd", label: "SPD" },
 ]
 
-/** Life-stage display name (same wording as the HUD nameplate badge). */
-function stageLabel(stage: Creature["stage"]): string {
-  if (stage === "juvenile") return "Juvenile"
-  if (stage === "champion") return "Champion"
-  return "Baby"
-}
-
 /** A generation as a Roman numeral — "Gen I", "Gen II" (0 → "Gen 0"). */
 function generationLabel(generation: number): string {
-  if (generation < 1) return "Gen 0"
-  const ROMAN: ReadonlyArray<readonly [number, string]> = [
-    [10, "X"],
-    [9, "IX"],
-    [5, "V"],
-    [4, "IV"],
-    [1, "I"],
-  ]
-  let rest = generation
-  let out = ""
-  for (const [value, symbol] of ROMAN) {
-    while (rest >= value) {
-      out += symbol
-      rest -= value
-    }
-  }
-  return `Gen ${out}`
+  return generation < 1 ? "Gen 0" : `Gen ${romanNumeral(generation)}`
 }
 
 /** One stat row: label + total, then the four breakdown chips beneath. */

@@ -447,6 +447,11 @@
 }
 
 /* `hidden` loses to the display rule above without this. */
+/* Row wrappers carry the ARIA table rows; display:contents lets their
+   children lay out as direct grid items unchanged. */
+.handbook-chart-row {
+  display: contents;
+}
 .handbook-panel[hidden] {
   display: none;
 }

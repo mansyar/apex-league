@@ -16,7 +16,7 @@ import "./mock.css"
 import type { CreatureConditions } from "@apex/sim"
 import { buildHandbook } from "./handbook"
 import { buildCommandDock, buildCreaturePlate, buildScoreBug } from "./hud"
-import { buildSettingsModal } from "./settings-modal"
+import { buildPrefCluster, buildSettingsModal } from "./settings-modal"
 import { icons } from "./ui/icons"
 import { bar, button, chip, crest, meter, plate, stamp, tab } from "./ui/kit"
 
@@ -83,25 +83,7 @@ const settings = buildSettingsModal({
   },
 })
 const handbook = buildHandbook()
-const prefCluster = (openSettings: () => void, openHandbook: () => void) => {
-  const wrap = document.createElement("div")
-  wrap.className = "hud-motion"
-  const settingsChip = chip({
-    label: "Settings",
-    variant: "dim",
-    onClick: openSettings,
-  })
-  settingsChip.classList.add("settings-chip")
-  const handbookChip = chip({
-    label: "Handbook",
-    variant: "dim",
-    onClick: openHandbook,
-  })
-  handbookChip.classList.add("handbook-chip")
-  wrap.append(settingsChip, handbookChip)
-  return wrap
-}
-const motionWrap = prefCluster(
+const motionWrap = buildPrefCluster(
   () => settings.open(),
   () => handbook.open(),
 )
@@ -425,7 +407,7 @@ phoneStack.append(
   }).root,
 )
 phoneScene.append(
-  prefCluster(
+  buildPrefCluster(
     () => {},
     () => {},
   ),
