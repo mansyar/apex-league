@@ -31,6 +31,7 @@ import {
   TRAINING_CAP,
 } from "@apex/sim"
 import { focusTrap } from "./battleUI"
+import { buildCreatureDetail } from "./creature-detail"
 import { crestGlyph, elementHue } from "./element"
 import { icons } from "./ui/icons"
 import {
@@ -489,6 +490,7 @@ export function buildLineagePlate(): LineagePlateRefs {
 export interface CreaturePlateRefs {
   root: HTMLElement
   creatureHead: HTMLButtonElement
+  collapseButton: HTMLButtonElement
   headRow: HTMLElement
   creatureName: HTMLElement
   stageTab: HTMLElement
@@ -516,34 +518,41 @@ export interface CreaturePlateRefs {
  */
 export function buildCreaturePlate(): CreaturePlateRefs {
   const root = plate({ className: "creature-plate" })
-  // The creature head doubles as the collapse toggle: clicking it folds
-  // the plate down to just the head row (crest + name + stage), leaving
-  // the briefest useful readout pinned to the corner.
+  // The creature head opens the partner-details modal (coach_knowledge_20261016):
+  // crest + name + stage, one tap to the full stat breakdown.
   const creatureHead = document.createElement("button")
   creatureHead.className = "creature-head"
   creatureHead.type = "button"
-  creatureHead.setAttribute("aria-expanded", "true")
-  creatureHead.title = "Collapse panel"
+  creatureHead.title = "Partner details"
   const crestEl = crest("fire")
   const creatureName = document.createElement("span")
   creatureName.className = "creature-name"
   const stageTab = tab("Baby", "stage")
-  const creatureChev = document.createElement("span")
-  creatureChev.className = "collapse-chev"
-  creatureChev.innerHTML = icons.chevron
-  creatureHead.append(crestEl, creatureName, stageTab, creatureChev)
+  creatureHead.append(crestEl, creatureName, stageTab)
 
-  // Rename affordance: a sibling button (never nested inside the collapse
-  // toggle) that swaps the head row for an inline edit form.
+  // Rename affordance: a sibling button (never nested inside a button) that
+  // swaps the head row for an inline edit form.
   const renameButton = document.createElement("button")
   renameButton.className = "rename-button"
   renameButton.type = "button"
   renameButton.title = "Rename partner"
   renameButton.setAttribute("aria-label", "Rename partner")
   renameButton.innerHTML = icons.pencil
+  // Collapse affordance: its own button so the head stays free for the
+  // details modal. The chevron points down expanded, right collapsed (CSS).
+  const collapseButton = document.createElement("button")
+  collapseButton.className = "collapse-toggle"
+  collapseButton.type = "button"
+  collapseButton.title = "Collapse panel"
+  collapseButton.setAttribute("aria-label", "Collapse panel")
+  collapseButton.setAttribute("aria-expanded", "true")
+  const creatureChev = document.createElement("span")
+  creatureChev.className = "collapse-chev"
+  creatureChev.innerHTML = icons.chevron
+  collapseButton.append(creatureChev)
   const headRow = document.createElement("div")
   headRow.className = "creature-headrow"
-  headRow.append(creatureHead, renameButton)
+  headRow.append(creatureHead, renameButton, collapseButton)
 
   // Inline edit form: name input + confirm/cancel. Hidden until the
   // pencil is pressed; Enter confirms, Escape cancels.
@@ -615,6 +624,7 @@ export function buildCreaturePlate(): CreaturePlateRefs {
   return {
     root,
     creatureHead,
+    collapseButton,
     headRow,
     creatureName,
     stageTab,
@@ -884,6 +894,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   const {
     root: lowerThird,
     creatureHead,
+    collapseButton,
     headRow,
     creatureName,
     stageTab,
@@ -927,6 +938,9 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   // Settings cluster (top-left) + reset modal — the shared builders. The
   // modal is built first so the New game chip can open it.
   const { resetModal, resetConfirm } = buildResetModal(() => handlers.onReset())
+  // Partner-details modal: opened by tapping the creature plate head; it
+  // reads state fresh on every open.
+  const creatureDetail = buildCreatureDetail()
   const { motionWrap, motionChip, cameraChip } = buildSettingsChips({
     onToggleReducedMotion: () => handlers.onToggleReducedMotion(),
     onToggleArenaCamera: () => handlers.onToggleArenaCamera(),
@@ -1043,7 +1057,15 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   const hudStack = document.createElement("div")
   hudStack.className = "hud-stack"
   hudStack.append(lowerThird, cluster)
-  root.append(scoreBug, motionWrap, lineagePlate, hudStack, resetModal, callout)
+  root.append(
+    scoreBug,
+    motionWrap,
+    lineagePlate,
+    hudStack,
+    resetModal,
+    creatureDetail.root,
+    callout,
+  )
 
   let pickerOpen = false
   let lastFocus: StatKey | null = null
@@ -1070,10 +1092,19 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     if (current) update(current)
   })
 
+  // Tapping the plate head opens the partner-details modal. The scrim
+  // covers the HUD while it shows, so the readout is fresh for the visit.
   creatureHead.addEventListener("click", () => {
+    if (current?.creature) creatureDetail.open(current)
+  })
+
+  collapseButton.addEventListener("click", () => {
     creatureOpen = !creatureOpen
     lowerThird.classList.toggle("is-collapsed", !creatureOpen)
-    creatureHead.setAttribute("aria-expanded", creatureOpen ? "true" : "false")
+    collapseButton.setAttribute(
+      "aria-expanded",
+      creatureOpen ? "true" : "false",
+    )
   })
 
   // Rename flow: pencil opens the inline edit, Enter/click confirms,
