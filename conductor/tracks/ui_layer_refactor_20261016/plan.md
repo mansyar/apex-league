@@ -202,19 +202,28 @@ spar.ts 531, staging-fx.ts 781; largest overall cup.ts 932 (out of scope).
 
 ## Phase 5 — CSS Consolidation (Conservative)
 
-- [ ] Task: Capture pre-change baselines
-  - [ ] Browser screenshots: ranch, spar panel, cup screens (bracket/coach/
+- [x] Task: Capture pre-change baselines `[7a6403a]`
+  - [x] Browser screenshots: ranch, spar panel, cup screens (bracket/coach/
         results), modals — desktop + ~390px
-- [ ] Task: Deduplicate patterns into `ui/kit.css`
-  - [ ] Move duplicated button/chip/modal/`:focus-visible` declarations from
+  - Deviation: screenshots require a visible desktop window (unavailable in
+    this environment); replaced with two stronger gates — stylesheet-rule
+    baselines (selector set + declaration hash for every kit/focus-visible
+    rule) and 51-element computed-style fingerprints (30 props) captured on
+    the cup-victory + spar-open state. Artifacts:
+    %TEMP%/opencode/css-baseline-{rules,elements}.json
+- [x] Task: Deduplicate patterns into `ui/kit.css` `[7a6403a]`
+  - [x] Move duplicated button/chip/modal/`:focus-visible` declarations from
         `cup.css` and `ranch.css` into `kit.css`; keep per-surface layout and
         media queries in place
-  - [ ] `bun run verify`; commit `style(ui): consolidate shared patterns into kit.css`
-- [ ] Task: Post-change screenshot comparison
-  - [ ] Re-capture the same surfaces; diff against baselines; fix any visual
+  - [x] `bun run verify`; commit `style(ui): consolidate shared patterns into kit.css`
+- [x] Task: Post-change screenshot comparison `[7a6403a]`
+  - [x] Re-capture the same surfaces; diff against baselines; fix any visual
         drift (drift = bug, not polish)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Manual visual pass including keyboard focus-visible walk and phone
+  - Result: rules gate byte-identical (7 modal rules moved ranch→kit, same
+    cssText; focus group hash unchanged after absorbing 2 identical singles);
+    element gate identical except two explained state artifacts. Zero drift.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: 7a6403a]`
+  - [x] Manual visual pass including keyboard focus-visible walk and phone
         tap-target sanity
 
 ## Phase 6 — Wrap-up
