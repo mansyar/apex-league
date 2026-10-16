@@ -106,7 +106,7 @@ apMeter.root.replaceWith(meter(3, 3).root)
 trophyCount.textContent = "× 2"
 trophy.style.display = ""
 rankRank.textContent = "Bronze III"
-rankPts.textContent = "40/60"
+rankPts.textContent = "2/6"
 
 // Creature lower-third — bottom-left, canned juvenile Ember Drake with
 // trained stats, condition values and a ticker line.
@@ -121,7 +121,7 @@ const {
 creatureName.textContent = "Ember"
 stageTab.textContent = "Juvenile"
 const cannedStats: Array<[string, number, number]> = [
-  ["hp", 26, 4],
+  ["hp", 84, 4],
   ["atk", 18, 2],
   ["def", 15, 3],
   ["spd", 12, 6],
@@ -173,7 +173,8 @@ for (const { button: btn, note, key } of pickerButtons) {
     btn.disabled = true
     note.textContent = "as sharp as it can get for now"
   } else {
-    note.textContent = key === "hp" ? "26 → 27" : "18 → 19"
+    // HP pays double since the chart track doubled the HP scale.
+    note.textContent = key === "hp" ? "84 → 86" : "18 → 19"
   }
 }
 
