@@ -7,7 +7,6 @@ import {
   lineagePrestige,
   previewTraining,
   type StatKey,
-  TRAINING_CAP,
 } from "@apex/sim"
 import { focusTrap } from "./battleUI"
 import { crestGlyph, elementHue } from "./element"
@@ -15,15 +14,13 @@ import {
   evolveCallout,
   familyName,
   graduationCallout,
-  previewNote,
   REJECTION_COPY,
-  STATS,
   saveFailureNotice,
   selectHint,
   stageLabel,
-  statLabel,
   statusLine,
 } from "./hud/copy"
+import { buildCommandDock, pickerEntry, trainButtonState } from "./hud/dock"
 import {
   apPipPlan,
   buildCreaturePlate,
@@ -35,8 +32,10 @@ import {
   promotionLine,
   statCell,
 } from "./hud/plates"
-import { icons } from "./ui/icons"
-import { button, chip, cta, meter, plate, replay } from "./ui/kit"
+
+export { buildCommandDock, type CommandDockRefs } from "./hud/dock"
+
+import { chip, meter, replay } from "./ui/kit"
 
 export {
   coachVoice,
@@ -113,138 +112,6 @@ export interface Hud {
   /** Show the save-failure coach line (called once per failed persist;
    * the next routine update replaces it). Non-blocking by design. */
   announceSaveFailure(): void
-}
-
-const ACTIONS: Array<{ action: CareAction; label: string; glyph: string }> = [
-  { action: "feed", label: "Feed", glyph: icons.feed },
-  { action: "rest", label: "Rest", glyph: icons.rest },
-  { action: "treat", label: "Treat", glyph: icons.treat },
-  { action: "play", label: "Play", glyph: icons.play },
-]
-
-/** The command-dock elements the daily update writes into. */
-export interface CommandDockRefs {
-  root: HTMLElement
-  dockHead: HTMLButtonElement
-  dockRow: HTMLElement
-  actionButtons: Array<{ button: HTMLButtonElement; action: CareAction }>
-  dockTrain: HTMLElement
-  trainButton: HTMLButtonElement
-  trainTag: HTMLElement | null
-  picker: HTMLElement
-  pickerButtons: Array<{
-    button: HTMLButtonElement
-    note: HTMLElement
-    key: StatKey
-  }>
-  advance: HTMLElement
-  advanceLabel: HTMLElement | null
-  /** Graduation send-off container + chip (shown only when eligible). */
-  dockGraduate: HTMLElement
-  graduateChip: HTMLButtonElement
-}
-
-/**
- * Bottom-right command dock (broadcast kit plate): care buttons, the
- * train control with its inline four-stat picker, and the Advance Day
- * CTA. Care/pick clicks call the given handlers; the train-toggle and
- * collapse interactions stay with createHud (they re-render).
- */
-export function buildCommandDock(handlers: {
-  onCare: (action: CareAction) => void
-  /** A stat picked from the inline picker (closes it + spends 1 AP). */
-  onTrain: (key: StatKey) => void
-  onAdvanceDay: () => void
-  /** Open the graduation send-off confirm (legacy track). */
-  onGraduate: () => void
-}): CommandDockRefs {
-  // A slim header row doubles as the collapse toggle; collapsed, only
-  // the "ACTIONS" label remains pinned to the corner.
-  const root = plate({ className: "command-dock" })
-  const dockHead = document.createElement("button")
-  dockHead.className = "dock-head"
-  dockHead.type = "button"
-  dockHead.setAttribute("aria-expanded", "true")
-  dockHead.title = "Collapse panel"
-  const dockHeadLabel = document.createElement("span")
-  dockHeadLabel.textContent = "Actions"
-  const dockChev = document.createElement("span")
-  dockChev.className = "collapse-chev"
-  dockChev.innerHTML = icons.chevron
-  dockHead.append(dockHeadLabel, dockChev)
-  const dockRow = document.createElement("div")
-  dockRow.className = "dock-row"
-  const actionButtons = ACTIONS.map(({ action, label, glyph }) => {
-    const btn = button({
-      label,
-      glyph,
-      cost: "1 AP",
-      onClick: () => handlers.onCare(action),
-    })
-    dockRow.append(btn)
-    return { button: btn, action }
-  })
-  // Train control and its inline four-stat picker. Opening or closing
-  // the picker spends nothing — only an assignment can.
-  const dockTrain = document.createElement("div")
-  dockTrain.className = "dock-train"
-  const trainButton = button({
-    label: "Train",
-    glyph: icons.train,
-    cost: "1 AP",
-    tag: "",
-  })
-  const trainTag = trainButton.querySelector<HTMLElement>(".kit-button-tag")
-  dockTrain.append(trainButton)
-
-  const picker = document.createElement("div")
-  picker.className = "train-picker"
-  picker.style.display = "none"
-  const pickerButtons = STATS.map(({ key, label }) => {
-    const entry = document.createElement("button")
-    entry.className = "train-entry"
-    entry.type = "button"
-    const name = document.createElement("span")
-    name.className = "train-entry-name"
-    name.textContent = label
-    const note = document.createElement("span")
-    note.className = "train-note"
-    entry.append(name, note)
-    entry.addEventListener("click", () => {
-      handlers.onTrain(key)
-    })
-    picker.append(entry)
-    return { button: entry, note, key }
-  })
-  const advance = cta("Advance Day", handlers.onAdvanceDay)
-  const advanceLabel = advance.querySelector<HTMLElement>(".kit-cta-label")
-  // Graduation send-off (legacy track): hidden until the sim reports the
-  // champion eligible (canGraduate), so the dock never offers a dead end.
-  const dockGraduate = document.createElement("div")
-  dockGraduate.className = "dock-graduate"
-  dockGraduate.style.display = "none"
-  const graduateChip = button({
-    label: "Graduate",
-    tag: "",
-    onClick: () => handlers.onGraduate(),
-  })
-  dockGraduate.append(graduateChip)
-  root.append(dockHead, dockRow, dockTrain, dockGraduate, picker, advance)
-  return {
-    root,
-    dockHead,
-    dockRow,
-    actionButtons,
-    dockTrain,
-    trainButton,
-    trainTag,
-    picker,
-    pickerButtons,
-    advance,
-    advanceLabel,
-    dockGraduate,
-    graduateChip,
-  }
 }
 
 /** The settings-pill elements the preference capture mirrors into. */
@@ -670,54 +537,26 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     // Train button: disabled only when nothing is possible. A focus set
     // keeps it enabled at 0 AP, because a same-day swap is free.
     const preview = previewTraining(creature)
-    const allCapped = STATS.every(
-      ({ key }) => creature.trained[key] >= TRAINING_CAP,
-    )
-    if (allCapped) {
-      trainButton.disabled = true
-      trainButton.classList.add("is-disabled")
-      trainButton.dataset.reason = "Nothing left to train for now."
-      if (trainTag) trainTag.textContent = ""
-    } else if (state.actionPoints === 0 && !creature.trainingFocus) {
-      trainButton.disabled = true
-      trainButton.classList.add("is-disabled")
-      trainButton.dataset.reason = REJECTION_COPY["no-ap"]
-      if (trainTag) trainTag.textContent = ""
-    } else {
-      trainButton.disabled = false
-      trainButton.classList.remove("is-disabled")
+    const train = trainButtonState(creature, state.actionPoints)
+    trainButton.disabled = train.disabled
+    trainButton.classList.toggle("is-disabled", train.disabled)
+    if (train.reason === null) {
       delete trainButton.dataset.reason
-      if (trainTag) {
-        trainTag.textContent = creature.trainingFocus
-          ? `Focus: ${statLabel(creature.trainingFocus)}`
-          : ""
-      }
+    } else {
+      trainButton.dataset.reason = train.reason
     }
-    trainButton.classList.toggle("is-focus", Boolean(creature.trainingFocus))
+    if (trainTag) trainTag.textContent = train.tag
+    trainButton.classList.toggle("is-focus", train.focus)
 
     // Picker entries: tonight's delta, or the waste reason. Capped stats
     // are disabled; the current focus is marked.
     picker.style.display = pickerOpen ? "" : "none"
     for (const entry of pickerButtons) {
-      const capped = creature.trained[entry.key] >= TRAINING_CAP
-      entry.button.disabled = capped
-      entry.button.classList.toggle("is-capped", capped)
-      entry.button.classList.toggle(
-        "is-focus",
-        creature.trainingFocus === entry.key,
-      )
-      if (capped) {
-        entry.note.textContent = "as sharp as it can get for now"
-      } else if (creature.trainingFocus === entry.key) {
-        entry.note.textContent = preview
-          ? `focused · ${previewNote(preview)}`
-          : "focused"
-      } else if (preview === "gained") {
-        const total = creature.stats[entry.key] + creature.trained[entry.key]
-        entry.note.textContent = `${statLabel(entry.key)} ${total} → ${total + 1}`
-      } else {
-        entry.note.textContent = preview ? previewNote(preview) : "costs 1 AP"
-      }
+      const view = pickerEntry(creature, entry.key, preview)
+      entry.button.disabled = view.capped
+      entry.button.classList.toggle("is-capped", view.capped)
+      entry.button.classList.toggle("is-focus", view.isFocus)
+      entry.note.textContent = view.note
     }
 
     for (const bar of bars) {
