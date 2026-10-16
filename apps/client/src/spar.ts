@@ -32,6 +32,7 @@ import {
   statLine,
   toggleKit,
 } from "./spar/loadout-vm"
+import { logToggleLabel } from "./spar/log"
 import type { FightCasting } from "./staging"
 import { visualSeedOf } from "./staging-seed"
 import { icons } from "./ui/icons"
@@ -282,7 +283,7 @@ export function createSpar(
     onReplayStart: (run) => {
       log.replaceChildren()
       log.hidden = true
-      logToggle.textContent = "Battle log ▸"
+      logToggle.textContent = logToggleLabel(true)
       logToggle.setAttribute("aria-expanded", "false")
       battleHud.hideStamp()
       replayButton.disabled = true
@@ -414,7 +415,7 @@ export function createSpar(
     intro.textContent = "Pick how your partner fights. No AP, nothing saved."
     log.replaceChildren()
     log.hidden = true
-    logToggle.textContent = "Battle log ▸"
+    logToggle.textContent = logToggleLabel(true)
     logToggle.setAttribute("aria-expanded", "false")
     battleHud.hide()
     panel.style.display = ""
@@ -463,7 +464,7 @@ export function createSpar(
   logToggle.addEventListener("click", () => {
     log.hidden = !log.hidden
     logToggle.setAttribute("aria-expanded", String(!log.hidden))
-    logToggle.textContent = log.hidden ? "Battle log ▸" : "Battle log ▴"
+    logToggle.textContent = logToggleLabel(log.hidden)
     if (!log.hidden) log.scrollTop = log.scrollHeight
   })
 
