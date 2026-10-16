@@ -27,7 +27,7 @@ const BATTLE_SEEDS = [11, 29, 47, 53, 71, 89, 113, 127, 149, 163, 181, 199]
 const PLAYER_TACTIC: Tactic = "balanced"
 
 /** Mid-band canonical stats both sides start from (hp, atk, def, spd). */
-const CANONICAL_STATS = { hp: 132, atk: 10, def: 9, spd: 8 }
+const CANONICAL_STATS = { hp: 88, atk: 10, def: 9, spd: 8 }
 
 /** Training levels probed: the full investment curve 0 → cap. */
 const TRAINED_LEVELS = [0, 2, 4, 6]
