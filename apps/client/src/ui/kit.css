@@ -379,9 +379,28 @@
 /* Keyboard focus stays visible on every interactive primitive. */
 .kit-chip:focus-visible,
 .kit-button:focus-visible,
-.kit-cta:focus-visible {
+.kit-cta:focus-visible,
+.spar-kit-reset:focus-visible,
+.spar-log-toggle:focus-visible,
+.cup-close:focus-visible,
+.cup-slot:focus-visible,
+.cup-cta-ghost:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* F9: the surfaces that own their own controls get the same ring — an
+   additive list against the same token, so it cannot drift from the rule
+   above. Chamfered plates (clip-path) shear an outer ring away entirely, so
+   theirs is drawn just inside the border box instead. */
+.spar-kit-move:focus-visible,
+.spar-tactic:focus-visible,
+.spar-fast:focus-visible,
+.spar-replay:focus-visible,
+.starter-card:focus-visible,
+.cup-cta-go:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -3px;
 }
 
 /* Element border accents: custom-property setters so a surface's own
