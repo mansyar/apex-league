@@ -376,10 +376,66 @@
   transform: translateY(1px) scale(0.99);
 }
 
+/* Modal shell: a full-screen scrim with one centered plate. Shared by every
+   confirm dialog (reset, Hall of Fame, cup notices) — ranch hosts the DOM,
+   but the classes are kit-level. The scrim click and Escape both back out —
+   only the explicit buttons act. */
+.kit-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, #000 55%, transparent);
+}
+
+.kit-modal-box {
+  display: grid;
+  gap: 10px;
+  max-width: min(420px, 88vw);
+  padding: 18px 20px;
+  text-align: center;
+}
+
+.kit-modal-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.kit-modal-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-dim);
+}
+
+.kit-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* The one destructive action in the game earns its own color. */
+.kit-button-danger {
+  color: var(--danger, #ff6b6b);
+}
+
+.kit-button-danger:focus-visible {
+  outline: 2px solid var(--danger, #ff6b6b);
+  outline-offset: 2px;
+}
+
 /* Keyboard focus stays visible on every interactive primitive. */
 .kit-chip:focus-visible,
 .kit-button:focus-visible,
 .kit-cta:focus-visible,
+.rename-button:focus-visible,
+.hud-lineage:focus-visible,
 .spar-kit-reset:focus-visible,
 .spar-log-toggle:focus-visible,
 .cup-close:focus-visible,
