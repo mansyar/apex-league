@@ -5,13 +5,13 @@ and DOM wiring verified manually; `bun run verify` gates every commit.
 
 ## Phase 1 — Sim: stat decomposition helper (TDD)
 
-- [ ] Task: Write failing tests for `statBreakdown` in `packages/sim` (decomposes
+- [x] Task: Write failing tests for `statBreakdown` in `packages/sim` (decomposes
       each stat into rolled base / trained / evolution boost / inherited floor
       across: fresh baby, trained juvenile, champion with lineage floor, edge:
-      cap at +6, fresh-start creature with no lineage)
-- [ ] Task: Implement the pure helper (aggregates existing `effectiveStats` +
-      training + evolution + legacy data) and export from `@apex/sim`
-- [ ] Task: Commit + git note; mark complete
+      cap at +6, fresh-start creature with no lineage) — b226830
+- [x] Task: Implement the pure helper (aggregates existing `effectiveStats` +
+      training + evolution + legacy data) and export from `@apex/sim` — b226830
+- [x] Task: Commit + git note; mark complete — b226830
 
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
