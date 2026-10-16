@@ -18,6 +18,10 @@ describe("proportion budget gate", () => {
     expect(missing).toEqual([])
   })
 
+  // 200 seeds × every archetype of deterministic mesh math is inherently
+  // heavy (~8 s solo, right at the 20 s cap once 20 parallel workers
+  // contend for CPU). Give this one gate explicit headroom instead of
+  // letting the suite flake on load.
   test("all seeds of all archetypes stay inside proportion budgets", () => {
     const SEEDS = 200
     const violations: string[] = []
@@ -42,5 +46,5 @@ describe("proportion budget gate", () => {
       }
     }
     expect(violations).toEqual([])
-  }, 20000)
+  }, 60000)
 })
