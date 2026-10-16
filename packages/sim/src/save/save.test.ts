@@ -30,7 +30,7 @@ import {
 
 describe("save schema", () => {
   test("current version matches the schema", () => {
-    expect(SAVE_VERSION).toBe(10)
+    expect(SAVE_VERSION).toBe(11)
   })
 
   test("serializeSave wraps state with version metadata", () => {
@@ -674,7 +674,7 @@ describe("evolution stage (v6)", () => {
 
 describe("save v7 — cup session, rename, hints", () => {
   test("current version matches the schema", () => {
-    expect(SAVE_VERSION).toBe(10)
+    expect(SAVE_VERSION).toBe(11)
   })
 
   test("a v6 save migrates cleanly: null session + a clean hint ledger", () => {
@@ -1000,6 +1000,122 @@ describe("save v8 — the ladder (bronze ladder)", () => {
     >
     const state = raw.state as Record<string, unknown>
     delete state.ladder
+    adapter.setItem(SAVE_KEY, JSON.stringify(raw))
+    expect(loadGame(adapter)).toBeNull()
+  })
+})
+
+describe("save v11 — silver ladder tier + boss defeat ledger", () => {
+  /**
+   * A genuine v10-shaped payload: today's state with the v11 fields shaped
+   * back — the ladder lacks `tier` (v10 ladder was bronze-only) and the
+   * state lacks `bossDefeats`. Carries banked points to prove the migration
+   * preserves ladder progress (unlike the fresh-ladder v7/v8 stamps).
+   */
+  function v10Payload(): Record<string, unknown> {
+    const state = structuredClone(createInitialState()) as unknown as Record<
+      string,
+      unknown
+    >
+    state.ladder = { points: 14, subTier: "I" }
+    delete state.bossDefeats
+    return { version: 10, state, session: null, savedAt: 77 }
+  }
+
+  test("SAVE_VERSION is 11", () => {
+    expect(SAVE_VERSION).toBe(11)
+  })
+
+  test("a v10 save migrates: the ladder keeps its points and gains tier bronze", () => {
+    const migrated = migrate(v10Payload())
+    expect(migrated.version).toBe(SAVE_VERSION)
+    expect(migrated.state.ladder).toEqual({
+      points: 14,
+      tier: "bronze",
+      subTier: "I",
+    })
+  })
+
+  test("a v10 save migrates with an empty boss defeat ledger", () => {
+    const migrated = migrate(v10Payload())
+    expect(migrated.state.bossDefeats).toEqual([])
+  })
+
+  test("a migrated v10 save loads and stays playable", () => {
+    const adapter = createMemoryAdapter()
+    adapter.setItem(SAVE_KEY, JSON.stringify(v10Payload()))
+    const state = loadGame(adapter)
+    expect(state).not.toBeNull()
+    expect(state?.ladder.tier).toBe("bronze")
+    expect(state?.bossDefeats).toEqual([])
+  })
+
+  test("saveGame then loadGame round-trips a silver ladder and the ledger", () => {
+    const adapter = createMemoryAdapter()
+    const silver = {
+      ...createInitialState(),
+      ladder: { points: 22, tier: "silver" as const, subTier: "II" as const },
+      bossDefeats: ["koda"],
+    }
+    expect(saveGame(adapter, silver, 123)).toBe(true)
+    const loaded = loadGame(adapter)
+    expect(loaded?.ladder).toEqual({
+      points: 22,
+      tier: "silver",
+      subTier: "II",
+    })
+    expect(loaded?.bossDefeats).toEqual(["koda"])
+  })
+
+  test("loadGame rejects a ladder with an unknown tier", () => {
+    const adapter = createMemoryAdapter()
+    saveGame(adapter, createInitialState(), 1)
+    const raw = JSON.parse(adapter.getItem(SAVE_KEY) as string) as Record<
+      string,
+      unknown
+    >
+    const state = raw.state as Record<string, unknown>
+    const ladder = state.ladder as Record<string, unknown>
+    ladder.tier = "gold"
+    adapter.setItem(SAVE_KEY, JSON.stringify(raw))
+    expect(loadGame(adapter)).toBeNull()
+  })
+
+  test("loadGame rejects a non-array boss defeat ledger", () => {
+    const adapter = createMemoryAdapter()
+    saveGame(adapter, createInitialState(), 1)
+    const raw = JSON.parse(adapter.getItem(SAVE_KEY) as string) as Record<
+      string,
+      unknown
+    >
+    const state = raw.state as Record<string, unknown>
+    state.bossDefeats = "koda"
+    adapter.setItem(SAVE_KEY, JSON.stringify(raw))
+    expect(loadGame(adapter)).toBeNull()
+  })
+
+  test("loadGame rejects a ledger with non-string entries", () => {
+    const adapter = createMemoryAdapter()
+    saveGame(adapter, createInitialState(), 1)
+    const raw = JSON.parse(adapter.getItem(SAVE_KEY) as string) as Record<
+      string,
+      unknown
+    >
+    const state = raw.state as Record<string, unknown>
+    state.bossDefeats = ["koda", 7]
+    adapter.setItem(SAVE_KEY, JSON.stringify(raw))
+    expect(loadGame(adapter)).toBeNull()
+  })
+
+  test("loadGame rejects a save whose boss defeat ledger is missing", () => {
+    const adapter = createMemoryAdapter()
+    saveGame(adapter, createInitialState(), 1)
+    const raw = JSON.parse(adapter.getItem(SAVE_KEY) as string) as Record<
+      string,
+      unknown
+    >
+    const state = raw.state as Record<string, unknown>
+    delete state.bossDefeats
     adapter.setItem(SAVE_KEY, JSON.stringify(raw))
     expect(loadGame(adapter)).toBeNull()
   })

@@ -20,7 +20,7 @@ function v9Payload(state: GameState) {
 
 describe("save v10 — the bloodline slice", () => {
   test("current version is 10", () => {
-    expect(SAVE_VERSION).toBe(10)
+    expect(SAVE_VERSION).toBe(11)
   })
 
   test("a v9 save migrates with a fresh lineage", () => {

@@ -35,6 +35,9 @@ export function advanceDay(state: GameState, rng?: Rng): GameState {
     // The bloodline carries across every day (save v10) — ticking a day can
     // never touch generations or the Hall of Fame.
     lineage: state.lineage,
+    // The boss ledger carries across every day (save v11) — ticking a day
+    // never revises defeat history.
+    bossDefeats: state.bossDefeats,
   }
   if (!next.creature) return next
   const settled = settleCreature(

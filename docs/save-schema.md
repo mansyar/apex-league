@@ -8,14 +8,14 @@ writes through the `SaveAdapter` seam.
 ```ts
 // packages/sim/src/save/schema.ts
 interface SaveData {
-  version: number // current: 10 (SAVE_VERSION)
+  version: number // current: 11 (SAVE_VERSION)
   state: GameState
   savedAt: number // Date.now() of the persist
   session: CupSession | null // live cup walk (v7+; null outside a cup)
 }
 ```
 
-## `GameState` at v10
+## `GameState` at v11
 
 | Field | Type | Meaning |
 |---|---|---|
@@ -26,8 +26,9 @@ interface SaveData {
 | `settings` | `{ reducedMotion: boolean, seenHints: string[], arenaCamera: "cinematic" \| "broadcast" }` | In-app motion preference (v5+); dismissed onboarding hint ids (v7+); arena camera style for the battle presentation (v9+, default `"cinematic"`). |
 | `cupsWon` | integer ≥ 0 | Permanent cup-win counter (v5+). |
 | `lastCupDay` | integer ≥ 1 \| null | Day of the last cup win; the ticker grants +1 AP the next day (v5+). |
-| `ladder` | `{ points: integer ≥ 0, subTier: "III"\|"II"\|"I" }` | Bronze-ladder standing: placement points and current sub-tier (v8+). Always fresh at 0 after migration — no backfill for cups won before v8. |
+| `ladder` | `{ points: integer ≥ 0, tier: "bronze"\|"silver", subTier: "III"\|"II"\|"I" }` | Ladder standing: placement points, current tier, and sub-tier. `tier` arrived at v11; migrated saves are stamped `"bronze"` with their points and sub-tier preserved (banked progress is the player's real standing at the promotion gate). |
 | `lineage` | `{ generation: integer ≥ 0, hallOfFame: RetiredRecord[] }` | The bloodline (v10+): completed graduations plus an archived-career list. Fresh after migration (`{generation: 0, hallOfFame: []}`) — no backfill; `cupsWon` (v5) already feeds the derived prestige rating. |
+| `bossDefeats` | string[] | Boss ids defeated by the current creature's career, in defeat order (v11+). An idempotent ledger — the client derives callouts, coach lines, and Hall of Fame scalps from it. Migrated saves start empty (`[]`); no boss existed before v11. |
 
 ### `Creature`
 
@@ -63,6 +64,7 @@ interface SaveData {
 | v7 → v8 | Adds the `ladder` slice (`{points: 0, subTier: "III"}`) and forwards the live cup session unchanged. No backfill: every migrated save starts the ladder fresh, even with `cupsWon` history. |
 | v8 → v9 | Adds `settings.arenaCamera: "cinematic"` (arena camera style for the battle presentation; reduced-motion players stay pinned at render time). |
 | v9 → v10 | Adds the bloodline slice `lineage: { generation: 0, hallOfFame: [] }` (legacy & breeding). No backfill: a migrated save starts fresh; `cupsWon` already feeds prestige. The cup session is forwarded unchanged. |
+| v10 → v11 | Stamps `ladder.tier: "bronze"` — preserving the migrated ladder's points and sub-tier — and adds `bossDefeats: []` (silver ladder & rival bosses). No backfill: no boss existed before v11, and no save can predate the Promotion Cup, so `"bronze"` is the only correct stamp. |
 The `session` slot holds a `CupSession` exactly as `prepareCup` produced
 it (bracket, rival resolutions, verdicts, cursor position). It is
 presentation bookkeeping: the client persists it on every session mutation
