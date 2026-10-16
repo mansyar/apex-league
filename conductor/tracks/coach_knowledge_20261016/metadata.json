@@ -1,0 +1,10 @@
+{
+  "trackId": "coach_knowledge_20261016",
+  "title": "Coach's Knowledge Pass: creature stat-detail modal, move tooltips in kit pickers, a Coach's Handbook (type chart / ladder rules / raising guidance), and a consolidated settings modal",
+  "type": "feature",
+  "status": "new",
+  "created": "2026-10-16",
+  "branch": "track/coach_knowledge_20261016",
+  "spec": "./spec.md",
+  "plan": "./plan.md"
+}
