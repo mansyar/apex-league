@@ -8,19 +8,27 @@
 ## Phase 1 — Golden Safety Net
 
 - [x] Task: Audit the three target modules and record the confirmed seam map `[597614a]`
-  - [ ] Read `hud.ts`, `spar.ts`, `staging-fx.ts` and list every pure
+  - [x] Read `hud.ts`, `spar.ts`, `staging-fx.ts` and list every pure
         computation vs. DOM/effect wiring block (function-level inventory)
-  - [ ] Record the final target module map in this plan's notes; adjust
+  - [x] Record the final target module map in this plan's notes; adjust
         `spec.md` module names if the audit reveals better seams
 - [x] Task: Golden-test the currently-pure surfaces `[01be026]`
-  - [ ] Extend `hud.copy.test.ts` with golden cases pinning representative
+  - [x] Extend `hud.copy.test.ts` with golden cases pinning representative
         copy strings (coach voice, hints, callouts, numerals) — write tests
-        FIRST, confirm they pass against current code (characterization, not
-        TDD red)
-  - [ ] Add golden tests for any other currently-exported pure helpers in
-        `spar.ts` / `staging-fx.ts` that lack coverage
-  - [ ] Run `bun test` green; commit `test(refactor): pin golden outputs for hud/spar/staging-fx seams`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+        FIRST, confirm they pass against current code (characterization,
+        not TDD red)
+  - [x] Add golden tests for any other currently-exported pure helpers in
+        `spar.ts` / `staging-fx.ts` that lack coverage — *resolved by audit:
+        `spar.ts` exports no pure helpers (its goldens land with the Phase 3
+        extraction, TDD-style); `staging-fx.ts`'s exported pure surface
+        (`HitStop`, `EffectLoop`, constants) is already pinned by
+        `staging-fx.test.ts`'s 15 behavioral tests, which retarget cleanly
+        to `fx/loop.ts` in Phase 4*
+  - [x] Run `bun test` green; commit `test(refactor): pin golden outputs for hud/spar/staging-fx seams`
+        — *deviation: committed as `test(hud): pin golden copy outputs for
+        the hud copy surface` (the scope was hud-only, per audit; the
+        spar/staging-fx pins already existed)*
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: 01be026]`
 
 ### Notes — Phase 1 audit (Task 1.1, seam map)
 
