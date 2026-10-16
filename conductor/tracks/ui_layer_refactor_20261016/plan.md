@@ -139,13 +139,19 @@ spar.ts 531, staging-fx.ts 781; largest overall cup.ts 932 (out of scope).
   Deviation: the rename flow stayed in the `hud.ts` root — it is event
   wiring with a single phase guard and one coach line; the only settings
   view-model with real logic is `prefChipView`, which got the tests.
-- [ ] Task: Slim the `hud.ts` root
-  - [ ] `hud.ts` retains only the `update()` fanout + re-exports; confirm
+- [x] Task: Slim the `hud.ts` root `[9db9951]`
+  - [x] `hud.ts` retains only the `update()` fanout + re-exports; confirm
         `main.ts` needs no logic changes (imports may be re-pointed)
-  - [ ] Confirm no non-test client source file exceeds ~500 lines; `bun run verify`; commit
+  - [x] Confirm no non-test client source file exceeds ~500 lines; `bun run verify`; commit
         `refactor(hud): slim hud.ts to wiring root`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Manual visual pass: ranch HUD (score bug, plates, dock, rename,
+
+  LOC audit (non-test client src, post-Phase-2): `hud.ts` 467, `plates.ts`
+  429, `copy.ts` 378, `spar.ts` 490 — all in-scope files under the ~500
+  cap. Over-cap files are all outside the track scope per spec:
+  `cup.ts` 876, `scene-logic.ts` 812, `ranch-motion.ts` 548 (never a
+  target), `staging-fx.ts` 731 (drops under the cap in Phase 4).
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: 9db9951]`
+  - [x] Manual visual pass: ranch HUD (score bug, plates, dock, rename,
         settings chips, reset modal), reduced-motion pass, ~390px phone-width
         pass
 
