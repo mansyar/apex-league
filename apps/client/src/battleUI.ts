@@ -4,6 +4,7 @@ import {
   getMove,
   getSpecies,
   type LifeStage,
+  type MoveDef,
   requiredTierDays,
   type SpeciesDef,
   type Tactic,
@@ -96,19 +97,33 @@ export interface KitPickerClasses {
 }
 
 /**
+ * One plain-language line of a move's combat stats: power, hit chance,
+ * self-cooldown. With `daysToUnlock` set the line leads with the lock
+ * ("Unlocks in 3 days · …"), so a locked row still tells the coach what
+ * they are waiting for. Pure string — both kit pickers render it.
+ */
+export function moveStatLine(move: MoveDef, daysToUnlock?: number): string {
+  const stats = `Power ${move.power} · Accuracy ${move.accuracy}% · Cooldown ${move.cooldown}`
+  if (daysToUnlock === undefined) return stats
+  const days = daysToUnlock === 1 ? "1 day" : `${daysToUnlock} days`
+  return `Unlocks in ${days} · ${stats}`
+}
+
+/**
  * Build the kit picker rows for one creature's species kit. Pure DOM
  * assembly - the caller owns state: read the selection through chosen
  * and commit changes in onToggle (spar delegates to sim validation and
  * surfaces a rejection hint; cup clamps locally via toggleKitChoice and
- * re-renders). Returns a fragment so the caller decides placement
- * (spar replaceChildren on a bare strip; cup appends into a shared card).
+ * re-renders). Each row shows the move name over a plain-language stat
+ * line; a locked row leads its stat line with the unlock day. Returns a
+ * fragment so the caller decides placement (spar replaceChildren on a
+ * bare strip; cup appends into a shared card).
  */
 export function buildKitPicker(options: {
   species: SpeciesDef
   creature: Creature
   chosen: () => readonly string[]
   classes: KitPickerClasses
-  lockedText: (name: string, remaining: number) => string
   onToggle: (id: string) => void
 }): { fragment: DocumentFragment; rows: HTMLButtonElement[] } {
   const { species, creature } = options
@@ -116,7 +131,8 @@ export function buildKitPicker(options: {
   const fragment = document.createDocumentFragment()
   const rows: HTMLButtonElement[] = []
   species.kit.forEach((id, index) => {
-    const name = getMove(id)?.displayName ?? id
+    const move = getMove(id)
+    const name = move?.displayName ?? id
     const required = requiredTierDays(index, creature.stage)
     const locked = creature.trainingDays < required
     const row = document.createElement("button")
@@ -126,9 +142,19 @@ export function buildKitPicker(options: {
       : chosen.includes(id)
         ? `${options.classes.base} ${options.classes.chosen}`
         : options.classes.base
-    row.textContent = locked
-      ? options.lockedText(name, required - creature.trainingDays)
-      : name
+    const nameEl = document.createElement("span")
+    nameEl.className = "kit-move-name"
+    nameEl.textContent = name
+    row.append(nameEl)
+    if (move) {
+      const statEl = document.createElement("span")
+      statEl.className = "kit-move-stat"
+      statEl.textContent = moveStatLine(
+        move,
+        locked ? required - creature.trainingDays : undefined,
+      )
+      row.append(statEl)
+    }
     row.disabled = locked
     if (!locked) {
       row.addEventListener("click", () => options.onToggle(id))
