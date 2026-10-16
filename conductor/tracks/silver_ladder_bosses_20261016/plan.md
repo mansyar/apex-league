@@ -36,7 +36,7 @@ verification checkpoint per `workflow.md`.
     fallbacks unchanged, fresh-start pattern applied.
   - Update `docs/save-schema.md` in the same task.
 
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — `[checkpoint: 1b5944a]`
   - `bun test` green; `bun run check`; propose manual verification (no
     client wiring yet — sim-only, verify via test output); record
     checkpoint SHA.
