@@ -172,7 +172,10 @@ it reads the handler's decision rather than inferring it from rendering.
 *(wiring — browser/Playwright verification; the state machine is already
 tested in Phase 1)*
 
-- [ ] Task: Hidden-tab pause & resume (F5)
+- [x] Task: Hidden-tab pause & resume (F5) — c9be672
+  (HitStop's 90ms window is deliberately NOT shifted across a pause — see the
+  commit note; the plan's "offset the effect clock" bullet is satisfied by the
+  EffectLoop re-anchor, which is what actually prevents a jump.)
   - One `visibilitychange` listener driving `runtimeState`, wired to the three
     subscribers: the RAF tick loop (`scene.ts:275-310` — cancel on pause, and
     re-anchor `lastT` on resume so the first frame reports `dt = 0`), the
@@ -184,7 +187,7 @@ tested in Phase 1)*
   - Manual verification (Playwright): with the page hidden the RAF counter
     stops advancing; on return an in-flight effect resumes without a jump; a
     battle paused mid-playback resumes at the same step
-- [ ] Task: Boot placeholder, `<noscript>` & guarded scene construction (F7)
+- [~] Task: Boot placeholder, `<noscript>` & guarded scene construction (F7)
   - `index.html`: a kit-styled boot placeholder inside `#app` (no JS required)
     plus a `<noscript>` line, replacing the empty div at `:24`
   - `main.ts`: boot wrapped so a thrown scene/WebGL construction renders the
