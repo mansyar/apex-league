@@ -207,3 +207,24 @@ hard way:
     battle, no RNG read). Lesson: whenever you special-case an entity
     into a tournament, also special-case its *path* there, and verify
     authored content by watching it happen in the browser.
+
+14. **Small API surfaces hide silent no-ops.**
+    (coach_knowledge_20261016, 2026-10-17) `chip()` accepts only
+    label/glyph/variant/onClick — a `className` option passed to it was
+    silently ignored (no crash, no effect), and the probe only caught it
+    because the click timed out. Fix: create the chip, then
+    `classList.add(...)` explicitly. Lesson: when a helper drops an
+    option, it fails silently — verify the rendered DOM, not just that
+    the call didn't throw.
+
+15. **Stacking contexts decide reachability, not visibility.**
+    (coach_knowledge_20261016, 2026-10-17) The spar overlay (fixed,
+    inset 0, z-40) covered the whole arena, so HUD-cluster chips were
+    *visible through the scrim but unclickable* for their entire
+    lifetime (the camera chip since save v9) — elementFromPoint hit the
+    overlay, not the chip. Fix: z-index 45 on `.hud-motion` so the
+    settings chip stays reachable mid-battle; the modals (z-70) already
+    layered above. Lesson: `display != none` does not mean clickable;
+    probe with `elementFromPoint`, and remember bun's 5s default test
+    timeout can flake the balance/voxel gates on a loaded machine
+    (rerun in isolation before chasing ghosts).
