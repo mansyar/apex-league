@@ -35,8 +35,8 @@ function beats(attack: Element, defense: Element): boolean {
  * attacker, 1× otherwise. Never 0×.
  */
 export function typeFactor(attack: Element, defense: Element): TypeFactor {
-  if (beats(attack, defense)) return { num: 2, den: 1 }
-  if (beats(defense, attack)) return { num: 1, den: 2 }
+  if (beats(attack, defense)) return { num: 3, den: 2 }
+  if (beats(defense, attack)) return { num: 2, den: 3 }
   return { num: 1, den: 1 }
 }
 

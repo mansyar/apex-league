@@ -253,7 +253,8 @@ describe("effectiveStats", () => {
     const trained: Creature["trained"] = { hp: 2, atk: 5, def: 1, spd: 3 }
     const withTrained = { ...c, trained }
     expect(effectiveStats(withTrained)).toEqual({
-      hp: c.stats.hp + 2,
+      // element_chart_20261016: a trained HP point pays double (+2 per point).
+      hp: c.stats.hp + 2 * 2,
       atk: c.stats.atk + 5,
       def: c.stats.def + 1,
       spd: c.stats.spd + 3,

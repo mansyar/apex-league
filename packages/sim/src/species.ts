@@ -48,7 +48,7 @@ export const STARTER_SPECIES: readonly SpeciesDef[] = Object.freeze([
     available: true,
     kit: ["spark", "flame_charge", "cinder_shot", "blaze_bolt"],
     temperament: "rush",
-    statBounds: { hp: [38, 46], atk: [9, 13], def: [7, 10], spd: [9, 12] },
+    statBounds: { hp: [76, 92], atk: [9, 13], def: [7, 10], spd: [9, 12] },
   },
   {
     id: "plant_ox",
@@ -59,7 +59,7 @@ export const STARTER_SPECIES: readonly SpeciesDef[] = Object.freeze([
     available: true,
     kit: ["seed_shot", "thorn_volley", "spore_burst", "bramble_dart"],
     temperament: "slow",
-    statBounds: { hp: [44, 52], atk: [8, 11], def: [10, 14], spd: [5, 8] },
+    statBounds: { hp: [88, 104], atk: [8, 11], def: [10, 14], spd: [5, 8] },
   },
   {
     id: "water_axolotl",
@@ -70,7 +70,7 @@ export const STARTER_SPECIES: readonly SpeciesDef[] = Object.freeze([
     available: true,
     kit: ["bubble", "tide_shot", "foam_volley", "splash_bolt"],
     temperament: "obedient",
-    statBounds: { hp: [40, 48], atk: [8, 12], def: [8, 11], spd: [8, 11] },
+    statBounds: { hp: [80, 96], atk: [8, 12], def: [8, 11], spd: [8, 11] },
   },
 ])
 

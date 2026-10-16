@@ -47,8 +47,15 @@ export interface BattleResult {
   readonly events: readonly BattleEvent[]
 }
 
-/** The safety cap: a runaway brake, not a normal ending. */
-const MAX_TICKS = 40
+/**
+ * The safety cap: a runaway brake, not a normal ending.
+ *
+ * element_chart_20261016 doubled the HP scale, so battles need roughly twice
+ * the ticks to reach the same relative attrition; the cap doubled with it
+ * (40 → 80) to preserve the old stall dynamics instead of manufacturing
+ * artificial time-outs.
+ */
+export const MAX_TICKS = 80
 
 function planFor(
   sides: readonly Readonly<BattleSide>[],

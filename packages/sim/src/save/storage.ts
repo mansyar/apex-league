@@ -259,6 +259,7 @@ export function loadSave(adapter: SaveAdapter): SaveData | null {
         (!Number.isInteger(state.lastCupDay) || state.lastCupDay < 1)) ||
       // v8: the ladder slice is required and strictly typed (bronze
       // ladder) — a hand-edited points total or sub-tier fails the load.
+      // v11: the tier must be one of the two ladder tiers.
       typeof state.ladder !== "object" ||
       state.ladder === null ||
       !Number.isInteger(state.ladder.points) ||
@@ -266,6 +267,10 @@ export function loadSave(adapter: SaveAdapter): SaveData | null {
       (state.ladder.subTier !== "III" &&
         state.ladder.subTier !== "II" &&
         state.ladder.subTier !== "I") ||
+      (state.ladder.tier !== "bronze" && state.ladder.tier !== "silver") ||
+      // v11: the boss defeat ledger is a plain array of boss ids.
+      !Array.isArray(state.bossDefeats) ||
+      !state.bossDefeats.every((id) => typeof id === "string") ||
       // v10: the bloodline slice is required and strictly typed (legacy
       // track) — a hand-edited generation or a malformed Hall of Fame
       // record fails the load.

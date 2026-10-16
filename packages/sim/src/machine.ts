@@ -1,6 +1,12 @@
+import { bossForCup } from "./bosses"
 import { isCupDay } from "./calendar"
 import { effectiveStats } from "./creature"
-import { type CupSession, cupPlacement, startCupSession } from "./cup"
+import {
+  bossScalps,
+  type CupSession,
+  cupPlacement,
+  startCupSession,
+} from "./cup"
 import { applyCupRewards } from "./cupRewards"
 import { applyCupPlacement } from "./ladder"
 import type { GameState } from "./state"
@@ -47,7 +53,19 @@ export function prepareCup(state: GameState): CupSession | null {
   const eff = effectiveStats(creature)
   const identity = eff.hp * 7 + eff.atk * 13 + eff.def * 17 + eff.spd * 23
   const seed = (day * 2654435761 + identity * 97 + 1) >>> 0
-  return startCupSession(creature, day, seed)
+  // The ladder's gate decides the final: a promotion-eligible save enters
+  // the Promotion Cup (Boss 1), a Silver checkpoint/apex save meets its
+  // authored final — everyone else draws the generated field. The seed
+  // never folds the ladder, so the seven drawn rivals are identical
+  // either way (stream invariant, FR3).
+  const gate = bossForCup(state)
+  return startCupSession(
+    creature,
+    day,
+    seed,
+    gate?.kind ?? "championship",
+    gate?.boss,
+  )
 }
 
 /**
@@ -74,5 +92,11 @@ export function finalizeCup(state: GameState, session: CupSession): GameState {
   const lastVerdict = session.playerVerdicts.at(-1)
   const forfeited = lastVerdict !== undefined && lastVerdict.battle === null
   const laddered = applyCupPlacement(rewarded, cupPlacement(session), forfeited)
-  return { ...laddered.state, phase: "day" }
+  // The defeat ledger: any boss the player scalped in this cup joins the
+  // record, idempotently (FR9). Rival-subtree boss wins never count.
+  const scalps = bossScalps(session)
+  const bossDefeats = scalps.length
+    ? [...new Set([...state.bossDefeats, ...scalps])]
+    : state.bossDefeats
+  return { ...laddered.state, bossDefeats, phase: "day" }
 }

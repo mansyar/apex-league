@@ -102,6 +102,7 @@ function syntheticSession(
       finalRival: (slots[slots.length - 1] ?? slots[0]) as CupSlot,
       rounds,
       roundLabels: labels,
+      kind: "championship",
     },
     seed: 101,
     rivalResolutions: [],

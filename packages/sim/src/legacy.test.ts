@@ -196,8 +196,8 @@ const drake: SpeciesDef = (() => {
   return s
 })()
 
-/** A neutral parent stat spread for inheritance tests. */
-const parentStats: CreatureStats = { hp: 80, atk: 24, def: 16, spd: 18 }
+/** A neutral parent stat spread for inheritance tests (HP on the doubled scale). */
+const parentStats: CreatureStats = { hp: 160, atk: 24, def: 16, spd: 18 }
 
 describe("inheritedFloor", () => {
   it("uses half the pinned fraction", () => {
@@ -206,7 +206,7 @@ describe("inheritedFloor", () => {
 
   it("returns half the parent's effective stats when inside bounds", () => {
     expect(inheritedFloor(parentStats, drake, 0)).toEqual({
-      hp: 40,
+      hp: 80,
       atk: 12,
       def: 8,
       spd: 9,
@@ -216,7 +216,7 @@ describe("inheritedFloor", () => {
   it("clamps a huge parent down to the species maximums", () => {
     const huge: CreatureStats = { hp: 500, atk: 500, def: 500, spd: 500 }
     expect(inheritedFloor(huge, drake, 0)).toEqual({
-      hp: 46,
+      hp: 92,
       atk: 13,
       def: 10,
       spd: 12,
@@ -226,7 +226,7 @@ describe("inheritedFloor", () => {
   it("clamps a weak parent up to the species minimums", () => {
     const weak: CreatureStats = { hp: 2, atk: 2, def: 2, spd: 2 }
     expect(inheritedFloor(weak, drake, 0)).toEqual({
-      hp: 38,
+      hp: 76,
       atk: 9,
       def: 7,
       spd: 9,
@@ -237,7 +237,7 @@ describe("inheritedFloor", () => {
     expect(
       inheritedFloor(parentStats, drake, PRESTIGE_ESTABLISHED_LINE),
     ).toEqual({
-      hp: 41,
+      hp: 81,
       atk: 13,
       def: 9,
       spd: 10,
@@ -248,7 +248,7 @@ describe("inheritedFloor", () => {
     expect(
       inheritedFloor(parentStats, drake, PRESTIGE_ESTABLISHED_LINE - 1),
     ).toEqual({
-      hp: 40,
+      hp: 80,
       atk: 12,
       def: 8,
       spd: 9,

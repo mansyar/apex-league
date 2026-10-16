@@ -24,15 +24,15 @@ const BEATS: ReadonlyArray<readonly [Element, Element]> = [
 ]
 
 describe("typeFactor", () => {
-  test("a beating edge is 2×", () => {
+  test("a beating edge is 3/2×", () => {
     for (const [attack, defense] of BEATS) {
-      expect(typeFactor(attack, defense)).toEqual({ num: 2, den: 1 })
+      expect(typeFactor(attack, defense)).toEqual({ num: 3, den: 2 })
     }
   })
 
-  test("the reverse of a beating edge is 0.5×", () => {
+  test("the reverse of a beating edge is 2/3×", () => {
     for (const [attack, defense] of BEATS) {
-      expect(typeFactor(defense, attack)).toEqual({ num: 1, den: 2 })
+      expect(typeFactor(defense, attack)).toEqual({ num: 2, den: 3 })
     }
   })
 

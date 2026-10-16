@@ -6,7 +6,7 @@ import { judgeHop } from "./pure"
  * Result stamp: the standing winner takes a double victory hop — each
  * hop stretches on the rise and squashes on the landing.
  */
-export const judgeStep: StepRunner = (step, instant, side, o, r, io) => {
+export const judgeStep: StepRunner = (_step, instant, _side, o, r, io) => {
   const standing = [o, r].filter((c) => !c.down)
   const winner = standing[0]
   if (instant || !winner) return

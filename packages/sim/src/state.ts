@@ -58,6 +58,12 @@ export interface GameState {
   ladder: LadderState
   /** The bloodline slice: generation + Hall of Fame (save v10). */
   lineage: LineageState
+  /**
+   * Boss ids defeated by the current creature's career, in defeat order
+   * (save v11, silver_ladder_bosses_20261016). Idempotent ledger — the
+   * client derives callouts, coach lines, and Hall of Fame scalps from it.
+   */
+  bossDefeats: string[]
 }
 
 /** Action points granted at the start of each day. Stub value for Phase 0. */
@@ -77,6 +83,7 @@ export function createInitialState(): GameState {
     // The literal (rather than `initialLineage()`) is what keeps this module
     // free of a runtime import from `legacy` — see the import note above.
     lineage: { generation: 0, hallOfFame: [] },
+    bossDefeats: [],
   }
 }
 

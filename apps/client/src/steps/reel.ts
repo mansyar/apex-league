@@ -1,4 +1,3 @@
-import { clamp01 } from "../anim"
 import { type ReactionKind, reactionFor } from "../choreo"
 import type { StepRunner } from "./context"
 import { snapTo } from "./fire"

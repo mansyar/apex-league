@@ -92,6 +92,8 @@ describe("buildPlaybackScript", () => {
       close: "approach",
       hold: "idle",
       basic: "melee",
+      stagger: "stagger",
+      knockback: "knockback",
       down: "down",
       launch: "projectile",
       impact: "impact",

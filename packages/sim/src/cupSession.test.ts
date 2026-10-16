@@ -557,7 +557,7 @@ describe("finalizeCup — ladder points (bronze ladder)", () => {
       }
       if (session.status !== "champion") continue
       const next = finalizeCup(s, session)
-      expect(next.ladder).toEqual({ points: 3, subTier: "III" })
+      expect(next.ladder).toEqual({ points: 3, tier: "bronze", subTier: "III" })
       return
     }
     throw new Error("no champion seed found in the sweep")
@@ -580,7 +580,7 @@ describe("finalizeCup — ladder points (bronze ladder)", () => {
       const last = resolvePlayerMatch(session, picks.loadout, picks.tactic)
       if (last.verdict.winner === creature.name) continue
       const next = finalizeCup(s, completeCup(last.session))
-      expect(next.ladder).toEqual({ points: 0, subTier: "III" })
+      expect(next.ladder).toEqual({ points: 0, tier: "bronze", subTier: "III" })
       return
     }
     throw new Error("no seed eliminates the player in round 1")
@@ -603,7 +603,7 @@ describe("finalizeCup — ladder points (bronze ladder)", () => {
       const r = resolvePlayerMatch(session, picks.loadout, picks.tactic)
       if (r.session.status !== "player-turn") continue // lost the QF
       const next = finalizeCup(s, forfeitCup(r.session))
-      expect(next.ladder).toEqual({ points: 0, subTier: "III" })
+      expect(next.ladder).toEqual({ points: 0, tier: "bronze", subTier: "III" })
       return
     }
     throw new Error("no QF-win seed found in the sweep")
