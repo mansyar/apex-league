@@ -11,7 +11,9 @@
  * cup only assembles `BattleSide`s and calls into it.
  */
 
+import { type BossDef, getBoss } from "./bosses"
 import { type Creature, effectiveStats } from "./creature"
+import type { CupKind } from "./ladder"
 import { makeRng, type Rng } from "./rng"
 import { getSpecies, type SpeciesDef } from "./species"
 
@@ -21,6 +23,11 @@ export interface CupSlot {
   readonly name: string
   readonly speciesId: string
   readonly stats: Readonly<Creature["stats"]>
+  /** Set when the slot is an authored boss (final-rival substitution,
+   * silver_ladder_bosses_20261016). The boss' pinned kit and tactic ride
+   * the registry, keyed by this id — not on the slot — so a persisted
+   * session stays small and the registry stays the single source of truth. */
+  readonly bossId?: string
 }
 
 /** Hand-written coach-style rival names (the bracket's narrative spine). */
@@ -109,6 +116,40 @@ export function makeBracket(
     finalRival,
     rounds: CUP_ROUNDS,
     roundLabels: ["Quarterfinal", "Semifinal", "Final"],
+    kind: "championship",
+  }
+}
+
+/**
+ * Substitute the bracket's final rival slot with an authored boss AFTER the
+ * draw sequence completes (silver_ladder_bosses_20261016, FR3): no draws
+ * added or pruned, so regular brackets for existing saves stay
+ * byte-identical — the golden stream test enforces it. The bracket is
+ * flagged with the cup kind and carries the boss' presentation metadata
+ * (banner, arena intro) so the client never re-derives it. Pure.
+ */
+export function substituteFinalBoss(
+  bracket: CupBracket,
+  boss: BossDef,
+  kind: CupKind = "championship",
+): CupBracket {
+  const previous = bracket.slots[bracket.slots.length - 1]
+  if (!previous) throw new Error("The bracket needs seven rivals")
+  const bossSlot: CupSlot = {
+    isPlayer: false,
+    name: boss.name,
+    speciesId: boss.speciesId,
+    stats: boss.stats,
+    bossId: boss.id,
+  }
+  return {
+    ...bracket,
+    kind,
+    slots: [...bracket.slots.slice(0, -1), bossSlot],
+    finalRival: bossSlot,
+    banner:
+      kind === "promotion" ? "Promotion Cup" : `Boss Final · ${boss.name}`,
+    bossIntro: boss.intro,
   }
 }
 
@@ -120,6 +161,14 @@ export interface CupBracket {
   readonly finalRival: CupSlot
   readonly rounds: number
   readonly roundLabels: readonly string[]
+  /** Championship (regular) or promotion — the Bronze→Silver gate cup
+   * (silver_ladder_bosses_20261016, FR3). */
+  readonly kind: CupKind
+  /** Banner label when the final is an authored boss ("Promotion Cup", or
+   * the boss-framed regular final). Absent for a fully generated field. */
+  readonly banner?: string
+  /** The substituted boss' arena intro copy, verbatim from the registry. */
+  readonly bossIntro?: string
 }
 
 /** A rival-facing stats roll: ramped vs the player, clamped to bounds. */
@@ -259,13 +308,18 @@ export function cupMatchSeed(
 /** Start a live cup session: build the seeded bracket and pre-resolve the
  * player-independent subtree — QF2/QF3/QF4, then SF2 from their winners —
  * with the same per-pairing seed formula the one-sitting resolver uses, so
- * rival battles stay byte-identical with the legacy flow. Pure. */
+ * rival battles stay byte-identical with the legacy flow. When `boss` is
+ * given (the machine resolved the ladder's gate), the bracket's final rival
+ * is substituted after the draw and flagged with `kind`. Pure. */
 export function startCupSession(
   owned: Readonly<Creature>,
   day: number,
   seed: number,
+  kind: CupKind = "championship",
+  boss?: BossDef,
 ): CupSession {
-  const bracket = makeBracket(owned, day, seed)
+  let bracket = makeBracket(owned, day, seed)
+  if (boss) bracket = substituteFinalBoss(bracket, boss, kind)
   const slotAt = (i: number): CupSlot => {
     const slot = bracket.slots[i]
     if (!slot) throw new Error("Bracket slot missing")
@@ -319,7 +373,7 @@ export function resolvePlayerMatch(
   const seed = cupMatchSeed(session.bracket.day, round, 0)
   const result: BattleResult = resolveBattle(
     slotPlayerSide(playerSlot, loadout, tactic),
-    sideFor(opponent, seed),
+    battleSideForSlot(opponent, seed),
     seed,
   )
   const line = result.winner
@@ -485,10 +539,27 @@ export function cupPlacement(session: CupSession): 1 | 2 | 3 | 4 {
   return played >= CUP_ROUNDS ? 2 : played === 2 ? 3 : 4
 }
 
-/** Assemble a BattleSide from a bracket slot. */
-function sideFor(slot: CupSlot, seed: number): BattleSide {
+/**
+ * Assemble a BattleSide from a bracket slot. A boss slot (bossId set) fights
+ * with its pinned kit and tactic straight from the registry (FR8) — no RNG
+ * is spent on it; a generated rival rolls its tactic from the pairing seed
+ * exactly as before. Exported for the boss-contract tests.
+ */
+export function battleSideForSlot(slot: CupSlot, seed: number): BattleSide {
   const species = getSpecies(slot.speciesId)
   if (!species) throw new Error(`Unknown species: ${slot.speciesId}`)
+  if (slot.bossId) {
+    const boss = getBoss(slot.bossId)
+    if (!boss) throw new Error(`Unknown boss: ${slot.bossId}`)
+    return {
+      name: slot.name,
+      element: species.element,
+      stats: slot.stats,
+      kit: boss.loadout,
+      tactic: boss.tactic,
+      temperament: species.temperament,
+    }
+  }
   const rng = makeRng(seed ^ (slot.name.length * 31 + slot.speciesId.length))
   const TACTICS = ["balanced", "specials"] as const
   const tactic = TACTICS[rng.int(TACTICS.length)] ?? "balanced"
@@ -555,8 +626,8 @@ function resolvePairing(
   b: CupSlot,
   seed: number,
 ): { verdict: RoundVerdict; winner: CupSlot; loser: CupSlot } {
-  const aSide = sideFor(a, seed)
-  const bSide = sideFor(b, seed ^ 1)
+  const aSide = battleSideForSlot(a, seed)
+  const bSide = battleSideForSlot(b, seed ^ 1)
   const result: BattleResult = resolveBattle(aSide, bSide, seed)
   const line = result.winner
     ? `${result.winner} takes the ${roundLabel(round)}!`

@@ -17,6 +17,8 @@
 
 import type { Tactic } from "./battle/policy"
 import type { CreatureStats } from "./creature"
+import { type CupKind, promotionEligible } from "./ladder"
+import type { GameState } from "./state"
 
 /** Where in the Silver climb a boss stands. */
 export type BossMilestone = "promotion" | "checkpoint" | "apex"
@@ -113,4 +115,44 @@ export const BOSSES: readonly BossDef[] = Object.freeze([
 /** Look up a boss by id, or undefined when unknown. */
 export function getBoss(id: string): BossDef | undefined {
   return BOSSES.find((b) => b.id === id)
+}
+
+/** Look up a boss by its ladder milestone (exactly one boss per milestone). */
+function bossAtMilestone(milestone: BossMilestone): BossDef {
+  const boss = BOSSES.find((b) => b.milestone === milestone)
+  if (!boss) throw new Error(`No boss at milestone: ${milestone}`)
+  return boss
+}
+
+/**
+ * Which authored boss (if any) stands at the final of the next cup the
+ * player enters, and as which cup kind (silver_ladder_bosses_20261016,
+ * FR3/FR6/FR7). Pure — a function of the game state only:
+ *
+ * - Bronze, points banked strictly past the Bronze I ceiling → the
+ *   Promotion Cup against Koda (the gate cup, `kind: "promotion"`).
+ * - Silver III with no Hesse scalp → a championship cup with an authored
+ *   final (non-blocking: losing banks points, the offer stays).
+ * - Silver I with no Marlow scalp → the apex final every cup until beaten.
+ * - Anything else (including Silver II) → a fully generated field.
+ *
+ * The cup entry surface calls this once per entry; `prepareCup` threads
+ * the answer into `startCupSession`.
+ */
+export function bossForCup(
+  state: GameState,
+): { boss: BossDef; kind: CupKind } | null {
+  const ladder = state.ladder
+  if (ladder.tier === "bronze") {
+    return promotionEligible(ladder)
+      ? { boss: bossAtMilestone("promotion"), kind: "promotion" }
+      : null
+  }
+  if (ladder.subTier === "III" && !state.bossDefeats.includes("hesse")) {
+    return { boss: bossAtMilestone("checkpoint"), kind: "championship" }
+  }
+  if (ladder.subTier === "I" && !state.bossDefeats.includes("marlow")) {
+    return { boss: bossAtMilestone("apex"), kind: "championship" }
+  }
+  return null
 }

@@ -92,6 +92,7 @@ function finishedSession(
       },
       rounds: CUP_ROUNDS,
       roundLabels: ["Quarterfinal", "Semifinal", "Final"],
+      kind: "championship",
     },
     seed: 0,
     rivalResolutions: [],
