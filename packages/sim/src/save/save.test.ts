@@ -923,7 +923,11 @@ describe("save v8 — the ladder (bronze ladder)", () => {
   test("a v7 save migrates to the current version with a fresh ladder (no backfill)", () => {
     const migrated = migrate(v7Payload())
     expect(migrated.version).toBe(SAVE_VERSION)
-    expect(migrated.state.ladder).toEqual({ points: 0, subTier: "III" })
+    expect(migrated.state.ladder).toEqual({
+      points: 0,
+      tier: "bronze",
+      subTier: "III",
+    })
   })
 
   test("the migrated v8 save loads and plays a cup into the ladder", () => {
@@ -932,7 +936,11 @@ describe("save v8 — the ladder (bronze ladder)", () => {
     const state = loadGame(adapter)
     if (!state) throw new Error("the migrated v7 save failed to load")
     const laddered = applyCupPlacement(state, 1, false)
-    expect(laddered.state.ladder).toEqual({ points: 3, subTier: "III" })
+    expect(laddered.state.ladder).toEqual({
+      points: 3,
+      tier: "bronze",
+      subTier: "III",
+    })
   })
 
   test("saveGame then loadGame round-trips ladder points", () => {
@@ -941,7 +949,7 @@ describe("save v8 — the ladder (bronze ladder)", () => {
     const climbed = applyCupPlacement(laddered, 1, false).state // 6 → Bronze II
     expect(saveGame(adapter, climbed, 123)).toBe(true)
     const loaded = loadGame(adapter)
-    expect(loaded?.ladder).toEqual({ points: 6, subTier: "II" })
+    expect(loaded?.ladder).toEqual({ points: 6, tier: "bronze", subTier: "II" })
   })
 
   test("loadGame rejects a ladder with a negative point total", () => {

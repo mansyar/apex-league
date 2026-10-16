@@ -14,11 +14,19 @@ function freshState() {
 
 describe("initialLadder", () => {
   it("starts at Bronze III with zero points", () => {
-    expect(initialLadder()).toEqual({ points: 0, subTier: "III" })
+    expect(initialLadder()).toEqual({
+      points: 0,
+      tier: "bronze",
+      subTier: "III",
+    })
   })
 
   it("is part of the fresh GameState", () => {
-    expect(freshState().ladder).toEqual({ points: 0, subTier: "III" })
+    expect(freshState().ladder).toEqual({
+      points: 0,
+      tier: "bronze",
+      subTier: "III",
+    })
   })
 })
 

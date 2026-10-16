@@ -108,12 +108,15 @@ export {
 } from "./evolution"
 export {
   applyCupPlacement,
+  type CupKind,
   initialLadder,
   LADDER_POINTS,
   LADDER_THRESHOLDS,
   type LadderState,
   type LadderSubTier,
+  type LadderTier,
   type LadderUpdate,
+  SILVER_THRESHOLDS,
   subTierFor,
 } from "./ladder"
 export {
