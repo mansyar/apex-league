@@ -302,13 +302,13 @@ tested in Phase 1)*
 
 ## Phase 5 — Wrap-up
 
-- [ ] Task: Full verification & end-to-end field pass
+- [x] Task: Full verification & end-to-end field pass — b73761b
   - `bun run verify` green (types, tests, Biome, determinism gate)
   - One continuous scripted pass covering all ten acceptance criteria, with
     the Playwright touch/visibility/context-loss probes checked in under
     `artifacts/`-adjacent tooling and the screenshots as the checkpoint
     evidence
-- [ ] Task: Docs sync
+- [x] Task: Docs sync — 29c5382
   - `product.md` Phase 4 note: the mobile interaction + resilience remainder
     narrowed (touch ergonomics partially landed; the hardware device-lab pass
     still open)
@@ -318,8 +318,28 @@ tested in Phase 1)*
     `visibilitychange`/context-loss seam warrant one — the track adds no
     dependency and no architectural seam beyond two client modules, so
     expect no change
-- [ ] Task: Final review readiness — all tasks `[x]` with commit SHAs, phase
-  notes recorded, ready for `conductor-review`
+- [x] Task: Final review readiness — all tasks `[x]` with commit SHAs, phase
+  notes recorded, ready for `conductor-review` — [checkpoint: b73761b]
+
+### Phase notes (2026-10-16)
+
+- End-to-end field pass (10 probes, fresh session each, all exit 0):
+  swipe F1 (orbit, scroll 0) · pinch F3 (clamp + degrade) · arena-lock F4
+  (ranch claims, arena refuses) · hidden-tab F5 (canvas frozen while rAF
+  climbed 242, HP held, playback resumed) · boot-failure F7 (plate, focused
+  Reload) · context-loss F7 (lost/restored/held-restore, zero console errors)
+  · tap-audit F8 (seven surfaces, zero sub-44px) · tap-desktop F8 (density
+  unchanged) · collision F10 (spar 81/81 hittable, zero plate overlaps) ·
+  focus F9 (17/17 + 18/18 stops, zero UA defaults).
+- Probes checked in at `artifacts/field-probes/` (cafb2e8), pinned to
+  `http://[::1]:5173` after the first pass failed silently on `localhost`
+  resolution (b73761b).
+- Docs sync (29c5382): README starter trio fixed; product.md Phase 4 note
+  records what landed and narrows the remainder to the device-lab pass;
+  tech-stack.md deliberately unchanged (no new dependency or seam).
+- Review fixes applied (b73761b): pinch-baseline reseed on a 3→2 pointer
+  transition; playback driver never arms while paused.
+- All tasks `[x]` with SHAs; phase notes recorded; ready for review/archive.
 
 - [x] Task: Apply review suggestions — b73761b
   - Review findings: (1, Medium) the pinch baseline was not reseeded when a
