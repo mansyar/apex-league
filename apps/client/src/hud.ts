@@ -33,6 +33,7 @@ import {
 import { focusTrap } from "./battleUI"
 import { buildCreatureDetail } from "./creature-detail"
 import { crestGlyph, elementHue } from "./element"
+import { buildHandbook } from "./handbook"
 import { icons } from "./ui/icons"
 import {
   bar,
@@ -941,6 +942,9 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   // Partner-details modal: opened by tapping the creature plate head; it
   // reads state fresh on every open.
   const creatureDetail = buildCreatureDetail()
+  // Coach's Handbook: type chart, ladder rules, raising guidance — one
+  // persistent ranch chip (the settings chips come and go in Phase 5).
+  const handbook = buildHandbook()
   const { motionWrap, motionChip, cameraChip } = buildSettingsChips({
     onToggleReducedMotion: () => handlers.onToggleReducedMotion(),
     onToggleArenaCamera: () => handlers.onToggleArenaCamera(),
@@ -949,6 +953,14 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       resetConfirm.focus()
     },
   })
+
+  const handbookChip = chip({
+    label: "Handbook",
+    variant: "dim",
+    onClick: () => handbook.open(),
+  })
+  handbookChip.classList.add("handbook-chip")
+  motionWrap.append(handbookChip)
 
   // Lineage plate (top-left, under the settings pill): the family name +
   // generation, and the Hall of Fame opener.
@@ -1064,6 +1076,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     hudStack,
     resetModal,
     creatureDetail.root,
+    handbook.root,
     callout,
   )
 
