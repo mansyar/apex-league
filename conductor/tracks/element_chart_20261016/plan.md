@@ -50,7 +50,7 @@ lifecycle, checkpoints, and commit format.
 - [x] Task: Longer-battle playback sanity — browser verification at
   390/768/1280 widths. Manual verification note. — 456bef4 (two real seeded
   cup battles played end-to-end at 1280×800 and 390×844; console clean)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: 456bef4]
 
 ## Phase 5 — Final gates
 
