@@ -92,7 +92,15 @@ export interface SceneHandle {
  * Bootstrap the 3D scene: camera, lights, ground, and the owned creature
  * performing condition-driven procedural idles via the part-hierarchy rig.
  */
-export function createScene(container: HTMLElement): SceneHandle {
+/** Graphics events the scene observes on behalf of the runtime reducer (F7). */
+export interface SceneHooks {
+  onGraphics?: (status: "lost" | "restored" | "frame_error") => void
+}
+
+export function createScene(
+  container: HTMLElement,
+  hooks: SceneHooks = {},
+): SceneHandle {
   const setup = setupRanchScene(container)
   const { renderer, scene, camera, lights, ranchRig, sky, ground } = setup
   // Mutable because the tick's context-loss fallback can drop the
@@ -324,14 +332,21 @@ export function createScene(container: HTMLElement): SceneHandle {
     // Bloom rides arena fights only - the ranch keeps its clean look. A
     // runtime composer failure (context loss) degrades to the plain
     // renderer instead of killing the frame loop.
-    if (cameraRig.mode() === "arena" && composer) {
-      try {
-        composer.render()
-      } catch {
-        composer = null
-        renderer.render(scene, camera)
-      }
-    } else renderer.render(scene, camera)
+    try {
+      if (cameraRig.mode() === "arena" && composer) {
+        try {
+          composer.render()
+        } catch {
+          composer = null
+          renderer.render(scene, camera)
+        }
+      } else renderer.render(scene, camera)
+    } catch {
+      // A resumed context can still be unusable: report it and stop spinning
+      // rather than erroring every frame (F7).
+      hooks.onGraphics?.("frame_error")
+      return
+    }
     lastFrameT = t
     raf = requestAnimationFrame(tick)
   }
@@ -351,6 +366,18 @@ export function createScene(container: HTMLElement): SceneHandle {
     composer?.setSize(w, h)
   }
   window.addEventListener("resize", onResize)
+
+  // Graphics failure is a runtime event, not a crash (F7): a lost context
+  // parks the loop (the runtime reducer decides how), a restore attempts a
+  // resume, and a frame that still throws reports frame_error.
+  // preventDefault keeps the canvas alive so the restore event can fire.
+  renderer.domElement.addEventListener("webglcontextlost", (event) => {
+    event.preventDefault()
+    hooks.onGraphics?.("lost")
+  })
+  renderer.domElement.addEventListener("webglcontextrestored", () => {
+    hooks.onGraphics?.("restored")
+  })
 
   return handle
 }

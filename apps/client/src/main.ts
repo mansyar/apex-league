@@ -20,10 +20,11 @@ import {
 import { buildArena } from "./arena"
 import { createCup } from "./cup"
 import { nextShot } from "./director"
-import { showFailurePlate } from "./failure-plate"
+import { hideFailurePlate, showFailurePlate } from "./failure-plate"
 import { createGraduation } from "./graduation"
 import { corruptSaveNotice, createHud } from "./hud"
 import {
+  type GraphicsHealth,
   initialRuntimeState,
   type RuntimeEvent,
   runtimeState,
@@ -53,7 +54,11 @@ if (!app) throw new Error("#app container missing")
 // blank page; the boot placeholder comes down either way.
 let scene: SceneHandle
 try {
-  scene = createScene(app)
+  scene = createScene(app, {
+    // The scene reports graphics health; the reducer below decides what the
+    // player sees and whether the loop spins (F7).
+    onGraphics: (status) => applyRuntime({ kind: "graphics", status }),
+  })
 } catch (error) {
   console.error("boot failed", error)
   document.getElementById("boot-plate")?.remove()
@@ -448,8 +453,25 @@ cup.update(store.get())
 // there is no game clock to catch up and no outcome can change.
 // ---------------------------------------------------------------------------
 let runtime = initialRuntimeState()
+/** The sentence the plate shows; a held restore keeps the last failure's. */
+let plateCause =
+  "3D graphics didn't start, so the ranch can't load. Reload to try again."
+const GRAPHICS_CAUSE: Record<GraphicsHealth, string> = {
+  ok: plateCause,
+  unavailable: plateCause,
+  lost: "The 3D graphics context was lost mid-game. Reload to restart the ranch.",
+  frame_error:
+    "The ranch hit a graphics error it couldn't recover from. Reload to restart.",
+}
 const applyRuntime = (event: RuntimeEvent): void => {
   const next = runtimeState(runtime, event)
+  if (next.graphics !== "ok") plateCause = GRAPHICS_CAUSE[next.graphics]
+  // The failure surface is the plate: up while unhealthy, down the moment a
+  // restore puts the game back on its feet.
+  if (next.surface !== runtime.surface) {
+    if (next.surface === "plate") showFailurePlate(app, plateCause)
+    else hideFailurePlate(app)
+  }
   if (next.renderLoop !== runtime.renderLoop) {
     const paused = next.renderLoop === "paused"
     scene.setPaused(paused)

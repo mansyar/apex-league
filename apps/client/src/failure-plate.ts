@@ -12,6 +12,14 @@
 const PLATE_CLASS = "failure-plate"
 
 /**
+ * Take the plate down — a context restore put the game back on its feet and
+ * the reducer returned to the "game" surface.
+ */
+export function hideFailurePlate(container: HTMLElement): void {
+  container.querySelector(`.${PLATE_CLASS}`)?.remove()
+}
+
+/**
  * Show (or update) the failure plate inside `container`. Repeated calls
  * update the cause instead of stacking plates — a failure that repeats says
  * the same thing louder, not twice.
