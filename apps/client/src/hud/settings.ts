@@ -23,6 +23,27 @@ export function prefChipView(
   }
 }
 
+/** Mirror the motion and camera preferences onto the settings chips. */
+export function capturePrefChips(
+  chips: { motionChip: HTMLButtonElement; cameraChip: HTMLButtonElement },
+  settings: Pick<GameState["settings"], "reducedMotion" | "arenaCamera">,
+): void {
+  const view = prefChipView(settings)
+  chips.motionChip.setAttribute(
+    "aria-pressed",
+    view.motionPressed ? "true" : "false",
+  )
+  const label = chips.motionChip.querySelector<HTMLElement>(".kit-chip-label")
+  if (label) label.textContent = view.motionLabel
+  chips.cameraChip.setAttribute(
+    "aria-pressed",
+    view.cameraPressed ? "true" : "false",
+  )
+  const cameraLabel =
+    chips.cameraChip.querySelector<HTMLElement>(".kit-chip-label")
+  if (cameraLabel) cameraLabel.textContent = view.cameraLabel
+}
+
 /** The settings-pill elements the preference capture mirrors into. */
 export interface SettingsChipRefs {
   motionWrap: HTMLElement

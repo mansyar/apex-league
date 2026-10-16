@@ -22,6 +22,7 @@ import {
 import { buildCommandDock, pickerEntry, trainButtonState } from "./hud/dock"
 import {
   apPipPlan,
+  buildCallout,
   buildCreaturePlate,
   buildLineagePlate,
   buildScoreBug,
@@ -37,7 +38,7 @@ export { buildCommandDock, type CommandDockRefs } from "./hud/dock"
 import {
   buildResetModal,
   buildSettingsChips,
-  prefChipView,
+  capturePrefChips,
 } from "./hud/settings"
 
 export {
@@ -47,7 +48,7 @@ export {
   type SettingsChipRefs,
 } from "./hud/settings"
 
-import { chip, meter, replay } from "./ui/kit"
+import { meter, replay } from "./ui/kit"
 
 export {
   coachVoice,
@@ -213,21 +214,12 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   // settings.seenHints. First match wins (the precedence order below is
   // the teaching order: AP first, kit depth second, cup last).
   let shownHintId: string | null = null
-  const callout = document.createElement("div")
-  callout.className = "kit-plate hud-callout"
-  callout.style.display = "none"
-  const calloutText = document.createElement("p")
-  calloutText.className = "hud-callout-text"
-  const calloutOk = chip({
-    label: "Got it",
-    variant: "accent",
-    onClick: () => {
+  const { root: callout, text: calloutText } = buildCallout({
+    onDismiss: () => {
       if (shownHintId) handlers.onHintSeen(shownHintId)
       shownHintId = null
-      callout.style.display = "none"
     },
   })
-  callout.append(calloutText, calloutOk)
   // The two bottom plates live in a stack wrapper so the phone tier can
   // lay them out as a column; display:contents keeps the desktop
   // corner-pinned layout untouched (children position against the root).
@@ -305,23 +297,6 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     if (current) update(current)
   })
 
-  /** Mirror the motion and camera preferences onto the settings chips. */
-  function capturePrefUpdate(state: GameState): void {
-    const view = prefChipView(state.settings)
-    motionChip.setAttribute(
-      "aria-pressed",
-      view.motionPressed ? "true" : "false",
-    )
-    const label = motionChip.querySelector<HTMLElement>(".kit-chip-label")
-    if (label) label.textContent = view.motionLabel
-    cameraChip.setAttribute(
-      "aria-pressed",
-      view.cameraPressed ? "true" : "false",
-    )
-    const cameraLabel = cameraChip.querySelector<HTMLElement>(".kit-chip-label")
-    if (cameraLabel) cameraLabel.textContent = view.cameraLabel
-  }
-
   const update = (state: GameState): void => {
     current = state
     // Score bug: the phase tab flips to accent gold on cup day.
@@ -384,10 +359,10 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       lineagePlate.style.display = "none"
       statusTicker.say("")
       motionWrap.style.display = ""
-      capturePrefUpdate(state)
+      capturePrefChips({ motionChip, cameraChip }, state.settings)
       return
     }
-    capturePrefUpdate(state)
+    capturePrefChips({ motionChip, cameraChip }, state.settings)
     lowerThird.style.display = ""
     dockRow.style.display = ""
     dockTrain.style.display = ""
