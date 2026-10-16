@@ -31,7 +31,8 @@ and DOM wiring verified manually; `bun run verify` gates every commit.
       first (power/accuracy/cooldown; locked variant with unlock day) (099cb6c)
 - [x] Task: Render the line in the spar kit picker and cup coaching room rows
       (099cb6c)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+      [checkpoint: 099cb6c]
 
 ## Phase 4 — Coach's Handbook modal (client)
 
