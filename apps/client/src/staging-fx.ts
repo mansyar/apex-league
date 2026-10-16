@@ -76,6 +76,8 @@ export class EffectLoop {
   private steps = new Set<(dtMs: number) => boolean>()
   private raf: number | null = null
   private last = 0
+  /** Suspended for a hidden tab: steps stay registered, no frame is pending. */
+  private paused = false
   /**
    * Snapshot buffer for the frame walk. Reused every frame - the quality
    * gate forbids per-frame allocations - because a step that spawns
@@ -98,7 +100,7 @@ export class EffectLoop {
   /** Register a step; starts the loop if it is not running. */
   add(step: (dtMs: number) => boolean): void {
     this.steps.add(step)
-    if (this.raf === null) {
+    if (this.raf === null && !this.paused) {
       this.last = this.now()
       this.raf = this.schedule(this.tick)
     }
@@ -113,7 +115,33 @@ export class EffectLoop {
     if (this.raf !== null) this.cancel(this.raf)
     this.raf = null
     this.last = 0
+    this.paused = false
     this.steps.clear()
+  }
+
+  /**
+   * Suspend for a hidden tab (F5). The pending frame is cancelled but the
+   * steps stay registered, so an in-flight effect is held mid-play rather
+   * than finished off-screen or lost.
+   */
+  pause(): void {
+    if (this.paused) return
+    this.paused = true
+    if (this.raf !== null) this.cancel(this.raf)
+    this.raf = null
+  }
+
+  /**
+   * Resume after `pause`. The clock is re-anchored here, so the first frame
+   * back is one normal delta instead of the whole hidden span — the jump
+   * that would otherwise snap an effect to its end state.
+   */
+  resume(): void {
+    if (!this.paused) return
+    this.paused = false
+    if (this.steps.size === 0) return
+    this.last = this.now()
+    this.raf = this.schedule(this.tick)
   }
 
   private readonly tick = (): void => {
@@ -215,6 +243,11 @@ const DECAL_LIFE_MS = 1800
 export interface BattleEffects {
   /** Shared hit-stop clock (also drives the action clock and drive loop). */
   hitStop: HitStop
+  /**
+   * Suspend/resume the shared effect loop for a hidden tab (F5). Effects in
+   * flight are held mid-play and continue on return.
+   */
+  setPaused(paused: boolean): void
   /** Spawn the victim's white-out flash. */
   startFlash(victim: FlashVictim): void
   /** Launch a shot from the thrower's mouth line at the victim's chest. */
@@ -729,6 +762,10 @@ export function createBattleEffects(host: {
 
   return {
     hitStop,
+    setPaused(paused: boolean) {
+      if (paused) loop.pause()
+      else loop.resume()
+    },
     startFlash,
     spawnProjectile,
     spawnBurst,

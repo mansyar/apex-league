@@ -272,3 +272,107 @@ describe("EffectLoop", () => {
     }
   })
 })
+
+describe("EffectLoop — hidden-tab pause (F5)", () => {
+  test("pause cancels the pending frame and keeps the steps registered", () => {
+    const clock = makeClock()
+    const loop = new EffectLoop(
+      () => false,
+      clock.now,
+      clock.schedule,
+      clock.cancel,
+    )
+    let runs = 0
+    loop.add(() => {
+      runs++
+      return true
+    })
+    expect(clock.hasPending()).toBe(true)
+    loop.pause()
+    expect(clock.hasPending()).toBe(false)
+    clock.advance(1000)
+    clock.frame() // nothing pending: the hidden gap runs nothing
+    expect(runs).toBe(0)
+    // The step survived the pause; resume picks it straight back up.
+    loop.resume()
+    expect(clock.hasPending()).toBe(true)
+    clock.frame()
+    expect(runs).toBe(1)
+  })
+
+  test("resume re-anchors the clock: the first frame back gets a normal dt", () => {
+    const clock = makeClock()
+    const loop = new EffectLoop(
+      () => false,
+      clock.now,
+      clock.schedule,
+      clock.cancel,
+    )
+    const dts: number[] = []
+    loop.add((dt) => {
+      dts.push(dt)
+      return true
+    })
+    clock.frame() // first frame: the 16.7ms fallback
+    loop.pause()
+    clock.advance(5000) // the whole hidden span
+    loop.resume()
+    clock.frame()
+    // Without the re-anchor this frame would report the clamped gap (100ms);
+    // with it the effect continues as if barely a frame had passed.
+    expect(dts[dts.length - 1]).toBeLessThan(50)
+  })
+
+  test("pause and resume are idempotent", () => {
+    const clock = makeClock()
+    let scheduled = 0
+    const loop = new EffectLoop(
+      () => false,
+      clock.now,
+      (cb) => {
+        scheduled++
+        return clock.schedule(cb)
+      },
+      clock.cancel,
+    )
+    loop.add(() => true)
+    loop.pause()
+    loop.pause()
+    expect(clock.hasPending()).toBe(false)
+    const before = scheduled
+    loop.resume()
+    loop.resume()
+    // A second resume must not kick a second frame.
+    expect(scheduled).toBe(before + 1)
+    expect(clock.hasPending()).toBe(true)
+  })
+
+  test("a step added while paused does not start the loop", () => {
+    const clock = makeClock()
+    const loop = new EffectLoop(
+      () => false,
+      clock.now,
+      clock.schedule,
+      clock.cancel,
+    )
+    loop.pause()
+    loop.add(() => true)
+    expect(clock.hasPending()).toBe(false)
+    loop.resume()
+    expect(clock.hasPending()).toBe(true)
+  })
+
+  test("stop clears the pause so a reused loop schedules normally", () => {
+    const clock = makeClock()
+    const loop = new EffectLoop(
+      () => false,
+      clock.now,
+      clock.schedule,
+      clock.cancel,
+    )
+    loop.pause()
+    loop.stop()
+    loop.add(() => true)
+    expect(clock.hasPending()).toBe(true)
+  })
+})

@@ -65,6 +65,8 @@ export interface SparHandlers {
 export interface Spar {
   /** Sync the button and live creature reference with the current state. */
   update(creature: Creature | null): void
+  /** Hold a live fight's playback while the tab is away (F5). */
+  setPaused(paused: boolean): void
 }
 
 /** FR6 temperament lines, coach-side. */
@@ -521,6 +523,9 @@ export function createSpar(
         // strands itself in arena mode.
         handlers.onClose?.()
       }
+    },
+    setPaused: (paused) => {
+      session.setPaused(paused)
     },
   }
 }

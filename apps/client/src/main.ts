@@ -22,6 +22,11 @@ import { createCup } from "./cup"
 import { nextShot } from "./director"
 import { createGraduation } from "./graduation"
 import { corruptSaveNotice, createHud } from "./hud"
+import {
+  initialRuntimeState,
+  type RuntimeEvent,
+  runtimeState,
+} from "./lifecycle"
 import { resolveMotionPref } from "./motion"
 import { createScene } from "./scene"
 import { createSpar } from "./spar"
@@ -414,3 +419,36 @@ syncScene()
 hud.update(store.get())
 spar.update(store.get().creature ?? null)
 cup.update(store.get())
+
+// ---------------------------------------------------------------------------
+// Hidden-tab pause (F5)
+//
+// The browser stops painting a hidden tab but keeps firing its timers, so a
+// fight carries on stepping behind the curtain and the player comes back to a
+// bowl mid-punch. One reducer decides the runtime; the subscribers below stop
+// drawing, stop effect time, and hold the playback chain exactly where it
+// stood. Pausing is presentation-only — `advanceDay` is player-triggered, so
+// there is no game clock to catch up and no outcome can change.
+// ---------------------------------------------------------------------------
+let runtime = initialRuntimeState()
+const applyRuntime = (event: RuntimeEvent): void => {
+  const next = runtimeState(runtime, event)
+  if (next.renderLoop !== runtime.renderLoop) {
+    const paused = next.renderLoop === "paused"
+    scene.setPaused(paused)
+    staging.setPaused(paused)
+    spar.setPaused(paused)
+    cup.setPaused(paused)
+  }
+  runtime = next
+}
+const onVisibility = (): void => {
+  applyRuntime({
+    kind: "visibility",
+    status: document.hidden ? "hidden" : "visible",
+  })
+}
+document.addEventListener("visibilitychange", onVisibility)
+// A tab can be opened in the background: start parked rather than drawing a
+// frame nobody sees.
+if (document.hidden) onVisibility()

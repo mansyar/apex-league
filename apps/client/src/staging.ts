@@ -74,6 +74,12 @@ export interface Staging {
    * swings off mid-animation.
    */
   setPace(msPerStep: number): void
+  /**
+   * Suspend/resume the battle effect loop for a hidden tab (F5). An effect
+   * caught mid-play is held and continues on return instead of running on
+   * unseen or snapping to its end state.
+   */
+  setPaused(paused: boolean): void
   /** Remove the combatants (panel closed, back to idle ranch bowl). */
   clear(): void
 }
@@ -313,6 +319,9 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     },
     setPace(msPerStep) {
       paceMs = msPerStep
+    },
+    setPaused(paused) {
+      effects.setPaused(paused)
     },
     clear() {
       stop()

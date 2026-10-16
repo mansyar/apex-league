@@ -19,6 +19,12 @@ export interface SceneHandle {
   setCameraMode(mode: "ranch" | "arena"): void
   /** Cross-fade the ranch set (lighting rig + sunset dome), 1 → 0. */
   setRanchBlend(k: number): void
+  /**
+   * Suspend/resume the render loop for a hidden tab (F5). Resume re-anchors
+   * the frame clock, so the first frame back reports `dt = 0` and a clamped
+   * walk step cannot be advanced across the hidden gap.
+   */
+  setPaused(paused: boolean): void
   /** Stop the render loop and free GPU resources. */
   dispose(): void
   /** Replace (or add) the showcased creature, built from the archetype
@@ -174,9 +180,23 @@ export function createScene(container: HTMLElement): SceneHandle {
       if (ranchScenery) ranchScenery.visible = blend > 0.001
       if (foodPile) foodPile.visible = fedTodayVisible && blend > 0.5
     },
+    setPaused(next) {
+      // Idempotent: the visibility listener can fire the same state twice
+      // (and dispose() must not leave a paused scene unable to ever stop).
+      if (next === paused) return
+      paused = next
+      if (next) {
+        cancelAnimationFrame(raf)
+        raf = 0
+      } else {
+        resumedFrame = true
+        raf = requestAnimationFrame(tick)
+      }
+    },
     dispose() {
       motion.dispose()
       cancelAnimationFrame(raf)
+      paused = true
       composer?.dispose()
       window.removeEventListener("resize", onResize)
       cameraRig.dispose()
@@ -271,12 +291,20 @@ export function createScene(container: HTMLElement): SceneHandle {
   let lastFrameT = 0
   /** Previous tick's time, for the clamped walk step. */
   let lastT = 0
+  /** Suspended by `setPaused` (hidden tab). */
+  let paused = false
+  /** The next frame is the first after a resume: its delta is zero. */
+  let resumedFrame = false
 
   const tick = (): void => {
     const t = (performance.now() - clockStart) / 1000
     // Clamped frame delta for the walk machine — a long gap advances at
     // most one clamped step, so phases can never be skipped.
-    const dt = Math.min(0.1, Math.max(0, t - lastT))
+    // A resume reports dt = 0 (F5): the hidden span is not game time, and
+    // letting the clamp through would advance the walk by its maximum step
+    // the instant the player looked back.
+    const dt = resumedFrame ? 0 : Math.min(0.1, Math.max(0, t - lastT))
+    resumedFrame = false
     lastT = t
     // The creature's performing life (mood idles, feed ceremony, wander,
     // evolution) plus the wind sway — all in the ranch-motion module. The

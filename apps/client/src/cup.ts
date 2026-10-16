@@ -97,6 +97,8 @@ export interface CupHandlers {
 export interface Cup {
   /** Sync the chip and live state with the current sim state. */
   update(state: GameState): void
+  /** Hold the bracket playback while the tab is away (F5). */
+  setPaused(paused: boolean): void
 }
 
 /** The strict reveal plan, in true tournament order. */
@@ -922,6 +924,9 @@ export function createCup(
         handlers.onSession?.(null)
       }
       syncChip()
+    },
+    setPaused: (paused) => {
+      battle.setPaused(paused)
     },
   }
 }
