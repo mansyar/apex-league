@@ -140,6 +140,6 @@ verification checkpoint per `workflow.md`.
     rows use em-dashes); fixed and verified. All other checks passed:
     plan compliance, style, tests (641/0/1), coverage, gates green.
 
-- [x] Task: Final review & completion (Refer to workflow.md) — (completion commit)
+- [x] Task: Final review & completion (Refer to workflow.md) — 2044281
   - Review passed (1 Low finding fixed); registry + metadata finalized;
     track archived per the project's completed-track policy.

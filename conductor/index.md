@@ -16,3 +16,4 @@
 
 -   [Tracks Registry](./tracks.md)
 -   [Tracks Directory](./tracks/)
+-   [Track Archive](./archive/) — completed tracks, one folder each (spec/plan/metadata intact)
