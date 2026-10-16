@@ -14,12 +14,8 @@ import "./ranch.css"
 import "./spar.css"
 import "./mock.css"
 import type { CreatureConditions } from "@apex/sim"
-import {
-  buildCommandDock,
-  buildCreaturePlate,
-  buildScoreBug,
-  buildSettingsChips,
-} from "./hud"
+import { buildCommandDock, buildCreaturePlate, buildScoreBug } from "./hud"
+import { buildSettingsChips } from "./settings-modal"
 import { icons } from "./ui/icons"
 import { bar, button, chip, crest, meter, plate, stamp, tab } from "./ui/kit"
 

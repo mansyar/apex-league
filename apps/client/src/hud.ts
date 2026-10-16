@@ -34,6 +34,7 @@ import { focusTrap } from "./battleUI"
 import { buildCreatureDetail } from "./creature-detail"
 import { crestGlyph, elementHue } from "./element"
 import { buildHandbook } from "./handbook"
+import { buildSettingsModal } from "./settings-modal"
 import { icons } from "./ui/icons"
 import {
   bar,
@@ -766,52 +767,6 @@ export function buildCommandDock(handlers: {
   }
 }
 
-/** The settings-pill elements the preference capture mirrors into. */
-export interface SettingsChipRefs {
-  motionWrap: HTMLElement
-  motionChip: HTMLButtonElement
-  cameraChip: HTMLButtonElement
-  resetChip: HTMLButtonElement
-}
-
-/**
- * Settings cluster (top-left): the reduced-motion toggle (save v5), the
- * arena camera toggle (save v9), and the New game chip (save v7 QoL —
- * the confirm modal does the scary part, one deliberate click).
- */
-export function buildSettingsChips(opts: {
-  onToggleReducedMotion: () => void
-  onToggleArenaCamera: () => void
-  /** Opens the reset-confirm modal (built by buildResetModal). */
-  onNewGame: () => void
-}): SettingsChipRefs {
-  const motionChip = chip({
-    label: "Motion: full",
-    variant: "dim",
-    onClick: opts.onToggleReducedMotion,
-  })
-  const motionWrap = document.createElement("div")
-  motionWrap.className = "hud-motion"
-  motionWrap.append(motionChip)
-
-  const cameraChip = chip({
-    label: "Camera: cinematic",
-    variant: "dim",
-    onClick: opts.onToggleArenaCamera,
-  })
-  cameraChip.classList.add("camera-chip")
-  motionWrap.append(cameraChip)
-  const resetChip = chip({
-    label: "New game",
-    variant: "dim",
-    onClick: opts.onNewGame,
-  })
-  // Ranch-only: the arena hide-list targets this class.
-  resetChip.classList.add("new-game-chip")
-  motionWrap.append(resetChip)
-  return { motionWrap, motionChip, cameraChip, resetChip }
-}
-
 /** The reset-confirm modal elements. */
 export interface ResetModalRefs {
   resetModal: HTMLElement
@@ -936,16 +891,10 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     onGraduate: () => handlers.onGraduate(),
   })
 
-  // Settings cluster (top-left) + reset modal — the shared builders. The
-  // modal is built first so the New game chip can open it.
+  // Settings cluster (top-left) + reset modal — the modal owns the three
+  // settings chips now; the HUD cluster keeps only the entry chip.
   const { resetModal, resetConfirm } = buildResetModal(() => handlers.onReset())
-  // Partner-details modal: opened by tapping the creature plate head; it
-  // reads state fresh on every open.
-  const creatureDetail = buildCreatureDetail()
-  // Coach's Handbook: type chart, ladder rules, raising guidance — one
-  // persistent ranch chip (the settings chips come and go in Phase 5).
-  const handbook = buildHandbook()
-  const { motionWrap, motionChip, cameraChip } = buildSettingsChips({
+  const settings = buildSettingsModal({
     onToggleReducedMotion: () => handlers.onToggleReducedMotion(),
     onToggleArenaCamera: () => handlers.onToggleArenaCamera(),
     onNewGame: () => {
@@ -953,7 +902,23 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       resetConfirm.focus()
     },
   })
-
+  const { motionChip, cameraChip } = settings
+  const motionWrap = document.createElement("div")
+  motionWrap.className = "hud-motion"
+  const settingsChip = chip({
+    label: "Settings",
+    variant: "dim",
+    onClick: () => settings.open(),
+  })
+  settingsChip.classList.add("settings-chip")
+  motionWrap.append(settingsChip)
+  // Partner-details modal: opened by tapping the creature plate head; it
+  // reads state fresh on every open.
+  const creatureDetail = buildCreatureDetail()
+  // Coach's Handbook: type chart, ladder rules, raising guidance — one
+  // persistent ranch chip (Phase 5 moved the settings chips into their
+  // own modal behind the Settings chip).
+  const handbook = buildHandbook()
   const handbookChip = chip({
     label: "Handbook",
     variant: "dim",
@@ -1077,6 +1042,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     resetModal,
     creatureDetail.root,
     handbook.root,
+    settings.root,
     callout,
   )
 

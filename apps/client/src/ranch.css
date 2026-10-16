@@ -516,6 +516,20 @@
   line-height: 1.45;
 }
 
+/* Settings modal (coach_knowledge_20261016 Phase 5): the three floating
+   chips consolidated behind one Settings chip — same chips, same labels,
+   same handlers. Camera/new-game surface scoping stays on the chips
+   themselves (spar.css), so the rows need no extra rules. */
+.settings-box {
+  text-align: left;
+}
+
+.settings-rows {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
 /* Shared collapse chevron: points down while expanded, right when
    collapsed. */
 .collapse-chev {
