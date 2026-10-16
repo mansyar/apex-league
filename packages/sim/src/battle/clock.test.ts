@@ -276,11 +276,11 @@ describe("stagger on heavy blows", () => {
   })
 
   test("a downing blow never staggers", () => {
-    // Reed hp 12: Spark's 13 damage downs it outright — a down event, no
-    // stagger for the fallen fighter.
+    // Reed hp 12: Spark's 12 damage (6 × atk 14 × 1.5x / 10) downs it
+    // outright — a down event, no stagger for the fallen fighter.
     const clock = clockOf(
       [
-        snap("Bolt", "fire", stats(13, 11, 10, 40)),
+        snap("Bolt", "fire", stats(13, 14, 10, 40)),
         snap("Reed", "plant", stats(5, 11, 10, 12)),
       ],
       7,
@@ -352,14 +352,14 @@ describe("stagger on heavy blows", () => {
 
   test("a recovered fighter is immune to re-staggering for 3 ticks", () => {
     // Bolt spd 13 acts every tick; Reed spd 5 hp 40. Two sparks from far
-    // land at t2 and t4 — both heavy (SE 6 of 40 = 15%, at the floor).
+    // land at t2 and t4 — both heavy (SE 8 of 40 = 20%, 6 × atk 9 × 1.5x).
     // The t2 blow staggers (Reed's window consumed at t3), but the t4
     // blow lands inside the 3-tick grace measured from the t2 trigger,
     // so Reed keeps acting: exactly one stagger event, and Reed plans
     // real actions again afterward.
     const clock = clockOf(
       [
-        snap("Bolt", "fire", stats(13, 5, 10, 40)),
+        snap("Bolt", "fire", stats(13, 9, 10, 40)),
         snap("Reed", "plant", stats(5, 11, 10, 40)),
       ],
       7,

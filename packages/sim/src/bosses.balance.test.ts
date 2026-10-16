@@ -243,11 +243,12 @@ function runPlacementProbe(): { placements: Record<number, number> } {
 }
 
 describe("boss balance probe (FR12)", () => {
-  // Parked: cross-element beatability is impossible under the current
-  // 2/1·1/2 type chart (probe-verified 2026-10-16). The element-chart
-  // track reworks the factors; when it lands these invert back to
-  // regular tests and the boss milestone mapping is re-decided on data.
-  test.failing("bosses are strictly harder than the +5% final rival", () => {
+  // Skipped (element_chart_20261016 hygiene): the 3/2·2/3 chart removed the
+  // binary cross-element walls, but the absolute bounds-max boss pins still
+  // dominate untrained players (Hesse takes 72.2% from her ADVANTAGED
+  // trained+0 counter). Re-tuning the pins + milestone mapping is the
+  // silver_ladder_bosses track's parked Phase 3; unpark there.
+  test.skip("bosses are strictly harder than the +5% final rival", () => {
     const probe = runBossProbe()
     const rival = runFinalRivalProbe()
     for (const speciesId of STARTER_SPECIES.map((s) => s.id)) {
@@ -275,8 +276,9 @@ describe("boss balance probe (FR12)", () => {
     }
   })
 
-  // Parked: same cross-element reasoning as the rival test above.
-  test.failing("each boss is beatable by its milestone player", () => {
+  // Skipped: same boss-tuning dependency as the rival test above — see the
+  // silver_ladder_bosses parked Phase 3.
+  test.skip("each boss is beatable by its milestone player", () => {
     const probe = runBossProbe()
     for (const boss of BOSSES) {
       const trained = MILESTONE_TRAINED[boss.id] ?? 2

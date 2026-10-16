@@ -17,7 +17,7 @@
  * pinned constants.
  */
 
-import { describe, expect, test } from "bun:test"
+import { expect, test } from "bun:test"
 import { typeFactor } from "./battle/chart"
 import type { Tactic } from "./battle/policy"
 import { type BattleSide, resolveBattle } from "./battle/resolver"

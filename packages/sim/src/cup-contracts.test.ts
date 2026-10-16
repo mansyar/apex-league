@@ -133,7 +133,7 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
       "Mossbottom Brute(water_axolotl)",
     ])
     expect(session.bracket.slots[1]?.stats).toEqual({
-      hp: 42,
+      hp: 83,
       atk: 10,
       def: 9,
       spd: 9,
@@ -161,12 +161,12 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
       rivalWinners: readonly (string | null)[]
     }> = [
       {
-        // FR6 rebalance ripple: QF1 at this seed is now a double-KO — the
-        // first golden exercise of the higher-HP tiebreak the bracket model
-        // must mirror (FR4).
+        // HP-doubling ripple (element_chart_20261016): the QF1 double-KO
+        // that used to sit on this seed resolved into a clean win — the
+        // doubled HP pool let the higher-HP fighter survive the exchange.
         seed: 101,
         rivalWinners: [
-          null,
+          "Reedle Mirefin",
           "Ash-ledger",
           "Mossbottom Brute",
           "Mossbottom Brute",

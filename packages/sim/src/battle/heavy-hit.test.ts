@@ -195,9 +195,10 @@ describe("heavy-hit rule parity across both paths", () => {
   test("the innate Strike ignores the type chart while a special does not", () => {
     // The guard that makes FR1's "the melee path passes 1/1" load-bearing:
     // an identical 10 damage (25% of 40 HP) staggers Reed through super-
-    // effective Spark but NOT through the typeless innate Strike, which only
-    // staggers by sheer size. A shared rule that recomputed the type factor
-    // from the fighters' elements would fail the melee half of this.
+    // effective Spark (1.5x under the 3/2·2/3 chart) but NOT through the
+    // typeless innate Strike, which only staggers by sheer size. A shared
+    // rule that recomputed the type factor from the fighters' elements
+    // would fail the melee half of this.
     const victim = stats(5, 11, 10, 40)
     const seed = 7
 
@@ -205,7 +206,7 @@ describe("heavy-hit rule parity across both paths", () => {
       drive(
         clockOf(
           [
-            snap("Bolt", "fire", stats(13, 9, 10, 40)),
+            snap("Bolt", "fire", stats(13, 12, 10, 40)),
             snap("Reed", "plant", victim),
           ],
           seed,
