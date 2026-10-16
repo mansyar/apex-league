@@ -43,24 +43,24 @@ verification checkpoint per `workflow.md`.
 
 ## Phase 2 — Sim: bosses, cup substitution, ledger
 
-- [ ] Task: Red+Green — boss registry (FR8)
+- [x] Task: Red+Green — boss registry (FR8) — `4f0df3e`
   - `BOSSES` registry + tests: pinned stats within species legal bounds,
     kit legality (existing moves, equip rules), fixed tactic, ids stable.
   - Persona copy fields present (name, quips, intro) even though the client
     reads them later.
 
-- [ ] Task: Red+Green — promotion cup substitution (FR3)
+- [x] Task: Red+Green — promotion cup substitution (FR3) — `9141456`
   - Bracket `kind: "promotion" | "championship"`; final rival substituted
     with Boss 1 when eligible.
   - Stream-invariant tests: regular brackets for existing (day, save) pairs
     byte-identical (golden stream test stays green); substitution applied
     after the draw sequence.
 
-- [ ] Task: Red+Green — checkpoint & apex substitution (FR6, FR7)
+- [x] Task: Red+Green — checkpoint & apex substitution (FR6, FR7) — `62ca3d8`
   - Boss 2 substitution at Silver III until scalped; Boss 3 at Silver I
     until scalped; un-substitution after scalp; non-blocking semantics.
 
-- [ ] Task: Red+Green — defeat ledger (FR9)
+- [x] Task: Red+Green — defeat ledger (FR9) — `1a8e9f6`
   - `bossDefeats: string[]` in state; idempotent append on boss defeat;
     `bossDefeated` presentation flag; coach line data.
 
