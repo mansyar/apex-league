@@ -99,25 +99,32 @@ async (page) => {
   await page.waitForTimeout(200)
   out.afterCancel = await modalState()
 
-  // Arena: a live battle covers the HUD with the spar overlay, so the
-  // settings chip is unreachable there (pre-existing behavior — the old
-  // camera chip was equally blocked). Assert row scoping by computed
-  // display instead: camera row appears in the arena, new game hides.
+  // Arena: the settings chip stays reachable above the spar overlay, so
+  // the modal opens mid-battle and the camera row (arena-only) is live.
   await page.locator(".spar-button").click()
   await page.waitForTimeout(800)
   await page.locator(".spar-tactic").first().click()
   await page.waitForTimeout(2500)
-  out.arena = await page.evaluate(() => ({
-    inAppInArena: document.querySelector(".app-in-arena") !== null,
-    cameraDisplay: getComputedStyle(document.querySelector(".camera-chip")).display,
-    newGameDisplay: getComputedStyle(document.querySelector(".new-game-chip")).display,
-    chipReachable: (() => {
-      const chip = document.querySelector(".settings-chip")
-      const r = chip.getBoundingClientRect()
-      const top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)
-      return top === chip || chip.contains(top)
-    })(),
-  }))
+  await page.locator(".settings-chip").click()
+  await page.waitForTimeout(300)
+  out.arena = {
+    ...(await modalState()),
+    inAppInArena: await page.evaluate(
+      () => document.querySelector(".app-in-arena") !== null,
+    ),
+  }
+  await page.screenshot({ path: ".playwright-cli/settings-arena.png" })
+  await page
+    .locator(".settings-rows .kit-chip", { hasText: "Camera" })
+    .click()
+  await page.waitForTimeout(150)
+  out.cameraAfterToggle = (await modalState()).rows.find((r) =>
+    r.label?.startsWith("Camera"),
+  )
+  out.newGameHiddenInArena = (
+    (await modalState()).rows.find((r) => r.label === "New game") ?? {}
+  ).visible === false
+  await page.keyboard.press("Escape")
 
   // Phone breakpoint (fresh page load resets the scene).
   await boot(390, 844)

@@ -735,12 +735,15 @@
   gap: 8px;
 }
 
-/* Reduced-motion settings chip (save v5): top-left, mirrors — and
-   persists — the preference the arena honors. */
+/* Settings cluster (save v5 chips, now the Settings entry): top-left.
+   Sits above the spar overlay (z-40) so the chip stays reachable during
+   battles — the camera row inside the modal is an arena-only control
+   (coach_knowledge_20261016 Phase 5). */
 .hud-motion {
   position: absolute;
   top: 18px;
   left: 18px;
+  z-index: 45;
   animation: settle-down 0.5s var(--kit-settle) 0.24s both;
   user-select: none;
 }
