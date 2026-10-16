@@ -7,7 +7,7 @@
  * in cup.test.ts stays green untouched).
  */
 import { describe, expect, test } from "bun:test"
-import { getBoss } from "./bosses"
+import { bossForCup, getBoss } from "./bosses"
 import { type Creature, createCreature } from "./creature"
 import {
   battleSideForSlot,
@@ -150,7 +150,64 @@ describe("startCupSession with a boss final", () => {
   })
 })
 
-describe("prepareCup threads the boss decision", () => {
+describe("bossForCup — the silver checkpoints and apex", () => {
+  /** A state standing at the given silver sub-tier with the given ledger. */
+  function silverState(
+    subTier: "III" | "II" | "I",
+    bossDefeats: string[] = [],
+  ) {
+    const started = chooseStarter(createInitialState(), "fire_drake", 42)
+    return {
+      ...started,
+      ladder: { points: 0, tier: "silver" as const, subTier },
+      bossDefeats,
+    }
+  }
+
+  test("Silver III with no scalp meets Hesse in a championship cup", () => {
+    const gate = bossForCup(silverState("III"))
+    expect(gate?.boss.id).toBe("hesse")
+    expect(gate?.kind).toBe("championship")
+  })
+
+  test("scalping Hesse clears the checkpoint — Silver III draws rivals again", () => {
+    expect(bossForCup(silverState("III", ["hesse"]))).toBeNull()
+  })
+
+  test("Silver II has no boss — a fully generated field", () => {
+    expect(bossForCup(silverState("II"))).toBeNull()
+    expect(bossForCup(silverState("II", ["hesse"]))).toBeNull()
+  })
+
+  test("Silver I meets Marlow — the apex holds every cup until beaten", () => {
+    const gate = bossForCup(silverState("I"))
+    expect(gate?.boss.id).toBe("marlow")
+    expect(gate?.kind).toBe("championship")
+    expect(bossForCup(silverState("I", ["koda"]))?.boss.id).toBe("marlow")
+  })
+
+  test("scalping Marlow returns the generated rivals", () => {
+    expect(bossForCup(silverState("I", ["marlow"]))).toBeNull()
+    expect(bossForCup(silverState("I", ["koda", "marlow"]))).toBeNull()
+  })
+
+  test("prepareCup threads the silver finals into the bracket", () => {
+    const hesseSession = prepareCup(silverState("III"))
+    if (!hesseSession) throw new Error("expected a session")
+    expect(hesseSession.bracket.slots[7]?.bossId).toBe("hesse")
+    expect(hesseSession.bracket.kind).toBe("championship")
+    expect(hesseSession.bracket.banner).toBe("Boss Final · Verdant Dame Hesse")
+
+    const scalped = prepareCup(silverState("III", ["hesse"]))
+    if (!scalped) throw new Error("expected a session")
+    for (const slot of scalped.bracket.slots) {
+      expect(slot.bossId).toBeUndefined()
+    }
+    expect(scalped.bracket.banner).toBeUndefined()
+  })
+})
+
+describe("the promotion gate decision via prepareCup", () => {
   test("a promotion-eligible save opens a Promotion Cup against Koda", () => {
     const session = prepareCup(promotionGateState())
     if (!session) throw new Error("expected a session")
