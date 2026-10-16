@@ -22,7 +22,7 @@ import {
   statLabel,
   trainingStatus,
   unlockCallout,
-} from "./hud"
+} from "./copy"
 
 describe("saveFailureNotice", () => {
   test("speaks in coach voice, non-blocking, names the setback", () => {
