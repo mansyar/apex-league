@@ -6,9 +6,9 @@ lifecycle, checkpoints, and commit format.
 
 ## Phase 1 — Probe: sweep & pin the constants
 
-- [ ] Task: Baseline doc — `probe-before.md` in the track folder (current-chart
+- [x] Task: Baseline doc — `probe-before.md` in the track folder (current-chart
   tables: mirrors, cross cells, rival-relative cells, climb cadence,
-  placement distribution — measured 2026-10-16 on the boss branch)
+  placement distribution — measured 2026-10-16 on the boss branch) — 3580930
 - [x] Task: Red — `chart.balance.test.ts` encoding the acceptance bands as
   tripwires (equal-stat sweep, all six ordered pairs: ≥35% at full training /
   ≤25% at trained+0; mirror curves unchanged; draw ceiling 20%) — confirm red
@@ -21,17 +21,17 @@ lifecycle, checkpoints, and commit format.
 
 ## Phase 2 — Battle mechanics & re-golden
 
-- [ ] Task: Red+Green — tick cap scales with HP scale (clock tests first);
-  draw-rate ceiling holds
-- [ ] Task: Tactics meta re-baseline — `tactics.balance.test.ts` cross cells /
+- [x] Task: Red+Green — tick cap scales with HP scale (clock tests first);
+  draw-rate ceiling holds — dbf3383
+- [x] Task: Tactics meta re-baseline — `tactics.balance.test.ts` cross cells /
   draw rates verified or re-baselined with documented rationale (mirrors
-  untouched)
-- [ ] Task: Parked-tripwire hygiene — `bosses.balance.test.ts` parked
+  untouched) — the doubled cap alone cleared the time-rate draws (dbf3383 note)
+- [x] Task: Parked-tripwire hygiene — `bosses.balance.test.ts` parked
   `test.failing` tests → `test.skip` with a pointer to boss-track Phase 3
   resume (keeps the suite green; the boss track decides the final form on
-  fresh data)
-- [ ] Task: Single re-golden commit — all battle transcript goldens with a
-  mapping note; no behavior edits alongside
+  fresh data) — 6759f26
+- [x] Task: Single re-golden commit — all battle transcript goldens with a
+  mapping note; no behavior edits alongside — 6759f26
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — Save v12
