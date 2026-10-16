@@ -40,7 +40,8 @@ and DOM wiring verified manually; `bun run verify` gates every commit.
       3/2–2/3 factors, population note), ladder rules (current-truth copy incl.
       the Silver ceiling), raising guidance (direction-only) (b5db8e3)
 - [x] Task: HUD chip entry + aria/tabbable-tab semantics (5e58bed)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+      [checkpoint: 5e58bed]
 
 ## Phase 5 — Settings modal (client, 1:1 chip relocation)
 
