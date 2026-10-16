@@ -63,3 +63,42 @@ body,
   font-size: var(--kit-step-0);
   line-height: 1.5;
 }
+
+/* ---- Phone-tier tap targets (F8) ------------------------------------- */
+
+/* A touchable control reaches 44px on its smallest axis at the phone tier —
+   the floor sits in an explicit max-width block so desktop density is
+   untouched. Buttons get a height floor; content-driven rows get the same
+   floor and center their content. Audited at 360x732 over the starter,
+   ranch (dock open/closed), spar prep, live battle, post-fight and cup
+   surfaces. */
+@media (max-width: 479.98px) {
+  .kit-chip,
+  .kit-button,
+  .spar-close,
+  .cup-close,
+  .dock-head,
+  .spar-log-toggle,
+  .spar-fast,
+  .spar-replay,
+  .spar-kit-move,
+  .spar-kit-reset,
+  .hud-lineage,
+  .creature-head,
+  .cup-slot {
+    min-height: 44px;
+  }
+
+  /* Icon buttons need both axes. The button tag keeps these ahead of the
+     surface stylesheets, which load after base.css and would otherwise win
+     the cascade on equal specificity. */
+  button.rename-button,
+  .spar-panel-close {
+    width: 44px;
+    height: 44px;
+  }
+
+  .spar-panel-close {
+    justify-content: center;
+  }
+}
