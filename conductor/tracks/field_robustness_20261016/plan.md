@@ -201,7 +201,7 @@ tested in Phase 1)*
   - Manual verification: with WebGL disabled the player sees the plate (not a
     blank page) and Reload recovers; the healthy boot path shows no flash of
     placeholder text beyond the module-graph load
-- [~] Task: WebGL context loss & restore (F7)
+- [x] Task: WebGL context loss & restore (F7) — 9649593
   - `scene.ts`: `webglcontextlost` (with `preventDefault()`) pauses the loop and
     raises `graphics/lost` ⇒ plate; `webglcontextrestored` raises
     `graphics/restored`, attempts a resume, and routes a throw from the resumed
@@ -209,7 +209,7 @@ tested in Phase 1)*
   - Manual verification (Playwright): a forced context loss shows the plate
     (including while the tab is hidden, then correctly clearing on return when
     the browser auto-restores); no unhandled console error escapes either path
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - Automated: `bun run check` + `bun test` green; `bun run verify` green
   - Manual: browser pass across the four resilience paths (hidden/visible with
     an effect in flight; unavailable at boot; context lost; context restored),
