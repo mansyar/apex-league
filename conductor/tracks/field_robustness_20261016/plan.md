@@ -209,11 +209,34 @@ tested in Phase 1)*
   - Manual verification (Playwright): a forced context loss shows the plate
     (including while the tab is hidden, then correctly clearing on return when
     the browser auto-restores); no unhandled console error escapes either path
-- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: 9649593]
   - Automated: `bun run check` + `bun test` green; `bun run verify` green
   - Manual: browser pass across the four resilience paths (hidden/visible with
     an effect in flight; unavailable at boot; context lost; context restored),
     screenshots + console evidence attached
+
+### Phase notes (2026-10-16)
+
+- `bun run verify` exit 0 — types clean (51/56/130 files), **1107 pass /
+  0 fail** (+8 pause tests this phase), biome warnings unchanged (11,
+  pre-existing), determinism gate byte-identical.
+- F5 (c9be672): one visibilitychange listener -> `lifecycle.runtimeState` ->
+  three subscribers. Browser evidence with an emulated `document.hidden` (the
+  tab stays live, so the browser's own throttling cannot mask the app):
+  canvas byte-identical while a page-level rAF counter climbed 726 frames,
+  HP identical across ~4s, playback resumed on return, fight finished and
+  exited clean. +8 unit tests pin the mechanics (re-anchor, hold, idempotence).
+- F7 boot (2e2ab9d): kit-styled boot placeholder + `<noscript>` in
+  `index.html`; guarded renderer construction; the failure plate (kit Reload,
+  focused, no dismiss) replaces the blank page. Emulated no-WebGL boots to the
+  plate; Reload really reloads.
+- F7 runtime (9649593): lost -> plate, restored -> resume, throwing resumed
+  frame -> frame_error -> plate. Forced loss/restore behaves per the reducer
+  (including a restore held while hidden); zero unhandled console errors.
+- Recorded deviation (c9be672): HitStop's 90ms window is not shifted across a
+  pause; the EffectLoop re-anchor is what prevents a jump.
+- Probes: `.playwright-cli/field-hidden-tab.cjs`, `field-boot-failure.cjs`,
+  `field-context-loss.cjs`; screenshots `f5-*.png`, `f7-*.png` alongside.
 
 ## Phase 4 — Accessibility & touch-target polish (F8, F9, F10)
 
