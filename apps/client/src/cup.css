@@ -1278,7 +1278,9 @@
 /* Phone: margins tighten to match the ranch phone tier. */
 @media (max-width: 767.98px) {
   .cup-button {
-    top: calc(112px + var(--kit-safe-top));
+    /* 120px clears the spar chip's phone slot (top 64px + ~45px height,
+       spar.css) with a real gap instead of the 3px this 112px pin left. */
+    top: calc(120px + var(--kit-safe-top));
     right: calc(14px + var(--kit-safe-right));
   }
 }
