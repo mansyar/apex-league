@@ -196,8 +196,8 @@ spar.ts 531, staging-fx.ts 781; largest overall cup.ts 932 (out of scope).
   - Deviation: extraction and slimming landed as one commit —
     `staging-fx.ts` was rewritten wholesale (splitting would have left
     the tree red between commits). `staging-fx.ts` = 442 lines.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Manual visual pass: arena VFX in spar and cup at both playback speeds,
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: decb3eb]`
+  - [x] Manual visual pass: arena VFX in spar and cup at both playback speeds,
         hit-stop feel, reduced-motion dump path, element burst identity
 
 ## Phase 5 — CSS Consolidation (Conservative)
