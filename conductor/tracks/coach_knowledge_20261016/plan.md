@@ -22,8 +22,8 @@ and DOM wiring verified manually; `bun run verify` gates every commit.
       context rows (888b7f3)
 - [x] Task: Wire tap on the ranch creature plate → modal open/close (existing
       focus-trap machinery) (0130d31)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) — browser
-      verification desktop + phone viewport
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — browser
+      verification desktop + phone viewport [checkpoint: 8318aef]
 
 ## Phase 3 — Move tooltips (client)
 
