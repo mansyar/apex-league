@@ -13,7 +13,7 @@ and DOM wiring verified manually; `bun run verify` gates every commit.
       training + evolution + legacy data) and export from `@apex/sim` — b226830
 - [x] Task: Commit + git note; mark complete — b226830
 
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — note on b226830 [checkpoint: b226830]
 
 ## Phase 2 — Creature detail modal (client, rendering → manual verification)
 
