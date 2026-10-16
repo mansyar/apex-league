@@ -13,24 +13,24 @@ verification checkpoint per `workflow.md`.
 
 ## Phase 1 — Sim: tier-aware ladder & save v11
 
-- [ ] Task: Red — tier-aware ladder tests
+- [x] Task: Red — tier-aware ladder tests — `a6dc88d`
   - Extend `ladder.test.ts` (or add `ladder.tier.test.ts`): `LadderState`
     gains `tier`; `initialLadder()` → Bronze III; `subTierFor` derives from
     Silver thresholds; `applyCupPlacement` never demotes, banks points,
     exposes tier in results; promotion win/loss semantics (FR1, FR4).
   - Confirm the new tests fail before implementing.
 
-- [ ] Task: Green — implement tier model
+- [x] Task: Green — implement tier model — `a6dc88d`
   - `LadderState.tier`, tier-aware `subTierFor`, `SILVER_THRESHOLDS`
     constants (initial provisional values, tuned in Phase 3),
     `applyCupPlacement` promotion flag, promotion resolution (FR1, FR4, FR5).
   - Pure functions only; existing Bronze behavior byte-parity intact.
 
-- [ ] Task: Red+Green — promotion eligibility predicate (FR2)
+- [x] Task: Red+Green — promotion eligibility predicate (FR2) — `48b4ba7`
   - Tests for `promotionEligible` (boundary cases: at ceiling, one point
     past, already Silver, mid-Bronze).
 
-- [ ] Task: Red+Green — save v11 migration (FR10)
+- [x] Task: Red+Green — save v11 migration (FR10) — `1b5944a`
   - Extend `save.test.ts` / migrate tests: v10 → v11 (tier defaults to
     "bronze", empty `bossDefeats`), validator accepts v11, corrupt-save
     fallbacks unchanged, fresh-start pattern applied.
