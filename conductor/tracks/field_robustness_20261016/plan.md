@@ -91,7 +91,7 @@ are deliberately different and the bounds are shared.
 *(wiring + presentation — browser/Playwright verification; the math is already
 tested in Phase 1)*
 
-- [ ] Task: Canvas touch contract (F1)
+- [x] Task: Canvas touch contract (F1) — b872a4b
   - `touch-action: none` on `#app canvas` in `base.css` beside the existing
     `display: block` rule (`:30-32`)
   - `orbit-camera.ts` pointer handlers call `preventDefault()` only when the
@@ -102,7 +102,7 @@ tested in Phase 1)*
   - Manual verification: on a touch-emulated phone a one-finger drag orbits
     and `window.scrollY` stays 0; scrolling still works everywhere outside the
     canvas
-- [ ] Task: Pinch zoom + pointer bookkeeping (F3)
+- [x] Task: Pinch zoom + pointer bookkeeping (F3) — a087057
   - Adopt `pointerMode` for the listener bookkeeping (a `Map`/array of active
     pointers), route radius changes through `pinchOrbit`, and seed
     `lastX`/`lastY` from the surviving pointer when a pinch degrades to a drag
@@ -110,7 +110,7 @@ tested in Phase 1)*
   - Manual verification: pinch changes radius within `2.5..14` and leaves
     azimuth/elevation untouched; lifting one finger continues the drag from
     the current pose
-- [ ] Task: Arena input lock (F4)
+- [~] Task: Arena input lock (F4)
   - `onPointerDown` consults `acceptsOrbit(cameraMode)` (`:144-148` — the one
     handler currently missing the guard; `onPointerMove` `:150` and `onWheel`
     `:165` keep theirs) so the whole camera surface reads from one predicate
