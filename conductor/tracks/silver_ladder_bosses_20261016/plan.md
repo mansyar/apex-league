@@ -64,7 +64,7 @@ verification checkpoint per `workflow.md`.
   - `bossDefeats: string[]` in state; idempotent append on boss defeat;
     `bossDefeated` presentation flag; coach line data.
 
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — `[checkpoint: 1a8e9f6]`
   - Full sim suite green + `bun run check`; propose manual verification;
     record checkpoint SHA.
 
