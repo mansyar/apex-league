@@ -58,4 +58,5 @@ and DOM wiring verified manually; `bun run verify` gates every commit.
       desktop + phone tier, console clean) (1c7648e)
 - [x] Task: Update `hud.copy.test.ts` / mock parity if HUD copy changed; final
       review readiness (1c7648e — mock parity updated; copy helpers untouched)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+      [checkpoint: 1c7648e]
