@@ -182,17 +182,20 @@ spar.ts 531, staging-fx.ts 781; largest overall cup.ts 932 (out of scope).
 
 ## Phase 4 — staging-fx.ts Registry/Math Extraction
 
-- [ ] Task: Extract `fx/fx-data.ts` + `fx/fx-math.ts` (TDD)
-  - [ ] Write failing tests pinning burst parameters, projectile placement
+- [x] Task: Extract `fx/fx-data.ts` + `fx/fx-math.ts` (TDD) `[decb3eb]`
+  - [x] Write failing tests pinning burst parameters, projectile placement
         math, decal parameters, hit-stop timing curves (golden parity with
         Phase 1 pins)
-  - [ ] Implement by moving the pure computations
-  - [ ] Move `HitStop` + `EffectLoop` to `fx/loop.ts` and `buildShotCore`
+  - [x] Implement by moving the pure computations
+  - [x] Move `HitStop` + `EffectLoop` to `fx/loop.ts` and `buildShotCore`
         to `fx/shot-geometry.ts` (audit decisions); retarget
         `staging-fx.test.ts` imports
-  - [ ] `bun run verify`; commit `refactor(fx): extract effect data + math`
-- [ ] Task: Slim `staging-fx.ts` to scheduler/wiring; verify the cap
-  - [ ] `bun run verify`; commit `refactor(fx): slim staging-fx to wiring`
+  - [x] `bun run verify`; commit `refactor(fx): extract effect data + math`
+- [x] Task: Slim `staging-fx.ts` to scheduler/wiring; verify the cap `[decb3eb]`
+  - [x] `bun run verify`; commit `refactor(fx): slim staging-fx to wiring`
+  - Deviation: extraction and slimming landed as one commit —
+    `staging-fx.ts` was rewritten wholesale (splitting would have left
+    the tree red between commits). `staging-fx.ts` = 442 lines.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [ ] Manual visual pass: arena VFX in spar and cup at both playback speeds,
         hit-stop feel, reduced-motion dump path, element burst identity
