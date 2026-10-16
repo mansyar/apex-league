@@ -166,9 +166,16 @@ spar.ts 531, staging-fx.ts 781; largest overall cup.ts 932 (out of scope).
   - [ ] Write failing tests for battle-log formatting; implement by moving
         existing formatting; green
   - [ ] `bun run verify`; commit `refactor(spar): extract log formatting`
-- [ ] Task: Slim `spar.ts` to panel DOM + session driving; verify no file
-      exceeds the cap
-  - [ ] `bun run verify`; commit `refactor(spar): slim panel to wiring`
+- [x] Task: Slim `spar.ts` to panel DOM + session driving; verify no file
+      exceeds the cap `[2bb2402]`
+  - [x] `bun run verify`; commit `refactor(spar): slim panel to wiring`
+
+  Deviation: no additional move was needed — the loadout-vm extraction
+  already brought `spar.ts` from 490 to 460 lines, under the ~500 cap
+  (audit note anticipated this). No empty commit created; the task's
+  commit reference points at the extraction commit that achieved the
+  slimming. `spar.ts` retains only panel DOM, session driving, and the
+  two remaining seam hooks (rival casting + open/close teardown).
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [ ] Manual visual pass: spar panel (locked rows, tactic row, log scroll),
         kit gate callouts, reduced-motion pass
