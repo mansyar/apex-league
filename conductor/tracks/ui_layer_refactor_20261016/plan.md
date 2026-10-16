@@ -12,7 +12,7 @@
         computation vs. DOM/effect wiring block (function-level inventory)
   - [ ] Record the final target module map in this plan's notes; adjust
         `spec.md` module names if the audit reveals better seams
-- [ ] Task: Golden-test the currently-pure surfaces
+- [x] Task: Golden-test the currently-pure surfaces `[01be026]`
   - [ ] Extend `hud.copy.test.ts` with golden cases pinning representative
         copy strings (coach voice, hints, callouts, numerals) — write tests
         FIRST, confirm they pass against current code (characterization, not
