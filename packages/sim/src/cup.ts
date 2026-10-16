@@ -121,6 +121,26 @@ export function makeBracket(
 }
 
 /**
+ * Which boss ids the player scalped in this session (silver_ladder_bosses_20261016,
+ * FR9). The player scalps a boss by beating the boss' slot in one of their
+ * own matches — rival-subtree verdicts (including the boss cutting through
+ * the far half) never count. A forfeit verdict (null winner) scalps
+ * nothing. Pure; empty when the bracket carries no boss.
+ */
+export function bossScalps(session: CupSession): string[] {
+  const bossSlot = session.bracket.slots.find((slot) => slot.bossId)
+  const bossId = bossSlot?.bossId
+  if (!bossSlot || !bossId) return []
+  const scalped = session.playerVerdicts.some(
+    (verdict) =>
+      verdict.winner !== null &&
+      verdict.winner === verdict.slotA &&
+      verdict.slotB === bossSlot.name,
+  )
+  return scalped ? [bossId] : []
+}
+
+/**
  * Substitute the bracket's final rival slot with an authored boss AFTER the
  * draw sequence completes (silver_ladder_bosses_20261016, FR3): no draws
  * added or pruned, so regular brackets for existing saves stay

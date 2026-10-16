@@ -1,7 +1,12 @@
 import { bossForCup } from "./bosses"
 import { isCupDay } from "./calendar"
 import { effectiveStats } from "./creature"
-import { type CupSession, cupPlacement, startCupSession } from "./cup"
+import {
+  bossScalps,
+  type CupSession,
+  cupPlacement,
+  startCupSession,
+} from "./cup"
 import { applyCupRewards } from "./cupRewards"
 import { applyCupPlacement } from "./ladder"
 import type { GameState } from "./state"
@@ -87,5 +92,11 @@ export function finalizeCup(state: GameState, session: CupSession): GameState {
   const lastVerdict = session.playerVerdicts.at(-1)
   const forfeited = lastVerdict !== undefined && lastVerdict.battle === null
   const laddered = applyCupPlacement(rewarded, cupPlacement(session), forfeited)
-  return { ...laddered.state, phase: "day" }
+  // The defeat ledger: any boss the player scalped in this cup joins the
+  // record, idempotently (FR9). Rival-subtree boss wins never count.
+  const scalps = bossScalps(session)
+  const bossDefeats = scalps.length
+    ? [...new Set([...state.bossDefeats, ...scalps])]
+    : state.bossDefeats
+  return { ...laddered.state, bossDefeats, phase: "day" }
 }

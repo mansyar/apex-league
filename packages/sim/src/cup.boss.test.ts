@@ -11,11 +11,13 @@ import { bossForCup, getBoss } from "./bosses"
 import { type Creature, createCreature } from "./creature"
 import {
   battleSideForSlot,
+  bossScalps,
+  type CupSession,
   makeBracket,
   startCupSession,
   substituteFinalBoss,
 } from "./cup"
-import { prepareCup } from "./machine"
+import { finalizeCup, prepareCup } from "./machine"
 import { chooseStarter, createInitialState } from "./state"
 
 function playerCreature(seed = 11): Creature {
@@ -204,6 +206,114 @@ describe("bossForCup — the silver checkpoints and apex", () => {
       expect(slot.bossId).toBeUndefined()
     }
     expect(scalped.bracket.banner).toBeUndefined()
+  })
+})
+
+describe("bossScalps — the defeat ledger (FR9)", () => {
+  const boss = getBoss("koda")
+  if (!boss) throw new Error("missing boss koda")
+
+  /** A session whose player verdicts are set by hand — the ledger's unit
+   * contract without depending on the boss' beatability (the Phase 3 probe
+   * measures that). */
+  function sessionWithVerdict(
+    slotB: string,
+    outcome: "player" | "boss" | "forfeit",
+    overrides?: { stripBoss?: boolean },
+  ): CupSession {
+    const session = startCupSession(
+      playerCreature(),
+      cupDay,
+      101,
+      "promotion",
+      boss,
+    )
+    const bracket = overrides?.stripBoss
+      ? {
+          ...session.bracket,
+          kind: "championship" as const,
+          banner: undefined,
+          bossIntro: undefined,
+          slots: session.bracket.slots.map((s) =>
+            s.bossId ? { ...s, bossId: undefined } : s,
+          ),
+          finalRival: session.bracket.finalRival,
+        }
+      : session.bracket
+    const playerName = bracket.slots[0]?.name ?? "player"
+    const winner =
+      outcome === "player" ? playerName : outcome === "boss" ? slotB : null
+    return {
+      ...session,
+      bracket,
+      championName: playerName,
+      playerVerdicts: [
+        { round: 3, slotA: playerName, slotB, winner, line: "", battle: null },
+      ],
+    }
+  }
+
+  test("beating the boss in a player match yields the boss id", () => {
+    expect(bossScalps(sessionWithVerdict(boss.name, "player"))).toEqual([
+      "koda",
+    ])
+  })
+
+  test("losing to the boss scalps nothing", () => {
+    expect(bossScalps(sessionWithVerdict(boss.name, "boss"))).toEqual([])
+  })
+
+  test("forfeiting against the boss scalps nothing", () => {
+    expect(bossScalps(sessionWithVerdict(boss.name, "forfeit"))).toEqual([])
+  })
+
+  test("a regular bracket scalps nothing, whatever the verdicts", () => {
+    const regular = sessionWithVerdict(boss.name, "player", {
+      stripBoss: true,
+    })
+    expect(bossScalps(regular)).toEqual([])
+  })
+
+  test("rival-subtree boss wins never count as scalps", () => {
+    const session = startCupSession(
+      playerCreature(),
+      cupDay,
+      101,
+      "promotion",
+      boss,
+    )
+    const bossName = session.bracket.finalRival.name
+    const withRivalWin = {
+      ...session,
+      rivalVerdicts: [
+        ...session.rivalVerdicts,
+        {
+          round: 2,
+          slotA: "Some Rival",
+          slotB: bossName,
+          winner: "Some Rival",
+          line: "",
+          battle: null,
+        },
+      ],
+    }
+    expect(bossScalps(withRivalWin)).toEqual([])
+  })
+
+  test("finalizeCup appends the scalp to the ledger, idempotently", () => {
+    const scalped = sessionWithVerdict(boss.name, "player")
+    const base = { ...promotionGateState(), bossDefeats: [] as string[] }
+    const once = finalizeCup(base, scalped)
+    expect(once.bossDefeats).toEqual(["koda"])
+    const twice = finalizeCup(once, scalped)
+    expect(twice.bossDefeats).toEqual(["koda"])
+  })
+
+  test("finalizeCup leaves the ledger untouched without a scalp", () => {
+    const regular = sessionWithVerdict("Some Rival", "player")
+    const base = { ...promotionGateState(), bossDefeats: ["hesse"] as string[] }
+    const after = finalizeCup(base, regular)
+    expect(after.bossDefeats).toEqual(["hesse"])
   })
 })
 
