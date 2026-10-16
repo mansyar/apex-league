@@ -36,3 +36,30 @@ body,
      behaviour, so page scrolling everywhere else is untouched. */
   touch-action: none;
 }
+
+/* ---- Failure plate (F7) ---------------------------------------------- */
+
+/* One surface for every graphics failure: boot-time "no WebGL" and a lost
+   context both land here. One plain-language cause, one recovery, no dismiss —
+   the game behind it is not playable. */
+.failure-plate {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  background: rgb(20 16 12 / 0.94);
+  color: var(--ink);
+  text-align: center;
+}
+
+.failure-cause {
+  margin: 0;
+  max-width: 34ch;
+  font-size: var(--kit-step-0);
+  line-height: 1.5;
+}

@@ -20,6 +20,7 @@ import {
 import { buildArena } from "./arena"
 import { createCup } from "./cup"
 import { nextShot } from "./director"
+import { showFailurePlate } from "./failure-plate"
 import { createGraduation } from "./graduation"
 import { corruptSaveNotice, createHud } from "./hud"
 import {
@@ -28,7 +29,7 @@ import {
   runtimeState,
 } from "./lifecycle"
 import { resolveMotionPref } from "./motion"
-import { createScene } from "./scene"
+import { createScene, type SceneHandle } from "./scene"
 import { createSpar } from "./spar"
 import { createStaging, type FightCasting } from "./staging"
 import { visualSeedOf } from "./staging-seed"
@@ -47,7 +48,23 @@ import "./battle-hud.css"
 const app = document.querySelector<HTMLElement>("#app")
 if (!app) throw new Error("#app container missing")
 
-const scene = createScene(app)
+// Boot is the one place a graphics failure is expected — no WebGL, a blocked
+// context, a dead driver. It routes to the failure plate (F7) instead of a
+// blank page; the boot placeholder comes down either way.
+let scene: SceneHandle
+try {
+  scene = createScene(app)
+} catch (error) {
+  console.error("boot failed", error)
+  document.getElementById("boot-plate")?.remove()
+  showFailurePlate(
+    app,
+    "3D graphics didn't start, so the ranch can't load. Reload to try again.",
+  )
+  // Everything below wires against the scene; stopping here is the point.
+  throw error
+}
+document.getElementById("boot-plate")?.remove()
 const arena = buildArena(scene.sceneRoot)
 const staging = createStaging(arena.group)
 const swap = createSwap(scene, arena)
