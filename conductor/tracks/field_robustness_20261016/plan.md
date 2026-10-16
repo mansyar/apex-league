@@ -187,7 +187,7 @@ tested in Phase 1)*
   - Manual verification (Playwright): with the page hidden the RAF counter
     stops advancing; on return an in-flight effect resumes without a jump; a
     battle paused mid-playback resumes at the same step
-- [~] Task: Boot placeholder, `<noscript>` & guarded scene construction (F7)
+- [x] Task: Boot placeholder, `<noscript>` & guarded scene construction (F7) — 2e2ab9d
   - `index.html`: a kit-styled boot placeholder inside `#app` (no JS required)
     plus a `<noscript>` line, replacing the empty div at `:24`
   - `main.ts`: boot wrapped so a thrown scene/WebGL construction renders the
@@ -201,7 +201,7 @@ tested in Phase 1)*
   - Manual verification: with WebGL disabled the player sees the plate (not a
     blank page) and Reload recovers; the healthy boot path shows no flash of
     placeholder text beyond the module-graph load
-- [ ] Task: WebGL context loss & restore (F7)
+- [~] Task: WebGL context loss & restore (F7)
   - `scene.ts`: `webglcontextlost` (with `preventDefault()`) pauses the loop and
     raises `graphics/lost` ⇒ plate; `webglcontextrestored` raises
     `graphics/restored`, attempts a resume, and routes a throw from the resumed
