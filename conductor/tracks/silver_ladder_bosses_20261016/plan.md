@@ -134,6 +134,12 @@ verification checkpoint per `workflow.md`.
     (authored gatekeepers must be guaranteed to reach their stage — the
     boss walkover was found by browser play, not unit tests).
 
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions — 9ef7b95
+  - One Low finding (README roadmap row used ASCII hyphens where sibling
+    rows use em-dashes); fixed and verified. All other checks passed:
+    plan compliance, style, tests (641/0/1), coverage, gates green.
+
 - [ ] Task: Final review & completion (Refer to workflow.md)
   - Self-review checklist; `conductor-review` handoff; registry + metadata
     finalized.
