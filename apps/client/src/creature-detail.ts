@@ -79,8 +79,13 @@ function statRow(
   for (const [word, value] of parts) {
     const chipEl = document.createElement("span")
     chipEl.className = "detail-stat-chip"
-    chipEl.textContent =
-      value === null ? `${word} —` : `${word} ${value > 0 ? "+" : ""}${value}`
+    const shown =
+      value === null
+        ? "—"
+        : value > 0 && word !== "rolled"
+          ? `+${value}`
+          : String(value)
+    chipEl.textContent = `${word} ${shown}`
     chips.append(chipEl)
   }
   row.append(head, chips)
