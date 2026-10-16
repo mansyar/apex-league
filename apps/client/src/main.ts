@@ -20,10 +20,17 @@ import {
 import { buildArena } from "./arena"
 import { createCup } from "./cup"
 import { nextShot } from "./director"
+import { hideFailurePlate, showFailurePlate } from "./failure-plate"
 import { createGraduation } from "./graduation"
 import { corruptSaveNotice, createHud } from "./hud"
+import {
+  type GraphicsHealth,
+  initialRuntimeState,
+  type RuntimeEvent,
+  runtimeState,
+} from "./lifecycle"
 import { resolveMotionPref } from "./motion"
-import { createScene } from "./scene"
+import { createScene, type SceneHandle } from "./scene"
 import { createSpar } from "./spar"
 import { createStaging, type FightCasting } from "./staging"
 import { visualSeedOf } from "./staging-seed"
@@ -42,7 +49,27 @@ import "./battle-hud.css"
 const app = document.querySelector<HTMLElement>("#app")
 if (!app) throw new Error("#app container missing")
 
-const scene = createScene(app)
+// Boot is the one place a graphics failure is expected — no WebGL, a blocked
+// context, a dead driver. It routes to the failure plate (F7) instead of a
+// blank page; the boot placeholder comes down either way.
+let scene: SceneHandle
+try {
+  scene = createScene(app, {
+    // The scene reports graphics health; the reducer below decides what the
+    // player sees and whether the loop spins (F7).
+    onGraphics: (status) => applyRuntime({ kind: "graphics", status }),
+  })
+} catch (error) {
+  console.error("boot failed", error)
+  document.getElementById("boot-plate")?.remove()
+  showFailurePlate(
+    app,
+    "3D graphics didn't start, so the ranch can't load. Reload to try again.",
+  )
+  // Everything below wires against the scene; stopping here is the point.
+  throw error
+}
+document.getElementById("boot-plate")?.remove()
 const arena = buildArena(scene.sceneRoot)
 const staging = createStaging(arena.group)
 const swap = createSwap(scene, arena)
@@ -414,3 +441,53 @@ syncScene()
 hud.update(store.get())
 spar.update(store.get().creature ?? null)
 cup.update(store.get())
+
+// ---------------------------------------------------------------------------
+// Hidden-tab pause (F5)
+//
+// The browser stops painting a hidden tab but keeps firing its timers, so a
+// fight carries on stepping behind the curtain and the player comes back to a
+// bowl mid-punch. One reducer decides the runtime; the subscribers below stop
+// drawing, stop effect time, and hold the playback chain exactly where it
+// stood. Pausing is presentation-only — `advanceDay` is player-triggered, so
+// there is no game clock to catch up and no outcome can change.
+// ---------------------------------------------------------------------------
+let runtime = initialRuntimeState()
+/** The sentence the plate shows; a held restore keeps the last failure's. */
+let plateCause =
+  "3D graphics didn't start, so the ranch can't load. Reload to try again."
+const GRAPHICS_CAUSE: Record<GraphicsHealth, string> = {
+  ok: plateCause,
+  unavailable: plateCause,
+  lost: "The 3D graphics context was lost mid-game. Reload to restart the ranch.",
+  frame_error:
+    "The ranch hit a graphics error it couldn't recover from. Reload to restart.",
+}
+const applyRuntime = (event: RuntimeEvent): void => {
+  const next = runtimeState(runtime, event)
+  if (next.graphics !== "ok") plateCause = GRAPHICS_CAUSE[next.graphics]
+  // The failure surface is the plate: up while unhealthy, down the moment a
+  // restore puts the game back on its feet.
+  if (next.surface !== runtime.surface) {
+    if (next.surface === "plate") showFailurePlate(app, plateCause)
+    else hideFailurePlate(app)
+  }
+  if (next.renderLoop !== runtime.renderLoop) {
+    const paused = next.renderLoop === "paused"
+    scene.setPaused(paused)
+    staging.setPaused(paused)
+    spar.setPaused(paused)
+    cup.setPaused(paused)
+  }
+  runtime = next
+}
+const onVisibility = (): void => {
+  applyRuntime({
+    kind: "visibility",
+    status: document.hidden ? "hidden" : "visible",
+  })
+}
+document.addEventListener("visibilitychange", onVisibility)
+// A tab can be opened in the background: start parked rather than drawing a
+// frame nobody sees.
+if (document.hidden) onVisibility()

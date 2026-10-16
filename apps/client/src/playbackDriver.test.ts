@@ -256,3 +256,49 @@ describe("playbackDriver — enriched playback contract (FR3)", () => {
     }
   })
 })
+
+describe("playbackDriver — hidden-tab pause (F5)", () => {
+  test("pausing holds the chain: no steps fire while the tab is away", async () => {
+    const h = harness()
+    const driver = createPlaybackDriver(h.handlers, { pace: TEST_PACE })
+    const { fight, verdict } = realVerdict(7)
+    driver.start(fight, verdict)
+    driver.setPaused(true)
+    const held = h.steps.length
+    // At TEST_PACE a step lands every ~2ms; a 40ms hold would have burned
+    // ~20 steps if the chain kept running behind the tab.
+    await new Promise((resolve) => setTimeout(resolve, 40))
+    expect(h.steps.length).toBe(held)
+    expect(h.finishes).toHaveLength(0)
+    // Resume: the fight picks up from where it stood and runs to the end.
+    driver.setPaused(false)
+    await h.waitForFinishes(1)
+    expect(h.steps.length).toBe(verdict.events.length)
+  })
+
+  test("pausing with nothing armed is a harmless no-op", async () => {
+    const h = harness()
+    const driver = createPlaybackDriver(h.handlers, { pace: TEST_PACE })
+    driver.setPaused(true)
+    driver.setPaused(false)
+    const { fight, verdict } = realVerdict(7)
+    driver.start(fight, verdict)
+    await h.waitForFinishes(1)
+    expect(h.steps.length).toBe(verdict.events.length)
+  })
+
+  test("a pause held across the finish does not strand the run", async () => {
+    const h = harness()
+    const driver = createPlaybackDriver(h.handlers, { pace: TEST_PACE })
+    const { fight, verdict } = realVerdict(7)
+    driver.start(fight, verdict)
+    await h.waitForFinishes(1)
+    driver.setPaused(true)
+    driver.setPaused(false)
+    expect(h.finishes).toHaveLength(1)
+    // The chain is clear again; a replay still runs clean.
+    driver.replay()
+    await h.waitForFinishes(2)
+    expect(h.steps.length).toBe(verdict.events.length * 2)
+  })
+})

@@ -19,9 +19,56 @@
       content="Raise a voxel partner, keep the ranch thriving, and climb the Apex League — a cozy creature-raising game in your browser."
     />
     <meta property="og:type" content="website" />
+    <style>
+      /* Boot placeholder + no-JS notice (F7). Styled inline because the kit
+         stylesheet arrives with the module; kept visually identical to the
+         failure plate so a failure never flashes a blank page. */
+      #boot-plate,
+      #noscript-plate {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        padding: 24px;
+        background: #14100c;
+        color: #f4ecdf;
+        text-align: center;
+        font-family: system-ui, sans-serif;
+      }
+      #boot-plate p,
+      #noscript-plate p {
+        margin: 0;
+      }
+      .boot-title {
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      .boot-sub {
+        font-size: 12px;
+        color: #b8ad9c;
+      }
+    </style>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <div id="boot-plate" role="status">
+        <p class="boot-title">Apex League</p>
+        <p class="boot-sub">Warming up the ranch…</p>
+      </div>
+    </div>
+    <noscript>
+      <div id="noscript-plate" role="alert">
+        <p class="boot-title">JavaScript is off</p>
+        <p class="boot-sub">
+          The ranch needs JavaScript to run. Enable it and reload.
+        </p>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

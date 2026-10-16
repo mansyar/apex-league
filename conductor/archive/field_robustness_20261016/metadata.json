@@ -1,0 +1,10 @@
+{
+  "trackId": "field_robustness_20261016",
+  "title": "Touch & Field Robustness: mobile touch interaction, hidden-tab pause, graphics-failure recovery",
+  "type": "bug+feature",
+  "status": "new",
+  "created": "2026-10-16",
+  "branch": "track/field_robustness_20261016",
+  "spec": "./spec.md",
+  "plan": "./plan.md"
+}

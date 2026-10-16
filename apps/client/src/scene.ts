@@ -19,6 +19,12 @@ export interface SceneHandle {
   setCameraMode(mode: "ranch" | "arena"): void
   /** Cross-fade the ranch set (lighting rig + sunset dome), 1 → 0. */
   setRanchBlend(k: number): void
+  /**
+   * Suspend/resume the render loop for a hidden tab (F5). Resume re-anchors
+   * the frame clock, so the first frame back reports `dt = 0` and a clamped
+   * walk step cannot be advanced across the hidden gap.
+   */
+  setPaused(paused: boolean): void
   /** Stop the render loop and free GPU resources. */
   dispose(): void
   /** Replace (or add) the showcased creature, built from the archetype
@@ -86,7 +92,15 @@ export interface SceneHandle {
  * Bootstrap the 3D scene: camera, lights, ground, and the owned creature
  * performing condition-driven procedural idles via the part-hierarchy rig.
  */
-export function createScene(container: HTMLElement): SceneHandle {
+/** Graphics events the scene observes on behalf of the runtime reducer (F7). */
+export interface SceneHooks {
+  onGraphics?: (status: "lost" | "restored" | "frame_error") => void
+}
+
+export function createScene(
+  container: HTMLElement,
+  hooks: SceneHooks = {},
+): SceneHandle {
   const setup = setupRanchScene(container)
   const { renderer, scene, camera, lights, ranchRig, sky, ground } = setup
   // Mutable because the tick's context-loss fallback can drop the
@@ -174,9 +188,23 @@ export function createScene(container: HTMLElement): SceneHandle {
       if (ranchScenery) ranchScenery.visible = blend > 0.001
       if (foodPile) foodPile.visible = fedTodayVisible && blend > 0.5
     },
+    setPaused(next) {
+      // Idempotent: the visibility listener can fire the same state twice
+      // (and dispose() must not leave a paused scene unable to ever stop).
+      if (next === paused) return
+      paused = next
+      if (next) {
+        cancelAnimationFrame(raf)
+        raf = 0
+      } else {
+        resumedFrame = true
+        raf = requestAnimationFrame(tick)
+      }
+    },
     dispose() {
       motion.dispose()
       cancelAnimationFrame(raf)
+      paused = true
       composer?.dispose()
       window.removeEventListener("resize", onResize)
       cameraRig.dispose()
@@ -271,12 +299,20 @@ export function createScene(container: HTMLElement): SceneHandle {
   let lastFrameT = 0
   /** Previous tick's time, for the clamped walk step. */
   let lastT = 0
+  /** Suspended by `setPaused` (hidden tab). */
+  let paused = false
+  /** The next frame is the first after a resume: its delta is zero. */
+  let resumedFrame = false
 
   const tick = (): void => {
     const t = (performance.now() - clockStart) / 1000
     // Clamped frame delta for the walk machine — a long gap advances at
     // most one clamped step, so phases can never be skipped.
-    const dt = Math.min(0.1, Math.max(0, t - lastT))
+    // A resume reports dt = 0 (F5): the hidden span is not game time, and
+    // letting the clamp through would advance the walk by its maximum step
+    // the instant the player looked back.
+    const dt = resumedFrame ? 0 : Math.min(0.1, Math.max(0, t - lastT))
+    resumedFrame = false
     lastT = t
     // The creature's performing life (mood idles, feed ceremony, wander,
     // evolution) plus the wind sway — all in the ranch-motion module. The
@@ -296,14 +332,21 @@ export function createScene(container: HTMLElement): SceneHandle {
     // Bloom rides arena fights only - the ranch keeps its clean look. A
     // runtime composer failure (context loss) degrades to the plain
     // renderer instead of killing the frame loop.
-    if (cameraRig.mode() === "arena" && composer) {
-      try {
-        composer.render()
-      } catch {
-        composer = null
-        renderer.render(scene, camera)
-      }
-    } else renderer.render(scene, camera)
+    try {
+      if (cameraRig.mode() === "arena" && composer) {
+        try {
+          composer.render()
+        } catch {
+          composer = null
+          renderer.render(scene, camera)
+        }
+      } else renderer.render(scene, camera)
+    } catch {
+      // A resumed context can still be unusable: report it and stop spinning
+      // rather than erroring every frame (F7).
+      hooks.onGraphics?.("frame_error")
+      return
+    }
     lastFrameT = t
     raf = requestAnimationFrame(tick)
   }
@@ -323,6 +366,18 @@ export function createScene(container: HTMLElement): SceneHandle {
     composer?.setSize(w, h)
   }
   window.addEventListener("resize", onResize)
+
+  // Graphics failure is a runtime event, not a crash (F7): a lost context
+  // parks the loop (the runtime reducer decides how), a restore attempts a
+  // resume, and a frame that still throws reports frame_error.
+  // preventDefault keeps the canvas alive so the restore event can fire.
+  renderer.domElement.addEventListener("webglcontextlost", (event) => {
+    event.preventDefault()
+    hooks.onGraphics?.("lost")
+  })
+  renderer.domElement.addEventListener("webglcontextrestored", () => {
+    hooks.onGraphics?.("restored")
+  })
 
   return handle
 }

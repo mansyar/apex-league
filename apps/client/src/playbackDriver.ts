@@ -75,6 +75,12 @@ export interface PlaybackDriver {
   speedToggle(): PlaybackSpeed
   /** Cancel any in-flight timer chain. */
   stop(): void
+  /**
+   * Suspend/resume the chain for a hidden tab (F5). A beat caught mid-wait
+   * resumes with its remaining time, so the fight picks up where it stood
+   * instead of firing a burst of overdue steps.
+   */
+  setPaused(paused: boolean): void
 }
 
 export interface PlaybackDriverOptions {
@@ -115,6 +121,14 @@ export function createPlaybackDriver(
     options.pace?.(speed) ?? PLAYBACK_SPEED_MS[speed]
 
   let timer: ReturnType<typeof setTimeout> | null = null
+  /**
+   * The continuation the live timer will run, with the instant it was due.
+   * Kept so a hidden tab can suspend the chain mid-step (F5) and re-arm the
+   * same continuation for its remaining time.
+   */
+  let pending: { run: () => void; dueAt: number } | null = null
+  /** Suspended for a hidden tab; the chain is held, not dropped. */
+  let isPaused = false
   let speed: PlaybackSpeed = "normal"
   let lastRun: PlaybackRun | null = null
   // True while a Replay slowly pass is in flight; finish() reports it so
@@ -130,6 +144,21 @@ export function createPlaybackDriver(
       clearTimeout(timer)
       timer = null
     }
+    pending = null
+  }
+
+  /**
+   * Arm the next beat. The continuation and its due instant are remembered so
+   * `setPaused` can hold and re-arm the exact same beat.
+   */
+  const arm = (run: () => void, ms: number): void => {
+    // A paused driver never arms: only the resume path re-arms a held beat.
+    if (isPaused) return
+    pending = { run, dueAt: performance.now() + ms }
+    timer = setTimeout(() => {
+      pending = null
+      run()
+    }, ms)
   }
 
   // Reduced motion = the saved in-app setting, or the hardened OS query
@@ -169,16 +198,13 @@ export function createPlaybackDriver(
       // lands (FR8). A KO run ends on a dilated beat, so the hold rides
       // the slow motion instead of snapping back to speed.
       const last = steps[steps.length - 1]
-      timer = setTimeout(
-        () => finish(verdict),
-        stampDelay(pace(), last?.ko === true),
-      )
+      arm(() => finish(verdict), stampDelay(pace(), last?.ko === true))
       return
     }
     // The wait BEFORE this event belongs to the previous step: a KO blow
     // holds the arena in slow motion through its aftermath.
     const prior = index > 0 ? steps[index - 1] : undefined
-    timer = setTimeout(
+    arm(
       () => {
         clearTimer()
         handlers.onLine(event.line)
@@ -263,6 +289,23 @@ export function createPlaybackDriver(
 
     stop() {
       clearTimer()
+    },
+
+    setPaused(next) {
+      if (next === isPaused) return
+      isPaused = next
+      if (next) {
+        // Hold the beat: drop the timer, keep the continuation.
+        if (timer !== null) {
+          clearTimeout(timer)
+          timer = null
+        }
+        return
+      }
+      // Re-arm the same continuation for whatever was left of its wait.
+      const held = pending
+      if (!held) return
+      arm(held.run, Math.max(0, held.dueAt - performance.now()))
     },
   }
 }

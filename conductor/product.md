@@ -136,8 +136,11 @@ Phased delivery plan (each phase is independently playable):
 ### Phase 4 — Post-MVP
 - Async ghost PvP; live PvP (battle code designed for it from Phase 1).
 - Mobile-responsive pass (foundation landed 2026-10-13: breakpoint
-  tiers + responsive surfaces + portrait-aware arena camera; remaining:
-  touch ergonomics, device-lab verification pass); audio expansion;
+  tiers + responsive surfaces + portrait-aware arena camera; touch
+  ergonomics landed 2026-10-16 — touch orbit/pinch, camera input locked
+  during fights, hidden-tab pause, graphics-failure plate, 44px phone tap
+  targets and a fixed spar-chip collision, visible keyboard focus; still
+  open: the hardware device-lab verification pass); audio expansion;
   polish & release funnel.
 
 ## Target Audience

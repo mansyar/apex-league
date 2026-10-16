@@ -142,6 +142,11 @@ export interface BattleSession {
   ): "instant" | "paced"
   /** Cancel any in-flight timer chain. */
   stop(): void
+  /**
+   * Suspend/resume the playback for a hidden tab (F5); the fight holds its
+   * place and resumes on return.
+   */
+  setPaused(paused: boolean): void
   /** Replay the last run slowly. */
   replay(): void
   /** Hide the broadcast HUD. */
@@ -197,6 +202,9 @@ export function createBattleSession(io: BattleSessionIo): BattleSession {
     stop: () => {
       driver.stop()
       hold.cancel()
+    },
+    setPaused: (paused) => {
+      driver.setPaused(paused)
     },
     replay: () => {
       driver.replay()

@@ -51,7 +51,14 @@ export interface RanchSetup {
  * per-frame animation live with their callers.
  */
 export function setupRanchScene(container: HTMLElement): RanchSetup {
-  const renderer = new THREE.WebGLRenderer({ antialias: true })
+  // No usable WebGL at boot (blocked, blacklisted driver, no GPU): name it
+  // plainly. main.ts catches this and renders the failure plate (F7).
+  let renderer: THREE.WebGLRenderer
+  try {
+    renderer = new THREE.WebGLRenderer({ antialias: true })
+  } catch (cause) {
+    throw new Error("WebGL unavailable", { cause })
+  }
   renderer.setPixelRatio(window.devicePixelRatio)
   renderer.setSize(container.clientWidth, container.clientHeight)
   container.appendChild(renderer.domElement)

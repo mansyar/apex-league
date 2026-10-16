@@ -693,14 +693,17 @@
   }
 
   .hud-lineage {
-    top: calc(126px + var(--kit-safe-top));
+    /* 176px: the phone top-right column stacks the score bug (10px),
+       spar chip (64px, spar.css) and cup chip (120px, cup.css); this
+       full-width plate slides below all of them. */
+    top: calc(176px + var(--kit-safe-top));
     left: calc(14px + var(--kit-safe-left));
     padding: 6px 10px;
   }
 
   .hud-callout {
-    /* Below the phone-band plate (top: 126px). */
-    top: calc(176px + var(--kit-safe-top));
+    /* Below the lineage plate (top: 176px). */
+    top: calc(226px + var(--kit-safe-top));
     left: calc(14px + var(--kit-safe-left));
     right: calc(14px + var(--kit-safe-right));
     transform: none;

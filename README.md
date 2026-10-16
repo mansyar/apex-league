@@ -86,8 +86,9 @@ bun run dev
 ```
 
 The dev server prints a local URL (Vite, default `http://localhost:5173`).
-A fresh save opens the starter choice — pick a Fire drake or a Plant ox and
-begin the day loop. Each day you get 3 AP for care actions plus one training
+A fresh save opens the starter choice - pick the Fire drake, the Plant ox or
+the Water axolotl and begin the day loop. Each day you get 3 AP for care
+actions plus one training
 focus: a full night's rest adds +1 to the focused stat, capped at +6 above
 the rolled base. Small comforts: the pencil by your partner's name renames
 them (free, anytime outside a cup), the "New game" chip beside the motion

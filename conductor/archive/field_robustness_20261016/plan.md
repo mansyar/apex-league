@@ -1,0 +1,367 @@
+# Plan — Touch & Field Robustness
+
+**Track ID:** `field_robustness_20261016`
+**Spec:** [./spec.md](./spec.md) · **Status:** draft 2026-10-16 · **Branch:** `track/field_robustness_20261016`
+
+Workflow: TDD for logic-bearing tasks (tests first, red → green → refactor),
+manual/browser verification for presentation and wiring tasks, phase
+checkpoints per `conductor/workflow.md`. `bun run verify` is the definition of
+done. Nothing in this plan touches `@apex/sim`, `@apex/voxel`, the save schema,
+or the determinism gate.
+
+## Phase 1 — Pure logic seams
+
+*(all logic-bearing — strict TDD; the only new modules this track adds)*
+
+- [x] Task: Pure orbit & gesture module `orbit-logic.ts` (F2) *(write failing tests first)* — 7ddbd55
+  - Tests (`apps/client/src/orbit-logic.test.ts`): `DRAG_SENSITIVITY`-scaled
+    `dragOrbit` moves azimuth without clamp and clamps elevation at both
+    `ELEVATION_BOUNDS` edges (inclusive boundaries, and a large single delta);
+    `zoomOrbit` scales by the `sign(deltaY) * 0.1` rule and clamps radius at
+    `MIN_RADIUS`/`MAX_RADIUS` in both directions; `pinchOrbit` scales by the
+    spread ratio and clamps the same way, and a ratio of 1 is a no-op;
+    `orbitPosition` matches golden values computed from the current
+    `applyOrbit` formula (`orbit-camera.ts:100-109`) for a known
+    target/orbit — including that it returns a fresh object rather than
+    mutating its input; `pointerMode` transitions
+    `idle → drag → pinch → drag → idle` plus "a third pointer does not change
+    the mode"; `acceptsOrbit("ranch") === true` and `acceptsOrbit("arena") ===
+    false`; every exported function leaves its input untouched (mutation
+    purity).
+  - Implement `apps/client/src/orbit-logic.ts`: `ORBIT_BOUNDS`,
+    `ELEVATION_BOUNDS`, `DRAG_SENSITIVITY`, `dragOrbit`, `zoomOrbit`,
+    `pinchOrbit`, `orbitPosition`, `pointerMode`, `acceptsOrbit` — constants
+    lifted verbatim from `orbit-camera.ts:151-170` so behaviour cannot drift.
+- [x] Task: Pure runtime state machine `lifecycle.ts` (F6) *(write failing tests first)* — 7fe0c16
+  - Tests (`apps/client/src/lifecycle.test.ts`): fresh state is
+    `{ renderLoop: "running", surface: "game" }`; `visibility/hidden` ⇒
+    `paused`; `visibility/visible` ⇒ `running`; `graphics/unavailable` and
+    `graphics/lost` ⇒ `surface: "plate"` regardless of visibility;
+    `graphics/restored` clears the plate **only** while visible (a restore
+    that lands while hidden leaves the plate until visibility returns, then
+    clears); `graphics/frame_error` ⇒ plate; every event applied twice yields
+    the same state (idempotence); an unknown/`frame_error`-after-`lost`
+    sequence still resolves to the plate.
+  - Implement `apps/client/src/lifecycle.ts`: the event union
+    (`visibility` | `graphics`), `initialRuntimeState()`, and
+    `runtimeState(prev, event)` with `surface === "plate"` taking precedence
+    over `renderLoop`.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: 7fe0c16]
+  - Automated: `bun run check` clean; the two new suites green; full `bun test`
+    runtime materially unchanged
+  - Manual: `bun run verify` green end to end (Biome clean on the new files,
+    determinism gate byte-identical — it must be untouched by a client-only
+    phase)
+
+### Phase notes (2026-10-16)
+
+Verification report appended to the git note on `7fe0c16`. `bun run verify`
+exits 0: types clean; 1099 pass / 0 fail (1100 tests, 90 files, 14.6 s under
+`--parallel`; the serial baseline on this branch was 70.5 s); Biome 0 errors
+with 11 warnings + 2 infos that all predate this track (`battleUI.ts`,
+`spar.ts`, `steps/judge.ts`, `steps/reel.ts` — flagged, not fixed: out of
+scope); the determinism gate regenerated all 9 GLBs and 5 props
+byte-identical, which is the evidence that a client-only phase stayed out of
+the asset pipeline.
+
+Agent browser check (Vite on `:5173`): the app boots with a 1500x1050 canvas
+and 15 overlay children, HUD copy intact, console empty. Both new modules have
+zero callers by design, so no pixel change was expected or observed. Pixel
+screenshots were unavailable from the desktop browser tool (it requires a
+visible window); Playwright Chromium has been installed for Phases 2-4, where
+the UI actually changes and screenshots become the evidence.
+
+Two divergences from the plan text, both already recorded on the task notes:
+- `orbitPosition(target, orbit, out)` takes a required out-parameter rather
+  than returning a fresh object, to honour this spec's no-per-frame-allocation
+  NFR (the plan bullet had said "returns a fresh object"); the suite asserts
+  golden values and that neither input mutates.
+- `lifecycle.ts` tracks a third input, `pendingRestore`, beside
+  `hidden`/`graphics`, so the approved "a restore while hidden holds the plate"
+  rule (F6) can be expressed at all. `renderLoop`/`surface` remain derived —
+  they are all a consumer reads.
+
+Contract discovered while going red→green (kept, now pinned by tests): the
+wheel zooms by **sign only** — one notch is always one step whatever the delta
+magnitude — while pinch scales **continuously** by the spread ratio. The two
+are deliberately different and the bounds are shared.
+
+## Phase 2 — Touch interaction on the canvas (F1, F3, F4)
+
+*(wiring + presentation — browser/Playwright verification; the math is already
+tested in Phase 1)*
+
+- [x] Task: Canvas touch contract (F1) — b872a4b
+  - `touch-action: none` on `#app canvas` in `base.css` beside the existing
+    `display: block` rule (`:30-32`)
+  - `orbit-camera.ts` pointer handlers call `preventDefault()` only when the
+    gesture is claimed; unclaimed gestures (arena mode, secondary devices)
+    stay native so page scrolling is never swallowed
+  - A `setMode` change while armed clears `dragging` (and any pointer
+    bookkeeping) so a ranch return never resumes a stale gesture
+  - Manual verification: on a touch-emulated phone a one-finger drag orbits
+    and `window.scrollY` stays 0; scrolling still works everywhere outside the
+    canvas
+- [x] Task: Pinch zoom + pointer bookkeeping (F3) — a087057
+  - Adopt `pointerMode` for the listener bookkeeping (a `Map`/array of active
+    pointers), route radius changes through `pinchOrbit`, and seed
+    `lastX`/`lastY` from the surviving pointer when a pinch degrades to a drag
+    (no camera jump)
+  - Manual verification: pinch changes radius within `2.5..14` and leaves
+    azimuth/elevation untouched; lifting one finger continues the drag from
+    the current pose
+- [x] Task: Arena input lock (F4) — no code change required
+  - `onPointerDown` already consults `acceptsOrbit(cameraMode)` after the F1
+    refactor (`orbit-camera.ts:182`, `:188`, `:222` — all three handlers read
+    the one predicate), so F4's code landed with Task 1 and this task is
+    verification only. Evidence in the Phase 2 verification note on `a087057`.
+  - Verified (Playwright, 360x732 touch-emulated): the handlers' own branch is
+    observable through `defaultPrevented`, because `preventDefault()` runs only
+    after the claim check. ranch: `move`/`wheel` prevented — gesture claimed.
+    arena (broadcast **and** cinematic): both **not** prevented — the gate
+    returns before any camera write, and an unclaimed gesture is not swallowed.
+    A `pointerdown` issued in the arena then a switch back to the ranch left the
+    next `pointermove` unprevented, so no armed drag survives the mode change,
+    and the following ranch gesture was claimed again.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: a087057]
+  - Automated: `bun run check` + `bun test` green; `bun run verify` green
+  - Manual: browser pass on the ranch (orbit, wheel, pinch, page scroll) and on
+    a live battle (orbit refused), with console clean; screenshots attached to
+    the checkpoint note
+
+### Phase notes (2026-10-16)
+
+`bun run verify` exits 0: types clean (`@apex/voxel` 51, `@apex/sim` 56,
+`@apex/client` 129 files); **1099 pass / 0 fail** across 1100 tests in 90 files;
+Biome 0 errors with the same 11 warnings + 2 infos that predate this track; the
+determinism gate regenerated all 9 GLBs and 5 props byte-identical, which is
+what proves a client-only phase stayed out of the asset pipeline. Test count is
+unchanged from Phase 1 (1100) — Phase 2 is wiring and adds no logic suites by
+design; the wall-clock difference between the two runs is machine load (the dev
+server and Playwright were live), not a regression.
+
+F1 evidence: with `touch-action: none` on the render surface, a one-finger drag
+orbits the ranch ~90° while `window.scrollY` stays 0, a drag that starts on the
+HUD does not move the camera, and the console is clean.
+
+F3 evidence: two-finger spread (6.9 → clamped 2.5) zooms with azimuth and
+elevation identical between the before/after frames, the inverse gesture returns
+the distance, and lifting one finger mid-pinch leaves the pose untouched (no
+jump from a stale origin) while the surviving pointer then drags normally.
+
+**Finding, not fixed — needs a decision:** at the phone tier the spar entry is
+unreachable. Measured at 360x732: `.spar-button` `[192,18,150,45]` and
+`.score-bug` `[183,10,163,42]` overlap, and `document.elementFromPoint` at the
+chip's centre returns `div.kit-plate score-bug` — the broadcast score bug is
+painted over "Spar", and because `.app-in-arena` is what hides that bug, there
+is no state in which the chip becomes reachable again by touch. `.spar-button`
+is pinned `top:18px; right:18px` at every breakpoint (`spar.css:298`) with no
+media override, while the phone tier moves `.score-bug` into the top-right
+(`ranch.css:628`). In scope for this track's "field robustness" theme but not in
+its F-list; surfaced to the user rather than silently absorbed.
+
+One instrument limit worth recording: the arena camera pose could not be sampled
+directly (three.js uploads `viewMatrix` only when the program refreshes or the
+camera identity changes, so the uniform is idle in broadcast), and per-frame
+matrix overlap is floor-limited there (58 identical matrices on both sides of a
+gesture, out of 110). The `defaultPrevented` branch test above replaces both —
+it reads the handler's decision rather than inferring it from rendering.
+
+## Phase 3 — Resilience & failure surfaces (F5, F7)
+
+*(wiring — browser/Playwright verification; the state machine is already
+tested in Phase 1)*
+
+- [x] Task: Hidden-tab pause & resume (F5) — c9be672
+  (HitStop's 90ms window is deliberately NOT shifted across a pause — see the
+  commit note; the plan's "offset the effect clock" bullet is satisfied by the
+  EffectLoop re-anchor, which is what actually prevents a jump.)
+  - One `visibilitychange` listener driving `runtimeState`, wired to the three
+    subscribers: the RAF tick loop (`scene.ts:275-310` — cancel on pause, and
+    re-anchor `lastT` on resume so the first frame reports `dt = 0`), the
+    staging effect loop incl. `HitStop` (`staging-fx.ts` — suspend without
+    losing the queue, offset the effect clock by the paused duration), and the
+    playback driver's timer chain (`playbackDriver.ts` — suspend mid-step, no
+    burst of overdue steps on return)
+  - Pause/resume is idempotent and no-ops on a disposed scene
+  - Manual verification (Playwright): with the page hidden the RAF counter
+    stops advancing; on return an in-flight effect resumes without a jump; a
+    battle paused mid-playback resumes at the same step
+- [x] Task: Boot placeholder, `<noscript>` & guarded scene construction (F7) — 2e2ab9d
+  - `index.html`: a kit-styled boot placeholder inside `#app` (no JS required)
+    plus a `<noscript>` line, replacing the empty div at `:24`
+  - `main.ts`: boot wrapped so a thrown scene/WebGL construction renders the
+    failure plate instead of propagating (`:43` currently throws into a blank
+    page)
+  - `scene-setup.ts`: renderer construction (`:54`) guarded; a boot-time
+    `WebGL unavailable` resolves to `graphics/unavailable`
+  - Failure plate built from the broadcast kit: one plain-language cause
+    sentence + a `Reload` action; the placeholder is removed once the scene
+    hands over
+  - Manual verification: with WebGL disabled the player sees the plate (not a
+    blank page) and Reload recovers; the healthy boot path shows no flash of
+    placeholder text beyond the module-graph load
+- [x] Task: WebGL context loss & restore (F7) — 9649593
+  - `scene.ts`: `webglcontextlost` (with `preventDefault()`) pauses the loop and
+    raises `graphics/lost` ⇒ plate; `webglcontextrestored` raises
+    `graphics/restored`, attempts a resume, and routes a throw from the resumed
+    frame back to `graphics/frame_error` ⇒ plate
+  - Manual verification (Playwright): a forced context loss shows the plate
+    (including while the tab is hidden, then correctly clearing on return when
+    the browser auto-restores); no unhandled console error escapes either path
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: 9649593]
+  - Automated: `bun run check` + `bun test` green; `bun run verify` green
+  - Manual: browser pass across the four resilience paths (hidden/visible with
+    an effect in flight; unavailable at boot; context lost; context restored),
+    screenshots + console evidence attached
+
+### Phase notes (2026-10-16)
+
+- `bun run verify` exit 0 — types clean (51/56/130 files), **1107 pass /
+  0 fail** (+8 pause tests this phase), biome warnings unchanged (11,
+  pre-existing), determinism gate byte-identical.
+- F5 (c9be672): one visibilitychange listener -> `lifecycle.runtimeState` ->
+  three subscribers. Browser evidence with an emulated `document.hidden` (the
+  tab stays live, so the browser's own throttling cannot mask the app):
+  canvas byte-identical while a page-level rAF counter climbed 726 frames,
+  HP identical across ~4s, playback resumed on return, fight finished and
+  exited clean. +8 unit tests pin the mechanics (re-anchor, hold, idempotence).
+- F7 boot (2e2ab9d): kit-styled boot placeholder + `<noscript>` in
+  `index.html`; guarded renderer construction; the failure plate (kit Reload,
+  focused, no dismiss) replaces the blank page. Emulated no-WebGL boots to the
+  plate; Reload really reloads.
+- F7 runtime (9649593): lost -> plate, restored -> resume, throwing resumed
+  frame -> frame_error -> plate. Forced loss/restore behaves per the reducer
+  (including a restore held while hidden); zero unhandled console errors.
+- Recorded deviation (c9be672): HitStop's 90ms window is not shifted across a
+  pause; the EffectLoop re-anchor is what prevents a jump.
+- Probes: `.playwright-cli/field-hidden-tab.cjs`, `field-boot-failure.cjs`,
+  `field-context-loss.cjs`; screenshots `f5-*.png`, `f7-*.png` alongside.
+
+## Phase 4 — Accessibility & touch-target polish (F8, F9, F10)
+
+*(presentation — measured in the browser, not asserted by inspection)*
+
+- [x] Task: Phone-tier tap targets (F8) — fde1597
+  - Raise `.cup-slot` (`cup.css:939-943`, `min-height: 30px`) to a ≥44px hit
+    area at the phone tier, then audit every other interactive plate in
+    `cup.css`, `spar.css`, `starter.css`, `battle-hud.css` and `ranch.css` at
+    that breakpoint and apply the same floor where a control falls short
+  - Desktop density is untouched (decision 4 — the phone tier only)
+  - Manual verification: at the phone tier every audited plate measures ≥44px
+    on its smallest axis in the browser
+- [x] Task: Phone-tier HUD collision — spar entry reachability (F10) — 15e1232
+  - Found during Phase 2: at 360x732 `.spar-button` `[192,18,150,45]` is
+    overlapped by `.score-bug` `[183,10,163,42]`, `elementFromPoint` at the
+    chip's centre returns the score bug, and only 110 of 407 sampled points
+    inside the chip receive the tap — a phone player cannot start a spar
+  - Cause: `.spar-button` is pinned `top:18px; right:18px` at every breakpoint
+    (`spar.css:298`, no media override) while the phone tier moves
+    `.score-bug` into the top-right (`ranch.css:628`). Fix the collision at the
+    phone tier only, and audit the other top-corner chips
+    (`.new-game-chip`, motion/camera chips, `.command-dock`) for the same
+    overlap rather than just the one measured instance
+  - Manual verification: hit-testing at the phone tier — the chip's centre
+    returns the chip from `elementFromPoint` and every sampled point inside it
+    receives the tap; the desktop breakpoint is unchanged
+- [x] Task: Shared `:focus-visible` treatment (F9) — cd2cb8b
+  - One rule written against the existing kit focus token (so it cannot drift
+    from `ui/kit.css:379-381`), applied to the surfaces that lack it:
+    `cup.css`, `spar.css`, `starter.css`, `battle-hud.css`. Additive only —
+    the existing `ranch.css`/`kit.css` rules are untouched
+  - Manual verification: tabbing through the cup bracket and the spar panel
+    shows a visible ring on every interactive element (computed-style
+    assertion, not eyeballing)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: cd2cb8b]
+  - Automated: `bun run check` + `bun run verify` green; confirm no CSS rule
+    exceeded the phone tier (desktop layout unchanged by inspection at the
+    desktop breakpoint)
+  - Manual: reduced-motion pass over every new surface (plate, focus ring,
+    nothing animation-dependent); phone-tier screenshots attached
+
+### Phase notes (2026-10-16)
+
+- Automated: `bun run verify` exit 0 — types clean (51/56/130 files), 1107
+  pass / 0 fail, biome warnings unchanged (11, pre-existing), determinism gate
+  byte-identical.
+- Scope check: every F8/F10 rule sits inside a `max-width: 479.98px` block or
+  an existing phone-tier block; desktop re-measured unchanged at 1280x800
+  (rename-button 26x26, dock-head 21px, creature-head 40px). The only global
+  addition is the F9 ring (`:focus-visible`-gated).
+- Reduced motion: nothing new is animation-dependent — static geometry only,
+  no new `transition`/`animation`.
+- F8 (fde1597): final audit all seven surfaces report zero sub-44px controls.
+- F10 (15e1232): spar chip reachable again (hit-grid 81/81 vs 110/407 before);
+  zero plate overlaps on ordinary days, cup days, and desktop; the cup chip /
+  lineage overlap on cup days found and fixed by the lineage/callout slide.
+- F9 (cd2cb8b): real Tab walk — spar panel 17/17 stops, cup bracket 18/18
+  stops, accent ring on every stop, zero UA defaults. First run flagged the
+  two cup CTAs; the rule was extended to cover them.
+- Probes: field-tap-audit.cjs, field-tap-desktop.cjs, field-collision.cjs,
+  field-focus.cjs; screenshots f8-*.png, f9-cup-focus.png, f10-*.png.
+
+## Phase 5 — Wrap-up
+
+- [x] Task: Full verification & end-to-end field pass — b73761b
+  - `bun run verify` green (types, tests, Biome, determinism gate)
+  - One continuous scripted pass covering all ten acceptance criteria, with
+    the Playwright touch/visibility/context-loss probes checked in under
+    `artifacts/`-adjacent tooling and the screenshots as the checkpoint
+    evidence
+- [x] Task: Docs sync — 29c5382
+  - `product.md` Phase 4 note: the mobile interaction + resilience remainder
+    narrowed (touch ergonomics partially landed; the hardware device-lab pass
+    still open)
+  - `README.md`: the stale two-starter starter line (`:86-88`, the Water
+    Axolotl landed 2026-10-10) and anything else this track makes wrong
+  - `tech-stack.md`: a dated note only if the new modules or the
+    `visibilitychange`/context-loss seam warrant one — the track adds no
+    dependency and no architectural seam beyond two client modules, so
+    expect no change
+- [x] Task: Final review readiness — all tasks `[x]` with commit SHAs, phase
+  notes recorded, ready for `conductor-review` — [checkpoint: b73761b]
+
+### Phase notes (2026-10-16)
+
+- End-to-end field pass (10 probes, fresh session each, all exit 0):
+  swipe F1 (orbit, scroll 0) · pinch F3 (clamp + degrade) · arena-lock F4
+  (ranch claims, arena refuses) · hidden-tab F5 (canvas frozen while rAF
+  climbed 242, HP held, playback resumed) · boot-failure F7 (plate, focused
+  Reload) · context-loss F7 (lost/restored/held-restore, zero console errors)
+  · tap-audit F8 (seven surfaces, zero sub-44px) · tap-desktop F8 (density
+  unchanged) · collision F10 (spar 81/81 hittable, zero plate overlaps) ·
+  focus F9 (17/17 + 18/18 stops, zero UA defaults).
+- Probes checked in at `artifacts/field-probes/` (cafb2e8), pinned to
+  `http://[::1]:5173` after the first pass failed silently on `localhost`
+  resolution (b73761b).
+- Docs sync (29c5382): README starter trio fixed; product.md Phase 4 note
+  records what landed and narrows the remainder to the device-lab pass;
+  tech-stack.md deliberately unchanged (no new dependency or seam).
+- Review fixes applied (b73761b): pinch-baseline reseed on a 3→2 pointer
+  transition; playback driver never arms while paused.
+- All tasks `[x]` with SHAs; phase notes recorded; ready for review/archive.
+
+- [x] Task: Apply review suggestions — b73761b
+  - Review findings: (1, Medium) the pinch baseline was not reseeded when a
+    three-pointer gesture dropped to two — `orbit-camera.ts` now reseeds from
+    the surviving pair; (2, Low) `playbackDriver.arm()` refuses to arm while
+    paused, making the hold an invariant; (3, Low) plan wording (nine → ten
+    ACs) and the probes pinned to `http://[::1]:5173` (Chromium re-resolves
+    `localhost` per navigation; the IPv6-only dev server refuses IPv4 — this
+    is what silently failed the first field pass). Verify: types clean,
+    69/69 targeted tests, pinch probe exit 0.
+
+## Coordination notes
+
+- **No save-schema contact.** Two sibling branches are in flight elsewhere and
+  both own save versions: `track/silver_ladder_bosses_20261016` (worktree
+  `D:/Projects/battle-pets`, sim phases done, client phases open, claims
+  **v11**) and `audio_foundation_20261013` (parked in a `t3` worktree, needs a
+  renumber after v10). This track must not add, renumber, or touch a migration
+  step — if a task appears to need one, the spec is wrong and work stops.
+- **Do not decompose `hud.ts` here** (decision 6). Phase 4 touches surface CSS
+  only; any HUD structure change belongs to its own refactor track.
+- **Evidence discipline.** Three of the seven fixes are only observable
+  through the browser (page scroll, gesture, context loss), which is why every
+  phase checkpoint names its Playwright/browser evidence rather than relying
+  on the green suite.
