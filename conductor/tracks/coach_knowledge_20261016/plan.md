@@ -27,9 +27,10 @@ and DOM wiring verified manually; `bun run verify` gates every commit.
 
 ## Phase 3 — Move tooltips (client)
 
-- [ ] Task: Pure `moveStatLine(move)` formatter in `battleUI.ts` + failing test
-      first (power/accuracy/cooldown; locked variant with unlock day)
-- [ ] Task: Render the line in the spar kit picker and cup coaching room rows
+- [x] Task: Pure `moveStatLine(move)` formatter in `battleUI.ts` + failing test
+      first (power/accuracy/cooldown; locked variant with unlock day) (099cb6c)
+- [x] Task: Render the line in the spar kit picker and cup coaching room rows
+      (099cb6c)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Coach's Handbook modal (client)
