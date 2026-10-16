@@ -17,7 +17,7 @@ lifecycle, checkpoints, and commit format.
 - [x] Task: Green — pin the winning factor pair in `chart.ts`, double species
   `statBounds.hp`, trained-HP +2/day cap +12; make the band tripwires green;
   `probe-after.md` with rationale — 80db5c2 (probe-after doc 3ef224f)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: 6759f26] (combined Phase 1+2, approved 2026-10-16)
 
 ## Phase 2 — Battle mechanics & re-golden
 
@@ -32,7 +32,7 @@ lifecycle, checkpoints, and commit format.
   fresh data) — 6759f26
 - [x] Task: Single re-golden commit — all battle transcript goldens with a
   mapping note; no behavior edits alongside — 6759f26
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: 6759f26] (combined Phase 1+2, approved 2026-10-16)
 
 ## Phase 3 — Save v12
 
