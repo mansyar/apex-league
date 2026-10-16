@@ -46,12 +46,45 @@ or the determinism gate.
     (`visibility` | `graphics`), `initialRuntimeState()`, and
     `runtimeState(prev, event)` with `surface === "plate"` taking precedence
     over `renderLoop`.
-- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: 7fe0c16]
   - Automated: `bun run check` clean; the two new suites green; full `bun test`
     runtime materially unchanged
   - Manual: `bun run verify` green end to end (Biome clean on the new files,
     determinism gate byte-identical — it must be untouched by a client-only
     phase)
+
+### Phase notes (2026-10-16)
+
+Verification report appended to the git note on `7fe0c16`. `bun run verify`
+exits 0: types clean; 1099 pass / 0 fail (1100 tests, 90 files, 14.6 s under
+`--parallel`; the serial baseline on this branch was 70.5 s); Biome 0 errors
+with 11 warnings + 2 infos that all predate this track (`battleUI.ts`,
+`spar.ts`, `steps/judge.ts`, `steps/reel.ts` — flagged, not fixed: out of
+scope); the determinism gate regenerated all 9 GLBs and 5 props
+byte-identical, which is the evidence that a client-only phase stayed out of
+the asset pipeline.
+
+Agent browser check (Vite on `:5173`): the app boots with a 1500x1050 canvas
+and 15 overlay children, HUD copy intact, console empty. Both new modules have
+zero callers by design, so no pixel change was expected or observed. Pixel
+screenshots were unavailable from the desktop browser tool (it requires a
+visible window); Playwright Chromium has been installed for Phases 2-4, where
+the UI actually changes and screenshots become the evidence.
+
+Two divergences from the plan text, both already recorded on the task notes:
+- `orbitPosition(target, orbit, out)` takes a required out-parameter rather
+  than returning a fresh object, to honour this spec's no-per-frame-allocation
+  NFR (the plan bullet had said "returns a fresh object"); the suite asserts
+  golden values and that neither input mutates.
+- `lifecycle.ts` tracks a third input, `pendingRestore`, beside
+  `hidden`/`graphics`, so the approved "a restore while hidden holds the plate"
+  rule (F6) can be expressed at all. `renderLoop`/`surface` remain derived —
+  they are all a consumer reads.
+
+Contract discovered while going red→green (kept, now pinned by tests): the
+wheel zooms by **sign only** — one notch is always one step whatever the delta
+magnitude — while pinch scales **continuously** by the spread ratio. The two
+are deliberately different and the bounds are shared.
 
 ## Phase 2 — Touch interaction on the canvas (F1, F3, F4)
 
