@@ -69,7 +69,7 @@ export const BOSSES: readonly BossDef[] = Object.freeze([
     id: "koda",
     name: "Sear Marshal Koda",
     speciesId: "fire_drake",
-    stats: { hp: 46, atk: 13, def: 10, spd: 12 },
+    stats: { hp: 92, atk: 13, def: 10, spd: 12 },
     loadout: ["spark", "flame_charge", "cinder_shot", "blaze_bolt"],
     tactic: "specials",
     intro:
@@ -84,7 +84,7 @@ export const BOSSES: readonly BossDef[] = Object.freeze([
     id: "hesse",
     name: "Verdant Dame Hesse",
     speciesId: "plant_ox",
-    stats: { hp: 52, atk: 11, def: 14, spd: 8 },
+    stats: { hp: 104, atk: 11, def: 14, spd: 8 },
     loadout: ["seed_shot", "thorn_volley", "spore_burst", "bramble_dart"],
     tactic: "balanced",
     intro:
@@ -99,7 +99,7 @@ export const BOSSES: readonly BossDef[] = Object.freeze([
     id: "marlow",
     name: "Tide Regent Marlow",
     speciesId: "water_axolotl",
-    stats: { hp: 48, atk: 12, def: 11, spd: 11 },
+    stats: { hp: 96, atk: 12, def: 11, spd: 11 },
     loadout: ["bubble", "tide_shot", "foam_volley", "splash_bolt"],
     tactic: "specials",
     intro:

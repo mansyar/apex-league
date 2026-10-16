@@ -25,8 +25,8 @@
  */
 
 import { describe, expect, test } from "bun:test"
-import type { BattleSide, Tactic } from "./battle/policy"
-import { resolveBattle } from "./battle/resolver"
+import type { Tactic } from "./battle/policy"
+import { type BattleSide, resolveBattle } from "./battle/resolver"
 import { BOSSES, type BossDef } from "./bosses"
 import type { CreatureStats } from "./creature"
 import { type Creature, createCreature, effectiveStats } from "./creature"
@@ -235,7 +235,8 @@ function runPlacementProbe(): { placements: Record<number, number> } {
         session = resolvePlayerMatch(session, loadout, PLAYER_TACTIC).session
       }
       if (session.status === "eliminated") session = completeCup(session)
-      placements[cupPlacement(session)] += 1
+      const placement = cupPlacement(session)
+      placements[placement] = (placements[placement] ?? 0) + 1
     }
   }
   return { placements }

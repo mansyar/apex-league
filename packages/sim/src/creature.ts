@@ -115,10 +115,14 @@ export const CONDITION_START: CreatureConditions = Object.freeze({
 /**
  * The combat/display value of a creature's stats: the rolled base plus the
  * trained bonus, per stat (the Training contract for what later systems read).
+ *
+ * Since element_chart_20261016 doubled the HP scale, a trained HP point pays
+ * double (+2 per point) so a training day keeps the same relative worth it
+ * had before the scale-up; atk/def/spd points are unchanged.
  */
 export function effectiveStats(creature: Creature): CreatureStats {
   return {
-    hp: creature.stats.hp + creature.trained.hp,
+    hp: creature.stats.hp + 2 * creature.trained.hp,
     atk: creature.stats.atk + creature.trained.atk,
     def: creature.stats.def + creature.trained.def,
     spd: creature.stats.spd + creature.trained.spd,
