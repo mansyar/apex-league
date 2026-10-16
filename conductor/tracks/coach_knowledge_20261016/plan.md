@@ -49,7 +49,8 @@ and DOM wiring verified manually; `bun run verify` gates every commit.
       (confirm-gated); wire commit() paths unchanged (5c445a1)
 - [x] Task: Remove the three floating chips; verify no orphaned CSS/ids
       (5c445a1 — removal is atomic with the module)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+      [checkpoint: 0cc4541]
 
 ## Phase 6 — Wrap-up
 
