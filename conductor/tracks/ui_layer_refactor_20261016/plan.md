@@ -130,11 +130,15 @@ spar.ts 531, staging-fx.ts 781; largest overall cup.ts 932 (out of scope).
         view-model
   - [x] Implement by moving existing logic; move the dock DOM builder;
         `bun run verify`; commit `refactor(hud): extract command dock`
-- [ ] Task: Extract `hud/settings.ts`
-  - [ ] Move settings chips + reset confirm modal (reuse shared `focusTrap`);
+- [x] Task: Extract `hud/settings.ts` `[f1e0365]`
+  - [x] Move settings chips + reset confirm modal (reuse shared `focusTrap`);
         add view-model tests where logic exists (e.g. rename validation
         display state)
-  - [ ] `bun run verify`; commit `refactor(hud): extract settings + reset modal`
+  - [x] `bun run verify`; commit `refactor(hud): extract settings + reset modal`
+
+  Deviation: the rename flow stayed in the `hud.ts` root — it is event
+  wiring with a single phase guard and one coach line; the only settings
+  view-model with real logic is `prefChipView`, which got the tests.
 - [ ] Task: Slim the `hud.ts` root
   - [ ] `hud.ts` retains only the `update()` fanout + re-exports; confirm
         `main.ts` needs no logic changes (imports may be re-pointed)
