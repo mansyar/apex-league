@@ -40,7 +40,7 @@ lifecycle, checkpoints, and commit format.
   in-flight session slot stats ×2, lineage/HoF records ×2), validator tests
   (new bounds)
 - [x] Task: Green - schema v12 + migration + validator + `docs/save-schema.md` — 055be23
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: 055be23]
 
 ## Phase 4 — Client & presentation audit (manual-verify)
 
