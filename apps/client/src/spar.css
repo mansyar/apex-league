@@ -272,6 +272,12 @@
   display: none;
 }
 
+/* The Coach's Handbook is a ranch-world surface (coach_knowledge_20261016):
+   battle screens stay distraction-free, so its chip hides with the dock. */
+.app-in-arena .handbook-chip {
+  display: none;
+}
+
 .spar-close {
   padding: 10px 18px;
   font-size: 12px;

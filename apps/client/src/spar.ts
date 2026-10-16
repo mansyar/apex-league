@@ -405,7 +405,6 @@ export function createSpar(
         locked: "spar-kit-locked",
         chosen: "spar-kit-chosen",
       },
-      lockedText: (name, remaining) => `${name} - train ${remaining} more days`,
       onToggle: (id) => {
         kitHint.textContent = ""
         const next = chosen.includes(id)

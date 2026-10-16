@@ -403,6 +403,21 @@
   outline-offset: -3px;
 }
 
+/* Kit picker rows: move name over a plain-language stat line
+   (coach_knowledge_20261016). The spar strip and the cup coaching-room
+   card share these spans through buildKitPicker. */
+.kit-move-name {
+  display: block;
+}
+
+.kit-move-stat {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
 /* Element border accents: custom-property setters so a surface's own
    `border` shorthand can pick them up without cascade-order fights:
    border: 1px solid var(--el-border-color, var(--kit-keyline)). */

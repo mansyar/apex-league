@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test"
-import type { BattleResult } from "@apex/sim"
-import { reasonLine, toggleKitChoice, winningSideKey } from "./battleUI"
+import type { BattleResult, MoveDef } from "@apex/sim"
+import {
+  moveStatLine,
+  reasonLine,
+  toggleKitChoice,
+  winningSideKey,
+} from "./battleUI"
 
 /** A minimal BattleResult with only the fields the helpers read. */
 function result(
@@ -69,5 +74,45 @@ describe("toggleKitChoice", () => {
 
   test("exact floor removal is refused (min-2 rule)", () => {
     expect(toggleKitChoice(["a"], "a", 2, 4)).toBeNull()
+  })
+})
+
+describe("moveStatLine", () => {
+  const flameLash: MoveDef = {
+    id: "flame_lash",
+    displayName: "Flame Lash",
+    element: "fire",
+    power: 24,
+    accuracy: 85,
+    cooldown: 1,
+    melee: false,
+  }
+
+  test("an unlocked move reads power, accuracy, cooldown", () => {
+    expect(moveStatLine(flameLash)).toBe("Power 24 · Accuracy 85% · Cooldown 1")
+  })
+
+  test("the basic strike's stats read the same way", () => {
+    const strike: MoveDef = {
+      id: "basic",
+      displayName: "Strike",
+      power: 4,
+      accuracy: 100,
+      cooldown: 0,
+      melee: true,
+    }
+    expect(moveStatLine(strike)).toBe("Power 4 · Accuracy 100% · Cooldown 0")
+  })
+
+  test("a locked move leads with the unlock day", () => {
+    expect(moveStatLine(flameLash, 3)).toBe(
+      "Unlocks in 3 days · Power 24 · Accuracy 85% · Cooldown 1",
+    )
+  })
+
+  test("a one-day lock reads in the singular", () => {
+    expect(moveStatLine(flameLash, 1)).toBe(
+      "Unlocks in 1 day · Power 24 · Accuracy 85% · Cooldown 1",
+    )
   })
 })

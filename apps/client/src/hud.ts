@@ -31,7 +31,10 @@ import {
   TRAINING_CAP,
 } from "@apex/sim"
 import { focusTrap } from "./battleUI"
+import { buildCreatureDetail } from "./creature-detail"
 import { crestGlyph, elementHue } from "./element"
+import { buildHandbook } from "./handbook"
+import { buildPrefCluster, buildSettingsModal } from "./settings-modal"
 import { icons } from "./ui/icons"
 import {
   bar,
@@ -204,47 +207,12 @@ export function unlockCallout(creature: Creature): string {
 }
 
 /**
- * Life-stage display name for the nameplate badge.
+ * Life-stage display name + generation numeral, shared with the
+ * creature-detail modal (single source of truth in ui/labels).
  */
-export function stageLabel(stage: Creature["stage"]): string {
-  if (stage === "juvenile") return "Juvenile"
-  if (stage === "champion") return "Champion"
-  return "Baby"
-}
+import { romanNumeral, stageLabel } from "./ui/labels"
 
-/** Roman tally symbols, descending — the generation numeral alphabet. */
-const ROMAN: ReadonlyArray<readonly [number, string]> = [
-  [1000, "M"],
-  [900, "CM"],
-  [500, "D"],
-  [400, "CD"],
-  [100, "C"],
-  [90, "XC"],
-  [50, "L"],
-  [40, "XL"],
-  [10, "X"],
-  [9, "IX"],
-  [5, "V"],
-  [4, "IV"],
-  [1, "I"],
-]
-
-/**
- * A generation as a Roman numeral (1 → "I", 2 → "II"). Out-of-range or
- * non-integer input falls back to "#n" so the plate never renders "NaN".
- */
-export function romanNumeral(n: number): string {
-  if (!Number.isInteger(n) || n < 1 || n > 3999) return `#${n}`
-  let rest = n
-  let out = ""
-  for (const [value, symbol] of ROMAN) {
-    while (rest >= value) {
-      out += symbol
-      rest -= value
-    }
-  }
-  return out
-}
+export { romanNumeral, stageLabel }
 
 /**
  * The bloodline's display name: the founder is unnumbered, every successor
@@ -489,6 +457,7 @@ export function buildLineagePlate(): LineagePlateRefs {
 export interface CreaturePlateRefs {
   root: HTMLElement
   creatureHead: HTMLButtonElement
+  collapseButton: HTMLButtonElement
   headRow: HTMLElement
   creatureName: HTMLElement
   stageTab: HTMLElement
@@ -516,34 +485,41 @@ export interface CreaturePlateRefs {
  */
 export function buildCreaturePlate(): CreaturePlateRefs {
   const root = plate({ className: "creature-plate" })
-  // The creature head doubles as the collapse toggle: clicking it folds
-  // the plate down to just the head row (crest + name + stage), leaving
-  // the briefest useful readout pinned to the corner.
+  // The creature head opens the partner-details modal (coach_knowledge_20261016):
+  // crest + name + stage, one tap to the full stat breakdown.
   const creatureHead = document.createElement("button")
   creatureHead.className = "creature-head"
   creatureHead.type = "button"
-  creatureHead.setAttribute("aria-expanded", "true")
-  creatureHead.title = "Collapse panel"
+  creatureHead.title = "Partner details"
   const crestEl = crest("fire")
   const creatureName = document.createElement("span")
   creatureName.className = "creature-name"
   const stageTab = tab("Baby", "stage")
-  const creatureChev = document.createElement("span")
-  creatureChev.className = "collapse-chev"
-  creatureChev.innerHTML = icons.chevron
-  creatureHead.append(crestEl, creatureName, stageTab, creatureChev)
+  creatureHead.append(crestEl, creatureName, stageTab)
 
-  // Rename affordance: a sibling button (never nested inside the collapse
-  // toggle) that swaps the head row for an inline edit form.
+  // Rename affordance: a sibling button (never nested inside a button) that
+  // swaps the head row for an inline edit form.
   const renameButton = document.createElement("button")
   renameButton.className = "rename-button"
   renameButton.type = "button"
   renameButton.title = "Rename partner"
   renameButton.setAttribute("aria-label", "Rename partner")
   renameButton.innerHTML = icons.pencil
+  // Collapse affordance: its own button so the head stays free for the
+  // details modal. The chevron points down expanded, right collapsed (CSS).
+  const collapseButton = document.createElement("button")
+  collapseButton.className = "collapse-toggle"
+  collapseButton.type = "button"
+  collapseButton.title = "Collapse panel"
+  collapseButton.setAttribute("aria-label", "Collapse panel")
+  collapseButton.setAttribute("aria-expanded", "true")
+  const creatureChev = document.createElement("span")
+  creatureChev.className = "collapse-chev"
+  creatureChev.innerHTML = icons.chevron
+  collapseButton.append(creatureChev)
   const headRow = document.createElement("div")
   headRow.className = "creature-headrow"
-  headRow.append(creatureHead, renameButton)
+  headRow.append(creatureHead, renameButton, collapseButton)
 
   // Inline edit form: name input + confirm/cancel. Hidden until the
   // pencil is pressed; Enter confirms, Escape cancels.
@@ -615,6 +591,7 @@ export function buildCreaturePlate(): CreaturePlateRefs {
   return {
     root,
     creatureHead,
+    collapseButton,
     headRow,
     creatureName,
     stageTab,
@@ -755,52 +732,6 @@ export function buildCommandDock(handlers: {
   }
 }
 
-/** The settings-pill elements the preference capture mirrors into. */
-export interface SettingsChipRefs {
-  motionWrap: HTMLElement
-  motionChip: HTMLButtonElement
-  cameraChip: HTMLButtonElement
-  resetChip: HTMLButtonElement
-}
-
-/**
- * Settings cluster (top-left): the reduced-motion toggle (save v5), the
- * arena camera toggle (save v9), and the New game chip (save v7 QoL —
- * the confirm modal does the scary part, one deliberate click).
- */
-export function buildSettingsChips(opts: {
-  onToggleReducedMotion: () => void
-  onToggleArenaCamera: () => void
-  /** Opens the reset-confirm modal (built by buildResetModal). */
-  onNewGame: () => void
-}): SettingsChipRefs {
-  const motionChip = chip({
-    label: "Motion: full",
-    variant: "dim",
-    onClick: opts.onToggleReducedMotion,
-  })
-  const motionWrap = document.createElement("div")
-  motionWrap.className = "hud-motion"
-  motionWrap.append(motionChip)
-
-  const cameraChip = chip({
-    label: "Camera: cinematic",
-    variant: "dim",
-    onClick: opts.onToggleArenaCamera,
-  })
-  cameraChip.classList.add("camera-chip")
-  motionWrap.append(cameraChip)
-  const resetChip = chip({
-    label: "New game",
-    variant: "dim",
-    onClick: opts.onNewGame,
-  })
-  // Ranch-only: the arena hide-list targets this class.
-  resetChip.classList.add("new-game-chip")
-  motionWrap.append(resetChip)
-  return { motionWrap, motionChip, cameraChip, resetChip }
-}
-
 /** The reset-confirm modal elements. */
 export interface ResetModalRefs {
   resetModal: HTMLElement
@@ -884,6 +815,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   const {
     root: lowerThird,
     creatureHead,
+    collapseButton,
     headRow,
     creatureName,
     stageTab,
@@ -924,10 +856,10 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     onGraduate: () => handlers.onGraduate(),
   })
 
-  // Settings cluster (top-left) + reset modal — the shared builders. The
-  // modal is built first so the New game chip can open it.
+  // Settings cluster (top-left) + reset modal — the modal owns the three
+  // settings chips now; the HUD cluster keeps only the entry chip.
   const { resetModal, resetConfirm } = buildResetModal(() => handlers.onReset())
-  const { motionWrap, motionChip, cameraChip } = buildSettingsChips({
+  const settings = buildSettingsModal({
     onToggleReducedMotion: () => handlers.onToggleReducedMotion(),
     onToggleArenaCamera: () => handlers.onToggleArenaCamera(),
     onNewGame: () => {
@@ -935,6 +867,18 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       resetConfirm.focus()
     },
   })
+  const { motionChip, cameraChip } = settings
+  // Coach's Handbook: type chart, ladder rules, raising guidance — one
+  // persistent ranch chip (Phase 5 moved the settings chips into their
+  // own modal behind the Settings chip).
+  const handbook = buildHandbook()
+  const motionWrap = buildPrefCluster(
+    () => settings.open(),
+    () => handbook.open(),
+  )
+  // Partner-details modal: opened by tapping the creature plate head; it
+  // reads state fresh on every open.
+  const creatureDetail = buildCreatureDetail()
 
   // Lineage plate (top-left, under the settings pill): the family name +
   // generation, and the Hall of Fame opener.
@@ -1043,7 +987,17 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   const hudStack = document.createElement("div")
   hudStack.className = "hud-stack"
   hudStack.append(lowerThird, cluster)
-  root.append(scoreBug, motionWrap, lineagePlate, hudStack, resetModal, callout)
+  root.append(
+    scoreBug,
+    motionWrap,
+    lineagePlate,
+    hudStack,
+    resetModal,
+    creatureDetail.root,
+    handbook.root,
+    settings.root,
+    callout,
+  )
 
   let pickerOpen = false
   let lastFocus: StatKey | null = null
@@ -1070,10 +1024,19 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     if (current) update(current)
   })
 
+  // Tapping the plate head opens the partner-details modal. The scrim
+  // covers the HUD while it shows, so the readout is fresh for the visit.
   creatureHead.addEventListener("click", () => {
+    if (current?.creature) creatureDetail.open(current)
+  })
+
+  collapseButton.addEventListener("click", () => {
     creatureOpen = !creatureOpen
     lowerThird.classList.toggle("is-collapsed", !creatureOpen)
-    creatureHead.setAttribute("aria-expanded", creatureOpen ? "true" : "false")
+    collapseButton.setAttribute(
+      "aria-expanded",
+      creatureOpen ? "true" : "false",
+    )
   })
 
   // Rename flow: pencil opens the inline edit, Enter/click confirms,
