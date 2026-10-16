@@ -157,7 +157,7 @@ spar.ts 531, staging-fx.ts 781; largest overall cup.ts 932 (out of scope).
 
 ## Phase 3 — spar.ts View-Model Extraction
 
-- [ ] Task: Extract `spar/loadout-vm.ts` (TDD)
+- [x] Task: Extract `spar/loadout-vm.ts` (TDD) `[089cefc]`
   - [ ] Write failing tests for kit-picker/loadout view-model (tier gating
         display, row lock state, selection mapping)
   - [ ] Implement by moving existing logic from `spar.ts`; green
