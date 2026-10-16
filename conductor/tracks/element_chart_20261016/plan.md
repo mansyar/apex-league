@@ -9,14 +9,14 @@ lifecycle, checkpoints, and commit format.
 - [ ] Task: Baseline doc — `probe-before.md` in the track folder (current-chart
   tables: mirrors, cross cells, rival-relative cells, climb cadence,
   placement distribution — measured 2026-10-16 on the boss branch)
-- [ ] Task: Red — `chart.balance.test.ts` encoding the acceptance bands as
+- [x] Task: Red — `chart.balance.test.ts` encoding the acceptance bands as
   tripwires (equal-stat sweep, all six ordered pairs: ≥35% at full training /
   ≤25% at trained+0; mirror curves unchanged; draw ceiling 20%) — confirm red
-- [ ] Task: Sweep — for each candidate (3/2·2/3, 4/3·3/4, 5/4·4/5 × HP
+- [x] Task: Sweep — for each candidate (3/2·2/3, 4/3·3/4, 5/4·4/5 × HP
   1.5×/2×/3×): patch chart + bounds, run the probe report, record tables
-- [ ] Task: Green — pin the winning factor pair in `chart.ts`, double species
+- [x] Task: Green — pin the winning factor pair in `chart.ts`, double species
   `statBounds.hp`, trained-HP +2/day cap +12; make the band tripwires green;
-  `probe-after.md` with rationale
+  `probe-after.md` with rationale — 80db5c2 (probe-after doc 3ef224f)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Battle mechanics & re-golden
