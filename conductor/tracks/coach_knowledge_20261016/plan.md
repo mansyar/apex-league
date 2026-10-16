@@ -36,10 +36,10 @@ and DOM wiring verified manually; `bun run verify` gates every commit.
 
 ## Phase 4 — Coach's Handbook modal (client)
 
-- [ ] Task: New module `handbook.ts` — tabbed modal: type chart (6 crests,
+- [x] Task: New module `handbook.ts` — tabbed modal: type chart (6 crests,
       3/2–2/3 factors, population note), ladder rules (current-truth copy incl.
-      the Silver ceiling), raising guidance (direction-only)
-- [ ] Task: HUD chip entry + aria/tabbable-tab semantics
+      the Silver ceiling), raising guidance (direction-only) (b5db8e3)
+- [x] Task: HUD chip entry + aria/tabbable-tab semantics (5e58bed)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5 — Settings modal (client, 1:1 chip relocation)
