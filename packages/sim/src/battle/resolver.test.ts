@@ -1,7 +1,12 @@
 import { describe, expect, test } from "bun:test"
 import type { CreatureStats, Element } from "../creature"
 import type { BattleEvent } from "./clock"
-import { type BattleResult, type BattleSide, resolveBattle } from "./resolver"
+import {
+  type BattleResult,
+  type BattleSide,
+  MAX_TICKS,
+  resolveBattle,
+} from "./resolver"
 
 const DRAKE_KIT = [
   "spark",
@@ -65,17 +70,19 @@ describe("resolveBattle", () => {
 
   test("a one-sided KO ends with winner, reason ko, and a down event", () => {
     // Seed 22's first two rolls (62, 23) are under both accuracies, so the
-    // ATK 20 Blaze Bolt downs the 40-HP Reed with 48. Reed's reply is Thorn
-    // Volley for 4 into fire (0.5x) — under the FR6 sustained ranking the
-    // cooldown-1 Thorn Volley outranks the cooldown-2 Bramble Dart, so
-    // Bolt keeps 2 more HP than the pre-FR6 pin.
+    // ATK 20 fights resolve: T1 both launch (Flame Charge / Thorn Volley),
+    // T2 Flame Charge hits Reed for 24 (1.5x, pow 8) and staggers her while
+    // Thorn Volley clips Bolt for 5 (2/3x), and Bolt queues Blaze Bolt.
+    // T3 Blaze Bolt lands for 36 and downs the 40-HP Reed (24 + 36 = 60).
+    // The stagger keeps Reed from ever launching the cooldown-2 Bramble
+    // Dart, so Bolt keeps 35 of 40.
     const bolt = side("Bolt", "fire", { atk: 20 })
     const reed = side("Reed", "plant", {}, { kit: OX_KIT })
     const result = resolveBattle(bolt, reed, 22)
 
     expect(result.reason).toBe("ko")
     expect(result.winner).toBe("Bolt")
-    expect(result.finalHp).toEqual({ Bolt: 36, Reed: -8 })
+    expect(result.finalHp).toEqual({ Bolt: 35, Reed: -20 })
     // The down lands mid-log now: the whole impact step resolves before the
     // judgment, so Reed's own Bramble Dart still appears after the down.
     const down = result.events.find(
@@ -85,12 +92,12 @@ describe("resolveBattle", () => {
   })
 
   test("a same-step double down is a draw with reason double_ko", () => {
-    // Blaze Bolt (atk 17, 2x into plant) deals 40, Bramble Dart (atk 67,
-    // 0.5x into fire) deals 40: both 40-HP fighters go down in the same
+    // Blaze Bolt (atk 23, 1.5x into plant) deals 41, Bramble Dart (atk 50,
+    // 2/3x into fire) deals 40: both 40-HP fighters go down in the same
     // impact step, so the fight is judged after the step (FR8 revision).
     // Seed 22's rolls (62, 23) are under both accuracies.
-    const bolt = side("Bolt", "fire", { atk: 17 })
-    const reed = side("Reed", "plant", { atk: 67 }, { kit: OX_KIT })
+    const bolt = side("Bolt", "fire", { atk: 23 })
+    const reed = side("Reed", "plant", { atk: 50 }, { kit: OX_KIT })
     const result = resolveBattle(bolt, reed, 22)
 
     expect(result.reason).toBe("double_ko")
@@ -140,5 +147,34 @@ describe("resolveBattle", () => {
     const first = resolveBattle(bolt, reed, 22)
     const second = resolveBattle(bolt, reed, 22)
     expect(second).toEqual(first)
+  })
+})
+
+describe("the safety cap scales with the HP scale (element_chart_20261016)", () => {
+  test("the cap doubled with the HP scale: 40 -> 80", () => {
+    expect(MAX_TICKS).toBe(80)
+  })
+
+  test("a stall battle ends by the cap, never beyond it", () => {
+    // Neutral mirror, negligible damage: hp 200 vs atk 1 / def 30 means one
+    // damage per hit — hundreds of hits needed, far past any cap.
+    const tankA = side(
+      "TankA",
+      "fire",
+      { hp: 200, atk: 1, def: 30 },
+      { tactic: "balanced" },
+    )
+    const tankB = side(
+      "TankB",
+      "fire",
+      { hp: 200, atk: 1, def: 30 },
+      { tactic: "balanced" },
+    )
+    const result = resolveBattle(tankA, tankB, 7)
+    expect(result.reason).toBe("time")
+    const last = result.events.at(-1)
+    if (!last) throw new Error("expected a time-out event")
+    expect(last.tick).toBeLessThanOrEqual(MAX_TICKS)
+    expect(result.winner).not.toBeNull()
   })
 })
