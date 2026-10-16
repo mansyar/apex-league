@@ -1,7 +1,7 @@
 # Track: Silver Ladder & Rival Bosses (`silver_ladder_bosses_20261016`)
 
 - **Type:** Feature (Phase 2 — League Depth)
-- **Status:** New
+- **Status:** Complete
 - **Branch:** `track/silver_ladder_bosses_20261016` (base: `main @ 2d4d69b`)
 
 Open the door the Bronze ladder left ajar: points banked past Bronze I make

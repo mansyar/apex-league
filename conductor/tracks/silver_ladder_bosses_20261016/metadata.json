@@ -2,7 +2,7 @@
   "id": "silver_ladder_bosses_20261016",
   "title": "Silver Ladder & Rival Bosses - Promotion Cup at the Bronze→Silver gate, automatic Silver III/II/I climbs, three authored boss characters (pinned builds + coach personas), defeat ledger with Hall of Fame scalps, save v11",
   "type": "feature",
-  "status": "new",
+  "status": "complete",
   "createdAt": "2026-10-16",
   "branch": "track/silver_ladder_bosses_20261016",
   "base": "main @ 2d4d69b"
