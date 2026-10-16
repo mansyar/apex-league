@@ -14,8 +14,9 @@ import "./ranch.css"
 import "./spar.css"
 import "./mock.css"
 import type { CreatureConditions } from "@apex/sim"
+import { buildHandbook } from "./handbook"
 import { buildCommandDock, buildCreaturePlate, buildScoreBug } from "./hud"
-import { buildSettingsChips } from "./settings-modal"
+import { buildSettingsModal } from "./settings-modal"
 import { icons } from "./ui/icons"
 import { bar, button, chip, crest, meter, plate, stamp, tab } from "./ui/kit"
 
@@ -72,17 +73,38 @@ stage.append(
   el("div", "stage-ground"),
 )
 
-// Settings cluster — the real top-left pills. The motion chip drives the
-// page's reduced-motion demo toggle; the camera/reset chips render for
-// structural parity with the live HUD (no-ops on a static page).
-const { motionWrap } = buildSettingsChips({
+// Settings cluster — the real top-left pills in the live HUD's order
+// (Settings, then Handbook). The settings modal's motion row drives the
+// page's reduced-motion demo toggle; the handbook opens its real modal.
+const settings = buildSettingsModal({
   onToggleReducedMotion: () => {
     motionBox.checked = !motionBox.checked
     document.body.classList.toggle("is-reduced", motionBox.checked)
   },
-  onToggleArenaCamera: () => {},
-  onNewGame: () => {},
 })
+const handbook = buildHandbook()
+const prefCluster = (openSettings: () => void, openHandbook: () => void) => {
+  const wrap = document.createElement("div")
+  wrap.className = "hud-motion"
+  const settingsChip = chip({
+    label: "Settings",
+    variant: "dim",
+    onClick: openSettings,
+  })
+  settingsChip.classList.add("settings-chip")
+  const handbookChip = chip({
+    label: "Handbook",
+    variant: "dim",
+    onClick: openHandbook,
+  })
+  handbookChip.classList.add("handbook-chip")
+  wrap.append(settingsChip, handbookChip)
+  return wrap
+}
+const motionWrap = prefCluster(
+  () => settings.open(),
+  () => handbook.open(),
+)
 
 // Score bug — top-center, canned day 12 with a full AP meter, two
 // championships and a Bronze III standing.
@@ -174,7 +196,14 @@ for (const { button: btn, note, key } of pickerButtons) {
   }
 }
 
-stage.append(motionWrap, scoreBug, creaturePlate, dock)
+stage.append(
+  motionWrap,
+  settings.root,
+  handbook.root,
+  scoreBug,
+  creaturePlate,
+  dock,
+)
 
 // ---------------------------------------------------------------------------
 // Kit showcase
@@ -396,11 +425,10 @@ phoneStack.append(
   }).root,
 )
 phoneScene.append(
-  buildSettingsChips({
-    onToggleReducedMotion: () => {},
-    onToggleArenaCamera: () => {},
-    onNewGame: () => {},
-  }).motionWrap,
+  prefCluster(
+    () => {},
+    () => {},
+  ),
   buildScoreBug().root,
   phoneStack,
 )

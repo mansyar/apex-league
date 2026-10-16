@@ -24,7 +24,7 @@ export interface SettingsChipRefs {
  * wires its own live toggle, while the settings modal attaches listeners
  * itself (the modal owns close-then-open for the reset flow).
  */
-export function buildSettingsChips(
+function buildSettingsChips(
   opts: {
     onToggleReducedMotion?: () => void
     onToggleArenaCamera?: () => void
@@ -75,12 +75,14 @@ export interface SettingsModalRefs {
  * focus to the opener. New game closes this modal first, then hands off
  * to the reset-confirm modal — the same deliberate two-step as before.
  */
-export function buildSettingsModal(opts: {
-  onToggleReducedMotion: () => void
-  onToggleArenaCamera: () => void
-  /** Opens the reset-confirm modal (built by buildResetModal). */
-  onNewGame: () => void
-}): SettingsModalRefs {
+export function buildSettingsModal(
+  opts: {
+    onToggleReducedMotion?: () => void
+    onToggleArenaCamera?: () => void
+    /** Opens the reset-confirm modal (built by buildResetModal). */
+    onNewGame?: () => void
+  } = {},
+): SettingsModalRefs {
   const { motionChip, cameraChip, resetChip } = buildSettingsChips()
 
   const root = document.createElement("div")
@@ -107,11 +109,11 @@ export function buildSettingsModal(opts: {
   close.textContent = "Done"
   actions.append(close)
 
-  motionChip.addEventListener("click", () => opts.onToggleReducedMotion())
-  cameraChip.addEventListener("click", () => opts.onToggleArenaCamera())
+  motionChip.addEventListener("click", () => opts.onToggleReducedMotion?.())
+  cameraChip.addEventListener("click", () => opts.onToggleArenaCamera?.())
   resetChip.addEventListener("click", () => {
     closeNow()
-    opts.onNewGame()
+    opts.onNewGame?.()
   })
 
   let opener: HTMLElement | null = null
