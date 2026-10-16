@@ -110,18 +110,62 @@ tested in Phase 1)*
   - Manual verification: pinch changes radius within `2.5..14` and leaves
     azimuth/elevation untouched; lifting one finger continues the drag from
     the current pose
-- [~] Task: Arena input lock (F4)
-  - `onPointerDown` consults `acceptsOrbit(cameraMode)` (`:144-148` — the one
-    handler currently missing the guard; `onPointerMove` `:150` and `onWheel`
-    `:165` keep theirs) so the whole camera surface reads from one predicate
-  - Manual verification: during an arena fight a tap-drag leaves the camera
-    pose unchanged (sampled before/after), the wheel does not zoom the
-    broadcast shot, and leaving the arena restores full orbit control
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Arena input lock (F4) — no code change required
+  - `onPointerDown` already consults `acceptsOrbit(cameraMode)` after the F1
+    refactor (`orbit-camera.ts:182`, `:188`, `:222` — all three handlers read
+    the one predicate), so F4's code landed with Task 1 and this task is
+    verification only. Evidence in the Phase 2 verification note on `a087057`.
+  - Verified (Playwright, 360x732 touch-emulated): the handlers' own branch is
+    observable through `defaultPrevented`, because `preventDefault()` runs only
+    after the claim check. ranch: `move`/`wheel` prevented — gesture claimed.
+    arena (broadcast **and** cinematic): both **not** prevented — the gate
+    returns before any camera write, and an unclaimed gesture is not swallowed.
+    A `pointerdown` issued in the arena then a switch back to the ranch left the
+    next `pointermove` unprevented, so no armed drag survives the mode change,
+    and the following ranch gesture was claimed again.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: a087057]
   - Automated: `bun run check` + `bun test` green; `bun run verify` green
   - Manual: browser pass on the ranch (orbit, wheel, pinch, page scroll) and on
     a live battle (orbit refused), with console clean; screenshots attached to
     the checkpoint note
+
+### Phase notes (2026-10-16)
+
+`bun run verify` exits 0: types clean (`@apex/voxel` 51, `@apex/sim` 56,
+`@apex/client` 129 files); **1099 pass / 0 fail** across 1100 tests in 90 files;
+Biome 0 errors with the same 11 warnings + 2 infos that predate this track; the
+determinism gate regenerated all 9 GLBs and 5 props byte-identical, which is
+what proves a client-only phase stayed out of the asset pipeline. Test count is
+unchanged from Phase 1 (1100) — Phase 2 is wiring and adds no logic suites by
+design; the wall-clock difference between the two runs is machine load (the dev
+server and Playwright were live), not a regression.
+
+F1 evidence: with `touch-action: none` on the render surface, a one-finger drag
+orbits the ranch ~90° while `window.scrollY` stays 0, a drag that starts on the
+HUD does not move the camera, and the console is clean.
+
+F3 evidence: two-finger spread (6.9 → clamped 2.5) zooms with azimuth and
+elevation identical between the before/after frames, the inverse gesture returns
+the distance, and lifting one finger mid-pinch leaves the pose untouched (no
+jump from a stale origin) while the surviving pointer then drags normally.
+
+**Finding, not fixed — needs a decision:** at the phone tier the spar entry is
+unreachable. Measured at 360x732: `.spar-button` `[192,18,150,45]` and
+`.score-bug` `[183,10,163,42]` overlap, and `document.elementFromPoint` at the
+chip's centre returns `div.kit-plate score-bug` — the broadcast score bug is
+painted over "Spar", and because `.app-in-arena` is what hides that bug, there
+is no state in which the chip becomes reachable again by touch. `.spar-button`
+is pinned `top:18px; right:18px` at every breakpoint (`spar.css:298`) with no
+media override, while the phone tier moves `.score-bug` into the top-right
+(`ranch.css:628`). In scope for this track's "field robustness" theme but not in
+its F-list; surfaced to the user rather than silently absorbed.
+
+One instrument limit worth recording: the arena camera pose could not be sampled
+directly (three.js uploads `viewMatrix` only when the program refreshes or the
+camera identity changes, so the uniform is idle in broadcast), and per-frame
+matrix overlap is floor-limited there (58 identical matrices on both sides of a
+gesture, out of 110). The `defaultPrevented` branch test above replaces both —
+it reads the handler's decision rather than inferring it from rendering.
 
 ## Phase 3 — Resilience & failure surfaces (F5, F7)
 
