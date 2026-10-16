@@ -26,6 +26,7 @@ import {
   previewTraining,
   requiredTierDays,
   SICK_HEALTH,
+  SILVER_THRESHOLDS,
   type StatKey,
   TRAINING_CAP,
 } from "@apex/sim"
@@ -966,11 +967,15 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       text: "Cup day is tomorrow. The bracket takes your partner as they are — spend today wisely.",
     },
     {
-      // Bronze ladder top (save v8): one-time coach line setting up the
-      // Silver division (Phase 2) without shipping it.
+      // Silver Ladder (FR11): one-time coach line setting up the Silver
+      // division — Bronze-only, since a Silver I climber tops a different
+      // tier now.
       id: "silver-awaits",
       when: (s) =>
-        s.creature !== null && s.ladder.subTier === "I" && s.ladder.points > 0,
+        s.creature !== null &&
+        s.ladder.tier === "bronze" &&
+        s.ladder.subTier === "I" &&
+        s.ladder.points > 0,
       text: "You've topped Bronze — the Silver division awaits. Keep banking cup wins; the climb continues soon.",
     },
     {
@@ -997,6 +1002,24 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
         s.lineage.generation > 0 &&
         lineagePrestige(s) >= PRESTIGE_ESTABLISHED_LINE,
       text: "Established line — every inherited stat floor gains +1 from here on.",
+    },
+    // Silver Ladder (FR11): one-time boss-defeat callouts, deduped by
+    // seenHints like every other coach line — the ledger is the trigger,
+    // so the callout fires exactly once per scalp, even across reloads.
+    {
+      id: "boss-koda",
+      when: (s) => s.bossDefeats.includes("koda"),
+      text: "The Promotion gate is DOWN — Sear Marshal Koda never saw it coming. Silver, meet your climber.",
+    },
+    {
+      id: "boss-hesse",
+      when: (s) => s.bossDefeats.includes("hesse"),
+      text: "Verdant Dame Hesse falls. The ridge is behind you — the summit is ahead.",
+    },
+    {
+      id: "boss-marlow",
+      when: (s) => s.bossDefeats.includes("marlow"),
+      text: "Marlow's tide breaks. Silver is yours — the Gold horizon waits.",
     },
   ]
   const callout = document.createElement("div")
@@ -1144,31 +1167,39 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     trophyCount.textContent = `× ${state.cupsWon}`
     trophy.style.display = state.cupsWon > 0 ? "" : "none"
 
-    // Bronze ladder standing (save v8). Below the top the read is
-    // progress-to-next (4/6); at Bronze I the points are banked toward
-    // Silver (Phase 2), so the raw total is the honest number.
+    // Ladder standing (save v11): tier + sub-tier tab + points, matching
+    // the trophy segment's one-fact-per-segment grammar. Below the top
+    // sub-tier the read is progress-to-next; at the tier's top the points
+    // are banked toward the next tier, so the raw total is the honest
+    // number (Bronze I banks toward Silver, Silver I toward Gold).
     const ladder = state.ladder
-    rankRank.textContent = `Bronze ${ladder.subTier}`
+    const tierName = ladder.tier === "silver" ? "Silver" : "Bronze"
+    rankRank.textContent = `${tierName} ${ladder.subTier}`
+    rank.classList.toggle("score-ladder--silver", ladder.tier === "silver")
     const nextThreshold =
       ladder.subTier === "III"
-        ? LADDER_THRESHOLDS.bronzeII
-        : LADDER_THRESHOLDS.bronzeI
+        ? ladder.tier === "silver"
+          ? SILVER_THRESHOLDS.silverII
+          : LADDER_THRESHOLDS.bronzeII
+        : ladder.tier === "silver"
+          ? SILVER_THRESHOLDS.silverI
+          : LADDER_THRESHOLDS.bronzeI
     const nextTier = ladder.subTier === "III" ? "II" : "I"
     if (ladder.subTier === "I") {
       rankPts.textContent = `${ladder.points} pts`
       rank.setAttribute(
         "aria-label",
-        `League standing: Bronze I, ${ladder.points} points banked`,
+        `League standing: ${tierName} I, ${ladder.points} points banked`,
       )
     } else {
       rankPts.textContent = `${ladder.points}/${nextThreshold}`
       rank.setAttribute(
         "aria-label",
-        `League standing: Bronze ${ladder.subTier}, ${ladder.points} of ${nextThreshold} points toward Bronze ${nextTier}`,
+        `League standing: ${tierName} ${ladder.subTier}, ${ladder.points} of ${nextThreshold} points toward ${tierName} ${nextTier}`,
       )
     }
     if (prevLadderSubTier !== null && ladder.subTier !== prevLadderSubTier) {
-      climbLine = `Promotion — Bronze ${ladder.subTier}!`
+      climbLine = `Promotion — ${tierName} ${ladder.subTier}!`
       replay(rank, "chip-pop")
     }
     prevLadderSubTier = ladder.subTier

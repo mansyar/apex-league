@@ -96,7 +96,7 @@
   letter-spacing: 0.06em;
 }
 
-/* Bronze ladder standing (save v8): rank tab + points, matching the
+/* Ladder standing (save v11): rank tab + points, matching the
  * trophy segment's one-fact-per-segment grammar. */
 .score-ladder {
   display: flex;
@@ -110,6 +110,11 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--accent);
+}
+
+/* Silver standing (save v11): cooler accent for the second tier. */
+.score-ladder--silver .score-ladder-rank {
+  color: var(--silver);
 }
 
 .score-ladder-pts {

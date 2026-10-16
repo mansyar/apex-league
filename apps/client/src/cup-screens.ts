@@ -26,6 +26,7 @@ export interface MatchCard {
 /** The bracket screen's writable surfaces. */
 export interface BracketScreenRefs {
   screen: HTMLElement
+  headTitle: HTMLElement
   headSub: HTMLElement
   colHeadEls: Record<"qf" | "sf" | "f", HTMLElement>
   cards: Map<MatchId, MatchCard>
@@ -151,6 +152,7 @@ export function buildBracketScreen(): BracketScreenRefs {
   screen.append(head, bracket, cta, ticker)
   return {
     screen,
+    headTitle,
     headSub,
     colHeadEls,
     cards,
