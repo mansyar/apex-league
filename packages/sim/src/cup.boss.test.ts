@@ -17,6 +17,7 @@ import {
   startCupSession,
   substituteFinalBoss,
 } from "./cup"
+import { defaultLoadout, getSpecies, resolvePlayerMatch } from "./index"
 import { finalizeCup, prepareCup } from "./machine"
 import { chooseStarter, createInitialState } from "./state"
 
@@ -149,6 +150,56 @@ describe("startCupSession with a boss final", () => {
     for (const slot of session.bracket.slots) {
       expect(slot.bossId).toBeUndefined()
     }
+  })
+
+  test("the boss walks the rival subtree — the gate always reaches the final", () => {
+    const boss = getBoss("koda")
+    if (!boss) throw new Error("missing boss koda")
+    const session = startCupSession(
+      playerCreature(),
+      cupDay,
+      101,
+      "promotion",
+      boss,
+    )
+    // QF4 (slots 6 vs 7) and SF2 are boss pairings: the authored gate
+    // cannot be knocked out by a generated rival — it advances without a
+    // battle (a walkover verdict, no replay to render).
+    const qf4 = session.rivalResolutions[2]
+    const sf2 = session.rivalResolutions[3]
+    expect(qf4?.winner?.name).toBe(boss.name)
+    expect(qf4?.verdict.battle).toBeNull()
+    expect(qf4?.verdict.line).toBe(`Sear Marshal Koda takes the Quarterfinal!`)
+    expect(sf2?.winner?.name).toBe(boss.name)
+    expect(sf2?.verdict.battle).toBeNull()
+    expect(sf2?.verdict.slotB).toBe(boss.name)
+  })
+
+  test("a player who wins the near half meets the boss in the final", () => {
+    // A trained climber sweeps the near half across seeds until one
+    // reaches the final; the waiting opponent must be the boss.
+    const boss = getBoss("koda")
+    if (!boss) throw new Error("missing boss koda")
+    for (let seed = 1; seed <= 60; seed++) {
+      const grown = {
+        ...playerCreature(seed),
+        trained: { hp: 3, atk: 3, def: 3, spd: 3 },
+      }
+      const species = getSpecies(grown.speciesId)
+      if (!species) throw new Error("unknown species")
+      const session = startCupSession(grown, cupDay, seed, "promotion", boss)
+      const loadout = defaultLoadout(grown, species)
+      let current = session
+      while (current.status === "player-turn") {
+        if (current.nextPlayerRound === 3) {
+          expect(current.nextOpponent?.bossId).toBe("koda")
+          expect(current.nextOpponent?.name).toBe(boss.name)
+          return
+        }
+        current = resolvePlayerMatch(current, loadout, "balanced").session
+      }
+    }
+    throw new Error("no seed reached the final — tighten the sweep")
   })
 })
 
