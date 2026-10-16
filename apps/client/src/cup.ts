@@ -12,6 +12,7 @@
  */
 
 import {
+  bossForCup,
   type Creature,
   type CupSession,
   type CupSlot,
@@ -22,6 +23,7 @@ import {
   finalizeCup,
   forfeitCup,
   type GameState,
+  getBoss,
   getMove,
   getSpecies,
   isCupDay,
@@ -149,6 +151,7 @@ export function createCup(
   // ------------------------------------------------------------------
   const {
     screen: bracketScreen,
+    headTitle,
     headSub,
     colHeadEls,
     cards,
@@ -194,7 +197,22 @@ export function createCup(
   } = buildResultsScreen()
 
   const { battleChips, fastButton } = buildBattleChips()
-  overlay.append(bracketScreen, coachScreen, resultsScreen, giveup, battleChips)
+  // The boss lower-third (FR11): a broadcast chyron carrying the boss'
+  // arena intro for the length of the boss fight. Shown only for boss
+  // slots; reduced motion mutes the entrance animation.
+  const bossIntro = document.createElement("div")
+  bossIntro.className = "cup-boss-intro"
+  bossIntro.style.display = "none"
+  overlay.append(
+    bracketScreen,
+    coachScreen,
+    resultsScreen,
+    giveup,
+    battleChips,
+    bossIntro,
+  )
+  /** The verdict quip awaiting the stamp hold (null outside boss fights). */
+  let bossQuip: string | null = null
   root.append(overlay)
 
   // ------------------------------------------------------------------
@@ -412,10 +430,16 @@ export function createCup(
     const won = session.status === "champion"
     resultTitle.textContent = won ? "Champion" : "Eliminated"
     resultStamp.classList.toggle("lost", !won)
+    // The cup is named for the tier it serves (FR11); a Promotion Cup win
+    // reads as the gate it is.
+    const cupName =
+      session.bracket.kind === "promotion"
+        ? "Promotion Cup"
+        : `${ladderBefore?.tier === "silver" ? "Silver" : "Bronze"} Cup`
     resultSub.textContent = won
-      ? `${playerName()} takes the Bronze Cup!`
+      ? `${playerName()} takes the ${cupName}!`
       : session.championName
-        ? `${session.championName} takes the Bronze Cup.`
+        ? `${session.championName} takes the ${cupName}.`
         : "The cup ends without a champion."
     resultPlateTab.textContent = ordinalOf(placement)
     resultPlateLine.textContent = won
@@ -467,10 +491,19 @@ export function createCup(
       // match just fought: the walk re-stamps it on the bracket, then
       // continues with the rival reveals.
       clearTimer()
+      // Boss final (FR11): the lower-third flips from the intro to the
+      // boss' verdict quip for the stamp hold, then the bracket returns.
+      if (bossQuip) {
+        bossIntro.textContent = bossQuip
+        bossQuip = null
+      } else {
+        bossIntro.style.display = "none"
+      }
       battle.hold.begin(
         () => {
           inBattle = false
           fightNow = null
+          bossIntro.style.display = "none"
           handlers.onArenaExit()
           battleHud.hide()
           overlay.classList.remove("cup-battling")
@@ -558,6 +591,19 @@ export function createCup(
     giveup.style.display = "none"
     overlay.classList.add("cup-battling")
     battleChips.style.display = ""
+    // Boss final (FR11): the lower-third carries the registry intro.
+    const boss = opponent.bossId ? getBoss(opponent.bossId) : undefined
+    if (boss) {
+      bossIntro.textContent = boss.intro
+      bossIntro.className = state.settings.reducedMotion
+        ? "cup-boss-intro cup-boss-intro--still"
+        : "cup-boss-intro"
+      bossIntro.style.display = ""
+      // The boss gets the last word either way: the lower-third flips to
+      // the verdict quip for the stamp hold, then the bracket returns.
+      bossQuip =
+        verdict.winner === opponent.name ? boss.quips.win : boss.quips.loss
+    }
     battle.begin(fightNow, verdict.battle, castingFor(creature, opponent))
   }
 
@@ -739,10 +785,22 @@ export function createCup(
       isCupDay(state.day) && state.phase === "cup" && creature !== null
     // Standing tie-in (save v8): the entry chip reads the ladder, so the
     // player sees what tonight's cup is worth before committing.
-    cupHint.textContent = `Bronze ${state.ladder.subTier} · ${state.ladder.points} pts`
+    const ladder = state.ladder
+    const tierName = ladder.tier === "silver" ? "Silver" : "Bronze"
     // A persisted session keeps the chip alive across refreshes - even
     // once the entry is consumed (phase "day"), the walk can resume.
     const resumable = session !== null
+    // Silver Ladder framing (FR11): while a gate boss is pending, the chip
+    // names the occasion instead of the standing — the sim's own
+    // bossForCup decision keeps the copy from drifting off the bracket
+    // the player will actually draw. With a live session the standing is
+    // the honest read (the bracket banner frames the occasion).
+    const gate = resumable ? null : bossForCup(state)
+    cupHint.textContent = gate
+      ? gate.kind === "promotion"
+        ? "Promotion Cup awaits"
+        : `${gate.boss.name} holds the final`
+      : `${tierName} ${ladder.subTier} · ${ladder.points} pts`
     cupButton.style.display = cupToday || resumable ? "" : "none"
     cupButton.disabled = !cupToday && !resumable
   }
@@ -830,6 +888,12 @@ export function createCup(
     inBattle = false
     fightNow = null
     headSub.textContent = `Day ${state.day} · single elimination`
+    // The occasion leads the board (FR11): a Promotion Cup carries its own
+    // banner from the sim, a boss final reads "Boss Final · <name>", and
+    // every regular cup is named for the tier it serves.
+    headTitle.textContent =
+      session.bracket.banner ??
+      `${state.ladder.tier === "silver" ? "Silver" : "Bronze"} Cup`
     battleHud.hide()
     champ.classList.remove("crowned")
     champName.textContent = "—"

@@ -42,6 +42,12 @@ export {
   type Tactic,
   typeFactor,
 } from "./battle"
+export {
+  BOSSES,
+  type BossDef,
+  bossForCup,
+  getBoss,
+} from "./bosses"
 export { CUP_INTERVAL_DAYS, isCupDay } from "./calendar"
 export {
   assignTraining,

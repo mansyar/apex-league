@@ -70,57 +70,76 @@ verification checkpoint per `workflow.md`.
 
 ## Phase 3 — Balance probe & tuning
 
-> **Parked 2026-10-16:** the probe instrument landed (`bosses.balance.test.ts`,
-> commit d0db9b0) but exposed a design-critical finding — the 2/1·1/2 type
-> chart makes cross-element boss fights binary (0%/100%), so milestone boss
-> mapping cannot be tuned under the current chart. The two failing
-> acceptance tripwires are parked as `test.failing`. **This phase is blocked
-> on the element-chart track** (factor softening so disadvantaged fights are
-> grindable); boss milestone mapping and `SILVER_THRESHOLDS`/pin tuning
-> resume after that track lands, with the boss element question re-decided
-> on fresh probe data.
+> **Unparked 2026-10-16:** the element-chart track landed (3/2·2/3 chart,
+> HP×2 scale) and Phase 3 completed on fresh probe data — pins softened
+> (Hesse 100/11/13/8, Marlow 92/12/9/11), `SILVER_THRESHOLDS` tuned to
+> 18/24, tripwires redefined per element. See `probe-before.md` /
+> `probe-after.md` and commit `63561fb`.
 
-- [ ] Task: Red+Green — balance probe (FR12) *(instrument landed — tuning parked pending element-chart track)*
+- [x] Task: Red+Green — balance probe (FR12) — `63561fb` (probe-before/
+  probe-after docs; pins + thresholds tuned; tripwires redefined)
   - Probe in the style of `tactics.balance.test.ts` (`APEX_BALANCE_REPORT=1`
     style env flag): measure typical climb cadence per tier and boss
     difficulty vs ramped rivals; tune `SILVER_THRESHOLDS` and boss stat
     pins; before/after report docs in the track folder
     (`probe-before.md` / `probe-after.md`).
 
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: 63561fb]
   - Suite green; thresholds/pins landed with rationale comments; record
     checkpoint SHA.
 
 ## Phase 4 — Client presentation (manual-verify tasks)
 
-- [ ] Task: Rank plate & ladder HUD (FR11)
-  - Tier + sub-tier display, Silver styling, progress-to-next line per
-    tier. Manual verification note.
+- [x] Task: Rank plate & ladder HUD (FR11) — 2430f49
+  - Tier + sub-tier display ("Bronze I" / "Silver III"), `--silver` token
+    styling on the rank tab, progress-to-next per tier thresholds
+    (Bronze 6/12, Silver 18/24), banked-pts readout at a tier's top,
+    climb line + chip-pop on tier and sub-tier flips. Manual verification
+    note: browser-verified aria + plate at all three fixtures.
 
-- [ ] Task: Cup chip, bracket banners & boss intro (FR11)
-  - Chip copy ("Promotion Cup awaits" / checkpoint / apex framing),
-    promotion bracket header, boss-match banner, arena lower-third intro
-    (reduced-motion aware). Manual verification note.
+- [x] Task: Cup chip, bracket banners & boss intro (FR11) — 2430f49
+  - Chip copy via the sim's bossForCup ("Promotion Cup awaits" / "<Boss>
+    holds the final"), standing fallback "Tier X · N pts"; promotion
+    bracket header ("Promotion Cup"), boss-match banner ("Boss Final ·
+    <name>"), arena lower-third intro (registry copy, reduced-motion
+    aware) flipping to the boss's verdict quip during the stamp hold.
+    Manual verification note: browser-verified on the gate fixture
+    (Koda intro verbatim) and silver3 (Hesse banner).
 
-- [ ] Task: Callouts, coach lines & Hall of Fame scalps (FR11)
-  - Promotion callout, one-time boss-defeat callout (seenHints dedupe),
-    coach ticker lines, HoF scalp display. Manual verification note.
+- [x] Task: Callouts, coach lines & Hall of Fame scalps (FR11) — 2430f49
+  - One-time boss-defeat callouts boss-koda/hesse/marlow (seenHints
+    dedupe), silver-awaits hint bronze-gated, HoF "Scalps" section
+    reading state.bossDefeats through the registry, ladderRow tier-aware
+    (cross-tier promotion copy). Manual verification note: browser
+    confirmed both scalps listed + the koda callout firing.
 
-- [ ] Task: Client save wiring
-  - Store wiring for v11 fields; corrupt-save notice path unchanged.
+- [x] Task: Client save wiring — 2430f49 (verify-only)
+  - No wiring needed: GameState carries v11 fields transparently through
+    the existing storage/migration path; corrupt-save notice path
+    untouched (main.ts has zero ladder/boss references).
 
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: 3dc5560]
   - Agent browser verification (screenshots at 390/768/1280, console clean)
     + proposed manual steps for the user; await explicit feedback; record
     checkpoint SHA.
 
 ## Phase 5 — Final gates & docs
 
-- [ ] Task: Full verification & docs
-  - `bun run verify` green end-to-end; `docs/save-schema.md` final pass;
-    README ladder/roadmap sentence updated (Silver playable); learnings
-    appended if any hard-won lessons emerged.
+- [x] Task: Full verification & docs — 9a381bc
+  - `bun run verify` green end-to-end (types 62/51/126, 641 tests 0 fail,
+    biome clean, determinism gate byte-identical); `docs/save-schema.md`
+    already carries the v11 + v12 rows from Phases 1/3; README ladder
+    paragraph now names the Promotion Cup + Silver gatekeepers and the
+    roadmap row moves Phase 2 to "In progress"; learnings #13 appended
+    (authored gatekeepers must be guaranteed to reach their stage — the
+    boss walkover was found by browser play, not unit tests).
 
-- [ ] Task: Final review & completion (Refer to workflow.md)
-  - Self-review checklist; `conductor-review` handoff; registry + metadata
-    finalized.
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions — 9ef7b95
+  - One Low finding (README roadmap row used ASCII hyphens where sibling
+    rows use em-dashes); fixed and verified. All other checks passed:
+    plan compliance, style, tests (641/0/1), coverage, gates green.
+
+- [x] Task: Final review & completion (Refer to workflow.md) — 2044281
+  - Review passed (1 Low finding fixed); registry + metadata finalized;
+    track archived per the project's completed-track policy.

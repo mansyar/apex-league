@@ -436,25 +436,32 @@ describe("results presentation", () => {
   })
 
   test("ladderRow reports a promotion, a plain gain, a forfeit, and no change", () => {
-    const before = { points: 4, subTier: "III" }
-    expect(ladderRow({ points: 6, subTier: "II" }, before, false)).toBe(
-      "Ladder +2 — promoted to Bronze II",
-    )
-    expect(ladderRow({ points: 6, subTier: "III" }, before, false)).toBe(
-      "Ladder +2 · Bronze III",
-    )
-    expect(ladderRow({ points: 4, subTier: "III" }, before, true)).toBe(
-      "Forfeit — no ladder points",
-    )
-    expect(ladderRow({ points: 4, subTier: "III" }, before, false)).toBe(
-      "Ladder unchanged",
-    )
+    const before = { points: 4, tier: "bronze", subTier: "III" }
+    expect(
+      ladderRow({ points: 6, tier: "bronze", subTier: "II" }, before, false),
+    ).toBe("Ladder +2 — promoted to Bronze II")
+    expect(
+      ladderRow({ points: 6, tier: "bronze", subTier: "III" }, before, false),
+    ).toBe("Ladder +2 · Bronze III")
+    expect(
+      ladderRow({ points: 4, tier: "bronze", subTier: "III" }, before, true),
+    ).toBe("Forfeit — no ladder points")
+    expect(
+      ladderRow({ points: 4, tier: "bronze", subTier: "III" }, before, false),
+    ).toBe("Ladder unchanged")
+  })
+
+  test("ladderRow reports the Promotion Cup's cross-tier flip", () => {
+    const before = { points: 15, tier: "bronze", subTier: "I" }
+    expect(
+      ladderRow({ points: 18, tier: "silver", subTier: "III" }, before, false),
+    ).toBe("Ladder +3 — promoted to Silver III")
   })
 
   test("ladderRow without a snapshot reports the standing as-is", () => {
-    expect(ladderRow({ points: 5, subTier: "III" }, null, false)).toBe(
-      "Ladder: Bronze III · 5 pts",
-    )
+    expect(
+      ladderRow({ points: 5, tier: "bronze", subTier: "III" }, null, false),
+    ).toBe("Ladder: Bronze III · 5 pts")
   })
 
   test("resultRows: a champion lists the win bundle", () => {
@@ -464,9 +471,10 @@ describe("results presentation", () => {
     expect(cupPlacement(session)).toBe(1)
     const rows = resultRows(
       session,
-      { points: 6, subTier: "II" },
+      { points: 6, tier: "bronze", subTier: "II" },
       {
         points: 4,
+        tier: "bronze",
         subTier: "III",
       },
     )
@@ -484,9 +492,10 @@ describe("results presentation", () => {
     expect(cupPlacement(session)).toBe(4)
     const rows = resultRows(
       session,
-      { points: 4, subTier: "III" },
+      { points: 4, tier: "bronze", subTier: "III" },
       {
         points: 4,
+        tier: "bronze",
         subTier: "III",
       },
     )
@@ -502,9 +511,10 @@ describe("results presentation", () => {
     const session = forfeitCup(opened)
     const rows = resultRows(
       session,
-      { points: 4, subTier: "III" },
+      { points: 4, tier: "bronze", subTier: "III" },
       {
         points: 4,
+        tier: "bronze",
         subTier: "III",
       },
     )

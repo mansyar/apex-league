@@ -55,14 +55,13 @@ export const LADDER_THRESHOLDS = Object.freeze({
 })
 
 /** Silver points required to reach each sub-tier above the floor, as
- * absolute totals (points are global and monotonic). Provisional values:
- * the Bronze I ceiling is 12 and a champion banks +3 per cup, so 21 ≈
- * three more cups to Silver II and 30 ≈ three after that to Silver I.
- * The Phase 3 balance probe of silver_ladder_bosses_20261016 tunes these —
- * see its probe-before/probe-after reports. */
+ * absolute totals (points are global and monotonic). Tuned by the Phase 3
+ * balance probe of silver_ladder_bosses_20261016: realistic mid-trained
+ * pace banks ~1–2 pts per cup, so 18/24 ≈ two champion cups per leg with
+ * mixed placements — a deliberate Silver grind that still moves. */
 export const SILVER_THRESHOLDS = Object.freeze({
-  silverII: 21,
-  silverI: 30,
+  silverII: 18,
+  silverI: 24,
 })
 
 /** The starting ladder slice: Bronze III, no points. */

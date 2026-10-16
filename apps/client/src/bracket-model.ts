@@ -186,6 +186,7 @@ export function exitStage(placement: number): string {
 export interface LadderStanding {
   points: number
   subTier: string
+  tier: string
 }
 
 /** The results screen's ladder row: promotion-aware, forfeit-honest, and
@@ -195,17 +196,18 @@ export function ladderRow(
   before: LadderStanding | null,
   forfeited: boolean,
 ): string {
+  const tierName = current.tier === "silver" ? "Silver" : "Bronze"
   if (before === null) {
     // Resumed walk without a snapshot: report the standing as-is.
-    return `Ladder: Bronze ${current.subTier} · ${current.points} pts`
+    return `Ladder: ${tierName} ${current.subTier} · ${current.points} pts`
   }
   // A forfeit zeroes the run's points (bronze ladder): say so plainly
   // instead of the neutral "unchanged".
   const earned = current.points - before.points
   if (earned > 0) {
-    return current.subTier !== before.subTier
-      ? `Ladder +${earned} — promoted to Bronze ${current.subTier}`
-      : `Ladder +${earned} · Bronze ${current.subTier}`
+    return current.subTier !== before.subTier || current.tier !== before.tier
+      ? `Ladder +${earned} — promoted to ${tierName} ${current.subTier}`
+      : `Ladder +${earned} · ${tierName} ${current.subTier}`
   }
   return forfeited ? "Forfeit — no ladder points" : "Ladder unchanged"
 }

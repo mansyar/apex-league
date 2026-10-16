@@ -368,6 +368,44 @@
   border-color: var(--accent);
 }
 
+/* Boss lower-third (silver_ladder_bosses_20261016, FR11): a broadcast
+   chyron over the arena carrying the boss' registry intro for the fight.
+   Slides in from the left like a broadcast graphic; reduced motion mutes
+   the entrance. */
+.cup-boss-intro {
+  position: absolute;
+  left: 50%;
+  bottom: 7.5cqw;
+  transform: translateX(-50%);
+  max-width: 62cqw;
+  padding: 1cqw 1.8cqw;
+  background: var(--kit-panel-bg);
+  border: 1px solid var(--kit-keyline);
+  border-left: 0.45cqw solid var(--accent);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  font-size: 1.15cqw;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--ink);
+  z-index: 30;
+  animation: boss-intro-in 0.45s ease-out;
+}
+
+.cup-boss-intro--still {
+  animation: none;
+}
+
+@keyframes boss-intro-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(1.2cqw);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
 /* APEX FEED ticker (announcer strip). */
 /* APEX FEED ticker (announcer strip): in-flow footer row of the screen. */
 .cup-ticker {

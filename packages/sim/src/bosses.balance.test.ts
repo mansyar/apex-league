@@ -25,6 +25,7 @@
  */
 
 import { describe, expect, test } from "bun:test"
+import { typeFactor } from "./battle/chart"
 import type { Tactic } from "./battle/policy"
 import { type BattleSide, resolveBattle } from "./battle/resolver"
 import { BOSSES, type BossDef } from "./bosses"
@@ -52,18 +53,6 @@ const TRAINED_LEVELS: readonly number[] = [0, 2, 4, 6]
 
 /** The player's default tactic; rivals roll theirs in real cups. */
 const PLAYER_TACTIC: Tactic = "balanced"
-
-/**
- * The milestone player profile per boss: how much training a player who
- * reached that rung plausibly carries. The Promotion Cup gate sits at
- * Bronze I after >=5 cups (day ~35+); the apex rung is the endgame of the
- * current content, where a dedicated player is at or near the cap.
- */
-const MILESTONE_TRAINED: Record<string, number> = {
-  koda: 2,
-  hesse: 3,
-  marlow: 5,
-}
 
 /** A trained player creature: rolled stats plus a flat trained bonus. */
 function playerAt(speciesId: string, seed: number, trained: number): Creature {
@@ -243,54 +232,75 @@ function runPlacementProbe(): { placements: Record<number, number> } {
 }
 
 describe("boss balance probe (FR12)", () => {
-  // Skipped (element_chart_20261016 hygiene): the 3/2·2/3 chart removed the
-  // binary cross-element walls, but the absolute bounds-max boss pins still
-  // dominate untrained players (Hesse takes 72.2% from her ADVANTAGED
-  // trained+0 counter). Re-tuning the pins + milestone mapping is the
-  // silver_ladder_bosses track's parked Phase 3; unpark there.
-  test.skip("bosses are strictly harder than the +5% final rival", () => {
+  // Tuned 2026-10-16 (Phase 3, post element_chart_20261016): the 3/2·2/3
+  // chart + softened pins give every boss a per-element exam shape —
+  // mirrors ramp 0 → low → high → 100, disadvantaged species cannot win
+  // below full training and grind to >=35% at cap, advantaged species pay
+  // the type tax forward. See probe-before/probe-after in the track folder.
+
+  /** The species each boss elementally dominates — the disadvantaged exam
+   * cell (fire→plant, plant→water, water→fire, per the type chart). */
+  function disadvantagedSpecies(boss: BossDef): string {
+    const bossDef = getSpecies(boss.speciesId)
+    if (!bossDef) throw new Error(`unknown boss species ${boss.speciesId}`)
+    const match = STARTER_SPECIES.find((s) => {
+      const factor = typeFactor(bossDef.element, s.element)
+      return factor.num > factor.den
+    })
+    if (!match) throw new Error(`no disadvantaged species for ${boss.id}`)
+    return match.id
+  }
+
+  test("a fresh player never beats the boss on even or worse elements", () => {
     const probe = runBossProbe()
-    const rival = runFinalRivalProbe()
-    for (const speciesId of STARTER_SPECIES.map((s) => s.id)) {
-      for (const trained of TRAINED_LEVELS) {
-        const rivalCell = rival.cells.find(
-          (c) => c.id === `final rival <- ${speciesId} trained+${trained}`,
+    for (const boss of BOSSES) {
+      const bossDef = getSpecies(boss.speciesId)
+      if (!bossDef) throw new Error(`unknown boss species ${boss.speciesId}`)
+      for (const species of STARTER_SPECIES) {
+        const factor = typeFactor(species.element, bossDef.element)
+        if (factor.num > factor.den) continue // advantaged: the type tax pays forward
+        const cell = probe.cells.find(
+          (c) => c.id === `${boss.name} <- ${species.id} trained+0`,
         )
-        if (!rivalCell)
-          throw new Error(`missing rival cell ${speciesId} +${trained}`)
-        const rivalRate = winRate(rivalCell.tally)
-        for (const boss of BOSSES) {
-          const cell = probe.cells.find(
-            (c) => c.id === `${boss.name} <- ${speciesId} trained+${trained}`,
-          )
-          if (!cell)
-            throw new Error(
-              `missing boss cell ${boss.id} ${speciesId} +${trained}`,
-            )
-          expect(
-            winRate(cell.tally),
-            `${boss.name} vs ${speciesId} trained+${trained}: boss ${pct(winRate(cell.tally))} should be <= rival ${pct(rivalRate)}`,
-          ).toBeLessThanOrEqual(rivalRate)
-        }
+        if (!cell)
+          throw new Error(`missing cell ${boss.id} vs ${species.id} at +0`)
+        expect(winRate(cell.tally), `${boss.name} vs fresh ${species.id}`).toBe(
+          0,
+        )
       }
     }
   })
 
-  // Skipped: same boss-tuning dependency as the rival test above — see the
-  // silver_ladder_bosses parked Phase 3.
-  test.skip("each boss is beatable by its milestone player", () => {
+  test("a disadvantaged player cannot win below full training", () => {
     const probe = runBossProbe()
     for (const boss of BOSSES) {
-      const trained = MILESTONE_TRAINED[boss.id] ?? 2
-      for (const speciesId of STARTER_SPECIES.map((s) => s.id)) {
+      const speciesId = disadvantagedSpecies(boss)
+      for (const trained of [0, 2, 4]) {
         const cell = probe.cells.find(
           (c) => c.id === `${boss.name} <- ${speciesId} trained+${trained}`,
+        )
+        if (!cell)
+          throw new Error(`missing cell ${boss.id} ${speciesId} +${trained}`)
+        expect(
+          winRate(cell.tally),
+          `${boss.name} vs ${speciesId} trained+${trained}`,
+        ).toBe(0)
+      }
+    }
+  })
+
+  test("every boss is grindable at full training for every species", () => {
+    const probe = runBossProbe()
+    for (const boss of BOSSES) {
+      for (const speciesId of STARTER_SPECIES.map((s) => s.id)) {
+        const cell = probe.cells.find(
+          (c) => c.id === `${boss.name} <- ${speciesId} trained+6`,
         )
         if (!cell) throw new Error(`missing cell ${boss.id} ${speciesId}`)
         expect(
           winRate(cell.tally),
-          `${boss.name} vs ${speciesId} trained+${trained}`,
-        ).toBeGreaterThanOrEqual(0.25)
+          `${boss.name} vs ${speciesId} at cap`,
+        ).toBeGreaterThanOrEqual(0.35)
       }
     }
   })
@@ -301,14 +311,15 @@ describe("boss balance probe (FR12)", () => {
     expect(
       cupsPerClimb(LADDER_THRESHOLDS.bronzeII, LADDER_THRESHOLDS.bronzeI),
     ).toBe(2)
-    // Silver legs: the provisional constants encode 3 champion cups per
-    // sub-tier (a longer, harder climb) — Phase 3 tunes if the probe says so.
+    // Silver legs: the tuned constants encode 2 champion cups per sub-tier
+    // at ideal pace (probe Phase 3: real mid-trained pace banks ~1–2 pts
+    // per cup, so 6 points per leg is the deliberate grind).
     expect(
       cupsPerClimb(LADDER_THRESHOLDS.bronzeI, SILVER_THRESHOLDS.silverII),
-    ).toBe(3)
+    ).toBe(2)
     expect(
       cupsPerClimb(SILVER_THRESHOLDS.silverII, SILVER_THRESHOLDS.silverI),
-    ).toBe(3)
+    ).toBe(2)
   })
 
   test("report mode emits the markdown probe doc", () => {

@@ -639,13 +639,37 @@ export function doubleKoWinner(
 
 /** Resolve one rival-vs-rival pairing into a verdict (pure). The player's
  * own matches resolve through resolvePlayerMatch instead — the coaching
- * room's picks never ride the bracket resolver. */
+ * room's picks never ride the bracket resolver.
+ *
+ * Authored bosses (slots carrying a bossId) never lose the rival subtree:
+ * the whole point of the substitution is that the player faces the boss in
+ * the final, so a boss pairing is a walkover — the boss advances without a
+ * battle. This reads no RNG (battle seeds fold day/round/pairing only, and
+ * the bracket draw stream was consumed long before this point), so the
+ * stream invariant is untouched. */
 function resolvePairing(
   round: number,
   a: CupSlot,
   b: CupSlot,
   seed: number,
 ): { verdict: RoundVerdict; winner: CupSlot; loser: CupSlot } {
+  const bossSlot = a.bossId ? a : b.bossId ? b : null
+  if (bossSlot) {
+    const boss = bossSlot.bossId ? getBoss(bossSlot.bossId) : undefined
+    if (!boss) throw new Error(`Unknown boss id: ${bossSlot.bossId}`)
+    return {
+      verdict: {
+        round,
+        slotA: a.name,
+        slotB: b.name,
+        winner: bossSlot.name,
+        line: `${boss.name} takes the ${roundLabel(round)}!`,
+        battle: null,
+      },
+      winner: bossSlot,
+      loser: bossSlot === a ? b : a,
+    }
+  }
   const aSide = battleSideForSlot(a, seed)
   const bSide = battleSideForSlot(b, seed ^ 1)
   const result: BattleResult = resolveBattle(aSide, bSide, seed)

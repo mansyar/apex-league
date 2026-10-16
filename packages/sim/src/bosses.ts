@@ -39,7 +39,11 @@ export interface BossDef {
   name: string
   /** Existing species id — bosses introduce no new species (spec scope). */
   speciesId: string
-  /** Pinned absolute stats, within the species' legal roll bounds. */
+  /** Pinned absolute stats, within the species' legal roll bounds. Koda
+   * sits at the bounds max (the gate's full exam); Hesse and Marlow are
+   * probe-tuned below max (silver_ladder_bosses Phase 3) so a full-trained
+   * disadvantaged counter grinds through at >=35% instead of stalling at
+   * the tiebreak-only 19.4% the max pins produced. */
   stats: CreatureStats
   /** Pinned loadout: 2-4 unique moves from the species' kit. */
   loadout: readonly string[]
@@ -84,7 +88,7 @@ export const BOSSES: readonly BossDef[] = Object.freeze([
     id: "hesse",
     name: "Verdant Dame Hesse",
     speciesId: "plant_ox",
-    stats: { hp: 104, atk: 11, def: 14, spd: 8 },
+    stats: { hp: 100, atk: 11, def: 13, spd: 8 },
     loadout: ["seed_shot", "thorn_volley", "spore_burst", "bramble_dart"],
     tactic: "balanced",
     intro:
@@ -99,7 +103,7 @@ export const BOSSES: readonly BossDef[] = Object.freeze([
     id: "marlow",
     name: "Tide Regent Marlow",
     speciesId: "water_axolotl",
-    stats: { hp: 96, atk: 12, def: 11, spd: 11 },
+    stats: { hp: 92, atk: 12, def: 9, spd: 11 },
     loadout: ["bubble", "tide_shot", "foam_volley", "splash_bolt"],
     tactic: "specials",
     intro:

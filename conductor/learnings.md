@@ -194,3 +194,16 @@ hard way:
   factor be" into a table. Park blocked work behind `test.failing` /
   `test.skip` with a comment naming the unblocking track, so the red
   tripwire survives without holding the suite hostage.
+
+13. **An authored gatekeeper must be guaranteed to reach its stage.**
+    (silver_ladder_bosses, 2026-10-16) Substituting a boss into the final
+    slot is not enough: the boss still has to *fight* through the rival
+    subtree, and after the element chart softened the type swing a
+    generated rival knocked Sear Marshal Koda out in his own semifinal —
+    the browser run reached a "Promotion Cup" whose final never featured
+    the boss. Found only by playing the real cup end-to-end, not by any
+    unit test that checked the substitution in isolation. Fix: boss
+    pairings in the rival subtree are walkovers (the boss advances, no
+    battle, no RNG read). Lesson: whenever you special-case an entity
+    into a tournament, also special-case its *path* there, and verify
+    authored content by watching it happen in the browser.
