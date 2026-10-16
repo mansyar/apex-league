@@ -116,6 +116,7 @@ export {
   type LadderSubTier,
   type LadderTier,
   type LadderUpdate,
+  promotionEligible,
   SILVER_THRESHOLDS,
   subTierFor,
 } from "./ladder"

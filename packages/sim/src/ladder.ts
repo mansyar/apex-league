@@ -84,6 +84,20 @@ export function subTierFor(tier: LadderTier, points: number): LadderSubTier {
   return "III"
 }
 
+/**
+ * Whether the player's next entered cup is the Promotion Cup (spec FR2):
+ * a Bronze I creature with points banked past the Bronze I ceiling. Derived
+ * from the ladder slice — never stored — so it can never drift out of sync
+ * with the points it is computed from.
+ */
+export function promotionEligible(ladder: LadderState): boolean {
+  return (
+    ladder.tier === "bronze" &&
+    ladder.subTier === "I" &&
+    ladder.points > LADDER_THRESHOLDS.bronzeI
+  )
+}
+
 /** The player's cup placement: champion 1, final loss 2, semifinal exit 3,
  * quarterfinal exit 4 (see `cupPlacement`). */
 type CupPlacement = 1 | 2 | 3 | 4

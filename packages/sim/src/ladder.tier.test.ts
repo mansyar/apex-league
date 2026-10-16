@@ -13,6 +13,7 @@ import {
   applyCupPlacement,
   initialLadder,
   LADDER_THRESHOLDS,
+  promotionEligible,
   SILVER_THRESHOLDS,
   subTierFor,
 } from "./ladder"
@@ -235,6 +236,55 @@ describe("applyCupPlacement — top of each tier", () => {
     const r = applyCupPlacement(s, 1, false) // climbs to II
     expect(r.climbed).toBe(true)
     expect(r.topReached).toBe(false)
+  })
+})
+
+describe("promotionEligible — derived predicate (FR2)", () => {
+  it("is true only when banking past the Bronze I ceiling as Bronze I", () => {
+    expect(
+      promotionEligible({
+        points: LADDER_THRESHOLDS.bronzeI + 1,
+        tier: "bronze",
+        subTier: "I",
+      }),
+    ).toBe(true)
+  })
+
+  it("is false exactly at the Bronze I ceiling (strictly past it)", () => {
+    expect(
+      promotionEligible({
+        points: LADDER_THRESHOLDS.bronzeI,
+        tier: "bronze",
+        subTier: "I",
+      }),
+    ).toBe(false)
+  })
+
+  it("is false below the top sub-tier", () => {
+    expect(
+      promotionEligible({
+        points: LADDER_THRESHOLDS.bronzeI + 99,
+        tier: "bronze",
+        subTier: "II",
+      }),
+    ).toBe(false)
+    expect(
+      promotionEligible({
+        points: LADDER_THRESHOLDS.bronzeI + 99,
+        tier: "bronze",
+        subTier: "III",
+      }),
+    ).toBe(false)
+  })
+
+  it("is false in Silver at any point total", () => {
+    expect(
+      promotionEligible({
+        points: SILVER_THRESHOLDS.silverI + 99,
+        tier: "silver",
+        subTier: "I",
+      }),
+    ).toBe(false)
   })
 })
 
