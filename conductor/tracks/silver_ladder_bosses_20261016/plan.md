@@ -84,7 +84,7 @@ verification checkpoint per `workflow.md`.
     pins; before/after report docs in the track folder
     (`probe-before.md` / `probe-after.md`).
 
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: 63561fb]
   - Suite green; thresholds/pins landed with rationale comments; record
     checkpoint SHA.
 
