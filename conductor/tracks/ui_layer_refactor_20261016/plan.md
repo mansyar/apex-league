@@ -162,7 +162,7 @@ spar.ts 531, staging-fx.ts 781; largest overall cup.ts 932 (out of scope).
         display, row lock state, selection mapping)
   - [ ] Implement by moving existing logic from `spar.ts`; green
   - [ ] `bun run verify`; commit `refactor(spar): extract loadout view-model`
-- [ ] Task: Extract `spar/log.ts` (TDD)
+- [x] Task: Extract `spar/log.ts` (TDD) `[2bb2402]`
   - [ ] Write failing tests for battle-log formatting; implement by moving
         existing formatting; green
   - [ ] `bun run verify`; commit `refactor(spar): extract log formatting`
