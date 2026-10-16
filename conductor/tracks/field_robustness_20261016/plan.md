@@ -264,7 +264,7 @@ tested in Phase 1)*
   - Manual verification: hit-testing at the phone tier — the chip's centre
     returns the chip from `elementFromPoint` and every sampled point inside it
     receives the tap; the desktop breakpoint is unchanged
-- [~] Task: Shared `:focus-visible` treatment (F9)
+- [x] Task: Shared `:focus-visible` treatment (F9) — cd2cb8b
   - One rule written against the existing kit focus token (so it cannot drift
     from `ui/kit.css:379-381`), applied to the surfaces that lack it:
     `cup.css`, `spar.css`, `starter.css`, `battle-hud.css`. Additive only —
@@ -272,12 +272,33 @@ tested in Phase 1)*
   - Manual verification: tabbing through the cup bracket and the spar panel
     shows a visible ring on every interactive element (computed-style
     assertion, not eyeballing)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: cd2cb8b]
   - Automated: `bun run check` + `bun run verify` green; confirm no CSS rule
     exceeded the phone tier (desktop layout unchanged by inspection at the
     desktop breakpoint)
   - Manual: reduced-motion pass over every new surface (plate, focus ring,
     nothing animation-dependent); phone-tier screenshots attached
+
+### Phase notes (2026-10-16)
+
+- Automated: `bun run verify` exit 0 — types clean (51/56/130 files), 1107
+  pass / 0 fail, biome warnings unchanged (11, pre-existing), determinism gate
+  byte-identical.
+- Scope check: every F8/F10 rule sits inside a `max-width: 479.98px` block or
+  an existing phone-tier block; desktop re-measured unchanged at 1280x800
+  (rename-button 26x26, dock-head 21px, creature-head 40px). The only global
+  addition is the F9 ring (`:focus-visible`-gated).
+- Reduced motion: nothing new is animation-dependent — static geometry only,
+  no new `transition`/`animation`.
+- F8 (fde1597): final audit all seven surfaces report zero sub-44px controls.
+- F10 (15e1232): spar chip reachable again (hit-grid 81/81 vs 110/407 before);
+  zero plate overlaps on ordinary days, cup days, and desktop; the cup chip /
+  lineage overlap on cup days found and fixed by the lineage/callout slide.
+- F9 (cd2cb8b): real Tab walk — spar panel 17/17 stops, cup bracket 18/18
+  stops, accent ring on every stop, zero UA defaults. First run flagged the
+  two cup CTAs; the rule was extended to cover them.
+- Probes: field-tap-audit.cjs, field-tap-desktop.cjs, field-collision.cjs,
+  field-focus.cjs; screenshots f8-*.png, f9-cup-focus.png, f10-*.png.
 
 ## Phase 5 — Wrap-up
 

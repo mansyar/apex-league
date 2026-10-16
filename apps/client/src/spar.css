@@ -314,8 +314,8 @@
 /* Phone tier (F10): the score bug parks in this corner on phones
    (ranch.css), so the spar chip slides beneath it instead of fighting for the
    same pixels — 64px is the bug's top (10px + safe area) plus its measured
-   height (~42px) plus a gap. The cup chip already sits below this
-   (cup.css phone override, 112px). Desktop keeps the 18px pin. */
+   height (~42px) plus a gap. The cup chip stacks below this
+   (cup.css phone override, 120px). Desktop keeps the 18px pin. */
 @media (max-width: 479.98px) {
   .spar-button {
     top: calc(64px + var(--kit-safe-top));
