@@ -70,7 +70,17 @@ verification checkpoint per `workflow.md`.
 
 ## Phase 3 — Balance probe & tuning
 
-- [ ] Task: Red+Green — balance probe (FR12)
+> **Parked 2026-10-16:** the probe instrument landed (`bosses.balance.test.ts`,
+> commit d0db9b0) but exposed a design-critical finding — the 2/1·1/2 type
+> chart makes cross-element boss fights binary (0%/100%), so milestone boss
+> mapping cannot be tuned under the current chart. The two failing
+> acceptance tripwires are parked as `test.failing`. **This phase is blocked
+> on the element-chart track** (factor softening so disadvantaged fights are
+> grindable); boss milestone mapping and `SILVER_THRESHOLDS`/pin tuning
+> resume after that track lands, with the boss element question re-decided
+> on fresh probe data.
+
+- [ ] Task: Red+Green — balance probe (FR12) *(instrument landed — tuning parked pending element-chart track)*
   - Probe in the style of `tactics.balance.test.ts` (`APEX_BALANCE_REPORT=1`
     style env flag): measure typical climb cadence per tier and boss
     difficulty vs ramped rivals; tune `SILVER_THRESHOLDS` and boss stat
