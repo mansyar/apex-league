@@ -44,10 +44,12 @@ lifecycle, checkpoints, and commit format.
 
 ## Phase 4 — Client & presentation audit (manual-verify)
 
-- [ ] Task: HP display audit — creature plates, growth copy, any hardcoded
-  HP assumptions. Manual verification note.
-- [ ] Task: Longer-battle playback sanity — browser verification at
-  390/768/1280 widths. Manual verification note.
+- [x] Task: HP display audit — creature plates, growth copy, any hardcoded
+  HP assumptions. Manual verification note. — 456bef4 (all live HP paths
+  derived/relative; mock.ts canned values aligned to the v12 scale)
+- [x] Task: Longer-battle playback sanity — browser verification at
+  390/768/1280 widths. Manual verification note. — 456bef4 (two real seeded
+  cup battles played end-to-end at 1280×800 and 390×844; console clean)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5 — Final gates
