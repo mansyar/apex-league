@@ -169,3 +169,28 @@ Two lessons, both general:
   headless Chromium driven by Playwright (screenshots + pageerror +
   computed-style assertions) is an acceptable substitute and caught what
   three phases of green gates did not.
+
+## 12. Measure balance through the production path, and grade cliffs with longer pools
+
+The element-chart track (element_chart_20261016) taught three things the
+hard way:
+
+- **Tally what resolveBattle actually returns.** The winner is the
+  fighter's *name*, not an id. A probe that compared
+  `result.winner === player.id` scored every battle a loss and printed a
+  flat 0% table that looked like a balance catastrophe. One throwaway
+  single-duel script that printed the raw verdict exposed it. When a
+  measurement looks impossible, re-measure by hand before theorizing.
+- **Dominant type swings make short fights binary.** Under a 2/1 chart,
+  the 4x effective swing (2x dealt x 0.5x taken) plus short HP pools
+  meant cross-element fights resolved at 0% or 100% with no middle.
+  Softening to 3/2 / 2/3 AND doubling the HP pool (tick cap scaled with
+  it) produced a graded middle where untrained disadvantaged fighters
+  still lose heavily but invested ones grind through. The HP scale did
+  more work than the factors: tempo dominance decides short fights, and
+  longer pools give the comeback mechanics room to matter.
+- **Balance constants deserve a probe, not an opinion.** A sweep driver
+  (patch constants, run the probe, restore) turned "what should the
+  factor be" into a table. Park blocked work behind `test.failing` /
+  `test.skip` with a comment naming the unblocking track, so the red
+  tripwire survives without holding the suite hostage.
