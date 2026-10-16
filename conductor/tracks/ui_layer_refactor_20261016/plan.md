@@ -228,14 +228,30 @@ spar.ts 531, staging-fx.ts 781; largest overall cup.ts 932 (out of scope).
 
 ## Phase 6 — Wrap-up
 
-- [ ] Task: Full verification sweep
-  - [ ] `bun run verify` green; record test-suite wall time vs. pre-track
+- [x] Task: Full verification sweep `[7a6403a]`
+  - [x] `bun run verify` green; record test-suite wall time vs. pre-track
         baseline (must be unchanged or faster)
-  - [ ] Confirm acceptance criterion: no non-test TS source file in
+  - Recorded: full verify wall 35s (1280 pass / 1 skip / 0 fail incl. the
+    voxel determinism gate). No pre-track wall-time baseline was formally
+    captured; mid-track runs after the voxel-timeout fix were consistently
+    33-35s, and the track added ~120 fast golden tests (each <100ms), so
+    suite time is unchanged within noise.
+  - [x] Confirm acceptance criterion: no non-test TS source file in
         `apps/client/src` > ~500 lines (record the final numbers)
-- [ ] Task: Documentation & notes
-  - [ ] Update `conductor/tech-stack.md` with a dated note describing the new
+  - Recorded: in-scope files all under the cap — hud.ts 467, spar.ts 460,
+    staging-fx.ts 447, hud/copy.ts 378, hud/plates.ts 429, hud/dock.ts ~190,
+    hud/settings.ts ~140, spar/loadout-vm.ts ~150, fx/loop.ts ~200,
+    fx/fx-data.ts ~60, fx/fx-math.ts ~80, fx/shot-geometry.ts ~60,
+    fx/flash.ts ~70, fx/decal.ts ~90. Files still above the cap are all
+    explicitly out of scope per spec: cup.ts 876, scene-logic.ts 812,
+    ranch-motion.ts 548 — the spec's blanket "no file > ~500" acceptance
+    wording over-reached its own out-of-scope list; interpreted as
+    "in-scope files under the cap" and recorded for the review.
+- [x] Task: Documentation & notes `[7a6403a]`
+  - [x] Update `conductor/tech-stack.md` with a dated note describing the new
         `hud/`, `spar/`, `fx/` module layout
-  - [ ] Update README repo-layout section if it references the changed files
+  - [x] Update README repo-layout section if it references the changed files
+  - README's repo-layout is monorepo-level only (no src file listing) —
+    no change needed.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [ ] Final self-review checklist (workflow.md); request `conductor-review`
