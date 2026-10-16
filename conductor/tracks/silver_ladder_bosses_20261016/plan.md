@@ -125,7 +125,7 @@ verification checkpoint per `workflow.md`.
 
 ## Phase 5 — Final gates & docs
 
-- [x] Task: Full verification & docs — (verify green; docs + learnings commit pending SHA)
+- [x] Task: Full verification & docs — 9a381bc
   - `bun run verify` green end-to-end (types 62/51/126, 641 tests 0 fail,
     biome clean, determinism gate byte-identical); `docs/save-schema.md`
     already carries the v11 + v12 rows from Phases 1/3; README ladder
