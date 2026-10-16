@@ -30,7 +30,7 @@ import {
 
 describe("save schema", () => {
   test("current version matches the schema", () => {
-    expect(SAVE_VERSION).toBe(11)
+    expect(SAVE_VERSION).toBe(12)
   })
 
   test("serializeSave wraps state with version metadata", () => {
@@ -144,7 +144,12 @@ describe("migration chain", () => {
     })
     expect(migrated.state.creature?.trainingFocus).toBeNull()
     expect(migrated.state.creature?.trainingResult).toBeNull()
-    expect(migrated.state.creature?.stats).toEqual(creature.stats)
+    // v12 doubles the stored HP (old-scale save); the rest of the stats
+    // pass through untouched.
+    expect(migrated.state.creature?.stats).toEqual({
+      ...creature.stats,
+      hp: creature.stats.hp * 2,
+    })
   })
 
   test("a v1 save walks v1→v5 with the credited trained days", () => {
@@ -189,7 +194,11 @@ describe("migration chain", () => {
     expect(migrated.state.creature?.fedToday).toBe(false)
     expect(migrated.state.creature?.trainingDays).toBe(6)
     expect(migrated.state.creature?.loadout).toBeNull()
-    expect(migrated.state.creature?.stats).toEqual(creature.stats)
+    // v12 doubles the stored HP (old-scale save); trained stays raw.
+    expect(migrated.state.creature?.stats).toEqual({
+      ...creature.stats,
+      hp: creature.stats.hp * 2,
+    })
     expect(migrated.state.creature?.trained).toEqual(creature.trained)
   })
 
@@ -591,9 +600,13 @@ describe("evolution stage (v6)", () => {
     expect(migrated.state.day).toBe(8)
     expect(migrated.state.creature?.sickCooldown).toBe(0)
     // Migration rewrites nothing about maturity: a v5 creature wakes as it
-    // slept, and the next settlement's gate decides its stage.
+    // slept, and the next settlement's gate decides its stage. (v12 doubles
+    // the stored HP — old-scale save.)
     expect(migrated.state.creature?.stage).toBe("baby")
-    expect(migrated.state.creature?.stats).toEqual(creature.stats)
+    expect(migrated.state.creature?.stats).toEqual({
+      ...creature.stats,
+      hp: creature.stats.hp * 2,
+    })
   })
 
   test("a chain-migrated save (v1 to v6) keeps a clean cooldown too", () => {
@@ -674,7 +687,7 @@ describe("evolution stage (v6)", () => {
 
 describe("save v7 — cup session, rename, hints", () => {
   test("current version matches the schema", () => {
-    expect(SAVE_VERSION).toBe(11)
+    expect(SAVE_VERSION).toBe(12)
   })
 
   test("a v6 save migrates cleanly: null session + a clean hint ledger", () => {
@@ -1022,8 +1035,8 @@ describe("save v11 — silver ladder tier + boss defeat ledger", () => {
     return { version: 10, state, session: null, savedAt: 77 }
   }
 
-  test("SAVE_VERSION is 11", () => {
-    expect(SAVE_VERSION).toBe(11)
+  test("SAVE_VERSION is 12", () => {
+    expect(SAVE_VERSION).toBe(12)
   })
 
   test("a v10 save migrates: the ladder keeps its points and gains tier bronze", () => {
@@ -1116,6 +1129,142 @@ describe("save v11 — silver ladder tier + boss defeat ledger", () => {
     >
     const state = raw.state as Record<string, unknown>
     delete state.bossDefeats
+    adapter.setItem(SAVE_KEY, JSON.stringify(raw))
+    expect(loadGame(adapter)).toBeNull()
+  })
+})
+
+describe("save v12 - element chart HP scale (v11 -> v12)", () => {
+  // element_chart_20261016 doubled every creature's HP scale. A v11 save
+  // holds old-scale HP everywhere: the live creature, every cup-session
+  // slot (rivals AND the player snapshot), the final rival, and every
+  // Hall of Fame record. The migration doubles exactly the stored HP
+  // magnitudes and touches nothing else - trained bonuses, atk/def/spd,
+  // ladder, and the ledger are scale-free.
+  test("SAVE_VERSION is 12", () => {
+    expect(SAVE_VERSION).toBe(12)
+  })
+
+  /** A v11-shaped payload: fresh state with every stored HP halved to the
+   * old scale, plus a real session snapshot and one Hall of Fame record. */
+  const v11Payload = () => {
+    const state = chooseStarter(createInitialState(), "fire_drake", 42)
+    const creature = state.creature
+    if (!creature) throw new Error("no creature")
+    const halvedCreature = {
+      ...creature,
+      stats: { ...creature.stats, hp: Math.floor(creature.stats.hp / 2) },
+    }
+    const session = prepareCup(state)
+    if (!session) throw new Error("no session")
+    const halvedSlots = session.bracket.slots.map((slot) => ({
+      ...slot,
+      stats: { ...slot.stats, hp: Math.floor(slot.stats.hp / 2) },
+    }))
+    const finalRival = session.bracket.finalRival
+    const halvedSession = {
+      ...session,
+      bracket: {
+        ...session.bracket,
+        slots: halvedSlots,
+        finalRival: {
+          ...finalRival,
+          stats: {
+            ...finalRival.stats,
+            hp: Math.floor(finalRival.stats.hp / 2),
+          },
+        },
+      },
+    }
+    const halvedState: GameState = {
+      ...state,
+      creature: halvedCreature,
+      lineage: {
+        generation: 1,
+        hallOfFame: [
+          {
+            name: "Founder Ember",
+            speciesId: "fire_drake",
+            archetypeId: creature.archetypeId,
+            element: "fire",
+            stats: { ...creature.stats, hp: Math.floor(creature.stats.hp / 2) },
+            trained: { hp: 4, atk: 2, def: 1, spd: 0 },
+            cupsWon: 2,
+            generation: 0,
+            retiredOnDay: 60,
+          },
+        ],
+      },
+    }
+    return {
+      version: 11,
+      state: halvedState,
+      session: halvedSession,
+      savedAt: 55,
+    }
+  }
+
+  test("a v11 save migrates with every stored HP doubled", () => {
+    const payload = v11Payload()
+    const creatureHp = payload.state.creature?.stats.hp ?? 0
+    const migrated = migrate(payload)
+    expect(migrated.version).toBe(12)
+    expect(migrated.state.creature?.stats.hp).toBe(creatureHp * 2)
+    const session = migrated.session
+    if (!session) throw new Error("session dropped")
+    for (const [i, slot] of session.bracket.slots.entries()) {
+      expect(slot.stats.hp, `slot ${i}`).toBe(
+        Math.floor((payload.session?.bracket.slots[i]?.stats.hp ?? 0) * 2),
+      )
+    }
+    expect(session.bracket.finalRival.stats.hp).toBe(
+      (payload.session?.bracket.finalRival.stats.hp ?? 0) * 2,
+    )
+  })
+
+  test("the Hall of Fame record doubles its stats but not its trained bonus", () => {
+    const payload = v11Payload()
+    const recordHp = payload.state.lineage.hallOfFame[0]?.stats.hp ?? 0
+    const migrated = migrate(payload)
+    const record = migrated.state.lineage.hallOfFame[0]
+    if (!record) throw new Error("no record")
+    expect(record.stats.hp).toBe(recordHp * 2)
+    expect(record.trained).toEqual({ hp: 4, atk: 2, def: 1, spd: 0 })
+    // Non-HP stats are scale-free and stay untouched.
+    const fixtureRecord = payload.state.lineage.hallOfFame[0]
+    if (!fixtureRecord) throw new Error("no fixture record")
+    expect(record.stats.atk).toBe(fixtureRecord.stats.atk)
+  })
+
+  test("a migrated v11 save loads and stays playable", () => {
+    const adapter = createMemoryAdapter()
+    adapter.setItem(SAVE_KEY, JSON.stringify(v11Payload()))
+    const state = loadGame(adapter)
+    if (!state) throw new Error("load failed")
+    expect(state.creature?.stats.hp).toBeGreaterThan(40)
+  })
+
+  test("a v12 save round-trips with the new-scale HP untouched", () => {
+    const adapter = createMemoryAdapter()
+    const fresh = chooseStarter(createInitialState(), "plant_ox", 7)
+    saveGame(adapter, fresh, 123)
+    const loaded = loadGame(adapter)
+    expect(loaded?.creature?.stats.hp).toBe(fresh.creature?.stats.hp)
+  })
+
+  test("loadGame still rejects a fractional HP stat", () => {
+    const adapter = createMemoryAdapter()
+    saveGame(adapter, chooseStarter(createInitialState(), "fire_drake", 42), 1)
+    const raw = JSON.parse(adapter.getItem(SAVE_KEY) as string) as Record<
+      string,
+      unknown
+    >
+    const state = raw.state as Record<string, unknown>
+    const creature = state.creature as Record<string, unknown>
+    creature.stats = {
+      ...(creature.stats as Record<string, unknown>),
+      hp: 80.5,
+    }
     adapter.setItem(SAVE_KEY, JSON.stringify(raw))
     expect(loadGame(adapter)).toBeNull()
   })

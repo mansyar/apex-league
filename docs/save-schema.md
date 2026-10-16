@@ -8,21 +8,21 @@ writes through the `SaveAdapter` seam.
 ```ts
 // packages/sim/src/save/schema.ts
 interface SaveData {
-  version: number // current: 11 (SAVE_VERSION)
+  version: number // current: 12 (SAVE_VERSION)
   state: GameState
   savedAt: number // Date.now() of the persist
   session: CupSession | null // live cup walk (v7+; null outside a cup)
 }
 ```
 
-## `GameState` at v11
+## `GameState` at v12
 
 | Field | Type | Meaning |
 |---|---|---|
 | `day` | integer ≥ 1 | Current in-game day (1-based). |
 | `phase` | `"day" \| "cup"` | Cup phase is granted by the ticker on cup days; `finalizeCup` returns the game to the day phase. |
 | `actionPoints` | integer ≥ 0 | AP left today (max from `ACTION_POINTS_PER_DAY` + cup-win bonus). |
-| `creature` | `Creature \| null` | The partner; null until a starter is chosen. |
+| `creature` | `Creature \| null` | The partner; null until a starter is chosen. Stats carry the v12 HP scale (see the migration table). |
 | `settings` | `{ reducedMotion: boolean, seenHints: string[], arenaCamera: "cinematic" \| "broadcast" }` | In-app motion preference (v5+); dismissed onboarding hint ids (v7+); arena camera style for the battle presentation (v9+, default `"cinematic"`). |
 | `cupsWon` | integer ≥ 0 | Permanent cup-win counter (v5+). |
 | `lastCupDay` | integer ≥ 1 \| null | Day of the last cup win; the ticker grants +1 AP the next day (v5+). |
@@ -65,6 +65,7 @@ interface SaveData {
 | v8 → v9 | Adds `settings.arenaCamera: "cinematic"` (arena camera style for the battle presentation; reduced-motion players stay pinned at render time). |
 | v9 → v10 | Adds the bloodline slice `lineage: { generation: 0, hallOfFame: [] }` (legacy & breeding). No backfill: a migrated save starts fresh; `cupsWon` already feeds prestige. The cup session is forwarded unchanged. |
 | v10 → v11 | Stamps `ladder.tier: "bronze"` — preserving the migrated ladder's points and sub-tier — and adds `bossDefeats: []` (silver ladder & rival bosses). No backfill: no boss existed before v11, and no save can predate the Promotion Cup, so `"bronze"` is the only correct stamp. |
+| v11 → v12 | Doubles every stored HP magnitude for the element-chart HP scale (element chart & battle length): the live creature's `stats.hp`, every cup-session slot's `stats.hp` (rivals **and** the player snapshot), the bracket's `finalRival.stats.hp`, and every Hall of Fame record's `stats.hp`. Exact, not approximate: v11 effective stats were `base + 1×trained`, so doubling the stored base HP lands migrated saves on the same effective-pool curve as fresh v12 creatures. ATK/DEF/SPD, trained bonuses, ladder, and the ledger are scale-free and pass through untouched. |
 The `session` slot holds a `CupSession` exactly as `prepareCup` produced
 it (bracket, rival resolutions, verdicts, cursor position). It is
 presentation bookkeeping: the client persists it on every session mutation
