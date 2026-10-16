@@ -54,6 +54,8 @@ lifecycle, checkpoints, and commit format.
 
 ## Phase 5 — Final gates
 
-- [ ] Task: Full `bun run verify`; docs final pass; README/learnings updates;
-  `conductor-review` handoff
+- [x] Task: Full `bun run verify`; docs final pass; README/learnings updates;
+  `conductor-review` handoff — fffa8d2 (verify green; learnings #12; README
+  and product.md describe design intent, not scale constants — doc sync
+  offered at track completion)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
