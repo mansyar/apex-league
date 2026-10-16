@@ -1,5 +1,6 @@
 import * as THREE from "three"
 import type { CameraIntent } from "./director"
+import { acceptsOrbit, dragOrbit, zoomOrbit } from "./orbit-logic"
 import { arenaFramingAdjust } from "./scene-logic"
 
 /** Base vertical FOV; narrow viewports widen the lens on top of this
@@ -95,8 +96,6 @@ export function createOrbitCamera(
   const directorDesired = new THREE.Vector3()
   const directorLook = new THREE.Vector3()
 
-  const clamp = (v: number, lo: number, hi: number): number =>
-    Math.min(Math.max(v, lo), hi)
   const applyOrbit = (): void => {
     camera.position.set(
       target.x +
@@ -113,9 +112,11 @@ export function createOrbitCamera(
     if (cameraMode === mode) return
     cameraMode = mode
     // A mode change re-frames the camera outright; drop any live shake
-    // so a stale anchor can't fight the new framing.
+    // so a stale anchor can't fight the new framing, and drop an armed
+    // drag so returning to the ranch never resumes a stale gesture.
     shakeAmp = 0
     shakeBase = null
+    clearGesture()
     if (mode === "arena") {
       savedOrbit = { ...orbit }
       orbit.azimuth = ARENA_FRAMING.azimuth
@@ -138,42 +139,52 @@ export function createOrbitCamera(
   // inspected from any angle. Wheel zooms, clamped to sane distances.
   // While a fight plays the camera is a broadcast pit member: fixed
   // framing, no orbit input.
+  //
+  // Every handler asks the same predicate (`acceptsOrbit`) and only claims
+  // gestures it will act on: a primary pointer on a ranch-mode canvas. An
+  // unclaimed gesture is left entirely to the browser, so nothing native is
+  // ever swallowed. The gesture math itself lives in orbit-logic.ts.
   let dragging = false
   let lastX = 0
   let lastY = 0
+  /** Drop an armed drag. Called on release, on cancel, and on a mode change. */
+  const clearGesture = (): void => {
+    dragging = false
+  }
   const onPointerDown = (e: PointerEvent): void => {
+    if (!acceptsOrbit(cameraMode) || !e.isPrimary) return
     dragging = true
     lastX = e.clientX
     lastY = e.clientY
   }
   const onPointerMove = (e: PointerEvent): void => {
-    if (!dragging || cameraMode !== "ranch") return
-    orbit.azimuth -= (e.clientX - lastX) * 0.005
-    orbit.elevation = clamp(
-      orbit.elevation + (e.clientY - lastY) * 0.005,
-      0.05,
-      1.45,
-    )
+    if (!dragging || !acceptsOrbit(cameraMode)) return
+    e.preventDefault()
+    Object.assign(orbit, dragOrbit(orbit, e.clientX - lastX, e.clientY - lastY))
     lastX = e.clientX
     lastY = e.clientY
     applyOrbit()
   }
   const onPointerUp = (): void => {
-    dragging = false
+    clearGesture()
+  }
+  // A cancelled pointer (the browser reclaimed the gesture, the pointer left
+  // the device) must not leave the drag armed, or the next bare mouse move
+  // would orbit the camera with no button held.
+  const onPointerCancel = (): void => {
+    clearGesture()
   }
   const onWheel = (e: WheelEvent): void => {
-    if (cameraMode !== "ranch") return
-    orbit.radius = clamp(
-      orbit.radius * (1 + Math.sign(e.deltaY) * 0.1),
-      2.5,
-      14,
-    )
+    if (!acceptsOrbit(cameraMode)) return
+    e.preventDefault()
+    Object.assign(orbit, zoomOrbit(orbit, e.deltaY))
     applyOrbit()
   }
   canvas.addEventListener("pointerdown", onPointerDown)
   window.addEventListener("pointermove", onPointerMove)
   window.addEventListener("pointerup", onPointerUp)
-  canvas.addEventListener("wheel", onWheel)
+  window.addEventListener("pointercancel", onPointerCancel)
+  canvas.addEventListener("wheel", onWheel, { passive: false })
 
   let shakeAmp = 0
   let shakePhase = Math.PI * 2 * Math.random()
@@ -316,6 +327,7 @@ export function createOrbitCamera(
       canvas.removeEventListener("pointerdown", onPointerDown)
       window.removeEventListener("pointermove", onPointerMove)
       window.removeEventListener("pointerup", onPointerUp)
+      window.removeEventListener("pointercancel", onPointerCancel)
       canvas.removeEventListener("wheel", onWheel)
     },
   }

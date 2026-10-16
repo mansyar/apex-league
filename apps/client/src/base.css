@@ -29,4 +29,10 @@ body,
 
 #app canvas {
   display: block;
+  /* The canvas is a gesture surface: drag-to-orbit and pinch-to-zoom belong to
+     the camera, so the browser must not claim a touch that starts here. Without
+     this a one-finger drag pans the page and the pointer is cancelled before the
+     camera ever sees it. Overlays sit above the canvas and keep native touch
+     behaviour, so page scrolling everywhere else is untouched. */
+  touch-action: none;
 }
