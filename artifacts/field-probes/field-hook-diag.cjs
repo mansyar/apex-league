@@ -26,9 +26,9 @@ async (page) => {
     }
   })
 
-  await page.goto("http://localhost:5174/", { waitUntil: "load" })
+  await page.goto("http://[::1]:5173/", { waitUntil: "load" })
   await page.evaluate(() => window.localStorage.clear())
-  await page.reload({ waitUntil: "load" })
+  await page.goto("http://[::1]:5173/", { waitUntil: "load" })
   await page.waitForTimeout(3000)
   const onStarter = await page.evaluate(() => ({
     wrapped: window.__wrapped ?? null,

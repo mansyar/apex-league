@@ -152,6 +152,8 @@ export function createPlaybackDriver(
    * `setPaused` can hold and re-arm the exact same beat.
    */
   const arm = (run: () => void, ms: number): void => {
+    // A paused driver never arms: only the resume path re-arms a held beat.
+    if (isPaused) return
     pending = { run, dueAt: performance.now() + ms }
     timer = setTimeout(() => {
       pending = null

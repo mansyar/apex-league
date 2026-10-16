@@ -4,7 +4,7 @@ async (page) => {
   // :visible-qualified — otherwise it matches a display:none card.
   const out = { steps: [] }
 
-  await page.reload({ waitUntil: "load" })
+  await page.goto("http://[::1]:5173/", { waitUntil: "load" })
   await page.waitForTimeout(2500)
   out.visibleDraftCards = await page.locator(".starter-card:visible").count()
 

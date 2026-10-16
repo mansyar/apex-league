@@ -1,5 +1,5 @@
 async (page) => {
-  await page.reload({ waitUntil: "load" })
+  await page.goto("http://[::1]:5173/", { waitUntil: "load" })
   await page.waitForTimeout(3000)
   await page.screenshot({ path: ".playwright-cli/diag-state.png" })
 

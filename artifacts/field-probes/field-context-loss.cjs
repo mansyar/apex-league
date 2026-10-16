@@ -66,9 +66,9 @@ async (page) => {
       return "ok"
     }, lose)
 
-  await page.goto("http://localhost:5174/", { waitUntil: "load" })
+  await page.goto("http://[::1]:5173/", { waitUntil: "load" })
   await page.evaluate(() => window.localStorage.clear())
-  await page.reload({ waitUntil: "load" })
+  await page.goto("http://[::1]:5173/", { waitUntil: "load" })
   await page.waitForTimeout(2500)
   await page.locator(".starter-card:visible").first().click()
   await page.waitForTimeout(2000)

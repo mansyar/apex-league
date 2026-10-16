@@ -4,9 +4,9 @@ async (page) => {
   const out = {}
 
   // ---- Healthy boot.
-  await page.goto("http://localhost:5174/", { waitUntil: "load" })
+  await page.goto("http://[::1]:5173/", { waitUntil: "load" })
   await page.evaluate(() => window.localStorage.clear())
-  await page.reload({ waitUntil: "load" })
+  await page.goto("http://[::1]:5173/", { waitUntil: "load" })
   await page.waitForTimeout(2200)
   out.bootPlateGoneAfterBoot = await page.evaluate(
     () => !document.getElementById("boot-plate"),
@@ -23,7 +23,7 @@ async (page) => {
   await page.addInitScript(() => {
     HTMLCanvasElement.prototype.getContext = () => null
   })
-  await page.reload({ waitUntil: "load" })
+  await page.goto("http://[::1]:5173/", { waitUntil: "load" })
   await page.waitForTimeout(2200)
   out.plateShown = await page.evaluate(() => !!document.querySelector(".failure-plate"))
   out.plateCause = await page.evaluate(

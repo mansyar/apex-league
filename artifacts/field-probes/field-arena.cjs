@@ -2,9 +2,9 @@ async (page) => {
   // Phase 2 probe C (F4) — step 1: find the road into a live fight.
   // The browser profile is in-memory, so clearing the save is free and makes
   // every run start from the same place.
-  await page.goto("http://localhost:5174/", { waitUntil: "load" })
+  await page.goto("http://[::1]:5173/", { waitUntil: "load" })
   await page.evaluate(() => window.localStorage.clear())
-  await page.reload({ waitUntil: "load" })
+  await page.goto("http://[::1]:5173/", { waitUntil: "load" })
   await page.waitForTimeout(2500)
   await page.locator(".starter-card:visible").first().click()
   await page.waitForTimeout(2500)

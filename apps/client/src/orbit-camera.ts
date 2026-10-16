@@ -211,6 +211,9 @@ export function createOrbitCamera(
     // Back to a single pointer (or none): the next move is a drag, not a
     // pinch, so drop the pinch baseline.
     if (pointers.size < 2) pinchSpan = 0
+    // Still a pinch, but a different pair: reseed from the survivors so the
+    // ratio stays anchored and the radius cannot jump.
+    else pinchSpan = spanOf()
   }
   // A cancelled pointer (the browser reclaimed the gesture, the pointer left
   // the device) must not leave the gesture armed, or the next bare mouse move

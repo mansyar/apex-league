@@ -1,7 +1,7 @@
 async (page) => {
   // Phase 2 probe B (F3): two-finger pinch, and the pinch -> drag handoff.
   const out = {}
-  await page.reload({ waitUntil: "load" })
+  await page.goto("http://[::1]:5173/", { waitUntil: "load" })
   await page.waitForTimeout(2500)
   await page.locator(".starter-card:visible").first().click()
   await page.waitForTimeout(2000)
