@@ -136,7 +136,7 @@ reproduced exactly from source.
 |---|---|---|
 | 0 — Foundation | Workspaces, sim core, day ticker, versioned save/load, app shell | Done |
 | 1 — Vertical slice | Care loop, training, one lineage, battle system, one cup, Bronze ladder | Done — care loop, training, baby→juvenile→champion evolution, arena battles, live cups, the Bronze ladder, and the minimal legacy loop (graduation → inherited next egg) playable |
-| 2 - League depth | Full ladder, rivals and bosses, breeding, evolution discovery | In progress - the Silver ladder (Bronze→Silver promotion gate, boss checkpoints) is playable |
+| 2 — League depth | Full ladder, rivals and bosses, breeding, evolution discovery | In progress — the Silver ladder (Bronze→Silver promotion gate, boss checkpoints) is playable |
 | 3 — Content & meta | 20–40 species, ElysiaJS backend, cloud saves, leaderboards | Planned |
 | 4 — Post-MVP | Async ghost PvP, live PvP, mobile pass, audio | Planned |
 
