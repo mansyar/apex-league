@@ -7,7 +7,7 @@
 
 ## Phase 1 — Golden Safety Net
 
-- [~] Task: Audit the three target modules and record the confirmed seam map
+- [x] Task: Audit the three target modules and record the confirmed seam map `[597614a]`
   - [ ] Read `hud.ts`, `spar.ts`, `staging-fx.ts` and list every pure
         computation vs. DOM/effect wiring block (function-level inventory)
   - [ ] Record the final target module map in this plan's notes; adjust
