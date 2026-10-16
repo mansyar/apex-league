@@ -54,8 +54,8 @@ and DOM wiring verified manually; `bun run verify` gates every commit.
 
 ## Phase 6 — Wrap-up
 
-- [ ] Task: Full `bun run verify`; cross-surface browser sweep (all 4 modals,
-      desktop + phone tier, console clean)
-- [ ] Task: Update `hud.copy.test.ts` / mock parity if HUD copy changed; final
-      review readiness
+- [x] Task: Full `bun run verify`; cross-surface browser sweep (all 4 modals,
+      desktop + phone tier, console clean) (1c7648e)
+- [x] Task: Update `hud.copy.test.ts` / mock parity if HUD copy changed; final
+      review readiness (1c7648e — mock parity updated; copy helpers untouched)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
