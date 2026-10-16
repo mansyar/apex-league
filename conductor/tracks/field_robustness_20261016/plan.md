@@ -212,7 +212,7 @@ tested in Phase 1)*
     an effect in flight; unavailable at boot; context lost; context restored),
     screenshots + console evidence attached
 
-## Phase 4 — Accessibility & touch-target polish (F8, F9)
+## Phase 4 — Accessibility & touch-target polish (F8, F9, F10)
 
 *(presentation — measured in the browser, not asserted by inspection)*
 
@@ -224,6 +224,20 @@ tested in Phase 1)*
   - Desktop density is untouched (decision 4 — the phone tier only)
   - Manual verification: at the phone tier every audited plate measures ≥44px
     on its smallest axis in the browser
+- [ ] Task: Phone-tier HUD collision — spar entry reachability (F10)
+  - Found during Phase 2: at 360x732 `.spar-button` `[192,18,150,45]` is
+    overlapped by `.score-bug` `[183,10,163,42]`, `elementFromPoint` at the
+    chip's centre returns the score bug, and only 110 of 407 sampled points
+    inside the chip receive the tap — a phone player cannot start a spar
+  - Cause: `.spar-button` is pinned `top:18px; right:18px` at every breakpoint
+    (`spar.css:298`, no media override) while the phone tier moves
+    `.score-bug` into the top-right (`ranch.css:628`). Fix the collision at the
+    phone tier only, and audit the other top-corner chips
+    (`.new-game-chip`, motion/camera chips, `.command-dock`) for the same
+    overlap rather than just the one measured instance
+  - Manual verification: hit-testing at the phone tier — the chip's centre
+    returns the chip from `elementFromPoint` and every sampled point inside it
+    receives the tap; the desktop breakpoint is unchanged
 - [ ] Task: Shared `:focus-visible` treatment (F9)
   - One rule written against the existing kit focus token (so it cannot drift
     from `ui/kit.css:379-381`), applied to the surfaces that lack it:

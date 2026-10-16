@@ -186,6 +186,25 @@ unit-testable without a DOM:
 - The existing `ranch.css` / `ui/kit.css` rules stay as they are; this is
   additive, not a restyle.
 
+### F10 — Phone-tier HUD collision (found during Phase 2)
+
+- Measured on the touch-emulated phone tier (360x732), the spar entry is not
+  reachable: `.spar-button` `[192,18,150,45]` and `.score-bug`
+  `[183,10,163,42]` overlap, `document.elementFromPoint` at the chip's centre
+  returns `div.kit-plate score-bug`, and only **110 of 407** sampled points
+  inside the chip receive the tap. Because `.app-in-arena` is what hides the
+  score bug (`spar.css:267-272`), no state makes the chip reachable again — a
+  phone player cannot start a sparring match at all.
+- Cause: `.spar-button` is pinned `top:18px; right:18px` at every breakpoint
+  (`spar.css:298`, no media override) while the phone tier moves `.score-bug`
+  into the same top-right corner (`ranch.css:628`).
+- Fix at the phone tier only: the spar entry clears the score bug, and the
+  audit covers the other top-corner chips (`.new-game-chip`, the motion and
+  camera chips, `.command-dock`) for the same collision rather than only the
+  one instance found.
+- Verified by hit-testing, not by eye: the chip's centre returns the chip from
+  `elementFromPoint` and its sampled hit ratio is complete.
+
 ## Non-Functional Requirements
 
 - **No new dependency.** Three.js, DOM and CSS only.
@@ -230,7 +249,11 @@ unit-testable without a DOM:
    ≥44 px on its smallest axis (measured in the browser, not by inspection).
 8. **Focus:** tabbing through the cup bracket and the spar panel shows a
    visible focus ring on every interactive element (computed-style assertion).
-9. `bun run verify` green (types, tests, Biome, determinism gate) with the
+9. **Phone-tier reachability (F10):** at the phone tier the spar entry is not
+   covered — `elementFromPoint` at its centre returns the chip, and every
+   sampled point inside it receives the tap; the top-corner chips audited do
+   not overlap each other.
+10. `bun run verify` green (types, tests, Biome, determinism gate) with the
    suite runtime materially unchanged.
 
 ## Out of Scope
