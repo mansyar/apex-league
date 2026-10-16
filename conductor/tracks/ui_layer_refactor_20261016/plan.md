@@ -176,8 +176,8 @@ spar.ts 531, staging-fx.ts 781; largest overall cup.ts 932 (out of scope).
   commit reference points at the extraction commit that achieved the
   slimming. `spar.ts` retains only panel DOM, session driving, and the
   two remaining seam hooks (rival casting + open/close teardown).
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Manual visual pass: spar panel (locked rows, tactic row, log scroll),
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: 2bb2402]`
+  - [x] Manual visual pass: spar panel (locked rows, tactic row, log scroll),
         kit gate callouts, reduced-motion pass
 
 ## Phase 4 — staging-fx.ts Registry/Math Extraction
