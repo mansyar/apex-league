@@ -304,7 +304,7 @@ tested in Phase 1)*
 
 - [ ] Task: Full verification & end-to-end field pass
   - `bun run verify` green (types, tests, Biome, determinism gate)
-  - One continuous scripted pass covering all nine acceptance criteria, with
+  - One continuous scripted pass covering all ten acceptance criteria, with
     the Playwright touch/visibility/context-loss probes checked in under
     `artifacts/`-adjacent tooling and the screenshots as the checkpoint
     evidence
@@ -320,6 +320,16 @@ tested in Phase 1)*
     expect no change
 - [ ] Task: Final review readiness — all tasks `[x]` with commit SHAs, phase
   notes recorded, ready for `conductor-review`
+
+- [x] Task: Apply review suggestions — b73761b
+  - Review findings: (1, Medium) the pinch baseline was not reseeded when a
+    three-pointer gesture dropped to two — `orbit-camera.ts` now reseeds from
+    the surviving pair; (2, Low) `playbackDriver.arm()` refuses to arm while
+    paused, making the hold an invariant; (3, Low) plan wording (nine → ten
+    ACs) and the probes pinned to `http://[::1]:5173` (Chromium re-resolves
+    `localhost` per navigation; the IPv6-only dev server refuses IPv4 — this
+    is what silently failed the first field pass). Verify: types clean,
+    69/69 targeted tests, pinch probe exit 0.
 
 ## Coordination notes
 
