@@ -118,7 +118,7 @@ verification checkpoint per `workflow.md`.
     the existing storage/migration path; corrupt-save notice path
     untouched (main.ts has zero ladder/boss references).
 
-- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: 3dc5560]
   - Agent browser verification (screenshots at 390/768/1280, console clean)
     + proposed manual steps for the user; await explicit feedback; record
     checkpoint SHA.
