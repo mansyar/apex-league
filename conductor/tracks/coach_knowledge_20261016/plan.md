@@ -60,3 +60,11 @@ and DOM wiring verified manually; `bun run verify` gates every commit.
       review readiness (1c7648e — mock parity updated; copy helpers untouched)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
       [checkpoint: 1c7648e]
+
+## Phase 7 - Review Fixes
+
+- [x] Task: Apply review suggestions (4731dc4 - shared ui/labels.ts for
+      stageLabel/romanNumeral with hud re-export, buildPrefCluster extracted
+      to settings-modal.ts for hud/mock parity, isConnected focus guards in
+      handbook + settings modals, handbook glyphs via template parsing,
+      proper role=row structure in the type chart with display:contents CSS)
