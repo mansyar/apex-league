@@ -125,10 +125,14 @@ verification checkpoint per `workflow.md`.
 
 ## Phase 5 — Final gates & docs
 
-- [ ] Task: Full verification & docs
-  - `bun run verify` green end-to-end; `docs/save-schema.md` final pass;
-    README ladder/roadmap sentence updated (Silver playable); learnings
-    appended if any hard-won lessons emerged.
+- [x] Task: Full verification & docs — (verify green; docs + learnings commit pending SHA)
+  - `bun run verify` green end-to-end (types 62/51/126, 641 tests 0 fail,
+    biome clean, determinism gate byte-identical); `docs/save-schema.md`
+    already carries the v11 + v12 rows from Phases 1/3; README ladder
+    paragraph now names the Promotion Cup + Silver gatekeepers and the
+    roadmap row moves Phase 2 to "In progress"; learnings #13 appended
+    (authored gatekeepers must be guaranteed to reach their stage — the
+    boss walkover was found by browser play, not unit tests).
 
 - [ ] Task: Final review & completion (Refer to workflow.md)
   - Self-review checklist; `conductor-review` handoff; registry + metadata
