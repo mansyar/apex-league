@@ -59,3 +59,7 @@ lifecycle, checkpoints, and commit format.
   and product.md describe design intent, not scale constants — doc sync
   offered at track completion)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) — [checkpoint: c7be45e]
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions c255795 (probe canonical HP 132 → 88,
+  the pinned v12 mid-band; bands re-verified green)
