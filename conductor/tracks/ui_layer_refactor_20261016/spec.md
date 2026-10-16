@@ -46,6 +46,10 @@ god-module compounds risk with each of those.
 - Extract the pure kit-picker/loadout view-model (tier gating display state,
   row lock state, selection mapping) and battle-log formatting into `spar/`
   modules (e.g. `spar/loadout-vm.ts`, `spar/log.ts`), unit-tested DOM-free.
+- *Audit adjustment (2026-10-16):* spar's log formatting turned out to be a
+  thin `showLine` + toggle-label mapping (real formatting lives in the
+  already-tested battle-session). `spar/log.ts` carries only the toggle
+  label/aria mapping — intentionally tiny.
 - Panel DOM construction and session driving stay as thin wiring in `spar.ts`.
 
 ### R3 — `staging-fx.ts` registry/math extraction
@@ -53,8 +57,13 @@ god-module compounds risk with each of those.
 - Extract pure effect computation — per-element burst parameters, projectile
   placement math, decal parameters, hit-stop timing curves — into pure modules
   (e.g. `fx/fx-math.ts`, `fx/fx-data.ts`), unit-tested DOM-free.
-- `EffectLoop` (frame scheduler) and `HitStop` (single owner of hit-stop time)
-  wiring stays in `staging-fx.ts`, unchanged in behavior.
+- *Audit adjustment (2026-10-16):* `HitStop` + `EffectLoop` move to
+  `fx/loop.ts` (self-contained, already test-covered) so `staging-fx.ts`
+  meets the ~500-line cap; `buildShotCore` moves to `fx/shot-geometry.ts`
+  (deterministic mesh factory).
+- `createBattleEffects` (spawn/dispose surface, step functions),
+  the `BattleEffects` interface, and all per-frame scheduling wiring stay in
+  `staging-fx.ts`, unchanged in behavior.
 
 ### R4 — Conservative CSS consolidation
 

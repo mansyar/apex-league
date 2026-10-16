@@ -7,7 +7,7 @@
 
 ## Phase 1 — Golden Safety Net
 
-- [ ] Task: Audit the three target modules and record the confirmed seam map
+- [~] Task: Audit the three target modules and record the confirmed seam map
   - [ ] Read `hud.ts`, `spar.ts`, `staging-fx.ts` and list every pure
         computation vs. DOM/effect wiring block (function-level inventory)
   - [ ] Record the final target module map in this plan's notes; adjust
@@ -21,6 +21,82 @@
         `spar.ts` / `staging-fx.ts` that lack coverage
   - [ ] Run `bun test` green; commit `test(refactor): pin golden outputs for hud/spar/staging-fx seams`
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+### Notes — Phase 1 audit (Task 1.1, seam map)
+
+**hud.ts (1,394) — pure vs wiring inventory:**
+
+- *Pure copy* (lines ~95–374): `REJECTION_COPY`, `statLabel`, `previewNote`,
+  `coachVoice`, `flavorCallout`, `unlockCallout`, `stageLabel`,
+  `romanNumeral`, `familyName`, `growthHint`, `graduationHint`,
+  `evolveCallout`, `graduationCallout`, `saveFailureNotice`,
+  `corruptSaveNotice`, `trainingStatus`, `spendFlashIndex`.
+- *Pure data/tables*: `CONDITIONS`, `ACTIONS`, `STATS`, `HINTS` (incl. `when`
+  predicates, ~949–1024) — hint selection (`first unseen whose when(state)`)
+  is a pure view-model, extracted as `selectHint`.
+- *Pure view-models buried in `update()`*: ladder standing read (~1175–1200:
+  tierName/nextThreshold/nextTier/aria-label/rankPts) → `ladderRead`;
+  AP pips plan (~1149–1164: bonus/clamped/wantPips/flash) → `apPipPlan`;
+  train button state (~1274–1298: disabled/reason/tag/isFocus) →
+  `trainButtonState`; picker entry notes (~1302–1323) → `pickerEntries`;
+  pref chip labels (~1118–1137) → `prefChipLabels`; lineage meta (~1234) →
+  `lineageMeta`; condition-bar delta text (~1325–1339) → `conditionDelta`;
+  ticker precedence chain (~1344–1354) → `statusLine` (copy.ts).
+- *DOM builders* (no sim logic): `buildScoreBug`, `buildLineagePlate`,
+  `buildCreaturePlate`, `buildCommandDock`, `buildSettingsChips`,
+  `buildResetModal`.
+- *Stays in root*: `HudHandlers`/`Hud` types, `createHud` (event wiring,
+  session state: pickerOpen/lastFocus/current/collapsed flags/prevAp/
+  prevLadderSubTier/climbLine/renaming), `update()` fanout, `announce*`.
+- *Target map*: `hud/copy.ts` (copy fns + REJECTION_COPY + HINTS + selectHint
+  + statusLine ≈ 400), `hud/plates.ts` (3 builders + ladderRead/apPipPlan/
+  lineageMeta/conditionDelta ≈ 330), `hud/dock.ts` (dock builder +
+  trainButtonState/pickerEntries ≈ 180), `hud/settings.ts` (chips + modal +
+  prefChipLabels ≈ 140), root ≈ 450 (cap OK).
+
+**spar.ts (531) — inventory:**
+
+- *Pure*: `TEMPERAMENT_LINES`, `TACTIC_PREVIEWS`, `TACTIC_LABELS`,
+  `statLine`, `castingFor` (pure mapping via castFighter/visualSeedOf), the
+  `fightNow` mapping in `runBattle` (~341–353), kit-gate progress text
+  (~379–396 incl. `evolvedUnlock` branch) → `kitProgressLine`, loadout
+  toggle math (~410–414) → `toggleLoadout`, rival detail line (~438–440).
+- *Audit finding — `spar/log.ts` is thinner than the spec assumed*: the
+  "log formatting" is just `showLine` (append a styled div) + the toggle
+  label/aria mapping ("Battle log ▸/▴"). Real formatting lives in
+  battle-session (already tested). Decision: extract the tiny pure toggle
+  mapping as `spar/log.ts` (`logToggleLabel(hidden)`), documented as a
+  deviation in scope, not size.
+- *Stays*: panel DOM construction, session driving, open/close/update.
+- Target: `spar/loadout-vm.ts` (tables + statLine + castingFor + fightNow
+  mapping + kitProgressLine + toggleLoadout + rivalDetail ≈ 160),
+  `spar/log.ts` (~20), root ≈ 350 (cap OK).
+
+**staging-fx.ts (781) — inventory:**
+
+- *Pure data*: `ELEMENT_BURST`, `PROJECTILE_RADIUS`, `FLASH_MS`,
+  `DECAL_MAX`, `DECAL_LIFE_MS` → `fx/fx-data.ts`.
+- *Pure math*: projectile flight (arc lift `sin(t·π)·ARC·look.arc`, wobble
+  z, trail lag spacing 0.09) → `projectilePoint(from,to,elapsed,life,look)`;
+  burst particle velocity/spin/swayPhase formulas (RNG injected) →
+  `burstVelocity(rng, style)`; decal radius/stack-height/color-scaling →
+  `decalSpec(strength, stackIndex)`; flash white-mix `1−easeOut(age/FLASH)`
+  RGB blend → `flashMix`; big-hit strength `min(0.09, 0.02+d/80)` →
+  `bigHitStrength` → `fx/fx-math.ts`.
+- *Audit finding — spec seam adjustment*: `HitStop` + `EffectLoop`
+  (~120 lines, already test-covered by `staging-fx.test.ts`) are the most
+  self-contained logic in the file; leaving them in `staging-fx.ts` leaves
+  the file at ~580 (over the ~500 cap). Decision (sanctioned by this task's
+  "adjust spec if better seams"): move them to `fx/loop.ts`, retarget
+  `staging-fx.test.ts` imports → `staging-fx.ts` ≈ 460 (cap OK).
+  `buildShotCore` (deterministic three-mesh factory, ~55 lines) moves to
+  `fx/shot-geometry.ts` — construction, not wiring.
+- *Stays in `staging-fx.ts`*: `createBattleEffects` (spawn/dispose surface,
+  step functions with their closures over arrays/arenaGroup), `BattleEffects`
+  interface.
+
+**Pre-track LOC baseline (non-test, apps/client/src):** hud.ts 1394,
+spar.ts 531, staging-fx.ts 781; largest overall cup.ts 932 (out of scope).
 
 ## Phase 2 — hud.ts Decomposition
 
@@ -80,8 +156,10 @@
   - [ ] Write failing tests pinning burst parameters, projectile placement
         math, decal parameters, hit-stop timing curves (golden parity with
         Phase 1 pins)
-  - [ ] Implement by moving the pure computations; `EffectLoop` and `HitStop`
-        stay in `staging-fx.ts` unchanged
+  - [ ] Implement by moving the pure computations
+  - [ ] Move `HitStop` + `EffectLoop` to `fx/loop.ts` and `buildShotCore`
+        to `fx/shot-geometry.ts` (audit decisions); retarget
+        `staging-fx.test.ts` imports
   - [ ] `bun run verify`; commit `refactor(fx): extract effect data + math`
 - [ ] Task: Slim `staging-fx.ts` to scheduler/wiring; verify the cap
   - [ ] `bun run verify`; commit `refactor(fx): slim staging-fx to wiring`
