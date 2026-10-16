@@ -125,10 +125,10 @@ spar.ts 531, staging-fx.ts 781; largest overall cup.ts 932 (out of scope).
   - [x] Move the three DOM builders to `hud/plates.ts`, consuming the
         view-models; `hud.ts` keeps thin wiring
   - [x] `bun run verify`; commit `refactor(hud): extract plates + view-models`
-- [ ] Task: Extract `hud/dock.ts` (TDD)
-  - [ ] Write failing tests for the command-dock action-availability/AP-cost
+- [x] Task: Extract `hud/dock.ts` (TDD) `[545f058]`
+  - [x] Write failing tests for the command-dock action-availability/AP-cost
         view-model
-  - [ ] Implement by moving existing logic; move the dock DOM builder;
+  - [x] Implement by moving existing logic; move the dock DOM builder;
         `bun run verify`; commit `refactor(hud): extract command dock`
 - [ ] Task: Extract `hud/settings.ts`
   - [ ] Move settings chips + reset confirm modal (reuse shared `focusTrap`);
