@@ -144,18 +144,26 @@ const STATS: Array<{ key: StatKey; label: string }> = [
 ]
 
 /** The display label for one of the four trainable stat keys. */
-function statLabel(key: StatKey): string {
+export function statLabel(key: StatKey): string {
   return STATS.find((s) => s.key === key)?.label ?? key
 }
 
-/** What tonight would do, from the sim's own preview helper. */
-function previewNote(preview: "gained" | "sick" | "hungry"): string {
+/** The short parenthetical note for what tonight's rest would do. */
+export function previewNote(preview: "gained" | "sick" | "hungry"): string {
   if (preview === "gained") return "+1 tonight"
   if (preview === "sick") return "no gain — unwell"
   return "no gain — hungry"
 }
 
-function coachVoice(conditions: CreatureConditions, name: string): string {
+/**
+ * The condition coach line: at most one gentle nudge for whatever needs
+ * care most, in strict priority (unwell > exhausted > down > hungry).
+ * Empty when the partner is fine — silence is the healthy baseline.
+ */
+export function coachVoice(
+  conditions: CreatureConditions,
+  name: string,
+): string {
   if (conditions.health < SICK_HEALTH) {
     return `${name} seems unwell — medicine would help.`
   }
@@ -336,7 +344,7 @@ export function corruptSaveNotice(): string {
  * the morning result after Advance Day, and the condition coach line only
  * when training has nothing to say.
  */
-function trainingStatus(
+export function trainingStatus(
   creature: NonNullable<GameState["creature"]>,
   lastFocus: StatKey | null,
 ): string {
