@@ -253,5 +253,5 @@ spar.ts 531, staging-fx.ts 781; largest overall cup.ts 932 (out of scope).
   - [x] Update README repo-layout section if it references the changed files
   - README's repo-layout is monorepo-level only (no src file listing) —
     no change needed.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Final self-review checklist (workflow.md); request `conductor-review`
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[668729a]`
+  - [x] Final self-review checklist (workflow.md); request `conductor-review`
