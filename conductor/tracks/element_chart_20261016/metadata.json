@@ -2,7 +2,7 @@
   "id": "element_chart_20261016",
   "title": "Element Chart & Battle Length",
   "type": "feat",
-  "status": "new",
+  "status": "complete",
   "createdAt": "2026-10-16",
   "branch": "track/element_chart_20261016",
   "base": "track/silver_ladder_bosses_20261016 @ cb6d402"

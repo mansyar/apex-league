@@ -1,6 +1,6 @@
 # Element Chart & Battle Length
 
-**Type:** feat · **Status:** new · **Branch:** `track/element_chart_20261016`
+**Type:** feat · **Status:** complete · **Branch:** `track/element_chart_20261016`
 **Base:** `track/silver_ladder_bosses_20261016 @ cb6d402` (stacked)
 
 ## Overview
