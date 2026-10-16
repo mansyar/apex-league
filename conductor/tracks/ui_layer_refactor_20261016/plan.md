@@ -118,13 +118,13 @@ spar.ts 531, staging-fx.ts 781; largest overall cup.ts 932 (out of scope).
         cap, passes solo in 8s); resolved by user-approved micro-chore
         `test(voxel): give the proportion budget gate explicit timeout
         headroom` (`a0a2348`)*
-- [ ] Task: Extract `hud/plates.ts` (TDD)
-  - [ ] Write failing tests for score-bug / lineage-plate / creature-plate
+- [x] Task: Extract `hud/plates.ts` (TDD) `[84bc909]`
+  - [x] Write failing tests for score-bug / lineage-plate / creature-plate
         view-model functions (state → data)
-  - [ ] Implement view-models by moving the existing math; make tests green
-  - [ ] Move the three DOM builders to `hud/plates.ts`, consuming the
+  - [x] Implement view-models by moving the existing math; make tests green
+  - [x] Move the three DOM builders to `hud/plates.ts`, consuming the
         view-models; `hud.ts` keeps thin wiring
-  - [ ] `bun run verify`; commit `refactor(hud): extract plates + view-models`
+  - [x] `bun run verify`; commit `refactor(hud): extract plates + view-models`
 - [ ] Task: Extract `hud/dock.ts` (TDD)
   - [ ] Write failing tests for the command-dock action-availability/AP-cost
         view-model
