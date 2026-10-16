@@ -36,10 +36,10 @@ lifecycle, checkpoints, and commit format.
 
 ## Phase 3 — Save v12
 
-- [ ] Task: Red — version pins, migration tests (v11 → v12: creature HP ×2,
+- [x] Task: Red - version pins, migration tests (v11 → v12: creature HP ×2,
   in-flight session slot stats ×2, lineage/HoF records ×2), validator tests
   (new bounds)
-- [ ] Task: Green — schema v12 + migration + validator + `docs/save-schema.md`
+- [x] Task: Green - schema v12 + migration + validator + `docs/save-schema.md` — 055be23
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Client & presentation audit (manual-verify)
