@@ -108,11 +108,16 @@ spar.ts 531, staging-fx.ts 781; largest overall cup.ts 932 (out of scope).
 
 ## Phase 2 — hud.ts Decomposition
 
-- [ ] Task: Extract `hud/copy.ts`
-  - [ ] Create `hud/copy.ts`; move copy engine; retarget `hud.copy.test.ts`
+- [x] Task: Extract `hud/copy.ts` `[4c00dcf]`
+  - [x] Create `hud/copy.ts`; move copy engine; retarget `hud.copy.test.ts`
         (tests move with the code, still byte-identical outputs)
-  - [ ] `hud.ts` re-exports the moved API; `bun run verify`; commit
+  - [x] `hud.ts` re-exports the moved API; `bun run verify`; commit
         `refactor(hud): extract copy engine to hud/copy.ts`
+        — *deviation note: verify was briefly blocked by a pre-existing
+        voxel parallel-run timeout (`proportion.test.ts` at its own 20s
+        cap, passes solo in 8s); resolved by user-approved micro-chore
+        `test(voxel): give the proportion budget gate explicit timeout
+        headroom` (`a0a2348`)*
 - [ ] Task: Extract `hud/plates.ts` (TDD)
   - [ ] Write failing tests for score-bug / lineage-plate / creature-plate
         view-model functions (state → data)
