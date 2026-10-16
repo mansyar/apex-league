@@ -195,4 +195,9 @@ export {
   setArenaCamera,
   setReducedMotion,
 } from "./state"
+export {
+  type StatBreakdown,
+  type StatBreakdownRow,
+  statBreakdown,
+} from "./stats"
 export { advanceDay, CUP_WIN_AP_BONUS } from "./ticker"
