@@ -13,7 +13,7 @@ or the determinism gate.
 
 *(all logic-bearing — strict TDD; the only new modules this track adds)*
 
-- [ ] Task: Pure orbit & gesture module `orbit-logic.ts` (F2) *(write failing tests first)*
+- [x] Task: Pure orbit & gesture module `orbit-logic.ts` (F2) *(write failing tests first)* — 7ddbd55
   - Tests (`apps/client/src/orbit-logic.test.ts`): `DRAG_SENSITIVITY`-scaled
     `dragOrbit` moves azimuth without clamp and clamps elevation at both
     `ELEVATION_BOUNDS` edges (inclusive boundaries, and a large single delta);
@@ -32,7 +32,7 @@ or the determinism gate.
     `ELEVATION_BOUNDS`, `DRAG_SENSITIVITY`, `dragOrbit`, `zoomOrbit`,
     `pinchOrbit`, `orbitPosition`, `pointerMode`, `acceptsOrbit` — constants
     lifted verbatim from `orbit-camera.ts:151-170` so behaviour cannot drift.
-- [ ] Task: Pure runtime state machine `lifecycle.ts` (F6) *(write failing tests first)*
+- [x] Task: Pure runtime state machine `lifecycle.ts` (F6) *(write failing tests first)* — 7fe0c16
   - Tests (`apps/client/src/lifecycle.test.ts`): fresh state is
     `{ renderLoop: "running", surface: "game" }`; `visibility/hidden` ⇒
     `paused`; `visibility/visible` ⇒ `running`; `graphics/unavailable` and
@@ -46,7 +46,7 @@ or the determinism gate.
     (`visibility` | `graphics`), `initialRuntimeState()`, and
     `runtimeState(prev, event)` with `surface === "plate"` taking precedence
     over `renderLoop`.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - Automated: `bun run check` clean; the two new suites green; full `bun test`
     runtime materially unchanged
   - Manual: `bun run verify` green end to end (Biome clean on the new files,
