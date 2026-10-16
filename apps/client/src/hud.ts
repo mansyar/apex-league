@@ -1,32 +1,11 @@
 import {
   ACTION_POINTS_PER_DAY,
   type CareAction,
-  type CareRejection,
-  CHAMPION_EVOLUTION_DAY,
-  CHAMPION_HINT_DAY,
-  CHAMPION_STAT_BOOST,
-  type Creature,
-  type CreatureConditions,
   canGraduate,
   careAction,
-  EVOLUTION_DAY,
-  EVOLUTION_HINT_DAY,
-  EVOLUTION_STAT_BOOST,
-  EXHAUSTED_ENERGY,
   type GameState,
-  GRADUATION_HINT_DAY,
-  getMove,
-  getSpecies,
-  LADDER_THRESHOLDS,
   lineagePrestige,
-  MOVE_TIER3_DAYS,
-  MOVE_TIER4_DAYS,
-  PRESTIGE_ESTABLISHED_LINE,
-  PRESTIGE_WARM_BLOODLINE,
   previewTraining,
-  requiredTierDays,
-  SICK_HEALTH,
-  SILVER_THRESHOLDS,
   type StatKey,
   TRAINING_CAP,
 } from "@apex/sim"
@@ -41,24 +20,23 @@ import {
   STATS,
   saveFailureNotice,
   selectHint,
-  spendFlashIndex,
   stageLabel,
   statLabel,
   statusLine,
 } from "./hud/copy"
-import { icons } from "./ui/icons"
 import {
-  bar,
-  button,
-  chip,
-  crest,
-  cta,
-  meter,
-  plate,
-  replay,
-  tab,
-  ticker,
-} from "./ui/kit"
+  apPipPlan,
+  buildCreaturePlate,
+  buildLineagePlate,
+  buildScoreBug,
+  conditionDelta,
+  ladderRead,
+  lineageMeta,
+  promotionLine,
+  statCell,
+} from "./hud/plates"
+import { icons } from "./ui/icons"
+import { button, chip, cta, meter, plate, replay } from "./ui/kit"
 
 export {
   coachVoice,
@@ -82,6 +60,14 @@ export {
   trainingStatus,
   unlockCallout,
 } from "./hud/copy"
+export {
+  buildCreaturePlate,
+  buildLineagePlate,
+  buildScoreBug,
+  type CreaturePlateRefs,
+  type LineagePlateRefs,
+  type ScoreBugRefs,
+} from "./hud/plates"
 
 export interface HudHandlers {
   onAdvanceDay: () => void
@@ -129,298 +115,12 @@ export interface Hud {
   announceSaveFailure(): void
 }
 
-const CONDITIONS: Array<{
-  key: keyof CreatureConditions
-  label: string
-  glyph: string
-  color: string
-}> = [
-  {
-    key: "hunger",
-    label: "Hunger",
-    glyph: icons.hunger,
-    color: "var(--bar-hunger)",
-  },
-  {
-    key: "energy",
-    label: "Energy",
-    glyph: icons.energy,
-    color: "var(--bar-energy)",
-  },
-  {
-    key: "health",
-    label: "Health",
-    glyph: icons.health,
-    color: "var(--bar-health)",
-  },
-  { key: "mood", label: "Mood", glyph: icons.mood, color: "var(--bar-mood)" },
-  { key: "bond", label: "Bond", glyph: icons.bond, color: "var(--bar-bond)" },
-]
-
 const ACTIONS: Array<{ action: CareAction; label: string; glyph: string }> = [
   { action: "feed", label: "Feed", glyph: icons.feed },
   { action: "rest", label: "Rest", glyph: icons.rest },
   { action: "treat", label: "Treat", glyph: icons.treat },
   { action: "play", label: "Play", glyph: icons.play },
 ]
-
-// ---------------------------------------------------------------------------
-// DOM builders — the exact cluster structures createHud composes. The mock
-// page (mock.ts) renders these same factories fed canned values, so the
-// mock can never drift from the live HUD's structure or class ownership.
-// ---------------------------------------------------------------------------
-
-/** The score-bug elements the daily update writes into. */
-export interface ScoreBugRefs {
-  root: HTMLElement
-  phaseTab: HTMLElement
-  dayNum: HTMLElement
-  apMeter: ReturnType<typeof meter>
-  trophy: HTMLElement
-  trophyCount: HTMLElement
-  rank: HTMLElement
-  rankRank: HTMLElement
-  rankPts: HTMLElement
-}
-
-/**
- * Top-center score bug: phase tab, day, AP segmented meter, championship
- * tally, and the Bronze ladder standing (save v8). Pure DOM — values are
- * owned by createHud's update().
- */
-export function buildScoreBug(): ScoreBugRefs {
-  const root = plate({ className: "score-bug" })
-  const phaseTab = tab("Day phase", "outline")
-  const dayNum = document.createElement("span")
-  dayNum.className = "score-day-num"
-  const dayLabel = document.createElement("span")
-  dayLabel.className = "score-day-label"
-  dayLabel.textContent = "Day"
-  const scoreDay = document.createElement("span")
-  scoreDay.className = "score-day"
-  scoreDay.append(dayLabel, dayNum)
-  const divider = document.createElement("span")
-  divider.className = "score-divider"
-  const divider2 = divider.cloneNode() as HTMLElement
-  const apLabel = document.createElement("span")
-  apLabel.className = "score-ap-label"
-  apLabel.textContent = "AP"
-  const scoreAp = document.createElement("span")
-  scoreAp.className = "score-ap"
-  const apMeter = meter(0, ACTION_POINTS_PER_DAY)
-  scoreAp.append(apLabel, apMeter.root)
-  // Lifetime championships (save v5): one gold tally, no silent cap.
-  const trophy = document.createElement("span")
-  trophy.className = "score-trophy"
-  trophy.title = "Cup championships"
-  const trophyCount = document.createElement("span")
-  trophyCount.className = "score-trophy-count"
-  trophy.innerHTML = icons.trophy
-  trophy.append(trophyCount)
-  // Bronze ladder standing (save v8): sub-tier tab + points, mirroring
-  // the trophy's one-segment-one-fact grammar.
-  const divider3 = divider.cloneNode() as HTMLElement
-  const rank = document.createElement("span")
-  rank.className = "score-ladder"
-  rank.title = "League standing"
-  const rankRank = document.createElement("span")
-  rankRank.className = "score-ladder-rank"
-  const rankPts = document.createElement("span")
-  rankPts.className = "score-ladder-pts"
-  rank.append(rankRank, rankPts)
-  root.append(
-    phaseTab,
-    scoreDay,
-    divider,
-    scoreAp,
-    divider2,
-    trophy,
-    divider3,
-    rank,
-  )
-  return {
-    root,
-    phaseTab,
-    dayNum,
-    apMeter,
-    trophy,
-    trophyCount,
-    rank,
-    rankRank,
-    rankPts,
-  }
-}
-
-/** The lineage-plate elements the daily update writes into. */
-export interface LineagePlateRefs {
-  root: HTMLButtonElement
-  familyEl: HTMLElement
-  metaEl: HTMLElement
-}
-
-/**
- * Top-left lineage plate (legacy track): the family name with its
- * generation numeral and the bloodline's counters. Doubles as the Hall of
- * Fame opener — one surface, one story.
- */
-export function buildLineagePlate(): LineagePlateRefs {
-  const root = document.createElement("button")
-  root.type = "button"
-  root.className = "kit-plate hud-lineage"
-  root.setAttribute("aria-label", "Lineage and Hall of Fame")
-  const tagEl = tab("Lineage", "outline")
-  const familyEl = document.createElement("span")
-  familyEl.className = "lineage-family"
-  const metaEl = document.createElement("span")
-  metaEl.className = "lineage-meta"
-  root.append(tagEl, familyEl, metaEl)
-  return { root, familyEl, metaEl }
-}
-
-/** The creature lower-third elements the daily update writes into. */
-export interface CreaturePlateRefs {
-  root: HTMLElement
-  creatureHead: HTMLButtonElement
-  headRow: HTMLElement
-  creatureName: HTMLElement
-  stageTab: HTMLElement
-  crestEl: HTMLElement
-  renameButton: HTMLButtonElement
-  nameInput: HTMLInputElement
-  renameConfirm: HTMLButtonElement
-  renameCancel: HTMLButtonElement
-  editRow: HTMLElement
-  statCells: Array<{ total: HTMLElement; bonus: HTMLElement; key: StatKey }>
-  bars: Array<{
-    handle: ReturnType<typeof bar>
-    delta: HTMLElement
-    key: keyof CreatureConditions
-    prev: number | null
-  }>
-  statusTicker: ReturnType<typeof ticker>
-}
-
-/**
- * Bottom-left creature lower-third (broadcast kit plate): head row with
- * collapse/rename affordances, stat cells, condition bars with transient
- * delta chips, and the live-region status ticker. Pure DOM — interaction
- * wiring and values stay with createHud.
- */
-export function buildCreaturePlate(): CreaturePlateRefs {
-  const root = plate({ className: "creature-plate" })
-  // The creature head doubles as the collapse toggle: clicking it folds
-  // the plate down to just the head row (crest + name + stage), leaving
-  // the briefest useful readout pinned to the corner.
-  const creatureHead = document.createElement("button")
-  creatureHead.className = "creature-head"
-  creatureHead.type = "button"
-  creatureHead.setAttribute("aria-expanded", "true")
-  creatureHead.title = "Collapse panel"
-  const crestEl = crest("fire")
-  const creatureName = document.createElement("span")
-  creatureName.className = "creature-name"
-  const stageTab = tab("Baby", "stage")
-  const creatureChev = document.createElement("span")
-  creatureChev.className = "collapse-chev"
-  creatureChev.innerHTML = icons.chevron
-  creatureHead.append(crestEl, creatureName, stageTab, creatureChev)
-
-  // Rename affordance: a sibling button (never nested inside the collapse
-  // toggle) that swaps the head row for an inline edit form.
-  const renameButton = document.createElement("button")
-  renameButton.className = "rename-button"
-  renameButton.type = "button"
-  renameButton.title = "Rename partner"
-  renameButton.setAttribute("aria-label", "Rename partner")
-  renameButton.innerHTML = icons.pencil
-  const headRow = document.createElement("div")
-  headRow.className = "creature-headrow"
-  headRow.append(creatureHead, renameButton)
-
-  // Inline edit form: name input + confirm/cancel. Hidden until the
-  // pencil is pressed; Enter confirms, Escape cancels.
-  const nameInput = document.createElement("input")
-  nameInput.className = "creature-name-input"
-  nameInput.type = "text"
-  nameInput.maxLength = 16
-  nameInput.setAttribute("aria-label", "Creature name")
-  const renameConfirm = document.createElement("button")
-  renameConfirm.className = "kit-button rename-confirm"
-  renameConfirm.type = "button"
-  renameConfirm.textContent = "Save"
-  renameConfirm.setAttribute("aria-label", "Save name")
-  const renameCancel = document.createElement("button")
-  renameCancel.className = "kit-button rename-cancel"
-  renameCancel.type = "button"
-  renameCancel.textContent = "Cancel"
-  renameCancel.setAttribute("aria-label", "Cancel rename")
-  const editRow = document.createElement("div")
-  editRow.className = "creature-name-edit"
-  editRow.style.display = "none"
-  editRow.append(nameInput, renameConfirm, renameCancel)
-
-  const statRow = document.createElement("div")
-  statRow.className = "stat-row"
-  const statCells = STATS.map(({ key, label }) => {
-    const cell = document.createElement("span")
-    cell.className = "stat-cell"
-    const statLabel = document.createElement("span")
-    statLabel.className = "stat-label"
-    statLabel.textContent = label
-    const total = document.createElement("span")
-    total.className = "stat-total"
-    const bonus = document.createElement("span")
-    bonus.className = "stat-chip"
-    cell.append(statLabel, total, bonus)
-    statRow.append(cell)
-    return { total, bonus, key }
-  })
-  const conditionList = document.createElement("div")
-  conditionList.className = "condition-list"
-  const bars: Array<{
-    handle: ReturnType<typeof bar>
-    delta: HTMLElement
-    key: keyof CreatureConditions
-    prev: number | null
-  }> = CONDITIONS.map((def) => {
-    const handle = bar({
-      label: def.label,
-      glyph: def.glyph,
-      value: 0,
-      max: 100,
-      color: def.color,
-    })
-    // Transient change chip: pinned next to the value for ~1.2s on a
-    // meaningful swing, then hidden again (mock "bar change feedback").
-    const delta = document.createElement("em")
-    delta.className = "condition-delta"
-    delta.style.display = "none"
-    handle.value.append(delta)
-    conditionList.append(handle.root)
-    return { handle, delta, key: def.key, prev: null }
-  })
-  const statusTicker = ticker()
-  // Hardening: the announcer strip is live region (screen readers hear
-  // routine callouts without focus).
-  statusTicker.root.setAttribute("aria-live", "polite")
-  root.append(headRow, editRow, statRow, conditionList, statusTicker.root)
-  return {
-    root,
-    creatureHead,
-    headRow,
-    creatureName,
-    stageTab,
-    crestEl,
-    renameButton,
-    nameInput,
-    renameConfirm,
-    renameCancel,
-    editRow,
-    statCells,
-    bars,
-    statusTicker,
-  }
-}
 
 /** The command-dock elements the daily update writes into. */
 export interface CommandDockRefs {
@@ -862,16 +562,15 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
 
     // AP segmented meter. Cup bonus points extend past the daily max as
     // chevron-cut bonus pips; a fresh spend flashes the drained pip out.
-    const bonus = Math.max(0, state.actionPoints - ACTION_POINTS_PER_DAY)
-    const clamped = Math.min(state.actionPoints, ACTION_POINTS_PER_DAY)
-    const wantPips = ACTION_POINTS_PER_DAY + bonus
+    const { bonus, clamped, wantPips, flash } = apPipPlan(
+      state.actionPoints,
+      prevAp,
+    )
     if (apPips.length !== wantPips) {
       const rebuilt = meter(clamped, ACTION_POINTS_PER_DAY, bonus)
       apMeter.root.replaceChildren(...rebuilt.pips)
       apPips = rebuilt.pips
     }
-    const flash =
-      prevAp === null ? null : spendFlashIndex(prevAp, state.actionPoints)
     apPips.forEach((pip, i) => {
       pip.classList.toggle("is-bonus", i >= ACTION_POINTS_PER_DAY)
       pip.classList.toggle("is-empty", i >= clamped)
@@ -889,33 +588,13 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     // are banked toward the next tier, so the raw total is the honest
     // number (Bronze I banks toward Silver, Silver I toward Gold).
     const ladder = state.ladder
-    const tierName = ladder.tier === "silver" ? "Silver" : "Bronze"
-    rankRank.textContent = `${tierName} ${ladder.subTier}`
-    rank.classList.toggle("score-ladder--silver", ladder.tier === "silver")
-    const nextThreshold =
-      ladder.subTier === "III"
-        ? ladder.tier === "silver"
-          ? SILVER_THRESHOLDS.silverII
-          : LADDER_THRESHOLDS.bronzeII
-        : ladder.tier === "silver"
-          ? SILVER_THRESHOLDS.silverI
-          : LADDER_THRESHOLDS.bronzeI
-    const nextTier = ladder.subTier === "III" ? "II" : "I"
-    if (ladder.subTier === "I") {
-      rankPts.textContent = `${ladder.points} pts`
-      rank.setAttribute(
-        "aria-label",
-        `League standing: ${tierName} I, ${ladder.points} points banked`,
-      )
-    } else {
-      rankPts.textContent = `${ladder.points}/${nextThreshold}`
-      rank.setAttribute(
-        "aria-label",
-        `League standing: ${tierName} ${ladder.subTier}, ${ladder.points} of ${nextThreshold} points toward ${tierName} ${nextTier}`,
-      )
-    }
+    const read = ladderRead(ladder)
+    rankRank.textContent = read.rank
+    rank.classList.toggle("score-ladder--silver", read.isSilver)
+    rankPts.textContent = read.points
+    rank.setAttribute("aria-label", read.ariaLabel)
     if (prevLadderSubTier !== null && ladder.subTier !== prevLadderSubTier) {
-      climbLine = `Promotion — ${tierName} ${ladder.subTier}!`
+      climbLine = promotionLine(read.tierName, ladder.subTier)
       replay(rank, "chip-pop")
     }
     prevLadderSubTier = ladder.subTier
@@ -947,7 +626,11 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     // Legacy (v10): the lineage plate mirrors the bloodline, and the
     // graduate chip appears only when the sim says the champion is eligible.
     familyEl.textContent = familyName(creature.name, state.lineage.generation)
-    metaEl.textContent = `Gen ${state.lineage.generation} · Prestige ${lineagePrestige(state)} · ${state.cupsWon} cup${state.cupsWon === 1 ? "" : "s"}`
+    metaEl.textContent = lineageMeta(
+      state.lineage.generation,
+      lineagePrestige(state),
+      state.cupsWon,
+    )
     const gradVerdict = canGraduate(state)
     dockGraduate.style.display = gradVerdict.eligible ? "" : "none"
     graduateChip.disabled = !gradVerdict.eligible
@@ -979,10 +662,9 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
 
     // Stat row: name, total (rolled base + trained), bonus when above 0.
     for (const cell of statCells) {
-      const base = creature.stats[cell.key]
-      const trained = creature.trained[cell.key]
-      cell.total.textContent = String(base + trained)
-      cell.bonus.textContent = trained > 0 ? `+${trained}` : ""
+      const { total, bonus } = statCell(creature, cell.key)
+      cell.total.textContent = String(total)
+      cell.bonus.textContent = bonus
     }
 
     // Train button: disabled only when nothing is possible. A focus set
@@ -1041,10 +723,10 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     for (const bar of bars) {
       const v = creature.conditions[bar.key]
       bar.handle.set(v, 100)
-      const swing = bar.prev === null ? 0 : v - bar.prev
-      if (Math.abs(swing) >= 2) {
+      const { text } = conditionDelta(bar.prev, v)
+      if (text !== null) {
         replay(bar.handle.fill, "is-flashing")
-        bar.delta.textContent = `${swing > 0 ? "+" : "−"}${Math.abs(swing)}`
+        bar.delta.textContent = text
         bar.delta.style.display = ""
         replay(bar.delta, "chip-pop")
       } else {
