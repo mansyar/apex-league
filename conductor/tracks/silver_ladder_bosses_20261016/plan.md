@@ -90,23 +90,35 @@ verification checkpoint per `workflow.md`.
 
 ## Phase 4 — Client presentation (manual-verify tasks)
 
-- [ ] Task: Rank plate & ladder HUD (FR11)
-  - Tier + sub-tier display, Silver styling, progress-to-next line per
-    tier. Manual verification note.
+- [x] Task: Rank plate & ladder HUD (FR11) — 2430f49
+  - Tier + sub-tier display ("Bronze I" / "Silver III"), `--silver` token
+    styling on the rank tab, progress-to-next per tier thresholds
+    (Bronze 6/12, Silver 18/24), banked-pts readout at a tier's top,
+    climb line + chip-pop on tier and sub-tier flips. Manual verification
+    note: browser-verified aria + plate at all three fixtures.
 
-- [ ] Task: Cup chip, bracket banners & boss intro (FR11)
-  - Chip copy ("Promotion Cup awaits" / checkpoint / apex framing),
-    promotion bracket header, boss-match banner, arena lower-third intro
-    (reduced-motion aware). Manual verification note.
+- [x] Task: Cup chip, bracket banners & boss intro (FR11) — 2430f49
+  - Chip copy via the sim's bossForCup ("Promotion Cup awaits" / "<Boss>
+    holds the final"), standing fallback "Tier X · N pts"; promotion
+    bracket header ("Promotion Cup"), boss-match banner ("Boss Final ·
+    <name>"), arena lower-third intro (registry copy, reduced-motion
+    aware) flipping to the boss's verdict quip during the stamp hold.
+    Manual verification note: browser-verified on the gate fixture
+    (Koda intro verbatim) and silver3 (Hesse banner).
 
-- [ ] Task: Callouts, coach lines & Hall of Fame scalps (FR11)
-  - Promotion callout, one-time boss-defeat callout (seenHints dedupe),
-    coach ticker lines, HoF scalp display. Manual verification note.
+- [x] Task: Callouts, coach lines & Hall of Fame scalps (FR11) — 2430f49
+  - One-time boss-defeat callouts boss-koda/hesse/marlow (seenHints
+    dedupe), silver-awaits hint bronze-gated, HoF "Scalps" section
+    reading state.bossDefeats through the registry, ladderRow tier-aware
+    (cross-tier promotion copy). Manual verification note: browser
+    confirmed both scalps listed + the koda callout firing.
 
-- [ ] Task: Client save wiring
-  - Store wiring for v11 fields; corrupt-save notice path unchanged.
+- [x] Task: Client save wiring — 2430f49 (verify-only)
+  - No wiring needed: GameState carries v11 fields transparently through
+    the existing storage/migration path; corrupt-save notice path
+    untouched (main.ts has zero ladder/boss references).
 
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - Agent browser verification (screenshots at 390/768/1280, console clean)
     + proposed manual steps for the user; await explicit feedback; record
     checkpoint SHA.
