@@ -419,6 +419,103 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Coach's Handbook (coach_knowledge_20261016): tabbed ranch modal — type
+   chart, ladder rules, raising guidance. Ranch-only surface. */
+.handbook-box {
+  text-align: left;
+  /* Keep the modal inside the viewport at every tier; the active panel
+     scrolls while title, tabs, and actions stay pinned. */
+  max-height: min(86dvh, 720px);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
+.handbook-tabs {
+  display: flex;
+  gap: 4px;
+  margin: 10px 0 12px;
+}
+
+.handbook-tab {
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.handbook-panel {
+  display: grid;
+  gap: 8px;
+}
+
+/* `hidden` loses to the display rule above without this. */
+.handbook-panel[hidden] {
+  display: none;
+}
+
+.handbook-chart {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(28px, 1fr));
+  gap: 3px;
+  text-align: center;
+}
+
+.handbook-chart-corner {
+  align-self: end;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--ink-dim);
+}
+
+.handbook-chart-head svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+  margin: 0 auto;
+}
+
+.handbook-chart-cell {
+  padding: 4px 0;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-dim);
+}
+
+.handbook-chart-cell.is-strong {
+  color: var(--accent);
+  background: rgb(255 209 102 / 0.08);
+}
+
+.handbook-chart-cell.is-weak {
+  background: rgb(0 0 0 / 0.2);
+}
+
+.handbook-note {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-dim);
+}
+
+.handbook-rule {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.handbook-rule-term {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.handbook-rule-copy,
+.handbook-tip {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 /* Shared collapse chevron: points down while expanded, right when
    collapsed. */
 .collapse-chev {
