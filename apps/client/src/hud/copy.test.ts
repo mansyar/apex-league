@@ -469,19 +469,13 @@ describe("selectHint — the four-tier ladder (gold_legend_ladder_20261017)", ()
 
   test("the new gatekeepers announce their scalps once each", () => {
     for (const boss of ["delmar", "fenn", "thessa"]) {
-      const hint = selectHint(
-        at({ bossDefeats: [boss] }),
-        new Set(),
-      )
+      const hint = selectHint(at({ bossDefeats: [boss] }), new Set())
       expect(hint?.id).toBe(`boss-${boss}`)
     }
   })
 
   test("Marlow's callout no longer promises a horizon — Gold is real", () => {
-    const hint = selectHint(
-      at({ bossDefeats: ["marlow"] }),
-      new Set(),
-    )
+    const hint = selectHint(at({ bossDefeats: ["marlow"] }), new Set())
     expect(hint?.id).toBe("boss-marlow")
     expect(hint?.text).not.toContain("horizon")
   })

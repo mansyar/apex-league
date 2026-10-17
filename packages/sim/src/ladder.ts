@@ -182,7 +182,13 @@ export function applyCupPlacement(
   return {
     state: { ...state, ladder },
     climbed: promoted || ladder.subTier !== prev.subTier,
-    topReached: !promoted && earned > 0 && prev.subTier === "I",
+    // The plateau never reports topReached — Legend is the capstone, there
+    // is no next tier for a "next tier awaits" callout to point at.
+    topReached:
+      !promoted &&
+      ladder.tier !== "legend" &&
+      earned > 0 &&
+      prev.subTier === "I",
     promoted,
   }
 }

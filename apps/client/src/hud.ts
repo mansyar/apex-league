@@ -28,10 +28,10 @@ import {
   buildCreaturePlate,
   buildLineagePlate,
   buildScoreBug,
+  climbAnnouncement,
   conditionDelta,
   ladderRead,
   lineageMeta,
-  climbAnnouncement,
   statCell,
 } from "./hud/plates"
 import { buildPrefCluster, buildSettingsModal } from "./settings-modal"

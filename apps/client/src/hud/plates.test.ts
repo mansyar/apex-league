@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test"
 import { createCreature, type GameState } from "@apex/sim"
 import {
   apPipPlan,
-  conditionDelta,
   climbAnnouncement,
+  conditionDelta,
   ladderRead,
   lineageMeta,
   promotionLine,

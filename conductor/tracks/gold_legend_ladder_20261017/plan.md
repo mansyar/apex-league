@@ -130,6 +130,10 @@ updates in separate `conductor(plan):` commits.
     `bun run check` clean (3 packages); biome clean.
       *[checkpoint: 39f091c]*
 
+## Phase: Review Fixes
+
+- [~] Task: Apply review suggestions
+
 ## Notes
 
 - The load-bearing discarded RNG draw in `makeBracket` (cup.ts) and the
