@@ -217,24 +217,26 @@ export interface CupRoute {
   kind: CupKind
 }
 
-export const CUP_ROUTES: Readonly<
-  Record<LadderTier, readonly CupRoute[]>
-> = Object.freeze({
-  bronze: Object.freeze([
+const CUP_ROUTE_TABLE = {
+  bronze: [
     { when: "gate", milestone: "promotion", kind: "promotion" },
-  ]),
-  silver: Object.freeze([
+  ],
+  silver: [
     { when: "gate", milestone: "promotion", kind: "promotion" },
     { when: "checkpoint", milestone: "checkpoint", kind: "championship" },
     { when: "apex", milestone: "apex", kind: "championship" },
-  ]),
-  gold: Object.freeze([
+  ],
+  gold: [
     { when: "gate", milestone: "apex", kind: "promotion" },
     { when: "checkpoint", milestone: "checkpoint", kind: "championship" },
     { when: "apex", milestone: "apex", kind: "championship" },
-  ]),
-  legend: Object.freeze([]),
-})
+  ],
+  legend: [],
+} as const satisfies Record<LadderTier, readonly CupRoute[]>
+
+export const CUP_ROUTES: Readonly<
+  Record<LadderTier, readonly CupRoute[]>
+> = Object.freeze(CUP_ROUTE_TABLE)
 
 /**
  * Look up the boss standing at the final of the next cup the player enters,
@@ -267,9 +269,11 @@ export function bossForCup(
   state: GameState,
 ): { boss: BossDef; kind: CupKind } | null {
   const ladder = state.ladder
+  const tier = ladder.tier
+  if (tier === "legend") return null
   const defeats = new Set(state.bossDefeats)
-  for (const rule of CUP_ROUTES[ladder.tier]) {
-    const boss = bossAtMilestone(ladder.tier, rule.milestone)
+  for (const rule of CUP_ROUTES[tier]) {
+    const boss = bossAtMilestone(tier, rule.milestone)
     const fires =
       rule.when === "gate"
         ? promotionEligible(ladder)

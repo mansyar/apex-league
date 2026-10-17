@@ -26,6 +26,7 @@ import {
   startCupSession,
 } from "./cup"
 import { defaultLoadout, getSpecies } from "./index"
+import type { CupKind, LadderSubTier, LadderTier } from "./ladder"
 import { chooseStarter, createInitialState } from "./state"
 
 const playerCreature = () => createCreature("fire_drake", 11)
@@ -61,8 +62,8 @@ function playToCompletion(day: number, seed: number): CupSession {
 
 describe("cup goldens — bossForCup decision grid (routing safety net)", () => {
   function stateAt(
-    tier: string,
-    subTier: string,
+    tier: LadderTier,
+    subTier: LadderSubTier,
     points: number,
     bossDefeats: string[] = [],
   ) {
@@ -76,12 +77,12 @@ describe("cup goldens — bossForCup decision grid (routing safety net)", () => 
 
   const GRID: Array<{
     label: string
-    tier: string
-    subTier: string
+    tier: LadderTier
+    subTier: LadderSubTier
     points: number
     defeats: string[]
     expect: string | null
-    kind: string | null
+    kind: CupKind | undefined
   }> = [
     // Bronze — the Promotion Cup is the only authored stop, and only at
     // Bronze I strictly past the Bronze I ceiling (promotionEligible).
@@ -92,7 +93,7 @@ describe("cup goldens — bossForCup decision grid (routing safety net)", () => 
       points: 0,
       defeats: [],
       expect: null,
-      kind: null,
+      kind: undefined,
     },
     {
       label: "bronze I, below the gate",
@@ -101,7 +102,7 @@ describe("cup goldens — bossForCup decision grid (routing safety net)", () => 
       points: 12,
       defeats: [],
       expect: null,
-      kind: null,
+      kind: undefined,
     },
     {
       label: "bronze I, past the gate",
@@ -129,7 +130,7 @@ describe("cup goldens — bossForCup decision grid (routing safety net)", () => 
       points: 18,
       defeats: ["hesse"],
       expect: null,
-      kind: null,
+      kind: undefined,
     },
     {
       label: "silver II, no boss",
@@ -138,7 +139,7 @@ describe("cup goldens — bossForCup decision grid (routing safety net)", () => 
       points: 20,
       defeats: [],
       expect: null,
-      kind: null,
+      kind: undefined,
     },
     {
       label: "silver I, below ceiling, no Marlow scalp",
@@ -156,7 +157,7 @@ describe("cup goldens — bossForCup decision grid (routing safety net)", () => 
       points: 24,
       defeats: ["marlow"],
       expect: null,
-      kind: null,
+      kind: undefined,
     },
     {
       label: "silver I, past the gate (gate overrides the apex)",
@@ -193,7 +194,7 @@ describe("cup goldens — bossForCup decision grid (routing safety net)", () => 
       points: 30,
       defeats: ["fenn"],
       expect: null,
-      kind: null,
+      kind: undefined,
     },
     {
       label: "gold II, no boss",
@@ -202,7 +203,7 @@ describe("cup goldens — bossForCup decision grid (routing safety net)", () => 
       points: 32,
       defeats: [],
       expect: null,
-      kind: null,
+      kind: undefined,
     },
     {
       label: "gold I, below ceiling, no Thessa scalp",
@@ -220,7 +221,7 @@ describe("cup goldens — bossForCup decision grid (routing safety net)", () => 
       points: 36,
       defeats: ["thessa"],
       expect: null,
-      kind: null,
+      kind: undefined,
     },
     {
       label: "gold I, past the gate — the legend gate overrides retirement",
@@ -248,7 +249,7 @@ describe("cup goldens — bossForCup decision grid (routing safety net)", () => 
       points: 100,
       defeats: ["koda", "hesse", "marlow", "delmar", "fenn", "thessa"],
       expect: null,
-      kind: null,
+      kind: undefined,
     },
   ]
 
