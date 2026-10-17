@@ -11,6 +11,7 @@ import {
   graduate,
   loadBoot,
   markHintSeen,
+  type PlaybackStep,
   renameCreature,
   type StatKey,
   setArenaCamera,
@@ -19,6 +20,9 @@ import {
   setReducedMotion,
 } from "@apex/sim"
 import { buildArena } from "./arena"
+import { cueForStep } from "./audio/cues"
+import { playCue } from "./audio/playCue"
+import { AudioPlayer } from "./audio/player"
 import { createCup } from "./cup"
 import { nextShot } from "./director"
 import { hideFailurePlate, showFailurePlate } from "./failure-plate"
@@ -172,6 +176,22 @@ const exitArena = (): void => {
   app.classList.remove("app-in-arena")
 }
 
+// Battle audio (audio_foundation_20261017 FR3): the pure cue table gates
+// every playback step, the player holds the unlock/mute gate, and playCue
+// voices the bundled CC0 assets. Unlock waits for the first gesture
+// (autoplay policy); the persisted mute rides the store fanout; instant
+// reduced-motion dumps stay silent by design.
+const audioPlayer = new AudioPlayer(playCue)
+const unlockAudio = (): void => audioPlayer.unlock()
+window.addEventListener("pointerdown", unlockAudio, { once: true })
+window.addEventListener("keydown", unlockAudio, { once: true })
+const playStepCue = (step: PlaybackStep, instant: boolean): void => {
+  if (instant) return // dump mode: no sound
+  const { settings } = store.get()
+  const cue = cueForStep(step, settings)
+  if (cue) audioPlayer.play(cue)
+}
+
 // The spar reads the live state through this hook; kit changes write
 // through the store like every other sim change.
 const spar = createSpar(app, {
@@ -187,7 +207,10 @@ const spar = createSpar(app, {
   // creature retires while a fight plays. Back at the ranch the stage
   // clears and the ranch star returns.
   onFightStart: enterArena,
-  onStep: (step, instant) => staging.applyStep(step, instant),
+  onStep: (step, instant) => {
+    playStepCue(step, instant)
+    staging.applyStep(step, instant)
+  },
   onClose: exitArena,
   // The arena scales its action animations to the playback pace, so
   // fast-forward speeds the whole fight up instead of cutting swings.
@@ -259,7 +282,10 @@ const cup = createCup(
   app,
   {
     onFightStart: enterArena,
-    onStep: (step, instant) => staging.applyStep(step, instant),
+    onStep: (step, instant) => {
+      playStepCue(step, instant)
+      staging.applyStep(step, instant)
+    },
     onPace: (msPerStep) => staging.setPace(msPerStep),
     onArenaExit: exitArena,
     // The first arena fight consumes the cup (endCup flips the phase) —
@@ -423,6 +449,7 @@ const hud = createHud(app, {
 store.subscribe((s) => hud.update(s))
 store.subscribe((s) => spar.update(s.creature ?? null))
 store.subscribe((s) => cup.update(s))
+store.subscribe((s) => audioPlayer.setMuted(s.settings.muted))
 store.subscribe((s) => graduation.update(s))
 
 // First run (or a migrated v1 save without a creature): offer the starter.
