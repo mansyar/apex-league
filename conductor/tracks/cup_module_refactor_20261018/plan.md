@@ -48,12 +48,50 @@ checkpoints with explicit user verification.
 > Phase 1 golden grid + all existing `cup.boss` tests. 712 pass / 0 fail,
 > biome clean.
 
-- [~] Task: Split `packages/sim/src/cup.ts` → `packages/sim/src/cup/`
-  - [ ] Move `bracket.ts`, `session.ts`, `verdicts.ts`, `placement.ts` (pure
+- [x] Task: Split `packages/sim/src/cup.ts` → `packages/sim/src/cup/`
+  - [x] Move `bracket.ts`, `session.ts`, `verdicts.ts`, `placement.ts` (pure
         relocation, no edits beyond imports)
-  - [ ] `cup.ts` becomes barrel re-export; zero consumer import changes
-- [ ] Task: Size-cap audit + `bun run verify` green; commit with git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] `cup.ts` becomes barrel re-export; zero consumer import changes
+
+> 04f6158 — **Note:** Pure relocation; placement logic (`cupPlacement`)
+> lives in `session.ts` rather than its own `placement.ts` — it is a
+> 5-line function over session state, a fourth file would be
+> ceremony (deviation: sub-task naming only, spec unchanged). `bracket.ts`
+> (CupSlot, name pool, constants, makeBracket, ramp, substituteFinalBoss),
+> `verdicts.ts` (RoundVerdict, cupMatchSeed, battleSideForSlot, double-KO
+> tiebreak, resolvePairing, roundLabel), `session.ts` (CupSession, start/
+> resolve/complete/forfeit/cupPlacement/bossScalps). `cup.ts` =
+> explicit-list barrel; no import cycles; zero consumer changes.
+> Deviation caught by tsc (lesson: type-check before commit, not just bun
+> test): CUP_ROUTES literal widened through `Object.freeze` → fixed with
+> `as const satisfies`; golden `stateAt` params typed `LadderTier`/
+> `LadderSubTier`/`CupKind`. 712 pass / 0 fail; workspace check green.
+- [x] Task: Size-cap audit + `bun run verify` green; commit with git note
+
+> bed5d11 — **Note:** bracket 8.4 KB / verdicts 6.5 KB / session 12.0 KB /
+> barrel 1.1 KB — all at or below the ~12 KB cap. `biome --write` fixed
+> formatting + import order. `bun run verify` fully green (type check ×3
+> packages, 1397 tests, determinism gate byte-identical).
+
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+> **[checkpoint: bed5d11]** — **Manual browser verification (agent-driven,
+> user-approved probe):** Vite dev server, fresh save, Ember Drake drafted
+> day 1 → advanced to day 7. **Step 1 regular cup:** bracket screen
+> renders 8-slot field ("Bronze Cup · DAY 7 · SINGLE ELIMINATION", YOU
+> badges, rival subtree resolved: Ash-ledger / Reedle Mirefin / Gilded
+> Horn advanced); coaching room renders fighter card + scouting report
+> ("Tactic unknown — watch the first exchanges") + kit with locked moves +
+> BALANCED/SPECIALS toggle; arena played QF (HP plates, voxel fighters,
+> feed lines "Flame Charge hits Pondskipper Grub for 10."). **Step 2
+> elimination:** SF loss to Ash-ledger → bracket updated, feed "Reedle
+> Mirefin takes the Semifinal!", results screen exactly per contract:
+> "Eliminated — Reedle Mirefin takes the Bronze Cup · 3rd — Ember Drake ·
+> out in the semifinal · Consolation: mood +2 · Ladder: +1 · Bronze III".
+> **Console: 0 errors / 0 warnings across the whole session.** Step 3
+> (Promotion Cup gate) waived: needs 12 ladder points (~12 cups); the
+> banner path (`substituteFinalBoss`) moved verbatim and is covered by
+> cup.boss.test.ts. Evidence: 5 screenshots captured via agent browser.
 
 ## Phase 3 — Client Golden Safety Net
 
