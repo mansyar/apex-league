@@ -35,11 +35,20 @@ checkpoints with explicit user verification.
 
 ## Phase 2 — Sim Decomposition (FR1, FR2)
 
-- [ ] Task: Data-driven `bossForCup` routing
-  - [ ] TDD: equivalence tests derived from Phase 1 goldens
-  - [ ] Frozen milestone→boss table + thin lookup in `bosses.ts`; routing
+- [x] Task: Data-driven `bossForCup` routing
+  - [x] TDD: equivalence tests derived from Phase 1 goldens
+  - [x] Frozen milestone→boss table + thin lookup in `bosses.ts`; routing
         output byte-identical
-- [ ] Task: Split `packages/sim/src/cup.ts` → `packages/sim/src/cup/`
+
+> fac7eef — **Note:** TDD red first (`CUP_ROUTES` shape tests: frozen,
+> ordered per tier, gate→milestone pairing pinned — silver gates on
+> `"promotion"`, gold re-seats the `"apex"` Thessa). Then the frozen
+> per-tier rule table (`when`/`milestone`/`kind`) with a thin first-match
+> lookup replacing the if/else chain. Behavior proven identical by the
+> Phase 1 golden grid + all existing `cup.boss` tests. 712 pass / 0 fail,
+> biome clean.
+
+- [~] Task: Split `packages/sim/src/cup.ts` → `packages/sim/src/cup/`
   - [ ] Move `bracket.ts`, `session.ts`, `verdicts.ts`, `placement.ts` (pure
         relocation, no edits beyond imports)
   - [ ] `cup.ts` becomes barrel re-export; zero consumer import changes
