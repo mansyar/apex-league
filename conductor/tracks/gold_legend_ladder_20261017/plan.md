@@ -105,8 +105,13 @@ updates in separate `conductor(plan):` commits.
     (same subTier "I") still announces "Promotion — Legend I!" — the old
     subTier-only detection missed it. hud.ts swaps `prevLadderSubTier`
     for `prevLadder`. Five golden tests.
-- [ ] Task: Coach's Handbook ladder copy → four-tier truth; retire stale
+- [x] Task: Coach's Handbook ladder copy → four-tier truth; retire stale
       teaser copy; Silver-teaser → real-progression line + new Legend teaser
+      [39f091c]
+  - Note: hints are the teaser mechanism (`selectHint`, no `topReached`
+    client consumer) — added `gold-awaits` / `legend-awaits`, one-time
+    scalp callouts for delmar/fenn/thessa, retired Marlow's "horizon"
+    promise, handbook LADDER_RULES now four tiers with the Legend plateau.
       through the hint ledger (hud/copy.ts + plates.ts)
 - [ ] Task: Manual browser verification (ranch + full cup run to Legend) &
       Phase Verification & Checkpoint (Refer to workflow.md)
