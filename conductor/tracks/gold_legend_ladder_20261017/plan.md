@@ -32,13 +32,22 @@ updates in separate `conductor(plan):` commits.
 
 ## Phase 2 — Authored gatekeepers (sim, TDD)
 
-- [ ] Task: Write failing tests for `bossForCup` substitution rules
+- [x] Task: Write failing tests for `bossForCup` substitution rules
       (Silver→Gold gate final; Gold III checkpoint; Gold I apex
-      non-blocking; Legend gate blocking when eligible)
-- [ ] Task: Write failing tests for scalp ledger updates on the new bosses
-- [ ] Task: Author 3 boss definitions (frozen data: pinned stats, kit,
+      non-blocking; Legend gate blocking when eligible) `[c284b06]`
+- [x] Task: Write failing tests for scalp ledger updates on the new bosses
+      `[c284b06]`
+- [x] Task: Author 3 boss definitions (frozen data: pinned stats, kit,
       tactic, persona copy) + extend substitution logic post-draw
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+      `[c284b06]`
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - Verified: RED→GREEN (11 fail → 0); full sim suite 686 pass / 0 fail;
+    `bun run verify` green incl. determinism gate; balance probe retuned all
+    three pins (delmar 93/12/9/11 spd-bound fix, fenn 92/13/10/12,
+    thessa 100/11/13/8) — fresh/even = 0%, disadvantaged below cap = 0%,
+    every cell ≥35% at cap; coverage diff scoped to `bosses*` +
+    `cup.boss.test.ts`; golden draw-stream tests untouched (substitution
+    stays post-draw). *[checkpoint: c284b06]*
 
 ## Phase 3 — Tier rewards (sim, TDD)
 
