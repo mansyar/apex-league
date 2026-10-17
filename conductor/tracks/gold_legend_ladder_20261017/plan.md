@@ -11,13 +11,17 @@ updates in separate `conductor(plan):` commits.
       III→II→I) in `ladder.tier.test.ts` `[3b09b92]`
 - [x] Task: Implement `LadderTier` extension + `GOLD_THRESHOLDS` in
       `ladder.ts` `[3b09b92]`
-- [ ] Task: Write failing tests for Legend eligibility (Gold I + points
+- [x] Task: Write failing tests for Legend eligibility (Gold I + points
       past 36) and plateau behavior (no sub-tiers, no demotion)
-- [ ] Task: Implement Legend promotion-eligibility + `legendTitles` tally
-      logic
-- [ ] Task: Re-pin the "no Gold tier" negative test to the new truth; update
-      the Silver teaser → real progression + add the Legend teaser (hint
-      ledger)
+      `[f477292]`
+- [x] Task: Implement Legend promotion-eligibility + `legendTitles` tally
+      logic `[f477292]`
+- [x] Task: Re-pin the "no Gold tier" negative tests to the new truth
+      (`subTierFor` clamp + `promotionEligible` Silver/Gold cases)
+      `[f477292]`
+      *(the Silver-teaser → real-progression copy and the new Legend teaser
+      are client-side coach lines — folded into the Phase 5 handbook task,
+      per the juvenile track's layering precedent)*
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Authored gatekeepers (sim, TDD)
@@ -52,7 +56,8 @@ updates in separate `conductor(plan):` commits.
 - [ ] Task: Cup entry chip, results rows, coach ticker: promotion/climb
       announcements
 - [ ] Task: Coach's Handbook ladder copy → four-tier truth; retire stale
-      teaser copy
+      teaser copy; Silver-teaser → real-progression line + new Legend teaser
+      through the hint ledger (hud/copy.ts + plates.ts)
 - [ ] Task: Manual browser verification (ranch + full cup run to Legend) &
       Phase Verification & Checkpoint (Refer to workflow.md)
 
