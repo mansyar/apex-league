@@ -13,13 +13,28 @@ import { BOSSES, getBoss } from "./bosses"
 import { getSpecies } from "./species"
 
 describe("boss registry", () => {
-  it("holds exactly three bosses with stable ids and milestones", () => {
-    expect(BOSSES.map((b) => b.id)).toEqual(["koda", "hesse", "marlow"])
-    expect(BOSSES.map((b) => b.milestone)).toEqual([
-      "promotion",
-      "checkpoint",
-      "apex",
+  it("holds exactly six bosses with stable ids, tiers and milestones", () => {
+    expect(BOSSES.map((b) => b.id)).toEqual([
+      "koda",
+      "hesse",
+      "marlow",
+      "delmar",
+      "fenn",
+      "thessa",
     ])
+    expect(BOSSES.map((b) => [b.tier, b.milestone])).toEqual([
+      ["bronze", "promotion"],
+      ["silver", "checkpoint"],
+      ["silver", "apex"],
+      ["silver", "promotion"],
+      ["gold", "checkpoint"],
+      ["gold", "apex"],
+    ])
+  })
+
+  it("keeps one boss per (tier, milestone) pair", () => {
+    const seen = new Set(BOSSES.map((b) => `${b.tier}:${b.milestone}`))
+    expect(seen.size).toBe(BOSSES.length)
   })
 
   it("freezes the registry so callers cannot bend it", () => {

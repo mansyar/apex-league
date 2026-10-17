@@ -18,6 +18,7 @@ import {
   substituteFinalBoss,
 } from "./cup"
 import { defaultLoadout, getSpecies, resolvePlayerMatch } from "./index"
+import { GOLD_THRESHOLDS, SILVER_THRESHOLDS } from "./ladder"
 import { finalizeCup, prepareCup } from "./machine"
 import { chooseStarter, createInitialState } from "./state"
 
@@ -260,6 +261,105 @@ describe("bossForCup — the silver checkpoints and apex", () => {
   })
 })
 
+describe("bossForCup — gold checkpoints, apex and the legend gate", () => {
+  /** A state standing at the given gold sub-tier with points and ledger. */
+  function goldState(
+    subTier: "III" | "II" | "I",
+    points = 0,
+    bossDefeats: string[] = [],
+  ) {
+    const started = chooseStarter(createInitialState(), "fire_drake", 42)
+    return {
+      ...started,
+      ladder: { points, tier: "gold" as const, subTier },
+      bossDefeats,
+    }
+  }
+
+  test("Gold III with no scalp meets Fenn in a championship cup", () => {
+    const gate = bossForCup(goldState("III"))
+    expect(gate?.boss.id).toBe("fenn")
+    expect(gate?.kind).toBe("championship")
+  })
+
+  test("scalping Fenn clears the gold checkpoint — rivals again", () => {
+    expect(bossForCup(goldState("III", 0, ["fenn"]))).toBeNull()
+  })
+
+  test("Gold II has no boss — a fully generated field", () => {
+    expect(bossForCup(goldState("II"))).toBeNull()
+    expect(bossForCup(goldState("II", 0, ["fenn"]))).toBeNull()
+  })
+
+  test("Gold I below the ceiling meets Thessa — the apex holds every cup", () => {
+    const gate = bossForCup(goldState("I", GOLD_THRESHOLDS.goldI))
+    expect(gate?.boss.id).toBe("thessa")
+    expect(gate?.kind).toBe("championship")
+  })
+
+  test("scalping Thessa in a regular final returns the generated rivals", () => {
+    expect(
+      bossForCup(goldState("I", GOLD_THRESHOLDS.goldI, ["thessa"])),
+    ).toBeNull()
+  })
+
+  test("Gold I past the ceiling opens the Legend gate — Thessa, blocking", () => {
+    const gate = bossForCup(goldState("I", GOLD_THRESHOLDS.goldI + 1))
+    expect(gate?.boss.id).toBe("thessa")
+    expect(gate?.kind).toBe("promotion")
+  })
+
+  test("the legend gate re-summons a scalped Thessa — the gate overrides retirement", () => {
+    const gate = bossForCup(
+      goldState("I", GOLD_THRESHOLDS.goldI + 3, ["thessa"]),
+    )
+    expect(gate?.boss.id).toBe("thessa")
+    expect(gate?.kind).toBe("promotion")
+  })
+
+  test("Legend is the capstone — no boss, no gate", () => {
+    const started = chooseStarter(createInitialState(), "fire_drake", 42)
+    const legend = {
+      ...started,
+      ladder: {
+        points: GOLD_THRESHOLDS.goldI + 9,
+        tier: "legend" as const,
+        subTier: "I" as const,
+      },
+    }
+    expect(bossForCup(legend)).toBeNull()
+  })
+
+  test("Silver I past the ceiling opens the Silver→Gold gate", () => {
+    const started = chooseStarter(createInitialState(), "fire_drake", 42)
+    const silverGate = {
+      ...started,
+      ladder: {
+        points: SILVER_THRESHOLDS.silverI + 1,
+        tier: "silver" as const,
+        subTier: "I" as const,
+      },
+    }
+    const gate = bossForCup(silverGate)
+    expect(gate?.boss.id).toBe("delmar")
+    expect(gate?.kind).toBe("promotion")
+  })
+
+  test("prepareCup threads the gold finals into the bracket", () => {
+    const fennSession = prepareCup(goldState("III"))
+    if (!fennSession) throw new Error("expected a session")
+    expect(fennSession.bracket.slots[7]?.bossId).toBe("fenn")
+    expect(fennSession.bracket.kind).toBe("championship")
+    expect(fennSession.bracket.banner).toBe("Boss Final · Cinder Abbot Fenn")
+
+    const legendGate = prepareCup(goldState("I", GOLD_THRESHOLDS.goldI + 1))
+    if (!legendGate) throw new Error("expected a session")
+    expect(legendGate.bracket.slots[7]?.bossId).toBe("thessa")
+    expect(legendGate.bracket.kind).toBe("promotion")
+    expect(legendGate.bracket.banner).toBe("Promotion Cup")
+  })
+})
+
 describe("bossScalps — the defeat ledger (FR9)", () => {
   const boss = getBoss("koda")
   if (!boss) throw new Error("missing boss koda")
@@ -365,6 +465,35 @@ describe("bossScalps — the defeat ledger (FR9)", () => {
     const base = { ...promotionGateState(), bossDefeats: ["hesse"] as string[] }
     const after = finalizeCup(base, regular)
     expect(after.bossDefeats).toEqual(["hesse"])
+  })
+
+  test("a legend-gate win records the Thessa scalp", () => {
+    const thessa = getBoss("thessa")
+    if (!thessa) throw new Error("missing boss thessa")
+    const session = startCupSession(
+      playerCreature(),
+      cupDay,
+      101,
+      "promotion",
+      thessa,
+    )
+    const playerName = session.bracket.slots[0]?.name ?? "player"
+    const scalped = {
+      ...session,
+      championName: playerName,
+      playerVerdicts: [
+        {
+          round: 3,
+          slotA: playerName,
+          slotB: thessa.name,
+          winner: playerName,
+          line: "",
+          battle: null,
+        },
+      ],
+    }
+    const after = finalizeCup(promotionGateState(), scalped)
+    expect(after.bossDefeats).toEqual(["thessa"])
   })
 })
 
