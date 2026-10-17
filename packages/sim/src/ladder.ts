@@ -15,8 +15,8 @@
 
 import type { GameState } from "./state"
 
-/** Ladder tiers, lowest first. Silver is Phase 2 (this track). */
-export type LadderTier = "bronze" | "silver"
+/** Ladder tiers, lowest first. Legend is the plateau capstone. */
+export type LadderTier = "bronze" | "silver" | "gold" | "legend"
 
 /** Sub-tiers within a tier, lowest first. */
 export type LadderSubTier = "III" | "II" | "I"
@@ -64,6 +64,15 @@ export const SILVER_THRESHOLDS = Object.freeze({
   silverI: 24,
 })
 
+/** Gold points required to reach each sub-tier above the floor, as absolute
+ * totals (gold_legend_ladder_20261017). Continues the uniform +6 spacing
+ * (Bronze 6/12, Silver 18/24 → Gold 30/36); points past Gold I bank toward
+ * Legend eligibility. */
+export const GOLD_THRESHOLDS = Object.freeze({
+  goldII: 30,
+  goldI: 36,
+})
+
 /** The starting ladder slice: Bronze III, no points. */
 export function initialLadder(): LadderState {
   return { points: 0, tier: "bronze", subTier: "III" }
@@ -71,13 +80,20 @@ export function initialLadder(): LadderState {
 
 /** Derive the sub-tier from a tier and point total. Bronze clamps at I —
  * banked surplus never fakes a climb (that is the Promotion Cup's job).
- * Silver floors at III and clamps at I; there is no Gold tier. */
+ * Silver and Gold floor at III and clamp at I; Legend is a plateau with a
+ * single implicit sub-tier. */
 export function subTierFor(tier: LadderTier, points: number): LadderSubTier {
   if (tier === "bronze") {
     if (points >= LADDER_THRESHOLDS.bronzeI) return "I"
     if (points >= LADDER_THRESHOLDS.bronzeII) return "II"
     return "III"
   }
+  if (tier === "gold") {
+    if (points >= GOLD_THRESHOLDS.goldI) return "I"
+    if (points >= GOLD_THRESHOLDS.goldII) return "II"
+    return "III"
+  }
+  if (tier === "legend") return "I"
   if (points >= SILVER_THRESHOLDS.silverI) return "I"
   if (points >= SILVER_THRESHOLDS.silverII) return "II"
   return "III"
