@@ -94,5 +94,5 @@
 - [x] Task: Final sweep — `bun run verify`, full manual pass, archive
         readiness
         `[feat(audio): …]` (final gates: 1320 pass / 0 fail, determinism OK)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+      `[checkpoint: d094e9d]` — approved 2026-10-17; final gates: bun run verify EXIT 0 (1320 pass / 0 fail / 30358 expects, tsc ×3, biome, determinism byte-identical)
