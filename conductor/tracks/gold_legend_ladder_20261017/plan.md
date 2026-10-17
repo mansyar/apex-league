@@ -97,8 +97,14 @@ updates in separate `conductor(plan):` commits.
     win appends `★ Legend title N`; gold/legend CSS tokens in kit.css;
     sim barrel now exports `GOLD_THRESHOLDS` + `TIER_AP_BONUS`. Also
     ignores `.playwright/` scratch screenshots.
-- [ ] Task: Cup entry chip, results rows, coach ticker: promotion/climb
-      announcements
+- [x] Task: Cup entry chip, results rows, coach ticker: promotion/climb
+      announcements [7bd2bc0]
+  - Note: entry chip + results rows were made tier-generic by task 1's
+    `TIER_NAME`; this task adds the pure `climbAnnouncement(prev, next)`
+    (plates.ts) keyed on the full standing so the Gold I → Legend I flip
+    (same subTier "I") still announces "Promotion — Legend I!" — the old
+    subTier-only detection missed it. hud.ts swaps `prevLadderSubTier`
+    for `prevLadder`. Five golden tests.
 - [ ] Task: Coach's Handbook ladder copy → four-tier truth; retire stale
       teaser copy; Silver-teaser → real-progression line + new Legend teaser
       through the hint ledger (hud/copy.ts + plates.ts)
