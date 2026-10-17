@@ -218,9 +218,7 @@ export interface CupRoute {
 }
 
 const CUP_ROUTE_TABLE = {
-  bronze: [
-    { when: "gate", milestone: "promotion", kind: "promotion" },
-  ],
+  bronze: [{ when: "gate", milestone: "promotion", kind: "promotion" }],
   silver: [
     { when: "gate", milestone: "promotion", kind: "promotion" },
     { when: "checkpoint", milestone: "checkpoint", kind: "championship" },
@@ -234,9 +232,8 @@ const CUP_ROUTE_TABLE = {
   legend: [],
 } as const satisfies Record<LadderTier, readonly CupRoute[]>
 
-export const CUP_ROUTES: Readonly<
-  Record<LadderTier, readonly CupRoute[]>
-> = Object.freeze(CUP_ROUTE_TABLE)
+export const CUP_ROUTES: Readonly<Record<LadderTier, readonly CupRoute[]>> =
+  Object.freeze(CUP_ROUTE_TABLE)
 
 /**
  * Look up the boss standing at the final of the next cup the player enters,

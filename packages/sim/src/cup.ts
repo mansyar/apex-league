@@ -15,14 +15,23 @@
 
 export {
   BRACKET_SLOTS,
+  CUP_ROUNDS,
   type CupBracket,
   type CupSlot,
-  CUP_ROUNDS,
   makeBracket,
   RIVAL_NAME_POOL,
   RIVAL_RAMP,
   substituteFinalBoss,
 } from "./cup/bracket"
+export {
+  bossScalps,
+  type CupSession,
+  completeCup,
+  cupPlacement,
+  forfeitCup,
+  resolvePlayerMatch,
+  startCupSession,
+} from "./cup/session"
 export {
   battleSideForSlot,
   cupMatchSeed,
@@ -32,12 +41,3 @@ export {
   type RoundVerdict,
   roundLabel,
 } from "./cup/verdicts"
-export {
-  bossScalps,
-  completeCup,
-  cupPlacement,
-  type CupSession,
-  forfeitCup,
-  resolvePlayerMatch,
-  startCupSession,
-} from "./cup/session"

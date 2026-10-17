@@ -25,11 +25,11 @@ import {
 } from "./bracket"
 import {
   battleSideForSlot,
-  type RivalResolution,
-  resolvePairing,
-  type RoundVerdict,
-  roundLabel,
   cupMatchSeed,
+  type RivalResolution,
+  type RoundVerdict,
+  resolvePairing,
+  roundLabel,
 } from "./verdicts"
 
 /** A live cup session (live-cup spec FR2): the seeded bracket plus the
