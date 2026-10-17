@@ -20,10 +20,12 @@
   - [x] Implement `audio/cues.ts` (DOM-free) to green; commit
         `feat(audio): pure event-to-cue mapping + calm-mix selection`
         `[feat(audio): pure event-to-cue mapping + calm-mix selection 7d9b6b4]`
-- [ ] Task: Player with silent fallback + unlock gate
-  - [ ] TDD the pure gating logic (unlocked-before-gesture state, mute gate);
+- [x] Task: Player with silent fallback + unlock gate
+  - [x] TDD the pure gating logic (unlocked-before-gesture state, mute gate);
         imperative playback wrapper verified manually
-  - [ ] Commit `feat(audio): player wrapper with no-op fallback + autoplay unlock`
+        `[feat(audio): player wrapper with no-op fallback + autoplay unlock c52907c]`
+  - [x] Commit `feat(audio): player wrapper with no-op fallback + autoplay unlock`
+        `[feat(audio): player wrapper with no-op fallback + autoplay unlock c52907c]`
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 - Settings & Save v13
