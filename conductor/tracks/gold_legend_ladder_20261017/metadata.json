@@ -1,0 +1,19 @@
+{
+  "trackId": "gold_legend_ladder_20261017",
+  "type": "feature",
+  "status": "new",
+  "title": "Gold & Legend Ladder Extension: Gold III→I with three authored gatekeepers, Legend plateau capstone, tier-gated cup rewards",
+  "createdAt": "2026-10-17",
+  "branch": "track/gold_legend_ladder_20261017",
+  "surfaces": [
+    "packages/sim/src/ladder.ts",
+    "packages/sim/src/bosses.ts",
+    "packages/sim/src/cupRewards.ts",
+    "packages/sim/src/cup.ts",
+    "packages/sim/src/save/schema.ts",
+    "packages/sim/src/save/migrate.ts",
+    "apps/client/src/hud/",
+    "apps/client/src/cup-screens.ts",
+    "apps/client/src/handbook.ts"
+  ]
+}
