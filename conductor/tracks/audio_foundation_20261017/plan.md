@@ -7,10 +7,12 @@
 
 ## Phase 1 - Audio Foundation (module + assets)
 
-- [~] Task: Source & bundle Kenney CC0 assets
-  - [ ] Download/curate: impact SFX set, two music loops (ranch + arena
+- [x] Task: Source & bundle Kenney CC0 assets
+  - [x] Download/curate: impact SFX set, two music loops (ranch + arena
         mood); commit under the client app with a size budget note
-  - [ ] Manual verify: assets load via dev server, no runtime network fetch
+        `[assets(audio): bundle Kenney CC0 SFX + OpenGameArt CC0 music beds 1423c45]`
+  - [x] Manual verify: assets load via dev server, no runtime network fetch
+        (200 audio/ogg for sfx + music on the dev server) `[assets(audio): bundle Kenney CC0 SFX + OpenGameArt CC0 music beds 1423c45]`
 - [ ] Task: Pure sound-cue mapping table (TDD)
   - [ ] Write failing tests first: battle/step events → cue ids; calm-mix
         variant selection (reduced-motion → soft variants); muted → no cues
