@@ -1,0 +1,15 @@
+{
+  "trackId": "audio_foundation_20261017",
+  "type": "feature",
+  "status": "new",
+  "title": "Audio Foundation Pass: Kenney CC0 battle SFX + scene-driven music beds, calm-mix & persisted mute",
+  "createdAt": "2026-10-17",
+  "branch": "track/audio_foundation_20261017",
+  "surfaces": [
+    "apps/client/src/audio/",
+    "apps/client/src/playbackDriver.ts",
+    "apps/client/src/hud/settings.ts",
+    "packages/sim/src/save/schema.ts",
+    "packages/sim/src/save/migrate.ts"
+  ]
+}
