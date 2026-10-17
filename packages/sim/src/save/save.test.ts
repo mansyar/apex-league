@@ -31,7 +31,7 @@ import {
 
 describe("save schema", () => {
   test("current version matches the schema", () => {
-    expect(SAVE_VERSION).toBe(13)
+    expect(SAVE_VERSION).toBe(14)
   })
 
   test("serializeSave wraps state with version metadata", () => {
@@ -688,7 +688,7 @@ describe("evolution stage (v6)", () => {
 
 describe("save v7 — cup session, rename, hints", () => {
   test("current version matches the schema", () => {
-    expect(SAVE_VERSION).toBe(13)
+    expect(SAVE_VERSION).toBe(14)
   })
 
   test("a v6 save migrates cleanly: null session + a clean hint ledger", () => {
@@ -1037,8 +1037,8 @@ describe("save v11 — silver ladder tier + boss defeat ledger", () => {
     return { version: 10, state, session: null, savedAt: 77 }
   }
 
-  test("SAVE_VERSION is 12", () => {
-    expect(SAVE_VERSION).toBe(13)
+  test("SAVE_VERSION is 14", () => {
+    expect(SAVE_VERSION).toBe(14)
   })
 
   test("a v10 save migrates: the ladder keeps its points and gains tier bronze", () => {
@@ -1091,7 +1091,7 @@ describe("save v11 — silver ladder tier + boss defeat ledger", () => {
     >
     const state = raw.state as Record<string, unknown>
     const ladder = state.ladder as Record<string, unknown>
-    ladder.tier = "gold"
+    ladder.tier = "platinum"
     adapter.setItem(SAVE_KEY, JSON.stringify(raw))
     expect(loadGame(adapter)).toBeNull()
   })
@@ -1143,8 +1143,8 @@ describe("save v12 - element chart HP scale (v11 -> v12)", () => {
   // Hall of Fame record. The migration doubles exactly the stored HP
   // magnitudes and touches nothing else - trained bonuses, atk/def/spd,
   // ladder, and the ledger are scale-free.
-  test("SAVE_VERSION is 12", () => {
-    expect(SAVE_VERSION).toBe(13)
+  test("SAVE_VERSION is 14", () => {
+    expect(SAVE_VERSION).toBe(14)
   })
 
   /** A v11-shaped payload: fresh state with every stored HP halved to the
@@ -1346,8 +1346,8 @@ describe("save v13 (audio_foundation_20261017)", () => {
     return { version: 12, state, session: null, savedAt: 77 }
   }
 
-  test("SAVE_VERSION is 13", () => {
-    expect(SAVE_VERSION).toBe(13)
+  test("SAVE_VERSION is 14", () => {
+    expect(SAVE_VERSION).toBe(14)
   })
 
   test("a v12 save migrates: settings gain the muted flag, default false", () => {
@@ -1390,6 +1390,141 @@ describe("save v13 (audio_foundation_20261017)", () => {
     ) as unknown as Record<string, unknown>
     const settings = state.settings as Record<string, unknown>
     settings.muted = "loud"
+    adapter.setItem(
+      SAVE_KEY,
+      JSON.stringify({ version: SAVE_VERSION, state, savedAt: 0 }),
+    )
+    expect(loadGame(adapter)).toBeNull()
+  })
+})
+
+/**
+ * Save v14 (gold_legend_ladder_20261017): the ladder grows the Gold and
+ * Legend tiers and the state gains the legendTitles tally. The v13 → v14
+ * migration is additive — it stamps `legendTitles: 0` onto every migrated
+ * save (pre-plateau careers have none) and leaves the ladder untouched —
+ * while load validation widens the accepted tiers to the full four-tier
+ * ladder and strictly types the new field.
+ */
+describe("save v14 (gold_legend_ladder_20261017)", () => {
+  /** A v13-shaped payload: the current state minus the v14 fields. */
+  const v13Payload = (): Record<string, unknown> => {
+    const state = structuredClone(createInitialState()) as unknown as Record<
+      string,
+      unknown
+    >
+    delete state.legendTitles
+    return { version: 13, state, session: null, savedAt: 77 }
+  }
+
+  test("SAVE_VERSION is 14", () => {
+    expect(SAVE_VERSION).toBe(14)
+  })
+
+  test("a v13 save migrates: legendTitles stamps at 0, ladder untouched", () => {
+    const payload = v13Payload()
+    const rawState = payload.state as Record<string, unknown>
+    rawState.ladder = { points: 36, tier: "gold", subTier: "I" }
+    const migrated = migrate(payload)
+    expect(migrated.version).toBe(SAVE_VERSION)
+    expect(migrated.state.legendTitles).toBe(0)
+    expect(migrated.state.ladder).toEqual({
+      points: 36,
+      tier: "gold",
+      subTier: "I",
+    })
+  })
+
+  test("a migrated v13 save loads and stays playable", () => {
+    const adapter = createMemoryAdapter()
+    adapter.setItem(SAVE_KEY, JSON.stringify(v13Payload()))
+    const state = loadGame(adapter)
+    expect(state).not.toBeNull()
+    expect(state?.legendTitles).toBe(0)
+  })
+
+  test("loadGame accepts a Gold-tier ladder", () => {
+    const adapter = createMemoryAdapter()
+    const state = structuredClone(createInitialState()) as GameState
+    state.ladder = { points: 36, tier: "gold", subTier: "I" }
+    expect(saveGame(adapter, state, 900)).toBe(true)
+    expect(loadGame(adapter)?.ladder).toEqual({
+      points: 36,
+      tier: "gold",
+      subTier: "I",
+    })
+  })
+
+  test("loadGame accepts a Legend-tier ladder", () => {
+    const adapter = createMemoryAdapter()
+    const state = structuredClone(createInitialState()) as GameState
+    state.ladder = { points: 39, tier: "legend", subTier: "I" }
+    expect(saveGame(adapter, state, 900)).toBe(true)
+    expect(loadGame(adapter)?.ladder).toEqual({
+      points: 39,
+      tier: "legend",
+      subTier: "I",
+    })
+  })
+
+  test("loadGame still rejects an unknown tier", () => {
+    const adapter = createMemoryAdapter()
+    const state = structuredClone(createInitialState()) as unknown as Record<
+      string,
+      unknown
+    >
+    state.ladder = { points: 36, tier: "platinum", subTier: "I" }
+    adapter.setItem(
+      SAVE_KEY,
+      JSON.stringify({ version: SAVE_VERSION, state, savedAt: 0 }),
+    )
+    expect(loadGame(adapter)).toBeNull()
+  })
+
+  test("legendTitles round-trips through a save", () => {
+    const adapter = createMemoryAdapter()
+    const state = structuredClone(createInitialState()) as GameState
+    state.ladder = { points: 40, tier: "legend", subTier: "I" }
+    state.legendTitles = 2
+    expect(saveGame(adapter, state, 900)).toBe(true)
+    expect(loadGame(adapter)?.legendTitles).toBe(2)
+  })
+
+  test("loadGame rejects a non-integer legendTitles tally", () => {
+    const adapter = createMemoryAdapter()
+    const state = structuredClone(createInitialState()) as unknown as Record<
+      string,
+      unknown
+    >
+    state.legendTitles = 1.5
+    adapter.setItem(
+      SAVE_KEY,
+      JSON.stringify({ version: SAVE_VERSION, state, savedAt: 0 }),
+    )
+    expect(loadGame(adapter)).toBeNull()
+  })
+
+  test("loadGame rejects a negative legendTitles tally", () => {
+    const adapter = createMemoryAdapter()
+    const state = structuredClone(createInitialState()) as unknown as Record<
+      string,
+      unknown
+    >
+    state.legendTitles = -1
+    adapter.setItem(
+      SAVE_KEY,
+      JSON.stringify({ version: SAVE_VERSION, state, savedAt: 0 }),
+    )
+    expect(loadGame(adapter)).toBeNull()
+  })
+
+  test("loadGame rejects a save whose legendTitles is missing entirely", () => {
+    const adapter = createMemoryAdapter()
+    const state = structuredClone(createInitialState()) as unknown as Record<
+      string,
+      unknown
+    >
+    delete state.legendTitles
     adapter.setItem(
       SAVE_KEY,
       JSON.stringify({ version: SAVE_VERSION, state, savedAt: 0 }),
