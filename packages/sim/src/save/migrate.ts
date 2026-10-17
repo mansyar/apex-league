@@ -98,6 +98,9 @@ const migrations: Record<
       ladder: initialLadder(),
       lineage: initialLineage(),
       bossDefeats: [],
+      // Legend titles start at zero for every migrated save
+      // (gold_legend_ladder_20261017): pre-plateau careers have none.
+      legendTitles: 0,
     }
     return { version: 1, state, savedAt: 0 }
   },
@@ -124,6 +127,7 @@ const migrations: Record<
       ladder: initialLadder(),
       lineage: initialLineage(),
       bossDefeats: [],
+      legendTitles: 0,
     }
     return { version: 2, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -159,6 +163,7 @@ const migrations: Record<
       ladder: initialLadder(),
       lineage: initialLineage(),
       bossDefeats: [],
+      legendTitles: 0,
     }
     return { version: 3, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -198,6 +203,7 @@ const migrations: Record<
       ladder: initialLadder(),
       lineage: initialLineage(),
       bossDefeats: [],
+      legendTitles: 0,
     }
     return { version: 4, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -230,6 +236,7 @@ const migrations: Record<
       ladder: initialLadder(),
       lineage: initialLineage(),
       bossDefeats: [],
+      legendTitles: 0,
     }
     return { version: 5, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -258,6 +265,7 @@ const migrations: Record<
       ladder: initialLadder(),
       lineage: initialLineage(),
       bossDefeats: [],
+      legendTitles: 0,
     }
     return { version: 6, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -300,6 +308,7 @@ const migrations: Record<
       ladder: initialLadder(),
       lineage: initialLineage(),
       bossDefeats: [],
+      legendTitles: 0,
     }
     return {
       version: 7,
@@ -328,6 +337,7 @@ const migrations: Record<
       ladder: initialLadder(),
       lineage: initialLineage(),
       bossDefeats: [],
+      legendTitles: 0,
     }
     return {
       version: 8,
@@ -362,6 +372,7 @@ const migrations: Record<
       ladder: s.ladder as GameState["ladder"],
       lineage: initialLineage(),
       bossDefeats: [],
+      legendTitles: 0,
     }
     return {
       version: 9,
@@ -389,6 +400,7 @@ const migrations: Record<
       ladder: s.ladder as GameState["ladder"],
       lineage: initialLineage(),
       bossDefeats: [],
+      legendTitles: 0,
     }
     return {
       version: 10,
@@ -422,6 +434,7 @@ const migrations: Record<
       } as GameState["ladder"],
       lineage: s.lineage as GameState["lineage"],
       bossDefeats: [],
+      legendTitles: 0,
     }
     return {
       version: 11,
@@ -485,6 +498,7 @@ const migrations: Record<
         })),
       },
       bossDefeats: s.bossDefeats as GameState["bossDefeats"],
+      legendTitles: 0,
     }
     return {
       version: 12,
@@ -514,6 +528,7 @@ const migrations: Record<
       ladder: s.ladder as GameState["ladder"],
       lineage: s.lineage as GameState["lineage"],
       bossDefeats: s.bossDefeats as GameState["bossDefeats"],
+      legendTitles: 0,
     }
     return {
       version: 13,

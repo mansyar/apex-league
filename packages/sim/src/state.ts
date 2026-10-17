@@ -71,6 +71,12 @@ export interface GameState {
    * client derives callouts, coach lines, and Hall of Fame scalps from it.
    */
   bossDefeats: string[]
+  /**
+   * Legend plateau championships won by the current creature
+   * (gold_legend_ladder_20261017, save v14). The capstone's honor
+   * counter — the client renders it as collected titles on the rank plate.
+   */
+  legendTitles: number
 }
 
 /** Action points granted at the start of each day. Stub value for Phase 0. */
@@ -96,6 +102,7 @@ export function createInitialState(): GameState {
     // free of a runtime import from `legacy` — see the import note above.
     lineage: { generation: 0, hallOfFame: [] },
     bossDefeats: [],
+    legendTitles: 0,
   }
 }
 
