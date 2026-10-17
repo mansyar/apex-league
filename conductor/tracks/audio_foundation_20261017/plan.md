@@ -26,7 +26,8 @@
         `[feat(audio): player wrapper with no-op fallback + autoplay unlock c52907c]`
   - [x] Commit `feat(audio): player wrapper with no-op fallback + autoplay unlock`
         `[feat(audio): player wrapper with no-op fallback + autoplay unlock c52907c]`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+      `[checkpoint: c52907c]` — approved 2026-10-17; gates: bun check (159 files), biome, 1310 tests (16 new audio), determinism OK; assets verified 200 audio/ogg on dev server :5177
 
 ## Phase 2 - Settings & Save v13
 
