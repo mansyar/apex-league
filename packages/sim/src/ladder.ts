@@ -100,18 +100,33 @@ export function subTierFor(tier: LadderTier, points: number): LadderSubTier {
 }
 
 /**
- * Whether the player's next entered cup is the Promotion Cup (spec FR2):
- * a Bronze I creature with points banked past the Bronze I ceiling. Derived
- * from the ladder slice — never stored — so it can never drift out of sync
- * with the points it is computed from.
+ * Whether the player's next entered cup is a Promotion Cup (spec FR2):
+ * a top-sub-tier creature with points banked past that tier's ceiling.
+ * Bronze I → Silver, Silver I → Gold, Gold I → Legend (the plateau —
+ * Legend itself never promotes). Derived from the ladder slice — never
+ * stored — so it can never drift out of sync with the points it is
+ * computed from.
  */
 export function promotionEligible(ladder: LadderState): boolean {
-  return (
-    ladder.tier === "bronze" &&
-    ladder.subTier === "I" &&
-    ladder.points > LADDER_THRESHOLDS.bronzeI
-  )
+  if (ladder.tier === "legend") return false
+  if (ladder.subTier !== "I") return false
+  const ceiling =
+    ladder.tier === "bronze"
+      ? LADDER_THRESHOLDS.bronzeI
+      : ladder.tier === "silver"
+        ? SILVER_THRESHOLDS.silverI
+        : GOLD_THRESHOLDS.goldI
+  return ladder.points > ceiling
 }
+
+/** The tier a Promotion Cup champion ascends to, keyed by the tier they
+ * left. Legend is absent — the capstone never promotes. */
+const NEXT_TIER: Readonly<Record<Exclude<LadderTier, "legend">, LadderTier>> =
+  Object.freeze({
+    bronze: "silver",
+    silver: "gold",
+    gold: "legend",
+  })
 
 /** The player's cup placement: champion 1, final loss 2, semifinal exit 3,
  * quarterfinal exit 4 (see `cupPlacement`). */
@@ -153,17 +168,20 @@ export function applyCupPlacement(
   const earned = forfeited ? 0 : LADDER_POINTS_BY_PLACEMENT[placement]
   const prev = state.ladder
   const points = prev.points + earned
-  const promoted =
+  const nextTier =
     kind === "promotion" &&
     !forfeited &&
     placement === 1 &&
-    prev.tier === "bronze"
-  const ladder: LadderState = promoted
-    ? { points, tier: "silver", subTier: "III" }
+    prev.tier !== "legend"
+      ? NEXT_TIER[prev.tier]
+      : undefined
+  const promoted = nextTier !== undefined
+  const ladder: LadderState = nextTier
+    ? { points, tier: nextTier, subTier: prev.tier === "gold" ? "I" : "III" }
     : { points, tier: prev.tier, subTier: subTierFor(prev.tier, points) }
   return {
     state: { ...state, ladder },
-    climbed: ladder.subTier !== prev.subTier,
+    climbed: promoted || ladder.subTier !== prev.subTier,
     topReached: !promoted && earned > 0 && prev.subTier === "I",
     promoted,
   }
