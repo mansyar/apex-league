@@ -132,7 +132,15 @@ updates in separate `conductor(plan):` commits.
 
 ## Phase: Review Fixes
 
-- [~] Task: Apply review suggestions
+- [x] Task: Apply review suggestions [2dd6342]
+  - Biome gate restored: formatter drift fixed in `sim/src/index.ts`
+    (export-block join) + `hud/copy.test.ts` (helper wrapping, trailing
+    CRLF); import ordering fixed in `hud.ts` + `hud/plates.test.ts`.
+  - `topReached` no longer fires on Legend championships — the capstone
+    has no "next tier awaits" to announce (harmless-in-practice, now
+    semantically honest).
+  - `bun run verify` fully green after fixes (check ✓ ×3, 1388 pass /
+    0 fail, biome clean, determinism gate OK).
 
 ## Notes
 
