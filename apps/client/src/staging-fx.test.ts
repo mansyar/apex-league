@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { EffectLoop, HitStop } from "./staging-fx"
+import { EffectLoop, HitStop } from "./fx/loop"
 
 /** Deterministic clock + manual RAF pump so no real timers are involved. */
 function makeClock() {

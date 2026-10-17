@@ -8,18 +8,13 @@
 
 import {
   type Creature,
-  defaultLoadout,
   effectiveStats,
-  getMove,
   getSpecies,
-  MOVE_TIER3_DAYS,
   makeExhibition,
   type PlaybackStep,
-  requiredTierDays,
   resolveBattle,
   type SpeciesDef,
   type Tactic,
-  unlockedKit,
 } from "@apex/sim"
 import { createBattleSession, sparStampTitle } from "./battle-session"
 import { createBattleHud } from "./battleHud"
@@ -30,6 +25,14 @@ import {
   renderSpeedButton,
 } from "./battleUI"
 import { crestGlyph, elementHue } from "./element"
+import {
+  kitHintMessage,
+  kitProgress,
+  loadoutOf,
+  statLine,
+  toggleKit,
+} from "./spar/loadout-vm"
+import { logToggleLabel } from "./spar/log"
 import type { FightCasting } from "./staging"
 import { visualSeedOf } from "./staging-seed"
 import { icons } from "./ui/icons"
@@ -90,20 +93,6 @@ const TACTIC_PREVIEWS: Record<Tactic, string> = {
 const TACTIC_LABELS: Record<Tactic, string> = {
   balanced: "Balanced",
   specials: "Favor Specials",
-}
-
-/** Bigger stat label for readability on the card line. */
-const STAT_KEYS = ["hp", "atk", "def", "spd"] as const
-function statLine(
-  stats: Readonly<{ hp: number; atk: number; def: number; spd: number }>,
-  trained?: Readonly<{ hp: number; atk: number; def: number; spd: number }>,
-): string {
-  const parts = STAT_KEYS.map((key) => {
-    const bonus = trained?.[key] ?? 0
-    const chip = bonus > 0 ? ` (+${bonus})` : ""
-    return `${key.toUpperCase()} ${stats[key]}${chip}`
-  })
-  return parts.join(" · ")
 }
 
 type SparSetup = ReturnType<typeof makeExhibition>
@@ -294,7 +283,7 @@ export function createSpar(
     onReplayStart: (run) => {
       log.replaceChildren()
       log.hidden = true
-      logToggle.textContent = "Battle log ▸"
+      logToggle.textContent = logToggleLabel(true)
       logToggle.setAttribute("aria-expanded", "false")
       battleHud.hideStamp()
       replayButton.disabled = true
@@ -376,26 +365,9 @@ export function createSpar(
       creature.trained,
     )}`
 
-    const unlocked = unlockedKit(creature, species)
-    const nextIndex = unlocked.length
-    const nextId = species.kit[nextIndex]
-    if (nextId === undefined) {
-      progress.textContent = ""
-    } else {
-      const required = requiredTierDays(nextIndex, creature.stage)
-      const remaining = required - creature.trainingDays
-      const displayName = getMove(nextId)?.displayName ?? nextId
-      const plural = remaining === 1 ? "day" : "days"
-      // A freshly evolved juvenile woke up with the third move unlocked —
-      // say so instead of the generic count (spec R3 presentation).
-      const evolvedUnlock =
-        creature.stage !== "baby" && creature.trainingDays < MOVE_TIER3_DAYS
-      progress.textContent = evolvedUnlock
-        ? `Evolution unlocked move 3 — train ${remaining} more ${plural} for ${displayName}.`
-        : `Unlocked ${nextIndex} of 4 moves — train ${remaining} more ${plural} for ${displayName}.`
-    }
+    progress.textContent = kitProgress(creature, species)
 
-    const chosen = creature.loadout ?? defaultLoadout(creature, species)
+    const chosen = loadoutOf(creature, species)
     const picker = buildKitPicker({
       species,
       creature,
@@ -407,14 +379,11 @@ export function createSpar(
       },
       onToggle: (id) => {
         kitHint.textContent = ""
-        const next = chosen.includes(id)
-          ? chosen.filter((m) => m !== id)
-          : [...chosen, id]
+        const next = toggleKit(chosen, id)
         try {
           handlers.onSetLoadout?.(next)
         } catch (error) {
-          kitHint.textContent =
-            error instanceof Error ? error.message : "That kit is not allowed"
+          kitHint.textContent = kitHintMessage(error)
         }
       },
     })
@@ -445,7 +414,7 @@ export function createSpar(
     intro.textContent = "Pick how your partner fights. No AP, nothing saved."
     log.replaceChildren()
     log.hidden = true
-    logToggle.textContent = "Battle log ▸"
+    logToggle.textContent = logToggleLabel(true)
     logToggle.setAttribute("aria-expanded", "false")
     battleHud.hide()
     panel.style.display = ""
@@ -494,7 +463,7 @@ export function createSpar(
   logToggle.addEventListener("click", () => {
     log.hidden = !log.hidden
     logToggle.setAttribute("aria-expanded", String(!log.hidden))
-    logToggle.textContent = log.hidden ? "Battle log ▸" : "Battle log ▴"
+    logToggle.textContent = logToggleLabel(log.hidden)
     if (!log.hidden) log.scrollTop = log.scrollHeight
   })
 

@@ -152,6 +152,32 @@
   is reduced-motion aware. No new dependency; the determinism gate is
   untouched.*
 
+-   *2026-10-17: UI-layer refactor landed (track
+  `ui_layer_refactor_20261016`) — the client's three oversized presentation
+  modules were decomposed behavior-identically behind golden tests. `hud.ts`
+  (1394 lines) became `hud/` (copy.ts = the pure copy engine incl. the hint
+  table via `selectHint` and the `statusLine` ticker precedence; plates.ts =
+  score-bug/lineage/creature-plate builders + `ladderRead`/`apPipPlan`/
+  `conditionDelta`/`statCell` view-models; dock.ts = command dock +
+  `trainButtonState`/`pickerEntry`; settings.ts = pref chips + reset modal +
+  `prefChipView`/`capturePrefChips`), with `hud.ts` kept as a thin
+  `update()` fanout that re-exports the old import surface (main.ts and the
+  mock page untouched). `spar.ts` delegates its kit-gate/loadout/stats math to
+  `spar/loadout-vm.ts` and the log-toggle mapping to `spar/log.ts`. Arena
+  effects split into `fx/` (loop.ts = `HitStop`+`EffectLoop`, fx-data.ts =
+  constants + element burst physics + decal/trail params, fx-math.ts = flash/
+  arc/pulse/sway/decal curves, shot-geometry.ts = mesh factories, flash.ts +
+  decal.ts = pref-gated layers), leaving `staging-fx.ts` (442 lines) as pure
+  wiring with the `BattleEffects` seam unchanged. All extracted pure modules
+  are golden-tested; DOM wiring stays untested per the workflow's logic-only
+  TDD rule. CSS: the kit-namespaced modal block (`kit-modal*`,
+  `kit-button-danger`) moved from `ranch.css` to `ui/kit.css` (it is
+  consumed by every surface), and two declaration-identical focus rules joined
+  the shared `:focus-visible` group — drift-free, proven by stylesheet-rule +
+  computed-style baselines. Post-track sizes: hud.ts 467, spar.ts 460,
+  staging-fx.ts 447 (out-of-scope cup.ts 876 / scene-logic.ts 812 /
+  ranch-motion.ts 548 unchanged).*
+
 ## Server
 - **Framework**: ElysiaJS on Bun (endpoints: save sync, leaderboard, ghost
   data, anonymous device-ID auth).

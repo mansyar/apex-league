@@ -1,53 +1,82 @@
 import {
   ACTION_POINTS_PER_DAY,
   type CareAction,
-  type CareRejection,
-  CHAMPION_EVOLUTION_DAY,
-  CHAMPION_HINT_DAY,
-  CHAMPION_STAT_BOOST,
-  type Creature,
-  type CreatureConditions,
   canGraduate,
   careAction,
-  EVOLUTION_DAY,
-  EVOLUTION_HINT_DAY,
-  EVOLUTION_STAT_BOOST,
-  EXHAUSTED_ENERGY,
   type GameState,
-  GRADUATION_HINT_DAY,
-  getMove,
-  getSpecies,
-  LADDER_THRESHOLDS,
   lineagePrestige,
-  MOVE_TIER3_DAYS,
-  MOVE_TIER4_DAYS,
-  PRESTIGE_ESTABLISHED_LINE,
-  PRESTIGE_WARM_BLOODLINE,
   previewTraining,
-  requiredTierDays,
-  SICK_HEALTH,
-  SILVER_THRESHOLDS,
   type StatKey,
-  TRAINING_CAP,
 } from "@apex/sim"
-import { focusTrap } from "./battleUI"
 import { buildCreatureDetail } from "./creature-detail"
 import { crestGlyph, elementHue } from "./element"
 import { buildHandbook } from "./handbook"
-import { buildPrefCluster, buildSettingsModal } from "./settings-modal"
-import { icons } from "./ui/icons"
 import {
-  bar,
-  button,
-  chip,
-  crest,
-  cta,
-  meter,
-  plate,
-  replay,
-  tab,
-  ticker,
-} from "./ui/kit"
+  evolveCallout,
+  familyName,
+  graduationCallout,
+  REJECTION_COPY,
+  saveFailureNotice,
+  selectHint,
+  stageLabel,
+  statusLine,
+} from "./hud/copy"
+import { buildCommandDock, pickerEntry, trainButtonState } from "./hud/dock"
+import {
+  apPipPlan,
+  buildCallout,
+  buildCreaturePlate,
+  buildLineagePlate,
+  buildScoreBug,
+  conditionDelta,
+  ladderRead,
+  lineageMeta,
+  promotionLine,
+  statCell,
+} from "./hud/plates"
+import { buildPrefCluster, buildSettingsModal } from "./settings-modal"
+
+export { buildCommandDock, type CommandDockRefs } from "./hud/dock"
+
+import { buildResetModal, capturePrefChips } from "./hud/settings"
+
+export {
+  buildResetModal,
+  type ResetModalRefs,
+} from "./hud/settings"
+
+import { meter, replay } from "./ui/kit"
+
+export {
+  coachVoice,
+  corruptSaveNotice,
+  evolveCallout,
+  familyName,
+  flavorCallout,
+  graduationCallout,
+  graduationHint,
+  growthHint,
+  previewNote,
+  REJECTION_COPY,
+  romanNumeral,
+  STATS,
+  saveFailureNotice,
+  selectHint,
+  spendFlashIndex,
+  stageLabel,
+  statLabel,
+  statusLine,
+  trainingStatus,
+  unlockCallout,
+} from "./hud/copy"
+export {
+  buildCreaturePlate,
+  buildLineagePlate,
+  buildScoreBug,
+  type CreaturePlateRefs,
+  type LineagePlateRefs,
+  type ScoreBugRefs,
+} from "./hud/plates"
 
 export interface HudHandlers {
   onAdvanceDay: () => void
@@ -95,703 +124,8 @@ export interface Hud {
   announceSaveFailure(): void
 }
 
-/** Coach-voice copy for disabled actions (≤ 2 sentences, never punishing). */
-const REJECTION_COPY: Record<CareRejection, string> = {
-  "no-creature": "No partner yet.",
-  "no-ap": "No AP left today.",
-  "not-sick": "Not sick — save the medicine.",
-  "too-sick": "Too sick to play today.",
-  "too-tired": "Too tired to play.",
-}
-
-const CONDITIONS: Array<{
-  key: keyof CreatureConditions
-  label: string
-  glyph: string
-  color: string
-}> = [
-  {
-    key: "hunger",
-    label: "Hunger",
-    glyph: icons.hunger,
-    color: "var(--bar-hunger)",
-  },
-  {
-    key: "energy",
-    label: "Energy",
-    glyph: icons.energy,
-    color: "var(--bar-energy)",
-  },
-  {
-    key: "health",
-    label: "Health",
-    glyph: icons.health,
-    color: "var(--bar-health)",
-  },
-  { key: "mood", label: "Mood", glyph: icons.mood, color: "var(--bar-mood)" },
-  { key: "bond", label: "Bond", glyph: icons.bond, color: "var(--bar-bond)" },
-]
-
-const ACTIONS: Array<{ action: CareAction; label: string; glyph: string }> = [
-  { action: "feed", label: "Feed", glyph: icons.feed },
-  { action: "rest", label: "Rest", glyph: icons.rest },
-  { action: "treat", label: "Treat", glyph: icons.treat },
-  { action: "play", label: "Play", glyph: icons.play },
-]
-
-const STATS: Array<{ key: StatKey; label: string }> = [
-  { key: "hp", label: "HP" },
-  { key: "atk", label: "ATK" },
-  { key: "def", label: "DEF" },
-  { key: "spd", label: "SPD" },
-]
-
-/** The display label for one of the four trainable stat keys. */
-function statLabel(key: StatKey): string {
-  return STATS.find((s) => s.key === key)?.label ?? key
-}
-
-/** What tonight would do, from the sim's own preview helper. */
-function previewNote(preview: "gained" | "sick" | "hungry"): string {
-  if (preview === "gained") return "+1 tonight"
-  if (preview === "sick") return "no gain — unwell"
-  return "no gain — hungry"
-}
-
-function coachVoice(conditions: CreatureConditions, name: string): string {
-  if (conditions.health < SICK_HEALTH) {
-    return `${name} seems unwell — medicine would help.`
-  }
-  if (conditions.energy <= EXHAUSTED_ENERGY) {
-    return `${name} seems sluggish today…`
-  }
-  if (conditions.mood < 30) return `${name} seems a little down today.`
-  if (conditions.hunger <= 20) return `${name} looks hungry.`
-  return ""
-}
-
 /**
- * The element-flavored idle line: when nothing else needs saying, a water
- * partner gets a small water-flavored moment (echoing its catalog flavor).
- * Coach-voice, ≤ 2 sentences, never punishing. Empty for other elements.
- */
-export function flavorCallout(creature: Creature): string {
-  if (creature.element !== "water") return ""
-  return `${creature.name} hums a contented bubble song.`
-}
-
-/**
- * The fresh-unlock coach line: while the trained-days counter sits exactly
- * on a tier threshold, the coach names the move that just became legal.
- * Under training and condition copy in precedence — a quiet morning only.
- */
-export function unlockCallout(creature: Creature): string {
-  const days = creature.trainingDays
-  if (days !== MOVE_TIER3_DAYS && days !== MOVE_TIER4_DAYS) {
-    return ""
-  }
-  const species = getSpecies(creature.speciesId)
-  if (!species) return ""
-  const moveIndex = species.kit.findIndex(
-    (_, index) => requiredTierDays(index, creature.stage) === days,
-  )
-  const moveId = species.kit[moveIndex]
-  if (moveId === undefined) return ""
-  const move = getMove(moveId)
-  if (!move) return ""
-  const tail =
-    days === MOVE_TIER3_DAYS
-      ? ` Train ${MOVE_TIER4_DAYS - days} more days for the next tier.`
-      : ""
-  return `New move available: ${move.displayName}.${tail}`
-}
-
-/**
- * Life-stage display name + generation numeral, shared with the
- * creature-detail modal (single source of truth in ui/labels).
- */
-import { romanNumeral, stageLabel } from "./ui/labels"
-
-export { romanNumeral, stageLabel }
-
-/**
- * The bloodline's display name: the founder is unnumbered, every successor
- * carries its Roman numeral (generation 1 → "<Name> II"), so a dynasty reads
- * as one family rather than a list of strangers.
- */
-export function familyName(name: string, generation: number): string {
-  return generation > 0 ? `${name} ${romanNumeral(generation + 1)}` : name
-}
-
-/**
- * The growth hint (evolution track): from a hinted day on, the coach
- * occasionally teases that the baby is maturing — without disclosing the
- * threshold. Priority sits below unlock news and condition coach lines,
- * above flavor: raising is the game, but urgent care still leads.
- * Requires the current day, so the caller passes it in.
- */
-export function growthHint(day: number, creature: Creature): string {
-  if (creature.stage === "champion") return ""
-  if (creature.stage === "juvenile") {
-    // The champion tease (champion track): same direction-only contract —
-    // it points at the bond and the cups without naming the thresholds.
-    if (day < CHAMPION_HINT_DAY) return ""
-    if (day < CHAMPION_EVOLUTION_DAY) {
-      return `${creature.name} is growing into something grand — keep the bond strong and win another cup together.`
-    }
-    // Past the gate age and still juvenile: the climb is still open, so
-    // the hint keeps pointing (discovered-not-hidden — never a dead end).
-    return `${creature.name} is ready to become a champion — keep the bond strong and win another cup.`
-  }
-  if (day < EVOLUTION_HINT_DAY || day >= EVOLUTION_DAY) return ""
-  return `${creature.name} is filling out — keep the routine steady and one morning soon it will surprise you.`
-}
-
-/**
- * The graduation hint (legacy track): from the hinted day on, a champion
- * gets one direction-only coach line about the send-off — what graduating
- * does, never a threshold or a demand. Ranks above flavor, below care.
- */
-export function graduationHint(day: number, creature: Creature): string {
-  if (creature.stage !== "champion" || day < GRADUATION_HINT_DAY) return ""
-  return `${creature.name} has had a full career — graduating passes a stat floor to the next egg.`
-}
-
-/**
- * The evolution-moment coach line: what changed, in stat numbers. Shown
- * once by the HUD right after the ceremony, ahead of the routine status.
- * The boost follows the stage: the champion's grander leap gets its own
- * pinned numbers.
- */
-export function evolveCallout(creature: Creature): string {
-  const b =
-    creature.stage === "champion" ? CHAMPION_STAT_BOOST : EVOLUTION_STAT_BOOST
-  return `Evolution! ${creature.name} grew into a ${stageLabel(creature.stage)} — +${b.hp} HP · +${b.atk} ATK · +${b.def} DEF · +${b.spd} SPD. The ranch just got livelier.`
-}
-
-/**
- * The graduation send-off coach line (legacy track): names the retiree, the
- * generation the bloodline just started, and the successor. Warm, proud —
- * a hand-off, never a loss.
- */
-export function graduationCallout(
-  retireeName: string,
-  successorName: string,
-  generation: number,
-): string {
-  return `${retireeName} graduated to the Hall of Fame — generation ${generation} begins with ${successorName}.`
-}
-
-/**
- * The save-failure coach line: calm, blame-free, non-blocking. Shown once
- * when a persist fails (quota, private mode) — the day carries on.
- */
-export function saveFailureNotice(): string {
-  return "Heads up — that progress didn't save. Your partner's day carries on anyway."
-}
-
-/**
- * The corrupt-save coach line: calm, blame-free, non-blocking. Shown once
- * at boot when an existing save cannot be read — the game starts fresh,
- * and the player deserves to know why.
- */
-export function corruptSaveNotice(): string {
-  return "That old save couldn't be read — starting fresh. Sorry about that."
-}
-
-/**
- * The status line leads with training: the preview while a focus is set,
- * the morning result after Advance Day, and the condition coach line only
- * when training has nothing to say.
- */
-function trainingStatus(
-  creature: NonNullable<GameState["creature"]>,
-  lastFocus: StatKey | null,
-): string {
-  if (creature.trainingFocus) {
-    const stat = statLabel(creature.trainingFocus)
-    const preview = previewTraining(creature)
-    if (preview === "gained") {
-      return `A full night's rest will sharpen ${stat}.`
-    }
-    if (preview === "sick") {
-      return "Too unwell to gain from training — medicine would help."
-    }
-    return "Too hungry to gain from tonight's training."
-  }
-  switch (creature.trainingResult) {
-    case "gained":
-      return lastFocus
-        ? `Last night's rest sharpened ${statLabel(lastFocus)}.`
-        : "A night of rest paid off in training."
-    case "sick":
-      return `${creature.name} was too unwell to gain from training.`
-    case "hungry":
-      return `${creature.name} was too hungry to gain from training.`
-    default:
-      return ""
-  }
-}
-
-/**
- * Index of the AP pip that just drained when the spend total goes down
- * (drives the one-shot spend flash), or null when nothing was spent.
- */
-export const spendFlashIndex = (prev: number, next: number): number | null =>
-  next < prev ? next : null
-
-// ---------------------------------------------------------------------------
-// DOM builders — the exact cluster structures createHud composes. The mock
-// page (mock.ts) renders these same factories fed canned values, so the
-// mock can never drift from the live HUD's structure or class ownership.
-// ---------------------------------------------------------------------------
-
-/** The score-bug elements the daily update writes into. */
-export interface ScoreBugRefs {
-  root: HTMLElement
-  phaseTab: HTMLElement
-  dayNum: HTMLElement
-  apMeter: ReturnType<typeof meter>
-  trophy: HTMLElement
-  trophyCount: HTMLElement
-  rank: HTMLElement
-  rankRank: HTMLElement
-  rankPts: HTMLElement
-}
-
-/**
- * Top-center score bug: phase tab, day, AP segmented meter, championship
- * tally, and the Bronze ladder standing (save v8). Pure DOM — values are
- * owned by createHud's update().
- */
-export function buildScoreBug(): ScoreBugRefs {
-  const root = plate({ className: "score-bug" })
-  const phaseTab = tab("Day phase", "outline")
-  const dayNum = document.createElement("span")
-  dayNum.className = "score-day-num"
-  const dayLabel = document.createElement("span")
-  dayLabel.className = "score-day-label"
-  dayLabel.textContent = "Day"
-  const scoreDay = document.createElement("span")
-  scoreDay.className = "score-day"
-  scoreDay.append(dayLabel, dayNum)
-  const divider = document.createElement("span")
-  divider.className = "score-divider"
-  const divider2 = divider.cloneNode() as HTMLElement
-  const apLabel = document.createElement("span")
-  apLabel.className = "score-ap-label"
-  apLabel.textContent = "AP"
-  const scoreAp = document.createElement("span")
-  scoreAp.className = "score-ap"
-  const apMeter = meter(0, ACTION_POINTS_PER_DAY)
-  scoreAp.append(apLabel, apMeter.root)
-  // Lifetime championships (save v5): one gold tally, no silent cap.
-  const trophy = document.createElement("span")
-  trophy.className = "score-trophy"
-  trophy.title = "Cup championships"
-  const trophyCount = document.createElement("span")
-  trophyCount.className = "score-trophy-count"
-  trophy.innerHTML = icons.trophy
-  trophy.append(trophyCount)
-  // Bronze ladder standing (save v8): sub-tier tab + points, mirroring
-  // the trophy's one-segment-one-fact grammar.
-  const divider3 = divider.cloneNode() as HTMLElement
-  const rank = document.createElement("span")
-  rank.className = "score-ladder"
-  rank.title = "League standing"
-  const rankRank = document.createElement("span")
-  rankRank.className = "score-ladder-rank"
-  const rankPts = document.createElement("span")
-  rankPts.className = "score-ladder-pts"
-  rank.append(rankRank, rankPts)
-  root.append(
-    phaseTab,
-    scoreDay,
-    divider,
-    scoreAp,
-    divider2,
-    trophy,
-    divider3,
-    rank,
-  )
-  return {
-    root,
-    phaseTab,
-    dayNum,
-    apMeter,
-    trophy,
-    trophyCount,
-    rank,
-    rankRank,
-    rankPts,
-  }
-}
-
-/** The lineage-plate elements the daily update writes into. */
-export interface LineagePlateRefs {
-  root: HTMLButtonElement
-  familyEl: HTMLElement
-  metaEl: HTMLElement
-}
-
-/**
- * Top-left lineage plate (legacy track): the family name with its
- * generation numeral and the bloodline's counters. Doubles as the Hall of
- * Fame opener — one surface, one story.
- */
-export function buildLineagePlate(): LineagePlateRefs {
-  const root = document.createElement("button")
-  root.type = "button"
-  root.className = "kit-plate hud-lineage"
-  root.setAttribute("aria-label", "Lineage and Hall of Fame")
-  const tagEl = tab("Lineage", "outline")
-  const familyEl = document.createElement("span")
-  familyEl.className = "lineage-family"
-  const metaEl = document.createElement("span")
-  metaEl.className = "lineage-meta"
-  root.append(tagEl, familyEl, metaEl)
-  return { root, familyEl, metaEl }
-}
-
-/** The creature lower-third elements the daily update writes into. */
-export interface CreaturePlateRefs {
-  root: HTMLElement
-  creatureHead: HTMLButtonElement
-  collapseButton: HTMLButtonElement
-  headRow: HTMLElement
-  creatureName: HTMLElement
-  stageTab: HTMLElement
-  crestEl: HTMLElement
-  renameButton: HTMLButtonElement
-  nameInput: HTMLInputElement
-  renameConfirm: HTMLButtonElement
-  renameCancel: HTMLButtonElement
-  editRow: HTMLElement
-  statCells: Array<{ total: HTMLElement; bonus: HTMLElement; key: StatKey }>
-  bars: Array<{
-    handle: ReturnType<typeof bar>
-    delta: HTMLElement
-    key: keyof CreatureConditions
-    prev: number | null
-  }>
-  statusTicker: ReturnType<typeof ticker>
-}
-
-/**
- * Bottom-left creature lower-third (broadcast kit plate): head row with
- * collapse/rename affordances, stat cells, condition bars with transient
- * delta chips, and the live-region status ticker. Pure DOM — interaction
- * wiring and values stay with createHud.
- */
-export function buildCreaturePlate(): CreaturePlateRefs {
-  const root = plate({ className: "creature-plate" })
-  // The creature head opens the partner-details modal (coach_knowledge_20261016):
-  // crest + name + stage, one tap to the full stat breakdown.
-  const creatureHead = document.createElement("button")
-  creatureHead.className = "creature-head"
-  creatureHead.type = "button"
-  creatureHead.title = "Partner details"
-  const crestEl = crest("fire")
-  const creatureName = document.createElement("span")
-  creatureName.className = "creature-name"
-  const stageTab = tab("Baby", "stage")
-  creatureHead.append(crestEl, creatureName, stageTab)
-
-  // Rename affordance: a sibling button (never nested inside a button) that
-  // swaps the head row for an inline edit form.
-  const renameButton = document.createElement("button")
-  renameButton.className = "rename-button"
-  renameButton.type = "button"
-  renameButton.title = "Rename partner"
-  renameButton.setAttribute("aria-label", "Rename partner")
-  renameButton.innerHTML = icons.pencil
-  // Collapse affordance: its own button so the head stays free for the
-  // details modal. The chevron points down expanded, right collapsed (CSS).
-  const collapseButton = document.createElement("button")
-  collapseButton.className = "collapse-toggle"
-  collapseButton.type = "button"
-  collapseButton.title = "Collapse panel"
-  collapseButton.setAttribute("aria-label", "Collapse panel")
-  collapseButton.setAttribute("aria-expanded", "true")
-  const creatureChev = document.createElement("span")
-  creatureChev.className = "collapse-chev"
-  creatureChev.innerHTML = icons.chevron
-  collapseButton.append(creatureChev)
-  const headRow = document.createElement("div")
-  headRow.className = "creature-headrow"
-  headRow.append(creatureHead, renameButton, collapseButton)
-
-  // Inline edit form: name input + confirm/cancel. Hidden until the
-  // pencil is pressed; Enter confirms, Escape cancels.
-  const nameInput = document.createElement("input")
-  nameInput.className = "creature-name-input"
-  nameInput.type = "text"
-  nameInput.maxLength = 16
-  nameInput.setAttribute("aria-label", "Creature name")
-  const renameConfirm = document.createElement("button")
-  renameConfirm.className = "kit-button rename-confirm"
-  renameConfirm.type = "button"
-  renameConfirm.textContent = "Save"
-  renameConfirm.setAttribute("aria-label", "Save name")
-  const renameCancel = document.createElement("button")
-  renameCancel.className = "kit-button rename-cancel"
-  renameCancel.type = "button"
-  renameCancel.textContent = "Cancel"
-  renameCancel.setAttribute("aria-label", "Cancel rename")
-  const editRow = document.createElement("div")
-  editRow.className = "creature-name-edit"
-  editRow.style.display = "none"
-  editRow.append(nameInput, renameConfirm, renameCancel)
-
-  const statRow = document.createElement("div")
-  statRow.className = "stat-row"
-  const statCells = STATS.map(({ key, label }) => {
-    const cell = document.createElement("span")
-    cell.className = "stat-cell"
-    const statLabel = document.createElement("span")
-    statLabel.className = "stat-label"
-    statLabel.textContent = label
-    const total = document.createElement("span")
-    total.className = "stat-total"
-    const bonus = document.createElement("span")
-    bonus.className = "stat-chip"
-    cell.append(statLabel, total, bonus)
-    statRow.append(cell)
-    return { total, bonus, key }
-  })
-  const conditionList = document.createElement("div")
-  conditionList.className = "condition-list"
-  const bars: Array<{
-    handle: ReturnType<typeof bar>
-    delta: HTMLElement
-    key: keyof CreatureConditions
-    prev: number | null
-  }> = CONDITIONS.map((def) => {
-    const handle = bar({
-      label: def.label,
-      glyph: def.glyph,
-      value: 0,
-      max: 100,
-      color: def.color,
-    })
-    // Transient change chip: pinned next to the value for ~1.2s on a
-    // meaningful swing, then hidden again (mock "bar change feedback").
-    const delta = document.createElement("em")
-    delta.className = "condition-delta"
-    delta.style.display = "none"
-    handle.value.append(delta)
-    conditionList.append(handle.root)
-    return { handle, delta, key: def.key, prev: null }
-  })
-  const statusTicker = ticker()
-  // Hardening: the announcer strip is live region (screen readers hear
-  // routine callouts without focus).
-  statusTicker.root.setAttribute("aria-live", "polite")
-  root.append(headRow, editRow, statRow, conditionList, statusTicker.root)
-  return {
-    root,
-    creatureHead,
-    collapseButton,
-    headRow,
-    creatureName,
-    stageTab,
-    crestEl,
-    renameButton,
-    nameInput,
-    renameConfirm,
-    renameCancel,
-    editRow,
-    statCells,
-    bars,
-    statusTicker,
-  }
-}
-
-/** The command-dock elements the daily update writes into. */
-export interface CommandDockRefs {
-  root: HTMLElement
-  dockHead: HTMLButtonElement
-  dockRow: HTMLElement
-  actionButtons: Array<{ button: HTMLButtonElement; action: CareAction }>
-  dockTrain: HTMLElement
-  trainButton: HTMLButtonElement
-  trainTag: HTMLElement | null
-  picker: HTMLElement
-  pickerButtons: Array<{
-    button: HTMLButtonElement
-    note: HTMLElement
-    key: StatKey
-  }>
-  advance: HTMLElement
-  advanceLabel: HTMLElement | null
-  /** Graduation send-off container + chip (shown only when eligible). */
-  dockGraduate: HTMLElement
-  graduateChip: HTMLButtonElement
-}
-
-/**
- * Bottom-right command dock (broadcast kit plate): care buttons, the
- * train control with its inline four-stat picker, and the Advance Day
- * CTA. Care/pick clicks call the given handlers; the train-toggle and
- * collapse interactions stay with createHud (they re-render).
- */
-export function buildCommandDock(handlers: {
-  onCare: (action: CareAction) => void
-  /** A stat picked from the inline picker (closes it + spends 1 AP). */
-  onTrain: (key: StatKey) => void
-  onAdvanceDay: () => void
-  /** Open the graduation send-off confirm (legacy track). */
-  onGraduate: () => void
-}): CommandDockRefs {
-  // A slim header row doubles as the collapse toggle; collapsed, only
-  // the "ACTIONS" label remains pinned to the corner.
-  const root = plate({ className: "command-dock" })
-  const dockHead = document.createElement("button")
-  dockHead.className = "dock-head"
-  dockHead.type = "button"
-  dockHead.setAttribute("aria-expanded", "true")
-  dockHead.title = "Collapse panel"
-  const dockHeadLabel = document.createElement("span")
-  dockHeadLabel.textContent = "Actions"
-  const dockChev = document.createElement("span")
-  dockChev.className = "collapse-chev"
-  dockChev.innerHTML = icons.chevron
-  dockHead.append(dockHeadLabel, dockChev)
-  const dockRow = document.createElement("div")
-  dockRow.className = "dock-row"
-  const actionButtons = ACTIONS.map(({ action, label, glyph }) => {
-    const btn = button({
-      label,
-      glyph,
-      cost: "1 AP",
-      onClick: () => handlers.onCare(action),
-    })
-    dockRow.append(btn)
-    return { button: btn, action }
-  })
-  // Train control and its inline four-stat picker. Opening or closing
-  // the picker spends nothing — only an assignment can.
-  const dockTrain = document.createElement("div")
-  dockTrain.className = "dock-train"
-  const trainButton = button({
-    label: "Train",
-    glyph: icons.train,
-    cost: "1 AP",
-    tag: "",
-  })
-  const trainTag = trainButton.querySelector<HTMLElement>(".kit-button-tag")
-  dockTrain.append(trainButton)
-
-  const picker = document.createElement("div")
-  picker.className = "train-picker"
-  picker.style.display = "none"
-  const pickerButtons = STATS.map(({ key, label }) => {
-    const entry = document.createElement("button")
-    entry.className = "train-entry"
-    entry.type = "button"
-    const name = document.createElement("span")
-    name.className = "train-entry-name"
-    name.textContent = label
-    const note = document.createElement("span")
-    note.className = "train-note"
-    entry.append(name, note)
-    entry.addEventListener("click", () => {
-      handlers.onTrain(key)
-    })
-    picker.append(entry)
-    return { button: entry, note, key }
-  })
-  const advance = cta("Advance Day", handlers.onAdvanceDay)
-  const advanceLabel = advance.querySelector<HTMLElement>(".kit-cta-label")
-  // Graduation send-off (legacy track): hidden until the sim reports the
-  // champion eligible (canGraduate), so the dock never offers a dead end.
-  const dockGraduate = document.createElement("div")
-  dockGraduate.className = "dock-graduate"
-  dockGraduate.style.display = "none"
-  const graduateChip = button({
-    label: "Graduate",
-    tag: "",
-    onClick: () => handlers.onGraduate(),
-  })
-  dockGraduate.append(graduateChip)
-  root.append(dockHead, dockRow, dockTrain, dockGraduate, picker, advance)
-  return {
-    root,
-    dockHead,
-    dockRow,
-    actionButtons,
-    dockTrain,
-    trainButton,
-    trainTag,
-    picker,
-    pickerButtons,
-    advance,
-    advanceLabel,
-    dockGraduate,
-    graduateChip,
-  }
-}
-
-/** The reset-confirm modal elements. */
-export interface ResetModalRefs {
-  resetModal: HTMLElement
-  resetConfirm: HTMLButtonElement
-}
-
-/**
- * New game confirm modal: a deliberate two-step for a destructive action.
- * Escape backs out; a backdrop click means "not today". The focus trap
- * keeps Tab inside the dialog — the scrim hides the page, so focus
- * wandering into it would be invisible.
- */
-export function buildResetModal(onReset: () => void): ResetModalRefs {
-  const resetModal = document.createElement("div")
-  resetModal.className = "kit-modal"
-  resetModal.style.display = "none"
-  resetModal.setAttribute("role", "dialog")
-  resetModal.setAttribute("aria-modal", "true")
-  const resetBox = document.createElement("div")
-  resetBox.className = "kit-plate kit-modal-box"
-  const resetTitle = document.createElement("h2")
-  resetTitle.className = "kit-modal-title"
-  resetTitle.textContent = "Start a fresh ranch?"
-  const resetText = document.createElement("p")
-  resetText.className = "kit-modal-text"
-  resetText.textContent =
-    "This partner, their training, and every cup win will be gone for good."
-  const resetActions = document.createElement("div")
-  resetActions.className = "kit-modal-actions"
-  const resetCancel = chip({
-    label: "Keep playing",
-    variant: "dim",
-    onClick: () => {
-      resetModal.style.display = "none"
-    },
-  })
-  const resetConfirm = document.createElement("button")
-  resetConfirm.className = "kit-button kit-button-danger"
-  resetConfirm.type = "button"
-  resetConfirm.textContent = "Start over"
-  resetActions.append(resetCancel, resetConfirm)
-  resetBox.append(resetTitle, resetText, resetActions)
-  resetModal.append(resetBox)
-  resetConfirm.addEventListener("click", () => {
-    resetModal.style.display = "none"
-    onReset()
-  })
-  const trapFocus = focusTrap(resetBox)
-  resetModal.addEventListener("keydown", (event) => {
-    trapFocus(event)
-    if (event.key === "Escape") resetModal.style.display = "none"
-  })
-  resetModal.addEventListener("click", (event) => {
-    if (event.target === resetModal) resetModal.style.display = "none"
-  })
-  return { resetModal, resetConfirm }
-}
-
-/**
- * The care HUD: broadcast-style overlays over the 3D ranch — a top-center
+ * The care HUD: broadcast-style overlays over the 3D ranch - a top-center
  * score bug, a bottom-left creature lower-third with condition bars, and a
  * bottom-right command dock. Built from the shared broadcast kit
  * (ui/kit.ts): warm keyline plates, chamfered corners, skewed AP pips.
@@ -890,97 +224,12 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   // settings.seenHints. First match wins (the precedence order below is
   // the teaching order: AP first, kit depth second, cup last).
   let shownHintId: string | null = null
-  const HINTS: Array<{
-    id: string
-    when: (state: GameState) => boolean
-    text: string
-  }> = [
-    {
-      id: "ap-basics",
-      when: (s) => s.phase === "day" && s.day === 1 && s.creature !== null,
-      text: "Three action points a day — feed, rest, treat, play. Spend them like they matter.",
-    },
-    {
-      id: "training-tier",
-      when: (s) => s.phase === "day" && s.day === 5 && s.creature !== null,
-      text: "Training focus sticks between days, and the kit keeps growing — one more move unlocks tomorrow.",
-    },
-    {
-      id: "cup-eve",
-      when: (s) => s.phase === "day" && s.day % 7 === 6 && s.creature !== null,
-      text: "Cup day is tomorrow. The bracket takes your partner as they are — spend today wisely.",
-    },
-    {
-      // Silver Ladder (FR11): one-time coach line setting up the Silver
-      // division — Bronze-only, since a Silver I climber tops a different
-      // tier now.
-      id: "silver-awaits",
-      when: (s) =>
-        s.creature !== null &&
-        s.ladder.tier === "bronze" &&
-        s.ladder.subTier === "I" &&
-        s.ladder.points > 0,
-      text: "You've topped Bronze — the Silver division awaits. Keep banking cup wins; the climb continues soon.",
-    },
-    {
-      // Legacy (v10): the send-off unlocks — teach what graduating does.
-      id: "graduation-ready",
-      when: (s) => canGraduate(s).eligible,
-      text: "A full career. Graduating retires this champion to the Hall of Fame and passes a stat floor to the next egg.",
-    },
-    {
-      // Legacy prestige milestones (v10): teach each perk the first time it
-      // takes effect. Gated on a founded line (>0 generations) so a
-      // pre-legacy save's cup tally can never trigger them early. The
-      // thresholds are the sim's constants, never literals — retuning a
-      // milestone there must retune the coach line with it.
-      id: "prestige-warm-bloodline",
-      when: (s) =>
-        s.lineage.generation > 0 &&
-        lineagePrestige(s) >= PRESTIGE_WARM_BLOODLINE,
-      text: "Warm bloodline — your next egg will start with a stronger bond.",
-    },
-    {
-      id: "prestige-established-line",
-      when: (s) =>
-        s.lineage.generation > 0 &&
-        lineagePrestige(s) >= PRESTIGE_ESTABLISHED_LINE,
-      text: "Established line — every inherited stat floor gains +1 from here on.",
-    },
-    // Silver Ladder (FR11): one-time boss-defeat callouts, deduped by
-    // seenHints like every other coach line — the ledger is the trigger,
-    // so the callout fires exactly once per scalp, even across reloads.
-    {
-      id: "boss-koda",
-      when: (s) => s.bossDefeats.includes("koda"),
-      text: "The Promotion gate is DOWN — Sear Marshal Koda never saw it coming. Silver, meet your climber.",
-    },
-    {
-      id: "boss-hesse",
-      when: (s) => s.bossDefeats.includes("hesse"),
-      text: "Verdant Dame Hesse falls. The ridge is behind you — the summit is ahead.",
-    },
-    {
-      id: "boss-marlow",
-      when: (s) => s.bossDefeats.includes("marlow"),
-      text: "Marlow's tide breaks. Silver is yours — the Gold horizon waits.",
-    },
-  ]
-  const callout = document.createElement("div")
-  callout.className = "kit-plate hud-callout"
-  callout.style.display = "none"
-  const calloutText = document.createElement("p")
-  calloutText.className = "hud-callout-text"
-  const calloutOk = chip({
-    label: "Got it",
-    variant: "accent",
-    onClick: () => {
+  const { root: callout, text: calloutText } = buildCallout({
+    onDismiss: () => {
       if (shownHintId) handlers.onHintSeen(shownHintId)
       shownHintId = null
-      callout.style.display = "none"
     },
   })
-  callout.append(calloutText, calloutOk)
   // The two bottom plates live in a stack wrapper so the phone tier can
   // lay them out as a column; display:contents keeps the desktop
   // corner-pinned layout untouched (children position against the root).
@@ -1077,28 +326,6 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     if (current) update(current)
   })
 
-  /** Mirror the motion and camera preferences onto the settings chips. */
-  function capturePrefUpdate(state: GameState): void {
-    motionChip.setAttribute(
-      "aria-pressed",
-      state.settings.reducedMotion ? "true" : "false",
-    )
-    const label = motionChip.querySelector<HTMLElement>(".kit-chip-label")
-    if (label) {
-      label.textContent = state.settings.reducedMotion
-        ? "Motion: reduced"
-        : "Motion: full"
-    }
-    const cinematic = state.settings.arenaCamera === "cinematic"
-    cameraChip.setAttribute("aria-pressed", cinematic ? "true" : "false")
-    const cameraLabel = cameraChip.querySelector<HTMLElement>(".kit-chip-label")
-    if (cameraLabel) {
-      cameraLabel.textContent = cinematic
-        ? "Camera: cinematic"
-        : "Camera: broadcast"
-    }
-  }
-
   const update = (state: GameState): void => {
     current = state
     // Score bug: the phase tab flips to accent gold on cup day.
@@ -1109,16 +336,15 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
 
     // AP segmented meter. Cup bonus points extend past the daily max as
     // chevron-cut bonus pips; a fresh spend flashes the drained pip out.
-    const bonus = Math.max(0, state.actionPoints - ACTION_POINTS_PER_DAY)
-    const clamped = Math.min(state.actionPoints, ACTION_POINTS_PER_DAY)
-    const wantPips = ACTION_POINTS_PER_DAY + bonus
+    const { bonus, clamped, wantPips, flash } = apPipPlan(
+      state.actionPoints,
+      prevAp,
+    )
     if (apPips.length !== wantPips) {
       const rebuilt = meter(clamped, ACTION_POINTS_PER_DAY, bonus)
       apMeter.root.replaceChildren(...rebuilt.pips)
       apPips = rebuilt.pips
     }
-    const flash =
-      prevAp === null ? null : spendFlashIndex(prevAp, state.actionPoints)
     apPips.forEach((pip, i) => {
       pip.classList.toggle("is-bonus", i >= ACTION_POINTS_PER_DAY)
       pip.classList.toggle("is-empty", i >= clamped)
@@ -1136,33 +362,13 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     // are banked toward the next tier, so the raw total is the honest
     // number (Bronze I banks toward Silver, Silver I toward Gold).
     const ladder = state.ladder
-    const tierName = ladder.tier === "silver" ? "Silver" : "Bronze"
-    rankRank.textContent = `${tierName} ${ladder.subTier}`
-    rank.classList.toggle("score-ladder--silver", ladder.tier === "silver")
-    const nextThreshold =
-      ladder.subTier === "III"
-        ? ladder.tier === "silver"
-          ? SILVER_THRESHOLDS.silverII
-          : LADDER_THRESHOLDS.bronzeII
-        : ladder.tier === "silver"
-          ? SILVER_THRESHOLDS.silverI
-          : LADDER_THRESHOLDS.bronzeI
-    const nextTier = ladder.subTier === "III" ? "II" : "I"
-    if (ladder.subTier === "I") {
-      rankPts.textContent = `${ladder.points} pts`
-      rank.setAttribute(
-        "aria-label",
-        `League standing: ${tierName} I, ${ladder.points} points banked`,
-      )
-    } else {
-      rankPts.textContent = `${ladder.points}/${nextThreshold}`
-      rank.setAttribute(
-        "aria-label",
-        `League standing: ${tierName} ${ladder.subTier}, ${ladder.points} of ${nextThreshold} points toward ${tierName} ${nextTier}`,
-      )
-    }
+    const read = ladderRead(ladder)
+    rankRank.textContent = read.rank
+    rank.classList.toggle("score-ladder--silver", read.isSilver)
+    rankPts.textContent = read.points
+    rank.setAttribute("aria-label", read.ariaLabel)
     if (prevLadderSubTier !== null && ladder.subTier !== prevLadderSubTier) {
-      climbLine = `Promotion — ${tierName} ${ladder.subTier}!`
+      climbLine = promotionLine(read.tierName, ladder.subTier)
       replay(rank, "chip-pop")
     }
     prevLadderSubTier = ladder.subTier
@@ -1182,10 +388,10 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       lineagePlate.style.display = "none"
       statusTicker.say("")
       motionWrap.style.display = ""
-      capturePrefUpdate(state)
+      capturePrefChips({ motionChip, cameraChip }, state.settings)
       return
     }
-    capturePrefUpdate(state)
+    capturePrefChips({ motionChip, cameraChip }, state.settings)
     lowerThird.style.display = ""
     dockRow.style.display = ""
     dockTrain.style.display = ""
@@ -1194,7 +400,11 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     // Legacy (v10): the lineage plate mirrors the bloodline, and the
     // graduate chip appears only when the sim says the champion is eligible.
     familyEl.textContent = familyName(creature.name, state.lineage.generation)
-    metaEl.textContent = `Gen ${state.lineage.generation} · Prestige ${lineagePrestige(state)} · ${state.cupsWon} cup${state.cupsWon === 1 ? "" : "s"}`
+    metaEl.textContent = lineageMeta(
+      state.lineage.generation,
+      lineagePrestige(state),
+      state.cupsWon,
+    )
     const gradVerdict = canGraduate(state)
     dockGraduate.style.display = gradVerdict.eligible ? "" : "none"
     graduateChip.disabled = !gradVerdict.eligible
@@ -1212,7 +422,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     // Onboarding callout: the first unseen hint whose moment is now.
     // Dismissal persists through the sim, so a hint never asks twice.
     const seen = new Set(state.settings.seenHints)
-    const active = HINTS.find((h) => h.when(state) && !seen.has(h.id))
+    const active = selectHint(state, seen)
     if (active && active.id !== shownHintId) {
       shownHintId = active.id
       calloutText.textContent = active.text
@@ -1226,72 +436,43 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
 
     // Stat row: name, total (rolled base + trained), bonus when above 0.
     for (const cell of statCells) {
-      const base = creature.stats[cell.key]
-      const trained = creature.trained[cell.key]
-      cell.total.textContent = String(base + trained)
-      cell.bonus.textContent = trained > 0 ? `+${trained}` : ""
+      const { total, bonus } = statCell(creature, cell.key)
+      cell.total.textContent = String(total)
+      cell.bonus.textContent = bonus
     }
 
     // Train button: disabled only when nothing is possible. A focus set
     // keeps it enabled at 0 AP, because a same-day swap is free.
     const preview = previewTraining(creature)
-    const allCapped = STATS.every(
-      ({ key }) => creature.trained[key] >= TRAINING_CAP,
-    )
-    if (allCapped) {
-      trainButton.disabled = true
-      trainButton.classList.add("is-disabled")
-      trainButton.dataset.reason = "Nothing left to train for now."
-      if (trainTag) trainTag.textContent = ""
-    } else if (state.actionPoints === 0 && !creature.trainingFocus) {
-      trainButton.disabled = true
-      trainButton.classList.add("is-disabled")
-      trainButton.dataset.reason = REJECTION_COPY["no-ap"]
-      if (trainTag) trainTag.textContent = ""
-    } else {
-      trainButton.disabled = false
-      trainButton.classList.remove("is-disabled")
+    const train = trainButtonState(creature, state.actionPoints)
+    trainButton.disabled = train.disabled
+    trainButton.classList.toggle("is-disabled", train.disabled)
+    if (train.reason === null) {
       delete trainButton.dataset.reason
-      if (trainTag) {
-        trainTag.textContent = creature.trainingFocus
-          ? `Focus: ${statLabel(creature.trainingFocus)}`
-          : ""
-      }
+    } else {
+      trainButton.dataset.reason = train.reason
     }
-    trainButton.classList.toggle("is-focus", Boolean(creature.trainingFocus))
+    if (trainTag) trainTag.textContent = train.tag
+    trainButton.classList.toggle("is-focus", train.focus)
 
     // Picker entries: tonight's delta, or the waste reason. Capped stats
     // are disabled; the current focus is marked.
     picker.style.display = pickerOpen ? "" : "none"
     for (const entry of pickerButtons) {
-      const capped = creature.trained[entry.key] >= TRAINING_CAP
-      entry.button.disabled = capped
-      entry.button.classList.toggle("is-capped", capped)
-      entry.button.classList.toggle(
-        "is-focus",
-        creature.trainingFocus === entry.key,
-      )
-      if (capped) {
-        entry.note.textContent = "as sharp as it can get for now"
-      } else if (creature.trainingFocus === entry.key) {
-        entry.note.textContent = preview
-          ? `focused · ${previewNote(preview)}`
-          : "focused"
-      } else if (preview === "gained") {
-        const total = creature.stats[entry.key] + creature.trained[entry.key]
-        entry.note.textContent = `${statLabel(entry.key)} ${total} → ${total + 1}`
-      } else {
-        entry.note.textContent = preview ? previewNote(preview) : "costs 1 AP"
-      }
+      const view = pickerEntry(creature, entry.key, preview)
+      entry.button.disabled = view.capped
+      entry.button.classList.toggle("is-capped", view.capped)
+      entry.button.classList.toggle("is-focus", view.isFocus)
+      entry.note.textContent = view.note
     }
 
     for (const bar of bars) {
       const v = creature.conditions[bar.key]
       bar.handle.set(v, 100)
-      const swing = bar.prev === null ? 0 : v - bar.prev
-      if (Math.abs(swing) >= 2) {
+      const { text } = conditionDelta(bar.prev, v)
+      if (text !== null) {
         replay(bar.handle.fill, "is-flashing")
-        bar.delta.textContent = `${swing > 0 ? "+" : "−"}${Math.abs(swing)}`
+        bar.delta.textContent = text
         bar.delta.style.display = ""
         replay(bar.delta, "chip-pop")
       } else {
@@ -1306,15 +487,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     // stays visible after the cup overlay closes.)
     const climb = climbLine
     climbLine = null
-    statusTicker.say(
-      climb ||
-        trainingStatus(creature, lastFocus) ||
-        coachVoice(creature.conditions, creature.name) ||
-        unlockCallout(creature) ||
-        growthHint(state.day, creature) ||
-        graduationHint(state.day, creature) ||
-        flavorCallout(creature),
-    )
+    statusTicker.say(statusLine(creature, state.day, lastFocus, climb))
 
     // Disabled states come from the sim itself — a dry-run careAction is
     // the single source of truth for why an action can't happen. The

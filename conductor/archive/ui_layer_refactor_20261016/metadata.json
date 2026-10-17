@@ -1,0 +1,16 @@
+{
+  "trackId": "ui_layer_refactor_20261016",
+  "type": "refactor",
+  "status": "new",
+  "title": "UI-Layer Refactor: Module Decomposition & CSS Consolidation",
+  "createdAt": "2026-10-16",
+  "branch": "track/ui_layer_refactor_20261016",
+  "surfaces": [
+    "apps/client/src/hud.ts",
+    "apps/client/src/spar.ts",
+    "apps/client/src/staging-fx.ts",
+    "apps/client/src/cup.css",
+    "apps/client/src/ranch.css",
+    "apps/client/src/ui/kit.css"
+  ]
+}

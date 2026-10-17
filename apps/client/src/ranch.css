@@ -216,11 +216,6 @@
   background: var(--kit-panel-bg);
 }
 
-.rename-button:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
 .rename-button svg {
   width: 13px;
   height: 13px;
@@ -270,58 +265,6 @@
 
 .creature-plate.is-collapsed .creature-head {
   margin-bottom: 0;
-}
-
-/* Modal (new-game confirm): a full-screen scrim with one centered plate.
-   The scrim click and Escape both back out — only the explicit buttons act. */
-.kit-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 70;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: color-mix(in srgb, #000 55%, transparent);
-}
-
-.kit-modal-box {
-  display: grid;
-  gap: 10px;
-  max-width: min(420px, 88vw);
-  padding: 18px 20px;
-  text-align: center;
-}
-
-.kit-modal-title {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.kit-modal-text {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--ink-dim);
-}
-
-.kit-modal-actions {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-/* The one destructive action in the game earns its own color. */
-.kit-button-danger {
-  color: var(--danger, #ff6b6b);
-}
-
-.kit-button-danger:focus-visible {
-  outline: 2px solid var(--danger, #ff6b6b);
-  outline-offset: 2px;
 }
 
 /* Creature detail modal (coach_knowledge_20261016): the partner's 4-way
@@ -775,11 +718,6 @@
 
 .hud-lineage:hover {
   color: var(--accent);
-}
-
-.hud-lineage:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .lineage-family {
