@@ -89,6 +89,7 @@ const migrations: Record<
         reducedMotion: false,
         seenHints: [],
         arenaCamera: "cinematic",
+        muted: false,
       },
       cupsWon: 0,
       lastCupDay: null,
@@ -114,6 +115,7 @@ const migrations: Record<
         reducedMotion: false,
         seenHints: [],
         arenaCamera: "cinematic",
+        muted: false,
       },
       cupsWon: 0,
       lastCupDay: null,
@@ -148,6 +150,7 @@ const migrations: Record<
         reducedMotion: false,
         seenHints: [],
         arenaCamera: "cinematic",
+        muted: false,
       },
       cupsWon: 0,
       lastCupDay: null,
@@ -186,6 +189,7 @@ const migrations: Record<
         reducedMotion: false,
         seenHints: [],
         arenaCamera: "cinematic",
+        muted: false,
       },
       cupsWon: 0,
       lastCupDay: null,
@@ -218,7 +222,7 @@ const migrations: Record<
       phase,
       actionPoints,
       creature,
-      settings: { ...settings, arenaCamera: "cinematic" },
+      settings: { ...settings, arenaCamera: "cinematic", muted: false },
       cupsWon: 0,
       lastCupDay: null,
       // The ladder starts fresh for every migrated save (bronze ladder,
@@ -287,6 +291,7 @@ const migrations: Record<
         // Stamped early so the intermediate GameState literal type-checks;
         // the v8 → v9 step below stamps it again for direct v8 saves.
         arenaCamera: "cinematic",
+        muted: false,
       },
       cupsWon: s.cupsWon as GameState["cupsWon"],
       lastCupDay: s.lastCupDay as GameState["lastCupDay"],
@@ -350,6 +355,7 @@ const migrations: Record<
       settings: {
         ...(s.settings as GameState["settings"]),
         arenaCamera: "cinematic",
+        muted: false,
       },
       cupsWon: s.cupsWon as GameState["cupsWon"],
       lastCupDay: s.lastCupDay as GameState["lastCupDay"],
@@ -485,6 +491,35 @@ const migrations: Record<
       state: migrated,
       savedAt: raw.savedAt ?? 0,
       session: migratedSession,
+    }
+  },
+
+  // v12 → v13 (audio_foundation_20261017): settings gain the persisted
+  // audio mute toggle, stamped false — sound is on for every migrated
+  // save until the player silences it in the settings modal. Everything
+  // else predates this step and is forwarded untouched.
+  12: (raw) => {
+    const { day, phase, actionPoints, state: s } = validateStateShape(raw, 12)
+    const migrated: GameState = {
+      day,
+      phase,
+      actionPoints,
+      creature: s.creature as GameState["creature"],
+      settings: {
+        ...(s.settings as GameState["settings"]),
+        muted: false,
+      },
+      cupsWon: s.cupsWon as GameState["cupsWon"],
+      lastCupDay: s.lastCupDay as GameState["lastCupDay"],
+      ladder: s.ladder as GameState["ladder"],
+      lineage: s.lineage as GameState["lineage"],
+      bossDefeats: s.bossDefeats as GameState["bossDefeats"],
+    }
+    return {
+      version: 13,
+      state: migrated,
+      savedAt: raw.savedAt ?? 0,
+      session: (raw.session as CupSession | null) ?? null,
     }
   },
 }
