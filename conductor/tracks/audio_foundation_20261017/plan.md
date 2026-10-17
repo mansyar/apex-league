@@ -49,10 +49,12 @@
 
 ## Phase 3 - Battle Arena SFX
 
-- [ ] Task: Wire cues into the shared playback stream (Spar + cup arena)
-  - [ ] Map step/event stream entries through the cue table to the player
+- [x] Task: Wire cues into the shared playback stream (Spar + cup arena)
+  - [x] Map step/event stream entries through the cue table to the player
         (manual verify in browser: hits, projectile fire, KO stamp, verdict)
-  - [ ] Commit `feat(audio): battle SFX through the playback stream`
+        `[feat(audio): battle step cues through the playback stream b34e46b]`
+  - [x] Commit `feat(audio): battle SFX through the playback stream`
+        `[feat(audio): battle step cues through the playback stream b34e46b]`
 - [ ] Task: Fast-forward + reduced-motion behavior
   - [ ] Verify natural density at fast-forward and silence in dump mode
         (manual); adjust mapping if noisy
