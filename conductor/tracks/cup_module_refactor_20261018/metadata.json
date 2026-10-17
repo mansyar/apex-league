@@ -1,0 +1,10 @@
+{
+  "id": "cup_module_refactor_20261018",
+  "title": "Cup Module Refactor",
+  "type": "refactor",
+  "status": "new",
+  "created": "2026-10-18",
+  "branch": "track/cup_module_refactor_20261018",
+  "spec": "./spec.md",
+  "plan": "./plan.md"
+}
