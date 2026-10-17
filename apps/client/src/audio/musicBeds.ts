@@ -32,7 +32,7 @@ export class MusicBeds {
   private current: BedScene | null = null
   private muted = false
   /** Active fades: element → {target, done}. One interval drives them all. */
-  private fades = new Map<
+  private readonly fades = new Map<
     HTMLAudioElement,
     { target: number; done?: () => void }
   >()
@@ -77,6 +77,26 @@ export class MusicBeds {
           el.volume = 0
           void el.play().catch(() => {})
         }
+        this.fade(el, BED_VOLUME)
+      }
+    } catch {
+      // Silent no-op fallback.
+    }
+  }
+
+  /**
+   * Re-attempt playback of the current bed. Called from the first-gesture
+   * unlock: the boot-time `play()` is autoplay-rejected in real browsers
+   * (no gesture yet), and a same-scene `setScene` no-ops, so without this
+   * retry the ranch music stays silent until the first arena visit.
+   */
+  resume(): void {
+    if (this.muted || !this.current) return
+    try {
+      const el = this.element(this.current)
+      if (el.paused) {
+        el.volume = 0
+        void el.play().catch(() => {})
         this.fade(el, BED_VOLUME)
       }
     } catch {

@@ -191,7 +191,10 @@ const audioPlayer = new AudioPlayer(playCue)
 // shared enter/exit choreography, faded out while muted.
 const beds = new MusicBeds()
 beds.setScene("ranch")
-const unlockAudio = (): void => audioPlayer.unlock()
+const unlockAudio = (): void => {
+  audioPlayer.unlock()
+  beds.resume() // the boot-time play() may have been autoplay-rejected
+}
 window.addEventListener("pointerdown", unlockAudio, { once: true })
 window.addEventListener("keydown", unlockAudio, { once: true })
 const playStepCue = (step: PlaybackStep, instant: boolean): void => {
