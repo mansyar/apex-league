@@ -3,6 +3,7 @@ import { createCreature, type GameState } from "@apex/sim"
 import {
   apPipPlan,
   conditionDelta,
+  climbAnnouncement,
   ladderRead,
   lineageMeta,
   promotionLine,
@@ -133,6 +134,50 @@ describe("ladderRead", () => {
 
   test("golden: legendTitles is ignored outside the plateau", () => {
     expect(ladderRead(ladder("gold", "I", 38), 2).titles).toBeNull()
+  })
+})
+
+describe("climbAnnouncement", () => {
+  test("golden: a sub-tier climb announces the new standing", () => {
+    expect(
+      climbAnnouncement(
+        { tier: "gold", subTier: "III", points: 27 },
+        { tier: "gold", subTier: "II", points: 30 },
+      ),
+    ).toBe("Promotion — Gold II!")
+  })
+
+  test("golden: a cross-tier promotion announces the new tier", () => {
+    expect(
+      climbAnnouncement(
+        { tier: "silver", subTier: "I", points: 24 },
+        { tier: "gold", subTier: "III", points: 27 },
+      ),
+    ).toBe("Promotion — Gold III!")
+  })
+
+  test("golden: the gold-to-legend plateau flip announces despite the same sub-tier", () => {
+    expect(
+      climbAnnouncement(
+        { tier: "gold", subTier: "I", points: 36 },
+        { tier: "legend", subTier: "I", points: 39 },
+      ),
+    ).toBe("Promotion — Legend I!")
+  })
+
+  test("golden: no announcement when the standing is unchanged", () => {
+    expect(
+      climbAnnouncement(
+        { tier: "bronze", subTier: "II", points: 7 },
+        { tier: "bronze", subTier: "II", points: 8 },
+      ),
+    ).toBeNull()
+  })
+
+  test("golden: the first update never announces", () => {
+    expect(
+      climbAnnouncement(null, { tier: "bronze", subTier: "III", points: 0 }),
+    ).toBeNull()
   })
 })
 

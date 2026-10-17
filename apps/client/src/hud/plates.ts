@@ -116,6 +116,26 @@ export function promotionLine(tierName: string, subTier: string): string {
   return `Promotion — ${tierName} ${subTier}!`
 }
 
+/**
+ * The one-update climb announcement: fires on sub-tier climbs and
+ * cross-tier promotions alike. Keyed on the full standing — a Gold I →
+ * Legend I flip keeps subTier "I", so comparing sub-tiers alone would
+ * miss the plateau promotion (gold_legend_ladder_20261017). The first
+ * update (no previous standing) never announces.
+ */
+export function climbAnnouncement(
+  prev: GameState["ladder"] | null,
+  next: GameState["ladder"],
+): string | null {
+  if (
+    prev === null ||
+    (prev.tier === next.tier && prev.subTier === next.subTier)
+  ) {
+    return null
+  }
+  return promotionLine(TIER_NAME[next.tier], next.subTier)
+}
+
 /** How the AP segmented meter renders for one update. */
 export interface ApPipPlan {
   /** Cup bonus points beyond the daily max (chevron-cut pips). */

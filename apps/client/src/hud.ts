@@ -31,7 +31,7 @@ import {
   conditionDelta,
   ladderRead,
   lineageMeta,
-  promotionLine,
+  climbAnnouncement,
   statCell,
 } from "./hud/plates"
 import { buildPrefCluster, buildSettingsModal } from "./settings-modal"
@@ -268,9 +268,11 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   cluster.classList.toggle("is-collapsed", !dockOpen)
   // Previous AP total — drives the one-shot spend flash on the meter.
   let prevAp: number | null = null
-  // Ladder climb detection: the ticker announces a sub-tier promotion
-  // exactly once, the update after the cup finalize that caused it.
-  let prevLadderSubTier: string | null = null
+  // Ladder climb detection: the ticker announces a sub-tier promotion or
+  // cross-tier promotion exactly once, the update after the cup finalize
+  // that caused it (a Gold I → Legend I flip keeps subTier "I", so the
+  // full standing is compared).
+  let prevLadder: GameState["ladder"] | null = null
   let climbLine: string | null = null
   let apPips = apMeter.pips
 
@@ -384,11 +386,12 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     rankTitles.textContent = read.titles ?? ""
     rankTitles.style.display = read.titles === null ? "none" : ""
     rank.setAttribute("aria-label", read.ariaLabel)
-    if (prevLadderSubTier !== null && ladder.subTier !== prevLadderSubTier) {
-      climbLine = promotionLine(read.tierName, ladder.subTier)
+    const announcement = climbAnnouncement(prevLadder, ladder)
+    if (announcement !== null) {
+      climbLine = announcement
       replay(rank, "chip-pop")
     }
-    prevLadderSubTier = ladder.subTier
+    prevLadder = ladder
     if (advanceLabel) {
       advanceLabel.textContent =
         state.phase === "cup" ? "Continue past cup" : "Advance Day"
