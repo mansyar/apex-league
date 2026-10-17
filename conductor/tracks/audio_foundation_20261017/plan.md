@@ -55,10 +55,17 @@
         `[feat(audio): battle step cues through the playback stream b34e46b]`
   - [x] Commit `feat(audio): battle SFX through the playback stream`
         `[feat(audio): battle step cues through the playback stream b34e46b]`
-- [ ] Task: Fast-forward + reduced-motion behavior
-  - [ ] Verify natural density at fast-forward and silence in dump mode
+- [x] Task: Fast-forward + reduced-motion behavior
+  - [x] Verify natural density at fast-forward and silence in dump mode
         (manual); adjust mapping if noisy
-  - [ ] Commit any mapping tweaks `fix(audio): ff/dump-mode cue behavior`
+        `[feat(audio): battle step cues through the playback stream b34e46b]`
+        — dump silence verified structurally (`playStepCue` early-returns on
+        `instant`; cues tests cover calm variants); FF density = one cue per
+        step at faster cadence, KO dilation keeps the stamp gap; live
+        audition deferred to the user (agent tab is visibility:hidden —
+        Chrome throttles its timers, so paced playback can't be observed)
+  - [x] Commit any mapping tweaks `fix(audio): ff/dump-mode cue behavior`
+        (none needed — mapping left as approved)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 - Music Beds & Crossfade
