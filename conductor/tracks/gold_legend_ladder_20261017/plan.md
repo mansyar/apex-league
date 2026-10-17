@@ -7,10 +7,10 @@ updates in separate `conductor(plan):` commits.
 
 ## Phase 1 — Gold tier in the ladder (sim, TDD)
 
-- [ ] Task: Write failing tests for Gold thresholds/climbs (30/36, Gold
-      III→II→I) in `ladder.tier.test.ts`
-- [ ] Task: Implement `LadderTier` extension + `GOLD_THRESHOLDS` in
-      `ladder.ts`
+- [x] Task: Write failing tests for Gold thresholds/climbs (30/36, Gold
+      III→II→I) in `ladder.tier.test.ts` `[3b09b92]`
+- [x] Task: Implement `LadderTier` extension + `GOLD_THRESHOLDS` in
+      `ladder.ts` `[3b09b92]`
 - [ ] Task: Write failing tests for Legend eligibility (Gold I + points
       past 36) and plateau behavior (no sub-tiers, no demotion)
 - [ ] Task: Implement Legend promotion-eligibility + `legendTitles` tally
