@@ -22,7 +22,13 @@ updates in separate `conductor(plan):` commits.
       *(the Silver-teaser → real-progression copy and the new Legend teaser
       are client-side coach lines — folded into the Phase 5 handbook task,
       per the juvenile track's layering precedent)*
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - Verified: RED→GREEN per task; sim suite 674 pass / 0 fail; `bun run
+    check` clean across all 3 packages; `bun run verify` green incl.
+    determinism gate (byte-identical GLB regeneration); coverage diff
+    4574aef..HEAD touches only `packages/sim/src/ladder.{ts,tier.test.ts}` +
+    conductor docs — golden draw-stream and save tests untouched.
+    *[checkpoint: f477292]*
 
 ## Phase 2 — Authored gatekeepers (sim, TDD)
 
