@@ -13,11 +13,13 @@
         `[assets(audio): bundle Kenney CC0 SFX + OpenGameArt CC0 music beds 1423c45]`
   - [x] Manual verify: assets load via dev server, no runtime network fetch
         (200 audio/ogg for sfx + music on the dev server) `[assets(audio): bundle Kenney CC0 SFX + OpenGameArt CC0 music beds 1423c45]`
-- [ ] Task: Pure sound-cue mapping table (TDD)
-  - [ ] Write failing tests first: battle/step events → cue ids; calm-mix
+- [x] Task: Pure sound-cue mapping table (TDD)
+  - [x] Write failing tests first: battle/step events → cue ids; calm-mix
         variant selection (reduced-motion → soft variants); muted → no cues
-  - [ ] Implement `audio/cues.ts` (DOM-free) to green; commit
+        `[feat(audio): pure event-to-cue mapping + calm-mix selection 7d9b6b4]`
+  - [x] Implement `audio/cues.ts` (DOM-free) to green; commit
         `feat(audio): pure event-to-cue mapping + calm-mix selection`
+        `[feat(audio): pure event-to-cue mapping + calm-mix selection 7d9b6b4]`
 - [ ] Task: Player with silent fallback + unlock gate
   - [ ] TDD the pure gating logic (unlocked-before-gesture state, mute gate);
         imperative playback wrapper verified manually
