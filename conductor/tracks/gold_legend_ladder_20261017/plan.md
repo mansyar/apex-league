@@ -71,11 +71,19 @@ updates in separate `conductor(plan):` commits.
 
 ## Phase 4 — Save v14 (sim, TDD)
 
-- [ ] Task: Write failing tests for v13→v14 additive migration + load
-      validation accepting gold/legend + `legendTitles` default
-- [ ] Task: Bump `SAVE_VERSION` to 14, extend `save/schema.ts` +
-      `save/migrate.ts`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Write failing tests for v13→v14 additive migration + load
+      validation accepting gold/legend + `legendTitles` default `[7c3cea1]`
+- [x] Task: Bump `SAVE_VERSION` to 14, extend `save/schema.ts` +
+      `save/migrate.ts` `[7c3cea1]`
+  - Note: also widens `save/storage.ts` load validation (four-tier ladder +
+    strict legendTitles) and re-pins six stale version pins across
+    `save.test.ts` / `cupSave.test.ts` / `legacySave.test.ts` ("platinum"
+    replaces "gold" as the rejected tier in the v11 negative test).
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - Verified: RED (9 fail) → GREEN; full suite 1367 pass / 0 fail / 1
+    skip; `bun run verify` green incl. determinism gate; coverage diff
+    scoped to `save/*` + conductor docs. Sim-only phase — no browser
+    verification. *[checkpoint: 7c3cea1]*
 
 ## Phase 5 — Client surfaces (manual-verify tier) + wrap-up
 
