@@ -51,9 +51,15 @@ updates in separate `conductor(plan):` commits.
 
 ## Phase 3 — Tier rewards (sim, TDD)
 
-- [ ] Task: Write failing tests for tier-gated champion bonuses (Gold +1 AP,
-      Legend +2 AP + legendTitles; loss/forfeit unchanged)
-- [ ] Task: Implement in `cupRewards.ts` on the live cup path
+- [x] Task: Write failing tests for tier-gated champion bonuses (Gold +1 AP,
+      Legend +2 AP + legendTitles; loss/forfeit unchanged) `[8999f70]`
+- [x] Task: Implement in `cupRewards.ts` on the live cup path `[8999f70]`
+  - Note: implementation spans `ticker.ts` (`TIER_AP_BONUS` stacking),
+    `cupRewards.ts` (legendTitles tally), `machine.ts` (placement runs
+    before rewards so the gate cup pays the NEW tier's bundle; also passes
+    the session's bracket kind to `applyCupPlacement` — a latent live-path
+    fix), and `state.ts`/`save/migrate.ts` (legendTitles field + literals,
+    v14 prep).
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Save v14 (sim, TDD)
