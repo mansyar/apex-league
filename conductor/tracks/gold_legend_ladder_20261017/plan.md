@@ -60,7 +60,14 @@ updates in separate `conductor(plan):` commits.
     the session's bracket kind to `applyCupPlacement` — a latent live-path
     fix), and `state.ts`/`save/migrate.ts` (legendTitles field + literals,
     v14 prep).
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - Verified: RED (7 fail incl. machine-ordering pin) → GREEN; full suite
+    1357 pass / 0 fail / 1 skip; `bun run verify` green (check + biome +
+    determinism gate byte-identical); coverage diff scoped to
+    `cupRewards*` + `ticker.ts` + `machine.ts` + `state.ts` +
+    `save/migrate.ts` + conductor docs. Sim-only phase — no browser
+    verification; client AP display already derives from actionPoints.
+    *[checkpoint: 8999f70]*
 
 ## Phase 4 — Save v14 (sim, TDD)
 
