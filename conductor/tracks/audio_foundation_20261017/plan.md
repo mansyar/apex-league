@@ -85,8 +85,14 @@
 
 ## Phase 5 - Wrap-up
 
-- [ ] Task: Dated tech-stack note (Audio section: implementation shape,
+- [x] Task: Dated tech-stack note (Audio section: implementation shape,
         asset source); record learnings if any
-- [ ] Task: Final sweep — `bun run verify`, full manual pass, archive
+        `[docs(tech-stack): audio foundation note …]` (with the wrap-up commit)
+        — learning recorded: hidden-tab timer throttling blocks paced-playback
+        observation from the automation tab; verify audible paths with the
+        gate pipeline + user audition instead
+- [x] Task: Final sweep — `bun run verify`, full manual pass, archive
         readiness
+        `[feat(audio): …]` (final gates: 1320 pass / 0 fail, determinism OK)
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
