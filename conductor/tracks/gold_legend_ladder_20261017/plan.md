@@ -87,8 +87,16 @@ updates in separate `conductor(plan):` commits.
 
 ## Phase 5 — Client surfaces (manual-verify tier) + wrap-up
 
-- [ ] Task: Rank plate/score bug: Gold/Legend standings + Legend titles
-      display
+- [x] Task: Rank plate/score bug: Gold/Legend standings + Legend titles
+      display [0aecb5f]
+  - Note: `ladderRead` reworked — `isSilver` → `tierClass` (four-tier
+    accent) + `titles` segment (★ N on the plateau, aria copy updated);
+    `TIER_NAME` shared module (`tier-name.ts`) replaces the three
+    "silver ? Silver : Bronze" hardcodes (score bug, entry chip, results
+    rows); results AP row is tier-stacked (`TIER_AP_BONUS`) and a Legend
+    win appends `★ Legend title N`; gold/legend CSS tokens in kit.css;
+    sim barrel now exports `GOLD_THRESHOLDS` + `TIER_AP_BONUS`. Also
+    ignores `.playwright/` scratch screenshots.
 - [ ] Task: Cup entry chip, results rows, coach ticker: promotion/climb
       announcements
 - [ ] Task: Coach's Handbook ladder copy → four-tier truth; retire stale
