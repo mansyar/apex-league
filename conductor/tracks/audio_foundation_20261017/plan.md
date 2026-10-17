@@ -96,3 +96,8 @@
         `[feat(audio): …]` (final gates: 1320 pass / 0 fail, determinism OK)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
       `[checkpoint: d094e9d]` — approved 2026-10-17; final gates: bun run verify EXIT 0 (1320 pass / 0 fail / 30358 expects, tsc ×3, biome, determinism byte-identical)
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions — beds.resume() retry from the gesture
+        unlock (ranch music silent until first arena visit) + readonly fades
+        `335f061`
