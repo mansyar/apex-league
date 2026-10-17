@@ -21,6 +21,7 @@ import {
 } from "@apex/sim"
 import { buildArena } from "./arena"
 import { cueForStep } from "./audio/cues"
+import { MusicBeds } from "./audio/musicBeds"
 import { playCue } from "./audio/playCue"
 import { AudioPlayer } from "./audio/player"
 import { createCup } from "./cup"
@@ -166,6 +167,8 @@ const enterArena = (casting: FightCasting): void => {
   scene.setRanchCreatureVisible(false)
   void swap.enterArena()
   staging.cast(casting)
+  // The arena bed takes over from the ranch loop while the bowl plays.
+  beds.setScene("arena")
   // Broadcast clarity: the ranch HUD stands down while the bowl plays.
   app.classList.add("app-in-arena")
 }
@@ -173,6 +176,8 @@ const exitArena = (): void => {
   scene.setRanchCreatureVisible(true)
   void swap.exitArena()
   staging.clear()
+  // Back to the ranch loop on the way out.
+  beds.setScene("ranch")
   app.classList.remove("app-in-arena")
 }
 
@@ -182,6 +187,10 @@ const exitArena = (): void => {
 // (autoplay policy); the persisted mute rides the store fanout; instant
 // reduced-motion dumps stay silent by design.
 const audioPlayer = new AudioPlayer(playCue)
+// Music beds: ranch loop by default, crossfaded to the arena loop by the
+// shared enter/exit choreography, faded out while muted.
+const beds = new MusicBeds()
+beds.setScene("ranch")
 const unlockAudio = (): void => audioPlayer.unlock()
 window.addEventListener("pointerdown", unlockAudio, { once: true })
 window.addEventListener("keydown", unlockAudio, { once: true })
@@ -450,6 +459,7 @@ store.subscribe((s) => hud.update(s))
 store.subscribe((s) => spar.update(s.creature ?? null))
 store.subscribe((s) => cup.update(s))
 store.subscribe((s) => audioPlayer.setMuted(s.settings.muted))
+store.subscribe((s) => beds.setMuted(s.settings.muted))
 store.subscribe((s) => graduation.update(s))
 
 // First run (or a migrated v1 save without a creature): offer the starter.
