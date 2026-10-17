@@ -7,7 +7,7 @@
 
 ## Phase 1 - Audio Foundation (module + assets)
 
-- [ ] Task: Source & bundle Kenney CC0 assets
+- [~] Task: Source & bundle Kenney CC0 assets
   - [ ] Download/curate: impact SFX set, two music loops (ranch + arena
         mood); commit under the client app with a size budget note
   - [ ] Manual verify: assets load via dev server, no runtime network fetch
