@@ -66,7 +66,8 @@
         Chrome throttles its timers, so paced playback can't be observed)
   - [x] Commit any mapping tweaks `fix(audio): ff/dump-mode cue behavior`
         (none needed — mapping left as approved)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+      `[checkpoint: b34e46b]` — approved 2026-10-17; gates: bun run verify green (tsc/biome/1319 tests/determinism); in-browser evidence: gate pipeline (locked drop → unlock pass → muted drop → mapped cue) via __audioLog; live FF audition deferred to user (hidden-tab timer throttling)
 
 ## Phase 4 - Music Beds & Crossfade
 
