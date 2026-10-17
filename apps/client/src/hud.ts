@@ -92,6 +92,11 @@ export interface HudHandlers {
    * The HUD only mirrors state; wiring stays in main.ts.
    */
   onToggleArenaCamera: () => void
+  /**
+   * Flip the save v13 audio mute toggle (persists like every other sim
+   * change). The HUD only mirrors state; wiring stays in main.ts.
+   */
+  onToggleMuted: () => void
   /** Rename the partner through the sim (save v7 QoL). Returns false when
    * the sim rejects (e.g. mid-cup) so the HUD can coach instead of acting.
    */
@@ -196,12 +201,13 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   const settings = buildSettingsModal({
     onToggleReducedMotion: () => handlers.onToggleReducedMotion(),
     onToggleArenaCamera: () => handlers.onToggleArenaCamera(),
+    onToggleMuted: () => handlers.onToggleMuted(),
     onNewGame: () => {
       resetModal.style.display = ""
       resetConfirm.focus()
     },
   })
-  const { motionChip, cameraChip } = settings
+  const { motionChip, cameraChip, soundChip } = settings
   // Coach's Handbook: type chart, ladder rules, raising guidance — one
   // persistent ranch chip (Phase 5 moved the settings chips into their
   // own modal behind the Settings chip).
@@ -388,10 +394,10 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       lineagePlate.style.display = "none"
       statusTicker.say("")
       motionWrap.style.display = ""
-      capturePrefChips({ motionChip, cameraChip }, state.settings)
+      capturePrefChips({ motionChip, cameraChip, soundChip }, state.settings)
       return
     }
-    capturePrefChips({ motionChip, cameraChip }, state.settings)
+    capturePrefChips({ motionChip, cameraChip, soundChip }, state.settings)
     lowerThird.style.display = ""
     dockRow.style.display = ""
     dockTrain.style.display = ""

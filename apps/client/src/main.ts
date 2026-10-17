@@ -11,13 +11,19 @@ import {
   graduate,
   loadBoot,
   markHintSeen,
+  type PlaybackStep,
   renameCreature,
   type StatKey,
   setArenaCamera,
   setLoadout,
+  setMuted,
   setReducedMotion,
 } from "@apex/sim"
 import { buildArena } from "./arena"
+import { cueForStep } from "./audio/cues"
+import { MusicBeds } from "./audio/musicBeds"
+import { playCue } from "./audio/playCue"
+import { AudioPlayer } from "./audio/player"
 import { createCup } from "./cup"
 import { nextShot } from "./director"
 import { hideFailurePlate, showFailurePlate } from "./failure-plate"
@@ -161,6 +167,8 @@ const enterArena = (casting: FightCasting): void => {
   scene.setRanchCreatureVisible(false)
   void swap.enterArena()
   staging.cast(casting)
+  // The arena bed takes over from the ranch loop while the bowl plays.
+  beds.setScene("arena")
   // Broadcast clarity: the ranch HUD stands down while the bowl plays.
   app.classList.add("app-in-arena")
 }
@@ -168,7 +176,32 @@ const exitArena = (): void => {
   scene.setRanchCreatureVisible(true)
   void swap.exitArena()
   staging.clear()
+  // Back to the ranch loop on the way out.
+  beds.setScene("ranch")
   app.classList.remove("app-in-arena")
+}
+
+// Battle audio (audio_foundation_20261017 FR3): the pure cue table gates
+// every playback step, the player holds the unlock/mute gate, and playCue
+// voices the bundled CC0 assets. Unlock waits for the first gesture
+// (autoplay policy); the persisted mute rides the store fanout; instant
+// reduced-motion dumps stay silent by design.
+const audioPlayer = new AudioPlayer(playCue)
+// Music beds: ranch loop by default, crossfaded to the arena loop by the
+// shared enter/exit choreography, faded out while muted.
+const beds = new MusicBeds()
+beds.setScene("ranch")
+const unlockAudio = (): void => {
+  audioPlayer.unlock()
+  beds.resume() // the boot-time play() may have been autoplay-rejected
+}
+window.addEventListener("pointerdown", unlockAudio, { once: true })
+window.addEventListener("keydown", unlockAudio, { once: true })
+const playStepCue = (step: PlaybackStep, instant: boolean): void => {
+  if (instant) return // dump mode: no sound
+  const { settings } = store.get()
+  const cue = cueForStep(step, settings)
+  if (cue) audioPlayer.play(cue)
 }
 
 // The spar reads the live state through this hook; kit changes write
@@ -186,7 +219,10 @@ const spar = createSpar(app, {
   // creature retires while a fight plays. Back at the ranch the stage
   // clears and the ranch star returns.
   onFightStart: enterArena,
-  onStep: (step, instant) => staging.applyStep(step, instant),
+  onStep: (step, instant) => {
+    playStepCue(step, instant)
+    staging.applyStep(step, instant)
+  },
   onClose: exitArena,
   // The arena scales its action animations to the playback pace, so
   // fast-forward speeds the whole fight up instead of cutting swings.
@@ -258,7 +294,10 @@ const cup = createCup(
   app,
   {
     onFightStart: enterArena,
-    onStep: (step, instant) => staging.applyStep(step, instant),
+    onStep: (step, instant) => {
+      playStepCue(step, instant)
+      staging.applyStep(step, instant)
+    },
     onPace: (msPerStep) => staging.setPace(msPerStep),
     onArenaExit: exitArena,
     // The first arena fight consumes the cup (endCup flips the phase) —
@@ -389,6 +428,10 @@ const hud = createHud(app, {
   onToggleArenaCamera: () => {
     toggleArenaCamera()
   },
+  onToggleMuted: () => {
+    const current = store.get()
+    store.commit(setMuted(current, !current.settings.muted))
+  },
   onRename: (name) => {
     const next = renameCreature(store.get(), name)
     if (!next.ok) return false
@@ -418,6 +461,8 @@ const hud = createHud(app, {
 store.subscribe((s) => hud.update(s))
 store.subscribe((s) => spar.update(s.creature ?? null))
 store.subscribe((s) => cup.update(s))
+store.subscribe((s) => audioPlayer.setMuted(s.settings.muted))
+store.subscribe((s) => beds.setMuted(s.settings.muted))
 store.subscribe((s) => graduation.update(s))
 
 // First run (or a migrated v1 save without a creature): offer the starter.

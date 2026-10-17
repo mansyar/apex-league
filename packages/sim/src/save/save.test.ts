@@ -12,6 +12,7 @@ import {
   type GameState,
   markHintSeen,
   setArenaCamera,
+  setMuted,
   setReducedMotion,
 } from "../state"
 import { advanceDay } from "../ticker"
@@ -30,7 +31,7 @@ import {
 
 describe("save schema", () => {
   test("current version matches the schema", () => {
-    expect(SAVE_VERSION).toBe(12)
+    expect(SAVE_VERSION).toBe(13)
   })
 
   test("serializeSave wraps state with version metadata", () => {
@@ -687,7 +688,7 @@ describe("evolution stage (v6)", () => {
 
 describe("save v7 — cup session, rename, hints", () => {
   test("current version matches the schema", () => {
-    expect(SAVE_VERSION).toBe(12)
+    expect(SAVE_VERSION).toBe(13)
   })
 
   test("a v6 save migrates cleanly: null session + a clean hint ledger", () => {
@@ -787,6 +788,7 @@ describe("save v7 — cup session, rename, hints", () => {
         reducedMotion: false,
         seenHints: ["ap"],
         arenaCamera: "cinematic",
+        muted: false,
       },
     }
     saveGame(adapter, marked, 1)
@@ -1036,7 +1038,7 @@ describe("save v11 — silver ladder tier + boss defeat ledger", () => {
   }
 
   test("SAVE_VERSION is 12", () => {
-    expect(SAVE_VERSION).toBe(12)
+    expect(SAVE_VERSION).toBe(13)
   })
 
   test("a v10 save migrates: the ladder keeps its points and gains tier bronze", () => {
@@ -1142,7 +1144,7 @@ describe("save v12 - element chart HP scale (v11 -> v12)", () => {
   // magnitudes and touches nothing else - trained bonuses, atk/def/spd,
   // ladder, and the ledger are scale-free.
   test("SAVE_VERSION is 12", () => {
-    expect(SAVE_VERSION).toBe(12)
+    expect(SAVE_VERSION).toBe(13)
   })
 
   /** A v11-shaped payload: fresh state with every stored HP halved to the
@@ -1208,7 +1210,7 @@ describe("save v12 - element chart HP scale (v11 -> v12)", () => {
     const payload = v11Payload()
     const creatureHp = payload.state.creature?.stats.hp ?? 0
     const migrated = migrate(payload)
-    expect(migrated.version).toBe(12)
+    expect(migrated.version).toBe(SAVE_VERSION)
     expect(migrated.state.creature?.stats.hp).toBe(creatureHp * 2)
     const session = migrated.session
     if (!session) throw new Error("session dropped")
@@ -1317,6 +1319,77 @@ describe("arena camera preference (v9)", () => {
     ) as unknown as Record<string, unknown>
     const settings = state.settings as Record<string, unknown>
     settings.arenaCamera = "wall"
+    adapter.setItem(
+      SAVE_KEY,
+      JSON.stringify({ version: SAVE_VERSION, state, savedAt: 0 }),
+    )
+    expect(loadGame(adapter)).toBeNull()
+  })
+})
+
+/**
+ * Save v13 (audio_foundation_20261017): settings gain the persisted audio
+ * mute toggle. Sound is ON by default (`muted: false`); the v12 → v13
+ * migration stamps the flag onto every migrated save, and load-time
+ * validation rejects a non-boolean like every other settings field.
+ */
+describe("save v13 (audio_foundation_20261017)", () => {
+  /** A v12-shaped payload: the current state minus the v13 muted flag. */
+  const v12Payload = (): Record<string, unknown> => {
+    const state = structuredClone(createInitialState()) as unknown as Record<
+      string,
+      unknown
+    >
+    const settings = { ...(state.settings as Record<string, unknown>) }
+    delete settings.muted
+    state.settings = settings
+    return { version: 12, state, session: null, savedAt: 77 }
+  }
+
+  test("SAVE_VERSION is 13", () => {
+    expect(SAVE_VERSION).toBe(13)
+  })
+
+  test("a v12 save migrates: settings gain the muted flag, default false", () => {
+    const migrated = migrate(v12Payload())
+    expect(migrated.version).toBe(SAVE_VERSION)
+    expect(migrated.state.settings.muted).toBe(false)
+    // Pre-existing preferences survive the stamp untouched.
+    expect(migrated.state.settings.reducedMotion).toBe(false)
+    expect(migrated.state.settings.arenaCamera).toBe("cinematic")
+  })
+
+  test("a migrated v12 save loads and stays playable", () => {
+    const adapter = createMemoryAdapter()
+    adapter.setItem(SAVE_KEY, JSON.stringify(v12Payload()))
+    const state = loadGame(adapter)
+    expect(state).not.toBeNull()
+    expect(state?.settings.muted).toBe(false)
+  })
+
+  test("createInitialState starts with sound on", () => {
+    expect(createInitialState().settings.muted).toBe(false)
+  })
+
+  test("setMuted turns the toggle both ways and round-trips", () => {
+    const base = chooseStarter(createInitialState(), "fire_drake", 42)
+    const silenced = setMuted(base, true)
+    expect(silenced.settings.muted).toBe(true)
+    const restored = setMuted(silenced, false)
+    expect(restored.settings.muted).toBe(false)
+
+    const adapter = createMemoryAdapter()
+    expect(saveGame(adapter, silenced, 900)).toBe(true)
+    expect(loadGame(adapter)?.settings.muted).toBe(true)
+  })
+
+  test("loadGame rejects a corrupt mute flag", () => {
+    const adapter = createMemoryAdapter()
+    const state = structuredClone(
+      chooseStarter(createInitialState(), "fire_drake", 42),
+    ) as unknown as Record<string, unknown>
+    const settings = state.settings as Record<string, unknown>
+    settings.muted = "loud"
     adapter.setItem(
       SAVE_KEY,
       JSON.stringify({ version: SAVE_VERSION, state, savedAt: 0 }),

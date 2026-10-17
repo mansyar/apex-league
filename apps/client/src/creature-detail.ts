@@ -7,12 +7,7 @@
  * Pure DOM from the shared broadcast kit — no interaction wiring beyond the
  * modal's own Escape/backdrop/close semantics.
  */
-import {
-  type Creature,
-  type GameState,
-  type StatKey,
-  statBreakdown,
-} from "@apex/sim"
+import { type GameState, type StatKey, statBreakdown } from "@apex/sim"
 import { focusTrap } from "./battleUI"
 import { crest, tab } from "./ui/kit"
 import { romanNumeral, stageLabel } from "./ui/labels"

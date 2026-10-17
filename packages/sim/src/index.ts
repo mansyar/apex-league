@@ -193,6 +193,7 @@ export {
   markHintSeen,
   type Phase,
   setArenaCamera,
+  setMuted,
   setReducedMotion,
 } from "./state"
 export {

@@ -200,7 +200,17 @@
   GLBs are committed, not generated at runtime.
 - **Icons**: 2D UI portraits rendered offline from the same GLBs
   (headless three.js render step).
-- **Audio**: CC0 packs (freesound/Kenney), compressed for web delivery.
+- **Audio** *(audio_foundation_20261017, 2026-10-17)*: CC0 assets bundled
+  under `apps/client/public/audio` (no runtime network fetch):
+  Kenney impact-sounds / sci-fi-sounds / music-jingles for SFX and verdict
+  jingles; OpenGameArt CC0 loops (nihilocrat "Peasantry", XCVG/Ville
+  Nousiainen "Fast fight" loop, transcoded to OGG) for the two music beds.
+  Every file is mapped in `public/audio/CREDITS.md`. Implementation shape:
+  DOM-free `cues.ts` event→cue mapping + gate-checked `player.ts`
+  (pure, bun-tested) over an imperative `playCue.ts`/`musicBeds.ts` seam
+  (manual-verify tier); mute persists in save v13 (`settings.muted`), sound
+  defaults ON with first-gesture unlock; reduced motion swaps calm-mix
+  variants for SFX and silences instant dumps.
 
 ## Quality Gates
 - `bun check` clean, `biome check` clean, `bun test` green — required before

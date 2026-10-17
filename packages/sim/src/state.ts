@@ -33,6 +33,13 @@ export interface GameSettings {
    * time regardless of this preference.
    */
   arenaCamera: "cinematic" | "broadcast"
+  /**
+   * The persisted audio mute toggle (save v13,
+   * audio_foundation_20261017). `false` = sound on — the default, so a
+   * fresh or migrated save plays bundled CC0 cues until the player
+   * silences them in the settings modal.
+   */
+  muted: boolean
 }
 
 /** The single source of truth for a run's simulation state. */
@@ -76,7 +83,12 @@ export function createInitialState(): GameState {
     phase: "day",
     actionPoints: ACTION_POINTS_PER_DAY,
     creature: null,
-    settings: { reducedMotion: false, seenHints: [], arenaCamera: "cinematic" },
+    settings: {
+      reducedMotion: false,
+      seenHints: [],
+      arenaCamera: "cinematic",
+      muted: false,
+    },
     cupsWon: 0,
     lastCupDay: null,
     ladder: initialLadder(),
@@ -117,6 +129,14 @@ export function setArenaCamera(
   value: "cinematic" | "broadcast",
 ): GameState {
   return { ...state, settings: { ...state.settings, arenaCamera: value } }
+}
+
+/**
+ * Flip the persisted audio mute toggle (save v13). Pure: the next state
+ * keeps everything else untouched, and callers persist via saveGame.
+ */
+export function setMuted(state: GameState, value: boolean): GameState {
+  return { ...state, settings: { ...state.settings, muted: value } }
 }
 
 /**

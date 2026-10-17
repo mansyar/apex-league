@@ -252,6 +252,8 @@ export function loadSave(adapter: SaveAdapter): SaveData | null {
       // v9: the camera preference must be one of the two styles.
       (state.settings.arenaCamera !== "cinematic" &&
         state.settings.arenaCamera !== "broadcast") ||
+      // v13: the audio mute toggle is a strict boolean (false = sound on).
+      typeof state.settings.muted !== "boolean" ||
       // v5: cup bookkeeping must be present and well-formed.
       !Number.isInteger(state.cupsWon) ||
       state.cupsWon < 0 ||
