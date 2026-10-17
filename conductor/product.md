@@ -123,8 +123,13 @@ Phased delivery plan (each phase is independently playable):
   stays Phase 2.)*
 
 ### Phase 2 — League Depth
-- Full ladder: Bronze → Silver → Gold with promotion matches.
-- Generated rivals + first 2-3 authored boss characters.
+- Full ladder: Bronze → Silver → Gold → Legend plateau with promotion
+  matches. *(Gold tier + Legend plateau with tier rewards and six
+  authored gatekeeper bosses landed 2026-10-18 — the full four-tier
+  climb is playable; breeding, prestige perks, and evolution branching
+  remain open.)*
+- Generated rivals + first 2-3 authored boss characters. *(Exceeded:
+  six authored bosses now gate the climb at every tier.)*
 - Breeding between retired pairs; family prestige perks; type affinity drift.
 - Evolution hints/threshold discovery UI; 2-3 more species lineages.
 
