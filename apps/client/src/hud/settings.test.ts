@@ -5,7 +5,8 @@ import { prefChipView } from "./settings"
 const settings = (
   reducedMotion: boolean,
   arenaCamera: GameState["settings"]["arenaCamera"],
-) => ({ reducedMotion, arenaCamera })
+  muted = false,
+) => ({ reducedMotion, arenaCamera, muted })
 
 describe("prefChipView", () => {
   test("golden: full motion + cinematic camera (a fresh ranch)", () => {
@@ -14,6 +15,8 @@ describe("prefChipView", () => {
       motionPressed: false,
       cameraLabel: "Camera: cinematic",
       cameraPressed: true,
+      soundLabel: "Sound: on",
+      soundPressed: false,
     })
   })
 
@@ -23,6 +26,8 @@ describe("prefChipView", () => {
       motionPressed: true,
       cameraLabel: "Camera: broadcast",
       cameraPressed: false,
+      soundLabel: "Sound: on",
+      soundPressed: false,
     })
   })
 
@@ -32,6 +37,19 @@ describe("prefChipView", () => {
       motionPressed: true,
       cameraLabel: "Camera: cinematic",
       cameraPressed: true,
+      soundLabel: "Sound: on",
+      soundPressed: false,
+    })
+  })
+
+  test("golden: muted sound reads as the muted chip", () => {
+    expect(prefChipView(settings(false, "cinematic", true))).toEqual({
+      motionLabel: "Motion: full",
+      motionPressed: false,
+      cameraLabel: "Camera: cinematic",
+      cameraPressed: true,
+      soundLabel: "Sound: muted",
+      soundPressed: true,
     })
   })
 })

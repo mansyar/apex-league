@@ -16,6 +16,7 @@ export interface SettingsChipRefs {
   motionWrap: HTMLElement
   motionChip: HTMLButtonElement
   cameraChip: HTMLButtonElement
+  soundChip: HTMLButtonElement
   resetChip: HTMLButtonElement
 }
 
@@ -28,6 +29,8 @@ function buildSettingsChips(
   opts: {
     onToggleReducedMotion?: () => void
     onToggleArenaCamera?: () => void
+    /** Flips the persisted audio mute toggle (save v13). */
+    onToggleMuted?: () => void
     /** Opens the reset-confirm modal (built by buildResetModal). */
     onNewGame?: () => void
   } = {},
@@ -48,6 +51,13 @@ function buildSettingsChips(
   })
   cameraChip.classList.add("camera-chip")
   motionWrap.append(cameraChip)
+  const soundChip = chip({
+    label: "Sound: on",
+    variant: "dim",
+    onClick: opts.onToggleMuted,
+  })
+  soundChip.classList.add("sound-chip")
+  motionWrap.append(soundChip)
   const resetChip = chip({
     label: "New game",
     variant: "dim",
@@ -56,7 +66,7 @@ function buildSettingsChips(
   // Ranch-only: the arena hide-list targets this class.
   resetChip.classList.add("new-game-chip")
   motionWrap.append(resetChip)
-  return { motionWrap, motionChip, cameraChip, resetChip }
+  return { motionWrap, motionChip, cameraChip, soundChip, resetChip }
 }
 
 export interface SettingsModalRefs {
@@ -66,6 +76,7 @@ export interface SettingsModalRefs {
   /** Live chip refs — update() mirrors preference labels onto them. */
   motionChip: HTMLButtonElement
   cameraChip: HTMLButtonElement
+  soundChip: HTMLButtonElement
   resetChip: HTMLButtonElement
 }
 
@@ -107,11 +118,13 @@ export function buildSettingsModal(
   opts: {
     onToggleReducedMotion?: () => void
     onToggleArenaCamera?: () => void
+    /** Flips the persisted audio mute toggle (save v13). */
+    onToggleMuted?: () => void
     /** Opens the reset-confirm modal (built by buildResetModal). */
     onNewGame?: () => void
   } = {},
 ): SettingsModalRefs {
-  const { motionChip, cameraChip, resetChip } = buildSettingsChips()
+  const { motionChip, cameraChip, soundChip, resetChip } = buildSettingsChips()
 
   const root = document.createElement("div")
   root.className = "kit-modal"
@@ -127,7 +140,8 @@ export function buildSettingsModal(
 
   const rows = document.createElement("div")
   rows.className = "settings-rows"
-  for (const row of [motionChip, cameraChip, resetChip]) rows.append(row)
+  for (const row of [motionChip, cameraChip, soundChip, resetChip])
+    rows.append(row)
 
   const actions = document.createElement("div")
   actions.className = "kit-modal-actions"
@@ -139,6 +153,7 @@ export function buildSettingsModal(
 
   motionChip.addEventListener("click", () => opts.onToggleReducedMotion?.())
   cameraChip.addEventListener("click", () => opts.onToggleArenaCamera?.())
+  soundChip.addEventListener("click", () => opts.onToggleMuted?.())
   resetChip.addEventListener("click", () => {
     closeNow()
     opts.onNewGame?.()
@@ -177,6 +192,7 @@ export function buildSettingsModal(
     },
     motionChip,
     cameraChip,
+    soundChip,
     resetChip,
   }
 }

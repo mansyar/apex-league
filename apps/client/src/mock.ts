@@ -81,7 +81,20 @@ const settings = buildSettingsModal({
     motionBox.checked = !motionBox.checked
     document.body.classList.toggle("is-reduced", motionBox.checked)
   },
+  // The design mock has no real audio: the sound chip just flips its own
+  // label so the modal's four-row layout stays honest in the gallery.
+  onToggleMuted: () => {
+    mockMuted = !mockMuted
+    const label =
+      settings.soundChip.querySelector<HTMLElement>(".kit-chip-label")
+    if (label) label.textContent = mockMuted ? "Sound: muted" : "Sound: on"
+    settings.soundChip.setAttribute(
+      "aria-pressed",
+      mockMuted ? "true" : "false",
+    )
+  },
 })
+let mockMuted = false
 const handbook = buildHandbook()
 const motionWrap = buildPrefCluster(
   () => settings.open(),

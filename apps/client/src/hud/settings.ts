@@ -8,11 +8,17 @@ export interface PrefChipView {
   motionPressed: boolean
   cameraLabel: string
   cameraPressed: boolean
+  /** The audio mute toggle (save v13): "Sound: on" until the player mutes. */
+  soundLabel: string
+  soundPressed: boolean
 }
 
-/** Pure read of the motion/camera preference chips. */
+/** Pure read of the motion/camera/sound preference chips. */
 export function prefChipView(
-  settings: Pick<GameState["settings"], "reducedMotion" | "arenaCamera">,
+  settings: Pick<
+    GameState["settings"],
+    "reducedMotion" | "arenaCamera" | "muted"
+  >,
 ): PrefChipView {
   const cinematic = settings.arenaCamera === "cinematic"
   return {
@@ -20,13 +26,22 @@ export function prefChipView(
     motionPressed: settings.reducedMotion,
     cameraLabel: cinematic ? "Camera: cinematic" : "Camera: broadcast",
     cameraPressed: cinematic,
+    soundLabel: settings.muted ? "Sound: muted" : "Sound: on",
+    soundPressed: settings.muted,
   }
 }
 
-/** Mirror the motion and camera preferences onto the settings chips. */
+/** Mirror the motion, camera, and sound preferences onto the settings chips. */
 export function capturePrefChips(
-  chips: { motionChip: HTMLButtonElement; cameraChip: HTMLButtonElement },
-  settings: Pick<GameState["settings"], "reducedMotion" | "arenaCamera">,
+  chips: {
+    motionChip: HTMLButtonElement
+    cameraChip: HTMLButtonElement
+    soundChip: HTMLButtonElement
+  },
+  settings: Pick<
+    GameState["settings"],
+    "reducedMotion" | "arenaCamera" | "muted"
+  >,
 ): void {
   const view = prefChipView(settings)
   chips.motionChip.setAttribute(
@@ -42,6 +57,13 @@ export function capturePrefChips(
   const cameraLabel =
     chips.cameraChip.querySelector<HTMLElement>(".kit-chip-label")
   if (cameraLabel) cameraLabel.textContent = view.cameraLabel
+  chips.soundChip.setAttribute(
+    "aria-pressed",
+    view.soundPressed ? "true" : "false",
+  )
+  const soundLabel =
+    chips.soundChip.querySelector<HTMLElement>(".kit-chip-label")
+  if (soundLabel) soundLabel.textContent = view.soundLabel
 }
 
 /** The reset-confirm modal elements. */

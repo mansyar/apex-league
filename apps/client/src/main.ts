@@ -15,6 +15,7 @@ import {
   type StatKey,
   setArenaCamera,
   setLoadout,
+  setMuted,
   setReducedMotion,
 } from "@apex/sim"
 import { buildArena } from "./arena"
@@ -388,6 +389,10 @@ const hud = createHud(app, {
   },
   onToggleArenaCamera: () => {
     toggleArenaCamera()
+  },
+  onToggleMuted: () => {
+    const current = store.get()
+    store.commit(setMuted(current, !current.settings.muted))
   },
   onRename: (name) => {
     const next = renameCreature(store.get(), name)
