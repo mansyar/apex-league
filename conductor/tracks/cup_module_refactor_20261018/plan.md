@@ -7,17 +7,31 @@ checkpoints with explicit user verification.
 
 ## Phase 1 — Sim Golden Safety Net
 
-- [ ] Task: Pin sim cup behavior with semantic goldens
-  - [ ] New `cup.golden.test.ts`: bracket construction (strict match order +
+- [x] Task: Pin sim cup behavior with semantic goldens
+  - [x] New `cup.golden.test.ts`: bracket construction (strict match order +
         slot labels)
-  - [ ] `CupSession` step/transition flow (commit at first arena step,
+  - [x] `CupSession` step/transition flow (commit at first arena step,
         coach-room re-pick points, forfeit semantics)
-  - [ ] Rival-vs-rival verdict determinism (seeded, replayable)
-  - [ ] `cupPlacement` points (champion/runner-up/semifinal, loss/forfeit = 0)
-  - [ ] `bossForCup` routing across all tiers — all six bosses + walkover path
+  - [x] Rival-vs-rival verdict determinism (seeded, replayable)
+  - [x] `cupPlacement` points (champion/runner-up/semifinal, loss/forfeit = 0)
+  - [x] `bossForCup` routing across all tiers — all six bosses + walkover path
         (learnings §13)
-  - [ ] Confirm suite green — goldens *pin* current behavior (not red-first)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Confirm suite green — goldens *pin* current behavior (not red-first)
+
+> b80cf9b — **Note:** 18-row exhaustive `bossForCup` routing grid (all six bosses,
+> gate-overrides and re-summon rows) plus full `[round, slotA, slotB, winner,
+> line]` transcripts for all three endings (champion seed 25, SF-exit seed 2,
+> forfeit seed 101). Capture values taken from the live engine and
+> cross-validated against the existing contract goldens (seed 101 rival
+> winners matched exactly). 707 pass / 0 fail, biome clean. Deviation note:
+> the plan's bracket-construction bullets were already pinned by existing
+> goldens (`cup.test.ts` draw-stream, `cup-contracts.test.ts` exact fields)
+> and are not duplicated; the new file instead adds the exhaustive routing
+> grid and full-transcript depth that were missing.
+>
+> **[checkpoint: b80cf9b]** Phase 1 complete — user-approved. Test-only
+> phase; no production logic changed. Browser probe waived by approval.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Sim Decomposition (FR1, FR2)
 
