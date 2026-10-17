@@ -22,7 +22,8 @@ describe("ladderRead", () => {
       rank: "Bronze III",
       points: "0/6",
       ariaLabel: "League standing: Bronze III, 0 of 6 points toward Bronze II",
-      isSilver: false,
+      tierClass: "bronze",
+      titles: null,
     })
   })
 
@@ -32,7 +33,8 @@ describe("ladderRead", () => {
       rank: "Bronze II",
       points: "7/12",
       ariaLabel: "League standing: Bronze II, 7 of 12 points toward Bronze I",
-      isSilver: false,
+      tierClass: "bronze",
+      titles: null,
     })
   })
 
@@ -42,7 +44,8 @@ describe("ladderRead", () => {
       rank: "Bronze I",
       points: "15 pts",
       ariaLabel: "League standing: Bronze I, 15 points banked",
-      isSilver: false,
+      tierClass: "bronze",
+      titles: null,
     })
   })
 
@@ -53,7 +56,8 @@ describe("ladderRead", () => {
       points: "10/18",
       ariaLabel:
         "League standing: Silver III, 10 of 18 points toward Silver II",
-      isSilver: true,
+      tierClass: "silver",
+      titles: null,
     })
   })
 
@@ -63,7 +67,8 @@ describe("ladderRead", () => {
       rank: "Silver II",
       points: "20/24",
       ariaLabel: "League standing: Silver II, 20 of 24 points toward Silver I",
-      isSilver: true,
+      tierClass: "silver",
+      titles: null,
     })
   })
 
@@ -73,8 +78,61 @@ describe("ladderRead", () => {
       rank: "Silver I",
       points: "30 pts",
       ariaLabel: "League standing: Silver I, 30 points banked",
-      isSilver: true,
+      tierClass: "silver",
+      titles: null,
     })
+  })
+
+  test("golden: Gold III reads progress toward Gold II (30)", () => {
+    expect(ladderRead(ladder("gold", "III", 27))).toEqual({
+      tierName: "Gold",
+      rank: "Gold III",
+      points: "27/30",
+      ariaLabel: "League standing: Gold III, 27 of 30 points toward Gold II",
+      tierClass: "gold",
+      titles: null,
+    })
+  })
+
+  test("golden: Gold II reads progress toward Gold I (36)", () => {
+    expect(ladderRead(ladder("gold", "II", 31))).toEqual({
+      tierName: "Gold",
+      rank: "Gold II",
+      points: "31/36",
+      ariaLabel: "League standing: Gold II, 31 of 36 points toward Gold I",
+      tierClass: "gold",
+      titles: null,
+    })
+  })
+
+  test("golden: Gold I is the apex — points bank toward the Legend gate", () => {
+    expect(ladderRead(ladder("gold", "I", 38))).toEqual({
+      tierName: "Gold",
+      rank: "Gold I",
+      points: "38 pts",
+      ariaLabel: "League standing: Gold I, 38 points banked",
+      tierClass: "gold",
+      titles: null,
+    })
+  })
+
+  test("golden: Legend I is the plateau — banked points plus collected titles", () => {
+    expect(ladderRead(ladder("legend", "I", 41), 2)).toEqual({
+      tierName: "Legend",
+      rank: "Legend I",
+      points: "41 pts",
+      ariaLabel: "League standing: Legend I, 41 points banked, 2 legend titles",
+      tierClass: "legend",
+      titles: "★ 2",
+    })
+  })
+
+  test("golden: a fresh Legend has no titles segment", () => {
+    expect(ladderRead(ladder("legend", "I", 39), 0).titles).toBeNull()
+  })
+
+  test("golden: legendTitles is ignored outside the plateau", () => {
+    expect(ladderRead(ladder("gold", "I", 38), 2).titles).toBeNull()
   })
 })
 

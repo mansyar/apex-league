@@ -17,8 +17,11 @@ import {
   type CupSlot,
   cupPlacement,
   doubleKoAdvancingName,
+  type GameState,
   type RoundVerdict,
+  TIER_AP_BONUS,
 } from "@apex/sim"
+import { TIER_NAME } from "./tier-name"
 
 /** One displayable match of the bracket walk, in walk order. */
 export interface BracketMatch {
@@ -186,7 +189,7 @@ export function exitStage(placement: number): string {
 export interface LadderStanding {
   points: number
   subTier: string
-  tier: string
+  tier: GameState["ladder"]["tier"]
 }
 
 /** The results screen's ladder row: promotion-aware, forfeit-honest, and
@@ -196,7 +199,7 @@ export function ladderRow(
   before: LadderStanding | null,
   forfeited: boolean,
 ): string {
-  const tierName = current.tier === "silver" ? "Silver" : "Bronze"
+  const tierName = TIER_NAME[current.tier]
   if (before === null) {
     // Resumed walk without a snapshot: report the standing as-is.
     return `Ladder: ${tierName} ${current.subTier} · ${current.points} pts`
@@ -220,20 +223,31 @@ export function resultRows(
   session: CupSession,
   ladder: LadderStanding,
   ladderBefore: LadderStanding | null,
+  legendTitles = 0,
 ): string[] {
   const won = session.status === "champion"
   const lastVerdict = session.playerVerdicts.at(-1)
   const forfeited = lastVerdict !== undefined && lastVerdict.battle === null
   const row = ladderRow(ladder, ladderBefore, forfeited)
-  return won
-    ? [
-        `+1 action point tomorrow (${ACTION_POINTS_PER_DAY + 1} total)`,
-        `Bond +${CUP_REWARDS.bond}`,
-        `Mood +${CUP_REWARDS.mood}`,
-        "🏆 Cup won",
-        row,
-      ]
-    : [`Consolation: mood +${CUP_REWARDS.consolations.mood}`, row]
+  if (!won) {
+    return [`Consolation: mood +${CUP_REWARDS.consolations.mood}`, row]
+  }
+  // The champion bonus is tier-stacked (gold_legend_ladder_20261017): a
+  // Gold cup win pays +1 extra AP, a Legend win +2 — on top of the base
+  // cup win bonus. A Legend win also collects a title.
+  const bonus = 1 + TIER_AP_BONUS[ladder.tier]
+  const apRow = `+${bonus} action point${bonus === 1 ? "" : "s"} tomorrow (${ACTION_POINTS_PER_DAY + bonus} total)`
+  const rows = [
+    apRow,
+    `Bond +${CUP_REWARDS.bond}`,
+    `Mood +${CUP_REWARDS.mood}`,
+    "🏆 Cup won",
+    row,
+  ]
+  if (ladder.tier === "legend") {
+    rows.push(`★ Legend title ${legendTitles}`)
+  }
+  return rows
 }
 
 /** Placement of the player in a finished session (re-exported so the DOM

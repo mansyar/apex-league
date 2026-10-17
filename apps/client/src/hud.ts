@@ -147,6 +147,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     rank,
     rankRank,
     rankPts,
+    rankTitles,
   } = buildScoreBug()
 
   // Bottom-left creature lower-third — the shared builder; createHud
@@ -362,16 +363,26 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     trophyCount.textContent = `× ${state.cupsWon}`
     trophy.style.display = state.cupsWon > 0 ? "" : "none"
 
-    // Ladder standing (save v11): tier + sub-tier tab + points, matching
+    // Ladder standing (save v14): tier + sub-tier tab + points, matching
     // the trophy segment's one-fact-per-segment grammar. Below the top
     // sub-tier the read is progress-to-next; at the tier's top the points
     // are banked toward the next tier, so the raw total is the honest
-    // number (Bronze I banks toward Silver, Silver I toward Gold).
+    // number (Bronze I banks toward Silver, Silver I toward Gold, Gold I
+    // toward the Legend gate). Legend titles ride along on the plateau.
     const ladder = state.ladder
-    const read = ladderRead(ladder)
+    const read = ladderRead(ladder, state.legendTitles)
     rankRank.textContent = read.rank
-    rank.classList.toggle("score-ladder--silver", read.isSilver)
+    rank.classList.remove(
+      "score-ladder--silver",
+      "score-ladder--gold",
+      "score-ladder--legend",
+    )
+    if (read.tierClass !== "bronze") {
+      rank.classList.add(`score-ladder--${read.tierClass}`)
+    }
     rankPts.textContent = read.points
+    rankTitles.textContent = read.titles ?? ""
+    rankTitles.style.display = read.titles === null ? "none" : ""
     rank.setAttribute("aria-label", read.ariaLabel)
     if (prevLadderSubTier !== null && ladder.subTier !== prevLadderSubTier) {
       climbLine = promotionLine(read.tierName, ladder.subTier)
