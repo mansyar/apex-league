@@ -11,6 +11,7 @@ import { describe, expect, it } from "bun:test"
 import type { LadderState } from "./ladder"
 import {
   applyCupPlacement,
+  GOLD_THRESHOLDS,
   initialLadder,
   LADDER_THRESHOLDS,
   promotionEligible,
@@ -66,8 +67,91 @@ describe("subTierFor — tier-aware derivation", () => {
     expect(subTierFor("silver", SILVER_THRESHOLDS.silverII - 1)).toBe("III")
   })
 
-  it("silver clamps at I — no Gold tier exists", () => {
+  it("silver clamps at I — banked points never fake a climb", () => {
     expect(subTierFor("silver", SILVER_THRESHOLDS.silverI + 99)).toBe("I")
+  })
+})
+
+describe("subTierFor — gold derives from the gold thresholds", () => {
+  it("gold derives from the gold thresholds", () => {
+    expect(subTierFor("gold", GOLD_THRESHOLDS.goldII)).toBe("II")
+    expect(subTierFor("gold", GOLD_THRESHOLDS.goldI)).toBe("I")
+  })
+
+  it("gold floors at III below the Gold II threshold", () => {
+    expect(subTierFor("gold", GOLD_THRESHOLDS.goldII - 1)).toBe("III")
+  })
+
+  it("gold clamps at I — banked points never fake a climb", () => {
+    expect(subTierFor("gold", GOLD_THRESHOLDS.goldI + 99)).toBe("I")
+  })
+})
+
+describe("applyCupPlacement — Gold sub-tier climbs", () => {
+  it("crossing the Gold II threshold climbs automatically", () => {
+    // Champion (+3) lands exactly on the threshold.
+    const s = withLadder(freshState(), {
+      points: GOLD_THRESHOLDS.goldII - 3,
+      tier: "gold",
+      subTier: "III",
+    })
+    const r = applyCupPlacement(s, 1, false)
+    expect(r.state.ladder.subTier).toBe("II")
+    expect(r.state.ladder.tier).toBe("gold")
+    expect(r.climbed).toBe(true)
+    expect(r.promoted).toBe(false)
+  })
+
+  it("one point below the Gold II threshold stays put", () => {
+    const s = withLadder(freshState(), {
+      points: GOLD_THRESHOLDS.goldII - 4,
+      tier: "gold",
+      subTier: "III",
+    })
+    const r = applyCupPlacement(s, 1, false) // +3 → threshold - 1
+    expect(r.state.ladder.subTier).toBe("III")
+    expect(r.climbed).toBe(false)
+  })
+
+  it("crossing the Gold I threshold climbs automatically", () => {
+    const s = withLadder(freshState(), {
+      points: GOLD_THRESHOLDS.goldI - 1,
+      tier: "gold",
+      subTier: "II",
+    })
+    const r = applyCupPlacement(s, 3, false) // semifinal +1 lands on it
+    expect(r.state.ladder.subTier).toBe("I")
+    expect(r.climbed).toBe(true)
+  })
+
+  it("a Gold loss never demotes the sub-tier", () => {
+    const s = withLadder(freshState(), {
+      points: GOLD_THRESHOLDS.goldI + 5,
+      tier: "gold",
+      subTier: "I",
+    })
+    const r = applyCupPlacement(s, 4, false) // early exit, 0 points
+    expect(r.state.ladder.subTier).toBe("I")
+    expect(r.state.ladder.tier).toBe("gold")
+    expect(r.climbed).toBe(false)
+  })
+
+  it("banking at Gold I reports topReached (Legend gate path)", () => {
+    const s = withLadder(freshState(), {
+      points: GOLD_THRESHOLDS.goldI,
+      tier: "gold",
+      subTier: "I",
+    })
+    const r = applyCupPlacement(s, 1, false)
+    expect(r.topReached).toBe(true)
+    expect(r.state.ladder.tier).toBe("gold")
+  })
+})
+
+describe("subTierFor — legend plateau", () => {
+  it("legend is a single plateau sub-tier at any point total", () => {
+    expect(subTierFor("legend", 0)).toBe("I")
+    expect(subTierFor("legend", GOLD_THRESHOLDS.goldI + 99)).toBe("I")
   })
 })
 
@@ -118,17 +202,79 @@ describe("applyCupPlacement — promotion resolution", () => {
     expect(r.promoted).toBe(false)
   })
 
-  it("a promotion champion who is already Silver stays put (no re-flip)", () => {
-    // Defensive: the sim must not treat a Silver promotion-kind cup as a
-    // second promotion.
+  it("a promotion champion who is already Silver flips to Gold III", () => {
+    // Silver I with points banked past the Silver I ceiling: the next
+    // promotion cup's champion is the Silver → Gold gate (Koda's role
+    // generalizes).
     const s = withLadder(freshState(), {
-      points: SILVER_THRESHOLDS.silverII + 1,
+      points: SILVER_THRESHOLDS.silverI + 3,
       tier: "silver",
-      subTier: "II",
+      subTier: "I",
     })
     const r = applyCupPlacement(s, 1, false, "promotion")
+    expect(r.state.ladder).toEqual({
+      points: SILVER_THRESHOLDS.silverI + 6,
+      tier: "gold",
+      subTier: "III",
+    })
+    expect(r.promoted).toBe(true)
+    expect(r.climbed).toBe(true)
+  })
+
+  it("a promotion runner-up in Silver banks points and stays Silver", () => {
+    const s = withLadder(freshState(), {
+      points: SILVER_THRESHOLDS.silverI + 1,
+      tier: "silver",
+      subTier: "I",
+    })
+    const r = applyCupPlacement(s, 2, false, "promotion")
     expect(r.state.ladder.tier).toBe("silver")
-    expect(r.state.ladder.subTier).toBe("II")
+    expect(r.state.ladder.subTier).toBe("I")
+    expect(r.promoted).toBe(false)
+  })
+
+  it("a promotion champion in Gold flips to Legend (plateau)", () => {
+    const s = withLadder(freshState(), {
+      points: GOLD_THRESHOLDS.goldI + 3,
+      tier: "gold",
+      subTier: "I",
+    })
+    const r = applyCupPlacement(s, 1, false, "promotion")
+    expect(r.state.ladder).toEqual({
+      points: GOLD_THRESHOLDS.goldI + 6,
+      tier: "legend",
+      subTier: "I",
+    })
+    expect(r.promoted).toBe(true)
+    expect(r.climbed).toBe(true)
+  })
+
+  it("a promotion champion who is already Legend stays put (no re-flip)", () => {
+    // Defensive: Legend is the capstone — a promotion-kind cup there must
+    // never flip anything.
+    const s = withLadder(freshState(), {
+      points: GOLD_THRESHOLDS.goldI + 9,
+      tier: "legend",
+      subTier: "I",
+    })
+    const r = applyCupPlacement(s, 1, false, "promotion")
+    expect(r.state.ladder.tier).toBe("legend")
+    expect(r.state.ladder.subTier).toBe("I")
+    expect(r.promoted).toBe(false)
+  })
+
+  it("a forfeited Gold promotion cup awards 0 and changes nothing", () => {
+    const s = withLadder(freshState(), {
+      points: GOLD_THRESHOLDS.goldI + 1,
+      tier: "gold",
+      subTier: "I",
+    })
+    const r = applyCupPlacement(s, 1, true, "promotion")
+    expect(r.state.ladder).toEqual({
+      points: GOLD_THRESHOLDS.goldI + 1,
+      tier: "gold",
+      subTier: "I",
+    })
     expect(r.promoted).toBe(false)
   })
 
@@ -277,11 +423,71 @@ describe("promotionEligible — derived predicate (FR2)", () => {
     ).toBe(false)
   })
 
-  it("is false in Silver at any point total", () => {
+  it("is true in Silver I with points banked past the Silver I ceiling", () => {
+    expect(
+      promotionEligible({
+        points: SILVER_THRESHOLDS.silverI + 1,
+        tier: "silver",
+        subTier: "I",
+      }),
+    ).toBe(true)
+  })
+
+  it("is false exactly at the Silver I ceiling", () => {
+    expect(
+      promotionEligible({
+        points: SILVER_THRESHOLDS.silverI,
+        tier: "silver",
+        subTier: "I",
+      }),
+    ).toBe(false)
+  })
+
+  it("is false in Silver below the top sub-tier at any point total", () => {
     expect(
       promotionEligible({
         points: SILVER_THRESHOLDS.silverI + 99,
         tier: "silver",
+        subTier: "II",
+      }),
+    ).toBe(false)
+  })
+
+  it("is true in Gold I with points banked past the Gold I ceiling", () => {
+    expect(
+      promotionEligible({
+        points: GOLD_THRESHOLDS.goldI + 1,
+        tier: "gold",
+        subTier: "I",
+      }),
+    ).toBe(true)
+  })
+
+  it("is false exactly at the Gold I ceiling", () => {
+    expect(
+      promotionEligible({
+        points: GOLD_THRESHOLDS.goldI,
+        tier: "gold",
+        subTier: "I",
+      }),
+    ).toBe(false)
+  })
+
+  it("is false in Gold below the top sub-tier at any point total", () => {
+    expect(
+      promotionEligible({
+        points: GOLD_THRESHOLDS.goldI + 99,
+        tier: "gold",
+        subTier: "II",
+      }),
+    ).toBe(false)
+  })
+
+  it("is false at Legend — the capstone never promotes", () => {
+    expect(
+      promotionEligible({
+        points: GOLD_THRESHOLDS.goldI + 99,
+        tier: "legend",
         subTier: "I",
       }),
     ).toBe(false)

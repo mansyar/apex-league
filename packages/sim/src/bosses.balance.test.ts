@@ -38,7 +38,12 @@ import {
   resolvePlayerMatch,
   startCupSession,
 } from "./cup"
-import { LADDER_POINTS, LADDER_THRESHOLDS, SILVER_THRESHOLDS } from "./ladder"
+import {
+  GOLD_THRESHOLDS,
+  LADDER_POINTS,
+  LADDER_THRESHOLDS,
+  SILVER_THRESHOLDS,
+} from "./ladder"
 import { defaultLoadout } from "./loadout"
 import { getSpecies, STARTER_SPECIES } from "./species"
 
@@ -320,6 +325,11 @@ describe("boss balance probe (FR12)", () => {
     expect(
       cupsPerClimb(SILVER_THRESHOLDS.silverII, SILVER_THRESHOLDS.silverI),
     ).toBe(2)
+    // Gold legs: the same uniform +6 spacing (gold_legend_ladder_20261017).
+    expect(
+      cupsPerClimb(SILVER_THRESHOLDS.silverI, GOLD_THRESHOLDS.goldII),
+    ).toBe(2)
+    expect(cupsPerClimb(GOLD_THRESHOLDS.goldII, GOLD_THRESHOLDS.goldI)).toBe(2)
   })
 
   test("report mode emits the markdown probe doc", () => {
@@ -345,7 +355,7 @@ describe("boss balance probe (FR12)", () => {
     }
     lines.push("")
     lines.push(
-      `Champion cups per climb: bronze legs ${cupsPerClimb(0, LADDER_THRESHOLDS.bronzeII)}/${cupsPerClimb(LADDER_THRESHOLDS.bronzeII, LADDER_THRESHOLDS.bronzeI)}, silver legs ${cupsPerClimb(LADDER_THRESHOLDS.bronzeI, SILVER_THRESHOLDS.silverII)}/${cupsPerClimb(SILVER_THRESHOLDS.silverII, SILVER_THRESHOLDS.silverI)}`,
+      `Champion cups per climb: bronze legs ${cupsPerClimb(0, LADDER_THRESHOLDS.bronzeII)}/${cupsPerClimb(LADDER_THRESHOLDS.bronzeII, LADDER_THRESHOLDS.bronzeI)}, silver legs ${cupsPerClimb(LADDER_THRESHOLDS.bronzeI, SILVER_THRESHOLDS.silverII)}/${cupsPerClimb(SILVER_THRESHOLDS.silverII, SILVER_THRESHOLDS.silverI)}, gold legs ${cupsPerClimb(SILVER_THRESHOLDS.silverI, GOLD_THRESHOLDS.goldII)}/${cupsPerClimb(GOLD_THRESHOLDS.goldII, GOLD_THRESHOLDS.goldI)}`,
     )
     const placement = runPlacementProbe()
     const total = Object.values(placement.placements).reduce((a, b) => a + b, 0)

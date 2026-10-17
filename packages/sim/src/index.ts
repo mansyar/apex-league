@@ -115,6 +115,7 @@ export {
 export {
   applyCupPlacement,
   type CupKind,
+  GOLD_THRESHOLDS,
   initialLadder,
   LADDER_POINTS,
   LADDER_THRESHOLDS,
@@ -201,4 +202,8 @@ export {
   type StatBreakdownRow,
   statBreakdown,
 } from "./stats"
-export { advanceDay, CUP_WIN_AP_BONUS } from "./ticker"
+export {
+  advanceDay,
+  CUP_WIN_AP_BONUS,
+  TIER_AP_BONUS,
+} from "./ticker"

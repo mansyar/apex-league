@@ -7,7 +7,7 @@ import { createMemoryAdapter, loadGame, saveGame } from "./storage"
 
 describe("save schema cup fields (v5 origin)", () => {
   test("current version matches the schema", () => {
-    expect(SAVE_VERSION).toBe(13)
+    expect(SAVE_VERSION).toBe(14)
   })
 
   test("a v4 save migrates to v5 with cupsWon 0 and lastCupDay null", () => {

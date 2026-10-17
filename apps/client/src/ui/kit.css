@@ -28,6 +28,9 @@
   --accent: #ffd166;
   --accent-ink: #241c10;
   --silver: #c9d4e3;
+  /* Gold & Legend ladder tiers (gold_legend_ladder_20261017). */
+  --gold: #ffbf3f;
+  --legend: #c9a0ff;
   /* The one destructive affordance in the game (new-game confirm). */
   --danger: #ff6b6b;
   --kit-danger: #ff8a7a;

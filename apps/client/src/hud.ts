@@ -28,10 +28,10 @@ import {
   buildCreaturePlate,
   buildLineagePlate,
   buildScoreBug,
+  climbAnnouncement,
   conditionDelta,
   ladderRead,
   lineageMeta,
-  promotionLine,
   statCell,
 } from "./hud/plates"
 import { buildPrefCluster, buildSettingsModal } from "./settings-modal"
@@ -147,6 +147,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     rank,
     rankRank,
     rankPts,
+    rankTitles,
   } = buildScoreBug()
 
   // Bottom-left creature lower-third — the shared builder; createHud
@@ -267,9 +268,11 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   cluster.classList.toggle("is-collapsed", !dockOpen)
   // Previous AP total — drives the one-shot spend flash on the meter.
   let prevAp: number | null = null
-  // Ladder climb detection: the ticker announces a sub-tier promotion
-  // exactly once, the update after the cup finalize that caused it.
-  let prevLadderSubTier: string | null = null
+  // Ladder climb detection: the ticker announces a sub-tier promotion or
+  // cross-tier promotion exactly once, the update after the cup finalize
+  // that caused it (a Gold I → Legend I flip keeps subTier "I", so the
+  // full standing is compared).
+  let prevLadder: GameState["ladder"] | null = null
   let climbLine: string | null = null
   let apPips = apMeter.pips
 
@@ -362,22 +365,33 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     trophyCount.textContent = `× ${state.cupsWon}`
     trophy.style.display = state.cupsWon > 0 ? "" : "none"
 
-    // Ladder standing (save v11): tier + sub-tier tab + points, matching
+    // Ladder standing (save v14): tier + sub-tier tab + points, matching
     // the trophy segment's one-fact-per-segment grammar. Below the top
     // sub-tier the read is progress-to-next; at the tier's top the points
     // are banked toward the next tier, so the raw total is the honest
-    // number (Bronze I banks toward Silver, Silver I toward Gold).
+    // number (Bronze I banks toward Silver, Silver I toward Gold, Gold I
+    // toward the Legend gate). Legend titles ride along on the plateau.
     const ladder = state.ladder
-    const read = ladderRead(ladder)
+    const read = ladderRead(ladder, state.legendTitles)
     rankRank.textContent = read.rank
-    rank.classList.toggle("score-ladder--silver", read.isSilver)
+    rank.classList.remove(
+      "score-ladder--silver",
+      "score-ladder--gold",
+      "score-ladder--legend",
+    )
+    if (read.tierClass !== "bronze") {
+      rank.classList.add(`score-ladder--${read.tierClass}`)
+    }
     rankPts.textContent = read.points
+    rankTitles.textContent = read.titles ?? ""
+    rankTitles.style.display = read.titles === null ? "none" : ""
     rank.setAttribute("aria-label", read.ariaLabel)
-    if (prevLadderSubTier !== null && ladder.subTier !== prevLadderSubTier) {
-      climbLine = promotionLine(read.tierName, ladder.subTier)
+    const announcement = climbAnnouncement(prevLadder, ladder)
+    if (announcement !== null) {
+      climbLine = announcement
       replay(rank, "chip-pop")
     }
-    prevLadderSubTier = ladder.subTier
+    prevLadder = ladder
     if (advanceLabel) {
       advanceLabel.textContent =
         state.phase === "cup" ? "Continue past cup" : "Advance Day"

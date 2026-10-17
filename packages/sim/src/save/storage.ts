@@ -261,7 +261,8 @@ export function loadSave(adapter: SaveAdapter): SaveData | null {
         (!Number.isInteger(state.lastCupDay) || state.lastCupDay < 1)) ||
       // v8: the ladder slice is required and strictly typed (bronze
       // ladder) — a hand-edited points total or sub-tier fails the load.
-      // v11: the tier must be one of the two ladder tiers.
+      // v11: the tier must be one of the ladder tiers.
+      // v14: the full four-tier ladder — gold and legend are legal saves.
       typeof state.ladder !== "object" ||
       state.ladder === null ||
       !Number.isInteger(state.ladder.points) ||
@@ -269,7 +270,14 @@ export function loadSave(adapter: SaveAdapter): SaveData | null {
       (state.ladder.subTier !== "III" &&
         state.ladder.subTier !== "II" &&
         state.ladder.subTier !== "I") ||
-      (state.ladder.tier !== "bronze" && state.ladder.tier !== "silver") ||
+      (state.ladder.tier !== "bronze" &&
+        state.ladder.tier !== "silver" &&
+        state.ladder.tier !== "gold" &&
+        state.ladder.tier !== "legend") ||
+      // v14: the legend title tally is a strict non-negative integer —
+      // a hand-edited or malformed count fails the load.
+      !Number.isInteger(state.legendTitles) ||
+      state.legendTitles < 0 ||
       // v11: the boss defeat ledger is a plain array of boss ids.
       !Array.isArray(state.bossDefeats) ||
       !state.bossDefeats.every((id) => typeof id === "string") ||

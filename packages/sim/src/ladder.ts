@@ -15,8 +15,8 @@
 
 import type { GameState } from "./state"
 
-/** Ladder tiers, lowest first. Silver is Phase 2 (this track). */
-export type LadderTier = "bronze" | "silver"
+/** Ladder tiers, lowest first. Legend is the plateau capstone. */
+export type LadderTier = "bronze" | "silver" | "gold" | "legend"
 
 /** Sub-tiers within a tier, lowest first. */
 export type LadderSubTier = "III" | "II" | "I"
@@ -64,6 +64,15 @@ export const SILVER_THRESHOLDS = Object.freeze({
   silverI: 24,
 })
 
+/** Gold points required to reach each sub-tier above the floor, as absolute
+ * totals (gold_legend_ladder_20261017). Continues the uniform +6 spacing
+ * (Bronze 6/12, Silver 18/24 → Gold 30/36); points past Gold I bank toward
+ * Legend eligibility. */
+export const GOLD_THRESHOLDS = Object.freeze({
+  goldII: 30,
+  goldI: 36,
+})
+
 /** The starting ladder slice: Bronze III, no points. */
 export function initialLadder(): LadderState {
   return { points: 0, tier: "bronze", subTier: "III" }
@@ -71,31 +80,53 @@ export function initialLadder(): LadderState {
 
 /** Derive the sub-tier from a tier and point total. Bronze clamps at I —
  * banked surplus never fakes a climb (that is the Promotion Cup's job).
- * Silver floors at III and clamps at I; there is no Gold tier. */
+ * Silver and Gold floor at III and clamp at I; Legend is a plateau with a
+ * single implicit sub-tier. */
 export function subTierFor(tier: LadderTier, points: number): LadderSubTier {
   if (tier === "bronze") {
     if (points >= LADDER_THRESHOLDS.bronzeI) return "I"
     if (points >= LADDER_THRESHOLDS.bronzeII) return "II"
     return "III"
   }
+  if (tier === "gold") {
+    if (points >= GOLD_THRESHOLDS.goldI) return "I"
+    if (points >= GOLD_THRESHOLDS.goldII) return "II"
+    return "III"
+  }
+  if (tier === "legend") return "I"
   if (points >= SILVER_THRESHOLDS.silverI) return "I"
   if (points >= SILVER_THRESHOLDS.silverII) return "II"
   return "III"
 }
 
 /**
- * Whether the player's next entered cup is the Promotion Cup (spec FR2):
- * a Bronze I creature with points banked past the Bronze I ceiling. Derived
- * from the ladder slice — never stored — so it can never drift out of sync
- * with the points it is computed from.
+ * Whether the player's next entered cup is a Promotion Cup (spec FR2):
+ * a top-sub-tier creature with points banked past that tier's ceiling.
+ * Bronze I → Silver, Silver I → Gold, Gold I → Legend (the plateau —
+ * Legend itself never promotes). Derived from the ladder slice — never
+ * stored — so it can never drift out of sync with the points it is
+ * computed from.
  */
 export function promotionEligible(ladder: LadderState): boolean {
-  return (
-    ladder.tier === "bronze" &&
-    ladder.subTier === "I" &&
-    ladder.points > LADDER_THRESHOLDS.bronzeI
-  )
+  if (ladder.tier === "legend") return false
+  if (ladder.subTier !== "I") return false
+  const ceiling =
+    ladder.tier === "bronze"
+      ? LADDER_THRESHOLDS.bronzeI
+      : ladder.tier === "silver"
+        ? SILVER_THRESHOLDS.silverI
+        : GOLD_THRESHOLDS.goldI
+  return ladder.points > ceiling
 }
+
+/** The tier a Promotion Cup champion ascends to, keyed by the tier they
+ * left. Legend is absent — the capstone never promotes. */
+const NEXT_TIER: Readonly<Record<Exclude<LadderTier, "legend">, LadderTier>> =
+  Object.freeze({
+    bronze: "silver",
+    silver: "gold",
+    gold: "legend",
+  })
 
 /** The player's cup placement: champion 1, final loss 2, semifinal exit 3,
  * quarterfinal exit 4 (see `cupPlacement`). */
@@ -137,18 +168,27 @@ export function applyCupPlacement(
   const earned = forfeited ? 0 : LADDER_POINTS_BY_PLACEMENT[placement]
   const prev = state.ladder
   const points = prev.points + earned
-  const promoted =
+  const nextTier =
     kind === "promotion" &&
     !forfeited &&
     placement === 1 &&
-    prev.tier === "bronze"
-  const ladder: LadderState = promoted
-    ? { points, tier: "silver", subTier: "III" }
+    prev.tier !== "legend"
+      ? NEXT_TIER[prev.tier]
+      : undefined
+  const promoted = nextTier !== undefined
+  const ladder: LadderState = nextTier
+    ? { points, tier: nextTier, subTier: prev.tier === "gold" ? "I" : "III" }
     : { points, tier: prev.tier, subTier: subTierFor(prev.tier, points) }
   return {
     state: { ...state, ladder },
-    climbed: ladder.subTier !== prev.subTier,
-    topReached: !promoted && earned > 0 && prev.subTier === "I",
+    climbed: promoted || ladder.subTier !== prev.subTier,
+    // The plateau never reports topReached — Legend is the capstone, there
+    // is no next tier for a "next tier awaits" callout to point at.
+    topReached:
+      !promoted &&
+      ladder.tier !== "legend" &&
+      earned > 0 &&
+      prev.subTier === "I",
     promoted,
   }
 }

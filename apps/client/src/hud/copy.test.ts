@@ -2,8 +2,11 @@ import { describe, expect, test } from "bun:test"
 import {
   type Creature,
   type CreatureConditions,
+  chooseStarter,
   createCreature,
+  createInitialState,
   EXHAUSTED_ENERGY,
+  type GameState,
 } from "@apex/sim"
 import {
   coachVoice,
@@ -17,6 +20,7 @@ import {
   previewNote,
   romanNumeral,
   saveFailureNotice,
+  selectHint,
   spendFlashIndex,
   stageLabel,
   statLabel,
@@ -424,5 +428,55 @@ describe("golden exact callout strings", () => {
     expect(corruptSaveNotice()).toBe(
       "That old save couldn't be read — starting fresh. Sorry about that.",
     )
+  })
+})
+
+describe("selectHint — the four-tier ladder (gold_legend_ladder_20261017)", () => {
+  const started = chooseStarter(createInitialState(), "fire_drake", 42)
+  // Day 2 keeps the day-1 and day-5 onboarding hints quiet so the tier
+  // teasers are the first unseen match.
+  const at = (overrides: Partial<GameState>): GameState => ({
+    ...started,
+    day: 2,
+    ...overrides,
+  })
+
+  test("a banked Silver I topside teases the Gold division", () => {
+    const hint = selectHint(
+      at({ ladder: { points: 25, tier: "silver", subTier: "I" } }),
+      new Set(),
+    )
+    expect(hint?.id).toBe("gold-awaits")
+    expect(hint?.text).toContain("Gold")
+  })
+
+  test("a banked Gold I topside points at the Legend gate", () => {
+    const hint = selectHint(
+      at({ ladder: { points: 37, tier: "gold", subTier: "I" } }),
+      new Set(),
+    )
+    expect(hint?.id).toBe("legend-awaits")
+    expect(hint?.text).toContain("Legend")
+  })
+
+  test("the Silver teaser still fires — it is real progression now", () => {
+    const hint = selectHint(
+      at({ ladder: { points: 13, tier: "bronze", subTier: "I" } }),
+      new Set(),
+    )
+    expect(hint?.id).toBe("silver-awaits")
+  })
+
+  test("the new gatekeepers announce their scalps once each", () => {
+    for (const boss of ["delmar", "fenn", "thessa"]) {
+      const hint = selectHint(at({ bossDefeats: [boss] }), new Set())
+      expect(hint?.id).toBe(`boss-${boss}`)
+    }
+  })
+
+  test("Marlow's callout no longer promises a horizon — Gold is real", () => {
+    const hint = selectHint(at({ bossDefeats: ["marlow"] }), new Set())
+    expect(hint?.id).toBe("boss-marlow")
+    expect(hint?.text).not.toContain("horizon")
   })
 })

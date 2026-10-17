@@ -80,23 +80,37 @@ export function finalizeCup(state: GameState, session: CupSession): GameState {
     throw new Error("The cup has no champion yet — complete it first")
   }
   // The machine owns the placement → outcome mapping (the reward layer
-  // accepts only a resolved "won"/"lost" — see cupRewards.ts).
-  const rewarded = applyCupRewards(
-    state,
-    cupPlacement(session) === 1 ? "won" : "lost",
-    state.day,
-  )
+  // accepts only a resolved "won"/"lost" — see cupRewards.ts). Placement
+  // runs BEFORE rewards (gold_legend_ladder_20261017): the reward layer
+  // then reads the post-placement ladder, so the champion of a gate cup is
+  // crowned into the new tier first and paid the new tier's bundle.
+  const lastVerdict = session.playerVerdicts.at(-1)
+  const forfeited = lastVerdict !== undefined && lastVerdict.battle === null
   // A forfeit verdict is the only one with a null battle replay (see
   // RoundVerdict): it zeroes the placement's ladder points (bronze ladder
   // spec — giving a round away earns nothing, whatever the round).
-  const lastVerdict = session.playerVerdicts.at(-1)
-  const forfeited = lastVerdict !== undefined && lastVerdict.battle === null
-  const laddered = applyCupPlacement(rewarded, cupPlacement(session), forfeited)
+  const laddered = applyCupPlacement(
+    state,
+    cupPlacement(session),
+    forfeited,
+    // The cup kind decides the promotion flip (gold_legend_ladder_20261017
+    // fix): a gate cup's champion must flip tiers here — the entry side
+    // (prepareCup) already routed the boss, so the exit side must honor the
+    // kind or the gate never opens. Championship-kind cups (the default
+    // before this fix) bank points only, which is why bronze/silver
+    // point-climbs were unaffected.
+    session.bracket.kind,
+  )
+  const rewarded = applyCupRewards(
+    laddered.state,
+    cupPlacement(session) === 1 ? "won" : "lost",
+    state.day,
+  )
   // The defeat ledger: any boss the player scalped in this cup joins the
   // record, idempotently (FR9). Rival-subtree boss wins never count.
   const scalps = bossScalps(session)
   const bossDefeats = scalps.length
     ? [...new Set([...state.bossDefeats, ...scalps])]
     : state.bossDefeats
-  return { ...laddered.state, bossDefeats, phase: "day" }
+  return { ...rewarded, bossDefeats, phase: "day" }
 }

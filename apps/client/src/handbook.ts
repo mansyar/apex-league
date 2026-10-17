@@ -3,9 +3,10 @@
  * three tabs — the type chart, the ladder rules, and raising guidance.
  * The chart is derived from the sim's own `typeFactor`, so the handbook
  * can never drift from the matchup math the battles actually use. Ladder
- * copy states current truth (the ladder ends at Silver I; no Gold
- * promises). Guidance stays direction-only — evolution is discovered in
- * play, not spoiled on a page (product guideline).
+ * copy states current truth (four tiers — Bronze, Silver, Gold, and the
+ * Legend plateau — with the Legend gate as the capstone). Guidance stays
+ * direction-only — evolution is discovered in play, not spoiled on a page
+ * (product guideline).
  */
 
 import { type Element, typeFactor } from "@apex/sim"
@@ -36,15 +37,25 @@ const POPULATION_NOTE =
   "Fire, Plant, and Water partners roam the league today. Electric, " +
   "Earth, and Wind matchups are charted and waiting for their species."
 
-/** Ladder rules copy — current truth only (no Gold horizon promises). */
+/** Ladder rules copy — current truth (four tiers, Legend is the plateau). */
 const LADDER_RULES: ReadonlyArray<readonly [string, string]> = [
   ["Cup points", "Champion 3 · Runner-up 2 · Semifinal 1."],
   [
     "Bronze",
     "III → II at 6 points, → I at 12. Bank past 12 and your next cup is the Promotion Cup — win it to jump to Silver.",
   ],
-  ["Silver", "III → II at 18 points, → I at 24."],
-  ["The ceiling", "The ladder ends at Silver I. There is no Gold tier — yet."],
+  [
+    "Silver",
+    "III → II at 18 points, → I at 24. Bank past 24 and your next cup is the Promotion Cup — win it to jump to Gold.",
+  ],
+  [
+    "Gold",
+    "III → II at 30 points, → I at 36. Bank past 36 and the Legend gate opens.",
+  ],
+  [
+    "The plateau",
+    "Legend has no ceiling. A Legend cup win stacks extra action points and collects a title for the rank plate.",
+  ],
 ]
 
 /** Raising guidance: direction-only coach voice, nothing spoiled. */

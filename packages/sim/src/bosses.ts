@@ -1,7 +1,8 @@
 /**
- * The boss registry (silver_ladder_bosses_20261016, FR8).
+ * The boss registry (silver_ladder_bosses_20261016 FR8, extended by
+ * gold_legend_ladder_20261017).
  *
- * Three authored rivals stand at the Silver ladder's milestones. A boss is
+ * Six authored rivals stand at the ladder's milestones. A boss is
  * an existing species with pinned absolute stats — legal by construction
  * (inside the species' roll bounds) and deliberately NOT player-relative:
  * a boss is the same opponent for every player, which keeps the ladder
@@ -17,10 +18,14 @@
 
 import type { Tactic } from "./battle/policy"
 import type { CreatureStats } from "./creature"
-import { type CupKind, promotionEligible } from "./ladder"
+import { type CupKind, type LadderTier, promotionEligible } from "./ladder"
 import type { GameState } from "./state"
 
-/** Where in the Silver climb a boss stands. */
+/** The tier whose ladder a boss stands on. Legend has no bosses — it is
+ * the capstone. */
+export type BossTier = Exclude<LadderTier, "legend">
+
+/** Where in a tier's climb a boss stands. */
 export type BossMilestone = "promotion" | "checkpoint" | "apex"
 
 /** A boss' coach persona: intro copy plus a line for either outcome. */
@@ -55,6 +60,9 @@ export interface BossDef {
   quips: BossQuips
   /** Which ladder milestone this boss guards. */
   milestone: BossMilestone
+  /** Which tier's ladder this boss stands on — milestones repeat across
+   * tiers (silver and gold each have their own gate/checkpoint/apex). */
+  tier: BossTier
 }
 
 /**
@@ -83,6 +91,7 @@ export const BOSSES: readonly BossDef[] = Object.freeze([
       loss: "Koda: 'Hmph. Clean sweep, rookie. The gate opens — don't embarrass Silver.'",
     },
     milestone: "promotion",
+    tier: "bronze",
   },
   {
     id: "hesse",
@@ -98,6 +107,7 @@ export const BOSSES: readonly BossDef[] = Object.freeze([
       loss: "Hesse: '…Rooted, as ever. Climb on, little sprout.'",
     },
     milestone: "checkpoint",
+    tier: "silver",
   },
   {
     id: "marlow",
@@ -113,6 +123,55 @@ export const BOSSES: readonly BossDef[] = Object.freeze([
       loss: "Marlow: '…So the current shifts. Wear the summit lightly, champion.'",
     },
     milestone: "apex",
+    tier: "silver",
+  },
+  {
+    id: "delmar",
+    name: "Squall Herald Delmar",
+    speciesId: "water_axolotl",
+    stats: { hp: 93, atk: 12, def: 9, spd: 11 },
+    loadout: ["bubble", "tide_shot", "foam_volley", "splash_bolt"],
+    tactic: "specials",
+    intro:
+      "Squall Herald Delmar rolls in on a gust — 'Gold lies past the squall. Ready to be weathered?'",
+    quips: {
+      win: "Delmar: 'The herald laughs last. Gold stays a rumor — for now.'",
+      loss: "Delmar: '…The squall breaks. Carry Gold like a standard, not a flag of ease.'",
+    },
+    milestone: "promotion",
+    tier: "silver",
+  },
+  {
+    id: "fenn",
+    name: "Cinder Abbot Fenn",
+    speciesId: "fire_drake",
+    stats: { hp: 92, atk: 13, def: 10, spd: 12 },
+    loadout: ["spark", "flame_charge", "cinder_shot", "blaze_bolt"],
+    tactic: "balanced",
+    intro:
+      "Cinder Abbot Fenn tends a single flame — 'This ridge asks one question: can you keep a fire burning when it matters?'",
+    quips: {
+      win: "Fenn: 'The ember gutters. Tend your flame, then climb again.'",
+      loss: "Fenn: '…Well kept. The abbey door stays open on your way down.'",
+    },
+    milestone: "checkpoint",
+    tier: "gold",
+  },
+  {
+    id: "thessa",
+    name: "Grove Sovereign Thessa",
+    speciesId: "plant_ox",
+    stats: { hp: 100, atk: 11, def: 13, spd: 8 },
+    loadout: ["seed_shot", "thorn_volley", "spore_burst", "bramble_dart"],
+    tactic: "specials",
+    intro:
+      "Grove Sovereign Thessa descends from the canopy — 'Above my grove there is only the plateau. Legends kneel here first.'",
+    quips: {
+      win: "Thessa: 'The grove endures. The plateau does not open for the unready.'",
+      loss: "Thessa: '…So the canopy parts. Write your name where legends are kept.'",
+    },
+    milestone: "apex",
+    tier: "gold",
   },
 ])
 
@@ -121,24 +180,39 @@ export function getBoss(id: string): BossDef | undefined {
   return BOSSES.find((b) => b.id === id)
 }
 
-/** Look up a boss by its ladder milestone (exactly one boss per milestone). */
-function bossAtMilestone(milestone: BossMilestone): BossDef {
-  const boss = BOSSES.find((b) => b.milestone === milestone)
-  if (!boss) throw new Error(`No boss at milestone: ${milestone}`)
+/**
+ * Look up the boss standing at a tier's ladder milestone — exactly one per
+ * (tier, milestone) pair, throws otherwise.
+ */
+function bossAtMilestone(tier: BossTier, milestone: BossMilestone): BossDef {
+  const boss = BOSSES.find((b) => b.tier === tier && b.milestone === milestone)
+  if (!boss) {
+    throw new Error(`No boss at milestone: ${tier} ${milestone}`)
+  }
   return boss
 }
 
 /**
  * Which authored boss (if any) stands at the final of the next cup the
  * player enters, and as which cup kind (silver_ladder_bosses_20261016,
- * FR3/FR6/FR7). Pure — a function of the game state only:
+ * extended by gold_legend_ladder_20261017). Pure — a function of the game
+ * state only:
  *
  * - Bronze, points banked strictly past the Bronze I ceiling → the
  *   Promotion Cup against Koda (the gate cup, `kind: "promotion"`).
  * - Silver III with no Hesse scalp → a championship cup with an authored
  *   final (non-blocking: losing banks points, the offer stays).
- * - Silver I with no Marlow scalp → the apex final every cup until beaten.
- * - Anything else (including Silver II) → a fully generated field.
+ * - Silver I, past the Silver I ceiling → the Promotion Cup against Delmar
+ *   (the Silver→Gold gate, blocking like Koda).
+ * - Silver I otherwise, with no Marlow scalp → the apex final every cup
+ *   until beaten.
+ * - Gold III with no Fenn scalp → the gold checkpoint final (non-blocking).
+ * - Gold I, past the Gold I ceiling → the Promotion Cup against Thessa —
+ *   the Legend gate, blocking; a gate overrides retirement, so a scalped
+ *   Thessa is re-summoned.
+ * - Gold I otherwise, with no Thessa scalp → the apex final every cup
+ *   until beaten.
+ * - Anything else (Silver II, Gold II, Legend) → a fully generated field.
  *
  * The cup entry surface calls this once per entry; `prepareCup` threads
  * the answer into `startCupSession`.
@@ -149,14 +223,38 @@ export function bossForCup(
   const ladder = state.ladder
   if (ladder.tier === "bronze") {
     return promotionEligible(ladder)
-      ? { boss: bossAtMilestone("promotion"), kind: "promotion" }
+      ? { boss: bossAtMilestone("bronze", "promotion"), kind: "promotion" }
       : null
   }
-  if (ladder.subTier === "III" && !state.bossDefeats.includes("hesse")) {
-    return { boss: bossAtMilestone("checkpoint"), kind: "championship" }
+  if (ladder.tier === "silver") {
+    if (promotionEligible(ladder)) {
+      return { boss: bossAtMilestone("silver", "promotion"), kind: "promotion" }
+    }
+    if (ladder.subTier === "III" && !state.bossDefeats.includes("hesse")) {
+      return {
+        boss: bossAtMilestone("silver", "checkpoint"),
+        kind: "championship",
+      }
+    }
+    if (ladder.subTier === "I" && !state.bossDefeats.includes("marlow")) {
+      return { boss: bossAtMilestone("silver", "apex"), kind: "championship" }
+    }
+    return null
   }
-  if (ladder.subTier === "I" && !state.bossDefeats.includes("marlow")) {
-    return { boss: bossAtMilestone("apex"), kind: "championship" }
+  if (ladder.tier === "gold") {
+    if (promotionEligible(ladder)) {
+      return { boss: bossAtMilestone("gold", "apex"), kind: "promotion" }
+    }
+    if (ladder.subTier === "III" && !state.bossDefeats.includes("fenn")) {
+      return {
+        boss: bossAtMilestone("gold", "checkpoint"),
+        kind: "championship",
+      }
+    }
+    if (ladder.subTier === "I" && !state.bossDefeats.includes("thessa")) {
+      return { boss: bossAtMilestone("gold", "apex"), kind: "championship" }
+    }
+    return null
   }
   return null
 }

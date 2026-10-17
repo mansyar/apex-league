@@ -27,6 +27,7 @@ import {
   bracketPlan,
   buildBracketModel,
   exitStage,
+  type LadderStanding,
   ladderRow,
   ordinalOf,
   resultRows,
@@ -436,7 +437,7 @@ describe("results presentation", () => {
   })
 
   test("ladderRow reports a promotion, a plain gain, a forfeit, and no change", () => {
-    const before = { points: 4, tier: "bronze", subTier: "III" }
+    const before: LadderStanding = { points: 4, tier: "bronze", subTier: "III" }
     expect(
       ladderRow({ points: 6, tier: "bronze", subTier: "II" }, before, false),
     ).toBe("Ladder +2 — promoted to Bronze II")
@@ -452,7 +453,7 @@ describe("results presentation", () => {
   })
 
   test("ladderRow reports the Promotion Cup's cross-tier flip", () => {
-    const before = { points: 15, tier: "bronze", subTier: "I" }
+    const before: LadderStanding = { points: 15, tier: "bronze", subTier: "I" }
     expect(
       ladderRow({ points: 18, tier: "silver", subTier: "III" }, before, false),
     ).toBe("Ladder +3 — promoted to Silver III")
@@ -462,6 +463,62 @@ describe("results presentation", () => {
     expect(
       ladderRow({ points: 5, tier: "bronze", subTier: "III" }, null, false),
     ).toBe("Ladder: Bronze III · 5 pts")
+  })
+
+  test("ladderRow reports a Gold sub-tier climb", () => {
+    const before: LadderStanding = { points: 30, tier: "gold", subTier: "III" }
+    expect(
+      ladderRow({ points: 33, tier: "gold", subTier: "II" }, before, false),
+    ).toBe("Ladder +3 — promoted to Gold II")
+  })
+
+  test("ladderRow reports the gold-to-legend plateau flip", () => {
+    const before: LadderStanding = { points: 36, tier: "gold", subTier: "I" }
+    expect(
+      ladderRow({ points: 39, tier: "legend", subTier: "I" }, before, false),
+    ).toBe("Ladder +3 — promoted to Legend I")
+  })
+
+  test("resultRows: a Gold champion sees the stacked AP bonus", () => {
+    const session = play(creature(), CUP_DAY, 17, "specials")
+    expect(cupPlacement(session)).toBe(1)
+    const rows = resultRows(
+      session,
+      { points: 33, tier: "gold", subTier: "II" },
+      { points: 30, tier: "gold", subTier: "III" },
+    )
+    expect(rows[0]).toBe(
+      `+2 action points tomorrow (${ACTION_POINTS_PER_DAY + 2} total)`,
+    )
+  })
+
+  test("resultRows: a Legend champion sees the stacked AP bonus and the title", () => {
+    const session = play(creature(), CUP_DAY, 17, "specials")
+    expect(cupPlacement(session)).toBe(1)
+    const rows = resultRows(
+      session,
+      { points: 40, tier: "legend", subTier: "I" },
+      { points: 37, tier: "gold", subTier: "I" },
+      1,
+    )
+    expect(rows[0]).toBe(
+      `+3 action points tomorrow (${ACTION_POINTS_PER_DAY + 3} total)`,
+    )
+    expect(rows.at(-1)).toBe("★ Legend title 1")
+  })
+
+  test("resultRows: a Silver champion keeps the plain bonus row", () => {
+    const session = play(creature(), CUP_DAY, 17, "specials")
+    expect(cupPlacement(session)).toBe(1)
+    const rows = resultRows(
+      session,
+      { points: 21, tier: "silver", subTier: "II" },
+      { points: 18, tier: "silver", subTier: "III" },
+    )
+    expect(rows[0]).toBe(
+      `+1 action point tomorrow (${ACTION_POINTS_PER_DAY + 1} total)`,
+    )
+    expect(rows.some((row) => row.startsWith("★"))).toBe(false)
   })
 
   test("resultRows: a champion lists the win bundle", () => {

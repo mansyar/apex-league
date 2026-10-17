@@ -117,6 +117,24 @@
   color: var(--silver);
 }
 
+/* Gold & Legend standings (save v14): deeper gold for the third tier,
+ * royal violet for the plateau. */
+.score-ladder--gold .score-ladder-rank {
+  color: var(--gold);
+}
+
+.score-ladder--legend .score-ladder-rank {
+  color: var(--legend);
+}
+
+/* Collected legend titles (save v14): a small star tally beside the
+ * banked points — only visible on the Legend plateau. */
+.score-ladder-titles {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--legend);
+}
+
 .score-ladder-pts {
   font-size: 12px;
   font-weight: 700;

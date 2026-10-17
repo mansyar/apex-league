@@ -178,6 +178,32 @@
   staging-fx.ts 447 (out-of-scope cup.ts 876 / scene-logic.ts 812 /
   ranch-motion.ts 548 unchanged).*
 
+-   *2026-10-18: Gold & Legend ladder extension landed (track
+  `gold_legend_ladder_20261017`) — the ladder is now four tiers: Bronze
+  6/12, Silver 18/24, **Gold 30/36, and the Legend plateau** (no ceiling;
+  `subTier` pinned at I). Promotion generalized via a `NEXT_TIER` map —
+  a Promotion Cup champion ascends one tier until Legend, which never
+  promotes. Save v14 adds the `legendTitles` tally (additive v13→v14
+  migration; storage validation accepts all four tiers). Tier rewards:
+  `TIER_AP_BONUS` stacks the champion cup bonus at `advanceDay` time
+  (Gold champion +1 extra AP = +2 total, Legend +2 = +3 total), applied
+  after placement in `finalizeCup` so a gate cup pays the NEW tier's
+  bundle — this also surfaced and fixed a latent live-path bug where
+  `finalizeCup` never passed the cup kind to `applyCupPlacement`, so
+  gate-cup champions had never flipped tiers through the live flow. The
+  boss registry is tier-scoped (`BossTier`, milestones repeat across
+  tiers): six authored rivals — Koda (Bronze→Silver gate), Hesse (Silver
+  III checkpoint), Marlow (Silver I apex), Delmar (Silver→Gold gate),
+  Fenn (Gold III checkpoint), Thessa (Gold I apex + Legend gate) — all
+  probe-tuned to the FR12 bands (fresh disadvantaged species 0%, ≥35% at
+  cap). Client: `ladderRead` emits `tierClass` + a ★ titles segment,
+  `tier-name.ts` is the one tier-name map (score bug, entry chip, bracket
+  head, results rows), results AP rows are tier-stacked with a
+  `★ Legend title N` row, `climbAnnouncement(prev, next)` keys the coach
+  ticker on the full standing (catching the Gold I → Legend I flip), and
+  the hint ledger gains gold/legend teasers + three gatekeeper scalp
+  callouts; the Handbook states four-tier truth.*
+
 ## Server
 - **Framework**: ElysiaJS on Bun (endpoints: save sync, leaderboard, ghost
   data, anonymous device-ID auth).

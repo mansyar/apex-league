@@ -63,8 +63,17 @@ export function applyCupRewards(
     ...state,
     creature: { ...creature, conditions: nextConditions },
     cupsWon: won ? prevWins + 1 : prevWins,
+    // The Legend plateau keeps score (gold_legend_ladder_20261017): every
+    // cup won AT the legend tier is a collected title. The machine orders
+    // placement before rewards, so the gate-cup champion that flips into
+    // Legend is crowned here too — the gate cup is the first title.
+    legendTitles:
+      won && state.ladder.tier === "legend"
+        ? state.legendTitles + 1
+        : state.legendTitles,
     // Stamp the cup day only on a win — the ticker reads "today was a won
-    // cup" from lastCupDay === day to grant tomorrow's bonus AP.
+    // cup" from lastCupDay === day to grant tomorrow's bonus AP (stacked
+    // with the tier's extra, TIER_AP_BONUS).
     lastCupDay: won ? cupDay : state.lastCupDay,
   }
 }

@@ -292,6 +292,27 @@ const HINTS: Array<HudHint & { when: (state: GameState) => boolean }> = [
     text: "You've topped Bronze — the Silver division awaits. Keep banking cup wins; the climb continues soon.",
   },
   {
+    // Four-tier ladder (gold_legend_ladder_20261017): the topside teasers
+    // keep one rung ahead of the roster — Silver I teases Gold, Gold I
+    // points at the real Legend gate.
+    id: "gold-awaits",
+    when: (s) =>
+      s.creature !== null &&
+      s.ladder.tier === "silver" &&
+      s.ladder.subTier === "I" &&
+      s.ladder.points > 0,
+    text: "You've topped Silver — the Gold division awaits. Keep banking cup wins; the climb continues soon.",
+  },
+  {
+    id: "legend-awaits",
+    when: (s) =>
+      s.creature !== null &&
+      s.ladder.tier === "gold" &&
+      s.ladder.subTier === "I" &&
+      s.ladder.points > 0,
+    text: "You've banked past Gold I — win your next Promotion Cup and the Legend plateau is yours.",
+  },
+  {
     // Legacy (v10): the send-off unlocks — teach what graduating does.
     id: "graduation-ready",
     when: (s) => canGraduate(s).eligible,
@@ -331,7 +352,24 @@ const HINTS: Array<HudHint & { when: (state: GameState) => boolean }> = [
   {
     id: "boss-marlow",
     when: (s) => s.bossDefeats.includes("marlow"),
-    text: "Marlow's tide breaks. Silver is yours — the Gold horizon waits.",
+    text: "Marlow's tide breaks. Silver is yours — the Gold division opens.",
+  },
+  // Gold & Legend gatekeepers (gold_legend_ladder_20261017): one-time
+  // scalp callouts, deduped by the seen-hints ledger like the originals.
+  {
+    id: "boss-delmar",
+    when: (s) => s.bossDefeats.includes("delmar"),
+    text: "Squall Herald Delmar blows through. The Gold division is calling your name.",
+  },
+  {
+    id: "boss-fenn",
+    when: (s) => s.bossDefeats.includes("fenn"),
+    text: "Cinder Abbot Fenn's embers cool. The summit of Gold is close now.",
+  },
+  {
+    id: "boss-thessa",
+    when: (s) => s.bossDefeats.includes("thessa"),
+    text: "The Grove Sovereign bows. Gold is yours — and the Legend gate stands open.",
   },
 ]
 

@@ -64,6 +64,7 @@ import { crestGlyph, elementHue } from "./element"
 import { resolveMotionPref } from "./motion"
 import type { FightCasting } from "./staging"
 import { visualSeedOf } from "./staging-seed"
+import { TIER_NAME } from "./tier-name"
 import { icons } from "./ui/icons"
 import { chipButton } from "./ui/kit"
 
@@ -437,7 +438,7 @@ export function createCup(
     const cupName =
       session.bracket.kind === "promotion"
         ? "Promotion Cup"
-        : `${ladderBefore?.tier === "silver" ? "Silver" : "Bronze"} Cup`
+        : `${TIER_NAME[ladderBefore?.tier ?? "bronze"]} Cup`
     resultSub.textContent = won
       ? `${playerName()} takes the ${cupName}!`
       : session.championName
@@ -448,7 +449,12 @@ export function createCup(
       ? `${playerName()} · unbeaten through three rounds`
       : `${playerName()} · out in the ${exitStage(placement)}`
     resultRewards.replaceChildren()
-    const rows = resultRows(session, state.ladder, ladderBefore)
+    const rows = resultRows(
+      session,
+      state.ladder,
+      ladderBefore,
+      state.legendTitles,
+    )
     rows.forEach((text, i) => {
       const row = document.createElement("div")
       row.className = "cup-reward-row"
@@ -786,7 +792,7 @@ export function createCup(
     // Standing tie-in (save v8): the entry chip reads the ladder, so the
     // player sees what tonight's cup is worth before committing.
     const ladder = state.ladder
-    const tierName = ladder.tier === "silver" ? "Silver" : "Bronze"
+    const tierName = TIER_NAME[ladder.tier]
     // A persisted session keeps the chip alive across refreshes - even
     // once the entry is consumed (phase "day"), the walk can resume.
     const resumable = session !== null
@@ -892,8 +898,7 @@ export function createCup(
     // banner from the sim, a boss final reads "Boss Final · <name>", and
     // every regular cup is named for the tier it serves.
     headTitle.textContent =
-      session.bracket.banner ??
-      `${state.ladder.tier === "silver" ? "Silver" : "Bronze"} Cup`
+      session.bracket.banner ?? `${TIER_NAME[state.ladder.tier]} Cup`
     battleHud.hide()
     champ.classList.remove("crowned")
     champName.textContent = "—"
