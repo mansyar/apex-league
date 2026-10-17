@@ -31,12 +31,14 @@
 
 ## Phase 2 - Settings & Save v13
 
-- [ ] Task: Save v13 + migration (TDD)
-  - [ ] Failing tests: v12→v13 migration adds the audio settings slot (muted
+- [x] Task: Save v13 + migration (TDD)
+  - [x] Failing tests: v12→v13 migration adds the audio settings slot (muted
         flag, default false); round-trip save/load
-  - [ ] Implement schema/migration to green; commit
+        `[feat(save): v13 audio settings + migration c79f01d]`
+  - [x] Implement schema/migration to green; commit
         `feat(save): v13 audio settings + migration`
-- [ ] Task: Settings modal mute toggle
+        `[feat(save): v13 audio settings + migration c79f01d]`
+- [~] Task: Settings modal mute toggle
   - [ ] Wire persisted toggle in the consolidated settings modal (manual
         verify)
   - [ ] Commit `feat(audio): persisted mute toggle in settings`
