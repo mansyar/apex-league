@@ -71,11 +71,17 @@
 
 ## Phase 4 - Music Beds & Crossfade
 
-- [ ] Task: Scene-driven beds
-  - [ ] Ranch loop during day phase; arena loop during battles/cups;
+- [x] Task: Scene-driven beds
+  - [x] Ranch loop during day phase; arena loop during battles/cups;
         crossfade on scene swap; stop when muted (manual verify)
-  - [ ] Commit `feat(audio): ranch/arena music beds with scene crossfade`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+        `[feat(audio): ranch/arena music beds with scene crossfade 127e0e0]`
+        — in-browser evidence: arena bed 0→0.35 while ranch 0.32→0 then
+        pause (concurrent ramps, one mixer interval); mute fades arena to
+        0 → pause; unmute resumes; beds.test.ts covers the scene→URL table
+  - [x] Commit `feat(audio): ranch/arena music beds with scene crossfade`
+        `[feat(audio): ranch/arena music beds with scene crossfade 127e0e0]`
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+      `[checkpoint: 127e0e0]` — approved 2026-10-17; gates: bun run verify green; in-browser evidence: concurrent crossfade ramps (arena 0→0.35 / ranch 0.32→0→pause), mute fade-out + instant resume
 
 ## Phase 5 - Wrap-up
 
