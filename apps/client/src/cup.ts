@@ -719,8 +719,6 @@ export function createCup(
         creature,
         chosen: () => chosen,
         classes: { base: "cup-pick", locked: "locked", chosen: "on" },
-        // Locked kit slots stay mysterious until trained (cup UX).
-        lockedText: (name) => `${name} ??`,
         onToggle: (id) => {
           if (!picks) return
           const next = toggleKitChoice(picks.loadout, id, 2, 4)

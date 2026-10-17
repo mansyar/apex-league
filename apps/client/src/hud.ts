@@ -8,7 +8,9 @@ import {
   previewTraining,
   type StatKey,
 } from "@apex/sim"
+import { buildCreatureDetail } from "./creature-detail"
 import { crestGlyph, elementHue } from "./element"
+import { buildHandbook } from "./handbook"
 import {
   evolveCallout,
   familyName,
@@ -32,20 +34,15 @@ import {
   promotionLine,
   statCell,
 } from "./hud/plates"
+import { buildPrefCluster, buildSettingsModal } from "./settings-modal"
 
 export { buildCommandDock, type CommandDockRefs } from "./hud/dock"
 
-import {
-  buildResetModal,
-  buildSettingsChips,
-  capturePrefChips,
-} from "./hud/settings"
+import { buildResetModal, capturePrefChips } from "./hud/settings"
 
 export {
   buildResetModal,
-  buildSettingsChips,
   type ResetModalRefs,
-  type SettingsChipRefs,
 } from "./hud/settings"
 
 import { meter, replay } from "./ui/kit"
@@ -128,7 +125,7 @@ export interface Hud {
 }
 
 /**
- * The care HUD: broadcast-style overlays over the 3D ranch — a top-center
+ * The care HUD: broadcast-style overlays over the 3D ranch - a top-center
  * score bug, a bottom-left creature lower-third with condition bars, and a
  * bottom-right command dock. Built from the shared broadcast kit
  * (ui/kit.ts): warm keyline plates, chamfered corners, skewed AP pips.
@@ -152,6 +149,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   const {
     root: lowerThird,
     creatureHead,
+    collapseButton,
     headRow,
     creatureName,
     stageTab,
@@ -192,10 +190,10 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     onGraduate: () => handlers.onGraduate(),
   })
 
-  // Settings cluster (top-left) + reset modal — the shared builders. The
-  // modal is built first so the New game chip can open it.
+  // Settings cluster (top-left) + reset modal — the modal owns the three
+  // settings chips now; the HUD cluster keeps only the entry chip.
   const { resetModal, resetConfirm } = buildResetModal(() => handlers.onReset())
-  const { motionWrap, motionChip, cameraChip } = buildSettingsChips({
+  const settings = buildSettingsModal({
     onToggleReducedMotion: () => handlers.onToggleReducedMotion(),
     onToggleArenaCamera: () => handlers.onToggleArenaCamera(),
     onNewGame: () => {
@@ -203,6 +201,18 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       resetConfirm.focus()
     },
   })
+  const { motionChip, cameraChip } = settings
+  // Coach's Handbook: type chart, ladder rules, raising guidance — one
+  // persistent ranch chip (Phase 5 moved the settings chips into their
+  // own modal behind the Settings chip).
+  const handbook = buildHandbook()
+  const motionWrap = buildPrefCluster(
+    () => settings.open(),
+    () => handbook.open(),
+  )
+  // Partner-details modal: opened by tapping the creature plate head; it
+  // reads state fresh on every open.
+  const creatureDetail = buildCreatureDetail()
 
   // Lineage plate (top-left, under the settings pill): the family name +
   // generation, and the Hall of Fame opener.
@@ -226,7 +236,17 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   const hudStack = document.createElement("div")
   hudStack.className = "hud-stack"
   hudStack.append(lowerThird, cluster)
-  root.append(scoreBug, motionWrap, lineagePlate, hudStack, resetModal, callout)
+  root.append(
+    scoreBug,
+    motionWrap,
+    lineagePlate,
+    hudStack,
+    resetModal,
+    creatureDetail.root,
+    handbook.root,
+    settings.root,
+    callout,
+  )
 
   let pickerOpen = false
   let lastFocus: StatKey | null = null
@@ -253,10 +273,19 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     if (current) update(current)
   })
 
+  // Tapping the plate head opens the partner-details modal. The scrim
+  // covers the HUD while it shows, so the readout is fresh for the visit.
   creatureHead.addEventListener("click", () => {
+    if (current?.creature) creatureDetail.open(current)
+  })
+
+  collapseButton.addEventListener("click", () => {
     creatureOpen = !creatureOpen
     lowerThird.classList.toggle("is-collapsed", !creatureOpen)
-    creatureHead.setAttribute("aria-expanded", creatureOpen ? "true" : "false")
+    collapseButton.setAttribute(
+      "aria-expanded",
+      creatureOpen ? "true" : "false",
+    )
   })
 
   // Rename flow: pencil opens the inline edit, Enter/click confirms,
