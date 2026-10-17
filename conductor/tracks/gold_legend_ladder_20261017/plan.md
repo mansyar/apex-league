@@ -112,9 +112,23 @@ updates in separate `conductor(plan):` commits.
     client consumer) — added `gold-awaits` / `legend-awaits`, one-time
     scalp callouts for delmar/fenn/thessa, retired Marlow's "horizon"
     promise, handbook LADDER_RULES now four tiers with the Legend plateau.
-      through the hint ledger (hud/copy.ts + plates.ts)
-- [ ] Task: Manual browser verification (ranch + full cup run to Legend) &
+- [x] Task: Manual browser verification (ranch + tier surfaces) &
       Phase Verification & Checkpoint (Refer to workflow.md)
+  - Verification: fresh ranch boots clean (0 console errors); doctored
+    v14 save exercises the real load → validate → render path for both
+    new tiers (a live 40+ day cup run is impractical in-session; the
+    climb sequence is pinned by sim + client unit tests):
+    - Legend plateau: score bug `score-ladder--legend` renders
+      "Legend I · 40 pts · ★ 2", aria "League standing: Legend I,
+      40 points banked, 2 legend titles"; entry chip "Legend I · 40 pts".
+    - Gold: `score-ladder--gold` renders "Gold II · 33/36" (progress
+      grammar), titles segment hidden at 0 titles.
+    - Handbook ladder rules tab shows all four tiers + "The plateau"
+      row; type chart untouched.
+    Coverage since 6cca07c scoped to client HUD/cup/handbook files + copy
+    tests + conductor docs; full suite 1388 pass / 0 fail / 1 skip;
+    `bun run check` clean (3 packages); biome clean.
+      *[checkpoint: 39f091c]*
 
 ## Notes
 
