@@ -38,11 +38,14 @@
   - [x] Implement schema/migration to green; commit
         `feat(save): v13 audio settings + migration`
         `[feat(save): v13 audio settings + migration c79f01d]`
-- [~] Task: Settings modal mute toggle
-  - [ ] Wire persisted toggle in the consolidated settings modal (manual
+- [x] Task: Settings modal mute toggle
+  - [x] Wire persisted toggle in the consolidated settings modal (manual
         verify)
-  - [ ] Commit `feat(audio): persisted mute toggle in settings`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+        `[feat(audio): persisted mute toggle in settings 66fe3c0]`
+  - [x] Commit `feat(audio): persisted mute toggle in settings`
+        `[feat(audio): persisted mute toggle in settings 66fe3c0]`
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+      `[checkpoint: 66fe3c0]` — approved 2026-10-17; gates: bun run verify green (tsc/biome/1317 tests/determinism); browser evidence: chip flip + aria-pressed + apex.save v13 muted persist + reload survival
 
 ## Phase 3 - Battle Arena SFX
 
