@@ -1,0 +1,17 @@
+{
+  "trackId": "move_pool_20261018",
+  "type": "feature",
+  "status": "new",
+  "title": "Learnable Move Pool & Loadout Depth: six specials per playable element, any-four-of-known equipping under today's gates, seeded rival kits, widened bosses",
+  "createdAt": "2026-10-18",
+  "branch": "track/move_pool_20261018",
+  "surfaces": [
+    "packages/sim/src/battle/moves.ts",
+    "packages/sim/src/loadout.ts",
+    "packages/sim/src/battle/exhibition.ts",
+    "packages/sim/src/cup/verdicts.ts",
+    "packages/sim/src/bosses.ts",
+    "apps/client/src/cup/coach-room.ts",
+    "apps/client/src/handbook.ts"
+  ]
+}
