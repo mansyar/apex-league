@@ -445,7 +445,6 @@ const importModal = buildImportModal((data) => {
   }
   hud.noticeSettings("Couldn't write that save — try again.", true)
 })
-app.append(importModal.root)
 
 const hud = createHud(app, {
   onAdvanceDay: () => {
@@ -584,6 +583,10 @@ const hud = createHud(app, {
   onGraduate: () => graduation.openConfirm(store.get()),
   onOpenHallOfFame: () => graduation.openHallOfFame(store.get()),
 })
+
+// Appended after the HUD so the replace-save dialog stacks above Settings
+// (both are kit-modals at the same z-index; DOM order wins).
+app.append(importModal.root)
 
 // The store's fixed fanout: every commit persists (inside commit) and then
 // updates the hud, the spar preview, and the cup chip — in that order —
