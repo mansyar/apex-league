@@ -24,7 +24,7 @@
 
 ## Phase 2 - Care SFX pack (CC0)
 
-- [ ] Task: Pure care-cue mapping table (TDD)
+- [x] Task: Pure care-cue mapping table (TDD) `8fabfa3`
   - [ ] Failing tests: feed/rest/treat/play + pet chirp + dawn chime -> cue
         ids; calm-mix variants under reduced-motion; muted -> silent.
   - [ ] Implement the `audio/` cue-table extension DOM-free to green.
