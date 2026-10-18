@@ -85,7 +85,7 @@ describe("battle catalog", () => {
       if (!move) throw new Error(`original move missing: ${id}`)
       const expected = numbers[id]
       if (!expected) throw new Error(`no numbers recorded for ${id}`)
-      expect([move.power, move.accuracy, move.cooldown]).toEqual(expected)
+      expect([move.power, move.accuracy, move.cooldown]).toEqual([...expected])
     }
     // The new rows are appended, so the first four of every element are the
     // untouched originals in their original order.
@@ -96,7 +96,9 @@ describe("battle catalog", () => {
     }
     for (const element of ["fire", "plant", "water"] as const) {
       const rows = CATALOG.filter((m) => m.element === element).map((m) => m.id)
-      expect(rows.slice(0, 4)).toEqual(originals[element])
+      const expectedOriginal = originals[element]
+      if (!expectedOriginal) throw new Error(`no originals for ${element}`)
+      expect(rows.slice(0, 4)).toEqual([...expectedOriginal])
     }
   })
 

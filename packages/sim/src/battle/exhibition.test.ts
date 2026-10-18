@@ -49,7 +49,8 @@ describe("makeExhibition — prep consumption", () => {
       const spar = makeExhibition(owned, "specials", seed + 200)
       const rivalSpecies = getSpecies(spar.rivalSpeciesId)
       if (!rivalSpecies) throw new Error("The rival species is missing")
-      expect(spar.rivalSide.kit).toEqual(rivalSpecies.kit)
+      expect(spar.rivalSide.kit).toEqual(rivalSpecies.kit.slice(0, 4))
+      expect(spar.rivalSide.kit.length).toBe(4)
       expect(spar.rivalSide.stats).toEqual(spar.rival.stats)
       expect(spar.rival.trainingDays).toBe(0)
     }
@@ -89,7 +90,7 @@ describe("makeExhibition", () => {
     const rival = getSpecies(spar.rivalSpeciesId)
     if (!owned || !rival) throw new Error("The starter species are missing")
     expect(spar.ownedSide.kit).toEqual(defaultLoadout(buildOwned(1), owned))
-    expect(spar.rivalSide.kit).toEqual(rival.kit)
+    expect(spar.rivalSide.kit).toEqual(rival.kit.slice(0, 4))
     expect(spar.rivalSide.temperament).toBe(rival.temperament)
   })
 

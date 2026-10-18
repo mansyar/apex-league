@@ -13,6 +13,7 @@
 
 import { type BattleResult, type BattleSide, resolveBattle } from "../battle"
 import { getBoss } from "../bosses"
+import { MAX_LOADOUT } from "../loadout"
 import { makeRng } from "../rng"
 import { getSpecies } from "../species"
 import type { CupSlot } from "./bracket"
@@ -86,7 +87,7 @@ export function battleSideForSlot(slot: CupSlot, seed: number): BattleSide {
     name: slot.name,
     element: species.element,
     stats: slot.stats,
-    kit: species.kit,
+    kit: species.kit.slice(0, MAX_LOADOUT),
     tactic,
     temperament: species.temperament,
   }

@@ -21,7 +21,8 @@ export interface SpeciesDef {
   flavor: string
   /** Whether the species can currently be acquired. */
   available: boolean
-  /** Fixed four-move battle kit, one row per element tier. */
+  /** Fixed six-move pool, one row per element tier (the first four form the
+   * classic unlocked kit; the last two open with the wider pool). */
   kit: readonly string[]
   /** Fixed in-battle behaviour. Not a damage modifier. */
   temperament: Temperament
@@ -46,7 +47,14 @@ export const STARTER_SPECIES: readonly SpeciesDef[] = Object.freeze([
     element: "fire",
     flavor: "A bold little drake whose tail sparks when it gets excited.",
     available: true,
-    kit: ["spark", "flame_charge", "cinder_shot", "blaze_bolt"],
+    kit: [
+      "spark",
+      "flame_charge",
+      "cinder_shot",
+      "blaze_bolt",
+      "flare_dart",
+      "pyre_lance",
+    ],
     temperament: "rush",
     statBounds: { hp: [76, 92], atk: [9, 13], def: [7, 10], spd: [9, 12] },
   },
@@ -57,7 +65,14 @@ export const STARTER_SPECIES: readonly SpeciesDef[] = Object.freeze([
     element: "plant",
     flavor: "A stocky, patient grazer that grows steadier by the day.",
     available: true,
-    kit: ["seed_shot", "thorn_volley", "spore_burst", "bramble_dart"],
+    kit: [
+      "seed_shot",
+      "thorn_volley",
+      "spore_burst",
+      "bramble_dart",
+      "vine_lash",
+      "root_quake",
+    ],
     temperament: "slow",
     statBounds: { hp: [88, 104], atk: [8, 11], def: [10, 14], spd: [5, 8] },
   },
@@ -68,7 +83,14 @@ export const STARTER_SPECIES: readonly SpeciesDef[] = Object.freeze([
     element: "water",
     flavor: "An easygoing swimmer that hums bubbles when it is happy.",
     available: true,
-    kit: ["bubble", "tide_shot", "foam_volley", "splash_bolt"],
+    kit: [
+      "bubble",
+      "tide_shot",
+      "foam_volley",
+      "splash_bolt",
+      "mist_spray",
+      "maelstrom",
+    ],
     temperament: "obedient",
     statBounds: { hp: [80, 96], atk: [8, 12], def: [8, 11], spd: [8, 11] },
   },

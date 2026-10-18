@@ -9,7 +9,7 @@
  */
 
 import { type Creature, createCreature, effectiveStats } from "../creature"
-import { defaultLoadout } from "../loadout"
+import { defaultLoadout, MAX_LOADOUT } from "../loadout"
 import { makeRng } from "../rng"
 import { getSpecies, STARTER_SPECIES } from "../species"
 import type { Tactic } from "./policy"
@@ -64,7 +64,9 @@ export function makeExhibition(
     id: "rival",
     element: rival.element,
     stats: rival.stats,
-    kit: rivalSpeciesDef.kit,
+    // Rivals field four of the six they know; the seeded pick lands in Phase 2
+    // of the move-pool track, so today's matches stay byte-identical.
+    kit: rivalSpeciesDef.kit.slice(0, MAX_LOADOUT),
     tactic: rivalTactic,
     temperament: rivalSpeciesDef.temperament,
   }
