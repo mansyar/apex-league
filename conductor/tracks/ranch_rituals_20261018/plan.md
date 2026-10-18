@@ -7,16 +7,18 @@
 
 ## Phase 1 - Sim: make Rest meaningful
 
-- [ ] Task: Night energy rebalance (TDD)
-  - [ ] Failing tests first: healthy night restores **0** energy; sick (30) /
+- [x] Task: Night energy rebalance (TDD)
+  - [x] Failing tests first: healthy night restores **0** energy; sick (30) /
         starving (20) / starving+sick (10) relief tiers unchanged; Rest action
         still +40; sickness-roll and mood/bond/evolution gates unaffected.
         Update golden settlement fixtures deliberately with a tuning-change
-        note.
-  - [ ] Implement `NIGHT_RECOVERY.rested: 60 -> 0` in
+        note. `[feat(sim): healthy nights restore no energy - rest is the way 7f5b6ea]`
+  - [x] Implement `NIGHT_RECOVERY.rested: 60 -> 0` in
         `packages/sim/src/settlement.ts` to green; sweep downstream copy for
-        sleep-recovery claims (`hud/copy.ts`, `handbook.ts`).
-  - [ ] Commit `feat(sim): healthy nights restore no energy - rest is the way`
+        sleep-recovery claims (`hud/copy.ts`, `handbook.ts`) — sweep clean,
+        no copy claimed nightly recovery. `[feat(sim): healthy nights restore no energy - rest is the way 7f5b6ea]`
+  - [x] Commit `feat(sim): healthy nights restore no energy - rest is the way`
+        `[feat(sim): healthy nights restore no energy - rest is the way 7f5b6ea]`
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 - Care SFX pack (CC0)
