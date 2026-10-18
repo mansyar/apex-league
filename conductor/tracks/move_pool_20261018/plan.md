@@ -24,13 +24,14 @@
 
 ## Phase 2 - Rival kits from the wider pool (sim, TDD)
 
-- [ ] Task: Write failing rival-kit tests
-  - [ ] Same seed produces the same four moves; different seeds can differ; kit length is always 4 and always a subset of the species' six
-  - [ ] Spar `rivalSpeciesId`, `rivalTactic`, and creature stats are unchanged for fixed seeds against the pre-change baseline
-  - [ ] Cup opponents' kits are deterministic per session seed and index
-- [ ] Task: Implement `rivalKit` with a derived RNG
-  - [ ] Derive from the existing seed with a distinct constant so the stream is not consumed; wire `battle/exhibition.ts` and `cup/verdicts.ts`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Write failing rival-kit tests (`86cf97b`)
+  - [x] Same seed produces the same four moves; different seeds can differ; kit length is always 4 and always a subset of the species' six
+  - [x] Spar `rivalSpeciesId`, `rivalTactic`, and creature stats are unchanged for fixed seeds against the pre-change baseline
+  - [x] Cup opponents' kits are deterministic per session seed and index
+- [x] Task: Implement `rivalKit` with a derived RNG (`86cf97b`)
+  - [x] Derive from the existing seed with a distinct constant so the stream is not consumed; wire `battle/exhibition.ts` and `cup/verdicts.ts`
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - Re-baselined on purpose, per NFR3: the cup goldens and the SF-exit lifecycle fixture move to champion seed 17, eliminated seed 7, contracts SF seed 3, because rivals now field different fours. Over 100 default-kit cup seeds the placement mix (champion / runner-up / SF exit / QF exit) moves 9/17/30/44 -> 7/18/24/51 percent. The Phase 5 matrix reads this as the reference, not Phase 1's baseline: the `kit6` cases there already include the new moves (the Phase 1 baseline predates the catalog), while `kit2`/`kit3`/`kit4` are unchanged.
 
 ## Phase 3 - Boss kits and per-boss evidence
 
