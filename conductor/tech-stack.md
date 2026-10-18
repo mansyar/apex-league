@@ -236,7 +236,12 @@
   (pure, bun-tested) over an imperative `playCue.ts`/`musicBeds.ts` seam
   (manual-verify tier); mute persists in save v13 (`settings.muted`), sound
   defaults ON with first-gesture unlock; reduced motion swaps calm-mix
-  variants for SFX and silences instant dumps.
+  variants for SFX and silences instant dumps. *(ranch_rituals_20261018,
+  2026-10-18: the same gate now carries the care cues — a pure event→cue
+  table (`audio/careCues.ts`) over the existing player, with
+  `care-feed`/`care-rest`/`care-treat`/`care-play`, `care-pet` and a
+  `dawn-chime`, all CC0 and mapped in CREDITS.md. No new dependency and no
+  save-schema change.)*
 
 ## Quality Gates
 - `bun check` clean, `biome check` clean, `bun test` green — required before
