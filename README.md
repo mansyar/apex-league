@@ -42,8 +42,9 @@ make the next run start a little stronger.
 4. **Legacy** — a champion that has lived a full career can be **graduated**
    (a proud send-off, never death): its career is archived to the Hall of Fame
    and its stats seed a **stat floor** for the next egg, while the family name,
-   generation, and derived **prestige** carry into a dynasty. Full breeding
-   between retired pairs is Phase 2.
+   generation, and derived **prestige** carry into a dynasty. Breeding pairs
+   any two retired partners: the egg inherits a weighted floor from both, a
+   trait, and a seeded mutation.
 
 ## Tech stack
 
@@ -137,9 +138,9 @@ reproduced exactly from source.
 |---|---|---|
 | 0 — Foundation | Workspaces, sim core, day ticker, versioned save/load, app shell | Done |
 | 1 — Vertical slice | Care loop, training, one lineage, battle system, one cup, Bronze ladder | Done — care loop, training, baby→juvenile→champion evolution, arena battles, live cups, the Bronze ladder, and the minimal legacy loop (graduation → inherited next egg) playable |
-| 2 — League depth | Full ladder, rivals and bosses, breeding, evolution discovery | In progress — the Silver ladder (Bronze→Silver promotion gate, boss checkpoints) is playable |
+| 2 — League depth | Full ladder, rivals and bosses, breeding, evolution discovery | In progress — the full Bronze→Legend climb, six authored bosses, and dual-parent breeding with trait inheritance are playable; evolution discovery and extra lineages remain |
 | 3 — Content & meta | 20–40 species, ElysiaJS backend, cloud saves, leaderboards | Planned |
-| 4 — Post-MVP | Async ghost PvP, live PvP, mobile pass, audio | Planned |
+| 4 — Post-MVP | Async ghost PvP, live PvP, mobile hardware pass, audio expansion | Planned |
 
 ## Contributing
 

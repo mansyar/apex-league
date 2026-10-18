@@ -214,6 +214,18 @@
   ticker on the full standing (catching the Gold I → Legend I flip), and
   the hint ledger gains gold/legend teasers + three gatekeeper scalp
   callouts; the Handbook states four-tier truth.*
+-   *2026-10-18: Dynasty breeding landed (track `dynasty_breeding_20261018`) —
+  no new dependencies or stack deviations. Sim additions stay pure: `traits.ts`
+  (four canonical lineage traits derived from the highest trained stat),
+  `breeding.ts` (pool/pair validation, the dual-parent floor
+  `round(0.5*stronger + 0.1*weaker)` + trait/milestone bonuses, one seeded
+  `+1..+2` mutation, `graduateWithPair`), and save v15 (additive v14→v15
+  migration adds empty `traits`/`parents` to the active creature and every Hall
+  record; storage validates both arrays). Client additions are DOM-only:
+  `graduation/nursery-vm.ts` (pure selection/preview state) and
+  `graduation/nursery.ts` (overlay built from the shared kit, no new palette);
+  the seeded preview seed is handed to the sim unchanged, so previewed stats
+  are the hatched stats. No per-frame work was added.*
 
 -   *2026-10-18: Ranch decomposition landed (track
   `ranch_decomposition_20261018`) — the two over-cap scene files became
