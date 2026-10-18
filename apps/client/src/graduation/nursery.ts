@@ -29,8 +29,11 @@ export interface NurserySurface {
   root: HTMLElement
   /** Rebuild the pair pool from state and show the surface. */
   show: (state: GameState) => void
-  /** Hide the surface and restore focus to its opener. */
+  /** Hide the surface. Focus is restored only on a dismissal; a committed
+   * hatch moves focus itself (the opener may be gone). */
   close: () => void
+  /** Explain why a hatch did not commit; the pair stays on screen. */
+  say: (message: string) => void
 }
 
 const span = (className: string, text: string): HTMLSpanElement => {
@@ -116,6 +119,11 @@ export function createNursery(handlers: NurseryHandlers): NurserySurface {
   const dismiss = (): void => {
     close()
     restoreFocus()
+  }
+
+  const say = (message: string): void => {
+    status.classList.add("is-warn")
+    status.textContent = message
   }
 
   const focusCard = (
@@ -335,5 +343,6 @@ export function createNursery(handlers: NurseryHandlers): NurserySurface {
       ;(first ?? keep).focus()
     },
     close,
+    say,
   }
 }

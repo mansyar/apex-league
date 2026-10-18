@@ -380,10 +380,17 @@ const graduation = createGraduation(app, {
     const retiree = before.creature
     if (!retiree) return
     const result = graduateWithPair(before, generations, speciesId, seed)
-    if (!result.ok) return
+    if (!result.ok) {
+      graduation.rejectHatch(result.reason)
+      return
+    }
     store.commit(result.state)
     graduation.close()
     syncScene()
+    // The Nursery's opener (the Graduate action) is gone after a succession;
+    // hand focus to the rebuilt partner plate so keyboard users land on the
+    // new creature instead of <body>.
+    document.querySelector<HTMLButtonElement>(".creature-head")?.focus()
     const successor = store.get().creature
     if (successor) {
       hud.announceGraduation(

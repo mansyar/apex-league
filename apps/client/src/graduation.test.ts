@@ -10,6 +10,7 @@ import {
   floorSummary,
   hallEntryLabel,
   hallEntryMeta,
+  hatchFailureCopy,
   lineageSummary,
   perkLabels,
 } from "./graduation"
@@ -123,5 +124,15 @@ describe("hallEntryLabel", () => {
       parents: [1, 0],
     }
     expect(hallEntryMeta(bred)).toBe("Child of Gen 0 × Gen 1 — Sturdy · Fierce")
+  })
+})
+
+describe("hatchFailureCopy", () => {
+  test("maps each sim rejection to coach voice", () => {
+    expect(hatchFailureCopy("invalid-species")).toBe(
+      "Pick one of the parents' species.",
+    )
+    expect(hatchFailureCopy("invalid-pair")).toContain("pick again")
+    expect(hatchFailureCopy("too-young")).toContain("can't retire yet")
   })
 })

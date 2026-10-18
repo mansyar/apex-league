@@ -12,6 +12,7 @@ import {
   effectiveStats,
   effectiveTraits,
   type GameState,
+  type GraduatePairReason,
   getSpecies,
   inheritedFloor,
   lineagePerks,
@@ -41,6 +42,8 @@ export interface GraduationFlow {
   showEggScreen(state: GameState): void
   /** Open the Nursery (pair two Hall records, preview the seeded hatch). */
   showNursery(state: GameState): void
+  /** Explain a rejected hatch in the open Nursery; nothing commits. */
+  rejectHatch(reason: GraduatePairReason): void
   /** Open the Hall of Fame panel. */
   openHallOfFame(state: GameState): void
   /** Mirror live state into any open surface (family name / records). */
@@ -96,6 +99,20 @@ export function hallEntryMeta(record: RetiredRecord): string {
   // old Hall still reads meaningfully.
   const traits = effectiveTraits(record).map((id) => traitCopy(id).label)
   return traits.length > 0 ? `${parentage} — ${traits.join(" · ")}` : parentage
+}
+
+/** Coach-voice copy for a hatch the sim refused (the Nursery stays open). */
+export function hatchFailureCopy(reason: GraduatePairReason): string {
+  switch (reason) {
+    case "invalid-species":
+      return "Pick one of the parents' species."
+    case "invalid-pair":
+      return "That pairing is no longer in the Hall — pick again."
+    case "no-creature":
+      return "No champion is ready to retire."
+    default:
+      return "This champion can't retire yet — finish the career first."
+  }
 }
 
 function modalShell(): {
@@ -375,6 +392,9 @@ export function createGraduation(
     showNursery(state) {
       update(state)
       nursery.show(state)
+    },
+    rejectHatch(reason) {
+      nursery.say(hatchFailureCopy(reason))
     },
     openHallOfFame(state) {
       update(state)
