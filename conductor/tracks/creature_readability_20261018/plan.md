@@ -117,10 +117,10 @@ element hue contract intact.
         distance
   - [x] Commit before/after PNGs to the track folder
         (`artifacts/before-*.png`, `artifacts/after-*.png`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [x] Browser evidence: three tone zones plus dappling visible at gameplay
         distance on all three archetypes
-  - [ ] Await explicit user approval, attach the verification note, record the
+  - [x] Await explicit user approval, attach the verification note, record the
         checkpoint SHA
 
 ### Phase 3 findings (2026-10-18)
@@ -154,6 +154,7 @@ element hue contract intact.
   is 243,444 B, still inside the 320 KiB tripwire. Props opt out of zones, so
   `artifacts/props-42.json` is byte-identical and the determinism gate matches
   all 5 props plus all 9 creatures.
+- Checkpoint: `380e3a9` [checkpoint: 380e3a9]
 
 ## Phase 4: Face kit
 
