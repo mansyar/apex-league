@@ -20,6 +20,7 @@ import {
   setReducedMotion,
 } from "@apex/sim"
 import { buildArena } from "./arena"
+import { careCueForEvent } from "./audio/careCues"
 import { cueForStep } from "./audio/cues"
 import { MusicBeds } from "./audio/musicBeds"
 import { playCue } from "./audio/playCue"
@@ -376,6 +377,10 @@ const hud = createHud(app, {
     // to the sim immediately but never interrupts the creature's motion.
     const stageBefore = store.get().creature?.stage
     store.commit(advanceDay(store.get()))
+    // Dawn chime (ranch_rituals_20261018 FR5): the day-break punctuation,
+    // gated by the same pure table (muted stays silent).
+    const dawn = careCueForEvent({ kind: "dawn" }, store.get().settings)
+    if (dawn) audioPlayer.play(dawn)
     const creature = store.get().creature
     const evolved =
       (stageBefore === "baby" && creature?.stage === "juvenile") ||
@@ -405,6 +410,10 @@ const hud = createHud(app, {
     const result = careAction(store.get(), action)
     if (!result.ok) return // buttons are already disabled; belt and braces
     store.commit(result.state)
+    // Care SFX (ranch_rituals_20261018 FR5): the pure table decides — muted
+    // stays silent — and the player's gate + silent degradation do the rest.
+    const cue = careCueForEvent({ kind: "care", action }, store.get().settings)
+    if (cue) audioPlayer.play(cue)
     // Feed toggles the food pile; conditions drive the mood idle.
     sceneVisuals()
     // Ceremony is visual feedback for an already-committed action, so it
