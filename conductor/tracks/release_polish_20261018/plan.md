@@ -101,10 +101,10 @@ ends with a verification checkpoint and user approval.
   - [x] Audit each ceremony/transition (evolution, feed/rest/treat/play,
         petting, graduation send-off, nursery, cup, arena) against the in-game
         setting and `prefers-reduced-motion`; add calm equivalents.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Keyboard-only walkthrough, reduced-motion screenshots, contrast table;
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Keyboard-only walkthrough, reduced-motion screenshots, contrast table;
         `bun run verify`.
-  - [ ] Record `[checkpoint: <sha>]` after user approval.
+  - [x] Record `[checkpoint: cfe23cc]` after user approval.
 
 ## Phase 5 - Release readiness & close
 
@@ -122,7 +122,7 @@ ends with a verification checkpoint and user approval.
         `bun run verify`; archive the track and update the registry.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [ ] Full acceptance matrix recorded; `bun run verify` green.
-  - [x] Record `[checkpoint: 59765f7]`.
+  - [ ] Record `[checkpoint: <sha>]` after user approval.
 
 ## Sequencing notes
 
