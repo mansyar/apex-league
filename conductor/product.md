@@ -26,8 +26,9 @@ evolution planning.
 3. **Progression**: wins climb the tier ladder (Bronze → Legend) with promotion
    matches; higher tiers gate better opponents, rewards, and rare eggs.
 4. **Legacy phase**: creatures retire at ~60-90 in-game days. Retirement passes
-   stat inheritance, inheritable traits (with mutation), family prestige
-   (account-wide perks), and type affinity into the next egg via breeding.
+   stat inheritance, inheritable traits (with mutation), and family prestige
+   (account-wide perks) into the next egg via breeding; type affinity drift
+   remains on the roadmap.
 
 ## Key Systems
 - **Creatures**: 20-40 original species in 3-stage branching evolution trees
