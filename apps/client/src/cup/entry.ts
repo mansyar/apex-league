@@ -126,8 +126,10 @@ export function createEntry(shared: CupShared): {
     shared.showScreen("bracket")
     overlay.style.display = ""
     // The bracket owns the screen: move focus to its close control so
-    // keyboard players are not left tabbing through the hidden HUD.
-    shared.close.focus()
+    // keyboard players are not left tabbing through the hidden HUD. On a
+    // phone the bracket is a tall scroll column and the close control sits
+    // at its end, so focusing it must not scroll the reader past the board.
+    shared.close.focus({ preventScroll: true })
     shared.setLine(entryLine(shared.playerName()))
     mem.cursor = 0
     shared.schedule(() => shared.walk(), WALK_SETTLE)
