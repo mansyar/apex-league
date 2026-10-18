@@ -8,7 +8,7 @@ import {
   createOrbitCamera,
 } from "./orbit-camera"
 import { buildPropGroup } from "./prop"
-import { createRanchMotion } from "./ranch-motion"
+import { createRanchMotion } from "./ranch/motion"
 import { isTap } from "./scene-logic"
 import { setupRanchScene } from "./scene-setup"
 import { disposeObject3D } from "./scene-utils"

@@ -1,0 +1,13 @@
+{
+  "trackId": "ranch_decomposition_20261018",
+  "type": "refactor",
+  "status": "complete",
+  "title": "Ranch Decomposition: split scene-logic and ranch-motion into per-machine modules under the 12 KB cap, collapsing the duplicate easing",
+  "createdAt": "2026-10-18",
+  "branch": "track/ranch_decomposition_20261018",
+  "surfaces": [
+    "apps/client/src/scene-logic.ts",
+    "apps/client/src/ranch-motion.ts",
+    "apps/client/src/scene.ts"
+  ]
+}

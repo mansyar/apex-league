@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { makeRng } from "@apex/voxel"
-import { createWander, nextGap, pickVisitTarget } from "./scene-logic"
+import { createWander, nextGap, pickVisitTarget } from "../scene-logic"
 
 const PILE = { x: -2.4, z: 0.4 }
 const DISC = 8.5 // moss-disc radius; drive targets must land inside

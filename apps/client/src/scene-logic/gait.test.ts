@@ -6,7 +6,7 @@ import {
   GAIT_ROLL,
   GAIT_SWING,
   gaitPose,
-} from "./scene-logic"
+} from "../scene-logic"
 
 /**
  * Diagonal-pair walk gait: FL+BR swing together, FR+BL in counterphase,
