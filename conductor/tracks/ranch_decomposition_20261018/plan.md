@@ -69,15 +69,16 @@ guarantee (the size guard and barrel-surface test in Phase 3).
 
 ## Phase 3 - Guard and document
 
-- [ ] Task: Write the size guard test
-    - [ ] Assert every file under `apps/client/src/scene-logic/` and `apps/client/src/ranch/` is at or under 12 KB.
-    - [ ] Write it red first by pointing it at a temp over-cap fixture, then delete the fixture.
-- [ ] Task: Write the barrel-surface test
-    - [ ] Pin the exported symbol set of `scene-logic.ts` (sorted names) so a dropped re-export fails loudly.
-    - [ ] Include the type-only exports the barreled modules publish.
-- [ ] Task: Record the module convention
-    - [ ] Add the ranch module layout and the 12 KB cap to `conductor/tech-stack.md`.
-    - [ ] Note the guard test as the enforcement mechanism.
-- [ ] Task: Commit `test(client): guard ranch module size caps`
-- [ ] Task: Commit `docs(conductor): document ranch module layout`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Write the size guard test
+    - [x] Assert every file under `apps/client/src/scene-logic/` and `apps/client/src/ranch/` is at or under 12 KB (`apps/client/src/module-size.test.ts`, 12 * 1024 B).
+    - [x] Prove the over-cap branch fails before trusting the green run: the cap predicate is unit-tested against an at-cap and an over-cap entry (in-memory fixtures instead of a temp file, so nothing to clean up).
+- [x] Task: Write the barrel-surface test
+    - [x] Pin the exported symbol set of `scene-logic.ts` (53 sorted runtime names) so a dropped re-export fails loudly (`apps/client/src/scene-logic.test.ts`).
+    - [x] Name all 25 type-only exports in a tuple type, so a dropped type re-export fails typecheck even though it is erased at runtime.
+- [x] Task: Record the module convention
+    - [x] Add the ranch module layout and the 12 KB cap to `conductor/tech-stack.md`.
+    - [x] Note the guard test as the enforcement mechanism.
+- [x] Task: Commit `test(client): guard ranch module size caps` (2ff8d55)
+- [x] Task: Commit `docs(conductor): document ranch module layout` (0609d8e)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+    - `[checkpoint: 0609d8e]` - approved 2026-10-18; gates: verify 1461 pass / 0 fail (1457 baseline + 4 guard cases), typecheck clean, determinism byte-identical, biome 0 errors / 8 pre-existing warnings; guard confirms largest modules stay `ranch/api.ts` 9.4 KB and `scene-logic/gait.ts` 8.3 KB, both under the cap.
