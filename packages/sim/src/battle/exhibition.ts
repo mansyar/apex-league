@@ -2,18 +2,19 @@
  * The exhibition helper (spec FR10): builds a spar from the owned creature,
  * the player's tactic, and a seed. The rival is a seeded pick among
  * *available* starters only, rolled from `createCreature` with a seed
- * derived from the battle seed, and fights with its species kit and
- * temperament. The owner's side reads combat prep: effective stats
+ * derived from the battle seed, and fights four of the six moves its species
+ * knows. The owner's side reads combat prep: effective stats
  * (stats + trained) and the chosen loadout, defaulting to the stage slicing
  * of the kit gate. Pure — the owned creature is never mutated.
  */
 
 import { type Creature, createCreature, effectiveStats } from "../creature"
-import { defaultLoadout, MAX_LOADOUT } from "../loadout"
+import { defaultLoadout } from "../loadout"
 import { makeRng } from "../rng"
 import { getSpecies, STARTER_SPECIES } from "../species"
 import type { Tactic } from "./policy"
 import type { BattleSide } from "./resolver"
+import { rivalKit } from "./rival-kit"
 
 export interface SparSetup {
   /** The player's side, assembled from the owned creature and its species. */
@@ -64,9 +65,7 @@ export function makeExhibition(
     id: "rival",
     element: rival.element,
     stats: rival.stats,
-    // Rivals field four of the six they know; the seeded pick lands in Phase 2
-    // of the move-pool track, so today's matches stay byte-identical.
-    kit: rivalSpeciesDef.kit.slice(0, MAX_LOADOUT),
+    kit: rivalKit(rivalSpeciesDef, creatureSeed),
     tactic: rivalTactic,
     temperament: rivalSpeciesDef.temperament,
   }
