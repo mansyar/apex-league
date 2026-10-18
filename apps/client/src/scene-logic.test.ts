@@ -1,0 +1,135 @@
+import { describe, expect, test } from "bun:test"
+import type {
+  ArenaFramingAdjustment,
+  CeremonyPhase,
+  EvolutionDrive,
+  EvolutionMachine,
+  EvolutionPhase,
+  GaitPose,
+  PetDrive,
+  PetMachine,
+  PetPhase,
+  PetVariant,
+  PlayDrive,
+  PlayMachine,
+  PlayPhase,
+  RestDrive,
+  RestMachine,
+  RestPhase,
+  TreatDrive,
+  TreatMachine,
+  TreatPhase,
+  WalkDrive,
+  WalkMachine,
+  WanderDrive,
+  WanderMachine,
+  WanderPhase,
+  WanderProp,
+} from "./scene-logic"
+import * as logic from "./scene-logic"
+
+/**
+ * The barrel is the stable entry point promised by ranch_decomposition FR6:
+ * every importer reads `scene-logic`, and the per-machine files underneath
+ * can move without touching them. That promise only holds while the surface
+ * itself is pinned - a re-export silently dropped during a refactor would
+ * otherwise surface as a compile error in some unrelated file, or worse, a
+ * missing behaviour at runtime.
+ */
+const EXPECTED_EXPORTS = [
+  "BABY_SCALE",
+  "CHAMPION_SCALE",
+  "GAIT_BOB",
+  "GAIT_CADENCE",
+  "GAIT_ROLL",
+  "GAIT_SWING",
+  "JUVENILE_SCALE",
+  "PLAY_CELEBRATE_HOPS",
+  "PLAY_CELEBRATE_TIME",
+  "PLAY_NUDGE_DIST",
+  "PLAY_NUDGE_TIME",
+  "PLAY_TOSS_ARC",
+  "PLAY_TOSS_TIME",
+  "REST_CURL_TIME",
+  "REST_SLEEP_TIME",
+  "REST_SLEEP_TIME_REDUCED",
+  "REST_WAKE_TIME",
+  "TREAT_BALM_TIME",
+  "TREAT_BALM_TIME_REDUCED",
+  "TREAT_RECOVER_TIME",
+  "TREAT_SETTLE_TIME",
+  "WANDER_DISC_RADIUS",
+  "WANDER_GAP_MAX",
+  "WANDER_GAP_MIN",
+  "WANDER_MIN_PILE_DIST",
+  "WANDER_PILE",
+  "WANDER_VISIT_NEAR",
+  "WANDER_VISIT_STOP",
+  "arenaFramingAdjust",
+  "createEvolutionCeremony",
+  "createPetMachine",
+  "createPlayCeremony",
+  "createRestCeremony",
+  "createTreatCeremony",
+  "createWalk",
+  "createWander",
+  "gaitIntensity",
+  "gaitPose",
+  "gustEnvelope",
+  "heading",
+  "isTap",
+  "lerpAngle",
+  "nextGap",
+  "phaseHash",
+  "pickPetReaction",
+  "pickVisitTarget",
+  "smoothstep",
+  "stageScale",
+  "standPointOnLineTo",
+  "strideStep",
+  "swayAngle",
+  "windBaseAmp",
+  "wrapPi",
+].sort()
+
+describe("scene-logic barrel surface", () => {
+  test("re-exports exactly the pinned symbol set", () => {
+    expect(Object.keys(logic).sort()).toEqual(EXPECTED_EXPORTS)
+  })
+})
+
+/**
+ * Type-only exports are erased at runtime, so they cannot be pinned by a
+ * value assertion. Naming every one here makes a dropped type re-export a
+ * typecheck failure instead - the same tripwire, one phase earlier.
+ */
+type PinnedTypes = [
+  ArenaFramingAdjustment,
+  CeremonyPhase,
+  EvolutionDrive,
+  EvolutionMachine,
+  EvolutionPhase,
+  GaitPose,
+  PetDrive,
+  PetMachine,
+  PetPhase,
+  PetVariant,
+  PlayDrive,
+  PlayMachine,
+  PlayPhase,
+  RestDrive,
+  RestMachine,
+  RestPhase,
+  TreatDrive,
+  TreatMachine,
+  TreatPhase,
+  WalkDrive,
+  WalkMachine,
+  WanderDrive,
+  WanderMachine,
+  WanderPhase,
+  WanderProp,
+]
+
+/** Ties the alias to the file so the compiler cannot elide it. */
+export type SceneLogicTypeSurface = PinnedTypes
