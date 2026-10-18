@@ -90,6 +90,16 @@ export interface SceneHandle {
    */
   startTreatCeremony(): void
   /**
+   * Play the play ceremony (ranch_rituals_20261018 FR5): the ball arcs
+   * out to a landing spot, the creature chases it, bops it further, trots
+   * home and celebrates with happy hops. Purely visual — the sim already
+   * committed. It preempts any in-flight rest/treat/wander; a later
+   * feed/evolution ceremony preempts it in turn. Reduced motion skips
+   * the toss arc, the nudge slide, and the hops — the walk legs carry
+   * the whole read.
+   */
+  startPlayCeremony(): void
+  /**
    * Play the evolution ceremony (baby → juvenile, spec R5): walk to the
    * ranch center, glow and swell, swap the baby rig for the juvenile rig
    * at the pulse's peak, settle. Purely visual — the sim already evolved.
@@ -312,6 +322,9 @@ export function createScene(
     },
     startTreatCeremony() {
       motion.startTreat()
+    },
+    startPlayCeremony() {
+      motion.startPlay()
     },
     setRanchCreatureVisible(visible) {
       if (motion.group) motion.group.visible = visible

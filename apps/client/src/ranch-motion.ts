@@ -3,22 +3,26 @@ import {
   EXHAUSTED_ENERGY,
   SICK_HEALTH,
 } from "@apex/sim"
-import { generate, type Stage } from "@apex/voxel"
+import { generate, makeRng, type Stage } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
 import {
   createEvolutionCeremony,
+  createPlayCeremony,
   createRestCeremony,
   createTreatCeremony,
   createWalk,
   createWander,
   type GaitPose,
   gaitPose,
+  type PlayDrive,
   phaseHash,
+  pickVisitTarget,
   type RestDrive,
   stageScale,
   swayAngle,
   type TreatDrive,
+  WANDER_DISC_RADIUS,
   type WanderDrive,
   windBaseAmp,
 } from "./scene-logic"
@@ -136,6 +140,10 @@ export interface RanchMotion {
    * with a relief sparkle burst, then recover (ranch_rituals_20261018
    * FR4). Preempts any in-flight walk, wander, or rest. */
   startTreat(): void
+  /** Begin the play ceremony: toss the ball out, chase it, bop it further,
+   * trot home and celebrate with happy hops (ranch_rituals_20261018 FR5).
+   * Preempts rest/treat/wander; later feed/evolution preempt it. */
+  startPlay(): void
   /** Begin the evolution ceremony (juvenile→champion or baby→juvenile)
    * from the current pose; the swap rebuilds to the target stage. `onDone`
    * fires once the machine has settled — the cue that the ceremony is over
@@ -338,8 +346,8 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
   // is verified by eye rather than by unit tests.
   const SPARKLE_COUNT = 14
   const SPARKLE_RISE = 0.9
-  let sparkleBaseY = new Float32Array(SPARKLE_COUNT)
-  let sparklePhase = new Float32Array(SPARKLE_COUNT)
+  const sparkleBaseY = new Float32Array(SPARKLE_COUNT)
+  const sparklePhase = new Float32Array(SPARKLE_COUNT)
 
   /** Build the sparkle points as a child of the creature group (so they
    * follow it and scale with the stage). Deterministic layout — cosmetic
@@ -393,6 +401,49 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
       attr.setY(i, (sparkleBaseY[i] ?? 0) + cycle * SPARKLE_RISE)
     }
     attr.needsUpdate = true
+  }
+
+  // -- Play ceremony (FR5) -----------------------------------------------------
+  // A tossed ball the creature chases, bops further, trots home from, and
+  // celebrates over. The machine is pure (scene-logic.ts); the shared walk
+  // machine carries the chase and return legs, the ball is a simple prop
+  // mesh, and the celebrate phase hops the creature in place.
+  const PLAY_BOUNCE_HEIGHT = 0.18
+  const BALL_RADIUS = 0.3
+  let play = createPlayCeremony()
+  let playActive = false
+  let playHome = { x: 0, z: 0 }
+  let playLanding = { x: 0, z: 0 }
+  let prevPlayPhase: PlayDrive["phase"] = "idle"
+  let prevWalkMoving = false
+  let playSeedCounter = 0
+  let ball: THREE.Mesh | null = null
+
+  const buildBall = (): void => {
+    const geom = new THREE.IcosahedronGeometry(BALL_RADIUS, 0)
+    const mat = new THREE.MeshLambertMaterial({ color: 0xe8a13c })
+    ball = new THREE.Mesh(geom, mat)
+    ball.castShadow = true
+    ball.visible = false
+    deps.scene.add(ball)
+  }
+
+  /** Place the ball prop from the machine's world-space drive. */
+  const updateBall = (pd: PlayDrive): void => {
+    if (!ball) return
+    ball.visible = pd.ballVisible
+    if (pd.ballVisible) {
+      ball.position.set(pd.ballX, pd.ballY + BALL_RADIUS, pd.ballZ)
+    }
+  }
+
+  /** Tear down an in-flight play ceremony without touching the walk
+   * machine (whoever cancels play owns the creature next). */
+  const cancelPlay = (): void => {
+    play = createPlayCeremony()
+    playActive = false
+    prevPlayPhase = "idle"
+    if (ball) ball.visible = false
   }
 
   /** Build a creature rig (archetype + seed + stage) with the visual-center
@@ -542,6 +593,9 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
         const td = treat.advance(dt)
         treatActive = td.phase !== "idle"
         updateSparkle(t, treatActive ? td.relief : 0)
+        const pd = play.advance(dt)
+        playActive = pd.phase !== "idle"
+        updateBall(pd)
         if (restActive) {
           applyRestPose(creatureGroup, rd, breath)
         } else if (treatActive) {
@@ -552,6 +606,33 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
             creatureGroup.position.z,
             dt,
           )
+          // Play legs ride on the shared walk machine (FR5): start a leg
+          // when the ceremony enters chase/return, and report the leg's
+          // completion to the machine on the walk's falling edge.
+          if (playActive && pd.phase !== prevPlayPhase) {
+            if (pd.phase === "chase") {
+              walk.begin(
+                creatureGroup.position.x,
+                creatureGroup.position.z,
+                playLanding.x,
+                playLanding.z,
+                creatureGroup.rotation.y,
+              )
+            } else if (pd.phase === "return") {
+              walk.begin(
+                creatureGroup.position.x,
+                creatureGroup.position.z,
+                playHome.x,
+                playHome.z,
+                creatureGroup.rotation.y,
+              )
+            }
+          }
+          if (playActive && prevWalkMoving && wd.phase === "idle") {
+            play.walkDone()
+          }
+          prevPlayPhase = pd.phase
+          prevWalkMoving = wd.phase !== "idle"
           if (wd.phase !== "idle") {
             // While walking, the machine owns the creature's pose. While idle
             // it never touches it — a stale machine yaw must never yank the
@@ -571,7 +652,7 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
               creatureGroup.position.z,
               creatureGroup.rotation.y,
               dt,
-              mode !== "droopy",
+              mode !== "droopy" && !playActive,
             )
             if (wandDrive.phase !== "home-idle") {
               creatureGroup.position.x = wandDrive.x
@@ -599,7 +680,11 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
             // 2–3 gentle head-dips toward the pile over the existing pivot.
             head.position.y -= wd.dipOffset * DIP_DEPTH
           }
-          if (
+          if (playActive && pd.phase === "celebrate") {
+            // Celebrate hop: three quick in-place hops over the machine's
+            // bounce envelope — the walk/wander idles underneath stay flat.
+            creatureGroup.position.y = pd.bounce * PLAY_BOUNCE_HEIGHT
+          } else if (
             !reducedMotion &&
             drive.phase === "idle" &&
             !wandDrive &&
@@ -662,6 +747,7 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
       restActive = false
       treat = createTreatCeremony()
       treatActive = false
+      cancelPlay()
       // A feed takes the creature over: abandon any in-flight wander trip
       // (FR3 — wander is suspended during the ceremony) and let the
       // ceremony machine drive from the creature's current pose.
@@ -702,6 +788,7 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
       wander?.abort()
       treat = createTreatCeremony()
       treatActive = false
+      cancelPlay()
       rest.begin(reducedMotion)
     },
     startTreat() {
@@ -713,8 +800,51 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
       wander?.abort()
       rest = createRestCeremony()
       restActive = false
+      cancelPlay()
       if (!sparkle) buildSparkle(creatureGroup)
       treat.begin(reducedMotion)
+    },
+    startPlay() {
+      if (!creatureGroup) return
+      // Play preempts rest/treat (they own the pose) and any wander trip.
+      // The walk machine is NOT reset: the chase leg begins from the
+      // current pose via its safe mid-walk begin().
+      rest = createRestCeremony()
+      restActive = false
+      treat = createTreatCeremony()
+      treatActive = false
+      wander?.abort()
+      const ox = creatureGroup.position.x
+      const oz = creatureGroup.position.z
+      playHome = { x: ox, z: oz }
+      // Deterministic per-play landing: a visit-style spot near a
+      // registered prop when one qualifies, else a seeded angle clamped
+      // inside the moss disc.
+      const rng = makeRng((wanderSeed + playSeedCounter * 0x9e3779b9) | 0)
+      playSeedCounter++
+      const hit = pickVisitTarget(wanderCandidates, ox, oz, rng)
+      if (hit) {
+        // Pull the landing 70% of the way in: a full visit distance makes
+        // the chase ~4 s each leg — twice the whole feed ceremony. A short
+        // romp reads better inside a 3-AP day.
+        playLanding = {
+          x: ox + (hit.x - ox) * 0.7,
+          z: oz + (hit.z - oz) * 0.7,
+        }
+      } else {
+        const angle = rng.next() * Math.PI * 2
+        const dist = 4.5 + rng.next() * 2
+        let lx = ox + Math.cos(angle) * dist
+        let lz = oz + Math.sin(angle) * dist
+        const d = Math.hypot(lx, lz)
+        if (d > WANDER_DISC_RADIUS - 1) {
+          lx *= (WANDER_DISC_RADIUS - 1) / d
+          lz *= (WANDER_DISC_RADIUS - 1) / d
+        }
+        playLanding = { x: lx, z: lz }
+      }
+      if (!ball) buildBall()
+      play.begin(ox, oz, playLanding.x, playLanding.z, reducedMotion)
     },
     startEvolution(archetypeId, seed, targetStage, onDone) {
       if (!creatureGroup) return
@@ -729,6 +859,7 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
       restActive = false
       treat = createTreatCeremony()
       treatActive = false
+      cancelPlay()
       evolutionSwap = { archetypeId, seed, stage: targetStage }
       evolution.begin(creatureGroup.rotation.y, reducedMotion, {
         fromScale: stageScale(currentStage),
@@ -779,6 +910,12 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
         sparkle.geometry.dispose()
         ;(sparkle.material as THREE.PointsMaterial).dispose()
         sparkle = null
+      }
+      if (ball) {
+        ball.geometry.dispose()
+        ;(ball.material as THREE.MeshLambertMaterial).dispose()
+        deps.scene.remove(ball)
+        ball = null
       }
       if (creatureGroup) deps.disposeGroup(creatureGroup)
     },

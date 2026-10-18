@@ -422,6 +422,7 @@ const hud = createHud(app, {
     if (action === "feed") scene.startFeedCeremony()
     if (action === "rest") scene.startRestCeremony()
     if (action === "treat") scene.startTreatCeremony()
+    if (action === "play") scene.startPlayCeremony()
   },
   onTrain: (stat: StatKey) => {
     const result = assignTraining(store.get(), stat)
