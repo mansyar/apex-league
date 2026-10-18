@@ -194,7 +194,29 @@ checkpoints with explicit user verification.
 
 ## Phase 5 — Final Verification & Close
 
-- [ ] Task: Full mock.html golden comparison + live browser probe — play a
+- [x] Task: Full mock.html golden comparison + live browser probe — play a
       real cup end-to-end including a boss cup; attach evidence
-- [ ] Task: Final `bun run verify`, registry/metadata status update, track
+
+> Covered by the Phase 4 checkpoint probe (same session, same evidence):
+> mock.html post-refactor full-page capture matches the committed
+> pre-refactor baseline (`evidence/mock-baseline-fullpage.png` vs
+> `mock-post-refactor-fullpage.png`), and a real cup was played
+> end-to-end **including a boss cup** — draft → day 7 regular cup (QF
+> loss contract) → day 14 + day 21 Promotion Cups → boss final vs Sear
+> Marshal Koda (lower-third intro, pinned 92-HP build, runner-up results
+> "2nd · out in the final", "Ladder +2 · Bronze I"). Console 0 errors / 0
+> warnings across every run. Evidence:
+> `evidence/probe4-boss-lower-third.png`, `probe4-boss-final-results.png`.
+- [x] Task: Final `bun run verify`, registry/metadata status update, track
       closeout
+
+> Final `bun run verify` green at closeout: check ×3, 1422 pass / 0 fail
+> (1 skip), biome clean (4 pre-existing warnings), determinism gate
+> byte-identical (3 species × 3 stages + 5 props). Registry entry marked
+> [x]; metadata status → "complete". Net outcome: both monoliths reduced
+> — sim `cup.ts` 25.5 KB → 1.1 KB barrel + `cup/{bracket,verdicts,session}`
+> (max 12.0 KB); client `cup.ts` 31.6 KB → 10.0 KB entrypoint +
+> `cup/{shared,board,arena,coach-room,results,entry,view-models}` (max
+> 10.0 KB); `bossForCup` now reads from the frozen `CUP_ROUTES` table;
+> 25 new view-model tests + 5 golden transcript tests added. No
+> user-visible copy/DOM/CSS/save-schema changes (FR1–FR7 all met).
