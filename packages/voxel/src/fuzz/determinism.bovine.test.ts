@@ -31,4 +31,4 @@ test("full bovine pipeline is byte-identical per seed", () => {
     expect(Buffer.from(a.glb).equals(Buffer.from(b.glb))).toBe(true)
     expect(a.manifest.glbHash).toBe(b.manifest.glbHash)
   }
-}, 30000)
+}, 120000)

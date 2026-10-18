@@ -13,9 +13,11 @@ import { coachTabLabel, initialPicks } from "./view-models"
 export function createCoachRoom(shared: CupShared): {
   statRow(label: string, value: number, max?: number): HTMLElement
   openCoach(): void
+  closeCoach(): void
 } {
   const { mem } = shared
   const { coachTab, fighterCard, rivalCard, kitCard } = shared.coach
+  let opener: HTMLElement | null = null
 
   const statRow = (label: string, value: number, max = 60): HTMLElement => {
     const row = document.createElement("div")
@@ -38,6 +40,10 @@ export function createCoachRoom(shared: CupShared): {
 
   const openCoach = (): void => {
     if (!mem.state?.creature || !mem.session || !mem.pendingId) return
+    opener =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null
     const creature = mem.state.creature
     const opponent = mem.session.nextOpponent
     if (!opponent) return
@@ -152,7 +158,16 @@ export function createCoachRoom(shared: CupShared): {
     kitCard.append(tacticRow)
 
     shared.showScreen("coach")
+    // The coaching room is a screen change, not a modal: hand focus to its
+    // back control so keyboard players can act without tabbing the HUD.
+    shared.coach.coachBack.focus()
   }
 
-  return { statRow, openCoach }
+  const closeCoach = (): void => {
+    shared.showScreen("bracket")
+    if (opener?.isConnected) opener.focus()
+    opener = null
+  }
+
+  return { statRow, openCoach, closeCoach }
 }

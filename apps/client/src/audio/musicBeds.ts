@@ -14,6 +14,7 @@
  * Every failure is swallowed: audio must never break the game loop.
  */
 import { type BedScene, bedUrl } from "./beds"
+import { clampGain } from "./player"
 
 /** Crossfade window in milliseconds. */
 const FADE_MS = 1200
@@ -31,6 +32,7 @@ export class MusicBeds {
   private readonly elements = new Map<BedScene, HTMLAudioElement>()
   private current: BedScene | null = null
   private muted = false
+  private volume = 1
   /** Active fades: element → {target, done}. One interval drives them all. */
   private readonly fades = new Map<
     HTMLAudioElement,
@@ -48,14 +50,14 @@ export class MusicBeds {
         const prev = this.element(from)
         this.fade(prev, 0, () => prev.pause())
       }
-      if (scene && !this.muted) {
+      if (scene && !this.muted && this.target() > 0) {
         const el = this.element(scene)
         el.loop = true
         if (el.paused) {
           el.volume = 0
           void el.play().catch(() => {})
         }
-        this.fade(el, BED_VOLUME)
+        this.fade(el, this.target())
       }
     } catch {
       // Silent no-op fallback — beds are polish, never load-bearing.
@@ -73,11 +75,12 @@ export class MusicBeds {
       if (muted) {
         this.fade(el, 0, () => el.pause())
       } else {
+        if (this.target() <= 0) return
         if (el.paused) {
           el.volume = 0
           void el.play().catch(() => {})
         }
-        this.fade(el, BED_VOLUME)
+        this.fade(el, this.target())
       }
     } catch {
       // Silent no-op fallback.
@@ -91,17 +94,48 @@ export class MusicBeds {
    * retry the ranch music stays silent until the first arena visit.
    */
   resume(): void {
-    if (this.muted || !this.current) return
+    if (this.muted || !this.current || this.target() <= 0) return
     try {
       const el = this.element(this.current)
       if (el.paused) {
         el.volume = 0
         void el.play().catch(() => {})
-        this.fade(el, BED_VOLUME)
+        this.fade(el, this.target())
       }
     } catch {
       // Silent no-op fallback.
     }
+  }
+
+  /**
+   * Apply the persisted music level (save v16, 0..1). Live fades follow the
+   * new level; at 0 the bed fades out and pauses. Mute still overrides.
+   */
+  setVolume(volume: number): void {
+    const next = clampGain(volume)
+    if (next === this.volume) return
+    this.volume = next
+    if (this.muted || !this.current) return
+    try {
+      const el = this.element(this.current)
+      const target = this.target()
+      if (target <= 0) {
+        this.fade(el, 0, () => el.pause())
+        return
+      }
+      if (el.paused) {
+        el.volume = 0
+        void el.play().catch(() => {})
+      }
+      this.fade(el, target)
+    } catch {
+      // Silent no-op fallback.
+    }
+  }
+
+  /** The current bed level: base loudness scaled by the music setting. */
+  private target(): number {
+    return BED_VOLUME * this.volume
   }
 
   /** Lazily creates the looping element for a scene. */

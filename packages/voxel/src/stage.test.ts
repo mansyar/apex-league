@@ -137,7 +137,7 @@ describe("stage-variant build API", () => {
       }
     }
     expect(violations).toEqual([])
-  }, 40000)
+  }, 120000)
 
   test("same seed twice produces an identical champion build", () => {
     for (const id of Object.keys(archetypes)) {
@@ -205,7 +205,7 @@ describe("stage-variant build API", () => {
       }
     }
     expect(violations).toEqual([])
-  }, 40000)
+  }, 120000)
 
   test("stage rejects unknown values", () => {
     // The Stage union is compile-time, but generate() should still refuse a

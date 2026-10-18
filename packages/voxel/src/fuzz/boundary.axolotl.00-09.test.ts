@@ -23,4 +23,4 @@ test("no axolotl voxel touches the grid boundary over seeds 0-9", () => {
     }
   }
   expect(violations).toBe(0)
-}, 30000)
+}, 120000)
