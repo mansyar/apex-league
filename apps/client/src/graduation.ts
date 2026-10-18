@@ -10,6 +10,7 @@ import {
   BOSSES,
   type CreatureStats,
   effectiveStats,
+  effectiveTraits,
   type GameState,
   getSpecies,
   inheritedFloor,
@@ -19,6 +20,8 @@ import {
   STARTER_SPECIES,
 } from "@apex/sim"
 import { focusTrap } from "./battleUI"
+import { createNursery } from "./graduation/nursery"
+import { parentageLabel, traitCopy } from "./graduation/nursery-vm"
 import { chip, crest, tab } from "./ui/kit"
 
 export interface GraduationHandlers {
@@ -27,6 +30,8 @@ export interface GraduationHandlers {
   onConfirm: () => void
   /** The player chose the next creature's species. */
   onPick: (speciesId: string) => void
+  /** The player hatched a dual-parent egg in the Nursery. */
+  onHatch: (generations: number[], speciesId: string, seed: number) => void
 }
 
 export interface GraduationFlow {
@@ -34,6 +39,8 @@ export interface GraduationFlow {
   openConfirm(state: GameState): void
   /** Open the egg screen (choose the successor, floor previewed). */
   showEggScreen(state: GameState): void
+  /** Open the Nursery (pair two Hall records, preview the seeded hatch). */
+  showNursery(state: GameState): void
   /** Open the Hall of Fame panel. */
   openHallOfFame(state: GameState): void
   /** Mirror live state into any open surface (family name / records). */
@@ -77,6 +84,18 @@ export function perkLabels(state: GameState): string[] {
 /** A Hall of Fame entry label, e.g. "Ember Drake · Champion · gen 0 · day 60". */
 export function hallEntryLabel(record: RetiredRecord): string {
   return `${record.name} · Champion · gen ${record.generation} · day ${record.retiredOnDay}`
+}
+
+/**
+ * The second Hall line: parentage plus carried traits. Founder records show
+ * "Founder"; a bred line reads like "Child of Gen 0 × Gen 1 — Sturdy +2 HP".
+ */
+export function hallEntryMeta(record: RetiredRecord): string {
+  const parentage = parentageLabel(record.parents)
+  // Pre-v15 records migrate with `traits: []`; derive one for display so an
+  // old Hall still reads meaningfully.
+  const traits = effectiveTraits(record).map((id) => traitCopy(id).label)
+  return traits.length > 0 ? `${parentage} — ${traits.join(" · ")}` : parentage
 }
 
 function modalShell(): {
@@ -242,7 +261,10 @@ export function createGraduation(
   hall.actions.append(hallClose)
   hall.box.append(hall.actions)
 
-  root.append(confirm.root, egg, hall.root)
+  // -- Nursery ---------------------------------------------------------------
+  const nursery = createNursery({ onHatch: handlers.onHatch })
+
+  root.append(confirm.root, egg, hall.root, nursery.root)
   wireModal(confirm.root, confirm.box, dismissConfirm)
   wireModal(hall.root, hall.box, dismissHall)
 
@@ -250,6 +272,7 @@ export function createGraduation(
     confirm.root.style.display = "none"
     egg.style.display = "none"
     hall.root.style.display = "none"
+    nursery.close()
   }
 
   const update = (state: GameState): void => {
@@ -285,7 +308,10 @@ export function createGraduation(
         const label = document.createElement("span")
         label.className = "hall-entry-label"
         label.textContent = hallEntryLabel(record)
-        li.append(badge, label)
+        const meta = document.createElement("span")
+        meta.className = "hall-entry-meta"
+        meta.textContent = hallEntryMeta(record)
+        li.append(badge, label, meta)
         return li
       }),
     )
@@ -345,6 +371,10 @@ export function createGraduation(
       // The send-off ends here: put the keyboard on the first egg, not on a
       // body that just stopped being the champion.
       firstEggCard?.focus()
+    },
+    showNursery(state) {
+      update(state)
+      nursery.show(state)
     },
     openHallOfFame(state) {
       update(state)

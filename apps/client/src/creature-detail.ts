@@ -7,8 +7,14 @@
  * Pure DOM from the shared broadcast kit — no interaction wiring beyond the
  * modal's own Escape/backdrop/close semantics.
  */
-import { type GameState, type StatKey, statBreakdown } from "@apex/sim"
+import {
+  effectiveTraits,
+  type GameState,
+  type StatKey,
+  statBreakdown,
+} from "@apex/sim"
 import { focusTrap } from "./battleUI"
+import { parentageLabel, traitCopy } from "./graduation/nursery-vm"
 import { crest, tab } from "./ui/kit"
 import { romanNumeral, stageLabel } from "./ui/labels"
 
@@ -164,9 +170,19 @@ export function buildCreatureDetail(): CreatureDetail {
         ...STAT_LABELS.map(({ key, label }) => statRow(key, label, breakdown)),
       )
 
+      const traits = effectiveTraits(creature)
       context.replaceChildren(
         contextRow("Stage", stageLabel(creature.stage)),
-        contextRow("Generation", generationLabel(state.lineage.generation)),
+        contextRow(
+          "Lineage",
+          `${generationLabel(state.lineage.generation)} · ${parentageLabel(creature.parents)}`,
+        ),
+        contextRow(
+          "Traits",
+          traits.length > 0
+            ? traits.map((id) => traitCopy(id).label).join(" · ")
+            : "—",
+        ),
         contextRow("Cups won", String(state.cupsWon)),
         contextRow("Bond", `${creature.conditions.bond}/100`),
         contextRow("Mood", `${creature.conditions.mood}/100`),
