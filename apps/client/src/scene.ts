@@ -72,6 +72,15 @@ export interface SceneHandle {
    */
   startFeedCeremony(): void
   /**
+   * Play the rest ceremony (ranch_rituals_20261018 FR3): curl down where
+   * the creature stands, a deep-sleep hold with slow heavy breathing, then
+   * a wake-and-stretch. Purely visual — the sim already committed. It
+   * preempts any in-flight walk or wander trip; a later feed/evolution
+   * ceremony preempts it in turn. Reduced motion plays a still, shortened
+   * sleep with no curl or stretch animation.
+   */
+  startRestCeremony(): void
+  /**
    * Play the evolution ceremony (baby → juvenile, spec R5): walk to the
    * ranch center, glow and swell, swap the baby rig for the juvenile rig
    * at the pulse's peak, settle. Purely visual — the sim already evolved.
@@ -288,6 +297,9 @@ export function createScene(
     },
     startFeedCeremony() {
       motion.startFeed()
+    },
+    startRestCeremony() {
+      motion.startRest()
     },
     setRanchCreatureVisible(visible) {
       if (motion.group) motion.group.visible = visible

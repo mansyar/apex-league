@@ -420,6 +420,7 @@ const hud = createHud(app, {
     // starts only after the sim confirms the feed succeeded. The pile is
     // visible immediately; successive feeds re-trigger cleanly.
     if (action === "feed") scene.startFeedCeremony()
+    if (action === "rest") scene.startRestCeremony()
   },
   onTrain: (stat: StatKey) => {
     const result = assignTraining(store.get(), stat)

@@ -8,11 +8,13 @@ import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
 import {
   createEvolutionCeremony,
+  createRestCeremony,
   createWalk,
   createWander,
   type GaitPose,
   gaitPose,
   phaseHash,
+  type RestDrive,
   stageScale,
   swayAngle,
   type WanderDrive,
@@ -23,7 +25,8 @@ import { lambertMaterialOf } from "./scene-utils"
 /**
  * The ranch creature's whole performing life, extracted from scene.ts:
  * condition-driven mood idles (breath, droop, bounce), the feed-walk
- * ceremony, sparse wandering, the baby→juvenile evolution ceremony, wind
+ * ceremony, the rest ceremony (curl-down sleep + wake-and-stretch, FR3),
+ * sparse wandering, the baby→juvenile evolution ceremony, wind
  * sway on scattered props, and the rig rebuild contract. scene.ts wires
  * this unit into the frame loop and the HUD-facing SceneHandle.
  *
@@ -123,6 +126,10 @@ export interface RanchMotion {
   droopyMoment(durationMs?: number): void
   /** Begin the feed ceremony (aborts any in-flight wander trip). */
   startFeed(): void
+  /** Begin the rest ceremony: curl down where the creature stands, a
+   * deep-sleep hold, then a wake-and-stretch (ranch_rituals_20261018
+   * FR3). Preempts any in-flight walk or wander trip. */
+  startRest(): void
   /** Begin the evolution ceremony (juvenile→champion or baby→juvenile)
    * from the current pose; the swap rebuilds to the target stage. `onDone`
    * fires once the machine has settled — the cue that the ceremony is over
@@ -196,6 +203,15 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
   /** True while the machine owns the creature — the settle edge ends it. */
   let evolutionActive = false
 
+  // -- Rest ceremony (ranch_rituals_20261018 FR3) ------------------------------
+  // The machine drives curl → deep-sleep hold → wake-and-stretch where the
+  // creature stands; this unit maps the drive onto the rig (folded legs,
+  // lowered head, deep slow breath) — see applyRestPose.
+  let rest = createRestCeremony()
+  /** Whether the rest machine currently owns the creature (drives the
+   * deep-sleep breathing override; cleared by preemption or settle). */
+  let restActive = false
+
   /** How deep the nibble head-dips go (in the head pivot's local units —
    * the rig runs in grid units, so this scales with the creature). */
   const DIP_DEPTH = 1.2
@@ -234,6 +250,52 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
     const body = creature.getObjectByName("body")
     if (body) body.rotation.z = pose.roll
     creature.position.y = pose.bob
+  }
+
+  /** Deep, slow breathing while the rest ceremony owns the creature
+   * (ranch_rituals_20261018 FR3) — sleep reads as long, heavy breaths
+   * instead of the condition-driven idle profile. */
+  const REST_BREATH_RATE = 0.8
+  const REST_BREATH_AMP = 0.05
+
+  /** Map the rest ceremony's drive onto the rig: legs fold under, the body
+   * settles low, the head sinks; the wake stretch lifts the head and
+   * reaches the spine tall. Called after the breathing writes so it
+   * composes with (never fights) the idle breath. Reduced motion rides the
+   * same mapping — the machine just jumps straight to a still curl. */
+  const applyRestPose = (
+    creature: THREE.Group,
+    rd: RestDrive,
+    breath: number,
+  ): void => {
+    // Legs come back to rest first (zero gait pose), then fold by curl.
+    applyGait(creature, gaitPose(0, 0, true))
+    const curl = rd.curl
+    const fold = (name: string, angle: number): void => {
+      const pivot = creature.getObjectByName(name)
+      if (pivot) pivot.rotation.x = angle * curl
+    }
+    fold("legFL", -0.85)
+    fold("legFR", -0.85)
+    fold("legBL", 0.85)
+    fold("legBR", 0.85)
+    // Settle slightly toward the ground while curled.
+    creature.position.y = -curl * 0.08
+    const head = rigParts.head
+    if (head) {
+      // Sleep: the head sinks onto the curl. Wake: it rises past base —
+      // the reach that reads as a stretch.
+      head.position.y =
+        headBaseY +
+        breath * REST_BREATH_AMP * 0.6 -
+        curl * (headBaseY * 0.35 + 0.05) +
+        rd.stretch * (headBaseY * 0.35 + 0.05)
+    }
+    const body = rigParts.body
+    if (body) {
+      // The wake reach stretches the spine tall (on top of the breath scale).
+      body.scale.y *= 1 + rd.stretch * 0.14
+    }
   }
 
   /** Build a creature rig (archetype + seed + stage) with the visual-center
@@ -304,20 +366,23 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
       // and belly flex above/below it. Horizontal squash is kept small (it
       // slides the body's voxel pattern against the planted legs); the
       // vertical stretch carries the read. Neck/head/horns/tail ride along
-      // via the rig hierarchy.
-      const breath = Math.sin(t * profile.breathRate)
+      // via the rig hierarchy. While the rest ceremony owns the creature
+      // the breath is deep and slow (ranch_rituals_20261018 FR3).
+      const bRate = restActive ? REST_BREATH_RATE : profile.breathRate
+      const bAmp = restActive ? REST_BREATH_AMP : profile.breathAmp
+      const breath = Math.sin(t * bRate)
       const body = rigParts.body
       if (body) {
         body.scale.set(
-          1 - breath * profile.breathAmp * 0.3,
-          1 + breath * profile.breathAmp,
-          1 - breath * profile.breathAmp * 0.3,
+          1 - breath * bAmp * 0.3,
+          1 + breath * bAmp,
+          1 - breath * bAmp * 0.3,
         )
       }
       const head = rigParts.head
       if (head) {
         head.position.y =
-          headBaseY + breath * profile.breathAmp * 0.6 - profile.headDroop
+          headBaseY + breath * bAmp * 0.6 - (restActive ? 0 : profile.headDroop)
       }
       const sway = Math.sin(t * 1.3)
       const tail = rigParts.tail
@@ -373,70 +438,78 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
       let away = evoActive
       if (!evoActive) {
         creatureGroup.scale.setScalar(stageScale(currentStage))
-        const wd = walk.advance(
-          creatureGroup.position.x,
-          creatureGroup.position.z,
-          dt,
-        )
-        if (wd.phase !== "idle") {
-          // While walking, the machine owns the creature's pose. While idle
-          // it never touches it — a stale machine yaw must never yank the
-          // freshly rebuilt idle creature around (user-reported snap).
-          creatureGroup.position.x = wd.x
-          creatureGroup.position.z = wd.z
-          creatureGroup.rotation.y = wd.yaw
-        }
-        // Sparse wandering (FR3): while the ceremony is idle and the mood is
-        // eligible, the wander machine may start a trip to a nearby tuft or
-        // bush. A feed ceremony takes priority — startFeed aborts the
-        // wanderer, so the two machines never fight over the creature.
-        let wandDrive: WanderDrive | null = null
-        if (wd.phase === "idle" && wander) {
-          wandDrive = wander.advance(
+        // Rest ceremony (ranch_rituals_20261018 FR3): while active it owns
+        // the creature's pose — walk and wander stay parked.
+        const rd = rest.advance(dt)
+        restActive = rd.phase !== "idle"
+        if (restActive) {
+          applyRestPose(creatureGroup, rd, breath)
+        } else {
+          const wd = walk.advance(
             creatureGroup.position.x,
             creatureGroup.position.z,
-            creatureGroup.rotation.y,
             dt,
-            mode !== "droopy",
           )
-          if (wandDrive.phase !== "home-idle") {
-            creatureGroup.position.x = wandDrive.x
-            creatureGroup.position.z = wandDrive.z
-            creatureGroup.rotation.y = wandDrive.yaw + wandDrive.lookOffset
-          } else {
-            wandDrive = null
+          if (wd.phase !== "idle") {
+            // While walking, the machine owns the creature's pose. While idle
+            // it never touches it — a stale machine yaw must never yank the
+            // freshly rebuilt idle creature around (user-reported snap).
+            creatureGroup.position.x = wd.x
+            creatureGroup.position.z = wd.z
+            creatureGroup.rotation.y = wd.yaw
           }
-        }
-        const drive = wandDrive ?? wd
-        const traveling =
-          (drive.phase === "walk-out" || drive.phase === "walk-home") &&
-          !drive.pivoting
-        const remaining = traveling
-          ? Math.hypot(
-              drive.targetX - creatureGroup.position.x,
-              drive.targetZ - creatureGroup.position.z,
+          // Sparse wandering (FR3): while the ceremony is idle and the mood is
+          // eligible, the wander machine may start a trip to a nearby tuft or
+          // bush. A feed ceremony takes priority — startFeed aborts the
+          // wanderer, so the two machines never fight over the creature.
+          let wandDrive: WanderDrive | null = null
+          if (wd.phase === "idle" && wander) {
+            wandDrive = wander.advance(
+              creatureGroup.position.x,
+              creatureGroup.position.z,
+              creatureGroup.rotation.y,
+              dt,
+              mode !== "droopy",
             )
-          : 0
-        applyGait(
-          creatureGroup,
-          gaitPose(t, gaitIntensity(traveling, remaining), reducedMotion),
-        )
-        if (wd.phase === "nibble" && head) {
-          // 2–3 gentle head-dips toward the pile over the existing pivot.
-          head.position.y -= wd.dipOffset * DIP_DEPTH
+            if (wandDrive.phase !== "home-idle") {
+              creatureGroup.position.x = wandDrive.x
+              creatureGroup.position.z = wandDrive.z
+              creatureGroup.rotation.y = wandDrive.yaw + wandDrive.lookOffset
+            } else {
+              wandDrive = null
+            }
+          }
+          const drive = wandDrive ?? wd
+          const traveling =
+            (drive.phase === "walk-out" || drive.phase === "walk-home") &&
+            !drive.pivoting
+          const remaining = traveling
+            ? Math.hypot(
+                drive.targetX - creatureGroup.position.x,
+                drive.targetZ - creatureGroup.position.z,
+              )
+            : 0
+          applyGait(
+            creatureGroup,
+            gaitPose(t, gaitIntensity(traveling, remaining), reducedMotion),
+          )
+          if (wd.phase === "nibble" && head) {
+            // 2–3 gentle head-dips toward the pile over the existing pivot.
+            head.position.y -= wd.dipOffset * DIP_DEPTH
+          }
+          if (
+            !reducedMotion &&
+            drive.phase === "idle" &&
+            !wandDrive &&
+            profile.bounce > 0
+          ) {
+            creatureGroup.position.y =
+              Math.abs(Math.sin(t * 3.2)) * profile.bounce
+          } else {
+            creatureGroup.position.y = 0
+          }
+          away = away || wd.phase !== "idle" || wandDrive !== null
         }
-        if (
-          !reducedMotion &&
-          drive.phase === "idle" &&
-          !wandDrive &&
-          profile.bounce > 0
-        ) {
-          creatureGroup.position.y =
-            Math.abs(Math.sin(t * 3.2)) * profile.bounce
-        } else {
-          creatureGroup.position.y = 0
-        }
-        away = away || wd.phase !== "idle" || wandDrive !== null
       } else {
         // During the ceremony the legs stride only on the walk phase; the
         // glow/settle phases hold the pose. The holder sits on the ground.
@@ -480,6 +553,11 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
     },
     startFeed() {
       if (!creatureGroup) return
+      // A new ceremony takes over: an in-flight rest is replaced (the
+      // non-cancelable policy governs the committed action, and the next
+      // ceremony legitimately owns the creature's motion).
+      rest = createRestCeremony()
+      restActive = false
       // A feed takes the creature over: abandon any in-flight wander trip
       // (FR3 — wander is suspended during the ceremony) and let the
       // ceremony machine drive from the creature's current pose.
@@ -510,6 +588,16 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
         creatureGroup.rotation.y,
       )
     },
+    startRest() {
+      if (!creatureGroup) return
+      // Rest preempts an in-flight feed walk or wander trip: reset the walk
+      // machine so no ghost walk resumes after the creature wakes (the
+      // same fresh-machine trick startEvolution uses). The rest ceremony
+      // itself runs where the creature currently stands.
+      walk = createWalk(reducedMotion)
+      wander?.abort()
+      rest.begin(reducedMotion)
+    },
     startEvolution(archetypeId, seed, targetStage, onDone) {
       if (!creatureGroup) return
       // Preempt an in-flight feed walk (the growth moment takes over) and
@@ -519,6 +607,8 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
       if (onDone) evolutionDone = onDone
       walk = createWalk(reducedMotion)
       wander?.abort()
+      rest = createRestCeremony()
+      restActive = false
       evolutionSwap = { archetypeId, seed, stage: targetStage }
       evolution.begin(creatureGroup.rotation.y, reducedMotion, {
         fromScale: stageScale(currentStage),
