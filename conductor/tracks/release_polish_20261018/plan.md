@@ -18,15 +18,16 @@ ends with a verification checkpoint and user approval.
         clamp to 0-1; v16 round-trips through save/load.
   - [x] Implement the two settings fields, setters, migration step, and strict
         validation.
-- [ ] Task: Transfer core (`save/transfer.ts`, new; `storage.ts` parse
-      extraction)
-  - [ ] Failing tests: export produces a parseable payload with `session: null`,
+- [x] Task: Transfer core (`save/transfer.ts`, new; `storage.ts` parse
+      extraction) - f426ec8
+  - [x] Failing tests: export produces a parseable payload with `session: null`,
         a dated filename, and no mutation; import accepts known/older versions
         and migrates; rejects malformed JSON, invalid shape, and any version
         newer than current with distinct reasons; the current save is untouched
         on failure.
-  - [ ] Extract a shared `parseSave(raw)` used by `loadSave` and import;
-        implement `buildSaveExport(state)` and `inspectSaveImport(raw)`.
+  - [x] Extract a shared `isValidSaveState(state)` predicate used by `loadSave`
+        and import; implement `buildSaveExport(state)` and
+        `inspectSaveImport(raw)`.
 - [ ] Task: Corrupt payload retention (`storage.ts`)
   - [ ] Failing tests: a corrupt boot exposes the original raw string; reading
         it does not rewrite or clear storage; `clearSave` is the only path that
