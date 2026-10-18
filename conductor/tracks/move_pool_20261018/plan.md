@@ -5,18 +5,20 @@
 - [x] Task: Record the pre-change balance baseline 9a7f969
   - [x] Run the existing mirror and cross-element probes over the seed batch and save the numbers (win rates, stall count, per-move usage) as the comparison point for Phases 3 and 5
   - **Baseline (2026-10-18, 96 seeds x 4 tactic pairs, tiers 2/3/4/6):** 36 cases, 0 time-cap endings, all 12 specials used. Mirror `rateA` at kit4: fire 52.1%, plant 44.6%, water 47.0%. Cross-element already sits at the rails (fire>plant 100% / plant>fire 0%, fire>water 0% / water>fire 100%, plant>water 99.7% / water>plant 0.3%), so the +-5 bound is a tripwire against worsening, not a target of 50%. Mirrors being off 50% is the side/tactic asymmetry the matrix encodes, not a defect. Evidence: `baseline-probe.json`; harness: `packages/sim/scripts/balance-probe.ts` (`bun packages/sim/scripts/balance-probe.ts --out <file>`).
-- [ ] Task: Write failing catalog tests
-  - [ ] Assert six moves per playable element; the two new entries carry exactly `7/95/1` and `14/70/3`; all three elements mirror index-for-index
-  - [ ] Assert every pre-existing move keeps its id, power, accuracy, cooldown, and index
-- [ ] Task: Write failing unlock and pool tests
-  - [ ] Gate table: baby day 0 → 2 known, 3 trained days → 3, 6 trained days → 6, juvenile day 0 → 3 (stage counts as training for index 2 only)
-  - [ ] `defaultLoadout` at six known moves returns the first four, never six
-  - [ ] `setLoadout` accepts indices 4-5 only once known; rejects basic, unknown, duplicate, and over-cap entries with today's message shapes
-  - [ ] A v15 save with `loadout: null` at 6 trained days resolves to the same four ids as before this track
-- [ ] Task: Implement the catalog and pool rules
-  - [ ] Add the six moves (Flare Dart, Pyre Lance, Vine Lash, Root Quake, Mist Spray, Maelstrom) appended per element
-  - [ ] Replace `tierCount` with `knownCount` + `knownMoves`, extend `requiredTierDays` to indices 4-5, and cap `defaultLoadout` by `MAX_LOADOUT`
-  - [ ] Split catalog and pool code across modules if either file crosses the 12 KB cap; update the sim barrel and its export list
+- [x] Task: Write failing catalog tests 6df38b1
+  - [x] Assert six moves per playable element; the two new entries carry exactly `7/95/1` and `14/70/3`; all three elements mirror index-for-index
+  - [x] Assert every pre-existing move keeps its id, power, accuracy, cooldown, and index
+- [x] Task: Write failing unlock and pool tests 6df38b1
+  - [x] Gate table: baby day 0 → 2 known, 3 trained days → 3, 6 trained days → 6, juvenile day 0 → 3 (stage counts as training for index 2 only)
+  - [x] `defaultLoadout` at six known moves returns the first four, never six
+  - [x] `setLoadout` accepts indices 4-5 only once known; rejects basic, unknown, duplicate, and over-cap entries with today's message shapes
+  - [x] A v15 save with `loadout: null` at 6 trained days resolves to the same four ids as before this track
+- [x] Task: Implement the catalog and pool rules eeeb4c9
+  - [x] Add the six moves (Flare Dart, Pyre Lance, Vine Lash, Root Quake, Mist Spray, Maelstrom) appended per element
+  - [x] Replace `tierCount` with `knownCount` + `knownMoves`, extend `requiredTierDays` to indices 4-5, and cap `defaultLoadout` by `MAX_LOADOUT`
+  - [x] Split catalog and pool code across modules if either file crosses the 12 KB cap; update the sim barrel and its export list
+  - **Deviation (green before Phase 2):** spar rivals (`battle/exhibition.ts`) and cup opponents (`cup/verdicts.ts`) field `kit.slice(0, MAX_LOADOUT)` for now. Handing them the full six broke the cup lifecycle goldens on seven cases, and Phase 2 is where the seeded 4-of-6 pick lands, so the slice is the behaviour-preserving stopgap. It is removed in Phase 2, not kept.
+  - **Incidental:** `5f47bb6` drops an unused `CUP_REWARDS` import that biome reports at error severity (the import predates this track; it made the Phase 1 gate red), and `e2cd62c` reformats the committed probe report because biome reflows `JSON.stringify` output.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 - Rival kits from the wider pool (sim, TDD)
