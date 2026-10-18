@@ -5,7 +5,7 @@
  * a long frame can never skip a phase.
  */
 import { describe, expect, test } from "bun:test"
-import { createRestCeremony } from "./scene-logic"
+import { createRestCeremony } from "../scene-logic"
 
 /** Drive one machine with fixed dt steps and collect the drive per step. */
 const run = (

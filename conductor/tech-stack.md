@@ -30,6 +30,17 @@
   their own media queries against those widths. Overlays use
   `100dvh`/safe-area insets; arena camera framing is portrait-aware via
   `scene-logic.ts` `arenaFramingAdjust` (TDD'd projection tests).
+- **Scene module layout**: ranch motion is decomposed by machine, not by
+  convenience. `apps/client/src/scene-logic/` holds the pure, DOM-free
+  machines (`evolution`, `feed`, `framing`, `gait`, `math`, `pet`, `play`,
+  `rest`, `stage`, `treat`, `walk`, `wander`, `wind`) behind one stable
+  barrel (`scene-logic.ts`); `apps/client/src/ranch/` holds the Three.js
+  adapter split into `types`, `state`, `mount`, `mood`, `poses`, `effects`,
+  `idle`, `frame`, `api`, and the `motion` composition root. Every module
+  stays at or under **12 KB** — `apps/client/src/module-size.test.ts`
+  enforces the cap and `apps/client/src/scene-logic.test.ts` pins the barrel
+  surface, so a decomposition that quietly re-bloats fails `bun test`
+  (ranch_decomposition_20261018).
 - **State**: central typed game-state store; deterministic sim core separated
   from rendering so battles can run headless (future PvP/ghosts depend on this).
   *2026-10-10: battle core landed in `@apex/sim/battle` — type chart, damage,
@@ -228,6 +239,20 @@
   `body.is-reduced` now carries the saved motion preference to CSS surfaces;
   cup entry/coach/results are focus-managed full screens. No per-frame work was
   added.*
+
+-   *2026-10-18: Ranch decomposition landed (track
+  `ranch_decomposition_20261018`) — the two over-cap scene files became
+  per-machine modules. `scene-logic.ts` (43.1 KB) is now a barrel over 13
+  pure modules (`evolution`, `feed`, `framing`, `gait`, `math`, `pet`,
+  `play`, `rest`, `stage`, `treat`, `walk`, `wander`, `wind`); the
+  `ranch-motion.ts` closure (39.8 KB) became `ranch/` with an explicit
+  `RanchState` object (`types`, `state`, `mount`, `mood`, `poses`,
+  `effects`, `idle`, `frame`, `api`, plus the 0.9 KB `motion` composition
+  root). Behaviour-preserving: no save-schema, `@apex/sim`, or public-API
+  change, and the determinism gate stays byte-identical. The 12 KB
+  per-module cap is enforced by `module-size.test.ts` and the barrel
+  surface is pinned by `scene-logic.test.ts`; the largest modules are
+  `ranch/api.ts` at 9.4 KB and `scene-logic/gait.ts` at 8.3 KB.*
 
 ## Server
 - **Framework**: ElysiaJS on Bun (endpoints: save sync, leaderboard, ghost
