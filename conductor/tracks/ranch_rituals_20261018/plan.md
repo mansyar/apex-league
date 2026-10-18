@@ -41,10 +41,10 @@
 
 ## Phase 3 - Care ceremonies (rest / treat / play)
 
-- [~] Task: Rest ceremony
-  - [ ] `ranch-motion.ts`: curl-down sleep pose + breathing, wake-and-stretch;
-        reduced-motion simplification; manual verify.
-  - [ ] Commit `feat(ranch): rest ceremony`
+- [x] Task: Rest ceremony
+  - [x] `ranch-motion.ts`: curl-down sleep pose + breathing, wake-and-stretch;
+        reduced-motion simplification; manual verify. (838b9b5)
+  - [x] Commit `feat(ranch): rest ceremony` (838b9b5)
 - [ ] Task: Treat ceremony
   - [ ] Balm moment + sparkle relief with subdued posture beforehand;
         reduced-motion; manual verify.
