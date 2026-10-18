@@ -48,6 +48,26 @@ export {
   bossForCup,
   getBoss,
 } from "./bosses"
+export {
+  breedingPool,
+  canBreed,
+  createBredCreature,
+  deriveTrait,
+  effectiveTraits,
+  inheritedFloorFromPair,
+  isLineageTrait,
+  PAIR_SECONDARY_FRACTION,
+  type PairReason,
+  type PairVerdict,
+  pairFor,
+  retireeRecord,
+  speciesOptions,
+  TRAIT_ORDER,
+  TRAITS,
+  type TraitDef,
+  traitBonus,
+  validatePair,
+} from "./breeding"
 export { CUP_INTERVAL_DAYS, isCupDay } from "./calendar"
 export {
   assignTraining,
@@ -69,6 +89,7 @@ export {
   type Element,
   effectiveStats,
   type LifeStage,
+  type LineageTrait,
   NAME_MAX_LENGTH,
   type RenameResult,
   renameCreature,
@@ -137,6 +158,7 @@ export {
   type GraduationVerdict,
   graduate,
   INHERITANCE_FRACTION,
+  type InheritanceSource,
   inheritedFloor,
   initialLineage,
   type LineagePerks,

@@ -19,6 +19,7 @@ import { graduate, inheritedFloor, type RetiredRecord } from "./legacy"
 import { getSpecies } from "./species"
 import { chooseStarter, createInitialState } from "./state"
 import { statBreakdown } from "./stats"
+import { effectiveTraits } from "./traits"
 
 const STAT_KEYS = ["hp", "atk", "def", "spd"] as const
 
@@ -162,6 +163,7 @@ describe("statBreakdown — the inherited floor", () => {
       parent.stats,
       ox,
       parent.generation + 1 + parent.cupsWon,
+      effectiveTraits(parent),
     )
     const rows = statBreakdown(successor, {
       generation: 1,
@@ -194,6 +196,8 @@ describe("statBreakdown — the inherited floor", () => {
       cupsWon,
       generation,
       retiredOnDay: 60,
+      traits: [],
+      parents: [],
     })
     // Prestige at lay = generation + 1 + cupsWon: 4 is under the milestone, 5 at it.
     const under = { generation: 5, hallOfFame: [record(3, 0)] }

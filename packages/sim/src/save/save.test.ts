@@ -1194,6 +1194,8 @@ describe("save v12 - element chart HP scale (v11 -> v12)", () => {
             cupsWon: 2,
             generation: 0,
             retiredOnDay: 60,
+            traits: [],
+            parents: [],
           },
         ],
       },

@@ -87,6 +87,8 @@ describe("hallEntryLabel", () => {
       cupsWon: 2,
       generation: 0,
       retiredOnDay: 60,
+      traits: [],
+      parents: [],
     }
     expect(hallEntryLabel(record)).toBe(
       "Ember Drake · Champion · gen 0 · day 60",
