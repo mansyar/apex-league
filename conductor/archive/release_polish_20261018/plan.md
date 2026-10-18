@@ -119,15 +119,15 @@ ends with a verification checkpoint and user approval.
       `conductor/tech-stack.md`) - d6688c1
   - [x] Add the release checklist; document v16 volumes; add the dated
         tech-stack note; correct stale claims.
-- [~] Task: Final acceptance & track close - 2ba107d, d3489a3, ca88349,
-      3420847
+- [x] Task: Final acceptance & track close - 2ba107d, d3489a3, ca88349,
+      3420847, b2bd3e2
   - [x] Walk every spec acceptance criterion; capture device-emulation passes
         (393x659 and narrow desktop) plus the real-device checklist; run
         `bun run verify`; record the acceptance matrix in `verification.md`.
-  - [ ] Archive the track and update the registry.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Full acceptance matrix recorded; `bun run verify` green.
-  - [ ] Record `[checkpoint: <sha>]` after user approval.
+  - [x] Archive the track and update the registry.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Full acceptance matrix recorded; `bun run verify` green.
+  - [x] Record `[checkpoint: 3420847]` after user approval.
 
 ## Sequencing notes
 
