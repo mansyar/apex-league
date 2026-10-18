@@ -116,31 +116,37 @@ verification checkpoint and user approval.
 
 ## Phase 4 — Nursery surface & wiring
 
-- [ ] Task: Nursery surface (`apps/client/src/graduation/nursery.ts`, new;
+- [x] Task: Nursery surface (`apps/client/src/graduation/nursery.ts`, new;
       split from `graduation.ts` if the size budget is exceeded)
-  - [ ] Parent card grid (crest, name, species, gen, cups, stats, trait badge,
+  - [x] Parent card grid (crest, name, species, gen, cups, stats, trait badge,
         "Retiring" marker); two-select state; species choice; floor preview
         table; mutation note; "Hatch egg" primary action; focus trap,
         Escape/backdrop close, keyboard selection, `aria-pressed`; reduced-
         motion-safe.
-  - [ ] Use shared `ui/kit.ts` primitives and `graduation.css`/kit styles only;
+  - [x] Use shared `ui/kit.ts` primitives and `graduation.css`/kit styles only;
         no new palette.
-- [ ] Task: Wire the graduation flow (`graduation.ts`, `main.ts`)
-  - [ ] Send-off → `showNursery(state)` when `canBreed`, else existing founder
+  - [x] Commit `712ea15`.
+- [x] Task: Wire the graduation flow (`graduation.ts`, `main.ts`)
+  - [x] Send-off → `showNursery(state)` when `canBreed`, else existing founder
         `showEggScreen`.
-  - [ ] `main.ts`: `onHatch({ generations, speciesId })` →
+  - [x] `main.ts`: `onHatch({ generations, speciesId })` →
         `graduateWithPair`; founder path still `graduate`; commit, close, sync
         scene, announce; preserve close-before-hatch.
-- [ ] Task: Hall of Fame + creature detail
-  - [ ] Trait badges and parentage line on Hall entries; "Lineage" row + trait
+  - [x] Commit `712ea15`.
+- [x] Task: Hall of Fame + creature detail
+  - [x] Trait badges and parentage line on Hall entries; "Lineage" row + trait
         badges in `creature-detail.ts`; legacy records derive traits for
         display.
-- [ ] Task: Phase Verification & Checkpoint (manual evidence)
-  - [ ] Manual: founder graduation unchanged; breed two records; preview
-        matches hatch; duplicate trait dedupes; close/reopen; save→reload in
-        the nursery; narrow viewport and touch selection; console clean;
-        screenshots attached; `bun run verify`; `[checkpoint: <sha>]` after
-        approval.
+  - [x] Commit `712ea15`.
+- [~] Task: Phase Verification & Checkpoint (manual evidence)
+  - [x] Manual: breed two records; preview matches hatch; duplicate trait
+        dedupes; Hall metadata; detail Lineage row; save→reload keeps the
+        successor; console clean; `bun run verify` green.
+  - [ ] Narrow viewport + touch pass and founder-path screen check (blocked:
+        browser window reported `visibility: hidden`, so rAF-driven send-off
+        ceremony could not settle; founder routing is covered by sim tests and
+        the `canBreed` branch).
+  - [ ] `[checkpoint: <sha>]` after approval.
 
 ## Phase 5 — Final acceptance & close
 
