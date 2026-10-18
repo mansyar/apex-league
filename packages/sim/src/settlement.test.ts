@@ -57,17 +57,17 @@ describe("settlement — hunger", () => {
 })
 
 describe("settlement — night energy recovery", () => {
-  test("well-fed healthy creature recovers a full night of energy", () => {
+  test("healthy night restores no energy — Rest is the way (tuning 2026-10-18)", () => {
     const s = advanceDay(
       stateWith({ hunger: 80, energy: 30, health: 100 }),
       fixedRng(0.99),
     )
-    expect(s.creature?.conditions.energy).toBe(30 + 60)
+    expect(s.creature?.conditions.energy).toBe(30)
   })
 
-  test("recovery clamps at 100", () => {
+  test("relief tiers still clamp at 100 (sick creature at high energy)", () => {
     const s = advanceDay(
-      stateWith({ hunger: 80, energy: 70, health: 100 }),
+      stateWith({ hunger: 80, energy: 80, health: 40 }),
       fixedRng(0.99),
     )
     expect(s.creature?.conditions.energy).toBe(100)
