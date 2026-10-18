@@ -51,7 +51,7 @@ export type WalkStep =
       after: "crown" | "advance"
     }
   /** Defensive: nothing resolved to show — the walk stops silently. */
-  | { kind: "stall" }
+  | { kind: "stall"; id: string }
 
 /** The presentation decision for the match at `cursor` of the walk. */
 export function walkStep(session: CupSession, cursor: number): WalkStep {
@@ -65,7 +65,7 @@ export function walkStep(session: CupSession, cursor: number): WalkStep {
       line: `Your ${entry.label.toLowerCase()}. The coaching room is open.`,
     }
   }
-  if (!entry.verdict) return { kind: "stall" }
+  if (!entry.verdict) return { kind: "stall", id: entry.id }
   return {
     kind: "reveal",
     id: entry.id,

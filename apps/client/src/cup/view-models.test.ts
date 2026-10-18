@@ -200,7 +200,7 @@ describe("walkStep — the strict reveal decisions", () => {
     // silently (no CTA, no conclude) exactly as today's `if (!v) return`.
     const live = startCupSession(creature(), CUP_DAY, 101)
     const stripped: CupSession = { ...live, rivalVerdicts: [] }
-    expect(walkStep(stripped, 1)).toEqual({ kind: "stall" })
+    expect(walkStep(stripped, 1)).toEqual({ kind: "stall", id: "qf2" })
   })
 })
 
