@@ -211,7 +211,10 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
 
   // Settings cluster (top-left) + reset modal — the modal owns the three
   // settings chips now; the HUD cluster keeps only the entry chip.
-  const { resetModal, resetConfirm } = buildResetModal(() => handlers.onReset())
+  const { resetModal, resetConfirm } = buildResetModal(
+    () => handlers.onReset(),
+    () => document.querySelector<HTMLElement>(".settings-chip")?.focus(),
+  )
   const settings = buildSettingsModal({
     onToggleReducedMotion: () => handlers.onToggleReducedMotion(),
     onToggleArenaCamera: () => handlers.onToggleArenaCamera(),

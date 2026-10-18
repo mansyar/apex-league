@@ -84,14 +84,21 @@ export function buildImportModal(
   root.append(box)
 
   let pending: SaveData | null = null
+  let opener: HTMLElement | null = null
 
   function close(): void {
     root.style.display = "none"
     pending = null
+    if (opener?.isConnected) opener.focus()
+    opener = null
   }
 
   function ask(data: SaveData): void {
     pending = data
+    opener =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null
     text.textContent = `${importSummary(data)} — this replaces your current ranch.`
     root.style.display = ""
     confirm.focus()
