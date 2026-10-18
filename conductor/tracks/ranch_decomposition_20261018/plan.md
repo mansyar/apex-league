@@ -82,3 +82,7 @@ guarantee (the size guard and barrel-surface test in Phase 3).
 - [x] Task: Commit `docs(conductor): document ranch module layout` (0609d8e)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
     - `[checkpoint: 0609d8e]` - approved 2026-10-18; gates: verify 1461 pass / 0 fail (1457 baseline + 4 guard cases), typecheck clean, determinism byte-identical, biome 0 errors / 8 pre-existing warnings; guard confirms largest modules stay `ranch/api.ts` 9.4 KB and `scene-logic/gait.ts` 8.3 KB, both under the cap.
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions 1102322
