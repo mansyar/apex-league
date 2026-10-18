@@ -20,6 +20,7 @@ import {
   setReducedMotion,
 } from "@apex/sim"
 import { buildArena } from "./arena"
+import { careCueForEvent } from "./audio/careCues"
 import { cueForStep } from "./audio/cues"
 import { MusicBeds } from "./audio/musicBeds"
 import { playCue } from "./audio/playCue"
@@ -64,6 +65,13 @@ try {
     // The scene reports graphics health; the reducer below decides what the
     // player sees and whether the loop spins (F7).
     onGraphics: (status) => applyRuntime({ kind: "graphics", status }),
+    // Ambient pet (ranch_rituals_20261018 FR6): the scene only says a pet
+    // reaction started; the pure cue table decides whether it is audible
+    // (muted stays silent) and the player's gate handles the rest.
+    onPet: () => {
+      const cue = careCueForEvent({ kind: "pet" }, store.get().settings)
+      if (cue) audioPlayer.play(cue)
+    },
   })
 } catch (error) {
   console.error("boot failed", error)
@@ -376,6 +384,10 @@ const hud = createHud(app, {
     // to the sim immediately but never interrupts the creature's motion.
     const stageBefore = store.get().creature?.stage
     store.commit(advanceDay(store.get()))
+    // Dawn chime (ranch_rituals_20261018 FR5): the day-break punctuation,
+    // gated by the same pure table (muted stays silent).
+    const dawn = careCueForEvent({ kind: "dawn" }, store.get().settings)
+    if (dawn) audioPlayer.play(dawn)
     const creature = store.get().creature
     const evolved =
       (stageBefore === "baby" && creature?.stage === "juvenile") ||
@@ -405,12 +417,19 @@ const hud = createHud(app, {
     const result = careAction(store.get(), action)
     if (!result.ok) return // buttons are already disabled; belt and braces
     store.commit(result.state)
+    // Care SFX (ranch_rituals_20261018 FR5): the pure table decides — muted
+    // stays silent — and the player's gate + silent degradation do the rest.
+    const cue = careCueForEvent({ kind: "care", action }, store.get().settings)
+    if (cue) audioPlayer.play(cue)
     // Feed toggles the food pile; conditions drive the mood idle.
     sceneVisuals()
     // Ceremony is visual feedback for an already-committed action, so it
     // starts only after the sim confirms the feed succeeded. The pile is
     // visible immediately; successive feeds re-trigger cleanly.
     if (action === "feed") scene.startFeedCeremony()
+    if (action === "rest") scene.startRestCeremony()
+    if (action === "treat") scene.startTreatCeremony()
+    if (action === "play") scene.startPlayCeremony()
   },
   onTrain: (stat: StatKey) => {
     const result = assignTraining(store.get(), stat)

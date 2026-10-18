@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import type { CueId } from "./cues"
+import type { AnyCueId } from "./cueUrls"
 import { CUE_IDS, cueUrl } from "./cueUrls"
 
 describe("cueUrls", () => {
@@ -11,10 +11,10 @@ describe("cueUrls", () => {
     }
   })
 
-  test("the table covers exactly the CueId union", () => {
-    // Declared here as literals: if cues.ts grows the union, this list
-    // fails first and the missing row is added to the table.
-    const all: CueId[] = [
+  test("the table covers exactly the battle + care cue unions", () => {
+    // Declared here as literals: if either union grows, this list fails
+    // first and the missing row is added to the table.
+    const all: AnyCueId[] = [
       "melee-hit",
       "melee-hit-calm",
       "hit-plate",
@@ -25,6 +25,12 @@ describe("cueUrls", () => {
       "ko-bell",
       "verdict-0",
       "verdict-1",
+      "care-feed",
+      "care-rest",
+      "care-treat",
+      "care-play",
+      "care-pet",
+      "dawn-chime",
     ]
     expect([...CUE_IDS].sort()).toEqual([...all].sort())
     for (const cue of all) expect(cue in cueUrl).toBe(true)

@@ -465,6 +465,599 @@ export function createEvolutionCeremony(): EvolutionMachine {
 }
 
 // ---------------------------------------------------------------------------
+// Rest ceremony (ranch_rituals_20261018 FR3)
+// ---------------------------------------------------------------------------
+
+// After a successful Rest the creature curls down where it stands, holds a
+// deep-sleep beat with slower deeper breathing (applied by ranch-motion),
+// then wakes with a stretch. Position-clock like the feed/evolution
+// machines — dt-clamped steps, so a paused tab or a long frame can never
+// skip a phase. Reduced motion skips the curl/wake animation: a still
+// short sleep, no stretch arc.
+
+/** Shared easing for the care-ceremony machines (rest, treat). */
+const smoothstepLocal = (k: number): number => k * k * (3 - 2 * k)
+
+export type RestPhase = "idle" | "curl" | "sleep" | "wake"
+
+export interface RestDrive {
+  phase: RestPhase
+  /** Curl-down amount 0..1 (1 = fully curled asleep). */
+  curl: number
+  /** Wake-stretch amount 0..1 (0 outside the wake phase). */
+  stretch: number
+  /** True while the machine owns the creature. */
+  active: boolean
+  /** True when the ceremony has finished (or never started). */
+  done: boolean
+}
+
+/** Curl-down time, deep-sleep hold, and wake-stretch time (seconds). */
+export const REST_CURL_TIME = 0.8
+export const REST_SLEEP_TIME = 4
+export const REST_WAKE_TIME = 1.2
+/** Reduced motion: no animations, a shorter still hold. */
+export const REST_SLEEP_TIME_REDUCED = 2
+
+export interface RestMachine {
+  /** Begin a rest where the creature stands. */
+  begin(reducedMotion: boolean): void
+  /** Advance one clamped-dt step. */
+  advance(dt: number): RestDrive
+}
+
+export function createRestCeremony(): RestMachine {
+  let phase: RestPhase = "idle"
+  let elapsed = 0
+  let reduced = false
+
+  const begin = (reducedMotion: boolean): void => {
+    reduced = reducedMotion
+    elapsed = 0
+    if (reducedMotion) {
+      // Still sleep: no curl animation, no stretch arc.
+      phase = "sleep"
+      return
+    }
+    phase = "curl"
+  }
+
+  const advance = (dt: number): RestDrive => {
+    const step = Math.min(Math.max(dt, 0), 0.1)
+    if (phase === "curl") {
+      elapsed += step
+      const k = Math.min(1, elapsed / REST_CURL_TIME)
+      if (k >= 1) {
+        phase = "sleep"
+        elapsed = 0
+        return {
+          phase: "sleep",
+          curl: 1,
+          stretch: 0,
+          active: true,
+          done: false,
+        }
+      }
+      return {
+        phase: "curl",
+        curl: smoothstepLocal(k),
+        stretch: 0,
+        active: true,
+        done: false,
+      }
+    }
+    if (phase === "sleep") {
+      elapsed += step
+      const limit = reduced ? REST_SLEEP_TIME_REDUCED : REST_SLEEP_TIME
+      if (elapsed >= limit) {
+        if (reduced) {
+          phase = "idle"
+          elapsed = 0
+          return {
+            phase: "idle",
+            curl: 0,
+            stretch: 0,
+            active: false,
+            done: true,
+          }
+        }
+        phase = "wake"
+        elapsed = 0
+        return { phase: "wake", curl: 1, stretch: 0, active: true, done: false }
+      }
+      return { phase: "sleep", curl: 1, stretch: 0, active: true, done: false }
+    }
+    if (phase === "wake") {
+      elapsed += step
+      const k = Math.min(1, elapsed / REST_WAKE_TIME)
+      if (k >= 1) {
+        phase = "idle"
+        return { phase: "idle", curl: 0, stretch: 0, active: false, done: true }
+      }
+      return {
+        phase: "wake",
+        curl: 1 - smoothstepLocal(k),
+        stretch: Math.sin(k * Math.PI),
+        active: true,
+        done: false,
+      }
+    }
+    return { phase: "idle", curl: 0, stretch: 0, active: false, done: true }
+  }
+
+  return { begin, advance }
+}
+
+// ---------------------------------------------------------------------------
+// Treat ceremony
+// ---------------------------------------------------------------------------
+
+/** The treat ceremony's phases: settle into a subdued posture, the balm
+ * moment (relief sparkle window while subdued), then recover back to the
+ * normal stance. */
+export type TreatPhase = "idle" | "settle" | "balm" | "recover"
+
+/** Per-frame pose drive for the treat ceremony (ranch_rituals_20261018
+ * FR4). `subdued` eases the creature into a quiet, lowered stance while
+ * the balm does its work; `relief` arcs 0 → 1 → 0 across the balm hold and
+ * gates the sparkle burst. */
+export interface TreatDrive {
+  phase: TreatPhase
+  /** 0 = normal stance, 1 = fully subdued (slumped) posture. */
+  subdued: number
+  /** Relief sparkle intensity (0 outside the balm moment; reduced motion
+   * keeps it at 0 — no decorative pulse). */
+  relief: number
+  /** True while the machine owns the creature. */
+  active: boolean
+  /** True when the ceremony has finished (or never started). */
+  done: boolean
+}
+
+/** Settle-into-subdued, balm hold, and recover times (seconds). */
+export const TREAT_SETTLE_TIME = 0.6
+export const TREAT_BALM_TIME = 1.4
+export const TREAT_RECOVER_TIME = 0.8
+/** Reduced motion: no easing to watch, a shorter still hold. */
+export const TREAT_BALM_TIME_REDUCED = 0.8
+
+export interface TreatMachine {
+  /** Begin the treat ceremony where the creature stands. */
+  begin(reducedMotion: boolean): void
+  /** Advance one clamped-dt step. */
+  advance(dt: number): TreatDrive
+}
+
+export function createTreatCeremony(): TreatMachine {
+  let phase: TreatPhase = "idle"
+  let elapsed = 0
+  let reduced = false
+
+  const begin = (reducedMotion: boolean): void => {
+    reduced = reducedMotion
+    elapsed = 0
+    if (reducedMotion) {
+      // Still subdued hold: no settle/recover easing, no relief pulse.
+      phase = "balm"
+      return
+    }
+    phase = "settle"
+  }
+
+  const advance = (dt: number): TreatDrive => {
+    const step = Math.min(Math.max(dt, 0), 0.1)
+    if (phase === "settle") {
+      elapsed += step
+      const k = Math.min(1, elapsed / TREAT_SETTLE_TIME)
+      if (k >= 1) {
+        phase = "balm"
+        elapsed = 0
+        return {
+          phase: "balm",
+          subdued: 1,
+          relief: 0,
+          active: true,
+          done: false,
+        }
+      }
+      return {
+        phase: "settle",
+        subdued: smoothstepLocal(k),
+        relief: 0,
+        active: true,
+        done: false,
+      }
+    }
+    if (phase === "balm") {
+      elapsed += step
+      const limit = reduced ? TREAT_BALM_TIME_REDUCED : TREAT_BALM_TIME
+      if (elapsed >= limit) {
+        if (reduced) {
+          phase = "idle"
+          elapsed = 0
+          return {
+            phase: "idle",
+            subdued: 0,
+            relief: 0,
+            active: false,
+            done: true,
+          }
+        }
+        phase = "recover"
+        elapsed = 0
+        return {
+          phase: "recover",
+          subdued: 1,
+          relief: 0,
+          active: true,
+          done: false,
+        }
+      }
+      const k = elapsed / TREAT_BALM_TIME
+      return {
+        phase: "balm",
+        subdued: 1,
+        relief: reduced ? 0 : Math.sin(k * Math.PI),
+        active: true,
+        done: false,
+      }
+    }
+    if (phase === "recover") {
+      elapsed += step
+      const k = Math.min(1, elapsed / TREAT_RECOVER_TIME)
+      if (k >= 1) {
+        phase = "idle"
+        return {
+          phase: "idle",
+          subdued: 0,
+          relief: 0,
+          active: false,
+          done: true,
+        }
+      }
+      return {
+        phase: "recover",
+        subdued: 1 - smoothstepLocal(k),
+        relief: 0,
+        active: true,
+        done: false,
+      }
+    }
+    return { phase: "idle", subdued: 0, relief: 0, active: false, done: true }
+  }
+
+  return { begin, advance }
+}
+
+// ---------------------------------------------------------------------------
+// Play ceremony — toss, chase, nudge, return, celebrate (FR5)
+// ---------------------------------------------------------------------------
+
+export type PlayPhase =
+  | "idle"
+  | "toss"
+  | "chase"
+  | "nudge"
+  | "return"
+  | "celebrate"
+
+/** Per-frame drive for the play ceremony. The ball position is world-space;
+ * `bounce` is the celebrate hop envelope (0..1) mapped onto the creature. */
+export interface PlayDrive {
+  phase: PlayPhase
+  ballVisible: boolean
+  ballX: number
+  ballY: number
+  ballZ: number
+  bounce: number
+  active: boolean
+  done: boolean
+}
+
+export interface PlayMachine {
+  /** Begin the ceremony: the ball arcs from the creature out to the landing
+   * spot, the creature chases, nudges it further, trots home and celebrates. */
+  begin(
+    originX: number,
+    originZ: number,
+    landingX: number,
+    landingZ: number,
+    reducedMotion: boolean,
+  ): void
+  /** Advance one clamped-dt step. */
+  advance(dt: number): PlayDrive
+  /** The scene reports that the current walk leg (chase or return) finished;
+   * the waiting phases use this as their transition signal. A no-op outside
+   * the waiting phases (e.g. during the toss). */
+  walkDone(): void
+}
+
+/** Flight time of the toss arc (seconds). */
+export const PLAY_TOSS_TIME = 0.5
+/** Peak height of the toss arc above the straight line (world units). */
+export const PLAY_TOSS_ARC = 1.6
+/** Nudge slide time (seconds). */
+export const PLAY_NUDGE_TIME = 0.7
+/** How far the nudge knocks the ball past its landing spot (world units). */
+export const PLAY_NUDGE_DIST = 2.4
+/** Celebrate hop window (seconds). */
+export const PLAY_CELEBRATE_TIME = 1.2
+/** Hops inside the celebrate window (each a half sine). */
+export const PLAY_CELEBRATE_HOPS = 3
+
+export function createPlayCeremony(): PlayMachine {
+  let phase: PlayPhase = "idle"
+  let reduced = false
+  let originX = 0
+  let originZ = 0
+  let landingX = 0
+  let landingZ = 0
+  let nudgeX = 0
+  let nudgeZ = 0
+  let tossT = 0
+  let nudgeT = 0
+  let celebrateT = 0
+
+  const begin = (
+    ox: number,
+    oz: number,
+    lx: number,
+    lz: number,
+    reducedMotion: boolean,
+  ): void => {
+    originX = ox
+    originZ = oz
+    landingX = lx
+    landingZ = lz
+    reduced = reducedMotion
+    tossT = 0
+    nudgeT = 0
+    celebrateT = 0
+    if (reduced) {
+      // No toss arc, no nudge slide, no celebrate hops — straight to the
+      // chase leg (the walk machinery carries the visible motion).
+      phase = "chase"
+    } else {
+      phase = "toss"
+    }
+  }
+
+  const advance = (dt: number): PlayDrive => {
+    const step = Math.min(Math.max(dt, 0), 0.1)
+    const active = phase !== "idle"
+    const base = {
+      active,
+      done: phase === "idle",
+      bounce: 0,
+      ballX: 0,
+      ballY: 0,
+      ballZ: 0,
+      ballVisible:
+        phase === "toss" ||
+        phase === "chase" ||
+        phase === "nudge" ||
+        phase === "return",
+    }
+    if (phase === "toss") {
+      tossT += step
+      const k = Math.min(1, tossT / PLAY_TOSS_TIME)
+      const x = originX + (landingX - originX) * k
+      const z = originZ + (landingZ - originZ) * k
+      const y = Math.sin(k * Math.PI) * PLAY_TOSS_ARC
+      if (k >= 1) {
+        phase = "chase"
+        return {
+          ...base,
+          phase: "chase",
+          ballVisible: true,
+          ballX: landingX,
+          ballY: 0,
+          ballZ: landingZ,
+        }
+      }
+      return { ...base, phase: "toss", ballX: x, ballY: y, ballZ: z }
+    }
+    if (phase === "chase") {
+      return {
+        ...base,
+        phase,
+        ballX: landingX,
+        ballY: 0,
+        ballZ: landingZ,
+      }
+    }
+    if (phase === "nudge") {
+      nudgeT += step
+      const k = Math.min(1, nudgeT / PLAY_NUDGE_TIME)
+      // Ease-out slide: the bop sends the ball decelerating away.
+      const ease = 1 - (1 - k) * (1 - k)
+      const x = landingX + (nudgeX - landingX) * ease
+      const z = landingZ + (nudgeZ - landingZ) * ease
+      if (k >= 1) {
+        phase = "return"
+        return {
+          ...base,
+          phase: "return",
+          ballX: nudgeX,
+          ballY: 0,
+          ballZ: nudgeZ,
+        }
+      }
+      return { ...base, phase: "nudge", ballX: x, ballY: 0, ballZ: z }
+    }
+    if (phase === "return") {
+      return {
+        ...base,
+        phase,
+        ballX: nudgeX,
+        ballY: 0,
+        ballZ: nudgeZ,
+      }
+    }
+    if (phase === "celebrate") {
+      celebrateT += step
+      const k = Math.min(1, celebrateT / PLAY_CELEBRATE_TIME)
+      const bounce = Math.abs(Math.sin(k * Math.PI * PLAY_CELEBRATE_HOPS))
+      if (k >= 1) {
+        phase = "idle"
+        return {
+          ...base,
+          phase: "idle",
+          ballVisible: false,
+          active: false,
+          done: true,
+          bounce: 0,
+        }
+      }
+      return { ...base, phase: "celebrate", bounce }
+    }
+    return { ...base, phase, ballX: 0, ballY: 0, ballZ: 0 }
+  }
+
+  const walkDone = (): void => {
+    if (phase === "chase") {
+      // The bop continues the ball's line away from where it was thrown.
+      const dx = landingX - originX
+      const dz = landingZ - originZ
+      const d = Math.hypot(dx, dz) || 1
+      nudgeX = landingX + (dx / d) * PLAY_NUDGE_DIST
+      nudgeZ = landingZ + (dz / d) * PLAY_NUDGE_DIST
+      nudgeT = 0
+      phase = reduced ? "return" : "nudge"
+      return
+    }
+    if (phase === "return") {
+      if (reduced) {
+        phase = "idle"
+        return
+      }
+      celebrateT = 0
+      phase = "celebrate"
+    }
+  }
+
+  return { begin, advance, walkDone }
+}
+
+// ---------------------------------------------------------------------------
+// Pet reaction (ranch_rituals_20261018 FR6) — a free, purely visual response
+// to tapping the creature. The picker maps mood bands to a reaction variant;
+// the machine plays a short reaction and enforces a cooldown so petting stays
+// a small delight rather than a spammy trigger. No sim state is touched.
+// ---------------------------------------------------------------------------
+
+export type PetVariant = "hop" | "wiggle" | "lean" | "stir"
+
+export type PetPhase = "idle" | "react"
+
+export interface PetDrive {
+  phase: PetPhase
+  /** Which reaction is (or was last) playing. */
+  variant: PetVariant
+  /** Reaction arc 0..1 (eases in and out over the reaction's duration). */
+  react: number
+  /** True while a reduced-motion (subtle) reaction plays. */
+  subtle: boolean
+  active: boolean
+}
+
+/** Reaction length per variant, in seconds. */
+const PET_REACT_TIME: Record<PetVariant, number> = {
+  hop: 0.9,
+  wiggle: 1.2,
+  lean: 1.0,
+  stir: 0.7,
+}
+const PET_REACT_TIME_REDUCED = 0.6
+/** Quiet window after a reaction before the next pet is accepted. */
+const PET_COOLDOWN = 1.6
+
+/**
+ * Map mood/condition to a pet reaction variant. Mood bands choose the energy
+ * of the response (happy hop, content wiggle, low-energy lean); a sick
+ * creature always gives the weak "stir" override, never a perky reaction.
+ */
+export function pickPetReaction(mood: number, sick: boolean): PetVariant {
+  if (sick) return "stir"
+  if (mood >= 80) return "hop"
+  if (mood >= 50) return "wiggle"
+  return "lean"
+}
+
+export interface PetMachine {
+  /** Start a reaction. Rejected while reacting or cooling down. */
+  begin(variant: PetVariant, reducedMotion: boolean): boolean
+  advance(dt: number): PetDrive
+}
+
+export function createPetMachine(): PetMachine {
+  let phase: PetPhase = "idle"
+  let variant: PetVariant = "wiggle"
+  let subtle = false
+  let elapsed = 0
+  let duration = 0
+  let cooldown = 0
+
+  const begin = (next: PetVariant, reducedMotion: boolean): boolean => {
+    if (phase !== "idle" || cooldown > 0) return false
+    phase = "react"
+    variant = next
+    subtle = reducedMotion
+    elapsed = 0
+    duration = reducedMotion ? PET_REACT_TIME_REDUCED : PET_REACT_TIME[next]
+    return true
+  }
+
+  const advance = (rawDt: number): PetDrive => {
+    const dt = Math.min(Math.max(rawDt, 0), 0.1)
+    if (phase === "react") {
+      elapsed += dt
+      if (elapsed >= duration) {
+        phase = "idle"
+        cooldown = PET_COOLDOWN
+        return { phase: "idle", variant, react: 0, subtle, active: false }
+      }
+      const k = elapsed / duration
+      const react = Math.sin(k * Math.PI)
+      return {
+        phase: "react",
+        variant,
+        react: subtle ? react * 0.35 : react,
+        subtle,
+        active: true,
+      }
+    }
+    cooldown = Math.max(0, cooldown - dt)
+    return { phase: "idle", variant, react: 0, subtle, active: false }
+  }
+
+  return { begin, advance }
+}
+
+/** Pointer travel (CSS px) still treated as a tap rather than a drag. Kept
+ * below the orbit's smallest useful drag so a tap never nudges the camera. */
+const TAP_SLOP_PX = 8
+/** Longest press that still reads as a tap; a held press is not a pet. */
+const TAP_MAX_MS = 500
+
+/**
+ * Click-vs-drag discriminator for the pet raycast (ranch_rituals_20261018
+ * FR6). True when a press both stayed within {@link TAP_SLOP_PX} of where it
+ * started and released within {@link TAP_MAX_MS}. Pure so the gesture rule is
+ * tested without a DOM; the scene passes pointer samples straight in.
+ */
+export function isTap(
+  startX: number,
+  startY: number,
+  endX: number,
+  endY: number,
+  elapsedMs: number,
+): boolean {
+  if (elapsedMs < 0 || elapsedMs > TAP_MAX_MS) return false
+  return Math.hypot(endX - startX, endY - startY) <= TAP_SLOP_PX
+}
+
+// ---------------------------------------------------------------------------
 // Diagonal-pair walk gait
 // ---------------------------------------------------------------------------
 
