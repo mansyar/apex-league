@@ -53,11 +53,12 @@
   - [x] Tossable prop chase via existing gait/wander systems, happy-bounce
         finish; reduced-motion; manual verify.
   - [x] Commit `feat(ranch): play ceremony` (88aed3e)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  `[checkpoint: 88aed3e]`
 
 ## Phase 4 - Ambient pet
 
-- [ ] Task: Pet reaction picker + cooldown (TDD)
+- [~] Task: Pet reaction picker + cooldown (TDD)
   - [ ] Failing tests: pure picker — mood bands -> reaction variant, droopy
         override, cooldown gate. Implement to green.
   - [ ] Commit `feat(ranch): pet reaction picker`
