@@ -83,8 +83,9 @@ gains a move early.
 ## Acceptance Criteria
 
 - All three elements expose six moves. Mirrors stay within ±5 points of the
-  recorded pre-change baseline, there are zero 40-tick stalls, and each new move
-  is chosen by the AI in at least one probe matchup.
+  recorded pre-change baseline, there are zero time-cap endings
+  (`reason: "time"`, `MAX_TICKS`), and each new move is chosen by the AI in at
+  least one probe matchup.
 - Each of the six bosses sits in the 40–70% player-win band, with its number
   recorded in the plan.
 - A null-loadout save at 6 trained days fields the same four moves as today; a
