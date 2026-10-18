@@ -13,6 +13,7 @@
 
 import type { AnyCueId } from "./cueUrls"
 import { cueUrl } from "./cueUrls"
+import { clampGain } from "./player"
 
 /** One preloaded source per cue, created lazily on first play. */
 const sources = new Map<AnyCueId, HTMLAudioElement>()
@@ -20,7 +21,7 @@ const sources = new Map<AnyCueId, HTMLAudioElement>()
 /** Playback loudness for all cues (jingles included — one calm mix). */
 const CUE_VOLUME = 0.6
 
-export function playCue(cue: AnyCueId): void {
+export function playCue(cue: AnyCueId, gain = 1): void {
   let source = sources.get(cue)
   if (!source) {
     source = new Audio(cueUrl[cue])
@@ -28,7 +29,7 @@ export function playCue(cue: AnyCueId): void {
     sources.set(cue, source)
   }
   const voice = source.cloneNode(true) as HTMLAudioElement
-  voice.volume = CUE_VOLUME
+  voice.volume = CUE_VOLUME * clampGain(gain)
   // Autoplay policy or a gone-away tab can reject play(); both mean
   // silence, never an error on the battle path.
   void voice.play().catch(() => {})
