@@ -1,22 +1,22 @@
 {
   "tuft": {
-    "sha256": "13a7cdd60e40d9669401a9ee4ba94f64ec45b9a9e1a4d875e83f4d27f7031a20",
-    "tris": 80
+    "sha256": "b873d128cbe2c42141430af295ce4040e1bdda739327079eb9c3813355de2339",
+    "tris": 100
   },
   "bush": {
-    "sha256": "fd28a24259c900b123a30411080cccc10bddd00eae240eaa3f63b7b57e76c3f4",
-    "tris": 298
+    "sha256": "449fcac687716f88ce0f8f48bf2753c69fc1358d25626b2f983ec995953df302",
+    "tris": 462
   },
   "broadleafTree": {
-    "sha256": "4ce308a551a6c8f97598ea9c7596a7864d9bbc8ea2772df699531a6ba4c32550",
-    "tris": 754
+    "sha256": "5ceb7ec1d47f3cc036b410a03eb4cb70c244cbc7cf527cbd217a4efdeec6bd07",
+    "tris": 1264
   },
   "rock": {
-    "sha256": "0cbd852bec463b9ed53f391955755a68101056407c205301e7c0713e94060976",
-    "tris": 34
+    "sha256": "010d27fd8e0d0a42a5c3dab1b42b1f1439f4f2536d5d5970be52dd62c4e580a8",
+    "tris": 52
   },
   "foodPile": {
-    "sha256": "0202eb5239737239c2d8f04a41bc20c7294f2d0d4f92fbcb6bb14b7d648aa438",
-    "tris": 174
+    "sha256": "ebdb5685edcbb507d5df032f46db0870fb64381926b995d393eb34ecf8fc66aa",
+    "tris": 232
   }
 }

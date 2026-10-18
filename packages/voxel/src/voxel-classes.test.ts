@@ -140,10 +140,26 @@ describe("bakeVertexColors", () => {
       normals: [1, 0, 0, 1, 0, 0],
       indices: [0, 1, 0],
       classes: [0, 1],
+      ao: [1, 1],
     }
     expect([...bakeVertexColors(mesh, palette)]).toEqual([
       0, 0, 0, 1, 0.5, 0.25,
     ])
+  })
+
+  test("multiplies the palette entry by the vertex's occlusion term", () => {
+    const mesh: MeshePart = {
+      name: "t",
+      positions: [0, 0, 0, 1, 0, 0],
+      normals: [1, 0, 0, 1, 0, 0],
+      indices: [0, 1, 0],
+      classes: [1, 1],
+      ao: [1, 0.5],
+    }
+    const baked = bakeVertexColors(mesh, palette)
+    expect(baked[3]).toBeCloseTo(0.5, 6)
+    expect(baked[4]).toBeCloseTo(0.25, 6)
+    expect(baked[5]).toBeCloseTo(0.125, 6)
   })
 
   test("falls back to loud magenta for a class the palette omits", () => {
@@ -153,6 +169,7 @@ describe("bakeVertexColors", () => {
       normals: [1, 0, 0],
       indices: [0, 0, 0],
       classes: [9],
+      ao: [1],
     }
     expect([...bakeVertexColors(mesh, palette)]).toEqual([1, 0, 1])
   })

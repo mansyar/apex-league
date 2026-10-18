@@ -19,10 +19,14 @@ export type Palette = ReadonlyArray<readonly [number, number, number]>
 const MISSING_CLASS: readonly [number, number, number] = [1, 0, 1]
 
 /**
- * Bakes `part.classes` through `palette` into a flat RGB buffer.
+ * Bakes `part.classes` through `palette` into a flat RGB buffer, multiplied by
+ * the mesh's baked ambient-occlusion term.
  *
  * A class id the palette does not define bakes magenta so a mis-wired palette
  * shows up on screen immediately instead of silently rendering black.
+ *
+ * AO is applied here — not in a shader — so the exported GLB, the runtime
+ * client and the offline icon renders all shade through one code path.
  */
 export function bakeVertexColors(
   part: MeshePart,
@@ -33,9 +37,10 @@ export function bakeVertexColors(
   for (let v = 0; v < vertexCount; v++) {
     const cls = part.classes[v] ?? 0
     const rgb = palette[cls] ?? MISSING_CLASS
-    out[v * 3] = rgb[0]
-    out[v * 3 + 1] = rgb[1]
-    out[v * 3 + 2] = rgb[2]
+    const light = part.ao[v] ?? 1
+    out[v * 3] = rgb[0] * light
+    out[v * 3 + 1] = rgb[1] * light
+    out[v * 3 + 2] = rgb[2] * light
   }
   return out
 }

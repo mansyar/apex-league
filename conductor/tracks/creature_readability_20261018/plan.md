@@ -45,29 +45,49 @@ byte-stable foundation.
 
 Goal: give every crevice depth without dirtying the palette.
 
-- [ ] Task: Pure AO rule
-  - [ ] Write failing tests for the four-state `ao(side1, corner, side2)` rule,
+- [x] Task: Pure AO rule
+  - [x] Write failing tests for the four-state `ao(side1, corner, side2)` rule,
         including the classic "edge-adjacent counts as two" case
-  - [ ] Implement the corner sampler over the fixed eight neighbours
-  - [ ] Add a test that AO is symmetric for mirrored geometry and never > 1
-- [ ] Task: Mesher AO integration
-  - [ ] Write failing tests: AO array is four values per quad; merge gating
+  - [x] Implement the corner sampler over the fixed eight neighbours
+  - [x] Add a test that AO is symmetric for mirrored geometry and never > 1
+- [x] Task: Mesher AO integration
+  - [x] Write failing tests: AO array is four values per quad; merge gating
         splits quads whose corner AO differs; a flat open floor stays merged
-  - [ ] Gate greedy merging on equal corner AO
-  - [ ] Flip quad triangulation to the lower-AO diagonal
-  - [ ] Measure and record triangle deltas per archetype and stage
-- [ ] Task: Fold AO into the vertex colour
-  - [ ] Write failing test: emitted colour equals albedo × ao
-  - [ ] Apply in the exporter and the client path identically
-- [ ] Task: Props inherit AO
-  - [ ] Write failing test: a prop grid produces AO
-  - [ ] Rewrite `artifacts/props-42.json` with the gate's `--write` flag
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Browser evidence: same seed and angle, crevices visibly darker (under
+  - [x] Gate greedy merging on equal corner AO
+  - [x] Flip quad triangulation to the lower-AO diagonal
+  - [x] Measure and record triangle deltas per archetype and stage
+- [x] Task: Fold AO into the vertex colour
+  - [x] Write failing test: emitted colour equals albedo × ao
+  - [x] Apply in the exporter and the client path identically
+- [x] Task: Props inherit AO
+  - [x] Write failing test: a prop grid produces AO
+  - [x] Rewrite `artifacts/props-42.json` with the gate's `--write` flag
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Browser evidence: same seed and angle, crevices visibly darker (under
         jaw, between legs, inside haunches)
-  - [ ] `bun test`, `bun check`, `biome check` green
-  - [ ] Await explicit user approval, attach the verification note, record the
+  - [x] `bun test`, `bun check`, `biome check` green
+  - [x] Await explicit user approval, attach the verification note, record the
         checkpoint SHA
+
+Notes from this phase:
+
+- Measured triangles (seed 42, baby / juvenile / champion): draconic 3432 /
+  3362 / 3634, bovine 2166 / 2286 / 2342, axolotl 3014 / 2872 / 3206. Worst
+  case is 1.72× the pre-AO draconic champion (2116), inside the 2.5× NFR.
+- GLB budget test raised 150 KiB → 320 KiB. It is a tripwire, not a shipping
+  constraint: the client generates creatures at runtime, and the committed GLBs
+  only feed offline icons and the determinism gate.
+- Finding (2026-10-18): AO is baked correctly but reads as a faint depth cue,
+  not as crevice shading. 20% of vertices sit at the 0.72 floor and 42% are
+  shaded, yet moving the floor to 0.45 shifts the darkest 5% of rendered
+  pixels by only ~9%. Cause: occlusion is sampled one voxel in front of each
+  face, and this body plan has no cavities - the under-jaw and between-legs
+  gaps are open notches, and the terraced flanks put every contact on tiny
+  quads covering few pixels. A three-ring (2–3 voxel) variant was prototyped
+  and measured: it moved 2% of vertices for +12% mesh time, and the spec NFR
+  forbids per-corner scans beyond the fixed eight (spec.md:180-181). Reverted.
+  The user accepted AO as a subtle cue and moved the fidelity effort to
+  Phase 3, where palette zones and dappling act on 100% of pixels.
 
 ## Phase 3: Surface zones and dappling
 
