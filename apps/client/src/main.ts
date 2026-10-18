@@ -16,6 +16,7 @@ import {
   loadBoot,
   markHintSeen,
   type PlaybackStep,
+  readRawSave,
   renameCreature,
   type StatKey,
   saveGame,
@@ -36,7 +37,7 @@ import { createCup } from "./cup"
 import { nextShot } from "./director"
 import { hideFailurePlate, showFailurePlate } from "./failure-plate"
 import { createGraduation } from "./graduation"
-import { corruptSaveNotice, createHud } from "./hud"
+import { createHud } from "./hud"
 import {
   type GraphicsHealth,
   initialRuntimeState,
@@ -44,6 +45,7 @@ import {
   runtimeState,
 } from "./lifecycle"
 import { resolveMotionPref } from "./motion"
+import { buildRecoveryModal, recoveryFileName } from "./recovery"
 import {
   buildImportModal,
   importBlocked,
@@ -108,18 +110,34 @@ const storage: Storage = window.localStorage
 // the riding cup session).
 const boot = loadBoot(storage)
 const saved = boot && "state" in boot ? boot : null
-// A corrupt save gets a calm banner instead of silence: the status ticker
-// hides with the creature plate pre-starter, so the only moment this news
-// matters is exactly where it would be invisible. It clears once the new
-// ranch exists.
+// A corrupt save opens a blocking recovery dialog instead of a banner: keep
+// the bytes downloadable, and never let the starter picker overwrite them
+// before the player explicitly chooses to start over.
 const corruptBoot = boot !== null && "corrupt" in boot
-let corruptNotice: HTMLElement | null = null
-if (corruptBoot) {
-  corruptNotice = document.createElement("div")
-  corruptNotice.className = "kit-plate kit-notice"
-  corruptNotice.textContent = corruptSaveNotice()
-  app.appendChild(corruptNotice)
-}
+const recovery = buildRecoveryModal({
+  onDownload: () => {
+    const raw = readRawSave(storage)
+    if (raw === null) return false
+    const url = URL.createObjectURL(
+      new Blob([raw], { type: "application/json" }),
+    )
+    const anchor = document.createElement("a")
+    anchor.href = url
+    anchor.download = recoveryFileName(new Date())
+    anchor.click()
+    URL.revokeObjectURL(url)
+    return true
+  },
+  onReset: () => {
+    try {
+      clearSave(storage)
+    } finally {
+      window.location.reload()
+    }
+  },
+})
+app.append(recovery.root)
+if (corruptBoot) recovery.open()
 // A restored session is only resumable while its cup day is current: the
 // walk lives on the day it was entered, and a day that moved on is over.
 const restoredSession =
@@ -602,8 +620,6 @@ let starter = store.get().creature
         // roll is reproducible from the saved state afterwards.
         const seed = Date.now() % 2 ** 31
         store.commit(chooseStarter(store.get(), speciesId, seed))
-        corruptNotice?.remove()
-        corruptNotice = null
         starter?.remove()
         starter = null
         syncScene()
