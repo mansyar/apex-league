@@ -1034,6 +1034,29 @@ export function createPetMachine(): PetMachine {
   return { begin, advance }
 }
 
+/** Pointer travel (CSS px) still treated as a tap rather than a drag. Kept
+ * below the orbit's smallest useful drag so a tap never nudges the camera. */
+const TAP_SLOP_PX = 8
+/** Longest press that still reads as a tap; a held press is not a pet. */
+const TAP_MAX_MS = 500
+
+/**
+ * Click-vs-drag discriminator for the pet raycast (ranch_rituals_20261018
+ * FR6). True when a press both stayed within {@link TAP_SLOP_PX} of where it
+ * started and released within {@link TAP_MAX_MS}. Pure so the gesture rule is
+ * tested without a DOM; the scene passes pointer samples straight in.
+ */
+export function isTap(
+  startX: number,
+  startY: number,
+  endX: number,
+  endY: number,
+  elapsedMs: number,
+): boolean {
+  if (elapsedMs < 0 || elapsedMs > TAP_MAX_MS) return false
+  return Math.hypot(endX - startX, endY - startY) <= TAP_SLOP_PX
+}
+
 // ---------------------------------------------------------------------------
 // Diagonal-pair walk gait
 // ---------------------------------------------------------------------------

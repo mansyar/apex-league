@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { createPetMachine, pickPetReaction } from "./scene-logic"
+import { createPetMachine, isTap, pickPetReaction } from "./scene-logic"
 
 // Binary-exact step (2^-4) under the machine's 0.1s dt clamp — sums land on
 // exact float boundaries, mirroring the rest/treat ceremony tests.
@@ -101,5 +101,22 @@ describe("pet machine — cooldown gate", () => {
     const end = last(drives)
     expect(end.phase).toBe("idle")
     expect(end.react).toBe(0)
+  })
+})
+
+describe("tap discriminator (click-vs-drag for the pet raycast)", () => {
+  test("a still, quick press is a tap", () => {
+    expect(isTap(120, 80, 122, 82, 120)).toBe(true)
+    expect(isTap(0, 0, 0, 0, 0)).toBe(true)
+  })
+
+  test("movement beyond the tap radius is a drag, not a tap", () => {
+    expect(isTap(100, 100, 112, 100, 100)).toBe(false)
+    expect(isTap(100, 100, 100, 112, 100)).toBe(false)
+    expect(isTap(100, 100, 108, 108, 100)).toBe(false)
+  })
+
+  test("a long hold is not a tap even without movement", () => {
+    expect(isTap(100, 100, 100, 100, 700)).toBe(false)
   })
 })

@@ -65,6 +65,13 @@ try {
     // The scene reports graphics health; the reducer below decides what the
     // player sees and whether the loop spins (F7).
     onGraphics: (status) => applyRuntime({ kind: "graphics", status }),
+    // Ambient pet (ranch_rituals_20261018 FR6): the scene only says a pet
+    // reaction started; the pure cue table decides whether it is audible
+    // (muted stays silent) and the player's gate handles the rest.
+    onPet: () => {
+      const cue = careCueForEvent({ kind: "pet" }, store.get().settings)
+      if (cue) audioPlayer.play(cue)
+    },
   })
 } catch (error) {
   console.error("boot failed", error)

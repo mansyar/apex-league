@@ -8,6 +8,7 @@ import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
 import {
   createEvolutionCeremony,
+  createPetMachine,
   createPlayCeremony,
   createRestCeremony,
   createTreatCeremony,
@@ -15,8 +16,12 @@ import {
   createWander,
   type GaitPose,
   gaitPose,
+  type PetDrive,
+  type PetMachine,
+  type PetVariant,
   type PlayDrive,
   phaseHash,
+  pickPetReaction,
   pickVisitTarget,
   type RestDrive,
   stageScale,
@@ -144,6 +149,14 @@ export interface RanchMotion {
    * trot home and celebrate with happy hops (ranch_rituals_20261018 FR5).
    * Preempts rest/treat/wander; later feed/evolution preempt it. */
   startPlay(): void
+  /**
+   * Pet the creature (ranch_rituals_20261018 FR6): pick a mood-aware
+   * reaction and play it. Returns the variant that started, or `null` when
+   * the pet was ignored — a ceremony owns the creature, it is still
+   * reacting, or the spam cooldown has not elapsed. Presentation-only: no
+   * sim state is touched.
+   */
+  startPet(): PetVariant | null
   /** Begin the evolution ceremony (juvenile→champion or baby→juvenile)
    * from the current pose; the swap rebuilds to the target stage. `onDone`
    * fires once the machine has settled — the cue that the ceremony is over
@@ -499,6 +512,48 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
     headBaseY = rig.getObjectByName("head")?.position.y ?? 0
   }
 
+  // -- Ambient pet (ranch_rituals_20261018 FR6) -------------------------------
+  // A free, purely visual response to tapping the creature. The machine and
+  // picker are pure (scene-logic, unit-tested); this block only maps the
+  // drive onto the rig and owns the reaction's local phase. The pose is
+  // applied additively AFTER every base write for the frame, so it composes
+  // with the breath/gait/bounce idles instead of fighting them — and it is
+  // skipped while a ceremony owns the creature (a sleep pose must not hop).
+  const petMachine: PetMachine = createPetMachine()
+  /** Reaction-local clock, for the oscillating variants (wiggle, stir). */
+  let petTime = 0
+
+  /** Map a pet drive onto the rig. `react` is the machine's eased 0..1 arc
+   * (already attenuated for reduced motion), so every variant starts and
+   * ends at rest. */
+  const applyPetPose = (creature: THREE.Group, pd: PetDrive): void => {
+    const r = pd.react
+    const body = rigParts.body
+    const head = rigParts.head
+    const tail = rigParts.tail
+    if (pd.variant === "hop") {
+      // Happy bounce: the whole creature leaves the ground on the arc.
+      creature.position.y += r * (pd.subtle ? 0.05 : 0.2)
+      if (body) body.scale.y *= 1 + r * 0.06
+      return
+    }
+    if (pd.variant === "wiggle") {
+      // Content wag: a quick side-to-side roll with the tail keeping time.
+      const wobble = Math.sin(petTime * (pd.subtle ? 9 : 16))
+      if (body) body.rotation.z += wobble * r * 0.09
+      if (head) head.rotation.z = wobble * r * 0.06
+      if (tail) tail.rotation.y += Math.sin(petTime * 14) * r * 0.25
+      return
+    }
+    // "lean" (low mood) and "stir" (sick override): subdued responses — a
+    // slow weight shift and a small head lift, no travel. The sick stir is
+    // deliberately weaker: it reads as "trying", not as a perk-up.
+    const depth = pd.variant === "stir" ? 0.05 : 0.14
+    if (body) body.rotation.z -= r * depth
+    if (head) head.position.y += r * (pd.variant === "stir" ? 0.008 : 0.03)
+    creature.position.y += r * (pd.variant === "stir" ? 0.008 : 0.03)
+  }
+
   const update = (t: number, dt: number, ranchActive: boolean): void => {
     // Momentary droopy window (cup early exit): once it expires, fall back
     // to the condition-driven idle.
@@ -697,6 +752,16 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
           }
           away = away || wd.phase !== "idle" || wandDrive !== null
         }
+        // Ambient pet (FR6): advance the reaction and lay its pose on top of
+        // the frame's base pose, so it composes with the breath and gait. A
+        // ceremony that started mid-reaction owns the creature outright, so
+        // the pose is withheld (the machine keeps timing, which means the
+        // cooldown cannot be reset by spamming care actions).
+        const petD = petMachine.advance(dt)
+        if (petD.active && !restActive && !treatActive && !playActive) {
+          petTime += dt
+          applyPetPose(creatureGroup, petD)
+        }
       } else {
         // During the ceremony the legs stride only on the walk phase; the
         // glow/settle phases hold the pose. The holder sits on the ground.
@@ -845,6 +910,27 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
       }
       if (!ball) buildBall()
       play.begin(ox, oz, playLanding.x, playLanding.z, reducedMotion)
+    },
+    startPet(): PetVariant | null {
+      // No creature on stage, or a ceremony already owns it: ignore the pet
+      // outright (never yank a sleeper out of its pose).
+      if (
+        !creatureGroup ||
+        restActive ||
+        treatActive ||
+        playActive ||
+        evolutionActive
+      ) {
+        return null
+      }
+      // Mood drives the reaction; a sick creature (the same health gate the
+      // idle uses) always gets the weak stir instead of a perky one.
+      const mood = lastConditions?.mood ?? 60
+      const sick = lastConditions ? lastConditions.health < SICK_HEALTH : false
+      const variant = pickPetReaction(mood, sick)
+      if (!petMachine.begin(variant, reducedMotion)) return null
+      petTime = 0
+      return variant
     },
     startEvolution(archetypeId, seed, targetStage, onDone) {
       if (!creatureGroup) return

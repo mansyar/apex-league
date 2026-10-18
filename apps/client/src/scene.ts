@@ -9,6 +9,7 @@ import {
 } from "./orbit-camera"
 import { buildPropGroup } from "./prop"
 import { createRanchMotion } from "./ranch-motion"
+import { isTap } from "./scene-logic"
 import { setupRanchScene } from "./scene-setup"
 import { disposeObject3D } from "./scene-utils"
 
@@ -123,6 +124,9 @@ export interface SceneHandle {
 /** Graphics events the scene observes on behalf of the runtime reducer (F7). */
 export interface SceneHooks {
   onGraphics?: (status: "lost" | "restored" | "frame_error") => void
+  /** A tap on the creature started a pet reaction (ranch_rituals FR6). The
+   * holster for the chirp: the scene never touches audio itself. */
+  onPet?: () => void
 }
 
 export function createScene(
@@ -178,6 +182,83 @@ export function createScene(
     pileZ: pilePos.z,
     onCreatureMoved: (away, x, z, dt) => cameraRig.track(away, x, z, dt),
   })
+
+  // -- Ambient pet (ranch_rituals_20261018 FR6) -------------------------------
+  // A tap — not a drag — on the creature pets it. This listener is a pure
+  // observer of the same pointer stream the orbit rig consumes: it arms on a
+  // canvas press, disarms on release, and never calls preventDefault, so
+  // orbit-drag, pinch zoom, and the HUD's plate-head → detail-modal path are
+  // all untouched. The tap rule itself is pure (scene-logic.isTap, tested);
+  // the mood → reaction pick and its spam cooldown live in ranch-motion.
+  const raycaster = new THREE.Raycaster()
+  const petNdc = new THREE.Vector2()
+  /** The press being tracked, or null when no pet gesture is armed. */
+  let petPress: {
+    pointerId: number
+    x: number
+    y: number
+    t: number
+    multi: boolean
+  } | null = null
+
+  /** True when the pointer is over the creature mesh. */
+  const petHit = (e: PointerEvent): boolean => {
+    const target = motion.group
+    const rect = renderer.domElement.getBoundingClientRect()
+    if (!target || rect.width === 0 || rect.height === 0) return false
+    petNdc.set(
+      ((e.clientX - rect.left) / rect.width) * 2 - 1,
+      -((e.clientY - rect.top) / rect.height) * 2 + 1,
+    )
+    // The tap can land between frames, so refresh the camera's world matrix
+    // first — otherwise the ray is aimed with the previous frame's pose.
+    camera.updateMatrixWorld()
+    raycaster.setFromCamera(petNdc, camera)
+    return raycaster.intersectObject(target, true).length > 0
+  }
+
+  const onPetPointerDown = (e: PointerEvent): void => {
+    // The arena has no pet to pet, and a second pointer is a pinch — the
+    // gesture is disqualified rather than misread as a tap.
+    if (cameraRig.mode() !== "ranch") return
+    if (petPress) {
+      petPress.multi = true
+      return
+    }
+    petPress = {
+      pointerId: e.pointerId,
+      x: e.clientX,
+      y: e.clientY,
+      t: performance.now(),
+      multi: false,
+    }
+  }
+  const onPetPointerUp = (e: PointerEvent): void => {
+    const press = petPress
+    if (!press || press.pointerId !== e.pointerId) return
+    petPress = null
+    if (press.multi) return
+    if (
+      !isTap(
+        press.x,
+        press.y,
+        e.clientX,
+        e.clientY,
+        performance.now() - press.t,
+      )
+    )
+      return
+    if (cameraRig.mode() !== "ranch" || !petHit(e)) return
+    // Null means the pet was ignored (still reacting, cooling down, or a
+    // ceremony owns the creature): no reaction, so no chirp.
+    if (motion.startPet()) hooks.onPet?.()
+  }
+  const onPetPointerCancel = (e: PointerEvent): void => {
+    if (petPress?.pointerId === e.pointerId) petPress = null
+  }
+  renderer.domElement.addEventListener("pointerdown", onPetPointerDown)
+  window.addEventListener("pointerup", onPetPointerUp)
+  window.addEventListener("pointercancel", onPetPointerCancel)
 
   const handle: SceneHandle = {
     sceneRoot: scene,
@@ -235,6 +316,9 @@ export function createScene(
       paused = true
       composer?.dispose()
       window.removeEventListener("resize", onResize)
+      window.removeEventListener("pointerup", onPetPointerUp)
+      window.removeEventListener("pointercancel", onPetPointerCancel)
+      renderer.domElement.removeEventListener("pointerdown", onPetPointerDown)
       cameraRig.dispose()
       // Free every geometry/material on the scene to avoid GPU leaks when
       // scenes are swapped (ranch <-> arena later).
