@@ -45,11 +45,11 @@
   - [x] `ranch-motion.ts`: curl-down sleep pose + breathing, wake-and-stretch;
         reduced-motion simplification; manual verify. (838b9b5)
   - [x] Commit `feat(ranch): rest ceremony` (838b9b5)
-- [ ] Task: Treat ceremony
-  - [ ] Balm moment + sparkle relief with subdued posture beforehand;
+- [x] Task: Treat ceremony (c7204eb)
+  - [x] Balm moment + sparkle relief with subdued posture beforehand;
         reduced-motion; manual verify.
-  - [ ] Commit `feat(ranch): treat ceremony`
-- [ ] Task: Play ceremony
+  - [x] Commit `feat(ranch): treat ceremony` (c7204eb)
+- [~] Task: Play ceremony
   - [ ] Tossable prop chase via existing gait/wander systems, happy-bounce
         finish; reduced-motion; manual verify.
   - [ ] Commit `feat(ranch): play ceremony`
