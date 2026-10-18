@@ -10,6 +10,9 @@
  *   bun packages/sim/scripts/balance-probe.ts --tiers=2,3,4,6 --seeds=96
  *
  * Deterministic: the same arguments always produce the same report.
+ *
+ * The report is written with `JSON.stringify(…, null, 2)`, which biome still
+ * wants to reflow, so a committed report needs `biome format --write <file>`.
  */
 
 import type { Tactic } from "../src/battle/policy"
