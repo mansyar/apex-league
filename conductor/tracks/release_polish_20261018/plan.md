@@ -28,26 +28,26 @@ ends with a verification checkpoint and user approval.
   - [x] Extract a shared `isValidSaveState(state)` predicate used by `loadSave`
         and import; implement `buildSaveExport(state)` and
         `inspectSaveImport(raw)`.
-- [ ] Task: Corrupt payload retention (`storage.ts`)
-  - [ ] Failing tests: a corrupt boot exposes the original raw string; reading
+- [x] Task: Corrupt payload retention (`storage.ts`) - 6b115da
+  - [x] Failing tests: a corrupt boot exposes the original raw string; reading
         it does not rewrite or clear storage; `clearSave` is the only path that
         removes it.
-  - [ ] Implement `readRawSave(adapter)` (or equivalent) and keep the corrupt
+  - [x] Implement `readRawSave(adapter)` (or equivalent) and keep the corrupt
         branch non-destructive.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] `bun test` on the save suites, `bun run check`, commit; manual browser
+- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] `bun test` on the save suites, `bun run check`, commit; manual browser
         evidence not required (sim-only phase).
   - [ ] Record `[checkpoint: <sha>]` after user approval.
 
 ## Phase 2 - Audio mix & Settings volume UI
 
-- [ ] Task: Audio gains (`audio/player.ts`, `audio/playCue.ts`,
-      `audio/musicBeds.ts`)
-  - [ ] Failing tests: `AudioPlayer` still gates on unlock + mute; SFX gain
+- [x] Task: Audio gains (`audio/player.ts`, `audio/playCue.ts`,
+      `audio/musicBeds.ts`) - b3f8f8d
+  - [x] Failing tests: `AudioPlayer` still gates on unlock + mute; SFX gain
         reaches the seam; music and SFX gains stay independent; muted requests
         never reach the seam at any volume; 0 volume is silent; out-of-range
         input is clamped.
-  - [ ] Implement `setVolumes({ music, sfx })`, pass SFX gain through the cue
+  - [x] Implement `setVolumes({ music, sfx })`, pass SFX gain through the cue
         seam, and apply music gain in `MusicBeds`.
 - [ ] Task: Settings volume controls (`settings-modal.ts`, `hud/settings.ts`,
       kit CSS)
