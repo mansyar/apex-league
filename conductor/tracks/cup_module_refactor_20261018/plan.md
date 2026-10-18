@@ -95,13 +95,39 @@ checkpoints with explicit user verification.
 
 ## Phase 3 — Client Golden Safety Net
 
-- [ ] Task: Pin client cup behavior with semantic goldens
-  - [ ] Screen sequence: bracket → coach room → arena → results
-  - [ ] Results screen math + placement/reward copy
-  - [ ] Give-up → as-if-lost placement semantics
-  - [ ] Coach-room kit/tactic re-pick flow per match
-  - [ ] Confirm suite green before any move
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Pin client cup behavior with semantic goldens
+  - [x] Screen sequence: bracket → coach room → arena → results
+  - [x] Results screen math + placement/reward copy
+  - [x] Give-up → as-if-lost placement semantics
+  - [x] Coach-room kit/tactic re-pick flow per match
+  - [x] Confirm suite green before any move
+
+> **Coverage audit (deviation, same pattern as Phase 1):** the client's
+> PURE cup surface was already fully pinned by existing suites —
+> `bracket-model.test.ts` (match order/labels, verdict matching by name,
+> double-KO advancement, forfeit display, topology 4/8/16, ordinalOf/
+> exitStage, ladderRow incl. promotion + gold→legend flip, resultRows for
+> champion/elimination/forfeit/tier bonuses/legend title),
+> `battleUI.test.ts` (`toggleKitChoice` 2–4 bounds), and
+> `battle-session.test.ts` (`cupStampTitle`). Duplicating those would add
+> no safety. The unpinned remainder — screen sequence, commit-on-first-
+> fight, give-up modal wiring, per-match picks reset — is DOM-locked in
+> `createCup` and per learnings §11 must NOT be unit-tested through a DOM
+> shim; those decisions become the Phase 4 view-model extractions (TDD,
+> values captured from the current code before each move). Flow baseline
+> evidence: the Phase 2 checkpoint probe (5 screenshots, exact copy,
+> console 0/0) + committed `evidence/mock-baseline-*.png` for the Phase 4
+> mock.html comparison. Suite green: client 553 pass / 0 fail (741 ms);
+> full `bun run verify` green at bed5d11.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+> **[checkpoint: bed5d11]** — Test-audit + evidence phase; zero source
+> changes (diff bed5d11..HEAD = plan + evidence PNGs only). Manual
+> verification: mock.html baseline captured pre-refactor (viewport +
+> full-page under evidence/), console 0/0; client suite 553 pass / 0
+> fail; full `bun run verify` green at bed5d11. User approved close.
+> Phase 4 note: view-model goldens must be written against values
+> captured from the current `cup.ts` before each extraction move.
 
 ## Phase 4 — Client Decomposition (FR3, FR4)
 
