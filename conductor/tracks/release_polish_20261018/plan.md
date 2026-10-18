@@ -84,27 +84,27 @@ ends with a verification checkpoint and user approval.
 
 ## Phase 4 - Accessibility & reduced motion
 
-- [ ] Task: Focus contract (`ui/focus.ts`, new; `battleUI.ts`, overlay owners)
-  - [ ] Failing tests for pure focus-order helpers where feasible; otherwise a
+- [x] Task: Focus contract (`ui/focus.ts`, new; `battleUI.ts`, overlay owners)
+  - [x] Failing tests for pure focus-order helpers where feasible; otherwise a
         documented manual matrix.
-  - [ ] Every overlay (starter, settings, handbook, detail, Hall,
+  - [x] Every overlay (starter, settings, handbook, detail, Hall,
         graduation/nursery, cup/coach/results, spar) moves focus in, traps it,
         closes on Escape/close, and returns focus to its opener; disabled
         controls are skipped by the trap.
-- [ ] Task: Keyboard, ARIA, and contrast
-  - [ ] Reach every HUD/dock/action control by keyboard with visible focus;
+- [x] Task: Keyboard, ARIA, and contrast
+  - [x] Reach every HUD/dock/action control by keyboard with visible focus;
         label sliders and dialogs; announce status via `role=status`; ensure
         meaning is not color-only.
-  - [ ] Contrast audit with neutral-token fixes only; record ratios and
+  - [x] Contrast audit with neutral-token fixes only; record ratios and
         deferred items; verify element hues are unchanged.
-- [ ] Task: Reduced-motion matrix
-  - [ ] Audit each ceremony/transition (evolution, feed/rest/treat/play,
+- [x] Task: Reduced-motion matrix
+  - [x] Audit each ceremony/transition (evolution, feed/rest/treat/play,
         petting, graduation send-off, nursery, cup, arena) against the in-game
         setting and `prefers-reduced-motion`; add calm equivalents.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [ ] Keyboard-only walkthrough, reduced-motion screenshots, contrast table;
         `bun run verify`.
-  - [x] Record `[checkpoint: 59765f7]`.
+  - [ ] Record `[checkpoint: <sha>]` after user approval.
 
 ## Phase 5 - Release readiness & close
 
