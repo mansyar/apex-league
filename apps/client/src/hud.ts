@@ -102,6 +102,12 @@ export interface HudHandlers {
    * true persists the bus level through the sim.
    */
   onVolume: (bus: "music" | "sfx", value: number, commit: boolean) => void
+  /** Download a session-free export of the current save (main owns the file). */
+  onDownloadSave: () => void
+  /** Handle a picked save file: parse, confirm, write, reload (main owns it). */
+  onImportFile: (file: File) => void
+  /** True while a live cup/battle session blocks a save swap. */
+  isImportBlocked: () => boolean
   /** Rename the partner through the sim (save v7 QoL). Returns false when
    * the sim rejects (e.g. mid-cup) so the HUD can coach instead of acting.
    */
@@ -132,6 +138,8 @@ export interface Hud {
   /** Show the save-failure coach line (called once per failed persist;
    * the next routine update replaces it). Non-blocking by design. */
   announceSaveFailure(): void
+  /** Show (or clear, with "") a calm settings notice (save transfer). */
+  noticeSettings(message: string, warn?: boolean): void
 }
 
 /**
@@ -209,6 +217,9 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     onToggleArenaCamera: () => handlers.onToggleArenaCamera(),
     onToggleMuted: () => handlers.onToggleMuted(),
     onVolume: (bus, value, commit) => handlers.onVolume(bus, value, commit),
+    onDownloadSave: () => handlers.onDownloadSave(),
+    onImportFile: (file) => handlers.onImportFile(file),
+    isImportBlocked: () => handlers.isImportBlocked(),
     onNewGame: () => {
       resetModal.style.display = ""
       resetConfirm.focus()
@@ -559,6 +570,9 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     },
     announceSaveFailure() {
       statusTicker.say(saveFailureNotice())
+    },
+    noticeSettings(message, warn) {
+      settings.notice(message, warn)
     },
   }
 }

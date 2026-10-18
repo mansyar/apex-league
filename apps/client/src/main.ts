@@ -1,6 +1,7 @@
 import {
   advanceDay,
   assignTraining,
+  buildSaveExport,
   type CareAction,
   canBreed,
   careAction,
@@ -11,11 +12,13 @@ import {
   getSpecies,
   graduate,
   graduateWithPair,
+  inspectSaveImport,
   loadBoot,
   markHintSeen,
   type PlaybackStep,
   renameCreature,
   type StatKey,
+  saveGame,
   setArenaCamera,
   setLoadout,
   setMusicVolume,
@@ -41,6 +44,11 @@ import {
   runtimeState,
 } from "./lifecycle"
 import { resolveMotionPref } from "./motion"
+import {
+  buildImportModal,
+  importBlocked,
+  transferNotice,
+} from "./save-transfer"
 import { createScene, type SceneHandle } from "./scene"
 import { createSpar } from "./spar"
 import { createStaging, type FightCasting } from "./staging"
@@ -412,6 +420,15 @@ const graduation = createGraduation(app, {
   },
 })
 
+const importModal = buildImportModal((data) => {
+  if (saveGame(storage, data.state, data.savedAt, null)) {
+    window.location.reload()
+    return
+  }
+  hud.noticeSettings("Couldn't write that save — try again.", true)
+})
+app.append(importModal.root)
+
 const hud = createHud(app, {
   onAdvanceDay: () => {
     // The ceremony is non-cancelable (FR2, 2026-10-10): HUD input applies
@@ -500,6 +517,34 @@ const hud = createHud(app, {
         : setSfxVolume(current, value),
     )
   },
+  onDownloadSave: () => {
+    const { filename, json } = buildSaveExport(store.get())
+    const url = URL.createObjectURL(
+      new Blob([json], { type: "application/json" }),
+    )
+    const anchor = document.createElement("a")
+    anchor.href = url
+    anchor.download = filename
+    anchor.click()
+    URL.revokeObjectURL(url)
+    hud.noticeSettings(`Downloaded ${filename}`)
+  },
+  onImportFile: async (file) => {
+    let raw: string
+    try {
+      raw = await file.text()
+    } catch {
+      hud.noticeSettings(transferNotice("malformed"), true)
+      return
+    }
+    const result = inspectSaveImport(raw)
+    if (!result.ok) {
+      hud.noticeSettings(transferNotice(result.reason), true)
+      return
+    }
+    importModal.ask(result.data)
+  },
+  isImportBlocked: () => importBlocked(store.getSession()),
   onRename: (name) => {
     const next = renameCreature(store.get(), name)
     if (!next.ok) return false

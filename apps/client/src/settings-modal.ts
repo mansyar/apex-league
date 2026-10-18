@@ -81,6 +81,10 @@ export interface SettingsModalRefs {
   resetChip: HTMLButtonElement
   /** Mirror the persisted mix onto the two sliders (0..1 bus levels). */
   setVolumes: (volumes: { music: number; sfx: number }) => void
+  /** Show (or clear, with "") a calm notice under the rows. */
+  notice: (message: string, warn?: boolean) => void
+  /** Disable import while a cup session is live. */
+  setImportBlocked: (blocked: boolean) => void
 }
 
 /** Which audio bus a slider edits (save v16). */
@@ -165,6 +169,12 @@ export function buildSettingsModal(
     onToggleMuted?: () => void
     /** Opens the reset-confirm modal (built by buildResetModal). */
     onNewGame?: () => void
+    /** Downloads a session-free export of the current save. */
+    onDownloadSave?: () => void
+    /** Handles a picked save file (parse, confirm, write). */
+    onImportFile?: (file: File) => void
+    /** True while a cup/battle session blocks a save swap. */
+    isImportBlocked?: () => boolean
     /**
      * A volume slider moved (save v16): `commit` is false for live input and
      * true on release, so callers can audition without a save per pixel.
@@ -208,6 +218,53 @@ export function buildSettingsModal(
   ])
     rows.append(row)
 
+  // Save transfer (Phase 3): download is always safe; import is a two-step
+  // replace and is refused while a cup session is live.
+  const transfer = document.createElement("div")
+  transfer.className = "settings-transfer"
+  const download = chip({
+    label: "Download save",
+    variant: "dim",
+    onClick: () => opts.onDownloadSave?.(),
+  })
+  const importChip = chip({
+    label: "Import save",
+    variant: "dim",
+    onClick: () => {
+      if (importBlocked()) return
+      importInput.click()
+    },
+  })
+  const importInput = document.createElement("input")
+  importInput.className = "settings-import-input"
+  importInput.type = "file"
+  importInput.accept = ".json,application/json"
+  importInput.hidden = true
+  transfer.append(download, importChip, importInput)
+  rows.insertBefore(transfer, resetChip)
+
+  const notice = document.createElement("p")
+  notice.className = "settings-notice"
+  notice.setAttribute("role", "status")
+  notice.hidden = true
+  let importIsBlocked = false
+  const importBlocked = (): boolean => {
+    importIsBlocked = opts.isImportBlocked?.() ?? false
+    if (importIsBlocked) say("Finish or forfeit the cup first.", true)
+    return importIsBlocked
+  }
+  importInput.addEventListener("change", () => {
+    const file = importInput.files?.[0]
+    importInput.value = ""
+    if (file) opts.onImportFile?.(file)
+  })
+
+  function say(message: string, warn = false): void {
+    notice.hidden = message === ""
+    notice.textContent = message
+    notice.classList.toggle("is-warn", warn)
+  }
+
   const actions = document.createElement("div")
   actions.className = "kit-modal-actions"
   const close = document.createElement("button")
@@ -243,7 +300,7 @@ export function buildSettingsModal(
     if (event.target === root) closeNow()
   })
 
-  box.append(title, rows, actions)
+  box.append(title, rows, notice, actions)
   root.append(box)
   return {
     root,
@@ -252,6 +309,10 @@ export function buildSettingsModal(
         document.activeElement instanceof HTMLElement
           ? document.activeElement
           : null
+      say("")
+      importIsBlocked = opts.isImportBlocked?.() ?? false
+      importChip.disabled = importIsBlocked
+      importChip.setAttribute("aria-disabled", String(importIsBlocked))
       root.style.display = ""
       motionChip.focus()
     },
@@ -262,6 +323,12 @@ export function buildSettingsModal(
     setVolumes: ({ music: musicLevel, sfx: sfxLevel }) => {
       music.sync(musicLevel)
       sfx.sync(sfxLevel)
+    },
+    notice: say,
+    setImportBlocked: (blocked) => {
+      importIsBlocked = blocked
+      importChip.disabled = blocked
+      importChip.setAttribute("aria-disabled", String(blocked))
     },
   }
 }

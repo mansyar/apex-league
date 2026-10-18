@@ -523,6 +523,25 @@
   text-align: right;
 }
 
+/* Save transfer (Phase 3): two chips plus the hidden file picker. */
+.settings-transfer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.settings-notice {
+  color: var(--ink-dim);
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0;
+  max-width: 320px;
+}
+
+.settings-notice.is-warn {
+  color: var(--accent);
+}
+
 /* Shared collapse chevron: points down while expanded, right when
    collapsed. */
 .collapse-chev {
