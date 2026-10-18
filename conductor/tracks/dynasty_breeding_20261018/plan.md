@@ -81,33 +81,38 @@ verification checkpoint and user approval.
 - [~] Task: Phase Verification & Checkpoint
   - [x] `bun test packages/sim/src`; migration round-trip; `bun run check`;
         commit `e180eeb`; `bun run verify` green.
-  - [ ] `[checkpoint: <sha>]` after approval.
+  - [x] `[checkpoint: e180eeb]`.
 
 ## Phase 3 — Client view-models (TDD, DOM-free)
 
-- [ ] Task: Nursery selection VM
+- [x] Task: Nursery selection VM
       (`apps/client/src/graduation/nursery-vm.ts`, new)
-  - [ ] Failing tests: initial selection includes the retiring champion; toggle
+  - [x] Failing tests: initial selection includes the retiring champion; toggle
         on/off; max two; `hatchEnabled` false with 0/1 parent or no species;
         species options update when the pair changes; selecting a third is
         rejected with a state flag (no silent eviction); preselected species
         stays valid or resets.
-  - [ ] Implement `createNurseryState(pool)`, `toggleParent`, `chooseSpecies`,
+  - [x] Implement `createNurseryState(pool)`, `toggleParent`, `chooseSpecies`,
         `hatchEnabled`.
-- [ ] Task: Hatch preview VM
-  - [ ] Failing tests: preview calls `inheritedFloorFromPair` and renders one
+- [x] Task: Hatch preview VM
+  - [x] Failing tests: preview calls `inheritedFloorFromPair` and renders one
         row per stat with parent-best annotation; trait union badges; mutation
         note; parent names; preview equals the hatched stats for the same seed
-        (property-style check).
-  - [ ] Implement `hatchPreview(state, pair, speciesId, prestige)`.
-- [ ] Task: Parentage + trait copy
-  - [ ] Failing tests: `parentageLabel` → "Founder", "Child of Gen 0",
+        (property-style check over seeds 1/42/99).
+  - [x] Implement `hatchPreview(parents, speciesId, seed, prestige)`; it uses
+        the same seeded `createBredCreature` as the hatch, so the shown value
+        is the exact result.
+- [x] Task: Parentage + trait copy
+  - [x] Failing tests: `parentageLabel` → "Founder", "Child of Gen 0",
         "Child of Gen 0 × Gen 1"; trait labels/descriptions from the catalog;
-        badge order stable.
-  - [ ] Implement `parentageLabel(record, hall)` and `traitBadge` copy.
-- [ ] Task: Phase Verification & Checkpoint
-  - [ ] Pure tests + coverage; `bun run check`; commit;
-        `[checkpoint: <sha>]`.
+        badge order stable (canonical `TRAIT_ORDER`).
+  - [x] Implement `parentageLabel(parents)` and `traitCopy(id)`. The signature
+        takes the stored parent list (the VM has no `GameState` need); trait
+        badges use the catalog order via the preview's `traits` array.
+- [~] Task: Phase Verification & Checkpoint
+  - [x] 18 pure tests; 99.34% lines / 100% funcs on `nursery-vm.ts`;
+        `bun run --filter @apex/client check`; commit `6083a3b`.
+  - [ ] `[checkpoint: <sha>]` after approval.
 
 ## Phase 4 — Nursery surface & wiring
 
