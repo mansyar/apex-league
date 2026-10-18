@@ -29,7 +29,7 @@
         ids; calm-mix variants under reduced-motion; muted -> silent.
   - [ ] Implement the `audio/` cue-table extension DOM-free to green.
   - [ ] Commit `feat(audio): ranch care cue mapping`
-- [ ] Task: Bundle CC0 assets
+- [x] Task: Bundle CC0 assets `cdb344c`
   - [ ] Curate CC0 cues (Kenney sets + soft chime), commit under the client
         app with a size-budget note; manual verify dev-server 200s.
   - [ ] Commit `assets(audio): bundle CC0 care cues + dawn chime`
