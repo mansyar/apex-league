@@ -69,3 +69,9 @@
   - [x] Commit `feat(ranch): ambient pet interaction` (89058c3)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
       `[checkpoint: cc39af4]` - approved 2026-10-18; gates: bun run verify exit 0 (1423 pass / 0 fail, 1424 tests, determinism OK, biome clean on changed files); browser evidence: tap -> wiggle + care-pet cue, immediate second tap silent, drag across the body rejected while a tap at the same point pets, touch parity, plate-head modal + orbit drag untouched, reduced motion still pets (restored to full), console clean, save still v14 with no AP spent
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions (977e053)
+  - [x] Typed care-cue lookup record replaces the unjustified `as CareCueId` assertion; unknown runtime kinds still go silent (the existing test pins that).
+  - [x] Hoisted and reworded `smoothstepLocal`; restored the untouched playCue comment; untracked the gitignored `.freebuff/project-id`.
