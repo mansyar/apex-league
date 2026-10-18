@@ -65,3 +65,24 @@ export function strideStep(
     pivoting: false,
   }
 }
+
+/**
+ * Standing spot for the feed ceremony: on the creature→pile line, stopped
+ * `setback` world units short of the pile so the creature stands just
+ * before it and faces it — the shortest way, exactly as specified.
+ */
+export function standPointOnLineTo(
+  cx: number,
+  cz: number,
+  pileX: number,
+  pileZ: number,
+  setback: number,
+): { x: number; z: number } {
+  const toPileX = pileX - cx
+  const toPileZ = pileZ - cz
+  const dist = Math.hypot(toPileX, toPileZ) || 1
+  return {
+    x: pileX - (toPileX / dist) * setback,
+    z: pileZ - (toPileZ / dist) * setback,
+  }
+}

@@ -1,12 +1,8 @@
 import { describe, expect, test } from "bun:test"
 import type { CreatureConditions } from "@apex/sim"
 import { EXHAUSTED_ENERGY, SICK_HEALTH } from "@apex/sim"
-import {
-  gaitIntensity,
-  moodModeFrom,
-  smoothstep,
-  standPointOnLineTo,
-} from "./ranch-motion"
+import { gaitIntensity, smoothstep, standPointOnLineTo } from "../scene-logic"
+import { moodModeFrom } from "./mood"
 
 const conditions = (over: Partial<CreatureConditions>): CreatureConditions => ({
   hunger: 50,

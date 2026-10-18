@@ -1,3 +1,5 @@
+import { smoothstep } from "./math"
+
 /**
  * Scene logic - the diagonal-pair walk gait: leg swing, body bob, and
  * weight-shift roll. Split out of scene-logic.ts (ranch_decomposition);
@@ -54,4 +56,13 @@ export function gaitPose(
     bob: Math.abs(Math.sin(phase)) * GAIT_BOB * amp,
     roll: Math.sin(phase) * GAIT_ROLL * amp,
   }
+}
+
+/**
+ * Walk intensity for the gait: full stride while traveling with room to
+ * spare, easing smoothly to zero over the last 0.6 units so the creature
+ * arrives at a stop instead of snapping out of stride.
+ */
+export function gaitIntensity(traveling: boolean, remaining: number): number {
+  return traveling ? smoothstep(Math.min(1, remaining / 0.6)) : 0
 }
