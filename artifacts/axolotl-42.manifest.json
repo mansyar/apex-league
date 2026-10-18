@@ -3,8 +3,8 @@
 	"seed": 42,
 	"generatorVersion": 2,
 	"dnaHash": "42cb06e481180c5776914e66d8030edb0f80e432e10e15e0e969434dd17d22c9",
-	"glbHash": "5f3d714307195e753c12ea64fb1f7679bcdc8b1b96fd30e3c34af0899a97c58e",
-	"triCount": 3058,
+	"glbHash": "037ef67832866acbd5052a20bd0c33cd7c073bad9d56c5d7945a30d9fb88310a",
+	"triCount": 3082,
 	"pivots": {
 		"body": [
 			28,
@@ -65,6 +65,16 @@
 			28,
 			11.5,
 			27.454779249615967
+		],
+		"eyeLeft": [
+			23,
+			15.231115621566772,
+			39.50301846280694
+		],
+		"eyeRight": [
+			33,
+			15.231115621566772,
+			39.50301846280694
 		]
 	}
 }

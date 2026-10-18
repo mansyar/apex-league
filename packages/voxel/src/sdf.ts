@@ -75,6 +75,87 @@ export function translate(sdf: Sdf, offset: Vec3): Sdf {
   return (p) => sdf(sub(p, offset))
 }
 
+/**
+ * Distance field of an ellipsoid with per-axis radii (Quilez's exact form).
+ *
+ * Unlike a stretched sphere this stays a usable distance estimate near the
+ * surface, so it voxelizes cleanly at a handful of voxels across — the regime
+ * every face feature lives in.
+ */
+export function sdEllipsoid(center: Vec3, radii: Vec3): Sdf {
+  return (p) => {
+    const q = sub(p, center)
+    const k0 = length({
+      x: q.x / radii.x,
+      y: q.y / radii.y,
+      z: q.z / radii.z,
+    })
+    const k1 = length({
+      x: q.x / (radii.x * radii.x),
+      y: q.y / (radii.y * radii.y),
+      z: q.z / (radii.z * radii.z),
+    })
+    // The centre is the one point where both scalings vanish.
+    if (k1 === 0) return -Math.min(radii.x, radii.y, radii.z)
+    return (k0 * (k0 - 1)) / k1
+  }
+}
+
+/**
+ * Distance field of a round cone: two spheres of radius `r1` at `a` and `r2`
+ * at `b` joined by their common tangent surface. With `r1 === r2` this is
+ * exactly a capsule.
+ *
+ * Requires a real tangent surface (`|r1 - r2| <= |b - a|`); degenerate inputs
+ * fall back to the union of the two spheres rather than returning NaN.
+ */
+export function sdRoundCone(a: Vec3, b: Vec3, r1: number, r2: number): Sdf {
+  const ba = sub(b, a)
+  const l2 = dot(ba, ba)
+  const rr = r1 - r2
+  // Squared cone length; non-positive means the spheres overlap.
+  const a2 = l2 - rr * rr
+  const fallback = union(sdSphere(a, r1), sdSphere(b, r2))
+  return (p) => {
+    if (l2 === 0 || a2 <= 0) return fallback(p)
+    const pa = sub(p, a)
+    const y = dot(pa, ba)
+    const z = y - l2
+    const x = {
+      x: pa.x * l2 - ba.x * y,
+      y: pa.y * l2 - ba.y * y,
+      z: pa.z * l2 - ba.z * y,
+    }
+    const x2 = dot(x, x)
+    const y2 = y * y * l2
+    const z2 = z * z * l2
+    const k = Math.sign(rr) * rr * rr * x2
+    const il2 = 1 / l2
+    // Near the thin cap, near the thick cap, then the conical flank.
+    if (Math.sign(z) * a2 * z2 > k) return Math.sqrt(x2 + z2) * il2 - r2
+    if (Math.sign(y) * a2 * y2 < k) return Math.sqrt(x2 + y2) * il2 - r1
+    return (Math.sqrt(x2 * a2 * il2) + y * rr) * il2 - r1
+  }
+}
+
+/**
+ * Smooth subtraction: carves `cutter` out of `base`, melting the rim over `k`
+ * instead of leaving a machined edge. Non-positive `k` is treated as a hard
+ * subtraction.
+ *
+ * This is what seats an eye socket in a skull: the recess is a spherical
+ * cavity whose lip fades into the head rather than a drilled hole.
+ */
+export function smoothSubtract(base: Sdf, cutter: Sdf, k: number): Sdf {
+  return (p) => {
+    const d1 = cutter(p)
+    const d2 = base(p)
+    if (k <= 0) return Math.max(d2, -d1)
+    const h = Math.max(0, Math.min(1, 0.5 - (0.5 * (d2 + d1)) / k))
+    return d2 * (1 - h) - d1 * h + k * h * (1 - h)
+  }
+}
+
 /** Hard union: minimum of both fields. */
 export function union(a: Sdf, b: Sdf): Sdf {
   return (p) => Math.min(a(p), b(p))

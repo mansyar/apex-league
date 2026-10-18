@@ -160,35 +160,100 @@ element hue contract intact.
 
 Goal: every creature has a readable face at broadcast distance, in every stage.
 
-- [ ] Task: SDF primitives
-  - [ ] Write failing tests for `sdRoundCone` (tapered radius), `sdEllipsoid`
+- [x] Task: SDF primitives
+  - [x] Write failing tests for `sdRoundCone` (tapered radius), `sdEllipsoid`
         and `smoothSubtract` (subtraction carves, preserves the outer surface)
-  - [ ] Implement them alongside the existing primitives
-- [ ] Task: `face.ts` plans and eyes
-  - [ ] Write failing tests: each archetype emits `eyeLeft`/`eyeRight`; pivots
+  - [x] Implement them alongside the existing primitives
+- [x] Task: `face.ts` plans and eyes
+  - [x] Write failing tests: each archetype emits `eyeLeft`/`eyeRight`; pivots
         sit at the top-centre of each eye; face parts fall inside the head
         bounds
-  - [ ] Implement `FacePlan` per archetype and the eye/pupil/catchlight parts
-  - [ ] Pupil and catchlight carry their own colour classes
-- [ ] Task: Mouth, nostrils, brow
-  - [ ] Write failing tests: mouth and nostrils are one-voxel recesses with a
+  - [x] Implement `FacePlan` per archetype and the eye/pupil/catchlight parts
+  - [x] Pupil and catchlight carry their own colour classes
+- [x] Task: Mouth, nostrils, brow
+  - [x] Write failing tests: mouth and nostrils are one-voxel recesses with a
         dark class; brow is present only where the plan declares it
-  - [ ] Implement per the spec table
-- [ ] Task: Stage-aware eye proportions
-  - [ ] Write failing tests: baby eye scale > champion eye scale; pivots stay
+  - [x] Implement per the spec table
+- [x] Task: Stage-aware eye proportions
+  - [x] Write failing tests: baby eye scale > champion eye scale; pivots stay
         attached to the head across stages
-  - [ ] Apply the per-stage scalars
-- [ ] Task: Wire into the builds
-  - [ ] Parent eyes under `head` in `build.parents`; extend `colors`
-  - [ ] Keep the face inside each archetype's proportion budget untouched
-- [ ] Task: Manual face review
-  - [ ] Close-up captures for 3 archetypes × 3 stages via `?angle=face`
-  - [ ] Verify at baby scale first (smallest head)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Browser evidence: eyes, pupil, catchlight, mouth and nostrils read at
+  - [x] Apply the per-stage scalars
+- [x] Task: Wire into the builds
+  - [x] Parent eyes under `head` in `build.parents`; extend `colors`
+  - [x] Keep the face inside each archetype's proportion budget untouched
+- [x] Task: Manual face review
+  - [x] Close-up captures for 3 archetypes × 3 stages via `?angle=face`
+  - [x] Verify at baby scale first (smallest head)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Browser evidence: eyes, pupil, catchlight, mouth and nostrils read at
         gameplay distance
   - [ ] Await explicit user approval, attach the verification note, record the
         checkpoint SHA
+
+### Phase 4 findings
+
+- `packages/voxel/src/face.ts` holds `facePlan(archetype, head, stage)` — one
+  pure function returning eye centres/radii, socket carve, mouth and nostril
+  cutters and the brow, plus `faceParts(plan, coat)` for the eye and brow
+  parts. Archetypes contribute numbers (head bounds, muzzle length, skull
+  thickness); every geometric decision lives in one file.
+- The eye is a separate part parented to `head`, pivoted at the top-centre of
+  the opening so a later `scale.y` closes a lid without translating the eye.
+  Pupil and catchlight are colour classes inside the eye part, not extra
+  parts: the classifier walks `(dy, dz)` bands with the catchlight read first,
+  so the highlight survives even on the smallest baby eye.
+- Cost, measured on the built fields at seed 42. Eye voxels and their class
+  split (sclera / pupil / catchlight) — draconic baby 20 = 13/4/3, juvenile
+  8 = 3/4/1, champion 8 = 3/4/1; bovine 26 = 13/8/5, 16 = 7/8/1, 11 = 2/8/1;
+  axolotl 21 = 13/4/4, 11 = 6/4/1, 8 = 3/4/1. Every combination carries all
+  three classes; the regression test asserts exactly that set rather than a
+  count, so a future classifier change cannot quietly drop the highlight.
+- Triangles vs Phase 3 (baby / juvenile / champion): draconic 3484 → 3636,
+  3432 → 3568, 3700 → 3840; bovine 2318 → 2376, 2414 → 2514, 2492 → 2572;
+  axolotl 3058 → 3082, 2912 → 2944, 3258 → 3300. Worst case +140 tris
+  (+3.8%, draconic champion) for a whole face kit plus two riggable parts.
+- Largest GLB is 255,592 B (draconic champion), +12,148 B over Phase 3 and
+  78% of the 320 KiB tripwire. All nine artifacts regenerated and the
+  determinism gate reproduces every creature plus all five props byte-identical.
+- Two bugs found while reviewing the first captures, both fixed in this phase:
+  - The archetypes called `facePlan(archetype, head)` without `stage`, so all
+    three shipped juvenile eyes at every stage and the stage scalars were dead
+    code. The baby shots are what exposed it.
+  - The test helper meant to check eye size called `eye.sdf` a million units
+    away and compared the returned distance, so "baby eye is bigger" passed
+    vacuously. It now reads `radii.y` from the plan and asserts baby >
+    juvenile > champion.
+- Rejected on evidence: the stage `eyeInset` that sank the eye into the skull.
+  At champion size it swallowed the sclera and highlight and left a black
+  block with no readable white. The carved socket dish already recesses the
+  eye, so the inset was removed outright and stage progression now rides on
+  `eyeScale` alone (baby 1.25, juvenile 1, champion 0.9).
+- Kept against the rules of thumb: a 1.15 species eye scale for the bovine.
+  Its skull is thick enough that the spec-sized eye sat flush and lost its
+  sclera; the extra 15% is what makes the white read. It is a species constant
+  in `facePlan`, not a per-shot tweak.
+- Manual review: nine `?angle=face` captures (`face11-<archetype>-<stage>.png`),
+  two head close-ups, three champion `angle=3-4` gameplay captures, plus the
+  pre-fix grey-mode pair that shows the socket, mouth and nostril geometry
+  without colour. Baby was checked first as planned.
+- Verdict at gameplay distance: each face reads as an eye, not a smear. The
+  draconic and bovine eye is a pale block with a dark core; the bovine
+  champion's pupil sits proud of the cheek with sclera above it. The axolotl
+  reads as two dark beads with a pale rim, which suits the animal. Mouth lines
+  read on all three at 3/4; nostrils read on the drake and the bovine, and the
+  axolotl has none by design. The catchlight is not separable from the sclera
+  at these framings — acceptance for it rests on the mesh carrying the class
+  and on the sclera/pupil contrast, not on seeing a sparkle.
+- Verification: `bun run check` clean in all three packages; whole-repo
+  `bunx biome check` reports only the four pre-existing
+  `apps/client/src/cup/view-models.test.ts` warnings; `bun test
+  --parallel=4 --timeout=600000` is 1504 pass, 1 skip, 0 fail across 117 files
+  (63,974 expects, 62.3 s); `face.test.ts` is 12 tests in 2.3 s.
+- Mesh baseline re-pinned `8492a6d6…` → `55cfe280…` because the head surface
+  and the part list both moved on purpose; the header now records the eye fix
+  and the 3700 → 3840 champion tri count.
+- Deferred to Phase 5 as planned: the blink and glance drivers that will
+  actually close these eyelids. Nothing here animates yet.
 
 ## Phase 5: Blink and micro-glance
 

@@ -1,5 +1,6 @@
 import type { CreatureBuild } from "./build"
 import { hslToRgb } from "./color"
+import { faceParts, facePlan, skinPalette } from "./face"
 import { makeRng } from "./rng"
 // Re-export the archetype-agnostic sampler under the archetype name so
 // callers (tests, gallery) can stay archetype-typed.
@@ -9,6 +10,7 @@ import {
   sdBox,
   sdCapsule,
   sdSphere,
+  smoothSubtract,
   smoothUnion,
   union,
   type Vec3,
@@ -323,16 +325,51 @@ export function buildAxolotl(dna: Dna, stage: Stage = "baby"): AxolotlBuild {
     fields.push({ name: leg.name, sdf: legField, classify: classifyLeg })
   }
 
+  // -- Colors (deterministic per seed; fixed type hue, value jitter only) --
+  // Resolved before the geometry: the face needs the coat colour and the
+  // head's palette is built from it.
+  const rng = makeRng(dna.seed)
+  const gilded = dna.rarity.includes("gilded")
+  const jit = axolotlTemplate.palette.valueJitter
+  const hue = gilded ? 45 : axolotlTemplate.palette.hue
+  const light = gilded ? 0.55 : lerp(jit.min, jit.max, rng.next())
+  const sat = gilded ? 0.85 : 0.6
+  // Juveniles read a touch brighter and more saturated — same hue family,
+  // same seed jitter, just a maturing coat (see stage.ts).
+  const lift = stage === "baby" ? 0 : stage === "juvenile" ? 0.05 : 0.1
+  const main = hslToRgb(hue, Math.min(1, sat + lift), Math.min(1, light + lift))
+  const ramp = creaturePalette({
+    hue,
+    sat: Math.min(1, sat + lift),
+    light: Math.min(1, light + lift),
+  })
+  const dark: [number, number, number] = [
+    main[0] * 0.7,
+    main[1] * 0.7,
+    main[2] * 0.7,
+  ]
+  // Coral gill fronds — the species' signature flush, cosmetic only.
+  const coral: [number, number, number] = gilded
+    ? [0.95, 0.75, 0.4]
+    : [0.88, 0.48, 0.5]
+
   // Head paints after the legs so it claims its own silhouette wherever it
   // protrudes past the body front; the neck is already painted (first).
+  const headField: Sdf = union(
+    sdBox(headC, skullHalf),
+    // Rounded nose cap so the slab ends bluntly instead of in a muzzle box.
+    sdSphere(vec3(headC.x, headC.y, headC.z + 1.8 * hw), 1.8 * hw),
+  )
+  const face = faceParts(
+    facePlan("axolotl", { center: headC, half: skullHalf }, stage),
+    main,
+  )
   fields.push({
     name: "head",
-    sdf: union(
-      sdBox(headC, skullHalf),
-      // Rounded nose cap so the slab ends bluntly instead of in a muzzle box.
-      sdSphere(vec3(headC.x, headC.y, headC.z + 1.8 * hw), 1.8 * hw),
-    ),
+    sdf: smoothSubtract(headField, face.recess, 0.5),
+    classify: face.skinClass,
   })
+  fields.push(...face.fields)
 
   // Gill fronds paint after the head, so only the voxels protruding past the
   // skull stay frond-colored — the anchor points merge into the skull.
@@ -468,32 +505,6 @@ export function buildAxolotl(dna: Dna, stage: Stage = "baby"): AxolotlBuild {
     pivots.grandFin = [O, 9.4, tailEnd.z - 2]
   }
 
-  // -- Colors (deterministic per seed; fixed type hue, value jitter only) --
-  const rng = makeRng(dna.seed)
-  const gilded = dna.rarity.includes("gilded")
-  const jit = axolotlTemplate.palette.valueJitter
-  const hue = gilded ? 45 : axolotlTemplate.palette.hue
-  const light = gilded ? 0.55 : lerp(jit.min, jit.max, rng.next())
-  const sat = gilded ? 0.85 : 0.6
-  // Juveniles read a touch brighter and more saturated — same hue family,
-  // same seed jitter, just a maturing coat (see stage.ts).
-  const lift = stage === "baby" ? 0 : stage === "juvenile" ? 0.05 : 0.1
-  const main = hslToRgb(hue, Math.min(1, sat + lift), Math.min(1, light + lift))
-  const ramp = creaturePalette({
-    hue,
-    sat: Math.min(1, sat + lift),
-    light: Math.min(1, light + lift),
-  })
-  const dark: [number, number, number] = [
-    main[0] * 0.7,
-    main[1] * 0.7,
-    main[2] * 0.7,
-  ]
-  // Coral gill fronds — the species' signature flush, cosmetic only.
-  const coral: [number, number, number] = gilded
-    ? [0.95, 0.75, 0.4]
-    : [0.88, 0.48, 0.5]
-
   const colors: Record<string, [number, number, number]> = {
     body: main,
     tail: main,
@@ -525,14 +536,16 @@ export function buildAxolotl(dna: Dna, stage: Stage = "baby"): AxolotlBuild {
 
   return {
     fields,
-    pivots,
-    colors,
+    pivots: { ...pivots, ...face.pivots },
+    colors: { ...colors, ...face.colors },
     palettes: {
       body: ramp,
       legFL: ramp,
       legFR: ramp,
       legBL: ramp,
       legBR: ramp,
+      head: skinPalette(main),
+      ...face.palettes,
     },
     parents: {
       tail: "body",
@@ -550,6 +563,7 @@ export function buildAxolotl(dna: Dna, stage: Stage = "baby"): AxolotlBuild {
       ...(stage === "juvenile" || stage === "champion"
         ? { gillFrillLeft: "head", gillFrillRight: "head" }
         : {}),
+      ...face.parents,
       ...(stage === "champion"
         ? {
             grandFrillLeft: "head",

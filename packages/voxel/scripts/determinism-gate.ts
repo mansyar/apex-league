@@ -63,6 +63,7 @@ for (const [id, def] of Object.entries(archetypes)) {
       dnaJson: JSON.stringify(dna),
       voxelSize: VOXEL_SIZE,
       colors: build.colors,
+      palettes: build.palettes,
       pivots: build.pivots,
       parts: meshes,
     })

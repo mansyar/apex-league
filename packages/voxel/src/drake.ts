@@ -1,5 +1,6 @@
 import type { CreatureBuild } from "./build"
 import { hslToRgb } from "./color"
+import { faceParts, facePlan, skinPalette } from "./face"
 import { makeRng } from "./rng"
 import type { Dna, Template } from "./schema"
 import {
@@ -7,6 +8,7 @@ import {
   sdBox,
   sdCapsule,
   sdSphere,
+  smoothSubtract,
   smoothUnion,
   union,
   type Vec3,
@@ -259,11 +261,59 @@ export function buildDrake(dna: Dna, stage: Stage = "baby"): DrakeBuild {
   )
   fields.push({ name: "neck", sdf: neckField })
 
+  // -- Colors (deterministic per seed; fixed type hue, value jitter only) --
+  // Resolved before the geometry because the face needs the coat colour and
+  // the head's palette is built from it.
+  const rng = makeRng(dna.seed)
+  const gilded = dna.rarity.includes("gilded")
+  const jit = drakeTemplate.palette.valueJitter
+  const hue = gilded ? 45 : drakeTemplate.palette.hue
+  const light = gilded ? 0.55 : lerp(jit.min, jit.max, rng.next())
+  const sat = gilded ? 0.85 : 0.72
+  // Juveniles read a touch brighter and more saturated — same hue family,
+  // same seed jitter, just a maturing coat (see stage.ts). Champions lift
+  // a step further: the same individual wearing its record.
+  const lift = stage === "baby" ? 0 : stage === "juvenile" ? 0.05 : 0.1
+  const main = hslToRgb(hue, Math.min(1, sat + lift), Math.min(1, light + lift))
+  // The zone ramp is built from the same lifted hsl values, so its lateral
+  // step is `main` and its limb step is `dark` - the flat colours this
+  // creature had before zones existed.
+  const ramp = creaturePalette({
+    hue,
+    sat: Math.min(1, sat + lift),
+    light: Math.min(1, light + lift),
+  })
+  const dark: [number, number, number] = [
+    main[0] * 0.7,
+    main[1] * 0.7,
+    main[2] * 0.7,
+  ]
+  const bone: [number, number, number] = [0.93, 0.89, 0.78]
+
   const headField: Sdf = union(
     union(union(sdBox(headC, skullHalf), sdBox(snoutC, snoutHalf)), jawBox),
     browBox,
   )
-  fields.push({ name: "head", sdf: headField })
+  // The face is laid out from the same skull box, so its sockets, mouth line
+  // and nostril pair follow every proportion change instead of drifting off.
+  const face = faceParts(
+    facePlan(
+      "draconic",
+      {
+        center: headC,
+        half: skullHalf,
+        snout: { center: snoutC, half: snoutHalf },
+      },
+      stage,
+    ),
+    main,
+  )
+  fields.push({
+    name: "head",
+    sdf: smoothSubtract(headField, face.recess, 0.5),
+    classify: face.skinClass,
+  })
+  fields.push(...face.fields)
 
   const hornBaseL = vec3(headC.x - 1.7 * hs, hornBaseY, hornBaseZ)
   const hornBaseR = vec3(headC.x + 1.7 * hs, hornBaseY, hornBaseZ)
@@ -371,33 +421,6 @@ export function buildDrake(dna: Dna, stage: Stage = "baby"): DrakeBuild {
     ]
   }
 
-  // -- Colors (deterministic per seed; fixed type hue, value jitter only) --
-  const rng = makeRng(dna.seed)
-  const gilded = dna.rarity.includes("gilded")
-  const jit = drakeTemplate.palette.valueJitter
-  const hue = gilded ? 45 : drakeTemplate.palette.hue
-  const light = gilded ? 0.55 : lerp(jit.min, jit.max, rng.next())
-  const sat = gilded ? 0.85 : 0.72
-  // Juveniles read a touch brighter and more saturated — same hue family,
-  // same seed jitter, just a maturing coat (see stage.ts). Champions lift
-  // a step further: the same individual wearing its record.
-  const lift = stage === "baby" ? 0 : stage === "juvenile" ? 0.05 : 0.1
-  const main = hslToRgb(hue, Math.min(1, sat + lift), Math.min(1, light + lift))
-  // The zone ramp is built from the same lifted hsl values, so its lateral
-  // step is `main` and its limb step is `dark` - the flat colours this
-  // creature had before zones existed.
-  const ramp = creaturePalette({
-    hue,
-    sat: Math.min(1, sat + lift),
-    light: Math.min(1, light + lift),
-  })
-  const dark: [number, number, number] = [
-    main[0] * 0.7,
-    main[1] * 0.7,
-    main[2] * 0.7,
-  ]
-  const bone: [number, number, number] = [0.93, 0.89, 0.78]
-
   const colors: Record<string, [number, number, number]> = {
     body: main,
     tail: main,
@@ -422,14 +445,16 @@ export function buildDrake(dna: Dna, stage: Stage = "baby"): DrakeBuild {
 
   return {
     fields,
-    pivots,
-    colors,
+    pivots: { ...pivots, ...face.pivots },
+    colors: { ...colors, ...face.colors },
     palettes: {
       body: ramp,
       legFL: ramp,
       legFR: ramp,
       legBL: ramp,
       legBR: ramp,
+      head: skinPalette(main),
+      ...face.palettes,
     },
     parents: {
       neck: "body",
@@ -444,6 +469,7 @@ export function buildDrake(dna: Dna, stage: Stage = "baby"): DrakeBuild {
       ...(stage === "champion"
         ? { crownHornLeft: "head", crownHornRight: "head" }
         : {}),
+      ...face.parents,
     },
   }
 }

@@ -5,7 +5,7 @@
  */
 import "./ui/kit.css"
 import "./base.css"
-import { archetypes, generate, parseStage } from "@apex/voxel"
+import { archetypes, generate, parseStage, VOXEL_SIZE } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
 
@@ -38,14 +38,32 @@ const angle = new URLSearchParams(window.location.search).get("angle") ?? "3-4"
 const zoom = Number(
   new URLSearchParams(window.location.search).get("zoom") ?? "1",
 )
-if (angle === "side") {
+const faceOn = angle === "face"
+const headPivot = build.pivots.head ?? [28, 28, 28]
+const headAt = new THREE.Vector3(
+  headPivot[0] * VOXEL_SIZE,
+  headPivot[1] * VOXEL_SIZE,
+  headPivot[2] * VOXEL_SIZE,
+)
+if (faceOn) {
+  // Close three-quarter on the head, framed from the declared head pivot so
+  // every archetype sits in shot without a per-species camera table.
+  camera.position.set(
+    headAt.x + 0.85 * zoom,
+    headAt.y + 0.3 * zoom,
+    headAt.z + 1.7 * zoom,
+  )
+  camera.lookAt(headAt)
+} else if (angle === "side") {
   camera.position.set(7 * zoom, 2.2 * zoom + (1 - zoom) * 1.5, 0.5)
+  camera.lookAt(0, 0.75 + (1 - zoom) * 1.2, 0)
 } else if (angle === "front") {
   camera.position.set(0.5, 3.4 * zoom, 10 * zoom)
+  camera.lookAt(0, 0.75 + (1 - zoom) * 1.2, 0)
 } else {
   camera.position.set(4.5 * zoom, 3.2 * zoom, 6.5 * zoom)
+  camera.lookAt(0, 0.75 + (1 - zoom) * 1.2, 0)
 }
-camera.lookAt(0, 0.75 + (1 - zoom) * 1.2, 0)
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.7))
 const sun = new THREE.DirectionalLight(0xffffff, 1.6)

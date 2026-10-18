@@ -8,12 +8,14 @@ export { sampleDna as sampleBovineDna } from "./sample"
 
 import type { CreatureBuild } from "./build"
 import { hslToRgb } from "./color"
+import { faceParts, facePlan, skinPalette } from "./face"
 import type { Dna, Template } from "./schema"
 import {
   type Sdf,
   sdBox,
   sdCapsule,
   sdSphere,
+  smoothSubtract,
   smoothUnion,
   union,
   type Vec3,
@@ -235,13 +237,56 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
     sdf: sdCapsule(hornBaseR, hornTip(1), 1.1),
   })
 
+  // -- Colors (deterministic per seed; fixed type hue, value jitter only) --
+  // Resolved before the geometry: the face needs the coat colour and the
+  // head's palette is built from it.
+  const rng = makeRng(dna.seed)
+  const gilded = dna.rarity.includes("gilded")
+  const jit = bovineTemplate.palette.valueJitter
+  const hue = gilded ? 45 : bovineTemplate.palette.hue
+  const light = gilded ? 0.55 : lerp(jit.min, jit.max, rng.next())
+  const sat = gilded ? 0.85 : 0.55
+  // Juveniles read a touch brighter and more saturated — same hue family,
+  // same seed jitter, just a maturing coat (see stage.ts).
+  const lift = stage === "baby" ? 0 : stage === "juvenile" ? 0.05 : 0.1
+  const main = hslToRgb(hue, Math.min(1, sat + lift), Math.min(1, light + lift))
+  const ramp = creaturePalette({
+    hue,
+    sat: Math.min(1, sat + lift),
+    light: Math.min(1, light + lift),
+  })
+  const dark: [number, number, number] = [
+    main[0] * 0.7,
+    main[1] * 0.7,
+    main[2] * 0.7,
+  ]
+  const bone: [number, number, number] = [0.93, 0.89, 0.78]
+  const brass: [number, number, number] = [0.85, 0.7, 0.3]
+
   // Head paints BEFORE neck: the head claims its own voxels so a fat neck
   // can never swallow it; the neck paints the ring around the head base.
   const headField: Sdf = union(
     sdBox(headC, skullHalf),
     sdBox(snoutC, snoutHalf),
   )
-  fields.push({ name: "head", sdf: headField })
+  const face = faceParts(
+    facePlan(
+      "bovine",
+      {
+        center: headC,
+        half: skullHalf,
+        snout: { center: snoutC, half: snoutHalf },
+      },
+      stage,
+    ),
+    main,
+  )
+  fields.push({
+    name: "head",
+    sdf: smoothSubtract(headField, face.recess, 0.5),
+    classify: face.skinClass,
+  })
+  fields.push(...face.fields)
 
   // Juvenile signature: the brow ridge swells into small horn bases — the
   // buds sit on the brow line, forward of the adult horns. The adult horn
@@ -353,30 +398,6 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
     ]
   }
 
-  // -- Colors (deterministic per seed; fixed type hue, value jitter only) --
-  const rng = makeRng(dna.seed)
-  const gilded = dna.rarity.includes("gilded")
-  const jit = bovineTemplate.palette.valueJitter
-  const hue = gilded ? 45 : bovineTemplate.palette.hue
-  const light = gilded ? 0.55 : lerp(jit.min, jit.max, rng.next())
-  const sat = gilded ? 0.85 : 0.55
-  // Juveniles read a touch brighter and more saturated — same hue family,
-  // same seed jitter, just a maturing coat (see stage.ts).
-  const lift = stage === "baby" ? 0 : stage === "juvenile" ? 0.05 : 0.1
-  const main = hslToRgb(hue, Math.min(1, sat + lift), Math.min(1, light + lift))
-  const ramp = creaturePalette({
-    hue,
-    sat: Math.min(1, sat + lift),
-    light: Math.min(1, light + lift),
-  })
-  const dark: [number, number, number] = [
-    main[0] * 0.7,
-    main[1] * 0.7,
-    main[2] * 0.7,
-  ]
-  const bone: [number, number, number] = [0.93, 0.89, 0.78]
-  const brass: [number, number, number] = [0.85, 0.7, 0.3]
-
   const colors: Record<string, [number, number, number]> = {
     body: main,
     tail: main,
@@ -407,14 +428,16 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
 
   return {
     fields,
-    pivots,
-    colors,
+    pivots: { ...pivots, ...face.pivots },
+    colors: { ...colors, ...face.colors },
     palettes: {
       body: ramp,
       legFL: ramp,
       legFR: ramp,
       legBL: ramp,
       legBR: ramp,
+      head: skinPalette(main),
+      ...face.palettes,
     },
     parents: {
       tail: "body",
@@ -431,6 +454,7 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
       ...(stage === "champion"
         ? { hornCurlLeft: "head", hornCurlRight: "head" }
         : {}),
+      ...face.parents,
     },
   }
 }

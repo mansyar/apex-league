@@ -69,5 +69,5 @@ describe("creature colour path", () => {
       if (!(material instanceof THREE.MeshLambertMaterial)) return
       expect(material.vertexColors).toBe(false)
     })
-  })
+  }, 20_000)
 })

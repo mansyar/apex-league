@@ -19,6 +19,15 @@
  * frayed the boundary into pale speckle that read as damage at arena distance,
  * so it was removed and only the low-frequency wobble remains.
  *
+ * Re-pinned again for the face kit: the head is now carved by socket, mouth and
+ * nostril recesses and gains eyes and brows as separate parts, so the head
+ * surface and the part list both moved on purpose (draconic champion
+ * 3700 -> 3840 tris). The last 16 of those come from the eye fix in the same
+ * phase: stage now reaches `facePlan` (it was silently defaulting to juvenile,
+ * so every stage shipped juvenile eyes), the bovine eye is 15% larger to keep
+ * its classes proud of a thick skull, and the stage inset that sank the eye was
+ * dropped because at champion size it swallowed the sclera and highlight.
+ *
  * Scope is deliberately one creature, not all nine: a full 9-stage sweep costs
  * ~7.5s of SDF sampling, which would blow the suite's <=15s budget. The
  * exhaustive byte-identical sweep over every archetype and stage is already
@@ -63,7 +72,7 @@ function propHash(propId: string): string {
 }
 
 const DRACONIC_CHAMPION =
-  "e11c96e50e512fe6afb149403d9f33b75cec9b862cce0dd800ae37b450d83424"
+  "55cfe28024ac15077b133bddc999ab883a39ba19d7dc1f90245b6351641c5c2f"
 
 const PROP_BASELINE: Record<string, string> = {
   tuft: "9a5658fc92af4ed573660245dfb4b3df8c16e8545b086eaeef261dfa690ed645",

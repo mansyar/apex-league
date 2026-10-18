@@ -26,6 +26,7 @@ function pipeline(seed: number) {
     dnaJson: JSON.stringify(dna),
     voxelSize: VOXEL_SIZE,
     colors: build.colors,
+    palettes: build.palettes,
     pivots: build.pivots,
     parts: meshes,
   })
