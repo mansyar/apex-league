@@ -144,13 +144,34 @@ checkpoints with explicit user verification.
 > persona name ("Verdant Dame Hesse holds the final"); the reveal step
 > carries its verdict (drops the verdictOf re-derivation in walk).
 > 1423 pass / 0 fail; check green ×3; determinism gate OK.
-- [ ] Task: Split `apps/client/src/cup.ts` → `apps/client/src/cup/`
-  - [ ] Submodules: screens / coach-room / results / session-flow + arena
+- [x] Task: Split `apps/client/src/cup.ts` → `apps/client/src/cup/`
+  - [x] Submodules: screens / coach-room / results / session-flow + arena
         handoff
-  - [ ] `cup.ts` remains the orchestration entrypoint (import path unchanged)
-- [ ] Task: Size-cap audit (≤ ~12 KB each) + `bun run verify`; commit with
+  - [x] `cup.ts` remains the orchestration entrypoint (import path unchanged)
+
+> 68b56f1 — Split `cup.ts` (935 lines, 31.6 KB) into
+> `cup/{shared, board, arena, coach-room, results, entry}.ts`; `cup.ts`
+> is the orchestration entrypoint (10.0 KB). The former closure became an
+> explicit `CupShared` context (memory + screens + late-bound
+> walk/conclude/battle); the battle session lives in `arena.ts` (it owns
+> the finish hold); the stall walk step now carries its match id so the
+> board still renders the pending card. `CupHandlers` moved into
+> `shared.ts` to break the cup.ts↔cup/ type cycle. Module map: shared =
+> context types; board = slot fill / render / stamp / crown + the
+> strict-order walk; arena = casting, fight commit, boss lower-third,
+> stamp-hold exit; coach-room = coach screen + kit/tactic pickers;
+> results = resultsView rendering + finalizeCup; entry = open /
+> close-free / syncChip.
+
+- [x] Task: Size-cap audit (≤ ~12 KB each) + `bun run verify`; commit with
       git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+> Size audit green: cup.ts 10.0 / arena 6.4 / board 5.0 / coach-room 5.6
+> / entry 4.4 / results 2.1 / shared 4.9 / view-models 7.3 KB. `bun run
+> verify` green: check ×3, 1422 pass / 0 fail, biome clean (4
+> pre-existing warnings), determinism gate byte-identical.
+
+- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5 — Final Verification & Close
 
