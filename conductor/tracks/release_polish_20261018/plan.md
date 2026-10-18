@@ -10,13 +10,13 @@ ends with a verification checkpoint and user approval.
 
 ## Phase 1 - Save v16, transfer core, corrupt payload (sim, TDD)
 
-- [ ] Task: Settings volumes + save v16 (`save/schema.ts`, `save/migrate.ts`,
-      `save/storage.ts`, `state.ts`)
-  - [ ] Failing tests: v16 defaults `musicVolume`/`sfxVolume` to 1; v15 -> v16
+- [x] Task: Settings volumes + save v16 (`save/schema.ts`, `save/migrate.ts`,
+      `save/storage.ts`, `state.ts`) - deda3f5
+  - [x] Failing tests: v16 defaults `musicVolume`/`sfxVolume` to 1; v15 -> v16
         migration adds both without touching anything else; storage rejects
         non-number and out-of-range values; `setMusicVolume`/`setSfxVolume`
         clamp to 0-1; v16 round-trips through save/load.
-  - [ ] Implement the two settings fields, setters, migration step, and strict
+  - [x] Implement the two settings fields, setters, migration step, and strict
         validation.
 - [ ] Task: Transfer core (`save/transfer.ts`, new; `storage.ts` parse
       extraction)
