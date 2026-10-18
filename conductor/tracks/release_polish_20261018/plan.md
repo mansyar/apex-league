@@ -115,14 +115,16 @@ ends with a verification checkpoint and user approval.
         future caps 238.4 / 11.72 kB. Cold load 13.1 s, warm 2.0 s, narrow warm
         0.9 s; 10 overlay cycles held nodes 892 and heap 4.8 MB. Lighthouse
         deferred (binary unavailable); details in `verification.md`.
-- [ ] Task: Docs truth pass (`README.md`, `docs/save-schema.md`,
-      `conductor/tech-stack.md`)
-  - [ ] Add the release checklist; document v16 volumes; add the dated
+- [x] Task: Docs truth pass (`README.md`, `docs/save-schema.md`,
+      `conductor/tech-stack.md`) - d6688c1
+  - [x] Add the release checklist; document v16 volumes; add the dated
         tech-stack note; correct stale claims.
-- [ ] Task: Final acceptance & track close
-  - [ ] Walk every spec acceptance criterion; capture device-emulation passes
+- [~] Task: Final acceptance & track close - 2ba107d, d3489a3, ca88349,
+      3420847
+  - [x] Walk every spec acceptance criterion; capture device-emulation passes
         (393x659 and narrow desktop) plus the real-device checklist; run
-        `bun run verify`; archive the track and update the registry.
+        `bun run verify`; record the acceptance matrix in `verification.md`.
+  - [ ] Archive the track and update the registry.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [ ] Full acceptance matrix recorded; `bun run verify` green.
   - [ ] Record `[checkpoint: <sha>]` after user approval.
