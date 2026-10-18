@@ -1,0 +1,24 @@
+{
+  "id": "dynasty_breeding_20261018",
+  "title": "Dynasty Breeding & Nursery",
+  "type": "feature",
+  "status": "new",
+  "created": "2026-10-18",
+  "branch": "track/dynasty_breeding_20261018",
+  "spec": "./spec.md",
+  "plan": "./plan.md",
+  "surfaces": [
+    "packages/sim/src/breeding.ts",
+    "packages/sim/src/legacy.ts",
+    "packages/sim/src/creature.ts",
+    "packages/sim/src/save/schema.ts",
+    "packages/sim/src/save/migrate.ts",
+    "packages/sim/src/save/storage.ts",
+    "apps/client/src/graduation/",
+    "apps/client/src/graduation.ts",
+    "apps/client/src/main.ts",
+    "apps/client/src/creature-detail.ts",
+    "docs/save-schema.md",
+    "README.md"
+  ]
+}
