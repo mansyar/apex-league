@@ -97,6 +97,11 @@ export interface HudHandlers {
    * change). The HUD only mirrors state; wiring stays in main.ts.
    */
   onToggleMuted: () => void
+  /**
+   * A settings volume slider moved (save v16). `commit` false auditions live;
+   * true persists the bus level through the sim.
+   */
+  onVolume: (bus: "music" | "sfx", value: number, commit: boolean) => void
   /** Rename the partner through the sim (save v7 QoL). Returns false when
    * the sim rejects (e.g. mid-cup) so the HUD can coach instead of acting.
    */
@@ -203,6 +208,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     onToggleReducedMotion: () => handlers.onToggleReducedMotion(),
     onToggleArenaCamera: () => handlers.onToggleArenaCamera(),
     onToggleMuted: () => handlers.onToggleMuted(),
+    onVolume: (bus, value, commit) => handlers.onVolume(bus, value, commit),
     onNewGame: () => {
       resetModal.style.display = ""
       resetConfirm.focus()
@@ -409,9 +415,17 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
       statusTicker.say("")
       motionWrap.style.display = ""
       capturePrefChips({ motionChip, cameraChip, soundChip }, state.settings)
+      settings.setVolumes({
+        music: state.settings.musicVolume,
+        sfx: state.settings.sfxVolume,
+      })
       return
     }
     capturePrefChips({ motionChip, cameraChip, soundChip }, state.settings)
+    settings.setVolumes({
+      music: state.settings.musicVolume,
+      sfx: state.settings.sfxVolume,
+    })
     lowerThird.style.display = ""
     dockRow.style.display = ""
     dockTrain.style.display = ""

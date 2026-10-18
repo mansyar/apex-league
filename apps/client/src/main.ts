@@ -18,8 +18,10 @@ import {
   type StatKey,
   setArenaCamera,
   setLoadout,
+  setMusicVolume,
   setMuted,
   setReducedMotion,
+  setSfxVolume,
 } from "@apex/sim"
 import { buildArena } from "./arena"
 import { careCueForEvent } from "./audio/careCues"
@@ -483,6 +485,21 @@ const hud = createHud(app, {
     const current = store.get()
     store.commit(setMuted(current, !current.settings.muted))
   },
+  onVolume: (bus, value, commit) => {
+    const current = store.get()
+    // Audition live while the slider moves; only a release persists.
+    audioPlayer.setVolumes({
+      music: bus === "music" ? value : current.settings.musicVolume,
+      sfx: bus === "sfx" ? value : current.settings.sfxVolume,
+    })
+    if (bus === "music") beds.setVolume(value)
+    if (!commit) return
+    store.commit(
+      bus === "music"
+        ? setMusicVolume(current, value)
+        : setSfxVolume(current, value),
+    )
+  },
   onRename: (name) => {
     const next = renameCreature(store.get(), name)
     if (!next.ok) return false
@@ -513,8 +530,23 @@ store.subscribe((s) => hud.update(s))
 store.subscribe((s) => spar.update(s.creature ?? null))
 store.subscribe((s) => cup.update(s))
 store.subscribe((s) => audioPlayer.setMuted(s.settings.muted))
+store.subscribe((s) =>
+  audioPlayer.setVolumes({
+    music: s.settings.musicVolume,
+    sfx: s.settings.sfxVolume,
+  }),
+)
 store.subscribe((s) => beds.setMuted(s.settings.muted))
+store.subscribe((s) => beds.setVolume(s.settings.musicVolume))
 store.subscribe((s) => graduation.update(s))
+
+// Subscribers fire on commits, not at registration: apply the persisted mix
+// once so a reload starts at the saved levels.
+audioPlayer.setVolumes({
+  music: store.get().settings.musicVolume,
+  sfx: store.get().settings.sfxVolume,
+})
+beds.setVolume(store.get().settings.musicVolume)
 
 // First run (or a migrated v1 save without a creature): offer the starter.
 let starter = store.get().creature

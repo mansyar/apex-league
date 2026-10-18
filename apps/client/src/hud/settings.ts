@@ -66,6 +66,15 @@ export function capturePrefChips(
   if (soundLabel) soundLabel.textContent = view.soundLabel
 }
 
+/**
+ * Whole-percent read of a 0..1 bus level for the volume sliders. Clamped,
+ * and non-finite input reads as silence.
+ */
+export function volumePercent(value: number): number {
+  if (!Number.isFinite(value)) return 0
+  return Math.round(Math.min(1, Math.max(0, value)) * 100)
+}
+
 /** The reset-confirm modal elements. */
 export interface ResetModalRefs {
   resetModal: HTMLElement

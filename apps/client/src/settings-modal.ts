@@ -9,6 +9,7 @@
  */
 
 import { focusTrap } from "./battleUI"
+import { volumePercent } from "./hud/settings"
 import { chip } from "./ui/kit"
 
 /** The settings chip trio plus the cluster wrapper they float in. */
@@ -78,6 +79,48 @@ export interface SettingsModalRefs {
   cameraChip: HTMLButtonElement
   soundChip: HTMLButtonElement
   resetChip: HTMLButtonElement
+  /** Mirror the persisted mix onto the two sliders (0..1 bus levels). */
+  setVolumes: (volumes: { music: number; sfx: number }) => void
+}
+
+/** Which audio bus a slider edits (save v16). */
+export type VolumeBus = "music" | "sfx"
+
+/** One labeled 0-100 volume row; `input` is live, `change` is the commit. */
+function buildVolumeRow(
+  labelText: string,
+  onInput: (value: number) => void,
+  onChange: (value: number) => void,
+): { row: HTMLElement; sync: (value: number) => void } {
+  const row = document.createElement("label")
+  row.className = "settings-volume"
+  const label = document.createElement("span")
+  label.className = "settings-volume-label"
+  label.textContent = labelText
+  const slider = document.createElement("input")
+  slider.className = "settings-volume-slider"
+  slider.type = "range"
+  slider.min = "0"
+  slider.max = "100"
+  slider.step = "1"
+  slider.value = "100"
+  const value = document.createElement("output")
+  value.className = "settings-volume-value"
+  value.textContent = "100%"
+  slider.addEventListener("input", () => {
+    value.textContent = `${slider.value}%`
+    onInput(Number(slider.value) / 100)
+  })
+  slider.addEventListener("change", () => onChange(Number(slider.value) / 100))
+  row.append(label, slider, value)
+  return {
+    row,
+    sync: (level) => {
+      const percent = volumePercent(level)
+      slider.value = String(percent)
+      value.textContent = `${percent}%`
+    },
+  }
 }
 
 /**
@@ -122,6 +165,11 @@ export function buildSettingsModal(
     onToggleMuted?: () => void
     /** Opens the reset-confirm modal (built by buildResetModal). */
     onNewGame?: () => void
+    /**
+     * A volume slider moved (save v16): `commit` is false for live input and
+     * true on release, so callers can audition without a save per pixel.
+     */
+    onVolume?: (bus: VolumeBus, value: number, commit: boolean) => void
   } = {},
 ): SettingsModalRefs {
   const { motionChip, cameraChip, soundChip, resetChip } = buildSettingsChips()
@@ -140,7 +188,24 @@ export function buildSettingsModal(
 
   const rows = document.createElement("div")
   rows.className = "settings-rows"
-  for (const row of [motionChip, cameraChip, soundChip, resetChip])
+  const music = buildVolumeRow(
+    "Music volume",
+    (value) => opts.onVolume?.("music", value, false),
+    (value) => opts.onVolume?.("music", value, true),
+  )
+  const sfx = buildVolumeRow(
+    "SFX volume",
+    (value) => opts.onVolume?.("sfx", value, false),
+    (value) => opts.onVolume?.("sfx", value, true),
+  )
+  for (const row of [
+    motionChip,
+    cameraChip,
+    soundChip,
+    music.row,
+    sfx.row,
+    resetChip,
+  ])
     rows.append(row)
 
   const actions = document.createElement("div")
@@ -194,5 +259,9 @@ export function buildSettingsModal(
     cameraChip,
     soundChip,
     resetChip,
+    setVolumes: ({ music: musicLevel, sfx: sfxLevel }) => {
+      music.sync(musicLevel)
+      sfx.sync(sfxLevel)
+    },
   }
 }
