@@ -421,6 +421,7 @@ const hud = createHud(app, {
     // visible immediately; successive feeds re-trigger cleanly.
     if (action === "feed") scene.startFeedCeremony()
     if (action === "rest") scene.startRestCeremony()
+    if (action === "treat") scene.startTreatCeremony()
   },
   onTrain: (stat: StatKey) => {
     const result = assignTraining(store.get(), stat)

@@ -9,6 +9,7 @@ import { buildCreatureGroup } from "./creature"
 import {
   createEvolutionCeremony,
   createRestCeremony,
+  createTreatCeremony,
   createWalk,
   createWander,
   type GaitPose,
@@ -17,6 +18,7 @@ import {
   type RestDrive,
   stageScale,
   swayAngle,
+  type TreatDrive,
   type WanderDrive,
   windBaseAmp,
 } from "./scene-logic"
@@ -130,6 +132,10 @@ export interface RanchMotion {
    * deep-sleep hold, then a wake-and-stretch (ranch_rituals_20261018
    * FR3). Preempts any in-flight walk or wander trip. */
   startRest(): void
+  /** Begin the treat ceremony: settle into a subdued slump, a balm moment
+   * with a relief sparkle burst, then recover (ranch_rituals_20261018
+   * FR4). Preempts any in-flight walk, wander, or rest. */
+  startTreat(): void
   /** Begin the evolution ceremony (juvenile→champion or baby→juvenile)
    * from the current pose; the swap rebuilds to the target stage. `onDone`
    * fires once the machine has settled — the cue that the ceremony is over
@@ -211,6 +217,18 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
   /** Whether the rest machine currently owns the creature (drives the
    * deep-sleep breathing override; cleared by preemption or settle). */
   let restActive = false
+
+  // -- Treat ceremony (ranch_rituals_20261018 FR4) -----------------------------
+  // Settle into a subdued slump, a balm moment with a relief sparkle burst
+  // overhead, then recover back to the normal stance. The machine is pure
+  // (scene-logic.ts); this unit maps the drive onto the rig and runs the
+  // sparkle points.
+  let treat = createTreatCeremony()
+  /** Whether the treat machine currently owns the creature. */
+  let treatActive = false
+  /** Relief sparkle points floating above the creature (visible only while
+   * the balm's relief window is open). */
+  let sparkle: THREE.Points | null = null
 
   /** How deep the nibble head-dips go (in the head pivot's local units —
    * the rig runs in grid units, so this scales with the creature). */
@@ -296,6 +314,85 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
       // The wake reach stretches the spine tall (on top of the breath scale).
       body.scale.y *= 1 + rd.stretch * 0.14
     }
+  }
+
+  /** Map the treat ceremony's drive onto the rig (ranch_rituals_20261018
+   * FR4): a subdued slump — head sinking onto the chest, a slight body
+   * pitch, settling low — easing back to the normal stance on recover.
+   * Called after the breathing writes so it composes with the idle breath.
+   * Reduced motion rides the same mapping — the machine just holds a still
+   * slump with no relief pulse. */
+  const applyTreatPose = (creature: THREE.Group, td: TreatDrive): void => {
+    applyGait(creature, gaitPose(0, 0, true))
+    const s = td.subdued
+    const head = rigParts.head
+    if (head) head.position.y = headBaseY - s * (headBaseY * 0.45 + 0.06)
+    const body = rigParts.body
+    if (body) body.rotation.x = s * 0.08
+    creature.position.y = -s * 0.05
+  }
+
+  // -- Relief sparkle (treat ceremony FR4) -------------------------------------
+  // A small burst of drifting motes above the creature, visible only while
+  // the balm's relief window is open. Cosmetic only (no sim meaning), so it
+  // is verified by eye rather than by unit tests.
+  const SPARKLE_COUNT = 14
+  const SPARKLE_RISE = 0.9
+  let sparkleBaseY = new Float32Array(SPARKLE_COUNT)
+  let sparklePhase = new Float32Array(SPARKLE_COUNT)
+
+  /** Build the sparkle points as a child of the creature group (so they
+   * follow it and scale with the stage). Deterministic layout — cosmetic
+   * decor, no gameplay meaning. */
+  const buildSparkle = (creature: THREE.Group): void => {
+    const positions = new Float32Array(SPARKLE_COUNT * 3)
+    sparkleBaseY.fill(0)
+    sparklePhase.fill(0)
+    for (let i = 0; i < SPARKLE_COUNT; i++) {
+      const angle = (i / SPARKLE_COUNT) * Math.PI * 2
+      const radius = 0.5 + (((i * 37) % 10) / 10) * 0.6
+      positions[i * 3] = Math.cos(angle) * radius
+      positions[i * 3 + 2] = Math.sin(angle) * radius
+      const baseY = 1.6 + (((i * 53) % 10) / 10) * 0.8
+      positions[i * 3 + 1] = baseY
+      sparkleBaseY[i] = baseY
+      sparklePhase[i] = ((i * 29) % 10) / 10
+    }
+    const geom = new THREE.BufferGeometry()
+    geom.setAttribute("position", new THREE.BufferAttribute(positions, 3))
+    const mat = new THREE.PointsMaterial({
+      color: 0xffe9a8,
+      size: 0.26,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      sizeAttenuation: true,
+    })
+    sparkle = new THREE.Points(geom, mat)
+    sparkle.visible = false
+    creature.add(sparkle)
+  }
+
+  /** Drive the sparkle burst: motes drift upward on individual cycles while
+   * the relief window is open, fading with it. A no-op (invisible) at
+   * relief 0. */
+  const updateSparkle = (t: number, relief: number): void => {
+    if (!sparkle) return
+    const mat = sparkle.material as THREE.PointsMaterial
+    if (relief <= 0.01) {
+      sparkle.visible = false
+      return
+    }
+    sparkle.visible = true
+    mat.opacity = Math.min(1, relief)
+    const attr = sparkle.geometry.getAttribute(
+      "position",
+    ) as THREE.BufferAttribute
+    for (let i = 0; i < SPARKLE_COUNT; i++) {
+      const cycle = (t * 1.2 + (sparklePhase[i] ?? 0)) % 1
+      attr.setY(i, (sparkleBaseY[i] ?? 0) + cycle * SPARKLE_RISE)
+    }
+    attr.needsUpdate = true
   }
 
   /** Build a creature rig (archetype + seed + stage) with the visual-center
@@ -438,12 +535,17 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
       let away = evoActive
       if (!evoActive) {
         creatureGroup.scale.setScalar(stageScale(currentStage))
-        // Rest ceremony (ranch_rituals_20261018 FR3): while active it owns
-        // the creature's pose — walk and wander stay parked.
+        // Rest (FR3) and treat (FR4) ceremonies: while either is active it
+        // owns the creature's pose — walk and wander stay parked.
         const rd = rest.advance(dt)
         restActive = rd.phase !== "idle"
+        const td = treat.advance(dt)
+        treatActive = td.phase !== "idle"
+        updateSparkle(t, treatActive ? td.relief : 0)
         if (restActive) {
           applyRestPose(creatureGroup, rd, breath)
+        } else if (treatActive) {
+          applyTreatPose(creatureGroup, td)
         } else {
           const wd = walk.advance(
             creatureGroup.position.x,
@@ -558,6 +660,8 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
       // ceremony legitimately owns the creature's motion).
       rest = createRestCeremony()
       restActive = false
+      treat = createTreatCeremony()
+      treatActive = false
       // A feed takes the creature over: abandon any in-flight wander trip
       // (FR3 — wander is suspended during the ceremony) and let the
       // ceremony machine drive from the creature's current pose.
@@ -596,7 +700,21 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
       // itself runs where the creature currently stands.
       walk = createWalk(reducedMotion)
       wander?.abort()
+      treat = createTreatCeremony()
+      treatActive = false
       rest.begin(reducedMotion)
+    },
+    startTreat() {
+      if (!creatureGroup) return
+      // Treat preempts an in-flight walk or wander trip the same way rest
+      // does (fresh walk machine so no ghost walk resumes), and replaces an
+      // in-flight rest. The balm moment runs where the creature stands.
+      walk = createWalk(reducedMotion)
+      wander?.abort()
+      rest = createRestCeremony()
+      restActive = false
+      if (!sparkle) buildSparkle(creatureGroup)
+      treat.begin(reducedMotion)
     },
     startEvolution(archetypeId, seed, targetStage, onDone) {
       if (!creatureGroup) return
@@ -609,6 +727,8 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
       wander?.abort()
       rest = createRestCeremony()
       restActive = false
+      treat = createTreatCeremony()
+      treatActive = false
       evolutionSwap = { archetypeId, seed, stage: targetStage }
       evolution.begin(creatureGroup.rotation.y, reducedMotion, {
         fromScale: stageScale(currentStage),
@@ -655,6 +775,11 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
     },
     update,
     dispose() {
+      if (sparkle) {
+        sparkle.geometry.dispose()
+        ;(sparkle.material as THREE.PointsMaterial).dispose()
+        sparkle = null
+      }
       if (creatureGroup) deps.disposeGroup(creatureGroup)
     },
   }

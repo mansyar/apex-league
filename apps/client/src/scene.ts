@@ -81,6 +81,15 @@ export interface SceneHandle {
    */
   startRestCeremony(): void
   /**
+   * Play the treat ceremony (ranch_rituals_20261018 FR4): settle into a
+   * subdued slump, a balm moment with a relief sparkle burst overhead,
+   * then recover back to the normal stance. Purely visual — the sim
+   * already committed. It preempts any in-flight walk, wander, or rest;
+   * a later feed/evolution ceremony preempts it in turn. Reduced motion
+   * plays a still, shortened slump with no relief pulse.
+   */
+  startTreatCeremony(): void
+  /**
    * Play the evolution ceremony (baby → juvenile, spec R5): walk to the
    * ranch center, glow and swell, swap the baby rig for the juvenile rig
    * at the pulse's peak, settle. Purely visual — the sim already evolved.
@@ -300,6 +309,9 @@ export function createScene(
     },
     startRestCeremony() {
       motion.startRest()
+    },
+    startTreatCeremony() {
+      motion.startTreat()
     },
     setRanchCreatureVisible(visible) {
       if (motion.group) motion.group.visible = visible
