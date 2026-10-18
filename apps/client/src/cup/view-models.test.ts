@@ -9,7 +9,6 @@
  */
 import { describe, expect, test } from "bun:test"
 import {
-  CUP_REWARDS,
   type CupSession,
   completeCup,
   createCreature,
