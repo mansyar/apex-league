@@ -47,23 +47,25 @@ guarantee (the size guard and barrel-surface test in Phase 3).
 
 ## Phase 2 - Split ranch-motion
 
-- [ ] Task: Lift the pure helpers out of the adapter
-    - [ ] Move `smoothstep` usage to the single `scene-logic/math.ts` export and delete `smoothstepLocal` (FR5).
-    - [ ] Re-export `gaitIntensity` and `standPointOnLineTo` from their logic modules; drop the adapter copies (FR4).
-- [ ] Task: Extract `ranch/poses.ts`
-    - [ ] Move `moodModeFrom`, `MOOD_PROFILES`, `applyGait`, `applyRestPose`, `applyTreatPose`, `applyPetPose`, and the breathe/head/tail writers.
-    - [ ] Keep pose writers allocation-free and in-place.
-- [ ] Task: Extract `ranch/sparkle.ts` and `ranch/ball.ts`
-    - [ ] Move the relief sparkle builder and its update step.
-    - [ ] Move `buildBall`, the ball update, and the play-chase helpers, including disposal.
-- [ ] Task: Reduce `ranch/motion.ts` to the adapter
-    - [ ] Keep `RanchMotion`, `RanchMotionDeps`, `createRanchMotion`, the frame loop, and the ceremony/machine wiring.
-    - [ ] Verify the update ordering is unchanged: base pose writes, then additive pet pose, then `onCreatureMoved`, then wind.
-- [ ] Task: Repoint the two consumers and delete `ranch-motion.ts`
-    - [ ] Update imports in `scene.ts` and `ranch-motion.test.ts` (move the test to `ranch/motion.test.ts`).
-    - [ ] Delete the old file; confirm no stray references remain.
-- [ ] Task: Commit `refactor(client): split ranch-motion into a ranch module folder`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Lift the pure helpers out of the adapter
+    - [x] Move `smoothstep` usage to the single `scene-logic/math.ts` export and delete `smoothstepLocal` (FR5).
+    - [x] Re-export `gaitIntensity` and `standPointOnLineTo` from their logic modules; drop the adapter copies (FR4). Both now live in `scene-logic/walk.ts` and `scene-logic/gait.ts`.
+- [x] Task: Extract `ranch/poses.ts` and `ranch/mood.ts`
+    - [x] Move `moodModeFrom`, `MOOD_PROFILES`, `applyGait`, `applyRestPose`, `applyTreatPose`, `applyPetPose`, and the breathe/head/tail writers.
+    - [x] Keep pose writers allocation-free and in-place.
+- [x] Task: Extract `ranch/effects.ts` and `ranch/idle.ts`
+    - [x] Move the relief sparkle and play-ball builders/updaters, including disposal, into `effects.ts` (the planned `sparkle.ts` + `ball.ts` merged: both are small and share the prop lifecycle).
+    - [x] Move the idle and ceremony pose driver plus the walk-leg transitions into `idle.ts`.
+- [x] Task: Replace the closure with an explicit state object (Option B, full restructure)
+    - [x] Add `ranch/types.ts` (contracts), `ranch/state.ts` (`RanchState` + `createRanchState`), `ranch/mount.ts`, `ranch/frame.ts`, `ranch/api.ts`.
+    - [x] Reduce `ranch/motion.ts` to the `createRanchMotion` composition root (0.9 KB).
+    - [x] Verify the update ordering is unchanged: base pose writes, then additive pet pose, then `onCreatureMoved`, then wind.
+- [x] Task: Repoint the two consumers and delete `ranch-motion.ts`
+    - [x] Update imports in `scene.ts` and `ranch-motion.test.ts` (move the test to `ranch/motion.test.ts`).
+    - [x] Delete the old file; confirm no stray references remain.
+- [x] Task: Commit `refactor(client): split ranch-motion into a ranch module folder` (433483c)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+    - `[checkpoint: 433483c]` - approved 2026-10-18; gates: verify 1457 pass / 0 fail, typecheck clean (voxel 51 / sim 68 / client 205), determinism byte-identical, biome 8 pre-existing warnings, largest ranch module `api.ts` 9.4 KB / largest scene-logic module 8.3 KB; browser evidence: feed, rest, treat (health 60 to 100 + relief sparkles), play (chase/return legs measured with a canvas pixel probe), pet, 220 px orbit drag; console 0 errors.
 
 ## Phase 3 - Guard and document
 
