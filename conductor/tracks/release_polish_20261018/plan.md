@@ -63,23 +63,24 @@ ends with a verification checkpoint and user approval.
 
 ## Phase 3 - Save transfer & corrupt recovery surfaces
 
-- [ ] Task: Save transfer UI (`save-transfer.ts`, new; `settings-modal.ts`,
-      `main.ts`)
-  - [ ] Failing tests (pure helpers): import availability is disabled while a
+- [x] Task: Save transfer UI (`save-transfer.ts`, new; `settings-modal.ts`,
+      `main.ts`) - 81341cb
+  - [x] Failing tests (pure helpers): import availability is disabled while a
         cup/battle session is active; confirmation and rejection copy map from
         each import reason; filename/date formatting is stable.
-  - [ ] Add "Download save" and "Import save" to Settings with file picker,
+  - [x] Add "Download save" and "Import save" to Settings with file picker,
         confirmation before replace, calm notices, and reload after success.
-- [ ] Task: Corrupt recovery dialog (`recovery.ts`, new; `main.ts`, `copy.ts`)
-  - [ ] Failing tests: recovery copy for each boot state; "Download broken save"
+- [x] Task: Corrupt recovery dialog (`recovery.ts`, new; `main.ts`, `copy.ts`)
+      - ee1f873
+  - [x] Failing tests: recovery copy for each boot state; "Download broken save"
         uses the retained bytes; "Start over" requires explicit confirmation.
-  - [ ] Replace the ticker-only corrupt notice with a dialog offering
+  - [x] Replace the ticker-only corrupt notice with a dialog offering
         download-then-reset; keep the calm coach voice.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Export -> fresh profile import; older-version import; newer/malformed
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Export -> fresh profile import; older-version import; newer/malformed
         rejection; corrupt boot download + reset; screenshots + console;
         `bun run verify`.
-  - [x] Record `[checkpoint: 59765f7]`.
+  - [x] Record `[checkpoint: 873c801]` after user approval.
 
 ## Phase 4 - Accessibility & reduced motion
 
