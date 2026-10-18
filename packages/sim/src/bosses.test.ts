@@ -9,7 +9,7 @@
 import { describe, expect, it } from "bun:test"
 import { BASIC_MOVE } from "./battle/moves"
 import type { Tactic } from "./battle/policy"
-import { BOSSES, getBoss } from "./bosses"
+import { BOSSES, CUP_ROUTES, getBoss } from "./bosses"
 import { getSpecies } from "./species"
 
 describe("boss registry", () => {
@@ -93,6 +93,57 @@ describe("boss registry", () => {
       expect(boss.intro.length).toBeGreaterThan(0)
       expect(boss.quips.win.length).toBeGreaterThan(0)
       expect(boss.quips.loss.length).toBeGreaterThan(0)
+    }
+  })
+})
+
+describe("CUP_ROUTES — the table behind bossForCup (cup_module_refactor_20261018)", () => {
+  it("routes every tier through a frozen, ordered rule list", () => {
+    expect(Object.isFrozen(CUP_ROUTES)).toBe(true)
+    expect(CUP_ROUTES.bronze.map((r) => r.when)).toEqual(["gate"])
+    expect(CUP_ROUTES.silver.map((r) => r.when)).toEqual([
+      "gate",
+      "checkpoint",
+      "apex",
+    ])
+    expect(CUP_ROUTES.gold.map((r) => r.when)).toEqual([
+      "gate",
+      "checkpoint",
+      "apex",
+    ])
+    // Legend is the capstone — no boss, no gate.
+    expect(CUP_ROUTES.legend).toEqual([])
+  })
+
+  it("pins the gate→milestone pairing per tier (silver gates on 'promotion', gold on 'apex')", () => {
+    expect(CUP_ROUTES.bronze.find((r) => r.when === "gate")?.milestone).toBe(
+      "promotion",
+    )
+    expect(CUP_ROUTES.silver.find((r) => r.when === "gate")?.milestone).toBe(
+      "promotion",
+    )
+    expect(CUP_ROUTES.gold.find((r) => r.when === "gate")?.milestone).toBe(
+      "apex",
+    )
+  })
+
+  it("gates open Promotion Cups; checkpoint and apex rules open championships", () => {
+    for (const tier of ["bronze", "silver", "gold"] as const) {
+      for (const rule of CUP_ROUTES[tier]) {
+        if (rule.when === "gate") expect(rule.kind).toBe("promotion")
+        else expect(rule.kind).toBe("championship")
+      }
+    }
+  })
+
+  it("every rule's (tier, milestone) resolves to exactly one registry boss", () => {
+    for (const tier of ["bronze", "silver", "gold"] as const) {
+      for (const rule of CUP_ROUTES[tier]) {
+        const boss = BOSSES.find(
+          (b) => b.tier === tier && b.milestone === rule.milestone,
+        )
+        expect(boss).toBeDefined()
+      }
     }
   })
 })

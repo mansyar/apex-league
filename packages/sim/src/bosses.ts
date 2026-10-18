@@ -193,10 +193,53 @@ function bossAtMilestone(tier: BossTier, milestone: BossMilestone): BossDef {
 }
 
 /**
- * Which authored boss (if any) stands at the final of the next cup the
- * player enters, and as which cup kind (silver_ladder_bosses_20261016,
- * extended by gold_legend_ladder_20261017). Pure — a function of the game
- * state only:
+ * The ordered routing rules behind `bossForCup`, one rule list per ladder
+ * tier (cup_module_refactor_20261018 FR2 — replaces the hardcoded if/else
+ * chain). Each rule carries three answers:
+ *
+ * - `when` — the condition that fires the rule: `"gate"` (the save is
+ *   promotion-eligible), `"checkpoint"` (subTier III, boss unscalped) or
+ *   `"apex"` (subTier I, boss unscalped).
+ * - `milestone` — which of the tier's milestones' bosses the rule seats.
+ *   Note the load-bearing subtlety: the silver gate opens on Delmar
+ *   (milestone `"promotion"`) but the gold gate re-seats Thessa
+ *   (milestone `"apex"`), because Thessa holds the gold apex *and* the
+ *   legend gate.
+ * - `kind` — the cup kind the rule produces (gate → promotion, the rest →
+ *   championship).
+ *
+ * Rules are evaluated in order; the first match wins. Legend routes
+ * nothing — it is the capstone. Pure frozen data.
+ */
+export interface CupRoute {
+  when: "gate" | BossMilestone
+  milestone: BossMilestone
+  kind: CupKind
+}
+
+const CUP_ROUTE_TABLE = {
+  bronze: [{ when: "gate", milestone: "promotion", kind: "promotion" }],
+  silver: [
+    { when: "gate", milestone: "promotion", kind: "promotion" },
+    { when: "checkpoint", milestone: "checkpoint", kind: "championship" },
+    { when: "apex", milestone: "apex", kind: "championship" },
+  ],
+  gold: [
+    { when: "gate", milestone: "apex", kind: "promotion" },
+    { when: "checkpoint", milestone: "checkpoint", kind: "championship" },
+    { when: "apex", milestone: "apex", kind: "championship" },
+  ],
+  legend: [],
+} as const satisfies Record<LadderTier, readonly CupRoute[]>
+
+export const CUP_ROUTES: Readonly<Record<LadderTier, readonly CupRoute[]>> =
+  Object.freeze(CUP_ROUTE_TABLE)
+
+/**
+ * Look up the boss standing at the final of the next cup the player enters,
+ * and as which cup kind (silver_ladder_bosses_20261016, extended by
+ * gold_legend_ladder_20261017). Pure — a function of the game state only.
+ * The decision grid, in climb order:
  *
  * - Bronze, points banked strictly past the Bronze I ceiling → the
  *   Promotion Cup against Koda (the gate cup, `kind: "promotion"`).
@@ -214,47 +257,27 @@ function bossAtMilestone(tier: BossTier, milestone: BossMilestone): BossDef {
  *   until beaten.
  * - Anything else (Silver II, Gold II, Legend) → a fully generated field.
  *
- * The cup entry surface calls this once per entry; `prepareCup` threads
- * the answer into `startCupSession`.
+ * The rules above live in the frozen `CUP_ROUTES` table; this function is
+ * the thin lookup that evaluates a tier's rules in order, first match
+ * wins. The cup entry surface calls this once per entry; `prepareCup`
+ * threads the answer into `startCupSession`.
  */
 export function bossForCup(
   state: GameState,
 ): { boss: BossDef; kind: CupKind } | null {
   const ladder = state.ladder
-  if (ladder.tier === "bronze") {
-    return promotionEligible(ladder)
-      ? { boss: bossAtMilestone("bronze", "promotion"), kind: "promotion" }
-      : null
-  }
-  if (ladder.tier === "silver") {
-    if (promotionEligible(ladder)) {
-      return { boss: bossAtMilestone("silver", "promotion"), kind: "promotion" }
-    }
-    if (ladder.subTier === "III" && !state.bossDefeats.includes("hesse")) {
-      return {
-        boss: bossAtMilestone("silver", "checkpoint"),
-        kind: "championship",
-      }
-    }
-    if (ladder.subTier === "I" && !state.bossDefeats.includes("marlow")) {
-      return { boss: bossAtMilestone("silver", "apex"), kind: "championship" }
-    }
-    return null
-  }
-  if (ladder.tier === "gold") {
-    if (promotionEligible(ladder)) {
-      return { boss: bossAtMilestone("gold", "apex"), kind: "promotion" }
-    }
-    if (ladder.subTier === "III" && !state.bossDefeats.includes("fenn")) {
-      return {
-        boss: bossAtMilestone("gold", "checkpoint"),
-        kind: "championship",
-      }
-    }
-    if (ladder.subTier === "I" && !state.bossDefeats.includes("thessa")) {
-      return { boss: bossAtMilestone("gold", "apex"), kind: "championship" }
-    }
-    return null
+  const tier = ladder.tier
+  if (tier === "legend") return null
+  const defeats = new Set(state.bossDefeats)
+  for (const rule of CUP_ROUTES[tier]) {
+    const boss = bossAtMilestone(tier, rule.milestone)
+    const fires =
+      rule.when === "gate"
+        ? promotionEligible(ladder)
+        : rule.when === "checkpoint"
+          ? ladder.subTier === "III" && !defeats.has(boss.id)
+          : ladder.subTier === "I" && !defeats.has(boss.id)
+    if (fires) return { boss, kind: rule.kind }
   }
   return null
 }
