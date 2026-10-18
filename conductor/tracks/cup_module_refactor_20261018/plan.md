@@ -131,9 +131,19 @@ checkpoints with explicit user verification.
 
 ## Phase 4 — Client Decomposition (FR3, FR4)
 
-- [ ] Task: Extract pure view-models first (TDD)
-  - [ ] DOM-free modules for screen-flow ordering, results math, give-up
+- [x] Task: Extract pure view-models first (TDD)
+  - [x] DOM-free modules for screen-flow ordering, results math, give-up
         semantics (`spar/loadout-vm.ts` style)
+
+> 8ffc482 — Extracted `cup/view-models.ts` (walkStep, entryLine,
+> giveupLine, coachTabLabel, initialPicks, resultsView, closeIntent,
+> chipView, bracketHeader) behind `cup/view-models.test.ts` (25 tests,
+> values captured from `cup.ts` before extraction); `cup.ts` rewired to
+> consume them, behavior-identical. Notes: closeIntent's input field is
+> `status` (the sim's own name); the chip hint uses the boss's full
+> persona name ("Verdant Dame Hesse holds the final"); the reveal step
+> carries its verdict (drops the verdictOf re-derivation in walk).
+> 1423 pass / 0 fail; check green ×3; determinism gate OK.
 - [ ] Task: Split `apps/client/src/cup.ts` → `apps/client/src/cup/`
   - [ ] Submodules: screens / coach-room / results / session-flow + arena
         handoff
