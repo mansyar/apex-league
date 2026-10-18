@@ -52,6 +52,8 @@ export function createResults(shared: CupShared): {
     void resultCard.offsetWidth
     resultCard.classList.add("play")
     shared.showScreen("results")
+    // The results screen is the only place to act: put focus on its Back.
+    shared.results.resultBack.focus()
   }
 
   /** The bracket fully played out: finalize the placement through the sim. */
