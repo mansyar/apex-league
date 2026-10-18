@@ -67,4 +67,5 @@
         touch the plate-head modal path); raycast the creature mesh; wire
         reaction + chirp; touch parity.
   - [x] Commit `feat(ranch): ambient pet interaction` (89058c3)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+      `[checkpoint: cc39af4]` - approved 2026-10-18; gates: bun run verify exit 0 (1423 pass / 0 fail, 1424 tests, determinism OK, biome clean on changed files); browser evidence: tap -> wiggle + care-pet cue, immediate second tap silent, drag across the body rejected while a tap at the same point pets, touch parity, plate-head modal + orbit drag untouched, reduced motion still pets (restored to full), console clean, save still v14 with no AP spent
