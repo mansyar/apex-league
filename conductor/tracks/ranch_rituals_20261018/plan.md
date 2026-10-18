@@ -58,11 +58,11 @@
 
 ## Phase 4 - Ambient pet
 
-- [~] Task: Pet reaction picker + cooldown (TDD)
-  - [ ] Failing tests: pure picker — mood bands -> reaction variant, droopy
+- [x] Task: Pet reaction picker + cooldown (TDD) (2a4da82)
+  - [x] Failing tests: pure picker — mood bands -> reaction variant, droopy
         override, cooldown gate. Implement to green.
-  - [ ] Commit `feat(ranch): pet reaction picker`
-- [ ] Task: Pointer wiring + raycast pet
+  - [x] Commit `feat(ranch): pet reaction picker` (2a4da82)
+- [~] Task: Pointer wiring + raycast pet
   - [ ] Click-vs-drag discrimination on the canvas (never hijack orbit, never
         touch the plate-head modal path); raycast the creature mesh; wire
         reaction + chirp; touch parity.
