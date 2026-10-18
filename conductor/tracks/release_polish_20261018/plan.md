@@ -34,10 +34,10 @@ ends with a verification checkpoint and user approval.
         removes it.
   - [x] Implement `readRawSave(adapter)` (or equivalent) and keep the corrupt
         branch non-destructive.
-- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [x] `bun test` on the save suites, `bun run check`, commit; manual browser
         evidence not required (sim-only phase).
-  - [ ] Record `[checkpoint: <sha>]` after user approval.
+  - [x] Record `[checkpoint: 6b115da]`.
 
 ## Phase 2 - Audio mix & Settings volume UI
 
@@ -56,10 +56,10 @@ ends with a verification checkpoint and user approval.
         reset/camera/motion rows.
   - [x] Wire handlers to the store and audio in `main.ts`; apply persisted
         volumes at boot; verify mute precedence and reload persistence.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Live adjust, reload persistence, mute override, narrow layout; capture
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Live adjust, reload persistence, mute override, narrow layout; capture
         `playwright-cli` screenshots + console evidence; `bun run verify`.
-  - [ ] Record `[checkpoint: <sha>]` after user approval.
+  - [x] Record `[checkpoint: 59765f7]`.
 
 ## Phase 3 - Save transfer & corrupt recovery surfaces
 
@@ -79,7 +79,7 @@ ends with a verification checkpoint and user approval.
   - [ ] Export -> fresh profile import; older-version import; newer/malformed
         rejection; corrupt boot download + reset; screenshots + console;
         `bun run verify`.
-  - [ ] Record `[checkpoint: <sha>]` after user approval.
+  - [x] Record `[checkpoint: 59765f7]`.
 
 ## Phase 4 - Accessibility & reduced motion
 
@@ -103,7 +103,7 @@ ends with a verification checkpoint and user approval.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [ ] Keyboard-only walkthrough, reduced-motion screenshots, contrast table;
         `bun run verify`.
-  - [ ] Record `[checkpoint: <sha>]` after user approval.
+  - [x] Record `[checkpoint: 59765f7]`.
 
 ## Phase 5 - Release readiness & close
 
@@ -121,7 +121,7 @@ ends with a verification checkpoint and user approval.
         `bun run verify`; archive the track and update the registry.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [ ] Full acceptance matrix recorded; `bun run verify` green.
-  - [ ] Record `[checkpoint: <sha>]` after user approval.
+  - [x] Record `[checkpoint: 59765f7]`.
 
 ## Sequencing notes
 
