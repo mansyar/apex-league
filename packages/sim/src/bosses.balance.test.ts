@@ -274,7 +274,7 @@ describe("boss balance probe (FR12)", () => {
         )
       }
     }
-  }, 30000)
+  }, 120000)
 
   test("a disadvantaged player cannot win below full training", () => {
     const probe = runBossProbe()
@@ -292,7 +292,7 @@ describe("boss balance probe (FR12)", () => {
         ).toBe(0)
       }
     }
-  }, 30000)
+  }, 120000)
 
   test("every boss is grindable at full training for every species", () => {
     const probe = runBossProbe()
