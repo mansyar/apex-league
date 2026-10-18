@@ -17,6 +17,7 @@ import {
   type WalkMachine,
   type WanderMachine,
 } from "../scene-logic"
+import type { SparkleBurst } from "./effects"
 import type { MoodMode } from "./mood"
 import type { RanchMotionDeps, Swayer } from "./types"
 
@@ -64,7 +65,7 @@ export interface RanchState {
   restActive: boolean
   treat: TreatMachine
   treatActive: boolean
-  sparkle: import("./effects").SparkleBurst | null
+  sparkle: SparkleBurst | null
   /** Standing spot near the pile, on the creature→pile line, chosen at
    * start by startFeed. */
   standX: number
