@@ -2,8 +2,9 @@
 
 ## Phase 1 - Catalog and unlock rules (sim, TDD)
 
-- [ ] Task: Record the pre-change balance baseline
-  - [ ] Run the existing mirror and cross-element probes over the seed batch and save the numbers (win rates, stall count, per-move usage) as the comparison point for Phases 3 and 5
+- [x] Task: Record the pre-change balance baseline 9a7f969
+  - [x] Run the existing mirror and cross-element probes over the seed batch and save the numbers (win rates, stall count, per-move usage) as the comparison point for Phases 3 and 5
+  - **Baseline (2026-10-18, 96 seeds x 4 tactic pairs, tiers 2/3/4/6):** 36 cases, 0 time-cap endings, all 12 specials used. Mirror `rateA` at kit4: fire 52.1%, plant 44.6%, water 47.0%. Cross-element already sits at the rails (fire>plant 100% / plant>fire 0%, fire>water 0% / water>fire 100%, plant>water 99.7% / water>plant 0.3%), so the +-5 bound is a tripwire against worsening, not a target of 50%. Mirrors being off 50% is the side/tactic asymmetry the matrix encodes, not a defect. Evidence: `baseline-probe.json`; harness: `packages/sim/scripts/balance-probe.ts` (`bun packages/sim/scripts/balance-probe.ts --out <file>`).
 - [ ] Task: Write failing catalog tests
   - [ ] Assert six moves per playable element; the two new entries carry exactly `7/95/1` and `14/70/3`; all three elements mirror index-for-index
   - [ ] Assert every pre-existing move keeps its id, power, accuracy, cooldown, and index
@@ -50,7 +51,7 @@
 ## Phase 5 - Balance, docs, final gate
 
 - [ ] Task: Full probe matrix against the Phase 1 baseline
-  - [ ] Mirrors and cross-element within ±5 points; zero 40-tick stalls; every new move chosen by the AI in at least one matchup
+  - [ ] Mirrors and cross-element within ±5 points; zero time-cap endings (`reason: "time"`); every new move chosen by the AI in at least one matchup
 - [ ] Task: Documentation
   - [ ] `tech-stack.md`: move-pool layout, derived-knowledge note, rival-kit determinism rule
   - [ ] `docs/save-schema.md`: explicit statement that move knowledge is derived and no v16 exists
