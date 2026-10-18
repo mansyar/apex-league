@@ -88,6 +88,7 @@ Notes from this phase:
   forbids per-corner scans beyond the fixed eight (spec.md:180-181). Reverted.
   The user accepted AO as a subtle cue and moved the fidelity effort to
   Phase 3, where palette zones and dappling act on 100% of pixels.
+- Checkpoint: `41c7a25`.
 
 ## Phase 3: Surface zones and dappling
 
