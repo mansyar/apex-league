@@ -9,38 +9,41 @@ guarantee (the size guard and barrel-surface test in Phase 3).
 
 ## Phase 1 - Split scene-logic
 
-- [ ] Task: Capture the baseline gate
-    - [ ] Record `bun run verify` output: test count, determinism digests, warnings.
-    - [ ] Record `Get-ChildItem` sizes for `scene-logic.ts` and `ranch-motion.ts`.
-    - [ ] Confirm the 14 importers of `./scene-logic` and the 2 of `./ranch-motion`.
-- [ ] Task: Extract the pure leaf modules (`scene-logic/math.ts`, `wind.ts`, `stage.ts`, `framing.ts`)
-    - [ ] Move `lerpAngle`, `wrapPi`, `phaseHash`, `smoothstep` into `math.ts`.
-    - [ ] Move `windBaseAmp`, `gustEnvelope`, `swayAngle` into `wind.ts`.
-    - [ ] Move `BABY_SCALE`, `JUVENILE_SCALE`, `CHAMPION_SCALE`, `stageScale` into `stage.ts`.
-    - [ ] Move `arenaFramingAdjust` and `ArenaFramingAdjustment` into `framing.ts` (FR6).
-    - [ ] Keep each module leaf-only (no sibling imports) and carry the original doc comments.
-- [ ] Task: Extract the position-driven ceremonies (`feed.ts`, `evolution.ts`)
-    - [ ] Move `CeremonyPhase`, `WalkDrive`, `WalkMachine`, `createWalk`, `standPointOnLineTo` into `feed.ts`.
-    - [ ] Move the evolution phase/drive/machine types and `createEvolutionCeremony` into `evolution.ts`.
-    - [ ] Import easing from `math.ts` rather than duplicating it.
-- [ ] Task: Extract the care and reaction machines (`rest.ts`, `treat.ts`, `play.ts`, `pet.ts`)
-    - [ ] Move the rest constants, drive types, and `createRestCeremony` into `rest.ts`.
-    - [ ] Move the treat constants, drive types, and `createTreatCeremony` into `treat.ts`.
-    - [ ] Move the play phases, constants, drive types, and `createPlayCeremony` into `play.ts`.
-    - [ ] Move `PetVariant`, `PetPhase`, `PetDrive`, `pickPetReaction`, `PET_*`, `createPetMachine`, and `isTap` into `pet.ts`.
-- [ ] Task: Extract the movement modules (`gait.ts`, `wander.ts`)
-    - [ ] Move `GAIT_*`, `GaitPose`, `gaitPose`, `gaitIntensity` into `gait.ts`.
-    - [ ] Move `WANDER_*`, the wander types, `nextGap`, `pickVisitTarget`, and `createWander` into `wander.ts`.
-- [ ] Task: Rewrite `scene-logic.ts` as a barrel
-    - [ ] Re-export every symbol currently exported, preserving names and types (FR2).
-    - [ ] Delete the moved bodies; leave no dead imports or unused constants.
-    - [ ] Verify `bun run check` passes with zero importer edits.
-- [ ] Task: Co-locate the 12 logic tests
-    - [ ] Move `scene-logic*.test.ts` into `scene-logic/` and repoint imports to `./<module>`.
-    - [ ] Leave every test name, case, and assertion untouched (FR7).
-    - [ ] Confirm `git diff` shows changes in no other `apps/client/src` file.
-- [ ] Task: Commit `refactor(client): split scene-logic into per-machine modules`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Capture the baseline gate
+    - [x] Record `bun run verify` output: test count, determinism digests, warnings (1457 pass / 0 fail, 8 warnings, digests OK).
+    - [x] Record `Get-ChildItem` sizes for `scene-logic.ts` (43.1 KB) and `ranch-motion.ts` (39.8 KB).
+    - [x] Confirm the 14 importers of `./scene-logic` and the 2 of `./ranch-motion`.
+- [x] Task: Extract the pure leaf modules (`scene-logic/math.ts`, `wind.ts`, `stage.ts`, `framing.ts`)
+    - [x] Move `lerpAngle`, `wrapPi`, `phaseHash`, `smoothstep` into `math.ts`.
+    - [x] Move `windBaseAmp`, `gustEnvelope`, `swayAngle` into `wind.ts`.
+    - [x] Move `BABY_SCALE`, `JUVENILE_SCALE`, `CHAMPION_SCALE`, `stageScale` into `stage.ts`.
+    - [x] Move `arenaFramingAdjust` and `ArenaFramingAdjustment` into `framing.ts` (FR6).
+    - [x] Keep each module leaf-only (no sibling imports) and carry the original doc comments.
+- [x] Task: Extract the position-driven ceremonies (`feed.ts`, `evolution.ts`)
+    - [x] Move `CeremonyPhase`, `WalkDrive`, `WalkMachine`, `createWalk` into `feed.ts`.
+    - [x] Add `walk.ts` (13th module) for the shared walk primitives — `WALK_SPEED`, `TURN_SPEED`, `TURN_THRESHOLD`, `heading`, `strideStep` — because feed and evolution both need them and a `feed`→`gait` import would have been a cycle.
+    - [x] Move the evolution phase/drive/machine types and `createEvolutionCeremony` into `evolution.ts`.
+    - [x] Import easing from `math.ts` rather than duplicating it.
+- [x] Task: Extract the care and reaction machines (`rest.ts`, `treat.ts`, `play.ts`, `pet.ts`)
+    - [x] Move the rest constants, drive types, and `createRestCeremony` into `rest.ts`.
+    - [x] Move the treat constants, drive types, and `createTreatCeremony` into `treat.ts`.
+    - [x] Move the play phases, constants, drive types, and `createPlayCeremony` into `play.ts`.
+    - [x] Move `PetVariant`, `PetPhase`, `PetDrive`, `pickPetReaction`, `PET_*`, `createPetMachine`, and `isTap` into `pet.ts`.
+- [x] Task: Extract the movement modules (`gait.ts`, `wander.ts`)
+    - [x] Move `GAIT_*`, `GaitPose`, `gaitPose` into `gait.ts`.
+    - [x] Move `WANDER_*`, the wander types, `nextGap`, `pickVisitTarget`, and `createWander` into `wander.ts`.
+- [x] Task: Rewrite `scene-logic.ts` as a barrel
+    - [x] Re-export every symbol currently exported, preserving names and types (FR2).
+    - [x] Delete the moved bodies; leave no dead imports or unused constants.
+    - [x] Verify `bun run check` passes with zero importer edits.
+- [x] Task: Co-locate the 12 logic tests
+    - [x] Move `scene-logic*.test.ts` into `scene-logic/` and repoint imports to `../scene-logic` (the barrel).
+    - [x] Leave every test name, case, and assertion untouched (FR7).
+    - [x] Confirm `git diff` shows changes in no other `apps/client/src` file.
+- [x] Task: Commit `refactor(client): split scene-logic into per-machine modules` (cc6cbab)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+    - `[checkpoint: cc6cbab]` - approved 2026-10-18; gates: verify 1457 pass / 0 fail, typecheck clean (voxel 51 / sim 68 / client 196), determinism byte-identical, biome 8 pre-existing warnings; browser evidence: ranch renders from the refactored modules, tap still triggers the pet reaction, 260 px drag still orbits, console clean.
+
 
 ## Phase 2 - Split ranch-motion
 
