@@ -322,6 +322,9 @@ const applyMotionPref = (): void => {
   scene.setMotionReduced(reduced)
   // The swap honors the save too: in-app reduced means instant cuts.
   swap.setMotionReduced(reduced)
+  // CSS surfaces (cup reveals, battle stamps, sheets) read this class;
+  // without it the saved setting only reached the 3D layer.
+  document.body.classList.toggle("is-reduced", resolveMotionPref(reduced))
 }
 applyMotionPref()
 
