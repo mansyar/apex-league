@@ -1,0 +1,16 @@
+{
+  "trackId": "ranch_rituals_20261018",
+  "type": "feature",
+  "status": "new",
+  "title": "Ranch Rituals: ambient petting, rest/treat/play ceremonies, CC0 care SFX + dawn chime, and a rest-meaningful night (healthy nights restore 0 energy)",
+  "createdAt": "2026-10-18",
+  "branch": "track/ranch_rituals_20261018",
+  "surfaces": [
+    "packages/sim/src/settlement.ts",
+    "apps/client/src/audio/",
+    "apps/client/src/ranch-motion.ts",
+    "apps/client/src/main.ts",
+    "apps/client/src/hud/copy.ts",
+    "apps/client/src/handbook.ts"
+  ]
+}

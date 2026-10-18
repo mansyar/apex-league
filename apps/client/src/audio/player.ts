@@ -1,6 +1,7 @@
 /**
- * The imperative audio player for the battle arena (audio_foundation_20261017
- * FR1). Two layers, kept apart for testability:
+ * The imperative audio player for arena battle and ranch care cues
+ * (audio_foundation_20261017 FR1; ranch_rituals_20261018 FR5). Two layers,
+ * kept apart for testability:
  *
  * - The pure gate (`isAudible`) — the autoplay-unlock and mute contract.
  *   Browsers refuse audio before the first user gesture, so the player
@@ -12,7 +13,7 @@
  *   that throws (no audio hardware, missing codec) is swallowed here so
  *   audio can never take the arena down — the silent no-op fallback.
  */
-import type { CueId } from "./cues"
+import type { AnyCueId } from "./cueUrls"
 
 /** The gate state: unlocked-by-gesture and the persisted mute toggle. */
 export interface Gate {
@@ -23,7 +24,7 @@ export interface Gate {
 }
 
 /** The imperative playback seam: actually make a cue sound (or not). */
-export type CuePlayer = (cue: CueId) => void
+export type CuePlayer = (cue: AnyCueId) => void
 
 /**
  * Whether a play request should reach the seam. Both conditions must hold:
@@ -60,7 +61,7 @@ export class AudioPlayer {
    * Play a cue if the gate allows it; never throws — a failing seam
    * degrades to silence, matching the no-audio fallback contract.
    */
-  play(cue: CueId): void {
+  play(cue: AnyCueId): void {
     if (!isAudible({ unlocked: this.unlocked, muted: this.muted })) return
     try {
       this.playCue(cue)

@@ -11,16 +11,16 @@
  * battle (silent no-op fallback, matching the player contract).
  */
 
-import type { CueId } from "./cues"
+import type { AnyCueId } from "./cueUrls"
 import { cueUrl } from "./cueUrls"
 
 /** One preloaded source per cue, created lazily on first play. */
-const sources = new Map<CueId, HTMLAudioElement>()
+const sources = new Map<AnyCueId, HTMLAudioElement>()
 
 /** Playback loudness for all cues (jingles included — one calm mix). */
 const CUE_VOLUME = 0.6
 
-export function playCue(cue: CueId): void {
+export function playCue(cue: AnyCueId): void {
   let source = sources.get(cue)
   if (!source) {
     source = new Audio(cueUrl[cue])

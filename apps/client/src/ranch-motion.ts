@@ -3,18 +3,31 @@ import {
   EXHAUSTED_ENERGY,
   SICK_HEALTH,
 } from "@apex/sim"
-import { generate, type Stage } from "@apex/voxel"
+import { generate, makeRng, type Stage } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
 import {
   createEvolutionCeremony,
+  createPetMachine,
+  createPlayCeremony,
+  createRestCeremony,
+  createTreatCeremony,
   createWalk,
   createWander,
   type GaitPose,
   gaitPose,
+  type PetDrive,
+  type PetMachine,
+  type PetVariant,
+  type PlayDrive,
   phaseHash,
+  pickPetReaction,
+  pickVisitTarget,
+  type RestDrive,
   stageScale,
   swayAngle,
+  type TreatDrive,
+  WANDER_DISC_RADIUS,
   type WanderDrive,
   windBaseAmp,
 } from "./scene-logic"
@@ -23,7 +36,8 @@ import { lambertMaterialOf } from "./scene-utils"
 /**
  * The ranch creature's whole performing life, extracted from scene.ts:
  * condition-driven mood idles (breath, droop, bounce), the feed-walk
- * ceremony, sparse wandering, the baby→juvenile evolution ceremony, wind
+ * ceremony, the rest ceremony (curl-down sleep + wake-and-stretch, FR3),
+ * sparse wandering, the baby→juvenile evolution ceremony, wind
  * sway on scattered props, and the rig rebuild contract. scene.ts wires
  * this unit into the frame loop and the HUD-facing SceneHandle.
  *
@@ -123,6 +137,26 @@ export interface RanchMotion {
   droopyMoment(durationMs?: number): void
   /** Begin the feed ceremony (aborts any in-flight wander trip). */
   startFeed(): void
+  /** Begin the rest ceremony: curl down where the creature stands, a
+   * deep-sleep hold, then a wake-and-stretch (ranch_rituals_20261018
+   * FR3). Preempts any in-flight walk or wander trip. */
+  startRest(): void
+  /** Begin the treat ceremony: settle into a subdued slump, a balm moment
+   * with a relief sparkle burst, then recover (ranch_rituals_20261018
+   * FR4). Preempts any in-flight walk, wander, or rest. */
+  startTreat(): void
+  /** Begin the play ceremony: toss the ball out, chase it, bop it further,
+   * trot home and celebrate with happy hops (ranch_rituals_20261018 FR5).
+   * Preempts rest/treat/wander; later feed/evolution preempt it. */
+  startPlay(): void
+  /**
+   * Pet the creature (ranch_rituals_20261018 FR6): pick a mood-aware
+   * reaction and play it. Returns the variant that started, or `null` when
+   * the pet was ignored — a ceremony owns the creature, it is still
+   * reacting, or the spam cooldown has not elapsed. Presentation-only: no
+   * sim state is touched.
+   */
+  startPet(): PetVariant | null
   /** Begin the evolution ceremony (juvenile→champion or baby→juvenile)
    * from the current pose; the swap rebuilds to the target stage. `onDone`
    * fires once the machine has settled — the cue that the ceremony is over
@@ -196,6 +230,27 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
   /** True while the machine owns the creature — the settle edge ends it. */
   let evolutionActive = false
 
+  // -- Rest ceremony (ranch_rituals_20261018 FR3) ------------------------------
+  // The machine drives curl → deep-sleep hold → wake-and-stretch where the
+  // creature stands; this unit maps the drive onto the rig (folded legs,
+  // lowered head, deep slow breath) — see applyRestPose.
+  let rest = createRestCeremony()
+  /** Whether the rest machine currently owns the creature (drives the
+   * deep-sleep breathing override; cleared by preemption or settle). */
+  let restActive = false
+
+  // -- Treat ceremony (ranch_rituals_20261018 FR4) -----------------------------
+  // Settle into a subdued slump, a balm moment with a relief sparkle burst
+  // overhead, then recover back to the normal stance. The machine is pure
+  // (scene-logic.ts); this unit maps the drive onto the rig and runs the
+  // sparkle points.
+  let treat = createTreatCeremony()
+  /** Whether the treat machine currently owns the creature. */
+  let treatActive = false
+  /** Relief sparkle points floating above the creature (visible only while
+   * the balm's relief window is open). */
+  let sparkle: THREE.Points | null = null
+
   /** How deep the nibble head-dips go (in the head pivot's local units —
    * the rig runs in grid units, so this scales with the creature). */
   const DIP_DEPTH = 1.2
@@ -234,6 +289,174 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
     const body = creature.getObjectByName("body")
     if (body) body.rotation.z = pose.roll
     creature.position.y = pose.bob
+  }
+
+  /** Deep, slow breathing while the rest ceremony owns the creature
+   * (ranch_rituals_20261018 FR3) — sleep reads as long, heavy breaths
+   * instead of the condition-driven idle profile. */
+  const REST_BREATH_RATE = 0.8
+  const REST_BREATH_AMP = 0.05
+
+  /** Map the rest ceremony's drive onto the rig: legs fold under, the body
+   * settles low, the head sinks; the wake stretch lifts the head and
+   * reaches the spine tall. Called after the breathing writes so it
+   * composes with (never fights) the idle breath. Reduced motion rides the
+   * same mapping — the machine just jumps straight to a still curl. */
+  const applyRestPose = (
+    creature: THREE.Group,
+    rd: RestDrive,
+    breath: number,
+  ): void => {
+    // Legs come back to rest first (zero gait pose), then fold by curl.
+    applyGait(creature, gaitPose(0, 0, true))
+    const curl = rd.curl
+    const fold = (name: string, angle: number): void => {
+      const pivot = creature.getObjectByName(name)
+      if (pivot) pivot.rotation.x = angle * curl
+    }
+    fold("legFL", -0.85)
+    fold("legFR", -0.85)
+    fold("legBL", 0.85)
+    fold("legBR", 0.85)
+    // Settle slightly toward the ground while curled.
+    creature.position.y = -curl * 0.08
+    const head = rigParts.head
+    if (head) {
+      // Sleep: the head sinks onto the curl. Wake: it rises past base —
+      // the reach that reads as a stretch.
+      head.position.y =
+        headBaseY +
+        breath * REST_BREATH_AMP * 0.6 -
+        curl * (headBaseY * 0.35 + 0.05) +
+        rd.stretch * (headBaseY * 0.35 + 0.05)
+    }
+    const body = rigParts.body
+    if (body) {
+      // The wake reach stretches the spine tall (on top of the breath scale).
+      body.scale.y *= 1 + rd.stretch * 0.14
+    }
+  }
+
+  /** Map the treat ceremony's drive onto the rig (ranch_rituals_20261018
+   * FR4): a subdued slump — head sinking onto the chest, a slight body
+   * pitch, settling low — easing back to the normal stance on recover.
+   * Called after the breathing writes so it composes with the idle breath.
+   * Reduced motion rides the same mapping — the machine just holds a still
+   * slump with no relief pulse. */
+  const applyTreatPose = (creature: THREE.Group, td: TreatDrive): void => {
+    applyGait(creature, gaitPose(0, 0, true))
+    const s = td.subdued
+    const head = rigParts.head
+    if (head) head.position.y = headBaseY - s * (headBaseY * 0.45 + 0.06)
+    const body = rigParts.body
+    if (body) body.rotation.x = s * 0.08
+    creature.position.y = -s * 0.05
+  }
+
+  // -- Relief sparkle (treat ceremony FR4) -------------------------------------
+  // A small burst of drifting motes above the creature, visible only while
+  // the balm's relief window is open. Cosmetic only (no sim meaning), so it
+  // is verified by eye rather than by unit tests.
+  const SPARKLE_COUNT = 14
+  const SPARKLE_RISE = 0.9
+  const sparkleBaseY = new Float32Array(SPARKLE_COUNT)
+  const sparklePhase = new Float32Array(SPARKLE_COUNT)
+
+  /** Build the sparkle points as a child of the creature group (so they
+   * follow it and scale with the stage). Deterministic layout — cosmetic
+   * decor, no gameplay meaning. */
+  const buildSparkle = (creature: THREE.Group): void => {
+    const positions = new Float32Array(SPARKLE_COUNT * 3)
+    sparkleBaseY.fill(0)
+    sparklePhase.fill(0)
+    for (let i = 0; i < SPARKLE_COUNT; i++) {
+      const angle = (i / SPARKLE_COUNT) * Math.PI * 2
+      const radius = 0.5 + (((i * 37) % 10) / 10) * 0.6
+      positions[i * 3] = Math.cos(angle) * radius
+      positions[i * 3 + 2] = Math.sin(angle) * radius
+      const baseY = 1.6 + (((i * 53) % 10) / 10) * 0.8
+      positions[i * 3 + 1] = baseY
+      sparkleBaseY[i] = baseY
+      sparklePhase[i] = ((i * 29) % 10) / 10
+    }
+    const geom = new THREE.BufferGeometry()
+    geom.setAttribute("position", new THREE.BufferAttribute(positions, 3))
+    const mat = new THREE.PointsMaterial({
+      color: 0xffe9a8,
+      size: 0.26,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      sizeAttenuation: true,
+    })
+    sparkle = new THREE.Points(geom, mat)
+    sparkle.visible = false
+    creature.add(sparkle)
+  }
+
+  /** Drive the sparkle burst: motes drift upward on individual cycles while
+   * the relief window is open, fading with it. A no-op (invisible) at
+   * relief 0. */
+  const updateSparkle = (t: number, relief: number): void => {
+    if (!sparkle) return
+    const mat = sparkle.material as THREE.PointsMaterial
+    if (relief <= 0.01) {
+      sparkle.visible = false
+      return
+    }
+    sparkle.visible = true
+    mat.opacity = Math.min(1, relief)
+    const attr = sparkle.geometry.getAttribute(
+      "position",
+    ) as THREE.BufferAttribute
+    for (let i = 0; i < SPARKLE_COUNT; i++) {
+      const cycle = (t * 1.2 + (sparklePhase[i] ?? 0)) % 1
+      attr.setY(i, (sparkleBaseY[i] ?? 0) + cycle * SPARKLE_RISE)
+    }
+    attr.needsUpdate = true
+  }
+
+  // -- Play ceremony (FR5) -----------------------------------------------------
+  // A tossed ball the creature chases, bops further, trots home from, and
+  // celebrates over. The machine is pure (scene-logic.ts); the shared walk
+  // machine carries the chase and return legs, the ball is a simple prop
+  // mesh, and the celebrate phase hops the creature in place.
+  const PLAY_BOUNCE_HEIGHT = 0.18
+  const BALL_RADIUS = 0.3
+  let play = createPlayCeremony()
+  let playActive = false
+  let playHome = { x: 0, z: 0 }
+  let playLanding = { x: 0, z: 0 }
+  let prevPlayPhase: PlayDrive["phase"] = "idle"
+  let prevWalkMoving = false
+  let playSeedCounter = 0
+  let ball: THREE.Mesh | null = null
+
+  const buildBall = (): void => {
+    const geom = new THREE.IcosahedronGeometry(BALL_RADIUS, 0)
+    const mat = new THREE.MeshLambertMaterial({ color: 0xe8a13c })
+    ball = new THREE.Mesh(geom, mat)
+    ball.castShadow = true
+    ball.visible = false
+    deps.scene.add(ball)
+  }
+
+  /** Place the ball prop from the machine's world-space drive. */
+  const updateBall = (pd: PlayDrive): void => {
+    if (!ball) return
+    ball.visible = pd.ballVisible
+    if (pd.ballVisible) {
+      ball.position.set(pd.ballX, pd.ballY + BALL_RADIUS, pd.ballZ)
+    }
+  }
+
+  /** Tear down an in-flight play ceremony without touching the walk
+   * machine (whoever cancels play owns the creature next). */
+  const cancelPlay = (): void => {
+    play = createPlayCeremony()
+    playActive = false
+    prevPlayPhase = "idle"
+    if (ball) ball.visible = false
   }
 
   /** Build a creature rig (archetype + seed + stage) with the visual-center
@@ -289,6 +512,48 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
     headBaseY = rig.getObjectByName("head")?.position.y ?? 0
   }
 
+  // -- Ambient pet (ranch_rituals_20261018 FR6) -------------------------------
+  // A free, purely visual response to tapping the creature. The machine and
+  // picker are pure (scene-logic, unit-tested); this block only maps the
+  // drive onto the rig and owns the reaction's local phase. The pose is
+  // applied additively AFTER every base write for the frame, so it composes
+  // with the breath/gait/bounce idles instead of fighting them — and it is
+  // skipped while a ceremony owns the creature (a sleep pose must not hop).
+  const petMachine: PetMachine = createPetMachine()
+  /** Reaction-local clock, for the oscillating variants (wiggle, stir). */
+  let petTime = 0
+
+  /** Map a pet drive onto the rig. `react` is the machine's eased 0..1 arc
+   * (already attenuated for reduced motion), so every variant starts and
+   * ends at rest. */
+  const applyPetPose = (creature: THREE.Group, pd: PetDrive): void => {
+    const r = pd.react
+    const body = rigParts.body
+    const head = rigParts.head
+    const tail = rigParts.tail
+    if (pd.variant === "hop") {
+      // Happy bounce: the whole creature leaves the ground on the arc.
+      creature.position.y += r * (pd.subtle ? 0.05 : 0.2)
+      if (body) body.scale.y *= 1 + r * 0.06
+      return
+    }
+    if (pd.variant === "wiggle") {
+      // Content wag: a quick side-to-side roll with the tail keeping time.
+      const wobble = Math.sin(petTime * (pd.subtle ? 9 : 16))
+      if (body) body.rotation.z += wobble * r * 0.09
+      if (head) head.rotation.z = wobble * r * 0.06
+      if (tail) tail.rotation.y += Math.sin(petTime * 14) * r * 0.25
+      return
+    }
+    // "lean" (low mood) and "stir" (sick override): subdued responses — a
+    // slow weight shift and a small head lift, no travel. The sick stir is
+    // deliberately weaker: it reads as "trying", not as a perk-up.
+    const depth = pd.variant === "stir" ? 0.05 : 0.14
+    if (body) body.rotation.z -= r * depth
+    if (head) head.position.y += r * (pd.variant === "stir" ? 0.008 : 0.03)
+    creature.position.y += r * (pd.variant === "stir" ? 0.008 : 0.03)
+  }
+
   const update = (t: number, dt: number, ranchActive: boolean): void => {
     // Momentary droopy window (cup early exit): once it expires, fall back
     // to the condition-driven idle.
@@ -304,20 +569,23 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
       // and belly flex above/below it. Horizontal squash is kept small (it
       // slides the body's voxel pattern against the planted legs); the
       // vertical stretch carries the read. Neck/head/horns/tail ride along
-      // via the rig hierarchy.
-      const breath = Math.sin(t * profile.breathRate)
+      // via the rig hierarchy. While the rest ceremony owns the creature
+      // the breath is deep and slow (ranch_rituals_20261018 FR3).
+      const bRate = restActive ? REST_BREATH_RATE : profile.breathRate
+      const bAmp = restActive ? REST_BREATH_AMP : profile.breathAmp
+      const breath = Math.sin(t * bRate)
       const body = rigParts.body
       if (body) {
         body.scale.set(
-          1 - breath * profile.breathAmp * 0.3,
-          1 + breath * profile.breathAmp,
-          1 - breath * profile.breathAmp * 0.3,
+          1 - breath * bAmp * 0.3,
+          1 + breath * bAmp,
+          1 - breath * bAmp * 0.3,
         )
       }
       const head = rigParts.head
       if (head) {
         head.position.y =
-          headBaseY + breath * profile.breathAmp * 0.6 - profile.headDroop
+          headBaseY + breath * bAmp * 0.6 - (restActive ? 0 : profile.headDroop)
       }
       const sway = Math.sin(t * 1.3)
       const tail = rigParts.tail
@@ -373,70 +641,127 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
       let away = evoActive
       if (!evoActive) {
         creatureGroup.scale.setScalar(stageScale(currentStage))
-        const wd = walk.advance(
-          creatureGroup.position.x,
-          creatureGroup.position.z,
-          dt,
-        )
-        if (wd.phase !== "idle") {
-          // While walking, the machine owns the creature's pose. While idle
-          // it never touches it — a stale machine yaw must never yank the
-          // freshly rebuilt idle creature around (user-reported snap).
-          creatureGroup.position.x = wd.x
-          creatureGroup.position.z = wd.z
-          creatureGroup.rotation.y = wd.yaw
-        }
-        // Sparse wandering (FR3): while the ceremony is idle and the mood is
-        // eligible, the wander machine may start a trip to a nearby tuft or
-        // bush. A feed ceremony takes priority — startFeed aborts the
-        // wanderer, so the two machines never fight over the creature.
-        let wandDrive: WanderDrive | null = null
-        if (wd.phase === "idle" && wander) {
-          wandDrive = wander.advance(
+        // Rest (FR3) and treat (FR4) ceremonies: while either is active it
+        // owns the creature's pose — walk and wander stay parked.
+        const rd = rest.advance(dt)
+        restActive = rd.phase !== "idle"
+        const td = treat.advance(dt)
+        treatActive = td.phase !== "idle"
+        updateSparkle(t, treatActive ? td.relief : 0)
+        const pd = play.advance(dt)
+        playActive = pd.phase !== "idle"
+        updateBall(pd)
+        if (restActive) {
+          applyRestPose(creatureGroup, rd, breath)
+        } else if (treatActive) {
+          applyTreatPose(creatureGroup, td)
+        } else {
+          const wd = walk.advance(
             creatureGroup.position.x,
             creatureGroup.position.z,
-            creatureGroup.rotation.y,
             dt,
-            mode !== "droopy",
           )
-          if (wandDrive.phase !== "home-idle") {
-            creatureGroup.position.x = wandDrive.x
-            creatureGroup.position.z = wandDrive.z
-            creatureGroup.rotation.y = wandDrive.yaw + wandDrive.lookOffset
-          } else {
-            wandDrive = null
+          // Play legs ride on the shared walk machine (FR5): start a leg
+          // when the ceremony enters chase/return, and report the leg's
+          // completion to the machine on the walk's falling edge.
+          if (playActive && pd.phase !== prevPlayPhase) {
+            if (pd.phase === "chase") {
+              walk.begin(
+                creatureGroup.position.x,
+                creatureGroup.position.z,
+                playLanding.x,
+                playLanding.z,
+                creatureGroup.rotation.y,
+              )
+            } else if (pd.phase === "return") {
+              walk.begin(
+                creatureGroup.position.x,
+                creatureGroup.position.z,
+                playHome.x,
+                playHome.z,
+                creatureGroup.rotation.y,
+              )
+            }
           }
-        }
-        const drive = wandDrive ?? wd
-        const traveling =
-          (drive.phase === "walk-out" || drive.phase === "walk-home") &&
-          !drive.pivoting
-        const remaining = traveling
-          ? Math.hypot(
-              drive.targetX - creatureGroup.position.x,
-              drive.targetZ - creatureGroup.position.z,
+          if (playActive && prevWalkMoving && wd.phase === "idle") {
+            play.walkDone()
+          }
+          prevPlayPhase = pd.phase
+          prevWalkMoving = wd.phase !== "idle"
+          if (wd.phase !== "idle") {
+            // While walking, the machine owns the creature's pose. While idle
+            // it never touches it — a stale machine yaw must never yank the
+            // freshly rebuilt idle creature around (user-reported snap).
+            creatureGroup.position.x = wd.x
+            creatureGroup.position.z = wd.z
+            creatureGroup.rotation.y = wd.yaw
+          }
+          // Sparse wandering (FR3): while the ceremony is idle and the mood is
+          // eligible, the wander machine may start a trip to a nearby tuft or
+          // bush. A feed ceremony takes priority — startFeed aborts the
+          // wanderer, so the two machines never fight over the creature.
+          let wandDrive: WanderDrive | null = null
+          if (wd.phase === "idle" && wander) {
+            wandDrive = wander.advance(
+              creatureGroup.position.x,
+              creatureGroup.position.z,
+              creatureGroup.rotation.y,
+              dt,
+              mode !== "droopy" && !playActive,
             )
-          : 0
-        applyGait(
-          creatureGroup,
-          gaitPose(t, gaitIntensity(traveling, remaining), reducedMotion),
-        )
-        if (wd.phase === "nibble" && head) {
-          // 2–3 gentle head-dips toward the pile over the existing pivot.
-          head.position.y -= wd.dipOffset * DIP_DEPTH
+            if (wandDrive.phase !== "home-idle") {
+              creatureGroup.position.x = wandDrive.x
+              creatureGroup.position.z = wandDrive.z
+              creatureGroup.rotation.y = wandDrive.yaw + wandDrive.lookOffset
+            } else {
+              wandDrive = null
+            }
+          }
+          const drive = wandDrive ?? wd
+          const traveling =
+            (drive.phase === "walk-out" || drive.phase === "walk-home") &&
+            !drive.pivoting
+          const remaining = traveling
+            ? Math.hypot(
+                drive.targetX - creatureGroup.position.x,
+                drive.targetZ - creatureGroup.position.z,
+              )
+            : 0
+          applyGait(
+            creatureGroup,
+            gaitPose(t, gaitIntensity(traveling, remaining), reducedMotion),
+          )
+          if (wd.phase === "nibble" && head) {
+            // 2–3 gentle head-dips toward the pile over the existing pivot.
+            head.position.y -= wd.dipOffset * DIP_DEPTH
+          }
+          if (playActive && pd.phase === "celebrate") {
+            // Celebrate hop: three quick in-place hops over the machine's
+            // bounce envelope — the walk/wander idles underneath stay flat.
+            creatureGroup.position.y = pd.bounce * PLAY_BOUNCE_HEIGHT
+          } else if (
+            !reducedMotion &&
+            drive.phase === "idle" &&
+            !wandDrive &&
+            profile.bounce > 0
+          ) {
+            creatureGroup.position.y =
+              Math.abs(Math.sin(t * 3.2)) * profile.bounce
+          } else {
+            creatureGroup.position.y = 0
+          }
+          away = away || wd.phase !== "idle" || wandDrive !== null
         }
-        if (
-          !reducedMotion &&
-          drive.phase === "idle" &&
-          !wandDrive &&
-          profile.bounce > 0
-        ) {
-          creatureGroup.position.y =
-            Math.abs(Math.sin(t * 3.2)) * profile.bounce
-        } else {
-          creatureGroup.position.y = 0
+        // Ambient pet (FR6): advance the reaction and lay its pose on top of
+        // the frame's base pose, so it composes with the breath and gait. A
+        // ceremony that started mid-reaction owns the creature outright, so
+        // the pose is withheld (the machine keeps timing, which means the
+        // cooldown cannot be reset by spamming care actions).
+        const petD = petMachine.advance(dt)
+        if (petD.active && !restActive && !treatActive && !playActive) {
+          petTime += dt
+          applyPetPose(creatureGroup, petD)
         }
-        away = away || wd.phase !== "idle" || wandDrive !== null
       } else {
         // During the ceremony the legs stride only on the walk phase; the
         // glow/settle phases hold the pose. The holder sits on the ground.
@@ -480,6 +805,14 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
     },
     startFeed() {
       if (!creatureGroup) return
+      // A new ceremony takes over: an in-flight rest is replaced (the
+      // non-cancelable policy governs the committed action, and the next
+      // ceremony legitimately owns the creature's motion).
+      rest = createRestCeremony()
+      restActive = false
+      treat = createTreatCeremony()
+      treatActive = false
+      cancelPlay()
       // A feed takes the creature over: abandon any in-flight wander trip
       // (FR3 — wander is suspended during the ceremony) and let the
       // ceremony machine drive from the creature's current pose.
@@ -510,6 +843,95 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
         creatureGroup.rotation.y,
       )
     },
+    startRest() {
+      if (!creatureGroup) return
+      // Rest preempts an in-flight feed walk or wander trip: reset the walk
+      // machine so no ghost walk resumes after the creature wakes (the
+      // same fresh-machine trick startEvolution uses). The rest ceremony
+      // itself runs where the creature currently stands.
+      walk = createWalk(reducedMotion)
+      wander?.abort()
+      treat = createTreatCeremony()
+      treatActive = false
+      cancelPlay()
+      rest.begin(reducedMotion)
+    },
+    startTreat() {
+      if (!creatureGroup) return
+      // Treat preempts an in-flight walk or wander trip the same way rest
+      // does (fresh walk machine so no ghost walk resumes), and replaces an
+      // in-flight rest. The balm moment runs where the creature stands.
+      walk = createWalk(reducedMotion)
+      wander?.abort()
+      rest = createRestCeremony()
+      restActive = false
+      cancelPlay()
+      if (!sparkle) buildSparkle(creatureGroup)
+      treat.begin(reducedMotion)
+    },
+    startPlay() {
+      if (!creatureGroup) return
+      // Play preempts rest/treat (they own the pose) and any wander trip.
+      // The walk machine is NOT reset: the chase leg begins from the
+      // current pose via its safe mid-walk begin().
+      rest = createRestCeremony()
+      restActive = false
+      treat = createTreatCeremony()
+      treatActive = false
+      wander?.abort()
+      const ox = creatureGroup.position.x
+      const oz = creatureGroup.position.z
+      playHome = { x: ox, z: oz }
+      // Deterministic per-play landing: a visit-style spot near a
+      // registered prop when one qualifies, else a seeded angle clamped
+      // inside the moss disc.
+      const rng = makeRng((wanderSeed + playSeedCounter * 0x9e3779b9) | 0)
+      playSeedCounter++
+      const hit = pickVisitTarget(wanderCandidates, ox, oz, rng)
+      if (hit) {
+        // Pull the landing 70% of the way in: a full visit distance makes
+        // the chase ~4 s each leg — twice the whole feed ceremony. A short
+        // romp reads better inside a 3-AP day.
+        playLanding = {
+          x: ox + (hit.x - ox) * 0.7,
+          z: oz + (hit.z - oz) * 0.7,
+        }
+      } else {
+        const angle = rng.next() * Math.PI * 2
+        const dist = 4.5 + rng.next() * 2
+        let lx = ox + Math.cos(angle) * dist
+        let lz = oz + Math.sin(angle) * dist
+        const d = Math.hypot(lx, lz)
+        if (d > WANDER_DISC_RADIUS - 1) {
+          lx *= (WANDER_DISC_RADIUS - 1) / d
+          lz *= (WANDER_DISC_RADIUS - 1) / d
+        }
+        playLanding = { x: lx, z: lz }
+      }
+      if (!ball) buildBall()
+      play.begin(ox, oz, playLanding.x, playLanding.z, reducedMotion)
+    },
+    startPet(): PetVariant | null {
+      // No creature on stage, or a ceremony already owns it: ignore the pet
+      // outright (never yank a sleeper out of its pose).
+      if (
+        !creatureGroup ||
+        restActive ||
+        treatActive ||
+        playActive ||
+        evolutionActive
+      ) {
+        return null
+      }
+      // Mood drives the reaction; a sick creature (the same health gate the
+      // idle uses) always gets the weak stir instead of a perky one.
+      const mood = lastConditions?.mood ?? 60
+      const sick = lastConditions ? lastConditions.health < SICK_HEALTH : false
+      const variant = pickPetReaction(mood, sick)
+      if (!petMachine.begin(variant, reducedMotion)) return null
+      petTime = 0
+      return variant
+    },
     startEvolution(archetypeId, seed, targetStage, onDone) {
       if (!creatureGroup) return
       // Preempt an in-flight feed walk (the growth moment takes over) and
@@ -519,6 +941,11 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
       if (onDone) evolutionDone = onDone
       walk = createWalk(reducedMotion)
       wander?.abort()
+      rest = createRestCeremony()
+      restActive = false
+      treat = createTreatCeremony()
+      treatActive = false
+      cancelPlay()
       evolutionSwap = { archetypeId, seed, stage: targetStage }
       evolution.begin(creatureGroup.rotation.y, reducedMotion, {
         fromScale: stageScale(currentStage),
@@ -565,6 +992,17 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
     },
     update,
     dispose() {
+      if (sparkle) {
+        sparkle.geometry.dispose()
+        ;(sparkle.material as THREE.PointsMaterial).dispose()
+        sparkle = null
+      }
+      if (ball) {
+        ball.geometry.dispose()
+        ;(ball.material as THREE.MeshLambertMaterial).dispose()
+        deps.scene.remove(ball)
+        ball = null
+      }
       if (creatureGroup) deps.disposeGroup(creatureGroup)
     },
   }
