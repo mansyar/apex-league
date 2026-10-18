@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { createTreatCeremony } from "./scene-logic"
+import { createTreatCeremony } from "../scene-logic"
 
 // 0.0625 s (2^-4) steps are binary-exact and under the machine's 0.1 s dt
 // clamp, so phase boundaries are crossed exactly — no float-noise.

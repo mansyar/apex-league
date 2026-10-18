@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { createPetMachine, isTap, pickPetReaction } from "./scene-logic"
+import { createPetMachine, isTap, pickPetReaction } from "../scene-logic"
 
 // Binary-exact step (2^-4) under the machine's 0.1s dt clamp — sums land on
 // exact float boundaries, mirroring the rest/treat ceremony tests.

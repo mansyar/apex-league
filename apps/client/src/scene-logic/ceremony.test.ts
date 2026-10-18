@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { createWalk, lerpAngle, type WalkDrive, wrapPi } from "./scene-logic"
+import { createWalk, lerpAngle, type WalkDrive, wrapPi } from "../scene-logic"
 
 const STAND = { x: -1.27, z: 0.21 } // production stand spot: 1.15 short of the pile on the origin→pile line
 

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { props } from "@apex/voxel"
 
-import { gustEnvelope, phaseHash, swayAngle, windBaseAmp } from "./scene-logic"
+import { gustEnvelope, phaseHash, swayAngle, windBaseAmp } from "../scene-logic"
 
 describe("wind sway — amplitude table", () => {
   test("covers every registry prop id with a finite amplitude", () => {
