@@ -5,6 +5,7 @@
  */
 
 import { describe, expect, it } from "bun:test"
+import { graduateWithPair, inheritedFloorFromPair } from "./breeding"
 import { type CreatureStats, effectiveStats } from "./creature"
 import {
   canGraduate,
@@ -29,6 +30,7 @@ import {
   createInitialState,
   type GameState,
 } from "./state"
+import { dedupeTraits, effectiveTraits } from "./traits"
 
 type Stage = "baby" | "juvenile" | "champion"
 
@@ -429,5 +431,126 @@ describe("graduate — succession", () => {
     const res = graduate(stateWith("champion", GRADUATION_DAY), "plant_ox", 42)
     if (!res.ok) throw new Error("expected ok")
     expect(res.state.creature?.conditions.bond).toBe(10)
+  })
+
+  it("stamps the founder successor's parent generation and derived trait", () => {
+    const res = graduate(stateWith("champion", GRADUATION_DAY), "plant_ox", 42)
+    if (!res.ok) throw new Error("expected ok")
+    expect(res.state.creature?.parents).toEqual([0])
+    expect(res.state.creature?.traits.length).toBe(1)
+    expect(res.state.lineage.hallOfFame[0]?.parents).toEqual([])
+  })
+})
+
+describe("graduateWithPair — dual-parent succession", () => {
+  /** Two archived generations plus a champion of the second successor. */
+  function twoGenerationState(): GameState {
+    const first = graduate(stateWith("champion", GRADUATION_DAY), "plant_ox", 5)
+    if (!first.ok) throw new Error("expected first graduation")
+    const promoted: GameState = {
+      ...first.state,
+      creature: { ...creatureOf(first.state), stage: "champion" },
+    }
+    const second = graduate(promoted, "water_axolotl", 6)
+    if (!second.ok) throw new Error("expected second graduation")
+    return {
+      ...second.state,
+      day: 70,
+      creature: { ...creatureOf(second.state), stage: "champion" },
+    }
+  }
+
+  it("rejects an ineligible career before touching the pair", () => {
+    expect(
+      graduateWithPair(
+        stateWith("juvenile", GRADUATION_DAY),
+        [0, 1],
+        "fire_drake",
+        1,
+      ),
+    ).toEqual({ ok: false, reason: "not-champion" })
+  })
+
+  it("rejects a malformed or unknown pair", () => {
+    const before = twoGenerationState()
+    expect(graduateWithPair(before, [0], "fire_drake", 1)).toEqual({
+      ok: false,
+      reason: "invalid-pair",
+    })
+    expect(graduateWithPair(before, [0, 0], "fire_drake", 1)).toEqual({
+      ok: false,
+      reason: "invalid-pair",
+    })
+    expect(graduateWithPair(before, [0, 99], "fire_drake", 1)).toEqual({
+      ok: false,
+      reason: "invalid-pair",
+    })
+  })
+
+  it("rejects a species outside the pair's options", () => {
+    const before = twoGenerationState()
+    expect(graduateWithPair(before, [0, 1], "water_axolotl", 1)).toEqual({
+      ok: false,
+      reason: "invalid-species",
+    })
+  })
+
+  it("archives the retiree, advances the generation, and hatches a parent species", () => {
+    const before = twoGenerationState()
+    const retiree = creatureOf(before)
+    const res = graduateWithPair(before, [0, 1], "plant_ox", 77)
+    if (!res.ok) throw new Error("expected ok")
+    expect(res.state.lineage.generation).toBe(3)
+    expect(res.state.lineage.hallOfFame).toHaveLength(3)
+    expect(res.state.lineage.hallOfFame[2]).toMatchObject({
+      name: retiree.name,
+      speciesId: "water_axolotl",
+      generation: 2,
+      parents: [1],
+    })
+    expect(res.state.creature?.speciesId).toBe("plant_ox")
+    expect(res.state.creature?.stage).toBe("baby")
+    expect(res.state.creature?.parents).toEqual([0, 1])
+    expect(res.state.actionPoints).toBe(ACTION_POINTS_PER_DAY)
+  })
+
+  it("floors the egg with the dual-parent formula and their trait union", () => {
+    const before = twoGenerationState()
+    const res = graduateWithPair(before, [0, 1], "plant_ox", 77)
+    if (!res.ok) throw new Error("expected ok")
+    const [a, b] = res.state.lineage.hallOfFame
+    if (!a || !b) throw new Error("expected two parents")
+    const species = getSpecies("plant_ox")
+    if (!species) throw new Error("expected plant_ox")
+    const traits = dedupeTraits([...effectiveTraits(a), ...effectiveTraits(b)])
+    // Generation 3 + zero lifetime cups: the egg belongs to the new lineage.
+    const floor = inheritedFloorFromPair(a.stats, b.stats, species, 3, traits)
+    const egg = creatureOf(res.state)
+    for (const key of ["hp", "atk", "def", "spd"] as const) {
+      expect(egg.stats[key], key).toBeGreaterThanOrEqual(floor[key])
+    }
+    expect(egg.traits).toEqual(traits)
+    expect(egg.parents).toEqual([0, 1])
+  })
+
+  it("can pair the retiring champion with an archived record", () => {
+    const before = twoGenerationState()
+    const res = graduateWithPair(before, [0, 2], "water_axolotl", 9)
+    if (!res.ok) throw new Error("expected ok")
+    expect(res.state.creature?.parents).toEqual([0, 2])
+    expect(res.state.creature?.speciesId).toBe("water_axolotl")
+  })
+
+  it("carries day/cups/ladder/settings and is mutation-pure", () => {
+    const before = { ...twoGenerationState(), cupsWon: 4, lastCupDay: 66 }
+    const snapshot = structuredClone(before)
+    const res = graduateWithPair(before, [0, 1], "fire_drake", 3)
+    if (!res.ok) throw new Error("expected ok")
+    expect(res.state.day).toBe(70)
+    expect(res.state.cupsWon).toBe(4)
+    expect(res.state.lastCupDay).toBe(66)
+    expect(res.state.ladder).toEqual(before.ladder)
+    expect(res.state.settings).toEqual(before.settings)
+    expect(before).toEqual(snapshot)
   })
 })

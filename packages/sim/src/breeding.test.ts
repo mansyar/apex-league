@@ -2,7 +2,8 @@
  * Dynasty breeding tests — Phase 1: traits, the breeding pool, and dual-parent
  * inheritance. Table-driven per the workflow (success + failure cases).
  *
- * Phase 2 (succession + save v15) is tested in legacySave.test.ts / save.test.ts.
+ * Phase 2 (succession + save v15) is tested in legacy.test.ts and
+ * save/breedingSave.test.ts.
  */
 
 import { describe, expect, it } from "bun:test"
@@ -74,6 +75,24 @@ const OX = (() => {
   if (!s) throw new Error("expected plant_ox")
   return s
 })()
+
+describe("createBredCreature — seeded golden", () => {
+  it("reproduces the Phase 1 golden for the fixture pair", () => {
+    const sire = record({})
+    const dam = record({
+      name: "Moss",
+      speciesId: "plant_ox",
+      archetypeId: "bovine",
+      element: "plant",
+      stats: { hp: 80, atk: 12, def: 8, spd: 10 },
+      generation: 1,
+    })
+    const child = createBredCreature("fire_drake", 42, [sire, dam], 1)
+    expect(child.stats).toEqual({ hp: 88, atk: 11, def: 10, spd: 11 })
+    expect(child.traits).toEqual(["sturdy"])
+    expect(child.parents).toEqual([0, 1])
+  })
+})
 
 describe("deriveTrait — trained-stat precedence", () => {
   it("maps the highest trained stat to its trait", () => {

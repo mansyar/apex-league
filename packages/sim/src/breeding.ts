@@ -13,20 +13,21 @@ import {
   type Creature,
   type CreatureStats,
   createCreature,
-  effectiveStats,
   type LineageTrait,
   type StatKey,
 } from "./creature"
 import {
   canGraduate,
+  type GraduationReason,
   INHERITANCE_FRACTION,
   lineagePerks,
   type RetiredRecord,
+  retireeRecord,
   WARM_BOND_START,
 } from "./legacy"
 import { makeRng } from "./rng"
 import { getSpecies, type SpeciesDef } from "./species"
-import type { GameState } from "./state"
+import { ACTION_POINTS_PER_DAY, type GameState } from "./state"
 import { dedupeTraits, effectiveTraits, traitBonus } from "./traits"
 
 export {
@@ -38,39 +39,12 @@ export {
   type TraitDef,
   traitBonus,
 } from "./traits"
+export { retireeRecord }
 
 /** The weaker parent's weight in the dual-parent floor. */
 export const PAIR_SECONDARY_FRACTION = 0.1
 
 const STAT_KEYS = ["hp", "atk", "def", "spd"] as const
-
-/**
- * The retiring champion as it would be archived right now, or null when the
- * save has no creature. This is the archive record's exact shape — the same
- * fields `graduate()` writes — so the Nursery can show it before graduation.
- */
-export function retireeRecord(state: GameState): RetiredRecord | null {
-  const creature = state.creature
-  if (!creature) return null
-  const stats = effectiveStats(creature)
-  return {
-    name: creature.name,
-    speciesId: creature.speciesId,
-    archetypeId: creature.archetypeId,
-    element: creature.element,
-    stats,
-    trained: { ...creature.trained },
-    cupsWon: state.cupsWon,
-    generation: state.lineage.generation,
-    retiredOnDay: state.day,
-    traits: effectiveTraits({
-      traits: creature.traits,
-      trained: creature.trained,
-      stats,
-    }),
-    parents: [...(creature.parents ?? [])],
-  }
-}
 
 /**
  * Every record the player may pair: the archived Hall of Fame, oldest first,
@@ -243,5 +217,59 @@ export function createBredCreature(
     conditions,
     traits,
     parents: parents.map((record) => record.generation).sort((a, b) => a - b),
+  }
+}
+
+export type GraduatePairReason =
+  | GraduationReason
+  | "invalid-pair"
+  | "invalid-species"
+
+export type GraduatePairResult =
+  | { ok: true; state: GameState }
+  | { ok: false; reason: GraduatePairReason }
+
+/**
+ * Graduate the active champion into a dual-parent egg. The generic graduation
+ * gate runs first, then the pair is resolved from the Hall plus the retiring
+ * champion (so the retiree itself may be a parent). The egg's species must be
+ * one of the pair's species; the stat floor and trait union come from both
+ * parents. The retiree is archived exactly as `graduate()` archives it.
+ *
+ * Pure: the input state is never mutated. The in-game day, cups, ladder, and
+ * settings carry over; action points reset like any succession.
+ */
+export function graduateWithPair(
+  state: GameState,
+  generations: readonly number[],
+  speciesId: string,
+  seed: number,
+): GraduatePairResult {
+  const verdict = canGraduate(state)
+  if (!verdict.eligible) return { ok: false, reason: verdict.reason }
+  const record = retireeRecord(state)
+  if (!record) return { ok: false, reason: "no-creature" }
+
+  const pool = [...state.lineage.hallOfFame, record]
+  const pair = pairFor(pool, generations)
+  if (!pair) return { ok: false, reason: "invalid-pair" }
+  if (!speciesOptions(pair).includes(speciesId)) {
+    return { ok: false, reason: "invalid-species" }
+  }
+
+  const generation = state.lineage.generation + 1
+  const prestige = generation + state.cupsWon
+  const successor = createBredCreature(speciesId, seed, pair, prestige)
+  return {
+    ok: true,
+    state: {
+      ...state,
+      actionPoints: ACTION_POINTS_PER_DAY,
+      creature: successor,
+      lineage: {
+        generation,
+        hallOfFame: [...state.lineage.hallOfFame, record],
+      },
+    },
   }
 }

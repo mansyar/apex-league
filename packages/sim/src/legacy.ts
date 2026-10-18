@@ -60,6 +60,35 @@ export interface LineageState {
 }
 
 /**
+ * The retiring champion as it would be archived right now, or null when the
+ * save has no creature. This is the exact shape `graduate()` writes — and the
+ * same shape `graduateWithPair()` appends — so the Nursery can show the
+ * retiree before graduation without a parallel record model.
+ */
+export function retireeRecord(state: GameState): RetiredRecord | null {
+  const creature = state.creature
+  if (!creature) return null
+  const stats = effectiveStats(creature)
+  return {
+    name: creature.name,
+    speciesId: creature.speciesId,
+    archetypeId: creature.archetypeId,
+    element: creature.element,
+    stats,
+    trained: { ...creature.trained },
+    cupsWon: state.cupsWon,
+    generation: state.lineage.generation,
+    retiredOnDay: state.day,
+    traits: effectiveTraits({
+      traits: creature.traits,
+      trained: creature.trained,
+      stats,
+    }),
+    parents: [...(creature.parents ?? [])],
+  }
+}
+
+/**
  * The night of this day (inclusive) is the earliest a champion may graduate.
  * A full career: two months of care. No upper limit — once eligible, the
  * send-off is the player's to choose.
@@ -276,36 +305,22 @@ export function graduate(
 ): GraduateResult {
   const verdict = canGraduate(state)
   if (!verdict.eligible) return { ok: false, reason: verdict.reason }
-  const creature = state.creature
-  // Unreachable after the gate, but narrows the type for the archive below.
-  if (!creature) return { ok: false, reason: "no-creature" }
 
-  const eff = effectiveStats(creature)
+  const record = retireeRecord(state)
+  if (!record) return { ok: false, reason: "no-creature" }
   const generation = state.lineage.generation + 1
   // Prestige as of the new generation (spec R4): the egg belongs to it.
   const prestige = generation + state.cupsWon
-  const recordTraits = effectiveTraits({
-    traits: creature.traits,
-    trained: creature.trained,
-    stats: eff,
-  })
-  const record: RetiredRecord = {
-    name: creature.name,
-    speciesId: creature.speciesId,
-    archetypeId: creature.archetypeId,
-    element: creature.element,
-    stats: eff,
-    trained: { ...creature.trained },
-    cupsWon: state.cupsWon,
-    generation: state.lineage.generation,
-    retiredOnDay: state.day,
-    traits: recordTraits,
-    parents: [...(creature.parents ?? [])],
-  }
-  const successor = createInheritedCreature(speciesId, seed, eff, prestige, {
-    traits: recordTraits,
-    parents: [state.lineage.generation],
-  })
+  const successor = createInheritedCreature(
+    speciesId,
+    seed,
+    record.stats,
+    prestige,
+    {
+      traits: record.traits,
+      parents: [state.lineage.generation],
+    },
+  )
   return {
     ok: true,
     state: {
