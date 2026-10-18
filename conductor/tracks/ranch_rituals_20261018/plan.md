@@ -37,11 +37,11 @@
   - [ ] `onCare` / `onAdvanceDay` / pet paths through `AudioPlayer.playCue`;
         silent degradation; manual browser verify (all cues, mute, calm-mix).
   - [ ] Commit `feat(audio): care SFX on the ranch`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) `[checkpoint: f341f7b]`
 
 ## Phase 3 - Care ceremonies (rest / treat / play)
 
-- [ ] Task: Rest ceremony
+- [~] Task: Rest ceremony
   - [ ] `ranch-motion.ts`: curl-down sleep pose + breathing, wake-and-stretch;
         reduced-motion simplification; manual verify.
   - [ ] Commit `feat(ranch): rest ceremony`
