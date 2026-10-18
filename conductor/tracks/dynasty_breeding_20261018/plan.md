@@ -44,39 +44,44 @@ verification checkpoint and user approval.
 
 ## Phase 2 — Sim succession & save v15
 
-- [ ] Task: Succession — `graduateWithPair` + founder parentage
+- [x] Task: Succession — `graduateWithPair` + founder parentage
       (`legacy.ts`)
-  - [ ] Failing tests: pair graduation archives the retiree with traits +
+  - [x] Failing tests: pair graduation archives the retiree with traits +
         parents, increments generation, keeps AP/day/ladder/session, and sets
         successor `parents` to the pair; founder path sets
         `parents: [generation]`; invalid/duplicate pairs rejected; founder
-        behavior otherwise identical.
-  - [ ] Implement `graduateWithPair(state, generations, speciesId, seed)`;
+        behavior otherwise identical. `legacy.test.ts` (+7 tests).
+  - [x] Implement `graduateWithPair(state, generations, speciesId, seed)`;
         refactor shared archiving/successor code with `graduate`; keep
-        `graduate` as the founder wrapper.
-  - [ ] Update `legacy.test.ts` fixtures for new fields; add a bred-succession
-        golden.
-- [ ] Task: Save v15 + validation (`save/schema.ts`, `save/migrate.ts`,
+        `graduate` as the founder wrapper. Implemented in `breeding.ts` to
+        avoid a `legacy` ↔ `breeding` cycle; `retireeRecord` was extracted to
+        `legacy.ts` and is now shared by both graduates.
+  - [x] Update `legacy.test.ts` fixtures for new fields; add a bred-succession
+        golden (seeded golden added to `breeding.test.ts`, plus the exact
+        dual-parent floor test).
+- [x] Task: Save v15 + validation (`save/schema.ts`, `save/migrate.ts`,
       `save/storage.ts`)
-  - [ ] Failing tests: v14 fixture migrates to v15 with creature/records
+  - [x] Failing tests: v14 fixture migrates to v15 with creature/records
         gaining `traits: []`, `parents: []`; all other data forwarded;
         `SAVE_VERSION === 15`; `serializeSave` stamps 15; validation rejects
         unknown trait ids, >2 parents, duplicate parents, negative/non-integer
-        parents.
-  - [ ] Implement the v14→v15 step after the existing v13→v14 step; extend
+        parents. `save/breedingSave.test.ts` (+7 tests).
+  - [x] Implement the v14→v15 step after the existing v13→v14 step; extend
         `isValidRetiredRecord` and creature shape validation.
-  - [ ] Update save fixtures and `legacySave.test.ts` / `save.test.ts` for v15.
-- [ ] Task: Documentation truth pass (`docs/save-schema.md`, `README.md`)
-  - [ ] Rewrite the schema doc for **v15**, backfill `settings.muted` (v13),
+  - [x] Update save fixtures and `legacySave.test.ts` / `save.test.ts` for v15
+        (plus the `cupSave.test.ts` version assertion).
+- [x] Task: Documentation truth pass (`docs/save-schema.md`, `README.md`)
+  - [x] Rewrite the schema doc for **v15**, backfill `settings.muted` (v13),
         `legendTitles` + Gold/Legend (v14), and the v15 additions; update the
         migration table.
-  - [ ] README roadmap: replace the "Silver ladder in progress" line with the
+  - [x] README roadmap: replace the "Silver ladder in progress" line with the
         current Gold→Legend state + breeding.
-  - [ ] Sweep `conductor/product.md` Phase 2 status wording only where it is
+  - [x] Sweep `conductor/product.md` Phase 2 status wording only where it is
         now factually wrong (no vision rewrites).
-- [ ] Task: Phase Verification & Checkpoint
-  - [ ] `bun test packages/sim/src`; migration round-trip; `bun run check`;
-        commit; `[checkpoint: <sha>]` after approval.
+- [~] Task: Phase Verification & Checkpoint
+  - [x] `bun test packages/sim/src`; migration round-trip; `bun run check`;
+        commit `e180eeb`; `bun run verify` green.
+  - [ ] `[checkpoint: <sha>]` after approval.
 
 ## Phase 3 — Client view-models (TDD, DOM-free)
 
