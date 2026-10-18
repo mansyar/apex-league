@@ -49,10 +49,10 @@
   - [x] Balm moment + sparkle relief with subdued posture beforehand;
         reduced-motion; manual verify.
   - [x] Commit `feat(ranch): treat ceremony` (c7204eb)
-- [~] Task: Play ceremony
-  - [ ] Tossable prop chase via existing gait/wander systems, happy-bounce
+- [x] Task: Play ceremony (88aed3e)
+  - [x] Tossable prop chase via existing gait/wander systems, happy-bounce
         finish; reduced-motion; manual verify.
-  - [ ] Commit `feat(ranch): play ceremony`
+  - [x] Commit `feat(ranch): play ceremony` (88aed3e)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 - Ambient pet
