@@ -195,6 +195,7 @@ export { SAVE_VERSION, type SaveData, serializeSave } from "./save/schema"
 export {
   clearSave,
   createMemoryAdapter,
+  isValidSaveState,
   loadBoot,
   loadGame,
   loadSave,
@@ -202,6 +203,14 @@ export {
   type SaveAdapter,
   saveGame,
 } from "./save/storage"
+export {
+  buildSaveExport,
+  exportFilename,
+  inspectSaveImport,
+  type SaveExport,
+  type SaveImportReason,
+  type SaveImportResult,
+} from "./save/transfer"
 export {
   EXHAUSTED_ENERGY,
   NIGHT_RECOVERY,
