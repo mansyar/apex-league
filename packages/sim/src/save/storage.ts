@@ -4,6 +4,7 @@ import { SICK_COOLDOWN_NIGHTS } from "../evolution"
 import type { RetiredRecord } from "../legacy"
 import { getSpecies } from "../species"
 import type { GameState } from "../state"
+import { isLineageTrait } from "../traits"
 import { migrate } from "./migrate"
 import { SAVE_VERSION, type SaveData, serializeSave } from "./schema"
 
@@ -58,6 +59,38 @@ const ELEMENTS = ["fire", "water", "plant", "electric", "earth", "wind"]
 const STAGES = ["baby", "juvenile", "champion"]
 const STAT_KEYS = ["hp", "atk", "def", "spd"]
 const TRAINING_RESULTS = ["gained", "sick", "hungry"]
+
+/** Save v15: a lineage trait list is canonical, unique, and at most four. */
+function isValidTraitList(value: unknown): boolean {
+  if (!Array.isArray(value) || value.length > 4) return false
+  const seen = new Set<string>()
+  for (const id of value) {
+    if (!isLineageTrait(id) || seen.has(id)) return false
+    seen.add(id)
+  }
+  return true
+}
+
+/**
+ * Save v15: parentage is at most two generation numbers (one for the founder
+ * successor path, two for a bred pair), never negative or duplicated.
+ */
+function isValidParentList(value: unknown): boolean {
+  if (!Array.isArray(value) || value.length > 2) return false
+  const seen = new Set<number>()
+  for (const generation of value) {
+    if (
+      typeof generation !== "number" ||
+      !Number.isInteger(generation) ||
+      generation < 0 ||
+      seen.has(generation)
+    ) {
+      return false
+    }
+    seen.add(generation)
+  }
+  return true
+}
 
 /** A creature is valid when every field is the right type and in range. */
 function isValidCreature(c: unknown): c is Creature {
@@ -122,6 +155,9 @@ function isValidCreature(c: unknown): c is Creature {
   ) {
     return false
   }
+  // v15: lineage fields are always present after migration.
+  if (!isValidTraitList(creature.traits)) return false
+  if (!isValidParentList(creature.parents)) return false
   return true
 }
 
@@ -164,6 +200,9 @@ function isValidRetiredRecord(r: unknown): r is RetiredRecord {
     return false
   if (!Number.isInteger(rec.retiredOnDay) || (rec.retiredOnDay as number) < 1)
     return false
+  // v15: every archived career carries its derived traits and parentage.
+  if (!isValidTraitList(rec.traits)) return false
+  if (!isValidParentList(rec.parents)) return false
   return true
 }
 

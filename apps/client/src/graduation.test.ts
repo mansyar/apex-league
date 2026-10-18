@@ -9,6 +9,8 @@ import {
   confirmLabel,
   floorSummary,
   hallEntryLabel,
+  hallEntryMeta,
+  hatchFailureCopy,
   lineageSummary,
   perkLabels,
 } from "./graduation"
@@ -87,9 +89,50 @@ describe("hallEntryLabel", () => {
       cupsWon: 2,
       generation: 0,
       retiredOnDay: 60,
+      traits: [],
+      parents: [],
     }
     expect(hallEntryLabel(record)).toBe(
       "Ember Drake · Champion · gen 0 · day 60",
     )
+  })
+
+  test("shows parentage and carried traits on the second line", () => {
+    const founder: RetiredRecord = {
+      name: "Rolo",
+      speciesId: "fire_drake",
+      archetypeId: "draconic",
+      element: "fire",
+      stats: { hp: 80, atk: 12, def: 10, spd: 9 },
+      trained: { hp: 0, atk: 0, def: 0, spd: 0 },
+      cupsWon: 0,
+      generation: 0,
+      retiredOnDay: 60,
+      traits: ["sturdy"],
+      parents: [],
+    }
+    expect(hallEntryMeta(founder)).toBe("Founder — Sturdy")
+
+    // Pre-v15 records arrive with an empty traits array; the label derives one.
+    expect(hallEntryMeta({ ...founder, traits: [] })).toBe("Founder — Sturdy")
+
+    const bred: RetiredRecord = {
+      ...founder,
+      name: "Moss",
+      generation: 2,
+      traits: ["sturdy", "fierce"],
+      parents: [1, 0],
+    }
+    expect(hallEntryMeta(bred)).toBe("Child of Gen 0 × Gen 1 — Sturdy · Fierce")
+  })
+})
+
+describe("hatchFailureCopy", () => {
+  test("maps each sim rejection to coach voice", () => {
+    expect(hatchFailureCopy("invalid-species")).toBe(
+      "Pick one of the parents' species.",
+    )
+    expect(hatchFailureCopy("invalid-pair")).toContain("pick again")
+    expect(hatchFailureCopy("too-young")).toContain("can't retire yet")
   })
 })

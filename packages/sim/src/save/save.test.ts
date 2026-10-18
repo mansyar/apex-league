@@ -31,7 +31,7 @@ import {
 
 describe("save schema", () => {
   test("current version matches the schema", () => {
-    expect(SAVE_VERSION).toBe(14)
+    expect(SAVE_VERSION).toBe(15)
   })
 
   test("serializeSave wraps state with version metadata", () => {
@@ -688,7 +688,7 @@ describe("evolution stage (v6)", () => {
 
 describe("save v7 — cup session, rename, hints", () => {
   test("current version matches the schema", () => {
-    expect(SAVE_VERSION).toBe(14)
+    expect(SAVE_VERSION).toBe(15)
   })
 
   test("a v6 save migrates cleanly: null session + a clean hint ledger", () => {
@@ -1037,8 +1037,8 @@ describe("save v11 — silver ladder tier + boss defeat ledger", () => {
     return { version: 10, state, session: null, savedAt: 77 }
   }
 
-  test("SAVE_VERSION is 14", () => {
-    expect(SAVE_VERSION).toBe(14)
+  test("SAVE_VERSION is 15", () => {
+    expect(SAVE_VERSION).toBe(15)
   })
 
   test("a v10 save migrates: the ladder keeps its points and gains tier bronze", () => {
@@ -1143,8 +1143,8 @@ describe("save v12 - element chart HP scale (v11 -> v12)", () => {
   // Hall of Fame record. The migration doubles exactly the stored HP
   // magnitudes and touches nothing else - trained bonuses, atk/def/spd,
   // ladder, and the ledger are scale-free.
-  test("SAVE_VERSION is 14", () => {
-    expect(SAVE_VERSION).toBe(14)
+  test("SAVE_VERSION is 15", () => {
+    expect(SAVE_VERSION).toBe(15)
   })
 
   /** A v11-shaped payload: fresh state with every stored HP halved to the
@@ -1194,6 +1194,8 @@ describe("save v12 - element chart HP scale (v11 -> v12)", () => {
             cupsWon: 2,
             generation: 0,
             retiredOnDay: 60,
+            traits: [],
+            parents: [],
           },
         ],
       },
@@ -1346,8 +1348,8 @@ describe("save v13 (audio_foundation_20261017)", () => {
     return { version: 12, state, session: null, savedAt: 77 }
   }
 
-  test("SAVE_VERSION is 14", () => {
-    expect(SAVE_VERSION).toBe(14)
+  test("SAVE_VERSION is 15", () => {
+    expect(SAVE_VERSION).toBe(15)
   })
 
   test("a v12 save migrates: settings gain the muted flag, default false", () => {
@@ -1417,8 +1419,8 @@ describe("save v14 (gold_legend_ladder_20261017)", () => {
     return { version: 13, state, session: null, savedAt: 77 }
   }
 
-  test("SAVE_VERSION is 14", () => {
-    expect(SAVE_VERSION).toBe(14)
+  test("SAVE_VERSION is 15", () => {
+    expect(SAVE_VERSION).toBe(15)
   })
 
   test("a v13 save migrates: legendTitles stamps at 0, ladder untouched", () => {

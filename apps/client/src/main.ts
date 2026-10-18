@@ -2,6 +2,7 @@ import {
   advanceDay,
   assignTraining,
   type CareAction,
+  canBreed,
   careAction,
   chooseStarter,
   clearLoadout,
@@ -9,6 +10,7 @@ import {
   createInitialState,
   getSpecies,
   graduate,
+  graduateWithPair,
   loadBoot,
   markHintSeen,
   type PlaybackStep,
@@ -48,6 +50,7 @@ import "./ui/kit.css"
 import "./base.css"
 import "./ranch.css"
 import "./graduation.css"
+import "./nursery.css"
 import "./starter.css"
 import "./cup.css"
 import "./spar.css"
@@ -352,8 +355,12 @@ const graduation = createGraduation(app, {
       visualSeedOf(creature.stats, creature.stage),
       creature.stage,
       () => {
-        if (!store.get().creature) return
-        graduation.showEggScreen(store.get())
+        const state = store.get()
+        if (!state.creature) return
+        // A line with at least one archived champion can pair the retiree
+        // with the Hall; the founder still gets the free starter choice.
+        if (canBreed(state)) graduation.showNursery(state)
+        else graduation.showEggScreen(state)
       },
     )
   },
@@ -367,6 +374,31 @@ const graduation = createGraduation(app, {
     store.commit(result.state)
     graduation.close()
     syncScene()
+    const successor = store.get().creature
+    if (successor) {
+      hud.announceGraduation(
+        retiree.name,
+        successor.name,
+        store.get().lineage.generation,
+      )
+    }
+  },
+  onHatch: (generations, speciesId, seed) => {
+    const before = store.get()
+    const retiree = before.creature
+    if (!retiree) return
+    const result = graduateWithPair(before, generations, speciesId, seed)
+    if (!result.ok) {
+      graduation.rejectHatch(result.reason)
+      return
+    }
+    store.commit(result.state)
+    graduation.close()
+    syncScene()
+    // The Nursery's opener (the Graduate action) is gone after a succession;
+    // hand focus to the rebuilt partner plate so keyboard users land on the
+    // new creature instead of <body>.
+    document.querySelector<HTMLButtonElement>(".creature-head")?.focus()
     const successor = store.get().creature
     if (successor) {
       hud.announceGraduation(

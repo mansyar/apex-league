@@ -17,9 +17,11 @@ import {
   type CreatureStats,
   createCreature,
   effectiveStats,
+  type LineageTrait,
 } from "./creature"
 import { getSpecies, type SpeciesDef } from "./species"
 import { ACTION_POINTS_PER_DAY, type GameState } from "./state"
+import { dedupeTraits, effectiveTraits, traitBonus } from "./traits"
 
 /** One archived career, appended to the Hall of Fame on graduation. */
 export interface RetiredRecord {
@@ -39,6 +41,14 @@ export interface RetiredRecord {
   generation: number
   /** The in-game day the creature graduated. */
   retiredOnDay: number
+  /**
+   * Lineage traits at retirement (save v15). Empty on a pre-v15 record;
+   * `effectiveTraits()` derives one on read so old Hall entries still
+   * contribute to breeding.
+   */
+  traits: LineageTrait[]
+  /** Hall of Fame generations of this record's parents (save v15). */
+  parents: number[]
 }
 
 /** The bloodline across generations (save v10). */
@@ -47,6 +57,35 @@ export interface LineageState {
   generation: number
   /** Archived careers, oldest first. */
   hallOfFame: RetiredRecord[]
+}
+
+/**
+ * The retiring champion as it would be archived right now, or null when the
+ * save has no creature. This is the exact shape `graduate()` writes — and the
+ * same shape `graduateWithPair()` appends — so the Nursery can show the
+ * retiree before graduation without a parallel record model.
+ */
+export function retireeRecord(state: GameState): RetiredRecord | null {
+  const creature = state.creature
+  if (!creature) return null
+  const stats = effectiveStats(creature)
+  return {
+    name: creature.name,
+    speciesId: creature.speciesId,
+    archetypeId: creature.archetypeId,
+    element: creature.element,
+    stats,
+    trained: { ...creature.trained },
+    cupsWon: state.cupsWon,
+    generation: state.lineage.generation,
+    retiredOnDay: state.day,
+    traits: effectiveTraits({
+      traits: creature.traits,
+      trained: creature.trained,
+      stats,
+    }),
+    parents: [...(creature.parents ?? [])],
+  }
 }
 
 /**
@@ -165,12 +204,20 @@ export function inheritedFloor(
   parentEffective: CreatureStats,
   species: SpeciesDef,
   prestige: number,
+  traits: readonly LineageTrait[] = [],
 ): CreatureStats {
   const bonus = lineagePerks(prestige).establishedLine ? 1 : 0
+  const inherited = traitBonus(traits)
   const floorFor = (key: keyof CreatureStats): number => {
     const [lo, hi] = species.statBounds[key]
-    const raw = Math.round(INHERITANCE_FRACTION * parentEffective[key]) + bonus
-    return Math.max(lo, Math.min(hi, raw))
+    // Clamp the weighted roll first, then add the milestone + trait bonuses.
+    // The HP minimum would otherwise swallow a +2 Sturdy on every realistic
+    // champion (half of ~100 HP is below the 76+ species floor).
+    const rolled = Math.max(
+      lo,
+      Math.min(hi, Math.round(INHERITANCE_FRACTION * parentEffective[key])),
+    )
+    return Math.max(lo, Math.min(hi, rolled + bonus + inherited[key]))
   }
   return {
     hp: floorFor("hp"),
@@ -188,15 +235,28 @@ export function inheritedFloor(
  *
  * Throws on an unknown species (the caller must pick an available one).
  */
+export interface InheritanceSource {
+  /** The parent record's effective traits (hereditary). */
+  traits: readonly LineageTrait[]
+  /** The parent generations this successor descends from. */
+  parents: readonly number[]
+}
+
 export function createInheritedCreature(
   speciesId: string,
   seed: number,
   parentEffective: CreatureStats,
   prestige: number,
+  source?: InheritanceSource,
 ): Creature {
   const species = getSpecies(speciesId)
   if (!species) throw new Error(`Unknown species: ${speciesId}`)
-  const floor = inheritedFloor(parentEffective, species, prestige)
+  const floor = inheritedFloor(
+    parentEffective,
+    species,
+    prestige,
+    source?.traits,
+  )
   const base = createCreature(speciesId, seed)
   const stats: CreatureStats = {
     hp: Math.max(base.stats.hp, floor.hp),
@@ -210,7 +270,13 @@ export function createInheritedCreature(
         bond: Math.max(base.conditions.bond, WARM_BOND_START),
       }
     : base.conditions
-  return { ...base, stats, conditions }
+  return {
+    ...base,
+    stats,
+    conditions,
+    traits: source ? dedupeTraits(source.traits) : [],
+    parents: source ? [...source.parents] : [],
+  }
 }
 
 /** The outcome of a graduation attempt. */
@@ -239,26 +305,22 @@ export function graduate(
 ): GraduateResult {
   const verdict = canGraduate(state)
   if (!verdict.eligible) return { ok: false, reason: verdict.reason }
-  const creature = state.creature
-  // Unreachable after the gate, but narrows the type for the archive below.
-  if (!creature) return { ok: false, reason: "no-creature" }
 
-  const eff = effectiveStats(creature)
+  const record = retireeRecord(state)
+  if (!record) return { ok: false, reason: "no-creature" }
   const generation = state.lineage.generation + 1
   // Prestige as of the new generation (spec R4): the egg belongs to it.
   const prestige = generation + state.cupsWon
-  const record: RetiredRecord = {
-    name: creature.name,
-    speciesId: creature.speciesId,
-    archetypeId: creature.archetypeId,
-    element: creature.element,
-    stats: eff,
-    trained: { ...creature.trained },
-    cupsWon: state.cupsWon,
-    generation: state.lineage.generation,
-    retiredOnDay: state.day,
-  }
-  const successor = createInheritedCreature(speciesId, seed, eff, prestige)
+  const successor = createInheritedCreature(
+    speciesId,
+    seed,
+    record.stats,
+    prestige,
+    {
+      traits: record.traits,
+      parents: [state.lineage.generation],
+    },
+  )
   return {
     ok: true,
     state: {

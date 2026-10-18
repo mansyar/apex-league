@@ -8,16 +8,18 @@
  *
  * The evolution boosts are folded *into* the rolled base at evolution time
  * (evolution.ts), so the pre-evolution roll is recovered by subtracting the
- * pinned stage constants. The inherited floor is recomputed from the parent's
- * Hall of Fame record (the exact inputs `graduate()` used when the egg was
- * laid), so no save-schema change is needed. Pure data and pure functions
- * only — no DOM, no rendering, no I/O.
+ * pinned stage constants. The inherited floor is recomputed from the parent
+ * records (the exact inputs `graduate()` / `createBredCreature()` used when
+ * the egg was laid), so no save-schema change is needed. Pure data and pure
+ * functions only — no DOM, no rendering, no I/O.
  */
 
+import { inheritedFloorFromPair } from "./breeding"
 import { type Creature, type CreatureStats, effectiveStats } from "./creature"
 import { CHAMPION_STAT_BOOST, EVOLUTION_STAT_BOOST } from "./evolution"
 import { inheritedFloor, type LineageState } from "./legacy"
 import { getSpecies } from "./species"
+import { dedupeTraits, effectiveTraits } from "./traits"
 
 /** One stat's decomposition for the creature-detail modal. */
 export interface StatBreakdownRow {
@@ -59,11 +61,12 @@ function stageBoostFor(stage: Creature["stage"]): CreatureStats {
 /**
  * Decompose a creature's displayed stats into their four contributions.
  *
- * The floor is recomputed from the **most recent Hall of Fame record** (the
- * parent of the active creature) using the prestige as of the egg — the
- * parent's generation + 1 plus the lifetime cups at lay time — never from the
- * save's current totals, which may have grown since. A founder (empty Hall of
- * Fame) shows a null floor.
+ * The floor is recomputed from the creature's recorded parents using the
+ * prestige as of the egg — the retiring parent's generation + 1 plus the
+ * lifetime cups at lay time — never from the save's current totals, which may
+ * have grown since. A founder (no parents, empty Hall of Fame) shows a null
+ * floor. A two-parent egg uses the dual-parent formula; a founder-pick
+ * successor uses the single-parent formula.
  *
  * Pure: reads its inputs, returns fresh rows; the caller renders them.
  */
@@ -73,16 +76,38 @@ export function statBreakdown(
 ): StatBreakdown {
   const eff = effectiveStats(creature)
   const boost = stageBoostFor(creature.stage)
-  const parent = lineage.hallOfFame[lineage.hallOfFame.length - 1]
+  const hall = lineage.hallOfFame
+  const last = hall[hall.length - 1]
   const species = getSpecies(creature.speciesId)
+  const generations = creature.parents ?? []
+  const parents =
+    generations.length > 0
+      ? generations
+          .map((generation) =>
+            hall.find((record) => record.generation === generation),
+          )
+          .filter((record): record is NonNullable<typeof record> =>
+            Boolean(record),
+          )
+      : last
+        ? [last]
+        : []
+  // The last archived record is the retiring parent, so its generation + 1 is
+  // the successor's generation at lay time, regardless of which pair was used.
+  const prestige = last ? last.generation + 1 + last.cupsWon : 0
+  const [sire, dam] = parents
   const floor =
-    parent && species
-      ? inheritedFloor(
-          parent.stats,
+    species && sire && dam
+      ? inheritedFloorFromPair(
+          sire.stats,
+          dam.stats,
           species,
-          parent.generation + 1 + parent.cupsWon,
+          prestige,
+          dedupeTraits(parents.flatMap((record) => effectiveTraits(record))),
         )
-      : null
+      : species && sire
+        ? inheritedFloor(sire.stats, species, prestige, effectiveTraits(sire))
+        : null
   const row = (key: keyof CreatureStats): StatBreakdownRow => ({
     total: eff[key],
     baseRolled: creature.stats[key] - boost[key],
