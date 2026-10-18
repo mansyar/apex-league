@@ -171,7 +171,26 @@ checkpoints with explicit user verification.
 > verify` green: check ×3, 1422 pass / 0 fail, biome clean (4
 > pre-existing warnings), determinism gate byte-identical.
 
-- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+> [checkpoint: 68b56f1] Coverage audit: diff bed5d11..68b56f1 touches
+> `apps/client/src/cup.ts` + new `cup/` modules — every extracted decision
+> is pinned by `cup/view-models.test.ts` (25 tests) and the pure surface
+> remains covered by `bracket-model.test.ts`/`battleUI.test.ts`/
+> `battle-session.test.ts`. Live browser probe (user-approved) covered the
+> full client flow: fresh save → draft → advance to day 7 → regular cup QF
+> loss (results "4th · out in the quarterfinal", console clean) → injected
+> Bronze I 13 pts save → day 14 Promotion Cup gate ("Promotion Cup awaits"
+> chip hint, banner, Koda walking the rival subtree) → QF win → resume
+> after overlay close → SF forfeit via the give-up modal ("Forfeit — no
+> ladder points", Koda takes the Promotion Cup, gate stayed active) → day
+> 21 Promotion Cup again → QF knockout win → SF win → **boss final vs
+> Koda: lower-third intro chyron + pinned 92-HP boss build verified**
+> (`probe4-boss-lower-third.png`), final loss → results "2nd · out in the
+> final", "Ladder +2 · Bronze I" (`probe4-boss-final-results.png`).
+> Console: 0 errors / 0 warnings across all runs. mock.html post-refactor
+> full-page capture matches the pre-refactor baseline (committed in
+> Phase 3). Evidence: conductor/tracks/cup_module_refactor_20261018/evidence/.
 
 ## Phase 5 — Final Verification & Close
 
