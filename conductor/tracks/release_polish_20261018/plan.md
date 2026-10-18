@@ -108,10 +108,13 @@ ends with a verification checkpoint and user approval.
 
 ## Phase 5 - Release readiness & close
 
-- [ ] Task: Performance baseline & budgets
-  - [ ] Record initial JS/CSS gzip, Lighthouse desktop + narrow, and
+- [x] Task: Performance baseline & budgets - 2ba107d, df7c2cf
+  - [x] Record initial JS/CSS gzip, Lighthouse desktop + narrow, and
         listener/DOM cleanliness after closing overlays; enforce the +10% cap and
-        fix regressions.
+        fix regressions. Baseline JS 216.74 kB gzip / CSS 10.65 kB gzip;
+        future caps 238.4 / 11.72 kB. Cold load 13.1 s, warm 2.0 s, narrow warm
+        0.9 s; 10 overlay cycles held nodes 892 and heap 4.8 MB. Lighthouse
+        deferred (binary unavailable); details in `verification.md`.
 - [ ] Task: Docs truth pass (`README.md`, `docs/save-schema.md`,
       `conductor/tech-stack.md`)
   - [ ] Add the release checklist; document v16 volumes; add the dated
