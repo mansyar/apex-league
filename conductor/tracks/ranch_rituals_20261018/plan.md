@@ -33,7 +33,7 @@
   - [ ] Curate CC0 cues (Kenney sets + soft chime), commit under the client
         app with a size-budget note; manual verify dev-server 200s.
   - [ ] Commit `assets(audio): bundle CC0 care cues + dawn chime`
-- [ ] Task: Wire care cues into ranch handlers
+- [x] Task: Wire care cues into ranch handlers `f341f7b`
   - [ ] `onCare` / `onAdvanceDay` / pet paths through `AudioPlayer.playCue`;
         silent degradation; manual browser verify (all cues, mute, calm-mix).
   - [ ] Commit `feat(audio): care SFX on the ranch`
