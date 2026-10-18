@@ -293,6 +293,15 @@ export function loadSave(adapter: SaveAdapter): SaveData | null {
         state.settings.arenaCamera !== "broadcast") ||
       // v13: the audio mute toggle is a strict boolean (false = sound on).
       typeof state.settings.muted !== "boolean" ||
+      // v16: both bus levels are finite numbers in 0..1 (release polish).
+      typeof state.settings.musicVolume !== "number" ||
+      !Number.isFinite(state.settings.musicVolume) ||
+      state.settings.musicVolume < 0 ||
+      state.settings.musicVolume > 1 ||
+      typeof state.settings.sfxVolume !== "number" ||
+      !Number.isFinite(state.settings.sfxVolume) ||
+      state.settings.sfxVolume < 0 ||
+      state.settings.sfxVolume > 1 ||
       // v5: cup bookkeeping must be present and well-formed.
       !Number.isInteger(state.cupsWon) ||
       state.cupsWon < 0 ||

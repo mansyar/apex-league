@@ -219,8 +219,10 @@ export {
   markHintSeen,
   type Phase,
   setArenaCamera,
+  setMusicVolume,
   setMuted,
   setReducedMotion,
+  setSfxVolume,
 } from "./state"
 export {
   type StatBreakdown,

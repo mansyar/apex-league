@@ -40,6 +40,16 @@ export interface GameSettings {
    * silences them in the settings modal.
    */
   muted: boolean
+  /**
+   * Music bus level, 0..1 (save v16, release_polish_20261018). Applied to
+   * the scene-driven music beds; the mute toggle overrides it.
+   */
+  musicVolume: number
+  /**
+   * SFX bus level, 0..1 (save v16, release_polish_20261018). Applied at the
+   * cue seam; the mute toggle overrides it.
+   */
+  sfxVolume: number
 }
 
 /** The single source of truth for a run's simulation state. */
@@ -94,6 +104,8 @@ export function createInitialState(): GameState {
       seenHints: [],
       arenaCamera: "cinematic",
       muted: false,
+      musicVolume: 1,
+      sfxVolume: 1,
     },
     cupsWon: 0,
     lastCupDay: null,
@@ -144,6 +156,37 @@ export function setArenaCamera(
  */
 export function setMuted(state: GameState, value: boolean): GameState {
   return { ...state, settings: { ...state.settings, muted: value } }
+}
+
+/**
+ * Clamp a bus level into 0..1. Non-finite input (a hand-edited save or a
+ * broken range control) lands at 0 rather than poisoning the gain math.
+ */
+function clampVolume(value: number): number {
+  if (!Number.isFinite(value)) return 0
+  return Math.min(1, Math.max(0, value))
+}
+
+/**
+ * Set the persisted music bus level, 0..1 (save v16). Pure: the next state
+ * keeps everything else untouched, and callers persist via saveGame.
+ */
+export function setMusicVolume(state: GameState, value: number): GameState {
+  return {
+    ...state,
+    settings: { ...state.settings, musicVolume: clampVolume(value) },
+  }
+}
+
+/**
+ * Set the persisted SFX bus level, 0..1 (save v16). Pure: the next state
+ * keeps everything else untouched, and callers persist via saveGame.
+ */
+export function setSfxVolume(state: GameState, value: number): GameState {
+  return {
+    ...state,
+    settings: { ...state.settings, sfxVolume: clampVolume(value) },
+  }
 }
 
 /**

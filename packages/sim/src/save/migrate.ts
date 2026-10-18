@@ -90,6 +90,10 @@ const migrations: Record<
         seenHints: [],
         arenaCamera: "cinematic",
         muted: false,
+        // Stamped early so the intermediate GameState literal type-checks;
+        // the v15 → v16 step below stamps them again for direct v15 saves.
+        musicVolume: 1,
+        sfxVolume: 1,
       },
       cupsWon: 0,
       lastCupDay: null,
@@ -119,6 +123,10 @@ const migrations: Record<
         seenHints: [],
         arenaCamera: "cinematic",
         muted: false,
+        // Stamped early so the intermediate GameState literal type-checks;
+        // the v15 → v16 step below stamps them again for direct v15 saves.
+        musicVolume: 1,
+        sfxVolume: 1,
       },
       cupsWon: 0,
       lastCupDay: null,
@@ -155,6 +163,10 @@ const migrations: Record<
         seenHints: [],
         arenaCamera: "cinematic",
         muted: false,
+        // Stamped early so the intermediate GameState literal type-checks;
+        // the v15 → v16 step below stamps them again for direct v15 saves.
+        musicVolume: 1,
+        sfxVolume: 1,
       },
       cupsWon: 0,
       lastCupDay: null,
@@ -195,6 +207,10 @@ const migrations: Record<
         seenHints: [],
         arenaCamera: "cinematic",
         muted: false,
+        // Stamped early so the intermediate GameState literal type-checks;
+        // the v15 → v16 step below stamps them again for direct v15 saves.
+        musicVolume: 1,
+        sfxVolume: 1,
       },
       cupsWon: 0,
       lastCupDay: null,
@@ -228,7 +244,13 @@ const migrations: Record<
       phase,
       actionPoints,
       creature,
-      settings: { ...settings, arenaCamera: "cinematic", muted: false },
+      settings: {
+        ...settings,
+        arenaCamera: "cinematic",
+        muted: false,
+        musicVolume: 1,
+        sfxVolume: 1,
+      },
       cupsWon: 0,
       lastCupDay: null,
       // The ladder starts fresh for every migrated save (bronze ladder,
@@ -300,6 +322,9 @@ const migrations: Record<
         // the v8 → v9 step below stamps it again for direct v8 saves.
         arenaCamera: "cinematic",
         muted: false,
+        // Stamped early for the same reason; the v15 → v16 step sets these.
+        musicVolume: 1,
+        sfxVolume: 1,
       },
       cupsWon: s.cupsWon as GameState["cupsWon"],
       lastCupDay: s.lastCupDay as GameState["lastCupDay"],
@@ -598,6 +623,37 @@ const migrations: Record<
     }
     return {
       version: 15,
+      state: migrated,
+      savedAt: raw.savedAt ?? 0,
+      session: (raw.session as CupSession | null) ?? null,
+    }
+  },
+
+  // v15 → v16 (release_polish_20261018): settings gain the music and SFX bus
+  // levels. Older saves never chose a mix, so both start at full volume and
+  // the mute toggle keeps its authority over them. The live cup session is
+  // forwarded untouched.
+  15: (raw) => {
+    const { day, phase, actionPoints, state: s } = validateStateShape(raw, 15)
+    const migrated: GameState = {
+      day,
+      phase,
+      actionPoints,
+      creature: s.creature as GameState["creature"],
+      settings: {
+        ...(s.settings as GameState["settings"]),
+        musicVolume: 1,
+        sfxVolume: 1,
+      },
+      cupsWon: s.cupsWon as GameState["cupsWon"],
+      lastCupDay: s.lastCupDay as GameState["lastCupDay"],
+      ladder: s.ladder as GameState["ladder"],
+      lineage: s.lineage as GameState["lineage"],
+      bossDefeats: s.bossDefeats as GameState["bossDefeats"],
+      legendTitles: s.legendTitles as GameState["legendTitles"],
+    }
+    return {
+      version: 16,
       state: migrated,
       savedAt: raw.savedAt ?? 0,
       session: (raw.session as CupSession | null) ?? null,
