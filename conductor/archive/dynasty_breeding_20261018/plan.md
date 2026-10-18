@@ -147,15 +147,33 @@ verification checkpoint and user approval.
 
 ## Phase 5 — Final acceptance & close
 
-- [ ] Task: Full acceptance matrix
-  - [ ] Walk every acceptance criterion in `spec.md`; record the balance-probe
-        floor distribution; confirm no new per-frame work; confirm docs match
-        v15.
-  - [ ] `bun run verify`, `biome check`, full `bun test`; manual desktop +
-        narrow pass.
-- [ ] Task: Track close
-  - [ ] Git-note verification report; mark plan complete; archive per
-        `workflow.md`; update `conductor/tracks.md` status; commit.
+- [x] Task: Full acceptance matrix
+  - [x] Every `spec.md` criterion walked: founder graduation unchanged
+        (Phase 4 screenshot + `legacy.test.ts`); second+ graduation opens the
+        Nursery with any two pool records, parent-limited species, and a
+        preview that matches the hatch (manual Ember x Tide exact match +
+        `breeding.test.ts`); both parents' traits on egg/Hall/detail with
+        duplicates collapsed; seed reproducibility and baked mutation
+        (`breeding.test.ts`, `creature.test.ts`); v14 migration loses nothing
+        and malformed trait/parent arrays are rejected (`breedingSave.test.ts`);
+        docs match v15 (`save-schema.md`, `README.md`, `product.md`).
+  - [x] Balance probe (567 floor samples over 3 stat profiles x 3 species x
+        prestige 0-6 x three trait sets; floor as % of the best parent):
+        HP 76.8 / 88.9 / 105.8, ATK 72.7 / 81.8 / 137.5, DEF 63.6 / 81.8 /
+        120.0, SPD 54.5 / 81.8 / 142.9 (min / median / max). No stat collapses;
+        the >100% tail is trait/milestone bonuses on small stats.
+  - [x] No new per-frame work: the Nursery is DOM-only (`nursery.ts` has no
+        rAF, timers, or per-frame allocation); the render loop is untouched.
+  - [x] `bun run verify` exit 0; `bun test --parallel` 1492 pass / 1 skip /
+        0 fail; biome only the four pre-existing cup warnings; determinism
+        gate byte-identical. Manual desktop + 393x659 pass from Phase 4.
+  - [x] Close-before-hatch keeps the champion (gen 2, Hall 2, no new record)
+        and reload mid-Nursery boots the same champion with no partial state.
+  - [x] Commit `f1d8b3c` (docs truth: the legacy type-affinity claim).
+- [x] Task: Track close
+  - [x] Git-note verification report on the last functional commit.
+  - [x] Mark plan complete; archive the track; update `conductor/tracks.md`;
+        commit.
 
 ## Sequencing notes
 
