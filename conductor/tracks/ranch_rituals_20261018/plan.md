@@ -62,9 +62,9 @@
   - [x] Failing tests: pure picker — mood bands -> reaction variant, droopy
         override, cooldown gate. Implement to green.
   - [x] Commit `feat(ranch): pet reaction picker` (2a4da82)
-- [~] Task: Pointer wiring + raycast pet
+- [x] Task: Pointer wiring + raycast pet (89058c3)
   - [x] Click-vs-drag discrimination on the canvas (never hijack orbit, never
         touch the plate-head modal path); raycast the creature mesh; wire
         reaction + chirp; touch parity.
-  - [x] Commit `feat(ranch): ambient pet interaction`
+  - [x] Commit `feat(ranch): ambient pet interaction` (89058c3)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
