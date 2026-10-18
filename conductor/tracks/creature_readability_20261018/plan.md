@@ -95,32 +95,65 @@ Notes from this phase:
 Goal: read as living hide — anatomical zones plus seeded dappling, with the
 element hue contract intact.
 
-- [ ] Task: Ramp builder
-  - [ ] Write failing tests: steps are monotonic in lightness; shadows shift
+- [x] Task: Ramp builder
+  - [x] Write failing tests: steps are monotonic in lightness; shadows shift
         toward cool; the base hue stays inside the element contract
-  - [ ] Implement `creaturePalette(dna, stage)` with 3–5 steps per archetype
-- [ ] Task: Zone classifier
-  - [ ] Write failing tests: belly is lighter than dorsal on every archetype;
+  - [x] Implement `creaturePalette(dna, stage)` with 3–5 steps per archetype
+- [x] Task: Zone classifier
+  - [x] Write failing tests: belly is lighter than dorsal on every archetype;
         socks appear only on leg parts; classification is deterministic
-  - [ ] Implement `surfaceClass(part, x, y, z, dna, stage)`
-- [ ] Task: Dappling noise
-  - [ ] Write failing tests: same seed → same class map; two-octave low
+  - [x] Implement `surfaceClass(part, x, y, z, dna, stage)`
+- [x] Task: Dappling noise
+  - [x] Write failing tests: same seed → same class map; two-octave low
         frequency; class ratio stays in a sane band (no single-class flood)
-  - [ ] Implement with a salted stream and prove the existing palette draw is
+  - [x] Implement with a salted stream and prove the existing palette draw is
         unchanged for every seed
-- [ ] Task: Wire classes into the three archetype builds
-  - [ ] Draco, bovine, axolotl declare palettes and assign classes during field
+- [x] Task: Wire classes into the three archetype builds
+  - [x] Draco, bovine, axolotl declare palettes and assign classes during field
         construction
-  - [ ] Keep `gilded` behaviour byte-identical
-- [ ] Task: Manual vision sweep
-  - [ ] `gallery.html?stage=` 8-seed sweep per archetype, judged at arena
+  - [x] Keep `gilded` behaviour byte-identical
+- [x] Task: Manual vision sweep
+  - [x] `gallery.html?stage=` 8-seed sweep per archetype, judged at arena
         distance
-  - [ ] Commit before/after PNGs to the track folder
+  - [x] Commit before/after PNGs to the track folder
+        (`artifacts/before-*.png`, `artifacts/after-*.png`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Browser evidence: three tone zones plus dappling visible at gameplay
+  - [x] Browser evidence: three tone zones plus dappling visible at gameplay
         distance on all three archetypes
   - [ ] Await explicit user approval, attach the verification note, record the
         checkpoint SHA
+
+### Phase 3 findings (2026-10-18)
+
+- Ramp steps derive from the DNA's own hue/sat/light, so `lateral` is
+  byte-identical to the pre-zone `main` and `limb` is exactly
+  `lateral x 0.7`. A build that declares no classifier renders unchanged;
+  `gilded` keeps its flat hue-45 base and gains zones on top of it.
+- Measured champion ramps (seed 42). Draconic:
+  `lateral #ee8152 dorsal #9e4542 belly #d8c3b9 limb #a75a3a sock #933d43`;
+  bovine: `#57d63e / #3c7642 / #a7c4a1 / #3d962b / #376c42`.
+  Shadow steps lose saturation as well as value — keeping it turned the orange
+  drake's back crimson.
+- First arena-distance sweep failed and was fixed before commit. Two causes:
+  band edges dithered per voxel, and `dappled` let 30% of flank voxels step UP
+  to the pale belly tone. At 120 px per creature the pale speckle reads as torn
+  or eroded hide, not as counter-shading. The fix keeps the ±1.5-voxel wobble
+  but drops the per-voxel dither, and makes flank/limb dappling one-sided
+  (darkens only). Compare `artifacts/before-draconic.png` with
+  `artifacts/after-draconic.png`.
+- Surface shares on champion body vertices (lateral / dorsal / belly / limb):
+  draconic 54 / 12 / 30 / 5, bovine 52 / 22 / 23 / 3, axolotl 61 / 17 / 18 / 5.
+  Socks appear only on leg parts (6% of all vertices on draconic and axolotl,
+  17% on bovine, whose legs are shorter).
+- Quad merging is gated on the packed class signature, so a zone boundary
+  legitimately splits quads that used to merge. Mesh baseline re-pinned:
+  draconic champion 3634 → 3700 tris (+66, +1.8%); geometry itself is untouched.
+- Artifacts regenerated at seed 42, tri deltas vs Phase 2 (baby / juvenile /
+  champion): draconic 3432→3484, 3362→3432, 3634→3700; bovine 2166→2318,
+  2286→2414, 2342→2492; axolotl 3014→3058, 2872→2912, 3206→3258. Largest GLB
+  is 243,444 B, still inside the 320 KiB tripwire. Props opt out of zones, so
+  `artifacts/props-42.json` is byte-identical and the determinism gate matches
+  all 5 props plus all 9 creatures.
 
 ## Phase 4: Face kit
 

@@ -11,6 +11,14 @@
  * the darker-diagonal split legitimately change quad counts (draconic champion
  * 2116 -> 3634 tris), so the previous pin no longer describes the mesh.
  *
+ * Re-pinned again after surface zones: quad merging is gated on the packed
+ * class signature, so a zone edge legitimately splits quads that used to merge
+ * (draconic champion 3634 -> 3700 tris). Geometry itself is untouched; only
+ * where a merge may cross a colour boundary moved. An earlier cut of this
+ * re-pin read 3780, when the band edges still dithered per voxel; the dither
+ * frayed the boundary into pale speckle that read as damage at arena distance,
+ * so it was removed and only the low-frequency wobble remains.
+ *
  * Scope is deliberately one creature, not all nine: a full 9-stage sweep costs
  * ~7.5s of SDF sampling, which would blow the suite's <=15s budget. The
  * exhaustive byte-identical sweep over every archetype and stage is already
@@ -55,7 +63,7 @@ function propHash(propId: string): string {
 }
 
 const DRACONIC_CHAMPION =
-  "5eeea0026d1be5cd5d823f0002660cc10d9056bf3ce23b9bce67c47fa984ce22"
+  "e11c96e50e512fe6afb149403d9f33b75cec9b862cce0dd800ae37b450d83424"
 
 const PROP_BASELINE: Record<string, string> = {
   tuft: "9a5658fc92af4ed573660245dfb4b3df8c16e8545b086eaeef261dfa690ed645",

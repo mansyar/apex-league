@@ -1,5 +1,6 @@
 import { makeRng } from "./rng"
 import { matureProportions, type Stage } from "./stage"
+import { creaturePalette, type SurfaceBounds, surfaceClass } from "./surface"
 
 // Re-export the archetype-agnostic sampler under the archetype name so
 // callers (tests, gallery) can stay archetype-typed.
@@ -145,13 +146,25 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
   // -- Part fields (paint order: later parts claim overlapping voxels) -----
   const fields: PartField[] = []
 
+  // Surface zones follow the real body extent: the brisket hangs lowest and
+  // the hump is the highest point, so those two set the band edges.
+  const surfaceBounds: SurfaceBounds = {
+    torsoBottom: brisket.y - 3.4 * bg,
+    torsoTop: hump.y + 4.6 * hs,
+    sockTop: footY + 0.6,
+  }
+  const classifyTorso = (q: Vec3): number =>
+    surfaceClass("torso", q, dna.seed, surfaceBounds)
+  const classifyLeg = (q: Vec3): number =>
+    surfaceClass("leg", q, dna.seed, surfaceBounds)
+
   // Barrel + shoulder hump + brisket blend into one mass — smooth, no seam.
   const bodyField: Sdf = smoothUnion(
     union(sdBox(barrel, barrelHalf), sdSphere(brisket, 3.4 * bg)),
     sdSphere(hump, 4.6 * hs),
     3,
   )
-  fields.push({ name: "body", sdf: bodyField })
+  fields.push({ name: "body", sdf: bodyField, classify: classifyTorso })
 
   // Tail: a thin drooping line down the rump — the opposite of the drake's
   // heavy taper. Styles decorate the tip only.
@@ -206,7 +219,7 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
       sdSphere(hip, 2.7 * bg),
       sdCapsule(hip, foot, 2.3 * bg),
     )
-    fields.push({ name: leg.name, sdf: legField })
+    fields.push({ name: leg.name, sdf: legField, classify: classifyLeg })
   }
 
   // Horns paint BEFORE head/neck: horn voxels inside the skull are claimed
@@ -351,6 +364,11 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
   // same seed jitter, just a maturing coat (see stage.ts).
   const lift = stage === "baby" ? 0 : stage === "juvenile" ? 0.05 : 0.1
   const main = hslToRgb(hue, Math.min(1, sat + lift), Math.min(1, light + lift))
+  const ramp = creaturePalette({
+    hue,
+    sat: Math.min(1, sat + lift),
+    light: Math.min(1, light + lift),
+  })
   const dark: [number, number, number] = [
     main[0] * 0.7,
     main[1] * 0.7,
@@ -391,6 +409,13 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
     fields,
     pivots,
     colors,
+    palettes: {
+      body: ramp,
+      legFL: ramp,
+      legFR: ramp,
+      legBL: ramp,
+      legBR: ramp,
+    },
     parents: {
       tail: "body",
       neck: "body",

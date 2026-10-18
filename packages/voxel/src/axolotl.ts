@@ -15,6 +15,7 @@ import {
   vec3,
 } from "./sdf"
 import { matureProportions, type Stage } from "./stage"
+import { creaturePalette, type SurfaceBounds, surfaceClass } from "./surface"
 import type { PartField } from "./voxelizer"
 
 export { sampleDna as sampleAxolotlDna } from "./sample"
@@ -167,6 +168,18 @@ export function buildAxolotl(dna: Dna, stage: Stage = "baby"): AxolotlBuild {
   // bulk volumes first and outer details after) -----------------------------
   const fields: PartField[] = []
 
+  // Surface zones: chest capsule bottom to rear capsule top, both taken from
+  // the geometry so a stage or girth shift carries the bands with the body.
+  const surfaceBounds: SurfaceBounds = {
+    torsoBottom: chestA.y - 4.7 * bg,
+    torsoTop: rearB.y + 4.2 * bg,
+    sockTop: footY,
+  }
+  const classifyTorso = (q: Vec3): number =>
+    surfaceClass("torso", q, dna.seed, surfaceBounds)
+  const classifyLeg = (q: Vec3): number =>
+    surfaceClass("leg", q, dna.seed, surfaceBounds)
+
   // Neck paints FIRST: it is a short thick capsule buried inside the chest
   // silhouette (axolotls are neckless), so the body and head claim its
   // surface anyway. Painting first guarantees the part is never empty while
@@ -179,7 +192,7 @@ export function buildAxolotl(dna: Dna, stage: Stage = "baby"): AxolotlBuild {
     sdCapsule(rearA, rearB, 4.2 * bg),
     5,
   )
-  fields.push({ name: "body", sdf: bodyField })
+  fields.push({ name: "body", sdf: bodyField, classify: classifyTorso })
 
   fields.push({
     name: "tail",
@@ -307,7 +320,7 @@ export function buildAxolotl(dna: Dna, stage: Stage = "baby"): AxolotlBuild {
       union(sdSphere(hip, 2.3 * bg), sdCapsule(hip, foot, 1.5 * bg)),
       sdSphere(foot, 1.9),
     )
-    fields.push({ name: leg.name, sdf: legField })
+    fields.push({ name: leg.name, sdf: legField, classify: classifyLeg })
   }
 
   // Head paints after the legs so it claims its own silhouette wherever it
@@ -466,6 +479,11 @@ export function buildAxolotl(dna: Dna, stage: Stage = "baby"): AxolotlBuild {
   // same seed jitter, just a maturing coat (see stage.ts).
   const lift = stage === "baby" ? 0 : stage === "juvenile" ? 0.05 : 0.1
   const main = hslToRgb(hue, Math.min(1, sat + lift), Math.min(1, light + lift))
+  const ramp = creaturePalette({
+    hue,
+    sat: Math.min(1, sat + lift),
+    light: Math.min(1, light + lift),
+  })
   const dark: [number, number, number] = [
     main[0] * 0.7,
     main[1] * 0.7,
@@ -509,6 +527,13 @@ export function buildAxolotl(dna: Dna, stage: Stage = "baby"): AxolotlBuild {
     fields,
     pivots,
     colors,
+    palettes: {
+      body: ramp,
+      legFL: ramp,
+      legFR: ramp,
+      legBL: ramp,
+      legBR: ramp,
+    },
     parents: {
       tail: "body",
       tailFin: "tail",

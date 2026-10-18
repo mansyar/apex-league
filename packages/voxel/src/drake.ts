@@ -13,6 +13,7 @@ import {
   vec3,
 } from "./sdf"
 import { matureProportions, type Stage } from "./stage"
+import { creaturePalette, type SurfaceBounds, surfaceClass } from "./surface"
 import type { PartField } from "./voxelizer"
 
 // Draconic archetype: a quadruped western drake. Authored in voxel units on a
@@ -99,6 +100,20 @@ export function buildDrake(dna: Dna, stage: Stage = "baby"): DrakeBuild {
   const legFrontZ = 5 + (ll - 1) * 2
   const legBackZ = -5.5 - (ll - 1) * 2
 
+  // Surface zones: the torso's real y extent, derived from the chest and rump
+  // radii, so a stage or girth shift moves the bands with the body instead of
+  // letting them drift off it. surface.ts decides how much of that extent
+  // reads as belly and dorsal.
+  const surfaceBounds: SurfaceBounds = {
+    torsoBottom: chestA.y - 6.2 * bg,
+    torsoTop: rearA.y + 5 * bg,
+    sockTop: footY + 1.2,
+  }
+  const classifyTorso = (q: Vec3): number =>
+    surfaceClass("torso", q, dna.seed, surfaceBounds)
+  const classifyLeg = (q: Vec3): number =>
+    surfaceClass("leg", q, dna.seed, surfaceBounds)
+
   // Neck rises steeply from the shoulders then sweeps forward to the head —
   // a near-vertical arch reads "drake" and stair-steps far less than a ramp.
   const neckA = at(0, 17.5, 4.5 * bl)
@@ -180,6 +195,7 @@ export function buildDrake(dna: Dna, stage: Stage = "baby"): DrakeBuild {
       union(spine, spinePeak),
       2.5,
     ),
+    classify: classifyTorso,
   })
 
   // Tail: a three-segment taper that droops from the rump and flicks up at
@@ -228,7 +244,7 @@ export function buildDrake(dna: Dna, stage: Stage = "baby"): DrakeBuild {
       ),
       sdCapsule(hip, thighTop, 2.3 * bg),
     )
-    fields.push({ name: leg.name, sdf: legField })
+    fields.push({ name: leg.name, sdf: legField, classify: classifyLeg })
   }
 
   // Three-segment taper: thick at the shoulders, thinner under the skull —
@@ -367,6 +383,14 @@ export function buildDrake(dna: Dna, stage: Stage = "baby"): DrakeBuild {
   // a step further: the same individual wearing its record.
   const lift = stage === "baby" ? 0 : stage === "juvenile" ? 0.05 : 0.1
   const main = hslToRgb(hue, Math.min(1, sat + lift), Math.min(1, light + lift))
+  // The zone ramp is built from the same lifted hsl values, so its lateral
+  // step is `main` and its limb step is `dark` - the flat colours this
+  // creature had before zones existed.
+  const ramp = creaturePalette({
+    hue,
+    sat: Math.min(1, sat + lift),
+    light: Math.min(1, light + lift),
+  })
   const dark: [number, number, number] = [
     main[0] * 0.7,
     main[1] * 0.7,
@@ -400,6 +424,13 @@ export function buildDrake(dna: Dna, stage: Stage = "baby"): DrakeBuild {
     fields,
     pivots,
     colors,
+    palettes: {
+      body: ramp,
+      legFL: ramp,
+      legFR: ramp,
+      legBL: ramp,
+      legBR: ramp,
+    },
     parents: {
       neck: "body",
       head: "neck",
