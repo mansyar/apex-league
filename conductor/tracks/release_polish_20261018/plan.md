@@ -49,12 +49,12 @@ ends with a verification checkpoint and user approval.
         input is clamped.
   - [x] Implement `setVolumes({ music, sfx })`, pass SFX gain through the cue
         seam, and apply music gain in `MusicBeds`.
-- [ ] Task: Settings volume controls (`settings-modal.ts`, `hud/settings.ts`,
-      kit CSS)
-  - [ ] Add labeled Music and SFX sliders (0-100, keyboard operable, live
+- [x] Task: Settings volume controls (`settings-modal.ts`, `hud/settings.ts`,
+      kit CSS) - 59765f7
+  - [x] Add labeled Music and SFX sliders (0-100, keyboard operable, live
         value); keep the mute chip as the override and preserve the existing
         reset/camera/motion rows.
-  - [ ] Wire handlers to the store and audio in `main.ts`; apply persisted
+  - [x] Wire handlers to the store and audio in `main.ts`; apply persisted
         volumes at boot; verify mute precedence and reload persistence.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [ ] Live adjust, reload persistence, mute override, narrow layout; capture
