@@ -138,15 +138,12 @@ verification checkpoint and user approval.
         badges in `creature-detail.ts`; legacy records derive traits for
         display.
   - [x] Commit `712ea15`.
-- [~] Task: Phase Verification & Checkpoint (manual evidence)
-  - [x] Manual: breed two records; preview matches hatch; duplicate trait
-        dedupes; Hall metadata; detail Lineage row; save→reload keeps the
-        successor; console clean; `bun run verify` green.
-  - [ ] Narrow viewport + touch pass and founder-path screen check (blocked:
-        browser window reported `visibility: hidden`, so rAF-driven send-off
-        ceremony could not settle; founder routing is covered by sim tests and
-        the `canBreed` branch).
-  - [ ] `[checkpoint: <sha>]` after approval.
+- [x] Task: Phase Verification & Checkpoint (manual evidence)
+  - [x] Manual: founder pick unchanged; breed two records; preview matches
+        hatch; duplicate trait dedupes; Hall metadata; detail Lineage row;
+        save→reload keeps the successor; console clean; narrow 393×659 pass
+        with tap selection; `bun run verify` green.
+  - [x] `[checkpoint: 712ea15]` after approval.
 
 ## Phase 5 — Final acceptance & close
 
