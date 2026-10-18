@@ -385,6 +385,15 @@ export function clearSave(adapter: SaveAdapter): void {
 }
 
 /**
+ * The raw stored payload, byte-for-byte, or null when nothing is stored.
+ * The corrupt-save recovery dialog downloads this before any reset; nothing
+ * here writes, migrates, or validates.
+ */
+export function readRawSave(adapter: SaveAdapter): string | null {
+  return adapter.getItem(SAVE_KEY)
+}
+
+/**
  * Boot probe: distinguishes "no save yet" (null — a silent fresh start)
  * from "a save exists but is unreadable" ({corrupt: true} — fresh start
  * plus a calm notice, so the player is never silently robbed of a ranch).

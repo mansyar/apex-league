@@ -199,6 +199,7 @@ export {
   loadBoot,
   loadGame,
   loadSave,
+  readRawSave,
   SAVE_KEY,
   type SaveAdapter,
   saveGame,
