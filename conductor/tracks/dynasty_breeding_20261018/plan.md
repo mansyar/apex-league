@@ -9,36 +9,38 @@ verification checkpoint and user approval.
 
 ## Phase 1 — Sim foundations: traits, pool, inheritance (TDD)
 
-- [ ] Task: Trait catalog + derivation (`packages/sim/src/breeding.ts`, new)
-  - [ ] Failing tests: highest **trained** stat maps to sturdy/fierce/guarded/
+- [x] Task: Trait catalog + derivation (`packages/sim/src/traits.ts`, new;
+      `breeding.ts` re-exports) — 6326a26
+  - [x] Failing tests: highest **trained** stat maps to sturdy/fierce/guarded/
         quick; tie-break HP > ATK > DEF > SPD; all-zero trained falls back to
         highest effective stat; a pre-v15 record with `traits: []` derives the
         same trait deterministically; unknown ids are not produced.
-  - [ ] Implement `LineageTrait`, `TRAITS` (label/description/stat bonus),
+  - [x] Implement `LineageTrait`, `TRAITS` (label/description/stat bonus),
         `deriveTrait(record)`, `effectiveTraits(record)`, `traitBonus(traits)`.
-  - [ ] Export from `packages/sim/src/index.ts`.
-- [ ] Task: Breeding pool, pair validation, species options
-  - [ ] Failing tests: pool = hall + retiring champion; `canBreed` false at
+  - [x] Export from `packages/sim/src/index.ts`.
+- [x] Task: Breeding pool, pair validation, species options — 6326a26
+  - [x] Failing tests: pool = hall + retiring champion; `canBreed` false at
         generation 1 (pool size 1) and true at 2+; pair needs two distinct
         known generations; pair lookup returns records; `speciesOptions(pair)`
         returns 1 or 2 unique species; the retiree is built with effective
         stats/trained/generation/day/derived trait/its own parents.
-  - [ ] Implement `breedingPool(state)`, `canBreed(state)`,
+  - [x] Implement `breedingPool(state)`, `canBreed(state)`,
         `validatePair(pool, generations)`, `pairFor(pool, generations)`.
-- [ ] Task: Dual-parent floor, mutation, `createBredCreature`
-  - [ ] Failing tests: per-stat `round(0.5×max + 0.1×min)` with known pairs;
+- [x] Task: Dual-parent floor, mutation, `createBredCreature` — 6326a26
+  - [x] Failing tests: per-stat `round(0.5×max + 0.1×min)` with known pairs;
         trait bonuses applied before clamp; species-bound clamps; established-
         line `+1`; mutation is one stat `+1..+2` and clamped; same seed
         reproduces stats, mutation, traits, parents; parent generations sorted;
         duplicate traits deduped; single-parent founder path unchanged.
-  - [ ] Implement `inheritedFloorFromPair`,
+  - [x] Implement `inheritedFloorFromPair`,
         `createBredCreature(speciesId, seed, pair, prestige)` using one
         `makeRng(seed)` stream (base roll → mutation).
-  - [ ] Golden fixture: fixed pair + seed → exact successor snapshot.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] `bun test packages/sim/src/breeding.test.ts`; coverage check on
-        `breeding.ts`; `bun run check`; commit; record `[checkpoint: <sha>]`
-        after approval.
+  - [x] Golden fixture: fixed pair + seed → exact successor snapshot (the
+        reproducibility test pins every stat, trait, and parent).
+- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] `bun test packages/sim/src/breeding.test.ts`; coverage check on
+        `breeding.ts`; `bun run check`; commit `6326a26`.
+  - [ ] Record `[checkpoint: <sha>]` after user approval.
 
 ## Phase 2 — Sim succession & save v15
 
