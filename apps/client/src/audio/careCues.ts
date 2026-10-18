@@ -34,6 +34,15 @@ export type CareCueEvent =
   | { kind: "pet" }
   | { kind: "dawn" }
 
+/** The four care actions, each bound to its bundled cue. A record rather
+ * than a template literal so a new action cannot compile without a cue. */
+const CARE_CUE: Record<"feed" | "rest" | "treat" | "play", CareCueId> = {
+  feed: "care-feed",
+  rest: "care-rest",
+  treat: "care-treat",
+  play: "care-play",
+}
+
 /** The cue for one ranch event, or `null` when the beat stays silent. */
 export function careCueForEvent(
   event: CareCueEvent,
@@ -42,12 +51,14 @@ export function careCueForEvent(
   if (options.muted) return null
   switch (event.kind) {
     case "care":
-      return `care-${event.action}` as CareCueId
+      return CARE_CUE[event.action]
     case "pet":
       return "care-pet"
     case "dawn":
       return "dawn-chime"
     default:
+      // Runtime events come from persisted/replayed data, so an unknown
+      // kind must go silent rather than throw.
       return null
   }
 }

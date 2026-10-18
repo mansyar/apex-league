@@ -475,6 +475,9 @@ export function createEvolutionCeremony(): EvolutionMachine {
 // skip a phase. Reduced motion skips the curl/wake animation: a still
 // short sleep, no stretch arc.
 
+/** Shared easing for the care-ceremony machines (rest, treat). */
+const smoothstepLocal = (k: number): number => k * k * (3 - 2 * k)
+
 export type RestPhase = "idle" | "curl" | "sleep" | "wake"
 
 export interface RestDrive {
@@ -584,9 +587,6 @@ export function createRestCeremony(): RestMachine {
 
   return { begin, advance }
 }
-
-/** Local smoothstep (the module's own easing used by gait intensity). */
-const smoothstepLocal = (k: number): number => k * k * (3 - 2 * k)
 
 // ---------------------------------------------------------------------------
 // Treat ceremony

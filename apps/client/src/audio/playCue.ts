@@ -17,7 +17,7 @@ import { cueUrl } from "./cueUrls"
 /** One preloaded source per cue, created lazily on first play. */
 const sources = new Map<AnyCueId, HTMLAudioElement>()
 
-/** Playback loudness for all cues (jingles included - one calm mix). */
+/** Playback loudness for all cues (jingles included — one calm mix). */
 const CUE_VOLUME = 0.6
 
 export function playCue(cue: AnyCueId): void {
