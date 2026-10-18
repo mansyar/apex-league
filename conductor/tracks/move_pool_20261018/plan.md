@@ -35,11 +35,15 @@
 
 ## Phase 3 - Boss kits and per-boss evidence
 
-- [ ] Task: Widen the six boss loadouts to draw from the new pool
-- [ ] Task: Per-boss probe against a stage-appropriate reference creature
-  - [ ] Record each boss's player win rate; adjust its kit until it sits in 40-70%
-  - [ ] Write tests pinning boss kit length, move validity, and the recorded win band
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Widen the six boss loadouts to draw from the new pool (`58ba82f`)
+  - Each boss fields at least one wider-pool row, and the species-sharing pairs differ: koda `spark/flame_charge/blaze_bolt/flare_dart` vs fenn `spark/flame_charge/blaze_bolt/pyre_lance`; hesse `seed_shot/thorn_volley/spore_burst/vine_lash` vs thessa `seed_shot/thorn_volley/bramble_dart/root_quake`; marlow `bubble/splash_bolt/foam_volley/mist_spray` vs delmar `bubble/tide_shot/foam_volley/mist_spray`.
+  - Stats re-pinned inside each species' roll bounds: koda `92/13/10/12`, fenn `92/13/9/12`, hesse `100/11/13/8`, thessa `95/11/13/8`, marlow `92/12/9/11`, delmar `93/11/11/11`.
+- [x] Task: Per-boss probe against a stage-appropriate reference creature (`58ba82f`)
+  - [x] Record each boss's player win rate; adjust its kit until it sits in 40-70%
+  - [x] Write tests pinning boss kit length, move validity, and the recorded win band
+  - **Band definition (user choice, `m0486`):** the 40-70% band applies to each boss's *hardest legal matchup* (its disadvantaged species at full training), not to the mirror. The mirror band was measured as infeasible for the water bosses: no stat line inside `statBounds` put marlow or delmar in it without dropping fire at cap under the 35% fairness floor. The old floors stay: fresh player 0 wins on even/worse elements, disadvantaged player 0 wins at +0/+2/+4 training.
+  - **Recorded rates** (wins of 36, production `battleSideForSlot` path): koda 23 (63.9%), hesse 21 (58.3%), marlow 20 (55.6%), delmar 17 (47.2%), fenn 22 (61.1%), thessa 20 (55.6%). `bosses.balance.test.ts` asserts the tallies exactly, so any later kit or stat edit must re-record.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 - Client surfaces (manual verification)
 
