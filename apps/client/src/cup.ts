@@ -54,6 +54,17 @@ import {
   resultRows,
 } from "./bracket-model"
 import {
+  bracketHeader,
+  chipView,
+  closeIntent,
+  coachTabLabel,
+  entryLine,
+  giveupLine,
+  initialPicks,
+  resultsView,
+  walkStep,
+} from "./cup/view-models"
+import {
   buildBattleChips,
   buildBracketScreen,
   buildCoachScreen,
@@ -376,7 +387,12 @@ export function createCup(
   const walk = (): void => {
     clearTimer()
     ctaHide()
-    const entry = session ? buildBracketModel(session)[cursor] : undefined
+    const step = session ? walkStep(session, cursor) : undefined
+    if (!step || step.kind === "done") {
+      conclude()
+      return
+    }
+    const entry = buildBracketModel(session!)[cursor]
     if (!entry) {
       conclude()
       return
@@ -387,22 +403,21 @@ export function createCup(
     card.el.classList.add("in")
     colHeadEls[entry.column].classList.add("in")
 
-    const v = verdictOf(entry.id)
-    if (isPlayerMatch(entry.id) && !v) {
+    if (step.kind === "playerTurn") {
       // The player's match: highlight, CTA, and pause the walk.
       pendingId = entry.id
       card.el.classList.add("yours")
       card.ribbon.classList.add("show")
-      setLine(`Your ${entry.label.toLowerCase()}. The coaching room is open.`)
+      setLine(step.line)
       ctaShow()
       return
     }
     pendingId = null
-    if (!v) return // defensive: nothing resolved to show
-    setLine(v.line)
+    if (step.kind !== "reveal") return // defensive: nothing resolved to show
+    setLine(step.line)
     const advance = (): void => {
-      stampWinner(entry.id, v)
-      if (entry.id === "f1") {
+      stampWinner(entry.id, step.verdict)
+      if (step.after === "crown") {
         crown()
         clearTimer()
         timer = setTimeout(conclude, beat(WALK_CROWN))
@@ -427,35 +442,21 @@ export function createCup(
   // ------------------------------------------------------------------
   const showResults = (): void => {
     if (!session || !state) return
-    const placement = cupPlacement(session)
-    // The title follows the session's status, not the placement: a drawn
-    // final (double-KO) crowns the player while placement rounds survive.
-    const won = session.status === "champion"
-    resultTitle.textContent = won ? "Champion" : "Eliminated"
-    resultStamp.classList.toggle("lost", !won)
-    // The cup is named for the tier it serves (FR11); a Promotion Cup win
-    // reads as the gate it is.
-    const cupName =
-      session.bracket.kind === "promotion"
-        ? "Promotion Cup"
-        : `${TIER_NAME[ladderBefore?.tier ?? "bronze"]} Cup`
-    resultSub.textContent = won
-      ? `${playerName()} takes the ${cupName}!`
-      : session.championName
-        ? `${session.championName} takes the ${cupName}.`
-        : "The cup ends without a champion."
-    resultPlateTab.textContent = ordinalOf(placement)
-    resultPlateLine.textContent = won
-      ? `${playerName()} · unbeaten through three rounds`
-      : `${playerName()} · out in the ${exitStage(placement)}`
-    resultRewards.replaceChildren()
-    const rows = resultRows(
+    const view = resultsView(
       session,
       state.ladder,
       ladderBefore,
       state.legendTitles,
     )
-    rows.forEach((text, i) => {
+    // The title follows the session's status, not the placement: a drawn
+    // final (double-KO) crowns the player while placement rounds survive.
+    resultTitle.textContent = view.title
+    resultStamp.classList.toggle("lost", !view.won)
+    resultSub.textContent = view.sub
+    resultPlateTab.textContent = view.tab
+    resultPlateLine.textContent = view.line
+    resultRewards.replaceChildren()
+    view.rows.forEach((text, i) => {
       const row = document.createElement("div")
       row.className = "cup-reward-row"
       row.textContent = text
@@ -647,11 +648,8 @@ export function createCup(
     if (!cs || !rs) throw new Error("Unknown species: cannot open the coach")
     const entry = matchOf(pendingId)
     if (!entry) return
-    coachTab.textContent = `${entry.label} · ready`
-    picks = {
-      loadout: [...(creature.loadout ?? defaultLoadout(creature, cs))],
-      tactic: "balanced",
-    }
+    coachTab.textContent = coachTabLabel(entry.label)
+    picks = initialPicks(creature)
 
     // Your fighter card.
     fighterCard.replaceChildren()
@@ -787,28 +785,17 @@ export function createCup(
   const syncChip = (): void => {
     if (!state) return
     const creature = state.creature
-    const cupToday =
-      isCupDay(state.day) && state.phase === "cup" && creature !== null
-    // Standing tie-in (save v8): the entry chip reads the ladder, so the
-    // player sees what tonight's cup is worth before committing.
-    const ladder = state.ladder
-    const tierName = TIER_NAME[ladder.tier]
-    // A persisted session keeps the chip alive across refreshes - even
-    // once the entry is consumed (phase "day"), the walk can resume.
-    const resumable = session !== null
-    // Silver Ladder framing (FR11): while a gate boss is pending, the chip
-    // names the occasion instead of the standing — the sim's own
-    // bossForCup decision keeps the copy from drifting off the bracket
-    // the player will actually draw. With a live session the standing is
-    // the honest read (the bracket banner frames the occasion).
-    const gate = resumable ? null : bossForCup(state)
-    cupHint.textContent = gate
-      ? gate.kind === "promotion"
-        ? "Promotion Cup awaits"
-        : `${gate.boss.name} holds the final`
-      : `${tierName} ${ladder.subTier} · ${ladder.points} pts`
-    cupButton.style.display = cupToday || resumable ? "" : "none"
-    cupButton.disabled = !cupToday && !resumable
+    const view = chipView({
+      day: state.day,
+      phase: state.phase,
+      hasCreature: creature !== null,
+      ladder: state.ladder,
+      hasSession: session !== null,
+      gate: bossForCup(state),
+    })
+    cupHint.textContent = view.hint
+    cupButton.style.display = view.visible ? "" : "none"
+    cupButton.disabled = !view.enabled
   }
 
   const closeFree = (): void => {
@@ -846,18 +833,19 @@ export function createCup(
   // semifinal cards on shorter viewports.
   cta.after(close)
   close.addEventListener("click", () => {
-    if (inBattle) return
-    if (!committed) {
+    const intent = closeIntent({
+      inBattle,
+      committed,
+      status: session?.status ?? null,
+    })
+    if (intent === "dismiss") return
+    if (intent === "free") {
       // Free look: nothing consumed, the chip returns.
       closeFree()
       return
     }
-    if (session && session.status === "player-turn") {
-      giveup.style.display = ""
-      giveupStay.focus()
-      return
-    }
-    closeFree()
+    giveup.style.display = ""
+    giveupStay.focus()
   })
 
   resultBack.addEventListener("click", closeFree)
@@ -893,12 +881,19 @@ export function createCup(
     picks = null
     inBattle = false
     fightNow = null
-    headSub.textContent = `Day ${state.day} · single elimination`
+    headSub.textContent = bracketHeader(
+      session,
+      state.day,
+      state.ladder.tier,
+    ).sub
     // The occasion leads the board (FR11): a Promotion Cup carries its own
     // banner from the sim, a boss final reads "Boss Final · <name>", and
     // every regular cup is named for the tier it serves.
-    headTitle.textContent =
-      session.bracket.banner ?? `${TIER_NAME[state.ladder.tier]} Cup`
+    headTitle.textContent = bracketHeader(
+      session,
+      state.day,
+      state.ladder.tier,
+    ).title
     battleHud.hide()
     champ.classList.remove("crowned")
     champName.textContent = "—"
@@ -909,7 +904,7 @@ export function createCup(
     }
     showScreen("bracket")
     overlay.style.display = ""
-    setLine(`${playerName()} steps into the bracket!`)
+    setLine(entryLine(playerName()))
     cursor = 0
     timer = setTimeout(walk, beat(WALK_SETTLE))
   }
