@@ -19,7 +19,8 @@
         no copy claimed nightly recovery. `[feat(sim): healthy nights restore no energy - rest is the way 7f5b6ea]`
   - [x] Commit `feat(sim): healthy nights restore no energy - rest is the way`
         `[feat(sim): healthy nights restore no energy - rest is the way 7f5b6ea]`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+      `[checkpoint: 7f5b6ea]` - approved 2026-10-18; gates: bun test 1388 pass / 0 fail, bun run verify exit 0; browser evidence: day-advance keeps energy (80 stayed 80), Rest +40 unclamped, Play drains, console clean
 
 ## Phase 2 - Care SFX pack (CC0)
 
