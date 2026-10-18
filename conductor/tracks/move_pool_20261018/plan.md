@@ -30,7 +30,7 @@
   - [x] Cup opponents' kits are deterministic per session seed and index
 - [x] Task: Implement `rivalKit` with a derived RNG (`86cf97b`)
   - [x] Derive from the existing seed with a distinct constant so the stream is not consumed; wire `battle/exhibition.ts` and `cup/verdicts.ts`
-- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: 86cf97b]
   - Re-baselined on purpose, per NFR3: the cup goldens and the SF-exit lifecycle fixture move to champion seed 17, eliminated seed 7, contracts SF seed 3, because rivals now field different fours. Over 100 default-kit cup seeds the placement mix (champion / runner-up / SF exit / QF exit) moves 9/17/30/44 -> 7/18/24/51 percent. The Phase 5 matrix reads this as the reference, not Phase 1's baseline: the `kit6` cases there already include the new moves (the Phase 1 baseline predates the catalog), while `kit2`/`kit3`/`kit4` are unchanged.
 
 ## Phase 3 - Boss kits and per-boss evidence
@@ -43,7 +43,7 @@
   - [x] Write tests pinning boss kit length, move validity, and the recorded win band
   - **Band definition (user choice, `m0486`):** the 40-70% band applies to each boss's *hardest legal matchup* (its disadvantaged species at full training), not to the mirror. The mirror band was measured as infeasible for the water bosses: no stat line inside `statBounds` put marlow or delmar in it without dropping fire at cap under the 35% fairness floor. The old floors stay: fresh player 0 wins on even/worse elements, disadvantaged player 0 wins at +0/+2/+4 training.
   - **Recorded rates** (wins of 36, production `battleSideForSlot` path): koda 23 (63.9%), hesse 21 (58.3%), marlow 20 (55.6%), delmar 17 (47.2%), fenn 22 (61.1%), thessa 20 (55.6%). `bosses.balance.test.ts` asserts the tallies exactly, so any later kit or stat edit must re-record.
-- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: 58ba82f]
 
 ## Phase 4 - Client surfaces (manual verification)
 
