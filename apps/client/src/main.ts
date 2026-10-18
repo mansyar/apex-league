@@ -405,6 +405,9 @@ const graduation = createGraduation(app, {
     store.commit(result.state)
     graduation.close()
     syncScene()
+    // The egg screen is gone: hand focus to the rebuilt partner plate so the
+    // keyboard lands on the successor instead of <body>.
+    document.querySelector<HTMLButtonElement>(".creature-head")?.focus()
     const successor = store.get().creature
     if (successor) {
       hud.announceGraduation(
