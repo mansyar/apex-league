@@ -19,7 +19,8 @@
   - [x] Split catalog and pool code across modules if either file crosses the 12 KB cap; update the sim barrel and its export list
   - **Deviation (green before Phase 2):** spar rivals (`battle/exhibition.ts`) and cup opponents (`cup/verdicts.ts`) field `kit.slice(0, MAX_LOADOUT)` for now. Handing them the full six broke the cup lifecycle goldens on seven cases, and Phase 2 is where the seeded 4-of-6 pick lands, so the slice is the behaviour-preserving stopgap. It is removed in Phase 2, not kept.
   - **Incidental:** `5f47bb6` drops an unused `CUP_REWARDS` import that biome reports at error severity (the import predates this track; it made the Phase 1 gate red), and `e2cd62c` reformats the committed probe report because biome reflows `JSON.stringify` output.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: eeeb4c9]
+  - Verified 2026-10-18: typecheck clean, 1407 sim+client tests green, determinism byte-identical, spar picker renders six rows with the two new moves locked. `bun run verify`'s voxel leg timed out under machine load (voxel has zero diff vs `origin/main`; each test passes standalone) - recorded in the git note on `eeeb4c9`.
 
 ## Phase 2 - Rival kits from the wider pool (sim, TDD)
 
