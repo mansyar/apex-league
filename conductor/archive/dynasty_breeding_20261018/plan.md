@@ -175,6 +175,21 @@ verification checkpoint and user approval.
   - [x] Mark plan complete; archive the track; update `conductor/tracks.md`;
         commit.
 
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions (6e274f2)
+  - [x] Pin the dual-parent `statBreakdown` floor with a test built from two
+        real graduations + a pair hatch (parents `[0, 1]`, exact floor, sum
+        invariant).
+  - [x] Correct the `NurserySurface.close` focus contract and hand focus to
+        the rebuilt `.creature-head` plate after a committed hatch (the
+        Graduate opener is gone), so keyboard users never land on `<body>`.
+  - [x] Give `graduateWithPair` refusals a coach-voice notice in the open
+        Nursery (`rejectHatch` + `hatchFailureCopy`); nothing commits.
+  - [x] Log the dated dynasty-breeding stack note in `tech-stack.md`.
+  - [x] `bun run verify` exit 0; `bun test --parallel` 1494 pass / 1 skip /
+        0 fail; determinism gate byte-identical.
+
 ## Sequencing notes
 
 - Phases 1–2 are sim-only and can land without UI.
