@@ -5,13 +5,20 @@
  */
 import type { CreatureBuild, Dna } from "@apex/voxel"
 import {
+  bakeVertexColors,
   DRAKE_GRID,
   type MeshePart,
   meshGrid,
+  type Palette,
   VOXEL_SIZE,
   voxelize,
 } from "@apex/voxel"
 import * as THREE from "three"
+
+/** A part's palette, or the single colour it has always rendered in. */
+function paletteFor(build: CreatureBuild, partName: string): Palette {
+  return build.palettes?.[partName] ?? [build.colors[partName] ?? [1, 0, 1]]
+}
 
 export function buildCreatureMeshes(
   build: CreatureBuild,
@@ -36,6 +43,13 @@ export function buildCreatureMeshes(
       "normal",
       new THREE.BufferAttribute(new Float32Array(part.normals), 3),
     )
+    geometry.setAttribute(
+      "color",
+      new THREE.BufferAttribute(
+        bakeVertexColors(part, paletteFor(build, part.name)),
+        3,
+      ),
+    )
     geometry.setIndex(part.indices)
     return { part, geometry }
   })
@@ -51,13 +65,7 @@ export function buildCreatureGroup(
   for (const { part, geometry } of buildCreatureMeshes(build, grid)) {
     const material = options.grey
       ? new THREE.MeshLambertMaterial({ color: 0x9a9a9a })
-      : new THREE.MeshLambertMaterial({
-          color: new THREE.Color(
-            build.colors[part.name]?.[0] ?? 1,
-            build.colors[part.name]?.[1] ?? 0,
-            build.colors[part.name]?.[2] ?? 1,
-          ),
-        })
+      : new THREE.MeshLambertMaterial({ vertexColors: true })
     const mesh = new THREE.Mesh(geometry, material)
     const pivot = build.pivots[part.name]
     mesh.position.set(pivot?.[0] ?? 0, pivot?.[1] ?? 0, pivot?.[2] ?? 0)

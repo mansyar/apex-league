@@ -1,11 +1,16 @@
 import type { MeshePart } from "./mesher"
+import { bakeVertexColors, type Palette } from "./vertex-color"
 
 // Pure TypeScript GLB 2.0 writer for the voxel pipeline. Emits a rigid
 // hierarchy contract: a root "creature" node (scale = voxel size) with one
 // named, pivot-placed child node per part, so three.js can find and animate
 // nodes procedurally without skinning.
+//
+// Colour travels as a per-vertex COLOR_0 attribute (glTF multiplies it into
+// the material's baseColorFactor), so one part can carry several surface
+// classes — belly, saddle, markings — inside a single draw call.
 
-export const GENERATOR_VERSION = 1
+export const GENERATOR_VERSION = 2
 
 /** World units per voxel; the shared scale contract between the GLB root
  * node and the live three.js scene. Single source of truth. */
@@ -14,6 +19,8 @@ export const VOXEL_SIZE = 0.045
 const GLB_MAGIC = 0x46546c67 // "glTF"
 const CHUNK_JSON = 0x4e4f534a // "JSON"
 const CHUNK_BIN = 0x004e4942 // "BIN\0"
+const COMPONENT_UNSIGNED_BYTE = 5121
+const COMPONENT_UNSIGNED_SHORT = 5123
 const COMPONENT_FLOAT = 5126
 const COMPONENT_UNSIGNED_INT = 5125
 const MODE_TRIANGLES = 4
@@ -26,6 +33,12 @@ export interface ExportInput {
   /** World units per voxel; applied as the root node's uniform scale. */
   voxelSize: number
   colors: Record<string, [number, number, number]>
+  /**
+   * Optional per-part palettes indexed by surface class. When a part has no
+   * palette its single `colors` entry is used for every vertex, which keeps
+   * class-less builds byte-for-byte equivalent in appearance.
+   */
+  palettes?: Record<string, Palette>
   /** Rotation anchor per part in voxel units; mesh coords are stored relative to it. */
   pivots: Record<string, [number, number, number]>
   parts: MeshePart[]
@@ -50,7 +63,10 @@ interface PreparedPart {
   name: string
   positions: Float32Array
   normals: Float32Array
-  indices: Uint32Array
+  /** RGBA, 8 bits per channel, 4 bytes per vertex (keeps bufferViews aligned). */
+  colors: Uint8Array
+  /** 16-bit whenever a part fits in 65k vertices, so index data costs half. */
+  indices: Uint16Array | Uint32Array
   min: [number, number, number]
   max: [number, number, number]
 }
@@ -66,6 +82,7 @@ type JsonObject = { [key: string]: JsonValue }
 function preparePart(
   part: MeshePart,
   pivot: [number, number, number],
+  palette: Palette,
 ): PreparedPart {
   const positions = new Float32Array(part.positions.length)
   const min: [number, number, number] = [Infinity, Infinity, Infinity]
@@ -77,12 +94,19 @@ function preparePart(
     if (v < (min[axis] ?? Infinity)) min[axis] = v
     if (v > (max[axis] ?? -Infinity)) max[axis] = v
   }
+  const colors = quantizeColors(bakeVertexColors(part, palette))
+  const vertexCount = positions.length / 3
+  const indices =
+    vertexCount <= 65536
+      ? Uint16Array.from(part.indices)
+      : Uint32Array.from(part.indices)
   if (part.positions.length === 0) {
     return {
       name: part.name,
       positions,
       normals: new Float32Array(0),
-      indices: new Uint32Array(0),
+      colors,
+      indices,
       min: [0, 0, 0],
       max: [0, 0, 0],
     }
@@ -91,14 +115,36 @@ function preparePart(
     name: part.name,
     positions,
     normals: Float32Array.from(part.normals),
-    indices: Uint32Array.from(part.indices),
+    colors,
+    indices,
     min,
     max,
   }
 }
 
-function bytesOf(typed: Float32Array | Uint32Array): Uint8Array {
+function bytesOf(
+  typed: Float32Array | Uint8Array | Uint16Array | Uint32Array,
+): Uint8Array {
   return new Uint8Array(typed.buffer, typed.byteOffset, typed.byteLength)
+}
+
+/**
+ * Pack baked RGB into RGBA bytes for glTF `COLOR_0`: 8 bits per channel is
+ * ample for flat palette colours and costs 4 bytes per vertex instead of 12,
+ * which keeps the committed GLBs inside the 150 KiB budget. Alpha is always
+ * opaque. Width is 4 so every colour bufferView stays 4-byte aligned.
+ */
+function quantizeColors(rgb: Float32Array): Uint8Array {
+  const vertexCount = rgb.length / 3
+  const out = new Uint8Array(vertexCount * 4)
+  for (let v = 0; v < vertexCount; v++) {
+    for (let c = 0; c < 3; c++) {
+      const value = rgb[v * 3 + c] ?? 0
+      out[v * 4 + c] = Math.round(Math.min(1, Math.max(0, value)) * 255)
+    }
+    out[v * 4 + 3] = 255
+  }
+  return out
 }
 
 function concatBytes(chunks: Uint8Array[]): Uint8Array {
@@ -132,7 +178,10 @@ export function exportGlb(input: ExportInput): GlbOutput {
   for (const part of input.parts) {
     const pivot = input.pivots[part.name]
     if (!pivot) throw new Error(`part "${part.name}" has no pivot`)
-    prepared.push(preparePart(part, pivot))
+    const base = input.colors[part.name]
+    const palette = input.palettes?.[part.name] ?? (base ? [base] : null)
+    if (!palette) throw new Error(`part "${part.name}" has no color or palette`)
+    prepared.push(preparePart(part, pivot, palette))
   }
 
   const bufferChunks: Uint8Array[] = []
@@ -142,38 +191,36 @@ export function exportGlb(input: ExportInput): GlbOutput {
   const materials: JsonObject[] = []
   let byteOffset = 0
 
+  /**
+   * Append one bufferView and keep every subsequent view 4-byte aligned (the
+   * glTF alignment rule). The padding is physical bytes, not just a skipped
+   * offset, so 16-bit index chunks cannot misalign the next part.
+   */
+  const pushView = (
+    typed: Float32Array | Uint8Array | Uint16Array | Uint32Array,
+  ) => {
+    const bytes = bytesOf(typed)
+    const index = bufferViews.length
+    bufferViews.push({
+      buffer: 0,
+      byteOffset,
+      byteLength: bytes.byteLength,
+    })
+    bufferChunks.push(bytes)
+    const pad = (4 - (bytes.byteLength % 4)) % 4
+    if (pad > 0) bufferChunks.push(new Uint8Array(pad))
+    byteOffset += bytes.byteLength + pad
+    return index
+  }
+
   for (let i = 0; i < prepared.length; i++) {
     const part = prepared[i]
     if (!part) throw new Error("missing part")
-    const color = input.colors[part.name]
-    if (!color) throw new Error(`part "${part.name}" has no color`)
 
-    const posViewIndex = bufferViews.length
-    bufferViews.push({
-      buffer: 0,
-      byteOffset,
-      byteLength: part.positions.byteLength,
-    })
-    byteOffset += part.positions.byteLength
-    bufferChunks.push(bytesOf(part.positions))
-
-    const normViewIndex = bufferViews.length
-    bufferViews.push({
-      buffer: 0,
-      byteOffset,
-      byteLength: part.normals.byteLength,
-    })
-    byteOffset += part.normals.byteLength
-    bufferChunks.push(bytesOf(part.normals))
-
-    const idxViewIndex = bufferViews.length
-    bufferViews.push({
-      buffer: 0,
-      byteOffset,
-      byteLength: part.indices.byteLength,
-    })
-    byteOffset += part.indices.byteLength
-    bufferChunks.push(bytesOf(part.indices))
+    const posViewIndex = pushView(part.positions)
+    const normViewIndex = pushView(part.normals)
+    const colorViewIndex = pushView(part.colors)
+    const idxViewIndex = pushView(part.indices)
 
     const posAccIndex = accessors.length
     accessors.push({
@@ -191,10 +238,21 @@ export function exportGlb(input: ExportInput): GlbOutput {
       count: part.normals.length / 3,
       type: "VEC3",
     })
+    const colorAccIndex = accessors.length
+    accessors.push({
+      bufferView: colorViewIndex,
+      componentType: COMPONENT_UNSIGNED_BYTE,
+      normalized: true,
+      count: part.colors.length / 4,
+      type: "VEC4",
+    })
     const idxAccIndex = accessors.length
     accessors.push({
       bufferView: idxViewIndex,
-      componentType: COMPONENT_UNSIGNED_INT,
+      componentType:
+        part.indices instanceof Uint16Array
+          ? COMPONENT_UNSIGNED_SHORT
+          : COMPONENT_UNSIGNED_INT,
       count: part.indices.length,
       type: "SCALAR",
     })
@@ -203,7 +261,11 @@ export function exportGlb(input: ExportInput): GlbOutput {
       name: part.name,
       primitives: [
         {
-          attributes: { POSITION: posAccIndex, NORMAL: normAccIndex },
+          attributes: {
+            POSITION: posAccIndex,
+            NORMAL: normAccIndex,
+            COLOR_0: colorAccIndex,
+          },
           indices: idxAccIndex,
           material: i,
           mode: MODE_TRIANGLES,
@@ -213,7 +275,8 @@ export function exportGlb(input: ExportInput): GlbOutput {
     materials.push({
       name: part.name,
       pbrMetallicRoughness: {
-        baseColorFactor: [color[0], color[1], color[2], 1],
+        // Colour lives in COLOR_0; a white base keeps the product at 1x.
+        baseColorFactor: [1, 1, 1, 1],
         metallicFactor: 0,
         roughnessFactor: 1,
       },

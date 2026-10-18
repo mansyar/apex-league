@@ -1,9 +1,9 @@
 {
 	"archetype": "axolotl",
 	"seed": 42,
-	"generatorVersion": 1,
+	"generatorVersion": 2,
 	"dnaHash": "42cb06e481180c5776914e66d8030edb0f80e432e10e15e0e969434dd17d22c9",
-	"glbHash": "54290727fba1bca2199581f87d41c7f014d8fbf771bd5d77ecac6a24af78ff9f",
+	"glbHash": "2709ddc57919d2fcce00894510e6ff85ba4dc0e85847f317f5569bc73cdd1f04",
 	"triCount": 1942,
 	"pivots": {
 		"body": [

@@ -10,35 +10,35 @@ Goal: carry a colour class from the grid to the screen without changing a
 single pixel. This phase exists so that every later phase has a proven,
 byte-stable foundation.
 
-- [ ] Task: Pin the regression baseline before touching anything
-  - [ ] Add a golden test that hashes `meshGrid(voxelize(...))` for all three
+- [x] Task: Pin the regression baseline before touching anything
+  - [x] Add a golden test that hashes `meshGrid(voxelize(...))` for all three
         archetypes at all three stages plus one prop
-  - [ ] Verify the golden matches current committed artifact triangle counts
-- [ ] Task: Colour classes in `voxelize`
-  - [ ] Write failing tests: a class-less build yields class 0 for every voxel;
+  - [x] Verify the golden matches current committed artifact triangle counts
+- [x] Task: Colour classes in `voxelize`
+  - [x] Write failing tests: a class-less build yields class 0 for every voxel;
         declared classes are attributed per part in paint order
-  - [ ] `PartField` declares an optional class resolver; `VoxelGrid` carries
+  - [x] `PartField` declares an optional class resolver; `VoxelGrid` carries
         per-voxel classes; `CreatureBuild` declares the ordered palette
-  - [ ] Refactor: keep the voxel emit loop single-pass and O(n)
-- [ ] Task: Class-aware greedy meshing
-  - [ ] Write failing tests: two classes split at the boundary; a class-less
+  - [x] Refactor: keep the voxel emit loop single-pass and O(n)
+- [x] Task: Class-aware greedy meshing
+  - [x] Write failing tests: two classes split at the boundary; a class-less
         build is byte-identical to the Phase 1 golden; colour array length
         matches position length
-  - [ ] Extend the mask to (part, class) and merge only within a class
-  - [ ] Emit per-vertex `colors` on `MeshePart`
-- [ ] Task: `COLOR_0` in the GLB exporter
-  - [ ] Write failing tests: a `COLOR_0` VEC3 accessor exists per primitive and
+  - [x] Extend the mask to (part, class) and merge only within a class
+  - [x] Emit per-vertex `colors` on `MeshePart`
+- [x] Task: `COLOR_0` in the GLB exporter
+  - [x] Write failing tests: a `COLOR_0` VEC3 accessor exists per primitive and
         its count matches the position count; `GENERATOR_VERSION` is 2
-  - [ ] Add the accessor, buffer view and byte alignment
-- [ ] Task: Client vertex colours
-  - [ ] Switch `buildCreatureMeshes`/`buildCreatureGroup` to
+  - [x] Add the accessor, buffer view and byte alignment
+- [x] Task: Client vertex colours
+  - [x] Switch `buildCreatureMeshes`/`buildCreatureGroup` to
         `vertexColors: true` and share one material per creature
-  - [ ] Preserve `grey` preview mode
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] `bun check`, `biome check`, `bun test` green; suite ≤ 15 s
-  - [ ] Browser evidence: preview screenshot is visually identical to the
+  - [x] Preserve `grey` preview mode
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] `bun check`, `biome check`, `bun test` green; suite ≤ 15 s
+  - [x] Browser evidence: preview screenshot is visually identical to the
         pre-phase capture (same seed, same angle, colour mode)
-  - [ ] Await explicit user approval, attach the verification note, record the
+  - [x] Await explicit user approval, attach the verification note, record the
         checkpoint SHA
 
 ## Phase 2: Ambient occlusion

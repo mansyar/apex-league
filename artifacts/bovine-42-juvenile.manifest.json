@@ -1,9 +1,9 @@
 {
 	"archetype": "bovine",
 	"seed": 42,
-	"generatorVersion": 1,
+	"generatorVersion": 2,
 	"dnaHash": "e862d5621fa0ff1424c74ad1219f340984a3573353bd39721f04fa994d5a0f9f",
-	"glbHash": "e146a30e477bdf17ee2caa7f9e6ca19115021fc5c43f836db0bd14654954f4d3",
+	"glbHash": "7d09e71354df908d30bcc706768c96e001530bb7fe4481d3e408d45451790330",
 	"triCount": 1252,
 	"pivots": {
 		"body": [

@@ -74,6 +74,7 @@ export {
   STAGES,
   type Stage,
 } from "./stage"
+export { bakeVertexColors, type Palette } from "./vertex-color"
 export {
   type PartField,
   type Voxel,
