@@ -222,12 +222,15 @@ function buildMoves(panel: HTMLElement): void {
       row.className = "handbook-move"
       row.setAttribute("role", "row")
       const name = document.createElement("span")
+      name.setAttribute("role", "cell")
       name.className = "handbook-move-name"
       name.textContent = move.displayName
       const stats = document.createElement("span")
+      stats.setAttribute("role", "cell")
       stats.className = "handbook-move-stats"
       stats.textContent = `PWR ${move.power} · ACC ${move.accuracy}% · CD ${move.cooldown}`
       const gate = document.createElement("span")
+      gate.setAttribute("role", "cell")
       gate.className = "handbook-move-gate"
       gate.textContent = gateCopy(index)
       row.append(name, stats, gate)

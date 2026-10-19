@@ -160,6 +160,14 @@ export interface MoveFx {
   compressed?: { wind: number; flight: number; beats: number[] }
 }
 
+/**
+ * Bespoke looks, keyed by move id (spec FR9). A move with no entry renders
+ * through the shared `DEFAULT_FX` object plus its element's shot look, so
+ * two moves of the same element that are both absent from this map are
+ * pixel-identical apart from the numbers in the log — which is why each
+ * element's heavy finisher (move_pool_20261018) earns an entry even though
+ * no side-by-side capture was needed to prove the pair matched.
+ */
 export const MOVE_FX: Record<string, MoveFx> = {
   cinder_shot: {
     wind: 0.55,
