@@ -57,7 +57,8 @@
 - [x] Task: Browser verification with `playwright-cli` (`cd8acb0`)
   - [x] Drive ranch → coaching room → spar, play at least one new move, screenshot each surface, confirm zero console errors; run the iPhone 15 layout pass on the picker
   - **Verified:** coaching room lists the full six-move rival pool and captions "Fields four of these six"; the spar log shows Pyre Lance (18 on a hit, one miss) and Flare Dart (three hits) in play; console reports 0 errors / 0 warnings. iPhone 15 (393x852): picker panel starts below the HUD chips and scrolls to the tactic buttons.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: cd8acb0]
+  - Verified 2026-10-19: 1421 client+sim tests green, typecheck clean (213 files), biome clean on all 12 changed files, determinism gate byte-identical. Browser pass covered all four surfaces plus the battle log; the two layout defects it exposed (handbook bleed, phone picker under the chips) are fixed in the same commit and re-verified at 393x852.
 
 ## Phase 5 - Balance, docs, final gate
 
