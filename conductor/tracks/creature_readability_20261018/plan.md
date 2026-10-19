@@ -300,8 +300,8 @@ Goal: the face is alive, deterministically, without touching sim state.
 - [x] Task: Manual motion verification
   - [x] Frame captures showing a closed lid that reads as a blink, not a shrink,
         at ranch and arena scale
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Await explicit user approval, attach the verification note, record the
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Await explicit user approval, attach the verification note, record the
         checkpoint SHA
 
 ### Phase 5 findings
@@ -338,10 +338,10 @@ Goal: the face is alive, deterministically, without touching sim state.
   is verified at review scale (`face13-blink-*`), distance safety at
   `face13-arena-*`. Stated plainly instead of claiming a readable blink at a
   distance where there is not one.
-- **Review affordances added to the dev preview, not the app.** `?blink=<s>`
-  freezes the face idle at an instant and `?scale=<n>` previews arena size;
-  the face preset shrinks its framing with `scale` so the head stays in shot.
-  No production code path reads either param.
+- **Review affordances added to the dev preview, not the app.** The preview
+  drives the real `driveFace` from the wall clock, so a blink plays in the tab
+  you are looking at; `?blink=<s>` freezes an instant for a still and
+  `?scale=<n>` previews arena size. No production code path reads any of it.
 
 ### Phase 5 verification
 
@@ -364,7 +364,9 @@ Goal: the face is alive, deterministically, without touching sim state.
   irregular but never hurried, the glance is a barely-there flick; a downed
   fighter keeps blinking; reduced motion stops the glance and keeps the lid.
 
-Awaiting explicit user approval for the Phase 5 checkpoint.
+**Checkpoint `a8fb851`** — approved by the user ("good") after watching the
+live idle in the dev preview. Code `3e464cf`, live-preview follow-up
+`a8fb851`.
 
 ## Phase 6: Artifacts, budget and documentation
 
