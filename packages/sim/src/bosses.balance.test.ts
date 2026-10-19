@@ -101,6 +101,43 @@ function bossSide(boss: BossDef, seed: number): BattleSide {
   return battleSideForSlot(slot, seed)
 }
 
+/**
+ * The band a gatekeeper is tuned against: its hardest legal matchup at full
+ * training - the disadvantaged species at the training cap. A boss is not a
+ * walkover and not a wall: that cell sits in 40-70%, with the same cell at
+ * zero before the cap (the two gates below stay at 0%).
+ *
+ * Recorded 2026-10-18 (move_pool_20261018 Phase 3).
+ */
+const DISADVANTAGED_CAP_WINS: Record<string, { won: number; games: number }> = {
+  koda: { won: 23, games: 36 },
+  hesse: { won: 21, games: 36 },
+  marlow: { won: 20, games: 36 },
+  delmar: { won: 17, games: 36 },
+  fenn: { won: 22, games: 36 },
+  thessa: { won: 20, games: 36 },
+}
+
+function disadvantagedCapTally(
+  boss: BossDef,
+  speciesId: string,
+): { won: number; games: number } {
+  let won = 0
+  let games = 0
+  for (const creatureSeed of CREATURE_SEEDS) {
+    const player = playerSide(
+      playerAt(speciesId, creatureSeed, 6),
+      PLAYER_TACTIC,
+    )
+    const rival = bossSide(boss, creatureSeed)
+    for (const seed of BATTLE_SEEDS) {
+      if (resolveBattle(player, rival, seed).winner === player.name) won += 1
+      games += 1
+    }
+  }
+  return { won, games }
+}
+
 interface Tally {
   won: number
   lost: number
@@ -307,6 +344,18 @@ describe("boss balance probe (FR12)", () => {
           `${boss.name} vs ${speciesId} at cap`,
         ).toBeGreaterThanOrEqual(0.35)
       }
+    }
+  })
+
+  test("every boss sits in the 40-70% disadvantaged-cap band", () => {
+    for (const boss of BOSSES) {
+      const recorded = DISADVANTAGED_CAP_WINS[boss.id]
+      if (!recorded) throw new Error(`no recorded band rate for ${boss.id}`)
+      const tally = disadvantagedCapTally(boss, disadvantagedSpecies(boss))
+      const rate = tally.won / tally.games
+      expect(tally, `${boss.name} disadvantaged cap`).toEqual(recorded)
+      expect(rate, `${boss.name} disadvantaged cap`).toBeGreaterThanOrEqual(0.4)
+      expect(rate, `${boss.name} disadvantaged cap`).toBeLessThanOrEqual(0.7)
     }
   })
 

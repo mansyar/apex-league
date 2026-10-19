@@ -49,7 +49,10 @@ describe("makeExhibition — prep consumption", () => {
       const spar = makeExhibition(owned, "specials", seed + 200)
       const rivalSpecies = getSpecies(spar.rivalSpeciesId)
       if (!rivalSpecies) throw new Error("The rival species is missing")
-      expect(spar.rivalSide.kit).toEqual(rivalSpecies.kit)
+      expect(spar.rivalSide.kit.length).toBe(4)
+      for (const moveId of spar.rivalSide.kit) {
+        expect(rivalSpecies.kit).toContain(moveId)
+      }
       expect(spar.rivalSide.stats).toEqual(spar.rival.stats)
       expect(spar.rival.trainingDays).toBe(0)
     }
@@ -89,8 +92,40 @@ describe("makeExhibition", () => {
     const rival = getSpecies(spar.rivalSpeciesId)
     if (!owned || !rival) throw new Error("The starter species are missing")
     expect(spar.ownedSide.kit).toEqual(defaultLoadout(buildOwned(1), owned))
-    expect(spar.rivalSide.kit).toEqual(rival.kit)
+    expect(spar.rivalSide.kit.length).toBe(4)
+    for (const moveId of spar.rivalSide.kit) expect(rival.kit).toContain(moveId)
     expect(spar.rivalSide.temperament).toBe(rival.temperament)
+  })
+
+  test("the seeded rival itself is unchanged by the wider pool", () => {
+    // Captured before the pool widened: the pool only changes which four the
+    // rival fields, never which rival it is.
+    const pin = [
+      {
+        seed: 3,
+        species: "water_axolotl",
+        tactic: "balanced",
+        stats: { hp: 88, atk: 12, def: 10, spd: 10 },
+      },
+      {
+        seed: 15,
+        species: "fire_drake",
+        tactic: "balanced",
+        stats: { hp: 77, atk: 9, def: 7, spd: 12 },
+      },
+      {
+        seed: 42,
+        species: "plant_ox",
+        tactic: "specials",
+        stats: { hp: 93, atk: 10, def: 12, spd: 6 },
+      },
+    ] as const
+    for (const row of pin) {
+      const spar = makeExhibition(buildOwned(1), "specials", row.seed)
+      expect(spar.rivalSpeciesId).toBe(row.species)
+      expect(spar.rivalTactic).toBe(row.tactic)
+      expect(spar.rival.stats).toEqual(row.stats)
+    }
   })
 
   test("the rival's stats land inside the species stat bounds", () => {

@@ -82,7 +82,7 @@ export const BOSSES: readonly BossDef[] = Object.freeze([
     name: "Sear Marshal Koda",
     speciesId: "fire_drake",
     stats: { hp: 92, atk: 13, def: 10, spd: 12 },
-    loadout: ["spark", "flame_charge", "cinder_shot", "blaze_bolt"],
+    loadout: ["spark", "flame_charge", "blaze_bolt", "flare_dart"],
     tactic: "specials",
     intro:
       "Sear Marshal Koda takes the floor — 'Promotion trials start NOW. Drop and give me twenty embers!'",
@@ -98,7 +98,7 @@ export const BOSSES: readonly BossDef[] = Object.freeze([
     name: "Verdant Dame Hesse",
     speciesId: "plant_ox",
     stats: { hp: 100, atk: 11, def: 13, spd: 8 },
-    loadout: ["seed_shot", "thorn_volley", "spore_burst", "bramble_dart"],
+    loadout: ["seed_shot", "thorn_volley", "spore_burst", "vine_lash"],
     tactic: "balanced",
     intro:
       "Verdant Dame Hesse regards you calmly — 'Every climber passes this ridge. Few remember it fondly.'",
@@ -114,7 +114,7 @@ export const BOSSES: readonly BossDef[] = Object.freeze([
     name: "Tide Regent Marlow",
     speciesId: "water_axolotl",
     stats: { hp: 92, atk: 12, def: 9, spd: 11 },
-    loadout: ["bubble", "tide_shot", "foam_volley", "splash_bolt"],
+    loadout: ["bubble", "splash_bolt", "foam_volley", "mist_spray"],
     tactic: "specials",
     intro:
       "Tide Regent Marlow drifts into view — 'The summit of Silver, at your leisure. Shall we?'",
@@ -129,8 +129,8 @@ export const BOSSES: readonly BossDef[] = Object.freeze([
     id: "delmar",
     name: "Squall Herald Delmar",
     speciesId: "water_axolotl",
-    stats: { hp: 93, atk: 12, def: 9, spd: 11 },
-    loadout: ["bubble", "tide_shot", "foam_volley", "splash_bolt"],
+    stats: { hp: 93, atk: 11, def: 11, spd: 11 },
+    loadout: ["bubble", "tide_shot", "foam_volley", "mist_spray"],
     tactic: "specials",
     intro:
       "Squall Herald Delmar rolls in on a gust — 'Gold lies past the squall. Ready to be weathered?'",
@@ -145,8 +145,8 @@ export const BOSSES: readonly BossDef[] = Object.freeze([
     id: "fenn",
     name: "Cinder Abbot Fenn",
     speciesId: "fire_drake",
-    stats: { hp: 92, atk: 13, def: 10, spd: 12 },
-    loadout: ["spark", "flame_charge", "cinder_shot", "blaze_bolt"],
+    stats: { hp: 92, atk: 13, def: 9, spd: 12 },
+    loadout: ["spark", "flame_charge", "blaze_bolt", "pyre_lance"],
     tactic: "balanced",
     intro:
       "Cinder Abbot Fenn tends a single flame — 'This ridge asks one question: can you keep a fire burning when it matters?'",
@@ -161,8 +161,8 @@ export const BOSSES: readonly BossDef[] = Object.freeze([
     id: "thessa",
     name: "Grove Sovereign Thessa",
     speciesId: "plant_ox",
-    stats: { hp: 100, atk: 11, def: 13, spd: 8 },
-    loadout: ["seed_shot", "thorn_volley", "spore_burst", "bramble_dart"],
+    stats: { hp: 95, atk: 11, def: 13, spd: 8 },
+    loadout: ["seed_shot", "thorn_volley", "bramble_dart", "root_quake"],
     tactic: "specials",
     intro:
       "Grove Sovereign Thessa descends from the canopy — 'Above my grove there is only the plateau. Legends kneel here first.'",

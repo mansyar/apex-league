@@ -12,6 +12,7 @@
  */
 
 import { type BattleResult, type BattleSide, resolveBattle } from "../battle"
+import { rivalKit } from "../battle/rival-kit"
 import { getBoss } from "../bosses"
 import { makeRng } from "../rng"
 import { getSpecies } from "../species"
@@ -86,7 +87,10 @@ export function battleSideForSlot(slot: CupSlot, seed: number): BattleSide {
     name: slot.name,
     element: species.element,
     stats: slot.stats,
-    kit: species.kit,
+    kit: rivalKit(
+      species,
+      seed ^ (slot.name.length * 31 + slot.speciesId.length),
+    ),
     tactic,
     temperament: species.temperament,
   }

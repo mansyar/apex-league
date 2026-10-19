@@ -177,6 +177,7 @@ export {
 export {
   clearLoadout,
   defaultLoadout,
+  knownMoves,
   MOVE_TIER3_DAYS,
   MOVE_TIER4_DAYS,
   requiredTierDays,

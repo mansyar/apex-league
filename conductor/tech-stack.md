@@ -254,6 +254,30 @@
   surface is pinned by `scene-logic.test.ts`; the largest modules are
   `ranch/api.ts` at 9.4 KB and `scene-logic/gait.ts` at 8.3 KB.*
 
+-   *2026-10-19: Learnable move pool landed (track `move_pool_20261018`) —
+  every playable species now knows **six** moves (indices 0-1 from birth,
+  index 2 at three trained days or on evolution, indices 3-5 at six trained
+  days) while a fighter still fields at most four. `knownMoves`/`knownCount`
+  replace `tierCount`, and `defaultLoadout` slices the first four, so a
+  pre-pool save with `loadout: null` (v15 or earlier) resolves to the same ids
+  it always did. Move
+  knowledge is **derived, never stored**: `requiredTierDays(stage)` over
+  `species.kit` is the only gate table, which is why this track needed no save
+  bump (v16 belongs to the audio mix, not the pool; see
+  `docs/save-schema.md`). Rival kits are deterministic, not
+  authored: `rivalKit` draws four distinct moves from the six using an RNG
+  derived from the existing battle/cup seed under a distinct constant, so the
+  parent stream is untouched and a fixed seed still fields the same four —
+  spar and cup goldens were re-baselined once for that reason (Phase 2).
+  Boss kits stay hand-authored, one wider-pool row each, and are re-tuned
+  against the probe bands. Client: picker, coaching room, creature detail and
+  a Handbook Moves tab all render the six rows from `species.kit`; `move-fx`
+  adds bespoke reads only for the heavy finishers (Pyre Lance, Root Quake,
+  Maelstrom) while the steady moves inherit element `SHOT_LOOK` plus
+  `DEFAULT_FX`. Catalog and gate rules are TDD-pinned; the Phase 5 matrix
+  reproduces kit2/3/4 rates byte-identically and the three six-move mirrors sit
+  within 4 points of the four-move baseline.*
+
 ## Server
 - **Framework**: ElysiaJS on Bun (endpoints: save sync, leaderboard, ghost
   data, anonymous device-ID auth).

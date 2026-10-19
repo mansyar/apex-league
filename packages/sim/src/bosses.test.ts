@@ -80,6 +80,20 @@ describe("boss registry", () => {
     }
   })
 
+  it("fields at least one move from the wider pool", () => {
+    // move_pool_20261018: the six-move pool is only felt if the ladder's
+    // gatekeepers actually bring it. Every boss carries at least one of the
+    // two post-tier-4 rows.
+    for (const boss of BOSSES) {
+      const species = getSpecies(boss.speciesId)
+      if (!species) continue
+      const wider = boss.loadout.filter(
+        (move) => species.kit.indexOf(move) >= 4,
+      )
+      expect(wider.length).toBeGreaterThanOrEqual(1)
+    }
+  })
+
   it("uses a tactic from the existing tactic set", () => {
     const LEGAL: readonly Tactic[] = ["balanced", "specials"]
     for (const boss of BOSSES) {

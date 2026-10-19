@@ -8,8 +8,14 @@
  * modal's own Escape/backdrop/close semantics.
  */
 import {
+  type Creature,
+  defaultLoadout,
   effectiveTraits,
   type GameState,
+  getMove,
+  getSpecies,
+  knownMoves,
+  requiredTierDays,
   type StatKey,
   statBreakdown,
 } from "@apex/sim"
@@ -93,6 +99,48 @@ export interface CreatureDetail {
 }
 
 /**
+ * The six pool rows for the detail modal: equipped moves read "In kit",
+ * known moves read "Learned", and locked ones carry their gate. The gate
+ * copy is the same language the picker uses so a coach can map one to the
+ * other.
+ */
+function kitRows(creature: Creature): HTMLElement[] {
+  const species = getSpecies(creature.speciesId)
+  if (!species) return []
+  const known = new Set(knownMoves(creature, species))
+  const equipped = new Set(
+    creature.loadout ?? defaultLoadout(creature, species),
+  )
+  return species.kit.map((id, index) => {
+    const row = document.createElement("div")
+    row.className = "detail-kit-row"
+    const name = document.createElement("span")
+    name.className = "detail-kit-name"
+    name.textContent = getMove(id)?.displayName ?? id
+    const state = document.createElement("span")
+    state.className = "detail-kit-state"
+    if (equipped.has(id)) {
+      state.textContent = "In kit"
+      state.dataset.state = "equipped"
+    } else if (known.has(id)) {
+      state.textContent = "Learned"
+      state.dataset.state = "known"
+    } else {
+      const remaining =
+        requiredTierDays(index, creature.stage) - creature.trainingDays
+      const spell = remaining === 1 ? "day" : "days"
+      state.textContent =
+        index === 2 && creature.stage === "baby"
+          ? `${remaining} ${spell}, or evolve`
+          : `${remaining} ${spell}`
+      state.dataset.state = "locked"
+    }
+    row.append(name, state)
+    return row
+  })
+}
+
+/**
  * Build the creature detail modal. Callers append `root` to the HUD and
  * call `open(state)` when the creature plate is tapped.
  */
@@ -124,6 +172,11 @@ export function buildCreatureDetail(): CreatureDetail {
   const context = document.createElement("div")
   context.className = "detail-context"
 
+  // The move pool: six rows, the equipped four marked and every locked row
+  // spelling out its gate (move_pool_20261018 FR5).
+  const kit = document.createElement("div")
+  kit.className = "detail-kit"
+
   const actions = document.createElement("div")
   actions.className = "kit-modal-actions"
   const close = document.createElement("button")
@@ -132,7 +185,7 @@ export function buildCreatureDetail(): CreatureDetail {
   close.textContent = "Back to the ranch"
   actions.append(close)
 
-  box.append(head, statList, context, actions)
+  box.append(head, statList, context, kit, actions)
   root.append(box)
 
   /** Where focus goes when the modal closes (the tapped plate head). */
@@ -187,6 +240,8 @@ export function buildCreatureDetail(): CreatureDetail {
         contextRow("Bond", `${creature.conditions.bond}/100`),
         contextRow("Mood", `${creature.conditions.mood}/100`),
       )
+
+      kit.replaceChildren(...kitRows(creature))
       root.style.display = ""
       close.focus()
     },

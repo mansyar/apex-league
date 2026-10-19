@@ -70,7 +70,15 @@ describe("unlockCallout", () => {
       expected:
         "New move available: Cinder Shot. Train 3 more days for the next tier.",
     },
-    { days: 6, expected: "New move available: Blaze Bolt." },
+    {
+      days: 6,
+      expected: "New moves available: Blaze Bolt, Flare Dart, Pyre Lance.",
+    },
+    {
+      days: 3,
+      expected: "",
+      creature: { ...drake, stage: "juvenile" },
+    },
     { days: 2, expected: "" },
     { days: 4, expected: "" },
     { days: 5, expected: "" },

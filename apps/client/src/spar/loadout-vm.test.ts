@@ -41,7 +41,13 @@ describe("statLine", () => {
 describe("kitProgress", () => {
   test("golden: a fresh baby reads the next tier's day cost", () => {
     expect(kitProgress(drake, drakeSpecies)).toBe(
-      "Unlocked 2 of 4 moves — train 3 more days for Cinder Shot.",
+      "Unlocked 2 of 6 moves — train 3 more days for Cinder Shot.",
+    )
+  })
+
+  test("three trained days move the line to the tier-4 gate", () => {
+    expect(kitProgress({ ...drake, trainingDays: 3 }, drakeSpecies)).toBe(
+      "Unlocked 3 of 6 moves — train 3 more days for Blaze Bolt.",
     )
   })
 

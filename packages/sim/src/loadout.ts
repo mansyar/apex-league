@@ -17,8 +17,13 @@ export const MOVE_TIER4_DAYS = 6
 /** The kit ids known from birth (tiers 1-2). */
 const BIRTH_TIERS = 2
 
-function tierCount(creature: Pick<Creature, "trainingDays" | "stage">): number {
-  if (creature.trainingDays >= MOVE_TIER4_DAYS) return 4
+/** Known moves at the full six-move pool. */
+const FULL_POOL = 6
+
+function knownCount(
+  creature: Pick<Creature, "trainingDays" | "stage">,
+): number {
+  if (creature.trainingDays >= MOVE_TIER4_DAYS) return FULL_POOL
   // Evolution itself is training: a juvenile knows its tier-3 move from
   // the morning it matures, regardless of trained days.
   if (creature.stage !== "baby" || creature.trainingDays >= MOVE_TIER3_DAYS) {
@@ -28,27 +33,38 @@ function tierCount(creature: Pick<Creature, "trainingDays" | "stage">): number {
 }
 
 /**
- * The prefix of the species kit unlocked by the creature's stage and
- * trained days. Order follows catalog (tier) order; no randomness is
- * involved.
+ * The prefix of the species kit the creature knows, by stage and trained
+ * days. Order follows catalog (tier) order; no randomness is involved.
  */
+export function knownMoves(
+  creature: Pick<Creature, "trainingDays" | "stage">,
+  species: SpeciesDef,
+): readonly string[] {
+  return species.kit.slice(0, knownCount(creature))
+}
+
+/** @deprecated Name predating the wider pool; use {@link knownMoves}. */
 export function unlockedKit(
   creature: Pick<Creature, "trainingDays" | "stage">,
   species: SpeciesDef,
 ): readonly string[] {
-  return species.kit.slice(0, tierCount(creature))
+  return knownMoves(creature, species)
 }
 
-/** A fresh creature's loadout is the whole unlocked slice, in kit order. */
+/**
+ * A fresh creature's loadout is the first four of the moves it knows: the
+ * wider pool adds choice, not a bigger default kit, so a save with a null
+ * loadout fights exactly the battle it fought before the pool widened.
+ */
 export function defaultLoadout(
   creature: Pick<Creature, "trainingDays" | "stage">,
   species: SpeciesDef,
 ): readonly string[] {
-  return unlockedKit(creature, species)
+  return knownMoves(creature, species).slice(0, MAX_LOADOUT)
 }
 
 /** Longest legal loadout — the early game grows into the full four slots. */
-const MAX_LOADOUT = 4
+export const MAX_LOADOUT = 4
 
 /**
  * Equips 2-4 unique moves from the creature's unlocked kit (the basic strike
