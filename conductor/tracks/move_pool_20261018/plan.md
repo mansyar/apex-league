@@ -70,7 +70,8 @@
   - [x] `docs/save-schema.md`: explicit statement that move knowledge is derived and no v16 exists
 - [x] Task: Final `bun run verify`, determinism gate, and track checkpoint (`4d985b2`)
   - `bun run verify` exits 0: 1554 pass / 1 skip / 0 fail, biome 0 errors (7 pre-existing style warnings), determinism gate byte-identical for all 11 digests. Verification note attached to `4d985b2`.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: 4d985b2]
+  - Verified 2026-10-19: `bun run verify` exit 0 (1554 pass / 1 skip / 0 fail), biome 0 errors, determinism gate byte-identical; matrix reproduces kit2/3/4 exactly, holds kit6 within ±4 points of the four-move baseline, zero time caps, all six new moves in AI use. Evidence and the verification note live on `4ff1610`/`4d985b2`.
 
 ## Notes
 
