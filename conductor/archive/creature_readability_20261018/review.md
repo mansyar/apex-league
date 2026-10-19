@@ -108,7 +108,7 @@ inferred, and none is required by `workflow.md`.
 
 - **F2 — the spec's "as shipped" note documents a signature that no longer
   exists**
-  - **File:** `conductor/tracks/creature_readability_20261018/spec.md:178`
+  - **File:** `conductor/archive/creature_readability_20261018/spec.md:178`
   - **What:** the note says `driveFace(eyes, seed, seconds, { suppressed })`;
     `05ec046` changed the fourth parameter to a boolean to remove the per-frame
     options literal.
@@ -119,7 +119,7 @@ inferred, and none is required by `workflow.md`.
   - **Test gap:** none.
 
 - **F3 — Phase 1 has no recorded checkpoint SHA**
-  - **File:** `conductor/tracks/creature_readability_20261018/plan.md:37–42`
+  - **File:** `conductor/archive/creature_readability_20261018/plan.md:37–42`
   - **What:** phases 2–6 each end with an explicit `Checkpoint <sha>` line;
     Phase 1 ends with the ticked protocol task and no SHA. The phase's last
     functional commit is `1636b05`.
@@ -131,7 +131,7 @@ inferred, and none is required by `workflow.md`.
 
 - **F4 — the approved suite-time deviation does not reconcile `workflow.md`'s
   stricter target**
-  - **File:** `conductor/tracks/creature_readability_20261018/spec.md:205–219`
+  - **File:** `conductor/archive/creature_readability_20261018/spec.md:205–219`
   - **What:** the deviation records the spec's ~15 s figure, but
     `conductor/workflow.md:165` states "Target suite time: < 10 seconds". A
     reader who starts from the workflow sees an unmet target with no pointer to

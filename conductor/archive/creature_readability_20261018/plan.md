@@ -357,7 +357,7 @@ Goal: the face is alive, deterministically, without touching sim state.
 - Per-frame cost: `driveFace` writes four numbers (two eyes x scale.y/yaw) and
   allocates nothing; `findEyes` runs once per rig build / cast. The arena's
   `io.pair()` allocation is pre-existing and unchanged.
-- Review stills, `conductor/tracks/creature_readability_20261018/artifacts/`:
+- Review stills, `conductor/archive/creature_readability_20261018/artifacts/`:
   `face13-blink-open.png` / `face13-blink-closed.png` (review scale, seed 42
   draconic champion, the lid shut at 1.32 s) and `face13-arena-open.png` /
   `face13-arena-closed.png` (arena-normalized 0.55 rig at gameplay framing).
