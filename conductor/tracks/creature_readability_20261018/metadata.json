@@ -5,6 +5,9 @@
   "title": "Creature Readability: per-vertex AO, per-voxel colour classes with anatomical zones and dappling, and a shared face kit with riggable eyes plus idle blink",
   "createdAt": "2026-10-18",
   "branch": "track/creature_readability_20261018",
+  "review_verdict": "PASS WITH FINDINGS",
+  "review_rounds": 1,
+  "updated_at": "2026-10-20",
   "surfaces": [
     "packages/voxel/src/voxelizer.ts",
     "packages/voxel/src/mesher.ts",
