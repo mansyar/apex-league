@@ -47,13 +47,16 @@
 
 ## Phase 4 - Client surfaces (manual verification)
 
-- [ ] Task: Loadout picker, coaching room, and creature detail
-  - [ ] Six rows with locked ones showing gate copy ("Train N more days" / "Evolve to unlock"), equip and unequip of any known move, save round-trip
-  - [ ] Handbook move table and picker copy updated to describe the pool
-- [ ] Task: Battle FX inheritance
-  - [ ] New moves inherit element `SHOT_LOOK` and `MOVE_FX`; add a bespoke entry only where two moves read identically
-- [ ] Task: Browser verification with `playwright-cli`
-  - [ ] Drive ranch → coaching room → spar, play at least one new move, screenshot each surface, confirm zero console errors; run the iPhone 15 layout pass on the picker
+- [x] Task: Loadout picker, coaching room, and creature detail (`cd8acb0`)
+  - [x] Six rows with locked ones showing gate copy ("Train N more days" / "Evolve to unlock"), equip and unequip of any known move, save round-trip
+  - [x] Handbook move table and picker copy updated to describe the pool
+  - **Verified:** birth picker reads 2 of 6 with "Unlocks in 3 days or on evolution" on Cinder Shot; the detail modal lists all six (2 In kit, 2 Learned, 2 gated). At 6 trained days the picker shows six rows, unequipping Spark and equipping Pyre Lance survived a reload via `state.creature.loadout`. Handbook Moves tab renders 3 tables x 6 rows. Also fixed the handbook panel to scroll (it previously bled under the pinned footer) and the phone picker to park below the top-left chips.
+- [x] Task: Battle FX inheritance (`cd8acb0`)
+  - [x] New moves inherit element `SHOT_LOOK` and `MOVE_FX`; add a bespoke entry only where two moves read identically
+  - **Bespoke:** the three heavies (Pyre Lance / Root Quake / Maelstrom) get their own shot read so each element's steady + heavy pair differs; Flare Dart / Vine Lash / Mist Spray inherit the element look and `DEFAULT_FX`.
+- [x] Task: Browser verification with `playwright-cli` (`cd8acb0`)
+  - [x] Drive ranch → coaching room → spar, play at least one new move, screenshot each surface, confirm zero console errors; run the iPhone 15 layout pass on the picker
+  - **Verified:** coaching room lists the full six-move rival pool and captions "Fields four of these six"; the spar log shows Pyre Lance (18 on a hit, one miss) and Flare Dart (three hits) in play; console reports 0 errors / 0 warnings. iPhone 15 (393x852): picker panel starts below the HUD chips and scrolls to the tactic buttons.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5 - Balance, docs, final gate
