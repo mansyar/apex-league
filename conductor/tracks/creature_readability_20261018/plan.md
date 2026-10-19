@@ -387,10 +387,14 @@ Goal: the repository tells the truth about what shipped.
         generator version)
   - [x] `conductor/learnings.md` entry if a reusable lesson emerged
   - [x] `conductor/product-guidelines.md` palette rule for the surface ramp
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] `bun run verify` and `bun run gate:determinism` both green
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] `bun run verify` and `bun run gate:determinism` both green
   - [ ] Await explicit user approval, attach the verification note, record the
         checkpoint SHA
+
+**Checkpoint `d11ae78`** — verification note attached to that commit; awaiting
+the user's approval of the phase. `bun run verify` green end to end (check,
+1521 tests, biome, determinism gate).
 
 ### Phase 6 findings
 
