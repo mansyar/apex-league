@@ -1,5 +1,7 @@
 # Project Context
 
+<!-- conductor-version: 2 -->
+
 ## Definition
 
 -   [Product Definition](./product.md)
@@ -17,3 +19,8 @@
 -   [Tracks Registry](./tracks.md)
 -   [Tracks Directory](./tracks/)
 -   [Track Archive](./archive/) — completed tracks, one folder each (spec/plan/metadata intact)
+
+## Capabilities
+
+-   [Phase Executor](../.opencode/agents/conductor-phase.md)
+-   [Reviewer](../.opencode/agents/conductor-reviewer.md)
