@@ -196,7 +196,12 @@ user-approved track would misrepresent the track's shape. F5 is deferred.
 
 ## Doc sync
 
-`pending` — will flip to `updated` after the post-review documentation sync.
+`updated` — `spec.md` (FR7 as-shipped call shape, suite-time clause naming
+`workflow.md`'s target, dev-dependency deviation), `plan.md` (Phase 1 checkpoint
+SHA, Phase 5/6 findings and checkpoints), `tech-stack.md` (2026-10-19 surface
+extension: AO, `COLOR_0`, eye parts, generator version), `product-guidelines.md`
+(surface-ramp palette rule), `learnings.md` (learning 16: at voxel scale a face
+is a colour decision).
 
 ## History
 
