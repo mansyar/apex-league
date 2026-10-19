@@ -39,9 +39,9 @@ gate are regenerated, and the generator version is bumped.
 |---|---|---|
 | Colour architecture | Per-voxel colour classes + `COLOR_0` | Only path to belly gradients and dappling; per-part sub-materials force hard seams |
 | AO character | Subtle 4-level, 0.72 floor | Reads as crevice depth without muddying saturated element hues or fighting the 3-point rig |
-| Face coverage | Full set: eyes, pupils, catchlights, brow, mouth, nostrils | The brow recess is what seats eyes in a skull instead of on a box |
+| Face coverage | Beady eyes, brow, painted mouth, painted nostrils | At 56³ a sclera/pupil/catchlight ball needs half the head to hold a rim; a two-voxel bead with one warm cell reads at arena distance |
 | Face identity | Shared kit, per-species parameters | Single-source the math; keep drake/bovine/axolotl faces distinct |
-| Stage behaviour | Stage-aware eye proportions | Baby 1.25× higher and rounder; champion 0.9× deeper-set |
+| Stage behaviour | Head geometry carries the stage; the eye does not scale | A two-by-two bead is already the smallest surfaced eye this grid can hold |
 | Eyes | Separate riggable parts | Blink/glance land without a second pipeline change |
 | Animation | Idle blink + occasional eye-only glance | Requested in scope |
 | Props | Inherit AO, keep flat colours | Shared mesher; free depth for the ranch |
@@ -117,28 +117,39 @@ free of `Math.random` or time dependence.
 
 ### FR6 — Face kit (`face.ts`, pure)
 
-A shared library of face primitives — socket recess (`smoothSubtract`),
-eyeball, pupil, catchlight, brow ridge, mouth recess, nostril pair — driven by a
-per-archetype `FacePlan`:
+A shared library of face primitives — socket recess (`smoothSubtract`), beady
+eye, brow ridge, painted mouth line, painted nostrils — driven by a per-archetype
+`FacePlan`:
 
-| | eyes | pupils | brow | mouth | nostrils |
-|---|---|---|---|---|---|
-| drake (draconic) | medium, angled | slit | strong ridge | wide line | pair on snout top |
-| bovine | wide-set, round | round | none | broad flat line | large pair |
-| axolotl | large, round | round | none | wide smile | none |
+| | eyes | brow | mouth | nostrils |
+|---|---|---|---|---|
+| drake (draconic) | beady, under a ridge | strong ridge | wide painted line | none — a four-cell muzzle has no room for a pair |
+| bovine | wide-set, round | none | broad painted line | pair, one row above the mouth |
+| axolotl | large, round | none | wide painted smile | none |
 
 Eyes are emitted as `eyeLeft` / `eyeRight` parts parented to `head`, with pivots
 at the top-centre of the eye so a `scale.y` collapse reads as a lid closing
-rather than the eye shrinking into its centre. Pupil and catchlight voxels live
-inside those parts as separate colour classes, so they travel with the eye.
+rather than the eye shrinking into its centre. Each eye is a two-by-two block of
+voxels — a dark pupil plus one warm catchlight cell — carrying two colour
+classes and no sclera. The catchlight is a one-step warm lift, not white: at this
+size a white cell reads as damage, and the eye's silhouette does the work.
 
-Eye scale and set-depth are stage-aware: baby 1.25× and higher/rounder,
-juvenile 1.0, champion 0.9 and deeper-set. A handful of per-stage scalars on the
-same parts — no new geometry per stage.
+The eye is one size at every stage: half-height 0.8 voxels. That is the floor,
+not a style choice — under 0.707 the radius catches no cell centre and the eye
+vanishes, over 1.0 it grows a third row and stops being beady. Stage variation
+lives in the skull, which is what makes a baby read big-eyed.
 
-Eye radius must be at least 1.8 voxels so the feature survives at baby scale.
-Mouth and nostril recesses are one voxel deep with a dark class, not through
-holes.
+The eye sits flush at the surface column inside a one-ring socket dish; the dish
+must be shallow enough that the bead still breaks the surface by a cell, or the
+eye reads as an empty hole. The brow, where a species has one, is derived from
+the *snapped* eye centre so it lands on the same columns and cell corners.
+
+Mouth and nostrils are painted onto the surface, never carved. A subtract deep
+enough to read at this resolution is a hole the width of the muzzle — the drake
+read as an open beak with a slab above it. The mouth is one row on the muzzle's
+front plane, inset from the corners so it is a line and not a second snout;
+nostril cells are painted by exact cell membership, so a pair cannot merge into
+a bar the way two carved pits do.
 
 ### FR7 — Idle blink and micro-glance
 
@@ -189,8 +200,9 @@ orientation and framing.
 
 ## Acceptance Criteria
 
-1. Drake, bovine and axolotl each show eyes, a pupil, a catchlight, a mouth and
-   (drake, bovine) nostrils at gameplay distance, in all three stages.
+1. Drake, bovine and axolotl each show a beady eye with a catchlight and a mouth
+   at gameplay distance, in all three stages; the bovine also shows a nostril
+   pair.
 2. Every creature shows at least three distinct surface tone zones and visible
    dappling; belly is lighter than dorsal on every archetype.
 3. Crevices (under jaw, between legs, inside haunches) are visibly darker than
@@ -225,7 +237,8 @@ orientation and framing.
 |---|---|
 | Greedy merge + AO interaction causes seams or a triangle blow-up | Gate merges on AO equality; measure triangle count every phase; fall back to 1×1 quads for any part that explodes |
 | Per-voxel dappling reads as noise at distance | Low-frequency two-octave noise, narrow two-step ramp; judged at arena distance, never zoomed |
-| Face features vanish at 56³ in the smallest head | Eye radius ≥ 1.8 voxels; verify at baby scale first, since the baby head is smallest |
+| Face features vanish at 56³ in the smallest head | Two-by-two bead is the floor this grid allows (radius ≥ 0.707 or it catches no cell centre); verify at baby scale first, since the baby head is smallest |
+| Painted features read as a second face (two dots above a mouth) | Nostril pairs sit one row above the mouth, never at eye height; the drake carries no pair at all |
 | Determinism gate fails until artifacts regenerate | Expected and sequenced — Phase 6 owns regeneration; earlier phases verify through preview/gallery |
 | Blink fights the arena director | Glance is eyes-only, suppressed during hit-stop, disabled under reduced motion |
 | Per-voxel colour silently changes existing palettes | Salted RNG stream; FR5 requires existing DNA and palette draws to be unchanged, pinned by test |
