@@ -1,7 +1,7 @@
 {
   "trackId": "creature_readability_20261018",
   "type": "feature",
-  "status": "new",
+  "status": "completed",
   "title": "Creature Readability: per-vertex AO, per-voxel colour classes with anatomical zones and dappling, and a shared face kit with riggable eyes plus idle blink",
   "createdAt": "2026-10-18",
   "branch": "track/creature_readability_20261018",
