@@ -45,11 +45,28 @@ interface SaveData {
 | `fedToday` | boolean | Feeding gate for the day. |
 | `trainingFocus` | `"hp"\|"atk"\|"def"\|"spd" \| null` | Tonight's training target. |
 | `trainingResult` | `"gained"\|"sick"\|"hungry" \| null` | Last night's training outcome. |
-| `trainingDays` | integer | Cumulative training days (kit gating). |
-| `loadout` | string[] \| null | Equipped moves (2–4); null = default kit. |
+| `trainingDays` | integer | Cumulative training days (kit gating; 6 opens the full six-move pool). |
+| `loadout` | string[] \| null | Equipped move ids (2–4), each one the creature knows; null = the default kit (first four known). |
 | `sickCooldown` | integer | Nights since medicine; blocks evolution until 0 (v6+). |
 | `traits` | `LineageTrait[]` | Up to four canonical lineage ids (`sturdy`, `fierce`, `guarded`, `quick`); derived at graduation, never hand-picked (v15+). Empty on a founder until then. |
 | `parents` | integer[] | Parent generation numbers (v15+): `[]` for a founder, one entry for the single-parent successor path, two sorted entries for a bred egg. |
+
+### Move knowledge is derived — there is no v16
+
+The save never stores which moves a creature has learned. Knowledge is
+recomputed on load from three fields that were already there:
+`speciesId` picks the six-move kit, `trainingDays` and `stage` feed
+`requiredTierDays`. Indices 0–1 are known from birth, index 2 at three
+trained days (or on evolution, which counts as training for that index
+only), and indices 3–5 at six trained days. A creature always fields at
+most four, so `loadout` records a choice among known moves, not a list of
+what exists.
+
+`setLoadout` rejects an id the creature does not know, the innate basic
+strike, duplicates, and lengths outside 2–4. `loadout: null` resolves to
+the first four known moves, which is exactly the four-move kit a pre-track
+save fought with. Widening the pool therefore needs **no schema change**:
+`SAVE_VERSION` stays 15 and no v16 migration exists or is planned.
 
 ### `RetiredRecord` (Hall of Fame)
 
