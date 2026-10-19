@@ -297,20 +297,16 @@ export function buildDrake(dna: Dna, stage: Stage = "baby"): DrakeBuild {
   // The face is laid out from the same skull box, so its sockets, mouth line
   // and nostril pair follow every proportion change instead of drifting off.
   const face = faceParts(
-    facePlan(
-      "draconic",
-      {
-        center: headC,
-        half: skullHalf,
-        snout: { center: snoutC, half: snoutHalf },
-      },
-      stage,
-    ),
+    facePlan("draconic", {
+      center: headC,
+      half: skullHalf,
+      snout: { center: snoutC, half: snoutHalf },
+    }),
     main,
   )
   fields.push({
     name: "head",
-    sdf: smoothSubtract(headField, face.recess, 0.5),
+    sdf: smoothSubtract(headField, face.carve, 0.5),
     classify: face.skinClass,
   })
   fields.push(...face.fields)

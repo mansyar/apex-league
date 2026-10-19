@@ -28,6 +28,16 @@
  * its classes proud of a thick skull, and the stage inset that sank the eye was
  * dropped because at champion size it swallowed the sclera and highlight.
  *
+ * Re-pinned once more when the face was rejected on looks and rebuilt: the eye
+ * is a two-by-two bead (four voxels, dark pupil plus one warm cell) instead of
+ * the sclera/pupil/catchlight ball, stage-scaled eye proportions and species
+ * eye scales are gone, and the mouth and nostrils are painted cells rather than
+ * carved recesses - so the head loses its mouth/nostril carving and the eye
+ * parts lose half their voxels (draconic champion 3840 -> 3756 tris). The
+ * bovine snout also moved back inside the grid: a double grid offset had put it
+ * at z 73 of a 56-deep grid, which is why the bovine had no muzzle, and the
+ * mouth row it was painting never landed on a voxel.
+ *
  * Scope is deliberately one creature, not all nine: a full 9-stage sweep costs
  * ~7.5s of SDF sampling, which would blow the suite's <=15s budget. The
  * exhaustive byte-identical sweep over every archetype and stage is already
@@ -72,7 +82,7 @@ function propHash(propId: string): string {
 }
 
 const DRACONIC_CHAMPION =
-  "55cfe28024ac15077b133bddc999ab883a39ba19d7dc1f90245b6351641c5c2f"
+  "e85cd4780db27799e246bb08d641d845a7ddbb5c2d9fbe219be60ee2036f8a09"
 
 const PROP_BASELINE: Record<string, string> = {
   tuft: "9a5658fc92af4ed573660245dfb4b3df8c16e8545b086eaeef261dfa690ed645",

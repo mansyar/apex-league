@@ -2,7 +2,6 @@ import { describe, expect, test } from "bun:test"
 import { archetypes, generate } from "./archetype"
 import {
   EYE_CLASS,
-  eyeScale,
   faceParts,
   facePlan,
   type HeadShape,
@@ -31,16 +30,6 @@ const AXOLOTL_HEAD: HeadShape = {
 
 const COAT: readonly [number, number, number] = [0.8, 0.5, 0.3]
 
-const eyeHalfHeight = (
-  archetype: string,
-  head: HeadShape,
-  stage: "baby" | "juvenile" | "champion",
-): number => {
-  const eyePlan = facePlan(archetype, head, stage).eyes[0]
-  if (!eyePlan) throw new Error("no eyes in plan")
-  return eyePlan.radii.y
-}
-
 describe("facePlan", () => {
   test("every archetype gets a mirrored eye pair inside the skull", () => {
     for (const [archetype, head] of [
@@ -57,16 +46,26 @@ describe("facePlan", () => {
       expect(right.center.x).toBeCloseTo(-left.center.x, 10)
       expect(right.center.y).toBeCloseTo(left.center.y, 10)
       expect(right.center.z).toBeCloseTo(left.center.z, 10)
-      // The eye rides on the skull surface: its centre is at or just past the
-      // side of the head, and the ellipsoid reaches into it.
-      expect(Math.abs(left.center.x)).toBeLessThanOrEqual(head.half.x + 0.5)
+      // Seated on the skull's outward voxel column: the outer face of the eye is
+      // the cheek itself, not a ball stuck on it.
       expect(Math.abs(left.center.x) + left.radii.x).toBeGreaterThan(
-        head.half.x,
+        head.half.x - 0.7,
+      )
+      expect(Math.abs(left.center.x) + left.radii.x).toBeLessThanOrEqual(
+        head.half.x + 1,
       )
       expect(Math.abs(left.center.y)).toBeLessThan(head.half.y)
       expect(Math.abs(left.center.z)).toBeLessThan(head.half.z)
-      // Spec floor: yes, a feature this size survives baby scale.
-      expect(left.radii.y).toBeGreaterThanOrEqual(1.8)
+      // Sampling contract. The voxelizer samples cell centres, so the eye sits on
+      // a cell corner in y and z (four cells at half a voxel each) and on the
+      // outward cell column in x. Break either and the bead samples to nothing.
+      expect(Math.abs(left.center.x % 1)).toBeCloseTo(0.5, 10)
+      expect(left.center.y % 1).toBeCloseTo(0, 10)
+      expect(left.center.z % 1).toBeCloseTo(0, 10)
+      // A radius under the cell-corner distance misses every sample; one over a
+      // voxel would add a third row. Between them is the beady window.
+      expect(left.radii.y).toBeGreaterThan(Math.SQRT1_2)
+      expect(left.radii.y).toBeLessThan(1)
     }
   })
 
@@ -76,102 +75,93 @@ describe("facePlan", () => {
     expect(facePlan("axolotl", AXOLOTL_HEAD).brows).toBeUndefined()
   })
 
+  // Only the bovine muzzle is broad enough to hold a pair far enough from the
+  // mouth line. On the drake's four-cell snout the dots either land at eye
+  // height (a second pair of eyes) or merge with the mouth into one dark mask,
+  // so the drake goes without.
   test("nostrils follow the species face table", () => {
-    expect(facePlan("draconic", DRAKE_HEAD).nostrils).toHaveLength(2)
+    expect(facePlan("draconic", DRAKE_HEAD).nostrils).toHaveLength(0)
     expect(facePlan("bovine", BOVINE_HEAD).nostrils).toHaveLength(2)
     expect(facePlan("axolotl", AXOLOTL_HEAD).nostrils).toHaveLength(0)
   })
 
-  test("mouth sits inside the muzzle", () => {
+  test("mouth sits on the muzzle's front face", () => {
     const plan = facePlan("draconic", DRAKE_HEAD)
     const muzzle = DRAKE_HEAD.snout
     if (!muzzle) throw new Error("missing snout")
     expect(Math.abs(plan.mouth.center.y - muzzle.center.y)).toBeLessThan(
       muzzle.half.y,
     )
-    expect(Math.abs(plan.mouth.center.z - muzzle.center.z)).toBeLessThan(
-      muzzle.half.z,
-    )
-    // A mouth line, not a second snout: it is thin in y.
+    // Painted on the face plane, so its centre is exactly one half-depth out.
+    expect(plan.mouth.center.z).toBeCloseTo(muzzle.center.z + muzzle.half.z, 10)
+    // A line, not a second snout: it is thin in y.
     expect(plan.mouth.half.y).toBeLessThan(plan.mouth.half.z)
   })
 })
 
 describe("faceParts", () => {
   test("pivots sit at the top-centre of each eye", () => {
-    for (const stage of ["baby", "juvenile", "champion"] as const) {
-      const plan = facePlan("draconic", DRAKE_HEAD, stage)
-      const bake = faceParts(plan, COAT)
-      for (const eyePlan of plan.eyes) {
-        const name = eyePlan.side < 0 ? "eyeLeft" : "eyeRight"
-        const pivot = bake.pivots[name]
-        if (!pivot) throw new Error(`no pivot for ${name}`)
-        expect(pivot[1]).toBeCloseTo(eyePlan.center.y + eyePlan.radii.y, 10)
-        expect(pivot[0]).toBeCloseTo(eyePlan.center.x, 10)
-        expect(pivot[2]).toBeCloseTo(eyePlan.center.z, 10)
-        expect(bake.parents[name]).toBe("head")
-      }
+    const plan = facePlan("draconic", DRAKE_HEAD)
+    const bake = faceParts(plan, COAT)
+    for (const eyePlan of plan.eyes) {
+      const name = eyePlan.side < 0 ? "eyeLeft" : "eyeRight"
+      const pivot = bake.pivots[name]
+      if (!pivot) throw new Error(`no pivot for ${name}`)
+      expect(pivot[1]).toBeCloseTo(eyePlan.center.y + eyePlan.radii.y, 10)
+      expect(pivot[0]).toBeCloseTo(eyePlan.center.x, 10)
+      expect(pivot[2]).toBeCloseTo(eyePlan.center.z, 10)
+      expect(bake.parents[name]).toBe("head")
     }
   })
 
-  test("eyes shrink with age; babies are the roundest", () => {
-    expect(eyeHalfHeight("draconic", DRAKE_HEAD, "baby")).toBeGreaterThan(
-      eyeHalfHeight("draconic", DRAKE_HEAD, "juvenile"),
-    )
-    expect(eyeHalfHeight("draconic", DRAKE_HEAD, "juvenile")).toBeGreaterThan(
-      eyeHalfHeight("draconic", DRAKE_HEAD, "champion"),
-    )
-    expect(eyeScale("baby")).toBeGreaterThan(eyeScale("juvenile"))
-    expect(eyeScale("juvenile")).toBeGreaterThan(eyeScale("champion"))
-  })
-
-  test("pupil in the middle, sclera at the rim, catchlight in the corner", () => {
-    const plan = facePlan("draconic", DRAKE_HEAD, "juvenile")
+  test("a dark bead with one warm cell at the top-front corner", () => {
+    const plan = facePlan("draconic", DRAKE_HEAD)
     const bake = faceParts(plan, COAT)
     const left = plan.eyes[0]
     if (!left) throw new Error("missing left eye")
     const part = bake.fields.find((field) => field.name === "eyeLeft")
-    if (!part?.classify) throw new Error("eye has no classifier")
-    const { center, radii } = left
-    // Height and width only: the visible face of a voxel eye is one voxel deep,
-    // so the classes are bands across it.
-    expect(part.classify(vec3(center.x, center.y, center.z))).toBe(
-      EYE_CLASS.pupil,
-    )
-    expect(
-      part.classify(vec3(center.x, center.y + radii.y * 0.95, center.z)),
-    ).toBe(EYE_CLASS.sclera)
-    expect(
-      part.classify(vec3(center.x, center.y - radii.y * 0.95, center.z)),
-    ).toBe(EYE_CLASS.sclera)
-    expect(
-      part.classify(
-        vec3(center.x, center.y + radii.y * 0.6, center.z + radii.z * 0.5),
-      ),
-    ).toBe(EYE_CLASS.catchlight)
+    const classify = part?.classify
+    if (!classify) throw new Error("eye has no classifier")
+    const { center } = left
+    // The four cell centres the bead actually owns.
+    const cell = (dy: number, dz: number) =>
+      classify(vec3(center.x, center.y + dy, center.z + dz))
+    expect(cell(0.5, 0.5)).toBe(EYE_CLASS.catchlight)
+    expect(cell(0.5, -0.5)).toBe(EYE_CLASS.pupil)
+    expect(cell(-0.5, 0.5)).toBe(EYE_CLASS.pupil)
+    expect(cell(-0.5, -0.5)).toBe(EYE_CLASS.pupil)
   })
 
-  test("every built eye keeps sclera, pupil and highlight at every stage", () => {
+  test("every built eye is a two-by-two bead with one highlight", () => {
     // The unit classifier passing is not enough: the head claims every eye voxel
-    // that sits inside the skull, so a champion bovine can lose its whole sclera
-    // rim and highlight while `face.ts` still classifies them correctly.
+    // that sits inside the skull, so a bead can lose cells (or all of itself)
+    // while `face.ts` still classifies them correctly.
     for (const archetype of ["draconic", "bovine", "axolotl"] as const) {
       for (const stage of ["baby", "juvenile", "champion"] as const) {
         const def = archetypes[archetype]
         if (!def) throw new Error(`no archetype ${archetype}`)
         const { build } = generate(archetype, 42, stage)
         const grid = voxelize(build.fields, def.grid)
-        const eye = grid.parts.find((part) => part.name === "eyeLeft")
-        if (!eye?.classes) throw new Error(`no built eyeLeft for ${archetype}`)
-        expect({
-          archetype,
-          stage,
-          classes: [...new Set(eye.classes)].sort(),
-        }).toEqual({
-          archetype,
-          stage,
-          classes: [EYE_CLASS.sclera, EYE_CLASS.pupil, EYE_CLASS.catchlight],
-        })
+        for (const name of ["eyeLeft", "eyeRight"]) {
+          const eye = grid.parts.find((part) => part.name === name)
+          if (!eye) throw new Error(`no built ${name} for ${archetype}`)
+          expect({ archetype, stage, name, cells: eye.voxels.length }).toEqual({
+            archetype,
+            stage,
+            name,
+            cells: 4,
+          })
+          const counts = new Map<number, number>()
+          for (const cls of eye.classes ?? []) {
+            counts.set(cls, (counts.get(cls) ?? 0) + 1)
+          }
+          expect(counts.get(EYE_CLASS.pupil)).toBe(3)
+          expect(counts.get(EYE_CLASS.catchlight)).toBe(1)
+          // Two rows tall, two deep, one voxel thick against the cheek.
+          expect(new Set(eye.voxels.map((v) => v[1])).size).toBe(2)
+          expect(new Set(eye.voxels.map((v) => v[2])).size).toBe(2)
+          expect(new Set(eye.voxels.map((v) => v[0])).size).toBe(1)
+        }
       }
     }
   })
@@ -184,8 +174,10 @@ describe("faceParts", () => {
     expect(bake.skinClass(vec3(0, BOVINE_HEAD.center.y + 2, 0))).toBe(
       SKIN_CLASS.coat,
     )
-    // The recess carves where the mouth is and leaves the skull alone.
-    expect(bake.recess(plan.mouth.center)).toBeLessThan(0)
+    // The mouth is paint on the surface: it darkens cells but carves nothing,
+    // while the socket dish beside it does cut the skull.
+    expect(bake.recess(plan.mouth.center)).toBeLessThanOrEqual(0)
+    expect(bake.carve(plan.mouth.center)).toBeGreaterThan(0)
     expect(bake.recess(vec3(0, BOVINE_HEAD.center.y + 2, 0))).toBeGreaterThan(0)
   })
 
@@ -209,7 +201,7 @@ describe("face wiring", () => {
         expect(names).toContain("eyeRight")
         for (const name of ["eyeLeft", "eyeRight"]) {
           expect(build.parents[name]).toBe("head")
-          expect(build.palettes?.[name]).toHaveLength(3)
+          expect(build.palettes?.[name]).toHaveLength(2)
           expect(build.pivots[name]).toBeDefined()
         }
         const head = build.fields.find((field) => field.name === "head")
@@ -226,17 +218,32 @@ describe("face wiring", () => {
     }
   })
 
-  test("an eye carries sclera, pupil and catchlight voxels", () => {
-    const { build } = generate("draconic", 42, "champion")
-    const eye = build.fields.find((field) => field.name === "eyeLeft")
-    if (!eye) throw new Error("no eyeLeft field")
-    const grid = voxelize([eye], 56)
-    const part = grid.parts[0]
-    if (!part) throw new Error("eye produced no part")
-    const classes = new Set(part.classes ?? [])
-    expect(part.voxels.length).toBeGreaterThan(8)
-    expect(classes.has(EYE_CLASS.sclera)).toBe(true)
-    expect(classes.has(EYE_CLASS.pupil)).toBe(true)
-    expect(classes.has(EYE_CLASS.catchlight)).toBe(true)
+  // A paint-only mouth is invisible if the muzzle it is measured from is not
+  // where the head actually is: a double-grid offset put the bovine snout (and
+  // with it the whole mouth) outside the sampled volume, and nothing failed.
+  // Every stage, because the muzzle shrinks with the skull.
+  test("every built head owns the surface its mouth is painted on", () => {
+    for (const archetype of ["draconic", "bovine", "axolotl"]) {
+      for (const stage of ["baby", "juvenile", "champion"] as const) {
+        const { build, def } = generate(archetype, 42, stage)
+        const grid = voxelize(build.fields, def.grid)
+        const head = grid.parts.find((part) => part.name === "head")
+        const classes = head?.classes
+        if (!head || !classes) {
+          throw new Error(`${archetype} ${stage} has no classified head`)
+        }
+        const rows = new Map<number, number>()
+        head.voxels.forEach((voxel, i) => {
+          if (classes[i] !== SKIN_CLASS.dark) return
+          rows.set(voxel[1], (rows.get(voxel[1]) ?? 0) + 1)
+        })
+        const mouthRow = Math.min(...rows.keys())
+        expect(rows.get(mouthRow)).toBeGreaterThanOrEqual(3)
+      }
+    }
   })
+
+  // An isolated `voxelize([eye])` grid is not evidence of anything: the sampler
+  // spans the whole scene bounds, so a standalone eye gets two or three samples
+  // whatever its size. The built eye is checked above, in the real grid.
 })

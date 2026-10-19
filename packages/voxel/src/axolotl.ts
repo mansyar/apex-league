@@ -361,12 +361,12 @@ export function buildAxolotl(dna: Dna, stage: Stage = "baby"): AxolotlBuild {
     sdSphere(vec3(headC.x, headC.y, headC.z + 1.8 * hw), 1.8 * hw),
   )
   const face = faceParts(
-    facePlan("axolotl", { center: headC, half: skullHalf }, stage),
+    facePlan("axolotl", { center: headC, half: skullHalf }),
     main,
   )
   fields.push({
     name: "head",
-    sdf: smoothSubtract(headField, face.recess, 0.5),
+    sdf: smoothSubtract(headField, face.carve, 0.5),
     classify: face.skinClass,
   })
   fields.push(...face.fields)

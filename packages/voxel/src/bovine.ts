@@ -120,7 +120,19 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
   // combines headSize with bodyLength.
   const headC = at(0, 15.2, 8 * bl + 3.4 + 1.2 * hd)
   const skullHalf = vec3(3.2 * hd, 2.4 * hd, 2.6 * hd)
-  const snoutC = at(0, 14.2, headC.z + 2.4 * hd)
+  // `headC` is already in grid space, so the snout is offset from it directly:
+  // wrapping `at()` around it again would push the muzzle a half-grid forward,
+  // off the sampled volume, leaving the bovine headless of a snout (and its
+  // mouth and nostrils with no surface to paint).
+  //
+  // The muzzle's underside is aligned with the skull's, so the chin does not
+  // hang a row below the jaw — which it did when the snout sat at a fixed y, and
+  // which pushed headHeight/bodyHeight to 0.538 against a 0.5 budget.
+  const snoutC = vec3(
+    headC.x,
+    headC.y - 2.4 * hd + 2.3 * hd,
+    headC.z + 2.4 * hd,
+  )
   const snoutHalf = vec3(2.4 * hd, 2.3 * hd, 2 * hd)
 
   // Horn bases sit just above the head-box top (2.4*hd) so the capsules
@@ -270,20 +282,16 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
     sdBox(snoutC, snoutHalf),
   )
   const face = faceParts(
-    facePlan(
-      "bovine",
-      {
-        center: headC,
-        half: skullHalf,
-        snout: { center: snoutC, half: snoutHalf },
-      },
-      stage,
-    ),
+    facePlan("bovine", {
+      center: headC,
+      half: skullHalf,
+      snout: { center: snoutC, half: snoutHalf },
+    }),
     main,
   )
   fields.push({
     name: "head",
-    sdf: smoothSubtract(headField, face.recess, 0.5),
+    sdf: smoothSubtract(headField, face.carve, 0.5),
     classify: face.skinClass,
   })
   fields.push(...face.fields)
