@@ -60,6 +60,8 @@ export function createStarterChoice(
 
   overlay.append(head, grid)
   root.appendChild(overlay)
+  // First run is keyboard-reachable immediately: the picker is the only task.
+  grid.querySelector<HTMLButtonElement>("button")?.focus()
   return {
     remove() {
       overlay.remove()

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import type { GameState } from "@apex/sim"
-import { prefChipView } from "./settings"
+import { prefChipView, volumePercent } from "./settings"
 
 const settings = (
   reducedMotion: boolean,
@@ -51,5 +51,19 @@ describe("prefChipView", () => {
       soundLabel: "Sound: muted",
       soundPressed: true,
     })
+  })
+})
+
+describe("volumePercent", () => {
+  test("maps a 0..1 bus level to whole percent", () => {
+    expect(volumePercent(1)).toBe(100)
+    expect(volumePercent(0.42)).toBe(42)
+    expect(volumePercent(0)).toBe(0)
+  })
+
+  test("clamps out-of-range and non-finite levels", () => {
+    expect(volumePercent(-1)).toBe(0)
+    expect(volumePercent(2)).toBe(100)
+    expect(volumePercent(Number.NaN)).toBe(0)
   })
 })

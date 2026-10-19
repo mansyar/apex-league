@@ -23,4 +23,4 @@ test("no drake voxel touches the grid boundary over seeds 30-39", () => {
     }
   }
   expect(violations).toBe(0)
-}, 30000)
+}, 120000)

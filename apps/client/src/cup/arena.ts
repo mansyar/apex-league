@@ -167,6 +167,7 @@ export function createArena(shared: CupShared): {
           battleHud.hide()
           overlay.classList.remove("cup-battling")
           shared.showScreen("bracket")
+          shared.close.focus()
           // A loss auto-completes the rival bracket to a champion.
           if (mem.session && mem.session.status === "eliminated") {
             mem.session = completeCup(mem.session)

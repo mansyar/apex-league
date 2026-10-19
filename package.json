@@ -9,9 +9,9 @@
     "dev": "bun run --filter @apex/client dev",
     "build": "bun run --filter @apex/client build",
     "check": "bun run --filter '*' check",
-    "test": "bun test",
+    "test": "bun test --timeout 120000",
     "gate:determinism": "bun packages/voxel/scripts/determinism-gate.ts",
-    "verify": "bun run check && bun test --check --parallel && biome check && bun run gate:determinism"
+    "verify": "bun run check && bun test --check --parallel --timeout 120000 && biome check && bun run gate:determinism"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",

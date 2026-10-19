@@ -8,14 +8,14 @@ writes through the `SaveAdapter` seam.
 ```ts
 // packages/sim/src/save/schema.ts
 interface SaveData {
-  version: number // current: 15 (SAVE_VERSION)
+  version: number // current: 16 (SAVE_VERSION)
   state: GameState
   savedAt: number // Date.now() of the persist
   session: CupSession | null // live cup walk (v7+; null outside a cup)
 }
 ```
 
-## `GameState` at v15
+## `GameState` at v16
 
 | Field | Type | Meaning |
 |---|---|---|
@@ -23,7 +23,7 @@ interface SaveData {
 | `phase` | `"day" \| "cup"` | Cup phase is granted by the ticker on cup days; `finalizeCup` returns the game to the day phase. |
 | `actionPoints` | integer ≥ 0 | AP left today (max from `ACTION_POINTS_PER_DAY` + cup-win bonus). |
 | `creature` | `Creature \| null` | The partner; null until a starter is chosen. Stats carry the v12 HP scale (see the migration table). |
-| `settings` | `{ reducedMotion: boolean, seenHints: string[], arenaCamera: "cinematic" \| "broadcast", muted: boolean }` | In-app motion preference (v5+); dismissed onboarding hint ids (v7+); arena camera style for the battle presentation (v9+, default `"cinematic"`); persisted audio mute (v13+, default `false`). |
+| `settings` | `{ reducedMotion: boolean, seenHints: string[], arenaCamera: "cinematic" \| "broadcast", muted: boolean, musicVolume: number, sfxVolume: number }` | In-app motion preference (v5+); dismissed onboarding hint ids (v7+); arena camera style for the battle presentation (v9+, default `"cinematic"`); persisted audio mute (v13+, default `false`); music and SFX bus levels 0–1 (v16+, default `1.0`). Mute overrides both levels. |
 | `cupsWon` | integer ≥ 0 | Permanent cup-win counter (v5+). |
 | `lastCupDay` | integer ≥ 1 \| null | Day of the last cup win; the ticker grants +1 AP the next day (v5+). |
 | `ladder` | `{ points: integer ≥ 0, tier: "bronze"\|"silver"\|"gold"\|"legend", subTier: "III"\|"II"\|"I" }` | Ladder standing: placement points, current tier, and sub-tier. `tier` arrived at v11; Gold and Legend arrived at v14. Migrated saves keep their points and sub-tier (banked progress is the player's real standing at the promotion gate). |
@@ -51,7 +51,7 @@ interface SaveData {
 | `traits` | `LineageTrait[]` | Up to four canonical lineage ids (`sturdy`, `fierce`, `guarded`, `quick`); derived at graduation, never hand-picked (v15+). Empty on a founder until then. |
 | `parents` | integer[] | Parent generation numbers (v15+): `[]` for a founder, one entry for the single-parent successor path, two sorted entries for a bred egg. |
 
-### Move knowledge is derived — there is no v16
+### Move knowledge is derived — no schema change needed
 
 The save never stores which moves a creature has learned. Knowledge is
 recomputed on load from three fields that were already there:
@@ -66,7 +66,9 @@ what exists.
 strike, duplicates, and lengths outside 2–4. `loadout: null` resolves to
 the first four known moves, which is exactly the four-move kit a pre-track
 save fought with. Widening the pool therefore needs **no schema change**:
-`SAVE_VERSION` stays 15 and no v16 migration exists or is planned.
+`loadout` and its validation are unchanged at v16, and the bump to 16 came
+from the audio mix levels, not from this track. A pre-pool save (v15 or
+earlier, `loadout: null`) migrates onto the wider pool with no extra step.
 
 ### `RetiredRecord` (Hall of Fame)
 
@@ -102,6 +104,7 @@ save fought with. Widening the pool therefore needs **no schema change**:
 | v12 → v13 | Adds `settings.muted: false` (audio foundation): sound stays on until the player silences it. Everything else forwards untouched. |
 | v13 → v14 | Adds `legendTitles: 0` (Gold/Legend ladder): no v13 career can sit on a plateau that did not exist. The ladder is forwarded untouched — Gold and Legend are validated at load, not rewritten. |
 | v14 → v15 | Adds `traits: []` and `parents: []` to the active creature and every Hall record (dynasty breeding). Traits are derived on read for pre-v15 careers; parentage begins with the first v15 succession. The live cup session is forwarded untouched — rivals are not lineage carriers. |
+| v15 → v16 | Adds `settings.musicVolume: 1` and `settings.sfxVolume: 1` (release polish): older saves never chose a mix, so both buses start at full volume and the existing mute toggle keeps its authority. Everything else, including the cup session, is forwarded untouched. |
 The `session` slot holds a `CupSession` exactly as `prepareCup` produced
 it (bracket, rival resolutions, verdicts, cursor position). It is
 presentation bookkeeping: the client persists it on every session mutation
@@ -115,11 +118,23 @@ phase `"day"|"cup"`, integer `actionPoints ≥ 0` — otherwise the save is
 rejected with `"invalid vN save: …"` and `loadGame` returns null (never
 throws at callers).
 
-At v15 the active creature and every Hall record must also carry
+At v16 the settings block must also carry finite `musicVolume` and `sfxVolume`
+numbers in 0–1. The active creature and every Hall record must carry
 well-formed lineage fields: `traits` is an array of at most four unique
 known trait ids, and `parents` is an array of at most two unique
 non-negative generation integers. Unknown/duplicate traits, more than two
-parents, duplicate parents, and non-integer parents all fail the load.
+parents, duplicate parents, non-integer parents, and out-of-range volumes
+all fail the load.
+
+## Export and import
+
+The client can download the current state as a session-free `SaveData`
+(`buildSaveExport`) and import a known or older version from a file
+(`inspectSaveImport`). Import parses, migrates, and validates with the same
+`isValidSaveState` predicate as boot; a malformed file, invalid state, or any
+version newer than `SAVE_VERSION` is refused with a reason and the live save is
+never replaced. Accepted imports drop any live cup session and reload into the
+day phase. The two volume levels travel with the save.
 
 ## Adding a new field (recipe)
 

@@ -24,7 +24,22 @@ export interface Gate {
 }
 
 /** The imperative playback seam: actually make a cue sound (or not). */
-export type CuePlayer = (cue: AnyCueId) => void
+export type CuePlayer = (cue: AnyCueId, gain: number) => void
+
+/** The persisted mix, both buses 0..1 (save v16). */
+export interface VolumeMix {
+  music: number
+  sfx: number
+}
+
+/**
+ * Clamp a bus level into 0..1. Non-finite input (a hand-edited save or a
+ * broken range control) lands at 0 rather than poisoning the gain math.
+ */
+export function clampGain(value: number): number {
+  if (!Number.isFinite(value)) return 0
+  return Math.min(1, Math.max(0, value))
+}
 
 /**
  * Whether a play request should reach the seam. Both conditions must hold:
@@ -44,6 +59,8 @@ export function isAudible(gate: Gate): boolean {
 export class AudioPlayer {
   private unlocked = false
   private muted = false
+  private music = 1
+  private sfx = 1
 
   constructor(private readonly playCue: CuePlayer) {}
 
@@ -58,13 +75,29 @@ export class AudioPlayer {
   }
 
   /**
+   * Apply the persisted mix (save v16). Values are clamped; 0 is silent and
+   * the music level is exposed for the bed player to follow.
+   */
+  setVolumes(volumes: VolumeMix): void {
+    this.music = clampGain(volumes.music)
+    this.sfx = clampGain(volumes.sfx)
+  }
+
+  /** The current music bus level, 0..1 (read by the bed player). */
+  get musicGain(): number {
+    return this.music
+  }
+
+  /**
    * Play a cue if the gate allows it; never throws — a failing seam
-   * degrades to silence, matching the no-audio fallback contract.
+   * degrades to silence, matching the no-audio fallback contract. A zero
+   * SFX level skips the seam entirely.
    */
   play(cue: AnyCueId): void {
     if (!isAudible({ unlocked: this.unlocked, muted: this.muted })) return
+    if (this.sfx <= 0) return
     try {
-      this.playCue(cue)
+      this.playCue(cue, this.sfx)
     } catch {
       // Silent no-op fallback: broken audio must never break the arena.
     }

@@ -236,32 +236,11 @@ export function buildTacticRow(options: {
 }
 
 /**
- * Keep Tab cycling inside a dialog's focusable elements (the hud reset
- * modal, the cup give-up modal). Attach the returned handler as a keydown
- * listener on the dialog root. The scrim hides the page, so focus
- * wandering outside would be invisible.
+ * Focus trapping now lives in `ui/focus.ts` (disabled controls skipped,
+ * more focusable roles); kept re-exported so existing overlays and their
+ * imports keep one entry point.
  */
-export function focusTrap(
-  container: HTMLElement,
-): (event: KeyboardEvent) => void {
-  return (event) => {
-    if (event.key !== "Tab") return
-    const first = container.querySelector<HTMLElement>("button, [href], input")
-    if (!first) return
-    const focusable = container.querySelectorAll<HTMLElement>(
-      "button, [href], input",
-    )
-    const last = focusable[focusable.length - 1]
-    if (!last) return
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault()
-      last.focus()
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault()
-      first.focus()
-    }
-  }
-}
+export { focusTrap } from "./ui/focus"
 
 /**
  * What a speed button should show: the driver's own toggle speeds, plus

@@ -7,7 +7,9 @@
 .cup-overlay {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  /* Above the HUD motion chips (45): the broadcast is a modal surface, and
+     on phones the chips otherwise sit on top of the cup header. */
+  z-index: 50;
   container-type: inline-size;
   display: flex;
   align-items: center;
@@ -1222,6 +1224,10 @@
     grid-template-columns: 1fr;
     column-gap: 0;
     row-gap: 14px;
+    /* The screen is a centred column: an auto width shrink-wraps to the
+       longest match (~181px) and the bracket reads as a thin strip. Stretch
+       it to the phone width, margins included. */
+    align-self: stretch;
     width: auto;
     flex: none;
     margin: 0 14px;

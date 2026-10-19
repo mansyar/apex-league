@@ -226,6 +226,19 @@
   `graduation/nursery.ts` (overlay built from the shared kit, no new palette);
   the seeded preview seed is handed to the sim unchanged, so previewed stats
   are the hatched stats. No per-frame work was added.*
+-   *2026-10-18: Release polish landed (track `release_polish_20261018`) — no
+  new dependencies. Save v16 is additive: `settings.musicVolume`/`sfxVolume`
+  (0–1, default 1.0, strict validation) persist the audio mix; `save/transfer.ts`
+  builds session-free exports and validates imports (malformed / future-version /
+  invalid reasons, newer files refused, live save untouched on failure), and
+  `readRawSave` keeps a corrupt payload downloadable until an explicit reset.
+  The audio gate passes an SFX gain to the cue seam and the music beds follow
+  their own level within the existing mute contract. Accessibility is shared
+  rather than per-overlay: `ui/focus.ts` owns the trap (disabled controls
+  skipped, escaped focus recovered, pure wrap rules tested) and
+  `body.is-reduced` now carries the saved motion preference to CSS surfaces;
+  cup entry/coach/results are focus-managed full screens. No per-frame work was
+  added.*
 
 -   *2026-10-18: Ranch decomposition landed (track
   `ranch_decomposition_20261018`) — the two over-cap scene files became
@@ -245,11 +258,13 @@
   every playable species now knows **six** moves (indices 0-1 from birth,
   index 2 at three trained days or on evolution, indices 3-5 at six trained
   days) while a fighter still fields at most four. `knownMoves`/`knownCount`
-  replace `tierCount`, and `defaultLoadout` slices the first four, so a v15
-  save with `loadout: null` resolves to the same ids it always did. Move
+  replace `tierCount`, and `defaultLoadout` slices the first four, so a
+  pre-pool save with `loadout: null` (v15 or earlier) resolves to the same ids
+  it always did. Move
   knowledge is **derived, never stored**: `requiredTierDays(stage)` over
-  `species.kit` is the only gate table, which is why no save bump was needed
-  (v15 stays; see `docs/save-schema.md`). Rival kits are deterministic, not
+  `species.kit` is the only gate table, which is why this track needed no save
+  bump (v16 belongs to the audio mix, not the pool; see
+  `docs/save-schema.md`). Rival kits are deterministic, not
   authored: `rivalKit` draws four distinct moves from the six using an RNG
   derived from the existing battle/cup seed under a distinct constant, so the
   parent stream is untouched and a fixed seed still fields the same four —
@@ -293,8 +308,8 @@
   Every file is mapped in `public/audio/CREDITS.md`. Implementation shape:
   DOM-free `cues.ts` event→cue mapping + gate-checked `player.ts`
   (pure, bun-tested) over an imperative `playCue.ts`/`musicBeds.ts` seam
-  (manual-verify tier); mute persists in save v13 (`settings.muted`), sound
-  defaults ON with first-gesture unlock; reduced motion swaps calm-mix
+  (manual-verify tier); mute persists in save v13 (`settings.muted`) alongside
+  the v16 music/SFX levels, sound defaults ON with first-gesture unlock; reduced motion swaps calm-mix
   variants for SFX and silences instant dumps. *(ranch_rituals_20261018,
   2026-10-18: the same gate now carries the care cues — a pure event→cue
   table (`audio/careCues.ts`) over the existing player, with

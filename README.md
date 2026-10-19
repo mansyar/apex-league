@@ -23,7 +23,9 @@ climb Silver III to Silver I through three more authored gatekeepers. When a
 champion's career is
 full, graduate them into a successor — the bloodline keeps the family name,
 inherits a stat floor from the champion's peak, and earns prestige perks that
-make the next run start a little stronger.
+make the next run start a little stronger. Saves can be exported and imported,
+the audio mix has separate music and SFX levels, and every surface has a
+keyboard and reduced-motion pass.
 
 ## Core loop
 
@@ -117,6 +119,38 @@ available at `/gallery.html` (creature lineup, `?archetype=draconic|bovine|mixed
 lands. The suite is deliberately fast (seconds, no I/O, seeded randomness)
 and the determinism gate guarantees that committed creature assets can be
 reproduced exactly from source.
+
+## Release checklist
+
+Before tagging a build, walk this list on a clean browser profile:
+
+- [ ] **Fresh boot** — the starter picker appears, the first card has focus,
+      and Enter drafts a partner.
+- [ ] **Save round-trip** — Settings → Download save on a played ranch; import
+      that file into a fresh profile and confirm day, partner, Hall, ladder, AP,
+      volumes, and reduced-motion state match.
+- [ ] **Older saves** — import a v15 (or older) export and confirm it migrates
+      to v16 with music/SFX at 100% and everything else intact.
+- [ ] **Bad saves** — newer-version and malformed files are refused with a calm
+      notice and the live save is unchanged.
+- [ ] **Corrupt boot** — the recovery dialog downloads the exact broken bytes
+      before "Clear and start over" is allowed to wipe them.
+- [ ] **Audio** — music and SFX sliders change live, survive reload, and the
+      mute chip still overrides both.
+- [ ] **Keyboard-only** — starter → care → training → cup entry/coach room →
+      graduation/nursery → Hall → detail → handbook → settings; focus is never
+      lost, and each overlay returns it to its opener.
+- [ ] **Reduced motion** — both the in-app Motion: reduced setting and OS
+      `prefers-reduced-motion` remove shake/flash/travel while the cup and
+      battle stay legible.
+- [ ] **Narrow device** — 393×659 emulation (and a real phone when available)
+      shows no clipped overlays, overlapping chips, or horizontal scroll.
+- [ ] **Gates** — `bun run verify` is green, the console is clean, and
+      `docs/save-schema.md` matches the current `SAVE_VERSION`.
+
+The real-device pass (iOS Safari and Android Chrome: starter, sliders, save
+download, touch targets, safe areas) is still a manual follow-up; record the
+device, OS, and screenshots when it runs.
 
 ## Design principles
 

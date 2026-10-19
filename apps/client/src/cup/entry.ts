@@ -37,6 +37,8 @@ export function createEntry(shared: CupShared): {
     cupButton.disabled = !view.enabled
   }
 
+  let opener: HTMLElement | null = null
+
   const closeFree = (): void => {
     shared.clearTimer()
     shared.driver.stop()
@@ -65,11 +67,19 @@ export function createEntry(shared: CupShared): {
     cta.classList.remove("show")
     giveup.root.style.display = "none"
     syncChip()
+    // Hand focus back to whatever opened the cup (usually the cup chip).
+    if (opener?.isConnected) opener.focus()
+    else if (cupButton.getClientRects().length > 0) cupButton.focus()
+    opener = null
   }
 
   const open = (): void => {
     const state = mem.state
     if (!state?.creature) return
+    opener =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null
     // Standing snapshot for the results screen's ladder row.
     mem.ladderBefore = { ...state.ladder }
     if (!mem.session || mem.session.bracket.day !== state.day) {
@@ -115,6 +125,11 @@ export function createEntry(shared: CupShared): {
     }
     shared.showScreen("bracket")
     overlay.style.display = ""
+    // The bracket owns the screen: move focus to its close control so
+    // keyboard players are not left tabbing through the hidden HUD. On a
+    // phone the bracket is a tall scroll column and the close control sits
+    // at its end, so focusing it must not scroll the reader past the board.
+    shared.close.focus({ preventScroll: true })
     shared.setLine(entryLine(shared.playerName()))
     mem.cursor = 0
     shared.schedule(() => shared.walk(), WALK_SETTLE)

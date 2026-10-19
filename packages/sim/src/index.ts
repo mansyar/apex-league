@@ -196,13 +196,23 @@ export { SAVE_VERSION, type SaveData, serializeSave } from "./save/schema"
 export {
   clearSave,
   createMemoryAdapter,
+  isValidSaveState,
   loadBoot,
   loadGame,
   loadSave,
+  readRawSave,
   SAVE_KEY,
   type SaveAdapter,
   saveGame,
 } from "./save/storage"
+export {
+  buildSaveExport,
+  exportFilename,
+  inspectSaveImport,
+  type SaveExport,
+  type SaveImportReason,
+  type SaveImportResult,
+} from "./save/transfer"
 export {
   EXHAUSTED_ENERGY,
   NIGHT_RECOVERY,
@@ -220,8 +230,10 @@ export {
   markHintSeen,
   type Phase,
   setArenaCamera,
+  setMusicVolume,
   setMuted,
   setReducedMotion,
+  setSfxVolume,
 } from "./state"
 export {
   type StatBreakdown,

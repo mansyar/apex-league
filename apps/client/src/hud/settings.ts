@@ -66,6 +66,15 @@ export function capturePrefChips(
   if (soundLabel) soundLabel.textContent = view.soundLabel
 }
 
+/**
+ * Whole-percent read of a 0..1 bus level for the volume sliders. Clamped,
+ * and non-finite input reads as silence.
+ */
+export function volumePercent(value: number): number {
+  if (!Number.isFinite(value)) return 0
+  return Math.round(Math.min(1, Math.max(0, value)) * 100)
+}
+
 /** The reset-confirm modal elements. */
 export interface ResetModalRefs {
   resetModal: HTMLElement
@@ -78,7 +87,10 @@ export interface ResetModalRefs {
  * keeps Tab inside the dialog — the scrim hides the page, so focus
  * wandering into it would be invisible.
  */
-export function buildResetModal(onReset: () => void): ResetModalRefs {
+export function buildResetModal(
+  onReset: () => void,
+  onClose?: () => void,
+): ResetModalRefs {
   const resetModal = document.createElement("div")
   resetModal.className = "kit-modal"
   resetModal.style.display = "none"
@@ -95,12 +107,15 @@ export function buildResetModal(onReset: () => void): ResetModalRefs {
     "This partner, their training, and every cup win will be gone for good."
   const resetActions = document.createElement("div")
   resetActions.className = "kit-modal-actions"
+  /** Dismissal (not the destructive confirm) hands focus back to Settings. */
+  const closeNow = (): void => {
+    resetModal.style.display = "none"
+    onClose?.()
+  }
   const resetCancel = chip({
     label: "Keep playing",
     variant: "dim",
-    onClick: () => {
-      resetModal.style.display = "none"
-    },
+    onClick: closeNow,
   })
   const resetConfirm = document.createElement("button")
   resetConfirm.className = "kit-button kit-button-danger"
@@ -116,10 +131,10 @@ export function buildResetModal(onReset: () => void): ResetModalRefs {
   const trapFocus = focusTrap(resetBox)
   resetModal.addEventListener("keydown", (event) => {
     trapFocus(event)
-    if (event.key === "Escape") resetModal.style.display = "none"
+    if (event.key === "Escape") closeNow()
   })
   resetModal.addEventListener("click", (event) => {
-    if (event.target === resetModal) resetModal.style.display = "none"
+    if (event.target === resetModal) closeNow()
   })
   return { resetModal, resetConfirm }
 }

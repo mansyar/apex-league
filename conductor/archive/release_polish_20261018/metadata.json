@@ -1,0 +1,30 @@
+{
+  "id": "release_polish_20261018",
+  "title": "Release Polish & Accessibility",
+  "type": "feature",
+  "status": "new",
+  "created": "2026-10-18",
+  "branch": "track/release_polish_20261018",
+  "spec": "./spec.md",
+  "plan": "./plan.md",
+  "surfaces": [
+    "packages/sim/src/save/schema.ts",
+    "packages/sim/src/save/migrate.ts",
+    "packages/sim/src/save/storage.ts",
+    "packages/sim/src/save/transfer.ts",
+    "packages/sim/src/state.ts",
+    "packages/sim/src/audio/",
+    "apps/client/src/audio/",
+    "apps/client/src/settings-modal.ts",
+    "apps/client/src/hud/settings.ts",
+    "apps/client/src/save-transfer.ts",
+    "apps/client/src/recovery.ts",
+    "apps/client/src/ui/focus.ts",
+    "apps/client/src/battleUI.ts",
+    "apps/client/src/main.ts",
+    "apps/client/src/copy.ts",
+    "docs/save-schema.md",
+    "conductor/tech-stack.md",
+    "README.md"
+  ]
+}
