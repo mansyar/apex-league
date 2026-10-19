@@ -8,6 +8,7 @@ import "./base.css"
 import { archetypes, generate, parseStage, VOXEL_SIZE } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
+import { driveFace, findEyes } from "./face-motion"
 
 const app: HTMLDivElement = (() => {
   const el = document.querySelector<HTMLDivElement>("#app")
@@ -39,23 +40,28 @@ const zoom = Number(
   new URLSearchParams(window.location.search).get("zoom") ?? "1",
 )
 const faceOn = angle === "face"
+// `scale=<n>` previews the rig at arena-normalized size, so the face preset
+// has to shrink its framing with it or it would photograph a distant head.
+const shrink = Number.parseFloat(params.get("scale") ?? "1")
+const fit = Number.isFinite(shrink) && shrink > 0 ? shrink : 1
 const headPivot = build.pivots.head ?? [28, 28, 28]
 const headAt = new THREE.Vector3(
-  headPivot[0] * VOXEL_SIZE,
-  headPivot[1] * VOXEL_SIZE,
-  headPivot[2] * VOXEL_SIZE,
+  headPivot[0] * VOXEL_SIZE * fit,
+  headPivot[1] * VOXEL_SIZE * fit,
+  headPivot[2] * VOXEL_SIZE * fit,
 )
 // Everything orbits the framing target, which is also what the URL presets aim
 // at: the head for a face shot, the creature's middle otherwise.
-const target = new THREE.Vector3(0, 0.75 + (1 - zoom) * 1.2, 0)
+const target = new THREE.Vector3(0, (0.75 + (1 - zoom) * 1.2) * fit, 0)
 if (faceOn) {
   // Close three-quarter on the head, framed from the declared head pivot so
   // every archetype sits in shot without a per-species camera table.
   target.copy(headAt)
+  const framing = zoom * fit
   camera.position.set(
-    headAt.x + 0.85 * zoom,
-    headAt.y + 0.3 * zoom,
-    headAt.z + 1.7 * zoom,
+    headAt.x + 0.85 * framing,
+    headAt.y + 0.3 * framing,
+    headAt.z + 1.7 * framing,
   )
 } else if (angle === "side") {
   camera.position.set(7 * zoom, 2.2 * zoom + (1 - zoom) * 1.5, 0.5)
@@ -129,6 +135,17 @@ const ground = new THREE.Mesh(
 ground.position.y = -0.1
 scene.add(ground)
 scene.add(creature)
+
+// Review affordances (dev-only, both default to off): `blink=<seconds>`
+// freezes the face idle at that instant so a lid can be photographed, and
+// `scale=<n>` shrinks the rig to arena-normalized size for a distance check.
+const blinkParam = params.get("blink")
+if (blinkParam !== null) {
+  driveFace(findEyes(creature), seed, Number.parseFloat(blinkParam), {
+    suppressed: true,
+  })
+}
+if (fit !== 1) creature.scale.multiplyScalar(fit)
 
 // DNA readout for context during iteration
 const info = document.createElement("div")

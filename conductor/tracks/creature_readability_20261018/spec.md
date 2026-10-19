@@ -168,6 +168,17 @@ orientation and framing.
 - The decision logic is a pure, unit-testable function; the three.js
   application stays thin.
 
+**As shipped** (`apps/client/src/face-motion.ts`): timing is slot-based, not a
+list — blink *k* starts at `k · 4 s + hash(seed, k) · 1.6 s`, so consecutive
+starts are arithmetically confined to 2.4–5.6 s and the query stays O(1) however
+long the tab has been open. The blink is 155 ms (50 ms close, 15 ms held, 90 ms
+open) and the lid is a `scale.y` collapse about the eye's top-centre pivot,
+floored at 0.08 so a shut eye stays a line. The glance repeats on 6.5 s ± 2.4 s
+(4.1–8.9 s), turning 90 ms, holding 450 ms, returning 120 ms, with amplitude
+0.55–1.0 of the ±2° cap. One `driveFace(eyes, seed, seconds, { suppressed })`
+call writes both eyes, so the ranch and the arena cannot drift apart; the arena
+passes hit-stop as `suppressed`, the ranch passes reduced motion.
+
 ### FR8 — Verification surface
 
 - `preview.html` renders the new surface by default, with `?surface=0` falling

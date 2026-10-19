@@ -6,6 +6,7 @@ import {
 import { generate, type Stage } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
+import { driveFace, type FaceEyes, findEyes } from "./face-motion"
 import {
   createEvolutionCeremony,
   createWalk,
@@ -165,7 +166,10 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
     head?: THREE.Object3D
     tail?: THREE.Object3D
     tailTip?: THREE.Object3D
-  } = {}
+    eyes: FaceEyes
+  } = { eyes: {} }
+  /** Face idle seed — the creature's seed, so a blink survives a rebuild. */
+  let faceSeed = 0
   let currentStage: Stage = "baby"
   let headBaseY = 0
   // headBaseY stays in the head's LOCAL units — the update writes it back
@@ -275,7 +279,9 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
       head: rig.getObjectByName("head") ?? undefined,
       tail: rig.getObjectByName("tail") ?? undefined,
       tailTip: rig.getObjectByName("tailTip") ?? undefined,
+      eyes: findEyes(rig),
     }
+    faceSeed = seed
     // One wanderer per scene lifetime (FR3): rebuilding the creature (day
     // advance, training) pauses the machine — the 20–40 s rhythm survives
     // visual rebuilds instead of restarting. A feed ceremony still aborts
@@ -328,6 +334,9 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
       if (tailTip) {
         tailTip.rotation.y = sway * 0.12
       }
+      // Face idle: the lid and the eye-only glance. Reduced motion keeps
+      // the blink (a lid, not travel) and parks the glance.
+      driveFace(rigParts.eyes, faceSeed, t, { suppressed: reducedMotion })
       // Evolution ceremony (spec R5): while active it owns the creature's
       // pose, scale, and glow outright — the feed walk and the wanderer
       // stay parked (startEvolution preempted them). The swap rebuilds the

@@ -282,27 +282,89 @@ Goal: every creature has a readable face at broadcast distance, in every stage.
 
 Goal: the face is alive, deterministically, without touching sim state.
 
-- [ ] Task: Pure blink scheduler
-  - [ ] Write failing tests: deterministic for a seed; interval inside the
-        2.4–5.6 s band; fast close / slow open shape; both eyes in phase
-  - [ ] Implement `blinkAt(seed, tSeconds)` returning an eyelid scale
-- [ ] Task: Pure glance scheduler
-  - [ ] Write failing tests: glance interval inside 4–9 s; yaw within ±2°;
+- [x] Task: Pure blink scheduler
+  - [x] Write failing tests: deterministic for a seed; interval inside the
+        2.4-5.6 s band; fast close / slow open shape; both eyes in phase
+  - [x] Implement `blinkAt(seed, tSeconds)` returning an eyelid scale
+- [x] Task: Pure glance scheduler
+  - [x] Write failing tests: glance interval inside 4-9 s; yaw within ±2°;
         glance suppressed while a suppression flag is raised; disabled under
         reduced motion
-  - [ ] Implement it as a sibling pure function
-- [ ] Task: Apply to the ranch and the arena
-  - [ ] Drive `eyeLeft`/`eyeRight` `scale.y` around the top pivot in ranch
+  - [x] Implement it as a sibling pure function
+- [x] Task: Apply to the ranch and the arena
+  - [x] Drive `eyeLeft`/`eyeRight` `scale.y` around the top pivot in ranch
         motion
-  - [ ] Wire the same driver in the arena fighter driver, suppressing glance
+  - [x] Wire the same driver in the arena fighter driver, suppressing glance
         while hit-stop is active
-  - [ ] Confirm no per-frame allocation in the render loop
-- [ ] Task: Manual motion verification
-  - [ ] Frame captures showing a closed lid that reads as a blink, not a shrink,
+  - [x] Confirm no per-frame allocation in the render loop
+- [x] Task: Manual motion verification
+  - [x] Frame captures showing a closed lid that reads as a blink, not a shrink,
         at ranch and arena scale
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [ ] Await explicit user approval, attach the verification note, record the
         checkpoint SHA
+
+### Phase 5 findings
+
+- **The schedule is slot-based, not list-based.** `blinkAt(seed, tSeconds)`
+  derives blink `k` from `k * BLINK_CYCLE + hash(seed, k) * BLINK_JITTER`
+  (4 s, 1.6 s). Consecutive starts therefore *arithmetically* cannot fall
+  outside `4 ± 1.6` s — the 2.4-5.6 s band is a property of the design, not a
+  tuning constant the tests have to police. It also keeps the call O(1): a
+  tab left open for an hour costs the same two hash evaluations as the first
+  frame, with no cumulative sum to walk. The glance uses the same shape on
+  its own seed salt (6.5 s, 2.4 s ⇒ 4.1-8.9 s).
+- **Lid = scale, not rotation.** The eye part is pivoted at its top-centre, so
+  `scale.y` collapses the bead *up into its socket* — a lid coming down, with
+  no geometry to author. The floor is `LID_CLOSED = 0.08`, not 0, so a shut
+  eye stays a visible line instead of vanishing and popping back.
+- **Fast close, slow open** (50 ms, 15 ms held, 90 ms) is the asymmetry that
+  reads as alive; a symmetric blink reads like a bubble collapsing. Tested by
+  timing the two legs off the same curve, not by asserting the constants.
+- **Reduced motion keeps the blink and parks the glance.** A lid is not
+  travel, so the aliveness cue survives; a wandering eye is exactly the kind
+  of ornament reduced motion asks to drop. Both call sites pass the same
+  `suppressed` flag, so the two scenes can never diverge on the rule.
+- **Hit-stop freezes the glance, not the lid.** In the arena the suppression
+  hook is `effects.hitStop.active()`; a frozen world with a still-blinking
+  creature reads better than one where the eyes also stop.
+- **The arena test drives the real cast.** `face-arena.test.ts` builds two
+  fighters through `buildSpot` and steps the real driver, so it proves the
+  wiring (eyes cached at cast, seed carried from `info.seed`) rather than
+  just the math — including that a *downed* fighter keeps blinking.
+- **At gameplay distance the blink is 1-2 px.** The arena normalizes to a 1.7
+  footprint, so the lid is unreadable from the broadcast camera; the check at
+  that scale is that nothing pops or shimmers in the silhouette. Legibility
+  is verified at review scale (`face13-blink-*`), distance safety at
+  `face13-arena-*`. Stated plainly instead of claiming a readable blink at a
+  distance where there is not one.
+- **Review affordances added to the dev preview, not the app.** `?blink=<s>`
+  freezes the face idle at an instant and `?scale=<n>` previews arena size;
+  the face preset shrinks its framing with `scale` so the head stays in shot.
+  No production code path reads either param.
+
+### Phase 5 verification
+
+- `bun run check` — clean: voxel 62 files, sim 68 files, client 185 files.
+- `bunx biome check` — 0 errors; the same 4 pre-existing warnings in
+  `apps/client/src/cup/view-models.test.ts`.
+- Full suite — 1521 pass, 1 skip, 0 fail, 119 files, 81,937 assertions,
+  21.15 s (`bun test --parallel=4 --timeout=600000`).
+- `bun run gate:determinism` — 9 creatures + 5 props regenerated
+  byte-identical. Nothing in this phase touches generation, so no artifact was
+  regenerated and no baseline hash moved; Phase 6 still owns the artifact pass.
+- Per-frame cost: `driveFace` writes four numbers (two eyes x scale.y/yaw) and
+  allocates nothing; `findEyes` runs once per rig build / cast. The arena's
+  `io.pair()` allocation is pre-existing and unchanged.
+- Review stills, `conductor/tracks/creature_readability_20261018/artifacts/`:
+  `face13-blink-open.png` / `face13-blink-closed.png` (review scale, seed 42
+  draconic champion, the lid shut at 1.32 s) and `face13-arena-open.png` /
+  `face13-arena-closed.png` (arena-normalized 0.55 rig at gameplay framing).
+- Manual motion check in the browser (ranch + arena): blink cadence reads
+  irregular but never hurried, the glance is a barely-there flick; a downed
+  fighter keeps blinking; reduced motion stops the glance and keeps the lid.
+
+Awaiting explicit user approval for the Phase 5 checkpoint.
 
 ## Phase 6: Artifacts, budget and documentation
 
