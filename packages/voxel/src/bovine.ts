@@ -1,5 +1,6 @@
 import { makeRng } from "./rng"
 import { matureProportions, type Stage } from "./stage"
+import { creaturePalette, type SurfaceBounds, surfaceClass } from "./surface"
 
 // Re-export the archetype-agnostic sampler under the archetype name so
 // callers (tests, gallery) can stay archetype-typed.
@@ -7,12 +8,14 @@ export { sampleDna as sampleBovineDna } from "./sample"
 
 import type { CreatureBuild } from "./build"
 import { hslToRgb } from "./color"
+import { faceParts, facePlan, skinPalette } from "./face"
 import type { Dna, Template } from "./schema"
 import {
   type Sdf,
   sdBox,
   sdCapsule,
   sdSphere,
+  smoothSubtract,
   smoothUnion,
   union,
   type Vec3,
@@ -117,7 +120,19 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
   // combines headSize with bodyLength.
   const headC = at(0, 15.2, 8 * bl + 3.4 + 1.2 * hd)
   const skullHalf = vec3(3.2 * hd, 2.4 * hd, 2.6 * hd)
-  const snoutC = at(0, 14.2, headC.z + 2.4 * hd)
+  // `headC` is already in grid space, so the snout is offset from it directly:
+  // wrapping `at()` around it again would push the muzzle a half-grid forward,
+  // off the sampled volume, leaving the bovine headless of a snout (and its
+  // mouth and nostrils with no surface to paint).
+  //
+  // The muzzle's underside is aligned with the skull's, so the chin does not
+  // hang a row below the jaw — which it did when the snout sat at a fixed y, and
+  // which pushed headHeight/bodyHeight to 0.538 against a 0.5 budget.
+  const snoutC = vec3(
+    headC.x,
+    headC.y - 2.4 * hd + 2.3 * hd,
+    headC.z + 2.4 * hd,
+  )
   const snoutHalf = vec3(2.4 * hd, 2.3 * hd, 2 * hd)
 
   // Horn bases sit just above the head-box top (2.4*hd) so the capsules
@@ -145,13 +160,25 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
   // -- Part fields (paint order: later parts claim overlapping voxels) -----
   const fields: PartField[] = []
 
+  // Surface zones follow the real body extent: the brisket hangs lowest and
+  // the hump is the highest point, so those two set the band edges.
+  const surfaceBounds: SurfaceBounds = {
+    torsoBottom: brisket.y - 3.4 * bg,
+    torsoTop: hump.y + 4.6 * hs,
+    sockTop: footY + 0.6,
+  }
+  const classifyTorso = (q: Vec3): number =>
+    surfaceClass("torso", q, dna.seed, surfaceBounds)
+  const classifyLeg = (q: Vec3): number =>
+    surfaceClass("leg", q, dna.seed, surfaceBounds)
+
   // Barrel + shoulder hump + brisket blend into one mass — smooth, no seam.
   const bodyField: Sdf = smoothUnion(
     union(sdBox(barrel, barrelHalf), sdSphere(brisket, 3.4 * bg)),
     sdSphere(hump, 4.6 * hs),
     3,
   )
-  fields.push({ name: "body", sdf: bodyField })
+  fields.push({ name: "body", sdf: bodyField, classify: classifyTorso })
 
   // Tail: a thin drooping line down the rump — the opposite of the drake's
   // heavy taper. Styles decorate the tip only.
@@ -206,7 +233,7 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
       sdSphere(hip, 2.7 * bg),
       sdCapsule(hip, foot, 2.3 * bg),
     )
-    fields.push({ name: leg.name, sdf: legField })
+    fields.push({ name: leg.name, sdf: legField, classify: classifyLeg })
   }
 
   // Horns paint BEFORE head/neck: horn voxels inside the skull are claimed
@@ -222,13 +249,52 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
     sdf: sdCapsule(hornBaseR, hornTip(1), 1.1),
   })
 
+  // -- Colors (deterministic per seed; fixed type hue, value jitter only) --
+  // Resolved before the geometry: the face needs the coat colour and the
+  // head's palette is built from it.
+  const rng = makeRng(dna.seed)
+  const gilded = dna.rarity.includes("gilded")
+  const jit = bovineTemplate.palette.valueJitter
+  const hue = gilded ? 45 : bovineTemplate.palette.hue
+  const light = gilded ? 0.55 : lerp(jit.min, jit.max, rng.next())
+  const sat = gilded ? 0.85 : 0.55
+  // Juveniles read a touch brighter and more saturated — same hue family,
+  // same seed jitter, just a maturing coat (see stage.ts).
+  const lift = stage === "baby" ? 0 : stage === "juvenile" ? 0.05 : 0.1
+  const main = hslToRgb(hue, Math.min(1, sat + lift), Math.min(1, light + lift))
+  const ramp = creaturePalette({
+    hue,
+    sat: Math.min(1, sat + lift),
+    light: Math.min(1, light + lift),
+  })
+  const dark: [number, number, number] = [
+    main[0] * 0.7,
+    main[1] * 0.7,
+    main[2] * 0.7,
+  ]
+  const bone: [number, number, number] = [0.93, 0.89, 0.78]
+  const brass: [number, number, number] = [0.85, 0.7, 0.3]
+
   // Head paints BEFORE neck: the head claims its own voxels so a fat neck
   // can never swallow it; the neck paints the ring around the head base.
   const headField: Sdf = union(
     sdBox(headC, skullHalf),
     sdBox(snoutC, snoutHalf),
   )
-  fields.push({ name: "head", sdf: headField })
+  const face = faceParts(
+    facePlan("bovine", {
+      center: headC,
+      half: skullHalf,
+      snout: { center: snoutC, half: snoutHalf },
+    }),
+    main,
+  )
+  fields.push({
+    name: "head",
+    sdf: smoothSubtract(headField, face.carve, 0.5),
+    classify: face.skinClass,
+  })
+  fields.push(...face.fields)
 
   // Juvenile signature: the brow ridge swells into small horn bases — the
   // buds sit on the brow line, forward of the adult horns. The adult horn
@@ -340,25 +406,6 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
     ]
   }
 
-  // -- Colors (deterministic per seed; fixed type hue, value jitter only) --
-  const rng = makeRng(dna.seed)
-  const gilded = dna.rarity.includes("gilded")
-  const jit = bovineTemplate.palette.valueJitter
-  const hue = gilded ? 45 : bovineTemplate.palette.hue
-  const light = gilded ? 0.55 : lerp(jit.min, jit.max, rng.next())
-  const sat = gilded ? 0.85 : 0.55
-  // Juveniles read a touch brighter and more saturated — same hue family,
-  // same seed jitter, just a maturing coat (see stage.ts).
-  const lift = stage === "baby" ? 0 : stage === "juvenile" ? 0.05 : 0.1
-  const main = hslToRgb(hue, Math.min(1, sat + lift), Math.min(1, light + lift))
-  const dark: [number, number, number] = [
-    main[0] * 0.7,
-    main[1] * 0.7,
-    main[2] * 0.7,
-  ]
-  const bone: [number, number, number] = [0.93, 0.89, 0.78]
-  const brass: [number, number, number] = [0.85, 0.7, 0.3]
-
   const colors: Record<string, [number, number, number]> = {
     body: main,
     tail: main,
@@ -389,8 +436,17 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
 
   return {
     fields,
-    pivots,
-    colors,
+    pivots: { ...pivots, ...face.pivots },
+    colors: { ...colors, ...face.colors },
+    palettes: {
+      body: ramp,
+      legFL: ramp,
+      legFR: ramp,
+      legBL: ramp,
+      legBR: ramp,
+      head: skinPalette(main),
+      ...face.palettes,
+    },
     parents: {
       tail: "body",
       neck: "body",
@@ -406,6 +462,7 @@ export function buildBovine(dna: Dna, stage: Stage = "baby"): BovineBuild {
       ...(stage === "champion"
         ? { hornCurlLeft: "head", hornCurlRight: "head" }
         : {}),
+      ...face.parents,
     },
   }
 }

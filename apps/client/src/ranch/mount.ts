@@ -1,6 +1,7 @@
 import { generate, type Stage } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "../creature"
+import { findEyes } from "../face-motion"
 import { createWander, stageScale } from "../scene-logic"
 import type { RanchState } from "./state"
 
@@ -42,13 +43,16 @@ export function rebuild(
   })
   s.deps.scene.add(rig)
   // Cache the rig part refs once per build — the idle loop would
-  // otherwise run five O(n) scene-graph searches every frame.
+  // otherwise run five O(n) scene-graph searches every frame. The eyes
+  // are found here too, so the face idle never searches per frame.
   s.rigParts = {
     body: rig.getObjectByName("body") ?? undefined,
     head: rig.getObjectByName("head") ?? undefined,
     tail: rig.getObjectByName("tail") ?? undefined,
     tailTip: rig.getObjectByName("tailTip") ?? undefined,
+    eyes: findEyes(rig),
   }
+  s.faceSeed = seed
   // One wanderer per scene lifetime (FR3): rebuilding the creature (day
   // advance, training) pauses the machine — the 20–40 s rhythm survives
   // visual rebuilds instead of restarting. A feed ceremony still aborts

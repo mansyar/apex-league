@@ -1,10 +1,10 @@
 {
 	"archetype": "draconic",
 	"seed": 42,
-	"generatorVersion": 1,
+	"generatorVersion": 2,
 	"dnaHash": "36d217ae269b70503075c4668709e7c94b43ddc00d2d0d05cb0d14a169ca551f",
-	"glbHash": "d02ed9d38f1f206287843d7431ee3e73347ffdba9e138823977b4021bdc8ec80",
-	"triCount": 2116,
+	"glbHash": "230f364613da5d8cc59ef2b8dde96f480642bb53cfce0b316fcf871aff1f6464",
+	"triCount": 3756,
 	"pivots": {
 		"body": [
 			28,
@@ -80,6 +80,26 @@
 			29.895132756209932,
 			30.253173827542923,
 			39.92761554655153
+		],
+		"eyeLeft": [
+			25.5,
+			28.8,
+			42
+		],
+		"eyeRight": [
+			30.5,
+			28.8,
+			42
+		],
+		"browLeft": [
+			25.05,
+			30,
+			42
+		],
+		"browRight": [
+			30.95,
+			30,
+			42
 		]
 	}
 }

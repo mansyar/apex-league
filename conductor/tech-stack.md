@@ -298,6 +298,20 @@
   browser-capable for runtime seed variants (e.g. live breeding previews).*
   Generator scripts and DNA specs are checked into the repo; generated
   GLBs are committed, not generated at runtime.
+  *2026-10-19 extension (`creature_readability_20261018`): the surface pass is
+  still pure TS and still part of the same deterministic pipeline — no new
+  dependency, no runtime work. Ambient occlusion is baked per-vertex at mesh
+  time (four quantised levels, 0.72 floor, quad triangulation flipped to the
+  darker diagonal) and folded into the glTF `COLOR_0` attribute together with
+  the per-voxel surface classes (zones + seeded dappling) and the face kit's
+  painted features, so the client keeps one unlit-ish Lambert material per
+  part and adds no shadow pass; eyes are separate named parts under `head`
+  with their own pivots, which is what makes the idle lid a `scale.y` write
+  rather than a skinning or morph-target feature. `GENERATOR_VERSION` is 2
+  and the committed artifacts/manifests are regenerated from it; the GLB
+  budget test is a 320 KiB tripwire (largest shipped artifact 244 KiB), and
+  the determinism gate still hashes all nine creature artifacts and the prop
+  digest manifest.*
 - **Icons**: 2D UI portraits rendered offline from the same GLBs
   (headless three.js render step).
 - **Audio** *(audio_foundation_20261017, 2026-10-17)*: CC0 assets bundled

@@ -6,6 +6,7 @@ import {
   stepSquash,
 } from "./anim"
 import { type BodyProfile, idleSway } from "./choreo"
+import { driveFace, type FaceEyes } from "./face-motion"
 
 /**
  * The living-fight driver: one loop owns every fighter's pose every
@@ -163,6 +164,10 @@ export interface DriveFighter {
   phase: number
   /** The holder's base scale (identity) — the squash composes with it. */
   baseScale: number
+  /** Eye parts, cached at cast time (face idle looks nothing up per frame). */
+  eyes?: FaceEyes
+  /** Blink/glance schedule seed — the creature's own seed, not the clock. */
+  faceSeed?: number
   profile: BodyProfile
   down: boolean
   /** Local "away" direction (X axis, ±1): where knockbacks go. */
@@ -191,6 +196,8 @@ export function createFighterDriver(io: {
   pair: () => Array<[DriveFighter, DriveFighter]>
   /** Live visual-intensity preference: 'reduced' zeroes gait/sway. */
   pref: () => "full" | "reduced"
+  /** Extra glance suppression (hit-stop): the eye freezes, the lid still blinks. */
+  glanceSuppressed?: () => boolean
 }): FighterDriver {
   let last = 0
   // Scratch vector hoisted out of the always-running driver loop.
@@ -202,7 +209,16 @@ export function createFighterDriver(io: {
     const dt = Math.min(1 / 30, (now - last) / 1000 || 1 / 60)
     last = now
     const life = io.pref() === "reduced" ? 0 : 1
+    // Face idle runs for every fighter on every frame — including a downed
+    // one, whose eyes are still attached to its head. Reduced motion keeps
+    // the blink (a lid, not travel) and parks the glance; hit-stop freezes
+    // the glance too, so the eye does not wander while the world is held.
+    const seconds = now / 1000
+    const glanceSuppressed = life === 0 || (io.glanceSuppressed?.() ?? false)
     for (const [c, other] of io.pair()) {
+      if (c.eyes) {
+        driveFace(c.eyes, c.faceSeed ?? 0, seconds, glanceSuppressed)
+      }
       // Squash spring integrates for everyone — the KO landing impulse
       // needs it even while the down branch owns the pose.
       c.squash = stepSquash(c.squash, dt, SQUASH_K, SQUASH_D)

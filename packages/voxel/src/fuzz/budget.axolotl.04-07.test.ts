@@ -8,8 +8,13 @@ import { voxelize } from "../voxelizer"
 // range, split so `bun test --parallel` can spread pipelines across cores.
 
 const VOXEL_SIZE = 0.045
-/** Spec NFR: committed creature GLBs stay within this budget (150 KiB). */
-const GLB_BUDGET_BYTES = 150 * 1024
+/**
+ * Spec NFR: committed creature GLBs stay within this budget (320 KiB).
+ * Raised from 150 KiB when per-vertex colour and ambient occlusion landed. The
+ * budget is a tripwire on generator output, not a shipping constraint: the
+ * client generates creatures at runtime and never fetches these files.
+ */
+const GLB_BUDGET_BYTES = 320 * 1024
 
 /** Full generation pipeline through the registry, exactly as exporters run it. */
 function pipeline(seed: number) {
@@ -21,6 +26,7 @@ function pipeline(seed: number) {
     dnaJson: JSON.stringify(dna),
     voxelSize: VOXEL_SIZE,
     colors: build.colors,
+    palettes: build.palettes,
     pivots: build.pivots,
     parts: meshes,
   })

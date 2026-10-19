@@ -1,6 +1,7 @@
 import type { CreatureConditions } from "@apex/sim"
 import type { Stage } from "@apex/voxel"
 import type * as THREE from "three"
+import type { FaceEyes } from "../face-motion"
 import {
   createEvolutionCeremony,
   createPetMachine,
@@ -27,6 +28,7 @@ export interface RigParts {
   head?: THREE.Object3D
   tail?: THREE.Object3D
   tailTip?: THREE.Object3D
+  eyes: FaceEyes
 }
 
 /**
@@ -40,6 +42,8 @@ export interface RanchState {
   reducedMotion: boolean
   creatureGroup: THREE.Group | null
   rigParts: RigParts
+  /** Face idle seed — the creature's seed, so a blink survives a rebuild. */
+  faceSeed: number
   currentStage: Stage
   /** Stays in the head's LOCAL units — the pose writers write it back in
    * the same space (the rig runs in grid units). */
@@ -90,7 +94,8 @@ export function createRanchState(deps: RanchMotionDeps): RanchState {
     deps,
     reducedMotion: false,
     creatureGroup: null,
-    rigParts: {},
+    rigParts: { eyes: {} },
+    faceSeed: 0,
     currentStage: "baby",
     headBaseY: 0,
     mode: "normal",

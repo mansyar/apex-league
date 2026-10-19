@@ -2,7 +2,10 @@ import { describe, expect, test } from "bun:test"
 import {
   sdBox,
   sdCapsule,
+  sdEllipsoid,
+  sdRoundCone,
   sdSphere,
+  smoothSubtract,
   smoothUnion,
   translate,
   union,
@@ -81,6 +84,79 @@ describe("smoothUnion", () => {
     const blended = smoothUnion(a, b, 0.8)
     expect(blended(vec3(-3, 0, 0))).toBeCloseTo(a(vec3(-3, 0, 0)))
     expect(blended(vec3(3, 0, 0))).toBeCloseTo(b(vec3(3, 0, 0)))
+  })
+})
+
+describe("sdRoundCone", () => {
+  test("equal radii collapse to a capsule", () => {
+    const cone = sdRoundCone(vec3(0, 0, 0), vec3(2, 0, 0), 0.5, 0.5)
+    const capsule = sdCapsule(vec3(0, 0, 0), vec3(2, 0, 0), 0.5)
+    for (const p of [
+      vec3(1, 0, 0),
+      vec3(1, 0.5, 0),
+      vec3(3, 0, 0),
+      vec3(-1, 0, 0),
+      vec3(1, 0.2, 0.3),
+    ]) {
+      expect(cone(p)).toBeCloseTo(capsule(p), 6)
+    }
+  })
+
+  test("tapers so the same offset is closer to the thin end", () => {
+    const cone = sdRoundCone(vec3(0, 0, 0), vec3(4, 0, 0), 1, 0.2)
+    // Both points sit one unit off the axis: the thick end reaches out to it,
+    // the thin end does not.
+    expect(cone(vec3(0.5, 1, 0))).toBeLessThan(cone(vec3(3.5, 1, 0)))
+    expect(cone(vec3(0, 0, 0))).toBe(-1)
+    expect(cone(vec3(4, 0, 0))).toBeCloseTo(-0.2)
+    expect(cone(vec3(2, 0, 0))).toBeLessThan(0)
+  })
+})
+
+describe("sdEllipsoid", () => {
+  test("is negative inside, zero at each radial extreme, positive outside", () => {
+    const sdf = sdEllipsoid(vec3(0, 0, 0), vec3(2, 1, 0.5))
+    expect(sdf(vec3(0, 0, 0))).toBeCloseTo(-0.5)
+    expect(sdf(vec3(2, 0, 0))).toBeCloseTo(0)
+    expect(sdf(vec3(0, 1, 0))).toBeCloseTo(0)
+    expect(sdf(vec3(0, 0, 0.5))).toBeCloseTo(0)
+    expect(sdf(vec3(3, 0, 0))).toBeGreaterThan(0)
+  })
+
+  test("equal radii match a sphere", () => {
+    const ellipsoid = sdEllipsoid(vec3(1, 2, 3), vec3(1.5, 1.5, 1.5))
+    const sphere = sdSphere(vec3(1, 2, 3), 1.5)
+    for (const p of [
+      vec3(1, 2, 3),
+      vec3(2.5, 2, 3),
+      vec3(3, 2, 3),
+      vec3(0, 0, 0),
+    ]) {
+      expect(ellipsoid(p)).toBeCloseTo(sphere(p), 4)
+    }
+  })
+})
+
+describe("smoothSubtract", () => {
+  const base = sdSphere(vec3(0, 0, 0), 3)
+  const cutter = sdSphere(vec3(3, 0, 0), 1)
+
+  test("carves the cutter's volume out of the base", () => {
+    const carved = smoothSubtract(base, cutter, 0.2)
+    // Inside both volumes: now outside the carved solid.
+    expect(carved(vec3(2.9, 0, 0))).toBeGreaterThan(0)
+    expect(carved(vec3(3, 0, 0))).toBeGreaterThan(0)
+    // Deep inside the base, away from the cutter: still solid.
+    expect(carved(vec3(-2, 0, 0))).toBeLessThan(0)
+  })
+
+  test("never bulges past the base's own surface", () => {
+    const carved = smoothSubtract(base, cutter, 0.5)
+    const far = vec3(-3.1, 0, 0)
+    expect(base(far)).toBeGreaterThan(0)
+    expect(carved(far)).toBeGreaterThan(0)
+    // A point on the base surface away from the cut stays on the surface.
+    expect(carved(vec3(-3, 0, 0))).toBeCloseTo(0, 1)
   })
 })
 

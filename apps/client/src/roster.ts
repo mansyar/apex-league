@@ -3,6 +3,7 @@ import { generate } from "@apex/voxel"
 import * as THREE from "three"
 import { profileFor } from "./choreo"
 import { buildCreatureGroup } from "./creature"
+import { findEyes } from "./face-motion"
 import type { DriveFighter } from "./fighter-driver"
 import { disposeObject3D, lambertMaterialOf } from "./scene-utils"
 
@@ -93,6 +94,8 @@ export function buildSpot(
     fall: 0,
     phase: Math.random() * Math.PI * 2,
     baseScale: group.scale.x,
+    eyes: findEyes(group),
+    faceSeed: info.seed,
   }
   group.position.copy(combatant.stage)
   // The rig fronts its local +Z, so the left fighter turns +90° to look

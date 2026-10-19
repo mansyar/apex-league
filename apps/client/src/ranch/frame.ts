@@ -1,3 +1,4 @@
+import { driveFace } from "../face-motion"
 import { gaitPose, stageScale, swayAngle } from "../scene-logic"
 import { updateBall, updateSparkle } from "./effects"
 import { updateIdle } from "./idle"
@@ -119,6 +120,10 @@ export function updateRanch(
       applyGait(creatureGroup, gaitPose(t, evoGait ? 1 : 0, s.reducedMotion))
       creatureGroup.position.y = 0
     }
+    // Face idle: the lid and the eye-only glance. Reduced motion keeps
+    // the blink (a lid, not travel) and parks the glance. Eyes are cached
+    // at rebuild time, so this is four number writes per frame.
+    driveFace(s.rigParts.eyes, s.faceSeed, t, s.reducedMotion)
     // Soft camera track: report where the creature ended up this frame.
     s.deps.onCreatureMoved(
       away,

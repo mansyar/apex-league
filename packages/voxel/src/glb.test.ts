@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test"
-import { exportGlb, type GlbManifest, type GlbOutput } from "./glb"
+import {
+  exportGlb,
+  GENERATOR_VERSION,
+  type GlbManifest,
+  type GlbOutput,
+} from "./glb"
 import { type MeshePart, meshGrid } from "./mesher"
 import { sdSphere, vec3 } from "./sdf"
 import { type PartField, voxelize } from "./voxelizer"
@@ -93,7 +98,9 @@ describe("glb exporter", () => {
     const materials = json.materials as Array<Record<string, unknown>>
     expect(materials.length).toBe(2)
     const pbr = materials[0]?.pbrMetallicRoughness as Record<string, unknown>
-    expect(pbr.baseColorFactor).toEqual([0.9, 0.7, 0.3, 1])
+    // Colour now travels per-vertex; the material base stays white so the
+    // shader product is exactly COLOR_0.
+    expect(pbr.baseColorFactor).toEqual([1, 1, 1, 1])
     expect(pbr.metallicFactor).toBe(0)
     for (const mesh of meshes) {
       const prim = (mesh.primitives as Array<Record<string, unknown>>)[0]
@@ -101,12 +108,42 @@ describe("glb exporter", () => {
       const attrs = prim.attributes as Record<string, number>
       expect(attrs.POSITION).toBeDefined()
       expect(attrs.NORMAL).toBeDefined()
+      expect(attrs.COLOR_0).toBeDefined()
       expect(prim.indices).toBeDefined()
       expect(prim.mode).toBe(4)
     }
   })
 
-  test("stores pivot-relative float positions and uint32 indices", () => {
+  test("bakes a part's colour into an 8-bit normalized COLOR_0 attribute", () => {
+    const { glb } = exportFixture()
+    const { json, binOffset } = parseGlb(glb)
+    const accessors = json.accessors as Array<Record<string, unknown>>
+    const bufferViews = json.bufferViews as Array<Record<string, unknown>>
+    const meshes = json.meshes as Array<Record<string, unknown>>
+    const first = meshes[0]
+    if (!first) throw new Error("missing mesh")
+    const prim = (first.primitives as Array<Record<string, unknown>>)[0]
+    if (!prim) throw new Error("missing primitive")
+    const attrs = prim.attributes as Record<string, number>
+    const colorIndex = attrs.COLOR_0
+    if (colorIndex === undefined) throw new Error("missing COLOR_0")
+    const colorAcc = accessors[colorIndex]
+    if (!colorAcc) throw new Error("missing color accessor")
+    expect(colorAcc.componentType).toBe(5121) // UNSIGNED_BYTE
+    expect(colorAcc.normalized).toBe(true)
+    expect(colorAcc.type).toBe("VEC4")
+    const view = bufferViews[colorAcc.bufferView as number]
+    if (!view) throw new Error("missing color bufferView")
+    const start = binOffset + (view.byteOffset as number)
+    const bytes = new Uint8Array(glb.buffer, glb.byteOffset + start, 4)
+    // Palette values are held as float32 before packing, so quantise the same
+    // way the exporter does (0.9f * 255 = 229.4999 -> 229, not 230).
+    const q = (c: number) =>
+      Math.round((new Float32Array([c])[0] as number) * 255)
+    expect([...bytes]).toEqual([q(0.9), q(0.7), q(0.3), 255])
+  })
+
+  test("stores pivot-relative float positions and 16-bit indices", () => {
     const { glb } = exportFixture()
     const { json, binOffset } = parseGlb(glb)
     const view = new DataView(glb.buffer, glb.byteOffset, glb.byteLength)
@@ -156,12 +193,14 @@ describe("glb exporter", () => {
 
     const idxAcc = accessors[idxIndex]
     if (!idxAcc) throw new Error("missing index accessor")
-    expect(idxAcc.componentType).toBe(5125) // UNSIGNED_INT
+    // Small parts use 16-bit indices; the 32-bit fallback only exists for
+    // parts over 65,536 vertices, which no archetype reaches.
+    expect(idxAcc.componentType).toBe(5123) // UNSIGNED_SHORT
     const idxView = bufferViews[idxIndex]
     if (!idxView) throw new Error("missing index bufferView")
     const idxBase = binOffset + (idxView.byteOffset as number)
-    expect(view.getUint32(idxBase, true)).toBe(body.indices[0] ?? -1)
-    expect(view.getUint32(idxBase + 4, true)).toBe(body.indices[1] ?? -1)
+    expect(view.getUint16(idxBase, true)).toBe(body.indices[0] ?? -1)
+    expect(view.getUint16(idxBase + 2, true)).toBe(body.indices[1] ?? -1)
   })
 
   test("manifest records identity, pivots, and triangle count", () => {
@@ -169,7 +208,7 @@ describe("glb exporter", () => {
     const m: GlbManifest = manifest
     expect(m.archetype).toBe("draconic")
     expect(m.seed).toBe(42)
-    expect(m.generatorVersion).toBe(1)
+    expect(m.generatorVersion).toBe(GENERATOR_VERSION)
     expect(m.triCount).toBe(20) // 2 parts x 5 faces x 2 tris
     expect(m.pivots).toEqual({ body: [1, 1, 1], head: [1, 2, 1] })
     const dnaHasher = new Bun.CryptoHasher("sha256")

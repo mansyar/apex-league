@@ -1,10 +1,10 @@
 {
 	"archetype": "axolotl",
 	"seed": 42,
-	"generatorVersion": 1,
+	"generatorVersion": 2,
 	"dnaHash": "42cb06e481180c5776914e66d8030edb0f80e432e10e15e0e969434dd17d22c9",
-	"glbHash": "82c3582ae5a67389cf60ef2351ced3723e7af082a072c7e92c0f3415f57dbc41",
-	"triCount": 1816,
+	"glbHash": "de31dcb3e27bf8cf056a2e4b2d17f2c064e7abb4a8f1997b1d2b144370bd8519",
+	"triCount": 3082,
 	"pivots": {
 		"body": [
 			28,
@@ -65,6 +65,16 @@
 			28,
 			11.5,
 			27.454779249615967
+		],
+		"eyeLeft": [
+			23.5,
+			13.8,
+			40
+		],
+		"eyeRight": [
+			32.5,
+			13.8,
+			40
 		]
 	}
 }

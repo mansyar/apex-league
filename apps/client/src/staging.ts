@@ -169,6 +169,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   const driver = createFighterDriver({
     pair,
     pref: () => motionPref,
+    // The world holds for a hit-stop; the eye holds with it.
+    glanceSuppressed: () => effects.hitStop.active(),
   })
 
   const drive = (): void => {
