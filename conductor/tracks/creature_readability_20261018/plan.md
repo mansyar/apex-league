@@ -40,6 +40,7 @@ byte-stable foundation.
         pre-phase capture (same seed, same angle, colour mode)
   - [x] Await explicit user approval, attach the verification note, record the
         checkpoint SHA
+- Checkpoint: `1636b05`.
 
 ## Phase 2: Ambient occlusion
 

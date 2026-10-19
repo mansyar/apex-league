@@ -177,7 +177,9 @@ floored at 0.08 so a shut eye stays a line. The glance repeats on 6.5 s ± 2.4 s
 (4.1–8.9 s), turning 90 ms, holding 450 ms, returning 120 ms, with amplitude
 0.55–1.0 of the ±2° cap. One `driveFace(eyes, seed, seconds, { suppressed })`
 call writes both eyes, so the ranch and the arena cannot drift apart; the arena
-passes hit-stop as `suppressed`, the ranch passes reduced motion.
+passes hit-stop as `suppressed`, the ranch passes reduced motion. The flag is a
+boolean (`driveFace(eyes, seed, seconds, suppressed)`), not an options object,
+so neither driver allocates per frame.
 
 ### FR8 — Verification surface
 
@@ -216,10 +218,19 @@ passes hit-stop as `suppressed`, the ranch passes reduced motion.
   past Bun's 5 s default under parallel load and now carry an explicit
   timeout, and `bun run verify` passes `--timeout 20000` so the shared gate
   does not fail on machine load rather than on a defect. No test was deleted,
-  skipped or weakened to buy this.
+  skipped or weakened to buy this. `workflow.md` states a stricter "< 10 s"
+  target for the same suite; that figure is unmet for the same reasons and on
+  the same machine, and the deviation here is the record for both.
 - Triangle budget: no more than 2.5× current worst case (~2.1k → ~5k per
   creature). Before/after counts recorded per archetype and stage.
 - No new dependencies. `packages/voxel` stays pure TypeScript with no DOM.
+
+  **Deviation recorded 2026-10-20.** `packages/voxel` gained one dev-only
+  dependency, `playwright`, for `scripts/preview-shot.ts` (the committed
+  screenshot script behind the phase stills). It is never imported from `src/`,
+  never reaches the client bundle, and does not change the "pure TypeScript, no
+  DOM" rule for the library itself; contributors pay for it once at
+  `bun install`. No runtime dependency was added anywhere in the workspace.
 - Draw calls: +2 parts per creature, but materials collapse from 11–17 to ~1–2
   per creature, so net GPU state changes should fall.
 - Determinism: same seed → byte-identical GLB. No global state, no
