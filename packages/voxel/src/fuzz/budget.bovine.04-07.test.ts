@@ -42,4 +42,4 @@ test("4 bovine seeds run the full pipeline within the GLB budget (seeds 4-7)", (
     maxBytes = Math.max(maxBytes, glb.byteLength)
   }
   expect(maxBytes).toBeLessThanOrEqual(GLB_BUDGET_BYTES)
-}, 30000)
+}, 120000)

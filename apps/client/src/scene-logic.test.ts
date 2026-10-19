@@ -1,126 +1,135 @@
 import { describe, expect, test } from "bun:test"
-import { props } from "@apex/voxel"
+import type {
+  ArenaFramingAdjustment,
+  CeremonyPhase,
+  EvolutionDrive,
+  EvolutionMachine,
+  EvolutionPhase,
+  GaitPose,
+  PetDrive,
+  PetMachine,
+  PetPhase,
+  PetVariant,
+  PlayDrive,
+  PlayMachine,
+  PlayPhase,
+  RestDrive,
+  RestMachine,
+  RestPhase,
+  TreatDrive,
+  TreatMachine,
+  TreatPhase,
+  WalkDrive,
+  WalkMachine,
+  WanderDrive,
+  WanderMachine,
+  WanderPhase,
+  WanderProp,
+} from "./scene-logic"
+import * as logic from "./scene-logic"
 
-import { gustEnvelope, phaseHash, swayAngle, windBaseAmp } from "./scene-logic"
+/**
+ * The barrel is the stable entry point promised by ranch_decomposition FR6:
+ * every importer reads `scene-logic`, and the per-machine files underneath
+ * can move without touching them. That promise only holds while the surface
+ * itself is pinned - a re-export silently dropped during a refactor would
+ * otherwise surface as a compile error in some unrelated file, or worse, a
+ * missing behaviour at runtime.
+ */
+const EXPECTED_EXPORTS = [
+  "BABY_SCALE",
+  "CHAMPION_SCALE",
+  "GAIT_BOB",
+  "GAIT_CADENCE",
+  "GAIT_ROLL",
+  "GAIT_SWING",
+  "JUVENILE_SCALE",
+  "PLAY_CELEBRATE_HOPS",
+  "PLAY_CELEBRATE_TIME",
+  "PLAY_NUDGE_DIST",
+  "PLAY_NUDGE_TIME",
+  "PLAY_TOSS_ARC",
+  "PLAY_TOSS_TIME",
+  "REST_CURL_TIME",
+  "REST_SLEEP_TIME",
+  "REST_SLEEP_TIME_REDUCED",
+  "REST_WAKE_TIME",
+  "TREAT_BALM_TIME",
+  "TREAT_BALM_TIME_REDUCED",
+  "TREAT_RECOVER_TIME",
+  "TREAT_SETTLE_TIME",
+  "WANDER_DISC_RADIUS",
+  "WANDER_GAP_MAX",
+  "WANDER_GAP_MIN",
+  "WANDER_MIN_PILE_DIST",
+  "WANDER_PILE",
+  "WANDER_VISIT_NEAR",
+  "WANDER_VISIT_STOP",
+  "arenaFramingAdjust",
+  "createEvolutionCeremony",
+  "createPetMachine",
+  "createPlayCeremony",
+  "createRestCeremony",
+  "createTreatCeremony",
+  "createWalk",
+  "createWander",
+  "gaitIntensity",
+  "gaitPose",
+  "gustEnvelope",
+  "heading",
+  "isTap",
+  "lerpAngle",
+  "nextGap",
+  "phaseHash",
+  "pickPetReaction",
+  "pickVisitTarget",
+  "smoothstep",
+  "stageScale",
+  "standPointOnLineTo",
+  "strideStep",
+  "swayAngle",
+  "windBaseAmp",
+  "wrapPi",
+].sort()
 
-describe("wind sway — amplitude table", () => {
-  test("covers every registry prop id with a finite amplitude", () => {
-    for (const id of Object.keys(props)) {
-      const amp = windBaseAmp(id)
-      expect(Number.isFinite(amp)).toBe(true)
-    }
-  })
-
-  test("vegetation sways more than trees: tuft > bush > tree", () => {
-    const tuft = windBaseAmp("tuft")
-    const bush = windBaseAmp("bush")
-    const tree = windBaseAmp("broadleafTree")
-    expect(tuft).toBeGreaterThan(bush)
-    expect(bush).toBeGreaterThan(tree)
-    expect(tree).toBeGreaterThan(0)
-  })
-
-  test("rocks and the food pile never move", () => {
-    expect(windBaseAmp("rock")).toBe(0)
-    expect(windBaseAmp("foodPile")).toBe(0)
-  })
-
-  test("unknown prop ids default to zero amplitude (fail closed)", () => {
-    expect(windBaseAmp("notAProp")).toBe(0)
-  })
-})
-
-describe("wind sway — gust envelope", () => {
-  test("stays within [0.4, 1.2] across a long simulated run", () => {
-    for (let t = 0; t <= 600; t += 0.25) {
-      const g = gustEnvelope(t)
-      expect(g).toBeGreaterThanOrEqual(0.4 - 1e-9)
-      expect(g).toBeLessThanOrEqual(1.2 + 1e-9)
-    }
-  })
-
-  test("is continuous — no jumps between adjacent samples", () => {
-    let prev = gustEnvelope(0)
-    for (let t = 0.1; t <= 600; t += 0.1) {
-      const g = gustEnvelope(t)
-      expect(Math.abs(g - prev)).toBeLessThan(0.025)
-      prev = g
-    }
-  })
-
-  test("actually varies over time (calm and gusty moments exist)", () => {
-    let min = Number.POSITIVE_INFINITY
-    let max = Number.NEGATIVE_INFINITY
-    for (let t = 0; t <= 600; t += 0.25) {
-      const g = gustEnvelope(t)
-      min = Math.min(min, g)
-      max = Math.max(max, g)
-    }
-    expect(max - min).toBeGreaterThan(0.2)
-  })
-
-  test("is a pure function of time", () => {
-    expect(gustEnvelope(12.5)).toBe(gustEnvelope(12.5))
-    expect(gustEnvelope(88)).toBe(gustEnvelope(88))
-  })
-})
-
-describe("wind sway — position-hash phase", () => {
-  test("is stable for the same world position", () => {
-    expect(phaseHash(3.2, -4.9, 7)).toBe(phaseHash(3.2, -4.9, 7))
-  })
-
-  test("falls in [0, 2π)", () => {
-    for (let i = 0; i < 200; i++) {
-      const p = phaseHash(i * 1.3 - 60, i * -0.7 + 40, 11)
-      expect(p).toBeGreaterThanOrEqual(0)
-      expect(p).toBeLessThan(Math.PI * 2)
-    }
-  })
-
-  test("differs across positions (no large-scale lockstep)", () => {
-    const seen = new Set<number>()
-    for (let i = 0; i < 100; i++) {
-      seen.add(phaseHash((i % 10) * 1.1, Math.floor(i / 10) * 1.1, 11))
-    }
-    expect(seen.size).toBeGreaterThan(90)
-  })
-
-  test("is not Math.random — deterministic across a fresh call sequence", () => {
-    // Drawing other values in between must not disturb the result.
-    phaseHash(1, 1, 5)
-    phaseHash(2, 2, 5)
-    expect(phaseHash(3, 3, 5)).toBe(phaseHash(3, 3, 5))
-  })
-})
-
-describe("wind sway — composed sway angle", () => {
-  const base = windBaseAmp("tuft")
-
-  test("never exceeds base amplitude × gust ceiling", () => {
-    for (let t = 0; t <= 120; t += 0.11) {
-      const angle = swayAngle(base, phaseHash(1, 2, 3), t, false)
-      expect(Math.abs(angle)).toBeLessThanOrEqual(base * 1.2 + 1e-9)
-    }
-  })
-
-  test("moves over time when not reduced", () => {
-    const a0 = swayAngle(base, 0, 0, false)
-    const a1 = swayAngle(base, 0, 0.4, false)
-    expect(a0 === a1).toBe(false)
-  })
-
-  test("responds to phase offset between props", () => {
-    const p1 = swayAngle(base, 0, 2, false)
-    const p2 = swayAngle(base, 2.5, 2, false)
-    expect(p1).not.toBe(p2)
-  })
-
-  test("reduced-motion flattens every amplitude to exactly 0", () => {
-    for (let t = 0; t <= 60; t += 0.37) {
-      for (const phase of [0, 1.7, 4.2]) {
-        expect(swayAngle(base, phase, t, true)).toBe(0)
-      }
-    }
+describe("scene-logic barrel surface", () => {
+  test("re-exports exactly the pinned symbol set", () => {
+    expect(Object.keys(logic).sort()).toEqual(EXPECTED_EXPORTS)
   })
 })
+
+/**
+ * Type-only exports are erased at runtime, so they cannot be pinned by a
+ * value assertion. Naming every one here makes a dropped type re-export a
+ * typecheck failure instead - the same tripwire, one phase earlier.
+ */
+type PinnedTypes = [
+  ArenaFramingAdjustment,
+  CeremonyPhase,
+  EvolutionDrive,
+  EvolutionMachine,
+  EvolutionPhase,
+  GaitPose,
+  PetDrive,
+  PetMachine,
+  PetPhase,
+  PetVariant,
+  PlayDrive,
+  PlayMachine,
+  PlayPhase,
+  RestDrive,
+  RestMachine,
+  RestPhase,
+  TreatDrive,
+  TreatMachine,
+  TreatPhase,
+  WalkDrive,
+  WalkMachine,
+  WanderDrive,
+  WanderMachine,
+  WanderPhase,
+  WanderProp,
+]
+
+/** Ties the alias to the file so the compiler cannot elide it. */
+export type SceneLogicTypeSurface = PinnedTypes

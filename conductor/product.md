@@ -26,8 +26,9 @@ evolution planning.
 3. **Progression**: wins climb the tier ladder (Bronze → Legend) with promotion
    matches; higher tiers gate better opponents, rewards, and rare eggs.
 4. **Legacy phase**: creatures retire at ~60-90 in-game days. Retirement passes
-   stat inheritance, inheritable traits (with mutation), family prestige
-   (account-wide perks), and type affinity into the next egg via breeding.
+   stat inheritance, inheritable traits (with mutation), and family prestige
+   (account-wide perks) into the next egg via breeding; type affinity drift
+   remains on the roadmap.
 
 ## Key Systems
 - **Creatures**: 20-40 original species in 3-stage branching evolution trees
@@ -74,7 +75,9 @@ Phased delivery plan (each phase is independently playable):
   scale, grander ceremony, day-20 hint, stage-aware arena cast. Stage
   branching still open.)*
 - Full day loop: feeding, rest & sickness, assign-based training, bonding.
-  *(Landed: care loop with 5 conditions, AP day phase, 3 starters.)*
+  *(Landed: care loop with 5 conditions, AP day phase, 3 starters. 2026-10-18:
+  a healthy night restores no energy — REST (+40) is now the way to refill,
+  making it a real AP decision; relief tiers kept.)*
 - Battle system: 4 stats + 6 types, move pool + equip-4, type/HP battle AI.
   *(Landed core 2026-10-10: headless deterministic resolver — speed-gauge action
   clock, type chart, projectile specials with travel/accuracy/dodge, equip-4
@@ -111,7 +114,12 @@ Phased delivery plan (each phase is independently playable):
   Wins beyond Bronze I bank points toward Silver (Phase 2, hinted once).
   Save v8 with a fresh-start migration — no backfill for pre-ladder cups.)*
 - Ranch scene (3D) with idle/breathe life; living-ranch dressing (wind sway,
-  feeding ceremony, seeded wandering with camera follow). *(Landed 2026-10-10.)*
+  feeding ceremony, seeded wandering with camera follow). *(Landed 2026-10-10.
+  Extended 2026-10-18: rest/treat/play care ceremonies with reduced-motion
+  variants, a CC0 care SFX pack plus a dawn chime, and ambient petting — a tap
+  on the creature (distinct from an orbit drag) answers with a mood-aware
+  reaction and a chirp. Petting is free and AP-less: no sim state, no save
+  change, spam-cooldowned.)*
 - Retirement → next egg with stat + trait inheritance (minimal legacy).
   *(Landed 2026-10-13: the legacy phase opens the core loop — a champion at
   day 60+ can be graduated by the player (never automatic, never death) with
@@ -120,17 +128,19 @@ Phased delivery plan (each phase is independently playable):
   generation, and derived family prestige (generations + cups) granting
   milestone perks. Confirm → ranch send-off ceremony → egg screen → successor
   hatch, reduced-motion aware; save v10. Full breeding between retired pairs
-  stays Phase 2.)*
+  landed in Phase 2 on 2026-10-18.)*
 
 ### Phase 2 — League Depth
 - Full ladder: Bronze → Silver → Gold → Legend plateau with promotion
   matches. *(Gold tier + Legend plateau with tier rewards and six
   authored gatekeeper bosses landed 2026-10-18 — the full four-tier
-  climb is playable; breeding, prestige perks, and evolution branching
-  remain open.)*
+  climb is playable; dual-parent breeding landed 2026-10-18; extra
+  prestige perks, affinity drift, and evolution branching remain open.)*
 - Generated rivals + first 2-3 authored boss characters. *(Exceeded:
   six authored bosses now gate the climb at every tier.)*
-- Breeding between retired pairs; family prestige perks; type affinity drift.
+- Breeding between retired pairs *(landed 2026-10-18: any two Hall records,
+  dual-parent stat floor, trait inheritance, seeded mutation, save v15)*;
+  family prestige perks; type affinity drift.
 - Evolution hints/threshold discovery UI; 2-3 more species lineages.
 
 ### Phase 3 — Content & Meta

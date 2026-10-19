@@ -12,10 +12,10 @@ import {
 // Spec section 3: moves, basic strike, equip-4.
 
 describe("battle catalog", () => {
-  test("holds exactly 12 specials with unique ids", () => {
-    expect(CATALOG.length).toBe(12)
+  test("holds exactly 18 specials with unique ids", () => {
+    expect(CATALOG.length).toBe(18)
     const ids = new Set(CATALOG.map((m) => m.id))
-    expect(ids.size).toBe(12)
+    expect(ids.size).toBe(18)
   })
 
   test("covers fire, plant, and water elements only", () => {
@@ -26,16 +26,18 @@ describe("battle catalog", () => {
     expect(Array.from(elements).sort()).toEqual(["fire", "plant", "water"])
   })
 
-  test("same tier table for every element", () => {
+  test("same six-row tier table for every element", () => {
     const tiers = [
       { power: 6, accuracy: 100, cooldown: 1 },
       { power: 8, accuracy: 90, cooldown: 1 },
       { power: 10, accuracy: 85, cooldown: 2 },
       { power: 12, accuracy: 75, cooldown: 2 },
+      { power: 7, accuracy: 95, cooldown: 1 },
+      { power: 14, accuracy: 70, cooldown: 3 },
     ]
     for (const element of ["fire", "plant", "water"] as const) {
       const rows = CATALOG.filter((m) => m.element === element)
-      expect(rows.length).toBe(4)
+      expect(rows.length).toBe(6)
       for (const [i, move] of rows.entries()) {
         const row = tiers[i]
         if (!row) throw new Error("tier table incomplete")
@@ -45,6 +47,58 @@ describe("battle catalog", () => {
           row.cooldown,
         ])
       }
+    }
+  })
+
+  test("the four original rows keep their ids, numbers, and indices", () => {
+    const original = [
+      "spark",
+      "flame_charge",
+      "cinder_shot",
+      "blaze_bolt",
+      "seed_shot",
+      "thorn_volley",
+      "spore_burst",
+      "bramble_dart",
+      "bubble",
+      "tide_shot",
+      "foam_volley",
+      "splash_bolt",
+    ]
+    const numbers: Readonly<Record<string, readonly [number, number, number]>> =
+      {
+        spark: [6, 100, 1],
+        flame_charge: [8, 90, 1],
+        cinder_shot: [10, 85, 2],
+        blaze_bolt: [12, 75, 2],
+        seed_shot: [6, 100, 1],
+        thorn_volley: [8, 90, 1],
+        spore_burst: [10, 85, 2],
+        bramble_dart: [12, 75, 2],
+        bubble: [6, 100, 1],
+        tide_shot: [8, 90, 1],
+        foam_volley: [10, 85, 2],
+        splash_bolt: [12, 75, 2],
+      }
+    for (const id of original) {
+      const move = CATALOG.find((m) => m.id === id)
+      if (!move) throw new Error(`original move missing: ${id}`)
+      const expected = numbers[id]
+      if (!expected) throw new Error(`no numbers recorded for ${id}`)
+      expect([move.power, move.accuracy, move.cooldown]).toEqual([...expected])
+    }
+    // The new rows are appended, so the first four of every element are the
+    // untouched originals in their original order.
+    const originals: Readonly<Record<string, readonly string[]>> = {
+      fire: original.slice(0, 4),
+      plant: original.slice(4, 8),
+      water: original.slice(8, 12),
+    }
+    for (const element of ["fire", "plant", "water"] as const) {
+      const rows = CATALOG.filter((m) => m.element === element).map((m) => m.id)
+      const expectedOriginal = originals[element]
+      if (!expectedOriginal) throw new Error(`no originals for ${element}`)
+      expect(rows.slice(0, 4)).toEqual([...expectedOriginal])
     }
   })
 
@@ -64,7 +118,7 @@ describe("basic strike", () => {
     expect(BASIC_MOVE.melee).toBe(true)
   })
 
-  test("is not part of the 12-slot catalog", () => {
+  test("is not part of the 18-slot catalog", () => {
     expect(CATALOG.find((m) => m.id === BASIC_MOVE.id)).toBeUndefined()
   })
 
@@ -99,11 +153,32 @@ describe("cooldown", () => {
 })
 
 describe("species kit", () => {
-  test("each starter has the four moves of its element", () => {
+  test("each starter has the six moves of its element", () => {
     const expected = {
-      fire_drake: ["spark", "flame_charge", "cinder_shot", "blaze_bolt"],
-      plant_ox: ["seed_shot", "thorn_volley", "spore_burst", "bramble_dart"],
-      water_axolotl: ["bubble", "tide_shot", "foam_volley", "splash_bolt"],
+      fire_drake: [
+        "spark",
+        "flame_charge",
+        "cinder_shot",
+        "blaze_bolt",
+        "flare_dart",
+        "pyre_lance",
+      ],
+      plant_ox: [
+        "seed_shot",
+        "thorn_volley",
+        "spore_burst",
+        "bramble_dart",
+        "vine_lash",
+        "root_quake",
+      ],
+      water_axolotl: [
+        "bubble",
+        "tide_shot",
+        "foam_volley",
+        "splash_bolt",
+        "mist_spray",
+        "maelstrom",
+      ],
     }
     const drake = getSpecies("fire_drake")
     const ox = getSpecies("plant_ox")
@@ -113,8 +188,8 @@ describe("species kit", () => {
     expect(ox.kit).toEqual(expected.plant_ox)
     expect(axolotl.kit).toEqual(expected.water_axolotl)
     for (const species of [drake, ox, axolotl]) {
-      expect(species.kit.length).toBe(4)
-      expect(new Set(species.kit).size).toBe(4)
+      expect(species.kit.length).toBe(6)
+      expect(new Set(species.kit).size).toBe(6)
       for (const id of species.kit) {
         if (!getMove(id)) throw new Error(`kit move unknown: ${id}`)
         if (getMove(id)?.element !== species.element)
@@ -127,7 +202,7 @@ describe("species kit", () => {
     const axolotl = getSpecies("water_axolotl")
     if (!axolotl) throw new Error("water_axolotl species missing")
     expect(axolotl.available).toBe(true)
-    expect(axolotl.kit.length).toBe(4)
+    expect(axolotl.kit.length).toBe(6)
   })
 })
 
@@ -157,7 +232,9 @@ describe("validateLoadout", () => {
     ] as const) {
       const kit = getSpecies(species)?.kit
       if (!kit) throw new Error(`${species} species missing`)
-      expect(validateLoadout(kit).map((m) => m.id)).toEqual([...kit])
+      expect(validateLoadout(kit.slice(0, 4)).map((m) => m.id)).toEqual(
+        kit.slice(0, 4),
+      )
     }
   })
 

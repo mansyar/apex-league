@@ -1,7 +1,9 @@
 import {
   advanceDay,
   assignTraining,
+  buildSaveExport,
   type CareAction,
+  canBreed,
   careAction,
   chooseStarter,
   clearLoadout,
@@ -9,17 +11,24 @@ import {
   createInitialState,
   getSpecies,
   graduate,
+  graduateWithPair,
+  inspectSaveImport,
   loadBoot,
   markHintSeen,
   type PlaybackStep,
+  readRawSave,
   renameCreature,
   type StatKey,
+  saveGame,
   setArenaCamera,
   setLoadout,
+  setMusicVolume,
   setMuted,
   setReducedMotion,
+  setSfxVolume,
 } from "@apex/sim"
 import { buildArena } from "./arena"
+import { careCueForEvent } from "./audio/careCues"
 import { cueForStep } from "./audio/cues"
 import { MusicBeds } from "./audio/musicBeds"
 import { playCue } from "./audio/playCue"
@@ -28,7 +37,7 @@ import { createCup } from "./cup"
 import { nextShot } from "./director"
 import { hideFailurePlate, showFailurePlate } from "./failure-plate"
 import { createGraduation } from "./graduation"
-import { corruptSaveNotice, createHud } from "./hud"
+import { createHud } from "./hud"
 import {
   type GraphicsHealth,
   initialRuntimeState,
@@ -36,6 +45,12 @@ import {
   runtimeState,
 } from "./lifecycle"
 import { resolveMotionPref } from "./motion"
+import { buildRecoveryModal, recoveryFileName } from "./recovery"
+import {
+  buildImportModal,
+  importBlocked,
+  transferNotice,
+} from "./save-transfer"
 import { createScene, type SceneHandle } from "./scene"
 import { createSpar } from "./spar"
 import { createStaging, type FightCasting } from "./staging"
@@ -47,6 +62,7 @@ import "./ui/kit.css"
 import "./base.css"
 import "./ranch.css"
 import "./graduation.css"
+import "./nursery.css"
 import "./starter.css"
 import "./cup.css"
 import "./spar.css"
@@ -64,6 +80,13 @@ try {
     // The scene reports graphics health; the reducer below decides what the
     // player sees and whether the loop spins (F7).
     onGraphics: (status) => applyRuntime({ kind: "graphics", status }),
+    // Ambient pet (ranch_rituals_20261018 FR6): the scene only says a pet
+    // reaction started; the pure cue table decides whether it is audible
+    // (muted stays silent) and the player's gate handles the rest.
+    onPet: () => {
+      const cue = careCueForEvent({ kind: "pet" }, store.get().settings)
+      if (cue) audioPlayer.play(cue)
+    },
   })
 } catch (error) {
   console.error("boot failed", error)
@@ -87,18 +110,34 @@ const storage: Storage = window.localStorage
 // the riding cup session).
 const boot = loadBoot(storage)
 const saved = boot && "state" in boot ? boot : null
-// A corrupt save gets a calm banner instead of silence: the status ticker
-// hides with the creature plate pre-starter, so the only moment this news
-// matters is exactly where it would be invisible. It clears once the new
-// ranch exists.
+// A corrupt save opens a blocking recovery dialog instead of a banner: keep
+// the bytes downloadable, and never let the starter picker overwrite them
+// before the player explicitly chooses to start over.
 const corruptBoot = boot !== null && "corrupt" in boot
-let corruptNotice: HTMLElement | null = null
-if (corruptBoot) {
-  corruptNotice = document.createElement("div")
-  corruptNotice.className = "kit-plate kit-notice"
-  corruptNotice.textContent = corruptSaveNotice()
-  app.appendChild(corruptNotice)
-}
+const recovery = buildRecoveryModal({
+  onDownload: () => {
+    const raw = readRawSave(storage)
+    if (raw === null) return false
+    const url = URL.createObjectURL(
+      new Blob([raw], { type: "application/json" }),
+    )
+    const anchor = document.createElement("a")
+    anchor.href = url
+    anchor.download = recoveryFileName(new Date())
+    anchor.click()
+    URL.revokeObjectURL(url)
+    return true
+  },
+  onReset: () => {
+    try {
+      clearSave(storage)
+    } finally {
+      window.location.reload()
+    }
+  },
+})
+app.append(recovery.root)
+if (corruptBoot) recovery.open()
 // A restored session is only resumable while its cup day is current: the
 // walk lives on the day it was entered, and a day that moved on is over.
 const restoredSession =
@@ -283,6 +322,9 @@ const applyMotionPref = (): void => {
   scene.setMotionReduced(reduced)
   // The swap honors the save too: in-app reduced means instant cuts.
   swap.setMotionReduced(reduced)
+  // CSS surfaces (cup reveals, battle stamps, sheets) read this class;
+  // without it the saved setting only reached the 3D layer.
+  document.body.classList.toggle("is-reduced", resolveMotionPref(reduced))
 }
 applyMotionPref()
 
@@ -344,8 +386,12 @@ const graduation = createGraduation(app, {
       visualSeedOf(creature.stats, creature.stage),
       creature.stage,
       () => {
-        if (!store.get().creature) return
-        graduation.showEggScreen(store.get())
+        const state = store.get()
+        if (!state.creature) return
+        // A line with at least one archived champion can pair the retiree
+        // with the Hall; the founder still gets the free starter choice.
+        if (canBreed(state)) graduation.showNursery(state)
+        else graduation.showEggScreen(state)
       },
     )
   },
@@ -359,6 +405,34 @@ const graduation = createGraduation(app, {
     store.commit(result.state)
     graduation.close()
     syncScene()
+    // The egg screen is gone: hand focus to the rebuilt partner plate so the
+    // keyboard lands on the successor instead of <body>.
+    document.querySelector<HTMLButtonElement>(".creature-head")?.focus()
+    const successor = store.get().creature
+    if (successor) {
+      hud.announceGraduation(
+        retiree.name,
+        successor.name,
+        store.get().lineage.generation,
+      )
+    }
+  },
+  onHatch: (generations, speciesId, seed) => {
+    const before = store.get()
+    const retiree = before.creature
+    if (!retiree) return
+    const result = graduateWithPair(before, generations, speciesId, seed)
+    if (!result.ok) {
+      graduation.rejectHatch(result.reason)
+      return
+    }
+    store.commit(result.state)
+    graduation.close()
+    syncScene()
+    // The Nursery's opener (the Graduate action) is gone after a succession;
+    // hand focus to the rebuilt partner plate so keyboard users land on the
+    // new creature instead of <body>.
+    document.querySelector<HTMLButtonElement>(".creature-head")?.focus()
     const successor = store.get().creature
     if (successor) {
       hud.announceGraduation(
@@ -370,12 +444,24 @@ const graduation = createGraduation(app, {
   },
 })
 
+const importModal = buildImportModal((data) => {
+  if (saveGame(storage, data.state, data.savedAt, null)) {
+    window.location.reload()
+    return
+  }
+  hud.noticeSettings("Couldn't write that save — try again.", true)
+})
+
 const hud = createHud(app, {
   onAdvanceDay: () => {
     // The ceremony is non-cancelable (FR2, 2026-10-10): HUD input applies
     // to the sim immediately but never interrupts the creature's motion.
     const stageBefore = store.get().creature?.stage
     store.commit(advanceDay(store.get()))
+    // Dawn chime (ranch_rituals_20261018 FR5): the day-break punctuation,
+    // gated by the same pure table (muted stays silent).
+    const dawn = careCueForEvent({ kind: "dawn" }, store.get().settings)
+    if (dawn) audioPlayer.play(dawn)
     const creature = store.get().creature
     const evolved =
       (stageBefore === "baby" && creature?.stage === "juvenile") ||
@@ -405,12 +491,19 @@ const hud = createHud(app, {
     const result = careAction(store.get(), action)
     if (!result.ok) return // buttons are already disabled; belt and braces
     store.commit(result.state)
+    // Care SFX (ranch_rituals_20261018 FR5): the pure table decides — muted
+    // stays silent — and the player's gate + silent degradation do the rest.
+    const cue = careCueForEvent({ kind: "care", action }, store.get().settings)
+    if (cue) audioPlayer.play(cue)
     // Feed toggles the food pile; conditions drive the mood idle.
     sceneVisuals()
     // Ceremony is visual feedback for an already-committed action, so it
     // starts only after the sim confirms the feed succeeded. The pile is
     // visible immediately; successive feeds re-trigger cleanly.
     if (action === "feed") scene.startFeedCeremony()
+    if (action === "rest") scene.startRestCeremony()
+    if (action === "treat") scene.startTreatCeremony()
+    if (action === "play") scene.startPlayCeremony()
   },
   onTrain: (stat: StatKey) => {
     const result = assignTraining(store.get(), stat)
@@ -432,6 +525,49 @@ const hud = createHud(app, {
     const current = store.get()
     store.commit(setMuted(current, !current.settings.muted))
   },
+  onVolume: (bus, value, commit) => {
+    const current = store.get()
+    // Audition live while the slider moves; only a release persists.
+    audioPlayer.setVolumes({
+      music: bus === "music" ? value : current.settings.musicVolume,
+      sfx: bus === "sfx" ? value : current.settings.sfxVolume,
+    })
+    if (bus === "music") beds.setVolume(value)
+    if (!commit) return
+    store.commit(
+      bus === "music"
+        ? setMusicVolume(current, value)
+        : setSfxVolume(current, value),
+    )
+  },
+  onDownloadSave: () => {
+    const { filename, json } = buildSaveExport(store.get())
+    const url = URL.createObjectURL(
+      new Blob([json], { type: "application/json" }),
+    )
+    const anchor = document.createElement("a")
+    anchor.href = url
+    anchor.download = filename
+    anchor.click()
+    URL.revokeObjectURL(url)
+    hud.noticeSettings(`Downloaded ${filename}`)
+  },
+  onImportFile: async (file) => {
+    let raw: string
+    try {
+      raw = await file.text()
+    } catch {
+      hud.noticeSettings(transferNotice("malformed"), true)
+      return
+    }
+    const result = inspectSaveImport(raw)
+    if (!result.ok) {
+      hud.noticeSettings(transferNotice(result.reason), true)
+      return
+    }
+    importModal.ask(result.data)
+  },
+  isImportBlocked: () => importBlocked(store.getSession()),
   onRename: (name) => {
     const next = renameCreature(store.get(), name)
     if (!next.ok) return false
@@ -454,6 +590,10 @@ const hud = createHud(app, {
   onOpenHallOfFame: () => graduation.openHallOfFame(store.get()),
 })
 
+// Appended after the HUD so the replace-save dialog stacks above Settings
+// (both are kit-modals at the same z-index; DOM order wins).
+app.append(importModal.root)
+
 // The store's fixed fanout: every commit persists (inside commit) and then
 // updates the hud, the spar preview, and the cup chip — in that order —
 // exactly like the old per-handler fanout did. Handlers only add their
@@ -462,8 +602,23 @@ store.subscribe((s) => hud.update(s))
 store.subscribe((s) => spar.update(s.creature ?? null))
 store.subscribe((s) => cup.update(s))
 store.subscribe((s) => audioPlayer.setMuted(s.settings.muted))
+store.subscribe((s) =>
+  audioPlayer.setVolumes({
+    music: s.settings.musicVolume,
+    sfx: s.settings.sfxVolume,
+  }),
+)
 store.subscribe((s) => beds.setMuted(s.settings.muted))
+store.subscribe((s) => beds.setVolume(s.settings.musicVolume))
 store.subscribe((s) => graduation.update(s))
+
+// Subscribers fire on commits, not at registration: apply the persisted mix
+// once so a reload starts at the saved levels.
+audioPlayer.setVolumes({
+  music: store.get().settings.musicVolume,
+  sfx: store.get().settings.sfxVolume,
+})
+beds.setVolume(store.get().settings.musicVolume)
 
 // First run (or a migrated v1 save without a creature): offer the starter.
 let starter = store.get().creature
@@ -474,8 +629,6 @@ let starter = store.get().creature
         // roll is reproducible from the saved state afterwards.
         const seed = Date.now() % 2 ** 31
         store.commit(chooseStarter(store.get(), speciesId, seed))
-        corruptNotice?.remove()
-        corruptNotice = null
         starter?.remove()
         starter = null
         syncScene()

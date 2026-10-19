@@ -4,6 +4,7 @@ import { SICK_COOLDOWN_NIGHTS } from "../evolution"
 import type { RetiredRecord } from "../legacy"
 import { getSpecies } from "../species"
 import type { GameState } from "../state"
+import { isLineageTrait } from "../traits"
 import { migrate } from "./migrate"
 import { SAVE_VERSION, type SaveData, serializeSave } from "./schema"
 
@@ -58,6 +59,38 @@ const ELEMENTS = ["fire", "water", "plant", "electric", "earth", "wind"]
 const STAGES = ["baby", "juvenile", "champion"]
 const STAT_KEYS = ["hp", "atk", "def", "spd"]
 const TRAINING_RESULTS = ["gained", "sick", "hungry"]
+
+/** Save v15: a lineage trait list is canonical, unique, and at most four. */
+function isValidTraitList(value: unknown): boolean {
+  if (!Array.isArray(value) || value.length > 4) return false
+  const seen = new Set<string>()
+  for (const id of value) {
+    if (!isLineageTrait(id) || seen.has(id)) return false
+    seen.add(id)
+  }
+  return true
+}
+
+/**
+ * Save v15: parentage is at most two generation numbers (one for the founder
+ * successor path, two for a bred pair), never negative or duplicated.
+ */
+function isValidParentList(value: unknown): boolean {
+  if (!Array.isArray(value) || value.length > 2) return false
+  const seen = new Set<number>()
+  for (const generation of value) {
+    if (
+      typeof generation !== "number" ||
+      !Number.isInteger(generation) ||
+      generation < 0 ||
+      seen.has(generation)
+    ) {
+      return false
+    }
+    seen.add(generation)
+  }
+  return true
+}
 
 /** A creature is valid when every field is the right type and in range. */
 function isValidCreature(c: unknown): c is Creature {
@@ -122,6 +155,9 @@ function isValidCreature(c: unknown): c is Creature {
   ) {
     return false
   }
+  // v15: lineage fields are always present after migration.
+  if (!isValidTraitList(creature.traits)) return false
+  if (!isValidParentList(creature.parents)) return false
   return true
 }
 
@@ -164,6 +200,9 @@ function isValidRetiredRecord(r: unknown): r is RetiredRecord {
     return false
   if (!Number.isInteger(rec.retiredOnDay) || (rec.retiredOnDay as number) < 1)
     return false
+  // v15: every archived career carries its derived traits and parentage.
+  if (!isValidTraitList(rec.traits)) return false
+  if (!isValidParentList(rec.parents)) return false
   return true
 }
 
@@ -224,7 +263,80 @@ function isValidSession(s: unknown): s is CupSession {
 }
 
 /**
- * Load and migrate the full save payload — state plus the live cup session.
+ * Whether a migrated state is structurally legal (the v5-v16 rules).
+ * Shared by loadSave and save import, so both paths accept exactly the same
+ * states.
+ */
+export function isValidSaveState(state: GameState): boolean {
+  return !(
+    !Number.isInteger(state.day) ||
+    state.day < 1 ||
+    (state.phase !== "day" && state.phase !== "cup") ||
+    !Number.isInteger(state.actionPoints) ||
+    state.actionPoints < 0 ||
+    (state.creature !== null && !isValidCreature(state.creature)) ||
+    // v5: the settings block is required and strictly typed.
+    typeof state.settings !== "object" ||
+    state.settings === null ||
+    typeof state.settings.reducedMotion !== "boolean" ||
+    // v7: the hint ledger is a plain array of string ids.
+    !Array.isArray(state.settings.seenHints) ||
+    !state.settings.seenHints.every((hint) => typeof hint === "string") ||
+    // v9: the camera preference must be one of the two styles.
+    (state.settings.arenaCamera !== "cinematic" &&
+      state.settings.arenaCamera !== "broadcast") ||
+    // v13: the audio mute toggle is a strict boolean (false = sound on).
+    typeof state.settings.muted !== "boolean" ||
+    // v16: both bus levels are finite numbers in 0..1 (release polish).
+    typeof state.settings.musicVolume !== "number" ||
+    !Number.isFinite(state.settings.musicVolume) ||
+    state.settings.musicVolume < 0 ||
+    state.settings.musicVolume > 1 ||
+    typeof state.settings.sfxVolume !== "number" ||
+    !Number.isFinite(state.settings.sfxVolume) ||
+    state.settings.sfxVolume < 0 ||
+    state.settings.sfxVolume > 1 ||
+    // v5: cup bookkeeping must be present and well-formed.
+    !Number.isInteger(state.cupsWon) ||
+    state.cupsWon < 0 ||
+    (state.lastCupDay !== null &&
+      (!Number.isInteger(state.lastCupDay) || state.lastCupDay < 1)) ||
+    // v8: the ladder slice is required and strictly typed (bronze ladder) -
+    // a hand-edited points total or sub-tier fails the load.
+    // v11: the tier must be one of the ladder tiers.
+    // v14: the full four-tier ladder - gold and legend are legal saves.
+    typeof state.ladder !== "object" ||
+    state.ladder === null ||
+    !Number.isInteger(state.ladder.points) ||
+    state.ladder.points < 0 ||
+    (state.ladder.subTier !== "III" &&
+      state.ladder.subTier !== "II" &&
+      state.ladder.subTier !== "I") ||
+    (state.ladder.tier !== "bronze" &&
+      state.ladder.tier !== "silver" &&
+      state.ladder.tier !== "gold" &&
+      state.ladder.tier !== "legend") ||
+    // v14: the legend title tally is a strict non-negative integer - a
+    // hand-edited or malformed count fails the load.
+    !Number.isInteger(state.legendTitles) ||
+    state.legendTitles < 0 ||
+    // v11: the boss defeat ledger is a plain array of boss ids.
+    !Array.isArray(state.bossDefeats) ||
+    !state.bossDefeats.every((id) => typeof id === "string") ||
+    // v10: the bloodline slice is required and strictly typed (legacy
+    // track) - a hand-edited generation or a malformed Hall of Fame record
+    // fails the load.
+    typeof state.lineage !== "object" ||
+    state.lineage === null ||
+    !Number.isInteger(state.lineage.generation) ||
+    state.lineage.generation < 0 ||
+    !Array.isArray(state.lineage.hallOfFame) ||
+    !state.lineage.hallOfFame.every(isValidRetiredRecord)
+  )
+}
+
+/**
+ * Load and migrate the full save payload - state plus the live cup session.
  * Returns null on absent, corrupt, or unreadable saves; a corrupt session
  * inside an otherwise-valid save is dropped (state survives, the cup walk
  * is lost) rather than failing the whole load.
@@ -235,62 +347,7 @@ export function loadSave(adapter: SaveAdapter): SaveData | null {
   try {
     const data = migrate(JSON.parse(raw) as unknown)
     const { state } = data
-    if (
-      !Number.isInteger(state.day) ||
-      state.day < 1 ||
-      (state.phase !== "day" && state.phase !== "cup") ||
-      !Number.isInteger(state.actionPoints) ||
-      state.actionPoints < 0 ||
-      (state.creature !== null && !isValidCreature(state.creature)) ||
-      // v5: the settings block is required and strictly typed.
-      typeof state.settings !== "object" ||
-      state.settings === null ||
-      typeof state.settings.reducedMotion !== "boolean" ||
-      // v7: the hint ledger is a plain array of string ids.
-      !Array.isArray(state.settings.seenHints) ||
-      !state.settings.seenHints.every((hint) => typeof hint === "string") ||
-      // v9: the camera preference must be one of the two styles.
-      (state.settings.arenaCamera !== "cinematic" &&
-        state.settings.arenaCamera !== "broadcast") ||
-      // v13: the audio mute toggle is a strict boolean (false = sound on).
-      typeof state.settings.muted !== "boolean" ||
-      // v5: cup bookkeeping must be present and well-formed.
-      !Number.isInteger(state.cupsWon) ||
-      state.cupsWon < 0 ||
-      (state.lastCupDay !== null &&
-        (!Number.isInteger(state.lastCupDay) || state.lastCupDay < 1)) ||
-      // v8: the ladder slice is required and strictly typed (bronze
-      // ladder) — a hand-edited points total or sub-tier fails the load.
-      // v11: the tier must be one of the ladder tiers.
-      // v14: the full four-tier ladder — gold and legend are legal saves.
-      typeof state.ladder !== "object" ||
-      state.ladder === null ||
-      !Number.isInteger(state.ladder.points) ||
-      state.ladder.points < 0 ||
-      (state.ladder.subTier !== "III" &&
-        state.ladder.subTier !== "II" &&
-        state.ladder.subTier !== "I") ||
-      (state.ladder.tier !== "bronze" &&
-        state.ladder.tier !== "silver" &&
-        state.ladder.tier !== "gold" &&
-        state.ladder.tier !== "legend") ||
-      // v14: the legend title tally is a strict non-negative integer —
-      // a hand-edited or malformed count fails the load.
-      !Number.isInteger(state.legendTitles) ||
-      state.legendTitles < 0 ||
-      // v11: the boss defeat ledger is a plain array of boss ids.
-      !Array.isArray(state.bossDefeats) ||
-      !state.bossDefeats.every((id) => typeof id === "string") ||
-      // v10: the bloodline slice is required and strictly typed (legacy
-      // track) — a hand-edited generation or a malformed Hall of Fame
-      // record fails the load.
-      typeof state.lineage !== "object" ||
-      state.lineage === null ||
-      !Number.isInteger(state.lineage.generation) ||
-      state.lineage.generation < 0 ||
-      !Array.isArray(state.lineage.hallOfFame) ||
-      !state.lineage.hallOfFame.every(isValidRetiredRecord)
-    ) {
+    if (!isValidSaveState(state)) {
       return null
     }
     // A session is presentation bookkeeping: it rides the save even after
@@ -325,6 +382,15 @@ export function loadGame(adapter: SaveAdapter): GameState | null {
  */
 export function clearSave(adapter: SaveAdapter): void {
   adapter.removeItem(SAVE_KEY)
+}
+
+/**
+ * The raw stored payload, byte-for-byte, or null when nothing is stored.
+ * The corrupt-save recovery dialog downloads this before any reset; nothing
+ * here writes, migrates, or validates.
+ */
+export function readRawSave(adapter: SaveAdapter): string | null {
+  return adapter.getItem(SAVE_KEY)
 }
 
 /**

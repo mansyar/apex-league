@@ -380,6 +380,39 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Move pool in the detail modal (move_pool_20261018): six compact rows,
+   equipped and learned marked, locked rows carrying their gate. */
+.detail-kit {
+  display: grid;
+  gap: 3px;
+  border-top: 1px solid var(--kit-keyline);
+  padding-top: 10px;
+}
+
+.detail-kit-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.detail-kit-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.detail-kit-state {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.detail-kit-state[data-state="equipped"] {
+  color: var(--kit-accent, var(--ink-dim));
+}
+
 /* Coach's Handbook (coach_knowledge_20261016): tabbed ranch modal — type
    chart, ladder rules, raising guidance. Ranch-only surface. */
 .handbook-box {
@@ -405,6 +438,11 @@
 .handbook-panel {
   display: grid;
   gap: 8px;
+  /* The move table runs longer than the panel at every tier, so the panel
+     is the scroll surface (the box grid gives it the 1fr row). */
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 4px;
 }
 
 /* `hidden` loses to the display rule above without this. */
@@ -482,6 +520,47 @@
   line-height: 1.45;
 }
 
+/* Move pool table (move_pool_20261018): six rows per starter element, the
+   gate spelled out per row so a coach reads what opens next. */
+.handbook-moves-head {
+  margin: 14px 0 6px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.handbook-moves {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.handbook-move {
+  display: grid;
+  grid-template-columns: minmax(88px, 1fr) minmax(160px, 1.4fr) auto;
+  gap: 10px;
+  align-items: baseline;
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 3%);
+}
+
+.handbook-move-name {
+  font-weight: 600;
+}
+
+.handbook-move-stats {
+  opacity: 0.65;
+  font-variant-numeric: tabular-nums;
+}
+
+.handbook-move-gate {
+  justify-self: end;
+  opacity: 0.8;
+}
+
 /* Settings modal (coach_knowledge_20261016 Phase 5): the three floating
    chips consolidated behind one Settings chip — same chips, same labels,
    same handlers. Camera/new-game surface scoping stays on the chips
@@ -494,6 +573,52 @@
   display: grid;
   gap: 8px;
   justify-items: start;
+}
+
+/* Volume sliders (save v16): one labeled 0-100 row per audio bus. */
+.settings-volume {
+  align-items: center;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 96px 1fr 42px;
+  width: min(320px, 100%);
+}
+
+.settings-volume-label {
+  color: var(--ink-dim);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.settings-volume-slider {
+  accent-color: var(--accent);
+  width: 100%;
+}
+
+.settings-volume-value {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* Save transfer (Phase 3): two chips plus the hidden file picker. */
+.settings-transfer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.settings-notice {
+  color: var(--ink-dim);
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0;
+  max-width: 320px;
+}
+
+.settings-notice.is-warn {
+  color: var(--accent);
 }
 
 /* Shared collapse chevron: points down while expanded, right when

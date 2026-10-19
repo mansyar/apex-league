@@ -19,6 +19,7 @@
 import type { CupSession, GameState, RoundVerdict } from "@apex/sim"
 import { forfeitCup } from "@apex/sim"
 import { createBattleHud } from "./battleHud"
+import { focusTrap } from "./battleUI"
 import type { BracketMatch } from "./bracket-model"
 import { buildBracketModel } from "./bracket-model"
 import { createArena } from "./cup/arena"
@@ -214,7 +215,7 @@ export function createCup(
   // ------------------------------------------------------------------
   shared.coach.coachBack.addEventListener("click", () => {
     // Free back-out: nothing commits here.
-    shared.showScreen("bracket")
+    coachRoom.closeCoach()
   })
   shared.coach.coachGo.addEventListener("click", arena.fight)
   shared.bracket.ctaGhost.addEventListener("click", coachRoom.openCoach)
@@ -258,6 +259,17 @@ export function createCup(
   })
 
   shared.results.resultBack.addEventListener("click", entry.closeFree)
+
+  // The cup owns the whole screen: Tab must stay inside it, never wander
+  // into the HUD hidden behind the backdrop. Escape mirrors Back.
+  const trapCupFocus = focusTrap(overlay)
+  overlay.addEventListener("keydown", (event) => {
+    trapCupFocus(event)
+    if (event.key !== "Escape") return
+    if (shared.giveup.root.style.display !== "none") return
+    if (shared.bracket.screen.style.display === "none") return
+    close.click()
+  })
 
   // ------------------------------------------------------------------
   // Entry

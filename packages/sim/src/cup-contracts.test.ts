@@ -243,9 +243,9 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     expect(done.completionVerdicts).toHaveLength(0)
   })
 
-  test("SF exit: seed 2, balanced — placement 3, conqueror runs the final", () => {
+  test("SF exit: seed 3, balanced — placement 3, conqueror runs the final", () => {
     const creature = cupDayCreature()
-    const elim = playToCompletion(creature, 7, 2, "balanced")
+    const elim = playToCompletion(creature, 7, 3, "balanced")
     expect(elim.status).toBe("eliminated")
     expect(elim.playerVerdicts).toHaveLength(2)
     expect(cupPlacement(elim)).toBe(3)
@@ -253,7 +253,7 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     expect(done.championName).toBe("Bonfire Brook")
     expect(
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
-    ).toEqual([[3, "Bramble Knoll Ox", "Bonfire Brook", "Bonfire Brook"]])
+    ).toEqual([[3, "Thistledown Ash", "Bonfire Brook", "Bonfire Brook"]])
   })
 
   test("QF exit: seed 101, balanced — placement 4, bracket completes in order", () => {

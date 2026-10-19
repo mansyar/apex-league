@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { PerspectiveCamera, Vector3 } from "three"
 
-import { arenaFramingAdjust } from "./scene-logic"
+import { arenaFramingAdjust } from "../scene-logic"
 
 /**
  * F6 (responsive_foundation_20261013): the broadcast framing was tuned on

@@ -1,5 +1,8 @@
 /**
- * Battle move catalog: the innate basic strike plus 12 ranged specials.
+ * Battle move catalog: the innate basic strike plus 18 ranged specials: six
+ * per starter element. The first four of each element are the classic kit and
+ * keep their exact numbers; the last two are the wider pool (a fast, accurate
+ * chip move and a heavy, slow finisher).
  * Pure data and small helpers — no DOM, no jobs, no I/O.
  * Cooldowns are counted in the fighter's own actions, never in clock ticks.
  */
@@ -55,22 +58,29 @@ function special(
 }
 
 /**
- * The 12 specials: four tiers per starter element with matching stat lines,
- * so type and stats are what differ, never a hidden power budget.
+ * The 18 specials: six per starter element with matching stat lines, so type
+ * and stats are what differ, never a hidden power budget. Appending the wider
+ * pool keeps every pre-existing kit prefix identical.
  */
 export const CATALOG: readonly MoveDef[] = Object.freeze([
   special("spark", "Spark", "fire", 6, 100, 1),
   special("flame_charge", "Flame Charge", "fire", 8, 90, 1),
   special("cinder_shot", "Cinder Shot", "fire", 10, 85, 2),
   special("blaze_bolt", "Blaze Bolt", "fire", 12, 75, 2),
+  special("flare_dart", "Flare Dart", "fire", 7, 95, 1),
+  special("pyre_lance", "Pyre Lance", "fire", 14, 70, 3),
   special("seed_shot", "Seed Shot", "plant", 6, 100, 1),
   special("thorn_volley", "Thorn Volley", "plant", 8, 90, 1),
   special("spore_burst", "Spore Burst", "plant", 10, 85, 2),
   special("bramble_dart", "Bramble Dart", "plant", 12, 75, 2),
+  special("vine_lash", "Vine Lash", "plant", 7, 95, 1),
+  special("root_quake", "Root Quake", "plant", 14, 70, 3),
   special("bubble", "Bubble", "water", 6, 100, 1),
   special("tide_shot", "Tide Shot", "water", 8, 90, 1),
   special("foam_volley", "Foam Volley", "water", 10, 85, 2),
   special("splash_bolt", "Splash Bolt", "water", 12, 75, 2),
+  special("mist_spray", "Mist Spray", "water", 7, 95, 1),
+  special("maelstrom", "Maelstrom", "water", 14, 70, 3),
 ])
 
 const MOVE_INDEX = new Map(

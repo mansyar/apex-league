@@ -1,15 +1,22 @@
 /**
  * Coach's Handbook (coach_knowledge_20261016): one ranch-only modal with
- * three tabs — the type chart, the ladder rules, and raising guidance.
- * The chart is derived from the sim's own `typeFactor`, so the handbook
- * can never drift from the matchup math the battles actually use. Ladder
+ * four tabs — the type chart, the ladder rules, the move pool, and raising
+ * guidance. The chart is derived from the sim's own `typeFactor`, and the
+ * move table from the starters' own kits plus `requiredTierDays`, so the
+ * handbook can never drift from the math the game actually uses. Ladder
  * copy states current truth (four tiers — Bronze, Silver, Gold, and the
  * Legend plateau — with the Legend gate as the capstone). Guidance stays
  * direction-only — evolution is discovered in play, not spoiled on a page
  * (product guideline).
  */
 
-import { type Element, typeFactor } from "@apex/sim"
+import {
+  type Element,
+  getMove,
+  requiredTierDays,
+  STARTER_SPECIES,
+  typeFactor,
+} from "@apex/sim"
 import { focusTrap } from "./battleUI"
 import { crestGlyph, elementHue } from "./element"
 
@@ -180,9 +187,63 @@ function buildRaising(panel: HTMLElement): void {
   }
 }
 
+/** What opens a move: the gate is the sim's, phrased for a coach. */
+function gateCopy(index: number): string {
+  const days = requiredTierDays(index, "baby")
+  if (days === 0) return "From birth"
+  if (index === 2) return `${days} trained days, or evolution`
+  return `${days} trained days`
+}
+
+/**
+ * The move pool table (move_pool_20261018 FR8): six moves per starter
+ * element, the first two from birth, then the tier gates. Rows come from
+ * `species.kit` so the table and the picker cannot disagree.
+ */
+function buildMoves(panel: HTMLElement): void {
+  const note = document.createElement("p")
+  note.className = "handbook-tip"
+  note.textContent =
+    "Each partner knows six moves and can equip four of them. Swapping is free and legal any time outside a cup match."
+  panel.append(note)
+  for (const species of STARTER_SPECIES) {
+    const head = document.createElement("h3")
+    head.className = "handbook-moves-head"
+    head.textContent = `${ELEMENT_LABELS[species.element] ?? species.element} · ${species.displayName}`
+    panel.append(head)
+    const table = document.createElement("div")
+    table.className = "handbook-moves"
+    table.setAttribute("role", "table")
+    table.setAttribute("aria-label", `${species.displayName} move pool`)
+    for (const [index, id] of species.kit.entries()) {
+      const move = getMove(id)
+      if (!move) continue
+      const row = document.createElement("div")
+      row.className = "handbook-move"
+      row.setAttribute("role", "row")
+      const name = document.createElement("span")
+      name.setAttribute("role", "cell")
+      name.className = "handbook-move-name"
+      name.textContent = move.displayName
+      const stats = document.createElement("span")
+      stats.setAttribute("role", "cell")
+      stats.className = "handbook-move-stats"
+      stats.textContent = `PWR ${move.power} · ACC ${move.accuracy}% · CD ${move.cooldown}`
+      const gate = document.createElement("span")
+      gate.setAttribute("role", "cell")
+      gate.className = "handbook-move-gate"
+      gate.textContent = gateCopy(index)
+      row.append(name, stats, gate)
+      table.append(row)
+    }
+    panel.append(table)
+  }
+}
+
 const TABS: ReadonlyArray<HandbookTab> = [
   { label: "Type chart", build: buildTypeChart },
   { label: "Ladder rules", build: buildLadderRules },
+  { label: "Moves", build: buildMoves },
   { label: "Raising", build: buildRaising },
 ]
 

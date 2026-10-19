@@ -276,47 +276,49 @@ describe("cup goldens — bossForCup decision grid (routing safety net)", () => 
 })
 
 describe("cup goldens — full session transcripts (one per ending)", () => {
-  // Champion ending: seed 25, creature seed 11, default loadout, balanced.
-  test("champion path (seed 25): the player takes all three rounds", () => {
-    const session = playToCompletion(DAY, 25)
+  // Champion ending: seed 17, creature seed 11, default loadout, balanced.
+  // Re-pinned in move_pool_20261018 Phase 2: rivals now field four of their six
+  // moves, so the old seed 25 bracket no longer ends in a crown.
+  test("champion path (seed 17): the player takes all three rounds", () => {
+    const session = playToCompletion(DAY, 17)
     expect(session.status).toBe("champion")
     expect(session.championName).toBe("Ember Drake")
     expect(cupPlacement(session)).toBe(1)
     expect(session.rivalVerdicts.map(row)).toEqual([
       [
         1,
+        "Emberhold Flicker",
         "Mossbottom Brute",
-        "Gilded Horn",
         "Mossbottom Brute",
         "Mossbottom Brute takes the Quarterfinal!",
       ],
       [
         1,
-        "Cindersnout",
+        "Ash-ledger",
         "Reedle Mirefin",
-        "Cindersnout",
-        "Cindersnout takes the Quarterfinal!",
+        "Ash-ledger",
+        "Ash-ledger takes the Quarterfinal!",
       ],
       [
         1,
         "Bonfire Brook",
-        "Bramble Knoll Ox",
-        "Bonfire Brook",
-        "Bonfire Brook takes the Quarterfinal!",
+        "Thistledown Ash",
+        "Thistledown Ash",
+        "Thistledown Ash takes the Quarterfinal!",
       ],
       [
         2,
-        "Cindersnout",
-        "Bonfire Brook",
-        "Cindersnout",
-        "Cindersnout takes the Semifinal!",
+        "Ash-ledger",
+        "Thistledown Ash",
+        "Thistledown Ash",
+        "Thistledown Ash takes the Semifinal!",
       ],
     ])
     expect(session.playerVerdicts.map(row)).toEqual([
       [
         1,
         "Ember Drake",
-        "Emberhold Flicker",
+        "Pondskipper Grub",
         "Ember Drake",
         "Ember Drake takes the Quarterfinal!",
       ],
@@ -330,7 +332,7 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
       [
         3,
         "Ember Drake",
-        "Cindersnout",
+        "Thistledown Ash",
         "Ember Drake",
         "Ember Drake takes the Final!",
       ],
@@ -338,65 +340,65 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
     expect(session.completionVerdicts.map(row)).toEqual([])
   })
 
-  // Eliminated ending: seed 2, the player exits at the semifinal.
-  test("eliminated path (seed 2): SF exit, the conqueror runs the final", () => {
-    const session = playToCompletion(DAY, 2)
+  // Eliminated ending: seed 7, the player exits at the semifinal.
+  test("eliminated path (seed 7): SF exit, the conqueror runs the final", () => {
+    const session = playToCompletion(DAY, 7)
     expect(session.status).toBe("eliminated")
-    expect(session.championName).toBe("Bonfire Brook")
+    expect(session.championName).toBe("Tidecaller Nibbles")
     expect(cupPlacement(session)).toBe(3)
     expect(session.rivalVerdicts.map(row)).toEqual([
       [
         1,
-        "Ash-ledger",
-        "Bramble Knoll Ox",
-        "Bramble Knoll Ox",
-        "Bramble Knoll Ox takes the Quarterfinal!",
+        "Reedle Mirefin",
+        "Emberhold Flicker",
+        "Emberhold Flicker",
+        "Emberhold Flicker takes the Quarterfinal!",
       ],
       [
         1,
-        "Reedle Mirefin",
+        "Driftbelle",
         "Cindersnout",
         "Cindersnout",
         "Cindersnout takes the Quarterfinal!",
       ],
       [
         1,
-        "Thistledown Ash",
-        "Bonfire Brook",
-        "Bonfire Brook",
-        "Bonfire Brook takes the Quarterfinal!",
+        "Gilded Horn",
+        "Tidecaller Nibbles",
+        "Tidecaller Nibbles",
+        "Tidecaller Nibbles takes the Quarterfinal!",
       ],
       [
         2,
         "Cindersnout",
-        "Bonfire Brook",
-        "Bonfire Brook",
-        "Bonfire Brook takes the Semifinal!",
+        "Tidecaller Nibbles",
+        "Tidecaller Nibbles",
+        "Tidecaller Nibbles takes the Semifinal!",
       ],
     ])
     expect(session.playerVerdicts.map(row)).toEqual([
       [
         1,
         "Ember Drake",
-        "Driftbelle",
+        "Pondskipper Grub",
         "Ember Drake",
         "Ember Drake takes the Quarterfinal!",
       ],
       [
         2,
         "Ember Drake",
-        "Bramble Knoll Ox",
-        "Bramble Knoll Ox",
-        "Bramble Knoll Ox takes the Semifinal!",
+        "Emberhold Flicker",
+        "Emberhold Flicker",
+        "Emberhold Flicker takes the Semifinal!",
       ],
     ])
     expect(session.completionVerdicts.map(row)).toEqual([
       [
         3,
-        "Bramble Knoll Ox",
-        "Bonfire Brook",
-        "Bonfire Brook",
-        "Bonfire Brook takes the Final!",
+        "Emberhold Flicker",
+        "Tidecaller Nibbles",
+        "Tidecaller Nibbles",
+        "Tidecaller Nibbles takes the Final!",
       ],
     ])
   })

@@ -22,9 +22,15 @@ import type { Rng } from "./rng"
 /** Hunger lost every night (the creature wakes hungrier). */
 export const HUNGER_DECAY_PER_DAY = 15
 
-/** Nightly energy recovery by sleep quality (starving / sick compound). */
+/**
+ * Nightly energy recovery by sleep quality (starving / sick compound).
+ * Tuning 2026-10-18 (ranch_rituals_20261018): a healthy night no longer
+ * restores energy for free — the Rest care action (+40) is the only way a
+ * well creature recovers, so the daily AP choice has bite. The relief tiers
+ * below are unchanged: neglect must be escapable, never a hard stall.
+ */
 export const NIGHT_RECOVERY = Object.freeze({
-  rested: 60,
+  rested: 0,
   sick: 30,
   starving: 20,
   starvingAndSick: 10,

@@ -23,7 +23,10 @@
     "packages/voxel/scripts/export-artifact.ts",
     "artifacts/",
     "apps/client/src/creature.ts",
-    "apps/client/src/ranch-motion.ts",
+    "apps/client/src/face-motion.ts",
+    "apps/client/src/ranch/frame.ts",
+    "apps/client/src/ranch/mount.ts",
+    "apps/client/src/ranch/state.ts",
     "apps/client/src/fighter-driver.ts",
     "apps/client/preview.html",
     "apps/client/gallery.html"

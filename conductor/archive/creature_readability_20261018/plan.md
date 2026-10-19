@@ -447,6 +447,15 @@ that plus removing one pre-existing dead import in
 `apps/client/src/cup/view-models.test.ts` left by the merged cup refactor
 (`68b56f1`), which had made `biome check` red before this track started.
 
+**Merge note 2026-10-20.** `origin/main` independently raised the global test
+timeout to `--timeout 120000` in `package.json` (same reason: generator-heavy
+tests outrunning Bun's 5 s default). The merge takes main's 120 s figure for
+`verify`, keeps this track's explicit per-test timeouts, and keeps the
+`face-arena.test.ts` fixture hoisting that dropped the file from ~6.5 s to
+~2.5 s. `origin/main` also split `ranch-motion.ts` into `ranch/`, so the ranch
+side of the face idle lives in `apps/client/src/ranch/frame.ts` (call),
+`mount.ts` (eye lookup, face seed) and `state.ts` (cached `rigParts.eyes`).
+
 **Surfaces.** `?surface=0` paints each part with its base palette colour and
 drops the baked vertex colour (AO, zones, dappling — and, by construction, the
 painted mouth/nostrils, since those *are* colour); it is a comparison view, not

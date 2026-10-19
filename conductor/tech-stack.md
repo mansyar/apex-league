@@ -30,6 +30,17 @@
   their own media queries against those widths. Overlays use
   `100dvh`/safe-area insets; arena camera framing is portrait-aware via
   `scene-logic.ts` `arenaFramingAdjust` (TDD'd projection tests).
+- **Scene module layout**: ranch motion is decomposed by machine, not by
+  convenience. `apps/client/src/scene-logic/` holds the pure, DOM-free
+  machines (`evolution`, `feed`, `framing`, `gait`, `math`, `pet`, `play`,
+  `rest`, `stage`, `treat`, `walk`, `wander`, `wind`) behind one stable
+  barrel (`scene-logic.ts`); `apps/client/src/ranch/` holds the Three.js
+  adapter split into `types`, `state`, `mount`, `mood`, `poses`, `effects`,
+  `idle`, `frame`, `api`, and the `motion` composition root. Every module
+  stays at or under **12 KB** — `apps/client/src/module-size.test.ts`
+  enforces the cap and `apps/client/src/scene-logic.test.ts` pins the barrel
+  surface, so a decomposition that quietly re-bloats fails `bun test`
+  (ranch_decomposition_20261018).
 - **State**: central typed game-state store; deterministic sim core separated
   from rendering so battles can run headless (future PvP/ghosts depend on this).
   *2026-10-10: battle core landed in `@apex/sim/battle` — type chart, damage,
@@ -203,6 +214,69 @@
   ticker on the full standing (catching the Gold I → Legend I flip), and
   the hint ledger gains gold/legend teasers + three gatekeeper scalp
   callouts; the Handbook states four-tier truth.*
+-   *2026-10-18: Dynasty breeding landed (track `dynasty_breeding_20261018`) —
+  no new dependencies or stack deviations. Sim additions stay pure: `traits.ts`
+  (four canonical lineage traits derived from the highest trained stat),
+  `breeding.ts` (pool/pair validation, the dual-parent floor
+  `round(0.5*stronger + 0.1*weaker)` + trait/milestone bonuses, one seeded
+  `+1..+2` mutation, `graduateWithPair`), and save v15 (additive v14→v15
+  migration adds empty `traits`/`parents` to the active creature and every Hall
+  record; storage validates both arrays). Client additions are DOM-only:
+  `graduation/nursery-vm.ts` (pure selection/preview state) and
+  `graduation/nursery.ts` (overlay built from the shared kit, no new palette);
+  the seeded preview seed is handed to the sim unchanged, so previewed stats
+  are the hatched stats. No per-frame work was added.*
+-   *2026-10-18: Release polish landed (track `release_polish_20261018`) — no
+  new dependencies. Save v16 is additive: `settings.musicVolume`/`sfxVolume`
+  (0–1, default 1.0, strict validation) persist the audio mix; `save/transfer.ts`
+  builds session-free exports and validates imports (malformed / future-version /
+  invalid reasons, newer files refused, live save untouched on failure), and
+  `readRawSave` keeps a corrupt payload downloadable until an explicit reset.
+  The audio gate passes an SFX gain to the cue seam and the music beds follow
+  their own level within the existing mute contract. Accessibility is shared
+  rather than per-overlay: `ui/focus.ts` owns the trap (disabled controls
+  skipped, escaped focus recovered, pure wrap rules tested) and
+  `body.is-reduced` now carries the saved motion preference to CSS surfaces;
+  cup entry/coach/results are focus-managed full screens. No per-frame work was
+  added.*
+
+-   *2026-10-18: Ranch decomposition landed (track
+  `ranch_decomposition_20261018`) — the two over-cap scene files became
+  per-machine modules. `scene-logic.ts` (43.1 KB) is now a barrel over 13
+  pure modules (`evolution`, `feed`, `framing`, `gait`, `math`, `pet`,
+  `play`, `rest`, `stage`, `treat`, `walk`, `wander`, `wind`); the
+  `ranch-motion.ts` closure (39.8 KB) became `ranch/` with an explicit
+  `RanchState` object (`types`, `state`, `mount`, `mood`, `poses`,
+  `effects`, `idle`, `frame`, `api`, plus the 0.9 KB `motion` composition
+  root). Behaviour-preserving: no save-schema, `@apex/sim`, or public-API
+  change, and the determinism gate stays byte-identical. The 12 KB
+  per-module cap is enforced by `module-size.test.ts` and the barrel
+  surface is pinned by `scene-logic.test.ts`; the largest modules are
+  `ranch/api.ts` at 9.4 KB and `scene-logic/gait.ts` at 8.3 KB.*
+
+-   *2026-10-19: Learnable move pool landed (track `move_pool_20261018`) —
+  every playable species now knows **six** moves (indices 0-1 from birth,
+  index 2 at three trained days or on evolution, indices 3-5 at six trained
+  days) while a fighter still fields at most four. `knownMoves`/`knownCount`
+  replace `tierCount`, and `defaultLoadout` slices the first four, so a
+  pre-pool save with `loadout: null` (v15 or earlier) resolves to the same ids
+  it always did. Move
+  knowledge is **derived, never stored**: `requiredTierDays(stage)` over
+  `species.kit` is the only gate table, which is why this track needed no save
+  bump (v16 belongs to the audio mix, not the pool; see
+  `docs/save-schema.md`). Rival kits are deterministic, not
+  authored: `rivalKit` draws four distinct moves from the six using an RNG
+  derived from the existing battle/cup seed under a distinct constant, so the
+  parent stream is untouched and a fixed seed still fields the same four —
+  spar and cup goldens were re-baselined once for that reason (Phase 2).
+  Boss kits stay hand-authored, one wider-pool row each, and are re-tuned
+  against the probe bands. Client: picker, coaching room, creature detail and
+  a Handbook Moves tab all render the six rows from `species.kit`; `move-fx`
+  adds bespoke reads only for the heavy finishers (Pyre Lance, Root Quake,
+  Maelstrom) while the steady moves inherit element `SHOT_LOOK` plus
+  `DEFAULT_FX`. Catalog and gate rules are TDD-pinned; the Phase 5 matrix
+  reproduces kit2/3/4 rates byte-identically and the three six-move mirrors sit
+  within 4 points of the four-move baseline.*
 
 ## Server
 - **Framework**: ElysiaJS on Bun (endpoints: save sync, leaderboard, ghost
@@ -248,9 +322,14 @@
   Every file is mapped in `public/audio/CREDITS.md`. Implementation shape:
   DOM-free `cues.ts` event→cue mapping + gate-checked `player.ts`
   (pure, bun-tested) over an imperative `playCue.ts`/`musicBeds.ts` seam
-  (manual-verify tier); mute persists in save v13 (`settings.muted`), sound
-  defaults ON with first-gesture unlock; reduced motion swaps calm-mix
-  variants for SFX and silences instant dumps.
+  (manual-verify tier); mute persists in save v13 (`settings.muted`) alongside
+  the v16 music/SFX levels, sound defaults ON with first-gesture unlock; reduced motion swaps calm-mix
+  variants for SFX and silences instant dumps. *(ranch_rituals_20261018,
+  2026-10-18: the same gate now carries the care cues — a pure event→cue
+  table (`audio/careCues.ts`) over the existing player, with
+  `care-feed`/`care-rest`/`care-treat`/`care-play`, `care-pet` and a
+  `dawn-chime`, all CC0 and mapped in CREDITS.md. No new dependency and no
+  save-schema change.)*
 
 ## Quality Gates
 - `bun check` clean, `biome check` clean, `bun test` green — required before

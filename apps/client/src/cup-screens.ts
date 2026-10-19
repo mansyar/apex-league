@@ -342,6 +342,7 @@ export function buildGiveupModal(close: HTMLElement): GiveupModalRefs {
   root.addEventListener("keydown", (event) => {
     giveupTrap(event)
     if (event.key === "Escape") {
+      event.stopPropagation()
       root.style.display = "none"
       close.focus()
     }

@@ -1,0 +1,549 @@
+{
+  "creatureSeed": 777,
+  "seedCount": 96,
+  "seeds": [
+    1, 8, 15, 22, 29, 36, 43, 50, 57, 64, 71, 78, 85, 92, 99, 106, 113, 120,
+    127, 134, 141, 148, 155, 162, 169, 176, 183, 190, 197, 204, 211, 218, 225,
+    232, 239, 246, 253, 260, 267, 274, 281, 288, 295, 302, 309, 316, 323, 330,
+    337, 344, 351, 358, 365, 372, 379, 386, 393, 400, 407, 414, 421, 428, 435,
+    442, 449, 456, 463, 470, 477, 484, 491, 498, 505, 512, 519, 526, 533, 540,
+    547, 554, 561, 568, 575, 582, 589, 596, 603, 610, 617, 624, 631, 638, 645,
+    652, 659, 666
+  ],
+  "tiers": [2, 3, 4, 6],
+  "cases": {
+    "fire_drake|fire_drake|kit2": {
+      "winsA": 172,
+      "winsB": 212,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 0.4479166666666667,
+      "moves": {
+        "flame_charge": 4384,
+        "spark": 3956
+      }
+    },
+    "fire_drake|fire_drake|kit3": {
+      "winsA": 190,
+      "winsB": 194,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 0.4947916666666667,
+      "moves": {
+        "cinder_shot": 1421,
+        "flame_charge": 3083,
+        "spark": 2728
+      }
+    },
+    "fire_drake|fire_drake|kit4": {
+      "winsA": 200,
+      "winsB": 184,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 0.5208333333333334,
+      "moves": {
+        "blaze_bolt": 2063,
+        "cinder_shot": 1122,
+        "flame_charge": 2521,
+        "spark": 548
+      }
+    },
+    "fire_drake|fire_drake|kit6": {
+      "winsA": 197,
+      "winsB": 187,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 0.5130208333333334,
+      "moves": {
+        "pyre_lance": 1030,
+        "blaze_bolt": 811,
+        "cinder_shot": 649,
+        "flame_charge": 2182,
+        "flare_dart": 1461
+      }
+    },
+    "plant_ox|plant_ox|kit2": {
+      "winsA": 148,
+      "winsB": 108,
+      "draws": 128,
+      "timeCaps": 0,
+      "rateA": 0.578125,
+      "moves": {
+        "thorn_volley": 16112,
+        "seed_shot": 15536
+      }
+    },
+    "plant_ox|plant_ox|kit3": {
+      "winsA": 134,
+      "winsB": 158,
+      "draws": 92,
+      "timeCaps": 0,
+      "rateA": 0.4589041095890411,
+      "moves": {
+        "spore_burst": 8480,
+        "thorn_volley": 11596,
+        "seed_shot": 7472
+      }
+    },
+    "plant_ox|plant_ox|kit4": {
+      "winsA": 146,
+      "winsB": 181,
+      "draws": 57,
+      "timeCaps": 0,
+      "rateA": 0.44648318042813456,
+      "moves": {
+        "spore_burst": 7376,
+        "bramble_dart": 6736,
+        "thorn_volley": 9508
+      }
+    },
+    "plant_ox|plant_ox|kit6": {
+      "winsA": 170,
+      "winsB": 180,
+      "draws": 34,
+      "timeCaps": 0,
+      "rateA": 0.4857142857142857,
+      "moves": {
+        "root_quake": 3450,
+        "spore_burst": 2702,
+        "bramble_dart": 2870,
+        "thorn_volley": 8948,
+        "vine_lash": 5962
+      }
+    },
+    "water_axolotl|water_axolotl|kit2": {
+      "winsA": 144,
+      "winsB": 92,
+      "draws": 148,
+      "timeCaps": 0,
+      "rateA": 0.6101694915254238,
+      "moves": {
+        "tide_shot": 11136,
+        "bubble": 9648
+      }
+    },
+    "water_axolotl|water_axolotl|kit3": {
+      "winsA": 139,
+      "winsB": 120,
+      "draws": 125,
+      "timeCaps": 0,
+      "rateA": 0.5366795366795367,
+      "moves": {
+        "foam_volley": 3958,
+        "tide_shot": 8080,
+        "bubble": 7750
+      }
+    },
+    "water_axolotl|water_axolotl|kit4": {
+      "winsA": 143,
+      "winsB": 161,
+      "draws": 80,
+      "timeCaps": 0,
+      "rateA": 0.47039473684210525,
+      "moves": {
+        "splash_bolt": 5560,
+        "foam_volley": 3164,
+        "tide_shot": 6970,
+        "bubble": 1726
+      }
+    },
+    "water_axolotl|water_axolotl|kit6": {
+      "winsA": 162,
+      "winsB": 158,
+      "draws": 64,
+      "timeCaps": 0,
+      "rateA": 0.50625,
+      "moves": {
+        "maelstrom": 2768,
+        "splash_bolt": 2192,
+        "foam_volley": 1888,
+        "tide_shot": 6246,
+        "mist_spray": 4090
+      }
+    },
+    "fire_drake|plant_ox|kit2": {
+      "winsA": 384,
+      "winsB": 0,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 1,
+      "moves": {
+        "flame_charge": 2484,
+        "spark": 2152,
+        "thorn_volley": 1160,
+        "seed_shot": 940
+      }
+    },
+    "fire_drake|plant_ox|kit3": {
+      "winsA": 384,
+      "winsB": 0,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 1,
+      "moves": {
+        "cinder_shot": 986,
+        "flame_charge": 1768,
+        "spore_burst": 388,
+        "spark": 1632,
+        "thorn_volley": 882,
+        "seed_shot": 728
+      }
+    },
+    "fire_drake|plant_ox|kit4": {
+      "winsA": 384,
+      "winsB": 0,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 1,
+      "moves": {
+        "blaze_bolt": 1646,
+        "cinder_shot": 838,
+        "bramble_dart": 440,
+        "spore_burst": 190,
+        "flame_charge": 1104,
+        "thorn_volley": 467,
+        "spark": 114,
+        "seed_shot": 69
+      }
+    },
+    "fire_drake|plant_ox|kit6": {
+      "winsA": 384,
+      "winsB": 0,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 1,
+      "moves": {
+        "pyre_lance": 924,
+        "blaze_bolt": 710,
+        "root_quake": 259,
+        "cinder_shot": 288,
+        "bramble_dart": 228,
+        "spore_burst": 152,
+        "flame_charge": 1046,
+        "thorn_volley": 527,
+        "flare_dart": 862,
+        "vine_lash": 344
+      }
+    },
+    "plant_ox|fire_drake|kit2": {
+      "winsA": 0,
+      "winsB": 384,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 0,
+      "moves": {
+        "flame_charge": 2484,
+        "spark": 2152,
+        "thorn_volley": 1160,
+        "seed_shot": 940
+      }
+    },
+    "plant_ox|fire_drake|kit3": {
+      "winsA": 0,
+      "winsB": 384,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 0,
+      "moves": {
+        "cinder_shot": 986,
+        "flame_charge": 1768,
+        "spore_burst": 388,
+        "spark": 1632,
+        "thorn_volley": 882,
+        "seed_shot": 728
+      }
+    },
+    "plant_ox|fire_drake|kit4": {
+      "winsA": 0,
+      "winsB": 384,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 0,
+      "moves": {
+        "blaze_bolt": 1646,
+        "cinder_shot": 838,
+        "bramble_dart": 440,
+        "spore_burst": 190,
+        "flame_charge": 1104,
+        "thorn_volley": 467,
+        "spark": 114,
+        "seed_shot": 69
+      }
+    },
+    "plant_ox|fire_drake|kit6": {
+      "winsA": 0,
+      "winsB": 384,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 0,
+      "moves": {
+        "pyre_lance": 924,
+        "blaze_bolt": 710,
+        "root_quake": 259,
+        "cinder_shot": 288,
+        "bramble_dart": 228,
+        "spore_burst": 152,
+        "flame_charge": 1046,
+        "thorn_volley": 527,
+        "flare_dart": 862,
+        "vine_lash": 344
+      }
+    },
+    "fire_drake|water_axolotl|kit2": {
+      "winsA": 0,
+      "winsB": 384,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 0,
+      "moves": {
+        "tide_shot": 1636,
+        "flame_charge": 1636,
+        "bubble": 1564,
+        "spark": 1564
+      }
+    },
+    "fire_drake|water_axolotl|kit3": {
+      "winsA": 0,
+      "winsB": 384,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 0,
+      "moves": {
+        "foam_volley": 786,
+        "tide_shot": 1490,
+        "bubble": 1048,
+        "cinder_shot": 497,
+        "flame_charge": 1086,
+        "spark": 793
+      }
+    },
+    "fire_drake|water_axolotl|kit4": {
+      "winsA": 0,
+      "winsB": 384,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 0,
+      "moves": {
+        "splash_bolt": 908,
+        "foam_volley": 678,
+        "tide_shot": 1266,
+        "blaze_bolt": 529,
+        "cinder_shot": 199,
+        "flame_charge": 530,
+        "bubble": 230,
+        "spark": 50
+      }
+    },
+    "fire_drake|water_axolotl|kit6": {
+      "winsA": 0,
+      "winsB": 384,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 0,
+      "moves": {
+        "maelstrom": 592,
+        "splash_bolt": 590,
+        "foam_volley": 338,
+        "tide_shot": 1066,
+        "pyre_lance": 320,
+        "blaze_bolt": 195,
+        "cinder_shot": 169,
+        "flame_charge": 653,
+        "mist_spray": 454,
+        "flare_dart": 315
+      }
+    },
+    "water_axolotl|fire_drake|kit2": {
+      "winsA": 384,
+      "winsB": 0,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 1,
+      "moves": {
+        "tide_shot": 1636,
+        "flame_charge": 1636,
+        "bubble": 1564,
+        "spark": 1564
+      }
+    },
+    "water_axolotl|fire_drake|kit3": {
+      "winsA": 384,
+      "winsB": 0,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 1,
+      "moves": {
+        "foam_volley": 786,
+        "tide_shot": 1490,
+        "bubble": 1048,
+        "cinder_shot": 497,
+        "flame_charge": 1086,
+        "spark": 793
+      }
+    },
+    "water_axolotl|fire_drake|kit4": {
+      "winsA": 384,
+      "winsB": 0,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 1,
+      "moves": {
+        "splash_bolt": 908,
+        "foam_volley": 678,
+        "tide_shot": 1266,
+        "blaze_bolt": 529,
+        "cinder_shot": 199,
+        "flame_charge": 530,
+        "bubble": 230,
+        "spark": 50
+      }
+    },
+    "water_axolotl|fire_drake|kit6": {
+      "winsA": 384,
+      "winsB": 0,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 1,
+      "moves": {
+        "maelstrom": 592,
+        "splash_bolt": 590,
+        "foam_volley": 338,
+        "tide_shot": 1066,
+        "pyre_lance": 320,
+        "blaze_bolt": 195,
+        "cinder_shot": 169,
+        "flame_charge": 653,
+        "mist_spray": 454,
+        "flare_dart": 315
+      }
+    },
+    "plant_ox|water_axolotl|kit2": {
+      "winsA": 384,
+      "winsB": 0,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 1,
+      "moves": {
+        "tide_shot": 6576,
+        "bubble": 6504,
+        "thorn_volley": 3944,
+        "seed_shot": 3416
+      }
+    },
+    "plant_ox|water_axolotl|kit3": {
+      "winsA": 384,
+      "winsB": 0,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 1,
+      "moves": {
+        "foam_volley": 2128,
+        "tide_shot": 4924,
+        "bubble": 4660,
+        "spore_burst": 1620,
+        "thorn_volley": 2900,
+        "seed_shot": 2624
+      }
+    },
+    "plant_ox|water_axolotl|kit4": {
+      "winsA": 383,
+      "winsB": 1,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 0.9973958333333334,
+      "moves": {
+        "splash_bolt": 2920,
+        "foam_volley": 1574,
+        "tide_shot": 3944,
+        "bramble_dart": 2162,
+        "spore_burst": 1296,
+        "thorn_volley": 2396,
+        "bubble": 1024,
+        "seed_shot": 560
+      }
+    },
+    "plant_ox|water_axolotl|kit6": {
+      "winsA": 381,
+      "winsB": 1,
+      "draws": 2,
+      "timeCaps": 0,
+      "rateA": 0.9973821989528796,
+      "moves": {
+        "maelstrom": 1392,
+        "splash_bolt": 2752,
+        "foam_volley": 1210,
+        "root_quake": 1222,
+        "tide_shot": 3738,
+        "bramble_dart": 932,
+        "spore_burst": 724,
+        "thorn_volley": 2152,
+        "bubble": 1136,
+        "vine_lash": 1352
+      }
+    },
+    "water_axolotl|plant_ox|kit2": {
+      "winsA": 0,
+      "winsB": 384,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 0,
+      "moves": {
+        "tide_shot": 6576,
+        "bubble": 6504,
+        "thorn_volley": 3944,
+        "seed_shot": 3416
+      }
+    },
+    "water_axolotl|plant_ox|kit3": {
+      "winsA": 0,
+      "winsB": 384,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 0,
+      "moves": {
+        "foam_volley": 2128,
+        "tide_shot": 4924,
+        "bubble": 4660,
+        "spore_burst": 1620,
+        "thorn_volley": 2900,
+        "seed_shot": 2624
+      }
+    },
+    "water_axolotl|plant_ox|kit4": {
+      "winsA": 1,
+      "winsB": 383,
+      "draws": 0,
+      "timeCaps": 0,
+      "rateA": 0.0026041666666666665,
+      "moves": {
+        "splash_bolt": 2920,
+        "foam_volley": 1574,
+        "tide_shot": 3944,
+        "bramble_dart": 2162,
+        "spore_burst": 1296,
+        "thorn_volley": 2396,
+        "bubble": 1024,
+        "seed_shot": 560
+      }
+    },
+    "water_axolotl|plant_ox|kit6": {
+      "winsA": 1,
+      "winsB": 381,
+      "draws": 2,
+      "timeCaps": 0,
+      "rateA": 0.002617801047120419,
+      "moves": {
+        "maelstrom": 1392,
+        "splash_bolt": 2752,
+        "foam_volley": 1210,
+        "root_quake": 1222,
+        "tide_shot": 3738,
+        "bramble_dart": 932,
+        "spore_burst": 724,
+        "thorn_volley": 2152,
+        "bubble": 1136,
+        "vine_lash": 1352
+      }
+    }
+  }
+}

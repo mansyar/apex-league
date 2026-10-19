@@ -6,7 +6,7 @@ import {
   type EvolutionDrive,
   JUVENILE_SCALE,
   stageScale,
-} from "./scene-logic"
+} from "../scene-logic"
 
 /** Drive the evolution machine at a fixed 60fps cadence from a starting
  * pose (begin is called for you), collecting frames until it goes idle

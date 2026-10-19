@@ -48,6 +48,29 @@ export {
   bossForCup,
   getBoss,
 } from "./bosses"
+export {
+  breedingPool,
+  canBreed,
+  createBredCreature,
+  deriveTrait,
+  effectiveTraits,
+  type GraduatePairReason,
+  type GraduatePairResult,
+  graduateWithPair,
+  inheritedFloorFromPair,
+  isLineageTrait,
+  PAIR_SECONDARY_FRACTION,
+  type PairReason,
+  type PairVerdict,
+  pairFor,
+  retireeRecord,
+  speciesOptions,
+  TRAIT_ORDER,
+  TRAITS,
+  type TraitDef,
+  traitBonus,
+  validatePair,
+} from "./breeding"
 export { CUP_INTERVAL_DAYS, isCupDay } from "./calendar"
 export {
   assignTraining,
@@ -69,6 +92,7 @@ export {
   type Element,
   effectiveStats,
   type LifeStage,
+  type LineageTrait,
   NAME_MAX_LENGTH,
   type RenameResult,
   renameCreature,
@@ -137,6 +161,7 @@ export {
   type GraduationVerdict,
   graduate,
   INHERITANCE_FRACTION,
+  type InheritanceSource,
   inheritedFloor,
   initialLineage,
   type LineagePerks,
@@ -152,6 +177,7 @@ export {
 export {
   clearLoadout,
   defaultLoadout,
+  knownMoves,
   MOVE_TIER3_DAYS,
   MOVE_TIER4_DAYS,
   requiredTierDays,
@@ -170,13 +196,23 @@ export { SAVE_VERSION, type SaveData, serializeSave } from "./save/schema"
 export {
   clearSave,
   createMemoryAdapter,
+  isValidSaveState,
   loadBoot,
   loadGame,
   loadSave,
+  readRawSave,
   SAVE_KEY,
   type SaveAdapter,
   saveGame,
 } from "./save/storage"
+export {
+  buildSaveExport,
+  exportFilename,
+  inspectSaveImport,
+  type SaveExport,
+  type SaveImportReason,
+  type SaveImportResult,
+} from "./save/transfer"
 export {
   EXHAUSTED_ENERGY,
   NIGHT_RECOVERY,
@@ -194,8 +230,10 @@ export {
   markHintSeen,
   type Phase,
   setArenaCamera,
+  setMusicVolume,
   setMuted,
   setReducedMotion,
+  setSfxVolume,
 } from "./state"
 export {
   type StatBreakdown,

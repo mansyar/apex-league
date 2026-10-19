@@ -10,6 +10,9 @@ import type { GameState } from "./state"
 /** The six league elements. Each has one fixed hue (type-color contract). */
 export type Element = "fire" | "water" | "plant" | "electric" | "earth" | "wind"
 
+/** A heritable lineage trait; egg-floor + display only, no battle effect. */
+export type LineageTrait = "sturdy" | "fierce" | "guarded" | "quick"
+
 /** Life stages. Champions arrive in a later track; babies mature here. */
 export type LifeStage = "baby" | "juvenile" | "champion"
 
@@ -45,6 +48,16 @@ export interface Creature {
   /** Proper-noun display name (defaults to the species name). */
   name: string
   element: Element
+  /**
+   * Inherited lineage traits (save v15). Display + egg-floor only; never
+   * consulted by the battle resolver.
+   */
+  traits: LineageTrait[]
+  /**
+   * Hall of Fame generations of this creature's parents. Empty for a founder;
+   * one entry for a founder-pick successor; two for a bred successor.
+   */
+  parents: number[]
   stage: LifeStage
   /**
    * Clean nights since the last sickness night, capped at
@@ -163,6 +176,8 @@ export function createCreature(
     speciesId: species.id,
     name: species.displayName,
     element: species.element,
+    traits: [],
+    parents: [],
     stage: "baby",
     sickCooldown: 0,
     stats: rollStats(rng, species),

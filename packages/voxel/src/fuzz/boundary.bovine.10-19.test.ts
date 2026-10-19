@@ -23,4 +23,4 @@ test("no bovine voxel touches the grid boundary over seeds 10-19", () => {
     }
   }
   expect(violations).toBe(0)
-}, 30000)
+}, 120000)

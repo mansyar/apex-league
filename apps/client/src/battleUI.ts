@@ -4,6 +4,7 @@ import {
   getMove,
   getSpecies,
   type LifeStage,
+  MOVE_TIER3_DAYS,
   type MoveDef,
   requiredTierDays,
   type SpeciesDef,
@@ -102,11 +103,18 @@ export interface KitPickerClasses {
  * ("Unlocks in 3 days · …"), so a locked row still tells the coach what
  * they are waiting for. Pure string — both kit pickers render it.
  */
-export function moveStatLine(move: MoveDef, daysToUnlock?: number): string {
+export function moveStatLine(
+  move: MoveDef,
+  daysToUnlock?: number,
+  evolutionUnlocks = false,
+): string {
   const stats = `Power ${move.power} · Accuracy ${move.accuracy}% · Cooldown ${move.cooldown}`
   if (daysToUnlock === undefined) return stats
   const days = daysToUnlock === 1 ? "1 day" : `${daysToUnlock} days`
-  return `Unlocks in ${days} · ${stats}`
+  const gate = evolutionUnlocks
+    ? `Unlocks in ${days} or on evolution`
+    : `Unlocks in ${days}`
+  return `${gate} · ${stats}`
 }
 
 /**
@@ -152,6 +160,7 @@ export function buildKitPicker(options: {
       statEl.textContent = moveStatLine(
         move,
         locked ? required - creature.trainingDays : undefined,
+        locked && required === MOVE_TIER3_DAYS && creature.stage === "baby",
       )
       row.append(statEl)
     }
@@ -227,32 +236,11 @@ export function buildTacticRow(options: {
 }
 
 /**
- * Keep Tab cycling inside a dialog's focusable elements (the hud reset
- * modal, the cup give-up modal). Attach the returned handler as a keydown
- * listener on the dialog root. The scrim hides the page, so focus
- * wandering outside would be invisible.
+ * Focus trapping now lives in `ui/focus.ts` (disabled controls skipped,
+ * more focusable roles); kept re-exported so existing overlays and their
+ * imports keep one entry point.
  */
-export function focusTrap(
-  container: HTMLElement,
-): (event: KeyboardEvent) => void {
-  return (event) => {
-    if (event.key !== "Tab") return
-    const first = container.querySelector<HTMLElement>("button, [href], input")
-    if (!first) return
-    const focusable = container.querySelectorAll<HTMLElement>(
-      "button, [href], input",
-    )
-    const last = focusable[focusable.length - 1]
-    if (!last) return
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault()
-      last.focus()
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault()
-      first.focus()
-    }
-  }
-}
+export { focusTrap } from "./ui/focus"
 
 /**
  * What a speed button should show: the driver's own toggle speeds, plus

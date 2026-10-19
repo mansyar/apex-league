@@ -216,11 +216,13 @@ so neither driver allocates per frame.
   asserts correctness and determinism at whatever wall time the runner needs;
   three generator-heavy tests (two in `face.test.ts`, the arena face idle) run
   past Bun's 5 s default under parallel load and now carry an explicit
-  timeout, and `bun run verify` passes `--timeout 20000` so the shared gate
-  does not fail on machine load rather than on a defect. No test was deleted,
-  skipped or weakened to buy this. `workflow.md` states a stricter "< 10 s"
-  target for the same suite; that figure is unmet for the same reasons and on
-  the same machine, and the deviation here is the record for both.
+  timeout, and `bun run verify` passes a raised timeout so the shared gate
+  does not fail on machine load rather than on a defect. (This track set it to
+  `--timeout 20000`; `origin/main` independently raised the global figure to
+  `--timeout 120000` the same day, and the merge takes main's.) No test was
+  deleted, skipped or weakened to buy this. `workflow.md` states a stricter
+  "< 10 s" target for the same suite; that figure is unmet for the same reasons
+  and on the same machine, and the deviation here is the record for both.
 - Triangle budget: no more than 2.5× current worst case (~2.1k → ~5k per
   creature). Before/after counts recorded per archetype and stage.
 - No new dependencies. `packages/voxel` stays pure TypeScript with no DOM.

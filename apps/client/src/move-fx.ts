@@ -160,6 +160,14 @@ export interface MoveFx {
   compressed?: { wind: number; flight: number; beats: number[] }
 }
 
+/**
+ * Bespoke looks, keyed by move id (spec FR9). A move with no entry renders
+ * through the shared `DEFAULT_FX` object plus its element's shot look, so
+ * two moves of the same element that are both absent from this map are
+ * pixel-identical apart from the numbers in the log — which is why each
+ * element's heavy finisher (move_pool_20261018) earns an entry even though
+ * no side-by-side capture was needed to prove the pair matched.
+ */
 export const MOVE_FX: Record<string, MoveFx> = {
   cinder_shot: {
     wind: 0.55,
@@ -252,6 +260,68 @@ export const MOVE_FX: Record<string, MoveFx> = {
       shove: 0,
     },
     compressed: { wind: 0.3, flight: 220, beats: [0.38, 0.44, 0.5] },
+  },
+  // The wider pool adds one heavy finisher per element beside a steady move
+  // that shares the default tier 1-2 read. These three carry the weight so the
+  // pair is distinguishable in play; the steady moves inherit the defaults.
+  pyre_lance: {
+    wind: 0.62,
+    shots: [{ size: 2.4, life: 900, at: 0.62 }],
+    muzzle: { puffs: 9, size: 1.5, life: 420, gravity: 7, flashGrow: 3 },
+    kick: -0.66,
+    charge: { from: 0.3, to: 1.6 },
+    pose: {
+      windup: { pitch: -0.3, hold: true, roll: 0.1, rise: 0.07, coilX: 0.28 },
+      recoil: { pitchOut: 0.18, sweepX: [0.28, -0.62] },
+    },
+    arrival: {
+      burst: { puffs: 12, size: 1.8, life: 520, gravity: 9, flashGrow: 3.2 },
+      shove: -0.6,
+    },
+  },
+  root_quake: {
+    wind: 0.58,
+    shots: [{ size: 2.3, life: 1000, at: 0.58 }],
+    kick: -0.58,
+    pose: {
+      windup: { pitch: -0.34, hold: true, rise: -0.1, coilX: 0.3 },
+      recoil: { pitchOut: 0.2, sweepX: [0.3, -0.62], riseOut: 0.04 },
+    },
+    arrival: {
+      burst: {
+        puffs: 14,
+        ring: true,
+        size: 1.5,
+        life: 700,
+        gravity: 4,
+        flashGrow: 3.4,
+      },
+      shove: -0.5,
+    },
+  },
+  maelstrom: {
+    wind: 0.56,
+    shots: [
+      { size: 1.5, life: 760, spread: -0.25, at: 0.5 },
+      { size: 1.5, life: 760, spread: 0.25, at: 0.56 },
+    ],
+    kick: -0.5,
+    pose: {
+      windup: { pitch: -0.22, hold: true, rise: -0.06, coilX: 0.24 },
+      recoil: { pitchOut: 0.15, sweepX: [0.24, -0.56] },
+    },
+    arrival: {
+      burst: {
+        puffs: 16,
+        ring: true,
+        size: 1.4,
+        life: 700,
+        gravity: 6,
+        flashGrow: 3.4,
+      },
+      shove: -0.5,
+    },
+    compressed: { wind: 0.32, flight: 240, beats: [0.42, 0.5] },
   },
   foam_volley: {
     wind: 0.26,

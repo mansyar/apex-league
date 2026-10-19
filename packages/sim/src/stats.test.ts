@@ -8,6 +8,7 @@
  */
 
 import { describe, expect, it } from "bun:test"
+import { graduateWithPair, inheritedFloorFromPair } from "./breeding"
 import {
   type Creature,
   type CreatureStats,
@@ -19,6 +20,7 @@ import { graduate, inheritedFloor, type RetiredRecord } from "./legacy"
 import { getSpecies } from "./species"
 import { chooseStarter, createInitialState } from "./state"
 import { statBreakdown } from "./stats"
+import { effectiveTraits } from "./traits"
 
 const STAT_KEYS = ["hp", "atk", "def", "spd"] as const
 
@@ -162,6 +164,7 @@ describe("statBreakdown — the inherited floor", () => {
       parent.stats,
       ox,
       parent.generation + 1 + parent.cupsWon,
+      effectiveTraits(parent),
     )
     const rows = statBreakdown(successor, {
       generation: 1,
@@ -172,6 +175,62 @@ describe("statBreakdown — the inherited floor", () => {
       // The floor never exceeds the roll it clamped.
       expect(rows[key].baseRolled).toBeGreaterThanOrEqual(expected[key])
     }
+  })
+
+  it("a bred successor shows the exact dual-parent floor it hatched under", () => {
+    // Two real graduations archive gens 0 and 1, then a pair hatch (0 x 1)
+    // retires gen 2: the bred successor's parents are both archived records.
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    const founder = owned.creature
+    if (!founder) throw new Error("expected a starter creature")
+    const champion = (creature: Creature): Creature => ({
+      ...creature,
+      stage: "champion",
+    })
+    const first = graduate(
+      { ...owned, day: 60, creature: champion(founder) },
+      "plant_ox",
+      7,
+    )
+    if (!first.ok) throw new Error(`graduation rejected: ${first.reason}`)
+    const secondCreature = first.state.creature
+    if (!secondCreature) throw new Error("expected a successor creature")
+    const second = graduate(
+      { ...first.state, day: 60, creature: champion(secondCreature) },
+      "water_axolotl",
+      8,
+    )
+    if (!second.ok) throw new Error(`graduation rejected: ${second.reason}`)
+    const thirdCreature = second.state.creature
+    if (!thirdCreature) throw new Error("expected a successor creature")
+    const third = graduateWithPair(
+      { ...second.state, day: 60, creature: champion(thirdCreature) },
+      [0, 1],
+      "plant_ox",
+      9,
+    )
+    if (!third.ok) throw new Error(`pair graduation rejected: ${third.reason}`)
+    const bred = third.state.creature
+    if (!bred) throw new Error("expected a bred creature")
+
+    const [sire, dam] = third.state.lineage.hallOfFame
+    if (!sire || !dam) throw new Error("expected two archived parents")
+    const species = getSpecies("plant_ox")
+    if (!species) throw new Error("expected the plant_ox species")
+    const traits = [...effectiveTraits(sire), ...effectiveTraits(dam)]
+    const expected = inheritedFloorFromPair(
+      sire.stats,
+      dam.stats,
+      species,
+      third.state.lineage.generation + third.state.cupsWon,
+      traits,
+    )
+    const rows = statBreakdown(bred, third.state.lineage)
+    for (const key of STAT_KEYS) {
+      expect(rows[key].inheritedFloor).toBe(expected[key])
+      expect(rows[key].baseRolled).toBeGreaterThanOrEqual(expected[key])
+    }
+    expect(bred.parents).toEqual([0, 1])
   })
 
   it("a floored successor still keeps the sum invariant", () => {
@@ -194,6 +253,8 @@ describe("statBreakdown — the inherited floor", () => {
       cupsWon,
       generation,
       retiredOnDay: 60,
+      traits: [],
+      parents: [],
     })
     // Prestige at lay = generation + 1 + cupsWon: 4 is under the milestone, 5 at it.
     const under = { generation: 5, hallOfFame: [record(3, 0)] }
