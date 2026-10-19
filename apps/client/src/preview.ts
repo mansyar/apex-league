@@ -25,6 +25,7 @@ const stage = parseStage(params.get("stage") ?? "baby")
 const { dna, build, def } = generate(archetype, seed, stage)
 const creature = buildCreatureGroup(dna, build, def.grid, {
   grey: params.get("color") === null,
+  flat: params.get("surface") === "0",
 })
 
 const renderer = new THREE.WebGLRenderer({ antialias: true })

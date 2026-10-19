@@ -59,13 +59,21 @@ export function buildCreatureGroup(
   dna: Dna,
   build: CreatureBuild,
   grid: number = DRAKE_GRID,
-  options: { grey?: boolean } = {},
+  options: { grey?: boolean; flat?: boolean } = {},
 ): THREE.Group {
   const creature = new THREE.Group()
   for (const { part, geometry } of buildCreatureMeshes(build, grid)) {
+    // `flat` drops the baked vertex colour (AO levels, surface classes,
+    // dappling) and paints each part with its base coat, so the surface
+    // language can be compared against the plain silhouette in one tab.
+    const base = paletteFor(build, part.name)[0] ?? [1, 0, 1]
     const material = options.grey
       ? new THREE.MeshLambertMaterial({ color: 0x9a9a9a })
-      : new THREE.MeshLambertMaterial({ vertexColors: true })
+      : options.flat
+        ? new THREE.MeshLambertMaterial({
+            color: new THREE.Color(base[0], base[1], base[2]),
+          })
+        : new THREE.MeshLambertMaterial({ vertexColors: true })
     const mesh = new THREE.Mesh(geometry, material)
     const pivot = build.pivots[part.name]
     mesh.position.set(pivot?.[0] ?? 0, pivot?.[1] ?? 0, pivot?.[2] ?? 0)

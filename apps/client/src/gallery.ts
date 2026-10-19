@@ -5,7 +5,7 @@
  */
 import "./ui/kit.css"
 import "./base.css"
-import { archetypes, generate } from "@apex/voxel"
+import { archetypes, generate, parseStage } from "@apex/voxel"
 import * as THREE from "three"
 import { buildCreatureGroup } from "./creature"
 import { disposeObject3D } from "./scene-utils"
@@ -17,6 +17,10 @@ const app: HTMLDivElement = (() => {
 })()
 
 const VARIANTS = 8
+// `?stage=` always shows that life stage; the default mirrors the preview's.
+const stage = parseStage(
+  new URLSearchParams(window.location.search).get("stage") ?? "baby",
+)
 // Mixed herds rotate every registered archetype in registration order, so a
 // newly registered archetype joins the rotation with zero edits here.
 const roster = Object.keys(archetypes)
@@ -32,7 +36,7 @@ const bar = document.createElement("div")
 bar.style.cssText =
   "position:absolute;top:12px;left:12px;z-index:10;display:flex;gap:8px;align-items:center;color:#f0f4fa;font:13px monospace;background:rgba(10,14,24,.85);padding:8px 12px;border-radius:10px"
 const label = document.createElement("span")
-label.textContent = "base seed"
+label.textContent = `stage ${stage} · base seed`
 const input = document.createElement("input")
 input.type = "number"
 input.value = new URLSearchParams(window.location.search).get("seed") ?? "42"
@@ -83,7 +87,7 @@ function rebuild() {
       archetypeParam === "mixed"
         ? (roster[i % roster.length] ?? "draconic")
         : archetypeParam
-    const { dna, build, def } = generate(archetype, seed)
+    const { dna, build, def } = generate(archetype, seed, stage)
     const creature = buildCreatureGroup(dna, build, def.grid)
     // Line them up along x, facing the camera (-z toward viewer). The rotated
     // body sits ~+0.9 ahead of the group origin, so shift the row to recenter.
