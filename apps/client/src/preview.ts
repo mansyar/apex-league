@@ -136,15 +136,18 @@ ground.position.y = -0.1
 scene.add(ground)
 scene.add(creature)
 
-// Review affordances (dev-only, both default to off): `blink=<seconds>`
-// freezes the face idle at that instant so a lid can be photographed, and
-// `scale=<n>` shrinks the rig to arena-normalized size for a distance check.
+// Review affordances (dev-only): the face idles live by default, so a blink can
+// be watched rather than inferred; `blink=<seconds>` freezes it at that instant
+// so a lid can be photographed, and `scale=<n>` shrinks the rig to
+// arena-normalized size for a distance check.
+const idleEyes = findEyes(creature)
 const blinkParam = params.get("blink")
 if (blinkParam !== null) {
-  driveFace(findEyes(creature), seed, Number.parseFloat(blinkParam), {
+  driveFace(idleEyes, seed, Number.parseFloat(blinkParam), {
     suppressed: true,
   })
 }
+const idleStart = performance.now()
 if (fit !== 1) creature.scale.multiplyScalar(fit)
 
 // DNA readout for context during iteration
@@ -160,7 +163,8 @@ app.appendChild(info)
 const hint = document.createElement("div")
 hint.style.cssText =
   "position:absolute;bottom:12px;left:12px;color:#9fb0c8;font:12px/1.4 monospace;background:rgba(10,14,24,.7);padding:6px 10px;border-radius:8px"
-hint.textContent = "drag to orbit · wheel to zoom"
+hint.textContent =
+  "drag to orbit · wheel to zoom · face idles live (?blink=<s> freezes)"
 app.appendChild(hint)
 
 function onResize() {
@@ -175,6 +179,11 @@ window.addEventListener("resize", onResize)
 onResize()
 
 renderer.setAnimationLoop(() => {
+  if (blinkParam === null) {
+    driveFace(idleEyes, seed, (performance.now() - idleStart) / 1000, {
+      suppressed: false,
+    })
+  }
   orbitOffset.setFromSpherical(orbit)
   camera.position.copy(target).add(orbitOffset)
   camera.lookAt(target)
