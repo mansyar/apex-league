@@ -217,9 +217,7 @@ export function createFighterDriver(io: {
     const glanceSuppressed = life === 0 || (io.glanceSuppressed?.() ?? false)
     for (const [c, other] of io.pair()) {
       if (c.eyes) {
-        driveFace(c.eyes, c.faceSeed ?? 0, seconds, {
-          suppressed: glanceSuppressed,
-        })
+        driveFace(c.eyes, c.faceSeed ?? 0, seconds, glanceSuppressed)
       }
       // Squash spring integrates for everyone — the KO landing impulse
       // needs it even while the down branch owns the pose.

@@ -187,7 +187,7 @@ describe("driveFace", () => {
     const right = eye()
     let blinked = false
     for (let t = 0; t < 30; t += 0.01) {
-      driveFace({ left, right }, 31, t, { suppressed: true })
+      driveFace({ left, right }, 31, t, true)
       if (left.scale.y < 1) blinked = true
       expect(left.rotation.y).toBe(0)
     }

@@ -145,15 +145,19 @@ export function findEyes(root: {
 /**
  * Write one frame of face idle into a rig. Both eyes get the same lid
  * and the same yaw; `suppressed` keeps the blink and parks the glance.
+ *
+ * The flag is a boolean rather than an options object because this runs once
+ * per creature per frame: an options literal allocated at the call site is
+ * the only garbage either driver would otherwise produce.
  */
 export function driveFace(
   eyes: FaceEyes,
   seed: number,
   t: number,
-  options: { suppressed?: boolean } = {},
+  suppressed = false,
 ): void {
   const lid = blinkAt(seed, t)
-  const yaw = glanceAt(seed, t, options.suppressed ?? false)
+  const yaw = glanceAt(seed, t, suppressed)
   const left = eyes.left
   const right = eyes.right
   if (left) {

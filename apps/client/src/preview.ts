@@ -144,9 +144,7 @@ scene.add(creature)
 const idleEyes = findEyes(creature)
 const blinkParam = params.get("blink")
 if (blinkParam !== null) {
-  driveFace(idleEyes, seed, Number.parseFloat(blinkParam), {
-    suppressed: true,
-  })
+  driveFace(idleEyes, seed, Number.parseFloat(blinkParam), true)
 }
 const idleStart = performance.now()
 if (fit !== 1) creature.scale.multiplyScalar(fit)
@@ -181,9 +179,7 @@ onResize()
 
 renderer.setAnimationLoop(() => {
   if (blinkParam === null) {
-    driveFace(idleEyes, seed, (performance.now() - idleStart) / 1000, {
-      suppressed: false,
-    })
+    driveFace(idleEyes, seed, (performance.now() - idleStart) / 1000, false)
   }
   orbitOffset.setFromSpherical(orbit)
   camera.position.copy(target).add(orbitOffset)

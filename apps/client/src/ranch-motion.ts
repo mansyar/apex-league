@@ -336,7 +336,7 @@ export function createRanchMotion(deps: RanchMotionDeps): RanchMotion {
       }
       // Face idle: the lid and the eye-only glance. Reduced motion keeps
       // the blink (a lid, not travel) and parks the glance.
-      driveFace(rigParts.eyes, faceSeed, t, { suppressed: reducedMotion })
+      driveFace(rigParts.eyes, faceSeed, t, reducedMotion)
       // Evolution ceremony (spec R5): while active it owns the creature's
       // pose, scale, and glow outright — the feed walk and the wanderer
       // stay parked (startEvolution preempted them). The swap rebuilds the
