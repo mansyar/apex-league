@@ -392,9 +392,9 @@ Goal: the repository tells the truth about what shipped.
   - [ ] Await explicit user approval, attach the verification note, record the
         checkpoint SHA
 
-**Checkpoint `d11ae78`** — verification note attached to that commit; awaiting
-the user's approval of the phase. `bun run verify` green end to end (check,
-1521 tests, biome, determinism gate).
+**Checkpoint `d11ae78`** — approved by the user after reviewing the phase 6
+budget, the surface comparison and the green gate. Verification note attached
+to that commit.
 
 ### Phase 6 findings
 
