@@ -65,10 +65,11 @@
 - [x] Task: Full probe matrix against the Phase 1 baseline (`4ff1610`)
   - [x] Mirrors and cross-element within ±5 points; zero time-cap endings (`reason: "time"`); every new move chosen by the AI in at least one matchup
   - **Matrix (2026-10-19, same harness, 96 seeds x 4 tactic pairs, tiers 2/3/4/6):** 36 cases, **0 time caps**. `kit2`/`kit3`/`kit4` reproduce the baseline to the decimal (max |Δ| 0.0). `kit6` is the new full-pool tier: fire 51.3% (was 52.1, −0.8), plant 48.6% (44.6, +3.9), water 50.6% (47.0, +3.6) — all three inside the ±5 bound, and the three mirrors now span 48.6–51.3 instead of 44.6–52.1. Cross-element stays at the rails exactly as before (fire>plant 100/0, fire<water 0/100, plant>water 99.7/0.3). Every new move is chosen by the AI: Flare Dart and Pyre Lance in 5 cases each, Vine Lash and Root Quake in 5, Maelstrom in 5, Mist Spray in 3. Evidence: `post-probe.json` beside `baseline-probe.json`.
-- [ ] Task: Documentation
-  - [ ] `tech-stack.md`: move-pool layout, derived-knowledge note, rival-kit determinism rule
-  - [ ] `docs/save-schema.md`: explicit statement that move knowledge is derived and no v16 exists
-- [ ] Task: Final `bun run verify`, determinism gate, and track checkpoint
+- [x] Task: Documentation (`4d985b2`)
+  - [x] `tech-stack.md`: move-pool layout, derived-knowledge note, rival-kit determinism rule
+  - [x] `docs/save-schema.md`: explicit statement that move knowledge is derived and no v16 exists
+- [x] Task: Final `bun run verify`, determinism gate, and track checkpoint (`4d985b2`)
+  - `bun run verify` exits 0: 1554 pass / 1 skip / 0 fail, biome 0 errors (7 pre-existing style warnings), determinism gate byte-identical for all 11 digests. Verification note attached to `4d985b2`.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Notes
