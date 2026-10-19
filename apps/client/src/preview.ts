@@ -45,25 +45,77 @@ const headAt = new THREE.Vector3(
   headPivot[1] * VOXEL_SIZE,
   headPivot[2] * VOXEL_SIZE,
 )
+// Everything orbits the framing target, which is also what the URL presets aim
+// at: the head for a face shot, the creature's middle otherwise.
+const target = new THREE.Vector3(0, 0.75 + (1 - zoom) * 1.2, 0)
 if (faceOn) {
   // Close three-quarter on the head, framed from the declared head pivot so
   // every archetype sits in shot without a per-species camera table.
+  target.copy(headAt)
   camera.position.set(
     headAt.x + 0.85 * zoom,
     headAt.y + 0.3 * zoom,
     headAt.z + 1.7 * zoom,
   )
-  camera.lookAt(headAt)
 } else if (angle === "side") {
   camera.position.set(7 * zoom, 2.2 * zoom + (1 - zoom) * 1.5, 0.5)
-  camera.lookAt(0, 0.75 + (1 - zoom) * 1.2, 0)
 } else if (angle === "front") {
   camera.position.set(0.5, 3.4 * zoom, 10 * zoom)
-  camera.lookAt(0, 0.75 + (1 - zoom) * 1.2, 0)
 } else {
   camera.position.set(4.5 * zoom, 3.2 * zoom, 6.5 * zoom)
-  camera.lookAt(0, 0.75 + (1 - zoom) * 1.2, 0)
 }
+camera.lookAt(target)
+
+// Drag to orbit, wheel to dolly. The opening shot still comes from the URL, so
+// the screenshot script is unaffected until a pointer actually moves.
+const orbit = new THREE.Spherical().setFromVector3(
+  camera.position.clone().sub(target),
+)
+const MIN_RADIUS = 0.1
+const MAX_RADIUS = 40
+const PHI_LIMIT = 0.05
+const canvas = renderer.domElement
+canvas.style.touchAction = "none"
+let pointer: number | null = null
+let lastX = 0
+let lastY = 0
+canvas.addEventListener("pointerdown", (event) => {
+  pointer = event.pointerId
+  lastX = event.clientX
+  lastY = event.clientY
+  canvas.setPointerCapture(event.pointerId)
+})
+canvas.addEventListener("pointermove", (event) => {
+  if (pointer !== event.pointerId) return
+  orbit.theta -= (event.clientX - lastX) * 0.01
+  orbit.phi = Math.min(
+    Math.PI - PHI_LIMIT,
+    Math.max(PHI_LIMIT, orbit.phi - (event.clientY - lastY) * 0.01),
+  )
+  lastX = event.clientX
+  lastY = event.clientY
+})
+const release = (event: PointerEvent) => {
+  if (pointer !== event.pointerId) return
+  pointer = null
+  if (canvas.hasPointerCapture(event.pointerId)) {
+    canvas.releasePointerCapture(event.pointerId)
+  }
+}
+canvas.addEventListener("pointerup", release)
+canvas.addEventListener("pointercancel", release)
+canvas.addEventListener(
+  "wheel",
+  (event) => {
+    event.preventDefault()
+    orbit.radius = Math.min(
+      MAX_RADIUS,
+      Math.max(MIN_RADIUS, orbit.radius * Math.exp(event.deltaY * 0.001)),
+    )
+  },
+  { passive: false },
+)
+const orbitOffset = new THREE.Vector3()
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.7))
 const sun = new THREE.DirectionalLight(0xffffff, 1.6)
@@ -88,6 +140,12 @@ const styles = Object.entries(dna.styles)
 info.textContent = `seed ${seed} · ${stage} · ${styles}`
 app.appendChild(info)
 
+const hint = document.createElement("div")
+hint.style.cssText =
+  "position:absolute;bottom:12px;left:12px;color:#9fb0c8;font:12px/1.4 monospace;background:rgba(10,14,24,.7);padding:6px 10px;border-radius:8px"
+hint.textContent = "drag to orbit · wheel to zoom"
+app.appendChild(hint)
+
 function onResize() {
   const w = app.clientWidth
   const h = app.clientHeight
@@ -100,5 +158,8 @@ window.addEventListener("resize", onResize)
 onResize()
 
 renderer.setAnimationLoop(() => {
+  orbitOffset.setFromSpherical(orbit)
+  camera.position.copy(target).add(orbitOffset)
+  camera.lookAt(target)
   renderer.render(scene, camera)
 })
