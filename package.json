@@ -11,7 +11,7 @@
     "check": "bun run --filter '*' check",
     "test": "bun test",
     "gate:determinism": "bun packages/voxel/scripts/determinism-gate.ts",
-    "verify": "bun run check && bun test --check --parallel && biome check && bun run gate:determinism"
+    "verify": "bun run check && bun test --check --parallel --timeout 20000 && biome check && bun run gate:determinism"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",

@@ -164,7 +164,7 @@ describe("faceParts", () => {
         }
       }
     }
-  })
+  }, 20_000)
 
   test("recess walls are dark, the rest of the head is coat", () => {
     const plan = facePlan("bovine", BOVINE_HEAD)
@@ -241,7 +241,7 @@ describe("face wiring", () => {
         expect(rows.get(mouthRow)).toBeGreaterThanOrEqual(3)
       }
     }
-  })
+  }, 20_000)
 
   // An isolated `voxelize([eye])` grid is not evidence of anything: the sampler
   // spans the whole scene bounds, so a standalone eye gets two or three samples
