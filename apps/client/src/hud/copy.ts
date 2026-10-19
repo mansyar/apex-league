@@ -95,6 +95,8 @@ export function flavorCallout(creature: Creature): string {
  * The fresh-unlock coach line: while the trained-days counter sits exactly
  * on a tier threshold, the coach names the move that just became legal.
  * Under training and condition copy in precedence — a quiet morning only.
+ * The day-6 gate opens the whole wider pool at once, so the line lists each
+ * move rather than pretending there is one.
  */
 export function unlockCallout(creature: Creature): string {
   const days = creature.trainingDays
@@ -103,18 +105,18 @@ export function unlockCallout(creature: Creature): string {
   }
   const species = getSpecies(creature.speciesId)
   if (!species) return ""
-  const moveIndex = species.kit.findIndex(
-    (_, index) => requiredTierDays(index, creature.stage) === days,
+  const names = species.kit.flatMap((id, index) =>
+    requiredTierDays(index, creature.stage) === days
+      ? [getMove(id)?.displayName ?? id]
+      : [],
   )
-  const moveId = species.kit[moveIndex]
-  if (moveId === undefined) return ""
-  const move = getMove(moveId)
-  if (!move) return ""
+  if (names.length === 0) return ""
   const tail =
     days === MOVE_TIER3_DAYS
       ? ` Train ${MOVE_TIER4_DAYS - days} more days for the next tier.`
       : ""
-  return `New move available: ${move.displayName}.${tail}`
+  const lead = names.length === 1 ? "New move available" : "New moves available"
+  return `${lead}: ${names.join(", ")}.${tail}`
 }
 
 import { romanNumeral, stageLabel } from "../ui/labels"

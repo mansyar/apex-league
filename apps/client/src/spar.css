@@ -327,6 +327,19 @@
     top: calc(64px + var(--kit-safe-top));
     right: calc(14px + var(--kit-safe-right));
   }
+
+  /* The six-move picker is taller than the phone viewport, and the top-left
+     chip cluster (z-45) stays above this overlay. Park the panel below the
+     cluster and let it scroll instead of hiding its heading under HANDBOOK. */
+  .spar-overlay {
+    align-items: flex-start;
+    padding: calc(116px + var(--kit-safe-top)) 12px 12px;
+  }
+
+  .spar-panel {
+    max-height: calc(100dvh - 128px - var(--kit-safe-top));
+    overflow-y: auto;
+  }
 }
 
 .battle-text {

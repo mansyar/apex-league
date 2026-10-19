@@ -4,6 +4,7 @@ import {
   getMove,
   getSpecies,
   type LifeStage,
+  MOVE_TIER3_DAYS,
   type MoveDef,
   requiredTierDays,
   type SpeciesDef,
@@ -102,11 +103,18 @@ export interface KitPickerClasses {
  * ("Unlocks in 3 days · …"), so a locked row still tells the coach what
  * they are waiting for. Pure string — both kit pickers render it.
  */
-export function moveStatLine(move: MoveDef, daysToUnlock?: number): string {
+export function moveStatLine(
+  move: MoveDef,
+  daysToUnlock?: number,
+  evolutionUnlocks = false,
+): string {
   const stats = `Power ${move.power} · Accuracy ${move.accuracy}% · Cooldown ${move.cooldown}`
   if (daysToUnlock === undefined) return stats
   const days = daysToUnlock === 1 ? "1 day" : `${daysToUnlock} days`
-  return `Unlocks in ${days} · ${stats}`
+  const gate = evolutionUnlocks
+    ? `Unlocks in ${days} or on evolution`
+    : `Unlocks in ${days}`
+  return `${gate} · ${stats}`
 }
 
 /**
@@ -152,6 +160,7 @@ export function buildKitPicker(options: {
       statEl.textContent = moveStatLine(
         move,
         locked ? required - creature.trainingDays : undefined,
+        locked && required === MOVE_TIER3_DAYS && creature.stage === "baby",
       )
       row.append(statEl)
     }

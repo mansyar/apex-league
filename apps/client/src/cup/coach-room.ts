@@ -101,7 +101,8 @@ export function createCoachRoom(shared: CupShared): {
     }
     const rTactic = document.createElement("div")
     rTactic.className = "cup-tactic-unknown"
-    rTactic.textContent = "Tactic unknown — watch the first exchanges."
+    rTactic.textContent =
+      "Fields four of these six — tactic unknown, watch the first exchanges."
     rivalCard.append(rKit, rTactic)
 
     // Your kit card: picker + tactic call.

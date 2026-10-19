@@ -115,4 +115,10 @@ describe("moveStatLine", () => {
       "Unlocks in 1 day · Power 24 · Accuracy 85% · Cooldown 1",
     )
   })
+
+  test("a lock that evolution also opens says so", () => {
+    expect(moveStatLine(flameLash, 3, true)).toBe(
+      "Unlocks in 3 days or on evolution · Power 24 · Accuracy 85% · Cooldown 1",
+    )
+  })
 })
