@@ -372,22 +372,79 @@ live idle in the dev preview. Code `3e464cf`, live-preview follow-up
 
 Goal: the repository tells the truth about what shipped.
 
-- [ ] Task: Regenerate committed artifacts
-  - [ ] `export-artifact.ts` for 3 archetypes × 3 stages
-  - [ ] `gate:determinism --write` for the prop manifest
-  - [ ] `bun run gate:determinism` green; `GENERATOR_VERSION` 2
-- [ ] Task: Budget report
-  - [ ] Record triangles and voxels before/after per archetype and stage
-  - [ ] Confirm the ≤ 2.5× triangle budget and the ≤ 15 s suite
-- [ ] Task: Verification surfaces
-  - [ ] `preview.html` surface default plus `?surface=0` and `?angle=face`
-  - [ ] `gallery.html` `?stage=`
-- [ ] Task: Documentation
-  - [ ] `conductor/tech-stack.md` dated note (AO, colour classes, COLOR_0,
+- [x] Task: Regenerate committed artifacts
+  - [x] `export-artifact.ts` for 3 archetypes × 3 stages
+  - [x] `gate:determinism --write` for the prop manifest
+  - [x] `bun run gate:determinism` green; `GENERATOR_VERSION` 2
+- [x] Task: Budget report
+  - [x] Record triangles and voxels before/after per archetype and stage
+  - [x] Confirm the ≤ 2.5× triangle budget and the ≤ 15 s suite
+- [x] Task: Verification surfaces
+  - [x] `preview.html` surface default plus `?surface=0` and `?angle=face`
+  - [x] `gallery.html` `?stage=`
+- [x] Task: Documentation
+  - [x] `conductor/tech-stack.md` dated note (AO, colour classes, COLOR_0,
         generator version)
-  - [ ] `conductor/learnings.md` entry if a reusable lesson emerged
-  - [ ] `conductor/product-guidelines.md` palette rule for the surface ramp
+  - [x] `conductor/learnings.md` entry if a reusable lesson emerged
+  - [x] `conductor/product-guidelines.md` palette rule for the surface ramp
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [ ] `bun run verify` and `bun run gate:determinism` both green
   - [ ] Await explicit user approval, attach the verification note, record the
         checkpoint SHA
+
+### Phase 6 findings
+
+**Artifacts.** All nine creature GLBs and manifests were re-exported from seed
+42 and the prop digest manifest rewritten with `--write`; `git status` came
+back empty, so everything on disk was already exactly what the generator
+produces — the regeneration is a no-op that proves it. `GENERATOR_VERSION` was
+already 2 (raised with the face rebuild), and the gate verifies it as part of
+each manifest's deep compare.
+
+**Budget, seed 42.** "Before" is measured by running the same probe on the
+track's base commit (`3675768`) in a detached worktree, not quoted from notes.
+Voxels are `sum(part.voxels)`; triangles are summed index counts.
+
+| archetype | stage | parts before → after | voxels before → after | tris before → after | × |
+|---|---|---|---|---|---|
+| draconic | baby | 11 → 15 | 4,086 → 4,094 | 2,042 → 3,544 | 1.74× |
+| draconic | juvenile | 13 → 17 | 3,834 → 3,842 | 2,020 → 3,492 | 1.73× |
+| draconic | champion | 15 → 19 | 4,064 → 4,072 | 2,116 → 3,756 | 1.78× |
+| bovine | baby | 11 → 13 | 3,090 → 3,150 | 1,208 → 2,354 | 1.95× |
+| bovine | juvenile | 13 → 15 | 2,928 → 2,988 | 1,252 → 2,452 | 1.96× |
+| bovine | champion | 15 → 17 | 3,140 → 3,200 | 1,352 → 2,530 | 1.87× |
+| axolotl | baby | 12 → 14 | 2,370 → 2,370 | 1,816 → 3,082 | 1.70× |
+| axolotl | juvenile | 14 → 16 | 2,246 → 2,246 | 1,712 → 2,936 | 1.72× |
+| axolotl | champion | 17 → 19 | 2,478 → 2,478 | 1,942 → 3,286 | 1.69× |
+
+- Worst case is bovine baby at **1.95×**, inside the 2.5× NFR with room. The
+  budget is spent on *triangles*, not voxels: +2 to +60 voxels per creature
+  (eyes, brow, the four extra named parts) against +1.1k to +1.7k triangles,
+  because AO quad-splitting and per-vertex colour add no cells. The axolotl
+  gained zero voxels — its eye sockets replaced as many cells as the eye adds.
+- GLB sizes: draconic 233,156 / 231,964 / 250,284 B; bovine 157,648 / 165,756 /
+  172,536 B; axolotl 203,884 / 196,848 / 221,284 B. Largest is 244 KiB, 76% of
+  the 320 KiB tripwire, and *smaller* than the 243 KiB Phase 2 peak because the
+  face rebuild deleted carved geometry.
+
+**Suite time — NFR deviation, approved 2026-10-19.** The spec asks for ≤ ~15 s
+wall. Measured on this machine: serial full suite **108 s**, `--parallel`
+**21-30 s**, voxel-only serial **74 s**. The same voxel-only run on the base
+commit is **62 s**, so the track added **+19%** wall for **+59% tests and +129%
+assertions** — the per-operation cost did not regress, the runner was already
+far above 15 s before the track began. Deviation written into the spec's NFR
+section with the numbers; the gate was made honest instead of fast-failing:
+`bun run verify` now passes `--timeout 20000` (three generator-heavy tests run
+past Bun's 5 s default under parallel load — `face.test.ts` bead and mouth
+tests, `face-arena.test.ts` idle; the two face tests carry the same timeout
+locally) and nothing was skipped or weakened. `bun run verify` is green after
+that plus removing one pre-existing dead import in
+`apps/client/src/cup/view-models.test.ts` left by the merged cup refactor
+(`68b56f1`), which had made `biome check` red before this track started.
+
+**Surfaces.** `?surface=0` paints each part with its base palette colour and
+drops the baked vertex colour (AO, zones, dappling — and, by construction, the
+painted mouth/nostrils, since those *are* colour); it is a comparison view, not
+a pre-track generator, and the plan says so rather than pretending otherwise.
+`?angle=face` was already in place from Phase 4; `gallery.html?stage=` now
+builds all eight variants at that stage and names it in the bar.

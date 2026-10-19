@@ -201,6 +201,22 @@ passes hit-stop as `suppressed`, the ranch passes reduced motion.
 - `bun check`, `biome check`, `bun test` green. Suite stays at or under ~15 s
   (currently ~11.5 s wall). AO must be O(1) per corner — no per-face neighbour
   scans beyond the fixed eight.
+
+  **Deviation recorded 2026-10-19, approved by the user.** The ~15 s figure
+  does not hold on the machine this track was finished on, and it did not hold
+  at the track's base commit either: the voxel package alone — 133 tests, 33
+  files — took **62 s** serial on the base commit and **74 s** now (211 tests,
+  40 files), and the full suite is **108 s** serial / **21–30 s** with
+  `bun test --parallel`. Like-for-like, the track added **+19%** wall time for
+  **+59%** tests and **+129%** assertions, so the per-operation cost did not
+  regress; the original number was measured under different conditions (or on
+  a different machine) and the tree was already past it. The gate therefore
+  asserts correctness and determinism at whatever wall time the runner needs;
+  three generator-heavy tests (two in `face.test.ts`, the arena face idle) run
+  past Bun's 5 s default under parallel load and now carry an explicit
+  timeout, and `bun run verify` passes `--timeout 20000` so the shared gate
+  does not fail on machine load rather than on a defect. No test was deleted,
+  skipped or weakened to buy this.
 - Triangle budget: no more than 2.5× current worst case (~2.1k → ~5k per
   creature). Before/after counts recorded per archetype and stage.
 - No new dependencies. `packages/voxel` stays pure TypeScript with no DOM.

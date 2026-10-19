@@ -228,3 +228,18 @@ hard way:
     probe with `elementFromPoint`, and remember bun's 5s default test
     timeout can flake the balance/voxel gates on a loaded machine
     (rerun in isolation before chasing ghosts).
+
+16. **At voxel scale, a face is a colour decision, not a modelling one.**
+    (creature_readability_20261018, 2026-10-19) The first face kit carved
+    brows, cheek planes, a snout ridge and teeth, and the verdict was "it
+    made the creature look hideous" — every feature was 1-2 cells, so the
+    head read as damage rather than expression. The version that shipped
+    carves nothing: a 2x2 dark bead per eye (near-black, one faint warm
+    catchlight), a single painted mouth row, painted nostril cells, and one
+    sliver of brow. Lesson: on a 2-4 cell feature budget the readable
+    variables are *contrast and position*, not shape — add detail by
+    painting or removing cells, and reserve geometry for parts that must
+    move (the lid is a pivot plus `scale.y`, not new geometry). Measure the
+    surface work in triangles against the pre-track artifact; this track
+    spent 1.7-1.95x the original triangle count and almost no voxels,
+    because AO and colour classes are vertex work.

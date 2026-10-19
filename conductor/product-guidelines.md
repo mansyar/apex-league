@@ -23,6 +23,16 @@
   dressing (rank badges, crowd silhouettes, sponsor-free branding slots).
 - **Palette**: saturated team colors per element type; neutral arena floors so
   creature silhouettes read instantly.
+- **Creature surface ramp (2026-10-19, `creature_readability_20261018`)**: a
+  creature's colour is decided by its archetype palette, never by ad-hoc RGB in
+  a builder — semantic classes (coat, underside, dorsal, face, eye) map to a
+  per-voxel class id, so a belly reads as a belly and a dapple as a dapple.
+  Ambient occlusion is the *only* darkening pass (four levels, 0.72 floor,
+  folded into the vertex colour); no material adds a second shadow term. Eyes
+  are dark by design — a near-black bead plus a faint warm catchlight — so they
+  read at silhouette scale without lighting tricks. Painted features (mouth,
+  nostrils, brow) are colour, never carved geometry: they must cost triangles
+  only when they must *move* (a lid is a pivot plus scale, not a socket mesh).
 - **Type colors are a contract**: each of the 6 elements has one fixed hue used
   identically in badges, move icons, and particle effects (single-sourced in
   `apps/client/src/ui/element.ts`): Fire = 18° (draconic), Plant = 110°
