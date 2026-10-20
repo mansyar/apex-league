@@ -263,7 +263,7 @@ function isValidSession(s: unknown): s is CupSession {
 }
 
 /**
- * Whether a migrated state is structurally legal (the v5-v16 rules).
+ * Whether a migrated state is structurally legal (the v5-v17 rules).
  * Shared by loadSave and save import, so both paths accept exactly the same
  * states.
  */
@@ -331,7 +331,14 @@ export function isValidSaveState(state: GameState): boolean {
     !Number.isInteger(state.lineage.generation) ||
     state.lineage.generation < 0 ||
     !Array.isArray(state.lineage.hallOfFame) ||
-    !state.lineage.hallOfFame.every(isValidRetiredRecord)
+    !state.lineage.hallOfFame.every(isValidRetiredRecord) ||
+    // v17: the evolution discovery record is required and strictly typed -
+    // both gates are plain booleans, so a hand-edited flag fails the load
+    // instead of silently revealing (or hiding) the thresholds.
+    typeof state.evolutionKnowledge !== "object" ||
+    state.evolutionKnowledge === null ||
+    typeof state.evolutionKnowledge.juvenile !== "boolean" ||
+    typeof state.evolutionKnowledge.champion !== "boolean"
   )
 }
 

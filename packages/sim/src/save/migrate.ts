@@ -4,7 +4,7 @@ import type { CupSession } from "../cup"
 import { initialLadder } from "../ladder"
 import { initialLineage } from "../legacy"
 import type { GameState } from "../state"
-import { ACTION_POINTS_PER_DAY } from "../state"
+import { ACTION_POINTS_PER_DAY, initialEvolutionKnowledge } from "../state"
 import { SAVE_VERSION, type SaveData } from "./schema"
 
 /** Seed used when a migrated save is granted its default starter. */
@@ -105,6 +105,7 @@ const migrations: Record<
       // Legend titles start at zero for every migrated save
       // (gold_legend_ladder_20261017): pre-plateau careers have none.
       legendTitles: 0,
+      evolutionKnowledge: initialEvolutionKnowledge(),
     }
     return { version: 1, state, savedAt: 0 }
   },
@@ -136,6 +137,7 @@ const migrations: Record<
       lineage: initialLineage(),
       bossDefeats: [],
       legendTitles: 0,
+      evolutionKnowledge: initialEvolutionKnowledge(),
     }
     return { version: 2, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -176,6 +178,7 @@ const migrations: Record<
       lineage: initialLineage(),
       bossDefeats: [],
       legendTitles: 0,
+      evolutionKnowledge: initialEvolutionKnowledge(),
     }
     return { version: 3, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -220,6 +223,7 @@ const migrations: Record<
       lineage: initialLineage(),
       bossDefeats: [],
       legendTitles: 0,
+      evolutionKnowledge: initialEvolutionKnowledge(),
     }
     return { version: 4, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -259,6 +263,7 @@ const migrations: Record<
       lineage: initialLineage(),
       bossDefeats: [],
       legendTitles: 0,
+      evolutionKnowledge: initialEvolutionKnowledge(),
     }
     return { version: 5, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -288,6 +293,7 @@ const migrations: Record<
       lineage: initialLineage(),
       bossDefeats: [],
       legendTitles: 0,
+      evolutionKnowledge: initialEvolutionKnowledge(),
     }
     return { version: 6, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -334,6 +340,7 @@ const migrations: Record<
       lineage: initialLineage(),
       bossDefeats: [],
       legendTitles: 0,
+      evolutionKnowledge: initialEvolutionKnowledge(),
     }
     return {
       version: 7,
@@ -363,6 +370,7 @@ const migrations: Record<
       lineage: initialLineage(),
       bossDefeats: [],
       legendTitles: 0,
+      evolutionKnowledge: initialEvolutionKnowledge(),
     }
     return {
       version: 8,
@@ -398,6 +406,7 @@ const migrations: Record<
       lineage: initialLineage(),
       bossDefeats: [],
       legendTitles: 0,
+      evolutionKnowledge: initialEvolutionKnowledge(),
     }
     return {
       version: 9,
@@ -426,6 +435,7 @@ const migrations: Record<
       lineage: initialLineage(),
       bossDefeats: [],
       legendTitles: 0,
+      evolutionKnowledge: initialEvolutionKnowledge(),
     }
     return {
       version: 10,
@@ -460,6 +470,7 @@ const migrations: Record<
       lineage: s.lineage as GameState["lineage"],
       bossDefeats: [],
       legendTitles: 0,
+      evolutionKnowledge: initialEvolutionKnowledge(),
     }
     return {
       version: 11,
@@ -524,6 +535,7 @@ const migrations: Record<
       },
       bossDefeats: s.bossDefeats as GameState["bossDefeats"],
       legendTitles: 0,
+      evolutionKnowledge: initialEvolutionKnowledge(),
     }
     return {
       version: 12,
@@ -554,6 +566,7 @@ const migrations: Record<
       lineage: s.lineage as GameState["lineage"],
       bossDefeats: s.bossDefeats as GameState["bossDefeats"],
       legendTitles: 0,
+      evolutionKnowledge: initialEvolutionKnowledge(),
     }
     return {
       version: 13,
@@ -582,6 +595,7 @@ const migrations: Record<
       lineage: s.lineage as GameState["lineage"],
       bossDefeats: s.bossDefeats as GameState["bossDefeats"],
       legendTitles: 0,
+      evolutionKnowledge: initialEvolutionKnowledge(),
     }
     return {
       version: 14,
@@ -620,6 +634,7 @@ const migrations: Record<
       },
       bossDefeats: s.bossDefeats as GameState["bossDefeats"],
       legendTitles: s.legendTitles as GameState["legendTitles"],
+      evolutionKnowledge: initialEvolutionKnowledge(),
     }
     return {
       version: 15,
@@ -651,9 +666,49 @@ const migrations: Record<
       lineage: s.lineage as GameState["lineage"],
       bossDefeats: s.bossDefeats as GameState["bossDefeats"],
       legendTitles: s.legendTitles as GameState["legendTitles"],
+      evolutionKnowledge: initialEvolutionKnowledge(),
     }
     return {
       version: 16,
+      state: migrated,
+      savedAt: raw.savedAt ?? 0,
+      session: (raw.session as CupSession | null) ?? null,
+    }
+  },
+
+  // v16 → v17 (evolution_discovery_20261020): the state gains the per-gate
+  // evolution discovery record. A v16 payload says nothing about what the
+  // player has seen (the panel did not exist), so the record is inferred from
+  // the active creature's stage: a juvenile has already cleared the juvenile
+  // gate, a champion has cleared both, and a save with no creature has
+  // cleared neither. Any pre-existing field on the payload is ignored — a
+  // hand-edited save cannot smuggle thresholds into a hidden panel. Settings,
+  // ladder, bloodline, boss ledger, and the live session are forwarded
+  // untouched.
+  16: (raw) => {
+    const { day, phase, actionPoints, state: s } = validateStateShape(raw, 16)
+    const creature = s.creature as GameState["creature"]
+    const championKnown = creature?.stage === "champion"
+    const juvenileKnown = championKnown || creature?.stage === "juvenile"
+    const migrated: GameState = {
+      day,
+      phase,
+      actionPoints,
+      creature,
+      settings: s.settings as GameState["settings"],
+      cupsWon: s.cupsWon as GameState["cupsWon"],
+      lastCupDay: s.lastCupDay as GameState["lastCupDay"],
+      ladder: s.ladder as GameState["ladder"],
+      lineage: s.lineage as GameState["lineage"],
+      bossDefeats: s.bossDefeats as GameState["bossDefeats"],
+      legendTitles: s.legendTitles as GameState["legendTitles"],
+      evolutionKnowledge: {
+        juvenile: juvenileKnown,
+        champion: championKnown,
+      },
+    }
+    return {
+      version: 17,
       state: migrated,
       savedAt: raw.savedAt ?? 0,
       session: (raw.session as CupSession | null) ?? null,

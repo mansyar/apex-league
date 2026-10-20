@@ -2,7 +2,11 @@ import { isCupDay } from "./calendar"
 import type { LadderTier } from "./ladder"
 import { makeRng, type Rng } from "./rng"
 import { settleCreature } from "./settlement"
-import { ACTION_POINTS_PER_DAY, type GameState } from "./state"
+import {
+  ACTION_POINTS_PER_DAY,
+  type GameState,
+  markEvolutionKnown,
+} from "./state"
 
 /**
  * Advance the simulation by one in-game day.
@@ -54,13 +58,32 @@ export function advanceDay(state: GameState, rng?: Rng): GameState {
     // never revises defeat history.
     bossDefeats: state.bossDefeats,
     legendTitles: state.legendTitles,
+    // Evolution discovery (save v17) carries across every day; the settlement
+    // below only ever adds a gate, never removes one.
+    evolutionKnowledge: state.evolutionKnowledge,
   }
   if (!next.creature) return next
+  const before = next.creature.stage
   const settled = settleCreature(
     next.creature,
     rng ?? makeRng(day),
     state.day,
     state.cupsWon,
   )
-  return { ...next, creature: settled }
+  // Discovery is earned, not inferred: only a real stage change proves the
+  // gate. A baby that matured reveals the juvenile gate; a juvenile that took
+  // the champion step reveals both (the champion gate only exists once the
+  // juvenile one is cleared). A no-evolution night records nothing, and a
+  // champion never resets what the player already learned.
+  const evolved = { ...next, creature: settled }
+  if (before === "baby" && settled.stage === "juvenile") {
+    return markEvolutionKnown(evolved, "juvenile")
+  }
+  if (before === "juvenile" && settled.stage === "champion") {
+    return markEvolutionKnown(
+      markEvolutionKnown(evolved, "juvenile"),
+      "champion",
+    )
+  }
+  return evolved
 }
