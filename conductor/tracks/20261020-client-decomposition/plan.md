@@ -99,7 +99,7 @@ silently change order.
   `apps/client/src/mock.ts`, `apps/client/src/mock/*.ts` (new)
 - **Verification:** `bun run verify && bun run build`, plus a cup run, a graduation
   (seeded save) and `mock.html` in the browser
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P4.T1: Split the cup screens** — bracket, coach, results, give-up and battle
   chips under `cup/` — covers: FR-4
