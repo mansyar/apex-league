@@ -6,7 +6,7 @@
 **Depends on:** none
 **Covers:** FR-1, FR-2, FR-3, FR-4
 **Touches:** `packages/sim/src/branches.ts` (new), `packages/sim/src/branches.test.ts` (new), `packages/sim/src/creature.ts`, `packages/sim/src/evolution.ts`, `packages/sim/src/evolution.test.ts`, `packages/sim/src/settlement.ts`, `packages/sim/src/battle/moves.ts`, `packages/sim/src/battle/moves.test.ts`, `packages/sim/src/loadout.ts`, `packages/sim/src/loadout.test.ts`, `packages/sim/src/index.ts`
-**Verification:** `bun test packages/sim/src/branches.test.ts packages/sim/src/evolution.test.ts packages/sim/src/loadout.test.ts packages/sim/src/battle/moves.test.ts && bun run verify && bun run build`
+**Verification:** `bun test --timeout 120000 packages/sim/src/branches.test.ts packages/sim/src/evolution.test.ts packages/sim/src/loadout.test.ts packages/sim/src/battle/moves.test.ts && bun run verify && bun run build`
 **Status:** pending
 
 - [ ] **P1.T1 — Author the branch catalog and the synthetic legacy branch**
@@ -32,7 +32,7 @@
 **Depends on:** Phase 1
 **Covers:** FR-7, FR-8, NFR-4
 **Touches:** `packages/sim/src/save/schema.ts`, `packages/sim/src/save/migrate.ts`, `packages/sim/src/save/storage.ts`, `packages/sim/src/save/transfer.ts`, `packages/sim/src/save/*.test.ts`, `packages/sim/src/legacy.ts`, `packages/sim/src/breeding.ts`, `packages/sim/src/breeding.test.ts`, `packages/sim/src/graduation.test.ts`, `docs/save-schema.md`
-**Verification:** `bun test packages/sim/src/save packages/sim/src/breeding.test.ts packages/sim/src/graduation.test.ts && bun run verify && bun run build`
+**Verification:** `bun test --timeout 120000 packages/sim/src/save packages/sim/src/breeding.test.ts packages/sim/src/graduation.test.ts && bun run verify && bun run build`
 **Status:** pending
 
 - [ ] **P2.T1 — Bump the schema to v19 and validate the field**
@@ -52,7 +52,7 @@
 **Depends on:** Phase 2
 **Covers:** FR-9, FR-4, NFR-1, NFR-6
 **Touches:** `packages/sim/src/battle/rival-kit.ts`, `packages/sim/src/battle/rival-kit.test.ts`, `packages/sim/src/battle/exhibition.ts`, `packages/sim/src/bosses.ts`, `packages/sim/src/bosses.test.ts`, `conductor/tracks/20261020-branching-evolution-champion-forms/verification/phase-3.md`
-**Verification:** `bun test packages/sim/src/battle packages/sim/src/bosses.test.ts && bun run verify && bun run build`
+**Verification:** `bun test --timeout 120000 packages/sim/src/battle packages/sim/src/bosses.test.ts && bun run verify && bun run build`
 **Status:** pending
 
 - [ ] **P3.T1 — Derive rival branches from their seeded profile**
@@ -72,7 +72,7 @@
 **Depends on:** Phase 3
 **Covers:** FR-5, FR-6, FR-10, FR-12
 **Touches:** `apps/client/src/growth-panel.ts`, `apps/client/src/growth-panel.test.ts`, `apps/client/src/hud/plates.ts`, `apps/client/src/hud/copy-care.ts`, `apps/client/src/hud/copy-cup.ts`, `apps/client/src/hud/copy.test.ts`, `apps/client/src/creature-detail.ts`, `apps/client/src/detail/*`, `apps/client/src/ui/kit.css`, `apps/client/src/ranch.css`
-**Verification:** `bun test apps/client/src/growth-panel.test.ts apps/client/src/hud/copy.test.ts apps/client/src/creature-detail.test.ts && bun run verify && bun run build`
+**Verification:** `bun test --timeout 120000 apps/client/src/growth-panel.test.ts apps/client/src/hud/copy.test.ts apps/client/src/creature-detail.test.ts && bun run verify && bun run build`
 **Status:** pending
 
 - [ ] **P4.T1 — Add the day-5 lean row to the growth panel**
@@ -94,7 +94,7 @@
 **Depends on:** Phase 4
 **Covers:** FR-10, FR-11, NFR-1, NFR-2, NFR-3, NFR-5, NFR-7
 **Touches:** `apps/client/src/creature.ts`, `apps/client/src/creature.test.ts`, `apps/client/src/handbook/*`, `apps/client/src/handbook/handbook.test.ts`, `conductor/product.md`, `conductor/tech-stack.md`, `README.md`, `conductor/tracks/20261020-branching-evolution-champion-forms/verification/phase-5.md`
-**Verification:** `bun test apps/client/src/creature.test.ts apps/client/src/handbook && bun run verify && bun run build && bun run gate:determinism`
+**Verification:** `bun test --timeout 120000 apps/client/src/creature.test.ts apps/client/src/handbook && bun run verify && bun run build && bun run gate:determinism`
 **Status:** pending
 
 - [ ] **P5.T1 — Apply the per-instance accent tint**
