@@ -172,26 +172,30 @@
   `apps/client/src/detail/training-tab.ts`,
   `apps/client/src/detail/training-tab.test.ts`, `apps/client/src/ranch.css`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P4.T1: Program picker** — covers: FR-12, AC-10
-  - [ ] **P4.T1.1:** Replace the four-stat picker with four program rows showing
+- [x] **P4.T1: Program picker** — covers: FR-12, AC-10
+  - [x] **P4.T1.1:** Replace the four-stat picker with four program rows showing
     label, blurb, tonight's gain line (or the tired/capped note) and the
     assigned check; keep the button label in sync.
-  - [ ] **P4.T1.2:** Update `trainButtonState`/`pickerEntry` tests for the
+  - [x] **P4.T1.2:** Update `trainButtonState`/`pickerEntry` tests for the
     program model, including all-primaries-capped disabled state and the
     free re-point path.
-  - [ ] **P4.T1.3:** Verify keyboard focus order and that the collapsed dock head
+  - [x] **P4.T1.3:** Verify keyboard focus order and that the collapsed dock head
     still announces the current program.
-- [ ] **P4.T2: Training tab** — covers: FR-13
-  - [ ] **P4.T2.1:** Add a Training tab to the detail modal: assigned program,
+- [x] **P4.T2: Training tab** — covers: FR-13
+  - [x] **P4.T2.1:** Add a Training tab to the detail modal: assigned program,
     trained nights, next breakthrough, form tier with deltas, program table.
-  - [ ] **P4.T2.2:** Extend the tab tests (tablist contract, panel content) and
+  - [x] **P4.T2.2:** Extend the tab tests (tablist contract, panel content) and
     split the detail module if it crosses 12,288 B.
-- [ ] **P4.T3: Copy** — covers: FR-12, NFR-5, AC-10
-  - [ ] **P4.T3.1:** Add coach-voice program blurbs, tired/capped notes and form
+- [x] **P4.T3: Copy** — covers: FR-12, NFR-5, AC-10
+  - [x] **P4.T3.1:** Add coach-voice program blurbs, tired/capped notes and form
     lines to `copy-care.ts`; test that no string exceeds two sentences and that
     stat names stay visible.
+
+**Result:** verified
+**Checkpoint:** c69f9cf
+**Evidence:** conductor/tracks/20261020-training-programs-form/verification/phase-4.md
 
 ## Phase 5: Form in the Fight Surfaces, Handbook and Docs Sync
 
