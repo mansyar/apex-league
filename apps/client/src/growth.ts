@@ -32,8 +32,6 @@ export interface GrowthRow {
    * words. Discovered: the short value/target pair, e.g. "35 / 40".
    */
   detail: string
-  /** Discovered only: target, e.g. "10". null when undiscovered. */
-  target: string | null
 }
 
 export interface GrowthView {
@@ -59,8 +57,6 @@ interface Condition {
   met: boolean
   /** Revealed current/target pair, e.g. "6 / 10". */
   shown: string
-  /** Revealed target alone, e.g. "10". */
-  target: string
   /** Digit-free copy, keyed by the met flag. */
   quiet: { met: string; unmet: string }
 }
@@ -90,7 +86,6 @@ function ageCondition(day: number, target: number): Condition {
     label: "Day",
     met: day >= target,
     shown: `${day} / ${target}`,
-    target: String(target),
     quiet: { met: "old enough now", unmet: "still a few days off" },
   }
 }
@@ -105,7 +100,6 @@ function recoveryCondition(creature: Creature): Condition {
       nights === 0
         ? "clear"
         : `${nights} clean night${nights === 1 ? "" : "s"} to go`,
-    target: "0",
     quiet: { met: "all clear", unmet: "recovering from a rough night" },
   }
 }
@@ -117,7 +111,6 @@ function moodCondition(creature: Creature): Condition {
     label: "Mood",
     met: mood >= EVOLUTION_MOOD,
     shown: `${mood} / ${EVOLUTION_MOOD}`,
-    target: String(EVOLUTION_MOOD),
     quiet: { met: "in good spirits", unmet: "needs a lift" },
   }
 }
@@ -129,7 +122,6 @@ function bondCondition(creature: Creature): Condition {
     label: "Bond",
     met: bond >= CHAMPION_BOND,
     shown: `${bond} / ${CHAMPION_BOND}`,
-    target: String(CHAMPION_BOND),
     quiet: { met: "thick as thieves", unmet: "still warming up to you" },
   }
 }
@@ -140,7 +132,6 @@ function cupsCondition(cupsWon: number): Condition {
     label: "Cups won",
     met: cupsWon >= CHAMPION_CUPS,
     shown: `${cupsWon} / ${CHAMPION_CUPS}`,
-    target: String(CHAMPION_CUPS),
     quiet: { met: "cup in the bag", unmet: "no cup win yet" },
   }
 }
@@ -185,7 +176,6 @@ function toRow(condition: Condition, discovered: boolean): GrowthRow {
       label: condition.label,
       met: condition.met,
       detail: condition.met ? condition.quiet.met : condition.quiet.unmet,
-      target: null,
     }
   }
   return {
@@ -193,7 +183,6 @@ function toRow(condition: Condition, discovered: boolean): GrowthRow {
     label: condition.label,
     met: condition.met,
     detail: condition.shown,
-    target: condition.target,
   }
 }
 

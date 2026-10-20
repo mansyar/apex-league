@@ -7,8 +7,12 @@
 | Date | 2026-10-20 |
 | Branch | `feat/20261020-evolution-discovery-ui` |
 | Base commit | `4db3f00` |
-| Head commit | `73e1d23` (phase code; the `as unknown` assertion fix and this evidence file land in the follow-up commit) |
+| Head commit | `34fc937` (phase checkpoint) |
 | Result | **verified** |
+
+Per-task history for this phase was squashed into the phase checkpoint
+`34fc937`; the branch carries no per-task commits, so every commit reference
+below names that checkpoint.
 
 ## Scope
 
@@ -72,7 +76,8 @@ commands were re-run to exit 0 on the fixed tree.
 | `apps/client/src/save-transfer.test.ts` | Not in `Touches`; its `SaveData` fixture hardcodes `version: 16`, which became a type error once `SaveData` widened to 17 (`bun run check` failed). Updated the literal to 17; no behaviour change. |
 
 No product or design decision was required. T3 (persistence) and T4 (version
-assertions) share commit `ac53706` so no commit in the branch is red.
+assertions) landed together in the squashed phase checkpoint `34fc937`, so no
+commit in the branch is red.
 
 ## Notes
 
@@ -105,6 +110,6 @@ Run by the orchestrator on the committed tree (after the rework and the biome au
 | targeted | `bun test packages/sim/src/save/evolutionKnowledge.test.ts` | 0 | 25 pass, 0 fail after format/import autofix |
 
 Notes:
-- The subagent's first report claimed `bun run check` passed; it did not (TS2769 in the new suite). Rework fixed it in `60ffa41` and corrected this file's commands table.
+- The subagent's first report claimed `bun run check` passed; it did not (TS2769 in the new suite). Rework fixed it before the phase checkpoint `34fc937`, and this file's commands table was corrected.
 - `biome check` flagged 2 fixable errors (import order, formatting) in the new suite only; the orchestrator applied `--write` and re-verified.
 - `packages/sim/src/save/storage.ts` was changed outside `Touches` without a deviation entry: it adds the v17 shape guard to `isValidSaveState`. Accepted as the smallest necessary change — without it the new field would be unvalidated on load and import.

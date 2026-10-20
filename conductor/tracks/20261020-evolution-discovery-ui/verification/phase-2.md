@@ -5,8 +5,12 @@
 - **Date:** 2026-10-20
 - **Branch:** `feat/20261020-evolution-discovery-ui`
 - **Base commit:** `86b5151` (phase base)
-- **Head commit:** `b5519eb` — `feat(growth): add evolution gate view-model for the detail panel` (the verified commit; this report lands as the following docs commit)
+- **Head commit:** `b039471` (phase checkpoint)
 - **Result:** verified
+
+Per-task history was squashed into the phase checkpoint `b039471`; the branch
+carries no per-task commits, so every commit reference below names that
+checkpoint.
 
 ## Summary
 
@@ -117,6 +121,9 @@ paths); the equivalent configured invocation `biome check` ran inside
    The undiscovered juvenile note deliberately echoes the existing
    `growthHint` phrasing ("one morning soon it will surprise you") so the coach
    voice is continuous.
+4. **`target` was removed in Phase R1.** Review finding F3 dropped
+   `GrowthRow.target` as dead (nothing rendered it); `detail` is the single
+   representation. The `target` references above describe the phase-2 tree only.
 
 ## Primary verification
 

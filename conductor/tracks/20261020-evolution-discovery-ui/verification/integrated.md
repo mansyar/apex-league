@@ -43,10 +43,10 @@
 | FR-4 | `state.ts` per-gate flags, set in `advanceDay` only on a real stage change |
 | FR-5 | `SAVE_VERSION` 17, migration infers from stage, ignores pre-existing payload fields |
 | FR-6 | Final-stage branch in `growth.ts` |
-| FR-7 | `hud.ts` → `creatureDetail.sync` → `renderGrowth` (see AC-7 caveat) |
+| FR-7 | `hud.ts` → `creatureDetail.sync` → `growthHost.paint` (in `growth-panel.ts` since Phase R1; see AC-7 caveat) |
 | FR-8 | Untouched |
 | NFR-1 | Glyph + word + `aria-label` |
-| NFR-2 | `growth.ts` 6.8 KB, `creature-detail.ts` and `hud.ts` under cap, guard green |
+| NFR-2 | Measured on this tree: `growth.ts` 6,846 B, `creature-detail.ts` 12,305 B — **over** the 12,288 B cap (review F2). `module-size.test.ts` scans only `scene-logic/` and `ranch/`, so it never inspected either file and stayed green; the "guard green" claim did not measure NFR-2. Phase R1 extracted the Growth DOM into `growth-panel.ts` and pinned measured sizes in `phase-R1.md` |
 | NFR-3 | Determinism gate green, no generator or artifact change |
 | NFR-4 | v1, v15, v16 chains; round-trip and re-migration idempotence tests |
 | NFR-5 | Coach-voiced copy, at most two sentences (`growth.test.ts:159`) |
@@ -63,5 +63,9 @@
 
 ## Open items
 
-- AC-7 has no automated coverage and was not exercised in a browser. Verify by
-  opening the panel on a creature one night short of evolving, then advancing.
+- AC-7 had no automated coverage and was not exercised in a browser when this
+  report was written. **Closed in Phase R1**: `apps/client/src/growth-panel.test.ts`
+  proves the seam (paint while hidden is a no-op, `setVisible(true)` + paint
+  renders, a repaint swaps only the host's children, a creature-less state hides
+  and empties) — see `verification/phase-R1.md`. A human browser pass on the
+  real modal is still worth doing at PR time.

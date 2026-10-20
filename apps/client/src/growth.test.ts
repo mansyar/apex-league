@@ -132,7 +132,7 @@ describe("undiscovered copy is qualitative", () => {
     }
     for (const row of view.rows) {
       expect(row.detail).not.toMatch(DIGIT)
-      expect(row.target).toBeNull()
+      expect(row.detail.length).toBeGreaterThan(0)
     }
     expect(rowOf(stateWith("baby"), "age").detail).toBe("still a few days off")
     expect(
@@ -148,7 +148,7 @@ describe("undiscovered copy is qualitative", () => {
     expect(view.discovered).toBe(false)
     for (const row of view.rows) {
       expect(row.detail).not.toMatch(DIGIT)
-      expect(row.target).toBeNull()
+      expect(row.detail.length).toBeGreaterThan(0)
     }
     for (const text of [view.title, view.note ?? "", view.summary]) {
       expect(text).not.toMatch(DIGIT)
@@ -182,10 +182,8 @@ describe("a discovered gate reveals current over target", () => {
     const view = viewOf(state)
     expect(view.discovered).toBe(true)
     expect(rowOf(state, "age").detail).toBe(`${EVOLUTION_DAY + 2} / 10`)
-    expect(rowOf(state, "age").target).toBe(String(EVOLUTION_DAY))
     expect(rowOf(state, "mood").detail).toBe(`35 / ${EVOLUTION_MOOD}`)
-    expect(rowOf(state, "mood").target).toBe(String(EVOLUTION_MOOD))
-    expect(rowOf(state, "recovery").target).toBe("0")
+    expect(rowOf(state, "recovery").detail).toBe("clear")
     expect(view.summary).toBe("Growth, 2 of 3 met")
   })
 
@@ -197,10 +195,11 @@ describe("a discovered gate reveals current over target", () => {
       cupsWon: 0,
       championKnown: true,
     })
-    expect(rowOf(state, "age").target).toBe(String(CHAMPION_EVOLUTION_DAY))
+    expect(rowOf(state, "age").detail).toBe(
+      `${CHAMPION_EVOLUTION_DAY + 1} / ${CHAMPION_EVOLUTION_DAY}`,
+    )
     expect(rowOf(state, "bond").detail).toBe(`52 / ${CHAMPION_BOND}`)
     expect(rowOf(state, "cups").detail).toBe(`0 / ${CHAMPION_CUPS}`)
-    expect(rowOf(state, "cups").target).toBe(String(CHAMPION_CUPS))
     expect(viewOf(state).summary).toBe("Growth, 3 of 5 met")
   })
 
@@ -234,8 +233,10 @@ describe("discovery is per gate", () => {
       "recovery",
       "mood",
     ])
-    expect(rowOf(state, "age").target).toBe(String(EVOLUTION_DAY))
-    expect(rowOf(state, "age").target).not.toBe(String(CHAMPION_EVOLUTION_DAY))
+    expect(rowOf(state, "age").detail).toBe(`12 / ${EVOLUTION_DAY}`)
+    expect(rowOf(state, "age").detail).not.toBe(
+      `12 / ${CHAMPION_EVOLUTION_DAY}`,
+    )
     expect(viewOf(state).rows.map((row) => row.label)).not.toContain("Bond")
     expect(viewOf(state).rows.map((row) => row.label)).not.toContain("Cups won")
   })
@@ -243,7 +244,7 @@ describe("discovery is per gate", () => {
   test("champion knowledge never reveals a baby's gate", () => {
     const view = viewOf(stateWith("baby", { championKnown: true }))
     expect(view.discovered).toBe(false)
-    expect(view.rows.every((row) => row.target === null)).toBe(true)
+    expect(view.rows.every((row) => !row.detail.includes("/"))).toBe(true)
     expect(view.rows.every((row) => !DIGIT.test(row.detail))).toBe(true)
     expect(view.summary).not.toMatch(DIGIT)
   })
@@ -257,9 +258,11 @@ describe("discovery is per gate", () => {
       championKnown: true,
     })
     expect(viewOf(state).discovered).toBe(true)
-    expect(rowOf(state, "age").target).toBe(String(CHAMPION_EVOLUTION_DAY))
-    expect(rowOf(state, "bond").target).toBe(String(CHAMPION_BOND))
-    expect(rowOf(state, "cups").target).toBe(String(CHAMPION_CUPS))
+    expect(rowOf(state, "age").detail).toBe(
+      `${CHAMPION_EVOLUTION_DAY} / ${CHAMPION_EVOLUTION_DAY}`,
+    )
+    expect(rowOf(state, "bond").detail).toBe(`70 / ${CHAMPION_BOND}`)
+    expect(rowOf(state, "cups").detail).toBe(`2 / ${CHAMPION_CUPS}`)
   })
 })
 

@@ -5,9 +5,12 @@
 - **Date:** 2026-10-20
 - **Branch:** `feat/20261020-evolution-discovery-ui`
 - **Base commit:** `0cb48f0` (phase base)
-- **Head commit:** `fa0abfc` (last task commit; phase-plan commit `7e9416e` was the
-  starting head)
+- **Head commit:** `385a49f` (phase checkpoint)
 - **Result:** verified
+
+Per-task history was squashed into the phase checkpoint `385a49f`; the branch
+carries no per-task commits, so every commit reference below names that
+checkpoint.
 
 ## What changed
 
@@ -25,11 +28,14 @@ was not needed.
 
 | Task | Status | Commit |
 | --- | --- | --- |
-| P3.T1 Render the Growth section | done | `28b5f17` |
-| P3.T2 Refresh while open | done | `fa0abfc` |
-| P3.T3 Accessibility pass | done | `28b5f17` |
-| P3.T4 Style with the broadcast kit | done | `28b5f17` |
-| P3.T5 Prove Hall of Fame is unchanged | done | `28b5f17` (no record code touched; evidence below) |
+| P3.T1 Render the Growth section | done | `385a49f` |
+| P3.T2 Refresh while open | done | `385a49f` |
+| P3.T3 Accessibility pass | done | `385a49f` |
+| P3.T4 Style with the broadcast kit | done | `385a49f` |
+| P3.T5 Prove Hall of Fame is unchanged | done | `385a49f` (no record code touched; evidence below) |
+
+Every task landed inside the squashed phase checkpoint, so the table names that
+one commit throughout.
 
 ## Commands
 
@@ -52,8 +58,11 @@ was not needed.
 
 `apps/client/src/module-size.test.ts` (12 KB guard) scopes `scene-logic` and
 `ranch`; it is green in this run. The only logic module touched is
-`creature-detail.ts` (122 added lines), which stays well inside the cap; the
-view-model itself (`growth.ts`) is unchanged.
+`creature-detail.ts` (122 added lines), which measured **12,305 B** against the
+12,288 B cap — over budget, and missed because the guard never scans client root
+modules. Review finding F2; Phase R1 extracted the Growth DOM into
+`apps/client/src/growth-panel.ts` (see `verification/phase-R1.md`). The
+view-model itself (`growth.ts`) was unchanged in this phase.
 
 ## Visual check
 
@@ -77,3 +86,7 @@ no digits), as a discovered juvenile (value/target pairs), and as a champion
   which keeps the "modal is unreachable but must not throw" edge case total.
 - Champion rows read `Day 6 / 25` at the champion gate target; the juvenile gate
   reads `Day 6 / 10`. Both are covered by the new test.
+- Phase R1 (review F2) moved `growthSection`/`growthRowNode` out of
+  `creature-detail.ts` into `apps/client/src/growth-panel.ts` behind
+  `createGrowthHost`; `renderGrowth` and the local `visible` flag no longer
+  exist. The names used above describe the phase-3 tree.

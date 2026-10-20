@@ -3,6 +3,7 @@
  * DOM harness, so the row reading is extracted as `growthRowParts` and pinned
  * here: met and unmet never share a glyph or a status word, a revealed gate
  * composes label + value/target, and an undiscovered gate leaks no digits.
+ * The repaint seam itself lives in `growth-panel.test.ts`.
  */
 import { describe, expect, test } from "bun:test"
 import {
@@ -11,8 +12,8 @@ import {
   createInitialState,
   type GameState,
 } from "@apex/sim"
-import { growthRowParts } from "./creature-detail"
 import { type GrowthView, growthView } from "./growth"
+import { growthRowParts } from "./growth-panel"
 
 const DIGIT = /[0-9]/
 
