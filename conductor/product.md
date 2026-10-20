@@ -142,6 +142,10 @@ Phased delivery plan (each phase is independently playable):
   dual-parent stat floor, trait inheritance, seeded mutation, save v15)*;
   family prestige perks; type affinity drift.
 - Evolution hints/threshold discovery UI; 2-3 more species lineages.
+- Training programs + form *(landed 2026-10-20: four programs with an energy
+  gate and breakthrough nights, save v18, and a derived ATK-only form that
+  reaches the arena - surfaced on the dock picker, Training tab, coach room,
+  spar prep card, creature plate and the handbook's Raising page).*
 
 ### Phase 3 — Content & Meta
 - Roster to 20-40 species across 6 types; rare tournament reward eggs.

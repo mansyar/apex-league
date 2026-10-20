@@ -398,6 +398,23 @@
   so the rule itself is tested rather than only the clean tree and a killed run cannot
   leave an offender behind. Modules near the line: `battleHud.ts` 12,064 B,
   `staging.ts` 11,640 B, `graduation/nursery.ts` 11,613 B.
+- `2026-10-20` - **Training programs and form** (`20261020-training-programs-form`):
+  the single training focus became four catalog programs - Power Lifting (ATK, DEF
+  trickle), Endurance Circuit (HP, DEF), Sprint Work (SPD, ATK) and Ring Craft (ATK,
+  DEF, plus mood and bond on a paying night). A paying night costs 10 energy and needs
+  30 energy before recovery; a sick or starving night pays nothing and costs nothing.
+  Every third trained night also adds +1 to the program's trickle stat, both capped at
+  +6, and `TrainingResult` gained `"exhausted"`. `form.ts` derives a tier from
+  `0.6*mood + 0.4*bond` (sharp >= 65, steady 40-64, flat 20-39, sluggish < 20), pins a
+  partner under 80 health to sluggish, and applies an ATK-only delta (sharp +1,
+  steady 0, flat -1, sluggish -2, ATK floored at 1); SPD is deliberately untouched
+  because a single SPD point flips initiative. `battleStats` is the single seam between
+  `effectiveStats` and the resolver: the owned spar side, the cup entry snapshot, the
+  coach room, the spar prep card and the Training tab all read it, so a displayed ATK
+  cannot disagree with the fight. Save v18 replaces `trainingFocus` with
+  `trainingProgram` (hp to endurance, atk/def to power, spd to sprint). No dependency
+  change; `handbook.ts` split into `handbook/{common,chart,ladder,moves,raising}.ts` to
+  stay under the 12,288 B cap.
 
 ## Quality Gates
 - `bun check` clean, `biome check` clean, `bun test` green — required before
