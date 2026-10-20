@@ -54,7 +54,7 @@
   `apps/client/src/detail-pages.test.ts` only if `creature-detail.ts` would go
   over the cap
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
 - [x] **P2.T1: Restructure the modal into a shell and three pages** — covers: FR-1, FR-3, FR-4, FR-5, FR-9
   - [x] Header row keeps crest, name and stage chip; the tab strip sits under it
@@ -87,3 +87,20 @@
 **Result:** verified
 **Checkpoint:** c0f3491
 **Evidence:** conductor/tracks/20261020-detail-modal-tabs/verification/phase-2.md
+## Phase R1: Review Fixes
+
+- **Goal:** Resolve review findings F1-F6 (F3 resolved as a documentation correction: `sync`'s write is load-bearing).
+- **Depends on:** Phase 2
+- **Covers:** F1, F2, F3, F4, F5, F6
+- **Touches:** `apps/client/src/size-probe.test.ts`, `apps/client/src/ui/tabs.ts`, `apps/client/src/ui/tabs.test.ts`, `apps/client/src/creature-detail.ts`, `apps/client/src/ui/kit.css`, `apps/client/src/ranch.css`, `conductor/tracks/20261020-detail-modal-tabs/plan.md`, `conductor/tracks/20261020-detail-modal-tabs/verification/phase-2.md`
+- **Verification:** `bun run verify && bun run build`
+- **Status:** in_progress
+
+- [ ] **R1.T1: Pin the shared tab controller** - covers: F1, NFR-1
+  - [ ] Add `ui/tabs.ts` to the size probe's module list
+- [ ] **R1.T2: Give the panels a keyboard scroll path** - covers: F6, NFR-2
+  - [ ] `tabindex="0"` on every panel, asserted in the wiring test
+- [ ] **R1.T3: Tell the truth about `sync` and the shell** - covers: F3, F4, F5, F2
+  - [ ] Reword the `sync` contract: the write is what keeps a later Growth entry fresh
+  - [ ] Move the detail shell rules out of `kit.css` into `ranch.css` beside the other `.detail-*` rules
+  - [ ] Correct the Phase 2 evidence head commit and the Phase 2 status line
