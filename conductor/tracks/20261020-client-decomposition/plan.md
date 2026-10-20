@@ -51,7 +51,7 @@ silently change order.
   `apps/client/src/hud.test.ts` (import paths only)
 - **Verification:** `bun run verify && bun run build`, plus browser smoke
   (care plates, hint dismissal persistence, settings chip reachable mid-battle)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Split the plates** — `plates-score`, `plates-lineage`,
   `plates-creature`, `plates-callout`, plus `ladder-read` for the view-models — covers: FR-2
