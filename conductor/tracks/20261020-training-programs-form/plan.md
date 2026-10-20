@@ -264,6 +264,6 @@ Review fixes are appended by `conductor-review` as:
   - [x] **R1.T5.2:** Test the chip title/paint and the pin note.
 
 **Result:** verified
-**Checkpoint:** 0dd5f40
+**Checkpoint:** 2ed7781
 **Evidence:** conductor/tracks/20261020-training-programs-form/verification/phase-r1.md
 -->

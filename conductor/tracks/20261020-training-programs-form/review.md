@@ -3,11 +3,19 @@
 - **Track:** `20261020-training-programs-form`
 - **Type:** `feature`
 - **Branch:** `feat/20261020-training-programs-form`
-- **Range:** `e7448d0..b40c06a`
+- **Range:** `e7448d0..2ed7781` (round 1 reviewed `e7448d0..b40c06a`)
 - **Date:** `2026-10-20T22:40:00+11:00`
-- **Verdict:** `BLOCK`
+- **Verdict:** `PASS`
 
 ## Summary
+
+**Round 2 (2026-10-20): PASS.** All six findings from round 1 are fixed in
+`2ed7781` (Phase R1): the projection moved into `previewProgram` in the sim, the
+breakthrough line counts tonight when a program is set, opening the picker moves
+focus into the sheet, the narrow-band comment and the dev seed are corrected, and
+the shared form read is covered by tests. `bun run verify` is green at 1924 pass /
+1 skip / 0 fail and `bun run build` exits 0; the projection and focus fixes were
+re-checked in a live browser (`verification/phase-r1.md`). Round 1 follows.
 
 The sim half of the track is in good shape: form tiers, the ATK-only lever, the
 settlement order (sick, hungry, exhausted, then gain), the no-RNG guarantee, save
@@ -46,16 +54,16 @@ missing test for the form chip.
 | FR-9 | P1.T2, P3.T1 | `form.test.ts`, `battle/form-seam.test.ts`, `cup/form-seam.test.ts` | covered |
 | FR-10 | P3.T2 | `packages/sim/src/cup/form-seam.test.ts` | covered |
 | FR-11 | P2.T4 | `packages/sim/src/save/save.test.ts`, `docs/save-schema.md` | covered |
-| FR-12 | P4.T1 | `hud/programs.test.ts`, `hud/dock.test.ts` | partial (F1) |
-| FR-13 | P4.T2 | `detail/training-tab.test.ts` | partial (F2) |
-| FR-14 | P5.T1 | primary browser pass only | partial (F6) |
+| FR-12 | P4.T1, R1.T1 | `hud/programs.test.ts`, `packages/sim/src/settlement.test.ts` | covered (F1 fixed in `2ed7781`) |
+| FR-13 | P4.T2, R1.T2 | `detail/training-tab.test.ts`, `hud/copy.test.ts` | covered (F2 fixed in `2ed7781`) |
+| FR-14 | P5.T1, R1.T5 | `hud/copy.test.ts`, `hud/plates.test.ts` | covered (F6 fixed in `2ed7781`) |
 | FR-15 | P5.T2 | `apps/client/src/handbook.test.ts` | covered |
 | FR-16 | P3.T3, P3.T4 | `packages/sim/src/battle/form.balance.test.ts` | covered |
 | NFR-1 | P2.T3 | `settlement.test.ts` RNG-call proof, determinism gate | covered |
 | NFR-2 | P1.T1, P3.T1 | `battle/form-seam.test.ts`, `cup/form-seam.test.ts` | covered |
 | NFR-3 | P2.T4 | `packages/sim/src/save/save.test.ts` | covered |
 | NFR-4 | P4.T1, P5.T2 | `apps/client/src/module-size.test.ts` | covered |
-| NFR-5 | P4.T1, P5.T1 | `hud/programs.test.ts` | partial (F3, F6) |
+| NFR-5 | P4.T1, P5.T1, R1.T3/R1.T5 | `hud/programs.test.ts`, `hud/copy.test.ts` | covered (F3, F6 fixed in `2ed7781`) |
 | NFR-6 | P1.T2 | `packages/sim/src/form.test.ts` | covered |
 | NFR-7 | P1.T1, P2.T1, P2.T3, P2.T4 | the test files above | covered |
 | AC-1 | P1.T1 | `form.test.ts`, `battle/form-seam.test.ts` | covered |
@@ -67,7 +75,7 @@ missing test for the form chip.
 | AC-7 | P2.T4 | `save/save.test.ts` | covered |
 | AC-8 | P5.T3 | `verification/integrated.md` | covered |
 | AC-9 | P3.T3, P3.T4 | `battle/form.balance.test.ts` | covered |
-| AC-10 | P4.T1, P5.T1 | phase 4 and 5 evidence | partial (F3, F6) |
+| AC-10 | P4.T1, P5.T1, R1.T3 | phase 4 and 5 evidence, phase R1 live check | covered (F3 fixed in `2ed7781`) |
 
 ## Findings
 
@@ -171,6 +179,19 @@ missing test for the form chip.
   - **Requirement:** FR-14
   - **Test gap:** as described.
 
+## Round 2 resolution
+
+| ID | Fix commit | Where |
+| --- | --- | --- |
+| F1 | `2ed7781` | `previewProgram` in `packages/sim/src/settlement.ts`, picker projects through it |
+| F2 | `2ed7781` | `breakthroughLine(trainingDays, assigned)`, Training tab passes the flag |
+| F3 | `2ed7781` | `hud/shell.ts` focuses the first program row on open |
+| F4 | `2ed7781` | `ranch.css` narrow-band comment corrected |
+| F5 | `2ed7781` | `artifacts/phase3-seed.ts` writes `trainingProgram` |
+| F6 | `2ed7781` | shared `formRead`/`formReadout` plus chip and pin-note tests |
+
+Evidence: `verification/phase-r1.md`.
+
 ## Overrides
 
 - none
@@ -199,10 +220,11 @@ ATK-only narrowing. No task was silently dropped.
 
 ## Doc sync
 
-`pending` - post-review sync after the fixes.
+`synced` - the review fixes changed no persisted shape; the tech-stack note and README line from phase 5 remain accurate (see the post-review sync commit).
 
 ## History
 
 | Round | Verdict | Critical | High | Medium | Low | Fixed |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | BLOCK | 0 | 1 | 2 | 3 | 0 |
+| 2 | PASS | 0 | 0 | 0 | 0 | F1-F6 |
