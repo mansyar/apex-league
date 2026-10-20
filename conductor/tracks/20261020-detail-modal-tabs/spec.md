@@ -69,7 +69,7 @@ out of sync because the pattern lives in one place.
 | ID | Requirement | Priority |
 | --- | --- | --- |
 | NFR-1 | Every touched or new client module stays at or under 12,288 B, pinned by `size-probe.test.ts` | must |
-| NFR-2 | The selected tab is not communicated by colour alone: weight and a solid underline accompany the tint, and `aria-selected` is authoritative | must |
+| NFR-2 | The selected tab is not communicated by colour alone: a filled plate, heavier weight and a bottom bar accompany the tint, and `aria-selected` is authoritative | must |
 | NFR-3 | No transition or animation is added; behaviour under reduced motion is unchanged | must |
 | NFR-4 | Tests run under `bun:test` only, with the existing fake-DOM approach; no jsdom, happy-dom, or new test dependency | must |
 | NFR-5 | Visual language matches the house kit: `kit-tab` typography, chamfered plates, no gradients on panels | must |

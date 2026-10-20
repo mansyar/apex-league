@@ -50,7 +50,9 @@
   NFR-6, AC-1, AC-2, AC-3, AC-4, AC-5, AC-6, AC-8
 - **Touches:** `apps/client/src/creature-detail.ts`,
   `apps/client/src/creature-detail.test.ts`, `apps/client/src/ui/kit.css`,
-  `apps/client/src/size-probe.test.ts`
+  `apps/client/src/size-probe.test.ts`; `apps/client/src/detail-pages.ts` and
+  `apps/client/src/detail-pages.test.ts` only if `creature-detail.ts` would go
+  over the cap
 - **Verification:** `bun run verify && bun run build`
 - **Status:** in_progress
 
