@@ -6,24 +6,40 @@ import {
   createCreature,
   createInitialState,
   EXHAUSTED_ENERGY,
+  FORM_COPY,
   type GameState,
+  TRAINING_PROGRAMS,
 } from "@apex/sim"
 import {
+  breakthroughLine,
+  cappedLine,
   coachVoice,
   corruptSaveNotice,
+  dockHeadTraining,
   evolveCallout,
+  FORM_SICK_NOTE,
   familyName,
   flavorCallout,
+  formDeltaLine,
+  gainsLine,
   graduationCallout,
   graduationHint,
   growthHint,
+  NO_GAIN_TONIGHT,
+  NO_GAIN_TONIGHT_FALLBACK,
   previewNote,
+  programTradeoff,
   romanNumeral,
   saveFailureNotice,
   selectHint,
   spendFlashIndex,
   stageLabel,
   statLabel,
+  TRAINING_EMPTY,
+  TRAINING_EMPTY_POINTER,
+  TRAINING_TAB_HEADINGS,
+  tonightLine,
+  trainButtonLabel,
   trainingStatus,
   unlockCallout,
 } from "./copy"
@@ -507,5 +523,120 @@ describe("selectHint — the four-tier ladder (gold_legend_ladder_20261017)", ()
     const hint = selectHint(at({ bossDefeats: ["marlow"] }), new Set())
     expect(hint?.id).toBe("boss-marlow")
     expect(hint?.text).not.toContain("horizon")
+  })
+})
+
+describe("training copy (2026-10-20)", () => {
+  /** Sentences, counted the plain way the player reads them. */
+  const sentenceCount = (line: string): number =>
+    line.split(/[.!?]+(?:\s|$)/).filter((part) => part.trim().length > 0).length
+
+  const clientLines = (): Array<[string, string]> => [
+    ...(Object.entries(NO_GAIN_TONIGHT) as Array<[string, string]>),
+    ["fallback", NO_GAIN_TONIGHT_FALLBACK],
+    ["sick note", FORM_SICK_NOTE],
+    ["breakthrough", breakthroughLine(2)],
+    ["cap note", cappedLine("atk")],
+    ["empty", TRAINING_EMPTY],
+    ["empty pointer", TRAINING_EMPTY_POINTER],
+    ["button pick", trainButtonLabel(null)],
+    ["button set", trainButtonLabel("sprint")],
+    ["head empty", dockHeadTraining(null)],
+    ["head set", dockHeadTraining("ring")],
+    ...Object.values(FORM_COPY).map(
+      (entry) => [`form ${entry.label}`, entry.line] as [string, string],
+    ),
+    ...TRAINING_PROGRAMS.map(
+      (program) => [`blurb ${program.id}`, program.blurb] as [string, string],
+    ),
+    ...TRAINING_PROGRAMS.map(
+      (program) =>
+        [`tradeoff ${program.id}`, programTradeoff(program.id)] as [
+          string,
+          string,
+        ],
+    ),
+    ...(["sharp", "steady", "flat", "sluggish"] as const).map(
+      (tier) => [`form delta ${tier}`, formDeltaLine(tier)] as [string, string],
+    ),
+    ...Object.keys(TRAINING_TAB_HEADINGS).map(
+      (key) =>
+        [
+          `heading ${key}`,
+          TRAINING_TAB_HEADINGS[key as keyof typeof TRAINING_TAB_HEADINGS],
+        ] as [string, string],
+    ),
+  ]
+
+  test("no line runs past two sentences", () => {
+    for (const [, line] of clientLines()) {
+      expect(sentenceCount(line)).toBeLessThanOrEqual(2)
+    }
+  })
+
+  test("stat names are written out in full, never abbreviated", () => {
+    for (const [, line] of clientLines()) {
+      expect(line).not.toMatch(/\b(atk|hp|def|spd)\b/)
+    }
+  })
+
+  test("the tradeoff names both stats of the program", () => {
+    expect(programTradeoff("power")).toBe(
+      "ATK +1/night — DEF on breakthrough nights",
+    )
+    expect(programTradeoff("endurance")).toBe(
+      "HP +1/night — DEF on breakthrough nights",
+    )
+    expect(programTradeoff("sprint")).toBe(
+      "SPD +1/night — ATK on breakthrough nights",
+    )
+  })
+
+  test("the gains line reads as a payout, not a table", () => {
+    expect(gainsLine({ atk: 1 })).toBe("+1 ATK")
+    expect(gainsLine({ atk: 1, def: 1 })).toBe("+1 ATK, +1 DEF")
+    expect(gainsLine({})).toBe("")
+  })
+
+  test("tonight's line prefers the reason over an empty payout", () => {
+    expect(tonightLine({ result: "sick", gains: {} })).toBe(
+      "Sick — no gain tonight",
+    )
+    expect(tonightLine({ result: "exhausted", gains: {} })).toBe(
+      "Too tired to gain tonight",
+    )
+    expect(tonightLine({ result: "hungry", gains: {} })).toBe(
+      "Hungry — no gain tonight",
+    )
+    expect(tonightLine({ result: null, gains: {} })).toBe("No gain tonight")
+    expect(tonightLine({ result: "gained", gains: { spd: 1 } })).toBe("+1 SPD")
+  })
+
+  test("tonight's line appends a program's extra payoff", () => {
+    expect(
+      tonightLine({ result: "gained", gains: { atk: 1 } }, "+5 MOOD"),
+    ).toBe("+1 ATK · +5 MOOD")
+    // A night that pays nothing never advertises the extras.
+    expect(tonightLine({ result: "sick", gains: {} }, "+5 MOOD")).toBe(
+      "Sick — no gain tonight",
+    )
+  })
+
+  test("the train button and the dock head name the program", () => {
+    expect(trainButtonLabel(null)).toBe("Choose tonight's training")
+    expect(trainButtonLabel("power")).toBe("Training: Power Lifting")
+    expect(dockHeadTraining(null)).toBe("No training set")
+    expect(dockHeadTraining("endurance")).toBe("Endurance Circuit")
+  })
+
+  test("the form delta is spelled out for every tier", () => {
+    expect(formDeltaLine("sharp")).toBe("ATK +1")
+    expect(formDeltaLine("steady")).toBe("ATK +0")
+    expect(formDeltaLine("flat")).toBe("ATK -1")
+    expect(formDeltaLine("sluggish")).toBe("ATK -2")
+    // Every tier names the stat and carries a sign: a bare "0" reads as a bug.
+    for (const tier of ["sharp", "steady", "flat", "sluggish"] as const) {
+      expect(formDeltaLine(tier)).toMatch(/^ATK [+-]\d$/)
+    }
   })
 })

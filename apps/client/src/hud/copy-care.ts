@@ -3,11 +3,14 @@ import {
   type Creature,
   type CreatureConditions,
   EXHAUSTED_ENERGY,
+  FORM_DELTAS,
+  type FormTier,
   type GameState,
   getTrainingProgram,
   previewTraining,
   SICK_HEALTH,
   type StatKey,
+  type TrainingPreview,
   type TrainingProgram,
 } from "@apex/sim"
 import { graduationHint, growthHint, unlockCallout } from "./copy-growth"
@@ -49,6 +52,97 @@ export function previewNote(
   if (preview === "exhausted") return "no gain — too tired"
   return "no gain — hungry"
 }
+
+/** Why tonight's program cannot pay, in the row's own voice (≤ 1 sentence). */
+export const NO_GAIN_TONIGHT = {
+  sick: "Sick — no gain tonight",
+  hungry: "Hungry — no gain tonight",
+  exhausted: "Too tired to gain tonight",
+} as const
+
+/** The fallback line for a night with nothing to pay for another reason. */
+export const NO_GAIN_TONIGHT_FALLBACK = "No gain tonight"
+
+/**
+ * A program's primary/trickle tradeoff in plain words, e.g. "ATK +1/night —
+ * DEF on breakthrough nights". The sim owns the label and the blurb; this
+ * line only spells the two stats out.
+ */
+export function programTradeoff(program: TrainingProgram): string {
+  const def = getTrainingProgram(program)
+  const primary = statLabel(def.primary)
+  const trickle = statLabel(def.trickle)
+  return `${primary} +1/night — ${trickle} on breakthrough nights`
+}
+
+/** The cap note a picker row reads once its primary cannot grow. */
+export function cappedLine(stat: StatKey): string {
+  return `${statLabel(stat)} capped`
+}
+
+/** "+1 ATK" or "+1 ATK, +1 DEF" — stat names always spelled out. */
+export function gainsLine(gains: TrainingPreview["gains"]): string {
+  return STATS.flatMap(({ key, label }) => {
+    const gain = gains[key] ?? 0
+    return gain > 0 ? [`+${gain} ${label}`] : []
+  }).join(", ")
+}
+
+/** Tonight's line for a program row: what it pays, or why it pays nothing.
+ * `extra` carries the payoff a program adds beyond stats (Ring Craft's mood
+ * and bond), so two programs that train the same stats still read apart. */
+export function tonightLine(preview: TrainingPreview, extra = ""): string {
+  if (preview.result === "sick") return NO_GAIN_TONIGHT.sick
+  if (preview.result === "hungry") return NO_GAIN_TONIGHT.hungry
+  if (preview.result === "exhausted") return NO_GAIN_TONIGHT.exhausted
+  const gains = gainsLine(preview.gains)
+  if (gains === "") return NO_GAIN_TONIGHT_FALLBACK
+  return extra === "" ? gains : `${gains} · ${extra}`
+}
+
+/** The train control's label: the assigned program, or the invitation. */
+export function trainButtonLabel(program: TrainingProgram | null): string {
+  return program === null
+    ? "Choose tonight's training"
+    : `Training: ${getTrainingProgram(program).label}`
+}
+
+/** The collapsed dock head's one-fact training read. */
+export function dockHeadTraining(program: TrainingProgram | null): string {
+  return program === null
+    ? "No training set"
+    : getTrainingProgram(program).label
+}
+
+/** "Breakthrough in 2 nights" — the trickle night, three trained nights apart. */
+export function breakthroughLine(trainingDays: number): string {
+  const m = trainingDays % 3
+  const nights = m === 0 ? 3 : 3 - m
+  return `Breakthrough in ${nights} ${nights === 1 ? "night" : "nights"}`
+}
+
+/** The ATK delta a form tier applies, spelled out so colour is never it. */
+export function formDeltaLine(tier: FormTier): string {
+  const atk = FORM_DELTAS[tier].atk
+  return `ATK ${atk >= 0 ? `+${atk}` : `${atk}`}`
+}
+
+/** Why a sick creature reads Sluggish whatever its mood. */
+export const FORM_SICK_NOTE =
+  "Sick, so form is pinned to Sluggish — medicine would help."
+
+/** The Training tab's empty program state and its pointer to the dock. */
+export const TRAINING_EMPTY = "Nothing assigned tonight."
+export const TRAINING_EMPTY_POINTER =
+  "Pick a program in the ranch dock to start."
+
+/** Section headings shared by the Training tab (never colour-only). */
+export const TRAINING_TAB_HEADINGS = {
+  program: "Tonight's program",
+  progress: "Progress",
+  form: "Form",
+  table: "Programs",
+} as const
 
 /**
  * The condition coach line: at most one gentle nudge for whatever needs

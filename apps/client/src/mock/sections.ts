@@ -131,15 +131,19 @@ export function buildStage(motionBox: HTMLInputElement): HTMLElement {
   }
   statusTicker.say("A full night's rest will sharpen DEF.")
 
-  // Command dock — bottom-right, canned focus (DEF) with one capped stat.
+  // Command dock — bottom-right, canned program (Power Lifting) with the
+  // picker folded out and one capped stat.
   const {
     root: dock,
+    dockHeadMeta,
     actionButtons,
-    trainTag,
-    pickerButtons,
+    trainName,
+    picker,
+    pickerRows,
   } = buildCommandDock({
     onCare: () => {},
     onTrain: () => {},
+    onClosePicker: () => {},
     onAdvanceDay: () => {},
     onGraduate: () => {},
   })
@@ -149,18 +153,23 @@ export function buildStage(motionBox: HTMLInputElement): HTMLElement {
       btn.title = "Not sick — save the medicine."
     }
   }
-  if (trainTag) trainTag.textContent = "Focus: DEF"
-  for (const { button: btn, note, key } of pickerButtons) {
-    if (key === "def") {
+  dockHeadMeta.textContent = "Power Lifting"
+  if (trainName) trainName.textContent = "Training: Power Lifting"
+  picker.style.display = ""
+  dock.dataset.picking = "true"
+  for (const { button: btn, note, assigned, id } of pickerRows) {
+    if (id === "power") {
       btn.classList.add("is-focus")
-      note.textContent = "focused · +1 tonight"
-    } else if (key === "spd") {
+      btn.setAttribute("aria-checked", "true")
+      btn.tabIndex = 0
+      assigned.hidden = false
+      note.textContent = "+1 ATK"
+    } else if (id === "sprint") {
       btn.classList.add("is-capped")
       btn.disabled = true
-      note.textContent = "as sharp as it can get for now"
+      note.textContent = "SPD capped"
     } else {
-      // HP pays double since the chart track doubled the HP scale.
-      note.textContent = key === "hp" ? "84 → 86" : "18 → 19"
+      note.textContent = id === "endurance" ? "+1 HP" : "+1 ATK"
     }
   }
 
@@ -239,6 +248,7 @@ export function buildResponsiveSection(): HTMLElement {
     buildCommandDock({
       onCare: () => {},
       onTrain: () => {},
+      onClosePicker: () => {},
       onAdvanceDay: () => {},
       onGraduate: () => {},
     }).root,

@@ -53,9 +53,19 @@ export function createHudShell(
   // stay local (they re-render through update()).
   const dock = buildCommandDock({
     onCare: (action) => handlers.onCare(action),
-    onTrain: (key) => {
+    onTrain: (program) => {
+      // The row is a toggle: picking tonight's program again clears it, and
+      // clearing is free, so the picker never traps a choice.
+      const assigned = view.current?.creature?.trainingProgram ?? null
       view.pickerOpen = false
-      handlers.onTrain(key)
+      handlers.onTrain(assigned === program ? null : program)
+    },
+    // Escape leaves the picker without folding the dock away.
+    onClosePicker: () => {
+      if (!view.pickerOpen) return
+      view.pickerOpen = false
+      if (view.current) shell.render(view.current)
+      trainButton.focus()
     },
     onAdvanceDay: () => handlers.onAdvanceDay(),
     onGraduate: () => handlers.onGraduate(),
