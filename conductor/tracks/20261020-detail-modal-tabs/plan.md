@@ -9,32 +9,36 @@
 - **Touches:** `apps/client/src/ui/tabs.ts` (new), `apps/client/src/ui/tabs.test.ts`
   (new), `apps/client/src/handbook.ts`, `apps/client/src/handbook.test.ts` (new)
 - **Verification:** `bun test --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Pure tab-index math** — covers: FR-6
-  - [ ] `nextTabIndex(current, key, count)` handling ArrowLeft/ArrowRight with
+- [x] **P1.T1: Pure tab-index math** — covers: FR-6
+  - [x] `nextTabIndex(current, key, count)` handling ArrowLeft/ArrowRight with
         wrap, Home, End, and an unchanged index for any other key
-  - [ ] Unit tests for wrap at both ends, Home/End, single-tab lists, and
+  - [x] Unit tests for wrap at both ends, Home/End, single-tab lists, and
         non-navigation keys
 
-- [ ] **P1.T2: The tab controller** — covers: FR-6, FR-7, NFR-2
-  - [ ] `createTabs({ ariaLabel, idPrefix, tabs })` builds the `tablist`, one
+- [x] **P1.T2: The tab controller** — covers: FR-6, FR-7, NFR-2
+  - [x] `createTabs({ ariaLabel, idPrefix, tabs })` builds the `tablist`, one
         `button[role=tab]` and one `[role=tabpanel]` per entry, with
         `aria-controls`/`aria-labelledby`, `hidden` on inactive panels, and a
         single roving `tabIndex`
-  - [ ] Selection via click and via keyboard, focus follows selection, and an
+  - [x] Selection via click and via keyboard, focus follows selection, and an
         `onSelect` hook lets callers repaint a page on entry
-  - [ ] Fake-DOM tests covering ids, `aria-selected`, `hidden`, roving tabindex,
+  - [x] Fake-DOM tests covering ids, `aria-selected`, `hidden`, roving tabindex,
         click, and each navigation key
 
-- [ ] **P1.T3: Migrate the handbook** — covers: FR-10, AC-7
-  - [ ] Replace the inline tablist code in `handbook.ts` with `createTabs`,
+- [x] **P1.T3: Migrate the handbook** — covers: FR-10, AC-7
+  - [x] Replace the inline tablist code in `handbook.ts` with `createTabs`,
         keeping `handbook-tabs`/`handbook-tab`/`handbook-panel` classes and the
         `handbook-tab-<n>` ids
-  - [ ] Add `handbook.test.ts` (fake DOM): four tabs, first selected, exactly
+  - [x] Add `handbook.test.ts` (fake DOM): four tabs, first selected, exactly
         one visible panel, arrow keys switch pages — the handbook had no test
         before this migration
-  - [ ] Handbook page content and order unchanged
+  - [x] Handbook page content and order unchanged
+
+**Result:** verified
+**Checkpoint:** 28c68f0
+**Evidence:** conductor/tracks/20261020-detail-modal-tabs/verification/phase-1.md
 
 ## Phase 2: Tabbed detail modal
 
@@ -48,7 +52,7 @@
   `apps/client/src/creature-detail.test.ts`, `apps/client/src/ui/kit.css`,
   `apps/client/src/size-probe.test.ts`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Restructure the modal into a shell and three pages** — covers: FR-1, FR-3, FR-4, FR-5, FR-9
   - [ ] Header row keeps crest, name and stage chip; the tab strip sits under it
