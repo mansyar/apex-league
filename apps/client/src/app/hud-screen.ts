@@ -74,6 +74,8 @@ export function createHudScreen(deps: HudScreenDeps): Hud {
           archetypeId,
           visualSeedOf(creature.stats, creature.stage),
           creature.stage,
+          undefined,
+          creature.branch,
         )
         hud.announceEvolution(creature)
       } else {

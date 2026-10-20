@@ -36,16 +36,20 @@ export function createArena(shared: CupShared): {
 
   const castingFor = (creature: Creature, opponent: CupSlot): FightCasting => {
     return {
-      owned: castFighter({
-        speciesId: creature.speciesId,
-        name: creature.name,
-        // Stage-aware: a juvenile's boosted stats must fold back to the
-        // creation seed, or the cup arena re-rolls the partner's DNA.
-        // The stage rides along so the champion casts its grander build.
-        seed: visualSeedOf(creature.stats, creature.stage),
-        stage: creature.stage,
-        context: "the cup match",
-      }),
+      owned: {
+        ...castFighter({
+          speciesId: creature.speciesId,
+          name: creature.name,
+          // Stage-aware: a juvenile's boosted stats must fold back to the
+          // creation seed, or the cup arena re-rolls the partner's DNA.
+          // The stage rides along so the champion casts its grander build.
+          seed: visualSeedOf(creature.stats, creature.stage),
+          stage: creature.stage,
+          context: "the cup match",
+        }),
+        // The earned form tints the rig in the arena too (FR-10).
+        branch: creature.branch,
+      },
       rival: castFighter({
         speciesId: opponent.speciesId,
         name: opponent.name,

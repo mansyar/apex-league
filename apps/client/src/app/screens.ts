@@ -147,6 +147,7 @@ export function createGraduationScreen(
           if (canBreed(state)) graduation.showNursery(state)
           else graduation.showEggScreen(state)
         },
+        creature.branch,
       )
     },
     onPick: (speciesId) => {

@@ -33,8 +33,8 @@ export function createApi(s: RanchState): RanchMotion {
     get group() {
       return s.creatureGroup
     },
-    rebuild(archetypeId, seed, stage) {
-      rebuild(s, archetypeId, seed, stage)
+    rebuild(archetypeId, seed, stage, branch) {
+      rebuild(s, archetypeId, seed, stage, branch)
     },
     updateConditions(conditions) {
       s.lastConditions = conditions
@@ -178,7 +178,7 @@ export function createApi(s: RanchState): RanchMotion {
       s.petTime = 0
       return variant
     },
-    startEvolution(archetypeId, seed, targetStage, onDone) {
+    startEvolution(archetypeId, seed, targetStage, onDone, branch) {
       if (!s.creatureGroup) return
       // Preempt an in-flight feed walk (the growth moment takes over) and
       // abandon any wander trip, then begin from the current pose. The
@@ -192,7 +192,12 @@ export function createApi(s: RanchState): RanchMotion {
       s.treat = createTreatCeremony()
       s.treatActive = false
       cancelPlay(s)
-      s.evolutionSwap = { archetypeId, seed, stage: targetStage }
+      s.evolutionSwap = {
+        archetypeId,
+        seed,
+        stage: targetStage,
+        branch: branch ?? null,
+      }
       s.evolution.begin(s.creatureGroup.rotation.y, s.reducedMotion, {
         fromScale: stageScale(s.currentStage),
         toScale: stageScale(targetStage),

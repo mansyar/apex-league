@@ -43,6 +43,8 @@ export interface FightCasting {
     name: string
     key?: string
     stage?: LifeStage
+    /** Earned form's accent wash (FR-10); legacy/unknown ids skip it. */
+    branch?: string | null
   }
   /** Which creature stands on the right (away) side. */
   rival: {
@@ -51,6 +53,7 @@ export interface FightCasting {
     name: string
     key?: string
     stage?: LifeStage
+    branch?: string | null
   }
 }
 

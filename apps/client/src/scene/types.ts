@@ -21,8 +21,13 @@ export interface SceneHandle {
   /** Replace (or add) the showcased creature, built from the archetype
    * registry. The stage picks the life-stage variant and its world scale.
    * Takes the sim's LifeStage; champions render as juveniles until their
-   * own build lands. */
-  setCreature(archetypeId: string, seed: number, stage?: LifeStage): void
+   * own build lands. `branch` applies the earned form's accent wash. */
+  setCreature(
+    archetypeId: string,
+    seed: number,
+    stage?: LifeStage,
+    branch?: string | null,
+  ): void
   /** Drive the condition visual states from the owned creature's conditions. */
   updateConditions(conditions: CreatureConditions | null): void
   /**
@@ -97,13 +102,15 @@ export interface SceneHandle {
    * Non-cancelable like the feed ceremony; it preempts an in-flight feed
    * walk. Reduced motion swaps in place with no travel or glow. `onDone`
    * fires when the machine settles, so callers can sequence off the
-   * ceremony itself instead of guessing at its length.
+   * ceremony itself instead of guessing at its length. `branch` tints the
+   * swapped rig with the form the sim just earned.
    */
   startEvolutionCeremony(
     archetypeId: string,
     seed: number,
     targetStage: LifeStage,
     onDone?: () => void,
+    branch?: string | null,
   ): void
 }
 

@@ -29,8 +29,13 @@ export interface RanchMotionDeps {
 export interface RanchMotion {
   /** The creature's holder group, or null before the first rebuild. */
   readonly group: THREE.Group | null
-  /** Build a creature rig (archetype + seed + stage). */
-  rebuild(archetypeId: string, seed: number, stage: Stage): void
+  /** Build a creature rig (archetype + seed + stage), tinted for its branch. */
+  rebuild(
+    archetypeId: string,
+    seed: number,
+    stage: Stage,
+    branch?: string | null,
+  ): void
   /** Drive the condition visual states from the creature's conditions. */
   updateConditions(conditions: CreatureConditions | null): void
   /** Momentary droopy window (cup early exit). */
@@ -62,12 +67,14 @@ export interface RanchMotion {
    * fires once the machine has settled — the cue that the ceremony is over
    * (the legacy send-off opens its egg screen on it, never on a timer, so
    * a long walk can't be cut short). It survives a ceremony that a plain
-   * rebuild cancels, so a pending send-off still completes. */
+   * rebuild cancels, so a pending send-off still completes. `branch` tints
+   * the freshly swapped rig (FR-10). */
   startEvolution(
     archetypeId: string,
     seed: number,
     targetStage: Stage,
     onDone?: () => void,
+    branch?: string | null,
   ): void
   /** A plain rebuild cancels an in-flight evolution ceremony. */
   clearEvolution(): void

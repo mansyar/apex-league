@@ -1,17 +1,19 @@
 /**
  * Coach's Handbook (coach_knowledge_20261016): one ranch-only modal with
- * four tabs — the type chart, the ladder rules, the move pool, and raising.
- * Every page is derived from the sim (type factors, starter kits, tier gates,
- * the training catalog, and the form model), so the handbook can never drift
- * from the math the game actually uses. Guidance stays direction-only —
- * evolution is discovered in play, not spoiled on a page (product guideline).
- * Page builders live under `handbook/`; this file owns tab order and shell.
+ * five tabs — the type chart, the ladder rules, the move pool, raising, and
+ * the champion paths. Every page is derived from the sim (type factors,
+ * starter kits, tier gates, the training catalog, the form model, and the
+ * branch catalog), so the handbook can never drift from the math the game
+ * actually uses. Guidance stays direction-only — evolution is discovered in
+ * play, not spoiled on a page (product guideline). Page builders live under
+ * `handbook/`; this file owns tab order and shell.
  */
 
 import { focusTrap } from "./battleUI"
 import { buildTypeChart } from "./handbook/chart"
 import { buildLadderRules } from "./handbook/ladder"
 import { buildMoves } from "./handbook/moves"
+import { buildPaths } from "./handbook/paths"
 import { buildRaising } from "./handbook/raising"
 import { createTabs, type TabSpec } from "./ui/tabs"
 
@@ -20,6 +22,7 @@ const TABS: TabSpec[] = [
   { label: "Ladder rules", build: buildLadderRules },
   { label: "Moves", build: buildMoves },
   { label: "Raising", build: buildRaising },
+  { label: "Paths", build: buildPaths },
 ]
 
 export interface HandbookRefs {

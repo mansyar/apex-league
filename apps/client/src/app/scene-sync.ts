@@ -46,6 +46,7 @@ export function createSceneSync(
       getSpecies(creature.speciesId)?.archetypeId ?? "draconic",
       visualSeed,
       creature.stage,
+      creature.branch,
     )
     scene.setProps(visualSeed)
     sceneVisuals()

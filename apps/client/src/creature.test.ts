@@ -1,7 +1,12 @@
 import { describe, expect, test } from "bun:test"
 import { generate } from "@apex/voxel"
 import * as THREE from "three"
-import { buildCreatureGroup, buildCreatureMeshes } from "./creature"
+import {
+  applyBranchTint,
+  branchTint,
+  buildCreatureGroup,
+  buildCreatureMeshes,
+} from "./creature"
 
 describe("creature colour path", () => {
   // Colour used to arrive as one material colour per part. It now arrives as a
@@ -70,4 +75,67 @@ describe("creature colour path", () => {
       expect(material.vertexColors).toBe(false)
     })
   }, 20_000)
+})
+
+function materialsOf(group: THREE.Object3D): THREE.MeshLambertMaterial[] {
+  const materials: THREE.MeshLambertMaterial[] = []
+  group.traverse((object) => {
+    if (!(object instanceof THREE.Mesh)) return
+    const material = object.material
+    if (material instanceof THREE.MeshLambertMaterial) materials.push(material)
+  })
+  return materials
+}
+
+const WHITE = new THREE.Color(1, 1, 1).getHex()
+
+describe("branch tint", () => {
+  test("washes one group's materials and leaves the other untouched", () => {
+    const { dna, build, def } = generate("draconic", 42)
+    const tinted = buildCreatureGroup(dna, build, def.grid)
+    const plain = buildCreatureGroup(dna, build, def.grid)
+    const plainBefore = materialsOf(plain).map((material) =>
+      material.color.getHex(),
+    )
+    const meshesBefore = materialsOf(tinted).length
+
+    expect(applyBranchTint(tinted, "cinder_courser")).toBe(true)
+
+    const wash = branchTint("cinder_courser")
+    if (!wash) throw new Error("cinder_courser must have a tint")
+    const tintedColours = materialsOf(tinted).map((material) =>
+      material.color.getHex(),
+    )
+    // One wash, the same on every part; the same materials, not new ones.
+    expect(new Set(tintedColours)).toEqual(new Set([wash.getHex()]))
+    expect(tintedColours[0]).not.toBe(WHITE)
+    expect(materialsOf(tinted)).toHaveLength(meshesBefore)
+    // The sibling built from the same build keeps its own colours.
+    expect(
+      materialsOf(plain).map((material) => material.color.getHex()),
+    ).toEqual(plainBefore)
+    // A near-white wash: bright enough that the baked coat still reads.
+    const hsl = wash.getHSL({ h: 0, s: 0, l: 0 })
+    expect(hsl.l).toBeGreaterThan(0.75)
+    expect(hsl.l).toBeLessThan(0.95)
+    expect(hsl.s).toBeGreaterThan(0.2)
+  })
+
+  test("legacy, null, and unknown branches leave every colour alone", () => {
+    const { dna, build, def } = generate("draconic", 42)
+    for (const branch of [null, undefined, "legacy", "ember_form"]) {
+      const creature = buildCreatureGroup(dna, build, def.grid)
+      const before = materialsOf(creature).map((material) =>
+        material.color.getHex(),
+      )
+      expect(applyBranchTint(creature, branch)).toBe(false)
+      expect(branchTint(branch)).toBeNull()
+      expect(
+        materialsOf(creature).map((material) => material.color.getHex()),
+      ).toEqual(before)
+    }
+    // Legacy is a real catalog id but never earns a wash (FR-10).
+    expect(branchTint("legacy")).toBeNull()
+    expect(branchTint("pyre_warden")?.getHex()).not.toBe(WHITE)
+  })
 })

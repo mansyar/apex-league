@@ -13,23 +13,30 @@ import type { SparSetup } from "./types"
 /** Both fighters as arena casts: species-preserving seeds, ranch-stable. */
 export function castingFor(owned: Creature, setup: SparSetup): FightCasting {
   return {
-    owned: castFighter({
-      speciesId: owned.speciesId,
-      name: owned.name,
-      seed: visualSeedOf(owned.stats, owned.stage),
-      // The stage rides along: a champion casts its grander arena build.
-      stage: owned.stage,
-      // Mirror matches share a display name; the side key disambiguates.
-      key: setup.ownedSide.id ?? owned.name,
-      context: "the spar",
-    }),
-    rival: castFighter({
-      speciesId: setup.rivalSpeciesId,
-      name: setup.rival.name,
-      seed: visualSeedOf(setup.rival.stats, setup.rival.stage),
-      key: setup.rivalSide.id ?? setup.rival.name,
-      context: "the spar",
-    }),
+    owned: {
+      ...castFighter({
+        speciesId: owned.speciesId,
+        name: owned.name,
+        seed: visualSeedOf(owned.stats, owned.stage),
+        // The stage rides along: a champion casts its grander arena build.
+        stage: owned.stage,
+        // Mirror matches share a display name; the side key disambiguates.
+        key: setup.ownedSide.id ?? owned.name,
+        context: "the spar",
+      }),
+      branch: owned.branch,
+    },
+    rival: {
+      ...castFighter({
+        speciesId: setup.rivalSpeciesId,
+        name: setup.rival.name,
+        seed: visualSeedOf(setup.rival.stats, setup.rival.stage),
+        key: setup.rivalSide.id ?? setup.rival.name,
+        context: "the spar",
+      }),
+      // A generated rival fights in a derived form (Phase 3); tint that form.
+      branch: setup.rivalSide.branch,
+    },
   }
 }
 
