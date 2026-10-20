@@ -169,7 +169,10 @@ silently change order.
   `conductor/tracks/20261020-client-decomposition/verification/*`,
   `conductor/tech-stack.md`
 - **Verification:** `bun run verify && bun run build` plus the guard's own suite
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** PENDING
+- **Evidence:** conductor/tracks/20261020-client-decomposition/verification/phase-R2.md
 
 - [x] **R2.T1: Evidence matches the guard** - rewrite the control and exclusion prose in
   `phase-5.md` and `integrated.md` (AC-2, AC-3) and drop the obsolete insert block

@@ -386,12 +386,12 @@
   modules split into `cup/screens/`, `spar/`, `graduation/` and `mock/`. No save change,
   no dependency change, no rendering or copy change; the determinism gate is unchanged.
 - `2026-10-20` - **Client size guard, whole tree** (`20261020-client-decomposition`
-  Phase 5): `apps/client/src/module-size.test.ts` now walks every `.ts` file under
-  `apps/client/src` recursively and fails on anything over 12,288 bytes, reporting each
-  offender as `hud.ts — 15121 B (2833 B over the 12288 B cap)`, largest first, under a
-  header naming the cap and a footer naming the exemptions. The walk follows symlinked
-  folders and measures `.ts`, `.tsx` and `.mts`; the only exemptions are co-located
-  `*.test.*` suites and the Vite shim `vite-env.d.ts`, so there is no allowlist by
+  Phase 5): `apps/client/src/module-size.test.ts` now walks every `.ts`, `.tsx` and
+  `.mts` file under `apps/client/src` recursively and fails on anything over 12,288 bytes,
+  reporting each offender as `hud.ts - 15121 B (2833 B over the 12288 B cap)`, largest
+  first, under a header naming the cap and a footer naming the exemptions. The walk
+  follows linked folders too and measures `.ts`, `.tsx` and `.mts`; the only exemptions
+  are co-located `*.test.*` suites and the Vite shim `vite-env.d.ts`, so there is no allowlist by
   name. The interim four-file `size-probe.test.ts` from `20261020-evolution-discovery-ui`
   is retired. A self-cleaning negative control builds an oversized `oversized.tsx` in an
   OS temp folder, asserts the guard rejects it, and removes the folder in a `finally`,

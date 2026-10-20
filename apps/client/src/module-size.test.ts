@@ -132,11 +132,11 @@ describe("client module size cap", () => {
     // `.tsx` on purpose - the walk must see every source extension, not just `.ts`.
     const name = "oversized.tsx"
     const path = join(dir, name)
-    writeFileSync(
-      path,
-      `// Negative-control fixture for module-size.test.ts. Never shipped.\nexport const PAD = "${"x".repeat(CAP_BYTES)}"\n`,
-    )
     try {
+      writeFileSync(
+        path,
+        `// Negative-control fixture for module-size.test.ts. Never shipped.\nexport const PAD = "${"x".repeat(CAP_BYTES)}"\n`,
+      )
       const bytes = statSync(path).size
       expect(bytes).toBeGreaterThan(CAP_BYTES)
       const files = moduleFiles(dir)

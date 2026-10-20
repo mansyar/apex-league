@@ -25,10 +25,12 @@ The guard now:
 
 1. **Walks the tree.** `moduleFiles()` recurses from `import.meta.dir` with
    `readdirSync(dir, { withFileTypes: true })`, so nested folders
-   (`hud/`, `cup/screens/`, `scene-logic/`, `steps/`, `ui/`, …) are covered and a
-   new folder needs no registration. Paths are reported relative to `src/` with
-   `/` separators.
-2. **Excludes exactly two names.** `*.test.ts` (co-located suites) and
+   (`hud/`, `cup/screens/`, `scene-logic/`, `steps/`, `ui/`, .) are covered and a
+   new folder needs no registration. It follows the target type
+   (`statSync(full).isDirectory()`) rather than the dirent, so a linked folder is
+   walked too, and it measures `.ts`, `.tsx` and `.mts`. Paths are reported
+   relative to `src/` with `/` separators.
+2. **Excludes exactly two names.** Any `*.test.*` file (co-located suites) and
    `vite-env.d.ts` (the Vite type shim). No allowlist by name, no per-folder
    exception, no `// size-ignore` escape hatch.
 3. **Measures bytes.** `CAP_BYTES = 12 * 1024` compared against `statSync().size`
@@ -110,8 +112,8 @@ the report trustworthy. `CAP_BYTES` was then restored to `12 * 1024` and
 
 | ID | Criterion | Evidence | Status |
 | --- | --- | --- | --- |
-| AC-2 | `module-size.test.ts` scans the whole client tree, excludes `*.test.ts` and `vite-env.d.ts`, fails with offender paths + sizes | recursive `moduleFiles()` over `import.meta.dir`; 167 measured modules listed below (nested folders included); failing-path demo above | met |
-| AC-3 | A deliberately oversized module makes the guard fail (negative control), and the control leaves no artifact behind | in-suite control: writes `__guard-negative-control-<pid>.ts`, asserts the walk sees it and the report names it with bytes + overage, `finally` removes it, then `expect(existsSync(path)).toBe(false)`; green in the final suite | met |
+| AC-2 | `module-size.test.ts` scans the whole client tree, excludes `*.test.*` and `vite-env.d.ts`, fails with offender paths + sizes | recursive `moduleFiles()` over `import.meta.dir` following `statSync` targets and measuring `.ts`/`.tsx`/`.mts`; 167 measured modules listed below (nested folders included); failing-path demo above | met |
+| AC-3 | A deliberately oversized module makes the guard fail (negative control), and the control leaves no artifact behind | in-suite control: builds an oversized `oversized.tsx` in `mkdtempSync(join(tmpdir(), "apex-guard-"))`, walks it with the same `moduleFiles()` and `capReport()`, asserts the report names it with bytes + overage, removes the directory recursively in `finally`, then asserts the directory is gone; green in the final suite | met |
 | AC-8 | `size-probe.test.ts` is gone and its guarantee is covered by the new guard | `git rm -- apps/client/src/size-probe.test.ts`; suite file count 143 → 142; the four pinned modules are in the measured list with no name list | met |
 | NFR-3 | No new dependency, no `package.json` change | imports are `bun:test`, `node:fs`, `node:path` only; no manifest touched | met |
 | NFR-4 | Suite stays green; no test weakened or deleted except retiring `size-probe.test.ts` | 1788 pass / 1 skip / 0 fail; the old boundary tests (one byte over, exactly at cap) are kept and a largest-first ordering test is added | met (see deviation 1 for the `tech-stack.md` note) |
@@ -316,36 +318,11 @@ head with no exemption.
 
 ## Deviations
 
-1. **`conductor/tech-stack.md` was not edited.** The sandbox rejects writes to
-   that path (`permission.rejected` on `edit`, three attempts with different
-   anchors and content), the same class of denial that blocks shell commands
-   outside the configured verification set. The note is written and ready —
-   exact text for the primary to insert after the
-   `20261020-detail-modal-tabs` bullet in `## Client`:
-
-   ```markdown
-   -   *2026-10-20 (track `20261020-client-decomposition`):* The 12 KB rule is now
-       a whole-tree guard, not a two-folder one. `apps/client/src/module-size.test.ts`
-       walks every `.ts` file under `apps/client/src` recursively (`readdirSync`
-       with `withFileTypes`; paths reported relative to `src/`), so a module
-       anywhere in the client — `main.ts` and friends included — fails the run
-       that pushes it over. Exactly two names are exempt: co-located `*.test.ts`
-       suites and the Vite type shim `vite-env.d.ts`. There is no allowlist by
-       name and no per-folder exception. The rule is `CAP_BYTES = 12 * 1024` of
-       **bytes**, not lines. On failure the message names every offender as
-       `<path> — <bytes> B (<overage> B over the <cap> B cap)`, sorted largest
-       first, under a header telling the author to split along the seams the
-       module already has. A negative control in the same file writes
-       `__guard-negative-control-<pid>.ts` into `src/`, asserts the *same* walk
-       and report catch it, and removes it in a `finally`, so the guard is
-       proven to reject an oversized module and to leave no artifact behind.
-       `size-probe.test.ts` — the interim four-file pin from
-       `20261020-evolution-discovery-ui` — is retired and its guarantee is
-       subsumed. No new dependency, no runtime change.
-   ```
-
-   Consequence: P5.T2 is done except this note; the code part of P5.T2 is
-   committed.
+1. **`conductor/tech-stack.md` was written by the primary.** The sandbox rejected
+   the subagent's writes to that path, so the orchestrator added the dated note in
+   R1; it is the whole-tree guard bullet under `## Client`, and it describes the
+   guard as it stands after the review fixes (extensions, symlink follow, temp-folder
+   control).
 
 2. **`git rm apps/client/src/size-probe.test.ts` is denied; `git rm -- …`
    works.** Recorded only because the delete is part of P5.T1 and the flag is
