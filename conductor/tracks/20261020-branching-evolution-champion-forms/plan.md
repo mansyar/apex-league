@@ -53,18 +53,19 @@
 **Covers:** FR-9, FR-4, NFR-1, NFR-6
 **Touches:** `packages/sim/src/battle/rival-kit.ts`, `packages/sim/src/battle/rival-kit.test.ts`, `packages/sim/src/battle/exhibition.ts`, `packages/sim/src/battle/resolver.ts`, `packages/sim/src/battle/branch-balance.test.ts` (new), `packages/sim/src/cup/verdicts.ts`, `packages/sim/src/bosses.ts`, `packages/sim/src/bosses.test.ts`, `conductor/tracks/20261020-branching-evolution-champion-forms/verification/phase-3.md`
 **Verification:** `bun test --timeout 120000 packages/sim/src/battle packages/sim/src/bosses.test.ts packages/sim/src/battle/branch-balance.test.ts && bun run verify && bun run build`
-**Status:** in_progress
+**Status:** verified
 
-- [ ] **P3.T1 - Derive rival branches from their seeded profile**
-  - [ ] Apply the same `branchLean` rule to generated rivals, using their stat profile with a zeroed training record; a cup slot derives at battle time so brackets and sessions stay unchanged.
-  - [ ] Assert determinism per seed, that a cup field can contain both forms, and that stats, kits, and outcomes are unchanged by the display field.
-- [ ] **P3.T2 — Pin bosses to legacy and assert no drift**
-  - [ ] Mark boss definitions legacy or leave them branchless; verify pinned stats, loadouts, and tactics are unchanged.
-  - [ ] Assert no boss loadout references a signature move.
-- [ ] **P3.T3 — Run and record branch balance probes**
-  - [ ] Mirror each branch against itself and against legacy across all three species and a fixed seed set.
-  - [ ] Confirm neither branch exceeds 55% in mirrors or leaves the 40–70% legacy band, and that both signatures appear in viable loadouts.
-  - [ ] Tune branch boosts or signature numbers in Phase 1 files only if a probe fails, then rerun the full gate.
+- [x] **P3.T1 - Derive rival branches from their seeded profile**
+  - [x] Apply the same `branchLean` rule to generated rivals, using their stat profile with a zeroed training record; a cup slot derives at battle time so brackets and sessions stay unchanged.
+  - [x] Assert determinism per seed, that a cup field can contain both forms, and that stats, kits, and outcomes are unchanged by the display field.
+  - [x] Carry the earned form on the owner's battle side too, so both sides expose the same display field.
+- [x] **P3.T2 - Pin bosses to legacy and assert no drift**
+  - [x] Mark all six boss definitions `legacy`; verify pinned stats, loadouts, and tactics are unchanged.
+  - [x] Assert no boss loadout references a signature move.
+- [x] **P3.T3 - Run and record branch balance probes**
+  - [x] Mirror each branch against itself and against legacy across all three species and a fixed seed set.
+  - [x] Confirm neither branch exceeds 55% in mirrors or leaves the 40-70% legacy band, and that all six signatures appear in viable loadouts.
+  - [x] Retune four champion-step rows after the first probe left the legacy band (juvenile boosts, signatures, and the 22-point budget unchanged), then rerun the full gate.
 
 ## Phase 4: Lean preview, reveal, and detail surfaces
 

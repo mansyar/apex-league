@@ -70,3 +70,13 @@ bun test --timeout 120000 packages/sim/src/branches.test.ts packages/sim/src/evo
 - The derivation rule exists once (`branchLean`); `evolveCreature` only calls it. No picker, state flag, or offer was introduced.
 - Rework: `defaultLoadout` previously sliced `knownMoves`, which ends with the signature, so a branched juvenile below six trained days defaulted to three kit moves plus its signature — that violated AC-6. It now reuses `signatureMoveOf` (no duplicated branch check) and drops that id from the default slice; baby, legacy, and six-day defaults are byte-identical to before. Regression coverage lives in `loadout.test.ts › branch signature moves` (3-day branched juvenile, 6-day branched juvenile, 3-day legacy juvenile).
 - Verification numbers above are from the rework run; the phase is squashed into one commit on this branch.
+
+## Later phases touched this contract
+
+- Phase 2 bumped `SAVE_VERSION` to 19; the "no save changes" bullet above describes
+  Phase 1 only.
+- Phase 3 retuned four champion-step rows after the first balance probe left the
+  40–70% legacy band: `cinder_courser` `{5,7,3,2}`, `pyre_warden` `{7,2,6,0}`,
+  `thorn_ram` `{5,5,3,4}`, `riptide_runner` `{5,5,4,3}`. `bramble_bulwark` and
+  `reef_keeper` stay `{7,3,5,0}`. Juvenile boosts, signatures, and the 22-point
+  champion budget are unchanged; see `phase-3.md` for the measured rates.
