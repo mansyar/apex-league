@@ -206,29 +206,35 @@
 - **Covers:** FR-14, FR-15, AC-10
 - **Touches:** `apps/client/src/cup/coach-room.ts`,
   `apps/client/src/spar/setup.ts`, `apps/client/src/hud/plates-creature.ts`,
-  `apps/client/src/handbook.ts`, `apps/client/src/handbook.test.ts`,
-  `apps/client/src/cup.css`, `apps/client/src/spar.css`, `README.md`,
+  `apps/client/src/hud/update.ts`, `apps/client/src/handbook.ts`,
+  `apps/client/src/handbook/*.ts`, `apps/client/src/handbook.test.ts`,
+  `apps/client/src/cup.css`, `apps/client/src/spar.css`,
+  `apps/client/src/ranch.css`, `README.md`, `conductor/product.md`,
   `conductor/product.md`, `conductor/tech-stack.md`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P5.T1: Coach room and spar** — covers: FR-14, AC-10
-  - [ ] **P5.T1.1:** Show the form tier and consequence line beside the owned
+- [x] **P5.T1: Coach room and spar** — covers: FR-14, AC-10
+  - [x] **P5.T1.1:** Show the form tier and consequence line beside the owned
     stat readout in the coach room and the spar prep card, using the shared
     `FORM_COPY` so wording cannot drift.
-  - [ ] **P5.T1.2:** Add the form chip to the creature plate and check it at
+  - [x] **P5.T1.2:** Add the form chip to the creature plate and check it at
     393×659 with the existing narrow-layout test.
-- [ ] **P5.T2: Handbook** — covers: FR-15
-  - [ ] **P5.T2.1:** Extend the Raising section with programs, the energy gate,
+- [x] **P5.T2: Handbook** — covers: FR-15
+  - [x] **P5.T2.1:** Extend the Raising section with programs, the energy gate,
     breakthrough nights and form; split section builders into `handbook/`
     modules if the file crosses 12,288 B.
-  - [ ] **P5.T2.2:** Extend handbook tests for the new copy and tab order.
-- [ ] **P5.T3: Docs sync and visual evidence** — covers: FR-15, AC-10
-  - [ ] **P5.T3.1:** Update the README core-loop line, the product roadmap status,
+  - [x] **P5.T2.2:** Extend handbook tests for the new copy and tab order.
+- [x] **P5.T3: Docs sync and visual evidence** — covers: FR-15, AC-10
+  - [x] **P5.T3.1:** Update the README core-loop line, the product roadmap status,
     and add a dated tech-stack note for the form seam and save v18.
-  - [ ] **P5.T3.2:** Capture desktop and iPhone 15 screenshots of the dock
+  - [x] **P5.T3.2:** Capture desktop and iPhone 15 screenshots of the dock
     picker, training tab, coach room and handbook with a clean console, and
     write `verification/phase-5.md`.
+
+**Result:** verified
+**Checkpoint:** d7d9a86
+**Evidence:** conductor/tracks/20261020-training-programs-form/verification/phase-5.md
 
 <!--
 Review fixes are appended by `conductor-review` as:
