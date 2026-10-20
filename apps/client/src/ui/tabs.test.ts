@@ -216,6 +216,9 @@ describe("createTabs", () => {
       expect(panel.attributes.role).toBe("tabpanel")
       expect(panel.attributes["aria-labelledby"]).toBe(`detail-tab-${index}`)
       expect(panel.id).toBe(`detail-panel-${index}`)
+      // A panel with no controls is still the only scroll surface on a short
+      // viewport, so it takes one tab stop of its own.
+      expect(panel.tabIndex).toBe(0)
     })
   })
 

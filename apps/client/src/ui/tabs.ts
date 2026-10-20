@@ -76,6 +76,9 @@ export function createTabs(options: TabsOptions): Tabs {
     panel.id = `${idPrefix}-panel-${index}`
     panel.setAttribute("role", "tabpanel")
     panel.setAttribute("aria-labelledby", `${idPrefix}-tab-${index}`)
+    // A panel that holds no controls is still the only scroll surface on a
+    // short viewport, so it takes one tab stop of its own.
+    panel.tabIndex = 0
     tab.build?.(panel)
     panels.push(panel)
   })

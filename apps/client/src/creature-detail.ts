@@ -105,8 +105,10 @@ export interface CreatureDetail {
   /** Render from current state and show the modal, on the Stats page. */
   open: (state: GameState) => void
   /**
-   * Repaint the Growth section from state while the modal is open. A no-op
-   * when it is closed, so the HUD can call it on every commit.
+   * Record state and repaint the Growth section when the modal is open. The
+   * record survives a closed modal, so entering Growth after a settlement
+   * paints fresh rows instead of the ones from the last open. The HUD calls it
+   * on every commit.
    */
   sync: (state: GameState) => void
 }

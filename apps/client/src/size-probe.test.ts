@@ -15,7 +15,12 @@ import { join } from "node:path"
 /** Mirrors `CAP_BYTES` in module-size.test.ts — the project-wide cap. */
 const CAP_BYTES = 12 * 1024
 
-const MODULES = ["creature-detail.ts", "growth.ts", "growth-panel.ts"] as const
+const MODULES = [
+  "creature-detail.ts",
+  "growth.ts",
+  "growth-panel.ts",
+  "ui/tabs.ts",
+] as const
 
 test("the Growth modules stay inside the 12 KB cap", () => {
   const oversized = MODULES.map((name) => ({

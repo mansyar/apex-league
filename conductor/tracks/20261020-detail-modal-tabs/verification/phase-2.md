@@ -5,7 +5,7 @@
 - **Date:** 2026-10-20
 - **Branch:** `feat/20261020-detail-modal-tabs`
 - **Base commit:** `61ff7f6`
-- **Head commit:** `24995d5`
+- **Head commit:** `c0f3491`
 - **Result:** verified (code, tests, static, determinism, build). Visual layer is
   the primary's acceptance pass — see *Visual layer* below.
 
