@@ -119,7 +119,7 @@ silently change order.
 - **Touches:** `apps/client/src/module-size.test.ts`,
   `conductor/tech-stack.md`, `conductor/tracks/20261020-client-decomposition/verification/*`
 - **Verification:** `bun run verify && bun run build`; the negative control must fail
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P5.T1: One guard** — walk every `.ts` under `apps/client/src`, skip `*.test.ts`
   and `vite-env.d.ts`, assert the cap, report path + bytes per offender; delete
