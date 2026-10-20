@@ -72,7 +72,7 @@ export function createHudScreen(deps: HudScreenDeps): Hud {
         sceneSync.sceneVisuals()
         scene.startEvolutionCeremony(
           archetypeId,
-          visualSeedOf(creature.stats, creature.stage),
+          visualSeedOf(creature.stats, creature.stage, creature.branch),
           creature.stage,
           undefined,
           creature.branch,

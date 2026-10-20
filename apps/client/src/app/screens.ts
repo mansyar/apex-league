@@ -137,7 +137,7 @@ export function createGraduationScreen(
       // path needs no special case (it settles a frame later).
       scene.startEvolutionCeremony(
         creature.archetypeId,
-        visualSeedOf(creature.stats, creature.stage),
+        visualSeedOf(creature.stats, creature.stage, creature.branch),
         creature.stage,
         () => {
           const state = store.get()

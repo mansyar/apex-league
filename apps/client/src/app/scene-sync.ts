@@ -41,7 +41,11 @@ export function createSceneSync(
     // gains ride the `trained` counters and never touch the seed; the stage
     // offset cancels evolution's stat boost so the individual stays the one
     // rolled at creation — only its stage presentation changes.
-    const visualSeed = visualSeedOf(creature.stats, creature.stage)
+    const visualSeed = visualSeedOf(
+      creature.stats,
+      creature.stage,
+      creature.branch,
+    )
     scene.setCreature(
       getSpecies(creature.speciesId)?.archetypeId ?? "draconic",
       visualSeed,

@@ -43,7 +43,7 @@ export function createArena(shared: CupShared): {
           // Stage-aware: a juvenile's boosted stats must fold back to the
           // creation seed, or the cup arena re-rolls the partner's DNA.
           // The stage rides along so the champion casts its grander build.
-          seed: visualSeedOf(creature.stats, creature.stage),
+          seed: visualSeedOf(creature.stats, creature.stage, creature.branch),
           stage: creature.stage,
           context: "the cup match",
         }),

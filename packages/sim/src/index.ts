@@ -145,6 +145,7 @@ export {
   type EvolutionReason,
   type EvolutionVerdict,
   evaluateEvolution,
+  evolutionBoost,
   evolveCreature,
   SICK_COOLDOWN_NIGHTS,
 } from "./evolution"

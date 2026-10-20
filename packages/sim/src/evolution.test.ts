@@ -15,6 +15,7 @@ import {
   EVOLUTION_MOOD,
   effectiveStats,
   evaluateEvolution,
+  evolutionBoost,
   evolveCreature,
   type GameState,
   getBranch,
@@ -629,6 +630,67 @@ describe("evolveCreature - the earned branch", () => {
         statsPlus(juvenile.stats, branch.championBoost),
       )
       expect(budgetOf(champion.stats)).toBe(budgetOf(juvenile.stats) + 22)
+    }
+  })
+})
+
+describe("evolutionBoost - the shared stage offset", () => {
+  test("a baby has received nothing", () => {
+    expect(evolutionBoost("baby", null)).toEqual({
+      hp: 0,
+      atk: 0,
+      def: 0,
+      spd: 0,
+    })
+    expect(evolutionBoost("baby", "cinder_courser")).toEqual({
+      hp: 0,
+      atk: 0,
+      def: 0,
+      spd: 0,
+    })
+  })
+
+  test("null and unknown ids read the legacy tables", () => {
+    expect(evolutionBoost("juvenile", null)).toEqual(LEGACY_JUVENILE_BOOST)
+    expect(evolutionBoost("juvenile", "not_a_branch")).toEqual(
+      LEGACY_JUVENILE_BOOST,
+    )
+    expect(evolutionBoost("champion", null)).toEqual({
+      hp: LEGACY_JUVENILE_BOOST.hp + LEGACY_CHAMPION_BOOST.hp,
+      atk: LEGACY_JUVENILE_BOOST.atk + LEGACY_CHAMPION_BOOST.atk,
+      def: LEGACY_JUVENILE_BOOST.def + LEGACY_CHAMPION_BOOST.def,
+      spd: LEGACY_JUVENILE_BOOST.spd + LEGACY_CHAMPION_BOOST.spd,
+    })
+  })
+
+  test("a real branch reports exactly what evolveCreature applied", () => {
+    for (const branchId of ["cinder_courser", "pyre_warden"]) {
+      const branch = branchOf(branchId)
+      const baby = unbranchedBaby("fire_drake")
+      const juvenile = evolveCreature({ ...baby, branch: branchId })
+      expect(evolutionBoost("juvenile", branchId)).toEqual(
+        statsPlus(juvenile.stats, {
+          hp: -baby.stats.hp,
+          atk: -baby.stats.atk,
+          def: -baby.stats.def,
+          spd: -baby.stats.spd,
+        }),
+      )
+      const champion = evolveCreature(juvenile)
+      expect(evolutionBoost("champion", branchId)).toEqual(
+        statsPlus(champion.stats, {
+          hp: -baby.stats.hp,
+          atk: -baby.stats.atk,
+          def: -baby.stats.def,
+          spd: -baby.stats.spd,
+        }),
+      )
+      expect(evolutionBoost("champion", branchId)).toEqual({
+        hp: branch.juvenileBoost.hp + branch.championBoost.hp,
+        atk: branch.juvenileBoost.atk + branch.championBoost.atk,
+        def: branch.juvenileBoost.def + branch.championBoost.def,
+        spd: branch.juvenileBoost.spd + branch.championBoost.spd,
+      })
     }
   })
 })

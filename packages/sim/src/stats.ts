@@ -14,9 +14,9 @@
  * functions only — no DOM, no rendering, no I/O.
  */
 
-import { type BranchDef, getBranch, LEGACY_BRANCH } from "./branches"
 import { inheritedFloorFromPair } from "./breeding"
 import { type Creature, type CreatureStats, effectiveStats } from "./creature"
+import { evolutionBoost } from "./evolution"
 import { inheritedFloor, type LineageState } from "./legacy"
 import { getSpecies } from "./species"
 import { dedupeTraits, effectiveTraits } from "./traits"
@@ -41,11 +41,6 @@ export interface StatBreakdownRow {
 /** The full four-stat decomposition, keyed by stat. */
 export type StatBreakdown = Record<keyof CreatureStats, StatBreakdownRow>
 
-/** The form whose boosts this creature's evolution actually applied. */
-function branchOf(creature: Creature): BranchDef {
-  return getBranch(creature.branch ?? LEGACY_BRANCH.id) ?? LEGACY_BRANCH
-}
-
 /**
  * Total pinned evolution boost a creature of the given stage has received.
  * The gate applies the earned branch's own boost (evolution.ts), so the
@@ -55,21 +50,7 @@ function branchOf(creature: Creature): BranchDef {
  * exactly those numbers).
  */
 function stageBoostFor(creature: Creature): CreatureStats {
-  switch (creature.stage) {
-    case "baby":
-      return { hp: 0, atk: 0, def: 0, spd: 0 }
-    case "juvenile":
-      return { ...branchOf(creature).juvenileBoost }
-    case "champion": {
-      const branch = branchOf(creature)
-      return {
-        hp: branch.juvenileBoost.hp + branch.championBoost.hp,
-        atk: branch.juvenileBoost.atk + branch.championBoost.atk,
-        def: branch.juvenileBoost.def + branch.championBoost.def,
-        spd: branch.juvenileBoost.spd + branch.championBoost.spd,
-      }
-    }
-  }
+  return evolutionBoost(creature.stage, creature.branch)
 }
 
 /**

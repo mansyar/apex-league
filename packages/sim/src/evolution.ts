@@ -60,6 +60,31 @@ function storedBranch(creature: Creature): BranchDef {
 }
 
 /**
+ * Total pinned evolution boost a creature at this stage has received: zeros for
+ * a baby, the earned branch's juvenile boost, or that plus its champion boost.
+ * Null and unknown ids fall back to `legacy`, which is what a pre-v19 save
+ * carries. Callers that only hold stage + branch id (the client's visual seed)
+ * read this instead of keeping their own copy of the tables.
+ */
+export function evolutionBoost(
+  stage: "baby" | "juvenile" | "champion",
+  branch: string | null,
+): CreatureStats {
+  if (stage === "baby") return { hp: 0, atk: 0, def: 0, spd: 0 }
+  const def =
+    branch === null ? LEGACY_BRANCH : (getBranch(branch) ?? LEGACY_BRANCH)
+  const juvenile = def.juvenileBoost
+  if (stage === "juvenile") return { ...juvenile }
+  const champion = def.championBoost
+  return {
+    hp: juvenile.hp + champion.hp,
+    atk: juvenile.atk + champion.atk,
+    def: juvenile.def + champion.def,
+    spd: juvenile.spd + champion.spd,
+  }
+}
+
+/**
  * The branch earned at the juvenile gate, derived once from the training
  * record (and the rolled base when the record is even). A species with no
  * catalog entry evolves legacy, per the catalog's own test forbidding that
