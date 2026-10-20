@@ -374,6 +374,17 @@
   and repaints it on re-entry. No save change, no new dependency, no animation;
   `creature-detail.ts` is 10,818 B against the 12,288 B cap.
 
+- `2026-10-20` - **Client module decomposition** (`20261020-client-decomposition`):
+  the client's eleven over-cap production modules were split along the seams they
+  already mixed, with every original file kept as the same public surface. Composition
+  moved out of `main.ts` (25,204 → 8,690 B) into `app/{scene-sync,audio,arena,screens,
+  hud-screen,screen-deps,runtime}.ts`, preserving the boot and `store.subscribe` order.
+  The HUD became `hud/{types,shell,update,hints}.ts` plus one module per plate and per
+  copy domain; `scene.ts`, `staging-fx.ts` and `orbit-camera.ts` became facades over
+  `scene/{types,dressing,pet,frame}.ts`, `fx/{projectiles,bursts,charge}.ts` and
+  `camera/{types,presets,input,shake,rig}.ts`. The cup, spar, graduation and dev-harness
+  modules split into `cup/screens/`, `spar/`, `graduation/` and `mock/`. No save change,
+  no dependency change, no rendering or copy change; the determinism gate is unchanged.
 - `2026-10-20` - **Client size guard, whole tree** (`20261020-client-decomposition`
   Phase 5): `apps/client/src/module-size.test.ts` now walks every `.ts` file under
   `apps/client/src` recursively and fails on anything over 12,288 bytes, reporting each
