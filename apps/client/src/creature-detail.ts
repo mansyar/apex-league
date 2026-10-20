@@ -258,8 +258,10 @@ export function buildCreatureDetail(): CreatureDetail {
         contextRow("Mood", `${creature.conditions.mood}/100`),
       )
 
-      growthHost.setVisible(true)
+      // Paint before showing: the host renders once on the way in, from the
+      // state it was just handed, instead of once on show and again on paint.
       growthHost.paint(state)
+      growthHost.setVisible(true)
       kit.replaceChildren(...kitRows(creature))
       root.style.display = ""
       close.focus()

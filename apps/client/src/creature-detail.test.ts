@@ -3,15 +3,21 @@
  * DOM harness, so the row reading is extracted as `growthRowParts` and pinned
  * here: met and unmet never share a glyph or a status word, a revealed gate
  * composes label + value/target, and an undiscovered gate leaks no digits.
- * The repaint seam itself lives in `growth-panel.test.ts`.
+ *
+ * The host's own repaint contract lives in `growth-panel.test.ts`. This file
+ * additionally drives `buildCreatureDetail` itself through a minimal fake DOM
+ * (below), so the panel wiring — `open` unhiding the slot, `sync` repainting
+ * it in place, and `sync` doing nothing once closed — fails here if any of
+ * those three calls is dropped (review round 2, M1).
  */
-import { describe, expect, test } from "bun:test"
+import { afterAll, beforeAll, describe, expect, test } from "bun:test"
 import {
   type Creature,
   createCreature,
   createInitialState,
   type GameState,
 } from "@apex/sim"
+import { buildCreatureDetail } from "./creature-detail"
 import { type GrowthView, growthView } from "./growth"
 import { growthRowParts } from "./growth-panel"
 
@@ -139,3 +145,230 @@ describe("growth row reading", () => {
     expect(parts.map((part) => part.detail).join(" ")).not.toMatch(DIGIT)
   })
 })
+
+/*
+ * A fake DOM, only for the tests below. `buildCreatureDetail` walks a small,
+ * well-known slice of the DOM (create, class names, append/replace, styles,
+ * attributes, listeners, focus), so this class is that slice and nothing more.
+ */
+interface FakeStyle {
+  display: string
+  properties: Record<string, string>
+  setProperty: (name: string, value: string) => void
+}
+
+type Listener = (event: unknown) => void
+
+class FakeElement {
+  className = ""
+  textContent = ""
+  hidden = false
+  type = ""
+  innerHTML = ""
+  isConnected = true
+  parent: FakeElement | null = null
+  /** `replaceChildren` calls: the "did the panel repaint?" counter. */
+  repaints = 0
+  readonly dataset: Record<string, string> = {}
+  readonly attributes: Record<string, string> = {}
+  readonly children: FakeElement[] = []
+  private readonly classNames = new Set<string>()
+  private readonly listeners = new Map<string, Listener[]>()
+
+  readonly classList = {
+    add: (...names: string[]): void => {
+      for (const name of names) this.classNames.add(name)
+    },
+    remove: (...names: string[]): void => {
+      for (const name of names) this.classNames.delete(name)
+    },
+    contains: (name: string): boolean => this.classNames.has(name),
+  }
+
+  readonly style: FakeStyle = {
+    display: "",
+    properties: {},
+    setProperty(name, value) {
+      this.properties[name] = value
+    },
+  }
+
+  append(...nodes: FakeElement[]): void {
+    for (const node of nodes) this.adopt(node)
+  }
+
+  replaceChildren(...nodes: FakeElement[]): void {
+    this.repaints += 1
+    for (const child of this.children) child.parent = null
+    this.children.length = 0
+    this.append(...nodes)
+  }
+
+  replaceWith(...nodes: FakeElement[]): void {
+    const parent = this.parent
+    if (!parent) return
+    const index = parent.children.indexOf(this)
+    if (index < 0) return
+    parent.children.splice(index, 1, ...nodes)
+    for (const node of nodes) node.parent = parent
+    this.parent = null
+  }
+
+  addEventListener(type: string, handler: Listener): void {
+    const handlers = this.listeners.get(type) ?? []
+    handlers.push(handler)
+    this.listeners.set(type, handlers)
+  }
+
+  setAttribute(name: string, value: string): void {
+    this.attributes[name] = value
+  }
+
+  focus(): void {
+    // Nothing to move: the fake tree has no focus ring.
+  }
+
+  getClientRects(): unknown[] {
+    return []
+  }
+
+  querySelectorAll(): FakeElement[] {
+    return []
+  }
+
+  /** Deliver `event` to the handlers registered for `type` — the only way in. */
+  fire(type: string, event: unknown): void {
+    for (const handler of this.listeners.get(type) ?? []) handler(event)
+  }
+
+  private adopt(node: FakeElement): void {
+    const previous = node.parent
+    if (previous) {
+      const index = previous.children.indexOf(node)
+      if (index >= 0) previous.children.splice(index, 1)
+    }
+    node.parent = this
+    this.children.push(node)
+  }
+}
+
+const realDocument = Object.getOwnPropertyDescriptor(globalThis, "document")
+const realHTMLElement = Object.getOwnPropertyDescriptor(
+  globalThis,
+  "HTMLElement",
+)
+
+/** The fake element behind a HUD node: this harness's document made every one. */
+function fakeOf(node: HTMLElement): FakeElement {
+  return node as unknown as FakeElement
+}
+
+/** Every element in the tree, depth first. */
+function nodesIn(root: FakeElement): FakeElement[] {
+  return [root, ...root.children.flatMap(nodesIn)]
+}
+
+function classNamed(root: FakeElement, className: string): FakeElement[] {
+  return nodesIn(root).filter((node) => node.className === className)
+}
+
+function byClass(root: FakeElement, className: string): FakeElement {
+  const [node] = classNamed(root, className)
+  if (!node) throw new Error(`nothing has class ${className}`)
+  return node
+}
+
+/** The detail column of the Growth row labelled `label`. */
+function detailFor(host: FakeElement, label: string): string {
+  const row = classNamed(host, "detail-growth-row").find(
+    (node) => byClass(node, "detail-growth-label").textContent === label,
+  )
+  if (!row) throw new Error(`no Growth row labelled ${label}`)
+  return byClass(row, "detail-growth-detail").textContent
+}
+
+describe("the detail modal's Growth slot", () => {
+  beforeAll(() => {
+    Object.defineProperty(globalThis, "document", {
+      value: { createElement: () => new FakeElement(), activeElement: null },
+      configurable: true,
+      writable: true,
+    })
+    Object.defineProperty(globalThis, "HTMLElement", {
+      value: FakeElement,
+      configurable: true,
+      writable: true,
+    })
+  })
+
+  afterAll(() => {
+    restoreGlobal("document", realDocument)
+    restoreGlobal("HTMLElement", realHTMLElement)
+  })
+
+  test("open unhides the slot with a title and one row per condition", () => {
+    const detail = buildCreatureDetail()
+    const host = byClass(fakeOf(detail.root), "detail-growth-host")
+    expect(host.hidden).toBe(true)
+
+    detail.open(stateWith("baby", { day: 6, mood: 35 }))
+
+    expect(host.hidden).toBe(false)
+    expect(byClass(host, "detail-growth-title").textContent).toBe("Growing up")
+    expect(classNamed(host, "detail-growth-row")).toHaveLength(3)
+    expect(detailFor(host, "Mood")).toBe("needs a lift")
+    // One render on the way in, from the state `open` was handed (L5).
+    expect(host.repaints).toBe(1)
+  })
+
+  test("sync repaints the open slot in place when the gate is discovered", () => {
+    const detail = buildCreatureDetail()
+    const root = fakeOf(detail.root)
+    detail.open(stateWith("baby", { day: 6, mood: 35 }))
+    const host = byClass(root, "detail-growth-host")
+    const statList = byClass(root, "detail-stat-list")
+    expect(detailFor(host, "Mood")).toBe("needs a lift")
+
+    detail.sync(stateWith("baby", { day: 6, mood: 35, juvenileKnown: true }))
+
+    // Same host, same peers: the repaint swapped the slot's own children only.
+    expect(byClass(root, "detail-growth-host")).toBe(host)
+    expect(byClass(root, "detail-stat-list")).toBe(statList)
+    expect(statList.repaints).toBe(1)
+    expect(detailFor(host, "Mood")).toBe("35 / 40")
+    expect(host.repaints).toBe(2)
+  })
+
+  test("sync after close leaves the slot alone", () => {
+    const detail = buildCreatureDetail()
+    detail.open(stateWith("baby", { day: 6, mood: 35 }))
+    const root = fakeOf(detail.root)
+    const host = byClass(root, "detail-growth-host")
+    const repaints = host.repaints
+
+    root.fire("keydown", { key: "Escape", target: null })
+    expect(host.hidden).toBe(true)
+
+    detail.sync(stateWith("baby", { day: 6, mood: 35, juvenileKnown: true }))
+
+    expect(host.repaints).toBe(repaints)
+    expect(host.hidden).toBe(true)
+    expect(detailFor(host, "Mood")).toBe("needs a lift")
+  })
+
+  test("a creature-less open leaves the slot hidden", () => {
+    const detail = buildCreatureDetail()
+    const host = byClass(fakeOf(detail.root), "detail-growth-host")
+
+    detail.open(createInitialState())
+
+    expect(host.hidden).toBe(true)
+    expect(host.children).toEqual([])
+  })
+})
+
+/** Put a stubbed global back, deleting it when the runtime never had one. */
+function restoreGlobal(name: string, descriptor?: PropertyDescriptor): void {
+  if (descriptor) Object.defineProperty(globalThis, name, descriptor)
+  else Reflect.deleteProperty(globalThis, name)
+}

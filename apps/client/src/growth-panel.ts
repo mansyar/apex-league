@@ -99,8 +99,7 @@ function growthSection(view: GrowthView): HTMLElement {
 export type GrowthHostNode = Pick<HTMLElement, "hidden" | "replaceChildren">
 
 export interface GrowthHost {
-  readonly node: GrowthHostNode
-  /** Show or hide the section; repaints when a state is supplied. */
+  /** Show or hide the section; when shown, repaints from the last state `paint` was given. */
   setVisible: (visible: boolean) => void
   /** Repaint from state, but only while visible. No-op while hidden. */
   paint: (state: GameState) => void
@@ -128,7 +127,6 @@ export function createGrowthHost(node: GrowthHostNode): GrowthHost {
   }
 
   return {
-    node,
     setVisible: (next) => {
       visible = next
       node.hidden = !next

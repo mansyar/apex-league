@@ -132,7 +132,7 @@ describe("undiscovered copy is qualitative", () => {
     }
     for (const row of view.rows) {
       expect(row.detail).not.toMatch(DIGIT)
-      expect(row.detail.length).toBeGreaterThan(0)
+      expect(row.detail).not.toContain("/")
     }
     expect(rowOf(stateWith("baby"), "age").detail).toBe("still a few days off")
     expect(
@@ -148,7 +148,7 @@ describe("undiscovered copy is qualitative", () => {
     expect(view.discovered).toBe(false)
     for (const row of view.rows) {
       expect(row.detail).not.toMatch(DIGIT)
-      expect(row.detail.length).toBeGreaterThan(0)
+      expect(row.detail).not.toContain("/")
     }
     for (const text of [view.title, view.note ?? "", view.summary]) {
       expect(text).not.toMatch(DIGIT)

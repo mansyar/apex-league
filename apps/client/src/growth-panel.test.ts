@@ -8,7 +8,7 @@
  * nothing, a repaint must swap the host's own children only, and a state that
  * lands while the panel is closed must not be lost.
  */
-import { describe, expect, test } from "bun:test"
+import { afterAll, beforeAll, describe, expect, test } from "bun:test"
 import {
   type Creature,
   createCreature,
@@ -46,12 +46,26 @@ function element(): FakeElement {
 
 /**
  * The builders only ask the document for `createElement`, so a stand-in is
- * enough to read back what a paint rendered.
+ * enough to read back what a paint rendered. Installed for this file only and
+ * removed again in `afterAll`, so no later suite in the same process inherits a
+ * fake document.
  */
-Object.defineProperty(globalThis, "document", {
-  value: { createElement: () => element() },
-  configurable: true,
-  writable: true,
+const realDocument = Object.getOwnPropertyDescriptor(globalThis, "document")
+
+beforeAll(() => {
+  Object.defineProperty(globalThis, "document", {
+    value: { createElement: () => element() },
+    configurable: true,
+    writable: true,
+  })
+})
+
+afterAll(() => {
+  if (realDocument) {
+    Object.defineProperty(globalThis, "document", realDocument)
+  } else {
+    Reflect.deleteProperty(globalThis, "document")
+  }
 })
 
 interface FakeHostNode {
@@ -172,7 +186,8 @@ describe("the growth host repaint seam", () => {
       ...undiscoveredBaby(),
       evolutionKnowledge: { juvenile: true, champion: false },
     })
-    expect(host.node).toBe(node)
+    // The host paints the node it was handed; it never exposes one of its own.
+    expect(host).not.toHaveProperty("node")
     expect(node.calls).toBe(2)
     expect(node.children).toHaveLength(1)
     expect(node.children[0]).not.toBe(first)
