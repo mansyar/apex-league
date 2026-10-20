@@ -4,8 +4,8 @@
 - **Type:** `feature`
 - **Branch:** `feat/20261020-branching-evolution-champion-forms`
 - **Range:** `ec8d7168e1113807889843566df0d61f6bad4722..HEAD`
-- **Date:** `2026-10-20T23:59:00+11:00`
-- **Verdict:** `BLOCK`
+- **Date:** `2026-10-21T00:10:00+11:00`
+- **Verdict:** `PASS`
 
 ## Summary
 
@@ -13,10 +13,13 @@ The track delivers the earned-branch contract end to end: six branches with equa
 effective budgets, a pure `branchLean` that is the single source for both the
 day-5 preview and the evolution outcome, save v19 with a deterministic v18
 migration and hardened validation, derived rival forms, branch-aware stat
-breakdowns, and the tint/handbook presentation. One High finding blocks: the
-visual seed that keeps a creature's voxel identity stable across evolution still
-subtracts the old straight-line boosts, so a branched partner would re-roll its
-appearance on the morning it evolves and would not match between ranch and arena.
+breakdowns, and the tint/handbook presentation. Round 1 found one High defect —
+the visual seed that keeps a creature's voxel identity stable across evolution
+still subtracted the old straight-line boosts, so a branched partner would have
+re-rolled its appearance on the morning it evolved — plus one stale header
+comment. Phase R1 moved the boost table into the sim (`evolutionBoost`) so the
+stat chips and the visual seed read the same source, and added branched
+juvenile/champion/legacy seed tests. Both findings are closed.
 
 The reviewer subagent could not be launched (the agent model reported no
 available seat), so this round was reviewed by the orchestrator: per-phase diffs,
@@ -46,7 +49,7 @@ the full integrated diff, the checks below, and targeted contract probes.
 | FR-7 records / legacy | P2.T3 | `graduation.test.ts` | covered |
 | FR-8 rivals and bosses | P3.T1/T2 | `branch-balance.test.ts` | covered |
 | FR-9 balance | P3.T3 | `branch-balance.test.ts` (45-55% / 40-70%) | covered |
-| FR-10 presentation | P4.T1-T3, P5.T1 | `creature.test.ts`, visual captures | partial (F1) |
+| FR-10 presentation | P4.T1-T3, P5.T1, R1.T1 | `creature.test.ts`, `staging-seed.test.ts`, visual captures | covered |
 | FR-11 handbook and copy | P5.T2 | `handbook.test.ts` | covered |
 | FR-12 accessibility | P4, P5 | text carriers asserted, no pointer gate | covered |
 | NFR-1 determinism | P1-P5 | determinism gate | covered |
@@ -57,7 +60,7 @@ the full integrated diff, the checks below, and targeted contract probes.
 | NFR-6 performance | P5.T1 | mesh/material count assertions | covered |
 | NFR-7 no new dependency | all | diff | covered |
 | AC-1..AC-6 | P1/P2 | sim suites | covered |
-| AC-7..AC-9 | P4/P5 | client suites + captures | partial (F1) |
+| AC-7..AC-9 | P4/P5, R1.T1 | client suites + captures + `staging-seed.test.ts` | covered |
 | AC-10 rival determinism | P3 | `branch-balance.test.ts` | covered |
 | AC-11 balance bounds | P3.T3 | `branch-balance.test.ts` | covered |
 | AC-12 determinism + cap | P5 | gate + module-size | covered |
@@ -71,7 +74,7 @@ the full integrated diff, the checks below, and targeted contract probes.
 ### High
 
 - **F1 - The visual seed still subtracts the legacy boosts, so a branched form
-  changes appearance when it evolves**
+  changes appearance when it evolves** — *resolved in R1*
   - **File:** `apps/client/src/staging-seed.ts:22-27` (defect), call sites
     `apps/client/src/app/scene-sync.ts:44`, `app/hud-screen.ts:75`,
     `app/screens.ts:140`, `cup/arena.ts:46`, `spar/casting.ts:20`
@@ -102,7 +105,8 @@ the full integrated diff, the checks below, and targeted contract probes.
 
 ### Low
 
-- **F2 - `staging-seed.ts` header comment names the old fixed boost values**
+- **F2 - `staging-seed.ts` header comment names the old fixed boost values** —
+  *resolved in R1*
   - **File:** `apps/client/src/staging-seed.ts:5-9`
   - **What:** "evolution boosts the rolled base stats (+3/+2/+2/+1)" and "if a
     later stage adds another boost, extend the offset here" describe the
@@ -147,8 +151,32 @@ the diff.
 `conductor/tech-stack.md` describe the earned branches; `docs/save-schema.md`
 documents v19.
 
+## Round 2
+
+Range `99028ed..HEAD` (Phase R1). `evolutionBoost(stage, branch)` is exported from
+`packages/sim/src/evolution.ts` and now backs both `stageBoostFor` in
+`packages/sim/src/stats.ts` and `visualSeedOf` in
+`apps/client/src/staging-seed.ts`, which gained a `branch` parameter defaulted to
+`null`. The five owned-creature call sites pass `creature.branch` / `owned.branch`
+(`app/scene-sync.ts`, `app/hud-screen.ts`, `app/screens.ts`, `cup/arena.ts`,
+`spar/casting.ts`); the two rival legs stay stats-only. The `staging-seed.ts`
+header was rewritten around the helper.
+
+New tests close the F1 gap: `staging-seed.test.ts` proves each real branch folds a
+juvenile and a champion back to the creation seed, that `legacy` and `null` behave
+as before, and that reading a branched juvenile with another branch's boost
+re-rolls it (the guard that fails loudly if the branch is ever dropped again);
+`evolution.test.ts` covers `evolutionBoost` directly (baby zeros, null/unknown read
+legacy, real branch matches `evolveCreature` deltas).
+
+Checks: `bun run verify` exit 0 (typecheck clean in all three workspaces, full
+suite green, 0 lint errors / 7 pre-existing warnings, determinism byte-identical
+for 9 creatures and 5 props) and `bun run build` exit 0 (245 modules). No save,
+schema, migration, doc or plan-contract change.
+
 ## History
 
 | Round | Verdict | Critical | High | Medium | Low | Fixed |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | BLOCK | 0 | 1 | 0 | 1 | 0 |
+| 2 | PASS | 0 | 0 | 0 | 0 | 2 |

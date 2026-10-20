@@ -115,10 +115,10 @@
 - **Covers:** F1, F2
 - **Touches:** `packages/sim/src/evolution.ts`, `packages/sim/src/evolution.test.ts`, `packages/sim/src/index.ts`, `packages/sim/src/stats.ts`, `apps/client/src/staging-seed.ts`, `apps/client/src/staging-seed.test.ts`, `apps/client/src/app/scene-sync.ts`, `apps/client/src/app/hud-screen.ts`, `apps/client/src/app/screens.ts`, `apps/client/src/cup/arena.ts`, `apps/client/src/spar/casting.ts`
 - **Verification:** `bun test --timeout 120000 apps/client/src/staging-seed.test.ts packages/sim/src/evolution.test.ts packages/sim/src/stats.test.ts && bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **R1.T1: Resolve F1** - covers: F1
-  - [ ] Export `evolutionBoost(stage, branch)` from the sim and use it in `stageBoostFor` and `visualSeedOf`; pass `creature.branch` at the owned-creature call sites.
-  - [ ] Add branched juvenile/champion and legacy-unchanged seed tests.
-- [ ] **R1.T2: Resolve F2** - covers: F2
-  - [ ] Rewrite the `staging-seed.ts` header around the branch boost helper.
+- [x] **R1.T1: Resolve F1** - covers: F1
+  - [x] Export `evolutionBoost(stage, branch)` from the sim and use it in `stageBoostFor` and `visualSeedOf`; pass `creature.branch` at the owned-creature call sites.
+  - [x] Add branched juvenile/champion and legacy-unchanged seed tests.
+- [x] **R1.T2: Resolve F2** - covers: F2
+  - [x] Rewrite the `staging-seed.ts` header around the branch boost helper.
