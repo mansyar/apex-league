@@ -30,7 +30,7 @@ silently change order.
   evidence before any move — covers: FR-1, NFR-1
 - [x] **P1.T2: Extract scene sync** — `app/scene-sync.ts` takes `sceneVisuals`,
   `syncScene`, `applyCameraStyle`, `toggleArenaCamera` — covers: FR-1
-  - [ ] Pass the scene/arena handles the extracted functions need; no globals
+  - [x] Pass the scene/arena handles the extracted functions need; no globals
 - [x] **P1.T3: Extract audio wiring** — `app/audio.ts` takes the audio player, music
   beds, unlock gesture and the playback step-cue bridge — covers: FR-1
 - [x] **P1.T4: Extract arena entry** — `app/arena.ts` takes `enterArena`, `exitArena`,
@@ -58,7 +58,7 @@ silently change order.
 
 - [x] **P2.T1: Split the plates** — `plates-score`, `plates-lineage`,
   `plates-creature`, `plates-callout`, plus `ladder-read` for the view-models — covers: FR-2
-  - [ ] `hud/plates.ts` keeps re-exporting the same names
+  - [x] `hud/plates.ts` keeps re-exporting the same names
 - [x] **P2.T2: Split the copy** — `copy-care`, `copy-cup`, `copy-growth`, `hints`;
   `hud/copy.ts` re-exports — covers: FR-2, FR-7
 - [x] **P2.T3: Split the HUD body** — `hud/shell.ts` (build + refs), `hud/update.ts`
@@ -119,12 +119,15 @@ silently change order.
 - **Touches:** `apps/client/src/module-size.test.ts`,
   `conductor/tech-stack.md`, `conductor/tracks/20261020-client-decomposition/verification/*`
 - **Verification:** `bun run verify && bun run build`; the negative control must fail
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 57ac657
+- **Evidence:** conductor/tracks/20261020-client-decomposition/verification/phase-5.md, conductor/tracks/20261020-client-decomposition/verification/integrated.md
 
-- [ ] **P5.T1: One guard** — walk every `.ts` under `apps/client/src`, skip `*.test.ts`
+- [x] **P5.T1: One guard** — walk every `.ts` under `apps/client/src`, skip `*.test.ts`
   and `vite-env.d.ts`, assert the cap, report path + bytes per offender; delete
   `size-probe.test.ts` — covers: FR-6
-- [ ] **P5.T2: Negative control** — a test writing an oversized temp module proves the
+- [x] **P5.T2: Negative control** — a test writing an oversized temp module proves the
   guard rejects it, then removes the file; dated note in `tech-stack.md` — covers: FR-6
-- [ ] **P5.T3: Integrated verification** — full suite, build, determinism gate, browser
+- [x] **P5.T3: Integrated verification** — full suite, build, determinism gate, browser
   smoke of every surface, and the phase evidence trail — covers: all
