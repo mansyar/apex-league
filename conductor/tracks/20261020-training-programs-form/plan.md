@@ -52,9 +52,12 @@
   `packages/sim/src/care.ts`, `packages/sim/src/care.test.ts`,
   `packages/sim/src/creature.ts`, `packages/sim/src/creature.test.ts`,
   `packages/sim/src/settlement.ts`, `packages/sim/src/settlement.test.ts`,
-  `packages/sim/src/save/`, `packages/sim/src/index.ts`, `docs/save-schema.md`
-- **Verification:** `bun test packages/sim/src && bun run gate:determinism`
-- **Status:** pending
+  `packages/sim/src/save/`, `packages/sim/src/index.ts`, `docs/save-schema.md`,
+  `apps/client/src/hud/dock.ts`, `apps/client/src/hud/dock.test.ts`,
+  `apps/client/src/hud/update.ts`, `apps/client/src/hud/copy-care.ts`,
+  `apps/client/src/hud/copy.test.ts`, `apps/client/src/app/hud-screen.ts`
+- **Verification:** `bun test --timeout 120000 packages/sim/src && bun run check && bun run gate:determinism`
+- **Status:** in_progress
 
 - [ ] **P2.T1: Program catalog** — covers: FR-1
   - [ ] **P2.T1.1:** Add `TrainingProgram`, `TrainingProgramDef`,
@@ -90,6 +93,13 @@
     migration step) in this phase.
   - [ ] **P2.T4.4:** Cover the full v0→v18 chain, the v17 fixture mapping for
     each stat, corrupt-id rejection, and a round-trip.
+- [ ] **P2.T5: Keep the client compiling against the program type** — covers: FR-1
+  - [ ] **P2.T5.1:** Mechanically adapt the dock train control, its update path,
+    the hud wiring and the care copy from `StatKey` focus to `TrainingProgram`
+    so the whole workspace typechecks. No new UX, no new copy beyond the program
+    label — Phase 4 owns the real picker, projection lines and Training tab.
+  - [ ] **P2.T5.2:** Update the dock/copy tests to the program shape and keep the
+    all-primaries-capped disabled state green.
 
 ## Phase 3: Battle Wiring and Balance Evidence
 
@@ -99,7 +109,7 @@
 - **Covers:** FR-9, FR-10, FR-16, NFR-1, NFR-2, AC-9
 - **Touches:** `packages/sim/src/battle/`, `packages/sim/src/cup/bracket.ts`,
   `packages/sim/src/cup/session.ts`, `apps/client/src/cup/arena.ts`
-- **Verification:** `bun test packages/sim/src && bun run verify`
+- **Verification:** `bun test --timeout 120000 packages/sim/src && bun run verify`
 - **Status:** pending
 
 - [ ] **P3.T1: Wire the owned side** — covers: FR-9
