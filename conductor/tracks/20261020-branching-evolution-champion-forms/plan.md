@@ -94,16 +94,15 @@
 **Goal:** The branch reads at a glance in the ranch and arena, the handbook teaches the rule, and every doc matches the shipped behavior.
 **Depends on:** Phase 4
 **Covers:** FR-10, FR-11, NFR-1, NFR-2, NFR-3, NFR-5, NFR-7
-**Touches:** `apps/client/src/creature.ts`, `apps/client/src/creature.test.ts`, `apps/client/src/handbook/*`, `apps/client/src/handbook/handbook.test.ts`, `conductor/product.md`, `conductor/tech-stack.md`, `README.md`, `conductor/tracks/20261020-branching-evolution-champion-forms/verification/phase-5.md`
-**Verification:** `bun test --timeout 120000 apps/client/src/creature.test.ts apps/client/src/handbook && bun run verify && bun run build && bun run gate:determinism`
-**Status:** pending
+**Touches:** `apps/client/src/creature.ts`, `apps/client/src/creature.test.ts`, `apps/client/src/ranch/mount.ts`, `apps/client/src/ranch/types.ts`, `apps/client/src/ranch/api.ts`, `apps/client/src/ranch/frame.ts`, `apps/client/src/scene.ts`, `apps/client/src/staging.ts`, `apps/client/src/roster.ts`, `apps/client/src/cup/arena.ts`, `apps/client/src/spar/casting.ts`, `apps/client/src/handbook.ts`, `apps/client/src/handbook/paths.ts`, `apps/client/src/handbook.test.ts`, `apps/client/src/ui/kit.css`
+**Verification:** `bun test --timeout 120000 apps/client/src/creature.test.ts apps/client/src/handbook.test.ts apps/client/src/face-arena.test.ts && bun run verify && bun run build && bun run gate:determinism`
+**Status:** in_progress
 
-- [ ] **P5.T1 — Apply the per-instance accent tint**
-  - [ ] Tint from the branch accent hue at spawn and on evolution, cloning materials where they would otherwise be shared.
-  - [ ] Test that tinting one creature leaves another's materials unchanged and that no geometry or draw call is added.
-- [ ] **P5.T2 — Teach paths in the handbook**
-  - [ ] Explain the stat split, the day-5 preview, the signature move, and the legacy exception from sim constants and labels.
+- [ ] **P5.T1 - Apply the per-instance accent tint**
+  - [ ] Tint from the branch accent hue at spawn and on evolution; never tint `legacy`; set only the material colour multiplier (vertex colours carry the coat), adding no geometry, material, or draw call.
+  - [ ] Test that tinting one creature leaves another's materials unchanged, that the mesh count is unchanged, and that the legacy group stays at the untinted colour.
+- [ ] **P5.T2 - Teach paths in the handbook**
+  - [ ] Explain the stat split, the pre-gate preview, the signature move, and the legacy exception from sim constants and labels.
   - [ ] Keep every tooltip within two sentences and avoid spoiling thresholds.
-- [ ] **P5.T3 — Sync docs and capture visual evidence**
-  - [ ] Update the roadmap, tech stack, and README claims; note the derived-branch rule and the runtime tint.
-  - [ ] Capture desktop and narrow-viewport screenshots of the lean row, reveal, detail modal, and both tinted forms.
+- [ ] **P5.T3 - Visual evidence (orchestrator)**
+  - [ ] Capture desktop screenshots of the tinted forms, the lean row, the reveal and the detail Path. Product/README/tech-stack doc sync runs in the Conductor doc-sync step, not in this phase.
