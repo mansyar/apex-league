@@ -16,7 +16,7 @@
 - **Touches:** `packages/sim/src/form.ts`, `packages/sim/src/form.test.ts`,
   `packages/sim/src/index.ts`
 - **Verification:** `bun test packages/sim/src/form.test.ts && bun run check`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Write the form tests** — covers: FR-8, AC-1, AC-2
   - [ ] **P1.T1.1:** Assert `steady` and a zero delta for a fresh
