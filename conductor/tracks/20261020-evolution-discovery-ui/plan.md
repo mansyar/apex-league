@@ -14,22 +14,26 @@
 - **Covers:** FR-4, FR-5, NFR-4
 - **Touches:** `packages/sim/src/state.ts`, `packages/sim/src/ticker.ts`, `packages/sim/src/save/schema.ts`, `packages/sim/src/save/migrate.ts`, `packages/sim/src/save/evolutionKnowledge.test.ts`, `packages/sim/src/save/breedingSave.test.ts`, `packages/sim/src/save/cupSave.test.ts`, `packages/sim/src/save/legacySave.test.ts`, `packages/sim/src/save/releasePolish.test.ts`, `packages/sim/src/index.ts`, `docs/save-schema.md`
 - **Verification:** `bun test --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Add discovery state to `GameState`** — covers: FR-4
+**Result:** verified
+**Checkpoint:** 34fc937
+**Evidence:** conductor/tracks/20261020-evolution-discovery-ui/verification/phase-1.md
+
+- [x] **P1.T1: Add discovery state to `GameState`** — covers: FR-4
   - [ ] Add `evolutionKnowledge: { juvenile: boolean; champion: boolean }`, initialised unknown in `createInitialState`
   - [ ] Add a pure helper that marks a gate known, idempotent
   - [ ] Export the type and helper through the sim barrel
-- [ ] **P1.T2: Record discovery in `advanceDay`** — covers: FR-4
+- [x] **P1.T2: Record discovery in `advanceDay`** — covers: FR-4
   - [ ] Carry the field into the `next` literal (it is rebuilt explicitly)
   - [ ] Baby→juvenile sets the juvenile gate; juvenile→champion sets both
-- [ ] **P1.T3: Bump the save to v17 with migration** — covers: FR-5, NFR-4
+- [x] **P1.T3: Bump the save to v17 with migration** — covers: FR-5, NFR-4
   - [ ] Set `SAVE_VERSION = 17`; add the v16→v17 step rebuilding state with inferred flags
   - [ ] Juvenile ⇒ juvenile known; champion ⇒ both; no creature ⇒ none
   - [ ] Tests cover v1, v15, v16 and champion/juvenile/no-creature inputs
-- [ ] **P1.T4: Update the hardcoded version assertions** — covers: FR-5
+- [x] **P1.T4: Update the hardcoded version assertions** — covers: FR-5
   - [ ] Update the four save test files asserting `SAVE_VERSION === 16`
-- [ ] **P1.T5: Document the schema** — covers: FR-5
+- [x] **P1.T5: Document the schema** — covers: FR-5
   - [ ] Add the v17 shape and inference rule to `docs/save-schema.md`
 
 ## Phase 2: Growth view-model
