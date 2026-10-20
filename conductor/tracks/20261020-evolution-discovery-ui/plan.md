@@ -85,3 +85,23 @@
 **Result:** verified
 **Checkpoint:** 385a49f
 **Evidence:** conductor/tracks/20261020-evolution-discovery-ui/verification/phase-3.md
+
+## Phase R1: Review Fixes
+
+- **Goal:** Resolve review findings F1, F2 (reclassified High: NFR-2 is unmet at 12,305 B), F3, F4.
+- **Depends on:** Phase 3
+- **Covers:** F1, F2, F3, F4
+- **Touches:** `apps/client/src/growth-panel.ts` (new), `apps/client/src/growth.ts`, `apps/client/src/growth.test.ts`, `apps/client/src/creature-detail.ts`, `apps/client/src/creature-detail.test.ts`, `conductor/tracks/20261020-evolution-discovery-ui/verification/phase-1.md`, `conductor/tracks/20261020-evolution-discovery-ui/verification/phase-2.md`, `conductor/tracks/20261020-evolution-discovery-ui/verification/phase-3.md`, `conductor/tracks/20261020-evolution-discovery-ui/verification/integrated.md`
+- **Verification:** `bun run verify && bun run build`
+- **Status:** pending
+
+- [ ] **R1.T1: Bring touched modules under the 12 KB cap** - covers: F2, NFR-2
+  - [ ] Extract the Growth section DOM builders out of `creature-detail.ts` into `growth-panel.ts`
+  - [ ] `creature-detail.ts` and `growth-panel.ts` both measure at or under 12,288 B
+- [ ] **R1.T2: Remove the unused row target** - covers: F3, FR-3
+  - [ ] Drop `GrowthRow.target`/`Condition.target`; `detail` is the single representation
+- [ ] **R1.T3: Prove the open-panel repaint** - covers: F1, AC-7, FR-7
+  - [ ] Fake-DOM test: `open` renders the gate, `sync` repaints it without reopening, `sync` is a no-op while closed, creature-less state hides the host
+- [ ] **R1.T4: Correct the evidence trail** - covers: F4
+  - [ ] Replace squashed per-task SHAs with the real phase checkpoints and say so
+  - [ ] Restate the module-size claim as measured, not guard-enforced

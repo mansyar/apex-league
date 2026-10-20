@@ -6,7 +6,7 @@
   "priority": "medium",
   "depends_on": [],
   "created_at": "2026-10-20T11:33:24+11:00",
-  "updated_at": "2026-10-20T12:48:00+11:00",
+  "updated_at": "2026-10-20T13:05:00+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "feat/20261020-evolution-discovery-ui",
@@ -19,7 +19,7 @@
     "tasks_done": 14
   },
   "last_checkpoint": "385a49f",
-  "review_verdict": null,
+  "review_verdict": "BLOCK",
   "review_rounds": 0,
   "doc_sync": "pending",
   "pr_url": null,
