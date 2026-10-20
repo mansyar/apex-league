@@ -43,7 +43,7 @@
 - **Covers:** FR-1, FR-2, FR-3, FR-6, NFR-1, NFR-2, NFR-5
 - **Touches:** `apps/client/src/growth.ts`, `apps/client/src/growth.test.ts`
 - **Verification:** `bun test --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Model the current gate** — covers: FR-1, FR-2
   - [ ] Select the gate by stage; key condition rows off `EvolutionReason`
