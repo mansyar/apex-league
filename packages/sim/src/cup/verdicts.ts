@@ -12,7 +12,7 @@
  */
 
 import { type BattleResult, type BattleSide, resolveBattle } from "../battle"
-import { rivalKit } from "../battle/rival-kit"
+import { rivalBranch, rivalKit } from "../battle/rival-kit"
 import { getBoss } from "../bosses"
 import { makeRng } from "../rng"
 import { getSpecies } from "../species"
@@ -78,6 +78,7 @@ export function battleSideForSlot(slot: CupSlot, seed: number): BattleSide {
       kit: boss.loadout,
       tactic: boss.tactic,
       temperament: species.temperament,
+      branch: boss.branch,
     }
   }
   const rng = makeRng(seed ^ (slot.name.length * 31 + slot.speciesId.length))
@@ -93,6 +94,9 @@ export function battleSideForSlot(slot: CupSlot, seed: number): BattleSide {
     ),
     tactic,
     temperament: species.temperament,
+    // Derived here, at battle time, from the slot's own seeded profile:
+    // brackets and sessions stay branch-free and their goldens unchanged.
+    branch: rivalBranch(species, slot.stats),
   }
 }
 
