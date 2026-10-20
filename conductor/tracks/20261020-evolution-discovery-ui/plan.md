@@ -14,7 +14,7 @@
 - **Covers:** FR-4, FR-5, NFR-4
 - **Touches:** `packages/sim/src/state.ts`, `packages/sim/src/ticker.ts`, `packages/sim/src/save/schema.ts`, `packages/sim/src/save/migrate.ts`, `packages/sim/src/save/evolutionKnowledge.test.ts`, `packages/sim/src/save/breedingSave.test.ts`, `packages/sim/src/save/cupSave.test.ts`, `packages/sim/src/save/legacySave.test.ts`, `packages/sim/src/save/releasePolish.test.ts`, `packages/sim/src/index.ts`, `docs/save-schema.md`
 - **Verification:** `bun test --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Add discovery state to `GameState`** — covers: FR-4
   - [ ] Add `evolutionKnowledge: { juvenile: boolean; champion: boolean }`, initialised unknown in `createInitialState`
