@@ -7,31 +7,31 @@
 **Covers:** FR-1, FR-2, FR-3, FR-4
 **Touches:** `packages/sim/src/branches.ts` (new), `packages/sim/src/branches.test.ts` (new), `packages/sim/src/creature.ts`, `packages/sim/src/evolution.ts`, `packages/sim/src/evolution.test.ts`, `packages/sim/src/settlement.ts`, `packages/sim/src/battle/moves.ts`, `packages/sim/src/battle/moves.test.ts`, `packages/sim/src/loadout.ts`, `packages/sim/src/loadout.test.ts`, `packages/sim/src/index.ts`
 **Verification:** `bun test --timeout 120000 packages/sim/src/branches.test.ts packages/sim/src/evolution.test.ts packages/sim/src/loadout.test.ts packages/sim/src/battle/moves.test.ts && bun run verify && bun run build`
-**Status:** in_progress
+**Status:** verified
 
-- [ ] **P1.T1 — Author the branch catalog and the synthetic legacy branch**
-  - [ ] Define six real branches (two per starter) with id, species, label, coach line, favored pair, juvenile boost, cumulative champion boost, signature move, and accent hue.
-  - [ ] Define `legacy` from the existing `EVOLUTION_STAT_BOOST` and `CHAMPION_STAT_BOOST` so the old numbers have one source.
-  - [ ] Export `getBranch` and `branchesForSpecies`; assert two real branches per shipped species, unique ids, known move ids, and equal effective budgets (11 juvenile, 22 champion, HP double).
-- [ ] **P1.T2 — Implement `branchLean` with the documented tie-break**
-  - [ ] Compare trained `atk+spd` vs `hp+def`, then the highest single trained stat, then effective stats, then species order.
-  - [ ] Return the branch plus the lean source (`trained` or `nature`); no randomness, no floats.
-  - [ ] Test each fallback in isolation and assert repeated calls are identical.
-- [ ] **P1.T3 — Apply the branch in evolution**
-  - [ ] Add `branch: string | null` to `Creature` and carry it through `settleCreature`, `createCreature`, and bred successors.
-  - [ ] Derive and store the branch at the juvenile gate; keep it and apply the cumulative boost at the champion gate; keep `legacy` exactly on the old numbers.
-  - [ ] Add golden tests proving a legacy evolution is byte-identical to today and both real branches land on their budget.
-- [ ] **P1.T4 — Add signature moves and branch-aware loadouts**
-  - [ ] Append six specials, one per real branch, with equal expected damage per cooldown and different variance.
-  - [ ] Make `knownMoves` append the signature at juvenile and `requiredDays` accept it only for that branch; keep the default loadout at the first four species moves.
-  - [ ] Test accept, sibling-branch reject, legacy reject, and unchanged default.
+- [x] **P1.T1 - Author the branch catalog and the synthetic legacy branch**
+  - [x] Define six real branches (two per starter) with id, species, label, coach line, favored pair, juvenile boost, champion-step boost, signature move, and accent hue.
+  - [x] Define the legacy boost literals in `branches.ts` and re-export them from `evolution.ts` under the historical names, so the old numbers have one source and the modules do not cycle.
+  - [x] Export `getBranch` and `branchesForSpecies`; assert two real branches per shipped species, unique ids, known move ids, and equal effective budgets (11 juvenile, 22 champion, HP double).
+- [x] **P1.T2 - Implement `branchLean` with the documented tie-break**
+  - [x] Compare trained `atk+spd` vs `hp+def`, then the highest single trained stat, then effective stats, then species order.
+  - [x] Return the branch plus the lean source (`trained` or `nature`); no randomness, no floats.
+  - [x] Test each fallback in isolation and assert repeated calls are identical.
+- [x] **P1.T3 - Apply the branch in evolution**
+  - [x] Add `branch: string | null` to `Creature` and carry it through `settleCreature`, `createCreature`, and bred successors.
+  - [x] Derive and store the branch at the juvenile gate; keep it and apply its champion-step boost at the champion gate; keep `legacy` exactly on the old numbers.
+  - [x] Add golden tests proving a legacy evolution is byte-identical to today and both real branches land on their budget.
+- [x] **P1.T4 - Add signature moves and branch-aware loadouts**
+  - [x] Append six specials, one per real branch, with equal expected damage per cooldown and different variance.
+  - [x] Make `knownMoves` append the signature at juvenile and `requiredDays` accept it only for that branch; keep the default loadout at the first four species moves and never include the signature.
+  - [x] Test accept, sibling-branch reject, legacy reject, and unchanged default (including a branched juvenile under six trained days).
 
 ## Phase 2: Save v19, migration, and records
 
 **Goal:** Every existing save migrates deterministically, the branch survives export/import, and retired creatures record their form.
 **Depends on:** Phase 1
 **Covers:** FR-7, FR-8, NFR-4
-**Touches:** `packages/sim/src/save/schema.ts`, `packages/sim/src/save/migrate.ts`, `packages/sim/src/save/storage.ts`, `packages/sim/src/save/transfer.ts`, `packages/sim/src/save/*.test.ts`, `packages/sim/src/legacy.ts`, `packages/sim/src/breeding.ts`, `packages/sim/src/breeding.test.ts`, `packages/sim/src/graduation.test.ts`, `docs/save-schema.md`
+**Touches:** `packages/sim/src/save/schema.ts`, `packages/sim/src/save/migrate.ts`, `packages/sim/src/save/storage.ts`, `packages/sim/src/save/transfer.ts`, `packages/sim/src/save/*.test.ts`, `packages/sim/src/legacy.ts`, `packages/sim/src/breeding.ts`, `packages/sim/src/breeding.test.ts`, `packages/sim/src/graduation.test.ts`, `apps/client/src/save-transfer.test.ts` (fixture only), `docs/save-schema.md`
 **Verification:** `bun test --timeout 120000 packages/sim/src/save packages/sim/src/breeding.test.ts packages/sim/src/graduation.test.ts && bun run verify && bun run build`
 **Status:** pending
 
