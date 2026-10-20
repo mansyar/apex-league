@@ -13,10 +13,10 @@
   "base_branch": "main",
   "base_sha": "3f930f8bcae75c111e2f558eb74ab93da30c1607",
   "progress": {
-    "phases_total": 2,
-    "phases_verified": 2,
-    "tasks_total": 8,
-    "tasks_done": 8
+    "phases_total": 3,
+    "phases_verified": 3,
+    "tasks_total": 11,
+    "tasks_done": 11
   },
   "last_checkpoint": "b81c1ce",
   "doc_sync": null,

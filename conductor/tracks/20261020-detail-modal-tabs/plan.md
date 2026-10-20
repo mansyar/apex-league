@@ -87,6 +87,7 @@
 **Result:** verified
 **Checkpoint:** c0f3491
 **Evidence:** conductor/tracks/20261020-detail-modal-tabs/verification/phase-2.md
+
 ## Phase R1: Review Fixes
 
 - **Goal:** Resolve review findings F1-F6 (F3 resolved as a documentation correction: `sync`'s write is load-bearing).
@@ -96,11 +97,11 @@
 - **Verification:** `bun run verify && bun run build`
 - **Status:** verified
 
-- [x] **R1.T1: Pin the shared tab controller** - covers: F1, NFR-1
+- [x] **R1.T1: Pin the shared tab controller** — covers: F1, NFR-1
   - [x] Add `ui/tabs.ts` to the size probe's module list
-- [x] **R1.T2: Give the panels a keyboard scroll path** - covers: F6, NFR-2
+- [x] **R1.T2: Give the panels a keyboard scroll path** — covers: F6, NFR-2
   - [x] `tabindex="0"` on every panel, asserted in the wiring test
-- [x] **R1.T3: Tell the truth about `sync` and the shell** - covers: F3, F4, F5, F2
+- [x] **R1.T3: Tell the truth about `sync` and the shell** — covers: F3, F4, F5, F2
   - [x] Reword the `sync` contract: the write is what keeps a later Growth entry fresh
   - [x] Move the detail shell rules out of `kit.css` into `ranch.css` beside the other `.detail-*` rules
   - [x] Correct the Phase 2 evidence head commit and the Phase 2 status line

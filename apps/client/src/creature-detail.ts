@@ -300,8 +300,9 @@ export function buildCreatureDetail(): CreatureDetail {
       close.focus()
     },
     sync: (state) => {
-      // No-ops while the modal is closed, so the HUD can call it on every
-      // commit (FR-7). The remembered state keeps a later Growth entry fresh.
+      // The repaint inside `paint` is a no-op while the modal is closed, but
+      // the record is always updated, so entering Growth after a settlement
+      // paints fresh rows (FR-7). The HUD can call this on every commit.
       last = state
       growthHost.paint(state)
     },

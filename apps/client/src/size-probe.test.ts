@@ -4,9 +4,9 @@
  *
  * The 12 KB guard in `module-size.test.ts` scans only `scene-logic/` and
  * `ranch/`, so `creature-detail.ts` crossed the cap without failing anything.
- * These three pins cover exactly the Growth modules: the extraction has to
- * keep both halves inside the cap, and a future edit to either cannot quietly
- * push it back over.
+ * These four pins cover the Growth modules and the shared tab controller they
+ * now depend on: the split has to keep each part inside the cap, so a future
+ * edit cannot quietly push one back over.
  */
 import { expect, test } from "bun:test"
 import { statSync } from "node:fs"
@@ -22,7 +22,7 @@ const MODULES = [
   "ui/tabs.ts",
 ] as const
 
-test("the Growth modules stay inside the 12 KB cap", () => {
+test("the Growth and tab-controller modules stay inside the 12 KB cap", () => {
   const oversized = MODULES.map((name) => ({
     name,
     bytes: statSync(join(import.meta.dir, name)).size,
