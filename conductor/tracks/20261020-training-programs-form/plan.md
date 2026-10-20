@@ -210,7 +210,7 @@
   `apps/client/src/cup.css`, `apps/client/src/spar.css`, `README.md`,
   `conductor/product.md`, `conductor/tech-stack.md`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P5.T1: Coach room and spar** — covers: FR-14, AC-10
   - [ ] **P5.T1.1:** Show the form tier and consequence line beside the owned
