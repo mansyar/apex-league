@@ -1,8 +1,10 @@
 /**
  * Creature detail modal: the full 4-way stat breakdown per stat (rolled
  * base, trained bonus, evolution boost, inherited floor) plus the partner's
- * context rows (stage, generation, cups won, bond, mood). Opened by tapping
- * the ranch creature plate; renders fresh from state on every open.
+ * context rows (stage, generation, cups won, bond, mood) and the Growth
+ * section naming the gate it is growing through. Opened by tapping the
+ * ranch creature plate; renders fresh from state on every open and repaints
+ * the Growth section in place while it stays open.
  *
  * Pure DOM from the shared broadcast kit — no interaction wiring beyond the
  * modal's own Escape/backdrop/close semantics.
@@ -21,6 +23,7 @@ import {
 } from "@apex/sim"
 import { focusTrap } from "./battleUI"
 import { parentageLabel, traitCopy } from "./graduation/nursery-vm"
+import { type GrowthRow, type GrowthView, growthView } from "./growth"
 import { crest, tab } from "./ui/kit"
 import { romanNumeral, stageLabel } from "./ui/labels"
 
@@ -91,11 +94,96 @@ function contextRow(label: string, value: string): HTMLElement {
   return row
 }
 
+/**
+ * Met/unmet glyphs. The shapes differ on their own, so colour is only ever
+ * reinforcement (evolution_discovery_20261020 AC-9).
+ */
+const GROWTH_GLYPH = { met: "✓", unmet: "○" } as const
+
+export interface GrowthRowParts {
+  label: string
+  glyph: string
+  /** Spoken status word — the text half of the glyph/word pair. */
+  status: string
+  detail: string
+}
+
+/**
+ * One Growth row split into its four readings, for the DOM builder and for
+ * tests that have no DOM: "Mood", a met/unmet glyph, "Met"/"Not yet", and
+ * the view-model's detail ("35 / 40" once revealed).
+ */
+export function growthRowParts(row: GrowthRow): GrowthRowParts {
+  return {
+    label: row.label,
+    glyph: GROWTH_GLYPH[row.met ? "met" : "unmet"],
+    status: row.met ? "Met" : "Not yet",
+    detail: row.detail,
+  }
+}
+
+/** One Growth row: label, glyph, hidden status word, then the detail. */
+function growthRowNode(row: GrowthRow): HTMLElement {
+  const parts = growthRowParts(row)
+  const node = document.createElement("div")
+  node.className = "detail-growth-row"
+  node.dataset.met = row.met ? "true" : "false"
+  const label = document.createElement("span")
+  label.className = "detail-growth-label"
+  label.textContent = parts.label
+  const glyph = document.createElement("span")
+  glyph.className = "detail-growth-glyph"
+  glyph.textContent = parts.glyph
+  glyph.setAttribute("aria-hidden", "true")
+  const status = document.createElement("span")
+  status.className = "detail-growth-status kit-sr-only"
+  status.textContent = parts.status
+  const detail = document.createElement("span")
+  detail.className = "detail-growth-detail"
+  detail.textContent = parts.detail
+  node.append(label, glyph, status, detail)
+  return node
+}
+
+/**
+ * The Growth section for the current gate: heading, one coach note, and the
+ * condition rows. The view-model already carries the gate rules and the
+ * accessible summary, so this only stamps structure.
+ */
+function growthSection(view: GrowthView): HTMLElement {
+  const section = document.createElement("div")
+  section.className = "detail-growth"
+  section.setAttribute("role", "group")
+  section.setAttribute("aria-label", view.summary)
+  const title = document.createElement("h2")
+  title.className = "detail-growth-title"
+  title.textContent = view.title
+  section.append(title)
+  if (view.note !== null) {
+    const note = document.createElement("p")
+    note.className = "detail-growth-note"
+    note.textContent = view.note
+    section.append(note)
+  }
+  if (view.rows.length > 0) {
+    const rows = document.createElement("div")
+    rows.className = "detail-growth-rows"
+    rows.append(...view.rows.map(growthRowNode))
+    section.append(rows)
+  }
+  return section
+}
+
 export interface CreatureDetail {
   /** The modal root — append it to the HUD root once. Starts hidden. */
   root: HTMLElement
   /** Render from current state and show the modal. */
   open: (state: GameState) => void
+  /**
+   * Repaint the Growth section from state while the modal is open. A no-op
+   * when it is closed, so the HUD can call it on every commit.
+   */
+  sync: (state: GameState) => void
 }
 
 /**
@@ -177,6 +265,13 @@ export function buildCreatureDetail(): CreatureDetail {
   const kit = document.createElement("div")
   kit.className = "detail-kit"
 
+  // Growth's slot: swapped in place on every commit so a gate unlocked
+  // while the panel is open repaints without a reopen (FR-7). It keeps its
+  // own node so scroll and focus elsewhere in the modal never reset.
+  const growth = document.createElement("div")
+  growth.className = "detail-growth-host"
+  growth.hidden = true
+
   const actions = document.createElement("div")
   actions.className = "kit-modal-actions"
   const close = document.createElement("button")
@@ -185,12 +280,28 @@ export function buildCreatureDetail(): CreatureDetail {
   close.textContent = "Back to the ranch"
   actions.append(close)
 
-  box.append(head, statList, context, kit, actions)
+  box.append(head, statList, context, growth, kit, actions)
   root.append(box)
+
+  /** True while the modal is on screen; gated by `open`/`closeNow`. */
+  let visible = false
+
+  /** Repaint the Growth section only — everything else keeps its nodes. */
+  const renderGrowth = (state: GameState): void => {
+    const view = growthView(state)
+    if (!view) {
+      growth.hidden = true
+      growth.replaceChildren()
+      return
+    }
+    growth.replaceChildren(growthSection(view))
+    growth.hidden = false
+  }
 
   /** Where focus goes when the modal closes (the tapped plate head). */
   let opener: HTMLElement | null = null
   const closeNow = (): void => {
+    visible = false
     root.style.display = "none"
     if (opener?.isConnected) opener.focus()
     opener = null
@@ -241,9 +352,14 @@ export function buildCreatureDetail(): CreatureDetail {
         contextRow("Mood", `${creature.conditions.mood}/100`),
       )
 
+      renderGrowth(state)
       kit.replaceChildren(...kitRows(creature))
       root.style.display = ""
+      visible = true
       close.focus()
+    },
+    sync: (state) => {
+      if (visible) renderGrowth(state)
     },
   }
 }

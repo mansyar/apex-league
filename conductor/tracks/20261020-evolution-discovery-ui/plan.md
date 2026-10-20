@@ -68,7 +68,7 @@
 - **Covers:** FR-1, FR-7, FR-8, AC-9, NFR-1
 - **Touches:** `apps/client/src/creature-detail.ts`, `apps/client/src/hud.ts`, `apps/client/src/main.ts`, `apps/client/src/ui/kit.css`, `apps/client/src/creature-detail.test.ts`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Render the Growth section** — covers: FR-1
   - [ ] Build the section from the Phase 2 model, placed after the context rows
