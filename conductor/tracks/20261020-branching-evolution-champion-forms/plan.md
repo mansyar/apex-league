@@ -7,7 +7,7 @@
 **Covers:** FR-1, FR-2, FR-3, FR-4
 **Touches:** `packages/sim/src/branches.ts` (new), `packages/sim/src/branches.test.ts` (new), `packages/sim/src/creature.ts`, `packages/sim/src/evolution.ts`, `packages/sim/src/evolution.test.ts`, `packages/sim/src/settlement.ts`, `packages/sim/src/battle/moves.ts`, `packages/sim/src/battle/moves.test.ts`, `packages/sim/src/loadout.ts`, `packages/sim/src/loadout.test.ts`, `packages/sim/src/index.ts`
 **Verification:** `bun test --timeout 120000 packages/sim/src/branches.test.ts packages/sim/src/evolution.test.ts packages/sim/src/loadout.test.ts packages/sim/src/battle/moves.test.ts && bun run verify && bun run build`
-**Status:** pending
+**Status:** in_progress
 
 - [ ] **P1.T1 — Author the branch catalog and the synthetic legacy branch**
   - [ ] Define six real branches (two per starter) with id, species, label, coach line, favored pair, juvenile boost, cumulative champion boost, signature move, and accent hue.
