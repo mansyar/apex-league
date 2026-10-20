@@ -93,7 +93,7 @@
 - **Covers:** F1, F2, F3, F4
 - **Touches:** `apps/client/src/growth-panel.ts` (new), `apps/client/src/growth.ts`, `apps/client/src/growth.test.ts`, `apps/client/src/creature-detail.ts`, `apps/client/src/creature-detail.test.ts`, `conductor/tracks/20261020-evolution-discovery-ui/verification/phase-1.md`, `conductor/tracks/20261020-evolution-discovery-ui/verification/phase-2.md`, `conductor/tracks/20261020-evolution-discovery-ui/verification/phase-3.md`, `conductor/tracks/20261020-evolution-discovery-ui/verification/integrated.md`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Bring touched modules under the 12 KB cap** - covers: F2, NFR-2
   - [ ] Extract the Growth section DOM builders out of `creature-detail.ts` into `growth-panel.ts`
