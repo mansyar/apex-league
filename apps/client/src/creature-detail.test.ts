@@ -16,6 +16,8 @@ import {
   createCreature,
   createInitialState,
   type GameState,
+  getMove,
+  getSpecies,
 } from "@apex/sim"
 import { buildCreatureDetail } from "./creature-detail"
 import { type GrowthView, growthView } from "./growth"
@@ -159,6 +161,9 @@ interface FakeStyle {
 
 type Listener = (event: unknown) => void
 
+/** Where the last `focus()` landed — the fake tree has no focus ring. */
+let lastFocused: FakeElement | null = null
+
 class FakeElement {
   className = ""
   textContent = ""
@@ -181,6 +186,10 @@ class FakeElement {
     },
     remove: (...names: string[]): void => {
       for (const name of names) this.classNames.delete(name)
+    },
+    toggle: (name: string, on: boolean): void => {
+      if (on) this.classNames.add(name)
+      else this.classNames.delete(name)
     },
     contains: (name: string): boolean => this.classNames.has(name),
   }
@@ -225,7 +234,8 @@ class FakeElement {
   }
 
   focus(): void {
-    // Nothing to move: the fake tree has no focus ring.
+    // The fake tree has no focus ring; record where focus landed instead.
+    lastFocused = this
   }
 
   getClientRects(): unknown[] {
@@ -287,25 +297,50 @@ function detailFor(host: FakeElement, label: string): string {
   return byClass(row, "detail-growth-detail").textContent
 }
 
+/** Fake elements carrying `role`, in document order. */
+function roleNamed(root: FakeElement, role: string): FakeElement[] {
+  return nodesIn(root).filter((node) => node.attributes.role === role)
+}
+
+/** The tab button labelled `label`. */
+function tabNamed(root: FakeElement, label: string): FakeElement {
+  const found = roleNamed(root, "tab").find(
+    (node) => node.textContent === label,
+  )
+  if (!found) throw new Error(`no tab labelled ${label}`)
+  return found
+}
+
+/** The one selected tab — the assertion that there is exactly one lives here. */
+function activeTab(root: FakeElement): FakeElement {
+  const selected = roleNamed(root, "tab").filter(
+    (node) => node.attributes["aria-selected"] === "true",
+  )
+  expect(selected).toHaveLength(1)
+  const [tab] = selected
+  if (!tab) throw new Error("no selected tab")
+  return tab
+}
+
+beforeAll(() => {
+  Object.defineProperty(globalThis, "document", {
+    value: { createElement: () => new FakeElement(), activeElement: null },
+    configurable: true,
+    writable: true,
+  })
+  Object.defineProperty(globalThis, "HTMLElement", {
+    value: FakeElement,
+    configurable: true,
+    writable: true,
+  })
+})
+
+afterAll(() => {
+  restoreGlobal("document", realDocument)
+  restoreGlobal("HTMLElement", realHTMLElement)
+})
+
 describe("the detail modal's Growth slot", () => {
-  beforeAll(() => {
-    Object.defineProperty(globalThis, "document", {
-      value: { createElement: () => new FakeElement(), activeElement: null },
-      configurable: true,
-      writable: true,
-    })
-    Object.defineProperty(globalThis, "HTMLElement", {
-      value: FakeElement,
-      configurable: true,
-      writable: true,
-    })
-  })
-
-  afterAll(() => {
-    restoreGlobal("document", realDocument)
-    restoreGlobal("HTMLElement", realHTMLElement)
-  })
-
   test("open unhides the slot with a title and one row per condition", () => {
     const detail = buildCreatureDetail()
     const host = byClass(fakeOf(detail.root), "detail-growth-host")
@@ -364,6 +399,139 @@ describe("the detail modal's Growth slot", () => {
 
     expect(host.hidden).toBe(true)
     expect(host.children).toEqual([])
+  })
+})
+
+describe("the detail modal's pages", () => {
+  test("opens on Stats with one selected tab and every page painted", () => {
+    const detail = buildCreatureDetail()
+    detail.open(stateWith("baby", { day: 6, mood: 35 }))
+    const root = fakeOf(detail.root)
+
+    expect(roleNamed(root, "tab").map((node) => node.textContent)).toEqual([
+      "Stats",
+      "Growth",
+      "Moves",
+    ])
+    expect(activeTab(root).textContent).toBe("Stats")
+    expect(roleNamed(root, "tabpanel").map((panel) => panel.hidden)).toEqual([
+      false,
+      true,
+      true,
+    ])
+    // Painted on open, not on first entry: every page is already current.
+    expect(classNamed(root, "detail-stat")).toHaveLength(4)
+    expect(classNamed(root, "detail-context-row")).toHaveLength(6)
+    expect(
+      classNamed(byClass(root, "detail-kit"), "detail-kit-row"),
+    ).toHaveLength(6)
+  })
+
+  test("arrows, Home/End and clicks switch pages and take focus", () => {
+    const detail = buildCreatureDetail()
+    detail.open(stateWith("baby", { day: 6, mood: 35 }))
+    const root = fakeOf(detail.root)
+    const [tablist] = roleNamed(root, "tablist")
+    if (!tablist) throw new Error("no tablist")
+    const press = (key: string): void => {
+      tablist.fire("keydown", { key, preventDefault: () => {} })
+    }
+
+    press("ArrowRight")
+    expect(activeTab(root).textContent).toBe("Growth")
+    expect(lastFocused).toBe(tabNamed(root, "Growth"))
+    expect(roleNamed(root, "tabpanel")[1]?.hidden).toBe(false)
+
+    press("End")
+    expect(activeTab(root).textContent).toBe("Moves")
+    press("ArrowRight")
+    expect(activeTab(root).textContent).toBe("Stats")
+
+    press("ArrowLeft")
+    expect(activeTab(root).textContent).toBe("Moves")
+    press("Home")
+    expect(activeTab(root).textContent).toBe("Stats")
+    expect(lastFocused).toBe(tabNamed(root, "Stats"))
+
+    tabNamed(root, "Growth").fire("click", {})
+    expect(activeTab(root).textContent).toBe("Growth")
+    expect(roleNamed(root, "tabpanel")[0]?.hidden).toBe(true)
+  })
+
+  test("Growth shows digit-free copy until discovery, then current / target", () => {
+    const detail = buildCreatureDetail()
+    detail.open(stateWith("baby", { day: 6, mood: 35 }))
+    const root = fakeOf(detail.root)
+    const host = byClass(root, "detail-growth-host")
+    tabNamed(root, "Growth").fire("click", {})
+    expect(roleNamed(root, "tabpanel")[1]?.hidden).toBe(false)
+
+    const copy = classNamed(host, "detail-growth-detail").map(
+      (node) => node.textContent,
+    )
+    expect(copy.length).toBeGreaterThan(0)
+    expect(copy.join(" ")).not.toMatch(DIGIT)
+
+    detail.sync(stateWith("baby", { day: 6, mood: 35, juvenileKnown: true }))
+    expect(detailFor(host, "Mood")).toBe("35 / 40")
+  })
+
+  test("leaving and returning to Growth paints the latest state", () => {
+    const detail = buildCreatureDetail()
+    detail.open(stateWith("baby", { day: 6, mood: 35 }))
+    const root = fakeOf(detail.root)
+    const host = byClass(root, "detail-growth-host")
+    tabNamed(root, "Growth").fire("click", {})
+    expect(detailFor(host, "Mood")).toBe("needs a lift")
+
+    tabNamed(root, "Stats").fire("click", {})
+    detail.sync(stateWith("baby", { day: 6, mood: 35, juvenileKnown: true }))
+    // The repaint lands in Growth's own node; the visible page is untouched.
+    expect(byClass(root, "detail-stat-list").repaints).toBe(1)
+
+    tabNamed(root, "Growth").fire("click", {})
+    expect(detailFor(host, "Mood")).toBe("35 / 40")
+  })
+
+  test("Moves lists the creature's kit", () => {
+    const detail = buildCreatureDetail()
+    detail.open(stateWith("baby", { day: 6, mood: 35 }))
+    const root = fakeOf(detail.root)
+    tabNamed(root, "Moves").fire("click", {})
+
+    const kit = byClass(root, "detail-kit")
+    const rows = classNamed(kit, "detail-kit-row")
+    const species = getSpecies("fire_drake")
+    if (!species) throw new Error("fire_drake species missing")
+    expect(
+      rows.map((row) => byClass(row, "detail-kit-name").textContent),
+    ).toEqual(species.kit.map((id) => getMove(id)?.displayName ?? id))
+    const states = classNamed(kit, "detail-kit-state").map(
+      (node) => node.textContent,
+    )
+    expect(states.filter((state) => state === "In kit").length).toBeGreaterThan(
+      0,
+    )
+  })
+
+  test("closing from Moves and reopening lands on Stats", () => {
+    const detail = buildCreatureDetail()
+    const state = stateWith("baby", { day: 6, mood: 35 })
+    detail.open(state)
+    const root = fakeOf(detail.root)
+    tabNamed(root, "Moves").fire("click", {})
+    root.fire("keydown", { key: "Escape", target: null })
+
+    detail.open(state)
+
+    expect(activeTab(root).textContent).toBe("Stats")
+    expect(roleNamed(root, "tabpanel").map((panel) => panel.hidden)).toEqual([
+      false,
+      true,
+      true,
+    ])
+    // The close action still owns focus after the select.
+    expect(lastFocused).toBe(byClass(root, "kit-button"))
   })
 })
 

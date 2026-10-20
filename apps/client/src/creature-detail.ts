@@ -6,8 +6,12 @@
  * ranch creature plate; renders fresh from state on every open and repaints
  * the Growth section in place while it stays open.
  *
+ * The shell is pinned like the handbook: header, tab strip and close action
+ * stay put while the active page scrolls. Tabs are the shared controller's,
+ * so the same keyboard rules apply to both modals.
+ *
  * Pure DOM from the shared broadcast kit — no interaction wiring beyond the
- * modal's own Escape/backdrop/close semantics.
+ * modal's own Escape/backdrop/close semantics and the tab strip.
  */
 import {
   type Creature,
@@ -26,6 +30,7 @@ import { parentageLabel, traitCopy } from "./graduation/nursery-vm"
 import { createGrowthHost } from "./growth-panel"
 import { crest, tab } from "./ui/kit"
 import { romanNumeral, stageLabel } from "./ui/labels"
+import { createTabs, type TabSpec } from "./ui/tabs"
 
 const STAT_LABELS: Array<{ key: StatKey; label: string }> = [
   { key: "hp", label: "HP" },
@@ -97,11 +102,13 @@ function contextRow(label: string, value: string): HTMLElement {
 export interface CreatureDetail {
   /** The modal root — append it to the HUD root once. Starts hidden. */
   root: HTMLElement
-  /** Render from current state and show the modal. */
+  /** Render from current state and show the modal, on the Stats page. */
   open: (state: GameState) => void
   /**
-   * Repaint the Growth section from state while the modal is open. A no-op
-   * when it is closed, so the HUD can call it on every commit.
+   * Record state and repaint the Growth section when the modal is open. The
+   * record survives a closed modal, so entering Growth after a settlement
+   * paints fresh rows instead of the ones from the last open. The HUD calls it
+   * on every commit.
    */
   sync: (state: GameState) => void
 }
@@ -172,26 +179,50 @@ export function buildCreatureDetail(): CreatureDetail {
   const stageTab = tab("Baby", "stage")
   head.append(crestEl, name, stageTab)
 
-  // The four stat rows, rebuilt on every open.
+  // Stats page: the four stat rows, rebuilt on every open.
   const statList = document.createElement("div")
   statList.className = "detail-stat-list"
 
-  // Context rows: stage, generation, cups won, bond, mood.
+  // Stats page, continued: stage, generation, cups won, bond, mood.
   const context = document.createElement("div")
   context.className = "detail-context"
 
-  // The move pool: six rows, the equipped four marked and every locked row
+  // Moves page: six rows, the equipped four marked and every locked row
   // spelling out its gate (move_pool_20261018 FR5).
   const kit = document.createElement("div")
   kit.className = "detail-kit"
 
-  // Growth's slot: swapped in place on every commit so a gate unlocked
+  // Growth page's slot: swapped in place on every commit so a gate unlocked
   // while the panel is open repaints without a reopen (FR-7). It keeps its
   // own node so scroll and focus elsewhere in the modal never reset.
   const growth = document.createElement("div")
   growth.className = "detail-growth-host"
   growth.hidden = true
   const growthHost = createGrowthHost(growth)
+
+  /** The last state painted, so Growth can repaint whenever it is entered. */
+  let last: GameState | null = null
+
+  const TABS: TabSpec[] = [
+    { label: "Stats", build: (panel) => panel.append(statList, context) },
+    { label: "Growth", build: (panel) => panel.append(growth) },
+    { label: "Moves", build: (panel) => panel.append(kit) },
+  ]
+  const { tablist, panels, select } = createTabs({
+    ariaLabel: "Partner details sections",
+    idPrefix: "detail",
+    tabs: TABS,
+    // Entering Growth paints it from the remembered state, so a page left
+    // behind before a settlement can never come back stale (AC-5).
+    onSelect: (index) => {
+      if (index === 1 && last !== null) growthHost.paint(last)
+    },
+  })
+  tablist.classList.add("detail-tabs")
+  for (const button of tablist.children) {
+    button.classList.add("kit-tab", "detail-tab")
+  }
+  for (const panel of panels) panel.classList.add("detail-panel")
 
   const actions = document.createElement("div")
   actions.className = "kit-modal-actions"
@@ -201,7 +232,7 @@ export function buildCreatureDetail(): CreatureDetail {
   close.textContent = "Back to the ranch"
   actions.append(close)
 
-  box.append(head, statList, context, growth, kit, actions)
+  box.append(head, tablist, ...panels, actions)
   root.append(box)
 
   /** Where focus goes when the modal closes (the tapped plate head). */
@@ -258,17 +289,21 @@ export function buildCreatureDetail(): CreatureDetail {
         contextRow("Mood", `${creature.conditions.mood}/100`),
       )
 
+      kit.replaceChildren(...kitRows(creature))
       // Paint before showing: the host renders once on the way in, from the
       // state it was just handed, instead of once on show and again on paint.
+      last = state
       growthHost.paint(state)
       growthHost.setVisible(true)
-      kit.replaceChildren(...kitRows(creature))
+      select(0)
       root.style.display = ""
       close.focus()
     },
     sync: (state) => {
-      // No-ops while the modal is closed, so the HUD can call it on every
-      // commit (FR-7).
+      // The repaint inside `paint` is a no-op while the modal is closed, but
+      // the record is always updated, so entering Growth after a settlement
+      // paints fresh rows (FR-7). The HUD can call this on every commit.
+      last = state
       growthHost.paint(state)
     },
   }
