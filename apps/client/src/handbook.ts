@@ -19,6 +19,7 @@ import {
 } from "@apex/sim"
 import { focusTrap } from "./battleUI"
 import { crestGlyph, elementHue } from "./element"
+import { createTabs, type TabSpec } from "./ui/tabs"
 
 const ELEMENT_LABELS: Record<string, string> = {
   fire: "Fire",
@@ -72,12 +73,6 @@ const RAISING_GUIDANCE: ReadonlyArray<string> = [
   "Strong bonds carry on — a graduated partner leaves an inheritance floor for the next egg.",
   "Evolution comes with time and cups. Watch for the coach's hints.",
 ]
-
-/** Tab descriptors: label + panel builder. */
-type HandbookTab = {
-  label: string
-  build: (panel: HTMLElement) => void
-}
 
 /**
  * Append a trusted, static glyph SVG without assigning innerHTML on a
@@ -240,7 +235,7 @@ function buildMoves(panel: HTMLElement): void {
   }
 }
 
-const TABS: ReadonlyArray<HandbookTab> = [
+const TABS: TabSpec[] = [
   { label: "Type chart", build: buildTypeChart },
   { label: "Ladder rules", build: buildLadderRules },
   { label: "Moves", build: buildMoves },
@@ -256,7 +251,7 @@ export interface HandbookRefs {
 /**
  * Build the handbook modal. Hidden until open(); Escape, the backdrop,
  * and the footer button all close it, restoring focus to the opener.
- * Tabs use role=tablist/tab/tabpanel with arrow-key movement.
+ * The tab strip is the client's shared tab controller.
  */
 export function buildHandbook(): HandbookRefs {
   const root = document.createElement("div")
@@ -271,56 +266,17 @@ export function buildHandbook(): HandbookRefs {
   title.className = "kit-modal-title"
   title.textContent = "Coach's Handbook"
 
-  const tablist = document.createElement("div")
-  tablist.className = "handbook-tabs"
-  tablist.setAttribute("role", "tablist")
-  tablist.setAttribute("aria-label", "Handbook sections")
-  const panels: Array<HTMLElement> = []
-  const tabButtons: Array<HTMLButtonElement> = []
-  TABS.forEach((tab, index) => {
-    const button = document.createElement("button")
-    button.type = "button"
-    button.className = "kit-tab handbook-tab"
-    if (index !== 0) button.classList.add("is-outline")
-    button.setAttribute("role", "tab")
-    button.textContent = tab.label
-    button.id = `handbook-tab-${index}`
-    button.addEventListener("click", () => select(index))
-    tablist.append(button)
-    tabButtons.push(button)
-
-    const panel = document.createElement("div")
-    panel.className = "handbook-panel"
-    panel.setAttribute("role", "tabpanel")
-    panel.setAttribute("aria-labelledby", button.id)
-    panel.hidden = index !== 0
-    tab.build(panel)
-    panels.push(panel)
+  const { tablist, panels, select } = createTabs({
+    ariaLabel: "Handbook sections",
+    idPrefix: "handbook",
+    tabs: TABS,
   })
-
-  function select(index: number): void {
-    tabButtons.forEach((button, i) => {
-      const active = i === index
-      button.setAttribute("aria-selected", active ? "true" : "false")
-      button.classList.toggle("is-outline", !active)
-      button.tabIndex = active ? 0 : -1
-      const panel = panels[i]
-      if (panel) panel.hidden = !active
-    })
-    tabButtons[index]?.focus()
+  // The controller owns the semantics; the handbook names its own skin.
+  tablist.classList.add("handbook-tabs")
+  for (const button of tablist.children) {
+    button.classList.add("kit-tab", "handbook-tab")
   }
-
-  // Arrow keys move between tabs, matching the tablist contract.
-  tablist.addEventListener("keydown", (event) => {
-    const current = tabButtons.findIndex(
-      (button) => button.getAttribute("aria-selected") === "true",
-    )
-    if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
-      const step = event.key === "ArrowRight" ? 1 : -1
-      select((current + step + TABS.length) % TABS.length)
-      event.preventDefault()
-    }
-  })
+  for (const panel of panels) panel.classList.add("handbook-panel")
 
   const actions = document.createElement("div")
   actions.className = "kit-modal-actions"
