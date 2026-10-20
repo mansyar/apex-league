@@ -33,7 +33,7 @@
 **Covers:** FR-7, FR-8, NFR-4
 **Touches:** `packages/sim/src/save/schema.ts`, `packages/sim/src/save/migrate.ts`, `packages/sim/src/save/storage.ts`, `packages/sim/src/save/transfer.ts`, `packages/sim/src/save/*.test.ts`, `packages/sim/src/legacy.ts`, `packages/sim/src/breeding.ts`, `packages/sim/src/breeding.test.ts`, `packages/sim/src/graduation.test.ts`, `apps/client/src/save-transfer.test.ts` (fixture only), `docs/save-schema.md`
 **Verification:** `bun test --timeout 120000 packages/sim/src/save packages/sim/src/breeding.test.ts packages/sim/src/graduation.test.ts && bun run verify && bun run build`
-**Status:** pending
+**Status:** in_progress
 
 - [ ] **P2.T1 — Bump the schema to v19 and validate the field**
   - [ ] Add `creature.branch` and `RetiredRecord.branch`; accept only known ids or `null`, and reject a branch on a baby.
