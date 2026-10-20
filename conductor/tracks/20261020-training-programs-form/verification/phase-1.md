@@ -56,3 +56,13 @@
 - `formModifier` returns a fresh object so a caller cannot mutate `FORM_DELTAS`; both the table and its entries are frozen.
 - HP is deliberately part of the delta shape (always 0) so every stat readout can spread one uniform object; no phase-1 reader consumes it yet.
 - Nothing is wired into combat: `makeExhibition`, the cup snapshot, `care.ts`, `settlement.ts` and every client file are untouched, so existing spar/cup goldens are unchanged by construction (Phase 3 owns the seam swap).
+
+## Primary verification
+
+- **Verified by:** conductor-implement (primary agent), 2026-10-20
+- **un test --timeout 120000 packages/sim/src/form.test.ts** -> exit 0 (26 pass, 0 fail, 91 expects)
+- **un run check** -> exit 0 (voxel 62, sim 81, client 287 files, no type errors)
+- **un run verify** -> exit 0 (types, 1814 pass / 1 skip, biome, determinism gate byte-identical)
+- **un run build** -> exit 0 (only the pre-existing >500 kB chunk warning)
+- **Diff scope:** `packages/sim/src/form.ts`, `form.test.ts`, `index.ts`, this report - all inside Touches. No file outside Touches changed.
+- **Result:** accepted. The phase's literal command omits `--timeout 120000`; the bare `bun test <path>` form is refused by this sandbox, so the workflow-configured unit form was run instead (matching the subagent's recorded deviation). Squashed `555c08b..66bf75e` into `411f20c`.

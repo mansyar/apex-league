@@ -16,26 +16,30 @@
 - **Touches:** `packages/sim/src/form.ts`, `packages/sim/src/form.test.ts`,
   `packages/sim/src/index.ts`
 - **Verification:** `bun test packages/sim/src/form.test.ts && bun run check`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Write the form tests** — covers: FR-8, AC-1, AC-2
-  - [ ] **P1.T1.1:** Assert `steady` and a zero delta for a fresh
+- [x] **P1.T1: Write the form tests** — covers: FR-8, AC-1, AC-2
+  - [x] **P1.T1.1:** Assert `steady` and a zero delta for a fresh
     `createCreature` of each starter species, and that `battleStats` deep-equals
     `effectiveStats` there (the golden-stability invariant).
-  - [ ] **P1.T1.2:** Assert the three tier boundaries and the score formula at
+  - [x] **P1.T1.2:** Assert the three tier boundaries and the score formula at
     mood/bond combinations around 65, 40 and 20, including a high-bond,
     low-mood creature landing `steady`.
-  - [ ] **P1.T1.3:** Assert a sick creature (< `SICK_HEALTH`) is pinned to
+  - [x] **P1.T1.3:** Assert a sick creature (< `SICK_HEALTH`) is pinned to
     `sluggish` even at mood 100/bond 100, and that no delta pushes a stat below 1.
-- [ ] **P1.T2: Implement `form.ts` and export it** — covers: FR-8, FR-9
-  - [ ] **P1.T2.1:** Add `FormTier`, `FORM_DELTAS`, `formScore`, `formTier`,
+- [x] **P1.T2: Implement `form.ts` and export it** — covers: FR-8, FR-9
+  - [x] **P1.T2.1:** Add `FormTier`, `FORM_DELTAS`, `formScore`, `formTier`,
     `formModifier`, `battleStats`, `FORM_COPY` (tier label + one-line
     consequence) as pure functions over `Creature`.
-  - [ ] **P1.T2.2:** Re-export the public surface from `packages/sim/src/index.ts`
+  - [x] **P1.T2.2:** Re-export the public surface from `packages/sim/src/index.ts`
     and keep the module under the 12 KB cap.
-  - [ ] **P1.T2.3:** Document in the module header that form reads conditions
+  - [x] **P1.T2.3:** Document in the module header that form reads conditions
     only (no RNG, no HP effect) and why the neutral band contains the starting
     conditions.
+
+**Result:** verified
+**Checkpoint:** 411f20c
+**Evidence:** conductor/tracks/20261020-training-programs-form/verification/phase-1.md
 
 ## Phase 2: Training Programs and Save v18
 
