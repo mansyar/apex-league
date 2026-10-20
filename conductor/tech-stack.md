@@ -374,6 +374,18 @@
   and repaints it on re-entry. No save change, no new dependency, no animation;
   `creature-detail.ts` is 10,818 B against the 12,288 B cap.
 
+- `2026-10-20` - **Client size guard, whole tree** (`20261020-client-decomposition`
+  Phase 5): `apps/client/src/module-size.test.ts` now walks every `.ts` file under
+  `apps/client/src` recursively and fails on anything over 12,288 bytes, reporting each
+  offender as `path — bytes B (overage B over the cap)` sorted largest first. The only
+  exemptions are co-located `*.test.ts` suites and the Vite shim `vite-env.d.ts`; there
+  is no allowlist by name. The interim four-file `size-probe.test.ts` from
+  `20261020-evolution-discovery-ui` is retired. A self-cleaning negative control writes
+  an oversized `__guard-negative-control-<pid>.ts`, asserts the guard rejects it, and
+  removes it in a `finally`, so the rule itself is tested rather than only the clean
+  tree. Modules near the line: `battleHud.ts` 12,064 B, `staging.ts` 11,640 B,
+  `graduation/nursery.ts` 11,613 B.
+
 ## Quality Gates
 - `bun check` clean, `biome check` clean, `bun test` green — required before
   any commit lands (see workflow.md).
