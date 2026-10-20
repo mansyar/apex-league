@@ -158,3 +158,23 @@ silently change order.
   folder and remove it recursively in `finally` - covers: F4
 - [x] **R1.T4: Note matches the code** - quote the real offender line in
   `tech-stack.md` and record the widened extensions - covers: F5
+## Phase R2: Review Fixes
+
+- **Goal:** close the four round-2 findings: stale evidence prose for the temp-folder
+  control and the widened extension set, a write that could still leak the temp folder,
+  and one self-contradicting clause in the `tech-stack.md` note.
+- **Depends on:** Phase R1
+- **Covers:** N1, N2, N3, N4
+- **Touches:** `apps/client/src/module-size.test.ts`,
+  `conductor/tracks/20261020-client-decomposition/verification/*`,
+  `conductor/tech-stack.md`
+- **Verification:** `bun run verify && bun run build` plus the guard's own suite
+- **Status:** in_progress
+
+- [x] **R2.T1: Evidence matches the guard** - rewrite the control and exclusion prose in
+  `phase-5.md` and `integrated.md` (AC-2, AC-3) and drop the obsolete insert block
+  - covers: N1, N2
+- [x] **R2.T2: No leaked folder** - move the fixture write inside the `try` so a write
+  failure still cleans up - covers: N3
+- [x] **R2.T3: One clause, one rule** - the note's opening says `.ts`/`.tsx`/`.mts`
+  - covers: N4
