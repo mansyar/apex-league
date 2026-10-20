@@ -168,9 +168,11 @@
   `apps/client/src/hud/update.ts`, `apps/client/src/hud/copy-care.ts`,
   `apps/client/src/hud/copy.test.ts`, `apps/client/src/app/hud-screen.ts`,
   `apps/client/src/creature-detail.ts`, `apps/client/src/creature-detail.test.ts`,
-  `apps/client/src/ranch.css`
+  `apps/client/src/hud/programs.ts`, `apps/client/src/hud/programs.test.ts`,
+  `apps/client/src/detail/training-tab.ts`,
+  `apps/client/src/detail/training-tab.test.ts`, `apps/client/src/ranch.css`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P4.T1: Program picker** — covers: FR-12, AC-10
   - [ ] **P4.T1.1:** Replace the four-stat picker with four program rows showing
