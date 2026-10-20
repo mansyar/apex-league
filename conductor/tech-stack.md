@@ -331,6 +331,26 @@
   `dawn-chime`, all CC0 and mapped in CREDITS.md. No new dependency and no
   save-schema change.)*
 
+-   *2026-10-20: Evolution threshold discovery landed (track
+  `20261020-evolution-discovery-ui`) - save v17 is additive:
+  `evolutionKnowledge { juvenile, champion }` records which evolution gates the
+  player has seen cleared, and it is save-wide and permanent. `advanceDay`
+  compares the creature's stage across `settleCreature` and marks a gate only on
+  a real stage change (baby→juvenile sets one, juvenile→champion sets both), so
+  a blocked gate or a quiet night never unlocks anything. The v16→v17 migration
+  never trusts a pre-existing payload field: it infers from the persisted stage
+  (juvenile ⇒ juvenile known, champion ⇒ both, none ⇒ none), which also covers
+  veterans mid-ladder. `isValidSaveState` now rejects a missing or non-boolean
+  record, so load and import validate the same shape. The panel side is a new
+  pure module `apps/client/src/growth.ts` (6.8 KB) that maps the active gate to
+  labelled rows and mirrors `evaluateEvolution`'s constants rather than
+  restating them; undiscovered gates render digit-free coach copy, discovered
+  gates render `current / target`. `creature-detail.ts` stamps that view into a
+  `role="group"` section with a shape-distinct glyph plus a status word, and
+  `hud.update` calls `creatureDetail.sync` so an open panel repaints in place
+  when a settlement resolves; no new dependency, no generator or artifact
+  change, and the Hall of Fame surface is untouched.*
+
 ## Quality Gates
 - `bun check` clean, `biome check` clean, `bun test` green — required before
   any commit lands (see workflow.md).
