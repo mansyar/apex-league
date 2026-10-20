@@ -99,13 +99,16 @@ silently change order.
   `apps/client/src/mock.ts`, `apps/client/src/mock/*.ts` (new)
 - **Verification:** `bun run verify && bun run build`, plus a cup run, a graduation
   (seeded save) and `mock.html` in the browser
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 3466438
+- **Evidence:** conductor/tracks/20261020-client-decomposition/verification/phase-4.md
 
-- [ ] **P4.T1: Split the cup screens** — bracket, coach, results, give-up and battle
+- [x] **P4.T1: Split the cup screens** — bracket, coach, results, give-up and battle
   chips under `cup/` — covers: FR-4
-- [ ] **P4.T2: Split spar** — screen vs setup vs casting under `spar/` — covers: FR-4
-- [ ] **P4.T3: Split graduation** — screen vs modal shell under `graduation/` — covers: FR-4
-- [ ] **P4.T4: Split the harness** — `mock.ts` into sections + showcase under `mock/` — covers: FR-5
+- [x] **P4.T2: Split spar** — screen vs setup vs casting under `spar/` — covers: FR-4
+- [x] **P4.T3: Split graduation** — screen vs modal shell under `graduation/` — covers: FR-4
+- [x] **P4.T4: Split the harness** — `mock.ts` into sections + showcase under `mock/` — covers: FR-5
 
 ## Phase 5: The guard
 

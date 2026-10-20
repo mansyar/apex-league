@@ -6,7 +6,7 @@
   "priority": "medium",
   "depends_on": [],
   "created_at": "2026-10-20T18:10:00+11:00",
-  "updated_at": "2026-10-20T20:05:00+11:00",
+  "updated_at": "2026-10-20T20:55:00+11:00",
   "spec": "conductor/tracks/20261020-client-decomposition/spec.md",
   "plan": "conductor/tracks/20261020-client-decomposition/plan.md",
   "branch": "feat/20261020-client-decomposition",
@@ -14,11 +14,11 @@
   "base_sha": "dde88d1bd2cc4413adc23505327fac5b72b0cae5",
   "progress": {
     "phases_total": 5,
-    "phases_verified": 3,
+    "phases_verified": 4,
     "tasks_total": 19,
-    "tasks_done": 13
+    "tasks_done": 17
   },
-  "last_checkpoint": "97a9bba",
+  "last_checkpoint": "3466438",
   "checkpoints": [],
   "review_verdict": null,
   "review_rounds": 0,
