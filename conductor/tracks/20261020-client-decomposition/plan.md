@@ -51,14 +51,17 @@ silently change order.
   `apps/client/src/hud.test.ts` (import paths only)
 - **Verification:** `bun run verify && bun run build`, plus browser smoke
   (care plates, hint dismissal persistence, settings chip reachable mid-battle)
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 9511846
+- **Evidence:** conductor/tracks/20261020-client-decomposition/verification/phase-2.md
 
-- [ ] **P2.T1: Split the plates** — `plates-score`, `plates-lineage`,
+- [x] **P2.T1: Split the plates** — `plates-score`, `plates-lineage`,
   `plates-creature`, `plates-callout`, plus `ladder-read` for the view-models — covers: FR-2
   - [ ] `hud/plates.ts` keeps re-exporting the same names
-- [ ] **P2.T2: Split the copy** — `copy-care`, `copy-cup`, `copy-growth`, `hints`;
+- [x] **P2.T2: Split the copy** — `copy-care`, `copy-cup`, `copy-growth`, `hints`;
   `hud/copy.ts` re-exports — covers: FR-2, FR-7
-- [ ] **P2.T3: Split the HUD body** — `hud/shell.ts` (build + refs), `hud/update.ts`
+- [x] **P2.T3: Split the HUD body** — `hud/shell.ts` (build + refs), `hud/update.ts`
   (state → plates), `hud/hints.ts` (onboarding); `hud.ts` becomes the facade — covers: FR-2
 
 ## Phase 3: Scene, camera, effects
