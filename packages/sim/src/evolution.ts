@@ -11,51 +11,94 @@
  * earned in the arena, not just at the ranch.
  */
 
+import {
+  type BranchDef,
+  branchLean,
+  getBranch,
+  LEGACY_BRANCH,
+  LEGACY_CHAMPION_BOOST,
+  LEGACY_JUVENILE_BOOST,
+} from "./branches"
 import type { Creature, CreatureStats } from "./creature"
+import { getSpecies } from "./species"
 
 /**
  * The maturation boost applied to the rolled base the night a baby becomes
  * a juvenile. Applied directly to `stats` (trained bonuses are separate and
  * stay capped on their own), so `effectiveStats` shows base + boost +
  * trained.
+ *
+ * This is the synthetic legacy branch's boost: branched creatures apply their
+ * own `juvenileBoost` instead. The literal lives in `branches.ts` so the old
+ * numbers have one source and the two modules cannot import each other.
  */
-export const EVOLUTION_STAT_BOOST: CreatureStats = Object.freeze({
-  hp: 3,
-  atk: 2,
-  def: 2,
-  spd: 1,
-})
+export const EVOLUTION_STAT_BOOST: CreatureStats = LEGACY_JUVENILE_BOOST
 
 /**
  * The cumulative stat offset for champion-stage presentation, applied to the
  * rolled base the night a juvenile becomes a champion ({hp:6, atk:4, def:4,
  * spd:2} = two juvenile steps). Pinned here so the renderer's visual stat
  * seed for a champion can never drift from the contract.
+ *
+ * The legacy branch's cumulative boost; a real branch applies its own.
  */
-export const CHAMPION_STAT_BOOST: CreatureStats = Object.freeze({
-  hp: 6,
-  atk: 4,
-  def: 4,
-  spd: 2,
-})
+export const CHAMPION_STAT_BOOST: CreatureStats = LEGACY_CHAMPION_BOOST
+
+function addBoost(stats: CreatureStats, boost: CreatureStats): CreatureStats {
+  return {
+    hp: stats.hp + boost.hp,
+    atk: stats.atk + boost.atk,
+    def: stats.def + boost.def,
+    spd: stats.spd + boost.spd,
+  }
+}
+
+/** The branch a stored id names; null and unknown ids fall back to legacy. */
+function storedBranch(creature: Creature): BranchDef {
+  const id = creature.branch ?? null
+  return id === null ? LEGACY_BRANCH : (getBranch(id) ?? LEGACY_BRANCH)
+}
 
 /**
- * Maturation itself: flip to the next stage and apply that stage's stat
- * boost to the rolled base. Pure: returns a new creature; everything else
- * (trained, conditions, loadout) is carried over untouched.
+ * The branch earned at the juvenile gate, derived once from the training
+ * record (and the rolled base when the record is even). A species with no
+ * catalog entry evolves legacy, per the catalog's own test forbidding that
+ * for shipped starters.
+ */
+function deriveBranch(creature: Creature): BranchDef {
+  const species = getSpecies(creature.speciesId)
+  if (!species) return LEGACY_BRANCH
+  return branchLean(creature, species).branch
+}
+
+/**
+ * Maturation itself: flip to the next stage, earn (or keep) the branch, and
+ * apply that branch's stage boost to the rolled base. Pure: returns a new
+ * creature; everything else (trained, conditions, loadout) is carried over
+ * untouched.
+ *
+ * The juvenile gate derives and stores the branch when it is still null. The
+ * champion gate keeps a stored branch and never re-derives it; a null branch
+ * there is a pre-v19 fixture and falls back to the legacy tables.
  */
 export function evolveCreature(creature: Creature): Creature {
-  const b =
-    creature.stage === "baby" ? EVOLUTION_STAT_BOOST : CHAMPION_STAT_BOOST
+  const current = creature.branch ?? null
+  if (creature.stage === "baby") {
+    const earned =
+      current === null ? deriveBranch(creature) : storedBranch(creature)
+    return {
+      ...creature,
+      stage: "juvenile",
+      branch: earned.id,
+      stats: addBoost(creature.stats, earned.juvenileBoost),
+    }
+  }
+  const kept = storedBranch(creature)
   return {
     ...creature,
-    stage: creature.stage === "baby" ? "juvenile" : "champion",
-    stats: {
-      hp: creature.stats.hp + b.hp,
-      atk: creature.stats.atk + b.atk,
-      def: creature.stats.def + b.def,
-      spd: creature.stats.spd + b.spd,
-    },
+    stage: "champion",
+    branch: kept.id,
+    stats: addBoost(creature.stats, kept.championBoost),
   }
 }
 

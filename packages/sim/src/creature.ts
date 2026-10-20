@@ -61,6 +61,12 @@ export interface Creature {
   parents: number[]
   stage: LifeStage
   /**
+   * The evolution branch earned at the juvenile gate (save v19), or null
+   * before the gate. `"legacy"` is migration-only: new creatures never earn
+   * it, and a bred egg always starts null.
+   */
+  branch: string | null
+  /**
    * Clean nights since the last sickness night, capped at
    * SICK_COOLDOWN_NIGHTS. Zero for a healthy run; the evolution care gate
    * (and later systems) read it as "recently sick" bookkeeping.
@@ -138,7 +144,9 @@ export const CONDITION_START: CreatureConditions = Object.freeze({
  * double (+2 per point) so a training day keeps the same relative worth it
  * had before the scale-up; atk/def/spd points are unchanged.
  */
-export function effectiveStats(creature: Creature): CreatureStats {
+export function effectiveStats(
+  creature: Pick<Creature, "stats" | "trained">,
+): CreatureStats {
   return {
     hp: creature.stats.hp + 2 * creature.trained.hp,
     atk: creature.stats.atk + creature.trained.atk,
@@ -184,6 +192,7 @@ export function createCreature(
     traits: [],
     parents: [],
     stage: "baby",
+    branch: null,
     sickCooldown: 0,
     stats: rollStats(rng, species),
     trained: { ...TRAINED_START },

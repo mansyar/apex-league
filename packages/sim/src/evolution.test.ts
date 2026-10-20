@@ -7,6 +7,7 @@ import {
   CHAMPION_EVOLUTION_DAY,
   CHAMPION_HINT_DAY,
   type Creature,
+  type CreatureStats,
   chooseStarter,
   createCreature,
   createInitialState,
@@ -16,7 +17,10 @@ import {
   evaluateEvolution,
   evolveCreature,
   type GameState,
+  getBranch,
   getSpecies,
+  LEGACY_CHAMPION_BOOST,
+  LEGACY_JUVENILE_BOOST,
   SICK_COOLDOWN_NIGHTS,
   SICK_HEALTH,
   setLoadout,
@@ -33,7 +37,9 @@ const CALM_RNG = { next: () => 0.99, int: () => 0 }
 
 /** A state whose creature is hand-tuned for evolution scenarios. */
 function scenarioState(
-  fields: Partial<Pick<Creature, "conditions" | "sickCooldown" | "stage">>,
+  fields: Partial<
+    Pick<Creature, "conditions" | "sickCooldown" | "stage" | "branch">
+  >,
   day: number,
 ): GameState {
   const s = chooseStarter(createInitialState(), "fire_drake", 42)
@@ -41,16 +47,18 @@ function scenarioState(
   return {
     ...s,
     day,
-    creature: { ...s.creature, ...fields },
+    creature: { ...s.creature, branch: "legacy", ...fields },
   }
 }
 
 /** A creature for direct unit-level gate checks. */
 function gateCreature(
-  fields: Partial<Pick<Creature, "stage" | "sickCooldown" | "conditions">>,
+  fields: Partial<
+    Pick<Creature, "stage" | "sickCooldown" | "conditions" | "branch">
+  >,
 ): Creature {
   const c = createCreature("fire_drake", 42)
-  return { ...c, ...fields }
+  return { ...c, branch: "legacy", ...fields }
 }
 
 describe("evaluateEvolution", () => {
@@ -260,7 +268,10 @@ describe("advanceDay - evolution integration", () => {
 
 describe("evolveCreature - the maturation boost", () => {
   test("flips the stage and boosts the rolled base by +3/+2/+2/+1", () => {
-    const baby = createCreature("fire_drake", 7)
+    const baby: Creature = {
+      ...createCreature("fire_drake", 7),
+      branch: "legacy",
+    }
     const juvenile = evolveCreature(baby)
     expect(juvenile.stage).toBe("juvenile")
     expect(juvenile.stats.hp).toBe(baby.stats.hp + 3)
@@ -270,7 +281,10 @@ describe("evolveCreature - the maturation boost", () => {
   })
 
   test("leaves trained bonuses and conditions untouched", () => {
-    const baby = createCreature("plant_ox", 9)
+    const baby: Creature = {
+      ...createCreature("plant_ox", 9),
+      branch: "legacy",
+    }
     baby.trained = { hp: 1, atk: 2, def: 0, spd: 3 }
     const juvenile = evolveCreature(baby)
     expect(juvenile.trained).toEqual(baby.trained)
@@ -279,7 +293,10 @@ describe("evolveCreature - the maturation boost", () => {
   })
 
   test("effectiveStats shows base + trained including the boost", () => {
-    const baby = createCreature("water_axolotl", 11)
+    const baby: Creature = {
+      ...createCreature("water_axolotl", 11),
+      branch: "legacy",
+    }
     baby.trained = { hp: 2, atk: 1, def: 1, spd: 1 }
     const juvenile = evolveCreature(baby)
     const before = effectiveStats(baby)
@@ -313,7 +330,10 @@ describe("evolveCreature - the champion boost", () => {
   })
 
   test("the baby path is untouched: +3/+2/+2/+1 to juvenile", () => {
-    const baby = createCreature("fire_drake", 7)
+    const baby: Creature = {
+      ...createCreature("fire_drake", 7),
+      branch: "legacy",
+    }
     const juvenile = evolveCreature(baby)
     expect(juvenile.stage).toBe("juvenile")
     expect(juvenile.stats.hp).toBe(baby.stats.hp + 3)
@@ -444,5 +464,171 @@ describe("kit gate at evolution", () => {
     expect(() => setLoadout(s, ["spark", "blaze_bolt"])).toThrow(
       /Not unlocked yet/,
     )
+  })
+})
+
+/** Sum two stat blocks, per key. */
+function statsPlus(left: CreatureStats, right: CreatureStats): CreatureStats {
+  return {
+    hp: left.hp + right.hp,
+    atk: left.atk + right.atk,
+    def: left.def + right.def,
+    spd: left.spd + right.spd,
+  }
+}
+
+/** Effective-stat weight of a stat block or boost: HP counts double. */
+function budgetOf(stats: CreatureStats): number {
+  return stats.hp * 2 + stats.atk + stats.def + stats.spd
+}
+
+function branchOf(id: string) {
+  const branch = getBranch(id)
+  if (!branch) throw new Error(`branch missing: ${id}`)
+  return branch
+}
+
+/** A fresh baby that has not earned a branch yet. */
+function unbranchedBaby(speciesId: string): Creature {
+  return { ...createCreature(speciesId, 42), branch: null }
+}
+
+describe("Creature.branch", () => {
+  test("a fresh creature starts unchosen", () => {
+    for (const speciesId of ["fire_drake", "plant_ox", "water_axolotl"]) {
+      expect(createCreature(speciesId, 3).branch).toBeNull()
+    }
+  })
+
+  test("settlement carries an earned branch through a quiet night", () => {
+    const c = gateCreature({ stage: "juvenile", branch: "cinder_courser" })
+    const settled = settleCreature(c, CALM_RNG, 11)
+    expect(settled.stage).toBe("juvenile")
+    expect(settled.branch).toBe("cinder_courser")
+  })
+})
+
+describe("evolveCreature - the earned branch", () => {
+  test("a power-and-sprint baby lands the offense form at day 10", () => {
+    const expected = {
+      fire_drake: "cinder_courser",
+      plant_ox: "thorn_ram",
+      water_axolotl: "riptide_runner",
+    } as const
+    for (const [speciesId, branchId] of Object.entries(expected)) {
+      const baby: Creature = {
+        ...unbranchedBaby(speciesId),
+        trained: { hp: 0, atk: 3, def: 0, spd: 2 },
+      }
+      const juvenile = evolveCreature(baby)
+      expect(juvenile.stage).toBe("juvenile")
+      expect(juvenile.branch).toBe(branchId)
+      expect(juvenile.stats).toEqual(
+        statsPlus(baby.stats, branchOf(branchId).juvenileBoost),
+      )
+    }
+  })
+
+  test("an endurance-and-ring baby lands the defense form at day 10", () => {
+    const expected = {
+      fire_drake: "pyre_warden",
+      plant_ox: "bramble_bulwark",
+      water_axolotl: "reef_keeper",
+    } as const
+    for (const [speciesId, branchId] of Object.entries(expected)) {
+      const baby: Creature = {
+        ...unbranchedBaby(speciesId),
+        trained: { hp: 3, atk: 0, def: 2, spd: 0 },
+      }
+      const juvenile = evolveCreature(baby)
+      expect(juvenile.branch).toBe(branchId)
+      expect(juvenile.stats).toEqual(
+        statsPlus(baby.stats, branchOf(branchId).juvenileBoost),
+      )
+    }
+  })
+
+  test("the day-10 settlement stores the derived branch", () => {
+    const s = scenarioState({ branch: null }, EVOLUTION_DAY)
+    const before = s.creature
+    if (!before) throw new Error("creature missing")
+    const next = advanceDay(s, CALM_RNG)
+    expect(next.creature?.stage).toBe("juvenile")
+    // Zero training: the lean is a nature lean over the rolled base stats.
+    expect(next.creature?.branch).toBe("pyre_warden")
+    expect(next.creature?.stats).toEqual(
+      statsPlus(before.stats, branchOf("pyre_warden").juvenileBoost),
+    )
+  })
+
+  test("the stored branch survives the champion gate and is never re-derived", () => {
+    const juvenile: Creature = {
+      ...unbranchedBaby("fire_drake"),
+      stage: "juvenile",
+      branch: "cinder_courser",
+      // Defense-heavy training: a re-derivation would flip the form.
+      trained: { hp: 4, atk: 0, def: 3, spd: 0 },
+    }
+    const champion = evolveCreature(juvenile)
+    expect(champion.stage).toBe("champion")
+    expect(champion.branch).toBe("cinder_courser")
+    expect(champion.stats).toEqual(
+      statsPlus(juvenile.stats, branchOf("cinder_courser").championBoost),
+    )
+  })
+
+  test("a null-branch juvenile falls back to legacy, never a re-derivation", () => {
+    const juvenile: Creature = {
+      ...unbranchedBaby("fire_drake"),
+      stage: "juvenile",
+    }
+    const champion = evolveCreature(juvenile)
+    expect(champion.branch).toBe("legacy")
+    expect(champion.stats).toEqual(
+      statsPlus(juvenile.stats, LEGACY_CHAMPION_BOOST),
+    )
+  })
+
+  test("legacy evolution reproduces the pre-v19 golden numbers", () => {
+    const baby: Creature = {
+      ...createCreature("fire_drake", 7),
+      branch: "legacy",
+    }
+    const juvenile = evolveCreature(baby)
+    expect(juvenile.branch).toBe("legacy")
+    expect(juvenile.stats).toEqual(statsPlus(baby.stats, LEGACY_JUVENILE_BOOST))
+    expect(juvenile.stats.hp).toBe(baby.stats.hp + 3)
+    expect(juvenile.stats.atk).toBe(baby.stats.atk + 2)
+    expect(juvenile.stats.def).toBe(baby.stats.def + 2)
+    expect(juvenile.stats.spd).toBe(baby.stats.spd + 1)
+    expect(budgetOf(juvenile.stats)).toBe(budgetOf(baby.stats) + 11)
+
+    const champion = evolveCreature(juvenile)
+    expect(champion.branch).toBe("legacy")
+    expect(champion.stats).toEqual(
+      statsPlus(juvenile.stats, LEGACY_CHAMPION_BOOST),
+    )
+    expect(champion.stats.hp).toBe(baby.stats.hp + 9)
+    expect(champion.stats.atk).toBe(baby.stats.atk + 6)
+    expect(champion.stats.def).toBe(baby.stats.def + 6)
+    expect(champion.stats.spd).toBe(baby.stats.spd + 3)
+    expect(budgetOf(champion.stats)).toBe(budgetOf(juvenile.stats) + 22)
+  })
+
+  test("both real branches land on the same effective budget as legacy", () => {
+    const baby = unbranchedBaby("water_axolotl")
+    for (const branchId of ["riptide_runner", "reef_keeper"]) {
+      const branch = branchOf(branchId)
+      const juvenile = evolveCreature({ ...baby, branch: branchId })
+      expect(juvenile.stats).toEqual(
+        statsPlus(baby.stats, branch.juvenileBoost),
+      )
+      expect(budgetOf(juvenile.stats)).toBe(budgetOf(baby.stats) + 11)
+      const champion = evolveCreature(juvenile)
+      expect(champion.stats).toEqual(
+        statsPlus(juvenile.stats, branch.championBoost),
+      )
+      expect(budgetOf(champion.stats)).toBe(budgetOf(juvenile.stats) + 22)
+    }
   })
 })

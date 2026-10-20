@@ -1,8 +1,8 @@
 /**
- * Battle move catalog: the innate basic strike plus 18 ranged specials: six
- * per starter element. The first four of each element are the classic kit and
- * keep their exact numbers; the last two are the wider pool (a fast, accurate
- * chip move and a heavy, slow finisher).
+ * Battle move catalog: the innate basic strike plus 24 ranged specials, eight
+ * per starter element. The first six of each element are the species kit (four
+ * classic rows, then the wider pool's fast chip move and heavy finisher); the
+ * last two are the branch signatures, one heavy and one reliable.
  * Pure data and small helpers — no DOM, no jobs, no I/O.
  * Cooldowns are counted in the fighter's own actions, never in clock ticks.
  */
@@ -58,9 +58,10 @@ function special(
 }
 
 /**
- * The 18 specials: six per starter element with matching stat lines, so type
+ * The 24 specials: six per starter element with matching stat lines, so type
  * and stats are what differ, never a hidden power budget. Appending the wider
- * pool keeps every pre-existing kit prefix identical.
+ * pool and then the six branch signatures keeps every pre-existing kit prefix
+ * identical.
  */
 export const CATALOG: readonly MoveDef[] = Object.freeze([
   special("spark", "Spark", "fire", 6, 100, 1),
@@ -81,6 +82,12 @@ export const CATALOG: readonly MoveDef[] = Object.freeze([
   special("splash_bolt", "Splash Bolt", "water", 12, 75, 2),
   special("mist_spray", "Mist Spray", "water", 7, 95, 1),
   special("maelstrom", "Maelstrom", "water", 14, 70, 3),
+  special("cinder_dive", "Cinder Dive", "fire", 12, 75, 2),
+  special("pyre_wall", "Pyre Wall", "fire", 9, 100, 2),
+  special("thorn_charge", "Thorn Charge", "plant", 12, 75, 2),
+  special("bramble_guard", "Bramble Guard", "plant", 9, 100, 2),
+  special("riptide_rush", "Riptide Rush", "water", 12, 75, 2),
+  special("tide_aegis", "Tide Aegis", "water", 9, 100, 2),
 ])
 
 const MOVE_INDEX = new Map(
