@@ -73,7 +73,7 @@ Phased delivery plan (each phase is independently playable):
   champion build with per-archetype signature upgrades (drake crown horns,
   bovine full horn curls, axolotl grand frills + tail fin) at 1.15× holder
   scale, grander ceremony, day-20 hint, stage-aware arena cast. Stage
-  branching still open.)*
+  branching landed 2026-10-20 — two forms per starter, earned from training.)*
 - Full day loop: feeding, rest & sickness, assign-based training, bonding.
   *(Landed: care loop with 5 conditions, AP day phase, 3 starters. 2026-10-18:
   a healthy night restores no energy — REST (+40) is now the way to refill,
@@ -134,14 +134,26 @@ Phased delivery plan (each phase is independently playable):
 - Full ladder: Bronze → Silver → Gold → Legend plateau with promotion
   matches. *(Gold tier + Legend plateau with tier rewards and six
   authored gatekeeper bosses landed 2026-10-18 — the full four-tier
-  climb is playable; dual-parent breeding landed 2026-10-18; extra
-  prestige perks, affinity drift, and evolution branching remain open.)*
+  climb is playable; dual-parent breeding landed 2026-10-18; earned evolution
+  branching landed 2026-10-20; extra prestige perks and affinity drift remain
+  open.)*
 - Generated rivals + first 2-3 authored boss characters. *(Exceeded:
   six authored bosses now gate the climb at every tier.)*
 - Breeding between retired pairs *(landed 2026-10-18: any two Hall records,
   dual-parent stat floor, trait inheritance, seeded mutation, save v15)*;
   family prestige perks; type affinity drift.
 - Evolution hints/threshold discovery UI; 2-3 more species lineages.
+  *(Branching landed 2026-10-20: the two champion forms grow out of the
+  training record, with a day-5 direction preview and a reveal on the
+  evolution morning rather than a menu. Extra lineages are still open.)*
+- Evolution branches *(landed 2026-10-20: each starter species has two champion
+  forms with equal effective budgets — one leans ATK + SPD, one HP + DEF — and
+  the form is earned from the training the player gave, not chosen from a menu.
+  The Growth panel shows the lean as a direction from day 5, the evolution
+  morning names the form, each form adds one signature special to the move
+  pool, and a per-instance accent wash plus a plate label carry the form into
+  the ranch and arena. Old saves keep their straight line as `legacy`; save
+  v19 with v18 migration).*
 - Training programs + form *(landed 2026-10-20: four programs with an energy
   gate and breakthrough nights, save v18, and a derived ATK-only form that
   reaches the arena - surfaced on the dock picker, Training tab, coach room,

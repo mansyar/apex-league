@@ -312,6 +312,14 @@
   budget test is a 320 KiB tripwire (largest shipped artifact 244 KiB), and
   the determinism gate still hashes all nine creature artifacts and the prop
   digest manifest.*
+  *2026-10-20 extension (`20261020-branching-evolution-champion-forms`): earned
+  champion forms need no new geometry or artifacts. Each branch carries an
+  `accentHue` in the sim catalog, and the client writes one near-white
+  `material.color` multiplier per mesh at build time (`branchTint` /
+  `applyBranchTint`, threaded through the ranch rebuild path and
+  `FightCasting`/`CastInfo` for the arena). Vertex colours keep the coat and AO,
+  `legacy` is never tinted, and the count of meshes, materials and draw calls
+  is unchanged, so the nine GLBs and the determinism gate stay byte-identical.*
 - **Icons**: 2D UI portraits rendered offline from the same GLBs
   (headless three.js render step).
 - **Audio** *(audio_foundation_20261017, 2026-10-17)*: CC0 assets bundled
