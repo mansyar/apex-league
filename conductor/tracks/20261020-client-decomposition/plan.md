@@ -143,7 +143,10 @@ silently change order.
   `conductor/tracks/20261020-client-decomposition/verification/*`,
   `conductor/tech-stack.md`
 - **Verification:** `bun run verify && bun run build` plus the guard's own suite
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 440965b
+- **Evidence:** conductor/tracks/20261020-client-decomposition/verification/phase-R1.md
 
 - [x] **R1.T1: Records resolve** - name the checkpoint in every phase report, note the
   squash, and reconcile the suite counts between `phase-5.md` and `integrated.md`
