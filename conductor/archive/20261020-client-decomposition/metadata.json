@@ -1,0 +1,29 @@
+{
+  "id": "20261020-client-decomposition",
+  "title": "Client Module Decomposition & Size Guard",
+  "type": "refactor",
+  "status": "complete",
+  "priority": "medium",
+  "depends_on": [],
+  "created_at": "2026-10-20T18:10:00+11:00",
+  "updated_at": "2026-10-20T23:45:00+11:00",
+  "spec": "conductor/tracks/20261020-client-decomposition/spec.md",
+  "plan": "conductor/tracks/20261020-client-decomposition/plan.md",
+  "branch": "feat/20261020-client-decomposition",
+  "base_branch": "main",
+  "base_sha": "dde88d1bd2cc4413adc23505327fac5b72b0cae5",
+  "progress": {
+    "phases_total": 7,
+    "phases_verified": 7,
+    "tasks_total": 26,
+    "tasks_done": 26
+  },
+  "last_checkpoint": "ba3125e",
+  "checkpoints": [],
+  "review_verdict": "PASS",
+  "review_rounds": 2,
+  "pr_url": "https://github.com/mansyar/apex-league/pull/42",
+  "pr_state": "open",
+  "archived_at": "2026-10-20T23:40:00+11:00",
+  "archive_path": "conductor/archive/20261020-client-decomposition"
+}
