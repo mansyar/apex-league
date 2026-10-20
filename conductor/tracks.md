@@ -15,4 +15,4 @@
 - [x] **Track: Evolution Threshold Discovery UI** — [20261020-evolution-discovery-ui](./archive/20261020-evolution-discovery-ui/index.md) — feature — medium *(archived 2026-10-20)*
 - [x] **Track: Detail Modal Tabs** — [20261020-detail-modal-tabs](./archive/20261020-detail-modal-tabs/index.md) — feature — medium *(archived 2026-10-20)*
 - [x] **Track: Client Module Decomposition & Size Guard** - [20261020-client-decomposition](./archive/20261020-client-decomposition/index.md) - refactor - medium *(archived 2026-10-20)*
-- [~] **Track: Raising Depth: Training Programs & Form** — [20261020-training-programs-form](./tracks/20261020-training-programs-form/index.md) — feature — high
+- [x] **Track: Raising Depth: Training Programs & Form** - [20261020-training-programs-form](./archive/20261020-training-programs-form/index.md) - feature - high *(archived 2026-10-20)*
