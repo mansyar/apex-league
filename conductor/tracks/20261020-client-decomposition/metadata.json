@@ -20,7 +20,7 @@
   },
   "last_checkpoint": "ba3125e",
   "checkpoints": [],
-  "review_verdict": "PASS WITH FINDINGS",
+  "review_verdict": "PASS",
   "review_rounds": 2,
   "pr_url": null,
   "pr_state": null,

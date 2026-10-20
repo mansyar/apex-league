@@ -3,8 +3,8 @@
 - Track: `20261020-client-decomposition`
 - Review round: 1
 - Range: `dde88d1..4aa6df3` (code scope `apps/ packages/ docs/`; `conductor/` reviewed as records)
-- Verdict: **PASS WITH FINDINGS**
-- Fix commit: this track's `## Phase R1` checkpoint
+- Verdict: **PASS**
+- Fix commits: `440965b` (round 1), `ba3125e` (round 2)
 
 ## Summary
 
@@ -57,6 +57,19 @@ into the repo, and a misquoted report format in the tech-stack note) needed fixi
 | F4 | Low | `module-size.test.ts:126-131` | Negative control wrote into `src/`, so a killed run could leave an offender behind and a read-only checkout would fail | Fixed: the fixture is built in `mkdtempSync` under the OS temp dir and removed recursively in `finally` |
 | F5 | Low | `tech-stack.md` | The dated note quoted a report format the guard does not emit | Fixed: the note quotes the real line and the header/footer, and records the widened extensions |
 
+## Round 2
+
+The fix delta `507e099..524d489` was re-reviewed. F1, F2 and F5 closed; F3 and F4 were
+correct in code but their records still described the retired in-repo fixture and the
+old `.ts`-only walk. Four new findings, all fixed here.
+
+| ID | Severity | Location | Finding | Resolution |
+| --- | --- | --- | --- | --- |
+| N1 | Medium | `phase-5.md:42-46`, `:114`, `integrated.md:26` | Evidence still described the in-repo `__guard-negative-control-<pid>.ts` control; an obsolete "exact text for the primary" block survived | AC-3 rows rewritten for the temp-folder control; block replaced by a one-paragraph deviation note |
+| N2 | Low | `phase-5.md:26-33`, `:113`, `integrated.md:25` | Prose said "every `.ts` file", plain `readdirSync` recursion and `*.test.ts` only | Walk items and AC-2 rows now state the `statSync` follow, `.ts`/`.tsx`/`.mts` and `*.test.*` |
+| N3 | Low | `module-size.test.ts:135-139` | `writeFileSync` outside the `try` could leak the temp folder | The write moved inside the `try` |
+| N4 | Low | `tech-stack.md:389` | Note opened with "every `.ts` file" but listed three extensions later | Opening clause names all three extensions |
+
 ## Plan compliance
 
 All five phases are `verified` with checkpoints `d5b0117`, `9511846`, `97a9bba`,
@@ -78,6 +91,7 @@ None deferred: strict mode, and all five findings were fixed in R1.
 | Round | Commit | Verdict |
 | --- | --- | --- |
 | 1 | `4aa6df3` | PASS WITH FINDINGS → fixed in Phase R1 |
+| 2 | `524d489` | PASS WITH FINDINGS (N1-N4) → fixed in Phase R2, then PASS |
 
 ## Doc sync
 
