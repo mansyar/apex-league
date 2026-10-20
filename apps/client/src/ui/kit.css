@@ -499,6 +499,47 @@
   color: var(--ink-dim);
 }
 
+/* Partner details modal shell (detail_modal_tabs_20261020): header, tab strip
+   and close action stay pinned while the active page is the only scroll
+   surface. Same four-row grid as the handbook. */
+.creature-detail-box {
+  text-align: left;
+  max-height: min(86dvh, 720px);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
+.detail-tabs {
+  display: flex;
+  gap: 4px;
+  margin: 10px 0 12px;
+}
+
+.detail-tab {
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* Selection is never colour-only: the filled plate, the heavier weight and
+   the underline all move together, and `aria-selected` is authoritative. */
+.detail-tab[aria-selected="true"] {
+  font-weight: 900;
+  box-shadow: inset 0 -2px 0 var(--accent-ink);
+}
+
+.detail-panel {
+  display: grid;
+  gap: 12px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* `hidden` loses to the display rule above without this. */
+.detail-panel[hidden] {
+  display: none;
+}
+
 /* The one destructive action in the game earns its own color. */
 .kit-button-danger {
   color: var(--danger, #ff6b6b);
