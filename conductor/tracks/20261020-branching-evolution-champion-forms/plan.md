@@ -96,13 +96,14 @@
 **Covers:** FR-10, FR-11, NFR-1, NFR-2, NFR-3, NFR-5, NFR-7
 **Touches:** `apps/client/src/creature.ts`, `apps/client/src/creature.test.ts`, `apps/client/src/ranch/mount.ts`, `apps/client/src/ranch/types.ts`, `apps/client/src/ranch/api.ts`, `apps/client/src/ranch/frame.ts`, `apps/client/src/scene.ts`, `apps/client/src/staging.ts`, `apps/client/src/roster.ts`, `apps/client/src/cup/arena.ts`, `apps/client/src/spar/casting.ts`, `apps/client/src/handbook.ts`, `apps/client/src/handbook/paths.ts`, `apps/client/src/handbook.test.ts`, `apps/client/src/ui/kit.css`
 **Verification:** `bun test --timeout 120000 apps/client/src/creature.test.ts apps/client/src/handbook.test.ts apps/client/src/face-arena.test.ts && bun run verify && bun run build && bun run gate:determinism`
-**Status:** in_progress
+**Status:** verified
 
-- [ ] **P5.T1 - Apply the per-instance accent tint**
-  - [ ] Tint from the branch accent hue at spawn and on evolution; never tint `legacy`; set only the material colour multiplier (vertex colours carry the coat), adding no geometry, material, or draw call.
-  - [ ] Test that tinting one creature leaves another's materials unchanged, that the mesh count is unchanged, and that the legacy group stays at the untinted colour.
-- [ ] **P5.T2 - Teach paths in the handbook**
-  - [ ] Explain the stat split, the pre-gate preview, the signature move, and the legacy exception from sim constants and labels.
-  - [ ] Keep every tooltip within two sentences and avoid spoiling thresholds.
-- [ ] **P5.T3 - Visual evidence (orchestrator)**
-  - [ ] Capture desktop screenshots of the tinted forms, the lean row, the reveal and the detail Path. Product/README/tech-stack doc sync runs in the Conductor doc-sync step, not in this phase.
+- [x] **P5.T1 - Apply the per-instance accent tint**
+  - [x] Tint from the branch accent hue at spawn and on evolution; never tint `legacy`; set only the material colour multiplier (vertex colours carry the coat), adding no geometry, material, or draw call.
+  - [x] Test that tinting one creature leaves another's materials unchanged, that the mesh count is unchanged, and that the legacy group stays at the untinted colour.
+  - [x] Thread the branch through the ranch rebuild path (`scene` → `ranch/types` → `ranch/api` → `ranch/mount`, plus the evolution swap) and through `FightCasting`/`CastInfo` for the arena; `buildSpot` tints before the colour snapshot so hit flashes restore the tinted base.
+- [x] **P5.T2 - Teach paths in the handbook**
+  - [x] Explain the stat split, the pre-gate preview, the signature move, and the legacy exception from sim constants and labels.
+  - [x] Keep every tooltip within two sentences and avoid spoiling thresholds.
+- [x] **P5.T3 - Visual evidence (orchestrator)**
+  - [x] Capture desktop screenshots of the tinted forms, the lean row, the reveal and the detail Path. Product/README/tech-stack doc sync runs in the Conductor doc-sync step, not in this phase.
