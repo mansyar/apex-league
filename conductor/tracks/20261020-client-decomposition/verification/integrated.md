@@ -11,7 +11,7 @@
 | --- | --- | --- | --- |
 | typecheck | `bun run check` (inside verify) | 0 | all three workspaces clean |
 | lint | `bunx biome check` | 0 | 448 files checked, 0 errors, 7 pre-existing warnings |
-| unit | `bun test --timeout 120000` | 0 | 1789 pass, 1 skip, 0 fail, 84,605 `expect()` calls, 142 files, 138.27 s |
+| unit | `bun test --timeout 120000` | 0 | 1788 pass, 1 skip, 0 fail (1789 tests), 84,605 `expect()` calls, 142 files, 138.27 s |
 | unit (CI mode) | `bun test --check --parallel --timeout 120000` | 0 | same counts, 22.86 s |
 | determinism | `bun run gate:determinism` (inside verify) | 0 | axolotl champion byte-identical (221,284 B, 3,286 tris); five prop digests match |
 | build | `bun run build` | 0 | @apex/client built; only the pre-existing chunk-size advisory |
@@ -68,7 +68,7 @@ Before the track, eleven production modules were over the cap, the largest at 25
   `spar/panel.ts`; `spar/casting.ts` gained `fightNowFor()` to lift an inline payload.
 - `mock/data.ts` renamed a private `ELEMENTS` list to `CREST_ELEMENTS` to avoid reading
   like the `el()` helper; values and order unchanged.
-- Formatting-only follow-up `11d69c9` fixed two biome errors (export order, one reflow).
+- Formatting-only fixes (export order, one reflow) were folded into the Phase 4 checkpoint `3466438`.
 
 ## Notes
 

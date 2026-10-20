@@ -5,8 +5,8 @@
 - **Date:** 2026-10-20
 - **Branch:** `feat/20261020-client-decomposition`
 - **Base commit:** `99d3852`
-- **Head commit:** `79745e8` (code); the evidence update lands in a follow-up
-  `docs(conductor)` commit on the same branch
+- **Checkpoint:** `d5b0117` - the phase commits were squashed into this
+  checkpoint, so it is the tree this report describes
 
 ## P1.T1 — Seam map (recorded before the first move)
 
@@ -211,7 +211,7 @@ sandbox allows.
 
 ## Primary verification
 
-Run by the orchestrator on `feat/20261020-client-decomposition`, HEAD `bcfb76a`.
+Run by the orchestrator on `feat/20261020-client-decomposition`, HEAD `d5b0117` (the phase checkpoint).
 
 | Layer | Command | Exit | Result |
 | --- | --- | --- | --- |

@@ -5,7 +5,9 @@
 - **Date:** 2026-10-20
 - **Branch:** `feat/20261020-client-decomposition`
 - **Base commit:** `9d3da46` (phase-3 checkpoint parent: "Mark phase 'Screens and dev harness' as in progress")
-- **Head commit:** `11d69c9`
+- **Checkpoint:** `3466438` - the phase commits (including the formatting-only
+  fix `11d69c9`) were squashed into this checkpoint, so it is the tree this
+  report describes
 - **Result:** verified — the four over-cap screen modules are under 12,288 B, every
   public surface is unchanged, and `bun run verify && bun run build` is green.
 
@@ -179,13 +181,15 @@ Importer audit (unchanged, no edits needed): `cup.ts`, `cup/shared.ts`
 
 ## Commits
 
+> The task SHAs in the table below were squashed into checkpoint `3466438`; they are kept as a record of the work and do not resolve on the branch.
+
 | Commit | Task | Message |
 | --- | --- | --- |
 | `c0a461a` | P4.T1 | `refactor(client): split the cup screens into per-screen modules` |
 | `44e48f9` | P4.T2 | `refactor(client): split the spar into panel, setup and casting modules` |
 | `24c2466` | P4.T3 | `refactor(client): split the graduation surfaces into copy, shell and flow modules` |
 | `3d42d3b` | P4.T4 | `refactor(client): split the design mock into data, sections and showcase` |
-| `11d69c9` | — | `style(client): sort the cup facade exports and reflow the spar rival line` (the two `biome check` errors from verification attempt 1; formatting only) |
+| (squashed into `3466438`) | - | `style(client): sort the cup facade exports and reflow the spar rival line` (the two `biome check` errors from verification attempt 1; formatting only) |
 
 ## Deviations
 
@@ -199,7 +203,7 @@ Importer audit (unchanged, no edits needed): `cup.ts`, `cup/shared.ts`
 
 Nothing outside `Touches` was edited: no test file, no HTML entry, no
 `vite.config.ts`, no `plan.md`/`spec.md`/`metadata.json`/`tracks.md`/docs.
-`git status` is clean at `11d69c9`.
+`git status` is clean at `3466438`.
 
 ## Notes
 
@@ -223,7 +227,7 @@ smoke in a browser (AC-5) — the brief assigns the visual layer to the primary.
 
 ## Primary verification
 
-Run by the orchestrator on `feat/20261020-client-decomposition`, HEAD `bab2e17`.
+Run by the orchestrator on `feat/20261020-client-decomposition`, HEAD `3466438` (the phase checkpoint).
 
 | Layer | Command | Exit | Result |
 | --- | --- | --- | --- |

@@ -5,8 +5,8 @@
 - **Date:** 2026-10-20
 - **Branch:** `feat/20261020-client-decomposition`
 - **Base commit:** `9be81fb`
-- **Head commit:** `74ff6f1` (code); this evidence file lands in a follow-up
-  `docs(conductor)` commit on the same branch
+- **Checkpoint:** `97a9bba` - the phase commits were squashed into this
+  checkpoint, so it is the tree this report describes
 
 ## Result
 
@@ -88,7 +88,7 @@ rendering, camera-feel and effect-timing constants did not move value.
 | Contract | Status | Evidence |
 | --- | --- | --- |
 | AC-2 (sizes, ≤ 12,288 B) | ✅ | size table below; largest of the 15 touched/created modules is `camera/rig.ts` at 7,079 B (5,209 B / 42.4 % headroom). The three facades are 6,365 / 4,843 / 1,062 B, so no facade is the biggest module |
-| AC-4 (`bun run verify` + `bun run build`) | ✅ | both exit 0 on head `74ff6f1`; determinism gate output unchanged (same GLB bytes, same tri counts, same prop digests) |
+| AC-4 (`bun run verify` + `bun run build`) | ✅ | both exit 0 on head `97a9bba` (the phase checkpoint); determinism gate output unchanged (same GLB bytes, same tri counts, same prop digests) |
 | AC-5 (battle smoke) | `not run by agent` | brief forbids a dev server and browser driving; the ranch + arena smoke (feed/rest/treat/play, pet tap, orbit drag/pinch, a battle to verdict with projectiles, bursts, decals, charge orb, punch shake, cinematic director) is the primary's step |
 | AC-6 (surface unchanged) | ✅ | `scene.ts`: `SceneHandle`, `SceneHooks`, `createScene`. `staging-fx.ts`: `BattleEffects`, `createBattleEffects`, `FlashVictim`, `BIG_HIT_DAMAGE`, `EffectLoop`, `HIT_STOP_MS`, `HitStop`. `orbit-camera.ts`: `BASE_FOV`, `CameraMode`, `ArenaStyle`, `CameraIntent`, `OrbitCameraRig`, `createOrbitCamera`. Every importer (`main.ts`, `app/arena.ts`, `app/screen-deps.ts`, `app/scene-sync.ts`, `app/runtime.ts`, `swap.ts`, `staging.ts`, `steps/context.ts`, `scene-setup.ts`) compiles untouched |
 | AC-7 (no new cycles) | ✅ | import audit below: the new modules form a DAG and none imports a facade that imports it |
@@ -137,6 +137,8 @@ Untouched `fx/` modules the split composes: `loop.ts` 5,136, `shot-geometry.ts`
 `staging-fx.test.ts`) are exempt and unedited.
 
 ## Commits
+
+> The task SHAs in the table below were squashed into checkpoint `97a9bba`; they are kept as a record of the work and do not resolve on the branch.
 
 | Commit | Task | Scope |
 | --- | --- | --- |
@@ -246,7 +248,7 @@ interact.
 
 ## Primary verification
 
-Run by the orchestrator on `feat/20261020-client-decomposition`, HEAD `7046a6b`.
+Run by the orchestrator on `feat/20261020-client-decomposition`, HEAD `97a9bba` (the phase checkpoint).
 
 | Layer | Command | Exit | Result |
 | --- | --- | --- | --- |

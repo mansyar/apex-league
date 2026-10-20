@@ -5,8 +5,8 @@
 - **Date:** 2026-10-20
 - **Branch:** `feat/20261020-client-decomposition`
 - **Base commit:** `bdab65e`
-- **Head commit:** `8a98dd8` (code); the evidence update lands in a follow-up
-  `docs(conductor)` commit on the same branch
+- **Checkpoint:** `9511846` - the phase commits were squashed into this
+  checkpoint, so it is the tree this report describes
 
 ## Result
 
@@ -93,6 +93,8 @@ Untouched in this phase: `hud/dock.ts` 7,031, `hud/settings.ts` 4,686, and the
 four `*.test.ts` files (exempt from the cap).
 
 ## Commits
+
+> The task SHAs in the table below were squashed into checkpoint `9511846`; they are kept as a record of the work and do not resolve on the branch.
 
 | Commit | Task | Scope |
 | --- | --- | --- |
@@ -191,7 +193,7 @@ this ordering keeps all three commits compiling and green.
 
 ## Primary verification
 
-Run by the orchestrator on `feat/20261020-client-decomposition`, HEAD `c08ca54`.
+Run by the orchestrator on `feat/20261020-client-decomposition`, HEAD `9511846` (the phase checkpoint).
 
 | Layer | Command | Exit | Result |
 | --- | --- | --- | --- |

@@ -5,7 +5,9 @@
 - **Date:** 2026-10-20
 - **Branch:** `feat/20261020-client-decomposition`
 - **Base:** `f6bf39a` (phase base)
-- **Head:** `6b81c01` (guard commit `5c61406`, evidence commit `6b81c01`)
+- **Checkpoint:** `57ac657` - the phase commits (guard `5c61406`, evidence
+  `6b81c01`) were squashed into this checkpoint, so it is the tree this report
+  describes
 - **Result:** verified for P5.T1 and P5.T2; P5.T3 (integrated verification) is the
   orchestrator's, left open in `plan.md` on purpose.
 
@@ -48,7 +50,7 @@ The guard now:
 measured by the tree walk, with no name list to drift.
 
 The suite was 143 files / 1788 tests before the phase and is 142 files / 1789
-tests after it: the guard grew from three tests to five (recursion sanity, the
+tests after it (1,788 pass, 1 skip): the guard grew from three tests to five (recursion sanity, the
 whole-tree assertion, the at-cap/one-byte-over boundary, largest-first ordering,
 and the negative control) while `size-probe.test.ts`'s single test retired, for
 a net +1.
@@ -64,7 +66,7 @@ a net +1.
 | determinism | `bun run gate:determinism` (inside verify) | 0 | nine creature GLBs byte-identical, five prop digests match |
 | build | `bun run build` | 0 | vite 8.3.4, 232 modules, `dist/assets/index-*.js` 824.34 kB / 224.81 kB gzip |
 | Failing-path demo (first pass) | `bun run verify` with `CAP_BYTES` temporarily set to `11 * 1024` | 1 | guard failed and printed the full sorted report — see below; cap restored to `12 * 1024` immediately after |
-| Targeted single file | `bun test apps/client/src/module-size.test.ts` | n/a | **not run** — the sandbox rejects the bun binary outside the configured verification command (`permission.rejected`), same as Phases 1–3; the guard's six tests run inside `bun run verify` |
+| Targeted single file | `bun test apps/client/src/module-size.test.ts` | n/a | **not run** — the sandbox rejects the bun binary outside the configured verification command (`permission.rejected`), same as Phases 1–3; the guard's five tests run inside `bun run verify` |
 
 The first verification attempt exited 1 on `biome check` only: the new file was
 not formatter-clean (import list, one predicate, one ternary). Formatting was

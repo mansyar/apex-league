@@ -1,11 +1,13 @@
 import { describe, expect, test } from "bun:test"
 import {
   existsSync,
+  mkdtempSync,
   readdirSync,
   rmSync,
   statSync,
   writeFileSync,
 } from "node:fs"
+import { tmpdir } from "node:os"
 import { join } from "node:path"
 
 /**
@@ -15,9 +17,9 @@ import { join } from "node:path"
  * run that adds it — the previous version scanned only `scene-logic/` and
  * `ranch/`, which let `main.ts`, `hud.ts` and friends drift unnoticed.
  *
- * The rule is byte size, not line count. Exactly two kinds of file are exempt:
- * co-located `*.test.ts` suites and the Vite type shim `vite-env.d.ts`. There
- * is no allowlist by name and no per-folder exception.
+ * The rule is byte size, not line count. Only co-located test suites
+ * (`*.test.ts`, `*.test.tsx`) and the Vite type shim `vite-env.d.ts` are
+ * exempt. There is no allowlist by name and no per-folder exception.
  */
 const CAP_BYTES = 12 * 1024
 
@@ -25,12 +27,14 @@ const SRC_DIR = import.meta.dir
 
 const EXCLUDED_NAMES = new Set(["vite-env.d.ts"])
 
+const SOURCE_EXTENSIONS = /\.(ts|tsx|mts)$/
+
 type ModuleFile = { path: string; bytes: number }
 
 function isModule(name: string): boolean {
   return (
-    name.endsWith(".ts") &&
-    !name.endsWith(".test.ts") &&
+    SOURCE_EXTENSIONS.test(name) &&
+    !name.includes(".test.") &&
     !EXCLUDED_NAMES.has(name)
   )
 }
@@ -44,7 +48,8 @@ function moduleFiles(dir: string = SRC_DIR, prefix = ""): ModuleFile[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const rel = prefix ? `${prefix}/${entry.name}` : entry.name
     const full = join(dir, entry.name)
-    if (entry.isDirectory()) return moduleFiles(full, rel)
+    // Follow the target, not the dirent, so a linked folder is still walked.
+    if (statSync(full).isDirectory()) return moduleFiles(full, rel)
     return isModule(entry.name)
       ? [{ path: rel, bytes: statSync(full).size }]
       : []
@@ -76,7 +81,7 @@ function capReport(files: readonly ModuleFile[]): string | null {
   return [
     `${lines.length} client module(s) exceed the ${CAP_BYTES} B cap. Split each one along the seams it already has:`,
     ...lines.map((line) => `  ${line}`),
-    `The cap counts bytes, not lines. Only *.test.ts and vite-env.d.ts are exempt.`,
+    `The cap counts bytes, not lines. Only *.test.ts, *.test.tsx and vite-env.d.ts are exempt.`,
   ].join("\n")
 }
 
@@ -103,7 +108,7 @@ describe("client module size cap", () => {
       [
         `1 client module(s) exceed the ${CAP_BYTES} B cap. Split each one along the seams it already has:`,
         `  fixture/over.ts — ${CAP_BYTES + 1} B (1 B over the ${CAP_BYTES} B cap)`,
-        `The cap counts bytes, not lines. Only *.test.ts and vite-env.d.ts are exempt.`,
+        `The cap counts bytes, not lines. Only *.test.ts, *.test.tsx and vite-env.d.ts are exempt.`,
       ].join("\n"),
     )
   })
@@ -121,10 +126,12 @@ describe("client module size cap", () => {
   })
 
   test("negative control: an oversized module is rejected, then removed", () => {
-    // `__guard-*` can never be mistaken for real code, and the `.ts` suffix
-    // means the walk sees it (a `*.test.ts` name would be exempt).
-    const name = `__guard-negative-control-${process.pid}.ts`
-    const path = join(SRC_DIR, name)
+    // A temp folder keeps the fixture out of the repo: a killed run cannot leave
+    // an offender behind, and a read-only checkout still runs the control.
+    const dir = mkdtempSync(join(tmpdir(), "apex-guard-"))
+    // `.tsx` on purpose - the walk must see every source extension, not just `.ts`.
+    const name = "oversized.tsx"
+    const path = join(dir, name)
     writeFileSync(
       path,
       `// Negative-control fixture for module-size.test.ts. Never shipped.\nexport const PAD = "${"x".repeat(CAP_BYTES)}"\n`,
@@ -132,7 +139,7 @@ describe("client module size cap", () => {
     try {
       const bytes = statSync(path).size
       expect(bytes).toBeGreaterThan(CAP_BYTES)
-      const files = moduleFiles()
+      const files = moduleFiles(dir)
       expect(files.map((file) => file.path)).toContain(name)
       const report = capReport(files)
       expect(report).not.toBeNull()
@@ -140,8 +147,8 @@ describe("client module size cap", () => {
       expect(report).toContain(`${bytes} B`)
       expect(report).toContain(`${bytes - CAP_BYTES} B over`)
     } finally {
-      rmSync(path, { force: true })
+      rmSync(dir, { recursive: true, force: true })
     }
-    expect(existsSync(path)).toBe(false)
+    expect(existsSync(dir)).toBe(false)
   })
 })
