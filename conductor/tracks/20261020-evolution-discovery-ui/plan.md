@@ -93,15 +93,40 @@
 - **Covers:** F1, F2, F3, F4
 - **Touches:** `apps/client/src/growth-panel.ts` (new), `apps/client/src/growth.ts`, `apps/client/src/growth.test.ts`, `apps/client/src/creature-detail.ts`, `apps/client/src/creature-detail.test.ts`, `conductor/tracks/20261020-evolution-discovery-ui/verification/phase-1.md`, `conductor/tracks/20261020-evolution-discovery-ui/verification/phase-2.md`, `conductor/tracks/20261020-evolution-discovery-ui/verification/phase-3.md`, `conductor/tracks/20261020-evolution-discovery-ui/verification/integrated.md`
 - **Verification:** `bun run verify && bun run build`
+- **Status:** verified
+
+- [x] **R1.T1: Bring touched modules under the 12 KB cap** - covers: F2, NFR-2
+  - [x] Extract the Growth section DOM builders out of `creature-detail.ts` into `growth-panel.ts`
+  - [x] `creature-detail.ts` and `growth-panel.ts` both measure at or under 12,288 B
+- [x] **R1.T2: Remove the unused row target** - covers: F3, FR-3
+  - [x] Drop `GrowthRow.target`/`Condition.target`; `detail` is the single representation
+- [x] **R1.T3: Prove the open-panel repaint** - covers: F1, AC-7, FR-7
+  - [x] Fake-DOM test: `open` renders the gate, `sync` repaints it without reopening, `sync` is a no-op while closed, creature-less state hides the host
+- [x] **R1.T4: Correct the evidence trail** - covers: F4
+  - [x] Replace squashed per-task SHAs with the real phase checkpoints and say so
+  - [x] Restate the module-size claim as measured, not guard-enforced
+
+**Result:** verified
+**Checkpoint:** 4a1e185
+**Evidence:** conductor/tracks/20261020-evolution-discovery-ui/verification/phase-R1.md
+
+## Phase R2: Review Fixes
+
+- **Goal:** Resolve the round-2 findings M1 (panel wiring still untested while the evidence claimed AC-7 closed), M2 (R1 plan state and the unrecorded test file), L1, L2, L3, L4, L5.
+- **Depends on:** Phase R1
+- **Covers:** M1, L1, L2, L3, L4, L5
+- **Touches:** `apps/client/src/creature-detail.test.ts`, `apps/client/src/creature-detail.ts`, `apps/client/src/growth-panel.ts`, `apps/client/src/growth-panel.test.ts`, `apps/client/src/growth.test.ts`, `conductor/tracks/20261020-evolution-discovery-ui/verification/phase-R1.md`, `conductor/tracks/20261020-evolution-discovery-ui/verification/integrated.md`
+- **Verification:** `bun run verify && bun run build`
 - **Status:** in_progress
 
-- [ ] **R1.T1: Bring touched modules under the 12 KB cap** - covers: F2, NFR-2
-  - [ ] Extract the Growth section DOM builders out of `creature-detail.ts` into `growth-panel.ts`
-  - [ ] `creature-detail.ts` and `growth-panel.ts` both measure at or under 12,288 B
-- [ ] **R1.T2: Remove the unused row target** - covers: F3, FR-3
-  - [ ] Drop `GrowthRow.target`/`Condition.target`; `detail` is the single representation
-- [ ] **R1.T3: Prove the open-panel repaint** - covers: F1, AC-7, FR-7
-  - [ ] Fake-DOM test: `open` renders the gate, `sync` repaints it without reopening, `sync` is a no-op while closed, creature-less state hides the host
-- [ ] **R1.T4: Correct the evidence trail** - covers: F4
-  - [ ] Replace squashed per-task SHAs with the real phase checkpoints and say so
-  - [ ] Restate the module-size claim as measured, not guard-enforced
+- [ ] **R2.T1: Prove the panel wiring** - covers: M1, AC-7, FR-7
+  - [ ] Stub `document`/`HTMLElement` and drive `buildCreatureDetail`: `open` unhides the Growth slot with a title, `sync` repaints its rows while open, `sync` after close leaves the slot untouched
+- [ ] **R2.T2: Fix the host surface** - covers: L4, L5
+  - [ ] Drop the unused `GrowthHost.node` and correct the `setVisible` docstring
+  - [ ] Paint before showing in `open` so the section renders once
+- [ ] **R2.T3: Tighten the existing tests** - covers: L1, L3
+  - [ ] Assert undiscovered rows contain no `/` instead of a non-empty length
+  - [ ] Restore `globalThis.document` after the tests that stub it
+- [ ] **R2.T4: Correct the R1 evidence** - covers: L2
+  - [ ] `phase-R1.md` names `4a1e185` and states the squash once, with no dangling SHAs
+  - [ ] Record `growth-panel.test.ts` and the now-run lint layer
