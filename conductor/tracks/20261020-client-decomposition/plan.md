@@ -171,7 +171,7 @@ silently change order.
 - **Verification:** `bun run verify && bun run build` plus the guard's own suite
 - **Status:** verified
 - **Result:** verified
-- **Checkpoint:** PENDING
+- **Checkpoint:** ba3125e
 - **Evidence:** conductor/tracks/20261020-client-decomposition/verification/phase-R2.md
 
 - [x] **R2.T1: Evidence matches the guard** - rewrite the control and exclusion prose in
