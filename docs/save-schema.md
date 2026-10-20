@@ -8,14 +8,14 @@ writes through the `SaveAdapter` seam.
 ```ts
 // packages/sim/src/save/schema.ts
 interface SaveData {
-  version: number // current: 16 (SAVE_VERSION)
+  version: number // current: 17 (SAVE_VERSION)
   state: GameState
   savedAt: number // Date.now() of the persist
   session: CupSession | null // live cup walk (v7+; null outside a cup)
 }
 ```
 
-## `GameState` at v16
+## `GameState` at v17
 
 | Field | Type | Meaning |
 |---|---|---|
@@ -30,6 +30,7 @@ interface SaveData {
 | `lineage` | `{ generation: integer ≥ 0, hallOfFame: RetiredRecord[] }` | The bloodline (v10+): completed graduations plus an archived-career list. Fresh after migration (`{generation: 0, hallOfFame: []}`) — no backfill; `cupsWon` (v5) already feeds the derived prestige rating. |
 | `bossDefeats` | string[] | Boss ids defeated by the current creature's career, in defeat order (v11+). An idempotent ledger — the client derives callouts, coach lines, and Hall of Fame scalps from it. Migrated saves start empty (`[]`); no boss existed before v11. |
 | `legendTitles` | integer ≥ 0 | Legend-plateau titles earned (v14+). Stamped `0` on migration: no pre-v14 career could reach a plateau that did not exist yet. |
+| `evolutionKnowledge` | `{ juvenile: boolean, champion: boolean }` | Which evolution gates the player has already cleared once (v17+). Save-wide and per gate: the night a creature actually evolves through a gate flips that gate to `true` and never back. The Growth panel shows exact thresholds only for a known gate. Migrated saves infer it from the active creature's `stage`. |
 
 ### `Creature`
 
@@ -66,9 +67,10 @@ what exists.
 strike, duplicates, and lengths outside 2–4. `loadout: null` resolves to
 the first four known moves, which is exactly the four-move kit a pre-track
 save fought with. Widening the pool therefore needs **no schema change**:
-`loadout` and its validation are unchanged at v16, and the bump to 16 came
-from the audio mix levels, not from this track. A pre-pool save (v15 or
-earlier, `loadout: null`) migrates onto the wider pool with no extra step.
+`loadout` and its validation are unchanged at v17, and the bumps to 16 (audio
+mix levels) and 17 (evolution discovery) came from other tracks. A pre-pool
+save (v15 or earlier, `loadout: null`) migrates onto the wider pool with no
+extra step.
 
 ### `RetiredRecord` (Hall of Fame)
 
@@ -105,6 +107,7 @@ earlier, `loadout: null`) migrates onto the wider pool with no extra step.
 | v13 → v14 | Adds `legendTitles: 0` (Gold/Legend ladder): no v13 career can sit on a plateau that did not exist. The ladder is forwarded untouched — Gold and Legend are validated at load, not rewritten. |
 | v14 → v15 | Adds `traits: []` and `parents: []` to the active creature and every Hall record (dynasty breeding). Traits are derived on read for pre-v15 careers; parentage begins with the first v15 succession. The live cup session is forwarded untouched — rivals are not lineage carriers. |
 | v15 → v16 | Adds `settings.musicVolume: 1` and `settings.sfxVolume: 1` (release polish): older saves never chose a mix, so both buses start at full volume and the existing mute toggle keeps its authority. Everything else, including the cup session, is forwarded untouched. |
+| v16 → v17 | Adds `evolutionKnowledge` (evolution discovery). There is nothing to forward from the old payload — the panel did not exist — so the record is **inferred from the active creature's `stage`**: `juvenile` ⇒ `{ juvenile: true, champion: false }`, `champion` ⇒ `{ juvenile: true, champion: true }`, no creature (or a baby) ⇒ both `false`. A pre-existing `evolutionKnowledge` field on the payload is ignored, so a hand-edited save cannot smuggle thresholds into a hidden panel. Settings, ladder, bloodline, boss ledger, and the cup session are forwarded untouched. |
 The `session` slot holds a `CupSession` exactly as `prepareCup` produced
 it (bracket, rival resolutions, verdicts, cursor position). It is
 presentation bookkeeping: the client persists it on every session mutation
@@ -125,6 +128,11 @@ known trait ids, and `parents` is an array of at most two unique
 non-negative generation integers. Unknown/duplicate traits, more than two
 parents, duplicate parents, non-integer parents, and out-of-range volumes
 all fail the load.
+
+At v17 the state must also carry `evolutionKnowledge` as an object with two
+strict booleans, `juvenile` and `champion`. A missing block, a non-object, or
+a non-boolean flag fails the load — the panel must never guess whether a
+threshold is known.
 
 ## Export and import
 

@@ -559,6 +559,10 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     // Remember the focus across Advance Day so the morning result can
     // name the stat it sharpened.
     if (creature.trainingFocus) lastFocus = creature.trainingFocus
+
+    // An open detail modal repaints its Growth section from this commit, so
+    // a gate unlocked by the settlement lands without a reopen (FR-7).
+    creatureDetail.sync(state)
   }
 
   return {

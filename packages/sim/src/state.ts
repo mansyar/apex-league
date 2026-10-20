@@ -52,6 +52,24 @@ export interface GameSettings {
   sfxVolume: number
 }
 
+/**
+ * Which evolution gates the player has already cleared once (save v17,
+ * evolution_discovery_20261020). Discovery is per gate and save-wide: a gate
+ * flips known the night a creature actually evolves through it, and the
+ * Growth panel keeps its exact thresholds hidden until then.
+ */
+export interface EvolutionKnowledge {
+  /** Baby → juvenile thresholds, learned on the first juvenile evolution. */
+  juvenile: boolean
+  /** Juvenile → champion thresholds, learned on the first champion evolution. */
+  champion: boolean
+}
+
+/** The untouched discovery record a fresh run starts with. */
+export function initialEvolutionKnowledge(): EvolutionKnowledge {
+  return { juvenile: false, champion: false }
+}
+
 /** The single source of truth for a run's simulation state. */
 export interface GameState {
   /** Current in-game day, 1-based. */
@@ -87,6 +105,12 @@ export interface GameState {
    * counter — the client renders it as collected titles on the rank plate.
    */
   legendTitles: number
+  /**
+   * Per-gate evolution discovery (save v17). A gate becomes known the night
+   * a creature evolves through it, and stays known for the rest of the save;
+   * the client reveals exact thresholds only for a known gate.
+   */
+  evolutionKnowledge: EvolutionKnowledge
 }
 
 /** Action points granted at the start of each day. Stub value for Phase 0. */
@@ -115,6 +139,23 @@ export function createInitialState(): GameState {
     lineage: { generation: 0, hallOfFame: [] },
     bossDefeats: [],
     legendTitles: 0,
+    evolutionKnowledge: initialEvolutionKnowledge(),
+  }
+}
+
+/**
+ * Mark one evolution gate's thresholds as known (save v17). Pure and
+ * idempotent: a gate that is already known returns the input state
+ * unchanged, so a repeated settlement can never dirty the save.
+ */
+export function markEvolutionKnown(
+  state: GameState,
+  gate: keyof EvolutionKnowledge,
+): GameState {
+  if (state.evolutionKnowledge[gate]) return state
+  return {
+    ...state,
+    evolutionKnowledge: { ...state.evolutionKnowledge, [gate]: true },
   }
 }
 

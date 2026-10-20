@@ -1,8 +1,10 @@
 /**
  * Creature detail modal: the full 4-way stat breakdown per stat (rolled
  * base, trained bonus, evolution boost, inherited floor) plus the partner's
- * context rows (stage, generation, cups won, bond, mood). Opened by tapping
- * the ranch creature plate; renders fresh from state on every open.
+ * context rows (stage, generation, cups won, bond, mood) and the Growth
+ * section naming the gate it is growing through. Opened by tapping the
+ * ranch creature plate; renders fresh from state on every open and repaints
+ * the Growth section in place while it stays open.
  *
  * Pure DOM from the shared broadcast kit — no interaction wiring beyond the
  * modal's own Escape/backdrop/close semantics.
@@ -21,6 +23,7 @@ import {
 } from "@apex/sim"
 import { focusTrap } from "./battleUI"
 import { parentageLabel, traitCopy } from "./graduation/nursery-vm"
+import { createGrowthHost } from "./growth-panel"
 import { crest, tab } from "./ui/kit"
 import { romanNumeral, stageLabel } from "./ui/labels"
 
@@ -96,6 +99,11 @@ export interface CreatureDetail {
   root: HTMLElement
   /** Render from current state and show the modal. */
   open: (state: GameState) => void
+  /**
+   * Repaint the Growth section from state while the modal is open. A no-op
+   * when it is closed, so the HUD can call it on every commit.
+   */
+  sync: (state: GameState) => void
 }
 
 /**
@@ -177,6 +185,14 @@ export function buildCreatureDetail(): CreatureDetail {
   const kit = document.createElement("div")
   kit.className = "detail-kit"
 
+  // Growth's slot: swapped in place on every commit so a gate unlocked
+  // while the panel is open repaints without a reopen (FR-7). It keeps its
+  // own node so scroll and focus elsewhere in the modal never reset.
+  const growth = document.createElement("div")
+  growth.className = "detail-growth-host"
+  growth.hidden = true
+  const growthHost = createGrowthHost(growth)
+
   const actions = document.createElement("div")
   actions.className = "kit-modal-actions"
   const close = document.createElement("button")
@@ -185,13 +201,14 @@ export function buildCreatureDetail(): CreatureDetail {
   close.textContent = "Back to the ranch"
   actions.append(close)
 
-  box.append(head, statList, context, kit, actions)
+  box.append(head, statList, context, growth, kit, actions)
   root.append(box)
 
   /** Where focus goes when the modal closes (the tapped plate head). */
   let opener: HTMLElement | null = null
   const closeNow = (): void => {
     root.style.display = "none"
+    growthHost.setVisible(false)
     if (opener?.isConnected) opener.focus()
     opener = null
   }
@@ -241,9 +258,18 @@ export function buildCreatureDetail(): CreatureDetail {
         contextRow("Mood", `${creature.conditions.mood}/100`),
       )
 
+      // Paint before showing: the host renders once on the way in, from the
+      // state it was just handed, instead of once on show and again on paint.
+      growthHost.paint(state)
+      growthHost.setVisible(true)
       kit.replaceChildren(...kitRows(creature))
       root.style.display = ""
       close.focus()
+    },
+    sync: (state) => {
+      // No-ops while the modal is closed, so the HUD can call it on every
+      // commit (FR-7).
+      growthHost.paint(state)
     },
   }
 }
