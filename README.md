@@ -36,8 +36,10 @@ keyboard and reduced-motion pass.
    falls, energy recovers (sleep quality depends on care), sickness rolls or
    worsens, mood settles, bond decays without bonding. The nightly check also
    watches for growth: a well-cared-for baby evolves into its juvenile form
-   (stat boost, new signature feature, a third move slot) ten days in. No
-   permadeath: the worst case is misery, and recovery is always possible.
+   (stat boost, new signature feature, a third move slot) ten days in, and the
+   training you give it decides which of the species' two champion forms it
+   grows into. No permadeath: the worst case is misery, and recovery is always
+   possible.
 3. **Cup phase** — every 7th day, an optional 8-bracket
    single-elimination cup: scout the rival, re-pick your kit, and step into
    the arena for each of your matches. Rival-vs-rival matches resolve as
@@ -172,8 +174,8 @@ device, OS, and screenshots when it runs.
 | Phase | Scope | State |
 |---|---|---|
 | 0 — Foundation | Workspaces, sim core, day ticker, versioned save/load, app shell | Done |
-| 1 — Vertical slice | Care loop, training, one lineage, battle system, one cup, Bronze ladder | Done — care loop, four training programs with breakthrough nights, derived form (ATK) in the arena, baby→juvenile→champion evolution, arena battles, live cups, the Bronze ladder, and the minimal legacy loop (graduation → inherited next egg) playable |
-| 2 — League depth | Full ladder, rivals and bosses, breeding, evolution discovery | In progress — the full Bronze→Legend climb, six authored bosses, and dual-parent breeding with trait inheritance are playable; evolution discovery and extra lineages remain |
+| 1 — Vertical slice | Care loop, training, one lineage, battle system, one cup, Bronze ladder | Done — care loop, four training programs with breakthrough nights, derived form (ATK) in the arena, baby→juvenile→champion evolution with two champion forms per starter earned from training, arena battles, live cups, the Bronze ladder, and the minimal legacy loop (graduation → inherited next egg) playable |
+| 2 — League depth | Full ladder, rivals and bosses, breeding, evolution discovery | In progress — the full Bronze→Legend climb, six authored bosses, dual-parent breeding with trait inheritance, and earned evolution branches are playable; extra prestige perks, affinity drift, and extra lineages remain |
 | 3 — Content & meta | 20–40 species, ElysiaJS backend, cloud saves, leaderboards | Planned |
 | 4 — Post-MVP | Async ghost PvP, live PvP, mobile hardware pass, audio expansion | Planned |
 

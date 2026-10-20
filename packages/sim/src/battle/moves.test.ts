@@ -12,10 +12,10 @@ import {
 // Spec section 3: moves, basic strike, equip-4.
 
 describe("battle catalog", () => {
-  test("holds exactly 18 specials with unique ids", () => {
-    expect(CATALOG.length).toBe(18)
+  test("holds exactly 24 specials with unique ids", () => {
+    expect(CATALOG.length).toBe(24)
     const ids = new Set(CATALOG.map((m) => m.id))
-    expect(ids.size).toBe(18)
+    expect(ids.size).toBe(24)
   })
 
   test("covers fire, plant, and water elements only", () => {
@@ -36,7 +36,7 @@ describe("battle catalog", () => {
       { power: 14, accuracy: 70, cooldown: 3 },
     ]
     for (const element of ["fire", "plant", "water"] as const) {
-      const rows = CATALOG.filter((m) => m.element === element)
+      const rows = CATALOG.filter((m) => m.element === element).slice(0, 6)
       expect(rows.length).toBe(6)
       for (const [i, move] of rows.entries()) {
         const row = tiers[i]
@@ -99,6 +99,62 @@ describe("battle catalog", () => {
       const expectedOriginal = originals[element]
       if (!expectedOriginal) throw new Error(`no originals for ${element}`)
       expect(rows.slice(0, 4)).toEqual([...expectedOriginal])
+    }
+  })
+
+  test("the original 18 keep their order as the catalog prefix", () => {
+    const prefix = [
+      "spark",
+      "flame_charge",
+      "cinder_shot",
+      "blaze_bolt",
+      "flare_dart",
+      "pyre_lance",
+      "seed_shot",
+      "thorn_volley",
+      "spore_burst",
+      "bramble_dart",
+      "vine_lash",
+      "root_quake",
+      "bubble",
+      "tide_shot",
+      "foam_volley",
+      "splash_bolt",
+      "mist_spray",
+      "maelstrom",
+    ]
+    expect(CATALOG.slice(0, prefix.length).map((m) => m.id)).toEqual(prefix)
+    expect(CATALOG.slice(prefix.length).map((m) => m.id)).toEqual([
+      "cinder_dive",
+      "pyre_wall",
+      "thorn_charge",
+      "bramble_guard",
+      "riptide_rush",
+      "tide_aegis",
+    ])
+  })
+
+  test("branch signatures pair a heavy and a reliable row of equal expected damage", () => {
+    const pairs = [
+      ["cinder_dive", "pyre_wall"],
+      ["thorn_charge", "bramble_guard"],
+      ["riptide_rush", "tide_aegis"],
+    ] as const
+    for (const [offenseId, defenseId] of pairs) {
+      const offense = getMove(offenseId)
+      const defense = getMove(defenseId)
+      if (!offense || !defense)
+        throw new Error(`signature missing: ${offenseId}`)
+      expect([offense.power, offense.accuracy, offense.cooldown]).toEqual([
+        12, 75, 2,
+      ])
+      expect([defense.power, defense.accuracy, defense.cooldown]).toEqual([
+        9, 100, 2,
+      ])
+      expect(offense.element).toBe(defense.element)
+      expect((offense.power * offense.accuracy) / 100).toBe(
+        (defense.power * defense.accuracy) / 100,
+      )
     }
   })
 

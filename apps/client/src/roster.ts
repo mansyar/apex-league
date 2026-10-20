@@ -2,7 +2,7 @@ import type { LifeStage } from "@apex/sim"
 import { generate } from "@apex/voxel"
 import * as THREE from "three"
 import { profileFor } from "./choreo"
-import { buildCreatureGroup } from "./creature"
+import { applyBranchTint, buildCreatureGroup } from "./creature"
 import { findEyes } from "./face-motion"
 import type { DriveFighter } from "./fighter-driver"
 import { disposeObject3D, lambertMaterialOf } from "./scene-utils"
@@ -37,6 +37,8 @@ export interface CastInfo {
   name: string
   key?: string
   stage?: LifeStage
+  /** Earned form's accent wash (FR-10); `legacy` and unknown ids skip it. */
+  branch?: string | null
 }
 
 /** Build one fighter at its home spot. The rig is re-anchored onto its
@@ -53,6 +55,9 @@ export function buildSpot(
     info.stage ?? "baby",
   )
   const inner = buildCreatureGroup(dna, build, def.grid)
+  // Accent wash before the palette is captured: a hit flash restores the
+  // tinted base, and a legacy or branchless side stays exactly as built.
+  applyBranchTint(inner, info.branch)
   inner.traverse((obj) => {
     if (obj instanceof THREE.Mesh) obj.castShadow = true
   })

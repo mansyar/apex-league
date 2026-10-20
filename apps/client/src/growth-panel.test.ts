@@ -15,7 +15,9 @@ import {
   createInitialState,
   type GameState,
 } from "@apex/sim"
+import { growthView } from "./growth"
 import { createGrowthHost } from "./growth-panel"
+import { NATURE_LEAN_LINE, TRAINED_LEAN_LINE } from "./hud/copy-branch"
 
 interface FakeElement {
   className: string
@@ -117,6 +119,8 @@ interface StateOptions {
   day?: number
   mood?: number
   juvenileKnown?: boolean
+  branch?: string | null
+  trained?: Partial<Record<"hp" | "atk" | "def" | "spd", number>>
 }
 
 function stateWith(
@@ -128,6 +132,8 @@ function stateWith(
   const creature: Creature = {
     ...created,
     stage,
+    branch: options.branch === undefined ? created.branch : options.branch,
+    trained: { ...created.trained, ...options.trained },
     conditions: {
       ...created.conditions,
       mood: options.mood ?? created.conditions.mood,
@@ -236,5 +242,93 @@ describe("the growth host repaint seam", () => {
       evolutionKnowledge: { juvenile: true, champion: false },
     })
     expect(detailsIn(node.children[0])).toEqual(["6 / 10", "clear", "35 / 40"])
+  })
+})
+
+/** The path row's readings, in render order, or null when it is absent. */
+function pathReadings(root: unknown): { label: string; text: string } | null {
+  const [row] = classNamed(root, "detail-growth-path")
+  if (!row) return null
+  const [label] = classNamed(row, "detail-growth-path-label")
+  const [line] = classNamed(row, "detail-growth-path-line")
+  const [title] = classNamed(row, "detail-growth-path-title")
+  return {
+    label: `${title?.textContent ?? ""}|${label?.textContent ?? ""}`,
+    text: line?.textContent ?? "",
+  }
+}
+
+describe("the day-5 path row (FR-6)", () => {
+  test("a baby before the hinted day shows no path row", () => {
+    const state = stateWith("baby", { day: 4 })
+    expect(growthView(state)?.path).toBeNull()
+    const node = fakeNode()
+    const host = createGrowthHost(node)
+    host.setVisible(true)
+    host.paint(state)
+    expect(pathReadings(node.children[0])).toBeNull()
+  })
+
+  test("at the hinted day the row previews the lean without a threshold", () => {
+    const state = stateWith("baby", { day: 5 })
+    const view = growthView(state)
+    expect(view?.path?.preview).toBe(true)
+    expect(view?.path?.title).toBe("Path lean")
+    // Fire drake's rolled stats lean to defense, so the prediction is Pyre
+    // Warden with the honest nature qualifier.
+    expect(view?.path?.label).toBe("Pyre Warden")
+    expect(view?.path?.line).toBe(NATURE_LEAN_LINE)
+    expect(JSON.stringify(view?.path?.label)).not.toMatch(/[0-9]/)
+    expect(view?.path?.signature).not.toMatch(/[0-9]/)
+
+    const node = fakeNode()
+    const host = createGrowthHost(node)
+    host.setVisible(true)
+    host.paint(state)
+    expect(pathReadings(node.children[0])).toEqual({
+      label: "Path lean|Pyre Warden",
+      text: NATURE_LEAN_LINE,
+    })
+  })
+
+  test("training that changes the lean repaints the row", () => {
+    const node = fakeNode()
+    const host = createGrowthHost(node)
+    host.setVisible(true)
+    host.paint(stateWith("baby", { day: 6 }))
+    expect(pathReadings(node.children[0])?.label).toBe("Path lean|Pyre Warden")
+
+    host.paint(
+      stateWith("baby", {
+        day: 6,
+        trained: { hp: 0, atk: 6, def: 0, spd: 6 },
+      }),
+    )
+    expect(pathReadings(node.children[0])).toEqual({
+      label: "Path lean|Cinder Courser",
+      text: TRAINED_LEAN_LINE,
+    })
+  })
+
+  test("a juvenile's earned form reads by name", () => {
+    const node = fakeNode()
+    const host = createGrowthHost(node)
+    host.setVisible(true)
+    host.paint(stateWith("juvenile", { day: 20, branch: "cinder_courser" }))
+    expect(pathReadings(node.children[0])).toEqual({
+      label: "Form|Cinder Courser",
+      text: expect.stringContaining("Strike first"),
+    })
+  })
+
+  test("a legacy line after evolution reads the old line", () => {
+    const node = fakeNode()
+    const host = createGrowthHost(node)
+    host.setVisible(true)
+    host.paint(stateWith("juvenile", { day: 20, branch: "legacy" }))
+    const read = pathReadings(node.children[0])
+    expect(read?.label).toBe("Form|Legacy")
+    expect(read?.text).toContain("no signature")
+    expect(read?.text).not.toContain("Cinder Courser")
   })
 })

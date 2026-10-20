@@ -3,6 +3,7 @@
  * Parts are built pivot-relative (same contract as the GLB exporter), so
  * rotating a mesh around its pivot animates the joint.
  */
+import { getBranch, LEGACY_BRANCH } from "@apex/sim"
 import type { CreatureBuild, Dna } from "@apex/voxel"
 import {
   bakeVertexColors,
@@ -101,4 +102,44 @@ export function buildCreatureGroup(
   creature.scale.setScalar(VOXEL_SIZE)
   creature.userData.dna = dna
   return creature
+}
+
+/**
+ * The per-instance accent wash for an earned branch (FR-10): a near-white
+ * colour in the branch's own hue. Vertex colours carry the coat, so the
+ * multiplier only shifts the tint — it never repaints the partner.
+ *
+ * Returns null for no branch, `legacy` (the old line earns no accent), and
+ * unknown ids, so a stale save can never invent a colour.
+ */
+export function branchTint(
+  branch: string | null | undefined,
+): THREE.Color | null {
+  if (!branch || branch === LEGACY_BRANCH.id) return null
+  const def = getBranch(branch)
+  if (!def) return null
+  // High lightness + moderate saturation: a wash, not a repaint.
+  return new THREE.Color().setHSL(def.accentHue / 360, 0.62, 0.8)
+}
+
+/**
+ * Apply the branch wash in place to every mesh's material colour. This is
+ * the only property touched — no geometry, material, mesh, or draw call is
+ * added, and each creature owns its own materials, so tinting one partner
+ * can never touch another. Returns whether a tint was applied.
+ */
+export function applyBranchTint(
+  group: THREE.Object3D,
+  branch: string | null | undefined,
+): boolean {
+  const tint = branchTint(branch)
+  if (!tint) return false
+  group.traverse((object) => {
+    if (!(object instanceof THREE.Mesh)) return
+    const material = object.material
+    if (material instanceof THREE.MeshLambertMaterial) {
+      material.color.copy(tint)
+    }
+  })
+  return true
 }

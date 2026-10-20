@@ -1,14 +1,16 @@
 /**
  * Coach's Handbook after the migration onto the shared tab controller
  * (detail_modal_tabs Phase 1: FR-10, AC-7). The handbook had no test before
- * this migration, so this file is its regression net: it pins the four pages,
+ * this migration, so this file is its regression net: it pins the five pages,
  * their order and skin, the initial page, and arrow-key page switching over a
  * minimal fake DOM (no jsdom, restored in `afterAll`).
  */
 import { afterAll, beforeAll, describe, expect, test } from "bun:test"
 import {
+  BRANCHES,
   EXHAUSTED_ENERGY,
   FORM_COPY,
+  getMove,
   SICK_HEALTH,
   TRAINING_CAP,
   TRAINING_ENERGY_COST,
@@ -171,7 +173,7 @@ function pageOf(node: HTMLElement) {
 }
 
 describe("the handbook's tabs", () => {
-  test("keep four pages in order with the handbook skin", () => {
+  test("keep five pages in order with the handbook skin", () => {
     const { tablist, tabs, panels } = pageOf(buildHandbook().root)
 
     expect(tabs.map((tab) => tab.textContent)).toEqual([
@@ -179,6 +181,7 @@ describe("the handbook's tabs", () => {
       "Ladder rules",
       "Moves",
       "Raising",
+      "Paths",
     ])
     expect(tablist.classList.contains("handbook-tabs")).toBe(true)
     for (const tab of tabs) {
@@ -198,10 +201,12 @@ describe("the handbook's tabs", () => {
       "false",
       "false",
       "false",
+      "false",
     ])
-    expect(tabs.map((tab) => tab.tabIndex)).toEqual([0, -1, -1, -1])
+    expect(tabs.map((tab) => tab.tabIndex)).toEqual([0, -1, -1, -1, -1])
     expect(panels.map((panel) => panel.hidden)).toEqual([
       false,
+      true,
       true,
       true,
       true,
@@ -225,10 +230,12 @@ describe("the handbook's tabs", () => {
       "true",
       "false",
       "false",
+      "false",
     ])
     expect(panels.map((panel) => panel.hidden)).toEqual([
       true,
       false,
+      true,
       true,
       true,
     ])
@@ -244,13 +251,15 @@ describe("the handbook's tabs", () => {
       "false",
       "false",
       "false",
+      "false",
       "true",
     ])
-    expect(at(panels, 3).hidden).toBe(false)
+    expect(at(panels, 4).hidden).toBe(false)
 
     expect(press(tablist, "Home")).toBe(true)
     expect(tabs.map((tab) => tab.attributes["aria-selected"])).toEqual([
       "true",
+      "false",
       "false",
       "false",
       "false",
@@ -332,6 +341,60 @@ describe("the handbook's Raising page", () => {
     for (const node of lines) {
       expect(sentencesOf(node.textContent).length).toBeLessThanOrEqual(2)
       expect(node.textContent).not.toMatch(/\b(atk|hp|def|spd)\b/)
+    }
+  })
+})
+
+/** The Paths page's body (fifth tab). */
+function pathsBody(): FakeElement {
+  const { panels } = pageOf(buildHandbook().root)
+  return at(panels, 4)
+}
+
+describe("the handbook's Paths page", () => {
+  test("name both leans and both signature behaviours", () => {
+    const body = pathsBody()
+    const text = textOf(body)
+
+    expect(text).toContain("ATK + SPD")
+    expect(text).toContain("HP + DEF")
+    expect(text).toContain("Training")
+    // One signature per real form, named from the sim's own branches.
+    for (const branch of BRANCHES) {
+      expect(text).toContain(branch.label)
+      const signature = branch.signatureMove
+      if (!signature) throw new Error("real branches carry a signature")
+      const move = getMove(signature)
+      if (!move) throw new Error("signature move missing")
+      expect(text).toContain(move.displayName)
+    }
+    expect(text.toLowerCase()).toContain("no signature move")
+    expect(text).toContain("older save")
+  })
+
+  test("stay direction-only: no gate days or threshold numbers", () => {
+    const text = textOf(pathsBody())
+    const sentences = sentencesOf(text)
+
+    expect(text).toContain("Growth panel")
+    expect(text).not.toMatch(/\bday\s*\d/i)
+    expect(text).not.toMatch(/\b(10|25|5)\b/)
+    expect(sentences.length).toBeGreaterThan(0)
+    for (const sentence of sentences) {
+      expect(sentence.length).toBeLessThan(200)
+    }
+  })
+
+  test("keep every line to two coach sentences", () => {
+    const body = pathsBody()
+    const lines = [
+      ...byClass(body, "handbook-tip"),
+      ...byClass(body, "handbook-rule-copy"),
+    ]
+
+    expect(lines.length).toBeGreaterThan(0)
+    for (const node of lines) {
+      expect(sentencesOf(node.textContent).length).toBeLessThanOrEqual(2)
     }
   })
 })

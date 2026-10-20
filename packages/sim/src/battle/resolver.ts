@@ -37,6 +37,14 @@ export interface BattleSide {
   readonly kit: readonly string[]
   readonly tactic: Tactic
   readonly temperament: Temperament
+  /**
+   * The form this side fights in, for display only (FR-9). The resolver
+   * never reads it: stats, kit, seed, and outcome are identical whether or
+   * not it is present. Rivals derive it from their seeded stats; bosses and
+   * pre-v19 sides carry `legacy`; the player's side carries the earned
+   * branch.
+   */
+  readonly branch?: string
 }
 
 /** The verdict of one exhibition: winner name or null for a draw. */

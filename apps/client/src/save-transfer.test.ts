@@ -4,7 +4,7 @@ import { importBlocked, importSummary, transferNotice } from "./save-transfer"
 
 const save = (overrides: Partial<SaveData["state"]> = {}): SaveData =>
   ({
-    version: 18,
+    version: 19,
     savedAt: 0,
     session: null,
     state: {
@@ -24,6 +24,7 @@ const save = (overrides: Partial<SaveData["state"]> = {}): SaveData =>
         fedToday: false,
         traits: ["sturdy"],
         parents: [1],
+        branch: "legacy",
       },
       settings: {
         reducedMotion: false,

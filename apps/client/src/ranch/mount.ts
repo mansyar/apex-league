@@ -1,18 +1,22 @@
 import { generate, type Stage } from "@apex/voxel"
 import * as THREE from "three"
-import { buildCreatureGroup } from "../creature"
+import { applyBranchTint, buildCreatureGroup } from "../creature"
 import { findEyes } from "../face-motion"
 import { createWander, stageScale } from "../scene-logic"
 import type { RanchState } from "./state"
 
 /** Build a creature rig (archetype + seed + stage) with the visual-center
  * holder contract and the stage's world scale. Kept as its own step so
- * the evolution ceremony's swap reuses the exact same path. */
+ * the evolution ceremony's swap reuses the exact same path. `branch` applies
+ * the per-instance accent wash (FR-10) after the rig is built and before it
+ * joins the scene, so a respawn or evolution picks up the earned form while
+ * a null/legacy branch leaves the colours untouched. */
 export function rebuild(
   s: RanchState,
   archetypeId: string,
   seed: number,
   stage: Stage,
+  branch?: string | null,
 ): void {
   if (s.creatureGroup) s.deps.disposeGroup(s.creatureGroup)
   const { dna, build, def } = generate(archetypeId, seed, stage)
@@ -29,6 +33,9 @@ export function rebuild(
   // on the holder too (never on rig children — learnings.md), so babies
   // measure the same visual center the adult would.
   const inner = buildCreatureGroup(dna, build, def.grid)
+  // Accent wash (FR-10): one material colour per part, in place — no new
+  // geometry, material, or mesh. Applied before the rig joins the scene.
+  applyBranchTint(inner, branch)
   inner.updateMatrixWorld(true)
   const innerBox = new THREE.Box3().setFromObject(inner)
   const center = innerBox.getCenter(new THREE.Vector3())

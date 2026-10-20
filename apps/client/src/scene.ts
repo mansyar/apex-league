@@ -142,15 +142,15 @@ export function createScene(
       renderer.dispose()
       renderer.domElement.remove()
     },
-    setCreature(archetypeId, seed, stage = "baby") {
-      motion.rebuild(archetypeId, seed, stage)
+    setCreature(archetypeId, seed, stage = "baby", branch = null) {
+      motion.rebuild(archetypeId, seed, stage, branch)
       // A plain rebuild cancels an in-flight evolution ceremony (the new
       // mesh already reflects the caller's intent); the ceremony's own
       // swap calls rebuild directly, so it survives.
       motion.clearEvolution()
     },
-    startEvolutionCeremony(archetypeId, seed, targetStage, onDone) {
-      motion.startEvolution(archetypeId, seed, targetStage, onDone)
+    startEvolutionCeremony(archetypeId, seed, targetStage, onDone, branch) {
+      motion.startEvolution(archetypeId, seed, targetStage, onDone, branch)
     },
     setProps(visualSeed) {
       dressing.setProps(visualSeed)

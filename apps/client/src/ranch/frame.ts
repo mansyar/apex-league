@@ -74,7 +74,7 @@ export function updateRanch(
       if (evo.swap && s.evolutionSwap) {
         const swap = s.evolutionSwap
         s.evolutionSwap = null
-        rebuild(s, swap.archetypeId, swap.seed, swap.stage)
+        rebuild(s, swap.archetypeId, swap.seed, swap.stage, swap.branch)
       }
       evoGait = evo.phase === "walk" && !evo.pivoting
     }

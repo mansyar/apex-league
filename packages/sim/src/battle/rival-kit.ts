@@ -7,12 +7,35 @@
  * pre-pool seeds.
  */
 
+import { branchLean } from "../branches"
+import type { CreatureStats } from "../creature"
 import { MAX_LOADOUT } from "../loadout"
 import { makeRng } from "../rng"
 import type { SpeciesDef } from "../species"
 
 /** A fixed salt keeps the pick decorrelated from the battle seed. */
 const RIVAL_KIT_SALT = 0x9e3779b9
+
+/** Rivals never carry a training record: their form leans on base stats. */
+const NO_TRAINING: CreatureStats = Object.freeze({
+  hp: 0,
+  atk: 0,
+  def: 0,
+  spd: 0,
+})
+
+/**
+ * The form a generated rival fights in (FR-9): the same `branchLean` rule
+ * the player earns, read over the rival's seeded stat profile with a zeroed
+ * training record. Pure integer math, no RNG — the same species and stats
+ * always yield the same branch. Bosses do not use this: they stay `legacy`.
+ */
+export function rivalBranch(species: SpeciesDef, stats: CreatureStats): string {
+  return branchLean(
+    { speciesId: species.id, stats, trained: NO_TRAINING },
+    species,
+  ).branch.id
+}
 
 /**
  * The four moves a rival fields from its species pool. Deterministic per

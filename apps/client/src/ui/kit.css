@@ -499,6 +499,86 @@
   color: var(--ink-dim);
 }
 
+/* Path reading (branching evolution): the day-5 lean preview or the earned
+   form, in the Growth section and the Stats page's Path block. The branch
+   accent rides the left rule and the title; every reading is also text, so
+   greyscale and reduced motion lose nothing. Static by design — no transition
+   to suppress. */
+.detail-growth-path {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 8px;
+  padding: 6px 9px;
+  border-left: 3px solid hsl(var(--hue, 40) 70% 55%);
+  border-radius: 0 4px 4px 0;
+  background: rgb(255 255 255 / 0.04);
+}
+
+.detail-growth-path-title {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.detail-growth-path-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: hsl(var(--hue, 40) 70% 62%);
+}
+
+.detail-growth-path-line {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-dim);
+}
+
+/* Stats page Path section: form, favored stats, signature, coach line. */
+.detail-path {
+  display: grid;
+  gap: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--kit-keyline);
+}
+
+.detail-path-title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: hsl(var(--hue, 40) 70% 62%);
+}
+
+.detail-path-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.detail-path-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--ink-dim);
+}
+
+.detail-path-value {
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.detail-path-line {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-dim);
+}
+
 /* The one destructive action in the game earns its own color. */
 .kit-button-danger {
   color: var(--danger, #ff6b6b);

@@ -2,13 +2,13 @@
  * Visual DNA seed shared with the ranch view: same creature, same look,
  * in the arena and on the ranch.
  *
- * Stage-aware: evolution boosts the rolled base stats (+3/+2/+2/+1), which
- * would otherwise re-roll the individual's DNA mid-life. The juvenile's
- * boosted contributions are subtracted back out so the visual seed - and
- * therefore the individual - stays the one rolled at creation. If a later
- * stage adds another boost, extend the offset here.
+ * Stage-aware: evolution adds the earned branch's pinned boost to the rolled
+ * base stats, which would otherwise re-roll the individual's DNA mid-life.
+ * That boost is subtracted back out (`evolutionBoost` owns the tables) so the
+ * visual seed - and therefore the individual - stays the one rolled at
+ * creation, whichever form it grows into.
  */
-import { CHAMPION_STAT_BOOST, EVOLUTION_STAT_BOOST } from "@apex/sim"
+import { evolutionBoost } from "@apex/sim"
 
 export const visualSeedOf = (
   s: {
@@ -18,13 +18,9 @@ export const visualSeedOf = (
     spd: number
   },
   stage: "baby" | "juvenile" | "champion" = "baby",
+  branch: string | null = null,
 ): number => {
-  const off =
-    stage === "juvenile"
-      ? EVOLUTION_STAT_BOOST
-      : stage === "champion"
-        ? CHAMPION_STAT_BOOST // cumulative: juvenile + champion boost
-        : { hp: 0, atk: 0, def: 0, spd: 0 }
+  const off = evolutionBoost(stage, branch)
   return (
     ((s.hp - off.hp) * 7 +
       (s.atk - off.atk) * 13 +

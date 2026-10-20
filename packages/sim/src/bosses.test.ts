@@ -10,6 +10,9 @@ import { describe, expect, it } from "bun:test"
 import { BASIC_MOVE } from "./battle/moves"
 import type { Tactic } from "./battle/policy"
 import { BOSSES, CUP_ROUTES, getBoss } from "./bosses"
+import { BRANCHES } from "./branches"
+import { createCreature } from "./creature"
+import { battleSideForSlot, makeBracket, substituteFinalBoss } from "./cup"
 import { getSpecies } from "./species"
 
 describe("boss registry", () => {
@@ -108,6 +111,36 @@ describe("boss registry", () => {
       expect(boss.quips.win.length).toBeGreaterThan(0)
       expect(boss.quips.loss.length).toBeGreaterThan(0)
     }
+  })
+
+  it("pins every boss to the pre-branch legacy form", () => {
+    for (const boss of BOSSES) expect(boss.branch).toBe("legacy")
+  })
+
+  it("keeps every branch signature out of the boss loadouts", () => {
+    const signatures = new Set(
+      BRANCHES.map((branch) => branch.signatureMove).filter(
+        (move): move is string => move !== null,
+      ),
+    )
+    expect(signatures.size).toBe(BRANCHES.length)
+    for (const boss of BOSSES) {
+      for (const move of boss.loadout) expect(signatures.has(move)).toBe(false)
+    }
+  })
+
+  it("a substituted boss slot keeps its pinned build and fights legacy", () => {
+    const bracket = makeBracket(createCreature("fire_drake", 11), 7, 101)
+    const boss = getBoss("koda")
+    if (!boss) throw new Error("The koda boss is missing")
+    const promoted = substituteFinalBoss(bracket, boss, "promotion")
+    expect(promoted.finalRival.bossId).toBe(boss.id)
+    expect(promoted.finalRival.stats).toEqual(boss.stats)
+    const side = battleSideForSlot(promoted.finalRival, 99)
+    expect(side.branch).toBe("legacy")
+    expect(side.stats).toEqual(boss.stats)
+    expect(side.kit).toEqual(boss.loadout)
+    expect(side.tactic).toBe(boss.tactic)
   })
 })
 

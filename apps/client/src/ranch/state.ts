@@ -58,7 +58,12 @@ export interface RanchState {
   wanderCandidates: { x: number; z: number }[]
   evolution: EvolutionMachine
   /** The rebuild the ceremony's swap frame should perform. */
-  evolutionSwap: { archetypeId: string; seed: number; stage: Stage } | null
+  evolutionSwap: {
+    archetypeId: string
+    seed: number
+    stage: Stage
+    branch: string | null
+  } | null
   /** Invoked once when the ceremony settles; null when nobody is waiting. */
   evolutionDone: (() => void) | null
   /** True while the machine owns the creature — the settle edge ends it. */

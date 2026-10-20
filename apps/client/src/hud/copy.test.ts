@@ -45,6 +45,12 @@ import {
   trainingStatus,
   unlockCallout,
 } from "./copy"
+import {
+  branchPath,
+  NATURE_LEAN_LINE,
+  SIGNATURE_WITH_FORM,
+  TRAINED_LEAN_LINE,
+} from "./copy-branch"
 
 describe("saveFailureNotice", () => {
   test("speaks in coach voice, non-blocking, names the setback", () => {
@@ -455,14 +461,61 @@ describe("golden exact callout strings", () => {
 
   test("evolveCallout: exact juvenile line", () => {
     expect(evolveCallout({ ...drake, stage: "juvenile" as const })).toBe(
-      "Evolution! Ember Drake grew into a Juvenile — +3 HP · +2 ATK · +2 DEF · +1 SPD. The ranch just got livelier.",
+      "Evolution! Ember Drake grew into a Juvenile — +3 HP · +2 ATK · +2 DEF · +1 SPD. Legacy — the old line, no signature.",
     )
   })
 
   test("evolveCallout: exact champion line", () => {
     expect(evolveCallout({ ...drake, stage: "champion" as const })).toBe(
-      "Evolution! Ember Drake grew into a Champion — +6 HP · +4 ATK · +4 DEF · +2 SPD. The ranch just got livelier.",
+      "Evolution! Ember Drake grew into a Champion — +6 HP · +4 ATK · +4 DEF · +2 SPD. Legacy — the old line, no signature.",
     )
+  })
+
+  test("evolveCallout names the earned form in the same breath", () => {
+    const line = evolveCallout({
+      ...drake,
+      stage: "juvenile" as const,
+      branch: "cinder_courser",
+    })
+    expect(line).toContain("Cinder Courser")
+    expect(line).toContain("signature included")
+    // Two spoken sentences after the "Evolution!" beat: the stat leap, then
+    // the form, never a third line.
+    expect(line.match(/[.!?]\s/g)?.length).toBe(2)
+  })
+
+  test("evolveCallout announces the earned branch's own juvenile leap", () => {
+    expect(
+      evolveCallout({
+        ...drake,
+        stage: "juvenile" as const,
+        branch: "cinder_courser",
+      }),
+    ).toBe(
+      "Evolution! Ember Drake grew into a Juvenile — +2 HP · +4 ATK · +1 DEF · +2 SPD. Cinder Courser — the courser line, signature included.",
+    )
+  })
+
+  test("evolveCallout announces the earned branch's own champion leap", () => {
+    expect(
+      evolveCallout({
+        ...drake,
+        stage: "champion" as const,
+        branch: "cinder_courser",
+      }),
+    ).toBe(
+      "Evolution! Ember Drake grew into a Champion — +5 HP · +7 ATK · +3 DEF · +2 SPD. Cinder Courser — the courser line, signature included.",
+    )
+  })
+
+  test("evolveCallout keeps the legacy numbers for the old line", () => {
+    const line = evolveCallout({
+      ...drake,
+      stage: "champion" as const,
+      branch: "legacy",
+    })
+    expect(line).toContain("+6 HP · +4 ATK · +4 DEF · +2 SPD")
+    expect(line).toContain("Legacy — the old line, no signature.")
   })
 
   test("saveFailureNotice: exact line", () => {
@@ -475,6 +528,65 @@ describe("golden exact callout strings", () => {
     expect(corruptSaveNotice()).toBe(
       "That old save couldn't be read — starting fresh. Sorry about that.",
     )
+  })
+})
+
+describe("branchPath — the form reading every surface shares", () => {
+  const drake = createCreature("fire_drake", 42)
+
+  test("a baby before the hinted day has nothing to say", () => {
+    expect(branchPath(drake, 4)).toBeNull()
+  })
+
+  test("a baby at the hinted day reads its natural lean", () => {
+    const read = branchPath(drake, 5)
+    expect(read?.title).toBe("Path lean")
+    expect(read?.preview).toBe(true)
+    expect(read?.line).toBe(NATURE_LEAN_LINE)
+    // A direction, not a threshold or a signature.
+    expect(read?.label).not.toMatch(/[0-9]/)
+    expect(read?.signature).toBe(SIGNATURE_WITH_FORM)
+  })
+
+  test("a trained lean says so and names its form", () => {
+    const trained = {
+      ...drake,
+      trained: { hp: 0, atk: 6, def: 0, spd: 6 },
+    }
+    const read = branchPath(trained, 6)
+    expect(read?.label).toBe("Cinder Courser")
+    expect(read?.line).toBe(TRAINED_LEAN_LINE)
+    expect(read?.favored).toBe("ATK + SPD")
+  })
+
+  test("an earned form reads its label, favors and signature", () => {
+    const juvenile = {
+      ...drake,
+      stage: "juvenile" as const,
+      branch: "pyre_warden",
+    }
+    const read = branchPath(juvenile, 20)
+    expect(read).toMatchObject({
+      title: "Form",
+      label: "Pyre Warden",
+      favored: "HP + DEF",
+      signature: "Pyre Wall",
+      preview: false,
+    })
+    expect(read?.line).toContain("Plant your feet")
+  })
+
+  test("the legacy line claims no signature and no favored pair", () => {
+    const champion = {
+      ...drake,
+      stage: "champion" as const,
+      branch: "legacy",
+    }
+    const read = branchPath(champion, 40)
+    expect(read?.label).toBe("Legacy")
+    expect(read?.signature).toBe("No signature move")
+    expect(read?.favored).toBe("—")
+    expect(read?.line).toContain("no signature")
   })
 })
 

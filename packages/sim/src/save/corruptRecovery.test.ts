@@ -39,7 +39,7 @@ describe("corrupt payload retention", () => {
     const raw = readRawSave(adapter)
     expect(raw).not.toBeNull()
     expect(JSON.parse(raw ?? "{}")).toMatchObject({
-      version: 18,
+      version: 19,
       savedAt: 123,
     })
   })

@@ -16,7 +16,7 @@
 
 import { inheritedFloorFromPair } from "./breeding"
 import { type Creature, type CreatureStats, effectiveStats } from "./creature"
-import { CHAMPION_STAT_BOOST, EVOLUTION_STAT_BOOST } from "./evolution"
+import { evolutionBoost } from "./evolution"
 import { inheritedFloor, type LineageState } from "./legacy"
 import { getSpecies } from "./species"
 import { dedupeTraits, effectiveTraits } from "./traits"
@@ -41,21 +41,16 @@ export interface StatBreakdownRow {
 /** The full four-stat decomposition, keyed by stat. */
 export type StatBreakdown = Record<keyof CreatureStats, StatBreakdownRow>
 
-/** Total pinned evolution boost a creature of the given stage has received. */
-function stageBoostFor(stage: Creature["stage"]): CreatureStats {
-  switch (stage) {
-    case "baby":
-      return { hp: 0, atk: 0, def: 0, spd: 0 }
-    case "juvenile":
-      return { ...EVOLUTION_STAT_BOOST }
-    case "champion":
-      return {
-        hp: EVOLUTION_STAT_BOOST.hp + CHAMPION_STAT_BOOST.hp,
-        atk: EVOLUTION_STAT_BOOST.atk + CHAMPION_STAT_BOOST.atk,
-        def: EVOLUTION_STAT_BOOST.def + CHAMPION_STAT_BOOST.def,
-        spd: EVOLUTION_STAT_BOOST.spd + CHAMPION_STAT_BOOST.spd,
-      }
-  }
+/**
+ * Total pinned evolution boost a creature of the given stage has received.
+ * The gate applies the earned branch's own boost (evolution.ts), so the
+ * decomposition must read the same branch: a juvenile shows its
+ * `juvenileBoost`, a champion that plus `championBoost`, and a legacy or
+ * unbranched creature keeps the old pinned tables (LEGACY_BRANCH carries
+ * exactly those numbers).
+ */
+function stageBoostFor(creature: Creature): CreatureStats {
+  return evolutionBoost(creature.stage, creature.branch)
 }
 
 /**
@@ -75,7 +70,7 @@ export function statBreakdown(
   lineage: LineageState,
 ): StatBreakdown {
   const eff = effectiveStats(creature)
-  const boost = stageBoostFor(creature.stage)
+  const boost = stageBoostFor(creature)
   const hall = lineage.hallOfFame
   const last = hall[hall.length - 1]
   const species = getSpecies(creature.speciesId)

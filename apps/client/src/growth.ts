@@ -18,6 +18,7 @@ import {
   EVOLUTION_MOOD,
   type GameState,
 } from "@apex/sim"
+import { type BranchPathRead, branchPath } from "./hud/copy-branch"
 
 export type GrowthRowId = "age" | "recovery" | "mood" | "bond" | "cups"
 
@@ -44,6 +45,12 @@ export interface GrowthView {
   /** One coach line for the section, or null. */
   note: string | null
   rows: GrowthRow[]
+  /**
+   * The day-5 lean preview, or the earned form once a gate has resolved
+   * (FR-6). Null for a baby before the hinted day — there is nothing to say
+   * yet, and never a gate day in the copy.
+   */
+  path: BranchPathRead | null
   /** Accessible name/status summary for the section, e.g. "Growth, 2 of 3 met". */
   summary: string
 }
@@ -191,6 +198,7 @@ export function growthView(state: GameState): GrowthView | null {
   const creature = state.creature
   if (!creature) return null
   const gate = gateFor(creature.stage)
+  const path = branchPath(creature, state.day)
   // For the final gate the flag mirrors the champion gate just cleared; there
   // are no thresholds left to reveal either way.
   const discovered =
@@ -204,6 +212,7 @@ export function growthView(state: GameState): GrowthView | null {
       title: TITLES.final,
       note: noteFor(gate, discovered),
       rows: [],
+      path,
       summary: "Growth, final stage",
     }
   }
@@ -217,6 +226,7 @@ export function growthView(state: GameState): GrowthView | null {
     title: TITLES[gate],
     note: noteFor(gate, discovered),
     rows,
+    path,
     summary: discovered
       ? `Growth, ${met} of ${rows.length} met`
       : `Growth, ${countWord(met)} of ${countWord(rows.length)} met`,

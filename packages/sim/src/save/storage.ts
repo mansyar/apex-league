@@ -1,3 +1,4 @@
+import { getBranch, LEGACY_BRANCH } from "../branches"
 import { type Creature, TRAINING_CAP } from "../creature"
 import { BRACKET_SLOTS, CUP_ROUNDS, type CupSession } from "../cup"
 import { SICK_COOLDOWN_NIGHTS } from "../evolution"
@@ -93,6 +94,23 @@ function isValidParentList(value: unknown): boolean {
   return true
 }
 
+/**
+ * Save v19: a baby is always `branch: null` (it earns a form at the juvenile
+ * gate). A juvenile or champion may be `null` (not yet resolved by a
+ * hand-built or migrated payload), the migration-only `legacy` line, or a real
+ * branch id owned by its species.
+ */
+function isValidCreatureBranch(creature: Record<string, unknown>): boolean {
+  const branch = creature.branch
+  if (creature.stage === "baby") return branch === null
+  if (branch === null) return true
+  if (typeof branch !== "string") return false
+  const def = getBranch(branch)
+  if (!def) return false
+  if (branch === LEGACY_BRANCH.id) return true
+  return def.speciesId === creature.speciesId
+}
+
 /** A creature is valid when every field is the right type and in range. */
 function isValidCreature(c: unknown): c is Creature {
   if (typeof c !== "object" || c === null) return false
@@ -105,6 +123,7 @@ function isValidCreature(c: unknown): c is Creature {
   if (typeof creature.bondedToday !== "boolean") return false
   if (!ELEMENTS.includes(creature.element as string)) return false
   if (!STAGES.includes(creature.stage as string)) return false
+  if (!isValidCreatureBranch(creature)) return false
   const stats = creature.stats
   if (typeof stats !== "object" || stats === null) return false
   for (const value of Object.values(stats as Record<string, unknown>)) {
@@ -208,6 +227,14 @@ function isValidRetiredRecord(r: unknown): r is RetiredRecord {
   // v15: every archived career carries its derived traits and parentage.
   if (!isValidTraitList(rec.traits)) return false
   if (!isValidParentList(rec.parents)) return false
+  // v19: every archived career records the form it earned; a migrated record
+  // is "legacy". An unknown id (or a missing field) fails the load, and a real
+  // branch must belong to the record's species (legacy fits any species).
+  if (typeof rec.branch !== "string") return false
+  const branchDef = getBranch(rec.branch)
+  if (branchDef === undefined) return false
+  if (rec.branch !== LEGACY_BRANCH.id && branchDef.speciesId !== rec.speciesId)
+    return false
   return true
 }
 

@@ -23,7 +23,9 @@ import {
 } from "./index"
 
 /** Day-1 state with an owned creature carrying hand-set training fields. */
-function stateWith(fields: Partial<Pick<Creature, "trainingDays">>): GameState {
+function stateWith(
+  fields: Partial<Pick<Creature, "trainingDays" | "stage" | "branch">>,
+): GameState {
   const s = chooseStarter(createInitialState(), "fire_drake", 42)
   if (!s.creature) throw new Error("starter not created")
   return { ...s, creature: { ...s.creature, ...fields } }
@@ -249,5 +251,127 @@ describe("clearLoadout", () => {
     const snapshot = structuredClone(s)
     clearLoadout(s)
     expect(s).toEqual(snapshot)
+  })
+})
+
+describe("branch signature moves", () => {
+  const species = speciesOf("fire_drake")
+
+  /** A fire drake at the given stage and branch. */
+  function drake(
+    fields: Partial<Pick<Creature, "stage" | "branch">>,
+  ): Creature {
+    return { ...createCreature("fire_drake", 5), ...fields }
+  }
+
+  test("a branched juvenile knows its signature as a fourth move", () => {
+    const juvenile = drake({ stage: "juvenile", branch: "cinder_courser" })
+    expect(knownMoves(juvenile, species)).toEqual([
+      ...species.kit.slice(0, 3),
+      "cinder_dive",
+    ])
+  })
+
+  test("the signature is appended after the full six-move pool", () => {
+    const champion: Creature = {
+      ...drake({ stage: "champion", branch: "cinder_courser" }),
+      trainingDays: 6,
+    }
+    expect(knownMoves(champion, species)).toEqual([
+      ...species.kit,
+      "cinder_dive",
+    ])
+  })
+
+  test("the sibling branch learns its own signature, never its rival's", () => {
+    const warden = drake({ stage: "juvenile", branch: "pyre_warden" })
+    expect(knownMoves(warden, species)).not.toContain("cinder_dive")
+    expect(knownMoves(warden, species)).toContain("pyre_wall")
+  })
+
+  test("legacy and unchosen creatures learn no signature", () => {
+    const legacy = drake({ stage: "champion", branch: "legacy" })
+    expect(knownMoves(legacy, species)).toEqual(species.kit.slice(0, 3))
+    const unchosen = drake({ stage: "juvenile", branch: null })
+    expect(knownMoves(unchosen, species)).toEqual(species.kit.slice(0, 3))
+  })
+
+  test("a baby never learns a signature, even with a branch set", () => {
+    const baby = drake({ stage: "baby", branch: "cinder_courser" })
+    expect(knownMoves(baby, species)).toEqual(species.kit.slice(0, 2))
+  })
+
+  test("a branch belonging to another species adds nothing", () => {
+    const ox: Creature = {
+      ...createCreature("plant_ox", 5),
+      stage: "juvenile",
+      branch: "cinder_courser",
+    }
+    expect(knownMoves(ox, speciesOf("plant_ox"))).not.toContain("cinder_dive")
+  })
+
+  test("equips the signature on its own branch at juvenile", () => {
+    const s = stateWith({ stage: "juvenile", branch: "cinder_courser" })
+    expect(setLoadout(s, ["spark", "cinder_dive"]).creature?.loadout).toEqual([
+      "spark",
+      "cinder_dive",
+    ])
+  })
+
+  test("rejects the signature on the sibling branch", () => {
+    const s = stateWith({ stage: "juvenile", branch: "pyre_warden" })
+    expect(() => setLoadout(s, ["spark", "cinder_dive"])).toThrow(
+      "Not in this partner's kit: cinder_dive",
+    )
+  })
+
+  test("rejects the signature on a legacy creature", () => {
+    const s = stateWith({ stage: "champion", branch: "legacy" })
+    expect(() => setLoadout(s, ["spark", "cinder_dive"])).toThrow(
+      /Not in this partner's kit/,
+    )
+  })
+
+  test("rejects the signature on a baby", () => {
+    const s = stateWith({ stage: "baby", branch: null })
+    expect(() => setLoadout(s, ["spark", "cinder_dive"])).toThrow(
+      /Not in this partner's kit/,
+    )
+  })
+
+  test("the default loadout stays the first four species moves", () => {
+    const s = stateWith({
+      stage: "juvenile",
+      branch: "cinder_courser",
+      trainingDays: 6,
+    })
+    if (!s.creature) throw new Error("creature missing")
+    const kit = defaultLoadout(s.creature, species)
+    expect(kit).toEqual(species.kit.slice(0, 4))
+    expect(kit).not.toContain("cinder_dive")
+  })
+
+  test("a branched juvenile below six days defaults to its three kit moves", () => {
+    const s = stateWith({
+      stage: "juvenile",
+      branch: "cinder_courser",
+      trainingDays: 3,
+    })
+    if (!s.creature) throw new Error("creature missing")
+    const kit = defaultLoadout(s.creature, species)
+    expect(kit).toEqual(species.kit.slice(0, 3))
+    expect(kit).not.toContain("cinder_dive")
+  })
+
+  test("a legacy juvenile with three days is unchanged", () => {
+    const s = stateWith({
+      stage: "juvenile",
+      branch: "legacy",
+      trainingDays: 3,
+    })
+    if (!s.creature) throw new Error("creature missing")
+    const kit = defaultLoadout(s.creature, species)
+    expect(kit).toEqual(species.kit.slice(0, 3))
+    expect(kit).not.toContain("cinder_dive")
   })
 })

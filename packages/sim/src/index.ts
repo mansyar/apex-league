@@ -49,6 +49,18 @@ export {
   getBoss,
 } from "./bosses"
 export {
+  BRANCHES,
+  type BranchDef,
+  type BranchLean,
+  branchesForSpecies,
+  branchLean,
+  getBranch,
+  LEGACY_BRANCH,
+  LEGACY_CHAMPION_BOOST,
+  LEGACY_JUVENILE_BOOST,
+  type LeanSource,
+} from "./branches"
+export {
   breedingPool,
   canBreed,
   createBredCreature,
@@ -133,6 +145,7 @@ export {
   type EvolutionReason,
   type EvolutionVerdict,
   evaluateEvolution,
+  evolutionBoost,
   evolveCreature,
   SICK_COOLDOWN_NIGHTS,
 } from "./evolution"

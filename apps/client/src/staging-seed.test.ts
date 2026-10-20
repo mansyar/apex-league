@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { CHAMPION_STAT_BOOST, EVOLUTION_STAT_BOOST } from "@apex/sim"
+import { BRANCHES, CHAMPION_STAT_BOOST, EVOLUTION_STAT_BOOST } from "@apex/sim"
 import { visualSeedOf } from "./staging-seed"
 
 const base = { hp: 43, atk: 11, def: 10, spd: 11 }
@@ -29,14 +29,69 @@ describe("visualSeedOf stage awareness", () => {
   })
 
   test("a champion's cumulative boost also folds back to the creation seed", () => {
-    // CHAMPION_STAT_BOOST is already the cumulative total (juvenile +
-    // champion steps), so the champion's stats are base + that one boost.
+    // A champion carries the juvenile step plus the champion step on the
+    // rolled base, so the offset is the sum of both pinned tables.
+    const total = {
+      hp: EVOLUTION_STAT_BOOST.hp + CHAMPION_STAT_BOOST.hp,
+      atk: EVOLUTION_STAT_BOOST.atk + CHAMPION_STAT_BOOST.atk,
+      def: EVOLUTION_STAT_BOOST.def + CHAMPION_STAT_BOOST.def,
+      spd: EVOLUTION_STAT_BOOST.spd + CHAMPION_STAT_BOOST.spd,
+    }
     const champion = {
-      hp: base.hp + CHAMPION_STAT_BOOST.hp,
-      atk: base.atk + CHAMPION_STAT_BOOST.atk,
-      def: base.def + CHAMPION_STAT_BOOST.def,
-      spd: base.spd + CHAMPION_STAT_BOOST.spd,
+      hp: base.hp + total.hp,
+      atk: base.atk + total.atk,
+      def: base.def + total.def,
+      spd: base.spd + total.spd,
     }
     expect(visualSeedOf(champion, "champion")).toBe(visualSeedOf(base, "baby"))
+    expect(visualSeedOf(champion, "champion", "legacy")).toBe(
+      visualSeedOf(base, "baby"),
+    )
+  })
+})
+
+describe("visualSeedOf earned branches", () => {
+  const offset = (
+    stats: typeof base,
+    boost: { hp: number; atk: number; def: number; spd: number },
+  ) => ({
+    hp: stats.hp + boost.hp,
+    atk: stats.atk + boost.atk,
+    def: stats.def + boost.def,
+    spd: stats.spd + boost.spd,
+  })
+
+  const courser = BRANCHES.find((branch) => branch.id === "cinder_courser")
+  const warden = BRANCHES.find((branch) => branch.id === "pyre_warden")
+  if (!courser || !warden) throw new Error("fire branches missing from catalog")
+
+  test("each real branch folds back to the same individual", () => {
+    for (const branch of [courser, warden]) {
+      const juvenile = offset(base, branch.juvenileBoost)
+      expect(visualSeedOf(juvenile, "juvenile", branch.id)).toBe(
+        visualSeedOf(base, "baby"),
+      )
+      const champion = offset(juvenile, branch.championBoost)
+      expect(visualSeedOf(champion, "champion", branch.id)).toBe(
+        visualSeedOf(base, "baby"),
+      )
+    }
+  })
+
+  test("the legacy branch keeps the old tables and the old seed", () => {
+    const juvenile = offset(base, EVOLUTION_STAT_BOOST)
+    expect(visualSeedOf(juvenile, "juvenile", "legacy")).toBe(
+      visualSeedOf(juvenile, "juvenile"),
+    )
+    expect(visualSeedOf(juvenile, "juvenile", null)).toBe(
+      visualSeedOf(base, "baby"),
+    )
+  })
+
+  test("subtracting another branch's boost would re-roll the individual", () => {
+    const juvenile = offset(base, courser.juvenileBoost)
+    expect(visualSeedOf(juvenile, "juvenile", warden.id)).not.toBe(
+      visualSeedOf(base, "baby"),
+    )
   })
 })

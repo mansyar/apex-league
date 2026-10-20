@@ -5,12 +5,16 @@
  * derived from the battle seed, and fights four of the six moves its species
  * knows. The owner's side reads combat prep — the creature's post-training
  * stats through `battleStats` (the single form seam, form.ts) and the chosen
- * loadout, defaulting to the stage slicing of the kit gate. The rival is
- * form-neutral by construction: it is a fresh seeded creature that never
- * carries mood or bond, so its side reads plain `rival.stats`. Pure — the
- * owned creature is never mutated.
+ * loadout, defaulting to the stage slicing of the kit gate, and reports the
+ * earned form (or `legacy` while unbranched) as display data. The rival is a
+ * fresh seeded creature that never carries mood or bond, so its side reads
+ * plain `rival.stats`; its form is the deterministic lean over those seeded
+ * stats (`branchLean`), attached as display data only and never fed back
+ * into its stats, kit, or the battle seed. Pure — the owned creature is
+ * never mutated.
  */
 
+import { branchLean } from "../branches"
 import { type Creature, createCreature } from "../creature"
 import { battleStats } from "../form"
 import { defaultLoadout } from "../loadout"
@@ -51,9 +55,14 @@ export function makeExhibition(
   const creatureSeed = Math.floor(rng.next() * 0x7fffffff)
   const rivalTactic = TACTICS[rng.int(TACTICS.length)] ?? "balanced"
 
-  const rival = createCreature(rivalSpecies.id, creatureSeed)
-  const rivalSpeciesDef = getSpecies(rival.speciesId)
-  if (!rivalSpeciesDef) throw new Error(`Unknown species: ${rival.speciesId}`)
+  const rolled = createCreature(rivalSpecies.id, creatureSeed)
+  const rivalSpeciesDef = getSpecies(rolled.speciesId)
+  if (!rivalSpeciesDef) throw new Error(`Unknown species: ${rolled.speciesId}`)
+  // The seeded rival earns the same lean a player would from those stats.
+  const rival: Creature = {
+    ...rolled,
+    branch: branchLean(rolled, rivalSpeciesDef).branch.id,
+  }
 
   const ownedSide: BattleSide = {
     name: owned.name,
@@ -63,6 +72,7 @@ export function makeExhibition(
     kit: owned.loadout ?? defaultLoadout(owned, species),
     tactic,
     temperament: species.temperament,
+    branch: owned.branch ?? "legacy",
   }
   const rivalSide: BattleSide = {
     name: rival.name,
@@ -72,6 +82,7 @@ export function makeExhibition(
     kit: rivalKit(rivalSpeciesDef, creatureSeed),
     tactic: rivalTactic,
     temperament: rivalSpeciesDef.temperament,
+    branch: rival.branch ?? "legacy",
   }
 
   return {
