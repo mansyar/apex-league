@@ -107,5 +107,5 @@
   - [x] Correct the Phase 2 evidence head commit and the Phase 2 status line
 
 **Result:** verified
-**Checkpoint:** b81c1ce
+**Checkpoint:** 5f30449
 **Evidence:** conductor/tracks/20261020-detail-modal-tabs/verification/phase-R1.md
