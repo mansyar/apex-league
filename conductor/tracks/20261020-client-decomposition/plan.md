@@ -75,13 +75,16 @@ silently change order.
   `apps/client/src/orbit-camera.ts`, `apps/client/src/camera/*.ts` (new)
 - **Verification:** `bun run verify && bun run build`, plus a battle played to a
   verdict to exercise projectiles, bursts and hit-stop
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 97a9bba
+- **Evidence:** conductor/tracks/20261020-client-decomposition/verification/phase-3.md
 
-- [ ] **P3.T1: Split the scene** — composition vs ground/prop dressing vs frame loop;
+- [x] **P3.T1: Split the scene** — composition vs ground/prop dressing vs frame loop;
   `scene.ts` keeps its exported handle and options — covers: FR-3
-- [ ] **P3.T2: Split the effects** — hit-stop, projectiles and bursts into `fx/`
+- [x] **P3.T2: Split the effects** — hit-stop, projectiles and bursts into `fx/`
   modules that the existing `createBattleEffects` composes — covers: FR-3
-- [ ] **P3.T3: Split the camera** — arena framing vs drag/orbit, building on
+- [x] **P3.T3: Split the camera** — arena framing vs drag/orbit, building on
   `orbit-logic.ts`; the exported factory and options are unchanged — covers: FR-3
 
 ## Phase 4: Screens and dev harness
