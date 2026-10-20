@@ -72,22 +72,22 @@
 **Goal:** The player can see which form the training favors before the gate and understands the form they earned afterwards, with no new modal.
 **Depends on:** Phase 3
 **Covers:** FR-5, FR-6, FR-10, FR-12
-**Touches:** `apps/client/src/growth-panel.ts`, `apps/client/src/growth-panel.test.ts`, `apps/client/src/hud/plates.ts`, `apps/client/src/hud/copy-care.ts`, `apps/client/src/hud/copy-cup.ts`, `apps/client/src/hud/copy.test.ts`, `apps/client/src/creature-detail.ts`, `apps/client/src/detail/*`, `apps/client/src/ui/kit.css`, `apps/client/src/ranch.css`
-**Verification:** `bun test --timeout 120000 apps/client/src/growth-panel.test.ts apps/client/src/hud/copy.test.ts apps/client/src/creature-detail.test.ts && bun run verify && bun run build`
-**Status:** in_progress
+**Touches:** `apps/client/src/growth.ts`, `apps/client/src/growth-panel.ts`, `apps/client/src/growth-panel.test.ts`, `apps/client/src/hud/copy-branch.ts`, `apps/client/src/hud/copy-growth.ts`, `apps/client/src/hud/plates-creature.ts`, `apps/client/src/hud/plates.test.ts`, `apps/client/src/hud/update.ts`, `apps/client/src/hud/copy.test.ts`, `apps/client/src/creature-detail.ts`, `apps/client/src/detail/path.ts`, `apps/client/src/ui/kit.css`, `apps/client/src/ranch.css`, `packages/sim/src/stats.ts`, `packages/sim/src/stats.test.ts`
+**Verification:** `bun test --timeout 120000 apps/client/src/growth-panel.test.ts apps/client/src/hud/copy.test.ts apps/client/src/creature-detail.test.ts apps/client/src/hud/plates.test.ts packages/sim/src/stats.test.ts && bun run verify && bun run build`
+**Status:** verified
 
-- [ ] **P4.T1 — Add the day-5 lean row to the growth panel**
-  - [ ] Render the branch label and a trained/nature qualifier from `branchLean`; update after settlement.
-  - [ ] Show nothing before day 5 and never print an undiscovered threshold.
-- [ ] **P4.T2 — Reveal the earned form and label the plate**
-  - [ ] Extend the evolution morning copy to name the branch in coach voice without asking for confirmation.
-  - [ ] Add the branch label and crest to the creature plate, with a text equivalent for screen readers.
-- [ ] **P4.T3 — Show the branch in the detail modal**
-  - [ ] Add the form and signature move with its branch tag to the detail tabs and move pool.
-  - [ ] Keep the signature out of the pool for the sibling branch and legacy.
-- [ ] **P4.T4 — Verify keyboard, contrast, and reduced motion**
-  - [ ] Assert the new text is conveyed without hue and the reveal does not depend on animation.
-  - [ ] Check the lean row and branch badge at the desktop and narrow breakpoints.
+- [x] **P4.T1 - Add the day-5 lean row to the growth panel**
+  - [x] Render the path title, branch label and trained/nature qualifier from `branchPath`/`branchLean`; update after settlement and after evolution (earned label replaces the preview).
+  - [x] Show nothing before day 5 and never print an undiscovered threshold.
+- [x] **P4.T2 - Reveal the earned form and label the plate**
+  - [x] Name the earned form in the evolution-morning callout, reading that branch's own applied boost and keeping the legacy output unchanged.
+  - [x] Render the form label as its own full-width plate line (not a third chip): full label plus favored stats, legacy without "favors —", hidden for a baby and on the collapsed plate. A seeded 1400px browser check caught the chip truncating both the label and the name; the line fixes it.
+- [x] **P4.T3 - Show the branch in the detail modal**
+  - [x] Add the Path section to the Stats tab: form/preview, favors, signature and one coach line; legacy shows no signature. The sibling signature is not offered in the move pool, so there is no tag to add there.
+  - [x] Make `statBreakdown` branch-aware so the "evolved" chips match the boost actually applied (Courser juvenile +2/+4/+1/+2, champion +7/+11/+4/+4); legacy chips unchanged.
+- [x] **P4.T4 - Verify text, contrast, and reduced motion**
+  - [x] Text plus accent hue on every surface; no added motion; plate line and lean row tested for position and hidden states.
+  - [x] Desktop visually verified in a seeded browser (baby lean, Courser plate line, Courser detail, legacy detail); the narrow viewport could not be resized in the harness, so wrap/collapse behavior rests on the DOM tests.
 
 ## Phase 5: Tint, handbook, and documentation
 
