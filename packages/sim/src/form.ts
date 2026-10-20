@@ -3,10 +3,12 @@
  * up in a fight, as one pure read of mood, bond and health.
  *
  * This module reads `creature.conditions` only. It never draws from the RNG,
- * never mutates its input, and never touches HP: the shape of the deltas is
- * ATK/SPD-only on purpose, so the doubled-HP scale and the FR12 fairness bands
- * stay exactly where they were tuned. Form is computed on demand — O(1), no
- * cached state, no save field.
+ * never mutates its input, and moves ATK alone: HP stays out of it, so the
+ * doubled-HP scale and the FR12 fairness bands stay exactly where they were
+ * tuned, and SPD stays out of it because turn order is discrete — a speed delta
+ * flips initiative on the FR12 boundary and turns a fair gatekeeper into a
+ * 0%/90% cliff (phase-3 probe, 2026-10-20). Form is computed on demand — O(1),
+ * no cached state, no save field.
  *
  * The score is `0.6 * mood + 0.4 * bond` because mood is the faster-moving
  * signal (it swings with a single night's care) while bond is the slow,
@@ -37,16 +39,17 @@ const STEADY_SCORE = 40
 const FLAT_SCORE = 20
 
 /**
- * The stat delta each tier applies on top of `effectiveStats`. HP is always 0:
- * form is a form of the fighter, not a second health pool, and keeping it out
- * of HP is what leaves the balance probe bands untouched.
+ * The stat delta each tier applies on top of `effectiveStats`. HP and DEF are
+ * always 0, and SPD is always 0 by decision: form is a form of the fighter, not
+ * a second health pool, and ATK is the one stat that scales smoothly instead of
+ * flipping turn order, so the FR12 fairness bands stay inside their envelope.
  */
 export const FORM_DELTAS: Readonly<Record<FormTier, Readonly<CreatureStats>>> =
   Object.freeze({
-    sharp: Object.freeze({ hp: 0, atk: 1, def: 0, spd: 1 }),
+    sharp: Object.freeze({ hp: 0, atk: 1, def: 0, spd: 0 }),
     steady: Object.freeze({ hp: 0, atk: 0, def: 0, spd: 0 }),
-    flat: Object.freeze({ hp: 0, atk: -1, def: 0, spd: -1 }),
-    sluggish: Object.freeze({ hp: 0, atk: -2, def: 0, spd: -2 }),
+    flat: Object.freeze({ hp: 0, atk: -1, def: 0, spd: 0 }),
+    sluggish: Object.freeze({ hp: 0, atk: -2, def: 0, spd: 0 }),
   })
 
 /**
@@ -60,19 +63,19 @@ export const FORM_COPY: Readonly<
 > = Object.freeze({
   sharp: Object.freeze({
     label: "Sharp",
-    line: "Bonded and in fine fettle: +1 ATK, +1 SPD.",
+    line: "Bonded and in fine fettle: +1 ATK.",
   }),
   steady: Object.freeze({
     label: "Steady",
-    line: "Settled and content: no change to ATK or SPD.",
+    line: "Settled and content: no change to ATK.",
   }),
   flat: Object.freeze({
     label: "Flat",
-    line: "Out of sorts: -1 ATK, -1 SPD.",
+    line: "Out of sorts: -1 ATK.",
   }),
   sluggish: Object.freeze({
     label: "Sluggish",
-    line: "Neglected and ailing: -2 ATK, -2 SPD.",
+    line: "Neglected and ailing: -2 ATK.",
   }),
 })
 
@@ -102,8 +105,9 @@ export function formModifier(creature: Creature): CreatureStats {
 
 /**
  * The combat stat line for a pre-fight readout: `effectiveStats` plus the form
- * delta, each stat floored at 1 so no creature is ever unusable. Pure — it
- * reads the creature and returns a fresh object.
+ * delta. SPD is passed through verbatim — form never moves it — and the ATK
+ * penalty is floored at 1 so no creature is ever unusable. Pure — it reads the
+ * creature and returns a fresh object.
  */
 export function battleStats(creature: Creature): CreatureStats {
   const effective = effectiveStats(creature)
@@ -112,6 +116,6 @@ export function battleStats(creature: Creature): CreatureStats {
     hp: Math.max(1, effective.hp + delta.hp),
     atk: Math.max(1, effective.atk + delta.atk),
     def: Math.max(1, effective.def + delta.def),
-    spd: Math.max(1, effective.spd + delta.spd),
+    spd: effective.spd,
   }
 }

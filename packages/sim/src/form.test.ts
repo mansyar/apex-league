@@ -150,9 +150,9 @@ function tierConditions(tier: FormTier): Creature["conditions"] {
 }
 
 describe("formModifier and FORM_DELTAS", () => {
-  test("sharp pays +1 ATK and +1 SPD, never HP", () => {
+  test("sharp pays +1 ATK only — never SPD, never HP", () => {
     const modifier = formModifier(creatureWith({ mood: 100, bond: 100 }))
-    expect(modifier).toEqual({ hp: 0, atk: 1, def: 0, spd: 1 })
+    expect(modifier).toEqual({ hp: 0, atk: 1, def: 0, spd: 0 })
   })
 
   test("steady is all zeros", () => {
@@ -164,21 +164,21 @@ describe("formModifier and FORM_DELTAS", () => {
     })
   })
 
-  test("flat pays -1 ATK and -1 SPD", () => {
+  test("flat pays -1 ATK only", () => {
     expect(formModifier(creatureWith({ mood: 20, bond: 20 }))).toEqual({
       hp: 0,
       atk: -1,
       def: 0,
-      spd: -1,
+      spd: 0,
     })
   })
 
-  test("sluggish pays -2 ATK and -2 SPD", () => {
+  test("sluggish pays -2 ATK only", () => {
     expect(formModifier(creatureWith({ mood: 20, bond: 0 }))).toEqual({
       hp: 0,
       atk: -2,
       def: 0,
-      spd: -2,
+      spd: 0,
     })
   })
 
@@ -189,10 +189,10 @@ describe("formModifier and FORM_DELTAS", () => {
       )
       expect(FORM_DELTAS[tier].hp).toBe(0)
     }
-    expect(FORM_DELTAS.sharp).toEqual({ hp: 0, atk: 1, def: 0, spd: 1 })
+    expect(FORM_DELTAS.sharp).toEqual({ hp: 0, atk: 1, def: 0, spd: 0 })
     expect(FORM_DELTAS.steady).toEqual({ hp: 0, atk: 0, def: 0, spd: 0 })
-    expect(FORM_DELTAS.flat).toEqual({ hp: 0, atk: -1, def: 0, spd: -1 })
-    expect(FORM_DELTAS.sluggish).toEqual({ hp: 0, atk: -2, def: 0, spd: -2 })
+    expect(FORM_DELTAS.flat).toEqual({ hp: 0, atk: -1, def: 0, spd: 0 })
+    expect(FORM_DELTAS.sluggish).toEqual({ hp: 0, atk: -2, def: 0, spd: 0 })
   })
 })
 
@@ -205,12 +205,12 @@ describe("formTier — sickness pins the tier", () => {
     })
     expect(formScore(sick)).toBeCloseTo(100, 10)
     expect(formTier(sick)).toBe("sluggish")
-    expect(formModifier(sick)).toEqual({ hp: 0, atk: -2, def: 0, spd: -2 })
+    expect(formModifier(sick)).toEqual({ hp: 0, atk: -2, def: 0, spd: 0 })
     expect(battleStats(sick)).toEqual({
       hp: effectiveStats(sick).hp,
       atk: effectiveStats(sick).atk - 2,
       def: effectiveStats(sick).def,
-      spd: effectiveStats(sick).spd - 2,
+      spd: effectiveStats(sick).spd,
     })
   })
 
@@ -235,8 +235,24 @@ describe("battleStats", () => {
       hp: effective.hp,
       atk: effective.atk + 1,
       def: effective.def,
-      spd: effective.spd + 1,
+      spd: effective.spd,
     })
+  })
+
+  test("SPD, DEF and HP are effectiveStats at every tier (FR-9, AC-2)", () => {
+    for (const species of STARTER_SPECIES) {
+      for (const tier of TIERS) {
+        const creature: Creature = {
+          ...creatureWith(tierConditions(tier), species.id),
+          trained: { hp: 2, atk: 3, def: 1, spd: 4 },
+        }
+        const effective = effectiveStats(creature)
+        const stats = battleStats(creature)
+        expect(stats.spd, `${species.id} ${tier} spd`).toBe(effective.spd)
+        expect(stats.hp, `${species.id} ${tier} hp`).toBe(effective.hp)
+        expect(stats.def, `${species.id} ${tier} def`).toBe(effective.def)
+      }
+    }
   })
 
   test("is pure — it does not mutate the creature", () => {
@@ -253,20 +269,20 @@ describe("battleStats", () => {
     expect(creature).toEqual(before)
   })
 
-  test("never pushes a stat below 1", () => {
+  test("floors the ATK penalty at 1 and passes SPD through untouched", () => {
     const feeble: Creature = {
       ...creatureWith({ mood: 20, bond: 0 }),
       stats: { hp: 0, atk: 0, def: 0, spd: 0 },
       trained: { hp: 0, atk: 0, def: 0, spd: 0 },
     }
-    expect(battleStats(feeble)).toEqual({ hp: 1, atk: 1, def: 1, spd: 1 })
+    expect(battleStats(feeble)).toEqual({ hp: 1, atk: 1, def: 1, spd: 0 })
 
     const edge: Creature = {
       ...creatureWith({ mood: 20, bond: 0 }),
       stats: { hp: 4, atk: 2, def: 3, spd: 2 },
       trained: { hp: 0, atk: 0, def: 0, spd: 0 },
     }
-    expect(battleStats(edge)).toEqual({ hp: 4, atk: 1, def: 3, spd: 1 })
+    expect(battleStats(edge)).toEqual({ hp: 4, atk: 1, def: 3, spd: 2 })
   })
 })
 
@@ -280,10 +296,10 @@ describe("FORM_COPY", () => {
     }
   })
 
-  test("every line names the stats it moves, so copy stands alone", () => {
+  test("every line names ATK and promises nothing else, so copy stands alone", () => {
     for (const tier of TIERS) {
       expect(FORM_COPY[tier].line).toContain("ATK")
-      expect(FORM_COPY[tier].line).toContain("SPD")
+      expect(FORM_COPY[tier].line).not.toContain("SPD")
       expect(FORM_COPY[tier].line.trim().endsWith(".")).toBe(true)
       expect(FORM_COPY[tier].line.length).toBeLessThanOrEqual(80)
     }
@@ -291,10 +307,7 @@ describe("FORM_COPY", () => {
 
   test("the delta-carrying lines quote the actual modifier", () => {
     expect(FORM_COPY.sharp.line).toContain("+1 ATK")
-    expect(FORM_COPY.sharp.line).toContain("+1 SPD")
     expect(FORM_COPY.flat.line).toContain("-1 ATK")
-    expect(FORM_COPY.flat.line).toContain("-1 SPD")
     expect(FORM_COPY.sluggish.line).toContain("-2 ATK")
-    expect(FORM_COPY.sluggish.line).toContain("-2 SPD")
   })
 })

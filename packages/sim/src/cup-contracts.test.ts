@@ -26,6 +26,7 @@ import type { Creature } from "./index"
 import {
   advanceDay,
   BRACKET_SLOTS,
+  CONDITION_START,
   CUP_ROUNDS,
   type CupSession,
   chooseStarter,
@@ -40,13 +41,23 @@ import {
   type Tactic,
 } from "./index"
 
-/** A state standing on cup day 7 with a fresh creature (trained 0 days). */
+/**
+ * A state standing on cup day 7 with a fresh creature (trained 0 days).
+ *
+ * The nightly tick never feeds, so a creature left to `advanceDay` alone
+ * arrives starving, sick (health 60), and — once form exists — sluggish.
+ * These contracts pin the day-7 baby cup (draws, ramp, pairings, placement),
+ * not neglect, so the fixture is restored to the condition it is named for:
+ * `CONDITION_START` scores exactly 40, the steady tier, which keeps
+ * `battleStats` identical to `effectiveStats` (AC-1). Neglect is exercised
+ * deliberately in cup/form-seam.test.ts and in the form balance probe.
+ */
 function cupDayCreature(seed = 42, targetDay = 7): Creature {
   let s = advanceDay(chooseStarter(createInitialState(), "fire_drake", seed))
   while (s.day < targetDay) s = advanceDay(s)
   const creature = s.creature
   if (!creature) throw new Error("state has no creature")
-  return creature
+  return { ...creature, conditions: { ...CONDITION_START } }
 }
 
 /** Default coach picks for a creature (equipped kit, given tactic). */
