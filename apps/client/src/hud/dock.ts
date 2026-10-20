@@ -1,9 +1,10 @@
 import {
   type CareAction,
   type GameState,
-  type previewTraining,
+  getTrainingProgram,
   type StatKey,
   TRAINING_CAP,
+  type TrainingPreview,
 } from "@apex/sim"
 import { icons } from "../ui/icons"
 import { button, cta, plate } from "../ui/kit"
@@ -22,20 +23,21 @@ export interface TrainButtonState {
   disabled: boolean
   /** Tooltip reason when disabled (kit tooltip), null when enabled. */
   reason: string | null
-  /** The inline tag under the label ("Focus: ATK") or "" when quiet. */
+  /** The inline tag under the label (the program label) or "" when quiet. */
   tag: string
   focus: boolean
 }
 
 /**
- * Train-button availability: disabled only when nothing is possible. A
- * focus set keeps it enabled at 0 AP, because a same-day swap is free.
+ * Train-button availability: disabled only when nothing is possible. An
+ * assigned program keeps it enabled at 0 AP, because a same-day swap is free.
  */
 export function trainButtonState(
   creature: NonNullable<GameState["creature"]>,
   actionPoints: number,
 ): TrainButtonState {
-  const focus = Boolean(creature.trainingFocus)
+  const program = creature.trainingProgram
+  const focus = program !== null
   const allCapped = STATS.every(
     ({ key }) => creature.trained[key] >= TRAINING_CAP,
   )
@@ -47,7 +49,7 @@ export function trainButtonState(
       focus,
     }
   }
-  if (actionPoints === 0 && !creature.trainingFocus) {
+  if (actionPoints === 0 && !program) {
     return {
       disabled: true,
       reason: REJECTION_COPY["no-ap"],
@@ -58,9 +60,7 @@ export function trainButtonState(
   return {
     disabled: false,
     reason: null,
-    tag: creature.trainingFocus
-      ? `Focus: ${statLabel(creature.trainingFocus)}`
-      : "",
+    tag: program ? getTrainingProgram(program).label : "",
     focus,
   }
 }
@@ -74,25 +74,30 @@ export interface PickerEntry {
 
 /**
  * Picker entries: tonight's delta, or the waste reason. Capped stats are
- * disabled; the current focus is marked.
+ * disabled; the assigned program's primary stat is marked.
  */
 export function pickerEntry(
   creature: NonNullable<GameState["creature"]>,
   key: StatKey,
-  preview: ReturnType<typeof previewTraining>,
+  preview: TrainingPreview,
 ): PickerEntry {
   const capped = creature.trained[key] >= TRAINING_CAP
-  const isFocus = creature.trainingFocus === key
+  const program = creature.trainingProgram
+  const isFocus =
+    program !== null && getTrainingProgram(program).primary === key
+  const gain = preview.gains[key] ?? 0
   let note: string
   if (capped) {
     note = "as sharp as it can get for now"
   } else if (isFocus) {
-    note = preview ? `focused · ${previewNote(preview)}` : "focused"
-  } else if (preview === "gained") {
+    note = preview.result
+      ? `focused · ${previewNote(preview.result)}`
+      : "focused"
+  } else if (preview.result === "gained" && gain > 0) {
     const total = creature.stats[key] + creature.trained[key]
-    note = `${statLabel(key)} ${total} → ${total + 1}`
+    note = `${statLabel(key)} ${total} → ${total + gain}`
   } else {
-    note = preview ? previewNote(preview) : "costs 1 AP"
+    note = preview.result ? previewNote(preview.result) : "costs 1 AP"
   }
   return { capped, isFocus, note }
 }

@@ -4,7 +4,7 @@ import { importBlocked, importSummary, transferNotice } from "./save-transfer"
 
 const save = (overrides: Partial<SaveData["state"]> = {}): SaveData =>
   ({
-    version: 17,
+    version: 18,
     savedAt: 0,
     session: null,
     state: {

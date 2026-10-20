@@ -321,18 +321,21 @@ describe("coachVoice", () => {
 })
 
 describe("trainingStatus", () => {
-  const drake = createCreature("fire_drake", 42)
+  const drake = {
+    ...createCreature("fire_drake", 42),
+    trainingProgram: null,
+  }
 
-  test("golden: focus preview names the stat while conditions hold", () => {
-    expect(trainingStatus({ ...drake, trainingFocus: "hp" }, null)).toBe(
-      "A full night's rest will sharpen HP.",
-    )
+  test("golden: program preview names the primary stat while conditions hold", () => {
+    expect(
+      trainingStatus({ ...drake, trainingProgram: "endurance" }, null),
+    ).toBe("A full night's rest will sharpen HP.")
   })
 
-  test("golden: focus preview warns when tonight would be a sick night", () => {
+  test("golden: program preview warns when tonight would be a sick night", () => {
     const sick = {
       ...drake,
-      trainingFocus: "hp" as const,
+      trainingProgram: "endurance" as const,
       conditions: { ...drake.conditions, health: 79 },
     }
     expect(trainingStatus(sick, null)).toBe(
@@ -340,10 +343,10 @@ describe("trainingStatus", () => {
     )
   })
 
-  test("golden: focus preview warns when tonight would be a hungry night", () => {
+  test("golden: program preview warns when tonight would be a hungry night", () => {
     const hungry = {
       ...drake,
-      trainingFocus: "hp" as const,
+      trainingProgram: "endurance" as const,
       conditions: { ...drake.conditions, hunger: 15 },
     }
     expect(trainingStatus(hungry, null)).toBe(
@@ -351,14 +354,25 @@ describe("trainingStatus", () => {
     )
   })
 
-  test("golden: morning result with the remembered focus names the stat", () => {
-    const creature = { ...drake, trainingResult: "gained" as const }
-    expect(trainingStatus(creature, "atk")).toBe(
-      "Last night's rest sharpened ATK.",
+  test("golden: program preview warns when tonight would be an exhausted night", () => {
+    const tired = {
+      ...drake,
+      trainingProgram: "endurance" as const,
+      conditions: { ...drake.conditions, energy: 29 },
+    }
+    expect(trainingStatus(tired, null)).toBe(
+      "Too tired to gain from tonight's training.",
     )
   })
 
-  test("golden: morning result without a remembered focus stays generic", () => {
+  test("golden: morning result names the remembered program's primary", () => {
+    const creature = { ...drake, trainingResult: "gained" as const }
+    expect(trainingStatus(creature, "sprint")).toBe(
+      "Last night's rest sharpened SPD.",
+    )
+  })
+
+  test("golden: morning result without a remembered program stays generic", () => {
     const creature = { ...drake, trainingResult: "gained" as const }
     expect(trainingStatus(creature, null)).toBe(
       "A night of rest paid off in training.",
@@ -367,19 +381,26 @@ describe("trainingStatus", () => {
 
   test("golden: morning result when the creature was too unwell", () => {
     const creature = { ...drake, trainingResult: "sick" as const }
-    expect(trainingStatus(creature, "hp")).toBe(
+    expect(trainingStatus(creature, "endurance")).toBe(
       "Ember Drake was too unwell to gain from training.",
     )
   })
 
   test("golden: morning result when the creature was too hungry", () => {
     const creature = { ...drake, trainingResult: "hungry" as const }
-    expect(trainingStatus(creature, "hp")).toBe(
+    expect(trainingStatus(creature, "endurance")).toBe(
       "Ember Drake was too hungry to gain from training.",
     )
   })
 
-  test("golden: nothing to say with no focus and no result", () => {
+  test("golden: morning result when the creature was too tired", () => {
+    const creature = { ...drake, trainingResult: "exhausted" as const }
+    expect(trainingStatus(creature, "endurance")).toBe(
+      "Ember Drake was too tired to gain from training.",
+    )
+  })
+
+  test("golden: nothing to say with no program and no result", () => {
     expect(trainingStatus(drake, null)).toBe("")
   })
 })

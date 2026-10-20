@@ -31,7 +31,7 @@ import {
 
 describe("save schema", () => {
   test("current version matches the schema", () => {
-    expect(SAVE_VERSION).toBe(17)
+    expect(SAVE_VERSION).toBe(18)
   })
 
   test("serializeSave wraps state with version metadata", () => {
@@ -125,7 +125,7 @@ describe("migration chain", () => {
       unknown
     >
     delete legacy.trained
-    delete legacy.trainingFocus
+    delete legacy.trainingProgram
     delete legacy.trainingResult
     const v2 = {
       version: 2,
@@ -143,7 +143,7 @@ describe("migration chain", () => {
       def: 0,
       spd: 0,
     })
-    expect(migrated.state.creature?.trainingFocus).toBeNull()
+    expect(migrated.state.creature?.trainingProgram).toBeNull()
     expect(migrated.state.creature?.trainingResult).toBeNull()
     // v12 doubles the stored HP (old-scale save); the rest of the stats
     // pass through untouched.
@@ -166,7 +166,7 @@ describe("migration chain", () => {
       def: 0,
       spd: 0,
     })
-    expect(migrated.state.creature?.trainingFocus).toBeNull()
+    expect(migrated.state.creature?.trainingProgram).toBeNull()
     expect(migrated.state.creature?.trainingResult).toBeNull()
     expect(migrated.state.creature?.trainingDays).toBe(6)
     expect(migrated.state.creature?.loadout).toBeNull()
@@ -418,7 +418,7 @@ describe("storage adapter", () => {
       creature: {
         ...owned.creature,
         trained: { hp: 0, atk: 3, def: 0, spd: 1 },
-        trainingFocus: "atk" as const,
+        trainingProgram: "power" as const,
         trainingResult: "gained" as const,
         fedToday: true,
       },
@@ -426,7 +426,7 @@ describe("storage adapter", () => {
     saveGame(adapter, state, 1)
     const loaded = loadGame(adapter)
     expect(loaded?.creature?.trained).toEqual({ hp: 0, atk: 3, def: 0, spd: 1 })
-    expect(loaded?.creature?.trainingFocus).toBe("atk")
+    expect(loaded?.creature?.trainingProgram).toBe("power")
     expect(loaded?.creature?.trainingResult).toBe("gained")
     expect(loaded?.creature?.fedToday).toBe(true)
   })
@@ -461,7 +461,7 @@ describe("storage adapter", () => {
     expect(loadGame(adapter)).toBeNull()
   })
 
-  test("loadGame rejects corrupt focus, result, or missing trained", () => {
+  test("loadGame rejects corrupt program, result, or missing trained", () => {
     const adapter: SaveAdapter = createMemoryAdapter()
     const owned = chooseStarter(createInitialState(), "fire_drake", 42)
     if (!owned.creature) throw new Error("no creature")
@@ -474,11 +474,11 @@ describe("storage adapter", () => {
       }) as GameState
     saveGame(adapter, bad({ trained: undefined }), 1)
     expect(loadGame(adapter)).toBeNull()
-    saveGame(adapter, bad({ trainingFocus: "banana" }), 1)
+    saveGame(adapter, bad({ trainingProgram: "banana" }), 1)
     expect(loadGame(adapter)).toBeNull()
     saveGame(adapter, bad({ trainingResult: "banana" }), 1)
     expect(loadGame(adapter)).toBeNull()
-    saveGame(adapter, bad({ trainingFocus: 3 }), 1)
+    saveGame(adapter, bad({ trainingProgram: 3 }), 1)
     expect(loadGame(adapter)).toBeNull()
     saveGame(adapter, bad({ fedToday: "yes" }), 1)
     expect(loadGame(adapter)).toBeNull()
@@ -688,7 +688,7 @@ describe("evolution stage (v6)", () => {
 
 describe("save v7 — cup session, rename, hints", () => {
   test("current version matches the schema", () => {
-    expect(SAVE_VERSION).toBe(17)
+    expect(SAVE_VERSION).toBe(18)
   })
 
   test("a v6 save migrates cleanly: null session + a clean hint ledger", () => {
@@ -1039,8 +1039,8 @@ describe("save v11 — silver ladder tier + boss defeat ledger", () => {
     return { version: 10, state, session: null, savedAt: 77 }
   }
 
-  test("SAVE_VERSION is 17", () => {
-    expect(SAVE_VERSION).toBe(17)
+  test("SAVE_VERSION is 18", () => {
+    expect(SAVE_VERSION).toBe(18)
   })
 
   test("a v10 save migrates: the ladder keeps its points and gains tier bronze", () => {
@@ -1145,8 +1145,8 @@ describe("save v12 - element chart HP scale (v11 -> v12)", () => {
   // Hall of Fame record. The migration doubles exactly the stored HP
   // magnitudes and touches nothing else - trained bonuses, atk/def/spd,
   // ladder, and the ledger are scale-free.
-  test("SAVE_VERSION is 17", () => {
-    expect(SAVE_VERSION).toBe(17)
+  test("SAVE_VERSION is 18", () => {
+    expect(SAVE_VERSION).toBe(18)
   })
 
   /** A v11-shaped payload: fresh state with every stored HP halved to the
@@ -1350,8 +1350,8 @@ describe("save v13 (audio_foundation_20261017)", () => {
     return { version: 12, state, session: null, savedAt: 77 }
   }
 
-  test("SAVE_VERSION is 17", () => {
-    expect(SAVE_VERSION).toBe(17)
+  test("SAVE_VERSION is 18", () => {
+    expect(SAVE_VERSION).toBe(18)
   })
 
   test("a v12 save migrates: settings gain the muted flag, default false", () => {
@@ -1421,8 +1421,8 @@ describe("save v14 (gold_legend_ladder_20261017)", () => {
     return { version: 13, state, session: null, savedAt: 77 }
   }
 
-  test("SAVE_VERSION is 17", () => {
-    expect(SAVE_VERSION).toBe(17)
+  test("SAVE_VERSION is 18", () => {
+    expect(SAVE_VERSION).toBe(18)
   })
 
   test("a v13 save migrates: legendTitles stamps at 0, ladder untouched", () => {
@@ -1532,6 +1532,161 @@ describe("save v14 (gold_legend_ladder_20261017)", () => {
     adapter.setItem(
       SAVE_KEY,
       JSON.stringify({ version: SAVE_VERSION, state, savedAt: 0 }),
+    )
+    expect(loadGame(adapter)).toBeNull()
+  })
+})
+
+describe("save v18 — training programs (training_programs_form_20261020)", () => {
+  /** A v17 payload: the creature still carries the old single-stat focus. */
+  function v17With(focus: string | null): Record<string, unknown> {
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!owned.creature) throw new Error("no creature")
+    const creature = structuredClone(owned.creature) as unknown as Record<
+      string,
+      unknown
+    >
+    delete creature.trainingProgram
+    creature.trainingFocus = focus
+    return {
+      version: 17,
+      savedAt: 77,
+      session: null,
+      state: { ...owned, creature },
+    }
+  }
+
+  test("the schema version is 18", () => {
+    expect(SAVE_VERSION).toBe(18)
+  })
+
+  test("every v17 focus maps to its program and the old key is dropped", () => {
+    const mapping: Record<string, string> = {
+      hp: "endurance",
+      atk: "power",
+      def: "power",
+      spd: "sprint",
+    }
+    for (const [stat, program] of Object.entries(mapping)) {
+      const migrated = migrate(v17With(stat))
+      expect(migrated.version).toBe(18)
+      expect(migrated.state.creature?.trainingProgram).toBe(
+        program as "power" | "endurance" | "sprint" | "ring",
+      )
+      expect(
+        "trainingFocus" in
+          (migrated.state.creature as unknown as Record<string, unknown>),
+      ).toBe(false)
+      expect(migrated.savedAt).toBe(77)
+    }
+  })
+
+  test("a v17 save with no focus migrates to no program", () => {
+    const migrated = migrate(v17With(null))
+    expect(migrated.state.creature?.trainingProgram).toBeNull()
+  })
+
+  test("the migration forwards the trained ledger, days and result untouched", () => {
+    const raw = v17With("spd")
+    const state = raw.state as Record<string, unknown>
+    const creature = state.creature as Record<string, unknown>
+    creature.trained = { hp: 0, atk: 2, def: 1, spd: 3 }
+    creature.trainingDays = 4
+    creature.trainingResult = "gained"
+    const migrated = migrate(raw)
+    expect(migrated.state.creature?.trained).toEqual({
+      hp: 0,
+      atk: 2,
+      def: 1,
+      spd: 3,
+    })
+    expect(migrated.state.creature?.trainingDays).toBe(4)
+    expect(migrated.state.creature?.trainingResult).toBe("gained")
+  })
+
+  test("a v17 save with a null creature migrates to no creature", () => {
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    const migrated = migrate({
+      version: 17,
+      savedAt: 0,
+      session: null,
+      state: { ...owned, creature: null },
+    })
+    expect(migrated.version).toBe(18)
+    expect(migrated.state.creature).toBeNull()
+  })
+
+  test("the v17 cup session is forwarded unchanged", () => {
+    const raw = v17With("atk")
+    const migrated = migrate({ ...raw, session: null })
+    expect(migrated.session).toBeNull()
+  })
+
+  test("a v0 save walks the whole chain to v18 with no program", () => {
+    const migrated = migrate({ version: 0, day: 3 })
+    expect(migrated.version).toBe(18)
+    expect(migrated.state.creature?.trainingProgram).toBeNull()
+  })
+
+  test("a v18 save round-trips its program", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!owned.creature) throw new Error("no creature")
+    const state = {
+      ...owned,
+      creature: {
+        ...owned.creature,
+        trainingProgram: "ring" as const,
+        trainingDays: 3,
+      },
+    }
+    saveGame(adapter, state, 1)
+    const loaded = loadGame(adapter)
+    expect(loaded?.creature?.trainingProgram).toBe("ring")
+    expect(loaded?.creature?.trainingDays).toBe(3)
+  })
+
+  test("a v18 save accepts an exhausted result", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!owned.creature) throw new Error("no creature")
+    saveGame(
+      adapter,
+      {
+        ...owned,
+        creature: { ...owned.creature, trainingResult: "exhausted" as const },
+      },
+      1,
+    )
+    expect(loadGame(adapter)?.creature?.trainingResult).toBe("exhausted")
+  })
+
+  test("loadGame rejects a v18 save carrying the retired focus key value", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!owned.creature) throw new Error("no creature")
+    const broken = structuredClone(owned) as unknown as {
+      creature: Record<string, unknown>
+    }
+    broken.creature.trainingProgram = "atk"
+    adapter.setItem(
+      SAVE_KEY,
+      JSON.stringify({ version: SAVE_VERSION, state: broken, savedAt: 0 }),
+    )
+    expect(loadGame(adapter)).toBeNull()
+  })
+
+  test("loadGame rejects a v18 save with no program field at all", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!owned.creature) throw new Error("no creature")
+    const broken = structuredClone(owned) as unknown as {
+      creature: Record<string, unknown>
+    }
+    delete broken.creature.trainingProgram
+    adapter.setItem(
+      SAVE_KEY,
+      JSON.stringify({ version: SAVE_VERSION, state: broken, savedAt: 0 }),
     )
     expect(loadGame(adapter)).toBeNull()
   })

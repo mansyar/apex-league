@@ -192,10 +192,10 @@ describe("GameState creature integration", () => {
 })
 
 describe("training fields", () => {
-  test("a new creature has zero trained bonuses, no focus, and no result", () => {
+  test("a new creature has zero trained bonuses, no assignment, and no result", () => {
     const c = createCreature("fire_drake", 42)
     expect(c.trained).toEqual({ hp: 0, atk: 0, def: 0, spd: 0 })
-    expect(c.trainingFocus).toBeNull()
+    expect(c.trainingProgram).toBeNull()
     expect(c.trainingResult).toBeNull()
   })
 
@@ -204,7 +204,7 @@ describe("training fields", () => {
       if (!species.available) continue
       const c = createCreature(species.id, 5)
       expect(c.trained).toEqual({ hp: 0, atk: 0, def: 0, spd: 0 })
-      expect(c.trainingFocus).toBeNull()
+      expect(c.trainingProgram).toBeNull()
       expect(c.trainingResult).toBeNull()
     }
   })
@@ -228,7 +228,7 @@ describe("training fields", () => {
   test("creatures carry exactly the four training fields", () => {
     const c: Creature = createCreature("fire_drake", 42)
     expect("trained" in c).toBe(true)
-    expect("trainingFocus" in c).toBe(true)
+    expect("trainingProgram" in c).toBe(true)
     expect("trainingResult" in c).toBe(true)
     expect("trainingDays" in c).toBe(true)
   })

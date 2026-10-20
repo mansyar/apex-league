@@ -6,6 +6,7 @@
 import { makeRng, type Rng } from "./rng"
 import { getSpecies, type SpeciesDef } from "./species"
 import type { GameState } from "./state"
+import type { TrainingProgram } from "./training"
 
 /** The six league elements. Each has one fixed hue (type-color contract). */
 export type Element = "fire" | "water" | "plant" | "electric" | "earth" | "wind"
@@ -72,14 +73,14 @@ export interface Creature {
    * within [0, TRAINING_CAP]; the display/combat value is stats + trained.
    */
   trained: CreatureStats
-  /** Tonight's assigned training focus, or null when nothing is assigned. */
-  trainingFocus: StatKey | null
+  /** Tonight's assigned training program, or null when nothing is assigned. */
+  trainingProgram: TrainingProgram | null
   /**
-   * Outcome of the last focused night, until the next assignment or a
-   * focusless night. Null when the last night had no focus.
+   * Outcome of the last program night, until the next assignment or a
+   * programless night. Null when the last night had no program.
    */
   trainingResult: TrainingResult | null
-  /** Lifetime count of days on which a focus was assigned (AP spent). */
+  /** Lifetime count of days on which a program was assigned (AP spent). */
   trainingDays: number
   /** Chosen loadout of kit ids, or null to use the default slicing. */
   loadout: readonly string[] | null
@@ -96,8 +97,12 @@ export interface Creature {
 /** The four trainable stat keys. */
 export type StatKey = keyof CreatureStats
 
-/** Outcome of a focused night: gained, or the reason it paid nothing. */
-export type TrainingResult = "gained" | "sick" | "hungry"
+/**
+ * Outcome of a program night: gained, or the reason it paid nothing.
+ * `exhausted` means the program was assigned but the creature had no
+ * energy to work with at lights-out.
+ */
+export type TrainingResult = "gained" | "sick" | "hungry" | "exhausted"
 
 /** Trained bonus cap per stat, above the rolled base. */
 export const TRAINING_CAP = 6
@@ -182,7 +187,7 @@ export function createCreature(
     sickCooldown: 0,
     stats: rollStats(rng, species),
     trained: { ...TRAINED_START },
-    trainingFocus: null,
+    trainingProgram: null,
     trainingResult: null,
     trainingDays: 0,
     loadout: null,

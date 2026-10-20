@@ -8,6 +8,7 @@ import {
   getSpecies,
   inspectSaveImport,
   markHintSeen,
+  programFor,
   renameCreature,
   type SaveData,
   type StatKey,
@@ -104,7 +105,9 @@ export function createHudScreen(deps: HudScreenDeps): Hud {
       if (action === "play") scene.startPlayCeremony()
     },
     onTrain: (stat: StatKey) => {
-      const result = assignTraining(store.get(), stat)
+      // Phase 2 keeps the stat-picker wiring: each stat trains through the
+      // program that pays it as its primary (phase 4 owns the real picker).
+      const result = assignTraining(store.get(), programFor(stat))
       if (!result.ok) return // entries are already disabled; belt and braces
       store.commit(result.state)
       // Training may shift the visual seed → resync the scene after the

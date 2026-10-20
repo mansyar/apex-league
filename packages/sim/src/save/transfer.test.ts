@@ -22,7 +22,7 @@ describe("buildSaveExport", () => {
     const exported = buildSaveExport(state, NOW)
     const parsed = JSON.parse(exported.json) as Record<string, unknown>
 
-    expect(exported.filename).toBe("apex-league-save-v17-2026-10-18.json")
+    expect(exported.filename).toBe("apex-league-save-v18-2026-10-18.json")
     expect(parsed.version).toBe(SAVE_VERSION)
     expect(parsed.session).toBeNull()
     expect(parsed.savedAt).toBe(NOW.getTime())
@@ -54,7 +54,7 @@ describe("inspectSaveImport", () => {
     }
   })
 
-  test("accepts a v15 payload and migrates it to v17", () => {
+  test("accepts a v15 payload and migrates it to the current version", () => {
     const state = JSON.parse(JSON.stringify(owned())) as Record<string, unknown>
     const settings = state.settings as Record<string, unknown>
     delete settings.musicVolume

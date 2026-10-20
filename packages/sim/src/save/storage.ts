@@ -1,9 +1,10 @@
-import { type Creature, type StatKey, TRAINING_CAP } from "../creature"
+import { type Creature, TRAINING_CAP } from "../creature"
 import { BRACKET_SLOTS, CUP_ROUNDS, type CupSession } from "../cup"
 import { SICK_COOLDOWN_NIGHTS } from "../evolution"
 import type { RetiredRecord } from "../legacy"
 import { getSpecies } from "../species"
 import type { GameState } from "../state"
+import { isTrainingProgram } from "../training"
 import { isLineageTrait } from "../traits"
 import { migrate } from "./migrate"
 import { SAVE_VERSION, type SaveData, serializeSave } from "./schema"
@@ -58,7 +59,7 @@ export function saveGame(
 const ELEMENTS = ["fire", "water", "plant", "electric", "earth", "wind"]
 const STAGES = ["baby", "juvenile", "champion"]
 const STAT_KEYS = ["hp", "atk", "def", "spd"]
-const TRAINING_RESULTS = ["gained", "sick", "hungry"]
+const TRAINING_RESULTS = ["gained", "sick", "hungry", "exhausted"]
 
 /** Save v15: a lineage trait list is canonical, unique, and at most four. */
 function isValidTraitList(value: unknown): boolean {
@@ -122,8 +123,9 @@ function isValidCreature(c: unknown): c is Creature {
       return false
   }
   // v3: training fields must be present and well-formed. Trained bonuses
-  // stay within [0, TRAINING_CAP]; focus and result are the sim's own
-  // unions (or the absent null after a focusless night).
+  // stay within [0, TRAINING_CAP]; the assigned program is one of the
+  // catalog's ids (or the absent null after a program night), and the result
+  // is the sim's own union.
   const trained = creature.trained
   if (typeof trained !== "object" || trained === null) return false
   const t = trained as Record<string, unknown>
@@ -137,8 +139,11 @@ function isValidCreature(c: unknown): c is Creature {
     )
       return false
   }
-  const focus = creature.trainingFocus
-  if (focus !== null && !STAT_KEYS.includes(focus as StatKey)) return false
+  // v18: the single-stat focus grew into a program; an unknown id (or a
+  // missing field) fails the load rather than silently dropping the night's
+  // assignment.
+  const program = creature.trainingProgram
+  if (program !== null && !isTrainingProgram(program)) return false
   const result = creature.trainingResult
   if (result !== null && !TRAINING_RESULTS.includes(result as string))
     return false

@@ -226,9 +226,14 @@ export {
   EXHAUSTED_ENERGY,
   NIGHT_RECOVERY,
   previewTraining,
+  RING_BOND_BONUS,
+  RING_MOOD_BONUS,
   SICK_HEALTH,
   SICKNESS_ONSET_HEALTH,
   settleCreature,
+  type TrainingPlan,
+  type TrainingPreview,
+  trainingPlan,
 } from "./settlement"
 export { getSpecies, type SpeciesDef, STARTER_SPECIES } from "./species"
 export {
@@ -257,3 +262,12 @@ export {
   CUP_WIN_AP_BONUS,
   TIER_AP_BONUS,
 } from "./ticker"
+export {
+  getTrainingProgram,
+  isTrainingProgram,
+  programFor,
+  TRAINING_ENERGY_COST,
+  TRAINING_PROGRAMS,
+  type TrainingProgram,
+  type TrainingProgramDef,
+} from "./training"

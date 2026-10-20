@@ -1,11 +1,18 @@
 import { describe, expect, test } from "bun:test"
-import { createCreature, type GameState, TRAINING_CAP } from "@apex/sim"
+import {
+  createCreature,
+  type GameState,
+  TRAINING_CAP,
+  type TrainingPreview,
+} from "@apex/sim"
 import { pickerEntry, trainButtonState } from "./dock"
 
 type Creature = NonNullable<GameState["creature"]>
 
 const drake = createCreature("fire_drake", 42)
-const fresh: Creature = { ...drake, trainingFocus: null }
+const fresh: Creature = { ...drake, trainingProgram: null }
+const quiet: TrainingPreview = { result: null, gains: {} }
+const gained: TrainingPreview = { result: "gained", gains: { atk: 1 } }
 const cappedAll: Creature = {
   ...fresh,
   trained: {
@@ -21,7 +28,7 @@ const belowCap: Creature = {
 }
 
 describe("trainButtonState", () => {
-  test("golden: a healthy creature with AP and no focus trains freely", () => {
+  test("golden: a healthy creature with AP and no program trains freely", () => {
     expect(trainButtonState(fresh, 3)).toEqual({
       disabled: false,
       reason: null,
@@ -39,7 +46,7 @@ describe("trainButtonState", () => {
     })
   })
 
-  test("golden: 0 AP without a focus blocks training", () => {
+  test("golden: 0 AP without a program blocks training", () => {
     expect(trainButtonState(fresh, 0)).toEqual({
       disabled: true,
       reason: "No AP left today.",
@@ -48,17 +55,21 @@ describe("trainButtonState", () => {
     })
   })
 
-  test("golden: 0 AP with a focus stays enabled — the swap is free", () => {
-    expect(trainButtonState({ ...fresh, trainingFocus: "atk" }, 0)).toEqual({
+  test("golden: 0 AP with a program stays enabled — the swap is free", () => {
+    expect(trainButtonState({ ...fresh, trainingProgram: "power" }, 0)).toEqual(
+      {
+        disabled: false,
+        reason: null,
+        tag: "Power Lifting",
+        focus: true,
+      },
+    )
+    expect(
+      trainButtonState({ ...fresh, trainingProgram: "endurance" }, 2),
+    ).toEqual({
       disabled: false,
       reason: null,
-      tag: "Focus: ATK",
-      focus: true,
-    })
-    expect(trainButtonState({ ...fresh, trainingFocus: "hp" }, 2)).toEqual({
-      disabled: false,
-      reason: null,
-      tag: "Focus: HP",
+      tag: "Endurance Circuit",
       focus: true,
     })
   })
@@ -69,48 +80,58 @@ describe("trainButtonState", () => {
 })
 
 describe("pickerEntry", () => {
-  test("golden: no focus and no preview reads the plain cost", () => {
-    expect(pickerEntry(fresh, "hp", null)).toEqual({
+  test("golden: no program and no preview reads the plain cost", () => {
+    expect(pickerEntry(fresh, "hp", quiet)).toEqual({
       capped: false,
       isFocus: false,
       note: "costs 1 AP",
     })
   })
 
-  test("golden: the focused stat reads tonight's preview", () => {
-    expect(
-      pickerEntry({ ...fresh, trainingFocus: "hp" }, "hp", "gained"),
-    ).toEqual({
+  test("golden: the program's primary stat reads tonight's preview", () => {
+    const powered: Creature = { ...fresh, trainingProgram: "power" }
+    expect(pickerEntry(powered, "atk", gained)).toEqual({
       capped: false,
       isFocus: true,
       note: "focused · +1 tonight",
     })
     expect(
-      pickerEntry({ ...fresh, trainingFocus: "hp" }, "hp", "sick").note,
+      pickerEntry(powered, "atk", { result: "sick", gains: {} }).note,
     ).toBe("focused · no gain — unwell")
     expect(
-      pickerEntry({ ...fresh, trainingFocus: "hp" }, "hp", "hungry").note,
+      pickerEntry(powered, "atk", { result: "hungry", gains: {} }).note,
     ).toBe("focused · no gain — hungry")
+    expect(
+      pickerEntry(powered, "atk", { result: "exhausted", gains: {} }).note,
+    ).toBe("focused · no gain — too tired")
   })
 
-  test("golden: other stats read tonight's concrete gain while focused", () => {
-    const focused: Creature = { ...fresh, trainingFocus: "hp" }
-    const total = focused.stats.atk + focused.trained.atk
-    expect(pickerEntry(focused, "atk", "gained")).toEqual({
+  test("golden: a trickle stat reads tonight's concrete gain", () => {
+    const powered: Creature = { ...fresh, trainingProgram: "power" }
+    const total = powered.stats.def + powered.trained.def
+    expect(
+      pickerEntry(powered, "def", {
+        result: "gained",
+        gains: { atk: 1, def: 1 },
+      }),
+    ).toEqual({
       capped: false,
       isFocus: false,
-      note: `ATK ${total} → ${total + 1}`,
+      note: `DEF ${total} → ${total + 1}`,
     })
   })
 
-  test("golden: a focused but non-previewed stat stays quiet about gains", () => {
-    const focused: Creature = { ...fresh, trainingFocus: "hp" }
-    expect(pickerEntry(focused, "atk", null).note).toBe("costs 1 AP")
+  test("golden: an unpreviewed stat stays quiet about gains", () => {
+    const powered: Creature = { ...fresh, trainingProgram: "power" }
+    expect(pickerEntry(powered, "spd", quiet).note).toBe("costs 1 AP")
   })
 
   test("golden: capped stats read the cap line and stay unfocusable", () => {
     expect(
-      pickerEntry({ ...cappedAll, trainingFocus: "hp" }, "hp", "gained"),
+      pickerEntry({ ...cappedAll, trainingProgram: "power" }, "atk", {
+        result: "gained",
+        gains: {},
+      }),
     ).toEqual({
       capped: true,
       isFocus: true,

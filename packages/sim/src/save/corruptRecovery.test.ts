@@ -38,7 +38,10 @@ describe("corrupt payload retention", () => {
 
     const raw = readRawSave(adapter)
     expect(raw).not.toBeNull()
-    expect(JSON.parse(raw ?? "{}")).toMatchObject({ version: 17, savedAt: 123 })
+    expect(JSON.parse(raw ?? "{}")).toMatchObject({
+      version: 18,
+      savedAt: 123,
+    })
   })
 
   test("only clearSave removes the broken payload", () => {

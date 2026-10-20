@@ -5,7 +5,7 @@ import {
   type GameState,
   lineagePrestige,
   previewTraining,
-  type StatKey,
+  type TrainingProgram,
 } from "@apex/sim"
 import { crestGlyph, elementHue } from "../element"
 import { meter, replay } from "../ui/kit"
@@ -79,7 +79,7 @@ export function createHudUpdate(
   const { familyEl, metaEl } = lineage
   const { motionChip, cameraChip, soundChip } = settings
 
-  let lastFocus: StatKey | null = null
+  let lastProgram: TrainingProgram | null = null
   // Previous AP total — drives the one-shot spend flash on the meter.
   let prevAp: number | null = null
   // Ladder climb detection: the ticker announces a sub-tier promotion or
@@ -215,8 +215,8 @@ export function createHudUpdate(
       cell.bonus.textContent = bonus
     }
 
-    // Train button: disabled only when nothing is possible. A focus set
-    // keeps it enabled at 0 AP, because a same-day swap is free.
+    // Train button: disabled only when nothing is possible. An assigned
+    // program keeps it enabled at 0 AP, because a same-day swap is free.
     const preview = previewTraining(creature)
     const train = trainButtonState(creature, state.actionPoints)
     trainButton.disabled = train.disabled
@@ -261,7 +261,7 @@ export function createHudUpdate(
     // stays visible after the cup overlay closes.)
     const climb = climbLine
     climbLine = null
-    statusTicker.say(statusLine(creature, state.day, lastFocus, climb))
+    statusTicker.say(statusLine(creature, state.day, lastProgram, climb))
 
     // Disabled states come from the sim itself — a dry-run careAction is
     // the single source of truth for why an action can't happen. The
@@ -282,9 +282,9 @@ export function createHudUpdate(
     // (The motion pill was already mirrored by capturePrefUpdate above —
     // it runs on every update path.)
 
-    // Remember the focus across Advance Day so the morning result can
+    // Remember the program across Advance Day so the morning result can
     // name the stat it sharpened.
-    if (creature.trainingFocus) lastFocus = creature.trainingFocus
+    if (creature.trainingProgram) lastProgram = creature.trainingProgram
 
     // An open detail modal repaints its Growth section from this commit, so
     // a gate unlocked by the settlement lands without a reopen (FR-7).

@@ -4,9 +4,11 @@ import {
   type CreatureConditions,
   EXHAUSTED_ENERGY,
   type GameState,
+  getTrainingProgram,
   previewTraining,
   SICK_HEALTH,
   type StatKey,
+  type TrainingProgram,
 } from "@apex/sim"
 import { graduationHint, growthHint, unlockCallout } from "./copy-growth"
 
@@ -39,9 +41,12 @@ export function statLabel(key: StatKey): string {
 }
 
 /** The short parenthetical note for what tonight's rest would do. */
-export function previewNote(preview: "gained" | "sick" | "hungry"): string {
+export function previewNote(
+  preview: "gained" | "sick" | "hungry" | "exhausted",
+): string {
   if (preview === "gained") return "+1 tonight"
   if (preview === "sick") return "no gain — unwell"
+  if (preview === "exhausted") return "no gain — too tired"
   return "no gain — hungry"
 }
 
@@ -76,34 +81,41 @@ export function flavorCallout(creature: Creature): string {
 }
 
 /**
- * The status line leads with training: the preview while a focus is set,
- * the morning result after Advance Day, and the condition coach line only
- * when training has nothing to say.
+ * The status line leads with training: the program preview while one is
+ * assigned, the morning result after Advance Day, and the condition coach
+ * line only when training has nothing to say.
  */
 export function trainingStatus(
   creature: NonNullable<GameState["creature"]>,
-  lastFocus: StatKey | null,
+  lastProgram: TrainingProgram | null,
 ): string {
-  if (creature.trainingFocus) {
-    const stat = statLabel(creature.trainingFocus)
-    const preview = previewTraining(creature)
+  if (creature.trainingProgram) {
+    const stat = statLabel(getTrainingProgram(creature.trainingProgram).primary)
+    const preview = previewTraining(creature).result
     if (preview === "gained") {
       return `A full night's rest will sharpen ${stat}.`
     }
     if (preview === "sick") {
       return "Too unwell to gain from training — medicine would help."
     }
+    if (preview === "exhausted") {
+      return "Too tired to gain from tonight's training."
+    }
     return "Too hungry to gain from tonight's training."
   }
   switch (creature.trainingResult) {
     case "gained":
-      return lastFocus
-        ? `Last night's rest sharpened ${statLabel(lastFocus)}.`
+      return lastProgram
+        ? `Last night's rest sharpened ${statLabel(
+            getTrainingProgram(lastProgram).primary,
+          )}.`
         : "A night of rest paid off in training."
     case "sick":
       return `${creature.name} was too unwell to gain from training.`
     case "hungry":
       return `${creature.name} was too hungry to gain from training.`
+    case "exhausted":
+      return `${creature.name} was too tired to gain from training.`
     default:
       return ""
   }
@@ -143,12 +155,12 @@ export function corruptSaveNotice(): string {
 export function statusLine(
   creature: NonNullable<GameState["creature"]>,
   day: number,
-  lastFocus: StatKey | null,
+  lastProgram: TrainingProgram | null,
   climb: string | null,
 ): string {
   return (
     climb ||
-    trainingStatus(creature, lastFocus) ||
+    trainingStatus(creature, lastProgram) ||
     coachVoice(creature.conditions, creature.name) ||
     unlockCallout(creature) ||
     growthHint(day, creature) ||
