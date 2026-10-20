@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test"
+import { afterAll, beforeAll, describe, expect, test } from "bun:test"
 import { createCreature, type GameState } from "@apex/sim"
 import {
   apPipPlan,
@@ -9,7 +9,12 @@ import {
   promotionLine,
   statCell,
 } from "./plates"
-import { formChipTitle, paintFormChip } from "./plates-creature"
+import {
+  buildCreaturePlate,
+  formChipTitle,
+  paintBranchBadge,
+  paintFormChip,
+} from "./plates-creature"
 
 const ladder = (
   tier: GameState["ladder"]["tier"],
@@ -288,5 +293,187 @@ describe("form chip", () => {
     expect(chip.textContent).toBe("Sluggish")
     expect(chip.title).toBe("Sluggish: ATK -2")
     expect(attrs["aria-label"]).toBe("Sluggish: ATK -2")
+  })
+})
+
+describe("branch badge", () => {
+  function badge() {
+    const attrs: Record<string, string> = {}
+    const node = {
+      textContent: "",
+      title: "",
+      hidden: false,
+      setAttribute: (key: string, value: string) => {
+        attrs[key] = value
+      },
+    } as unknown as HTMLElement
+    return { node, attrs }
+  }
+
+  test("stays hidden for a baby, even past the hinted day", () => {
+    const { node } = badge()
+    paintBranchBadge(node, createCreature("fire_drake", 42), 6)
+    expect(node.hidden).toBe(true)
+    expect(node.textContent).toBe("")
+  })
+
+  test("names the earned form with its favored stats", () => {
+    const { node, attrs } = badge()
+    paintBranchBadge(
+      node,
+      {
+        ...createCreature("fire_drake", 42),
+        stage: "juvenile",
+        branch: "cinder_courser",
+      },
+      20,
+    )
+    expect(node.hidden).toBe(false)
+    expect(node.textContent).toBe("Cinder Courser · ATK + SPD")
+    expect(node.title).toContain("ATK + SPD")
+    expect(attrs["aria-label"]).toContain("Cinder Courser")
+    expect(attrs.style).toContain("--hue: 30")
+  })
+
+  test("a legacy champion is labelled Legacy, never a real branch", () => {
+    const { node } = badge()
+    paintBranchBadge(
+      node,
+      {
+        ...createCreature("fire_drake", 42),
+        stage: "champion",
+        branch: "legacy",
+      },
+      40,
+    )
+    expect(node.textContent).toBe("Legacy")
+    // No favored pair to list: the title is the old line itself.
+    expect(node.title).toContain("no signature")
+    expect(node.title).not.toContain("favors")
+  })
+})
+
+/**
+ * The plate builder is exercised against a minimal fake DOM so the branch
+ * line's place in the header can be asserted without a browser: the line is a
+ * sibling of the head row (not a chip), so a long label never squeezes the
+ * creature name.
+ */
+interface FakeNode {
+  className: string
+  textContent: string
+  innerHTML: string
+  title: string
+  type: string
+  hidden: boolean
+  offsetWidth: number
+  style: { setProperty(key: string, value: string): void; background: string }
+  classList: {
+    add(...names: string[]): void
+    remove(name: string): void
+    contains(name: string): boolean
+  }
+  children: FakeNode[]
+  parent: FakeNode | null
+  setAttribute(name: string, value: string): void
+  append(...nodes: FakeNode[]): void
+  addEventListener(): void
+}
+
+function fakeNode(): FakeNode {
+  const classes = new Set<string>()
+  const node: FakeNode = {
+    className: "",
+    textContent: "",
+    innerHTML: "",
+    title: "",
+    type: "",
+    hidden: false,
+    offsetWidth: 0,
+    style: { setProperty: () => {}, background: "" },
+    classList: {
+      add: (...names: string[]) => {
+        for (const name of names) classes.add(name)
+      },
+      remove: (name: string) => {
+        classes.delete(name)
+      },
+      contains: (name: string) => classes.has(name),
+    },
+    children: [],
+    parent: null,
+    setAttribute: () => {},
+    append: (...nodes: FakeNode[]) => {
+      for (const child of nodes) {
+        child.parent = node
+        node.children.push(child)
+      }
+    },
+    addEventListener: () => {},
+  }
+  return node
+}
+
+describe("the plate's branch line", () => {
+  const savedDocument = Object.getOwnPropertyDescriptor(globalThis, "document")
+
+  beforeAll(() => {
+    Object.defineProperty(globalThis, "document", {
+      configurable: true,
+      value: { createElement: () => fakeNode() },
+    })
+  })
+
+  afterAll(() => {
+    if (savedDocument === undefined) {
+      Reflect.deleteProperty(globalThis, "document")
+    } else {
+      Object.defineProperty(globalThis, "document", savedDocument)
+    }
+  })
+
+  test("sits under the head row, outside the chips, above the stats", () => {
+    const refs = buildCreaturePlate()
+    const root = refs.root as unknown as FakeNode
+    const line = refs.branchBadge as unknown as FakeNode
+    const headRow = refs.headRow as unknown as FakeNode
+    const firstCell = refs.statCells[0]
+    if (!firstCell) throw new Error("expected a stat cell")
+    const statCell = (firstCell.total as unknown as FakeNode).parent
+    const statRow = (statCell as FakeNode).parent as FakeNode
+    const stageTab = refs.stageTab as unknown as FakeNode
+
+    expect(line.parent).toBe(root)
+    expect(root.children.indexOf(line)).toBe(root.children.indexOf(headRow) + 1)
+    expect(root.children.indexOf(line)).toBeLessThan(
+      root.children.indexOf(statRow),
+    )
+    // The chips still hold exactly the stage tab and the form chip.
+    const chips = stageTab.parent as FakeNode
+    expect(chips.children.length).toBe(2)
+    expect(chips.children[0]).toBe(stageTab)
+    expect(chips.children[1]).toBe(refs.formChip as unknown as FakeNode)
+  })
+
+  test("paints the whole label and favored stats, then hides for a baby", () => {
+    const refs = buildCreaturePlate()
+    const line = refs.branchBadge
+
+    paintBranchBadge(
+      line,
+      {
+        ...createCreature("fire_drake", 42),
+        stage: "juvenile",
+        branch: "cinder_courser",
+      },
+      20,
+    )
+    expect(line.hidden).toBe(false)
+    expect(line.textContent).toBe("Cinder Courser · ATK + SPD")
+
+    // A baby hides the line again even past the hinted day.
+    paintBranchBadge(line, createCreature("fire_drake", 42), 6)
+    expect(line.hidden).toBe(true)
+    expect(line.textContent).toBe("")
   })
 })

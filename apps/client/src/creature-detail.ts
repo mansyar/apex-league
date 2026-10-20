@@ -26,6 +26,7 @@ import {
   statBreakdown,
 } from "@apex/sim"
 import { focusTrap } from "./battleUI"
+import { buildPathSection } from "./detail/path"
 import { createTrainingHost } from "./detail/training-tab"
 import { parentageLabel, traitCopy } from "./graduation/nursery-vm"
 import { createGrowthHost } from "./growth-panel"
@@ -188,6 +189,12 @@ export function buildCreatureDetail(): CreatureDetail {
   const context = document.createElement("div")
   context.className = "detail-context"
 
+  // Stats page, the Path reading (FR-10): the earned form, its favored stats
+  // and signature, or the day-5 lean preview. Its own slot so a repaint swaps
+  // only this section.
+  const pathSlot = document.createElement("div")
+  pathSlot.className = "detail-path-host"
+
   // Moves page: six rows, the equipped four marked and every locked row
   // spelling out its gate (move_pool_20261018 FR5).
   const kit = document.createElement("div")
@@ -210,8 +217,19 @@ export function buildCreatureDetail(): CreatureDetail {
   /** The last state painted, so Growth can repaint whenever it is entered. */
   let last: GameState | null = null
 
+  /** Repaint the Path slot from state; empty when there is nothing to say. */
+  const paintPath = (state: GameState): void => {
+    const creature = state.creature
+    const section =
+      creature === null ? null : buildPathSection(creature, state.day)
+    pathSlot.replaceChildren(...(section === null ? [] : [section]))
+  }
+
   const TABS: TabSpec[] = [
-    { label: "Stats", build: (panel) => panel.append(statList, context) },
+    {
+      label: "Stats",
+      build: (panel) => panel.append(statList, context, pathSlot),
+    },
     { label: "Growth", build: (panel) => panel.append(growth) },
     { label: "Training", build: (panel) => panel.append(training) },
     { label: "Moves", build: (panel) => panel.append(kit) },
@@ -298,6 +316,7 @@ export function buildCreatureDetail(): CreatureDetail {
       )
 
       kit.replaceChildren(...kitRows(creature))
+      paintPath(state)
       // Paint before showing: the host renders once on the way in, from the
       // state it was just handed, instead of once on show and again on paint.
       last = state
@@ -315,6 +334,7 @@ export function buildCreatureDetail(): CreatureDetail {
       last = state
       growthHost.paint(state)
       trainingHost.paint(state)
+      paintPath(state)
     },
   }
 }

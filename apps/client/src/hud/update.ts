@@ -24,7 +24,7 @@ import {
   lineageMeta,
   statCell,
 } from "./plates"
-import { paintFormChip } from "./plates-creature"
+import { paintBranchBadge, paintFormChip } from "./plates-creature"
 import { programRows, rovingRow } from "./programs"
 import { capturePrefChips } from "./settings"
 import type { HudHints, HudShell } from "./types"
@@ -66,6 +66,7 @@ export function createHudUpdate(
     creatureName,
     stageTab,
     formChip,
+    branchBadge,
     crestEl,
     renameButton,
     statCells,
@@ -221,6 +222,9 @@ export function createHudUpdate(
     stageTab.className = "kit-tab is-stage"
     // Form chip: the tier word in text, the ATK consequence in its title.
     paintFormChip(formChip, creature)
+    // Branch badge (FR-10): the earned form's label, hidden until the first
+    // gate has resolved. Hue reinforces the label, never replaces it.
+    paintBranchBadge(branchBadge, creature, state.day)
 
     // Stat row: name, total (rolled base + trained), bonus when above 0.
     for (const cell of statCells) {

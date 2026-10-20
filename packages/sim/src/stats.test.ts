@@ -133,6 +133,78 @@ describe("statBreakdown — the evolution boost", () => {
     }
     assertSumInvariant(creature)
   })
+
+  it("a branched juvenile shows the boost its own form earned", () => {
+    const roll = starter().stats
+    const expected = { hp: 2, atk: 4, def: 1, spd: 2 }
+    const creature = {
+      ...starter(),
+      stage: "juvenile" as const,
+      branch: "cinder_courser",
+      stats: {
+        hp: roll.hp + expected.hp,
+        atk: roll.atk + expected.atk,
+        def: roll.def + expected.def,
+        spd: roll.spd + expected.spd,
+      },
+    }
+    const rows = statBreakdown(creature, FOUNDER_LINEAGE)
+    for (const key of STAT_KEYS) {
+      expect(rows[key].baseRolled).toBe(roll[key])
+      expect(rows[key].stageBoost).toBe(expected[key])
+    }
+    assertSumInvariant(creature)
+  })
+
+  it("a branched champion accumulates its juvenile and champion boosts", () => {
+    const roll = starter().stats
+    const expected = { hp: 7, atk: 11, def: 4, spd: 4 }
+    const creature = {
+      ...starter(),
+      stage: "champion" as const,
+      branch: "cinder_courser",
+      stats: {
+        hp: roll.hp + expected.hp,
+        atk: roll.atk + expected.atk,
+        def: roll.def + expected.def,
+        spd: roll.spd + expected.spd,
+      },
+    }
+    const rows = statBreakdown(creature, FOUNDER_LINEAGE)
+    for (const key of STAT_KEYS) {
+      expect(rows[key].baseRolled).toBe(roll[key])
+      expect(rows[key].stageBoost).toBe(expected[key])
+    }
+    assertSumInvariant(creature)
+  })
+
+  it("a legacy creature keeps the old pinned boosts", () => {
+    const roll = starter().stats
+    const juvenile = { hp: 3, atk: 2, def: 2, spd: 1 }
+    const champion = { hp: 9, atk: 6, def: 6, spd: 3 }
+    for (const [stage, expected] of [
+      ["juvenile", juvenile],
+      ["champion", champion],
+    ] as const) {
+      const creature = {
+        ...starter(),
+        stage,
+        branch: "legacy",
+        stats: {
+          hp: roll.hp + expected.hp,
+          atk: roll.atk + expected.atk,
+          def: roll.def + expected.def,
+          spd: roll.spd + expected.spd,
+        },
+      }
+      const rows = statBreakdown(creature, FOUNDER_LINEAGE)
+      for (const key of STAT_KEYS) {
+        expect(rows[key].baseRolled).toBe(roll[key])
+        expect(rows[key].stageBoost).toBe(expected[key])
+      }
+      assertSumInvariant(creature)
+    }
+  })
 })
 
 describe("statBreakdown — the inherited floor", () => {

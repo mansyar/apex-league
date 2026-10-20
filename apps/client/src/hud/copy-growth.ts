@@ -1,14 +1,14 @@
 import {
   CHAMPION_EVOLUTION_DAY,
   CHAMPION_HINT_DAY,
-  CHAMPION_STAT_BOOST,
   type Creature,
   EVOLUTION_DAY,
   EVOLUTION_HINT_DAY,
-  EVOLUTION_STAT_BOOST,
   GRADUATION_HINT_DAY,
+  getBranch,
   getMove,
   getSpecies,
+  LEGACY_BRANCH,
   MOVE_TIER3_DAYS,
   MOVE_TIER4_DAYS,
   requiredTierDays,
@@ -50,6 +50,7 @@ export function unlockCallout(creature: Creature): string {
 }
 
 import { romanNumeral, stageLabel } from "../ui/labels"
+import { branchRevealLine } from "./copy-branch"
 
 /**
  * Shared HUD display labels: stageLabel and romanNumeral are single-sourced
@@ -102,15 +103,18 @@ export function graduationHint(day: number, creature: Creature): string {
 }
 
 /**
- * The evolution-moment coach line: what changed, in stat numbers. Shown
- * once by the HUD right after the ceremony, ahead of the routine status.
- * The boost follows the stage: the champion's grander leap gets its own
- * pinned numbers.
+ * The evolution-moment coach line: what changed, in stat numbers, and the
+ * form that came in with it. Shown once by the HUD right after the ceremony,
+ * ahead of the routine status (FR-5: the morning names the form; nobody is
+ * asked to choose). The numbers are the boost the earned branch actually
+ * applied at this gate, so a real form announces its own leap and a legacy or
+ * unbranched creature keeps the old pinned numbers. Two sentences, always.
  */
 export function evolveCallout(creature: Creature): string {
+  const branch = getBranch(creature.branch ?? LEGACY_BRANCH.id) ?? LEGACY_BRANCH
   const b =
-    creature.stage === "champion" ? CHAMPION_STAT_BOOST : EVOLUTION_STAT_BOOST
-  return `Evolution! ${creature.name} grew into a ${stageLabel(creature.stage)} — +${b.hp} HP · +${b.atk} ATK · +${b.def} DEF · +${b.spd} SPD. The ranch just got livelier.`
+    creature.stage === "champion" ? branch.championBoost : branch.juvenileBoost
+  return `Evolution! ${creature.name} grew into a ${stageLabel(creature.stage)} — +${b.hp} HP · +${b.atk} ATK · +${b.def} DEF · +${b.spd} SPD. ${branchRevealLine(creature)}`
 }
 
 /**

@@ -2,6 +2,7 @@ import type { Creature, CreatureConditions, FormTier, StatKey } from "@apex/sim"
 import { FORM_COPY, formTier } from "@apex/sim"
 import { icons } from "../ui/icons"
 import { bar, crest, plate, tab, ticker } from "../ui/kit"
+import { branchPath } from "./copy-branch"
 import { formDeltaLine, STATS } from "./copy-care"
 
 const CONDITIONS: Array<{
@@ -41,6 +42,7 @@ export interface CreaturePlateRefs {
   creatureName: HTMLElement
   stageTab: HTMLElement
   formChip: HTMLElement
+  branchBadge: HTMLElement
   crestEl: HTMLElement
   renameButton: HTMLButtonElement
   nameInput: HTMLInputElement
@@ -81,6 +83,14 @@ export function buildCreaturePlate(): CreaturePlateRefs {
   // alone). Values are painted by `paintFormChip` from the daily update.
   const formChip = tab(FORM_COPY.steady.label, "stage")
   formChip.classList.add("creature-form", "is-outline")
+  // Branch line (FR-10): the earned form's label and favored stats on their
+  // own full-width row under the head, for a juvenile or champion only. It
+  // used to ride the chips column, where a long label squeezed the creature
+  // name; the row lets the whole label show. Text is the carrier; the branch
+  // hue rides the same accent variable every other surface uses.
+  const branchBadge = document.createElement("div")
+  branchBadge.className = "creature-branch"
+  branchBadge.hidden = true
   const chips = document.createElement("span")
   chips.className = "creature-chips"
   chips.append(stageTab, formChip)
@@ -176,7 +186,14 @@ export function buildCreaturePlate(): CreaturePlateRefs {
   // Hardening: the announcer strip is live region (screen readers hear
   // routine callouts without focus).
   statusTicker.root.setAttribute("aria-live", "polite")
-  root.append(headRow, editRow, statRow, conditionList, statusTicker.root)
+  root.append(
+    headRow,
+    branchBadge,
+    editRow,
+    statRow,
+    conditionList,
+    statusTicker.root,
+  )
   return {
     root,
     creatureHead,
@@ -185,6 +202,7 @@ export function buildCreaturePlate(): CreaturePlateRefs {
     creatureName,
     stageTab,
     formChip,
+    branchBadge,
     crestEl,
     renameButton,
     nameInput,
@@ -212,4 +230,35 @@ export function paintFormChip(chip: HTMLElement, creature: Creature): void {
   chip.textContent = FORM_COPY[tier].label
   chip.title = read
   chip.setAttribute("aria-label", read)
+}
+
+/**
+ * Paint the branch line from a creature: nothing for a baby, the earned
+ * form's label plus its favored stats (legacy: the label alone) for a
+ * juvenile or champion. Text carries the whole reading, and the title /
+ * accessible name spell it out, so the line works in greyscale and under
+ * reduced motion.
+ */
+export function paintBranchBadge(
+  node: HTMLElement,
+  creature: Creature,
+  day: number,
+): void {
+  const path = creature.stage === "baby" ? null : branchPath(creature, day)
+  if (path === null) {
+    node.hidden = true
+    node.textContent = ""
+    node.title = ""
+    return
+  }
+  const legacy = path.favored === "—"
+  node.hidden = false
+  node.textContent = legacy ? path.label : `${path.label} · ${path.favored}`
+  // A real form lists its favored stats; the legacy line has none, so its
+  // title is its own line rather than "favors —".
+  node.title = legacy
+    ? path.line
+    : `${path.title}: ${path.label} — favors ${path.favored}`
+  node.setAttribute("aria-label", node.title)
+  node.setAttribute("style", `--hue: ${path.hue}`)
 }

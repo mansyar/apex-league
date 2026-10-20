@@ -35,6 +35,7 @@ interface StateOptions {
   championKnown?: boolean
   program?: TrainingProgram | null
   trainingDays?: number
+  branch?: string | null
 }
 
 function stateWith(
@@ -46,6 +47,7 @@ function stateWith(
   const creature: Creature = {
     ...created,
     stage,
+    branch: options.branch === undefined ? created.branch : options.branch,
     conditions: {
       ...created.conditions,
       mood: options.mood ?? created.conditions.mood,
@@ -410,6 +412,55 @@ describe("the detail modal's Growth slot", () => {
 
     expect(host.hidden).toBe(true)
     expect(host.children).toEqual([])
+  })
+})
+
+describe("the detail modal's Path section (FR-6, FR-10)", () => {
+  test("an earned form shows its label, favored stats and signature", () => {
+    const detail = buildCreatureDetail()
+    const root = fakeOf(detail.root)
+    detail.open(stateWith("juvenile", { day: 20, branch: "cinder_courser" }))
+
+    const path = byClass(root, "detail-path")
+    const text = textOf(path)
+    expect(text).toContain("Path")
+    expect(text).toContain("Cinder Courser")
+    expect(text).toContain("ATK + SPD")
+    expect(text).toContain(getMove("cinder_dive")?.displayName ?? "Cinder Dive")
+    expect(text).toContain("Strike first")
+    expect(text).not.toMatch(/[0-9]/)
+  })
+
+  test("a legacy line claims no signature", () => {
+    const detail = buildCreatureDetail()
+    const root = fakeOf(detail.root)
+    detail.open(stateWith("champion", { day: 40, branch: "legacy" }))
+
+    const text = textOf(byClass(root, "detail-path"))
+    expect(text).toContain("Legacy")
+    expect(text).toContain("No signature move")
+    expect(text).toContain("no signature")
+    expect(text).not.toContain("Cinder Courser")
+    expect(text).not.toMatch(/[0-9]/)
+  })
+
+  test("a baby gets the lean preview only from the hinted day on", () => {
+    const early = buildCreatureDetail()
+    early.open(stateWith("baby", { day: 4 }))
+    expect(classNamed(fakeOf(early.root), "detail-path")).toHaveLength(0)
+
+    const hinted = buildCreatureDetail()
+    const root = fakeOf(hinted.root)
+    hinted.open(stateWith("baby", { day: 5 }))
+
+    const text = textOf(byClass(root, "detail-path"))
+    expect(text).toContain("Path lean")
+    expect(text).toContain("Pyre Warden")
+    expect(text).toContain("Your natural stats lean this way.")
+    // The preview promises a signature without naming one, and prints no day.
+    expect(text).toContain("The signature arrives with the form.")
+    expect(text).not.toContain("No signature move")
+    expect(text).not.toMatch(/[0-9]/)
   })
 })
 

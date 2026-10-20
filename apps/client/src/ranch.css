@@ -213,6 +213,35 @@
   letter-spacing: 0.12em;
 }
 
+/* Branch line (branching evolution): the earned form's label and favored
+   stats on their own full-width row under the head. It used to ride the
+   chips column, where a long label widened the chips and squeezed the
+   creature name into an ellipsis; the row lets the whole label show. Text
+   carries the form, the branch hue reinforces it, and the label wraps
+   instead of truncating. */
+.creature-branch {
+  display: block;
+  margin: 0 0 9px;
+  padding-left: 7px;
+  border-left: 2px solid hsl(var(--hue, 40) 70% 55%);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+  color: hsl(var(--hue, 40) 70% 66%);
+}
+
+.creature-branch[hidden] {
+  display: none;
+}
+
+/* Collapsed plate keeps its two-chip head: the branch line returns with the stats. */
+.creature-plate.is-collapsed .creature-branch {
+  display: none;
+}
+
 .rename-button {
   flex: none;
   display: inline-flex;

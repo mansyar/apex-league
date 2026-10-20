@@ -10,6 +10,7 @@
  */
 import type { GameState } from "@apex/sim"
 import { type GrowthRow, type GrowthView, growthView } from "./growth"
+import type { BranchPathRead } from "./hud/copy-branch"
 
 /**
  * Met/unmet glyphs. The shapes differ on their own, so colour is only ever
@@ -63,9 +64,33 @@ function growthRowNode(row: GrowthRow): HTMLElement {
 }
 
 /**
- * The Growth section for the current gate: heading, one coach note, and the
- * condition rows. The view-model already carries the gate rules and the
- * accessible summary, so this only stamps structure.
+ * The day-5 lean preview, or the earned form once a gate has resolved
+ * (FR-6): a title, the form label, and one qualifier line, tinted with the
+ * branch accent. Text carries everything; the hue is reinforcement only.
+ */
+function pathRow(path: BranchPathRead): HTMLElement {
+  const row = document.createElement("div")
+  row.className = "detail-growth-path"
+  row.dataset.preview = path.preview ? "true" : "false"
+  row.setAttribute("style", `--hue: ${path.hue}`)
+  const title = document.createElement("span")
+  title.className = "detail-growth-path-title"
+  title.textContent = path.title
+  const label = document.createElement("span")
+  label.className = "detail-growth-path-label"
+  label.textContent = path.label
+  const line = document.createElement("span")
+  line.className = "detail-growth-path-line"
+  line.textContent = path.line
+  row.append(title, label, line)
+  return row
+}
+
+/**
+ * The Growth section for the current gate: heading, one coach note, the path
+ * reading when there is one, and the condition rows. The view-model already
+ * carries the gate rules and the accessible summary, so this only stamps
+ * structure.
  */
 function growthSection(view: GrowthView): HTMLElement {
   const section = document.createElement("div")
@@ -82,6 +107,7 @@ function growthSection(view: GrowthView): HTMLElement {
     note.textContent = view.note
     section.append(note)
   }
+  if (view.path !== null) section.append(pathRow(view.path))
   if (view.rows.length > 0) {
     const rows = document.createElement("div")
     rows.className = "detail-growth-rows"

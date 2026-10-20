@@ -14,9 +14,9 @@
  * functions only — no DOM, no rendering, no I/O.
  */
 
+import { type BranchDef, getBranch, LEGACY_BRANCH } from "./branches"
 import { inheritedFloorFromPair } from "./breeding"
 import { type Creature, type CreatureStats, effectiveStats } from "./creature"
-import { CHAMPION_STAT_BOOST, EVOLUTION_STAT_BOOST } from "./evolution"
 import { inheritedFloor, type LineageState } from "./legacy"
 import { getSpecies } from "./species"
 import { dedupeTraits, effectiveTraits } from "./traits"
@@ -41,20 +41,34 @@ export interface StatBreakdownRow {
 /** The full four-stat decomposition, keyed by stat. */
 export type StatBreakdown = Record<keyof CreatureStats, StatBreakdownRow>
 
-/** Total pinned evolution boost a creature of the given stage has received. */
-function stageBoostFor(stage: Creature["stage"]): CreatureStats {
-  switch (stage) {
+/** The form whose boosts this creature's evolution actually applied. */
+function branchOf(creature: Creature): BranchDef {
+  return getBranch(creature.branch ?? LEGACY_BRANCH.id) ?? LEGACY_BRANCH
+}
+
+/**
+ * Total pinned evolution boost a creature of the given stage has received.
+ * The gate applies the earned branch's own boost (evolution.ts), so the
+ * decomposition must read the same branch: a juvenile shows its
+ * `juvenileBoost`, a champion that plus `championBoost`, and a legacy or
+ * unbranched creature keeps the old pinned tables (LEGACY_BRANCH carries
+ * exactly those numbers).
+ */
+function stageBoostFor(creature: Creature): CreatureStats {
+  switch (creature.stage) {
     case "baby":
       return { hp: 0, atk: 0, def: 0, spd: 0 }
     case "juvenile":
-      return { ...EVOLUTION_STAT_BOOST }
-    case "champion":
+      return { ...branchOf(creature).juvenileBoost }
+    case "champion": {
+      const branch = branchOf(creature)
       return {
-        hp: EVOLUTION_STAT_BOOST.hp + CHAMPION_STAT_BOOST.hp,
-        atk: EVOLUTION_STAT_BOOST.atk + CHAMPION_STAT_BOOST.atk,
-        def: EVOLUTION_STAT_BOOST.def + CHAMPION_STAT_BOOST.def,
-        spd: EVOLUTION_STAT_BOOST.spd + CHAMPION_STAT_BOOST.spd,
+        hp: branch.juvenileBoost.hp + branch.championBoost.hp,
+        atk: branch.juvenileBoost.atk + branch.championBoost.atk,
+        def: branch.juvenileBoost.def + branch.championBoost.def,
+        spd: branch.juvenileBoost.spd + branch.championBoost.spd,
       }
+    }
   }
 }
 
@@ -75,7 +89,7 @@ export function statBreakdown(
   lineage: LineageState,
 ): StatBreakdown {
   const eff = effectiveStats(creature)
-  const boost = stageBoostFor(creature.stage)
+  const boost = stageBoostFor(creature)
   const hall = lineage.hallOfFame
   const last = hall[hall.length - 1]
   const species = getSpecies(creature.speciesId)
