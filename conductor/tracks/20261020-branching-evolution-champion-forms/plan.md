@@ -51,13 +51,13 @@
 **Goal:** Generated rivals show both forms deterministically, bosses stay on their pinned legacy numbers, and the two branches are proven to be sidegrades.
 **Depends on:** Phase 2
 **Covers:** FR-9, FR-4, NFR-1, NFR-6
-**Touches:** `packages/sim/src/battle/rival-kit.ts`, `packages/sim/src/battle/rival-kit.test.ts`, `packages/sim/src/battle/exhibition.ts`, `packages/sim/src/bosses.ts`, `packages/sim/src/bosses.test.ts`, `conductor/tracks/20261020-branching-evolution-champion-forms/verification/phase-3.md`
-**Verification:** `bun test --timeout 120000 packages/sim/src/battle packages/sim/src/bosses.test.ts && bun run verify && bun run build`
-**Status:** pending
+**Touches:** `packages/sim/src/battle/rival-kit.ts`, `packages/sim/src/battle/rival-kit.test.ts`, `packages/sim/src/battle/exhibition.ts`, `packages/sim/src/battle/resolver.ts`, `packages/sim/src/battle/branch-balance.test.ts` (new), `packages/sim/src/cup/verdicts.ts`, `packages/sim/src/bosses.ts`, `packages/sim/src/bosses.test.ts`, `conductor/tracks/20261020-branching-evolution-champion-forms/verification/phase-3.md`
+**Verification:** `bun test --timeout 120000 packages/sim/src/battle packages/sim/src/bosses.test.ts packages/sim/src/battle/branch-balance.test.ts && bun run verify && bun run build`
+**Status:** in_progress
 
-- [ ] **P3.T1 — Derive rival branches from their seeded profile**
-  - [ ] Apply the same `branchLean` rule to generated rivals, using their trained profile and falling back to natural stats.
-  - [ ] Assert determinism per seed and that a cup field can contain both forms.
+- [ ] **P3.T1 - Derive rival branches from their seeded profile**
+  - [ ] Apply the same `branchLean` rule to generated rivals, using their stat profile with a zeroed training record; a cup slot derives at battle time so brackets and sessions stay unchanged.
+  - [ ] Assert determinism per seed, that a cup field can contain both forms, and that stats, kits, and outcomes are unchanged by the display field.
 - [ ] **P3.T2 — Pin bosses to legacy and assert no drift**
   - [ ] Mark boss definitions legacy or leave them branchless; verify pinned stats, loadouts, and tactics are unchanged.
   - [ ] Assert no boss loadout references a signature move.
