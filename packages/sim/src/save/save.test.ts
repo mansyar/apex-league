@@ -31,7 +31,7 @@ import {
 
 describe("save schema", () => {
   test("current version matches the schema", () => {
-    expect(SAVE_VERSION).toBe(18)
+    expect(SAVE_VERSION).toBe(19)
   })
 
   test("serializeSave wraps state with version metadata", () => {
@@ -688,7 +688,7 @@ describe("evolution stage (v6)", () => {
 
 describe("save v7 — cup session, rename, hints", () => {
   test("current version matches the schema", () => {
-    expect(SAVE_VERSION).toBe(18)
+    expect(SAVE_VERSION).toBe(19)
   })
 
   test("a v6 save migrates cleanly: null session + a clean hint ledger", () => {
@@ -1040,7 +1040,7 @@ describe("save v11 — silver ladder tier + boss defeat ledger", () => {
   }
 
   test("SAVE_VERSION is 18", () => {
-    expect(SAVE_VERSION).toBe(18)
+    expect(SAVE_VERSION).toBe(19)
   })
 
   test("a v10 save migrates: the ladder keeps its points and gains tier bronze", () => {
@@ -1146,7 +1146,7 @@ describe("save v12 - element chart HP scale (v11 -> v12)", () => {
   // magnitudes and touches nothing else - trained bonuses, atk/def/spd,
   // ladder, and the ledger are scale-free.
   test("SAVE_VERSION is 18", () => {
-    expect(SAVE_VERSION).toBe(18)
+    expect(SAVE_VERSION).toBe(19)
   })
 
   /** A v11-shaped payload: fresh state with every stored HP halved to the
@@ -1198,6 +1198,7 @@ describe("save v12 - element chart HP scale (v11 -> v12)", () => {
             retiredOnDay: 60,
             traits: [],
             parents: [],
+            branch: "legacy",
           },
         ],
       },
@@ -1351,7 +1352,7 @@ describe("save v13 (audio_foundation_20261017)", () => {
   }
 
   test("SAVE_VERSION is 18", () => {
-    expect(SAVE_VERSION).toBe(18)
+    expect(SAVE_VERSION).toBe(19)
   })
 
   test("a v12 save migrates: settings gain the muted flag, default false", () => {
@@ -1422,7 +1423,7 @@ describe("save v14 (gold_legend_ladder_20261017)", () => {
   }
 
   test("SAVE_VERSION is 18", () => {
-    expect(SAVE_VERSION).toBe(18)
+    expect(SAVE_VERSION).toBe(19)
   })
 
   test("a v13 save migrates: legendTitles stamps at 0, ladder untouched", () => {
@@ -1557,7 +1558,7 @@ describe("save v18 — training programs (training_programs_form_20261020)", () 
   }
 
   test("the schema version is 18", () => {
-    expect(SAVE_VERSION).toBe(18)
+    expect(SAVE_VERSION).toBe(19)
   })
 
   test("every v17 focus maps to its program and the old key is dropped", () => {
@@ -1569,7 +1570,7 @@ describe("save v18 — training programs (training_programs_form_20261020)", () 
     }
     for (const [stat, program] of Object.entries(mapping)) {
       const migrated = migrate(v17With(stat))
-      expect(migrated.version).toBe(18)
+      expect(migrated.version).toBe(19)
       expect(migrated.state.creature?.trainingProgram).toBe(
         program as "power" | "endurance" | "sprint" | "ring",
       )
@@ -1612,7 +1613,7 @@ describe("save v18 — training programs (training_programs_form_20261020)", () 
       session: null,
       state: { ...owned, creature: null },
     })
-    expect(migrated.version).toBe(18)
+    expect(migrated.version).toBe(19)
     expect(migrated.state.creature).toBeNull()
   })
 
@@ -1624,7 +1625,7 @@ describe("save v18 — training programs (training_programs_form_20261020)", () 
 
   test("a v0 save walks the whole chain to v18 with no program", () => {
     const migrated = migrate({ version: 0, day: 3 })
-    expect(migrated.version).toBe(18)
+    expect(migrated.version).toBe(19)
     expect(migrated.state.creature?.trainingProgram).toBeNull()
   })
 

@@ -12,6 +12,7 @@
  * Pure data and pure functions only — no DOM, no rendering, no I/O.
  */
 
+import { LEGACY_BRANCH } from "./branches"
 import {
   type Creature,
   type CreatureStats,
@@ -49,6 +50,11 @@ export interface RetiredRecord {
   traits: LineageTrait[]
   /** Hall of Fame generations of this record's parents (save v15). */
   parents: number[]
+  /**
+   * The form this career earned (save v19). A pre-v19 or pinned old line is
+   * `"legacy"`; its signature move is derived from this id on read.
+   */
+  branch: string
 }
 
 /** The bloodline across generations (save v10). */
@@ -85,6 +91,7 @@ export function retireeRecord(state: GameState): RetiredRecord | null {
       stats,
     }),
     parents: [...(creature.parents ?? [])],
+    branch: creature.branch ?? LEGACY_BRANCH.id,
   }
 }
 

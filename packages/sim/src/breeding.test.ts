@@ -60,6 +60,7 @@ function record(overrides: Partial<RetiredRecord> = {}): RetiredRecord {
     retiredOnDay: 60,
     traits: [],
     parents: [],
+    branch: "legacy",
     ...overrides,
   }
 }
@@ -91,6 +92,17 @@ describe("createBredCreature — seeded golden", () => {
     expect(child.stats).toEqual({ hp: 88, atk: 11, def: 10, spd: 11 })
     expect(child.traits).toEqual(["sturdy"])
     expect(child.parents).toEqual([0, 1])
+  })
+
+  it("a new egg starts unchosen even when both parents earned forms", () => {
+    const sire = record({
+      branch: "cinder_courser",
+      generation: 0,
+      parents: [],
+    })
+    const dam = record({ branch: "pyre_warden", generation: 1, parents: [] })
+    const egg = createBredCreature("fire_drake", 42, [sire, dam], 2)
+    expect(egg.branch).toBeNull()
   })
 })
 

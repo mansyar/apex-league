@@ -255,6 +255,7 @@ describe("statBreakdown — the inherited floor", () => {
       retiredOnDay: 60,
       traits: [],
       parents: [],
+      branch: "legacy",
     })
     // Prestige at lay = generation + 1 + cupsWon: 4 is under the milestone, 5 at it.
     const under = { generation: 5, hallOfFame: [record(3, 0)] }
