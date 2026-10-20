@@ -21,20 +21,20 @@
 **Evidence:** conductor/tracks/20261020-evolution-discovery-ui/verification/phase-1.md
 
 - [x] **P1.T1: Add discovery state to `GameState`** — covers: FR-4
-  - [ ] Add `evolutionKnowledge: { juvenile: boolean; champion: boolean }`, initialised unknown in `createInitialState`
-  - [ ] Add a pure helper that marks a gate known, idempotent
-  - [ ] Export the type and helper through the sim barrel
+  - [x] Add `evolutionKnowledge: { juvenile: boolean; champion: boolean }`, initialised unknown in `createInitialState`
+  - [x] Add a pure helper that marks a gate known, idempotent
+  - [x] Export the type and helper through the sim barrel
 - [x] **P1.T2: Record discovery in `advanceDay`** — covers: FR-4
-  - [ ] Carry the field into the `next` literal (it is rebuilt explicitly)
-  - [ ] Baby→juvenile sets the juvenile gate; juvenile→champion sets both
+  - [x] Carry the field into the `next` literal (it is rebuilt explicitly)
+  - [x] Baby→juvenile sets the juvenile gate; juvenile→champion sets both
 - [x] **P1.T3: Bump the save to v17 with migration** — covers: FR-5, NFR-4
-  - [ ] Set `SAVE_VERSION = 17`; add the v16→v17 step rebuilding state with inferred flags
-  - [ ] Juvenile ⇒ juvenile known; champion ⇒ both; no creature ⇒ none
-  - [ ] Tests cover v1, v15, v16 and champion/juvenile/no-creature inputs
+  - [x] Set `SAVE_VERSION = 17`; add the v16→v17 step rebuilding state with inferred flags
+  - [x] Juvenile ⇒ juvenile known; champion ⇒ both; no creature ⇒ none
+  - [x] Tests cover v1, v15, v16 and champion/juvenile/no-creature inputs
 - [x] **P1.T4: Update the hardcoded version assertions** — covers: FR-5
-  - [ ] Update the four save test files asserting `SAVE_VERSION === 16`
+  - [x] Update the four save test files asserting `SAVE_VERSION === 16`
 - [x] **P1.T5: Document the schema** — covers: FR-5
-  - [ ] Add the v17 shape and inference rule to `docs/save-schema.md`
+  - [x] Add the v17 shape and inference rule to `docs/save-schema.md`
 
 ## Phase 2: Growth view-model
 
@@ -43,19 +43,23 @@
 - **Covers:** FR-1, FR-2, FR-3, FR-6, NFR-1, NFR-2, NFR-5
 - **Touches:** `apps/client/src/growth.ts`, `apps/client/src/growth.test.ts`
 - **Verification:** `bun test --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Model the current gate** — covers: FR-1, FR-2
-  - [ ] Select the gate by stage; key condition rows off `EvolutionReason`
-  - [ ] Pre-discovery rows carry no digits and no threshold words
-- [ ] **P2.T2: Reveal targets when known** — covers: FR-3
-  - [ ] Render `Day 6 / 10`, `Mood 35 / 40`, `Bond 52 / 60`, `Cup wins 0 / 1`, and the clean-night countdown
-  - [ ] One gate's discovery never reveals the other
-- [ ] **P2.T3: Champion final-stage model** — covers: FR-6
-  - [ ] No condition rows; a final-stage line
-- [ ] **P2.T4: Copy and accessible status text** — covers: NFR-1, NFR-2, NFR-5
-  - [ ] Met/unmet as text plus glyph, meaning independent of colour
-  - [ ] Module stays under the 12 KB cap
+**Result:** verified
+**Checkpoint:** b039471
+**Evidence:** conductor/tracks/20261020-evolution-discovery-ui/verification/phase-2.md
+
+- [x] **P2.T1: Model the current gate** — covers: FR-1, FR-2
+  - [x] Select the gate by stage; key condition rows off `EvolutionReason`
+  - [x] Pre-discovery rows carry no digits and no threshold words
+- [x] **P2.T2: Reveal targets when known** — covers: FR-3
+  - [x] Render `Day 6 / 10`, `Mood 35 / 40`, `Bond 52 / 60`, `Cup wins 0 / 1`, and the clean-night countdown
+  - [x] One gate's discovery never reveals the other
+- [x] **P2.T3: Champion final-stage model** — covers: FR-6
+  - [x] No condition rows; a final-stage line
+- [x] **P2.T4: Copy and accessible status text** — covers: NFR-1, NFR-2, NFR-5
+  - [x] Met/unmet as text plus glyph, meaning independent of colour
+  - [x] Module stays under the 12 KB cap
 
 ## Phase 3: Panel integration & live refresh
 
