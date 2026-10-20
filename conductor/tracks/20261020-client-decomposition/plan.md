@@ -131,3 +131,27 @@ silently change order.
   guard rejects it, then removes the file; dated note in `tech-stack.md` — covers: FR-6
 - [x] **P5.T3: Integrated verification** — full suite, build, determinism gate, browser
   smoke of every surface, and the phase evidence trail — covers: all
+
+## Phase R1: Review Fixes
+
+- **Goal:** close the five round-1 findings: dangling head SHAs in the phase reports,
+  contradictory suite counts, and the three guard-quality gaps (symlinked folders and
+  non-`.ts` sources, a fixture written into the repo, a misquoted report format).
+- **Depends on:** Phase 5
+- **Covers:** F1, F2, F3, F4, F5
+- **Touches:** `apps/client/src/module-size.test.ts`,
+  `conductor/tracks/20261020-client-decomposition/verification/*`,
+  `conductor/tech-stack.md`
+- **Verification:** `bun run verify && bun run build` plus the guard's own suite
+- **Status:** in_progress
+
+- [x] **R1.T1: Records resolve** - name the checkpoint in every phase report, note the
+  squash, and reconcile the suite counts between `phase-5.md` and `integrated.md`
+  - covers: F1, F2
+- [x] **R1.T2: Guard sees everything** - follow symlinked folders via `statSync`,
+  measure `.ts`/`.tsx`/`.mts`, keep `.test.*` and `vite-env.d.ts` exempt
+  - covers: F3
+- [x] **R1.T3: Control leaves no trace** - build the oversized fixture in an OS temp
+  folder and remove it recursively in `finally` - covers: F4
+- [x] **R1.T4: Note matches the code** - quote the real offender line in
+  `tech-stack.md` and record the widened extensions - covers: F5
