@@ -357,6 +357,21 @@
   dependency, no generator or artifact change, and the Hall of Fame surface is
   untouched.*
 
+- **2026-10-20 (track `20261020-detail-modal-tabs`):** The partner-details
+  modal is now three pages — Stats (stat rows + context), Growth (the gate
+  section), Moves (the kit) — behind one shared tab controller. New
+  `apps/client/src/ui/tabs.ts` owns the tablist contract (`role=tablist`/`tab`/
+  `tabpanel`, ids `<prefix>-tab-<i>`/`-panel-<i>`, `aria-controls`/
+  `aria-labelledby`, roving tabindex, ArrowLeft/Right with wrap, Home/End,
+  `is-outline` on inactive tabs); the Coach's Handbook was migrated onto it and
+  its own tab block deleted. `creature-detail.ts` uses a pinned shell
+  (`.creature-detail-box`, same 4-row grid and `min(86dvh, 720px)` cap as
+  `.handbook-box`), so only `.detail-panel` scrolls; the selected tab is marked
+  by a filled plate, heavier weight and an inset bar, never colour alone. `open`
+  always lands on Stats, `sync` keeps Growth current from the remembered state
+  and repaints it on re-entry. No save change, no new dependency, no animation;
+  `creature-detail.ts` is 10,818 B against the 12,288 B cap.
+
 ## Quality Gates
 - `bun check` clean, `biome check` clean, `bun test` green — required before
   any commit lands (see workflow.md).
