@@ -5,7 +5,7 @@
 - **Branch:** `feat/20261020-evolution-discovery-ui`
 - **Range:** `b97cb37..HEAD`, reviewed per phase (`b97cb37..34fc937`, `34fc937..b039471`, `b039471..385a49f`, `385a49f..HEAD`)
 - **Date:** 2026-10-20
-- **Verdict:** BLOCK (round 1 → Phase R1 fixes)
+- **Verdict:** PASS (round 2 — round-1 findings closed in R1/R2)
 
 ## Summary
 
@@ -38,13 +38,13 @@ review ran per phase and merged duplicates.
 | --- | --- | --- |
 | FR-1, FR-2, FR-3, FR-6 | covered | view-model + panel tests |
 | FR-4, FR-5 | covered | `evolutionKnowledge.test.ts` |
-| FR-7 | **partial** | no automated or browser evidence (F1) |
+| FR-7 | covered | host seam + panel-level fake-DOM tests (F1, M1) |
 | FR-8 | covered | no `graduation/` diff |
 | NFR-1 | covered | glyph + status word + `aria-label` |
-| NFR-2 | **unmet** | `creature-detail.ts` 12,305 B > 12,288 B (F2) |
+| NFR-2 | covered | 9,312 B / 4,843 B, pinned by `size-probe.test.ts` (F2) |
 | NFR-3, NFR-4, NFR-5, NFR-6 | covered | determinism gate, migration tests, copy tests, no manifest diff |
 | AC-1 – AC-6, AC-8 – AC-10 | covered | see `verification/integrated.md` |
-| AC-7 | **partial** | same as FR-7 |
+| AC-7 | covered | `creature-detail.test.ts` drives open → sync → close (M1) |
 
 ## Findings
 
@@ -93,9 +93,9 @@ review ran per phase and merged duplicates.
 
 ## Plan compliance
 
-All three phases have Result, Checkpoint, and Evidence; every `[x]` task was
+All phases (1–3, R1, R2) have Result, Checkpoint, and Evidence; every `[x]` task was
 implemented; the diff stays within Touches apart from reported deviations
-(`storage.ts`, version-fixture tests). Phase R1 added for the findings above.
+(`storage.ts`, version-fixture tests). Phase R1 closed F1–F4; Phase R2 closed the
 
 ## Out of scope
 
@@ -110,8 +110,21 @@ None accepted. Strict mode is on: no deferrals.
 
 | Round | Verdict | Findings | Fixed |
 | --- | --- | --- | --- |
-| 1 | BLOCK | 1 High, 1 Medium, 2 Low | — |
+| 1 | BLOCK | 1 High, 1 Medium, 2 Low | `4a1e185` (R1) |
+| 2 | PASS WITH FINDINGS → PASS | 2 Medium, 5 Low | `f247ea9` (R2) |
 
 ## Doc sync
 
 pending
+
+## Round 2
+
+| ID | Severity | Finding | Resolution |
+| --- | --- | --- | --- |
+| M1 | Medium | Panel wiring (`open`/`sync`/close, HUD call) untested while the evidence claimed AC-7 closed | `creature-detail.test.ts` fake-DOM suite drives `buildCreatureDetail`; mutation probes (drop `setVisible(true)`, drop the `sync` paint) fail by name |
+| M2 | Medium | Phase R1 left `in_progress` with unticked tasks and an unrecorded test file | R1 closed at `4a1e185` with plan state, checkpoint, and a deviation entry for both new test files |
+| L1 | Low | Vacuous `detail.length > 0` assertion | Replaced with `not.toContain("/")` |
+| L2 | Low | R1 evidence cited dangling task SHAs | Names `4a1e185` and states the squash once |
+| L3 | Low | Fake `document` leaked past its suite | Installed in `beforeAll`, descriptor-restored in `afterAll` |
+| L4 | Low | Dead `GrowthHost.node`, wrong docstring | Field dropped; docstring corrected |
+| L5 | Low | `open` rendered the section twice | Paint before `setVisible`; one repaint pinned by test |
