@@ -342,14 +342,20 @@
   (juvenile ⇒ juvenile known, champion ⇒ both, none ⇒ none), which also covers
   veterans mid-ladder. `isValidSaveState` now rejects a missing or non-boolean
   record, so load and import validate the same shape. The panel side is a new
-  pure module `apps/client/src/growth.ts` (6.8 KB) that maps the active gate to
+  pure module `apps/client/src/growth.ts` (6.5 KB) that maps the active gate to
   labelled rows and mirrors `evaluateEvolution`'s constants rather than
   restating them; undiscovered gates render digit-free coach copy, discovered
-  gates render `current / target`. `creature-detail.ts` stamps that view into a
-  `role="group"` section with a shape-distinct glyph plus a status word, and
-  `hud.update` calls `creatureDetail.sync` so an open panel repaints in place
-  when a settlement resolves; no new dependency, no generator or artifact
-  change, and the Hall of Fame surface is untouched.*
+  gates render `current / target`. `apps/client/src/growth-panel.ts` (4.8 KB)
+  stamps that view into a `role="group"` section with a shape-distinct glyph
+  plus a status word and owns the repaint seam (`createGrowthHost`, which
+  remembers the last state, no-ops while closed, and swaps only its own
+  children), so `creature-detail.ts` (9.3 KB) keeps layout only and both
+  modules stay under the 12 KB cap. `hud.update` calls `creatureDetail.sync` so
+  an open panel repaints in place when a settlement resolves.
+  `apps/client/src/size-probe.test.ts` pins those three sizes because
+  `module-size.test.ts` still scans only `scene-logic/` and `ranch/`. No new
+  dependency, no generator or artifact change, and the Hall of Fame surface is
+  untouched.*
 
 ## Quality Gates
 - `bun check` clean, `biome check` clean, `bun test` green — required before
