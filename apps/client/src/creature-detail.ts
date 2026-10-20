@@ -26,6 +26,7 @@ import {
   statBreakdown,
 } from "@apex/sim"
 import { focusTrap } from "./battleUI"
+import { createTrainingHost } from "./detail/training-tab"
 import { parentageLabel, traitCopy } from "./graduation/nursery-vm"
 import { createGrowthHost } from "./growth-panel"
 import { crest, tab } from "./ui/kit"
@@ -200,12 +201,19 @@ export function buildCreatureDetail(): CreatureDetail {
   growth.hidden = true
   const growthHost = createGrowthHost(growth)
 
+  // Training page's slot: repainted from every commit, so a settlement or a
+  // new assignment that lands while the modal is open reads current.
+  const training = document.createElement("div")
+  training.className = "detail-training-host"
+  const trainingHost = createTrainingHost(training)
+
   /** The last state painted, so Growth can repaint whenever it is entered. */
   let last: GameState | null = null
 
   const TABS: TabSpec[] = [
     { label: "Stats", build: (panel) => panel.append(statList, context) },
     { label: "Growth", build: (panel) => panel.append(growth) },
+    { label: "Training", build: (panel) => panel.append(training) },
     { label: "Moves", build: (panel) => panel.append(kit) },
   ]
   const { tablist, panels, select } = createTabs({
@@ -294,6 +302,7 @@ export function buildCreatureDetail(): CreatureDetail {
       // state it was just handed, instead of once on show and again on paint.
       last = state
       growthHost.paint(state)
+      trainingHost.paint(state)
       growthHost.setVisible(true)
       select(0)
       root.style.display = ""
@@ -305,6 +314,7 @@ export function buildCreatureDetail(): CreatureDetail {
       // paints fresh rows (FR-7). The HUD can call this on every commit.
       last = state
       growthHost.paint(state)
+      trainingHost.paint(state)
     },
   }
 }

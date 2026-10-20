@@ -53,9 +53,19 @@ export function createHudShell(
   // stay local (they re-render through update()).
   const dock = buildCommandDock({
     onCare: (action) => handlers.onCare(action),
-    onTrain: (key) => {
+    onTrain: (program) => {
+      // The row is a toggle: picking tonight's program again clears it, and
+      // clearing is free, so the picker never traps a choice.
+      const assigned = view.current?.creature?.trainingProgram ?? null
       view.pickerOpen = false
-      handlers.onTrain(key)
+      handlers.onTrain(assigned === program ? null : program)
+    },
+    // Escape leaves the picker without folding the dock away.
+    onClosePicker: () => {
+      if (!view.pickerOpen) return
+      view.pickerOpen = false
+      if (view.current) shell.render(view.current)
+      trainButton.focus()
     },
     onAdvanceDay: () => handlers.onAdvanceDay(),
     onGraduate: () => handlers.onGraduate(),
@@ -135,10 +145,13 @@ export function createHudShell(
     closeRename: () => closeRename(),
   }
 
-  // Toggling the picker spends nothing — render only.
+  // Toggling the picker spends nothing — render only. Opening moves focus into
+  // the sheet: at narrow widths the train button itself is hidden while the
+  // sheet is up, so leaving focus on it would drop the caret to <body>.
   trainButton.addEventListener("click", () => {
     view.pickerOpen = !view.pickerOpen
     if (view.current) shell.render(view.current)
+    if (view.pickerOpen) dock.pickerRows[0]?.button.focus()
   })
 
   // Tapping the plate head opens the partner-details modal. The scrim

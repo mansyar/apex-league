@@ -8,14 +8,14 @@ writes through the `SaveAdapter` seam.
 ```ts
 // packages/sim/src/save/schema.ts
 interface SaveData {
-  version: number // current: 17 (SAVE_VERSION)
+  version: number // current: 18 (SAVE_VERSION)
   state: GameState
   savedAt: number // Date.now() of the persist
   session: CupSession | null // live cup walk (v7+; null outside a cup)
 }
 ```
 
-## `GameState` at v17
+## `GameState` at v18
 
 | Field | Type | Meaning |
 |---|---|---|
@@ -44,13 +44,37 @@ interface SaveData {
 | `trained` | `{hp, atk, def, spd}` | Training bonuses, each capped (`TRAINED_START` … cap). |
 | `conditions` | `{hunger, energy, health, mood, bond}` | 0–100, clamped nightly by settlement. |
 | `fedToday` | boolean | Feeding gate for the day. |
-| `trainingFocus` | `"hp"\|"atk"\|"def"\|"spd" \| null` | Tonight's training target. |
-| `trainingResult` | `"gained"\|"sick"\|"hungry" \| null` | Last night's training outcome. |
+| `trainingProgram` | `"power"\|"endurance"\|"sprint"\|"ring" \| null` | Tonight's training program (v18+); null = no program assigned. The four ids map onto a primary and a trickle stat (see the catalog table below). |
+| `trainingResult` | `"gained"\|"sick"\|"hungry"\|"exhausted" \| null` | Last night's training outcome (`exhausted` arrived with v18). |
 | `trainingDays` | integer | Cumulative training days (kit gating; 6 opens the full six-move pool). |
 | `loadout` | string[] \| null | Equipped move ids (2–4), each one the creature knows; null = the default kit (first four known). |
 | `sickCooldown` | integer | Nights since medicine; blocks evolution until 0 (v6+). |
 | `traits` | `LineageTrait[]` | Up to four canonical lineage ids (`sturdy`, `fierce`, `guarded`, `quick`); derived at graduation, never hand-picked (v15+). Empty on a founder until then. |
 | `parents` | integer[] | Parent generation numbers (v15+): `[]` for a founder, one entry for the single-parent successor path, two sorted entries for a bred egg. |
+
+### Training programs (v18+) — `training.ts`
+
+A program is a stat pair, not a single stat: it pays its **primary** on every
+paid night and its **trickle** on every third trained night. The catalog is
+single-sourced in `packages/sim/src/training.ts`
+(`TRAINING_PROGRAMS`), in picker order.
+
+| Id | Label | Primary | Trickle |
+|---|---|---|---|
+| `power` | Power Lifting | `atk` | `def` |
+| `endurance` | Endurance Circuit | `hp` | `def` |
+| `sprint` | Sprint Work | `spd` | `atk` |
+| `ring` | Ring Craft | `atk` | `def` |
+
+A program night pays only when the creature, at lights-out **before** the
+night's recovery, is not sick, not waking up starving, and has at least
+`EXHAUSTED_ENERGY` (30) energy. A paid night grants +1 to the primary (and +1
+to the trickle when `trainingDays % 3 === 0`), both clamped at
+`TRAINING_CAP`; it costs 10 energy; `ring` also adds +5 mood and +2 bond. A
+night that fails the gate pays nothing and costs no energy — its result is
+`"sick"`, `"hungry"`, or `"exhausted"` by that precedence. The assignment is
+consumed at the end of the night (`trainingProgram` returns to null), so a
+program is picked per day.
 
 ### Move knowledge is derived — no schema change needed
 
@@ -67,8 +91,9 @@ what exists.
 strike, duplicates, and lengths outside 2–4. `loadout: null` resolves to
 the first four known moves, which is exactly the four-move kit a pre-track
 save fought with. Widening the pool therefore needs **no schema change**:
-`loadout` and its validation are unchanged at v17, and the bumps to 16 (audio
-mix levels) and 17 (evolution discovery) came from other tracks. A pre-pool
+`loadout` and its validation are unchanged at v18, and the bumps to 16 (audio
+mix levels), 17 (evolution discovery), and 18 (training programs) came from
+other tracks. A pre-pool
 save (v15 or earlier, `loadout: null`) migrates onto the wider pool with no
 extra step.
 
@@ -108,6 +133,23 @@ extra step.
 | v14 → v15 | Adds `traits: []` and `parents: []` to the active creature and every Hall record (dynasty breeding). Traits are derived on read for pre-v15 careers; parentage begins with the first v15 succession. The live cup session is forwarded untouched — rivals are not lineage carriers. |
 | v15 → v16 | Adds `settings.musicVolume: 1` and `settings.sfxVolume: 1` (release polish): older saves never chose a mix, so both buses start at full volume and the existing mute toggle keeps its authority. Everything else, including the cup session, is forwarded untouched. |
 | v16 → v17 | Adds `evolutionKnowledge` (evolution discovery). There is nothing to forward from the old payload — the panel did not exist — so the record is **inferred from the active creature's `stage`**: `juvenile` ⇒ `{ juvenile: true, champion: false }`, `champion` ⇒ `{ juvenile: true, champion: true }`, no creature (or a baby) ⇒ both `false`. A pre-existing `evolutionKnowledge` field on the payload is ignored, so a hand-edited save cannot smuggle thresholds into a hidden panel. Settings, ladder, bloodline, boss ledger, and the cup session are forwarded untouched. |
+| v17 → v18 | Replaces the single-stat `trainingFocus` with `trainingProgram` (training programs & form). The old key is mapped through `programFor` — the same table the old picker implied — and dropped; an unknown or absent focus becomes `null`. `trained`, `trainingDays`, `trainingResult`, settings, ladder, bloodline, boss ledger, and the cup session are forwarded untouched. |
+
+### v17 → v18 focus mapping
+
+| Old `trainingFocus` | New `trainingProgram` |
+|---|---|
+| `"hp"` | `"endurance"` |
+| `"atk"` | `"power"` |
+| `"def"` | `"power"` |
+| `"spd"` | `"sprint"` |
+| `null` | `null` |
+
+`def` folded into `power` because no program trained DEF alone; the player
+re-picks on the first day after loading, and a `null` mapping simply means no
+program is assigned yet. `trainingResult: "exhausted"` (v18) is a new value of
+an existing field, so the old chain needs no backfill.
+
 The `session` slot holds a `CupSession` exactly as `prepareCup` produced
 it (bracket, rival resolutions, verdicts, cursor position). It is
 presentation bookkeeping: the client persists it on every session mutation
@@ -133,6 +175,11 @@ At v17 the state must also carry `evolutionKnowledge` as an object with two
 strict booleans, `juvenile` and `champion`. A missing block, a non-object, or
 a non-boolean flag fails the load — the panel must never guess whether a
 threshold is known.
+
+At v18 the creature's `trainingProgram` must be one of the four catalog ids or
+`null`. An unknown id, a stat key left over from the old focus field, a
+non-string, or a missing field fails the load rather than silently dropping
+the assignment; `trainingResult` accepts the four-value union above.
 
 ## Export and import
 

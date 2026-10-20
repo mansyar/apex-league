@@ -6,6 +6,7 @@ import {
   careAction,
   chooseStarter,
   createInitialState,
+  EXHAUSTED_ENERGY,
   type GameState,
   makeRng,
   previewTraining,
@@ -33,10 +34,13 @@ function fixedRng(value: number): Rng {
 }
 
 /** Day-1 state with an owned creature, hand-set conditions and training fields. */
-function focusState(
+function programState(
   conditions: Partial<Creature["conditions"]>,
   training: Partial<
-    Pick<Creature, "trained" | "trainingFocus" | "trainingResult">
+    Pick<
+      Creature,
+      "trained" | "trainingProgram" | "trainingResult" | "trainingDays"
+    >
   >,
 ): GameState {
   const s = stateWith(conditions)
@@ -228,92 +232,272 @@ describe("settlement — frame mechanics", () => {
   })
 })
 
-describe("settlement — training gain", () => {
-  test("a full-rest night adds +1 to the focused stat only; the rolled base never changes", () => {
+describe("settlement — training payout", () => {
+  /** A rested, fed, well creature: every paying gate is satisfied. */
+  const rested = { hunger: 80, health: 100, energy: 60, mood: 60 }
+
+  test("a rested fed creature gains +1 primary, pays 10 energy, and consumes the program", () => {
     const s = advanceDay(
-      focusState(
-        { hunger: 80, health: 100, energy: 60 },
-        { trainingFocus: "atk", trained: { hp: 0, atk: 0, def: 0, spd: 0 } },
-      ),
+      programState(rested, {
+        trainingProgram: "power",
+        trainingDays: 1,
+        trained: { hp: 0, atk: 0, def: 0, spd: 0 },
+      }),
       fixedRng(0.99),
     )
     const c = s.creature
     if (!c) throw new Error("creature lost")
     expect(c.trained).toEqual({ hp: 0, atk: 1, def: 0, spd: 0 })
     expect(c.trainingResult).toBe("gained")
-    expect(c.trainingFocus).toBeNull()
+    expect(c.trainingProgram).toBeNull()
+    expect(c.conditions.energy).toBe(60 - 10)
   })
 
-  test("the rolled base stats are untouched by training", () => {
-    const before = focusState(
-      { hunger: 80, health: 100 },
-      { trainingFocus: "atk" },
-    )
+  test("every program pays its own primary", () => {
+    const primaries = {
+      power: "atk",
+      endurance: "hp",
+      sprint: "spd",
+      ring: "atk",
+    } as const
+    for (const [program, stat] of Object.entries(primaries)) {
+      const s = advanceDay(
+        programState(rested, {
+          trainingProgram: program as keyof typeof primaries,
+          trainingDays: 1,
+        }),
+        fixedRng(0.99),
+      )
+      const gained = (["hp", "atk", "def", "spd"] as const).filter(
+        (key) => s.creature && s.creature.trained[key] > 0,
+      )
+      expect(gained).toEqual([stat])
+      expect(s.creature?.trainingResult).toBe("gained")
+    }
+  })
+
+  test("the rolled base stats are untouched by the payout", () => {
+    const before = programState(rested, { trainingProgram: "power" })
     const base = before.creature?.stats.atk
     const s = advanceDay(before, fixedRng(0.99))
     expect(s.creature?.stats.atk).toBe(base)
   })
 
-  test("the trained bonus never exceeds the cap, even for a focus already at it", () => {
+  test("energy exactly at the exhausted threshold still pays (AC-4)", () => {
     const s = advanceDay(
-      focusState(
-        { hunger: 80, health: 100 },
-        {
-          trainingFocus: "atk",
-          trained: { hp: 0, atk: TRAINING_CAP, def: 0, spd: 0 },
-        },
-      ),
+      programState({ ...rested, energy: 30 }, { trainingProgram: "power" }),
       fixedRng(0.99),
     )
-    expect(s.creature?.trained.atk).toBe(TRAINING_CAP)
+    expect(s.creature?.trained.atk).toBe(1)
+    expect(s.creature?.trainingResult).toBe("gained")
+    expect(s.creature?.conditions.energy).toBe(30 - 10)
   })
 
-  test("sick at lights-out pays 0 and records the result", () => {
+  test("energy one below the threshold pays nothing and costs no energy (AC-4)", () => {
     const s = advanceDay(
-      focusState({ hunger: 80, health: 60 }, { trainingFocus: "atk" }),
+      programState({ ...rested, energy: 29 }, { trainingProgram: "power" }),
+      fixedRng(0.99),
+    )
+    expect(s.creature?.trained.atk).toBe(0)
+    expect(s.creature?.trainingResult).toBe("exhausted")
+    expect(s.creature?.trainingProgram).toBeNull()
+    // The rested recovery tier is 0, so the unspent energy survives whole.
+    expect(s.creature?.conditions.energy).toBe(29)
+  })
+
+  test("sick at lights-out pays 0, records sick, and costs no energy", () => {
+    const s = advanceDay(
+      programState({ ...rested, health: 60 }, { trainingProgram: "power" }),
       fixedRng(0.99),
     )
     expect(s.creature?.trained.atk).toBe(0)
     expect(s.creature?.trainingResult).toBe("sick")
-    expect(s.creature?.trainingFocus).toBeNull()
+    expect(s.creature?.conditions.energy).toBe(60 + 30)
   })
 
-  test("waking starving pays 0 and records the result", () => {
+  test("waking starving pays 0 and records hungry", () => {
     const s = advanceDay(
-      focusState({ hunger: 10, health: 100 }, { trainingFocus: "def" }),
+      programState({ ...rested, hunger: 10 }, { trainingProgram: "endurance" }),
       fixedRng(0.99),
     )
-    expect(s.creature?.trained.def).toBe(0)
+    expect(s.creature?.trained.hp).toBe(0)
     expect(s.creature?.trainingResult).toBe("hungry")
+    expect(s.creature?.conditions.energy).toBe(60 + 20)
   })
 
-  test("sickness wins when the creature is both sick and starving", () => {
-    const s = advanceDay(
-      focusState({ hunger: 10, health: 60 }, { trainingFocus: "hp" }),
-      fixedRng(0.99),
-    )
-    expect(s.creature?.trainingResult).toBe("sick")
-  })
-
-  test("exhaustion does not waste a night that otherwise meets the rested predicate", () => {
-    const s = advanceDay(
-      focusState(
-        { hunger: 80, health: 100, energy: 20 },
-        { trainingFocus: "spd" },
+  test("result precedence is sick, then hungry, then exhausted", () => {
+    const sick = advanceDay(
+      programState(
+        { hunger: 10, health: 60, energy: 10 },
+        { trainingProgram: "power" },
       ),
       fixedRng(0.99),
     )
-    expect(s.creature?.trained.spd).toBe(1)
-    expect(s.creature?.trainingResult).toBe("gained")
+    expect(sick.creature?.trainingResult).toBe("sick")
+    expect(sick.creature?.trained.atk).toBe(0)
+
+    const hungry = advanceDay(
+      programState(
+        { hunger: 10, health: 100, energy: 10 },
+        { trainingProgram: "power" },
+      ),
+      fixedRng(0.99),
+    )
+    expect(hungry.creature?.trainingResult).toBe("hungry")
+
+    const exhausted = advanceDay(
+      programState(
+        { hunger: 80, health: 100, energy: 10 },
+        { trainingProgram: "power" },
+      ),
+      fixedRng(0.99),
+    )
+    expect(exhausted.creature?.trainingResult).toBe("exhausted")
   })
 
-  test("the sickness roll does not claw back a granted gain, and draws no rng", () => {
-    // fixedRng(0.01) falls under the base chance — the creature falls sick —
-    // yet the training step must already have granted its +1 without
-    // consuming any rolls, so the sickness onset still happens exactly as
-    // it did before training existed.
+  test("the third trained night pays the trickle on top of the primary (AC-5)", () => {
     const s = advanceDay(
-      focusState({ hunger: 80, health: 100 }, { trainingFocus: "atk" }),
+      programState(rested, {
+        trainingProgram: "power",
+        trainingDays: 3,
+        trained: { hp: 0, atk: 1, def: 0, spd: 0 },
+      }),
+      fixedRng(0.99),
+    )
+    expect(s.creature?.trained).toEqual({ hp: 0, atk: 2, def: 1, spd: 0 })
+  })
+
+  test("nights that are not a multiple of three pay no trickle", () => {
+    for (const trainingDays of [1, 2, 4, 5, 7]) {
+      const s = advanceDay(
+        programState(rested, {
+          trainingProgram: "power",
+          trainingDays,
+          trained: { hp: 0, atk: 0, def: 0, spd: 0 },
+        }),
+        fixedRng(0.99),
+      )
+      expect(s.creature?.trained.def).toBe(0)
+      expect(s.creature?.trained.atk).toBe(1)
+    }
+  })
+
+  test("a hand-built assignment with no trained day behind it pays no trickle", () => {
+    const s = advanceDay(
+      programState(rested, { trainingProgram: "power", trainingDays: 0 }),
+      fixedRng(0.99),
+    )
+    expect(s.creature?.trained).toEqual({ hp: 0, atk: 1, def: 0, spd: 0 })
+  })
+
+  test("a night that does not pay never fires the trickle", () => {
+    const s = advanceDay(
+      programState(
+        { ...rested, energy: 10 },
+        { trainingProgram: "power", trainingDays: 3 },
+      ),
+      fixedRng(0.99),
+    )
+    expect(s.creature?.trainingResult).toBe("exhausted")
+    expect(s.creature?.trained).toEqual({ hp: 0, atk: 0, def: 0, spd: 0 })
+  })
+
+  test("both components clamp at the training cap", () => {
+    const s = advanceDay(
+      programState(rested, {
+        trainingProgram: "power",
+        trainingDays: 3,
+        trained: {
+          hp: 0,
+          atk: TRAINING_CAP,
+          def: TRAINING_CAP,
+          spd: 0,
+        },
+      }),
+      fixedRng(0.99),
+    )
+    expect(s.creature?.trained.atk).toBe(TRAINING_CAP)
+    expect(s.creature?.trained.def).toBe(TRAINING_CAP)
+  })
+
+  test("a trickle already at the cap leaves the primary's gain intact", () => {
+    const s = advanceDay(
+      programState(rested, {
+        trainingProgram: "power",
+        trainingDays: 3,
+        trained: { hp: 0, atk: 0, def: TRAINING_CAP, spd: 0 },
+      }),
+      fixedRng(0.99),
+    )
+    expect(s.creature?.trained.atk).toBe(1)
+    expect(s.creature?.trained.def).toBe(TRAINING_CAP)
+  })
+
+  test("ring lifts mood and bond on a paying night (FR-6)", () => {
+    const ring = advanceDay(
+      programState(rested, { trainingProgram: "ring", trainingDays: 1 }),
+      fixedRng(0.99),
+    )
+    const plain = advanceDay(
+      programState(rested, { trainingProgram: "power", trainingDays: 1 }),
+      fixedRng(0.99),
+    )
+    const ringCreature = ring.creature
+    const plainCreature = plain.creature
+    if (!ringCreature || !plainCreature) throw new Error("creature lost")
+    expect(ringCreature.conditions.mood).toBe(plainCreature.conditions.mood + 5)
+    expect(ringCreature.conditions.bond).toBe(plainCreature.conditions.bond + 2)
+  })
+
+  test("ring's mood and bond bonus never applies on a night that does not pay", () => {
+    const ring = advanceDay(
+      programState(
+        { ...rested, energy: 10 },
+        { trainingProgram: "ring", trainingDays: 1 },
+      ),
+      fixedRng(0.99),
+    )
+    const plain = advanceDay(
+      programState(
+        { ...rested, energy: 10 },
+        { trainingProgram: "power", trainingDays: 1 },
+      ),
+      fixedRng(0.99),
+    )
+    expect(ring.creature?.trainingResult).toBe("exhausted")
+    expect(ring.creature?.conditions).toEqual(plain.creature?.conditions)
+  })
+
+  test("the payout consumes no rng draw beyond the night's single sickness roll", () => {
+    let withProgram = 0
+    let withoutProgram = 0
+    advanceDay(
+      programState(rested, { trainingProgram: "power", trainingDays: 1 }),
+      {
+        next: () => {
+          withProgram += 1
+          return 0.99
+        },
+        int: () => 0,
+      },
+    )
+    advanceDay(programState(rested, {}), {
+      next: () => {
+        withoutProgram += 1
+        return 0.99
+      },
+      int: () => 0,
+    })
+    expect(withProgram).toBe(withoutProgram)
+    expect(withProgram).toBe(1)
+  })
+
+  test("the sickness roll cannot claw back a paid gain", () => {
+    // fixedRng(0.01) falls under the base chance — the creature falls sick —
+    // yet the payout already ran without consuming a roll, so the onset
+    // happens exactly as it did before programs existed.
+    const s = advanceDay(
+      programState(rested, { trainingProgram: "power", trainingDays: 1 }),
       fixedRng(0.01),
     )
     expect(s.creature?.trained.atk).toBe(1)
@@ -321,49 +505,135 @@ describe("settlement — training gain", () => {
     expect(s.creature?.conditions.health).toBe(SICKNESS_ONSET_HEALTH)
   })
 
-  test("a night with no focus clears the result and grants nothing", () => {
+  test("a night with no program clears the result and grants nothing", () => {
     const s = advanceDay(
-      focusState(
-        { hunger: 80, health: 100 },
-        {
-          trainingResult: "gained",
-          trained: { hp: 2, atk: 0, def: 0, spd: 0 },
-        },
-      ),
+      programState(rested, {
+        trainingResult: "gained",
+        trained: { hp: 2, atk: 0, def: 0, spd: 0 },
+      }),
       fixedRng(0.99),
     )
     expect(s.creature?.trainingResult).toBeNull()
     expect(s.creature?.trained.hp).toBe(2)
+    expect(s.creature?.conditions.energy).toBe(60)
   })
 })
 
 describe("previewTraining", () => {
-  test("a well-fed healthy focused creature expects a gain", () => {
-    const s = focusState({ hunger: 80, health: 100 }, { trainingFocus: "atk" })
+  const rested = { hunger: 80, health: 100, energy: 60 }
+
+  test("a well-fed rested program expects the primary gain", () => {
+    const s = programState(rested, {
+      trainingProgram: "power",
+      trainingDays: 1,
+    })
     if (!s.creature) throw new Error("no creature")
-    expect(previewTraining(s.creature)).toBe("gained")
+    expect(previewTraining(s.creature)).toEqual({
+      result: "gained",
+      gains: { atk: 1 },
+    })
   })
 
-  test("a sick focused creature expects a wasted night", () => {
-    const s = focusState({ hunger: 80, health: 60 }, { trainingFocus: "atk" })
+  test("a third trained night previews both components", () => {
+    const s = programState(rested, {
+      trainingProgram: "sprint",
+      trainingDays: 3,
+    })
     if (!s.creature) throw new Error("no creature")
-    expect(previewTraining(s.creature)).toBe("sick")
+    expect(previewTraining(s.creature)).toEqual({
+      result: "gained",
+      gains: { spd: 1, atk: 1 },
+    })
+  })
+
+  test("a sick creature expects a wasted night", () => {
+    const s = programState(
+      { ...rested, health: 60 },
+      { trainingProgram: "power" },
+    )
+    if (!s.creature) throw new Error("no creature")
+    expect(previewTraining(s.creature)).toEqual({ result: "sick", gains: {} })
   })
 
   test("a creature that will wake starving expects a wasted night", () => {
-    const s = focusState({ hunger: 10, health: 100 }, { trainingFocus: "atk" })
+    const s = programState(
+      { ...rested, hunger: 10 },
+      { trainingProgram: "power" },
+    )
     if (!s.creature) throw new Error("no creature")
-    expect(previewTraining(s.creature)).toBe("hungry")
+    expect(previewTraining(s.creature)).toEqual({
+      result: "hungry",
+      gains: {},
+    })
   })
 
-  test("no focus means no preview", () => {
-    const s = focusState({ hunger: 80, health: 100 }, {})
+  test("an exhausted creature expects the exhausted night", () => {
+    const low = programState(
+      { ...rested, energy: EXHAUSTED_ENERGY - 1 },
+      { trainingProgram: "power" },
+    )
+    if (!low.creature) throw new Error("no creature")
+    expect(previewTraining(low.creature)).toEqual({
+      result: "exhausted",
+      gains: {},
+    })
+
+    const edge = programState(
+      { ...rested, energy: EXHAUSTED_ENERGY },
+      { trainingProgram: "power" },
+    )
+    if (!edge.creature) throw new Error("no creature")
+    expect(previewTraining(edge.creature)).toEqual({
+      result: "gained",
+      gains: { atk: 1 },
+    })
+  })
+
+  test("no program means no preview", () => {
+    const s = programState(rested, {})
     if (!s.creature) throw new Error("no creature")
-    expect(previewTraining(s.creature)).toBeNull()
+    expect(previewTraining(s.creature)).toEqual({ result: null, gains: {} })
+  })
+
+  test("the preview does not offer a gain past the cap", () => {
+    const s = programState(rested, {
+      trainingProgram: "power",
+      trainingDays: 3,
+      trained: { hp: 0, atk: TRAINING_CAP, def: TRAINING_CAP, spd: 0 },
+    })
+    if (!s.creature) throw new Error("no creature")
+    expect(previewTraining(s.creature)).toEqual({ result: "gained", gains: {} })
+  })
+
+  test("the preview is exact — its gains match what settlement pays", () => {
+    for (const trainingDays of [1, 2, 3, 4]) {
+      const state = programState(
+        { hunger: 50, health: 100, energy: 45, mood: 60 },
+        {
+          trainingProgram: "endurance",
+          trainingDays,
+          trained: { hp: 2, atk: 0, def: 1, spd: 0 },
+        },
+      )
+      const before = state.creature
+      if (!before) throw new Error("no creature")
+      const preview = previewTraining(before)
+      const after = advanceDay(state, fixedRng(0.99)).creature
+      if (!after) throw new Error("creature lost")
+      for (const key of ["hp", "atk", "def", "spd"] as const) {
+        expect(after.trained[key] - before.trained[key]).toBe(
+          preview.gains[key] ?? 0,
+        )
+      }
+      expect(after.trainingResult).toBe(preview.result)
+    }
   })
 
   test("the preview is pure — it does not mutate the creature", () => {
-    const s = focusState({ hunger: 80, health: 60 }, { trainingFocus: "atk" })
+    const s = programState(
+      { ...rested, health: 60 },
+      { trainingProgram: "power" },
+    )
     if (!s.creature) throw new Error("no creature")
     const snapshot = structuredClone(s.creature)
     previewTraining(s.creature)
@@ -371,27 +641,43 @@ describe("previewTraining", () => {
   })
 
   test("feeding or treating after assigning turns a wasted preview into a gain", () => {
-    const sick = focusState(
-      { hunger: 80, health: 60 },
-      { trainingFocus: "atk" },
+    const sick = programState(
+      { ...rested, health: 60 },
+      { trainingProgram: "power", trainingDays: 1 },
     )
     if (!sick.creature) throw new Error("no creature")
-    expect(previewTraining(sick.creature)).toBe("sick")
+    expect(previewTraining(sick.creature).result).toBe("sick")
     const treated = careAction(sick, "treat")
     if (!treated.ok) throw new Error("treat rejected")
     if (!treated.state.creature) throw new Error("creature lost")
-    expect(previewTraining(treated.state.creature)).toBe("gained")
+    expect(previewTraining(treated.state.creature)).toEqual({
+      result: "gained",
+      gains: { atk: 1 },
+    })
 
-    const starving = focusState(
-      { hunger: 10, health: 100 },
-      { trainingFocus: "atk" },
+    const starving = programState(
+      { ...rested, hunger: 10 },
+      { trainingProgram: "power", trainingDays: 1 },
     )
     if (!starving.creature) throw new Error("no creature")
-    expect(previewTraining(starving.creature)).toBe("hungry")
+    expect(previewTraining(starving.creature).result).toBe("hungry")
     const fed = careAction(starving, "feed")
     if (!fed.ok) throw new Error("feed rejected")
     if (!fed.state.creature) throw new Error("creature lost")
-    expect(previewTraining(fed.state.creature)).toBe("gained")
+    expect(previewTraining(fed.state.creature).result).toBe("gained")
+  })
+
+  test("exhaustion's preview flips on a rest", () => {
+    const tired = programState(
+      { ...rested, energy: 20 },
+      { trainingProgram: "power", trainingDays: 1 },
+    )
+    if (!tired.creature) throw new Error("no creature")
+    expect(previewTraining(tired.creature).result).toBe("exhausted")
+    const restedAgain = careAction(tired, "rest")
+    if (!restedAgain.ok) throw new Error("rest rejected")
+    if (!restedAgain.state.creature) throw new Error("creature lost")
+    expect(previewTraining(restedAgain.state.creature).result).toBe("gained")
   })
 })
 

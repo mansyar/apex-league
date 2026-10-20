@@ -18,6 +18,7 @@ import {
   type GameState,
   getMove,
   getSpecies,
+  type TrainingProgram,
 } from "@apex/sim"
 import { buildCreatureDetail } from "./creature-detail"
 import { type GrowthView, growthView } from "./growth"
@@ -32,6 +33,8 @@ interface StateOptions {
   cupsWon?: number
   juvenileKnown?: boolean
   championKnown?: boolean
+  program?: TrainingProgram | null
+  trainingDays?: number
 }
 
 function stateWith(
@@ -48,6 +51,9 @@ function stateWith(
       mood: options.mood ?? created.conditions.mood,
       bond: options.bond ?? created.conditions.bond,
     },
+    trainingDays: options.trainingDays ?? created.trainingDays,
+    trainingProgram:
+      options.program === undefined ? created.trainingProgram : options.program,
   }
   return {
     ...base,
@@ -311,6 +317,11 @@ function tabNamed(root: FakeElement, label: string): FakeElement {
   return found
 }
 
+/** Every string in the subtree, so copy can be asserted on a whole page. */
+function textOf(node: FakeElement): string {
+  return [node.textContent, ...node.children.map(textOf)].join(" ")
+}
+
 /** The one selected tab — the assertion that there is exactly one lives here. */
 function activeTab(root: FakeElement): FakeElement {
   const selected = roleNamed(root, "tab").filter(
@@ -411,6 +422,7 @@ describe("the detail modal's pages", () => {
     expect(roleNamed(root, "tab").map((node) => node.textContent)).toEqual([
       "Stats",
       "Growth",
+      "Training",
       "Moves",
     ])
     expect(activeTab(root).textContent).toBe("Stats")
@@ -418,10 +430,13 @@ describe("the detail modal's pages", () => {
       false,
       true,
       true,
+      true,
     ])
     // Painted on open, not on first entry: every page is already current.
     expect(classNamed(root, "detail-stat")).toHaveLength(4)
-    expect(classNamed(root, "detail-context-row")).toHaveLength(6)
+    const statsPage = roleNamed(root, "tabpanel")[0]
+    if (!statsPage) throw new Error("no Stats page")
+    expect(classNamed(statsPage, "detail-context-row")).toHaveLength(6)
     expect(
       classNamed(byClass(root, "detail-kit"), "detail-kit-row"),
     ).toHaveLength(6)
@@ -493,6 +508,64 @@ describe("the detail modal's pages", () => {
     expect(detailFor(host, "Mood")).toBe("35 / 40")
   })
 
+  test("Training reads the program, progress, form and program table", () => {
+    const detail = buildCreatureDetail()
+    detail.open(
+      stateWith("juvenile", {
+        day: 12,
+        mood: 100,
+        bond: 100,
+        program: "power",
+        trainingDays: 4,
+      }),
+    )
+    const root = fakeOf(detail.root)
+    const trainingPage = roleNamed(root, "tabpanel")[2]
+    if (!trainingPage) throw new Error("no Training page")
+    tabNamed(root, "Training").fire("click", {})
+    expect(trainingPage.hidden).toBe(false)
+
+    const text = textOf(trainingPage)
+    expect(text).toContain("Tonight's program")
+    expect(text).toContain("Power Lifting")
+    // The blurb is the sim catalog's, not a client duplicate.
+    expect(text).toContain(
+      "Heavy sets build ATK, with DEF on breakthrough nights.",
+    )
+    expect(text).toContain("Trained nights")
+    expect(text).toContain("Breakthrough in 2 nights")
+    // Sharp form is a word plus the delta it applies, never colour alone.
+    expect(text).toContain("Sharp")
+    expect(text).toContain("ATK +1")
+    // A header row names the columns, and the marker sits inside its row.
+    const head = classNamed(trainingPage, "detail-program-head").map((node) =>
+      textOf(node).trim(),
+    )
+    expect(head).toEqual(["Program Builds Tonight"])
+    const markers = classNamed(trainingPage, "detail-program-tonight")
+    expect(markers).toHaveLength(1)
+    expect(markers[0]?.parent?.className).toContain("detail-program-row")
+    expect(classNamed(trainingPage, "detail-program-row")).toHaveLength(4)
+    // The assigned row is the one carrying the marker.
+    expect(
+      classNamed(trainingPage, "detail-program-row").map(
+        (row) => row.dataset.assigned,
+      ),
+    ).toEqual(["true", "false", "false", "false"])
+  })
+
+  test("Training names the empty state when nothing is assigned", () => {
+    const detail = buildCreatureDetail()
+    detail.open(stateWith("baby", { day: 3 }))
+    const root = fakeOf(detail.root)
+    const trainingPage = roleNamed(root, "tabpanel")[2]
+    if (!trainingPage) throw new Error("no Training page")
+    const text = textOf(trainingPage)
+    expect(text).toContain("Nothing assigned tonight.")
+    expect(text).toContain("Pick a program in the ranch dock to start.")
+    expect(classNamed(trainingPage, "detail-program-tonight")).toHaveLength(0)
+  })
+
   test("Moves lists the creature's kit", () => {
     const detail = buildCreatureDetail()
     detail.open(stateWith("baby", { day: 6, mood: 35 }))
@@ -527,6 +600,7 @@ describe("the detail modal's pages", () => {
     expect(activeTab(root).textContent).toBe("Stats")
     expect(roleNamed(root, "tabpanel").map((panel) => panel.hidden)).toEqual([
       false,
+      true,
       true,
       true,
     ])

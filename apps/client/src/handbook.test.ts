@@ -6,6 +6,14 @@
  * minimal fake DOM (no jsdom, restored in `afterAll`).
  */
 import { afterAll, beforeAll, describe, expect, test } from "bun:test"
+import {
+  EXHAUSTED_ENERGY,
+  FORM_COPY,
+  SICK_HEALTH,
+  TRAINING_CAP,
+  TRAINING_ENERGY_COST,
+  TRAINING_PROGRAMS,
+} from "@apex/sim"
 import { buildHandbook } from "./handbook"
 
 type Listener = (event: unknown) => void
@@ -248,5 +256,82 @@ describe("the handbook's tabs", () => {
       "false",
     ])
     expect(at(panels, 0).hidden).toBe(false)
+  })
+})
+
+/** The Raising page's body: every rule row and tip in build order. */
+function raisingBody(): FakeElement {
+  const { panels } = pageOf(buildHandbook().root)
+  return at(panels, 3)
+}
+
+function textOf(root: FakeElement): string {
+  return nodesIn(root)
+    .map((node) => node.textContent)
+    .join(" ")
+}
+
+function sentencesOf(text: string): string[] {
+  return text
+    .split(/[.!?](?=\s|$)/)
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0)
+}
+
+describe("the handbook's Raising page", () => {
+  test("teach the four programs from the sim catalog", () => {
+    const body = raisingBody()
+    const terms = byClass(body, "handbook-rule-term").map(
+      (node) => node.textContent,
+    )
+    const copies = byClass(body, "handbook-rule-copy").map(
+      (node) => node.textContent,
+    )
+
+    expect(byClass(body, "handbook-tip").length).toBeGreaterThan(0)
+    for (const program of TRAINING_PROGRAMS) {
+      expect(terms).toContain(program.label)
+      expect(copies.some((copy) => copy.includes(program.blurb))).toBe(true)
+    }
+  })
+
+  test("spell the energy gate, the cap, and the sickness pin", () => {
+    const text = textOf(raisingBody())
+
+    expect(text).toContain(`${TRAINING_ENERGY_COST} Energy`)
+    expect(text).toContain(`${EXHAUSTED_ENERGY} Energy`)
+    expect(text).toContain(`+${TRAINING_CAP}`)
+    expect(text).toContain(`${SICK_HEALTH} Health`)
+    expect(text).toContain("Sluggish")
+    expect(text).toContain("ATK only")
+  })
+
+  test("quote the form tiers in the sim's own words", () => {
+    const body = raisingBody()
+    const terms = byClass(body, "handbook-rule-term").map(
+      (node) => node.textContent,
+    )
+    const copies = byClass(body, "handbook-rule-copy").map(
+      (node) => node.textContent,
+    )
+
+    for (const copy of Object.values(FORM_COPY)) {
+      expect(terms).toContain(copy.label)
+      expect(copies).toContain(copy.line)
+    }
+  })
+
+  test("keep every added line to two sentences with caps stats", () => {
+    const body = raisingBody()
+    const lines = [
+      ...byClass(body, "handbook-tip"),
+      ...byClass(body, "handbook-rule-copy"),
+    ]
+
+    expect(lines.length).toBeGreaterThan(0)
+    for (const node of lines) {
+      expect(sentencesOf(node.textContent).length).toBeLessThanOrEqual(2)
+      expect(node.textContent).not.toMatch(/\b(atk|hp|def|spd)\b/)
+    }
   })
 })

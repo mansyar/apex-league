@@ -4,9 +4,10 @@
  * reasons the UI maps to copy. No DOM, no rendering, no I/O.
  */
 
-import { type Creature, type StatKey, TRAINING_CAP } from "./creature"
+import { type Creature, TRAINING_CAP } from "./creature"
 import { clampCondition, SICK_HEALTH } from "./settlement"
 import type { GameState } from "./state"
+import { getTrainingProgram, type TrainingProgram } from "./training"
 
 /** The four daily care actions. */
 export type CareAction = "feed" | "rest" | "treat" | "play"
@@ -24,10 +25,10 @@ export type CareResult =
   | { ok: true; state: GameState }
   | { ok: false; reason: CareRejection }
 
-/** Friendly rejection reasons for assigning a training focus. */
+/** Friendly rejection reasons for assigning a training program. */
 export type TrainingRejection = "no-creature" | "no-ap" | "at-cap"
 
-/** Result of attempting to assign a training focus. */
+/** Result of attempting to assign a training program. */
 export type TrainingAttempt =
   | { ok: true; state: GameState }
   | { ok: false; reason: TrainingRejection }
@@ -146,24 +147,29 @@ export function careAction(state: GameState, action: CareAction): CareResult {
 }
 
 /**
- * Assign tonight's training focus to one stat. The first assignment of the
- * day costs 1 AP; re-pointing the focus later the same day is free. A stat
- * already at the training cap is rejected before any AP is spent. Pure:
+ * Assign tonight's training program. The first assignment of the day costs
+ * 1 AP and counts as a trained day; re-pointing later the same day, and
+ * clearing the assignment (`null`), are free and leave the counter alone. A
+ * program whose primary stat is already at the training cap is rejected
+ * before any AP is spent — a capped trickle never blocks its program. Pure:
  * on failure nothing changes.
  */
 export function assignTraining(
   state: GameState,
-  stat: StatKey,
+  program: TrainingProgram | null,
 ): TrainingAttempt {
   if (!state.creature) return { ok: false, reason: "no-creature" }
 
   const creature = state.creature
-  const costsAp = creature.trainingFocus === null
+  const costsAp = creature.trainingProgram === null && program !== null
   if (costsAp && state.actionPoints < CARE_AP_COST) {
     return { ok: false, reason: "no-ap" }
   }
-  if (creature.trained[stat] >= TRAINING_CAP) {
-    return { ok: false, reason: "at-cap" }
+  if (program !== null) {
+    const def = getTrainingProgram(program)
+    if (creature.trained[def.primary] >= TRAINING_CAP) {
+      return { ok: false, reason: "at-cap" }
+    }
   }
 
   return {
@@ -175,7 +181,7 @@ export function assignTraining(
         : state.actionPoints,
       creature: {
         ...creature,
-        trainingFocus: stat,
+        trainingProgram: program,
         trainingResult: null,
         // A training day is a spent AP: only the AP-spending assignment
         // advances the move-kit ledger.

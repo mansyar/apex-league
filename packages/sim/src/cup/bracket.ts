@@ -10,6 +10,13 @@
  * stats) clamped inside the species' legal roll bounds, so the final feels
  * earned rather than a lottery cliff.
  *
+ * Form never moves a draw (FR-10, NFR-2): the ramp and the seed identity in
+ * machine.ts/`prepareCup` both read `effectiveStats(owned)`, so a sharp or
+ * sluggish owner meets exactly the same field. Only the player's own slot
+ * carries the form delta, and it is frozen here — after the ramp math, and
+ * before any battle — so every later read (`slotPlayerSide`,
+ * `battleSideForSlot`) sees one fixed snapshot.
+ *
  * Split out of the former monolithic cup.ts (cup_module_refactor_20261018)
  * — pure relocation, no behavior change. Session resolution lives in
  * ./session, pairing resolution in ./verdicts.
@@ -17,6 +24,7 @@
 
 import type { BossDef } from "../bosses"
 import { type Creature, effectiveStats } from "../creature"
+import { battleStats } from "../form"
 import type { CupKind } from "../ladder"
 import { makeRng, type Rng } from "../rng"
 import {
@@ -131,7 +139,8 @@ export function makeBracket(
     isPlayer: true,
     name: owned.name,
     speciesId: owned.speciesId,
-    stats: eff,
+    // The one place form reaches the cup: the frozen player snapshot.
+    stats: battleStats(owned),
   }
   const slots: CupSlot[] = [playerSlot, ...rivals]
   const finalRival = rivals[rivals.length - 1]

@@ -1,4 +1,4 @@
-import type { CareAction, GameState, StatKey } from "@apex/sim"
+import type { CareAction, GameState, TrainingProgram } from "@apex/sim"
 import type { CreatureDetail } from "../creature-detail"
 import type { SettingsModalRefs } from "../settings-modal"
 import type { CommandDockRefs } from "./dock"
@@ -37,7 +37,8 @@ export interface HudViewState {
 /** The handler subset `shell` wires (a HudHandlers satisfies it). */
 export interface HudShellHandlers {
   onCare: (action: CareAction) => void
-  onTrain: (stat: StatKey) => void
+  /** Assign a program, or clear tonight's with `null`. */
+  onTrain: (program: TrainingProgram | null) => void
   onAdvanceDay: () => void
   onToggleReducedMotion: () => void
   onToggleArenaCamera: () => void

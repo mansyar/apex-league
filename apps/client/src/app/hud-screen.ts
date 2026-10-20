@@ -10,11 +10,11 @@ import {
   markHintSeen,
   renameCreature,
   type SaveData,
-  type StatKey,
   setMusicVolume,
   setMuted,
   setReducedMotion,
   setSfxVolume,
+  type TrainingProgram,
 } from "@apex/sim"
 import { careCueForEvent } from "../audio/careCues"
 import type { GraduationFlow } from "../graduation"
@@ -103,8 +103,8 @@ export function createHudScreen(deps: HudScreenDeps): Hud {
       if (action === "treat") scene.startTreatCeremony()
       if (action === "play") scene.startPlayCeremony()
     },
-    onTrain: (stat: StatKey) => {
-      const result = assignTraining(store.get(), stat)
+    onTrain: (program: TrainingProgram | null) => {
+      const result = assignTraining(store.get(), program)
       if (!result.ok) return // entries are already disabled; belt and braces
       store.commit(result.state)
       // Training may shift the visual seed → resync the scene after the

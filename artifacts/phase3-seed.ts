@@ -17,7 +17,7 @@ const state = chooseStarter(createInitialState(), "fire_drake", 42)
 setReducedMotion(state, false)
 state.day = day
 state.creature!.trained = { hp: 1, atk: 1, def: 0, spd: 0 }
-state.creature!.trainingFocus = null
+state.creature!.trainingProgram = null
 state.creature!.trainingResult = null
 state.creature!.conditions = {
   hunger: 80,

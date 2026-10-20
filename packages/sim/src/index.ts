@@ -137,6 +137,15 @@ export {
   SICK_COOLDOWN_NIGHTS,
 } from "./evolution"
 export {
+  battleStats,
+  FORM_COPY,
+  FORM_DELTAS,
+  type FormTier,
+  formModifier,
+  formScore,
+  formTier,
+} from "./form"
+export {
   applyCupPlacement,
   type CupKind,
   GOLD_THRESHOLDS,
@@ -216,10 +225,16 @@ export {
 export {
   EXHAUSTED_ENERGY,
   NIGHT_RECOVERY,
+  previewProgram,
   previewTraining,
+  RING_BOND_BONUS,
+  RING_MOOD_BONUS,
   SICK_HEALTH,
   SICKNESS_ONSET_HEALTH,
   settleCreature,
+  type TrainingPlan,
+  type TrainingPreview,
+  trainingPlan,
 } from "./settlement"
 export { getSpecies, type SpeciesDef, STARTER_SPECIES } from "./species"
 export {
@@ -248,3 +263,12 @@ export {
   CUP_WIN_AP_BONUS,
   TIER_AP_BONUS,
 } from "./ticker"
+export {
+  getTrainingProgram,
+  isTrainingProgram,
+  programFor,
+  TRAINING_ENERGY_COST,
+  TRAINING_PROGRAMS,
+  type TrainingProgram,
+  type TrainingProgramDef,
+} from "./training"

@@ -10,16 +10,32 @@
  * re-export surface every existing importer already uses.
  */
 export {
+  breakthroughLine,
+  cappedLine,
   coachVoice,
   corruptSaveNotice,
+  dockHeadTraining,
+  FORM_SICK_NOTE,
   flavorCallout,
+  formDeltaLine,
+  formRead,
+  formReadout,
+  gainsLine,
+  NO_GAIN_TONIGHT,
+  NO_GAIN_TONIGHT_FALLBACK,
   previewNote,
+  programTradeoff,
   REJECTION_COPY,
   STATS,
   saveFailureNotice,
   spendFlashIndex,
   statLabel,
   statusLine,
+  TRAINING_EMPTY,
+  TRAINING_EMPTY_POINTER,
+  TRAINING_TAB_HEADINGS,
+  tonightLine,
+  trainButtonLabel,
   trainingStatus,
 } from "./copy-care"
 export { type HudHint, selectHint } from "./copy-cup"

@@ -5,10 +5,10 @@
  * semantics (first step into the arena consumes the cup) live here.
  */
 import {
+  battleStats,
   type Creature,
   type CupSlot,
   completeCup,
-  effectiveStats,
   endCup,
   getBoss,
   getSpecies,
@@ -94,7 +94,7 @@ export function createArena(shared: CupShared): {
         name: creature.name,
         key: creature.name,
         element: cs.element,
-        maxHp: effectiveStats(creature).hp,
+        maxHp: battleStats(creature).hp,
       },
       rival: {
         name: opponent.name,

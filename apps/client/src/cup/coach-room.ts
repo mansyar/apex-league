@@ -4,8 +4,9 @@
  * from `createCup` — the pick bounds and labels live in battleUI, the
  * fresh-picks decision in view-models (initialPicks).
  */
-import { effectiveStats, getMove, getSpecies } from "@apex/sim"
+import { battleStats, type Creature, getMove, getSpecies } from "@apex/sim"
 import { buildKitPicker, buildTacticRow, toggleKitChoice } from "../battleUI"
+import { formRead } from "../hud/copy-care"
 import type { CupShared } from "./shared"
 import { coachTabLabel, initialPicks } from "./view-models"
 
@@ -38,6 +39,32 @@ export function createCoachRoom(shared: CupShared): {
     return row
   }
 
+  /**
+   * The form line (FR-14): the tier word in a chip, the sim's own consequence
+   * sentence beside it, and — only for a sick partner — the sentence that
+   * explains why the tier is pinned. Wording is `formRead`'s (the sim's copy),
+   * never a second copy, so the coach room cannot drift from the fight.
+   */
+  const formRow = (creature: Creature): HTMLElement => {
+    const view = formRead(creature)
+    const row = document.createElement("div")
+    row.className = "cup-form"
+    const word = document.createElement("span")
+    word.className = "cup-form-tier"
+    word.textContent = view.label
+    const line = document.createElement("span")
+    line.className = "cup-form-line"
+    line.textContent = view.line
+    row.append(word, line)
+    if (view.sickNote !== null) {
+      const note = document.createElement("span")
+      note.className = "cup-form-line"
+      note.textContent = view.sickNote
+      row.append(note)
+    }
+    return row
+  }
+
   const openCoach = (): void => {
     if (!mem.state?.creature || !mem.session || !mem.pendingId) return
     opener =
@@ -67,15 +94,19 @@ export function createCoachRoom(shared: CupShared): {
     fSpecies.className = "cup-fighter-species"
     fSpecies.textContent = `${cs.displayName} · ${cs.element}`
     fighterCard.append(fHead, fName, fSpecies)
-    const eff = effectiveStats(creature)
+    // The numbers the fight will actually use: `battleStats` is the same seam
+    // the owned side of a spar and the cup entry snapshot resolve with, so the
+    // readout above the form line cannot disagree with the arena.
+    const fight = battleStats(creature)
     for (const [label, key] of [
       ["HP", "hp"],
       ["ATK", "atk"],
       ["DEF", "def"],
       ["SPD", "spd"],
     ] as const) {
-      fighterCard.append(statRow(label, eff[key]))
+      fighterCard.append(statRow(label, fight[key]))
     }
+    fighterCard.append(formRow(creature))
 
     // Rival scouting card (tactic withheld — that is the scouting tension).
     rivalCard.replaceChildren()

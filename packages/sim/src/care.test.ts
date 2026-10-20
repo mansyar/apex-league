@@ -9,6 +9,7 @@ import {
   createInitialState,
   type GameState,
   TRAINING_CAP,
+  TRAINING_PROGRAMS,
 } from "./index"
 
 /** Day-1 state with an owned creature and hand-set conditions/AP. */
@@ -33,7 +34,7 @@ function trainingState(
   fields: Partial<
     Pick<
       Creature,
-      "trained" | "trainingFocus" | "trainingResult" | "trainingDays"
+      "trained" | "trainingProgram" | "trainingResult" | "trainingDays"
     >
   >,
   actionPoints = ACTION_POINTS_PER_DAY,
@@ -177,109 +178,181 @@ describe("careAction — rejections", () => {
 })
 
 describe("assignTraining", () => {
-  test("the first assignment sets the focus and spends 1 AP", () => {
-    const r = assignTraining(trainingState({}), "atk")
+  test("the first assignment of the day sets the program and spends 1 AP", () => {
+    const r = assignTraining(trainingState({}), "power")
     expect(r.ok).toBe(true)
     if (!r.ok) throw new Error("unreachable")
-    expect(r.state.creature?.trainingFocus).toBe("atk")
+    expect(r.state.creature?.trainingProgram).toBe("power")
     expect(r.state.creature?.trainingResult).toBeNull()
     expect(r.state.actionPoints).toBe(ACTION_POINTS_PER_DAY - 1)
   })
 
-  test("swapping the focus the same day is free", () => {
-    const r = assignTraining(trainingState({ trainingFocus: "hp" }), "def")
+  test("every program can be assigned on a fresh day", () => {
+    for (const program of TRAINING_PROGRAMS) {
+      const r = assignTraining(trainingState({}), program.id)
+      expect(r.ok).toBe(true)
+      if (!r.ok) throw new Error(`rejected: ${program.id}`)
+      expect(r.state.creature?.trainingProgram).toBe(program.id)
+    }
+  })
+
+  test("re-pointing the same day is free and AP-neutral", () => {
+    const r = assignTraining(
+      trainingState({ trainingProgram: "power" }),
+      "sprint",
+    )
     expect(r.ok).toBe(true)
     if (!r.ok) throw new Error("unreachable")
-    expect(r.state.creature?.trainingFocus).toBe("def")
+    expect(r.state.creature?.trainingProgram).toBe("sprint")
     expect(r.state.actionPoints).toBe(ACTION_POINTS_PER_DAY)
   })
 
-  test("a swap resets tonight's training result", () => {
+  test("a re-point resets tonight's training result", () => {
     const r = assignTraining(
-      trainingState({ trainingFocus: "hp", trainingResult: "gained" }),
-      "spd",
+      trainingState({ trainingProgram: "endurance", trainingResult: "gained" }),
+      "ring",
     )
     if (!r.ok) throw new Error("unreachable")
     expect(r.state.creature?.trainingResult).toBeNull()
   })
 
-  test("a capped stat is rejected before spending AP — at-cap", () => {
+  test("a capped primary is rejected before spending AP — at-cap", () => {
+    // Power's primary is ATK.
     const s = trainingState({
       trained: { hp: 0, atk: TRAINING_CAP, def: 0, spd: 0 },
     })
-    const r = assignTraining(s, "atk")
+    const r = assignTraining(s, "power")
     expect(r).toEqual({ ok: false, reason: "at-cap" })
     expect(s.actionPoints).toBe(ACTION_POINTS_PER_DAY)
   })
 
-  test("after a capped rejection other stats stay assignable", () => {
+  test("Ring Craft shares ATK as its primary and rejects the same way", () => {
     const s = trainingState({
       trained: { hp: 0, atk: TRAINING_CAP, def: 0, spd: 0 },
     })
-    const r = assignTraining(s, "def")
-    expect(r.ok).toBe(true)
-    if (!r.ok) throw new Error("unreachable")
-    expect(r.state.creature?.trainingFocus).toBe("def")
+    expect(assignTraining(s, "ring")).toEqual({ ok: false, reason: "at-cap" })
   })
 
-  test("picking the already-focused stat is a free no-op", () => {
-    const r = assignTraining(trainingState({ trainingFocus: "def" }), "def")
+  test("a capped trickle never blocks its program", () => {
+    // Power trickles DEF: a maxed DEF still accepts Power Lifting.
+    const r = assignTraining(
+      trainingState({
+        trained: { hp: 0, atk: 0, def: TRAINING_CAP, spd: 0 },
+      }),
+      "power",
+    )
     expect(r.ok).toBe(true)
     if (!r.ok) throw new Error("unreachable")
-    expect(r.state.creature?.trainingFocus).toBe("def")
+    expect(r.state.creature?.trainingProgram).toBe("power")
+  })
+
+  test("after a capped rejection other programs stay assignable", () => {
+    const s = trainingState({
+      trained: { hp: 0, atk: TRAINING_CAP, def: 0, spd: 0 },
+    })
+    const r = assignTraining(s, "endurance")
+    expect(r.ok).toBe(true)
+    if (!r.ok) throw new Error("unreachable")
+    expect(r.state.creature?.trainingProgram).toBe("endurance")
+  })
+
+  test("picking the already-assigned program is a free no-op", () => {
+    const r = assignTraining(trainingState({ trainingProgram: "ring" }), "ring")
+    expect(r.ok).toBe(true)
+    if (!r.ok) throw new Error("unreachable")
+    expect(r.state.creature?.trainingProgram).toBe("ring")
     expect(r.state.actionPoints).toBe(ACTION_POINTS_PER_DAY)
   })
 
   test("assignment is allowed while sick, hungry, or exhausted", () => {
     for (const conditions of [{ health: 50 }, { hunger: 0 }, { energy: 10 }]) {
-      const r = assignTraining(stateWith(conditions), "hp")
+      const r = assignTraining(stateWith(conditions), "endurance")
       expect(r.ok).toBe(true)
       if (!r.ok) throw new Error("unreachable")
-      expect(r.state.creature?.trainingFocus).toBe("hp")
+      expect(r.state.creature?.trainingProgram).toBe("endurance")
     }
   })
 
   test("the first assignment is rejected without AP — no-ap", () => {
-    const r = assignTraining(trainingState({}, 0), "hp")
+    const r = assignTraining(trainingState({}, 0), "endurance")
     expect(r).toEqual({ ok: false, reason: "no-ap" })
   })
 
-  test("a free swap works even with no AP left", () => {
-    const r = assignTraining(trainingState({ trainingFocus: "atk" }, 0), "hp")
+  test("a free re-point works even with no AP left", () => {
+    const r = assignTraining(
+      trainingState({ trainingProgram: "power" }, 0),
+      "sprint",
+    )
     expect(r.ok).toBe(true)
     if (!r.ok) throw new Error("unreachable")
-    expect(r.state.creature?.trainingFocus).toBe("hp")
+    expect(r.state.creature?.trainingProgram).toBe("sprint")
     expect(r.state.actionPoints).toBe(0)
   })
 
+  test("clearing the assignment is free and AP-neutral", () => {
+    const r = assignTraining(
+      trainingState({ trainingProgram: "power", trainingResult: "gained" }),
+      null,
+    )
+    expect(r.ok).toBe(true)
+    if (!r.ok) throw new Error("unreachable")
+    expect(r.state.creature?.trainingProgram).toBeNull()
+    expect(r.state.creature?.trainingResult).toBeNull()
+    expect(r.state.actionPoints).toBe(ACTION_POINTS_PER_DAY)
+  })
+
+  test("clearing works with no AP left", () => {
+    const r = assignTraining(
+      trainingState({ trainingProgram: "sprint" }, 0),
+      null,
+    )
+    expect(r.ok).toBe(true)
+    if (!r.ok) throw new Error("unreachable")
+    expect(r.state.creature?.trainingProgram).toBeNull()
+    expect(r.state.actionPoints).toBe(0)
+  })
+
+  test("clearing an empty assignment is a free no-op", () => {
+    const r = assignTraining(trainingState({ trainingDays: 2 }, 0), null)
+    expect(r.ok).toBe(true)
+    if (!r.ok) throw new Error("unreachable")
+    expect(r.state.creature?.trainingProgram).toBeNull()
+    expect(r.state.creature?.trainingDays).toBe(2)
+  })
+
   test("assignment is rejected without a creature — no-creature", () => {
-    expect(assignTraining(createInitialState(), "hp")).toEqual({
+    expect(assignTraining(createInitialState(), "endurance")).toEqual({
+      ok: false,
+      reason: "no-creature",
+    })
+    expect(assignTraining(createInitialState(), null)).toEqual({
       ok: false,
       reason: "no-creature",
     })
   })
 
-  test("success is pure — does not mutate the input state", () => {
-    const s = trainingState({})
-    const snapshot = structuredClone(s)
-    assignTraining(s, "hp")
-    expect(s).toEqual(snapshot)
+  test("success and clearing are pure — the input state is untouched", () => {
+    const assigned = trainingState({ trainingProgram: "power" })
+    const snapshot = structuredClone(assigned)
+    assignTraining(assigned, "ring")
+    assignTraining(assigned, null)
+    expect(assigned).toEqual(snapshot)
   })
 })
 
 describe("assignTraining — trained days", () => {
   test("the first assignment of a day bumps trainingDays by exactly 1", () => {
-    const r = assignTraining(trainingState({ trainingDays: 0 }), "atk")
+    const r = assignTraining(trainingState({ trainingDays: 0 }), "power")
     expect(r.ok).toBe(true)
     if (!r.ok) throw new Error("unreachable")
     expect(r.state.creature?.trainingDays).toBe(1)
     expect(r.state.actionPoints).toBe(ACTION_POINTS_PER_DAY - 1)
   })
 
-  test("a free same-day swap never adds a trained day", () => {
+  test("a free same-day re-point never adds a trained day", () => {
     const r = assignTraining(
-      trainingState({ trainingDays: 1, trainingFocus: "hp" }),
-      "def",
+      trainingState({ trainingDays: 1, trainingProgram: "endurance" }),
+      "sprint",
     )
     expect(r.ok).toBe(true)
     if (!r.ok) throw new Error("unreachable")
@@ -287,30 +360,30 @@ describe("assignTraining — trained days", () => {
     expect(r.state.actionPoints).toBe(ACTION_POINTS_PER_DAY)
   })
 
-  test("picking the already-focused stat is a free no-op on the counter", () => {
+  test("clearing never adds a trained day", () => {
     const r = assignTraining(
-      trainingState({ trainingDays: 2, trainingFocus: "def" }),
-      "def",
+      trainingState({ trainingDays: 3, trainingProgram: "ring" }),
+      null,
     )
     expect(r.ok).toBe(true)
     if (!r.ok) throw new Error("unreachable")
-    expect(r.state.creature?.trainingDays).toBe(2)
+    expect(r.state.creature?.trainingDays).toBe(3)
   })
 
-  test("a capped-stat rejection never touches the counter", () => {
+  test("a capped-primary rejection never touches the counter", () => {
     const s = trainingState({
       trainingDays: 1,
       trained: { hp: 0, atk: TRAINING_CAP, def: 0, spd: 0 },
     })
-    const r = assignTraining(s, "atk")
+    const r = assignTraining(s, "power")
     expect(r).toEqual({ ok: false, reason: "at-cap" })
     if (s.creature === null) throw new Error("unreachable")
     expect(s.creature.trainingDays).toBe(1)
   })
 
   test("separate assignment days accumulate", () => {
-    // A later day: the settlement has cleared the focus, the ledger stays.
-    const r = assignTraining(trainingState({ trainingDays: 3 }), "spd")
+    // A later day: settlement has cleared the assignment, the ledger stays.
+    const r = assignTraining(trainingState({ trainingDays: 3 }), "sprint")
     expect(r.ok).toBe(true)
     if (!r.ok) throw new Error("unreachable")
     expect(r.state.creature?.trainingDays).toBe(4)
@@ -318,7 +391,7 @@ describe("assignTraining — trained days", () => {
 
   test("a rejected assignment without AP never adds a trained day", () => {
     const s = trainingState({ trainingDays: 0 }, 0)
-    const rejected = assignTraining(s, "hp")
+    const rejected = assignTraining(s, "endurance")
     expect(rejected).toEqual({ ok: false, reason: "no-ap" })
     if (s.creature === null) throw new Error("unreachable")
     expect(s.creature.trainingDays).toBe(0)
@@ -327,7 +400,7 @@ describe("assignTraining — trained days", () => {
   test("counter accounting is pure — rejections and successes both", () => {
     const s = trainingState({ trainingDays: 1 })
     const snapshot = structuredClone(s)
-    assignTraining(s, "hp")
+    assignTraining(s, "endurance")
     expect(s).toEqual(snapshot)
   })
 })

@@ -1,7 +1,8 @@
-import type { CreatureConditions, StatKey } from "@apex/sim"
+import type { Creature, CreatureConditions, FormTier, StatKey } from "@apex/sim"
+import { FORM_COPY, formTier } from "@apex/sim"
 import { icons } from "../ui/icons"
 import { bar, crest, plate, tab, ticker } from "../ui/kit"
-import { STATS } from "./copy-care"
+import { formDeltaLine, STATS } from "./copy-care"
 
 const CONDITIONS: Array<{
   key: keyof CreatureConditions
@@ -39,6 +40,7 @@ export interface CreaturePlateRefs {
   headRow: HTMLElement
   creatureName: HTMLElement
   stageTab: HTMLElement
+  formChip: HTMLElement
   crestEl: HTMLElement
   renameButton: HTMLButtonElement
   nameInput: HTMLInputElement
@@ -73,7 +75,16 @@ export function buildCreaturePlate(): CreaturePlateRefs {
   const creatureName = document.createElement("span")
   creatureName.className = "creature-name"
   const stageTab = tab("Baby", "stage")
-  creatureHead.append(crestEl, creatureName, stageTab)
+  // Form chip (FR-14): the tier word rides the existing chip row, stacked with
+  // the stage tab so the 74px collapsed plate keeps its height. The word is the
+  // carrier and the title spells the ATK consequence (NFR-5: never colour
+  // alone). Values are painted by `paintFormChip` from the daily update.
+  const formChip = tab(FORM_COPY.steady.label, "stage")
+  formChip.classList.add("creature-form", "is-outline")
+  const chips = document.createElement("span")
+  chips.className = "creature-chips"
+  chips.append(stageTab, formChip)
+  creatureHead.append(crestEl, creatureName, chips)
 
   // Rename affordance: a sibling button (never nested inside a button) that
   // swaps the head row for an inline edit form.
@@ -173,6 +184,7 @@ export function buildCreaturePlate(): CreaturePlateRefs {
     headRow,
     creatureName,
     stageTab,
+    formChip,
     crestEl,
     renameButton,
     nameInput,
@@ -183,4 +195,21 @@ export function buildCreaturePlate(): CreaturePlateRefs {
     bars,
     statusTicker,
   }
+}
+
+/** The plate chip's accessible name: the tier word plus its ATK consequence. */
+export function formChipTitle(tier: FormTier): string {
+  return `${FORM_COPY[tier].label}: ${formDeltaLine(tier)}`
+}
+
+/**
+ * Paint the form chip from a creature. Text carries the tier, `title` and
+ * `aria-label` carry the consequence, so the readout survives greyscale.
+ */
+export function paintFormChip(chip: HTMLElement, creature: Creature): void {
+  const tier = formTier(creature)
+  const read = formChipTitle(tier)
+  chip.textContent = FORM_COPY[tier].label
+  chip.title = read
+  chip.setAttribute("aria-label", read)
 }

@@ -4,9 +4,10 @@
  * kit-gate progress, the kit picker). Moved verbatim out of spar.ts.
  */
 
-import { type Creature, effectiveStats, getSpecies } from "@apex/sim"
+import { battleStats, type Creature, formTier, getSpecies } from "@apex/sim"
 import { buildKitPicker } from "../battleUI"
 import { crestGlyph, elementHue } from "../element"
+import { formReadout } from "../hud/copy-care"
 import { TACTIC_LABELS, TEMPERAMENT_LINES } from "./copy"
 import {
   kitHintMessage,
@@ -49,10 +50,18 @@ export function refreshPrep(
   const species = getSpecies(creature.speciesId)
   if (!species) throw new Error(`Unknown species: ${creature.speciesId}`)
 
+  // The owned card reads the fight's own stat line — `battleStats` is the seam
+  // the spar's owned side resolves with — plus one form line under it. The
+  // rival card stays form-neutral on purpose: rivals are generated fresh, so
+  // they have no care history to read.
   ownedCard.textContent = `${creature.name} — ${statLine(
-    effectiveStats(creature),
+    battleStats(creature),
     creature.trained,
   )}`
+  const form = document.createElement("div")
+  form.className = "spar-form"
+  form.textContent = formReadout(formTier(creature))
+  ownedCard.append(form)
 
   progress.textContent = kitProgress(creature, species)
 

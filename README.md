@@ -13,7 +13,8 @@ focus, move loadouts, and evolution planning. Battles resolve as spectator
 events — the tension is in watching a plan come together.
 
 Status: **pre-release vertical slice.** The raise-and-care loop is playable
-end to end, training programs shape the stats cycle by cycle, and weekly cups
+end to end, four training programs shape the stats cycle by cycle, and form —
+read from mood, bond, and health — moves ATK in every fight. Weekly cups
 put your creature in a broadcast arena. The golden-hour
 ranch is dressed with voxel scenery that feeds back on care (a food pile appears
 when the creature is fed). Every cup run banks ladder points: climb from
@@ -171,7 +172,7 @@ device, OS, and screenshots when it runs.
 | Phase | Scope | State |
 |---|---|---|
 | 0 — Foundation | Workspaces, sim core, day ticker, versioned save/load, app shell | Done |
-| 1 — Vertical slice | Care loop, training, one lineage, battle system, one cup, Bronze ladder | Done — care loop, training, baby→juvenile→champion evolution, arena battles, live cups, the Bronze ladder, and the minimal legacy loop (graduation → inherited next egg) playable |
+| 1 — Vertical slice | Care loop, training, one lineage, battle system, one cup, Bronze ladder | Done — care loop, four training programs with breakthrough nights, derived form (ATK) in the arena, baby→juvenile→champion evolution, arena battles, live cups, the Bronze ladder, and the minimal legacy loop (graduation → inherited next egg) playable |
 | 2 — League depth | Full ladder, rivals and bosses, breeding, evolution discovery | In progress — the full Bronze→Legend climb, six authored bosses, and dual-parent breeding with trait inheritance are playable; evolution discovery and extra lineages remain |
 | 3 — Content & meta | 20–40 species, ElysiaJS backend, cloud saves, leaderboards | Planned |
 | 4 — Post-MVP | Async ghost PvP, live PvP, mobile hardware pass, audio expansion | Planned |

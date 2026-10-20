@@ -3,12 +3,16 @@
  * the player's tactic, and a seed. The rival is a seeded pick among
  * *available* starters only, rolled from `createCreature` with a seed
  * derived from the battle seed, and fights four of the six moves its species
- * knows. The owner's side reads combat prep: effective stats
- * (stats + trained) and the chosen loadout, defaulting to the stage slicing
- * of the kit gate. Pure — the owned creature is never mutated.
+ * knows. The owner's side reads combat prep — the creature's post-training
+ * stats through `battleStats` (the single form seam, form.ts) and the chosen
+ * loadout, defaulting to the stage slicing of the kit gate. The rival is
+ * form-neutral by construction: it is a fresh seeded creature that never
+ * carries mood or bond, so its side reads plain `rival.stats`. Pure — the
+ * owned creature is never mutated.
  */
 
-import { type Creature, createCreature, effectiveStats } from "../creature"
+import { type Creature, createCreature } from "../creature"
+import { battleStats } from "../form"
 import { defaultLoadout } from "../loadout"
 import { makeRng } from "../rng"
 import { getSpecies, STARTER_SPECIES } from "../species"
@@ -55,7 +59,7 @@ export function makeExhibition(
     name: owned.name,
     id: "owned",
     element: owned.element,
-    stats: effectiveStats(owned),
+    stats: battleStats(owned),
     kit: owned.loadout ?? defaultLoadout(owned, species),
     tactic,
     temperament: species.temperament,

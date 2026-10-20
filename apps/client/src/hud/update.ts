@@ -4,13 +4,18 @@ import {
   careAction,
   type GameState,
   lineagePrestige,
-  previewTraining,
-  type StatKey,
+  type TrainingProgram,
 } from "@apex/sim"
 import { crestGlyph, elementHue } from "../element"
 import { meter, replay } from "../ui/kit"
-import { familyName, REJECTION_COPY, stageLabel, statusLine } from "./copy"
-import { pickerEntry, trainButtonState } from "./dock"
+import {
+  dockHeadTraining,
+  familyName,
+  REJECTION_COPY,
+  stageLabel,
+  statusLine,
+} from "./copy"
+import { trainButtonState } from "./dock"
 import {
   apPipPlan,
   climbAnnouncement,
@@ -19,6 +24,8 @@ import {
   lineageMeta,
   statCell,
 } from "./plates"
+import { paintFormChip } from "./plates-creature"
+import { programRows, rovingRow } from "./programs"
 import { capturePrefChips } from "./settings"
 import type { HudHints, HudShell } from "./types"
 
@@ -58,6 +65,7 @@ export function createHudUpdate(
     root: lowerThird,
     creatureName,
     stageTab,
+    formChip,
     crestEl,
     renameButton,
     statCells,
@@ -65,13 +73,16 @@ export function createHudUpdate(
     statusTicker,
   } = creaturePlate
   const {
+    root: dockPlate,
+    dockHeadMeta,
     dockRow,
     actionButtons,
     dockTrain,
     trainButton,
-    trainTag,
+    trainName,
+    trainCost,
     picker,
-    pickerButtons,
+    pickerRows,
     advanceLabel,
     dockGraduate,
     graduateChip,
@@ -79,7 +90,7 @@ export function createHudUpdate(
   const { familyEl, metaEl } = lineage
   const { motionChip, cameraChip, soundChip } = settings
 
-  let lastFocus: StatKey | null = null
+  let lastProgram: TrainingProgram | null = null
   // Previous AP total — drives the one-shot spend flash on the meter.
   let prevAp: number | null = null
   // Ladder climb detection: the ticker announces a sub-tier promotion or
@@ -160,6 +171,7 @@ export function createHudUpdate(
       dockTrain.style.display = "none"
       dockGraduate.style.display = "none"
       picker.style.display = "none"
+      dockHeadMeta.textContent = ""
       lineage.root.style.display = "none"
       statusTicker.say("")
       motionWrap.style.display = ""
@@ -207,6 +219,8 @@ export function createHudUpdate(
     hints.sync(state)
     stageTab.textContent = stageLabel(creature.stage)
     stageTab.className = "kit-tab is-stage"
+    // Form chip: the tier word in text, the ATK consequence in its title.
+    paintFormChip(formChip, creature)
 
     // Stat row: name, total (rolled base + trained), bonus when above 0.
     for (const cell of statCells) {
@@ -215,9 +229,9 @@ export function createHudUpdate(
       cell.bonus.textContent = bonus
     }
 
-    // Train button: disabled only when nothing is possible. A focus set
-    // keeps it enabled at 0 AP, because a same-day swap is free.
-    const preview = previewTraining(creature)
+    // Train control: disabled only when nothing is possible. Its label names
+    // the assigned program, and its AP badge drops once a program is set —
+    // a same-day re-point is free, so the button must not imply a cost.
     const train = trainButtonState(creature, state.actionPoints)
     trainButton.disabled = train.disabled
     trainButton.classList.toggle("is-disabled", train.disabled)
@@ -226,18 +240,36 @@ export function createHudUpdate(
     } else {
       trainButton.dataset.reason = train.reason
     }
-    if (trainTag) trainTag.textContent = train.tag
+    if (trainName) trainName.textContent = train.label
+    if (trainCost) {
+      trainCost.textContent = train.cost ?? ""
+      trainCost.style.display = train.cost === null ? "none" : ""
+    }
     trainButton.classList.toggle("is-focus", train.focus)
+    dockHeadMeta.textContent = dockHeadTraining(creature.trainingProgram)
 
-    // Picker entries: tonight's delta, or the waste reason. Capped stats
-    // are disabled; the current focus is marked.
+    // Program rows: the tradeoff in plain words, tonight's projection (or
+    // the reason it will not pay), and the assigned check as text plus
+    // `aria-checked` — never colour alone.
+    const rows = programRows(creature)
+    const rove = rovingRow(rows)
     picker.style.display = view.pickerOpen ? "" : "none"
-    for (const entry of pickerButtons) {
-      const entryView = pickerEntry(creature, entry.key, preview)
-      entry.button.disabled = entryView.capped
-      entry.button.classList.toggle("is-capped", entryView.capped)
-      entry.button.classList.toggle("is-focus", entryView.isFocus)
-      entry.note.textContent = entryView.note
+    // The narrow layout turns an open picker into a program sheet: CSS hides
+    // the care row and the two CTAs off this attribute so all four rows fit.
+    dockPlate.dataset.picking = view.pickerOpen ? "true" : "false"
+    for (const [index, row] of rows.entries()) {
+      const ref = pickerRows.find((entry) => entry.id === row.id)
+      if (!ref) continue
+      ref.name.textContent = row.label
+      ref.tradeoff.textContent = row.tradeoff
+      ref.note.textContent = row.tonight
+      ref.assigned.hidden = !row.assigned
+      ref.button.disabled = row.disabled
+      ref.button.classList.toggle("is-disabled", row.disabled)
+      ref.button.classList.toggle("is-capped", row.capped)
+      ref.button.classList.toggle("is-focus", row.assigned)
+      ref.button.setAttribute("aria-checked", row.assigned ? "true" : "false")
+      ref.button.tabIndex = index === rove ? 0 : -1
     }
 
     for (const bar of bars) {
@@ -261,7 +293,7 @@ export function createHudUpdate(
     // stays visible after the cup overlay closes.)
     const climb = climbLine
     climbLine = null
-    statusTicker.say(statusLine(creature, state.day, lastFocus, climb))
+    statusTicker.say(statusLine(creature, state.day, lastProgram, climb))
 
     // Disabled states come from the sim itself — a dry-run careAction is
     // the single source of truth for why an action can't happen. The
@@ -282,9 +314,9 @@ export function createHudUpdate(
     // (The motion pill was already mirrored by capturePrefUpdate above —
     // it runs on every update path.)
 
-    // Remember the focus across Advance Day so the morning result can
+    // Remember the program across Advance Day so the morning result can
     // name the stat it sharpened.
-    if (creature.trainingFocus) lastFocus = creature.trainingFocus
+    if (creature.trainingProgram) lastProgram = creature.trainingProgram
 
     // An open detail modal repaints its Growth section from this commit, so
     // a gate unlocked by the settlement lands without a reopen (FR-7).

@@ -1,4 +1,4 @@
-import type { CareAction, GameState, StatKey } from "@apex/sim"
+import type { CareAction, GameState, TrainingProgram } from "@apex/sim"
 import { evolveCallout, graduationCallout, saveFailureNotice } from "./hud/copy"
 import { createHints } from "./hud/hints"
 import { createHudShell } from "./hud/shell"
@@ -40,7 +40,7 @@ export { buildResetModal, type ResetModalRefs } from "./hud/settings"
 export interface HudHandlers {
   onAdvanceDay: () => void
   onCare: (action: CareAction) => void
-  onTrain: (stat: StatKey) => void
+  onTrain: (program: TrainingProgram | null) => void
   /**
    * Flip the save v5 reduced-motion preference (persists like every other
    * sim change). The HUD only mirrors state; wiring stays in main.ts.

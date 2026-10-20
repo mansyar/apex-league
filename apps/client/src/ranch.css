@@ -193,6 +193,26 @@
   margin-bottom: 0;
 }
 
+/* Stage and form chips stack beside the name instead of taking a new row, so
+   the collapsed plate keeps its height. The form chip's word is the carrier
+   and its title names the ATK consequence (colour is never the only cue). */
+.creature-chips {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.creature-chips .kit-tab {
+  font-size: 9px;
+  padding: 1px 7px;
+}
+
+.creature-form {
+  letter-spacing: 0.12em;
+}
+
 .rename-button {
   flex: none;
   display: inline-flex;
@@ -452,6 +472,114 @@
 
 .detail-kit-state[data-state="equipped"] {
   color: var(--kit-accent, var(--ink-dim));
+}
+
+/* Training tab (training programs, 2026-10-20): program, progress, form and
+   the four-program table. Same grammar as the other pages — dim caps labels,
+   bold values, chip rows — so the tab adds no new design language. */
+.detail-training {
+  display: grid;
+  gap: 12px;
+}
+
+.detail-training-section {
+  display: grid;
+  gap: 5px;
+  border-top: 1px solid var(--kit-keyline);
+  padding-top: 10px;
+}
+
+.detail-training-section:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.detail-training-title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.detail-training-program {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.detail-training-program[data-empty="true"] {
+  font-weight: 600;
+  color: var(--ink-dim);
+}
+
+.detail-training-blurb,
+.detail-training-note,
+.detail-training-line {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-dim);
+}
+
+.detail-program-table {
+  display: grid;
+  gap: 4px;
+}
+
+.detail-program-head,
+.detail-program-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  gap: 3px 10px;
+}
+
+/* Column names, so the tonight marker has a heading to sit under instead of
+   floating under the last row. */
+.detail-program-head {
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--kit-keyline);
+}
+
+.detail-program-head-cell {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.detail-program-head-cell:last-child {
+  justify-self: end;
+}
+
+.detail-program-name {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.detail-program-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* The marker lives in its own table cell: bordered, normal-contrast text on
+   the panel, so it reads without the accent colour doing the work. */
+.detail-program-tonight {
+  justify-self: end;
+  white-space: nowrap;
+  padding: 1px 6px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--kit-panel-bg);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink);
 }
 
 /* Coach's Handbook (coach_knowledge_20261016): tabbed ranch modal — type
@@ -815,6 +943,26 @@
   color: var(--ink);
 }
 
+/* The collapsed head's one-fact training read: the dock states tonight's
+   program without being expanded, so the choice is never hidden. */
+.dock-head-meta {
+  margin-left: auto;
+  margin-right: 6px;
+  max-width: 58%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-dim);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: none;
+}
+
+.command-dock.is-collapsed .dock-head-meta {
+  max-width: 100%;
+}
+
 .dock-head:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 4px;
@@ -922,7 +1070,9 @@
   color: var(--ink-dim);
 }
 
-/* Training: a separate row plus an inline four-stat picker */
+/* Training: a separate row plus an inline four-program picker. Each row
+   carries the label, the tradeoff in plain words and tonight's line, so a
+   program can be judged without expanding anything else. */
 /* biome-ignore lint/style/noDescendingSpecificity: the collapsed-state override above is intentionally more specific than this base rule */
 .train-picker {
   border-top: 1px solid var(--kit-keyline);
@@ -931,22 +1081,25 @@
 }
 
 .train-entry {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
+  display: grid;
+  gap: 2px;
   padding: 8px 2px;
   border: 0;
   border-bottom: 1px solid var(--kit-keyline);
   background: transparent;
   color: var(--ink);
-  font-size: 12px;
-  font-weight: 600;
+  font: inherit;
+  text-align: left;
   cursor: pointer;
 }
 
 .train-entry:hover:not(:disabled) {
   color: var(--accent);
+}
+
+.train-entry:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 .train-entry:disabled {
@@ -958,10 +1111,42 @@
   color: var(--accent);
 }
 
+.train-entry-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .train-entry-name {
   font-size: 10.5px;
+  font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+
+/* The assigned check is a word plus aria-checked: the state never depends
+   on the accent colour. It is a chip, not a floating caption, so it keeps
+   normal text contrast against the plate. */
+.train-assigned {
+  padding: 1px 6px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--kit-panel-bg);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.train-assigned[hidden] {
+  display: none;
+}
+
+.train-tradeoff {
+  font-size: 11px;
+  color: var(--ink-dim);
 }
 
 .train-entry.is-capped .train-note {
@@ -974,7 +1159,7 @@
   font-size: 11px;
   font-weight: 400;
   color: var(--ink-dim);
-  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Top-right spar chip - its own control, separate from the care cluster. */
@@ -1024,9 +1209,17 @@
     position: absolute;
     inset: auto calc(14px + var(--kit-safe-right))
       calc(14px + var(--kit-safe-bottom)) calc(14px + var(--kit-safe-left));
+    /* 228px clears the lineage plate, which sits at top 176px and is 44px
+       tall, plus the 8px gap the stack keeps: the creature plate can never
+       creep over it at 393x659 (it measured plate.top 214 against
+       lineage.bottom 220 before this). Content is bottom-aligned, so a short
+       dock still hugs the corner exactly as before. */
+    top: calc(228px + var(--kit-safe-top));
     display: flex;
     flex-direction: column;
+    justify-content: flex-end;
     gap: 8px;
+    min-height: 0;
     pointer-events: none;
   }
 
@@ -1038,6 +1231,46 @@
   .command-dock {
     position: static;
     width: auto;
+  }
+
+  /* The plate keeps its size so its own numbers stay put; the dock is the
+     child that may give way, and the band's 228px top keeps the pair clear of
+     the lineage plate at 393x659. */
+  .creature-plate {
+    flex: 0 0 auto;
+  }
+
+  .command-dock {
+    flex: 0 1 auto;
+    min-height: 0;
+    gap: 6px;
+  }
+
+  /* An open picker becomes a program sheet rather than a squeezed child: the
+     care row, the train button and both CTAs step aside (they are unreachable
+     by keyboard too, since display:none drops them from the tab order), which
+     frees the 242px the four rows need inside the 417px band at 393x659
+     (plate 74 + gap 8 + dock 294 = 376, 41px slack). The list never scrolls
+     internally, so all four programs are readable at once. Only the train
+     button is hidden, never .dock-train itself: the sheet is appended to the
+     dock root as .dock-train's sibling, and hiding the wrapper would also take
+     the dock's top border and head spacing with it. */
+  .command-dock[data-picking="true"] .dock-row,
+  .command-dock[data-picking="true"] .dock-train > .kit-button,
+  .command-dock[data-picking="true"] .dock-graduate,
+  .command-dock[data-picking="true"] .kit-cta {
+    display: none;
+  }
+
+  .train-picker {
+    flex: 0 0 auto;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .train-entry {
+    padding: 6px 2px;
   }
 
   .hud-motion {
