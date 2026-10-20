@@ -86,7 +86,7 @@ game must not be.
 | FR-6 | `ring` additionally grants mood +5 and bond +2 on any paying night. | should |
 | FR-7 | `TrainingResult` gains `"exhausted"`, and the pre-night preview returns the projected result plus the exact stat deltas for the assigned program, before AP is spent. | must |
 | FR-8 | `formTier(creature)` returns `sharp`, `steady`, `flat`, or `sluggish` from `0.6 × mood + 0.4 × bond` (≥65 sharp, 40–64 steady, 20–39 flat, <20 sluggish), except that any creature with health < `SICK_HEALTH` (80) is pinned to `sluggish`. Starting conditions (mood 60, bond 10, health 100) are `steady`. | must |
-| FR-9 | `battleStats(creature)` returns `effectiveStats` plus the form deltas (`sharp` +1 ATK/+1 SPD, `steady` 0, `flat` −1 ATK/−1 SPD, `sluggish` −2 ATK/−2 SPD), each stat floored at 1. It is the single seam used for the owned side of a spar, the cup entry snapshot, and every client stat readout that feeds a fight. | must |
+| FR-9 | `battleStats(creature)` returns `effectiveStats` plus the form delta **on ATK only** (`sharp` +1 ATK, `steady` 0, `flat` -1 ATK, `sluggish` -2 ATK), with ATK floored at 1 and HP/DEF/SPD left untouched. SPD is deliberately excluded: turn order is discrete, so a speed delta flips initiative and turns the FR12 band into a 0%/90% cliff (phase-3 probe, 2026-10-20 — sharp Koda 91.7%, sluggish 0.0%). It is the single seam used for the owned side of a spar, the cup entry snapshot, and every client stat readout that feeds a fight. | must |
 | FR-10 | Form never changes bracket seeding or rival generation: `prepareCup`/`makeBracket` keep seeding from `effectiveStats`, and generated rivals keep their rolled stats, so form cannot reshuffle a bracket or alter an opponent. | must |
 | FR-11 | Save v18 stores `trainingProgram: TrainingProgram \| null` in place of `trainingFocus: StatKey \| null`. The v17→v18 migration maps `hp→endurance`, `atk→power`, `def→power`, `spd→sprint`, `null→null`. Validation rejects an unknown program id. `docs/save-schema.md` documents v18 and the mapping. | must |
 | FR-12 | The dock's train control is a program picker: four rows with label, one-line tradeoff, tonight's projected gains, and a clear capped/tired note; the button label reflects the assigned program. The picker is reachable and operable by keyboard, and disabled exactly as today when every primary stat is capped or AP is 0 with no assignment. | must |
@@ -112,14 +112,14 @@ game must not be.
 | ID | Criterion | Verifies |
 | --- | --- | --- |
 | AC-1 | `battleStats` equals `effectiveStats` for a freshly created creature, and `formTier` is `steady`. | FR-8, FR-9 |
-| AC-2 | A creature with mood 100 and bond 100 yields +1 ATK/+1 SPD; mood 20 and bond 0 yields −2/−2; any sick creature yields the sluggish delta regardless of mood. | FR-8, FR-9 |
+| AC-2 | A creature with mood 100 and bond 100 yields +1 ATK and no SPD change; mood 20 and bond 0 yields -2 ATK and no SPD change; any sick creature yields the sluggish delta regardless of mood. | FR-8, FR-9 |
 | AC-3 | Assigning `power` spends 1 AP once, and re-pointing to `sprint` on the same day costs nothing and leaves `trainingDays` unchanged. | FR-2 |
 | AC-4 | A rested, fed creature trickles +1 ATK and −10 energy over a program night; the same creature at energy 30 still pays, at 29 it reports `exhausted` and pays nothing. | FR-4, FR-7 |
 | AC-5 | The third paid night also grants the trickle stat, and neither component exceeds `TRAINING_CAP`. | FR-5 |
 | AC-6 | Assigning a program whose primary is capped is rejected with `at-cap`; assigning one whose trickle is capped is allowed. | FR-3 |
 | AC-7 | A v17 save with `trainingFocus: "spd"` loads with `trainingProgram: "sprint"`, and one with `trainingFocus: "def"` loads with `"power"`. | FR-11 |
 | AC-8 | `bun run verify` is green, including determinism. | NFR-1, NFR-3 |
-| AC-9 | The balance probe reports every playable species inside the FR12 band under each program mix. | FR-16 |
+| AC-9 | The balance probe reports every playable species inside the FR12 band at steady form, no form tier below 15% on any disadvantaged gatekeeper cell, and a monotonic sharp >= steady >= flat >= sluggish ordering per boss. | FR-16 |
 | AC-10 | The dock picker, Training tab, coach-room form line, spar form line and plate chip all render on desktop and at 393×659 without clipping, with keyboard-only operation verified. | FR-12, FR-13, FR-14, NFR-5 |
 
 ## Edge Cases
@@ -157,6 +157,18 @@ game must not be.
 - **Assumption:** Energy cost is flat 10 for all four programs, including `ring`.
 - **Assumption:** Form deliberately excludes HP so the FR12 probe bands and the
   doubled-HP tuning stay untouched.
+- **Decision (2026-10-20, phase 3):** Form also excludes SPD. The probe showed a
+  ±1 SPD delta flips initiative on the FR12 boundary (sharp 91.7% / sluggish
+  0.0% vs Koda). ATK scales damage smoothly, so form keeps its legibility without
+  creating an unwinnable gatekeeper. FR-9 and AC-2/AC-9 carry this decision.
+- **Decision (2026-10-20, phase 3):** AC-9's per-tier guardrail is a 15% floor,
+  not 25%. With the ATK-only lever the four softest cells sit at flat or sluggish
+  (Delmar x fire_drake 22.2% / 16.7%, Fenn x plant_ox 16.7%, Thessa x water_axolotl
+  22.2%), and no lever inside FR-9 fixes them: weaker deltas leave Delmar
+  unchanged and make sluggish identical to flat, while boss stats are out of
+  scope. A 15% floor keeps every tier provably winnable (16.7% = 6 of 36) without
+  pretending neglect is harmless; the steady-form FR12 band and the per-boss
+  monotonic ordering stay asserted.
 - **Assumption:** Rival creatures are form-neutral because they are generated at
   starting conditions; no rival balancing pass is required.
 

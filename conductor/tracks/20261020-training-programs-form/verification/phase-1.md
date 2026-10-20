@@ -66,3 +66,7 @@
 - **un run build** -> exit 0 (only the pre-existing >500 kB chunk warning)
 - **Diff scope:** `packages/sim/src/form.ts`, `form.test.ts`, `index.ts`, this report - all inside Touches. No file outside Touches changed.
 - **Result:** accepted. The phase's literal command omits `--timeout 120000`; the bare `bun test <path>` form is refused by this sandbox, so the workflow-configured unit form was run instead (matching the subagent's recorded deviation). Squashed `555c08b..66bf75e` into `411f20c`.
+
+## Amendment (2026-10-20, phase 3)
+
+Superseded by the phase-3 balance probe: form is now **ATK-only**. FORM_DELTAS keeps sharp +1 ATK, flat -1 ATK, sluggish -2 ATK, and SPD never moves; HP remains 0. The tier thresholds, the sick pin, ormScore, and the steady-at-start invariant in this phase are unchanged, so AC-1 still holds. Names and wording that mention "+1 SPD" or "-1 SPD" in this file describe the original lever, not the shipped one; FR-9 and AC-2 in the spec carry the amendment.

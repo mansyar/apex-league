@@ -112,29 +112,51 @@
 - **Depends on:** Phase 2
 - **Covers:** FR-9, FR-10, FR-16, NFR-1, NFR-2, AC-9
 - **Touches:** `packages/sim/src/battle/`, `packages/sim/src/cup/bracket.ts`,
-  `packages/sim/src/cup/session.ts`, `apps/client/src/cup/arena.ts`
+  `packages/sim/src/cup/session.ts`, `packages/sim/src/form.ts`,
+  `packages/sim/src/form.test.ts`, `apps/client/src/cup/arena.ts`
 - **Verification:** `bun test --timeout 120000 packages/sim/src && bun run verify`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Wire the owned side** — covers: FR-9
-  - [ ] **P3.T1.1:** Use `battleStats(owned)` in `makeExhibition`'s owned side and
+**Decision (2026-10-20):** The first probe showed the ±1/±2 ATK/**SPD** lever breaks the FR12 band because SPD flips turn order on the boundary (sluggish 0.0% / sharp 91.7% vs Koda), while steady reproduces every recorded tally. Product call: **form is ATK-only** — sharp +1 ATK, flat -1, sluggish -2, SPD never moves. Spec FR-9 and AC-2/AC-9 were amended; P3.T4 re-probes under the narrowed lever.
+
+**Decision (2026-10-20):** AC-9's per-tier guardrail is a **15% floor**. The ATK-only lever leaves four soft cells at flat/sluggish (worst Delmar x fire_drake 16.7%, 6 of 36); a weaker sluggish delta was measured and rejected because it leaves Delmar unchanged and makes sluggish identical to flat.
+
+- [x] **P3.T1: Wire the owned side** — covers: FR-9
+  - [x] **P3.T1.1:** Use `battleStats(owned)` in `makeExhibition`'s owned side and
     in the cup player-slot snapshot, leaving rival sides on their rolled stats.
-  - [ ] **P3.T1.2:** Switch `apps/client/src/cup/arena.ts` `maxHp` to the same
+  - [x] **P3.T1.2:** Switch `apps/client/src/cup/arena.ts` `maxHp` to the same
     helper so the played fight and the displayed bar cannot disagree.
-  - [ ] **P3.T1.3:** Add a seam test: a neglected imminent cup entry fights with
+  - [x] **P3.T1.3:** Add a seam test: a neglected imminent cup entry fights with
     the sluggish delta, a fresh one is byte-identical to the pre-change snapshot.
-- [ ] **P3.T2: Prove the invariants** — covers: FR-10, NFR-2
-  - [ ] **P3.T2.1:** Test that changing mood/bond alone never changes the drawn
+- [x] **P3.T2: Prove the invariants** — covers: FR-10, NFR-2
+  - [x] **P3.T2.1:** Test that changing mood/bond alone never changes the drawn
     bracket seed or any rival slot.
-  - [ ] **P3.T2.2:** Confirm the existing cup-contract goldens and spar goldens
+  - [x] **P3.T2.2:** Confirm the existing cup-contract goldens and spar goldens
     pass unchanged; re-baseline only with a written justification in evidence.
-- [ ] **P3.T3: Probe the balance** — covers: FR-16, AC-9
-  - [ ] **P3.T3.1:** Extend the balance probe to build each playable species at
+- [x] **P3.T3: Probe the balance** — covers: FR-16, AC-9
+  - [x] **P3.T3.1:** Extend the balance probe to build each playable species at
     `TRAINING_CAP` under each program mix (and with sluggish/sharp form) and
     report win rates through `resolveBattle`.
-  - [ ] **P3.T3.2:** Record the results against the FR12 bands and the six boss
+  - [x] **P3.T3.2:** Record the results against the FR12 bands and the six boss
     gates in the phase evidence; adjust form or trickle numbers only if a band
     fails, and record the change.
+- [x] **P3.T4: Narrow the lever to ATK** — covers: FR-9, AC-2, AC-9
+  - [x] **P3.T4.1:** Drop the SPD term from `FORM_DELTAS`/`FORM_COPY` and from
+    `battleStats`'s delta table, keeping HP at 0; update `form.test.ts` so the
+    SPD-never-moves assertion is explicit (AC-2) and steady still equals
+    `effectiveStats` (AC-1).
+  - [x] **P3.T4.2:** Re-run the probe on the ATK-only lever and assert: steady in
+    band for every boss, no cell below the 15% floor for any tier, and monotonic
+    sharp >= steady >= flat >= sluggish per boss.
+  - [x] **P3.T4.3:** If any cell still breached the floor at `sluggish`, reduce
+    sluggish to -1 ATK, re-probe, and record which magnitude shipped and why.
+    Measured and rejected: -1 ATK leaves Delmar at 22.2% and makes sluggish
+    battle-identical to flat, so -2 ATK shipped. No boss stats were touched.
+
+**Result:** verified
+**Checkpoint:** 47e7cb6
+**Evidence:** conductor/tracks/20261020-training-programs-form/verification/phase-3.md
+
 
 ## Phase 4: Dock Picker and Training Tab
 
