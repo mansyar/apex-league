@@ -74,7 +74,7 @@
 **Covers:** FR-5, FR-6, FR-10, FR-12
 **Touches:** `apps/client/src/growth-panel.ts`, `apps/client/src/growth-panel.test.ts`, `apps/client/src/hud/plates.ts`, `apps/client/src/hud/copy-care.ts`, `apps/client/src/hud/copy-cup.ts`, `apps/client/src/hud/copy.test.ts`, `apps/client/src/creature-detail.ts`, `apps/client/src/detail/*`, `apps/client/src/ui/kit.css`, `apps/client/src/ranch.css`
 **Verification:** `bun test --timeout 120000 apps/client/src/growth-panel.test.ts apps/client/src/hud/copy.test.ts apps/client/src/creature-detail.test.ts && bun run verify && bun run build`
-**Status:** pending
+**Status:** in_progress
 
 - [ ] **P4.T1 — Add the day-5 lean row to the growth panel**
   - [ ] Render the branch label and a trained/nature qualifier from `branchLean`; update after settlement.
