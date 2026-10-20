@@ -291,7 +291,11 @@
   text-align: left;
   /* detail_modal_tabs_20261020: header, tab strip and close action stay
      pinned while the active page is the only scroll surface. Same four-row
-     grid as the handbook. */
+     grid as the handbook. Anchored to the top rather than centred, so a
+     shorter page only lifts its own bottom edge: the header and strip never
+     move when the reader switches tabs. */
+  align-self: flex-start;
+  margin: 5dvh 0 auto;
   max-height: min(86dvh, 720px);
   grid-template-rows: auto auto minmax(0, 1fr) auto;
 }

@@ -365,8 +365,10 @@
   `aria-labelledby`, roving tabindex, ArrowLeft/Right with wrap, Home/End,
   `is-outline` on inactive tabs); the Coach's Handbook was migrated onto it and
   its own tab block deleted. `creature-detail.ts` uses a pinned shell
-  (`.creature-detail-box`, same 4-row grid and `min(86dvh, 720px)` cap as
-  `.handbook-box`), so only `.detail-panel` scrolls; the selected tab is marked
+  (`.creature-detail-box`, anchored to the top, same 4-row grid and
+  `min(86dvh, 720px)` cap as `.handbook-box`), so only `.detail-panel`
+  scrolls and the header and tab strip stay put when a shorter page is picked;
+  the selected tab is marked
   by a filled plate, heavier weight and an inset bar, never colour alone. `open`
   always lands on Stats, `sync` keeps Growth current from the remembered state
   and repaints it on re-entry. No save change, no new dependency, no animation;
