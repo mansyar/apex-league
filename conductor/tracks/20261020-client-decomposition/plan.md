@@ -15,12 +15,12 @@ silently change order.
 - **Goal:** `main.ts` keeps boot and composition only; every extracted module is
   under the cap and the app boots identically.
 - **Depends on:** none
-- **Covers:** FR-1, FR-7
+- **Covers:** FR-1, FR-7, NFR-1, NFR-6
 - **Touches:** `apps/client/src/main.ts`, `apps/client/src/app/*.ts` (new),
   `apps/client/src/main.test.ts` (only if it imports moved symbols)
 - **Verification:** `bun run verify && bun run build`, plus browser smoke
   (draft → starter → care actions → detail modal → spar → cup → graduation)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Seam map** — inventory every top-level block of `main.ts` with its
   imports and its position in the boot/subscription order; record it in the phase
@@ -42,7 +42,7 @@ silently change order.
 - **Goal:** `hud.ts`, `hud/plates.ts` and `hud/copy.ts` are each under the cap with
   identical rendered output and identical hint-trigger behaviour.
 - **Depends on:** Phase 1
-- **Covers:** FR-2, FR-7
+- **Covers:** FR-2, FR-7, NFR-2, NFR-7
 - **Touches:** `apps/client/src/hud.ts`, `apps/client/src/hud/*.ts`,
   `apps/client/src/hud/copy*.ts` (new), `apps/client/src/hud/plates*.ts` (new),
   `apps/client/src/hud.test.ts` (import paths only)
@@ -63,7 +63,7 @@ silently change order.
 - **Goal:** scene composition, dressing and the frame loop are separate; effect layers
   and camera framing are separate; a full battle still looks and sounds identical.
 - **Depends on:** Phase 1
-- **Covers:** FR-3
+- **Covers:** FR-3, NFR-1, NFR-6
 - **Touches:** `apps/client/src/scene.ts`, `apps/client/src/scene/*.ts` (new),
   `apps/client/src/staging-fx.ts`, `apps/client/src/fx/*.ts`,
   `apps/client/src/orbit-camera.ts`, `apps/client/src/camera/*.ts` (new)
@@ -83,7 +83,7 @@ silently change order.
 - **Goal:** every screen module is under the cap; the dev harness splits like shipping
   code; each entry HTML still works.
 - **Depends on:** Phase 2 (HUD plates feed the cup and spar screens)
-- **Covers:** FR-4, FR-5
+- **Covers:** FR-4, FR-5, NFR-2
 - **Touches:** `apps/client/src/cup-screens.ts`, `apps/client/src/cup/*.ts`,
   `apps/client/src/spar.ts`, `apps/client/src/spar/*.ts`,
   `apps/client/src/graduation.ts`, `apps/client/src/graduation/*.ts`,
@@ -103,7 +103,7 @@ silently change order.
 - **Goal:** the 12 KB rule is enforced across the whole client tree, and it fails with
   an actionable message.
 - **Depends on:** Phases 1–4 (clean up first, guard last)
-- **Covers:** FR-6
+- **Covers:** FR-6, NFR-3, NFR-4, NFR-5, NFR-7
 - **Touches:** `apps/client/src/module-size.test.ts`,
   `conductor/tech-stack.md`, `conductor/tracks/20261020-client-decomposition/verification/*`
 - **Verification:** `bun run verify && bun run build`; the negative control must fail
