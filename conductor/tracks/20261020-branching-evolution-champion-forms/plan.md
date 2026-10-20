@@ -33,18 +33,18 @@
 **Covers:** FR-7, FR-8, NFR-4
 **Touches:** `packages/sim/src/save/schema.ts`, `packages/sim/src/save/migrate.ts`, `packages/sim/src/save/storage.ts`, `packages/sim/src/save/transfer.ts`, `packages/sim/src/save/*.test.ts`, `packages/sim/src/legacy.ts`, `packages/sim/src/breeding.ts`, `packages/sim/src/breeding.test.ts`, `packages/sim/src/graduation.test.ts`, `apps/client/src/save-transfer.test.ts` (fixture only), `docs/save-schema.md`
 **Verification:** `bun test --timeout 120000 packages/sim/src/save packages/sim/src/breeding.test.ts packages/sim/src/graduation.test.ts && bun run verify && bun run build`
-**Status:** in_progress
+**Status:** verified
 
-- [ ] **P2.T1 — Bump the schema to v19 and validate the field**
-  - [ ] Add `creature.branch` and `RetiredRecord.branch`; accept only known ids or `null`, and reject a branch on a baby.
-  - [ ] Keep the failure path on the existing corrupt-save recovery flow with no partial writes.
-- [ ] **P2.T2 — Migrate v18 fixtures**
-  - [ ] Map v18 babies to `null`, v18 juveniles and champions to `legacy`, and Hall records to `legacy`.
-  - [ ] Hold stats, training, loadouts, and lineage constant; assert totals and exported JSON.
-  - [ ] Cover baby, juvenile, champion, mid-cup, and Hall-record fixtures.
-- [ ] **P2.T3 — Carry the branch through records, breeding, and transport**
-  - [ ] Store and render it on `RetiredRecord`; keep new eggs at `null` and do not pre-select from parents.
-  - [ ] Round-trip v19 through export/import and document the field, migration table, and legacy exception.
+- [x] **P2.T1 - Bump the schema to v19 and validate the field**
+  - [x] Add `creature.branch` and `RetiredRecord.branch`; a baby must be `null`, older stages accept `null`, `legacy`, or a species-matched real branch, and Hall records accept any known id with a species match for real forms.
+  - [x] Keep the failure path on the existing corrupt-save recovery flow with no partial writes.
+- [x] **P2.T2 - Migrate v18 fixtures**
+  - [x] Map v18 babies to `null`, v18 juveniles and champions to `legacy`, and Hall records to `legacy`.
+  - [x] Hold stats, training, loadouts, and lineage constant; assert totals and exported JSON.
+  - [x] Cover baby, juvenile, champion, mid-cup, and Hall-record fixtures.
+- [x] **P2.T3 - Carry the branch through records, breeding, and transport**
+  - [x] Store it on `RetiredRecord` (rendering is Phase 4); keep new eggs at `null` and do not pre-select from parents.
+  - [x] Round-trip v19 through export/import and document the field, migration table, and legacy exception.
 
 ## Phase 3: Rivals, bosses, and balance
 
