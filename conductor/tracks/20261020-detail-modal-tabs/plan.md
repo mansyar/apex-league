@@ -94,13 +94,17 @@
 - **Covers:** F1, F2, F3, F4, F5, F6
 - **Touches:** `apps/client/src/size-probe.test.ts`, `apps/client/src/ui/tabs.ts`, `apps/client/src/ui/tabs.test.ts`, `apps/client/src/creature-detail.ts`, `apps/client/src/ui/kit.css`, `apps/client/src/ranch.css`, `conductor/tracks/20261020-detail-modal-tabs/plan.md`, `conductor/tracks/20261020-detail-modal-tabs/verification/phase-2.md`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **R1.T1: Pin the shared tab controller** - covers: F1, NFR-1
-  - [ ] Add `ui/tabs.ts` to the size probe's module list
-- [ ] **R1.T2: Give the panels a keyboard scroll path** - covers: F6, NFR-2
-  - [ ] `tabindex="0"` on every panel, asserted in the wiring test
-- [ ] **R1.T3: Tell the truth about `sync` and the shell** - covers: F3, F4, F5, F2
-  - [ ] Reword the `sync` contract: the write is what keeps a later Growth entry fresh
-  - [ ] Move the detail shell rules out of `kit.css` into `ranch.css` beside the other `.detail-*` rules
-  - [ ] Correct the Phase 2 evidence head commit and the Phase 2 status line
+- [x] **R1.T1: Pin the shared tab controller** - covers: F1, NFR-1
+  - [x] Add `ui/tabs.ts` to the size probe's module list
+- [x] **R1.T2: Give the panels a keyboard scroll path** - covers: F6, NFR-2
+  - [x] `tabindex="0"` on every panel, asserted in the wiring test
+- [x] **R1.T3: Tell the truth about `sync` and the shell** - covers: F3, F4, F5, F2
+  - [x] Reword the `sync` contract: the write is what keeps a later Growth entry fresh
+  - [x] Move the detail shell rules out of `kit.css` into `ranch.css` beside the other `.detail-*` rules
+  - [x] Correct the Phase 2 evidence head commit and the Phase 2 status line
+
+**Result:** verified
+**Checkpoint:** b81c1ce
+**Evidence:** conductor/tracks/20261020-detail-modal-tabs/verification/phase-R1.md
