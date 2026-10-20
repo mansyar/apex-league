@@ -114,7 +114,7 @@
 - **Touches:** `packages/sim/src/battle/`, `packages/sim/src/cup/bracket.ts`,
   `packages/sim/src/cup/session.ts`, `apps/client/src/cup/arena.ts`
 - **Verification:** `bun test --timeout 120000 packages/sim/src && bun run verify`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Wire the owned side** — covers: FR-9
   - [ ] **P3.T1.1:** Use `battleStats(owned)` in `makeExhibition`'s owned side and
