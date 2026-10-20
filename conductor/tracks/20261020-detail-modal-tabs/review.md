@@ -1,8 +1,8 @@
 # Review — 20261020-detail-modal-tabs
 
-- **Verdict:** PASS WITH FINDINGS (all findings fixed under strict mode)
-- **Round:** 1
-- **Range:** `3f930f8..7144a7c` (code `3f930f8..c0f3491`), fixes `b81c1ce`
+- **Verdict:** PASS
+- **Round:** 2
+- **Range:** `3f930f8..9cf5e1d` (code `3f930f8..5f30449`), fixes `b81c1ce` and `5f30449`
 - **Reviewer:** `conductor-reviewer` (read-only), lead-validated
 
 ## Summary
@@ -58,6 +58,16 @@ None. No deferred issues (strict mode).
 | Round | Range | Verdict | Notes |
 | --- | --- | --- | --- |
 | 1 | `3f930f8..7144a7c` | PASS WITH FINDINGS | 1 Medium, 5 Low; all fixed in `b81c1ce` |
+| 2 | `7144a7c..e39110c` | PASS WITH FINDINGS | all six round-1 findings closed at the root; 4 Low record defects, fixed in `5f30449` |
+
+## Round 2
+
+| ID | Finding | Disposition |
+| --- | --- | --- |
+| F-A | `sync`'s inline comment still claimed a blanket no-op, contradicting the new doc block | fixed — comment now scopes the no-op to the repaint and states that the record is always updated |
+| F-B | `metadata.json` progress still counted 2 phases / 8 tasks | fixed — 3 phases / 11 tasks, all verified |
+| F-C | size-probe docstring and test name still said "three pins / Growth modules" | fixed — four pins, Growth modules plus the tab controller |
+| F-D | Phase R1 heading glued to Phase 2's evidence, hyphen instead of em dash in its task bullets | fixed |
 
 ## Doc sync
 
