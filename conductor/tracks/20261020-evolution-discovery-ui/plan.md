@@ -68,23 +68,20 @@
 - **Covers:** FR-1, FR-7, FR-8, AC-9, NFR-1
 - **Touches:** `apps/client/src/creature-detail.ts`, `apps/client/src/hud.ts`, `apps/client/src/main.ts`, `apps/client/src/ui/kit.css`, `apps/client/src/creature-detail.test.ts`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Render the Growth section** — covers: FR-1
-  - [ ] Build the section from the Phase 2 model, placed after the context rows
-- [ ] **P3.T2: Refresh while open** — covers: FR-7
-  - [ ] Track the last state and re-render on commit while the modal is visible
-  - [ ] A gate unlocked mid-session repaints without reopening
-- [ ] **P3.T3: Accessibility pass** — covers: AC-9, NFR-1
-  - [ ] Named region, per-row status text, glyph, reduced-motion safe
-- [ ] **P3.T4: Style with the broadcast kit** — covers: NFR-1
-  - [ ] Use existing kit classes; no gradients on panels
-- [ ] **P3.T5: Prove Hall of Fame is unchanged** — covers: FR-8
-  - [ ] Regression test or golden assertion on record rendering
+- [x] **P3.T1: Render the Growth section** - covers: FR-1
+  - [x] Build the section from the Phase 2 model, placed after the context rows
+- [x] **P3.T2: Refresh while open** - covers: FR-7
+  - [x] Track the last state and re-render on commit while the modal is visible
+  - [x] A gate unlocked mid-session repaints without reopening
+- [x] **P3.T3: Accessibility pass** - covers: AC-9, NFR-1
+  - [x] Named region, per-row status text, glyph, reduced-motion safe
+- [x] **P3.T4: Style with the broadcast kit** - covers: NFR-1
+  - [x] Use existing kit classes; no gradients on panels
+- [x] **P3.T5: Prove Hall of Fame is unchanged** - covers: FR-8
+  - [x] Regression test or golden assertion on record rendering
 
-<!--
-The primary appends after acceptance:
 **Result:** verified
-**Checkpoint:** <short-sha>
-**Evidence:** conductor/tracks/20261020-evolution-discovery-ui/verification/phase-1.md
--->
+**Checkpoint:** 385a49f
+**Evidence:** conductor/tracks/20261020-evolution-discovery-ui/verification/phase-3.md
