@@ -57,48 +57,52 @@
   `apps/client/src/hud/update.ts`, `apps/client/src/hud/copy-care.ts`,
   `apps/client/src/hud/copy.test.ts`, `apps/client/src/app/hud-screen.ts`
 - **Verification:** `bun test --timeout 120000 packages/sim/src && bun run check && bun run gate:determinism`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Program catalog** — covers: FR-1
-  - [ ] **P2.T1.1:** Add `TrainingProgram`, `TrainingProgramDef`,
+**Result:** verified
+**Checkpoint:** 26e8d1c
+**Evidence:** conductor/tracks/20261020-training-programs-form/verification/phase-2.md
+
+- [x] **P2.T1: Program catalog** — covers: FR-1
+  - [x] **P2.T1.1:** Add `TrainingProgram`, `TrainingProgramDef`,
     `TRAINING_PROGRAMS` with label, blurb, primary, trickle, and a
     `programFor(stat)` helper that reproduces the v17→v18 mapping.
-  - [ ] **P2.T1.2:** Test that all four ids exist, primaries are distinct, and
+  - [x] **P2.T1.2:** Test that all four ids exist, primaries are distinct, and
     every trickle differs from its primary.
-- [ ] **P2.T2: Assignment contract** — covers: FR-2, FR-3, AC-3, AC-6
-  - [ ] **P2.T2.1:** Change `assignTraining(state, program)` to spend AP on the
+- [x] **P2.T2: Assignment contract** — covers: FR-2, FR-3, AC-3, AC-6
+  - [x] **P2.T2.1:** Change `assignTraining(state, program)` to spend AP on the
     first assignment only, advance `trainingDays` only when AP was spent, and
     reject `at-cap` on the program's primary (not the trickle).
-  - [ ] **P2.T2.2:** Keep clearing the assignment free; keep the same-day
+  - [x] **P2.T2.2:** Keep clearing the assignment free; keep the same-day
     re-point tests passing with program ids.
-  - [ ] **P2.T2.3:** Add tests for capped-primary rejection and
+  - [x] **P2.T2.3:** Add tests for capped-primary rejection and
     capped-trickle acceptance.
-- [ ] **P2.T3: Night payout** — covers: FR-4, FR-5, FR-6, FR-7, AC-4, AC-5
-  - [ ] **P2.T3.1:** Pay the primary outside the RNG path, gate on
+- [x] **P2.T3: Night payout** — covers: FR-4, FR-5, FR-6, FR-7, AC-4, AC-5
+  - [x] **P2.T3.1:** Pay the primary outside the RNG path, gate on
     `!sick && !starving && energy >= EXHAUSTED_ENERGY` read before night
     recovery, and charge 10 energy only on paying nights.
-  - [ ] **P2.T3.2:** Add the trickle on `trainingDays % 3 === 0`, clamp both
+  - [x] **P2.T3.2:** Add the trickle on `trainingDays % 3 === 0`, clamp both
     components at `TRAINING_CAP`, and apply the `ring` mood/bond bonus.
-  - [ ] **P2.T3.3:** Add the `exhausted` result, keep `sick`/`hungry` precedence,
+  - [x] **P2.T3.3:** Add the `exhausted` result, keep `sick`/`hungry` precedence,
     and rewrite `previewTraining` to return the projected result plus deltas.
-  - [ ] **P2.T3.4:** Prove via a settlement test that the payout consumes no RNG
+  - [x] **P2.T3.4:** Prove via a settlement test that the payout consumes no RNG
     draw (same seed, same downstream conditions).
-- [ ] **P2.T4: Save v18** — covers: FR-11, NFR-3, AC-7
-  - [ ] **P2.T4.1:** Bump `SAVE_VERSION` to 18, rename the persisted field to
+- [x] **P2.T4: Save v18** — covers: FR-11, NFR-3, AC-7
+  - [x] **P2.T4.1:** Bump `SAVE_VERSION` to 18, rename the persisted field to
     `trainingProgram`, and add the v17→v18 migration using the documented
     recipe (validate previous shape, default safely, forward the session).
-  - [ ] **P2.T4.2:** Extend validation to reject an unknown program id and accept
+  - [x] **P2.T4.2:** Extend validation to reject an unknown program id and accept
     `null`.
-  - [ ] **P2.T4.3:** Update `docs/save-schema.md` (shape, mapping table,
+  - [x] **P2.T4.3:** Update `docs/save-schema.md` (shape, mapping table,
     migration step) in this phase.
-  - [ ] **P2.T4.4:** Cover the full v0→v18 chain, the v17 fixture mapping for
+  - [x] **P2.T4.4:** Cover the full v0→v18 chain, the v17 fixture mapping for
     each stat, corrupt-id rejection, and a round-trip.
-- [ ] **P2.T5: Keep the client compiling against the program type** — covers: FR-1
-  - [ ] **P2.T5.1:** Mechanically adapt the dock train control, its update path,
+- [x] **P2.T5: Keep the client compiling against the program type** — covers: FR-1
+  - [x] **P2.T5.1:** Mechanically adapt the dock train control, its update path,
     the hud wiring and the care copy from `StatKey` focus to `TrainingProgram`
     so the whole workspace typechecks. No new UX, no new copy beyond the program
     label — Phase 4 owns the real picker, projection lines and Training tab.
-  - [ ] **P2.T5.2:** Update the dock/copy tests to the program shape and keep the
+  - [x] **P2.T5.2:** Update the dock/copy tests to the program shape and keep the
     all-primaries-capped disabled state green.
 
 ## Phase 3: Battle Wiring and Balance Evidence

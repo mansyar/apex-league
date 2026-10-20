@@ -6,7 +6,7 @@
   "priority": "high",
   "depends_on": [],
   "created_at": "2026-10-20T18:11:02+11:00",
-  "updated_at": "2026-10-20T07:19:34.589Z",
+  "updated_at": "2026-10-20T07:38:59.075Z",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "feat/20261020-training-programs-form",
@@ -14,11 +14,11 @@
   "base_sha": "e7448d089fb15bb0d3422a54c9a432b9bdb49033",
   "progress": {
     "phases_total": 5,
-    "phases_verified": 1,
+    "phases_verified": 2,
     "tasks_total": 16,
-    "tasks_done": 2
+    "tasks_done": 7
   },
-  "last_checkpoint": "411f20c",
+  "last_checkpoint": "26e8d1c",
   "review_verdict": null,
   "review_rounds": 0,
   "doc_sync": "pending",

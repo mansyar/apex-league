@@ -103,3 +103,18 @@ The phase command in the brief omits Biome, so `bun run verify` initially exited
 - `packages/sim/src/index.ts`, `packages/sim/src/settlement.ts`, `packages/sim/src/save/storage.ts` — assist/source/organizeImports name and path ordering.
 
 `bun run verify` (exit 0) and `bun run build` (exit 0) were then run in full; the 7 remaining `noNonNullAssertion` warnings are pre-existing in untouched client tests and were left alone. No files outside this phase's Touches were reformatted.
+
+## Primary verification
+
+Independent run by the orchestrator on `feat/20261020-training-programs-form` after the rework commit `353daaf` (squashed to `26e8d1c`).
+
+| Layer | Command | Exit | Summary |
+|---|---|---|---|
+| unit | `bun test --timeout 120000 packages/sim/src` | 0 | 891 pass, 1 skip, 0 fail |
+| static | `bun run check` | 0 | voxel 62, sim 83, client 288 files, no type errors |
+| static | `bun run verify` | 0 | 1858 pass, 1 skip, 0 fail; Biome 7 pre-existing warnings, 0 errors; determinism byte-identical |
+| static | `bun run build` | 0 | 234 modules, 827.02 kB js / 225.66 kB gzip; chunk-size advisory only |
+
+Accepted only after the rework: the first report ran the brief's command, which omits Biome, and 8 formatter/import errors in this phase's own files made `bun run verify` exit 1. Commit `353daaf` fixed them with no behavior change, and the gate was re-run from scratch.
+
+Diff scope: 28 files, all inside Touches or listed as deviations (seven `save/*.test.ts` version bumps, `apps/client/src/save-transfer.test.ts` version literal, the two forced copy/wiring adaptations). Squash guard passed: 11 reported commits, linear, no merges, no unreported commits.
