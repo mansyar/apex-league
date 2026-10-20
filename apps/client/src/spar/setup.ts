@@ -4,15 +4,10 @@
  * kit-gate progress, the kit picker). Moved verbatim out of spar.ts.
  */
 
-import {
-  battleStats,
-  type Creature,
-  FORM_COPY,
-  formTier,
-  getSpecies,
-} from "@apex/sim"
+import { battleStats, type Creature, formTier, getSpecies } from "@apex/sim"
 import { buildKitPicker } from "../battleUI"
 import { crestGlyph, elementHue } from "../element"
+import { formReadout } from "../hud/copy-care"
 import { TACTIC_LABELS, TEMPERAMENT_LINES } from "./copy"
 import {
   kitHintMessage,
@@ -63,10 +58,9 @@ export function refreshPrep(
     battleStats(creature),
     creature.trained,
   )}`
-  const tier = formTier(creature)
   const form = document.createElement("div")
   form.className = "spar-form"
-  form.textContent = `${FORM_COPY[tier].label} — ${FORM_COPY[tier].line}`
+  form.textContent = formReadout(formTier(creature))
   ownedCard.append(form)
 
   progress.textContent = kitProgress(creature, species)

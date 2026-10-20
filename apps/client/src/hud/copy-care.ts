@@ -3,8 +3,10 @@ import {
   type Creature,
   type CreatureConditions,
   EXHAUSTED_ENERGY,
+  FORM_COPY,
   FORM_DELTAS,
   type FormTier,
+  formTier,
   type GameState,
   getTrainingProgram,
   previewTraining,
@@ -114,17 +116,56 @@ export function dockHeadTraining(program: TrainingProgram | null): string {
     : getTrainingProgram(program).label
 }
 
-/** "Breakthrough in 2 nights" — the trickle night, three trained nights apart. */
-export function breakthroughLine(trainingDays: number): string {
-  const m = trainingDays % 3
-  const nights = m === 0 ? 3 : 3 - m
-  return `Breakthrough in ${nights} ${nights === 1 ? "night" : "nights"}`
+/**
+ * "Breakthrough in 2 nights" — the trickle night, three trained nights apart.
+ * Tonight counts as a trained night when a program is assigned, so a counter on
+ * a multiple of three reads "Breakthrough tonight" rather than "in 3 nights".
+ */
+export function breakthroughLine(
+  trainingDays: number,
+  assigned = false,
+): string {
+  const paid = assigned ? trainingDays : trainingDays + 1
+  const m = paid % 3
+  const nights = paid === 0 ? 3 : m === 0 ? 0 : 3 - m
+  return nights === 0
+    ? "Breakthrough tonight"
+    : `Breakthrough in ${nights} ${nights === 1 ? "night" : "nights"}`
 }
 
 /** The ATK delta a form tier applies, spelled out so colour is never it. */
 export function formDeltaLine(tier: FormTier): string {
   const atk = FORM_DELTAS[tier].atk
   return `ATK ${atk >= 0 ? `+${atk}` : `${atk}`}`
+}
+
+/**
+ * "Sluggish — Neglected and ailing: -2 ATK.": the tier and its consequence in
+ * one line for the spar card and the coach room. Shared so both surfaces read
+ * the same words, and testable without a DOM.
+ */
+export function formReadout(tier: FormTier): string {
+  return `${FORM_COPY[tier].label} — ${FORM_COPY[tier].line}`
+}
+
+/** The form block every fight surface shares, as data (FR-14). */
+export interface FormRead {
+  label: string
+  line: string
+  delta: string
+  /** The pinning sentence, only for a partner under the sickness line. */
+  sickNote: string | null
+}
+
+/** Read one creature's form for a fight surface: tier, consequence, pin note. */
+export function formRead(creature: Creature): FormRead {
+  const tier = formTier(creature)
+  return {
+    label: FORM_COPY[tier].label,
+    line: FORM_COPY[tier].line,
+    delta: formDeltaLine(tier),
+    sickNote: creature.conditions.health < SICK_HEALTH ? FORM_SICK_NOTE : null,
+  }
 }
 
 /** Why a sick creature reads Sluggish whatever its mood. */

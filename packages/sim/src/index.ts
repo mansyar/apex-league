@@ -225,6 +225,7 @@ export {
 export {
   EXHAUSTED_ENERGY,
   NIGHT_RECOVERY,
+  previewProgram,
   previewTraining,
   RING_BOND_BONUS,
   RING_MOOD_BONUS,

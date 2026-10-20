@@ -284,3 +284,26 @@ export function previewTraining(creature: Creature): TrainingPreview {
   if (plan.result === null) return { result: null, gains: {} }
   return { result: plan.result, gains: plan.gains }
 }
+
+/**
+ * What a program would pay if it were picked tonight. Mirrors the counter bump
+ * `assignTraining` performs: a first assignment of the day spends 1 AP and
+ * advances `trainingDays`, while re-pointing an already assigned program does
+ * not. A picker that previews without that bump promises the wrong breakthrough
+ * on every third night, so this helper is the one place the projection may
+ * read a program that is not assigned yet.
+ */
+export function previewProgram(
+  creature: Creature,
+  program: TrainingProgram,
+): TrainingPreview {
+  const trainingDays =
+    creature.trainingProgram === null
+      ? creature.trainingDays + 1
+      : creature.trainingDays
+  return previewTraining({
+    ...creature,
+    trainingProgram: program,
+    trainingDays,
+  })
+}

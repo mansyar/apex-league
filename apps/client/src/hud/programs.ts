@@ -5,15 +5,15 @@
  * and `update.ts` repaints them, and the row reading is testable without a
  * browser.
  *
- * The projection is the sim's: `previewTraining` run against the creature with
- * that row's program pointed at it (a pure read of an unmodified copy), so the
+ * The projection is the sim's: `previewProgram` reads a program as if it were
+ * picked tonight, including the counter bump a first assignment makes, so the
  * row for the assigned program is exactly `previewTraining(creature)` and no
  * other row guesses at its own payout.
  */
 import {
   type Creature,
   getTrainingProgram,
-  previewTraining,
+  previewProgram,
   RING_BOND_BONUS,
   RING_MOOD_BONUS,
   type StatKey,
@@ -63,7 +63,7 @@ export function programRow(
 ): ProgramRow {
   const def = getTrainingProgram(id)
   const capped = creature.trained[def.primary] >= TRAINING_CAP
-  const preview = previewTraining({ ...creature, trainingProgram: id })
+  const preview = previewProgram(creature, id)
   const extras = id === "ring" ? ringExtras(creature) : ""
   return {
     id,

@@ -4,17 +4,9 @@
  * from `createCup` — the pick bounds and labels live in battleUI, the
  * fresh-picks decision in view-models (initialPicks).
  */
-import {
-  battleStats,
-  type Creature,
-  FORM_COPY,
-  formTier,
-  getMove,
-  getSpecies,
-  SICK_HEALTH,
-} from "@apex/sim"
+import { battleStats, type Creature, getMove, getSpecies } from "@apex/sim"
 import { buildKitPicker, buildTacticRow, toggleKitChoice } from "../battleUI"
-import { FORM_SICK_NOTE } from "../hud/copy-care"
+import { formRead } from "../hud/copy-care"
 import type { CupShared } from "./shared"
 import { coachTabLabel, initialPicks } from "./view-models"
 
@@ -50,24 +42,24 @@ export function createCoachRoom(shared: CupShared): {
   /**
    * The form line (FR-14): the tier word in a chip, the sim's own consequence
    * sentence beside it, and — only for a sick partner — the sentence that
-   * explains why the tier is pinned. Wording is `FORM_COPY`/`FORM_SICK_NOTE`,
+   * explains why the tier is pinned. Wording is `formRead`'s (the sim's copy),
    * never a second copy, so the coach room cannot drift from the fight.
    */
   const formRow = (creature: Creature): HTMLElement => {
-    const tier = formTier(creature)
+    const view = formRead(creature)
     const row = document.createElement("div")
     row.className = "cup-form"
     const word = document.createElement("span")
     word.className = "cup-form-tier"
-    word.textContent = FORM_COPY[tier].label
+    word.textContent = view.label
     const line = document.createElement("span")
     line.className = "cup-form-line"
-    line.textContent = FORM_COPY[tier].line
+    line.textContent = view.line
     row.append(word, line)
-    if (tier === "sluggish" && creature.conditions.health < SICK_HEALTH) {
+    if (view.sickNote !== null) {
       const note = document.createElement("span")
       note.className = "cup-form-line"
-      note.textContent = FORM_SICK_NOTE
+      note.textContent = view.sickNote
       row.append(note)
     }
     return row

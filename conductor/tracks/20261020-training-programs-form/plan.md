@@ -241,12 +241,29 @@ Review fixes are appended by `conductor-review` as:
 
 ## Phase R1: Review Fixes
 
-- **Goal:** Resolve review findings ...
+- **Goal:** Resolve every finding recorded in `review.md` (F1–F6) so the review can pass in strict mode without moving the payout, the save shape or the FR12 bands.
 - **Depends on:** Phase 5
-- **Covers:** review findings
-- **Touches:** ...
-- **Verification:** ...
-- **Status:** pending
+- **Covers:** review F1–F6, FR-12, FR-13, FR-14, NFR-5, AC-10
+- **Touches:** `packages/sim/src/settlement.ts`, `packages/sim/src/index.ts`, `apps/client/src/hud/programs.ts`, `apps/client/src/hud/programs.test.ts`, `apps/client/src/hud/copy-care.ts`, `apps/client/src/hud/copy.ts`, `apps/client/src/hud/copy.test.ts`, `apps/client/src/hud/plates.test.ts`, `apps/client/src/hud/shell.ts`, `apps/client/src/detail/training-tab.ts`, `apps/client/src/detail/training-tab.test.ts`, `apps/client/src/cup/coach-room.ts`, `apps/client/src/spar/setup.ts`, `apps/client/src/ranch.css`, `artifacts/phase3-seed.ts`
+- **Verification:** `bun run verify && bun run build`
+- **Status:** verified
 
-- [ ] **R1.T1: Resolve <finding ID>** — covers: <finding ID>
+- [x] **R1.T1: Project the night the pick will actually pay** — covers: F1, FR-12
+  - [x] **R1.T1.1:** Add `previewProgram` to the sim so a projection counts the counter bump a first assignment makes, and export it.
+  - [x] **R1.T1.2:** Project the picker through it and pin the breakthrough night and the already-assigned case in tests.
+- [x] **R1.T2: Count tonight in the breakthrough line** — covers: F2, FR-13
+  - [x] **R1.T2.1:** `breakthroughLine(trainingDays, assigned)` reads "Breakthrough tonight" for a counter on a multiple of three; the Training tab passes the flag.
+  - [x] **R1.T2.2:** Cover the assigned and unassigned countdowns in copy and tab tests.
+- [x] **R1.T3: Move focus into the open sheet** — covers: F3, NFR-5, AC-10
+  - [x] **R1.T3.1:** Focus the first program row after the train button opens the picker, so the narrow layout never drops focus to `<body>`.
+- [x] **R1.T4: Correct the narrow-band comment and the seed script** — covers: F4, F5
+  - [x] **R1.T4.1:** Describe the sheet as the dock root's sibling in `ranch.css`.
+  - [x] **R1.T4.2:** Write `trainingProgram` in `artifacts/phase3-seed.ts`.
+- [x] **R1.T5: Cover the shared form read** — covers: F6, FR-14
+  - [x] **R1.T5.1:** Single-source the form read (`formRead`/`formReadout`) for the spar card, coach room and Training tab.
+  - [x] **R1.T5.2:** Test the chip title/paint and the pin note.
+
+**Result:** verified
+**Checkpoint:** 0dd5f40
+**Evidence:** conductor/tracks/20261020-training-programs-form/verification/phase-r1.md
 -->

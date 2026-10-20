@@ -21,6 +21,8 @@ import {
   familyName,
   flavorCallout,
   formDeltaLine,
+  formRead,
+  formReadout,
   gainsLine,
   graduationCallout,
   graduationHint,
@@ -638,5 +640,38 @@ describe("training copy (2026-10-20)", () => {
     for (const tier of ["sharp", "steady", "flat", "sluggish"] as const) {
       expect(formDeltaLine(tier)).toMatch(/^ATK [+-]\d$/)
     }
+  })
+
+  test("the breakthrough countdown counts tonight when a program is set", () => {
+    expect(breakthroughLine(0)).toBe("Breakthrough in 2 nights")
+    expect(breakthroughLine(0, true)).toBe("Breakthrough in 3 nights")
+    expect(breakthroughLine(1, true)).toBe("Breakthrough in 2 nights")
+    expect(breakthroughLine(2, true)).toBe("Breakthrough in 1 night")
+    // A counter already on a multiple of three pays the trickle tonight when a
+    // program is set, and only reaches that night after tonight otherwise.
+    expect(breakthroughLine(3, true)).toBe("Breakthrough tonight")
+    expect(breakthroughLine(3)).toBe("Breakthrough in 2 nights")
+  })
+
+  test("form reads as one labelled line, never a bare colour", () => {
+    for (const tier of ["sharp", "steady", "flat", "sluggish"] as const) {
+      expect(formReadout(tier)).toBe(
+        `${FORM_COPY[tier].label} — ${FORM_COPY[tier].line}`,
+      )
+    }
+  })
+
+  test("form read carries the pin note only below the sickness line", () => {
+    const healthy = createCreature("fire_drake", 42)
+    const read = formRead(healthy)
+    expect(read.sickNote).toBeNull()
+    expect(read.label).toBe(FORM_COPY.steady.label)
+    expect(read.delta).toBe(formDeltaLine("steady"))
+
+    const sick = createCreature("fire_drake", 42)
+    sick.conditions = { ...sick.conditions, health: 50 }
+    const pinned = formRead(sick)
+    expect(pinned.label).toBe(FORM_COPY.sluggish.label)
+    expect(pinned.sickNote).toBe(FORM_SICK_NOTE)
   })
 })

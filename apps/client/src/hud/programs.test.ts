@@ -88,9 +88,25 @@ describe("the program picker rows", () => {
   })
 
   test("projects both stats on a breakthrough night", () => {
-    // trainingDays 3 is a breakthrough night: the trickle pays as well.
-    const breaking = { ...fresh, trainingDays: 3 }
+    // Tonight is the third trained night (two behind, one paid now), so the
+    // trickle pays as well as the primary.
+    const breaking = { ...fresh, trainingDays: 2 }
     expect(programRow(breaking, "power").tonight).toBe("+1 ATK, +1 DEF")
+    // A counter already on a multiple of three means tonight is the fourth.
+    expect(programRow({ ...fresh, trainingDays: 3 }, "power").tonight).toBe(
+      "+1 ATK",
+    )
+  })
+
+  test("the assigned row does not count the night twice", () => {
+    // An assigned creature's counter already includes tonight (the pick spent
+    // the AP), so the projection must not bump it again.
+    const assigned = {
+      ...fresh,
+      trainingDays: 3,
+      trainingProgram: "power" as const,
+    }
+    expect(programRow(assigned, "power").tonight).toBe("+1 ATK, +1 DEF")
   })
 
   test("says why a night will not pay instead of showing a gain", () => {

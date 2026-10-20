@@ -30,13 +30,23 @@ describe("the breakthough line", () => {
   test("counts the nights to the next third trained night", () => {
     const read = (trainingDays: number): string =>
       trainingView({ ...fresh, trainingDays }).breakthrough
-    expect(read(0)).toBe("Breakthrough in 3 nights")
-    expect(read(1)).toBe("Breakthrough in 2 nights")
-    expect(read(2)).toBe("Breakthrough in 1 night")
-    expect(read(3)).toBe("Breakthrough in 3 nights")
-    expect(read(4)).toBe("Breakthrough in 2 nights")
-    expect(read(5)).toBe("Breakthrough in 1 night")
-    expect(read(6)).toBe("Breakthrough in 3 nights")
+    // Nothing is assigned here, so tonight would be the next trained night.
+    expect(read(0)).toBe("Breakthrough in 2 nights")
+    expect(read(1)).toBe("Breakthrough in 1 night")
+    expect(read(2)).toBe("Breakthrough tonight")
+    expect(read(3)).toBe("Breakthrough in 2 nights")
+    expect(read(4)).toBe("Breakthrough in 1 night")
+    expect(read(5)).toBe("Breakthrough tonight")
+    expect(read(6)).toBe("Breakthrough in 2 nights")
+  })
+
+  test("an assigned counter already on a third reads tonight", () => {
+    const assigned = {
+      ...fresh,
+      trainingDays: 3,
+      trainingProgram: "power" as const,
+    }
+    expect(trainingView(assigned).breakthrough).toBe("Breakthrough tonight")
   })
 })
 

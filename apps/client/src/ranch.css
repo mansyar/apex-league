@@ -1252,8 +1252,9 @@
      frees the 242px the four rows need inside the 417px band at 393x659
      (plate 74 + gap 8 + dock 294 = 376, 41px slack). The list never scrolls
      internally, so all four programs are readable at once. Only the train
-     button is hidden, never .dock-train itself: the picker is its child, so
-     hiding the wrapper would hide the sheet too. */
+     button is hidden, never .dock-train itself: the sheet is appended to the
+     dock root as .dock-train's sibling, and hiding the wrapper would also take
+     the dock's top border and head spacing with it. */
   .command-dock[data-picking="true"] .dock-row,
   .command-dock[data-picking="true"] .dock-train > .kit-button,
   .command-dock[data-picking="true"] .dock-graduate,

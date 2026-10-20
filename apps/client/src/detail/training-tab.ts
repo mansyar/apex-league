@@ -60,7 +60,10 @@ export function trainingView(creature: Creature): TrainingView {
       empty: def === null,
     },
     nights: creature.trainingDays,
-    breakthrough: breakthroughLine(creature.trainingDays),
+    breakthrough: breakthroughLine(
+      creature.trainingDays,
+      creature.trainingProgram !== null,
+    ),
     form: {
       label: FORM_COPY[tier].label,
       delta: formDeltaLine(tier),

@@ -145,10 +145,13 @@ export function createHudShell(
     closeRename: () => closeRename(),
   }
 
-  // Toggling the picker spends nothing — render only.
+  // Toggling the picker spends nothing — render only. Opening moves focus into
+  // the sheet: at narrow widths the train button itself is hidden while the
+  // sheet is up, so leaving focus on it would drop the caret to <body>.
   trainButton.addEventListener("click", () => {
     view.pickerOpen = !view.pickerOpen
     if (view.current) shell.render(view.current)
+    if (view.pickerOpen) dock.pickerRows[0]?.button.focus()
   })
 
   // Tapping the plate head opens the partner-details modal. The scrim

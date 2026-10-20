@@ -9,6 +9,7 @@ import {
   promotionLine,
   statCell,
 } from "./plates"
+import { formChipTitle, paintFormChip } from "./plates-creature"
 
 const ladder = (
   tier: GameState["ladder"]["tier"],
@@ -261,5 +262,31 @@ describe("promotionLine", () => {
   test("golden: the promotion callout", () => {
     expect(promotionLine("Bronze", "II")).toBe("Promotion — Bronze II!")
     expect(promotionLine("Silver", "I")).toBe("Promotion — Silver I!")
+  })
+})
+
+describe("form chip", () => {
+  test("names the tier and its ATK consequence", () => {
+    expect(formChipTitle("steady")).toBe("Steady: ATK +0")
+    expect(formChipTitle("sluggish")).toBe("Sluggish: ATK -2")
+  })
+
+  test("paints the tier as text and the consequence as its label", () => {
+    const attrs: Record<string, string> = {}
+    const chip = {
+      textContent: "",
+      title: "",
+      setAttribute: (key: string, value: string) => {
+        attrs[key] = value
+      },
+    } as unknown as HTMLElement
+    const sick = createCreature("fire_drake", 42)
+    sick.conditions = { ...sick.conditions, health: 50 }
+
+    paintFormChip(chip, sick)
+
+    expect(chip.textContent).toBe("Sluggish")
+    expect(chip.title).toBe("Sluggish: ATK -2")
+    expect(attrs["aria-label"]).toBe("Sluggish: ATK -2")
   })
 })
