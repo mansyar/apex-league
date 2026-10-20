@@ -117,16 +117,20 @@
 - **Covers:** M1, L1, L2, L3, L4, L5
 - **Touches:** `apps/client/src/creature-detail.test.ts`, `apps/client/src/creature-detail.ts`, `apps/client/src/growth-panel.ts`, `apps/client/src/growth-panel.test.ts`, `apps/client/src/growth.test.ts`, `conductor/tracks/20261020-evolution-discovery-ui/verification/phase-R1.md`, `conductor/tracks/20261020-evolution-discovery-ui/verification/integrated.md`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **R2.T1: Prove the panel wiring** - covers: M1, AC-7, FR-7
-  - [ ] Stub `document`/`HTMLElement` and drive `buildCreatureDetail`: `open` unhides the Growth slot with a title, `sync` repaints its rows while open, `sync` after close leaves the slot untouched
-- [ ] **R2.T2: Fix the host surface** - covers: L4, L5
-  - [ ] Drop the unused `GrowthHost.node` and correct the `setVisible` docstring
-  - [ ] Paint before showing in `open` so the section renders once
-- [ ] **R2.T3: Tighten the existing tests** - covers: L1, L3
-  - [ ] Assert undiscovered rows contain no `/` instead of a non-empty length
-  - [ ] Restore `globalThis.document` after the tests that stub it
-- [ ] **R2.T4: Correct the R1 evidence** - covers: L2
-  - [ ] `phase-R1.md` names `4a1e185` and states the squash once, with no dangling SHAs
-  - [ ] Record `growth-panel.test.ts` and the now-run lint layer
+- [x] **R2.T1: Prove the panel wiring** - covers: M1, AC-7, FR-7
+  - [x] Stub `document`/`HTMLElement` and drive `buildCreatureDetail`: `open` unhides the Growth slot with a title, `sync` repaints its rows while open, `sync` after close leaves the slot untouched
+- [x] **R2.T2: Fix the host surface** - covers: L4, L5
+  - [x] Drop the unused `GrowthHost.node` and correct the `setVisible` docstring
+  - [x] Paint before showing in `open` so the section renders once
+- [x] **R2.T3: Tighten the existing tests** - covers: L1, L3
+  - [x] Assert undiscovered rows contain no `/` instead of a non-empty length
+  - [x] Restore `globalThis.document` after the tests that stub it
+- [x] **R2.T4: Correct the R1 evidence** - covers: L2
+  - [x] `phase-R1.md` names `4a1e185` and states the squash once, with no dangling SHAs
+  - [x] Record `growth-panel.test.ts` and the now-run lint layer
+
+**Result:** verified
+**Checkpoint:** f247ea9
+**Evidence:** conductor/tracks/20261020-evolution-discovery-ui/verification/phase-R2.md
