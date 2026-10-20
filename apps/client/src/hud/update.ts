@@ -24,6 +24,7 @@ import {
   lineageMeta,
   statCell,
 } from "./plates"
+import { paintFormChip } from "./plates-creature"
 import { programRows, rovingRow } from "./programs"
 import { capturePrefChips } from "./settings"
 import type { HudHints, HudShell } from "./types"
@@ -64,6 +65,7 @@ export function createHudUpdate(
     root: lowerThird,
     creatureName,
     stageTab,
+    formChip,
     crestEl,
     renameButton,
     statCells,
@@ -217,6 +219,8 @@ export function createHudUpdate(
     hints.sync(state)
     stageTab.textContent = stageLabel(creature.stage)
     stageTab.className = "kit-tab is-stage"
+    // Form chip: the tier word in text, the ATK consequence in its title.
+    paintFormChip(formChip, creature)
 
     // Stat row: name, total (rolled base + trained), bonus when above 0.
     for (const cell of statCells) {

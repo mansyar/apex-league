@@ -68,6 +68,18 @@
   clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px));
 }
 
+/* Form line on the owned prep card: tier and consequence in one sentence,
+   taken from the sim's FORM_COPY. The rival card stays form-neutral. */
+.spar-form {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--kit-keyline);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: normal;
+}
+
 /* Loadout picker row (combat prep, FR5). */
 .spar-progress {
   font-size: 12px;

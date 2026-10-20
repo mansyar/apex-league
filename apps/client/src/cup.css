@@ -541,6 +541,36 @@
   text-align: right;
 }
 
+/* Form line under the owned stat rows: the tier chip plus the sim's own
+   sentence, both straight from FORM_COPY so the coach room cannot drift from
+   the arena's numbers. The tier is a word, never colour alone. */
+.cup-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3cqw;
+  margin-top: 0.4cqw;
+  padding-top: 0.6cqw;
+  border-top: 1px solid var(--kit-keyline);
+}
+
+.cup-form-tier {
+  padding: 0.1cqw 0.6cqw;
+  background: rgb(255 209 102 / 0.14);
+  color: var(--accent);
+  font-size: 0.8cqw;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
+}
+
+.cup-form-line {
+  font-size: 0.9cqw;
+  line-height: 1.35;
+  color: var(--ink-dim);
+}
+
 .cup-kit-move {
   padding: 0.45cqw 0.8cqw;
   border: 1px solid var(--kit-keyline);
@@ -1088,6 +1118,21 @@
   }
 
   .cup-stat-num {
+    font-size: 11px;
+  }
+
+  .cup-form {
+    gap: 3px 8px;
+    margin-top: 4px;
+    padding-top: 6px;
+  }
+
+  .cup-form-tier {
+    padding: 1px 6px;
+    font-size: 9px;
+  }
+
+  .cup-form-line {
     font-size: 11px;
   }
 

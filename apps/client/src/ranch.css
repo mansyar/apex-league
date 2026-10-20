@@ -193,6 +193,26 @@
   margin-bottom: 0;
 }
 
+/* Stage and form chips stack beside the name instead of taking a new row, so
+   the collapsed plate keeps its height. The form chip's word is the carrier
+   and its title names the ATK consequence (colour is never the only cue). */
+.creature-chips {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.creature-chips .kit-tab {
+  font-size: 9px;
+  padding: 1px 7px;
+}
+
+.creature-form {
+  letter-spacing: 0.12em;
+}
+
 .rename-button {
   flex: none;
   display: inline-flex;
