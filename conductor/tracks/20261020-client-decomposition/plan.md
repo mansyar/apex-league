@@ -20,21 +20,24 @@ silently change order.
   `apps/client/src/main.test.ts` (only if it imports moved symbols)
 - **Verification:** `bun run verify && bun run build`, plus browser smoke
   (draft → starter → care actions → detail modal → spar → cup → graduation)
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** d5b0117
+- **Evidence:** conductor/tracks/20261020-client-decomposition/verification/phase-1.md
 
-- [ ] **P1.T1: Seam map** — inventory every top-level block of `main.ts` with its
+- [x] **P1.T1: Seam map** — inventory every top-level block of `main.ts` with its
   imports and its position in the boot/subscription order; record it in the phase
   evidence before any move — covers: FR-1, NFR-1
-- [ ] **P1.T2: Extract scene sync** — `app/scene-sync.ts` takes `sceneVisuals`,
+- [x] **P1.T2: Extract scene sync** — `app/scene-sync.ts` takes `sceneVisuals`,
   `syncScene`, `applyCameraStyle`, `toggleArenaCamera` — covers: FR-1
   - [ ] Pass the scene/arena handles the extracted functions need; no globals
-- [ ] **P1.T3: Extract audio wiring** — `app/audio.ts` takes the audio player, music
+- [x] **P1.T3: Extract audio wiring** — `app/audio.ts` takes the audio player, music
   beds, unlock gesture and the playback step-cue bridge — covers: FR-1
-- [ ] **P1.T4: Extract arena entry** — `app/arena.ts` takes `enterArena`, `exitArena`,
+- [x] **P1.T4: Extract arena entry** — `app/arena.ts` takes `enterArena`, `exitArena`,
   the vignette/flash layer and the reduced-motion hand-off — covers: FR-1
-- [ ] **P1.T5: Extract screen construction** — `app/screens.ts` builds spar, cup,
+- [x] **P1.T5: Extract screen construction** — `app/screens.ts` builds spar, cup,
   graduation and the HUD with their handler objects in the current order — covers: FR-1, FR-7
-- [ ] **P1.T6: Extract runtime graphics** — `app/runtime.ts` takes the graphics-health
+- [x] **P1.T6: Extract runtime graphics** — `app/runtime.ts` takes the graphics-health
   reducer, its cause copy and visibility handling; `main.ts` ends as boot + composition — covers: FR-1
 
 ## Phase 2: HUD trio
