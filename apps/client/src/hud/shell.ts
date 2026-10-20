@@ -1,0 +1,198 @@
+import { buildCreatureDetail } from "../creature-detail"
+import { buildHandbook } from "../handbook"
+import { buildPrefCluster, buildSettingsModal } from "../settings-modal"
+import { buildCommandDock } from "./dock"
+import { buildCreaturePlate, buildLineagePlate, buildScoreBug } from "./plates"
+import { buildResetModal } from "./settings"
+import type { HudShell, HudShellHandlers, HudViewState } from "./types"
+
+/**
+ * The HUD's shell: every plate, modal and dock is built and wired here, in
+ * the order createHud always built them, and the interaction state the daily
+ * update has to see (the picker, the two collapsible corners, the inline
+ * rename) lives on `view`. Values stay `update`'s business — this module only
+ * builds, binds, and re-renders through the injected pass.
+ */
+export function createHudShell(
+  root: HTMLElement,
+  handlers: HudShellHandlers,
+): HudShell {
+  // Corner clusters collapse by clicking their headers (session-only:
+  // always expanded on load). Narrow viewports start collapsed — the
+  // stacked plates would otherwise eat the whole scene.
+  const startsCollapsed = window.matchMedia("(max-width: 767.98px)").matches
+  const view: HudViewState = {
+    current: null,
+    pickerOpen: false,
+    creatureOpen: !startsCollapsed,
+    dockOpen: !startsCollapsed,
+    renaming: false,
+  }
+
+  // Top-center score bug — the shared builder; update() owns the values.
+  const scoreBug = buildScoreBug()
+
+  // Bottom-left creature lower-third — the shared builder; createHud
+  // wires its interactions and update() owns the values.
+  const creaturePlate = buildCreaturePlate()
+  const {
+    root: lowerThird,
+    creatureHead,
+    collapseButton,
+    headRow,
+    nameInput,
+    renameButton,
+    renameConfirm,
+    renameCancel,
+    editRow,
+    statusTicker,
+  } = creaturePlate
+
+  // Bottom-right command dock — the shared builder. Care/pick clicks go
+  // straight to the handlers; the train-toggle and collapse interactions
+  // stay local (they re-render through update()).
+  const dock = buildCommandDock({
+    onCare: (action) => handlers.onCare(action),
+    onTrain: (key) => {
+      view.pickerOpen = false
+      handlers.onTrain(key)
+    },
+    onAdvanceDay: () => handlers.onAdvanceDay(),
+    onGraduate: () => handlers.onGraduate(),
+  })
+  const { root: cluster, dockHead, trainButton } = dock
+
+  // Settings cluster (top-left) + reset modal — the modal owns the three
+  // settings chips now; the HUD cluster keeps only the entry chip.
+  const { resetModal, resetConfirm } = buildResetModal(
+    () => handlers.onReset(),
+    () => document.querySelector<HTMLElement>(".settings-chip")?.focus(),
+  )
+  const settings = buildSettingsModal({
+    onToggleReducedMotion: () => handlers.onToggleReducedMotion(),
+    onToggleArenaCamera: () => handlers.onToggleArenaCamera(),
+    onToggleMuted: () => handlers.onToggleMuted(),
+    onVolume: (bus, value, commit) => handlers.onVolume(bus, value, commit),
+    onDownloadSave: () => handlers.onDownloadSave(),
+    onImportFile: (file) => handlers.onImportFile(file),
+    isImportBlocked: () => handlers.isImportBlocked(),
+    onNewGame: () => {
+      resetModal.style.display = ""
+      resetConfirm.focus()
+    },
+  })
+  // Coach's Handbook: type chart, ladder rules, raising guidance — one
+  // persistent ranch chip (Phase 5 moved the settings chips into their
+  // own modal behind the Settings chip).
+  const handbook = buildHandbook()
+  const motionWrap = buildPrefCluster(
+    () => settings.open(),
+    () => handbook.open(),
+  )
+  // Partner-details modal: opened by tapping the creature plate head; it
+  // reads state fresh on every open.
+  const creatureDetail = buildCreatureDetail()
+
+  // Lineage plate (top-left, under the settings pill): the family name +
+  // generation, and the Hall of Fame opener.
+  const lineage = buildLineagePlate()
+  lineage.root.addEventListener("click", () => handlers.onOpenHallOfFame())
+
+  // The two bottom plates live in a stack wrapper so the phone tier can
+  // lay them out as a column; display:contents keeps the desktop
+  // corner-pinned layout untouched (children position against the root).
+  const hudStack = document.createElement("div")
+  hudStack.className = "hud-stack"
+  hudStack.append(lowerThird, cluster)
+  // The onboarding callout is appended after this by createHud — it stays
+  // the last child of the HUD root, where it has always been.
+  root.append(
+    scoreBug.root,
+    motionWrap,
+    lineage.root,
+    hudStack,
+    resetModal,
+    creatureDetail.root,
+    handbook.root,
+    settings.root,
+  )
+
+  lowerThird.classList.toggle("is-collapsed", !view.creatureOpen)
+  cluster.classList.toggle("is-collapsed", !view.dockOpen)
+
+  const shell: HudShell = {
+    view,
+    refs: {
+      scoreBug,
+      creaturePlate,
+      dock,
+      settings,
+      creatureDetail,
+      motionWrap,
+      lineage,
+    },
+    render: () => {},
+    closeRename: () => closeRename(),
+  }
+
+  // Toggling the picker spends nothing — render only.
+  trainButton.addEventListener("click", () => {
+    view.pickerOpen = !view.pickerOpen
+    if (view.current) shell.render(view.current)
+  })
+
+  // Tapping the plate head opens the partner-details modal. The scrim
+  // covers the HUD while it shows, so the readout is fresh for the visit.
+  creatureHead.addEventListener("click", () => {
+    if (view.current?.creature) creatureDetail.open(view.current)
+  })
+
+  collapseButton.addEventListener("click", () => {
+    view.creatureOpen = !view.creatureOpen
+    lowerThird.classList.toggle("is-collapsed", !view.creatureOpen)
+    collapseButton.setAttribute(
+      "aria-expanded",
+      view.creatureOpen ? "true" : "false",
+    )
+  })
+
+  // Rename flow: pencil opens the inline edit, Enter/click confirms,
+  // Escape/cancel backs out. A sim rejection (mid-cup) coaches and stays.
+  const openRename = () => {
+    const current = view.current
+    if (!current?.creature || current.phase === "cup") return
+    view.renaming = true
+    nameInput.value = current.creature.name
+    headRow.style.display = "none"
+    editRow.style.display = ""
+    nameInput.focus()
+    nameInput.select()
+  }
+  const closeRename = () => {
+    view.renaming = false
+    editRow.style.display = "none"
+    headRow.style.display = ""
+  }
+  const confirmRename = () => {
+    if (!view.current) return
+    if (handlers.onRename(nameInput.value)) closeRename()
+    else statusTicker.say("Renaming waits until the cup is done.")
+  }
+  renameButton.addEventListener("click", openRename)
+  renameCancel.addEventListener("click", closeRename)
+  renameConfirm.addEventListener("click", confirmRename)
+  nameInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") confirmRename()
+    if (event.key === "Escape") closeRename()
+  })
+
+  dockHead.addEventListener("click", () => {
+    view.dockOpen = !view.dockOpen
+    if (!view.dockOpen) view.pickerOpen = false
+    cluster.classList.toggle("is-collapsed", !view.dockOpen)
+    dockHead.setAttribute("aria-expanded", view.dockOpen ? "true" : "false")
+    if (view.current) shell.render(view.current)
+  })
+
+  return shell
+}
