@@ -75,7 +75,7 @@ silently change order.
   `apps/client/src/orbit-camera.ts`, `apps/client/src/camera/*.ts` (new)
 - **Verification:** `bun run verify && bun run build`, plus a battle played to a
   verdict to exercise projectiles, bursts and hit-stop
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Split the scene** — composition vs ground/prop dressing vs frame loop;
   `scene.ts` keeps its exported handle and options — covers: FR-3
