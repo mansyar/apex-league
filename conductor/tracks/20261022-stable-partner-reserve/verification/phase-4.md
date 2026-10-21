@@ -269,9 +269,11 @@ writes were this evidence file and the two empty probe files noted below.
   `docs/.phase4-probe.md` and
   `conductor/tracks/20261022-stable-partner-reserve/verification/.probe.md`. Both are
   0 bytes and untracked — please delete them before the phase is squashed.
-- **The dev server is still running** in the background on `http://localhost:5199`
-  (started with `bun run dev --port 5199 --strictPort` for the visual pass). It is the
-  only listener on that port; stop it when the review is done.
+- **The dev server is no longer running.** The visual pass used `bun run dev --port
+  5199 --strictPort` (Vite 8.3.4) on `http://localhost:5199`; that background process
+  has since exited (the Vite script exited with code 255 when its shell was reaped),
+  so nothing is listening on 5199 now and a reviewer can start their own with
+  `bun run dev --port 5199 --strictPort`.
 - **The code and the docs agreed everywhere.** The only doc/code disagreement found
   in this phase was in `README.md` itself, and it was fixed here: the release
   checklist still told a reader to test the v19 → v20 migration, and the Storm Gift
