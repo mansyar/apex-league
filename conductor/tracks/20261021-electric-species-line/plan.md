@@ -96,7 +96,7 @@ After acceptance the primary agent appends:
 - **Covers:** FR-7, FR-9, AC-7, AC-9, NFR-1
 - **Touches:** `packages/sim/src/cup/` (roster generation), `apps/client/src/handbook/`, `apps/client/src/graduation/`, `apps/client/src/hud/`, `apps/client/src/detail/`, surface CSS under `apps/client/src/ui/`, co-located pure-module tests
 - **Verification:** `bun run check && bun test --timeout 120000` plus the visual layer (desktop + iPhone 15 screenshots, clean console)
-- **Status:** pending
+- **Status:** in_progress
 
 ### Tasks
 
