@@ -61,7 +61,7 @@ modal shows it.
 ### In Scope
 
 - A **stable** on the sim state: every pet the player owns that is not in the
-  ranch, with no capacity limit, persisted by save v23 (linear migration,
+  ranch, with no capacity limit, persisted by save v24 (linear migration,
   validation, `docs/save-schema.md`).
 - A **swap seam**: send the ranch pet to the stable, bring a stashed pet
   forward. Free, instant, lossless in both directions.
@@ -101,7 +101,7 @@ modal shows it.
 
 | ID | Requirement | Priority |
 | --- | --- | --- |
-| FR-1 | The stable holds every pet the player owns that is not in the ranch, with no capacity limit; the state persists them (save v23) and older saves migrate to an empty stable. | must |
+| FR-1 | The stable holds every pet the player owns that is not in the ranch, with no capacity limit; the state persists them (save v24) and older saves migrate to an empty stable. | must |
 | FR-2 | Exactly one pet is active at a time: the ranch, cups and spars use the active pet alone; a stashed pet never competes. | must |
 | FR-3 | A pet can be sent to the stable and any stashed pet brought to the ranch; the swap is free, instant and lossless — every field (stats, trained, loadout, branch, stage, conditions, age, parents, name, species, gift marker) travels with the pet in both directions. | must |
 | FR-4 | A stashed pet is frozen: a night tick changes neither its conditions nor its age, it cannot train, evolve, graduate or compete, and it resumes exactly where it left off when it returns. | must |
@@ -135,7 +135,7 @@ modal shows it.
 | AC-3 | A stashed pet is frozen: a night tick changes neither its conditions nor its age, and it resumes exactly on return. | FR-4 |
 | AC-4 | A pet hatched on day 24 matures on its own tenth night, not its first; the day-1 starter still matures on the day-10 night. | FR-5 |
 | AC-5 | The partner-details modal shows the active pet's age, and the stable modal shows each stashed pet's age. | FR-6 |
-| AC-6 | Save v23 round-trips the stable; v22 → v23 migrates to an empty stable with the active pet's age preserved; a malformed stable fails the load instead of loading half a pet. | FR-1 |
+| AC-6 | Save v24 round-trips the stable; v23 -> v24 migrates to an empty stable with the active pet's age preserved; a malformed stable fails the load instead of loading half a pet. | FR-1 |
 | AC-7 | The stable chip opens the stable modal, lists the stashed pets, and a swap rebuilds the ranch; desktop and iPhone 15 visual passes are clean. | FR-9, FR-10 |
 | AC-8 | A graduation can hand the ranch to a stashed pet, and the retired pet is archived to the Hall as before. | FR-8 |
 | AC-9 | The full gate is green: types, biome, the whole test suite, the determinism gate, and the build. | NFR-1, NFR-2, NFR-4 |
@@ -188,6 +188,11 @@ modal shows it.
 - **Assumption:** the stable is a UI surface, not a 3D ranch building.
 - **Assumption:** a stashed pet's illness cooldown and training assignment
   freeze with it.
+- **Note (save versions):** this track advances the save schema twice —
+  **v23** adds the pet's own age (Phase 1) and **v24** adds the stable
+  (Phase 2). Two linear steps rather than one, so the already-verified Phase 1
+  migration is not rewritten; every step is linear and every older save still
+  migrates forward cleanly.
 - **Question (later track):** should the stable ever gain a capacity limit, a
   building in the ranch, or a way to release a pet?
 
