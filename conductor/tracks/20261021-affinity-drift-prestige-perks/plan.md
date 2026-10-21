@@ -12,10 +12,10 @@
 - **Goal:** the drift is decided at breeding time, persisted as save v20, and
   validated on load and import.
 - **Depends on:** none
-- **Covers:** FR-1, FR-2, AC-1, AC-2
+- **Covers:** FR-1, FR-2, AC-1, AC-2, NFR-3, NFR-4
 - **Touches:** `packages/sim/src/breeding.ts`, `packages/sim/src/legacy.ts` (record shape only), `packages/sim/src/save/schema.ts`, `packages/sim/src/save/migrate.ts`, `packages/sim/src/save/storage.ts`, `packages/sim/src/save/transfer.ts`, `packages/sim/src/types.ts` (if the creature/record types live there), `docs/save-schema.md`, co-located `*.test.ts`
 - **Verification:** `bun run check && bun test --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Seeded drift roll at breeding** — covers: FR-1
   - [ ] **P1.T1.1: Add `AFFINITY_DRIFT_CHANCE = 0.15` and a distinct-RNG-constant roll helper in `breeding.ts`; source = the parent whose element differs from the egg's species element; no roll when both parents share it**
@@ -38,7 +38,7 @@ The primary appends after acceptance:
 - **Goal:** a drifted defender softens exactly one super-effective incoming
   matchup; no other resolver math moves.
 - **Depends on:** Phase 1
-- **Covers:** FR-3, AC-3
+- **Covers:** FR-3, AC-3, NFR-3
 - **Touches:** `packages/sim/src/battle/` (damage/matchup path and its co-located tests), `packages/sim/src/battle.ts` barrel if re-export needed
 - **Verification:** `bun run check && bun test --timeout 120000`
 - **Status:** pending
@@ -61,7 +61,7 @@ The primary appends after acceptance:
 - **Goal:** Refined Blood strengthens the floor; Champion Stable adds the
   head-start AP and the wider mutation band.
 - **Depends on:** Phase 1
-- **Covers:** FR-4, FR-5, AC-4, AC-5
+- **Covers:** FR-4, FR-5, AC-4, AC-5, NFR-3
 - **Touches:** `packages/sim/src/legacy.ts`, `packages/sim/src/breeding.ts`, the day/AP settlement module (`packages/sim/src/` care/day machine), co-located `*.test.ts`
 - **Verification:** `bun run check && bun test --timeout 120000`
 - **Status:** pending
@@ -88,7 +88,7 @@ The primary appends after acceptance:
 - **Goal:** drift and the new perks are visible everywhere they matter, with
   visual evidence at two widths.
 - **Depends on:** Phase 1, Phase 2, Phase 3
-- **Covers:** FR-6, AC-6
+- **Covers:** FR-6, AC-6, NFR-1, NFR-4
 - **Touches:** `apps/client/src/graduation/` (nursery preview), `apps/client/src/hud/` (plate, coach ticker), `apps/client/src/detail/` (creature-detail tabs), `apps/client/src/handbook/`, surface CSS under `apps/client/src/ui/`, co-located pure-module tests
 - **Verification:** `bun run check && bun test --timeout 120000` plus the visual layer (desktop + iPhone 15 screenshots, clean console)
 - **Status:** pending
@@ -110,7 +110,7 @@ The primary appends after acceptance:
 - **Goal:** roadmap and stack truth recorded; the full gate green on the
   branch.
 - **Depends on:** Phase 1, Phase 2, Phase 3, Phase 4
-- **Covers:** FR-7, AC-7
+- **Covers:** FR-7, AC-7, NFR-2
 - **Touches:** `conductor/product.md`, `conductor/tech-stack.md`, `README.md` (only if it repeats affected truth)
 - **Verification:** `bun run verify && bun run build`
 - **Status:** pending
