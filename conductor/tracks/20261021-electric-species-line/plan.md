@@ -78,7 +78,7 @@ After acceptance the primary agent appends:
 - **Covers:** FR-2, AC-2, NFR-2, NFR-5
 - **Touches:** `packages/voxel/src/**` (archetype), generator scripts/config, determinism gate artifact list
 - **Verification:** `bun run gate:determinism` plus `bun run verify`
-- **Status:** pending
+- **Status:** in_progress
 
 ### Tasks
 

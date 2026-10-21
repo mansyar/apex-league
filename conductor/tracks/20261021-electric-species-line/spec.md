@@ -15,7 +15,7 @@ Apex League's roster is three species against a 20–40 target — the most play
 ## Goals & Success Metrics
 
 - **Goal:** a player can obtain, raise, evolve, branch, and win a cup with an Electric creature end-to-end.
-- **Metric:** determinism gate green with 11 creature GLBs (9 existing + 2 new), all byte-identical across runs.
+- **Metric:** determinism gate green with 12 creature GLBs (9 existing + 3 new: baby, juvenile, champion growth stages), all byte-identical across runs. *(Count corrected from an initial estimate of 11 — the gate requires one GLB per gated life stage per archetype, and the champion growth stage is distinct from the champion branch forms, which stay accent tints.)*
 - **Metric:** six authored boss win-rate bands (40–70%) and all existing goldens remain byte-identical.
 - **Metric:** new-species balance probe passes using the boss-band probe methodology.
 
@@ -23,7 +23,7 @@ Apex League's roster is three species against a 20–40 target — the most play
 
 ### In
 - Species data for `electric_hound`: full 3-stage line (base, evolved, two branching champion forms), fast-striker base stats, 6-move pool using only existing effect vocabulary.
-- Storm-hound voxel archetype in `packages/voxel`; **2 new creature GLBs** (base, evolved); champion forms are accent-hue tints of the evolved GLB (matching existing branching machinery); archetype structured so sculpted champion forms can be added later without rework.
+- Storm-hound voxel archetype in `packages/voxel`; **3 new creature GLBs** (baby, juvenile, champion growth stages — the gate's mandated stages); champion branch forms are accent-hue tints (matching existing branching machinery); archetype structured so sculpted champion forms can be added later without rework.
 - Silver tier-reward grant: on cup finalize, if current tier ≥ Silver and never claimed, the league grants the gift egg; claim state persists in the save.
 - **Pure gift egg:** fixed Electric element, guaranteed `affinity: null` (no drift roll, no RNG draw consumed); previewed = hatched.
 - Generated rival rosters may field the species once it is obtainable; authored bosses unchanged.
@@ -44,7 +44,7 @@ Apex League's roster is three species against a 20–40 target — the most play
 | ID | Requirement | Priority |
 | --- | --- | --- |
 | FR-1 | Full 3-stage line for `electric_hound` — base form, evolved form, two branching champion forms — playable lifecycle end-to-end (obtain → raise → evolve → branch → compete) | must |
-| FR-2 | Storm-hound voxel archetype authored via the established pipeline; 2 new creature GLBs (base, evolved) registered in the determinism gate; champion forms are accent-tint variants of the evolved GLB; archetype structured for future sculpted champion forms | must |
+| FR-2 | Storm-hound voxel archetype authored via the established pipeline; 3 new creature GLBs (baby, juvenile, champion growth stages) registered in the determinism gate; champion branch forms are accent-tint variants (no extra GLBs); archetype structured for future sculpted champion forms | must |
 | FR-3 | Fast-striker stat profile (SPD/ATK tilt, low DEF) distinct from all three existing species | must |
 | FR-4 | Move pool of 6 Electric-flavored moves using only the existing effect vocabulary (damage/buff/debuff); standard learn schedule (know 0–1 at birth, 2 by trained day 3, 3–5 by day 6) and equip-4 rule | must |
 | FR-5 | On non-forfeit cup finalize: if the player's current tier ≥ Silver and the reward was never claimed, the league grants a pure gift egg; the claim is granted at most once and persists across saves | must |
@@ -59,7 +59,7 @@ Apex League's roster is three species against a 20–40 target — the most play
 | ID | Requirement |
 | --- | --- |
 | NFR-1 | Every client module stays at or under 12,288 B; `module-size.test.ts` green |
-| NFR-2 | No new dependencies; the determinism gate is extended to 11 creature GLBs and stays byte-identical across runs |
+| NFR-2 | No new dependencies; the determinism gate is extended to 12 creature GLBs and stays byte-identical across runs |
 | NFR-3 | Sim logic pure, seeded, DOM-free, TDD'd; the gift egg consumes no drift RNG draw so existing seeded streams stay byte-identical |
 | NFR-4 | Existing balance invariants hold: six authored boss bands (Koda, Hesse, Marlow, Delmar, Fenn, Thessa) stay within 40–70%; all existing legacy/breeding/cup goldens unchanged |
 | NFR-5 | Visuals follow `product-guidelines.md`: archetype palette via semantic voxel classes, AO only darkening (0.72 floor), dark bead eyes, Electric hue 50° sourced from `ui/element.ts` |
@@ -69,7 +69,7 @@ Apex League's roster is three species against a 20–40 target — the most play
 | ID | Criterion | Verifies |
 | --- | --- | --- |
 | AC-1 | Full lifecycle demonstrated: obtain egg via Silver reward → hatch → raise → evolve → choose a champion branch → win a cup with the species | FR-1 |
-| AC-2 | Determinism gate passes with 11 creature GLBs registered and byte-identical output | FR-2 |
+| AC-2 | Determinism gate passes with 12 creature GLBs registered and byte-identical output | FR-2 |
 | AC-3 | New-species balance probe passes (methodology mirrors the boss-band probes); existing boss bands unchanged | FR-3 |
 | AC-4 | Move learn schedule and equip-4 tests green for the new move pool | FR-4 |
 | AC-5 | Grant fires exactly once at tier ≥ Silver (non-forfeit finalize); never duplicates; never fires below Silver | FR-5 |
