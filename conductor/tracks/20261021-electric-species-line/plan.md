@@ -35,7 +35,7 @@ Only the primary agent writes this file; subagents report back.
 
 ### Tasks
 
-- [ ] **P1.T1: Define the electric_hound species record (stats, stages, champion branching config)** — covers: FR-3
+- [x] **P1.T1: Define the electric_hound species record (stats, stages, champion branching config)** — covers: FR-3
   - [x] **P1.T1.1: Failing test first — stat profile is SPD/ATK-tilted and distinct from all existing species** — covers: FR-3
 - [x] **P1.T2: Author the 8 Electric specials (6 kit + 2 branch signatures) on existing effect vocabulary with learn/equip wiring** — covers: FR-4
 - [x] **P1.T3: New-species balance probe + guardrails (boss bands, existing goldens)** — covers: AC-3, NFR-4
@@ -43,13 +43,6 @@ Only the primary agent writes this file; subagents report back.
 **Result:** verified
 **Checkpoint:** c33482d
 **Evidence:** conductor/tracks/20261021-electric-species-line/verification/phase-1.md
-
-<!--
-After acceptance the primary agent appends:
-**Result:** verified
-**Checkpoint:** <short-sha>
-**Evidence:** conductor/tracks/20261021-electric-species-line/verification/phase-1.md
--->
 
 ## Phase 2 — Silver Reward & Gift Egg
 
@@ -109,13 +102,6 @@ After acceptance the primary agent appends:
 **Checkpoint:** d3c05ad
 **Evidence:** conductor/tracks/20261021-electric-species-line/verification/phase-4.md
 
-<!--
-After acceptance the primary agent appends:
-**Result:** verified
-**Checkpoint:** <short-sha>
-**Evidence:** conductor/tracks/20261021-electric-species-line/verification/phase-4.md
--->
-
 ## Phase 5 — Docs Sync & Integrated Verification
 
 - **Goal:** roadmap and stack truth recorded, full-lifecycle AC-1 evidence captured, and the full gate green on the branch.
@@ -123,16 +109,13 @@ After acceptance the primary agent appends:
 - **Covers:** FR-8, AC-1, AC-2, NFR-2
 - **Touches:** `conductor/product.md`, `conductor/tech-stack.md`, `README.md` (only where it repeats affected truth)
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
 ### Tasks
 
-- [ ] **P5.T1: Docs sync — product.md Phase 3 note, tech-stack dated entry, README truth check** — covers: FR-8
-- [ ] **P5.T2: Integrated verification — full gate + AC-1 lifecycle evidence** — covers: AC-1, AC-2, NFR-2
+- [x] **P5.T1: Docs sync - product.md Phase 3 note, tech-stack dated entry, README truth check** - covers: FR-8
+- [x] **P5.T2: Integrated verification - full gate + AC-1 lifecycle evidence** - covers: AC-1, AC-2, NFR-2
 
-<!--
-After acceptance the primary agent appends:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** f873b66
 **Evidence:** conductor/tracks/20261021-electric-species-line/verification/phase-5.md
--->
