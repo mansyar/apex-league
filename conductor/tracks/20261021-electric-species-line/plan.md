@@ -73,24 +73,21 @@ After acceptance the primary agent appends:
 
 ## Phase 3 — Voxel Archetype & GLBs
 
-- **Goal:** the storm-hound archetype is authored (sculpt-later-friendly), 2 creature GLBs are generated and registered in the determinism gate.
+- **Goal:** the storm-hound archetype is authored (sculpt-later-friendly), 3 stage GLBs are generated and registered in the determinism gate.
 - **Depends on:** Phase 1
 - **Covers:** FR-2, AC-2, NFR-2, NFR-5
 - **Touches:** `packages/voxel/src/**` (archetype), generator scripts/config, determinism gate artifact list
 - **Verification:** `bun run gate:determinism` plus `bun run verify`
-- **Status:** in_progress
+- **Status:** verified
 
 ### Tasks
 
-- [ ] **P3.T1: Author the storm-hound archetype following palette/eyes/AO product guidelines** — covers: FR-2, NFR-5
-- [ ] **P3.T2: Generate base + evolved GLBs and register them in the determinism gate** — covers: FR-2, AC-2, NFR-2
+- [x] **P3.T1: Author the storm-hound archetype following palette/eyes/AO product guidelines** — covers: FR-2, NFR-5
+- [x] **P3.T2: Generate the three stage GLBs and register them in the determinism gate** — covers: FR-2, AC-2, NFR-2
 
-<!--
-After acceptance the primary agent appends:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** abcd400
 **Evidence:** conductor/tracks/20261021-electric-species-line/verification/phase-3.md
--->
 
 ## Phase 4 — Rivals, UI & Client Integration
 
