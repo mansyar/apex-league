@@ -37,7 +37,7 @@
 - **Covers:** FR-1, FR-2, FR-3, FR-4, FR-7, FR-8, FR-10, FR-11, FR-12, NFR-3, AC-2, AC-3, AC-6, AC-8
 - **Touches:** `packages/sim/src/state.ts`, `packages/sim/src/stable.ts`, `packages/sim/src/breeding.ts`, `packages/sim/src/legacy.ts`, `packages/sim/src/evolution.ts`, `packages/sim/src/save/*`, `packages/sim/src/index.ts`, `packages/sim/src/*.test.ts`
 - **Verification:** `bun run check && bun test --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: The stable on the state** — covers: FR-1
   - [ ] **P2.T1.1: Failing test first — a pet can be stashed and brought back with every field intact** — covers: FR-3, AC-2
