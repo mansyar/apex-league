@@ -123,7 +123,7 @@ After acceptance the primary agent appends:
 - **Covers:** FR-8, AC-1, AC-2, NFR-2
 - **Touches:** `conductor/product.md`, `conductor/tech-stack.md`, `README.md` (only where it repeats affected truth)
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 ### Tasks
 
