@@ -1,5 +1,10 @@
 import type { CareAction, GameState, TrainingProgram } from "@apex/sim"
-import { evolveCallout, graduationCallout, saveFailureNotice } from "./hud/copy"
+import {
+  driftCallout,
+  evolveCallout,
+  graduationTickerLine,
+  saveFailureNotice,
+} from "./hud/copy"
 import { createHints } from "./hud/hints"
 import { createHudShell } from "./hud/shell"
 import { createHudUpdate } from "./hud/update"
@@ -88,7 +93,8 @@ export interface Hud {
    * ceremony starts; the next routine update replaces it). */
   announceEvolution(creature: NonNullable<GameState["creature"]>): void
   /** Show the graduation send-off line (legacy track): the retiree, the
-   * generation it starts, and the successor's name. */
+   * generation it starts, and the successor's name — with the hatch-day
+   * drift beat appended when the hatch drifted. */
   announceGraduation(
     retireeName: string,
     successorName: string,
@@ -117,16 +123,28 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   const hints = createHints(handlers.onHintSeen)
   root.append(hints.root)
   const update = createHudUpdate(shell, hints)
+  // The shell's own interactions re-render through this pass. The latest
+  // state is kept so the graduation announcement can keep the hatch-day
+  // drift beat (FR-6): it composes the send-off and the drift statement, so
+  // a drifted hatch speaks both lines instead of trading one for the other.
+  let latest: GameState | null = null
+  const paint = (state: GameState) => {
+    latest = state
+    update(state)
+  }
   // The shell's own interactions re-render through this pass.
-  shell.render = update
+  shell.render = paint
   return {
-    update,
+    update: paint,
     announceEvolution(creature) {
       shell.refs.creaturePlate.statusTicker.say(evolveCallout(creature))
     },
     announceGraduation(retireeName, successorName, generation) {
+      const drifted = latest?.creature?.affinity
+        ? driftCallout(latest.creature, latest.lineage, latest.day)
+        : ""
       shell.refs.creaturePlate.statusTicker.say(
-        graduationCallout(retireeName, successorName, generation),
+        graduationTickerLine(retireeName, successorName, generation, drifted),
       )
     },
     announceSaveFailure() {

@@ -1,6 +1,12 @@
 import { describe, expect, test } from "bun:test"
 import { createTreatCeremony } from "../scene-logic"
 
+/** Unwrap a possibly-absent test fixture or fail the test loudly. */
+function defined<T>(value: T | null | undefined, label: string): T {
+  if (value === null || value === undefined) throw new Error(`missing ${label}`)
+  return value
+}
+
 // 0.0625 s (2^-4) steps are binary-exact and under the machine's 0.1 s dt
 // clamp, so phase boundaries are crossed exactly — no float-noise.
 const DT = 0.0625
@@ -50,7 +56,9 @@ describe("treat ceremony", () => {
     expect(subdued[0]).toBeGreaterThan(0)
     expect(subdued[9]).toBe(1)
     for (let i = 1; i < subdued.length; i++) {
-      expect(subdued[i]!).toBeGreaterThanOrEqual(subdued[i - 1]!)
+      const value = defined(subdued[i], "subdued sample")
+      const previous = defined(subdued[i - 1], "subdued sample")
+      expect(value).toBeGreaterThanOrEqual(previous)
     }
     const balmDrive = m.advance(0.016)
     expect(balmDrive.phase).toBe("balm")
@@ -94,7 +102,7 @@ describe("treat ceremony", () => {
     expect(first.subdued).toBe(1)
     expect(first.relief).toBe(0)
     // Shortened hold, then a direct settle — no recover easing to watch.
-    const tail = run(m, DT, 14)[13]! // 0.875 s: past the 0.8 s hold
+    const tail = defined(run(m, DT, 14)[13], "tail sample") // 0.875 s: past the 0.8 s hold
     expect(tail.phase).toBe("idle")
     expect(tail.done).toBe(true)
     expect(tail.subdued).toBe(0)

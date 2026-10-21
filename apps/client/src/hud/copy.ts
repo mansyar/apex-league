@@ -21,6 +21,7 @@ export {
   formRead,
   formReadout,
   gainsLine,
+  hatchDayStatusLine,
   NO_GAIN_TONIGHT,
   NO_GAIN_TONIGHT_FALLBACK,
   previewNote,
@@ -40,10 +41,12 @@ export {
 } from "./copy-care"
 export { type HudHint, selectHint } from "./copy-cup"
 export {
+  driftCallout,
   evolveCallout,
   familyName,
   graduationCallout,
   graduationHint,
+  graduationTickerLine,
   growthHint,
   romanNumeral,
   stageLabel,

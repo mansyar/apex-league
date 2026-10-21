@@ -12,6 +12,7 @@ import {
   inheritedFloorFromPair,
   isLineageTrait,
   type LineageTrait,
+  lineagePerks,
   type RetiredRecord,
   type StatKey,
   speciesOptions,
@@ -82,6 +83,8 @@ export interface HatchPreview {
   parentNames: [string, string]
   rows: PreviewStatRow[]
   traits: PreviewTrait[]
+  /** The rolled secondary affinity (save v20), or null when no drift. */
+  affinity: RetiredRecord["affinity"]
   mutationNote: string
   prestige: number
 }
@@ -246,7 +249,12 @@ export function hatchPreview(
       }
     }),
     traits: traits.map((id) => ({ id, ...traitCopy(id) })),
-    mutationNote: "One seeded mutation adds +1–2 to one stat at hatch.",
+    affinity: child.affinity,
+    // The mutation band is the sim's own: Champion Stable (prestige 9)
+    // widens the top of it, so the preview says what this prestige rolls.
+    mutationNote: lineagePerks(prestige).championStable
+      ? "One seeded mutation adds +1–3 to one stat at hatch."
+      : "One seeded mutation adds +1–2 to one stat at hatch.",
     prestige,
   }
 }

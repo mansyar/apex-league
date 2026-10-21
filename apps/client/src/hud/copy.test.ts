@@ -8,6 +8,7 @@ import {
   EXHAUSTED_ENERGY,
   FORM_COPY,
   type GameState,
+  type RetiredRecord,
   TRAINING_PROGRAMS,
 } from "@apex/sim"
 import {
@@ -16,6 +17,7 @@ import {
   coachVoice,
   corruptSaveNotice,
   dockHeadTraining,
+  driftCallout,
   evolveCallout,
   FORM_SICK_NOTE,
   familyName,
@@ -26,7 +28,9 @@ import {
   gainsLine,
   graduationCallout,
   graduationHint,
+  graduationTickerLine,
   growthHint,
+  hatchDayStatusLine,
   NO_GAIN_TONIGHT,
   NO_GAIN_TONIGHT_FALLBACK,
   previewNote,
@@ -37,6 +41,7 @@ import {
   spendFlashIndex,
   stageLabel,
   statLabel,
+  statusLine,
   TRAINING_EMPTY,
   TRAINING_EMPTY_POINTER,
   TRAINING_TAB_HEADINGS,
@@ -785,5 +790,121 @@ describe("training copy (2026-10-20)", () => {
     const pinned = formRead(sick)
     expect(pinned.label).toBe(FORM_COPY.sluggish.label)
     expect(pinned.sickNote).toBe(FORM_SICK_NOTE)
+  })
+})
+
+describe("driftCallout — the drifted-hatch announcement (FR-6)", () => {
+  const hallRecord = (retiredOnDay: number): RetiredRecord => ({
+    name: "Rolo",
+    speciesId: "fire_drake",
+    archetypeId: "draconic",
+    element: "fire",
+    affinity: null,
+    stats: { hp: 160, atk: 24, def: 16, spd: 18 },
+    trained: { hp: 0, atk: 0, def: 0, spd: 0 },
+    cupsWon: 1,
+    generation: 0,
+    retiredOnDay,
+    traits: ["sturdy"],
+    parents: [],
+    branch: "legacy",
+  })
+
+  test("silent when the creature carries no secondary affinity", () => {
+    const creature = createCreature("fire_drake", 42)
+    expect(driftCallout(creature, createInitialState().lineage, 10)).toBe("")
+  })
+
+  test("names both types on the hatch day itself", () => {
+    const drifted: Creature = {
+      ...createCreature("fire_drake", 42),
+      affinity: "water",
+    }
+    const lineage: GameState["lineage"] = {
+      generation: 1,
+      hallOfFame: [hallRecord(60)],
+    }
+    const line = driftCallout(drifted, lineage, 60)
+    expect(line).toContain(drifted.name)
+    expect(line).toContain("Water")
+    expect(line).toContain("Fire")
+  })
+
+  test("silent on any other day", () => {
+    const drifted: Creature = {
+      ...createCreature("fire_drake", 42),
+      affinity: "water",
+    }
+    const lineage: GameState["lineage"] = {
+      generation: 1,
+      hallOfFame: [hallRecord(60)],
+    }
+    expect(driftCallout(drifted, lineage, 61)).toBe("")
+  })
+
+  test("founder lineage announces on day 1", () => {
+    const drifted: Creature = {
+      ...createCreature("fire_drake", 42),
+      affinity: "plant",
+    }
+    const line = driftCallout(drifted, createInitialState().lineage, 1)
+    expect(line).toContain("Plant")
+    expect(line).toContain("Fire")
+  })
+})
+
+describe("graduationTickerLine — the graduation moment's ticker line", () => {
+  test("a drifted graduation keeps the send-off and appends the drift beat", () => {
+    const drifted: Creature = {
+      ...createCreature("fire_drake", 42),
+      affinity: "water",
+    }
+    const line = graduationTickerLine(
+      "Ember Drake",
+      "Bramble Ox",
+      1,
+      driftCallout(drifted, createInitialState().lineage, 1),
+    )
+    expect(line).toContain(graduationCallout("Ember Drake", "Bramble Ox", 1))
+    expect(line).toContain("hatched with a Water streak")
+  })
+
+  test("a non-drifted graduation speaks the send-off only, no drift line", () => {
+    expect(graduationTickerLine("Ember Drake", "Bramble Ox", 1, "")).toBe(
+      graduationCallout("Ember Drake", "Bramble Ox", 1),
+    )
+  })
+})
+
+describe("hatchDayStatusLine — the hatch-day pass precedence", () => {
+  test("the drift statement leads on the hatch day whatever the primary element", () => {
+    for (const speciesId of ["water_axolotl", "fire_drake"] as const) {
+      const drifted: Creature = {
+        ...createCreature(speciesId, 42),
+        affinity: "plant",
+      }
+      const state = createInitialState()
+      expect(hatchDayStatusLine(drifted, state, null, null)).toBe(
+        driftCallout(drifted, state.lineage, 1),
+      )
+    }
+  })
+
+  test("a water hatch without drift keeps its flavor line", () => {
+    const plain = createCreature("water_axolotl", 42)
+    expect(hatchDayStatusLine(plain, createInitialState(), null, null)).toBe(
+      flavorCallout(plain),
+    )
+  })
+
+  test("any other day runs the routine precedence untouched", () => {
+    const drifted: Creature = {
+      ...createCreature("fire_drake", 42),
+      affinity: "water",
+    }
+    const state = { ...createInitialState(), day: 2 }
+    expect(hatchDayStatusLine(drifted, state, null, null)).toBe(
+      statusLine(drifted, 2, null, null),
+    )
   })
 })

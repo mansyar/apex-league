@@ -1,5 +1,7 @@
+import { headStartAp } from "./ap"
 import { isCupDay } from "./calendar"
 import type { LadderTier } from "./ladder"
+import { hatchDayOf, lineagePerks, lineagePrestige } from "./legacy"
 import { makeRng, type Rng } from "./rng"
 import { settleCreature } from "./settlement"
 import {
@@ -41,6 +43,17 @@ export function advanceDay(state: GameState, rng?: Rng): GameState {
     ACTION_POINTS_PER_DAY +
     (state.lastCupDay === state.day
       ? CUP_WIN_AP_BONUS + TIER_AP_BONUS[state.ladder.tier]
+      : 0) +
+    // Champion Stable head-start (prestige perks FR-5): +1 max AP for the
+    // hatchling's first five in-game days, derived from the lineage's
+    // hatch-day data so it auto-expires — a cup day is budgeted by the
+    // same rule, so match prep on the expiry day resolves correctly.
+    (state.creature
+      ? headStartAp(
+          hatchDayOf(state.lineage),
+          day,
+          lineagePerks(lineagePrestige(state)).championStable,
+        )
       : 0)
   const next: GameState = {
     day,

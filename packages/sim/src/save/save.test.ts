@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test"
 import { createCreature } from "../creature"
 import { type CupSession, resolvePlayerMatch } from "../cup"
 import { applyCupPlacement } from "../ladder"
+import { retireeRecord } from "../legacy"
 import { defaultLoadout } from "../loadout"
 import { prepareCup } from "../machine"
 import { getSpecies, type SpeciesDef } from "../species"
@@ -31,7 +32,7 @@ import {
 
 describe("save schema", () => {
   test("current version matches the schema", () => {
-    expect(SAVE_VERSION).toBe(19)
+    expect(SAVE_VERSION).toBe(20)
   })
 
   test("serializeSave wraps state with version metadata", () => {
@@ -688,7 +689,7 @@ describe("evolution stage (v6)", () => {
 
 describe("save v7 — cup session, rename, hints", () => {
   test("current version matches the schema", () => {
-    expect(SAVE_VERSION).toBe(19)
+    expect(SAVE_VERSION).toBe(20)
   })
 
   test("a v6 save migrates cleanly: null session + a clean hint ledger", () => {
@@ -1040,7 +1041,7 @@ describe("save v11 — silver ladder tier + boss defeat ledger", () => {
   }
 
   test("SAVE_VERSION is 18", () => {
-    expect(SAVE_VERSION).toBe(19)
+    expect(SAVE_VERSION).toBe(20)
   })
 
   test("a v10 save migrates: the ladder keeps its points and gains tier bronze", () => {
@@ -1146,7 +1147,7 @@ describe("save v12 - element chart HP scale (v11 -> v12)", () => {
   // magnitudes and touches nothing else - trained bonuses, atk/def/spd,
   // ladder, and the ledger are scale-free.
   test("SAVE_VERSION is 18", () => {
-    expect(SAVE_VERSION).toBe(19)
+    expect(SAVE_VERSION).toBe(20)
   })
 
   /** A v11-shaped payload: fresh state with every stored HP halved to the
@@ -1199,6 +1200,7 @@ describe("save v12 - element chart HP scale (v11 -> v12)", () => {
             traits: [],
             parents: [],
             branch: "legacy",
+            affinity: null,
           },
         ],
       },
@@ -1352,7 +1354,7 @@ describe("save v13 (audio_foundation_20261017)", () => {
   }
 
   test("SAVE_VERSION is 18", () => {
-    expect(SAVE_VERSION).toBe(19)
+    expect(SAVE_VERSION).toBe(20)
   })
 
   test("a v12 save migrates: settings gain the muted flag, default false", () => {
@@ -1423,7 +1425,7 @@ describe("save v14 (gold_legend_ladder_20261017)", () => {
   }
 
   test("SAVE_VERSION is 18", () => {
-    expect(SAVE_VERSION).toBe(19)
+    expect(SAVE_VERSION).toBe(20)
   })
 
   test("a v13 save migrates: legendTitles stamps at 0, ladder untouched", () => {
@@ -1558,7 +1560,7 @@ describe("save v18 — training programs (training_programs_form_20261020)", () 
   }
 
   test("the schema version is 18", () => {
-    expect(SAVE_VERSION).toBe(19)
+    expect(SAVE_VERSION).toBe(20)
   })
 
   test("every v17 focus maps to its program and the old key is dropped", () => {
@@ -1570,7 +1572,7 @@ describe("save v18 — training programs (training_programs_form_20261020)", () 
     }
     for (const [stat, program] of Object.entries(mapping)) {
       const migrated = migrate(v17With(stat))
-      expect(migrated.version).toBe(19)
+      expect(migrated.version).toBe(20)
       expect(migrated.state.creature?.trainingProgram).toBe(
         program as "power" | "endurance" | "sprint" | "ring",
       )
@@ -1613,7 +1615,7 @@ describe("save v18 — training programs (training_programs_form_20261020)", () 
       session: null,
       state: { ...owned, creature: null },
     })
-    expect(migrated.version).toBe(19)
+    expect(migrated.version).toBe(20)
     expect(migrated.state.creature).toBeNull()
   })
 
@@ -1625,7 +1627,7 @@ describe("save v18 — training programs (training_programs_form_20261020)", () 
 
   test("a v0 save walks the whole chain to v18 with no program", () => {
     const migrated = migrate({ version: 0, day: 3 })
-    expect(migrated.version).toBe(19)
+    expect(migrated.version).toBe(20)
     expect(migrated.state.creature?.trainingProgram).toBeNull()
   })
 
@@ -1690,5 +1692,152 @@ describe("save v18 — training programs (training_programs_form_20261020)", () 
       JSON.stringify({ version: SAVE_VERSION, state: broken, savedAt: 0 }),
     )
     expect(loadGame(adapter)).toBeNull()
+  })
+})
+
+describe("save v20 — the drifted affinity", () => {
+  test("the schema version is 20", () => {
+    expect(SAVE_VERSION).toBe(20)
+  })
+
+  test("a v19 creature and Hall record migrate with affinity null", () => {
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    const retiree = retireeRecord(owned)
+    if (!owned.creature || !retiree) throw new Error("no creature")
+    const raw = {
+      version: 19,
+      savedAt: 7,
+      session: null,
+      state: {
+        ...owned,
+        lineage: { generation: 1, hallOfFame: [retiree] },
+      },
+    } as unknown as SaveData
+    const stripped = structuredClone(raw) as unknown as {
+      state: {
+        creature: Record<string, unknown>
+        lineage: { hallOfFame: Record<string, unknown>[] }
+      }
+    }
+    delete stripped.state.creature.affinity
+    const strippedRecord = stripped.state.lineage.hallOfFame[0]
+    if (!strippedRecord) throw new Error("no hall record")
+    delete strippedRecord.affinity
+
+    const migrated = migrate(stripped)
+
+    expect(migrated.version).toBe(20)
+    expect(migrated.savedAt).toBe(7)
+    expect(migrated.state.creature?.affinity).toBeNull()
+    expect(migrated.state.lineage.hallOfFame[0]?.affinity).toBeNull()
+    expect(migrated.state.creature?.stats).toEqual(owned.creature.stats)
+  })
+
+  test("a drifted creature round-trips through saveGame and loadSave", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!owned.creature) throw new Error("no creature")
+    const state = {
+      ...owned,
+      creature: { ...owned.creature, affinity: "plant" as const },
+    }
+    saveGame(adapter, state, 1)
+    expect(loadSave(adapter)?.state.creature?.affinity).toBe("plant")
+    expect(loadGame(adapter)?.creature?.affinity).toBe("plant")
+  })
+
+  test("loadGame rejects a secondary affinity equal to the primary element", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!owned.creature) throw new Error("no creature")
+    adapter.setItem(
+      SAVE_KEY,
+      JSON.stringify({
+        version: SAVE_VERSION,
+        state: {
+          ...owned,
+          creature: { ...owned.creature, affinity: "fire" },
+        },
+        savedAt: 0,
+      }),
+    )
+    expect(loadGame(adapter)).toBeNull()
+  })
+
+  test("loadGame rejects an unknown affinity element", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!owned.creature) throw new Error("no creature")
+    adapter.setItem(
+      SAVE_KEY,
+      JSON.stringify({
+        version: SAVE_VERSION,
+        state: {
+          ...owned,
+          creature: { ...owned.creature, affinity: "magma" },
+        },
+        savedAt: 0,
+      }),
+    )
+    expect(loadGame(adapter)).toBeNull()
+  })
+
+  test("loadGame rejects a v20 creature with no affinity field at all", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!owned.creature) throw new Error("no creature")
+    const broken = structuredClone(owned) as unknown as {
+      creature: Record<string, unknown>
+    }
+    delete broken.creature.affinity
+    adapter.setItem(
+      SAVE_KEY,
+      JSON.stringify({ version: SAVE_VERSION, state: broken, savedAt: 0 }),
+    )
+    expect(loadGame(adapter)).toBeNull()
+  })
+
+  test("loadGame rejects a Hall record whose affinity equals its element", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    const retiree = retireeRecord(owned)
+    if (!retiree) throw new Error("no creature")
+    adapter.setItem(
+      SAVE_KEY,
+      JSON.stringify({
+        version: SAVE_VERSION,
+        state: {
+          ...owned,
+          lineage: {
+            generation: 1,
+            hallOfFame: [{ ...retiree, affinity: "fire" }],
+          },
+        },
+        savedAt: 0,
+      }),
+    )
+    expect(loadGame(adapter)).toBeNull()
+  })
+
+  test("loadGame accepts a Hall record with a distinct secondary affinity", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    const retiree = retireeRecord(owned)
+    if (!retiree) throw new Error("no creature")
+    adapter.setItem(
+      SAVE_KEY,
+      JSON.stringify({
+        version: SAVE_VERSION,
+        state: {
+          ...owned,
+          lineage: {
+            generation: 1,
+            hallOfFame: [{ ...retiree, affinity: "plant" }],
+          },
+        },
+        savedAt: 0,
+      }),
+    )
+    expect(loadGame(adapter)?.lineage.hallOfFame[0]?.affinity).toBe("plant")
   })
 })

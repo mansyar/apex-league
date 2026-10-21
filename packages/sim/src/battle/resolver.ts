@@ -32,6 +32,12 @@ export interface BattleSide {
    */
   readonly id?: string
   readonly element: Element
+  /**
+   * Secondary type affinity (save v20). The defense rule reads it only on
+   * the incoming side: a super-effective-vs-primary move that the secondary
+   * resists resolves neutral. Rivals and bosses never carry one.
+   */
+  readonly affinity?: Element | null
   readonly stats: CreatureStats
   /** The fighter's four equipped special move ids, in kit order. */
   readonly kit: readonly string[]

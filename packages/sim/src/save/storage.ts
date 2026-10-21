@@ -182,6 +182,11 @@ function isValidCreature(c: unknown): c is Creature {
   // v15: lineage fields are always present after migration.
   if (!isValidTraitList(creature.traits)) return false
   if (!isValidParentList(creature.parents)) return false
+  // v20: the secondary affinity is a valid element or null, and never the
+  // creature's own primary element — validation, not clamping.
+  const affinity = creature.affinity
+  if (affinity !== null && !ELEMENTS.includes(affinity as string)) return false
+  if (affinity === creature.element) return false
   return true
 }
 
@@ -235,6 +240,11 @@ function isValidRetiredRecord(r: unknown): r is RetiredRecord {
   if (branchDef === undefined) return false
   if (rec.branch !== LEGACY_BRANCH.id && branchDef.speciesId !== rec.speciesId)
     return false
+  // v20: the secondary affinity is a valid element or null, and never the
+  // record's primary element — validation, not clamping.
+  const affinity = rec.affinity
+  if (affinity !== null && !ELEMENTS.includes(affinity as string)) return false
+  if (affinity === rec.element) return false
   return true
 }
 

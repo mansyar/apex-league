@@ -71,6 +71,9 @@ pr:
   enabled: true
   tool: "gh"
   base: "main"
+  watch_ci: false
+  watch_timeout_minutes: 15
+  merge_method: "squash"
 ```
 
 ## Development Commands
@@ -341,6 +344,22 @@ workflow exists, and the track workflow never deploys.
   that point.
 - A release candidate must pass `bun run verify && bun run build` locally and in
   CI before any manual upload.
+
+## Emergency Procedures
+
+This project is a pre-release, client-only browser game with no production
+deployment and no backend. Full-scale incident procedures do not apply yet.
+
+- **Critical bug after a merge to `main`:** follow the normal track flow —
+  create a fix track against `main`, write a failing regression test, land the
+  minimal fix, and run the full verification strategy. No expedited hotfix path
+  exists while there is no deployed build.
+- **Data loss:** the game persists to browser local storage; there is no server
+  state to restore. Save-schema regressions are caught by the determinism and
+  unit layers plus `docs/save-schema.md` migrations.
+- **Security:** no secrets or credentials belong in the repo; the only external
+  surfaces are static hosting and the Phase 3 server, both deferred. Revisit
+  this section when release hosting lands.
 
 ## Definition of Done
 

@@ -1,6 +1,12 @@
 import { describe, expect, test } from "bun:test"
 import { createPlayCeremony } from "../scene-logic"
 
+/** Unwrap a possibly-absent test fixture or fail the test loudly. */
+function defined<T>(value: T | null | undefined, label: string): T {
+  if (value === null || value === undefined) throw new Error(`missing ${label}`)
+  return value
+}
+
 // 0.0625 s (2^-4) steps are binary-exact and under the machine's 0.1 s dt
 // clamp, so phase boundaries are crossed exactly — no float-noise.
 const DT = 0.0625
@@ -54,7 +60,7 @@ describe("play ceremony", () => {
     m.begin(ORIGIN.x, ORIGIN.z, LANDING.x, LANDING.z, false)
     const tossDrives = run(m, DT, TOSS_STEPS)
     // The ball rises and comes back down: a mid-flight y above both ends.
-    const mid = tossDrives[3]!
+    const mid = defined(tossDrives[3], "toss drive")
     expect(mid.ballY).toBeGreaterThan(0.5)
     expect(mid.ballVisible).toBe(true)
     const end = last(tossDrives)

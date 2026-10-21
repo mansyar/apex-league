@@ -28,7 +28,8 @@ evolution planning.
 4. **Legacy phase**: creatures retire at ~60-90 in-game days. Retirement passes
    stat inheritance, inheritable traits (with mutation), and family prestige
    (account-wide perks) into the next egg via breeding; type affinity drift
-   remains on the roadmap.
+   landed 2026-10-21 — a bred egg can carry the other parent's element as a
+   secondary affinity that defends via the cancel-to-neutral rule.
 
 ## Key Systems
 - **Creatures**: 20-40 original species in 3-stage branching evolution trees
@@ -135,13 +136,21 @@ Phased delivery plan (each phase is independently playable):
   matches. *(Gold tier + Legend plateau with tier rewards and six
   authored gatekeeper bosses landed 2026-10-18 — the full four-tier
   climb is playable; dual-parent breeding landed 2026-10-18; earned evolution
-  branching landed 2026-10-20; extra prestige perks and affinity drift remain
-  open.)*
+  branching landed 2026-10-20; extra prestige perks and type affinity drift
+  landed 2026-10-21 — Refined Blood at prestige 7 raises the stronger-parent
+  inheritance floor to 0.55, Champion Stable at prestige 9 adds a head-start
+  AP bonus and a wider mutation band, and breeding can roll a secondary type
+  affinity that defends via the cancel-to-neutral rule.)*
 - Generated rivals + first 2-3 authored boss characters. *(Exceeded:
   six authored bosses now gate the climb at every tier.)*
 - Breeding between retired pairs *(landed 2026-10-18: any two Hall records,
   dual-parent stat floor, trait inheritance, seeded mutation, save v15)*;
-  family prestige perks; type affinity drift.
+  family prestige perks *(landed 2026-10-21: Refined Blood at prestige 7
+  raises the stronger-parent floor to 0.55; Champion Stable at prestige 9
+  grants +1 max AP for the hatchling's first 5 in-game days and widens the
+  mutation band to +1..+3)*; type affinity drift *(landed 2026-10-21: seeded
+  15% roll at breeding attaching the other parent's element as a secondary
+  affinity defending via cancel-to-neutral; save v20)*.
 - Evolution hints/threshold discovery UI; 2-3 more species lineages.
   *(Branching landed 2026-10-20: the two champion forms grow out of the
   training record, with a day-5 direction preview and a reveal on the

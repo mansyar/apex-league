@@ -92,6 +92,7 @@ describe("hallEntryLabel", () => {
       traits: [],
       parents: [],
       branch: "legacy",
+      affinity: null,
     }
     expect(hallEntryLabel(record)).toBe(
       "Ember Drake · Champion · gen 0 · day 60",
@@ -112,6 +113,7 @@ describe("hallEntryLabel", () => {
       traits: ["sturdy"],
       parents: [],
       branch: "legacy",
+      affinity: null,
     }
     expect(hallEntryMeta(founder)).toBe("Founder — Sturdy")
 

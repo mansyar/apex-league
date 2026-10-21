@@ -41,6 +41,27 @@ export function typeFactor(attack: Element, defense: Element): TypeFactor {
 }
 
 /**
+ * The incoming (defender-side) type factor with the cancel-to-neutral rule:
+ * when the move is super-effective against the defender's primary element
+ * AND resisted by the defender's secondary affinity, the pair collapses to
+ * neutral — the secondary softens exactly one super-effective matchup.
+ * Incoming-only: outgoing damage reads {@link typeFactor} and never this.
+ */
+export function incomingTypeFactor(
+  attack: Element,
+  primary: Element,
+  secondary: Element | null,
+): TypeFactor {
+  const incoming = typeFactor(attack, primary)
+  if (!secondary) return incoming
+  const vsSecondary = typeFactor(attack, secondary)
+  if (incoming.num > incoming.den && vsSecondary.num < vsSecondary.den) {
+    return { num: 1, den: 1 }
+  }
+  return incoming
+}
+
+/**
  * Element hues from the shared type-color contract (product guidelines:
  * Fire 18°, Plant 110°, Water 205°, Electric 50°, Earth 28°, Wind 165°).
  * A projectile reads as its type at a glance, and the color survives

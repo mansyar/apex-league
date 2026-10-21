@@ -9,8 +9,11 @@ import {
   effectiveTraits,
   type GameState,
   type GraduatePairReason,
+  HEAD_START_AP_BONUS,
+  HEAD_START_DAYS,
   lineagePerks,
   lineagePrestige,
+  REFINED_INHERITANCE_FRACTION,
   type RetiredRecord,
 } from "@apex/sim"
 import { parentageLabel, traitCopy } from "./nursery-vm"
@@ -44,6 +47,16 @@ export function perkLabels(state: GameState): string[] {
   if (perks.warmBloodline) out.push("Warm bloodline: +10 starting bond")
   if (perks.establishedLine)
     out.push("Established line: +1 to every inherited stat")
+  if (perks.refinedBlood) {
+    out.push(
+      `Refined blood: stronger parent passes ${REFINED_INHERITANCE_FRACTION}`,
+    )
+  }
+  if (perks.championStable) {
+    out.push(
+      `Champion stable: +${HEAD_START_AP_BONUS} max AP for the first ${HEAD_START_DAYS} days`,
+    )
+  }
   return out
 }
 
