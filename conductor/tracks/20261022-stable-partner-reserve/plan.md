@@ -88,13 +88,17 @@
 - **Covers:** FR-13, NFR-1, NFR-2, NFR-4, NFR-5, NFR-6, AC-9
 - **Touches:** `docs/save-schema.md`, `README.md`, `conductor/product.md`, `conductor/tech-stack.md`
 - **Verification:** `bun run verify && bun run build` plus the re-run visual passes
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P4.T1: Docs sync** — covers: FR-13
-  - [ ] **P4.T1.1: `docs/save-schema.md` documents the stable, the age field and the v22 → v23 migration** — covers: FR-13
-  - [ ] **P4.T1.2: README and `conductor/product.md` record the stable and close the electric line's known issue; `conductor/tech-stack.md` gets the dated entry** — covers: FR-13
-- [ ] **P4.T2: Integrated verification** — covers: NFR-1, NFR-2, NFR-4, NFR-6, AC-9
-  - [ ] **P4.T2.1: The full gate is green and the stable flow is proven in a browser at both widths** — covers: AC-9
+**Result:** verified
+**Checkpoint:** 91114b0
+**Evidence:** conductor/tracks/20261022-stable-partner-reserve/verification/phase-4.md
+
+- [x] **P4.T1: Docs sync** — covers: FR-13
+  - [x] **P4.T1.1: `docs/save-schema.md` documents the stable, the age field and the v22 → v23 migration** — covers: FR-13
+  - [x] **P4.T1.2: README and `conductor/product.md` record the stable and close the electric line's known issue; `conductor/tech-stack.md` gets the dated entry** — covers: FR-13
+- [x] **P4.T2: Integrated verification** — covers: NFR-1, NFR-2, NFR-4, NFR-6, AC-9
+  - [x] **P4.T2.1: The full gate is green and the stable flow is proven in a browser at both widths** — covers: AC-9
 
 <!--
 The primary appends after acceptance:
