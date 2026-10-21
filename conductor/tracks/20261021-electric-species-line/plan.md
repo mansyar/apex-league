@@ -13,19 +13,16 @@ Only the primary agent writes this file; subagents report back.
 - **Covers:** FR-10, AC-10
 - **Touches:** `.conductor/runs/*`, `conductor/tracks.md`
 - **Verification:** `bun run check && bun test --timeout 120000` (sanity only; state-only change)
-- **Status:** in_progress
+- **Status:** verified
 
 ### Tasks
 
-- [ ] **P0.T1: Delete stale `.conductor/runs/*` files for completed tracks** — covers: FR-10
-- [ ] **P0.T2: Fix mojibake (`ΓÇö`) in early `conductor/tracks.md` entries** — covers: FR-10
+- [x] **P0.T1: Delete stale `.conductor/runs/*` files for completed tracks** — covers: FR-10
+- [x] **P0.T2: Fix mojibake (`ΓÇö`) in early `conductor/tracks.md` entries** — covers: FR-10
 
-<!--
-After acceptance the primary agent appends:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 5771e1f
 **Evidence:** conductor/tracks/20261021-electric-species-line/verification/phase-0.md
--->
 
 ## Phase 1 — Species Data & Balance Probe
 
