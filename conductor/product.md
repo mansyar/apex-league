@@ -170,6 +170,11 @@ Phased delivery plan (each phase is independently playable):
 
 ### Phase 3 — Content & Meta
 - Roster to 20-40 species across 6 types; rare tournament reward eggs.
+  *(Started 2026-10-21: the first reward line — the Electric storm hound — is
+  granted once at Silver as a pure gift egg, raised through the same
+  three-stage, two-branch life as the starters, and joins generated rival
+  fields from Silver up. The remaining five types and the wider roster are
+  still open.)*
 - ElysiaJS backend: cloud save sync, trainer identity (anonymous ID + name),
   global leaderboards, ghost data.
 

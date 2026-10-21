@@ -94,7 +94,10 @@ bun run dev
 
 The dev server prints a local URL (Vite, default `http://localhost:5173`).
 A fresh save opens the starter choice - pick the Fire drake, the Plant ox or
-the Water axolotl and begin the day loop. Each day you get 3 AP for care
+the Water axolotl and begin the day loop. Reaching Silver in the cup ladder
+grants the league's Storm Gift once: a pure electric-hound egg that hatches
+into a fourth line, raised through the same three stages and two champion
+forms as the starters. Each day you get 3 AP for care
 actions plus one of four training programs — Power Lifting, Endurance
 Circuit, Sprint Work, Ring Craft — each training its own stats night by
 night, capped at +6 above the rolled base. Small comforts: the pencil by your partner's name renames
@@ -104,7 +107,8 @@ teach AP, training tiers, and cup eve exactly when they first matter.
 The ranch itself is golden-hour lit — gradient dusk sky,
 moss ground, drop shadows - and dressing reacts to care: feeding your creature
 places a voxel food pile beside it until the night resets. Dev pages are
-available at `/gallery.html` (creature lineup, `?archetype=draconic|bovine|mixed`),
+available at `/gallery.html` (creature lineup; `?archetype=<id>` picks a
+registered archetype, `mixed` rotates them all),
 `/preview.html` (grey silhouette viewer, `?seed=&archetype=&angle=`), and
 `/mock.html` (broadcast HUD design mock built from the production kit).
 
@@ -177,7 +181,7 @@ device, OS, and screenshots when it runs.
 | 0 — Foundation | Workspaces, sim core, day ticker, versioned save/load, app shell | Done |
 | 1 — Vertical slice | Care loop, training, one lineage, battle system, one cup, Bronze ladder | Done — care loop, four training programs with breakthrough nights, derived form (ATK) in the arena, baby→juvenile→champion evolution with two champion forms per starter earned from training, arena battles, live cups, the Bronze ladder, and the minimal legacy loop (graduation → inherited next egg) playable |
 | 2 — League depth | Full ladder, rivals and bosses, breeding, evolution discovery | In progress — the full Bronze→Legend climb, six authored bosses, dual-parent breeding with trait inheritance, earned evolution branches, type affinity drift, and the prestige 7/9 perks are playable; extra lineages remain |
-| 3 — Content & meta | 20–40 species, ElysiaJS backend, cloud saves, leaderboards | Planned |
+| 3 — Content & meta | 20–40 species, ElysiaJS backend, cloud saves, leaderboards | In progress — the first reward line (Electric storm hound, a Silver tier gift egg) is playable end to end; the wider roster and the backend remain |
 | 4 — Post-MVP | Async ghost PvP, live PvP, mobile hardware pass, audio expansion | Planned |
 
 ## Contributing
