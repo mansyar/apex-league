@@ -31,14 +31,18 @@ Only the primary agent writes this file; subagents report back.
 - **Covers:** FR-3, FR-4, AC-3, AC-4, NFR-3, NFR-4
 - **Touches:** `packages/sim/src/` species registry module + co-located tests, `packages/sim/src/breeding.ts` (`speciesOptions`), `packages/sim/src/index.ts` (barrel exports)
 - **Verification:** `bun run check && bun test --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
 ### Tasks
 
 - [ ] **P1.T1: Define the electric_hound species record (stats, stages, champion branching config)** — covers: FR-3
-  - [ ] **P1.T1.1: Failing test first — stat profile is SPD/ATK-tilted and distinct from all existing species** — covers: FR-3
-- [ ] **P1.T2: Author the 6-move pool on existing effect vocabulary with learn/equip wiring** — covers: FR-4
-- [ ] **P1.T3: New-species balance probe + guardrails (boss bands, existing goldens)** — covers: AC-3, NFR-4
+  - [x] **P1.T1.1: Failing test first — stat profile is SPD/ATK-tilted and distinct from all existing species** — covers: FR-3
+- [x] **P1.T2: Author the 8 Electric specials (6 kit + 2 branch signatures) on existing effect vocabulary with learn/equip wiring** — covers: FR-4
+- [x] **P1.T3: New-species balance probe + guardrails (boss bands, existing goldens)** — covers: AC-3, NFR-4
+
+**Result:** verified
+**Checkpoint:** c33482d
+**Evidence:** conductor/tracks/20261021-electric-species-line/verification/phase-1.md
 
 <!--
 After acceptance the primary agent appends:

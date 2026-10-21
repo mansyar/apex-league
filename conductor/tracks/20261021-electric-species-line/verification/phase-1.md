@@ -69,3 +69,12 @@ Self-defined bands (pinned exactly in the probe file): fresh hound never beats e
 - TDD red→green per task; T1 commit `9917482` deliberately leaves the two signature-move lookups red (they are T2's red state — the CONTRACT and catalog tables are interlocked), resolved by `05570e5`.
 - Task commits per plan: T1 `9917482`, T2 `05570e5`, T3 `061100e`.
 - Phase 2 note: acquisition flow should flip `available` (or grant via the Silver reward path against `LOCKED_SPECIES`) — `createCreature`'s `Species not yet available` gate is the only remaining blocker for electric_hound creatures.
+
+## Primary verification
+
+- Squash checkpoint c33482d 'feat(sim): define the electric_hound line with its move pool and balance probe'; range 2e235ba..HEAD contained exactly the four reported commits before the squash.
+- Re-ran the full gate 'bun run verify' exit 0 at the squash point, with the CRLF fix applied to metadata.json (typecheck clean, biome clean, 2150 tests pass / 1 skip / 0 fail, determinism gate byte-identical on all nine creature GLBs + 5 props).
+- Evidence file complete: commands, FR/AC/NFR table, probe matrix, design decisions, deviations.
+- Deviations accepted: golden-table extensions in branches.test.ts and battle/moves.test.ts are by-contract and were explicitly allowed; the T1 interim red state (interlocked signature tables) is legitimate TDD sequencing.
+- Registry seam validated: LOCKED_SPECIES with available:false keeps STARTER_SPECIES at 3, so zero drift in rival/exhibition/starter pins until Phase 2 flips the acquisition path.
+- Verdict: Phase 1 accepted.
