@@ -754,7 +754,7 @@ describe("hatchGiftEgg — the hatch age", () => {
     }
     const result = hatchGiftEgg(granted)
     if (!result.ok) throw new Error("hatch refused")
-    expect(result.state.creature?.ageDays).toBe(1)
+    expect(result.state.stable[0]?.ageDays).toBe(1)
   })
 })
 

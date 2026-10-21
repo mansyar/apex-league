@@ -200,6 +200,16 @@ function isValidCreature(c: unknown): c is Creature {
   ) {
     return false
   }
+  // v24: the loadout is checked here as well — the stable holds whole pets
+  // only, so a half-kit fails the load rather than half-kitting a pet.
+  const loadout = creature.loadout
+  if (
+    loadout !== null &&
+    loadout !== undefined &&
+    (!Array.isArray(loadout) || !loadout.every((id) => typeof id === "string"))
+  ) {
+    return false
+  }
   return true
 }
 
@@ -402,7 +412,12 @@ export function isValidSaveState(state: GameState): boolean {
     // v22: the pending Storm Gift is null or a well-typed egg (a known
     // species and an integer seed). A malformed egg fails the load instead
     // of hatching an unknown creature.
-    !isValidPendingGift(state.pendingGift)
+    !isValidPendingGift(state.pendingGift) ||
+    // v24: the stable is a plain list of whole pets — every entry a valid
+    // creature (a known species, a positive age, a valid stage, branch and
+    // loadout). A half-pet fails the load, not the game.
+    !Array.isArray(state.stable) ||
+    !state.stable.every(isValidCreature)
   )
 }
 

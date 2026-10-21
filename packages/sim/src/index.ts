@@ -283,6 +283,14 @@ export {
   STARTER_SPECIES,
 } from "./species"
 export {
+  bringToRanch,
+  type StableReason,
+  type StableResult,
+  sendToStable,
+  stablePetId,
+  stablePetSlot,
+} from "./stable"
+export {
   ACTION_POINTS_PER_DAY,
   chooseStarter,
   createInitialState,

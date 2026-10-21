@@ -127,6 +127,15 @@ export interface GameState {
    * individual.
    */
   pendingGift: PendingGift | null
+  /**
+   * The stable (save v24, stable & partner reserve FR-1): every pet the
+   * player owns that is **not** in the ranch, oldest first, with no
+   * capacity limit. Exactly one pet is active at a time (`creature`); the
+   * pets in here are frozen — no condition decay, no training, no cups, no
+   * evolution and no age while they wait. A stashed pet resumes exactly
+   * where it left off when it comes back to the ranch.
+   */
+  stable: Creature[]
 }
 
 /**
@@ -170,6 +179,8 @@ export function createInitialState(): GameState {
     evolutionKnowledge: initialEvolutionKnowledge(),
     stormGiftClaimed: false,
     pendingGift: null,
+    // The stable starts empty (save v24): a fresh run owns one pet.
+    stable: [],
   }
 }
 

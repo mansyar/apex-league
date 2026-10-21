@@ -277,9 +277,9 @@ describe("the pure gift egg (FR-6)", () => {
     if (!preview) throw new Error("expected a gift preview")
     const result = hatchGiftEgg(granted)
     if (!result.ok) throw new Error("hatch refused")
-    const hatched = result.state.creature
+    const hatched = result.state.stable[0]
     if (!hatched) throw new Error("expected a hatched creature")
-    expect(result.state.creature).toEqual(createGiftEgg(42))
+    expect(result.state.stable[0]).toEqual(createGiftEgg(42))
     // The preview is the hatch: same species, same element, same stats.
     expect(preview.speciesId).toBe(hatched.speciesId)
     expect(preview.element).toBe(hatched.element)
@@ -306,16 +306,27 @@ describe("the pure gift egg (FR-6)", () => {
   test("the gift marker persists into a Hall of Fame retirement", () => {
     const hatched = hatchGiftEgg(grantedState(42))
     if (!hatched.ok) throw new Error("hatch refused")
-    const record = retireeRecord(hatched.state)
+    // The hound waits in the stable; it carries the marker wherever it goes.
+    const gifted = hatched.state.stable[0]
+    if (!gifted) throw new Error("expected a stashed gift pet")
+    expect(gifted.giftEgg).toBe(true)
+    const retired = {
+      ...hatched.state,
+      stable: [],
+      creature: gifted,
+      lineage: { generation: 1, hallOfFame: [] },
+    }
+    const record = retireeRecord(retired)
     if (!record) throw new Error("expected a retiree record")
     expect(record.giftEgg).toBe(true)
     // Once the marker sits anywhere in the lineage, the gift is spent.
-    const retired = {
+    const spent = {
       ...hatched.state,
+      stable: [],
       creature: createCreature("fire_drake", 5),
       lineage: { generation: 1, hallOfFame: [record] },
     }
-    expect(hatchGiftEgg(retired)).toEqual({
+    expect(hatchGiftEgg(spent)).toEqual({
       ok: false,
       reason: "already-hatched",
     })
@@ -331,22 +342,20 @@ describe("the pure gift egg (FR-6)", () => {
     expect(hatched.state.lineage.generation).toBe(granted.lineage.generation)
   })
 
-  test("the outgoing partner is archived, not dropped (review round 1, F3)", () => {
+  test("the ranch pet keeps the ranch — the hound waits in the stable (FR-7)", () => {
     const granted = grantedState(42)
     const before = granted.creature
     if (!before) throw new Error("expected a creature")
     const hatched = hatchGiftEgg(granted)
     if (!hatched.ok) throw new Error("hatch refused")
-    // The hound takes the ranch...
-    expect(hatched.state.creature?.speciesId).toBe(STORM_GIFT_SPECIES_ID)
-    // ...and the career it replaced is in the Hall of Fame, not lost.
-    const archived = hatched.state.lineage.hallOfFame
-    expect(archived).toHaveLength(granted.lineage.hallOfFame.length + 1)
-    const last = archived[archived.length - 1]
-    expect(last?.name).toBe(before.name)
-    expect(last?.speciesId).toBe(before.speciesId)
-    // The archived career is not itself a gift: the one-hatch rule holds.
-    expect(last?.giftEgg).toBe(false)
+    // The partner the player already had stays exactly as it was...
+    expect(hatched.state.creature).toEqual(before)
+    // ...and the hound joins the stable.
+    expect(hatched.state.stable).toHaveLength(1)
+    expect(hatched.state.stable[0]?.speciesId).toBe(STORM_GIFT_SPECIES_ID)
+    // The career was never retired: it never left the ranch, so it is not
+    // in the Hall of Fame either.
+    expect(hatched.state.lineage.hallOfFame).toEqual(granted.lineage.hallOfFame)
   })
 
   test("the granted egg waits for the player — the claim alone is not the hatch", () => {

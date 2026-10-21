@@ -112,6 +112,7 @@ const migrations: Record<
       evolutionKnowledge: initialEvolutionKnowledge(),
       stormGiftClaimed: false,
       pendingGift: null,
+      stable: [],
     }
     return { version: 1, state, savedAt: 0 }
   },
@@ -146,6 +147,7 @@ const migrations: Record<
       evolutionKnowledge: initialEvolutionKnowledge(),
       stormGiftClaimed: false,
       pendingGift: null,
+      stable: [],
     }
     return { version: 2, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -189,6 +191,7 @@ const migrations: Record<
       evolutionKnowledge: initialEvolutionKnowledge(),
       stormGiftClaimed: false,
       pendingGift: null,
+      stable: [],
     }
     return { version: 3, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -236,6 +239,7 @@ const migrations: Record<
       evolutionKnowledge: initialEvolutionKnowledge(),
       stormGiftClaimed: false,
       pendingGift: null,
+      stable: [],
     }
     return { version: 4, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -278,6 +282,7 @@ const migrations: Record<
       evolutionKnowledge: initialEvolutionKnowledge(),
       stormGiftClaimed: false,
       pendingGift: null,
+      stable: [],
     }
     return { version: 5, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -310,6 +315,7 @@ const migrations: Record<
       evolutionKnowledge: initialEvolutionKnowledge(),
       stormGiftClaimed: false,
       pendingGift: null,
+      stable: [],
     }
     return { version: 6, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -359,6 +365,7 @@ const migrations: Record<
       evolutionKnowledge: initialEvolutionKnowledge(),
       stormGiftClaimed: false,
       pendingGift: null,
+      stable: [],
     }
     return {
       version: 7,
@@ -391,6 +398,7 @@ const migrations: Record<
       evolutionKnowledge: initialEvolutionKnowledge(),
       stormGiftClaimed: false,
       pendingGift: null,
+      stable: [],
     }
     return {
       version: 8,
@@ -429,6 +437,7 @@ const migrations: Record<
       evolutionKnowledge: initialEvolutionKnowledge(),
       stormGiftClaimed: false,
       pendingGift: null,
+      stable: [],
     }
     return {
       version: 9,
@@ -460,6 +469,7 @@ const migrations: Record<
       evolutionKnowledge: initialEvolutionKnowledge(),
       stormGiftClaimed: false,
       pendingGift: null,
+      stable: [],
     }
     return {
       version: 10,
@@ -497,6 +507,7 @@ const migrations: Record<
       evolutionKnowledge: initialEvolutionKnowledge(),
       stormGiftClaimed: false,
       pendingGift: null,
+      stable: [],
     }
     return {
       version: 11,
@@ -564,6 +575,7 @@ const migrations: Record<
       evolutionKnowledge: initialEvolutionKnowledge(),
       stormGiftClaimed: false,
       pendingGift: null,
+      stable: [],
     }
     return {
       version: 12,
@@ -597,6 +609,7 @@ const migrations: Record<
       evolutionKnowledge: initialEvolutionKnowledge(),
       stormGiftClaimed: false,
       pendingGift: null,
+      stable: [],
     }
     return {
       version: 13,
@@ -628,6 +641,7 @@ const migrations: Record<
       evolutionKnowledge: initialEvolutionKnowledge(),
       stormGiftClaimed: false,
       pendingGift: null,
+      stable: [],
     }
     return {
       version: 14,
@@ -669,6 +683,7 @@ const migrations: Record<
       evolutionKnowledge: initialEvolutionKnowledge(),
       stormGiftClaimed: false,
       pendingGift: null,
+      stable: [],
     }
     return {
       version: 15,
@@ -703,6 +718,7 @@ const migrations: Record<
       evolutionKnowledge: initialEvolutionKnowledge(),
       stormGiftClaimed: false,
       pendingGift: null,
+      stable: [],
     }
     return {
       version: 16,
@@ -744,6 +760,7 @@ const migrations: Record<
       },
       stormGiftClaimed: false,
       pendingGift: null,
+      stable: [],
     }
     return {
       version: 17,
@@ -786,6 +803,7 @@ const migrations: Record<
         s.evolutionKnowledge as GameState["evolutionKnowledge"],
       stormGiftClaimed: false,
       pendingGift: null,
+      stable: [],
     }
     return {
       version: 18,
@@ -833,6 +851,7 @@ const migrations: Record<
         s.evolutionKnowledge as GameState["evolutionKnowledge"],
       stormGiftClaimed: false,
       pendingGift: null,
+      stable: [],
     }
     return {
       version: 19,
@@ -873,6 +892,7 @@ const migrations: Record<
         s.evolutionKnowledge as GameState["evolutionKnowledge"],
       stormGiftClaimed: false,
       pendingGift: null,
+      stable: [],
     }
     return {
       version: 20,
@@ -915,6 +935,7 @@ const migrations: Record<
         s.evolutionKnowledge as GameState["evolutionKnowledge"],
       stormGiftClaimed: false,
       pendingGift: null,
+      stable: [],
     }
     return {
       version: 21,
@@ -964,6 +985,7 @@ const migrations: Record<
               seed: stormGiftSeed(day, ladder.points),
             }
           : null,
+      stable: [],
     }
     return {
       version: 22,
@@ -1000,9 +1022,45 @@ const migrations: Record<
         s.evolutionKnowledge as GameState["evolutionKnowledge"],
       stormGiftClaimed: s.stormGiftClaimed as GameState["stormGiftClaimed"],
       pendingGift: s.pendingGift as GameState["pendingGift"],
+      stable: [],
     }
     return {
       version: 23,
+      state: migrated,
+      savedAt: raw.savedAt ?? 0,
+      session: (raw.session as CupSession | null) ?? null,
+    }
+  },
+
+  // v23 → v24 (stable & partner reserve, Phase 2): the state gains the
+  // stable — the pets the player owns that are not in the ranch (save v24).
+  // A v23 save predates the stable, so it holds exactly one pet: the ranch
+  // pet. The step stamps an empty stable and forwards everything else
+  // untouched, so the active pet keeps its own age and its career.
+  23: (raw) => {
+    const { day, phase, actionPoints, state: s } = validateStateShape(raw, 23)
+    const migrated: GameState = {
+      day,
+      phase,
+      actionPoints,
+      creature: s.creature as GameState["creature"],
+      settings: s.settings as GameState["settings"],
+      cupsWon: s.cupsWon as GameState["cupsWon"],
+      lastCupDay: s.lastCupDay as GameState["lastCupDay"],
+      ladder: s.ladder as GameState["ladder"],
+      lineage: s.lineage as GameState["lineage"],
+      bossDefeats: s.bossDefeats as GameState["bossDefeats"],
+      legendTitles: s.legendTitles as GameState["legendTitles"],
+      evolutionKnowledge:
+        s.evolutionKnowledge as GameState["evolutionKnowledge"],
+      stormGiftClaimed: s.stormGiftClaimed as GameState["stormGiftClaimed"],
+      pendingGift: s.pendingGift as GameState["pendingGift"],
+      // The stable starts empty: a v23 save owns one pet, and it is the
+      // ranch pet.
+      stable: [],
+    }
+    return {
+      version: 24,
       state: migrated,
       savedAt: raw.savedAt ?? 0,
       session: (raw.session as CupSession | null) ?? null,

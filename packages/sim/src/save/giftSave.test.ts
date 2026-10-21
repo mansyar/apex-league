@@ -86,7 +86,7 @@ function v21(
 describe("save v22 — the pending Storm Gift", () => {
   test("a v21 save that never claimed waits for its next non-forfeit finalize", () => {
     const migrated = migrate(v21())
-    expect(migrated.version).toBe(23)
+    expect(migrated.version).toBe(24)
     expect(migrated.state.stormGiftClaimed).toBe(false)
     expect(migrated.state.pendingGift).toBeNull()
   })
@@ -133,13 +133,13 @@ describe("save v22 — the pending Storm Gift", () => {
 
 describe("save v21 — the Storm Gift bookkeeping", () => {
   test("the schema version is 21", () => {
-    expect(SAVE_VERSION).toBe(23)
+    expect(SAVE_VERSION).toBe(24)
   })
 
   test("a v20 creature and state migrate with the gift defaults stamped", () => {
     const raw = v20()
     const migrated = migrate(raw)
-    expect(migrated.version).toBe(23)
+    expect(migrated.version).toBe(24)
     expect(migrated.state.stormGiftClaimed).toBe(false)
     expect(migrated.state.creature?.giftEgg).toBe(false)
   })
@@ -350,7 +350,7 @@ describe("v21 export and import", () => {
     const result = inspectSaveImport(exported.json)
     expect(result.ok).toBe(true)
     if (result.ok) {
-      expect(result.data.version).toBe(23)
+      expect(result.data.version).toBe(24)
       expect(result.data.state.stormGiftClaimed).toBe(true)
       expect(result.data.state.creature?.giftEgg).toBe(true)
     }

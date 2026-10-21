@@ -84,6 +84,7 @@ function prestigeState(
     evolutionKnowledge: { juvenile: false, champion: false },
     stormGiftClaimed: false,
     pendingGift: null,
+    stable: [],
   }
 }
 

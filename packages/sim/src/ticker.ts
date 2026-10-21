@@ -80,6 +80,9 @@ export function advanceDay(state: GameState, rng?: Rng): GameState {
     // The granted egg waits for the player (save v22): a day tick never
     // hatches it and never drops it.
     pendingGift: state.pendingGift,
+    // The stable (save v24) carries across every day untouched: a stashed
+    // pet is frozen — it never ages, never decays and never trains.
+    stable: [...state.stable],
   }
   if (!next.creature) return next
   const before = next.creature.stage

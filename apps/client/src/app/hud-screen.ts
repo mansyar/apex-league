@@ -190,14 +190,14 @@ export function createHudScreen(deps: HudScreenDeps): Hud {
     onGraduate: () => graduation.openConfirm(store.get()),
     onOpenHallOfFame: () => graduation.openHallOfFame(store.get()),
     onHatchGift: () => {
-      // The Storm Gift (electric species line FR-5/FR-6): the sim's hatch
-      // seam archives the outgoing partner and installs the hound; the app
-      // commits it and rebuilds the ranch.
+      // The Storm Gift (stable & partner reserve FR-7): the sim's hatch seam
+      // installs the hound in the stable and leaves the ranch pet in place;
+      // the app commits it and rebuilds the ranch.
       const result = hatchGiftEgg(store.get())
       if (!result.ok) return
       store.commit(result.state)
       sceneSync.syncScene()
-      // The hound is the partner now: put the keyboard on its plate.
+      // The ranch pet is still the partner: put the keyboard on its plate.
       document.querySelector<HTMLButtonElement>(".creature-head")?.focus()
     },
   })
