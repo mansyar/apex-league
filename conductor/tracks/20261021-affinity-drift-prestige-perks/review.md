@@ -5,11 +5,11 @@
 - **Branch:** `feat/20261021-affinity-drift-prestige-perks`
 - **Range:** `8a9dfdb..a89d4d8`
 - **Date:** 2026-10-21
-- **Verdict:** `PASS WITH FINDINGS`
+- **Verdict:** `PASS`
 
 ## Summary
 
-All FRs/ACs are implemented and verified with strong seeded/determinism/byte-identity tests; no Critical/High/Medium findings. Four Low polish findings remain (mirrored `0.55` literal, duplicated hatch-day derivation, graduation callout suppressed on drifted hatches, element-dependent drift fallback). `review.strict` is true, so all four proceed to a review-fixes phase rather than deferral.
+All FRs/ACs are implemented and verified with strong seeded/determinism/byte-identity tests; no Critical/High/Medium findings. The four Low findings from round 1 (mirrored `0.55` literal, duplicated hatch-day derivation, graduation callout suppressed on drifted hatches, element-dependent drift fallback) were all resolved in the Phase R1 review-fixes with 5 new pinning tests; the full gate is green. `review.strict` is satisfied — nothing deferred, no overrides.
 
 ## Verification
 
@@ -55,33 +55,17 @@ All FRs/ACs are implemented and verified with strong seeded/determinism/byte-ide
 
 ### Low
 
-- **F1 — Mirrored `0.55` literal in two client files**
-  - **File:** `apps/client/src/graduation/copy.ts:49-56`, `apps/client/src/handbook/raising.ts:95-99`
-  - **What:** the literal `0.55` mirrors `REFINED_INHERITANCE_FRACTION` while sibling constants (`HEAD_START_*`, `PRESTIGE_*`) are barrel-exported from `@apex/sim`.
-  - **Why:** a future sim change would silently desync the two client literals.
-  - **Fix:** re-export `REFINED_INHERITANCE_FRACTION` from `packages/sim/src/index.ts` and consume it in both spots.
-  - **Requirement:** FR-6 / FR-4 · **Test gap:** none
+- <none — F1–F4 resolved in Phase R1 (checkpoint `eadd17c`); original findings preserved in History context below>
 
-- **F2 — `driftCallout` re-derives the hatch day inline**
-  - **File:** `apps/client/src/hud/copy-growth.ts:147-157`
-  - **What:** duplicates the sim's `hatchDayOf` derivation (last hall record's `retiredOnDay`, else 1).
-  - **Why:** two copies of one rule can drift apart silently.
-  - **Fix:** export `hatchDayOf` from `@apex/sim` and call it from `driftCallout`.
-  - **Requirement:** FR-6 · **Test gap:** none
+<details>
+<summary>Round 1 findings (resolved)</summary>
 
-- **F3 — Drifted hatch replaces the graduation send-off callout**
-  - **File:** `apps/client/src/hud.ts:127-139`
-  - **What:** on a drifted hatch the drift line replaces the graduation callout entirely, so the retiree/generation send-off is never spoken on 15% of cross-element hatches.
-  - **Why:** the legacy send-off is the emotional core of the graduation moment (product-guidelines: warm coach voice, legacy framing).
-  - **Fix:** compose both lines so drifted hatches keep the send-off and the drift beat; pin precedence with a client test.
-  - **Requirement:** FR-6 · **Test gap:** callout precedence test for drifted vs non-drifted graduation
+- **F1 — Mirrored `0.55` literal in two client files** — `apps/client/src/graduation/copy.ts:49-56`, `apps/client/src/handbook/raising.ts:95-99` → `REFINED_INHERITANCE_FRACTION` re-exported from the sim barrel and consumed in both spots.
+- **F2 — `driftCallout` re-derives the hatch day inline** — `apps/client/src/hud/copy-growth.ts:147-157` → now calls the sim's `hatchDayOf`.
+- **F3 — Drifted hatch replaces the graduation send-off callout** — `apps/client/src/hud.ts:127-139` → composed via `graduationTickerLine` (send-off + drift beat); precedence pinned by tests.
+- **F4 — Element-dependent drift fallback on the hatch-day update pass** — `apps/client/src/hud/update.ts:296-301` → explicit drift-first precedence via `hatchDayStatusLine`; fallback removed; element-independence pinned by tests.
 
-- **F4 — Element-dependent drift fallback on the hatch-day update pass**
-  - **File:** `apps/client/src/hud/update.ts:296-301`
-  - **What:** `statusLine(...) || drift` only fires when `statusLine` is empty; for water-primary creatures `flavorCallout` wins and the drift statement is suppressed in that pass.
-  - **Why:** no user-visible gap today (`announceGraduation` still lands the drift line), but the fallback behaves inconsistently across elements.
-  - **Fix:** give the drift callout explicit precedence over flavor on the hatch day, or drop the fallback and rely on `announceGraduation`.
-  - **Requirement:** FR-6 · **Test gap:** none
+</details>
 
 ## Overrides
 
@@ -89,7 +73,7 @@ All FRs/ACs are implemented and verified with strong seeded/determinism/byte-ide
 
 ## Plan compliance
 
-Pass. Five phases match the plan; checkpoints match the squash commits; the phase-2 amendment (cup-side threading, `9c3e5e2`) is implemented and tested; no task silently dropped; docs-sync-in-same-phase rule honored (save-schema in P1); final diff stays within the union of Touches plus reported/accepted deviations.
+Pass. Five phases plus the Phase R1 review-fixes match the plan; checkpoints match the squash commits; the phase-2 amendment (cup-side threading, `9c3e5e2`) is implemented and tested; no task silently dropped; docs-sync-in-same-phase rule honored (save-schema in P1); final diff stays within the union of Touches plus reported/accepted deviations (R1: `hud/copy-care.ts` pure-precedence home, `hud/copy.ts` re-export surface).
 
 ## Out of scope
 
@@ -98,14 +82,15 @@ Pass. Five phases match the plan; checkpoints match the squash commits; the phas
 
 ## Debt
 
-- `review.issues.enabled` is false; any finding not fixed in the fix phase would be recorded here. Round 1 findings F1–F4 are all scheduled for the Phase R1 review-fixes (strict mode, no deferrals).
+- <none> — `review.issues.enabled` is false; round-1 findings F1–F4 were all fixed in Phase R1 (strict mode), so no deferrals remain.
 
 ## Doc sync
 
-`updated` — docs were synchronized as Phase 5 (product.md, tech-stack.md, README, save-schema) before review.
+`updated` — docs were synchronized as Phase 5 (product.md, tech-stack.md, README, save-schema) before review; the R1 fixes changed no user-facing copy contracts requiring further doc updates (rendered copy unchanged; F3 composition keeps ≤2 sentences per copy rule).
 
 ## History
 
 | Round | Verdict | Critical | High | Medium | Low | Fixed |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | PASS WITH FINDINGS | 0 | 0 | 0 | 4 | — |
+| 1 (after R1 fixes) | PASS | 0 | 0 | 0 | 0 | 4 |
