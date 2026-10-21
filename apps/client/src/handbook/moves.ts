@@ -1,10 +1,11 @@
 /**
- * Move pool page: six moves per starter element, gated by the sim's
+ * Move pool page: six moves per element, gated by the sim's
  * `requiredTierDays`. Rows come from `species.kit`, so the table and the
- * picker cannot disagree.
+ * picker cannot disagree. The list is every species in the sim's catalog —
+ * a reward line joins the page the moment its data exists, no special case.
  */
 
-import { getMove, requiredTierDays, STARTER_SPECIES } from "@apex/sim"
+import { ALL_SPECIES, getMove, requiredTierDays } from "@apex/sim"
 import { ELEMENT_LABELS, tip } from "./common"
 
 /** What opens a move: the gate is the sim's, phrased for a coach. */
@@ -21,7 +22,7 @@ export function buildMoves(panel: HTMLElement): void {
       "Each partner knows six moves and can equip four of them. Swapping is free and legal any time outside a cup match.",
     ),
   )
-  for (const species of STARTER_SPECIES) {
+  for (const species of ALL_SPECIES) {
     const head = document.createElement("h3")
     head.className = "handbook-moves-head"
     head.textContent = `${ELEMENT_LABELS[species.element] ?? species.element} · ${species.displayName}`

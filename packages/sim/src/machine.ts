@@ -9,7 +9,16 @@ import {
 } from "./cup"
 import { applyCupRewards, applyStormGift } from "./cupRewards"
 import { applyCupPlacement } from "./ladder"
+import { LOCKED_SPECIES, STARTER_SPECIES } from "./species"
 import type { GameState } from "./state"
+
+/** The rival field once the reward line is obtainable (FR-7). Below that
+ * tier the pool stays the three starters, so every pre-Silver bracket is
+ * exactly the bracket it always was. */
+const POST_OBTAINABLE_POOL = Object.freeze([
+  ...STARTER_SPECIES,
+  ...LOCKED_SPECIES,
+])
 
 /**
  * The cup-phase machine. The Day ↔ Cup phase contract (begin/end) stays
@@ -59,12 +68,17 @@ export function prepareCup(state: GameState): CupSession | null {
   // never folds the ladder, so the seven drawn rivals are identical
   // either way (stream invariant, FR3).
   const gate = bossForCup(state)
+  // The reward line joins the generated field once the save has reached the
+  // tier where it is obtainable — Silver (FR-7). Bronze keeps the original
+  // three-species pool, so its brackets are byte-identical to before.
+  const pool = state.ladder.tier === "bronze" ? undefined : POST_OBTAINABLE_POOL
   return startCupSession(
     creature,
     day,
     seed,
     gate?.kind ?? "championship",
     gate?.boss,
+    pool,
   )
 }
 

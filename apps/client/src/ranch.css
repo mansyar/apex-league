@@ -759,6 +759,26 @@
   opacity: 0.8;
 }
 
+/* Phones: name + stats + gate cannot hold their min tracks inside the modal
+   (88 + 160 + the gate copy overruns a 393px screen), so the gate drops to
+   its own row instead of pushing the panel out of the box. The tab row also
+   wraps: as a non-wrapping flex row it set the modal's min-content width
+   wider than the viewport, which clipped every panel it held. */
+@media (max-width: 767.98px) {
+  .handbook-tabs {
+    flex-wrap: wrap;
+  }
+
+  .handbook-move {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .handbook-move-gate {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
 /* Settings modal (coach_knowledge_20261016 Phase 5): the three floating
    chips consolidated behind one Settings chip — same chips, same labels,
    same handlers. Camera/new-game surface scoping stays on the chips

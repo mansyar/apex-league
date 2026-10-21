@@ -272,7 +272,13 @@ export {
   type TrainingPreview,
   trainingPlan,
 } from "./settlement"
-export { getSpecies, type SpeciesDef, STARTER_SPECIES } from "./species"
+export {
+  ALL_SPECIES,
+  getSpecies,
+  LOCKED_SPECIES,
+  type SpeciesDef,
+  STARTER_SPECIES,
+} from "./species"
 export {
   ACTION_POINTS_PER_DAY,
   chooseStarter,
