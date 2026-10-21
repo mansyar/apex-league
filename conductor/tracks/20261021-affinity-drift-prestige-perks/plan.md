@@ -116,15 +116,15 @@ The primary appends after acceptance:
 - **Covers:** FR-7, AC-7, NFR-2
 - **Touches:** `conductor/product.md`, `conductor/tech-stack.md`, `README.md` (only if it repeats affected truth)
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P5.T1: Mark the two Phase 2 roadmap items landed in `product.md`; dated `tech-stack.md` note (save v20, drift rule, perk ladder)** — covers: FR-7
-- [ ] **P5.T2: README truth check — update only claims this track invalidates (element genetics, prestige ladder); record skipped if nothing stale** — covers: FR-7
-- [ ] **P5.T3: Integrated verification: `bun run verify && bun run build`** — covers: AC-7
+- [x] **P5.T1: Mark the two Phase 2 roadmap items landed in `product.md`; dated `tech-stack.md` note (save v20, drift rule, perk ladder)** — covers: FR-7
+- [x] **P5.T2: README truth check — update only claims this track invalidates (element genetics, prestige ladder); record skipped if nothing stale** — covers: FR-7
+- [x] **P5.T3: Integrated verification: `bun run verify && bun run build`** — covers: AC-7
 
 <!--
 The primary appends after acceptance:
-**Result:** verified
-**Checkpoint:** <short-sha>
-**Evidence:** conductor/tracks/20261021-affinity-drift-prestige-perks/verification/phase-5.md
 -->
+**Result:** verified
+**Checkpoint:** c657b9c
+**Evidence:** conductor/tracks/20261021-affinity-drift-prestige-perks/verification/phase-5.md
