@@ -29,6 +29,12 @@ import {
   walkStep,
 } from "./view-models"
 
+/** Unwrap a possibly-absent test fixture or fail the test loudly. */
+function defined<T>(value: T | null | undefined, label: string): T {
+  if (value === null || value === undefined) throw new Error(`missing ${label}`)
+  return value
+}
+
 const CUP_DAY = 7
 
 function creature(seed = 42) {
@@ -187,7 +193,7 @@ describe("walkStep — the strict reveal decisions", () => {
       kind: "reveal",
       id: "f1",
       line: "Ember Drake takes the Final!",
-      verdict: cur.playerVerdicts[2]!,
+      verdict: defined(cur.playerVerdicts[2], "player verdict"),
       after: "crown",
     })
     // Cursor 7: the model is exhausted — conclude.
@@ -230,7 +236,10 @@ describe("closeIntent — the close button's decision tree", () => {
 
 describe("chipView — the Enter Cup chip", () => {
   const ladder = { points: 0, tier: "bronze" as const, subTier: "III" }
-  const gate = { kind: "championship" as const, boss: getBoss("hesse")! }
+  const gate = {
+    kind: "championship" as const,
+    boss: defined(getBoss("hesse"), "boss hesse"),
+  }
 
   test("cup day without a session: visible, standing hint", () => {
     const view = chipView({
@@ -265,7 +274,10 @@ describe("chipView — the Enter Cup chip", () => {
       hasCreature: true,
       ladder: { points: 15, tier: "bronze", subTier: "I" },
       hasSession: false,
-      gate: { kind: "promotion" as const, boss: getBoss("koda")! },
+      gate: {
+        kind: "promotion" as const,
+        boss: defined(getBoss("koda"), "boss koda"),
+      },
     })
     expect(view.hint).toBe("Promotion Cup awaits")
   })
