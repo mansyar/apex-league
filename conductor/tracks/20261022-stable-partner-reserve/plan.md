@@ -130,12 +130,16 @@ Review fixes are appended by `conductor-review` as:
 - **Covers:** F1, F2, F3, F4, F5, FR-3, FR-5, FR-6, FR-9, NFR-3, NFR-5
 - **Touches:** `packages/sim/src/stable.ts`, `packages/sim/src/evolution.ts`, `packages/sim/src/settlement.ts`, `packages/sim/src/index.ts`, `packages/sim/src/*.test.ts`, `apps/client/src/stable.ts`, `apps/client/src/growth.ts`, `apps/client/src/growth.test.ts`, `artifacts/champion-demo.ts`
 - **Verification:** `bun run verify && bun run build` plus the re-run visual pass (the stable flow, both widths)
-- **Status:** in_progress
+- **Status:** verified
+
+**Result:** verified
+**Checkpoint:** d77638c
+**Evidence:** conductor/tracks/20261022-stable-partner-reserve/verification/phase-R1.md
 
 ### Tasks
 
-- [ ] **R1.T1: A waiting pet can be renamed (F1)** — a pure `renameStablePet(state, creatureId, name)` seam with the same trim/clamp and `cup-phase` refusal as `renameCreature`, and a rename control on the stable row — covers: F1, FR-3, FR-9
-- [ ] **R1.T2: The stable's empty state is reachable (F3)** — the chip stays visible while the stable is empty, so the modal shows its empty state instead of a blank panel — covers: F3, FR-9
-- [ ] **R1.T3: The growth panel says "Age", not "Day" (F4)** — covers: F4, FR-6, FR-5
-- [ ] **R1.T4: `evaluateEvolution` stops taking a day it does not read (F5)** — drop the parameter and update the four call sites — covers: F5, FR-5, NFR-3
-- [ ] **R1.T5: FR-8 narrowed to the delivered options (F2)** — done by the primary in the spec (the pending gift is a pure gift with no inherited floor, so it waits in the stable like any other pet); the fix phase confirms no code claims the third option — covers: F2, FR-8
+- [x] **R1.T1: A waiting pet can be renamed (F1)** — a pure `renameStablePet(state, creatureId, name)` seam with the same trim/clamp and `cup-phase` refusal as `renameCreature`, and a rename control on the stable row — covers: F1, FR-3, FR-9
+- [x] **R1.T2: The stable's empty state is reachable (F3)** — the chip stays visible while the stable is empty, so the modal shows its empty state instead of a blank panel — covers: F3, FR-9
+- [x] **R1.T3: The growth panel says "Age", not "Day" (F4)** — covers: F4, FR-6, FR-5
+- [x] **R1.T4: `evaluateEvolution` stops taking a day it does not read (F5)** — drop the parameter and update the four call sites — covers: F5, FR-5, NFR-3
+- [x] **R1.T5: FR-8 narrowed to the delivered options (F2)** — done by the primary in the spec (the pending gift is a pure gift with no inherited floor, so it waits in the stable like any other pet); the fix phase confirms no code claims the third option — covers: F2, FR-8
