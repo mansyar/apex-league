@@ -65,7 +65,7 @@
 - **Covers:** FR-2, FR-6, FR-7, FR-8, FR-9, FR-10, NFR-1, NFR-5, AC-1, AC-5, AC-7
 - **Touches:** `apps/client/src/stable.ts`, `apps/client/src/gift.ts`, `apps/client/src/hud/*`, `apps/client/src/graduation/*`, `apps/client/src/creature-detail.ts`, `apps/client/src/app/*`, `apps/client/src/ranch.css`, `apps/client/src/*.test.ts`
 - **Verification:** `bun run check && bun test --timeout 120000` plus the visual pass (desktop + iPhone 15, clean console)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: The stable chip and modal** — covers: FR-9
   - [ ] **P3.T1.1: A chip beside Settings/Handbook opens a modal listing the stashed pets (crest, name, species, stage, age) with an empty state** — covers: FR-9, AC-7
