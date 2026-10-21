@@ -89,7 +89,6 @@ export function advanceDay(state: GameState, rng?: Rng): GameState {
   const settled = settleCreature(
     next.creature,
     rng ?? makeRng(day),
-    state.day,
     state.cupsWon,
   )
   // The night the pet just slept makes it a day older: the age it carries

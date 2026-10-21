@@ -119,10 +119,11 @@ export function createHudShell(
   motionWrap.append(giftChip)
 
   // The stable (stable & partner reserve FR-9): the chip opens the modal
-  // that lists the pets waiting there, and the swap inside it hands one of
-  // them the ranch. The chip folds away while the stable is empty.
+  // that lists the pets waiting there, the swap inside it hands one of them
+  // the ranch, and the pencil on a row renames the pet where it waits.
   const stable = buildStableModal({
     onBringToRanch: (creatureId) => handlers.onBringToRanch(creatureId),
+    onRename: (creatureId, name) => handlers.onRenameStable(creatureId, name),
     // The swap is done: the partner plate is the thing the player just
     // changed, so the keyboard goes back to it.
     onSwapped: () => creatureHead.focus(),

@@ -1882,7 +1882,7 @@ describe("save v23 — the pet's own age", () => {
     const migrated = migrate(v22(10))
     const creature = migrated.state.creature
     if (!creature) throw new Error("no creature")
-    expect(evaluateEvolution(creature, 10)).toEqual({
+    expect(evaluateEvolution(creature)).toEqual({
       evolved: true,
       reason: "ready",
     })

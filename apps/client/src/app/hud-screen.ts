@@ -11,6 +11,7 @@ import {
   inspectSaveImport,
   markHintSeen,
   renameCreature,
+  renameStablePet,
   type SaveData,
   setMusicVolume,
   setMuted,
@@ -211,6 +212,15 @@ export function createHudScreen(deps: HudScreenDeps): Hud {
       store.commit(result.state)
       sceneSync.syncScene()
       return null
+    },
+    onRenameStable: (creatureId, name) => {
+      // The rename (stable & partner reserve, the spec's edge case): the sim
+      // names the pet where it waits — no swap, no change to the ranch — and
+      // the app commits it.
+      const result = renameStablePet(store.get(), creatureId, name)
+      if (!result.ok) return result
+      store.commit(result.state)
+      return result
     },
   })
 

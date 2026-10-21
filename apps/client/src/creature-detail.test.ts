@@ -95,7 +95,7 @@ describe("growth row reading", () => {
       }),
     )
     expect(parts.map((part) => part.label)).toEqual([
-      "Day",
+      "Age",
       "Clean nights",
       "Mood",
       "Bond",
@@ -106,7 +106,7 @@ describe("growth row reading", () => {
       glyph: "○",
       status: "Not yet",
     })
-    expect(parts.find((part) => part.label === "Day")?.detail).toBe("6 / 25")
+    expect(parts.find((part) => part.label === "Age")?.detail).toBe("6 / 25")
     expect(parts.find((part) => part.label === "Bond")?.detail).toBe("52 / 60")
     expect(parts.find((part) => part.label === "Cups won")?.detail).toBe(
       "0 / 1",
@@ -115,7 +115,7 @@ describe("growth row reading", () => {
     const juvenile = partsOf(
       stateWith("baby", { day: 6, mood: 35, juvenileKnown: true }),
     )
-    expect(juvenile.find((part) => part.label === "Day")?.detail).toBe("6 / 10")
+    expect(juvenile.find((part) => part.label === "Age")?.detail).toBe("6 / 10")
   })
 
   test("met and unmet read differently without colour", () => {

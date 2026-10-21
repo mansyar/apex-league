@@ -13,11 +13,12 @@
  */
 import { describe, expect, test } from "bun:test"
 import { breedingPool, hatchGiftEgg } from "./breeding"
-import { type Creature, createCreature } from "./creature"
+import { type Creature, createCreature, NAME_MAX_LENGTH } from "./creature"
 import { canGraduate, GRADUATION_DAY, graduateFromStable } from "./legacy"
 import { makeRng } from "./rng"
 import {
   bringToRanch,
+  renameStablePet,
   sendToStable,
   stablePetId,
   stablePetSlot,
@@ -201,6 +202,82 @@ describe("the swap seam (FR-3)", () => {
     expect(stablePetSlot("stable:2")).toBe(2)
     expect(stablePetSlot("stable:x")).toBeNull()
     expect(stablePetSlot("creature")).toBeNull()
+  })
+})
+
+describe("renaming a waiting pet (the spec's edge case)", () => {
+  test("a stashed pet is renamed where it waits — no swap, no ranch", () => {
+    const waiting = careerPet({ name: "Waiting" })
+    const state = stateWith(careerPet(), [waiting])
+    const renamed = renameStablePet(state, stablePetId(0), "Rolo")
+    if (!renamed.ok) throw new Error("the rename was refused")
+    expect(renamed.state.stable[0]?.name).toBe("Rolo")
+    expect(renamed.state.creature?.name).toBe("Ember")
+  })
+
+  test("only the name moves — the pet keeps every other field", () => {
+    const waiting = careerPet({ name: "Waiting" })
+    const state = stateWith(careerPet(), [waiting])
+    const renamed = renameStablePet(state, stablePetId(0), "Rolo")
+    if (!renamed.ok) throw new Error("the rename was refused")
+    expect(renamed.state.stable[0]).toEqual({ ...waiting, name: "Rolo" })
+  })
+
+  test("the ranch pet, the day, the lineage and the ladder stand untouched", () => {
+    const pet = careerPet()
+    const state = stateWith(pet, [careerPet()], { day: 9, cupsWon: 4 })
+    const renamed = renameStablePet(state, stablePetId(0), "Rolo")
+    if (!renamed.ok) throw new Error("the rename was refused")
+    expect(renamed.state.creature).toBe(pet)
+    expect(renamed.state.day).toBe(9)
+    expect(renamed.state.cupsWon).toBe(4)
+    expect(renamed.state.ladder).toEqual(state.ladder)
+    expect(renamed.state.lineage).toEqual(state.lineage)
+  })
+
+  test("the name is trimmed and clamped, like the ranch pet's", () => {
+    const state = stateWith(careerPet(), [careerPet()])
+    const padded = renameStablePet(state, stablePetId(0), "  Rolo  ")
+    if (!padded.ok) throw new Error("the rename was refused")
+    expect(padded.state.stable[0]?.name).toBe("Rolo")
+    const long = renameStablePet(state, stablePetId(0), "x".repeat(40))
+    if (!long.ok) throw new Error("the rename was refused")
+    expect(long.state.stable[0]?.name).toHaveLength(NAME_MAX_LENGTH)
+  })
+
+  test("an empty name falls back to the species' display name", () => {
+    const state = stateWith(careerPet(), [careerPet()])
+    const blank = renameStablePet(state, stablePetId(0), "   ")
+    if (!blank.ok) throw new Error("the rename was refused")
+    expect(blank.state.stable[0]?.name).toBe("Ember Drake")
+  })
+
+  test("a rename is refused while a cup or spar is live", () => {
+    const state = stateWith(careerPet(), [careerPet()], { phase: "cup" })
+    expect(renameStablePet(state, stablePetId(0), "Rolo")).toEqual({
+      ok: false,
+      reason: "cup-phase",
+    })
+  })
+
+  test("a pet that is not waiting is refused", () => {
+    const state = stateWith(careerPet(), [careerPet()])
+    expect(renameStablePet(state, "stable:9", "Rolo")).toEqual({
+      ok: false,
+      reason: "unknown-pet",
+    })
+    expect(renameStablePet(state, "nonsense", "Rolo")).toEqual({
+      ok: false,
+      reason: "unknown-pet",
+    })
+  })
+
+  test("the seam is pure — the input state is never touched", () => {
+    const waiting = careerPet({ name: "Waiting" })
+    const state = stateWith(careerPet(), [waiting])
+    renameStablePet(state, stablePetId(0), "Rolo")
+    expect(state.stable[0]?.name).toBe("Waiting")
+    expect(state.stable[0]).toBe(waiting)
   })
 })
 

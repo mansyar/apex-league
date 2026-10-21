@@ -145,9 +145,9 @@ export function trainingPlan(creature: Creature): TrainingPlan {
  * mood settle, bond decay (and the bondedToday flag reset), then the
  * evolution gate over the settled creature.
  *
- * `day` is the in-game day this night *closes* — the evolution gate uses it
- * ("a baby may evolve on the night that ends day 10"). The settlement that
- * runs during advanceDay(D) therefore passes D.
+ * The settlement no longer takes the world day: nothing in the night reads
+ * it. The evolution gate reads the creature's **own** age (`ageDays`), and
+ * the caller (the day ticker) ages the pet after the night it sleeps.
  *
  * `cupsWon` feeds only the champion prestige rule ("a champion needs at
  * least one cup win"); the juvenile gate ignores it.
@@ -155,7 +155,6 @@ export function trainingPlan(creature: Creature): TrainingPlan {
 export function settleCreature(
   creature: Creature,
   rng: Rng,
-  day: number,
   cupsWon = 0,
 ): Creature {
   const c = creature.conditions
@@ -261,7 +260,7 @@ export function settleCreature(
   //    outcome (mood, health) is what the gate judged, so a creature that
   //    slept sick or woke miserable waits, never evolves mid-misery. The
   //    cup tally as of tonight feeds the champion prestige rule.
-  const verdict = evaluateEvolution(settled, day, cupsWon)
+  const verdict = evaluateEvolution(settled, cupsWon)
   return verdict.evolved ? evolveCreature(settled) : settled
 }
 

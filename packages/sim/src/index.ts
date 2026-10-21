@@ -286,6 +286,8 @@ export {
 } from "./species"
 export {
   bringToRanch,
+  type RenameStableResult,
+  renameStablePet,
   type StableReason,
   type StableResult,
   sendToStable,

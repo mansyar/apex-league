@@ -74,19 +74,13 @@ function gateCreature(
 
 describe("evaluateEvolution", () => {
   test("a baby with clean nights and good mood evolves on its tenth night", () => {
-    const v = evaluateEvolution(
-      gateCreature({ ageDays: EVOLUTION_DAY }),
-      EVOLUTION_DAY,
-    )
+    const v = evaluateEvolution(gateCreature({ ageDays: EVOLUTION_DAY }))
     expect(v.evolved).toBe(true)
     expect(v.reason).toBe("ready")
   })
 
   test("nine days of life are too young even with perfect care", () => {
-    const v = evaluateEvolution(
-      gateCreature({ ageDays: EVOLUTION_DAY - 1 }),
-      EVOLUTION_DAY,
-    )
+    const v = evaluateEvolution(gateCreature({ ageDays: EVOLUTION_DAY - 1 }))
     expect(v.evolved).toBe(false)
     expect(v.reason).toBe("too_young")
   })
@@ -94,7 +88,6 @@ describe("evaluateEvolution", () => {
   test("a recent sickness night blocks evolution", () => {
     const v = evaluateEvolution(
       gateCreature({ ageDays: EVOLUTION_DAY, sickCooldown: 1 }),
-      EVOLUTION_DAY,
     )
     expect(v.evolved).toBe(false)
     expect(v.reason).toBe("recently_sick")
@@ -106,7 +99,6 @@ describe("evaluateEvolution", () => {
         ageDays: EVOLUTION_DAY,
         conditions: { mood: EVOLUTION_MOOD - 1 } as never,
       }),
-      EVOLUTION_DAY,
     )
     expect(v.evolved).toBe(false)
     expect(v.reason).toBe("low_mood")
@@ -118,7 +110,6 @@ describe("evaluateEvolution", () => {
         ageDays: EVOLUTION_DAY,
         conditions: { mood: EVOLUTION_MOOD } as never,
       }),
-      EVOLUTION_DAY,
     )
     expect(v.evolved).toBe(true)
   })
@@ -130,7 +121,6 @@ describe("evaluateEvolution", () => {
         sickCooldown: 2,
         conditions: { mood: 0 } as never,
       }),
-      EVOLUTION_DAY - 1,
     )
     expect(v.reason).toBe("too_young")
   })
@@ -138,7 +128,6 @@ describe("evaluateEvolution", () => {
   test("a juvenile is judged by the champion gate, not waved through", () => {
     const v = evaluateEvolution(
       gateCreature({ stage: "juvenile", ageDays: CHAMPION_EVOLUTION_DAY }),
-      50,
     )
     expect(v.evolved).toBe(false)
     expect(v.reason).toBe("low_bond")
@@ -162,7 +151,7 @@ describe("evaluateEvolution - champion gate", () => {
   }
 
   test("a qualified juvenile evolves on its twenty-fifth night", () => {
-    const v = evaluateEvolution(championReady(), CHAMPION_EVOLUTION_DAY, 1)
+    const v = evaluateEvolution(championReady(), 1)
     expect(v.evolved).toBe(true)
     expect(v.reason).toBe("ready")
   })
@@ -170,7 +159,6 @@ describe("evaluateEvolution - champion gate", () => {
   test("twenty-four days of life are too young", () => {
     const v = evaluateEvolution(
       championReady({ ageDays: CHAMPION_EVOLUTION_DAY - 1 }),
-      CHAMPION_EVOLUTION_DAY,
       1,
     )
     expect(v.evolved).toBe(false)
@@ -178,11 +166,7 @@ describe("evaluateEvolution - champion gate", () => {
   })
 
   test("a recent sickness night blocks the champion gate", () => {
-    const v = evaluateEvolution(
-      championReady({ sickCooldown: 1 }),
-      CHAMPION_EVOLUTION_DAY,
-      1,
-    )
+    const v = evaluateEvolution(championReady({ sickCooldown: 1 }), 1)
     expect(v.evolved).toBe(false)
     expect(v.reason).toBe("recently_sick")
   })
@@ -190,7 +174,6 @@ describe("evaluateEvolution - champion gate", () => {
   test("low mood blocks the champion gate", () => {
     const v = evaluateEvolution(
       championReady({ conditions: { mood: EVOLUTION_MOOD - 1 } as never }),
-      CHAMPION_EVOLUTION_DAY,
       1,
     )
     expect(v.evolved).toBe(false)
@@ -200,7 +183,6 @@ describe("evaluateEvolution - champion gate", () => {
   test("low bond blocks the champion gate", () => {
     const v = evaluateEvolution(
       championReady({ conditions: { bond: CHAMPION_BOND - 1 } as never }),
-      CHAMPION_EVOLUTION_DAY,
       1,
     )
     expect(v.evolved).toBe(false)
@@ -210,18 +192,13 @@ describe("evaluateEvolution - champion gate", () => {
   test("bond exactly at the threshold passes (inclusive gate)", () => {
     const v = evaluateEvolution(
       championReady({ conditions: { bond: CHAMPION_BOND } as never }),
-      CHAMPION_EVOLUTION_DAY,
       1,
     )
     expect(v.evolved).toBe(true)
   })
 
   test("no cup win blocks the champion gate", () => {
-    const v = evaluateEvolution(
-      championReady(),
-      CHAMPION_EVOLUTION_DAY,
-      CHAMPION_CUPS - 1,
-    )
+    const v = evaluateEvolution(championReady(), CHAMPION_CUPS - 1)
     expect(v.evolved).toBe(false)
     expect(v.reason).toBe("no_cup_win")
   })
@@ -232,7 +209,6 @@ describe("evaluateEvolution - champion gate", () => {
         ageDays: CHAMPION_EVOLUTION_DAY - 1,
         conditions: { bond: 0 } as never,
       }),
-      CHAMPION_EVOLUTION_DAY - 1,
       0,
     )
     expect(v.reason).toBe("too_young")
@@ -244,7 +220,6 @@ describe("evaluateEvolution - champion gate", () => {
         stage: "champion",
         conditions: { mood: 100, bond: 100 } as never,
       }),
-      CHAMPION_EVOLUTION_DAY + 10,
       5,
     )
     expect(v.evolved).toBe(false)
@@ -258,19 +233,19 @@ describe("settleCreature - sickness cooldown bookkeeping", () => {
       conditions: { health: SICK_HEALTH - 1 } as never,
       sickCooldown: 0,
     })
-    const settled = settleCreature(c, CALM_RNG, EVOLUTION_DAY)
+    const settled = settleCreature(c, CALM_RNG)
     expect(settled.sickCooldown).toBe(SICK_COOLDOWN_NIGHTS)
   })
 
   test("a healthy night decrements the cooldown", () => {
     const c = gateCreature({ sickCooldown: 2 })
-    const settled = settleCreature(c, CALM_RNG, EVOLUTION_DAY)
+    const settled = settleCreature(c, CALM_RNG)
     expect(settled.sickCooldown).toBe(1)
   })
 
   test("the cooldown never drops below zero", () => {
     const c = gateCreature({ sickCooldown: 0 })
-    const settled = settleCreature(c, CALM_RNG, EVOLUTION_DAY)
+    const settled = settleCreature(c, CALM_RNG)
     expect(settled.sickCooldown).toBe(0)
   })
 })
@@ -611,7 +586,7 @@ describe("Creature.branch", () => {
 
   test("settlement carries an earned branch through a quiet night", () => {
     const c = gateCreature({ stage: "juvenile", branch: "cinder_courser" })
-    const settled = settleCreature(c, CALM_RNG, 11)
+    const settled = settleCreature(c, CALM_RNG)
     expect(settled.stage).toBe("juvenile")
     expect(settled.branch).toBe("cinder_courser")
   })

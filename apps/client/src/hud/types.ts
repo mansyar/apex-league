@@ -1,6 +1,7 @@
 import type {
   CareAction,
   GameState,
+  RenameStableResult,
   StableReason,
   TrainingProgram,
 } from "@apex/sim"
@@ -77,6 +78,12 @@ export interface HudShellHandlers {
    * gets the refusal reason back when the sim turns the swap down.
    */
   onBringToRanch: (creatureId: string) => StableReason | null
+  /**
+   * Rename a pet waiting in the stable (the spec's edge case: the name
+   * travels with the pet). The app runs the sim's rename and commits it; the
+   * HUD only asks, and gets the sim's verdict back.
+   */
+  onRenameStable: (creatureId: string, name: string) => RenameStableResult
 }
 
 /** The built HUD, as `shell` hands it to the other two passes. */

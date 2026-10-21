@@ -1,6 +1,7 @@
 import type {
   CareAction,
   GameState,
+  RenameStableResult,
   StableReason,
   TrainingProgram,
 } from "@apex/sim"
@@ -101,6 +102,13 @@ export interface HudHandlers {
    * the sim turns the swap down, so the HUD can coach instead of acting.
    */
   onBringToRanch: (creatureId: string) => StableReason | null
+  /**
+   * Rename a pet waiting in the stable (the spec's edge case: the name
+   * travels with the pet). The app runs the sim's rename and commits it; the
+   * HUD only asks, and gets the sim's verdict back so it can coach instead
+   * of going quiet.
+   */
+  onRenameStable: (creatureId: string, name: string) => RenameStableResult
 }
 
 export interface Hud {

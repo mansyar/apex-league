@@ -98,7 +98,7 @@ describe("rows by gate", () => {
     expect(view.gate).toBe("juvenile")
     expect(view.rows.map((row) => row.id)).toEqual(["age", "recovery", "mood"])
     expect(view.rows.map((row) => row.label)).toEqual([
-      "Day",
+      "Age",
       "Clean nights",
       "Mood",
     ])
@@ -116,7 +116,7 @@ describe("rows by gate", () => {
       "cups",
     ])
     expect(view.rows.map((row) => row.label)).toEqual([
-      "Day",
+      "Age",
       "Clean nights",
       "Mood",
       "Bond",
@@ -470,7 +470,7 @@ describe("the rows explain every EvolutionReason", () => {
       const state = stateWith(entry.stage, entry.options)
       const creature = state.creature
       if (!creature) throw new Error("expected a creature")
-      expect(evaluateEvolution(creature, state.day, state.cupsWon).reason).toBe(
+      expect(evaluateEvolution(creature, state.cupsWon).reason).toBe(
         entry.reason,
       )
       expect(unmet(state)).toEqual(entry.blocked)

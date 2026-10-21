@@ -189,15 +189,15 @@ export interface EvolutionVerdict {
 }
 
 /**
- * Should this creature evolve during the settlement that closes `day`?
+ * Should this creature evolve during the settlement that closes the night?
  * Stage-aware: a baby is judged for the juvenile gate, a juvenile for the
  * champion gate. `cupsWon` feeds only the champion prestige rule.
  *
  * The age gates read the creature's **own** age (`ageDays`, save v23), never
  * the world day: a pet hatched on day 24 is one day old on day 24 and
- * matures on its own tenth night, not on its first. The world `day` is kept
- * in the signature for the settlement seam — the night that closes it — and
- * no longer decides anything.
+ * matures on its own tenth night, not on its first. The world day is not an
+ * argument at all — the gate reads the pet's age and nothing else, so no
+ * caller can believe the gate is day-based.
  *
  * Pure: reads the (post-settlement) creature and returns a verdict; the
  * caller decides what to do with it.
@@ -208,7 +208,6 @@ export interface EvolutionVerdict {
  */
 export function evaluateEvolution(
   creature: Creature,
-  _day: number,
   cupsWon = 0,
 ): EvolutionVerdict {
   if (creature.stage === "baby") {

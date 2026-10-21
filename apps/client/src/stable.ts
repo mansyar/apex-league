@@ -16,11 +16,13 @@ import {
   type Creature,
   type GameState,
   getSpecies,
+  type RenameStableResult,
   type StableReason,
   stablePetId,
 } from "@apex/sim"
 import { focusTrap } from "./battleUI"
 import { paintCrest } from "./hud/plates-creature"
+import { buildStableRename } from "./stable-rename"
 import { chip, crest, tab } from "./ui/kit"
 import { stageLabel } from "./ui/labels"
 
@@ -99,11 +101,12 @@ export const STABLE_EMPTY_COPY =
   "No pets in the stable yet — every pet you own but the one in the ranch waits here."
 
 /**
- * The chip shows only while the stable holds a pet, the same rule the gift
- * chip follows.
+ * The chip is always there (FR-9): the stable is a place the player can look
+ * even when it is empty, and the modal carries the empty state. A chip that
+ * folds away would make that empty state unreachable.
  */
-export function stableChipVisible(state: GameState): boolean {
-  return state.stable.length > 0
+export function stableChipVisible(_state: GameState): boolean {
+  return true
 }
 
 /**
@@ -124,22 +127,19 @@ export function stableRefusalCopy(reason: StableReason): string {
 }
 
 /**
- * The Stable chip: it sits beside Settings and Handbook, and folds away
- * while the stable is empty so the ranch chips stay quiet.
+ * The Stable chip: it sits beside Settings and Handbook and is always there —
+ * the stable is worth a look even when it is empty (FR-9).
  */
 export function buildStableChip(onOpen: () => void): HTMLButtonElement {
   const button = chip({ label: "Stable", variant: "dim", onClick: onOpen })
   button.classList.add("stable-chip")
-  // The chip's own `display` rule outranks the `hidden` attribute, so the
-  // chip is folded the way the rest of the HUD folds its rows.
-  button.style.display = "none"
   button.title = "Stable"
   return button
 }
 
 /**
- * Show the chip only while the stable holds a pet (FR-9). The HUD's paint
- * pass calls this on every commit.
+ * Keep the chip in step with the state (FR-9). The chip never folds, so this
+ * is where the empty stable is carried: the modal, not the chip, says it.
  */
 export function syncStableChip(
   button: HTMLButtonElement,
@@ -163,6 +163,12 @@ export interface StableModalOptions {
    * when the swap went through.
    */
   onBringToRanch: (creatureId: string) => StableReason | null
+  /**
+   * Rename a pet waiting in the stable (the spec's edge case: the name
+   * travels with the pet). The sim decides the name and the app commits it;
+   * the modal repaints from the state that comes back.
+   */
+  onRename: (creatureId: string, name: string) => RenameStableResult
   /** The swap went through: the shell puts the keyboard back on the plate. */
   onSwapped: () => void
 }
@@ -221,8 +227,13 @@ export function buildStableModal(options: StableModalOptions): StableModal {
   /** Where focus goes when the modal closes (the chip that opened it). */
   let opener: HTMLElement | null = null
 
-  /** One waiting pet: crest, name, species, stage, age, and the swap. */
-  const petRow = (row: StablePetRow): HTMLElement => {
+  /** The swap button of the first row of the last paint. */
+  let firstAction: HTMLButtonElement | null = null
+
+  /** One waiting pet: crest, name, species, stage, age, the rename, the swap. */
+  const petRow = (
+    row: StablePetRow,
+  ): { item: HTMLElement; action: HTMLButtonElement } => {
     const item = document.createElement("div")
     item.className = "stable-pet"
 
@@ -231,9 +242,19 @@ export function buildStableModal(options: StableModalOptions): StableModal {
 
     const body = document.createElement("div")
     body.className = "stable-pet-body"
-    const name = document.createElement("span")
-    name.className = "stable-pet-name"
-    name.textContent = row.name
+    // The name and the pencil that renames it share one line.
+    const rename = buildStableRename({
+      name: row.name,
+      creatureId: row.id,
+      onRename: options.onRename,
+      onRefusal: (copy) => {
+        note.textContent = copy
+      },
+      onRenamed: (state) => {
+        paint(state)
+        firstAction?.focus()
+      },
+    })
     const meta = document.createElement("span")
     meta.className = "stable-pet-meta"
     // The species only appears when the pet's own name does not already say
@@ -251,7 +272,7 @@ export function buildStableModal(options: StableModalOptions): StableModal {
     age.className = "stable-pet-age"
     age.textContent = row.age
     meta.append(stage, age)
-    body.append(name, meta)
+    body.append(rename.row, meta)
 
     const action = document.createElement("button")
     action.className = "kit-button stable-pet-action"
@@ -262,13 +283,15 @@ export function buildStableModal(options: StableModalOptions): StableModal {
     action.addEventListener("click", () => bring(row.id))
 
     item.append(crestEl, body, action)
-    return item
+    return { item, action }
   }
 
   /** Repaint the list from the state: the stable's contents can change. */
   const paint = (state: GameState): void => {
     const rows = stableRows(state)
-    list.replaceChildren(...rows.map((row) => petRow(row)))
+    const built = rows.map((row) => petRow(row))
+    firstAction = built[0]?.action ?? null
+    list.replaceChildren(...built.map((row) => row.item))
     empty.hidden = rows.length > 0
     note.textContent = ""
   }
@@ -310,8 +333,7 @@ export function buildStableModal(options: StableModalOptions): StableModal {
           : null
       paint(state)
       root.style.display = ""
-      const first = list.querySelector<HTMLButtonElement>(".stable-pet-action")
-      if (first) first.focus()
+      if (firstAction) firstAction.focus()
       else close.focus()
     },
     close: closeNow,

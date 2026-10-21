@@ -24,7 +24,7 @@ export type GrowthRowId = "age" | "recovery" | "mood" | "bond" | "cups"
 
 export interface GrowthRow {
   id: GrowthRowId
-  /** Human label, e.g. "Mood", "Clean nights", "Day". */
+  /** Human label, e.g. "Mood", "Clean nights", "Age". */
   label: string
   /** Whether the creature currently satisfies this condition. */
   met: boolean
@@ -90,7 +90,7 @@ function gateFor(stage: Creature["stage"]): Gate {
 function ageCondition(age: number, target: number): Condition {
   return {
     id: "age",
-    label: "Day",
+    label: "Age",
     met: age >= target,
     shown: `${age} / ${target}`,
     quiet: { met: "old enough now", unmet: "still a few days off" },

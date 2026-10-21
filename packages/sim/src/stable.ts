@@ -18,8 +18,12 @@
  *   the player owns cannot be sent away — the ranch always keeps somebody.
  * - `bringToRanch` hands the ranch to a stashed pet and files the pet that
  *   was in the ranch into the stable.
+ * - `renameStablePet` names a waiting pet where it waits, so a stashed pet
+ *   never has to be swapped into the ranch to be renamed.
  */
 
+import { NAME_MAX_LENGTH } from "./creature"
+import { getSpecies } from "./species"
 import type { GameState } from "./state"
 
 /**
@@ -40,6 +44,14 @@ export type StableReason =
 export type StableResult =
   | { ok: true; state: GameState }
   | { ok: false; reason: StableReason }
+
+/**
+ * The outcome of a rename asked for on a waiting pet. The refusals are the
+ * stable's own: the day-phase lock and a pet that is no longer waiting.
+ */
+export type RenameStableResult =
+  | { ok: true; state: GameState }
+  | { ok: false; reason: "cup-phase" | "unknown-pet" }
 
 /**
  * The id of a stashed pet: its slot in the stable list, as a stable string.
@@ -124,4 +136,38 @@ export function bringToRanch(
       stable: state.creature ? [...rest, state.creature] : rest,
     },
   }
+}
+
+/**
+ * Rename a pet waiting in the stable.
+ *
+ * The same rules as `renameCreature`: the name is trimmed and clamped to
+ * NAME_MAX_LENGTH, and an empty name falls back to the species' display name.
+ * Refused while a cup or spar is live (`"cup-phase"`) and when the named pet
+ * is not in the stable (`"unknown-pet"`).
+ *
+ * Pure: only the name moves. The pet keeps its slot, the ranch pet is
+ * untouched, and the day, the lineage and the ladder do not move either — a
+ * rename is a label, not a career.
+ */
+export function renameStablePet(
+  state: GameState,
+  creatureId: string,
+  name: string,
+): RenameStableResult {
+  if (state.phase === "cup") return { ok: false, reason: "cup-phase" }
+  const slot = stablePetSlot(creatureId)
+  if (slot === null || slot >= state.stable.length) {
+    return { ok: false, reason: "unknown-pet" }
+  }
+  const pet = state.stable[slot]
+  if (!pet) return { ok: false, reason: "unknown-pet" }
+  const trimmed = name.trim().slice(0, NAME_MAX_LENGTH)
+  const nextName =
+    trimmed.length > 0
+      ? trimmed
+      : (getSpecies(pet.speciesId)?.displayName ?? pet.name)
+  const stable = [...state.stable]
+  stable[slot] = { ...pet, name: nextName }
+  return { ok: true, state: { ...state, stable } }
 }
