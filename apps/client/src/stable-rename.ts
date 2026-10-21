@@ -5,10 +5,11 @@
  *
  * The editor sits where the pet's name is, so a waiting pet never has to be
  * swapped into the ranch to be renamed. The pencil is a real, labelled
- * button with a 44px target; the editor is a labelled field with Save and
- * Cancel, and Escape cancels the edit and hands the keyboard back to the
- * pencil. The sim decides the name — an empty field falls back to the
- * species' name and a long one is clamped.
+ * button in the house's icon-button family (`rename-button`): 26 px on the
+ * desktop, the phone tier's 44 px floor. The editor is a labelled field
+ * with Save and Cancel, and Escape cancels the edit and hands the keyboard
+ * back to the pencil. The sim decides the name — an empty field falls back
+ * to the species' name and a long one is clamped.
  *
  * Its own module: the stable modal already sits near the client module cap
  * (12 KB), and the editor is a seam of its own.
@@ -78,15 +79,15 @@ export function buildStableRename(options: StableRenameOptions): StableRename {
   name.textContent = options.name
 
   const trigger = document.createElement("button")
-  trigger.className = "rename-button stable-pet-rename"
+  // The house's own icon button (the same class the active pet's pencil
+  // wears), so the size comes from the kit: 26 px on the desktop, the phone
+  // tier's 44 px floor (base.css).
+  trigger.className = "rename-button"
   trigger.type = "button"
   trigger.title = `Rename ${options.name}`
   // The visible label stays short; the accessible name says which pet.
   trigger.setAttribute("aria-label", `Rename ${options.name}`)
   trigger.innerHTML = icons.pencil
-  // A 44px target at every width — the floor the guidelines ask for.
-  trigger.style.width = "44px"
-  trigger.style.height = "44px"
 
   const row = document.createElement("span")
   row.className = "stable-pet-name-row"

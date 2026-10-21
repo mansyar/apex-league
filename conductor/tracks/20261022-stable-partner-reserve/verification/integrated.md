@@ -52,11 +52,11 @@ is now the pet's own.
 
 | ID | Requirement | Evidence | Status |
 |---|---|---|---|
-| NFR-1 | Every client module ≤ 12,288 B | `module-size.test.ts` green; the largest client module is `hud/update.ts` at 12,263 B, `stable.ts` is 10,598 B | pass |
+| NFR-1 | Every client module ≤ 12,288 B | `module-size.test.ts` green; the largest client module is `hud/update.ts` at 12,263 B, `stable.ts` is 11,379 B and `stable-rename.ts` 5,070 B | pass |
 | NFR-2 | No new dependencies; the gate still covers 12 byte-identical creature GLBs | `bun run gate:determinism` — 12 GLBs byte-identical + 5 props; no dependency added | pass |
 | NFR-3 | Sim logic pure, seeded, DOM-free, TDD'd; a swap consumes no RNG | `packages/sim/src/stable.ts` is pure and seedless; the sim's tests cover each seam | pass |
 | NFR-4 | Existing invariants hold; the evolution goldens re-pinned onto the pet's age with the same day numbers | The six boss bands unchanged; the day-1 starter still matures on the day-10 night (`evolution.test.ts`, "the pet's own age — a late hatch grows at its own pace") | pass |
-| NFR-5 | The stable surface follows `product-guidelines.md` | The modal is a `kit-modal` with a focus trap, Escape and backdrop close, focus restored to the partner plate, ARIA-labelled, and 44 px targets — proven by the visual pass | pass |
+| NFR-5 | The stable surface follows `product-guidelines.md` | The modal is a `kit-modal` with a focus trap, Escape and backdrop close, focus restored to the partner plate, ARIA-labelled, and the house's icon-button targets (26 px on the desktop, the phone tier's 44 px floor) — proven by the visual pass | pass |
 | NFR-6 | No new voxel artifacts | The change set touches no voxel source or GLB; the gate regenerates all 12 byte-identical | pass |
 
 ## Acceptance criteria

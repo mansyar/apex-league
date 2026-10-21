@@ -307,13 +307,15 @@ describe("the modal with an empty stable", () => {
 })
 
 describe("renaming a waiting pet", () => {
-  test("the pencil on the row is a labelled control with a 44px target", () => {
+  test("the pencil on the row is a labelled house icon button", () => {
     const modal = buildStableModal(quietHandlers())
     modal.open(stateWith([pet({ name: "Waiting" })]))
-    const pencil = byClass(fakeOf(modal.root), "stable-pet-rename")
+    const pencil = byClass(fakeOf(modal.root), "rename-button")
     expect(pencil.attributes["aria-label"]).toBe("Rename Waiting")
-    expect(pencil.style.width).toBe("44px")
-    expect(pencil.style.height).toBe("44px")
+    // The house sizes the control (26 px on the desktop, the phone tier's
+    // 44 px floor), so the pencil carries no inline size of its own.
+    expect(pencil.style.width).toBe("")
+    expect(pencil.style.height).toBe("")
   })
 
   test("the pencil renames the pet and the change is committed", () => {
@@ -330,7 +332,7 @@ describe("renaming a waiting pet", () => {
     })
     modal.open(state)
     const root = fakeOf(modal.root)
-    byClass(root, "stable-pet-rename").fire("click", {})
+    byClass(root, "rename-button").fire("click", {})
     const input = byClass(root, "stable-pet-input")
     expect(input.attributes["aria-label"]).toBe("New name for Waiting")
     expect(lastFocused).toBe(input)
@@ -340,6 +342,57 @@ describe("renaming a waiting pet", () => {
     expect(state.stable[0]?.name).toBe("Rolo")
     // ...and the row says so.
     expect(byClass(root, "stable-pet-name").textContent).toBe("Rolo")
+  })
+
+  test("Enter in the field saves the new name", () => {
+    let state = stateWith([pet({ name: "Waiting" })])
+    const modal = buildStableModal({
+      ...quietHandlers(),
+      onRename: (creatureId, name) => {
+        const result = renameStablePet(state, creatureId, name)
+        if (!result.ok) return result
+        state = result.state
+        return result
+      },
+    })
+    modal.open(state)
+    const root = fakeOf(modal.root)
+    byClass(root, "rename-button").fire("click", {})
+    const input = byClass(root, "stable-pet-input")
+    input.value = "Rolo"
+    input.fire("keydown", {
+      key: "Enter",
+      preventDefault: () => {},
+      stopPropagation: () => {},
+    })
+    // The name is committed and the row repaints from it.
+    expect(state.stable[0]?.name).toBe("Rolo")
+    expect(byClass(root, "stable-pet-name").textContent).toBe("Rolo")
+  })
+
+  test("a refused rename keeps the editor open, focused, and says why", () => {
+    const modal = buildStableModal({
+      ...quietHandlers(),
+      onRename: () => ({ ok: false, reason: "cup-phase" }),
+    })
+    modal.open(stateWith([pet({ name: "Waiting" })]))
+    const root = fakeOf(modal.root)
+    byClass(root, "rename-button").fire("click", {})
+    const input = byClass(root, "stable-pet-input")
+    input.value = "Rolo"
+    // The click takes the keyboard to the button, as it would in a browser.
+    const save = byClass(root, "stable-pet-save")
+    save.focus()
+    save.fire("click", {})
+    // The note says why, in the game's voice.
+    expect(byClass(root, "stable-note").textContent).toBe(
+      stableRenameRefusalCopy("cup-phase"),
+    )
+    // The editor stays open...
+    expect(classNamed(root, "stable-pet-input")).toHaveLength(1)
+    expect(classNamed(root, "stable-pet-save")).toHaveLength(1)
+    // ...and the field takes the keyboard back.
+    expect(lastFocused).toBe(input)
   })
 
   test("Escape cancels the edit and hands the keyboard back to the pencil", () => {
@@ -353,7 +406,7 @@ describe("renaming a waiting pet", () => {
     })
     modal.open(stateWith([pet({ name: "Waiting" })]))
     const root = fakeOf(modal.root)
-    const pencil = byClass(root, "stable-pet-rename")
+    const pencil = byClass(root, "rename-button")
     pencil.fire("click", {})
     const input = byClass(root, "stable-pet-input")
     input.value = "Rolo"
