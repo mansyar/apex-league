@@ -13,7 +13,7 @@ Only the primary agent writes this file; subagents report back.
 - **Covers:** FR-10, AC-10
 - **Touches:** `.conductor/runs/*`, `conductor/tracks.md`
 - **Verification:** `bun run check && bun test --timeout 120000` (sanity only; state-only change)
-- **Status:** pending
+- **Status:** in_progress
 
 ### Tasks
 
