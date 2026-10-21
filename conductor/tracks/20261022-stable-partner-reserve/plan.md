@@ -14,7 +14,7 @@
 - **Covers:** FR-5, FR-12, NFR-3, NFR-4, AC-3, AC-4
 - **Touches:** `packages/sim/src/creature.ts`, `packages/sim/src/evolution.ts`, `packages/sim/src/ticker.ts`, `packages/sim/src/state.ts`, `packages/sim/src/legacy.ts`, `packages/sim/src/save/*`, `packages/sim/src/*.test.ts`
 - **Verification:** `bun run check && bun test --timeout 120000` (the evolution goldens re-pinned on the pet's age)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Give every creature an age counter** — covers: FR-5
   - [ ] **P1.T1.1: Failing test first — the gates read the pet's age, and a day-24 hatch matures on its own tenth night** — covers: FR-5, AC-4
