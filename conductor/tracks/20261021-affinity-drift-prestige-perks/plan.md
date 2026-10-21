@@ -67,7 +67,7 @@ The primary appends after acceptance:
 - **Covers:** FR-4, FR-5, AC-4, AC-5, NFR-3
 - **Touches:** `packages/sim/src/legacy.ts`, `packages/sim/src/breeding.ts`, the day/AP settlement module (`packages/sim/src/` care/day machine), co-located `*.test.ts`
 - **Verification:** `bun run check && bun test --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Milestone constants and perks** — covers: FR-4, FR-5
   - [ ] **P3.T1.1: Add `PRESTIGE_REFINED_BLOOD = 7` and `PRESTIGE_CHAMPION_STABLE = 9`; extend `LineagePerks` with `refinedBlood` / `championStable` (cumulative, like the existing three)**
