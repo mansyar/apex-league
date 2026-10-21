@@ -176,3 +176,9 @@ is carried forward: `issues.enabled` is `false`, and nothing was deferred.
   tests, documented in `docs/save-schema.md`.
 - **The gift surface is a ranch card, not the nursery screen**: the nursery is
   only reachable at graduation, so a gift granted mid-run had no surface.
+- **Known issue, tracked by `20261022-stable-partner-reserve`**: the game holds
+  one active creature, so the gift's hatch swaps the ranch partner out to the
+  Hall of Fame. The swap is explicit and the card states the trade, but a
+  reward should add to the roster rather than replace a companion. The stable
+  (a reserve slot plus a swap surface) is the fix, and it lands in the
+  follow-up track rather than here.
