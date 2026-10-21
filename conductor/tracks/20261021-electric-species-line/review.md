@@ -95,3 +95,84 @@ Recorded in `plan.md` as Phase R1. Summary of the resolution:
   restored to 20 s.
 
 Round 2 results are appended below.
+
+## Round 2
+
+### Method
+
+The reviewer subagent was dispatched again after the fix round and failed
+(provider rate limit), so the primary agent re-reviewed the R1 diff
+(`31fbbbe..b3e800a`) against the same checklist: every round-1 finding
+re-verified at its cited lines, the new code read for correctness, and the
+requirement coverage re-derived from the diff and the evidence files.
+
+### Findings closed
+
+| ID | Severity | Resolution | Verified by |
+| --- | --- | --- | --- |
+| F1 | High | The grant creates a persisted pending egg; the results screen names it, a ranch chip opens the card, the card previews the exact hatch and the hatch commits through the store. | `packages/sim/src/cupRewards.ts:104`, `packages/sim/src/breeding.ts:405`, `apps/client/src/gift.ts`, `apps/client/src/app/hud-screen.ts:192`; browser pass: chip → card → hatch at two widths, 0 errors; `giftSave.test.ts` round-trip; `storm-gift.test.ts` preview == hatch |
+| F2 | High | Breeding creates any known species through the unchecked seam; the starter seam still refuses the hound. | `packages/sim/src/breeding.ts:257`; `species.test.ts` "a hound pair breeds a hound (review round 1, F2)" — the gate still throws |
+| F3 | Medium | The hatch archives the outgoing creature in the Hall of Fame. | `packages/sim/src/breeding.ts:419`; `storm-gift.test.ts` "the outgoing partner is archived, not dropped (review round 1, F3)"; browser pass: the card names the retiree before the hatch |
+| F4 | Medium | The population note names the storm hound. | `apps/client/src/handbook/chart.ts:21`; the Phase 4 visual pass re-ran clean |
+| F5 | Medium | `storm_hound` gained boundary, budget and determinism fuzz partitions. | `packages/voxel/src/fuzz/*storm_hound*` (7 files, 30 fuzz tests green); a pre-check over 40 seeds × 3 stages found 0 boundary violations and a 195 KB max GLB |
+| F6 | Low | The pool derives from each species' `rewardFromTier`. | `packages/sim/src/species.ts:obtainableSpecies`, `packages/sim/src/machine.ts:74`; `species.test.ts` "carries the tier that unlocks it" |
+| F7 | Low | `createCreatureFrom` is no longer exported from the barrel. | `packages/sim/src/index.ts`; the client compiles against the narrower surface |
+| F8 | Low | The heavy face loops are split per archetype with 20 s budgets. | `packages/voxel/src/face.test.ts` — 15 tests in 6.9 s |
+
+### New findings
+
+None. The R1 diff was read for correctness, save-migration shape, client
+wiring, and module-size headroom; no new defect was found.
+
+### Coverage (round 2)
+
+| ID | Status | Note |
+| --- | --- | --- |
+| FR-1 | covered | The obtain step now reaches the player: grant → pending egg → card → hatch (browser-verified), then raise → evolve → branch → compete (Phase 5 lifecycle). |
+| FR-2 | covered | Archetype, three gated GLBs, accent-tint branch forms, and now the same fuzz coverage as the other archetypes. |
+| FR-3 | covered | Fast-striker bounds, distinct from every starter. |
+| FR-4 | covered | Six-move kit, learn schedule, equip-4. |
+| FR-5 | covered | The grant fires once at tier ≥ Silver, never on a forfeit, and now delivers a persisted egg. |
+| FR-6 | covered | Pure egg (`affinity: null`, no drift draw) and the nursery preview is the same seed as the hatch. |
+| FR-7 | covered | The rival pool reads the per-species reward tier; Bronze brackets stay byte-identical. |
+| FR-8 | covered | Save v21 + v22 with two linear migrations, `docs/save-schema.md` updated in the same phase. |
+| FR-9 | covered | Handbook (moves + chart note), ranch, plate, detail modal, and the gift card. |
+| FR-10 | covered | Housekeeping unchanged since Phase 0. |
+| AC-1 | covered | Phase 5 lifecycle + the R1 browser pass (grant → hatch → the hound on the ranch). |
+| AC-2 | covered | 12/12 GLBs byte-identical in the gate. |
+| AC-3 | covered | Balance probe green; boss bands untouched. |
+| AC-4 | covered | Learn-schedule and equip-4 tests green. |
+| AC-5 | covered | Grant paths asserted (silver, second finalize, bronze, promotion cup, forfeit, forfeit-then-real, gold runner-up, purity). |
+| AC-6 | covered | `createGiftEgg` ≡ the hatched creature; the card previews the same seed (browser-verified). |
+| AC-7 | covered | Bronze deep-equals the plain draw; the boss slot is intact. |
+| AC-8 | covered | Round-trip, the v20→v21 and v21→v22 migrations, and the export filename all green. |
+| AC-9 | covered | Both visual passes (Phase 4 surfaces, R1 gift flow) clean at 1440×900 and 393×852. |
+| AC-10 | covered | Housekeeping evidence in `verification/phase-0.md`. |
+| NFR-1 | covered | Module-size gate green; the HUD update module keeps its headroom. |
+| NFR-2 | covered | No dependency changes; the gate covers 12 GLBs, byte-identical. |
+| NFR-3 | covered | Drift-stream purity pinned; the grant consumes no draw. |
+| NFR-4 | covered | Boss bands and existing goldens unchanged; 2,235 pass / 0 fail. |
+| NFR-5 | covered | Hue 50°, shared AO floor, shared bead-eye kit; the hound now inherits the same fuzz gates. |
+
+### Checks (round 2)
+
+| Command | Result | Summary |
+|---|---|---|
+| `bun run verify` | pass | typecheck + biome (496 files) + 2,235 pass / 1 skip / 0 fail + determinism gate 12 GLBs and 5 props byte-identical |
+| `bun run build` | pass | all packages built |
+| gift visual pass | pass | chip → card → hatch at 1440×900 and 393×852; 0 console/page errors |
+| Phase 4 visual pass (re-run) | pass | handbook, detail modal, ranch; 0 console/page errors |
+
+### Verdict (round 2)
+
+**APPROVED** — every round-1 finding is closed at its source, no new finding
+was introduced, and the track's requirements are covered end to end. No debt
+is carried forward: `issues.enabled` is `false`, and nothing was deferred.
+
+### Deviations from the original plan
+
+- **Save v22 in the same track** (v21 in Phase 2): the granted egg has to
+  persist, and a pending egg is a persisted value. Linear migration, four new
+  tests, documented in `docs/save-schema.md`.
+- **The gift surface is a ranch card, not the nursery screen**: the nursery is
+  only reachable at graduation, so a gift granted mid-run had no surface.

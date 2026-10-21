@@ -127,16 +127,20 @@ Only the primary agent writes this file; subagents report back.
 - **Covers:** FR-1, FR-2, FR-5, FR-6, FR-7, FR-8, FR-9, AC-1, AC-6, AC-7, AC-8, AC-9, NFR-1, NFR-2, NFR-3, NFR-4, NFR-5
 - **Touches:** `packages/sim/src/{species,creature,breeding,cupRewards,machine,state}.ts`, `packages/sim/src/save/{schema,migrate,storage}.ts`, `packages/sim/src/index.ts`, `packages/voxel/src/fuzz/`, `packages/voxel/src/face.test.ts`, `apps/client/src/{gift.ts,hud/,handbook/chart.ts,cup/}`, `apps/client/src/ranch.css`, `docs/save-schema.md`
 - **Verification:** `bun run verify && bun run build` plus the client gift-flow test and the re-run Phase 4 visual pass
-- **Status:** in_progress
+- **Status:** verified
 
 ### Tasks
 
-- [ ] **R1.T1: Deliver the Storm Gift through the client (F1)** — persisted pending egg (save v22 `pendingGift`), a cup-results reward row, a HUD chip and a Storm Gift card that previews the exact hatch and commits it - covers: FR-5, FR-6, FR-9, AC-1, AC-6, AC-8
-- [ ] **R1.T2: Breeding accepts a known species (F2)** — the hound follows the standard dual-parent rules; the starter gate stays shut - covers: FR-1
-- [ ] **R1.T3: The gift hatch archives the outgoing career (F3)** - covers: FR-1
-- [ ] **R1.T4: Handbook population note names the storm hound (F4)** - covers: FR-9
-- [ ] **R1.T5: storm_hound fuzz partitions (F5)** — boundary, budget and determinism, mirroring the other archetypes - covers: NFR-2, NFR-5
-- [ ] **R1.T6: Explicit reward-tier contract for the rival pool (F6)** - covers: FR-7, AC-7
-- [ ] **R1.T7: Un-export the unchecked creation seam (F7)** - covers: FR-2
-- [ ] **R1.T8: Restore the face-test budgets by splitting the heavy loops (F8)** - covers: NFR-4
-- [ ] **R1.T9: Docs re-synced to the delivered behaviour; full gate green; review round 2** - covers: AC-1, AC-9, NFR-1
+- [x] **R1.T1: Deliver the Storm Gift through the client (F1)** — persisted pending egg (save v22 `pendingGift`), a cup-results reward row, a HUD chip and a Storm Gift card that previews the exact hatch and commits it - covers: FR-5, FR-6, FR-9, AC-1, AC-6, AC-8
+- [x] **R1.T2: Breeding accepts a known species (F2)** — the hound follows the standard dual-parent rules; the starter gate stays shut - covers: FR-1
+- [x] **R1.T3: The gift hatch archives the outgoing career (F3)** - covers: FR-1
+- [x] **R1.T4: Handbook population note names the storm hound (F4)** - covers: FR-9
+- [x] **R1.T5: storm_hound fuzz partitions (F5)** — boundary, budget and determinism, mirroring the other archetypes - covers: NFR-2, NFR-5
+- [x] **R1.T6: Explicit reward-tier contract for the rival pool (F6)** - covers: FR-7, AC-7
+- [x] **R1.T7: Un-export the unchecked creation seam (F7)** - covers: FR-2
+- [x] **R1.T8: Restore the face-test budgets by splitting the heavy loops (F8)** - covers: NFR-4
+- [x] **R1.T9: Docs re-synced to the delivered behaviour; full gate green; review round 2** - covers: AC-1, AC-9, NFR-1
+
+**Result:** verified
+**Checkpoint:** b3e800a
+**Evidence:** conductor/tracks/20261021-electric-species-line/verification/phase-r1.md
