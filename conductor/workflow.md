@@ -325,9 +325,10 @@ The plan update is a separate Conductor state commit.
 ## Pull Requests & Merging
 
 - A track PR is created from the track branch against `main` with the archived
-  `pr.md` as the body. The final branch commit (`chore(conductor): Record PR …`)
-  records `pr_url` and `pr_state: "open"` in `metadata.json` — that is the last
-  Conductor commit on the branch.
+  `pr.md` as the body. The single completion commit
+  (`chore(conductor): Complete and archive track '<track-id>'`) moves the track
+  into `conductor/archive/`, records `pr_url` and `pr_state: "open"` in
+  `metadata.json`, and is the last commit on the branch.
 - Merging is squash-only (`gh pr merge --squash`) and requires explicit user
   confirmation plus a `PASS` or `PASS WITH FINDINGS` review verdict.
 - **After a merge there is nothing to commit.** The squash commit on `main`
