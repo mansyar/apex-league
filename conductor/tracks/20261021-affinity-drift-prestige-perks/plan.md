@@ -116,7 +116,7 @@ The primary appends after acceptance:
 - **Covers:** FR-7, AC-7, NFR-2
 - **Touches:** `conductor/product.md`, `conductor/tech-stack.md`, `README.md` (only if it repeats affected truth)
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P5.T1: Mark the two Phase 2 roadmap items landed in `product.md`; dated `tech-stack.md` note (save v20, drift rule, perk ladder)** — covers: FR-7
 - [ ] **P5.T2: README truth check — update only claims this track invalidates (element genetics, prestige ladder); record skipped if nothing stale** — covers: FR-7
