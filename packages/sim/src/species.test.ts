@@ -6,10 +6,15 @@
 import { describe, expect, test } from "bun:test"
 import { getMove } from "./battle/moves"
 import { branchesForSpecies } from "./branches"
-import { speciesOptions } from "./breeding"
+import { createBredCreature, speciesOptions } from "./breeding"
 import { createCreature } from "./creature"
 import type { RetiredRecord } from "./legacy"
-import { getSpecies, LOCKED_SPECIES, STARTER_SPECIES } from "./species"
+import {
+  getSpecies,
+  obtainableSpecies,
+  REWARD_SPECIES,
+  STARTER_SPECIES,
+} from "./species"
 
 const HOUND = "electric_hound"
 
@@ -65,8 +70,20 @@ describe("electric_hound species record", () => {
   test("is not a starter — the starter roster stays the playable trio", () => {
     expect(STARTER_SPECIES).toHaveLength(3)
     expect(STARTER_SPECIES.map((s) => s.id)).not.toContain(HOUND)
-    expect(LOCKED_SPECIES.map((s) => s.id)).toEqual([HOUND])
+    expect(REWARD_SPECIES.map((s) => s.id)).toEqual([HOUND])
     expect(speciesOf(HOUND).available).toBe(false)
+  })
+
+  test("carries the tier that unlocks it — the pool reads the contract, not the array", () => {
+    expect(speciesOf(HOUND).rewardFromTier).toBe("silver")
+    // Bronze has not reached the tier that grants the hound.
+    expect(obtainableSpecies("bronze").map((s) => s.id)).toEqual(
+      STARTER_SPECIES.map((s) => s.id),
+    )
+    // Silver and above can field it.
+    for (const tier of ["silver", "gold", "legend"] as const) {
+      expect(obtainableSpecies(tier).map((s) => s.id)).toContain(HOUND)
+    }
   })
 
   test("cannot be created while locked", () => {
@@ -142,5 +159,23 @@ describe("electric_hound species record", () => {
     expect(speciesOptions([record(HOUND, 1), record(HOUND, 2)])).toEqual([
       HOUND,
     ])
+  })
+
+  test("a hound pair breeds a hound (review round 1, F2)", () => {
+    // The starter gate stays shut for the hound...
+    expect(() => createCreature(HOUND, 1)).toThrow(/not yet available/i)
+    // ...but a pair the player already owns breeds normally.
+    const parents = [record(HOUND, 1), record(HOUND, 2)]
+    const child = createBredCreature(HOUND, 42, parents, 3)
+    expect(child.speciesId).toBe(HOUND)
+    expect(child.element).toBe("electric")
+    expect(child.giftEgg).toBe(false)
+    // The offspring's stats stay inside the species' own bounds.
+    const species = speciesOf(HOUND)
+    for (const key of ["hp", "atk", "def", "spd"] as const) {
+      const [lo, hi] = species.statBounds[key]
+      expect(child.stats[key]).toBeGreaterThanOrEqual(lo)
+      expect(child.stats[key]).toBeLessThanOrEqual(hi)
+    }
   })
 })

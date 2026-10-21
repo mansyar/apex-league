@@ -10,12 +10,12 @@ import { bossForCup } from "../bosses"
 import { effectiveStats } from "../creature"
 import type { LadderTier } from "../ladder"
 import { prepareCup } from "../machine"
-import { LOCKED_SPECIES, STARTER_SPECIES } from "../species"
+import { REWARD_SPECIES, STARTER_SPECIES } from "../species"
 import { chooseStarter, createInitialState, type GameState } from "../state"
 import { startCupSession } from "./session"
 
 const STARTER_IDS = new Set(STARTER_SPECIES.map((s) => s.id))
-const REWARD_IDS = new Set(LOCKED_SPECIES.map((s) => s.id))
+const REWARD_IDS = new Set(REWARD_SPECIES.map((s) => s.id))
 const DAYS = Array.from({ length: 24 }, (_, i) => 7 + i * 4)
 
 function stateAt(tier: LadderTier): GameState {
@@ -83,7 +83,7 @@ describe("generated rival rosters (FR-7)", () => {
       if (!session) throw new Error("no session")
       for (const slot of session.bracket.slots) {
         if (slot.isPlayer) continue
-        const species = [...STARTER_SPECIES, ...LOCKED_SPECIES].find(
+        const species = [...STARTER_SPECIES, ...REWARD_SPECIES].find(
           (s) => s.id === slot.speciesId,
         )
         if (!species) continue // authored boss slot

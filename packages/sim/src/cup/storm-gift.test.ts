@@ -17,6 +17,8 @@ import {
   hatchGiftEgg,
   rollAffinityDrift,
   STORM_GIFT_SPECIES_ID,
+  stormGiftPending,
+  stormGiftPreview,
 } from "../breeding"
 import { createCreature, type Element } from "../creature"
 import {
@@ -94,6 +96,10 @@ describe("the Storm Gift grant at cup finalize (FR-5)", () => {
     const finalized = finalizeCup(s, crown(sessionOf(s)))
     expect(finalized.stormGiftClaimed).toBe(true)
     expect(finalized.phase).toBe("day")
+    // The grant is an egg waiting in the nursery, not a bare flag.
+    expect(finalized.pendingGift?.speciesId).toBe(STORM_GIFT_SPECIES_ID)
+    expect(typeof finalized.pendingGift?.seed).toBe("number")
+    expect(stormGiftPending(finalized)).toBe(true)
   })
 
   test("a second finalize never re-grants — the claim is one-time", () => {
@@ -101,6 +107,8 @@ describe("the Storm Gift grant at cup finalize (FR-5)", () => {
     const first = finalizeCup(s, crown(sessionOf(s)))
     const second = finalizeCup(first, crown(sessionOf(first)))
     expect(second.stormGiftClaimed).toBe(true)
+    // The egg the first finalize granted is still the one waiting.
+    expect(second.pendingGift).toEqual(first.pendingGift)
   })
 
   test("never fires below Silver", () => {
@@ -108,6 +116,7 @@ describe("the Storm Gift grant at cup finalize (FR-5)", () => {
     const finalized = finalizeCup(fresh, crown(sessionOf(fresh)))
     expect(finalized.ladder.tier).toBe("bronze")
     expect(finalized.stormGiftClaimed).toBe(false)
+    expect(finalized.pendingGift).toBeNull()
   })
 
   test(
@@ -123,6 +132,7 @@ describe("the Storm Gift grant at cup finalize (FR-5)", () => {
       const finalized = finalizeCup(s, crown(session))
       expect(finalized.ladder.tier).toBe("silver")
       expect(finalized.stormGiftClaimed).toBe(true)
+      expect(finalized.pendingGift?.speciesId).toBe(STORM_GIFT_SPECIES_ID)
     },
   )
 
@@ -130,6 +140,7 @@ describe("the Storm Gift grant at cup finalize (FR-5)", () => {
     const s = stateAt({ tier: "silver", subTier: "III", points: 18 })
     const finalized = finalizeCup(s, forfeitedSession(s))
     expect(finalized.stormGiftClaimed).toBe(false)
+    expect(finalized.pendingGift).toBeNull()
   })
 
   test("a forfeit does not consume the gift — the next real finalize grants", () => {
@@ -137,12 +148,14 @@ describe("the Storm Gift grant at cup finalize (FR-5)", () => {
     const forfeited = finalizeCup(s, forfeitedSession(s))
     const later = finalizeCup(forfeited, crown(sessionOf(forfeited)))
     expect(later.stormGiftClaimed).toBe(true)
+    expect(later.pendingGift?.speciesId).toBe(STORM_GIFT_SPECIES_ID)
   })
 
   test("any non-forfeit finalize at Silver or higher grants — a final loss counts", () => {
     const s = stateAt({ tier: "gold", subTier: "I", points: 36 })
     const finalized = finalizeCup(s, runnerUpSession(s))
     expect(finalized.stormGiftClaimed).toBe(true)
+    expect(finalized.pendingGift?.speciesId).toBe(STORM_GIFT_SPECIES_ID)
   })
 
   test("the grant is pure — the input state is never mutated", () => {
@@ -156,18 +169,22 @@ describe("the Storm Gift grant at cup finalize (FR-5)", () => {
 describe("applyStormGift — the claim seam", () => {
   test("stamps the claim once at Silver or higher on a non-forfeit cup", () => {
     const s = stateAt({ tier: "silver", subTier: "III", points: 18 })
-    expect(applyStormGift(s, false).stormGiftClaimed).toBe(true)
+    const granted = applyStormGift(s, false)
+    expect(granted.stormGiftClaimed).toBe(true)
+    expect(granted.pendingGift?.speciesId).toBe(STORM_GIFT_SPECIES_ID)
   })
 
   test("never stamps below Silver", () => {
     const fresh = stateAt()
     expect(applyStormGift(fresh, false).stormGiftClaimed).toBe(false)
     expect(applyStormGift(fresh, true).stormGiftClaimed).toBe(false)
+    expect(applyStormGift(fresh, false).pendingGift).toBeNull()
   })
 
   test("never stamps on a forfeit, at any tier", () => {
     const s = stateAt({ tier: "legend", subTier: "I", points: 40 })
     expect(applyStormGift(s, true).stormGiftClaimed).toBe(false)
+    expect(applyStormGift(s, true).pendingGift).toBeNull()
   })
 
   test("is idempotent on an already-claimed save", () => {
@@ -211,6 +228,15 @@ const MIXED_PARENTS: [RetiredRecord, RetiredRecord] = [
   parentRecord(1, "plant"),
 ]
 
+/** A save holding the granted egg, waiting to be hatched. */
+function grantedState(seed = 42): GameState {
+  return {
+    ...stateAt({ tier: "silver", subTier: "III", points: 18 }),
+    stormGiftClaimed: true,
+    pendingGift: { speciesId: STORM_GIFT_SPECIES_ID, seed },
+  }
+}
+
 describe("the pure gift egg (FR-6)", () => {
   test("hatches fixed-Electric with a guaranteed null affinity and the gift marker", () => {
     const hatch = createGiftEgg(42)
@@ -246,42 +272,39 @@ describe("the pure gift egg (FR-6)", () => {
   })
 
   test("previewed equals hatched — the nursery hatch lands the exact previewed individual", () => {
-    const granted = {
-      ...stateAt({ tier: "silver", subTier: "III", points: 18 }),
-      stormGiftClaimed: true,
-    }
-    const result = hatchGiftEgg(granted, 42)
+    const granted = grantedState(42)
+    const preview = stormGiftPreview(granted)
+    if (!preview) throw new Error("expected a gift preview")
+    const result = hatchGiftEgg(granted)
     if (!result.ok) throw new Error("hatch refused")
+    const hatched = result.state.creature
+    if (!hatched) throw new Error("expected a hatched creature")
     expect(result.state.creature).toEqual(createGiftEgg(42))
+    // The preview is the hatch: same species, same element, same stats.
+    expect(preview.speciesId).toBe(hatched.speciesId)
+    expect(preview.element).toBe(hatched.element)
+    expect(preview.stats).toEqual(hatched.stats)
   })
 
   test("the hatch seam refuses an ungranted gift", () => {
     const ungranted = stateAt()
-    expect(hatchGiftEgg(ungranted, 42)).toEqual({
+    expect(hatchGiftEgg(ungranted)).toEqual({
       ok: false,
       reason: "not-granted",
     })
   })
 
   test("the hatch seam refuses a second hatch of the same gift", () => {
-    const granted = {
-      ...stateAt({ tier: "silver", subTier: "III", points: 18 }),
-      stormGiftClaimed: true,
-    }
-    const hatched = hatchGiftEgg(granted, 42)
+    const hatched = hatchGiftEgg(grantedState(42))
     if (!hatched.ok) throw new Error("hatch refused")
-    expect(hatchGiftEgg(hatched.state, 42)).toEqual({
+    expect(hatchGiftEgg(hatched.state)).toEqual({
       ok: false,
       reason: "already-hatched",
     })
   })
 
   test("the gift marker persists into a Hall of Fame retirement", () => {
-    const granted = {
-      ...stateAt({ tier: "silver", subTier: "III", points: 18 }),
-      stormGiftClaimed: true,
-    }
-    const hatched = hatchGiftEgg(granted, 42)
+    const hatched = hatchGiftEgg(grantedState(42))
     if (!hatched.ok) throw new Error("hatch refused")
     const record = retireeRecord(hatched.state)
     if (!record) throw new Error("expected a retiree record")
@@ -292,23 +315,51 @@ describe("the pure gift egg (FR-6)", () => {
       creature: createCreature("fire_drake", 5),
       lineage: { generation: 1, hallOfFame: [record] },
     }
-    expect(hatchGiftEgg(retired, 42)).toEqual({
+    expect(hatchGiftEgg(retired)).toEqual({
       ok: false,
       reason: "already-hatched",
     })
   })
 
   test("the hatch carries the day over — the gift is not a graduation succession", () => {
-    const granted = {
-      ...stateAt({ tier: "silver", subTier: "III", points: 18 }),
-      stormGiftClaimed: true,
-    }
-    const hatched = hatchGiftEgg(granted, 42)
+    const granted = grantedState(42)
+    const hatched = hatchGiftEgg(granted)
     if (!hatched.ok) throw new Error("hatch refused")
     expect(hatched.state.day).toBe(granted.day)
     expect(hatched.state.actionPoints).toBe(granted.actionPoints)
     expect(hatched.state.ladder).toEqual(granted.ladder)
     expect(hatched.state.lineage.generation).toBe(granted.lineage.generation)
+  })
+
+  test("the outgoing partner is archived, not dropped (review round 1, F3)", () => {
+    const granted = grantedState(42)
+    const before = granted.creature
+    if (!before) throw new Error("expected a creature")
+    const hatched = hatchGiftEgg(granted)
+    if (!hatched.ok) throw new Error("hatch refused")
+    // The hound takes the ranch...
+    expect(hatched.state.creature?.speciesId).toBe(STORM_GIFT_SPECIES_ID)
+    // ...and the career it replaced is in the Hall of Fame, not lost.
+    const archived = hatched.state.lineage.hallOfFame
+    expect(archived).toHaveLength(granted.lineage.hallOfFame.length + 1)
+    const last = archived[archived.length - 1]
+    expect(last?.name).toBe(before.name)
+    expect(last?.speciesId).toBe(before.speciesId)
+    // The archived career is not itself a gift: the one-hatch rule holds.
+    expect(last?.giftEgg).toBe(false)
+  })
+
+  test("the granted egg waits for the player — the claim alone is not the hatch", () => {
+    const claimed = {
+      ...stateAt({ tier: "silver", subTier: "III", points: 18 }),
+      stormGiftClaimed: true,
+    }
+    expect(stormGiftPending(claimed)).toBe(false)
+    expect(stormGiftPreview(claimed)).toBeNull()
+    expect(hatchGiftEgg(claimed)).toEqual({
+      ok: false,
+      reason: "already-hatched",
+    })
   })
 })
 

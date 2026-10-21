@@ -66,15 +66,80 @@ function adapterFor(raw: unknown) {
   return adapter
 }
 
+/**
+ * A v21 payload: the claim flag exists, the pending egg does not. v21
+ * stamped the flag but never stored the egg itself — the gap review round 1
+ * found.
+ */
+function v21(
+  stateFields: Partial<Record<string, unknown>> = {},
+): Record<string, unknown> {
+  const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+  const state = {
+    ...owned,
+    ...stateFields,
+  } as unknown as Record<string, unknown>
+  delete state.pendingGift
+  return { version: 21, savedAt: 99, session: null, state }
+}
+
+describe("save v22 — the pending Storm Gift", () => {
+  test("a v21 save that never claimed waits for its next non-forfeit finalize", () => {
+    const migrated = migrate(v21())
+    expect(migrated.version).toBe(22)
+    expect(migrated.state.stormGiftClaimed).toBe(false)
+    expect(migrated.state.pendingGift).toBeNull()
+  })
+
+  test("a v21 save that claimed the gift receives the egg it was promised", () => {
+    const migrated = migrate(v21({ stormGiftClaimed: true }))
+    expect(migrated.state.stormGiftClaimed).toBe(true)
+    expect(migrated.state.pendingGift?.speciesId).toBe("electric_hound")
+    expect(typeof migrated.state.pendingGift?.seed).toBe("number")
+  })
+
+  test("a v21 save whose gift career is already hatched gets no second egg", () => {
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    const hatched = {
+      ...owned,
+      stormGiftClaimed: true,
+      creature: { ...owned.creature, giftEgg: true },
+    } as unknown as Record<string, unknown>
+    delete hatched.pendingGift
+    const migrated = migrate({
+      version: 21,
+      savedAt: 99,
+      session: null,
+      state: hatched,
+    })
+    expect(migrated.state.pendingGift).toBeNull()
+  })
+
+  test("the pending egg survives a save round trip", () => {
+    const adapter = createMemoryAdapter()
+    const state = {
+      ...chooseStarter(createInitialState(), "fire_drake", 42),
+      stormGiftClaimed: true,
+      pendingGift: { speciesId: "electric_hound", seed: 4242 },
+    }
+    saveGame(adapter, state, 7)
+    const loaded = loadGame(adapter)
+    expect(loaded?.pendingGift).toEqual({
+      speciesId: "electric_hound",
+      seed: 4242,
+    })
+  })
+})
+
 describe("save v21 — the Storm Gift bookkeeping", () => {
   test("the schema version is 21", () => {
-    expect(SAVE_VERSION).toBe(21)
+    expect(SAVE_VERSION).toBe(22)
   })
 
   test("a v20 creature and state migrate with the gift defaults stamped", () => {
     const raw = v20()
     const migrated = migrate(raw)
-    expect(migrated.version).toBe(21)
+    expect(migrated.version).toBe(22)
     expect(migrated.state.stormGiftClaimed).toBe(false)
     expect(migrated.state.creature?.giftEgg).toBe(false)
   })
@@ -285,7 +350,7 @@ describe("v21 export and import", () => {
     const result = inspectSaveImport(exported.json)
     expect(result.ok).toBe(true)
     if (result.ok) {
-      expect(result.data.version).toBe(21)
+      expect(result.data.version).toBe(22)
       expect(result.data.state.stormGiftClaimed).toBe(true)
       expect(result.data.state.creature?.giftEgg).toBe(true)
     }

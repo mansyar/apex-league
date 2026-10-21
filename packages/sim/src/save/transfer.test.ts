@@ -22,7 +22,7 @@ describe("buildSaveExport", () => {
     const exported = buildSaveExport(state, NOW)
     const parsed = JSON.parse(exported.json) as Record<string, unknown>
 
-    expect(exported.filename).toBe("apex-league-save-v21-2026-10-18.json")
+    expect(exported.filename).toBe("apex-league-save-v22-2026-10-18.json")
     expect(parsed.version).toBe(SAVE_VERSION)
     expect(parsed.session).toBeNull()
     expect(parsed.savedAt).toBe(NOW.getTime())

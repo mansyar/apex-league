@@ -57,7 +57,7 @@ describe("save v16 volumes", () => {
     const migrated = migrate(payload)
 
     expect(migrated.version).toBe(SAVE_VERSION)
-    expect(SAVE_VERSION).toBe(21)
+    expect(SAVE_VERSION).toBe(22)
     expect(migrated.state.settings.musicVolume).toBe(1)
     expect(migrated.state.settings.sfxVolume).toBe(1)
     expect(migrated.state.settings.reducedMotion).toBe(true)

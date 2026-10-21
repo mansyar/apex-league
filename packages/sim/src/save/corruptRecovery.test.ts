@@ -6,6 +6,7 @@
  */
 import { describe, expect, test } from "bun:test"
 import { chooseStarter, createInitialState } from "../state"
+import { SAVE_VERSION } from "./schema"
 import {
   clearSave,
   createMemoryAdapter,
@@ -39,7 +40,7 @@ describe("corrupt payload retention", () => {
     const raw = readRawSave(adapter)
     expect(raw).not.toBeNull()
     expect(JSON.parse(raw ?? "{}")).toMatchObject({
-      version: 21,
+      version: SAVE_VERSION,
       savedAt: 123,
     })
   })

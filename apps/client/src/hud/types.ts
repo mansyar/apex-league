@@ -1,5 +1,6 @@
 import type { CareAction, GameState, TrainingProgram } from "@apex/sim"
 import type { CreatureDetail } from "../creature-detail"
+import type { GiftModal } from "../gift"
 import type { SettingsModalRefs } from "../settings-modal"
 import type { CommandDockRefs } from "./dock"
 import type {
@@ -21,6 +22,10 @@ export interface HudRefs {
   dock: CommandDockRefs
   settings: SettingsModalRefs
   creatureDetail: CreatureDetail
+  /** The Storm Gift card (electric species line FR-5). */
+  gift: GiftModal
+  /** The chip that opens the gift card; hidden while nothing is pending. */
+  giftChip: HTMLButtonElement
   motionWrap: HTMLElement
   lineage: LineagePlateRefs
 }
@@ -51,6 +56,11 @@ export interface HudShellHandlers {
   onReset: () => void
   onOpenHallOfFame: () => void
   onRename: (name: string) => boolean
+  /**
+   * Hatch the granted Storm Gift (electric species line FR-5/FR-6). The app
+   * commits the succession through the store; the HUD only asks.
+   */
+  onHatchGift: () => void
 }
 
 /** The built HUD, as `shell` hands it to the other two passes. */

@@ -77,6 +77,9 @@ export function advanceDay(state: GameState, rng?: Rng): GameState {
     // The Storm Gift claim (save v21) carries across every day — the grant
     // is stamped only by the cup finalize's reward seam.
     stormGiftClaimed: state.stormGiftClaimed,
+    // The granted egg waits for the player (save v22): a day tick never
+    // hatches it and never drops it.
+    pendingGift: state.pendingGift,
   }
   if (!next.creature) return next
   const before = next.creature.stage

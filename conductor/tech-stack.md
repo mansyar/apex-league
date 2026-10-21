@@ -462,6 +462,22 @@
   ranch/plate/detail resolve `archetypeId` — aside from a phone-only handbook reflow
   (wrapping tabs, two-row move lines) that a 393 px pass exposed. No new dependency; the
   gate now hashes twelve creature GLBs, all byte-identical.
+  *Review round 1 (same track):* the grant now delivers an egg instead of a flag.
+  Save v22 adds `pendingGift` - the granted species plus the roll seed - so the
+  egg survives a reload, the nursery can preview the exact individual, and the
+  hatch rolls that same seed (`stormGiftPreview` / `hatchGiftEgg`); the hatch
+  archives the outgoing partner in the Hall of Fame before the hound takes the
+  ranch. A v21 save that had already claimed the gift receives the egg it was
+  promised through the v21 → v22 migration. The client gained a Storm Gift card
+  (`apps/client/src/gift.ts`): a ranch chip that shows only while an egg waits,
+  a card that previews the rolled stats, and a reward row on the cup results
+  screen. The species catalog now carries an explicit `rewardFromTier` per
+  species, so the rival pool reads the contract instead of the locked-species
+  array; breeding creates any known species through the unchecked seam, so a
+  hound pair breeds a hound while the starter gate stays shut. The storm hound
+  gained the same boundary/budget/determinism fuzz partitions as the other
+  archetypes, and the two heavy face tests were split per archetype so their
+  20 s budgets hold again. No new dependency.
 
 ## Quality Gates
 - `bun check` clean, `biome check` clean, `bun test` green — required before

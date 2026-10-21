@@ -15,7 +15,6 @@ import { headStartAp } from "./ap"
 import {
   type Creature,
   type CreatureStats,
-  createCreature,
   createCreatureFrom,
   type Element,
   type LineageTrait,
@@ -32,7 +31,7 @@ import {
   WARM_BOND_START,
 } from "./legacy"
 import { makeRng, type Rng } from "./rng"
-import { getSpecies, type SpeciesDef } from "./species"
+import { getSpecies, type SpeciesDef, STORM_GIFT_SPECIES_ID } from "./species"
 import { ACTION_POINTS_PER_DAY, type GameState } from "./state"
 import { dedupeTraits, effectiveTraits, traitBonus } from "./traits"
 
@@ -250,7 +249,11 @@ export function createBredCreature(
   )
 
   const rng = makeRng(seed)
-  const base = createCreature(speciesId, rng)
+  // The pair is the acquisition rule: both parents must already be this
+  // species, so the offspring is a known species even when the league only
+  // ever grants it (a hound pair breeds a hound - FR-1). The starter seam
+  // (`createCreature`) stays shut for reward species.
+  const base = createCreatureFrom(species, rng)
   const stats: CreatureStats = {
     hp: Math.max(base.stats.hp, floor.hp),
     atk: Math.max(base.stats.atk, floor.atk),
@@ -351,8 +354,12 @@ export function graduateWithPair(
   }
 }
 
-/** The Silver tier-reward species: the league's one-time "Storm Gift" (FR-5). */
-export const STORM_GIFT_SPECIES_ID = "electric_hound"
+/**
+ * The Silver tier-reward species: the league's one-time "Storm Gift" (FR-5).
+ * Re-exported from the catalog so the grant seam and the hatch seam cannot
+ * name two different species.
+ */
+export { STORM_GIFT_SPECIES_ID } from "./species"
 
 /**
  * The pure gift egg (electric species line FR-6): the league's Silver
@@ -396,14 +403,74 @@ function giftEggHatched(state: GameState): boolean {
 
 /**
  * Hatch the granted gift egg (the nursery's hatch seam for the Storm Gift).
- * The hound replaces the active creature — the single-creature rule —
- * without a Hall retirement: the gift is a grant, not a graduation, so the
- * day, budget, ladder, and lineage generation carry over untouched. Pure;
- * the same seed the preview was rendered with lands the exact same
- * individual.
+ * The hound takes the ranch under the single-creature rule, and the outgoing
+ * partner is archived in the Hall of Fame first — the same treatment every
+ * other succession gives its retiree, so a grant never silently drops a
+ * career. The day, budget, ladder and lineage generation carry over
+ * untouched: the gift is a grant, not a graduation. Pure; the egg's own
+ * stored seed lands the exact individual the nursery previewed.
  */
-export function hatchGiftEgg(state: GameState, seed: number): HatchGiftResult {
+export function hatchGiftEgg(state: GameState): HatchGiftResult {
   if (!state.stormGiftClaimed) return { ok: false, reason: "not-granted" }
+  const pending = state.pendingGift
+  if (!pending) return { ok: false, reason: "already-hatched" }
   if (giftEggHatched(state)) return { ok: false, reason: "already-hatched" }
-  return { ok: true, state: { ...state, creature: createGiftEgg(seed) } }
+  const record = retireeRecord(state)
+  return {
+    ok: true,
+    state: {
+      ...state,
+      creature: createGiftEgg(pending.seed),
+      pendingGift: null,
+      lineage: record
+        ? {
+            ...state.lineage,
+            hallOfFame: [...state.lineage.hallOfFame, record],
+          }
+        : state.lineage,
+    },
+  }
+}
+
+/**
+ * Whether a granted egg is waiting in the nursery for the player to hatch
+ * it (save v22). The claim flag alone cannot answer this: it stays true
+ * after the hatch.
+ */
+export function stormGiftPending(state: GameState): boolean {
+  return state.pendingGift !== null
+}
+
+/** What the nursery shows before the player commits to the hatch. */
+export interface StormGiftPreview {
+  speciesId: string
+  displayName: string
+  element: Element
+  flavor: string
+  /** The rolled stats of the exact individual the hatch will produce. */
+  stats: CreatureStats
+  /** The seed the hatch uses — the preview and the hatch share it. */
+  seed: number
+}
+
+/**
+ * The Storm Gift as the player will see it: the granted species and the
+ * rolled stats of the very individual the hatch produces. Built from the
+ * pending egg's own seed, so the preview cannot drift from the hatch
+ * (FR-6). Null when no gift is waiting.
+ */
+export function stormGiftPreview(state: GameState): StormGiftPreview | null {
+  const pending = state.pendingGift
+  if (!pending) return null
+  const species = getSpecies(pending.speciesId)
+  if (!species) return null
+  const egg = createGiftEgg(pending.seed)
+  return {
+    speciesId: pending.speciesId,
+    displayName: species.displayName,
+    element: species.element,
+    flavor: species.flavor,
+    stats: egg.stats,
+    seed: pending.seed,
+  }
 }

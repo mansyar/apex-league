@@ -89,7 +89,10 @@ export {
   retireeRecord,
   rollAffinityDrift,
   STORM_GIFT_SPECIES_ID,
+  type StormGiftPreview,
   speciesOptions,
+  stormGiftPending,
+  stormGiftPreview,
   TRAIT_ORDER,
   TRAITS,
   type TraitDef,
@@ -114,7 +117,6 @@ export {
   type CreatureConditions,
   type CreatureStats,
   createCreature,
-  createCreatureFrom,
   type Element,
   effectiveStats,
   type LifeStage,
@@ -275,7 +277,8 @@ export {
 export {
   ALL_SPECIES,
   getSpecies,
-  LOCKED_SPECIES,
+  obtainableSpecies,
+  REWARD_SPECIES,
   type SpeciesDef,
   STARTER_SPECIES,
 } from "./species"

@@ -6,6 +6,7 @@ import {
   careAction,
   clearSave,
   getSpecies,
+  hatchGiftEgg,
   inspectSaveImport,
   markHintSeen,
   renameCreature,
@@ -188,6 +189,17 @@ export function createHudScreen(deps: HudScreenDeps): Hud {
     },
     onGraduate: () => graduation.openConfirm(store.get()),
     onOpenHallOfFame: () => graduation.openHallOfFame(store.get()),
+    onHatchGift: () => {
+      // The Storm Gift (electric species line FR-5/FR-6): the sim's hatch
+      // seam archives the outgoing partner and installs the hound; the app
+      // commits it and rebuilds the ranch.
+      const result = hatchGiftEgg(store.get())
+      if (!result.ok) return
+      store.commit(result.state)
+      sceneSync.syncScene()
+      // The hound is the partner now: put the keyboard on its plate.
+      document.querySelector<HTMLButtonElement>(".creature-head")?.focus()
+    },
   })
 
   return hud

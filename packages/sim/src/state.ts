@@ -119,6 +119,26 @@ export interface GameState {
    * "Storm Gift" egg itself lives in the nursery flow (breeding.ts).
    */
   stormGiftClaimed: boolean
+  /**
+   * The granted Storm Gift egg, waiting in the nursery for the player to
+   * hatch it (save v22, electric species line FR-5/FR-6). Null when no
+   * gift is waiting — never granted yet, or already hatched. The seed
+   * travels with the egg so the preview and the hatch roll the same
+   * individual.
+   */
+  pendingGift: PendingGift | null
+}
+
+/**
+ * A granted reward egg (save v22). The league hands over the species and
+ * the roll; the player decides when to hatch it.
+ */
+export interface PendingGift {
+  /** The species the league granted (the Storm Gift species). */
+  speciesId: string
+  /** The roll seed: the preview and the hatch use this same seed, so what
+   * the player is shown is exactly what they get. */
+  seed: number
 }
 
 /** Action points granted at the start of each day. Stub value for Phase 0. */
@@ -149,6 +169,7 @@ export function createInitialState(): GameState {
     legendTitles: 0,
     evolutionKnowledge: initialEvolutionKnowledge(),
     stormGiftClaimed: false,
+    pendingGift: null,
   }
 }
 

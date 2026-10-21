@@ -95,9 +95,10 @@ bun run dev
 The dev server prints a local URL (Vite, default `http://localhost:5173`).
 A fresh save opens the starter choice - pick the Fire drake, the Plant ox or
 the Water axolotl and begin the day loop. Reaching Silver in the cup ladder
-grants the league's Storm Gift once: a pure electric-hound egg that hatches
-into a fourth line, raised through the same three stages and two champion
-forms as the starters. Each day you get 3 AP for care
+grants the league's Storm Gift once: a pure electric-hound egg that waits in
+the nursery, previewed down to its rolled stats, and hatched into a fourth
+line raised through the same three stages and two champion forms as the
+starters. Each day you get 3 AP for care
 actions plus one of four training programs — Power Lifting, Endurance
 Circuit, Sprint Work, Ring Craft — each training its own stats night by
 night, capped at +6 above the rolled base. Small comforts: the pencil by your partner's name renames

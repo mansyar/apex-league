@@ -188,7 +188,7 @@ function v16Payload(stage: LifeStage | null): Record<string, unknown> {
 
 describe("save v17 — discovery inferred from the persisted stage", () => {
   test("the schema version is 19", () => {
-    expect(SAVE_VERSION).toBe(21)
+    expect(SAVE_VERSION).toBe(22)
   })
 
   test("a v16 juvenile save knows the juvenile gate only", () => {

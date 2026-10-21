@@ -132,11 +132,15 @@ describe("faceParts", () => {
     expect(cell(-0.5, -0.5)).toBe(EYE_CLASS.pupil)
   })
 
-  test("every built eye is a two-by-two bead with one highlight", () => {
-    // The unit classifier passing is not enough: the head claims every eye voxel
-    // that sits inside the skull, so a bead can lose cells (or all of itself)
-    // while `face.ts` still classifies them correctly.
-    for (const archetype of ["draconic", "bovine", "axolotl"] as const) {
+  // The unit classifier passing is not enough: the head claims every eye voxel
+  // that sits inside the skull, so a bead can lose cells (or all of itself)
+  // while `face.ts` still classifies them correctly.
+  //
+  // Split per archetype: nine voxelizations in one test made the whole
+  // file slow enough to need a two-minute budget, and a slow test hides a
+  // slow generator. One archetype per test keeps each inside 20 seconds.
+  for (const archetype of ["draconic", "bovine", "axolotl"] as const) {
+    test(`every built ${archetype} eye is a two-by-two bead with one highlight`, () => {
       for (const stage of ["baby", "juvenile", "champion"] as const) {
         const def = archetypes[archetype]
         if (!def) throw new Error(`no archetype ${archetype}`)
@@ -163,8 +167,8 @@ describe("faceParts", () => {
           expect(new Set(eye.voxels.map((v) => v[0])).size).toBe(1)
         }
       }
-    }
-  }, 120_000)
+    }, 20_000)
+  }
 
   test("recess walls are dark, the rest of the head is coat", () => {
     const plan = facePlan("bovine", BOVINE_HEAD)
@@ -222,8 +226,10 @@ describe("face wiring", () => {
   // where the head actually is: a double-grid offset put the bovine snout (and
   // with it the whole mouth) outside the sampled volume, and nothing failed.
   // Every stage, because the muzzle shrinks with the skull.
-  test("every built head owns the surface its mouth is painted on", () => {
-    for (const archetype of ["draconic", "bovine", "axolotl"]) {
+  //
+  // Split per archetype for the same reason as the eye test above.
+  for (const archetype of ["draconic", "bovine", "axolotl"] as const) {
+    test(`every built ${archetype} head owns the surface its mouth is painted on`, () => {
       for (const stage of ["baby", "juvenile", "champion"] as const) {
         const { build, def } = generate(archetype, 42, stage)
         const grid = voxelize(build.fields, def.grid)
@@ -240,8 +246,8 @@ describe("face wiring", () => {
         const mouthRow = Math.min(...rows.keys())
         expect(rows.get(mouthRow)).toBeGreaterThanOrEqual(3)
       }
-    }
-  }, 120_000)
+    }, 20_000)
+  }
 
   // An isolated `voxelize([eye])` grid is not evidence of anything: the sampler
   // spans the whole scene bounds, so a standalone eye gets two or three samples

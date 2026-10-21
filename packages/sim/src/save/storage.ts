@@ -387,8 +387,26 @@ export function isValidSaveState(state: GameState): boolean {
     typeof state.evolutionKnowledge.champion !== "boolean" ||
     // v21: the Silver tier-reward claim is a plain boolean — a hand-edited
     // flag fails the load instead of granting (or blocking) the gift.
-    typeof state.stormGiftClaimed !== "boolean"
+    typeof state.stormGiftClaimed !== "boolean" ||
+    // v22: the pending Storm Gift is null or a well-typed egg (a known
+    // species and an integer seed). A malformed egg fails the load instead
+    // of hatching an unknown creature.
+    !isValidPendingGift(state.pendingGift)
   )
+}
+
+/**
+ * A pending gift egg (save v22) is valid when it names a known species and
+ * an integer seed. Null means nothing is waiting — never granted, or
+ * already hatched.
+ */
+function isValidPendingGift(gift: unknown): boolean {
+  if (gift === null) return true
+  if (typeof gift !== "object" || gift === undefined) return false
+  const g = gift as { speciesId?: unknown; seed?: unknown }
+  if (typeof g.speciesId !== "string") return false
+  if (getSpecies(g.speciesId) === undefined) return false
+  return typeof g.seed === "number" && Number.isInteger(g.seed)
 }
 
 /**
