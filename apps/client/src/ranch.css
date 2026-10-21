@@ -759,6 +759,83 @@
   opacity: 0.8;
 }
 
+/* Phones: name + stats + gate cannot hold their min tracks inside the modal
+   (88 + 160 + the gate copy overruns a 393px screen), so the gate drops to
+   its own row instead of pushing the panel out of the box. The tab row also
+   wraps: as a non-wrapping flex row it set the modal's min-content width
+   wider than the viewport, which clipped every panel it held. */
+@media (max-width: 767.98px) {
+  .handbook-tabs {
+    flex-wrap: wrap;
+  }
+
+  .handbook-move {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .handbook-move-gate {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+/* The Storm Gift card (electric species line FR-5): the league's one-time
+   Silver reward, previewed in the nursery. The stat rows read as the kit
+   tables do, so the card matches the rest of the ranch's plates. */
+.gift-box {
+  text-align: left;
+}
+
+.gift-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.gift-name {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.gift-flavor {
+  margin: 0 0 10px;
+  opacity: 0.8;
+  font-size: 13px;
+}
+
+.gift-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.gift-stat {
+  display: grid;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 3%);
+  font-size: 12px;
+}
+
+.gift-stat-label {
+  opacity: 0.6;
+  letter-spacing: 0.08em;
+}
+
+.gift-stat-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.gift-note {
+  margin: 0 0 12px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
 /* Settings modal (coach_knowledge_20261016 Phase 5): the three floating
    chips consolidated behind one Settings chip — same chips, same labels,
    same handlers. Camera/new-game surface scoping stays on the chips

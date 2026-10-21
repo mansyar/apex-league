@@ -320,6 +320,13 @@
   `FightCasting`/`CastInfo` for the arena). Vertex colours keep the coat and AO,
   `legacy` is never tinted, and the count of meshes, materials and draw calls
   is unchanged, so the nine GLBs and the determinism gate stay byte-identical.*
+  *2026-10-21 extension (`20261021-electric-species-line`): a fourth archetype
+  (`storm_hound`) ships three stage artifacts, taking the gate to twelve
+  creature GLBs — the nine pre-existing ones regenerate byte-identical. The
+  archetype is authored in the same template → seeded DNA → SDF → voxel →
+  mesh pipeline, with a proportion budget calibrated on a 200-seed × 3-stage
+  audit-lattice sweep; the branch forms of the reward line stay accent tints,
+  so no further geometry is committed.*
 - **Icons**: 2D UI portraits rendered offline from the same GLBs
   (headless three.js render step).
 - **Audio** *(audio_foundation_20261017, 2026-10-17)*: CC0 assets bundled
@@ -441,6 +448,36 @@
   callout, and Handbook docs; `creature-detail.ts` was slimmed by extracting
   `detail/kit-rows.ts` to hold the module cap. No new dependency; the determinism gate
   is untouched.
+- `2026-10-21` - **Electric species line** (`20261021-electric-species-line`): a fourth
+  species (`electric_hound`, storm hound) ships as the first reward line — a fast-striker
+  SPD specialist with six kit moves plus two signature specials written against the
+  existing effect vocabulary, and two champion branches whose forms are accent tints over
+  the stage meshes. Acquisition is a pure gift egg: the Storm Gift is granted once when a
+  non-forfeit cup finalizes at Silver or above (`stormGiftClaimed`), and the egg has
+  `affinity: null` with no drift draw, so the species is always electric. Save v21 adds
+  the claim flag and `giftEgg`, with a linear migration. Generated rival pools take an
+  optional species list; `prepareCup` widens the field to the reward line only from Silver
+  up, keeping every Bronze bracket byte-identical to the pre-track draw. The client needed
+  no species special-casing — the handbook's Moves page iterates the whole catalog, and
+  ranch/plate/detail resolve `archetypeId` — aside from a phone-only handbook reflow
+  (wrapping tabs, two-row move lines) that a 393 px pass exposed. No new dependency; the
+  gate now hashes twelve creature GLBs, all byte-identical.
+  *Review round 1 (same track):* the grant now delivers an egg instead of a flag.
+  Save v22 adds `pendingGift` - the granted species plus the roll seed - so the
+  egg survives a reload, the nursery can preview the exact individual, and the
+  hatch rolls that same seed (`stormGiftPreview` / `hatchGiftEgg`); the hatch
+  archives the outgoing partner in the Hall of Fame before the hound takes the
+  ranch. A v21 save that had already claimed the gift receives the egg it was
+  promised through the v21 → v22 migration. The client gained a Storm Gift card
+  (`apps/client/src/gift.ts`): a ranch chip that shows only while an egg waits,
+  a card that previews the rolled stats, and a reward row on the cup results
+  screen. The species catalog now carries an explicit `rewardFromTier` per
+  species, so the rival pool reads the contract instead of the locked-species
+  array; breeding creates any known species through the unchecked seam, so a
+  hound pair breeds a hound while the starter gate stays shut. The storm hound
+  gained the same boundary/budget/determinism fuzz partitions as the other
+  archetypes, and the two heavy face tests were split per archetype so their
+  20 s budgets hold again. No new dependency.
 
 ## Quality Gates
 - `bun check` clean, `biome check` clean, `bun test` green — required before

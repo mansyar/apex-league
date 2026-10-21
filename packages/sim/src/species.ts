@@ -1,9 +1,10 @@
 /**
- * Species definitions and the starter catalog.
+ * Species definitions and the species catalog.
  * Pure data only — no DOM, no rendering, no I/O.
  */
 
 import type { Element, StatBounds } from "./creature"
+import { type LadderTier, tierAtLeast } from "./ladder"
 
 /** A species' in-battle behaviour, stored on the definition, never on a save. */
 export type Temperament = "rush" | "slow" | "obedient"
@@ -19,8 +20,20 @@ export interface SpeciesDef {
   element: Element
   /** One-line flavor text for the starter choice card. */
   flavor: string
-  /** Whether the species can currently be acquired. */
+  /**
+   * Whether the player may pick this species at the start — the starter
+   * gate. Reward species are `false` here: the league grants them, the
+   * player never chooses them at the start line. `createCreature` (the
+   * starter seam) refuses those ids; the reward and breeding seams do
+   * not, because by then the league has handed the species over.
+   */
   available: boolean
+  /**
+   * The ladder tier that unlocks this species as a league reward, and
+   * with it the generated rival field (electric species line FR-5/FR-7).
+   * Absent for starters and for species the league has not released.
+   */
+  rewardFromTier?: LadderTier
   /** Fixed six-move pool, one row per element tier (the first four form the
    * classic unlocked kit; the last two open with the wider pool). */
   kit: readonly string[]
@@ -96,7 +109,65 @@ export const STARTER_SPECIES: readonly SpeciesDef[] = Object.freeze([
   },
 ])
 
+/**
+ * The Silver tier-reward species: the league's one-time "Storm Gift"
+ * (electric species line FR-5). The grant seam and the hatch seam both
+ * name it from here, so they can never disagree.
+ */
+export const STORM_GIFT_SPECIES_ID = "electric_hound"
+
+/**
+ * The species the league grants as a ladder reward rather than as a
+ * starter. Each carries the tier that unlocks it, so the rival field and
+ * the reward itself read the same contract instead of guessing from an
+ * array's membership (FR-7).
+ */
+export const REWARD_SPECIES: readonly SpeciesDef[] = Object.freeze([
+  {
+    id: "electric_hound",
+    archetypeId: "storm_hound",
+    displayName: "Storm Hound",
+    element: "electric",
+    flavor: "A crackling sprinter that sheds sparks with every stride.",
+    available: false,
+    rewardFromTier: "silver",
+    kit: [
+      "static_jolt",
+      "volt_dash",
+      "arc_shot",
+      "storm_bolt",
+      "ion_dart",
+      "gigavolt",
+    ],
+    temperament: "rush",
+    statBounds: { hp: [70, 84], atk: [10, 14], def: [5, 8], spd: [12, 16] },
+  },
+])
+
+/** Every defined species: starters first, reward species after. */
+export const ALL_SPECIES: readonly SpeciesDef[] = Object.freeze([
+  ...STARTER_SPECIES,
+  ...REWARD_SPECIES,
+])
+
+/**
+ * The species a player can hold once the league has reached `tier`: the
+ * starters plus every reward species unlocked at or below it. Bronze gets
+ * the three starters alone, so a pre-Silver bracket is exactly the bracket
+ * it always was (FR-7).
+ */
+export function obtainableSpecies(tier: LadderTier): readonly SpeciesDef[] {
+  return Object.freeze([
+    ...STARTER_SPECIES,
+    ...REWARD_SPECIES.filter(
+      (species) =>
+        species.rewardFromTier !== undefined &&
+        tierAtLeast(tier, species.rewardFromTier),
+    ),
+  ])
+}
+
 /** Look up a species by id, or undefined when unknown. */
 export function getSpecies(id: string): SpeciesDef | undefined {
-  return STARTER_SPECIES.find((s) => s.id === id)
+  return ALL_SPECIES.find((s) => s.id === id)
 }

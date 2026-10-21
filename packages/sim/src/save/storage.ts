@@ -187,6 +187,8 @@ function isValidCreature(c: unknown): c is Creature {
   const affinity = creature.affinity
   if (affinity !== null && !ELEMENTS.includes(affinity as string)) return false
   if (affinity === creature.element) return false
+  // v21: the gift-egg lineage marker is a plain boolean.
+  if (typeof creature.giftEgg !== "boolean") return false
   return true
 }
 
@@ -245,6 +247,8 @@ function isValidRetiredRecord(r: unknown): r is RetiredRecord {
   const affinity = rec.affinity
   if (affinity !== null && !ELEMENTS.includes(affinity as string)) return false
   if (affinity === rec.element) return false
+  // v21: the gift-egg lineage marker is a plain boolean.
+  if (typeof rec.giftEgg !== "boolean") return false
   return true
 }
 
@@ -380,8 +384,29 @@ export function isValidSaveState(state: GameState): boolean {
     typeof state.evolutionKnowledge !== "object" ||
     state.evolutionKnowledge === null ||
     typeof state.evolutionKnowledge.juvenile !== "boolean" ||
-    typeof state.evolutionKnowledge.champion !== "boolean"
+    typeof state.evolutionKnowledge.champion !== "boolean" ||
+    // v21: the Silver tier-reward claim is a plain boolean — a hand-edited
+    // flag fails the load instead of granting (or blocking) the gift.
+    typeof state.stormGiftClaimed !== "boolean" ||
+    // v22: the pending Storm Gift is null or a well-typed egg (a known
+    // species and an integer seed). A malformed egg fails the load instead
+    // of hatching an unknown creature.
+    !isValidPendingGift(state.pendingGift)
   )
+}
+
+/**
+ * A pending gift egg (save v22) is valid when it names a known species and
+ * an integer seed. Null means nothing is waiting — never granted, or
+ * already hatched.
+ */
+function isValidPendingGift(gift: unknown): boolean {
+  if (gift === null) return true
+  if (typeof gift !== "object" || gift === undefined) return false
+  const g = gift as { speciesId?: unknown; seed?: unknown }
+  if (typeof g.speciesId !== "string") return false
+  if (getSpecies(g.speciesId) === undefined) return false
+  return typeof g.seed === "number" && Number.isInteger(g.seed)
 }
 
 /**

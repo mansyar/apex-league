@@ -64,6 +64,21 @@ export const PROPORTION_BUDGETS: Record<string, ProportionBudget> = {
       "bodyLength/bodyHeight": { min: 1.5, max: 3.2 },
     },
   },
+  // Storm hound: the SPD-specialist silhouette — the leggiest land
+  // archetype (long exposed leg over a lean torso), a working-dog neck,
+  // and a torso that runs long and low without the drake's arch.
+  // Calibrated on the audit-lattice sweep (200 seeds, all three stages):
+  // legs 0.85-1.33, neck 0.04-0.37, head 0.23-0.78, body 1.6-2.6. Head and
+  // torso land within a lattice row of each other on the low-girth seeds, so
+  // the head ceiling carries the extra step that quantization needs.
+  storm_hound: {
+    ratios: {
+      "legLength/bodyHeight": { min: 0.8, max: 1.45 },
+      "neckLength/bodyLength": { min: 0.03, max: 0.4 },
+      "headHeight/bodyHeight": { min: 0.2, max: 0.85 },
+      "bodyLength/bodyHeight": { min: 1.5, max: 2.7 },
+    },
+  },
 }
 
 /** Inclusive check: a measured ratio inside its budget range. */

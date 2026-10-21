@@ -224,13 +224,22 @@ export function resultRows(
   ladder: LadderStanding,
   ladderBefore: LadderStanding | null,
   legendTitles = 0,
+  giftPending = false,
 ): string[] {
   const won = session.status === "champion"
   const lastVerdict = session.playerVerdicts.at(-1)
   const forfeited = lastVerdict !== undefined && lastVerdict.battle === null
   const row = ladderRow(ladder, ladderBefore, forfeited)
+  // The Storm Gift (electric species line FR-5): the league's one-time
+  // reward reads as a reward row, so the grant is visible where the player
+  // looks for rewards.
+  const giftRow = "⚡ Storm Gift — a Storm Hound egg waits in the nursery"
   if (!won) {
-    return [`Consolation: mood +${CUP_REWARDS.consolations.mood}`, row]
+    return [
+      `Consolation: mood +${CUP_REWARDS.consolations.mood}`,
+      row,
+      ...(giftPending ? [giftRow] : []),
+    ]
   }
   // The champion bonus is tier-stacked (gold_legend_ladder_20261017): a
   // Gold cup win pays +1 extra AP, a Legend win +2 — on top of the base
@@ -247,6 +256,7 @@ export function resultRows(
   if (ladder.tier === "legend") {
     rows.push(`★ Legend title ${legendTitles}`)
   }
+  if (giftPending) rows.push(giftRow)
   return rows
 }
 

@@ -73,6 +73,13 @@ export interface Creature {
    */
   branch: string | null
   /**
+   * True when this creature hatched from the league's Silver tier-reward
+   * gift egg (save v21, electric species line FR-8). Lineage provenance
+   * only — the client derives gift copy from it, and the hatch seam derives
+   * the one-gift rule from it; never battle data.
+   */
+  giftEgg: boolean
+  /**
    * Clean nights since the last sickness night, capped at
    * SICK_COOLDOWN_NIGHTS. Zero for a healthy run; the evolution care gate
    * (and later systems) read it as "recently sick" bookkeeping.
@@ -176,6 +183,44 @@ function rollStats(rng: Rng, species: SpeciesDef): CreatureStats {
 }
 
 /**
+ * Create a creature from an already-resolved species definition, bypassing
+ * the availability gate. Same seed -> same stats, so creature creation is
+ * replayable. This is the unchecked creation seam: `createCreature` guards
+ * it behind the species' `available` flag, and exactly one legitimate path
+ * bypasses the gate — the Silver tier-reward gift egg (breeding.ts), which
+ * must reach the locked electric_hound without loosening the public starter
+ * gate.
+ */
+export function createCreatureFrom(
+  species: SpeciesDef,
+  seed: number | Rng,
+): Creature {
+  const rng = typeof seed === "number" ? makeRng(seed) : seed
+  return {
+    archetypeId: species.archetypeId,
+    speciesId: species.id,
+    name: species.displayName,
+    element: species.element,
+    affinity: null,
+    traits: [],
+    parents: [],
+    stage: "baby",
+    branch: null,
+    giftEgg: false,
+    sickCooldown: 0,
+    stats: rollStats(rng, species),
+    trained: { ...TRAINED_START },
+    trainingProgram: null,
+    trainingResult: null,
+    trainingDays: 0,
+    loadout: null,
+    conditions: { ...CONDITION_START },
+    bondedToday: false,
+    fedToday: false,
+  }
+}
+
+/**
  * Create a creature of the given species from a seed (or an injected Rng).
  * Same seed -> same stats, so creature creation is replayable.
  * Throws on unknown or unavailable (locked) species.
@@ -189,28 +234,7 @@ export function createCreature(
   if (!species.available) {
     throw new Error(`Species not yet available: ${speciesId}`)
   }
-  const rng = typeof seed === "number" ? makeRng(seed) : seed
-  return {
-    archetypeId: species.archetypeId,
-    speciesId: species.id,
-    name: species.displayName,
-    element: species.element,
-    affinity: null,
-    traits: [],
-    parents: [],
-    stage: "baby",
-    branch: null,
-    sickCooldown: 0,
-    stats: rollStats(rng, species),
-    trained: { ...TRAINED_START },
-    trainingProgram: null,
-    trainingResult: null,
-    trainingDays: 0,
-    loadout: null,
-    conditions: { ...CONDITION_START },
-    bondedToday: false,
-    fedToday: false,
-  }
+  return createCreatureFrom(species, seed)
 }
 
 /** How long a player-chosen name may be after trimming. */

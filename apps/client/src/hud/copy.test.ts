@@ -808,6 +808,7 @@ describe("driftCallout — the drifted-hatch announcement (FR-6)", () => {
     traits: ["sturdy"],
     parents: [],
     branch: "legacy",
+    giftEgg: false,
   })
 
   test("silent when the creature carries no secondary affinity", () => {

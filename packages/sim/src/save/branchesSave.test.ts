@@ -20,8 +20,8 @@ import { SAVE_VERSION, serializeSave } from "./schema"
 import { createMemoryAdapter, loadGame, SAVE_KEY, saveGame } from "./storage"
 import { buildSaveExport, inspectSaveImport } from "./transfer"
 
-/** A Hall of Fame record as v18 wrote it (no branch or affinity yet). */
-const HALL_RECORD: Omit<RetiredRecord, "branch" | "affinity"> = {
+/** A Hall of Fame record as v18 wrote it (no branch, affinity, or gift marker yet). */
+const HALL_RECORD: Omit<RetiredRecord, "branch" | "affinity" | "giftEgg"> = {
   name: "Rolo",
   speciesId: "fire_drake",
   archetypeId: "draconic",
@@ -102,7 +102,7 @@ function speciesOf(id: string) {
 
 describe("save v19 — the earned branch", () => {
   test("the schema version is 19", () => {
-    expect(SAVE_VERSION).toBe(20)
+    expect(SAVE_VERSION).toBe(22)
   })
 
   test("a v18 baby migrates with no branch and identical numbers", () => {
@@ -113,7 +113,7 @@ describe("save v19 — the earned branch", () => {
     const migrated = migrate(raw)
     const creature = migrated.state.creature
     if (!creature) throw new Error("no creature")
-    expect(migrated.version).toBe(20)
+    expect(migrated.version).toBe(22)
     expect(creature.branch).toBeNull()
     expect(creature.stats).toEqual(before.creature.stats)
     expect(creature.trained).toEqual(before.creature.trained)
@@ -184,6 +184,7 @@ describe("save v19 — the earned branch", () => {
       ...HALL_RECORD,
       branch: "legacy",
       affinity: null,
+      giftEgg: false,
     })
   })
 
@@ -322,7 +323,7 @@ describe("v19 export and import", () => {
     const result = inspectSaveImport(exported.json)
     expect(result.ok).toBe(true)
     if (result.ok) {
-      expect(result.data.version).toBe(20)
+      expect(result.data.version).toBe(22)
       expect(result.data.state.creature?.branch).toBe("cinder_courser")
       expect(result.data.state.creature?.stage).toBe("juvenile")
     }

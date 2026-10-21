@@ -1,4 +1,5 @@
 import { buildCreatureDetail } from "../creature-detail"
+import { buildGiftChip, buildGiftModal } from "../gift"
 import { buildHandbook } from "../handbook"
 import { buildPrefCluster, buildSettingsModal } from "../settings-modal"
 import { buildCommandDock } from "./dock"
@@ -103,6 +104,19 @@ export function createHudShell(
   // reads state fresh on every open.
   const creatureDetail = buildCreatureDetail()
 
+  // Storm Gift (electric species line FR-5): the league's one-time Silver
+  // reward. The card lives in the HUD and opens from a chip that only shows
+  // while an egg is waiting in the nursery.
+  const gift = buildGiftModal(() => handlers.onHatchGift())
+  const giftChip = buildGiftChip(() => {
+    const current = view.current
+    if (!current) return
+    gift.open(current)
+  })
+  // The gift chip joins the ranch chips: it is the only way back to a
+  // pending egg once the results screen is gone.
+  motionWrap.append(giftChip)
+
   // Lineage plate (top-left, under the settings pill): the family name +
   // generation, and the Hall of Fame opener.
   const lineage = buildLineagePlate()
@@ -123,6 +137,7 @@ export function createHudShell(
     hudStack,
     resetModal,
     creatureDetail.root,
+    gift.root,
     handbook.root,
     settings.root,
   )
@@ -138,6 +153,8 @@ export function createHudShell(
       dock,
       settings,
       creatureDetail,
+      gift,
+      giftChip,
       motionWrap,
       lineage,
     },

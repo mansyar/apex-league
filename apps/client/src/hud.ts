@@ -1,4 +1,5 @@
 import type { CareAction, GameState, TrainingProgram } from "@apex/sim"
+import { syncGiftChip } from "./gift"
 import {
   driftCallout,
   evolveCallout,
@@ -85,6 +86,9 @@ export interface HudHandlers {
   onGraduate: () => void
   /** Open the Hall of Fame panel (main owns the modal). */
   onOpenHallOfFame: () => void
+  /** Hatch the granted Storm Gift (electric species line FR-5/FR-6); the app
+   * commits the succession through the store. */
+  onHatchGift: () => void
 }
 
 export interface Hud {
@@ -131,6 +135,8 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   const paint = (state: GameState) => {
     latest = state
     update(state)
+    // The Storm Gift chip (FR-5): shown only while a granted egg waits.
+    syncGiftChip(shell.refs.giftChip, state)
   }
   // The shell's own interactions re-render through this pass.
   shell.render = paint

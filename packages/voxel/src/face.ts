@@ -196,6 +196,25 @@ export function facePlan(archetype: string, head: HeadShape): FacePlan {
     }
   }
 
+  if (archetype === "storm_hound") {
+    // Alert canine eyes: set high and forward on the skull but not under a
+    // heavy ridge — the hound's expression is keen, not armored. The long
+    // narrow muzzle carries the mouth line on its own; at two to four cells
+    // across there is no room for a nostril pair (see the drake note below).
+    const eyeY = center.y + half.y * 0.35
+    const eyeZ = center.z + half.z * 0.4
+    const muzzle = snout ?? { center, half }
+    return {
+      eyes: [eye(head, -1, eyeY, eyeZ, radii), eye(head, 1, eyeY, eyeZ, radii)],
+      mouth: mouthLine(
+        muzzle,
+        muzzle.center.y - muzzle.half.y * 0.55,
+        muzzle.half.x * 0.72,
+      ),
+      nostrils: [],
+    }
+  }
+
   // Drake (the default silhouette): angled eyes under a heavy brow, a mouth
   // line running the length of the jaw, and a nostril pair on the snout top.
   const eyeY = center.y + half.y * 0.3

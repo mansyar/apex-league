@@ -7,8 +7,9 @@ import {
   cupPlacement,
   startCupSession,
 } from "./cup"
-import { applyCupRewards } from "./cupRewards"
+import { applyCupRewards, applyStormGift } from "./cupRewards"
 import { applyCupPlacement } from "./ladder"
+import { obtainableSpecies } from "./species"
 import type { GameState } from "./state"
 
 /**
@@ -59,12 +60,22 @@ export function prepareCup(state: GameState): CupSession | null {
   // never folds the ladder, so the seven drawn rivals are identical
   // either way (stream invariant, FR3).
   const gate = bossForCup(state)
+  // The reward line joins the generated field once the save has reached the
+  // tier where it is obtainable — Silver (FR-7). Bronze keeps the default
+  // three-species pool, so its brackets are byte-identical to before. The
+  // pool comes from each species' own reward tier, never from an array's
+  // membership, so a future teaser species cannot leak into the field.
+  const pool =
+    state.ladder.tier === "bronze"
+      ? undefined
+      : obtainableSpecies(state.ladder.tier)
   return startCupSession(
     creature,
     day,
     seed,
     gate?.kind ?? "championship",
     gate?.boss,
+    pool,
   )
 }
 
@@ -106,11 +117,16 @@ export function finalizeCup(state: GameState, session: CupSession): GameState {
     cupPlacement(session) === 1 ? "won" : "lost",
     state.day,
   )
+  // The Storm Gift (electric species line FR-5): the one-time Silver
+  // tier-reward claim, checked against the POST-placement ladder so a
+  // Promotion Cup champion crowned into Silver claims at this same
+  // finalize. Forfeited cups never trigger or consume the grant.
+  const gifted = applyStormGift(rewarded, forfeited)
   // The defeat ledger: any boss the player scalped in this cup joins the
   // record, idempotently (FR9). Rival-subtree boss wins never count.
   const scalps = bossScalps(session)
   const bossDefeats = scalps.length
     ? [...new Set([...state.bossDefeats, ...scalps])]
     : state.bossDefeats
-  return { ...rewarded, bossDefeats, phase: "day" }
+  return { ...gifted, bossDefeats, phase: "day" }
 }

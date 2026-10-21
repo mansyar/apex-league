@@ -8,14 +8,14 @@ writes through the `SaveAdapter` seam.
 ```ts
 // packages/sim/src/save/schema.ts
 interface SaveData {
-  version: number // current: 20 (SAVE_VERSION)
+  version: number // current: 22 (SAVE_VERSION)
   state: GameState
   savedAt: number // Date.now() of the persist
   session: CupSession | null // live cup walk (v7+; null outside a cup)
 }
 ```
 
-## `GameState` at v20
+## `GameState` at v22
 
 | Field | Type | Meaning |
 |---|---|---|
@@ -31,6 +31,8 @@ interface SaveData {
 | `bossDefeats` | string[] | Boss ids defeated by the current creature's career, in defeat order (v11+). An idempotent ledger — the client derives callouts, coach lines, and Hall of Fame scalps from it. Migrated saves start empty (`[]`); no boss existed before v11. |
 | `legendTitles` | integer ≥ 0 | Legend-plateau titles earned (v14+). Stamped `0` on migration: no pre-v14 career could reach a plateau that did not exist yet. |
 | `evolutionKnowledge` | `{ juvenile: boolean, champion: boolean }` | Which evolution gates the player has already cleared once (v17+). Save-wide and per gate: the night a creature actually evolves through a gate flips that gate to `true` and never back. The Growth panel shows exact thresholds only for a known gate. Migrated saves infer it from the active creature's `stage`. |
+| `stormGiftClaimed` | boolean | The Silver tier-reward claim (v21+). Stamped `true` exactly once by the cup finalize's reward seam when a non-forfeit cup closes on a post-placement Silver-or-higher ladder - never below Silver, never on a forfeit, never twice. The granted "Storm Gift" egg itself lives in the nursery flow (`breeding.ts`); this flag is the league-side guarantee that it is granted at most once. Migrated saves stamp `false`: no pre-v21 save has received the gift, and the retroactive rule delivers it on the next non-forfeit finalize. |
+| `pendingGift` | `{ speciesId: string, seed: integer }` \| null | The granted Storm Gift egg, waiting in the nursery for the player to hatch it (v22+). `null` when no egg is waiting - never granted, or already hatched. The seed travels with the egg so the nursery preview and the hatch roll the same individual. A v21 save that already claimed the gift but never hatched one (the v21 grant only stamped the flag) receives the egg it was promised here; a save whose gift career is already in the lineage gets nothing. |
 
 ### `Creature`
 
@@ -42,6 +44,7 @@ interface SaveData {
 | `stage` | `"baby" \| "juvenile" \| "champion"` | Evolution stage. |
 | `branch` | string \| null | The form earned at the juvenile gate (v19+). A baby is always `null`; a juvenile or champion may be `null` (a hand-built or not-yet-resolved payload), `"legacy"` (the migration-only signature-less old line), or a real branch from `branches.ts` owned by this creature's `speciesId`. |
 | `affinity` | string \| null | The secondary type affinity (v20+). Won by the seeded 15% drift roll at breeding time (`breeding.ts`): when a parent's primary element differs from the egg's species element, that parent's element may attach as a second type. `null` for founders and migrated saves; never equal to `element` (validation rejects that — it is not clamped). Secondaries never chain: the drift roll reads only primary elements. |
+| `giftEgg` | boolean | The gift-egg lineage marker (v21+). `true` only for a creature hatched from the league's one-time Silver tier-reward gift egg (the "Storm Gift", `breeding.ts`). Provenance, not battle data: the client derives gift copy from it, and the hatch seam derives the one-gift rule from the marker across the active creature and the Hall of Fame. Migrated creatures stamp `false`. |
 | `stats` | `{hp, atk, def, spd}` | Rolled base stats; effective = base + evolution boost + trained. |
 | `trained` | `{hp, atk, def, spd}` | Training bonuses, each capped (`TRAINED_START` … cap). |
 | `conditions` | `{hunger, energy, health, mood, bond}` | 0–100, clamped nightly by settlement. |
@@ -112,6 +115,7 @@ mix levels), 17 (evolution discovery), 18 (training programs), and 19
 | `parents` | integer[] | Recorded parentage (v15+), same shape as the live creature's. Pre-v15 records start empty — parentage was not recorded before v15. |
 | `branch` | string | The form this career earned (v19+): a real branch id or `"legacy"`. A real branch must belong to the record's `speciesId`; `"legacy"` fits any species. Pre-v19 careers archive as `"legacy"`; their signature move is derived from this id on read, never stored. |
 | `affinity` | string \| null | The secondary affinity at retirement (v20+), or `null`. Breeding reads only `element`, so a record's secondary never becomes a drift source. |
+| `giftEgg` | boolean | The gift-egg lineage marker (v21+): `true` when this career hatched from the Silver tier-reward gift egg. Archived with the record so the gift's one-hatch rule survives retirement. Migrated records stamp `false`. |
 
 ## Migration chain
 
@@ -139,6 +143,8 @@ mix levels), 17 (evolution discovery), 18 (training programs), and 19
 | v17 → v18 | Replaces the single-stat `trainingFocus` with `trainingProgram` (training programs & form). The old key is mapped through `programFor` — the same table the old picker implied — and dropped; an unknown or absent focus becomes `null`. `trained`, `trainingDays`, `trainingResult`, settings, ladder, bloodline, boss ledger, and the cup session are forwarded untouched. |
 | v18 → v19 | Adds `creature.branch` and `RetiredRecord.branch` (branching evolution & champion forms). Pre-v19 saves never chose a form, so the migration pins the old line: a baby becomes `null` (it earns its form at the next juvenile gate), a juvenile or champion becomes `"legacy"`, and every Hall record becomes `"legacy"`. Stats, trained bonuses, training days and program, loadout, conditions, evolution knowledge, lineage counters, the boss ledger, and the live cup session are forwarded untouched — no pre-v19 number changes. Cup slots carry species and stats only, so they gain no branch. |
 | v19 → v20 | Adds `creature.affinity` and `RetiredRecord.affinity` (type affinity drift). Pre-v20 creatures never drifted — the roll did not exist — so the migration stamps `null` on the active creature and every Hall record: no inference, no backfill. Stats, branch, lineage fields, settings, the boss ledger, evolution knowledge, and the live cup session are forwarded untouched. |
+| v20 → v21 | Adds `state.stormGiftClaimed`, `creature.giftEgg`, and `RetiredRecord.giftEgg` (the Silver tier-reward, electric species line FR-8). The claim flag stamps `false` - no pre-v21 save has received the gift, and the retroactive rule delivers it on the next non-forfeit cup finalize at Silver or higher. The gift marker stamps `false` on the active creature and every Hall record - no hatched career predates the gift. Everything else, including the live cup session, forwards untouched. |
+| v21 → v22 | Adds `state.pendingGift` (the granted Storm Gift egg, v22+). A v21 save that already claimed the gift but never hatched one - the v21 grant only stamped the flag and never delivered an egg - receives the egg it was promised, rolled from a seed derived from the save's day and ladder points; a save whose gift career is already in the lineage (the `giftEgg` marker on the creature or a Hall record) gets nothing, and a save that never claimed waits for its next non-forfeit finalize. Everything else, including the live cup session, forwards untouched. |
 
 ### v18 → v19 branch mapping
 
@@ -225,6 +231,20 @@ Import validation runs the same predicate, so a v20 file with a secondary equal
 to its primary, an unknown element, or a missing `affinity` is refused with
 `"invalid"` and the live save is left untouched.
 
+At v21 `state.stormGiftClaimed` must be a plain boolean, and
+`creature.giftEgg` plus each Hall record's `giftEgg` must be plain booleans.
+A hand-edited claim flag (or a missing one) fails the load instead of
+granting - or silently blocking - the gift; the same holds for the lineage
+marker. Import validation runs the same predicate, so a v21 file with a
+non-boolean or missing `stormGiftClaimed`/`giftEgg` is refused with
+`"invalid"` and the live save is left untouched.
+
+At v22 `state.pendingGift` must be `null` or an egg naming a known species
+and an integer seed. A malformed egg fails the load instead of hatching an
+unknown creature; import validation runs the same predicate, so a v22 file
+with a broken pending egg is refused with `"invalid"` and the live save is
+left untouched.
+
 ## Export and import
 
 The client can download the current state as a session-free `SaveData`
@@ -233,8 +253,9 @@ The client can download the current state as a session-free `SaveData`
 `isValidSaveState` predicate as boot; a malformed file, invalid state, or any
 version newer than `SAVE_VERSION` is refused with a reason and the live save is
 never replaced. Accepted imports drop any live cup session and reload into the
-day phase. The two volume levels, the creature's earned branch, and the
-drifted affinity travel with the save.
+day phase. The two volume levels, the creature's earned branch, the drifted
+affinity, and the Storm Gift bookkeeping (claim flag and gift marker) travel
+with the save.
 
 ## Adding a new field (recipe)
 

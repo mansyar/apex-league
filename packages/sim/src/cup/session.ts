@@ -15,7 +15,7 @@ import { type BattleResult, resolveBattle, type Tactic } from "../battle"
 import type { BossDef } from "../bosses"
 import type { Creature } from "../creature"
 import type { CupKind } from "../ladder"
-import { getSpecies } from "../species"
+import { getSpecies, type SpeciesDef } from "../species"
 import {
   CUP_ROUNDS,
   type CupBracket,
@@ -63,15 +63,18 @@ export interface CupSession {
  * with the same per-pairing seed formula the one-sitting resolver uses, so
  * rival battles stay byte-identical with the legacy flow. When `boss` is
  * given (the machine resolved the ladder's gate), the bracket's final rival
- * is substituted after the draw and flagged with `kind`. Pure. */
+ * is substituted after the draw and flagged with `kind`. `pool` widens the
+ * rival species list (FR-7: the reward line joins the field once the save
+ * can own it). Pure. */
 export function startCupSession(
   owned: Readonly<Creature>,
   day: number,
   seed: number,
   kind: CupKind = "championship",
   boss?: BossDef,
+  pool?: readonly SpeciesDef[],
 ): CupSession {
-  let bracket = makeBracket(owned, day, seed)
+  let bracket = makeBracket(owned, day, seed, pool)
   if (boss) bracket = substituteFinalBoss(bracket, boss, kind)
   const slotAt = (i: number): CupSlot => {
     const slot = bracket.slots[i]

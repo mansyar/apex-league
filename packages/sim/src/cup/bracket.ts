@@ -100,11 +100,17 @@ export interface CupBracket {
 /** Compute one cup bracket from the player's creature and the cup day. Pure.
  * `seed` defaults to a day-only stream; the machine passes a seed folded
  * with the save's creature identity so two saves on the same day draw
- * different fields (spec FR2: bracket from day + save seed). */
+ * different fields (spec FR2: bracket from day + save seed).
+ *
+ * `pool` widens the rival list beyond the available starters. The machine
+ * passes the reward line once the save has reached the tier where that line
+ * is obtainable (FR-7): the same draws then index a longer list, so below
+ * that tier every bracket is exactly as it always was. */
 export function makeBracket(
   owned: Readonly<Creature>,
   day: number,
   seed?: number,
+  pool?: readonly SpeciesDef[],
 ): CupBracket {
   const species = getSpecies(owned.speciesId)
   if (!species) throw new Error(`Unknown species: ${owned.speciesId}`)
@@ -113,7 +119,7 @@ export function makeBracket(
 
   // 7 rivals: each rolled from an available species, named from the pool,
   // ramped by slot position (final rival most likely the toughest).
-  const available = STARTERS.filter((s) => s.available)
+  const available = pool ?? STARTERS.filter((s) => s.available)
   // STREAM-NEUTRAL: pickNames shuffles the whole pool (fixed draw count),
   // so the requested slice size never changes the rng stream — the slice
   // is exactly the rivals we need.
@@ -122,7 +128,7 @@ export function makeBracket(
   for (let i = 0; i < BRACKET_SLOTS - 1; i++) {
     const idx = rng.int(available.length)
     const speciesDef = available[idx]
-    if (!speciesDef) throw new Error("No available starter species")
+    if (!speciesDef) throw new Error("No rival species available")
     // RNG STREAM INVARIANT (do not prune): the bracket's identity is the
     // full draw sequence, not just the seed — species picks, names, and
     // stat jitters all read positions in one stream. This discarded draw

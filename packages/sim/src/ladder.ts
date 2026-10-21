@@ -18,6 +18,20 @@ import type { GameState } from "./state"
 /** Ladder tiers, lowest first. Legend is the plateau capstone. */
 export type LadderTier = "bronze" | "silver" | "gold" | "legend"
 
+/** The climb order of the tiers, lowest first — the comparison every
+ * "at or above this tier" rule needs (reward unlocks, boss gates). */
+export const TIER_ORDER: readonly LadderTier[] = Object.freeze([
+  "bronze",
+  "silver",
+  "gold",
+  "legend",
+])
+
+/** True when `tier` sits at or above `min` on the ladder. */
+export function tierAtLeast(tier: LadderTier, min: LadderTier): boolean {
+  return TIER_ORDER.indexOf(tier) >= TIER_ORDER.indexOf(min)
+}
+
 /** Sub-tiers within a tier, lowest first. */
 export type LadderSubTier = "III" | "II" | "I"
 

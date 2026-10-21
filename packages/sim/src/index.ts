@@ -70,12 +70,16 @@ export {
   breedingPool,
   canBreed,
   createBredCreature,
+  createGiftEgg,
   deriveTrait,
   driftSource,
   effectiveTraits,
   type GraduatePairReason,
   type GraduatePairResult,
   graduateWithPair,
+  type HatchGiftReason,
+  type HatchGiftResult,
+  hatchGiftEgg,
   inheritedFloorFromPair,
   isLineageTrait,
   PAIR_SECONDARY_FRACTION,
@@ -84,7 +88,11 @@ export {
   pairFor,
   retireeRecord,
   rollAffinityDrift,
+  STORM_GIFT_SPECIES_ID,
+  type StormGiftPreview,
   speciesOptions,
+  stormGiftPending,
+  stormGiftPreview,
   TRAIT_ORDER,
   TRAITS,
   type TraitDef,
@@ -139,7 +147,12 @@ export {
   resolvePlayerMatch,
   startCupSession,
 } from "./cup"
-export { applyCupRewards, CUP_REWARDS, type CupOutcome } from "./cupRewards"
+export {
+  applyCupRewards,
+  applyStormGift,
+  CUP_REWARDS,
+  type CupOutcome,
+} from "./cupRewards"
 export {
   CHAMPION_BOND,
   CHAMPION_CUPS,
@@ -261,7 +274,14 @@ export {
   type TrainingPreview,
   trainingPlan,
 } from "./settlement"
-export { getSpecies, type SpeciesDef, STARTER_SPECIES } from "./species"
+export {
+  ALL_SPECIES,
+  getSpecies,
+  obtainableSpecies,
+  REWARD_SPECIES,
+  type SpeciesDef,
+  STARTER_SPECIES,
+} from "./species"
 export {
   ACTION_POINTS_PER_DAY,
   chooseStarter,

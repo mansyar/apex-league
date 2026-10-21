@@ -2,8 +2,10 @@ import { LEGACY_BRANCH } from "../branches"
 import { isCupDay } from "../calendar"
 import { createCreature, type StatKey, TRAINED_START } from "../creature"
 import type { CupSession } from "../cup"
+import { stormGiftSeed } from "../cupRewards"
 import { initialLadder } from "../ladder"
 import { initialLineage } from "../legacy"
+import { STORM_GIFT_SPECIES_ID } from "../species"
 import type { GameState } from "../state"
 import { ACTION_POINTS_PER_DAY, initialEvolutionKnowledge } from "../state"
 import { programFor } from "../training"
@@ -108,6 +110,8 @@ const migrations: Record<
       // (gold_legend_ladder_20261017): pre-plateau careers have none.
       legendTitles: 0,
       evolutionKnowledge: initialEvolutionKnowledge(),
+      stormGiftClaimed: false,
+      pendingGift: null,
     }
     return { version: 1, state, savedAt: 0 }
   },
@@ -140,6 +144,8 @@ const migrations: Record<
       bossDefeats: [],
       legendTitles: 0,
       evolutionKnowledge: initialEvolutionKnowledge(),
+      stormGiftClaimed: false,
+      pendingGift: null,
     }
     return { version: 2, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -181,6 +187,8 @@ const migrations: Record<
       bossDefeats: [],
       legendTitles: 0,
       evolutionKnowledge: initialEvolutionKnowledge(),
+      stormGiftClaimed: false,
+      pendingGift: null,
     }
     return { version: 3, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -226,6 +234,8 @@ const migrations: Record<
       bossDefeats: [],
       legendTitles: 0,
       evolutionKnowledge: initialEvolutionKnowledge(),
+      stormGiftClaimed: false,
+      pendingGift: null,
     }
     return { version: 4, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -266,6 +276,8 @@ const migrations: Record<
       bossDefeats: [],
       legendTitles: 0,
       evolutionKnowledge: initialEvolutionKnowledge(),
+      stormGiftClaimed: false,
+      pendingGift: null,
     }
     return { version: 5, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -296,6 +308,8 @@ const migrations: Record<
       bossDefeats: [],
       legendTitles: 0,
       evolutionKnowledge: initialEvolutionKnowledge(),
+      stormGiftClaimed: false,
+      pendingGift: null,
     }
     return { version: 6, state: migrated, savedAt: raw.savedAt ?? 0 }
   },
@@ -343,6 +357,8 @@ const migrations: Record<
       bossDefeats: [],
       legendTitles: 0,
       evolutionKnowledge: initialEvolutionKnowledge(),
+      stormGiftClaimed: false,
+      pendingGift: null,
     }
     return {
       version: 7,
@@ -373,6 +389,8 @@ const migrations: Record<
       bossDefeats: [],
       legendTitles: 0,
       evolutionKnowledge: initialEvolutionKnowledge(),
+      stormGiftClaimed: false,
+      pendingGift: null,
     }
     return {
       version: 8,
@@ -409,6 +427,8 @@ const migrations: Record<
       bossDefeats: [],
       legendTitles: 0,
       evolutionKnowledge: initialEvolutionKnowledge(),
+      stormGiftClaimed: false,
+      pendingGift: null,
     }
     return {
       version: 9,
@@ -438,6 +458,8 @@ const migrations: Record<
       bossDefeats: [],
       legendTitles: 0,
       evolutionKnowledge: initialEvolutionKnowledge(),
+      stormGiftClaimed: false,
+      pendingGift: null,
     }
     return {
       version: 10,
@@ -473,6 +495,8 @@ const migrations: Record<
       bossDefeats: [],
       legendTitles: 0,
       evolutionKnowledge: initialEvolutionKnowledge(),
+      stormGiftClaimed: false,
+      pendingGift: null,
     }
     return {
       version: 11,
@@ -538,6 +562,8 @@ const migrations: Record<
       bossDefeats: s.bossDefeats as GameState["bossDefeats"],
       legendTitles: 0,
       evolutionKnowledge: initialEvolutionKnowledge(),
+      stormGiftClaimed: false,
+      pendingGift: null,
     }
     return {
       version: 12,
@@ -569,6 +595,8 @@ const migrations: Record<
       bossDefeats: s.bossDefeats as GameState["bossDefeats"],
       legendTitles: 0,
       evolutionKnowledge: initialEvolutionKnowledge(),
+      stormGiftClaimed: false,
+      pendingGift: null,
     }
     return {
       version: 13,
@@ -598,6 +626,8 @@ const migrations: Record<
       bossDefeats: s.bossDefeats as GameState["bossDefeats"],
       legendTitles: 0,
       evolutionKnowledge: initialEvolutionKnowledge(),
+      stormGiftClaimed: false,
+      pendingGift: null,
     }
     return {
       version: 14,
@@ -637,6 +667,8 @@ const migrations: Record<
       bossDefeats: s.bossDefeats as GameState["bossDefeats"],
       legendTitles: s.legendTitles as GameState["legendTitles"],
       evolutionKnowledge: initialEvolutionKnowledge(),
+      stormGiftClaimed: false,
+      pendingGift: null,
     }
     return {
       version: 15,
@@ -669,6 +701,8 @@ const migrations: Record<
       bossDefeats: s.bossDefeats as GameState["bossDefeats"],
       legendTitles: s.legendTitles as GameState["legendTitles"],
       evolutionKnowledge: initialEvolutionKnowledge(),
+      stormGiftClaimed: false,
+      pendingGift: null,
     }
     return {
       version: 16,
@@ -708,6 +742,8 @@ const migrations: Record<
         juvenile: juvenileKnown,
         champion: championKnown,
       },
+      stormGiftClaimed: false,
+      pendingGift: null,
     }
     return {
       version: 17,
@@ -748,6 +784,8 @@ const migrations: Record<
       legendTitles: s.legendTitles as GameState["legendTitles"],
       evolutionKnowledge:
         s.evolutionKnowledge as GameState["evolutionKnowledge"],
+      stormGiftClaimed: false,
+      pendingGift: null,
     }
     return {
       version: 18,
@@ -793,6 +831,8 @@ const migrations: Record<
       legendTitles: s.legendTitles as GameState["legendTitles"],
       evolutionKnowledge:
         s.evolutionKnowledge as GameState["evolutionKnowledge"],
+      stormGiftClaimed: false,
+      pendingGift: null,
     }
     return {
       version: 19,
@@ -831,9 +871,102 @@ const migrations: Record<
       legendTitles: s.legendTitles as GameState["legendTitles"],
       evolutionKnowledge:
         s.evolutionKnowledge as GameState["evolutionKnowledge"],
+      stormGiftClaimed: false,
+      pendingGift: null,
     }
     return {
       version: 20,
+      state: migrated,
+      savedAt: raw.savedAt ?? 0,
+      session: (raw.session as CupSession | null) ?? null,
+    }
+  },
+
+  // v20 → v21 (electric species line FR-8): the save gains the Silver
+  // tier-reward bookkeeping. The claim flag stamps `false` — no pre-v21
+  // save has received the gift (the grant did not exist yet); the
+  // retroactive rule delivers it on the next non-forfeit finalize. The
+  // gift-egg lineage marker stamps `false` on the creature and every Hall
+  // record — no hatched career predates the gift. Every other field,
+  // including the live cup session, forwards untouched.
+  20: (raw) => {
+    const { day, phase, actionPoints, state: s } = validateStateShape(raw, 20)
+    const creature = s.creature as GameState["creature"]
+    const lineage = s.lineage as GameState["lineage"]
+    const migrated: GameState = {
+      day,
+      phase,
+      actionPoints,
+      creature: creature ? { ...creature, giftEgg: false } : null,
+      settings: s.settings as GameState["settings"],
+      cupsWon: s.cupsWon as GameState["cupsWon"],
+      lastCupDay: s.lastCupDay as GameState["lastCupDay"],
+      ladder: s.ladder as GameState["ladder"],
+      lineage: {
+        ...lineage,
+        hallOfFame: lineage.hallOfFame.map((record) => ({
+          ...record,
+          giftEgg: false,
+        })),
+      },
+      bossDefeats: s.bossDefeats as GameState["bossDefeats"],
+      legendTitles: s.legendTitles as GameState["legendTitles"],
+      evolutionKnowledge:
+        s.evolutionKnowledge as GameState["evolutionKnowledge"],
+      stormGiftClaimed: false,
+      pendingGift: null,
+    }
+    return {
+      version: 21,
+      state: migrated,
+      savedAt: raw.savedAt ?? 0,
+      session: (raw.session as CupSession | null) ?? null,
+    }
+  },
+
+  // v21 → v22 (electric species line review round 1, F1): the granted Storm
+  // Gift becomes a pending egg rather than a bare claim flag, so the egg
+  // survives a reload and the nursery can preview the exact hatch. A v21
+  // save that already claimed the gift but never hatched one — the v21 grant
+  // only stamped the flag, it never delivered an egg — receives the egg it
+  // was promised here. A save whose gift career is already in the lineage
+  // (the `giftEgg` marker on the creature or a Hall record) has nothing
+  // pending, and a save that never claimed waits for its next non-forfeit
+  // finalize, exactly as the retroactive rule promises.
+  21: (raw) => {
+    const { day, phase, actionPoints, state: s } = validateStateShape(raw, 21)
+    const creature = s.creature as GameState["creature"]
+    const lineage = s.lineage as GameState["lineage"]
+    const ladder = s.ladder as GameState["ladder"]
+    const claimed = s.stormGiftClaimed === true
+    const hatched =
+      creature?.giftEgg === true ||
+      lineage.hallOfFame.some((record) => record.giftEgg === true)
+    const migrated: GameState = {
+      day,
+      phase,
+      actionPoints,
+      creature,
+      settings: s.settings as GameState["settings"],
+      cupsWon: s.cupsWon as GameState["cupsWon"],
+      lastCupDay: s.lastCupDay as GameState["lastCupDay"],
+      ladder,
+      lineage,
+      bossDefeats: s.bossDefeats as GameState["bossDefeats"],
+      legendTitles: s.legendTitles as GameState["legendTitles"],
+      evolutionKnowledge:
+        s.evolutionKnowledge as GameState["evolutionKnowledge"],
+      stormGiftClaimed: claimed,
+      pendingGift:
+        claimed && !hatched
+          ? {
+              speciesId: STORM_GIFT_SPECIES_ID,
+              seed: stormGiftSeed(day, ladder.points),
+            }
+          : null,
+    }
+    return {
+      version: 22,
       state: migrated,
       savedAt: raw.savedAt ?? 0,
       session: (raw.session as CupSession | null) ?? null,

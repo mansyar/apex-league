@@ -38,6 +38,7 @@ function prestigeState(
     traits: [],
     parents: [],
     branch: "legacy",
+    giftEgg: false,
   }
   return {
     day,
@@ -53,6 +54,7 @@ function prestigeState(
       parents: [generation - 1],
       stage: "champion",
       branch: null,
+      giftEgg: false,
       sickCooldown: 0,
       stats: { hp: 90, atk: 18, def: 12, spd: 14 },
       trained: { hp: 0, atk: 0, def: 0, spd: 0 },
@@ -79,6 +81,8 @@ function prestigeState(
     bossDefeats: [],
     legendTitles: 0,
     evolutionKnowledge: { juvenile: false, champion: false },
+    stormGiftClaimed: false,
+    pendingGift: null,
   }
 }
 
