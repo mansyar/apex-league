@@ -5,7 +5,7 @@
 - **Date:** 2026-10-22
 - **Branch:** `feat/20261022-stable-partner-reserve`
 - **Base commit:** 7bb9c21
-- **Head commit:** 9ef1651 (`fix(client): dress the stable's rename editor in the house kit`); this report rides on top of it
+- **Head commit:** fdfaa9a (`fix(client): dress the stable's rename editor in the house kit and pin its branches`) — the phase's own commit was `9ef1651`, squashed into it on acceptance
 - **Result:** **verified**
 
 ## What changed

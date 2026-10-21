@@ -3,13 +3,15 @@
 **Track:** `20261022-stable-partner-reserve` — Stable & Partner Reserve
 **Type:** feature · **Priority:** high
 **Branch:** `feat/20261022-stable-partner-reserve`
-**Range reviewed:** `cf2cdbf28798ae040348bcfd5513868ada46e040..6c10ea3`
+**Range reviewed:** `cf2cdbf28798ae040348bcfd5513868ada46e040..65a2dd2`
 **Date:** 2026-10-22
 **Reviewer:** the `conductor-reviewer` subagent (read-only), validated by the
 primary agent
 **Round 1 verdict:** **PASS WITH FINDINGS** — no Critical or High finding; one
 Medium and four Low findings, all in scope and all to be fixed under the
 strict review policy (`review.strict: true`).
+**Final verdict (round 3):** **PASS** — every finding closed, nothing
+deferred.
 
 ---
 
@@ -175,19 +177,54 @@ fixed by the review-fix phase.
 
 No finding is deferred. Under the strict review policy
 (`review.strict: true`) and with `review.issues.enabled: false`, every finding
-above is fixed in the review-fix phase (Phase R1); none is filed as an
-issue, and none is accepted as debt.
+above was fixed in the review-fix phases (R1 and R2); none was filed as an
+issue, and none was accepted as debt.
+
+One pre-existing documentation gap was noticed and left alone as out of
+scope: the `Creature` table in `docs/save-schema.md` omits the persisted
+`element` and `bondedToday` fields. It is unrelated to this track and is
+recorded in `verification/integrated.md`.
 
 ## History
 
 | Round | Date | Verdict | Findings | Fixed | Open |
 |---|---|---|---|---|---|
 | 1 | 2026-10-22 | PASS WITH FINDINGS | 1 Medium, 4 Low | 0 | F1, F2, F3, F4, F5 |
-| 2 | 2026-10-22 | see below | — | — | — |
+| 2 | 2026-10-22 | PASS WITH FINDINGS (re-review of R1) | 0 open from round 1; 2 new Low (N1, N2) and 1 test gap (G1) | F1, F2, F3, F4, F5 | N1, N2, G1 |
+| 3 | 2026-10-22 | **PASS** (final confirmation of R2) | 0 | N1, N2, G1 | none |
+
+**Final verdict: PASS.** No Critical, High, Medium or Low finding remains
+open, and no finding was deferred, accepted as debt, or filed as an issue.
+
+### What each round found and closed
+
+- **Round 1** found five gaps between the spec and what shipped — a stashed
+  pet could not be renamed (F1), the stable's empty state was unreachable
+  because the chip hid (F3), the growth panel still said "Day" (F4), the sim's
+  evolution API kept a day argument it no longer read (F5), and FR-8 promised
+  a successor option the code never offered (F2). All five were closed in
+  Phase R1: a pure `renameStablePet` seam plus a rename control on the stable
+  row, the chip that always shows, the "Age" label, the dropped parameter, and
+  the narrowed FR-8.
+- **Round 2** re-reviewed the R1 delta, confirmed all five closed end to end
+  (sim, client and browser layers, with the rename reaching the store), and
+  raised three small things: the new rename editor shipped with no CSS at all
+  (N1) — a light default input inside the dark kit panel — a stale FR-8 row in
+  the coverage table (N2), and two untested editor branches (G1).
+- **Round 3** confirmed the R2 delta closed all three: the editor now wears the
+  house kit (the field mirrors `.creature-name-input`, the row mirrors
+  `.creature-name-edit`, and the pencil wears the house's own `rename-button`
+  class so the phone tier's 44 px floor reaches it), the two branches are
+  asserted, and the coverage rows match the code. The capture
+  `desktop-12b-stable-rename-open.png` shows the styled field with the swap
+  action stepping down to its own row — a real overflow the new capture
+  exposed and the fix closed.
 
 ## Doc sync
 
-`updated` — the spec's FR-8 was narrowed (F2) and the narrowing is recorded in
-the spec's stability note; the review-fix phase updates the growth label (F4)
-and the client copy (F1, F3), and `docs/save-schema.md` needs no change (no
-persisted shape moves).
+`updated` — the spec's FR-8 was narrowed (F2) and the reason recorded in the
+spec's stability note; `verification/integrated.md`'s FR-8, NFR-1 and NFR-5
+rows were corrected to match the code (N2); the growth label (F4) and the
+client copy (F1, F3) are in the code; `docs/save-schema.md` needed no change
+(no persisted shape moves in the review rounds). The tech-stack entry's gate
+numbers were re-pinned to the final head.
