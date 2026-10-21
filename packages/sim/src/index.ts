@@ -6,7 +6,12 @@
  * this package.
  */
 
-export { spendActionPoints } from "./ap"
+export {
+  HEAD_START_AP_BONUS,
+  HEAD_START_DAYS,
+  headStartAp,
+  spendActionPoints,
+} from "./ap"
 export {
   BASIC,
   type BattleEvent,
@@ -193,8 +198,10 @@ export {
   type LineageState,
   lineagePerks,
   lineagePrestige,
+  PRESTIGE_CHAMPION_STABLE,
   PRESTIGE_ESTABLISHED_LINE,
   PRESTIGE_FOUNDED,
+  PRESTIGE_REFINED_BLOOD,
   PRESTIGE_WARM_BLOODLINE,
   type RetiredRecord,
   WARM_BOND_START,

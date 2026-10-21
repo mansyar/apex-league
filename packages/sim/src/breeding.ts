@@ -11,6 +11,7 @@
  * wrapper and save v15. Pure data and pure functions only — no DOM, no I/O.
  */
 
+import { headStartAp } from "./ap"
 import {
   type Creature,
   type CreatureStats,
@@ -24,6 +25,7 @@ import {
   type GraduationReason,
   INHERITANCE_FRACTION,
   lineagePerks,
+  REFINED_INHERITANCE_FRACTION,
   type RetiredRecord,
   retireeRecord,
   WARM_BOND_START,
@@ -178,7 +180,14 @@ export function inheritedFloorFromPair(
   prestige: number,
   traits: readonly LineageTrait[],
 ): CreatureStats {
-  const milestone = lineagePerks(prestige).establishedLine ? 1 : 0
+  const perks = lineagePerks(prestige)
+  const milestone = perks.establishedLine ? 1 : 0
+  // Refined Blood (prestige 7): the stronger parent's share rises from
+  // 0.5 to 0.55 for eggs bred at or above the milestone. The weaker
+  // parent's share never moves.
+  const strongerShare = perks.refinedBlood
+    ? REFINED_INHERITANCE_FRACTION
+    : INHERITANCE_FRACTION
   const bonus = traitBonus(traits)
   const floorFor = (key: keyof CreatureStats): number => {
     const [lo, hi] = species.statBounds[key]
@@ -193,9 +202,7 @@ export function inheritedFloorFromPair(
       lo,
       Math.min(
         hi,
-        Math.round(
-          INHERITANCE_FRACTION * stronger + PAIR_SECONDARY_FRACTION * weaker,
-        ),
+        Math.round(strongerShare * stronger + PAIR_SECONDARY_FRACTION * weaker),
       ),
     )
     return Math.max(lo, Math.min(hi, rolled + milestone + bonus[key]))
@@ -252,7 +259,15 @@ export function createBredCreature(
 
   // One mutation per egg, on the same deterministic stream as the base roll.
   const mutationKey: StatKey = STAT_KEYS[rng.int(STAT_KEYS.length)] ?? "hp"
-  const amount = 1 + rng.int(2)
+  const amount =
+    1 +
+    rng.int(2) +
+    // Champion Stable (prestige 9) widens the band to +1..+3 by extending
+    // the top of it: one extra draw decides the extension, so every
+    // pre-perk roll keeps its original amount and no low roll ever shifts.
+    // The extra draw fires only at the milestone, leaving the shorter
+    // stream byte-identical below prestige 9.
+    (lineagePerks(prestige).championStable && rng.next() >= 0.5 ? 1 : 0)
   const [lo, hi] = species.statBounds[mutationKey]
   stats[mutationKey] = Math.max(lo, Math.min(hi, stats[mutationKey] + amount))
 
@@ -317,7 +332,15 @@ export function graduateWithPair(
     ok: true,
     state: {
       ...state,
-      actionPoints: ACTION_POINTS_PER_DAY,
+      // The successor's first day of life: the champion-stable head-start
+      // already applies on the hatch day itself (FR-5).
+      actionPoints:
+        ACTION_POINTS_PER_DAY +
+        headStartAp(
+          state.day,
+          state.day,
+          lineagePerks(prestige).championStable,
+        ),
       creature: successor,
       lineage: {
         generation,

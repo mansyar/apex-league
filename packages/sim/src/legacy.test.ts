@@ -18,8 +18,10 @@ import {
   initialLineage,
   lineagePerks,
   lineagePrestige,
+  PRESTIGE_CHAMPION_STABLE,
   PRESTIGE_ESTABLISHED_LINE,
   PRESTIGE_FOUNDED,
+  PRESTIGE_REFINED_BLOOD,
   PRESTIGE_WARM_BLOODLINE,
   WARM_BOND_START,
 } from "./legacy"
@@ -76,11 +78,29 @@ describe("lineagePrestige", () => {
 })
 
 describe("lineagePerks — milestone table", () => {
+  it("exposes the pinned refined-blood and champion-stable milestones", () => {
+    expect(PRESTIGE_REFINED_BLOOD).toBe(7)
+    expect(PRESTIGE_CHAMPION_STABLE).toBe(9)
+  })
+
+  it("never collides with the older milestones", () => {
+    const milestones = [
+      PRESTIGE_FOUNDED,
+      PRESTIGE_WARM_BLOODLINE,
+      PRESTIGE_ESTABLISHED_LINE,
+      PRESTIGE_REFINED_BLOOD,
+      PRESTIGE_CHAMPION_STABLE,
+    ]
+    expect(new Set(milestones).size).toBe(milestones.length)
+  })
+
   it("unlocks nothing below the founded threshold", () => {
     expect(lineagePerks(0)).toEqual({
       founded: false,
       warmBloodline: false,
       establishedLine: false,
+      refinedBlood: false,
+      championStable: false,
     })
   })
 
@@ -89,6 +109,8 @@ describe("lineagePerks — milestone table", () => {
       founded: true,
       warmBloodline: false,
       establishedLine: false,
+      refinedBlood: false,
+      championStable: false,
     })
   })
 
@@ -97,6 +119,8 @@ describe("lineagePerks — milestone table", () => {
       founded: true,
       warmBloodline: true,
       establishedLine: false,
+      refinedBlood: false,
+      championStable: false,
     })
   })
 
@@ -105,6 +129,48 @@ describe("lineagePerks — milestone table", () => {
       founded: true,
       warmBloodline: true,
       establishedLine: true,
+      refinedBlood: false,
+      championStable: false,
+    })
+  })
+
+  it("keeps every lower perk below refined blood", () => {
+    expect(lineagePerks(PRESTIGE_REFINED_BLOOD - 1)).toEqual({
+      founded: true,
+      warmBloodline: true,
+      establishedLine: true,
+      refinedBlood: false,
+      championStable: false,
+    })
+  })
+
+  it("unlocks refined blood at its milestone — without champion stable", () => {
+    expect(lineagePerks(PRESTIGE_REFINED_BLOOD)).toEqual({
+      founded: true,
+      warmBloodline: true,
+      establishedLine: true,
+      refinedBlood: true,
+      championStable: false,
+    })
+  })
+
+  it("keeps refined blood below champion stable", () => {
+    expect(lineagePerks(PRESTIGE_CHAMPION_STABLE - 1)).toEqual({
+      founded: true,
+      warmBloodline: true,
+      establishedLine: true,
+      refinedBlood: true,
+      championStable: false,
+    })
+  })
+
+  it("unlocks champion stable at its milestone", () => {
+    expect(lineagePerks(PRESTIGE_CHAMPION_STABLE)).toEqual({
+      founded: true,
+      warmBloodline: true,
+      establishedLine: true,
+      refinedBlood: true,
+      championStable: true,
     })
   })
 
@@ -113,6 +179,8 @@ describe("lineagePerks — milestone table", () => {
       founded: true,
       warmBloodline: true,
       establishedLine: true,
+      refinedBlood: true,
+      championStable: true,
     })
   })
 })
@@ -254,6 +322,17 @@ describe("inheritedFloor", () => {
       atk: 12,
       def: 8,
       spd: 9,
+    })
+  })
+
+  it("stays at the 0.5 share at refined-blood prestige (FR-4 is dual-parent only)", () => {
+    // A 0.55 share would lift hp to 89 — the single-parent successor floor
+    // deliberately keeps the plain 0.5 fraction.
+    expect(inheritedFloor(parentStats, drake, PRESTIGE_REFINED_BLOOD)).toEqual({
+      hp: 81,
+      atk: 13,
+      def: 9,
+      spd: 10,
     })
   })
 })
@@ -439,6 +518,14 @@ describe("graduate — succession", () => {
     expect(res.state.creature?.parents).toEqual([0])
     expect(res.state.creature?.traits.length).toBe(1)
     expect(res.state.lineage.hallOfFame[0]?.parents).toEqual([])
+  })
+
+  it("starts a champion-stable successor's first day with +1 max AP", () => {
+    // The successor's prestige is 1 + 8 = 9: Champion Stable.
+    const before = { ...stateWith("champion", GRADUATION_DAY), cupsWon: 8 }
+    const res = graduate(before, "plant_ox", 42)
+    if (!res.ok) throw new Error("expected ok")
+    expect(res.state.actionPoints).toBe(ACTION_POINTS_PER_DAY + 1)
   })
 })
 
