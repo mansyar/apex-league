@@ -132,3 +132,39 @@ client's age readout and stable surfaces are Phase 3).
   integrated verification (Phase 4) so `bun run verify` is green.
 - The phase commits are task-level and land in the plan's order; the primary
   squashes them into the phase commit on acceptance.
+
+## Primary verification
+
+Run by the primary agent, independently of the phase report.
+
+| Check | Command | Exit | Result |
+|---|---|---|---|
+| Working tree | `git status --porcelain` | 0 | clean — no uncommitted work outside the phase's commits |
+| Files vs Touches | `git diff --name-only f1218f4..HEAD` | — | 33 files, all inside Touches or the three reported deviations (`apps/client/src/growth.ts` + its fixtures, `docs/save-schema.md`); no unreported file outside Touches |
+| Commits reported | `git log --oneline f1218f4..HEAD` | — | 5 commits, all reported by the phase agent; no merge commit, no foreign commit |
+| Static (types) | `bun run check` | 0 | voxel 71 files, sim 99 files, client 305 files — no type errors |
+| Unit | `bun test --timeout 120000` | 0 | 2,255 pass / 1 skip / 0 fail across 170 files |
+| Lint (format) | `biome check conductor/tracks/20261022-stable-partner-reserve/metadata.json` | 0 | the one open complaint (the track's own `metadata.json`, unformatted since the track-setup commits) is fixed by the primary, which owns Conductor state |
+
+Behaviour verified directly, not only through the suite:
+
+- **The late-hatch defect is gone.** `.conductor/evidence/phase-r1/age-probe.ts`
+  hatches the Storm Gift on day 24 and advances one night. Before this phase
+  the probe reported `after one night (day 25): stage juvenile`; it now
+  reports `after one night (day 25): stage baby, mood 65` — the gift keeps its
+  baby stage and matures on its own tenth night.
+- **The day-1 starter's timing is unchanged.** The pre-existing goldens keep
+  their day numbers ("a well-cared baby evolves on the night of day 10", "a
+  qualified juvenile becomes a champion on the night of day 25"), and the
+  migration stamps `ageDays = state.day`, so a v22 save matures on precisely
+  the night it matures on today.
+
+Verdict: **verified** — the phase's goal, its acceptance criteria and the
+biome complaint are all satisfied. The one deviation with a design
+consequence (the age increment lands at the end of the night the pet sleeps)
+is accepted: it is the only ordering that satisfies AC-4 and the migration
+rule together, and it is recorded in the phase's deviations table.
+
+**Result:** verified
+**Checkpoint:** (recorded in `plan.md`)
+**Evidence:** conductor/tracks/20261022-stable-partner-reserve/verification/phase-1.md

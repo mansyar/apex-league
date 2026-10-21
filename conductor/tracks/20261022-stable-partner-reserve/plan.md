@@ -14,17 +14,21 @@
 - **Covers:** FR-5, FR-12, NFR-3, NFR-4, AC-3, AC-4
 - **Touches:** `packages/sim/src/creature.ts`, `packages/sim/src/evolution.ts`, `packages/sim/src/ticker.ts`, `packages/sim/src/state.ts`, `packages/sim/src/legacy.ts`, `packages/sim/src/save/*`, `packages/sim/src/*.test.ts`
 - **Verification:** `bun run check && bun test --timeout 120000` (the evolution goldens re-pinned on the pet's age)
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Give every creature an age counter** — covers: FR-5
-  - [ ] **P1.T1.1: Failing test first — the gates read the pet's age, and a day-24 hatch matures on its own tenth night** — covers: FR-5, AC-4
-  - [ ] **P1.T1.2: `ageDays` on the creature, stamped at 1 by every creation seam (starter, gift, graduation, breeding)** — covers: FR-5
-- [ ] **P1.T2: Move the gates onto the pet's age** — covers: FR-5, FR-12
-  - [ ] **P1.T2.1: The night settlement increments the active pet's age once per night** — covers: FR-5, NFR-3
-  - [ ] **P1.T2.2: Juvenile, champion and graduation gates (and the growth hints) read the pet's age, not the world day** — covers: FR-5, NFR-4
-- [ ] **P1.T3: Save the age and migrate it** — covers: FR-5, AC-3
-  - [ ] **P1.T3.1: Save v23 with a linear v22 → v23 migration that stamps the active pet's age from the world day (today's effective age)** — covers: FR-5, AC-6
-  - [ ] **P1.T3.2: Validation rejects a malformed age; `docs/save-schema.md` documents the field and the migration** — covers: FR-5
+**Result:** verified
+**Checkpoint:** d929a77
+**Evidence:** conductor/tracks/20261022-stable-partner-reserve/verification/phase-1.md
+
+- [x] **P1.T1: Give every creature an age counter** — covers: FR-5
+  - [x] **P1.T1.1: Failing test first — the gates read the pet's age, and a day-24 hatch matures on its own tenth night** — covers: FR-5, AC-4
+  - [x] **P1.T1.2: `ageDays` on the creature, stamped at 1 by every creation seam (starter, gift, graduation, breeding)** — covers: FR-5
+- [x] **P1.T2: Move the gates onto the pet's age** — covers: FR-5, FR-12
+  - [x] **P1.T2.1: The night settlement increments the active pet's age once per night** — covers: FR-5, NFR-3
+  - [x] **P1.T2.2: Juvenile, champion and graduation gates (and the growth hints) read the pet's age, not the world day** — covers: FR-5, NFR-4
+- [x] **P1.T3: Save the age and migrate it** — covers: FR-5, AC-3
+  - [x] **P1.T3.1: Save v23 with a linear v22 → v23 migration that stamps the active pet's age from the world day (today's effective age)** — covers: FR-5, AC-6
+  - [x] **P1.T3.2: Validation rejects a malformed age; `docs/save-schema.md` documents the field and the migration** — covers: FR-5
 
 ## Phase 2: The Stable
 
@@ -86,9 +90,10 @@
 
 <!--
 The primary appends after acceptance:
+
 **Result:** verified
 **Checkpoint:** <short-sha>
-**Evidence:** conductor/tracks/20261022-stable-partner-reserve/verification/phase-1.md
+**Evidence:** conductor/tracks/<track-id>/verification/phase-<n>.md
 -->
 
 <!--
