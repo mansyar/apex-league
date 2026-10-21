@@ -35,6 +35,7 @@ function record(overrides: Partial<RetiredRecord> = {}): RetiredRecord {
     affinity: null,
     ...overrides,
     branch: overrides.branch ?? "legacy",
+    giftEgg: overrides.giftEgg ?? false,
   }
 }
 

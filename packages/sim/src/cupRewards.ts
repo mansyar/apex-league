@@ -77,3 +77,29 @@ export function applyCupRewards(
     lastCupDay: won ? cupDay : state.lastCupDay,
   }
 }
+
+/**
+ * The Storm Gift claim (electric species line FR-5): on a non-forfeit cup
+ * finalize, when the post-placement ladder has reached Silver or higher and
+ * this save has never claimed the reward, the league grants exactly one
+ * electric_hound egg — stamped here as the one-time `stormGiftClaimed`
+ * claim. Never duplicated, never below Silver, never on a forfeit (a
+ * forfeited cup earns nothing — the bronze ladder rule). Retroactive by
+ * construction: an existing save already past Silver claims at its next
+ * non-forfeit finalize, and a Promotion Cup champion crowned into Silver
+ * claims at that same finalize because placement runs before this seam
+ * (machine.ts ordering).
+ *
+ * Pure: returns a new state, the input never mutated. The egg itself is
+ * created separately (breeding.ts `createGiftEgg`) so the claim stamp never
+ * touches an RNG stream.
+ */
+export function applyStormGift(
+  state: GameState,
+  forfeited: boolean,
+): GameState {
+  if (forfeited) return state
+  if (state.ladder.tier === "bronze") return state
+  if (state.stormGiftClaimed) return state
+  return { ...state, stormGiftClaimed: true }
+}

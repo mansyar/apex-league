@@ -71,6 +71,7 @@ function record(overrides: Partial<RetiredRecord> = {}): RetiredRecord {
     traits: [],
     parents: [],
     branch: "legacy",
+    giftEgg: false,
     ...overrides,
   }
 }

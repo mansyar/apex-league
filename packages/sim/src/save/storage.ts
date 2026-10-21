@@ -187,6 +187,8 @@ function isValidCreature(c: unknown): c is Creature {
   const affinity = creature.affinity
   if (affinity !== null && !ELEMENTS.includes(affinity as string)) return false
   if (affinity === creature.element) return false
+  // v21: the gift-egg lineage marker is a plain boolean.
+  if (typeof creature.giftEgg !== "boolean") return false
   return true
 }
 
@@ -245,6 +247,8 @@ function isValidRetiredRecord(r: unknown): r is RetiredRecord {
   const affinity = rec.affinity
   if (affinity !== null && !ELEMENTS.includes(affinity as string)) return false
   if (affinity === rec.element) return false
+  // v21: the gift-egg lineage marker is a plain boolean.
+  if (typeof rec.giftEgg !== "boolean") return false
   return true
 }
 
@@ -380,7 +384,10 @@ export function isValidSaveState(state: GameState): boolean {
     typeof state.evolutionKnowledge !== "object" ||
     state.evolutionKnowledge === null ||
     typeof state.evolutionKnowledge.juvenile !== "boolean" ||
-    typeof state.evolutionKnowledge.champion !== "boolean"
+    typeof state.evolutionKnowledge.champion !== "boolean" ||
+    // v21: the Silver tier-reward claim is a plain boolean — a hand-edited
+    // flag fails the load instead of granting (or blocking) the gift.
+    typeof state.stormGiftClaimed !== "boolean"
   )
 }
 

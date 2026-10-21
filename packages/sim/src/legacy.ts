@@ -63,6 +63,12 @@ export interface RetiredRecord {
    * `"legacy"`; its signature move is derived from this id on read.
    */
   branch: string
+  /**
+   * True when this career hatched from the league's Silver tier-reward gift
+   * egg (save v21, electric species line FR-8). Archived with the record so
+   * the gift's one-hatch rule survives retirement — see breeding.ts.
+   */
+  giftEgg: boolean
 }
 
 /** The bloodline across generations (save v10). */
@@ -101,6 +107,7 @@ export function retireeRecord(state: GameState): RetiredRecord | null {
     }),
     parents: [...(creature.parents ?? [])],
     branch: creature.branch ?? LEGACY_BRANCH.id,
+    giftEgg: creature.giftEgg ?? false,
   }
 }
 

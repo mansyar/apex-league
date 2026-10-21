@@ -36,6 +36,7 @@ function record(speciesId: string, generation: number): RetiredRecord {
     traits: [],
     parents: [],
     branch: "legacy",
+    giftEgg: false,
   }
 }
 

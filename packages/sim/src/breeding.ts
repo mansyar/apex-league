@@ -16,6 +16,7 @@ import {
   type Creature,
   type CreatureStats,
   createCreature,
+  createCreatureFrom,
   type Element,
   type LineageTrait,
   type StatKey,
@@ -348,4 +349,61 @@ export function graduateWithPair(
       },
     },
   }
+}
+
+/** The Silver tier-reward species: the league's one-time "Storm Gift" (FR-5). */
+export const STORM_GIFT_SPECIES_ID = "electric_hound"
+
+/**
+ * The pure gift egg (electric species line FR-6): the league's Silver
+ * tier-reward hatches into a fixed-Electric creature with a guaranteed
+ * `affinity: null`. This path deliberately does NOT route through
+ * `createBredCreature` — a gift is not bred, so no affinity-drift roll is
+ * made and no drift RNG draw is consumed (NFR-3): the drift stream's
+ * position for every subsequent operation is unchanged. Same seed → same
+ * individual, so the nursery preview and the hatch agree by construction.
+ * The locked species is reached through the unchecked creation seam
+ * (`createCreatureFrom`) — the public starter gate stays as locked as ever.
+ */
+export function createGiftEgg(seed: number | Rng): Creature {
+  const species = getSpecies(STORM_GIFT_SPECIES_ID)
+  if (!species) {
+    throw new Error(`Unknown species: ${STORM_GIFT_SPECIES_ID}`)
+  }
+  const base = createCreatureFrom(species, seed)
+  // The gift is pure: the affinity is stamped null directly — no roll.
+  return { ...base, affinity: null, giftEgg: true }
+}
+
+export type HatchGiftReason = "not-granted" | "already-hatched"
+
+export type HatchGiftResult =
+  | { ok: true; state: GameState }
+  | { ok: false; reason: HatchGiftReason }
+
+/**
+ * Whether the granted gift egg has already been hatched anywhere in the
+ * lineage: the active creature carries the marker, or a retired gift career
+ * sits in the Hall of Fame. Derived from the persisted lineage marker
+ * (save v21) — never stored separately.
+ */
+function giftEggHatched(state: GameState): boolean {
+  return (
+    (state.creature?.giftEgg ?? false) ||
+    state.lineage.hallOfFame.some((record) => record.giftEgg)
+  )
+}
+
+/**
+ * Hatch the granted gift egg (the nursery's hatch seam for the Storm Gift).
+ * The hound replaces the active creature — the single-creature rule —
+ * without a Hall retirement: the gift is a grant, not a graduation, so the
+ * day, budget, ladder, and lineage generation carry over untouched. Pure;
+ * the same seed the preview was rendered with lands the exact same
+ * individual.
+ */
+export function hatchGiftEgg(state: GameState, seed: number): HatchGiftResult {
+  if (!state.stormGiftClaimed) return { ok: false, reason: "not-granted" }
+  if (giftEggHatched(state)) return { ok: false, reason: "already-hatched" }
+  return { ok: true, state: { ...state, creature: createGiftEgg(seed) } }
 }

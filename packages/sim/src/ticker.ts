@@ -74,6 +74,9 @@ export function advanceDay(state: GameState, rng?: Rng): GameState {
     // Evolution discovery (save v17) carries across every day; the settlement
     // below only ever adds a gate, never removes one.
     evolutionKnowledge: state.evolutionKnowledge,
+    // The Storm Gift claim (save v21) carries across every day — the grant
+    // is stamped only by the cup finalize's reward seam.
+    stormGiftClaimed: state.stormGiftClaimed,
   }
   if (!next.creature) return next
   const before = next.creature.stage

@@ -111,6 +111,14 @@ export interface GameState {
    * the client reveals exact thresholds only for a known gate.
    */
   evolutionKnowledge: EvolutionKnowledge
+  /**
+   * The Silver tier-reward claim (save v21, electric species line FR-5).
+   * Stamped exactly once by the cup finalize's reward seam when a
+   * non-forfeit cup closes on a post-placement Silver-or-higher ladder —
+   * never below Silver, never on a forfeit, never twice. The granted
+   * "Storm Gift" egg itself lives in the nursery flow (breeding.ts).
+   */
+  stormGiftClaimed: boolean
 }
 
 /** Action points granted at the start of each day. Stub value for Phase 0. */
@@ -140,6 +148,7 @@ export function createInitialState(): GameState {
     bossDefeats: [],
     legendTitles: 0,
     evolutionKnowledge: initialEvolutionKnowledge(),
+    stormGiftClaimed: false,
   }
 }
 
