@@ -17,6 +17,7 @@ import {
   type Creature,
   type CreatureStats,
   createCreature,
+  type Element,
   effectiveStats,
   type LineageTrait,
 } from "./creature"
@@ -31,7 +32,13 @@ export interface RetiredRecord {
   speciesId: string
   archetypeId: string
   /** Element id at retirement. */
-  element: string
+  element: Element
+  /**
+   * Secondary type affinity at retirement (save v20), or null when the
+   * career never drifted. Breeding reads only `element`: secondaries never
+   * chain, so a record's own affinity is never a drift source.
+   */
+  affinity: Element | null
   /** Effective stats (base + trained) at the moment of retirement. */
   stats: CreatureStats
   /** Trained bonus at retirement, kept for the record's display. */
@@ -80,6 +87,7 @@ export function retireeRecord(state: GameState): RetiredRecord | null {
     speciesId: creature.speciesId,
     archetypeId: creature.archetypeId,
     element: creature.element,
+    affinity: creature.affinity,
     stats,
     trained: { ...creature.trained },
     cupsWon: state.cupsWon,

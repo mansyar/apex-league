@@ -32,6 +32,7 @@ function record(overrides: Partial<RetiredRecord> = {}): RetiredRecord {
     retiredOnDay: 60,
     traits: ["sturdy"],
     parents: [],
+    affinity: null,
     ...overrides,
     branch: overrides.branch ?? "legacy",
   }

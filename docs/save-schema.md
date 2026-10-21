@@ -8,14 +8,14 @@ writes through the `SaveAdapter` seam.
 ```ts
 // packages/sim/src/save/schema.ts
 interface SaveData {
-  version: number // current: 19 (SAVE_VERSION)
+  version: number // current: 20 (SAVE_VERSION)
   state: GameState
   savedAt: number // Date.now() of the persist
   session: CupSession | null // live cup walk (v7+; null outside a cup)
 }
 ```
 
-## `GameState` at v19
+## `GameState` at v20
 
 | Field | Type | Meaning |
 |---|---|---|
@@ -41,6 +41,7 @@ interface SaveData {
 | `archetypeId` | non-empty string | Voxel archetype used for rendering ("draconic", "bovine", ...). |
 | `stage` | `"baby" \| "juvenile" \| "champion"` | Evolution stage. |
 | `branch` | string \| null | The form earned at the juvenile gate (v19+). A baby is always `null`; a juvenile or champion may be `null` (a hand-built or not-yet-resolved payload), `"legacy"` (the migration-only signature-less old line), or a real branch from `branches.ts` owned by this creature's `speciesId`. |
+| `affinity` | string \| null | The secondary type affinity (v20+). Won by the seeded 15% drift roll at breeding time (`breeding.ts`): when a parent's primary element differs from the egg's species element, that parent's element may attach as a second type. `null` for founders and migrated saves; never equal to `element` (validation rejects that — it is not clamped). Secondaries never chain: the drift roll reads only primary elements. |
 | `stats` | `{hp, atk, def, spd}` | Rolled base stats; effective = base + evolution boost + trained. |
 | `trained` | `{hp, atk, def, spd}` | Training bonuses, each capped (`TRAINED_START` … cap). |
 | `conditions` | `{hunger, energy, health, mood, bond}` | 0–100, clamped nightly by settlement. |
@@ -110,6 +111,7 @@ mix levels), 17 (evolution discovery), 18 (training programs), and 19
 | `traits` | `LineageTrait[]` | Derived at graduation (v15+). Pre-v15 records migrate empty; `effectiveTraits` derives on read. |
 | `parents` | integer[] | Recorded parentage (v15+), same shape as the live creature's. Pre-v15 records start empty — parentage was not recorded before v15. |
 | `branch` | string | The form this career earned (v19+): a real branch id or `"legacy"`. A real branch must belong to the record's `speciesId`; `"legacy"` fits any species. Pre-v19 careers archive as `"legacy"`; their signature move is derived from this id on read, never stored. |
+| `affinity` | string \| null | The secondary affinity at retirement (v20+), or `null`. Breeding reads only `element`, so a record's secondary never becomes a drift source. |
 
 ## Migration chain
 
@@ -136,6 +138,7 @@ mix levels), 17 (evolution discovery), 18 (training programs), and 19
 | v16 → v17 | Adds `evolutionKnowledge` (evolution discovery). There is nothing to forward from the old payload — the panel did not exist — so the record is **inferred from the active creature's `stage`**: `juvenile` ⇒ `{ juvenile: true, champion: false }`, `champion` ⇒ `{ juvenile: true, champion: true }`, no creature (or a baby) ⇒ both `false`. A pre-existing `evolutionKnowledge` field on the payload is ignored, so a hand-edited save cannot smuggle thresholds into a hidden panel. Settings, ladder, bloodline, boss ledger, and the cup session are forwarded untouched. |
 | v17 → v18 | Replaces the single-stat `trainingFocus` with `trainingProgram` (training programs & form). The old key is mapped through `programFor` — the same table the old picker implied — and dropped; an unknown or absent focus becomes `null`. `trained`, `trainingDays`, `trainingResult`, settings, ladder, bloodline, boss ledger, and the cup session are forwarded untouched. |
 | v18 → v19 | Adds `creature.branch` and `RetiredRecord.branch` (branching evolution & champion forms). Pre-v19 saves never chose a form, so the migration pins the old line: a baby becomes `null` (it earns its form at the next juvenile gate), a juvenile or champion becomes `"legacy"`, and every Hall record becomes `"legacy"`. Stats, trained bonuses, training days and program, loadout, conditions, evolution knowledge, lineage counters, the boss ledger, and the live cup session are forwarded untouched — no pre-v19 number changes. Cup slots carry species and stats only, so they gain no branch. |
+| v19 → v20 | Adds `creature.affinity` and `RetiredRecord.affinity` (type affinity drift). Pre-v20 creatures never drifted — the roll did not exist — so the migration stamps `null` on the active creature and every Hall record: no inference, no backfill. Stats, branch, lineage fields, settings, the boss ledger, evolution knowledge, and the live cup session are forwarded untouched. |
 
 ### v18 → v19 branch mapping
 
@@ -214,6 +217,14 @@ accepted for any species). Import validation runs the same predicate, so a v19
 file with an unknown branch, a branch on a baby, or a mismatched Hall branch is
 refused with `"invalid"` and the live save is left untouched.
 
+At v20 `creature.affinity` and each Hall record's `affinity` must be `null` or
+one of the six element ids, and must never equal that creature's or record's
+own `element` — validation rejects the payload rather than clamping the value.
+A missing `affinity` field fails the load like any other corrupt v20 field.
+Import validation runs the same predicate, so a v20 file with a secondary equal
+to its primary, an unknown element, or a missing `affinity` is refused with
+`"invalid"` and the live save is left untouched.
+
 ## Export and import
 
 The client can download the current state as a session-free `SaveData`
@@ -222,8 +233,8 @@ The client can download the current state as a session-free `SaveData`
 `isValidSaveState` predicate as boot; a malformed file, invalid state, or any
 version newer than `SAVE_VERSION` is refused with a reason and the live save is
 never replaced. Accepted imports drop any live cup session and reload into the
-day phase. The two volume levels and the creature's earned branch travel with
-the save.
+day phase. The two volume levels, the creature's earned branch, and the
+drifted affinity travel with the save.
 
 ## Adding a new field (recipe)
 

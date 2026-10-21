@@ -72,7 +72,7 @@ function v14Payload(): Record<string, unknown> {
 
 describe("save v15 (dynasty_breeding_20261018)", () => {
   test("SAVE_VERSION is 19", () => {
-    expect(SAVE_VERSION).toBe(19)
+    expect(SAVE_VERSION).toBe(20)
   })
 
   test("migrates a v14 creature and Hall records to empty v15 lineage fields", () => {

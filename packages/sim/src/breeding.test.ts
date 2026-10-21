@@ -8,20 +8,29 @@
 
 import { describe, expect, it } from "bun:test"
 import {
+  AFFINITY_DRIFT_CHANCE,
   breedingPool,
   canBreed,
   createBredCreature,
   deriveTrait,
+  driftSource,
   effectiveTraits,
   inheritedFloorFromPair,
   pairFor,
   retireeRecord,
+  rollAffinityDrift,
   speciesOptions,
   traitBonus,
   validatePair,
 } from "./breeding"
-import { type CreatureStats, createCreature, effectiveStats } from "./creature"
+import {
+  type CreatureStats,
+  createCreature,
+  type Element,
+  effectiveStats,
+} from "./creature"
 import { GRADUATION_DAY, type RetiredRecord } from "./legacy"
+import type { Rng } from "./rng"
 import { getSpecies } from "./species"
 import { chooseStarter, createInitialState, type GameState } from "./state"
 
@@ -53,6 +62,7 @@ function record(overrides: Partial<RetiredRecord> = {}): RetiredRecord {
     speciesId: "fire_drake",
     archetypeId: "draconic",
     element: "fire",
+    affinity: null,
     stats: { hp: 100, atk: 20, def: 14, spd: 16 },
     trained: { ...ZERO },
     cupsWon: 0,
@@ -507,5 +517,153 @@ describe("retireeRecord", () => {
 
   it("returns null when there is no active creature", () => {
     expect(retireeRecord(createInitialState())).toBeNull()
+  })
+})
+
+/**
+ * A stub Rng that replays queued draws in order and counts how many were
+ * consumed — the drift rule promises not to draw for a same-element pair.
+ */
+function stubRng(draws: number[]): Rng & { count(): number } {
+  let index = 0
+  let count = 0
+  const next = (): number => {
+    const value = draws[index]
+    index += 1
+    count += 1
+    if (value === undefined) throw new Error(`unexpected draw #${index}`)
+    return value
+  }
+  return {
+    next,
+    int: (maxExclusive: number) => Math.floor(next() * maxExclusive),
+    count: () => count,
+  }
+}
+
+describe("affinity drift — the seeded roll", () => {
+  /** A fire drake sire paired with a plant ox dam: the egg may drift plant. */
+  const mixed = [
+    record({ generation: 0 }),
+    record({
+      generation: 1,
+      name: "Moss",
+      speciesId: "plant_ox",
+      archetypeId: "bovine",
+      element: "plant",
+    }),
+  ] as const
+  /** A fire-on-fire pair: no differing parent, so no drift is possible. */
+  const same = [
+    record({ generation: 0 }),
+    record({ generation: 1, name: "Ember" }),
+  ] as const
+
+  it("uses a 15% drift chance", () => {
+    expect(AFFINITY_DRIFT_CHANCE).toBe(0.15)
+  })
+
+  it("sources the drift from the parent whose element differs from the egg species", () => {
+    expect(driftSource("fire", mixed)).toBe("plant")
+    expect(driftSource("plant", mixed)).toBe("fire")
+  })
+
+  it("names no source when both parents share the species element", () => {
+    expect(driftSource("fire", same)).toBeNull()
+  })
+
+  it("fires exactly at the threshold and not below it", () => {
+    const threshold = 1 - AFFINITY_DRIFT_CHANCE
+    const at = stubRng([threshold])
+    expect(rollAffinityDrift(DRAKE, mixed, at)).toBe<Element>("plant")
+    const below = stubRng([threshold - 0.001])
+    expect(rollAffinityDrift(DRAKE, mixed, below)).toBeNull()
+  })
+
+  it("consumes no draw when both parents share the species element", () => {
+    const rng = stubRng([])
+    expect(rollAffinityDrift(DRAKE, same, rng)).toBeNull()
+    expect(rng.count()).toBe(0)
+  })
+
+  it("is seeded — same seed, same roll", () => {
+    for (let seed = 0; seed < 20; seed++) {
+      expect(rollAffinityDrift(DRAKE, mixed, seed)).toEqual(
+        rollAffinityDrift(DRAKE, mixed, seed),
+      )
+    }
+  })
+
+  it("drifts toward the parent's primary element only — a secondary never chains", () => {
+    const chained = [
+      record({ generation: 0 }),
+      record({
+        generation: 1,
+        name: "Moss",
+        speciesId: "plant_ox",
+        archetypeId: "bovine",
+        element: "plant",
+        affinity: "electric" as Element,
+      }),
+    ] as const
+    const at = stubRng([1 - AFFINITY_DRIFT_CHANCE])
+    expect(rollAffinityDrift(DRAKE, chained, at)).toBe<Element>("plant")
+  })
+})
+
+describe("createBredCreature — affinity drift", () => {
+  const mixed = [
+    record({ generation: 0 }),
+    record({
+      generation: 1,
+      name: "Moss",
+      speciesId: "plant_ox",
+      archetypeId: "bovine",
+      element: "plant",
+    }),
+  ] as const
+  const same = [
+    record({ generation: 0 }),
+    record({ generation: 1, name: "Ember" }),
+  ] as const
+
+  it("threads the drift roll into the egg so previewed equals hatched", () => {
+    for (let seed = 0; seed < 40; seed++) {
+      const egg = createBredCreature("fire_drake", seed, [...mixed], 1)
+      expect(egg.affinity).toBe(rollAffinityDrift(DRAKE, mixed, seed))
+      expect(egg.affinity === null || egg.affinity === "plant").toBe(true)
+    }
+  })
+
+  it("drifts some seeded eggs toward the differing parent's element", () => {
+    let sawDrift = false
+    for (let seed = 0; seed < 40; seed++) {
+      if (createBredCreature("fire_drake", seed, [...mixed], 1).affinity) {
+        sawDrift = true
+      }
+    }
+    expect(sawDrift).toBe(true)
+  })
+
+  it("never drifts from a same-element pair", () => {
+    for (let seed = 0; seed < 40; seed++) {
+      expect(
+        createBredCreature("fire_drake", seed, [...same], 1).affinity,
+      ).toBeNull()
+    }
+  })
+
+  it("keeps the stat stream byte-identical whether or not a drift is possible", () => {
+    // The pairs carry identical stats; only the dam's element differs. The
+    // drift roll must live on its own stream so the egg's base roll and
+    // mutation never move.
+    for (let seed = 0; seed < 40; seed++) {
+      const pure = createBredCreature("fire_drake", seed, [...same], 1)
+      const pair = createBredCreature("fire_drake", seed, [...mixed], 1)
+      expect(pair.stats).toEqual(pure.stats)
+      expect(pair.traits).toEqual(pure.traits)
+      expect(pair.conditions).toEqual(pure.conditions)
+      expect(pair.parents).toEqual(pure.parents)
+    }
   })
 })

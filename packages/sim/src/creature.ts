@@ -50,6 +50,12 @@ export interface Creature {
   name: string
   element: Element
   /**
+   * Secondary type affinity (save v20): the differing parent's element won
+   * by a seeded drift roll at breeding time. Null for every founder and
+   * migrated creature. Never equal to `element`.
+   */
+  affinity: Element | null
+  /**
    * Inherited lineage traits (save v15). Display + egg-floor only; never
    * consulted by the battle resolver.
    */
@@ -189,6 +195,7 @@ export function createCreature(
     speciesId: species.id,
     name: species.displayName,
     element: species.element,
+    affinity: null,
     traits: [],
     parents: [],
     stage: "baby",

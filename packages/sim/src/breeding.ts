@@ -3,7 +3,9 @@
  * Fame records, pair validation, and the dual-parent egg. A pair contributes
  * 50% of the stronger parent + 10% of the weaker per stat, then trait bonuses
  * and the established-line perk, clamped to the species bounds. One seeded
- * mutation (+1..+2 to one stat) is baked into the hatched stats.
+ * mutation (+1..+2 to one stat) is baked into the hatched stats. A bred egg
+ * may also drift toward a differing parent's element: one seeded 15% roll
+ * (affinity_drift_20261021) decides the egg's `affinity`.
  *
  * Phase 1 exposes the pure building blocks; Phase 2 adds the succession
  * wrapper and save v15. Pure data and pure functions only — no DOM, no I/O.
@@ -13,6 +15,7 @@ import {
   type Creature,
   type CreatureStats,
   createCreature,
+  type Element,
   type LineageTrait,
   type StatKey,
 } from "./creature"
@@ -25,7 +28,7 @@ import {
   retireeRecord,
   WARM_BOND_START,
 } from "./legacy"
-import { makeRng } from "./rng"
+import { makeRng, type Rng } from "./rng"
 import { getSpecies, type SpeciesDef } from "./species"
 import { ACTION_POINTS_PER_DAY, type GameState } from "./state"
 import { dedupeTraits, effectiveTraits, traitBonus } from "./traits"
@@ -43,6 +46,55 @@ export { retireeRecord }
 
 /** The weaker parent's weight in the dual-parent floor. */
 export const PAIR_SECONDARY_FRACTION = 0.1
+
+/**
+ * The chance a bred egg drifts toward a differing parent's element
+ * (affinity_drift_20261021 FR-1): a seeded roll made once, at breeding
+ * time, so the nursery preview and the hatch agree.
+ */
+export const AFFINITY_DRIFT_CHANCE = 0.15
+
+/** A fixed salt keeps the drift roll decorrelated from the egg's stat stream. */
+const AFFINITY_DRIFT_SALT = 0x85ebca6b
+
+/**
+ * The drift source: the parent whose element differs from the egg's species
+ * element, or null when both parents share it. Only primary elements are
+ * drift sources — a parent's own affinity never chains.
+ */
+export function driftSource(
+  speciesElement: Element,
+  parents: readonly RetiredRecord[],
+): Element | null {
+  const [sire, dam] = parents
+  if (sire && sire.element !== speciesElement) return sire.element
+  if (dam && dam.element !== speciesElement) return dam.element
+  return null
+}
+
+/**
+ * The seeded affinity drift roll. Like the rival kit, it draws from its own
+ * stream derived from the seed under a distinct constant, so the egg's base
+ * roll and mutation stay byte-identical whether or not a drift is possible.
+ * Returns the differing parent's element on a hit, null otherwise (and
+ * always null — with no draw consumed — when both parents share the
+ * species element).
+ */
+export function rollAffinityDrift(
+  species: SpeciesDef,
+  parents: readonly RetiredRecord[],
+  seed: number | Rng,
+): Element | null {
+  const source = driftSource(species.element, parents)
+  if (!source) return null
+  const rng =
+    typeof seed === "number"
+      ? makeRng((seed ^ AFFINITY_DRIFT_SALT) >>> 0)
+      : seed
+  // A draw at or above the threshold (1 - chance) drifts; below it the egg
+  // stays pure. Boundary pinned by test.
+  return rng.next() >= 1 - AFFINITY_DRIFT_CHANCE ? source : null
+}
 
 const STAT_KEYS = ["hp", "atk", "def", "spd"] as const
 
@@ -216,6 +268,7 @@ export function createBredCreature(
     stats,
     conditions,
     traits,
+    affinity: rollAffinityDrift(species, parents, seed),
     parents: parents.map((record) => record.generation).sort((a, b) => a - b),
   }
 }

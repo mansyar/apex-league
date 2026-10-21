@@ -61,10 +61,12 @@ export {
   type LeanSource,
 } from "./branches"
 export {
+  AFFINITY_DRIFT_CHANCE,
   breedingPool,
   canBreed,
   createBredCreature,
   deriveTrait,
+  driftSource,
   effectiveTraits,
   type GraduatePairReason,
   type GraduatePairResult,
@@ -76,6 +78,7 @@ export {
   type PairVerdict,
   pairFor,
   retireeRecord,
+  rollAffinityDrift,
   speciesOptions,
   TRAIT_ORDER,
   TRAITS,
