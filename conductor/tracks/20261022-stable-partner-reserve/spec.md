@@ -3,6 +3,12 @@
 > Requirements are stable. Once an `FR`, `NFR`, or `AC` ID is approved, do not
 > renumber it. If a requirement is removed, mark it `Withdrawn` instead of
 > deleting it.
+>
+> *Review round 1 (2026-10-22):* FR-8 was narrowed from "a stashed pet, a
+> starter, or the pending gift" to "a stashed pet or a starter". The pending
+> gift is a pure gift with no inherited stat floor (FR-7), so it is not a
+> graduation successor; it waits in the stable like any other pet and the
+> player brings it forward. The ID is unchanged.
 
 ## Overview
 
@@ -108,7 +114,7 @@ modal shows it.
 | FR-5 | Age is per pet: every pet carries its own days alive, incremented by the night settlement while it is active; the juvenile, champion and graduation gates read that age instead of the world day. A pet hatched late matures on its own tenth night, not its first. | must |
 | FR-6 | The pet's age is shown where the player reads a pet's facts: the partner-details modal carries an age row beside the stage, and the stable modal shows each stashed pet's age. | should |
 | FR-7 | The Storm Gift hatches into the stable: the ranch pet is untouched, and the gift is never a replacement. | must |
-| FR-8 | At graduation the successor may be a stashed pet, a starter, or the pending gift; a graduation never strands a pet, and the retired pet is archived as it is today. | must |
+| FR-8 | At graduation the successor may be a stashed pet or a starter; a graduation never strands a pet, and the retired pet is archived as it is today. | must |
 | FR-9 | The stable surface is a ranch chip plus a modal listing every stashed pet (crest, name, species, stage, age) with a *Bring to the ranch* action; an empty stable has an empty state; the ranch scene rebuilds after a swap so the new pet is standing there. | must |
 | FR-10 | A swap is refused during a live cup or spar (the day-phase lock), with the game's usual coaching copy rather than a silent no-op. | must |
 | FR-11 | Breeding stays Hall-only: stashed pets are never pairable and never enter the Hall of Fame; the Hall keeps its meaning as the ledger of retired careers. | must |
