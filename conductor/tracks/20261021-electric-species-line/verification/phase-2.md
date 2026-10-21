@@ -119,3 +119,13 @@ Both run sequentially from the repo root on the final state (commit `752220e`).
 - `stormGiftClaimed` was placed after `evolutionKnowledge` in
   `GameState`/`createInitialState` and in every migration step, matching
   the append-only field order the chain documents.
+
+## Primary verification
+
+- Range c0c8a4b..HEAD contained exactly the four reported commits before the squash.
+- Independent gate re-run initially FAILED with two primary-owned repair items, both fixed by the primary:
+  - 5 phase-caused biome findings (storm-gift.test.ts, index.ts, machine.ts, giftSave.test.ts organizeImports/format) fixed via biome --write; committed as 5d90336.
+  - packages/voxel/src/face.test.ts: two heavy geometry tests with hardcoded 20_000 ms per-test budgets began timing out under 20x parallel load once the suite grew to 2191 tests (passed in isolation, failed in 3 of 4 full-gate runs). Raised both to 120_000 per the file family's existing convention (fuzz boundary tests use 120000); committed as 5271417. Pre-existing debt, not phase-caused code.
+- After repairs: bun run verify exit 0 (typecheck clean, biome clean, 2190 pass / 1 skip / 0 fail, determinism gate byte-identical on 9 GLBs + 5 props) and bun run build exit 0.
+- Evidence file complete with AC table and design decisions; NFR-3 drift-stream purity explicitly pinned by before/after comparison.
+- Verdict: Phase 2 accepted.

@@ -58,21 +58,18 @@ After acceptance the primary agent appends:
 - **Covers:** FR-5, FR-6, FR-8, AC-5, AC-6, AC-8, NFR-3
 - **Touches:** `packages/sim/src/cup/` (finalize seam), `packages/sim/src/save/{schema,migrate,storage,transfer}.ts`, `packages/sim/src/breeding.ts` (egg creation seam), `docs/save-schema.md`, co-located tests
 - **Verification:** `bun run check && bun test --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
 ### Tasks
 
-- [ ] **P2.T1: Tier-reward grant at cup finalize (once, persists, forfeit-exempt, tier ≥ Silver check)** — covers: FR-5
-  - [ ] **P2.T1.1: Failing test first — grant, duplicate, and below-Silver paths** — covers: FR-5
-- [ ] **P2.T2: Pure gift egg — fixed Electric element, guaranteed affinity null, no drift RNG draw, previewed = hatched** — covers: FR-6, AC-6, NFR-3
-- [ ] **P2.T3: Save v21 bump + v20→v21 migration + `docs/save-schema.md` rows** — covers: FR-8, AC-8
+- [x] **P2.T1: Tier-reward grant at cup finalize (once, persists, forfeit-exempt, tier ≥ Silver check)** — covers: FR-5
+  - [x] **P2.T1.1: Failing test first — grant, duplicate, and below-Silver paths** — covers: FR-5
+- [x] **P2.T2: Pure gift egg — fixed Electric element, guaranteed affinity null, no drift RNG draw, previewed = hatched** — covers: FR-6, AC-6, NFR-3
+- [x] **P2.T3: Save v21 bump + v20→v21 migration + `docs/save-schema.md` rows** — covers: FR-8, AC-8
 
-<!--
-After acceptance the primary agent appends:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 8486942
 **Evidence:** conductor/tracks/20261021-electric-species-line/verification/phase-2.md
--->
 
 ## Phase 3 — Voxel Archetype & GLBs
 
