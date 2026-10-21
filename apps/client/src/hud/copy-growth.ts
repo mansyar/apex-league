@@ -4,6 +4,7 @@ import {
   type Creature,
   EVOLUTION_DAY,
   EVOLUTION_HINT_DAY,
+  type GameState,
   GRADUATION_HINT_DAY,
   getBranch,
   getMove,
@@ -13,6 +14,7 @@ import {
   MOVE_TIER4_DAYS,
   requiredTierDays,
 } from "@apex/sim"
+import { ELEMENT_LABELS } from "../handbook/common"
 
 /**
  * The growth half of the HUD's copy engine: the fresh-unlock line, the
@@ -128,4 +130,28 @@ export function graduationCallout(
   generation: number,
 ): string {
   return `${retireeName} graduated to the Hall of Fame — generation ${generation} begins with ${successorName}.`
+}
+
+/** The element's display name ("Fire") — the handbook's single label table. */
+function elementLabel(element: string): string {
+  return ELEMENT_LABELS[element] ?? element
+}
+
+/**
+ * Coach voice for a drifted hatch (FR-6): a plain statement of what
+ * happened, on the hatch day only. The hatch day is derived the same way
+ * the sim derives it — a successor hatches on the day its predecessor
+ * graduated, and a founder was chosen on day 1 — so the announcement can
+ * never linger into a later day.
+ */
+export function driftCallout(
+  creature: Creature,
+  lineage: GameState["lineage"],
+  day: number,
+): string {
+  if (!creature.affinity) return ""
+  const last = lineage.hallOfFame[lineage.hallOfFame.length - 1]
+  if (day !== (last ? last.retiredOnDay : 1)) return ""
+  const secondary = elementLabel(creature.affinity)
+  return `${creature.name} hatched with a ${secondary} streak beneath its ${elementLabel(creature.element)} nature — strong hits the ${secondary} resists land even instead.`
 }

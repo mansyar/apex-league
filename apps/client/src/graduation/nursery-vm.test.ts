@@ -178,6 +178,7 @@ describe("hatchPreview — floors, values, and copy", () => {
       for (const row of preview.rows) {
         expect(row.value, `${seed}:${row.key}`).toBe(child.stats[row.key])
       }
+      expect(preview.affinity, `${seed}:affinity`).toBe(child.affinity)
     }
   })
 
@@ -228,6 +229,28 @@ describe("hatchPreview — floors, values, and copy", () => {
     ])
     expect(preview.mutationNote).toContain("mutation")
     expect(preview.prestige).toBe(3)
+  })
+
+  test("never rolls a drift when both parents share the species' element", () => {
+    const ash = record({ name: "Ash", generation: 3, parents: [0] })
+    const ember = record({ name: "Ember", generation: 4, parents: [0] })
+    for (let seed = 1; seed <= 40; seed += 1) {
+      const preview = hatchPreview([ash, ember], "fire_drake", seed, 3)
+      if (!preview) throw new Error(`expected a preview for seed ${seed}`)
+      expect(preview.affinity, `seed ${seed}`).toBeNull()
+    }
+  })
+
+  test("the secondary never equals the primary, and the note widens at prestige 9", () => {
+    for (let seed = 1; seed <= 60; seed += 1) {
+      const preview = hatchPreview([ROLO, MOSS], "fire_drake", seed, 9)
+      if (!preview) throw new Error(`expected a preview for seed ${seed}`)
+      expect(preview.affinity, `seed ${seed}`).not.toBe("fire")
+    }
+    const narrow = hatchPreview([ROLO, MOSS], "fire_drake", 42, 3)
+    const wide = hatchPreview([ROLO, MOSS], "fire_drake", 42, 9)
+    expect(narrow?.mutationNote).toContain("+1–2")
+    expect(wide?.mutationNote).toContain("+1–3")
   })
 
   test("returns null for an unknown species", () => {

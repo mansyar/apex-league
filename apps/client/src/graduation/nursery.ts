@@ -9,6 +9,8 @@
 
 import { breedingPool, type GameState, type RetiredRecord } from "@apex/sim"
 import { focusTrap } from "../battleUI"
+import { elementHue } from "../element"
+import { ELEMENT_LABELS } from "../handbook/common"
 import { chip, crest, cta, tab } from "../ui/kit"
 import {
   chooseSpecies,
@@ -289,6 +291,18 @@ export function createNursery(handlers: NurseryHandlers): NurserySurface {
           badge.title = trait.description
           traits.append(badge)
         }
+      }
+      // FR-6: the preview names the rolled secondary — the exact hatch roll.
+      if (preview.affinity) {
+        const label = ELEMENT_LABELS[preview.affinity] ?? preview.affinity
+        const badge = span(
+          "kit-tab is-outline nursery-trait",
+          `${label} affinity`,
+        )
+        badge.style.color = `hsl(${elementHue(preview.affinity)} 70% 62%)`
+        badge.title =
+          "A hit strong into the primary lands even when this type resists it."
+        traits.append(badge)
       }
 
       const note = document.createElement("p")

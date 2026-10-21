@@ -1,5 +1,7 @@
 import type { Creature, CreatureConditions, FormTier, StatKey } from "@apex/sim"
 import { FORM_COPY, formTier } from "@apex/sim"
+import { crestGlyph, elementHue } from "../element"
+import { ELEMENT_LABELS } from "../handbook/common"
 import { icons } from "../ui/icons"
 import { bar, crest, plate, tab, ticker } from "../ui/kit"
 import { branchPath } from "./copy-branch"
@@ -261,4 +263,33 @@ export function paintBranchBadge(
     : `${path.title}: ${path.label} — favors ${path.favored}`
   node.setAttribute("aria-label", node.title)
   node.setAttribute("style", `--hue: ${path.hue}`)
+}
+
+/**
+ * Paint a crest hexagon from the creature's types (save v20): the primary
+ * hue always fills the hexagon, and a drifted partner gains a small
+ * secondary hexagon pinned to the corner. The title and accessible name
+ * spell out both types, so the reading never rides colour alone.
+ */
+export function paintCrest(
+  node: HTMLElement,
+  element: Creature["element"],
+  affinity: Creature["affinity"],
+): void {
+  node.classList.toggle("is-dual", affinity !== null)
+  node.style.setProperty("--hue", String(elementHue(element)))
+  node.title = ""
+  node.setAttribute("role", "")
+  node.setAttribute("aria-label", "")
+  node.innerHTML = crestGlyph(element)
+  if (affinity === null) return
+  const badge = document.createElement("span")
+  badge.className = "kit-crest-secondary"
+  badge.style.setProperty("--hue", String(elementHue(affinity)))
+  badge.innerHTML = crestGlyph(affinity)
+  node.append(badge)
+  const read = `${ELEMENT_LABELS[element] ?? element} · ${ELEMENT_LABELS[affinity] ?? affinity} streak`
+  node.title = read
+  node.setAttribute("role", "img")
+  node.setAttribute("aria-label", read)
 }

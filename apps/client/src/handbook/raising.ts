@@ -8,6 +8,10 @@
 import {
   EXHAUSTED_ENERGY,
   FORM_COPY,
+  HEAD_START_AP_BONUS,
+  HEAD_START_DAYS,
+  PRESTIGE_CHAMPION_STABLE,
+  PRESTIGE_REFINED_BLOOD,
   SICK_HEALTH,
   TRAINING_CAP,
   TRAINING_ENERGY_COST,
@@ -82,4 +86,24 @@ export function buildRaising(panel: HTMLElement): void {
   buildPrograms(panel)
   buildBreakthroughs(panel)
   buildForm(panel)
+  buildPerks(panel)
+}
+
+/** Milestone perks (FR-6): the newer prestige perks in the sim's numbers. */
+function buildPerks(panel: HTMLElement): void {
+  panel.append(subhead("Milestone perks"))
+  panel.append(
+    ruleRow(
+      "Refined Blood",
+      // REFINED_INHERITANCE_FRACTION (0.55) is not re-exported from
+      // @apex/sim; the literal mirrors the sim's legacy module until it is.
+      `From prestige ${PRESTIGE_REFINED_BLOOD}, a bred egg's stronger parent passes 0.55 of its stats instead of 0.5.`,
+    ),
+  )
+  panel.append(
+    ruleRow(
+      "Champion Stable",
+      `From prestige ${PRESTIGE_CHAMPION_STABLE}, the hatchling gains +${HEAD_START_AP_BONUS} max AP for its first ${HEAD_START_DAYS} days, and the hatch mutation can reach +3.`,
+    ),
+  )
 }

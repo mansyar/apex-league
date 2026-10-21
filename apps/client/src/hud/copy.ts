@@ -40,6 +40,7 @@ export {
 } from "./copy-care"
 export { type HudHint, selectHint } from "./copy-cup"
 export {
+  driftCallout,
   evolveCallout,
   familyName,
   graduationCallout,

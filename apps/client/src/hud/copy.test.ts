@@ -8,6 +8,7 @@ import {
   EXHAUSTED_ENERGY,
   FORM_COPY,
   type GameState,
+  type RetiredRecord,
   TRAINING_PROGRAMS,
 } from "@apex/sim"
 import {
@@ -16,6 +17,7 @@ import {
   coachVoice,
   corruptSaveNotice,
   dockHeadTraining,
+  driftCallout,
   evolveCallout,
   FORM_SICK_NOTE,
   familyName,
@@ -785,5 +787,65 @@ describe("training copy (2026-10-20)", () => {
     const pinned = formRead(sick)
     expect(pinned.label).toBe(FORM_COPY.sluggish.label)
     expect(pinned.sickNote).toBe(FORM_SICK_NOTE)
+  })
+})
+
+describe("driftCallout — the drifted-hatch announcement (FR-6)", () => {
+  const hallRecord = (retiredOnDay: number): RetiredRecord => ({
+    name: "Rolo",
+    speciesId: "fire_drake",
+    archetypeId: "draconic",
+    element: "fire",
+    affinity: null,
+    stats: { hp: 160, atk: 24, def: 16, spd: 18 },
+    trained: { hp: 0, atk: 0, def: 0, spd: 0 },
+    cupsWon: 1,
+    generation: 0,
+    retiredOnDay,
+    traits: ["sturdy"],
+    parents: [],
+    branch: "legacy",
+  })
+
+  test("silent when the creature carries no secondary affinity", () => {
+    const creature = createCreature("fire_drake", 42)
+    expect(driftCallout(creature, createInitialState().lineage, 10)).toBe("")
+  })
+
+  test("names both types on the hatch day itself", () => {
+    const drifted: Creature = {
+      ...createCreature("fire_drake", 42),
+      affinity: "water",
+    }
+    const lineage: GameState["lineage"] = {
+      generation: 1,
+      hallOfFame: [hallRecord(60)],
+    }
+    const line = driftCallout(drifted, lineage, 60)
+    expect(line).toContain(drifted.name)
+    expect(line).toContain("Water")
+    expect(line).toContain("Fire")
+  })
+
+  test("silent on any other day", () => {
+    const drifted: Creature = {
+      ...createCreature("fire_drake", 42),
+      affinity: "water",
+    }
+    const lineage: GameState["lineage"] = {
+      generation: 1,
+      hallOfFame: [hallRecord(60)],
+    }
+    expect(driftCallout(drifted, lineage, 61)).toBe("")
+  })
+
+  test("founder lineage announces on day 1", () => {
+    const drifted: Creature = {
+      ...createCreature("fire_drake", 42),
+      affinity: "plant",
+    }
+    const line = driftCallout(drifted, createInitialState().lineage, 1)
+    expect(line).toContain("Plant")
+    expect(line).toContain("Fire")
   })
 })

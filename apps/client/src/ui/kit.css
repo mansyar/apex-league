@@ -927,3 +927,31 @@ body.is-reduced *::after {
     transition: none !important;
   }
 }
+
+/* ---- Dual crest (save v20) ----------------------------------------------
+   A drifted partner's crest: the primary hue fills the hexagon and a small
+   secondary hexagon rides the corner. The title names both types, so
+   colour never carries alone. Kept last in the file so its higher
+   specificity never descends below an earlier selector. */
+
+.kit-crest.is-dual {
+  position: relative;
+}
+
+.kit-crest.is-dual .kit-crest-secondary {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  clip-path: polygon(50% 0, 100% 26%, 100% 74%, 50% 100%, 0 74%, 0 26%);
+  background: hsl(var(--hue) 70% 55%);
+  color: #14100c;
+}
+
+.kit-crest.is-dual .kit-crest-secondary svg {
+  width: 10px;
+  height: 10px;
+}

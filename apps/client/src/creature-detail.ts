@@ -14,22 +14,19 @@
  * modal's own Escape/backdrop/close semantics and the tab strip.
  */
 import {
-  type Creature,
-  defaultLoadout,
   effectiveTraits,
   type GameState,
-  getMove,
-  getSpecies,
-  knownMoves,
-  requiredTierDays,
   type StatKey,
   statBreakdown,
 } from "@apex/sim"
 import { focusTrap } from "./battleUI"
+import { kitRows } from "./detail/kit-rows"
 import { buildPathSection } from "./detail/path"
 import { createTrainingHost } from "./detail/training-tab"
 import { parentageLabel, traitCopy } from "./graduation/nursery-vm"
 import { createGrowthHost } from "./growth-panel"
+import { ELEMENT_LABELS } from "./handbook/common"
+import { paintCrest } from "./hud/plates-creature"
 import { crest, tab } from "./ui/kit"
 import { romanNumeral, stageLabel } from "./ui/labels"
 import { createTabs, type TabSpec } from "./ui/tabs"
@@ -116,48 +113,6 @@ export interface CreatureDetail {
 }
 
 /**
- * The six pool rows for the detail modal: equipped moves read "In kit",
- * known moves read "Learned", and locked ones carry their gate. The gate
- * copy is the same language the picker uses so a coach can map one to the
- * other.
- */
-function kitRows(creature: Creature): HTMLElement[] {
-  const species = getSpecies(creature.speciesId)
-  if (!species) return []
-  const known = new Set(knownMoves(creature, species))
-  const equipped = new Set(
-    creature.loadout ?? defaultLoadout(creature, species),
-  )
-  return species.kit.map((id, index) => {
-    const row = document.createElement("div")
-    row.className = "detail-kit-row"
-    const name = document.createElement("span")
-    name.className = "detail-kit-name"
-    name.textContent = getMove(id)?.displayName ?? id
-    const state = document.createElement("span")
-    state.className = "detail-kit-state"
-    if (equipped.has(id)) {
-      state.textContent = "In kit"
-      state.dataset.state = "equipped"
-    } else if (known.has(id)) {
-      state.textContent = "Learned"
-      state.dataset.state = "known"
-    } else {
-      const remaining =
-        requiredTierDays(index, creature.stage) - creature.trainingDays
-      const spell = remaining === 1 ? "day" : "days"
-      state.textContent =
-        index === 2 && creature.stage === "baby"
-          ? `${remaining} ${spell}, or evolve`
-          : `${remaining} ${spell}`
-      state.dataset.state = "locked"
-    }
-    row.append(name, state)
-    return row
-  })
-}
-
-/**
  * Build the creature detail modal. Callers append `root` to the HUD and
  * call `open(state)` when the creature plate is tapped.
  */
@@ -176,6 +131,7 @@ export function buildCreatureDetail(): CreatureDetail {
   const head = document.createElement("div")
   head.className = "creature-detail-head"
   const crestEl = crest("fire")
+  paintCrest(crestEl, "fire", null)
   const name = document.createElement("span")
   name.className = "creature-detail-name"
   const stageTab = tab("Baby", "stage")
@@ -288,7 +244,7 @@ export function buildCreatureDetail(): CreatureDetail {
         document.activeElement instanceof HTMLElement
           ? document.activeElement
           : null
-      crestEl.replaceWith(crest(creature.element))
+      paintCrest(crestEl, creature.element, creature.affinity)
       name.textContent = creature.name
       stageTab.textContent = stageLabel(creature.stage)
 
@@ -304,6 +260,16 @@ export function buildCreatureDetail(): CreatureDetail {
           "Lineage",
           `${generationLabel(state.lineage.generation)} · ${parentageLabel(creature.parents)}`,
         ),
+        // save v20: the secondary affinity reads as its own row when the
+        // line drifted; a pure partner keeps the context list unchanged.
+        ...(creature.affinity
+          ? [
+              contextRow(
+                "Affinity",
+                `${ELEMENT_LABELS[creature.affinity] ?? creature.affinity} · secondary`,
+              ),
+            ]
+          : []),
         contextRow(
           "Traits",
           traits.length > 0

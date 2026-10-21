@@ -9,6 +9,8 @@ import {
   effectiveTraits,
   type GameState,
   type GraduatePairReason,
+  HEAD_START_AP_BONUS,
+  HEAD_START_DAYS,
   lineagePerks,
   lineagePrestige,
   type RetiredRecord,
@@ -44,6 +46,17 @@ export function perkLabels(state: GameState): string[] {
   if (perks.warmBloodline) out.push("Warm bloodline: +10 starting bond")
   if (perks.establishedLine)
     out.push("Established line: +1 to every inherited stat")
+  if (perks.refinedBlood) {
+    // REFINED_INHERITANCE_FRACTION (0.55) lives in the sim's legacy module
+    // but is not re-exported from @apex/sim; the literal mirrors it until
+    // the sim exposes it. (Same precedent as the hardcoded +10 bond above.)
+    out.push("Refined blood: stronger parent passes 0.55")
+  }
+  if (perks.championStable) {
+    out.push(
+      `Champion stable: +${HEAD_START_AP_BONUS} max AP for the first ${HEAD_START_DAYS} days`,
+    )
+  }
   return out
 }
 

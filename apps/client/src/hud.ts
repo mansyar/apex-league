@@ -1,5 +1,10 @@
 import type { CareAction, GameState, TrainingProgram } from "@apex/sim"
-import { evolveCallout, graduationCallout, saveFailureNotice } from "./hud/copy"
+import {
+  driftCallout,
+  evolveCallout,
+  graduationCallout,
+  saveFailureNotice,
+} from "./hud/copy"
 import { createHints } from "./hud/hints"
 import { createHudShell } from "./hud/shell"
 import { createHudUpdate } from "./hud/update"
@@ -117,16 +122,29 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   const hints = createHints(handlers.onHintSeen)
   root.append(hints.root)
   const update = createHudUpdate(shell, hints)
+  // The shell's own interactions re-render through this pass. The latest
+  // state is kept so the graduation callout can yield the hatch-day drift
+  // statement (FR-6): the hatch commit paints the drift line first, and the
+  // graduation announcement that screens fire right after would otherwise
+  // overwrite it before anyone can read it.
+  let latest: GameState | null = null
+  const paint = (state: GameState) => {
+    latest = state
+    update(state)
+  }
   // The shell's own interactions re-render through this pass.
-  shell.render = update
+  shell.render = paint
   return {
-    update,
+    update: paint,
     announceEvolution(creature) {
       shell.refs.creaturePlate.statusTicker.say(evolveCallout(creature))
     },
     announceGraduation(retireeName, successorName, generation) {
+      const drifted = latest?.creature?.affinity
+        ? driftCallout(latest.creature, latest.lineage, latest.day)
+        : ""
       shell.refs.creaturePlate.statusTicker.say(
-        graduationCallout(retireeName, successorName, generation),
+        drifted || graduationCallout(retireeName, successorName, generation),
       )
     },
     announceSaveFailure() {
