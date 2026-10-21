@@ -18,4 +18,4 @@
 - [x] **Track: Raising Depth: Training Programs & Form** - [20261020-training-programs-form](./archive/20261020-training-programs-form/index.md) - feature - high *(archived 2026-10-20)*
 - [x] **Track: Branching Evolution & Champion Forms** — [20261020-branching-evolution-champion-forms](./archive/20261020-branching-evolution-champion-forms/index.md) — feature — high *(archived 2026-10-21)*
 - [x] **Track: Type Affinity Drift & Extended Prestige** — [20261021-affinity-drift-prestige-perks](./archive/20261021-affinity-drift-prestige-perks/index.md) — feature — high
-- [ ] **Track: Electric Species Line** — [20261021-electric-species-line](./tracks/20261021-electric-species-line/index.md) — feature — high
+- [~] **Track: Electric Species Line** — [20261021-electric-species-line](./tracks/20261021-electric-species-line/index.md) — feature — high
