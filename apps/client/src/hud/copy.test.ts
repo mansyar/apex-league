@@ -28,7 +28,9 @@ import {
   gainsLine,
   graduationCallout,
   graduationHint,
+  graduationTickerLine,
   growthHint,
+  hatchDayStatusLine,
   NO_GAIN_TONIGHT,
   NO_GAIN_TONIGHT_FALLBACK,
   previewNote,
@@ -39,6 +41,7 @@ import {
   spendFlashIndex,
   stageLabel,
   statLabel,
+  statusLine,
   TRAINING_EMPTY,
   TRAINING_EMPTY_POINTER,
   TRAINING_TAB_HEADINGS,
@@ -847,5 +850,61 @@ describe("driftCallout — the drifted-hatch announcement (FR-6)", () => {
     const line = driftCallout(drifted, createInitialState().lineage, 1)
     expect(line).toContain("Plant")
     expect(line).toContain("Fire")
+  })
+})
+
+describe("graduationTickerLine — the graduation moment's ticker line", () => {
+  test("a drifted graduation keeps the send-off and appends the drift beat", () => {
+    const drifted: Creature = {
+      ...createCreature("fire_drake", 42),
+      affinity: "water",
+    }
+    const line = graduationTickerLine(
+      "Ember Drake",
+      "Bramble Ox",
+      1,
+      driftCallout(drifted, createInitialState().lineage, 1),
+    )
+    expect(line).toContain(graduationCallout("Ember Drake", "Bramble Ox", 1))
+    expect(line).toContain("hatched with a Water streak")
+  })
+
+  test("a non-drifted graduation speaks the send-off only, no drift line", () => {
+    expect(graduationTickerLine("Ember Drake", "Bramble Ox", 1, "")).toBe(
+      graduationCallout("Ember Drake", "Bramble Ox", 1),
+    )
+  })
+})
+
+describe("hatchDayStatusLine — the hatch-day pass precedence", () => {
+  test("the drift statement leads on the hatch day whatever the primary element", () => {
+    for (const speciesId of ["water_axolotl", "fire_drake"] as const) {
+      const drifted: Creature = {
+        ...createCreature(speciesId, 42),
+        affinity: "plant",
+      }
+      const state = createInitialState()
+      expect(hatchDayStatusLine(drifted, state, null, null)).toBe(
+        driftCallout(drifted, state.lineage, 1),
+      )
+    }
+  })
+
+  test("a water hatch without drift keeps its flavor line", () => {
+    const plain = createCreature("water_axolotl", 42)
+    expect(hatchDayStatusLine(plain, createInitialState(), null, null)).toBe(
+      flavorCallout(plain),
+    )
+  })
+
+  test("any other day runs the routine precedence untouched", () => {
+    const drifted: Creature = {
+      ...createCreature("fire_drake", 42),
+      affinity: "water",
+    }
+    const state = { ...createInitialState(), day: 2 }
+    expect(hatchDayStatusLine(drifted, state, null, null)).toBe(
+      statusLine(drifted, 2, null, null),
+    )
   })
 })

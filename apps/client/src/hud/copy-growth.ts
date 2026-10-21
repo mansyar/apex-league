@@ -9,6 +9,7 @@ import {
   getBranch,
   getMove,
   getSpecies,
+  hatchDayOf,
   LEGACY_BRANCH,
   MOVE_TIER3_DAYS,
   MOVE_TIER4_DAYS,
@@ -132,6 +133,22 @@ export function graduationCallout(
   return `${retireeName} graduated to the Hall of Fame — generation ${generation} begins with ${successorName}.`
 }
 
+/**
+ * The graduation moment's ticker line: the send-off always leads, and on a
+ * drifted hatch the drift beat rides along in the same breath, so the
+ * legacy moment keeps both lines. `driftedLine` is the hatch-day
+ * `driftCallout` output ("" when the hatch didn't drift).
+ */
+export function graduationTickerLine(
+  retireeName: string,
+  successorName: string,
+  generation: number,
+  driftedLine: string,
+): string {
+  const sendOff = graduationCallout(retireeName, successorName, generation)
+  return driftedLine ? `${sendOff} ${driftedLine}` : sendOff
+}
+
 /** The element's display name ("Fire") — the handbook's single label table. */
 function elementLabel(element: string): string {
   return ELEMENT_LABELS[element] ?? element
@@ -139,10 +156,10 @@ function elementLabel(element: string): string {
 
 /**
  * Coach voice for a drifted hatch (FR-6): a plain statement of what
- * happened, on the hatch day only. The hatch day is derived the same way
- * the sim derives it — a successor hatches on the day its predecessor
- * graduated, and a founder was chosen on day 1 — so the announcement can
- * never linger into a later day.
+ * happened, on the hatch day only. The hatch day comes from the sim's own
+ * `hatchDayOf` — a successor hatches on the day its predecessor graduated,
+ * and a founder was chosen on day 1 — so the announcement can never linger
+ * into a later day.
  */
 export function driftCallout(
   creature: Creature,
@@ -150,8 +167,7 @@ export function driftCallout(
   day: number,
 ): string {
   if (!creature.affinity) return ""
-  const last = lineage.hallOfFame[lineage.hallOfFame.length - 1]
-  if (day !== (last ? last.retiredOnDay : 1)) return ""
+  if (day !== hatchDayOf(lineage)) return ""
   const secondary = elementLabel(creature.affinity)
   return `${creature.name} hatched with a ${secondary} streak beneath its ${elementLabel(creature.element)} nature — strong hits the ${secondary} resists land even instead.`
 }

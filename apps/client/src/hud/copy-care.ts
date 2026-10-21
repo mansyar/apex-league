@@ -15,7 +15,12 @@ import {
   type TrainingPreview,
   type TrainingProgram,
 } from "@apex/sim"
-import { graduationHint, growthHint, unlockCallout } from "./copy-growth"
+import {
+  driftCallout,
+  graduationHint,
+  growthHint,
+  unlockCallout,
+} from "./copy-growth"
 
 /**
  * The care half of the HUD's copy engine: care actions, condition and stat
@@ -301,5 +306,23 @@ export function statusLine(
     growthHint(day, creature) ||
     graduationHint(day, creature) ||
     flavorCallout(creature)
+  )
+}
+
+/**
+ * The hatch-day ticker line: on a drifted hatch the drift statement leads
+ * the routine precedence — element-independent, so a water partner's flavor
+ * line can never bury it. Any other day runs the routine precedence
+ * untouched.
+ */
+export function hatchDayStatusLine(
+  creature: NonNullable<GameState["creature"]>,
+  state: GameState,
+  lastProgram: TrainingProgram | null,
+  climb: string | null,
+): string {
+  return (
+    driftCallout(creature, state.lineage, state.day) ||
+    statusLine(creature, state.day, lastProgram, climb)
   )
 }

@@ -13,6 +13,7 @@ import {
   HEAD_START_DAYS,
   lineagePerks,
   lineagePrestige,
+  REFINED_INHERITANCE_FRACTION,
   type RetiredRecord,
 } from "@apex/sim"
 import { parentageLabel, traitCopy } from "./nursery-vm"
@@ -47,10 +48,9 @@ export function perkLabels(state: GameState): string[] {
   if (perks.establishedLine)
     out.push("Established line: +1 to every inherited stat")
   if (perks.refinedBlood) {
-    // REFINED_INHERITANCE_FRACTION (0.55) lives in the sim's legacy module
-    // but is not re-exported from @apex/sim; the literal mirrors it until
-    // the sim exposes it. (Same precedent as the hardcoded +10 bond above.)
-    out.push("Refined blood: stronger parent passes 0.55")
+    out.push(
+      `Refined blood: stronger parent passes ${REFINED_INHERITANCE_FRACTION}`,
+    )
   }
   if (perks.championStable) {
     out.push(

@@ -12,6 +12,7 @@ import {
   HEAD_START_DAYS,
   PRESTIGE_CHAMPION_STABLE,
   PRESTIGE_REFINED_BLOOD,
+  REFINED_INHERITANCE_FRACTION,
   SICK_HEALTH,
   TRAINING_CAP,
   TRAINING_ENERGY_COST,
@@ -95,9 +96,7 @@ function buildPerks(panel: HTMLElement): void {
   panel.append(
     ruleRow(
       "Refined Blood",
-      // REFINED_INHERITANCE_FRACTION (0.55) is not re-exported from
-      // @apex/sim; the literal mirrors the sim's legacy module until it is.
-      `From prestige ${PRESTIGE_REFINED_BLOOD}, a bred egg's stronger parent passes 0.55 of its stats instead of 0.5.`,
+      `From prestige ${PRESTIGE_REFINED_BLOOD}, a bred egg's stronger parent passes ${REFINED_INHERITANCE_FRACTION} of its stats instead of 0.5.`,
     ),
   )
   panel.append(

@@ -190,6 +190,7 @@ export {
   type GraduationReason,
   type GraduationVerdict,
   graduate,
+  hatchDayOf,
   INHERITANCE_FRACTION,
   type InheritanceSource,
   inheritedFloor,
@@ -203,6 +204,7 @@ export {
   PRESTIGE_FOUNDED,
   PRESTIGE_REFINED_BLOOD,
   PRESTIGE_WARM_BLOODLINE,
+  REFINED_INHERITANCE_FRACTION,
   type RetiredRecord,
   WARM_BOND_START,
 } from "./legacy"

@@ -9,11 +9,10 @@ import {
 import { meter, replay } from "../ui/kit"
 import {
   dockHeadTraining,
-  driftCallout,
   familyName,
+  hatchDayStatusLine,
   REJECTION_COPY,
   stageLabel,
-  statusLine,
 } from "./copy"
 import { trainButtonState } from "./dock"
 import {
@@ -296,9 +295,10 @@ export function createHudUpdate(
     // stays visible after the cup overlay closes.)
     const climb = climbLine
     climbLine = null
-    // FR-6: on a drifted hatch day the plain drift statement backs this line.
-    const drift = driftCallout(creature, state.lineage, state.day)
-    const line = statusLine(creature, state.day, lastProgram, climb) || drift
+    // FR-6: on a drifted hatch day the drift statement leads this pass —
+    // element-independent, so flavor can never bury it. The graduation
+    // announcement then composes the send-off and the drift beat.
+    const line = hatchDayStatusLine(creature, state, lastProgram, climb)
     statusTicker.say(line)
 
     // Disabled states come from the sim itself — a dry-run careAction is

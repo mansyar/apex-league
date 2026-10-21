@@ -2,7 +2,7 @@ import type { CareAction, GameState, TrainingProgram } from "@apex/sim"
 import {
   driftCallout,
   evolveCallout,
-  graduationCallout,
+  graduationTickerLine,
   saveFailureNotice,
 } from "./hud/copy"
 import { createHints } from "./hud/hints"
@@ -93,7 +93,8 @@ export interface Hud {
    * ceremony starts; the next routine update replaces it). */
   announceEvolution(creature: NonNullable<GameState["creature"]>): void
   /** Show the graduation send-off line (legacy track): the retiree, the
-   * generation it starts, and the successor's name. */
+   * generation it starts, and the successor's name — with the hatch-day
+   * drift beat appended when the hatch drifted. */
   announceGraduation(
     retireeName: string,
     successorName: string,
@@ -123,10 +124,9 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   root.append(hints.root)
   const update = createHudUpdate(shell, hints)
   // The shell's own interactions re-render through this pass. The latest
-  // state is kept so the graduation callout can yield the hatch-day drift
-  // statement (FR-6): the hatch commit paints the drift line first, and the
-  // graduation announcement that screens fire right after would otherwise
-  // overwrite it before anyone can read it.
+  // state is kept so the graduation announcement can keep the hatch-day
+  // drift beat (FR-6): it composes the send-off and the drift statement, so
+  // a drifted hatch speaks both lines instead of trading one for the other.
   let latest: GameState | null = null
   const paint = (state: GameState) => {
     latest = state
@@ -144,7 +144,7 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
         ? driftCallout(latest.creature, latest.lineage, latest.day)
         : ""
       shell.refs.creaturePlate.statusTicker.say(
-        drifted || graduationCallout(retireeName, successorName, generation),
+        graduationTickerLine(retireeName, successorName, generation, drifted),
       )
     },
     announceSaveFailure() {
