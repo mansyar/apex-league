@@ -31,7 +31,7 @@ Only the primary agent writes this file; subagents report back.
 - **Covers:** FR-3, FR-4, AC-3, AC-4, NFR-3, NFR-4
 - **Touches:** `packages/sim/src/` species registry module + co-located tests, `packages/sim/src/breeding.ts` (`speciesOptions`), `packages/sim/src/index.ts` (barrel exports)
 - **Verification:** `bun run check && bun test --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 ### Tasks
 
