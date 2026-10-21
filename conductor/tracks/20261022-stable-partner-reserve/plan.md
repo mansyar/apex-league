@@ -88,7 +88,7 @@
 - **Covers:** FR-13, NFR-1, NFR-2, NFR-4, NFR-5, NFR-6, AC-9
 - **Touches:** `docs/save-schema.md`, `README.md`, `conductor/product.md`, `conductor/tech-stack.md`
 - **Verification:** `bun run verify && bun run build` plus the re-run visual passes
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P4.T1: Docs sync** — covers: FR-13
   - [ ] **P4.T1.1: `docs/save-schema.md` documents the stable, the age field and the v22 → v23 migration** — covers: FR-13
