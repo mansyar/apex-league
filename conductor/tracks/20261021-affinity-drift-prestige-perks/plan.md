@@ -39,7 +39,7 @@ The primary appends after acceptance:
   matchup; no other resolver math moves.
 - **Depends on:** Phase 1
 - **Covers:** FR-3, AC-3, NFR-3
-- **Touches:** `packages/sim/src/battle/` (damage/matchup path and its co-located tests), `packages/sim/src/battle.ts` barrel if re-export needed
+- **Touches:** `packages/sim/src/battle/` (damage/matchup path and its co-located tests), `packages/sim/src/battle.ts` barrel if re-export needed; amended: `packages/sim/src/cup/session.ts`, `packages/sim/src/cup/verdicts.ts` + co-located cup tests (side-construction seam only, to fully cover FR-3 in live cup fights)
 - **Verification:** `bun run check && bun test --timeout 120000`
 - **Status:** in_progress
 
@@ -48,6 +48,9 @@ The primary appends after acceptance:
   - [ ] **P2.T1.2: Implement the smallest rule in the resolver/matchup code; outgoing damage untouched**
 - [ ] **P2.T2: Balance guardrails** — covers: FR-3
   - [ ] **P2.T2.1: Assert existing battle/cup goldens are unchanged (rivals and bosses carry no secondary) and the boss win-rate probe bands still pass**
+- [ ] **P2.T3: Cup-side affinity threading (plan amendment — closes the deferred cup note)** — covers: FR-3
+  - [ ] **P2.T3.1: Failing test first: a cup slot with a secondary affinity produces a BattleSide whose incoming matchup cancels to neutral; a slot without one is byte-identical to today**
+  - [ ] **P2.T3.2: Thread `affinity` through `CupSlot` → `battleSideForSlot` (`cup/verdicts.ts`) and the player side in `cup/session.ts`; additive/optional so in-flight cup sessions from existing saves keep working (no save-version bump unless required)**
 
 <!--
 The primary appends after acceptance:
