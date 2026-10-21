@@ -34,7 +34,7 @@
 
 import type { CreatureStats, Element } from "../creature"
 import { makeRng, type Rng } from "../rng"
-import { type TypeFactor, typeFactor } from "./chart"
+import { incomingTypeFactor, type TypeFactor } from "./chart"
 import { strikeDamage } from "./damage"
 import type { MoveDef } from "./moves"
 import { BASIC_MOVE, getMove, stepCooldown } from "./moves"
@@ -49,6 +49,11 @@ export interface BattleFighter {
    */
   readonly id?: string
   readonly element: Element
+  /**
+   * Secondary type affinity (save v20); absent for rivals, bosses, and any
+   * pre-v20 source. Only the incoming (defender-side) shot math reads it.
+   */
+  readonly affinity?: Element | null
   readonly stats: CreatureStats
 }
 
@@ -107,6 +112,7 @@ export interface ClockFighter {
   /** The stable side key; see BattleFighter.id. */
   readonly id?: string
   readonly element: Element
+  readonly affinity?: Element | null
   readonly stats: CreatureStats
   /** Current hit points; a fighter at 0 or below never acts again. */
   readonly hp: number
@@ -206,6 +212,7 @@ interface RunFighter {
   readonly name: string
   readonly id?: string
   readonly element: Element
+  readonly affinity?: Element | null
   readonly stats: CreatureStats
   /** Tick of the last stagger trigger; grace counts from here. */
   lastStaggerTick: number
@@ -230,6 +237,7 @@ function view(f: RunFighter): ClockFighter {
     name: f.name,
     id: f.id,
     element: f.element,
+    affinity: f.affinity,
     stats: f.stats,
     hp: f.hp,
     range: f.range,
@@ -276,6 +284,7 @@ export function createClockFighter(fighter: BattleFighter): ClockFighter {
     name: fighter.name,
     id: fighter.id,
     element: fighter.element,
+    affinity: fighter.affinity,
     stats: fighter.stats,
     hp: fighter.stats.hp,
     range: "far",
@@ -294,6 +303,7 @@ export function createClock(
     name: f.name,
     id: f.id,
     element: f.element,
+    affinity: f.affinity,
     stats: f.stats,
     hp: f.hp,
     range: f.range,
@@ -435,7 +445,11 @@ export function createClock(
         return
       }
     }
-    const type = typeFactor(shooter.element, target.element)
+    const type = incomingTypeFactor(
+      shooter.element,
+      target.element,
+      target.affinity ?? null,
+    )
     const damage = strikeDamage(
       move.power,
       shooter.stats.atk,

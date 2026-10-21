@@ -4,7 +4,12 @@
  * reads GameState, the save, or the DOM.
  */
 
-export { ELEMENT_HUE, type TypeFactor, typeFactor } from "./chart"
+export {
+  ELEMENT_HUE,
+  incomingTypeFactor,
+  type TypeFactor,
+  typeFactor,
+} from "./chart"
 export {
   BASIC,
   type BattleEvent,

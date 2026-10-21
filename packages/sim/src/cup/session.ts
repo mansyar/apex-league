@@ -118,6 +118,9 @@ function slotPlayerSide(
     kit: loadout,
     tactic,
     temperament: species.temperament,
+    // The frozen player slot's secondary, if the creature drift-bred one;
+    // omitted when absent so pre-amendment slots build identical sides.
+    ...(slot.affinity ? { affinity: slot.affinity } : {}),
   }
 }
 

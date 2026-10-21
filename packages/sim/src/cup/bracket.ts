@@ -23,7 +23,7 @@
  */
 
 import type { BossDef } from "../bosses"
-import { type Creature, effectiveStats } from "../creature"
+import { type Creature, type Element, effectiveStats } from "../creature"
 import { battleStats } from "../form"
 import type { CupKind } from "../ladder"
 import { makeRng, type Rng } from "../rng"
@@ -44,6 +44,14 @@ export interface CupSlot {
    * the registry, keyed by this id — not on the slot — so a persisted
    * session stays small and the registry stays the single source of truth. */
   readonly bossId?: string
+  /**
+   * The player's secondary affinity (save v20), stamped with the frozen
+   * player snapshot so the cancel-to-neutral defense rule governs live cup
+   * matches. Rival and boss slots never carry one. Optional and additive:
+   * pre-amendment sessions without the field keep working, so no save
+   * version bump.
+   */
+  readonly affinity?: Element | null
 }
 
 /** Hand-written coach-style rival names (the bracket's narrative spine). */
@@ -141,6 +149,10 @@ export function makeBracket(
     speciesId: owned.speciesId,
     // The one place form reaches the cup: the frozen player snapshot.
     stats: battleStats(owned),
+    // The secondary rides the frozen snapshot too. Omitted when the
+    // creature has none, so brackets without a drift-bred secondary keep
+    // their exact pre-amendment persisted shape.
+    ...(owned.affinity ? { affinity: owned.affinity } : {}),
   }
   const slots: CupSlot[] = [playerSlot, ...rivals]
   const finalRival = rivals[rivals.length - 1]

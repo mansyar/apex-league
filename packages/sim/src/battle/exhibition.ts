@@ -68,6 +68,7 @@ export function makeExhibition(
     name: owned.name,
     id: "owned",
     element: owned.element,
+    affinity: owned.affinity,
     stats: battleStats(owned),
     kit: owned.loadout ?? defaultLoadout(owned, species),
     tactic,
