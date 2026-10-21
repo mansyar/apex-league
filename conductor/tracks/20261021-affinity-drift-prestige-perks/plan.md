@@ -94,7 +94,7 @@ The primary appends after acceptance:
 - **Covers:** FR-6, AC-6, NFR-1, NFR-4
 - **Touches:** `apps/client/src/graduation/` (nursery preview), `apps/client/src/hud/` (plate, coach ticker), `apps/client/src/detail/` (creature-detail tabs), `apps/client/src/handbook/`, surface CSS under `apps/client/src/ui/`, co-located pure-module tests
 - **Verification:** `bun run check && bun test --timeout 120000` plus the visual layer (desktop + iPhone 15 screenshots, clean console)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P4.T1: Nursery preview shows the rolled secondary before hatching** — covers: FR-6
 - [ ] **P4.T2: Creature plate and detail modal carry a dual-element crest** — covers: FR-6
