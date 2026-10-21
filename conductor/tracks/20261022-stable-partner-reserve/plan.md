@@ -37,22 +37,26 @@
 - **Covers:** FR-1, FR-2, FR-3, FR-4, FR-7, FR-8, FR-10, FR-11, FR-12, NFR-3, AC-2, AC-3, AC-6, AC-8
 - **Touches:** `packages/sim/src/state.ts`, `packages/sim/src/stable.ts`, `packages/sim/src/breeding.ts`, `packages/sim/src/legacy.ts`, `packages/sim/src/evolution.ts`, `packages/sim/src/save/*`, `packages/sim/src/index.ts`, `packages/sim/src/*.test.ts`
 - **Verification:** `bun run check && bun test --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: The stable on the state** — covers: FR-1
-  - [ ] **P2.T1.1: Failing test first — a pet can be stashed and brought back with every field intact** — covers: FR-3, AC-2
-  - [ ] **P2.T1.2: `stable` on the state, persisted by save v23 and validated; the migration leaves it empty** — covers: FR-1, AC-6
-- [ ] **P2.T2: The swap seam** — covers: FR-3, FR-10
-  - [ ] **P2.T2.1: `sendToStable` and `bringToRanch` are pure, free and lossless in both directions** — covers: FR-3, AC-2
-  - [ ] **P2.T2.2: Both refuse during a live cup or spar, with the day's phase lock** — covers: FR-10
-- [ ] **P2.T3: A stashed pet is frozen** — covers: FR-4
-  - [ ] **P2.T3.1: The night settlement touches neither a stashed pet's conditions nor its age** — covers: FR-4, AC-3
-- [ ] **P2.T4: The Storm Gift hatches into the stable** — covers: FR-7, FR-2
-  - [ ] **P2.T4.1: The gift hatch installs the hound in the stable; the ranch pet is untouched and stays active** — covers: FR-7, AC-1
-- [ ] **P2.T5: Graduation may hand the ranch to a stashed pet** — covers: FR-8
-  - [ ] **P2.T5.1: A graduation successor can be a stashed pet; the retired pet is archived as before** — covers: FR-8, AC-8
-- [ ] **P2.T6: Breeding stays Hall-only** — covers: FR-11, FR-12
-  - [ ] **P2.T6.1: The breeding pool ignores the stable; the cups tally stays the family's** — covers: FR-11, FR-12
+**Result:** verified
+**Checkpoint:** d8dff99
+**Evidence:** conductor/tracks/20261022-stable-partner-reserve/verification/phase-2.md
+
+- [x] **P2.T1: The stable on the state** — covers: FR-1
+  - [x] **P2.T1.1: Failing test first — a pet can be stashed and brought back with every field intact** — covers: FR-3, AC-2
+  - [x] **P2.T1.2: `stable` on the state, persisted by save v24 and validated; the migration leaves it empty** — covers: FR-1, AC-6
+- [x] **P2.T2: The swap seam** — covers: FR-3, FR-10
+  - [x] **P2.T2.1: `sendToStable` and `bringToRanch` are pure, free and lossless in both directions** — covers: FR-3, AC-2
+  - [x] **P2.T2.2: Both refuse during a live cup or spar, with the day's phase lock** — covers: FR-10
+- [x] **P2.T3: A stashed pet is frozen** — covers: FR-4
+  - [x] **P2.T3.1: The night settlement touches neither a stashed pet's conditions nor its age** — covers: FR-4, AC-3
+- [x] **P2.T4: The Storm Gift hatches into the stable** — covers: FR-7, FR-2
+  - [x] **P2.T4.1: The gift hatch installs the hound in the stable; the ranch pet is untouched and stays active** — covers: FR-7, AC-1
+- [x] **P2.T5: Graduation may hand the ranch to a stashed pet** — covers: FR-8
+  - [x] **P2.T5.1: A graduation successor can be a stashed pet; the retired pet is archived as before** — covers: FR-8, AC-8
+- [x] **P2.T6: Breeding stays Hall-only** — covers: FR-11, FR-12
+  - [x] **P2.T6.1: The breeding pool ignores the stable; the cups tally stays the family's** — covers: FR-11, FR-12
 
 ## Phase 3: Client Surfaces
 

@@ -201,3 +201,45 @@ chip, the stable modal, the age readout and the coaching copy are Phase 3).
 
 **Result:** verified
 **Evidence:** conductor/tracks/20261022-stable-partner-reserve/verification/phase-2.md
+
+## Primary verification
+
+Run by the primary agent, independently of the phase report.
+
+| Check | Command | Exit | Result |
+|---|---|---|---|
+| Working tree | `git status --porcelain` | 0 | clean — no uncommitted work outside the phase's commits |
+| Files vs Touches | `git diff --name-only 06a1465..HEAD` | — | 27 files, all inside Touches or the three reported deviations (`packages/sim/src/ticker.ts` — the night's state literal had to carry the reserve, or it would be dropped every night; `docs/save-schema.md` — instructed; `apps/client/src/app/hud-screen.ts` — two comments that the gift's new behaviour made false) |
+| Commits reported | `git log --oneline 06a1465..HEAD` | — | 7 commits, all reported; no merge commit, no foreign commit |
+| Static (types) | `bun run check` | 0 | voxel 71 files, sim 100 files, client 306 files — no type errors |
+| Unit | `bun test --timeout 120000` | 0 | 2,291 pass / 1 skip / 0 fail across 172 files |
+
+Behaviour verified directly with `.conductor/evidence/phase-2/stable-probe.ts`
+(the probe drives the public sim API; it is evidence, not a test):
+
+```
+after the hatch -> ranch: Ember Drake (fire_drake), stable: 1 pet(s) [Storm Hound]
+  the hound's age: 1 day(s); the ranch pet's age: 1
+after the swap -> ranch: Storm Hound (electric_hound, stage baby, age 1, hp 78),
+  stable: Ember Drake (fire_drake, age 1, hp 86)
+  the stashed drake kept its stats, conditions and age: yes
+after one night -> stashed pet age: 1 (was 1), mood: 60 (was 60)
+  the active pet aged: 1 -> 2; stage baby -> baby
+sending the only pet to the stable -> refused: only-pet
+swapping during a live cup -> refused: cup-phase
+```
+
+- **FR-7 / AC-1 (sim half):** the Storm Gift hatches into the stable; the ranch
+  keeps the Ember Drake, and the hound arrives as a baby of one day with the
+  previewed stats (HP 78). The reward adds to the collection instead of
+  replacing a pet — the defect this track exists to fix.
+- **FR-3 / AC-2:** the swap is lossless in both directions — the stashed drake
+  kept its stats, conditions and age.
+- **FR-4 / AC-3:** a stashed pet is frozen — a night moved neither its age
+  (1 → 1) nor its mood (60 → 60), while the active pet aged (1 → 2).
+- **Edge cases:** the last owned pet cannot be stashed (`only-pet`), and a
+  swap during a live cup is refused (`cup-phase`) with the day's phase lock.
+
+Verdict: **verified**. Every deviation is either inside Touches or the
+smallest necessary change with a stated reason; the two outside-Touches files
+are a state-literal fix and comment-only edits, both recorded above.
