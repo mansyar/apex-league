@@ -17,4 +17,4 @@
 - [x] **Track: Client Module Decomposition & Size Guard** - [20261020-client-decomposition](./archive/20261020-client-decomposition/index.md) - refactor - medium *(archived 2026-10-20)*
 - [x] **Track: Raising Depth: Training Programs & Form** - [20261020-training-programs-form](./archive/20261020-training-programs-form/index.md) - feature - high *(archived 2026-10-20)*
 - [x] **Track: Branching Evolution & Champion Forms** — [20261020-branching-evolution-champion-forms](./archive/20261020-branching-evolution-champion-forms/index.md) — feature — high *(archived 2026-10-21)*
-- [~] **Track: Type Affinity Drift & Extended Prestige** — [20261021-affinity-drift-prestige-perks](./tracks/20261021-affinity-drift-prestige-perks/index.md) — feature — high
+- [x] **Track: Type Affinity Drift & Extended Prestige** — [20261021-affinity-drift-prestige-perks](./archive/20261021-affinity-drift-prestige-perks/index.md) — feature — high
