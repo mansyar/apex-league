@@ -136,7 +136,7 @@ The primary appends after acceptance:
 - **Covers:** F1, F2, F3, F4
 - **Touches:** `packages/sim/src/index.ts`, `packages/sim/src/legacy.ts` (exports only), `apps/client/src/graduation/copy.ts`, `apps/client/src/handbook/raising.ts`, `apps/client/src/hud/copy-growth.ts`, `apps/client/src/hud.ts`, `apps/client/src/hud/update.ts`, co-located `*.test.ts`
 - **Verification:** `bun run check && bun test --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Resolve F1 — re-export `REFINED_INHERITANCE_FRACTION` from the sim barrel and consume it in `graduation/copy.ts` and `handbook/raising.ts`** — covers: F1
 - [ ] **R1.T2: Resolve F2 — export `hatchDayOf` from the sim package and call it from `hud/copy-growth.ts driftCallout`** — covers: F2
