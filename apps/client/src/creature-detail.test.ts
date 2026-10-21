@@ -491,10 +491,24 @@ describe("the detail modal's pages", () => {
     expect(classNamed(root, "detail-stat")).toHaveLength(4)
     const statsPage = roleNamed(root, "tabpanel")[0]
     if (!statsPage) throw new Error("no Stats page")
-    expect(classNamed(statsPage, "detail-context-row")).toHaveLength(6)
+    expect(classNamed(statsPage, "detail-context-row")).toHaveLength(7)
     expect(
       classNamed(byClass(root, "detail-kit"), "detail-kit-row"),
     ).toHaveLength(6)
+  })
+
+  test("the context list carries the pet's own age beside the stage", () => {
+    const detail = buildCreatureDetail()
+    detail.open(stateWith("baby", { day: 12 }))
+    const root = fakeOf(detail.root)
+    const statsPage = roleNamed(root, "tabpanel")[0]
+    if (!statsPage) throw new Error("no Stats page")
+    const rows = classNamed(statsPage, "detail-context-row")
+    // The pet's own age (save v23), not the world's day: the row reads 12
+    // days for a pet that is twelve days old.
+    const ageRow = rows.find((row) => textOf(row).includes("Age"))
+    expect(ageRow).toBeDefined()
+    expect(textOf(ageRow as FakeElement)).toContain("12 days")
   })
 
   test("arrows, Home/End and clicks switch pages and take focus", () => {

@@ -200,7 +200,7 @@ export function growthView(state: GameState): GrowthView | null {
   const creature = state.creature
   if (!creature) return null
   const gate = gateFor(creature.stage)
-  const path = branchPath(creature, state.day)
+  const path = branchPath(creature)
   // For the final gate the flag mirrors the champion gate just cleared; there
   // are no thresholds left to reveal either way.
   const discovered =

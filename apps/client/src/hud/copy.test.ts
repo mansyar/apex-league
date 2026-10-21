@@ -57,6 +57,15 @@ import {
   TRAINED_LEAN_LINE,
 } from "./copy-branch"
 
+/**
+ * A creature at a given age. The growth gates and their hints read the pet's
+ * OWN age (save v23), so the tests set the age on the pet, never a world day.
+ */
+const atAge = (creature: Creature, ageDays: number): Creature => ({
+  ...creature,
+  ageDays,
+})
+
 describe("saveFailureNotice", () => {
   test("speaks in coach voice, non-blocking, names the setback", () => {
     const line = saveFailureNotice()
@@ -146,48 +155,48 @@ describe("growthHint", () => {
   const baby = createCreature("fire_drake", 42)
 
   test("quiet before the hinted day", () => {
-    expect(growthHint(4, baby)).toBe("")
+    expect(growthHint(atAge(baby, 4))).toBe("")
   })
 
   test("teases growth from the hinted day on, without naming the threshold", () => {
-    expect(growthHint(5, baby)).toContain(baby.name)
-    expect(growthHint(5, baby)).toContain("filling out")
-    expect(growthHint(9, baby)).not.toBe("")
+    expect(growthHint(atAge(baby, 5))).toContain(baby.name)
+    expect(growthHint(atAge(baby, 5))).toContain("filling out")
+    expect(growthHint(atAge(baby, 9))).not.toBe("")
   })
 
   test("stays quiet on and after the evolution day (the moment speaks)", () => {
-    expect(growthHint(10, baby)).toBe("")
-    expect(growthHint(12, baby)).toBe("")
+    expect(growthHint(atAge(baby, 10))).toBe("")
+    expect(growthHint(atAge(baby, 12))).toBe("")
   })
 
   test("juveniles get no hint before the champion tease window", () => {
     const juvenile = { ...baby, stage: "juvenile" as const }
-    expect(growthHint(7, juvenile)).toBe("")
-    expect(growthHint(19, juvenile)).toBe("")
+    expect(growthHint(atAge(juvenile, 7))).toBe("")
+    expect(growthHint(atAge(juvenile, 19))).toBe("")
   })
 
   test("teases the champion growth from the champion hinted day on", () => {
     const juvenile = { ...baby, stage: "juvenile" as const }
-    const hint = growthHint(20, juvenile)
+    const hint = growthHint(atAge(juvenile, 20))
     expect(hint).toContain(juvenile.name)
     // Direction-only: points at bond and cups without naming thresholds.
     expect(hint).toContain("cup")
-    expect(growthHint(24, juvenile)).not.toBe("")
+    expect(growthHint(atAge(juvenile, 24))).not.toBe("")
   })
 
   test("past the gate age a still-juvenile creature keeps direction, never a dead end", () => {
     const juvenile = { ...baby, stage: "juvenile" as const }
-    const hint = growthHint(25, juvenile)
+    const hint = growthHint(atAge(juvenile, 25))
     expect(hint).toContain(juvenile.name)
     // Direction-only: the prestige levers stay the pointers, no thresholds.
     expect(hint).toContain("champion")
     expect(hint).toContain("cup")
-    expect(growthHint(31, juvenile)).not.toBe("")
+    expect(growthHint(atAge(juvenile, 31))).not.toBe("")
   })
 
   test("champions get no hint — they are finished growing", () => {
     const champion = { ...baby, stage: "champion" as const }
-    expect(growthHint(30, champion)).toBe("")
+    expect(growthHint(atAge(champion, 30))).toBe("")
   })
 })
 
@@ -260,18 +269,18 @@ describe("graduationHint", () => {
   }
 
   test("quiet for a non-champion", () => {
-    expect(graduationHint(60, createCreature("fire_drake", 42))).toBe("")
+    expect(graduationHint(atAge(createCreature("fire_drake", 42), 60))).toBe("")
   })
 
   test("quiet before the hinted day", () => {
-    expect(graduationHint(54, champion)).toBe("")
+    expect(graduationHint(atAge(champion, 54))).toBe("")
   })
 
   test("teases the send-off from the hinted day on, direction-only", () => {
-    const hint = graduationHint(55, champion)
+    const hint = graduationHint(atAge(champion, 55))
     expect(hint).toContain(champion.name)
     expect(hint).toContain("stat floor")
-    expect(graduationHint(90, champion)).not.toBe("")
+    expect(graduationHint(atAge(champion, 90))).not.toBe("")
   })
 })
 
@@ -438,28 +447,28 @@ describe("golden exact callout strings", () => {
   const drake = createCreature("fire_drake", 42)
 
   test("growthHint: exact baby fill-out line", () => {
-    expect(growthHint(5, drake)).toBe(
+    expect(growthHint(atAge(drake, 5))).toBe(
       "Ember Drake is filling out — keep the routine steady and one morning soon it will surprise you.",
     )
   })
 
   test("growthHint: exact champion tease before the gate age", () => {
     const juvenile = { ...drake, stage: "juvenile" as const }
-    expect(growthHint(20, juvenile)).toBe(
+    expect(growthHint(atAge(juvenile, 20))).toBe(
       "Ember Drake is growing into something grand — keep the bond strong and win another cup together.",
     )
   })
 
   test("growthHint: exact champion tease past the gate age", () => {
     const juvenile = { ...drake, stage: "juvenile" as const }
-    expect(growthHint(25, juvenile)).toBe(
+    expect(growthHint(atAge(juvenile, 25))).toBe(
       "Ember Drake is ready to become a champion — keep the bond strong and win another cup.",
     )
   })
 
   test("graduationHint: exact send-off teaser", () => {
     const champion = { ...drake, stage: "champion" as const }
-    expect(graduationHint(55, champion)).toBe(
+    expect(graduationHint(atAge(champion, 55))).toBe(
       "Ember Drake has had a full career — graduating passes a stat floor to the next egg.",
     )
   })
@@ -540,11 +549,11 @@ describe("branchPath — the form reading every surface shares", () => {
   const drake = createCreature("fire_drake", 42)
 
   test("a baby before the hinted day has nothing to say", () => {
-    expect(branchPath(drake, 4)).toBeNull()
+    expect(branchPath(atAge(drake, 4))).toBeNull()
   })
 
   test("a baby at the hinted day reads its natural lean", () => {
-    const read = branchPath(drake, 5)
+    const read = branchPath(atAge(drake, 5))
     expect(read?.title).toBe("Path lean")
     expect(read?.preview).toBe(true)
     expect(read?.line).toBe(NATURE_LEAN_LINE)
@@ -558,7 +567,7 @@ describe("branchPath — the form reading every surface shares", () => {
       ...drake,
       trained: { hp: 0, atk: 6, def: 0, spd: 6 },
     }
-    const read = branchPath(trained, 6)
+    const read = branchPath(atAge(trained, 6))
     expect(read?.label).toBe("Cinder Courser")
     expect(read?.line).toBe(TRAINED_LEAN_LINE)
     expect(read?.favored).toBe("ATK + SPD")
@@ -570,7 +579,7 @@ describe("branchPath — the form reading every surface shares", () => {
       stage: "juvenile" as const,
       branch: "pyre_warden",
     }
-    const read = branchPath(juvenile, 20)
+    const read = branchPath(atAge(juvenile, 20))
     expect(read).toMatchObject({
       title: "Form",
       label: "Pyre Warden",
@@ -587,7 +596,7 @@ describe("branchPath — the form reading every surface shares", () => {
       stage: "champion" as const,
       branch: "legacy",
     }
-    const read = branchPath(champion, 40)
+    const read = branchPath(atAge(champion, 40))
     expect(read?.label).toBe("Legacy")
     expect(read?.signature).toBe("No signature move")
     expect(read?.favored).toBe("—")
@@ -905,7 +914,7 @@ describe("hatchDayStatusLine — the hatch-day pass precedence", () => {
     }
     const state = { ...createInitialState(), day: 2 }
     expect(hatchDayStatusLine(drifted, state, null, null)).toBe(
-      statusLine(drifted, 2, null, null),
+      statusLine(drifted, null, null),
     )
   })
 })

@@ -6,12 +6,22 @@
 
 import type { GameState, GraduatePairReason } from "@apex/sim"
 
+/**
+ * What the player picked on the egg screen: a starter species, or a pet that
+ * is already waiting in the stable (stable & partner reserve FR-8). The two
+ * are different kinds of choice — a fresh hatch against a pet the player
+ * already owns.
+ */
+export type EggChoice =
+  | { kind: "species"; speciesId: string }
+  | { kind: "stable"; creatureId: string }
+
 export interface GraduationHandlers {
   /** The player confirmed the send-off; main plays the ceremony + opens the
    * egg screen. */
   onConfirm: () => void
-  /** The player chose the next creature's species. */
-  onPick: (speciesId: string) => void
+  /** The player chose the next creature: a starter species or a stashed pet. */
+  onPick: (choice: EggChoice) => void
   /** The player hatched a dual-parent egg in the Nursery. */
   onHatch: (generations: number[], speciesId: string, seed: number) => void
 }

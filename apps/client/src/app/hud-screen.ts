@@ -1,6 +1,7 @@
 import {
   advanceDay,
   assignTraining,
+  bringToRanch,
   buildSaveExport,
   type CareAction,
   careAction,
@@ -199,6 +200,17 @@ export function createHudScreen(deps: HudScreenDeps): Hud {
       sceneSync.syncScene()
       // The ranch pet is still the partner: put the keyboard on its plate.
       document.querySelector<HTMLButtonElement>(".creature-head")?.focus()
+    },
+    onBringToRanch: (creatureId) => {
+      // The swap (stable & partner reserve FR-9): the sim hands the ranch to
+      // the chosen pet and files the outgoing one; the app commits it and
+      // rebuilds the ranch. A refusal (the day-phase lock) comes back to the
+      // HUD so it can coach instead of going quiet.
+      const result = bringToRanch(store.get(), creatureId)
+      if (!result.ok) return result.reason
+      store.commit(result.state)
+      sceneSync.syncScene()
+      return null
     },
   })
 

@@ -294,7 +294,6 @@ export function corruptSaveNotice(): string {
  */
 export function statusLine(
   creature: NonNullable<GameState["creature"]>,
-  day: number,
   lastProgram: TrainingProgram | null,
   climb: string | null,
 ): string {
@@ -303,8 +302,8 @@ export function statusLine(
     trainingStatus(creature, lastProgram) ||
     coachVoice(creature.conditions, creature.name) ||
     unlockCallout(creature) ||
-    growthHint(day, creature) ||
-    graduationHint(day, creature) ||
+    growthHint(creature) ||
+    graduationHint(creature) ||
     flavorCallout(creature)
   )
 }
@@ -323,6 +322,6 @@ export function hatchDayStatusLine(
 ): string {
   return (
     driftCallout(creature, state.lineage, state.day) ||
-    statusLine(creature, state.day, lastProgram, climb)
+    statusLine(creature, lastProgram, climb)
   )
 }

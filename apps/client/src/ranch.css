@@ -1417,3 +1417,95 @@
     gap: 6px;
   }
 }
+
+/* The stable (stable & partner reserve FR-9): the modal that lists the pets
+   waiting there. A flat panel over the ranch, built from the kit — the
+   crest's hue is the element's, the rest is the kit's ink. No new colour
+   meaning, no gradient. */
+.stable-box {
+  text-align: left;
+  max-width: min(520px, 92vw);
+}
+
+.stable-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.stable-intro {
+  margin: 0 0 10px;
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.stable-list {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.stable-pet {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 3%);
+}
+
+.stable-pet-body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.stable-pet-name {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.stable-pet-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+
+.stable-empty {
+  margin: 0 0 10px;
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+/* The refusal line (FR-10): a swap the sim turns down is coaching, not a
+   dead button, so it says why in the game's own voice. */
+.stable-note {
+  margin: 0 0 10px;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.stable-note:empty {
+  display: none;
+}
+
+.stable-pet-action {
+  font-size: 12px;
+}
+
+/* Phone tier: the action drops under the pet so the row never squeezes the
+   pet's name out of its column. */
+@media (max-width: 479.98px) {
+  .stable-pet {
+    grid-template-columns: auto 1fr;
+  }
+
+  .stable-pet-action {
+    grid-column: 1 / -1;
+  }
+}

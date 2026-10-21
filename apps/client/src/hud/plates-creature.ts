@@ -241,12 +241,8 @@ export function paintFormChip(chip: HTMLElement, creature: Creature): void {
  * accessible name spell it out, so the line works in greyscale and under
  * reduced motion.
  */
-export function paintBranchBadge(
-  node: HTMLElement,
-  creature: Creature,
-  day: number,
-): void {
-  const path = creature.stage === "baby" ? null : branchPath(creature, day)
+export function paintBranchBadge(node: HTMLElement, creature: Creature): void {
+  const path = creature.stage === "baby" ? null : branchPath(creature)
   if (path === null) {
     node.hidden = true
     node.textContent = ""

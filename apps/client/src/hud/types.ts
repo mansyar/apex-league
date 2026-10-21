@@ -1,7 +1,13 @@
-import type { CareAction, GameState, TrainingProgram } from "@apex/sim"
+import type {
+  CareAction,
+  GameState,
+  StableReason,
+  TrainingProgram,
+} from "@apex/sim"
 import type { CreatureDetail } from "../creature-detail"
 import type { GiftModal } from "../gift"
 import type { SettingsModalRefs } from "../settings-modal"
+import type { StableModal } from "../stable"
 import type { CommandDockRefs } from "./dock"
 import type {
   CreaturePlateRefs,
@@ -26,6 +32,10 @@ export interface HudRefs {
   gift: GiftModal
   /** The chip that opens the gift card; hidden while nothing is pending. */
   giftChip: HTMLButtonElement
+  /** The stable modal (stable & partner reserve FR-9). */
+  stable: StableModal
+  /** The chip that opens the stable; hidden while the stable is empty. */
+  stableChip: HTMLButtonElement
   motionWrap: HTMLElement
   lineage: LineagePlateRefs
 }
@@ -61,6 +71,12 @@ export interface HudShellHandlers {
    * commits the succession through the store; the HUD only asks.
    */
   onHatchGift: () => void
+  /**
+   * Bring a pet waiting in the stable to the ranch (stable & partner reserve
+   * FR-9). The app runs the sim's swap and commits it; the HUD only asks, and
+   * gets the refusal reason back when the sim turns the swap down.
+   */
+  onBringToRanch: (creatureId: string) => StableReason | null
 }
 
 /** The built HUD, as `shell` hands it to the other two passes. */

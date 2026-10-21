@@ -14,6 +14,7 @@ import {
   lineageSummary,
   perkLabels,
 } from "./graduation"
+import { stableChoice } from "./graduation/egg"
 
 function stateWith(generation: number, cupsWon: number): GameState {
   const s = createInitialState()
@@ -140,5 +141,14 @@ describe("hatchFailureCopy", () => {
     )
     expect(hatchFailureCopy("invalid-pair")).toContain("pick again")
     expect(hatchFailureCopy("too-young")).toContain("can't retire yet")
+  })
+})
+
+describe("stableChoice", () => {
+  test("a pet waiting in the stable is a successor the player already has", () => {
+    expect(stableChoice("stable:0")).toEqual({
+      kind: "stable",
+      creatureId: "stable:0",
+    })
   })
 })

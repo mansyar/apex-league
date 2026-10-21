@@ -1,7 +1,7 @@
 /**
  * Creature detail modal: the full 4-way stat breakdown per stat (rolled
  * base, trained bonus, evolution boost, inherited floor) plus the partner's
- * context rows (stage, generation, cups won, bond, mood) and the Growth
+ * context rows (stage, age, generation, cups won, bond, mood) and the Growth
  * section naming the gate it is growing through. Opened by tapping the
  * ranch creature plate; renders fresh from state on every open and repaints
  * the Growth section in place while it stays open.
@@ -27,6 +27,7 @@ import { parentageLabel, traitCopy } from "./graduation/nursery-vm"
 import { createGrowthHost } from "./growth-panel"
 import { ELEMENT_LABELS } from "./handbook/common"
 import { paintCrest } from "./hud/plates-creature"
+import { ageLabel } from "./stable"
 import { crest, tab } from "./ui/kit"
 import { romanNumeral, stageLabel } from "./ui/labels"
 import { createTabs, type TabSpec } from "./ui/tabs"
@@ -176,8 +177,7 @@ export function buildCreatureDetail(): CreatureDetail {
   /** Repaint the Path slot from state; empty when there is nothing to say. */
   const paintPath = (state: GameState): void => {
     const creature = state.creature
-    const section =
-      creature === null ? null : buildPathSection(creature, state.day)
+    const section = creature === null ? null : buildPathSection(creature)
     pathSlot.replaceChildren(...(section === null ? [] : [section]))
   }
 
@@ -256,6 +256,9 @@ export function buildCreatureDetail(): CreatureDetail {
       const traits = effectiveTraits(creature)
       context.replaceChildren(
         contextRow("Stage", stageLabel(creature.stage)),
+        // The pet's own age (save v23), beside the stage: the days it has
+        // lived, not the days the ranch has.
+        contextRow("Age", ageLabel(creature.ageDays)),
         contextRow(
           "Lineage",
           `${generationLabel(state.lineage.generation)} · ${parentageLabel(creature.parents)}`,

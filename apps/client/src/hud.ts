@@ -1,4 +1,9 @@
-import type { CareAction, GameState, TrainingProgram } from "@apex/sim"
+import type {
+  CareAction,
+  GameState,
+  StableReason,
+  TrainingProgram,
+} from "@apex/sim"
 import { syncGiftChip } from "./gift"
 import {
   driftCallout,
@@ -9,6 +14,7 @@ import {
 import { createHints } from "./hud/hints"
 import { createHudShell } from "./hud/shell"
 import { createHudUpdate } from "./hud/update"
+import { syncStableChip } from "./stable"
 
 export {
   coachVoice,
@@ -89,6 +95,12 @@ export interface HudHandlers {
   /** Hatch the granted Storm Gift (electric species line FR-5/FR-6); the app
    * commits the succession through the store. */
   onHatchGift: () => void
+  /**
+   * Bring a pet waiting in the stable to the ranch (stable & partner reserve
+   * FR-9); the app commits the sim's swap. Returns the refusal reason when
+   * the sim turns the swap down, so the HUD can coach instead of acting.
+   */
+  onBringToRanch: (creatureId: string) => StableReason | null
 }
 
 export interface Hud {
@@ -137,6 +149,8 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     update(state)
     // The Storm Gift chip (FR-5): shown only while a granted egg waits.
     syncGiftChip(shell.refs.giftChip, state)
+    // The Stable chip (FR-9): shown only while the stable holds a pet.
+    syncStableChip(shell.refs.stableChip, state)
   }
   // The shell's own interactions re-render through this pass.
   shell.render = paint
