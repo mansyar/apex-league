@@ -96,14 +96,18 @@ After acceptance the primary agent appends:
 - **Covers:** FR-7, FR-9, AC-7, AC-9, NFR-1
 - **Touches:** `packages/sim/src/cup/` (roster generation), `apps/client/src/handbook/`, `apps/client/src/graduation/`, `apps/client/src/hud/`, `apps/client/src/detail/`, surface CSS under `apps/client/src/ui/`, co-located pure-module tests
 - **Verification:** `bun run check && bun test --timeout 120000` plus the visual layer (desktop + iPhone 15 screenshots, clean console)
-- **Status:** in_progress
+- **Status:** verified
 
 ### Tasks
 
-- [ ] **P4.T1: Generated rival rosters may field electric_hound post-obtainability; boss sides unchanged** — covers: FR-7
-- [ ] **P4.T2: Handbook entries for the species and its move pool** — covers: FR-9
-- [ ] **P4.T3: Client surfaces render the species (nursery, plate, detail modal) within the module cap** — covers: FR-9, NFR-1
-- [ ] **P4.T4: Visual-layer evidence via playwright-cli (desktop + iPhone 15), console check** — covers: AC-9
+- [x] **P4.T1: Generated rival rosters may field electric_hound post-obtainability; boss sides unchanged** - covers: FR-7
+- [x] **P4.T2: Handbook entries for the species and its move pool** - covers: FR-9
+- [x] **P4.T3: Client surfaces render the species (nursery, plate, detail modal) within the module cap** - covers: FR-9, NFR-1
+- [x] **P4.T4: Visual-layer evidence via playwright-cli (desktop + iPhone 15), console check** - covers: AC-9
+
+**Result:** verified
+**Checkpoint:** d3c05ad
+**Evidence:** conductor/tracks/20261021-electric-species-line/verification/phase-4.md
 
 <!--
 After acceptance the primary agent appends:
