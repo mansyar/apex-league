@@ -478,6 +478,26 @@
   gained the same boundary/budget/determinism fuzz partitions as the other
   archetypes, and the two heavy face tests were split per archetype so their
   20 s budgets hold again. No new dependency.
+- `2026-10-22` - **Stable & partner reserve** (`20261022-stable-partner-reserve`): the
+  ranch keeps one partner and every other pet the player owns waits in the stable.
+  Two linear save steps: v23 adds `ageDays` to the creature (the pet's own age - the
+  world day used to be the effective age) with a v22 → v23 migration that stamps the
+  world day on the active pet, and v24 adds `state.stable` with a v23 → v24 migration
+  that stamps an empty stable. The growth gates (juvenile, champion, graduation) read
+  the pet's own age, and only the active pet is settled at night, so a pet waiting in
+  the stable neither ages nor decays. The sim seams are pure and consume no RNG:
+  `packages/sim/src/stable.ts` (`sendToStable` / `bringToRanch` - free, instant,
+  lossless, refused during a live cup by the day-phase lock), `graduateFromStable`
+  in `legacy.ts`, and the gift hatch that installs the hound in the stable and leaves
+  the ranch pet in place. The client gained the Stable chip and modal
+  (`apps/client/src/stable.ts`), an age row in the partner-details modal, a gift card
+  that says the hound waits in the stable, and a graduation screen that offers the
+  waiting pets as successors. No new dependency; no new voxel artifacts; the
+  determinism gate still hashes twelve creature GLBs, all byte-identical. Gate on the
+  branch head: `bun run check` clean (voxel 71, sim 102, client 308 files), 2,307 tests
+  pass / 1 skip / 0 fail across 173 files, `biome check` clean on 502 files,
+  `bun run build` green, and the visual pass re-run at 1440x900 and 393x852 with a
+  clean console.
 
 ## Quality Gates
 - `bun check` clean, `biome check` clean, `bun test` green — required before

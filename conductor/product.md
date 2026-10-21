@@ -30,6 +30,10 @@ evolution planning.
    (account-wide perks) into the next egg via breeding; type affinity drift
    landed 2026-10-21 — a bred egg can carry the other parent's element as a
    secondary affinity that defends via the cancel-to-neutral rule.
+5. **The ranch and the stable**: the player owns several pets, but only one
+   partner lives in the ranch at a time; every other pet waits in the stable,
+   frozen until it is brought forward. A tournament reward now joins that
+   collection instead of replacing the partner already in the ranch.
 
 ## Key Systems
 - **Creatures**: 20-40 original species in 3-stage branching evolution trees
@@ -39,7 +43,9 @@ evolution planning.
 - **Moves**: learnable move pool (via training focus + evolution); equip 4
   pre-battle. Battle AI picks moves by type matchup, HP, and cooldown logic.
 - **Acquisition**: Fire/Water/Plant starter choice; new creatures via breeding
-  retired pairs and tournament reward eggs.
+  retired pairs and tournament reward eggs. The ranch holds one partner at a
+  time; every other pet the player owns waits in the stable, frozen, and any
+  of them can be brought forward when the player wants it.
 - **Opponents**: generated rival rosters from the same creature data + 3-5
   hand-authored rival characters as tier bosses.
 - **Presentation**: Three.js; 3D ranch scene and top-down 3D arena with
@@ -173,8 +179,12 @@ Phased delivery plan (each phase is independently playable):
   *(Started 2026-10-21: the first reward line — the Electric storm hound — is
   granted once at Silver as a pure gift egg, raised through the same
   three-stage, two-branch life as the starters, and joins generated rival
-  fields from Silver up. The remaining five types and the wider roster are
-  still open.)*
+  fields from Silver up. **Landed 2026-10-22: the ranch keeps one partner at
+  a time and every other pet the player owns waits in the stable**, so the
+  Storm Gift now *joins* the collection instead of replacing the pet you
+  already have - this closes the known issue the Electric storm hound line
+  left open ("the Storm Gift takes the pet in the ranch with it"). The
+  remaining five types and the wider roster are still open.)*
 - ElysiaJS backend: cloud save sync, trainer identity (anonymous ID + name),
   global leaderboards, ghost data.
 
