@@ -74,6 +74,13 @@ export {
   STAGES,
   type Stage,
 } from "./stage"
+export {
+  buildStormHound,
+  STORM_HOUND_GRID,
+  type StormHoundBuild,
+  sampleStormHoundDna,
+  stormHoundTemplate,
+} from "./storm_hound"
 export { bakeVertexColors, type Palette } from "./vertex-color"
 export {
   type PartField,

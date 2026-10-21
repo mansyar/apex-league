@@ -15,6 +15,7 @@ const ARCHETYPE_SIGNATURES: Record<string, string[]> = {
   draconic: ["hornNubLeft", "hornNubRight"],
   bovine: ["hornBudLeft", "hornBudRight"],
   axolotl: ["gillFrillLeft", "gillFrillRight"],
+  storm_hound: ["sparkFrillLeft", "sparkFrillRight"],
 }
 
 // The champion layer adds one more signature upgrade per archetype —
@@ -24,6 +25,7 @@ const CHAMPION_SIGNATURES: Record<string, string[]> = {
   draconic: ["crownHornLeft", "crownHornRight"],
   bovine: ["hornCurlLeft", "hornCurlRight"],
   axolotl: ["grandFrillLeft", "grandFrillRight", "grandFin"],
+  storm_hound: ["crownSparkLeft", "crownSparkRight"],
 }
 
 describe("stage-variant build API", () => {

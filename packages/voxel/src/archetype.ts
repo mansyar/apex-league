@@ -11,6 +11,11 @@ import { buildDrake, DRAKE_GRID, drakeTemplate } from "./drake"
 import { sampleDna } from "./sample"
 import type { Dna, Template } from "./schema"
 import { parseStage, type Stage } from "./stage"
+import {
+  buildStormHound,
+  STORM_HOUND_GRID,
+  stormHoundTemplate,
+} from "./storm_hound"
 
 export type { CreatureBuild } from "./build"
 
@@ -39,6 +44,12 @@ export const archetypes: Record<string, ArchetypeDef> = {
     template: axolotlTemplate,
     grid: AXOLOTL_GRID,
     build: buildAxolotl,
+  },
+  storm_hound: {
+    id: "storm_hound",
+    template: stormHoundTemplate,
+    grid: STORM_HOUND_GRID,
+    build: buildStormHound,
   },
 }
 
