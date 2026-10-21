@@ -15,23 +15,23 @@
 - **Covers:** FR-1, FR-2, AC-1, AC-2, NFR-3, NFR-4
 - **Touches:** `packages/sim/src/breeding.ts`, `packages/sim/src/legacy.ts` (record shape only), `packages/sim/src/save/schema.ts`, `packages/sim/src/save/migrate.ts`, `packages/sim/src/save/storage.ts`, `packages/sim/src/save/transfer.ts`, `packages/sim/src/types.ts` (if the creature/record types live there), `docs/save-schema.md`, co-located `*.test.ts`
 - **Verification:** `bun run check && bun test --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Seeded drift roll at breeding** — covers: FR-1
-  - [ ] **P1.T1.1: Add `AFFINITY_DRIFT_CHANCE = 0.15` and a distinct-RNG-constant roll helper in `breeding.ts`; source = the parent whose element differs from the egg's species element; no roll when both parents share it**
-  - [ ] **P1.T1.2: Thread the roll into the bred-creature creation seam so the nursery preview and the hatch agree (previewed = hatched); TDD the threshold / below-threshold / same-element cases (AC-1)**
-- [ ] **P1.T2: Save v20 — additive `affinity`** — covers: FR-2
-  - [ ] **P1.T2.1: `schema.ts` bumps `SAVE_VERSION` to 20 and adds `affinity: ElementType | null` to the active creature and `RetiredRecord`; `storage.ts` validates (valid element or null, never equal to primary); `transfer.ts` import validates the same shape**
-  - [ ] **P1.T2.2: `migrate.ts` v19→v20 sets `null` with no inference; full-chain migration test proves v0→v20 (AC-2)**
-  - [ ] **P1.T2.3: Update `docs/save-schema.md` in the same phase (project rule)**
-- [ ] **P1.T3: Phase verification and evidence**
+- [x] **P1.T1: Seeded drift roll at breeding** — covers: FR-1
+  - [x] **P1.T1.1: Add `AFFINITY_DRIFT_CHANCE = 0.15` and a distinct-RNG-constant roll helper in `breeding.ts`; source = the parent whose element differs from the egg's species element; no roll when both parents share it**
+  - [x] **P1.T1.2: Thread the roll into the bred-creature creation seam so the nursery preview and the hatch agree (previewed = hatched); TDD the threshold / below-threshold / same-element cases (AC-1)**
+- [x] **P1.T2: Save v20 — additive `affinity`** — covers: FR-2
+  - [x] **P1.T2.1: `schema.ts` bumps `SAVE_VERSION` to 20 and adds `affinity: ElementType | null` to the active creature and `RetiredRecord`; `storage.ts` validates (valid element or null, never equal to primary); `transfer.ts` import validates the same shape**
+  - [x] **P1.T2.2: `migrate.ts` v19→v20 sets `null` with no inference; full-chain migration test proves v0→v20 (AC-2)**
+  - [x] **P1.T2.3: Update `docs/save-schema.md` in the same phase (project rule)**
+- [x] **P1.T3: Phase verification and evidence**
 
 <!--
 The primary appends after acceptance:
-**Result:** verified
-**Checkpoint:** <short-sha>
-**Evidence:** conductor/tracks/20261021-affinity-drift-prestige-perks/verification/phase-1.md
 -->
+**Result:** verified
+**Checkpoint:** 7deec17
+**Evidence:** conductor/tracks/20261021-affinity-drift-prestige-perks/verification/phase-1.md
 
 ## Phase 2: Cancel-to-Neutral Defense Rule
 

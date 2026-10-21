@@ -78,3 +78,29 @@ to keep the diff minimal.
   `apps/client/src/scene-logic/play.test.ts`, and
   `apps/client/src/scene-logic/treat.test.ts` are pre-existing main debt in
   files outside this phase's Touches; left unfixed, out of scope.
+
+## Primary verification
+
+Run by the primary agent after rework 1, on the squashed checkpoint.
+
+- Range squashed to **checkpoint `7deec17`**
+  (`feat(sim): decide affinity drift at breeding and persist save v20`).
+- Phase-caused biome findings confirmed fixed (independent `bunx biome check`).
+- The 7 pre-existing `noNonNullAssertion` errors were fixed as an approved
+  separate maintenance commit `5e0151e`
+  (`style(client): replace non-null assertions with explicit guards in test
+  fixtures`) — test-only, mechanical, no behavior change.
+- Full project gate re-run independently:
+
+| Layer | Command | Exit | Summary |
+|---|---|---|---|
+| full gate | `bun run verify` | 0 | typecheck + biome + tests (2074 pass, 0 fail) + determinism gate all green |
+| build | `bun run build` | 0 | client build clean |
+
+- Files changed in the phase match the reported list (sim breeding/save/legacy
+  sources + tests, `docs/save-schema.md`, three client test fixtures).
+- All reported deviations reviewed and accepted (types in `creature.ts`;
+  client test fixtures forced by the record type change; legacy v19 fixture
+  cast is still a v19→v20 migration test at runtime).
+- AC-1 and AC-2 evidence tables present and consistent with the test files.
+- Verdict: **Phase 1 accepted.**
