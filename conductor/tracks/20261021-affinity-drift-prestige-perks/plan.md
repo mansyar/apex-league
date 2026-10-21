@@ -41,7 +41,7 @@ The primary appends after acceptance:
 - **Covers:** FR-3, AC-3, NFR-3
 - **Touches:** `packages/sim/src/battle/` (damage/matchup path and its co-located tests), `packages/sim/src/battle.ts` barrel if re-export needed
 - **Verification:** `bun run check && bun test --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Incoming cancel-to-neutral in the damage path** — covers: FR-3
   - [ ] **P2.T1.1: Failing test first: ×2-vs-primary + ×0.5-vs-secondary resolves ×1; neutral-vs-primary stays neutral; resisted-vs-primary stays ×0.5 regardless of secondary**
