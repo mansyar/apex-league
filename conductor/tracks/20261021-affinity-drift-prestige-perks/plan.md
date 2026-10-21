@@ -128,3 +128,24 @@ The primary appends after acceptance:
 **Result:** verified
 **Checkpoint:** c657b9c
 **Evidence:** conductor/tracks/20261021-affinity-drift-prestige-perks/verification/phase-5.md
+
+## Phase R1: Review Fixes
+
+- **Goal:** Resolve review findings F1, F2, F3, F4 from review round 1.
+- **Depends on:** Phase 5
+- **Covers:** F1, F2, F3, F4
+- **Touches:** `packages/sim/src/index.ts`, `packages/sim/src/legacy.ts` (exports only), `apps/client/src/graduation/copy.ts`, `apps/client/src/handbook/raising.ts`, `apps/client/src/hud/copy-growth.ts`, `apps/client/src/hud.ts`, `apps/client/src/hud/update.ts`, co-located `*.test.ts`
+- **Verification:** `bun run check && bun test --timeout 120000`
+- **Status:** pending
+
+- [ ] **R1.T1: Resolve F1 — re-export `REFINED_INHERITANCE_FRACTION` from the sim barrel and consume it in `graduation/copy.ts` and `handbook/raising.ts`** — covers: F1
+- [ ] **R1.T2: Resolve F2 — export `hatchDayOf` from the sim package and call it from `hud/copy-growth.ts driftCallout`** — covers: F2
+- [ ] **R1.T3: Resolve F3 — compose the graduation send-off and drift callout on drifted hatches; pin precedence with a client test** — covers: F3
+- [ ] **R1.T4: Resolve F4 — make the hatch-day drift callout precedence element-independent (or remove the fallback); cover with a test** — covers: F4
+
+<!--
+The primary appends after acceptance:
+**Result:** verified
+**Checkpoint:** <short-sha>
+**Evidence:** conductor/tracks/20261021-affinity-drift-prestige-perks/verification/phase-R1.md
+-->
