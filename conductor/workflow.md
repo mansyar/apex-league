@@ -322,6 +322,26 @@ Task-level commits are made by the phase subagent. The primary squashes them
 into one phase commit on acceptance unless a foreign commit landed in the range.
 The plan update is a separate Conductor state commit.
 
+## Pull Requests & Merging
+
+- A track PR is created from the track branch against `main` with the archived
+  `pr.md` as the body. The final branch commit (`chore(conductor): Record PR …`)
+  records `pr_url` and `pr_state: "open"` in `metadata.json` — that is the last
+  Conductor commit on the branch.
+- Merging is squash-only (`gh pr merge --squash`) and requires explicit user
+  confirmation plus a `PASS` or `PASS WITH FINDINGS` review verdict.
+- **After a merge there is nothing to commit.** The squash commit on `main`
+  (`<type>(<scope>): <title> (#<pr>)`) IS the merge record. Do not create a
+  post-merge `chore(conductor): Record merge` commit, and never leave
+  uncommitted Conductor state when switching branches — commit or restore it
+  first, then change branches. Post-merge cleanup is limited to:
+  `git checkout main`, pull, delete the branch locally and remotely.
+- Merge proof for dependency checks and status: the squash commit matching the
+  track title on `main`, or `gh pr view <pr> --json state` returning `MERGED`.
+  The `metadata.json` merge fields (`pr_state`, `merged_at`, `merge_commit`)
+  are optional historical notes — tracks archived before this rule keep what
+  they recorded; new tracks may leave them at their "Record PR" values.
+
 ## Documentation Sync
 
 Before a track PR is opened:
