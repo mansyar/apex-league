@@ -189,6 +189,17 @@ function isValidCreature(c: unknown): c is Creature {
   if (affinity === creature.element) return false
   // v21: the gift-egg lineage marker is a plain boolean.
   if (typeof creature.giftEgg !== "boolean") return false
+  // v23: the pet's own age is a positive integer — the days it has lived.
+  // A missing or malformed age fails the load instead of letting the growth
+  // gates read a broken number.
+  const ageDays = creature.ageDays
+  if (
+    typeof ageDays !== "number" ||
+    !Number.isInteger(ageDays) ||
+    ageDays < 1
+  ) {
+    return false
+  }
   return true
 }
 

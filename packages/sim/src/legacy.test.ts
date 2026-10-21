@@ -36,7 +36,11 @@ import { dedupeTraits, effectiveTraits } from "./traits"
 
 type Stage = "baby" | "juvenile" | "champion"
 
-/** A single-creature state at a chosen stage/day/phase. */
+/**
+ * A single-creature state at a chosen stage/day/phase. The pet's own age
+ * mirrors the world day: this fixture describes a day-1 starter, whose age
+ * and the world's day move together (save v23).
+ */
 function stateWith(
   stage: Stage,
   day: number,
@@ -45,7 +49,12 @@ function stateWith(
   const owned = chooseStarter(createInitialState(), "fire_drake", 42)
   const creature = owned.creature
   if (!creature) throw new Error("expected a starter creature")
-  return { ...owned, day, phase, creature: { ...creature, stage } }
+  return {
+    ...owned,
+    day,
+    phase,
+    creature: { ...creature, stage, ageDays: day },
+  }
 }
 
 describe("initialLineage", () => {
@@ -254,6 +263,28 @@ describe("canGraduate — eligibility gate", () => {
 
   it("stays eligible forever past the floor (no upper limit)", () => {
     expect(canGraduate(stateWith("champion", 200))).toEqual({
+      eligible: true,
+      reason: "eligible",
+    })
+  })
+
+  it("reads the pet's own age, not the world day (save v23)", () => {
+    // A late-hatched champion on a late world day: it must live 60 of its
+    // own days before the send-off is offered.
+    const late = stateWith("champion", 200)
+    const young = {
+      ...late,
+      creature: { ...late.creature, ageDays: 59 } as GameState["creature"],
+    }
+    expect(canGraduate(young)).toEqual({
+      eligible: false,
+      reason: "too-young",
+    })
+    const old = {
+      ...late,
+      creature: { ...late.creature, ageDays: 60 } as GameState["creature"],
+    }
+    expect(canGraduate(old)).toEqual({
       eligible: true,
       reason: "eligible",
     })
@@ -472,9 +503,15 @@ describe("graduate — succession", () => {
   it("accumulates Hall of Fame records oldest-first across generations", () => {
     const first = graduate(stateWith("champion", GRADUATION_DAY), "plant_ox", 5)
     if (!first.ok) throw new Error("expected ok")
+    // The successor is a champion again, and it has lived its own career
+    // (save v23): its age, not the world day, decides the second send-off.
     const promoted: GameState = {
       ...first.state,
-      creature: { ...creatureOf(first.state), stage: "champion" },
+      creature: {
+        ...creatureOf(first.state),
+        stage: "champion",
+        ageDays: GRADUATION_DAY,
+      },
     }
     const second = graduate(promoted, "plant_ox", 6)
     if (!second.ok) throw new Error("expected ok")
@@ -536,14 +573,22 @@ describe("graduateWithPair — dual-parent succession", () => {
     if (!first.ok) throw new Error("expected first graduation")
     const promoted: GameState = {
       ...first.state,
-      creature: { ...creatureOf(first.state), stage: "champion" },
+      creature: {
+        ...creatureOf(first.state),
+        stage: "champion",
+        ageDays: GRADUATION_DAY,
+      },
     }
     const second = graduate(promoted, "water_axolotl", 6)
     if (!second.ok) throw new Error("expected second graduation")
     return {
       ...second.state,
       day: 70,
-      creature: { ...creatureOf(second.state), stage: "champion" },
+      creature: {
+        ...creatureOf(second.state),
+        stage: "champion",
+        ageDays: GRADUATION_DAY,
+      },
     }
   }
 

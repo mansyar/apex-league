@@ -112,14 +112,14 @@ export function retireeRecord(state: GameState): RetiredRecord | null {
 }
 
 /**
- * The night of this day (inclusive) is the earliest a champion may graduate.
- * A full career: two months of care. No upper limit — once eligible, the
- * send-off is the player's to choose.
+ * The pet's own age at which a champion may graduate: a full career of two
+ * months of its own life. No upper limit — once eligible, the send-off is
+ * the player's to choose.
  */
 export const GRADUATION_DAY = 60
 
 /**
- * Coach copy may tease a full career from this day on (the send-off itself
+ * Coach copy may tease a full career from this age on (the send-off itself
  * stays player-triggered — discovered, not demanded).
  */
 export const GRADUATION_HINT_DAY = 55
@@ -252,8 +252,13 @@ export interface GraduationVerdict {
 /**
  * May the player graduate the active creature right now? Eligible only when
  * the state is in the day phase, a creature is owned, it has reached its
- * **champion** form, and the in-game day is at least `GRADUATION_DAY`. The
- * gate delays but never blocks — past the floor it stays eligible forever.
+ * **champion** form, and the creature's own age is at least
+ * `GRADUATION_DAY`. The gate delays but never blocks — past the floor it
+ * stays eligible forever.
+ *
+ * The floor is the pet's own age (save v23), not the world day: a full
+ * career is two months of *its* life. A day-1 starter's timing is
+ * unchanged; a late-hatched pet must live 60 of its own days first.
  *
  * Pure: reads the state, returns a verdict; the caller decides what to do.
  */
@@ -262,7 +267,7 @@ export function canGraduate(state: GameState): GraduationVerdict {
   if (state.phase === "cup") return { eligible: false, reason: "cup-phase" }
   if (state.creature.stage !== "champion")
     return { eligible: false, reason: "not-champion" }
-  if (state.day < GRADUATION_DAY)
+  if (state.creature.ageDays < GRADUATION_DAY)
     return { eligible: false, reason: "too-young" }
   return { eligible: true, reason: "eligible" }
 }
@@ -304,6 +309,9 @@ export function inheritedFloor(
  * stat floored by the parent's inheritance (R3). Same seed → same individual,
  * so succession stays replayable. The bond starts raised under the
  * warm-bloodline perk; every other condition uses the standard start.
+ *
+ * The successor hatches at one day of life (save v23): its age counts from
+ * the day it hatches, not from the world day it was laid on.
  *
  * Throws on an unknown species (the caller must pick an available one).
  */

@@ -89,12 +89,18 @@ export function advanceDay(state: GameState, rng?: Rng): GameState {
     state.day,
     state.cupsWon,
   )
+  // The night the pet just slept makes it a day older: the age it carries
+  // during the next day is one more than the age the gate judged tonight
+  // (the gate reads the age the pet had lived, not the age it gained).
+  // Only the active pet is settled, so only the active pet ages — a pet in
+  // the stable (Phase 2) never sees this seam.
+  const aged: typeof settled = { ...settled, ageDays: settled.ageDays + 1 }
   // Discovery is earned, not inferred: only a real stage change proves the
   // gate. A baby that matured reveals the juvenile gate; a juvenile that took
   // the champion step reveals both (the champion gate only exists once the
   // juvenile one is cleared). A no-evolution night records nothing, and a
   // champion never resets what the player already learned.
-  const evolved = { ...next, creature: settled }
+  const evolved = { ...next, creature: aged }
   if (before === "baby" && settled.stage === "juvenile") {
     return markEvolutionKnown(evolved, "juvenile")
   }

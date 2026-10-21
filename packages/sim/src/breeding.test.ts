@@ -15,6 +15,7 @@ import {
   deriveTrait,
   driftSource,
   effectiveTraits,
+  hatchGiftEgg,
   inheritedFloorFromPair,
   pairFor,
   retireeRecord,
@@ -45,7 +46,8 @@ function championState(): GameState {
   return {
     ...owned,
     day: GRADUATION_DAY,
-    creature: { ...creature, stage: "champion" },
+    // The graduation gate reads the pet's own age (save v23).
+    creature: { ...creature, stage: "champion", ageDays: GRADUATION_DAY },
   }
 }
 
@@ -732,6 +734,27 @@ describe("affinity drift — the seeded roll", () => {
     ] as const
     const at = stubRng([1 - AFFINITY_DRIFT_CHANCE])
     expect(rollAffinityDrift(DRAKE, chained, at)).toBe<Element>("plant")
+  })
+})
+
+describe("createBredCreature — the hatch age", () => {
+  it("a bred egg hatches with one day of life (save v23)", () => {
+    const egg = createBredCreature("fire_drake", 42, [record(), record()], 1)
+    expect(egg.ageDays).toBe(1)
+  })
+})
+
+describe("hatchGiftEgg — the hatch age", () => {
+  it("the granted hound hatches with one day of life (save v23)", () => {
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    const granted: GameState = {
+      ...owned,
+      stormGiftClaimed: true,
+      pendingGift: { speciesId: "electric_hound", seed: 4242 },
+    }
+    const result = hatchGiftEgg(granted)
+    if (!result.ok) throw new Error("hatch refused")
+    expect(result.state.creature?.ageDays).toBe(1)
   })
 })
 

@@ -36,10 +36,17 @@ import {
  */
 const CALM_RNG = { next: () => 0.99, int: () => 0 }
 
-/** A state whose creature is hand-tuned for evolution scenarios. */
+/**
+ * A state whose creature is hand-tuned for evolution scenarios. The pet's
+ * own age (save v23) mirrors the world day: these fixtures describe a day-1
+ * starter, whose age and the world's day move together.
+ */
 function scenarioState(
   fields: Partial<
-    Pick<Creature, "conditions" | "sickCooldown" | "stage" | "branch">
+    Pick<
+      Creature,
+      "conditions" | "sickCooldown" | "stage" | "branch" | "ageDays"
+    >
   >,
   day: number,
 ): GameState {
@@ -48,14 +55,17 @@ function scenarioState(
   return {
     ...s,
     day,
-    creature: { ...s.creature, branch: "legacy", ...fields },
+    creature: { ...s.creature, branch: "legacy", ageDays: day, ...fields },
   }
 }
 
 /** A creature for direct unit-level gate checks. */
 function gateCreature(
   fields: Partial<
-    Pick<Creature, "stage" | "sickCooldown" | "conditions" | "branch">
+    Pick<
+      Creature,
+      "stage" | "sickCooldown" | "conditions" | "branch" | "ageDays"
+    >
   >,
 ): Creature {
   const c = createCreature("fire_drake", 42)
@@ -63,21 +73,27 @@ function gateCreature(
 }
 
 describe("evaluateEvolution", () => {
-  test("a baby with clean nights and good mood evolves at the day-10 night", () => {
-    const v = evaluateEvolution(gateCreature({}), EVOLUTION_DAY)
+  test("a baby with clean nights and good mood evolves on its tenth night", () => {
+    const v = evaluateEvolution(
+      gateCreature({ ageDays: EVOLUTION_DAY }),
+      EVOLUTION_DAY,
+    )
     expect(v.evolved).toBe(true)
     expect(v.reason).toBe("ready")
   })
 
-  test("day 9 is too young even with perfect care", () => {
-    const v = evaluateEvolution(gateCreature({}), EVOLUTION_DAY - 1)
+  test("nine days of life are too young even with perfect care", () => {
+    const v = evaluateEvolution(
+      gateCreature({ ageDays: EVOLUTION_DAY - 1 }),
+      EVOLUTION_DAY,
+    )
     expect(v.evolved).toBe(false)
     expect(v.reason).toBe("too_young")
   })
 
   test("a recent sickness night blocks evolution", () => {
     const v = evaluateEvolution(
-      gateCreature({ sickCooldown: 1 }),
+      gateCreature({ ageDays: EVOLUTION_DAY, sickCooldown: 1 }),
       EVOLUTION_DAY,
     )
     expect(v.evolved).toBe(false)
@@ -86,7 +102,10 @@ describe("evaluateEvolution", () => {
 
   test("low mood blocks evolution", () => {
     const v = evaluateEvolution(
-      gateCreature({ conditions: { mood: EVOLUTION_MOOD - 1 } as never }),
+      gateCreature({
+        ageDays: EVOLUTION_DAY,
+        conditions: { mood: EVOLUTION_MOOD - 1 } as never,
+      }),
       EVOLUTION_DAY,
     )
     expect(v.evolved).toBe(false)
@@ -95,7 +114,10 @@ describe("evaluateEvolution", () => {
 
   test("mood exactly at the threshold passes (inclusive gate)", () => {
     const v = evaluateEvolution(
-      gateCreature({ conditions: { mood: EVOLUTION_MOOD } as never }),
+      gateCreature({
+        ageDays: EVOLUTION_DAY,
+        conditions: { mood: EVOLUTION_MOOD } as never,
+      }),
       EVOLUTION_DAY,
     )
     expect(v.evolved).toBe(true)
@@ -103,41 +125,54 @@ describe("evaluateEvolution", () => {
 
   test("age is checked before mood and sickness (reason precedence)", () => {
     const v = evaluateEvolution(
-      gateCreature({ sickCooldown: 2, conditions: { mood: 0 } as never }),
+      gateCreature({
+        ageDays: EVOLUTION_DAY - 1,
+        sickCooldown: 2,
+        conditions: { mood: 0 } as never,
+      }),
       EVOLUTION_DAY - 1,
     )
     expect(v.reason).toBe("too_young")
   })
 
   test("a juvenile is judged by the champion gate, not waved through", () => {
-    const v = evaluateEvolution(gateCreature({ stage: "juvenile" }), 50)
+    const v = evaluateEvolution(
+      gateCreature({ stage: "juvenile", ageDays: CHAMPION_EVOLUTION_DAY }),
+      50,
+    )
     expect(v.evolved).toBe(false)
     expect(v.reason).toBe("low_bond")
   })
 })
 
 describe("evaluateEvolution - champion gate", () => {
-  /** A qualified juvenile: day 25, great care, bonded, cup winner. */
+  /** A qualified juvenile: old enough, great care, bonded, cup winner. */
   function championReady(fields?: {
     stage?: Creature["stage"]
     sickCooldown?: number
+    ageDays?: number
     conditions?: Partial<Creature["conditions"]>
   }): Creature {
     return gateCreature({
       stage: fields?.stage ?? "juvenile",
       sickCooldown: fields?.sickCooldown ?? 0,
+      ageDays: fields?.ageDays ?? CHAMPION_EVOLUTION_DAY,
       conditions: { mood: 80, bond: 80, ...fields?.conditions } as never,
     })
   }
 
-  test("a qualified juvenile evolves on the night of day 25", () => {
+  test("a qualified juvenile evolves on its twenty-fifth night", () => {
     const v = evaluateEvolution(championReady(), CHAMPION_EVOLUTION_DAY, 1)
     expect(v.evolved).toBe(true)
     expect(v.reason).toBe("ready")
   })
 
-  test("day 24 is too young", () => {
-    const v = evaluateEvolution(championReady(), CHAMPION_EVOLUTION_DAY - 1, 1)
+  test("twenty-four days of life are too young", () => {
+    const v = evaluateEvolution(
+      championReady({ ageDays: CHAMPION_EVOLUTION_DAY - 1 }),
+      CHAMPION_EVOLUTION_DAY,
+      1,
+    )
     expect(v.evolved).toBe(false)
     expect(v.reason).toBe("too_young")
   })
@@ -193,7 +228,10 @@ describe("evaluateEvolution - champion gate", () => {
 
   test("age is checked before bond and cups (reason precedence)", () => {
     const v = evaluateEvolution(
-      championReady({ conditions: { bond: 0 } as never }),
+      championReady({
+        ageDays: CHAMPION_EVOLUTION_DAY - 1,
+        conditions: { bond: 0 } as never,
+      }),
       CHAMPION_EVOLUTION_DAY - 1,
       0,
     )
@@ -264,6 +302,76 @@ describe("advanceDay - evolution integration", () => {
     const s = scenarioState({ stage: "juvenile" }, 10)
     const next = advanceDay(s, CALM_RNG)
     expect(next.creature?.stage).toBe("juvenile")
+  })
+})
+
+describe("the pet's own age — a late hatch grows at its own pace", () => {
+  /** A pet hatched on `day`: a baby carrying one day of life. */
+  function hatchedOn(day: number): GameState {
+    const s = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!s.creature) throw new Error("starter not created")
+    return {
+      ...s,
+      day,
+      creature: { ...s.creature, ageDays: 1, stage: "baby" },
+    }
+  }
+
+  /**
+   * Keep the pet well cared, so the only gate in play is its age: a
+   * neglected pet is held back by the mood gate, not by its age.
+   */
+  function cared(state: GameState): GameState {
+    if (!state.creature) throw new Error("no creature")
+    return {
+      ...state,
+      creature: {
+        ...state.creature,
+        conditions: {
+          ...state.creature.conditions,
+          hunger: 100,
+          energy: 100,
+          health: 100,
+          mood: 100,
+          bond: 100,
+        },
+      },
+    }
+  }
+
+  test("the age advances by exactly one per night", () => {
+    const s = chooseStarter(createInitialState(), "fire_drake", 42)
+    expect(s.creature?.ageDays).toBe(1)
+    const next = advanceDay(s, CALM_RNG)
+    expect(next.day).toBe(2)
+    expect(next.creature?.ageDays).toBe(2)
+  })
+
+  test("a pet hatched on day 24 stays a baby through its first nine nights", () => {
+    let s = hatchedOn(24)
+    for (let night = 1; night <= 9; night++) {
+      s = advanceDay(cared(s), CALM_RNG)
+      expect(s.creature?.stage).toBe("baby")
+      expect(s.creature?.ageDays).toBe(night + 1)
+    }
+    expect(s.day).toBe(33)
+  })
+
+  test("a pet hatched on day 24 matures on its own tenth night", () => {
+    let s = hatchedOn(24)
+    for (let night = 1; night <= 10; night++) s = advanceDay(cared(s), CALM_RNG)
+    expect(s.day).toBe(34)
+    expect(s.creature?.stage).toBe("juvenile")
+  })
+
+  test("the day-1 starter still matures on the day-10 night", () => {
+    let s = chooseStarter(createInitialState(), "fire_drake", 42)
+    for (let night = 1; night <= 9; night++) s = advanceDay(cared(s), CALM_RNG)
+    expect(s.day).toBe(10)
+    expect(s.creature?.stage).toBe("baby")
+    s = advanceDay(cared(s), CALM_RNG)
+    expect(s.day).toBe(11)
+    expect(s.creature?.stage).toBe("juvenile")
   })
 })
 

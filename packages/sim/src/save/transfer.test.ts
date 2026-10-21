@@ -22,7 +22,7 @@ describe("buildSaveExport", () => {
     const exported = buildSaveExport(state, NOW)
     const parsed = JSON.parse(exported.json) as Record<string, unknown>
 
-    expect(exported.filename).toBe("apex-league-save-v22-2026-10-18.json")
+    expect(exported.filename).toBe("apex-league-save-v23-2026-10-18.json")
     expect(parsed.version).toBe(SAVE_VERSION)
     expect(parsed.session).toBeNull()
     expect(parsed.savedAt).toBe(NOW.getTime())
@@ -109,6 +109,20 @@ describe("inspectSaveImport", () => {
     const state = JSON.parse(JSON.stringify(owned())) as Record<string, unknown>
     const settings = state.settings as Record<string, unknown>
     settings.musicVolume = 4
+    const raw = JSON.stringify({
+      version: SAVE_VERSION,
+      state,
+      session: null,
+      savedAt: 1,
+    })
+
+    expect(inspectSaveImport(raw)).toEqual({ ok: false, reason: "invalid" })
+  })
+
+  test("rejects an import whose creature carries a malformed age (v23)", () => {
+    const state = JSON.parse(JSON.stringify(owned())) as Record<string, unknown>
+    const creature = state.creature as Record<string, unknown>
+    creature.ageDays = 0
     const raw = JSON.stringify({
       version: SAVE_VERSION,
       state,

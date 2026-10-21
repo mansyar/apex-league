@@ -23,7 +23,12 @@ function populatedState(): GameState {
     {
       ...owned,
       day: 60,
-      creature: { ...activeCreature(owned), stage: "champion" },
+      // The graduation gate reads the pet's own age (save v23).
+      creature: {
+        ...activeCreature(owned),
+        stage: "champion",
+        ageDays: 60,
+      },
     },
     "plant_ox",
     5,
@@ -32,7 +37,11 @@ function populatedState(): GameState {
   const second = graduate(
     {
       ...first.state,
-      creature: { ...activeCreature(first.state), stage: "champion" },
+      creature: {
+        ...activeCreature(first.state),
+        stage: "champion",
+        ageDays: 60,
+      },
     },
     "water_axolotl",
     6,
@@ -41,7 +50,11 @@ function populatedState(): GameState {
   return {
     ...second.state,
     day: 70,
-    creature: { ...activeCreature(second.state), stage: "champion" },
+    creature: {
+      ...activeCreature(second.state),
+      stage: "champion",
+      ageDays: 60,
+    },
   }
 }
 
@@ -72,7 +85,7 @@ function v14Payload(): Record<string, unknown> {
 
 describe("save v15 (dynasty_breeding_20261018)", () => {
   test("SAVE_VERSION is 19", () => {
-    expect(SAVE_VERSION).toBe(22)
+    expect(SAVE_VERSION).toBe(23)
   })
 
   test("migrates a v14 creature and Hall records to empty v15 lineage fields", () => {

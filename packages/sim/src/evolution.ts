@@ -5,10 +5,11 @@
  * no I/O.
  *
  * The design frame (spec R1): evolution is earned by age AND held-up care.
- * Age is the hard floor; a recent sickness or a low mood delays the night
- * it happens, but neglect can never block it forever. The champion gate
- * adds prestige: a strong bond and at least one cup win — the title is
- * earned in the arena, not just at the ranch.
+ * Age is the hard floor — the pet's **own** age (save v23), never the world
+ * day, so a pet hatched late grows at its own pace. A recent sickness or a
+ * low mood delays the night it happens, but neglect can never block it
+ * forever. The champion gate adds prestige: a strong bond and at least one
+ * cup win — the title is earned in the arena, not just at the ranch.
  */
 
 import {
@@ -128,27 +129,28 @@ export function evolveCreature(creature: Creature): Creature {
 }
 
 /**
- * The night of this day (inclusive) is the earliest a baby may evolve.
- * Ten full baby days: day 1 is the hatch day, and the gate closes on the
- * night that ends day 10.
+ * The pet's own age at which the baby-to-juvenile gate closes: ten full
+ * days of life. The gate reads the creature's own age (save v23) and never
+ * the world day, so a pet hatched late matures on its own tenth night
+ * instead of its first.
  */
 export const EVOLUTION_DAY = 10
 
 /**
- * Baby-to-juvenile coach copy may tease growth from this day on (the
+ * Baby-to-juvenile coach copy may tease growth from this age on (the
  * threshold itself stays undisclosed — part of the raising mystery).
  */
 export const EVOLUTION_HINT_DAY = 5
 
 /**
- * The night of this day (inclusive) is the earliest a juvenile may evolve
- * into its champion form. A quarter-century of days: the champion title is
- * earned across a full month of care, not handed out early.
+ * The pet's own age at which the juvenile-to-champion gate closes: a
+ * quarter-century of days of its own life. The champion title is earned
+ * across a full month of care, not handed out early.
  */
 export const CHAMPION_EVOLUTION_DAY = 25
 
 /**
- * Juvenile-to-champion coach copy may tease the climb from this day on (the
+ * Juvenile-to-champion coach copy may tease the climb from this age on (the
  * thresholds themselves stay undisclosed — part of the raising mystery).
  */
 export const CHAMPION_HINT_DAY = 20
@@ -191,6 +193,12 @@ export interface EvolutionVerdict {
  * Stage-aware: a baby is judged for the juvenile gate, a juvenile for the
  * champion gate. `cupsWon` feeds only the champion prestige rule.
  *
+ * The age gates read the creature's **own** age (`ageDays`, save v23), never
+ * the world day: a pet hatched on day 24 is one day old on day 24 and
+ * matures on its own tenth night, not on its first. The world `day` is kept
+ * in the signature for the settlement seam — the night that closes it — and
+ * no longer decides anything.
+ *
  * Pure: reads the (post-settlement) creature and returns a verdict; the
  * caller decides what to do with it.
  *
@@ -200,11 +208,11 @@ export interface EvolutionVerdict {
  */
 export function evaluateEvolution(
   creature: Creature,
-  day: number,
+  _day: number,
   cupsWon = 0,
 ): EvolutionVerdict {
   if (creature.stage === "baby") {
-    if (day < EVOLUTION_DAY) {
+    if (creature.ageDays < EVOLUTION_DAY) {
       return { evolved: false, reason: "too_young" }
     }
     if (creature.sickCooldown > 0) {
@@ -216,7 +224,7 @@ export function evaluateEvolution(
     return { evolved: true, reason: "ready" }
   }
   if (creature.stage === "juvenile") {
-    if (day < CHAMPION_EVOLUTION_DAY) {
+    if (creature.ageDays < CHAMPION_EVOLUTION_DAY) {
       return { evolved: false, reason: "too_young" }
     }
     if (creature.sickCooldown > 0) {

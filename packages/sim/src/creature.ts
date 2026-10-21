@@ -67,6 +67,13 @@ export interface Creature {
   parents: number[]
   stage: LifeStage
   /**
+   * The pet's own age in days (save v23): the number of days it has been
+   * alive, counting the day it hatched (1 on its hatch day). The growth
+   * gates read this and never the world day, so a pet hatched late grows at
+   * its own pace. The night settlement advances it by exactly one.
+   */
+  ageDays: number
+  /**
    * The evolution branch earned at the juvenile gate (save v19), or null
    * before the gate. `"legacy"` is migration-only: new creatures never earn
    * it, and a bred egg always starts null.
@@ -138,6 +145,14 @@ export const TRAINED_START: CreatureStats = Object.freeze({
 export const CONDITION_MAX = 100
 
 /**
+ * The age a creature carries on the day it hatches: one day of life, even
+ * though the night it hatches on has not been slept yet. Every creation seam
+ * stamps this — the starter, a gifted egg, a graduation successor and a bred
+ * egg alike.
+ */
+export const AGE_AT_HATCH = 1
+
+/**
  * Conditions of a newly hatched creature: well-fed, rested, healthy, curious,
  * and barely bonded.
  */
@@ -205,6 +220,7 @@ export function createCreatureFrom(
     traits: [],
     parents: [],
     stage: "baby",
+    ageDays: AGE_AT_HATCH,
     branch: null,
     giftEgg: false,
     sickCooldown: 0,

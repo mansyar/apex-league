@@ -20,7 +20,7 @@ function v9Payload(state: GameState) {
 
 describe("save v10 — the bloodline slice", () => {
   test("current version is 19", () => {
-    expect(SAVE_VERSION).toBe(22)
+    expect(SAVE_VERSION).toBe(23)
   })
 
   test("a v9 save migrates with a fresh lineage", () => {
@@ -43,7 +43,8 @@ describe("save v10 — the bloodline slice", () => {
     const champion: GameState = {
       ...owned,
       day: 60,
-      creature: { ...creature, stage: "champion" },
+      // The graduation gate reads the pet's own age (save v23).
+      creature: { ...creature, stage: "champion", ageDays: 60 },
     }
     const result = graduate(champion, "plant_ox", 5)
     if (!result.ok) throw new Error("expected ok")

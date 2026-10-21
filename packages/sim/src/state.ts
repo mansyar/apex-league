@@ -264,6 +264,9 @@ export function setSfxVolume(state: GameState, value: number): GameState {
  * Record the player's starter choice: create the creature from a seed and
  * return a new state with it set. Pure. Throws on unknown/locked species and
  * on states that already own a creature.
+ *
+ * The starter hatches on the day it is chosen, so it starts at one day of
+ * life (save v23): its age counts from here, not from the world's day 1.
  */
 export function chooseStarter(
   state: GameState,

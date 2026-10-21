@@ -44,9 +44,13 @@ function stateWith(
 ): GameState {
   const base = createInitialState()
   const created = createCreature("fire_drake", 42)
+  const day = options.day ?? 1
   const creature: Creature = {
     ...created,
     stage,
+    // The pet's own age (save v23): this fixture is a day-1 starter, whose
+    // age tracks the world day.
+    ageDays: day,
     branch: options.branch === undefined ? created.branch : options.branch,
     conditions: {
       ...created.conditions,
@@ -59,7 +63,7 @@ function stateWith(
   }
   return {
     ...base,
-    day: options.day ?? 1,
+    day,
     cupsWon: options.cupsWon ?? 0,
     creature,
     evolutionKnowledge: {

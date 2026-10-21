@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test"
 
 import { createCreature } from "../creature"
 import { type CupSession, resolvePlayerMatch } from "../cup"
+import { evaluateEvolution } from "../evolution"
 import { applyCupPlacement } from "../ladder"
 import { retireeRecord } from "../legacy"
 import { defaultLoadout } from "../loadout"
@@ -32,7 +33,7 @@ import {
 
 describe("save schema", () => {
   test("current version matches the schema", () => {
-    expect(SAVE_VERSION).toBe(22)
+    expect(SAVE_VERSION).toBe(23)
   })
 
   test("serializeSave wraps state with version metadata", () => {
@@ -689,7 +690,7 @@ describe("evolution stage (v6)", () => {
 
 describe("save v7 — cup session, rename, hints", () => {
   test("current version matches the schema", () => {
-    expect(SAVE_VERSION).toBe(22)
+    expect(SAVE_VERSION).toBe(23)
   })
 
   test("a v6 save migrates cleanly: null session + a clean hint ledger", () => {
@@ -1041,7 +1042,7 @@ describe("save v11 — silver ladder tier + boss defeat ledger", () => {
   }
 
   test("SAVE_VERSION is 18", () => {
-    expect(SAVE_VERSION).toBe(22)
+    expect(SAVE_VERSION).toBe(23)
   })
 
   test("a v10 save migrates: the ladder keeps its points and gains tier bronze", () => {
@@ -1147,7 +1148,7 @@ describe("save v12 - element chart HP scale (v11 -> v12)", () => {
   // magnitudes and touches nothing else - trained bonuses, atk/def/spd,
   // ladder, and the ledger are scale-free.
   test("SAVE_VERSION is 18", () => {
-    expect(SAVE_VERSION).toBe(22)
+    expect(SAVE_VERSION).toBe(23)
   })
 
   /** A v11-shaped payload: fresh state with every stored HP halved to the
@@ -1355,7 +1356,7 @@ describe("save v13 (audio_foundation_20261017)", () => {
   }
 
   test("SAVE_VERSION is 18", () => {
-    expect(SAVE_VERSION).toBe(22)
+    expect(SAVE_VERSION).toBe(23)
   })
 
   test("a v12 save migrates: settings gain the muted flag, default false", () => {
@@ -1426,7 +1427,7 @@ describe("save v14 (gold_legend_ladder_20261017)", () => {
   }
 
   test("SAVE_VERSION is 18", () => {
-    expect(SAVE_VERSION).toBe(22)
+    expect(SAVE_VERSION).toBe(23)
   })
 
   test("a v13 save migrates: legendTitles stamps at 0, ladder untouched", () => {
@@ -1561,7 +1562,7 @@ describe("save v18 — training programs (training_programs_form_20261020)", () 
   }
 
   test("the schema version is 18", () => {
-    expect(SAVE_VERSION).toBe(22)
+    expect(SAVE_VERSION).toBe(23)
   })
 
   test("every v17 focus maps to its program and the old key is dropped", () => {
@@ -1573,7 +1574,7 @@ describe("save v18 — training programs (training_programs_form_20261020)", () 
     }
     for (const [stat, program] of Object.entries(mapping)) {
       const migrated = migrate(v17With(stat))
-      expect(migrated.version).toBe(22)
+      expect(migrated.version).toBe(23)
       expect(migrated.state.creature?.trainingProgram).toBe(
         program as "power" | "endurance" | "sprint" | "ring",
       )
@@ -1616,7 +1617,7 @@ describe("save v18 — training programs (training_programs_form_20261020)", () 
       session: null,
       state: { ...owned, creature: null },
     })
-    expect(migrated.version).toBe(22)
+    expect(migrated.version).toBe(23)
     expect(migrated.state.creature).toBeNull()
   })
 
@@ -1628,7 +1629,7 @@ describe("save v18 — training programs (training_programs_form_20261020)", () 
 
   test("a v0 save walks the whole chain to v18 with no program", () => {
     const migrated = migrate({ version: 0, day: 3 })
-    expect(migrated.version).toBe(22)
+    expect(migrated.version).toBe(23)
     expect(migrated.state.creature?.trainingProgram).toBeNull()
   })
 
@@ -1698,7 +1699,7 @@ describe("save v18 — training programs (training_programs_form_20261020)", () 
 
 describe("save v20 — the drifted affinity", () => {
   test("the schema version is 20", () => {
-    expect(SAVE_VERSION).toBe(22)
+    expect(SAVE_VERSION).toBe(23)
   })
 
   test("a v19 creature and Hall record migrate with affinity null", () => {
@@ -1727,7 +1728,7 @@ describe("save v20 — the drifted affinity", () => {
 
     const migrated = migrate(stripped)
 
-    expect(migrated.version).toBe(22)
+    expect(migrated.version).toBe(23)
     expect(migrated.savedAt).toBe(7)
     expect(migrated.state.creature?.affinity).toBeNull()
     expect(migrated.state.lineage.hallOfFame[0]?.affinity).toBeNull()
@@ -1840,5 +1841,94 @@ describe("save v20 — the drifted affinity", () => {
       }),
     )
     expect(loadGame(adapter)?.lineage.hallOfFame[0]?.affinity).toBe("plant")
+  })
+})
+
+describe("save v23 — the pet's own age", () => {
+  /** A v22 payload: the state has no `ageDays` on its creature. */
+  function v22(day: number): Record<string, unknown> {
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    const state = { ...owned, day } as unknown as Record<string, unknown>
+    const creature = state.creature as Record<string, unknown>
+    delete creature.ageDays
+    return { version: 22, state, savedAt: 11, session: null }
+  }
+
+  test("the schema version is 23", () => {
+    expect(SAVE_VERSION).toBe(23)
+  })
+
+  test("a v22 save stamps the world day as the pet's age", () => {
+    const migrated = migrate(v22(24))
+    expect(migrated.version).toBe(SAVE_VERSION)
+    expect(migrated.state.creature?.ageDays).toBe(24)
+    expect(migrated.savedAt).toBe(11)
+  })
+
+  test("a v22 save without a creature migrates without an age", () => {
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    const migrated = migrate({
+      version: 22,
+      state: { ...owned, day: 9, creature: null },
+      savedAt: 1,
+      session: null,
+    })
+    expect(migrated.state.creature).toBeNull()
+  })
+
+  test("the migration preserves today's behaviour for a day-10 baby", () => {
+    // Before v23 the gate read the world day, so a baby on day 10 matured on
+    // the night that ends day 10. The stamped age keeps that night.
+    const migrated = migrate(v22(10))
+    const creature = migrated.state.creature
+    if (!creature) throw new Error("no creature")
+    expect(evaluateEvolution(creature, 10)).toEqual({
+      evolved: true,
+      reason: "ready",
+    })
+  })
+
+  test("the age round-trips through saveGame and loadSave", () => {
+    const adapter = createMemoryAdapter()
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!owned.creature) throw new Error("no creature")
+    const state = { ...owned, creature: { ...owned.creature, ageDays: 12 } }
+    saveGame(adapter, state, 1)
+    expect(loadGame(adapter)?.creature?.ageDays).toBe(12)
+  })
+
+  test("loadGame rejects a malformed age", () => {
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!owned.creature) throw new Error("no creature")
+    for (const ageDays of [0, -3, 1.5, "3", null]) {
+      const adapter = createMemoryAdapter()
+      adapter.setItem(
+        SAVE_KEY,
+        JSON.stringify({
+          version: SAVE_VERSION,
+          state: {
+            ...owned,
+            creature: { ...owned.creature, ageDays },
+          },
+          savedAt: 0,
+        }),
+      )
+      expect(loadGame(adapter), `age ${String(ageDays)}`).toBeNull()
+    }
+  })
+
+  test("loadGame rejects a creature with no age at all", () => {
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!owned.creature) throw new Error("no creature")
+    const broken = structuredClone(owned) as unknown as {
+      creature: Record<string, unknown>
+    }
+    delete broken.creature.ageDays
+    const adapter = createMemoryAdapter()
+    adapter.setItem(
+      SAVE_KEY,
+      JSON.stringify({ version: SAVE_VERSION, state: broken, savedAt: 0 }),
+    )
+    expect(loadGame(adapter)).toBeNull()
   })
 })
