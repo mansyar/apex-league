@@ -41,23 +41,23 @@ The primary appends after acceptance:
 - **Covers:** FR-3, AC-3, NFR-3
 - **Touches:** `packages/sim/src/battle/` (damage/matchup path and its co-located tests), `packages/sim/src/battle.ts` barrel if re-export needed; amended: `packages/sim/src/cup/session.ts`, `packages/sim/src/cup/verdicts.ts` + co-located cup tests (side-construction seam only, to fully cover FR-3 in live cup fights)
 - **Verification:** `bun run check && bun test --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Incoming cancel-to-neutral in the damage path** — covers: FR-3
-  - [ ] **P2.T1.1: Failing test first: ×2-vs-primary + ×0.5-vs-secondary resolves ×1; neutral-vs-primary stays neutral; resisted-vs-primary stays ×0.5 regardless of secondary**
-  - [ ] **P2.T1.2: Implement the smallest rule in the resolver/matchup code; outgoing damage untouched**
-- [ ] **P2.T2: Balance guardrails** — covers: FR-3
-  - [ ] **P2.T2.1: Assert existing battle/cup goldens are unchanged (rivals and bosses carry no secondary) and the boss win-rate probe bands still pass**
-- [ ] **P2.T3: Cup-side affinity threading (plan amendment — closes the deferred cup note)** — covers: FR-3
-  - [ ] **P2.T3.1: Failing test first: a cup slot with a secondary affinity produces a BattleSide whose incoming matchup cancels to neutral; a slot without one is byte-identical to today**
-  - [ ] **P2.T3.2: Thread `affinity` through `CupSlot` → `battleSideForSlot` (`cup/verdicts.ts`) and the player side in `cup/session.ts`; additive/optional so in-flight cup sessions from existing saves keep working (no save-version bump unless required)**
+- [x] **P2.T1: Incoming cancel-to-neutral in the damage path** — covers: FR-3
+  - [x] **P2.T1.1: Failing test first: ×2-vs-primary + ×0.5-vs-secondary resolves ×1; neutral-vs-primary stays neutral; resisted-vs-primary stays ×0.5 regardless of secondary**
+  - [x] **P2.T1.2: Implement the smallest rule in the resolver/matchup code; outgoing damage untouched**
+- [x] **P2.T2: Balance guardrails** — covers: FR-3
+  - [x] **P2.T2.1: Assert existing battle/cup goldens are unchanged (rivals and bosses carry no secondary) and the boss win-rate probe bands still pass**
+- [x] **P2.T3: Cup-side affinity threading (plan amendment — closes the deferred cup note)** — covers: FR-3
+  - [x] **P2.T3.1: Failing test first: a cup slot with a secondary affinity produces a BattleSide whose incoming matchup cancels to neutral; a slot without one is byte-identical to today**
+  - [x] **P2.T3.2: Thread `affinity` through `CupSlot` → `battleSideForSlot` (`cup/verdicts.ts`) and the player side in `cup/session.ts`; additive/optional so in-flight cup sessions from existing saves keep working (no save-version bump unless required)**
 
 <!--
 The primary appends after acceptance:
-**Result:** verified
-**Checkpoint:** <short-sha>
-**Evidence:** conductor/tracks/20261021-affinity-drift-prestige-perks/verification/phase-2.md
 -->
+**Result:** verified
+**Checkpoint:** 67660bb
+**Evidence:** conductor/tracks/20261021-affinity-drift-prestige-perks/verification/phase-2.md
 
 ## Phase 3: Prestige Milestones 7 & 9
 
