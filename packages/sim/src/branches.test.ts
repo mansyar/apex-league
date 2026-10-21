@@ -102,11 +102,31 @@ const CONTRACT: readonly BranchContract[] = [
     signatureMove: "tide_aegis",
     accentHue: 193,
   },
+  {
+    id: "storm_courser",
+    speciesId: "electric_hound",
+    label: "Storm Courser",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 4, atk: 7, def: 4, spd: 3 },
+    signatureMove: "storm_surge",
+    accentHue: 62,
+  },
+  {
+    id: "tempest_warden",
+    speciesId: "electric_hound",
+    label: "Tempest Warden",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 6, atk: 3, def: 7, spd: 0 },
+    signatureMove: "ion_wall",
+    accentHue: 38,
+  },
 ]
 
 describe("branch catalog", () => {
-  test("holds exactly the six contracted branches", () => {
-    expect(BRANCHES.length).toBe(6)
+  test("holds exactly the eight contracted branches", () => {
+    expect(BRANCHES.length).toBe(8)
     expect(BRANCHES.map((branch) => branch.id)).toEqual(
       CONTRACT.map((row) => row.id),
     )

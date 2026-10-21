@@ -1,5 +1,5 @@
 /**
- * Species definitions and the starter catalog.
+ * Species definitions and the species catalog.
  * Pure data only — no DOM, no rendering, no I/O.
  */
 
@@ -96,7 +96,40 @@ export const STARTER_SPECIES: readonly SpeciesDef[] = Object.freeze([
   },
 ])
 
+/**
+ * Locked species: fully defined in the sim but not yet acquirable. They are
+ * not starters, so they stay out of `STARTER_SPECIES` (whose roster many
+ * callers treat as "every playable species"); acquisition flips them into the
+ * catalog by their own contract.
+ */
+export const LOCKED_SPECIES: readonly SpeciesDef[] = Object.freeze([
+  {
+    id: "electric_hound",
+    archetypeId: "storm_hound",
+    displayName: "Storm Hound",
+    element: "electric",
+    flavor: "A crackling sprinter that sheds sparks with every stride.",
+    available: false,
+    kit: [
+      "static_jolt",
+      "volt_dash",
+      "arc_shot",
+      "storm_bolt",
+      "ion_dart",
+      "gigavolt",
+    ],
+    temperament: "rush",
+    statBounds: { hp: [70, 84], atk: [10, 14], def: [5, 8], spd: [12, 16] },
+  },
+])
+
+/** Every defined species: starters first, locked species after. */
+export const ALL_SPECIES: readonly SpeciesDef[] = Object.freeze([
+  ...STARTER_SPECIES,
+  ...LOCKED_SPECIES,
+])
+
 /** Look up a species by id, or undefined when unknown. */
 export function getSpecies(id: string): SpeciesDef | undefined {
-  return STARTER_SPECIES.find((s) => s.id === id)
+  return ALL_SPECIES.find((s) => s.id === id)
 }

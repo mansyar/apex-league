@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test"
+import type { Creature } from "../creature"
 import { createCreature, getSpecies } from "../index"
+import { defaultLoadout, knownMoves } from "../loadout"
 import {
   BASIC_MOVE,
   CATALOG,
@@ -12,18 +14,23 @@ import {
 // Spec section 3: moves, basic strike, equip-4.
 
 describe("battle catalog", () => {
-  test("holds exactly 24 specials with unique ids", () => {
-    expect(CATALOG.length).toBe(24)
+  test("holds exactly 32 specials with unique ids", () => {
+    expect(CATALOG.length).toBe(32)
     const ids = new Set(CATALOG.map((m) => m.id))
-    expect(ids.size).toBe(24)
+    expect(ids.size).toBe(32)
   })
 
-  test("covers fire, plant, and water elements only", () => {
+  test("covers fire, plant, water, and electric elements only", () => {
     for (const move of CATALOG) {
       expect(move.element === undefined).toBe(false)
     }
     const elements = new Set(CATALOG.map((m) => m.element))
-    expect(Array.from(elements).sort()).toEqual(["fire", "plant", "water"])
+    expect(Array.from(elements).sort()).toEqual([
+      "electric",
+      "fire",
+      "plant",
+      "water",
+    ])
   })
 
   test("same six-row tier table for every element", () => {
@@ -35,7 +42,7 @@ describe("battle catalog", () => {
       { power: 7, accuracy: 95, cooldown: 1 },
       { power: 14, accuracy: 70, cooldown: 3 },
     ]
-    for (const element of ["fire", "plant", "water"] as const) {
+    for (const element of ["fire", "plant", "water", "electric"] as const) {
       const rows = CATALOG.filter((m) => m.element === element).slice(0, 6)
       expect(rows.length).toBe(6)
       for (const [i, move] of rows.entries()) {
@@ -131,6 +138,14 @@ describe("battle catalog", () => {
       "bramble_guard",
       "riptide_rush",
       "tide_aegis",
+      "static_jolt",
+      "volt_dash",
+      "arc_shot",
+      "storm_bolt",
+      "ion_dart",
+      "gigavolt",
+      "storm_surge",
+      "ion_wall",
     ])
   })
 
@@ -139,6 +154,7 @@ describe("battle catalog", () => {
       ["cinder_dive", "pyre_wall"],
       ["thorn_charge", "bramble_guard"],
       ["riptide_rush", "tide_aegis"],
+      ["storm_surge", "ion_wall"],
     ] as const
     for (const [offenseId, defenseId] of pairs) {
       const offense = getMove(offenseId)
@@ -328,5 +344,115 @@ describe("validateLoadout", () => {
     expect(() =>
       validateLoadout(["spark", "spark", "flame_charge", "cinder_shot"]),
     ).toThrow(/repeats/)
+  })
+})
+
+describe("electric kit (electric_species_line)", () => {
+  const HOUND_KIT = [
+    "static_jolt",
+    "volt_dash",
+    "arc_shot",
+    "storm_bolt",
+    "ion_dart",
+    "gigavolt",
+  ] as const
+
+  /** The universal tier table, pinned for the electric rows too. */
+  const TIERS: Readonly<Record<string, readonly [number, number, number]>> = {
+    static_jolt: [6, 100, 1],
+    volt_dash: [8, 90, 1],
+    arc_shot: [10, 85, 2],
+    storm_bolt: [12, 75, 2],
+    ion_dart: [7, 95, 1],
+    gigavolt: [14, 70, 3],
+  }
+
+  /** A minimal creature pick for the learn/equip helpers. */
+  function pick(
+    trainingDays: number,
+    stage: Creature["stage"],
+    branch: string | null,
+  ): Pick<Creature, "trainingDays" | "stage" | "branch"> {
+    return { trainingDays, stage, branch }
+  }
+
+  function hound() {
+    const species = getSpecies("electric_hound")
+    if (!species) throw new Error("electric_hound species missing")
+    return species
+  }
+
+  test("the hound's kit is the six electric kit rows in tier order", () => {
+    const species = hound()
+    expect(species.kit).toEqual([...HOUND_KIT])
+    for (const id of HOUND_KIT) {
+      const move = getMove(id)
+      if (!move) throw new Error(`kit move unknown: ${id}`)
+      expect(move.element).toBe("electric")
+      const tier = TIERS[id]
+      if (!tier) throw new Error(`no tier recorded for ${id}`)
+      expect([move.power, move.accuracy, move.cooldown]).toEqual([...tier])
+    }
+  })
+
+  test("birth kit: a newborn knows exactly two moves", () => {
+    expect(knownMoves(pick(0, "baby", null), hound())).toEqual(
+      HOUND_KIT.slice(0, 2),
+    )
+  })
+
+  test("three trained days unlock the third kit row", () => {
+    expect(knownMoves(pick(3, "baby", null), hound())).toEqual(
+      HOUND_KIT.slice(0, 3),
+    )
+  })
+
+  test("evolving unlocks the third row and the signature at any training count", () => {
+    expect(knownMoves(pick(0, "juvenile", "storm_courser"), hound())).toEqual([
+      ...HOUND_KIT.slice(0, 3),
+      "storm_surge",
+    ])
+  })
+
+  test("six trained days open the full pool", () => {
+    expect(knownMoves(pick(6, "baby", null), hound())).toEqual([...HOUND_KIT])
+  })
+
+  test("a trained branch adds its signature after the pool opens", () => {
+    expect(knownMoves(pick(6, "juvenile", "storm_courser"), hound())).toEqual([
+      ...HOUND_KIT,
+      "storm_surge",
+    ])
+    expect(knownMoves(pick(6, "juvenile", "tempest_warden"), hound())).toEqual([
+      ...HOUND_KIT,
+      "ion_wall",
+    ])
+  })
+
+  test("the default loadout fields four kit moves, never the signature", () => {
+    expect(
+      defaultLoadout(pick(6, "juvenile", "storm_courser"), hound()),
+    ).toEqual(HOUND_KIT.slice(0, 4))
+  })
+
+  test("equip-4: the first four kit moves validate; five do not", () => {
+    expect(validateLoadout(HOUND_KIT.slice(0, 4)).map((m) => m.id)).toEqual(
+      HOUND_KIT.slice(0, 4),
+    )
+    expect(() => validateLoadout([...HOUND_KIT])).toThrow(/two to four/)
+  })
+
+  test("the branch signature is equippable once learned", () => {
+    expect(
+      validateLoadout([...HOUND_KIT.slice(0, 3), "storm_surge"]).map(
+        (m) => m.id,
+      ),
+    ).toEqual([...HOUND_KIT.slice(0, 3), "storm_surge"])
+  })
+
+  test("a sibling signature is never known", () => {
+    expect(
+      knownMoves(pick(6, "juvenile", "storm_courser"), hound()),
+    ).not.toContain("ion_wall")
   })
 })

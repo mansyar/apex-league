@@ -95,7 +95,7 @@ function branchDef(seed: BranchSeed): BranchDef {
 }
 
 /**
- * The six real forms: two per starter, one offense and one defense. Their
+ * The eight real forms: two per species, one offense and one defense. Their
  * boosts preserve the legacy effective-stat budget (11 juvenile, 22 champion,
  * HP counted double), so neither branch is a stat upgrade over the other.
  */
@@ -165,6 +165,28 @@ export const BRANCHES: readonly BranchDef[] = Object.freeze([
     championBoost: { hp: 7, atk: 3, def: 5, spd: 0 },
     signatureMove: "tide_aegis",
     accentHue: 193,
+  }),
+  branchDef({
+    id: "storm_courser",
+    speciesId: "electric_hound",
+    label: "Storm Courser",
+    line: "Run the lightning down before it can touch the ground.",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 4, atk: 7, def: 4, spd: 3 },
+    signatureMove: "storm_surge",
+    accentHue: 62,
+  }),
+  branchDef({
+    id: "tempest_warden",
+    speciesId: "electric_hound",
+    label: "Tempest Warden",
+    line: "Charge the air until nothing dares cross it.",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 6, atk: 3, def: 7, spd: 0 },
+    signatureMove: "ion_wall",
+    accentHue: 38,
   }),
 ])
 
