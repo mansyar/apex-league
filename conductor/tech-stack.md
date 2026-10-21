@@ -494,10 +494,26 @@
   that says the hound waits in the stable, and a graduation screen that offers the
   waiting pets as successors. No new dependency; no new voxel artifacts; the
   determinism gate still hashes twelve creature GLBs, all byte-identical. Gate on the
-  branch head: `bun run check` clean (voxel 71, sim 102, client 308 files), 2,307 tests
-  pass / 1 skip / 0 fail across 173 files, `biome check` clean on 502 files,
+  branch head: `bun run check` clean (voxel 71, sim 102, client 309 files), 2,323 tests
+  pass / 1 skip / 0 fail across 173 files, `biome check` clean on 503 files,
   `bun run build` green, and the visual pass re-run at 1440x900 and 393x852 with a
   clean console.
+  *Review rounds (same track):* round 1 closed the gaps between the spec and
+  what shipped - a waiting pet can now be renamed from the stable modal
+  (`renameStablePet` in `packages/sim/src/stable.ts`, a pure seam with the
+  same trim/clamp and `cup-phase` refusal as `renameCreature`, and a rename
+  control in `apps/client/src/stable-rename.ts`), the Stable chip stays
+  visible while the stable is empty so the modal's empty state is reachable,
+  the growth panel calls the pet's own age "Age", and `evaluateEvolution`
+  dropped the day argument it no longer read. FR-8 was narrowed to the
+  delivered successor options (a stashed pet or a starter); the pending gift
+  is a pure gift with no inherited floor, so it waits in the stable like any
+  other pet. Round 2 dressed the rename editor in the house kit (the field
+  mirrors `.creature-name-input`, the row mirrors `.creature-name-edit`, and
+  the pencil wears the house's own `rename-button` class so the phone tier's
+  44 px floor reaches it). The final gate: 2,323 tests pass / 1 skip / 0 fail,
+  the largest client module 12,263 B against the 12,288 B cap, and the visual
+  pass at 12 flows / 154 assertions, console clean.
 
 ## Quality Gates
 - `bun check` clean, `biome check` clean, `bun test` green — required before
