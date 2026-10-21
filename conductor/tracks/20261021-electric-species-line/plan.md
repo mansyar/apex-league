@@ -58,7 +58,7 @@ After acceptance the primary agent appends:
 - **Covers:** FR-5, FR-6, FR-8, AC-5, AC-6, AC-8, NFR-3
 - **Touches:** `packages/sim/src/cup/` (finalize seam), `packages/sim/src/save/{schema,migrate,storage,transfer}.ts`, `packages/sim/src/breeding.ts` (egg creation seam), `docs/save-schema.md`, co-located tests
 - **Verification:** `bun run check && bun test --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 ### Tasks
 
