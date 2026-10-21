@@ -94,19 +94,19 @@ The primary appends after acceptance:
 - **Covers:** FR-6, AC-6, NFR-1, NFR-4
 - **Touches:** `apps/client/src/graduation/` (nursery preview), `apps/client/src/hud/` (plate, coach ticker), `apps/client/src/detail/` (creature-detail tabs), `apps/client/src/handbook/`, surface CSS under `apps/client/src/ui/`, co-located pure-module tests
 - **Verification:** `bun run check && bun test --timeout 120000` plus the visual layer (desktop + iPhone 15 screenshots, clean console)
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P4.T1: Nursery preview shows the rolled secondary before hatching** — covers: FR-6
-- [ ] **P4.T2: Creature plate and detail modal carry a dual-element crest** — covers: FR-6
-- [ ] **P4.T3: Coach ticker announces a drift event; Handbook documents cancel-to-neutral and the two new perks** — covers: FR-6
-- [ ] **P4.T4: Visual-layer evidence: playwright-cli screenshots (desktop + iPhone 15), console check, evidence file** — covers: AC-6
+- [x] **P4.T1: Nursery preview shows the rolled secondary before hatching** — covers: FR-6
+- [x] **P4.T2: Creature plate and detail modal carry a dual-element crest** — covers: FR-6
+- [x] **P4.T3: Coach ticker announces a drift event; Handbook documents cancel-to-neutral and the two new perks** — covers: FR-6
+- [x] **P4.T4: Visual-layer evidence: playwright-cli screenshots (desktop + iPhone 15), console check, evidence file** — covers: AC-6
 
 <!--
 The primary appends after acceptance:
-**Result:** verified
-**Checkpoint:** <short-sha>
-**Evidence:** conductor/tracks/20261021-affinity-drift-prestige-perks/verification/phase-4.md
 -->
+**Result:** verified
+**Checkpoint:** d2bef0b
+**Evidence:** conductor/tracks/20261021-affinity-drift-prestige-perks/verification/phase-4.md
 
 ## Phase 5: Docs Sync & Integrated Verification
 

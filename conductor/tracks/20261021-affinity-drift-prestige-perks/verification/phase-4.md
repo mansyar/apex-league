@@ -113,3 +113,25 @@ cap and were trimmed back under it:
 3. **Scratch drivers** — `apps/client/src/scratch-*.test.ts` remain as
    untracked no-op placeholders (file deletion unavailable in this sandbox);
    not committed, they exercise nothing.
+
+## Primary verification
+
+Run by the primary agent on the squashed checkpoint.
+
+- Task commits squashed to **checkpoint `d2bef0b`**
+  (`feat(client): surface affinity drift and prestige perks across the
+  client`); range matched the reported commits exactly.
+- The three untracked scratch driver files were deleted by the primary
+  agent before acceptance; tree clean.
+- Full project gate re-run independently: `bun run verify` → exit 0
+  (2122 pass / 1 skip / 0 fail, biome clean, module-size test green,
+  determinism gate OK).
+- Deviations reviewed and accepted:
+  - `hud.ts` (outside Touches): real integration bug — the graduation
+    callout overwrote the drift statement on the same tick; the fix is a
+    minimal re-state on the hatch-day path only. Accepted.
+  - CDP headless capture instead of playwright-cli: tooling was
+    permission-denied in the subagent sandbox; the capture is real browser
+    rendering at both required widths with a 0-entry console audit. The
+    visual intent of AC-6 is met. Accepted.
+- Verdict: **Phase 4 accepted.**
