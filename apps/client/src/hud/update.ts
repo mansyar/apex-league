@@ -6,14 +6,13 @@ import {
   lineagePrestige,
   type TrainingProgram,
 } from "@apex/sim"
-import { crestGlyph, elementHue } from "../element"
 import { meter, replay } from "../ui/kit"
 import {
   dockHeadTraining,
   familyName,
+  hatchDayStatusLine,
   REJECTION_COPY,
   stageLabel,
-  statusLine,
 } from "./copy"
 import { trainButtonState } from "./dock"
 import {
@@ -24,7 +23,7 @@ import {
   lineageMeta,
   statCell,
 } from "./plates"
-import { paintBranchBadge, paintFormChip } from "./plates-creature"
+import { paintBranchBadge, paintCrest, paintFormChip } from "./plates-creature"
 import { programRows, rovingRow } from "./programs"
 import { capturePrefChips } from "./settings"
 import type { HudHints, HudShell } from "./types"
@@ -205,10 +204,9 @@ export function createHudUpdate(
     dockGraduate.style.display = gradVerdict.eligible ? "" : "none"
     graduateChip.disabled = !gradVerdict.eligible
 
-    // The creature carries its own identity; the species catalog is only
-    // needed for starter-card display.
-    crestEl.innerHTML = crestGlyph(creature.element)
-    crestEl.style.setProperty("--hue", String(elementHue(creature.element)))
+    // The creature carries its own identity (the species catalog is only
+    // for starter cards). FR-6: a drifted partner paints a dual crest.
+    paintCrest(crestEl, creature.element, creature.affinity)
     creatureName.textContent = creature.name
     // Rename is a day-phase affordance; mid-cup the pencil hides and an
     // open editor folds away (the sim would reject anyway).
@@ -297,7 +295,11 @@ export function createHudUpdate(
     // stays visible after the cup overlay closes.)
     const climb = climbLine
     climbLine = null
-    statusTicker.say(statusLine(creature, state.day, lastProgram, climb))
+    // FR-6: on a drifted hatch day the drift statement leads this pass —
+    // element-independent, so flavor can never bury it. The graduation
+    // announcement then composes the send-off and the drift beat.
+    const line = hatchDayStatusLine(creature, state, lastProgram, climb)
+    statusTicker.say(line)
 
     // Disabled states come from the sim itself — a dry-run careAction is
     // the single source of truth for why an action can't happen. The

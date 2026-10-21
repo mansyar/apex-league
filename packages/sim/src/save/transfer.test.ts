@@ -22,7 +22,7 @@ describe("buildSaveExport", () => {
     const exported = buildSaveExport(state, NOW)
     const parsed = JSON.parse(exported.json) as Record<string, unknown>
 
-    expect(exported.filename).toBe("apex-league-save-v19-2026-10-18.json")
+    expect(exported.filename).toBe("apex-league-save-v20-2026-10-18.json")
     expect(parsed.version).toBe(SAVE_VERSION)
     expect(parsed.session).toBeNull()
     expect(parsed.savedAt).toBe(NOW.getTime())
@@ -132,5 +132,50 @@ describe("inspectSaveImport", () => {
 
     expect(result.ok).toBe(true)
     if (result.ok) expect(result.data.session).toBeNull()
+  })
+})
+
+describe("affinity drift — transfer round-trip (v20)", () => {
+  test("export and import round-trip a drifted affinity", () => {
+    const state = owned()
+    if (!state.creature) throw new Error("no creature")
+    const drifted = {
+      ...state,
+      creature: { ...state.creature, affinity: "plant" as const },
+    }
+    const exported = buildSaveExport(drifted, NOW)
+
+    const result = inspectSaveImport(exported.json)
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.data.state.creature?.affinity).toBe("plant")
+    }
+  })
+
+  test("rejects an import whose secondary affinity equals the primary element", () => {
+    const state = owned()
+    if (!state.creature) throw new Error("no creature")
+    const raw = JSON.stringify({
+      version: SAVE_VERSION,
+      state: { ...state, creature: { ...state.creature, affinity: "fire" } },
+      session: null,
+      savedAt: 1,
+    })
+
+    expect(inspectSaveImport(raw)).toEqual({ ok: false, reason: "invalid" })
+  })
+
+  test("rejects an import with an unknown affinity element", () => {
+    const state = owned()
+    if (!state.creature) throw new Error("no creature")
+    const raw = JSON.stringify({
+      version: SAVE_VERSION,
+      state: { ...state, creature: { ...state.creature, affinity: "magma" } },
+      session: null,
+      savedAt: 1,
+    })
+
+    expect(inspectSaveImport(raw)).toEqual({ ok: false, reason: "invalid" })
   })
 })

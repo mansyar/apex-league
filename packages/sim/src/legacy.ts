@@ -12,11 +12,13 @@
  * Pure data and pure functions only — no DOM, no rendering, no I/O.
  */
 
+import { headStartAp } from "./ap"
 import { LEGACY_BRANCH } from "./branches"
 import {
   type Creature,
   type CreatureStats,
   createCreature,
+  type Element,
   effectiveStats,
   type LineageTrait,
 } from "./creature"
@@ -31,7 +33,13 @@ export interface RetiredRecord {
   speciesId: string
   archetypeId: string
   /** Element id at retirement. */
-  element: string
+  element: Element
+  /**
+   * Secondary type affinity at retirement (save v20), or null when the
+   * career never drifted. Breeding reads only `element`: secondaries never
+   * chain, so a record's own affinity is never a drift source.
+   */
+  affinity: Element | null
   /** Effective stats (base + trained) at the moment of retirement. */
   stats: CreatureStats
   /** Trained bonus at retirement, kept for the record's display. */
@@ -80,6 +88,7 @@ export function retireeRecord(state: GameState): RetiredRecord | null {
     speciesId: creature.speciesId,
     archetypeId: creature.archetypeId,
     element: creature.element,
+    affinity: creature.affinity,
     stats,
     trained: { ...creature.trained },
     cupsWon: state.cupsWon,
@@ -118,11 +127,34 @@ export const PRESTIGE_WARM_BLOODLINE = 3
 export const PRESTIGE_ESTABLISHED_LINE = 5
 
 /**
+ * Prestige milestone (affinity_drift prestige perks, spec FR-4) whose
+ * **Refined Blood** raises the dual-parent floor's stronger-parent share:
+ * a bred egg's floor is 55% of the stronger parent instead of 50%.
+ */
+export const PRESTIGE_REFINED_BLOOD = 7
+
+/**
+ * Prestige milestone (affinity_drift prestige perks, spec FR-5) whose
+ * **Champion Stable** grants the hatchling +1 max AP for its first five
+ * in-game days and widens the breeding mutation band to +1..+3.
+ */
+export const PRESTIGE_CHAMPION_STABLE = 9
+
+/**
  * Fraction of a parent's effective stats inherited as the next egg's stat
  * floor. Half: lineage is tangible without trivializing the roll — a strong
  * career lifts the floor, but the individual still rolls its own luck.
  */
 export const INHERITANCE_FRACTION = 0.5
+
+/**
+ * The stronger-parent share of the dual-parent floor under Refined Blood
+ * (prestige 7, affinity_drift prestige perks FR-4): eggs bred at or above
+ * the milestone inherit 55% of the stronger parent instead of 50%. The
+ * single-parent successor floor keeps the plain fraction — FR-4 scopes the
+ * rise to bred (dual-parent) eggs only.
+ */
+export const REFINED_INHERITANCE_FRACTION = 0.55
 
 /** The bond a successor starts with under the warm-bloodline perk. */
 export const WARM_BOND_START = 20
@@ -135,6 +167,17 @@ export interface LineagePerks {
   warmBloodline: boolean
   /** The inherited stat floor gains +1 per stat. */
   establishedLine: boolean
+  /**
+   * Refined Blood (prestige 7): the dual-parent floor's stronger-parent
+   * share rises to 0.55 for eggs bred at this prestige or higher.
+   */
+  refinedBlood: boolean
+  /**
+   * Champion Stable (prestige 9): the hatchling gets +1 max AP for its
+   * first five in-game days, and the breeding mutation band widens to
+   * +1..+3.
+   */
+  championStable: boolean
 }
 
 /**
@@ -156,6 +199,19 @@ export function lineagePrestige(state: GameState): number {
 }
 
 /**
+ * The in-game day the active creature hatched, derived from the lineage:
+ * a successor hatches on the day its predecessor graduated, so the last
+ * Hall of Fame record's `retiredOnDay` is the current creature's hatch day,
+ * and a founder (empty Hall) was chosen on day 1. Derived — never stored —
+ * so the Champion Stable head-start window can auto-expire with no extra
+ * save state.
+ */
+export function hatchDayOf(lineage: LineageState): number {
+  const last = lineage.hallOfFame[lineage.hallOfFame.length - 1]
+  return last ? last.retiredOnDay : 1
+}
+
+/**
  * Resolve the milestone perks a prestige rating unlocks. Cumulative: a high
  * rating keeps every lower milestone's perk.
  */
@@ -164,6 +220,8 @@ export function lineagePerks(prestige: number): LineagePerks {
     founded: prestige >= PRESTIGE_FOUNDED,
     warmBloodline: prestige >= PRESTIGE_WARM_BLOODLINE,
     establishedLine: prestige >= PRESTIGE_ESTABLISHED_LINE,
+    refinedBlood: prestige >= PRESTIGE_REFINED_BLOOD,
+    championStable: prestige >= PRESTIGE_CHAMPION_STABLE,
   }
 }
 
@@ -332,7 +390,15 @@ export function graduate(
     ok: true,
     state: {
       ...state,
-      actionPoints: ACTION_POINTS_PER_DAY,
+      // The successor's first day of life: the champion-stable head-start
+      // already applies on the hatch day itself (FR-5).
+      actionPoints:
+        ACTION_POINTS_PER_DAY +
+        headStartAp(
+          state.day,
+          state.day,
+          lineagePerks(prestige).championStable,
+        ),
       creature: successor,
       lineage: {
         generation,

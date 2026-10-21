@@ -423,6 +423,24 @@
   `trainingProgram` (hp to endurance, atk/def to power, spd to sprint). No dependency
   change; `handbook.ts` split into `handbook/{common,chart,ladder,moves,raising}.ts` to
   stay under the 12,288 B cap.
+- `2026-10-21` - **Type affinity drift & prestige perks** (`20261021-affinity-drift-prestige-perks`):
+  save v20 adds an additive `affinity: Element | null` to the active creature and
+  `RetiredRecord` — v19→v20 stamps `null` with no backfill, and load/import validation
+  rejects a secondary equal to the primary or an unknown element. Breeding gains a seeded
+  15% drift roll (own salted RNG constant) that attaches the other parent's element as a
+  secondary affinity; same-element parents never roll, and the nursery preview reads the
+  same roll so previewed = hatched. The resolver's incoming-only cancel-to-neutral rule
+  collapses an ×2-vs-primary + ×0.5-vs-secondary matchup to ×1 — rivals and bosses never
+  carry secondaries, so boss win-rate bands are unchanged. `lineagePerks` gains two
+  cumulative milestones: Refined Blood (prestige ≥ 7) raises the stronger-parent
+  inheritance floor to 0.55, and Champion Stable (prestige ≥ 9) grants +1 max AP for the
+  hatchling's first 5 in-game days (derived from hatch-day data, no extra save field) and
+  widens the mutation band to +1..+3 via a milestone-gated extra draw that keeps
+  pre-perk RNG streams byte-identical. The client surfaces the roll in the nursery
+  preview, a dual-element crest on the plate and detail modal, a coach ticker drift
+  callout, and Handbook docs; `creature-detail.ts` was slimmed by extracting
+  `detail/kit-rows.ts` to hold the module cap. No new dependency; the determinism gate
+  is untouched.
 
 ## Quality Gates
 - `bun check` clean, `biome check` clean, `bun test` green — required before

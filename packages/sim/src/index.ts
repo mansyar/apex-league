@@ -6,7 +6,12 @@
  * this package.
  */
 
-export { spendActionPoints } from "./ap"
+export {
+  HEAD_START_AP_BONUS,
+  HEAD_START_DAYS,
+  headStartAp,
+  spendActionPoints,
+} from "./ap"
 export {
   BASIC,
   type BattleEvent,
@@ -61,10 +66,12 @@ export {
   type LeanSource,
 } from "./branches"
 export {
+  AFFINITY_DRIFT_CHANCE,
   breedingPool,
   canBreed,
   createBredCreature,
   deriveTrait,
+  driftSource,
   effectiveTraits,
   type GraduatePairReason,
   type GraduatePairResult,
@@ -76,6 +83,7 @@ export {
   type PairVerdict,
   pairFor,
   retireeRecord,
+  rollAffinityDrift,
   speciesOptions,
   TRAIT_ORDER,
   TRAITS,
@@ -182,6 +190,7 @@ export {
   type GraduationReason,
   type GraduationVerdict,
   graduate,
+  hatchDayOf,
   INHERITANCE_FRACTION,
   type InheritanceSource,
   inheritedFloor,
@@ -190,9 +199,12 @@ export {
   type LineageState,
   lineagePerks,
   lineagePrestige,
+  PRESTIGE_CHAMPION_STABLE,
   PRESTIGE_ESTABLISHED_LINE,
   PRESTIGE_FOUNDED,
+  PRESTIGE_REFINED_BLOOD,
   PRESTIGE_WARM_BLOODLINE,
+  REFINED_INHERITANCE_FRACTION,
   type RetiredRecord,
   WARM_BOND_START,
 } from "./legacy"

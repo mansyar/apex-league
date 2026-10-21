@@ -3,16 +3,20 @@
  * Fame records, pair validation, and the dual-parent egg. A pair contributes
  * 50% of the stronger parent + 10% of the weaker per stat, then trait bonuses
  * and the established-line perk, clamped to the species bounds. One seeded
- * mutation (+1..+2 to one stat) is baked into the hatched stats.
+ * mutation (+1..+2 to one stat) is baked into the hatched stats. A bred egg
+ * may also drift toward a differing parent's element: one seeded 15% roll
+ * (affinity_drift_20261021) decides the egg's `affinity`.
  *
  * Phase 1 exposes the pure building blocks; Phase 2 adds the succession
  * wrapper and save v15. Pure data and pure functions only — no DOM, no I/O.
  */
 
+import { headStartAp } from "./ap"
 import {
   type Creature,
   type CreatureStats,
   createCreature,
+  type Element,
   type LineageTrait,
   type StatKey,
 } from "./creature"
@@ -21,11 +25,12 @@ import {
   type GraduationReason,
   INHERITANCE_FRACTION,
   lineagePerks,
+  REFINED_INHERITANCE_FRACTION,
   type RetiredRecord,
   retireeRecord,
   WARM_BOND_START,
 } from "./legacy"
-import { makeRng } from "./rng"
+import { makeRng, type Rng } from "./rng"
 import { getSpecies, type SpeciesDef } from "./species"
 import { ACTION_POINTS_PER_DAY, type GameState } from "./state"
 import { dedupeTraits, effectiveTraits, traitBonus } from "./traits"
@@ -43,6 +48,55 @@ export { retireeRecord }
 
 /** The weaker parent's weight in the dual-parent floor. */
 export const PAIR_SECONDARY_FRACTION = 0.1
+
+/**
+ * The chance a bred egg drifts toward a differing parent's element
+ * (affinity_drift_20261021 FR-1): a seeded roll made once, at breeding
+ * time, so the nursery preview and the hatch agree.
+ */
+export const AFFINITY_DRIFT_CHANCE = 0.15
+
+/** A fixed salt keeps the drift roll decorrelated from the egg's stat stream. */
+const AFFINITY_DRIFT_SALT = 0x85ebca6b
+
+/**
+ * The drift source: the parent whose element differs from the egg's species
+ * element, or null when both parents share it. Only primary elements are
+ * drift sources — a parent's own affinity never chains.
+ */
+export function driftSource(
+  speciesElement: Element,
+  parents: readonly RetiredRecord[],
+): Element | null {
+  const [sire, dam] = parents
+  if (sire && sire.element !== speciesElement) return sire.element
+  if (dam && dam.element !== speciesElement) return dam.element
+  return null
+}
+
+/**
+ * The seeded affinity drift roll. Like the rival kit, it draws from its own
+ * stream derived from the seed under a distinct constant, so the egg's base
+ * roll and mutation stay byte-identical whether or not a drift is possible.
+ * Returns the differing parent's element on a hit, null otherwise (and
+ * always null — with no draw consumed — when both parents share the
+ * species element).
+ */
+export function rollAffinityDrift(
+  species: SpeciesDef,
+  parents: readonly RetiredRecord[],
+  seed: number | Rng,
+): Element | null {
+  const source = driftSource(species.element, parents)
+  if (!source) return null
+  const rng =
+    typeof seed === "number"
+      ? makeRng((seed ^ AFFINITY_DRIFT_SALT) >>> 0)
+      : seed
+  // A draw at or above the threshold (1 - chance) drifts; below it the egg
+  // stays pure. Boundary pinned by test.
+  return rng.next() >= 1 - AFFINITY_DRIFT_CHANCE ? source : null
+}
 
 const STAT_KEYS = ["hp", "atk", "def", "spd"] as const
 
@@ -126,7 +180,14 @@ export function inheritedFloorFromPair(
   prestige: number,
   traits: readonly LineageTrait[],
 ): CreatureStats {
-  const milestone = lineagePerks(prestige).establishedLine ? 1 : 0
+  const perks = lineagePerks(prestige)
+  const milestone = perks.establishedLine ? 1 : 0
+  // Refined Blood (prestige 7): the stronger parent's share rises from
+  // 0.5 to 0.55 for eggs bred at or above the milestone. The weaker
+  // parent's share never moves.
+  const strongerShare = perks.refinedBlood
+    ? REFINED_INHERITANCE_FRACTION
+    : INHERITANCE_FRACTION
   const bonus = traitBonus(traits)
   const floorFor = (key: keyof CreatureStats): number => {
     const [lo, hi] = species.statBounds[key]
@@ -141,9 +202,7 @@ export function inheritedFloorFromPair(
       lo,
       Math.min(
         hi,
-        Math.round(
-          INHERITANCE_FRACTION * stronger + PAIR_SECONDARY_FRACTION * weaker,
-        ),
+        Math.round(strongerShare * stronger + PAIR_SECONDARY_FRACTION * weaker),
       ),
     )
     return Math.max(lo, Math.min(hi, rolled + milestone + bonus[key]))
@@ -200,7 +259,15 @@ export function createBredCreature(
 
   // One mutation per egg, on the same deterministic stream as the base roll.
   const mutationKey: StatKey = STAT_KEYS[rng.int(STAT_KEYS.length)] ?? "hp"
-  const amount = 1 + rng.int(2)
+  const amount =
+    1 +
+    rng.int(2) +
+    // Champion Stable (prestige 9) widens the band to +1..+3 by extending
+    // the top of it: one extra draw decides the extension, so every
+    // pre-perk roll keeps its original amount and no low roll ever shifts.
+    // The extra draw fires only at the milestone, leaving the shorter
+    // stream byte-identical below prestige 9.
+    (lineagePerks(prestige).championStable && rng.next() >= 0.5 ? 1 : 0)
   const [lo, hi] = species.statBounds[mutationKey]
   stats[mutationKey] = Math.max(lo, Math.min(hi, stats[mutationKey] + amount))
 
@@ -216,6 +283,7 @@ export function createBredCreature(
     stats,
     conditions,
     traits,
+    affinity: rollAffinityDrift(species, parents, seed),
     parents: parents.map((record) => record.generation).sort((a, b) => a - b),
   }
 }
@@ -264,7 +332,15 @@ export function graduateWithPair(
     ok: true,
     state: {
       ...state,
-      actionPoints: ACTION_POINTS_PER_DAY,
+      // The successor's first day of life: the champion-stable head-start
+      // already applies on the hatch day itself (FR-5).
+      actionPoints:
+        ACTION_POINTS_PER_DAY +
+        headStartAp(
+          state.day,
+          state.day,
+          lineagePerks(prestige).championStable,
+        ),
       creature: successor,
       lineage: {
         generation,

@@ -97,6 +97,10 @@ export function battleSideForSlot(slot: CupSlot, seed: number): BattleSide {
     // Derived here, at battle time, from the slot's own seeded profile:
     // brackets and sessions stay branch-free and their goldens unchanged.
     branch: rivalBranch(species, slot.stats),
+    // Only the player's slot ever carries a secondary (rival slots are
+    // built without one); omitted when absent so slots without a secondary
+    // build byte-identical sides. The boss branch above never reads it.
+    ...(slot.affinity ? { affinity: slot.affinity } : {}),
   }
 }
 

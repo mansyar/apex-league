@@ -45,7 +45,7 @@ const save = (overrides: Partial<SaveData["state"]> = {}): SaveData =>
       },
       ...overrides,
     },
-  }) as SaveData
+  }) as unknown as SaveData
 
 describe("importBlocked", () => {
   test("idle play may import", () => {

@@ -5,7 +5,7 @@
 
 import { type Element, typeFactor } from "@apex/sim"
 import { crestGlyph, elementHue } from "../element"
-import { appendGlyph, ELEMENT_LABELS } from "./common"
+import { appendGlyph, ELEMENT_LABELS, subhead, tip } from "./common"
 
 /** Chart order: the guideline's fixed type hues, in broadcast order. */
 const CHART_ELEMENTS: Element[] = [
@@ -93,4 +93,19 @@ export function buildTypeChart(panel: HTMLElement): void {
   note.className = "handbook-note"
   note.textContent = POPULATION_NOTE
   panel.append(note)
+
+  // FR-6: the chart reads the primary type only — the secondary affinity's
+  // cancel rule is spelled out here so this page stays the single place the
+  // matchup math is explained.
+  panel.append(subhead("Secondary affinities"))
+  panel.append(
+    tip(
+      "Some partners hatch with a secondary type alongside their own — the chart above reads the primary only.",
+    ),
+  )
+  panel.append(
+    tip(
+      "When an attack is strong into the primary but the secondary resists it, the two cancel and the hit lands even.",
+    ),
+  )
 }
