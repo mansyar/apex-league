@@ -136,6 +136,21 @@ Review fixes are appended by `conductor-review` as:
 **Checkpoint:** d77638c
 **Evidence:** conductor/tracks/20261022-stable-partner-reserve/verification/phase-R1.md
 
+## Phase R2: Review Fixes (round 2)
+
+- **Goal:** close the three findings the round-2 re-review raised — the rename editor is styled like the rest of the kit and is captured open, and its two untested branches are pinned.
+- **Depends on:** Phase R1
+- **Covers:** N1, G1, N2, FR-3, FR-9, NFR-5, NFR-1
+- **Touches:** `apps/client/src/ranch.css`, `apps/client/src/stable-rename.ts`, `apps/client/src/stable.ts`, `apps/client/src/stable.test.ts`, `apps/client/src/base.css`
+- **Verification:** `bun run verify && bun run build` plus the re-run visual pass (both widths, including an editor-open capture)
+- **Status:** in_progress
+
+### Tasks
+
+- [ ] **R2.T1: The rename editor wears the house kit (N1)** — style `.stable-pet-input` like `.creature-name-input` and `.stable-pet-name-row` as a flex row with the house 6 px gap; the pencil follows the house icon-button pattern (26 px on desktop, the phone tier's 44 px floor) instead of an inline size; the visual pass captures the editor open — covers: N1, NFR-5
+- [ ] **R2.T2: The editor's two untested branches are pinned (G1)** — Enter saves; a refused rename keeps the editor open, focuses the field and writes the note — covers: G1, FR-3
+- [ ] **R2.T3: The coverage table's stale FR-8 row (N2)** — done by the primary in `verification/integrated.md`; the fix phase confirms the docs still read true — covers: N2, FR-8
+
 ### Tasks
 
 - [x] **R1.T1: A waiting pet can be renamed (F1)** — a pure `renameStablePet(state, creatureId, name)` seam with the same trim/clamp and `cup-phase` refusal as `renameCreature`, and a rename control on the stable row — covers: F1, FR-3, FR-9

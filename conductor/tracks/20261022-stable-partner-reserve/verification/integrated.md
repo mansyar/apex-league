@@ -41,7 +41,7 @@ is now the pet's own.
 | FR-5 | Age is per pet; the juvenile, champion and graduation gates read it | `packages/sim/src/creature.ts`, `evolution.ts`, `legacy.ts` | pass |
 | FR-6 | The age is shown in the partner-details modal and the stable modal | `apps/client/src/creature-detail.ts`, `apps/client/src/stable.ts` | pass |
 | FR-7 | The Storm Gift hatches into the stable; the gift is never a replacement | `packages/sim/src/breeding.ts` (`hatchGiftEgg`), `apps/client/src/gift.ts` | pass |
-| FR-8 | A graduation's successor may be a stashed pet, a starter or the pending gift | `packages/sim/src/legacy.ts` (`graduateFromStable`), `apps/client/src/graduation/egg.ts` | pass |
+| FR-8 | A graduation's successor may be a stashed pet or a starter | `packages/sim/src/legacy.ts` (`graduateFromStable`), `apps/client/src/graduation/egg.ts` | pass |
 | FR-9 | The stable chip and modal list every stashed pet; the ranch rebuilds after a swap | `apps/client/src/stable.ts`, `app/hud-screen.ts` | pass |
 | FR-10 | A swap during a live cup is refused with coaching copy | `packages/sim/src/stable.ts` (`"cup-phase"`), `apps/client/src/stable.ts` | pass |
 | FR-11 | Breeding stays Hall-only | `packages/sim/src/breeding.ts` | pass |
@@ -109,3 +109,9 @@ is now the pet's own.
 - **No known issue remains open.** The electric line's "the Storm Gift takes
   the pet in the ranch with it" is closed by this track and recorded as closed
   in `conductor/product.md`.
+- **Review round 1 narrowed FR-8** (2026-10-22): the successor options are "a
+  stashed pet or a starter". The pending gift was dropped from the requirement
+  because it is a pure gift with no inherited stat floor (FR-7), so it waits in
+  the stable like any other pet and the player brings it forward; the
+  requirement ID is unchanged and the reason is recorded in the spec's
+  stability note.
