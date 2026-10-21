@@ -65,17 +65,21 @@
 - **Covers:** FR-2, FR-6, FR-7, FR-8, FR-9, FR-10, NFR-1, NFR-5, AC-1, AC-5, AC-7
 - **Touches:** `apps/client/src/stable.ts`, `apps/client/src/gift.ts`, `apps/client/src/hud/*`, `apps/client/src/graduation/*`, `apps/client/src/creature-detail.ts`, `apps/client/src/app/*`, `apps/client/src/ranch.css`, `apps/client/src/*.test.ts`
 - **Verification:** `bun run check && bun test --timeout 120000` plus the visual pass (desktop + iPhone 15, clean console)
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: The stable chip and modal** — covers: FR-9
-  - [ ] **P3.T1.1: A chip beside Settings/Handbook opens a modal listing the stashed pets (crest, name, species, stage, age) with an empty state** — covers: FR-9, AC-7
-  - [ ] **P3.T1.2: *Bring to the ranch* commits the swap, rebuilds the ranch scene, and restores focus to the partner plate** — covers: FR-9, AC-7
-- [ ] **P3.T2: The age readout** — covers: FR-6
-  - [ ] **P3.T2.1: The partner-details modal carries an age row beside the stage** — covers: FR-6, AC-5
-- [ ] **P3.T3: The gift card and the graduation screen** — covers: FR-7, FR-8
-  - [ ] **P3.T3.1: The gift card says the hound goes to the stable, and the hatch leaves the ranch pet in place** — covers: FR-7, AC-1
-  - [ ] **P3.T3.2: The graduation egg screen offers the stashed pets as successors** — covers: FR-8
-- [ ] **P3.T4: The swap refusal reads as coaching, not a dead button** — covers: FR-10, NFR-5
+**Result:** verified
+**Checkpoint:** 681fe3e
+**Evidence:** conductor/tracks/20261022-stable-partner-reserve/verification/phase-3.md
+
+- [x] **P3.T1: The stable chip and modal** — covers: FR-9
+  - [x] **P3.T1.1: A chip beside Settings/Handbook opens a modal listing the stashed pets (crest, name, species, stage, age) with an empty state** — covers: FR-9, AC-7
+  - [x] **P3.T1.2: *Bring to the ranch* commits the swap, rebuilds the ranch scene, and restores focus to the partner plate** — covers: FR-9, AC-7
+- [x] **P3.T2: The age readout** — covers: FR-6
+  - [x] **P3.T2.1: The partner-details modal carries an age row beside the stage** — covers: FR-6, AC-5
+- [x] **P3.T3: The gift card and the graduation screen** — covers: FR-7, FR-8
+  - [x] **P3.T3.1: The gift card says the hound goes to the stable, and the hatch leaves the ranch pet in place** — covers: FR-7, AC-1
+  - [x] **P3.T3.2: The graduation egg screen offers the stashed pets as successors** — covers: FR-8
+- [x] **P3.T4: The swap refusal reads as coaching, not a dead button** — covers: FR-10, NFR-5
 
 ## Phase 4: Docs & Integrated Verification
 

@@ -341,3 +341,45 @@ are untouched, and the product/tech-stack docs stay with Phase 4.
 - The determinism gate (`bun run gate:determinism`) is Phase 4's: this phase
   touched no voxel asset and no simulation rule (the only sim change is one
   export line), so the 12 creature GLBs are untouched.
+
+## Primary verification
+
+Run by the primary agent, independently of the phase report.
+
+| Check | Command | Exit | Result |
+|---|---|---|---|
+| Working tree | `git status --porcelain` | 0 | clean — no uncommitted work outside the phase's commits |
+| Files vs Touches | `git diff --name-only b5b2944..HEAD` | — | 28 files, all inside Touches or the four reported deviations (`apps/client/src/hud.ts` — top-level, not matched by the `hud/*` glob; `apps/client/src/growth.ts` — same; `apps/client/src/detail/path.ts` — `detail/` is outside the Touches; `packages/sim/src/index.ts` — one export line, so the client can reach the FR-8 seam) |
+| Commits reported | `git log --oneline b5b2944..HEAD` | — | 9 commits, all reported; no merge commit, no foreign commit |
+| Static (types) | `bun run check` | 0 | voxel 71 files, sim 100 files, client 308 files — no type errors |
+| Lint (format) | `biome check` | 0 | 502 files, no fixes applied |
+| Unit | `bun test --timeout 120000` | 0 | 2,307 pass / 1 skip / 0 fail across 173 files |
+
+The captures were read by the primary, not only trusted:
+
+- `desktop-2-stable-modal.png` — the Stable chip sits beside Settings/Handbook;
+  the modal reads "Every pet you own but the one in the ranch waits here,
+  frozen until you bring it forward", and each waiting pet shows its crest,
+  name, stage and **age** with a *Bring to the ranch* action.
+- `desktop-5-gift-card.png` — the card now says *"Hatching sends the hound to
+  the stable — Ember Drake keeps the ranch, and the hound's career starts when
+  you bring it forward"*, and the old Hall-of-Fame line is gone. The reward
+  promise the track exists to fix is now what the game says.
+- `iphone-9-graduation-egg.png` — two honest groups: *From your stable* (the
+  pets you already own, each with its age) and *A new hatch* (the starter
+  species, with the inherited floor).
+
+**One polish fix was sent back to the phase agent** after the first review: a
+waiting pet's row repeated its own name, because the meta line was
+`${species} · ${stage} · ${age}` while the title is the pet's name — and a
+pet's default name IS its species display name ("Storm Hound / Storm Hound ·
+Baby · 1 day"). The fix puts the decision in the pure layer (`stableRow` sets
+`species` to null when the pet's own name already says it, case-insensitively;
+`stableMeta` builds the line once) and both surfaces consume it. The
+re-captured `desktop-2-stable-modal.png` now reads "Storm Hound / Baby · 1
+day", and a renamed pet still shows its species ("Rolo / Tide Axolotl · Baby ·
+9 days"). Four unit tests cover the two cases.
+
+Verdict: **verified** — the phase's goal, its acceptance criteria and the
+review fix are all satisfied, with the module cap held (the largest client
+module is 12,263 B against the 12,288 B cap; `stable.ts` is 10,598 B).
