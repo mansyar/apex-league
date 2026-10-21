@@ -67,24 +67,24 @@ The primary appends after acceptance:
 - **Covers:** FR-4, FR-5, AC-4, AC-5, NFR-3
 - **Touches:** `packages/sim/src/legacy.ts`, `packages/sim/src/breeding.ts`, the day/AP settlement module (`packages/sim/src/` care/day machine), co-located `*.test.ts`
 - **Verification:** `bun run check && bun test --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Milestone constants and perks** — covers: FR-4, FR-5
-  - [ ] **P3.T1.1: Add `PRESTIGE_REFINED_BLOOD = 7` and `PRESTIGE_CHAMPION_STABLE = 9`; extend `LineagePerks` with `refinedBlood` / `championStable` (cumulative, like the existing three)**
-- [ ] **P3.T2: Refined Blood floor** — covers: FR-4
-  - [ ] **P3.T2.1: The dual-parent floor uses 0.55 for the stronger parent at prestige ≥ 7 (0.5 below); TDD both sides of the boundary (AC-4)**
-- [ ] **P3.T3: Champion Stable effects** — covers: FR-5
-  - [ ] **P3.T3.1: Head-start AP: +1 max AP for the hatchling's first 5 in-game days, derived from hatch-day data where present (additive v20 field only if the day data does not exist); bonus read at match-prep time so a cup spanning day 6 resolves correctly (AC-5)**
-  - [ ] **P3.T3.2: Mutation band widens +1..+2 → +1..+3 at prestige ≥ 9; test the band edges (AC-5)**
-- [ ] **P3.T4: Regression sweep** — covers: FR-4, FR-5
-  - [ ] **P3.T4.1: Boss win-rate bands and existing legacy/breeding goldens stay green (perks apply to player lineage only)**
+- [x] **P3.T1: Milestone constants and perks** — covers: FR-4, FR-5
+  - [x] **P3.T1.1: Add `PRESTIGE_REFINED_BLOOD = 7` and `PRESTIGE_CHAMPION_STABLE = 9`; extend `LineagePerks` with `refinedBlood` / `championStable` (cumulative, like the existing three)**
+- [x] **P3.T2: Refined Blood floor** — covers: FR-4
+  - [x] **P3.T2.1: The dual-parent floor uses 0.55 for the stronger parent at prestige ≥ 7 (0.5 below); TDD both sides of the boundary (AC-4)**
+- [x] **P3.T3: Champion Stable effects** — covers: FR-5
+  - [x] **P3.T3.1: Head-start AP: +1 max AP for the hatchling's first 5 in-game days, derived from hatch-day data where present (additive v20 field only if the day data does not exist); bonus read at match-prep time so a cup spanning day 6 resolves correctly (AC-5)**
+  - [x] **P3.T3.2: Mutation band widens +1..+2 → +1..+3 at prestige ≥ 9; test the band edges (AC-5)**
+- [x] **P3.T4: Regression sweep** — covers: FR-4, FR-5
+  - [x] **P3.T4.1: Boss win-rate bands and existing legacy/breeding goldens stay green (perks apply to player lineage only)**
 
 <!--
 The primary appends after acceptance:
-**Result:** verified
-**Checkpoint:** <short-sha>
-**Evidence:** conductor/tracks/20261021-affinity-drift-prestige-perks/verification/phase-3.md
 -->
+**Result:** verified
+**Checkpoint:** f0f067f
+**Evidence:** conductor/tracks/20261021-affinity-drift-prestige-perks/verification/phase-3.md
 
 ## Phase 4: Client Surfaces
 

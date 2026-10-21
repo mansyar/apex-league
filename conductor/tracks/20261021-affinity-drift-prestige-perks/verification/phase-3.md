@@ -152,3 +152,24 @@
   equivalent day datum (or the derived helper gains a second source).
 - Mutation widening approach (reported per brief): top-of-band extension via
   one milestone-gated extra draw, preserving all pre-perk rolls exactly.
+
+## Primary verification
+
+Run by the primary agent on the squashed checkpoint.
+
+- Task commits squashed to **checkpoint `f0f067f`**
+  (`feat(sim): prestige milestones 7 and 9 - refined blood floor and
+  champion stable`); range matched the reported commits exactly, tree clean
+  before acceptance.
+- Full project gate re-run independently: `bun run verify` → exit 0
+  (2113 pass / 1 skip / 0 fail, biome 478 files clean, determinism gate OK).
+- Files changed match the reported list. Deviations reviewed and accepted
+  (`index.ts` barrel re-exports keep the public API complete; `ticker.ts`
+  is the day/AP settlement seam the brief explicitly allowed).
+- Save-shape result confirmed: the head-start AP is derived from existing
+  Hall of Fame day data — no v20 field added, `docs/save-schema.md`
+  untouched (this satisfies the brief's conditional).
+- The `hatchDayOf` derivation assumption (successors hatch on graduation
+  day; founder = day 1) is recorded in the evidence as a standing
+  assumption for future hatch routes.
+- Verdict: **Phase 3 accepted.**
