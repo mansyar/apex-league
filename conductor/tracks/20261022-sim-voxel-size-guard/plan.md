@@ -282,7 +282,7 @@ save-migration steps now live in `packages/sim/src/save/migrations/`.
 - **Touches:** `packages/sim/src/save/validators.ts`,
   `packages/sim/src/save/validators/**`, `docs/save-schema.md`
 - **Verification:** `bun test --timeout 120000 && bun run check && biome check`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Resolve F1 - give the validators one owner** - covers: F1
   - [ ] **R1.T1.1: Move the barrel into the folder** - delete
