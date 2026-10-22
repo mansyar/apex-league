@@ -216,6 +216,117 @@ it from `./validators`; `breeding.ts` keeps `retireeRecord` (and the
 - The Biome fixes in `9ee75a1` touch three lines in three files and change no
   behaviour: one unused import removed, one line rewrapped, one documentation
   line added. `bun run verify` is green end to end.
-- Phase 3 (the package guards — `packages/sim/src/module-size.test.ts` and
+- Phase 3 (the package guards - `packages/sim/src/module-size.test.ts` and
   `packages/voxel/src/module-size.test.ts`) is still pending; every module this
   phase touched is already under the cap it will enforce.
+
+## Primary verification
+
+Run by the primary agent on 2026-10-22, independently of the phase subagent's
+report, after the phase commits were squashed into `ac4fbda`.
+
+| Check | Command | Exit | Result |
+|---|---|---|---|
+| Phase scope (whole repo) | `bun test --timeout 120000` | 0 | 2330 pass, 1 skip, 0 fail across 174 files. |
+| Typecheck | `bun run check` | 0 | `@apex/sim` 143 files, `@apex/client` 349 files - no type errors. |
+| Lint | `bunx biome check` | 0 | **545 files checked, 0 errors, 0 warnings.** |
+| Integrated gate | `bun run verify` | 0 | `check` + whole-suite tests + `biome check` + determinism gate, all green. |
+| Build (`verify_phase`) | `bun run build` | 0 | `@apex/client` build succeeded (815ms). |
+| Working tree | `git status --porcelain` | 0 | Empty - no uncommitted files. |
+| Public surface | `git diff --quiet 97374fd..HEAD -- packages/sim/src/index.ts` | 0 | `packages/sim/src/index.ts` is **byte-identical**. |
+| Public surface | `git diff --quiet 97374fd..HEAD -- packages/sim/src/battle/index.ts` | 0 | `packages/sim/src/battle/index.ts` is **byte-identical**. |
+| No test edited | `git diff --name-only 97374fd..HEAD -- "*.test.ts"` | 0 | Empty - no test file was added or edited. |
+| Cap (FR-4) | size sweep of `packages/sim/src` for non-test modules over 12,288 B | 0 | **No module is over the cap.** Largest is `cup/session/walk.ts` at 11,385 B. |
+| Phase scope | `git diff --name-only 97374fd..HEAD` | 0 | 20 files, all inside `Touches` (plus this evidence file). |
+
+### Export-surface differential (FR-6, AC-6)
+
+The primary re-derived the public surface from the base commit rather than
+trusting the subagent's capture. For each of the five split modules, the
+exported identifier names were extracted from the base revision (`97374fd`) and
+from the new module set, and the two sets compared:
+
+| Module | Names before | Names after | Missing | Added |
+|---|---|---|---|---|
+| `packages/sim/src/save/storage.ts` | 11 | 11 | 0 | 0 |
+| `packages/sim/src/battle/clock.ts` | 19 | 19 | 0 | 0 |
+| `packages/sim/src/legacy.ts` | 28 | 28 | 0 | 0 |
+| `packages/sim/src/breeding.ts` | 32 | 32 | 0 | 0 |
+| `packages/sim/src/cup/session.ts` | 7 | 7 | 0 | 0 |
+
+**Every export surface is identical** - nothing added, nothing removed, no
+name changed.
+
+### Independent behaviour differential (NFR-1)
+
+The primary recovered the pre-split `battle/clock.ts` from the base commit and
+ran it side by side with the split clock over **600 scenarios** - 60 seeds x 5
+plan modes x 2 tick lengths - covering basic strikes, close/approach,
+element-typed specials with cooldowns, hold, and the stagger/knockback paths.
+The full event trace, tick count and final fighter state (hp, gauge, range,
+staggered, cooldowns) were compared for every scenario:
+
+**0 mismatches.** The `HitContext` threading in `battle/clock/hits.ts` is
+confirmed behaviour-preserving, and the RNG is still drawn from the same single
+stream in the same order.
+
+### Rework round 1
+
+The subagent reported the phase as verified, but the `biome check` leg of the
+phase's Verification command had exited 1 - the bare `biome` binary was not
+resolvable in its sandbox, so the leg could not be run there. The primary ran
+it and found two real defects the subagent's hand audit had missed:
+
+1. `packages/sim/src/breeding/gift.ts:16` - `lint/correctness/noUnusedImports`:
+   `makeRng` was left behind by the split (the gift functions never called it;
+   it belongs to `pairing.ts` / `drift.ts`).
+2. `packages/sim/src/battle/clock/hits.ts` - `format`: the formatter would
+   rewrap the stagger threshold across two lines.
+
+The subagent also had not listed the new `./clock/hits` submodule in the barrel
+doc comment. One rework round fixed all three (`9ee75a1` - three lines in three
+files, no behaviour change) and `bunx biome check` is now clean at 545 files.
+This was rework attempt 1 of the 2 the workflow allows.
+
+Note: the subagent's JSON report labelled the rework as a task `P2.T7`. The plan
+defines six top-level tasks; the rework was a correction to P2.T6 (the
+"public surface unchanged" and lint-clean obligations, NFR-6 / AC-6), not a new
+task, so the plan keeps six.
+
+### Deviations accepted by the primary
+
+1. **`save/validators/creature.ts` and `save/validators/session.ts`** - the
+   brief named only `save/validators.ts`, but the moved validator block is
+   16,794 B as one file and would have broken the cap. Both extra files are
+   inside the `save/validators.ts` / `save/storage.ts` Touches neighbourhood
+   and inside `packages/sim/src/save/`. Accepted.
+2. **`battle/clock/hits.ts`** - the clock's hit rules pushed
+   `battle/clock/engine.ts` to 14,532 B on their own, over the cap. The
+   extraction is inside the `battle/clock/**` glob, and the primary's
+   600-scenario differential proves it changed nothing. Accepted.
+3. **`import type { Rng }`** - the prescribed fix left a type-only import that
+   Biome then flagged with `lint/style/useImportType`; Biome's own safe fix was
+   applied to the same line of the same file. The type import is erased at
+   compile time either way. Accepted.
+4. **The literal third leg of the phase command** - `biome check` still exits
+   1 in the subagent's sandbox for want of a resolvable binary. The identical
+   leg runs inside `bun run verify` and the primary's own `bunx biome check`
+   is clean. No layer was skipped. Accepted.
+5. **Throwaway audit harnesses** - created under `.conductor/evidence/`, all
+   removed; `git status --porcelain` is empty and nothing was committed.
+
+### Module sizes after the split (cap 12,288 B)
+
+`cup/session/walk.ts` 11,385 - `breeding/pairing.ts` 10,502 -
+`save/validators/creature.ts` 9,352 - `battle/clock/engine.ts` 8,447 -
+`save/validators/session.ts` 7,843 - `legacy/lineage.ts` 6,852 -
+`legacy/graduation.ts` 6,625 - `battle/clock/hits.ts` 6,442 -
+`battle/clock/types.ts` 6,316 - `breeding/gift.ts` 5,029 - `save/storage.ts`
+4,520 - `legacy/inheritance.ts` 4,109 - `battle/clock.ts` 2,798 -
+`breeding/drift.ts` 2,321 - `legacy.ts` 1,970 - `breeding.ts` 1,839 -
+`cup/session/standing.ts` 1,664 - `cup/session.ts` 1,150 -
+`save/validators.ts` 787.
+
+Pre-split sizes, for comparison: `save/storage.ts` 20,271 - `battle/clock.ts`
+20,933 - `legacy.ts` 17,229 - `breeding.ts` 16,930 - `cup/session.ts` 12,661.
+

@@ -114,11 +114,15 @@
   `packages/sim/src/breeding/**`, `packages/sim/src/cup/session.ts`,
   `packages/sim/src/cup/session/**`
 - **Verification:** `bun test --timeout 120000 && bun run check && biome check`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Split the save validators out of `save/storage.ts`** — covers:
+**Result:** verified
+**Checkpoint:** ac4fbda
+**Evidence:** conductor/tracks/20261022-sim-voxel-size-guard/verification/phase-2.md
+
+- [x] **P2.T1: Split the save validators out of `save/storage.ts`** — covers:
   FR-4
-  - [ ] **P2.T1.1: Move the validators** — the eight `isValid*` helpers
+  - [x] **P2.T1.1: Move the validators** — the eight `isValid*` helpers
     (`isValidTraitList`, `isValidParentList`, `isValidCreatureBranch`,
     `isValidCreature`, `isValidRetiredRecord`, `isValidSession`,
     `isValidSaveState`, `isValidPendingGift`) move to
@@ -126,72 +130,72 @@
     I/O (`createMemoryAdapter`, `saveGame`, `loadSave`, `loadGame`,
     `clearSave`, `readRawSave`, `loadBoot`) and re-exports `isValidSaveState`,
     so `packages/sim/src/index.ts` and `graduation.test.ts` are untouched.
-  - [ ] **P2.T1.2: Prove the size** — both files at most 12,288 B; record the
+  - [x] **P2.T1.2: Prove the size** — both files at most 12,288 B; record the
     sizes in the evidence.
-- [ ] **P2.T2: Split the battle clock** — covers: FR-4
-  - [ ] **P2.T2.1: Keep `battle/clock.ts` as the barrel** — move the
+- [x] **P2.T2: Split the battle clock** — covers: FR-4
+  - [x] **P2.T2.1: Keep `battle/clock.ts` as the barrel** — move the
     implementation into `packages/sim/src/battle/clock/` (`types.ts` for
     `BattleFighter`, `ClockFighter`, `PlannedAction`, `PlanFn`, `BattleEvent`,
     `BattleEventKind`, `TickOutcome`, `Clock`, `Range` and the `STAGGER_*`
     constants; `engine.ts` for `createClock`, `createClockFighter`,
     `createTieOrder` and its private helpers). This is the `cup.ts` + `cup/`
     pattern from `cup_module_refactor_20261018`.
-  - [ ] **P2.T2.2: Keep every name the consumers import from `"./clock"`** —
+  - [x] **P2.T2.2: Keep every name the consumers import from `"./clock"`** —
     `battle/index.ts` and the eight test files (`clock`, `clock.contract`,
     `policy`, `playback`, `resolver`, `projectile`, `heavy-hit`) import types,
     `BASIC`, `CLOSE`, `HOLD` and `STAGGER_DAMAGE_FRACTION` from `"./clock"`;
     the barrel re-exports all of them.
-  - [ ] **P2.T2.3: Prove the size** — every new file at most 12,288 B; record
+  - [x] **P2.T2.3: Prove the size** — every new file at most 12,288 B; record
     the sizes in the evidence.
-- [ ] **P2.T3: Split lineage and graduation out of `legacy.ts`** — covers: FR-4
-  - [ ] **P2.T3.1: Keep `legacy.ts` as the barrel** — move the implementation
+- [x] **P2.T3: Split lineage and graduation out of `legacy.ts`** — covers: FR-4
+  - [x] **P2.T3.1: Keep `legacy.ts` as the barrel** — move the implementation
     into `packages/sim/src/legacy/` (`lineage.ts` for the lineage state,
     prestige constants, `lineagePrestige`, `lineagePerks`, `initialLineage`,
     `hatchDayOf`; `graduation.ts` for `canGraduate`, `graduate`,
     `graduateFromStable`, the graduation constants; `inheritance.ts` for
     `inheritedFloor` and `createInheritedCreature`).
-  - [ ] **P2.T3.2: Keep every name the 8 consumers import from `"./legacy"` /
+  - [x] **P2.T3.2: Keep every name the 8 consumers import from `"./legacy"` /
     `"../legacy"`** — including `RetiredRecord`, `retireeRecord`,
     `GRADUATION_DAY`, `GRADUATION_HINT_DAY`, `initialLineage`, `lineagePerks`,
     `lineagePrestige`, `hatchDayOf`, `inheritedFloor`, `canGraduate`,
     `graduate`, `graduateFromStable`, `createInheritedCreature`, and the
     `PRESTIGE_*` constants. `state.ts`, `stats.ts`, `ticker.ts`, `breeding.ts`,
     `storage.ts` and `migrate.ts` must not need a change.
-  - [ ] **P2.T3.3: Prove the size** — every new file at most 12,288 B; record
+  - [x] **P2.T3.3: Prove the size** — every new file at most 12,288 B; record
     the sizes in the evidence.
-- [ ] **P2.T4: Split breeding from gift handling** — covers: FR-4
-  - [ ] **P2.T4.1: Keep `breeding.ts` as the barrel** — move the implementation
+- [x] **P2.T4: Split breeding from gift handling** — covers: FR-4
+  - [x] **P2.T4.1: Keep `breeding.ts` as the barrel** — move the implementation
     into `packages/sim/src/breeding/` (`pairing.ts` for `validatePair`,
     `pairFor`, `speciesOptions`, `inheritedFloorFromPair`, `createBredCreature`;
     `drift.ts` for `driftSource`, `rollAffinityDrift` and the affinity
     constants; `gift.ts` for `createGiftEgg`, `hatchGiftEgg`,
     `stormGiftPending`, `stormGiftPreview`).
-  - [ ] **P2.T4.2: Keep the `legacy` re-export and every consumer name** —
+  - [x] **P2.T4.2: Keep the `legacy` re-export and every consumer name** —
     `breeding.ts` keeps re-exporting `retireeRecord` from `"./legacy"` exactly
     as today, and every name the 7 consumers import from `"./breeding"` stays
     exported, including `TRAITS`, `TRAIT_ORDER`, `traitBonus`, `deriveTrait`,
     `effectiveTraits`, `isLineageTrait`, `STORM_GIFT_SPECIES_ID` and
     `AFFINITY_DRIFT_CHANCE`.
-  - [ ] **P2.T4.3: Prove the size** — every new file at most 12,288 B; record
+  - [x] **P2.T4.3: Prove the size** — every new file at most 12,288 B; record
     the sizes in the evidence.
-- [ ] **P2.T5: Split placement out of the cup session** — covers: FR-4
-  - [ ] **P2.T5.1: Keep `cup/session.ts` as the barrel** — move the
+- [x] **P2.T5: Split placement out of the cup session** — covers: FR-4
+  - [x] **P2.T5.1: Keep `cup/session.ts` as the barrel** — move the
     implementation into `packages/sim/src/cup/session/` (`walk.ts` for
     `startCupSession`, `resolvePlayerMatch`, `completeCup`, `forfeitCup`;
     `standing.ts` for `cupPlacement` and `bossScalps`). `cup/session.ts` is
     12,661 B — 373 B over — so the standing helpers alone may be enough; move
     more if the cap needs margin.
-  - [ ] **P2.T5.2: Keep every name `cup.ts` re-exports from `"./cup/session"`**
+  - [x] **P2.T5.2: Keep every name `cup.ts` re-exports from `"./cup/session"`**
     — `cupPlacement`, `bossScalps`, `completeCup`, `forfeitCup`,
     `resolvePlayerMatch`, `startCupSession` and `type CupSession`.
-  - [ ] **P2.T5.3: Prove the size** — every new file at most 12,288 B; record
+  - [x] **P2.T5.3: Prove the size** — every new file at most 12,288 B; record
     the sizes in the evidence.
-- [ ] **P2.T6: Prove the public surface is unchanged** — covers: FR-6
-  - [ ] **P2.T6.1: Assert the barrels are byte-identical** —
+- [x] **P2.T6: Prove the public surface is unchanged** — covers: FR-6
+  - [x] **P2.T6.1: Assert the barrels are byte-identical** —
     `packages/sim/src/index.ts` and `packages/sim/src/battle/index.ts` must be
     byte-identical to their pre-track content. Any edit to either is a red
     flag: it means an import path moved.
-  - [ ] **P2.T6.2: Leave every existing test file untouched** — the eight clock
+  - [x] **P2.T6.2: Leave every existing test file untouched** — the eight clock
     tests, the eight legacy tests, the seven breeding tests, the six cup tests,
     `graduation.test.ts` and the eleven `save/*.test.ts` files all pass
     unmodified. (AC-6)
