@@ -115,10 +115,28 @@ permissions:
     resource: "biome check *"
     effect: allow
   - action: shell
+    resource: "biome check --write"
+    effect: allow
+  - action: shell
+    resource: "biome check --write *"
+    effect: allow
+  - action: shell
     resource: "bun run build"
     effect: allow
   - action: shell
     resource: "bun run build *"
+    effect: allow
+  - action: shell
+    resource: "playwright-cli"
+    effect: allow
+  - action: shell
+    resource: "playwright-cli *"
+    effect: allow
+  - action: shell
+    resource: "bun run gate:determinism"
+    effect: allow
+  - action: shell
+    resource: "bun run gate:determinism *"
     effect: allow
   - action: shell
     resource: "bun run verify"
@@ -127,12 +145,11 @@ permissions:
     resource: "bun run verify *"
     effect: allow
   - action: shell
-    resource: "bun run gate:determinism"
-    effect: allow
-  - action: shell
-    resource: "bun run gate:determinism *"
+    resource: "bun run verify && bun run build"
     effect: allow
 ---
+
+<!-- Conductor agent template: v2.0 -->
 
 You are the **Conductor Phase Executor**. You execute exactly one phase of one
 Conductor track. The primary agent remains responsible for Conductor state.

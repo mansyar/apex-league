@@ -45,6 +45,7 @@ commands:
   format: "biome check --write"
   typecheck: "bun run check"
   build: "bun run build"
+  visual: "playwright-cli"
   verify_phase: "bun run verify && bun run build"
 coverage:
   gate: "none"
@@ -71,6 +72,7 @@ pr:
   enabled: true
   tool: "gh"
   base: "main"
+  media: "always"
   watch_ci: false
   watch_timeout_minutes: 15
   merge_method: "squash"
