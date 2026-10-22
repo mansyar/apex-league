@@ -44,52 +44,56 @@
 - **Touches:** `packages/sim/src/save/migrate.ts`,
   `packages/sim/src/save/migrations/**`,
   `packages/sim/src/save/migrations.test.ts`, `docs/save-schema.md`
-- **Verification:** `bun test packages/sim/src/save --timeout 120000 && bun run check && biome check`
-- **Status:** in_progress
+- **Verification:** `bun test --timeout 120000 packages/sim/src/save && bun run check && biome check`
+- **Status:** verified
 
-- [ ] **P1.T1: Extract the migration steps** — covers: FR-3
-  - [ ] **P1.T1.1: Move each version step into its own module** — create
+**Result:** verified
+**Checkpoint:** e2a7350
+**Evidence:** conductor/tracks/20261022-sim-voxel-size-guard/verification/phase-1.md
+
+- [x] **P1.T1: Extract the migration steps** — covers: FR-3
+  - [x] **P1.T1.1: Move each version step into its own module** — create
     `packages/sim/src/save/migrations/v0.ts` … `v23.ts`, one per step, moving
     each function **verbatim** out of the `migrations` record. No logic, naming,
     ordering, or error-message change. A step that needs `initialLineage`,
     `createCreature`, `isCupDay` or any other sim value imports it from its
     direct module path (`../../legacy/...`, `../../creature`, `../../calendar`),
     never through a barrel it belongs to.
-  - [ ] **P1.T1.2: Compose the record in a barrel** — create
+  - [x] **P1.T1.2: Compose the record in a barrel** — create
     `packages/sim/src/save/migrations/index.ts` exporting the 24 steps as a
     `Record<number, (raw: Record<string, unknown>) => Record<string, unknown>>`
     keyed `0`…`23` in ascending order. The record is the only place that knows
     the chain's order.
-  - [ ] **P1.T1.3: Slim `migrate.ts` down to the driver** — rewrite
+  - [x] **P1.T1.3: Slim `migrate.ts` down to the driver** — rewrite
     `packages/sim/src/save/migrate.ts` to import the record from `./migrations`
     and keep `STARTER_GRANT_SEED`, `validateStateShape`, the private
     `persistedCreature` helper, and the `migrate()` driver. `migrate` and
     `validateStateShape` stay exported from `save/migrate.ts` —
     `save/storage.ts`, `save/transfer.ts`, `save.test.ts` and
     `packages/sim/src/index.ts` import them from there.
-  - [ ] **P1.T1.4: Respect the no-cycle rule** — no module under
+  - [x] **P1.T1.4: Respect the no-cycle rule** — no module under
     `save/migrations/` imports `save/migrations/index.ts`. Siblings import each
     other by direct path only. (NFR-7)
-  - [ ] **P1.T1.5: Prove the size** — confirm `save/migrate.ts` and every file
+  - [x] **P1.T1.5: Prove the size** — confirm `save/migrate.ts` and every file
     under `save/migrations/` is at most 12,288 B, and record each file's byte
     size in the phase evidence.
-- [ ] **P1.T2: Lock the migration chain** — covers: FR-5
-  - [ ] **P1.T2.1: Assert the exact key list** — `save/migrations.test.ts`
+- [x] **P1.T2: Lock the migration chain** — covers: FR-5
+  - [x] **P1.T2.1: Assert the exact key list** — `save/migrations.test.ts`
     asserts the record's keys are exactly `0`…`23`: none missing, none extra.
     An exact list, not a count, so a dropped or duplicated key fails.
-  - [ ] **P1.T2.2: Assert the full chain** — a v0 payload
+  - [x] **P1.T2.2: Assert the full chain** — a v0 payload
     (`{ version: 0, day: 1 }`) migrates through every step to `SAVE_VERSION`,
     and the result validates through `validateStateShape`.
-  - [ ] **P1.T2.3: Assert the chain starts where it should** — a mid-chain
+  - [x] **P1.T2.3: Assert the chain starts where it should** — a mid-chain
     payload (v18) does not pass through the v0 step; only the steps above its
     own version run.
-  - [ ] **P1.T2.4: Assert the rejection paths** — migrating an already-current
+  - [x] **P1.T2.4: Assert the rejection paths** — migrating an already-current
     save is a no-op; a save with no `version` is rejected with
     `invalid save: missing version`; a save above `SAVE_VERSION` is rejected
     with `invalid save: future version N`.
-  - [ ] **P1.T2.5: Leave every existing test file untouched.** (AC-6)
-- [ ] **P1.T3: Repoint the save-schema doc** — covers: FR-3
-  - [ ] **P1.T3.1: Update the stale file references** — `docs/save-schema.md`
+  - [x] **P1.T2.5: Leave every existing test file untouched.** (AC-6)
+- [x] **P1.T3: Repoint the save-schema doc** — covers: FR-3
+  - [x] **P1.T3.1: Update the stale file references** — `docs/save-schema.md`
     points at `migrate.ts` in two places (the chain walk and the "add a
     migration" checklist). Repoint them at
     `packages/sim/src/save/migrations/`. The persisted shape, the per-version
