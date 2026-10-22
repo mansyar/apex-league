@@ -210,7 +210,7 @@
 - **Touches:** `packages/sim/src/module-size.test.ts`,
   `packages/voxel/src/module-size.test.ts`
 - **Verification:** `bun test module-size --timeout 120000 && bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Add the sim guard** — covers: FR-1
   - [ ] **P3.T1.1: Mirror the client guard** — create
