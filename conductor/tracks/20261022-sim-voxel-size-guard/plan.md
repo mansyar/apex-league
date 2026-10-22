@@ -322,3 +322,28 @@ save-migration steps now live in `packages/sim/src/save/migrations/`.
     `storage.ts`, which is the same stale pointer F2 was about: the
     validators now live in `packages/sim/src/save/validators/`. Name that
     module instead. This is the adjacent line of the same defect class.
+
+## Phase R2: Review Fixes (round 2)
+
+- **Goal:** Resolve the round-2 review finding F4 - the two validator
+  submodule headers cite a path this track deleted.
+- **Depends on:** Phase R1
+- **Covers:** F4
+- **Touches:** `packages/sim/src/save/validators/creature.ts`,
+  `packages/sim/src/save/validators/session.ts`
+- **Verification:** `bun test --timeout 120000 && bun run check && biome check`
+- **Status:** pending
+
+- [ ] **R2.T1: Correct the provenance line in both validator headers** - covers: F4
+  - [ ] **R2.T1.1: Fix `validators/creature.ts`** - the header says the module
+    was "Split out of the former monolithic save/validators.ts". The monolith
+    was `save/storage.ts`; `save/validators.ts` was the forwarder Phase 2 put
+    the rules behind, and Phase R1 deleted it. Change the cited path to
+    `save/storage.ts` so the sibling matches the barrel's own header at
+    `validators/index.ts`. Comment only - no code change.
+  - [ ] **R2.T1.2: Fix `validators/session.ts`** - the identical sentence, the
+    identical fix.
+  - [ ] **R2.T1.3: Prove it** - `bun run check` green,
+    `bun test --timeout 120000` still 2,340 pass / 1 skip / 0 fail across 176
+    files, `biome check` clean, and `git diff --name-only <phase_base>..HEAD`
+    lists exactly the two header files plus the evidence file.
