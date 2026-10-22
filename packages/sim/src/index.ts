@@ -199,10 +199,12 @@ export {
   createInheritedCreature,
   GRADUATION_DAY,
   GRADUATION_HINT_DAY,
+  type GraduateFromStableResult,
   type GraduateResult,
   type GraduationReason,
   type GraduationVerdict,
   graduate,
+  graduateFromStable,
   hatchDayOf,
   INHERITANCE_FRACTION,
   type InheritanceSource,
@@ -282,6 +284,16 @@ export {
   type SpeciesDef,
   STARTER_SPECIES,
 } from "./species"
+export {
+  bringToRanch,
+  type RenameStableResult,
+  renameStablePet,
+  type StableReason,
+  type StableResult,
+  sendToStable,
+  stablePetId,
+  stablePetSlot,
+} from "./stable"
 export {
   ACTION_POINTS_PER_DAY,
   chooseStarter,

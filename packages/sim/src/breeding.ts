@@ -104,6 +104,9 @@ const STAT_KEYS = ["hp", "atk", "def", "spd"] as const
  * Every record the player may pair: the archived Hall of Fame, oldest first,
  * followed by the retiring champion (if any). The retiree is last so the UI
  * can mark it and preselect it without disturbing archive order.
+ *
+ * The stable is not a pairable pool (FR-11): a pet waiting in reserve has no
+ * archived career, so it never pairs and never enters the Hall of Fame.
  */
 export function breedingPool(state: GameState): RetiredRecord[] {
   const retiree = retireeRecord(state)
@@ -390,44 +393,41 @@ export type HatchGiftResult =
 
 /**
  * Whether the granted gift egg has already been hatched anywhere in the
- * lineage: the active creature carries the marker, or a retired gift career
- * sits in the Hall of Fame. Derived from the persisted lineage marker
- * (save v21) — never stored separately.
+ * lineage: the active creature carries the marker, a retired gift career
+ * sits in the Hall of Fame, or a gift pet waits in the stable. Derived from
+ * the persisted lineage marker (save v21) — never stored separately.
  */
 function giftEggHatched(state: GameState): boolean {
   return (
     (state.creature?.giftEgg ?? false) ||
+    state.stable.some((pet) => pet.giftEgg) ||
     state.lineage.hallOfFame.some((record) => record.giftEgg)
   )
 }
 
 /**
  * Hatch the granted gift egg (the nursery's hatch seam for the Storm Gift).
- * The hound takes the ranch under the single-creature rule, and the outgoing
- * partner is archived in the Hall of Fame first — the same treatment every
- * other succession gives its retiree, so a grant never silently drops a
- * career. The day, budget, ladder and lineage generation carry over
- * untouched: the gift is a grant, not a graduation. Pure; the egg's own
- * stored seed lands the exact individual the nursery previewed.
+ * The hound joins the **stable** (save v24): the gift is a pet the player
+ * owns, not a replacement for the pet they already have, so the ranch keeps
+ * its partner and its career untouched — and the outgoing partner is NOT
+ * archived, because it never left the ranch.
+ *
+ * The day, budget, ladder and lineage generation carry over untouched: the
+ * gift is a grant, not a graduation. Pure; the egg's own stored seed lands
+ * the exact individual the nursery previewed.
  */
 export function hatchGiftEgg(state: GameState): HatchGiftResult {
   if (!state.stormGiftClaimed) return { ok: false, reason: "not-granted" }
   const pending = state.pendingGift
   if (!pending) return { ok: false, reason: "already-hatched" }
   if (giftEggHatched(state)) return { ok: false, reason: "already-hatched" }
-  const record = retireeRecord(state)
   return {
     ok: true,
     state: {
       ...state,
-      creature: createGiftEgg(pending.seed),
+      // The ranch pet stays exactly as it was — the gift waits in the stable.
+      stable: [...state.stable, createGiftEgg(pending.seed)],
       pendingGift: null,
-      lineage: record
-        ? {
-            ...state.lineage,
-            hallOfFame: [...state.lineage.hallOfFame, record],
-          }
-        : state.lineage,
     },
   }
 }

@@ -66,7 +66,7 @@ s = raiseToJuvenile()
 s = { ...s, cupsWon: 1 }
 s = runCaredDays(s, 11, 25, false)
 console.log(
-  `verdict: ${JSON.stringify(evaluateEvolution(s.creature!, 25, s.cupsWon))}`,
+  `verdict: ${JSON.stringify(evaluateEvolution(s.creature!, s.cupsWon))}`,
 )
 
 // Path 3: perfect care but no cup win yet — blocked with `no_cup_win`.
@@ -75,5 +75,5 @@ s = raiseToJuvenile()
 s = { ...s, cupsWon: 0 }
 s = runCaredDays(s, 11, 25)
 console.log(
-  `verdict: ${JSON.stringify(evaluateEvolution(s.creature!, 25, s.cupsWon))}`,
+  `verdict: ${JSON.stringify(evaluateEvolution(s.creature!, s.cupsWon))}`,
 )

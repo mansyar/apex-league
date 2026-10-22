@@ -76,32 +76,37 @@ export function familyName(name: string, generation: number): string {
  * occasionally teases that the baby is maturing — without disclosing the
  * threshold. Priority sits below unlock news and condition coach lines,
  * above flavor: raising is the game, but urgent care still leads.
- * Requires the current day, so the caller passes it in.
+ *
+ * The thresholds read the pet's OWN age (save v23): a pet hatched late grows
+ * at its own pace, so the hint follows `creature.ageDays` and never the
+ * world day.
  */
-export function growthHint(day: number, creature: Creature): string {
+export function growthHint(creature: Creature): string {
+  const age = creature.ageDays
   if (creature.stage === "champion") return ""
   if (creature.stage === "juvenile") {
     // The champion tease (champion track): same direction-only contract —
     // it points at the bond and the cups without naming the thresholds.
-    if (day < CHAMPION_HINT_DAY) return ""
-    if (day < CHAMPION_EVOLUTION_DAY) {
+    if (age < CHAMPION_HINT_DAY) return ""
+    if (age < CHAMPION_EVOLUTION_DAY) {
       return `${creature.name} is growing into something grand — keep the bond strong and win another cup together.`
     }
     // Past the gate age and still juvenile: the climb is still open, so
     // the hint keeps pointing (discovered-not-hidden — never a dead end).
     return `${creature.name} is ready to become a champion — keep the bond strong and win another cup.`
   }
-  if (day < EVOLUTION_HINT_DAY || day >= EVOLUTION_DAY) return ""
+  if (age < EVOLUTION_HINT_DAY || age >= EVOLUTION_DAY) return ""
   return `${creature.name} is filling out — keep the routine steady and one morning soon it will surprise you.`
 }
 
 /**
  * The graduation hint (legacy track): from the hinted day on, a champion
  * gets one direction-only coach line about the send-off — what graduating
- * does, never a threshold or a demand. Ranks above flavor, below care.
+ * does, never a threshold or a demand. The threshold reads the pet's own age.
  */
-export function graduationHint(day: number, creature: Creature): string {
-  if (creature.stage !== "champion" || day < GRADUATION_HINT_DAY) return ""
+export function graduationHint(creature: Creature): string {
+  if (creature.stage !== "champion") return ""
+  if (creature.ageDays < GRADUATION_HINT_DAY) return ""
   return `${creature.name} has had a full career — graduating passes a stat floor to the next egg.`
 }
 

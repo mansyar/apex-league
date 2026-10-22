@@ -10,14 +10,21 @@ import { resultRows } from "./bracket-model"
 import { giftHatchNote } from "./gift"
 
 describe("giftHatchNote", () => {
-  test("names the partner the hatch retires", () => {
+  test("says the hound waits in the stable and the ranch pet stays", () => {
     const note = giftHatchNote("Ember")
     expect(note).toContain("Ember")
-    expect(note).toContain("Hall of Fame")
+    expect(note).toContain("stable")
+    expect(note).toContain("keeps the ranch")
+    // The hound never replaces the partner, and the partner is never retired.
+    expect(note).not.toContain("Hall of Fame")
+    expect(note).not.toContain("retires")
   })
 
-  test("says so plainly when there is no partner to retire", () => {
-    expect(giftHatchNote(undefined)).toContain("Hatching")
+  test("says so plainly when there is no partner in the ranch", () => {
+    const note = giftHatchNote(undefined)
+    expect(note).toContain("Hatching")
+    expect(note).toContain("stable")
+    expect(note).not.toContain("Hall of Fame")
   })
 })
 

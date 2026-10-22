@@ -88,6 +88,7 @@ function houndAt(seed: number, trained: number): Creature {
     traits: [],
     parents: [],
     stage: "baby",
+    ageDays: 1,
     branch: null,
     giftEgg: false,
     sickCooldown: 0,

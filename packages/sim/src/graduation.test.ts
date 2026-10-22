@@ -19,7 +19,13 @@ function championState(branch: string | null): GameState {
   return {
     ...owned,
     day: GRADUATION_DAY,
-    creature: { ...owned.creature, stage: "champion", branch },
+    creature: {
+      ...owned.creature,
+      stage: "champion",
+      branch,
+      // The graduation gate reads the pet's own age (save v23).
+      ageDays: GRADUATION_DAY,
+    },
   }
 }
 

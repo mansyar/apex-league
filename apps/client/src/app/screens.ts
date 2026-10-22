@@ -3,6 +3,7 @@ import {
   canBreed,
   clearLoadout,
   graduate,
+  graduateFromStable,
   graduateWithPair,
   setLoadout,
 } from "@apex/sim"
@@ -150,12 +151,17 @@ export function createGraduationScreen(
         creature.branch,
       )
     },
-    onPick: (speciesId) => {
+    onPick: (choice) => {
       const before = store.get()
       const retiree = before.creature
       if (!retiree) return
-      const seed = Date.now() % 2 ** 31
-      const result = graduate(before, speciesId, seed)
+      // Two kinds of successor (stable & partner reserve FR-8): a starter
+      // species hatches a new pet, a pet waiting in the stable takes the
+      // ranch with everything it already is.
+      const result =
+        choice.kind === "stable"
+          ? graduateFromStable(before, choice.creatureId)
+          : graduate(before, choice.speciesId, Date.now() % 2 ** 31)
       if (!result.ok) return
       store.commit(result.state)
       graduation.close()

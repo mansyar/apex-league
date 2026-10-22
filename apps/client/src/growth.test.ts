@@ -44,9 +44,13 @@ function stateWith(
 ): GameState {
   const base = createInitialState()
   const created = createCreature("fire_drake", 42)
+  const day = options.day ?? 1
   const creature: Creature = {
     ...created,
     stage,
+    // The pet's own age (save v23): this fixture is a day-1 starter, whose
+    // age tracks the world day.
+    ageDays: day,
     sickCooldown: options.sickCooldown ?? 0,
     conditions: {
       ...created.conditions,
@@ -56,7 +60,7 @@ function stateWith(
   }
   return {
     ...base,
-    day: options.day ?? 1,
+    day,
     cupsWon: options.cupsWon ?? 0,
     creature,
     evolutionKnowledge: {
@@ -94,7 +98,7 @@ describe("rows by gate", () => {
     expect(view.gate).toBe("juvenile")
     expect(view.rows.map((row) => row.id)).toEqual(["age", "recovery", "mood"])
     expect(view.rows.map((row) => row.label)).toEqual([
-      "Day",
+      "Age",
       "Clean nights",
       "Mood",
     ])
@@ -112,7 +116,7 @@ describe("rows by gate", () => {
       "cups",
     ])
     expect(view.rows.map((row) => row.label)).toEqual([
-      "Day",
+      "Age",
       "Clean nights",
       "Mood",
       "Bond",
@@ -466,7 +470,7 @@ describe("the rows explain every EvolutionReason", () => {
       const state = stateWith(entry.stage, entry.options)
       const creature = state.creature
       if (!creature) throw new Error("expected a creature")
-      expect(evaluateEvolution(creature, state.day, state.cupsWon).reason).toBe(
+      expect(evaluateEvolution(creature, state.cupsWon).reason).toBe(
         entry.reason,
       )
       expect(unmet(state)).toEqual(entry.blocked)

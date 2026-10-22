@@ -24,7 +24,7 @@ export type GrowthRowId = "age" | "recovery" | "mood" | "bond" | "cups"
 
 export interface GrowthRow {
   id: GrowthRowId
-  /** Human label, e.g. "Mood", "Clean nights", "Day". */
+  /** Human label, e.g. "Mood", "Clean nights", "Age". */
   label: string
   /** Whether the creature currently satisfies this condition. */
   met: boolean
@@ -87,12 +87,12 @@ function gateFor(stage: Creature["stage"]): Gate {
   return "final"
 }
 
-function ageCondition(day: number, target: number): Condition {
+function ageCondition(age: number, target: number): Condition {
   return {
     id: "age",
-    label: "Day",
-    met: day >= target,
-    shown: `${day} / ${target}`,
+    label: "Age",
+    met: age >= target,
+    shown: `${age} / ${target}`,
     quiet: { met: "old enough now", unmet: "still a few days off" },
   }
 }
@@ -148,15 +148,17 @@ function gateConditions(
   creature: Creature,
   gate: Gate,
 ): Condition[] {
+  // The age row reads the pet's OWN age (save v23) — the same number the
+  // gate judges — so the row can never disagree with the verdict.
   if (gate === "juvenile") {
     return [
-      ageCondition(state.day, EVOLUTION_DAY),
+      ageCondition(creature.ageDays, EVOLUTION_DAY),
       recoveryCondition(creature),
       moodCondition(creature),
     ]
   }
   return [
-    ageCondition(state.day, CHAMPION_EVOLUTION_DAY),
+    ageCondition(creature.ageDays, CHAMPION_EVOLUTION_DAY),
     recoveryCondition(creature),
     moodCondition(creature),
     bondCondition(creature),
@@ -198,7 +200,7 @@ export function growthView(state: GameState): GrowthView | null {
   const creature = state.creature
   if (!creature) return null
   const gate = gateFor(creature.stage)
-  const path = branchPath(creature, state.day)
+  const path = branchPath(creature)
   // For the final gate the flag mirrors the champion gate just cleared; there
   // are no thresholds left to reveal either way.
   const discovered =

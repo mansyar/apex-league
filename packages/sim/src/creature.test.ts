@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test"
 
+import { createBredCreature, createGiftEgg } from "./breeding"
+import { AGE_AT_HATCH } from "./creature"
 import {
   CONDITION_MAX,
   CONDITION_START,
@@ -8,10 +10,31 @@ import {
   createCreature,
   createInitialState,
   effectiveStats,
+  GRADUATION_DAY,
   getSpecies,
+  graduate,
+  type RetiredRecord,
   renameCreature,
   STARTER_SPECIES,
 } from "./index"
+
+/** A neutral archived career, used as a breeding parent. */
+const PARENT: RetiredRecord = {
+  name: "Rolo",
+  speciesId: "fire_drake",
+  archetypeId: "draconic",
+  element: "fire",
+  affinity: null,
+  stats: { hp: 160, atk: 24, def: 16, spd: 18 },
+  trained: { hp: 0, atk: 0, def: 0, spd: 0 },
+  cupsWon: 0,
+  generation: 0,
+  retiredOnDay: 60,
+  traits: [],
+  parents: [],
+  branch: "legacy",
+  giftEgg: false,
+}
 
 describe("createCreature", () => {
   test("is deterministic — same seed produces identical stats", () => {
@@ -70,6 +93,44 @@ describe("createCreature", () => {
     expect(c.element).toBe("water")
     expect(c.archetypeId).toBe("axolotl")
     expect(c.stage).toBe("baby")
+  })
+})
+
+describe("the pet's own age", () => {
+  test("a fresh creature carries one day of life", () => {
+    expect(createCreature("fire_drake", 42).ageDays).toBe(AGE_AT_HATCH)
+    expect(AGE_AT_HATCH).toBe(1)
+  })
+
+  test("the starter seam hatches a one-day-old pet", () => {
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    expect(owned.creature?.ageDays).toBe(1)
+  })
+
+  test("the gifted egg hatches a one-day-old pet", () => {
+    expect(createGiftEgg(42).ageDays).toBe(1)
+  })
+
+  test("a graduation successor hatches a one-day-old pet", () => {
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    if (!owned.creature) throw new Error("no creature")
+    const champion = {
+      ...owned,
+      day: GRADUATION_DAY,
+      creature: {
+        ...owned.creature,
+        stage: "champion" as const,
+        ageDays: GRADUATION_DAY,
+      },
+    }
+    const result = graduate(champion, "plant_ox", 7)
+    if (!result.ok) throw new Error(`rejected: ${result.reason}`)
+    expect(result.state.creature?.ageDays).toBe(1)
+  })
+
+  test("a bred egg hatches a one-day-old pet", () => {
+    const egg = createBredCreature("fire_drake", 42, [PARENT, PARENT], 1)
+    expect(egg.ageDays).toBe(1)
   })
 })
 

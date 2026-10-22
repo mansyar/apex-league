@@ -31,11 +31,8 @@ function pathLine(label: string, value: string): HTMLElement {
  * there is honestly nothing to say yet). Never prints a gate day, a threshold
  * or a signature the creature has not earned.
  */
-export function buildPathSection(
-  creature: Creature,
-  day: number,
-): HTMLElement | null {
-  const path = branchPath(creature, day)
+export function buildPathSection(creature: Creature): HTMLElement | null {
+  const path = branchPath(creature)
   if (!path) return null
   const section = document.createElement("div")
   section.className = "detail-path"

@@ -2,6 +2,7 @@ import { buildCreatureDetail } from "../creature-detail"
 import { buildGiftChip, buildGiftModal } from "../gift"
 import { buildHandbook } from "../handbook"
 import { buildPrefCluster, buildSettingsModal } from "../settings-modal"
+import { buildStableChip, buildStableModal } from "../stable"
 import { buildCommandDock } from "./dock"
 import { buildCreaturePlate, buildLineagePlate, buildScoreBug } from "./plates"
 import { buildResetModal } from "./settings"
@@ -117,6 +118,23 @@ export function createHudShell(
   // pending egg once the results screen is gone.
   motionWrap.append(giftChip)
 
+  // The stable (stable & partner reserve FR-9): the chip opens the modal
+  // that lists the pets waiting there, the swap inside it hands one of them
+  // the ranch, and the pencil on a row renames the pet where it waits.
+  const stable = buildStableModal({
+    onBringToRanch: (creatureId) => handlers.onBringToRanch(creatureId),
+    onRename: (creatureId, name) => handlers.onRenameStable(creatureId, name),
+    // The swap is done: the partner plate is the thing the player just
+    // changed, so the keyboard goes back to it.
+    onSwapped: () => creatureHead.focus(),
+  })
+  const stableChip = buildStableChip(() => {
+    const current = view.current
+    if (!current) return
+    stable.open(current)
+  })
+  motionWrap.append(stableChip)
+
   // Lineage plate (top-left, under the settings pill): the family name +
   // generation, and the Hall of Fame opener.
   const lineage = buildLineagePlate()
@@ -138,6 +156,7 @@ export function createHudShell(
     resetModal,
     creatureDetail.root,
     gift.root,
+    stable.root,
     handbook.root,
     settings.root,
   )
@@ -155,6 +174,8 @@ export function createHudShell(
       creatureDetail,
       gift,
       giftChip,
+      stable,
+      stableChip,
       motionWrap,
       lineage,
     },

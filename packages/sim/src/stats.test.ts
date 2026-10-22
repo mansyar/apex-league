@@ -213,7 +213,7 @@ describe("statBreakdown — the inherited floor", () => {
     const owned = chooseStarter(createInitialState(), "fire_drake", 42)
     const champion = owned.creature
     if (!champion) throw new Error("expected a starter creature")
-    const champ = { ...champion, stage: "champion" as const }
+    const champ = { ...champion, stage: "champion" as const, ageDays: 60 }
     const result = graduate(
       { ...owned, day: 60, creature: champ },
       "plant_ox",
@@ -258,6 +258,8 @@ describe("statBreakdown — the inherited floor", () => {
     const champion = (creature: Creature): Creature => ({
       ...creature,
       stage: "champion",
+      // The graduation gate reads the pet's own age (save v23).
+      ageDays: 60,
     })
     const first = graduate(
       { ...owned, day: 60, creature: champion(founder) },

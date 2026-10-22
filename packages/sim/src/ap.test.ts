@@ -53,6 +53,7 @@ function prestigeState(
       traits: [],
       parents: [generation - 1],
       stage: "champion",
+      ageDays: day - hatchDay + 1,
       branch: null,
       giftEgg: false,
       sickCooldown: 0,
@@ -83,6 +84,7 @@ function prestigeState(
     evolutionKnowledge: { juvenile: false, champion: false },
     stormGiftClaimed: false,
     pendingGift: null,
+    stable: [],
   }
 }
 
@@ -156,7 +158,10 @@ describe("head-start AP through the day ticker", () => {
 
 describe("head-start AP on graduation day", () => {
   it("starts the champion-stable successor's first day with the bonus", () => {
-    const state = prestigeState(GRADUATION_DAY, GRADUATION_DAY)
+    // The champion is a day-1 starter: it hatched on day 1 and has lived its
+    // own 60 days, so the send-off is legal (the gate reads the pet's age,
+    // save v23).
+    const state = prestigeState(1, GRADUATION_DAY)
     const res = graduateWithPair(state, [8, 9], "fire_drake", 42)
     if (!res.ok) throw new Error(`rejected: ${res.reason}`)
     expect(res.state.day).toBe(GRADUATION_DAY)
@@ -168,7 +173,7 @@ describe("head-start AP on graduation day", () => {
   it("keeps the plain budget when the milestone is below nine", () => {
     // The successor's prestige is generation + cups: lineage generation 7
     // hatches at prestige 8 — one short of Champion Stable.
-    const state = prestigeState(GRADUATION_DAY, GRADUATION_DAY, 7)
+    const state = prestigeState(1, GRADUATION_DAY, 7)
     const res = graduateWithPair(state, [6, 7], "fire_drake", 42)
     if (!res.ok) throw new Error(`rejected: ${res.reason}`)
     expect(res.state.actionPoints).toBe(ACTION_POINTS_PER_DAY)

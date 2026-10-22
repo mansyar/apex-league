@@ -48,7 +48,9 @@ export function createGraduation(
   confirm.box.append(confirm.actions)
 
   // -- Egg screen ------------------------------------------------------------
-  const egg = buildEgg((speciesId) => handlers.onPick(speciesId))
+  // The egg screen offers the starter species and the pets waiting in the
+  // stable as successors (stable & partner reserve FR-8).
+  const egg = buildEgg((choice) => handlers.onPick(choice))
 
   // -- Hall of Fame modal ----------------------------------------------------
   const hall = buildHall()

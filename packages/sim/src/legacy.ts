@@ -5,9 +5,10 @@
  * **stat floor** for the next egg, and the bloodline (generations + lifetime
  * cups) accrues **prestige** that grants milestone perks to later generations.
  *
- * The fantasy is a dynasty, not a single champion — but the game state stays
- * single-creature: graduation *replaces* the active creature, it does not
- * introduce a simultaneous roster (that is Phase 2 breeding).
+ * The fantasy is a dynasty, not a single champion — the game state holds one
+ * active pet: graduation *replaces* the active creature. The pets the player
+ * owns but keeps in reserve wait in the stable (save v24); a graduation may
+ * hand the ranch to one of them.
  *
  * Pure data and pure functions only — no DOM, no rendering, no I/O.
  */
@@ -23,6 +24,7 @@ import {
   type LineageTrait,
 } from "./creature"
 import { getSpecies, type SpeciesDef } from "./species"
+import { stablePetSlot } from "./stable"
 import { ACTION_POINTS_PER_DAY, type GameState } from "./state"
 import { dedupeTraits, effectiveTraits, traitBonus } from "./traits"
 
@@ -112,14 +114,14 @@ export function retireeRecord(state: GameState): RetiredRecord | null {
 }
 
 /**
- * The night of this day (inclusive) is the earliest a champion may graduate.
- * A full career: two months of care. No upper limit — once eligible, the
- * send-off is the player's to choose.
+ * The pet's own age at which a champion may graduate: a full career of two
+ * months of its own life. No upper limit — once eligible, the send-off is
+ * the player's to choose.
  */
 export const GRADUATION_DAY = 60
 
 /**
- * Coach copy may tease a full career from this day on (the send-off itself
+ * Coach copy may tease a full career from this age on (the send-off itself
  * stays player-triggered — discovered, not demanded).
  */
 export const GRADUATION_HINT_DAY = 55
@@ -252,8 +254,13 @@ export interface GraduationVerdict {
 /**
  * May the player graduate the active creature right now? Eligible only when
  * the state is in the day phase, a creature is owned, it has reached its
- * **champion** form, and the in-game day is at least `GRADUATION_DAY`. The
- * gate delays but never blocks — past the floor it stays eligible forever.
+ * **champion** form, and the creature's own age is at least
+ * `GRADUATION_DAY`. The gate delays but never blocks — past the floor it
+ * stays eligible forever.
+ *
+ * The floor is the pet's own age (save v23), not the world day: a full
+ * career is two months of *its* life. A day-1 starter's timing is
+ * unchanged; a late-hatched pet must live 60 of its own days first.
  *
  * Pure: reads the state, returns a verdict; the caller decides what to do.
  */
@@ -262,7 +269,7 @@ export function canGraduate(state: GameState): GraduationVerdict {
   if (state.phase === "cup") return { eligible: false, reason: "cup-phase" }
   if (state.creature.stage !== "champion")
     return { eligible: false, reason: "not-champion" }
-  if (state.day < GRADUATION_DAY)
+  if (state.creature.ageDays < GRADUATION_DAY)
     return { eligible: false, reason: "too-young" }
   return { eligible: true, reason: "eligible" }
 }
@@ -304,6 +311,9 @@ export function inheritedFloor(
  * stat floored by the parent's inheritance (R3). Same seed → same individual,
  * so succession stays replayable. The bond starts raised under the
  * warm-bloodline perk; every other condition uses the standard start.
+ *
+ * The successor hatches at one day of life (save v23): its age counts from
+ * the day it hatches, not from the world day it was laid on.
  *
  * Throws on an unknown species (the caller must pick an available one).
  */
@@ -407,6 +417,62 @@ export function graduate(
           lineagePerks(prestige).championStable,
         ),
       creature: successor,
+      lineage: {
+        generation,
+        hallOfFame: [...state.lineage.hallOfFame, record],
+      },
+    },
+  }
+}
+
+/** The outcome of a graduation that hands the ranch to a stashed pet. */
+export type GraduateFromStableResult =
+  | { ok: true; state: GameState }
+  | { ok: false; reason: GraduationReason | "unknown-pet" }
+
+/**
+ * Graduate the active champion and hand the ranch to a pet waiting in the
+ * stable (FR-8). The retired pet is archived exactly as {@link graduate}
+ * archives it, the generation advances, and the day's action points reset —
+ * but the successor is a pet the player already owns, not a fresh egg: it
+ * takes the ranch with every field it left the stable with, and it is NOT
+ * added to the Hall of Fame a second time (it was never in it).
+ *
+ * The gate is the gate {@link graduate} uses — the retiree must be a champion
+ * that lived its own 60 days — so a swap can never sidestep a career.
+ *
+ * Pure: the input state is never mutated.
+ */
+export function graduateFromStable(
+  state: GameState,
+  creatureId: string,
+): GraduateFromStableResult {
+  const verdict = canGraduate(state)
+  if (!verdict.eligible) return { ok: false, reason: verdict.reason }
+  const record = retireeRecord(state)
+  if (!record) return { ok: false, reason: "no-creature" }
+  const index = stablePetSlot(creatureId)
+  if (index === null) return { ok: false, reason: "unknown-pet" }
+  const successor = state.stable[index]
+  if (!successor) return { ok: false, reason: "unknown-pet" }
+  const generation = state.lineage.generation + 1
+  const prestige = generation + state.cupsWon
+  return {
+    ok: true,
+    state: {
+      ...state,
+      // The successor's first day in the ranch: the champion-stable head-start
+      // already applies on the handover day itself (FR-5).
+      actionPoints:
+        ACTION_POINTS_PER_DAY +
+        headStartAp(
+          state.day,
+          state.day,
+          lineagePerks(prestige).championStable,
+        ),
+      creature: successor,
+      // The stable keeps every other waiting pet; the successor leaves it.
+      stable: state.stable.filter((_, slot) => slot !== index),
       lineage: {
         generation,
         hallOfFame: [...state.lineage.hallOfFame, record],

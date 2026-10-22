@@ -1,6 +1,7 @@
 import {
   advanceDay,
   assignTraining,
+  bringToRanch,
   buildSaveExport,
   type CareAction,
   careAction,
@@ -10,6 +11,7 @@ import {
   inspectSaveImport,
   markHintSeen,
   renameCreature,
+  renameStablePet,
   type SaveData,
   setMusicVolume,
   setMuted,
@@ -190,15 +192,35 @@ export function createHudScreen(deps: HudScreenDeps): Hud {
     onGraduate: () => graduation.openConfirm(store.get()),
     onOpenHallOfFame: () => graduation.openHallOfFame(store.get()),
     onHatchGift: () => {
-      // The Storm Gift (electric species line FR-5/FR-6): the sim's hatch
-      // seam archives the outgoing partner and installs the hound; the app
-      // commits it and rebuilds the ranch.
+      // The Storm Gift (stable & partner reserve FR-7): the sim's hatch seam
+      // installs the hound in the stable and leaves the ranch pet in place;
+      // the app commits it and rebuilds the ranch.
       const result = hatchGiftEgg(store.get())
       if (!result.ok) return
       store.commit(result.state)
       sceneSync.syncScene()
-      // The hound is the partner now: put the keyboard on its plate.
+      // The ranch pet is still the partner: put the keyboard on its plate.
       document.querySelector<HTMLButtonElement>(".creature-head")?.focus()
+    },
+    onBringToRanch: (creatureId) => {
+      // The swap (stable & partner reserve FR-9): the sim hands the ranch to
+      // the chosen pet and files the outgoing one; the app commits it and
+      // rebuilds the ranch. A refusal (the day-phase lock) comes back to the
+      // HUD so it can coach instead of going quiet.
+      const result = bringToRanch(store.get(), creatureId)
+      if (!result.ok) return result.reason
+      store.commit(result.state)
+      sceneSync.syncScene()
+      return null
+    },
+    onRenameStable: (creatureId, name) => {
+      // The rename (stable & partner reserve, the spec's edge case): the sim
+      // names the pet where it waits — no swap, no change to the ranch — and
+      // the app commits it.
+      const result = renameStablePet(store.get(), creatureId, name)
+      if (!result.ok) return result
+      store.commit(result.state)
+      return result
     },
   })
 

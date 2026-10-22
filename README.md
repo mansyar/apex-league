@@ -24,9 +24,11 @@ climb Silver III to Silver I through three more authored gatekeepers. When a
 champion's career is
 full, graduate them into a successor — the bloodline keeps the family name,
 inherits a stat floor from the champion's peak, and earns prestige perks that
-make the next run start a little stronger. Saves can be exported and imported,
-the audio mix has separate music and SFX levels, and every surface has a
-keyboard and reduced-motion pass.
+make the next run start a little stronger. The ranch keeps one partner at a
+time; every other pet you own waits in the stable, frozen and ready to be
+brought forward. Saves can be exported and imported, the audio mix has
+separate music and SFX levels, and every surface has a keyboard and
+reduced-motion pass.
 
 ## Core loop
 
@@ -36,10 +38,10 @@ keyboard and reduced-motion pass.
    falls, energy recovers (sleep quality depends on care), sickness rolls or
    worsens, mood settles, bond decays without bonding. The nightly check also
    watches for growth: a well-cared-for baby evolves into its juvenile form
-   (stat boost, new signature feature, a third move slot) ten days in, and the
-   training you give it decides which of the species' two champion forms it
-   grows into. No permadeath: the worst case is misery, and recovery is always
-   possible.
+   (stat boost, new signature feature, a third move slot) on its own tenth
+   night, and the training you give it decides which of the species' two
+   champion forms it grows into. No permadeath: the worst case is misery, and
+   recovery is always possible.
 3. **Cup phase** — every 7th day, an optional 8-bracket
    single-elimination cup: scout the rival, re-pick your kit, and step into
    the arena for each of your matches. Rival-vs-rival matches resolve as
@@ -51,6 +53,11 @@ keyboard and reduced-motion pass.
    any two retired partners: the egg inherits a weighted floor from both, a
    trait, a seeded mutation, and — on a seeded 15% roll — the other parent's
     element as a secondary affinity.
+5. **The stable** — the ranch holds one partner at a time. Every other pet you
+   own waits in the stable, frozen: its conditions, its training and its own
+   age do not move while it waits, and it resumes exactly where it left off.
+   Bring any of them forward whenever you like — the swap is free, instant and
+   lossless.
 
 ## Tech stack
 
@@ -96,9 +103,12 @@ The dev server prints a local URL (Vite, default `http://localhost:5173`).
 A fresh save opens the starter choice - pick the Fire drake, the Plant ox or
 the Water axolotl and begin the day loop. Reaching Silver in the cup ladder
 grants the league's Storm Gift once: a pure electric-hound egg that waits in
-the nursery, previewed down to its rolled stats, and hatched into a fourth
-line raised through the same three stages and two champion forms as the
-starters. Each day you get 3 AP for care
+the nursery, previewed down to its rolled stats. Hatching it adds a fourth
+line to your collection - raised through the same three stages and two
+champion forms as the starters - and it waits in the stable rather than
+taking your ranch pet's place. Your partner keeps the ranch, and the Stable
+chip beside Settings brings any waiting pet forward whenever you want it.
+Each day you get 3 AP for care
 actions plus one of four training programs — Power Lifting, Endurance
 Circuit, Sprint Work, Ring Craft — each training its own stats night by
 night, capped at +6 above the rolled base. Small comforts: the pencil by your partner's name renames
@@ -138,8 +148,9 @@ Before tagging a build, walk this list on a clean browser profile:
 - [ ] **Save round-trip** — Settings → Download save on a played ranch; import
       that file into a fresh profile and confirm day, partner, Hall, ladder, AP,
       volumes, and reduced-motion state match.
-- [ ] **Older saves** — import a v19 (or older) export and confirm it migrates
-      to v20 with music/SFX at 100% and everything else intact.
+- [ ] **Older saves** — import a v23 (or older) export and confirm it migrates
+      to v24 with an empty stable, the active pet's own age intact, and
+      everything else unchanged.
 - [ ] **Bad saves** — newer-version and malformed files are refused with a calm
       notice and the live save is unchanged.
 - [ ] **Corrupt boot** — the recovery dialog downloads the exact broken bytes
@@ -147,8 +158,8 @@ Before tagging a build, walk this list on a clean browser profile:
 - [ ] **Audio** — music and SFX sliders change live, survive reload, and the
       mute chip still overrides both.
 - [ ] **Keyboard-only** — starter → care → training → cup entry/coach room →
-      graduation/nursery → Hall → detail → handbook → settings; focus is never
-      lost, and each overlay returns it to its opener.
+      stable → graduation/nursery → Hall → detail → handbook → settings; focus
+      is never lost, and each overlay returns it to its opener.
 - [ ] **Reduced motion** — both the in-app Motion: reduced setting and OS
       `prefers-reduced-motion` remove shake/flash/travel while the cup and
       battle stay legible.
@@ -182,7 +193,7 @@ device, OS, and screenshots when it runs.
 | 0 — Foundation | Workspaces, sim core, day ticker, versioned save/load, app shell | Done |
 | 1 — Vertical slice | Care loop, training, one lineage, battle system, one cup, Bronze ladder | Done — care loop, four training programs with breakthrough nights, derived form (ATK) in the arena, baby→juvenile→champion evolution with two champion forms per starter earned from training, arena battles, live cups, the Bronze ladder, and the minimal legacy loop (graduation → inherited next egg) playable |
 | 2 — League depth | Full ladder, rivals and bosses, breeding, evolution discovery | In progress — the full Bronze→Legend climb, six authored bosses, dual-parent breeding with trait inheritance, earned evolution branches, type affinity drift, and the prestige 7/9 perks are playable; extra lineages remain |
-| 3 — Content & meta | 20–40 species, ElysiaJS backend, cloud saves, leaderboards | In progress — the first reward line (Electric storm hound, a Silver tier gift egg) is playable end to end; the wider roster and the backend remain |
+| 3 — Content & meta | 20–40 species, ElysiaJS backend, cloud saves, leaderboards | In progress — the first reward line (Electric storm hound, a Silver tier gift egg) is playable end to end and now joins your collection instead of replacing your pet: the ranch keeps one partner and the stable holds the rest; the wider roster and the backend remain |
 | 4 — Post-MVP | Async ghost PvP, live PvP, mobile hardware pass, audio expansion | Planned |
 
 ## Contributing

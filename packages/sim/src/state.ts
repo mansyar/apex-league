@@ -127,6 +127,15 @@ export interface GameState {
    * individual.
    */
   pendingGift: PendingGift | null
+  /**
+   * The stable (save v24, stable & partner reserve FR-1): every pet the
+   * player owns that is **not** in the ranch, oldest first, with no
+   * capacity limit. Exactly one pet is active at a time (`creature`); the
+   * pets in here are frozen — no condition decay, no training, no cups, no
+   * evolution and no age while they wait. A stashed pet resumes exactly
+   * where it left off when it comes back to the ranch.
+   */
+  stable: Creature[]
 }
 
 /**
@@ -170,6 +179,8 @@ export function createInitialState(): GameState {
     evolutionKnowledge: initialEvolutionKnowledge(),
     stormGiftClaimed: false,
     pendingGift: null,
+    // The stable starts empty (save v24): a fresh run owns one pet.
+    stable: [],
   }
 }
 
@@ -264,6 +275,9 @@ export function setSfxVolume(state: GameState, value: number): GameState {
  * Record the player's starter choice: create the creature from a seed and
  * return a new state with it set. Pure. Throws on unknown/locked species and
  * on states that already own a creature.
+ *
+ * The starter hatches on the day it is chosen, so it starts at one day of
+ * life (save v23): its age counts from here, not from the world's day 1.
  */
 export function chooseStarter(
   state: GameState,

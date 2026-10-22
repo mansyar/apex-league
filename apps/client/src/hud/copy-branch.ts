@@ -71,15 +71,15 @@ export interface BranchPathRead {
  * The creature's path reading, or null. A baby gets the direction-only lean
  * from the hinted day on; a juvenile or champion gets its earned form, and a
  * null branch (a hand-built or legacy state) reads as the old line.
+ *
+ * The hint threshold reads the pet's OWN age (save v23), so the lean shows
+ * up when the pet has lived long enough — not when the ranch has.
  */
-export function branchPath(
-  creature: Creature,
-  day: number,
-): BranchPathRead | null {
+export function branchPath(creature: Creature): BranchPathRead | null {
   const species = getSpecies(creature.speciesId)
   if (!species) return null
   if (creature.stage === "baby") {
-    if (day < EVOLUTION_HINT_DAY) return null
+    if (creature.ageDays < EVOLUTION_HINT_DAY) return null
     const lean = branchLean(creature, species)
     return {
       title: PATH_LEAN_TITLE,

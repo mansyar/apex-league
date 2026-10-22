@@ -85,6 +85,9 @@ function caredFor(
     creature: {
       ...owned.creature,
       stage,
+      // The growth gates read the pet's own age (save v23); this fixture is
+      // a day-1 starter, whose age tracks the world day.
+      ageDays: day,
       conditions: {
         hunger: 100,
         energy: 100,
@@ -188,7 +191,7 @@ function v16Payload(stage: LifeStage | null): Record<string, unknown> {
 
 describe("save v17 — discovery inferred from the persisted stage", () => {
   test("the schema version is 19", () => {
-    expect(SAVE_VERSION).toBe(22)
+    expect(SAVE_VERSION).toBe(24)
   })
 
   test("a v16 juvenile save knows the juvenile gate only", () => {

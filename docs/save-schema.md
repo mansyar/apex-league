@@ -8,14 +8,14 @@ writes through the `SaveAdapter` seam.
 ```ts
 // packages/sim/src/save/schema.ts
 interface SaveData {
-  version: number // current: 22 (SAVE_VERSION)
+  version: number // current: 24 (SAVE_VERSION)
   state: GameState
   savedAt: number // Date.now() of the persist
   session: CupSession | null // live cup walk (v7+; null outside a cup)
 }
 ```
 
-## `GameState` at v22
+## `GameState` at v24
 
 | Field | Type | Meaning |
 |---|---|---|
@@ -33,6 +33,7 @@ interface SaveData {
 | `evolutionKnowledge` | `{ juvenile: boolean, champion: boolean }` | Which evolution gates the player has already cleared once (v17+). Save-wide and per gate: the night a creature actually evolves through a gate flips that gate to `true` and never back. The Growth panel shows exact thresholds only for a known gate. Migrated saves infer it from the active creature's `stage`. |
 | `stormGiftClaimed` | boolean | The Silver tier-reward claim (v21+). Stamped `true` exactly once by the cup finalize's reward seam when a non-forfeit cup closes on a post-placement Silver-or-higher ladder - never below Silver, never on a forfeit, never twice. The granted "Storm Gift" egg itself lives in the nursery flow (`breeding.ts`); this flag is the league-side guarantee that it is granted at most once. Migrated saves stamp `false`: no pre-v21 save has received the gift, and the retroactive rule delivers it on the next non-forfeit finalize. |
 | `pendingGift` | `{ speciesId: string, seed: integer }` \| null | The granted Storm Gift egg, waiting in the nursery for the player to hatch it (v22+). `null` when no egg is waiting - never granted, or already hatched. The seed travels with the egg so the nursery preview and the hatch roll the same individual. A v21 save that already claimed the gift but never hatched one (the v21 grant only stamped the flag) receives the egg it was promised here; a save whose gift career is already in the lineage gets nothing. |
+| `stable` | `Creature[]` | The stable (v24+): every pet the player owns that is not in the ranch. There is no capacity limit, and exactly one pet is active (`creature`); a swap between the ranch and the stable is free, instant and lossless - every field of a pet travels with it. A stashed pet is frozen: the night settlement touches neither its conditions nor its age, and it cannot train, evolve, graduate or compete until it returns. Migrated saves stamp `[]`: a pre-v24 save owns one pet, and it is the ranch pet. |
 
 ### `Creature`
 
@@ -42,9 +43,10 @@ interface SaveData {
 | `speciesId` | non-empty string, must exist in the species catalog | Drives stats bounds, element, kit. Hand-edited unknown species are rejected on load. |
 | `archetypeId` | non-empty string | Voxel archetype used for rendering ("draconic", "bovine", ...). |
 | `stage` | `"baby" \| "juvenile" \| "champion"` | Evolution stage. |
+| `ageDays` | integer ≥ 1 | The pet's own age in days (v23+): the number of days it has been alive, counting the day it hatched (1 on its hatch day). The juvenile, champion and graduation gates read this and never the world day, so a pet hatched late matures on its own tenth night. The night settlement advances it by exactly one, and only the active pet is settled. Migrated saves stamp the world day — today's effective age — so a v22 save matures on precisely the night it matures on today. |
 | `branch` | string \| null | The form earned at the juvenile gate (v19+). A baby is always `null`; a juvenile or champion may be `null` (a hand-built or not-yet-resolved payload), `"legacy"` (the migration-only signature-less old line), or a real branch from `branches.ts` owned by this creature's `speciesId`. |
 | `affinity` | string \| null | The secondary type affinity (v20+). Won by the seeded 15% drift roll at breeding time (`breeding.ts`): when a parent's primary element differs from the egg's species element, that parent's element may attach as a second type. `null` for founders and migrated saves; never equal to `element` (validation rejects that — it is not clamped). Secondaries never chain: the drift roll reads only primary elements. |
-| `giftEgg` | boolean | The gift-egg lineage marker (v21+). `true` only for a creature hatched from the league's one-time Silver tier-reward gift egg (the "Storm Gift", `breeding.ts`). Provenance, not battle data: the client derives gift copy from it, and the hatch seam derives the one-gift rule from the marker across the active creature and the Hall of Fame. Migrated creatures stamp `false`. |
+| `giftEgg` | boolean | The gift-egg lineage marker (v21+). `true` only for a creature hatched from the league's one-time Silver tier-reward gift egg (the "Storm Gift", `breeding.ts`). Provenance, not battle data: the client derives gift copy from it, and the hatch seam derives the one-gift rule from the marker across the active creature, the stable and the Hall of Fame. Migrated creatures stamp `false`. |
 | `stats` | `{hp, atk, def, spd}` | Rolled base stats; effective = base + evolution boost + trained. |
 | `trained` | `{hp, atk, def, spd}` | Training bonuses, each capped (`TRAINED_START` … cap). |
 | `conditions` | `{hunger, energy, health, mood, bond}` | 0–100, clamped nightly by settlement. |
@@ -145,6 +147,8 @@ mix levels), 17 (evolution discovery), 18 (training programs), and 19
 | v19 → v20 | Adds `creature.affinity` and `RetiredRecord.affinity` (type affinity drift). Pre-v20 creatures never drifted — the roll did not exist — so the migration stamps `null` on the active creature and every Hall record: no inference, no backfill. Stats, branch, lineage fields, settings, the boss ledger, evolution knowledge, and the live cup session are forwarded untouched. |
 | v20 → v21 | Adds `state.stormGiftClaimed`, `creature.giftEgg`, and `RetiredRecord.giftEgg` (the Silver tier-reward, electric species line FR-8). The claim flag stamps `false` - no pre-v21 save has received the gift, and the retroactive rule delivers it on the next non-forfeit cup finalize at Silver or higher. The gift marker stamps `false` on the active creature and every Hall record - no hatched career predates the gift. Everything else, including the live cup session, forwards untouched. |
 | v21 → v22 | Adds `state.pendingGift` (the granted Storm Gift egg, v22+). A v21 save that already claimed the gift but never hatched one - the v21 grant only stamped the flag and never delivered an egg - receives the egg it was promised, rolled from a seed derived from the save's day and ladder points; a save whose gift career is already in the lineage (the `giftEgg` marker on the creature or a Hall record) gets nothing, and a save that never claimed waits for its next non-forfeit finalize. Everything else, including the live cup session, forwards untouched. |
+| v22 → v23 | Adds `creature.ageDays` (the pet's own age, v23+). A v22 payload has no age field, and the world day WAS the effective age - the growth gates read `state.day` - so the migration stamps the world day on the active creature: the pet's gates then behave exactly as they did before the step, and a v22 save matures on precisely the night it matures on today. The Hall of Fame records no age (an age is the living pet's own), so every record forwards untouched, as does the live cup session. |
+| v23 → v24 | Adds `state.stable` (the stable, v24+): the pets the player owns that are not in the ranch. A v23 payload predates the stable, so it holds exactly one pet - the ranch pet - and the migration stamps an empty stable. Nothing is inferred and nothing is carried over: the active pet keeps its own age and its career, the lineage, the ladder, the settings and the live cup session all forward untouched. |
 
 ### v18 → v19 branch mapping
 
@@ -245,6 +249,21 @@ unknown creature; import validation runs the same predicate, so a v22 file
 with a broken pending egg is refused with `"invalid"` and the live save is
 left untouched.
 
+At v23 the active creature's `ageDays` must be a positive integer — the
+days the pet has lived. A missing, zero, negative or fractional age fails
+the load instead of letting the growth gates read a broken number; import
+validation runs the same predicate, so a v23 file with a malformed age is
+refused with `"invalid"` and the live save is left untouched.
+
+At v24 `state.stable` must be a list, and every entry must be a whole pet:
+the same `isValidCreature` predicate the active pet answers to — a known
+species, a positive `ageDays`, a valid stage, branch and loadout. A
+half-written stable (not a list, a pet with an unknown species, a broken
+age) fails the load instead of half-loading a pet; import validation runs
+the same predicate, so a v24 file with a malformed stable is refused with
+`"invalid"` and the live save is left untouched. A pet with an unknown
+species is refused in the stable exactly as it is refused in the ranch.
+
 ## Export and import
 
 The client can download the current state as a session-free `SaveData`
@@ -254,8 +273,8 @@ The client can download the current state as a session-free `SaveData`
 version newer than `SAVE_VERSION` is refused with a reason and the live save is
 never replaced. Accepted imports drop any live cup session and reload into the
 day phase. The two volume levels, the creature's earned branch, the drifted
-affinity, and the Storm Gift bookkeeping (claim flag and gift marker) travel
-with the save.
+affinity, the pet's own age, the stable, and the Storm Gift bookkeeping
+(claim flag and gift marker) travel with the save.
 
 ## Adding a new field (recipe)
 

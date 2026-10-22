@@ -222,7 +222,7 @@ export function createHudUpdate(
     paintFormChip(formChip, creature)
     // Branch badge (FR-10): the earned form's label, hidden until the first
     // gate has resolved. Hue reinforces the label, never replaces it.
-    paintBranchBadge(branchBadge, creature, state.day)
+    paintBranchBadge(branchBadge, creature)
 
     // Stat row: name, total (rolled base + trained), bonus when above 0.
     for (const cell of statCells) {

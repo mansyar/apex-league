@@ -44,9 +44,13 @@ function stateWith(
 ): GameState {
   const base = createInitialState()
   const created = createCreature("fire_drake", 42)
+  const day = options.day ?? 1
   const creature: Creature = {
     ...created,
     stage,
+    // The pet's own age (save v23): this fixture is a day-1 starter, whose
+    // age tracks the world day.
+    ageDays: day,
     branch: options.branch === undefined ? created.branch : options.branch,
     conditions: {
       ...created.conditions,
@@ -59,7 +63,7 @@ function stateWith(
   }
   return {
     ...base,
-    day: options.day ?? 1,
+    day,
     cupsWon: options.cupsWon ?? 0,
     creature,
     evolutionKnowledge: {
@@ -91,7 +95,7 @@ describe("growth row reading", () => {
       }),
     )
     expect(parts.map((part) => part.label)).toEqual([
-      "Day",
+      "Age",
       "Clean nights",
       "Mood",
       "Bond",
@@ -102,7 +106,7 @@ describe("growth row reading", () => {
       glyph: "○",
       status: "Not yet",
     })
-    expect(parts.find((part) => part.label === "Day")?.detail).toBe("6 / 25")
+    expect(parts.find((part) => part.label === "Age")?.detail).toBe("6 / 25")
     expect(parts.find((part) => part.label === "Bond")?.detail).toBe("52 / 60")
     expect(parts.find((part) => part.label === "Cups won")?.detail).toBe(
       "0 / 1",
@@ -111,7 +115,7 @@ describe("growth row reading", () => {
     const juvenile = partsOf(
       stateWith("baby", { day: 6, mood: 35, juvenileKnown: true }),
     )
-    expect(juvenile.find((part) => part.label === "Day")?.detail).toBe("6 / 10")
+    expect(juvenile.find((part) => part.label === "Age")?.detail).toBe("6 / 10")
   })
 
   test("met and unmet read differently without colour", () => {
@@ -487,10 +491,24 @@ describe("the detail modal's pages", () => {
     expect(classNamed(root, "detail-stat")).toHaveLength(4)
     const statsPage = roleNamed(root, "tabpanel")[0]
     if (!statsPage) throw new Error("no Stats page")
-    expect(classNamed(statsPage, "detail-context-row")).toHaveLength(6)
+    expect(classNamed(statsPage, "detail-context-row")).toHaveLength(7)
     expect(
       classNamed(byClass(root, "detail-kit"), "detail-kit-row"),
     ).toHaveLength(6)
+  })
+
+  test("the context list carries the pet's own age beside the stage", () => {
+    const detail = buildCreatureDetail()
+    detail.open(stateWith("baby", { day: 12 }))
+    const root = fakeOf(detail.root)
+    const statsPage = roleNamed(root, "tabpanel")[0]
+    if (!statsPage) throw new Error("no Stats page")
+    const rows = classNamed(statsPage, "detail-context-row")
+    // The pet's own age (save v23), not the world's day: the row reads 12
+    // days for a pet that is twelve days old.
+    const ageRow = rows.find((row) => textOf(row).includes("Age"))
+    expect(ageRow).toBeDefined()
+    expect(textOf(ageRow as FakeElement)).toContain("12 days")
   })
 
   test("arrows, Home/End and clicks switch pages and take focus", () => {

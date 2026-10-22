@@ -312,22 +312,22 @@ describe("branch badge", () => {
 
   test("stays hidden for a baby, even past the hinted day", () => {
     const { node } = badge()
-    paintBranchBadge(node, createCreature("fire_drake", 42), 6)
+    paintBranchBadge(node, {
+      ...createCreature("fire_drake", 42),
+      ageDays: 6,
+    })
     expect(node.hidden).toBe(true)
     expect(node.textContent).toBe("")
   })
 
   test("names the earned form with its favored stats", () => {
     const { node, attrs } = badge()
-    paintBranchBadge(
-      node,
-      {
-        ...createCreature("fire_drake", 42),
-        stage: "juvenile",
-        branch: "cinder_courser",
-      },
-      20,
-    )
+    paintBranchBadge(node, {
+      ...createCreature("fire_drake", 42),
+      stage: "juvenile",
+      branch: "cinder_courser",
+      ageDays: 20,
+    })
     expect(node.hidden).toBe(false)
     expect(node.textContent).toBe("Cinder Courser · ATK + SPD")
     expect(node.title).toContain("ATK + SPD")
@@ -337,15 +337,12 @@ describe("branch badge", () => {
 
   test("a legacy champion is labelled Legacy, never a real branch", () => {
     const { node } = badge()
-    paintBranchBadge(
-      node,
-      {
-        ...createCreature("fire_drake", 42),
-        stage: "champion",
-        branch: "legacy",
-      },
-      40,
-    )
+    paintBranchBadge(node, {
+      ...createCreature("fire_drake", 42),
+      stage: "champion",
+      branch: "legacy",
+      ageDays: 40,
+    })
     expect(node.textContent).toBe("Legacy")
     // No favored pair to list: the title is the old line itself.
     expect(node.title).toContain("no signature")
@@ -459,20 +456,20 @@ describe("the plate's branch line", () => {
     const refs = buildCreaturePlate()
     const line = refs.branchBadge
 
-    paintBranchBadge(
-      line,
-      {
-        ...createCreature("fire_drake", 42),
-        stage: "juvenile",
-        branch: "cinder_courser",
-      },
-      20,
-    )
+    paintBranchBadge(line, {
+      ...createCreature("fire_drake", 42),
+      stage: "juvenile",
+      branch: "cinder_courser",
+      ageDays: 20,
+    })
     expect(line.hidden).toBe(false)
     expect(line.textContent).toBe("Cinder Courser · ATK + SPD")
 
     // A baby hides the line again even past the hinted day.
-    paintBranchBadge(line, createCreature("fire_drake", 42), 6)
+    paintBranchBadge(line, {
+      ...createCreature("fire_drake", 42),
+      ageDays: 6,
+    })
     expect(line.hidden).toBe(true)
     expect(line.textContent).toBe("")
   })

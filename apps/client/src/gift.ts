@@ -6,8 +6,10 @@
  * comes from the sim's own preview seam (`stormGiftPreview`), which rolls
  * the egg from the pending gift's stored seed, so the numbers on the card
  * are the numbers the hatch produces. The hatch itself is the sim's
- * succession seam: the hound takes the ranch and the outgoing partner is
- * archived in the Hall of Fame.
+ * succession seam: the hound joins the **stable** and the ranch pet stays
+ * exactly where it is (stable & partner reserve FR-7). The hound is a pet
+ * the player owns from that moment, not a replacement for the one they
+ * already have, so the card never promises a succession.
  *
  * Presentation only: the sim decides whether a gift is pending and whether
  * the hatch is allowed; the app owns the store commit.
@@ -42,14 +44,17 @@ function statRow(label: string, value: number): HTMLElement {
 }
 
 /**
- * The note under the preview: hatching hands the ranch to the hound, so the
- * card says what happens to the partner it replaces.
+ * The note under the preview: the hound joins the stable and the ranch pet
+ * stays where it is. The card never says the hound replaces anything.
  */
 export function giftHatchNote(currentName: string | undefined): string {
   return currentName
-    ? `Hatching retires ${currentName} to the Hall of Fame and brings the hound to the ranch.`
-    : "Hatching brings the hound to the ranch."
+    ? `Hatching sends the hound to the stable — ${currentName} keeps the ranch, and the hound's career starts when you bring it forward.`
+    : "Hatching sends the hound to the stable — its career starts when you bring it forward."
 }
+
+/** The caption over the preview: the numbers are the hound's own. */
+export const GIFT_STATS_CAPTION = "The stats it hatches with"
 
 /**
  * The gift chip: the way back to a granted egg once the cup results screen
@@ -116,6 +121,10 @@ export function buildGiftModal(onHatch: () => void): GiftModal {
   const stats = document.createElement("div")
   stats.className = "gift-stats"
 
+  const statsCaption = document.createElement("p")
+  statsCaption.className = "gift-stats-caption"
+  statsCaption.textContent = GIFT_STATS_CAPTION
+
   const note = document.createElement("p")
   note.className = "gift-note"
 
@@ -132,7 +141,7 @@ export function buildGiftModal(onHatch: () => void): GiftModal {
   })
   actions.append(hatch, later)
 
-  box.append(head, flavor, stats, note, actions)
+  box.append(head, flavor, statsCaption, stats, note, actions)
   root.append(box)
 
   /** Where focus goes when the card closes (the chip that opened it). */
