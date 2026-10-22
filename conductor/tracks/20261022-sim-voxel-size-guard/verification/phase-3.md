@@ -201,3 +201,75 @@ The voxel's fixture is nested on purpose — see deviation 1 below.
   `packages/sim/src/save/migrations/`).
 - The phase's own checkpoint commit for this phase is `631cc9a`; the
   evidence file is committed separately, after it.
+
+## Primary verification
+
+Run by the primary agent on 2026-10-22, independently of the phase subagent's
+report, after the phase commits were squashed into `1305de1`.
+
+| Check | Command | Exit | Result |
+|---|---|---|---|
+| Phase scope (guards) | `bun test --timeout 120000 module-size` | 0 | 15 pass, 0 fail, 47 expect() calls across 3 files (client + sim + voxel), 282 ms. |
+| Whole-repo suite | `bun test --timeout 120000` | 0 | 2340 pass, 1 skip, 0 fail across 176 files (90,778 expect() calls). |
+| Typecheck + lint + determinism | `bun run verify` | 0 | `bun run check` clean in all three workspaces; `biome check` 547 files, 0 findings; determinism gate 14 digests byte-identical. |
+| Lint (direct) | `bunx biome check` | 0 | **547 files checked, 0 errors, 0 warnings.** |
+| Build (`verify_phase`) | `bun run build` | 0 | `@apex/client` build succeeded. |
+| Working tree | `git status --porcelain` | 0 | Empty - no uncommitted files, no probe residue. |
+| Phase scope | `git diff --name-only 0027d67..HEAD` | 0 | 3 files: the two new guards and this evidence file. Nothing else. |
+| Voxel untouched (AC-7) | `git diff --name-only 0027d67..HEAD -- packages/voxel` | 0 | Exactly one hit - the **new** `packages/voxel/src/module-size.test.ts`. No voxel source file was modified. |
+
+### The guards were proven to fail against the real tree
+
+The central claim of this phase is not that the guards pass - it is that they
+**can** fail. The subagent proved this with a temp-directory negative control
+inside the guard suite. The primary additionally proved it end to end by
+dropping a real oversized module into the real package tree, running the
+guard, and removing the probe:
+
+| Probe | Module size | Cap | Guard result |
+|---|---|---|---|
+| `packages/sim/src/__primary_probe_oversize.ts` | 12,998 B | 12,288 B | **exit 1** - `1 sim module(s) exceed the 12288 B cap`, naming `__primary_probe_oversize.ts — 12998 B (710 B over the 12288 B cap)`. 4 pass / 1 fail. |
+| `packages/voxel/src/__primary_probe_oversize.ts` | 24,998 B | 24,576 B | **exit 1** - `1 voxel module(s) exceed the 24576 B cap`, naming `__primary_probe_oversize.ts — 24998 B (422 B over the 24576 B cap)`. 4 pass / 1 fail. |
+
+Both probes were removed in a `finally` block; `bun test --timeout 120000
+module-size` was green again (15 pass / 0 fail) immediately afterwards, and
+`git status --porcelain` was empty. **No probe file was committed.**
+
+### Measured headroom
+
+| Package | Cap | Modules measured | Largest module | Headroom |
+|---|---|---|---|---|
+| `packages/sim` | 12,288 B | 82 | `bosses.ts` - 11,654 B | 634 B |
+| `packages/voxel` | 24,576 B | 23 | `axolotl.ts` - 20,598 B | 3,978 B (19.3%) |
+
+`packages/sim/src/save/save.test.ts` (67,127 B) and the 48 co-located test
+suites in `packages/voxel/src` remain exempt, as the rule intends.
+
+### Deviations accepted by the primary
+
+1. **Nested negative-control fixture in the voxel guard** - the fixture is
+   written to `<tmp>/nested/oversized.tsx` instead of the client's flat
+   layout. Every voxel module sits in the package root today, so a flat
+   fixture could not demonstrate that the walk descends into subfolders. The
+   nested fixture proves recursion directly, and the guard reports the path
+   `nested/oversized.tsx`. The sim guard keeps the client's flat layout
+   because its walk test already proves recursion over the real tree
+   (`save/`, `battle/`, `cup/`). Accepted - the nested case is strictly
+   stronger.
+2. **The literal first leg of the phase command** - `bun test module-size
+   --timeout 120000` places the filter before the flag, which the sandbox
+   allowlist rejects. The same selection was run as `bun test --timeout 120000
+   module-size`; both select the same three files. No layer was skipped.
+3. **Lint leg** - the bare `biome` binary is not resolvable in the subagent's
+   sandbox and `bunx` is not allowlisted, so the leg was reached through
+   `bun run verify`, which runs the identical `biome check`. The primary's own
+   `bunx biome check` is clean at 547 files. Accepted.
+4. **A figure in the brief was wrong** - the brief said `packages/voxel/src/fuzz/`
+   holds 48 test files; it holds 28, all `*.test.ts`. The guard counts none of
+   them either way, so there is no impact on the code or the guard's result.
+5. **The client's `vite-env.d.ts` exemption was deliberately not carried
+   over** - neither `packages/sim` nor `packages/voxel` contains a single
+   `.d.ts` file, so there is no shim to exempt and no name-based exemption
+   exists in either guard. The rule stays "no module by name, only test
+   files".
+

@@ -210,39 +210,43 @@
 - **Touches:** `packages/sim/src/module-size.test.ts`,
   `packages/voxel/src/module-size.test.ts`
 - **Verification:** `bun test module-size --timeout 120000 && bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Add the sim guard** — covers: FR-1
-  - [ ] **P3.T1.1: Mirror the client guard** — create
+**Result:** verified
+**Checkpoint:** 1305de1
+**Evidence:** conductor/tracks/20261022-sim-voxel-size-guard/verification/phase-3.md
+
+- [x] **P3.T1: Add the sim guard** — covers: FR-1
+  - [x] **P3.T1.1: Mirror the client guard** — create
     `packages/sim/src/module-size.test.ts` on the shape of
     `apps/client/src/module-size.test.ts`: a recursive walk of
     `packages/sim/src`, a 12,288 B cap, a report naming path, byte size and
     bytes-over, largest first, and a rule that exempts only `*.test.ts` (this
     package has no `vite-env.d.ts` shim, so it needs no name exemption).
-  - [ ] **P3.T1.2: Assert the walk is real** — the suite asserts the walk finds
+  - [x] **P3.T1.2: Assert the walk is real** — the suite asserts the walk finds
     more than 40 modules, that it descends into `save/`, `battle/` and `cup/`,
     and that no `*.test.ts` file is counted.
-  - [ ] **P3.T1.3: Assert the boundary** — a module of exactly 12,288 B is
+  - [x] **P3.T1.3: Assert the boundary** — a module of exactly 12,288 B is
     accepted; 12,289 B is rejected.
-  - [ ] **P3.T1.4: Add the negative control** — write an oversized module into
+  - [x] **P3.T1.4: Add the negative control** — write an oversized module into
     a temp directory, prove the guard rejects it, and remove the fixture in a
     `finally` block so a killed run leaves nothing behind. (NFR-4)
-  - [ ] **P3.T1.5: Prove it passes today** — the guard passes against the tree
+  - [x] **P3.T1.5: Prove it passes today** — the guard passes against the tree
     Phase 2 left clean; record the largest sim module's size in the evidence.
-- [ ] **P3.T2: Add the voxel guard** — covers: FR-2
-  - [ ] **P3.T2.1: Same shape, 24,576 B cap** — create
+- [x] **P3.T2: Add the voxel guard** — covers: FR-2
+  - [x] **P3.T2.1: Same shape, 24,576 B cap** — create
     `packages/voxel/src/module-size.test.ts` with the same walk, report,
     boundary and negative control, at the 24 KB cap.
-  - [ ] **P3.T2.2: Assert the boundary at 24,576 / 24,577 B** and the same walk
+  - [x] **P3.T2.2: Assert the boundary at 24,576 / 24,577 B** and the same walk
     assertions.
-  - [ ] **P3.T2.3: Record the headroom** — the largest voxel module is
+  - [x] **P3.T2.3: Record the headroom** — the largest voxel module is
     `axolotl.ts` at 20,598 B; record it and its headroom in the evidence.
-- [ ] **P3.T3: Prove the voxel package was not touched** — covers: FR-7
-  - [ ] **P3.T3.1: Record the diff scope** — `git diff --name-only` shows no
+- [x] **P3.T3: Prove the voxel package was not touched** — covers: FR-7
+  - [x] **P3.T3.1: Record the diff scope** — `git diff --name-only` shows no
     modified file under `packages/voxel/src` other than the new guard test.
     Record the output in the evidence.
-- [ ] **P3.T4: Run the full gate** — covers: FR-1, FR-2
-  - [ ] **P3.T4.1: Run the whole verification** — `bun run verify && bun run
+- [x] **P3.T4: Run the full gate** — covers: FR-1, FR-2
+  - [x] **P3.T4.1: Run the whole verification** — `bun run verify && bun run
     build` green, including the determinism gate with unchanged artifact
     hashes. Record the exit codes.
 
