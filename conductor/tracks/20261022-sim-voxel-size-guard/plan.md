@@ -45,7 +45,7 @@
   `packages/sim/src/save/migrations/**`,
   `packages/sim/src/save/migrations.test.ts`, `docs/save-schema.md`
 - **Verification:** `bun test packages/sim/src/save --timeout 120000 && bun run check && biome check`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Extract the migration steps** — covers: FR-3
   - [ ] **P1.T1.1: Move each version step into its own module** — create
