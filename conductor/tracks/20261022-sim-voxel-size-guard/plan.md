@@ -307,9 +307,14 @@ save-migration steps now live in `packages/sim/src/save/migrations/`.
     and the step folder (`packages/sim/src/save/migrations/`) separately,
     because `migrate(raw)` lives in the former and the step modules in the
     latter.
-  - [ ] **R1.T2.2: Sharpen the "add a migration" checklist** - name the exact
+  - [ ] **R1.T2.2: Sharpen the "add a migration" checklist** — name the exact
     file a new version is added to
     (`packages/sim/src/save/migrations/index.ts`) and say that a new version
     adds a `v<N>.ts` step module. Change nothing else in the document: the
     persisted shape, the per-version table and every migration's described
     behaviour stay as they are.
+  - [ ] **R1.T2.3: Repoint the validation step of the same recipe** — the
+    recipe's item 3 still tells the reader to extend the validation in
+    `storage.ts`, which is the same stale pointer F2 was about: the
+    validators now live in `packages/sim/src/save/validators/`. Name that
+    module instead. This is the adjacent line of the same defect class.

@@ -121,7 +121,9 @@ mix levels), 17 (evolution discovery), 18 (training programs), and 19
 
 ## Migration chain
 
-`migrate(raw)` walks the chain one step at a time (`packages/sim/src/save/migrations/`):
+`migrate(raw)` (`packages/sim/src/save/migrate.ts`) walks the chain one step
+at a time, through the per-version step modules in
+`packages/sim/src/save/migrations/`:
 
 | Step | What changes |
 |---|---|
@@ -279,14 +281,16 @@ affinity, the pet's own age, the stable, and the Storm Gift bookkeeping
 ## Adding a new field (recipe)
 
 1. Bump `SAVE_VERSION` in `packages/sim/src/save/schema.ts`.
-2. Add a migration entry keyed to the previous version in the `migrations`
-   record in `packages/sim/src/save/migrations/`. Destructure
+2. Add a `v<N>.ts` step module under `packages/sim/src/save/migrations/`, and
+   add a migration entry keyed to the previous version in the `migrations`
+   record in `packages/sim/src/save/migrations/index.ts`. Destructure
    `validateStateShape(raw, <previous>)`, shape only the new field
    (defaults must be safe for a mid-life creature), and return
    `{version: <current>, state, savedAt, session}` (forward the incoming
    session unchanged — see the v7 → v8 step).
-3. Extend the state validation in `storage.ts` (`isValidCreature` and/or
-   the scalar checks) so corrupt values of the new field are rejected.
+3. Extend the state validation in `packages/sim/src/save/validators/`
+   (`isValidCreature` and/or the scalar checks) so corrupt values of the new
+   field are rejected.
 4. Tests, following `save.test.ts`:
    - the full chain test (`v0 → current`) still passes unchanged;
    - a fixture at the previous version migrates to the new one with the

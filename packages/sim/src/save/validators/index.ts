@@ -6,14 +6,16 @@
  * adapter's I/O and the payload's shape rules are two concerns, and only
  * the adapter is imported by the client's boot path.
  *
- * Barrel module (sim-voxel-size-guard, phase 2): the implementation lives in
- * the ./validators submodules —
+ * This barrel is the one owner of the `validators` name
+ * (sim-voxel-size-guard, phase R1) — the implementation lives in the
+ * sibling modules:
  *
- * - `./validators/creature` — the creature and Hall of Fame record rules
- * - `./validators/session` — the save and the live cup session rules
+ * - `./creature` — the creature and Hall of Fame record rules
+ * - `./session` — the save and the live cup session rules
  *
  * The rules themselves are unchanged — each `isValid*` helper keeps the
  * exact check it had while it lived beside the adapter.
  */
 
-export { isValidSaveState, isValidSession } from "./validators/session"
+export { isValidCreature, isValidRetiredRecord } from "./creature"
+export { isValidSaveState, isValidSession } from "./session"
