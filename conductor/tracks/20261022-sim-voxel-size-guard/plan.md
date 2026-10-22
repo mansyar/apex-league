@@ -332,7 +332,7 @@ save-migration steps now live in `packages/sim/src/save/migrations/`.
 - **Touches:** `packages/sim/src/save/validators/creature.ts`,
   `packages/sim/src/save/validators/session.ts`
 - **Verification:** `bun test --timeout 120000 && bun run check && biome check`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R2.T1: Correct the provenance line in both validator headers** - covers: F4
   - [ ] **R2.T1.1: Fix `validators/creature.ts`** - the header says the module
