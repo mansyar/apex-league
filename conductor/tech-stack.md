@@ -515,9 +515,36 @@
   the largest client module 12,263 B against the 12,288 B cap, and the visual
   pass at 12 flows / 154 assertions, console clean.
 
+- `2026-10-22` - **Sim & voxel size guards + save-migration split**
+  (`20261022-sim-voxel-size-guard`): the 12 KB module cap now covers
+  `packages/sim` as well as `apps/client`, and `packages/voxel` gets its own
+  24 KB cap — a voxel module is one hand-authored creature model, so the
+  client's "a module that has stopped owning one concern" rationale does not
+  describe them; none exceeds it today (largest `axolotl.ts` 20,598 B).
+  `packages/sim/src/module-size.test.ts` and
+  `packages/voxel/src/module-size.test.ts` mirror the client guard: a
+  recursive byte-size walk, no name allowlist, only `*.test.*` exempt, and a
+  self-cleaning negative control that proves each guard can fail. Six sim
+  modules were over 12 KB and were split along the seams they already had:
+  `save/migrate.ts` 40,587 → 1,370 B (the 24 versioned steps moved to one
+  module each under `packages/sim/src/save/migrations/`, composed in order by
+  that folder's barrel), `battle/clock.ts` 20,933 → 2,798 B, `save/storage.ts`
+  20,271 → 4,520 B, `legacy.ts` 17,229 → 1,970 B, `breeding.ts` 16,930 →
+  1,839 B, `cup/session.ts` 12,661 → 1,150 B. No behaviour change, no
+  save-schema change (`SAVE_VERSION` stays 24), no dependency change, no
+  existing test edited; the determinism gate is unchanged.
+
 ## Quality Gates
 - `bun check` clean, `biome check` clean, `bun test` green — required before
   any commit lands (see workflow.md).
+- **Module size caps**, each enforced by a guard test that runs on every
+  `bun test`:
+  - `apps/client/src` — 12,288 B (`apps/client/src/module-size.test.ts`)
+  - `packages/sim/src` — 12,288 B (`packages/sim/src/module-size.test.ts`)
+  - `packages/voxel/src` — 24,576 B (`packages/voxel/src/module-size.test.ts`)
+  The rule is bytes, not lines. Only co-located `*.test.*` suites are exempt —
+  there is no allowlist by name. A voxel module is one hand-authored creature
+  model, so it gets 24 KB; a logic module gets 12 KB.
 
 ## Deployment (target)
 - Client: static hosting (Cloudflare Pages or GitHub Pages).

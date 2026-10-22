@@ -142,9 +142,13 @@ it accepts the phase.
 
 ### Project-Specific Rules
 
-- **Module size:** every client module stays at or under **12 KB**. The cap is
-  enforced by `apps/client/src/module-size.test.ts`; a decomposition that
-  quietly re-bloats fails `bun test`.
+- **Module size:** every module stays at or under its package cap — **12 KB**
+  in `apps/client` and `packages/sim`, **24 KB** in `packages/voxel` (a voxel
+  module is one hand-authored creature model, so it needs more room). The caps
+  are enforced by `apps/client/src/module-size.test.ts`,
+  `packages/sim/src/module-size.test.ts` and
+  `packages/voxel/src/module-size.test.ts`; a decomposition that quietly
+  re-bloats fails `bun test`.
 - **Save schema:** any change to the persisted shape bumps the version, adds a
   migration, and updates `docs/save-schema.md` in the same phase.
 - **Single-sourced contracts:** element hues/glyphs live in
@@ -284,7 +288,7 @@ Before a phase is accepted:
 - [ ] `bun test --timeout 120000` is green and no slower than the previous run
 - [ ] `bun run gate:determinism` passes
 - [ ] Logic-bearing code has success and failure tests
-- [ ] Client modules stay at or under 12 KB
+- [ ] Modules stay at or under their package cap (12 KB client/sim, 24 KB voxel)
 - [ ] Save-schema changes bump the version, migrate, and update `docs/save-schema.md`
 - [ ] User-facing changes have desktop and phone visual evidence
 - [ ] Code follows `conductor/code_styleguides/`
