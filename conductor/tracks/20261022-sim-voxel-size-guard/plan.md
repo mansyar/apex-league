@@ -282,38 +282,42 @@ save-migration steps now live in `packages/sim/src/save/migrations/`.
 - **Touches:** `packages/sim/src/save/validators.ts`,
   `packages/sim/src/save/validators/**`, `docs/save-schema.md`
 - **Verification:** `bun test --timeout 120000 && bun run check && biome check`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **R1.T1: Resolve F1 - give the validators one owner** - covers: F1
-  - [ ] **R1.T1.1: Move the barrel into the folder** - delete
+**Result:** verified
+**Checkpoint:** 0db693c
+**Evidence:** conductor/tracks/20261022-sim-voxel-size-guard/verification/phase-R1.md
+
+- [x] **R1.T1: Resolve F1 - give the validators one owner** - covers: F1
+  - [x] **R1.T1.1: Move the barrel into the folder** - delete
     `packages/sim/src/save/validators.ts` and add
     `packages/sim/src/save/validators/index.ts` as the barrel, re-exporting
     every validator the two submodules export (`isValidCreature`,
     `isValidRetiredRecord`, `isValidSession`, `isValidSaveState`). The four
     helpers that were module-private before the split stay module-private.
-  - [ ] **R1.T1.2: Leave every consumer untouched** - `save/storage.ts` keeps
+  - [x] **R1.T1.2: Leave every consumer untouched** - `save/storage.ts` keeps
     its `from "./validators"` specifier; the specifier now resolves to the
     folder's `index.ts`, exactly as `save/migrate.ts` already resolves
     `"./migrations"` to `save/migrations/index.ts` in this same package. No
     other file imports the validators.
-  - [ ] **R1.T1.3: Prove it** - `bun run check` resolves every import,
+  - [x] **R1.T1.3: Prove it** - `bun run check` resolves every import,
     `bun test --timeout 120000` is green with the same 2,340 passes, the
     validator behaviour is unchanged, and `packages/sim/src/index.ts` stays
     byte-identical.
-- [ ] **R1.T2: Resolve F2 - the save-schema doc must name both files** -
+- [x] **R1.T2: Resolve F2 - the save-schema doc must name both files** -
   covers: F2
-  - [ ] **R1.T2.1: Repoint the migration-chain lead-in** - the line under
+  - [x] **R1.T2.1: Repoint the migration-chain lead-in** - the line under
     `## Migration chain` must name the driver (`packages/sim/src/save/migrate.ts`)
     and the step folder (`packages/sim/src/save/migrations/`) separately,
     because `migrate(raw)` lives in the former and the step modules in the
     latter.
-  - [ ] **R1.T2.2: Sharpen the "add a migration" checklist** — name the exact
+  - [x] **R1.T2.2: Sharpen the "add a migration" checklist** — name the exact
     file a new version is added to
     (`packages/sim/src/save/migrations/index.ts`) and say that a new version
     adds a `v<N>.ts` step module. Change nothing else in the document: the
     persisted shape, the per-version table and every migration's described
     behaviour stay as they are.
-  - [ ] **R1.T2.3: Repoint the validation step of the same recipe** — the
+  - [x] **R1.T2.3: Repoint the validation step of the same recipe** — the
     recipe's item 3 still tells the reader to extend the validation in
     `storage.ts`, which is the same stale pointer F2 was about: the
     validators now live in `packages/sim/src/save/validators/`. Name that

@@ -275,5 +275,95 @@ are all in place.
   about `migrate.ts`. The brief scoped F2 to the lead-in and item 2 only and
   said to change nothing else, so it was left alone. Flagging it in case you
   want it in a later pass.
-- **No product or design decision was needed** — F1 and F2 both had exactly
+- **No product or design decision was needed** - F1 and F2 both had exactly
   one shape the brief pinned down.
+
+## Primary verification
+
+Run by the primary agent on 2026-10-22, after the review-fix phase commits
+were squashed into `0db693c`.
+
+The phase subagent reported `blocked`: it could not run
+`git rm packages/sim/src/save/validators.ts`, because `git rm` is not in the
+phase agent's shell allowlist. The primary holds the project's permissions, so
+it ran the command itself:
+
+```
+git rm packages/sim/src/save/validators.ts
+```
+
+-> exit 0, `rm 'packages/sim/src/save/validators.ts'`. The deletion was
+committed as `bb10b6f`, and the adjacent stale pointer the subagent flagged
+but correctly left out of its brief - the recipe's item 3 still telling the
+reader to extend the validation in `storage.ts` - was repointed to
+`packages/sim/src/save/validators/` in `cbd69db`, the same defect class as F2
+on the adjacent line.
+
+**Everything below was re-run by the primary after the deletion**, so the new
+barrel is genuinely exercised. The subagent's green runs predate the deletion
+and are not relied on.
+
+| Check | Command | Exit | Result |
+|---|---|---|---|
+| Whole-repo suite | `bun test --timeout 120000` (via `bun run verify`) | 0 | 2340 pass, 1 skip, 0 fail across 176 files. |
+| Typecheck | `bun run check` (via `bun run verify`) | 0 | No type errors in any of the three workspaces. |
+| Lint | `biome check` (via `bun run verify`) | 0 | 548 files checked, no findings. |
+| Determinism | `bun run gate:determinism` (via `bun run verify`) | 0 | 14 digests byte-identical. |
+| Integrated gate | `bun run verify` | 0 | Green end to end. |
+| Build (`verify_phase`) | `bun run build` | 0 | `@apex/client` build succeeded. |
+| Working tree | `git status --porcelain` | 0 | Empty. |
+
+### F1 - the validators name now has one owner
+
+| Check | Result |
+|---|---|
+| `save/validators.ts` deleted | `Test-Path packages\sim\src\save\validators.ts` -> `False` |
+| The specifier still resolves | `import("./packages/sim/src/save/validators")` loads and exports exactly `isValidCreature, isValidRetiredRecord, isValidSaveState, isValidSession` |
+| The importer is untouched | `git diff --name-only f2c174c..HEAD -- packages/sim/src/save/storage.ts` -> empty. `save/storage.ts:15` still reads `import { isValidSaveState, isValidSession } from "./validators"`, and now resolves to the folder's `index.ts` exactly as `save/migrate.ts` resolves `"./migrations"` to `save/migrations/index.ts`. |
+| No validator logic changed | `git diff ac4fbda..HEAD -- packages/sim/src/save/validators/creature.ts packages/sim/src/save/validators/session.ts` -> empty. Both submodules are byte-identical to their Phase 2 versions. |
+| Public surface unchanged | `git diff --quiet 06a82fc..HEAD -- packages/sim/src/index.ts` -> 0. `packages/sim/src/index.ts` is still byte-identical to the base commit. |
+| The four private helpers stayed private | `isValidTraitList`, `isValidParentList`, `isValidCreatureBranch` and `isValidPendingGift` are still module-private; the barrel re-exports only the four module-level exports. |
+| Sizes | `validators/index.ts` 857 B, `validators/creature.ts` 9,352 B, `validators/session.ts` 7,843 B - all under the 12,288 B cap. |
+
+### F2 and the adjacent pointer
+
+`docs/save-schema.md` changed in exactly two places, plus the item 3 the
+subagent flagged:
+
+1. The migration-chain lead-in now names the driver and the step folder
+   separately - `migrate(raw)` (`packages/sim/src/save/migrate.ts`) walks the
+   chain one step at a time, through the per-version step modules in
+   `packages/sim/src/save/migrations/`.
+2. The "adding a new field" recipe now names
+   `packages/sim/src/save/migrations/index.ts` as the record and the
+   `v<N>.ts` step module.
+3. The recipe's item 3 now points at `packages/sim/src/save/validators/`
+   instead of the stale `storage.ts`.
+
+Nothing else in the document changed: the persisted shape, the per-version
+table and every migration's described behaviour are untouched.
+
+### F3 - the plan's Touches list
+
+Closed by the primary before the phase started, by amending Phase 2's
+`Touches` to include `packages/sim/src/save/validators/**` and recording the
+deviation that produced it.
+
+### Deviation accepted by the primary
+
+- **The primary performed the deletion and the adjacent doc fix.** The
+  phase agent's allowlist has no `git rm`, and the skill's rule is that a
+  denied command is reported and run by the primary - never worked around.
+  The subagent correctly reported the denial rather than rephrasing it. The
+  only other change the primary made inside the phase was the adjacent
+  `docs/save-schema.md` item 3, which the subagent had explicitly flagged as
+  out of its brief's scope; it is the same defect class as F2 and was given a
+  plan task (R1.T2.3) rather than done silently.
+
+### No test file was edited
+
+`git diff --name-only 06a82fc..HEAD -- "*.test.ts" "*.test.tsx"` lists only
+the three **new** suites this track added: `save/migrations.test.ts`,
+`packages/sim/src/module-size.test.ts` and
+`packages/voxel/src/module-size.test.ts`. No pre-existing test was modified
+or deleted.
