@@ -26,6 +26,12 @@
   acceptance, in addition to the phase's own `Verification` command.
 - Task commits are made by the phase subagent with conventional messages; the
   primary squashes them into one phase commit.
+- **Global NFR coverage:** every phase verifies **NFR-1** (behaviour-identical),
+  **NFR-2** (determinism preserved), **NFR-3** (no new dependency), **NFR-5**
+  (typecheck clean) and **NFR-6** (style clean) through its own Verification
+  command, because `bun run verify` runs the full typecheck, test, lint and
+  determinism layers. **AC-8** and **AC-9** are covered by Phase 3's
+  `bun run verify && bun run build`.
 
 ## Phase 1: Save-Migration Decomposition
 
@@ -34,7 +40,7 @@
   `packages/sim/src/save/migrations/`, and a new suite locks the migration
   chain.
 - **Depends on:** none
-- **Covers:** FR-3, FR-5, AC-3, AC-5
+- **Covers:** FR-3, FR-5, NFR-1, NFR-7, AC-3, AC-5
 - **Touches:** `packages/sim/src/save/migrate.ts`,
   `packages/sim/src/save/migrations/**`,
   `packages/sim/src/save/migrations.test.ts`, `docs/save-schema.md`
@@ -96,7 +102,7 @@
   the seams they already have, with every existing import path and the
   package's public surface unchanged.
 - **Depends on:** Phase 1
-- **Covers:** FR-4, FR-6, AC-4, AC-6
+- **Covers:** FR-4, FR-6, NFR-1, NFR-6, NFR-7, AC-4, AC-6
 - **Touches:** `packages/sim/src/save/storage.ts`,
   `packages/sim/src/save/validators.ts`, `packages/sim/src/battle/clock.ts`,
   `packages/sim/src/battle/clock/**`, `packages/sim/src/legacy.ts`,
@@ -191,7 +197,8 @@
 - **Goal:** `packages/sim` and `packages/voxel` each enforce their module-size
   cap, and each guard proves it can fail.
 - **Depends on:** Phase 2
-- **Covers:** FR-1, FR-2, FR-7, AC-1, AC-2, AC-7
+- **Covers:** FR-1, FR-2, FR-7, NFR-1, NFR-2, NFR-3, NFR-4, NFR-5, NFR-6, AC-1,
+  AC-2, AC-7, AC-8, AC-9
 - **Touches:** `packages/sim/src/module-size.test.ts`,
   `packages/voxel/src/module-size.test.ts`
 - **Verification:** `bun test module-size --timeout 120000 && bun run verify && bun run build`
