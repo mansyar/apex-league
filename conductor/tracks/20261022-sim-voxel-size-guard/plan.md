@@ -114,7 +114,7 @@
   `packages/sim/src/breeding/**`, `packages/sim/src/cup/session.ts`,
   `packages/sim/src/cup/session/**`
 - **Verification:** `bun test --timeout 120000 && bun run check && biome check`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Split the save validators out of `save/storage.ts`** — covers:
   FR-4
