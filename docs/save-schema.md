@@ -121,7 +121,7 @@ mix levels), 17 (evolution discovery), 18 (training programs), and 19
 
 ## Migration chain
 
-`migrate(raw)` walks the chain one step at a time (`migrate.ts`):
+`migrate(raw)` walks the chain one step at a time (`packages/sim/src/save/migrations/`):
 
 | Step | What changes |
 |---|---|
@@ -280,7 +280,7 @@ affinity, the pet's own age, the stable, and the Storm Gift bookkeeping
 
 1. Bump `SAVE_VERSION` in `packages/sim/src/save/schema.ts`.
 2. Add a migration entry keyed to the previous version in the `migrations`
-   record in `migrate.ts`. Destructure
+   record in `packages/sim/src/save/migrations/`. Destructure
    `validateStateShape(raw, <previous>)`, shape only the new field
    (defaults must be safe for a mid-life creature), and return
    `{version: <current>, state, savedAt, session}` (forward the incoming
