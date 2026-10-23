@@ -161,7 +161,7 @@ The primary appends after acceptance:
 - **Covers:** F1, F2, F3
 - **Touches:** `packages/sim/src/species.ts`, `packages/sim/src/species.test.ts`, `packages/sim/src/battle/species-balance.test.ts`, `apps/client/src/handbook/chart.ts`, `packages/sim/src/save/giftSave.test.ts`, plus any co-located test a probe re-pin requires
 - **Verification:** `bun test --timeout 120000 && bun run check && biome check`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Resolve F1 — make the falcon's "highest SPD" claim whole-range true** — covers: F1
 	- [ ] **R1.T1.1: Raise the falcon spd floor to 17** in `species.ts` (bounds `[17, 19]`) so no existing species' roll range overlaps it, keeping hp/atk/def bounds as authored
