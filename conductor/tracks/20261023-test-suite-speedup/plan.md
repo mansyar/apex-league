@@ -78,7 +78,7 @@ Phase states: `pending` → `in_progress` → `verified` / `failed` / `blocked`.
 - **Covers:** FR-2, FR-4, FR-7, NFR-3, AC-1, AC-3, AC-6.
 - **Touches:** `package.json`, `.github/workflows/nightly.yml`, `conductor/tracks/20261023-test-suite-speedup/verification/phase-3.md`.
 - **Verification:** `bun run test:fuzz && bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Add the `test:fuzz` script** — covers: FR-4
   - [ ] **P3.T1.1: Add the script** — root `package.json` gains `"test:fuzz": "bun test --check --parallel --timeout 120000 packages/voxel/src/fuzz"` with the sweep env set so the full lists run (the script must set `APEX_FUZZ_SWEEP=full`; use a cross-platform form, e.g. a tiny bun runner or `env`-prefix compatible with the CI shell).
