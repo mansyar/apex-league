@@ -1,9 +1,9 @@
 /**
  * Battle move catalog: the innate basic strike plus the ranged specials, eight
- * per authored element (fire, plant, water, electric). The first six of each
- * element are the species kit (four classic rows, then the wider pool's fast
- * chip move and heavy finisher); the last two are the branch signatures, one
- * heavy and one reliable.
+ * per authored element (fire, plant, water, electric, earth, wind). The first
+ * six of each element are the species kit (four classic rows, then the wider
+ * pool's fast chip move and heavy finisher); the last two are the branch
+ * signatures, one heavy and one reliable.
  * Pure data and small helpers — no DOM, no jobs, no I/O.
  * Cooldowns are counted in the fighter's own actions, never in clock ticks.
  */
@@ -97,6 +97,22 @@ export const CATALOG: readonly MoveDef[] = Object.freeze([
   special("gigavolt", "Gigavolt", "electric", 14, 70, 3),
   special("storm_surge", "Storm Surge", "electric", 12, 75, 2),
   special("ion_wall", "Ion Wall", "electric", 9, 100, 2),
+  special("pebble_shot", "Pebble Shot", "earth", 6, 100, 1),
+  special("dust_devil", "Dust Devil", "earth", 8, 90, 1),
+  special("clay_burst", "Clay Burst", "earth", 10, 85, 2),
+  special("boulder_toss", "Boulder Toss", "earth", 12, 75, 2),
+  special("sand_blast", "Sand Blast", "earth", 7, 95, 1),
+  special("tectonic_slam", "Tectonic Slam", "earth", 14, 70, 3),
+  special("quake_stomp", "Quake Stomp", "earth", 12, 75, 2),
+  special("basalt_guard", "Basalt Guard", "earth", 9, 100, 2),
+  special("gust", "Gust", "wind", 6, 100, 1),
+  special("feather_dart", "Feather Dart", "wind", 8, 90, 1),
+  special("gale_cutter", "Gale Cutter", "wind", 10, 85, 2),
+  special("sky_bolt", "Sky Bolt", "wind", 12, 75, 2),
+  special("talon_slash", "Talon Slash", "wind", 7, 95, 1),
+  special("hurricane_spiral", "Hurricane Spiral", "wind", 14, 70, 3),
+  special("cyclone_dive", "Cyclone Dive", "wind", 12, 75, 2),
+  special("zephyr_veil", "Zephyr Veil", "wind", 9, 100, 2),
 ])
 
 const MOVE_INDEX = new Map(

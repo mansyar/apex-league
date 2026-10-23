@@ -95,7 +95,7 @@ function branchDef(seed: BranchSeed): BranchDef {
 }
 
 /**
- * The eight real forms: two per species, one offense and one defense. Their
+ * The twelve real forms: two per species, one offense and one defense. Their
  * boosts preserve the legacy effective-stat budget (11 juvenile, 22 champion,
  * HP counted double), so neither branch is a stat upgrade over the other.
  */
@@ -187,6 +187,50 @@ export const BRANCHES: readonly BranchDef[] = Object.freeze([
     championBoost: { hp: 6, atk: 3, def: 7, spd: 0 },
     signatureMove: "ion_wall",
     accentHue: 38,
+  }),
+  branchDef({
+    id: "landslide_ram",
+    speciesId: "earth_tortoise",
+    label: "Landslide Ram",
+    line: "Tip the whole hillside and let gravity finish the fight.",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 6, atk: 6, def: 3, spd: 1 },
+    signatureMove: "quake_stomp",
+    accentHue: 40,
+  }),
+  branchDef({
+    id: "rampart_keeper",
+    speciesId: "earth_tortoise",
+    label: "Rampart Keeper",
+    line: "Dig in deep — the shell outlasts whatever charges it.",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 7, atk: 2, def: 6, spd: 0 },
+    signatureMove: "basalt_guard",
+    accentHue: 16,
+  }),
+  branchDef({
+    id: "squall_diver",
+    speciesId: "wind_falcon",
+    label: "Squall Diver",
+    line: "Fall out of the sun and be gone before they look up.",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 4, atk: 7, def: 3, spd: 4 },
+    signatureMove: "cyclone_dive",
+    accentHue: 177,
+  }),
+  branchDef({
+    id: "aerie_warden",
+    speciesId: "wind_falcon",
+    label: "Aerie Warden",
+    line: "Circle high and make every challenger climb to lose.",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 7, atk: 3, def: 5, spd: 0 },
+    signatureMove: "zephyr_veil",
+    accentHue: 153,
   }),
 ])
 

@@ -117,10 +117,11 @@ export const STARTER_SPECIES: readonly SpeciesDef[] = Object.freeze([
 export const STORM_GIFT_SPECIES_ID = "electric_hound"
 
 /**
- * The species the league grants as a ladder reward rather than as a
- * starter. Each carries the tier that unlocks it, so the rival field and
- * the reward itself read the same contract instead of guessing from an
- * array's membership (FR-7).
+ * The reward species the league grants as a ladder reward rather than as a
+ * starter: Silver → `electric_hound`, Gold → `wind_falcon`, Legend →
+ * `earth_tortoise` (earth/wind species line FR-5). Each carries the tier
+ * that unlocks it, so the rival field and the reward itself read the same
+ * contract instead of guessing from an array's membership (FR-7).
  */
 export const REWARD_SPECIES: readonly SpeciesDef[] = Object.freeze([
   {
@@ -141,6 +142,45 @@ export const REWARD_SPECIES: readonly SpeciesDef[] = Object.freeze([
     ],
     temperament: "rush",
     statBounds: { hp: [70, 84], atk: [10, 14], def: [5, 8], spd: [12, 16] },
+  },
+  {
+    id: "wind_falcon",
+    archetypeId: "falcon",
+    displayName: "Zephyr Falcon",
+    element: "wind",
+    flavor: "A restless sprinter that naps mid-gust and never drops a feather.",
+    available: false,
+    rewardFromTier: "gold",
+    kit: [
+      "gust",
+      "feather_dart",
+      "gale_cutter",
+      "sky_bolt",
+      "talon_slash",
+      "hurricane_spiral",
+    ],
+    temperament: "rush",
+    statBounds: { hp: [56, 68], atk: [10, 14], def: [4, 7], spd: [15, 19] },
+  },
+  {
+    id: "earth_tortoise",
+    archetypeId: "tortoise",
+    displayName: "Basalt Tortoise",
+    element: "earth",
+    flavor:
+      "A patient wanderer whose mossy shell carries its own little meadow. It never hurries, and it never has to.",
+    available: false,
+    rewardFromTier: "legend",
+    kit: [
+      "pebble_shot",
+      "dust_devil",
+      "clay_burst",
+      "boulder_toss",
+      "sand_blast",
+      "tectonic_slam",
+    ],
+    temperament: "slow",
+    statBounds: { hp: [105, 120], atk: [7, 10], def: [15, 18], spd: [2, 4] },
   },
 ])
 

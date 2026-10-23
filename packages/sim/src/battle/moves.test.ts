@@ -14,22 +14,24 @@ import {
 // Spec section 3: moves, basic strike, equip-4.
 
 describe("battle catalog", () => {
-  test("holds exactly 32 specials with unique ids", () => {
-    expect(CATALOG.length).toBe(32)
+  test("holds exactly 48 specials with unique ids", () => {
+    expect(CATALOG.length).toBe(48)
     const ids = new Set(CATALOG.map((m) => m.id))
-    expect(ids.size).toBe(32)
+    expect(ids.size).toBe(48)
   })
 
-  test("covers fire, plant, water, and electric elements only", () => {
+  test("covers all six league elements", () => {
     for (const move of CATALOG) {
       expect(move.element === undefined).toBe(false)
     }
     const elements = new Set(CATALOG.map((m) => m.element))
     expect(Array.from(elements).sort()).toEqual([
+      "earth",
       "electric",
       "fire",
       "plant",
       "water",
+      "wind",
     ])
   })
 
@@ -42,7 +44,14 @@ describe("battle catalog", () => {
       { power: 7, accuracy: 95, cooldown: 1 },
       { power: 14, accuracy: 70, cooldown: 3 },
     ]
-    for (const element of ["fire", "plant", "water", "electric"] as const) {
+    for (const element of [
+      "fire",
+      "plant",
+      "water",
+      "electric",
+      "earth",
+      "wind",
+    ] as const) {
       const rows = CATALOG.filter((m) => m.element === element).slice(0, 6)
       expect(rows.length).toBe(6)
       for (const [i, move] of rows.entries()) {
@@ -146,6 +155,22 @@ describe("battle catalog", () => {
       "gigavolt",
       "storm_surge",
       "ion_wall",
+      "pebble_shot",
+      "dust_devil",
+      "clay_burst",
+      "boulder_toss",
+      "sand_blast",
+      "tectonic_slam",
+      "quake_stomp",
+      "basalt_guard",
+      "gust",
+      "feather_dart",
+      "gale_cutter",
+      "sky_bolt",
+      "talon_slash",
+      "hurricane_spiral",
+      "cyclone_dive",
+      "zephyr_veil",
     ])
   })
 
@@ -155,6 +180,8 @@ describe("battle catalog", () => {
       ["thorn_charge", "bramble_guard"],
       ["riptide_rush", "tide_aegis"],
       ["storm_surge", "ion_wall"],
+      ["quake_stomp", "basalt_guard"],
+      ["cyclone_dive", "zephyr_veil"],
     ] as const
     for (const [offenseId, defenseId] of pairs) {
       const offense = getMove(offenseId)
@@ -454,5 +481,223 @@ describe("electric kit (electric_species_line)", () => {
     expect(
       knownMoves(pick(6, "juvenile", "storm_courser"), hound()),
     ).not.toContain("ion_wall")
+  })
+})
+
+describe("earth kit (earth-wind-species-line)", () => {
+  const TORTOISE_KIT = [
+    "pebble_shot",
+    "dust_devil",
+    "clay_burst",
+    "boulder_toss",
+    "sand_blast",
+    "tectonic_slam",
+  ] as const
+
+  /** The universal tier table, pinned for the earth rows too. */
+  const TIERS: Readonly<Record<string, readonly [number, number, number]>> = {
+    pebble_shot: [6, 100, 1],
+    dust_devil: [8, 90, 1],
+    clay_burst: [10, 85, 2],
+    boulder_toss: [12, 75, 2],
+    sand_blast: [7, 95, 1],
+    tectonic_slam: [14, 70, 3],
+  }
+
+  /** A minimal creature pick for the learn/equip helpers. */
+  function pick(
+    trainingDays: number,
+    stage: Creature["stage"],
+    branch: string | null,
+  ): Pick<Creature, "trainingDays" | "stage" | "branch"> {
+    return { trainingDays, stage, branch }
+  }
+
+  function tortoise() {
+    const species = getSpecies("earth_tortoise")
+    if (!species) throw new Error("earth_tortoise species missing")
+    return species
+  }
+
+  test("the tortoise's kit is the six earth kit rows in tier order", () => {
+    const species = tortoise()
+    expect(species.kit).toEqual([...TORTOISE_KIT])
+    for (const id of TORTOISE_KIT) {
+      const move = getMove(id)
+      if (!move) throw new Error(`kit move unknown: ${id}`)
+      expect(move.element).toBe("earth")
+      const tier = TIERS[id]
+      if (!tier) throw new Error(`no tier recorded for ${id}`)
+      expect([move.power, move.accuracy, move.cooldown]).toEqual([...tier])
+    }
+  })
+
+  test("birth kit: a newborn knows exactly two moves", () => {
+    expect(knownMoves(pick(0, "baby", null), tortoise())).toEqual(
+      TORTOISE_KIT.slice(0, 2),
+    )
+  })
+
+  test("three trained days unlock the third kit row", () => {
+    expect(knownMoves(pick(3, "baby", null), tortoise())).toEqual(
+      TORTOISE_KIT.slice(0, 3),
+    )
+  })
+
+  test("evolving unlocks the third row and the signature at any training count", () => {
+    expect(
+      knownMoves(pick(0, "juvenile", "landslide_ram"), tortoise()),
+    ).toEqual([...TORTOISE_KIT.slice(0, 3), "quake_stomp"])
+  })
+
+  test("six trained days open the full pool", () => {
+    expect(knownMoves(pick(6, "baby", null), tortoise())).toEqual([
+      ...TORTOISE_KIT,
+    ])
+  })
+
+  test("a trained branch adds its signature after the pool opens", () => {
+    expect(
+      knownMoves(pick(6, "juvenile", "landslide_ram"), tortoise()),
+    ).toEqual([...TORTOISE_KIT, "quake_stomp"])
+    expect(
+      knownMoves(pick(6, "juvenile", "rampart_keeper"), tortoise()),
+    ).toEqual([...TORTOISE_KIT, "basalt_guard"])
+  })
+
+  test("the default loadout fields four kit moves, never the signature", () => {
+    expect(
+      defaultLoadout(pick(6, "juvenile", "landslide_ram"), tortoise()),
+    ).toEqual(TORTOISE_KIT.slice(0, 4))
+  })
+
+  test("equip-4: the first four kit moves validate; five do not", () => {
+    expect(validateLoadout(TORTOISE_KIT.slice(0, 4)).map((m) => m.id)).toEqual(
+      TORTOISE_KIT.slice(0, 4),
+    )
+    expect(() => validateLoadout([...TORTOISE_KIT])).toThrow(/two to four/)
+  })
+
+  test("the branch signature is equippable once learned", () => {
+    expect(
+      validateLoadout([...TORTOISE_KIT.slice(0, 3), "quake_stomp"]).map(
+        (m) => m.id,
+      ),
+    ).toEqual([...TORTOISE_KIT.slice(0, 3), "quake_stomp"])
+  })
+
+  test("a sibling signature is never known", () => {
+    expect(
+      knownMoves(pick(6, "juvenile", "landslide_ram"), tortoise()),
+    ).not.toContain("basalt_guard")
+  })
+})
+
+describe("wind kit (earth-wind-species-line)", () => {
+  const FALCON_KIT = [
+    "gust",
+    "feather_dart",
+    "gale_cutter",
+    "sky_bolt",
+    "talon_slash",
+    "hurricane_spiral",
+  ] as const
+
+  /** The universal tier table, pinned for the wind rows too. */
+  const TIERS: Readonly<Record<string, readonly [number, number, number]>> = {
+    gust: [6, 100, 1],
+    feather_dart: [8, 90, 1],
+    gale_cutter: [10, 85, 2],
+    sky_bolt: [12, 75, 2],
+    talon_slash: [7, 95, 1],
+    hurricane_spiral: [14, 70, 3],
+  }
+
+  function pick(
+    trainingDays: number,
+    stage: Creature["stage"],
+    branch: string | null,
+  ): Pick<Creature, "trainingDays" | "stage" | "branch"> {
+    return { trainingDays, stage, branch }
+  }
+
+  function falcon() {
+    const species = getSpecies("wind_falcon")
+    if (!species) throw new Error("wind_falcon species missing")
+    return species
+  }
+
+  test("the falcon's kit is the six wind kit rows in tier order", () => {
+    const species = falcon()
+    expect(species.kit).toEqual([...FALCON_KIT])
+    for (const id of FALCON_KIT) {
+      const move = getMove(id)
+      if (!move) throw new Error(`kit move unknown: ${id}`)
+      expect(move.element).toBe("wind")
+      const tier = TIERS[id]
+      if (!tier) throw new Error(`no tier recorded for ${id}`)
+      expect([move.power, move.accuracy, move.cooldown]).toEqual([...tier])
+    }
+  })
+
+  test("birth kit: a newborn knows exactly two moves", () => {
+    expect(knownMoves(pick(0, "baby", null), falcon())).toEqual(
+      FALCON_KIT.slice(0, 2),
+    )
+  })
+
+  test("three trained days unlock the third kit row", () => {
+    expect(knownMoves(pick(3, "baby", null), falcon())).toEqual(
+      FALCON_KIT.slice(0, 3),
+    )
+  })
+
+  test("evolving unlocks the third row and the signature at any training count", () => {
+    expect(knownMoves(pick(0, "juvenile", "squall_diver"), falcon())).toEqual([
+      ...FALCON_KIT.slice(0, 3),
+      "cyclone_dive",
+    ])
+  })
+
+  test("six trained days open the full pool", () => {
+    expect(knownMoves(pick(6, "baby", null), falcon())).toEqual([...FALCON_KIT])
+  })
+
+  test("a trained branch adds its signature after the pool opens", () => {
+    expect(knownMoves(pick(6, "juvenile", "squall_diver"), falcon())).toEqual([
+      ...FALCON_KIT,
+      "cyclone_dive",
+    ])
+    expect(knownMoves(pick(6, "juvenile", "aerie_warden"), falcon())).toEqual([
+      ...FALCON_KIT,
+      "zephyr_veil",
+    ])
+  })
+
+  test("the default loadout fields four kit moves, never the signature", () => {
+    expect(
+      defaultLoadout(pick(6, "juvenile", "squall_diver"), falcon()),
+    ).toEqual(FALCON_KIT.slice(0, 4))
+  })
+
+  test("equip-4: the first four kit moves validate; five do not", () => {
+    expect(validateLoadout(FALCON_KIT.slice(0, 4)).map((m) => m.id)).toEqual(
+      FALCON_KIT.slice(0, 4),
+    )
+    expect(() => validateLoadout([...FALCON_KIT])).toThrow(/two to four/)
+  })
+
+  test("the branch signature is equippable once learned", () => {
+    expect(
+      validateLoadout([...FALCON_KIT.slice(0, 3), "cyclone_dive"]).map(
+        (m) => m.id,
+      ),
+    ).toEqual([...FALCON_KIT.slice(0, 3), "cyclone_dive"])
+  })
+
+  test("a sibling signature is never known", () => {
+    expect(
+      knownMoves(pick(6, "juvenile", "squall_diver"), falcon()),
+    ).not.toContain("zephyr_veil")
   })
 })

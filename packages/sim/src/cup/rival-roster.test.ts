@@ -1,8 +1,9 @@
 /**
- * FR-7: generated rival rosters may field the reward line (`electric_hound`)
- * from the tier where it is obtainable — Silver and above. Below that tier
- * the pool is exactly the three starters, so every pre-Silver bracket stays
- * byte-identical to what the draw stream produced before this track.
+ * FR-7: generated rival rosters may field the reward line — `electric_hound`
+ * from Silver, `wind_falcon` from Gold, `earth_tortoise` from Legend — exactly
+ * when `obtainableSpecies` opens their gate. Below a gate the pool is exactly
+ * the three starters, so every pre-Silver bracket stays byte-identical to
+ * what the draw stream produced before these tracks.
  */
 
 import { describe, expect, test } from "bun:test"
@@ -10,12 +11,11 @@ import { bossForCup } from "../bosses"
 import { effectiveStats } from "../creature"
 import type { LadderTier } from "../ladder"
 import { prepareCup } from "../machine"
-import { REWARD_SPECIES, STARTER_SPECIES } from "../species"
+import { obtainableSpecies, REWARD_SPECIES, STARTER_SPECIES } from "../species"
 import { chooseStarter, createInitialState, type GameState } from "../state"
 import { startCupSession } from "./session"
 
 const STARTER_IDS = new Set(STARTER_SPECIES.map((s) => s.id))
-const REWARD_IDS = new Set(REWARD_SPECIES.map((s) => s.id))
 const DAYS = Array.from({ length: 24 }, (_, i) => 7 + i * 4)
 
 function stateAt(tier: LadderTier): GameState {
@@ -62,17 +62,20 @@ describe("generated rival rosters (FR-7)", () => {
     }
   })
 
-  test("Silver and above draw the reward line into the field", () => {
+  test("each tier draws exactly its opened reward pool into the field", () => {
     for (const tier of ["silver", "gold", "legend"] as const) {
       const state = stateAt(tier)
       const met = new Set<string>()
       for (const day of DAYS) {
         for (const id of rivalSpecies(state, day)) met.add(id)
       }
-      // The widened pool is four species over seven slots: every reward id
-      // shows up many times across a two-dozen-day sweep.
-      for (const id of REWARD_IDS) expect(met.has(id)).toBe(true)
-      for (const id of STARTER_IDS) expect(met.has(id)).toBe(true)
+      // The widened pool is the starters plus every reward whose tier gate
+      // is open: each unlocked species shows up across a two-dozen-day sweep,
+      // and no locked one leaks in early.
+      const pool = new Set(obtainableSpecies(tier).map((s) => s.id))
+      expect(pool.size).toBeGreaterThan(STARTER_IDS.size)
+      for (const id of pool) expect(met.has(id)).toBe(true)
+      for (const id of met) expect(pool.has(id)).toBe(true)
     }
   })
 
