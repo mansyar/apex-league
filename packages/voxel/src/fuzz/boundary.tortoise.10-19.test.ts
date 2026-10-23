@@ -13,7 +13,7 @@ const FULL_CHUNK = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 const CHUNK =
   process.env.APEX_FUZZ_SWEEP === "full" ? FULL_CHUNK : FULL_CHUNK.slice(0, 3)
 
-test("no tortoise voxel touches the grid boundary over seeds 10-19", () => {
+test("no tortoise voxel touches the grid boundary over the gate slice (first quarter of seeds; full list via APEX_FUZZ_SWEEP=full)", () => {
   const R = TORTOISE_GRID - 1
   let violations = 0
   for (const seed of CHUNK) {

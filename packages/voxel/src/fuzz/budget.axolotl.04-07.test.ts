@@ -38,7 +38,7 @@ function pipeline(seed: number) {
   })
 }
 
-test("4 axolotl seeds run the full pipeline within the GLB budget (seeds 4-7)", () => {
+test("axolotl seeds run the full pipeline within the GLB budget (gate slice; full list via APEX_FUZZ_SWEEP=full)", () => {
   let maxBytes = 0
   for (const seed of SEEDS) {
     const { glb, manifest } = pipeline(seed)

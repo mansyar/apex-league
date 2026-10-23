@@ -12,7 +12,7 @@ const FULL_CHUNK = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 const CHUNK =
   process.env.APEX_FUZZ_SWEEP === "full" ? FULL_CHUNK : FULL_CHUNK.slice(0, 3)
 
-test("no axolotl voxel touches the grid boundary over seeds 0-9", () => {
+test("no axolotl voxel touches the grid boundary over the gate slice (first quarter of seeds; full list via APEX_FUZZ_SWEEP=full)", () => {
   const R = AXOLOTL_GRID - 1
   let violations = 0
   for (const seed of CHUNK) {

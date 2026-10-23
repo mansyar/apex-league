@@ -30,7 +30,7 @@ function pipeline(seed: number) {
   })
 }
 
-test("full falcon pipeline is byte-identical per seed", () => {
+test("full falcon pipeline is byte-identical per seed (gate slice; full list via APEX_FUZZ_SWEEP=full)", () => {
   for (const seed of SEEDS) {
     const a = pipeline(seed)
     const b = pipeline(seed)

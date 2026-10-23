@@ -113,6 +113,10 @@ Discharge of the sandbox-blocked legs, run by the primary on the phase tree (bas
 - **Guards under workers (AC-5, Phase 1):** held — the 3 module-size guards' negative-control suites still fire (included in the 2,453 counts, still 15/0 on a direct run in Phase 1).
 - **Accepted deviation:** the `test:fuzz` script value (POSIX-prefix env, not `--env-if-present`) — accepted with runtime proof above; rationale preserved in the Script shape decision section.
 
+### ~4-core GitHub-runner expectation (FR-7, derived)
+
+Added in Phase R1 (R1.T3.1): on a ~4-core GitHub runner, bun self-caps to ~4 workers; as a derived expectation (not a measurement), the full sweep's serial-equivalent work — the voxel pipeline family whose sliced-serial leg measured 117 s, scaled from the gate's 89 seeds to the sweep's 303, plus per-file import overhead across the 42 fuzz files — implies roughly 35–60 s there, comfortable for the nightly cron (dev reference run: 41 s at 20 workers).
+
 ## Notes
 
 - P3.T1.1, P3.T2.1: done. P3.T1.2, P3.T3.1–T3.3: blocked on sandbox execution only —
