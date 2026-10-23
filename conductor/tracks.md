@@ -23,3 +23,4 @@
 - [x] **Track: Sim & Voxel Size Guard + Save-Migration Decomposition** - [20261022-sim-voxel-size-guard](./archive/20261022-sim-voxel-size-guard/index.md) - refactor - medium *(archived 2026-10-23)*
 - [x] **Track: Earth & Wind Species Line** - [20261023-earth-wind-species-line](./archive/20261023-earth-wind-species-line/index.md) - feature - high *(archived 2026-10-23)*
 - [x] **Track: Test Suite Speedup** - [20261023-test-suite-speedup](./archive/20261023-test-suite-speedup/index.md) - chore - medium *(archived 2026-10-24)*
+- [ ] **Track: Battle Choreography for All Creatures** - [20261024-battle-choreography-all-creatures](./tracks/20261024-battle-choreography-all-creatures/index.md) - feature - medium
