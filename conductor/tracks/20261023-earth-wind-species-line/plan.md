@@ -114,7 +114,7 @@ The primary appends after acceptance:
 - **Covers:** FR-2, NFR-2, NFR-5, AC-2
 - **Touches:** `packages/voxel/src/earth_tortoise.ts` (new), `packages/voxel/src/wind_falcon.ts` (new), the voxel archetype registry, `packages/voxel/scripts/determinism-gate.ts`, generated GLB artifacts under `apps/client/public/voxel/**` (committed), plus co-located voxel tests
 - **Verification:** `bun run gate:determinism && bun test --timeout 120000 packages/voxel && bun run check`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Tortoise archetype** — covers: FR-2, NFR-5
   - [ ] **P3.T1.1: Three-stage builder** — baby, juvenile, champion shapes following the established archetype pattern (template data + build function, local helpers, seed-driven variation)
