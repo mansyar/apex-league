@@ -6,6 +6,12 @@ import { voxelize } from "../voxelizer"
 
 // Partitioned from fuzz.test.ts: same GLB budget guarantee over the same seed
 // range, split so `bun test --parallel` can spread pipelines across cores.
+// Smoke slice (test-suite-speedup FR-3): the PR gate runs the first quarter of
+// the seed list; `bun run test:fuzz` sets APEX_FUZZ_SWEEP=full for the rest.
+
+const FULL_SEEDS = [4, 5, 6, 7]
+const SEEDS =
+  process.env.APEX_FUZZ_SWEEP === "full" ? FULL_SEEDS : FULL_SEEDS.slice(0, 1)
 
 const VOXEL_SIZE = 0.045
 /**
@@ -34,7 +40,7 @@ function pipeline(seed: number) {
 
 test("4 drake seeds run the full pipeline within the GLB budget (seeds 4-7)", () => {
   let maxBytes = 0
-  for (let seed = 4; seed < 8; seed++) {
+  for (const seed of SEEDS) {
     const { glb, manifest } = pipeline(seed)
     const view = new DataView(glb.buffer, glb.byteOffset, glb.byteLength)
     expect(view.getUint32(0, true)).toBe(0x46546c67)

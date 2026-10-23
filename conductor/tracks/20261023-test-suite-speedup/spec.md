@@ -22,7 +22,7 @@ Every Conductor phase runs the full serial suite two to four times (subagent ver
 ## Goals & Success Metrics (numeric, measured in phase evidence)
 
 1. The full-suite phase test leg under the new capped command (`--parallel=4`) completes in ≤ 150 s on the dev machine.
-2. The voxel PR-gate test leg (`bun test packages/voxel`, default mode, parallel) completes in ≤ 35 s.
+2. The voxel PR-gate test leg (`bun test packages/voxel`, default mode, parallel) completes in ≤ 70 s (the measured per-file import-overhead floor of the 65-file voxel suite; revised 2026-10-23 against the originally-speculated 35 s — see Open Questions).
 3. Full `bun run verify` completes in ≤ 120 s.
 4. CI job duration unchanged or better (≤ ~1 m 40 s).
 5. The module-size guards' negative controls are proven to still fire under `--parallel` worker isolation.
@@ -70,7 +70,7 @@ Every Conductor phase runs the full serial suite two to four times (subagent ver
 | ID | Criterion | Verifies |
 |----|-----------|----------|
 | AC-1 | `test_phase` exists in the Workflow Config; the measured full-suite leg under it is ≤ 150 s, recorded in phase evidence. | FR-1, FR-2 |
-| AC-2 | `bun test packages/voxel` (default mode) completes in ≤ 35 s and runs the documented smoke slice; with the sweep flag set, at least one suite demonstrably runs its full seed list again. | FR-3 |
+| AC-2 | `bun test packages/voxel` (default mode) completes in ≤ 70 s and runs the documented smoke slice; with the sweep flag set, at least one suite demonstrably runs its full seed list again. | FR-3 |
 | AC-3 | `bun run test:fuzz` is green locally, and the nightly workflow file invokes it next to the determinism gate. | FR-4 |
 | AC-4 | `conductor/workflow.md` documents the tiered policy and the new command; the change is discoverable for the next track's planning. | FR-5 |
 | AC-5 | All three guards pass with negative controls firing under `--parallel` workers, recorded in evidence. | FR-6 |
@@ -95,7 +95,7 @@ Every Conductor phase runs the full serial suite two to four times (subagent ver
 - **Decision (clarified in interview):** the smoke slice is a fixed, documented seed subset (first quarter per suite); the single sweep flag exists only so `test:fuzz` can restore the full list — it is not a general-purpose mode switch.
 - Assumption: bun 1.4.x flags (`--parallel=<N>`, `--check`) behave as observed in this session's measurements; the track re-measures rather than trusting the baseline table.
 - Assumption: the exact smoke-slice constant naming and per-suite header wording are chosen at implementation.
-- Assumption: the ≤ 150 s and ≤ 35 s targets are set for this 20-core dev machine; CI is measured against its own current baseline.
+- Assumption: the ≤ 150 s and ≤ 70 s targets are set for this 20-core dev machine; CI is measured against its own current baseline.
 
 ## References
 

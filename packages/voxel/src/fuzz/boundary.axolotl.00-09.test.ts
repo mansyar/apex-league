@@ -5,9 +5,12 @@ import { voxelize } from "../voxelizer"
 
 // Partitioned from fuzz.test.ts: same boundary guarantee over the same seed
 // range, split so bun test --parallel can spread voxelization across cores.
-// Coverage is unchanged: every seed is asserted.
+// Smoke slice (test-suite-speedup FR-3): the PR gate runs the first quarter of
+// the seed list; `bun run test:fuzz` sets APEX_FUZZ_SWEEP=full for the rest.
 
-const CHUNK = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+const FULL_CHUNK = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+const CHUNK =
+  process.env.APEX_FUZZ_SWEEP === "full" ? FULL_CHUNK : FULL_CHUNK.slice(0, 3)
 
 test("no axolotl voxel touches the grid boundary over seeds 0-9", () => {
   const R = AXOLOTL_GRID - 1

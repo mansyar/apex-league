@@ -6,6 +6,12 @@ import { voxelize } from "../voxelizer"
 
 // Partitioned from fuzz.test.ts: determinism guarantee for one archetype.
 // un test --parallel runs this alongside the other fuzz partitions.
+// Smoke slice (test-suite-speedup FR-3): the PR gate runs the first quarter of
+// the seed list; `bun run test:fuzz` sets APEX_FUZZ_SWEEP=full for the rest.
+
+const FULL_SEEDS = [3, 42, 99]
+const SEEDS =
+  process.env.APEX_FUZZ_SWEEP === "full" ? FULL_SEEDS : FULL_SEEDS.slice(0, 1)
 
 const VOXEL_SIZE = 0.045
 
@@ -26,7 +32,7 @@ function pipeline(seed: number) {
 }
 
 test("full storm hound pipeline is byte-identical per seed", () => {
-  for (const seed of [3, 42, 99]) {
+  for (const seed of SEEDS) {
     const a = pipeline(seed)
     const b = pipeline(seed)
     expect(Buffer.from(a.glb).equals(Buffer.from(b.glb))).toBe(true)
