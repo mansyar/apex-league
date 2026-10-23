@@ -95,7 +95,7 @@ Earth and Wind fire their own shots with bespoke heavy finishers.
 
 **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/move-fx.test.ts apps/client/src/fx && bun run check && biome check`
 
-**Status:** pending
+**Status:** in_progress
 
 - [ ] **P2.T1: Split move-fx at its seam** — covers: FR-4
   - [ ] **P2.T1.1: Move the two halves** — `move-fx/looks.ts` takes `ShotLook`, `SHOT_LOOKS`, `lookFor`, `elementColor`, `ELEMENT_COLOR_FALLBACK`, `PROJECTILE_LIFE_MS`, `PROJECTILE_ARC`; `move-fx/moves.ts` takes `Posture`, `ShotSpec`, `MoveFx`, `MOVE_FX`, `DEFAULT_FX`, `fxFor`, `CONTACT_T`. `move-fx.ts` becomes the barrel re-exporting both, in the house style of `cup.ts` (header comment naming the submodules and why).
