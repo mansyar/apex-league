@@ -116,17 +116,17 @@ The primary appends after acceptance:
 - **Verification:** `bun run gate:determinism && bun test --timeout 120000 packages/voxel && bun run check`
 - **Status:** in_progress
 
-- [ ] **P3.T1: Tortoise archetype** — covers: FR-2, NFR-5
-  - [ ] **P3.T1.1: Three-stage builder** — baby, juvenile, champion shapes following the established archetype pattern (template data + build function, local helpers, seed-driven variation)
-  - [ ] **P3.T1.2: Palette and identity** — semantic voxel classes, AO as the only darkening pass (0.72 floor), dark bead eyes, Earth hue 28° from `ui/element.ts`
-  - [ ] **P3.T1.3: Gate registration** — the three GLBs registered with the prop digest manifest
-- [ ] **P3.T2: Falcon archetype** — covers: FR-2, NFR-5
-  - [ ] **P3.T2.1: Three-stage builder** — same shape, silhouettes distinct from the storm hound
-  - [ ] **P3.T2.2: Palette and identity** — Wind hue 165°, same rules
-  - [ ] **P3.T2.3: Gate registration** — three more GLBs
-- [ ] **P3.T3: Determinism gate extension** — covers: FR-2, NFR-2
-  - [ ] **P3.T3.1: 12 → 18 creature GLBs** — all eighteen regenerate byte-identical across runs
-  - [ ] **P3.T3.2: Existing digests unchanged** — the twelve pre-existing GLBs and five props stay byte-identical
+- [x] **P3.T1: Tortoise archetype** — covers: FR-2, NFR-5
+  - [x] **P3.T1.1: Three-stage builder** — baby, juvenile, champion shapes following the established archetype pattern (template data + build function, local helpers, seed-driven variation)
+  - [x] **P3.T1.2: Palette and identity** — semantic voxel classes, AO as the only darkening pass (0.72 floor), dark bead eyes, Earth hue 28° from `ui/element.ts`
+  - [x] **P3.T1.3: Gate registration** — the three GLBs registered with the prop digest manifest
+- [x] **P3.T2: Falcon archetype** — covers: FR-2, NFR-5
+  - [x] **P3.T2.1: Three-stage builder** — same shape, silhouettes distinct from the storm hound
+  - [x] **P3.T2.2: Palette and identity** — Wind hue 165°, same rules
+  - [x] **P3.T2.3: Gate registration** — three more GLBs
+- [x] **P3.T3: Determinism gate extension** — covers: FR-2, NFR-2
+  - [x] **P3.T3.1: 12 → 18 creature GLBs** — all eighteen regenerate byte-identical across runs
+  - [x] **P3.T3.2: Existing digests unchanged** — the twelve pre-existing GLBs and five props stay byte-identical
 
 <!--
 The primary appends after acceptance:

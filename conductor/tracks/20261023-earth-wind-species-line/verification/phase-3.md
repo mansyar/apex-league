@@ -90,3 +90,58 @@ A temporary calibration harness (since deleted by the primary in `3e9334c`) swep
 1. No changes were made to mesher/AO/color/GLB/build infrastructure, `packages/sim/**`, or `apps/client/src/**`. No new dependencies; no `any`; no `@ts-ignore`.
 2. `face.ts` grew to 15,881 B of the 24,576 B cap (two new archetype cases) — the largest non-test module in the package; the two new builders are ~11 KB each, leaving comfortable headroom.
 3. The voxel suite is 295 tests after the placeholder's deletion (296 during development).
+
+## Primary verification
+
+Run by the primary agent on 2026-10-23, after squashing the phase commits into
+`4c5d29d`.
+
+**Structural checks**
+
+| Check | Result |
+| --- | --- |
+| Working tree | Clean. |
+| Commits in `eebda52..HEAD` | `5dcd2e5`, `3e9334c` (primary-run artifact commit), `e79bd51`, `2e8b69b` — exactly the four the report listed. |
+| Files changed | Only `packages/voxel/src/**` (the two builders + tests, registry, budgets, face plans, stage-test signatures, barrel), the 12 new `artifacts/` files, and the evidence file. `git diff --name-only eebda52..HEAD -- packages/sim packages/client` is **empty** — no sim or client touch. |
+| Byte sizes (cap 24,576 B) | `tortoise.ts` 11,561 · `falcon.ts` 11,049 · `face.ts` 15,881 · `archetype.ts` 2,632 · `budgets.ts` 4,778 · `index.ts` 2,053; package max remains `axolotl.ts` 20,598 — all under the cap, sizes independently confirmed from `git ls-tree -r -l`. |
+
+**Deviation audit**
+
+- Artifact export + commit by the primary — unavoidable allowlist gap; the six
+  invocations and the gate are re-run and verified by the primary below.
+- `calibrate.test.ts` deleted by the primary — correct (it was a placeholder
+  the brief never wanted committed).
+- Hand-applied Biome fixes — the final direct `bunx biome check` below
+  independently confirms 568 files clean.
+- Plan-fidelity note: the plan's Touches named `packages/voxel/src/earth_tortoise.ts`
+  / `wind_falcon.ts` and `apps/client/public/voxel/**`; the actual files are
+  `tortoise.ts` / `falcon.ts` (matching the archetype ids the Phase 1 data
+  already pinned) and the committed artifact home is `artifacts/` at the repo
+  root. Both are reconciled in the plan's Phase 3 Touches note.
+
+**Independent command results**
+
+| Check | Command | Exit | Result |
+| --- | --- | --- | --- |
+| Determinism gate | `bun run gate:determinism` (via `bun run verify`) | 0 | 18 creature GLBs byte-identical + 5-props digest (verified twice: once standalone, once inside `verify`). |
+| Voxel suite | `bun test --timeout 120000 packages/voxel` | 0 | 295 pass, 54,366 expect() calls, 0 fail across 65 files. |
+| Phase static | `bun run check` | 0 | voxel 90 / sim 146 / client 352 files, no type errors. |
+| Lint | `bunx biome check` | 0 | 568 files checked, no fixes applied. |
+| Whole workspace | `bun test --check --parallel` (via `bun run verify`) | 0 | Full suite green. |
+| Integrated gate | `bun run verify` | 0 | Green end to end. |
+| Build (`verify_phase`) | `bun run build` | 0 | `@apex/client` build succeeded. |
+
+**Acceptance criteria**: AC-2 is backed by the committed seed-42 GLBs, the
+budget fuzz exports and the gate's byte-identity; NFR-2 by the size table and
+the package's module-size guard; NFR-5 by the 18-GLB gate (12 pre-existing
+digests unchanged, 6 new) and the twice-build determinism tests.
+
+**Flags carried forward**
+
+- `face.ts` (15,881 B) is now the voxel package's largest non-test module —
+  no further growth expected this track.
+- The client's runtime path (`apps/client/src/creature.ts` + `scene-sync.ts`)
+  reads `species.archetypeId` → `generate()`, so falcon/tortoise render
+  without any client change; `choreo.ts`'s `profileFor()` falls back to
+  `DEFAULT_PROFILE` for the two new archetypes — the Phase 4 visual pass must
+  confirm whether authored body profiles are needed.
