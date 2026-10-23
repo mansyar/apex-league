@@ -2,7 +2,7 @@
  * Save payload validators, part two: the shape rules for the persisted save
  * itself and for the live cup session it may carry.
  *
- * Split out of the former monolithic save/validators.ts
+ * Split out of the former monolithic save/storage.ts
  * (sim-voxel-size-guard, phase 2) — pure relocation, no behavior change. The
  * creature and Hall of Fame rules live in ./creature.
  */

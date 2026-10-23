@@ -3,7 +3,7 @@
  * the Hall of Fame records a persisted save must pass before the game trusts
  * them.
  *
- * Split out of the former monolithic save/validators.ts
+ * Split out of the former monolithic save/storage.ts
  * (sim-voxel-size-guard, phase 2) — pure relocation, no behavior change.
  * The save- and session-level rules live in ./session.
  */
