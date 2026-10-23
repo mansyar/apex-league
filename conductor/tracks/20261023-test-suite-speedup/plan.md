@@ -55,7 +55,7 @@ Phase states: `pending` → `in_progress` → `verified` / `failed` / `blocked`.
 - **Covers:** FR-3, NFR-1, NFR-4, AC-2.
 - **Touches:** `packages/voxel/src/fuzz/**`, `conductor/tracks/20261023-test-suite-speedup/verification/phase-2.md`.
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 packages/voxel && bun run check && biome check`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Slice the boundary fuzz suites** — covers: FR-3
   - [ ] **P2.T1.1: Apply the slicing pattern** — in each of the 8 boundary fuzz files: keep the full seed list as a named const; derive the gate slice as its first quarter; select via `process.env.APEX_FUZZ_SWEEP === "full" ? FULL : GATE`; state the rule in the file's header comment.
