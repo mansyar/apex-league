@@ -81,3 +81,52 @@
 - **Stale copy flag:** handbook type-chart population note still reads "…the league's Silver reward hands out the Electric Storm Hound. Earth and Wind matchups are charted and waiting for their species." — now inaccurate that falcon/tortoise exist. Client copy change is outside this phase's Touches; needs a follow-up.
 - Minor cosmetic: on iPhone 15 the stacked nav buttons overlap the draft-day heading slightly (screenshot `starter-card-iphone15.png`); cosmetic only, not fixed.
 - Every changed line this phase is inside the new test file (+ this evidence file); all verified modules are byte-identical (`branches.ts` 11,543 B and `state.ts` 10,624 B untouched; `SAVE_VERSION` stays 25; barrels untouched).
+
+## Primary verification
+
+Run by the primary agent on 2026-10-23, after squashing the phase commits into
+`b49e2bf`.
+
+**Structural checks**
+
+| Check | Result |
+| --- | --- |
+| Working tree | Clean — the four throwaway scratch files were deleted by the primary (`Remove-Item`), nothing untracked remains. |
+| Commits in `f432798..HEAD` | `86b4092` (lifecycle test) + `ca03d68` (evidence) — exactly the two reported, squashed into `b49e2bf`. |
+| Files changed | Exactly `packages/sim/src/lifecycle-integration.test.ts` + the evidence file — every verified sim/client module is byte-identical. |
+| Dev server | The Vite dev server the subagent could not stop was stopped by the primary (listener on :5173, pid 10828, `Stop-Process`). |
+
+**Deviation audit**
+
+- Scratch-file deletion by the primary — correct (allowlist gap, anticipated).
+- Dev-server stop by the primary — correct.
+- `playwright-cli eval`-based save seeding — the saves were built by the real
+  sim seams (dynamic import of the barrel), not hand-crafted JSON. Sound
+  method; accepted.
+- Gate attempts 1-2 — both fixes confined to the new test file (missing
+  `bun:test` import; two `string | null` guards). Two rework attempts used,
+  within the ≤2 budget.
+
+**Independent command results**
+
+| Check | Command | Exit | Result |
+| --- | --- | --- | --- |
+| Lint | `bunx biome check` | 0 | 569 files checked, no fixes applied. |
+| Integrated gate | `bun run verify` | 0 | Typecheck + full parallel suite + biome + determinism green. |
+| Determinism | gate tail | 0 | 18 creature GLBs byte-identical (incl. falcon/tortoise) + 5-props digest match. |
+| Build (`verify_phase`) | `bun run build` | 0 | `@apex/client` build succeeded. |
+
+**Acceptance criteria**: AC-1 is backed by the two lifecycle tests riding real
+finalize → hatch → care → branch → cup seams; AC-7 re-asserted by the full
+suite (boss/rival suites green, no code changed); AC-9 by the source check
+(no special-casing) plus 25+ screenshots at desktop and iPhone 15 with 0
+console errors/warnings. No AC in this phase's scope lacks test or evidence.
+
+**Flags carried to review/doc sync**
+
+- Stale handbook population-note copy ("waiting for their species") — a real
+  client copy defect to resolve in review.
+- `choreo.ts` `profileFor` falls back to `DEFAULT_PROFILE` for falcon/tortoise
+  — acceptable fallback, worth an authored profile follow-up.
+- Falcon silhouette reads chunky for a speedster; iPhone 15 starter-card nav
+  overlap is cosmetic — both art-pass notes.

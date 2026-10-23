@@ -114,7 +114,11 @@ The primary appends after acceptance:
 - **Covers:** FR-2, NFR-2, NFR-5, AC-2
 - **Touches:** `packages/voxel/src/earth_tortoise.ts` (new), `packages/voxel/src/wind_falcon.ts` (new), the voxel archetype registry, `packages/voxel/scripts/determinism-gate.ts`, generated GLB artifacts under `apps/client/public/voxel/**` (committed), plus co-located voxel tests
 - **Verification:** `bun run gate:determinism && bun test --timeout 120000 packages/voxel && bun run check`
-- **Status:** in_progress
+- **Status:** verified
+
+**Result:** verified
+**Checkpoint:** 4c5d29d
+**Evidence:** conductor/tracks/20261023-earth-wind-species-line/verification/phase-3.md
 
 - [x] **P3.T1: Tortoise archetype** — covers: FR-2, NFR-5
   - [x] **P3.T1.1: Three-stage builder** — baby, juvenile, champion shapes following the established archetype pattern (template data + build function, local helpers, seed-driven variation)
@@ -144,17 +148,21 @@ The primary appends after acceptance:
 - **Covers:** FR-1, FR-9, AC-1, AC-7, AC-9
 - **Touches:** `packages/sim/src/lifecycle-integration.test.ts` (new or equivalent co-located home), `packages/sim/src/index.ts` (exports if needed), `apps/client/src/mock/**` (handbook/mock data if the surfaces need registration), plus co-located test updates where the integration lives
 - **Verification:** `bun run verify && bun run build` (visual layer via `playwright-cli` against `bun run dev`)
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P4.T1: Lifecycle integration test** — covers: FR-1
-  - [ ] **P4.T1.1: Tortoise end-to-end** — obtain egg via Legend reward → hatch → raise → evolve → choose a champion branch → win a cup
-  - [ ] **P4.T1.2: Falcon end-to-end** — same via the Gold reward
-- [ ] **P4.T2: Client data surfaces** — covers: FR-9
-  - [ ] **P4.T2.1: Handbook and detail surfaces** — chart rows, move pages, creature plate, detail modal, starter card show both species with no special-casing
-- [ ] **P4.T3: Visual pass** — covers: FR-9
-  - [ ] **P4.T3.1: Desktop and iPhone 15 screenshots** — nursery gift flow with a pending reward, handbook entries for both species, battle HUD with both species in play; clean console
-- [ ] **P4.T4: Full gate** — covers: NFR-1, NFR-2, NFR-4
-  - [ ] **P4.T4.1: Whole verification** — `bun run verify && bun run build` green end-to-end, determinism gate at 18 GLBs, all guards green
+**Result:** verified
+**Checkpoint:** b49e2bf
+**Evidence:** conductor/tracks/20261023-earth-wind-species-line/verification/phase-4.md
+
+- [x] **P4.T1: Lifecycle integration test** — covers: FR-1
+  - [x] **P4.T1.1: Tortoise end-to-end** — obtain egg via Legend reward → hatch → raise → evolve → choose a champion branch → win a cup
+  - [x] **P4.T1.2: Falcon end-to-end** — same via the Gold reward
+- [x] **P4.T2: Client data surfaces** — covers: FR-9
+  - [x] **P4.T2.1: Handbook and detail surfaces** — chart rows, move pages, creature plate, detail modal, starter card show both species with no special-casing
+- [x] **P4.T3: Visual pass** — covers: FR-9
+  - [x] **P4.T3.1: Desktop and iPhone 15 screenshots** — nursery gift flow with a pending reward, handbook entries for both species, battle HUD with both species in play; clean console
+- [x] **P4.T4: Full gate** — covers: NFR-1, NFR-2, NFR-4
+  - [x] **P4.T4.1: Whole verification** — `bun run verify && bun run build` green end-to-end, determinism gate at 18 GLBs, all guards green
 
 <!--
 The primary appends after acceptance:
