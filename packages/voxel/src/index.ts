@@ -28,6 +28,13 @@ export {
 } from "./bovine"
 export { buildDrake, DRAKE_GRID, type DrakeBuild, drakeTemplate } from "./drake"
 export {
+  buildFalcon,
+  FALCON_GRID,
+  type FalconBuild,
+  falconTemplate,
+  sampleFalconDna,
+} from "./falcon"
+export {
   type ExportInput,
   exportGlb,
   GENERATOR_VERSION,
@@ -81,6 +88,13 @@ export {
   sampleStormHoundDna,
   stormHoundTemplate,
 } from "./storm_hound"
+export {
+  buildTortoise,
+  sampleTortoiseDna,
+  TORTOISE_GRID,
+  type TortoiseBuild,
+  tortoiseTemplate,
+} from "./tortoise"
 export { bakeVertexColors, type Palette } from "./vertex-color"
 export {
   type PartField,

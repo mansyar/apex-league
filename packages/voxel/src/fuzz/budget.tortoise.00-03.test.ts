@@ -1,0 +1,42 @@
+import { expect, test } from "bun:test"
+import { generate } from "../archetype"
+import { exportGlb } from "../glb"
+import { meshGrid } from "../mesher"
+import { voxelize } from "../voxelizer"
+
+// Partitioned per-archetype GLB budget fuzz, mirroring the storm_hound set.
+
+const VOXEL_SIZE = 0.045
+/**
+ * Spec NFR: committed creature GLBs stay within this budget (320 KiB).
+ * Raised from 150 KiB when per-vertex colour and ambient occlusion landed.
+ */
+const GLB_BUDGET_BYTES = 320 * 1024
+
+/** Full generation pipeline through the registry, exactly as exporters run it. */
+function pipeline(seed: number) {
+  const { dna, build, def } = generate("tortoise", seed)
+  const meshes = meshGrid(voxelize(build.fields, def.grid))
+  return exportGlb({
+    archetype: def.id,
+    seed,
+    dnaJson: JSON.stringify(dna),
+    voxelSize: VOXEL_SIZE,
+    colors: build.colors,
+    palettes: build.palettes,
+    pivots: build.pivots,
+    parts: meshes,
+  })
+}
+
+test("4 tortoise seeds run the full pipeline within the GLB budget (seeds 0-3)", () => {
+  let maxBytes = 0
+  for (let seed = 0; seed < 4; seed++) {
+    const { glb, manifest } = pipeline(seed)
+    const view = new DataView(glb.buffer, glb.byteOffset, glb.byteLength)
+    expect(view.getUint32(0, true)).toBe(0x46546c67)
+    expect(manifest.triCount).toBeGreaterThan(0)
+    maxBytes = Math.max(maxBytes, glb.byteLength)
+  }
+  expect(maxBytes).toBeLessThanOrEqual(GLB_BUDGET_BYTES)
+}, 120000)
