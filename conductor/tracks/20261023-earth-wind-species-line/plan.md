@@ -35,7 +35,7 @@
 - **Covers:** FR-1, FR-3, FR-4, FR-7, FR-10, NFR-3, NFR-4, AC-3, AC-4, AC-10 (rival half of AC-7)
 - **Touches:** `packages/sim/src/species.ts`, `packages/sim/src/species.test.ts` (new), `packages/sim/src/battle/moves.ts`, `packages/sim/src/battle/moves.test.ts`, `packages/sim/src/breeding.ts`, `packages/sim/src/breeding/**`, `packages/sim/src/cup/bracket.ts`, `packages/sim/src/battle/species-balance.test.ts` (new), the evolution/branch data home for species forms, plus new co-located tests for anything added
 - **Verification:** `bun test --timeout 120000 packages/sim && bun run check && biome check`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Define the two species** — covers: FR-1, FR-3
   - [ ] **P1.T1.1: SpeciesDef entries** — `earth_tortoise` (fortress: highest HP and DEF in the game, lowest SPD) and `wind_falcon` (speedster: highest SPD, low HP) with temperament, `statBounds`, kit, `rewardFromTier: "gold"` / `"legend"`, and `available: true`; the starter seam refuses both ids
