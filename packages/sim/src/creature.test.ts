@@ -108,7 +108,7 @@ describe("the pet's own age", () => {
   })
 
   test("the gifted egg hatches a one-day-old pet", () => {
-    expect(createGiftEgg(42).ageDays).toBe(1)
+    expect(createGiftEgg("electric_hound", 42).ageDays).toBe(1)
   })
 
   test("a graduation successor hatches a one-day-old pet", () => {

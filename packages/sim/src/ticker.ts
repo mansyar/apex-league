@@ -74,12 +74,12 @@ export function advanceDay(state: GameState, rng?: Rng): GameState {
     // Evolution discovery (save v17) carries across every day; the settlement
     // below only ever adds a gate, never removes one.
     evolutionKnowledge: state.evolutionKnowledge,
-    // The Storm Gift claim (save v21) carries across every day — the grant
-    // is stamped only by the cup finalize's reward seam.
-    stormGiftClaimed: state.stormGiftClaimed,
-    // The granted egg waits for the player (save v22): a day tick never
-    // hatches it and never drops it.
-    pendingGift: state.pendingGift,
+    // The per-tier league reward claims (save v25) carry across every day —
+    // the stamps are applied only by the cup finalize's reward seam.
+    claimedTiers: [...state.claimedTiers],
+    // The granted eggs wait for the player (save v25): a day tick never
+    // hatches them and never drops them.
+    pendingRewards: [...state.pendingRewards],
     // The stable (save v24) carries across every day untouched: a stashed
     // pet is frozen — it never ages, never decays and never trains.
     stable: [...state.stable],

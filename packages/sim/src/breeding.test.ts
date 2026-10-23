@@ -749,8 +749,8 @@ describe("hatchGiftEgg — the hatch age", () => {
     const owned = chooseStarter(createInitialState(), "fire_drake", 42)
     const granted: GameState = {
       ...owned,
-      stormGiftClaimed: true,
-      pendingGift: { speciesId: "electric_hound", seed: 4242 },
+      claimedTiers: ["silver"],
+      pendingRewards: [{ speciesId: "electric_hound", seed: 4242 }],
     }
     const result = hatchGiftEgg(granted)
     if (!result.ok) throw new Error("hatch refused")

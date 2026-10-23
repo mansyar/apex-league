@@ -1,6 +1,6 @@
 import type { CupSession } from "../../cup/session"
 import type { GameState } from "../../state"
-import { validateStateShape } from "./common"
+import { rewardRecordOf, validateStateShape } from "./common"
 
 /**
  * v22 → v23 (stable & partner reserve, Phase 1): the active creature
@@ -30,8 +30,7 @@ export function migrateFromV22(
     bossDefeats: s.bossDefeats as GameState["bossDefeats"],
     legendTitles: s.legendTitles as GameState["legendTitles"],
     evolutionKnowledge: s.evolutionKnowledge as GameState["evolutionKnowledge"],
-    stormGiftClaimed: s.stormGiftClaimed as GameState["stormGiftClaimed"],
-    pendingGift: s.pendingGift as GameState["pendingGift"],
+    ...rewardRecordOf(s),
     stable: [],
   }
   return {

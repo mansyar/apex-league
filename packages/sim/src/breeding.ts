@@ -12,7 +12,7 @@
  *
  * - `./breeding/pairing` — the pool, pair validation, the dual-parent egg
  * - `./breeding/drift` — the seeded affinity-drift roll
- * - `./breeding/gift` — the Storm Gift grant, hatch, and preview
+ * - `./breeding/gift` — the league rewards: grant, hatch, and preview
  *
  * This module re-exports the same public surface the monolith exported, so
  * every consumer import (`./breeding`, `../breeding`) stays untouched.
@@ -30,10 +30,9 @@ export {
   type HatchGiftReason,
   type HatchGiftResult,
   hatchGiftEgg,
-  STORM_GIFT_SPECIES_ID,
-  type StormGiftPreview,
-  stormGiftPending,
-  stormGiftPreview,
+  type LeagueRewardPreview,
+  leagueRewardPending,
+  leagueRewardPreview,
 } from "./breeding/gift"
 export {
   breedingPool,

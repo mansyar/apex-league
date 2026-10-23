@@ -1,8 +1,8 @@
 import type { CupSession } from "../../cup/session"
-import { stormGiftSeed } from "../../cupRewards"
+import { leagueRewardSeed } from "../../cupRewards"
 import { STORM_GIFT_SPECIES_ID } from "../../species"
 import type { GameState } from "../../state"
-import { validateStateShape } from "./common"
+import { rewardRecordOf, validateStateShape } from "./common"
 
 /**
  * v21 → v22 (electric species line review round 1, F1): the granted Storm
@@ -13,7 +13,9 @@ import { validateStateShape } from "./common"
  * was promised here. A save whose gift career is already in the lineage
  * (the `giftEgg` marker on the creature or a Hall record) has nothing
  * pending, and a save that never claimed waits for its next non-forfeit
- * finalize, exactly as the retroactive rule promises.
+ * finalize, exactly as the retroactive rule promises. The claim lands in
+ * the per-tier reward record (save v25): the Silver tier's claim slot and
+ * the head of the pending-reward queue.
  */
 export function migrateFromV21(
   raw: Record<string, unknown>,
@@ -22,7 +24,7 @@ export function migrateFromV21(
   const creature = s.creature as GameState["creature"]
   const lineage = s.lineage as GameState["lineage"]
   const ladder = s.ladder as GameState["ladder"]
-  const claimed = s.stormGiftClaimed === true
+  const { claimedTiers } = rewardRecordOf(s)
   const hatched =
     creature?.giftEgg === true ||
     lineage.hallOfFame.some((record) => record.giftEgg === true)
@@ -39,14 +41,16 @@ export function migrateFromV21(
     bossDefeats: s.bossDefeats as GameState["bossDefeats"],
     legendTitles: s.legendTitles as GameState["legendTitles"],
     evolutionKnowledge: s.evolutionKnowledge as GameState["evolutionKnowledge"],
-    stormGiftClaimed: claimed,
-    pendingGift:
-      claimed && !hatched
-        ? {
-            speciesId: STORM_GIFT_SPECIES_ID,
-            seed: stormGiftSeed(day, ladder.points),
-          }
-        : null,
+    claimedTiers,
+    pendingRewards:
+      claimedTiers.includes("silver") && !hatched
+        ? [
+            {
+              speciesId: STORM_GIFT_SPECIES_ID,
+              seed: leagueRewardSeed(day, ladder.points),
+            },
+          ]
+        : [],
     stable: [],
   }
   return {

@@ -31,6 +31,7 @@ import { migrateFromV20 } from "./v20"
 import { migrateFromV21 } from "./v21"
 import { migrateFromV22 } from "./v22"
 import { migrateFromV23 } from "./v23"
+import { migrateFromV24 } from "./v24"
 
 export const migrations: Record<
   number,
@@ -60,4 +61,5 @@ export const migrations: Record<
   21: migrateFromV21,
   22: migrateFromV22,
   23: migrateFromV23,
+  24: migrateFromV24,
 }

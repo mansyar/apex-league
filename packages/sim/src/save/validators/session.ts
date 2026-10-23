@@ -69,17 +69,37 @@ export function isValidSession(s: unknown): s is CupSession {
 }
 
 /**
- * A pending gift egg (save v22) is valid when it names a known species and
- * an integer seed. Null means nothing is waiting — never granted, or
- * already hatched.
+ * A pending reward egg (save v25, generalizing v22's single pending gift)
+ * is valid when it names a known species and an integer seed.
  */
-function isValidPendingGift(gift: unknown): boolean {
-  if (gift === null) return true
-  if (typeof gift !== "object" || gift === undefined) return false
-  const g = gift as { speciesId?: unknown; seed?: unknown }
+function isValidPendingEgg(egg: unknown): boolean {
+  if (typeof egg !== "object" || egg === null) return false
+  const g = egg as { speciesId?: unknown; seed?: unknown }
   if (typeof g.speciesId !== "string") return false
   if (getSpecies(g.speciesId) === undefined) return false
   return typeof g.seed === "number" && Number.isInteger(g.seed)
+}
+
+/**
+ * The per-tier league reward claims (save v25): a list of distinct reward
+ * tiers — the tiers the league actually pays (Silver and above; bronze
+ * carries no reward). A duplicate tier would double-grant, an unknown tier
+ * would grant nothing real, so both fail the load instead.
+ */
+function isValidClaimedTiers(tiers: unknown): boolean {
+  if (!Array.isArray(tiers)) return false
+  const seen = new Set<string>()
+  for (const tier of tiers) {
+    if (
+      typeof tier !== "string" ||
+      (tier !== "silver" && tier !== "gold" && tier !== "legend")
+    ) {
+      return false
+    }
+    if (seen.has(tier)) return false
+    seen.add(tier)
+  }
+  return true
 }
 
 /**
@@ -159,13 +179,13 @@ export function isValidSaveState(state: GameState): boolean {
     state.evolutionKnowledge === null ||
     typeof state.evolutionKnowledge.juvenile !== "boolean" ||
     typeof state.evolutionKnowledge.champion !== "boolean" ||
-    // v21: the Silver tier-reward claim is a plain boolean — a hand-edited
-    // flag fails the load instead of granting (or blocking) the gift.
-    typeof state.stormGiftClaimed !== "boolean" ||
-    // v22: the pending Storm Gift is null or a well-typed egg (a known
-    // species and an integer seed). A malformed egg fails the load instead
-    // of hatching an unknown creature.
-    !isValidPendingGift(state.pendingGift) ||
+    // v25: the league reward record is required and strictly typed — the
+    // claims are distinct reward tiers and the queue holds well-typed eggs
+    // (known species, integer seed). A hand-edited record fails the load
+    // instead of granting (or blocking) a reward.
+    !isValidClaimedTiers(state.claimedTiers) ||
+    !Array.isArray(state.pendingRewards) ||
+    !state.pendingRewards.every(isValidPendingEgg) ||
     // v24: the stable is a plain list of whole pets — every entry a valid
     // creature (a known species, a positive age, a valid stage, branch and
     // loadout). A half-pet fails the load, not the game.

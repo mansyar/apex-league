@@ -43,8 +43,8 @@ export function migrateFromV0(
     // (gold_legend_ladder_20261017): pre-plateau careers have none.
     legendTitles: 0,
     evolutionKnowledge: initialEvolutionKnowledge(),
-    stormGiftClaimed: false,
-    pendingGift: null,
+    claimedTiers: [],
+    pendingRewards: [],
     stable: [],
   }
   return { version: 1, state, savedAt: 0 }

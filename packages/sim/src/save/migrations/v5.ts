@@ -33,8 +33,8 @@ export function migrateFromV5(
     bossDefeats: [],
     legendTitles: 0,
     evolutionKnowledge: initialEvolutionKnowledge(),
-    stormGiftClaimed: false,
-    pendingGift: null,
+    claimedTiers: [],
+    pendingRewards: [],
     stable: [],
   }
   return { version: 6, state: migrated, savedAt: raw.savedAt ?? 0 }

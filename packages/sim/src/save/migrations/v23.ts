@@ -1,6 +1,6 @@
 import type { CupSession } from "../../cup/session"
 import type { GameState } from "../../state"
-import { validateStateShape } from "./common"
+import { rewardRecordOf, validateStateShape } from "./common"
 
 /**
  * v23 → v24 (stable & partner reserve, Phase 2): the state gains the
@@ -26,8 +26,7 @@ export function migrateFromV23(
     bossDefeats: s.bossDefeats as GameState["bossDefeats"],
     legendTitles: s.legendTitles as GameState["legendTitles"],
     evolutionKnowledge: s.evolutionKnowledge as GameState["evolutionKnowledge"],
-    stormGiftClaimed: s.stormGiftClaimed as GameState["stormGiftClaimed"],
-    pendingGift: s.pendingGift as GameState["pendingGift"],
+    ...rewardRecordOf(s),
     // The stable starts empty: a v23 save owns one pet, and it is the
     // ranch pet.
     stable: [],

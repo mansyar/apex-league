@@ -102,7 +102,7 @@ function speciesOf(id: string) {
 
 describe("save v19 — the earned branch", () => {
   test("the schema version is 19", () => {
-    expect(SAVE_VERSION).toBe(24)
+    expect(SAVE_VERSION).toBe(25)
   })
 
   test("a v18 baby migrates with no branch and identical numbers", () => {
@@ -113,7 +113,7 @@ describe("save v19 — the earned branch", () => {
     const migrated = migrate(raw)
     const creature = migrated.state.creature
     if (!creature) throw new Error("no creature")
-    expect(migrated.version).toBe(24)
+    expect(migrated.version).toBe(25)
     expect(creature.branch).toBeNull()
     expect(creature.stats).toEqual(before.creature.stats)
     expect(creature.trained).toEqual(before.creature.trained)
@@ -323,7 +323,7 @@ describe("v19 export and import", () => {
     const result = inspectSaveImport(exported.json)
     expect(result.ok).toBe(true)
     if (result.ok) {
-      expect(result.data.version).toBe(24)
+      expect(result.data.version).toBe(25)
       expect(result.data.state.creature?.branch).toBe("cinder_courser")
       expect(result.data.state.creature?.stage).toBe("juvenile")
     }

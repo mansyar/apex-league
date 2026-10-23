@@ -1,20 +1,25 @@
 /**
- * The Storm Gift card (electric species line FR-5/FR-6): the league's
- * one-time Silver reward, waiting in the nursery as a pending egg.
+ * The league reward card (earth/wind species line FR-5/FR-6): a tier
+ * reward from the league, waiting in the nursery as a pending egg — the
+ * Silver hound, the Gold falcon, or the Legend tortoise.
  *
  * The card shows the granted egg exactly as it will hatch — the preview
- * comes from the sim's own preview seam (`stormGiftPreview`), which rolls
- * the egg from the pending gift's stored seed, so the numbers on the card
- * are the numbers the hatch produces. The hatch itself is the sim's
- * succession seam: the hound joins the **stable** and the ranch pet stays
- * exactly where it is (stable & partner reserve FR-7). The hound is a pet
+ * comes from the sim's own preview seam (`leagueRewardPreview`), which
+ * rolls the egg from the pending reward's stored seed, so the numbers on
+ * the card are the numbers the hatch produces. The hatch itself is the
+ * sim's claim seam: the pet joins the **stable** and the ranch pet stays
+ * exactly where it is (stable & partner reserve FR-7). The reward is a pet
  * the player owns from that moment, not a replacement for the one they
  * already have, so the card never promises a succession.
  *
- * Presentation only: the sim decides whether a gift is pending and whether
- * the hatch is allowed; the app owns the store commit.
+ * Presentation only: the sim decides whether a reward is pending and
+ * whether the hatch is allowed; the app owns the store commit.
  */
-import { type GameState, stormGiftPending, stormGiftPreview } from "@apex/sim"
+import {
+  type GameState,
+  leagueRewardPending,
+  leagueRewardPreview,
+} from "@apex/sim"
 import { focusTrap } from "./battleUI"
 import { paintCrest } from "./hud/plates-creature"
 import { chip, crest, tab } from "./ui/kit"
@@ -44,13 +49,13 @@ function statRow(label: string, value: number): HTMLElement {
 }
 
 /**
- * The note under the preview: the hound joins the stable and the ranch pet
- * stays where it is. The card never says the hound replaces anything.
+ * The note under the preview: the reward joins the stable and the ranch
+ * pet stays where it is. The card never says the reward replaces anything.
  */
 export function giftHatchNote(currentName: string | undefined): string {
   return currentName
-    ? `Hatching sends the hound to the stable — ${currentName} keeps the ranch, and the hound's career starts when you bring it forward.`
-    : "Hatching sends the hound to the stable — its career starts when you bring it forward."
+    ? `Hatching sends it to the stable — ${currentName} keeps the ranch, and its career starts when you bring it forward.`
+    : "Hatching sends it to the stable — its career starts when you bring it forward."
 }
 
 /** The caption over the preview: the numbers are the hound's own. */
@@ -67,7 +72,7 @@ export function buildGiftChip(onOpen: () => void): HTMLButtonElement {
   // The chip's own `display` rule outranks the `hidden` attribute, so the
   // chip is folded the way the rest of the HUD folds its rows.
   button.style.display = "none"
-  button.title = "Storm Gift"
+  button.title = "League Reward"
   return button
 }
 
@@ -79,7 +84,7 @@ export function syncGiftChip(
   button: HTMLButtonElement,
   state: GameState,
 ): void {
-  button.style.display = stormGiftPending(state) ? "" : "none"
+  button.style.display = leagueRewardPending(state) ? "" : "none"
 }
 
 export interface GiftModal {
@@ -92,8 +97,8 @@ export interface GiftModal {
 }
 
 /**
- * Build the Storm Gift card. `onHatch` fires when the player commits to the
- * hatch; the app commits the succession to the store.
+ * Build the league reward card. `onHatch` fires when the player commits to
+ * the hatch; the app commits the claim to the store.
  */
 export function buildGiftModal(onHatch: () => void): GiftModal {
   const root = document.createElement("div")
@@ -101,13 +106,15 @@ export function buildGiftModal(onHatch: () => void): GiftModal {
   root.style.display = "none"
   root.setAttribute("role", "dialog")
   root.setAttribute("aria-modal", "true")
-  root.setAttribute("aria-label", "Storm Gift")
+  root.setAttribute("aria-label", "League Reward")
 
   const box = document.createElement("div")
   box.className = "kit-plate kit-modal-box gift-box"
 
   const head = document.createElement("div")
   head.className = "gift-head"
+  // The crest is repainted on every open: the queue can hold any tier's
+  // egg, so the element follows the pending reward, not a fixed species.
   const crestEl = crest("electric")
   paintCrest(crestEl, "electric", null)
   const name = document.createElement("span")
@@ -169,12 +176,13 @@ export function buildGiftModal(onHatch: () => void): GiftModal {
   return {
     root,
     open: (state) => {
-      const preview = stormGiftPreview(state)
+      const preview = leagueRewardPreview(state)
       if (!preview) return
       opener =
         document.activeElement instanceof HTMLElement
           ? document.activeElement
           : null
+      paintCrest(crestEl, preview.element, null)
       name.textContent = preview.displayName
       flavor.textContent = preview.flavor
       stats.replaceChildren(

@@ -32,13 +32,13 @@ function waitingPet(overrides: Partial<Creature> = {}): Creature {
 
 describe("save v24 — the stable", () => {
   test("the schema version is 24", () => {
-    expect(SAVE_VERSION).toBe(24)
+    expect(SAVE_VERSION).toBe(25)
   })
 
   test("a v23 save migrates to an empty stable", () => {
     const owned = chooseStarter(createInitialState(), "fire_drake", 42)
     const migrated = migrate(v23Payload(owned))
-    expect(migrated.version).toBe(24)
+    expect(migrated.version).toBe(25)
     expect(migrated.state.stable).toEqual([])
   })
 
@@ -60,12 +60,12 @@ describe("save v24 — the stable", () => {
     const owned = chooseStarter(createInitialState(), "fire_drake", 42)
     const granted: GameState = {
       ...owned,
-      stormGiftClaimed: true,
-      pendingGift: { speciesId: "electric_hound", seed: 4242 },
+      claimedTiers: ["silver"],
+      pendingRewards: [{ speciesId: "electric_hound", seed: 4242 }],
     }
     const migrated = migrate(v23Payload(granted))
     expect(migrated.state.stable).toEqual([])
-    expect(migrated.state.pendingGift?.speciesId).toBe("electric_hound")
+    expect(migrated.state.pendingRewards[0]?.speciesId).toBe("electric_hound")
   })
 
   test("the stable round-trips through saveGame/loadGame", () => {

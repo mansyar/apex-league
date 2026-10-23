@@ -82,17 +82,16 @@ export {
   hatchGiftEgg,
   inheritedFloorFromPair,
   isLineageTrait,
+  type LeagueRewardPreview,
+  leagueRewardPending,
+  leagueRewardPreview,
   PAIR_SECONDARY_FRACTION,
   type PairReason,
   type PairVerdict,
   pairFor,
   retireeRecord,
   rollAffinityDrift,
-  STORM_GIFT_SPECIES_ID,
-  type StormGiftPreview,
   speciesOptions,
-  stormGiftPending,
-  stormGiftPreview,
   TRAIT_ORDER,
   TRAITS,
   type TraitDef,
@@ -149,9 +148,9 @@ export {
 } from "./cup"
 export {
   applyCupRewards,
-  applyStormGift,
   CUP_REWARDS,
   type CupOutcome,
+  grantLeagueRewards,
 } from "./cupRewards"
 export {
   CHAMPION_BOND,
