@@ -105,7 +105,7 @@ Phase states: `pending` → `in_progress` → `verified` / `failed` / `blocked`.
 - **Covers:** F1, F2, F3.
 - **Touches:** `conductor/tracks/20261023-test-suite-speedup/plan.md` (primary-owned, F1), `packages/voxel/src/fuzz/budget.*.test.ts` (F2 titles), `packages/voxel/src/fuzz/boundary.*.test.ts` (F2 titles), `packages/voxel/src/fuzz/determinism.*.test.ts` (F2 titles), `conductor/tracks/20261023-test-suite-speedup/verification/phase-3.md` (F3).
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 packages/voxel && bun run check && biome check`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Resolve F1 — the plan states the revised target** — covers: F1
   - [ ] **R1.T1.1: Update the Phase-2 Goal and P2.T4.1** — replace both "≤ 35 s" occurrences with the revised "≤ 70 s (revised 2026-10-23 from 35 s after the measured import-overhead floor)" wording. (Primary-executed: phase agents may not edit plan.md.)
