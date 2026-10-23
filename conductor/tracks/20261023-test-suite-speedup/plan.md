@@ -105,13 +105,16 @@ Phase states: `pending` → `in_progress` → `verified` / `failed` / `blocked`.
 - **Covers:** F1, F2, F3.
 - **Touches:** `conductor/tracks/20261023-test-suite-speedup/plan.md` (primary-owned, F1), `packages/voxel/src/fuzz/budget.*.test.ts` (F2 titles), `packages/voxel/src/fuzz/boundary.*.test.ts` (F2 titles), `packages/voxel/src/fuzz/determinism.*.test.ts` (F2 titles), `conductor/tracks/20261023-test-suite-speedup/verification/phase-3.md` (F3).
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 packages/voxel && bun run check && biome check`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 98f27e02
+- **Evidence:** conductor/tracks/20261023-test-suite-speedup/verification/phase-R1.md
 
-- [ ] **R1.T1: Resolve F1 — the plan states the revised target** — covers: F1
-  - [ ] **R1.T1.1: Update the Phase-2 Goal and P2.T4.1** — replace both "≤ 35 s" occurrences with the revised "≤ 70 s (revised 2026-10-23 from 35 s after the measured import-overhead floor)" wording. (Primary-executed: phase agents may not edit plan.md.)
-- [ ] **R1.T2: Resolve F2 — count-neutral gate titles** — covers: F2
-  - [ ] **R1.T2.1: Retitle the sliced suites' tests** — in all 41 sliced fuzz files, make each test's title count-neutral so it no longer names the full seed range while the gate runs fewer (e.g. boundary: "over the gate seed slice (first quarter; full list via APEX_FUZZ_SWEEP=full)"); title strings only — no assertion, seed list, timeout, or loop-body change.
-- [ ] **R1.T3: Resolve F3 — the ~4-core-runner expectation** — covers: F3
-  - [ ] **R1.T3.1: Document the CI-runner expectation** — add one derived sentence to the FR-7 row in `verification/phase-3.md` (and echo it in integrated.md's per-phase paragraph): on a ~4-core GitHub runner bun self-caps to ~4 workers, giving the full sweep a serial-floor estimate around 35–60 s plus per-file import overhead — comfortable for the nightly cron.
-- [ ] **R1.T4: Prove the fixes** — covers: F2 (behavior unchanged)
-  - [ ] **R1.T4.1: Re-run the gate legs** — `bun test --check --parallel=4 --timeout 120000 packages/voxel` still 295 pass / 0 fail at the same expect count; sweep run unchanged (44 tests / 765 expect); `bun run check` + biome clean.
+- [x] **R1.T1: Resolve F1 — the plan states the revised target** — covers: F1
+  - [x] **R1.T1.1: Update the Phase-2 Goal and P2.T4.1** — replace both "≤ 35 s" occurrences with the revised "≤ 70 s (revised 2026-10-23 from 35 s after the measured import-overhead floor)" wording. (Primary-executed: phase agents may not edit plan.md.)
+- [x] **R1.T2: Resolve F2 — count-neutral gate titles** — covers: F2
+  - [x] **R1.T2.1: Retitle the sliced suites' tests** — in all 41 sliced fuzz files, make each test's title count-neutral so it no longer names the full seed range while the gate runs fewer (e.g. boundary: "over the gate seed slice (first quarter; full list via APEX_FUZZ_SWEEP=full)"); title strings only — no assertion, seed list, timeout, or loop-body change.
+- [x] **R1.T3: Resolve F3 — the ~4-core-runner expectation** — covers: F3
+  - [x] **R1.T3.1: Document the CI-runner expectation** — add one derived sentence to the FR-7 row in `verification/phase-3.md` (and echo it in integrated.md's per-phase paragraph): on a ~4-core GitHub runner bun self-caps to ~4 workers, giving the full sweep a serial-floor estimate around 35–60 s plus per-file import overhead — comfortable for the nightly cron.
+- [x] **R1.T4: Prove the fixes** — covers: F2 (behavior unchanged)
+  - [x] **R1.T4.1: Re-run the gate legs** — `bun test --check --parallel=4 --timeout 120000 packages/voxel` still 295 pass / 0 fail at the same expect count; sweep run unchanged (44 tests / 765 expect); `bun run check` + biome clean.

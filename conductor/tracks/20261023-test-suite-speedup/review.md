@@ -102,10 +102,10 @@ None — `review.strict` is `true`, so all three Low findings are fixed in the r
 
 ## Doc sync
 
-pending → updated at Phase R1 acceptance.
+updated — pre-review sync committed as `2740f38` (tech-stack dated entry + workflow measured-numbers refinement); the review-fix changes touch no contract documented there (title strings + a derived sentence in the track's own evidence).
 
 ## History
 
 | Round | Verdict | Critical | High | Medium | Low | Notes |
 |---|---|---|---|---|---|---|
-| 1 | PASS WITH FINDINGS | 0 | 0 | 0 | 3 | → Phase R1 |
+| 1 | PASS WITH FINDINGS | 0 | 0 | 0 | 3 | → Phase R1 (98f27e02, verified; all three fixed: F1 plan target, F2 41 titles, F3 runner expectation) |
