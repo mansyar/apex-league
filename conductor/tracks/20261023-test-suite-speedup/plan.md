@@ -26,17 +26,21 @@ Phase states: `pending` → `in_progress` → `verified` / `failed` / `blocked`.
   P3.T3.2 after the voxel smoke slices shrink the suite's critical path).
 - **Touches:** `package.json`, `conductor/workflow.md`, `conductor/tracks/20261023-test-suite-speedup/verification/phase-1.md`.
 - **Verification:** `bun run test:phase && bun run check && biome check`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Add the capped parallel script and measure** — covers: FR-1, FR-2, FR-6
-  - [ ] **P1.T1.1: Add the `test:phase` script** — root `package.json` gains `"test:phase": "bun test --check --parallel=4 --timeout 120000"`.
-  - [ ] **P1.T1.2: Measure the full suite under it** — run `bun run test:phase`, record wall-clock (target ≤ 150 s), test/expect/file counts identical to the serial baseline (2,453 tests / 126,812 expect / 194 files as of base).
-  - [ ] **P1.T1.3: Prove the guards under workers** — run the three module-size guard suites under the capped runner (`bun test --check --parallel=4 --timeout 120000 module-size`) and record that each guard's negative control test passes (it fires inside the suite, under worker isolation).
-- [ ] **P1.T2: Workflow config and tiered policy (primary-executed)** — covers: FR-1, FR-5
+- **Result:** verified
+- **Checkpoint:** e17e5a3
+- **Evidence:** conductor/tracks/20261023-test-suite-speedup/verification/phase-1.md
+
+- [x] **P1.T1: Add the capped parallel script and measure** — covers: FR-1, FR-2, FR-6
+  - [x] **P1.T1.1: Add the `test:phase` script** — root `package.json` gains `"test:phase": "bun test --check --parallel=4 --timeout 120000"`.
+  - [x] **P1.T1.2: Measure the full suite under it** — run `bun run test:phase`, record wall-clock (target ≤ 150 s), test/expect/file counts identical to the serial baseline (2,453 tests / 126,812 expect / 194 files as of base).
+  - [x] **P1.T1.3: Prove the guards under workers** — run the three module-size guard suites under the capped runner (`bun test --check --parallel=4 --timeout 120000 module-size`) and record that each guard's negative control test passes (it fires inside the suite, under worker isolation).
+- [x] **P1.T2: Workflow config and tiered policy (primary-executed)** — covers: FR-1, FR-5
   - *The phase subagent's permissions deny edits under `conductor/**`; the primary performs this task and records it in evidence.*
-  - [ ] **P1.T2.1: Add `test_phase` to the Workflow Config** — `commands.test_phase: "bun test --check --parallel=4 --timeout 120000"` alongside the existing commands.
-  - [ ] **P1.T2.2: Document the tiered phase-verification policy** — in Verification Strategy: phase test legs run the touched package's suite via the capped runner; full `bun run verify && bun run build` remains mandatory at every phase acceptance.
-  - [ ] **P1.T2.3: Record the worker-cap rationale** — the 20-core dev machine with co-running projects; uncapped parallel stays CI/verify-only.
+  - [x] **P1.T2.1: Add `test_phase` to the Workflow Config** — `commands.test_phase: "bun test --check --parallel=4 --timeout 120000"` alongside the existing commands.
+  - [x] **P1.T2.2: Document the tiered phase-verification policy** — in Verification Strategy: phase test legs run the touched package's suite via the capped runner; full `bun run verify && bun run build` remains mandatory at every phase acceptance.
+  - [x] **P1.T2.3: Record the worker-cap rationale** — the 20-core dev machine with co-running projects; uncapped parallel stays CI/verify-only.
 
 <!-- Primary: after acceptance, append Result / Checkpoint / Evidence here.
      Example:
