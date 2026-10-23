@@ -183,7 +183,7 @@ Four layers run for this project. Nothing else is required.
 - **Static** — typechecks, lint, format, production build.
 - **Unit** — `bun:test` suites for logic-bearing modules, co-located as
   `*.test.ts` and run with typechecking enabled.
-- **Determinism** — the voxel artifact gate: all nine creature GLBs and the prop
+- **Determinism** — the voxel artifact gate: all eighteen creature GLBs and the prop
   digest manifest must hash identically to the committed artifacts.
 - **Visual** — a browser pass with `playwright-cli` for any user-facing change:
   screenshot plus console-error check at desktop and phone widths.
