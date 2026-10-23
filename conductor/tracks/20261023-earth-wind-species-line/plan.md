@@ -154,6 +154,25 @@ The primary appends after acceptance:
 **Checkpoint:** b49e2bf
 **Evidence:** conductor/tracks/20261023-earth-wind-species-line/verification/phase-4.md
 
+## Phase R1: Review Fixes
+
+- **Goal:** Resolve review findings F1, F2 and F3.
+- **Depends on:** Phase 4
+- **Covers:** F1, F2, F3
+- **Touches:** `packages/sim/src/species.ts`, `packages/sim/src/species.test.ts`, `packages/sim/src/battle/species-balance.test.ts`, `apps/client/src/handbook/chart.ts`, `packages/sim/src/save/giftSave.test.ts`, plus any co-located test a probe re-pin requires
+- **Verification:** `bun test --timeout 120000 && bun run check && biome check`
+- **Status:** pending
+
+- [ ] **R1.T1: Resolve F1 — make the falcon's "highest SPD" claim whole-range true** — covers: F1
+	- [ ] **R1.T1.1: Raise the falcon spd floor to 17** in `species.ts` (bounds `[17, 19]`) so no existing species' roll range overlaps it, keeping hp/atk/def bounds as authored
+	- [ ] **R1.T1.2: Assert whole-roll-range dominance** in `species.test.ts`: `falcon.statBounds.spd[0] > every other species' statBounds.spd[1]`, matching the hound precedent's convention
+	- [ ] **R1.T1.3: Re-pin the affected probe tallies** in `battle/species-balance.test.ts` if the roll-space change shifts any measured cell, and record the before/after in the evidence
+- [ ] **R1.T2: Resolve F2 — the handbook population note** — covers: F2
+	- [ ] **R1.T2.1: Update `POPULATION_NOTE`** in `apps/client/src/handbook/chart.ts` to the current roster (three starters + the Silver/Gold/Legend reward lines), keeping the ≤2-sentence guideline
+- [ ] **R1.T3: Resolve F3 — the lossless test must prove what its title says** — covers: F3
+	- [ ] **R1.T3.1: Strengthen the v24 mapping assertion** in `save/giftSave.test.ts` to a full-state `toEqual` between `migrate(v24 payload).state` and the hand-built equivalent v25 state
+
+
 - [x] **P4.T1: Lifecycle integration test** — covers: FR-1
   - [x] **P4.T1.1: Tortoise end-to-end** — obtain egg via Legend reward → hatch → raise → evolve → choose a champion branch → win a cup
   - [x] **P4.T1.2: Falcon end-to-end** — same via the Gold reward
