@@ -50,7 +50,7 @@ Phase states: `pending` → `in_progress` → `verified` / `failed` / `blocked`.
 
 ## Phase 2: The Voxel Smoke Slices
 
-- **Goal:** every voxel fuzz suite runs a fixed, documented first-quarter smoke slice by default and its full seed list under the sweep flag, with the PR-gate voxel leg measured at ≤ 35 s.
+- **Goal:** every voxel fuzz suite runs a fixed, documented first-quarter smoke slice by default and its full seed list under the sweep flag, with the PR-gate voxel leg measured at ≤ 70 s (revised 2026-10-23 from the originally-speculated 35 s after the measured per-file import-overhead floor — see the spec's AC-2).
 - **Depends on:** Phase 1.
 - **Covers:** FR-3, NFR-1, NFR-4, AC-2.
 - **Touches:** `packages/voxel/src/fuzz/**`, `conductor/tracks/20261023-test-suite-speedup/verification/phase-2.md`.
@@ -68,7 +68,7 @@ Phase states: `pending` → `in_progress` → `verified` / `failed` / `blocked`.
 - [x] **P2.T3: Slice the determinism fuzz suites** — covers: FR-3
   - [x] **P2.T3.1: Apply the same pattern** — the 2 per-archetype determinism fuzz files, identical rule; the twice-build property is unchanged (both builds run on the selected seeds).
 - [x] **P2.T4: Measure and document** — covers: FR-3, AC-2
-  - [x] **P2.T4.1: Measure the gate leg** — `bun test --check --parallel=4 --timeout 120000 packages/voxel` wall-clock (target ≤ 35 s), recorded with test counts.
+  - [x] **P2.T4.1: Measure the gate leg** — `bun test --check --parallel=4 --timeout 120000 packages/voxel` wall-clock (target ≤ 70 s, revised 2026-10-23 from 35 s), recorded with test counts.
   - [x] **P2.T4.2: Spot-check the full sweep** — run one suite with `APEX_FUZZ_SWEEP=full` and record its seed count restoring to the full list, plus wall-clock.
   - [x] **P2.T4.3: Document the slices** — per-file gate-seed counts listed in evidence.
 
@@ -98,4 +98,20 @@ Phase states: `pending` → `in_progress` → `verified` / `failed` / `blocked`.
 
 <!-- Primary: after acceptance, append Result / Checkpoint / Evidence here. -->
 
-<!-- Review note: conductor-review appends "## Phase R<n>: Review Fixes" here if findings need fixing. -->
+## Phase R1: Review Fixes
+
+- **Goal:** resolve review findings F1, F2 and F3.
+- **Depends on:** Phase 3.
+- **Covers:** F1, F2, F3.
+- **Touches:** `conductor/tracks/20261023-test-suite-speedup/plan.md` (primary-owned, F1), `packages/voxel/src/fuzz/budget.*.test.ts` (F2 titles), `packages/voxel/src/fuzz/boundary.*.test.ts` (F2 titles), `packages/voxel/src/fuzz/determinism.*.test.ts` (F2 titles), `conductor/tracks/20261023-test-suite-speedup/verification/phase-3.md` (F3).
+- **Verification:** `bun test --check --parallel=4 --timeout 120000 packages/voxel && bun run check && biome check`
+- **Status:** pending
+
+- [ ] **R1.T1: Resolve F1 — the plan states the revised target** — covers: F1
+  - [ ] **R1.T1.1: Update the Phase-2 Goal and P2.T4.1** — replace both "≤ 35 s" occurrences with the revised "≤ 70 s (revised 2026-10-23 from 35 s after the measured import-overhead floor)" wording. (Primary-executed: phase agents may not edit plan.md.)
+- [ ] **R1.T2: Resolve F2 — count-neutral gate titles** — covers: F2
+  - [ ] **R1.T2.1: Retitle the sliced suites' tests** — in all 41 sliced fuzz files, make each test's title count-neutral so it no longer names the full seed range while the gate runs fewer (e.g. boundary: "over the gate seed slice (first quarter; full list via APEX_FUZZ_SWEEP=full)"); title strings only — no assertion, seed list, timeout, or loop-body change.
+- [ ] **R1.T3: Resolve F3 — the ~4-core-runner expectation** — covers: F3
+  - [ ] **R1.T3.1: Document the CI-runner expectation** — add one derived sentence to the FR-7 row in `verification/phase-3.md` (and echo it in integrated.md's per-phase paragraph): on a ~4-core GitHub runner bun self-caps to ~4 workers, giving the full sweep a serial-floor estimate around 35–60 s plus per-file import overhead — comfortable for the nightly cron.
+- [ ] **R1.T4: Prove the fixes** — covers: F2 (behavior unchanged)
+  - [ ] **R1.T4.1: Re-run the gate legs** — `bun test --check --parallel=4 --timeout 120000 packages/voxel` still 295 pass / 0 fail at the same expect count; sweep run unchanged (44 tests / 765 expect); `bun run check` + biome clean.
