@@ -23,7 +23,7 @@ Phase states: `pending` → `in_progress` → `verified` / `failed` / `blocked`.
 - **Covers:** FR-1, FR-2, FR-5, FR-6, NFR-2, NFR-5, AC-1, AC-4, AC-5.
 - **Touches:** `package.json`, `conductor/workflow.md`, `conductor/tracks/20261023-test-suite-speedup/verification/phase-1.md`.
 - **Verification:** `bun run test:phase && bun run check && biome check`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Add the capped parallel script and measure** — covers: FR-1, FR-2, FR-6
   - [ ] **P1.T1.1: Add the `test:phase` script** — root `package.json` gains `"test:phase": "bun test --check --parallel=4 --timeout 120000"`.
