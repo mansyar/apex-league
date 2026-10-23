@@ -144,7 +144,7 @@ The primary appends after acceptance:
 - **Covers:** FR-1, FR-9, AC-1, AC-7, AC-9
 - **Touches:** `packages/sim/src/lifecycle-integration.test.ts` (new or equivalent co-located home), `packages/sim/src/index.ts` (exports if needed), `apps/client/src/mock/**` (handbook/mock data if the surfaces need registration), plus co-located test updates where the integration lives
 - **Verification:** `bun run verify && bun run build` (visual layer via `playwright-cli` against `bun run dev`)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P4.T1: Lifecycle integration test** — covers: FR-1
   - [ ] **P4.T1.1: Tortoise end-to-end** — obtain egg via Legend reward → hatch → raise → evolve → choose a champion branch → win a cup
