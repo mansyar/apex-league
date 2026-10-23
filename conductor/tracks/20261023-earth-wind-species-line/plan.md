@@ -75,24 +75,28 @@ The primary appends after acceptance:
 - **Covers:** FR-5, FR-6, FR-8, FR-9 (claim UI), NFR-6, AC-5, AC-6, AC-8
 - **Touches:** `packages/sim/src/state.ts`, `packages/sim/src/cupRewards.ts`, `packages/sim/src/breeding/gift.ts`, `packages/sim/src/breeding.ts`, `packages/sim/src/ticker.ts`, `packages/sim/src/index.ts`, `packages/sim/src/save/schema.ts`, `packages/sim/src/save/migrations/v24.ts` (new), `packages/sim/src/save/migrations/index.ts`, `packages/sim/src/save/migrations.test.ts`, `packages/sim/src/save/giftSave.test.ts`, `packages/sim/src/save/validators/session.ts`, `packages/sim/src/save/storm-gift.test.ts` moved/renamed as needed, `packages/sim/src/cup/storm-gift.test.ts`, `apps/client/src/gift.ts`, `apps/client/src/cup/results.ts`, `docs/save-schema.md`, plus new co-located tests
 - **Verification:** `bun test --timeout 120000 && bun run check && biome check`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Generalize the reward record** — covers: FR-5, FR-8
-  - [ ] **P2.T1.1: Field shape in `state.ts`** — replace `stormGiftClaimed: boolean` with a per-tier claim record and generalize `pendingGift` into a pending-reward queue; honest renames of the `stormGift*` seams (`stormGiftPending` → tier-agnostic pending check, `stormGiftPreview` → reward preview, `applyStormGift` → the per-tier grant)
-  - [ ] **P2.T1.2: Per-tier grant logic** — `cupRewards.ts` stamps each released reward tier (`rewardFromTier`) the player's current tier has reached, once, on non-forfeit finalize; tiers grant independently
-  - [ ] **P2.T1.3: Claim-once persistence** — claims survive saves and never duplicate
-- [ ] **P2.T2: Migration v24→v25** — covers: FR-8, NFR-6
-  - [ ] **P2.T2.1: The v24 step** — `stormGiftClaimed: true` maps to the Silver tier's claim; a pending storm gift maps to a pending Silver reward; nothing else changes; `SAVE_VERSION` → 25
-  - [ ] **P2.T2.2: Register in the chain** — `migrations/index.ts` gains the v24 entry; the chain stays 0…24
-  - [ ] **P2.T2.3: Migration tests** — v24 save with a claimed + a pending storm gift round-trips to identical semantic state; `giftSave.test.ts` extended or renamed honestly
-  - [ ] **P2.T2.4: `docs/save-schema.md`** — version bump documented, the per-tier reward record described, the recipe still accurate
-- [ ] **P2.T3: Consumer surfaces** — covers: FR-5, FR-9
-  - [ ] **P2.T3.1: Nursery claim flow** — `apps/client/src/gift.ts` and the nursery preview claim from the reward queue; preview matches the hatch exactly for every tier
-  - [ ] **P2.T3.2: Cup results** — `apps/client/src/cup/results.ts` reflects the generalized pending check
-- [ ] **P2.T4: Grant and purity tests** — covers: FR-5, FR-6, NFR-3
-  - [ ] **P2.T4.1: Grant rules** — fires exactly once per tier at tier ≥ threshold; never below; never on forfeit; tiers independent
-  - [ ] **P2.T4.2: Multi-pending migrated saves** — an old save past multiple tiers grants each egg in order
-  - [ ] **P2.T4.3: Stream purity** — reward eggs consume no drift RNG draw; existing seeded streams byte-identical
+**Result:** verified
+**Checkpoint:** 5fed606
+**Evidence:** conductor/tracks/20261023-earth-wind-species-line/verification/phase-2.md
+
+- [x] **P2.T1: Generalize the reward record** — covers: FR-5, FR-8
+  - [x] **P2.T1.1: Field shape in `state.ts`** — replace `stormGiftClaimed: boolean` with a per-tier claim record and generalize `pendingGift` into a pending-reward queue; honest renames of the `stormGift*` seams (`stormGiftPending` → tier-agnostic pending check, `stormGiftPreview` → reward preview, `applyStormGift` → the per-tier grant)
+  - [x] **P2.T1.2: Per-tier grant logic** — `cupRewards.ts` stamps each released reward tier (`rewardFromTier`) the player's current tier has reached, once, on non-forfeit finalize; tiers grant independently
+  - [x] **P2.T1.3: Claim-once persistence** — claims survive saves and never duplicate
+- [x] **P2.T2: Migration v24→v25** — covers: FR-8, NFR-6
+  - [x] **P2.T2.1: The v24 step** — `stormGiftClaimed: true` maps to the Silver tier's claim; a pending storm gift maps to a pending Silver reward; nothing else changes; `SAVE_VERSION` → 25
+  - [x] **P2.T2.2: Register in the chain** — `migrations/index.ts` gains the v24 entry; the chain stays 0…24
+  - [x] **P2.T2.3: Migration tests** — v24 save with a claimed + a pending storm gift round-trips to identical semantic state; `giftSave.test.ts` extended or renamed honestly
+  - [x] **P2.T2.4: `docs/save-schema.md`** — version bump documented, the per-tier reward record described, the recipe still accurate
+- [x] **P2.T3: Consumer surfaces** — covers: FR-5, FR-9
+  - [x] **P2.T3.1: Nursery claim flow** — `apps/client/src/gift.ts` and the nursery preview claim from the reward queue; preview matches the hatch exactly for every tier
+  - [x] **P2.T3.2: Cup results** — `apps/client/src/cup/results.ts` reflects the generalized pending check
+- [x] **P2.T4: Grant and purity tests** — covers: FR-5, FR-6, NFR-3
+  - [x] **P2.T4.1: Grant rules** — fires exactly once per tier at tier ≥ threshold; never below; never on forfeit; tiers independent
+  - [x] **P2.T4.2: Multi-pending migrated saves** — an old save past multiple tiers grants each egg in order
+  - [x] **P2.T4.3: Stream purity** — reward eggs consume no drift RNG draw; existing seeded streams byte-identical
 
 <!--
 The primary appends after acceptance:
