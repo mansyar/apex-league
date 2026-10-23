@@ -208,8 +208,10 @@ endpoint work begins.
   `bun run test:phase` (`bun test --check --parallel=4 --timeout 120000`).
   The runner is capped at 4 workers on purpose: development machines share the
   CPU with other projects, and a capped runner keeps the suite polite while it
-  runs. The full-suite target for the phase leg is ≤ 150 s once the voxel fuzz
-  smoke slices are in place (measured in the test-suite-speedup track).
+  runs. The full-suite phase leg measures **53–58 s** with the voxel fuzz smoke
+  slices in place (target ≤ 150 s; measured in the test-suite-speedup track —
+  the smoke slices shrink the critical path so the capped runner also beats the
+  uncapped pre-slice suite at 92 s).
 - **Full `verify_phase` (`bun run verify && bun run build`) stays mandatory at
   every phase acceptance** — the package tier only narrows the in-phase loop,
   never the acceptance gate.
