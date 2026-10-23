@@ -55,7 +55,10 @@ Phase states: `pending` → `in_progress` → `verified` / `failed` / `blocked`.
 - **Covers:** FR-3, NFR-1, NFR-4, AC-2.
 - **Touches:** `packages/voxel/src/fuzz/**`, `conductor/tracks/20261023-test-suite-speedup/verification/phase-2.md`.
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 packages/voxel && bun run check && biome check`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 3f26097
+- **Evidence:** conductor/tracks/20261023-test-suite-speedup/verification/phase-2.md
 
 - [x] **P2.T1: Slice the boundary fuzz suites** — covers: FR-3
   - [x] **P2.T1.1: Apply the slicing pattern** — in each of the 8 boundary fuzz files: keep the full seed list as a named const; derive the gate slice as its first quarter; select via `process.env.APEX_FUZZ_SWEEP === "full" ? FULL : GATE`; state the rule in the file's header comment.
@@ -78,7 +81,10 @@ Phase states: `pending` → `in_progress` → `verified` / `failed` / `blocked`.
 - **Covers:** FR-2, FR-4, FR-7, NFR-3, AC-1, AC-3, AC-6.
 - **Touches:** `package.json`, `.github/workflows/nightly.yml`, `conductor/tracks/20261023-test-suite-speedup/verification/phase-3.md`.
 - **Verification:** `bun run test:fuzz && bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** a454fb14
+- **Evidence:** conductor/tracks/20261023-test-suite-speedup/verification/phase-3.md
 
 - [ ] **P3.T1: Add the `test:fuzz` script** — covers: FR-4
   - [ ] **P3.T1.1: Add the script** — root `package.json` gains `"test:fuzz": "bun test --check --parallel --timeout 120000 packages/voxel/src/fuzz"` with the sweep env set so the full lists run (the script must set `APEX_FUZZ_SWEEP=full`; use a cross-platform form, e.g. a tiny bun runner or `env`-prefix compatible with the CI shell).
