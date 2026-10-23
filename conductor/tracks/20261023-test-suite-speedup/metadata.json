@@ -6,7 +6,7 @@
   "priority": "medium",
   "depends_on": [],
   "created_at": "2026-10-23T22:32:09+11:00",
-  "updated_at": "2026-10-23T22:51:21+11:00",
+  "updated_at": "2026-10-24T00:40:00+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "chore/20261023-test-suite-speedup",
@@ -14,11 +14,11 @@
   "base_sha": "18eebd04065dc971c38e5e16c8dfa721f55ea277",
   "progress": {
     "phases_total": 3,
-    "phases_verified": 1,
+    "phases_verified": 2,
     "tasks_total": 9,
-    "tasks_done": 2
+    "tasks_done": 5
   },
-  "last_checkpoint": "e17e5a3",
+  "last_checkpoint": "3f26097",
   "review_verdict": null,
   "review_rounds": 0,
   "doc_sync": "pending",

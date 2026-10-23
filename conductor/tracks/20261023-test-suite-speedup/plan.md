@@ -57,17 +57,17 @@ Phase states: `pending` → `in_progress` → `verified` / `failed` / `blocked`.
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 packages/voxel && bun run check && biome check`
 - **Status:** in_progress
 
-- [ ] **P2.T1: Slice the boundary fuzz suites** — covers: FR-3
-  - [ ] **P2.T1.1: Apply the slicing pattern** — in each of the 8 boundary fuzz files: keep the full seed list as a named const; derive the gate slice as its first quarter; select via `process.env.APEX_FUZZ_SWEEP === "full" ? FULL : GATE`; state the rule in the file's header comment.
-  - [ ] **P2.T1.2: Keep every bucket present** — no fuzz file is deleted or merged; each file still runs (fewer seeds each).
-- [ ] **P2.T2: Slice the budget fuzz suites** — covers: FR-3
-  - [ ] **P2.T2.1: Apply the same pattern** — the 4 budget fuzz files, identical rule and header documentation.
-- [ ] **P2.T3: Slice the determinism fuzz suites** — covers: FR-3
-  - [ ] **P2.T3.1: Apply the same pattern** — the 2 per-archetype determinism fuzz files, identical rule; the twice-build property is unchanged (both builds run on the selected seeds).
-- [ ] **P2.T4: Measure and document** — covers: FR-3, AC-2
-  - [ ] **P2.T4.1: Measure the gate leg** — `bun test --check --parallel=4 --timeout 120000 packages/voxel` wall-clock (target ≤ 35 s), recorded with test counts.
-  - [ ] **P2.T4.2: Spot-check the full sweep** — run one suite with `APEX_FUZZ_SWEEP=full` and record its seed count restoring to the full list, plus wall-clock.
-  - [ ] **P2.T4.3: Document the slices** — per-file gate-seed counts listed in evidence.
+- [x] **P2.T1: Slice the boundary fuzz suites** — covers: FR-3
+  - [x] **P2.T1.1: Apply the slicing pattern** — in each of the 8 boundary fuzz files: keep the full seed list as a named const; derive the gate slice as its first quarter; select via `process.env.APEX_FUZZ_SWEEP === "full" ? FULL : GATE`; state the rule in the file's header comment.
+  - [x] **P2.T1.2: Keep every bucket present** — no fuzz file is deleted or merged; each file still runs (fewer seeds each).
+- [x] **P2.T2: Slice the budget fuzz suites** — covers: FR-3
+  - [x] **P2.T2.1: Apply the same pattern** — the 4 budget fuzz files, identical rule and header documentation.
+- [x] **P2.T3: Slice the determinism fuzz suites** — covers: FR-3
+  - [x] **P2.T3.1: Apply the same pattern** — the 2 per-archetype determinism fuzz files, identical rule; the twice-build property is unchanged (both builds run on the selected seeds).
+- [x] **P2.T4: Measure and document** — covers: FR-3, AC-2
+  - [x] **P2.T4.1: Measure the gate leg** — `bun test --check --parallel=4 --timeout 120000 packages/voxel` wall-clock (target ≤ 35 s), recorded with test counts.
+  - [x] **P2.T4.2: Spot-check the full sweep** — run one suite with `APEX_FUZZ_SWEEP=full` and record its seed count restoring to the full list, plus wall-clock.
+  - [x] **P2.T4.3: Document the slices** — per-file gate-seed counts listed in evidence.
 
 <!-- Primary: after acceptance, append Result / Checkpoint / Evidence here. -->
 
