@@ -1,9 +1,9 @@
 /**
  * Per-archetype body language (FR5) — the choreography library's first
  * layer. Each arena archetype carries a motion identity: how it walks,
- * breathes, sways at rest, and how hard it flinches. Values are
- * multipliers over the staging driver's base constants, so the neutral
- * profile reproduces today's behavior exactly.
+ * breathes, sways at rest, how hard it flinches, and how it commits to an
+ * attack. Values are multipliers over the staging driver's base
+ * constants, so the neutral profile reproduces today's behavior exactly.
  *
  * Pure data + pure functions — no THREE, no DOM — so the profiles are
  * table-tested here and the ranch can adopt them later (spec FR4).
@@ -20,6 +20,9 @@ const NEUTRAL: BodyProfile = {
   breathFreq: 1,
   hurtMult: 1,
   staggerMult: 1,
+  windupMult: 1,
+  recoilMult: 1,
+  strikeMult: 1,
 }
 
 export interface BodyProfile {
@@ -41,13 +44,28 @@ export interface BodyProfile {
   readonly hurtMult: number
   /** Stagger reel weight multiplier. */
   readonly staggerMult: number
+  /** Windup coil amplitude multiplier for a move's posture (timing fixed). */
+  readonly windupMult: number
+  /** Recoil amplitude multiplier after a move releases (timing fixed). */
+  readonly recoilMult: number
+  /** Basic-strike commit amplitude multiplier (the arrival point is fixed). */
+  readonly strikeMult: number
 }
 
 /**
  * The arena's body-language table (FR5). Signature notes:
- * - draconic: quick and light — fast stride, eager lean, subtle coil sway.
- * - bovine: heavy — big slow bob, deep breathing, the heaviest flinch.
- * - axolotl: fluid — soft gait, the strongest undulating idle sway.
+ * - draconic: quick and light — fast stride, eager lean, subtle coil sway;
+ *   snaps out of a short windup.
+ * - bovine: heavy — big slow bob, deep breathing, the heaviest flinch;
+ *   coils slow and deep, then commits the whole body.
+ * - axolotl: fluid — soft gait, the strongest undulating idle sway; gives
+ *   softly on the commit and absorbs the recoil.
+ * - storm_hound: wired — a twitchy fast stride and a jittery idle; barely
+ *   winds up, then bucks hard off the release.
+ * - falcon: light and precise — almost no bob, a still exact stance; dives
+ *   from a short windup and rides the recoil out.
+ * - tortoise: ponderous and immovable — a slow low gait, deep slow breath;
+ *   barely flinches, winds up forever, and commits the shell.
  */
 const PROFILES: Record<string, BodyProfile> = {
   draconic: {
@@ -60,6 +78,9 @@ const PROFILES: Record<string, BodyProfile> = {
     breathFreq: 1.2,
     hurtMult: 1.1,
     staggerMult: 1.1,
+    windupMult: 0.75,
+    recoilMult: 1.15,
+    strikeMult: 1.2,
   },
   bovine: {
     gaitAmp: 1.35,
@@ -71,6 +92,9 @@ const PROFILES: Record<string, BodyProfile> = {
     breathFreq: 0.7,
     hurtMult: 1.25,
     staggerMult: 1.3,
+    windupMult: 1.45,
+    recoilMult: 1.3,
+    strikeMult: 1.35,
   },
   axolotl: {
     gaitAmp: 0.8,
@@ -82,6 +106,51 @@ const PROFILES: Record<string, BodyProfile> = {
     breathFreq: 1.1,
     hurtMult: 0.9,
     staggerMult: 0.9,
+    windupMult: 1.1,
+    recoilMult: 0.85,
+    strikeMult: 0.85,
+  },
+  storm_hound: {
+    gaitAmp: 1.25,
+    gaitFreq: 1.45,
+    leanPitch: 1.35,
+    swayAmp: 0.022,
+    swayFreq: 1.55,
+    breathAmp: 1.1,
+    breathFreq: 1.5,
+    hurtMult: 0.95,
+    staggerMult: 0.9,
+    windupMult: 0.8,
+    recoilMult: 1.35,
+    strikeMult: 1.2,
+  },
+  falcon: {
+    gaitAmp: 0.7,
+    gaitFreq: 1.55,
+    leanPitch: 1.5,
+    swayAmp: 0.008,
+    swayFreq: 0.9,
+    breathAmp: 0.6,
+    breathFreq: 1.55,
+    hurtMult: 0.8,
+    staggerMult: 0.75,
+    windupMult: 0.65,
+    recoilMult: 0.7,
+    strikeMult: 1.45,
+  },
+  tortoise: {
+    gaitAmp: 0.9,
+    gaitFreq: 0.55,
+    leanPitch: 0.6,
+    swayAmp: 0.012,
+    swayFreq: 0.55,
+    breathAmp: 1.45,
+    breathFreq: 0.55,
+    hurtMult: 0.6,
+    staggerMult: 0.55,
+    windupMult: 1.55,
+    recoilMult: 0.55,
+    strikeMult: 1.5,
   },
 }
 
@@ -115,6 +184,7 @@ export function idleSway(
 }
 
 // Freeze the table so no choreography can quietly rewrite an identity.
+Object.freeze(PROFILES)
 for (const p of Object.values(PROFILES)) Object.freeze(p)
 
 /**
