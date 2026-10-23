@@ -20,4 +20,4 @@
 - [x] **Track: Type Affinity Drift & Extended Prestige** — [20261021-affinity-drift-prestige-perks](./archive/20261021-affinity-drift-prestige-perks/index.md) — feature — high
 - [x] **Track: Electric Species Line** - [20261021-electric-species-line](./archive/20261021-electric-species-line/index.md) - feature - high *(archived 2026-10-22)*
 - [x] **Track: Stable & Partner Reserve** - [20261022-stable-partner-reserve](./archive/20261022-stable-partner-reserve/index.md) - feature - high *(archived 2026-10-22)*
-- [~] **Track: Sim & Voxel Size Guard + Save-Migration Decomposition** - [20261022-sim-voxel-size-guard](./tracks/20261022-sim-voxel-size-guard/index.md) - refactor - medium
+- [x] **Track: Sim & Voxel Size Guard + Save-Migration Decomposition** - [20261022-sim-voxel-size-guard](./archive/20261022-sim-voxel-size-guard/index.md) - refactor - medium *(archived 2026-10-23)*
