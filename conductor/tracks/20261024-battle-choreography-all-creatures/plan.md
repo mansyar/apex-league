@@ -57,7 +57,7 @@ are profile-weighted; `NEUTRAL` still reproduces today's behavior exactly.
 
 **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/choreo.test.ts apps/client/src/steps && bun run check && biome check`
 
-**Status:** pending
+**Status:** in_progress
 
 - [ ] **P1.T1: Extend the profile contract with the attack character** — covers: FR-2
   - [ ] **P1.T1.1: Add the three knobs** — `windupMult`, `recoilMult`, `strikeMult` on `BodyProfile`, each documented as an amplitude multiplier; `NEUTRAL` sets all three to 1 so nothing changes until a profile authors them.
