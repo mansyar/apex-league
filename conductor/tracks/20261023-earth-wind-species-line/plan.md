@@ -35,24 +35,28 @@
 - **Covers:** FR-1, FR-3, FR-4, FR-7, FR-10, NFR-3, NFR-4, AC-3, AC-4, AC-10 (rival half of AC-7)
 - **Touches:** `packages/sim/src/species.ts`, `packages/sim/src/species.test.ts` (new), `packages/sim/src/battle/moves.ts`, `packages/sim/src/battle/moves.test.ts`, `packages/sim/src/breeding.ts`, `packages/sim/src/breeding/**`, `packages/sim/src/cup/bracket.ts`, `packages/sim/src/battle/species-balance.test.ts` (new), the evolution/branch data home for species forms, plus new co-located tests for anything added
 - **Verification:** `bun test --timeout 120000 packages/sim && bun run check && biome check`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Define the two species** — covers: FR-1, FR-3
-  - [ ] **P1.T1.1: SpeciesDef entries** — `earth_tortoise` (fortress: highest HP and DEF in the game, lowest SPD) and `wind_falcon` (speedster: highest SPD, low HP) with temperament, `statBounds`, kit, `rewardFromTier: "gold"` / `"legend"`, and `available: true`; the starter seam refuses both ids
-  - [ ] **P1.T1.2: Evolution and champion branch data** — base + evolved + two branch forms per species in the branching machinery's data home (follow the branching-evolution pattern; accent-tint champions, no extra GLBs); display names and flavor text following the existing naming style
-  - [ ] **P1.T1.3: Species tests** — stat-extreme assertions, element wiring, kit shape, starter/refusal behavior
-- [ ] **P1.T2: Author the 16 moves** — covers: FR-4
-  - [ ] **P1.T2.1: Eight Earth moves** — six kit rows + two branch signatures, existing effect vocabulary only (damage / buff / debuff)
-  - [ ] **P1.T2.2: Eight Wind moves** — same shape
-  - [ ] **P1.T2.3: Schedule and equip tests** — learn schedule (0-1 at birth, 2 by trained day 3, 3-5 by day 6) and the equip-4 rule for both pools
-- [ ] **P1.T3: Wire the data-driven seams** — covers: FR-7, FR-10
-  - [ ] **P1.T3.1: Breeding acceptance** — `validatePair`, `speciesOptions`, and offspring element rules accept both released species with no new mechanics
-  - [ ] **P1.T3.2: Rival rosters** — generated rosters may field `wind_falcon` from Gold and `earth_tortoise` from Legend
-  - [ ] **P1.T3.3: Bosses unchanged** — an assertion that the six authored boss sides are byte-identical to before
-- [ ] **P1.T4: Balance probes** — covers: FR-3, NFR-4
-  - [ ] **P1.T4.1: Tortoise probe** — methodology mirrors the boss-band probes with a self-defined sane band
-  - [ ] **P1.T4.2: Falcon probe** — same
-  - [ ] **P1.T4.3: Existing goldens unchanged** — full existing suite green without edits to golden expectations
+**Result:** verified
+**Checkpoint:** 8132e0b
+**Evidence:** conductor/tracks/20261023-earth-wind-species-line/verification/phase-1.md
+
+- [x] **P1.T1: Define the two species** — covers: FR-1, FR-3
+  - [x] **P1.T1.1: SpeciesDef entries** — `earth_tortoise` (fortress: highest HP and DEF in the game, lowest SPD) and `wind_falcon` (speedster: highest SPD, low HP) with temperament, `statBounds`, kit, `rewardFromTier: "gold"` / `"legend"`, and `available: true`; the starter seam refuses both ids
+  - [x] **P1.T1.2: Evolution and champion branch data** — base + evolved + two branch forms per species in the branching machinery's data home (follow the branching-evolution pattern; accent-tint champions, no extra GLBs); display names and flavor text following the existing naming style
+  - [x] **P1.T1.3: Species tests** — stat-extreme assertions, element wiring, kit shape, starter/refusal behavior
+- [x] **P1.T2: Author the 16 moves** — covers: FR-4
+  - [x] **P1.T2.1: Eight Earth moves** — six kit rows + two branch signatures, existing effect vocabulary only (damage / buff / debuff)
+  - [x] **P1.T2.2: Eight Wind moves** — same shape
+  - [x] **P1.T2.3: Schedule and equip tests** — learn schedule (0-1 at birth, 2 by trained day 3, 3-5 by day 6) and the equip-4 rule for both pools
+- [x] **P1.T3: Wire the data-driven seams** — covers: FR-7, FR-10
+  - [x] **P1.T3.1: Breeding acceptance** — `validatePair`, `speciesOptions`, and offspring element rules accept both released species with no new mechanics
+  - [x] **P1.T3.2: Rival rosters** — generated rosters may field `wind_falcon` from Gold and `earth_tortoise` from Legend
+  - [x] **P1.T3.3: Bosses unchanged** — an assertion that the six authored boss sides are byte-identical to before
+- [x] **P1.T4: Balance probes** — covers: FR-3, NFR-4
+  - [x] **P1.T4.1: Tortoise probe** — methodology mirrors the boss-band probes with a self-defined sane band
+  - [x] **P1.T4.2: Falcon probe** — same
+  - [x] **P1.T4.3: Existing goldens unchanged** — full existing suite green without edits to golden expectations
 
 <!--
 The primary appends after acceptance:
