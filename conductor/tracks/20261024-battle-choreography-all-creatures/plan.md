@@ -57,21 +57,24 @@ are profile-weighted; `NEUTRAL` still reproduces today's behavior exactly.
 
 **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/choreo.test.ts apps/client/src/steps && bun run check && biome check`
 
-**Status:** in_progress
+**Status:** verified
+**Result:** verified
+**Checkpoint:** 87232a5
+**Evidence:** conductor/tracks/20261024-battle-choreography-all-creatures/verification/phase-1.md
 
-- [ ] **P1.T1: Extend the profile contract with the attack character** — covers: FR-2
-  - [ ] **P1.T1.1: Add the three knobs** — `windupMult`, `recoilMult`, `strikeMult` on `BodyProfile`, each documented as an amplitude multiplier; `NEUTRAL` sets all three to 1 so nothing changes until a profile authors them.
-  - [ ] **P1.T1.2: Weight the posture curves** — `applyPosture` multiplies windup amplitudes (`pitch`, `roll`, `rise`, `coilX`) by `ao.profile.windupMult` and recoil amplitudes (`pitchOut`, `sweepX`, `riseOut`) by `ao.profile.recoilMult`, leaving the phase fractions (`half`/`full` sines) untouched. Signature stays unchanged: `DriveFighter` already carries `profile`.
-  - [ ] **P1.T1.3: Weight the melee strike body** — `steps/melee.ts` multiplies its commit offsets, leans, and settle impulse by `ao.profile.strikeMult` (and the victim-side reaction stays exactly as it is — `contactReaction` already reads the *victim's* profile).
-  - [ ] **P1.T1.4: Prove the multiplier math** — tests: `NEUTRAL`'s three knobs are 1; a synthetic profile with `windupMult: 1.5` yields exactly 1.5× windup amplitude with identical phase fractions; `recoilMult` does the same on the recoil curve; `strikeMult` scales the melee offsets proportionally.
-- [ ] **P1.T2: Author all six identities** — covers: FR-1, FR-3
-  - [ ] **P1.T2.1: Author the three missing bodies** — `storm_hound` (wired, restless), `falcon` (light, airborne, precise), `tortoise` (ponderous, immovable) keyed by archetype id, inside the spec's bands (multipliers 0.5–1.6, `swayAmp` 0.004–0.045). Use the spec's table as the starting point.
-  - [ ] **P1.T2.2: Give the launched trio its attack character** — `draconic`, `bovine`, `axolotl` gain the three attack knobs in the same grammar; their existing body values stay byte-identical (a change needs a recorded defect and a before → after note).
-  - [ ] **P1.T2.3: Freeze and table-test the library** — extend `choreo.test.ts`: all six ids present and frozen, every value inside its band, no two profiles equal (each pair differs in at least two knobs), unknown id still resolves to `DEFAULT_PROFILE`, and `reactionFor` still composes per archetype (`stagger` weighted by `staggerMult`, `glance`/`down` by `hurtMult`, `dodge` by neither).
-- [ ] **P1.T3: Prove size and purity** — covers: NFR-2, NFR-4
-  - [ ] **P1.T3.1: Record the sizes** — `choreo.ts`, `steps/pure.ts`, and `steps/melee.ts` byte sizes in the evidence; all under 12,288 B.
-  - [ ] **P1.T3.2: Prove the tables stay pure** — evidence record that `choreo.ts` imports nothing from `three` and touches no DOM, and that the profile table is frozen at module load.
-  - [ ] **P1.T3.3: Spot visual** — one desktop spar with `falcon` and one with `tortoise` via `playwright-cli`; screenshots at idle and contact into `.conductor/evidence/`; console clean. Record the observation (not a tuning pass — that is Phase 4).
+- [x] **P1.T1: Extend the profile contract with the attack character** — covers: FR-2
+  - [x] **P1.T1.1: Add the three knobs** — `windupMult`, `recoilMult`, `strikeMult` on `BodyProfile`, each documented as an amplitude multiplier; `NEUTRAL` sets all three to 1 so nothing changes until a profile authors them.
+  - [x] **P1.T1.2: Weight the posture curves** — `applyPosture` multiplies windup amplitudes (`pitch`, `roll`, `rise`, `coilX`) by `ao.profile.windupMult` and recoil amplitudes (`pitchOut`, `sweepX`, `riseOut`) by `ao.profile.recoilMult`, leaving the phase fractions (`half`/`full` sines) untouched. Signature stays unchanged: `DriveFighter` already carries `profile`.
+  - [x] **P1.T1.3: Weight the melee strike body** — `steps/melee.ts` multiplies its commit offsets, leans, and settle impulse by `ao.profile.strikeMult` (and the victim-side reaction stays exactly as it is — `contactReaction` already reads the *victim's* profile).
+  - [x] **P1.T1.4: Prove the multiplier math** — tests: `NEUTRAL`'s three knobs are 1; a synthetic profile with `windupMult: 1.5` yields exactly 1.5× windup amplitude with identical phase fractions; `recoilMult` does the same on the recoil curve; `strikeMult` scales the melee offsets proportionally.
+- [x] **P1.T2: Author all six identities** — covers: FR-1, FR-3
+  - [x] **P1.T2.1: Author the three missing bodies** — `storm_hound` (wired, restless), `falcon` (light, airborne, precise), `tortoise` (ponderous, immovable) keyed by archetype id, inside the spec's bands (multipliers 0.5–1.6, `swayAmp` 0.004–0.045). Use the spec's table as the starting point.
+  - [x] **P1.T2.2: Give the launched trio its attack character** — `draconic`, `bovine`, `axolotl` gain the three attack knobs in the same grammar; their existing body values stay byte-identical (a change needs a recorded defect and a before → after note).
+  - [x] **P1.T2.3: Freeze and table-test the library** — extend `choreo.test.ts`: all six ids present and frozen, every value inside its band, no two profiles equal (each pair differs in at least two knobs), unknown id still resolves to `DEFAULT_PROFILE`, and `reactionFor` still composes per archetype (`stagger` weighted by `staggerMult`, `glance`/`down` by `hurtMult`, `dodge` by neither).
+- [x] **P1.T3: Prove size and purity** — covers: NFR-2, NFR-4
+  - [x] **P1.T3.1: Record the sizes** — `choreo.ts`, `steps/pure.ts`, and `steps/melee.ts` byte sizes in the evidence; all under 12,288 B.
+  - [x] **P1.T3.2: Prove the tables stay pure** — evidence record that `choreo.ts` imports nothing from `three` and touches no DOM, and that the profile table is frozen at module load.
+  - [x] **P1.T3.3: Spot visual** — one desktop spar with `falcon` and one with `tortoise` via `playwright-cli`; screenshots at idle and contact into `.conductor/evidence/`; console clean. Record the observation (not a tuning pass — that is Phase 4).
 
 ---
 
