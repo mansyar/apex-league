@@ -75,7 +75,7 @@ The primary appends after acceptance:
 - **Covers:** FR-5, FR-6, FR-8, FR-9 (claim UI), NFR-6, AC-5, AC-6, AC-8
 - **Touches:** `packages/sim/src/state.ts`, `packages/sim/src/cupRewards.ts`, `packages/sim/src/breeding/gift.ts`, `packages/sim/src/breeding.ts`, `packages/sim/src/ticker.ts`, `packages/sim/src/index.ts`, `packages/sim/src/save/schema.ts`, `packages/sim/src/save/migrations/v24.ts` (new), `packages/sim/src/save/migrations/index.ts`, `packages/sim/src/save/migrations.test.ts`, `packages/sim/src/save/giftSave.test.ts`, `packages/sim/src/save/validators/session.ts`, `packages/sim/src/save/storm-gift.test.ts` moved/renamed as needed, `packages/sim/src/cup/storm-gift.test.ts`, `apps/client/src/gift.ts`, `apps/client/src/cup/results.ts`, `docs/save-schema.md`, plus new co-located tests
 - **Verification:** `bun test --timeout 120000 && bun run check && biome check`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Generalize the reward record** — covers: FR-5, FR-8
   - [ ] **P2.T1.1: Field shape in `state.ts`** — replace `stormGiftClaimed: boolean` with a per-tier claim record and generalize `pendingGift` into a pending-reward queue; honest renames of the `stormGift*` seams (`stormGiftPending` → tier-agnostic pending check, `stormGiftPreview` → reward preview, `applyStormGift` → the per-tier grant)
