@@ -20,7 +20,10 @@ Phase states: `pending` → `in_progress` → `verified` / `failed` / `blocked`.
 
 - **Goal:** the capped parallel runner is the configured phase command, the tiered verification policy is documented, and the measured speedups (including guards proven under worker isolation) are recorded.
 - **Depends on:** none.
-- **Covers:** FR-1, FR-2, FR-5, FR-6, NFR-2, NFR-5, AC-1, AC-4, AC-5.
+- **Covers:** FR-1, FR-5, FR-6, NFR-2, NFR-5, AC-4, AC-5 — and the
+  configuration half of FR-2/AC-1 (the script and its first measurement; the
+  ≤ 150 s numeric target is the track end-state and is re-measured by
+  P3.T3.2 after the voxel smoke slices shrink the suite's critical path).
 - **Touches:** `package.json`, `conductor/workflow.md`, `conductor/tracks/20261023-test-suite-speedup/verification/phase-1.md`.
 - **Verification:** `bun run test:phase && bun run check && biome check`
 - **Status:** in_progress
@@ -68,7 +71,7 @@ Phase states: `pending` → `in_progress` → `verified` / `failed` / `blocked`.
 
 - **Goal:** the full-seed sweep is wired into the nightly workflow behind a `test:fuzz` script, and every numeric metric in the spec is measured end to end on the finished track.
 - **Depends on:** Phase 2.
-- **Covers:** FR-4, FR-7, NFR-3, AC-3, AC-6.
+- **Covers:** FR-2, FR-4, FR-7, NFR-3, AC-1, AC-3, AC-6.
 - **Touches:** `package.json`, `.github/workflows/nightly.yml`, `conductor/tracks/20261023-test-suite-speedup/verification/phase-3.md`.
 - **Verification:** `bun run test:fuzz && bun run verify && bun run build`
 - **Status:** pending
