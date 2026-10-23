@@ -42,3 +42,6 @@ jobs:
 
       - name: Determinism gate
         run: bun run gate:determinism
+
+      - name: Fuzz sweep
+        run: bun run test:fuzz

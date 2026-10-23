@@ -555,6 +555,23 @@
   detail, coaching and battle HUD at desktop and iPhone 15 widths with a clean
   console.
 
+- `2026-10-24` - **Test suite speedup** (`20261023-test-suite-speedup`): the
+  phase test leg drops 206 s → 53 s via two levers. The `test_phase` workflow
+  command runs the suite under `bun test --check --parallel=4 --timeout 120000`
+  (a deliberate 4-worker cap: the dev machine runs ~3 projects at once, and the
+  measured worker sweep showed a cap only costs speed on heavy files, so seeds
+  must shrink too). Every voxel fuzz suite now slices its seeds: a fixed,
+  documented first-quarter smoke slice runs in the PR gate (89 of 303 seeds)
+  while the full lists run nightly through the new `test:fuzz` script
+  (`APEX_FUZZ_SWEEP=full bun test --check --parallel … packages/voxel/src/fuzz`,
+  POSIX-prefix form, runtime-proven cross-platform) wired as one `Fuzz sweep`
+  step in nightly.yml beside the determinism gate. Assertions are never
+  weakened — the sweep restores exactly the sliced expects (+92); slices are
+  deterministic and documented in each suite header; the three module-size
+  guards' negative controls are proven to fire under parallel workers. Final
+  numbers: phase leg 53 s (target ≤ 150 s), `bun run verify` 77 s (≤ 120 s),
+  full nightly sweep 41 s, CI unchanged.
+
 ## Quality Gates
 - `bun check` clean, `biome check` clean, `bun test` green — required before
   any commit lands (see workflow.md).

@@ -40,6 +40,7 @@ commands:
   setup: "bun install"
   dev: "bun run dev"
   test: "bun test --timeout 120000"
+  test_phase: "bun test --check --parallel=4 --timeout 120000"
   coverage: "none"
   lint: "biome check"
   format: "biome check --write"
@@ -200,6 +201,23 @@ endpoint work begins.
 | unit | `bun test --timeout 120000` | yes |
 | determinism | `bun run gate:determinism` | yes |
 | visual | `playwright-cli` against `bun run dev` | when user-facing |
+
+### Phase Test Tiers
+
+- **Phase test legs** run the touched package's co-located suite through
+  `bun run test:phase` (`bun test --check --parallel=4 --timeout 120000`).
+  The runner is capped at 4 workers on purpose: development machines share the
+  CPU with other projects, and a capped runner keeps the suite polite while it
+  runs. The full-suite phase leg measures **53–58 s** with the voxel fuzz smoke
+  slices in place (target ≤ 150 s; measured in the test-suite-speedup track —
+  the smoke slices shrink the critical path so the capped runner also beats the
+  uncapped pre-slice suite at 92 s).
+- **Full `verify_phase` (`bun run verify && bun run build`) stays mandatory at
+  every phase acceptance** — the package tier only narrows the in-phase loop,
+  never the acceptance gate.
+- **CI and the nightly sweep keep uncapped parallelism** (`bun test --check
+  --parallel`): GitHub runners have few cores and bun self-caps to them, and
+  the nightly full fuzz sweep wants every worker it can get.
 
 ### Services and Fixtures
 

@@ -22,3 +22,4 @@
 - [x] **Track: Stable & Partner Reserve** - [20261022-stable-partner-reserve](./archive/20261022-stable-partner-reserve/index.md) - feature - high *(archived 2026-10-22)*
 - [x] **Track: Sim & Voxel Size Guard + Save-Migration Decomposition** - [20261022-sim-voxel-size-guard](./archive/20261022-sim-voxel-size-guard/index.md) - refactor - medium *(archived 2026-10-23)*
 - [x] **Track: Earth & Wind Species Line** - [20261023-earth-wind-species-line](./archive/20261023-earth-wind-species-line/index.md) - feature - high *(archived 2026-10-23)*
+- [x] **Track: Test Suite Speedup** - [20261023-test-suite-speedup](./archive/20261023-test-suite-speedup/index.md) - chore - medium *(archived 2026-10-24)*

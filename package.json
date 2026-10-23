@@ -10,6 +10,8 @@
     "build": "bun run --filter @apex/client build",
     "check": "bun run --filter '*' check",
     "test": "bun test --timeout 120000",
+    "test:phase": "bun test --check --parallel=4 --timeout 120000",
+    "test:fuzz": "APEX_FUZZ_SWEEP=full bun test --check --parallel --timeout 120000 packages/voxel/src/fuzz",
     "gate:determinism": "bun packages/voxel/scripts/determinism-gate.ts",
     "verify": "bun run check && bun test --check --parallel --timeout 120000 && biome check && bun run gate:determinism"
   },

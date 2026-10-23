@@ -5,11 +5,14 @@ import { voxelize } from "../voxelizer"
 
 // Partitioned from fuzz.test.ts: same boundary guarantee over the same seed
 // range, split so bun test --parallel can spread voxelization across cores.
-// Coverage is unchanged: every seed is asserted.
+// Smoke slice (test-suite-speedup FR-3): the PR gate runs the first quarter of
+// the seed list; `bun run test:fuzz` sets APEX_FUZZ_SWEEP=full for the rest.
 
-const CHUNK = [30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
+const FULL_CHUNK = [30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
+const CHUNK =
+  process.env.APEX_FUZZ_SWEEP === "full" ? FULL_CHUNK : FULL_CHUNK.slice(0, 3)
 
-test("no bovine voxel touches the grid boundary over seeds 30-39", () => {
+test("no bovine voxel touches the grid boundary over the gate slice (first quarter of seeds; full list via APEX_FUZZ_SWEEP=full)", () => {
   const R = BOVINE_GRID - 1
   let violations = 0
   for (const seed of CHUNK) {
