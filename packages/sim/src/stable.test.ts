@@ -341,8 +341,8 @@ describe("the Storm Gift hatches into the stable (FR-7)", () => {
     const owned = chooseStarter(createInitialState(), "fire_drake", 42)
     const granted: GameState = {
       ...owned,
-      stormGiftClaimed: true,
-      pendingGift: { speciesId: "electric_hound", seed: 4242 },
+      claimedTiers: ["silver"],
+      pendingRewards: [{ speciesId: "electric_hound", seed: 4242 }],
     }
     const result = hatchGiftEgg(granted)
     if (!result.ok) throw new Error("the hatch was refused")
@@ -350,15 +350,15 @@ describe("the Storm Gift hatches into the stable (FR-7)", () => {
     expect(result.state.stable).toHaveLength(1)
     expect(result.state.stable[0]?.speciesId).toBe("electric_hound")
     expect(result.state.stable[0]?.giftEgg).toBe(true)
-    expect(result.state.pendingGift).toBeNull()
+    expect(result.state.pendingRewards).toEqual([])
   })
 
   test("the ranch pet is not archived — it never left the ranch", () => {
     const owned = chooseStarter(createInitialState(), "fire_drake", 42)
     const granted: GameState = {
       ...owned,
-      stormGiftClaimed: true,
-      pendingGift: { speciesId: "electric_hound", seed: 4242 },
+      claimedTiers: ["silver"],
+      pendingRewards: [{ speciesId: "electric_hound", seed: 4242 }],
     }
     const result = hatchGiftEgg(granted)
     if (!result.ok) throw new Error("the hatch was refused")
@@ -366,20 +366,29 @@ describe("the Storm Gift hatches into the stable (FR-7)", () => {
     expect(result.state.lineage.generation).toBe(0)
   })
 
-  test("a stashed gift pet counts as hatched — the one-gift rule holds", () => {
+  test("the queue drains one egg per claim flow", () => {
     const owned = chooseStarter(createInitialState(), "fire_drake", 42)
     const granted: GameState = {
       ...owned,
-      stormGiftClaimed: true,
-      pendingGift: { speciesId: "electric_hound", seed: 4242 },
+      claimedTiers: ["silver", "gold"],
+      pendingRewards: [
+        { speciesId: "electric_hound", seed: 4242 },
+        { speciesId: "wind_falcon", seed: 99 },
+      ],
     }
     const hatched = hatchGiftEgg(granted)
     if (!hatched.ok) throw new Error("the hatch was refused")
-    const again = hatchGiftEgg({
-      ...hatched.state,
-      pendingGift: { speciesId: "electric_hound", seed: 99 },
-    })
-    expect(again).toEqual({ ok: false, reason: "already-hatched" })
+    expect(hatched.state.stable.map((pet) => pet.speciesId)).toEqual([
+      "electric_hound",
+    ])
+    // A stashed gift pet does not block the next tier's reward: the
+    // per-tier queue replaced the single-gift rule (save v25).
+    const again = hatchGiftEgg(hatched.state)
+    if (!again.ok) throw new Error("the hatch was refused")
+    expect(again.state.stable.map((pet) => pet.speciesId)).toEqual([
+      "electric_hound",
+      "wind_falcon",
+    ])
   })
 })
 

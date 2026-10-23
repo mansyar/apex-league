@@ -79,6 +79,30 @@ export const PROPORTION_BUDGETS: Record<string, ProportionBudget> = {
       "bodyLength/bodyHeight": { min: 1.5, max: 2.7 },
     },
   },
+  // Falcon: the SPD-specialist of the wind line — a perched raptor with
+  // long exposed legs under a compact teardrop torso. Calibrated on the
+  // audit-lattice sweep (200 seeds, all three stages):
+  // legs 0.43-1.0, neck 0.05-0.56, head 0.09-0.71, body 1.18-2.43.
+  falcon: {
+    ratios: {
+      "legLength/bodyHeight": { min: 0.25, max: 1.15 },
+      "neckLength/bodyLength": { min: 0.03, max: 0.65 },
+      "headHeight/bodyHeight": { min: 0.05, max: 0.85 },
+      "bodyLength/bodyHeight": { min: 1.0, max: 2.6 },
+    },
+  },
+  // Tortoise: the DEF-specialist — the shortest legs and the longest,
+  // lowest body of the line; the shell dome keeps measured height honest.
+  // Calibrated on the audit-lattice sweep (200 seeds, all three stages):
+  // legs 0.33-0.78, neck 0.03-0.41, head 0.09-0.71, body 1.62-3.57.
+  tortoise: {
+    ratios: {
+      "legLength/bodyHeight": { min: 0.3, max: 0.9 },
+      "neckLength/bodyLength": { min: 0.0, max: 0.5 },
+      "headHeight/bodyHeight": { min: 0.05, max: 0.85 },
+      "bodyLength/bodyHeight": { min: 1.4, max: 3.8 },
+    },
+  },
 }
 
 /** Inclusive check: a measured ratio inside its budget range. */

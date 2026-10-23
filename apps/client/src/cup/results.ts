@@ -4,7 +4,7 @@
  * `createCup` — the copy and math live in view-models (resultsView), this
  * module only renders rows and flips the sim's phase.
  */
-import { finalizeCup, stormGiftPending } from "@apex/sim"
+import { finalizeCup, leagueRewardPending } from "@apex/sim"
 import type { CupShared } from "./shared"
 import { resultsView } from "./view-models"
 
@@ -31,9 +31,9 @@ export function createResults(shared: CupShared): {
       mem.state.ladder,
       mem.ladderBefore,
       mem.state.legendTitles,
-      // The Storm Gift (FR-5): the grant reads as a reward row when an egg
+      // The league rewards (FR-5): the grant reads as a reward row when an egg
       // is waiting in the nursery.
-      stormGiftPending(mem.state),
+      leagueRewardPending(mem.state),
     )
     // The title follows the session's status, not the placement: a drawn
     // final (double-KO) crowns the player while placement rounds survive.

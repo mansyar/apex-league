@@ -85,7 +85,7 @@ describe("stableMeta — the line a waiting pet reads as", () => {
   })
 
   test("a renamed pet of the gift species keeps the species line", () => {
-    const hound = createGiftEgg(4242)
+    const hound = createGiftEgg("electric_hound", 4242)
     const row = stableRow({ ...hound, name: "Rolo" }, 0)
     expect(row.species).toBe("Storm Hound")
     expect(stableMeta(row)).toBe("Storm Hound · Baby · 1 day")

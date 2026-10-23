@@ -7,7 +7,7 @@ import {
   cupPlacement,
   startCupSession,
 } from "./cup"
-import { applyCupRewards, applyStormGift } from "./cupRewards"
+import { applyCupRewards, grantLeagueRewards } from "./cupRewards"
 import { applyCupPlacement } from "./ladder"
 import { obtainableSpecies } from "./species"
 import type { GameState } from "./state"
@@ -117,11 +117,11 @@ export function finalizeCup(state: GameState, session: CupSession): GameState {
     cupPlacement(session) === 1 ? "won" : "lost",
     state.day,
   )
-  // The Storm Gift (electric species line FR-5): the one-time Silver
-  // tier-reward claim, checked against the POST-placement ladder so a
-  // Promotion Cup champion crowned into Silver claims at this same
-  // finalize. Forfeited cups never trigger or consume the grant.
-  const gifted = applyStormGift(rewarded, forfeited)
+  // The league rewards (earth/wind species line FR-5): the per-tier claim,
+  // checked against the POST-placement ladder so a Promotion Cup champion
+  // crowned into a reward tier claims at this same finalize. Forfeited
+  // cups never trigger or consume the grant.
+  const gifted = grantLeagueRewards(rewarded, forfeited)
   // The defeat ledger: any boss the player scalped in this cup joins the
   // record, idempotently (FR9). Rival-subtree boss wins never count.
   const scalps = bossScalps(session)

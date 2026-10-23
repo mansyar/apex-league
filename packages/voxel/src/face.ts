@@ -215,6 +215,44 @@ export function facePlan(archetype: string, head: HeadShape): FacePlan {
     }
   }
 
+  if (archetype === "tortoise") {
+    // Small wide-set eyes on a blunt armored skull, mid-height so they read
+    // under the dome's shadow line rather than as a brow ridge. The short
+    // beak jaw carries the mouth line; the snout is too narrow for a
+    // nostril pair (see the drake note below).
+    const eyeY = center.y + half.y * 0.25
+    const eyeZ = center.z + half.z * 0.3
+    const muzzle = snout ?? { center, half }
+    return {
+      eyes: [eye(head, -1, eyeY, eyeZ, radii), eye(head, 1, eyeY, eyeZ, radii)],
+      mouth: mouthLine(
+        muzzle,
+        muzzle.center.y - muzzle.half.y * 0.55,
+        muzzle.half.x * 0.72,
+      ),
+      nostrils: [],
+    }
+  }
+
+  if (archetype === "falcon") {
+    // Raptor eyes: large, set high and far forward on the skull so the
+    // stare reads over the beak root. The beak is its own bone part, so the
+    // mouth line stays a faint crease low on the skull where the beak
+    // meets it; no nostril pair on a beak this small.
+    const eyeY = center.y + half.y * 0.35
+    const eyeZ = center.z + half.z * 0.35
+    const muzzle = snout ?? { center, half }
+    return {
+      eyes: [eye(head, -1, eyeY, eyeZ, radii), eye(head, 1, eyeY, eyeZ, radii)],
+      mouth: mouthLine(
+        muzzle,
+        muzzle.center.y - muzzle.half.y * 0.62,
+        muzzle.half.x * 0.5,
+      ),
+      nostrils: [],
+    }
+  }
+
   // Drake (the default silhouette): angled eyes under a heavy brow, a mouth
   // line running the length of the jaw, and a nostril pair on the snout top.
   const eyeY = center.y + half.y * 0.3

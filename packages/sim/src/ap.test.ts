@@ -82,8 +82,8 @@ function prestigeState(
     bossDefeats: [],
     legendTitles: 0,
     evolutionKnowledge: { juvenile: false, champion: false },
-    stormGiftClaimed: false,
-    pendingGift: null,
+    claimedTiers: [],
+    pendingRewards: [],
     stable: [],
   }
 }

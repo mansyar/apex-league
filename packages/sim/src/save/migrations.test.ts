@@ -6,7 +6,7 @@ import { migrations } from "./migrations"
 import { SAVE_VERSION, type SaveData } from "./schema"
 
 describe("migration chain", () => {
-  test("has exactly one step per version, 0 through 23", () => {
+  test("has exactly one step per version, 0 through 24", () => {
     expect(Object.keys(migrations)).toEqual([
       "0",
       "1",
@@ -32,6 +32,7 @@ describe("migration chain", () => {
       "21",
       "22",
       "23",
+      "24",
     ])
   })
 

@@ -4,7 +4,7 @@
  */
 
 import { type Creature, createCreature } from "./creature"
-import { initialLadder, type LadderState } from "./ladder"
+import { initialLadder, type LadderState, type LadderTier } from "./ladder"
 // Type-only on purpose: `legacy` reads the action-point constant from this
 // module, so a value import here would close a runtime cycle
 // (state → legacy → state). Nothing else in the sim imports values from
@@ -112,21 +112,22 @@ export interface GameState {
    */
   evolutionKnowledge: EvolutionKnowledge
   /**
-   * The Silver tier-reward claim (save v21, electric species line FR-5).
-   * Stamped exactly once by the cup finalize's reward seam when a
-   * non-forfeit cup closes on a post-placement Silver-or-higher ladder —
-   * never below Silver, never on a forfeit, never twice. The granted
-   * "Storm Gift" egg itself lives in the nursery flow (breeding.ts).
+   * The per-tier league reward claims (save v25, earth/wind species line
+   * FR-5). One entry per reward tier the cup finalize's reward seam has
+   * paid out, stamped exactly once per tier when a non-forfeit cup closes
+   * on a post-placement ladder that has reached that tier — never on a
+   * forfeit, never twice for the same tier. The granted eggs themselves
+   * wait in `pendingRewards` (the nursery flow, breeding.ts).
    */
-  stormGiftClaimed: boolean
+  claimedTiers: LadderTier[]
   /**
-   * The granted Storm Gift egg, waiting in the nursery for the player to
-   * hatch it (save v22, electric species line FR-5/FR-6). Null when no
-   * gift is waiting — never granted yet, or already hatched. The seed
-   * travels with the egg so the preview and the hatch roll the same
-   * individual.
+   * The granted reward eggs waiting in the nursery for the player to hatch
+   * them (save v25, generalizing v22's single pending gift): one entry per
+   * claimed tier, oldest (lowest tier) first, and the nursery claim flow
+   * hatches the head of the queue. Each seed travels with its egg so the
+   * preview and the hatch roll the same individual.
    */
-  pendingGift: PendingGift | null
+  pendingRewards: PendingGift[]
   /**
    * The stable (save v24, stable & partner reserve FR-1): every pet the
    * player owns that is **not** in the ranch, oldest first, with no
@@ -139,11 +140,12 @@ export interface GameState {
 }
 
 /**
- * A granted reward egg (save v22). The league hands over the species and
- * the roll; the player decides when to hatch it.
+ * A granted reward egg (save v22, generalized to a per-tier queue at v25).
+ * The league hands over the species and the roll; the player decides when
+ * to hatch it.
  */
 export interface PendingGift {
-  /** The species the league granted (the Storm Gift species). */
+  /** The species the league granted (the tier's reward species). */
   speciesId: string
   /** The roll seed: the preview and the hatch use this same seed, so what
    * the player is shown is exactly what they get. */
@@ -177,8 +179,10 @@ export function createInitialState(): GameState {
     bossDefeats: [],
     legendTitles: 0,
     evolutionKnowledge: initialEvolutionKnowledge(),
-    stormGiftClaimed: false,
-    pendingGift: null,
+    // The reward record starts empty (save v25): a fresh run has claimed
+    // no tier and no egg waits in the nursery.
+    claimedTiers: [],
+    pendingRewards: [],
     // The stable starts empty (save v24): a fresh run owns one pet.
     stable: [],
   }

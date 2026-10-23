@@ -122,11 +122,51 @@ const CONTRACT: readonly BranchContract[] = [
     signatureMove: "ion_wall",
     accentHue: 38,
   },
+  {
+    id: "landslide_ram",
+    speciesId: "earth_tortoise",
+    label: "Landslide Ram",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 6, atk: 6, def: 3, spd: 1 },
+    signatureMove: "quake_stomp",
+    accentHue: 40,
+  },
+  {
+    id: "rampart_keeper",
+    speciesId: "earth_tortoise",
+    label: "Rampart Keeper",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 7, atk: 2, def: 6, spd: 0 },
+    signatureMove: "basalt_guard",
+    accentHue: 16,
+  },
+  {
+    id: "squall_diver",
+    speciesId: "wind_falcon",
+    label: "Squall Diver",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 4, atk: 7, def: 3, spd: 4 },
+    signatureMove: "cyclone_dive",
+    accentHue: 177,
+  },
+  {
+    id: "aerie_warden",
+    speciesId: "wind_falcon",
+    label: "Aerie Warden",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 7, atk: 3, def: 5, spd: 0 },
+    signatureMove: "zephyr_veil",
+    accentHue: 153,
+  },
 ]
 
 describe("branch catalog", () => {
-  test("holds exactly the eight contracted branches", () => {
-    expect(BRANCHES.length).toBe(8)
+  test("holds exactly the twelve contracted branches", () => {
+    expect(BRANCHES.length).toBe(12)
     expect(BRANCHES.map((branch) => branch.id)).toEqual(
       CONTRACT.map((row) => row.id),
     )

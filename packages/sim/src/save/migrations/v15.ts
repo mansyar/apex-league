@@ -29,8 +29,8 @@ export function migrateFromV15(
     bossDefeats: s.bossDefeats as GameState["bossDefeats"],
     legendTitles: s.legendTitles as GameState["legendTitles"],
     evolutionKnowledge: initialEvolutionKnowledge(),
-    stormGiftClaimed: false,
-    pendingGift: null,
+    claimedTiers: [],
+    pendingRewards: [],
     stable: [],
   }
   return {

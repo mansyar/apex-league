@@ -1,0 +1,32 @@
+{
+  "id": "20261023-earth-wind-species-line",
+  "title": "Earth & Wind Species Line",
+  "type": "feature",
+  "status": "complete",
+  "priority": "high",
+  "depends_on": [],
+  "created_at": "2026-10-23T17:21:45+11:00",
+  "updated_at": "2026-10-24T00:20:00+11:00",
+  "spec": "spec.md",
+  "plan": "plan.md",
+  "branch": "feat/20261023-earth-wind-species-line",
+  "base_branch": "main",
+  "base_sha": "e9fea33945c340e7a5e33d81a88796547fe71302",
+  "progress": {
+    "phases_total": 4,
+    "phases_verified": 4,
+    "tasks_total": 15,
+    "tasks_done": 15
+  },
+  "last_checkpoint": "1deae83",
+  "review_verdict": "PASS",
+  "review_rounds": 2,
+  "doc_sync": "pending",
+  "pr_url": "https://github.com/mansyar/apex-league/pull/49",
+  "pr_state": "open",
+  "reverted_at": null,
+  "revert_commit": null,
+  "revert_pr_url": null,
+  "archived_at": null,
+  "archive_path": null
+}

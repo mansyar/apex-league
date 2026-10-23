@@ -45,8 +45,8 @@ export function migrateFromV2(
     bossDefeats: [],
     legendTitles: 0,
     evolutionKnowledge: initialEvolutionKnowledge(),
-    stormGiftClaimed: false,
-    pendingGift: null,
+    claimedTiers: [],
+    pendingRewards: [],
     stable: [],
   }
   return { version: 3, state: migrated, savedAt: raw.savedAt ?? 0 }

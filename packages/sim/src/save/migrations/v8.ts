@@ -32,8 +32,8 @@ export function migrateFromV8(
     bossDefeats: [],
     legendTitles: 0,
     evolutionKnowledge: initialEvolutionKnowledge(),
-    stormGiftClaimed: false,
-    pendingGift: null,
+    claimedTiers: [],
+    pendingRewards: [],
     stable: [],
   }
   return {

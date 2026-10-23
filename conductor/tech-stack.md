@@ -534,6 +534,27 @@
   save-schema change (`SAVE_VERSION` stays 24), no dependency change, no
   existing test edited; the determinism gate is unchanged.
 
+- `2026-10-23` - **Earth & wind species line** (`20261023-earth-wind-species-line`):
+  the roster reaches one species per element. Two species join as tier rewards -
+  `wind_falcon` (**Zephyr Falcon**) unlocks at Gold, `earth_tortoise` (**Basalt
+  Tortoise**) at Legend - each with a full three-stage lifecycle, champion branch
+  forms (Squall Diver / Aerie Warden, Landslide Ram / Rampart Keeper) and an
+  eight-move pool (six kit rows plus two signatures) on the existing effect
+  vocabulary. The one-time Storm Gift generalizes into a per-tier league reward
+  record: save v25 replaces `stormGiftClaimed` / `pendingGift` with `claimedTiers`
+  plus a `pendingRewards` queue (the v24 → v25 step maps the old boolean and egg
+  onto the Silver claim slot and the queue head), `grantLeagueRewards` pays every
+  tier the ladder has reached exactly once on a non-forfeit finalize, and the
+  hatch stays a pure egg (affinity null, no drift RNG draw, preview equals
+  hatch). Two voxel archetypes join the registry (`falcon`, `tortoise`) with
+  proportion budgets, face plans, stage signatures and fuzz suites; the
+  determinism gate now hashes eighteen creature GLBs, all byte-identical - the
+  twelve pre-existing ones unchanged. The lifecycle is proven end to end for
+  both reward species (finalize → queue hatch → care nights → champion branch
+  → clock-driven cup win) and the visual pass covers ranch, nursery, handbook,
+  detail, coaching and battle HUD at desktop and iPhone 15 widths with a clean
+  console.
+
 ## Quality Gates
 - `bun check` clean, `biome check` clean, `bun test` green — required before
   any commit lands (see workflow.md).

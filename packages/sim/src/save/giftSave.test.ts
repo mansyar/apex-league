@@ -1,14 +1,15 @@
 /**
- * Save v21 — the Silver tier-reward bookkeeping (electric species line
- * FR-8). The save gains two persisted fields: the one-time claim flag
- * (`stormGiftClaimed`) and the gift-egg lineage marker (`giftEgg`) on the
- * creature and every Hall record. The migration stamps defaults — no
- * pre-v21 save has received the gift, and no hatched career predates it.
- * Everything else, including the live cup session, forwards untouched.
+ * The league-reward bookkeeping in the save (electric species line FR-8,
+ * generalized per tier at save v25). The save carries the per-tier claim
+ * record (`claimedTiers`), the pending-reward queue (`pendingRewards`),
+ * and the gift-egg lineage marker (`giftEgg`) on the creature and every
+ * Hall record. Migrations stamp defaults — no pre-v21 save has received a
+ * reward, and no hatched career predates the marker — and the v24→v25 step
+ * maps the old one-time Silver flag onto the per-tier record losslessly.
  *
  * Structure follows save.test.ts and branchesSave.test.ts: migrate a raw
- * fixture at the previous version, pin the defaults, refuse corrupt fields,
- * and round-trip the new fields through export/import.
+ * fixture at a previous version, pin the defaults, refuse corrupt fields,
+ * and round-trip the fields through export/import.
  */
 
 import { describe, expect, test } from "bun:test"
@@ -35,8 +36,9 @@ import {
 import { buildSaveExport, inspectSaveImport } from "./transfer"
 
 /**
- * A v20 payload: a real starter downgraded by hand (v21 fields removed),
- * with per-case creature and state overrides for corrupt-field cases.
+ * A v20 payload: a real starter downgraded by hand (the reward bookkeeping
+ * removed — v20 predates all of it), with per-case creature and state
+ * overrides for corrupt-field cases.
  */
 function v20(
   creatureFields: Partial<Record<string, unknown>> = {},
@@ -57,6 +59,9 @@ function v20(
     ...stateFields,
   } as unknown as Record<string, unknown>
   delete state.stormGiftClaimed
+  delete state.claimedTiers
+  delete state.pendingGift
+  delete state.pendingRewards
   return { version: 20, savedAt: 99, session, state }
 }
 
@@ -67,9 +72,9 @@ function adapterFor(raw: unknown) {
 }
 
 /**
- * A v21 payload: the claim flag exists, the pending egg does not. v21
- * stamped the flag but never stored the egg itself — the gap review round 1
- * found.
+ * A v21 payload: the one-time claim flag exists, the pending egg does not.
+ * v21 stamped the flag but never stored the egg itself — the gap review
+ * round 1 found. The state fields are the historical v21 shape.
  */
 function v21(
   stateFields: Partial<Record<string, unknown>> = {},
@@ -79,68 +84,81 @@ function v21(
     ...owned,
     ...stateFields,
   } as unknown as Record<string, unknown>
+  delete state.claimedTiers
   delete state.pendingGift
+  delete state.pendingRewards
   return { version: 21, savedAt: 99, session: null, state }
 }
 
-describe("save v22 — the pending Storm Gift", () => {
+/**
+ * A v24 payload: the single-gift bookkeeping (claim flag + optional
+ * pending egg) plus the stable, before the per-tier generalization.
+ */
+function v24(
+  stateFields: Partial<Record<string, unknown>> = {},
+): Record<string, unknown> {
+  const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+  const state = {
+    ...owned,
+    ...stateFields,
+  } as unknown as Record<string, unknown>
+  delete state.claimedTiers
+  delete state.pendingRewards
+  return { version: 24, savedAt: 99, session: null, state }
+}
+
+describe("the legacy gift bookkeeping migrates into the reward record", () => {
   test("a v21 save that never claimed waits for its next non-forfeit finalize", () => {
     const migrated = migrate(v21())
-    expect(migrated.version).toBe(24)
-    expect(migrated.state.stormGiftClaimed).toBe(false)
-    expect(migrated.state.pendingGift).toBeNull()
+    expect(migrated.version).toBe(SAVE_VERSION)
+    expect(migrated.state.claimedTiers).toEqual([])
+    expect(migrated.state.pendingRewards).toEqual([])
   })
 
   test("a v21 save that claimed the gift receives the egg it was promised", () => {
     const migrated = migrate(v21({ stormGiftClaimed: true }))
-    expect(migrated.state.stormGiftClaimed).toBe(true)
-    expect(migrated.state.pendingGift?.speciesId).toBe("electric_hound")
-    expect(typeof migrated.state.pendingGift?.seed).toBe("number")
+    expect(migrated.state.claimedTiers).toEqual(["silver"])
+    expect(migrated.state.pendingRewards[0]?.speciesId).toBe("electric_hound")
+    expect(typeof migrated.state.pendingRewards[0]?.seed).toBe("number")
   })
 
   test("a v21 save whose gift career is already hatched gets no second egg", () => {
     const owned = chooseStarter(createInitialState(), "fire_drake", 42)
-    const hatched = {
-      ...owned,
-      stormGiftClaimed: true,
-      creature: { ...owned.creature, giftEgg: true },
-    } as unknown as Record<string, unknown>
-    delete hatched.pendingGift
-    const migrated = migrate({
-      version: 21,
-      savedAt: 99,
-      session: null,
-      state: hatched,
-    })
-    expect(migrated.state.pendingGift).toBeNull()
+    if (!owned.creature) throw new Error("no creature")
+    const migrated = migrate(
+      v21({
+        stormGiftClaimed: true,
+        creature: { ...owned.creature, giftEgg: true },
+      }),
+    )
+    expect(migrated.state.pendingRewards).toEqual([])
   })
 
-  test("the pending egg survives a save round trip", () => {
+  test("the pending reward queue survives a save round trip", () => {
     const adapter = createMemoryAdapter()
     const state = {
       ...chooseStarter(createInitialState(), "fire_drake", 42),
-      stormGiftClaimed: true,
-      pendingGift: { speciesId: "electric_hound", seed: 4242 },
+      claimedTiers: ["silver"] as GameState["claimedTiers"],
+      pendingRewards: [{ speciesId: "electric_hound", seed: 4242 }],
     }
     saveGame(adapter, state, 7)
     const loaded = loadGame(adapter)
-    expect(loaded?.pendingGift).toEqual({
-      speciesId: "electric_hound",
-      seed: 4242,
-    })
+    expect(loaded?.pendingRewards).toEqual([
+      { speciesId: "electric_hound", seed: 4242 },
+    ])
   })
 })
 
-describe("save v21 — the Storm Gift bookkeeping", () => {
-  test("the schema version is 21", () => {
-    expect(SAVE_VERSION).toBe(24)
+describe("save v21 — the gift bookkeeping defaults", () => {
+  test("the schema version is 25", () => {
+    expect(SAVE_VERSION).toBe(25)
   })
 
-  test("a v20 creature and state migrate with the gift defaults stamped", () => {
+  test("a v20 creature and state migrate with the reward defaults stamped", () => {
     const raw = v20()
     const migrated = migrate(raw)
-    expect(migrated.version).toBe(24)
-    expect(migrated.state.stormGiftClaimed).toBe(false)
+    expect(migrated.version).toBe(SAVE_VERSION)
+    expect(migrated.state.claimedTiers).toEqual([])
     expect(migrated.state.creature?.giftEgg).toBe(false)
   })
 
@@ -195,25 +213,87 @@ describe("save v21 — the Storm Gift bookkeeping", () => {
     expect(migrated.session).toEqual(session as unknown as CupSession)
   })
 
-  test("the serialized payload carries the claim flag", () => {
+  test("the serialized payload carries the claim record", () => {
     const data: SaveData = {
       version: SAVE_VERSION,
       state: chooseStarter(createInitialState(), "fire_drake", 42),
       session: null,
       savedAt: 1,
     }
-    expect(JSON.parse(serializeSave(data)).state.stormGiftClaimed).toBe(false)
+    expect(JSON.parse(serializeSave(data)).state.claimedTiers).toEqual([])
   })
 })
 
-describe("v21 validation", () => {
+describe("save v25 — the per-tier league reward record (FR-8)", () => {
+  test("a v24 save with the Silver claim maps onto the per-tier record", () => {
+    const migrated = migrate(
+      v24({
+        stormGiftClaimed: true,
+        pendingGift: { speciesId: "electric_hound", seed: 4242 },
+      }),
+    )
+    expect(migrated.version).toBe(25)
+    expect(migrated.state.claimedTiers).toEqual(["silver"])
+    // The pending Storm Gift becomes the head of the queue — a pending
+    // Silver reward, lowest tier first.
+    expect(migrated.state.pendingRewards).toEqual([
+      { speciesId: "electric_hound", seed: 4242 },
+    ])
+  })
+
+  test("an unclaimed v24 save maps to an empty reward record", () => {
+    const migrated = migrate(v24({ stormGiftClaimed: false }))
+    expect(migrated.state.claimedTiers).toEqual([])
+    expect(migrated.state.pendingRewards).toEqual([])
+  })
+
+  test("the mapping is lossless — the migrated state equals the equivalent v25 state", () => {
+    const migrated = migrate(
+      v24({
+        stormGiftClaimed: true,
+        pendingGift: { speciesId: "electric_hound", seed: 4242 },
+      }),
+    )
+    const equivalent = {
+      ...chooseStarter(createInitialState(), "fire_drake", 42),
+      claimedTiers: ["silver"] as GameState["claimedTiers"],
+      pendingRewards: [{ speciesId: "electric_hound", seed: 4242 }],
+    }
+    expect(migrated.state).toEqual(equivalent)
+  })
+
+  test("the migration is deterministic and idempotent at v24", () => {
+    const raw = v24({
+      stormGiftClaimed: true,
+      pendingGift: { speciesId: "electric_hound", seed: 4242 },
+    })
+    const first = migrate(raw)
+    expect(migrate(raw)).toEqual(first)
+    expect(migrate(JSON.parse(JSON.stringify(first)))).toEqual(first)
+  })
+
+  test("a migrated v24 save loads and keeps waiting for the player", () => {
+    const adapter = adapterFor(
+      v24({
+        stormGiftClaimed: true,
+        pendingGift: { speciesId: "electric_hound", seed: 4242 },
+      }),
+    )
+    const loaded = loadGame(adapter)
+    expect(loaded).not.toBeNull()
+    expect(loaded?.claimedTiers).toEqual(["silver"])
+    expect(loaded?.pendingRewards[0]?.seed).toBe(4242)
+  })
+})
+
+describe("reward-record validation", () => {
   test("accepts a current save whose creature carries the gift marker", () => {
     const owned = chooseStarter(createInitialState(), "fire_drake", 42)
     if (!owned.creature) throw new Error("no creature")
     const state: GameState = {
       ...owned,
       creature: { ...owned.creature, giftEgg: true },
-      stormGiftClaimed: true,
+      claimedTiers: ["silver"],
     }
     expect(isValidSaveState(state)).toBe(true)
   })
@@ -225,8 +305,8 @@ describe("v21 validation", () => {
       savedAt: 1,
       state: {
         ...chooseStarter(createInitialState(), "fire_drake", 42),
-        creature: createGiftEgg(42),
-        stormGiftClaimed: true,
+        creature: createGiftEgg("electric_hound", 42),
+        claimedTiers: ["silver"],
       },
     })
     const loaded = loadGame(adapter)
@@ -245,12 +325,12 @@ describe("v21 validation", () => {
         ...chooseStarter(createInitialState(), "fire_drake", 42),
         creature: (() => {
           const creature = {
-            ...createGiftEgg(42),
+            ...createGiftEgg("electric_hound", 42),
           } as unknown as Record<string, unknown>
           delete creature.giftEgg
           return creature
         })(),
-        stormGiftClaimed: false,
+        claimedTiers: [],
       },
     })
     const raw = adapter.getItem(SAVE_KEY)
@@ -282,13 +362,13 @@ describe("v21 validation", () => {
       state: {
         ...chooseStarter(createInitialState(), "fire_drake", 42),
         lineage: { generation: 1, hallOfFame: [record] },
-        stormGiftClaimed: false,
+        claimedTiers: [],
       },
     })
     expect(loadGame(adapter)).toBeNull()
   })
 
-  test("rejects a save with no claim flag at all", () => {
+  test("rejects a save with no claim record at all", () => {
     const adapter = adapterFor({
       version: SAVE_VERSION,
       session: null,
@@ -297,7 +377,7 @@ describe("v21 validation", () => {
         const state = {
           ...chooseStarter(createInitialState(), "fire_drake", 42),
         } as unknown as Record<string, unknown>
-        delete state.stormGiftClaimed
+        delete state.claimedTiers
         return state
       })(),
     })
@@ -306,29 +386,97 @@ describe("v21 validation", () => {
     expect(adapter.getItem(SAVE_KEY)).toBe(raw)
   })
 
-  test("rejects a non-boolean claim flag", () => {
+  test("rejects a non-array claim record", () => {
     const adapter = adapterFor({
       version: SAVE_VERSION,
       session: null,
       savedAt: 1,
       state: {
         ...chooseStarter(createInitialState(), "fire_drake", 42),
-        stormGiftClaimed: 1,
+        claimedTiers: 1,
+      },
+    })
+    expect(loadGame(adapter)).toBeNull()
+  })
+
+  test("rejects an unknown tier in the claim record", () => {
+    const adapter = adapterFor({
+      version: SAVE_VERSION,
+      session: null,
+      savedAt: 1,
+      state: {
+        ...chooseStarter(createInitialState(), "fire_drake", 42),
+        claimedTiers: ["platinum"],
+      },
+    })
+    expect(loadGame(adapter)).toBeNull()
+  })
+
+  test("rejects a duplicate tier in the claim record — it would double-grant", () => {
+    const adapter = adapterFor({
+      version: SAVE_VERSION,
+      session: null,
+      savedAt: 1,
+      state: {
+        ...chooseStarter(createInitialState(), "fire_drake", 42),
+        claimedTiers: ["silver", "silver"],
+      },
+    })
+    expect(loadGame(adapter)).toBeNull()
+  })
+
+  test("rejects a non-array reward queue", () => {
+    const adapter = adapterFor({
+      version: SAVE_VERSION,
+      session: null,
+      savedAt: 1,
+      state: {
+        ...chooseStarter(createInitialState(), "fire_drake", 42),
+        claimedTiers: ["silver"],
+        pendingRewards: { speciesId: "electric_hound", seed: 1 },
+      },
+    })
+    expect(loadGame(adapter)).toBeNull()
+  })
+
+  test("rejects a queue egg naming an unknown species", () => {
+    const adapter = adapterFor({
+      version: SAVE_VERSION,
+      session: null,
+      savedAt: 1,
+      state: {
+        ...chooseStarter(createInitialState(), "fire_drake", 42),
+        claimedTiers: ["silver"],
+        pendingRewards: [{ speciesId: "no_such_species", seed: 1 }],
+      },
+    })
+    expect(loadGame(adapter)).toBeNull()
+  })
+
+  test("rejects a queue egg with a non-integer seed", () => {
+    const adapter = adapterFor({
+      version: SAVE_VERSION,
+      session: null,
+      savedAt: 1,
+      state: {
+        ...chooseStarter(createInitialState(), "fire_drake", 42),
+        claimedTiers: ["silver"],
+        pendingRewards: [{ speciesId: "electric_hound", seed: 1.5 }],
       },
     })
     expect(loadGame(adapter)).toBeNull()
   })
 
   test("rejects an invalid save without mutating the stored payload", () => {
-    // The corruption must sit on a v21 payload: a v20 flag is not corrupt,
-    // the migration stamps over it by design.
+    // The corruption must sit on a current-version payload: a pre-v21 flag
+    // is not corrupt, the migration stamps over it by design.
     const adapter = adapterFor({
       version: SAVE_VERSION,
       session: null,
       savedAt: 99,
       state: {
         ...(v20().state as Record<string, unknown>),
-        stormGiftClaimed: "once",
+        claimedTiers: "once",
       },
     })
     const raw = adapter.getItem(SAVE_KEY)
@@ -337,35 +485,35 @@ describe("v21 validation", () => {
   })
 })
 
-describe("v21 export and import", () => {
-  test("the claim flag and gift marker survive the export/import round trip", () => {
+describe("reward-record export and import", () => {
+  test("the claim record and gift marker survive the export/import round trip", () => {
     const owned = chooseStarter(createInitialState(), "fire_drake", 42)
     if (!owned.creature) throw new Error("no creature")
     const state: GameState = {
       ...owned,
       creature: { ...owned.creature, giftEgg: true },
-      stormGiftClaimed: true,
+      claimedTiers: ["silver"],
     }
     const exported = buildSaveExport(state)
     const result = inspectSaveImport(exported.json)
     expect(result.ok).toBe(true)
     if (result.ok) {
-      expect(result.data.version).toBe(24)
-      expect(result.data.state.stormGiftClaimed).toBe(true)
+      expect(result.data.version).toBe(25)
+      expect(result.data.state.claimedTiers).toEqual(["silver"])
       expect(result.data.state.creature?.giftEgg).toBe(true)
     }
   })
 
-  test("importing a v20 payload migrates to the gift defaults", () => {
+  test("importing a v20 payload migrates to the reward defaults", () => {
     const result = inspectSaveImport(JSON.stringify(v20()))
     expect(result.ok).toBe(true)
     if (result.ok) {
-      expect(result.data.state.stormGiftClaimed).toBe(false)
+      expect(result.data.state.claimedTiers).toEqual([])
       expect(result.data.state.creature?.giftEgg).toBe(false)
     }
   })
 
-  test("an import whose claim flag is corrupt is refused with no write", () => {
+  test("an import whose claim record is corrupt is refused with no write", () => {
     const adapter = createMemoryAdapter()
     const owned = chooseStarter(createInitialState(), "fire_drake", 42)
     saveGame(adapter, owned, 5)
@@ -375,11 +523,11 @@ describe("v21 export and import", () => {
         version: SAVE_VERSION,
         session: null,
         savedAt: 1,
-        state: { ...owned, stormGiftClaimed: "already" },
+        state: { ...owned, claimedTiers: "already" },
       }),
     )
     expect(result).toEqual({ ok: false, reason: "invalid" })
     expect(adapter.getItem(SAVE_KEY)).toBe(live)
-    expect(loadGame(adapter)?.stormGiftClaimed).toBe(false)
+    expect(loadGame(adapter)?.claimedTiers).toEqual([])
   })
 })

@@ -1,10 +1,11 @@
 /**
- * The Storm Gift (electric species line, FR-5/FR-6): the league's one-time
- * Silver tier-reward egg — the pure gift hatch, the grant checks, and the
- * nursery preview.
+ * The league rewards (earth/wind species line FR-5/FR-6): the per-tier
+ * gift hatches, the nursery's claim flow over the pending-reward queue,
+ * and the preview.
  *
  * Split out of the former monolithic breeding.ts (sim-voxel-size-guard,
- * phase 2) — pure relocation, no behavior change.
+ * phase 2); generalized from the one-species Storm Gift to every reward
+ * tier (earth/wind species line, phase 2).
  */
 
 import {
@@ -14,31 +15,24 @@ import {
   type Element,
 } from "../creature"
 import type { Rng } from "../rng"
-import { getSpecies, STORM_GIFT_SPECIES_ID } from "../species"
+import { getSpecies } from "../species"
 import type { GameState } from "../state"
 
 /**
- * The Silver tier-reward species: the league's one-time "Storm Gift" (FR-5).
- * Re-exported from the catalog so the grant seam and the hatch seam cannot
- * name two different species.
+ * The pure gift egg (FR-6): a league tier-reward hatches into a
+ * fixed-element creature with a guaranteed `affinity: null`. This path
+ * deliberately does NOT route through `createBredCreature` — a gift is not
+ * bred, so no affinity-drift roll is made and no drift RNG draw is
+ * consumed (NFR-3): the drift stream's position for every subsequent
+ * operation is unchanged. Same seed → same individual, so the nursery
+ * preview and the hatch agree by construction. The locked species is
+ * reached through the unchecked creation seam (`createCreatureFrom`) —
+ * the public starter gate stays as locked as ever.
  */
-export { STORM_GIFT_SPECIES_ID } from "../species"
-
-/**
- * The pure gift egg (electric species line FR-6): the league's Silver
- * tier-reward hatches into a fixed-Electric creature with a guaranteed
- * `affinity: null`. This path deliberately does NOT route through
- * `createBredCreature` — a gift is not bred, so no affinity-drift roll is
- * made and no drift RNG draw is consumed (NFR-3): the drift stream's
- * position for every subsequent operation is unchanged. Same seed → same
- * individual, so the nursery preview and the hatch agree by construction.
- * The locked species is reached through the unchecked creation seam
- * (`createCreatureFrom`) — the public starter gate stays as locked as ever.
- */
-export function createGiftEgg(seed: number | Rng): Creature {
-  const species = getSpecies(STORM_GIFT_SPECIES_ID)
+export function createGiftEgg(speciesId: string, seed: number | Rng): Creature {
+  const species = getSpecies(speciesId)
   if (!species) {
-    throw new Error(`Unknown species: ${STORM_GIFT_SPECIES_ID}`)
+    throw new Error(`Unknown species: ${speciesId}`)
   }
   const base = createCreatureFrom(species, seed)
   // The gift is pure: the affinity is stamped null directly — no roll.
@@ -52,57 +46,46 @@ export type HatchGiftResult =
   | { ok: false; reason: HatchGiftReason }
 
 /**
- * Whether the granted gift egg has already been hatched anywhere in the
- * lineage: the active creature carries the marker, a retired gift career
- * sits in the Hall of Fame, or a gift pet waits in the stable. Derived from
- * the persisted lineage marker (save v21) — never stored separately.
- */
-function giftEggHatched(state: GameState): boolean {
-  return (
-    (state.creature?.giftEgg ?? false) ||
-    state.stable.some((pet) => pet.giftEgg) ||
-    state.lineage.hallOfFame.some((record) => record.giftEgg)
-  )
-}
-
-/**
- * Hatch the granted gift egg (the nursery's hatch seam for the Storm Gift).
- * The hound joins the **stable** (save v24): the gift is a pet the player
- * owns, not a replacement for the pet they already have, so the ranch keeps
- * its partner and its career untouched — and the outgoing partner is NOT
- * archived, because it never left the ranch.
+ * Hatch the oldest pending reward egg (the nursery's claim flow, FR-9):
+ * the head of the `pendingRewards` queue — the lowest tier the league
+ * granted first — leaves the queue and its creature joins the **stable**
+ * (save v24): a reward is a pet the player owns, not a replacement for the
+ * pet they already have, so the ranch keeps its partner and its career
+ * untouched — and the outgoing partner is NOT archived, because it never
+ * left the ranch. One claim per flow: the rest of the queue waits.
  *
- * The day, budget, ladder and lineage generation carry over untouched: the
- * gift is a grant, not a graduation. Pure; the egg's own stored seed lands
- * the exact individual the nursery previewed.
+ * The day, budget, ladder and lineage generation carry over untouched: a
+ * reward is a grant, not a graduation. Pure; the egg's own stored seed
+ * lands the exact individual the nursery previewed.
  */
 export function hatchGiftEgg(state: GameState): HatchGiftResult {
-  if (!state.stormGiftClaimed) return { ok: false, reason: "not-granted" }
-  const pending = state.pendingGift
+  if (state.claimedTiers.length === 0 && state.pendingRewards.length === 0) {
+    return { ok: false, reason: "not-granted" }
+  }
+  const pending = state.pendingRewards[0]
   if (!pending) return { ok: false, reason: "already-hatched" }
-  if (giftEggHatched(state)) return { ok: false, reason: "already-hatched" }
   return {
     ok: true,
     state: {
       ...state,
-      // The ranch pet stays exactly as it was — the gift waits in the stable.
-      stable: [...state.stable, createGiftEgg(pending.seed)],
-      pendingGift: null,
+      // The ranch pet stays exactly as it was — the reward waits in the
+      // stable until the player brings it forward.
+      stable: [...state.stable, createGiftEgg(pending.speciesId, pending.seed)],
+      pendingRewards: state.pendingRewards.slice(1),
     },
   }
 }
 
 /**
- * Whether a granted egg is waiting in the nursery for the player to hatch
- * it (save v22). The claim flag alone cannot answer this: it stays true
- * after the hatch.
+ * Whether a granted reward egg is waiting in the nursery for the player to
+ * hatch it (save v25, generalizing v22's single pending gift).
  */
-export function stormGiftPending(state: GameState): boolean {
-  return state.pendingGift !== null
+export function leagueRewardPending(state: GameState): boolean {
+  return state.pendingRewards.length > 0
 }
 
 /** What the nursery shows before the player commits to the hatch. */
-export interface StormGiftPreview {
+export interface LeagueRewardPreview {
   speciesId: string
   displayName: string
   element: Element
@@ -114,17 +97,19 @@ export interface StormGiftPreview {
 }
 
 /**
- * The Storm Gift as the player will see it: the granted species and the
- * rolled stats of the very individual the hatch produces. Built from the
- * pending egg's own seed, so the preview cannot drift from the hatch
- * (FR-6). Null when no gift is waiting.
+ * The oldest pending reward as the player will see it: the granted species
+ * and the rolled stats of the very individual the hatch produces. Built
+ * from the pending egg's own seed, so the preview cannot drift from the
+ * hatch (FR-6). Null when no reward is waiting.
  */
-export function stormGiftPreview(state: GameState): StormGiftPreview | null {
-  const pending = state.pendingGift
+export function leagueRewardPreview(
+  state: GameState,
+): LeagueRewardPreview | null {
+  const pending = state.pendingRewards[0]
   if (!pending) return null
   const species = getSpecies(pending.speciesId)
   if (!species) return null
-  const egg = createGiftEgg(pending.seed)
+  const egg = createGiftEgg(pending.speciesId, pending.seed)
   return {
     speciesId: pending.speciesId,
     displayName: species.displayName,

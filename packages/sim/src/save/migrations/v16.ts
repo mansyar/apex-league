@@ -36,8 +36,8 @@ export function migrateFromV16(
       juvenile: juvenileKnown,
       champion: championKnown,
     },
-    stormGiftClaimed: false,
-    pendingGift: null,
+    claimedTiers: [],
+    pendingRewards: [],
     stable: [],
   }
   return {
