@@ -21,3 +21,4 @@
 - [x] **Track: Electric Species Line** - [20261021-electric-species-line](./archive/20261021-electric-species-line/index.md) - feature - high *(archived 2026-10-22)*
 - [x] **Track: Stable & Partner Reserve** - [20261022-stable-partner-reserve](./archive/20261022-stable-partner-reserve/index.md) - feature - high *(archived 2026-10-22)*
 - [x] **Track: Sim & Voxel Size Guard + Save-Migration Decomposition** - [20261022-sim-voxel-size-guard](./archive/20261022-sim-voxel-size-guard/index.md) - refactor - medium *(archived 2026-10-23)*
+- [ ] **Track: Earth & Wind Species Line** - [20261023-earth-wind-species-line](./tracks/20261023-earth-wind-species-line/index.md) - feature - high
