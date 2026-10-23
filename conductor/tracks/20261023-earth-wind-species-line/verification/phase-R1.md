@@ -53,3 +53,36 @@ None. Only the five named files were touched (`species.ts`, `species.test.ts`, `
 - Boss suites and rival-roster pins untouched and green (included in the full-suite run).
 - The whole-suite `bun test` leg took ~395 s serially; `bun run verify` re-runs it in parallel (~97 s) with identical counts.
 - Commits: `77e2761` (F1), `493e90c` (F2), `d6f6d72` (F3), plus this evidence file's commit.
+
+## Primary verification
+
+Run by the primary agent on 2026-10-23 over the R1 range
+`1004d649..HEAD` before acceptance.
+
+**Structural checks**
+
+| Check | Result |
+| --- | --- |
+| Working tree | Clean. |
+| Commits in `1004d64..HEAD` | `77e2761`, `493e90c`, `d6f6d72`, `2060355` — exactly the four reported, one per finding plus evidence. |
+| Files changed | Exactly the five named files + this evidence file. |
+| Falcon bound | One-line change: `spd: [15, 19]` → `spd: [17, 19]`; hp/atk/def untouched. |
+| Probe re-pin | Two lines: only the falcon final-rival cells shifted (+0: 8→9, +2: 11→7), both inside the 0.15–0.9 band; every falcon cap cell and all tortoise cells unchanged. |
+| Assertion | `species.test.ts` now asserts `falcon.statBounds.spd[0] > other.statBounds.spd[1]` for every species — whole-roll-range dominance. |
+| Handbook note | One sentence naming starters + Silver/Gold/Legend reward lines; ≤2-sentence guideline holds. |
+| Lossless test | `expect(migrated.state).toEqual(equivalent)` — full-state equality, as the title claims. |
+
+**Independent command results**
+
+| Check | Command | Exit | Result |
+| --- | --- | --- | --- |
+| Lint | `bunx biome check` (direct) | 0 | 569 files checked, no fixes applied. |
+| Phase static | `bun run check` | 0 | voxel 90 / sim 147 / client 352 files, 0 errors. |
+| Targeted suites | `bun test --timeout 120000 species.test.ts species-balance.test.ts giftSave.test.ts` | 0 | 65 pass, 0 fail. |
+| Determinism | `bun run gate:determinism` (via `bun run verify`) | 0 | 18 creature GLBs byte-identical + 5-props digest. |
+| Integrated gate | `bun run verify` | 0 | Green end to end. |
+| Build (`verify_phase`) | `bun run build` | 0 | `@apex/client` build succeeded. |
+
+**Acceptance**: F1 resolved by the stronger fix (bounds raised, convention
+asserted, probes re-pinned within bands); F2 and F3 resolved minimally. No
+deviation was recorded and none is observed.

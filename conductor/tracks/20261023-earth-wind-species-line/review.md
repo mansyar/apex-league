@@ -99,10 +99,10 @@ None — `review.strict` is `true`, so all three findings are fixed in the revie
 
 ## Doc sync
 
-pending
+updated (pre-review sync committed as `3bc03df`; the review-fix changes touch no contract documented there)
 
 ## History
 
 | Round | Verdict | Critical | High | Medium | Low | Fixes |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | PASS WITH FINDINGS | 0 | 0 | 1 | 2 | → Phase R1 |
+| 1 | PASS WITH FINDINGS | 0 | 0 | 1 | 2 | → Phase R1 (`1deae83`), verified |
