@@ -106,8 +106,10 @@ All three planned phases are complete, each with a `Result`, a `Checkpoint` and 
 | 1 - Save-Migration Decomposition | verified | `e2a7350` | `verification/phase-1.md` |
 | 2 - Sim Module Splits | verified | `ac4fbda` | `verification/phase-2.md` |
 | 3 - The Package Guards | verified | `1305de1` | `verification/phase-3.md` |
+| R1 - Review Fixes | verified | `0db693c` | `verification/phase-R1.md` |
+| R2 - Review Fixes (round 2) | verified | `c2e70cd` | `verification/phase-R2.md` |
 
-All 13 top-level tasks and all 51 sub-tasks are marked `[x]`, and every one of them was implemented - the reviewer checked the tree against the plan task by task. The final code diff stays inside the union of the phases' `Touches` except for the two deviations accepted in `verification/phase-2.md` (`save/validators/creature.ts` + `save/validators/session.ts`, and `battle/clock/hits.ts`), both of which are inside the phase's glob-covered neighbourhoods and are recorded in the evidence. No task was silently dropped. The review-fix phase is appended below.
+All 13 top-level tasks and all 51 sub-tasks are marked `[x]`, and every one of them was implemented - the reviewer checked the tree against the plan task by task. The final code diff stays inside the union of the phases' `Touches` except for the two deviations accepted in `verification/phase-2.md` (`save/validators/creature.ts` + `save/validators/session.ts`, and `battle/clock/hits.ts`), both of which are inside the phase's glob-covered neighbourhoods and are recorded in the evidence. No task was silently dropped. The review-fix phase is appended below. Round 2 re-reviewed the R1 fixes and raised one new Low finding (F4) — the two validator headers citing the deleted `save/validators.ts` — fixed by Phase R2 (`c2e70cd`).
 
 ## Out of scope
 
@@ -121,10 +123,17 @@ All 13 top-level tasks and all 51 sub-tasks are marked `[x]`, and every one of t
 
 ## Doc sync
 
-`pending` - the pre-review doc sync already ran (`conductor/tech-stack.md` dated note + the three caps in its Quality Gates; `conductor/workflow.md` module-size rule and checklist item; `docs/save-schema.md` repointed in Phase 1). The post-review sync will re-point the `docs/save-schema.md` lead-in per F2 and set this line to `updated`.
+`updated` - the pre-review doc sync already ran (`conductor/tech-stack.md`
+dated note + the three caps in its Quality Gates; `conductor/workflow.md`
+module-size rule and checklist item). The review loop repointed the
+`docs/save-schema.md` lead-in and recipe (F2 + the adjacent item 3, Phase R1)
+and the tech-stack/workflow compositions unchanged through round 2 (the F4
+fix was comment-only). Nothing further to sync after round 2; nothing the
+diff changed remains undocumented.
 
 ## History
 
 | Round | Verdict | Critical | High | Medium | Low | Fixed |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | PASS WITH FINDINGS | 0 | 0 | 0 | 3 | 0 |
+| 2 | PASS WITH FINDINGS | 0 | 0 | 0 | 1 (F4, fixed by Phase R2) | 1 |
