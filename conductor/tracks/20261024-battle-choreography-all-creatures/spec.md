@@ -1,4 +1,4 @@
-# Battle Choreography for All Creatures — Specification (DRAFT)
+# Battle Choreography for All Creatures — Specification
 
 ## Overview
 
