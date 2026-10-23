@@ -20,8 +20,8 @@ const CHART_ELEMENTS: Element[] = [
 /** Population note copy — states today's roster without promising dates. */
 const POPULATION_NOTE =
   "Fire, Plant, and Water partners roam the league today, and the league's " +
-  "Silver reward hands out the Electric Storm Hound. Earth and Wind " +
-  "matchups are charted and waiting for their species."
+  "reward tiers hand out the Electric Storm Hound (Silver), the Zephyr " +
+  "Falcon (Gold), and the Basalt Tortoise (Legend)."
 
 function chartHead(tag: "rowheader" | "columnheader"): HTMLElement {
   const head = document.createElement("span")

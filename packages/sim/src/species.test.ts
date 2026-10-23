@@ -222,10 +222,10 @@ describe("wind_falcon species record", () => {
   test("stat profile is the fastest, frailest record in the game", () => {
     const falcon = speciesOf(FALCON)
     const others = ALL_SPECIES.filter((s) => s.id !== FALCON)
-    // Speed: strictly above every other species' whole roll range.
+    // Speed: strictly above every other species' whole roll range — no
+    // individual of any other species can out-roll a falcon.
     for (const other of others) {
-      expect(falcon.statBounds.spd[0]).toBeGreaterThan(other.statBounds.spd[0])
-      expect(falcon.statBounds.spd[1]).toBeGreaterThan(other.statBounds.spd[1])
+      expect(falcon.statBounds.spd[0]).toBeGreaterThan(other.statBounds.spd[1])
     }
     // Bulk: its whole HP range sits below every other species' minimum roll.
     for (const other of others) {

@@ -259,8 +259,7 @@ describe("save v25 — the per-tier league reward record (FR-8)", () => {
       claimedTiers: ["silver"] as GameState["claimedTiers"],
       pendingRewards: [{ speciesId: "electric_hound", seed: 4242 }],
     }
-    expect(migrated.state.claimedTiers).toEqual(equivalent.claimedTiers)
-    expect(migrated.state.pendingRewards).toEqual(equivalent.pendingRewards)
+    expect(migrated.state).toEqual(equivalent)
   })
 
   test("the migration is deterministic and idempotent at v24", () => {

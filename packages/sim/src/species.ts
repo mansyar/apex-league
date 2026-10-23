@@ -160,7 +160,7 @@ export const REWARD_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "hurricane_spiral",
     ],
     temperament: "rush",
-    statBounds: { hp: [56, 68], atk: [10, 14], def: [4, 7], spd: [15, 19] },
+    statBounds: { hp: [56, 68], atk: [10, 14], def: [4, 7], spd: [17, 19] },
   },
   {
     id: "earth_tortoise",

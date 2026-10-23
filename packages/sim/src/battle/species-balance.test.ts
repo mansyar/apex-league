@@ -356,8 +356,8 @@ describe("new-species boss probe (earth-wind-species-line)", () => {
     Record<number, { won: number; games: number; lo: number; hi: number }>
   > = {
     wind_falcon: {
-      0: { won: 8, games: 36, lo: 0.15, hi: 0.9 },
-      2: { won: 11, games: 36, lo: 0.15, hi: 0.9 },
+      0: { won: 9, games: 36, lo: 0.15, hi: 0.9 },
+      2: { won: 7, games: 36, lo: 0.15, hi: 0.9 },
       4: { won: 30, games: 36, lo: 0.15, hi: 0.9 },
       6: { won: 30, games: 36, lo: 0.15, hi: 0.9 },
     },
