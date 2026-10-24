@@ -179,19 +179,22 @@ gate is green and byte-identical where it must be.
 **Verification:** `bun run verify && bun run build` (plus the visual layer via
 `playwright-cli` against `bun run dev`).
 
-**Status:** in_progress
+**Result:** verified
+**Checkpoint:** 28c3fa3
+**Evidence:** conductor/tracks/20261024-battle-choreography-all-creatures/verification/phase-4.md
+**Status:** verified
 
-- [ ] **P4.T1: Tune inside the bands** — covers: FR-3, AC-9
-  - [ ] **P4.T1.1: Per-archetype spars** — drive a spar per archetype, capture the four moments, and tune any value that reads wrong (a tortoise that bounces, a falcon that stomps) strictly inside its band.
-  - [ ] **P4.T1.2: Record the final table** — the evidence carries the final twelve-knob table for all six archetypes plus a note per change from the spec's starting values.
-- [ ] **P4.T2: The visual matrix** — covers: AC-9
-  - [ ] **P4.T2.1: Capture** — six archetypes × {idle, windup, contact, stagger} × {desktop 1440×900, iPhone 15 393×852}, console asserted clean on both viewports.
-  - [ ] **P4.T2.2: Reduced-motion sanity** — with the pref on, playback still dumps instantly, impulses are damped, and the idle terms zero out; one screenshot pair as evidence.
-  - [ ] **P4.T2.3: The montage clip** — record the six spars, cut one short clip, convert to a ≤ 10 fps GIF with the local `ffmpeg`, keep it under `.conductor/media/` (never committed). If `ffmpeg` is unavailable, record the fallback in the evidence and ship screenshots only.
-- [ ] **P4.T3: The full gate** — covers: AC-8, AC-10, NFR-1
-  - [ ] **P4.T3.1: Run the gate** — `bun run verify && bun run build`, with the determinism gate reporting the same 18 GLBs and 5 props byte-identical.
-  - [ ] **P4.T3.2: Prove the caps** — the client module-size guard green, and every touched module's size recorded.
-  - [ ] **P4.T3.3: Re-run the spot checks** — `bun run test:phase` green with the final tuned values (counts unchanged from the pre-tuning run).
+- [x] **P4.T1: Tune inside the bands** — covers: FR-3, AC-9
+  - [x] **P4.T1.1: Per-archetype spars** — drive a spar per archetype, capture the four moments, and tune any value that reads wrong (a tortoise that bounces, a falcon that stomps) strictly inside its band.
+  - [x] **P4.T1.2: Record the final table** — the evidence carries the final twelve-knob table for all six archetypes plus a note per change from the spec's starting values.
+- [x] **P4.T2: The visual matrix** — covers: AC-9
+  - [x] **P4.T2.1: Capture** — six archetypes × {idle, windup, contact, stagger} × {desktop 1440×900, iPhone 15 393×852}, console asserted clean on both viewports.
+  - [x] **P4.T2.2: Reduced-motion sanity** — with the pref on, playback still dumps instantly, impulses are damped, and the idle terms zero out; one screenshot pair as evidence.
+  - [x] **P4.T2.3: The montage clip** — record the six spars, cut one short clip, convert to a ≤ 10 fps GIF with the local `ffmpeg`, keep it under `.conductor/media/` (never committed). If `ffmpeg` is unavailable, record the fallback in the evidence and ship screenshots only.
+- [x] **P4.T3: The full gate** — covers: AC-8, AC-10, NFR-1
+  - [x] **P4.T3.1: Run the gate** — `bun run verify && bun run build`, with the determinism gate reporting the same 18 GLBs and 5 props byte-identical.
+  - [x] **P4.T3.2: Prove the caps** — the client module-size guard green, and every touched module's size recorded.
+  - [x] **P4.T3.3: Re-run the spot checks** — `bun run test:phase` green with the final tuned values (counts unchanged from the pre-tuning run).
 
 ---
 
