@@ -95,21 +95,24 @@ Earth and Wind fire their own shots with bespoke heavy finishers.
 
 **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/move-fx.test.ts apps/client/src/fx && bun run check && biome check`
 
-**Status:** in_progress
+**Status:** verified
+**Result:** verified
+**Checkpoint:** 563f195
+**Evidence:** conductor/tracks/20261024-battle-choreography-all-creatures/verification/phase-2.md
 
-- [ ] **P2.T1: Split move-fx at its seam** — covers: FR-4
-  - [ ] **P2.T1.1: Move the two halves** — `move-fx/looks.ts` takes `ShotLook`, `SHOT_LOOKS`, `lookFor`, `elementColor`, `ELEMENT_COLOR_FALLBACK`, `PROJECTILE_LIFE_MS`, `PROJECTILE_ARC`; `move-fx/moves.ts` takes `Posture`, `ShotSpec`, `MoveFx`, `MOVE_FX`, `DEFAULT_FX`, `fxFor`, `CONTACT_T`. `move-fx.ts` becomes the barrel re-exporting both, in the house style of `cup.ts` (header comment naming the submodules and why).
-  - [ ] **P2.T1.2: Prove the surface** — capture the module's exported names from the base commit and from the barrel; the diff must be empty (0 added, 0 removed). Every importer still resolves; `bun run build` green proves the Vite side.
-  - [ ] **P2.T1.3: Prove the sizes** — every resulting file under 12,288 B; record the sizes. If `move-fx/moves.ts` lands above ~9.5 KB, split it further by element along the same seam rather than growing it.
-- [ ] **P2.T2: Earth and Wind shot identity** — covers: FR-5
-  - [ ] **P2.T2.1: Add the geometry** — a `boulder` core in `fx/shot-geometry.ts` (flat, heavy, non-luminous, deterministic geometry — no randomness at build time) and a `dust` trail family (small flat facets) alongside the existing ember/seed/sphere trails.
-  - [ ] **P2.T2.2: Author the two looks** — `earth`: `boulder` core, no glow, slow spin, lobbing arc, `dust` trail. `wind`: stretched teardrop core, high spin, wobble for a streak, flat arc, faceted trail. Both distinct from each other and from the fallback.
-  - [ ] **P2.T2.3: Test the look table** — new `move-fx.test.ts`: all six sim elements have a look; `lookFor` never returns the fallback for a known element; `boulder`/`dust` builders return non-empty geometry; `elementColor` matches `ui/element.ts`'s hue for each element.
-- [ ] **P2.T3: Finishers with a body** — covers: FR-6
-  - [ ] **P2.T3.1: `quake_stomp`** — Earth heavy finisher: long coil, ground-slam release, arrival as a ring burst with a high gravity and a dust tint (non-emissive), heavy shove.
-  - [ ] **P2.T3.2: `cyclone_dive`** — Wind heavy finisher: rising windup, dive release, arrival as a swept burst with lateral lanes, light shove.
-  - [ ] **P2.T3.3: Test the move table** — every `MOVE_FX` key resolves in `CATALOG`; both new finishers present; `basalt_guard` and `zephyr_veil` resolve to the default body with their element look (deliberately unauthored).
-  - [ ] **P2.T3.4: Spot visual** — one Earth spar and one Wind spar at desktop: confirm the lob and the streak read distinctly and neither is the white orb; screenshots into `.conductor/evidence/`; console clean.
+- [x] **P2.T1: Split move-fx at its seam** — covers: FR-4
+  - [x] **P2.T1.1: Move the two halves** — `move-fx/looks.ts` takes `ShotLook`, `SHOT_LOOKS`, `lookFor`, `elementColor`, `ELEMENT_COLOR_FALLBACK`, `PROJECTILE_LIFE_MS`, `PROJECTILE_ARC`; `move-fx/moves.ts` takes `Posture`, `ShotSpec`, `MoveFx`, `MOVE_FX`, `DEFAULT_FX`, `fxFor`, `CONTACT_T`. `move-fx.ts` becomes the barrel re-exporting both, in the house style of `cup.ts` (header comment naming the submodules and why).
+  - [x] **P2.T1.2: Prove the surface** — capture the module's exported names from the base commit and from the barrel; the diff must be empty (0 added, 0 removed). Every importer still resolves; `bun run build` green proves the Vite side.
+  - [x] **P2.T1.3: Prove the sizes** — every resulting file under 12,288 B; record the sizes. If `move-fx/moves.ts` lands above ~9.5 KB, split it further by element along the same seam rather than growing it.
+- [x] **P2.T2: Earth and Wind shot identity** — covers: FR-5
+  - [x] **P2.T2.1: Add the geometry** — a `boulder` core in `fx/shot-geometry.ts` (flat, heavy, non-luminous, deterministic geometry — no randomness at build time) and a `dust` trail family (small flat facets) alongside the existing ember/seed/sphere trails.
+  - [x] **P2.T2.2: Author the two looks** — `earth`: `boulder` core, no glow, slow spin, lobbing arc, `dust` trail. `wind`: stretched teardrop core, high spin, wobble for a streak, flat arc, faceted trail. Both distinct from each other and from the fallback.
+  - [x] **P2.T2.3: Test the look table** — new `move-fx.test.ts`: all six sim elements have a look; `lookFor` never returns the fallback for a known element; `boulder`/`dust` builders return non-empty geometry; `elementColor` matches `ui/element.ts`'s hue for each element.
+- [x] **P2.T3: Finishers with a body** — covers: FR-6
+  - [x] **P2.T3.1: `quake_stomp`** — Earth heavy finisher: long coil, ground-slam release, arrival as a ring burst with a high gravity and a dust tint (non-emissive), heavy shove.
+  - [x] **P2.T3.2: `cyclone_dive`** — Wind heavy finisher: rising windup, dive release, arrival as a swept burst with lateral lanes, light shove.
+  - [x] **P2.T3.3: Test the move table** — every `MOVE_FX` key resolves in `CATALOG`; both new finishers present; `basalt_guard` and `zephyr_veil` resolve to the default body with their element look (deliberately unauthored).
+  - [x] **P2.T3.4: Spot visual** — one Earth spar and one Wind spar at desktop: confirm the lob and the streak read distinctly and neither is the white orb; screenshots into `.conductor/evidence/`; console clean.
 
 ---
 
