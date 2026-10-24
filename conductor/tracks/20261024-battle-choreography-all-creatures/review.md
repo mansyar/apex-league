@@ -5,7 +5,7 @@
 - **Branch:** `feat/20261024-battle-choreography-all-creatures`
 - **Range:** `4d6346b2dbe021a678888d6154e0d5d26090acd8..e20e7af`
 - **Date:** `2026-10-24`
-- **Verdict:** `PASS WITH FINDINGS`
+- **Verdict:** `PASS` (round 2 re-review; round 1 was `PASS WITH FINDINGS` — F1 fixed by Phase R1)
 
 ## Summary
 
@@ -105,4 +105,5 @@ All four planned phases verified with real checkpoints: Phase 1 `87232a5`, Phase
 
 | Round | Verdict | Critical | High | Medium | Low | Fixed |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | PASS WITH FINDINGS | 0 | 0 | 1 | 0 | → Phase R1 |
+| 1 | PASS WITH FINDINGS | 0 | 0 | 1 | 0 | → Phase R1 (194d073), verified |
+| 2 | PASS | 0 | 0 | 0 | 1 (stale pre-squash hashes in phase-R1.md's header — fixed by the primary in the re-review resolution commit) | all round-1 findings confirmed fixed; no new code findings |

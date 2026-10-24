@@ -5,7 +5,7 @@
 - **Date:** 2026-10-24
 - **Branch:** `feat/20261024-battle-choreography-all-creatures`
 - **Base:** `3dcb2ca` (`3dcb2cac9d16375b44f3512b2da5341ee3817b9d`)
-- **Head:** `a90c2f2` (`fix(client): orient stretched shots at spawn so wind's authored spin renders`)
+- **Head:** `194d073` (`fix(client): orient stretched shots at spawn so wind's authored spin renders` — the phase's code commit `a90c2f2` and evidence commit `ba59f6b` squashed into one by the primary at acceptance)
 - **Result:** **verified** — F1 resolved; water and earth pinned byte-identical; all gates green.
 
 ## F1 acceptance
@@ -84,7 +84,7 @@ No existing test file was edited.
 
 ## Primary verification (discharged 2026-10-24)
 
-**Structural checks:** working tree clean; the phase range `3dcb2ca..HEAD` contains exactly the two reported commits (`a90c2f2` code, `ba59f6b` evidence); the file set is exactly the two Touches files plus the evidence file; `projectiles.ts` diff is +18/−7 — the per-frame `lookAt` stretch branch deleted, the spin branch (lines 93-97) byte-identical, the spawn hook inserted after `core.position.copy(origin)`.
+**Structural checks:** working tree clean; the phase range `3dcb2ca..194d073` contains exactly the phase's two commits (`a90c2f2` code, `ba59f6b` evidence), squashed into `194d073` at acceptance; the file set is exactly the two Touches files plus the evidence file; `projectiles.ts` diff is +18/−7 — the per-frame `lookAt` stretch branch deleted, the spin branch (lines 93-97) byte-identical, the spawn hook inserted after `core.position.copy(origin)`.
 
 **Code-level audit of the fix (read in full by the primary):** the spawn predicate is `!(look.pulse !== undefined && look.pulse > 0) && (look.stretch ?? 1) > 1.2` — exactly the set the per-frame branch caught (wind only over today's table). `core.lookAt(target.x, origin.y, target.z)` holds y at the origin, matching the old branch's horizontal-aim semantic. Water (pulse branch) never faced downrange before and still must not; earth (spin, no stretch) accumulates spin with no orientation, unchanged. The intended visible change is wind-only: streak-aligned at t=0 plus a real corkscrew thereafter.
 
