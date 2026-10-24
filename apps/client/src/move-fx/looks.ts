@@ -1,0 +1,101 @@
+import * as THREE from "three"
+import { elementHue } from "../element"
+
+/**
+ * Element hues come from ui/element.ts, which re-derives them from the
+ * sim's canonical ELEMENT_HUE contract (Fire 18°, Plant 110°, Water 205°,
+ * Electric 50°, Earth 28°, Wind 165°). A projectile reads as its type at
+ * a glance, and the color survives color-blindness checks when paired
+ * with the move icon in the HUD.
+ */
+export const ELEMENT_COLOR_FALLBACK = "#cfd6e4"
+
+export const elementColor = (element: string | undefined): string =>
+  element === undefined
+    ? ELEMENT_COLOR_FALLBACK
+    : new THREE.Color()
+        .setHSL((elementHue(element) % 360) / 360, 0.75, 0.6)
+        .getStyle()
+
+/** Flight + arc constants shared by the shot tables and the flight interpreter. */
+export const PROJECTILE_LIFE_MS = 700
+export const PROJECTILE_ARC = 0.55
+
+/**
+ * How a shot reads in flight (FR5): geometry family, glow, flight
+ * dynamics, and trail style - declared per element and interpreted by
+ * the shot builder. A new element slots in by adding one entry.
+ */
+export interface ShotLook {
+  /** Core geometry family built by the interpreter. */
+  geometry: "ember" | "teardrop" | "seedCluster" | "orb" | "boulder"
+  /** Additive halo opacity at the core (0 = none). */
+  glow?: number
+  /** Core size pulse amplitude (0 = none). */
+  pulse?: number
+  /** Lateral wobble amplitude in world units (0 = none). */
+  wobble?: number
+  /** Spin rate around the travel axis, radians per ms. */
+  spin?: number
+  /** Stretches the core along travel (teardrop) - 1 = round. */
+  stretch?: number
+  /** Arc-lift multiplier over PROJECTILE_ARC. */
+  arc?: number
+  /** Trail segment family streaming behind the shot. */
+  trail: "embers" | "droplets" | "seeds" | "orbs" | "dust"
+}
+
+export const SHOT_LOOKS: Record<string, ShotLook> = {
+  fire: {
+    geometry: "ember",
+    glow: 0.32,
+    pulse: 0.18,
+    arc: 0.7,
+    spin: 0.012,
+    trail: "embers",
+  },
+  water: {
+    geometry: "teardrop",
+    stretch: 1.5,
+    wobble: 0.05,
+    pulse: 0.05,
+    arc: 0.55,
+    trail: "droplets",
+  },
+  plant: {
+    geometry: "seedCluster",
+    spin: 0.02,
+    arc: 1.4,
+    trail: "seeds",
+  },
+  electric: {
+    geometry: "orb",
+    arc: 1,
+    trail: "orbs",
+  },
+  earth: {
+    // A heavy, non-luminous lob: a flat boulder tumbling slowly through a
+    // high arc, shedding flat dust facets on the way.
+    geometry: "boulder",
+    arc: 1.35,
+    spin: 0.004,
+    trail: "dust",
+  },
+  wind: {
+    // A streak rather than a ball: stretched hard along travel, spinning
+    // fast, wobbling sideways on a low flat arc with a faceted tail.
+    geometry: "teardrop",
+    stretch: 2.1,
+    wobble: 0.04,
+    spin: 0.03,
+    arc: 0.3,
+    trail: "seeds",
+  },
+}
+
+export const lookFor = (element: string | undefined): ShotLook =>
+  (element !== undefined ? SHOT_LOOKS[element] : undefined) ?? {
+    geometry: "orb",
+    arc: 1,
+    trail: "orbs",
+  }
