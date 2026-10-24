@@ -25,6 +25,7 @@ export const meleeStep: StepRunner = (step, instant, side, _o, _r, io) => {
         side.target,
         heavyHit(step),
         step.element,
+        step.tick,
       )
     if (dodged) {
       side.target.stage.x += side.target.away * 0.85
@@ -75,7 +76,14 @@ export const meleeStep: StepRunner = (step, instant, side, _o, _r, io) => {
         if (!landed) {
           landed = true
           if (hit) {
-            contactReaction(io, step.damage, at, heavyHit(step), step.element)
+            contactReaction(
+              io,
+              step.damage,
+              at,
+              heavyHit(step),
+              step.element,
+              step.tick,
+            )
           } else if (dodged) {
             // The target slipped: a quick dash off the lane.
             at.stage.x += at.away * 0.85

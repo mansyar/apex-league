@@ -29,7 +29,14 @@ export const impactStep: StepRunner = (step, instant, side, _o, _r, io) => {
     return
   }
   if (instant) {
-    contactReaction(io, step.damage, side.target, heavyHit(step), step.element)
+    contactReaction(
+      io,
+      step.damage,
+      side.target,
+      heavyHit(step),
+      step.element,
+      step.tick,
+    )
     snapTo(side.target)
     if (step.element) arriveSpecial(io, step, side)
     return
@@ -41,6 +48,13 @@ export const impactStep: StepRunner = (step, instant, side, _o, _r, io) => {
     fireSpecial(io, step, side, true)
     return
   }
-  contactReaction(io, step.damage, side.target, heavyHit(step), step.element)
+  contactReaction(
+    io,
+    step.damage,
+    side.target,
+    heavyHit(step),
+    step.element,
+    step.tick,
+  )
   if (step.element) arriveSpecial(io, step, side)
 }
