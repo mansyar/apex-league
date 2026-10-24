@@ -44,6 +44,8 @@ export interface ProjectileLayer {
   ): void
   /** Position of the oldest shot in flight, for camera-director framing. */
   firstPosition(): THREE.Vector3 | null
+  /** Core mesh of the oldest shot in flight, for interpreter-level tests. */
+  firstMesh(): THREE.Object3D | null
   /** Free every shot still in flight. */
   disposeAll(): void
 }
@@ -96,13 +98,6 @@ export function createProjectileLayer(
       if (p.look.pulse !== undefined && p.look.pulse > 0) {
         const s = pulseScale(p.elapsed, p.look.pulse)
         p.mesh.scale.setScalar(s)
-      } else if ((p.look.stretch ?? 1) > 1.2) {
-        // Teardrops and seeds keep facing downrange (their +Z is stretched).
-        p.mesh.lookAt(
-          shotPos.x + shotDir.x,
-          p.mesh.position.y,
-          shotPos.z + shotDir.z,
-        )
       }
       // Trail lags behind it along the same line, with the same arc lift.
       for (let s = 0; s < p.trail.length; s++) {
@@ -141,6 +136,19 @@ export function createProjectileLayer(
     // cluster, teardrop, or the neutral orb.
     const core = buildShotCore(look, color, size)
     core.position.copy(origin)
+    if (
+      !(look.pulse !== undefined && look.pulse > 0) &&
+      (look.stretch ?? 1) > 1.2
+    ) {
+      // Stretched shots face downrange once at spawn: the flight line is
+      // fixed per shot, so a per-frame lookAt was redundant - and it kept
+      // overwriting the spin the step accumulates, so a spun streak (wind)
+      // never corkscrewed. The guard mirrors the per-frame predicate it
+      // replaces exactly: water's pulse path never faced downrange and
+      // still must not. Holding y at the origin keeps the aim horizontal,
+      // matching the old branch's semantic.
+      core.lookAt(target.x, origin.y, target.z)
+    }
     arenaGroup.add(core)
 
     // Trail segments stream behind the shot in its element's family.
@@ -166,6 +174,9 @@ export function createProjectileLayer(
     spawn,
     firstPosition() {
       return projectiles[0]?.mesh.position ?? null
+    },
+    firstMesh() {
+      return projectiles[0]?.mesh ?? null
     },
     disposeAll() {
       for (let i = projectiles.length - 1; i >= 0; i--) {
