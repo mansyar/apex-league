@@ -216,7 +216,15 @@ After a phase is accepted, the primary appends:
 under that phase's Status line, and marks every task and sub-task [x].
 -->
 
-<!--
-A "Phase R1: Review Fixes" phase is appended by conductor-review when findings
-need fixing — never by the planner.
--->
+## Phase R1: Review Fixes
+
+- **Goal:** Resolve review finding F1 — the wind look's authored `spin` never renders because the projectile interpreter's per-frame `lookAt()` overwrites the quaternion.
+- **Depends on:** Phase 4
+- **Covers:** F1
+- **Touches:** `apps/client/src/fx/projectiles.ts`, `apps/client/src/fx/projectiles.test.ts` (new, or the project co-located home for an interpreter-level test)
+- **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/fx && bun run check && biome check`
+- **Status:** pending
+- [ ] **R1.T1: Make wind's spin real** — covers: F1
+  - [ ] **R1.T1.1: Orient once at spawn** — in `fx/projectiles.ts`, the flight direction (from→to) is fixed per shot, so apply the face-downrange orientation once in `spawn()` after core assembly when `(look.stretch ?? 1) > 1.2`, and drop the per-frame `else if ((p.look.stretch ?? 1) > 1.2)` branch in `projectileStep` (lines ~99-106) so `rotation.z`/`rotation.x` from the spin branch (lines ~91-95) can accumulate over the spawn-time orientation. Water (pulse branch) and earth (no stretch) must render byte-identically to today.
+  - [ ] **R1.T1.2: Prove wind's spin renders** — add an interpreter-level test asserting the wind core's mesh orientation actually changes across two `projectileStep` ticks (the reviewer's identified test gap: the table-row pin alone let this dead value pass green).
+  - [ ] **R1.T1.3: Preserve the others** — a test or recorded evidence shows water (pulse) and earth (spin, no stretch) still behave as before the change.
