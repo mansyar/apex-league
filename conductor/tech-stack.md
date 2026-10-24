@@ -571,6 +571,22 @@
   guards' negative controls are proven to fire under parallel workers. Final
   numbers: phase leg 53 s (target ≤ 150 s), `bun run verify` 77 s (≤ 120 s),
   full nightly sweep 41 s, CI unchanged.
+- `2026-10-24` - **Battle choreography for all creatures** (`20261024-battle-choreography-all-creatures`):
+  every arena archetype now has an authored identity on all three choreography layers. The
+  `BodyProfile` table in `choreo.ts` covers all six archetypes (`storm_hound`, `falcon`,
+  `tortoise` were riding `DEFAULT_PROFILE`) and gains three attack-character knobs
+  (`windupMult`/`recoilMult`/`strikeMult` - amplitude only; timing and the sim-agreeing
+  slide/dash stay global pins defended by the new `battle-timing.test.ts`). `move-fx.ts`
+  is split into a barrel over `move-fx/looks.ts` (per-element `SHOT_LOOKS`: Earth = new
+  non-luminous `boulder` geometry + `dust` trail, Wind = stretched high-spin flat-arc
+  teardrop, electric promoted to an explicit fallback-equal row) and `move-fx/moves.ts`
+  (per-element `MOVE_FX` tables; `quake_stomp`/`cyclone_dive` got bespoke finishers) with
+  the export surface proven unchanged. The battle stage is now fully deterministic - the
+  one `Math.random()` under `apps/client/src/steps/` was replaced by a pure seeded
+  `contactJitter` on `anim.ts` primitives, wired at all five `contactReaction` call sites.
+  Timing constants (`CONTACT_T`, projectile life/arc, every `PLAYBACK_PHASES` row) are
+  test-pinned. Visual pass: 6 archetypes x 4 moments x 2 viewports with a clean console
+  and the reduced-motion instant dump re-proven.
 
 ## Quality Gates
 - `bun check` clean, `biome check` clean, `bun test` green — required before
