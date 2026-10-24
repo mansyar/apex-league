@@ -1,4 +1,4 @@
-import { easeOut } from "../anim"
+import { easeOut, easeOutCubic } from "../anim"
 import type { DriveFighter } from "../fighter-driver"
 import type { Posture } from "../move-fx"
 
@@ -167,7 +167,103 @@ export function judgeHop(t: number): {
   }
 }
 
-/** Apply a posture phase to a fighter at normalized progress w. */
+/** The basic strike's coil-back depth (world units) before the commit. */
+export const STRIKE_COIL = 0.22
+/** The vertical drop while the strike coils and commits. */
+export const STRIKE_DROP = 0.05
+/** The vertical lift as the strike lands. */
+export const STRIKE_LIFT = 0.06
+/** The forward lean at the height of the commit. */
+export const STRIKE_LEAN = 0.1
+/** The lateral roll at the height of the commit. */
+export const STRIKE_ROLL = 0.05
+
+/** The squash impulse while the strike commits (a stretch). */
+export const STRIKE_COMMIT = 0.28
+/** The squash impulse as the attacker settles out of the strike. */
+export const STRIKE_SETTLE = 0.12
+
+/** Which beat of the basic strike a frame belongs to. */
+export type StrikeBeat = "windup" | "contact" | "recovery"
+
+/**
+ * One frame of the basic strike's body, in the attacker's own frame: how
+ * far along the attack line it sits, how high it rides, how it leans, and
+ * the squash impulse the beat owns. A missing field means the beat does
+ * not own that channel (the windup leaves the lean alone, the recovery
+ * keeps the height it landed on).
+ */
+export interface StrikePose {
+  /** Distance along the attack line; negative while the body coils back. */
+  readonly along: number
+  /** Vertical offset of the body. */
+  readonly y?: number
+  /** Forward lean. */
+  readonly pitch?: number
+  /** Lateral roll. */
+  readonly roll?: number
+  /** Squash impulse for this frame; absent when the beat owns none. */
+  readonly impulse?: number
+}
+
+/**
+ * The basic strike's body, weighted by the archetype's `strikeMult`.
+ *
+ * The multiplier scales the amplitudes - the coil depth, the drop, the
+ * lift, the leans, the impulses - so a heavy body commits deeper and a
+ * light one snaps. The arrival point never moves: the lunge still ends
+ * exactly on the contact point, because the distance between the
+ * fighters belongs to the sim, not to the choreography. Timing is
+ * untouched as well; only the amplitudes move.
+ */
+export function strikePose(
+  beat: StrikeBeat,
+  w: number,
+  reach: number,
+  strike: number,
+  hit = true,
+): StrikePose {
+  const coil = STRIKE_COIL * strike
+  if (beat === "windup") {
+    const s = Math.sin(w * Math.PI)
+    return {
+      along: -coil * s,
+      y: -STRIKE_DROP * strike * s,
+      roll: STRIKE_ROLL * strike * s,
+    }
+  }
+  if (beat === "contact") {
+    const e = easeOutCubic(w)
+    return {
+      // The fixed arrival path plus the scaled coil: the body always
+      // lands on the contact point, no matter how deep it coiled.
+      along: reach * e - coil * (1 - e),
+      y: (-STRIKE_DROP * (1 - w) + STRIKE_LIFT * w) * strike,
+      pitch: STRIKE_LEAN * strike * Math.sin(w * Math.PI),
+      roll: -STRIKE_ROLL * strike * (1 - w),
+      // Stretch while committing, once the body is past the windup.
+      impulse: w > 0.3 ? -STRIKE_COMMIT * strike : undefined,
+    }
+  }
+  const e = easeOut(w)
+  return {
+    along: reach * (1 - e),
+    pitch: STRIKE_LEAN * strike * (1 - e),
+    roll: -STRIKE_ROLL * strike * (1 - e),
+    // The attacker settles heavy, but only after the hit has landed.
+    impulse: hit && w > 0.6 ? STRIKE_SETTLE * strike : undefined,
+  }
+}
+
+/**
+ * Apply a posture phase to a fighter at normalized progress w.
+ *
+ * The archetype's attack character weights the amplitudes: the windup
+ * fields (pitch, roll, rise, coilX) scale by the profile's `windupMult`,
+ * the recoil fields (pitchOut, sweepX, riseOut) by `recoilMult`. The
+ * phase fractions - the half and full sines - are never touched: a
+ * profile changes how far the body travels, never when.
+ */
 export function applyPosture(
   p: Posture,
   w: number,
@@ -176,15 +272,17 @@ export function applyPosture(
 ): void {
   const half = Math.sin((w * Math.PI) / 2)
   const full = Math.sin(w * Math.PI)
+  const wind = ao.profile.windupMult
+  const recoil = ao.profile.recoilMult
   if (p.pitch !== undefined) {
-    ao.lean.pitch = p.pitch * (p.hold ? half : full)
+    ao.lean.pitch = p.pitch * (p.hold ? half : full) * wind
   }
-  if (p.roll !== undefined) ao.lean.roll = p.roll * full
-  if (p.rise !== undefined) ao.offset.y = p.rise * full
-  if (p.coilX !== undefined) ao.offset.x = -away * p.coilX * (w * w)
-  if (p.pitchOut !== undefined) ao.lean.pitch = p.pitchOut * full
+  if (p.roll !== undefined) ao.lean.roll = p.roll * full * wind
+  if (p.rise !== undefined) ao.offset.y = p.rise * full * wind
+  if (p.coilX !== undefined) ao.offset.x = -away * p.coilX * (w * w) * wind
+  if (p.pitchOut !== undefined) ao.lean.pitch = p.pitchOut * full * recoil
   if (p.sweepX !== undefined) {
-    ao.offset.x = -away * (p.sweepX[0] + p.sweepX[1] * full)
+    ao.offset.x = -away * (p.sweepX[0] + p.sweepX[1] * full) * recoil
   }
-  if (p.riseOut !== undefined) ao.offset.y = p.riseOut * full
+  if (p.riseOut !== undefined) ao.offset.y = p.riseOut * full * recoil
 }

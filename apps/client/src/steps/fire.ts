@@ -1,5 +1,5 @@
 import type { PlaybackStep } from "@apex/sim"
-import { clamp01 } from "../anim"
+import { clamp01, jitter } from "../anim"
 import { type ReactionKind, reactionFor } from "../choreo"
 import type { DriveFighter } from "../fighter-driver"
 import { fxFor, PROJECTILE_LIFE_MS } from "../move-fx"
@@ -26,6 +26,24 @@ export function snapTo(c: DriveFighter): void {
   c.offset.set(0, 0, 0)
 }
 
+/** Lateral spread of a landed hit's contact jitter, in world units (±). */
+export const CONTACT_JITTER = 0.15
+
+/**
+ * Deterministic contact jitter (FR-7): the lateral offset a landed hit
+ * nudges its victim by is a pure function of the step - seeded by the
+ * playback tick where the caller knows it, keyed by the victim's
+ * identity and the damage everywhere else. Same step, same pixel; no
+ * clock, no RNG.
+ */
+export function contactJitter(
+  seed: number | undefined,
+  victimKey: string,
+  damage: number | undefined,
+): number {
+  return jitter(seed ?? 0, `${victimKey}:${damage ?? 0}`, CONTACT_JITTER)
+}
+
 /**
  * The victim reaction at an attack's contact moment: squash the body
  * (profile-weighted from the reaction library), flash and stop the
@@ -33,6 +51,12 @@ export function snapTo(c: DriveFighter): void {
  * outward movement belongs to the follow-up stagger/knockback reel
  * (the sim's range shift), not a second nudge. One helper so basic
  * and special hits look like the same physical impact.
+ *
+ * The optional `seed` is the playback tick: every production call site
+ * passes `step.tick`, so a repeat hit on the same victim still lands
+ * somewhere new. Omitting it stays supported - the offset then keys off
+ * the victim and damage alone. Either way the lateral offset is a pure
+ * function of the step (FR-7) - no clock, no RNG.
  */
 export function contactReaction(
   io: StepIO,
@@ -40,6 +64,7 @@ export function contactReaction(
   at: DriveFighter,
   heavy = false,
   element?: string,
+  seed?: number,
 ): void {
   if (!heavy) {
     const knock = strikeReach(damage)
@@ -47,7 +72,7 @@ export function contactReaction(
     // as the dodge dash) - a minus here drags the pair into each other
     // with every landed hit.
     at.stage.x += at.away * knock
-    at.stage.z += (Math.random() - 0.5) * 0.3
+    at.stage.z += contactJitter(seed, at.key ?? at.name, damage)
   }
   const kind: ReactionKind = heavy ? "stagger" : "glance"
   impulse(io, at, reactionFor(kind, at.profile).impulse)
@@ -162,6 +187,7 @@ export function fireSpecial(
           side.target,
           heavyHit(step),
           step.element,
+          step.tick,
         )
       }
       const release = beats[0] ?? wind

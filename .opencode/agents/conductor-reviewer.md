@@ -52,6 +52,24 @@ permissions:
     resource: "bun test --timeout 120000 *"
     effect: allow
   - action: shell
+    resource: "bun test --check --parallel=4 --timeout 120000"
+    effect: allow
+  - action: shell
+    resource: "bun test --check --parallel=4 --timeout 120000 *"
+    effect: allow
+  - action: shell
+    resource: "bun test *"
+    effect: allow
+  - action: shell
+    resource: "bun test"
+    effect: allow
+  - action: shell
+    resource: "bunx biome check"
+    effect: allow
+  - action: shell
+    resource: "bunx biome check *"
+    effect: allow
+  - action: shell
     resource: "bun run check"
     effect: allow
   - action: shell

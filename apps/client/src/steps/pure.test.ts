@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test"
+import * as THREE from "three"
+import { type BodyProfile, DEFAULT_PROFILE } from "../choreo"
+import type { DriveFighter } from "../fighter-driver"
 import {
+  applyPosture,
   approachTarget,
   dodgeShift,
   heavyHit,
@@ -9,6 +13,7 @@ import {
   reelWobble,
   softFall,
   spotOf,
+  strikePose,
   strikeReach,
   weave,
 } from "./pure"
@@ -178,5 +183,162 @@ describe("judgeHop", () => {
     expect(judgeHop(0.1).rising).toBe(true)
     expect(judgeHop(0.6).rising).toBe(false)
     expect(judgeHop(0.75).localT).toBeCloseTo(0.5)
+  })
+})
+
+/**
+ * A stand-in fighter for the posture math: the driver slice the step
+ * handlers actually touch (the pose channels plus the profile).
+ */
+function fakeFighter(profile: BodyProfile): DriveFighter {
+  return {
+    name: "Test",
+    group: new THREE.Group(),
+    stage: new THREE.Vector3(),
+    smooth: new THREE.Vector3(),
+    velocity: new THREE.Vector3(),
+    offset: new THREE.Vector3(),
+    squash: { s: 0, v: 0 },
+    walkPhase: 0,
+    phase: 0,
+    baseScale: 1,
+    profile,
+    down: false,
+    away: 1,
+    fall: 0,
+    lean: { pitch: 0, roll: 0 },
+    baseColors: new Map(),
+  }
+}
+
+/** The neutral profile with one knob overridden. */
+function withKnob<K extends keyof BodyProfile>(
+  knob: K,
+  value: BodyProfile[K],
+): BodyProfile {
+  return { ...DEFAULT_PROFILE, [knob]: value }
+}
+
+describe("applyPosture — the profile-weighted posture curves", () => {
+  const windup = { pitch: 0.2, roll: 0.1, rise: 0.15, coilX: 0.3 }
+  const recoil = {
+    pitchOut: 0.25,
+    sweepX: [0.1, 0.2] as [number, number],
+    riseOut: 0.12,
+  }
+
+  test("the neutral profile reproduces the unweighted curve", () => {
+    const ao = fakeFighter(DEFAULT_PROFILE)
+    applyPosture(windup, 0.5, ao, 1)
+    // No `hold` on the posture: the pitch rides the full sine.
+    const full = Math.sin(0.5 * Math.PI)
+    expect(ao.lean.pitch).toBeCloseTo(0.2 * full)
+    expect(ao.lean.roll).toBeCloseTo(0.1 * full)
+    expect(ao.offset.y).toBeCloseTo(0.15 * full)
+    expect(ao.offset.x).toBeCloseTo(-0.3 * 0.25)
+  })
+
+  test("windupMult scales the windup amplitudes by exactly its factor", () => {
+    const plain = fakeFighter(DEFAULT_PROFILE)
+    const heavy = fakeFighter(withKnob("windupMult", 1.5))
+    applyPosture(windup, 0.4, plain, 1)
+    applyPosture(windup, 0.4, heavy, 1)
+    expect(heavy.lean.pitch).toBeCloseTo(plain.lean.pitch * 1.5)
+    expect(heavy.lean.roll).toBeCloseTo(plain.lean.roll * 1.5)
+    expect(heavy.offset.y).toBeCloseTo(plain.offset.y * 1.5)
+    expect(heavy.offset.x).toBeCloseTo(plain.offset.x * 1.5)
+  })
+
+  test("the windup's phase fractions are identical under any multiplier", () => {
+    const plain = fakeFighter(DEFAULT_PROFILE)
+    const heavy = fakeFighter(withKnob("windupMult", 1.5))
+    for (const w of [0.1, 0.25, 0.5, 0.75, 0.9]) {
+      applyPosture(windup, w, plain, 1)
+      applyPosture(windup, w, heavy, 1)
+      // The ratio stays the factor at every point of the curve: the
+      // multiplier scales the amplitude, never the timing.
+      expect(heavy.lean.pitch / plain.lean.pitch).toBeCloseTo(1.5)
+    }
+  })
+
+  test("recoilMult scales the recoil amplitudes by exactly its factor", () => {
+    const plain = fakeFighter(DEFAULT_PROFILE)
+    const heavy = fakeFighter(withKnob("recoilMult", 1.25))
+    applyPosture(recoil, 0.6, plain, 1)
+    applyPosture(recoil, 0.6, heavy, 1)
+    const full = Math.sin(0.6 * Math.PI)
+    expect(heavy.lean.pitch).toBeCloseTo(plain.lean.pitch * 1.25)
+    expect(heavy.offset.x).toBeCloseTo(plain.offset.x * 1.25)
+    expect(heavy.offset.y).toBeCloseTo(plain.offset.y * 1.25)
+    // The underlying curve is untouched: base * full * multiplier.
+    expect(heavy.lean.pitch).toBeCloseTo(0.25 * full * 1.25)
+  })
+
+  test("the recoil's phase fractions are identical under any multiplier", () => {
+    const plain = fakeFighter(DEFAULT_PROFILE)
+    const heavy = fakeFighter(withKnob("recoilMult", 0.6))
+    for (const w of [0.2, 0.4, 0.6, 0.8]) {
+      applyPosture(recoil, w, plain, 1)
+      applyPosture(recoil, w, heavy, 1)
+      expect(heavy.offset.y / plain.offset.y).toBeCloseTo(0.6)
+    }
+  })
+
+  test("the windup and recoil weights do not cross over", () => {
+    const ao = fakeFighter(withKnob("windupMult", 1.5))
+    // A windup-only posture never reads the recoil weight.
+    applyPosture(windup, 0.5, ao, 1)
+    expect(ao.lean.pitch).toBeCloseTo(0.2 * Math.sin(0.5 * Math.PI) * 1.5)
+  })
+})
+
+describe("strikePose — the profile-weighted strike body", () => {
+  test("the neutral profile reproduces the unweighted strike", () => {
+    const pose = strikePose("windup", 0.5, 2, 1)
+    expect(pose.along).toBeCloseTo(-0.22 * Math.sin(0.5 * Math.PI))
+    expect(pose.y).toBeCloseTo(-0.05 * Math.sin(0.5 * Math.PI))
+    expect(pose.roll).toBeCloseTo(0.05 * Math.sin(0.5 * Math.PI))
+  })
+
+  test("strikeMult scales the strike amplitudes proportionally", () => {
+    const plain = strikePose("windup", 0.5, 2, 1)
+    const heavy = strikePose("windup", 0.5, 2, 1.5)
+    expect(heavy.along).toBeCloseTo(plain.along * 1.5)
+    expect(heavy.y).toBeCloseTo((plain.y ?? 0) * 1.5)
+    expect(heavy.roll).toBeCloseTo((plain.roll ?? 0) * 1.5)
+  })
+
+  test("the contact beat's lean and roll scale with the strike weight", () => {
+    const plain = strikePose("contact", 0.5, 2, 1)
+    const heavy = strikePose("contact", 0.5, 2, 1.4)
+    expect(heavy.pitch).toBeCloseTo((plain.pitch ?? 0) * 1.4)
+    expect(heavy.roll).toBeCloseTo((plain.roll ?? 0) * 1.4)
+  })
+
+  test("the arrival point never moves with the strike weight", () => {
+    // The travel to the contact point is a distance, not an amplitude:
+    // a heavy body coils deeper but still lands on the same spot.
+    const plain = strikePose("contact", 1, 2, 1)
+    const heavy = strikePose("contact", 1, 2, 1.6)
+    expect(plain.along).toBeCloseTo(2)
+    expect(heavy.along).toBeCloseTo(2)
+  })
+
+  test("the recovery settles back to the stance over the same curve", () => {
+    const plain = strikePose("recovery", 0.5, 2, 1)
+    const heavy = strikePose("recovery", 0.5, 2, 1.3)
+    expect(heavy.along).toBeCloseTo(plain.along)
+    expect(heavy.pitch).toBeCloseTo((plain.pitch ?? 0) * 1.3)
+  })
+
+  test("the commit impulse only fires past the windup", () => {
+    expect(strikePose("contact", 0.2, 2, 1).impulse).toBeUndefined()
+    expect(strikePose("contact", 0.5, 2, 1).impulse).toBeCloseTo(-0.28)
+  })
+
+  test("the settle impulse is weighted and only lands on a hit", () => {
+    expect(strikePose("recovery", 0.8, 2, 1, true).impulse).toBeCloseTo(0.12)
+    expect(strikePose("recovery", 0.8, 2, 1.5, true).impulse).toBeCloseTo(0.18)
+    expect(strikePose("recovery", 0.8, 2, 1, false).impulse).toBeUndefined()
   })
 })

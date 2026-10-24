@@ -1,9 +1,9 @@
 import { PLAYBACK_PHASES } from "@apex/sim"
 import * as THREE from "three"
-import { easeOut, easeOutCubic, phaseAt } from "../anim"
+import { phaseAt } from "../anim"
 import type { StepRunner } from "./context"
 import { contactReaction, impulse, snapTo } from "./fire"
-import { heavyHit, meleeContact, STANCE_GAP, weave } from "./pure"
+import { heavyHit, meleeContact, STANCE_GAP, strikePose, weave } from "./pure"
 
 /**
  * Authored attack: wind-up (coil back), committed strike into contact,
@@ -25,6 +25,7 @@ export const meleeStep: StepRunner = (step, instant, side, _o, _r, io) => {
         side.target,
         heavyHit(step),
         step.element,
+        step.tick,
       )
     if (dodged) {
       side.target.stage.x += side.target.away * 0.85
@@ -47,44 +48,49 @@ export const meleeStep: StepRunner = (step, instant, side, _o, _r, io) => {
   io.startAction(
     (t, ao, at) => {
       const melee = phaseAt(t, PLAYBACK_PHASES.melee)
+      // The archetype's attack character scales the strike's amplitudes.
+      const strike = ao.profile.strikeMult
+      // The travel to the contact point is a distance, not an amplitude:
+      // it stays the same whatever the body weighs.
+      const reach = contact.distanceTo(from)
       if (melee.phase === "windup") {
         // Anticipation: coil back on the approach line, drop weight.
-        const w = melee.local
-        ao.offset.copy(dir).multiplyScalar(-0.22 * Math.sin(w * Math.PI))
-        ao.offset.y = -0.05 * Math.sin(w * Math.PI)
-        ao.lean.roll = 0.05 * Math.sin(w * Math.PI)
+        const pose = strikePose("windup", melee.local, reach, strike)
+        ao.offset.copy(dir).multiplyScalar(pose.along)
+        if (pose.y !== undefined) ao.offset.y = pose.y
+        if (pose.roll !== undefined) ao.lean.roll = pose.roll
       } else if (melee.phase === "contact") {
         // The strike: uncoil fast down the line (easeOutCubic).
-        const w = melee.local
-        ao.offset
-          .copy(dir)
-          .multiplyScalar(
-            -0.22 + (contact.distanceTo(from) + 0.22) * easeOutCubic(w),
-          )
-        ao.offset.y = -0.05 * (1 - w) + 0.06 * w
-        ao.lean.pitch = 0.1 * Math.sin(w * Math.PI)
-        ao.lean.roll = -0.05 * (1 - w)
-        if (w > 0.3) impulse(io, ao, -0.28) // stretch while committing
+        const pose = strikePose("contact", melee.local, reach, strike)
+        ao.offset.copy(dir).multiplyScalar(pose.along)
+        if (pose.y !== undefined) ao.offset.y = pose.y
+        if (pose.pitch !== undefined) ao.lean.pitch = pose.pitch
+        if (pose.roll !== undefined) ao.lean.roll = pose.roll
+        if (pose.impulse !== undefined) impulse(io, ao, pose.impulse)
       } else {
         // Follow-through + recovery: settle back to stance spacing.
-        const w = melee.local
-        ao.offset
-          .copy(contact)
-          .sub(from)
-          .multiplyScalar(1 - easeOut(w))
-        ao.lean.pitch = 0.1 * (1 - easeOut(w))
-        ao.lean.roll = -0.05 * (1 - easeOut(w))
+        const pose = strikePose("recovery", melee.local, reach, strike, hit)
+        ao.offset.copy(dir).multiplyScalar(pose.along)
+        if (pose.pitch !== undefined) ao.lean.pitch = pose.pitch
+        if (pose.roll !== undefined) ao.lean.roll = pose.roll
         if (!landed) {
           landed = true
           if (hit) {
-            contactReaction(io, step.damage, at, heavyHit(step), step.element)
+            contactReaction(
+              io,
+              step.damage,
+              at,
+              heavyHit(step),
+              step.element,
+              step.tick,
+            )
           } else if (dodged) {
             // The target slipped: a quick dash off the lane.
             at.stage.x += at.away * 0.85
             impulse(io, at, -0.3)
           }
         }
-        if (hit && w > 0.6) impulse(io, ao, 0.12) // attacker settles heavy
+        if (pose.impulse !== undefined) impulse(io, ao, pose.impulse)
       }
     },
     side.actor,
