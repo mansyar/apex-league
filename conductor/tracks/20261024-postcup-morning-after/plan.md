@@ -20,7 +20,7 @@ clean console.
   outcome class, persisted-first amplifiers, and single-sourced copy from a
   finalized session + before/after state.
 - **Depends on:** none
-- **Covers:** FR-1, FR-4, FR-10, AC-1, AC-3
+- **Covers:** FR-1, FR-4, FR-10, NFR-5, AC-1, AC-3
 - **Touches:** `apps/client/src/morning-after/**` (new module tree + co-located tests)
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
 - **Status:** pending
@@ -60,7 +60,7 @@ clean console.
 - **Goal:** the subtle petting variant, the exactly-one coach debrief line in
   the existing ticker, and the per-class cue remap are live and tested.
 - **Depends on:** Phase 2
-- **Covers:** FR-5, FR-6, FR-8, AC-4
+- **Covers:** FR-5, FR-6, FR-8, NFR-6, AC-4
 - **Touches:** `apps/client/src/hud/**` (ticker channel), `apps/client/src/audio/**` (careCues table), `apps/client/src/ranch/**` (pet handler), `apps/client/src/morning-after/**` (copy refs)
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
 - **Status:** pending
@@ -80,7 +80,7 @@ clean console.
 - **Goal:** the FR-9 edge rules proven in tests, the visual checklist recorded
   at both widths, and the tech-stack note written.
 - **Depends on:** Phase 3
-- **Covers:** FR-9, AC-5, AC-6, NFR-1, NFR-2, NFR-7
+- **Covers:** FR-9, AC-5, AC-6, NFR-1, NFR-2, NFR-3, NFR-4, NFR-7
 - **Touches:** `apps/client/src/scene-logic/**`, `apps/client/src/ranch/**` (edge glue), `conductor/tech-stack.md`
 - **Verification:** `bun run verify && bun run build` + visual-layer procedure (playwright-cli, desktop + iPhone 15, clean console)
 - **Status:** pending
