@@ -132,7 +132,7 @@ pinned by a test so future choreography cannot drift it.
 
 **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/steps apps/client/src/battle-timing.test.ts && bun run check && biome check`
 
-**Status:** pending
+**Status:** in_progress
 
 - [ ] **P3.T1: Seed the contact jitter** — covers: FR-7, NFR-6
   - [ ] **P3.T1.1: Write the pure helper** — derive a seed from the step's stable fields (`tick`, `actorKey`/`actor`, `damage`) and return a bounded lateral offset (within ±0.15, today's range) using the existing seeded `jitter`/`hash` utilities in `anim.ts`. No new randomness source, no clock reads.
