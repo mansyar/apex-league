@@ -48,7 +48,7 @@ clean console.
 - **Covers:** FR-2, FR-3, FR-7, AC-2
 - **Touches:** `apps/client/src/scene-logic/**`, `apps/client/src/ranch/**`, `apps/client/src/store.ts` (arrival glue), module-size guard inclusion
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Ritual machine (`morning-after` machine in scene-logic)** - covers: FR-2
   - [ ] **P2.T1.1: Failing tests — one-shot trigger on first ranch arrival after finalize, dismiss-on-intent, no same-day replay, class caps enforced by the schedule**
