@@ -179,7 +179,7 @@ gate is green and byte-identical where it must be.
 **Verification:** `bun run verify && bun run build` (plus the visual layer via
 `playwright-cli` against `bun run dev`).
 
-**Status:** pending
+**Status:** in_progress
 
 - [ ] **P4.T1: Tune inside the bands** — covers: FR-3, AC-9
   - [ ] **P4.T1.1: Per-archetype spars** — drive a spar per archetype, capture the four moments, and tune any value that reads wrong (a tortoise that bounces, a falcon that stomps) strictly inside its band.
