@@ -127,8 +127,20 @@ pinned by a test so future choreography cannot drift it.
 
 **Touches:**
 - `apps/client/src/steps/fire.ts`
+- `apps/client/src/steps/impact.ts`
+- `apps/client/src/steps/melee.ts`
 - `apps/client/src/steps/fire.test.ts`
 - `apps/client/src/battle-timing.test.ts`
+
+*Amended 2026-10-24 during execution: `impact.ts` and `melee.ts` hold the three
+remaining `contactReaction` call sites. They were outside the original Touches,
+which forced the seed to default to `0` there — so a repeated basic strike on the
+same victim with the same damage landed at the identical lateral offset every
+time (`contactJitter(undefined, "left", 4)` is `0.101` on every hit), where today
+those hits vary. Each call site already has `step` in scope, so each threads
+`step.tick` — one argument added, nothing else. That satisfies P3.T1.1's "derive a
+seed from the step's stable fields (tick, actorKey/actor, damage)": every hit keeps
+its variety and a replay still lands identically.*
 
 **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/steps apps/client/src/battle-timing.test.ts && bun run check && biome check`
 
