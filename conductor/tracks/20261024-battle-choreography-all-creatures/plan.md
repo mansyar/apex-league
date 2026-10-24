@@ -223,7 +223,7 @@ under that phase's Status line, and marks every task and sub-task [x].
 - **Covers:** F1
 - **Touches:** `apps/client/src/fx/projectiles.ts`, `apps/client/src/fx/projectiles.test.ts` (new, or the project co-located home for an interpreter-level test)
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/fx && bun run check && biome check`
-- **Status:** pending
+- **Status:** in_progress
 - [ ] **R1.T1: Make wind's spin real** — covers: F1
   - [ ] **R1.T1.1: Orient once at spawn** — in `fx/projectiles.ts`, the flight direction (from→to) is fixed per shot, so apply the face-downrange orientation once in `spawn()` after core assembly when `(look.stretch ?? 1) > 1.2`, and drop the per-frame `else if ((p.look.stretch ?? 1) > 1.2)` branch in `projectileStep` (lines ~99-106) so `rotation.z`/`rotation.x` from the spin branch (lines ~91-95) can accumulate over the spawn-time orientation. Water (pulse branch) and earth (no stretch) must render byte-identically to today.
   - [ ] **R1.T1.2: Prove wind's spin renders** — add an interpreter-level test asserting the wind core's mesh orientation actually changes across two `projectileStep` ticks (the reviewer's identified test gap: the table-row pin alone let this dead value pass green).
