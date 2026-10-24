@@ -144,15 +144,19 @@ its variety and a replay still lands identically.*
 
 **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/steps apps/client/src/battle-timing.test.ts && bun run check && biome check`
 
-**Status:** in_progress
+**Result:** verified
+**Checkpoint:** 87121d0
+**Evidence:** conductor/tracks/20261024-battle-choreography-all-creatures/verification/phase-3.md
 
-- [ ] **P3.T1: Seed the contact jitter** — covers: FR-7, NFR-6
-  - [ ] **P3.T1.1: Write the pure helper** — derive a seed from the step's stable fields (`tick`, `actorKey`/`actor`, `damage`) and return a bounded lateral offset (within ±0.15, today's range) using the existing seeded `jitter`/`hash` utilities in `anim.ts`. No new randomness source, no clock reads.
-  - [ ] **P3.T1.2: Wire it in** — `contactReaction` takes the step (or its seed inputs) and replaces `Math.random()`; nothing else in the reaction path changes.
-  - [ ] **P3.T1.3: Prove determinism** — tests: identical step ⇒ identical offset; different ticks ⇒ different offsets (no constant); every offset inside the bound; and an evidence record that a repository search for `Math.random` under `apps/client/src/steps/` finds nothing.
-- [ ] **P3.T2: Pin the timing contract** — covers: NFR-1, AC-10
-  - [ ] **P3.T2.1: Write the pin suite** — `battle-timing.test.ts` asserts the values the visual layer depends on: `CONTACT_T` 0.46, `PROJECTILE_LIFE_MS`, `PROJECTILE_ARC`, and every `PLAYBACK_PHASES` row imported from `@apex/sim`, so an accidental timing edit fails loudly instead of drifting the animation.
-  - [ ] **P3.T2.2: Pin the movement rule** — assert `reactionFor` returns the same `slide`/`dash` for every profile (movement stays global), which is the invariant the choreography comments promise.
+**Status:** verified
+
+- [x] **P3.T1: Seed the contact jitter** — covers: FR-7, NFR-6
+  - [x] **P3.T1.1: Write the pure helper** — derive a seed from the step's stable fields (`tick`, `actorKey`/`actor`, `damage`) and return a bounded lateral offset (within ±0.15, today's range) using the existing seeded `jitter`/`hash` utilities in `anim.ts`. No new randomness source, no clock reads.
+  - [x] **P3.T1.2: Wire it in** — `contactReaction` takes the step (or its seed inputs) and replaces `Math.random()`; nothing else in the reaction path changes.
+  - [x] **P3.T1.3: Prove determinism** — tests: identical step ⇒ identical offset; different ticks ⇒ different offsets (no constant); every offset inside the bound; and an evidence record that a repository search for `Math.random` under `apps/client/src/steps/` finds nothing.
+- [x] **P3.T2: Pin the timing contract** — covers: NFR-1, AC-10
+  - [x] **P3.T2.1: Write the pin suite** — `battle-timing.test.ts` asserts the values the visual layer depends on: `CONTACT_T` 0.46, `PROJECTILE_LIFE_MS`, `PROJECTILE_ARC`, and every `PLAYBACK_PHASES` row imported from `@apex/sim`, so an accidental timing edit fails loudly instead of drifting the animation.
+  - [x] **P3.T2.2: Pin the movement rule** — assert `reactionFor` returns the same `slide`/`dash` for every profile (movement stays global), which is the invariant the choreography comments promise.
 
 ---
 
