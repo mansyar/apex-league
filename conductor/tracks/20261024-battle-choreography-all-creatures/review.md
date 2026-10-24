@@ -99,7 +99,7 @@ All four planned phases verified with real checkpoints: Phase 1 `87232a5`, Phase
 
 ## Doc sync
 
-`pending` — pre-review sync landed as `e20e7af` (tech-stack dated entry); the review-fix changes are pending in Phase R1.
+`updated` — pre-review sync landed as `e20e7af` (tech-stack dated entry); the Phase R1 fix touches no documented contract — the entry's wind-shot description becomes accurate rather than stale, and no other doc references the projectile interpreter.
 
 ## History
 
