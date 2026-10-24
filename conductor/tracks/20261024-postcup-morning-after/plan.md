@@ -23,7 +23,7 @@ clean console.
 - **Covers:** FR-1, FR-4, FR-10, NFR-5, AC-1, AC-3
 - **Touches:** `apps/client/src/morning-after/**` (new module tree + co-located tests)
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Classifier `deriveMorningAfter`** - covers: FR-1
   - [ ] **P1.T1.1: Failing tests first — all four classes, forfeit precedence, drawn-final crowns, non-cup day → null**
