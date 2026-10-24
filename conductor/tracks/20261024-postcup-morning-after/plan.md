@@ -23,17 +23,21 @@ clean console.
 - **Covers:** FR-1, FR-4, FR-10, NFR-5, AC-1, AC-3
 - **Touches:** `apps/client/src/morning-after/**` (new module tree + co-located tests)
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Classifier `deriveMorningAfter`** - covers: FR-1
-  - [ ] **P1.T1.1: Failing tests first — all four classes, forfeit precedence, drawn-final crowns, non-cup day → null**
-  - [ ] **P1.T1.2: Implementation over the finalized session + pre/post state, seeded inputs only**
-- [ ] **P1.T2: Persistence-first milestone detector** - covers: FR-4
-  - [ ] **P1.T2.1: Failing tests — first title (cupsWon 0→1), first Legend title, first boss scalp, new claimedTiers tier; non-firsts stay silent**
-  - [ ] **P1.T2.2: Implementation keyed only to persisted v25 signals**
-- [ ] **P1.T3: Copy table `copy.ts`** - covers: FR-10
-  - [ ] **P1.T3.1: Golden test of the full table (classes × amplifiers, {name}/{boss} interpolation)**
-  - [ ] **P1.T3.2: Draft copy transplanted from the approved spec**
+- [x] **P1.T1: Classifier `deriveMorningAfter`** - covers: FR-1
+  - [x] **P1.T1.1: Failing tests first — all four classes, forfeit precedence, drawn-final crowns, non-cup day → null**
+  - [x] **P1.T1.2: Implementation over the finalized session + pre/post state, seeded inputs only**
+- [x] **P1.T2: Persistence-first milestone detector** - covers: FR-4
+  - [x] **P1.T2.1: Failing tests — first title (cupsWon 0→1), first Legend title, first boss scalp, new claimedTiers tier; non-firsts stay silent**
+  - [x] **P1.T2.2: Implementation keyed only to persisted v25 signals**
+- [x] **P1.T3: Copy table `copy.ts`** - covers: FR-10
+  - [x] **P1.T3.1: Golden test of the full table (classes × amplifiers, {name}/{boss} interpolation)**
+  - [x] **P1.T3.2: Draft copy transplanted from the approved spec**
+
+**Result:** verified
+**Checkpoint:** 98a52a7
+**Evidence:** conductor/tracks/20261024-postcup-morning-after/verification/phase-1.md
 
 ## Phase 2: Ceremony Machine & Poses
 
