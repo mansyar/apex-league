@@ -24,3 +24,4 @@
 - [x] **Track: Earth & Wind Species Line** - [20261023-earth-wind-species-line](./archive/20261023-earth-wind-species-line/index.md) - feature - high *(archived 2026-10-23)*
 - [x] **Track: Test Suite Speedup** - [20261023-test-suite-speedup](./archive/20261023-test-suite-speedup/index.md) - chore - medium *(archived 2026-10-24)*
 - [x] **Track: Battle Choreography for All Creatures** - [20261024-battle-choreography-all-creatures](./archive/20261024-battle-choreography-all-creatures/index.md) - feature - medium *(archived 2026-10-24)*
+- [ ] **Track: Post-Cup Morning-After Ritual** - [20261024-postcup-morning-after](./tracks/20261024-postcup-morning-after/index.md) - feature - medium
