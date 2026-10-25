@@ -73,6 +73,12 @@
    autosaves constantly and resumes in ≤5 seconds.
 7. **Desktop-first, keyboard+mouse primary**; every screen reachable in ≤2
    clicks from the ranch.
+8. **The mobile bar — fully playable at 393px in both orientations.** The
+   design posture stays desktop-first; mobile is an adaptation of the same
+   screens, not a redesign. A screen passes the bar at 393×852 and 852×393
+   when: there is no horizontal page scroll; no panel occludes an
+   interactive element or the scene's action area; all text is at readable
+   size; and the browser console stays clean.
 
 ## Accessibility & Inclusion
 - Color is never the only carrier of meaning (type icons + color).
