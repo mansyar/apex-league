@@ -101,7 +101,7 @@
   `conductor/product.md`, track `verification/**`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`;
   Playwright procedure at 1440×900 + 393×852/852×393, console clean
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P4.T1: Rival integration & boss refresh** — covers: FR-6, NFR-5
   - [ ] **P4.T1.1: Rival pools draw the new species; six authored gatekeeper pairings refreshed (boss kit re-tuning within wider-pool discipline); probe re-check**
