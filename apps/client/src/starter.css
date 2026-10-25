@@ -106,12 +106,14 @@
    at ≥768px. Tier definitions live in ui/kit.css. */
 @media (max-width: 479.98px) {
   .starter-overlay {
-    /* Reserve the top strip for the Settings/Handbook chips and let a tall
-       three-card stack scroll instead of clipping under the viewport. */
+    /* Reserve the top strip for the Settings/Handbook/Stable chip cluster
+       (three stacked 40px chips + gaps end at 146px, see the ranch phone
+       tier) and let a tall three-card stack scroll instead of clipping
+       under the viewport. */
     gap: 18px;
     justify-content: flex-start;
     overflow-y: auto;
-    padding: 124px 16px 24px;
+    padding: 168px 16px 24px;
   }
 
   .starter-heading {
