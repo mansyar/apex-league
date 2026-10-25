@@ -25,4 +25,4 @@
 - [x] **Track: Test Suite Speedup** - [20261023-test-suite-speedup](./archive/20261023-test-suite-speedup/index.md) - chore - medium *(archived 2026-10-24)*
 - [x] **Track: Battle Choreography for All Creatures** - [20261024-battle-choreography-all-creatures](./archive/20261024-battle-choreography-all-creatures/index.md) - feature - medium *(archived 2026-10-24)*
 - [x] **Track: Post-Cup Morning-After Ritual** - [20261024-postcup-morning-after](./archive/20261024-postcup-morning-after/index.md) - feature - medium
-- [ ] **Track: Mobile Layout Pass** - [20261025-mobile-layout-pass](./tracks/20261025-mobile-layout-pass/index.md) - feature - medium
+- [~] **Track: Mobile Layout Pass** - [20261025-mobile-layout-pass](./tracks/20261025-mobile-layout-pass/index.md) - feature - medium
