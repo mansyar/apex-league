@@ -54,7 +54,7 @@ decision); CSS/layout work is verified through the visual layer.
   `conductor/tracks/20261025-mobile-layout-pass/verification/**`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000` +
   visual evidence (both orientations, desktop + tablet guard)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Dock collapse adaptation** — covers: FR-7, AC-5
   - [ ] **P2.T1.1: Failing-first unit test for the collapse decision** — pure function: viewport width class → collapsed default on phone widths; user toggle override persists in-session; desktop default unchanged
