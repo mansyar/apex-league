@@ -116,17 +116,21 @@ clean console.
 - **Covers:** F1, F2, F3, F4, F5
 - **Touches:** `apps/client/src/ranch/api.ts`, `apps/client/src/ranch/frame.ts`, `apps/client/src/ranch/state.ts`, `apps/client/src/ranch/morning-after.test.ts`, `apps/client/src/scene-logic/morning-after-ledger.ts`, `apps/client/src/scene-logic.test.ts`, `apps/client/src/app/hud-screen.ts` (+ test), and their co-located tests
 - **Verification:** `bun test --check --parallel=4 --timeout 120000` then `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **R1.T1: Resolve F1** — covers: F1
-  - [ ] **R1.T1.1: Failing test — sick creature's ritual-day first pet returns `stir` and closes the window**
-  - [ ] **R1.T1.2: Gate the variant table behind the sick check in `startPet`**
-- [ ] **R1.T2: Resolve F2** — covers: F2
-  - [ ] **R1.T2.1: Failing test — day advance mid-ceremony → tint inactive and petPending false after settle**
-  - [ ] **R1.T2.2: Frame tracks last-seen day; day change settles machine, suppresses stale tint latch, clears petPending**
-- [ ] **R1.T3: Resolve F3** — covers: F3
-  - [ ] **R1.T3.1: Unexport `morningAfterDue` from the scene-logic barrel; keep predicate internal to the ledger/take path**
-- [ ] **R1.T4: Resolve F4** — covers: F4
-  - [ ] **R1.T4.1: Hud-screen test — fake Hud double asserts exactly one `announceMorningAfter` on the ritual day, none after settle**
-- [ ] **R1.T5: Resolve F5** — covers: F5
-  - [ ] **R1.T5.1: Guard the begin wrapper on machine-idle + state-level test that a second begin leaves class/petPending unchanged**
+- [x] **R1.T1: Resolve F1** - covers: F1
+  - [x] **R1.T1.1: Failing test — sick creature's ritual-day first pet returns `stir` and closes the window**
+  - [x] **R1.T1.2: Gate the variant table behind the sick check in `startPet`**
+- [x] **R1.T2: Resolve F2** — covers: F2
+  - [x] **R1.T2.1: Failing test — day advance mid-ceremony → tint inactive and petPending false after settle**
+  - [x] **R1.T2.2: Frame tracks last-seen day; day change settles machine, suppresses stale tint latch, clears petPending**
+- [x] **R1.T3: Resolve F3** — covers: F3
+  - [x] **R1.T3.1: Unexport `morningAfterDue` from the scene-logic barrel; keep predicate internal to the ledger/take path**
+- [x] **R1.T4: Resolve F4** — covers: F4
+  - [x] **R1.T4.1: Hud-screen test — fake Hud double asserts exactly one `announceMorningAfter` on the ritual day, none after settle**
+- [x] **R1.T5: Resolve F5** — covers: F5
+  - [x] **R1.T5.1: Guard the begin wrapper on machine-idle + state-level test that a second begin leaves class/petPending unchanged**
+
+**Result:** verified
+**Checkpoint:** 4656bc7a
+**Evidence:** conductor/tracks/20261024-postcup-morning-after/verification/phase-R1.md
