@@ -60,7 +60,7 @@ clean console.
   - [x] **P2.T3.1: Machine emits jump-cut schedule (≤ 2 s, no travel/leap/spin) under the motion preference**
 
 **Result:** verified
-**Checkpoint:** dc71600
+**Checkpoint:** de54a3d
 **Evidence:** conductor/tracks/20261024-postcup-morning-after/verification/phase-2.md
 
 ## Phase 3: Pet Variant, Debrief & Audio
@@ -69,9 +69,9 @@ clean console.
   the existing ticker, and the per-class cue remap are live and tested.
 - **Depends on:** Phase 2
 - **Covers:** FR-5, FR-6, FR-8, NFR-6, AC-4
-- **Touches:** `apps/client/src/hud/**` (ticker channel), `apps/client/src/audio/**` (careCues table), `apps/client/src/ranch/**` (pet handler), `apps/client/src/morning-after/**` (copy refs)
+- **Touches:** `apps/client/src/hud/**` (ticker channel), `apps/client/src/audio/**` (careCues table), `apps/client/src/ranch/**` (pet handler), `apps/client/src/morning-after/**` (copy refs), `apps/client/src/scene-logic/**` (pet-machine class input), `apps/client/src/app/**` (P2 carry-over: arrival call-site + day-push glue), `apps/client/src/store.ts` (tiny wiring deltas)
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: First-pet class variant** - covers: FR-5
   - [ ] **P3.T1.1: Failing tests — class-conditioned line on the ritual day's first pet only; cooldowns/conditions untouched**
