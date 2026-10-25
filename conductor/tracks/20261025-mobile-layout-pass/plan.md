@@ -24,14 +24,22 @@ decision); CSS/layout work is verified through the visual layer.
   `conductor/tracks/20261025-mobile-layout-pass/verification/**`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000` +
   visual evidence (393×852 ranch day view, 1440×900 guard, console clean)
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Kit responsive baseline** — covers: FR-1, NFR-2
-  - [ ] **P1.T1.1: Add phone (≤767.98px) and tablet (768–1023.98px) width breakpoints to `kit.css`** — shared components (plates, chips, dock, modals, ticker) size legibly at 393px; desktop rules untouched
-  - [ ] **P1.T1.2: Visual evidence** — kit-bearing surfaces at 1440×900 (unchanged) and 393×852 (legible)
-- [ ] **P1.T2: Ranch & HUD portrait pass** — covers: FR-2, AC-1 (portrait), AC-8
-  - [ ] **P1.T2.1: Reflow `ranch.css` HUD panel layout at phone widths** — panels never occlude the scene's action area or each other's interactive regions; no horizontal page scroll
-  - [ ] **P1.T2.2: Visual evidence at 393×852** — feed/rest/train/bond reachable, scene visible, console clean; 1440×900 guard capture
+- [x] **P1.T1: Kit responsive baseline** — covers: FR-1, NFR-2
+  - [x] **P1.T1.1: Add phone (≤767.98px) and tablet (768–1023.98px) width breakpoints to `kit.css`** — shared components (plates, chips, dock, modals, ticker) size legibly at 393px; desktop rules untouched
+  - [x] **P1.T1.2: Visual evidence** — kit-bearing surfaces at 1440×900 (unchanged) and 393×852 (legible)
+- [x] **P1.T2: Ranch & HUD portrait pass** — covers: FR-2, AC-1 (portrait), AC-8
+  - [x] **P1.T2.1: Reflow `ranch.css` HUD panel layout at phone widths** — panels never occlude the scene's action area or each other's interactive regions; no horizontal page scroll
+  - [x] **P1.T2.2: Visual evidence at 393×852** — feed/rest/train/bond reachable, scene visible, console clean; 1440×900 guard capture
+
+- **Result:** verified — bar met with live measurements (no horizontal
+  scroll at 393/800/1440; bottom panels mutually exclusive via `:has()`
+  with the pet visible; 40px touch floors; console 0 errors / 0 warnings
+  at both audited viewports); desktop 1440×900 and the 800×1000 tablet
+  band verified unchanged.
+- **Checkpoint:** `9e4e7b12`
+- **Evidence:** `conductor/tracks/20261025-mobile-layout-pass/verification/phase-1.md`
 
 ## Phase 2 — Landscape & dock adaptation
 
