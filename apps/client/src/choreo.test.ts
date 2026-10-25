@@ -10,7 +10,7 @@ import {
   staggerReel,
 } from "./choreo"
 
-/** The six registered arena archetypes, in registry order. */
+/** Every registered arena archetype, in registry order. */
 const ARCHETYPES = [
   "draconic",
   "bovine",
@@ -18,6 +18,9 @@ const ARCHETYPES = [
   "storm_hound",
   "falcon",
   "tortoise",
+  "frond",
+  "crab",
+  "smolder",
 ] as const
 
 /** Every knob a profile carries, in table order. */
@@ -109,7 +112,7 @@ describe("body profiles (FR5 — per-archetype body language)", () => {
   })
 })
 
-describe("the six authored identities (FR1, FR3)", () => {
+describe("the authored identities (FR1, FR3)", () => {
   test("every registered archetype resolves to an authored, non-default profile", () => {
     for (const id of ARCHETYPES) {
       const p = profileFor(id)

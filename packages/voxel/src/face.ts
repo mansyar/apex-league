@@ -253,6 +253,72 @@ export function facePlan(archetype: string, head: HeadShape): FacePlan {
     }
   }
 
+  if (archetype === "frond") {
+    // Gentle herbivore eyes: large, set high and wide on the skull but well
+    // back from the short muzzle — the deer reads alert, not keen. The
+    // short muzzle carries the mouth line on its own; at three cells across
+    // there is no room for a nostril pair (see the drake note below).
+    const eyeY = center.y + half.y * 0.45
+    const eyeZ = center.z + half.z * 0.05
+    const muzzle = snout ?? { center, half }
+    return {
+      eyes: [eye(head, -1, eyeY, eyeZ, radii), eye(head, 1, eyeY, eyeZ, radii)],
+      mouth: mouthLine(
+        muzzle,
+        muzzle.center.y - muzzle.half.y * 0.55,
+        muzzle.half.x * 0.72,
+      ),
+      nostrils: [],
+    }
+  }
+
+  if (archetype === "crab") {
+    // Bead eyes set high and wide on the head wedge, well above the mouth
+    // line so they read over the carapace's brow. The mouth is a crease low
+    // on the wedge; no nostrils on a crustacean face.
+    const eyeY = center.y + half.y * 0.4
+    const eyeZ = center.z + half.z * 0.25
+    const muzzle = snout ?? { center, half }
+    return {
+      eyes: [eye(head, -1, eyeY, eyeZ, radii), eye(head, 1, eyeY, eyeZ, radii)],
+      mouth: mouthLine(
+        muzzle,
+        muzzle.center.y - muzzle.half.y * 0.6,
+        muzzle.half.x * 0.55,
+      ),
+      nostrils: [],
+    }
+  }
+
+  if (archetype === "smolder") {
+    // Ram eyes: wide-set and mid-high on a heavy skull, set back from the
+    // broad grazing muzzle. That muzzle IS broad enough for a nostril pair,
+    // so the smolder paints one like the ox.
+    const eyeY = center.y + half.y * 0.4
+    const eyeZ = center.z - half.z * 0.1
+    const muzzle = snout ?? { center, half }
+    return {
+      eyes: [eye(head, -1, eyeY, eyeZ, radii), eye(head, 1, eyeY, eyeZ, radii)],
+      mouth: mouthLine(
+        muzzle,
+        muzzle.center.y - muzzle.half.y * 0.5,
+        muzzle.half.x * 0.72,
+      ),
+      nostrils: [
+        vec3(
+          cell(center.x + muzzle.half.x * 0.55),
+          cell(muzzle.center.y),
+          cell(muzzle.center.z + muzzle.half.z * 0.95),
+        ),
+        vec3(
+          cell(center.x - muzzle.half.x * 0.55),
+          cell(muzzle.center.y),
+          cell(muzzle.center.z + muzzle.half.z * 0.95),
+        ),
+      ],
+    }
+  }
+
   // Drake (the default silhouette): angled eyes under a heavy brow, a mouth
   // line running the length of the jaw, and a nostril pair on the snout top.
   const eyeY = center.y + half.y * 0.3

@@ -66,6 +66,12 @@ export interface BodyProfile {
  *   from a short windup and rides the recoil out.
  * - tortoise: ponderous and immovable — a slow low gait, deep slow breath;
  *   barely flinches, winds up forever, and commits the shell.
+ * - frond: tall and alert — a springy high-kneed stride, an upright stance
+ *   that leans in fast, a shallow quick breath, and a light flinch.
+ * - crab: wide and skittering — a low stance that never leans far, the
+ *   widest lateral drift in the arena, and a short punchy commit.
+ * - smolder: banked heat — a heavy slow plod over a deep bellows breath;
+ *   coils long and staggers big, then pushes the whole fleece through.
  */
 const PROFILES: Record<string, BodyProfile> = {
   draconic: {
@@ -151,6 +157,48 @@ const PROFILES: Record<string, BodyProfile> = {
     windupMult: 1.55,
     recoilMult: 0.55,
     strikeMult: 1.5,
+  },
+  frond: {
+    gaitAmp: 1.1,
+    gaitFreq: 1.05,
+    leanPitch: 1.25,
+    swayAmp: 0.017,
+    swayFreq: 1.1,
+    breathAmp: 0.95,
+    breathFreq: 1.15,
+    hurtMult: 0.9,
+    staggerMult: 1,
+    windupMult: 0.9,
+    recoilMult: 1,
+    strikeMult: 1.1,
+  },
+  crab: {
+    gaitAmp: 0.85,
+    gaitFreq: 1.35,
+    leanPitch: 0.65,
+    swayAmp: 0.038,
+    swayFreq: 1.6,
+    breathAmp: 0.85,
+    breathFreq: 1.25,
+    hurtMult: 1.05,
+    staggerMult: 0.85,
+    windupMult: 0.85,
+    recoilMult: 1.05,
+    strikeMult: 1.25,
+  },
+  smolder: {
+    gaitAmp: 1.3,
+    gaitFreq: 0.75,
+    leanPitch: 0.95,
+    swayAmp: 0.014,
+    swayFreq: 0.8,
+    breathAmp: 1.3,
+    breathFreq: 0.75,
+    hurtMult: 1.15,
+    staggerMult: 1.2,
+    windupMult: 1.3,
+    recoilMult: 1.2,
+    strikeMult: 1.3,
   },
 }
 

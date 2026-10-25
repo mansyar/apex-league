@@ -103,6 +103,45 @@ export const PROPORTION_BUDGETS: Record<string, ProportionBudget> = {
       "bodyLength/bodyHeight": { min: 1.4, max: 3.8 },
     },
   },
+  // Frond: the sapling stag — the leggiest grazer line, a slim deer barrel
+  // set high over long legs. Calibrated on the audit-lattice sweep (200
+  // seeds, all three stages): legs 1.0-1.86, neck 0.05-0.38, head 0.09-0.71,
+  // body 1.44-2.43. The barrel is thin enough that the coarse lattice reads
+  // it as 7-9 rows, so the body and head ranges carry a lattice row of slack.
+  frond: {
+    ratios: {
+      "legLength/bodyHeight": { min: 0.75, max: 2.1 },
+      "neckLength/bodyLength": { min: 0.0, max: 0.5 },
+      "headHeight/bodyHeight": { min: 0.05, max: 0.85 },
+      "bodyLength/bodyHeight": { min: 1.2, max: 2.7 },
+    },
+  },
+  // Crab: the widest, lowest land archetype — a squashed carapace dome on
+  // short splayed legs. Calibrated on the audit-lattice sweep (200 seeds, all
+  // three stages): legs 0.64-1.57, neck 0.05-0.38, head 0.27-1.0, body
+  // 1.18-3.0. A flat dome is only 5-11 lattice rows tall, so every ratio
+  // built on body height runs wide here; the budget still rejects a crab that
+  // grows legs or loses its shell.
+  crab: {
+    ratios: {
+      "legLength/bodyHeight": { min: 0.45, max: 1.75 },
+      "neckLength/bodyLength": { min: 0.0, max: 0.5 },
+      "headHeight/bodyHeight": { min: 0.2, max: 1.1 },
+      "bodyLength/bodyHeight": { min: 1.0, max: 3.3 },
+    },
+  },
+  // Smolder: the heaviest grazer — a drooping barrel on thick short legs
+  // and a thick rising neck. Calibrated on the audit-lattice sweep (200
+  // seeds, all three stages): legs 0.73-1.18, neck 0.12-0.53, head
+  // 0.09-0.45, body 1.4-2.09.
+  smolder: {
+    ratios: {
+      "legLength/bodyHeight": { min: 0.55, max: 1.35 },
+      "neckLength/bodyLength": { min: 0.05, max: 0.65 },
+      "headHeight/bodyHeight": { min: 0.05, max: 0.6 },
+      "bodyLength/bodyHeight": { min: 1.15, max: 2.35 },
+    },
+  },
 }
 
 /** Inclusive check: a measured ratio inside its budget range. */

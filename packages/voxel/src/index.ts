@@ -26,6 +26,13 @@ export {
   bovineTemplate,
   buildBovine,
 } from "./bovine"
+export {
+  buildCrab,
+  CRAB_GRID,
+  type CrabBuild,
+  crabTemplate,
+  sampleCrabDna,
+} from "./crab"
 export { buildDrake, DRAKE_GRID, type DrakeBuild, drakeTemplate } from "./drake"
 export {
   buildFalcon,
@@ -34,6 +41,13 @@ export {
   falconTemplate,
   sampleFalconDna,
 } from "./falcon"
+export {
+  buildFrond,
+  FROND_GRID,
+  type FrondBuild,
+  frondTemplate,
+  sampleFrondDna,
+} from "./frond"
 export {
   type ExportInput,
   exportGlb,
@@ -73,6 +87,13 @@ export {
   type Vec3,
   vec3,
 } from "./sdf"
+export {
+  buildSmolder,
+  SMOLDER_GRID,
+  type SmolderBuild,
+  sampleSmolderDna,
+  smolderTemplate,
+} from "./smolder"
 export {
   CHAMPION_MATURITY,
   JUVENILE_MATURITY,
