@@ -1337,6 +1337,20 @@
     overflow-y: auto;
   }
 
+  /* The screen scrolls here, so the bracket must not be squeezed into the
+     leftover viewport: `flex: 1` + `min-height: 0` collapsed it to ~190px
+     while the four quarterfinal cards overflowed underneath the CTA row and
+     the ticker. Size it to its content like the phone tier does. */
+  .cup-bracket {
+    flex: none;
+    min-height: auto;
+  }
+
+  .cup-matches {
+    flex: none;
+    justify-content: flex-start;
+  }
+
   .cup-result-card {
     margin: auto;
   }
