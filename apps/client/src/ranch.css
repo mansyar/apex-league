@@ -1405,6 +1405,45 @@
     transform: none;
     max-width: none;
   }
+
+  /* Expanded sheets get tighter rows on phone — same readouts, less
+     height, so an open sheet keeps the yard above it on screen. */
+  .creature-plate,
+  .command-dock {
+    padding: 10px 12px 12px;
+  }
+
+  .creature-plate .stat-cell {
+    padding: 5px 4px 4px;
+  }
+
+  .creature-plate .condition-list {
+    gap: 5px;
+    margin-bottom: 8px;
+  }
+
+  /* HUD-local small controls hold the kit's phone touch floor
+     (ui/kit.css responsive tiers): the plate's two head buttons and
+     the dock's collapse row are the tappables narrower than it. */
+  .rename-button,
+  .collapse-toggle {
+    width: 36px;
+    height: 36px;
+  }
+
+  .dock-head {
+    min-height: 40px;
+  }
+
+  /* The two bottom panels share one corner, so opening one folds the
+     other away entirely (:has): at most one sheet ever covers the yard
+     and a panel can never sit on top of the other's controls. The
+     hidden panel's own state is untouched — closing the open sheet
+     brings its collapsed head straight back. */
+  .hud-stack:has(.command-dock:not(.is-collapsed)) .creature-plate,
+  .hud-stack:has(.creature-plate:not(.is-collapsed)) .command-dock {
+    display: none;
+  }
 }
 
 /* Tablet band (768–1023): the centered full score bug still crowds the
