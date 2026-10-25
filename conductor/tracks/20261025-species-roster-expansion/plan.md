@@ -101,13 +101,28 @@
   `conductor/product.md`, track `verification/**`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`;
   Playwright procedure at 1440×900 + 393×852/852×393, console clean
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P4.T1: Rival integration & boss refresh** — covers: FR-6, NFR-5
-  - [ ] **P4.T1.1: Rival pools draw the new species; six authored gatekeeper pairings refreshed (boss kit re-tuning within wider-pool discipline); probe re-check**
-- [ ] **P4.T2: End-to-end browser verification** — covers: FR-6, AC-6
-  - [ ] **P4.T2.1: Play every refreshed boss pairing through a real cup in the browser (authored gatekeepers reach their stage and pose a real fight); species surfaces at both widths; evidence file**
-- [ ] **P4.T3: Docs sync** — covers: NFR-1 support
-  - [ ] **P4.T3.1: tech-stack.md dated note; product.md roadmap roster count (product.md edit needs explicit approval at docs-sync gate)**
+- [x] **P4.T1: Rival integration & boss refresh** — covers: FR-6, NFR-5
+  - [x] **P4.T1.1: Rival pools draw the new species; six authored gatekeeper pairings refreshed (boss kit re-tuning within wider-pool discipline); probe re-check**
+- [x] **P4.T2: End-to-end browser verification** — covers: FR-6, AC-6
+  - [x] **P4.T2.1: Play every refreshed boss pairing through a real cup in the browser (authored gatekeepers reach their stage and pose a real fight); species surfaces at both widths; evidence file**
+- [x] **P4.T3: Docs sync** — covers: NFR-1 support
+  - [x] **P4.T3.1: tech-stack.md dated note; product.md roadmap roster count (product.md edit needs explicit approval at docs-sync gate)**
+
+> **Result:** verified — rival fields draw the three new lines at every
+> unlocked tier (`makeBracket` already drew from `obtainableSpecies(tier)`, so
+> no code change was needed); all six authored gatekeepers were played
+> end-to-end in the browser (each reached its stage, was fought in the final,
+> and was beaten), backed by a new structural `cup/gatekeeper-reach.test.ts`
+> that pins learnings lesson 13. Boss kits deliberately 0-delta: an exhaustive
+> kit/stat search showed all six already hold every probe invariant and every
+> alternative broke a hard pin. One real defect found and fixed by the
+> 852×393 audit (landscape bracket collapsing under the CTA/ticker).
+> tech-stack note applied by the primary; product.md wording pending user
+> approval at the docs-sync gate. Gates: test:phase 2791/238/0 fail; verify 0;
+> build 0.
+> **Checkpoint:** `0564ee8b`
+> **Evidence:** `verification/phase-4.md`
 
 <!-- Review-Fixes phases are appended here by conductor-review. -->
