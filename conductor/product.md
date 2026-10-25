@@ -160,7 +160,10 @@ Phased delivery plan (each phase is independently playable):
 - Evolution hints/threshold discovery UI; 2-3 more species lineages.
   *(Branching landed 2026-10-20: the two champion forms grow out of the
   training record, with a day-5 direction preview and a reveal on the
-  evolution morning rather than a menu. Extra lineages are still open.)*
+  evolution morning rather than a menu. Six reward lineages landed
+  2026-10-22..26 — the roster is now nine species (three starters, six reward
+  lines across Silver/Gold/Legend), and rivals draw them at every tier that
+  has unlocked them.)*
 - Evolution branches *(landed 2026-10-20: each starter species has two champion
   forms with equal effective budgets — one leans ATK + SPD, one HP + DEF — and
   the form is earned from the training the player gave, not chosen from a menu.
