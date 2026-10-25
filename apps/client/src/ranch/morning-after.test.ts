@@ -264,10 +264,7 @@ describe("the pet handler's morning-after leg (FR-5)", () => {
     // A second derivation arrives while the ceremony still runs (the
     // ledger mints once, but the machine is the guard): the live
     // ceremony keeps its class and the closed pet window stays closed.
-    s.morningAfter.begin(
-      { class: "exit", amplifiers: [], bossId: null },
-      false,
-    )
+    s.morningAfter.begin({ class: "exit", amplifiers: [], bossId: null }, false)
     expect(s.morningAfterClass).toBe("title")
     expect(s.morningAfterPetPending).toBe(false)
   })
