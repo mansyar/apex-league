@@ -2,6 +2,8 @@ import * as THREE from "three"
 import {
   type GaitPose,
   gaitPose,
+  type MorningAfterDrive,
+  morningAfterPoseOf,
   type PetDrive,
   type RestDrive,
   type TreatDrive,
@@ -145,6 +147,100 @@ export function applyTreatPose(
   const body = rig.body
   if (body) body.rotation.x = s * 0.08
   creature.position.y = -s * 0.05
+}
+
+// -- Morning-after ceremony (postcup_morning_after FR-3) ---------------------
+
+/** The prance bob's scale: the in-place leg flourish's amplitude reads as
+ * a small ground bounce under the ceremony stance. */
+const MORNING_AFTER_PRANCE_HEIGHT = 0.06
+
+const MORNING_AFTER_TINT_DRIVE = {
+  phase: "hold",
+  glow: 0,
+  amplified: false,
+  active: true,
+  done: false,
+  outcome: "none",
+} as const
+
+/**
+ * The day tint's drive shape: the stance weights alone, held — the idle
+ * half of the morning-after reads the same pure choreography a mid-beat
+ * ceremony pose does.
+ */
+function morningAfterTintDrive(
+  strut: number,
+  droop: number,
+): MorningAfterDrive {
+  return { ...MORNING_AFTER_TINT_DRIVE, phase: "hold", strut, droop }
+}
+
+const morningAfterIdlePose = (
+  archetypeId: string,
+  strut: number,
+  droop: number,
+): ReturnType<typeof morningAfterPoseOf> =>
+  morningAfterPoseOf(archetypeId, morningAfterTintDrive(strut, droop))
+
+/**
+ * Map the morning-after ceremony's drive onto the rig, per-archetype
+ * (FR-3): a raised head and chest, a carried tail, an in-place prance
+ * bob, the swagger roll on the body — all through the same vocabulary the
+ * other ceremonies borrow, so no new rig or animation asset (NFR-4).
+ * Called every frame the ceremony owns the creature, after the breathing
+ * writes (which it composes with on the body scale, exactly like the
+ * rest pose), with the glow pulsing through the emissive paint.
+ */
+export function applyMorningAfterPose(
+  creature: THREE.Group,
+  rig: RigParts,
+  archetypeId: string,
+  md: MorningAfterDrive,
+  headBaseY: number,
+): void {
+  applyGait(creature, gaitPose(0, 0, true))
+  const pose = morningAfterPoseOf(archetypeId, md)
+  const head = rig.head
+  if (head) {
+    head.rotation.x = -pose.headLift
+    head.position.y = headBaseY + pose.headLift * 0.3
+  }
+  const body = rig.body
+  if (body) {
+    body.rotation.x = -pose.chest * 0.08
+    body.rotation.z = pose.roll
+    body.scale.y *= 1 + pose.chest * 0.08
+  }
+  const tail = rig.tail
+  if (tail) tail.rotation.x = -pose.tailCarry
+  creature.position.y = pose.prance * MORNING_AFTER_PRANCE_HEIGHT
+  applyGlow(creature, pose.glow)
+}
+
+/**
+ * The day-long idle tint (FR-3): the same class stance, read at strength,
+ * written softly and WITHOUT the gait fields — the idle leg keeps
+ * walking, the weighted sag rides only the head, tail, and body. Cleared
+ * by writing the retired (zero) stance: every field returns to rest.
+ */
+export function applyMorningAfterIdle(
+  rig: RigParts,
+  archetypeId: string,
+  strut: number,
+  droop: number,
+  headBaseY: number,
+): void {
+  const pose = morningAfterIdlePose(archetypeId, strut, droop)
+  const head = rig.head
+  if (head) {
+    head.rotation.x = -pose.headLift * 0.4
+    head.position.y = headBaseY + pose.headLift * 0.15
+  }
+  const tail = rig.tail
+  if (tail) tail.rotation.x = -pose.tailCarry * 0.3
+  const body = rig.body
+  if (body) body.scale.y *= 1 + pose.chest * 0.04
 }
 
 /** Map a pet drive onto the rig. `react` is the machine's eased 0..1 arc

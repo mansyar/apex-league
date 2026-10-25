@@ -1,5 +1,11 @@
 import { driveFace } from "../face-motion"
-import { gaitPose, stageScale, swayAngle } from "../scene-logic"
+import {
+  gaitPose,
+  retireMorningAfterTint,
+  setMorningAfterTint,
+  stageScale,
+  swayAngle,
+} from "../scene-logic"
 import { updateBall, updateSparkle } from "./effects"
 import { updateIdle } from "./idle"
 import { MOOD_PROFILES, moodModeFrom } from "./mood"
@@ -8,6 +14,8 @@ import {
   applyBreath,
   applyGait,
   applyGlow,
+  applyMorningAfterIdle,
+  applyMorningAfterPose,
   applyPetPose,
   applyRestPose,
   applyTreatPose,
@@ -31,6 +39,13 @@ export function updateRanch(
   if (s.droopyUntil !== 0 && performance.now() >= s.droopyUntil) {
     s.droopyUntil = 0
     s.mode = s.lastConditions ? moodModeFrom(s.lastConditions) : "normal"
+  }
+  // Night settle (postcup_morning_after FR-9): a day tint from an earlier
+  // sim day clears here — the morning-after never outlives its day. The
+  // app pushes the sim day down explicitly (a day 0 default can never
+  // retire: the tint's own day is always >= 1).
+  if (s.morningAfterTint.active) {
+    retireMorningAfterTint(s.morningAfterTint, s.day)
   }
   const profile = MOOD_PROFILES[s.mode]
   const creatureGroup = s.creatureGroup
@@ -87,8 +102,14 @@ export function updateRanch(
     let away = evoActive
     if (!evoActive) {
       creatureGroup.scale.setScalar(stageScale(s.currentStage))
-      // Rest (FR3) and treat (FR4) ceremonies: while either is active it
-      // owns the creature's pose — walk and wander stay parked.
+      // Postcup morning-after ceremony: while the machine owns the
+      // creature the other ceremony machines keep advancing silently and
+      // the walk machines stay parked — a starter abandoned any target.
+      // The settle edge latches the class stance as the day tint (the
+      // machine's latched outcome never re-fires it later).
+      const wasMorningAfter = s.morningAfterActive
+      const md = s.morningAfter.advance(dt)
+      s.morningAfterActive = md.active
       const rd = s.rest.advance(dt)
       s.restActive = rd.phase !== "idle"
       const td = s.treat.advance(dt)
@@ -97,12 +118,37 @@ export function updateRanch(
       const pd = s.play.advance(dt)
       s.playActive = pd.phase !== "idle"
       updateBall(s.ball, pd)
-      if (s.restActive) {
-        applyRestPose(creatureGroup, s.rigParts, rd, breath, s.headBaseY)
-      } else if (s.treatActive) {
-        applyTreatPose(creatureGroup, s.rigParts, td, s.headBaseY)
+      if (s.morningAfterActive) {
+        applyMorningAfterPose(
+          creatureGroup,
+          s.rigParts,
+          s.archetypeId,
+          md,
+          s.headBaseY,
+        )
       } else {
-        away = away || updateIdle(s, t, dt, pd, profile)
+        if (wasMorningAfter && md.outcome !== "none") {
+          setMorningAfterTint(s.morningAfterTint, s.morningAfterClass, s.day)
+        }
+        // Rest (FR3) and treat (FR4) ceremonies: while either is active it
+        // owns the creature's pose — walk and wander stay parked.
+        if (s.restActive) {
+          applyRestPose(creatureGroup, s.rigParts, rd, breath, s.headBaseY)
+        } else if (s.treatActive) {
+          applyTreatPose(creatureGroup, s.rigParts, td, s.headBaseY)
+        } else {
+          away = away || updateIdle(s, t, dt, pd, profile)
+        }
+        // The day tint (FR-3): the retired latch writes zeros — every
+        // morning-after move returns to rest the frame after the night
+        // settle.
+        applyMorningAfterIdle(
+          s.rigParts,
+          s.archetypeId,
+          s.morningAfterTint.strut,
+          s.morningAfterTint.droop,
+          s.headBaseY,
+        )
       }
       // Ambient pet (FR6): advance the reaction and lay its pose on top of
       // the frame's base pose, so it composes with the breath and gait. A
@@ -110,7 +156,13 @@ export function updateRanch(
       // the pose is withheld (the machine keeps timing, which means the
       // cooldown cannot be reset by spamming care actions).
       const petD = s.petMachine.advance(dt)
-      if (petD.active && !s.restActive && !s.treatActive && !s.playActive) {
+      if (
+        petD.active &&
+        !s.morningAfterActive &&
+        !s.restActive &&
+        !s.treatActive &&
+        !s.playActive
+      ) {
         s.petTime += dt
         applyPetPose(creatureGroup, s.rigParts, petD, s.petTime)
       }

@@ -4,12 +4,16 @@ import type * as THREE from "three"
 import type { FaceEyes } from "../face-motion"
 import {
   createEvolutionCeremony,
+  createMorningAfterCeremony,
   createPetMachine,
   createPlayCeremony,
   createRestCeremony,
   createTreatCeremony,
   createWalk,
   type EvolutionMachine,
+  type MorningAfterClass,
+  type MorningAfterMachine,
+  type MorningAfterTintState,
   type PetMachine,
   type PlayDrive,
   type PlayMachine,
@@ -92,10 +96,25 @@ export interface RanchState {
   petMachine: PetMachine
   /** Reaction-local clock, for the oscillating variants (wiggle, stir). */
   petTime: number
+  // -- The morning-after ritual (postcup_morning_after FR-2/FR-3 -----------
+  /** The arrival ceremony's machine (client-held; never persisted). */
+  morningAfter: MorningAfterMachine
+  /** True while the ceremony machine owns the creature. */
+  morningAfterActive: boolean
+  /** The class the running ceremony plays (latched at begin). */
+  morningAfterClass: MorningAfterClass
+  /** The day-long idle tint's latch — set on the ceremony's settle edge,
+   * cleared by the night settle (FR-3). */
+  morningAfterTint: MorningAfterTintState
+  /** The archetype of the current rig — the pose choreography's key. */
+  archetypeId: string
+  /** The sim day driving the tint's retire check, latched each update. */
+  day: number
 }
 
 export function createRanchState(deps: RanchMotionDeps): RanchState {
-  return {
+  const machine = createMorningAfterCeremony()
+  const s: RanchState = {
     deps,
     reducedMotion: false,
     creatureGroup: null,
@@ -133,5 +152,22 @@ export function createRanchState(deps: RanchMotionDeps): RanchState {
     ball: null,
     petMachine: createPetMachine(),
     petTime: 0,
+    morningAfter: machine,
+    morningAfterActive: false,
+    morningAfterClass: "exit",
+    morningAfterTint: { active: false, day: null, strut: 0, droop: 0 },
+    archetypeId: "",
+    day: 0,
   }
+  // The adaptor's begin latches the ceremony's class for the settle edge
+  // (the tint latch needs it once the machine leaves the drive surface).
+  s.morningAfter = {
+    begin(derivation, reducedMotion): void {
+      s.morningAfterClass = derivation.class
+      machine.begin(derivation, reducedMotion)
+    },
+    dismiss: machine.dismiss,
+    advance: (dt) => machine.advance(dt),
+  }
+  return s
 }
