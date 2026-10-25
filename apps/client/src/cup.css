@@ -1326,6 +1326,22 @@
   }
 }
 
+/* Landscape-short phones (orientation-gated like the kit/ranch blocks):
+   the viewport is only ~390px tall, so the bracket and coach room scroll
+   internally like the phone tier instead of clipping the head bar and the
+   commit footer off-screen. Width keeps the desktop multi-round grid. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .cup-screen {
+    justify-content: flex-start;
+    padding: 10px 0 14px;
+    overflow-y: auto;
+  }
+
+  .cup-result-card {
+    margin: auto;
+  }
+}
+
 /* Phone: margins tighten to match the ranch phone tier. */
 @media (max-width: 767.98px) {
   .cup-button {
