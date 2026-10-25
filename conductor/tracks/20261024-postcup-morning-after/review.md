@@ -5,7 +5,7 @@
 - **Branch:** `feat/20261024-postcup-morning-after`
 - **Range:** `2dcebc7..98bf444a`
 - **Date:** 2026-10-25
-- **Verdict:** `BLOCK` (strict mode — review-fixes phase R1 open; re-review follows)
+- **Verdict:** `PASS` (round 2 — all round-1 findings resolved in Phase R1)
 
 ## Summary
 
@@ -135,6 +135,23 @@ all five are fixed in Phase R1 before the PR.
     begin-success path) + a state-level test.
   - **Requirement:** FR-2
 
+## Round 2 — resolution record
+
+Re-review of `98bf444a..e8a7cddc` (same reviewer session): **all five
+findings resolved at root cause**, no new findings.
+
+| ID | Resolution | Test |
+| --- | --- | --- |
+| F1 | `startPet` gates the class table behind `!sick` | ritual day + sick → `stir`, window closes |
+| F2 | `morningAfterDay` latch + frame straddle guard (dismiss, clear petPending, tint-latch guarded by `morningAfterDay === day`) | mid-ceremony day advance → no tint, no pet window; production ordering proven safe (`screens.ts` pushes day before overlay-close begin) |
+| F3 | barrel re-exports ledger explicitly without `morningAfterDue`; barrel pin updated | module-test-only probe |
+| F4 | debrief chain extracted to `withMorningAfterDebrief` (behavior identical) | fake-Hud test: exactly one say, silence after settle |
+| F5 | begin adaptor returns early while `machine.advance(0).active` | second begin leaves class/pet window unchanged |
+
+Checks re-verified post-fix: `bun run test:phase` 2633 pass / 1 skip /
+0 fail (208 files), biome clean (600 files), `verify` + `build` exit 0.
+One style-only follow-up commit `e8a7cddc` absorbed the formatter fix.
+
 ## Overrides
 
 - <none>
@@ -162,11 +179,13 @@ plus cross-phase integration; the executed diff-stat confirmed full
 
 ## Doc sync
 
-`pending` — tech-stack note landed pre-review (`fa0593ac`); re-sync only if
-fixes change documented behavior.
+`updated` — tech-stack dated note landed pre-review (`fa0593ac`, applied by
+primary); no other product docs required changes (schema v25 unchanged, no
+roadmap claim, no UX-principle change).
 
 ## History
 
 | Round | Verdict | Critical | High | Medium | Low | Fixed |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | BLOCK | 0 | 0 | 2 | 3 | 0 (R1 open) |
+| 2 | PASS | 0 | 0 | 0 | 0 | 5/5 |
