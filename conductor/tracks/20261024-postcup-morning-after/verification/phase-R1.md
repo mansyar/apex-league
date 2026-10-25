@@ -101,3 +101,4 @@ Acceptance (`bun run verify && bun run build`) is the primary's run.
 - Squash guard: 33fe609d..HEAD holds exactly the six reported commits;
   9 code files all within the R1 Touches contract.
 - **Result**: phase accepted (with the absorbed format fix).
+- Post-acceptance correction: the biome format fix was accidentally left out of the squash commit (index/worktree mismatch); it landed as follow-up commit e8a7cddc (style, 1 file). Checkpoint 4656bc7a + e8a7cddc together form R1's final tree.
