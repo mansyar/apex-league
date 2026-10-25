@@ -46,10 +46,18 @@
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
 - **Status:** in_progress
 
-- [ ] **P2.T1: Three archetype recipes** — covers: FR-2, NFR-4
-  - [ ] **P2.T1.1: Author fernstag (sapling stag), reefclaw (coral crab), cindermoor (ember ram) recipes — hue contract, surface ramp, gilded weight 32, frequency tests**
-- [ ] **P2.T2: Determinism pinning & gates** — covers: FR-2, NFR-2, NFR-3
-  - [ ] **P2.T2.1: Generate GLBs for all life stages; pin digests in the determinism gate manifest; module-size + 320 KiB tripwire green**
+- [x] **P2.T1: Three archetype recipes** — covers: FR-2, NFR-4
+  - [x] **P2.T1.1: Author frond (sapling stag), crab (coral crab), smolder (ember ram) recipes — hue contract, surface ramp, gilded weight 32, frequency tests**
+- [x] **P2.T2: Determinism pinning & gates** — covers: FR-2, NFR-2, NFR-3
+  - [x] **P2.T2.1: Generate GLBs for all life stages; pin digests in the determinism gate manifest; module-size + 320 KiB tripwire green**
+
+> **Result:** verified — three new archetypes (frond/crab/smolder) authored
+> through the pipeline; determinism gate green across 27 creature GLBs +
+> 5 props; largest new GLB 199,560 B (61% of the 320 KiB tripwire); voxel
+> module cap green; hue contract 110°/205°/18°; gilded weight 32 pinned.
+> Gates: test:phase 2763/235/0 fail; verify 0; build 0.
+> **Checkpoint:** `6e30f698`
+> **Evidence:** `verification/phase-2.md`
 
 ## Phase 3 — Client presentation & lifecycle
 
