@@ -142,3 +142,27 @@ decision); CSS/layout work is verified through the visual layer.
 ---
 
 <!-- Review-Fixes phases are appended here by conductor-review. -->
+
+## Phase R1: Review Fixes
+
+- **Goal:** Resolve review finding F1 (NFR numbering slip in the
+  integrated verification summary).
+- **Depends on:** Phase 4
+- **Covers:** F1
+- **Touches:** `conductor/tracks/20261025-mobile-layout-pass/verification/**`
+- **Verification:** doc-only delta — content re-read against the spec's
+  NFR table; no code change, so the code gates are unaffected
+- **Status:** verified
+
+- [x] **R1.T1: Resolve F1** — covers: F1
+  - [x] **R1.T1.1: Renumber the integrated-summary NFR bullets** —
+    copy/labels line folded into NFR-4; console-clean bullet relabeled
+    NFR-6 / AC-8
+
+- **Result:** verified — F1 fixed in `verification/integrated.md`
+  (Requirements status section); delta re-checked against the spec NFR
+  table (NFR-1..NFR-6 exist, NFR-7 does not); no code changed, gates
+  unaffected.
+- **Checkpoint:** `fab6267d` (code tree unchanged; doc delta rides with
+  the review state commit)
+- **Evidence:** `conductor/tracks/20261025-mobile-layout-pass/verification/phase-R1.md`

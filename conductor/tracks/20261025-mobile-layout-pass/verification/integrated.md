@@ -55,11 +55,11 @@ Run by the Conductor primary at the integrated checkpoint (`1ae63b7b`):
 - NFR-2: desktop 1440×900 and tablet 768–1023.98px guarded per phase —
   measured unchanged throughout.
 - NFR-3: reduced-motion blocks byte-untouched (diff-scoped check).
-- NFR-4: 40px touch floors + colour-never-sole-carrier preserved.
+- NFR-4: 40px touch floors + colour-never-sole-carrier preserved; copy and
+  labels unchanged, no tiny essential text introduced.
 - NFR-5: CSS-first adaptation, one small pure TS module
   (`hud/dock-collapse.ts` ~1 KB) — module caps green in the gate.
-- NFR-6: copy/labels unchanged; no tiny essential text introduced.
-- NFR-7/AC-8: console 0 errors / 0 warnings at every audited viewport.
+- NFR-6 / AC-8: console 0 errors / 0 warnings at every audited viewport.
 - AC-1..AC-3, AC-5, AC-6, AC-7, AC-8: met.
 - **AC-4: met with a recorded partial visual-coverage gap** —
   graduation/nursery/gift surfaces are unreachable by real play within a
