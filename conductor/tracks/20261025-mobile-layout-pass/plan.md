@@ -24,7 +24,7 @@ decision); CSS/layout work is verified through the visual layer.
   `conductor/tracks/20261025-mobile-layout-pass/verification/**`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000` +
   visual evidence (393×852 ranch day view, 1440×900 guard, console clean)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Kit responsive baseline** — covers: FR-1, NFR-2
   - [ ] **P1.T1.1: Add phone (≤767.98px) and tablet (768–1023.98px) width breakpoints to `kit.css`** — shared components (plates, chips, dock, modals, ticker) size legibly at 393px; desktop rules untouched
