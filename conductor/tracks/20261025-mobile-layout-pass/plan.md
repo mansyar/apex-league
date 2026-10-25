@@ -84,7 +84,7 @@ decision); CSS/layout work is verified through the visual layer.
   `conductor/tracks/20261025-mobile-layout-pass/verification/**`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000` +
   visual evidence (key states × both orientations, desktop guard)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Cup flow both orientations** — covers: FR-4, AC-2
   - [ ] **P3.T1.1: `cup.css` adjustments** for entry, bracket, coach room, board, results at both phone orientations — legible, operable, no occlusion, modals within viewport
