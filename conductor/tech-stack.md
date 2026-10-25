@@ -278,6 +278,24 @@
   reproduces kit2/3/4 rates byte-identically and the three six-move mirrors sit
   within 4 points of the four-move baseline.*
 
+-   *2026-10-24 — Post-cup morning-after ritual (track
+  `20261024-postcup-morning-after`): after every completed cup, the first ranch
+  arrival plays a short outcome-aware ceremony derived purely from the
+  finalized in-memory cup session plus persisted milestone firsts — **no sim or
+  save-schema change** (save stays **v25**). The classification lives in a new
+  pure client module `apps/client/src/morning-after/` (`deriveMorningAfter`
+  over `title` / `gatekeep` / `exit` / `withdrawn` classes and persisted-first
+  amplifiers); the ceremony beats/pose/glow machine lives in
+  `apps/client/src/scene-logic/morning-after.ts` with its one-per-day
+  client-held ledger in `scene-logic/morning-after-ledger.ts` (minted at cup
+  finalize, consumed once on arrival, cleared at night settle, **never
+  persisted** — reloads skip the ritual gracefully and evolution-reveal days
+  yield to it while the debrief still renders through the existing ticker).
+  Ranch (`ranch/state.ts`, `ranch/api.ts`), HUD debrief gate
+  (`hud/copy-morning-after.ts`), pet handling and audio care cues read the
+  ceremony state; copy is single-sourced in `copy.ts`. No new dependencies;
+  module caps respected; the ritual is dt-driven with zero timers.*
+
 ## Server
 - **Framework**: ElysiaJS on Bun (endpoints: save sync, leaderboard, ghost
   data, anonymous device-ID auth).
