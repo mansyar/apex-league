@@ -295,6 +295,17 @@
   (`hud/copy-morning-after.ts`), pet handling and audio care cues read the
   ceremony state; copy is single-sourced in `copy.ts`. No new dependencies;
   module caps respected; the ritual is dt-driven with zero timers.*
+-   *2026-10-25 — Mobile layout pass (track `20261025-mobile-layout-pass`): the
+  UI kit gains two width tiers (phone ≤767.98px with 40px touch floors,
+  tablet 768–1023.98px) plus an orientation-gated landscape-short block used
+  by `kit.css` and `ranch.css`; ranch panels become mutually exclusive on
+  phone widths via `:has()`; dock collapse is a pure client-held session
+  seam in `apps/client/src/hud/dock-collapse.ts` (collapsed by default on
+  phone widths only, nothing persisted — save stays **v25**); cup, battle,
+  spar and the secondary surfaces are adapted inside their existing
+  stylesheets; the measurable bar is recorded as UX Principle 8 in
+  product-guidelines.md. CSS-only adaptation except that one small module;
+  no new dependencies; no sim or save-schema change.*
 
 ## Server
 - **Framework**: ElysiaJS on Bun (endpoints: save sync, leaderboard, ghost
