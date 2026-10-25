@@ -71,18 +71,22 @@ clean console.
 - **Covers:** FR-5, FR-6, FR-8, NFR-6, AC-4
 - **Touches:** `apps/client/src/hud/**` (ticker channel), `apps/client/src/audio/**` (careCues table), `apps/client/src/ranch/**` (pet handler), `apps/client/src/morning-after/**` (copy refs), `apps/client/src/scene-logic/**` (pet-machine class input), `apps/client/src/app/**` (P2 carry-over: arrival call-site + day-push glue), `apps/client/src/store.ts` (tiny wiring deltas)
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: First-pet class variant** - covers: FR-5
-  - [ ] **P3.T1.1: Failing tests — class-conditioned line on the ritual day's first pet only; cooldowns/conditions untouched**
-  - [ ] **P3.T1.2: Pet handler variant wiring**
-- [ ] **P3.T2: Coach debrief ticker** - covers: FR-6
-  - [ ] **P3.T2.1: Failing tests — exactly one line shown that day in the existing ticker channel; amplifier copy overrides class copy**
-  - [ ] **P3.T2.2: View-model + render glue**
-  - [ ] **P3.T2.3: P2 carry-over wiring — `takeMorningAfterArrival()` call site (first-arrival detection) + adapter day-push / night-settle path**
-- [ ] **P3.T3: careCues per-class remap** - covers: FR-8
-  - [ ] **P3.T3.1: Failing tests — cue table maps per-class intensity variants; no new asset files**
-  - [ ] **P3.T3.2: Table entries + player passthrough**
+- [x] **P3.T1: First-pet class variant** - covers: FR-5
+  - [x] **P3.T1.1: Failing tests — class-conditioned line on the ritual day's first pet only; cooldowns/conditions untouched**
+  - [x] **P3.T1.2: Pet handler variant wiring**
+- [x] **P3.T2: Coach debrief ticker** - covers: FR-6
+  - [x] **P3.T2.1: Failing tests — exactly one line shown that day in the existing ticker channel; amplifier copy overrides class copy**
+  - [x] **P3.T2.2: View-model + render glue**
+  - [x] **P3.T2.3: P2 carry-over wiring — `takeMorningAfterArrival()` call site (first-arrival detection) + adapter day-push / night-settle path**
+- [x] **P3.T3: careCues per-class remap** - covers: FR-8
+  - [x] **P3.T3.1: Failing tests — cue table maps per-class intensity variants; no new asset files**
+  - [x] **P3.T3.2: Table entries + player passthrough**
+
+**Result:** verified
+**Checkpoint:** 15e426bb
+**Evidence:** conductor/tracks/20261024-postcup-morning-after/verification/phase-3.md
 
 ## Phase 4: Edge Hardening, Visual Pass & Docs
 
