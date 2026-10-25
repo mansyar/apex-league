@@ -15,17 +15,24 @@
   (kit tables), `packages/sim/src/**` reward/economy seam files
   (`claimedTiers`/`pendingRewards` logic), co-located `*.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Species data & tier gating** — covers: FR-1
-  - [ ] **P1.T1.1: Failing tests pinning the three new SpeciesDefs (element, kit size 6, rewardFromTier) and obtainableSpecies per tier**
-  - [ ] **P1.T1.2: Implement fernstag/reefclaw/cindermoor definitions; ALL_SPECIES = 9 green**
-- [ ] **P1.T2: Kits from existing move vocabulary** — covers: FR-3, NFR-5
-  - [ ] **P1.T2.1: Compose three distinct six-move pools from existing move vocabulary; verify against rivalKit/kit gate rules**
-  - [ ] **P1.T2.2: Run the tactics balance probe (APEX_BALANCE_REPORT=1); tune stat spreads/kit picks into the existing sustained-score bands; goldens stay green or re-baseline recorded**
-- [ ] **P1.T3: Reward seam & retroactive catch-up** — covers: FR-4
-  - [ ] **P1.T3.1: Failing tests — new-claim grant per tier, retroactive pendingReward for pre-claimed tiers, no duplicate on repeat boots, starter seam refuses new reward ids**
-  - [ ] **P1.T3.2: Implement boot-time reconciliation against claimedTiers via the existing pendingRewards queue; save stays v25**
+- [x] **P1.T1: Species data & tier gating** — covers: FR-1
+  - [x] **P1.T1.1: Failing tests pinning the three new SpeciesDefs (element, kit size 6, rewardFromTier) and obtainableSpecies per tier**
+  - [x] **P1.T1.2: Implement fernstag/reefclaw/cindermoor definitions; ALL_SPECIES = 9 green**
+- [x] **P1.T2: Kits from existing move vocabulary** — covers: FR-3, NFR-5
+  - [x] **P1.T2.1: Compose three distinct six-move pools from existing move vocabulary; verify against rivalKit/kit gate rules**
+  - [x] **P1.T2.2: Run the tactics balance probe (APEX_BALANCE_REPORT=1); tune stat spreads/kit picks into the existing sustained-score bands; goldens stay green or re-baseline recorded**
+- [x] **P1.T3: Reward seam & retroactive catch-up** — covers: FR-4
+  - [x] **P1.T3.1: Failing tests — new-claim grant per tier, retroactive pendingReward for pre-claimed tiers, no duplicate on repeat boots, starter seam refuses new reward ids**
+  - [x] **P1.T3.2: Implement boot-time reconciliation against claimedTiers via the existing pendingRewards queue; save stays v25**
+
+> **Result:** verified — ALL_SPECIES=9 with probe-tuned kits, obtainable
+> gating, grant-per-tier fix, retroactive catch-up at loadBoot, champion
+> branch forms with kit-row signatures (user decision 2026-10-25, boss
+> invariant re-scoped). Gates: test:phase 2688/211/0 fail; verify 0; build 0.
+> **Checkpoint:** `f9c1e366`
+> **Evidence:** `verification/phase-1.md`
 
 ## Phase 2 — Voxel archetypes
 
