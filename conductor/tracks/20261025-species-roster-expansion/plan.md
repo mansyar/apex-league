@@ -134,21 +134,37 @@
 - **Covers:** F1, F2, F3, F4, F5, F6
 - **Touches:** `apps/client/src/handbook/chart.ts`, `apps/client/src/species-roster.test.ts`, `apps/client/src/gift.ts` (chip class toggle only), `apps/client/src/ranch.css`, `packages/sim/src/bosses.test.ts`, `packages/sim/src/cupRewards.ts`, `packages/sim/src/reward-catchup.test.ts`, `packages/voxel/scripts/determinism-gate.ts`, `packages/voxel/src/frond.test.ts`, `packages/voxel/src/crab.test.ts`, `packages/voxel/src/smolder.test.ts`, `conductor/tracks/20261025-species-roster-expansion/verification/**`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **R1.T1: Handbook tier connective matches granted egg count** — covers: F1, FR-8, AC-8
-  - [ ] **R1.T1.1: Failing test — a two-species tier reads as " and " and the connective agrees with the number of eggs the tier grants**
-  - [ ] **R1.T1.2: Join with " and "; update the three pins in `species-roster.test.ts:153-155`**
-- [ ] **R1.T2: Make the boss-signature invariant non-vacuous** — covers: F2, FR-5, NFR-4
-  - [ ] **R1.T2.1: Delete the dead loop that cannot fail; keep the live signature-uniqueness assertion**
-  - [ ] **R1.T2.2: Pin the three exercised exemptions as data — `koda/flame_charge`, `fenn/pyre_lance`, `thessa/root_quake`**
-- [ ] **R1.T3: Gift chip seat shift keyed on a class, not inline style** — covers: F3, FR-7, NFR-6
-  - [ ] **R1.T3.1: Toggle `.is-hidden` in `syncGiftChip`; rewrite the five `:has()` seat rules to key on `.gift-chip:not(.is-hidden)`; re-verify the four-chip layout at 852×393 and 393×852**
-- [ ] **R1.T4: Reward queue sorts unknown species last** — covers: F4, FR-5
-  - [ ] **R1.T4.1: Failing test — an unknown species id in the queue sorts after every real reward**
-  - [ ] **R1.T4.2: `?? Number.MAX_SAFE_INTEGER`**
-- [ ] **R1.T5: Authoring mode verifies what it writes** — covers: F5, NFR-3
-  - [ ] **R1.T5.1: Regenerate-and-compare within `--write-missing`, or hard-fail at the end instructing a re-run without the flag**
-- [ ] **R1.T6: Boundary containment across all three stages** — covers: F6, FR-2, AC-2
-  - [ ] **R1.T6.1: Extend the containment assertion to juvenile and champion in `frond`, `crab` and `smolder` tests**
+- [x] **R1.T1: Handbook tier connective matches granted egg count** — covers: F1, FR-8, AC-8
+  - [x] **R1.T1.1: Failing test — a two-species tier reads as " and " and the connective agrees with the number of eggs the tier grants**
+  - [x] **R1.T1.2: Join with " and "; update the three pins in `species-roster.test.ts:153-155`**
+- [x] **R1.T2: Make the boss-signature invariant non-vacuous** — covers: F2, FR-5, NFR-4
+  - [x] **R1.T2.1: Delete the dead loop that cannot fail; keep the live signature-uniqueness assertion**
+  - [x] **R1.T2.2: Pin the exercised exemptions as data — the six recorded overlaps, each a signature that is a kit row of another species' element vocabulary**
+- [x] **R1.T3: Gift chip seat shift keyed on a class, not inline style** — covers: F3, FR-7, NFR-6
+  - [x] **R1.T3.1: Toggle `.is-hidden` in `syncGiftChip`; rewrite the five `:has()` seat rules to key on `.gift-chip:not(.is-hidden)`; re-verify the four-chip layout at 852×393 and 393×852**
+- [x] **R1.T4: Reward queue sorts unknown species last** — covers: F4, FR-5
+  - [x] **R1.T4.1: Failing test — an unknown species id in the queue sorts after every real reward**
+  - [x] **R1.T4.2: `?? Number.MAX_SAFE_INTEGER`**
+- [x] **R1.T5: Authoring mode verifies what it writes** — covers: F5, NFR-3
+  - [x] **R1.T5.1: Regenerate-and-compare within `--write-missing`, or hard-fail at the end instructing a re-run without the flag**
+- [x] **R1.T6: Boundary containment across all three stages** — covers: F6, FR-2, AC-2
+  - [x] **R1.T6.1: Extend the containment assertion to juvenile and champion in `frond`, `crab` and `smolder` tests**
+
+> **Result:** verified - all six round-1 findings resolved at root cause, each
+> with a test that would have caught it. F1 joins the tier's reward species with
+> " and " (the grant queues one egg per species, never a choice) and derives the
+> connective from `REWARD_SPECIES` so copy and grant cannot drift. F2 deletes the
+> vacuous `!ownKit.includes(move)` loop and replaces it with a data pin of the
+> exemption surface, which surfaced six entries rather than the three named.
+> F3 folds the gift chip through `.is-hidden` and keys all five seat rules on
+> `:not(.is-hidden)`, re-verified live at 852x393 and 393x852. F4 sorts unknown
+> reward species last. F5 re-reads the pair it just wrote so an authoring run
+> verifies itself, plain gate unchanged. F6 asserts containment across all three
+> stages and pins each stage's signature parts. No assertion weakened, no recipe
+> touched, no GLB regenerated. Gates: test:phase 2799/239/0 fail; verify 0;
+> build 0.
+> **Checkpoint:** `3262768d`
+> **Evidence:** `verification/phase-R1.md`
 
