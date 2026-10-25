@@ -51,9 +51,18 @@ try {
     onGraphics: (status) => runtime.apply({ kind: "graphics", status }),
     // Ambient pet (ranch_rituals_20261018 FR6): the scene only says a pet
     // reaction started; the pure cue table decides whether it is audible
-    // (muted stays silent) and the player's gate handles the rest.
+    // (muted stays silent) and the player's gate handles the rest. On the
+    // morning-after's ritual day the chirp carries the day's class: the
+    // careCues table re-voices the pet per outcome (postcup_morning_after
+    // FR-8) — no new assets, same gates.
     onPet: () => {
-      const cue = careCueForEvent({ kind: "pet" }, store.get().settings)
+      const cue = careCueForEvent(
+        {
+          kind: "pet",
+          morningAfter: store.pendingMorningAfter()?.class,
+        },
+        store.get().settings,
+      )
       if (cue) audio.player.play(cue)
     },
   })

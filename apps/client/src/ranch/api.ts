@@ -7,6 +7,7 @@ import {
   createTreatCeremony,
   createWalk,
   createWander,
+  MORNING_AFTER_PET_VARIANT,
   type PetVariant,
   phaseHash,
   pickPetReaction,
@@ -173,8 +174,23 @@ export function createApi(s: RanchState): RanchMotion {
       const sick = s.lastConditions
         ? s.lastConditions.health < SICK_HEALTH
         : false
-      const variant = pickPetReaction(mood, sick)
+      // The ritual day's FIRST accepted pet (postcup_morning_after FR-5)
+      // takes the class's variant instead of the mood's pick — but the
+      // sick gate still wins (review F1): a sick creature stirs no matter
+      // the day. Later pets read the mood again.
+      const variant =
+        s.morningAfterPetPending && !sick
+          ? MORNING_AFTER_PET_VARIANT[s.morningAfterClass]
+          : pickPetReaction(mood, sick)
       if (!s.petMachine.begin(variant, s.reducedMotion)) return null
+      if (s.morningAfterPetPending) {
+        // The one-pet window closes on the first accepted pet. The pet that
+        // dismisses a running ceremony counts as that first pet: the pose
+        // stays withheld while the release plays, but the reaction (and its
+        // chirp) are the ritual's.
+        s.morningAfterPetPending = false
+        if (s.morningAfterActive) s.morningAfter.dismiss()
+      }
       s.petTime = 0
       return variant
     },
@@ -206,6 +222,15 @@ export function createApi(s: RanchState): RanchMotion {
     clearEvolution() {
       s.evolutionSwap = null
       s.evolution = createEvolutionCeremony()
+    },
+    startMorningAfter(derivation) {
+      if (!s.creatureGroup) return
+      // The machine is the one owner of the ritual's state: a running
+      // ceremony ignores the begin, and reduced motion jump-cuts inside it.
+      s.morningAfter.begin(derivation, s.reducedMotion)
+    },
+    setRanchDay(day) {
+      s.day = day
     },
     resetProps() {
       s.windProps = []

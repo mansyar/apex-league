@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test"
+import type { MorningAfterClass } from "../morning-after/derive"
 import { type CareCueEvent, type CueOptions, careCueForEvent } from "./careCues"
 
 /** Event builders for the two families the ranch can raise. */
@@ -8,6 +9,11 @@ const care = (action: "feed" | "rest" | "treat" | "play"): CareCueEvent => ({
 })
 const pet: CareCueEvent = { kind: "pet" }
 const dawn: CareCueEvent = { kind: "dawn" }
+/** The ritual day's pet: the chirp carries the morning-after's class. */
+const ritualPet = (cls: MorningAfterClass): CareCueEvent => ({
+  kind: "pet",
+  morningAfter: cls,
+})
 
 const opts = (overrides: Partial<CueOptions> = {}): CueOptions => ({
   muted: false,
@@ -65,5 +71,43 @@ describe("careCueForEvent", () => {
     expect(
       careCueForEvent({ kind: "mystery" } as unknown as CareCueEvent, opts()),
     ).toBe(null)
+  })
+})
+
+describe("the morning-after pet remap (postcup_morning_after FR-8)", () => {
+  test("each ritual class remaps the pet chirp onto a bundled care asset", () => {
+    // Intensity follows the day's outcome: the champion's morning romps
+    // (play), the gatekeep morning gets the soothing balm (treat), the
+    // ordinary exit settles (rest), and the forfeit keeps a low, grounded
+    // feed sound.
+    expect(careCueForEvent(ritualPet("title"), opts())).toBe("care-play")
+    expect(careCueForEvent(ritualPet("gatekeep"), opts())).toBe("care-treat")
+    expect(careCueForEvent(ritualPet("exit"), opts())).toBe("care-rest")
+    expect(careCueForEvent(ritualPet("withdrawn"), opts())).toBe("care-feed")
+  })
+
+  test("no new asset files: every remap lands on an existing care cue", () => {
+    const bundled = [
+      "care-feed",
+      "care-rest",
+      "care-treat",
+      "care-play",
+      "care-pet",
+      "dawn-chime",
+    ] as const
+    for (const cls of ["title", "gatekeep", "exit", "withdrawn"] as const) {
+      const cue = careCueForEvent(ritualPet(cls), opts())
+      expect(cue !== null && bundled.includes(cue)).toBe(true)
+      expect(cue).not.toBe("care-pet")
+    }
+  })
+
+  test("the same gates hold: muted silences, reduced motion keeps it full", () => {
+    expect(careCueForEvent(ritualPet("title"), opts({ muted: true }))).toBe(
+      null,
+    )
+    expect(
+      careCueForEvent(ritualPet("exit"), opts({ reducedMotion: true })),
+    ).toBe("care-rest")
   })
 })

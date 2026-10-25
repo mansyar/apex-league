@@ -6,6 +6,7 @@ import {
   type CareAction,
   careAction,
   clearSave,
+  type GameState,
   getSpecies,
   hatchGiftEgg,
   inspectSaveImport,
@@ -22,9 +23,43 @@ import {
 import { careCueForEvent } from "../audio/careCues"
 import type { GraduationFlow } from "../graduation"
 import { createHud, type Hud } from "../hud"
+import { morningAfterDebriefGate } from "../hud/copy-morning-after"
+import type { MorningAfterDerivation } from "../morning-after/derive"
 import { importBlocked, transferNotice } from "../save-transfer"
 import { visualSeedOf } from "../staging-seed"
 import type { ScreenDeps } from "./screen-deps"
+
+/**
+ * The ritual day's one coach debrief (postcup_morning_after FR-6): the
+ * banked derivation leads the ticker on the first update that sees it
+ * during a sim day — exactly one say, then the routine chain resumes
+ * (the ticker holds the line until then). pickDebriefCopy via
+ * hud/copy-morning-after is the only copy source; the latch is
+ * client-held, so a reload simply finds nothing banked.
+ */
+export const withMorningAfterDebrief = (
+  hud: Hud,
+  pendingMorningAfter: () => MorningAfterDerivation | null,
+): Hud => {
+  let debriefSaidDay: number | null = null
+  const routineUpdate = hud.update
+  return {
+    ...hud,
+    update: (state: GameState) => {
+      routineUpdate(state)
+      const creature = state.creature
+      if (!creature) return
+      const say = morningAfterDebriefGate(
+        debriefSaidDay,
+        state.day,
+        pendingMorningAfter(),
+        creature.name,
+      )
+      debriefSaidDay = say.nextDay
+      if (say.line !== null) hud.announceMorningAfter(say.line)
+    },
+  }
+}
 
 /**
  * The care HUD (composition-root split). `screens.ts` owns the battle screens;
@@ -224,5 +259,6 @@ export function createHudScreen(deps: HudScreenDeps): Hud {
     },
   })
 
-  return hud
+  // The debrief wrapper above owns the ritual-day say chain (review F4).
+  return withMorningAfterDebrief(hud, () => store.pendingMorningAfter())
 }

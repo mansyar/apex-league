@@ -77,7 +77,16 @@ export function createSparScreen(deps: ScreenDeps): Spar {
  * state adoption flows through the store (persist + hud/spar/cup fanout).
  */
 export function createCupScreen(deps: CupScreenDeps): Cup {
-  const { app, store, audio, arena, staging, sceneSync, restoredSession } = deps
+  const {
+    app,
+    store,
+    audio,
+    arena,
+    staging,
+    scene,
+    sceneSync,
+    restoredSession,
+  } = deps
 
   return createCup(
     app,
@@ -109,6 +118,14 @@ export function createCupScreen(deps: CupScreenDeps): Cup {
       // completion) so a refresh anywhere in the walk resumes exactly here.
       onSession: (session) => {
         store.setSession(session)
+        if (session !== null) return
+        // Postcup morning-after (FR-2, FR-9): the cup overlay's close is
+        // the first ranch arrival. A banked derivation starts the arrival
+        // ceremony here; a reload (nothing banked — the ledger is
+        // client-held) and an evolution-yield day (null return, the
+        // derivation stays banked for the debrief) are silent no-ops.
+        const derivation = store.takeMorningAfterArrival()
+        if (derivation) scene.startMorningAfterCeremony(derivation)
       },
     },
     { restoredSession },

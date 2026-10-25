@@ -1,3 +1,5 @@
+import type { MorningAfterClass } from "../morning-after/derive"
+
 /**
  * The pure event-cue mapping for ranch care sound (ranch_rituals_20261018
  * FR5). Mirrors the battle-side cues.ts contract: DOM-free, sim-agnostic,
@@ -28,10 +30,11 @@ export interface CueOptions {
   readonly reducedMotion: boolean
 }
 
-/** A ranch sound event: a care action, a pet reaction, or day advance. */
+/** A ranch sound event: a care action, a pet reaction (optionally stamped
+ * with the morning-after's class on the ritual day), or day advance. */
 export type CareCueEvent =
   | { kind: "care"; action: "feed" | "rest" | "treat" | "play" }
-  | { kind: "pet" }
+  | { kind: "pet"; morningAfter?: MorningAfterClass }
   | { kind: "dawn" }
 
 /** The four care actions, each bound to its bundled cue. A record rather
@@ -41,6 +44,22 @@ const CARE_CUE: Record<"feed" | "rest" | "treat" | "play", CareCueId> = {
   rest: "care-rest",
   treat: "care-treat",
   play: "care-play",
+}
+
+/**
+ * The morning-after's pet chirp (postcup_morning_after FR-8): the ritual
+ * day re-voices the pet with a cue whose intensity follows the day's
+ * outcome — the champion's morning romps, the gatekeep morning gets the
+ * soothing balm, the ordinary exit settles, the forfeit keeps a low,
+ * grounded sound. Every entry is an already-bundled care asset: the
+ * remap adds no new files (NFR-4) and the record keeps a class from
+ * compiling without a cue.
+ */
+const MORNING_AFTER_PET_CUE: Record<MorningAfterClass, CareCueId> = {
+  title: "care-play",
+  gatekeep: "care-treat",
+  exit: "care-rest",
+  withdrawn: "care-feed",
 }
 
 /** The cue for one ranch event, or `null` when the beat stays silent. */
@@ -53,7 +72,9 @@ export function careCueForEvent(
     case "care":
       return CARE_CUE[event.action]
     case "pet":
-      return "care-pet"
+      return event.morningAfter
+        ? MORNING_AFTER_PET_CUE[event.morningAfter]
+        : "care-pet"
     case "dawn":
       return "dawn-chime"
     default:

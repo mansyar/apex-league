@@ -129,6 +129,9 @@ export interface Hud {
   announceSaveFailure(): void
   /** Show (or clear, with "") a calm settings notice (save transfer). */
   noticeSettings(message: string, warn?: boolean): void
+  /** Show the morning-after's coach debrief line (postcup_morning_after
+   * FR-6): the ritual day's one say — the next routine update replaces it. */
+  announceMorningAfter(line: string): void
 }
 
 /**
@@ -180,6 +183,9 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     },
     noticeSettings(message, warn) {
       shell.refs.settings.notice(message, warn)
+    },
+    announceMorningAfter(line) {
+      shell.refs.creaturePlate.statusTicker.say(line)
     },
   }
 }

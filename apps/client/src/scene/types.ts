@@ -1,5 +1,6 @@
 import type { CreatureConditions, LifeStage } from "@apex/sim"
 import type * as THREE from "three"
+import type { MorningAfterDerivation } from "../morning-after/derive"
 import type { CameraIntent } from "../orbit-camera"
 
 /** The ranch scene's HUD-facing contract (moved verbatim from `scene.ts`). */
@@ -112,6 +113,20 @@ export interface SceneHandle {
     onDone?: () => void,
     branch?: string | null,
   ): void
+  /**
+   * Begin the postcup morning-after arrival ceremony (FR-2) from the
+   * derivation the store banked at finalize: the machine owns the
+   * creature from its current pose — the arrival beat, the class pose,
+   * the glow, the amplifier beat — and reduced motion jump-cuts straight
+   * to the short glow (FR-7). Purely visual; a running ceremony ignores
+   * a second begin.
+   */
+  startMorningAfterCeremony(derivation: MorningAfterDerivation): void
+  /**
+   * Latch the sim day into the ranch frame: the day tint's night-settle
+   * retire reads it (FR-3) — a day 0 default could never retire.
+   */
+  setRanchDay(day: number): void
 }
 
 /**

@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test"
-import { createPetMachine, isTap, pickPetReaction } from "../scene-logic"
+import {
+  createPetMachine,
+  isTap,
+  MORNING_AFTER_PET_VARIANT,
+  pickPetReaction,
+} from "../scene-logic"
 
 // Binary-exact step (2^-4) under the machine's 0.1s dt clamp — sums land on
 // exact float boundaries, mirroring the rest/treat ceremony tests.
@@ -118,5 +123,26 @@ describe("tap discriminator (click-vs-drag for the pet raycast)", () => {
 
   test("a long hold is not a tap even without movement", () => {
     expect(isTap(100, 100, 100, 100, 700)).toBe(false)
+  })
+})
+
+describe("the morning-after pet variant (postcup_morning_after FR-5)", () => {
+  test("each ritual class maps onto the existing reaction vocabulary", () => {
+    // The champion prances a bright hop, the gatekeep morning leans in
+    // respectful, the ordinary exit shuffles a tired wiggle, and the
+    // forfeit barely stirs — intensity following the day's outcome.
+    expect(MORNING_AFTER_PET_VARIANT.title).toBe("hop")
+    expect(MORNING_AFTER_PET_VARIANT.gatekeep).toBe("lean")
+    expect(MORNING_AFTER_PET_VARIANT.exit).toBe("wiggle")
+    expect(MORNING_AFTER_PET_VARIANT.withdrawn).toBe("stir")
+  })
+
+  test("the map stays keyed by exactly the four classes", () => {
+    expect(Object.keys(MORNING_AFTER_PET_VARIANT).sort()).toEqual([
+      "exit",
+      "gatekeep",
+      "title",
+      "withdrawn",
+    ])
   })
 })

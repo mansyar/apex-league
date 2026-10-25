@@ -2,12 +2,23 @@ import { describe, expect, test } from "bun:test"
 import {
   type CupSession,
   chooseStarter,
+  completeCup,
+  createCreature,
   createInitialState,
+  defaultLoadout,
+  EVOLUTION_DAY,
+  EVOLUTION_MOOD,
+  finalizeCup,
   type GameState,
+  getSpecies,
+  loadBoot,
   prepareCup,
+  resolvePlayerMatch,
   SAVE_VERSION,
   type SaveAdapter,
+  startCupSession,
 } from "@apex/sim"
+import { morningAfterDebriefGate } from "./hud/copy-morning-after"
 import { createGameStore } from "./store"
 
 /** A deterministic starting state (no DOM, no randomness beyond the seed). */
@@ -208,5 +219,198 @@ describe("game store — cup session persistence", () => {
     ) as { session: CupSession | null }
     expect(saved.session).toBeNull()
     expect(store.getSession()).toBeNull()
+  })
+})
+
+describe("game store — the morning-after ledger (postcup_morning_after FR-2)", () => {
+  const CUP_DAY = 7
+
+  /** A creature identical to the starter's (the sim fixtures' baseline). */
+  function starterCreature() {
+    return createCreature("fire_drake", 42)
+  }
+
+  /** Play a cup to a championship with the default picks — the established
+   * derive-test baseline (the classifier reads only session facts). */
+  function championSession(): CupSession {
+    const c = starterCreature()
+    const species = getSpecies(c.speciesId)
+    if (!species) throw new Error("unknown species")
+    let cur = startCupSession(c, CUP_DAY, 17)
+    while (cur.status === "player-turn") {
+      cur = resolvePlayerMatch(
+        cur,
+        defaultLoadout(c, species),
+        "specials",
+      ).session
+    }
+    if (cur.status === "eliminated") cur = completeCup(cur)
+    return cur
+  }
+
+  test("no derivation is pending before any cup finalizes", () => {
+    const store = createGameStore(startState(), fakeAdapter(), { now: () => 0 })
+    expect(store.pendingMorningAfter()).toBeNull()
+    expect(store.takeMorningAfterArrival()).toBeNull()
+  })
+
+  test("a stale (player-turn) session clear mints nothing", () => {
+    const store = createGameStore(startState(), fakeAdapter(), { now: () => 0 })
+    const live = prepareCup(startState())
+    if (!live) throw new Error("no session")
+    store.setSession(live)
+    store.setSession(null)
+    store.commit({ ...store.get(), day: 2 })
+    expect(store.pendingMorningAfter()).toBeNull()
+  })
+
+  test("the finalize adjacency mints the derivation and the arrival consumes it once", () => {
+    const store = createGameStore(startState(), fakeAdapter(), { now: () => 0 })
+    const session = championSession()
+    const pre = store.get()
+    store.setSession(session)
+    // The finalize handler calls setSession(null) before its finalize
+    // commit — the store derives across exactly that adjacency.
+    store.setSession(null)
+    const post = finalizeCup(pre, session)
+    store.commit(post)
+    const pending = store.pendingMorningAfter()
+    expect(pending?.class).toBe("title")
+    // The champion's first cup crossed the persisted first-title milestone.
+    expect(pending?.amplifiers).toEqual([{ kind: "first_title" }])
+    // The arrival takes it exactly once.
+    const taken = store.takeMorningAfterArrival()
+    expect(taken).toEqual(pending)
+    expect(store.takeMorningAfterArrival()).toBeNull()
+    // The same ritual never replays on a later day either.
+    store.commit({ ...store.get(), day: store.get().day + 1 })
+    expect(store.takeMorningAfterArrival()).toBeNull()
+  })
+
+  test("the night settle drops a leftover pending (NFR-7)", () => {
+    const store = createGameStore(startState(), fakeAdapter(), { now: () => 0 })
+    const session = championSession()
+    const pre = store.get()
+    store.setSession(session)
+    store.setSession(null)
+    store.commit(finalizeCup(pre, session))
+    expect(store.pendingMorningAfter()).not.toBeNull()
+    // Sleeping past the ritual morning clears the bookkeeping.
+    store.commit({ ...store.get(), day: store.get().day + 1 })
+    expect(store.pendingMorningAfter()).toBeNull()
+    expect(store.takeMorningAfterArrival()).toBeNull()
+  })
+
+  test("an evolution-reveal day yields: consumed silently, the derivation stays banked", () => {
+    const store = createGameStore(startState(), fakeAdapter(), { now: () => 0 })
+    const session = championSession()
+    const pre = store.get()
+    store.setSession(session)
+    store.setSession(null)
+    const post = finalizeCup(pre, session)
+    const creature = post.creature
+    if (!creature) throw new Error("no creature")
+    const evolving = {
+      ...post,
+      creature: {
+        ...creature,
+        ageDays: EVOLUTION_DAY,
+        sickCooldown: 0,
+        conditions: { ...creature.conditions, mood: EVOLUTION_MOOD },
+      },
+    }
+    store.commit(evolving)
+    expect(store.takeMorningAfterArrival()).toBeNull()
+    // Banked for the debrief path until the night settle drops it.
+    expect(store.pendingMorningAfter()).not.toBeNull()
+    // No resurrection on a second arrival the same day.
+    expect(store.takeMorningAfterArrival()).toBeNull()
+  })
+
+  test("the ledger never rides the persisted save (NFR-1 — the schema stays v25)", () => {
+    const adapter = fakeAdapter()
+    const store = createGameStore(startState(), adapter, { now: () => 0 })
+    const session = championSession()
+    const pre = store.get()
+    store.setSession(session)
+    store.setSession(null)
+    store.commit(finalizeCup(pre, session))
+    expect(store.pendingMorningAfter()).not.toBeNull()
+    for (const write of adapter.writes) {
+      const saved = JSON.parse(write) as { state: Record<string, unknown> }
+      expect(saved.state).not.toHaveProperty("morningAfter")
+      expect(write).not.toContain("morningAfter")
+    }
+  })
+
+  test("the yield morning still renders its debrief that day, then goes silent after the settle (FR-9 full flow)", () => {
+    const store = createGameStore(startState(), fakeAdapter(), { now: () => 0 })
+    const session = championSession()
+    const pre = store.get()
+    store.setSession(session)
+    store.setSession(null)
+    const post = finalizeCup(pre, session)
+    const creature = post.creature
+    if (!creature) throw new Error("no creature")
+    const evolving = {
+      ...post,
+      creature: {
+        ...creature,
+        ageDays: EVOLUTION_DAY,
+        sickCooldown: 0,
+        conditions: { ...creature.conditions, mood: EVOLUTION_MOOD },
+      },
+    }
+    store.commit(evolving)
+    const day = store.get().day
+    // The arrival consumes silently: a null return is the controller's
+    // no-start signal — the pose ceremony never begins (screens.ts starts
+    // the ceremony only on a derivation), and no second arrival revives it.
+    expect(store.takeMorningAfterArrival()).toBeNull()
+    expect(store.takeMorningAfterArrival()).toBeNull()
+    // The debrief still renders that day — the gate reads the banked
+    // derivation the yield left in place.
+    const say = morningAfterDebriefGate(
+      null,
+      day,
+      store.pendingMorningAfter(),
+      creature.name,
+    )
+    expect(say.line).not.toBeNull()
+    expect(say.nextDay).toBe(day)
+    // The night settle drops the ledger; the latch now reads a null
+    // derivation, so the ticker's own chain resumes and nothing survives
+    // into the next day (FR-9, NFR-7).
+    store.commit({ ...store.get(), day: day + 1 })
+    expect(store.pendingMorningAfter()).toBeNull()
+    expect(
+      morningAfterDebriefGate(
+        say.nextDay,
+        day + 1,
+        store.pendingMorningAfter(),
+        creature.name,
+      ),
+    ).toEqual({ line: null, nextDay: say.nextDay })
+  })
+
+  test("a reload between finalize and arrival plays nothing (FR-9 — the derivation never persisted)", () => {
+    const adapter = fakeAdapter()
+    const store = createGameStore(startState(), adapter, { now: () => 0 })
+    const session = championSession()
+    const pre = store.get()
+    store.setSession(session)
+    store.setSession(null)
+    store.commit(finalizeCup(pre, session))
+    expect(store.pendingMorningAfter()).not.toBeNull()
+    // The player reloads: boot re-reads exactly what persisted — and the
+    // derivation lives only in the old store's client memory.
+    const boot = loadBoot(adapter)
+    if (!boot || !("state" in boot)) throw new Error("boot produced no state")
+    const reloaded = createGameStore(boot.state, fakeAdapter(), {
+      now: () => 0,
+      initialSession: boot.session,
+    })
+    expect(reloaded.pendingMorningAfter()).toBeNull()
+    expect(reloaded.takeMorningAfterArrival()).toBeNull()
   })
 })

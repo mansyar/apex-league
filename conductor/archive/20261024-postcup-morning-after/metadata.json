@@ -1,0 +1,32 @@
+{
+  "id": "20261024-postcup-morning-after",
+  "title": "Post-Cup Morning-After Ritual",
+  "type": "feature",
+  "status": "complete",
+  "priority": "medium",
+  "depends_on": [],
+  "created_at": "2026-10-24T11:39:02Z",
+  "updated_at": "2026-10-24T12:05:00Z",
+  "spec": "spec.md",
+  "plan": "plan.md",
+  "branch": "feat/20261024-postcup-morning-after",
+  "base_branch": "main",
+  "base_sha": "2dcebc7f855d37ec50d77132287041943217a4bb",
+  "progress": {
+    "phases_total": 4,
+    "phases_verified": 4,
+    "tasks_total": 13,
+    "tasks_done": 13
+  },
+  "last_checkpoint": "4656bc7a",
+  "review_verdict": "PASS",
+  "review_rounds": 2,
+  "doc_sync": "pending",
+  "pr_url": null,
+  "pr_state": null,
+  "reverted_at": null,
+  "revert_commit": null,
+  "revert_pr_url": null,
+  "archived_at": "2026-10-25T00:00:00Z",
+  "archive_path": null
+}
