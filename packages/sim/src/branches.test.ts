@@ -162,11 +162,71 @@ const CONTRACT: readonly BranchContract[] = [
     signatureMove: "zephyr_veil",
     accentHue: 153,
   },
+  {
+    id: "frond_lasher",
+    speciesId: "fernstag",
+    label: "Frond Lasher",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 4, atk: 6, def: 3, spd: 5 },
+    signatureMove: "root_quake",
+    accentHue: 140,
+  },
+  {
+    id: "spore_warden",
+    speciesId: "fernstag",
+    label: "Spore Warden",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 7, atk: 3, def: 5, spd: 0 },
+    signatureMove: "spore_burst",
+    accentHue: 105,
+  },
+  {
+    id: "whirlpool_claw",
+    speciesId: "reefclaw",
+    label: "Whirlpool Claw",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 5, atk: 6, def: 3, spd: 3 },
+    signatureMove: "maelstrom",
+    accentHue: 200,
+  },
+  {
+    id: "tide_sentinel",
+    speciesId: "reefclaw",
+    label: "Tide Sentinel",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 7, atk: 2, def: 6, spd: 0 },
+    signatureMove: "tide_shot",
+    accentHue: 230,
+  },
+  {
+    id: "pyre_colossus",
+    speciesId: "cindermoor",
+    label: "Pyre Colossus",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 5, atk: 7, def: 3, spd: 2 },
+    signatureMove: "pyre_lance",
+    accentHue: 12,
+  },
+  {
+    id: "ember_bank",
+    speciesId: "cindermoor",
+    label: "Ember Bank",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 6, atk: 3, def: 7, spd: 0 },
+    signatureMove: "flame_charge",
+    accentHue: 2,
+  },
 ]
 
 describe("branch catalog", () => {
-  test("holds exactly the twelve contracted branches", () => {
-    expect(BRANCHES.length).toBe(12)
+  test("holds exactly the eighteen contracted branches", () => {
+    expect(BRANCHES.length).toBe(18)
     expect(BRANCHES.map((branch) => branch.id)).toEqual(
       CONTRACT.map((row) => row.id),
     )

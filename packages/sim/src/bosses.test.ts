@@ -117,15 +117,39 @@ describe("boss registry", () => {
     for (const boss of BOSSES) expect(boss.branch).toBe("legacy")
   })
 
-  it("keeps every branch signature out of the boss loadouts", () => {
-    const signatures = new Set(
-      BRANCHES.map((branch) => branch.signatureMove).filter(
-        (move): move is string => move !== null,
-      ),
+  it("never wields a form-exclusive special of a species the boss is not", () => {
+    // User decision 2026-10-25 (species-roster-expansion Phase 1): a
+    // signature move may double as another species' kit row, so the
+    // invariant is scoped to its spirit — a legacy-form boss may wield a
+    // kit row of its own species even when a later line's champion form
+    // claims that row as its signature, but never the signature of a
+    // species it is not.
+    const signaturesBySpecies = new Map<string, Set<string>>()
+    for (const branch of BRANCHES) {
+      if (branch.speciesId === null || branch.signatureMove === null) continue
+      const set = signaturesBySpecies.get(branch.speciesId) ?? new Set()
+      set.add(branch.signatureMove)
+      signaturesBySpecies.set(branch.speciesId, set)
+    }
+    // Every real branch still owns a distinct form-exclusive special.
+    const allSignatures = new Set(
+      [...signaturesBySpecies.values()].flatMap((set) => [...set]),
     )
-    expect(signatures.size).toBe(BRANCHES.length)
+    expect(allSignatures.size).toBe(BRANCHES.length)
     for (const boss of BOSSES) {
-      for (const move of boss.loadout) expect(signatures.has(move)).toBe(false)
+      const ownKit = getSpecies(boss.speciesId)?.kit ?? []
+      for (const move of boss.loadout) {
+        const foreign = [...signaturesBySpecies.entries()].some(
+          ([speciesId, signatures]) =>
+            speciesId !== boss.speciesId &&
+            signatures.has(move) &&
+            // A move the boss wields as its OWN species' kit row is not
+            // form-exclusive against it, even when a later line's champion
+            // form claims the same row as its signature.
+            !ownKit.includes(move),
+        )
+        expect(foreign, `${boss.id} wielding ${move}`).toBe(false)
+      }
     }
   })
 
