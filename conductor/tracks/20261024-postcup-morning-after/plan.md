@@ -96,7 +96,7 @@ clean console.
 - **Covers:** FR-9, AC-5, AC-6, NFR-1, NFR-2, NFR-3, NFR-4, NFR-7
 - **Touches:** `apps/client/src/scene-logic/**`, `apps/client/src/ranch/**` (edge glue), `conductor/tech-stack.md`
 - **Verification:** `bun run verify && bun run build` + visual-layer procedure (playwright-cli, desktop + iPhone 15, clean console)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P4.T1: Edge rules** - covers: FR-9, AC-6
   - [ ] **P4.T1.1: Failing tests — evolution-reveal collision yields (debrief may still show), first-ever forfeited cup → withdrawn with zero amplifiers, reload skips gracefully, night settle clears state**
