@@ -69,9 +69,10 @@ export const GIFT_STATS_CAPTION = "The stats it hatches with"
 export function buildGiftChip(onOpen: () => void): HTMLButtonElement {
   const button = chip({ label: "Gift", variant: "dim", onClick: onOpen })
   button.classList.add("gift-chip")
-  // The chip's own `display` rule outranks the `hidden` attribute, so the
-  // chip is folded the way the rest of the HUD folds its rows.
-  button.style.display = "none"
+  // Folded through a class, not an inline `display`: the seat rules in
+  // ranch.css read the chip's visibility, and a class is the only signal a
+  // selector can key on without guessing at an inline string.
+  button.classList.add("is-hidden")
   button.title = "League Reward"
   return button
 }
@@ -84,7 +85,7 @@ export function syncGiftChip(
   button: HTMLButtonElement,
   state: GameState,
 ): void {
-  button.style.display = leagueRewardPending(state) ? "" : "none"
+  button.classList.toggle("is-hidden", !leagueRewardPending(state))
 }
 
 export interface GiftModal {

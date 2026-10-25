@@ -836,6 +836,16 @@
   opacity: 0.75;
 }
 
+/* The gift chip folds through this class rather than an inline `display`
+   (species roster FR-7): the seat rules below ask whether the chip is
+   showing, and a class is a signal a selector can read exactly — an inline
+   style can only be substring-matched, so any other declaration containing
+   "none" would move the HUD. `.gift-chip` outranks `.kit-chip`'s own
+   `display`, which is why the chip needs its own fold rule at all. */
+.gift-chip.is-hidden {
+  display: none;
+}
+
 /* Settings modal (coach_knowledge_20261016 Phase 5): the three floating
    chips consolidated behind one Settings chip — same chips, same labels,
    same handlers. Camera/new-game surface scoping stays on the chips
@@ -1402,17 +1412,17 @@
      across the lineage plate. While the egg waits, the plate and the panel
      stack both step down by the extra chip (32px); with no egg the compact
      seats above stand untouched. */
-  .hud-motion:has(.gift-chip:not([style*="none"])) ~ .hud-lineage {
+  .hud-motion:has(.gift-chip:not(.is-hidden)) ~ .hud-lineage {
     top: calc(208px + var(--kit-safe-top));
   }
 
-  .hud-motion:has(.gift-chip:not([style*="none"])) ~ .hud-stack {
+  .hud-motion:has(.gift-chip:not(.is-hidden)) ~ .hud-stack {
     top: calc(260px + var(--kit-safe-top));
   }
 
   /* The teaching callout keeps its "below the lineage plate" seat: the plate
      now ends at 252, so the card follows it down by the same 32px. */
-  .hud-motion:has(.gift-chip:not([style*="none"])) ~ .hud-callout {
+  .hud-motion:has(.gift-chip:not(.is-hidden)) ~ .hud-callout {
     top: calc(258px + var(--kit-safe-top));
   }
 
@@ -1505,13 +1515,11 @@
      the Stable chip would sit on the lineage plate. While the egg waits,
      both the plate and the expanded plate's ceiling slide down by the same
      46px; with no egg the compact seat above stands untouched. */
-  .hud-motion:has(.gift-chip:not([style*="none"])) ~ .hud-lineage {
+  .hud-motion:has(.gift-chip:not(.is-hidden)) ~ .hud-lineage {
     top: calc(204px + var(--kit-safe-top));
   }
 
-  .hud-motion:has(.gift-chip:not([style*="none"]))
-    ~ .hud-stack
-    .creature-plate {
+  .hud-motion:has(.gift-chip:not(.is-hidden)) ~ .hud-stack .creature-plate {
     max-height: calc(100dvh - 292px);
   }
 

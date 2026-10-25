@@ -136,21 +136,37 @@ describe("boss registry", () => {
       [...signaturesBySpecies.values()].flatMap((set) => [...set]),
     )
     expect(allSignatures.size).toBe(BRANCHES.length)
-    for (const boss of BOSSES) {
+    // The exemption is real but narrow, so it is recorded as data instead of
+    // asserted with a predicate that the loadout-subset rule above already
+    // satisfies. Each entry is a boss wielding another species' champion
+    // signature that its own species kit carries: the only overlap the user
+    // decision allows. A new overlap — or a stale entry — fails here.
+    const sharedSignatures = BOSSES.flatMap((boss) => {
       const ownKit = getSpecies(boss.speciesId)?.kit ?? []
-      for (const move of boss.loadout) {
-        const foreign = [...signaturesBySpecies.entries()].some(
-          ([speciesId, signatures]) =>
-            speciesId !== boss.speciesId &&
-            signatures.has(move) &&
-            // A move the boss wields as its OWN species' kit row is not
-            // form-exclusive against it, even when a later line's champion
-            // form claims the same row as its signature.
-            !ownKit.includes(move),
+      return boss.loadout
+        .filter(
+          (move) =>
+            ownKit.includes(move) &&
+            [...signaturesBySpecies.entries()].some(
+              ([speciesId, signatures]) =>
+                speciesId !== boss.speciesId && signatures.has(move),
+            ),
         )
-        expect(foreign, `${boss.id} wielding ${move}`).toBe(false)
-      }
-    }
+        .map((move) => `${boss.id}/${move}`)
+    })
+    expect(sharedSignatures).toEqual([
+      // fire_drake wields ember_bank's (cindermoor) signature, a kit row.
+      "koda/flame_charge",
+      // plant_ox wields spore_warden's (fernstag) signature, a kit row.
+      "hesse/spore_burst",
+      // water_axolotl wields tide_sentinel's (reefclaw) signature, a kit row.
+      "delmar/tide_shot",
+      // fire_drake again, via both cindermoor forms' signatures.
+      "fenn/flame_charge",
+      "fenn/pyre_lance",
+      // plant_ox wields frond_lasher's (fernstag) signature, a kit row.
+      "thessa/root_quake",
+    ])
   })
 
   it("a substituted boss slot keeps its pinned build and fights legacy", () => {

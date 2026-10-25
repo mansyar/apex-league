@@ -199,12 +199,15 @@ export function reconcileLeagueRewards(state: GameState): GameState {
   }
   if (catchUp.length === 0) return state
   // Catalog index == tier order (and the older line of a tier leads), so
-  // sorting the merged queue by it restores the oldest-first invariant.
+  // sorting the merged queue by it restores the oldest-first invariant. An
+  // id the catalog does not know (a retired line, or a save written by a
+  // newer build) has no place in that order, so it sorts last rather than
+  // ahead of every real reward.
   const catalogIndex = new Map(REWARD_SPECIES.map((s, i) => [s.id, i] as const))
+  const rank = (speciesId: string): number =>
+    catalogIndex.get(speciesId) ?? Number.MAX_SAFE_INTEGER
   const pendingRewards = [...state.pendingRewards, ...catchUp].sort(
-    (a, b) =>
-      (catalogIndex.get(a.speciesId) ?? 0) -
-      (catalogIndex.get(b.speciesId) ?? 0),
+    (a, b) => rank(a.speciesId) - rank(b.speciesId),
   )
   return { ...state, pendingRewards }
 }

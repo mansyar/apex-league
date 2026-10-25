@@ -129,6 +129,32 @@ describe("reconcileLeagueRewards — the retroactive catch-up", () => {
     ])
   })
 
+  test("an unknown reward species sorts after every real reward", () => {
+    const s = stateAt()
+    // A queue row the catalog does not know — a retired line, or a save
+    // written by a newer build. `PendingGift.speciesId` is a plain string, so
+    // the fixture is honest without a cast; the queue must still keep every
+    // real reward ahead of it instead of treating the unknown as tier-zero.
+    const withUnknown: GameState = {
+      ...s,
+      claimedTiers: claimed("silver", "gold", "legend"),
+      pendingRewards: [
+        { speciesId: "earth_tortoise", seed: 31 },
+        { speciesId: "ghost_line", seed: 41 },
+      ],
+    }
+    const reconciled = reconcileLeagueRewards(withUnknown)
+    expect(reconciled.pendingRewards.map((egg) => egg.speciesId)).toEqual([
+      "electric_hound",
+      FERNSTAG,
+      "wind_falcon",
+      REEFCLAW,
+      "earth_tortoise",
+      CINDERMOOR,
+      "ghost_line",
+    ])
+  })
+
   test("a fresh save passes through untouched", () => {
     const s = stateAt()
     expect(reconcileLeagueRewards(s)).toEqual(s)

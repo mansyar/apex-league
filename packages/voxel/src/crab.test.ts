@@ -125,19 +125,34 @@ describe("buildCrab", () => {
     expect(JSON.stringify(a.colors)).toBe(JSON.stringify(b.colors))
   })
 
-  test("runs inside the archetype grid without touching the boundary", () => {
-    const dna = sampleDna(crabTemplate, 42)
-    const build = buildCrab(dna)
-    const grid = voxelize(build.fields, CRAB_GRID)
+  test("runs inside the archetype grid without touching the boundary at every stage", () => {
     const r = CRAB_GRID - 1
-    for (const part of grid.parts) {
-      for (const [x, y, z] of part.voxels) {
-        expect(x).toBeGreaterThan(0)
-        expect(x).toBeLessThan(r)
-        expect(y).toBeGreaterThan(0)
-        expect(y).toBeLessThan(r)
-        expect(z).toBeGreaterThan(0)
-        expect(z).toBeLessThan(r)
+    // Every life stage ships its own GLB, so every stage must fit the grid —
+    // not just the baby build. The juvenile buds and champion coral crowns
+    // are the parts that grow the silhouette, so they are exactly the ones a
+    // baby-only assertion never looked at.
+    const STAGES = ["baby", "juvenile", "champion"] as const
+    const signatureParts: Record<(typeof STAGES)[number], string[]> = {
+      baby: [],
+      juvenile: ["coralBudLeft", "coralBudRight"],
+      champion: ["coralCrownLeft", "coralCrownRight"],
+    }
+    for (const stage of STAGES) {
+      const build = generate("crab", 42, stage).build
+      const grid = voxelize(build.fields, CRAB_GRID)
+      // A stage that dropped its signature parts would pass the containment
+      // check by covering less of the creature, so pin the coverage itself.
+      const visited = new Set(grid.parts.map((part) => part.name))
+      for (const part of signatureParts[stage]) expect(visited).toContain(part)
+      for (const part of grid.parts) {
+        for (const [x, y, z] of part.voxels) {
+          expect(x).toBeGreaterThan(0)
+          expect(x).toBeLessThan(r)
+          expect(y).toBeGreaterThan(0)
+          expect(y).toBeLessThan(r)
+          expect(z).toBeGreaterThan(0)
+          expect(z).toBeLessThan(r)
+        }
       }
     }
   })

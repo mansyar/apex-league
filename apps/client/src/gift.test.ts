@@ -7,8 +7,11 @@
  * decisions behind the words.
  */
 import { describe, expect, test } from "bun:test"
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
+import { createInitialState, type GameState } from "@apex/sim"
 import { resultRows } from "./bracket-model"
-import { giftHatchNote } from "./gift"
+import { giftHatchNote, syncGiftChip } from "./gift"
 
 describe("giftHatchNote", () => {
   test("says the hatched pet waits in the stable and the ranch pet stays", () => {
@@ -54,5 +57,72 @@ describe("the results screen's league gift row", () => {
       expect(giftRow).toContain(name)
       expect(giftRow).toContain("nursery")
     }
+  })
+})
+
+/**
+ * The slice of a button the chip sync touches. The seat rules in ranch.css ask
+ * whether the chip is showing, so the sync must express that as a class: an
+ * inline `display` can only be substring-matched, and any other declaration
+ * containing "none" would move the HUD with it.
+ */
+function fakeChip(): {
+  classList: {
+    toggle: (name: string, force?: boolean) => void
+    has: (n: string) => boolean
+  }
+  style: { display: string }
+} {
+  const classes = new Set<string>(["gift-chip"])
+  return {
+    classList: {
+      toggle(name, force) {
+        const on = force ?? !classes.has(name)
+        if (on) classes.add(name)
+        else classes.delete(name)
+      },
+      has: (name) => classes.has(name),
+    },
+    style: { display: "" },
+  }
+}
+
+function stateWithEggs(eggs: number): GameState {
+  const base = createInitialState()
+  return {
+    ...base,
+    pendingRewards: Array.from({ length: eggs }, (_, i) => ({
+      speciesId: "fernstag",
+      seed: i + 1,
+    })),
+  }
+}
+
+describe("the gift chip's visibility", () => {
+  test("folds through the is-hidden class while no egg waits", () => {
+    const button = fakeChip()
+    syncGiftChip(button as unknown as HTMLButtonElement, stateWithEggs(0))
+    expect(button.classList.has("is-hidden")).toBe(true)
+    // Never an inline display: that is the signal the seat rules cannot read.
+    expect(button.style.display).toBe("")
+  })
+
+  test("shows the chip, still without an inline display, once an egg waits", () => {
+    const button = fakeChip()
+    syncGiftChip(button as unknown as HTMLButtonElement, stateWithEggs(1))
+    expect(button.classList.has("is-hidden")).toBe(false)
+    expect(button.style.display).toBe("")
+  })
+
+  test("ranch.css keys every gift-chip seat rule on the class", () => {
+    const css = readFileSync(join(import.meta.dir, "ranch.css"), "utf8")
+    // No substring match on an inline style anywhere: the fold is a class.
+    expect(css).not.toContain("[style*=")
+    const seats = css.match(/:has\(\.gift-chip[^)]*\)/g) ?? []
+    // Four responsive seat rules plus the landscape plate ceiling.
+    expect(seats.length).toBe(5)
+    expect(seats.filter((rule) => rule.includes(":not(.is-hidden)"))).toEqual(
+      seats,
+    )
   })
 })

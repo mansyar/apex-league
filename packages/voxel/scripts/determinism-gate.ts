@@ -8,8 +8,10 @@
  *
  * `--write-missing` is the authoring path for a NEW archetype: it writes the
  * artifact pair for any archetype/stage that has no committed files yet, and
- * refuses to touch a pair that already exists. It never overwrites a
- * committed artifact — a changed generator must still fail the plain gate.
+ * refuses to touch a pair that already exists. The pair it writes is re-read
+ * and deep-compared in the same run, so an authoring run can never leave an
+ * unverified pair behind. It never overwrites a committed artifact — a changed
+ * generator must still fail the plain gate.
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs"
 import {
@@ -92,11 +94,18 @@ for (const [id, def] of Object.entries(archetypes)) {
         console.log(
           `determinism gate wrote ${glbPath} (${glb.byteLength} bytes, tris ${manifest.triCount}) and ${manifestPath}`,
         )
-        continue
+        // Read the pair back and fall through to the same deep compare the
+        // committed artifacts get: an authoring run verifies what it wrote,
+        // so a bad write cannot be committed as an unverified pair.
+        committedManifest = JSON.parse(
+          readFileSync(manifestPath, "utf8"),
+        ) as GlbManifest
+        committedGlb = readFileSync(glbPath)
+      } else {
+        fail(
+          `${manifestPath} is missing or unparseable - run export-artifact.ts to (re)commit it`,
+        )
       }
-      fail(
-        `${manifestPath} is missing or unparseable - run export-artifact.ts to (re)commit it`,
-      )
     }
     // Deep-compare the full manifest: any field drift (hashes, triCount,
     // pivots, generator version) means the committed artifact no longer

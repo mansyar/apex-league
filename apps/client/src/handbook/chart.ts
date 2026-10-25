@@ -32,7 +32,11 @@ const VOWEL = /^[aeiou]/i
 const withArticle = (name: string): string =>
   `${VOWEL.test(name) ? "an" : "a"} ${name}`
 
-/** One tier's reward lines, in catalog order: "a Storm Hound or a Whistlefern". */
+/**
+ * One tier's reward lines, in catalog order: "a Storm Hound and a Whistlefern".
+ * The connective is additive because the grant is additive: `grantLeagueRewards`
+ * queues one egg per species of the tier, never a choice between them.
+ */
 function tierLine(tier: LadderTier): string {
   const names = REWARD_SPECIES.filter(
     (species) => species.rewardFromTier === tier,
@@ -41,7 +45,7 @@ function tierLine(tier: LadderTier): string {
   const list =
     names.length === 1
       ? names[0]
-      : `${names.slice(0, -1).join(", ")} or ${names.at(-1)}`
+      : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`
   return `${TIER_NAME[tier]} pays ${list}`
 }
 

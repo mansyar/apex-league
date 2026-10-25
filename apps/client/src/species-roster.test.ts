@@ -8,12 +8,51 @@
  * are the decisions the paint reads.
  */
 import { describe, expect, test } from "bun:test"
-import { createGiftEgg, getBranch, getSpecies } from "@apex/sim"
+import {
+  createGiftEgg,
+  createInitialState,
+  getBranch,
+  getSpecies,
+  grantLeagueRewards,
+  type LadderTier,
+  REWARD_SPECIES,
+} from "@apex/sim"
 import { crestGlyph, elementHue } from "./element"
 import { populationNote } from "./handbook/chart"
 import { branchRevealLine } from "./hud/copy-branch"
 import { evolveCallout } from "./hud/copy-growth"
 import { stableMeta, stableRow } from "./stable"
+import { TIER_NAME } from "./tier-name"
+
+/** The three tiers the league pays a reward species at, lowest first. */
+const REWARD_TIERS = ["silver", "gold", "legend"] as const
+
+/**
+ * The eggs `grantLeagueRewards` queues for a save standing at `tier`, narrowed
+ * to that tier's own species (a higher ladder also re-pays the lower tiers).
+ */
+function grantedEggIds(tier: LadderTier): string[] {
+  const state = {
+    ...createInitialState(),
+    ladder: { points: 0, tier, subTier: "I" as const },
+  }
+  const tierSpecies = new Set(
+    REWARD_SPECIES.filter((species) => species.rewardFromTier === tier).map(
+      (species) => species.id,
+    ),
+  )
+  return grantLeagueRewards(state, false)
+    .pendingRewards.filter((egg) => tierSpecies.has(egg.speciesId))
+    .map((egg) => egg.speciesId)
+}
+
+/** The population note's clause for one tier, without the trailing punctuation. */
+function tierSentence(note: string, tier: LadderTier): string {
+  const start = note.indexOf(`${TIER_NAME[tier]} pays`)
+  if (start === -1) throw new Error(`no reward line for ${tier}`)
+  const end = note.indexOf("; ", start)
+  return note.slice(start, end === -1 ? undefined : end).replace(/\.$/, "")
+}
 
 /** The three new lines, with the element hue the guideline fixes for each. */
 const NEW_LINES = [
@@ -150,8 +189,31 @@ describe("the handbook's population note", () => {
 
   test("names each new line on its own tier", () => {
     const note = populationNote()
-    expect(note).toContain("Silver pays a Storm Hound or a Whistlefern")
-    expect(note).toContain("Gold pays a Zephyr Falcon or a Coral Claw")
-    expect(note).toContain("Legend pays a Basalt Tortoise or a Moor Cinder")
+    expect(note).toContain("Silver pays a Storm Hound and a Whistlefern")
+    expect(note).toContain("Gold pays a Zephyr Falcon and a Coral Claw")
+    expect(note).toContain("Legend pays a Basalt Tortoise and a Moor Cinder")
+  })
+
+  test("the tier connective matches the eggs the league actually grants", () => {
+    const note = populationNote()
+    for (const tier of REWARD_TIERS) {
+      // Read the count from the grant seam itself, so the copy cannot promise
+      // a choice the league does not offer: `grantLeagueRewards` queues one
+      // egg per species of the tier, never one egg picked from them.
+      const granted = grantedEggIds(tier)
+      const sentence = tierSentence(note, tier)
+      // Every granted species is listed, so the sentence counts the eggs.
+      for (const id of granted) {
+        const species = getSpecies(id)
+        if (!species) throw new Error(`missing species ${id}`)
+        expect(sentence).toContain(species.displayName)
+      }
+      // A tier that pays more than one egg must read as additive ("and"),
+      // never as a choice between them ("or").
+      if (granted.length > 1) {
+        expect(sentence).toContain(" and ")
+        expect(sentence).not.toContain(" or ")
+      }
+    }
   })
 })
