@@ -18,12 +18,12 @@ import {
   type MorningAfterDerivation,
   type MorningAfterMachine,
   mintMorningAfter,
-  morningAfterDue,
   morningAfterSchedule,
   morningAfterTintOf,
   settleMorningAfterNight,
   takeMorningAfter,
 } from "../scene-logic"
+import { morningAfterDue } from "./morning-after-ledger"
 
 /** A derivation straight off the phase-1 classifier's shape. */
 const derivation = (

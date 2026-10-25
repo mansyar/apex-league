@@ -14,7 +14,16 @@ export * from "./scene-logic/framing"
 export * from "./scene-logic/gait"
 export * from "./scene-logic/math"
 export * from "./scene-logic/morning-after"
-export * from "./scene-logic/morning-after-ledger"
+// The ledger's day-derivation probe `morningAfterDue` is internal to the
+// controller — production consumes the ledger through `takeMorningAfter`.
+// Keep the probe module-local (review F3): re-export only the rest.
+export {
+  createMorningAfterLedger,
+  type MorningAfterLedger,
+  mintMorningAfter,
+  settleMorningAfterNight,
+  takeMorningAfter,
+} from "./scene-logic/morning-after-ledger"
 export * from "./scene-logic/morning-after-poses"
 export * from "./scene-logic/pet"
 export * from "./scene-logic/play"

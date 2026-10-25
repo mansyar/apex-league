@@ -175,12 +175,13 @@ export function createApi(s: RanchState): RanchMotion {
         ? s.lastConditions.health < SICK_HEALTH
         : false
       // The ritual day's FIRST accepted pet (postcup_morning_after FR-5)
-      // takes the class's variant instead of the mood's pick — the mood,
-      // sick, and cooldown gates stay exactly as they are, and later pets
-      // read the mood again.
-      const variant = s.morningAfterPetPending
-        ? MORNING_AFTER_PET_VARIANT[s.morningAfterClass]
-        : pickPetReaction(mood, sick)
+      // takes the class's variant instead of the mood's pick — but the
+      // sick gate still wins (review F1): a sick creature stirs no matter
+      // the day. Later pets read the mood again.
+      const variant =
+        s.morningAfterPetPending && !sick
+          ? MORNING_AFTER_PET_VARIANT[s.morningAfterClass]
+          : pickPetReaction(mood, sick)
       if (!s.petMachine.begin(variant, s.reducedMotion)) return null
       if (s.morningAfterPetPending) {
         // The one-pet window closes on the first accepted pet. The pet that

@@ -236,13 +236,74 @@ describe("the pet handler's morning-after leg (FR-5)", () => {
     expect(sick.api.startPet()).toBe("stir")
   })
 
-  test("the night settle releases the class variant back to the mood", () => {
+  test("a sick creature's ritual-day first pet stays the weak stir (F1)", () => {
+    // The class variant must not bypass the sick gate: the same health
+    // gate the idle uses wins on the ritual day too (review F1).
+    const { api, s } = petRig(petConditions({ health: SICK_HEALTH - 1 }))
+    s.morningAfter.begin(
+      { class: "gatekeep", amplifiers: [], bossId: null },
+      false,
+    )
+    run(s, 96) // 6 s — the gatekeep ceremony (5.5 s) has settled into its tint
+    expect(s.morningAfterTint.active).toBe(true)
+    // The sick gate picks the reaction — the class table does not.
+    expect(api.startPet()).toBe("stir")
+    // …and the one-pet window still closes on the accepted pet.
+    expect(s.morningAfterPetPending).toBe(false)
+  })
+
+  test("a second begin while the ceremony runs leaves the latches alone (F5)", () => {
     const { api, s } = petRig(petConditions({ mood: 60 }))
     s.morningAfter.begin(
       { class: "title", amplifiers: [], bossId: null },
       false,
     )
+    run(s, 2) // the ceremony is live
+    api.startPet() // whatever the class variant is — the window closes
+    expect(s.morningAfterPetPending).toBe(false)
+    // A second derivation arrives while the ceremony still runs (the
+    // ledger mints once, but the machine is the guard): the live
+    // ceremony keeps its class and the closed pet window stays closed.
+    s.morningAfter.begin(
+      { class: "exit", amplifiers: [], bossId: null },
+      false,
+    )
+    expect(s.morningAfterClass).toBe("title")
+    expect(s.morningAfterPetPending).toBe(false)
+  })
+
+  test("a mid-ceremony day advance ends the ritual before the tint latches (F2)", () => {
+    const { api, s } = petRig(petConditions({ mood: 60 }))
     s.day = 4
+    s.morningAfter.begin(
+      { class: "title", amplifiers: [], bossId: null },
+      false,
+    )
+    run(s, 16) // 1 s — mid-ceremony (arrival just handed over to the pose)
+    expect(s.morningAfterActive).toBe(true)
+    expect(s.morningAfterPetPending).toBe(true)
+    // The sim day advances while the ceremony still runs — the straddle.
+    s.day = 5
+    run(s, 160) // 10 s — well past the settle edge, into day 5
+    // FR-9: nothing from day 4's ritual survives into day 5 — the tint
+    // never latches with a day it does not belong to and the pet window
+    // closes with the day.
+    expect(s.morningAfterActive).toBe(false)
+    expect(s.morningAfterTint.active).toBe(false)
+    expect(s.morningAfterPetPending).toBe(false)
+    // Day 5's first pet is the mood's own pick again.
+    expect(api.startPet()).toBe("wiggle")
+  })
+
+  test("the night settle releases the class variant back to the mood", () => {
+    const { api, s } = petRig(petConditions({ mood: 60 }))
+    // Production order: scene-sync pushes the sim day down BEFORE the
+    // ceremony begins (the begin latches the ritual's own day).
+    s.day = 4
+    s.morningAfter.begin(
+      { class: "title", amplifiers: [], bossId: null },
+      false,
+    )
     run(s, 160) // the title ceremony fully settled; the tint latched on day 4
     expect(s.morningAfterTint.active).toBe(true)
     // The player never pets that day; the next morning retires the tint…

@@ -110,6 +110,10 @@ export interface RanchState {
    * night settle — the window in which the class conditions the pet's
    * reaction variant (FR-5). */
   morningAfterPetPending: boolean
+  /** The sim day the running (or last-begun) ceremony belongs to — the
+   * frame's mid-ceremony day-straddle guard reads it against the live
+   * day (review F2, FR-9). */
+  morningAfterDay: number
   /** The archetype of the current rig — the pose choreography's key. */
   archetypeId: string
   /** The sim day driving the tint's retire check, latched each update. */
@@ -161,14 +165,25 @@ export function createRanchState(deps: RanchMotionDeps): RanchState {
     morningAfterClass: "exit",
     morningAfterTint: { active: false, day: null, strut: 0, droop: 0 },
     morningAfterPetPending: false,
+    morningAfterDay: 0,
     archetypeId: "",
     day: 0,
   }
   // The adaptor's begin latches the ceremony's class for the settle edge
-  // (the tint latch needs it once the machine leaves the drive surface).
+  // (the tint latch needs it once the machine leaves the drive surface)
+  // and the ceremony's own day — the frame's straddle guard reads the
+  // latched day against the live sim day (review F2).
   s.morningAfter = {
     begin(derivation, reducedMotion): void {
+      // A second derivation arriving while a ceremony is live must not
+      // relatch the class or reopen the first-pet window (review F5):
+      // the machine's own begin no-ops while a ceremony runs, so the
+      // latches here only move when the machine actually takes the
+      // derivation. The zero-length probe is side-effect-free — dt
+      // clamps to [0, 0.1], so no beat advances.
+      if (machine.advance(0).active) return
       s.morningAfterClass = derivation.class
+      s.morningAfterDay = s.day
       // The class-conditioned first-pet window opens with the ritual (FR-5).
       s.morningAfterPetPending = true
       machine.begin(derivation, reducedMotion)

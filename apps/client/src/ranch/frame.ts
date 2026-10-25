@@ -44,6 +44,15 @@ export function updateRanch(
   // sim day clears here — the morning-after never outlives its day. The
   // app pushes the sim day down explicitly (a day 0 default can never
   // retire: the tint's own day is always >= 1).
+  // Mid-ceremony day straddle (review F2, FR-9): a sim-day advance while
+  // the ceremony is still running ends the ritual where it stands — the
+  // machine is dismissed politely and the pet window closes with the day.
+  // The settle edge below never latches a tint with a day the ceremony
+  // does not belong to, so nothing survives the straddle into the new day.
+  if (s.morningAfterDay !== s.day) {
+    s.morningAfter.dismiss()
+    s.morningAfterPetPending = false
+  }
   if (s.morningAfterTint.active) {
     retireMorningAfterTint(s.morningAfterTint, s.day)
     if (!s.morningAfterTint.active) {
@@ -133,7 +142,13 @@ export function updateRanch(
           s.headBaseY,
         )
       } else {
-        if (wasMorningAfter && md.outcome !== "none") {
+        if (
+          wasMorningAfter &&
+          md.outcome !== "none" &&
+          // The straddle guard (review F2): the tint for a finished
+          // ceremony must never latch with a day it does not belong to.
+          s.morningAfterDay === s.day
+        ) {
           setMorningAfterTint(s.morningAfterTint, s.morningAfterClass, s.day)
         }
         // Rest (FR3) and treat (FR4) ceremonies: while either is active it

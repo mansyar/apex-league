@@ -96,7 +96,6 @@ const EXPECTED_EXPORTS = [
   "isTap",
   "lerpAngle",
   "mintMorningAfter",
-  "morningAfterDue",
   "morningAfterSchedule",
   "morningAfterPoseOf",
   "morningAfterTintOf",
