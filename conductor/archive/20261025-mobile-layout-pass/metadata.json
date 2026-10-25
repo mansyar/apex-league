@@ -2,7 +2,7 @@
   "id": "20261025-mobile-layout-pass",
   "title": "Mobile Layout Pass",
   "type": "feature",
-  "status": "in_progress",
+  "status": "complete",
   "priority": "medium",
   "depends_on": [],
   "created_at": "2026-10-25T17:31:54Z",
@@ -27,6 +27,6 @@
   "reverted_at": null,
   "revert_commit": null,
   "revert_pr_url": null,
-  "archived_at": null,
+  "archived_at": "2026-10-25T20:15:00Z",
   "archive_path": null
 }
