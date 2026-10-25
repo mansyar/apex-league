@@ -126,3 +126,29 @@
 > **Evidence:** `verification/phase-4.md`
 
 <!-- Review-Fixes phases are appended here by conductor-review. -->
+
+## Phase R1: Review Fixes
+
+- **Goal:** Resolve every finding from round 1 of review (F1–F6) at root cause, with tests, so the track can pass review under strict mode.
+- **Depends on:** Phase 4
+- **Covers:** F1, F2, F3, F4, F5, F6
+- **Touches:** `apps/client/src/handbook/chart.ts`, `apps/client/src/species-roster.test.ts`, `apps/client/src/gift.ts` (chip class toggle only), `apps/client/src/ranch.css`, `packages/sim/src/bosses.test.ts`, `packages/sim/src/cupRewards.ts`, `packages/sim/src/reward-catchup.test.ts`, `packages/voxel/scripts/determinism-gate.ts`, `packages/voxel/src/frond.test.ts`, `packages/voxel/src/crab.test.ts`, `packages/voxel/src/smolder.test.ts`, `conductor/tracks/20261025-species-roster-expansion/verification/**`
+- **Verification:** `bun test --check --parallel=4 --timeout 120000`
+- **Status:** pending
+
+- [ ] **R1.T1: Handbook tier connective matches granted egg count** — covers: F1, FR-8, AC-8
+  - [ ] **R1.T1.1: Failing test — a two-species tier reads as " and " and the connective agrees with the number of eggs the tier grants**
+  - [ ] **R1.T1.2: Join with " and "; update the three pins in `species-roster.test.ts:153-155`**
+- [ ] **R1.T2: Make the boss-signature invariant non-vacuous** — covers: F2, FR-5, NFR-4
+  - [ ] **R1.T2.1: Delete the dead loop that cannot fail; keep the live signature-uniqueness assertion**
+  - [ ] **R1.T2.2: Pin the three exercised exemptions as data — `koda/flame_charge`, `fenn/pyre_lance`, `thessa/root_quake`**
+- [ ] **R1.T3: Gift chip seat shift keyed on a class, not inline style** — covers: F3, FR-7, NFR-6
+  - [ ] **R1.T3.1: Toggle `.is-hidden` in `syncGiftChip`; rewrite the five `:has()` seat rules to key on `.gift-chip:not(.is-hidden)`; re-verify the four-chip layout at 852×393 and 393×852**
+- [ ] **R1.T4: Reward queue sorts unknown species last** — covers: F4, FR-5
+  - [ ] **R1.T4.1: Failing test — an unknown species id in the queue sorts after every real reward**
+  - [ ] **R1.T4.2: `?? Number.MAX_SAFE_INTEGER`**
+- [ ] **R1.T5: Authoring mode verifies what it writes** — covers: F5, NFR-3
+  - [ ] **R1.T5.1: Regenerate-and-compare within `--write-missing`, or hard-fail at the end instructing a re-run without the flag**
+- [ ] **R1.T6: Boundary containment across all three stages** — covers: F6, FR-2, AC-2
+  - [ ] **R1.T6.1: Extend the containment assertion to juvenile and champion in `frond`, `crab` and `smolder` tests**
+
