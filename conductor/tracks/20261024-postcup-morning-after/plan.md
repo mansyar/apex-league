@@ -79,6 +79,7 @@ clean console.
 - [ ] **P3.T2: Coach debrief ticker** - covers: FR-6
   - [ ] **P3.T2.1: Failing tests — exactly one line shown that day in the existing ticker channel; amplifier copy overrides class copy**
   - [ ] **P3.T2.2: View-model + render glue**
+  - [ ] **P3.T2.3: P2 carry-over wiring — `takeMorningAfterArrival()` call site (first-arrival detection) + adapter day-push / night-settle path**
 - [ ] **P3.T3: careCues per-class remap** - covers: FR-8
   - [ ] **P3.T3.1: Failing tests — cue table maps per-class intensity variants; no new asset files**
   - [ ] **P3.T3.2: Table entries + player passthrough**
