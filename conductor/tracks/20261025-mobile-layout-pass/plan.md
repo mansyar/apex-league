@@ -84,14 +84,25 @@ decision); CSS/layout work is verified through the visual layer.
   `conductor/tracks/20261025-mobile-layout-pass/verification/**`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000` +
   visual evidence (key states × both orientations, desktop guard)
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Cup flow both orientations** — covers: FR-4, AC-2
-  - [ ] **P3.T1.1: `cup.css` adjustments** for entry, bracket, coach room, board, results at both phone orientations — legible, operable, no occlusion, modals within viewport
-  - [ ] **P3.T1.2: Visual evidence** — key states × 393×852 and 852×393 + 1440×900 guard
-- [ ] **P3.T2: Battle & spar surfaces** — covers: FR-5, FR-8, AC-3
-  - [ ] **P3.T2.1: `battle-hud.css` + `spar.css` adjustments** — battle HUD/arena overlays readable mid-battle in both orientations; spar setup/panel/log operable
-  - [ ] **P3.T2.2: Visual evidence** — active spar session + cup battle in both orientations + 1440×900 guard
+- [x] **P3.T1: Cup flow both orientations** — covers: FR-4, AC-2
+  - [x] **P3.T1.1: `cup.css` adjustments** for entry, bracket, coach room, board, results at both phone orientations — legible, operable, no occlusion, modals within viewport
+  - [x] **P3.T1.2: Visual evidence** — key states × 393×852 and 852×393 + 1440×900 guard
+- [x] **P3.T2: Battle & spar surfaces** — covers: FR-5, FR-8, AC-3
+  - [x] **P3.T2.1: `battle-hud.css` + `spar.css` adjustments** — battle HUD/arena overlays readable mid-battle in both orientations; spar setup/panel/log operable
+  - [x] **P3.T2.2: Visual evidence** — active spar session + cup battle in both orientations + 1440×900 guard
+
+- **Result:** verified — real pre-fix defects captured and fixed (landscape
+  coach room was a flow dead-end; battle-hud phone tier targeted dead
+  pre-rework `.spar-hud*` selectors; landscape spar panel clipped both
+  ends); full real cup runs (days 7/14) and spar sessions by real taps at
+  both orientations; desktop guard unchanged; console 0/0 everywhere.
+  Cosmetic residual documented (landscape verdict stamp passes behind the
+  open log box; transient, non-interactive) with two fix attempts spent —
+  left for Phase 4 polish.
+- **Checkpoint:** `90d7431d`
+- **Evidence:** `conductor/tracks/20261025-mobile-layout-pass/verification/phase-3.md`
 
 ## Phase 4 — Secondary surfaces, docs & integrated audit
 
