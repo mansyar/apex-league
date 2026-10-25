@@ -44,7 +44,7 @@
 - **Touches:** `packages/voxel/src/**` (archetype recipes, gilded gate,
   frequency tests), determinism gate script + digest manifest
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
 - [x] **P2.T1: Three archetype recipes** — covers: FR-2, NFR-4
   - [x] **P2.T1.1: Author frond (sapling stag), crab (coral crab), smolder (ember ram) recipes — hue contract, surface ramp, gilded weight 32, frequency tests**
@@ -71,14 +71,23 @@
   (poses/mood for new archetypes), battle animation (BodyProfile,
   move-fx mapping), copy tables; co-located tests
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Roster surfaces** — covers: FR-7, NFR-6
-  - [ ] **P3.T1.1: Plates, handbook entries (element-true crests Plant 110°/Water 205°/Fire 18°), creature detail, growth panel, stable for the three new species**
-- [ ] **P3.T2: Battle choreography** — covers: FR-7
-  - [ ] **P3.T2.1: BodyProfile per new archetype; move-fx mapping for each new kit; staging/arena presentation verified at 1440×900 and 393×852**
-- [ ] **P3.T3: Lifecycle moments & copy** — covers: FR-5 (client), FR-8
-  - [ ] **P3.T3.1: Hatch moment, branch-evolution reveal, single-sourced copy tables (≤2 sentences, stat names visible)**
+- [x] **P3.T1: Roster surfaces** — covers: FR-7, NFR-6
+  - [x] **P3.T1.1: Plates, handbook entries (element-true crests Plant 110°/Water 205°/Fire 18°), creature detail, growth panel, stable for the three new species**
+- [x] **P3.T2: Battle choreography** — covers: FR-7
+  - [x] **P3.T2.1: BodyProfile per new archetype; move-fx mapping for each new kit; staging/arena presentation verified at 1440×900 and 393×852**
+- [x] **P3.T3: Lifecycle moments & copy** — covers: FR-5 (client), FR-8
+  - [x] **P3.T3.1: Hatch moment, branch-evolution reveal, single-sourced copy tables (≤2 sentences, stat names visible)**
+
+> **Result:** verified — three new lines render and play across every client
+> surface (gift card, stable, ranch plate, detail, growth, moves, handbook
+> chart/moves/paths, spar, battle staging, victory); hatch and branch-reveal
+> moments speak single-sourced species copy; mobile bar held at 393×852 and
+> 852×393 with console clean. Gates: test:phase 2781/237/0 fail; verify 0;
+> build 0. Primary lint fix absorbed (`de37cc13`).
+> **Checkpoint:** `a15a01a2`
+> **Evidence:** `verification/phase-3.md`
 
 ## Phase 4 — Rivals, bosses & integrated evidence
 
