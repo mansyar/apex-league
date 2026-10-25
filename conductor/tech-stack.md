@@ -307,6 +307,24 @@
   product-guidelines.md. CSS-only adaptation except that one small module;
   no new dependencies; no sim or save-schema change.*
 
+-   *2026-10-26 — Species roster expansion (track
+  `20261025-species-roster-expansion`): the roster grows 6 → 9 species with
+  three reward lines (Fernstag plant @ Silver, Reefclaw water @ Gold,
+  Cindermoor fire @ Legend) sharing the existing six-move kit vocabulary;
+  **no sim seam redesign and no save-schema change** (save stays **v25**) —
+  acquisition reuses `claimedTiers` / `pendingRewards` with boot-time
+  catch-up. Rival generation needed no change: `makeBracket` already draws
+  from `obtainableSpecies(tier)`, so each tier's field now fields its opened
+  reward pool, while Bronze keeps the three-starter pool byte-identical.
+  The six authored gatekeeper kits stay hand-authored, one wider-pool row
+  each, re-checked against the probe bands (`tactics.balance.test.ts`,
+  `bosses.balance.test.ts`, `form.balance.test.ts`,
+  `species-roster.balance.test.ts` — no assertions weakened and no pinned
+  tally moved). A new `cup/gatekeeper-reach.test.ts` drives the production
+  `prepareCup` → `resolvePlayerMatch` path and pins learnings lesson 13: an
+  authored gatekeeper must reach its stage and be fought for real, which is
+  why every refreshed pairing was also played end-to-end in the browser.*
+
 ## Server
 - **Framework**: ElysiaJS on Bun (endpoints: save sync, leaderboard, ghost
   data, anonymous device-ID auth).
