@@ -1,0 +1,32 @@
+{
+  "id": "20261025-mobile-layout-pass",
+  "title": "Mobile Layout Pass",
+  "type": "feature",
+  "status": "complete",
+  "priority": "medium",
+  "depends_on": [],
+  "created_at": "2026-10-25T17:31:54Z",
+  "updated_at": "2026-10-25T19:45:00Z",
+  "spec": "spec.md",
+  "plan": "plan.md",
+  "branch": "feat/20261025-mobile-layout-pass",
+  "base_branch": "main",
+  "base_sha": "f359653d469308ba474ce2b85f2d1af630ec0fa7",
+  "progress": {
+    "phases_total": 4,
+    "phases_verified": 4,
+    "tasks_total": 9,
+    "tasks_done": 9
+  },
+  "last_checkpoint": "980d050b",
+  "review_verdict": "PASS",
+  "review_rounds": 2,
+  "doc_sync": "updated",
+  "pr_url": "https://github.com/mansyar/apex-league/pull/53",
+  "pr_state": "open",
+  "reverted_at": null,
+  "revert_commit": null,
+  "revert_pr_url": null,
+  "archived_at": "2026-10-25T20:15:00Z",
+  "archive_path": null
+}

@@ -364,71 +364,98 @@
    assumes a wide screen. On phones the placard plates slim down, the
    center rangefinder folds away (the VS badge stays), the announcer
    lower-third gets the full width, and the extra bottom padding keeps
-   the line clear of the corner battle-log chips. */
+   the line clear of the corner battle-log chips. The top padding parks
+   the placard below the ranch chip cluster (Settings/Stable, ~100px tall
+   including the safe area), which otherwise paints over the left plate. */
 @media (max-width: 767.98px) {
-  .spar-hud {
-    padding: 12px 14px calc(96px + var(--kit-safe-bottom));
+  .battle-hud {
+    padding: calc(104px + var(--kit-safe-top)) 14px
+      calc(96px + var(--kit-safe-bottom));
   }
 
-  .spar-hud-top {
+  .battle-hud-top {
     width: min(100%, 980px);
   }
 
-  .spar-plate {
+  .battle-plate {
     gap: 8px;
     padding: 8px 10px 10px;
     min-height: 52px;
   }
 
-  .spar-crest {
+  .battle-crest {
     width: 28px;
     height: 28px;
   }
 
-  .spar-crest svg {
+  .battle-crest svg {
     width: 16px;
     height: 16px;
   }
 
-  .spar-hud-name {
+  .battle-hud-name {
     font-size: 13px;
   }
 
-  .spar-hp-num {
+  .battle-hp-num {
     font-size: 11px;
   }
 
-  .spar-hp-bar {
+  .battle-hp-bar {
     height: 9px;
   }
 
-  .spar-hud-center {
+  .battle-hud-center {
     width: 56px;
     padding: 6px 4px 8px;
   }
 
-  .spar-hud-range {
+  .battle-hud-range {
     display: none;
   }
 
-  .spar-hud-lower {
+  .battle-hud-lower {
     max-width: 100%;
   }
 
-  .spar-hud-line {
+  .battle-hud-line {
     max-width: 100%;
   }
 
-  .spar-stamp-title {
+  .battle-stamp-title {
     font-size: 30px;
     letter-spacing: 0.2em;
   }
 
-  .spar-stamp-rule {
+  .battle-stamp-rule {
     width: min(60vw, 260px);
   }
 
-  .spar-stamp-sub {
+  .battle-stamp-sub {
     font-size: 13px;
+  }
+}
+
+/* Landscape-short phones: height is the constraint, not width, so keep the
+   desktop placard sizes (the wide frame reads well at 852px) but dodge the
+   ranch chip cluster and the verdict stamp drops its bottom bias so it
+   stays clear of the corner log box. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .battle-hud {
+    padding: calc(104px + var(--kit-safe-top)) 14px
+      calc(84px + var(--kit-safe-bottom));
+  }
+
+  .battle-stamp {
+    padding-bottom: 0;
+  }
+
+  .battle-stamp-title {
+    font-size: 24px;
+    letter-spacing: 0.16em;
+    /* Keep the verdict inside the left ~60%: the battle-log box (opened
+       from the corner chips) sits over the right side at this height. */
+    max-width: 60%;
+    margin: 0 auto;
   }
 }

@@ -423,6 +423,22 @@
   margin-top: 4px;
 }
 
+/* Landscape, short viewport (852x393): a tall modal card (the creature
+   detail sheet runs ~376px) overflows a 393-tall window by its own
+   margins. The scrim pads instead of the box centering past the edge, and
+   the card scrolls internally — long panels scroll, never clip. Wider
+   windows keep the unpadded centered card. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .kit-modal {
+    padding: 20px;
+  }
+
+  .kit-modal-box {
+    max-height: 100%;
+    overflow-y: auto;
+  }
+}
+
 /* Visually hidden, still spoken. The text half of a status that also carries
    a glyph, so meaning never rides on colour or shape alone. */
 .kit-sr-only {
@@ -954,4 +970,45 @@ body.is-reduced *::after {
 .kit-crest.is-dual .kit-crest-secondary svg {
   width: 10px;
   height: 10px;
+}
+
+/* ---- Responsive tiers (mobile_layout_pass_20261025) --------------------
+   The kit's own width breakpoints (FR-1). Surfaces reflow their layouts
+   against these exact widths (ranch.css / cup.css phone tiers); the kit
+   carries only what is shared: a ≥40px touch-target floor for every
+   touch-sized viewport, and phone-density for the primitives that
+   render on every screen. Desktop (≥1024px) stays untouched. */
+
+/* Phone (≤767.98px). */
+@media (max-width: 767.98px) {
+  .kit-chip,
+  .kit-button,
+  .kit-cta {
+    min-height: 40px;
+  }
+
+  /* The advance-day band is the dock's widest control; a touch-shorter
+     padding keeps the phone stack compact without losing the floor. */
+  .kit-cta {
+    padding: 10px 14px;
+  }
+
+  /* Disabled-control reason tooltips are nowrap by design; on a phone
+     that can push the page wider than the screen, so they wrap and cap
+     their width instead. */
+  .kit-button[data-reason]::after {
+    white-space: normal;
+    width: max-content;
+    max-width: min(320px, 78vw);
+  }
+}
+
+/* Tablet (768–1023.98px): desktop density holds, but the band is still
+   a touch surface, so the shared controls keep the same floor. */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .kit-chip,
+  .kit-button,
+  .kit-cta {
+    min-height: 40px;
+  }
 }

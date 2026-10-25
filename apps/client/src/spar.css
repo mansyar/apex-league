@@ -275,12 +275,15 @@
 /* Arena mode: the ranch HUD (score bug, creature lower-third, care
    cluster) hides while a fight frames the bowl — broadcast clarity.
    The spar panel, motion pill and camera chip stay visible; the new
-   game chip is a ranch-world control and hides with the dock. */
+   game chip is a ranch-world control and hides with the dock. The
+   lineage plate floats mid-bowl on the ranch seat, so it hides too —
+   same distraction-free rule as the handbook chip below. */
 .app-in-arena .score-bug,
 .app-in-arena .creature-plate,
 .app-in-arena .spar-button,
 .app-in-arena .command-dock,
-.app-in-arena .new-game-chip {
+.app-in-arena .new-game-chip,
+.app-in-arena .hud-lineage {
   display: none;
 }
 
@@ -342,14 +345,31 @@
 
   /* The six-move picker is taller than the phone viewport, and the top-left
      chip cluster (z-45) stays above this overlay. Park the panel below the
-     cluster and let it scroll instead of hiding its heading under HANDBOOK. */
+     cluster — Settings/Handbook/Stable stack to ~152px — and let it scroll
+     instead of hiding its heading under HANDBOOK. */
   .spar-overlay {
     align-items: flex-start;
-    padding: calc(116px + var(--kit-safe-top)) 12px 12px;
+    padding: calc(164px + var(--kit-safe-top)) 12px 12px;
   }
 
   .spar-panel {
-    max-height: calc(100dvh - 128px - var(--kit-safe-top));
+    max-height: calc(100dvh - 176px - var(--kit-safe-top));
+    overflow-y: auto;
+  }
+}
+
+/* Landscape-short phones: the setup panel is ~700px tall against a ~390px
+   viewport, so centering clips its head and close button off-screen and
+   nothing can scroll it. Park it at the top and scroll internally, the
+   same treatment the kit modal gets at this height (ui/kit.css). */
+@media (orientation: landscape) and (max-height: 500px) {
+  .spar-overlay {
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  .spar-panel {
+    max-height: 100%;
     overflow-y: auto;
   }
 }
