@@ -61,4 +61,20 @@ export const FIRE_FX: Record<string, MoveFx> = {
       shove: -0.6,
     },
   },
+  // Cinder Dive (cindermoor's attack form): the ram's head-down plunge —
+  // a deep held coil with a forward rise, one heavy ember at contact.
+  cinder_dive: {
+    wind: 0.58,
+    shots: [{ size: 2.1, life: 880, at: 0.58 }],
+    muzzle: {},
+    kick: -0.6,
+    pose: {
+      windup: { pitch: -0.28, hold: true, roll: 0.09, rise: 0.02, coilX: 0.26 },
+      recoil: { pitchOut: 0.17, sweepX: [0.26, -0.58], riseOut: 0.03 },
+    },
+    arrival: {
+      burst: { puffs: 11, size: 1.7, life: 500, gravity: 9, flashGrow: 3 },
+      shove: -0.55,
+    },
+  },
 }

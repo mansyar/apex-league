@@ -1397,6 +1397,25 @@
     padding: 6px 10px;
   }
 
+  /* A pending league gift (species roster FR-7) makes the cluster four chips
+     tall: it ends at 208 and the 176px seat above would put the Stable chip
+     across the lineage plate. While the egg waits, the plate and the panel
+     stack both step down by the extra chip (32px); with no egg the compact
+     seats above stand untouched. */
+  .hud-motion:has(.gift-chip:not([style*="none"])) ~ .hud-lineage {
+    top: calc(208px + var(--kit-safe-top));
+  }
+
+  .hud-motion:has(.gift-chip:not([style*="none"])) ~ .hud-stack {
+    top: calc(260px + var(--kit-safe-top));
+  }
+
+  /* The teaching callout keeps its "below the lineage plate" seat: the plate
+     now ends at 252, so the card follows it down by the same 32px. */
+  .hud-motion:has(.gift-chip:not([style*="none"])) ~ .hud-callout {
+    top: calc(258px + var(--kit-safe-top));
+  }
+
   .hud-callout {
     /* Below the lineage plate (top: 176px). */
     top: calc(226px + var(--kit-safe-top));
@@ -1479,6 +1498,21 @@
   .creature-plate {
     max-height: calc(100dvh - 246px);
     overflow-y: auto;
+  }
+
+  /* A pending league gift (species roster FR-7) is a fourth chip, so the
+     cluster ends at 196 instead of the 150 the 158px seat above assumes and
+     the Stable chip would sit on the lineage plate. While the egg waits,
+     both the plate and the expanded plate's ceiling slide down by the same
+     46px; with no egg the compact seat above stands untouched. */
+  .hud-motion:has(.gift-chip:not([style*="none"])) ~ .hud-lineage {
+    top: calc(204px + var(--kit-safe-top));
+  }
+
+  .hud-motion:has(.gift-chip:not([style*="none"]))
+    ~ .hud-stack
+    .creature-plate {
+    max-height: calc(100dvh - 292px);
   }
 
   /* 146px: the corner inset plus the score bug's band (16 + 61 tall) plus

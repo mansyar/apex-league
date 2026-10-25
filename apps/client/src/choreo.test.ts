@@ -160,6 +160,38 @@ describe("the authored identities (FR1, FR3)", () => {
     expect(DEFAULT_PROFILE.strikeMult).toBe(1)
   })
 
+  test("the reward lines read as their own body language", () => {
+    // The Silver fernstag: a springy stride, a shallow quick breath, and a
+    // short coil that commits fast — tall and alert rather than heavy.
+    const frond = profileFor("frond")
+    expect(frond.gaitAmp).toBeGreaterThan(profileFor("axolotl").gaitAmp)
+    expect(frond.breathAmp).toBeLessThan(1)
+    expect(frond.breathFreq).toBeGreaterThan(1)
+    expect(frond.windupMult).toBeLessThan(1)
+    expect(frond.strikeMult).toBeGreaterThan(1)
+
+    // The Gold reefclaw: the widest lateral drift in the arena and a low
+    // stance that never leans far — wide and skittering.
+    const crab = profileFor("crab")
+    for (const id of ARCHETYPES) {
+      expect(crab.swayAmp).toBeGreaterThanOrEqual(profileFor(id).swayAmp)
+    }
+    expect(crab.leanPitch).toBeLessThan(0.7)
+    expect(crab.swayFreq).toBeGreaterThan(1)
+
+    // The Legend cindermoor: a slow plod under a deep bellows breath that
+    // coils long and staggers big — banked heat, not show.
+    const smolder = profileFor("smolder")
+    expect(smolder.gaitFreq).toBeLessThan(profileFor("bovine").gaitFreq)
+    expect(smolder.breathAmp).toBeGreaterThan(1)
+    expect(smolder.windupMult).toBeGreaterThan(
+      profileFor("draconic").windupMult,
+    )
+    expect(smolder.staggerMult).toBeGreaterThan(
+      profileFor("draconic").staggerMult,
+    )
+  })
+
   test("the attack character reads as personality", () => {
     // A heavy body coils slow and deep; a quick body snaps out of a
     // short windup.

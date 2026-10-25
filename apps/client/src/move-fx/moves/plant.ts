@@ -63,4 +63,20 @@ export const PLANT_FX: Record<string, MoveFx> = {
       shove: -0.5,
     },
   },
+  // Thorn Charge (fernstag's attack form): the antlered run — a held coil,
+  // one heavy seed-cluster at contact, and a shove that reads as a body
+  // check rather than a blast.
+  thorn_charge: {
+    wind: 0.54,
+    shots: [{ size: 2, life: 900, at: 0.54 }],
+    kick: -0.54,
+    pose: {
+      windup: { pitch: -0.32, hold: true, rise: -0.06, coilX: 0.28 },
+      recoil: { pitchOut: 0.18, sweepX: [0.28, -0.58] },
+    },
+    arrival: {
+      burst: { puffs: 11, size: 1.4, life: 700, gravity: 6, flashGrow: 3.2 },
+      shove: -0.5,
+    },
+  },
 }

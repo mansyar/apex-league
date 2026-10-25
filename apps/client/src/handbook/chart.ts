@@ -3,8 +3,14 @@
  * the sim's `typeFactor`, so the chart cannot drift from the battle math.
  */
 
-import { type Element, typeFactor } from "@apex/sim"
+import {
+  type Element,
+  type LadderTier,
+  REWARD_SPECIES,
+  typeFactor,
+} from "@apex/sim"
 import { crestGlyph, elementHue } from "../element"
+import { TIER_NAME } from "../tier-name"
 import { appendGlyph, ELEMENT_LABELS, subhead, tip } from "./common"
 
 /** Chart order: the guideline's fixed type hues, in broadcast order. */
@@ -17,11 +23,42 @@ const CHART_ELEMENTS: Element[] = [
   "wind",
 ]
 
-/** Population note copy — states today's roster without promising dates. */
-const POPULATION_NOTE =
-  "Fire, Plant, and Water partners roam the league today, and the league's " +
-  "reward tiers hand out the Electric Storm Hound (Silver), the Zephyr " +
-  "Falcon (Gold), and the Basalt Tortoise (Legend)."
+/**
+ * The tiers the league pays, lowest first.
+ */
+const REWARD_TIERS: readonly LadderTier[] = ["silver", "gold", "legend"]
+
+const VOWEL = /^[aeiou]/i
+const withArticle = (name: string): string =>
+  `${VOWEL.test(name) ? "an" : "a"} ${name}`
+
+/** One tier's reward lines, in catalog order: "a Storm Hound or a Whistlefern". */
+function tierLine(tier: LadderTier): string {
+  const names = REWARD_SPECIES.filter(
+    (species) => species.rewardFromTier === tier,
+  ).map((species) => withArticle(species.displayName))
+  if (names.length === 0) return ""
+  const list =
+    names.length === 1
+      ? names[0]
+      : `${names.slice(0, -1).join(", ")} or ${names.at(-1)}`
+  return `${TIER_NAME[tier]} pays ${list}`
+}
+
+/**
+ * The population note: the starter trio by element, then every reward tier
+ * read from the sim's own catalog — so a tier can never be credited here with
+ * a line the league stopped handing out, and a new reward line needs no edit.
+ */
+export function populationNote(): string {
+  const rewards = REWARD_TIERS.map(tierLine)
+    .filter((line) => line !== "")
+    .join("; ")
+  return (
+    "Fire, Plant, and Water partners roam the league today, and every reward " +
+    `tier hands out a partner of another element. ${rewards}.`
+  )
+}
 
 function chartHead(tag: "rowheader" | "columnheader"): HTMLElement {
   const head = document.createElement("span")
@@ -92,7 +129,7 @@ export function buildTypeChart(panel: HTMLElement): void {
   panel.append(grid)
   const note = document.createElement("p")
   note.className = "handbook-note"
-  note.textContent = POPULATION_NOTE
+  note.textContent = populationNote()
   panel.append(note)
 
   // FR-6: the chart reads the primary type only — the secondary affinity's
