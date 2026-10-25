@@ -54,14 +54,24 @@ decision); CSS/layout work is verified through the visual layer.
   `conductor/tracks/20261025-mobile-layout-pass/verification/**`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000` +
   visual evidence (both orientations, desktop + tablet guard)
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Dock collapse adaptation** — covers: FR-7, AC-5
-  - [ ] **P2.T1.1: Failing-first unit test for the collapse decision** — pure function: viewport width class → collapsed default on phone widths; user toggle override persists in-session; desktop default unchanged
-  - [ ] **P2.T1.2: Implement collapse behavior + wiring** — dock condenses on phone widths; no gestures; existing handlers unchanged; module stays within the 12 KB cap
-- [ ] **P2.T2: Landscape ranch/HUD pass** — covers: FR-3, AC-1 (landscape)
-  - [ ] **P2.T2.1: Landscape rules in `ranch.css`/`kit.css`** at 852×393 — panels fit without covering the scene
-  - [ ] **P2.T2.2: Visual evidence** — 852×393 ranch day view + 393×852 recheck + 1440×900 and tablet-band guards
+- [x] **P2.T1: Dock collapse adaptation** — covers: FR-7, AC-5
+  - [x] **P2.T1.1: Failing-first unit test for the collapse decision** — pure function: viewport width class → collapsed default on phone widths; user toggle override persists in-session; desktop default unchanged
+  - [x] **P2.T1.2: Implement collapse behavior + wiring** — dock condenses on phone widths; no gestures; existing handlers unchanged; module stays within the 12 KB cap
+- [x] **P2.T2: Landscape ranch/HUD pass** — covers: FR-3, AC-1 (landscape)
+  - [x] **P2.T2.1: Landscape rules in `ranch.css`/`kit.css`** at 852×393 — panels fit without covering the scene
+  - [x] **P2.T2.2: Visual evidence** — 852×393 ranch day view + 393×852 recheck + 1440×900 and tablet-band guards
+
+- **Result:** verified — landscape block is orientation-gated (no third
+  width breakpoint); dock collapses by default on phone only via a pure
+  session seam (`hud/dock-collapse.ts`, failing-first TDD, no
+  persistence); 16/16 hit-test sweeps in both plate states; real-tap
+  interaction proofs in both orientations; portrait recheck, desktop
+  1440×900 and tablet 800×1000 guards measured unchanged; console 0/0 at
+  all four viewports.
+- **Checkpoint:** `319bd9d7`
+- **Evidence:** `conductor/tracks/20261025-mobile-layout-pass/verification/phase-2.md`
 
 ## Phase 3 — Cup, battle & spar
 
