@@ -46,6 +46,12 @@ export function updateRanch(
   // retire: the tint's own day is always >= 1).
   if (s.morningAfterTint.active) {
     retireMorningAfterTint(s.morningAfterTint, s.day)
+    if (!s.morningAfterTint.active) {
+      // The tint actually retired — the night settle. The class-conditioned
+      // first-pet window belongs to the ritual day too: never petted, it
+      // closes with the day (FR-5) and the mood picks again tomorrow.
+      s.morningAfterPetPending = false
+    }
   }
   const profile = MOOD_PROFILES[s.mode]
   const creatureGroup = s.creatureGroup

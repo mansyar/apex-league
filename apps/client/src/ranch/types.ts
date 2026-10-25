@@ -1,6 +1,7 @@
 import type { CreatureConditions } from "@apex/sim"
 import type { Stage } from "@apex/voxel"
 import type * as THREE from "three"
+import type { MorningAfterDerivation } from "../morning-after/derive"
 import type { PetVariant } from "../scene-logic"
 
 /** Registered swayers: {group, baseAmp, phase} attached at scatter
@@ -78,6 +79,17 @@ export interface RanchMotion {
   ): void
   /** A plain rebuild cancels an in-flight evolution ceremony. */
   clearEvolution(): void
+  /**
+   * Begin the postcup morning-after arrival ceremony (FR-2) from the
+   * derivation the store banked at finalize: the machine owns the
+   * creature from its current pose — the arrival beat, the class pose,
+   * the glow, the amplifier beat — and reduced motion jump-cuts straight
+   * to the short glow (FR-7). A running ceremony ignores a second begin.
+   */
+  startMorningAfter(derivation: MorningAfterDerivation): void
+  /** Latch the sim day — the day tint's night-settle retire reads it
+   * (FR-3); a day 0 default could never retire. */
+  setRanchDay(day: number): void
   /** Drop all registered swayers + wander candidates (re-scatter). */
   resetProps(): void
   /** Attach a scattered prop: sway registration + wander candidates. */

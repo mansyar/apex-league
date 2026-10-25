@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test"
+import type { CreatureConditions } from "@apex/sim"
+import { SICK_HEALTH } from "@apex/sim"
 import * as THREE from "three"
 import type { FaceEyes } from "../face-motion"
 import {
@@ -17,9 +19,14 @@ import {
  * set softly without shadowing the idle leg's gait. Object3D transforms
  * are pure JS, so the writers are driven against real Three objects.
  */
+import { createApi } from "./api"
+import { updateRanch } from "./frame"
 import { applyMorningAfterIdle, applyMorningAfterPose } from "./poses"
+import { createRanchState, type RanchState } from "./state"
+import type { RanchMotion, RanchMotionDeps } from "./types"
 
 const HEAD_BASE_Y = 1.5
+const DT = 0.0625
 
 function rig() {
   const root = new THREE.Group()
@@ -130,5 +137,119 @@ describe("ranch poses — the morning-after leg (FR-3)", () => {
     )
     expect(head.rotation.x).toBeLessThan(0)
     expect(tail.rotation.x).toBeLessThan(0)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// The pet handler's morning-after leg (postcup_morning_after FR-5): the
+// ritual day's FIRST accepted pet takes the class's reaction variant, the
+// pet that dismisses a running ceremony counts as that first pet, and every
+// cooldown / condition gate is untouched. Driven through the real frame loop
+// so the machine, the adapter, and the api all see the same timing.
+// ---------------------------------------------------------------------------
+
+const petDeps: RanchMotionDeps = {
+  scene: new THREE.Scene(),
+  disposeGroup: () => {},
+  onCreatureMoved: () => {},
+  pileX: 0,
+  pileZ: 0,
+}
+
+const petConditions = (
+  over: Partial<CreatureConditions>,
+): CreatureConditions => ({
+  hunger: 50,
+  energy: 100,
+  health: 100,
+  mood: 90, // the mood's own pick would be the perky hop
+  bond: 0,
+  ...over,
+})
+
+function petRig(conditions: CreatureConditions | null = null): {
+  api: RanchMotion
+  s: RanchState
+} {
+  const s = createRanchState(petDeps)
+  s.creatureGroup = new THREE.Group()
+  s.lastConditions = conditions
+  return { api: createApi(s), s }
+}
+
+/** Frame steps from t=0 at the binary-exact dt the ceremonies use. */
+function run(s: RanchState, n: number): void {
+  for (let i = 1; i <= n; i++) updateRanch(s, i * DT, DT, true)
+}
+
+describe("the pet handler's morning-after leg (FR-5)", () => {
+  test("the ritual day's first pet takes the class's variant, not the mood's", () => {
+    const { api, s } = petRig(petConditions({}))
+    s.morningAfter.begin(
+      { class: "gatekeep", amplifiers: [], bossId: null },
+      false,
+    )
+    run(s, 96) // 6 s — the gatekeep ceremony (5.5 s) has settled into its tint
+    expect(s.morningAfterTint.active).toBe(true)
+    expect(api.startPet()).toBe("lean")
+  })
+
+  test("exactly the first pet is class-conditioned; cooldowns stay untouched", () => {
+    const { api, s } = petRig(petConditions({}))
+    s.morningAfter.begin(
+      { class: "gatekeep", amplifiers: [], bossId: null },
+      false,
+    )
+    run(s, 96) // 6 s — the gatekeep ceremony (5.5 s) has settled into its tint
+    expect(api.startPet()).toBe("lean")
+    // The spam cooldown still rejects the immediate second pet…
+    expect(api.startPet()).toBe(null)
+    // …and once it elapses (react 1.0 s + cooldown 1.6 s), the mood's own
+    // pick resumes — the class variant was a one-pet window.
+    run(s, 42) // 2.625 s
+    expect(api.startPet()).toBe("hop")
+  })
+
+  test("the pet that dismisses a running ceremony counts as the first pet", () => {
+    // A calm mood would wiggle; the title morning hops instead.
+    const { api, s } = petRig(petConditions({ mood: 60 }))
+    s.morningAfter.begin(
+      { class: "title", amplifiers: [], bossId: null },
+      false,
+    )
+    run(s, 1) // the ceremony owns the creature from its first frame
+    expect(s.morningAfterActive).toBe(true)
+    expect(api.startPet()).toBe("hop")
+    expect(s.morningAfterPetPending).toBe(false)
+    // The dismissal latched: the drive settles into release and the day
+    // tint takes over from the title stance (strut 1).
+    run(s, 32) // 2 s — the release eases out
+    expect(s.morningAfterActive).toBe(false)
+    expect(s.morningAfterTint.active).toBe(true)
+    expect(s.morningAfterTint.strut).toBe(1)
+  })
+
+  test("a non-ritual day pets exactly as before (conditions and cooldowns)", () => {
+    const { api } = petRig(petConditions({}))
+    expect(api.startPet()).toBe("hop")
+    const sick = petRig(petConditions({ health: SICK_HEALTH - 1 }))
+    expect(sick.api.startPet()).toBe("stir")
+  })
+
+  test("the night settle releases the class variant back to the mood", () => {
+    const { api, s } = petRig(petConditions({ mood: 60 }))
+    s.morningAfter.begin(
+      { class: "title", amplifiers: [], bossId: null },
+      false,
+    )
+    s.day = 4
+    run(s, 160) // the title ceremony fully settled; the tint latched on day 4
+    expect(s.morningAfterTint.active).toBe(true)
+    // The player never pets that day; the next morning retires the tint…
+    s.day = 5
+    run(s, 1)
+    expect(s.morningAfterTint.active).toBe(false)
+    // …and the first pet of the new day is the mood's own pick again.
+    expect(api.startPet()).toBe("wiggle")
   })
 })

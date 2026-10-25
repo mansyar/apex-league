@@ -27,6 +27,12 @@ export function createSceneSync(
   /** Cheap scene reducers: pile visibility + mood idle. Fired after any
    * sim mutation — the scene no-ops internally when nothing changed. */
   const sceneVisuals = (): void => {
+    // The ranch frame's night-settle retire reads the sim day (the
+    // morning-after's day tint must not outlive its day — FR-3), and a day
+    // 0 default could never retire. Push the day down on every visuals
+    // pass: every day mover (advanceDay) lands here, right after its
+    // commit, before the next frame runs.
+    scene.setRanchDay(store.get().day)
     const creature = store.get().creature
     if (!creature) return
     scene.setFedToday(creature.fedToday)

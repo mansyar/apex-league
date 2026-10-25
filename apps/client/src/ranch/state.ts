@@ -106,6 +106,10 @@ export interface RanchState {
   /** The day-long idle tint's latch — set on the ceremony's settle edge,
    * cleared by the night settle (FR-3). */
   morningAfterTint: MorningAfterTintState
+  /** True from the ceremony's begin until the first accepted pet or the
+   * night settle — the window in which the class conditions the pet's
+   * reaction variant (FR-5). */
+  morningAfterPetPending: boolean
   /** The archetype of the current rig — the pose choreography's key. */
   archetypeId: string
   /** The sim day driving the tint's retire check, latched each update. */
@@ -156,6 +160,7 @@ export function createRanchState(deps: RanchMotionDeps): RanchState {
     morningAfterActive: false,
     morningAfterClass: "exit",
     morningAfterTint: { active: false, day: null, strut: 0, droop: 0 },
+    morningAfterPetPending: false,
     archetypeId: "",
     day: 0,
   }
@@ -164,6 +169,8 @@ export function createRanchState(deps: RanchMotionDeps): RanchState {
   s.morningAfter = {
     begin(derivation, reducedMotion): void {
       s.morningAfterClass = derivation.class
+      // The class-conditioned first-pet window opens with the ritual (FR-5).
+      s.morningAfterPetPending = true
       machine.begin(derivation, reducedMotion)
     },
     dismiss: machine.dismiss,

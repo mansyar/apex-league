@@ -152,6 +152,12 @@ export function createScene(
     startEvolutionCeremony(archetypeId, seed, targetStage, onDone, branch) {
       motion.startEvolution(archetypeId, seed, targetStage, onDone, branch)
     },
+    startMorningAfterCeremony(derivation) {
+      motion.startMorningAfter(derivation)
+    },
+    setRanchDay(day) {
+      motion.setRanchDay(day)
+    },
     setProps(visualSeed) {
       dressing.setProps(visualSeed)
     },

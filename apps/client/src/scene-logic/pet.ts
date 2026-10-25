@@ -10,6 +10,8 @@
 // a small delight rather than a spammy trigger. No sim state is touched.
 // ---------------------------------------------------------------------------
 
+import type { MorningAfterClass } from "../morning-after/derive"
+
 export type PetVariant = "hop" | "wiggle" | "lean" | "stir"
 
 export type PetPhase = "idle" | "react"
@@ -47,6 +49,23 @@ export function pickPetReaction(mood: number, sick: boolean): PetVariant {
   if (mood >= 50) return "wiggle"
   return "lean"
 }
+
+/**
+ * The ritual day's first-pet variant (postcup_morning_after FR-5): the
+ * morning-after classes map onto the existing reaction vocabulary — the
+ * champion prances a bright hop, the gatekeep morning leans in respectful,
+ * the ordinary exit shuffles a tired wiggle, and the forfeit barely stirs.
+ * Intensity follows the day's outcome; only the FIRST accepted pet of the
+ * ritual day reads this table — cooldowns and the mood/sick gates are
+ * untouched, and later pets pick by mood exactly as before.
+ */
+export const MORNING_AFTER_PET_VARIANT: Record<MorningAfterClass, PetVariant> =
+  {
+    title: "hop",
+    gatekeep: "lean",
+    exit: "wiggle",
+    withdrawn: "stir",
+  }
 
 export interface PetMachine {
   /** Start a reaction. Rejected while reacting or cooling down. */
