@@ -48,16 +48,20 @@ clean console.
 - **Covers:** FR-2, FR-3, FR-7, AC-2
 - **Touches:** `apps/client/src/scene-logic/**`, `apps/client/src/ranch/**`, `apps/client/src/store.ts` (arrival glue), module-size guard inclusion
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Ritual machine (`morning-after` machine in scene-logic)** - covers: FR-2
-  - [ ] **P2.T1.1: Failing tests — one-shot trigger on first ranch arrival after finalize, dismiss-on-intent, no same-day replay, class caps enforced by the schedule**
-  - [ ] **P2.T1.2: Schedule builder with class-adaptive beats and deterministic (seeded) timing**
-- [ ] **P2.T2: Per-archetype poses + idle tint** - covers: FR-3
-  - [ ] **P2.T2.1: Class pose choreography over the existing pose vocabulary for all six archetypes**
-  - [ ] **P2.T2.2: Day-long idle weight tint set on arrival, cleared at night settle**
-- [ ] **P2.T3: Reduced-motion jump-cut** - covers: FR-7
-  - [ ] **P2.T3.1: Machine emits jump-cut schedule (≤ 2 s, no travel/leap/spin) under the motion preference**
+- [x] **P2.T1: Ritual machine (`morning-after` machine in scene-logic)** - covers: FR-2
+  - [x] **P2.T1.1: Failing tests — one-shot trigger on first ranch arrival after finalize, dismiss-on-intent, no same-day replay, class caps enforced by the schedule**
+  - [x] **P2.T1.2: Schedule builder with class-adaptive beats and deterministic (seeded) timing**
+- [x] **P2.T2: Per-archetype poses + idle tint** - covers: FR-3
+  - [x] **P2.T2.1: Class pose choreography over the existing pose vocabulary for all six archetypes**
+  - [x] **P2.T2.2: Day-long idle weight tint set on arrival, cleared at night settle**
+- [x] **P2.T3: Reduced-motion jump-cut** - covers: FR-7
+  - [x] **P2.T3.1: Machine emits jump-cut schedule (≤ 2 s, no travel/leap/spin) under the motion preference**
+
+**Result:** verified
+**Checkpoint:** dc71600
+**Evidence:** conductor/tracks/20261024-postcup-morning-after/verification/phase-2.md
 
 ## Phase 3: Pet Variant, Debrief & Audio
 
