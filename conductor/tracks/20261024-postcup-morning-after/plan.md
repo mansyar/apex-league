@@ -96,14 +96,18 @@ clean console.
 - **Covers:** FR-9, AC-5, AC-6, NFR-1, NFR-2, NFR-3, NFR-4, NFR-7
 - **Touches:** `apps/client/src/scene-logic/**`, `apps/client/src/ranch/**` (edge glue), `conductor/tech-stack.md`
 - **Verification:** `bun run verify && bun run build` + visual-layer procedure (playwright-cli, desktop + iPhone 15, clean console)
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P4.T1: Edge rules** - covers: FR-9, AC-6
-  - [ ] **P4.T1.1: Failing tests — evolution-reveal collision yields (debrief may still show), first-ever forfeited cup → withdrawn with zero amplifiers, reload skips gracefully, night settle clears state**
-- [ ] **P4.T2: Visual checklist** - covers: AC-5
-  - [ ] **P4.T2.1: Champion + subdued mornings screenshot at 1440×900 and 393 px, console clean, evidence in `verification/phase-4.md`**
-- [ ] **P4.T3: Docs sync** - covers: NFR-1, NFR-2
-  - [ ] **P4.T3.1: `conductor/tech-stack.md` dated note (new module boundary; save stays v25)**
+- [x] **P4.T1: Edge rules** - covers: FR-9, AC-6
+  - [x] **P4.T1.1: Failing tests — evolution-reveal collision yields (debrief may still show), first-ever forfeited cup → withdrawn with zero amplifiers, reload skips gracefully, night settle clears state**
+- [x] **P4.T2: Visual checklist** - covers: AC-5
+  - [x] **P4.T2.1: Champion + subdued mornings screenshot at 1440×900 and 393 px, console clean, evidence in `verification/phase-4.md`**
+- [x] **P4.T3: Docs sync** - covers: NFR-1, NFR-2
+  - [x] **P4.T3.1: `conductor/tech-stack.md` dated note (new module boundary; save stays v25)**
+
+**Result:** verified
+**Checkpoint:** 698c8b03
+**Evidence:** conductor/tracks/20261024-postcup-morning-after/verification/phase-4.md
 
 <!--
 Review fixes are appended by `conductor-review` as:
