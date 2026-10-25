@@ -117,15 +117,27 @@ decision); CSS/layout work is verified through the visual layer.
   `conductor/tracks/20261025-mobile-layout-pass/verification/**`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000` +
   full both-orientation sweep evidence + `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P4.T1: Secondary surfaces pass** — covers: FR-6, AC-4
-  - [ ] **P4.T1.1: Adjustments** for stable, graduation/nursery, handbook, starter, gift, settings, recovery, save-transfer in both orientations — long content scrolls rather than clips; inputs reachable with OS keyboard open
-  - [ ] **P4.T1.2: Visual evidence** — representative state per surface × both orientations + desktop guard
-- [ ] **P4.T2: Guidelines mobile bar** — covers: FR-9, AC-6
-  - [ ] **P4.T2.1: Record the mobile bar in `conductor/product-guidelines.md`** — 393px core loops playable, desktop-first unchanged; edit requires explicit approval per the docs-sync gate
-- [ ] **P4.T3: Integrated audit** — covers: AC-1, AC-2, AC-3, AC-4 (final confirmation), AC-8
-  - [ ] **P4.T3.1: Full sweep** — every surface × both orientations, adopted bar re-checked end-to-end, console clean, integrated evidence summary
+- [x] **P4.T1: Secondary surfaces pass** — covers: FR-6, AC-4
+  - [x] **P4.T1.1: Adjustments** for stable, graduation/nursery, handbook, starter, gift, settings, recovery, save-transfer in both orientations — long content scrolls rather than clips; inputs reachable with OS keyboard open
+  - [x] **P4.T1.2: Visual evidence** — representative state per surface × both orientations + desktop guard
+- [x] **P4.T2: Guidelines mobile bar** — covers: FR-9, AC-6
+  - [x] **P4.T2.1: Record the mobile bar in `conductor/product-guidelines.md`** — 393px core loops playable, desktop-first unchanged; edit requires explicit approval per the docs-sync gate
+- [x] **P4.T3: Integrated audit** — covers: AC-1, AC-2, AC-3, AC-4 (final confirmation), AC-8
+  - [x] **P4.T3.1: Full sweep** — every surface × both orientations, adopted bar re-checked end-to-end, console clean, integrated evidence summary
+
+- **Result:** verified — STABLE/DRAFT-DAY overlap fixed and proven at both
+  orientations; full secondary sweep with real-tap proofs (draft, ranch,
+  stable, handbook, settings + save-transfer, recovery incl. corrupt-save
+  cycle, cup entry); bar re-checked end-to-end; console 0/0 everywhere;
+  desktop + tablet guards unchanged. Mobile bar recorded as UX Principle 8
+  in product-guidelines.md (user-approved wording, applied by the primary).
+  AC-4 visual coverage for graduation/nursery/gift is a recorded partial
+  gap (unreachable by real play in one session; static CSS review only —
+  fallback ladder).
+- **Checkpoint:** `980d050b`
+- **Evidence:** `conductor/tracks/20261025-mobile-layout-pass/verification/phase-4.md`
 
 ---
 
