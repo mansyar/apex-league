@@ -116,7 +116,7 @@ clean console.
 - **Covers:** F1, F2, F3, F4, F5
 - **Touches:** `apps/client/src/ranch/api.ts`, `apps/client/src/ranch/frame.ts`, `apps/client/src/ranch/state.ts`, `apps/client/src/ranch/morning-after.test.ts`, `apps/client/src/scene-logic/morning-after-ledger.ts`, `apps/client/src/scene-logic.test.ts`, `apps/client/src/app/hud-screen.ts` (+ test), and their co-located tests
 - **Verification:** `bun test --check --parallel=4 --timeout 120000` then `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Resolve F1** — covers: F1
   - [ ] **R1.T1.1: Failing test — sick creature's ritual-day first pet returns `stir` and closes the window**
