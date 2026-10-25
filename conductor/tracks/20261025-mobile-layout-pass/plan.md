@@ -117,7 +117,7 @@ decision); CSS/layout work is verified through the visual layer.
   `conductor/tracks/20261025-mobile-layout-pass/verification/**`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000` +
   full both-orientation sweep evidence + `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P4.T1: Secondary surfaces pass** — covers: FR-6, AC-4
   - [ ] **P4.T1.1: Adjustments** for stable, graduation/nursery, handbook, starter, gift, settings, recovery, save-transfer in both orientations — long content scrolls rather than clips; inputs reachable with OS keyboard open
