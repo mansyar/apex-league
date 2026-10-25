@@ -134,7 +134,7 @@
 - **Covers:** F1, F2, F3, F4, F5, F6
 - **Touches:** `apps/client/src/handbook/chart.ts`, `apps/client/src/species-roster.test.ts`, `apps/client/src/gift.ts` (chip class toggle only), `apps/client/src/ranch.css`, `packages/sim/src/bosses.test.ts`, `packages/sim/src/cupRewards.ts`, `packages/sim/src/reward-catchup.test.ts`, `packages/voxel/scripts/determinism-gate.ts`, `packages/voxel/src/frond.test.ts`, `packages/voxel/src/crab.test.ts`, `packages/voxel/src/smolder.test.ts`, `conductor/tracks/20261025-species-roster-expansion/verification/**`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Handbook tier connective matches granted egg count** — covers: F1, FR-8, AC-8
   - [ ] **R1.T1.1: Failing test — a two-species tier reads as " and " and the connective agrees with the number of eggs the tier grants**
