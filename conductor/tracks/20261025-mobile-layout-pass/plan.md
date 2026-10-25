@@ -18,7 +18,7 @@ decision); CSS/layout work is verified through the visual layer.
 - **Goal:** the shared kit gains coherent width breakpoints and the ranch+HUD
   day view is fully playable at 393×852 with zero occlusion.
 - **Depends on:** none
-- **Covers:** FR-1, FR-2, NFR-2, NFR-5, AC-1 (portrait), AC-7, AC-8
+- **Covers:** FR-1, FR-2, NFR-2, NFR-3, NFR-4, NFR-5, NFR-6, AC-1 (portrait), AC-7, AC-8
 - **Touches:** `apps/client/src/ui/kit.css`, `apps/client/src/ranch.css`,
   `apps/client/src/hud/**` (class/markup only),
   `conductor/tracks/20261025-mobile-layout-pass/verification/**`
