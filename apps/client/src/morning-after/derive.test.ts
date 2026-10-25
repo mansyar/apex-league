@@ -209,6 +209,40 @@ describe("deriveMorningAfter — the outcome classifier (FR-1)", () => {
     expect(d?.bossId).toBeNull()
   })
 
+  test("the first-ever forfeited cup is a withdrawn morning with zero amplifiers (FR-9, AC-6)", () => {
+    const live = startCupSession(creature(), CUP_DAY, 101)
+    const player = live.bracket.slots[0]
+    if (!player) throw new Error("missing player slot")
+    const rival = live.nextOpponent
+    if (!rival) throw new Error("missing fixture rival")
+    const session = completeCup({
+      ...live,
+      status: "eliminated",
+      nextPlayerRound: 0,
+      nextOpponent: null,
+      playerVerdicts: [
+        {
+          round: 1,
+          slotA: player.name,
+          slotB: rival.name,
+          winner: rival.name,
+          line: "",
+          battle: null,
+        },
+      ],
+    })
+    // The first-ever cup: both snapshots sit at the persisted zeros — the
+    // forfeit crossed no milestone (cupsWon stays 0, no scalps, no claims),
+    // so the withdrawn morning carries nothing to amplify it.
+    const pre = createInitialState()
+    expect(pre.cupsWon).toBe(0)
+    expect(pre.bossDefeats).toEqual([])
+    expect(pre.claimedTiers).toEqual([])
+    const post = { ...pre }
+    const d = deriveMorningAfter(session, pre, post)
+    expect(d).toEqual({ class: "withdrawn", amplifiers: [], bossId: null })
+  })
+
   test("the finalize's persisted firsts ride along as amplifiers (FR-4)", () => {
     const session = play(creature(), 17, "specials")
     const gate = getBoss("koda")

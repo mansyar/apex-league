@@ -352,3 +352,73 @@ describe("the ritual ledger — one shot per ritual day (FR-2, FR-9)", () => {
     expect(ledger.pending).not.toBeNull()
   })
 })
+
+describe("no lingering timers — deterministic cleanup (NFR-7)", () => {
+  /** Count every timer the machine (or anything it calls) tries to
+   * schedule while the globals are stood in for. The stub replaces the
+   * globals only for the guarded run; the casts are the price of a test
+   * double with the exact global signature (the sim tests do the same for
+   * synthetic verdicts). */
+  function countTimers(): { scheduled: string[]; restore(): void } {
+    const scheduled: string[] = []
+    const realSetTimeout = globalThis.setTimeout
+    const realSetInterval = globalThis.setInterval
+    const counting = (kind: string) => () => {
+      scheduled.push(kind)
+      return 0
+    }
+    // `as unknown as` per the compiler's own suggestion: the stub only
+    // needs to be callable, never used — the machine never holds a handle.
+    globalThis.setTimeout = counting(
+      "setTimeout",
+    ) as unknown as typeof setTimeout
+    globalThis.setInterval = counting(
+      "setInterval",
+    ) as unknown as typeof setInterval
+    return {
+      scheduled,
+      restore: () => {
+        globalThis.setTimeout = realSetTimeout
+        globalThis.setInterval = realSetInterval
+      },
+    }
+  }
+
+  test("a full ceremony and a dismissal never schedule a timer, and stay settled past done", () => {
+    const { scheduled, restore } = countTimers()
+    try {
+      // A full title run with the amplifier: every phase crosses, still no
+      // timer anywhere — the schedule is pure derived values (NFR-5).
+      const machine = createMorningAfterCeremony()
+      machine.begin(derivation("title", [{ kind: "first_title" }]), false)
+      let last = machine.advance(DT)
+      for (let i = 0; i < 400 && !last.done; i++) last = machine.advance(DT)
+      expect(last.done).toBe(true)
+      // A dismissed run completes through the same dt steps.
+      const dismissed = createMorningAfterCeremony()
+      dismissed.begin(derivation("gatekeep"), false)
+      dismissed.advance(DT)
+      dismissed.dismiss()
+      let lastDismissed = dismissed.advance(DT)
+      for (let i = 0; i < 400 && !lastDismissed.done; i++) {
+        lastDismissed = dismissed.advance(DT)
+      }
+      expect(lastDismissed.done).toBe(true)
+      expect(lastDismissed.outcome).toBe("dismissed")
+      // Post-done advance stability: the settled machines report the same
+      // clean drive forever — no hidden timer ever has to fire (NFR-7).
+      for (let i = 0; i < 64; i++) {
+        for (const settled of [machine.advance(DT), dismissed.advance(DT)]) {
+          expect(settled.done).toBe(true)
+          expect(settled.active).toBe(false)
+          expect(settled.glow).toBe(0)
+          expect(settled.strut).toBe(0)
+          expect(settled.droop).toBe(0)
+        }
+      }
+      expect(scheduled).toEqual([])
+    } finally {
+      restore()
+    }
+  })
+})
