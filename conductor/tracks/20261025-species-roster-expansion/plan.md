@@ -71,7 +71,7 @@
   (poses/mood for new archetypes), battle animation (BodyProfile,
   move-fx mapping), copy tables; co-located tests
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Roster surfaces** — covers: FR-7, NFR-6
   - [ ] **P3.T1.1: Plates, handbook entries (element-true crests Plant 110°/Water 205°/Fire 18°), creature detail, growth panel, stable for the three new species**
