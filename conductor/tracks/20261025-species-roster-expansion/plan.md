@@ -44,7 +44,7 @@
 - **Touches:** `packages/voxel/src/**` (archetype recipes, gilded gate,
   frequency tests), determinism gate script + digest manifest
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Three archetype recipes** — covers: FR-2, NFR-4
   - [ ] **P2.T1.1: Author fernstag (sapling stag), reefclaw (coral crab), cindermoor (ember ram) recipes — hue contract, surface ramp, gilded weight 32, frequency tests**
