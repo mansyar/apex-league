@@ -15,7 +15,7 @@
   (kit tables), `packages/sim/src/**` reward/economy seam files
   (`claimedTiers`/`pendingRewards` logic), co-located `*.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Species data & tier gating** — covers: FR-1
   - [ ] **P1.T1.1: Failing tests pinning the three new SpeciesDefs (element, kit size 6, rewardFromTier) and obtainableSpecies per tier**
