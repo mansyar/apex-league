@@ -1457,6 +1457,95 @@
   }
 }
 
+/* Landscape, short viewport (852x393 — FR-3/AC-1 landscape): the width sits
+   in the tablet band, so the panels keep their desktop corner-pinned seats
+   side by side; the height is the constraint, not the width. The stacked
+   chip cluster keeps its band seat, so the lineage plate slides below it,
+   the expanded creature plate caps above that plate and scrolls internally
+   (the edge-case contract: long panels scroll, never clip), and the dock
+   gets a ceiling too so a shorter rotated window still reaches every
+   control without climbing into the score bug. */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* 158px: the stacked chip cluster ends at 150 (three chips + gaps from
+     top 18); 8px under it, the lineage plate keeps its own clear band. */
+  .hud-lineage {
+    top: calc(158px + var(--kit-safe-top));
+  }
+
+  /* 246px: the 18px corner inset plus the landscape lineage plate's bottom
+     edge (top 158 + 37 tall) plus 3px slack, minus the plate's own 28px
+     padding and 2px border (content-box sizing — the cap bounds the
+     content box). An expanded plate scrolls inside this ceiling. */
+  .creature-plate {
+    max-height: calc(100dvh - 246px);
+    overflow-y: auto;
+  }
+
+  /* 146px: the corner inset plus the score bug's band (16 + 61 tall) plus
+     slack, minus the dock's own 24px padding and 2px border. At 393 tall
+     this is a no-op (the dock's content is 223 tall); at shorter windows it
+     keeps the dock's own scroll instead of covering the bug. */
+  .command-dock {
+    max-height: calc(100dvh - 146px);
+    overflow-y: auto;
+  }
+
+  /* The transient teaching callout can't keep its base seat (top 146) at
+     393 tall — it would lie across the dock's head row — and every top
+     slot is taken: the chips stack top-left, the spar chip owns the
+     top-right, and the free band under the bug is only 47 tall while the
+     card with its Got-it chip is ~62. It rides the yard instead: see the
+     rule below for the seat and the pointer pass-through. */
+  .hud-callout {
+    top: calc(72px + var(--kit-safe-top));
+    left: calc(130px + var(--kit-safe-left));
+    /* No cap: the day-one hint then sits on one line (~704 wide from x
+       130, ending at the right inset) and the card bottoms out around
+       y 110, well above the dock's head row (137). A longer hint wraps
+       and may graze that row's top edge, but the card passes pointers
+       through, so nothing becomes unreachable. */
+    max-width: none;
+    /* The card rides the yard between the top readouts and the panels; a
+       hint must never swallow a click that slips beneath it, so the card
+       itself passes pointers through and only its Got-it button stays
+       live. */
+    pointer-events: none;
+  }
+
+  .hud-callout button {
+    pointer-events: auto;
+  }
+
+  /* The creature-detail card caps its content at 86dvh, but it is
+     content-box sized: its 38px of padding and border ride on top of that
+     cap and pushed the card's bottom edge past the glass at 393 tall
+     (border box 86dvh + 38). Drop the cap by exactly that chrome so the
+     whole card ends inside the viewport; its own four-row grid keeps the
+     header pinned while the active panel scrolls. */
+  .creature-detail-box {
+    max-height: calc(86dvh - 38px);
+  }
+
+  /* An open program picker becomes the same sheet the phone tier uses:
+     the care row, the train button and the CTAs step aside so the program
+     rows fit the short viewport; the fourth row's note may sit below the
+     fold of the dock's own scroll, but every row stays reachable (focus
+     and wheel both bring it in). */
+  .command-dock[data-picking="true"] .dock-row,
+  .command-dock[data-picking="true"] .dock-train > .kit-button,
+  .command-dock[data-picking="true"] .dock-graduate,
+  .command-dock[data-picking="true"] .kit-cta {
+    display: none;
+  }
+
+  .train-picker {
+    flex: 0 0 auto;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+  }
+}
+
 /* The stable (stable & partner reserve FR-9): the modal that lists the pets
    waiting there. A flat panel over the ranch, built from the kit — the
    crest's hue is the element's, the rest is the kit's ink. No new colour

@@ -423,6 +423,22 @@
   margin-top: 4px;
 }
 
+/* Landscape, short viewport (852x393): a tall modal card (the creature
+   detail sheet runs ~376px) overflows a 393-tall window by its own
+   margins. The scrim pads instead of the box centering past the edge, and
+   the card scrolls internally — long panels scroll, never clip. Wider
+   windows keep the unpadded centered card. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .kit-modal {
+    padding: 20px;
+  }
+
+  .kit-modal-box {
+    max-height: 100%;
+    overflow-y: auto;
+  }
+}
+
 /* Visually hidden, still spoken. The text half of a status that also carries
    a glyph, so meaning never rides on colour or shape alone. */
 .kit-sr-only {

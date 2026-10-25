@@ -4,6 +4,7 @@ import { buildHandbook } from "../handbook"
 import { buildPrefCluster, buildSettingsModal } from "../settings-modal"
 import { buildStableChip, buildStableModal } from "../stable"
 import { buildCommandDock } from "./dock"
+import { createDockCollapseSession } from "./dock-collapse"
 import { buildCreaturePlate, buildLineagePlate, buildScoreBug } from "./plates"
 import { buildResetModal } from "./settings"
 import type { HudShell, HudShellHandlers, HudViewState } from "./types"
@@ -20,14 +21,24 @@ export function createHudShell(
   handlers: HudShellHandlers,
 ): HudShell {
   // Corner clusters collapse by clicking their headers (session-only:
-  // always expanded on load). Narrow viewports start collapsed — the
-  // stacked plates would otherwise eat the whole scene.
+  // always expanded on load). The creature plate starts collapsed on narrow
+  // viewports — the stacked plates would otherwise eat the whole scene —
+  // and in a short landscape window (852x393), where the expanded plate's
+  // head row has no clear seat under the lineage plate. The dock's default
+  // comes from its width-class decision (hud/dock-collapse) and re-derives
+  // when the viewport crosses a tier, while an explicit head click holds
+  // for the session.
   const startsCollapsed = window.matchMedia("(max-width: 767.98px)").matches
+  const plateStartsFolded =
+    startsCollapsed ||
+    window.matchMedia("(orientation: landscape) and (max-height: 500px)")
+      .matches
+  const dockCollapse = createDockCollapseSession(window.innerWidth)
   const view: HudViewState = {
     current: null,
     pickerOpen: false,
-    creatureOpen: !startsCollapsed,
-    dockOpen: !startsCollapsed,
+    creatureOpen: !plateStartsFolded,
+    dockOpen: dockCollapse.dockOpen(),
     renaming: false,
   }
 
@@ -238,12 +249,29 @@ export function createHudShell(
   })
 
   dockHead.addEventListener("click", () => {
-    view.dockOpen = !view.dockOpen
+    view.dockOpen = dockCollapse.toggle()
     if (!view.dockOpen) view.pickerOpen = false
     cluster.classList.toggle("is-collapsed", !view.dockOpen)
     dockHead.setAttribute("aria-expanded", view.dockOpen ? "true" : "false")
     if (view.current) shell.render(view.current)
   })
+
+  // Rotating a device or resizing across a kit tier re-derives the dock's
+  // default (a held head-click choice wins over any default). One listener
+  // per breakpoint; the sync is idempotent when both fire at once.
+  const syncDockViewport = () => {
+    const wasOpen = dockCollapse.dockOpen()
+    dockCollapse.onViewportChange(window.innerWidth)
+    if (dockCollapse.dockOpen() === wasOpen) return
+    view.dockOpen = dockCollapse.dockOpen()
+    if (!view.dockOpen) view.pickerOpen = false
+    cluster.classList.toggle("is-collapsed", !view.dockOpen)
+    dockHead.setAttribute("aria-expanded", view.dockOpen ? "true" : "false")
+    if (view.current) shell.render(view.current)
+  }
+  for (const query of ["(max-width: 767.98px)", "(max-width: 1023.98px)"]) {
+    window.matchMedia(query).addEventListener("change", syncDockViewport)
+  }
 
   return shell
 }
