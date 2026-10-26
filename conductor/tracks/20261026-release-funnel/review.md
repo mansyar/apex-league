@@ -5,7 +5,7 @@
 - **Branch:** `chore/20261026-release-funnel`
 - **Range:** `02ff20c9..3ee7538f`
 - **Date:** 2026-10-26
-- **Verdict:** PASS WITH FINDINGS
+- **Verdict:** PASS
 
 ## Summary
 
@@ -15,7 +15,7 @@ the deployed artifact works and is proven able to fail, a config free of
 machine-specific state, and documentation that describes the deployment
 accurately without claiming a live site that does not exist.
 
-The reviewer found **0 Critical, 0 High, 4 Medium, 4 Low**. Under
+The reviewer found **0 Critical, 0 High, 4 Medium, 6 Low total across two rounds**. Under
 `review.strict: true` nothing is deferred: all eight findings go to a Phase R1
 and must be fixed before the PR opens.
 
@@ -355,3 +355,69 @@ Updated before review (`3ee7538f`):
 | Round | Verdict | C | H | M | L | Fixed |
 |---|---|---|---|---|---|---|
 | 1 | PASS WITH FINDINGS | 0 | 0 | 4 | 4 | 0 |
+| 2 | PASS WITH FINDINGS | 0 | 0 | 0 | 2 | 8 |
+| 3 | PASS | 0 | 0 | 0 | 0 | 2 |
+
+## Round 2 — re-review after Phase R1
+
+Range `cfa38f57..HEAD`. All eight round-1 findings **resolved** at their root
+cause with committed guards; no weakening in the fix delta. Two Low findings
+introduced by the fix work itself were raised:
+
+- **L1** — `scripts/deploy/workflow.test.ts` three assertions narrower than
+  their rationale comments: `toContain("wrangler.jsonc")` was satisfiable by
+  the workflow's own comments; the first-wrangler-call regex missed the inline
+  `run: bun run deploy` upload; nothing asserted `continue-on-error` absent.
+- **L2** — `conductor/workflow.md` still contradicted itself: the trigger
+  clause mis-attributed preview deployments to pushes, and Emergency Procedures
+  still opened "no production deployment and no backend".
+
+Both went to **Phase R2** rather than being deferred, because this project runs
+`review.strict: true`. AC-2 improved from harness-only evidence to a committed
+guard across this review.
+
+## Round 3 — confirmation after Phase R2
+
+Range `1ecd480a..HEAD`. **L1 resolved** — `workflow.test.ts:77` (`continue-on-
+error` absent), `:80-89` (smoke step present and below the upload), `:135-136`
+(the `run:`-aware call pattern), `:169-170` (the real `sed -n … wrangler.jsonc`
+extraction plus the paired `not.toContain('project="apex-league"')`). Confirmed
+non-vacuous: no comment in the workflow contains `sed -n`, and the call pattern
+cannot cross a `#`.
+
+**L2 resolved** — `workflow.md:387-389` and `:419-436` now match the workflow;
+no stale "no production deployment" / "no deployed build" / "no hosting
+workflow" statement survives. `:414-416`'s "has not run yet" remains true.
+
+The reviewer also confirmed the assertion the primary spotted as mis-described
+is genuinely sound (the first match is the version echo, `actions/setup-node`
+sits above it, and because the upload is matched too, moving the Node step below
+any wrangler call fails the test) and that the reworded comment is now accurate.
+
+Worth recording: the phase agent **rejected the primary's own regex** in the R2
+brief, correctly — the brief's literal `/\n[ \t]*(bunx wrangler|bun run deploy)/`
+cannot match the inline upload, so landing it verbatim would have closed the
+finding's wording while leaving its property unpinned. The landed pattern is
+better than the brief.
+
+No new findings. **Verdict: PASS.**
+
+### Standing caveat — do not overstate
+
+AC-1, AC-3 and AC-8 keep their live halves **partial**. **AC-8 must not be
+closed as covered**: "a simulated deploy failure leaves the previously deployed
+build reachable" is platform reasoning that has never been drilled, and it is
+now only stated more precisely in `workflow.md:427-428`. The first live push
+after the owner adds the two secrets is what will actually settle AC-1, AC-3 and
+AC-8.
+
+### Process item carried out of this track
+
+`.opencode/agents/conductor-phase.md` denies phase agents `edit` on
+`conductor/**`, so a `Touches` path assigned by a brief can be unwritable to the
+agent that is supposed to write it. This happened **three times** in this track
+(P4 `conductor/tech-stack.md`; R1 and R2 `conductor/workflow.md`) and was
+resolved each time by the primary applying the prepared text. The policy should
+either allow `conductor/workflow.md` and `conductor/tech-stack.md` or those
+files should stop appearing in phase `Touches`. Not a defect in this track —
+recorded so the next one does not rediscover it.
