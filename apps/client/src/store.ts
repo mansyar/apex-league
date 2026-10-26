@@ -55,6 +55,18 @@ export interface GameStore {
    */
   commit(state: GameState): void
   /**
+   * Adopt a ranch from outside the day loop — the cloud copy at boot or at
+   * sign-in (FR-4, AC-4). Swaps state and session, persists, and notifies
+   * exactly like `commit`.
+   *
+   * This is deliberately the *same* store instance rather than a re-created
+   * one: subscribers, the persist path and the morning-after ledger live
+   * here, and a fresh store would strand all three (the HUD would keep
+   * painting the old ranch). The ledger is cleared — an adopted ranch never
+   * inherits a ritual day from the one it replaced.
+   */
+  replaceState(state: GameState, session: CupSession | null): void
+  /**
    * Store a new cup session (or null on finalize) and persist it with the
    * unchanged state. This is the only way the session rides the save before
    * the first cup commit — `prepareCup` deliberately does not commit, so a
@@ -98,7 +110,7 @@ export function createGameStore(
   let currentSession = options?.initialSession ?? null
   const listeners: Array<(state: GameState) => void> = []
   /** The ritual ledger — client-held, never persisted (FR-9, NFR-1). */
-  const morningAfter: MorningAfterLedger = createMorningAfterLedger()
+  let morningAfter: MorningAfterLedger = createMorningAfterLedger()
   /**
    * The session a `setSession(null)` just cleared. The finalize handler
    * clears the session immediately before its finalize commit, so the
@@ -113,6 +125,24 @@ export function createGameStore(
     if (!saveGame(adapter, current, now(), currentSession)) {
       onPersistError?.(new Error("saveGame reported a failed write"))
     }
+  }
+  /** Notify every subscriber with `state`; rethrow the first error after. */
+  const notify = (state: GameState) => {
+    // Snapshot so (un)subscribing mid-notification cannot skip or repeat
+    // a listener; a throwing subscriber never starves the later ones.
+    let firstError: unknown
+    let failed = false
+    for (const listener of [...listeners]) {
+      try {
+        listener(state)
+      } catch (error) {
+        if (!failed) {
+          firstError = error
+          failed = true
+        }
+      }
+    }
+    if (failed) throw firstError
   }
   return {
     get: () => current,
@@ -145,21 +175,16 @@ export function createGameStore(
         settleMorningAfterNight(morningAfter, state.day)
       }
       persist()
-      // Snapshot so (un)subscribing mid-notification cannot skip or repeat
-      // a listener; a throwing subscriber never starves the later ones.
-      let firstError: unknown
-      let failed = false
-      for (const listener of [...listeners]) {
-        try {
-          listener(state)
-        } catch (error) {
-          if (!failed) {
-            firstError = error
-            failed = true
-          }
-        }
-      }
-      if (failed) throw firstError
+      notify(state)
+    },
+    replaceState(state, session) {
+      current = state
+      currentSession = session
+      // A different ranch: nothing banked for the old one survives it.
+      morningAfter = createMorningAfterLedger()
+      finalizeHandoff = null
+      persist()
+      notify(state)
     },
     pendingMorningAfter: () => morningAfter.pending,
     takeMorningAfterArrival() {

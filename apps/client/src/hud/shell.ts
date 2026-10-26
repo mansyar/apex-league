@@ -146,6 +146,10 @@ export function createHudShell(
   })
   motionWrap.append(stableChip)
 
+  // Chips the composition root owns (the cloud chip, when this build has an
+  // api origin): appended after the built ones so the cluster order is fixed.
+  for (const extra of handlers.extraChips ?? []) motionWrap.append(extra)
+
   // Lineage plate (top-left, under the settings pill): the family name +
   // generation, and the Hall of Fame opener.
   const lineage = buildLineagePlate()

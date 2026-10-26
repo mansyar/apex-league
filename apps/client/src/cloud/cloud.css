@@ -1,0 +1,102 @@
+/* Trainer cloud (FR-8, FR-11): one chip in the HUD's chip cluster and one
+   quiet modal. Scoped to `cloud-`/`.cloud-chip` so nothing here can reach
+   the existing plates. Loaded only by the client that has a cloud build. */
+
+.cloud-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* The dot is reinforcement only: the chip's title carries the same sentence,
+   so colour is never the sole carrier of meaning. */
+.cloud-chip::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink-dim);
+  transition: background 0.2s var(--kit-settle);
+}
+
+.cloud-chip[data-sync="synced"]::before {
+  background: var(--accent);
+}
+
+.cloud-chip[data-sync="offline"]::before,
+.cloud-chip[data-sync="locked"]::before {
+  background: var(--ink-dim);
+}
+
+.cloud-box {
+  text-align: left;
+  gap: 10px;
+}
+
+.cloud-notice {
+  margin: 0;
+  max-width: 340px;
+}
+
+.cloud-form {
+  display: grid;
+  gap: 10px;
+}
+
+.cloud-row {
+  display: grid;
+  gap: 4px;
+}
+
+.cloud-label {
+  color: var(--ink-dim);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cloud-input {
+  background: rgb(0 0 0 / 35%);
+  border: 1px solid var(--kit-keyline);
+  border-radius: 3px;
+  box-sizing: border-box;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 8px;
+  width: 100%;
+}
+
+.cloud-input:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.cloud-status {
+  color: var(--ink-dim);
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0;
+  max-width: 340px;
+}
+
+/* Phone: ranch.css stacks the cluster in a column and seats the lineage plate
+   at 176px, which clears three chips. A fourth chip in that column would run
+   to 208 and step the plate, the panel stack and the callout down with it. So
+   with the cloud chip present the cluster wraps into rows instead: at 199px
+   the first row is Settings alone, the second is Handbook + Stable and the
+   third is Cloud, ending at 158 — above the 176px seat and clear of the score
+   bug (which starts at 213 on a 393px screen) on every row that shares its
+   band. Every existing seat then stays exactly where it was. */
+@media (max-width: 767.98px) {
+  .hud-motion:has(.cloud-chip) {
+    flex-flow: row wrap;
+    max-width: 199px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cloud-chip::before {
+    transition: none;
+  }
+}

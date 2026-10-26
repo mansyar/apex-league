@@ -110,6 +110,12 @@ export interface HudHandlers {
    * of going quiet.
    */
   onRenameStable: (creatureId: string, name: string) => RenameStableResult
+  /**
+   * Chips the composition root appends to the HUD's chip cluster — the cloud
+   * chip, on a build with an api origin (FR-11). Omitted on a local-only
+   * build, so nothing about the cloud appears at all (AC-11).
+   */
+  extraChips?: HTMLElement[]
 }
 
 export interface Hud {

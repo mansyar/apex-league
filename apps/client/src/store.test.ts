@@ -80,6 +80,25 @@ describe("createGameStore", () => {
     expect(saved.savedAt).toBe(4242)
   })
 
+  test("replaceState adopts a cloud ranch through the same store (FR-4)", () => {
+    const adapter = fakeAdapter()
+    const store = createGameStore(startState(), adapter, { now: () => 7 })
+    const seen: number[] = []
+    store.subscribe((state) => seen.push(state.day))
+    const adopted = { ...store.get(), day: 12 }
+    store.replaceState(adopted, null)
+    // Same instance: the HUD that was already subscribed paints the cloud
+    // ranch, and the adopted save is what the next boot reads.
+    expect(store.get()).toBe(adopted)
+    expect(store.getSession()).toBeNull()
+    expect(seen).toEqual([12])
+    const boot = loadBoot(adapter)
+    expect(boot && "state" in boot ? boot.state.day : null).toBe(12)
+    // The adopted ranch carries no ritual day from the ranch it replaced.
+    expect(store.pendingMorningAfter()).toBeNull()
+    expect(store.takeMorningAfterArrival()).toBeNull()
+  })
+
   test("commit notifies subscribers in registration order with the new state", () => {
     const store = createGameStore(startState(), fakeAdapter(), { now: () => 0 })
     const order: string[] = []
