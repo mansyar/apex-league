@@ -71,7 +71,7 @@ reduced-motion pass.
 | Lint & format | Biome |
 | Tests | `bun test` (bun:test) |
 | Hosting | Cloudflare Pages — static client, deployed by GitHub Actions (see [Deploying](#deploying)) |
-| Server *(roadmap, Phase 3)* | ElysiaJS on Bun, SQLite via `bun:sqlite` + Drizzle ORM |
+| Server *(roadmap, Phase 3)* | ElysiaJS on Bun, SQLite via `bun:sqlite` + Drizzle ORM — a non-root container on Coolify (see [The API container](#the-api-container-coolify)) |
 
 The simulation core is deliberately headless and seeded: the same inputs
 always produce the same outputs, which is what future replay, ghost, and
@@ -82,6 +82,7 @@ async-PvP features depend on.
 ```
 apps/
   client/        @apex/client — Vite + Three.js browser app (ranch, HUD, dev gallery)
+  server/        @apex/server — ElysiaJS API on Bun (identity, save sync) + its Dockerfile
 packages/
   sim/           @apex/sim    — headless deterministic simulation core
   voxel/         @apex/voxel  — deterministic creature generator and GLB exporter
@@ -196,6 +197,50 @@ After that, `main` deploys itself and no further setup is required.
   dependency and never enters the client bundle.
 - **The workflow runs `bun run deploy`** (`bunx wrangler pages deploy`), so a
   local deploy and a CI deploy cannot drift.
+
+### The API container (Coolify)
+
+The API is a single Bun container built by
+`.github/workflows/server-image.yml` and published to GHCR. Coolify runs it on
+its own, which is why the image has to be correct on its first boot — nothing
+here can observe it afterwards.
+
+- **The image.** `docker build -f apps/server/Dockerfile .` — the context is
+  the repository root on purpose: `bun.lock` lives there and Bun installs each
+  workspace's dependencies into that workspace's own `node_modules`, so a
+  server-only install would leave `elysia` and `drizzle-orm` unresolvable.
+  There is no compile stage; Bun runs `apps/server/src/main.ts` directly.
+- **The tag Coolify pulls.** `ghcr.io/mansyar/apex-league-server:<commit sha>`.
+  CI pushes that tag on every push to `main`, after `bun run verify` passes. Pin
+  the SHA tag in Coolify — `latest` is published too, but it moves, and a
+  moving tag makes a rollback impossible.
+- **The port.** The container listens on `3000` (`PORT`); Coolify's proxy
+  terminates TLS and forwards to it. `GET /health` is the probe: it is
+  unauthenticated, read-only, and reports the applied migration.
+- **The environment.** Two variables, both set in Coolify rather than in the
+  repository:
+  - `DATABASE_PATH` — where the SQLite file lives. Defaults to
+    `/data/apex.sqlite` in the image.
+  - `ALLOWED_ORIGIN` — the one browser origin the API answers, for example the
+    Pages URL. **Unset means no CORS headers at all**, so the client is blocked
+    before its request leaves the browser. It is never `*`: the value is
+    compared exactly against the request's `Origin` and echoed back, so a
+    lookalike host does not pass.
+
+**The database volume.** The container runs as `bun` (uid 1000), not root, and
+`openDatabase` throws at boot when it cannot create the file — the server dies
+rather than serving saves that go nowhere. Attach a persistent volume at
+`/data`:
+
+- A **named volume** (`apex-data:/data`) works with no manual step: Docker
+  seeds it from the image's `/data`, which the Dockerfile creates and chowns to
+  uid 1000.
+- A **bind mount** inherits nothing. Run `chown -R 1000:1000 <host dir>` before
+  starting the container, or the first boot fails with
+  `cannot open the database at /data/apex.sqlite: ...`.
+
+Either way the volume is what makes a redeploy non-destructive: without it every
+deploy starts from an empty database and every player's saves are gone.
 
 ## Release checklist
 

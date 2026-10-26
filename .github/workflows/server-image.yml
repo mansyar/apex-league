@@ -1,0 +1,78 @@
+# Builds the API container and pushes it to GHCR (AC-10).
+#
+# Coolify pulls the SHA tag; `latest` is a convenience for a human running the
+# image by hand, never the tag a deploy should pin.
+name: Server image
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# `packages: write` is what lets the workflow token push to GHCR. It is the
+# built-in token, so no long-lived secret exists to leak or rotate.
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: server-image-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  image:
+    name: Build and push (verify, build, push)
+    # A fork's push cannot push to this repository's package registry.
+    if: github.repository == 'mansyar/apex-league' && github.event.repository.fork == false
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: ghcr.io/${{ github.repository_owner }}/apex-league-server
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          # Kept in lockstep with ci.yml, deploy.yml and nightly.yml. 1.4.3+ is
+          # required for `bun check`.
+          bun-version: 1.4.4
+
+      - name: Cache Bun install cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # The same gate that protects pull requests and the client deploy. An
+      # image that failed `bun run verify` must never be published: Coolify
+      # deploys whatever tag it is told to, and it cannot see this repository.
+      - name: Verify
+        run: bun run verify
+
+      - name: Build the image
+        run: docker build --file apps/server/Dockerfile --tag "$IMAGE:${{ github.sha }}" .
+
+      # The token reaches the shell through `env:`, never as an interpolated
+      # `${{ }}` inside the script, so it cannot be echoed into the log.
+      - name: Log in to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GHCR_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+
+      - name: Push the SHA tag
+        run: docker push "$IMAGE:${{ github.sha }}"
+
+      - name: Push the latest tag
+        if: github.ref == 'refs/heads/main'
+        run: |
+          docker tag "$IMAGE:${{ github.sha }}" "$IMAGE:latest"
+          docker push "$IMAGE:latest"
+
+      - name: Report the published tag
+        run: echo "Pushed $IMAGE:${{ github.sha }}"
