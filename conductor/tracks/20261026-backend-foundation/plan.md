@@ -17,7 +17,7 @@
 - **Covers:** NFR-4, NFR-5, NFR-6
 - **Touches:** `apps/server/**`, `package.json`, `bun.lock`, `tsconfig.base.json`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Workspace scaffold** — covers: NFR-6
   - [ ] **P1.T1.1: Add `apps/server` with a `check` script and a tsconfig extending the base, so `bun run check` picks it up with no root change beyond the workspace glob**
