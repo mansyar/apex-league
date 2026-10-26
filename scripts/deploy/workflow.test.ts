@@ -70,6 +70,22 @@ describe("the upload is gated", () => {
     const nextStep = workflow.indexOf("\n      - ", start)
     const step = workflow.slice(start, nextStep === -1 ? undefined : nextStep)
     expect(step).toContain("if: success()")
+    // The comment above names `continue-on-error` as the other route a red
+    // build takes to production, so it is asserted rather than only described:
+    // a `continue-on-error: true` on the gate step would let a failed
+    // verification reach the upload with every assertion here still green.
+    expect(workflow).not.toContain("continue-on-error")
+  })
+
+  test("the smoke check runs below the upload", () => {
+    // AC-3/AC-5: the smoke check is the only step that proves the *deployed*
+    // build works, and it can only do that after the upload. Deleting it, or
+    // moving it above `Deploy`, would leave the funnel with no post-deploy
+    // evidence while every other assertion here stayed green.
+    const upload = workflow.indexOf("- name: Deploy to Cloudflare Pages")
+    const smoke = workflow.indexOf("- name: Smoke check the deployed build")
+    expect(smoke).toBeGreaterThan(-1)
+    expect(upload).toBeLessThan(smoke)
   })
 
   test("no secret is interpolated inside a `run:` body", () => {
@@ -109,9 +125,15 @@ describe("the job can run the pinned wrangler", () => {
     const setup = workflow.indexOf("actions/setup-node@v4")
     const version = workflow.indexOf("node-version: 22")
     // Only a real invocation counts — the step comments name wrangler too, and
-    // a comment is not a call. The first one is the version echo, which is why
-    // the check below also pins it above the project step's calls.
-    const invoke = /\n[ \t]*bunx wrangler/.exec(workflow)
+    // a comment is not a call. `bun run deploy` is a wrangler call as well
+    // (`package.json` maps it to `bunx wrangler pages deploy`) and appears
+    // inline as `run: bun run deploy`, so the pattern has to allow the `run:`
+    // prefix; a bare line-start anchor would miss the upload entirely. The
+    // first match is the version echo, which is itself a wrangler call and so
+    // is covered by the same ordering check as the project and upload calls
+    // below it.
+    const invoke =
+      /^[ \t]*(?:run:[ \t]*)?(?:bunx wrangler|bun run deploy)/m.exec(workflow)
     const firstWrangler = invoke?.index ?? -1
     expect(setup).toBeGreaterThan(-1)
     expect(version).toBeGreaterThan(-1)
@@ -140,6 +162,11 @@ describe("the deploy target is written in one place", () => {
   test("the workflow reads the Pages project name from wrangler.jsonc", () => {
     // FR-1: the upload and the smoke check must agree on the target, so the
     // name is read out of the config rather than repeated in the workflow.
-    expect(workflow).toContain("wrangler.jsonc")
+    // `wrangler.jsonc` alone does not pin that: this workflow's own comments
+    // carry the filename, so a hardcoded project name would still satisfy a
+    // plain `toContain`. These two name the real extraction and the hardcoding
+    // that would replace it — the second cannot be satisfied by a comment.
+    expect(workflow).toMatch(/sed -n .*wrangler\.jsonc/)
+    expect(workflow).not.toContain('project="apex-league"')
   })
 })
