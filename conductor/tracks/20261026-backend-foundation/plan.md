@@ -47,7 +47,7 @@
 - **Covers:** FR-1, FR-2, FR-9, NFR-3, AC-1, AC-2
 - **Touches:** `apps/server/src/identity/**`, `apps/server/src/app.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Trainer creation** — covers: FR-1, AC-1
   - [ ] **P2.T1.1: Failing tests: a fresh request yields an opaque ID, and a second request with that ID returns the same trainer**
