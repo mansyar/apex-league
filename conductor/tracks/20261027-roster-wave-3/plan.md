@@ -61,18 +61,18 @@ The primary appends after acceptance:
 - **Covers:** FR-5 (client half), FR-7, FR-8, NFR-6 — AC-5 (client), AC-7, AC-8
 - **Touches:** `apps/client/src/**` (plates, handbook incl. recipe hints, creature detail, growth, battle staging, copy)
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Render all surfaces + lifecycle parity** — covers: FR-5, FR-7
-  - [ ] **P3.T1.1: Plates / stable / detail / growth / battle staging with element-true crests (50° / 165° / 28°)**
-  - [ ] **P3.T1.2: Hatch → train → two branch forms per line, same mechanism as existing species**
-- [ ] **P3.T2: Handbook recipes + copy** — covers: FR-7, FR-8
-  - [ ] **P3.T2.1: Open recipe listings; single-sourced voice copy (≤2 sentences per string)**
+- [x] **P3.T1: Render all surfaces + lifecycle parity** — covers: FR-5, FR-7
+  - [x] **P3.T1.1: Plates / stable / detail / growth / battle staging with element-true crests (50° / 165° / 28°)**
+  - [x] **P3.T1.2: Hatch → train → two branch forms per line, same mechanism as existing species**
+- [x] **P3.T2: Handbook recipes + copy** — covers: FR-7, FR-8
+  - [x] **P3.T2.1: Open recipe listings; single-sourced voice copy (≤2 sentences per string)**
 
 <!--
 The primary appends after acceptance:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** `c0d9e096`
 **Evidence:** conductor/tracks/20261027-roster-wave-3/verification/phase-3.md
 -->
 
