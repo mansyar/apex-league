@@ -137,7 +137,7 @@
 - **Covers:** FR-10, NFR-3, NFR-7, NFR-8, AC-9, AC-10
 - **Touches:** `apps/server/Dockerfile`, `apps/server/.dockerignore`, `.github/workflows/server-image.yml`, `README.md`, `conductor/tech-stack.md`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P5.T1: The image** — covers: FR-10, NFR-7, AC-9
   - [ ] **P5.T1.1: Multi-stage Dockerfile on a Bun base, running as a non-root user, with the database path and allowed origin from the environment**
