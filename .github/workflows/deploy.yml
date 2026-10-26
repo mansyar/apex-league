@@ -117,3 +117,21 @@ jobs:
         # HEAD, wrangler would read the branch as "HEAD" and publish a preview
         # deployment instead of production.
         run: bun run deploy -- --branch "${{ github.ref_name }}"
+
+      # `playwright-cli` is the project's visual layer (conductor/workflow.md),
+      # not a library the app imports, so it is installed into the runner at a
+      # pinned version instead of becoming a dependency. `bun run verify` never
+      # needs it; only this step and the one below do.
+      - name: Install the smoke check's browser
+        run: |
+          bun install --global playwright-cli@0.1.22
+          playwright-cli install-browser chromium --with-deps
+
+      # The only check that proves the *deployed* build works. It runs after
+      # the upload (default `success()` condition, so it cannot run when the
+      # deploy failed) and loads the production URL itself, so a missing GLB or
+      # a base-path mistake shows up here rather than on a visitor's screen.
+      # The URL is not repeated: `scripts/smoke/smoke.ts` reads the Pages
+      # project name from `wrangler.jsonc`, the same file the upload used.
+      - name: Smoke check the deployed build
+        run: bun scripts/smoke/smoke.ts
