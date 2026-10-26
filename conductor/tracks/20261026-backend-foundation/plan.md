@@ -103,21 +103,27 @@
 - **Covers:** FR-4, FR-5, FR-7, FR-8, FR-11, NFR-1, NFR-2, NFR-6, AC-4, AC-5, AC-7, AC-8, AC-11
 - **Touches:** `apps/client/src/cloud/**`, `apps/client/src/main.ts`, `apps/client/src/app/**`, `apps/client/src/hud/**`, `apps/client/src/store.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P4.T1: The adapter** — covers: FR-11, NFR-1, AC-11
-  - [ ] **P4.T1.1: Failing tests: with no origin configured the adapter is a no-op, and `SAVE_VERSION` is still 25**
-  - [ ] **P4.T1.2: `CloudSaveAdapter` implementing the existing `SaveAdapter` seam over `fetch`, with the origin read from build-time configuration**
-- [ ] **P4.T2: Boot pull and adoption** — covers: FR-4, FR-7, AC-4, AC-7
-  - [ ] **P4.T2.1: Failing tests: a newer cloud save is adopted at boot; an existing local save is uploaded on first sign-in; adoption never overwrites an existing cloud save**
-  - [ ] **P4.T2.2: Wire the pull into the boot path ahead of the first render**
-- [ ] **P4.T3: Debounced push** — covers: FR-5, AC-5
-  - [ ] **P4.T3.1: Failing test: a burst of autosave writes produces exactly one push, proven by a request counter**
-  - [ ] **P4.T3.2: Debounce behind the existing autosave rather than adding a second write path**
-- [ ] **P4.T4: Degrade and report** — covers: FR-8, NFR-2, AC-8
-  - [ ] **P4.T4.1: Failing tests: with the API unreachable boot succeeds, a day completes, and the status reports the cloud copy is behind**
-  - [ ] **P4.T4.2: A quiet sync status and a trainer surface (name, passphrase, sign-in) with the no-reset and lost-ID limits stated plainly**
-  - [ ] **P4.T4.3: Confirm no network call can block boot or a day** — covers: NFR-2
+- [x] **P4.T1: The adapter** — covers: FR-11, NFR-1, AC-11
+  - [x] **P4.T1.1: Failing tests: with no origin configured the adapter is a no-op, and `SAVE_VERSION` is still 25**
+  - [x] **P4.T1.2: `CloudSaveAdapter` implementing the existing `SaveAdapter` seam over `fetch`, with the origin read from build-time configuration**
+- [x] **P4.T2: Boot pull and adoption** — covers: FR-4, FR-7, AC-4, AC-7
+  - [x] **P4.T2.1: Failing tests: a newer cloud save is adopted at boot; an existing local save is uploaded on first sign-in; adoption never overwrites an existing cloud save**
+  - [x] **P4.T2.2: Wire the pull into the boot path ahead of the first render**
+- [x] **P4.T3: Debounced push** — covers: FR-5, AC-5
+  - [x] **P4.T3.1: Failing test: a burst of autosave writes produces exactly one push, proven by a request counter**
+  - [x] **P4.T3.2: Debounce behind the existing autosave rather than adding a second write path**
+- [x] **P4.T4: Degrade and report** — covers: FR-8, NFR-2, AC-8
+  - [x] **P4.T4.1: Failing tests: with the API unreachable boot succeeds, a day completes, and the status reports the cloud copy is behind**
+  - [x] **P4.T4.2: A quiet sync status and a trainer surface (name, passphrase, sign-in) with the no-reset and lost-ID limits stated plainly**
+  - [x] **P4.T4.3: Confirm no network call can block boot or a day** — covers: NFR-2
+
+---
+
+**Result:** verified
+**Checkpoint:** `aa548c5e`
+**Evidence:** conductor/tracks/20261026-backend-foundation/verification/phase-4.md
 
 ---
 
