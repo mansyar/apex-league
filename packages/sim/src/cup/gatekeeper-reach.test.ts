@@ -14,10 +14,11 @@
  * rounds are stepped through `resolvePlayerMatch` until someone reaches the
  * final. Nothing here re-implements bracket logic.
  *
- * The wider roster (species-roster-expansion FR-6) is the reason the field
- * checks matter: from Silver the generated rivals draw the reward line, so a
- * gatekeeper stage must still open its boss and must never field a species
- * the save has not unlocked yet.
+ * The wider roster (species-roster-expansion FR-6, roster_wave_3 FR-6) is the
+ * reason the field checks matter: from Silver the generated rivals draw the
+ * reward line plus the three breeding-discovery lines, so a gatekeeper stage
+ * must still open its boss and must never field a species the save has not
+ * unlocked yet.
  */
 import { describe, expect, test } from "bun:test"
 import type { Tactic } from "../battle/policy"
@@ -27,7 +28,12 @@ import { resolvePlayerMatch } from "../cup"
 import type { LadderSubTier } from "../ladder"
 import { defaultLoadout } from "../loadout"
 import { prepareCup } from "../machine"
-import { getSpecies, obtainableSpecies, STARTER_SPECIES } from "../species"
+import {
+  DISCOVERY_SPECIES,
+  getSpecies,
+  obtainableSpecies,
+  STARTER_SPECIES,
+} from "../species"
 import { chooseStarter, createInitialState, type GameState } from "../state"
 
 /** Every cup day the sweep plays, spread across the calendar. */
@@ -240,10 +246,12 @@ describe("authored gatekeepers reach their stage under the widened field", () =>
         const state = stateAt(stage, day)
         const session = prepareCup(state)
         if (!session) continue
+        // Rivals are wild opponents: every non-Bronze field also carries the
+        // wave-3 discovery lines (FR-6) on top of the reward-gated pool.
         const legal = new Set(
           (stage.tier === "bronze"
-            ? STARTER_SPECIES
-            : obtainableSpecies(stage.tier)
+            ? [...STARTER_SPECIES]
+            : [...obtainableSpecies(stage.tier), ...DISCOVERY_SPECIES]
           ).map((s) => s.id),
         )
         for (const slot of session.bracket.slots) {
@@ -254,7 +262,7 @@ describe("authored gatekeepers reach their stage under the widened field", () =>
     }
   })
 
-  test("the silver field draws the reward line, the legend field draws all nine", () => {
+  test("the silver field draws the reward line, the legend field draws all twelve", () => {
     const silver = obtainableSpecies("silver").map((s) => s.id)
     const legend = obtainableSpecies("legend").map((s) => s.id)
     expect(silver).toContain("fernstag")
@@ -263,18 +271,30 @@ describe("authored gatekeepers reach their stage under the widened field", () =>
     for (const id of ["fernstag", "reefclaw", "cindermoor"]) {
       expect(legend).toContain(id)
     }
+    // The generated legend field is the nine obtainable species plus the
+    // three wave-3 discovery lines.
+    expect([...legend, ...DISCOVERY_SPECIES.map((s) => s.id)]).toHaveLength(12)
   })
 
-  test("each stage's field really contains the reward line it has unlocked", () => {
+  test("each stage's field really contains the wider line it has unlocked", () => {
     // FR-6's first clause is that the rival field uses the wider roster, so a
-    // stage whose tier has opened a reward species must actually meet it
-    // across the swept cup days — otherwise the browser pass would be
+    // stage whose tier has opened a reward or discovery species must actually
+    // meet it across the swept cup days — otherwise the browser pass would be
     // photographing the old three-starter field.
+    const wider = [
+      "fernstag",
+      "reefclaw",
+      "cindermoor",
+      ...DISCOVERY_SPECIES.map((s) => s.id),
+    ]
     for (const stage of STAGES) {
-      const unlocked = new Set(obtainableSpecies(stage.tier).map((s) => s.id))
-      const expected = ["fernstag", "reefclaw", "cindermoor"].filter((id) =>
-        unlocked.has(id),
+      const unlocked = new Set(
+        (stage.tier === "bronze"
+          ? [...STARTER_SPECIES]
+          : [...obtainableSpecies(stage.tier), ...DISCOVERY_SPECIES]
+        ).map((s) => s.id),
       )
+      const expected = wider.filter((id) => unlocked.has(id))
       if (expected.length === 0) continue
       const seen = new Set<string>()
       for (const day of DAYS) {
@@ -291,7 +311,7 @@ describe("authored gatekeepers reach their stage under the widened field", () =>
         )
       }
       // Nothing above the tier leaks into the field.
-      for (const id of ["fernstag", "reefclaw", "cindermoor"]) {
+      for (const id of wider) {
         if (expected.includes(id)) continue
         expect(seen.has(id), `${stage.bossId} field leaked ${id}`).toBe(false)
       }

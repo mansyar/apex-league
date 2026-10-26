@@ -1,9 +1,13 @@
 /**
  * FR-7: generated rival rosters may field the reward line — `electric_hound`
  * from Silver, `wind_falcon` from Gold, `earth_tortoise` from Legend — exactly
- * when `obtainableSpecies` opens their gate. Below a gate the pool is exactly
- * the three starters, so every pre-Silver bracket stays byte-identical to
- * what the draw stream produced before these tracks.
+ * when `obtainableSpecies` opens their gate. Roster wave 3 (FR-6): every
+ * non-Bronze field also carries the breeding-discovery lines (`voltfox`,
+ * `galeheron`, `shalemole`) — rivals are wild opponents, so the acquisition
+ * gate that keeps discovery out of `obtainableSpecies` does not bind them.
+ * Below a gate the pool is exactly the three starters, so every pre-Silver
+ * bracket stays byte-identical to what the draw stream produced before
+ * these tracks.
  */
 
 import { describe, expect, test } from "bun:test"
@@ -11,7 +15,12 @@ import { bossForCup } from "../bosses"
 import { effectiveStats } from "../creature"
 import type { LadderTier } from "../ladder"
 import { prepareCup } from "../machine"
-import { obtainableSpecies, REWARD_SPECIES, STARTER_SPECIES } from "../species"
+import {
+  DISCOVERY_SPECIES,
+  getSpecies,
+  obtainableSpecies,
+  STARTER_SPECIES,
+} from "../species"
 import { chooseStarter, createInitialState, type GameState } from "../state"
 import { startCupSession } from "./session"
 
@@ -62,17 +71,19 @@ describe("generated rival rosters (FR-7)", () => {
     }
   })
 
-  test("each tier draws exactly its opened reward pool into the field", () => {
+  test("each tier draws exactly its opened pool into the field", () => {
     for (const tier of ["silver", "gold", "legend"] as const) {
       const state = stateAt(tier)
       const met = new Set<string>()
       for (const day of DAYS) {
         for (const id of rivalSpecies(state, day)) met.add(id)
       }
-      // The widened pool is the starters plus every reward whose tier gate
-      // is open: each unlocked species shows up across a two-dozen-day sweep,
+      // The widened pool is the reward-gated pool plus the wave-3 discovery
+      // lines: each unlocked species shows up across a two-dozen-day sweep,
       // and no locked one leaks in early.
-      const pool = new Set(obtainableSpecies(tier).map((s) => s.id))
+      const pool = new Set(
+        [...obtainableSpecies(tier), ...DISCOVERY_SPECIES].map((s) => s.id),
+      )
       expect(pool.size).toBeGreaterThan(STARTER_IDS.size)
       for (const id of pool) expect(met.has(id)).toBe(true)
       for (const id of met) expect(pool.has(id)).toBe(true)
@@ -86,9 +97,7 @@ describe("generated rival rosters (FR-7)", () => {
       if (!session) throw new Error("no session")
       for (const slot of session.bracket.slots) {
         if (slot.isPlayer) continue
-        const species = [...STARTER_SPECIES, ...REWARD_SPECIES].find(
-          (s) => s.id === slot.speciesId,
-        )
+        const species = getSpecies(slot.speciesId)
         if (!species) continue // authored boss slot
         for (const stat of ["hp", "atk", "def", "spd"] as const) {
           const [lo, hi] = species.statBounds[stat]
