@@ -429,7 +429,10 @@ describe("cloud sync — push behind the autosave", () => {
 
   test("a cloud copy that is newer than the push is reported as ahead", async () => {
     const api = fakeApi({
-      push: async () => ({ ok: true, value: { stored: false, winner: "stored" } }),
+      push: async () => ({
+        ok: true,
+        value: { stored: false, winner: "stored" },
+      }),
     })
     const h = harness({ api, signedIn: true })
     h.sync.noteLocalWrite(rawOf(stateOn(2), 100))
