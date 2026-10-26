@@ -380,15 +380,39 @@ Before a track PR is opened:
 
 ## Release & Deployment
 
-The client is pre-release. There is no automated deployment: no hosting
-workflow exists, and the track workflow never deploys.
+The client has a hosting path. `.github/workflows/deploy.yml` publishes the
+built client to Cloudflare Pages whenever `main` moves, and the Phase 3 server
+container is still deferred.
 
-- The merge to `main` runs the CI verify gate only.
-- Static hosting for the client and the Bun container for the Phase 3 server are
-  set up manually when release work begins; add the commands to this file at
-  that point.
-- A release candidate must pass `bun run verify && bun run build` locally and in
-  CI before any manual upload.
+- **Trigger.** A push to `main`, or a manual `workflow_dispatch`. A push to
+  any other branch lands as a preview deployment, not production.
+- **The gate.** The deploy job runs `bun run verify` — types, tests, Biome and
+  the voxel determinism gate — then `bun run build`, then uploads
+  `apps/client/dist`. A failing check fails the run before the upload, so the
+  previous deployment stays live.
+- **The deploy CLI.** `wrangler`, pinned to exactly `4.152.0` as a root
+  devDependency. It runs under Node 22, which the job provisions explicitly
+  because wrangler's bin wrapper refuses anything below Node 22.
+- **The single declaration site.** `wrangler.jsonc` names the Pages project
+  (`apex-league`) and the upload directory (`apps/client/dist`). The workflow
+  and the smoke check both read them from there rather than repeating them.
+- **Credentials.** Two repository secrets, both the repository owner's to
+  create: `CLOUDFLARE_API_TOKEN` (Pages: Edit) and `CLOUDFLARE_ACCOUNT_ID`.
+  The job checks for them and fails in seconds, naming the missing one, if
+  either is absent.
+- **The smoke check.** After the upload, `scripts/smoke/smoke.ts` loads the
+  deployed URL in a fresh browser context, drafts a starter, asserts the ranch
+  renders, and fails the run on any console error, console warning, or failed
+  asset request. It is the release evidence, and it runs against production
+  rather than a local build.
+- **The first deploy creates the Pages project.** `wrangler pages deploy`
+  will not create a missing project non-interactively, so the workflow does it
+  when it is absent.
+- **A release candidate must pass `bun run verify && bun run build` locally and
+  in CI before any upload.**
+- **The client deploy is configuration-complete but has not run yet.**
+  `deploy.yml` has never been on `main`, and the two secrets are the owner's
+  to add, so `https://apex-league.pages.dev/` does not resolve today.
 
 ## Emergency Procedures
 
