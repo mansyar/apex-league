@@ -152,6 +152,69 @@ describe("the job can run the pinned wrangler", () => {
   })
 })
 
+describe("the runtime can actually typecheck", () => {
+  // `bun check` is the type checker the three workspace `check` scripts call
+  // (`"check": "bun check"` in each package.json), and it is what
+  // `bun run verify` reports as the `types` layer. It landed in Bun 1.4.3.
+  // On 1.4.2 the command does not exist: the script fails to spawn, prints
+  // `E2BIG: /usr/bin/bash: Argument list too long`, and *then exits 0*, so
+  // `bun run verify` passed without checking a single type. That is how every
+  // CI run between 1.4.2's release and this fix reported "Verify (types, ...)"
+  // green while no typecheck ever ran.
+  const MIN_BUN = [1, 4, 3] as const
+
+  const workflows = ["ci.yml", "deploy.yml", "nightly.yml"].map((name) => ({
+    name,
+    source: readFileSync(
+      join(import.meta.dir, "../../.github/workflows", name),
+      "utf8",
+    ),
+  }))
+
+  test("every workflow pins a Bun that has `bun check`", () => {
+    for (const { name, source } of workflows) {
+      const match = /bun-version:\s*(\d+)\.(\d+)\.(\d+)/.exec(source)
+      expect(match, `${name} pins no bun-version`).not.toBeNull()
+      const parts = [Number(match?.[1]), Number(match?.[2]), Number(match?.[3])]
+      // Compared part by part rather than lexically, so 1.10.0 sorts above
+      // 1.4.3 once Bun reaches double digits.
+      for (let index = 0; index < MIN_BUN.length; index++) {
+        const pinned = parts[index] ?? 0
+        const floor = MIN_BUN[index] ?? 0
+        if (pinned !== floor) {
+          expect(
+            pinned,
+            `${name} pins bun ${parts.join(".")}, which cannot run \`bun check\``,
+          ).toBeGreaterThan(floor)
+          break
+        }
+      }
+    }
+  })
+
+  test("all three workflows pin the same Bun", () => {
+    // `ci.yml` gates pull requests and `deploy.yml` gates production; a
+    // divergence means one of them type-checks and the other does not.
+    const pins = workflows.map(
+      ({ source }) => /bun-version:\s*([\d.]+)/.exec(source)?.[1] ?? null,
+    )
+    expect(new Set(pins).size).toBe(1)
+  })
+})
+
+describe("the smoke check's browser install uses the real package", () => {
+  test("installs the scoped @playwright/cli, never the unscoped name", () => {
+    // The `playwright-cli` command is only the *bin*. The npm package that
+    // provides it is `@playwright/cli`; the unscoped `playwright-cli` is an
+    // unrelated 2020 prototype (0.0.0 - 0.262.0). Installing that name at the
+    // pinned version fails with `No version matching "0.1.22" found`, so the
+    // browser never installs and the smoke step — the only check that proves
+    // the deployed build works — is skipped behind a red step.
+    expect(workflow).toContain("bun install --global @playwright/cli@")
+    expect(workflow).not.toMatch(/bun install --global playwright-cli@/)
+  })
+})
+
 describe("the deploy target is written in one place", () => {
   test("the upload directory is apps/client/dist", () => {
     // NFR-5: Pages publishes exactly this directory. A rename here would upload

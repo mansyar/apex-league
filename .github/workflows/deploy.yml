@@ -52,8 +52,9 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
-          # Kept in lockstep with ci.yml and nightly.yml.
-          bun-version: 1.4.2
+          # Kept in lockstep with ci.yml and nightly.yml. 1.4.3+ is required for
+          # `bun check`; see the note in ci.yml.
+          bun-version: 1.4.4
 
       - name: Cache Bun install cache
         uses: actions/cache@v4
@@ -137,9 +138,15 @@ jobs:
       # not a library the app imports, so it is installed into the runner at a
       # pinned version instead of becoming a dependency. `bun run verify` never
       # needs it; only this step and the one below do.
+      #
+      # The package is `@playwright/cli`; the `playwright-cli` command it
+      # installs is only the bin name. The unscoped `playwright-cli` on npm is
+      # an unrelated 2020 prototype (0.0.0 - 0.262.0), so installing that name
+      # at this version fails with "No version matching 0.1.22 found" and the
+      # smoke step never runs.
       - name: Install the smoke check's browser
         run: |
-          bun install --global playwright-cli@0.1.22
+          bun install --global @playwright/cli@0.1.22
           playwright-cli install-browser chromium --with-deps
 
       # The only check that proves the *deployed* build works. It runs after

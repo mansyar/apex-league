@@ -27,10 +27,12 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
-          # Pinned to the stable Bun that produced the first green CI run
-          # (2026-10-10). Local dev is currently a canary; bump the pin when
-          # CI should ride a new stable.
-          bun-version: 1.4.2
+          # Pinned to the stable Bun that runs `bun check`, the type checker the
+          # three `check` scripts call. That command landed in 1.4.3; on 1.4.2 it
+          # does not exist, and 1.4.2 exits 0 anyway after printing the spawn
+          # error, so the typecheck layer silently passed without checking
+          # anything. Keep this in lockstep with deploy.yml and nightly.yml.
+          bun-version: 1.4.4
 
       - name: Restore Bun package cache
         uses: actions/cache@v4

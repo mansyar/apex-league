@@ -26,8 +26,9 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
-          # Kept in lockstep with the CI workflow's pin.
-          bun-version: 1.4.2
+          # Kept in lockstep with the CI workflow's pin. 1.4.3+ is required for
+          # `bun check`; see the note in ci.yml.
+          bun-version: 1.4.4
 
       - name: Restore Bun package cache
         uses: actions/cache@v4

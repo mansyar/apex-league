@@ -1,11 +1,23 @@
 # Technology Stack — Apex League
 
 ## Runtime & Tooling
-- **Runtime / package manager**: Bun (1.3+). All scripts run through `bun`.
+- **Runtime / package manager**: Bun. CI pins **1.4.4** in all three workflows
+  (`ci.yml`, `deploy.yml`, `nightly.yml`) and local dev tracks the same stable.
+  All scripts run through `bun`.
 - **Language**: TypeScript, strict mode. Single language across client, server,
   and tooling.
 - **Type checking**: `bun check` (script: `"check": "bun check"`). Runs in CI
   and before every commit; `tsc` reserved for emitting `.d.ts` only.
+  *2026-10-26 — `bun check` needs Bun **1.4.3 or newer**, and the CI pin was
+  raised from 1.4.2 to 1.4.4 for that reason. On 1.4.2 the command does not
+  exist: the workspace `check` script fails to spawn, prints
+  `E2BIG: /usr/bin/bash: Argument list too long`, and then **exits 0**, so
+  `bun run verify` passed with the `types` layer never running. Every CI run
+  before this change reported green while checking no types at all. Local dev
+  moved to 1.4.4 in the same change. `scripts/deploy/workflow.test.ts` now
+  pins the floor (a workflow pinned below 1.4.3 fails a required check) and
+  that all three workflows agree on one version. `@types/bun` was raised to
+  `^1.4.4` to match the runtime.*
 - **Lint + format**: Biome (`biome check --write`). Single tool replaces
   ESLint+Prettier.
 - **Tests**: `bun test` (bun:test). Pure-logic suites (battle resolution, sim

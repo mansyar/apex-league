@@ -187,7 +187,10 @@ Four layers run for this project. Nothing else is required.
 - **Determinism** — the voxel artifact gate: all eighteen creature GLBs and the prop
   digest manifest must hash identically to the committed artifacts.
 - **Visual** — a browser pass with `playwright-cli` for any user-facing change:
-  screenshot plus console-error check at desktop and phone widths.
+  screenshot plus console-error check at desktop and phone widths. The tool comes
+  from the npm package **`@playwright/cli`** (`playwright-cli` is only the bin
+  name; the unscoped `playwright-cli` is an unrelated 2020 prototype). CI installs
+  it with `bun install --global @playwright/cli@0.1.22`.
 
 Integration, contract, and E2E suites do not exist in this project. The ElysiaJS
 server is deferred to Phase 3; when it lands, an HTTP layer is added here before
