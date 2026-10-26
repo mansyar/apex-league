@@ -51,7 +51,7 @@
 - **Covers:** FR-5, FR-6, AC-3, AC-4, AC-5, NFR-5
 - **Touches:** `apps/client/src/board/**`, `apps/client/src/main.ts` (tab registration), `apps/client/src/cloud/scores.ts` (snapshot cache)
 - **Verification:** `bun test --check --parallel=4 --timeout 120000` (scoped) + playwright-cli Board pass (desktop + phone, live + offline)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Board surface** — covers: FR-5
   - [ ] **P3.T1.1: Four category lists (rank, name, value) + states**
