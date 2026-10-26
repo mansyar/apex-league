@@ -16,6 +16,7 @@ import {
   grantLeagueRewards,
   type LadderTier,
   REWARD_SPECIES,
+  STARTER_SPECIES,
 } from "@apex/sim"
 import { crestGlyph, elementHue } from "./element"
 import { populationNote } from "./handbook/chart"
@@ -215,5 +216,22 @@ describe("the handbook's population note", () => {
         expect(sentence).not.toContain(" or ")
       }
     }
+  })
+
+  test("makes only the guarantee the catalog structurally provides", () => {
+    const note = populationNote()
+    // The note's claim about the tiers must be one the data cannot falsify.
+    // The only such claim is that a reward is a partner the player could not
+    // have picked at the start: the two catalogs are disjoint by construction,
+    // because a tier grants what the starter choice did not offer.
+    const starterIds = new Set(STARTER_SPECIES.map((species) => species.id))
+    expect(REWARD_SPECIES.length).toBeGreaterThan(0)
+    for (const species of REWARD_SPECIES) {
+      expect(starterIds.has(species.id)).toBe(false)
+    }
+    // Regression pin on the exact falsehood: the old copy promised "a partner
+    // of another element" from every tier, which a mixed-element tier breaks —
+    // Silver's plant Whistlefern sits beside the plant starter. Never again.
+    expect(note).not.toContain("another element")
   })
 })

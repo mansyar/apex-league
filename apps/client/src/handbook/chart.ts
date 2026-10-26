@@ -53,6 +53,13 @@ function tierLine(tier: LadderTier): string {
  * The population note: the starter trio by element, then every reward tier
  * read from the sim's own catalog — so a tier can never be credited here with
  * a line the league stopped handing out, and a new reward line needs no edit.
+ *
+ * The claim the note makes is the one the catalog structurally guarantees: a
+ * reward is a partner the player could not have chosen at the start, because
+ * `REWARD_SPECIES` and `STARTER_SPECIES` are disjoint. It deliberately makes no
+ * element claim — a tier may pay a species of a starter's own element (Silver
+ * pays the plant Whistlefern beside the plant starter), so any such promise
+ * would be false as soon as the roster grew.
  */
 export function populationNote(): string {
   const rewards = REWARD_TIERS.map(tierLine)
@@ -60,7 +67,7 @@ export function populationNote(): string {
     .join("; ")
   return (
     "Fire, Plant, and Water partners roam the league today, and every reward " +
-    `tier hands out a partner of another element. ${rewards}.`
+    `tier hands out a partner you did not choose at the start. ${rewards}.`
   )
 }
 
