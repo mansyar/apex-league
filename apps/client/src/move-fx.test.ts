@@ -295,7 +295,14 @@ describe("move table", () => {
     // The mapping rule for the roster-expansion lines: a kit row either has
     // its own authored body or inherits the default one, and either way the
     // shot that flies is the line's element look — never another element's.
-    const lines = ["fernstag", "reefclaw", "cindermoor"] as const
+    const lines = [
+      "fernstag",
+      "reefclaw",
+      "cindermoor",
+      "voltfox",
+      "galeheron",
+      "shalemole",
+    ] as const
     for (const speciesId of lines) {
       const species = getSpecies(speciesId)
       if (!species) throw new Error(`missing species ${speciesId}`)

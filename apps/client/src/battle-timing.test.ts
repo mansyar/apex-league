@@ -67,8 +67,9 @@ describe("PLAYBACK_PHASES — the script's normalized beats", () => {
   }
 })
 
-/** Every registered archetype (spec FR-1: the three starters plus the six
- * reward lines) and all five reaction kinds. */
+/** Every registered archetype (spec FR-1: the three starters, the six
+ * reward lines, and the three breeding-discovery lines) and all five
+ * reaction kinds. */
 const ARCHETYPES = [
   "draconic",
   "bovine",
@@ -79,6 +80,9 @@ const ARCHETYPES = [
   "frond",
   "crab",
   "smolder",
+  "fox",
+  "heron",
+  "mole",
 ] as const
 
 const REACTIONS: readonly ReactionKind[] = [
