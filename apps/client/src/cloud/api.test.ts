@@ -45,10 +45,16 @@ function apiOver(fetch: FetchLike) {
 
 describe("the cloud api", () => {
   test("push sends the passphrase in the body, never the url", async () => {
-    const { fetch, seen } = recordingFetch(200, { stored: true, winner: 7 })
+    const { fetch, seen } = recordingFetch(200, {
+      stored: true,
+      winner: "incoming",
+    })
     const { api } = apiOver(fetch)
     const result = await api.push("trn_abc", "kestrel-42", "{}", 7)
-    expect(result).toEqual({ ok: true, value: { stored: true, winner: 7 } })
+    expect(result).toEqual({
+      ok: true,
+      value: { stored: true, winner: "incoming" },
+    })
     const call = seen[0]
     expect(call?.url).toBe("https://api.example.test/trainers/trn_abc/save")
     expect(call?.init?.method).toBe("PUT")
@@ -58,6 +64,21 @@ describe("the cloud api", () => {
       payload: "{}",
       savedAt: 7,
     })
+  })
+
+  test("a push receipt carries the wire's winner union, not a timestamp", async () => {
+    for (const body of [
+      { stored: true, winner: "incoming" },
+      { stored: false, winner: "stored" },
+    ] as const) {
+      const { fetch } = recordingFetch(200, body)
+      const { api } = apiOver(fetch)
+      const result = await api.push("trn_abc", "kestrel-42", "{}", 7)
+      expect(result).toEqual({ ok: true, value: body })
+      if (!result.ok) throw new Error("expected the push to succeed")
+      const winner: "incoming" | "stored" = result.value.winner
+      expect(winner).toBe(body.winner)
+    }
   })
 
   test("pull sends the passphrase as a header, never the url", async () => {

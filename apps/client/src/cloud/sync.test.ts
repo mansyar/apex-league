@@ -108,7 +108,7 @@ function fakeApi(overrides: Partial<CloudApi> = {}): FakeApi {
     push: async (id, _passphrase, payload, savedAt) => {
       calls.push(`push:${id}`)
       pushes.push({ id, payload, savedAt })
-      return { ok: true, value: { stored: true, winner: savedAt } }
+      return { ok: true, value: { stored: true, winner: "incoming" } }
     },
   }
   return Object.assign(api, overrides)
@@ -265,6 +265,9 @@ describe("cloud sync — sign in and first upload (FR-7, AC-7)", () => {
     expect(api.pushes[0]?.payload).toBe(rawOf(local.state, local.savedAt))
     expect(api.pushes[0]?.savedAt).toBe(300)
     expect(readCredentials(h.storage)).toEqual(TRAINER)
+    // The first upload reports the payload's own clock (F1): the wire's
+    // `winner` is "incoming" | "stored", never a timestamp.
+    expect(h.sync.status()).toEqual({ kind: "synced", at: 300 })
   })
 
   test("an existing cloud save is never overwritten by signing in (AC-7)", async () => {
@@ -397,7 +400,10 @@ describe("cloud sync — push behind the autosave", () => {
     expect(api.pushes).toHaveLength(1)
     expect(api.pushes[0]?.savedAt).toBe(104)
     await settle()
-    expect(h.last()?.kind).toBe("synced")
+    // The wire's `winner` is "incoming" | "stored": the synced stamp is the
+    // pushed payload's own clock, not the receipt (F1).
+    expect(h.last()).toEqual({ kind: "synced", at: 104 })
+    expect(typeof (h.sync.status() as { at?: unknown }).at).toBe("number")
   })
 
   test("a local write while signed out makes no request", async () => {
@@ -423,7 +429,7 @@ describe("cloud sync — push behind the autosave", () => {
 
   test("a cloud copy that is newer than the push is reported as ahead", async () => {
     const api = fakeApi({
-      push: async () => ({ ok: true, value: { stored: false, winner: 999 } }),
+      push: async () => ({ ok: true, value: { stored: false, winner: "stored" } }),
     })
     const h = harness({ api, signedIn: true })
     h.sync.noteLocalWrite(rawOf(stateOn(2), 100))

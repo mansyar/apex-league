@@ -118,7 +118,7 @@ function mount(options: {
 describe("the cloud save seam", () => {
   test("no origin means no cloud object and zero requests (AC-11, NFR-6)", async () => {
     const { fetch, requests } = fakeFetch(async () =>
-      json(200, { stored: true, winner: 0 }),
+      json(200, { stored: true, winner: "incoming" }),
     )
     const storage = localSave(stateOn(1), 100)
     const { cloud, store } = mount({
@@ -210,7 +210,7 @@ describe("the cloud save seam", () => {
       if (request.method === "GET") {
         return json(404, { error: "save_not_found" })
       }
-      return json(200, { stored: true, winner: 1 })
+      return json(200, { stored: true, winner: "incoming" })
     })
     const clockRef = clock()
     const storage = localSave(stateOn(1), 100)
@@ -248,7 +248,7 @@ describe("the cloud save seam", () => {
     const { fetch } = fakeFetch(async (request) => {
       if (request.method === "PUT") {
         uploaded.push(JSON.parse(request.body).payload)
-        return json(200, { stored: true, winner: 300 })
+        return json(200, { stored: true, winner: "incoming" })
       }
       // The trainer exists and has a passphrase; it just has no save yet.
       if (request.url.endsWith("/save")) {

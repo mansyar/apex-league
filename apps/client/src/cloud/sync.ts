@@ -165,11 +165,11 @@ export function createCloudSync(opts: {
       return
     }
     // `stored: false` with a 200 is normal: our copy was older, so the server
-    // kept its own. Keep playing here; the next boot pulls theirs.
+    // kept its own. Keep playing here; the next boot pulls theirs. The
+    // receipt's `winner` is "incoming" | "stored", never a clock, so the
+    // synced stamp is the pushed payload's own `savedAt`.
     setStatus(
-      result.value.stored
-        ? { kind: "synced", at: result.value.winner }
-        : { kind: "ahead" },
+      result.value.stored ? { kind: "synced", at: savedAt } : { kind: "ahead" },
     )
   }
 
@@ -199,10 +199,10 @@ export function createCloudSync(opts: {
       failureStatus(result)
       return
     }
+    // The receipt's `winner` is "incoming" | "stored", never a clock: the
+    // synced stamp is the uploaded payload's own `savedAt`.
     setStatus(
-      result.value.stored
-        ? { kind: "synced", at: result.value.winner }
-        : { kind: "ahead" },
+      result.value.stored ? { kind: "synced", at: savedAt } : { kind: "ahead" },
     )
   }
 

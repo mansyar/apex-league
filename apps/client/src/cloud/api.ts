@@ -46,7 +46,7 @@ export interface TrainerRecord {
 
 export interface PushReceipt {
   stored: boolean
-  winner: number
+  winner: "incoming" | "stored"
 }
 
 export interface CloudApi {
