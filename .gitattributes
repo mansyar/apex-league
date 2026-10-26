@@ -1,0 +1,3 @@
+# Conductor state must stay LF so Windows checkouts don't churn diffs.
+conductor/**/*.json text eol=lf
+conductor/**/*.md text eol=lf
