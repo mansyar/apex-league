@@ -32,7 +32,7 @@
 - **Covers:** FR-1, FR-2, FR-8, NFR-2, NFR-3, NFR-4, NFR-6, AC-1, AC-2, AC-8
 - **Touches:** `.github/workflows/deploy.yml`, `package.json`, `bun.lock`, `wrangler.jsonc`, `.gitignore`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Workflow structure and gating** — covers: FR-1, FR-2, NFR-4, NFR-6
   - [ ] **P2.T1.1: Author `deploy.yml` - push to `main`, `workflow_dispatch`, concurrency cancel-in-progress, install, `bun run verify`, build, then `wrangler pages deploy`**
