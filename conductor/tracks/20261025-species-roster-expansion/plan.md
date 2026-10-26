@@ -168,3 +168,18 @@
 > **Checkpoint:** `3262768d`
 > **Evidence:** `verification/phase-R1.md`
 
+
+## Phase R2: Review Fixes (round 2)
+
+- **Goal:** Resolve the two findings the round-2 delta review surfaced (F7, F8) so the track passes strict review with no known-false player-facing copy.
+- **Depends on:** Phase R1
+- **Covers:** F7, F8
+- **Touches:** `apps/client/src/handbook/chart.ts`, `apps/client/src/species-roster.test.ts`, `packages/voxel/src/determinism-gate.test.ts`, `conductor/tracks/20261025-species-roster-expansion/verification/**`
+- **Verification:** `bun test --check --parallel=4 --timeout 120000`
+- **Status:** pending
+
+- [ ] **R2.T1: Handbook population note states something the catalog guarantees** - covers: F7, FR-8, AC-8
+  - [ ] **R2.T1.1: Failing test - the note makes no element claim the reward catalog contradicts; assert against REWARD_SPECIES rather than a hardcoded string**
+  - [ ] **R2.T1.2: Reword the note to a guarantee that holds for every starter**
+- [ ] **R2.T2: Scope the F5 authoring-gate guard to the write branch** - covers: F8, NFR-3
+  - [ ] **R2.T2.1: Assert absence of `continue` between the write branch and the first compare, not across the whole script; confirm the pin still fails against the base source**
