@@ -17,18 +17,24 @@
 - **Covers:** NFR-4, NFR-5, NFR-6
 - **Touches:** `apps/server/**`, `package.json`, `bun.lock`, `tsconfig.base.json`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Workspace scaffold** — covers: NFR-6
-  - [ ] **P1.T1.1: Add `apps/server` with a `check` script and a tsconfig extending the base, so `bun run check` picks it up with no root change beyond the workspace glob**
-  - [ ] **P1.T1.2: Add the runtime dependencies (`elysia`, `drizzle-orm`) and confirm the client bundle is byte-identical afterwards**
-- [ ] **P1.T2: Schema and migrations** — covers: NFR-4
-  - [ ] **P1.T2.1: Write the Drizzle schema for trainers and saves, with a migration runner that applies committed SQL to a fresh database**
-  - [ ] **P1.T2.2: Prove the migration is idempotent and that a missing or unwritable database path fails loudly at boot**
-- [ ] **P1.T3: Test harness and health route** — covers: NFR-4, NFR-5
-  - [ ] **P1.T3.1: A route-level test harness that builds the app against an in-memory SQLite database, so tests never bind a port**
-  - [ ] **P1.T3.2: `GET /health` reporting the schema version it applied**
-  - [ ] **P1.T3.3: A module-size guard for `apps/server` with a negative control, matching the sim's 12 KB cap**
+- [x] **P1.T1: Workspace scaffold** — covers: NFR-6
+  - [x] **P1.T1.1: Add `apps/server` with a `check` script and a tsconfig extending the base, so `bun run check` picks it up with no root change beyond the workspace glob**
+  - [x] **P1.T1.2: Add the runtime dependencies (`elysia`, `drizzle-orm`) and confirm the client bundle is byte-identical afterwards**
+- [x] **P1.T2: Schema and migrations** — covers: NFR-4
+  - [x] **P1.T2.1: Write the Drizzle schema for trainers and saves, with a migration runner that applies committed SQL to a fresh database**
+  - [x] **P1.T2.2: Prove the migration is idempotent and that a missing or unwritable database path fails loudly at boot**
+- [x] **P1.T3: Test harness and health route** — covers: NFR-4, NFR-5
+  - [x] **P1.T3.1: A route-level test harness that builds the app against an in-memory SQLite database, so tests never bind a port**
+  - [x] **P1.T3.2: `GET /health` reporting the schema version it applied**
+  - [x] **P1.T3.3: A module-size guard for `apps/server` with a negative control, matching the sim's 12 KB cap**
+
+---
+
+**Result:** verified
+**Checkpoint:** `e6fbab89`
+**Evidence:** conductor/tracks/20261026-backend-foundation/verification/phase-1.md
 
 ---
 
