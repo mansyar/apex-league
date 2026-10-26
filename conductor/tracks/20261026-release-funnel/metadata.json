@@ -6,7 +6,7 @@
   "priority": "high",
   "depends_on": [],
   "created_at": "2026-10-26T00:58:38Z",
-  "updated_at": "2026-10-26T07:00:00Z",
+  "updated_at": "2026-10-26T07:20:00Z",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "chore/20261026-release-funnel",
@@ -19,7 +19,7 @@
     "tasks_done": 9
   },
   "last_checkpoint": "4e740b72",
-  "review_verdict": "PASS WITH FINDINGS",
+  "review_verdict": "BLOCK",
   "review_rounds": 1,
   "doc_sync": "updated",
   "pr_url": null,

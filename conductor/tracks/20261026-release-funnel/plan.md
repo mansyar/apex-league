@@ -134,3 +134,16 @@ recorded as uncovered rather than claimed. Gates: `bun test --check
 **Checkpoint:** `4e740b72` (code) and `8ca3959d` (`workflow.md`)
 **Evidence:** `conductor/tracks/20261026-release-funnel/verification/phase-R1.md`
 
+
+## Phase R2: Review Fixes (round 2)
+
+- **Goal:** Resolve the two Low findings from the round-2 re-review so the track passes strict review with a deploy contract that actually pins what its comments claim and a process doc with no self-contradiction.
+- **Depends on:** Phase R1
+- **Covers:** L1, L2
+- **Touches:** `scripts/deploy/workflow.test.ts`, `conductor/workflow.md`, `conductor/tracks/20261026-release-funnel/verification/**`
+- **Verification:** `bun test --check --parallel=4 --timeout 120000`
+- **Status:** pending
+- [ ] **R2.T1: Three assertions pin what their comments claim** - covers: L1
+  - [ ] **R2.T1.1: Assert the real `wrangler.jsonc` invocation (`sed -n … wrangler.jsonc` or the absence of a hardcoded `project="apex-league"`), widen the first-wrangler-call regex to `(bunx wrangler|bun run deploy)`, and assert `continue-on-error` is absent**, each written red first against the current workflow
+- [ ] **R2.T2: The process doc stops contradicting itself** - covers: L2
+  - [ ] **R2.T2.1: Attribute preview deployments to a manual run on a non-main branch (a push to any other branch runs nothing), and rewrite the Emergency Procedures opening and hotfix sentence for a world with a live static deployment** (primary-executed; the phase policy denies `conductor/**`)
