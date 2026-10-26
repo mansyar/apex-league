@@ -14,13 +14,16 @@
 - **Covers:** FR-4, NFR-7, AC-4
 - **Touches:** `apps/client/vite.config.ts`, `apps/client/vite.config.test.ts`, `.env.example`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Env-driven allowlist** — covers: FR-4
-  - [ ] **P1.T1.1: Failing source-shape test - the committed config names no literal hostname, and setting the documented variable yields the expected `allowedHosts` value**
-  - [ ] **P1.T1.2: Read the host list from `DEV_ALLOWED_HOSTS`, defaulting to an empty list, and document the variable in `.env.example`**
-- [ ] **P1.T2: Build output unchanged** — covers: NFR-7
-  - [ ] **P1.T2.1: Record the pre-change `dist/` file list and hashes, rebuild after the config change, and confirm they match**
+- [x] **P1.T1: Env-driven allowlist** — covers: FR-4
+  - [x] **P1.T1.1: Failing source-shape test - the committed config names no literal hostname, and setting the documented variable yields the expected `allowedHosts` value**
+  - [x] **P1.T1.2: Read the host list from `DEV_ALLOWED_HOSTS`, defaulting to an empty list, and document the variable in `.env.example`**
+- [x] **P1.T2: Build output unchanged** — covers: NFR-7
+  - [x] **P1.T2.1: Record the pre-change `dist/` file list and hashes, rebuild after the config change, and confirm they match**
+**Result:** verified
+**Checkpoint:** `2406c88e`
+**Evidence:** `conductor/tracks/20261026-release-funnel/verification/phase-1.md`
 
 ## Phase 2: Deploy workflow
 
