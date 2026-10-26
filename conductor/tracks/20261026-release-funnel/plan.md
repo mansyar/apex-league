@@ -80,13 +80,19 @@
 - **Covers:** FR-6, FR-7, FR-9, AC-6, AC-7
 - **Touches:** `README.md`, `conductor/tech-stack.md`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P4.T1: README** — covers: FR-6, FR-9
-  - [ ] **P4.T1.1: Correct the release checklist save-version references and make every item match actual behaviour**
-  - [ ] **P4.T1.2: Add a Deploying section - live URL, the two repository secrets, and the steps a fresh maintainer follows**
-- [ ] **P4.T2: Stack note** — covers: FR-7
-  - [ ] **P4.T2.1: Replace the `## Deployment (target)` placeholder with a dated note recording Cloudflare Pages, the workflow, the secrets, and pinned `wrangler`**
+- [x] **P4.T1: README** — covers: FR-6, FR-9
+  - [x] **P4.T1.1: Correct the release checklist save-version references and make every item match actual behaviour**
+  - [x] **P4.T1.2: Add a Deploying section - live URL, the two repository secrets, and the steps a fresh maintainer follows**
+- [x] **P4.T2: Stack note** — covers: FR-7
+  - [x] **P4.T2.1: Replace the `## Deployment (target)` placeholder with a dated note recording Cloudflare Pages, the workflow, the secrets, and pinned `wrangler`**
+
+**Result:** verified
+**Checkpoint:** `fd50569c` (README) and `6e2feb47` (tech stack)
+**Evidence:** `conductor/tracks/20261026-release-funnel/verification/phase-4.md`
+
+> P4.T2 was blocked inside the phase — the phase agent's policy denies `edit` on `conductor/**` except the track's own verification directory, so the prepared note was applied verbatim by the primary instead.
 
 <!--
 Review fixes are appended by `conductor-review` as:
