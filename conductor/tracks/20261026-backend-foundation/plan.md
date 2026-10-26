@@ -47,15 +47,21 @@
 - **Covers:** FR-1, FR-2, FR-9, NFR-3, AC-1, AC-2
 - **Touches:** `apps/server/src/identity/**`, `apps/server/src/app.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Trainer creation** — covers: FR-1, AC-1
-  - [ ] **P2.T1.1: Failing tests: a fresh request yields an opaque ID, and a second request with that ID returns the same trainer**
-  - [ ] **P2.T1.2: Issue and look up trainer IDs; no personal field is collected or accepted**
-- [ ] **P2.T2: Name and passphrase** — covers: FR-2, FR-9, AC-2
-  - [ ] **P2.T2.1: Failing tests: set a name and passphrase, reclaim with the right passphrase, and confirm a wrong one returns nothing**
-  - [ ] **P2.T2.2: Hash the passphrase with a salted slow hash and compare in constant time**
-  - [ ] **P2.T2.3: Assert the passphrase never appears in a log line or an error response** — covers: NFR-3
+- [x] **P2.T1: Trainer creation** — covers: FR-1, AC-1
+  - [x] **P2.T1.1: Failing tests: a fresh request yields an opaque ID, and a second request with that ID returns the same trainer**
+  - [x] **P2.T1.2: Issue and look up trainer IDs; no personal field is collected or accepted**
+- [x] **P2.T2: Name and passphrase** — covers: FR-2, FR-9, AC-2
+  - [x] **P2.T2.1: Failing tests: set a name and passphrase, reclaim with the right passphrase, and confirm a wrong one returns nothing**
+  - [x] **P2.T2.2: Hash the passphrase with a salted slow hash and compare in constant time**
+  - [x] **P2.T2.3: Assert the passphrase never appears in a log line or an error response** — covers: NFR-3
+
+---
+
+**Result:** verified
+**Checkpoint:** `7b17d0a1`
+**Evidence:** conductor/tracks/20261026-backend-foundation/verification/phase-2.md
 
 ---
 
