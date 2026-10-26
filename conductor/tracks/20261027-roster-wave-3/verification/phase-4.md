@@ -98,3 +98,20 @@ None. All changes are inside `packages/sim/src/**` plus this evidence file.
   - `.conductor/evidence/20261027-roster-wave-3/phase-4-handbook-desktop.png`
   - `.conductor/evidence/20261027-roster-wave-3/phase-4-battle-desktop.png`
   - `.conductor/evidence/20261027-roster-wave-3/phase-4-handbook-phone.png`
+
+## Integrated verification (2026-10-27)
+
+- `bun run verify` (the exact CI gate: check + full suite + bare
+  `biome check` + determinism gate) → exit 0 on the final tree.
+- Fallout fixed after phase acceptance, all inside the track except one
+  recorded deviation:
+  - `036fdde3` — biome import-order/format autofixes on 14 track files
+    (phases 1–3 fallout the phase-scoped `bun test --check` does not run).
+  - `bec13d67` — out-of-Touches deviation: PR #54 left
+    `apps/client/src/ranch.css` with a descending-specificity pair that the
+    unpinned `biome check` flags, reddening `verify` on main independent of
+    this track. Fixed by reordering only (base `.hud-callout` before the
+    gift-chip override); both rules set `top` and the override wins on
+    specificity in either order, so computed styles are identical.
+- Full-sweep re-check after the fallout: suite 3146 pass / 0 fail,
+  determinism OK across all 36 pairs, build exit 0.
