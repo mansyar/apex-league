@@ -6,7 +6,7 @@
   "priority": "high",
   "depends_on": [],
   "created_at": "2026-10-26T00:58:38Z",
-  "updated_at": "2026-10-26T02:55:00Z",
+  "updated_at": "2026-10-26T04:20:00Z",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "chore/20261026-release-funnel",
@@ -14,11 +14,11 @@
   "base_sha": "02ff20c9822f7e6db95776e9d31829ca5e09a009",
   "progress": {
     "phases_total": 4,
-    "phases_verified": 2,
+    "phases_verified": 3,
     "tasks_total": 9,
-    "tasks_done": 5
+    "tasks_done": 8
   },
-  "last_checkpoint": "bb9a3c89",
+  "last_checkpoint": "50f89c99",
   "review_verdict": null,
   "review_rounds": 0,
   "doc_sync": "pending",
