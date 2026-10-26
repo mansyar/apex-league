@@ -83,18 +83,15 @@ The primary appends after acceptance:
 - **Covers:** FR-6, NFR-5 — AC-6, plus full-sweep AC re-check
 - **Touches:** `packages/sim/src/**` (rival pools, authored boss pairings), visual evidence
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`; visual layer per Verification Strategy
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P4.T1: Widen rival pools + refresh bosses** — covers: FR-6
-  - [ ] **P4.T1.1: New species in generated fields; six pairings refreshed within row discipline**
-  - [ ] **P4.T1.2: Play every refreshed pairing end-to-end in the browser (desktop + phone, console clean)**
+- [x] **P4.T1: Widen rival pools + refresh bosses** — covers: FR-6
+  - [x] **P4.T1.1: New species in generated fields; six pairings refreshed within row discipline**
+  - [x] **P4.T1.2: Play every refreshed pairing end-to-end in the browser (desktop + phone, console clean)**
 
-<!--
-The primary appends after acceptance:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** `92cd061c`
 **Evidence:** conductor/tracks/20261027-roster-wave-3/verification/phase-4.md
--->
 
 <!--
 Review fixes are appended by `conductor-review` as:

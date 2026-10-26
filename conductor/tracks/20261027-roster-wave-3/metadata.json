@@ -6,7 +6,7 @@
   "priority": "high",
   "depends_on": [],
   "created_at": "2026-10-27T00:20:00Z",
-  "updated_at": "2026-10-27T03:10:00Z",
+  "updated_at": "2026-10-27T04:05:00Z",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "feat/20261027-roster-wave-3",
@@ -14,11 +14,11 @@
   "base_sha": "9b6a72bb0df29bf133739a869a67e195b144ad5c",
   "progress": {
     "phases_total": 4,
-    "phases_verified": 3,
-    "tasks_total": 6,
-    "tasks_done": 5
+    "phases_verified": 4,
+    "tasks_total": 7,
+    "tasks_done": 7
   },
-  "last_checkpoint": "c0d9e096",
+  "last_checkpoint": "92cd061c",
   "review_verdict": null,
   "review_rounds": 0,
   "doc_sync": "pending",

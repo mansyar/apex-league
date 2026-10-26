@@ -74,5 +74,27 @@ None. All changes are inside `packages/sim/src/**` plus this evidence file.
   it needs the dev server + playwright, which this phase cannot run.
 - Suggested follow-up (not this phase): the bosses.balance probe sweeps
   STARTER_SPECIES players only, so discovery-species players are unprobed;
-  adding them would need new recorded pins — a design decision for a later
+  adding them would need new recorded pins - a design decision for a later
   track.
+
+## Primary verification (2026-10-27)
+
+- Result: **verified**. `bun run check` → exit 0. `bun test --check
+  --parallel=4 --timeout 120000` → exit 0: 3146 pass, 1 skip, 0 fail
+  (3147 tests / 291 files). `bun run build` → exit 0.
+- Squash: single task commit (`92cd061c`) matching the report, no foreign
+  commits — kept as-is; evidence commit (`1cf78b67`) preserved whole.
+  Checkpoint: `92cd061c`.
+- Touches review: `machine.ts` + two co-located cup tests, all inside
+  `packages/sim/src/**`. No deviation. `bosses.ts` 0-delta accepted — the
+  six kits already carry wider-pool rows and no boss wields a discovery
+  signature (exemption table untouched, suite green).
+- Visual layer (primary-run, per Verification Strategy): dev server
+  `bun run dev` + `playwright-cli`. Drove draft → Handbook Raising (all
+  three open recipe rows verbatim) → starter pick → spar setup → live
+  battle ("Flare Dart hits Ember Drake for 10", HP bars moved, both voxel
+  models rendered). Desktop shots: handbook + battle; phone (iPhone 15)
+  shot: handbook recipes; console 0 errors / 0 warnings on both widths.
+  - `.conductor/evidence/20261027-roster-wave-3/phase-4-handbook-desktop.png`
+  - `.conductor/evidence/20261027-roster-wave-3/phase-4-battle-desktop.png`
+  - `.conductor/evidence/20261027-roster-wave-3/phase-4-handbook-phone.png`
