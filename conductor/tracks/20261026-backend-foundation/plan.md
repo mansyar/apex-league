@@ -137,19 +137,24 @@
 - **Covers:** FR-10, NFR-3, NFR-7, NFR-8, AC-9, AC-10
 - **Touches:** `apps/server/Dockerfile`, `apps/server/.dockerignore`, `.github/workflows/server-image.yml`, `README.md`, `conductor/tech-stack.md`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P5.T1: The image** — covers: FR-10, NFR-7, AC-9
-  - [ ] **P5.T1.1: Multi-stage Dockerfile on a Bun base, running as a non-root user, with the database path and allowed origin from the environment**
-  - [ ] **P5.T1.2: Prove `docker build` succeeds and the container answers `GET /health`**
-- [ ] **P5.T2: Image pipeline** — covers: FR-10, NFR-3, AC-10
-  - [ ] **P5.T2.1: A workflow that builds and pushes `ghcr.io/<owner>/apex-league-server:<sha>` behind the same verify gate, authenticating with the workflow token and printing no secret**
-  - [ ] **P5.T2.2: A committed test pinning that the image job is gated on `bun run verify` and that no `run:` body interpolates a secret**
-- [ ] **P5.T3: Coolify documentation** — covers: NFR-8
-  - [ ] **P5.T3.1: README section: the Coolify app, the persistent volume for the database, the environment variables, and the warning that a redeploy without the volume destroys every cloud save**
-  - [ ] **P5.T3.2: A dated `conductor/tech-stack.md` note recording the server host, the image pipeline and the persistent-volume requirement**
+- [x] **P5.T1: The image** — covers: FR-10, NFR-7, AC-9
+  - [x] **P5.T1.1: Multi-stage Dockerfile on a Bun base, running as a non-root user, with the database path and allowed origin from the environment**
+  - [x] **P5.T1.2: Prove `docker build` succeeds and the container answers `GET /health`**
+- [x] **P5.T2: Image pipeline** — covers: FR-10, NFR-3, AC-10
+  - [x] **P5.T2.1: A workflow that builds and pushes `ghcr.io/<owner>/apex-league-server:<sha>` behind the same verify gate, authenticating with the workflow token and printing no secret**
+  - [x] **P5.T2.2: A committed test pinning that the image job is gated on `bun run verify` and that no `run:` body interpolates a secret**
+- [x] **P5.T3: Coolify documentation** — covers: NFR-8
+  - [x] **P5.T3.1: README section: the Coolify app, the persistent volume for the database, the environment variables, and the warning that a redeploy without the volume destroys every cloud save**
+  - [x] **P5.T3.2: A dated `conductor/tech-stack.md` note recording the server host, the image pipeline and the persistent-volume requirement**
 
 ---
+
+
+**Result:** verified - CORS, the non-root image, the GHCR pipeline and the Coolify docs all landed. Two blockers were cleared by the primary: the image was built and run (uid 1000, `/health` 200, preflight 204, foreign and lookalike origins refused, named volume writable) and the `conductor/tech-stack.md` note was applied verbatim, along with the stale Server-deferred bullet it contradicted.
+**Checkpoint:** `9d024444` (code) and the tech-stack commit that follows it
+**Evidence:** conductor/tracks/20261026-backend-foundation/verification/phase-5.md
 
 <!--
 Review fixes are appended by `conductor-review` as:
