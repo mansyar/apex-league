@@ -142,7 +142,9 @@ describe("boss registry", () => {
     // signature that its own species kit carries: the only overlap the user
     // decision allows. A new overlap — or a stale entry — fails here.
     const sharedSignatures = BOSSES.flatMap((boss) => {
-      const ownKit = getSpecies(boss.speciesId)?.kit ?? []
+      // Kit is a 6-tuple at the type level; read it as a readonly list here.
+      const ownKit: readonly string[] =
+        getSpecies(boss.speciesId)?.kit ?? []
       return boss.loadout
         .filter(
           (move) =>
