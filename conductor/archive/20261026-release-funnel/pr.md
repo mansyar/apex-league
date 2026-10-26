@@ -76,7 +76,7 @@ The smoke check running against the locally served production build — the
 starter drafted and the ranch rendered from the real `apps/client/dist`,
 captured at `50f89c99`:
 
-![The smoke check against the locally served production build](.conductor/evidence/20261026-release-funnel/phase-3-smoke-local.png)
+![The smoke check against the locally served production build](https://github.com/user-attachments/assets/71575e10-361d-4299-8c6b-47d6ccd0413e)
 
 ## Review
 
