@@ -103,7 +103,7 @@
 - **Covers:** FR-4, FR-5, FR-7, FR-8, FR-11, NFR-1, NFR-2, NFR-6, AC-4, AC-5, AC-7, AC-8, AC-11
 - **Touches:** `apps/client/src/cloud/**`, `apps/client/src/main.ts`, `apps/client/src/app/**`, `apps/client/src/hud/**`, `apps/client/src/store.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P4.T1: The adapter** — covers: FR-11, NFR-1, AC-11
   - [ ] **P4.T1.1: Failing tests: with no origin configured the adapter is a no-op, and `SAVE_VERSION` is still 25**
