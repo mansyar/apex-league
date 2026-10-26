@@ -74,16 +74,22 @@
 - **Covers:** FR-3, FR-6, AC-3, AC-6
 - **Touches:** `apps/server/src/saves/**`, `apps/server/src/app.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Push and pull** — covers: FR-3, AC-3
-  - [ ] **P3.T1.1: Failing tests: a newer push replaces the stored save; an older push leaves it untouched and reports which one won**
-  - [ ] **P3.T1.2: Implement push/pull with `savedAt` comparison and a server-side `receivedAt` recorded for diagnosis**
-- [ ] **P3.T2: The recoverable loser** — covers: FR-6, AC-6
-  - [ ] **P3.T2.1: Failing test: after a conflict the displaced save is still retrievable from its own slot**
-  - [ ] **P3.T2.2: Keep exactly one displaced copy per trainer, replaced on the next conflict**
-- [ ] **P3.T3: Payload limits** — covers: FR-3
-  - [ ] **P3.T3.1: Failing test: an oversized body is refused with a clear status, and a future-version payload is stored opaquely rather than parsed**
+- [x] **P3.T1: Push and pull** — covers: FR-3, AC-3
+  - [x] **P3.T1.1: Failing tests: a newer push replaces the stored save; an older push leaves it untouched and reports which one won**
+  - [x] **P3.T1.2: Implement push/pull with `savedAt` comparison and a server-side `receivedAt` recorded for diagnosis**
+- [x] **P3.T2: The recoverable loser** — covers: FR-6, AC-6
+  - [x] **P3.T2.1: Failing test: after a conflict the displaced save is still retrievable from its own slot**
+  - [x] **P3.T2.2: Keep exactly one displaced copy per trainer, replaced on the next conflict**
+- [x] **P3.T3: Payload limits** — covers: FR-3
+  - [x] **P3.T3.1: Failing test: an oversized body is refused with a clear status, and a future-version payload is stored opaquely rather than parsed**
+
+---
+
+**Result:** verified
+**Checkpoint:** `2551ee9a`
+**Evidence:** conductor/tracks/20261026-backend-foundation/verification/phase-3.md
 
 ---
 
