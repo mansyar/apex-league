@@ -61,7 +61,7 @@ The primary appends after acceptance:
 - **Covers:** FR-5 (client half), FR-7, FR-8, NFR-6 — AC-5 (client), AC-7, AC-8
 - **Touches:** `apps/client/src/**` (plates, handbook incl. recipe hints, creature detail, growth, battle staging, copy)
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Render all surfaces + lifecycle parity** — covers: FR-5, FR-7
   - [ ] **P3.T1.1: Plates / stable / detail / growth / battle staging with element-true crests (50° / 165° / 28°)**
