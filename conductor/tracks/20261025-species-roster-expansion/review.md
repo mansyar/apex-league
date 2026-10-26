@@ -5,7 +5,7 @@
 - **Branch:** feat/20261025-species-roster-expansion
 - **Range:** 2adc0518..HEAD (`2adc0518d136ec3b41cc7b6daa17821ae4e1d6f4..60905f9a`)
 - **Date:** 2026-10-26
-- **Verdict:** PASS WITH FINDINGS
+- **Verdict:** PASS
 
 ## Summary
 
@@ -154,14 +154,44 @@ None.
 
 ## Debt
 
-None outstanding. `review.issues.enabled` is false and, under strict mode, every finding is fixed in Phase R1 rather than filed.
+None outstanding. `review.issues.enabled` is false and, under strict mode, every finding is fixed in Phase R1/R2 rather than filed.
 
 ## Doc sync
 
 Updated before review: `conductor/tech-stack.md` dated note (2026-10-26, roster 6→9), `conductor/product.md` roadmap line (user-approved), `verification/integrated.md`.
+
+## Round 2 — resolution record
+
+Phase R1 resolved all six round-1 findings at root cause, each with a regression test that fails on the base source. No assertion was weakened: F2's deleted predicate could not evaluate false, and both of its live neighbours survive; F1 replaced three hardcoded string pins with those three plus a seam-derived test; F6 replaced baby-only containment with three-stage containment.
+
+One discrepancy was investigated and accepted: the R1 brief named three signature exemptions, and the data-driven pin surfaced six. Pinning six is correct rather than papering over — all six are the identical case (a boss wielding a move that is its own species' kit row while another species' champion form claims that row as its signature), `bosses.ts` was unchanged so these overlaps predate the track, and the complementary direction is enforced by the loadout-subset pin, making the pair of tests exhaustive.
+
+| Finding | Resolution |
+| --- | --- |
+| F1 | `handbook/chart.ts` joins with " and "; guard derives the connective from `REWARD_SPECIES` and cross-checks `grantLeagueRewards` |
+| F2 | Vacuous loop deleted; uniqueness and loadout-subset pins kept; six exemptions pinned as data |
+| F3 | Chip folds via `.is-hidden`; five seat rules re-keyed; verified live at both phone orientations |
+| F4 | `rank()` with `?? Number.MAX_SAFE_INTEGER`; unknown id sorts last |
+| F5 | Authoring run re-reads and falls through to the same deep compare |
+| F6 | Containment asserted for all three stages plus signature-part presence per stage |
+
+## Round 3 — resolution record
+
+The round-2 delta review surfaced two findings in the R1 delta itself, both resolved in Phase R2.
+
+| Finding | Severity | Resolution |
+| --- | --- | --- |
+| F7 | Medium | `handbook/chart.ts:68-71` no longer claims a cross-element partner; it states the invariant the catalogs guarantee (a reward is a partner the player could not have chosen at the start). Guard `species-roster.test.ts:221-236` derives disjointness from the real arrays and pins "another element" out of real output. |
+| F8 | Low | `determinism-gate.test.ts:21-49` scopes the pin from the write branch to the first deep compare, asserting both anchors exist and are ordered first; `determinism-gate.ts` untouched; base-source proof recorded in `phase-R2.md`. |
+
+Two guard-strictness limitations were reported as notes, not findings, because both fail closed on the shipped code shape: the F7 guard would not catch a *paraphrase* of the element claim, and the F8 slice would not catch a `break` substituted for the `continue`. Hardening either at track close would be opportunistic work outside the findings, so both are recorded here for future maintenance rather than actioned.
+
+**Round 3 verdict: PASS** — 0 Critical, 0 High, 0 Medium, 0 Low outstanding; no new findings introduced by the R2 delta.
 
 ## History
 
 | Round | Verdict | Critical | High | Medium | Low | Fixed |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | PASS WITH FINDINGS | 0 | 0 | 2 | 4 | 0 |
+| 2 | PASS WITH FINDINGS | 0 | 0 | 1 | 1 | 6 |
+| 3 | PASS | 0 | 0 | 0 | 0 | 2 |
