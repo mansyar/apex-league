@@ -172,6 +172,14 @@ export function violations(result: RunResult): string[] {
   }
   if (report.errors > 0) found.push(`${report.errors} console error(s)`)
   if (report.warnings > 0) found.push(`${report.warnings} console warning(s)`)
+  // An empty request log is never a pass: every load asks for the document at
+  // least, so nothing matches only when the CLI printed a shape `parseRequests`
+  // cannot read. Reporting it as a violation mirrors `parseConsoleReport`, which
+  // fails loud when its header is missing, and keeps the request-log half of
+  // AC-3 from degrading into a green run that verified nothing.
+  if (requests.length === 0) {
+    found.push("no network requests were observed (the request log was empty)")
+  }
   for (const line of requests) {
     if (statusOk(line.status)) continue
     const kind = isAssetRequest(line.url) ? "asset request" : "request"
@@ -195,6 +203,10 @@ export function targetUrl(
 ): string {
   const at = argv.indexOf("--url")
   const fromFlag = at === -1 ? undefined : argv[at + 1]
+  // A bare `--url` would otherwise fall through to `SMOKE_URL` or the Pages
+  // default — in CI, production — while the operator believes they aimed the
+  // run somewhere else entirely.
+  if (at !== -1 && fromFlag === undefined) fail("--url needs a value")
   const url =
     fromFlag ?? env.SMOKE_URL ?? `https://${projectName(config)}.pages.dev`
   if (!/^https?:\/\//.test(url)) fail(`not an http(s) URL: ${url}`)
@@ -315,8 +327,20 @@ export async function runSmoke(
     // A run that stops early still owes the reason. A build that 404s its
     // bundle looks exactly like a slow boot until the request log is read, and
     // that log is the whole point of the check.
-    const found = violations(gather())
     const message = error instanceof Error ? error.message : String(error)
+    // Reading that log re-runs the probe and the CLI calls the failure may have
+    // been caused by, so it can fail too — and a broken build is exactly when
+    // it does. The original reason is the diagnosis and must survive.
+    let found: string[] = []
+    try {
+      found = violations(gather())
+    } catch (caught) {
+      log(
+        `could not read the run's evidence: ${
+          caught instanceof Error ? caught.message : String(caught)
+        }`,
+      )
+    }
     fail(found.length > 0 ? `${message} — ${found.join("; ")}` : message)
   }
 
@@ -330,36 +354,48 @@ function screenshot(binary: string, session: string, path: string): void {
 }
 
 export async function main(argv: string[]): Promise<number> {
-  const config = readFileSync(
-    resolve(import.meta.dir, "../../wrangler.jsonc"),
-    "utf8",
-  )
-  const url = targetUrl(argv, process.env, config)
-  const binary = resolveCli()
-  const session = `smoke-${Date.now().toString(36)}`
   const shotAt = argv.indexOf("--screenshot")
   const shotPath = shotAt === -1 ? undefined : argv[shotAt + 1]
+  const session = `smoke-${Date.now().toString(36)}`
 
+  // The config, the target and the browser CLI are resolved inside the try: a
+  // missing `wrangler.jsonc` or an absent `playwright-cli` is a failed check,
+  // and it owes the same `RESULT fail` + JSON envelope as anything else rather
+  // than an uncaught stack trace in the middle of the deploy log.
+  let binary: string | null = null
+  let url = ""
   let result: RunResult | null = null
   let error: string | null = null
   try {
+    const config = readFileSync(
+      resolve(import.meta.dir, "../../wrangler.jsonc"),
+      "utf8",
+    )
+    url = targetUrl(argv, process.env, config)
+    binary = resolveCli()
     result = await runSmoke(binary, url, session)
     if (shotPath) screenshot(binary, session, shotPath)
   } catch (caught) {
     error = caught instanceof Error ? caught.message : String(caught)
   } finally {
-    Bun.spawnSync([binary, `-s=${session}`, "close"], {
-      stdout: "ignore",
-      stderr: "ignore",
-      timeout: 30_000,
-    })
+    // Nothing to close when the CLI never resolved.
+    if (binary !== null) {
+      Bun.spawnSync([binary, `-s=${session}`, "close"], {
+        stdout: "ignore",
+        stderr: "ignore",
+        timeout: 30_000,
+      })
+    }
   }
 
   if (!result) {
-    log(`target ${url}`)
+    // `url` is empty only when the run never got far enough to know its target.
+    if (url) log(`target ${url}`)
     log("RESULT fail (the check could not complete)")
     log(error ?? "unknown error")
-    console.log(JSON.stringify({ smoke: "fail", target: url, reason: error }))
+    console.log(
+      JSON.stringify({ smoke: "fail", target: url || null, reason: error }),
+    )
     return 1
   }
 

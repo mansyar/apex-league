@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import {
   isAssetRequest,
+  main,
   parseConsoleReport,
   parseRequests,
   projectName,
@@ -87,6 +88,17 @@ describe("the run is clean only when everything resolved", () => {
     expect(found).toEqual([
       "request failed: 500 https://apex-league.pages.dev/api/x",
     ])
+  })
+
+  test("an empty request log is a violation, not a silent pass", () => {
+    // `parseRequests` returns `[]` when the CLI's listing does not match the
+    // expected shape, so without this rule a CLI output change would let the
+    // deploy-time smoke step print `requests 0 · failed 0` and exit 0 — a green
+    // run that verified nothing about the assets AC-3 names. The console parser
+    // next door already fails loud in the same situation.
+    const found = violations(withResult({ requests: [] }))
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain("no network requests were observed")
   })
 
   test("one console error fails the run", () => {
@@ -228,7 +240,28 @@ describe("the target URL comes from the one place it is written", () => {
     expect(() => targetUrl(["--url", "file:///tmp/x"], {}, config)).toThrow()
   })
 
+  test("a url flag with no value is rejected", () => {
+    // `indexOf` matches a bare trailing `--url`, where `argv[at + 1]` is
+    // `undefined` — the lookup then fell through to `SMOKE_URL`, or, with
+    // neither set, to the production Pages URL. A mistyped flag must not smoke
+    // production while the operator believes they pointed at a local build.
+    expect(() => targetUrl(["--url"], {}, config)).toThrow(
+      "--url needs a value",
+    )
+  })
+
   test("a config with no name is an error", () => {
     expect(() => projectName("{ }")).toThrow()
+  })
+})
+
+describe("a run that cannot start still reports a failure", () => {
+  test("an unresolvable target exits 1 instead of throwing", async () => {
+    // `main` resolved the config, the target and the browser CLI *before* its
+    // try/catch, so a bad target or a missing `playwright-cli` escaped as an
+    // uncaught stack trace instead of the documented `RESULT fail` + JSON
+    // envelope. The smoke step's output is the release evidence, so it has to
+    // carry the reason rather than a crash.
+    expect(await main(["--url", "file:///tmp/x"])).toBe(1)
   })
 })

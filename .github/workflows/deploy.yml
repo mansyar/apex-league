@@ -38,6 +38,17 @@ jobs:
       - name: Check out
         uses: actions/checkout@v4
 
+      # `bunx wrangler` runs the pinned wrangler's `#!/usr/bin/env node` bin, and
+      # that bin hard-refuses anything below Node 22 (`MIN_NODE_VERSION` in
+      # `node_modules/wrangler/bin/wrangler.js`). The runner image's default
+      # `node` is 20, so without this step every wrangler call — the project
+      # check first, then the upload — fails before it reaches the API, and only
+      # on the first live push.
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -53,7 +64,11 @@ jobs:
             ${{ runner.os }}-bun-
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: |
+          bun install --frozen-lockfile
+          # Fail in seconds, not at the upload step: the pinned wrangler's bin
+          # refuses Node below 22, so a wrong runtime is visible right here.
+          bunx wrangler --version
 
       # Fail in seconds rather than after the gate if the credentials are not
       # configured. Only secret *names* are printed; the values never leave
