@@ -176,10 +176,24 @@
 - **Covers:** F7, F8
 - **Touches:** `apps/client/src/handbook/chart.ts`, `apps/client/src/species-roster.test.ts`, `packages/voxel/src/determinism-gate.test.ts`, `conductor/tracks/20261025-species-roster-expansion/verification/**`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **R2.T1: Handbook population note states something the catalog guarantees** - covers: F7, FR-8, AC-8
-  - [ ] **R2.T1.1: Failing test - the note makes no element claim the reward catalog contradicts; assert against REWARD_SPECIES rather than a hardcoded string**
-  - [ ] **R2.T1.2: Reword the note to a guarantee that holds for every starter**
-- [ ] **R2.T2: Scope the F5 authoring-gate guard to the write branch** - covers: F8, NFR-3
-  - [ ] **R2.T2.1: Assert absence of `continue` between the write branch and the first compare, not across the whole script; confirm the pin still fails against the base source**
+- [x] **R2.T1: Handbook population note states something the catalog guarantees** - covers: F7, FR-8, AC-8
+  - [x] **R2.T1.1: Failing test - the note makes no element claim the reward catalog contradicts; assert against REWARD_SPECIES rather than a hardcoded string**
+  - [x] **R2.T1.2: Reword the note to a guarantee that holds for every starter**
+- [x] **R2.T2: Scope the F5 authoring-gate guard to the write branch** - covers: F8, NFR-3
+  - [x] **R2.T2.1: Assert absence of `continue` between the write branch and the first compare, not across the whole script; confirm the pin still fails against the base source**
+
+> **Result:** verified - both round-2 findings resolved at root cause. F7 replaces
+> the false element claim with the invariant the catalogs structurally guarantee
+> (a reward is a partner the player could not have chosen at the start, because
+> REWARD_SPECIES and STARTER_SPECIES are disjoint); the guard derives that
+> disjointness from the real arrays and pins "another element" out of the real
+> note output, so the copy cannot silently go false as the roster grows. F8
+> scopes the authoring-gate pin from the write branch to the first deep compare
+> through a helper that also asserts both anchors exist and are ordered, which
+> prevents the empty-slice vacuous pass; determinism-gate.ts itself untouched.
+> Both guards confirmed to fail against the base source. Gates: test:phase
+> 2800/239/0 fail; verify 0; build 0.
+> **Checkpoint:** `10cdc188`
+> **Evidence:** `verification/phase-R2.md`
