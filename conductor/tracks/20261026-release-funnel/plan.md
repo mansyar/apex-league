@@ -142,7 +142,7 @@ recorded as uncovered rather than claimed. Gates: `bun test --check
 - **Covers:** L1, L2
 - **Touches:** `scripts/deploy/workflow.test.ts`, `conductor/workflow.md`, `conductor/tracks/20261026-release-funnel/verification/**`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 - [ ] **R2.T1: Three assertions pin what their comments claim** - covers: L1
   - [ ] **R2.T1.1: Assert the real `wrangler.jsonc` invocation (`sed -n … wrangler.jsonc` or the absence of a hardcoded `project="apex-league"`), widen the first-wrangler-call regex to `(bunx wrangler|bun run deploy)`, and assert `continue-on-error` is absent**, each written red first against the current workflow
 - [ ] **R2.T2: The process doc stops contradicting itself** - covers: L2
