@@ -44,10 +44,6 @@
   - [x] **P2.T1.1: Derive entries from result payloads (cup, ladder, AP, collection)**
   - [x] **P2.T1.2: Hook into post-result flow next to the save push; failures quiet**
 
-- [ ] **P2.T1: Score submitter** — covers: FR-1
-  - [ ] **P2.T1.1: Derive entries from result payloads (cup, ladder, AP, collection)**
-  - [ ] **P2.T1.2: Hook into post-result flow next to the save push; failures quiet**
-
 ## Phase 3: Board tab & offline snapshot
 
 - **Goal:** Board tab renders all four categories from live data, with empty/loading/error states and a last-snapshot offline fallback — proven by client tests + browser pass.
