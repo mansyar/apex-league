@@ -1407,6 +1407,15 @@
     padding: 6px 10px;
   }
 
+  .hud-callout {
+    /* Below the lineage plate (top: 176px). */
+    top: calc(226px + var(--kit-safe-top));
+    left: calc(14px + var(--kit-safe-left));
+    right: calc(14px + var(--kit-safe-right));
+    transform: none;
+    max-width: none;
+  }
+
   /* A pending league gift (species roster FR-7) makes the cluster four chips
      tall: it ends at 208 and the 176px seat above would put the Stable chip
      across the lineage plate. While the egg waits, the plate and the panel
@@ -1424,15 +1433,6 @@
      now ends at 252, so the card follows it down by the same 32px. */
   .hud-motion:has(.gift-chip:not(.is-hidden)) ~ .hud-callout {
     top: calc(258px + var(--kit-safe-top));
-  }
-
-  .hud-callout {
-    /* Below the lineage plate (top: 176px). */
-    top: calc(226px + var(--kit-safe-top));
-    left: calc(14px + var(--kit-safe-left));
-    right: calc(14px + var(--kit-safe-right));
-    transform: none;
-    max-width: none;
   }
 
   /* Expanded sheets get tighter rows on phone — same readouts, less
