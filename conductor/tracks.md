@@ -27,4 +27,4 @@
 - [x] **Track: Post-Cup Morning-After Ritual** - [20261024-postcup-morning-after](./archive/20261024-postcup-morning-after/index.md) - feature - medium
 - [x] **Track: Mobile Layout Pass** - [20261025-mobile-layout-pass](./archive/20261025-mobile-layout-pass/index.md) - feature - medium
 - [x] **Track: Species Roster Expansion** - [20261025-species-roster-expansion](./archive/20261025-species-roster-expansion/index.md) - feature - high
-- [ ] **Track: Release Funnel** - [20261026-release-funnel](./tracks/20261026-release-funnel/index.md) - chore - high
+- [~] **Track: Release Funnel** - [20261026-release-funnel](./tracks/20261026-release-funnel/index.md) - chore - high
