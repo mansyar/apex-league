@@ -83,7 +83,7 @@ The primary appends after acceptance:
 - **Covers:** FR-6, NFR-5 — AC-6, plus full-sweep AC re-check
 - **Touches:** `packages/sim/src/**` (rival pools, authored boss pairings), visual evidence
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`; visual layer per Verification Strategy
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P4.T1: Widen rival pools + refresh bosses** — covers: FR-6
   - [ ] **P4.T1.1: New species in generated fields; six pairings refreshed within row discipline**
