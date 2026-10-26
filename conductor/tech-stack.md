@@ -338,10 +338,40 @@
   why every refreshed pairing was also played end-to-end in the browser.*
 
 ## Server
-- **Framework**: ElysiaJS on Bun (endpoints: save sync, leaderboard, ghost
-  data, anonymous device-ID auth).
+- **Framework**: ElysiaJS on Bun, in `apps/server` (endpoints: trainer
+  identity, save sync. Leaderboard and ghost data are still unbuilt, and this
+  file says so rather than listing them as existing).
 - **Database**: SQLite via `bun:sqlite`, accessed through Drizzle ORM for a
-  typed schema; schema kept Postgres-migratable.
+  typed schema; schema kept Postgres-migratable. Migrations are committed SQL
+  under `apps/server/migrations/`, applied by a ledger runner at boot.
+- *2026-10-26 — Container and Coolify (track `20261026-backend-foundation`):
+  the API ships as a two-stage image, `apps/server/Dockerfile`, built from the
+  repository root because Bun's isolated linker installs `elysia` and
+  `drizzle-orm` into `apps/server/node_modules` and `bun install
+  --frozen-lockfile` needs the root `bun.lock`. There is deliberately no compile
+  stage — `main.ts` is executed by Bun, so nothing emits JavaScript. The runtime
+  stage is `oven/bun:1.4.4` (pinned like the workflows, never `latest`), drops
+  to the base image's `bun` user (uid 1000), and takes `DATABASE_PATH` (default
+  `/data/apex.sqlite`), `PORT` and `ALLOWED_ORIGIN` from the environment. `/data`
+  is created and chowned to uid 1000 in the image, so a named volume seeded from
+  it is writable at boot; a host bind mount must be `chown`ed to 1000 first, or
+  `openDatabase` throws and the container dies rather than serving saves it
+  cannot persist. CORS is hand-written (~110 lines, `apps/server/src/cors.ts`)
+  rather than `@elysiajs/cors`: exactly one configured origin, compared exactly
+  and echoed with `Vary: Origin`, no credentials mode, and **no `ALLOWED_ORIGIN`
+  means no CORS headers at all** — never `*`. `OPTIONS` is answered 204 with
+  `content-type` and `x-trainer-passphrase` allowed, because a pull sends its
+  passphrase as a header and would otherwise be blocked before it was sent.
+  `.github/workflows/server-image.yml` runs `bun run verify` before the build and
+  pushes `ghcr.io/<owner>/apex-league-server:<sha>` (plus `latest` on `main`)
+  with `packages: write` and the built-in token passed through `env:`, never
+  interpolated into a `run:` body. Coolify pulls the SHA tag and owns the deploy
+  cadence. `scripts/deploy/server-image.test.ts` pins all of that. The image was
+  built and run locally on 2026-10-26: uid 1000, `/health` 200 with
+  `schemaVersion 0001_init.sql`, a preflight from the configured origin 204 with
+  all three access-control headers, and both a foreign origin and the
+  `apex-league.pages.dev.evil.test` lookalike refused. The Coolify deploy itself
+  is configuration-complete and has not run.*
 
 ## Asset Pipeline
 - **Creatures and ranch props**: species and scenery defined as versioned JSON
@@ -663,9 +693,12 @@
 - **Client — Cloudflare Pages.** The client is a static bundle
   (`apps/client/dist`), uploaded by `.github/workflows/deploy.yml` on push to
   `main`; the production URL is `https://apex-league.pages.dev/`.
-- **Server — deferred.** A single small Bun container (Fly.io or equivalent)
-  stays the Phase 3 roadmap item: ElysiaJS endpoints, cloud save sync, trainer
-  identity, leaderboards and ghost data have no host yet.
+- **Server — container image, deployed to Coolify.** `apps/server/Dockerfile`
+  builds a two-stage, non-root image published to GHCR by
+  `.github/workflows/server-image.yml` on push to `main`, tagged with the commit
+  SHA; a Coolify application pulls that tag and terminates TLS on its own
+  subdomain. Leaderboards and ghost data are still unbuilt and have no
+  endpoints, so nothing about them is hosted.
 -   *2026-10-26 - Release funnel (track `20261026-release-funnel`): the client
     deploy is configuration now rather than a target. `deploy.yml` runs on push
     to `main` (plus `workflow_dispatch`) and uploads `apps/client/dist` with
