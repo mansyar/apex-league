@@ -10,7 +10,10 @@ import type { CreatureBuild } from "./build"
 import { buildCrab, CRAB_GRID, crabTemplate } from "./crab"
 import { buildDrake, DRAKE_GRID, drakeTemplate } from "./drake"
 import { buildFalcon, FALCON_GRID, falconTemplate } from "./falcon"
+import { buildFox, FOX_GRID, foxTemplate } from "./fox"
 import { buildFrond, FROND_GRID, frondTemplate } from "./frond"
+import { buildHeron, HERON_GRID, heronTemplate } from "./heron"
+import { buildMole, MOLE_GRID, moleTemplate } from "./mole"
 import { sampleDna } from "./sample"
 import type { Dna, Template } from "./schema"
 import { buildSmolder, SMOLDER_GRID, smolderTemplate } from "./smolder"
@@ -85,6 +88,24 @@ export const archetypes: Record<string, ArchetypeDef> = {
     template: smolderTemplate,
     grid: SMOLDER_GRID,
     build: buildSmolder,
+  },
+  fox: {
+    id: "fox",
+    template: foxTemplate,
+    grid: FOX_GRID,
+    build: buildFox,
+  },
+  heron: {
+    id: "heron",
+    template: heronTemplate,
+    grid: HERON_GRID,
+    build: buildHeron,
+  },
+  mole: {
+    id: "mole",
+    template: moleTemplate,
+    grid: MOLE_GRID,
+    build: buildMole,
   },
 }
 

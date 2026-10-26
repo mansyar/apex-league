@@ -72,6 +72,8 @@ export {
   createBredCreature,
   createGiftEgg,
   deriveTrait,
+  discoverySpeciesForElements,
+  discoverySpeciesForParents,
   driftSource,
   effectiveTraits,
   type GraduatePairReason,
@@ -277,6 +279,7 @@ export {
 } from "./settlement"
 export {
   ALL_SPECIES,
+  DISCOVERY_SPECIES,
   getSpecies,
   obtainableSpecies,
   REWARD_SPECIES,

@@ -3,6 +3,9 @@
  * its fast-striker stat profile, and the locked-species registry seam.
  * Extended by the species-roster-expansion line: fernstag (Silver),
  * reefclaw (Gold) and cindermoor (Legend) join the reward roster.
+ * Extended by roster_wave_3: voltfox, galeheron and shalemole join as
+ * breeding-discovery lines — locked, tierless, reachable only through the
+ * breed-time recipe lookup.
  */
 
 import { describe, expect, test } from "bun:test"
@@ -13,6 +16,7 @@ import { createCreature } from "./creature"
 import type { RetiredRecord } from "./legacy"
 import {
   ALL_SPECIES,
+  DISCOVERY_SPECIES,
   getSpecies,
   obtainableSpecies,
   REWARD_SPECIES,
@@ -769,4 +773,156 @@ describe("cindermoor species record", () => {
       expect(child.stats[key]).toBeLessThanOrEqual(hi)
     }
   })
+})
+
+describe("breeding-discovery species records (roster_wave_3)", () => {
+  const VOLTFOX = "voltfox"
+  const GALEHERON = "galeheron"
+  const SHALEMOLE = "shalemole"
+
+  const DISCOVERY_LINES = [
+    {
+      id: VOLTFOX,
+      displayName: "Voltfox",
+      element: "electric",
+      archetypeId: "fox",
+      temperament: "obedient",
+      sibling: HOUND,
+      kit: [
+        "static_jolt",
+        "volt_dash",
+        "ion_dart",
+        "arc_shot",
+        "storm_surge",
+        "ion_wall",
+      ],
+    },
+    {
+      id: GALEHERON,
+      displayName: "Galeheron",
+      element: "wind",
+      archetypeId: "heron",
+      temperament: "slow",
+      sibling: FALCON,
+      kit: [
+        "gust",
+        "feather_dart",
+        "talon_slash",
+        "gale_cutter",
+        "cyclone_dive",
+        "zephyr_veil",
+      ],
+    },
+    {
+      id: SHALEMOLE,
+      displayName: "Shalemole",
+      element: "earth",
+      archetypeId: "mole",
+      temperament: "rush",
+      sibling: TORTOISE,
+      kit: [
+        "pebble_shot",
+        "dust_devil",
+        "sand_blast",
+        "clay_burst",
+        "quake_stomp",
+        "basalt_guard",
+      ],
+    },
+  ] as const
+
+  test("ALL_SPECIES holds 12 species: starters, rewards, discovery", () => {
+    expect(ALL_SPECIES).toHaveLength(12)
+    expect(STARTER_SPECIES).toHaveLength(3)
+    expect(REWARD_SPECIES.map((s) => s.id)).toEqual([
+      HOUND,
+      FERNSTAG,
+      FALCON,
+      REEFCLAW,
+      TORTOISE,
+      CINDERMOOR,
+    ])
+    expect(DISCOVERY_SPECIES.map((s) => s.id)).toEqual([
+      VOLTFOX,
+      GALEHERON,
+      SHALEMOLE,
+    ])
+    expect(ALL_SPECIES.map((s) => s.id)).toEqual([
+      ...STARTER_SPECIES.map((s) => s.id),
+      ...REWARD_SPECIES.map((s) => s.id),
+      ...DISCOVERY_SPECIES.map((s) => s.id),
+    ])
+  })
+
+  for (const line of DISCOVERY_LINES) {
+    test(`${line.id} carries its pinned identity`, () => {
+      const species = speciesOf(line.id)
+      expect(species.displayName).toBe(line.displayName)
+      expect(species.element).toBe(line.element)
+      expect(species.archetypeId).toBe(line.archetypeId)
+      expect(species.temperament).toBe(line.temperament)
+      expect(species.flavor.trim().length).toBeGreaterThan(0)
+      expect(species.kit).toEqual(line.kit)
+    })
+
+    test(`${line.id} is breeding-only: locked, tierless, never obtainable`, () => {
+      const species = speciesOf(line.id)
+      expect(species.available).toBe(false)
+      expect(species.rewardFromTier).toBeUndefined()
+      for (const tier of ["bronze", "silver", "gold", "legend"] as const) {
+        expect(obtainableSpecies(tier).map((s) => s.id)).not.toContain(line.id)
+      }
+      expect(() => createCreature(line.id, 1)).toThrow(/not yet available/i)
+    })
+
+    test(`${line.id} kit recomposes its element's vocabulary, distinct from its sibling`, () => {
+      const species = speciesOf(line.id)
+      const sibling = speciesOf(line.sibling)
+      expect(species.kit).toHaveLength(6)
+      expect(new Set(species.kit).size).toBe(6)
+      for (const moveId of species.kit) {
+        expect(getMove(moveId)?.element).toBe(line.element)
+      }
+      expect([...species.kit].sort()).not.toEqual([...sibling.kit].sort())
+    })
+
+    test(`${line.id} bounds are legal rolls that respect the extremal pins`, () => {
+      const species = speciesOf(line.id)
+      for (const key of ["hp", "atk", "def", "spd"] as const) {
+        const [lo, hi] = species.statBounds[key]
+        expect(lo).toBeGreaterThan(0)
+        expect(hi).toBeGreaterThanOrEqual(lo)
+      }
+      // The falcon stays the fastest, frailest record in the game.
+      const falcon = speciesOf(FALCON)
+      expect(falcon.statBounds.spd[0]).toBeGreaterThan(
+        species.statBounds.spd[1],
+      )
+      expect(falcon.statBounds.hp[1]).toBeLessThan(species.statBounds.hp[0])
+      expect(falcon.statBounds.def[1]).toBeLessThan(species.statBounds.def[1])
+      // The tortoise stays the bulkiest, slowest record in the game.
+      const tortoise = speciesOf(TORTOISE)
+      expect(tortoise.statBounds.hp[0]).toBeGreaterThan(
+        species.statBounds.hp[1],
+      )
+      expect(tortoise.statBounds.def[0]).toBeGreaterThan(
+        species.statBounds.def[1],
+      )
+      expect(tortoise.statBounds.spd[1]).toBeLessThan(species.statBounds.spd[0])
+    })
+
+    test(`a ${line.id} pair breeds a ${line.id} once the nursery hatches it`, () => {
+      const parents = [record(line.id, 1), record(line.id, 2)]
+      const child = createBredCreature(line.id, 42, parents, 3)
+      expect(child.speciesId).toBe(line.id)
+      expect(child.element).toBe(line.element)
+      expect(child.giftEgg).toBe(false)
+      const species = speciesOf(line.id)
+      for (const key of ["hp", "atk", "def", "spd"] as const) {
+        const [lo, hi] = species.statBounds[key]
+        expect(child.stats[key]).toBeGreaterThanOrEqual(lo)
+        expect(child.stats[key]).toBeLessThanOrEqual(hi)
+      }
+    })
+  }
 })

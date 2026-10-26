@@ -9,7 +9,7 @@ import {
 } from "./cup"
 import { applyCupRewards, grantLeagueRewards } from "./cupRewards"
 import { applyCupPlacement } from "./ladder"
-import { obtainableSpecies } from "./species"
+import { DISCOVERY_SPECIES, obtainableSpecies } from "./species"
 import type { GameState } from "./state"
 
 /**
@@ -61,14 +61,18 @@ export function prepareCup(state: GameState): CupSession | null {
   // either way (stream invariant, FR3).
   const gate = bossForCup(state)
   // The reward line joins the generated field once the save has reached the
-  // tier where it is obtainable — Silver (FR-7). Bronze keeps the default
-  // three-species pool, so its brackets are byte-identical to before. The
-  // pool comes from each species' own reward tier, never from an array's
-  // membership, so a future teaser species cannot leak into the field.
+  // tier where it is obtainable — Silver (FR-7) — and the breeding-discovery
+  // lines join every non-Bronze field alongside it (roster_wave_3 FR-6).
+  // Rivals are wild opponents, so the acquisition gate that keeps discovery
+  // species out of `obtainableSpecies` does not bind them. Bronze keeps the
+  // default three-species pool, so its brackets are byte-identical to
+  // before. The reward half of the pool comes from each species' own reward
+  // tier, never from an array's membership, so a future teaser species
+  // cannot leak into the field.
   const pool =
     state.ladder.tier === "bronze"
       ? undefined
-      : obtainableSpecies(state.ladder.tier)
+      : [...obtainableSpecies(state.ladder.tier), ...DISCOVERY_SPECIES]
   return startCupSession(
     creature,
     day,

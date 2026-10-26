@@ -34,6 +34,7 @@ import { makeRng } from "../rng"
 import { getSpecies, type SpeciesDef } from "../species"
 import { ACTION_POINTS_PER_DAY, type GameState } from "../state"
 import { dedupeTraits, effectiveTraits, traitBonus } from "../traits"
+import { speciesOptions } from "./discovery"
 import { rollAffinityDrift } from "./drift"
 
 /** The weaker parent's weight in the dual-parent floor. */
@@ -97,19 +98,6 @@ export function pairFor(
 ): [RetiredRecord, RetiredRecord] | null {
   const verdict = validatePair(pool, generations)
   return verdict.ok ? verdict.pair : null
-}
-
-/**
- * The species the egg may be: one option when both parents match, otherwise
- * both parents' species in selection order. The player's choice never changes
- * the parents' contribution to the floor.
- */
-export function speciesOptions(pair: readonly RetiredRecord[]): string[] {
-  const options: string[] = []
-  for (const record of pair) {
-    if (!options.includes(record.speciesId)) options.push(record.speciesId)
-  }
-  return options
 }
 
 /**

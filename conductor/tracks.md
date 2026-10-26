@@ -29,3 +29,4 @@
 - [x] **Track: Species Roster Expansion** - [20261025-species-roster-expansion](./archive/20261025-species-roster-expansion/index.md) - feature - high
 - [x] **Track: Release Funnel** - [20261026-release-funnel](./archive/20261026-release-funnel/index.md) - chore - high
 - [x] **Track: ElysiaJS Backend Foundation** - [20261026-backend-foundation](./archive/20261026-backend-foundation/index.md) - feature - high
+- [~] **Track: Roster Wave 3 (Breeding Discovery)** - [20261027-roster-wave-3](./tracks/20261027-roster-wave-3/index.md) - feature - high

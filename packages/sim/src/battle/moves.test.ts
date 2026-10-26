@@ -278,7 +278,7 @@ describe("species kit", () => {
         "mist_spray",
         "maelstrom",
       ],
-    }
+    } as const
     const drake = getSpecies("fire_drake")
     const ox = getSpecies("plant_ox")
     const axolotl = getSpecies("water_axolotl")

@@ -191,7 +191,12 @@ Phased delivery plan (each phase is independently playable):
   Whistlefern, Gold a Zephyr Falcon and a Coral Claw, the Legend plateau a
   Basalt Tortoise and a Moor Cinder - taking the roster to nine species
   across all six types, each hatching from the nursery into the
-  stable-backed collection. Still open: the roster's climb toward 20-40
+  stable-backed collection. **Landed 2026-10-27: three breeding-discovery
+  lines ship** — Voltfox (Breed Electric with Wind), Galeheron (Breed Water
+  with Wind), Shalemole (Breed Earth with Fire) — taking the roster to
+  twelve species; recipes are listed openly in the handbook, discovery lines
+  join non-Bronze rival fields, and each line ships two branch forms.
+  Still open: the roster's climb toward 20-40
   species.)*
 - ElysiaJS backend: cloud save sync, trainer identity (anonymous ID + name),
   global leaderboards, ghost data. *(Landed 2026-10-26: anonymous trainer

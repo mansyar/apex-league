@@ -1,8 +1,9 @@
 /**
- * The roster-expansion lines across the client's data surfaces (species roster
- * FR-7): every surface reads the sim's catalog, so nothing here names a
- * species — these pins assert the three new lines land in the existing tables
- * with their own element-true identity instead of a hardcoded colour or copy.
+ * The breeding-discovery lines across the client's data surfaces (roster
+ * wave 3 FR-7): every surface reads the sim's catalog, so nothing here
+ * names a species — these pins assert the three new lines land in the
+ * existing tables with their own element-true identity instead of a
+ * hardcoded colour or copy.
  *
  * The rendered DOM for the same surfaces is checked in the browser pass; these
  * are the decisions the paint reads.
@@ -60,6 +61,9 @@ const NEW_LINES = [
   { id: "fernstag", name: "Whistlefern", hue: 110 },
   { id: "reefclaw", name: "Coral Claw", hue: 205 },
   { id: "cindermoor", name: "Moor Cinder", hue: 18 },
+  { id: "voltfox", name: "Voltfox", hue: 50 },
+  { id: "galeheron", name: "Galeheron", hue: 165 },
+  { id: "shalemole", name: "Shalemole", hue: 28 },
 ] as const
 
 describe("the new lines' crest identity", () => {
@@ -115,6 +119,12 @@ describe("the new lines' champion forms", () => {
       ["tide_sentinel", 230, "reefclaw"],
       ["pyre_colossus", 12, "cindermoor"],
       ["ember_bank", 2, "cindermoor"],
+      ["arc_courser", 55, "voltfox"],
+      ["galvanic_warden", 45, "voltfox"],
+      ["reed_diver", 170, "galeheron"],
+      ["marsh_warden", 160, "galeheron"],
+      ["slate_ram", 33, "shalemole"],
+      ["shale_keeper", 23, "shalemole"],
     ]
     for (const [id, hue, speciesId] of expected) {
       const branch = getBranch(id)
@@ -128,6 +138,9 @@ describe("the new lines' champion forms", () => {
       ["fernstag", "frond_lasher"],
       ["reefclaw", "whirlpool_claw"],
       ["cindermoor", "pyre_colossus"],
+      ["voltfox", "arc_courser"],
+      ["galeheron", "reed_diver"],
+      ["shalemole", "slate_ram"],
     ]
     for (const [speciesId, branchId] of expected) {
       const creature = { ...createGiftEgg(speciesId, 5), branch: branchId }
@@ -142,14 +155,18 @@ describe("the new lines' champion forms", () => {
   test("the evolution callout keeps stat names and two sentences", () => {
     // The champion reveal is the one moment the branch copy ships to the
     // player, so it must name the stat gains the way the plate does.
+    const offense: Record<string, string> = {
+      fernstag: "frond_lasher",
+      reefclaw: "whirlpool_claw",
+      cindermoor: "pyre_colossus",
+      voltfox: "arc_courser",
+      galeheron: "reed_diver",
+      shalemole: "slate_ram",
+    }
     for (const line of NEW_LINES) {
-      const branch = getBranch(
-        line.id === "fernstag"
-          ? "frond_lasher"
-          : line.id === "reefclaw"
-            ? "whirlpool_claw"
-            : "pyre_colossus",
-      )
+      const branchId = offense[line.id]
+      if (!branchId) throw new Error(`missing branch for ${line.id}`)
+      const branch = getBranch(branchId)
       if (!branch) throw new Error(`missing branch for ${line.id}`)
       const creature = {
         ...createGiftEgg(line.id, 5),

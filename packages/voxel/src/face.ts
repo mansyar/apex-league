@@ -319,6 +319,61 @@ export function facePlan(archetype: string, head: HeadShape): FacePlan {
     }
   }
 
+  if (archetype === "fox") {
+    // Keen fox eyes: set high and forward on a narrower skull than the
+    // hound's, reading alert over the pointed muzzle. The tapered snout is
+    // too narrow for a nostril pair, so the mouth line carries it alone.
+    const eyeY = center.y + half.y * 0.4
+    const eyeZ = center.z + half.z * 0.35
+    const muzzle = snout ?? { center, half }
+    return {
+      eyes: [eye(head, -1, eyeY, eyeZ, radii), eye(head, 1, eyeY, eyeZ, radii)],
+      mouth: mouthLine(
+        muzzle,
+        muzzle.center.y - muzzle.half.y * 0.55,
+        muzzle.half.x * 0.72,
+      ),
+      nostrils: [],
+    }
+  }
+
+  if (archetype === "heron") {
+    // Wader eyes: large, set high and far forward on the small skull so the
+    // stare reads over the spear-beak root. The beak is its own bone part,
+    // so the mouth line stays a faint crease low on the skull where the beak
+    // meets it; no nostril pair on a beak this thin.
+    const eyeY = center.y + half.y * 0.35
+    const eyeZ = center.z + half.z * 0.35
+    const muzzle = snout ?? { center, half }
+    return {
+      eyes: [eye(head, -1, eyeY, eyeZ, radii), eye(head, 1, eyeY, eyeZ, radii)],
+      mouth: mouthLine(
+        muzzle,
+        muzzle.center.y - muzzle.half.y * 0.62,
+        muzzle.half.x * 0.5,
+      ),
+      nostrils: [],
+    }
+  }
+
+  if (archetype === "mole") {
+    // Digger eyes: small and low on a blunt armored skull, set forward over
+    // the digging snout. The pointed nose carries the mouth line; the snout
+    // is too narrow for a nostril pair.
+    const eyeY = center.y + half.y * 0.2
+    const eyeZ = center.z + half.z * 0.35
+    const muzzle = snout ?? { center, half }
+    return {
+      eyes: [eye(head, -1, eyeY, eyeZ, radii), eye(head, 1, eyeY, eyeZ, radii)],
+      mouth: mouthLine(
+        muzzle,
+        muzzle.center.y - muzzle.half.y * 0.55,
+        muzzle.half.x * 0.72,
+      ),
+      nostrils: [],
+    }
+  }
+
   // Drake (the default silhouette): angled eyes under a heavy brow, a mouth
   // line running the length of the jaw, and a nostril pair on the snout top.
   const eyeY = center.y + half.y * 0.3

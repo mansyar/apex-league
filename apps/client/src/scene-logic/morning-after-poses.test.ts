@@ -34,7 +34,7 @@ function drive(strut: number, droop: number, glow = 0): MorningAfterDrive {
 }
 
 describe("morning-after archetype poses (FR-3)", () => {
-  test("the nine voxel archetypes are the choreography's roster", () => {
+  test("the twelve voxel archetypes are the choreography's roster", () => {
     expect([...MORNING_AFTER_ARCHETYPES]).toEqual([
       "draconic",
       "bovine",
@@ -45,6 +45,9 @@ describe("morning-after archetype poses (FR-3)", () => {
       "frond",
       "crab",
       "smolder",
+      "fox",
+      "heron",
+      "mole",
     ])
   })
 

@@ -20,6 +20,7 @@ import {
 } from "@apex/sim"
 import { statLabel } from "../hud/copy-care"
 import { ruleRow, subhead, tip } from "./common"
+import { buildDiscovery } from "./discovery"
 
 /** Raising guidance: direction-only coach voice, nothing spoiled. */
 const RAISING_GUIDANCE: ReadonlyArray<string> = [
@@ -88,6 +89,7 @@ export function buildRaising(panel: HTMLElement): void {
   buildBreakthroughs(panel)
   buildForm(panel)
   buildPerks(panel)
+  buildDiscovery(panel)
 }
 
 /** Milestone perks (FR-6): the newer prestige perks in the sim's numbers. */

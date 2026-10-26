@@ -330,6 +330,26 @@ describe("the handbook's Raising page", () => {
     }
   })
 
+  test("list the breeding-discovery recipes openly", () => {
+    const body = raisingBody()
+    const terms = byClass(body, "handbook-rule-term").map(
+      (node) => node.textContent,
+    )
+    const copies = byClass(body, "handbook-rule-copy").map(
+      (node) => node.textContent,
+    )
+
+    const expected: ReadonlyArray<[string, string]> = [
+      ["Voltfox", "Breed Electric with Wind."],
+      ["Galeheron", "Breed Water with Wind."],
+      ["Shalemole", "Breed Earth with Fire."],
+    ]
+    for (const [name, recipe] of expected) {
+      expect(terms).toContain(name)
+      expect(copies).toContain(recipe)
+    }
+  })
+
   test("keep every added line to two sentences with caps stats", () => {
     const body = raisingBody()
     const lines = [

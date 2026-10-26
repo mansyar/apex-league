@@ -17,9 +17,10 @@ import { morningAfterTintOf } from "./morning-after"
 // The archetype roster and its pose temper
 // ---------------------------------------------------------------------------
 
-/** The nine voxel archetypes (packages/sim's species registry: the three
- * starters plus the six Silver/Gold/Legend reward lines) — the
- * choreography's roster; anything else falls back to a neutral stance. */
+/** The twelve voxel archetypes (packages/sim's species registry: the three
+ * starters, the six Silver/Gold/Legend reward lines, and the three
+ * breeding-discovery lines) — the choreography's roster; anything else
+ * falls back to a neutral stance. */
 export const MORNING_AFTER_ARCHETYPES = [
   "draconic",
   "bovine",
@@ -30,6 +31,9 @@ export const MORNING_AFTER_ARCHETYPES = [
   "frond",
   "crab",
   "smolder",
+  "fox",
+  "heron",
+  "mole",
 ] as const
 
 /** How strongly one archetype reads a stance through each move: `bear`
@@ -65,6 +69,15 @@ const TEMPER: Record<string, ArchetypeTemper> = {
   // The smoldering ram: the heaviest head-down charge on the roster, and
   // the win barely lifts it — banked heat, not show.
   smolder: { bear: 0.65, slump: 0.55, tail: 0.2, prance: 0.18 },
+  // The spark-tailed fox: quick feet and a tail tip that never stops
+  // jittering, but the draconic lash stays the loudest in the room.
+  fox: { bear: 0.5, slump: 0.4, tail: 0.45, prance: 0.42 },
+  // The storm-wading heron: stilts-tall carriage, wings folded — a win
+  // reads as a slow crane up off the marsh.
+  heron: { bear: 0.6, slump: 0.3, tail: 0.3, prance: 0.35 },
+  // The slate-scaled mole: low to the dirt, a loss sinks the shell deep
+  // but never past the tortoise, and the stub tail barely lifts.
+  mole: { bear: 0.45, slump: 0.55, tail: 0.1, prance: 0.2 },
 }
 
 /** The neutral temper an unknown archetype rides — every rig still gets

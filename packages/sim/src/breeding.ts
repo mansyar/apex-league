@@ -11,6 +11,8 @@
  * the ./breeding submodules —
  *
  * - `./breeding/pairing` — the pool, pair validation, the dual-parent egg
+ * - `./breeding/discovery` — the fixed parent-element recipe lookup and the
+ *   egg's species choices
  * - `./breeding/drift` — the seeded affinity-drift roll
  * - `./breeding/gift` — the league rewards: grant, hatch, and preview
  *
@@ -20,6 +22,11 @@
  * Pure data and pure functions only — no DOM, no I/O.
  */
 
+export {
+  discoverySpeciesForElements,
+  discoverySpeciesForParents,
+  speciesOptions,
+} from "./breeding/discovery"
 export {
   AFFINITY_DRIFT_CHANCE,
   driftSource,
@@ -46,7 +53,6 @@ export {
   type PairReason,
   type PairVerdict,
   pairFor,
-  speciesOptions,
   validatePair,
 } from "./breeding/pairing"
 export { retireeRecord } from "./legacy"
