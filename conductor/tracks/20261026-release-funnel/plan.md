@@ -97,7 +97,7 @@
 - **Covers:** F1, F2, F3, F4, F5, F6, F7, F8
 - **Touches:** `scripts/smoke/smoke.ts`, `scripts/smoke/smoke.test.ts`, `.github/workflows/deploy.yml`, `scripts/deploy/**`, `conductor/workflow.md`, `conductor/tracks/20261026-release-funnel/verification/**`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: The smoke check fails loud on an empty request log** — covers: F1
   - [ ] **R1.T1.1: Write a failing test asserting that zero observed requests is a violation, not a silent pass** — mirrors the console parser's existing fail-loud rule at `smoke.ts:117-119`
