@@ -647,7 +647,34 @@
   there is no allowlist by name. A voxel module is one hand-authored creature
   model, so it gets 24 KB; a logic module gets 12 KB.
 
-## Deployment (target)
-- Client: static hosting (Cloudflare Pages or GitHub Pages).
-- Server: single small Bun container (Fly.io or equivalent) — deferred until
-  Phase 3 per the roadmap.
+## Deployment
+- **Client — Cloudflare Pages.** The client is a static bundle
+  (`apps/client/dist`), uploaded by `.github/workflows/deploy.yml` on push to
+  `main`; the production URL is `https://apex-league.pages.dev/`.
+- **Server — deferred.** A single small Bun container (Fly.io or equivalent)
+  stays the Phase 3 roadmap item: ElysiaJS endpoints, cloud save sync, trainer
+  identity, leaderboards and ghost data have no host yet.
+-   *2026-10-26 - Release funnel (track `20261026-release-funnel`): the client
+    deploy is configuration now rather than a target. `deploy.yml` runs on push
+    to `main` (plus `workflow_dispatch`) and uploads `apps/client/dist` with
+    `wrangler pages deploy`, behind the same gate that protects pull requests -
+    `bun run verify` (types, tests, Biome, the voxel determinism gate) runs
+    before the build and the upload, so a drifted GLB or a failing test cannot
+    reach production; a `concurrency` group per ref cancels a superseded run.
+    Two repository secrets are required, both the repository owner's to create:
+    `CLOUDFLARE_API_TOKEN` (Pages: Edit) and `CLOUDFLARE_ACCOUNT_ID`.
+    `wrangler` is a root devDependency pinned to exactly `4.152.0` (no range
+    operator), and it stays out of the client bundle - the built asset names
+    are unchanged by it. `wrangler.jsonc` is the single declaration site for
+    the Pages project name (`apex-league`) and the upload directory
+    (`apps/client/dist`); the workflow and the smoke check both read them from
+    there instead of repeating them. The first deploy creates the Pages project
+    if it does not exist (wrangler will not do it non-interactively), so no
+    manual `pages project create` is needed. After the upload,
+    `scripts/smoke/smoke.ts` loads the deployed URL in a fresh browser context,
+    drafts a starter, asserts the ranch canvas and HUD render, and fails the run
+    on any console error/warning or failed asset request. The client deploy is
+    configuration-complete but **has not run yet**: `deploy.yml` has never been
+    on `main`, and the two secrets are the owner's to add, so
+    `https://apex-league.pages.dev/` does not resolve today. The server half
+    stays deferred, unchanged.*

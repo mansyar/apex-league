@@ -1,0 +1,32 @@
+{
+  "id": "20261026-release-funnel",
+  "title": "Release Funnel",
+  "type": "chore",
+  "status": "complete",
+  "priority": "high",
+  "depends_on": [],
+  "created_at": "2026-10-26T00:58:38Z",
+  "updated_at": "2026-10-26T09:00:00Z",
+  "spec": "spec.md",
+  "plan": "plan.md",
+  "branch": "chore/20261026-release-funnel",
+  "base_branch": "main",
+  "base_sha": "02ff20c9822f7e6db95776e9d31829ca5e09a009",
+  "progress": {
+    "phases_total": 4,
+    "phases_verified": 4,
+    "tasks_total": 9,
+    "tasks_done": 9
+  },
+  "last_checkpoint": "e5879832",
+  "review_verdict": "PASS",
+  "review_rounds": 3,
+  "doc_sync": "updated",
+  "pr_url": "https://github.com/mansyar/apex-league/pull/55",
+  "pr_state": "open",
+  "reverted_at": null,
+  "revert_commit": null,
+  "revert_pr_url": null,
+  "archived_at": "2026-10-26T09:00:00Z",
+  "archive_path": null
+}

@@ -1,6 +1,23 @@
 import { fileURLToPath, URL } from "node:url"
 import { defineConfig } from "vite"
 
+/**
+ * Vite's dev server rejects any request whose Host header is not in
+ * `server.allowedHosts`, which is exactly what a proxy does when it forwards
+ * the dev server under a public name. Reading the list from the environment
+ * keeps the committed config free of a machine name while still letting a
+ * remote-dev proxy through: comma-separated, surrounding spaces trimmed,
+ * blanks dropped. Unset or empty yields an empty list, leaving Vite's default
+ * localhost-only behaviour untouched.
+ */
+export function allowedHostsFrom(raw: string | undefined): string[] {
+  if (raw === undefined) return []
+  return raw
+    .split(",")
+    .map((host) => host.trim())
+    .filter((host) => host.length > 0)
+}
+
 export default defineConfig({
   resolve: {
     alias: {
@@ -9,9 +26,7 @@ export default defineConfig({
       ),
     },
   },
-  // Tailscale Serve proxies the dev server through the tailnet hostname;
-  // Vite's Host allowlist otherwise rejects that Host header.
   server: {
-    allowedHosts: ["msi-1.tail7dcc44.ts.net"],
+    allowedHosts: allowedHostsFrom(process.env.DEV_ALLOWED_HOSTS),
   },
 })
