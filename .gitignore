@@ -8,6 +8,7 @@ dist/
 !.env.example
 .playwright-cli/
 .freebuff/
+.wrangler/
 # Verification screenshots land in the repo root; don't track them.
 /*.png
 .playwright/

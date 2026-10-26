@@ -1,0 +1,8 @@
+{
+  // Cloudflare Pages project. The deployed site is https://<name>.pages.dev/.
+  // Renaming the project is a one-line change here; the deploy workflow reads
+  // this name rather than repeating it.
+  "name": "apex-league",
+  // Vite writes the production bundle here (`bun run build`).
+  "pages_build_output_dir": "apps/client/dist"
+}

@@ -1,0 +1,119 @@
+# Deploy the client to Cloudflare Pages when main moves.
+#
+# The gate that protects pull requests protects production: this job re-runs
+# `bun run verify` (type checks, typed tests, Biome, the voxel determinism gate)
+# and only then builds and uploads `apps/client/dist`. A failing check fails the
+# run before the upload step, so nothing is published and the previous
+# deployment stays live.
+#
+# One-time setup (README, "Deploying"): a Cloudflare Pages project named in
+# `wrangler.jsonc`, plus two repository secrets — `CLOUDFLARE_API_TOKEN` with
+# the Pages: Edit permission and `CLOUDFLARE_ACCOUNT_ID`.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  # Manual re-run. Anything other than main lands as a Pages preview
+  # deployment, not on the production URL.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deploy per branch. A newer push to main cancels the run in flight, so
+# production never lands on a stale build.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy (verify, build, upload)
+    # The canonical repository only: a fork's push carries no secrets and must
+    # not attempt an upload.
+    if: github.repository == 'mansyar/apex-league' && github.event.repository.fork == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          # Kept in lockstep with ci.yml and nightly.yml.
+          bun-version: 1.4.2
+
+      - name: Cache Bun install cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # Fail in seconds rather than after the gate if the credentials are not
+      # configured. Only secret *names* are printed; the values never leave
+      # `env:`, so nothing is echoed even under `set -x`.
+      - name: Check deploy secrets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          missing=""
+          if [ -z "${CLOUDFLARE_API_TOKEN}" ]; then
+            missing="${missing} CLOUDFLARE_API_TOKEN"
+          fi
+          if [ -z "${CLOUDFLARE_ACCOUNT_ID}" ]; then
+            missing="${missing} CLOUDFLARE_ACCOUNT_ID"
+          fi
+          if [ -n "${missing}" ]; then
+            echo "::error::Missing repository secret(s):${missing}."
+            echo "::error::Add them under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          echo "Both deploy secrets are present."
+
+      - name: Verify (types, tests, biome, voxel determinism)
+        run: bun run verify
+
+      - name: Build
+        run: bun run build
+
+      # wrangler will not create a Pages project non-interactively, so without
+      # this a first deploy would need a manual `pages project create`. The step
+      # is a no-op once the project exists, and the name comes from
+      # `wrangler.jsonc`, the only place it is written down.
+      - name: Ensure the Pages project exists
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          project="$(sed -n 's/^[[:space:]]*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' wrangler.jsonc)"
+          if [ -z "${project}" ]; then
+            echo "::error::No top-level \"name\" in wrangler.jsonc."
+            exit 1
+          fi
+          echo "Pages project: ${project}"
+          projects="$(bunx wrangler pages project list --json)"
+          if printf '%s\n' "${projects}" | grep -qF "\"${project}\""; then
+            echo "The project already exists."
+          else
+            echo "Creating the project (first deploy only)."
+            bunx wrangler pages project create "${project}" --production-branch main
+          fi
+
+      # Runs only when every earlier step succeeded. `success()` is the default
+      # step condition; it is spelled out so the gate is visible in the source.
+      - name: Deploy to Cloudflare Pages
+        if: success()
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        # `--branch` is passed explicitly: if checkout ever leaves a detached
+        # HEAD, wrangler would read the branch as "HEAD" and publish a preview
+        # deployment instead of production.
+        run: bun run deploy -- --branch "${{ github.ref_name }}"
