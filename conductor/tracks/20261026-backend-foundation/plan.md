@@ -163,10 +163,14 @@
 - **Covers:** F1
 - **Touches:** `apps/client/src/cloud/api.ts`, `apps/client/src/cloud/sync.ts`, `apps/client/src/cloud/api.test.ts`, `apps/client/src/cloud/sync.test.ts`, `apps/client/src/cloud/cloud-save.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** complete
 
-- [ ] **R1.T1: Resolve F1** — covers: F1
-  - [ ] **R1.T1.1: Failing tests proving the wire shape (`winner: "incoming" | "stored"`) parses and the synced status carries the numeric savedAt**
-  - [ ] **R1.T1.2: Fix `PushReceipt` and both `setStatus` call sites; update fakes to the string union**
+- [x] **R1.T1: Resolve F1** — covers: F1
+  - [x] **R1.T1.1: Failing tests proving the wire shape (`winner: "incoming" | "stored"`) parses and the synced status carries the numeric savedAt**
+  - [x] **R1.T1.2: Fix `PushReceipt` and both `setStatus` call sites; update fakes to the string union**
 
 <!--
+
+**Result:** verified - PushReceipt matches the wire; synced stamp uses payload clock.
+**Checkpoint:** be01e575
+**Evidence:** conductor/tracks/20261026-backend-foundation/verification/phase-R1.md
