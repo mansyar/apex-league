@@ -65,6 +65,21 @@ Product/design decisions resolved inside the phase (no blockers):
   save; keyed by trainer id, so sign-out/signed-out states submit nothing and
   a different trainer starts fresh. A rename resubmits all four boards once.
 
+## Primary verification
+
+The executor ran with shell access; the primary re-ran every gate independently:
+
+| Layer | Command | Exit | Summary |
+| --- | --- | --- | --- |
+| unit (full) | `bun test --check --parallel=4 --timeout 120000` | 0 | 3190 pass, 1 skip, 0 fail, 296 files |
+| typecheck | `bun run check` | 0 | all workspaces clean |
+| lint/format | `bunx biome check` (bare, whole repo) | 0 | 751 files, no findings |
+| build | `bun run build` | 0 | client builds clean |
+
+- Squash guard: single commit `df16447c` matching the report, no foreign commits — kept as-is, no rewrite.
+- Deviations accepted: `api.ts` typed wire method (smallest seam change, no constant duplication); the two test-pin updates ride the same flush legitimately.
+- Design decisions endorsed: AP from `trainingDays`, collection as distinct species|stage|branch identities, `pushNow` hook, `apex.scores` snapshot keyed by trainer id.
+
 ## Notes
 
 - First flush after sign-in submits all four boards (snapshot empty); later

@@ -34,7 +34,15 @@
 - **Covers:** FR-1, AC-1, NFR-2
 - **Touches:** `apps/client/src/cloud/scores.*`, `apps/client/src/cloud/sync.ts`, `apps/client/src/cloud/*.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000` (scoped: cloud files)
-- **Status:** in_progress
+- **Status:** verified
+
+**Result:** verified
+**Checkpoint:** df16447c
+**Evidence:** conductor/tracks/20261027-global-leaderboards/verification/phase-2.md
+
+- [x] **P2.T1: Score submitter** — covers: FR-1
+  - [x] **P2.T1.1: Derive entries from result payloads (cup, ladder, AP, collection)**
+  - [x] **P2.T1.2: Hook into post-result flow next to the save push; failures quiet**
 
 - [ ] **P2.T1: Score submitter** — covers: FR-1
   - [ ] **P2.T1.1: Derive entries from result payloads (cup, ladder, AP, collection)**
