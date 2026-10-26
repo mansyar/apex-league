@@ -384,8 +384,9 @@ The client has a hosting path. `.github/workflows/deploy.yml` publishes the
 built client to Cloudflare Pages whenever `main` moves, and the Phase 3 server
 container is still deferred.
 
-- **Trigger.** A push to `main`, or a manual `workflow_dispatch`. A push to
-  any other branch lands as a preview deployment, not production.
+- **Trigger.** A push to `main`, or a manual `workflow_dispatch`. A manual run
+  on any other branch lands as a preview deployment, not production; a push to
+  any other branch runs nothing at all.
 - **The gate.** The deploy job runs `bun run verify` — types, tests, Biome and
   the voxel determinism gate — then `bun run build`, then uploads
   `apps/client/dist`. A failing check fails the run before the upload, so the
@@ -416,19 +417,23 @@ container is still deferred.
 
 ## Emergency Procedures
 
-This project is a pre-release, client-only browser game with no production
-deployment and no backend. Full-scale incident procedures do not apply yet.
+This project is a client-only browser game with a static hosting path and no
+backend. Full-scale incident procedures do not apply yet.
 
 - **Critical bug after a merge to `main`:** follow the normal track flow —
   create a fix track against `main`, write a failing regression test, land the
-  minimal fix, and run the full verification strategy. No expedited hotfix path
-  exists while there is no deployed build.
+  minimal fix, and run the full verification strategy. There is no expedited
+  hotfix path: a merged regression reaches production on the next green upload,
+  and until that upload succeeds Pages keeps the previous deployment live, so a
+  bad merge is bounded by the gate rather than by a rollback button.
 - **Data loss:** the game persists to browser local storage; there is no server
   state to restore. Save-schema regressions are caught by the determinism and
   unit layers plus `docs/save-schema.md` migrations.
-- **Security:** no secrets or credentials belong in the repo; the only external
-  surfaces are static hosting and the Phase 3 server, both deferred. Revisit
-  this section when release hosting lands.
+- **Security:** no secrets or credentials belong in the repo. The two deploy
+  secrets (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`) live in repository
+  secrets only, are referenced through `env:` blocks, and are never printed; the
+  workflow fails by name when either is missing. The only external surfaces are
+  static hosting and the Phase 3 server, the latter still deferred.
 
 ## Definition of Done
 
