@@ -58,7 +58,7 @@
 - **Covers:** FR-3, FR-5, NFR-1, NFR-5, AC-3, AC-5
 - **Touches:** `scripts/smoke/**`, `.github/workflows/deploy.yml`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Smoke script** — covers: FR-3, FR-5
   - [ ] **P3.T1.1: Author the smoke run - fresh profile, load URL, draft a starter, assert the ranch canvas and HUD render, collect console messages and failed requests**
