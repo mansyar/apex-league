@@ -42,12 +42,26 @@ export {
   sampleFalconDna,
 } from "./falcon"
 export {
+  buildFox,
+  FOX_GRID,
+  type FoxBuild,
+  foxTemplate,
+  sampleFoxDna,
+} from "./fox"
+export {
   buildFrond,
   FROND_GRID,
   type FrondBuild,
   frondTemplate,
   sampleFrondDna,
 } from "./frond"
+export {
+  buildHeron,
+  HERON_GRID,
+  type HeronBuild,
+  heronTemplate,
+  sampleHeronDna,
+} from "./heron"
 export {
   type ExportInput,
   exportGlb,
@@ -56,6 +70,13 @@ export {
   VOXEL_SIZE,
 } from "./glb"
 export { type MeshePart, meshGrid } from "./mesher"
+export {
+  buildMole,
+  MOLE_GRID,
+  type MoleBuild,
+  moleTemplate,
+  sampleMoleDna,
+} from "./mole"
 export {
   generateProp,
   type PropBuild,

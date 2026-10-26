@@ -142,6 +142,39 @@ export const PROPORTION_BUDGETS: Record<string, ProportionBudget> = {
       "bodyLength/bodyHeight": { min: 1.15, max: 2.35 },
     },
   },
+  // Fox: the compact Voltfox — a low-slung cub build on short legs, a
+  // brush tail carried high, and a pointed working-dog neck. Calibrated
+  // against the 200-seed audit-lattice sweep, with slack.
+  fox: {
+    ratios: {
+      "legLength/bodyHeight": { min: 0.5, max: 2.4 },
+      "neckLength/bodyLength": { min: 0.0, max: 0.55 },
+      "headHeight/bodyHeight": { min: 0.25, max: 1.6 },
+      "bodyLength/bodyHeight": { min: 1.5, max: 4.2 },
+    },
+  },
+  // Heron: the Galeheron stilt-wader — long exposed legs under a compact
+  // teardrop torso and a long rising S-neck. Calibrated against the
+  // 200-seed audit-lattice sweep, with slack.
+  heron: {
+    ratios: {
+      "legLength/bodyHeight": { min: 0.55, max: 1.45 },
+      "neckLength/bodyLength": { min: 0.4, max: 1.6 },
+      "headHeight/bodyHeight": { min: 0.05, max: 0.8 },
+      "bodyLength/bodyHeight": { min: 1.0, max: 2.4 },
+    },
+  },
+  // Mole: the Shalemole digger — a stocky slate-backed barrel on short
+  // splayed legs with a thick digging neck. Calibrated against the
+  // 200-seed audit-lattice sweep, with slack.
+  mole: {
+    ratios: {
+      "legLength/bodyHeight": { min: 0.35, max: 0.75 },
+      "neckLength/bodyLength": { min: 0.0, max: 0.5 },
+      "headHeight/bodyHeight": { min: 0.05, max: 0.8 },
+      "bodyLength/bodyHeight": { min: 1.4, max: 3.2 },
+    },
+  },
 }
 
 /** Inclusive check: a measured ratio inside its budget range. */
