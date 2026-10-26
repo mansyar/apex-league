@@ -70,6 +70,7 @@ reduced-motion pass.
 | Creatures | Deterministic pure-TS voxel pipeline (`@apex/voxel`): archetype + seed → SDF → voxel grid → greedy mesh → GLB |
 | Lint & format | Biome |
 | Tests | `bun test` (bun:test) |
+| Hosting | Cloudflare Pages — static client, deployed by GitHub Actions (see [Deploying](#deploying)) |
 | Server *(roadmap, Phase 3)* | ElysiaJS on Bun, SQLite via `bun:sqlite` + Drizzle ORM |
 
 The simulation core is deliberately headless and seeded: the same inputs
@@ -84,7 +85,9 @@ apps/
 packages/
   sim/           @apex/sim    — headless deterministic simulation core
   voxel/         @apex/voxel  — deterministic creature generator and GLB exporter
+scripts/         smoke check for the deployed build, plus a local static server
 artifacts/       committed generated GLBs + sha256 manifests (CI-gated, not runtime)
+.github/         CI, the nightly sweep, and the deploy workflow
 conductor/       spec-driven planning: product definition, tech stack, workflow, tracks
 ```
 
@@ -101,11 +104,13 @@ bun run dev
 
 The dev server prints a local URL (Vite, default `http://localhost:5173`).
 A fresh save opens the starter choice - pick the Fire drake, the Plant ox or
-the Water axolotl and begin the day loop. Reaching Silver in the cup ladder
-grants the league's Storm Gift once: a pure electric-hound egg that waits in
-the nursery, previewed down to its rolled stats. Hatching it adds a fourth
-line to your collection - raised through the same three stages and two
-champion forms as the starters - and it waits in the stable rather than
+the Water axolotl and begin the day loop. The cup ladder pays a reward egg at
+every tier it promotes you into, and it pays each tier's lines rather than a
+choice between them: Silver pays a Storm Hound and a Whistlefern, Gold a
+Zephyr Falcon and a Coral Claw, the Legend plateau a Basalt Tortoise and a
+Moor Cinder. Each egg waits in the nursery, previewed down to its rolled
+stats, and hatches into a line raised through the same three stages and two
+champion forms as the starters. A new pet waits in the stable rather than
 taking your ranch pet's place. Your partner keeps the ranch, and the Stable
 chip beside Settings brings any waiting pet forward whenever you want it.
 Each day you get 3 AP for care
@@ -139,6 +144,59 @@ lands. The suite is deliberately fast (seconds, no I/O, seeded randomness)
 and the determinism gate guarantees that committed creature assets can be
 reproduced exactly from source.
 
+## Deploying
+
+Apex League is **not live yet**. The deploy is configured and ready, but it
+has never run, so the URL below does not resolve today.
+
+- **What deploys, and when.** `.github/workflows/deploy.yml` runs on every push
+  to `main`, and can be re-run from the Actions tab with **Run workflow**
+  (`workflow_dispatch`). It installs, checks the secrets, runs
+  `bun run verify`, builds, creates the Pages project if it does not exist,
+  uploads `apps/client/dist`, and then smoke-checks the deployed URL. A newer
+  push cancels a run still in flight, so production never lands on a stale
+  build.
+- **The URL.** `https://apex-league.pages.dev/` — the production address the
+  Pages project will be served at. This is the URL the first deploy will
+  create, not one that is up now.
+- **The gate.** `bun run verify` — types, tests, Biome, and the voxel
+  determinism gate — runs before the upload, so a red gate never reaches the
+  site. The smoke check runs after it against the deployed URL: it drafts a
+  starter, asserts the ranch renders, and fails the run on any console error
+  or warning or on a failed asset request.
+
+### One-time setup
+
+The two repository secrets are the only manual step, and only the repository
+owner can create them:
+
+1. In Cloudflare, create an API token with the **Pages: Edit** permission (My
+   Profile → API Tokens → Create Token → "Cloudflare Pages — Edit") and copy
+   it, then copy the account id from the dashboard's overview page.
+2. In GitHub, open **Settings → Secrets and variables → Actions → New
+   repository secret** and add both:
+   - `CLOUDFLARE_API_TOKEN` — the token from step 1.
+   - `CLOUDFLARE_ACCOUNT_ID` — the account id from step 1.
+3. Push to `main`. The run creates the `apex-league` Pages project if it does
+   not exist — no manual project creation is needed — then uploads the build
+   and smoke-checks it.
+
+After that, `main` deploys itself and no further setup is required.
+
+### Changing the deploy
+
+- **The project name and the upload directory are declared once**, in
+  `wrangler.jsonc`: `"name": "apex-league"` and
+  `"pages_build_output_dir": "apps/client/dist"`. The workflow and the smoke
+  check read both from there rather than repeating them.
+- **Renaming the project is a one-line change** — edit `"name"` in
+  `wrangler.jsonc`. The URL follows the name.
+- **`wrangler` is pinned** to exactly `4.152.0` in `package.json`, so a new
+  wrangler release cannot change deploy behaviour silently. It is a dev
+  dependency and never enters the client bundle.
+- **The workflow runs `bun run deploy`** (`bunx wrangler pages deploy`), so a
+  local deploy and a CI deploy cannot drift.
+
 ## Release checklist
 
 Before tagging a build, walk this list on a clean browser profile:
@@ -149,8 +207,9 @@ Before tagging a build, walk this list on a clean browser profile:
       that file into a fresh profile and confirm day, partner, Hall, ladder, AP,
       volumes, and reduced-motion state match.
 - [ ] **Older saves** — import a v23 (or older) export and confirm it migrates
-      to v24 with an empty stable, the active pet's own age intact, and
-      everything else unchanged.
+      to v25 with an empty stable, a valid age on the active pet (a v23 export
+      keeps its own age; an older one takes the world day it already played),
+      and everything else unchanged.
 - [ ] **Bad saves** — newer-version and malformed files are refused with a calm
       notice and the live save is unchanged.
 - [ ] **Corrupt boot** — the recovery dialog downloads the exact broken bytes
@@ -163,8 +222,9 @@ Before tagging a build, walk this list on a clean browser profile:
 - [ ] **Reduced motion** — both the in-app Motion: reduced setting and OS
       `prefers-reduced-motion` remove shake/flash/travel while the cup and
       battle stay legible.
-- [ ] **Narrow device** — 393×659 emulation (and a real phone when available)
-      shows no clipped overlays, overlapping chips, or horizontal scroll.
+- [ ] **Narrow device** — 393×852 and 852×393 emulation (and a real phone when
+      available) shows no horizontal page scroll, no panel occluding an
+      interactive element or the scene's action area, and readable text.
 - [ ] **Gates** — `bun run verify` is green, the console is clean, and
       `docs/save-schema.md` matches the current `SAVE_VERSION`.
 
@@ -192,8 +252,8 @@ device, OS, and screenshots when it runs.
 |---|---|---|
 | 0 — Foundation | Workspaces, sim core, day ticker, versioned save/load, app shell | Done |
 | 1 — Vertical slice | Care loop, training, one lineage, battle system, one cup, Bronze ladder | Done — care loop, four training programs with breakthrough nights, derived form (ATK) in the arena, baby→juvenile→champion evolution with two champion forms per starter earned from training, arena battles, live cups, the Bronze ladder, and the minimal legacy loop (graduation → inherited next egg) playable |
-| 2 — League depth | Full ladder, rivals and bosses, breeding, evolution discovery | In progress — the full Bronze→Legend climb, six authored bosses, dual-parent breeding with trait inheritance, earned evolution branches, type affinity drift, and the prestige 7/9 perks are playable; extra lineages remain |
-| 3 — Content & meta | 20–40 species, ElysiaJS backend, cloud saves, leaderboards | In progress — the first reward line (Electric storm hound, a Silver tier gift egg) is playable end to end and now joins your collection instead of replacing your pet: the ranch keeps one partner and the stable holds the rest; the wider roster and the backend remain |
+| 2 — League depth | Full ladder, rivals and bosses, breeding, evolution discovery | In progress — the full Bronze→Legend climb, six authored bosses, dual-parent breeding with trait inheritance, earned evolution branches, type affinity drift, the prestige 7/9 perks, and six reward lineages are playable; what remains is Phase 3's wider roster and backend |
+| 3 — Content & meta | 20–40 species, ElysiaJS backend, cloud saves, leaderboards | In progress — the roster is nine species: the three starters plus six reward lines the ladder pays out (Silver pays a Storm Hound and a Whistlefern; Gold a Zephyr Falcon and a Coral Claw; Legend a Basalt Tortoise and a Moor Cinder), each hatching from the nursery into your collection while the stable holds the rest; the wider roster and the ElysiaJS backend remain |
 | 4 — Post-MVP | Async ghost PvP, live PvP, mobile hardware pass, audio expansion | Planned |
 
 ## Contributing
