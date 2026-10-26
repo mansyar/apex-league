@@ -41,7 +41,7 @@ The primary appends after acceptance:
 - **Covers:** FR-2, NFR-2, NFR-3, NFR-4 — AC-2
 - **Touches:** `packages/voxel/src/**` (archetype recipes, gilded gate, manifests), generated GLB artifacts
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Author the three archetype recipes** — covers: FR-2
   - [ ] **P2.T1.1: Spark-tailed fox / storm-wading heron / slate-scaled mole recipes honoring surface ramp + hue contract**
