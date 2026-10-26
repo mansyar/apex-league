@@ -179,15 +179,20 @@ Phased delivery plan (each phase is independently playable):
 
 ### Phase 3 — Content & Meta
 - Roster to 20-40 species across 6 types; rare tournament reward eggs.
-  *(Started 2026-10-21: the first reward line — the Electric storm hound — is
+  *(Started 2026-10-21: the first reward line — the Electric storm hound — was
   granted once at Silver as a pure gift egg, raised through the same
   three-stage, two-branch life as the starters, and joins generated rival
   fields from Silver up. **Landed 2026-10-22: the ranch keeps one partner at
   a time and every other pet the player owns waits in the stable**, so the
   Storm Gift now *joins* the collection instead of replacing the pet you
   already have - this closes the known issue the Electric storm hound line
-  left open ("the Storm Gift takes the pet in the ranch with it"). The
-  remaining five types and the wider roster are still open.)*
+  left open ("the Storm Gift takes the pet in the ranch with it"). **Landed
+  2026-10-26: six reward lines ship** - Silver pays a Storm Hound and a
+  Whistlefern, Gold a Zephyr Falcon and a Coral Claw, the Legend plateau a
+  Basalt Tortoise and a Moor Cinder - taking the roster to nine species
+  across all six types, each hatching from the nursery into the
+  stable-backed collection. Still open: the roster's climb toward 20-40
+  species.)*
 - ElysiaJS backend: cloud save sync, trainer identity (anonymous ID + name),
   global leaderboards, ghost data.
 
@@ -199,7 +204,12 @@ Phased delivery plan (each phase is independently playable):
   during fights, hidden-tab pause, graphics-failure plate, 44px phone tap
   targets and a fixed spar-chip collision, visible keyboard focus; still
   open: the hardware device-lab verification pass); audio expansion;
-  polish & release funnel.
+  polish & release funnel. *(Release funnel landed 2026-10-26: the client
+  deploys to Cloudflare Pages from a GitHub Actions workflow gated on the
+  same `bun run verify` that protects pull requests, and a Playwright smoke
+  check runs against the deployed URL after the upload; the site itself goes
+  live on the owner's first push with the two repository secrets in place.
+  Still open: the device-lab pass, audio expansion and polish.)*
 
 ## Target Audience
 Creature-collector fans who love the raising sim subgenre (Digimon World
