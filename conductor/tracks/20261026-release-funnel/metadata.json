@@ -1,0 +1,32 @@
+{
+  "id": "20261026-release-funnel",
+  "title": "Release Funnel",
+  "type": "chore",
+  "status": "new",
+  "priority": "high",
+  "depends_on": [],
+  "created_at": "2026-10-26T00:58:38Z",
+  "updated_at": "2026-10-26T00:58:38Z",
+  "spec": "spec.md",
+  "plan": "plan.md",
+  "branch": "chore/20261026-release-funnel",
+  "base_branch": "main",
+  "base_sha": "02ff20c9822f7e6db95776e9d31829ca5e09a009",
+  "progress": {
+    "phases_total": 4,
+    "phases_verified": 0,
+    "tasks_total": 9,
+    "tasks_done": 0
+  },
+  "last_checkpoint": null,
+  "review_verdict": null,
+  "review_rounds": 0,
+  "doc_sync": "pending",
+  "pr_url": null,
+  "pr_state": null,
+  "reverted_at": null,
+  "revert_commit": null,
+  "revert_pr_url": null,
+  "archived_at": null,
+  "archive_path": null
+}
