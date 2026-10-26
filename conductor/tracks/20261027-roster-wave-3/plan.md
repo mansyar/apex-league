@@ -41,16 +41,16 @@ The primary appends after acceptance:
 - **Covers:** FR-2, NFR-2, NFR-3, NFR-4 — AC-2
 - **Touches:** `packages/voxel/src/**` (archetype recipes, gilded gate, manifests), generated GLB artifacts
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Author the three archetype recipes** — covers: FR-2
-  - [ ] **P2.T1.1: Spark-tailed fox / storm-wading heron / slate-scaled mole recipes honoring surface ramp + hue contract**
-  - [ ] **P2.T1.2: Generate GLBs, pin digests, tripwire ≤320 KiB, gilded weight 32**
+- [x] **P2.T1: Author the three archetype recipes** — covers: FR-2
+  - [x] **P2.T1.1: Spark-tailed fox / storm-wading heron / slate-scaled mole recipes honoring surface ramp + hue contract**
+  - [x] **P2.T1.2: Generate GLBs, pin digests, tripwire ≤320 KiB, gilded weight 32**
 
 <!--
 The primary appends after acceptance:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** `297040a9`
 **Evidence:** conductor/tracks/20261027-roster-wave-3/verification/phase-2.md
 -->
 
