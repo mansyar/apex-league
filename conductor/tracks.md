@@ -28,3 +28,4 @@
 - [x] **Track: Mobile Layout Pass** - [20261025-mobile-layout-pass](./archive/20261025-mobile-layout-pass/index.md) - feature - medium
 - [x] **Track: Species Roster Expansion** - [20261025-species-roster-expansion](./archive/20261025-species-roster-expansion/index.md) - feature - high
 - [x] **Track: Release Funnel** - [20261026-release-funnel](./archive/20261026-release-funnel/index.md) - chore - high
+- [~] **Track: ElysiaJS Backend Foundation** - [20261026-backend-foundation](./tracks/20261026-backend-foundation/index.md) - feature - high

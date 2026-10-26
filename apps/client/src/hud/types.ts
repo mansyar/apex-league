@@ -84,6 +84,12 @@ export interface HudShellHandlers {
    * HUD only asks, and gets the sim's verdict back.
    */
   onRenameStable: (creatureId: string, name: string) => RenameStableResult
+  /**
+   * Chips the composition root adds to the chip cluster — the cloud chip when
+   * this build has an api origin (FR-11). Absent in a local-only build, which
+   * is how "no cloud" stays invisible (AC-11).
+   */
+  extraChips?: HTMLElement[]
 }
 
 /** The built HUD, as `shell` hands it to the other two passes. */

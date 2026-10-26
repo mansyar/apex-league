@@ -1,0 +1,33 @@
+# Docker reads `<Dockerfile>.dockerignore` for this Dockerfile, which is what
+# lets the build context be the repository root while the file lives beside the
+# Dockerfile. The root context is required: `bun install --frozen-lockfile`
+# needs `bun.lock` and every workspace manifest, and Bun's isolated linker puts
+# the server's dependencies in `apps/server/node_modules`.
+#
+# Everything else is excluded, so editing a client module or running the test
+# suite on the host cannot invalidate the install layer.
+
+**/node_modules
+**/dist
+**/.wrangler
+**/.playwright-cli
+**/*.log
+**/*.test.ts
+**/*.test.tsx
+
+.git
+.gitignore
+.conductor
+conductor
+artifacts
+docs
+scripts
+*.png
+
+# Only each workspace's manifest is needed; its sources are not.
+apps/client/**
+!apps/client/package.json
+packages/sim/**
+!packages/sim/package.json
+packages/voxel/**
+!packages/voxel/package.json

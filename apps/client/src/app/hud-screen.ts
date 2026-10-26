@@ -73,6 +73,8 @@ export interface HudScreenDeps extends ScreenDeps {
   storage: Storage
   /** Show the replace-save confirm for a validated payload. */
   askImport(data: SaveData): void
+  /** Chips the composition root owns (the cloud chip, when configured). */
+  extraChips?: HTMLElement[]
 }
 
 /**
@@ -260,6 +262,7 @@ export function createHudScreen(deps: HudScreenDeps): Hud {
       store.commit(result.state)
       return result
     },
+    extraChips: deps.extraChips,
   })
 
   // The debrief wrapper above owns the ritual-day say chain (review F4).

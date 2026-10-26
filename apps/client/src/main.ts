@@ -19,6 +19,10 @@ import {
 } from "./app/screens"
 import { buildArena } from "./arena"
 import { careCueForEvent } from "./audio/careCues"
+import { timeoutSignal } from "./cloud/api"
+import { createCloudSave } from "./cloud/cloud-save"
+import { readCredentials } from "./cloud/credentials"
+import { buildCloudPanel } from "./cloud/panel"
 import { showFailurePlate } from "./failure-plate"
 import { buildRecoveryModal, recoveryFileName } from "./recovery"
 import { buildImportModal } from "./save-transfer"
@@ -36,6 +40,7 @@ import "./starter.css"
 import "./cup.css"
 import "./spar.css"
 import "./battle-hud.css"
+import "./cloud/cloud.css"
 
 const app = document.querySelector<HTMLElement>("#app")
 if (!app) throw new Error("#app container missing")
@@ -119,14 +124,36 @@ const restoredSession =
   saved?.session && saved.session.bracket.day === saved.state.day
     ? saved.session
     : null
+
+// The cloud, if this build has one (FR-11, AC-11). An unset origin is decided
+// here, once, at construction: no cloud object, no adapter, no request, and
+// the chip never exists — a local-only build is byte-for-byte the old client
+// in behaviour. Boot stays local either way: `loadBoot` already ran above and
+// the pull below is started only after the ranch has rendered (NFR-2).
+const cloud = createCloudSave({
+  origin: import.meta.env.VITE_API_ORIGIN,
+  local: storage,
+  now: () => Date.now(),
+  schedule: (fn, ms) => window.setTimeout(fn, ms),
+  cancel: (handle) => window.clearTimeout(handle as number),
+  fetch: (input, init) => fetch(input, init),
+  signal: timeoutSignal,
+})
+
 // The store is the single mutation path: handlers adopt a new state with
 // commit(), which persists and notifies the hud/spar/cup subscribers in a
 // fixed order — no handler hand-rolls that fanout anymore. The cup session
 // (save v7) rides every save so a refresh mid-walk resumes exactly here.
-const store = createGameStore(saved?.state ?? createInitialState(), storage, {
-  onPersistError: () => hud.announceSaveFailure(),
-  initialSession: restoredSession,
-})
+const store = createGameStore(
+  saved?.state ?? createInitialState(),
+  // Behind the same autosave (FR-5): the cloud adapter writes through to
+  // localStorage and queues the push; the read path never leaves the device.
+  cloud?.adapter ?? storage,
+  {
+    onPersistError: () => hud.announceSaveFailure(),
+    initialSession: restoredSession,
+  },
+)
 
 // Scene sync first: the camera preference and the creature rebuild the
 // screens and the starter overlay both lean on.
@@ -180,16 +207,35 @@ const importModal = buildImportModal((data) => {
   hud.noticeSettings("Couldn't write that save — try again.", true)
 })
 
+// The trainer surface (FR-8, FR-11): trainer id, passphrase, sign-in, and the
+// quiet sync line. Built only when this build has a cloud, and its credentials
+// are read from their own key beside the save — never from inside it, because
+// a save is exported and shared (save-transfer.ts).
+const cloudPanel = cloud
+  ? buildCloudPanel({
+      sync: cloud.sync,
+      credentials: () => readCredentials(storage),
+    })
+  : null
+
 const hud = createHudScreen({
   ...screenDeps,
   graduation,
   storage,
   askImport: (data) => importModal.ask(data),
+  extraChips: cloudPanel ? [cloudPanel.chip] : undefined,
 })
 
 // Appended after the HUD so the replace-save dialog stacks above Settings
 // (both are kit-modals at the same z-index; DOM order wins).
 app.append(importModal.root)
+
+if (cloudPanel && cloud) {
+  // Appended last so the trainer card stacks above every other overlay.
+  app.append(cloudPanel.root)
+  cloud.sync.subscribe((status) => cloudPanel.paint(status))
+  cloudPanel.paint(cloud.sync.status())
+}
 
 // The store's fixed fanout: every commit persists (inside commit) and then
 // updates the hud, the spar preview, and the cup chip — in that order —
@@ -236,6 +282,26 @@ sceneSync.syncScene()
 hud.update(store.get())
 spar.update(store.get().creature ?? null)
 cup.update(store.get())
+
+// Adoption (FR-4, AC-4): a cloud copy that is newer than the local one is
+// adopted through the store — the same instance every subscriber already
+// holds — so the ranch repaints instead of being rebuilt. Adoption is one-way
+// and only ever fires from `sync`, which refuses to adopt anything older than
+// the local copy (AC-7). A first-run starter card folds away with it.
+cloud?.sync.adoptWith((data) => {
+  const session =
+    data.session && data.session.bracket.day === data.state.day
+      ? data.session
+      : null
+  store.replaceState(data.state, session)
+  starter?.remove()
+  starter = null
+  sceneSync.syncScene()
+})
+
+// The pull happens here, after the ranch is on screen from the local save:
+// nothing above this line waited on the network (NFR-2, AC-8).
+void cloud?.sync.start()
 
 // ---------------------------------------------------------------------------
 // Hidden-tab pause (F5)

@@ -1,0 +1,32 @@
+{
+  "id": "20261026-backend-foundation",
+  "title": "ElysiaJS Backend Foundation",
+  "type": "feature",
+  "status": "in_progress",
+  "priority": "high",
+  "depends_on": [],
+  "created_at": "2026-10-26T08:52:36Z",
+  "updated_at": "2026-10-26T13:12:00Z",
+  "spec": "spec.md",
+  "plan": "plan.md",
+  "branch": "feat/20261026-backend-foundation",
+  "base_branch": "main",
+  "base_sha": "5d7bf207793c7a43df6e111ee2a81619c63f527b",
+  "progress": {
+    "phases_total": 5,
+    "phases_verified": 5,
+    "tasks_total": 15,
+    "tasks_done": 15
+  },
+  "last_checkpoint": "be01e575",
+  "review_verdict": "PASS",
+  "review_rounds": 2,
+  "doc_sync": "complete",
+  "pr_url": "https://github.com/mansyar/apex-league/pull/56",
+  "pr_state": "open",
+  "reverted_at": null,
+  "revert_commit": null,
+  "revert_pr_url": null,
+  "archived_at": null,
+  "archive_path": null
+}
