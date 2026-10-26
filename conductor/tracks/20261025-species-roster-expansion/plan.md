@@ -176,7 +176,7 @@
 - **Covers:** F7, F8
 - **Touches:** `apps/client/src/handbook/chart.ts`, `apps/client/src/species-roster.test.ts`, `packages/voxel/src/determinism-gate.test.ts`, `conductor/tracks/20261025-species-roster-expansion/verification/**`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R2.T1: Handbook population note states something the catalog guarantees** - covers: F7, FR-8, AC-8
   - [ ] **R2.T1.1: Failing test - the note makes no element claim the reward catalog contradicts; assert against REWARD_SPECIES rather than a hardcoded string**
