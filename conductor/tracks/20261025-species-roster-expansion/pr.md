@@ -68,10 +68,10 @@ The roster goes from **6 species to 9**, filling the reward ladder with a second
 
 ## Media
 
-![Fernstag on the ranch](../.conductor/evidence/20261025-species-roster-expansion/p3-09-ranch-whistlefern-1440.png)
-![Frond Lasher evolution reveal](../.conductor/evidence/20261025-species-roster-expansion/p3-25-evolution-reveal-frond-lasher-393.png)
-![Cindermoor in spar](../.conductor/evidence/20261025-species-roster-expansion/p3-29-spar-battle-moor-cinder-fire-fx-1440.png)
-![Reefclaw on the ranch at phone width](../.conductor/evidence/20261025-species-roster-expansion/p3-31-ranch-coral-claw-tide-sentinel-393.png)
+![Fernstag on the ranch](https://github.com/user-attachments/assets/6c6a8888-1e72-4129-aa53-e7e0b5217771)
+![Frond Lasher evolution reveal](https://github.com/user-attachments/assets/0a0d2125-2d7b-413c-95fd-91cfa8d274db)
+![Cindermoor in spar](https://github.com/user-attachments/assets/c95432b7-3b0a-4cfa-b224-5d64fef17d4d)
+![Reefclaw on the ranch at phone width](https://github.com/user-attachments/assets/fb40f96c-fee0-4784-93d0-35fa1e347619)
 
 ## Review
 
