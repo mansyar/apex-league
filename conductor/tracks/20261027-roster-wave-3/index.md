@@ -1,0 +1,16 @@
+# Roster Wave 3 (Breeding Discovery)
+
+- [Specification](./spec.md)
+- [Implementation Plan](./plan.md)
+- [Metadata](./metadata.json)
+
+**Type:** `feature`
+**Priority:** `high`
+**Branch:** `feat/20261027-roster-wave-3`
+**Depends on:** `none`
+
+## Artifacts
+
+- `verification/` — phase evidence, created during implementation
+- `review.md` — created by `conductor-review`
+- `pr.md` — created by `conductor-implement` before opening a PR
