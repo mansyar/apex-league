@@ -14,7 +14,7 @@
 - **Covers:** FR-1, FR-2, FR-3, FR-4, FR-7, AC-1, AC-2, NFR-3, NFR-4
 - **Touches:** `apps/server/src/leaderboard/**`, `apps/server/src/schema.ts`, `apps/server/migrations/0002_*.sql`, `apps/server/src/app.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000` (scoped: leaderboard + app route files)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Leaderboard schema & migration** — covers: FR-2
   - [ ] **P1.T1.1: Per-trainer-best table** (trainer id, category, value, name, updatedAt)
