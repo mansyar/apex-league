@@ -14,14 +14,18 @@
 - **Covers:** FR-1, FR-3, FR-4, NFR-1, NFR-5 — AC-1, AC-3, AC-4
 - **Touches:** `packages/sim/src/species.ts`, `packages/sim/src/breeding/**` (or current breeding flow files), `packages/sim/src/battle/**`, co-located `*.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Define the three SpeciesDefs + kits** — covers: FR-1, FR-3
-  - [ ] **P1.T1.1: Voltfox / Galeheron / Shalemole defs (element, stats, six-move kits from existing vocabulary), excluded from starter/reward paths**
-  - [ ] **P1.T1.2: Probe-tune kits into existing sustained-score bands**
-- [ ] **P1.T2: Implement the recipe lookup in the breeding flow** — covers: FR-4
-  - [ ] **P1.T2.1: Pure order-independent lookup (electric×wind, wind×water, earth×fire); unlisted/same-element pairs unchanged**
-  - [ ] **P1.T2.2: Pin with unit tests (both orders, negatives, breed-true as parents, no persisted state)**
+- [x] **P1.T1: Define the three SpeciesDefs + kits** — covers: FR-1, FR-3
+  - [x] **P1.T1.1: Voltfox / Galeheron / Shalemole defs (element, stats, six-move kits from existing vocabulary), excluded from starter/reward paths**
+  - [x] **P1.T1.2: Probe-tune kits into existing sustained-score bands**
+- [x] **P1.T2: Implement the recipe lookup in the breeding flow** — covers: FR-4
+  - [x] **P1.T2.1: Pure order-independent lookup (electric×wind, wind×water, earth×fire); unlisted/same-element pairs unchanged**
+  - [x] **P1.T2.2: Pin with unit tests (both orders, negatives, breed-true as parents, no persisted state)**
+
+**Result:** verified
+**Checkpoint:** `d4c7a14a`
+**Evidence:** conductor/tracks/20261027-roster-wave-3/verification/phase-1.md
 
 <!--
 The primary appends after acceptance:
