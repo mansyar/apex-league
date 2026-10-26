@@ -17,9 +17,9 @@ import { morningAfterTintOf } from "./morning-after"
 // The archetype roster and its pose temper
 // ---------------------------------------------------------------------------
 
-/** The six voxel archetypes (packages/sim's species registry: the three
- * starters plus the Silver/Gold/Legend reward species) — the choreography's
- * roster; anything else falls back to a neutral stance. */
+/** The nine voxel archetypes (packages/sim's species registry: the three
+ * starters plus the six Silver/Gold/Legend reward lines) — the
+ * choreography's roster; anything else falls back to a neutral stance. */
 export const MORNING_AFTER_ARCHETYPES = [
   "draconic",
   "bovine",
@@ -27,6 +27,9 @@ export const MORNING_AFTER_ARCHETYPES = [
   "storm_hound",
   "falcon",
   "tortoise",
+  "frond",
+  "crab",
+  "smolder",
 ] as const
 
 /** How strongly one archetype reads a stance through each move: `bear`
@@ -53,6 +56,15 @@ const TEMPER: Record<string, ArchetypeTemper> = {
   falcon: { bear: 0.35, slump: 0.25, tail: 0.35, prance: 0.4 },
   // The patient tortoise: slowest feet, and a loss sinks its shell deep.
   tortoise: { bear: 0.5, slump: 0.7, tail: 0.05, prance: 0.08 },
+  // The alert fernstag: tall carriage, antlers high, a light hooved
+  // prance — it never sinks far because the fronds stay up.
+  frond: { bear: 0.55, slump: 0.35, tail: 0.35, prance: 0.4 },
+  // The sidelong crab: it sidesteps a loss rather than sagging under it,
+  // so the sag is shallow and the carriage stays wide and low.
+  crab: { bear: 0.4, slump: 0.5, tail: 0.15, prance: 0.3 },
+  // The smoldering ram: the heaviest head-down charge on the roster, and
+  // the win barely lifts it — banked heat, not show.
+  smolder: { bear: 0.65, slump: 0.55, tail: 0.2, prance: 0.18 },
 }
 
 /** The neutral temper an unknown archetype rides — every rig still gets

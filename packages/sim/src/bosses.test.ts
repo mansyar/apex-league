@@ -117,16 +117,56 @@ describe("boss registry", () => {
     for (const boss of BOSSES) expect(boss.branch).toBe("legacy")
   })
 
-  it("keeps every branch signature out of the boss loadouts", () => {
-    const signatures = new Set(
-      BRANCHES.map((branch) => branch.signatureMove).filter(
-        (move): move is string => move !== null,
-      ),
-    )
-    expect(signatures.size).toBe(BRANCHES.length)
-    for (const boss of BOSSES) {
-      for (const move of boss.loadout) expect(signatures.has(move)).toBe(false)
+  it("never wields a form-exclusive special of a species the boss is not", () => {
+    // User decision 2026-10-25 (species-roster-expansion Phase 1): a
+    // signature move may double as another species' kit row, so the
+    // invariant is scoped to its spirit — a legacy-form boss may wield a
+    // kit row of its own species even when a later line's champion form
+    // claims that row as its signature, but never the signature of a
+    // species it is not.
+    const signaturesBySpecies = new Map<string, Set<string>>()
+    for (const branch of BRANCHES) {
+      if (branch.speciesId === null || branch.signatureMove === null) continue
+      const set = signaturesBySpecies.get(branch.speciesId) ?? new Set()
+      set.add(branch.signatureMove)
+      signaturesBySpecies.set(branch.speciesId, set)
     }
+    // Every real branch still owns a distinct form-exclusive special.
+    const allSignatures = new Set(
+      [...signaturesBySpecies.values()].flatMap((set) => [...set]),
+    )
+    expect(allSignatures.size).toBe(BRANCHES.length)
+    // The exemption is real but narrow, so it is recorded as data instead of
+    // asserted with a predicate that the loadout-subset rule above already
+    // satisfies. Each entry is a boss wielding another species' champion
+    // signature that its own species kit carries: the only overlap the user
+    // decision allows. A new overlap — or a stale entry — fails here.
+    const sharedSignatures = BOSSES.flatMap((boss) => {
+      const ownKit = getSpecies(boss.speciesId)?.kit ?? []
+      return boss.loadout
+        .filter(
+          (move) =>
+            ownKit.includes(move) &&
+            [...signaturesBySpecies.entries()].some(
+              ([speciesId, signatures]) =>
+                speciesId !== boss.speciesId && signatures.has(move),
+            ),
+        )
+        .map((move) => `${boss.id}/${move}`)
+    })
+    expect(sharedSignatures).toEqual([
+      // fire_drake wields ember_bank's (cindermoor) signature, a kit row.
+      "koda/flame_charge",
+      // plant_ox wields spore_warden's (fernstag) signature, a kit row.
+      "hesse/spore_burst",
+      // water_axolotl wields tide_sentinel's (reefclaw) signature, a kit row.
+      "delmar/tide_shot",
+      // fire_drake again, via both cindermoor forms' signatures.
+      "fenn/flame_charge",
+      "fenn/pyre_lance",
+      // plant_ox wields frond_lasher's (fernstag) signature, a kit row.
+      "thessa/root_quake",
+    ])
   })
 
   it("a substituted boss slot keeps its pinned build and fights legacy", () => {

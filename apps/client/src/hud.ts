@@ -12,6 +12,7 @@ import {
   graduationTickerLine,
   saveFailureNotice,
 } from "./hud/copy"
+import { hatchCallout } from "./hud/copy-hatch"
 import { createHints } from "./hud/hints"
 import { createHudShell } from "./hud/shell"
 import { createHudUpdate } from "./hud/update"
@@ -93,8 +94,8 @@ export interface HudHandlers {
   onGraduate: () => void
   /** Open the Hall of Fame panel (main owns the modal). */
   onOpenHallOfFame: () => void
-  /** Hatch the granted Storm Gift (electric species line FR-5/FR-6); the app
-   * commits the succession through the store. */
+  /** Hatch the waiting league gift egg (species roster FR-5); the app commits
+   * the stable install through the store. */
   onHatchGift: () => void
   /**
    * Bring a pet waiting in the stable to the ranch (stable & partner reserve
@@ -129,6 +130,10 @@ export interface Hud {
   announceSaveFailure(): void
   /** Show (or clear, with "") a calm settings notice (save transfer). */
   noticeSettings(message: string, warn?: boolean): void
+  /** Show the league-reward hatch line (species roster FR-7): the partner
+   * that just hatched into the stable and the stats it came with. The next
+   * routine update replaces it. */
+  announceHatch(creature: NonNullable<GameState["creature"]>): void
   /** Show the morning-after's coach debrief line (postcup_morning_after
    * FR-6): the ritual day's one say — the next routine update replaces it. */
   announceMorningAfter(line: string): void
@@ -158,7 +163,8 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   const paint = (state: GameState) => {
     latest = state
     update(state)
-    // The Storm Gift chip (FR-5): shown only while a granted egg waits.
+    // The league gift chip (species roster FR-5): shown only while a granted
+    // egg waits.
     syncGiftChip(shell.refs.giftChip, state)
     // The Stable chip (FR-9): shown only while the stable holds a pet.
     syncStableChip(shell.refs.stableChip, state)
@@ -180,6 +186,9 @@ export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
     },
     announceSaveFailure() {
       shell.refs.creaturePlate.statusTicker.say(saveFailureNotice())
+    },
+    announceHatch(creature) {
+      shell.refs.creaturePlate.statusTicker.say(hatchCallout(creature))
     },
     noticeSettings(message, warn) {
       shell.refs.settings.notice(message, warn)

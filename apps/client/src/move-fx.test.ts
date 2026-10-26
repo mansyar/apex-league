@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { type Element, getMove } from "@apex/sim"
+import { type Element, getMove, getSpecies } from "@apex/sim"
 import * as THREE from "three"
 import { elementHue } from "./element"
 import { buildShotCore, buildTrail } from "./fx/shot-geometry"
@@ -252,6 +252,62 @@ describe("move table", () => {
     // Their element still supplies the look: default body + Earth/Wind shot.
     expect(lookFor(getMove("basalt_guard")?.element)).toBe(look("earth"))
     expect(lookFor(getMove("zephyr_veil")?.element)).toBe(look("wind"))
+  })
+
+  test("the new lines' guard signatures ride the default body too", () => {
+    // The three roster-expansion lines each bring one guard: a defensive move
+    // has no projectile grammar of its own, so it inherits the default body
+    // and lets its element supply the shot — the same rule the earth and wind
+    // guards follow.
+    const guards: ReadonlyArray<[string, Element]> = [
+      ["bramble_guard", "plant"],
+      ["tide_aegis", "water"],
+      ["pyre_wall", "fire"],
+    ]
+    for (const [guard, element] of guards) {
+      expect(fxFor(guard)).toBe(DEFAULT_FX)
+      expect(lookFor(getMove(guard)?.element)).toBe(look(element))
+    }
+  })
+
+  test("each new attack form is authored in its element's grammar", () => {
+    // One attack signature per new line: a held windup, a real kick, and an
+    // arrival burst — the shared grammar of the existing tier-3 shots.
+    const forms: ReadonlyArray<[string, Element]> = [
+      ["thorn_charge", "plant"],
+      ["riptide_rush", "water"],
+      ["cinder_dive", "fire"],
+    ]
+    for (const [moveId, element] of forms) {
+      const fx = fxFor(moveId)
+      expect(fx).not.toBe(DEFAULT_FX)
+      expect(getMove(moveId)?.element).toBe(element)
+      expect(fx.pose.windup.hold).toBe(true)
+      expect(fx.pose.windup.coilX ?? 0).toBeGreaterThan(0.2)
+      expect(fx.kick).toBeLessThan(-0.5)
+      expect(fx.shots).toHaveLength(1)
+      expect(fx.arrival.burst.puffs ?? 0).toBeGreaterThan(0)
+      expect(fx.arrival.shove ?? 0).toBeLessThanOrEqual(-0.5)
+    }
+  })
+
+  test("every row of a new kit resolves to an element-true shot", () => {
+    // The mapping rule for the roster-expansion lines: a kit row either has
+    // its own authored body or inherits the default one, and either way the
+    // shot that flies is the line's element look — never another element's.
+    const lines = ["fernstag", "reefclaw", "cindermoor"] as const
+    for (const speciesId of lines) {
+      const species = getSpecies(speciesId)
+      if (!species) throw new Error(`missing species ${speciesId}`)
+      const element = species.element
+      for (const moveId of species.kit) {
+        const move = getMove(moveId)
+        if (!move) throw new Error(`missing move ${moveId}`)
+        expect(move.element).toBe(element)
+        expect(lookFor(move.element)).toBe(look(element))
+        expect(fxFor(moveId)).toBeDefined()
+      }
+    }
   })
 })
 

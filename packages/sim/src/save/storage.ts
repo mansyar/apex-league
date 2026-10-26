@@ -9,6 +9,7 @@
  */
 
 import type { CupSession } from "../cup"
+import { reconcileLeagueRewards } from "../cupRewards"
 import type { GameState } from "../state"
 import { migrate } from "./migrate"
 import { SAVE_VERSION, type SaveData, serializeSave } from "./schema"
@@ -135,5 +136,9 @@ export function loadBoot(adapter: SaveAdapter): BootPayload | null {
   if (adapter.getItem(SAVE_KEY) === null) return null
   const data = loadSave(adapter)
   if (data === null) return { corrupt: true }
-  return { state: data.state, session: data.session }
+  // The reward catch-up (species-roster-expansion FR-4) runs at boot: a
+  // save that claimed a tier before its newer species shipped receives
+  // that species as a queued egg here. Idempotent — repeat boots never
+  // duplicate a grant — so it can sit on the boot path permanently.
+  return { state: reconcileLeagueRewards(data.state), session: data.session }
 }

@@ -5,8 +5,15 @@
  * artifacts (baby keeps the bare filename, other stages are suffixed).
  * Any generator change that alters output fails the build.
  * Run: bun packages/voxel/scripts/determinism-gate.ts
+ *
+ * `--write-missing` is the authoring path for a NEW archetype: it writes the
+ * artifact pair for any archetype/stage that has no committed files yet, and
+ * refuses to touch a pair that already exists. The pair it writes is re-read
+ * and deep-compared in the same run, so an authoring run can never leave an
+ * unverified pair behind. It never overwrites a committed artifact — a changed
+ * generator must still fail the plain gate.
  */
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync, writeFileSync } from "node:fs"
 import {
   archetypes,
   exportGlb,
@@ -24,6 +31,9 @@ const SEED = 42
 
 /** Life stages with committed GLB artifacts; baby keeps the bare filename. */
 const GATED_STAGES = ["baby", "juvenile", "champion"] as const
+
+/** Authoring mode: write artifact pairs that do not exist yet. */
+const writeMissing = process.argv.includes("--write-missing")
 
 const fail = (why: string): never => {
   console.error(`DETERMINISM GATE FAILED: ${why}`)
@@ -69,14 +79,33 @@ for (const [id, def] of Object.entries(archetypes)) {
     })
 
     let committedManifest: GlbManifest
+    let committedGlb: Buffer
     try {
       committedManifest = JSON.parse(
         readFileSync(manifestPath, "utf8"),
       ) as GlbManifest
+      committedGlb = readFileSync(glbPath)
     } catch {
-      fail(
-        `${manifestPath} is missing or unparseable - run export-artifact.ts to (re)commit it`,
-      )
+      // A new archetype has no committed pair yet. `--write-missing` authors
+      // it from the pipeline; the plain gate fails loudly instead.
+      if (writeMissing && !existsSync(glbPath) && !existsSync(manifestPath)) {
+        writeFileSync(glbPath, glb)
+        writeFileSync(manifestPath, JSON.stringify(manifest, null, "\t"))
+        console.log(
+          `determinism gate wrote ${glbPath} (${glb.byteLength} bytes, tris ${manifest.triCount}) and ${manifestPath}`,
+        )
+        // Read the pair back and fall through to the same deep compare the
+        // committed artifacts get: an authoring run verifies what it wrote,
+        // so a bad write cannot be committed as an unverified pair.
+        committedManifest = JSON.parse(
+          readFileSync(manifestPath, "utf8"),
+        ) as GlbManifest
+        committedGlb = readFileSync(glbPath)
+      } else {
+        fail(
+          `${manifestPath} is missing or unparseable - run export-artifact.ts to (re)commit it`,
+        )
+      }
     }
     // Deep-compare the full manifest: any field drift (hashes, triCount,
     // pivots, generator version) means the committed artifact no longer
@@ -87,12 +116,6 @@ for (const [id, def] of Object.entries(archetypes)) {
       )
     }
 
-    let committedGlb: Buffer
-    try {
-      committedGlb = readFileSync(glbPath)
-    } catch {
-      fail(`${glbPath} is missing - run export-artifact.ts to (re)commit it`)
-    }
     if (!Buffer.from(glb).equals(committedGlb)) {
       fail(`${glbPath} differs from regenerated output`)
     }

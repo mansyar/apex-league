@@ -1,7 +1,7 @@
 /**
- * The league reward card (earth/wind species line FR-5/FR-6): a tier
- * reward from the league, waiting in the nursery as a pending egg — the
- * Silver hound, the Gold falcon, or the Legend tortoise.
+ * The league reward card (species roster FR-5/FR-7): a tier reward from the
+ * league, waiting in the nursery as a pending egg — one line per tier, from
+ * the Silver line through the Legend line.
  *
  * The card shows the granted egg exactly as it will hatch — the preview
  * comes from the sim's own preview seam (`leagueRewardPreview`), which
@@ -58,7 +58,7 @@ export function giftHatchNote(currentName: string | undefined): string {
     : "Hatching sends it to the stable — its career starts when you bring it forward."
 }
 
-/** The caption over the preview: the numbers are the hound's own. */
+/** The caption over the preview: the numbers are the egg's own. */
 export const GIFT_STATS_CAPTION = "The stats it hatches with"
 
 /**
@@ -69,9 +69,10 @@ export const GIFT_STATS_CAPTION = "The stats it hatches with"
 export function buildGiftChip(onOpen: () => void): HTMLButtonElement {
   const button = chip({ label: "Gift", variant: "dim", onClick: onOpen })
   button.classList.add("gift-chip")
-  // The chip's own `display` rule outranks the `hidden` attribute, so the
-  // chip is folded the way the rest of the HUD folds its rows.
-  button.style.display = "none"
+  // Folded through a class, not an inline `display`: the seat rules in
+  // ranch.css read the chip's visibility, and a class is the only signal a
+  // selector can key on without guessing at an inline string.
+  button.classList.add("is-hidden")
   button.title = "League Reward"
   return button
 }
@@ -84,7 +85,7 @@ export function syncGiftChip(
   button: HTMLButtonElement,
   state: GameState,
 ): void {
-  button.style.display = leagueRewardPending(state) ? "" : "none"
+  button.classList.toggle("is-hidden", !leagueRewardPending(state))
 }
 
 export interface GiftModal {

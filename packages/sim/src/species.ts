@@ -118,10 +118,13 @@ export const STORM_GIFT_SPECIES_ID = "electric_hound"
 
 /**
  * The reward species the league grants as a ladder reward rather than as a
- * starter: Silver → `electric_hound`, Gold → `wind_falcon`, Legend →
- * `earth_tortoise` (earth/wind species line FR-5). Each carries the tier
+ * starter: Silver → `electric_hound` and `fernstag`, Gold → `wind_falcon`
+ * and `reefclaw`, Legend → `earth_tortoise` and `cindermoor` (earth/wind
+ * species line FR-5; species-roster-expansion FR-1). Each carries the tier
  * that unlocks it, so the rival field and the reward itself read the same
- * contract instead of guessing from an array's membership (FR-7).
+ * contract instead of guessing from an array's membership (FR-7). Catalog
+ * order is tier order, and within a tier the older line leads, so the
+ * pending-reward queue stays oldest-first.
  */
 export const REWARD_SPECIES: readonly SpeciesDef[] = Object.freeze([
   {
@@ -144,6 +147,26 @@ export const REWARD_SPECIES: readonly SpeciesDef[] = Object.freeze([
     statBounds: { hp: [70, 84], atk: [10, 14], def: [5, 8], spd: [12, 16] },
   },
   {
+    id: "fernstag",
+    archetypeId: "frond",
+    displayName: "Whistlefern",
+    element: "plant",
+    flavor:
+      "A quick-growing frond that snaps its leaves like castanets when it spars.",
+    available: false,
+    rewardFromTier: "silver",
+    kit: [
+      "seed_shot",
+      "thorn_volley",
+      "vine_lash",
+      "thorn_charge",
+      "bramble_dart",
+      "bramble_guard",
+    ],
+    temperament: "obedient",
+    statBounds: { hp: [70, 84], atk: [8, 12], def: [8, 11], spd: [10, 14] },
+  },
+  {
     id: "wind_falcon",
     archetypeId: "falcon",
     displayName: "Zephyr Falcon",
@@ -161,6 +184,26 @@ export const REWARD_SPECIES: readonly SpeciesDef[] = Object.freeze([
     ],
     temperament: "rush",
     statBounds: { hp: [56, 68], atk: [10, 14], def: [4, 7], spd: [17, 19] },
+  },
+  {
+    id: "reefclaw",
+    archetypeId: "crab",
+    displayName: "Coral Claw",
+    element: "water",
+    flavor:
+      "A patient pincer crab that polishes its claws on the reef between fights.",
+    available: false,
+    rewardFromTier: "gold",
+    kit: [
+      "bubble",
+      "mist_spray",
+      "foam_volley",
+      "riptide_rush",
+      "splash_bolt",
+      "tide_aegis",
+    ],
+    temperament: "slow",
+    statBounds: { hp: [86, 100], atk: [10, 13], def: [12, 14], spd: [4, 7] },
   },
   {
     id: "earth_tortoise",
@@ -181,6 +224,26 @@ export const REWARD_SPECIES: readonly SpeciesDef[] = Object.freeze([
     ],
     temperament: "slow",
     statBounds: { hp: [105, 120], atk: [7, 10], def: [15, 18], spd: [2, 4] },
+  },
+  {
+    id: "cindermoor",
+    archetypeId: "smolder",
+    displayName: "Moor Cinder",
+    element: "fire",
+    flavor:
+      "A heavy, smoldering grazer whose back vents a slow line of smoke. It does not hurry; the fire does the waiting for it.",
+    available: false,
+    rewardFromTier: "legend",
+    kit: [
+      "spark",
+      "flare_dart",
+      "cinder_shot",
+      "cinder_dive",
+      "blaze_bolt",
+      "pyre_wall",
+    ],
+    temperament: "rush",
+    statBounds: { hp: [84, 98], atk: [11, 14], def: [9, 12], spd: [6, 8] },
   },
 ])
 

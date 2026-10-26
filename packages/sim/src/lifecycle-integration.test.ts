@@ -182,8 +182,9 @@ describe("the full lifecycle: earth_tortoise via the Legend reward (FR-1)", () =
   test("claim → hatch → raise → branch → win a cup, end to end", () => {
     const day7 = driveToDay(DAY)
 
-    // Reaching Gold queues the falcon behind the hound it was granted
-    // with; the tortoise does not exist in the queue yet.
+    // Reaching Gold queues the fernstag behind the hound and the reefclaw
+    // behind the falcon — two species per tier now; the tortoise does not
+    // exist in the queue yet.
     const gold: GameState = {
       ...day7,
       ladder: { ...day7.ladder, ...AT_GOLD },
@@ -192,11 +193,14 @@ describe("the full lifecycle: earth_tortoise via the Legend reward (FR-1)", () =
     expect(afterGold.claimedTiers).toEqual(["silver", "gold"])
     expect(afterGold.pendingRewards.map((egg) => egg.speciesId)).toEqual([
       "electric_hound",
+      "fernstag",
       "wind_falcon",
+      "reefclaw",
     ])
     expect(leagueRewardPending(afterGold)).toBe(true)
 
-    // Reaching the Legend plateau adds the tortoise behind the queue.
+    // Reaching the Legend plateau adds the tortoise and the cindermoor
+    // behind the queue.
     const legend: GameState = {
       ...afterGold,
       ladder: { ...afterGold.ladder, ...AT_LEGEND },
@@ -206,21 +210,31 @@ describe("the full lifecycle: earth_tortoise via the Legend reward (FR-1)", () =
     expect(afterLegend.claimedTiers).toEqual(["silver", "gold", "legend"])
     expect(afterLegend.pendingRewards.map((egg) => egg.speciesId)).toEqual([
       "electric_hound",
+      "fernstag",
       "wind_falcon",
+      "reefclaw",
       "earth_tortoise",
+      "cindermoor",
     ])
 
-    // The hatch order is the queue order: oldest tier first.
+    // The hatch order is the queue order: oldest tier first, older line
+    // of a tier before the newer one.
     const first = hatch(afterLegend)
     expect(first.hatched.speciesId).toBe("electric_hound")
     const second = hatch(first.state)
-    expect(second.hatched.speciesId).toBe("wind_falcon")
+    expect(second.hatched.speciesId).toBe("fernstag")
     const third = hatch(second.state)
-    const tortoise = third.hatched
-    expect(third.state.pendingRewards).toEqual([])
+    expect(third.hatched.speciesId).toBe("wind_falcon")
+    const fourth = hatch(third.state)
+    expect(fourth.hatched.speciesId).toBe("reefclaw")
+    const fifth = hatch(fourth.state)
+    const tortoise = fifth.hatched
+    expect(fifth.state.pendingRewards.map((egg) => egg.speciesId)).toEqual([
+      "cindermoor",
+    ])
 
     // The pure egg individual: the exact seeded roll, no drift ever drawn.
-    const seed = afterLegend.pendingRewards[2]?.seed
+    const seed = afterLegend.pendingRewards[4]?.seed
     if (seed === undefined) throw new Error("the tortoise egg lost its seed")
     expect(tortoise).toEqual(createGiftEgg("earth_tortoise", seed))
     expect(tortoise.affinity).toBeNull()
@@ -228,8 +242,8 @@ describe("the full lifecycle: earth_tortoise via the Legend reward (FR-1)", () =
     expect(tortoise.parents).toEqual([])
     expect(tortoise.stage).toBe("baby")
 
-    // The tortoise takes the ranch; the partner waits its turn.
-    const swapped = bringToRanch(third.state, stablePetId(2))
+    // The tortoise takes the ranch; the earlier gifts wait their turn.
+    const swapped = bringToRanch(fifth.state, stablePetId(4))
     if (!swapped.ok) throw new Error(`swap refused: ${swapped.reason}`)
     expect(swapped.state.creature?.speciesId).toBe("earth_tortoise")
     expect(swapped.state.stable.at(-1)?.speciesId).toBe("fire_drake")
@@ -254,18 +268,25 @@ describe("the full lifecycle: wind_falcon via the Gold reward (FR-1)", () => {
     expect(afterGold.claimedTiers).toEqual(["silver", "gold"])
     expect(afterGold.pendingRewards.map((egg) => egg.speciesId)).toEqual([
       "electric_hound",
+      "fernstag",
       "wind_falcon",
+      "reefclaw",
     ])
 
-    // The hatch order is the queue order: the hound hatches first.
+    // The hatch order is the queue order: the hound hatches first, then its
+    // tier-mate, then the falcon.
     const first = hatch(afterGold)
     expect(first.hatched.speciesId).toBe("electric_hound")
     const second = hatch(first.state)
-    const falcon = second.hatched
-    expect(second.state.pendingRewards).toEqual([])
+    expect(second.hatched.speciesId).toBe("fernstag")
+    const third = hatch(second.state)
+    const falcon = third.hatched
+    expect(third.state.pendingRewards.map((egg) => egg.speciesId)).toEqual([
+      "reefclaw",
+    ])
 
     // The pure egg individual: the exact seeded roll, no drift ever drawn.
-    const seed = afterGold.pendingRewards[1]?.seed
+    const seed = afterGold.pendingRewards[2]?.seed
     if (seed === undefined) throw new Error("the falcon egg lost its seed")
     expect(falcon).toEqual(createGiftEgg("wind_falcon", seed))
     expect(falcon.affinity).toBeNull()
@@ -273,12 +294,13 @@ describe("the full lifecycle: wind_falcon via the Gold reward (FR-1)", () => {
     expect(falcon.parents).toEqual([])
     expect(falcon.stage).toBe("baby")
 
-    // The falcon takes the ranch; the hound keeps waiting in the stable.
-    const swapped = bringToRanch(second.state, stablePetId(1))
+    // The falcon takes the ranch; the silver gifts keep waiting in the stable.
+    const swapped = bringToRanch(third.state, stablePetId(2))
     if (!swapped.ok) throw new Error(`swap refused: ${swapped.reason}`)
     expect(swapped.state.creature?.speciesId).toBe("wind_falcon")
     expect(swapped.state.stable.map((pet) => pet.speciesId)).toEqual([
       "electric_hound",
+      "fernstag",
       "fire_drake",
     ])
 

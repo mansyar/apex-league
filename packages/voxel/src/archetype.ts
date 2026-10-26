@@ -7,10 +7,13 @@
 import { AXOLOTL_GRID, axolotlTemplate, buildAxolotl } from "./axolotl"
 import { BOVINE_GRID, bovineTemplate, buildBovine } from "./bovine"
 import type { CreatureBuild } from "./build"
+import { buildCrab, CRAB_GRID, crabTemplate } from "./crab"
 import { buildDrake, DRAKE_GRID, drakeTemplate } from "./drake"
 import { buildFalcon, FALCON_GRID, falconTemplate } from "./falcon"
+import { buildFrond, FROND_GRID, frondTemplate } from "./frond"
 import { sampleDna } from "./sample"
 import type { Dna, Template } from "./schema"
+import { buildSmolder, SMOLDER_GRID, smolderTemplate } from "./smolder"
 import { parseStage, type Stage } from "./stage"
 import {
   buildStormHound,
@@ -64,6 +67,24 @@ export const archetypes: Record<string, ArchetypeDef> = {
     template: tortoiseTemplate,
     grid: TORTOISE_GRID,
     build: buildTortoise,
+  },
+  frond: {
+    id: "frond",
+    template: frondTemplate,
+    grid: FROND_GRID,
+    build: buildFrond,
+  },
+  crab: {
+    id: "crab",
+    template: crabTemplate,
+    grid: CRAB_GRID,
+    build: buildCrab,
+  },
+  smolder: {
+    id: "smolder",
+    template: smolderTemplate,
+    grid: SMOLDER_GRID,
+    build: buildSmolder,
   },
 }
 

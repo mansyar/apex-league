@@ -1,0 +1,32 @@
+{
+  "id": "20261025-species-roster-expansion",
+  "title": "Species Roster Expansion",
+  "type": "feature",
+  "status": "complete",
+  "priority": "high",
+  "depends_on": [],
+  "created_at": "2026-10-25T09:30:38Z",
+  "updated_at": "2026-10-26T06:05:00Z",
+  "spec": "spec.md",
+  "plan": "plan.md",
+  "branch": "feat/20261025-species-roster-expansion",
+  "base_branch": "main",
+  "base_sha": "2adc0518d136ec3b41cc7b6daa17821ae4e1d6f4",
+  "progress": {
+    "phases_total": 4,
+    "phases_verified": 4,
+    "tasks_total": 11,
+    "tasks_done": 11
+  },
+  "last_checkpoint": "10cdc188",
+  "review_verdict": "PASS",
+  "review_rounds": 3,
+  "doc_sync": "updated",
+  "pr_url": "https://github.com/mansyar/apex-league/pull/54",
+  "pr_state": "open",
+  "reverted_at": null,
+  "revert_commit": null,
+  "revert_pr_url": null,
+  "archived_at": "2026-10-26T06:30:00Z",
+  "archive_path": null
+}

@@ -129,7 +129,7 @@ export function resultsView(
   ladder: LadderStanding,
   ladderBefore: LadderStanding | null,
   legendTitles = 0,
-  giftPending = false,
+  giftName: string | null = null,
 ): ResultsView {
   const placement = cupPlacement(session)
   const won = session.status === "champion"
@@ -153,7 +153,7 @@ export function resultsView(
     line: won
       ? `${player} · unbeaten through three rounds`
       : `${player} · out in the ${exitStage(placement)}`,
-    rows: resultRows(session, ladder, ladderBefore, legendTitles, giftPending),
+    rows: resultRows(session, ladder, ladderBefore, legendTitles, giftName),
   }
 }
 

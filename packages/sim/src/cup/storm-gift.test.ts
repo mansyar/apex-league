@@ -157,7 +157,9 @@ describe("the league rewards grant at cup finalize (FR-5)", () => {
     const finalized = finalizeCup(s, runnerUpSession(s))
     expect(finalized.claimedTiers).toEqual(["silver", "gold"])
     expect(finalized.pendingRewards[0]?.speciesId).toBe("electric_hound")
-    expect(finalized.pendingRewards[1]?.speciesId).toBe("wind_falcon")
+    expect(finalized.pendingRewards[1]?.speciesId).toBe("fernstag")
+    expect(finalized.pendingRewards[2]?.speciesId).toBe("wind_falcon")
+    expect(finalized.pendingRewards[3]?.speciesId).toBe("reefclaw")
   })
 
   test("the tiers grant independently, in ascending tier order", () => {
@@ -166,8 +168,11 @@ describe("the league rewards grant at cup finalize (FR-5)", () => {
     expect(finalized.claimedTiers).toEqual(["silver", "gold", "legend"])
     expect(finalized.pendingRewards.map((egg) => egg.speciesId)).toEqual([
       "electric_hound",
+      "fernstag",
       "wind_falcon",
+      "reefclaw",
       "earth_tortoise",
+      "cindermoor",
     ])
   })
 
@@ -178,7 +183,7 @@ describe("the league rewards grant at cup finalize (FR-5)", () => {
     const s = stateAt({ tier: "gold", subTier: "I", points: 36 })
     const granted = grantLeagueRewards(s, false)
     expect(granted.claimedTiers).toEqual(["silver", "gold"])
-    expect(granted.pendingRewards).toHaveLength(2)
+    expect(granted.pendingRewards).toHaveLength(4)
   })
 
   test("each claimed tier prevents its own repeat grant", () => {
@@ -203,7 +208,9 @@ describe("grantLeagueRewards — the claim seam", () => {
     const granted = grantLeagueRewards(s, false)
     expect(granted.claimedTiers).toEqual(["silver", "gold"])
     expect(granted.pendingRewards[0]?.speciesId).toBe("electric_hound")
-    expect(granted.pendingRewards[1]?.speciesId).toBe("wind_falcon")
+    expect(granted.pendingRewards[1]?.speciesId).toBe("fernstag")
+    expect(granted.pendingRewards[2]?.speciesId).toBe("wind_falcon")
+    expect(granted.pendingRewards[3]?.speciesId).toBe("reefclaw")
   })
 
   test("never stamps below the lowest reward tier", () => {

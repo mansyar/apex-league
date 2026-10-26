@@ -61,4 +61,19 @@ export const WATER_FX: Record<string, MoveFx> = {
     },
     compressed: { wind: 0.3, flight: 220, beats: [0.38, 0.44, 0.5] },
   },
+  // Riptide Rush (reefclaw's attack form): the pincer's forward surge — a
+  // low, held coil that releases one wide teardrop and lands as a wash.
+  riptide_rush: {
+    wind: 0.54,
+    shots: [{ size: 1.8, life: 700, at: 0.54 }],
+    kick: -0.52,
+    pose: {
+      windup: { pitch: -0.24, hold: true, rise: -0.1, coilX: 0.22 },
+      recoil: { pitchOut: 0.16, sweepX: [0.22, -0.52], riseOut: 0.04 },
+    },
+    arrival: {
+      burst: { puffs: 13, size: 1.3, life: 640, gravity: 7, flashGrow: 3.2 },
+      shove: -0.5,
+    },
+  },
 }

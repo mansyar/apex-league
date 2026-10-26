@@ -111,7 +111,10 @@ export function grantLeagueRewards(
 ): GameState {
   if (forfeited) return state
   // REWARD_SPECIES is ordered by ascending tier (Silver, Gold, Legend), so
-  // appending in catalog order keeps the queue oldest-first.
+  // appending in catalog order keeps the queue oldest-first. Two species now
+  // share each reward tier, so the claim stamp is per tier — pushed once,
+  // on the tier's first species — while every species of the tier queues
+  // its own egg.
   const claimed: LadderTier[] = []
   const eggs: GameState["pendingRewards"] = []
   for (const species of REWARD_SPECIES) {
@@ -119,7 +122,7 @@ export function grantLeagueRewards(
     if (rewardTier === undefined) continue
     if (!tierAtLeast(state.ladder.tier, rewardTier)) continue
     if (state.claimedTiers.includes(rewardTier)) continue
-    claimed.push(rewardTier)
+    if (!claimed.includes(rewardTier)) claimed.push(rewardTier)
     eggs.push({
       speciesId: species.id,
       seed: leagueRewardSeed(state.day, state.ladder.points),
@@ -141,4 +144,70 @@ export function grantLeagueRewards(
  */
 export function leagueRewardSeed(day: number, points: number): number {
   return (day * 7919 + points * 31 + 17) % 2 ** 31
+}
+
+/**
+ * Does this save already hold (or have queued) the given reward species?
+ * A delivered gift pet is always findable in exactly one of the four places
+ * a creature can live: unhatched in the nursery queue, on the ranch, in
+ * the stable, or retired into the Hall of Fame. Any one of them proves the
+ * species was delivered, so the catch-up never grants it twice.
+ */
+function giftSpeciesDelivered(state: GameState, speciesId: string): boolean {
+  return (
+    state.pendingRewards.some((egg) => egg.speciesId === speciesId) ||
+    state.creature?.speciesId === speciesId ||
+    state.stable.some((pet) => pet.speciesId === speciesId) ||
+    state.lineage.hallOfFame.some((record) => record.speciesId === speciesId)
+  )
+}
+
+/**
+ * The retroactive catch-up (species-roster-expansion FR-4): a save that
+ * claimed a reward tier BEFORE a tier's newer species shipped must still
+ * receive that species — on the next boot, as a queued pendingReward, with
+ * no new claim stamp (the tier is already claimed). For every released
+ * reward species whose tier this save has claimed and whose species is
+ * nowhere in the save (not queued, not on the ranch, not stashed, not in
+ * the Hall of Fame), an egg joins the `pendingRewards` queue.
+ *
+ * Idempotent by construction: once queued, the egg satisfies the
+ * delivered check, so re-running the reconciliation — every boot — never
+ * duplicates a grant, and neither does hatching (the hatched pet lives on
+ * in stable or Hall of Fame). The merged queue is re-ordered by the
+ * catalog's tier order (oldest tier first, older line of a tier first), so
+ * a catch-up egg slots in ahead of any same-or-later-tier egg that was
+ * granted earlier — the queue invariant the hatch seam relies on.
+ *
+ * Pure: returns a new state, the input never mutated; the egg seed is
+ * derived from the save's own day and ladder points, never an RNG draw
+ * (NFR-3). Called from the boot seam (`save/storage.ts loadBoot`), so
+ * every loaded save reconciles before play; fresh saves (nothing claimed)
+ * pass through untouched.
+ */
+export function reconcileLeagueRewards(state: GameState): GameState {
+  const catchUp: GameState["pendingRewards"] = []
+  for (const species of REWARD_SPECIES) {
+    const rewardTier = species.rewardFromTier
+    if (rewardTier === undefined) continue
+    if (!state.claimedTiers.includes(rewardTier)) continue
+    if (giftSpeciesDelivered(state, species.id)) continue
+    catchUp.push({
+      speciesId: species.id,
+      seed: leagueRewardSeed(state.day, state.ladder.points),
+    })
+  }
+  if (catchUp.length === 0) return state
+  // Catalog index == tier order (and the older line of a tier leads), so
+  // sorting the merged queue by it restores the oldest-first invariant. An
+  // id the catalog does not know (a retired line, or a save written by a
+  // newer build) has no place in that order, so it sorts last rather than
+  // ahead of every real reward.
+  const catalogIndex = new Map(REWARD_SPECIES.map((s, i) => [s.id, i] as const))
+  const rank = (speciesId: string): number =>
+    catalogIndex.get(speciesId) ?? Number.MAX_SAFE_INTEGER
+  const pendingRewards = [...state.pendingRewards, ...catchUp].sort(
+    (a, b) => rank(a.speciesId) - rank(b.speciesId),
+  )
+  return { ...state, pendingRewards }
 }

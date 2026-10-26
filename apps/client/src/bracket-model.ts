@@ -224,21 +224,26 @@ export function resultRows(
   ladder: LadderStanding,
   ladderBefore: LadderStanding | null,
   legendTitles = 0,
-  giftPending = false,
+  giftName: string | null = null,
 ): string[] {
   const won = session.status === "champion"
   const lastVerdict = session.playerVerdicts.at(-1)
   const forfeited = lastVerdict !== undefined && lastVerdict.battle === null
   const row = ladderRow(ladder, ladderBefore, forfeited)
-  // The Storm Gift (electric species line FR-5): the league's one-time
-  // reward reads as a reward row, so the grant is visible where the player
-  // looks for rewards.
-  const giftRow = "⚡ Storm Gift — a Storm Hound egg waits in the nursery"
+  // The league reward (species roster FR-5): the grant reads as a reward row,
+  // so the grant is visible where the player looks for rewards. The row names
+  // the species the egg holds, read from the sim's pending queue — one copy
+  // for every tier, so the row can never name a line the league stopped
+  // handing out.
+  const giftRow =
+    giftName === null
+      ? null
+      : `⚡ League Gift — a ${giftName} egg waits in the nursery`
   if (!won) {
     return [
       `Consolation: mood +${CUP_REWARDS.consolations.mood}`,
       row,
-      ...(giftPending ? [giftRow] : []),
+      ...(giftRow === null ? [] : [giftRow]),
     ]
   }
   // The champion bonus is tier-stacked (gold_legend_ladder_20261017): a
@@ -256,7 +261,7 @@ export function resultRows(
   if (ladder.tier === "legend") {
     rows.push(`★ Legend title ${legendTitles}`)
   }
-  if (giftPending) rows.push(giftRow)
+  if (giftRow !== null) rows.push(giftRow)
   return rows
 }
 
