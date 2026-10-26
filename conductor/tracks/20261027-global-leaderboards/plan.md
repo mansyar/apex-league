@@ -14,21 +14,18 @@
 - **Covers:** FR-1, FR-2, FR-3, FR-4, FR-7, AC-1, AC-2, NFR-3, NFR-4
 - **Touches:** `apps/server/src/leaderboard/**`, `apps/server/src/schema.ts`, `apps/server/migrations/0002_*.sql`, `apps/server/src/app.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000` (scoped: leaderboard + app route files)
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Leaderboard schema & migration** — covers: FR-2
-  - [ ] **P1.T1.1: Per-trainer-best table** (trainer id, category, value, name, updatedAt)
-  - [ ] **P1.T1.2: Ledger-runner migration 0002**
-- [ ] **P1.T2: Submit + ranked-list routes** — covers: FR-1, FR-3, FR-4, FR-7
-  - [ ] **P1.T2.1: POST submit with plausibility caps + keep-last-valid**
-  - [ ] **P1.T2.2: GET ranked lists per category (top-100, deterministic tie order)**
-
-<!--
-The primary appends after acceptance:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 34a26385
 **Evidence:** conductor/tracks/20261027-global-leaderboards/verification/phase-1.md
--->
+
+- [x] **P1.T1: Leaderboard schema & migration** — covers: FR-2
+  - [x] **P1.T1.1: Per-trainer-best table** (trainer id, category, value, name, updatedAt)
+  - [x] **P1.T1.2: Ledger-runner migration 0002**
+- [x] **P1.T2: Submit + ranked-list routes** — covers: FR-1, FR-3, FR-4, FR-7
+  - [x] **P1.T2.1: POST submit with plausibility caps + keep-last-valid**
+  - [x] **P1.T2.2: GET ranked lists per category (top-100, deterministic tie order)**
 
 ## Phase 2: Client submit path
 
