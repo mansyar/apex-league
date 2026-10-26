@@ -38,6 +38,27 @@ export interface SaveRecord {
   savedAt: number
 }
 
+/** A leaderboard board, mirrored from the server's category union. */
+export type ScoreCategory = "cups" | "ladder" | "ap" | "collection"
+
+/** One board entry as the client submits it. */
+export interface ScoreSubmission {
+  category: ScoreCategory
+  value: number
+  name: string
+}
+
+/** What the server answers a submit with: whether a best fell, and the entry. */
+export interface SubmitReceipt {
+  updated: boolean
+  entry: {
+    category: ScoreCategory
+    value: number
+    name: string
+    updatedAt: number
+  }
+}
+
 export interface TrainerRecord {
   id: string
   name: string
@@ -63,6 +84,11 @@ export interface CloudApi {
     payload: string,
     savedAt: number,
   ): Promise<ApiResult<PushReceipt>>
+  submitScore(
+    id: string,
+    passphrase: string,
+    submission: ScoreSubmission,
+  ): Promise<ApiResult<SubmitReceipt>>
 }
 
 /** The default deadline: a request that hangs is a request that failed. */
@@ -149,6 +175,15 @@ export function createCloudApi(opts: {
       call(
         `${trainerPath(id)}/save`,
         json("PUT", { passphrase, payload, savedAt }),
+      ),
+
+    // A score submit authenticates exactly like a save push (the passphrase
+    // rides the body, never the URL) and answers with the server's receipt.
+    // A 4xx/5xx is a value, never a throw — the caller stays quiet.
+    submitScore: (id, passphrase, submission) =>
+      call(
+        `${trainerPath(id)}/scores`,
+        json("POST", { passphrase, ...submission }),
       ),
   }
 }

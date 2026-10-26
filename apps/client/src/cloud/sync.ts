@@ -28,6 +28,7 @@ import {
   writeCredentials,
 } from "./credentials"
 import { createPushQueue, type PushQueue } from "./push-queue"
+import { createScoreSubmitter } from "./scores"
 
 /** What the quiet status line says. Information, never an alarm (FR-8). */
 export type CloudStatus =
@@ -152,6 +153,10 @@ export function createCloudSync(opts: {
   }
 
   async function pushNow(payload: string): Promise<void> {
+    // The leaderboard submit rides next to the save push: same trigger,
+    // fire-and-forget, and quiet by construction — it never throws and never
+    // touches the status below, so a failed submit cannot move the save.
+    scores.submitIfChanged(payload)
     const savedAt = savedAtOf(payload)
     if (credentials === null || savedAt === null) return
     const result = await api.push(
@@ -181,6 +186,12 @@ export function createCloudSync(opts: {
     cancel,
     debounceMs: opts.debounceMs,
     capMs: opts.capMs,
+  })
+
+  const scores = createScoreSubmitter({
+    api,
+    storage,
+    credentials: () => credentials,
   })
 
   /** Upload this device's ranch as the trainer's first cloud save (FR-7). */
