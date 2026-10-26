@@ -2,7 +2,7 @@
   "id": "20261026-backend-foundation",
   "title": "ElysiaJS Backend Foundation",
   "type": "feature",
-  "status": "in_progress",
+  "status": "complete",
   "priority": "high",
   "depends_on": [],
   "created_at": "2026-10-26T08:52:36Z",
@@ -27,6 +27,6 @@
   "reverted_at": null,
   "revert_commit": null,
   "revert_pr_url": null,
-  "archived_at": null,
+  "archived_at": "2026-10-27T00:00:00Z",
   "archive_path": null
 }
