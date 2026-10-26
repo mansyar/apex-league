@@ -14,7 +14,7 @@
 - **Covers:** FR-4, NFR-7, AC-4
 - **Touches:** `apps/client/vite.config.ts`, `apps/client/vite.config.test.ts`, `.env.example`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Env-driven allowlist** — covers: FR-4
   - [ ] **P1.T1.1: Failing source-shape test - the committed config names no literal hostname, and setting the documented variable yields the expected `allowedHosts` value**
