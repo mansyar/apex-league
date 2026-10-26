@@ -2,6 +2,7 @@ import type { Database } from "bun:sqlite"
 import { Elysia } from "elysia"
 import { identityRoutes } from "./identity/routes"
 import { schemaVersion } from "./migrate"
+import { saveRoutes } from "./saves/routes"
 
 export type AppOptions = {
   db: Database
@@ -17,8 +18,11 @@ export type AppOptions = {
  * up and which migration the database is on.
  */
 export function createApp({ db }: AppOptions) {
-  return new Elysia().use(identityRoutes({ db })).get("/health", () => ({
-    status: "ok",
-    schemaVersion: schemaVersion(db),
-  }))
+  return new Elysia()
+    .use(identityRoutes({ db }))
+    .use(saveRoutes({ db }))
+    .get("/health", () => ({
+      status: "ok",
+      schemaVersion: schemaVersion(db),
+    }))
 }
