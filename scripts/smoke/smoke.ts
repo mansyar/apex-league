@@ -44,6 +44,33 @@ export const ASSET_EXTENSIONS = [
 /** The smallest canvas the ranch scene can plausibly draw into. */
 const MIN_CANVAS = { width: 300, height: 200 }
 
+/**
+ * Browser noise that says nothing about this build.
+ *
+ * The smoke check runs headless on a CI runner with no GPU, so Chromium's
+ * software GL backend logs driver-level performance chatter through the page
+ * console — "GPU stall due to ReadPixels", "Automatic fallback to software
+ * WebGL". These are not errors, they do not come from the app, and they change
+ * with the runner image rather than with our code: the same build on a machine
+ * with a real GPU emits none of them, which is why this check passed locally
+ * and failed in CI on its first real run.
+ *
+ * A warning still fails the run by default, because that is what catches a
+ * genuine deprecation or a dropped preload. Only messages matching this list
+ * are forgiven, and every entry has to name *the browser*, never the app — a
+ * warning we would want to see must not be able to match here.
+ */
+const ENVIRONMENT_NOISE = [
+  /GL Driver Message/,
+  /Automatic fallback to software WebGL/,
+  /GroupMarkerNotSet/,
+]
+
+/** True when a console line came from the browser/runner, not from the build. */
+export function isEnvironmentNoise(line: string): boolean {
+  return ENVIRONMENT_NOISE.some((pattern) => pattern.test(line))
+}
+
 export interface Probe {
   bootPlate: boolean
   starterOverlay: boolean
@@ -57,6 +84,10 @@ export interface ConsoleReport {
   total: number
   errors: number
   warnings: number
+  /** Warnings that are not environment noise — these are the ones that fail. */
+  appWarnings: number
+  /** Warnings forgiven as browser/runner noise. Reported, never fatal. */
+  noiseWarnings: number
   lines: string[]
 }
 
@@ -117,14 +148,28 @@ export function parseConsoleReport(text: string): ConsoleReport {
   const header =
     /Total messages: (\d+) \(Errors: (\d+), Warnings: (\d+)\)/.exec(body)
   if (!header) fail(`could not read the console report:\n${body}`)
+  const total = Number(header[1])
+  const errors = Number(header[2])
+  const warnings = Number(header[3])
+  const lines = body
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("["))
+  // The header count stays the source of truth and only noise we actually read
+  // is subtracted from it. If the CLI ever truncated its line list we would
+  // under-forgive and fail loudly, rather than waving through a warning that
+  // was never inspected. Errors are never filtered: a driver message that
+  // arrives as an error is worth seeing.
+  const noiseWarnings = lines.filter(
+    (line) => line.startsWith("[WARNING]") && isEnvironmentNoise(line),
+  ).length
   return {
-    total: Number(header[1]),
-    errors: Number(header[2]),
-    warnings: Number(header[3]),
-    lines: body
-      .split("\n")
-      .map((line) => line.trim())
-      .filter((line) => line.startsWith("[")),
+    total,
+    errors,
+    warnings,
+    appWarnings: Math.max(0, warnings - noiseWarnings),
+    noiseWarnings,
+    lines,
   }
 }
 
@@ -171,7 +216,9 @@ export function violations(result: RunResult): string[] {
     found.push("no HUD element rendered inside .hud-stack")
   }
   if (report.errors > 0) found.push(`${report.errors} console error(s)`)
-  if (report.warnings > 0) found.push(`${report.warnings} console warning(s)`)
+  if (report.appWarnings > 0) {
+    found.push(`${report.appWarnings} console warning(s)`)
+  }
   // An empty request log is never a pass: every load asks for the document at
   // least, so nothing matches only when the CLI printed a shape `parseRequests`
   // cannot read. Reporting it as a violation mirrors `parseConsoleReport`, which
@@ -416,13 +463,20 @@ export async function main(argv: string[]): Promise<number> {
   )
   log(
     `console messages ${result.console.total} · errors ` +
-      `${result.console.errors} · warnings ${result.console.warnings}`,
+      `${result.console.errors} · warnings ${result.console.warnings}` +
+      (result.console.noiseWarnings > 0
+        ? ` (${result.console.noiseWarnings} environment noise, ignored)`
+        : ""),
   )
   log(
     `requests ${result.requests.length} · failed ${failed.length} · assets ` +
       `${[...kinds].map(([ext, n]) => `${ext}=${n}`).join(" ")}`,
   )
-  for (const line of result.console.lines) log(`console ${line}`)
+  // Noise is printed too, labelled, so a maintainer reading the CI log can see
+  // exactly what was forgiven instead of taking the count on trust.
+  for (const line of result.console.lines) {
+    log(`console ${line}${isEnvironmentNoise(line) ? " [noise]" : ""}`)
+  }
   for (const line of found) log(`violation ${line}`)
   log(`RESULT ${found.length === 0 ? "pass" : "fail"}`)
   console.log(
@@ -435,6 +489,8 @@ export async function main(argv: string[]): Promise<number> {
         total: result.console.total,
         errors: result.console.errors,
         warnings: result.console.warnings,
+        appWarnings: result.console.appWarnings,
+        noiseWarnings: result.console.noiseWarnings,
       },
       requests: result.requests.length,
       failedRequests: failed.length,

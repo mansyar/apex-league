@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import {
   isAssetRequest,
+  isEnvironmentNoise,
   main,
   parseConsoleReport,
   parseRequests,
@@ -20,7 +21,14 @@ const HEALTHY: RunResult = {
     hudNodes: 42,
     title: "Apex League",
   },
-  console: { total: 0, errors: 0, warnings: 0, lines: [] },
+  console: {
+    total: 0,
+    errors: 0,
+    warnings: 0,
+    appWarnings: 0,
+    noiseWarnings: 0,
+    lines: [],
+  },
   requests: [
     { url: "https://apex-league.pages.dev/", status: "200" },
     {
@@ -42,6 +50,15 @@ const withResult = (patch: Partial<RunResult>): RunResult => ({
   ...HEALTHY,
   ...patch,
 })
+
+/**
+ * Verbatim from CI's first real smoke run. Chromium's software GL backend on a
+ * GPU-less runner logs this through the page console; the same build on a
+ * machine with a GPU emits nothing. It names the driver, not the build, so it
+ * has to be forgiven — and it is the fixture that keeps that true.
+ */
+const DRIVER_NOISE =
+  "[.WebGL-0x234007a2a00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels @ https://apex-league.pages.dev/:0"
 
 describe("the run is clean only when everything resolved", () => {
   test("a rendered ranch with no failures passes", () => {
@@ -104,7 +121,14 @@ describe("the run is clean only when everything resolved", () => {
   test("one console error fails the run", () => {
     const found = violations(
       withResult({
-        console: { total: 1, errors: 1, warnings: 0, lines: ["[ERROR] boom"] },
+        console: {
+          total: 1,
+          errors: 1,
+          warnings: 0,
+          appWarnings: 0,
+          noiseWarnings: 0,
+          lines: ["[ERROR] boom"],
+        },
       }),
     )
     expect(found).toEqual(["1 console error(s)"])
@@ -113,7 +137,54 @@ describe("the run is clean only when everything resolved", () => {
   test("one console warning fails the run too", () => {
     const found = violations(
       withResult({
-        console: { total: 1, errors: 0, warnings: 1, lines: ["[WARNING] hm"] },
+        console: {
+          total: 1,
+          errors: 0,
+          warnings: 1,
+          appWarnings: 1,
+          noiseWarnings: 0,
+          lines: ["[WARNING] hm"],
+        },
+      }),
+    )
+    expect(found).toEqual(["1 console warning(s)"])
+  })
+
+  test("browser driver chatter alone does not fail the run", () => {
+    // The first CI run of this check failed on exactly four of these while
+    // every real signal was clean: 0 errors, 4 requests and 0 failed, canvas
+    // 1280x720, 130 HUD nodes. The runner has no GPU, so the browser narrated
+    // its own driver; that is not a defect in the build, and a check that
+    // cannot tell the difference is one that fails on every machine but the
+    // author's.
+    const found = violations(
+      withResult({
+        console: {
+          total: 1,
+          errors: 0,
+          warnings: 1,
+          appWarnings: 0,
+          noiseWarnings: 1,
+          lines: [`[WARNING] ${DRIVER_NOISE}`],
+        },
+      }),
+    )
+    expect(found).toEqual([])
+  })
+
+  test("a real warning beside the noise still fails", () => {
+    // The forgiveness is per line, not a switch: one genuine warning next to
+    // any amount of driver chatter is still a red run.
+    const found = violations(
+      withResult({
+        console: {
+          total: 2,
+          errors: 0,
+          warnings: 2,
+          appWarnings: 1,
+          noiseWarnings: 1,
+          lines: [`[WARNING] ${DRIVER_NOISE}`, "[WARNING] hm @ y.js:1"],
+        },
       }),
     )
     expect(found).toEqual(["1 console warning(s)"])
@@ -167,8 +238,32 @@ describe("the CLI reports are read as printed", () => {
       total: 2,
       errors: 1,
       warnings: 1,
+      appWarnings: 1,
+      noiseWarnings: 0,
       lines: ["[ERROR] bad @ x.js:0", "[WARNING] hm @ y.js:1"],
     })
+  })
+
+  test("noise is counted apart from the warnings that fail", () => {
+    const report = parseConsoleReport(
+      `{"result":"Total messages: 2 (Errors: 0, Warnings: 2)\\n\\n[WARNING] ${DRIVER_NOISE}\\n[WARNING] hm @ y.js:1"}`,
+    )
+    // The header total is preserved for the report, the noise is named, and
+    // the remainder is what `violations` acts on.
+    expect(report.warnings).toBe(2)
+    expect(report.noiseWarnings).toBe(1)
+    expect(report.appWarnings).toBe(1)
+  })
+
+  test("noise is the browser's, never the app's", () => {
+    // The property that makes the forgiveness safe: a warning worth seeing
+    // cannot match the noise list. If this ever returns true for app text, the
+    // check has started lying about its own results.
+    expect(isEnvironmentNoise(DRIVER_NOISE)).toBe(true)
+    expect(isEnvironmentNoise("[WARNING] hm @ y.js:1")).toBe(false)
+    expect(
+      isEnvironmentNoise("[ERROR] Uncaught TypeError: x is undefined"),
+    ).toBe(false)
   })
 
   test("an empty console", () => {
