@@ -32,16 +32,24 @@
 - **Covers:** FR-1, FR-2, FR-8, NFR-2, NFR-3, NFR-4, NFR-6, AC-1, AC-2, AC-8
 - **Touches:** `.github/workflows/deploy.yml`, `package.json`, `bun.lock`, `wrangler.jsonc`, `.gitignore`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Workflow structure and gating** — covers: FR-1, FR-2, NFR-4, NFR-6
-  - [ ] **P2.T1.1: Author `deploy.yml` - push to `main`, `workflow_dispatch`, concurrency cancel-in-progress, install, `bun run verify`, build, then `wrangler pages deploy`**
-  - [ ] **P2.T1.2: Confirm the deploy step cannot run when verification fails, and that `ci.yml` is untouched**
-- [ ] **P2.T2: Wrangler dependency and Pages config** — covers: FR-1, NFR-2
-  - [ ] **P2.T2.1: Add a pinned `wrangler` dev dependency and a `deploy` script; confirm it stays out of the client bundle**
-  - [ ] **P2.T2.2: Add `wrangler.jsonc` naming the Pages project and `apps/client/dist` as the upload directory; gitignore `.wrangler/`**
-- [ ] **P2.T3: Failure and secret hygiene** — covers: FR-8, NFR-3
-  - [ ] **P2.T3.1: Fail loudly and early when the secrets are absent, skip the deploy on forks, and assert no step echoes a secret**
+- [x] **P2.T1: Workflow structure and gating** — covers: FR-1, FR-2, NFR-4, NFR-6
+  - [x] **P2.T1.1: Author `deploy.yml` - push to `main`, `workflow_dispatch`, concurrency cancel-in-progress, install, `bun run verify`, build, then `wrangler pages deploy`**
+  - [x] **P2.T1.2: Confirm the deploy step cannot run when verification fails, and that `ci.yml` is untouched**
+- [x] **P2.T2: Wrangler dependency and Pages config** — covers: FR-1, NFR-2
+  - [x] **P2.T2.1: Add a pinned `wrangler` dev dependency and a `deploy` script; confirm it stays out of the client bundle**
+  - [x] **P2.T2.2: Add `wrangler.jsonc` naming the Pages project and `apps/client/dist` as the upload directory; gitignore `.wrangler/`**
+- [x] **P2.T3: Failure and secret hygiene** — covers: FR-8, NFR-3
+  - [x] **P2.T3.1: Fail loudly and early when the secrets are absent, skip the deploy on forks, and assert no step echoes a secret**
+
+**Result:** verified
+**Checkpoint:** `bb9a3c89`
+**Evidence:** `conductor/tracks/20261026-release-funnel/verification/phase-2.md`
+
+**Result:** verified
+**Checkpoint:** `bb9a3c89`r
+**Evidence:** `conductor/tracks/20261026-release-funnel/verification/phase-2.md`
 
 ## Phase 3: Live smoke check
 
