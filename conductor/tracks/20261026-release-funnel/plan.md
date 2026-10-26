@@ -80,7 +80,7 @@
 - **Covers:** FR-6, FR-7, FR-9, AC-6, AC-7
 - **Touches:** `README.md`, `conductor/tech-stack.md`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P4.T1: README** — covers: FR-6, FR-9
   - [ ] **P4.T1.1: Correct the release checklist save-version references and make every item match actual behaviour**
