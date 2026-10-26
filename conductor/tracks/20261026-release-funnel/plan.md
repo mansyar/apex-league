@@ -142,8 +142,12 @@ recorded as uncovered rather than claimed. Gates: `bun test --check
 - **Covers:** L1, L2
 - **Touches:** `scripts/deploy/workflow.test.ts`, `conductor/workflow.md`, `conductor/tracks/20261026-release-funnel/verification/**`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
-- [ ] **R2.T1: Three assertions pin what their comments claim** - covers: L1
-  - [ ] **R2.T1.1: Assert the real `wrangler.jsonc` invocation (`sed -n … wrangler.jsonc` or the absence of a hardcoded `project="apex-league"`), widen the first-wrangler-call regex to `(bunx wrangler|bun run deploy)`, and assert `continue-on-error` is absent**, each written red first against the current workflow
-- [ ] **R2.T2: The process doc stops contradicting itself** - covers: L2
-  - [ ] **R2.T2.1: Attribute preview deployments to a manual run on a non-main branch (a push to any other branch runs nothing), and rewrite the Emergency Procedures opening and hotfix sentence for a world with a live static deployment** (primary-executed; the phase policy denies `conductor/**`)
+- **Status:** verified
+- [x] **R2.T1: Three assertions pin what their comments claim** - covers: L1
+  - [x] **R2.T1.1: Assert the real `wrangler.jsonc` invocation (`sed -n … wrangler.jsonc` or the absence of a hardcoded `project="apex-league"`), widen the first-wrangler-call regex to `(bunx wrangler|bun run deploy)`, and assert `continue-on-error` is absent**, each written red first against the current workflow
+- [x] **R2.T2: The process doc stops contradicting itself** - covers: L2
+  - [x] **R2.T2.1: Attribute preview deployments to a manual run on a non-main branch (a push to any other branch runs nothing), and rewrite the Emergency Procedures opening and hotfix sentence for a world with a live static deployment** (primary-executed; the phase policy denies `conductor/**`)
+
+**Result:** verified — the three narrowed assertions now name the real `sed` extraction and reject a hardcoded project name, the first-wrangler pattern is `run:`-aware so it sees the inline `bun run deploy` upload, `continue-on-error` is asserted absent, and the smoke step is pinned present below the upload (L1). The trigger clause and the Emergency Procedures were corrected (L2, primary). Every strengthening was proven red against mutated workflow sources with the old assertions shown green on the same sources. `deploy.yml` was not changed — these are drift guards, not defect-fixes, and the phase says so.
+**Checkpoint:** `e5879832` (test) and `54d8b916` (`workflow.md`)
+**Evidence:** `conductor/tracks/20261026-release-funnel/verification/phase-R2.md`
