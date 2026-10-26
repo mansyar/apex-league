@@ -74,7 +74,7 @@
 - **Covers:** FR-3, FR-6, AC-3, AC-6
 - **Touches:** `apps/server/src/saves/**`, `apps/server/src/app.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Push and pull** — covers: FR-3, AC-3
   - [ ] **P3.T1.1: Failing tests: a newer push replaces the stored save; an older push leaves it untouched and reports which one won**
