@@ -14,7 +14,7 @@
 - **Covers:** FR-1, FR-3, FR-4, NFR-1, NFR-5 — AC-1, AC-3, AC-4
 - **Touches:** `packages/sim/src/species.ts`, `packages/sim/src/breeding/**` (or current breeding flow files), `packages/sim/src/battle/**`, co-located `*.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Define the three SpeciesDefs + kits** — covers: FR-1, FR-3
   - [ ] **P1.T1.1: Voltfox / Galeheron / Shalemole defs (element, stats, six-move kits from existing vocabulary), excluded from starter/reward paths**
