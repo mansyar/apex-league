@@ -194,7 +194,10 @@ Phased delivery plan (each phase is independently playable):
   stable-backed collection. Still open: the roster's climb toward 20-40
   species.)*
 - ElysiaJS backend: cloud save sync, trainer identity (anonymous ID + name),
-  global leaderboards, ghost data.
+  global leaderboards, ghost data. *(Landed 2026-10-26: anonymous trainer
+  identity and cloud save sync ship as an ElysiaJS container on Coolify —
+  boot pull, debounced push, conflict loser preserved. Still open:
+  leaderboards and ghost data.)*
 
 ### Phase 4 — Post-MVP
 - Async ghost PvP; live PvP (battle code designed for it from Phase 1).
