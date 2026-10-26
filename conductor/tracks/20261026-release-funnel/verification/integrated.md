@@ -3,7 +3,8 @@
 - Track: `20261026-release-funnel`
 - Branch: `chore/20261026-release-funnel`
 - Base: `main` @ `02ff20c9`
-- Head at verification: `f41022fa`
+- Head at verification: `8ca3959d` (all code and documentation for the track;
+  the Conductor state commit that follows it touches only `conductor/**`)
 - Date: 2026-10-26
 - Result: **verified** (with the live-deploy halves of AC-1, AC-3 and AC-8
   credential-pending — see "Deferred by design" below)
@@ -82,26 +83,24 @@ than claimed. The first push to `main` after the secrets are added will:
 
 ## Known gaps and residuals
 
-1. **Phase 2's workflow/config contract harnesses are gitignored.** They live
-   under `.conductor/evidence/` and provide verification for that phase but no
-   regression protection: a future edit that moved `Deploy` above `Verify`
-   would be caught by nothing committed. Phase 3's `scripts/smoke/smoke.test.ts`
-   is committed and does not have this problem, but it covers the smoke script,
-   not the workflow. A committed workflow-contract suite would need its own
-   `Touches`; it is out of this track's scope and is left to the reviewer.
+1. **Phase 2's workflow/config contract harnesses remain gitignored.** They live
+   under `.conductor/evidence/` and provided verification for that phase, but no
+   regression protection — which is exactly why Phase R1 committed a replacement:
+   `scripts/deploy/workflow.test.ts` (F4) now asserts step order, the deploy
+   step's `if: success()`, the absence of `${{ secrets.* }}` inside any `run:`
+   body, `--frozen-lockfile`, the fork gate, `pages_build_output_dir`, and Node
+   provisioning ahead of the first `bunx wrangler` call. The old harnesses are
+   still on disk, gitignored and unreferenced; they are dead weight rather than a
+   gap.
 2. **`scripts/` is not type-checked.** `bun run check` covers the three
    workspaces (voxel, sim, client) and `scripts/` sits outside every
    `tsconfig` `include`. Biome *does* lint it (642 → 646 files). Adding
    `scripts/` to a tsconfig was outside the phase's `Touches` and was
    deliberately not done.
-3. **`conductor/product.md` is stale** — its Phase 3 section still describes the
-   Storm Gift as the only reward line. It is Conductor state updated at the
-   docs-sync gate with explicit user approval; the exact replacement wording is
-   prepared in `verification/phase-4.md` and applied at that gate.
-4. **The `bun` version differs between local and CI.** Local is 1.4.3 (canary);
+3. **The `bun` version differs between local and CI.** Local is 1.4.3 (canary);
    CI pins 1.4.2. Pre-existing, not introduced here, and the deploy workflow
    pins the same 1.4.2 as `ci.yml` and `nightly.yml`.
-5. **One pre-existing Biome warning** at `apps/client/src/ranch.css:1429`
+4. **One pre-existing Biome warning** at `apps/client/src/ranch.css:1429`
    (`noDescendingSpecificity`). Untouched by this track; warnings do not fail
    the gate.
 

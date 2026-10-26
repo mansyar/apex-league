@@ -97,24 +97,40 @@
 - **Covers:** F1, F2, F3, F4, F5, F6, F7, F8
 - **Touches:** `scripts/smoke/smoke.ts`, `scripts/smoke/smoke.test.ts`, `.github/workflows/deploy.yml`, `scripts/deploy/**`, `conductor/workflow.md`, `conductor/tracks/20261026-release-funnel/verification/**`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **R1.T1: The smoke check fails loud on an empty request log** — covers: F1
-  - [ ] **R1.T1.1: Write a failing test asserting that zero observed requests is a violation, not a silent pass** — mirrors the console parser's existing fail-loud rule at `smoke.ts:117-119`
-  - [ ] **R1.T1.2: Make `violations()` reject an empty request log** so the deploy-time smoke step cannot print `requests 0 · failed 0` and exit 0
-- [ ] **R1.T2: The deploy job provisions Node before any wrangler call** — covers: F2
-  - [ ] **R1.T2.1: Add `actions/setup-node@v4` with `node-version: 22` ahead of the first wrangler invocation**, satisfying wrangler's own `MIN_NODE_VERSION` under either runtime choice
-  - [ ] **R1.T2.2: Assert in the committed workflow test that Node is provisioned before the first `bunx wrangler` line**
-- [ ] **R1.T3: `conductor/workflow.md` describes the deployment that now exists** — covers: F3
-  - [ ] **R1.T3.1: Rewrite the "Release & Deployment" section** to state the push-to-`main` trigger plus `workflow_dispatch`, the `bun run verify` gate, `wrangler.jsonc` as the single source of the project name and upload dir, the two owner-created secrets, the post-upload smoke check, and the still-true "no deployment has run yet"
-- [ ] **R1.T4: The deploy workflow's contract is protected by a committed test** — covers: F4
-  - [ ] **R1.T4.1: Write a committed source-shape test** asserting step order (`Verify` before `Deploy`), the deploy step's `if: success()`, no `${{ secrets.* }}` inside any `run:` body, `bun install --frozen-lockfile` present, `pages_build_output_dir` = `apps/client/dist`, and the fork gate — following the two existing precedents
-- [ ] **R1.T5: The smoke CLI rejects a malformed `--url` instead of falling through** — covers: F5
-  - [ ] **R1.T5.1: Fail with a clear message when `--url` is present without a value**, so a mistyped flag cannot silently smoke production
-- [ ] **R1.T6: The smoke check's failure output keeps its diagnosis** — covers: F6
-  - [ ] **R1.T6.1: Preserve the original reason when the catch path's own gathering fails, and convert pre-try failures into the same JSON envelope** instead of an uncaught stack trace
+- [x] **R1.T1: The smoke check fails loud on an empty request log** — covers: F1
+  - [x] **R1.T1.1: Write a failing test asserting that zero observed requests is a violation, not a silent pass** — mirrors the console parser's existing fail-loud rule at `smoke.ts:117-119`
+  - [x] **R1.T1.2: Make `violations()` reject an empty request log** so the deploy-time smoke step cannot print `requests 0 · failed 0` and exit 0
+- [x] **R1.T2: The deploy job provisions Node before any wrangler call** — covers: F2
+  - [x] **R1.T2.1: Add `actions/setup-node@v4` with `node-version: 22` ahead of the first wrangler invocation**, satisfying wrangler's own `MIN_NODE_VERSION` under either runtime choice
+  - [x] **R1.T2.2: Assert in the committed workflow test that Node is provisioned before the first `bunx wrangler` line**
+- [x] **R1.T3: `conductor/workflow.md` describes the deployment that now exists** — covers: F3
+  - [x] **R1.T3.1: Rewrite the "Release & Deployment" section** to state the push-to-`main` trigger plus `workflow_dispatch`, the `bun run verify` gate, `wrangler.jsonc` as the single source of the project name and upload dir, the two owner-created secrets, the post-upload smoke check, and the still-true "no deployment has run yet"
+- [x] **R1.T4: The deploy workflow's contract is protected by a committed test** — covers: F4
+  - [x] **R1.T4.1: Write a committed source-shape test** asserting step order (`Verify` before `Deploy`), the deploy step's `if: success()`, no `${{ secrets.* }}` inside any `run:` body, `bun install --frozen-lockfile` present, `pages_build_output_dir` = `apps/client/dist`, and the fork gate — following the two existing precedents
+- [x] **R1.T5: The smoke CLI rejects a malformed `--url` instead of falling through** — covers: F5
+  - [x] **R1.T5.1: Fail with a clear message when `--url` is present without a value**, so a mistyped flag cannot silently smoke production
+- [x] **R1.T6: The smoke check's failure output keeps its diagnosis** — covers: F6
+  - [x] **R1.T6.1: Preserve the original reason when the catch path's own gathering fails, and convert pre-try failures into the same JSON envelope** instead of an uncaught stack trace
 - [x] **R1.T7: The plan records one checkpoint per phase** — covers: F7
   - [x] **R1.T7.1: Remove the duplicated Phase 2 Result block and its stray `r`** so `plan.md` carries a single, well-formed checkpoint — done by the primary as part of appending this phase; the block had been written twice and the second copy carried a trailing `r` on the checkpoint sha
-- [ ] **R1.T8: The integrated verification record names the current head and no resolved gap** — covers: F8
-  - [ ] **R1.T8.1: Update the recorded head and drop the `conductor/product.md` known gap** that the docs-sync commit already resolved
+- [x] **R1.T8: The integrated verification record names the current head and no resolved gap** — covers: F8
+  - [x] **R1.T8.1: Drop the `conductor/product.md` known gap** that the docs-sync commit already resolved, and correct the first known-gap entry, which F4 falsifies — `scripts/deploy/workflow.test.ts` is now the committed workflow-contract guard. The head line is set by the primary at acceptance.
+
+**Result:** verified — all eight round-1 findings resolved at their root cause.
+F1 fails an empty request log instead of passing on it; F2 provisions Node 22
+before any wrangler call, with the version echo moved to a position that cannot
+reach the network; F3 rewrote `workflow.md`'s Release & Deployment section
+(primary); F4 added `scripts/deploy/workflow.test.ts`, nine committed
+assertions, so the workflow contract outlives the phase; F5 rejects a bare
+`--url`; F6 keeps the failure diagnosis and routes pre-try failures through the
+JSON envelope; F7 collapsed the duplicated Phase 2 Result block and its stray
+`r`; F8 dropped the resolved known gap and corrected the entry F4 falsified.
+F6(a)'s catch-path guard is reachable only through a live browser and is
+recorded as uncovered rather than claimed. Gates: `bun test --check
+--parallel=4 --timeout 120000` exit 0 (2841 pass / 1 skip / 0 fail, 2842 tests
+/ 242 files), `bun run verify` exit 0, `bun run build` exit 0.
+**Checkpoint:** `4e740b72` (code) and `8ca3959d` (`workflow.md`)
+**Evidence:** `conductor/tracks/20261026-release-funnel/verification/phase-R1.md`
 
