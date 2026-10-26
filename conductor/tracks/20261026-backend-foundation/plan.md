@@ -156,17 +156,17 @@
 **Checkpoint:** `9d024444` (code) and the tech-stack commit that follows it
 **Evidence:** conductor/tracks/20261026-backend-foundation/verification/phase-5.md
 
-<!--
-Review fixes are appended by `conductor-review` as:
-
 ## Phase R1: Review Fixes
 
-- **Goal:** Resolve review findings ...
+- **Goal:** Resolve review finding F1 (push receipt winner contract).
 - **Depends on:** Phase 5
-- **Covers:** review findings
-- **Touches:** ...
-- **Verification:** ...
+- **Covers:** F1
+- **Touches:** `apps/client/src/cloud/api.ts`, `apps/client/src/cloud/sync.ts`, `apps/client/src/cloud/api.test.ts`, `apps/client/src/cloud/sync.test.ts`, `apps/client/src/cloud/cloud-save.test.ts`
+- **Verification:** `bun test --check --parallel=4 --timeout 120000`
 - **Status:** pending
 
-- [ ] **R1.T1: Resolve <finding ID>** — covers: <finding ID>
--->
+- [ ] **R1.T1: Resolve F1** — covers: F1
+  - [ ] **R1.T1.1: Failing tests proving the wire shape (`winner: "incoming" | "stored"`) parses and the synced status carries the numeric savedAt**
+  - [ ] **R1.T1.2: Fix `PushReceipt` and both `setStatus` call sites; update fakes to the string union**
+
+<!--
