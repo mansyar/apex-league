@@ -13,10 +13,10 @@ import { buildFalcon, FALCON_GRID, falconTemplate } from "./falcon"
 import { buildFox, FOX_GRID, foxTemplate } from "./fox"
 import { buildFrond, FROND_GRID, frondTemplate } from "./frond"
 import { buildHeron, HERON_GRID, heronTemplate } from "./heron"
+import { buildMole, MOLE_GRID, moleTemplate } from "./mole"
 import { sampleDna } from "./sample"
 import type { Dna, Template } from "./schema"
 import { buildSmolder, SMOLDER_GRID, smolderTemplate } from "./smolder"
-import { buildMole, MOLE_GRID, moleTemplate } from "./mole"
 import { parseStage, type Stage } from "./stage"
 import {
   buildStormHound,

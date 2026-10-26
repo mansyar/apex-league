@@ -6,6 +6,12 @@
  */
 
 import { describe, expect, test } from "bun:test"
+import {
+  discoverySpeciesForElements,
+  discoverySpeciesForParents,
+  graduateWithPair,
+  speciesOptions,
+} from "../breeding"
 import type { Element } from "../creature"
 import { GRADUATION_DAY } from "../legacy"
 import type { RetiredRecord } from "../legacy/lineage"
@@ -18,12 +24,6 @@ import {
 } from "../save/storage"
 import { getSpecies } from "../species"
 import { chooseStarter, createInitialState, type GameState } from "../state"
-import {
-  discoverySpeciesForElements,
-  discoverySpeciesForParents,
-  graduateWithPair,
-  speciesOptions,
-} from "../breeding"
 
 /** A retired Hall record of the given species and generation. */
 function record(speciesId: string, generation: number): RetiredRecord {

@@ -62,11 +62,7 @@ const SIBLINGS: Readonly<Record<string, string>> = Object.freeze({
  * (hp, atk, def, spd) and field defaults, minus the availability gate the
  * probe must bypass by contract (the nursery egg is the only way in).
  */
-function speciesAt(
-  speciesId: string,
-  seed: number,
-  trained: number,
-): Creature {
+function speciesAt(speciesId: string, seed: number, trained: number): Creature {
   const def = getSpecies(speciesId)
   if (!def) throw new Error(`unknown species ${speciesId}`)
   const rng = makeRng(seed)
@@ -124,7 +120,7 @@ function sustainedScore(speciesId: string): number {
       type.den,
       true,
     )
-    total += ((damage * move.accuracy) / 100 / (1 + move.cooldown))
+    total += (damage * move.accuracy) / 100 / (1 + move.cooldown)
   }
   return total
 }
@@ -206,9 +202,19 @@ describe("discovery kit sustained band", () => {
       for (const trained of [0, 6]) {
         for (const creatureSeed of CREATURE_SEEDS) {
           const lineSide = (name: string, id: string) =>
-            probeSide(speciesAt(line.id, creatureSeed, trained), name, id, tactic)
+            probeSide(
+              speciesAt(line.id, creatureSeed, trained),
+              name,
+              id,
+              tactic,
+            )
           const siblingSide = (name: string, id: string) =>
-            probeSide(speciesAt(sibling, creatureSeed, trained), name, id, tactic)
+            probeSide(
+              speciesAt(sibling, creatureSeed, trained),
+              name,
+              id,
+              tactic,
+            )
           for (const seed of BATTLE_SEEDS) {
             for (const swapped of [false, true]) {
               const first = swapped

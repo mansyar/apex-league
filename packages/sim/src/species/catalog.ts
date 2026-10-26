@@ -7,7 +7,7 @@
  * Pure data and pure functions only — no DOM, no rendering, no I/O.
  */
 
-import { tierAtLeast, type LadderTier } from "../ladder"
+import { type LadderTier, tierAtLeast } from "../ladder"
 import { DISCOVERY_SPECIES } from "./discovery"
 import { REWARD_SPECIES } from "./rewards"
 import { STARTER_SPECIES } from "./starters"

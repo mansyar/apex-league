@@ -870,9 +870,7 @@ describe("breeding-discovery species records (roster_wave_3)", () => {
       expect(species.available).toBe(false)
       expect(species.rewardFromTier).toBeUndefined()
       for (const tier of ["bronze", "silver", "gold", "legend"] as const) {
-        expect(obtainableSpecies(tier).map((s) => s.id)).not.toContain(
-          line.id,
-        )
+        expect(obtainableSpecies(tier).map((s) => s.id)).not.toContain(line.id)
       }
       expect(() => createCreature(line.id, 1)).toThrow(/not yet available/i)
     })
@@ -904,7 +902,9 @@ describe("breeding-discovery species records (roster_wave_3)", () => {
       expect(falcon.statBounds.def[1]).toBeLessThan(species.statBounds.def[1])
       // The tortoise stays the bulkiest, slowest record in the game.
       const tortoise = speciesOf(TORTOISE)
-      expect(tortoise.statBounds.hp[0]).toBeGreaterThan(species.statBounds.hp[1])
+      expect(tortoise.statBounds.hp[0]).toBeGreaterThan(
+        species.statBounds.hp[1],
+      )
       expect(tortoise.statBounds.def[0]).toBeGreaterThan(
         species.statBounds.def[1],
       )

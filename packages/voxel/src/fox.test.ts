@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test"
 import { generate } from "./archetype"
+import { buildFox, FOX_GRID, foxTemplate } from "./fox"
 import { sampleDna } from "./sample"
 import { assertDnaInBounds, validateTemplate } from "./schema"
-import { buildFox, FOX_GRID, foxTemplate } from "./fox"
 import { matureProportions } from "./stage"
 import { voxelize } from "./voxelizer"
 

@@ -143,8 +143,7 @@ describe("boss registry", () => {
     // decision allows. A new overlap — or a stale entry — fails here.
     const sharedSignatures = BOSSES.flatMap((boss) => {
       // Kit is a 6-tuple at the type level; read it as a readonly list here.
-      const ownKit: readonly string[] =
-        getSpecies(boss.speciesId)?.kit ?? []
+      const ownKit: readonly string[] = getSpecies(boss.speciesId)?.kit ?? []
       return boss.loadout
         .filter(
           (move) =>

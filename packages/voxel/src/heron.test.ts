@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test"
 import { generate } from "./archetype"
+import { buildHeron, HERON_GRID, heronTemplate } from "./heron"
 import { sampleDna } from "./sample"
 import { assertDnaInBounds, validateTemplate } from "./schema"
-import { buildHeron, HERON_GRID, heronTemplate } from "./heron"
 import { matureProportions } from "./stage"
 import { voxelize } from "./voxelizer"
 

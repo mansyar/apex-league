@@ -176,7 +176,9 @@ export function buildFox(dna: Dna, stage: Stage = "baby"): FoxBuild {
       sdBox(at(0, tailEnd.y + 0.4, tailEnd.z), vec3(1.8 * bush, 2.4, 1.9)),
     )
   } else if (tailStyle === "flame") {
-    tailTipPieces.push(sdSphere(vec3(tailEnd.x, tailEnd.y + 1, tailEnd.z), 2.2 * bush))
+    tailTipPieces.push(
+      sdSphere(vec3(tailEnd.x, tailEnd.y + 1, tailEnd.z), 2.2 * bush),
+    )
   } else {
     // curl: a second knob tipped forward over the curl, closing the ring.
     tailTipPieces.push(
@@ -306,11 +308,7 @@ export function buildFox(dna: Dna, stage: Stage = "baby"): FoxBuild {
         name: sign < 0 ? "earLeft" : "earRight",
         sdf: union(
           sdSphere(base, 1.6),
-          sdCapsule(
-            base,
-            vec3(base.x, base.y + 1.6 * el, base.z - 0.4),
-            1.1,
-          ),
+          sdCapsule(base, vec3(base.x, base.y + 1.6 * el, base.z - 0.4), 1.1),
         ),
       })
     }

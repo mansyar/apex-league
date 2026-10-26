@@ -23,15 +23,15 @@
  */
 
 export {
-  AFFINITY_DRIFT_CHANCE,
-  driftSource,
-  rollAffinityDrift,
-} from "./breeding/drift"
-export {
   discoverySpeciesForElements,
   discoverySpeciesForParents,
   speciesOptions,
 } from "./breeding/discovery"
+export {
+  AFFINITY_DRIFT_CHANCE,
+  driftSource,
+  rollAffinityDrift,
+} from "./breeding/drift"
 export {
   createGiftEgg,
   type HatchGiftReason,

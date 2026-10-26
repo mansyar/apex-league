@@ -34,8 +34,8 @@ import { makeRng } from "../rng"
 import { getSpecies, type SpeciesDef } from "../species"
 import { ACTION_POINTS_PER_DAY, type GameState } from "../state"
 import { dedupeTraits, effectiveTraits, traitBonus } from "../traits"
-import { rollAffinityDrift } from "./drift"
 import { speciesOptions } from "./discovery"
+import { rollAffinityDrift } from "./drift"
 
 /** The weaker parent's weight in the dual-parent floor. */
 export const PAIR_SECONDARY_FRACTION = 0.1

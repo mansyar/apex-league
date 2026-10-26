@@ -56,19 +56,19 @@ export {
   sampleFrondDna,
 } from "./frond"
 export {
-  buildHeron,
-  HERON_GRID,
-  type HeronBuild,
-  heronTemplate,
-  sampleHeronDna,
-} from "./heron"
-export {
   type ExportInput,
   exportGlb,
   GENERATOR_VERSION,
   type GlbManifest,
   VOXEL_SIZE,
 } from "./glb"
+export {
+  buildHeron,
+  HERON_GRID,
+  type HeronBuild,
+  heronTemplate,
+  sampleHeronDna,
+} from "./heron"
 export { type MeshePart, meshGrid } from "./mesher"
 export {
   buildMole,

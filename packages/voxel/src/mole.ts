@@ -226,11 +226,7 @@ export function buildMole(dna: Dna, stage: Stage = "baby"): MoleBuild {
     [1, -1, "legBR"],
   ] as const) {
     const hip = at(sx * 4 * bg, hipY, sz * 4.2 * bl)
-    const foot = at(
-      sx * (4 + 0.9 * ll) * bg,
-      footY,
-      sz * (4.2 + 0.9 * ll) * bl,
-    )
+    const foot = at(sx * (4 + 0.9 * ll) * bg, footY, sz * (4.2 + 0.9 * ll) * bl)
     legPivots[name] = [hip.x, hip.y, hip.z]
     const front = sz > 0
     const paw =

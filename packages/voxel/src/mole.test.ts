@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test"
 import { generate } from "./archetype"
+import { buildMole, MOLE_GRID, moleTemplate } from "./mole"
 import { sampleDna } from "./sample"
 import { assertDnaInBounds, validateTemplate } from "./schema"
-import { buildMole, MOLE_GRID, moleTemplate } from "./mole"
 import { matureProportions } from "./stage"
 import { voxelize } from "./voxelizer"
 
