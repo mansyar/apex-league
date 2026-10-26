@@ -34,7 +34,7 @@
 - **Covers:** FR-1, AC-1, NFR-2
 - **Touches:** `apps/client/src/cloud/scores.*`, `apps/client/src/cloud/sync.ts`, `apps/client/src/cloud/*.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000` (scoped: cloud files)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Score submitter** — covers: FR-1
   - [ ] **P2.T1.1: Derive entries from result payloads (cup, ladder, AP, collection)**
