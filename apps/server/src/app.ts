@@ -2,6 +2,7 @@ import type { Database } from "bun:sqlite"
 import { Elysia } from "elysia"
 import { cors } from "./cors"
 import { identityRoutes } from "./identity/routes"
+import { leaderboardRoutes } from "./leaderboard/routes"
 import { schemaVersion } from "./migrate"
 import { saveRoutes } from "./saves/routes"
 
@@ -26,6 +27,7 @@ export function createApp({ db, allowedOrigin }: AppOptions) {
     .use(cors({ allowedOrigin }))
     .use(identityRoutes({ db }))
     .use(saveRoutes({ db }))
+    .use(leaderboardRoutes({ db }))
     .get("/health", () => ({
       status: "ok",
       schemaVersion: schemaVersion(db),

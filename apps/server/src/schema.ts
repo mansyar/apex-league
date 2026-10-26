@@ -1,7 +1,8 @@
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
+import { integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 /**
- * The typed view of `migrations/0001_init.sql`. Drizzle does not create these
+ * The typed view of the committed migrations (`migrations/0001_init.sql`,
+ * `migrations/0002_leaderboard.sql`). Drizzle does not create these tables and
  * tables; the committed migration does. `schema.test.ts` compares this
  * declaration against the columns SQLite actually has, so the two cannot drift
  * apart silently.
@@ -37,3 +38,23 @@ export const displacedSaves = sqliteTable("displaced_saves", {
   savedAt: integer("saved_at").notNull(),
   displacedAt: integer("displaced_at").notNull(),
 })
+
+/**
+ * The per-trainer best per leaderboard category. The primary key is the whole
+ * identity of a row: a submit upserts it, raising `value` only when beaten and
+ * always refreshing `name` to the trainer's newest chosen label. `updatedAt`
+ * is the server clock at the submit that set the value, never a client claim.
+ */
+export const leaderboardScores = sqliteTable(
+  "leaderboard_scores",
+  {
+    trainerId: text("trainer_id")
+      .notNull()
+      .references(() => trainers.id, { onDelete: "cascade" }),
+    category: text("category").notNull(),
+    value: integer("value").notNull(),
+    name: text("name").notNull(),
+    updatedAt: integer("updated_at").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.trainerId, table.category] })],
+)
