@@ -57,16 +57,16 @@
 - **Covers:** FR-5, NFR-1, NFR-2, NFR-3, AC-5, AC-6
 - **Touches:** `.github/workflows/deploy.yml`, `apps/client/src/cloud/config.ts`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Resolution:** subagent proved prod + offline builds; primary fixed a Phase 1 biome escapee (`f917ff33`) and reran the full gate green. Evidence recorded.
 
-- [ ] **P3.T1: Prove prod + offline builds** — covers: FR-5
-  - [ ] **P3.T1.1: Build with `VITE_API_ORIGIN=https://apex-api.ansyar-world.top` contains the origin** — covers: FR-5
-  - [ ] **P3.T1.2: Build without origin keeps offline behavior (no cloud object)** — covers: FR-5
+- [x] **P3.T1: Prove prod + offline builds** — covers: FR-5
+  - [x] **P3.T1.1: Build with `VITE_API_ORIGIN=https://apex-api.ansyar-world.top` contains the origin** — covers: FR-5
+  - [x] **P3.T1.2: Build without origin keeps offline behavior (no cloud object)** — covers: FR-5
 
 <!--
-The primary appends after acceptance:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** f917ff33
 **Evidence:** conductor/tracks/20261027-prod-api-wiring/verification/phase-3.md
 -->
 
