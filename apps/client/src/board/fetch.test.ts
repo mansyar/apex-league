@@ -77,7 +77,11 @@ describe("board fetch-on-open", () => {
         return loader.load()
       })
       .then((result) => {
-        expect(result).toEqual({ kind: "snapshot", boards: boards() })
+        expect(result).toEqual({
+          kind: "snapshot",
+          boards: boards(),
+          fetchedAt: 1,
+        })
         // The failed visit never overwrites the last good one.
         expect(readBoardSnapshot(storage)?.fetchedAt).toBe(1)
       })
@@ -114,7 +118,11 @@ describe("board fetch-on-open", () => {
         return loader.load()
       })
       .then((result) => {
-        expect(result).toEqual({ kind: "snapshot", boards: boards() })
+        expect(result).toEqual({
+          kind: "snapshot",
+          boards: boards(),
+          fetchedAt: 1,
+        })
       })
   })
 
@@ -138,7 +146,11 @@ describe("board fetch-on-open", () => {
         return loader.load()
       })
       .then((result) => {
-        expect(result).toEqual({ kind: "snapshot", boards: boards() })
+        expect(result).toEqual({
+          kind: "snapshot",
+          boards: boards(),
+          fetchedAt: 1,
+        })
       })
   })
 })

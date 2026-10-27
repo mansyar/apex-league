@@ -17,7 +17,6 @@ import {
   BOARD_EMPTY_COPY,
   BOARD_ERROR_COPY,
   BOARD_LOADING_COPY,
-  BOARD_OFFLINE_COPY,
 } from "./copy"
 import type { BoardLoad } from "./fetch"
 import { buildBoardPanel } from "./panel"
@@ -213,14 +212,16 @@ describe("board panel", () => {
       load: async (): Promise<BoardLoad> => ({
         kind: "snapshot",
         boards: liveBoards(),
+        fetchedAt: Date.now(),
       }),
     })
     modal.open()
     return settle().then(() => {
       expect(nodesIn(modal.root, "board-row")).toHaveLength(5)
-      expect(nodesIn(modal.root, "board-status")[0]?.textContent).toBe(
-        BOARD_OFFLINE_COPY,
-      )
+      const text = nodesIn(modal.root, "board-status")[0]?.textContent ?? ""
+      // The offline note names the last boards and stamps how stale.
+      expect(text).toContain("last boards")
+      expect(text).toMatch(/Updated (just now|\d+ min ago)\./)
     })
   })
 

@@ -18,9 +18,9 @@ import {
   BOARD_EMPTY_COPY,
   BOARD_ERROR_COPY,
   BOARD_LOADING_COPY,
-  BOARD_OFFLINE_COPY,
   BOARD_TITLE,
   boardCategoryLabel,
+  boardOfflineLine,
 } from "./copy"
 import type { BoardLoad } from "./fetch"
 import { buildGhostSection } from "./ghost-section"
@@ -162,7 +162,12 @@ export function buildBoardPanel(opts: {
       return
     }
     paintBoards(result.boards)
-    status.textContent = result.kind === "snapshot" ? BOARD_OFFLINE_COPY : ""
+    // A snapshot says it is a snapshot and how stale (FR-12): the boards
+    // are the last ones seen, and the age rides in the same sentence.
+    status.textContent =
+      result.kind === "snapshot"
+        ? boardOfflineLine(result.fetchedAt, Date.now())
+        : ""
   }
 
   function open(): void {

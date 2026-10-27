@@ -50,6 +50,13 @@
   grid-template-columns: 3ch 1fr auto;
 }
 
+/* One column language down the modal (P5 kit-only restyle): hairline
+   keyline separators between rows, existing palette, no new system. */
+.board-list .board-row + .board-row {
+  border-top: 1px solid var(--kit-keyline);
+  padding-top: 4px;
+}
+
 .board-rank {
   color: var(--ink-dim);
   font-variant-numeric: tabular-nums;
@@ -113,4 +120,9 @@
 .board-fight:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+.board-fight:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
