@@ -16,6 +16,7 @@
   },
   "spec": "spec.md",
   "status": "in_progress",
+  "doc_sync": "none",
   "review_verdict": "PASS",
   "review_rounds": 2,
   "title": "UI Cleanliness & Clarity Pass",

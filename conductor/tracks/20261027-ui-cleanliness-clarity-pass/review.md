@@ -112,9 +112,10 @@ not findings; `review.issues.enabled` is false so no issues are filed.
 
 ## Doc sync
 
-Housekeeping recorded: `plan.md` Phase R1, `metadata.json` (`review_verdict:
-PASS`, `review_rounds: 2`), `verification/phase-R1.md`, and this review.
-Real documentation updates (if any) ride the implement PR.
+`none` — post-review check 2026-10-27: the R1 fix (`role="img"` + test) changes
+no behavior, contract, command, or UX rule, and the track is a
+behavior-preserving refactor plus copy; `spec.md`, `product.md`,
+`tech-stack.md`, and `product-guidelines.md` need no updates.
 
 ## Phase R1: Review Fixes
 
