@@ -51,13 +51,17 @@
 - **Covers:** FR-5 (client half), FR-7, FR-8, NFR-6 — AC-5 (client), AC-7, AC-8
 - **Touches:** `apps/client/src/handbook/**`, `apps/client/src/plates/**`, `apps/client/src/creature-detail/**`, `apps/client/src/growth/**`, `apps/client/src/battle-staging/**`, client copy + co-located `*.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Render all surfaces + lifecycle parity** — covers: FR-5, FR-7
-  - [ ] **P3.T1.1: Plates / stable / detail / growth / battle staging with element-true crests (Fire 18° / Plant 110° / Water 205°)**
-  - [ ] **P3.T1.2: Hatch → train → two branch forms per line, same mechanism as existing species**
-- [ ] **P3.T2: Handbook recipes + copy** — covers: FR-7, FR-8
-  - [ ] **P3.T2.1: Open recipe listings (fire×plant, plant×water, fire×water); single-sourced voice copy (≤2 sentences per string)**
+**Result:** verified
+**Checkpoint:** 9ed5c037
+**Evidence:** conductor/tracks/20261027-roster-wave-4/verification/phase-3.md
+
+- [x] **P3.T1: Render all surfaces + lifecycle parity** — covers: FR-5, FR-7
+  - [x] **P3.T1.1: Plates / stable / detail / growth / battle staging with element-true crests (Fire 18° / Plant 110° / Water 205°)**
+  - [x] **P3.T1.2: Hatch → train → two branch forms per line, same mechanism as existing species**
+- [x] **P3.T2: Handbook recipes + copy** — covers: FR-7, FR-8
+  - [x] **P3.T2.1: Open recipe listings (fire×plant, plant×water, fire×water); single-sourced voice copy (≤2 sentences per string)**
 
 ## Phase 4: Rivals, bosses & integrated evidence
 

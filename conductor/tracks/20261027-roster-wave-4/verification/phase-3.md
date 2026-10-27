@@ -129,3 +129,26 @@ BOSSES/loadout order `toEqual` requires: `koda/spark`,
 no boss loadout wields it. The all-signatures-distinct invariant
 (30 branches, 30 unique signatures) still holds by construction.
 Touched additionally: `packages/sim/src/bosses.test.ts` (allowlist only).
+
+## Primary verification
+
+- Working tree review: 8 files, all inside phase scope + 2 accepted
+  deviations (branch-catalog branch defs — required by P3.T1, declared
+  in-scope by the brief; bosses.test.ts allowlist — fallback fix below).
+- Suite round 1: 1 fail (bosses.test.ts:120 — 5 of 6 new signatures are
+  starter-kit rows bosses wield: 8 new overlaps). Rework round 1: the
+  subagent proved zero genuinely-free fire/plant/water specials exist
+  (primary independently verified against moves.ts: every non-kit
+  special is claimed or boss-carried; only cinder_shot is free) and
+  recorded the 8 overlaps as allowlist entries with comments in the
+  exact existing style. Per the 2026-10-25 recorded decision (kit-row
+  overlaps are legitimate), this is the Wave-consistent fix.
+- Glyph-pin rework accepted: 9 lines over 6 elements makes cross-line
+  uniqueness impossible; per-element consistency + cross-element
+  distinctness is the correct invariant.
+- New accent hues audited distinct: 26/8 (fire vs 12/2), 115/100
+  (plant vs 140/105), 210/222 (water vs 200/230).
+- `bun test --check --parallel=4 --timeout 120000`: exit 0 (3403 pass, 1 skip, 0 fail).
+- `bun run verify`: exit 0 (typechecks, biome, determinism gate).
+- `bun run build`: exit 0.
+- Squash: 9ed5c037 (single commit on phase base bf1d2165).
