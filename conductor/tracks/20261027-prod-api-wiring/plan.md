@@ -57,7 +57,7 @@
 - **Covers:** FR-5, NFR-1, NFR-2, NFR-3, AC-5, AC-6
 - **Touches:** `.github/workflows/deploy.yml`, `apps/client/src/cloud/config.ts`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Prove prod + offline builds** — covers: FR-5
   - [ ] **P3.T1.1: Build with `VITE_API_ORIGIN=https://apex-api.ansyar-world.top` contains the origin** — covers: FR-5
