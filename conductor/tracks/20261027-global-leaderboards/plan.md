@@ -78,21 +78,13 @@
   - [x] **P4.T1.1: Full gate + build + image check**
   - [x] **P4.T1.2: Two-device board check documented with screenshots**
 
-- [ ] **P4.T1: Integration & evidence** — covers: AC-6, AC-7
-  - [ ] **P4.T1.1: Full gate + build + image check**
-  - [ ] **P4.T1.2: Two-device board check documented with screenshots**
-
-<!--
-Review fixes are appended by `conductor-review` as:
-
 ## Phase R1: Review Fixes
 
-- **Goal:** Resolve review findings ...
+- **Goal:** Resolve review finding F1 (uploadLocal conflates a failed first-upload push with nothing-to-upload, letting the caller overwrite failureStatus with synced).
 - **Depends on:** Phase 3
-- **Covers:** review findings
-- **Touches:** ...
-- **Verification:** ...
-- **Status:** pending
+- **Covers:** F1
+- **Touches:** `apps/client/src/cloud/sync.ts`, `apps/client/src/cloud/sync.test.ts`
+- **Verification:** `bun test --check --parallel=4 --timeout 120000` (scoped: cloud) + `bun run check`
+- **Status:** in_progress
 
-- [ ] **R1.T1: Resolve <finding ID>** — covers: <finding ID>
--->
+- [ ] **R1.T1: Resolve F1** — covers: F1 (uploadLocal returns true after failureStatus; false only for nothing-to-upload; test pins failed-first-upload status)
