@@ -122,3 +122,14 @@ Review fixes are appended by `conductor-review` as:
 
 - [ ] **R1.T1: Resolve <finding ID>** — covers: <finding ID>
 -->
+
+## Phase R1: Review Fixes
+
+- **Goal:** Resolve review finding F1 (trophy accessible name).
+- **Depends on:** Phase 5
+- **Covers:** F1
+- **Touches:** `apps/client/src/hud/plates-score.ts`, `apps/client/src/hud/plates.test.ts`
+- **Verification:** `bun run verify && bun run build` + focused plates test
+- **Status:** pending
+
+- [ ] **R1.T1: Resolve F1 (trophy role="img" + test)** — covers: F1
