@@ -20,11 +20,11 @@ import {
   type StableReason,
   stablePetId,
 } from "@apex/sim"
-import { focusTrap } from "./battleUI"
 import { paintCrest } from "./hud/plates-creature"
 import { buildStableRename } from "./stable-rename"
 import { chip, crest, tab } from "./ui/kit"
 import { stageLabel } from "./ui/labels"
+import { closeModal, openModal } from "./ui/modal"
 
 /** One stashed pet, as the stable surfaces read it. */
 export interface StablePetRow {
@@ -180,7 +180,7 @@ export interface StableModalOptions {
 export function buildStableModal(options: StableModalOptions): StableModal {
   const root = document.createElement("div")
   root.className = "kit-modal stable-modal"
-  root.style.display = "none"
+  root.classList.add("is-hidden")
   root.setAttribute("role", "dialog")
   root.setAttribute("aria-modal", "true")
   root.setAttribute("aria-label", "Stable")
@@ -223,9 +223,6 @@ export function buildStableModal(options: StableModalOptions): StableModal {
 
   box.append(head, intro, list, empty, note, actions)
   root.append(box)
-
-  /** Where focus goes when the modal closes (the chip that opened it). */
-  let opener: HTMLElement | null = null
 
   /** The swap button of the first row of the last paint. */
   let firstAction: HTMLButtonElement | null = null
@@ -296,10 +293,10 @@ export function buildStableModal(options: StableModalOptions): StableModal {
     note.textContent = ""
   }
 
+  // Open/close, focus trap, scrim-click, Escape, and return-focus are the
+  // shared modal helper's (ui/modal).
   const closeNow = (): void => {
-    root.style.display = "none"
-    if (opener?.isConnected) opener.focus()
-    opener = null
+    closeModal(root)
   }
 
   /** The swap: the app runs it, the sim decides, the modal reports. */
@@ -309,32 +306,21 @@ export function buildStableModal(options: StableModalOptions): StableModal {
       note.textContent = stableRefusalCopy(refusal)
       return
     }
-    root.style.display = "none"
-    opener = null
+    // A commit, not a dismissal: the handoff target takes focus itself.
+    closeModal(root, { returnFocus: false })
     options.onSwapped()
   }
 
-  const trap = focusTrap(box)
-  root.addEventListener("keydown", (event) => {
-    trap(event)
-    if (event.key === "Escape") closeNow()
-  })
-  root.addEventListener("click", (event) => {
-    if (event.target === root) closeNow()
-  })
   close.addEventListener("click", closeNow)
 
   return {
     root,
     open: (state) => {
-      opener =
-        document.activeElement instanceof HTMLElement
-          ? document.activeElement
-          : null
       paint(state)
-      root.style.display = ""
-      if (firstAction) firstAction.focus()
-      else close.focus()
+      openModal(root, {
+        box,
+        initialFocus: firstAction ?? close,
+      })
     },
     close: closeNow,
   }

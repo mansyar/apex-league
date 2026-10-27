@@ -8,10 +8,10 @@
  * server is out of reach, or a calm error line when no snapshot was ever
  * written. Nothing here throws and nothing here touches the save.
  */
-import { focusTrap } from "../battleUI"
 import type { BoardEntry, GhostBoardEntry } from "../cloud/api"
 import type { GhostBoardLoad } from "../cloud/ghosts"
 import { chip } from "../ui/kit"
+import { closeModal, openModal } from "../ui/modal"
 import {
   BOARD_CATEGORIES,
   BOARD_CHIP_LABEL,
@@ -83,7 +83,7 @@ export function buildBoardPanel(opts: {
 
   const root = document.createElement("div")
   root.className = "kit-modal board-modal"
-  root.style.display = "none"
+  root.classList.add("is-hidden")
   root.setAttribute("role", "dialog")
   root.setAttribute("aria-modal", "true")
   root.setAttribute("aria-label", BOARD_TITLE)
@@ -139,8 +139,7 @@ export function buildBoardPanel(opts: {
   chipEl.classList.add("boards-chip")
   chipEl.title = BOARD_TITLE
 
-  let opener: HTMLElement | null = null
-  /** Open generations: a slow fetch from a closed visit never repaints. */
+  // Open generations: a slow fetch from a closed visit never repaints.
   let generation = 0
 
   function paintBoards(boards: CategoryBoards): void {
@@ -167,17 +166,20 @@ export function buildBoardPanel(opts: {
   }
 
   function open(): void {
-    opener =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null
-    root.style.display = ""
+    // Closing bumps the generation too, via the helper's onClose below, so
+    // a slow fetch from a dismissed visit never repaints.
+    openModal(root, {
+      box,
+      initialFocus: closeButton,
+      onClose: () => {
+        generation += 1
+      },
+    })
     for (const section of sections) {
       section.list.replaceChildren()
       section.empty.hidden = true
     }
     status.textContent = BOARD_LOADING_COPY
-    closeButton.focus()
     generation += 1
     const seen = generation
     void load().then((result) => {
@@ -195,24 +197,10 @@ export function buildBoardPanel(opts: {
   }
 
   function close(): void {
-    generation += 1
-    root.style.display = "none"
-    if (opener?.isConnected) opener.focus()
-    opener = null
+    closeModal(root)
   }
 
   closeButton.addEventListener("click", close)
-  const trap = focusTrap(box)
-  root.addEventListener("keydown", (event) => {
-    trap(event)
-    if (event.key === "Escape") {
-      event.stopPropagation()
-      close()
-    }
-  })
-  root.addEventListener("click", (event) => {
-    if (event.target === root) close()
-  })
 
   return { root, chip: chipEl, open, close }
 }

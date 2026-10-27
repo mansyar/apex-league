@@ -87,7 +87,7 @@ export function createHudShell(
 
   // Settings cluster (top-left) + reset modal — the modal owns the three
   // settings chips now; the HUD cluster keeps only the entry chip.
-  const { resetModal, resetConfirm } = buildResetModal(
+  const { resetModal, open: openReset } = buildResetModal(
     () => handlers.onReset(),
     () => document.querySelector<HTMLElement>(".settings-chip")?.focus(),
   )
@@ -100,8 +100,7 @@ export function createHudShell(
     onImportFile: (file) => handlers.onImportFile(file),
     isImportBlocked: () => handlers.isImportBlocked(),
     onNewGame: () => {
-      resetModal.style.display = ""
-      resetConfirm.focus()
+      openReset()
     },
   })
   // Coach's Handbook: type chart, ladder rules, raising guidance — one

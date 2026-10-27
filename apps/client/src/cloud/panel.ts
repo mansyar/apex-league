@@ -12,8 +12,8 @@
  * keeps playing. A failed request paints a sentence; it never blocks, and it
  * never touches the save.
  */
-import { focusTrap } from "../battleUI"
 import { button, chip } from "../ui/kit"
+import { closeModal, openModal } from "../ui/modal"
 import { cloudStatusLine, PASSPHRASE_NOTICE, signInFailureLine } from "./copy"
 import type { TrainerCredentials } from "./credentials"
 import type { CloudStatus, CloudSync } from "./sync"
@@ -57,7 +57,7 @@ export function buildCloudPanel(opts: {
 
   const root = document.createElement("div")
   root.className = "kit-modal"
-  root.style.display = "none"
+  root.classList.add("is-hidden")
   root.setAttribute("role", "dialog")
   root.setAttribute("aria-modal", "true")
   root.setAttribute("aria-label", "Trainer cloud")
@@ -118,10 +118,20 @@ export function buildCloudPanel(opts: {
   chipEl.classList.add("cloud-chip")
   chipEl.title = "Trainer cloud"
 
-  let opener: HTMLElement | null = null
-
+  // Open/close, focus trap, scrim-click, Escape, and return-focus are the
+  // shared modal helper's (ui/modal).
   function say(message: string): void {
     status.textContent = message
+  }
+
+  function open(): void {
+    paintFields()
+    paint(sync.status())
+    openModal(root, { box, initialFocus: idInput })
+  }
+
+  function close(): void {
+    closeModal(root)
   }
 
   /** The signed-in fields only make sense for the trainer they belong to. */
@@ -138,20 +148,6 @@ export function buildCloudPanel(opts: {
     // Text carries the meaning; the dot only reinforces it (accessibility:
     // colour is never the only carrier).
     chipEl.title = cloudStatusLine(next)
-  }
-
-  function open(): void {
-    opener = document.activeElement as HTMLElement | null
-    paintFields()
-    paint(sync.status())
-    root.style.display = ""
-    idInput.focus()
-  }
-
-  function close(): void {
-    root.style.display = "none"
-    opener?.focus()
-    opener = null
   }
 
   async function run(action: () => Promise<{ ok: boolean; reason?: string }>) {
@@ -182,16 +178,6 @@ export function buildCloudPanel(opts: {
   form.addEventListener("submit", (event) => {
     event.preventDefault()
     void run(() => sync.signIn(idInput.value, passInput.value))
-  })
-  root.addEventListener("keydown", (event) => {
-    focusTrap(box)(event)
-    if (event.key === "Escape") {
-      event.stopPropagation()
-      close()
-    }
-  })
-  root.addEventListener("click", (event) => {
-    if (event.target === root) close()
   })
 
   return { root, chip: chipEl, open, close, paint }

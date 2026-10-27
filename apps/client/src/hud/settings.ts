@@ -1,6 +1,6 @@
 import type { GameState } from "@apex/sim"
-import { focusTrap } from "../battleUI"
 import { chip } from "../ui/kit"
+import { closeModal, openModal } from "../ui/modal"
 
 /** How the preference chips read for a given settings snapshot. */
 export interface PrefChipView {
@@ -79,6 +79,8 @@ export function volumePercent(value: number): number {
 export interface ResetModalRefs {
   resetModal: HTMLElement
   resetConfirm: HTMLButtonElement
+  /** Show the confirm; trap/scrim/Escape/return-focus are the helper's. */
+  open: () => void
 }
 
 /**
@@ -93,7 +95,7 @@ export function buildResetModal(
 ): ResetModalRefs {
   const resetModal = document.createElement("div")
   resetModal.className = "kit-modal"
-  resetModal.style.display = "none"
+  resetModal.classList.add("is-hidden")
   resetModal.setAttribute("role", "dialog")
   resetModal.setAttribute("aria-modal", "true")
   const resetBox = document.createElement("div")
@@ -109,7 +111,7 @@ export function buildResetModal(
   resetActions.className = "kit-modal-actions"
   /** Dismissal (not the destructive confirm) hands focus back to Settings. */
   const closeNow = (): void => {
-    resetModal.style.display = "none"
+    closeModal(resetModal)
     onClose?.()
   }
   const resetCancel = chip({
@@ -125,16 +127,16 @@ export function buildResetModal(
   resetBox.append(resetTitle, resetText, resetActions)
   resetModal.append(resetBox)
   resetConfirm.addEventListener("click", () => {
-    resetModal.style.display = "none"
+    closeModal(resetModal, { returnFocus: false })
     onReset()
   })
-  const trapFocus = focusTrap(resetBox)
-  resetModal.addEventListener("keydown", (event) => {
-    trapFocus(event)
-    if (event.key === "Escape") closeNow()
-  })
-  resetModal.addEventListener("click", (event) => {
-    if (event.target === resetModal) closeNow()
-  })
-  return { resetModal, resetConfirm }
+
+  return {
+    resetModal,
+    resetConfirm,
+    /** Show the confirm; trap/scrim/Escape/return-focus are the helper's. */
+    open: () => {
+      openModal(resetModal, { box: resetBox, initialFocus: resetCancel })
+    },
+  }
 }

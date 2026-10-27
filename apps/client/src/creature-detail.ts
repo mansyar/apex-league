@@ -19,7 +19,6 @@ import {
   type StatKey,
   statBreakdown,
 } from "@apex/sim"
-import { focusTrap } from "./battleUI"
 import { kitRows } from "./detail/kit-rows"
 import { buildPathSection } from "./detail/path"
 import { createTrainingHost } from "./detail/training-tab"
@@ -30,6 +29,7 @@ import { paintCrest } from "./hud/plates-creature"
 import { ageLabel } from "./stable"
 import { crest, tab } from "./ui/kit"
 import { romanNumeral, stageLabel } from "./ui/labels"
+import { closeModal, openModal } from "./ui/modal"
 import { createTabs, type TabSpec } from "./ui/tabs"
 
 const STAT_LABELS: Array<{ key: StatKey; label: string }> = [
@@ -120,7 +120,7 @@ export interface CreatureDetail {
 export function buildCreatureDetail(): CreatureDetail {
   const root = document.createElement("div")
   root.className = "kit-modal"
-  root.style.display = "none"
+  root.classList.add("is-hidden")
   root.setAttribute("role", "dialog")
   root.setAttribute("aria-modal", "true")
   root.setAttribute("aria-label", "Partner details")
@@ -217,22 +217,11 @@ export function buildCreatureDetail(): CreatureDetail {
   box.append(head, tablist, ...panels, actions)
   root.append(box)
 
-  /** Where focus goes when the modal closes (the tapped plate head). */
-  let opener: HTMLElement | null = null
+  // Open/close, focus trap, scrim-click, Escape, and return-focus are the
+  // shared modal helper's (ui/modal): the modal only names its cleanup.
   const closeNow = (): void => {
-    root.style.display = "none"
-    growthHost.setVisible(false)
-    if (opener?.isConnected) opener.focus()
-    opener = null
+    closeModal(root)
   }
-  const trap = focusTrap(box)
-  root.addEventListener("keydown", (event) => {
-    trap(event)
-    if (event.key === "Escape") closeNow()
-  })
-  root.addEventListener("click", (event) => {
-    if (event.target === root) closeNow()
-  })
   close.addEventListener("click", closeNow)
 
   return {
@@ -240,10 +229,6 @@ export function buildCreatureDetail(): CreatureDetail {
     open: (state) => {
       const creature = state.creature
       if (!creature) return
-      opener =
-        document.activeElement instanceof HTMLElement
-          ? document.activeElement
-          : null
       paintCrest(crestEl, creature.element, creature.affinity)
       name.textContent = creature.name
       stageTab.textContent = stageLabel(creature.stage)
@@ -293,8 +278,11 @@ export function buildCreatureDetail(): CreatureDetail {
       trainingHost.paint(state)
       growthHost.setVisible(true)
       select(0)
-      root.style.display = ""
-      close.focus()
+      openModal(root, {
+        box,
+        initialFocus: close,
+        onClose: () => growthHost.setVisible(false),
+      })
     },
     sync: (state) => {
       // The repaint inside `paint` is a no-op while the modal is closed, but

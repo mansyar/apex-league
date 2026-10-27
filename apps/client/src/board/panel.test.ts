@@ -84,6 +84,12 @@ class FakeElement {
     this.listeners[kind] = known
   }
 
+  removeEventListener(kind: string, listener: Listener): void {
+    this.listeners[kind] = (this.listeners[kind] ?? []).filter(
+      (known) => known !== listener,
+    )
+  }
+
   append(...nodes: FakeElement[]): void {
     this.children.push(...nodes)
   }
@@ -165,9 +171,9 @@ describe("board panel", () => {
     })
     expect(nodesIn(modal.chip, "kit-chip-label")[0]?.textContent).toBe("Boards")
     expect(fakeOf(modal.root).getAttribute("aria-label")).toBe("Leaderboards")
-    expect(fakeOf(modal.root).style.display).toBe("none")
+    expect(fakeOf(modal.root).classList.contains("is-hidden")).toBe(true)
     fakeOf(modal.chip).fire("click")
-    expect(fakeOf(modal.root).style.display).toBe("")
+    expect(fakeOf(modal.root).classList.contains("is-hidden")).toBe(false)
   })
 
   test("an open paints loading, then live boards with served ranks verbatim", () => {
@@ -244,7 +250,7 @@ describe("board panel", () => {
     })
     modal.open()
     modal.close()
-    expect(fakeOf(modal.root).style.display).toBe("none")
+    expect(fakeOf(modal.root).classList.contains("is-hidden")).toBe(true)
     pending[0]?.({ kind: "live", boards: liveBoards() })
     return settle().then(() => {
       expect(nodesIn(modal.root, "board-row")).toHaveLength(0)
@@ -310,7 +316,7 @@ describe("board ghost wiring", () => {
       nodesIn(modal.root, "board-fight")[0]?.fire("click")
       expect(seen.map((entry) => entry.name)).toEqual(["Ada"])
       // The bout opened, so the modal steps aside for the spar.
-      expect(fakeOf(modal.root).style.display).toBe("none")
+      expect(fakeOf(modal.root).classList.contains("is-hidden")).toBe(true)
     })
   })
 
@@ -322,7 +328,7 @@ describe("board ghost wiring", () => {
     modal.open()
     return settle().then(() => {
       nodesIn(modal.root, "board-fight")[0]?.fire("click")
-      expect(fakeOf(modal.root).style.display).toBe("")
+      expect(fakeOf(modal.root).classList.contains("is-hidden")).toBe(false)
     })
   })
 
