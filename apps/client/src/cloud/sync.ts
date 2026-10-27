@@ -195,8 +195,10 @@ export function createCloudSync(opts: {
   })
 
   /** Upload this device's ranch as the trainer's first cloud save (FR-7).
-   * Returns whether anything was uploaded: with no local save there is
-   * nothing to push, and the caller must settle the status itself. */
+   * Returns whether the caller must settle the status itself: false only when
+   * there was nothing to push (no local save). A failed push settles its own
+   * status via failureStatus, so it returns true — the caller must not
+   * overwrite that with "synced". */
   async function uploadLocal(): Promise<boolean> {
     const payload = storage.getItem(SAVE_KEY)
     if (payload === null || credentials === null) return false
@@ -210,7 +212,7 @@ export function createCloudSync(opts: {
     )
     if (!result.ok) {
       failureStatus(result)
-      return false
+      return true
     }
     // The receipt's `winner` is "incoming" | "stored", never a clock: the
     // synced stamp is the uploaded payload's own `savedAt`.

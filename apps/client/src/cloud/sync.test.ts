@@ -297,6 +297,23 @@ describe("cloud sync — sign in and first upload (FR-7, AC-7)", () => {
     expect(h.sync.status()).toEqual({ kind: "synced", at: 0 })
   })
 
+  test("a failed first upload keeps its failure status, never 'synced' (F1)", async () => {
+    let attempts = 0
+    const api = fakeApi({
+      pull: async () => ({ ok: false, reason: "not-found" }),
+      push: async () => {
+        attempts += 1
+        return { ok: false, reason: "offline" }
+      },
+    })
+    const h = harness({ api, local: { state: stateOn(3), savedAt: 300 } })
+    const result = await h.sync.signIn(TRAINER.id, TRAINER.passphrase)
+    expect(result).toEqual({ ok: true })
+    expect(attempts).toBe(1)
+    expect(readCredentials(h.storage)).toEqual(TRAINER)
+    expect(h.sync.status()).toEqual({ kind: "offline" })
+  })
+
   test("an existing cloud save is never overwritten by signing in (AC-7)", async () => {
     const api = fakeApi({
       pull: async () => ({ ok: true, value: cloudSave(200, 4) }),
