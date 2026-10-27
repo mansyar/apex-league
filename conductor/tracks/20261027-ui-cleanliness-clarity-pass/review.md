@@ -112,8 +112,9 @@ not findings; `review.issues.enabled` is false so no issues are filed.
 
 ## Doc sync
 
-`pending` at review time. Post-fix sync updates `metadata.json`
-(`review_verdict`, round history) per the implement handoff.
+Housekeeping recorded: `plan.md` Phase R1, `metadata.json` (`review_verdict:
+PASS`, `review_rounds: 2`), `verification/phase-R1.md`, and this review.
+Real documentation updates (if any) ride the implement PR.
 
 ## Phase R1: Review Fixes
 
