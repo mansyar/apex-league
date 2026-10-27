@@ -2,7 +2,7 @@ import { integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 /**
  * The typed view of the committed migrations (`migrations/0001_init.sql`,
- * `migrations/0002_leaderboard.sql`). Drizzle does not create these tables and
+ * `migrations/0002_leaderboard.sql`, `migrations/0003_ghost.sql`). Drizzle does not create these tables and
  * tables; the committed migration does. `schema.test.ts` compares this
  * declaration against the columns SQLite actually has, so the two cannot drift
  * apart silently.
@@ -58,3 +58,21 @@ export const leaderboardScores = sqliteTable(
   },
   (table) => [primaryKey({ columns: [table.trainerId, table.category] })],
 )
+
+/**
+ * The per-trainer ghost: one row per trainer holding the latest uploaded
+ * cup-winning replay bundle. The primary key is the whole identity of a row:
+ * an upload upserts it, replacing the payload outright (newest upload is the
+ * best by definition) and always refreshing `name` to the trainer's newest
+ * chosen label. `payload` is opaque text — validated for shape and size on
+ * the way in, never parsed or migrated here. `updatedAt` is the server clock
+ * at the upload that wrote the row, never a client claim.
+ */
+export const ghostBests = sqliteTable("ghost_bests", {
+  trainerId: text("trainer_id")
+    .primaryKey()
+    .references(() => trainers.id, { onDelete: "cascade" }),
+  payload: text("payload").notNull(),
+  name: text("name").notNull(),
+  updatedAt: integer("updated_at").notNull(),
+})
