@@ -192,4 +192,4 @@ surface renders and resolves on the new build.
 - `bun run verify`: exit 0 (typechecks, 3412 tests, biome, determinism
   gate — all 15 archetypes + props byte-identical).
 - `bun run build`: exit 0.
-- Squash: <SHA> (single commit on phase base 47c36d92).
+- Squash: 02a524b6 (single commit on phase base 47c36d92).
