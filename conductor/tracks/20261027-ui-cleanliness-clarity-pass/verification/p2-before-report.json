@@ -1,0 +1,15 @@
+{
+  "desktop:spar": {
+    "shot": "p2-before-desktop-spar.png"
+  },
+  "desktop:cup": {
+    "shot": "p2-before-desktop-cup.png"
+  },
+  "mobile:spar": {
+    "shot": "p2-before-mobile-spar.png"
+  },
+  "mobile:cup": {
+    "shot": "p2-before-mobile-cup.png"
+  },
+  "errors": []
+}

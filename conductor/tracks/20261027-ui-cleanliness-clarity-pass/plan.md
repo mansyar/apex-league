@@ -43,16 +43,16 @@ The primary appends after acceptance:
 - **Covers:** FR-3, FR-4, FR-5, FR-6, AC-3, AC-4, AC-5, AC-6
 - **Touches:** `apps/client/src/ui/kit.css`, `apps/client/src/base.css`, `apps/client/src/ranch.css`, `apps/client/src/cup.css`, `apps/client/src/spar.css`, `apps/client/src/battle-hud.css`, `apps/client/src/board/board.css`, `apps/client/src/mock.css`
 - **Verification:** `bun run verify && bun run build` + screenshot diff set (ranch/cup/spar/board before-after)
-- **Status:** pending
+- **Status:** verified (commits `6980699b` P2.T1, `c2e40ccf` P2.T2+T3, `94cc830b` P2.T4; gate + visual diff in `verification/phase-2.md`)
 
-- [ ] **P2.T1: Extract chamfer/keyline/elevation utilities to kit** — covers: FR-3, AC-3
-  - [ ] **P2.T1.1:** Add utilities; ranch/cup/spar/battle-hud/board keep layout only (est. 300–500 lines deleted)
-  - [ ] **P2.T1.2:** Collapse duplicate `settle-down-centered` into kit motion set (reduced-motion intact)
-- [ ] **P2.T2: Unify touch-target floor** — covers: FR-4, AC-4
-- [ ] **P2.T3: Generic focus-visible rule** — covers: FR-5, AC-5
-- [ ] **P2.T4: .is-hidden/[hidden] convention + dead-chrome removal** — covers: FR-6, AC-6
-  - [ ] **P2.T4.1:** Replace inline `style.display` writes with class toggles on migrated surfaces
-  - [ ] **P2.T4.2:** Prefer not-rendering/`hidden` over CSS-hidden (rankTitles, graduate row, gift-chip); drop mock-only overrides
+- [x] **P2.T1: Extract chamfer/keyline/elevation utilities to kit** — covers: FR-3, AC-3
+  - [x] **P2.T1.1:** Add utilities; ranch/cup/spar/battle-hud/board keep layout only (~80 declarations deduped; 300–500-line whole-rule consolidation unreachable without computed changes — recorded in evidence)
+  - [x] **P2.T1.2:** Collapse duplicate `settle-down-centered` into kit motion set (reduced-motion intact)
+- [x] **P2.T2: Unify touch-target floor** — covers: FR-4, AC-4
+- [x] **P2.T3: Generic focus-visible rule** — covers: FR-5, AC-5
+- [x] **P2.T4: .is-hidden/[hidden] convention + dead-chrome removal** — covers: FR-6, AC-6
+  - [x] **P2.T4.1:** Replace inline `style.display` writes with class toggles on migrated surfaces
+  - [x] **P2.T4.2:** Prefer not-rendering/`hidden` over CSS-hidden (rankTitles, graduate row, gift-chip); drop mock-only overrides (load-bearing resp-phone divider/trophy + train-picker rules kept — rationale in evidence)
 
 ## Phase 3: Ranch HUD declutter
 
