@@ -5,9 +5,7 @@
 - Date: 2026-10-27 (UTC)
 - Branch: feat/20261027-roster-wave-4
 - Base: main @ 4cd2d52a (Phase 1 verified at 1d249352)
-- Result: blocked (implementation complete; verification, artifact
-  authoring, and commits require shell/git, which this session's tool
-  permissions deny — see Blockers)
+- Result: verified (primary ran gate + suite + commits — see Primary verification)
 
 ## Tasks
 
@@ -78,7 +76,7 @@ same run. Shell denial blocks execution — the primary runs it.
 
 | ID | Criterion | Evidence | Status |
 | -- | --------- | -------- | ------ |
-| AC-2 (FR-2, NFR-2, NFR-3, NFR-4) | Three distinct determinism-gated voxel archetypes (cub, boar, otter), all life stages pinned; hue contracts 18/110/205; module cap 24 KB; GLB tripwire 320 KiB | `cub.ts`/`boar.ts`/`otter.ts`, `<name>.test.ts` (hue pins, stage grid containment), `fuzz/determinism.<name>.test.ts`, `fuzz/budget.<name>.*.test.ts` | pending primary verification (tests written, not yet run) |
+| AC-2 (FR-2, NFR-2, NFR-3, NFR-4) | Three distinct determinism-gated voxel archetypes (cub, boar, otter), all life stages pinned; hue contracts 18/110/205; module cap 24 KB; GLB tripwire 320 KiB | `cub.ts`/`boar.ts`/`otter.ts`, `<name>.test.ts` (hue pins, stage grid containment), `fuzz/determinism.<name>.test.ts`, `fuzz/budget.<name>.*.test.ts` | verified by primary 2026-10-27 (suite 3403 pass / gate all-green) |
 
 ## Deviations (outside Touches, smallest change to keep the suite green)
 
@@ -187,3 +185,24 @@ artifact pairs go stale — boar, cub, and legacy pairs are current.
 - Edited: `packages/voxel/src/archetype.ts`, `index.ts`, `face.ts`,
   `budgets.ts`, `stage.test.ts`
 - Pending: 9 artifact pairs under `artifacts/` (primary authors via the gate)
+
+## Primary verification
+
+- Working tree review: 41 paths, all inside phase Touches + 5 accepted
+  deviations (face.ts facePlan branches, budgets.ts entries, stage.test.ts
+  signature maps, choreo.ts motion profiles + choreo.test.ts ARCHETYPES
+  parity pin — smallest changes keeping the suite green; client
+  presentation itself stays Phase 3).
+- Otter budget widening accepted with justification: the swimmer hull is
+  genuinely the longest/lowest body plan (measured ~4.2 vs fox max 4.2
+  precedent); the per-archetype budget still constrains (max 4.8).
+  Flagged for reviewer scrutiny in review.md.
+- `bun test --check --parallel=4 --timeout 120000`: exit 0 (3403 pass, 1 skip, 0 fail).
+- `bun run verify`: exit 0 (typechecks clean, biome clean after primary
+  format fixes on 3 files + LF normalization of track state files,
+  determinism gate all-green incl. 9 new pairs).
+- `bun run build`: exit 0.
+- New GLB sizes (baby/juvenile/champion): cub 104/116/122 KiB, boar
+  122/132/134 KiB, otter 93/100/110 KiB — all far under the 320 KiB
+  tripwire.
+- Squash: 030cd383 (single commit on phase base 690e81d0).

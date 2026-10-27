@@ -34,11 +34,15 @@
 - **Covers:** FR-2, NFR-2, NFR-3, NFR-4 — AC-2
 - **Touches:** `packages/voxel/src/cub.ts`, `packages/voxel/src/boar.ts`, `packages/voxel/src/otter.ts`, `packages/voxel/src/*.test.ts`, `artifacts/**`, generated GLB manifests
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Author the three archetype recipes** — covers: FR-2
-  - [ ] **P2.T1.1: Ember-maned cub / moss-backed boar / mist-diving otter-kit recipes honoring surface ramp + hue contract (Fire 18° / Plant 110° / Water 205°)**
-  - [ ] **P2.T1.2: Generate GLBs, pin digests, tripwire ≤320 KiB, gilded weight 32**
+**Result:** verified
+**Checkpoint:** 030cd383
+**Evidence:** conductor/tracks/20261027-roster-wave-4/verification/phase-2.md
+
+- [x] **P2.T1: Author the three archetype recipes** — covers: FR-2
+  - [x] **P2.T1.1: Ember-maned cub / moss-backed boar / mist-diving otter-kit recipes honoring surface ramp + hue contract (Fire 18° / Plant 110° / Water 205°)**
+  - [x] **P2.T1.2: Generate GLBs, pin digests, tripwire ≤320 KiB, gilded weight 32**
 
 ## Phase 3: Client presentation, lifecycle & handbook
 
