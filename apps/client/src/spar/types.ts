@@ -40,6 +40,13 @@ export interface Spar {
   update(creature: Creature | null): void
   /** Hold a live fight's playback while the tab is away (F5). */
   setPaused(paused: boolean): void
+  /**
+   * Open a free bout against a board ghost's champion bundle (FR-5). Returns
+   * true when the bout opened; false when there is no creature yet or the
+   * bundle is not fightable. The bout resolves locally — no cups, ladder,
+   * morning-after, or ghost re-submit can observe it.
+   */
+  fightGhost(bundle: unknown): boolean
 }
 
 /** The exhibition setup the sim pre-rolls for one spar. */

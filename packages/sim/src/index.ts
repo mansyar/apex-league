@@ -148,6 +148,7 @@ export {
   resolvePlayerMatch,
   startCupSession,
 } from "./cup"
+export { SIM_VERSION } from "./cup/ghost"
 export {
   applyCupRewards,
   CUP_REWARDS,

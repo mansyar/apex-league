@@ -15,12 +15,19 @@ import {
   type Creature,
   makeExhibition,
   resolveBattle,
+  type SparSetup,
   type Tactic,
 } from "@apex/sim"
 import { createBattleSession, sparStampTitle } from "./battle-session"
 import { createBattleHud } from "./battleHud"
 import { renderSpeedButton } from "./battleUI"
 import { castingFor, fightNowFor } from "./spar/casting"
+import { ghostBoutIntro } from "./spar/copy"
+import {
+  type GhostContender,
+  ghostSparSetup,
+  readGhostContender,
+} from "./spar/ghost"
 import { logToggleLabel } from "./spar/log"
 import { buildSparPanel } from "./spar/panel"
 import { refreshPrep, renderRival } from "./spar/setup"
@@ -57,6 +64,11 @@ export function createSpar(
 
   let battleSeed = 0
   let owned: Creature | null = null
+  // The ghost champion a board Fight button opened, if the panel is showing
+  // a ghost bout. Cleared on every normal open and close, so a ghost kit can
+  // never leak into a later spar — and a ghost bout always re-resolves from
+  // the bundle, never from a stale setup.
+  let pendingGhost: GhostContender | null = null
 
   // The shared battle-session shell: driver wiring, HUD updates, the
   // speed pill, and the verdict stamp live there; spar owns its chrome.
@@ -106,10 +118,15 @@ export function createSpar(
   const runBattle = (playerTactic: Tactic): void => {
     if (!owned) return
     session.stop()
-    // Same seed re-rolls the exact rival the player just previewed; only
-    // the player's tactic changes.
-    const setup = makeExhibition(owned, playerTactic, battleSeed)
-    const verdict = resolveBattle(setup.ownedSide, setup.rivalSide, battleSeed)
+    // A ghost bout re-resolves from the bundle with the same seed, so the
+    // rival the player previewed is the rival they fight; only the player's
+    // tactic changes. The verdict still lives only in this panel.
+    const ghost = pendingGhost
+    const seed = ghost ? ghost.seed : battleSeed
+    const setup = ghost
+      ? ghostSparSetup(owned, ghost, playerTactic)
+      : makeExhibition(owned, playerTactic, battleSeed)
+    const verdict = resolveBattle(setup.ownedSide, setup.rivalSide, seed)
 
     intro.textContent = `${setup.rival.name} accepts the spar!`
     for (const { button } of tacticButtons) button.style.display = "none"
@@ -125,17 +142,15 @@ export function createSpar(
     session.begin(fightNow, verdict, castingFor(owned, setup))
   }
 
-  const open = (creature: Creature | null): void => {
-    if (!creature) return
-    session.stop()
-    // A fresh seed per spar, shown in the panel so the rival is honest.
-    battleSeed = Date.now() % 2 ** 31
-    const setup = makeExhibition(creature, "balanced", battleSeed)
-
+  const presentSetup = (
+    creature: Creature,
+    setup: SparSetup,
+    introLine: string,
+  ): void => {
     renderRival(refs, setup, battleSeed)
     refreshPrep(refs, creature, handlers.onSetLoadout)
 
-    intro.textContent = "Pick how your partner fights. No AP, nothing saved."
+    intro.textContent = introLine
     log.replaceChildren()
     log.hidden = true
     logToggle.textContent = logToggleLabel(true)
@@ -155,8 +170,40 @@ export function createSpar(
     overlay.style.display = ""
   }
 
+  const open = (creature: Creature | null): void => {
+    if (!creature) return
+    session.stop()
+    pendingGhost = null
+    // A fresh seed per spar, shown in the panel so the rival is honest.
+    battleSeed = Date.now() % 2 ** 31
+    presentSetup(
+      creature,
+      makeExhibition(creature, "balanced", battleSeed),
+      "Pick how your partner fights. No AP, nothing saved.",
+    )
+  }
+
+  const fightGhost = (bundle: unknown): boolean => {
+    const creature = owned
+    if (!creature) return false
+    const contender = readGhostContender(bundle)
+    if (!contender) return false
+    session.stop()
+    pendingGhost = contender
+    // The bundle's seed keeps the ghost bout deterministic: the same ghost
+    // and creature always preview — and fight — the same rival.
+    battleSeed = contender.seed
+    presentSetup(
+      creature,
+      ghostSparSetup(creature, contender, "balanced"),
+      ghostBoutIntro(contender.name),
+    )
+    return true
+  }
+
   close.addEventListener("click", () => {
     session.stop()
+    pendingGhost = null
     overlay.style.display = "none"
     battleHud.hide()
     sparButton.style.display = ""
@@ -167,6 +214,7 @@ export function createSpar(
     // Same teardown as the post-fight exit; safe before any fight since
     // stopping an idle driver is a no-op.
     session.stop()
+    pendingGhost = null
     overlay.style.display = "none"
     battleHud.hide()
     sparButton.style.display = ""
@@ -219,5 +267,6 @@ export function createSpar(
     setPaused: (paused) => {
       session.setPaused(paused)
     },
+    fightGhost,
   }
 }

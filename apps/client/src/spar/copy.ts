@@ -27,3 +27,12 @@ export const TACTIC_LABELS: Record<Tactic, string> = {
   balanced: "Balanced",
   specials: "Favor Specials",
 }
+
+/**
+ * The ghost bout's intro (ghost_data_async_rivals FR-5): the champion's name
+ * answers from the board, and one clause says the bout is free — no stakes,
+ * nothing saved.
+ */
+export function ghostBoutIntro(champion: string): string {
+  return `${champion} answers from the board. A free bout — nothing saved.`
+}
