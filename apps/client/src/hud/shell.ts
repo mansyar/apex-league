@@ -202,6 +202,9 @@ export function createHudShell(
 
   lowerThird.classList.toggle("is-collapsed", !view.creatureOpen)
   cluster.classList.toggle("is-collapsed", !view.dockOpen)
+  // The head's initial label must match the viewport-derived default, or a
+  // phone boots claiming an expanded panel over a collapsed dock.
+  dockHead.setAttribute("aria-expanded", view.dockOpen ? "true" : "false")
 
   const shell: HudShell = {
     view,
