@@ -19,8 +19,7 @@ import {
 } from "./app/screens"
 import { buildArena } from "./arena"
 import { careCueForEvent } from "./audio/careCues"
-import { createBoardLoader } from "./board/fetch"
-import { buildBoardPanel } from "./board/panel"
+import { bootBoardsPanel } from "./board/boot"
 import { timeoutSignal } from "./cloud/api"
 import { createCloudSave } from "./cloud/cloud-save"
 import { readCredentials } from "./cloud/credentials"
@@ -221,14 +220,15 @@ const cloudPanel = cloud
     })
   : null
 
-// The boards (FR-5, FR-6): public lists via the cloud api. Local-only
-// builds have no cloud object, so they get no board either.
-const boardLoad = cloud
-  ? createBoardLoader({ api: cloud.api, storage, now: () => Date.now() })
-  : null
-const boardPanel = boardLoad
-  ? buildBoardPanel({ load: () => boardLoad.load() })
-  : null
+// The boards (FR-5, FR-6) with the ghost champions beside them (FR-4): public
+// lists via the cloud api, opened as local-only spar bouts on Fight.
+// Local-only builds have no cloud object, so they get no board either.
+const boardPanel = bootBoardsPanel({
+  cloud,
+  storage,
+  now: () => Date.now(),
+  onFight: (ghost) => spar.fightGhost(ghost),
+})
 
 const hud = createHudScreen({
   ...screenDeps,

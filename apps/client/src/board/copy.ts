@@ -52,3 +52,50 @@ export const BOARD_OFFLINE_COPY =
 /** No snapshot and no server: a calm line, not an alarm. */
 export const BOARD_ERROR_COPY =
   "Can't reach the boards right now — take another look later."
+
+/** The ghost board's heading: cup champions, kept for async rematches. */
+export const GHOST_SECTION_TITLE = "Ghost rivals"
+
+/** The badge every ghost row wears: this rival is a recording, not live. */
+export const GHOST_BADGE_LABEL = "Ghost"
+
+/** The per-row action: open a free spar bout against the champion. */
+export const GHOST_FIGHT_LABEL = "Fight Ghost"
+
+/** No champions recorded yet: words, never a blank section. */
+export const GHOST_EMPTY_COPY =
+  "No ghost rivals yet — cup champions appear here after they sync."
+
+/**
+ * The quiet stale note (AC-6): the last ghost board shows, and one sentence
+ * says it is the last one. Never an error plate.
+ */
+export const GHOST_STALE_COPY =
+  "The cloud is out of reach — showing the last ghost rivals we saw."
+
+/** No snapshot and no server for the ghost board: a calm line, not an alarm. */
+export const GHOST_ERROR_COPY =
+  "Can't reach the ghost rivals right now — take another look later."
+
+/**
+ * A champion recorded under another simulator version stays listed but
+ * unboutable (the version-skew edge): kept for the board, not for bouts.
+ */
+export const GHOST_VERSION_COPY =
+  "Recorded on an older build — kept for the board, not for bouts."
+
+/**
+ * One ghost row's preview (FR-4): the champion's team name and the cup score
+ * it was recorded at. A missing stamp reads as a bare final — the row still
+ * lists, the preview just says less.
+ */
+export function ghostPreviewLine(
+  champion: string,
+  day: number | null,
+  round: number | null,
+): string {
+  const parts = [champion]
+  if (day !== null) parts.push(`day ${day}`)
+  if (round !== null) parts.push(`round ${round}`)
+  return parts.join(" · ")
+}
