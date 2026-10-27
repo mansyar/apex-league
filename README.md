@@ -71,7 +71,7 @@ reduced-motion pass.
 | Lint & format | Biome |
 | Tests | `bun test` (bun:test) |
 | Hosting | Cloudflare Pages — static client, deployed by GitHub Actions (see [Deploying](#deploying)) |
-| Server *(roadmap, Phase 3)* | ElysiaJS on Bun, SQLite via `bun:sqlite` + Drizzle ORM — a non-root container on Coolify (see [The API container](#the-api-container-coolify)) |
+| Server *(live since 2026-10-27)* | ElysiaJS on Bun, SQLite via `bun:sqlite` + Drizzle ORM — a non-root container on Coolify at `https://apex-api.ansyar-world.top` (see [The API container](#the-api-container-coolify)) |
 
 The simulation core is deliberately headless and seeded: the same inputs
 always produce the same outputs, which is what future replay, ghost, and
@@ -147,8 +147,9 @@ reproduced exactly from source.
 
 ## Deploying
 
-Apex League is **not live yet**. The deploy is configured and ready, but it
-has never run, so the URL below does not resolve today.
+Apex League's **API is live** at `https://apex-api.ansyar-world.top` (Coolify).
+The client deploy is configured and ready, but it has never run, so the URL
+below does not resolve today.
 
 - **What deploys, and when.** `.github/workflows/deploy.yml` runs on every push
   to `main`, and can be re-run from the Actions tab with **Run workflow**
@@ -160,6 +161,11 @@ has never run, so the URL below does not resolve today.
 - **The URL.** `https://apex-league.pages.dev/` — the production address the
   Pages project will be served at. This is the URL the first deploy will
   create, not one that is up now.
+- **The API origin.** Production builds inject
+  `VITE_API_ORIGIN=https://apex-api.ansyar-world.top` from the
+  `APEX_API_ORIGIN` repository variable (Settings → Secrets and variables →
+  Actions → Variables). The build fails fast on `main` when it is missing;
+  preview deployments carry no origin and run offline-only.
 - **The gate.** `bun run verify` — types, tests, Biome, and the voxel
   determinism gate — runs before the upload, so a red gate never reaches the
   site. The smoke check runs after it against the deployed URL: it drafts a
@@ -168,8 +174,8 @@ has never run, so the URL below does not resolve today.
 
 ### One-time setup
 
-The two repository secrets are the only manual step, and only the repository
-owner can create them:
+The two repository secrets plus one repository variable are the manual setup,
+and only the repository owner can create them:
 
 1. In Cloudflare, create an API token with the **Pages: Edit** permission (My
    Profile → API Tokens → Create Token → "Cloudflare Pages — Edit") and copy
@@ -178,7 +184,12 @@ owner can create them:
    repository secret** and add both:
    - `CLOUDFLARE_API_TOKEN` — the token from step 1.
    - `CLOUDFLARE_ACCOUNT_ID` — the account id from step 1.
-3. Push to `main`. The run creates the `apex-league` Pages project if it does
+3. In GitHub, open **Settings → Secrets and variables → Actions → Variables
+   → New repository variable** and add:
+   - `APEX_API_ORIGIN` — `https://apex-api.ansyar-world.top`. A public origin,
+     hence a variable rather than a secret; `deploy.yml` fails fast on `main`
+     when it is missing.
+4. Push to `main`. The run creates the `apex-league` Pages project if it does
    not exist — no manual project creation is needed — then uploads the build
    and smoke-checks it.
 
@@ -218,14 +229,15 @@ here can observe it afterwards.
   terminates TLS and forwards to it. `GET /health` is the probe: it is
   unauthenticated, read-only, and reports the applied migration.
 - **The environment.** Two variables, both set in Coolify rather than in the
-  repository:
-  - `DATABASE_PATH` — where the SQLite file lives. Defaults to
-    `/data/apex.sqlite` in the image.
-  - `ALLOWED_ORIGIN` — the one browser origin the API answers, for example the
-    Pages URL. **Unset means no CORS headers at all**, so the client is blocked
-    before its request leaves the browser. It is never `*`: the value is
-    compared exactly against the request's `Origin` and echoed back, so a
-    lookalike host does not pass.
+  repository (live values since 2026-10-27):
+  - `DATABASE_PATH=/data/apex.sqlite` — where the SQLite file lives, on the
+    named volume `apex-data:/data` (single writer — replicas exactly 1).
+  - `ALLOWED_ORIGIN=https://apex-league.pages.dev` — the one browser origin
+    the API answers. **Unset means no CORS headers at all**, so the client is
+    blocked before its request leaves the browser — this is exactly what the
+    `allowed origin none (same-origin only)` boot line means. It is never `*`:
+    the value is compared exactly against the request's `Origin` and echoed
+    back, so a lookalike host does not pass.
 
 **The database volume.** The container runs as `bun` (uid 1000), not root, and
 `openDatabase` throws at boot when it cannot create the file — the server dies
