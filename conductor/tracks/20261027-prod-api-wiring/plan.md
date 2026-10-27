@@ -14,21 +14,20 @@
 - **Covers:** FR-1, FR-2, FR-3, AC-1, AC-2, AC-3
 - **Touches:** `.github/workflows/deploy.yml`, `scripts/deploy/workflow.test.ts`
 - **Verification:** `bun test scripts/deploy/workflow.test.ts --check`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Wire `APEX_API_ORIGIN` into `deploy.yml`** — covers: FR-1
-  - [ ] **P1.T1.1: Export `VITE_API_ORIGIN` from vars at build on prod** — covers: FR-1
-  - [ ] **P1.T1.2: Fail fast naming `APEX_API_ORIGIN` when missing on `main`** — covers: FR-3
-  - [ ] **P1.T1.3: Leave previews without `VITE_API_ORIGIN` (offline)** — covers: FR-2
-- [ ] **P1.T2: Extend workflow tests** — covers: FR-1
-  - [ ] **P1.T2.1: Prod job exports the origin** — covers: FR-1
-  - [ ] **P1.T2.2: Missing var fails before upload** — covers: FR-3
-  - [ ] **P1.T2.3: Preview job has no origin** — covers: FR-2
+- [x] **P1.T1: Wire `APEX_API_ORIGIN` into `deploy.yml`** — covers: FR-1
+  - [x] **P1.T1.1: Export `VITE_API_ORIGIN` from vars at build on prod** — covers: FR-1
+  - [x] **P1.T1.2: Fail fast naming `APEX_API_ORIGIN` when missing on `main`** — covers: FR-3
+  - [x] **P1.T1.3: Leave previews without `VITE_API_ORIGIN` (offline)** — covers: FR-2
+- [x] **P1.T2: Extend workflow tests** — covers: FR-1
+  - [x] **P1.T2.1: Prod job exports the origin** — covers: FR-1
+  - [x] **P1.T2.2: Missing var fails before upload** — covers: FR-3
+  - [x] **P1.T2.3: Preview job has no origin** — covers: FR-2
 
 <!--
-The primary appends after acceptance:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 660932b3
 **Evidence:** conductor/tracks/20261027-prod-api-wiring/verification/phase-1.md
 -->
 
