@@ -10,8 +10,8 @@
   "id": "20261027-ghost-data-async-rivals",
   "last_checkpoint": "c1f8cc71",
   "plan": "plan.md",
-  "pr_state": null,
-  "pr_url": null,
+  "pr_state": "open",
+  "pr_url": "https://github.com/mansyar/apex-league/pull/59",
   "priority": "high",
   "progress": {
     "phases_total": 4,
