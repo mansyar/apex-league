@@ -61,10 +61,6 @@
   - [x] **P3.T1.1: Four category lists (rank, name, value) + states**
   - [x] **P3.T1.2: Fetch-on-open + last-snapshot cache with quiet offline note**
 
-- [ ] **P3.T1: Board surface** — covers: FR-5
-  - [ ] **P3.T1.1: Four category lists (rank, name, value) + states**
-  - [ ] **P3.T1.2: Fetch-on-open + last-snapshot cache with quiet offline note**
-
 ## Phase 4: Integrated evidence & two-device check
 
 - **Goal:** full gates green, container still builds clean, and AC-6 demonstrated — proven by `verify_phase` + build + a documented two-device board check.
@@ -72,7 +68,7 @@
 - **Covers:** AC-6, AC-7, NFR-1
 - **Touches:** `apps/server/Dockerfile` (only if the new table needs image changes — expected 0-delta), `conductor/tracks/20261027-global-leaderboards/verification/*`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P4.T1: Integration & evidence** — covers: AC-6, AC-7
   - [ ] **P4.T1.1: Full gate + build + image check**
