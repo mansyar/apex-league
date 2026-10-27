@@ -55,7 +55,7 @@ export function createBoard(shared: CupShared): {
     el.classList.remove("tbd")
     const element = speciesElement(slot.speciesId)
     const ic = document.createElement("span")
-    ic.className = "cup-mini-crest"
+    ic.className = "cup-mini-crest kit-hex"
     ic.style.color = hueColor(element)
     ic.innerHTML = crest(element)
     const name = document.createElement("span")

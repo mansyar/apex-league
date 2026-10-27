@@ -31,11 +31,11 @@ export function buildCoachScreen(): CoachScreenRefs {
   coachBody.className = "cup-coach-body"
 
   const fighterCard = document.createElement("div")
-  fighterCard.className = "cup-card cup-card-fighter"
+  fighterCard.className = "cup-card cup-card-fighter kit-surface"
   const rivalCard = document.createElement("div")
-  rivalCard.className = "cup-card cup-card-rival"
+  rivalCard.className = "cup-card cup-card-rival kit-surface"
   const kitCard = document.createElement("div")
-  kitCard.className = "cup-card cup-card-kit"
+  kitCard.className = "cup-card cup-card-kit kit-surface"
   coachBody.append(fighterCard, rivalCard, kitCard)
 
   const coachFoot = document.createElement("div")
@@ -45,7 +45,7 @@ export function buildCoachScreen(): CoachScreenRefs {
   coachNote.textContent = "Nothing is committed until you step in."
   const coachBack = document.createElement("button")
   coachBack.type = "button"
-  coachBack.className = "cup-cta-ghost"
+  coachBack.className = "cup-cta-ghost kit-line"
   coachBack.textContent = "Back to bracket"
   const coachGo = document.createElement("button")
   coachGo.type = "button"

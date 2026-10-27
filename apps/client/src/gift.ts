@@ -20,9 +20,9 @@ import {
   leagueRewardPending,
   leagueRewardPreview,
 } from "@apex/sim"
-import { focusTrap } from "./battleUI"
 import { paintCrest } from "./hud/plates-creature"
 import { chip, crest, tab } from "./ui/kit"
+import { closeModal, openModal } from "./ui/modal"
 
 const STAT_ROWS: ReadonlyArray<{
   key: "hp" | "atk" | "def" | "spd"
@@ -104,7 +104,7 @@ export interface GiftModal {
 export function buildGiftModal(onHatch: () => void): GiftModal {
   const root = document.createElement("div")
   root.className = "kit-modal"
-  root.style.display = "none"
+  root.classList.add("is-hidden")
   root.setAttribute("role", "dialog")
   root.setAttribute("aria-modal", "true")
   root.setAttribute("aria-label", "League Reward")
@@ -152,21 +152,11 @@ export function buildGiftModal(onHatch: () => void): GiftModal {
   box.append(head, flavor, statsCaption, stats, note, actions)
   root.append(box)
 
-  /** Where focus goes when the card closes (the chip that opened it). */
-  let opener: HTMLElement | null = null
+  // Open/close, focus trap, scrim-click, Escape, and return-focus are the
+  // shared modal helper's (ui/modal).
   const closeNow = (): void => {
-    root.style.display = "none"
-    if (opener?.isConnected) opener.focus()
-    opener = null
+    closeModal(root)
   }
-  const trap = focusTrap(box)
-  root.addEventListener("keydown", (event) => {
-    trap(event)
-    if (event.key === "Escape") closeNow()
-  })
-  root.addEventListener("click", (event) => {
-    if (event.target === root) closeNow()
-  })
   hatch.addEventListener("click", () => {
     // The app commits the succession; the card closes either way, and the
     // sim refuses a second hatch, so a stale click cannot double-grant.
@@ -179,10 +169,6 @@ export function buildGiftModal(onHatch: () => void): GiftModal {
     open: (state) => {
       const preview = leagueRewardPreview(state)
       if (!preview) return
-      opener =
-        document.activeElement instanceof HTMLElement
-          ? document.activeElement
-          : null
       paintCrest(crestEl, preview.element, null)
       name.textContent = preview.displayName
       flavor.textContent = preview.flavor
@@ -193,8 +179,7 @@ export function buildGiftModal(onHatch: () => void): GiftModal {
       )
       const current = state.creature?.name
       note.textContent = giftHatchNote(current)
-      root.style.display = ""
-      hatch.focus()
+      openModal(root, { box, initialFocus: hatch })
     },
     close: closeNow,
   }

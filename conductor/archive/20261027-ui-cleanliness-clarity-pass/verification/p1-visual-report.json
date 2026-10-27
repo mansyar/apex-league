@@ -1,0 +1,83 @@
+{
+  "desktop:settings": {
+    "opener": ".settings-chip",
+    "openModals": 1,
+    "afterEscape": 0
+  },
+  "desktop:handbook": {
+    "opener": ".handbook-chip",
+    "openModals": 1,
+    "afterEscape": 0
+  },
+  "desktop:stable": {
+    "opener": ".stable-chip",
+    "openModals": 1,
+    "afterEscape": 0
+  },
+  "desktop:board": {
+    "opener": ".boards-chip",
+    "openModals": 1,
+    "afterEscape": 0
+  },
+  "desktop:cloud": {
+    "opener": ".cloud-chip",
+    "openModals": 1,
+    "afterEscape": 0
+  },
+  "desktop:creature-detail": {
+    "opener": ".creature-head",
+    "openModals": 1,
+    "afterEscape": 0
+  },
+  "desktop:shots": {
+    "starter": "p1-desktop-starter.png",
+    "ranch": "p1-desktop-ranch.png",
+    "settings": "p1-desktop-settings-open.png",
+    "handbook": "p1-desktop-handbook-open.png",
+    "stable": "p1-desktop-stable-open.png",
+    "board": "p1-desktop-board-open.png",
+    "cloud": "p1-desktop-cloud-open.png",
+    "creature-detail": "p1-desktop-creature-detail-open.png"
+  },
+  "mobile:settings": {
+    "opener": ".settings-chip",
+    "openModals": 1,
+    "afterEscape": 0
+  },
+  "mobile:handbook": {
+    "opener": ".handbook-chip",
+    "openModals": 1,
+    "afterEscape": 0
+  },
+  "mobile:stable": {
+    "opener": ".stable-chip",
+    "openModals": 1,
+    "afterEscape": 0
+  },
+  "mobile:board": {
+    "opener": ".boards-chip",
+    "openModals": 1,
+    "afterEscape": 0
+  },
+  "mobile:cloud": {
+    "opener": ".cloud-chip",
+    "openModals": 1,
+    "afterEscape": 0
+  },
+  "mobile:creature-detail": {
+    "opener": ".creature-head",
+    "openModals": 1,
+    "afterEscape": 0
+  },
+  "mobile:shots": {
+    "starter": "p1-mobile-starter.png",
+    "ranch": "p1-mobile-ranch.png",
+    "settings": "p1-mobile-settings-open.png",
+    "handbook": "p1-mobile-handbook-open.png",
+    "stable": "p1-mobile-stable-open.png",
+    "board": "p1-mobile-board-open.png",
+    "cloud": "p1-mobile-cloud-open.png",
+    "creature-detail": "p1-mobile-creature-detail-open.png"
+  },
+  "errors": []
+}

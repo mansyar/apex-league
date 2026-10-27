@@ -1,0 +1,25 @@
+{
+  "base_branch": "main",
+  "base_sha": "6ba33421e29e35bd1d5fe7f3fde5d5042dfa43bc",
+  "branch": "refactor/20261027-ui-cleanliness-clarity-pass",
+  "created_at": "2026-10-27T11:00:00Z",
+  "depends_on": [],
+  "id": "20261027-ui-cleanliness-clarity-pass",
+  "plan": "plan.md",
+  "priority": "high",
+  "progress": {
+    "phases_total": 5,
+    "phases_verified": 5,
+    "tasks_done": 16,
+    "tasks_total": 16
+  },
+  "spec": "spec.md",
+  "status": "complete",
+  "doc_sync": "none",
+  "pr_url": "https://github.com/mansyar/apex-league/pull/60",
+  "review_verdict": "PASS",
+  "review_rounds": 2,
+  "title": "UI Cleanliness & Clarity Pass",
+  "type": "refactor",
+  "updated_at": "2026-10-27T11:00:00Z"
+}

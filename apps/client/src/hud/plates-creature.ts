@@ -125,7 +125,7 @@ export function buildCreaturePlate(): CreaturePlateRefs {
   // Inline edit form: name input + confirm/cancel. Hidden until the
   // pencil is pressed; Enter confirms, Escape cancels.
   const nameInput = document.createElement("input")
-  nameInput.className = "creature-name-input"
+  nameInput.className = "creature-name-input kit-surface"
   nameInput.type = "text"
   nameInput.maxLength = 16
   nameInput.setAttribute("aria-label", "Creature name")
@@ -148,7 +148,7 @@ export function buildCreaturePlate(): CreaturePlateRefs {
   statRow.className = "stat-row"
   const statCells = STATS.map(({ key, label }) => {
     const cell = document.createElement("span")
-    cell.className = "stat-cell"
+    cell.className = "stat-cell kit-line"
     const statLabel = document.createElement("span")
     statLabel.className = "stat-label"
     statLabel.textContent = label
@@ -223,13 +223,14 @@ export function formChipTitle(tier: FormTier): string {
 }
 
 /**
- * Paint the form chip from a creature. Text carries the tier, `title` and
- * `aria-label` carry the consequence, so the readout survives greyscale.
+ * Paint the form chip from a creature. Text carries the tier and its ATK
+ * consequence (FR-16), `title` and `aria-label` carry the labelled reading,
+ * so the readout survives greyscale and hover is never required.
  */
 export function paintFormChip(chip: HTMLElement, creature: Creature): void {
   const tier = formTier(creature)
   const read = formChipTitle(tier)
-  chip.textContent = FORM_COPY[tier].label
+  chip.textContent = `${FORM_COPY[tier].label} · ${formDeltaLine(tier)}`
   chip.title = read
   chip.setAttribute("aria-label", read)
 }

@@ -75,6 +75,7 @@ export interface PickerRowRefs {
   button: HTMLButtonElement
   name: HTMLElement
   tradeoff: HTMLElement
+  blurb: HTMLElement
   note: HTMLElement
   assigned: HTMLElement
   id: TrainingProgram
@@ -127,11 +128,19 @@ function pickerRow(
   const tradeoff = document.createElement("span")
   tradeoff.className = "train-tradeoff"
   tradeoff.textContent = programTradeoff(id)
+  // The catalog blurb reads inline (FR-16): the tradeoff says the numbers,
+  // and this says the character — nothing key lives only in the tooltip.
+  const blurb = document.createElement("span")
+  blurb.className = "train-blurb"
+  if (program) {
+    entry.title = program.blurb
+    blurb.textContent = program.blurb
+  }
   const note = document.createElement("span")
   note.className = "train-note"
-  entry.append(head, tradeoff, note)
+  entry.append(head, tradeoff, blurb, note)
   entry.addEventListener("click", () => onPick(id))
-  return { button: entry, name, tradeoff, note, assigned, id }
+  return { button: entry, name, tradeoff, blurb, note, assigned, id }
 }
 
 /**
@@ -233,7 +242,7 @@ export function buildCommandDock(handlers: {
   // champion eligible (canGraduate), so the dock never offers a dead end.
   const dockGraduate = document.createElement("div")
   dockGraduate.className = "dock-graduate"
-  dockGraduate.style.display = "none"
+  dockGraduate.hidden = true
   const graduateChip = button({
     label: "Graduate",
     tag: "",

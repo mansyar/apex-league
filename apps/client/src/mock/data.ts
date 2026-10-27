@@ -18,7 +18,7 @@ export const el = (
 }
 
 export const figure = (caption: string, ...nodes: Node[]): HTMLElement => {
-  const item = el("figure", "show-item")
+  const item = el("figure", "show-item kit-line")
   const row = el("div", "show-row")
   row.append(...nodes)
   item.append(row, el("figcaption", undefined, caption))

@@ -18,6 +18,7 @@ import { createBattleSession, cupStampTitle } from "../battle-session"
 import { castFighter } from "../battleUI"
 import type { FightCasting } from "../staging"
 import { visualSeedOf } from "../staging-seed"
+import { closeModal } from "../ui/modal"
 import type { CupShared } from "./shared"
 
 /** The stamp-hold pacing (ms), muted under reduced motion. */
@@ -111,17 +112,17 @@ export function createArena(shared: CupShared): {
     mem.inBattle = true
     mem.pendingId = null
     shared.showScreen(null)
-    shared.giveup.root.style.display = "none"
+    closeModal(shared.giveup.root, { returnFocus: false })
     overlay.classList.add("cup-battling")
-    battleChips.battleChips.style.display = ""
+    battleChips.battleChips.classList.remove("is-hidden")
     // Boss final (FR11): the lower-third carries the registry intro.
     const boss = opponent.bossId ? getBoss(opponent.bossId) : undefined
     if (boss) {
       bossIntro.textContent = boss.intro
       bossIntro.className = mem.state.settings.reducedMotion
-        ? "cup-boss-intro cup-boss-intro--still"
-        : "cup-boss-intro"
-      bossIntro.style.display = ""
+        ? "cup-boss-intro kit-surface cup-boss-intro--still"
+        : "cup-boss-intro kit-surface"
+      bossIntro.classList.remove("is-hidden")
       // The boss gets the last word either way: the lower-third flips to
       // the verdict quip for the stamp hold, then the bracket returns.
       mem.bossQuip =
@@ -149,7 +150,7 @@ export function createArena(shared: CupShared): {
     stampTitle: cupStampTitle,
     onFinish: ({ instant }) => {
       if (!mem.fightNow) return
-      battleChips.battleChips.style.display = "none"
+      battleChips.battleChips.classList.add("is-hidden")
       // Hold the stamp, then back to the bracket. The cursor stays on the
       // match just fought: the walk re-stamps it on the bracket, then
       // continues with the rival reveals.
@@ -160,13 +161,13 @@ export function createArena(shared: CupShared): {
         bossIntro.textContent = mem.bossQuip
         mem.bossQuip = null
       } else {
-        bossIntro.style.display = "none"
+        bossIntro.classList.add("is-hidden")
       }
       shared.battle.hold.begin(
         () => {
           mem.inBattle = false
           mem.fightNow = null
-          bossIntro.style.display = "none"
+          bossIntro.classList.add("is-hidden")
           handlers.onArenaExit()
           battleHud.hide()
           overlay.classList.remove("cup-battling")

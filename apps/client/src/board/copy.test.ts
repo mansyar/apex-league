@@ -12,6 +12,7 @@ import {
   BOARD_OFFLINE_COPY,
   BOARD_TITLE,
   boardCategoryLabel,
+  boardOfflineLine,
   GHOST_BADGE_LABEL,
   GHOST_EMPTY_COPY,
   GHOST_ERROR_COPY,
@@ -20,6 +21,8 @@ import {
   GHOST_STALE_COPY,
   GHOST_VERSION_COPY,
   ghostPreviewLine,
+  ghostStaleLine,
+  staleAgeLine,
 } from "./copy"
 
 describe("board copy", () => {
@@ -76,6 +79,30 @@ describe("board copy", () => {
     expect(ghostPreviewLine("Ember", 12, 3)).toBe("Ember · day 12 · round 3")
     expect(ghostPreviewLine("Ember", null, 3)).toBe("Ember · round 3")
     expect(ghostPreviewLine("Ember", null, null)).toBe("Ember")
+  })
+
+  test("the preview lists the kit the bout borrows, or nothing when bare", () => {
+    expect(ghostPreviewLine("Ember", 12, 3, ["Spark", "Charge"])).toBe(
+      "Ember · day 12 · round 3 · kit: Spark, Charge",
+    )
+    expect(ghostPreviewLine("Ember", null, null, [])).toBe("Ember")
+  })
+
+  test("a snapshot says how old last is, in the same quiet voice", () => {
+    expect(staleAgeLine(1000, 1000)).toBe("Updated just now.")
+    expect(staleAgeLine(9999, 1000)).toBe("Updated just now.")
+    expect(staleAgeLine(0, 5 * 60 * 1000)).toBe("Updated 5 min ago.")
+    expect(staleAgeLine(0, 3 * 60 * 60 * 1000)).toBe("Updated 3h ago.")
+    expect(staleAgeLine(0, 2 * 24 * 60 * 60 * 1000)).toBe("Updated 2d ago.")
+    const offline = boardOfflineLine(0, 60 * 1000)
+    expect(offline).toContain(BOARD_OFFLINE_COPY)
+    expect(offline).toContain("Updated 1 min ago.")
+    const stale = ghostStaleLine(0, 60 * 1000)
+    expect(stale).toContain(GHOST_STALE_COPY)
+    expect(stale).toContain("Updated 1 min ago.")
+    for (const line of [offline, stale]) {
+      expect(line).not.toContain("!")
+    }
   })
 
   test("ghost lines stay quiet information, never an alarm", () => {

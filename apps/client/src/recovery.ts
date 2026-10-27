@@ -1,5 +1,5 @@
-import { focusTrap } from "./battleUI"
 import { chip } from "./ui/kit"
+import { closeModal, openModal } from "./ui/modal"
 
 /**
  * Corrupt-save recovery (release_polish_20261018 Phase 3).
@@ -57,7 +57,7 @@ export function buildRecoveryModal(handlers: {
 }): RecoveryModalRefs {
   const root = document.createElement("div")
   root.className = "kit-modal"
-  root.style.display = "none"
+  root.classList.add("is-hidden")
   root.setAttribute("role", "dialog")
   root.setAttribute("aria-modal", "true")
   root.setAttribute("aria-label", "Save recovery")
@@ -115,21 +115,21 @@ export function buildRecoveryModal(handlers: {
       render("confirm")
       return
     }
-    root.style.display = "none"
+    // A commit, not a dismissal: the boot flow takes over from here.
+    closeModal(root, { returnFocus: false })
     handlers.onReset()
-  })
-
-  const trapFocus = focusTrap(box)
-  root.addEventListener("keydown", (event) => {
-    trapFocus(event)
-    // No Escape close: dismissing would let the picker overwrite the file.
-    if (event.key === "Escape") event.stopPropagation()
   })
 
   return {
     root,
     open: () => {
-      root.style.display = ""
+      // Blocking: no Escape out and no scrim out — dismissing would let the
+      // picker overwrite the broken file. Trap still keeps Tab inside.
+      openModal(root, {
+        box,
+        dismissOnEscape: false,
+        dismissOnScrim: false,
+      })
       render("offer")
     },
   }

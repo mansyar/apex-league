@@ -71,7 +71,7 @@ export function refreshPrep(
     creature,
     chosen: () => chosen,
     classes: {
-      base: "spar-kit-move",
+      base: "spar-kit-move kit-line",
       locked: "spar-kit-locked",
       chosen: "spar-kit-chosen",
     },

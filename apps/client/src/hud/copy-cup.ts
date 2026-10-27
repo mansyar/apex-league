@@ -23,6 +23,17 @@ export interface HudHint {
   text: string
 }
 
+/**
+ * One ladder teaser (FR-15): the topside template both division teasers
+ * share — the topped tier and the awaiting division fill the same two
+ * sentences, so Silver and Gold can never drift apart again.
+ */
+export function ladderTeaser(topped: "bronze" | "silver"): string {
+  const done = topped === "bronze" ? "Bronze" : "Silver"
+  const next = topped === "bronze" ? "Silver" : "Gold"
+  return `You've topped ${done} — the ${next} division awaits. Keep banking cup wins; the climb continues soon.`
+}
+
 // Onboarding callouts (save v7). First match wins — the array order below
 // is the teaching order: AP first, kit depth second, cup last.
 const HINTS: Array<HudHint & { when: (state: GameState) => boolean }> = [
@@ -34,7 +45,7 @@ const HINTS: Array<HudHint & { when: (state: GameState) => boolean }> = [
   {
     id: "training-tier",
     when: (s) => s.phase === "day" && s.day === 5 && s.creature !== null,
-    text: "Training focus sticks between days, and the kit keeps growing — one more move unlocks tomorrow.",
+    text: "Training programs stick between days, and the kit keeps growing — one more move unlocks tomorrow.",
   },
   {
     id: "cup-eve",
@@ -51,7 +62,7 @@ const HINTS: Array<HudHint & { when: (state: GameState) => boolean }> = [
       s.ladder.tier === "bronze" &&
       s.ladder.subTier === "I" &&
       s.ladder.points > 0,
-    text: "You've topped Bronze — the Silver division awaits. Keep banking cup wins; the climb continues soon.",
+    text: ladderTeaser("bronze"),
   },
   {
     // Four-tier ladder (gold_legend_ladder_20261017): the topside teasers
@@ -63,7 +74,7 @@ const HINTS: Array<HudHint & { when: (state: GameState) => boolean }> = [
       s.ladder.tier === "silver" &&
       s.ladder.subTier === "I" &&
       s.ladder.points > 0,
-    text: "You've topped Silver — the Gold division awaits. Keep banking cup wins; the climb continues soon.",
+    text: ladderTeaser("silver"),
   },
   {
     id: "legend-awaits",
@@ -104,7 +115,7 @@ const HINTS: Array<HudHint & { when: (state: GameState) => boolean }> = [
   {
     id: "boss-koda",
     when: (s) => s.bossDefeats.includes("koda"),
-    text: "The Promotion gate is DOWN — Sear Marshal Koda never saw it coming. Silver, meet your climber.",
+    text: "The Promotion gate is down — Sear Marshal Koda never saw it coming. Silver, meet your climber.",
   },
   {
     id: "boss-hesse",

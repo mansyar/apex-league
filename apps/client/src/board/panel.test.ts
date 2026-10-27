@@ -17,7 +17,6 @@ import {
   BOARD_EMPTY_COPY,
   BOARD_ERROR_COPY,
   BOARD_LOADING_COPY,
-  BOARD_OFFLINE_COPY,
 } from "./copy"
 import type { BoardLoad } from "./fetch"
 import { buildBoardPanel } from "./panel"
@@ -82,6 +81,12 @@ class FakeElement {
     const known = this.listeners[kind] ?? []
     known.push(listener)
     this.listeners[kind] = known
+  }
+
+  removeEventListener(kind: string, listener: Listener): void {
+    this.listeners[kind] = (this.listeners[kind] ?? []).filter(
+      (known) => known !== listener,
+    )
   }
 
   append(...nodes: FakeElement[]): void {
@@ -165,9 +170,9 @@ describe("board panel", () => {
     })
     expect(nodesIn(modal.chip, "kit-chip-label")[0]?.textContent).toBe("Boards")
     expect(fakeOf(modal.root).getAttribute("aria-label")).toBe("Leaderboards")
-    expect(fakeOf(modal.root).style.display).toBe("none")
+    expect(fakeOf(modal.root).classList.contains("is-hidden")).toBe(true)
     fakeOf(modal.chip).fire("click")
-    expect(fakeOf(modal.root).style.display).toBe("")
+    expect(fakeOf(modal.root).classList.contains("is-hidden")).toBe(false)
   })
 
   test("an open paints loading, then live boards with served ranks verbatim", () => {
@@ -207,14 +212,16 @@ describe("board panel", () => {
       load: async (): Promise<BoardLoad> => ({
         kind: "snapshot",
         boards: liveBoards(),
+        fetchedAt: Date.now(),
       }),
     })
     modal.open()
     return settle().then(() => {
       expect(nodesIn(modal.root, "board-row")).toHaveLength(5)
-      expect(nodesIn(modal.root, "board-status")[0]?.textContent).toBe(
-        BOARD_OFFLINE_COPY,
-      )
+      const text = nodesIn(modal.root, "board-status")[0]?.textContent ?? ""
+      // The offline note names the last boards and stamps how stale.
+      expect(text).toContain("last boards")
+      expect(text).toMatch(/Updated (just now|\d+ min ago)\./)
     })
   })
 
@@ -244,7 +251,7 @@ describe("board panel", () => {
     })
     modal.open()
     modal.close()
-    expect(fakeOf(modal.root).style.display).toBe("none")
+    expect(fakeOf(modal.root).classList.contains("is-hidden")).toBe(true)
     pending[0]?.({ kind: "live", boards: liveBoards() })
     return settle().then(() => {
       expect(nodesIn(modal.root, "board-row")).toHaveLength(0)
@@ -310,7 +317,7 @@ describe("board ghost wiring", () => {
       nodesIn(modal.root, "board-fight")[0]?.fire("click")
       expect(seen.map((entry) => entry.name)).toEqual(["Ada"])
       // The bout opened, so the modal steps aside for the spar.
-      expect(fakeOf(modal.root).style.display).toBe("none")
+      expect(fakeOf(modal.root).classList.contains("is-hidden")).toBe(true)
     })
   })
 
@@ -322,7 +329,7 @@ describe("board ghost wiring", () => {
     modal.open()
     return settle().then(() => {
       nodesIn(modal.root, "board-fight")[0]?.fire("click")
-      expect(fakeOf(modal.root).style.display).toBe("")
+      expect(fakeOf(modal.root).classList.contains("is-hidden")).toBe(false)
     })
   })
 

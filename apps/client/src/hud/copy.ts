@@ -39,7 +39,7 @@ export {
   trainButtonLabel,
   trainingStatus,
 } from "./copy-care"
-export { type HudHint, selectHint } from "./copy-cup"
+export { type HudHint, ladderTeaser, selectHint } from "./copy-cup"
 export {
   driftCallout,
   evolveCallout,

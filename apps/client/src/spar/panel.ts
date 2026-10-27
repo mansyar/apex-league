@@ -88,12 +88,12 @@ export function buildSparPanel(
       labelClass: "spar-tactic-label",
       previewClass: "spar-preview",
     }),
-    classes: { base: "spar-tactic" },
+    classes: { base: "spar-tactic kit-line" },
     onPick: (tactic) => onPickTactic(tactic),
   })
 
   const fastButton = document.createElement("button")
-  fastButton.className = "spar-fast"
+  fastButton.className = "spar-fast kit-line"
   fastButton.type = "button"
   renderSpeedButton(fastButton, "paced")
   fastButton.style.display = "none"
@@ -101,7 +101,7 @@ export function buildSparPanel(
   // Reduced-motion pill: replays the finished fight as a text-only stepped
   // log so those users get agency instead of a wall of text (2026-10-10).
   const replayButton = document.createElement("button")
-  replayButton.className = "spar-replay"
+  replayButton.className = "spar-replay kit-line"
   replayButton.type = "button"
   replayButton.textContent = "Replay slowly"
   replayButton.style.display = "none"
@@ -110,7 +110,7 @@ export function buildSparPanel(
   // line, so the full log demotes to a compact collapsible box — closed
   // by default, opens on demand, still records every event.
   const logBox = document.createElement("div")
-  logBox.className = "spar-logbox"
+  logBox.className = "spar-logbox kit-line"
   const logToggle = document.createElement("button")
   logToggle.className = "spar-log-toggle"
   logToggle.type = "button"

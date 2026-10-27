@@ -20,7 +20,7 @@ import {
 /** What an open paints: live boards, the last snapshot, or nothing yet. */
 export type BoardLoad =
   | { kind: "live"; boards: CategoryBoards }
-  | { kind: "snapshot"; boards: CategoryBoards }
+  | { kind: "snapshot"; boards: CategoryBoards; fetchedAt: number }
   | { kind: "unavailable" }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -64,10 +64,15 @@ export function createBoardLoader(opts: {
         return { kind: "live", boards }
       }
       // Any failure falls back to the snapshot whole — the four boards stay
-      // one consistent visit instead of a mix of fresh and stale.
+      // one consistent visit instead of a mix of fresh and stale. The stamp
+      // rides along so the offline note can say how old "last" is (FR-12).
       const snapshot = readBoardSnapshot(storage)
       if (snapshot === null) return { kind: "unavailable" }
-      return { kind: "snapshot", boards: snapshot.boards }
+      return {
+        kind: "snapshot",
+        boards: snapshot.boards,
+        fetchedAt: snapshot.fetchedAt,
+      }
     },
   }
 }

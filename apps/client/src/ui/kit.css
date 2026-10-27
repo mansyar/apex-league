@@ -59,6 +59,22 @@
   --kit-safe-left: env(safe-area-inset-left, 0px);
   --kit-safe-right: env(safe-area-inset-right, 0px);
 
+  /* Layer tokens (ui_cleanliness_20261027 Phase 1): every z-index in the
+     client reads one of these. Surfaces use `z-index: var(--z-*)` and never
+     a literal, so adding an overlay cannot bury another by accident. */
+  --z-battle: 1;
+  --z-cup-inner: 2;
+  --z-bar: 10;
+  --z-tip: 20;
+  --z-sheet: 30;
+  --z-veil: 40;
+  --z-dock: 45;
+  --z-cup: 50;
+  --z-notice: 60;
+  --z-grad: 65;
+  --z-modal: 70;
+  --z-failure: 80;
+
   /* Element identity palette (full colors; hues live in ui/element.ts).
      Consumed by .el-border-* custom-property setters and legacy styles. */
   --el-fire: #ff6b4a;
@@ -92,6 +108,32 @@
   clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%);
 }
 
+/* ---- Surface pair ----------------------------------------------------- */
+
+/* kit-surface owns the shared panel fill + hairline used by surface
+   stylesheets (ranch, cup, spar, battle-hud, mock): same keyline trick
+   as .kit-plate (fill in the padding box, keyline in the border box).
+   Surfaces keep their own layout, padding, clip-paths and type; they
+   add this class in the builder instead of repeating the pair. */
+.kit-surface {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--kit-panel-bg), var(--kit-panel-bg)) padding-box,
+    linear-gradient(var(--kit-keyline), var(--kit-keyline)) border-box;
+}
+
+/* kit-line is the fill-less twin: just the 1px hairline for rows, cells
+   and ghost buttons that paint their own (usually transparent) ground. */
+.kit-line {
+  border: 1px solid var(--kit-keyline);
+}
+
+/* kit-hex is the shared hexagon clip for crest glyphs; the element hue
+   and fill stay with the surface. */
+.kit-hex {
+  clip-path: polygon(50% 0, 100% 26%, 100% 74%, 50% 100%, 0 74%, 0 26%);
+}
+
 /* ---- Notice ----------------------------------------------------------- */
 
 /* A calm, boot-time banner for news the player must see before any HUD
@@ -102,7 +144,7 @@
   top: 18px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 60;
+  z-index: var(--z-notice);
   max-width: min(560px, 90vw);
   padding: 10px 18px;
   text-align: center;
@@ -315,7 +357,7 @@
   position: absolute;
   bottom: calc(100% + 8px);
   left: 50%;
-  z-index: 20;
+  z-index: var(--z-tip);
   padding: 9px 13px;
   background: #201911;
   border: 1px solid var(--kit-keyline-warm);
@@ -379,6 +421,24 @@
   transform: translateY(1px) scale(0.99);
 }
 
+/* Overlay visibility (ui_cleanliness_20261027 Phase 1): the modal helper
+   owns open/close by toggling `is-hidden`. Every overlay root folds here,
+   so no modal path writes `style.display`. */
+.kit-modal.is-hidden,
+.cup-overlay.is-hidden,
+.cup-giveup.is-hidden,
+.starter-overlay.is-hidden {
+  display: none;
+}
+
+/* Chip visibility (ui_cleanliness_20261027 Phase 2): class-driven chip
+   folds — stable, sign-out and cup chips toggle `is-hidden` instead of
+   writing `style.display`. One rule beats every surface `display`
+   declaration these chips wear. */
+.kit-chip.is-hidden {
+  display: none;
+}
+
 /* Modal shell: a full-screen scrim with one centered plate. Shared by every
    confirm dialog (reset, Hall of Fame, cup notices) — ranch hosts the DOM,
    but the classes are kit-level. The scrim click and Escape both back out —
@@ -386,7 +446,7 @@
 .kit-modal {
   position: fixed;
   inset: 0;
-  z-index: 70;
+  z-index: var(--z-modal);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -605,25 +665,25 @@
   outline-offset: 2px;
 }
 
-/* Keyboard focus stays visible on every interactive primitive. */
-.kit-chip:focus-visible,
-.kit-button:focus-visible,
-.kit-cta:focus-visible,
-.rename-button:focus-visible,
-.hud-lineage:focus-visible,
-.spar-kit-reset:focus-visible,
-.spar-log-toggle:focus-visible,
-.cup-close:focus-visible,
-.cup-slot:focus-visible,
-.cup-cta-ghost:focus-visible {
+/* Keyboard focus stays visible on every interactive control without a
+   hand-maintained allowlist: any natively focusable element plus anything
+   carrying a tabindex gets the accent ring. New controls are covered by
+   construction (AC-5); surfaces keep only their geometry exceptions. */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-/* F9: the surfaces that own their own controls get the same ring — an
-   additive list against the same token, so it cannot drift from the rule
-   above. Chamfered plates (clip-path) shear an outer ring away entirely, so
-   theirs is drawn just inside the border box instead. */
+/* Chamfered plates (clip-path) shear an outer ring away entirely, so the
+   chamfer-cut controls below draw theirs just inside the border box
+   instead. These are geometry exceptions to the generic rule above —
+   the colour and width still come from the same tokens. */
 .spar-kit-move:focus-visible,
 .spar-tactic:focus-visible,
 .spar-fast:focus-visible,
@@ -863,6 +923,21 @@
   }
 }
 
+@keyframes settle-down-centered {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -14px);
+  }
+  60% {
+    opacity: 1;
+    transform: translate(-50%, 2px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
 @keyframes bar-pulse {
   0%,
   100% {
@@ -975,7 +1050,7 @@ body.is-reduced *::after {
 /* ---- Responsive tiers (mobile_layout_pass_20261025) --------------------
    The kit's own width breakpoints (FR-1). Surfaces reflow their layouts
    against these exact widths (ranch.css / cup.css phone tiers); the kit
-   carries only what is shared: a ≥40px touch-target floor for every
+   carries only what is shared: a 44px touch-target floor for every
    touch-sized viewport, and phone-density for the primitives that
    render on every screen. Desktop (≥1024px) stays untouched. */
 
@@ -984,7 +1059,7 @@ body.is-reduced *::after {
   .kit-chip,
   .kit-button,
   .kit-cta {
-    min-height: 40px;
+    min-height: 44px;
   }
 
   /* The advance-day band is the dock's widest control; a touch-shorter
@@ -1009,6 +1084,6 @@ body.is-reduced *::after {
   .kit-chip,
   .kit-button,
   .kit-cta {
-    min-height: 40px;
+    min-height: 44px;
   }
 }

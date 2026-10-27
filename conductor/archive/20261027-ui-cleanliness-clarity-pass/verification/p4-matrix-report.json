@@ -1,0 +1,34 @@
+{
+  "errors": [],
+  "matrix": {
+    "desktop-1280x800": ["p4-desktop-ranch.png"],
+    "landscape-852x393-gift": [
+      "p4-landscape-gift-open.png",
+      "p4-landscape-gift-shut.png"
+    ],
+    "landscape-852x393-nogift": [
+      "p4-landscape-nogift-open.png",
+      "p4-landscape-nogift-shut.png"
+    ],
+    "portrait-393x844-gift": [
+      "p4-mobile-gift-collapsed.png",
+      "p4-mobile-gift-expanded.png"
+    ],
+    "portrait-393x844-nogift": [
+      "p4-mobile-nogift-collapsed.png",
+      "p4-mobile-nogift-expanded.png"
+    ]
+  },
+  "notes": [
+    "landscape boot state is lineage-open (starts open at >=768px): -open files are aria-expanded=true, -shut files aria-expanded=false after toggle",
+    "portrait boot state is lineage-shut: -collapsed files are aria-expanded=false, -expanded files true",
+    "desktop snap waits 1.5s for the boot settle animation; earlier snaps caught mid-flight plates"
+  ],
+  "seats": {
+    "landscape-callout": { "bottom": 137, "top": 71 },
+    "landscape-lineage-seat-px": 144.734,
+    "portrait-gift-lineage-margin-px": 51,
+    "portrait-nogift-lineage-margin-px": 65,
+    "portrait-pairs": "lineage bottom -> callout top -> stack top keep 8px+ gaps in all four portrait states; expanding lineage pushes siblings by construction"
+  }
+}

@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test"
-import { createCreature, type GameState } from "@apex/sim"
+import { createCreature, createInitialState, type GameState } from "@apex/sim"
 import {
   apPipPlan,
   climbAnnouncement,
@@ -15,6 +15,11 @@ import {
   paintBranchBadge,
   paintFormChip,
 } from "./plates-creature"
+import {
+  buildScoreBug,
+  paintScoreBug,
+  type ScoreBugPaint,
+} from "./plates-score"
 
 const ladder = (
   tier: GameState["ladder"]["tier"],
@@ -290,7 +295,7 @@ describe("form chip", () => {
 
     paintFormChip(chip, sick)
 
-    expect(chip.textContent).toBe("Sluggish")
+    expect(chip.textContent).toBe("Sluggish · ATK -2")
     expect(chip.title).toBe("Sluggish: ATK -2")
     expect(attrs["aria-label"]).toBe("Sluggish: ATK -2")
   })
@@ -364,15 +369,24 @@ interface FakeNode {
   type: string
   hidden: boolean
   offsetWidth: number
-  style: { setProperty(key: string, value: string): void; background: string }
+  style: {
+    setProperty(key: string, value: string): void
+    background: string
+    display: string
+  }
   classList: {
     add(...names: string[]): void
     remove(name: string): void
+    toggle(name: string, force?: boolean): boolean
     contains(name: string): boolean
   }
   children: FakeNode[]
   parent: FakeNode | null
+  attrs: Record<string, string>
   setAttribute(name: string, value: string): void
+  getAttribute(name: string): string | null
+  cloneNode(): FakeNode
+  replaceChildren(...nodes: FakeNode[]): void
   append(...nodes: FakeNode[]): void
   addEventListener(): void
 }
@@ -387,7 +401,7 @@ function fakeNode(): FakeNode {
     type: "",
     hidden: false,
     offsetWidth: 0,
-    style: { setProperty: () => {}, background: "" },
+    style: { setProperty: () => {}, background: "", display: "" },
     classList: {
       add: (...names: string[]) => {
         for (const name of names) classes.add(name)
@@ -395,11 +409,43 @@ function fakeNode(): FakeNode {
       remove: (name: string) => {
         classes.delete(name)
       },
+      toggle: (name: string, force?: boolean) => {
+        if (force === undefined) {
+          if (classes.has(name)) {
+            classes.delete(name)
+            return false
+          }
+          classes.add(name)
+          return true
+        }
+        if (force) {
+          classes.add(name)
+          return true
+        }
+        classes.delete(name)
+        return false
+      },
       contains: (name: string) => classes.has(name),
     },
     children: [],
     parent: null,
-    setAttribute: () => {},
+    attrs: {},
+    setAttribute: (name: string, value: string) => {
+      node.attrs[name] = value
+    },
+    getAttribute: (name: string) => node.attrs[name] ?? null,
+    cloneNode: () => {
+      const copy = fakeNode()
+      copy.className = node.className
+      return copy
+    },
+    replaceChildren: (...nodes: FakeNode[]) => {
+      node.children.length = 0
+      for (const child of nodes) {
+        child.parent = node
+        node.children.push(child)
+      }
+    },
     append: (...nodes: FakeNode[]) => {
       for (const child of nodes) {
         child.parent = node
@@ -472,5 +518,59 @@ describe("the plate's branch line", () => {
     })
     expect(line.hidden).toBe(true)
     expect(line.textContent).toBe("")
+  })
+})
+
+describe("score-bug trophy", () => {
+  const savedDocument = Object.getOwnPropertyDescriptor(globalThis, "document")
+
+  beforeAll(() => {
+    Object.defineProperty(globalThis, "document", {
+      configurable: true,
+      value: { createElement: () => fakeNode() },
+    })
+  })
+
+  afterAll(() => {
+    if (savedDocument === undefined) {
+      Reflect.deleteProperty(globalThis, "document")
+    } else {
+      Object.defineProperty(globalThis, "document", savedDocument)
+    }
+  })
+
+  function paintCups(cupsWon: number) {
+    const refs = buildScoreBug()
+    const paint: ScoreBugPaint = {
+      prevAp: null,
+      prevLadder: null,
+      climbLine: null,
+      apPips: [],
+    }
+    paintScoreBug(refs, null, { ...createInitialState(), cupsWon }, paint)
+    return refs
+  }
+
+  test("builds as an image so the painted count is announced", () => {
+    const refs = buildScoreBug()
+    // The role is set at build time: without it assistive tech ignores
+    // aria-label on a generic span and the painted name stays inert.
+    expect(refs.trophy.getAttribute("role")).toBe("img")
+  })
+
+  test("names the visible count at three cups", () => {
+    const refs = paintCups(3)
+    expect(refs.trophy.getAttribute("role")).toBe("img")
+    expect(refs.trophy.getAttribute("aria-label")).toContain("3")
+    expect(refs.trophyCount.textContent).toBe("× 3")
+    expect(refs.trophy.style.display).toBe("")
+  })
+
+  test("keeps the name while hidden at zero cups", () => {
+    const refs = paintCups(0)
+    expect(refs.trophy.getAttribute("role")).toBe("img")
+    expect(refs.trophy.getAttribute("aria-label")).toBe("Cup championships: 0")
+    expect(refs.trophyCount.textContent).toBe("× 0")
+    expect(refs.trophy.style.display).toBe("none")
   })
 })

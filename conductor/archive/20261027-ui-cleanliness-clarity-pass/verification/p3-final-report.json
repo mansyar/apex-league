@@ -1,0 +1,53 @@
+{
+  "evidence": [
+    {
+      "errors": [],
+      "file": "p3-final-desktop-ranch.png",
+      "note": "Default desktop ranch after starter pick: More panel OPEN by design (open where the ranch has room), seated below the lineage plate with primaries visible; lineage detail open.",
+      "state": "default desktop ranch, overflow open by design, lineage open"
+    },
+    {
+      "errors": [],
+      "file": "p3-final-desktop-overflow-toggled-shut.png",
+      "note": "One More-toggle click from the default-open desktop state shuts the panel; the toggle holds session state.",
+      "state": "desktop overflow user-shut via More toggle"
+    },
+    {
+      "errors": [],
+      "file": "p3-final-desktop-overflow-shut.png",
+      "note": "Escape pressed with the panel shut and focus on the toggle: panel stays shut, focus stays on the toggle. (The real panel-Escape path is proven by the mobile shut shot, where focus sat inside the open panel.)",
+      "state": "desktop shut + Escape no-op discipline check"
+    },
+    {
+      "errors": [],
+      "file": "p3-final-desktop-lineage-folded.png",
+      "note": "Lineage summary click folds the detail to the single family row; the stack and callout step back up; chevron points right.",
+      "state": "desktop lineage folded"
+    },
+    {
+      "errors": [],
+      "file": "p3-final-mobile-ranch.png",
+      "note": "Default phone ranch: More panel SHUT and lineage detail FOLDED by design (fold where the ranch is narrow); two primaries visible (Settings, More).",
+      "state": "default phone ranch, overflow shut, lineage folded"
+    },
+    {
+      "errors": [],
+      "file": "p3-final-mobile-overflow-open.png",
+      "note": "More-toggle click opens the panel below the lineage plate (STABLE / CLOUD / BOARDS + handbook/gift seats); measured seat, no primary covered.",
+      "state": "mobile overflow open via More toggle"
+    },
+    {
+      "errors": [],
+      "file": "p3-final-mobile-overflow-shut.png",
+      "note": "Escape with focus inside the open panel: panel closes AND focus returns to the More toggle (real panel-Escape path).",
+      "state": "mobile overflow shut via Escape, focus restored"
+    },
+    {
+      "errors": [],
+      "file": "p3-final-mobile-lineage-open.png",
+      "note": "Lineage summary click opens the detail on the phone tier: counters plus the Hall of Fame opener inside the folded surface.",
+      "state": "mobile lineage detail open"
+    }
+  ],
+  "note": "Desktop starts overflow-open/lineage-open and the phone tier starts both shut (shell startsCollapsed default; an explicit click holds for the session). Earlier in this phase a mid-fix capture appeared to show the open panel overlapping the lineage plate; root cause was boot-time seating measured while the plate's settle animation was mid-flight, fixed by hidden-anchor guard + reseat on paint/font/animationend (see phase-3.md). All 8 shots: zero console/page errors."
+}

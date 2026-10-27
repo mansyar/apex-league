@@ -3,7 +3,7 @@
    layout and selection states live here. */
 
 .nursery-overlay {
-  z-index: 65;
+  z-index: var(--z-grad);
   justify-content: flex-start;
   gap: 14px;
   padding: 24px;

@@ -8,9 +8,9 @@
  * new game row only in the ranch, exactly as the floating chips did.
  */
 
-import { focusTrap } from "./battleUI"
 import { volumePercent } from "./hud/settings"
 import { chip } from "./ui/kit"
+import { closeModal, openModal } from "./ui/modal"
 
 /** The settings chip trio plus the cluster wrapper they float in. */
 export interface SettingsChipRefs {
@@ -186,7 +186,7 @@ export function buildSettingsModal(
 
   const root = document.createElement("div")
   root.className = "kit-modal"
-  root.style.display = "none"
+  root.classList.add("is-hidden")
   root.setAttribute("role", "dialog")
   root.setAttribute("aria-modal", "true")
   root.setAttribute("aria-label", "Settings")
@@ -281,40 +281,23 @@ export function buildSettingsModal(
     opts.onNewGame?.()
   })
 
-  let opener: HTMLElement | null = null
+  // Open/close, focus trap, scrim-click, Escape, and return-focus are the
+  // shared modal helper's (ui/modal).
   function closeNow(): void {
-    root.style.display = "none"
-    if (opener?.isConnected) opener.focus()
-    opener = null
+    closeModal(root)
   }
   close.addEventListener("click", closeNow)
-  const trapFocus = focusTrap(box)
-  root.addEventListener("keydown", (event) => {
-    trapFocus(event)
-    if (event.key === "Escape") {
-      event.stopPropagation()
-      closeNow()
-    }
-  })
-  root.addEventListener("click", (event) => {
-    if (event.target === root) closeNow()
-  })
 
   box.append(title, rows, notice, actions)
   root.append(box)
   return {
     root,
     open: () => {
-      opener =
-        document.activeElement instanceof HTMLElement
-          ? document.activeElement
-          : null
       say("")
       importIsBlocked = opts.isImportBlocked?.() ?? false
       importChip.disabled = importIsBlocked
       importChip.setAttribute("aria-disabled", String(importIsBlocked))
-      root.style.display = ""
-      motionChip.focus()
+      openModal(root, { box, initialFocus: motionChip })
     },
     motionChip,
     cameraChip,

@@ -8,10 +8,10 @@
  */
 
 import { breedingPool, type GameState, type RetiredRecord } from "@apex/sim"
-import { focusTrap } from "../battleUI"
 import { elementHue } from "../element"
 import { ELEMENT_LABELS } from "../handbook/common"
 import { chip, crest, cta, tab } from "../ui/kit"
+import { closeModal, openModal } from "../ui/modal"
 import {
   chooseSpecies,
   createNurseryState,
@@ -67,7 +67,7 @@ function parentStats(record: RetiredRecord): string {
 export function createNursery(handlers: NurseryHandlers): NurserySurface {
   const root = document.createElement("div")
   root.className = "starter-overlay graduation-overlay nursery-overlay"
-  root.style.display = "none"
+  root.classList.add("is-hidden")
   root.setAttribute("role", "dialog")
   root.setAttribute("aria-modal", "true")
   root.setAttribute("aria-label", "Nursery")
@@ -106,21 +106,15 @@ export function createNursery(handlers: NurseryHandlers): NurserySurface {
   let current: GameState | null = null
   let vm: NurseryState = createNurseryState([])
   let seed = nextSeed()
-  let opener: HTMLElement | null = null
-
-  const restoreFocus = (): void => {
-    if (opener?.isConnected) opener.focus()
-    opener = null
-  }
-
+  // Open/close, focus trap, scrim-click, Escape, and return-focus are the
+  // shared modal helper's (ui/modal).
   /** Hide without restoring focus; the flow calls this after a commit. */
   const close = (): void => {
-    root.style.display = "none"
+    closeModal(root, { returnFocus: false })
   }
 
   const dismiss = (): void => {
-    close()
-    restoreFocus()
+    closeModal(root)
   }
 
   const say = (message: string): void => {
@@ -328,33 +322,16 @@ export function createNursery(handlers: NurseryHandlers): NurserySurface {
     if (focus) focusCard(focus.kind, focus.value)
   }
 
-  const trap = focusTrap(root)
-  root.addEventListener("keydown", (event) => {
-    trap(event)
-    if (event.key === "Escape") {
-      event.stopPropagation()
-      dismiss()
-    }
-  })
-  root.addEventListener("click", (event) => {
-    if (event.target === root) dismiss()
-  })
-
   return {
     root,
     show(state) {
       current = state
-      opener =
-        document.activeElement instanceof HTMLElement
-          ? document.activeElement
-          : null
       vm = createNurseryState(breedingPool(state))
       seed = nextSeed()
       render()
       root.scrollTop = 0
-      root.style.display = ""
       const first = parentGrid.querySelector<HTMLButtonElement>("button")
-      ;(first ?? keep).focus()
+      openModal(root, { box: root, initialFocus: first ?? keep })
     },
     close,
     say,

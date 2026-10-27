@@ -24,5 +24,10 @@ export {
 } from "./ladder-read"
 export { buildCallout, type CalloutRefs } from "./plates-callout"
 export { buildCreaturePlate, type CreaturePlateRefs } from "./plates-creature"
-export { buildLineagePlate, type LineagePlateRefs } from "./plates-lineage"
+export {
+  buildLineagePlate,
+  type LineagePlateRefs,
+  paintLineage,
+  wireLineage,
+} from "./plates-lineage"
 export { buildScoreBug, type ScoreBugRefs } from "./plates-score"

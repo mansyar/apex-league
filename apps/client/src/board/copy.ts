@@ -86,17 +86,46 @@ export const GHOST_VERSION_COPY =
   "Recorded on a different build — kept for the board, not for bouts."
 
 /**
- * One ghost row's preview (FR-4): the champion's team name and the cup score
- * it was recorded at. A missing stamp reads as a bare final — the row still
- * lists, the preview just says less.
+ * One ghost row's preview (FR-4/FR-13): the champion's team name, the cup
+ * score it was recorded at, and the kit the Fight bout borrows — the same
+ * kit `readGhostContender` hands the spar, so the preview never shows a
+ * move the bout will not use. A missing stamp reads as a bare final, and
+ * an empty kit reads with no kit line. The row still lists either way.
  */
 export function ghostPreviewLine(
   champion: string,
   day: number | null,
   round: number | null,
+  kit: readonly string[] = [],
 ): string {
   const parts = [champion]
   if (day !== null) parts.push(`day ${day}`)
   if (round !== null) parts.push(`round ${round}`)
+  if (kit.length > 0) parts.push(`kit: ${kit.join(", ")}`)
   return parts.join(" · ")
+}
+
+/**
+ * How long ago a snapshot was seen, as one quiet sentence (FR-12/AC-11):
+ * the offline note says the boards are the last ones, and this says how
+ * old "last" is. Pure so the scores and the ghost rivals share it.
+ */
+export function staleAgeLine(fetchedAt: number, now: number): string {
+  const seconds = Math.max(0, Math.floor((now - fetchedAt) / 1000))
+  if (seconds < 60) return "Updated just now."
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `Updated ${minutes} min ago.`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `Updated ${hours}h ago.`
+  return `Updated ${Math.floor(hours / 24)}d ago.`
+}
+
+/** The offline boards note with its age: what happened, and how stale. */
+export function boardOfflineLine(fetchedAt: number, now: number): string {
+  return `${BOARD_OFFLINE_COPY} ${staleAgeLine(fetchedAt, now)}`
+}
+
+/** The stale ghost-rivals note with its age, same grammar as the scores. */
+export function ghostStaleLine(fetchedAt: number, now: number): string {
+  return `${GHOST_STALE_COPY} ${staleAgeLine(fetchedAt, now)}`
 }

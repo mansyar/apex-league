@@ -10,6 +10,7 @@ import type { GiftModal } from "../gift"
 import type { SettingsModalRefs } from "../settings-modal"
 import type { StableModal } from "../stable"
 import type { CommandDockRefs } from "./dock"
+import type { OverflowRefs } from "./overflow"
 import type {
   CreaturePlateRefs,
   LineagePlateRefs,
@@ -39,6 +40,10 @@ export interface HudRefs {
   stableChip: HTMLButtonElement
   motionWrap: HTMLElement
   lineage: LineagePlateRefs
+  /** The ranch flow column shell builds: motion, lineage, stack, callout. */
+  ranch: HTMLElement
+  /** The More toggle + panel the secondary chips fold behind. */
+  overflow: OverflowRefs
 }
 
 /** The interaction state `shell` owns and `update` reads. */
@@ -48,6 +53,10 @@ export interface HudViewState {
   creatureOpen: boolean
   dockOpen: boolean
   renaming: boolean
+  /** The More panel: shut on phones, open where the ranch has room. */
+  overflowOpen: boolean
+  /** The lineage detail: folded on phones, shown where the ranch has room. */
+  lineageOpen: boolean
 }
 
 /** The handler subset `shell` wires (a HudHandlers satisfies it). */

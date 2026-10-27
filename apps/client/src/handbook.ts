@@ -9,12 +9,12 @@
  * `handbook/`; this file owns tab order and shell.
  */
 
-import { focusTrap } from "./battleUI"
 import { buildTypeChart } from "./handbook/chart"
 import { buildLadderRules } from "./handbook/ladder"
 import { buildMoves } from "./handbook/moves"
 import { buildPaths } from "./handbook/paths"
 import { buildRaising } from "./handbook/raising"
+import { closeModal, openModal } from "./ui/modal"
 import { createTabs, type TabSpec } from "./ui/tabs"
 
 const TABS: TabSpec[] = [
@@ -39,7 +39,7 @@ export interface HandbookRefs {
 export function buildHandbook(): HandbookRefs {
   const root = document.createElement("div")
   root.className = "kit-modal"
-  root.style.display = "none"
+  root.classList.add("is-hidden")
   root.setAttribute("role", "dialog")
   root.setAttribute("aria-modal", "true")
   root.setAttribute("aria-label", "Coach's Handbook")
@@ -69,37 +69,20 @@ export function buildHandbook(): HandbookRefs {
   close.textContent = "Back to the ranch"
   actions.append(close)
 
-  let opener: HTMLElement | null = null
+  // Open/close, focus trap, scrim-click, Escape, and return-focus are the
+  // shared modal helper's (ui/modal).
   const closeNow = (): void => {
-    root.style.display = "none"
-    if (opener?.isConnected) opener.focus()
-    opener = null
+    closeModal(root)
   }
   close.addEventListener("click", closeNow)
-  const trapFocus = focusTrap(box)
-  root.addEventListener("keydown", (event) => {
-    trapFocus(event)
-    if (event.key === "Escape") {
-      event.stopPropagation()
-      closeNow()
-    }
-  })
-  root.addEventListener("click", (event) => {
-    if (event.target === root) closeNow()
-  })
 
   box.append(title, tablist, ...panels, actions)
   root.append(box)
   return {
     root,
     open: () => {
-      opener =
-        document.activeElement instanceof HTMLElement
-          ? document.activeElement
-          : null
       select(0)
-      root.style.display = ""
-      close.focus()
+      openModal(root, { box, initialFocus: close })
     },
   }
 }

@@ -34,7 +34,7 @@ const archetypeParam = (() => {
 
 const bar = document.createElement("div")
 bar.style.cssText =
-  "position:absolute;top:12px;left:12px;z-index:10;display:flex;gap:8px;align-items:center;color:#f0f4fa;font:13px monospace;background:rgba(10,14,24,.85);padding:8px 12px;border-radius:10px"
+  "position:absolute;top:12px;left:12px;z-index:var(--z-bar);display:flex;gap:8px;align-items:center;color:#f0f4fa;font:13px monospace;background:rgba(10,14,24,.85);padding:8px 12px;border-radius:10px"
 const label = document.createElement("span")
 label.textContent = `stage ${stage} · base seed`
 const input = document.createElement("input")

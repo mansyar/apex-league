@@ -132,7 +132,7 @@ export function createCoachRoom(shared: CupShared): {
     rKit.className = "cup-kit-list"
     for (const id of rs.kit) {
       const move = document.createElement("div")
-      move.className = "cup-kit-move"
+      move.className = "cup-kit-move kit-line"
       move.textContent = getMove(id)?.displayName ?? id
       rKit.append(move)
     }
@@ -181,7 +181,7 @@ export function createCoachRoom(shared: CupShared): {
     const { row: tacticRow } = buildTacticRow({
       rowClass: "cup-tactic-row",
       describe: (t) => ({ label: t === "balanced" ? "Balanced" : "Specials" }),
-      classes: { base: "cup-tactic", on: "on" },
+      classes: { base: "cup-tactic kit-line", on: "on" },
       initialOn: "balanced",
       onPick: (t) => {
         if (mem.picks) mem.picks.tactic = t

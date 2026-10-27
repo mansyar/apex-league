@@ -12,9 +12,14 @@
  * keeps playing. A failed request paints a sentence; it never blocks, and it
  * never touches the save.
  */
-import { focusTrap } from "../battleUI"
 import { button, chip } from "../ui/kit"
-import { cloudStatusLine, PASSPHRASE_NOTICE, signInFailureLine } from "./copy"
+import { closeModal, openModal } from "../ui/modal"
+import {
+  cloudQueueLine,
+  cloudStatusLine,
+  PASSPHRASE_NOTICE,
+  signInFailureLine,
+} from "./copy"
 import type { TrainerCredentials } from "./credentials"
 import type { CloudStatus, CloudSync } from "./sync"
 
@@ -52,12 +57,18 @@ export function buildCloudPanel(opts: {
   sync: CloudSync
   /** The credentials currently stored, or null when signed out. */
   credentials: () => TrainerCredentials | null
+  /**
+   * How many changes are waiting for the cloud (FR-14): when positive, the
+   * panel reads the count in words beside the status. Absent, the queue
+   * line stays hidden — the status sentence still says what to do.
+   */
+  queued?: () => number
 }): CloudPanel {
-  const { sync, credentials } = opts
+  const { sync, credentials, queued } = opts
 
   const root = document.createElement("div")
   root.className = "kit-modal"
-  root.style.display = "none"
+  root.classList.add("is-hidden")
   root.setAttribute("role", "dialog")
   root.setAttribute("aria-modal", "true")
   root.setAttribute("aria-label", "Trainer cloud")
@@ -87,6 +98,13 @@ export function buildCloudPanel(opts: {
   status.className = "cloud-status"
   status.setAttribute("role", "status")
 
+  // The offline queue reads in words beside the status (FR-14): a queued
+  // ghost or save is a sentence, never an icon the player must decode.
+  const queue = document.createElement("p")
+  queue.className = "cloud-queue"
+  queue.setAttribute("role", "status")
+  queue.hidden = true
+
   // Two rows: the pair a player acts with, then the quieter sign-out beside
   // Done. Three chips in one row wrap their own labels at 393px.
   const actions = document.createElement("div")
@@ -111,47 +129,48 @@ export function buildCloudPanel(opts: {
     field("Passphrase", passInput),
   )
 
-  box.append(title, notice, form, status, actions, footer)
+  box.append(title, notice, form, status, queue, actions, footer)
   root.append(box)
 
   const chipEl = chip({ label: "Cloud", variant: "dim", onClick: () => open() })
   chipEl.classList.add("cloud-chip")
   chipEl.title = "Trainer cloud"
 
-  let opener: HTMLElement | null = null
-
+  // Open/close, focus trap, scrim-click, Escape, and return-focus are the
+  // shared modal helper's (ui/modal).
   function say(message: string): void {
     status.textContent = message
+  }
+
+  function open(): void {
+    paintFields()
+    paint(sync.status())
+    openModal(root, { box, initialFocus: idInput })
+  }
+
+  function close(): void {
+    closeModal(root)
   }
 
   /** The signed-in fields only make sense for the trainer they belong to. */
   function paintFields(): void {
     const stored = credentials()
-    signOut.style.display = stored === null ? "none" : ""
+    signOut.classList.toggle("is-hidden", stored === null)
     idInput.value = stored?.id ?? idInput.value
     nameInput.value = stored?.name ?? nameInput.value
   }
 
   function paint(next: CloudStatus): void {
     say(cloudStatusLine(next))
+    // Logged-out, offline-with-queue, and stale-snapshot states read
+    // differently in words (FR-14): the queue count is its own sentence.
+    const line = cloudQueueLine(queued?.() ?? 0)
+    queue.hidden = line === null
+    queue.textContent = line ?? ""
     chipEl.dataset.sync = next.kind
     // Text carries the meaning; the dot only reinforces it (accessibility:
     // colour is never the only carrier).
     chipEl.title = cloudStatusLine(next)
-  }
-
-  function open(): void {
-    opener = document.activeElement as HTMLElement | null
-    paintFields()
-    paint(sync.status())
-    root.style.display = ""
-    idInput.focus()
-  }
-
-  function close(): void {
-    root.style.display = "none"
-    opener?.focus()
-    opener = null
   }
 
   async function run(action: () => Promise<{ ok: boolean; reason?: string }>) {
@@ -182,16 +201,6 @@ export function buildCloudPanel(opts: {
   form.addEventListener("submit", (event) => {
     event.preventDefault()
     void run(() => sync.signIn(idInput.value, passInput.value))
-  })
-  root.addEventListener("keydown", (event) => {
-    focusTrap(box)(event)
-    if (event.key === "Escape") {
-      event.stopPropagation()
-      close()
-    }
-  })
-  root.addEventListener("click", (event) => {
-    if (event.target === root) close()
   })
 
   return { root, chip: chipEl, open, close, paint }

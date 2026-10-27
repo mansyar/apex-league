@@ -7,10 +7,11 @@
 
 import type { GameState } from "@apex/sim"
 import { chip } from "../ui/kit"
+import { closeModal, openModal } from "../ui/modal"
 import { confirmCopy, confirmLabel, hatchFailureCopy } from "./copy"
 import { buildEgg, renderEgg } from "./egg"
 import { buildHall, renderHall } from "./hall"
-import { modalShell, openerElement, wireModal } from "./modal"
+import { modalShell } from "./modal"
 import { createNursery } from "./nursery"
 import type { GraduationFlow, GraduationHandlers } from "./types"
 
@@ -25,16 +26,11 @@ export function createGraduation(
 ): GraduationFlow {
   // -- Confirm modal ---------------------------------------------------------
   const confirm = modalShell()
-  /** Where focus goes when a surface closes (nothing to do if it is gone). */
-  let confirmOpener: HTMLElement | null = null
-  let hallOpener: HTMLElement | null = null
-  const restoreFocus = (target: HTMLElement | null): void => {
-    if (target?.isConnected) target.focus()
-  }
+  // Open/close, trap, scrim-click, Escape, and return-focus are the shared
+  // modal helper's (ui/modal); dismissals below only name the helper.
   /** Dismiss the confirm modal and hand focus back to the Graduate chip. */
   const dismissConfirm = (): void => {
-    confirm.root.style.display = "none"
-    restoreFocus(confirmOpener)
+    closeModal(confirm.root)
   }
   const keepChip = chip({
     label: "Not yet",
@@ -56,8 +52,7 @@ export function createGraduation(
   const hall = buildHall()
   /** Dismiss the Hall of Fame and hand focus back to the Lineage plate. */
   const dismissHall = (): void => {
-    hall.root.style.display = "none"
-    restoreFocus(hallOpener)
+    closeModal(hall.root)
   }
   const hallClose = chip({
     label: "Close",
@@ -71,13 +66,12 @@ export function createGraduation(
   const nursery = createNursery({ onHatch: handlers.onHatch })
 
   root.append(confirm.root, egg.root, hall.root, nursery.root)
-  wireModal(confirm.root, confirm.box, dismissConfirm)
-  wireModal(hall.root, hall.box, dismissHall)
 
   const close = (): void => {
-    confirm.root.style.display = "none"
+    // Teardown: no focus moves, no cleanup notifications.
+    closeModal(confirm.root, { returnFocus: false, notify: false })
     egg.root.style.display = "none"
-    hall.root.style.display = "none"
+    closeModal(hall.root, { returnFocus: false, notify: false })
     nursery.close()
   }
 
@@ -92,17 +86,16 @@ export function createGraduation(
     openConfirm(state) {
       const creature = state.creature
       if (!creature) return
-      confirmOpener = openerElement()
       confirm.title.textContent = confirmLabel(creature.name)
       confirm.text.textContent = confirmCopy(creature.name)
       confirmButton.textContent = "Graduate"
       confirmButton.onclick = () => {
-        confirm.root.style.display = "none"
+        // A commit: the egg screen takes focus next, so no handoff here.
+        closeModal(confirm.root, { returnFocus: false })
         handlers.onConfirm()
       }
       update(state)
-      confirm.root.style.display = ""
-      confirmButton.focus()
+      openModal(confirm.root, { box: confirm.box, initialFocus: confirmButton })
     },
     showEggScreen(state) {
       update(state)
@@ -120,9 +113,7 @@ export function createGraduation(
     },
     openHallOfFame(state) {
       update(state)
-      hallOpener = openerElement()
-      hall.root.style.display = ""
-      hallClose.focus()
+      openModal(hall.root, { box: hall.box, initialFocus: hallClose })
     },
     update,
     close,

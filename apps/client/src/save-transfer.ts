@@ -1,6 +1,6 @@
 import type { CupSession, SaveData, SaveImportReason } from "@apex/sim"
-import { focusTrap } from "./battleUI"
 import { chip } from "./ui/kit"
+import { closeModal, openModal } from "./ui/modal"
 
 /**
  * Save transfer helpers (release_polish_20261018 Phase 3).
@@ -56,7 +56,7 @@ export function buildImportModal(
 ): ImportModalRefs {
   const root = document.createElement("div")
   root.className = "kit-modal"
-  root.style.display = "none"
+  root.classList.add("is-hidden")
   root.setAttribute("role", "dialog")
   root.setAttribute("aria-modal", "true")
   root.setAttribute("aria-label", "Replace save")
@@ -84,39 +84,24 @@ export function buildImportModal(
   root.append(box)
 
   let pending: SaveData | null = null
-  let opener: HTMLElement | null = null
 
+  // Open/close, focus trap, scrim-click, Escape, and return-focus are the
+  // shared modal helper's (ui/modal).
   function close(): void {
-    root.style.display = "none"
+    closeModal(root)
     pending = null
-    if (opener?.isConnected) opener.focus()
-    opener = null
   }
 
   function ask(data: SaveData): void {
     pending = data
-    opener =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null
     text.textContent = `${importSummary(data)} — this replaces your current ranch.`
-    root.style.display = ""
-    confirm.focus()
+    openModal(root, { box, initialFocus: confirm })
   }
 
   confirm.addEventListener("click", () => {
     const data = pending
     close()
     if (data) onConfirm(data)
-  })
-
-  const trapFocus = focusTrap(box)
-  root.addEventListener("keydown", (event) => {
-    trapFocus(event)
-    if (event.key === "Escape") close()
-  })
-  root.addEventListener("click", (event) => {
-    if (event.target === root) close()
   })
 
   return { root, ask, close }

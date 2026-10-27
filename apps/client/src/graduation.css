@@ -3,7 +3,7 @@
 
 /* The egg screen sits above the onboarding callout (z-60) and below modals. */
 .graduation-overlay {
-  z-index: 65;
+  z-index: var(--z-grad);
 }
 
 /* Inherited stat floor under each species card. */

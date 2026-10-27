@@ -32,3 +32,4 @@
 - [x] **Track: Roster Wave 3 (Breeding Discovery)** - [20261027-roster-wave-3](./archive/20261027-roster-wave-3/index.md) - feature - high *(archived 2026-10-27)*
 - [x] **Track: Global Leaderboards** — [20261027-global-leaderboards](./archive/20261027-global-leaderboards/index.md) — feature — high *(archived 2026-10-27)*
 - [x] **Track: Ghost Data & Async Rivals** — [20261027-ghost-data-async-rivals](./archive/20261027-ghost-data-async-rivals/index.md) — feature — high *(archived 2026-10-27)*
+- [x] **Track: UI Cleanliness & Clarity Pass** - [20261027-ui-cleanliness-clarity-pass](./archive/20261027-ui-cleanliness-clarity-pass/index.md) - refactor - high *(archived 2026-10-27)*

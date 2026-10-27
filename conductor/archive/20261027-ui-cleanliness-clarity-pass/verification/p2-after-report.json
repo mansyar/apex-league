@@ -1,0 +1,27 @@
+{
+  "desktop:ranch": {
+    "shot": "p2-after-desktop-ranch.png"
+  },
+  "desktop:board": {
+    "shot": "p2-after-desktop-board.png"
+  },
+  "desktop:spar": {
+    "shot": "p2-after-desktop-spar.png"
+  },
+  "desktop:cup": {
+    "shot": "p2-after-desktop-cup.png"
+  },
+  "mobile:ranch": {
+    "shot": "p2-after-mobile-ranch.png"
+  },
+  "mobile:board": {
+    "shot": "p2-after-mobile-board.png"
+  },
+  "mobile:spar": {
+    "shot": "p2-after-mobile-spar.png"
+  },
+  "mobile:cup": {
+    "shot": "p2-after-mobile-cup.png"
+  },
+  "errors": []
+}

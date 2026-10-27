@@ -3,14 +3,14 @@
  *
  * It owns the one cloud conversation the client has: a single pull at boot,
  * a guarded adoption, the first-sign-in upload, and the debounced push that
- * rides behind the local autosave. It never blocks a day — every entry point
- * returns immediately or resolves a *value* (a status), never throws — and it
- * never touches the read path: `getItem` is still local storage.
+ * rides behind the local autosave. It never blocks a day — entries return
+ * immediately or resolve a status, never throw — and the read path stays
+ * local (`getItem` is still local storage).
  *
- * Adoption is one-way and guarded (FR-7, AC-7): a cloud copy is only ever
- * adopted when it is strictly newer, and a local ranch is only ever uploaded
- * when the trainer has no cloud save at all. Signing in with a local ranch
- * and an existing cloud save therefore changes nothing on either side.
+ * Adoption is one-way and guarded (FR-7, AC-7): a cloud copy is only
+ * adopted when strictly newer, and a local ranch uploads only when the
+ * trainer has no cloud save. Signing in beside an existing cloud save
+ * changes nothing on either side.
  */
 import {
   inspectSaveImport,
@@ -29,6 +29,7 @@ import {
 } from "./credentials"
 import { createGhostSubmitter } from "./ghosts"
 import { createPushQueue, type PushQueue } from "./push-queue"
+import { queueDepth } from "./queue-depth"
 import { fingerprint, savedAtOf } from "./save-payload"
 import { createScoreSubmitter } from "./scores"
 
@@ -68,6 +69,8 @@ export interface CloudSync {
   noteLocalWrite(payload: string): void
   /** Queue a cup-winning ghost; the next push flushes it after the save. */
   queueGhost(bundle: unknown): void
+  /** Unsent work: the debounced save (0/1) plus the parked ghost (0/1). */
+  queuedPushes(): number
   /** Where a newer cloud save goes. Set once, by the composition root. */
   adoptWith(adopt: (data: SaveData) => void): void
   subscribe(listener: (status: CloudStatus) => void): () => void
@@ -351,6 +354,11 @@ export function createCloudSync(opts: {
 
     queueGhost(bundle: unknown) {
       ghosts.queueGhost(bundle)
+    },
+
+    queuedPushes() {
+      // The queue sentence reads in words beside the status (FR-14).
+      return queueDepth(queue, storage)
     },
   }
 }

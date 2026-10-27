@@ -259,8 +259,10 @@ class FakeElement {
   }
 
   /** Deliver `event` to the handlers registered for `type` — the only way in. */
-  fire(type: string, event: unknown): void {
-    for (const handler of this.listeners.get(type) ?? []) handler(event)
+  fire(type: string, event: Record<string, unknown>): void {
+    for (const handler of this.listeners.get(type) ?? []) {
+      handler({ stopPropagation: () => {}, ...event })
+    }
   }
 
   private adopt(node: FakeElement): void {

@@ -23,23 +23,6 @@
   user-select: none;
 }
 
-@keyframes settle-down-centered {
-  from {
-    transform: translate(-50%, -14px);
-    opacity: 0;
-  }
-
-  60% {
-    transform: translate(-50%, 2px);
-    opacity: 1;
-  }
-
-  to {
-    transform: translate(-50%, 0);
-    opacity: 1;
-  }
-}
-
 .score-day {
   display: flex;
   align-items: baseline;
@@ -139,6 +122,15 @@
   font-size: 12px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+
+/* Score-bug hierarchy (UI cleanliness): phase/day/AP read primary — the
+ * 30px day numeral and the gold AP label carry the bug — while the trophy
+ * and ladder tallies ride quieter so the readout leads at a glance. The
+ * phone tier already drops these segments entirely (day + AP only). */
+.score-trophy,
+.score-ladder {
+  opacity: 0.72;
 }
 
 /* Bottom-left creature lower-third (broadcast kit plate) */
@@ -300,9 +292,7 @@
   flex: 1;
   min-width: 0;
   padding: 6px 10px;
-  border: 1px solid var(--kit-keyline);
   border-radius: 6px;
-  background: var(--kit-panel-bg);
   color: var(--ink);
   font: inherit;
   font-weight: 800;
@@ -946,7 +936,7 @@
   top: calc(146px + var(--kit-safe-top));
   left: calc(18px + var(--kit-safe-left));
   transform: none;
-  z-index: 60;
+  z-index: var(--z-notice);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -990,7 +980,6 @@
   gap: 1px;
   padding: 7px 4px 6px;
   background: rgb(255 236 200 / 0.04);
-  border: 1px solid var(--kit-keyline);
 }
 
 .stat-label {
@@ -1134,38 +1123,96 @@
 /* Settings cluster (save v5 chips, now the Settings entry): top-left.
    Sits above the spar overlay (z-40) so the chip stays reachable during
    battles — the camera row inside the modal is an arena-only control
-   (coach_knowledge_20261016 Phase 5). */
+   (coach_knowledge_20261016 Phase 5). Settings stays primary beside the
+   More toggle; every other chip folds into the overflow panel. */
 .hud-motion {
   position: absolute;
   top: 18px;
   left: 18px;
-  z-index: 45;
+  z-index: var(--z-dock);
   animation: settle-down 0.5s var(--kit-settle) 0.24s both;
   user-select: none;
 }
 
-/* Lineage plate (save v10): the family name with its generation numeral, the
-   bloodline counters, and the Hall of Fame opener in one surface. It sits
-   BELOW the top band — the centered score bug and the fixed top-center
-   teaching callout both live there, and a long dynasty name reaching right
-   used to slide under the bug's left corner. */
+/* Ranch overflow (UI cleanliness): the panel floats over the scene without
+   moving the lineage plate or the stack seats — opening More never
+   reflows the ranch, so the phone and landscape seat math needs no
+   gift-conditional nudge anymore (the pending-gift chip folds inside the
+   panel instead of growing the cluster). The open seat is measured below
+   the lineage plate at open time (overflow.seatOverflowBelow); the static
+   top here is only the pre-JS fallback. Shut, it leaves the tab order
+   via `is-hidden`, like every other folded surface. */
+.hud-overflow {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px;
+}
+
+.hud-overflow.is-hidden {
+  display: none;
+}
+
+/* Lineage plate (save v10): the family name with its generation numeral
+   stays visible; the bloodline counters and the Hall of Fame opener fold
+   behind the summary. It sits BELOW the top band — the centered score bug
+   and the fixed top-center teaching callout both live there, and a long
+   dynasty name reaching right used to slide under the bug's left corner. */
 .hud-lineage {
   position: absolute;
   top: 100px;
   left: 18px;
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
   padding: 7px 12px;
-  border: none;
-  color: var(--ink);
-  cursor: pointer;
   animation: settle-down 0.5s var(--kit-settle) 0.28s both;
   user-select: none;
 }
 
-.hud-lineage:hover {
+/* The summary row is the plate's toggle: family name plus a chevron that
+   points right while the detail folds and swings down when it opens (the
+   collapsed-rotation grammar the other plates already use). */
+.lineage-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.lineage-summary:hover {
   color: var(--accent);
+}
+
+.lineage-summary .collapse-chev {
+  transform: rotate(-90deg);
+}
+
+.lineage-summary[aria-expanded="true"] .collapse-chev {
+  transform: none;
+}
+
+/* The detail folds behind the summary: counters plus the Hall of Fame
+   opener. `is-hidden` keeps shut detail out of the tab order; keyboard
+   users toggle with the summary and open the hall with the button inside. */
+.lineage-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lineage-detail.is-hidden {
+  display: none;
 }
 
 .lineage-family {
@@ -1265,6 +1312,12 @@
   color: var(--ink-dim);
 }
 
+/* The catalog blurb reads inline under the tradeoff (FR-16): quiet note words, never a hover-only title. */
+.train-blurb {
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+
 .train-entry.is-capped .train-note {
   font-style: italic;
   color: rgb(184 173 156 / 0.65);
@@ -1281,8 +1334,9 @@
 /* Top-right spar chip - its own control, separate from the care cluster. */
 
 /* ---- Phone tier (responsive_foundation_20261013) ----
-   Under 768px the ranch HUD rearranges: the two bottom plates stack
-   full-width inside .hud-stack (wrapped by hud.ts), the score bug
+   Under 768px the ranch HUD rearranges: the motion cluster, lineage
+   plate, teaching callout and the two bottom plates flow full-width
+   inside the .hud-ranch column (built by hud/shell), the score bug
    compacts to the top-right corner, and anchored overlays hug the
    margins plus the safe-area insets. At ≥768px the original
    corner-pinned layout above applies unchanged. Tier definitions live
@@ -1291,6 +1345,17 @@
 /* Stack wrapper: a transparent box on desktop (display:contents keeps
    the children positioned against the root), a real column on phones. */
 .hud-stack {
+  display: contents;
+}
+
+/* Ranch flow column (UI cleanliness): `shell` wraps the motion cluster,
+   the lineage plate, the stack and the teaching callout in one flow
+   parent. Desktop keeps the wrapper transparent (display: contents), so
+   every absolute seat below paints exactly where it always has; the
+   phone and landscape tiers turn the wrapper into the column the plates
+   flow in, which lets an expanding lineage push its siblings without
+   any measured-per-state top nudges. */
+.hud-ranch {
   display: contents;
 }
 
@@ -1321,16 +1386,13 @@
     display: none;
   }
 
+  /* The stack is the wrapper grid's last row: it stretches to the bottom
+     inset and bottom-justifies its plates, so a short dock still hugs the
+     corner exactly as before. Its top edge is whatever the lineage plate
+     and the callout above leave it — no measured band top. */
   .hud-stack {
-    position: absolute;
-    inset: auto calc(14px + var(--kit-safe-right))
-      calc(14px + var(--kit-safe-bottom)) calc(14px + var(--kit-safe-left));
-    /* 228px clears the lineage plate, which sits at top 176px and is 44px
-       tall, plus the 8px gap the stack keeps: the creature plate can never
-       creep over it at 393x659 (it measured plate.top 214 against
-       lineage.bottom 220 before this). Content is bottom-aligned, so a short
-       dock still hugs the corner exactly as before. */
-    top: calc(228px + var(--kit-safe-top));
+    position: static;
+    inset: auto;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -1350,8 +1412,7 @@
   }
 
   /* The plate keeps its size so its own numbers stay put; the dock is the
-     child that may give way, and the band's 228px top keeps the pair clear of
-     the lineage plate at 393x659. */
+     child that may give way inside the stack's bottom-justified column. */
   .creature-plate {
     flex: 0 0 auto;
   }
@@ -1365,8 +1426,8 @@
   /* An open picker becomes a program sheet rather than a squeezed child: the
      care row, the train button and both CTAs step aside (they are unreachable
      by keyboard too, since display:none drops them from the tab order), which
-     frees the 242px the four rows need inside the 417px band at 393x659
-     (plate 74 + gap 8 + dock 294 = 376, 41px slack). The list never scrolls
+     frees the 242px the four rows need inside the stack's bottom-justified
+     column (plate 74 + gap 8 + dock 294 = 376). The list never scrolls
      internally, so all four programs are readable at once. Only the train
      button is hidden, never .dock-train itself: the sheet is appended to the
      dock root as .dock-train's sibling, and hiding the wrapper would also take
@@ -1389,50 +1450,57 @@
     padding: 6px 2px;
   }
 
-  .hud-motion {
-    top: calc(14px + var(--kit-safe-top));
-    left: calc(14px + var(--kit-safe-left));
+  /* The ranch flow column owns the left rail: motion cluster, lineage
+     plate, teaching callout and the creature/dock stack share one grid,
+     so an expanding lineage pushes the callout and the stack down by
+     construction. The right-column chips (score bug, spar, cup) keep
+     their own absolute seats in their own surfaces; the lineage row's
+     clearance below them is measured at paint time (hud/overflow
+     `seatRanchFlow`), never hardcoded — and the pending-gift chip folds
+     inside the overflow panel, so its appearance moves nothing. */
+  .hud-ranch {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+    grid-template-areas:
+      "motion"
+      "lineage"
+      "callout"
+      "stack";
+    row-gap: 8px;
+    padding: calc(14px + var(--kit-safe-top)) calc(14px + var(--kit-safe-right))
+      calc(14px + var(--kit-safe-bottom)) calc(14px + var(--kit-safe-left));
+    pointer-events: none;
+  }
+
+  .hud-ranch > .hud-motion {
+    grid-area: motion;
+    position: relative;
+    top: auto;
+    left: auto;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
+    pointer-events: auto;
   }
 
-  .hud-lineage {
-    /* 176px: the phone top-right column stacks the score bug (10px),
-       spar chip (64px, spar.css) and cup chip (120px, cup.css); this
-       full-width plate slides below all of them. */
-    top: calc(176px + var(--kit-safe-top));
-    left: calc(14px + var(--kit-safe-left));
+  .hud-ranch > .hud-lineage {
+    grid-area: lineage;
+    position: static;
+    justify-self: start;
     padding: 6px 10px;
+    pointer-events: auto;
   }
 
-  .hud-callout {
-    /* Below the lineage plate (top: 176px). */
-    top: calc(226px + var(--kit-safe-top));
-    left: calc(14px + var(--kit-safe-left));
-    right: calc(14px + var(--kit-safe-right));
+  .hud-ranch > .hud-callout {
+    grid-area: callout;
+    position: static;
+    inset-inline: auto;
     transform: none;
     max-width: none;
-  }
-
-  /* A pending league gift (species roster FR-7) makes the cluster four chips
-     tall: it ends at 208 and the 176px seat above would put the Stable chip
-     across the lineage plate. While the egg waits, the plate and the panel
-     stack both step down by the extra chip (32px); with no egg the compact
-     seats above stand untouched. */
-  .hud-motion:has(.gift-chip:not(.is-hidden)) ~ .hud-lineage {
-    top: calc(208px + var(--kit-safe-top));
-  }
-
-  .hud-motion:has(.gift-chip:not(.is-hidden)) ~ .hud-stack {
-    top: calc(260px + var(--kit-safe-top));
-  }
-
-  /* The teaching callout keeps its "below the lineage plate" seat: the plate
-     now ends at 252, so the card follows it down by the same 32px. */
-  .hud-motion:has(.gift-chip:not(.is-hidden)) ~ .hud-callout {
-    top: calc(258px + var(--kit-safe-top));
+    pointer-events: auto;
   }
 
   /* Expanded sheets get tighter rows on phone — same readouts, less
@@ -1461,7 +1529,7 @@
   }
 
   .dock-head {
-    min-height: 40px;
+    min-height: 44px;
   }
 
   /* The two bottom panels share one corner, so opening one folds the
@@ -1489,38 +1557,52 @@
 /* Landscape, short viewport (852x393 — FR-3/AC-1 landscape): the width sits
    in the tablet band, so the panels keep their desktop corner-pinned seats
    side by side; the height is the constraint, not the width. The stacked
-   chip cluster keeps its band seat, so the lineage plate slides below it,
-   the expanded creature plate caps above that plate and scrolls internally
+   chip cluster keeps its band seat, so the lineage plate pins below it on
+   a measured seat, the expanded creature plate caps above that plate and scrolls internally
    (the edge-case contract: long panels scroll, never clip), and the dock
    gets a ceiling too so a shorter rotated window still reaches every
    control without climbing into the score bug. */
 @media (orientation: landscape) and (max-height: 500px) {
-  /* 158px: the stacked chip cluster ends at 150 (three chips + gaps from
-     top 18); 8px under it, the lineage plate keeps its own clear band. */
-  .hud-lineage {
-    top: calc(158px + var(--kit-safe-top));
+  /* The transparent wrapper (display: contents) leaves no flow to push
+     with, so the lineage plate pins below the motion cluster and the
+     visible callout on a measured absolute seat (`seatRanchFlow` sets the
+     inline top at paint time): the corner inset here is only the
+     pre-paint origin, and an expanding lineage never climbs toward the
+     corner-pinned plates. The gift chip folds inside the overflow panel,
+     so its appearance moves nothing. */
+  .hud-ranch {
+    position: absolute;
+    inset: 0;
+    padding: calc(18px + var(--kit-safe-top)) calc(18px + var(--kit-safe-right))
+      calc(18px + var(--kit-safe-bottom)) calc(18px + var(--kit-safe-left));
+    pointer-events: none;
   }
 
-  /* 246px: the 18px corner inset plus the landscape lineage plate's bottom
-     edge (top 158 + 37 tall) plus 3px slack, minus the plate's own 28px
-     padding and 2px border (content-box sizing — the cap bounds the
-     content box). An expanded plate scrolls inside this ceiling. */
+  .hud-ranch > .hud-lineage {
+    position: absolute;
+    top: calc(18px + var(--kit-safe-top));
+    left: calc(18px + var(--kit-safe-left));
+    width: fit-content;
+    pointer-events: auto;
+  }
+
+  /* The full-viewport wrapper passes yard gestures through everywhere
+     but the controls: the motion cluster re-enables hits, like the
+     lineage plate above. (The teaching callout keeps its own intentional
+     pass-through below: card none, Got-it button auto.) Without this the
+     More toggle goes dead under the canvas in short landscape. */
+  .hud-ranch > .hud-motion {
+    pointer-events: auto;
+  }
+
+  /* 246px ceiling (content-box sizing — the cap bounds the content box;
+     the plate's own 28px padding and 2px border ride on top): the flow
+     lineage sits higher than the old 158px seat now, so this keeps its
+     old conservative bound and an expanded plate scrolls inside it
+     instead of climbing toward the score bug. */
   .creature-plate {
     max-height: calc(100dvh - 246px);
     overflow-y: auto;
-  }
-
-  /* A pending league gift (species roster FR-7) is a fourth chip, so the
-     cluster ends at 196 instead of the 150 the 158px seat above assumes and
-     the Stable chip would sit on the lineage plate. While the egg waits,
-     both the plate and the expanded plate's ceiling slide down by the same
-     46px; with no egg the compact seat above stands untouched. */
-  .hud-motion:has(.gift-chip:not(.is-hidden)) ~ .hud-lineage {
-    top: calc(204px + var(--kit-safe-top));
-  }
-
-  .hud-motion:has(.gift-chip:not(.is-hidden)) ~ .hud-stack .creature-plate {
-    max-height: calc(100dvh - 292px);
   }
 
   /* 146px: the corner inset plus the score bug's band (16 + 61 tall) plus
@@ -1536,10 +1618,12 @@
      393 tall — it would lie across the dock's head row — and every top
      slot is taken: the chips stack top-left, the spar chip owns the
      top-right, and the free band under the bug is only 47 tall while the
-     card with its Got-it chip is ~62. It rides the yard instead: see the
-     rule below for the seat and the pointer pass-through. */
+     card with its Got-it chip is ~62. It rides the yard instead, on a
+     viewport-proportional seat (18% ≈ 71px at 393 tall, matching the old
+     72px seat there) that scales with shorter windows instead of pinning
+     one device — plus the pointer pass-through below. */
   .hud-callout {
-    top: calc(72px + var(--kit-safe-top));
+    top: calc(18% + var(--kit-safe-top));
     left: calc(130px + var(--kit-safe-left));
     /* No cap: the day-one hint then sits on one line (~704 wide from x
        130, ending at the right inset) and the card bottoms out around
@@ -1670,9 +1754,7 @@
   flex: 1;
   min-width: 0;
   padding: 6px 10px;
-  border: 1px solid var(--kit-keyline);
   border-radius: 6px;
-  background: var(--kit-panel-bg);
   color: var(--ink);
   font: inherit;
   font-size: 15px;

@@ -6,6 +6,7 @@
  * in bracketHeader.
  */
 import { bossForCup, completeCup, prepareCup } from "@apex/sim"
+import { closeModal, openModal } from "../ui/modal"
 import { WALK_SETTLE } from "./board"
 import type { CupShared } from "./shared"
 import { bracketHeader, chipView, entryLine } from "./view-models"
@@ -33,7 +34,7 @@ export function createEntry(shared: CupShared): {
       gate: bossForCup(state),
     })
     cupHint.textContent = view.hint
-    cupButton.style.display = view.visible ? "" : "none"
+    cupButton.classList.toggle("is-hidden", !view.visible)
     cupButton.disabled = !view.enabled
   }
 
@@ -54,18 +55,20 @@ export function createEntry(shared: CupShared): {
     mem.picks = null
     mem.inBattle = false
     mem.fightNow = null
-    overlay.style.display = "none"
+    // The overlay and the give-up fold through the helper; the focus handoff
+    // below stays manual (opener, else the chip) as before.
+    closeModal(overlay, { returnFocus: false })
     battleHud.hide()
     champ.classList.remove("crowned")
     champName.textContent = "—"
     for (const [id, card] of cards) {
-      card.el.className = `cup-match m-${id}`
+      card.el.className = `cup-match kit-surface m-${id}`
       card.slots.a.replaceChildren()
       card.slots.b.replaceChildren()
       colHeadEls[card.column].classList.remove("in")
     }
     cta.classList.remove("show")
-    giveup.root.style.display = "none"
+    closeModal(giveup.root, { returnFocus: false })
     syncChip()
     // Hand focus back to whatever opened the cup (usually the cup chip).
     if (opener?.isConnected) opener.focus()
@@ -120,15 +123,21 @@ export function createEntry(shared: CupShared): {
     champName.textContent = "—"
     // Reset the board, then start the strict-order reveal.
     for (const [id, card] of cards) {
-      card.el.className = `cup-match m-${id}`
+      card.el.className = `cup-match kit-surface m-${id}`
       colHeadEls[card.column].classList.remove("in")
     }
     shared.showScreen("bracket")
-    overlay.style.display = ""
-    // The bracket owns the screen: move focus to its close control so
-    // keyboard players are not left tabbing through the hidden HUD. On a
-    // phone the bracket is a tall scroll column and the close control sits
-    // at its end, so focusing it must not scroll the reader past the board.
+    // The helper traps Tab while the cup owns the screen; Escape stays on
+    // the Back mirror in cup.ts and the scrim never closes a cup.
+    openModal(overlay, {
+      dismissOnScrim: false,
+      dismissOnEscape: false,
+      initialFocus: shared.close,
+    })
+    // The bracket owns the screen: put the keyboard on its close control.
+    // On a phone the bracket is a tall scroll column and the close control
+    // sits at its end, so focusing it must not scroll the reader past the
+    // board.
     shared.close.focus({ preventScroll: true })
     shared.setLine(entryLine(shared.playerName()))
     mem.cursor = 0

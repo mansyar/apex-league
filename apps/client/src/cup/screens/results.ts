@@ -22,7 +22,7 @@ export function buildResultsScreen(): ResultsScreenRefs {
   const screen = document.createElement("div")
   screen.className = "cup-screen cup-screen-results"
   const resultCard = document.createElement("div")
-  resultCard.className = "cup-result-card"
+  resultCard.className = "cup-result-card kit-surface"
   const resultStamp = document.createElement("div")
   resultStamp.className = "cup-result-stamp"
   const resultTitle = document.createElement("div")
@@ -32,7 +32,7 @@ export function buildResultsScreen(): ResultsScreenRefs {
   const resultSub = document.createElement("div")
   resultSub.className = "cup-result-sub"
   const resultPlate = document.createElement("div")
-  resultPlate.className = "cup-result-plate"
+  resultPlate.className = "cup-result-plate kit-line"
   const resultPlateTab = document.createElement("span")
   resultPlateTab.className = "cup-result-tab"
   const resultPlateLine = document.createElement("span")
