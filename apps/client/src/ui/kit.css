@@ -657,25 +657,25 @@
   outline-offset: 2px;
 }
 
-/* Keyboard focus stays visible on every interactive primitive. */
-.kit-chip:focus-visible,
-.kit-button:focus-visible,
-.kit-cta:focus-visible,
-.rename-button:focus-visible,
-.hud-lineage:focus-visible,
-.spar-kit-reset:focus-visible,
-.spar-log-toggle:focus-visible,
-.cup-close:focus-visible,
-.cup-slot:focus-visible,
-.cup-cta-ghost:focus-visible {
+/* Keyboard focus stays visible on every interactive control without a
+   hand-maintained allowlist: any natively focusable element plus anything
+   carrying a tabindex gets the accent ring. New controls are covered by
+   construction (AC-5); surfaces keep only their geometry exceptions. */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-/* F9: the surfaces that own their own controls get the same ring — an
-   additive list against the same token, so it cannot drift from the rule
-   above. Chamfered plates (clip-path) shear an outer ring away entirely, so
-   theirs is drawn just inside the border box instead. */
+/* Chamfered plates (clip-path) shear an outer ring away entirely, so the
+   chamfer-cut controls below draw theirs just inside the border box
+   instead. These are geometry exceptions to the generic rule above —
+   the colour and width still come from the same tokens. */
 .spar-kit-move:focus-visible,
 .spar-tactic:focus-visible,
 .spar-fast:focus-visible,
@@ -1042,7 +1042,7 @@ body.is-reduced *::after {
 /* ---- Responsive tiers (mobile_layout_pass_20261025) --------------------
    The kit's own width breakpoints (FR-1). Surfaces reflow their layouts
    against these exact widths (ranch.css / cup.css phone tiers); the kit
-   carries only what is shared: a ≥40px touch-target floor for every
+   carries only what is shared: a 44px touch-target floor for every
    touch-sized viewport, and phone-density for the primitives that
    render on every screen. Desktop (≥1024px) stays untouched. */
 
@@ -1051,7 +1051,7 @@ body.is-reduced *::after {
   .kit-chip,
   .kit-button,
   .kit-cta {
-    min-height: 40px;
+    min-height: 44px;
   }
 
   /* The advance-day band is the dock's widest control; a touch-shorter
@@ -1076,6 +1076,6 @@ body.is-reduced *::after {
   .kit-chip,
   .kit-button,
   .kit-cta {
-    min-height: 40px;
+    min-height: 44px;
   }
 }

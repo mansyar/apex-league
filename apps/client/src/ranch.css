@@ -1441,7 +1441,7 @@
   }
 
   .dock-head {
-    min-height: 40px;
+    min-height: 44px;
   }
 
   /* The two bottom panels share one corner, so opening one folds the
