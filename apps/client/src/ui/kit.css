@@ -108,6 +108,32 @@
   clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%);
 }
 
+/* ---- Surface pair ----------------------------------------------------- */
+
+/* kit-surface owns the shared panel fill + hairline used by surface
+   stylesheets (ranch, cup, spar, battle-hud, mock): same keyline trick
+   as .kit-plate (fill in the padding box, keyline in the border box).
+   Surfaces keep their own layout, padding, clip-paths and type; they
+   add this class in the builder instead of repeating the pair. */
+.kit-surface {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--kit-panel-bg), var(--kit-panel-bg)) padding-box,
+    linear-gradient(var(--kit-keyline), var(--kit-keyline)) border-box;
+}
+
+/* kit-line is the fill-less twin: just the 1px hairline for rows, cells
+   and ghost buttons that paint their own (usually transparent) ground. */
+.kit-line {
+  border: 1px solid var(--kit-keyline);
+}
+
+/* kit-hex is the shared hexagon clip for crest glyphs; the element hue
+   and fill stay with the surface. */
+.kit-hex {
+  clip-path: polygon(50% 0, 100% 26%, 100% 74%, 50% 100%, 0 74%, 0 26%);
+}
+
 /* ---- Notice ----------------------------------------------------------- */
 
 /* A calm, boot-time banner for news the player must see before any HUD
@@ -886,6 +912,21 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes settle-down-centered {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -14px);
+  }
+  60% {
+    opacity: 1;
+    transform: translate(-50%, 2px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
   }
 }
 

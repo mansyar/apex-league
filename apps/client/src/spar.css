@@ -111,7 +111,6 @@
 }
 
 .spar-kit-move {
-  border: 1px solid var(--kit-keyline);
   background: rgb(255 236 200 / 0.04);
   color: var(--ink);
   font: inherit;
@@ -184,7 +183,6 @@
   align-items: flex-start;
   gap: 4px;
   padding: 10px 12px;
-  border: 1px solid var(--kit-keyline);
   background: rgb(255 236 200 / 0.04);
   color: var(--ink);
   cursor: pointer;
@@ -211,7 +209,6 @@
 .spar-replay {
   align-self: flex-end;
   padding: 4px 12px;
-  border: 1px solid var(--kit-keyline);
   background: rgb(255 236 200 / 0.04);
   color: var(--ink);
   font-size: 11px;
@@ -233,7 +230,6 @@
 /* Secondary battle log (Phase D): the battle-HUD announcer carries the
    live line, so the full log demotes to a compact collapsible box. */
 .spar-logbox {
-  border: 1px solid var(--kit-keyline);
   background: rgb(0 0 0 / 0.25);
   clip-path: polygon(0 0, 100% 0, 100% 100%, 8px 100%, 0 calc(100% - 8px));
 }

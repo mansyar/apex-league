@@ -125,7 +125,7 @@ export function buildCreaturePlate(): CreaturePlateRefs {
   // Inline edit form: name input + confirm/cancel. Hidden until the
   // pencil is pressed; Enter confirms, Escape cancels.
   const nameInput = document.createElement("input")
-  nameInput.className = "creature-name-input"
+  nameInput.className = "creature-name-input kit-surface"
   nameInput.type = "text"
   nameInput.maxLength = 16
   nameInput.setAttribute("aria-label", "Creature name")
@@ -148,7 +148,7 @@ export function buildCreaturePlate(): CreaturePlateRefs {
   statRow.className = "stat-row"
   const statCells = STATS.map(({ key, label }) => {
     const cell = document.createElement("span")
-    cell.className = "stat-cell"
+    cell.className = "stat-cell kit-line"
     const statLabel = document.createElement("span")
     statLabel.className = "stat-label"
     statLabel.textContent = label

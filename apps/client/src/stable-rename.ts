@@ -95,7 +95,7 @@ export function buildStableRename(options: StableRenameOptions): StableRename {
 
   const open = (): void => {
     const input = document.createElement("input")
-    input.className = "stable-pet-input"
+    input.className = "stable-pet-input kit-surface"
     input.type = "text"
     input.maxLength = NAME_MAX_LENGTH
     input.value = options.name

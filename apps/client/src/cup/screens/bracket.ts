@@ -90,7 +90,7 @@ export function buildBracketScreen(): BracketScreenRefs {
   for (const entry of bracketPlan(BRACKET_SLOTS)) {
     const col = entry.column
     const el = document.createElement("div")
-    el.className = `cup-match m-${entry.id}`
+    el.className = `cup-match kit-surface m-${entry.id}`
     el.dataset.match = entry.id
     const ribbon = document.createElement("div")
     ribbon.className = "cup-ribbon"
@@ -127,7 +127,7 @@ export function buildBracketScreen(): BracketScreenRefs {
   cta.className = "cup-cta"
   const ctaGhost = document.createElement("button")
   ctaGhost.type = "button"
-  ctaGhost.className = "cup-cta-ghost"
+  ctaGhost.className = "cup-cta-ghost kit-line"
   ctaGhost.textContent = "Scout the rival"
   const ctaGo = document.createElement("button")
   ctaGo.type = "button"
@@ -141,7 +141,7 @@ export function buildBracketScreen(): BracketScreenRefs {
   tickerTab.className = "cup-ticker-tab"
   tickerTab.textContent = "Apex feed"
   const tickerLine = document.createElement("span")
-  tickerLine.className = "cup-ticker-line"
+  tickerLine.className = "cup-ticker-line kit-surface"
   ticker.append(tickerTab, tickerLine)
 
   screen.append(head, bracket, cta, ticker)

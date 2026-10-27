@@ -105,7 +105,7 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
   top.className = "battle-hud-top"
 
   const center = document.createElement("div")
-  center.className = "battle-hud-center"
+  center.className = "battle-hud-center kit-surface"
   const vs = document.createElement("span")
   vs.className = "battle-hud-vs"
   vs.textContent = "VS"
@@ -133,7 +133,7 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
   lowerTab.className = "battle-hud-lower-tab"
   lowerTab.textContent = "APEX FEED"
   const line = document.createElement("span")
-  line.className = "battle-hud-line"
+  line.className = "battle-hud-line kit-surface"
   // Fight narration lives here while the log is collapsed, so keep it
   // audible to assistive tech too.
   line.setAttribute("aria-live", "polite")
@@ -181,11 +181,11 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
   const buildSide = (f: BattleHudFighter, mirror: boolean): Side => {
     const el = document.createElement("div")
     el.className = mirror
-      ? "battle-plate battle-plate-right"
-      : "battle-plate battle-plate-left"
+      ? "battle-plate battle-plate-right kit-surface"
+      : "battle-plate battle-plate-left kit-surface"
 
     const crest = document.createElement("span")
-    crest.className = "battle-crest"
+    crest.className = "battle-crest kit-hex"
     crest.style.setProperty("--hue", String(elementHue(f.element)))
     crest.innerHTML = crestGlyph(f.element)
 

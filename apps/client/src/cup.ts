@@ -98,10 +98,9 @@ export function createCup(
   // modal because that modal's Escape/Stay handlers hand focus back to
   // it — declaring it later left a latent TDZ trap in those listeners.
   const close = document.createElement("button")
-  close.className = "cup-close"
+  close.className = "cup-close kit-line"
   close.type = "button"
   close.textContent = "Back to the ranch"
-  close.style.display = ""
   shared.close = close
 
   shared.giveup = buildGiveupModal()

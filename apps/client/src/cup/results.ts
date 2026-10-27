@@ -45,7 +45,7 @@ export function createResults(shared: CupShared): {
     resultRewards.replaceChildren()
     view.rows.forEach((text, i) => {
       const row = document.createElement("div")
-      row.className = "cup-reward-row"
+      row.className = "cup-reward-row kit-line"
       row.textContent = text
       row.style.animationDelay = `${0.25 + i * 0.22}s`
       resultRewards.append(row)

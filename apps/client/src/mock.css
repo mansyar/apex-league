@@ -91,7 +91,6 @@ body.mock {
   /* Full-bleed like the real game: the HUD overlays an edge-to-edge 3D scene. */
   width: 100vw;
   margin-left: calc(50% - 50vw);
-  border: 1px solid var(--kit-keyline);
 }
 
 .mock .stage-scene {
@@ -141,7 +140,6 @@ body.mock {
   margin: 0;
   padding: 14px;
   background: rgb(255 236 200 / 0.03);
-  border: 1px solid var(--kit-keyline);
 }
 
 .mock .show-row {
@@ -195,7 +193,6 @@ body.mock {
   position: relative;
   overflow: hidden;
   padding: 42px 38px 46px;
-  border: 1px solid var(--kit-keyline);
   border-radius: 18px;
   background:
     radial-gradient(60% 30% at 50% 100%, rgb(255 210 130 / 0.12), transparent),
@@ -231,7 +228,6 @@ body.mock {
   gap: 10px;
   padding: 22px 16px;
   background: rgb(255 236 200 / 0.05);
-  border: 1px solid var(--kit-keyline);
   clip-path: polygon(
     12px 0,
     calc(100% - 12px) 0,

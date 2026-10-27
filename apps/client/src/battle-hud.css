@@ -35,8 +35,6 @@
   grid-template-columns: auto 1fr;
   align-items: center;
   gap: 12px;
-  background: var(--kit-panel-bg);
-  border: 1px solid var(--kit-keyline);
   padding: 10px 16px 12px;
   min-height: 64px;
 }
@@ -78,7 +76,6 @@
   height: 40px;
   display: grid;
   place-items: center;
-  clip-path: polygon(50% 0, 100% 26%, 100% 74%, 50% 100%, 0 74%, 0 26%);
   background: hsl(var(--hue) 70% 55%);
   color: #14100c;
 }
@@ -201,8 +198,6 @@
   display: grid;
   place-items: center;
   gap: 5px;
-  background: var(--kit-panel-bg);
-  border: 1px solid var(--kit-keyline);
   padding: 8px 6px 10px;
   margin: 0 -1px;
   z-index: var(--z-battle);
@@ -266,9 +261,7 @@
 .battle-hud-line {
   display: inline-block;
   padding: 8px 18px 8px 14px;
-  border: 1px solid var(--kit-keyline);
   border-left: none;
-  background: var(--kit-panel-bg);
   color: var(--ink);
   font-style: italic;
   font-size: 14px;

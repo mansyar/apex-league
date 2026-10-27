@@ -52,7 +52,7 @@ export function buildHeader(): MockHeader {
 
 /** The ranch stage: the money shot, built from the live HUD clusters. */
 export function buildStage(motionBox: HTMLInputElement): HTMLElement {
-  const stage = el("section", "stage")
+  const stage = el("section", "stage kit-line")
   stage.append(
     el("div", "stage-scene"),
     el("div", "stage-sun"),
@@ -189,7 +189,7 @@ export function buildStarterSection(): HTMLElement {
   const starterSection = el("section", "starter-mock")
   starterSection.append(el("h2", undefined, "Starter overlay"))
   const starterFrame = el("div", "starter-frame")
-  const starterDome = el("div", "starter-dome")
+  const starterDome = el("div", "starter-dome kit-line")
   const starterHead = el("div", "starter-head")
   starterHead.append(
     tab("Draft day"),
@@ -199,7 +199,7 @@ export function buildStarterSection(): HTMLElement {
   for (const [element, name, flavor] of STARTER_CARDS) {
     const card = document.createElement("button")
     card.type = "button"
-    card.className = "starter-card"
+    card.className = "starter-card kit-line"
     card.append(
       crest(element),
       el("span", "starter-name", name),

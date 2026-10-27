@@ -38,7 +38,7 @@ export function buildGiveupModal(): GiveupModalRefs {
   giveupRow.className = "cup-giveup-row"
   const giveupStay = document.createElement("button")
   giveupStay.type = "button"
-  giveupStay.className = "cup-cta-ghost"
+  giveupStay.className = "cup-cta-ghost kit-line"
   giveupStay.textContent = "Stay in the bracket"
   const giveupQuit = document.createElement("button")
   giveupQuit.type = "button"
