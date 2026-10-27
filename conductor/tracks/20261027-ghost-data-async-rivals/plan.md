@@ -42,12 +42,19 @@ The primary appends after acceptance:
 - **Covers:** FR-3, FR-7, NFR-4, AC-3, AC-7
 - **Touches:** `apps/server/src/ghost/*`, `apps/server/src/db/*`
 - **Verification:** `bun test apps/server --parallel=4` + `bun run check`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Ghost store + plausibility caps** — covers: FR-3, FR-7
-  - [ ] **P2.T1.1: Upload/download routes with per-trainer best semantics**
-  - [ ] **P2.T1.2: Caps reject oversize/foreign quietly**
-- [ ] **P2.T2: Top-100 listing reusing leaderboard plumbing** — covers: FR-3, AC-3
+- [x] **P2.T1: Ghost store + plausibility caps** — covers: FR-3, FR-7
+  - [x] **P2.T1.1: Upload/download routes with per-trainer best semantics**
+  - [x] **P2.T1.2: Caps reject oversize/foreign quietly**
+- [x] **P2.T2: Top-100 listing reusing leaderboard plumbing** — covers: FR-3, AC-3
+
+**Result:** verified
+**Checkpoint:** 291f1b98
+**Evidence:** conductor/tracks/20261027-ghost-data-async-rivals/verification/phase-2.md
+**Tests:** bun test apps/server --parallel=4 → 164 pass / 0 fail; bun run check → clean (server 44 files)
+**AC:** AC-3 verified (top-100 listing), AC-7 verified (oversize/foreign rejected quietly)
+**Deviations:** schema.ts used instead of src/db/* (Drizzle tables live there); app.ts one import + .use() mount; migration at apps/server/migrations/0003_ghost.sql per committed-SQL pattern; app/db/migrate test expectations pinned to new head migration
 
 <!--
 Review fixes are appended by `conductor-review` as:
@@ -71,7 +78,7 @@ Review fixes are appended by `conductor-review` as:
 - **Covers:** FR-2, FR-6, NFR-2, NFR-5, AC-2, AC-6
 - **Touches:** `apps/client/src/cloud/*`
 - **Verification:** `bun test apps/client/src/cloud --parallel=4` + `bun run check`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Push-queue hook for auto-submit** — covers: FR-2, AC-2
   - [ ] **P3.T1.1: Quiet non-blocking submit with flush ordering**
