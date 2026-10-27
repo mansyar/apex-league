@@ -34,7 +34,7 @@
 - **Covers:** FR-2, NFR-2, NFR-3, NFR-4 — AC-2
 - **Touches:** `packages/voxel/src/cub.ts`, `packages/voxel/src/boar.ts`, `packages/voxel/src/otter.ts`, `packages/voxel/src/*.test.ts`, `artifacts/**`, generated GLB manifests
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Author the three archetype recipes** — covers: FR-2
   - [ ] **P2.T1.1: Ember-maned cub / moss-backed boar / mist-diving otter-kit recipes honoring surface ramp + hue contract (Fire 18° / Plant 110° / Water 205°)**
