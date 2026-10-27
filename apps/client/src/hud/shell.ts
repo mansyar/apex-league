@@ -5,7 +5,13 @@ import { buildPrefCluster, buildSettingsModal } from "../settings-modal"
 import { buildStableChip, buildStableModal } from "../stable"
 import { buildCommandDock } from "./dock"
 import { createDockCollapseSession } from "./dock-collapse"
-import { buildCreaturePlate, buildLineagePlate, buildScoreBug } from "./plates"
+import { assembleOverflow, buildOverflow, seatOverflowBelow } from "./overflow"
+import {
+  buildCreaturePlate,
+  buildLineagePlate,
+  buildScoreBug,
+  wireLineage,
+} from "./plates"
 import { buildResetModal } from "./settings"
 import type { HudShell, HudShellHandlers, HudViewState } from "./types"
 
@@ -40,6 +46,11 @@ export function createHudShell(
     creatureOpen: !plateStartsFolded,
     dockOpen: dockCollapse.dockOpen(),
     renaming: false,
+    // The More panel and the lineage detail fold where the ranch is narrow
+    // (the house phone tier, like the creature plate) and read open where
+    // it has room; an explicit click holds for the session either way.
+    overflowOpen: !startsCollapsed,
+    lineageOpen: !startsCollapsed,
   }
 
   // Top-center score bug — the shared builder; update() owns the values.
@@ -124,9 +135,6 @@ export function createHudShell(
     if (!current) return
     gift.open(current)
   })
-  // The gift chip joins the ranch chips: it is the only way back to a
-  // pending egg once the results screen is gone.
-  motionWrap.append(giftChip)
 
   // The stable (stable & partner reserve FR-9): the chip opens the modal
   // that lists the pets waiting there, the swap inside it hands one of them
@@ -143,16 +151,31 @@ export function createHudShell(
     if (!current) return
     stable.open(current)
   })
-  motionWrap.append(stableChip)
 
-  // Chips the composition root owns (the cloud chip, when this build has an
-  // api origin): appended after the built ones so the cluster order is fixed.
-  for (const extra of handlers.extraChips ?? []) motionWrap.append(extra)
-
-  // Lineage plate (top-left, under the settings pill): the family name +
-  // generation, and the Hall of Fame opener.
+  // Lineage plate (top-left, under the settings pill): the family name stays
+  // visible and the bloodline detail folds behind it; the Hall of Fame
+  // opener rides inside the detail. Built before the overflow — the open
+  // panel seats below this plate, so every primary stays visible behind it.
   const lineage = buildLineagePlate()
-  lineage.root.addEventListener("click", () => handlers.onOpenHallOfFame())
+
+  // Ranch overflow (UI cleanliness): Handbook, Gift, Stable, and the
+  // composition root's extra chips (Cloud, Boards) fold behind one More
+  // toggle; Settings stays primary beside it.
+  const overflow = buildOverflow()
+  assembleOverflow(overflow, view, {
+    handbookChip: motionWrap.querySelector(".handbook-chip"),
+    giftChip,
+    stableChip,
+    extraChips: handlers.extraChips ?? [],
+    mount: motionWrap,
+    anchor: lineage.root,
+  })
+  const reseatOverflow = (): void => {
+    if (view.overflowOpen) {
+      seatOverflowBelow(overflow, motionWrap, lineage.root)
+    }
+  }
+  wireLineage(lineage, view, () => handlers.onOpenHallOfFame(), reseatOverflow)
 
   // The two bottom plates live in a stack wrapper so the phone tier can
   // lay them out as a column; display:contents keeps the desktop
@@ -192,6 +215,7 @@ export function createHudShell(
       stableChip,
       motionWrap,
       lineage,
+      overflow,
     },
     render: () => {},
     closeRename: () => closeRename(),

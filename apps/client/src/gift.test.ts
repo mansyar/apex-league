@@ -114,15 +114,13 @@ describe("the gift chip's visibility", () => {
     expect(button.style.display).toBe("")
   })
 
-  test("ranch.css keys every gift-chip seat rule on the class", () => {
+  test("ranch.css keeps no stale gift-chip seat rules", () => {
     const css = readFileSync(join(import.meta.dir, "ranch.css"), "utf8")
     // No substring match on an inline style anywhere: the fold is a class.
     expect(css).not.toContain("[style*=")
+    // The P3 overflow moved the chip behind More, so the legacy :has() seat
+    // rules are gone; the chip is positioned by the panel, not the ranch.
     const seats = css.match(/:has\(\.gift-chip[^)]*\)/g) ?? []
-    // Four responsive seat rules plus the landscape plate ceiling.
-    expect(seats.length).toBe(5)
-    expect(seats.filter((rule) => rule.includes(":not(.is-hidden)"))).toEqual(
-      seats,
-    )
+    expect(seats.length).toBe(0)
   })
 })

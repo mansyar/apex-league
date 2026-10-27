@@ -124,6 +124,15 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Score-bug hierarchy (UI cleanliness): phase/day/AP read primary — the
+ * 30px day numeral and the gold AP label carry the bug — while the trophy
+ * and ladder tallies ride quieter so the readout leads at a glance. The
+ * phone tier already drops these segments entirely (day + AP only). */
+.score-trophy,
+.score-ladder {
+  opacity: 0.72;
+}
+
 /* Bottom-left creature lower-third (broadcast kit plate) */
 .creature-plate {
   position: absolute;
@@ -1114,7 +1123,8 @@
 /* Settings cluster (save v5 chips, now the Settings entry): top-left.
    Sits above the spar overlay (z-40) so the chip stays reachable during
    battles — the camera row inside the modal is an arena-only control
-   (coach_knowledge_20261016 Phase 5). */
+   (coach_knowledge_20261016 Phase 5). Settings stays primary beside the
+   More toggle; every other chip folds into the overflow panel. */
 .hud-motion {
   position: absolute;
   top: 18px;
@@ -1124,28 +1134,85 @@
   user-select: none;
 }
 
-/* Lineage plate (save v10): the family name with its generation numeral, the
-   bloodline counters, and the Hall of Fame opener in one surface. It sits
-   BELOW the top band — the centered score bug and the fixed top-center
-   teaching callout both live there, and a long dynasty name reaching right
-   used to slide under the bug's left corner. */
+/* Ranch overflow (UI cleanliness): the panel floats over the scene without
+   moving the lineage plate or the stack seats — opening More never
+   reflows the ranch, so the phone and landscape seat math needs no
+   gift-conditional nudge anymore (the pending-gift chip folds inside the
+   panel instead of growing the cluster). The open seat is measured below
+   the lineage plate at open time (overflow.seatOverflowBelow); the static
+   top here is only the pre-JS fallback. Shut, it leaves the tab order
+   via `is-hidden`, like every other folded surface. */
+.hud-overflow {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px;
+}
+
+.hud-overflow.is-hidden {
+  display: none;
+}
+
+/* Lineage plate (save v10): the family name with its generation numeral
+   stays visible; the bloodline counters and the Hall of Fame opener fold
+   behind the summary. It sits BELOW the top band — the centered score bug
+   and the fixed top-center teaching callout both live there, and a long
+   dynasty name reaching right used to slide under the bug's left corner. */
 .hud-lineage {
   position: absolute;
   top: 100px;
   left: 18px;
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
   padding: 7px 12px;
-  border: none;
-  color: var(--ink);
-  cursor: pointer;
   animation: settle-down 0.5s var(--kit-settle) 0.28s both;
   user-select: none;
 }
 
-.hud-lineage:hover {
+/* The summary row is the plate's toggle: family name plus a chevron that
+   points right while the detail folds and swings down when it opens (the
+   collapsed-rotation grammar the other plates already use). */
+.lineage-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.lineage-summary:hover {
   color: var(--accent);
+}
+
+.lineage-summary .collapse-chev {
+  transform: rotate(-90deg);
+}
+
+.lineage-summary[aria-expanded="true"] .collapse-chev {
+  transform: none;
+}
+
+/* The detail folds behind the summary: counters plus the Hall of Fame
+   opener. `is-hidden` keeps shut detail out of the tab order; keyboard
+   users toggle with the summary and open the hall with the button inside. */
+.lineage-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lineage-detail.is-hidden {
+  display: none;
 }
 
 .lineage-family {
@@ -1396,22 +1463,19 @@
     max-width: none;
   }
 
-  /* A pending league gift (species roster FR-7) makes the cluster four chips
-     tall: it ends at 208 and the 176px seat above would put the Stable chip
-     across the lineage plate. While the egg waits, the plate and the panel
-     stack both step down by the extra chip (32px); with no egg the compact
-     seats above stand untouched. */
-  .hud-motion:has(.gift-chip:not(.is-hidden)) ~ .hud-lineage {
-    top: calc(208px + var(--kit-safe-top));
-  }
+  /* The pending-gift chip folds inside the overflow panel (UI
+     cleanliness), so the cluster stays two chips tall whether or not an
+     egg waits — no gift-conditional step-down needed anymore. */
 
-  .hud-motion:has(.gift-chip:not(.is-hidden)) ~ .hud-stack {
+  /* An opened lineage detail grows the plate by one row: while the summary
+     reads expanded, the stack and the callout step down by that row so the
+     plate never sits on the creature head (collapsed, the compact seats
+     above stand untouched). */
+  .hud-lineage:has(.lineage-summary[aria-expanded="true"]) ~ .hud-stack {
     top: calc(260px + var(--kit-safe-top));
   }
 
-  /* The teaching callout keeps its "below the lineage plate" seat: the plate
-     now ends at 252, so the card follows it down by the same 32px. */
-  .hud-motion:has(.gift-chip:not(.is-hidden)) ~ .hud-callout {
+  .hud-lineage:has(.lineage-summary[aria-expanded="true"]) ~ .hud-callout {
     top: calc(258px + var(--kit-safe-top));
   }
 
@@ -1490,18 +1554,9 @@
     overflow-y: auto;
   }
 
-  /* A pending league gift (species roster FR-7) is a fourth chip, so the
-     cluster ends at 196 instead of the 150 the 158px seat above assumes and
-     the Stable chip would sit on the lineage plate. While the egg waits,
-     both the plate and the expanded plate's ceiling slide down by the same
-     46px; with no egg the compact seat above stands untouched. */
-  .hud-motion:has(.gift-chip:not(.is-hidden)) ~ .hud-lineage {
-    top: calc(204px + var(--kit-safe-top));
-  }
-
-  .hud-motion:has(.gift-chip:not(.is-hidden)) ~ .hud-stack .creature-plate {
-    max-height: calc(100dvh - 292px);
-  }
+  /* The pending-gift chip folds inside the overflow panel (UI
+     cleanliness), so the cluster keeps its three-chip seat whether or not
+     an egg waits — no gift-conditional slide needed anymore. */
 
   /* 146px: the corner inset plus the score bug's band (16 + 61 tall) plus
      slack, minus the dock's own 24px padding and 2px border. At 393 tall
