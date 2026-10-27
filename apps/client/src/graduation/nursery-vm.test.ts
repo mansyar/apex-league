@@ -105,7 +105,7 @@ describe("toggleParent — two-parent selection", () => {
   test("adds parents in click order and offers both species", () => {
     const state = toggleParent(createNurseryState(POOL), 0)
     expect(names(state)).toEqual(["Tide", "Rolo"])
-    expect(optionIds(state)).toEqual(["water_axolotl", "fire_drake"])
+    expect(optionIds(state)).toEqual(["water_axolotl", "fire_drake", "mistkit"])
   })
 
   test("toggles a selected parent off", () => {
@@ -151,7 +151,7 @@ describe("chooseSpecies — pair validity", () => {
     state = toggleParent(state, 0)
     expect(state.speciesId).toBe("fire_drake")
     state = toggleParent(state, 1)
-    expect(optionIds(state)).toEqual(["water_axolotl", "plant_ox"])
+    expect(optionIds(state)).toEqual(["water_axolotl", "plant_ox", "mossboar"])
     expect(state.speciesId).toBeNull()
     expect(hatchEnabled(state)).toBe(false)
   })
@@ -164,7 +164,7 @@ describe("chooseSpecies — pair validity", () => {
     state = chooseSpecies(state, "fire_drake")
     state = toggleParent(state, 1) // drop Moss
     state = toggleParent(state, 2) // add Tide → fire is still offered
-    expect(optionIds(state)).toEqual(["fire_drake", "water_axolotl"])
+    expect(optionIds(state)).toEqual(["fire_drake", "water_axolotl", "mistkit"])
     expect(state.speciesId).toBe("fire_drake")
     expect(hatchEnabled(state)).toBe(true)
   })

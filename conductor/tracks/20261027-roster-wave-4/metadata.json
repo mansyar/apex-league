@@ -1,1 +1,32 @@
-{"archive_path":null,"archived_at":null,"base_branch":"main","base_sha":"4cd2d52a4cde39fa10346efe64ee563005a117fd","branch":"feat/20261027-roster-wave-4","created_at":"2026-10-27T09:08:55Z","depends_on":[],"doc_sync":"pending","id":"20261027-roster-wave-4","last_checkpoint":null,"plan":"plan.md","priority":"high","progress":{"phases_total":4,"phases_verified":0,"tasks_done":0,"tasks_total":6},"pr_state":null,"pr_url":null,"review_rounds":0,"review_verdict":null,"reverted_at":null,"revert_commit":null,"revert_pr_url":null,"spec":"spec.md","status":"in_progress","title":"Roster Wave 4 (Fire/Plant/Water Discovery)","type":"feature","updated_at":"2026-10-27T09:14:39Z"}
+{
+  "archive_path": null,
+  "archived_at": null,
+  "base_branch": "main",
+  "base_sha": "4cd2d52a4cde39fa10346efe64ee563005a117fd",
+  "branch": "feat/20261027-roster-wave-4",
+  "created_at": "2026-10-27T09:08:55Z",
+  "depends_on": [],
+  "doc_sync": "pending",
+  "id": "20261027-roster-wave-4",
+  "last_checkpoint": null,
+  "plan": "plan.md",
+  "priority": "high",
+  "progress": {
+    "phases_total": 4,
+    "phases_verified": 0,
+    "tasks_done": 0,
+    "tasks_total": 6
+  },
+  "pr_state": null,
+  "pr_url": null,
+  "review_rounds": 0,
+  "review_verdict": null,
+  "reverted_at": null,
+  "revert_commit": null,
+  "revert_pr_url": null,
+  "spec": "spec.md",
+  "status": "in_progress",
+  "title": "Roster Wave 4 (Fire/Plant/Water Discovery)",
+  "type": "feature",
+  "updated_at": "2026-10-27T09:14:39Z"
+}

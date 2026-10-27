@@ -262,7 +262,7 @@ describe("authored gatekeepers reach their stage under the widened field", () =>
     }
   })
 
-  test("the silver field draws the reward line, the legend field draws all twelve", () => {
+  test("the silver field draws the reward line, the legend field draws all fifteen", () => {
     const silver = obtainableSpecies("silver").map((s) => s.id)
     const legend = obtainableSpecies("legend").map((s) => s.id)
     expect(silver).toContain("fernstag")
@@ -272,8 +272,8 @@ describe("authored gatekeepers reach their stage under the widened field", () =>
       expect(legend).toContain(id)
     }
     // The generated legend field is the nine obtainable species plus the
-    // three wave-3 discovery lines.
-    expect([...legend, ...DISCOVERY_SPECIES.map((s) => s.id)]).toHaveLength(12)
+    // six wave-3/wave-4 discovery lines.
+    expect([...legend, ...DISCOVERY_SPECIES.map((s) => s.id)]).toHaveLength(15)
   })
 
   test("each stage's field really contains the wider line it has unlocked", () => {

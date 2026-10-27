@@ -1,8 +1,9 @@
 /**
- * Breeding-discovery kit probe (`roster_wave_3` FR-3, AC-3, NFR-5): the
- * voltfox/galeheron/shalemole six-move kits recompose only their element's
- * existing vocabulary and land inside the sustained-output band the shipped
- * roster already defines — no kit changes, no golden regressions.
+ * Breeding-discovery kit probe (`roster_wave_3` FR-3, AC-3, NFR-5,
+ * `roster_wave_4` FR-3, AC-3): the six discovery kits recompose only their
+ * element's existing vocabulary and land inside the sustained-output band
+ * the shipped roster already defines — no kit changes, no golden
+ * regressions.
  *
  * A kit's sustained score sums, over its six rows, the policy's own expected
  * damage per action window: `strikeDamage` with fixed 10/10 reference stats
@@ -11,7 +12,7 @@
  * self-calibrates: a kit edit that pushes any line outside the roster's own
  * spread fails here, not in a golden.
  *
- * The duels smoke the production battle path for the three lines (seeded
+ * The duels smoke the production battle path for the six lines (seeded
  * sibling creatures, both side orders, fresh and capped training): every
  * duel must terminate with the winner decided or drawn.
  *
@@ -55,6 +56,9 @@ const SIBLINGS: Readonly<Record<string, string>> = Object.freeze({
   voltfox: "electric_hound",
   galeheron: "wind_falcon",
   shalemole: "earth_tortoise",
+  embercub: "fire_drake",
+  mossboar: "plant_ox",
+  mistkit: "water_axolotl",
 })
 
 /**
@@ -154,12 +158,15 @@ function report(scores: Readonly<Record<string, number>>): void {
 }
 
 describe("discovery kit sustained band", () => {
-  test("the roster reads nine shipped kits plus the three discovery kits", () => {
+  test("the roster reads nine shipped kits plus the six discovery kits", () => {
     expect([...STARTER_SPECIES, ...REWARD_SPECIES]).toHaveLength(9)
     expect(DISCOVERY_SPECIES.map((s) => s.id)).toEqual([
       "voltfox",
       "galeheron",
       "shalemole",
+      "embercub",
+      "mossboar",
+      "mistkit",
     ])
   })
 

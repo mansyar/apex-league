@@ -5,7 +5,8 @@
  * reefclaw (Gold) and cindermoor (Legend) join the reward roster.
  * Extended by roster_wave_3: voltfox, galeheron and shalemole join as
  * breeding-discovery lines — locked, tierless, reachable only through the
- * breed-time recipe lookup.
+ * breed-time recipe lookup. Extended by roster_wave_4: embercub, mossboar
+ * and mistkit join the same seam on the fire triangle.
  */
 
 import { describe, expect, test } from "bun:test"
@@ -775,10 +776,13 @@ describe("cindermoor species record", () => {
   })
 })
 
-describe("breeding-discovery species records (roster_wave_3)", () => {
+describe("breeding-discovery species records (roster_wave_3 + roster_wave_4)", () => {
   const VOLTFOX = "voltfox"
   const GALEHERON = "galeheron"
   const SHALEMOLE = "shalemole"
+  const EMBERCUB = "embercub"
+  const MOSSBOAR = "mossboar"
+  const MISTKIT = "mistkit"
 
   const DISCOVERY_LINES = [
     {
@@ -829,10 +833,65 @@ describe("breeding-discovery species records (roster_wave_3)", () => {
         "basalt_guard",
       ],
     },
+    {
+      id: EMBERCUB,
+      displayName: "Embercub",
+      element: "fire",
+      archetypeId: "cub",
+      temperament: "obedient",
+      sibling: "fire_drake",
+      kit: [
+        "flame_charge",
+        "blaze_bolt",
+        "flare_dart",
+        "pyre_lance",
+        "cinder_dive",
+        "pyre_wall",
+      ],
+    },
+    {
+      id: MOSSBOAR,
+      displayName: "Mossboar",
+      element: "plant",
+      archetypeId: "boar",
+      temperament: "rush",
+      sibling: "plant_ox",
+      kit: [
+        "thorn_volley",
+        "spore_burst",
+        "vine_lash",
+        "root_quake",
+        "thorn_charge",
+        "bramble_guard",
+      ],
+    },
+    {
+      id: MISTKIT,
+      displayName: "Mistkit",
+      element: "water",
+      archetypeId: "otter",
+      temperament: "rush",
+      sibling: "water_axolotl",
+      kit: [
+        "tide_shot",
+        "foam_volley",
+        "mist_spray",
+        "maelstrom",
+        "riptide_rush",
+        "tide_aegis",
+      ],
+    },
   ] as const
 
-  test("ALL_SPECIES holds 12 species: starters, rewards, discovery", () => {
-    expect(ALL_SPECIES).toHaveLength(12)
+  /** The wave-4 lines each have two element siblings; wave-3 lines one. */
+  const SIBLING_SETS: Record<string, readonly string[]> = {
+    [EMBERCUB]: ["fire_drake", CINDERMOOR],
+    [MOSSBOAR]: ["plant_ox", FERNSTAG],
+    [MISTKIT]: ["water_axolotl", REEFCLAW],
+  }
+
+  test("ALL_SPECIES holds 15 species: starters, rewards, discovery", () => {
+    expect(ALL_SPECIES).toHaveLength(15)
     expect(STARTER_SPECIES).toHaveLength(3)
     expect(REWARD_SPECIES.map((s) => s.id)).toEqual([
       HOUND,
@@ -846,6 +905,9 @@ describe("breeding-discovery species records (roster_wave_3)", () => {
       VOLTFOX,
       GALEHERON,
       SHALEMOLE,
+      EMBERCUB,
+      MOSSBOAR,
+      MISTKIT,
     ])
     expect(ALL_SPECIES.map((s) => s.id)).toEqual([
       ...STARTER_SPECIES.map((s) => s.id),
@@ -875,15 +937,18 @@ describe("breeding-discovery species records (roster_wave_3)", () => {
       expect(() => createCreature(line.id, 1)).toThrow(/not yet available/i)
     })
 
-    test(`${line.id} kit recomposes its element's vocabulary, distinct from its sibling`, () => {
+    test(`${line.id} kit recomposes its element's vocabulary, distinct from its siblings`, () => {
       const species = speciesOf(line.id)
-      const sibling = speciesOf(line.sibling)
+      const others = SIBLING_SETS[line.id] ?? [line.sibling]
       expect(species.kit).toHaveLength(6)
       expect(new Set(species.kit).size).toBe(6)
       for (const moveId of species.kit) {
         expect(getMove(moveId)?.element).toBe(line.element)
       }
-      expect([...species.kit].sort()).not.toEqual([...sibling.kit].sort())
+      for (const other of others) {
+        const sibling = speciesOf(other)
+        expect([...species.kit].sort()).not.toEqual([...sibling.kit].sort())
+      }
     })
 
     test(`${line.id} bounds are legal rolls that respect the extremal pins`, () => {
@@ -925,4 +990,81 @@ describe("breeding-discovery species records (roster_wave_3)", () => {
       }
     })
   }
+
+  describe("the fire-triangle lines (roster_wave_4)", () => {
+    test("each kit embeds its siblings' branch signatures, reserving the free specials", () => {
+      // Option-1, wave-3 precedent: the new kit carries the element's
+      // already-claimed signatures, so the two specials it omits stay free
+      // for its own champion branches.
+      const embercub = speciesOf(EMBERCUB)
+      expect(embercub.kit).toEqual(
+        expect.arrayContaining([
+          "cinder_dive",
+          "pyre_wall",
+          "pyre_lance",
+          "flame_charge",
+        ]),
+      )
+      const mossboar = speciesOf(MOSSBOAR)
+      expect(mossboar.kit).toEqual(
+        expect.arrayContaining([
+          "thorn_charge",
+          "bramble_guard",
+          "root_quake",
+          "spore_burst",
+        ]),
+      )
+      const mistkit = speciesOf(MISTKIT)
+      expect(mistkit.kit).toEqual(
+        expect.arrayContaining([
+          "riptide_rush",
+          "tide_aegis",
+          "maelstrom",
+          "tide_shot",
+        ]),
+      )
+    })
+
+    test("each line's stat profile differs from both element siblings", () => {
+      const embercub = speciesOf(EMBERCUB)
+      const drake = speciesOf("fire_drake")
+      const cindermoor = speciesOf(CINDERMOOR)
+      expect(embercub.statBounds.hp[0]).toBeGreaterThan(drake.statBounds.hp[0])
+      expect(embercub.statBounds.spd[0]).toBeGreaterThan(
+        cindermoor.statBounds.spd[1],
+      )
+      expect(embercub.statBounds.hp[1]).toBeLessThan(
+        cindermoor.statBounds.hp[1],
+      )
+
+      const mossboar = speciesOf(MOSSBOAR)
+      const ox = speciesOf("plant_ox")
+      const fernstag = speciesOf(FERNSTAG)
+      expect(mossboar.statBounds.hp[1]).toBeLessThan(ox.statBounds.hp[1])
+      expect(mossboar.statBounds.hp[0]).toBeGreaterThan(
+        fernstag.statBounds.hp[1],
+      )
+      expect(mossboar.statBounds.spd[1]).toBeLessThan(
+        fernstag.statBounds.spd[0],
+      )
+
+      const mistkit = speciesOf(MISTKIT)
+      const axolotl = speciesOf("water_axolotl")
+      const reefclaw = speciesOf(REEFCLAW)
+      expect(mistkit.statBounds.hp[1]).toBeLessThan(axolotl.statBounds.hp[1])
+      expect(mistkit.statBounds.spd[1]).toBeGreaterThan(
+        axolotl.statBounds.spd[1],
+      )
+      expect(mistkit.statBounds.spd[0]).toBeGreaterThan(
+        reefclaw.statBounds.spd[1],
+      )
+      expect(mistkit.statBounds.def[1]).toBeLessThan(reefclaw.statBounds.def[0])
+    })
+
+    test("each line reserves its voxel archetype id", () => {
+      expect(speciesOf(EMBERCUB).archetypeId).toBe("cub")
+      expect(speciesOf(MOSSBOAR).archetypeId).toBe("boar")
+      expect(speciesOf(MISTKIT).archetypeId).toBe("otter")
+    })
+  })
 })

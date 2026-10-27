@@ -355,8 +355,17 @@ describe("speciesOptions", () => {
       archetypeId: "bovine",
       element: "plant",
     })
-    expect(speciesOptions([a, b])).toEqual(["fire_drake", "plant_ox"])
-    expect(speciesOptions([b, a])).toEqual(["plant_ox", "fire_drake"])
+    // Fire × plant is the embercub recipe, so the discovered line follows.
+    expect(speciesOptions([a, b])).toEqual([
+      "fire_drake",
+      "plant_ox",
+      "embercub",
+    ])
+    expect(speciesOptions([b, a])).toEqual([
+      "plant_ox",
+      "fire_drake",
+      "embercub",
+    ])
   })
 })
 
