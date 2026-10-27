@@ -24,7 +24,7 @@ describe("GET /health", () => {
     expect(response.headers.get("content-type")).toContain("application/json")
     expect(await response.json()).toEqual({
       status: "ok",
-      schemaVersion: "0002_leaderboard.sql",
+      schemaVersion: "0003_ghost.sql",
     })
   })
 

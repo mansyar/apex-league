@@ -8,6 +8,7 @@ import {
   setLoadout,
 } from "@apex/sim"
 import { type Cup, createCup } from "../cup"
+import { captureCupGhost } from "../cup/ghost-capture"
 import { createGraduation, type GraduationFlow } from "../graduation"
 import type { Hud } from "../hud"
 import { createSpar, type Spar } from "../spar"
@@ -86,6 +87,7 @@ export function createCupScreen(deps: CupScreenDeps): Cup {
     scene,
     sceneSync,
     restoredSession,
+    cloudSync,
   } = deps
 
   return createCup(
@@ -106,11 +108,16 @@ export function createCupScreen(deps: CupScreenDeps): Cup {
       // Results are in and finalizeCup applied the rewards — the store's fixed
       // fanout updates hud/spar/cup; only the site-specific scene refresh is
       // added here.
-      onFinalize: (next) => {
+      onFinalize: (next, session) => {
         // The cup is consumed: the persisted session must not resurrect —
         // clear it first so the finalize commit writes the cleared save.
         store.setSession(null)
         store.commit(next)
+        // A championship captures its deciding-final ghost here, at the one
+        // production finalize site: the bundle queues beside the save and
+        // rides the push the commit above just scheduled. A loss, a forfeit,
+        // or a live session captures nothing — captureCupGhost stays silent.
+        captureCupGhost(session, (bundle) => cloudSync?.queueGhost(bundle))
         // Conditions may carry the reward bump (mood/bond) — refresh the idle.
         sceneSync.sceneVisuals()
       },

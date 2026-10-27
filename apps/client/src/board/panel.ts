@@ -9,7 +9,8 @@
  * written. Nothing here throws and nothing here touches the save.
  */
 import { focusTrap } from "../battleUI"
-import type { BoardEntry } from "../cloud/api"
+import type { BoardEntry, GhostBoardEntry } from "../cloud/api"
+import type { GhostBoardLoad } from "../cloud/ghosts"
 import { chip } from "../ui/kit"
 import {
   BOARD_CATEGORIES,
@@ -22,6 +23,7 @@ import {
   boardCategoryLabel,
 } from "./copy"
 import type { BoardLoad } from "./fetch"
+import { buildGhostSection } from "./ghost-section"
 import type { CategoryBoards } from "./snapshot"
 
 export interface BoardPanel {
@@ -58,8 +60,26 @@ function boardRow(entry: BoardEntry): HTMLElement {
 
 export function buildBoardPanel(opts: {
   load: () => Promise<BoardLoad>
+  /**
+   * The ghost board behind the same modal (FR-4): champions with badge,
+   * preview, and Fight. Absent without a cloud — the four score boards
+   * stand alone, and the fight callback closes the modal when the bout
+   * opens (true) so the player lands in the spar.
+   */
+  ghosts?: {
+    load: () => Promise<GhostBoardLoad>
+    onFight: (entry: GhostBoardEntry) => boolean
+  }
 }): BoardPanel {
   const { load } = opts
+  const ghostSource = opts.ghosts ?? null
+  // `close` is a hoisted declaration below: the Fight callback only runs
+  // after the build, so closing from here is safe.
+  const ghost = ghostSource
+    ? buildGhostSection((entry) => {
+        if (ghostSource.onFight(entry)) close()
+      })
+    : null
 
   const root = document.createElement("div")
   root.className = "kit-modal board-modal"
@@ -97,6 +117,9 @@ export function buildBoardPanel(opts: {
     box.append(section)
     sections.push({ list, empty })
   }
+  // The ghost board rides the same modal, last: badge, preview, and Fight
+  // per champion. Without a cloud the score boards stand alone.
+  if (ghost) box.append(ghost.element)
 
   const actions = document.createElement("div")
   actions.className = "kit-modal-actions"
@@ -161,6 +184,14 @@ export function buildBoardPanel(opts: {
       if (seen !== generation) return
       paint(result)
     })
+    // The ghost board fetches beside the scores under the same generation
+    // guard: a slow answer from a closed visit never repaints.
+    if (ghost && ghostSource) {
+      void ghostSource.load().then((result) => {
+        if (seen !== generation) return
+        ghost.paint(result)
+      })
+    }
   }
 
   function close(): void {

@@ -149,6 +149,12 @@ export {
   startCupSession,
 } from "./cup"
 export {
+  buildGhostBundle,
+  type GhostBundle,
+  SIM_VERSION,
+  verifyGhostBundle,
+} from "./cup/ghost"
+export {
   applyCupRewards,
   CUP_REWARDS,
   type CupOutcome,

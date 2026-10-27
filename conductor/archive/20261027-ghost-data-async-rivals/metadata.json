@@ -1,0 +1,32 @@
+{
+  "archive_path": "conductor/archive/20261027-ghost-data-async-rivals",
+  "archived_at": "2026-10-27T09:00:00Z",
+  "base_branch": "main",
+  "base_sha": "b88f211fd0813f5114454a61bf6cca78d3c3bb2c",
+  "branch": "feat/20261027-ghost-data-async-rivals",
+  "created_at": "2026-10-27T00:00:00Z",
+  "depends_on": [],
+  "doc_sync": "done",
+  "id": "20261027-ghost-data-async-rivals",
+  "last_checkpoint": "c1f8cc71",
+  "plan": "plan.md",
+  "pr_state": "open",
+  "pr_url": "https://github.com/mansyar/apex-league/pull/59",
+  "priority": "high",
+  "progress": {
+    "phases_total": 4,
+    "phases_verified": 4,
+    "tasks_done": 8,
+    "tasks_total": 8
+  },
+  "revert_commit": null,
+  "revert_pr_url": null,
+  "reverted_at": null,
+  "review_rounds": 2,
+  "review_verdict": "PASS",
+  "spec": "spec.md",
+  "status": "complete",
+  "title": "Ghost Data & Async Rivals",
+  "type": "feature",
+  "updated_at": "2026-10-27T01:39:32Z"
+}

@@ -9,6 +9,9 @@
  * listeners is enough to drive opens and read back rows.
  */
 import { afterAll, beforeAll, describe, expect, test } from "bun:test"
+import { SIM_VERSION } from "@apex/sim"
+import type { GhostBoardEntry } from "../cloud/api"
+import type { GhostBoardLoad } from "../cloud/ghosts"
 import {
   BOARD_CATEGORIES,
   BOARD_EMPTY_COPY,
@@ -246,5 +249,107 @@ describe("board panel", () => {
     return settle().then(() => {
       expect(nodesIn(modal.root, "board-row")).toHaveLength(0)
     })
+  })
+})
+
+describe("board ghost wiring", () => {
+  function ghostBundle(overrides: Record<string, unknown> = {}): unknown {
+    return {
+      simVersion: SIM_VERSION,
+      seed: 424242,
+      day: 12,
+      round: 3,
+      player: {
+        name: "Ember",
+        id: "owned",
+        element: "fire",
+        stats: { hp: 80, atk: 13, def: 8, spd: 9 },
+        kit: ["spark", "flame_charge", "cinder_shot", "blaze_bolt"],
+        tactic: "balanced",
+        temperament: "rush",
+      },
+      rival: null,
+      winner: "player",
+      events: [],
+      ...overrides,
+    }
+  }
+
+  function ghostEntry(name: string, rank: number): GhostBoardEntry {
+    return {
+      rank,
+      trainerId: `trn_${name}`,
+      name,
+      updatedAt: 7,
+      ghost: ghostBundle(),
+    }
+  }
+
+  function ghostLoad(
+    entries: GhostBoardEntry[],
+  ): () => Promise<GhostBoardLoad> {
+    return async () => ({ kind: "live", entries })
+  }
+
+  test("the ghost board mounts behind the scores; a Fight closes into the bout", () => {
+    const seen: GhostBoardEntry[] = []
+    const modal = buildBoardPanel({
+      load: async () => ({ kind: "live", boards: liveBoards() }),
+      ghosts: {
+        load: ghostLoad([ghostEntry("Ada", 1)]),
+        onFight: (entry) => {
+          seen.push(entry)
+          return true
+        },
+      },
+    })
+    expect(nodesIn(modal.root, "board-ghosts")).toHaveLength(1)
+    modal.open()
+    return settle().then(() => {
+      expect(nodesIn(modal.root, "board-fight")).toHaveLength(1)
+      nodesIn(modal.root, "board-fight")[0]?.fire("click")
+      expect(seen.map((entry) => entry.name)).toEqual(["Ada"])
+      // The bout opened, so the modal steps aside for the spar.
+      expect(fakeOf(modal.root).style.display).toBe("none")
+    })
+  })
+
+  test("a refused bout keeps the modal open", () => {
+    const modal = buildBoardPanel({
+      load: async () => ({ kind: "live", boards: liveBoards() }),
+      ghosts: { load: ghostLoad([ghostEntry("Bea", 2)]), onFight: () => false },
+    })
+    modal.open()
+    return settle().then(() => {
+      nodesIn(modal.root, "board-fight")[0]?.fire("click")
+      expect(fakeOf(modal.root).style.display).toBe("")
+    })
+  })
+
+  test("a slow ghost answer from a closed visit never repaints", () => {
+    const pending: Array<(result: GhostBoardLoad) => void> = []
+    const modal = buildBoardPanel({
+      load: async () => ({ kind: "live", boards: liveBoards() }),
+      ghosts: {
+        load: () =>
+          new Promise<GhostBoardLoad>((resolve) => {
+            pending.push(resolve)
+          }),
+        onFight: () => true,
+      },
+    })
+    modal.open()
+    modal.close()
+    pending[0]?.({ kind: "live", entries: [ghostEntry("Cy", 3)] })
+    return settle().then(() => {
+      expect(nodesIn(modal.root, "board-ghost-row")).toHaveLength(0)
+    })
+  })
+
+  test("builds without a cloud keep the score boards alone", () => {
+    const modal = buildBoardPanel({
+      load: async () => ({ kind: "live", boards: liveBoards() }),
+    })
+    expect(nodesIn(modal.root, "board-ghosts")).toHaveLength(0)
   })
 })

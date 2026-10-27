@@ -148,11 +148,9 @@ export function resolvePlayerMatch(
   }
   // The player's own pairing is index 0 of its round.
   const seed = cupMatchSeed(session.bracket.day, round, 0)
-  const result: BattleResult = resolveBattle(
-    slotPlayerSide(playerSlot, loadout, tactic),
-    battleSideForSlot(opponent, seed),
-    seed,
-  )
+  const playerSide = slotPlayerSide(playerSlot, loadout, tactic)
+  const rivalSide = battleSideForSlot(opponent, seed)
+  const result: BattleResult = resolveBattle(playerSide, rivalSide, seed)
   const line = result.winner
     ? `${result.winner} takes the ${roundLabel(round)}!`
     : `Both fighters are down — the ${roundLabel(round)} is a draw.`
@@ -163,6 +161,7 @@ export function resolvePlayerMatch(
     winner: result.winner,
     line,
     battle: result,
+    sides: [playerSide, rivalSide],
   }
   // On a draw the player holds their slot: they advance (slot a here).
   const playerWon = result.winner === null || result.winner === playerSlot.name

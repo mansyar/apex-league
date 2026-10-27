@@ -27,7 +27,9 @@ import {
   type TrainerCredentials,
   writeCredentials,
 } from "./credentials"
+import { createGhostSubmitter } from "./ghosts"
 import { createPushQueue, type PushQueue } from "./push-queue"
+import { fingerprint, savedAtOf } from "./save-payload"
 import { createScoreSubmitter } from "./scores"
 
 /** What the quiet status line says. Information, never an alarm (FR-8). */
@@ -64,34 +66,12 @@ export interface CloudSync {
   signOut(): void
   /** A local save write, from the adapter seam. */
   noteLocalWrite(payload: string): void
+  /** Queue a cup-winning ghost; the next push flushes it after the save. */
+  queueGhost(bundle: unknown): void
   /** Where a newer cloud save goes. Set once, by the composition root. */
   adoptWith(adopt: (data: SaveData) => void): void
   subscribe(listener: (status: CloudStatus) => void): () => void
   status(): CloudStatus
-}
-
-/** The save's content without its clock: what "the same ranch" means. */
-function fingerprint(payload: string): string | null {
-  try {
-    const parsed: unknown = JSON.parse(payload)
-    if (typeof parsed !== "object" || parsed === null) return null
-    const { state, session } = parsed as Record<string, unknown>
-    return JSON.stringify({ state, session })
-  } catch {
-    return null
-  }
-}
-
-/** The `savedAt` a payload carries, or null when it is not a save at all. */
-function savedAtOf(payload: string): number | null {
-  try {
-    const parsed: unknown = JSON.parse(payload)
-    if (typeof parsed !== "object" || parsed === null) return null
-    const at = (parsed as Record<string, unknown>).savedAt
-    return typeof at === "number" && Number.isFinite(at) ? at : null
-  } catch {
-    return null
-  }
 }
 
 export function createCloudSync(opts: {
@@ -167,6 +147,8 @@ export function createCloudSync(opts: {
     )
     if (!result.ok) {
       failureStatus(result)
+      // The ghost rides after the save request; offline stays queued.
+      ghosts.submitPending()
       return
     }
     // `stored: false` with a 200 is normal: our copy was older, so the server
@@ -176,6 +158,7 @@ export function createCloudSync(opts: {
     setStatus(
       result.value.stored ? { kind: "synced", at: savedAt } : { kind: "ahead" },
     )
+    ghosts.submitPending()
   }
 
   const queue: PushQueue = createPushQueue({
@@ -189,6 +172,12 @@ export function createCloudSync(opts: {
   })
 
   const scores = createScoreSubmitter({
+    api,
+    storage,
+    credentials: () => credentials,
+  })
+
+  const ghosts = createGhostSubmitter({
     api,
     storage,
     credentials: () => credentials,
@@ -219,6 +208,8 @@ export function createCloudSync(opts: {
     setStatus(
       result.value.stored ? { kind: "synced", at: savedAt } : { kind: "ahead" },
     )
+    // First-submit flush in order with the save.
+    ghosts.submitPending()
     return true
   }
 
@@ -356,6 +347,10 @@ export function createCloudSync(opts: {
       if (content !== null && content === adoptedEcho) return
       if (content !== null) adoptedEcho = null
       queue.note(payload)
+    },
+
+    queueGhost(bundle: unknown) {
+      ghosts.queueGhost(bundle)
     },
   }
 }

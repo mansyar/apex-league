@@ -125,6 +125,15 @@ function fakeApi(overrides: Partial<CloudApi> = {}): FakeApi {
       }
     },
     readBoard: async () => ({ ok: false, reason: "offline" }),
+    submitGhost: async () => ({
+      ok: true,
+      value: {
+        stored: true,
+        entry: { name: "Ana", payload: "{}", updatedAt: 1 },
+      },
+    }),
+    readGhost: async () => ({ ok: false, reason: "not-found" }),
+    readGhosts: async () => ({ ok: false, reason: "offline" }),
   }
   return Object.assign(api, overrides)
 }
