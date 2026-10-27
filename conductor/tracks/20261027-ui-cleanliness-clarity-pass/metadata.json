@@ -10,8 +10,8 @@
   "priority": "high",
   "progress": {
     "phases_total": 5,
-    "phases_verified": 3,
-    "tasks_done": 10,
+    "phases_verified": 4,
+    "tasks_done": 13,
     "tasks_total": 16
   },
   "spec": "spec.md",

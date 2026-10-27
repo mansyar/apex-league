@@ -74,11 +74,20 @@ The primary appends after acceptance:
 - **Covers:** FR-10, FR-11, AC-10
 - **Touches:** `apps/client/src/ranch.css`, `apps/client/src/hud/shell.ts`
 - **Verification:** `bun run verify && bun run build` + Playwright 393px both orientations × gift-chip shown/hidden × lineage expanded/collapsed
-- **Status:** pending
+- **Status:** verified (code `8965e7d3`; evidence `verification/phase-4.md`
+  + 9 shots + `p4-matrix-report.json`; gate green, matrix 0 console/page
+  errors, portrait + landscape + desktop verdicts in evidence doc)
 
-- [ ] **P4.T1: Grid/flow areas for ranch stack** — covers: FR-10, AC-10
-  - [ ] **P4.T1.1:** Replace absolute + `:has()` nudges and hardcoded tops (228px/176px and siblings)
-- [ ] **P4.T2: Gift-chip + callout safety sweep** — covers: FR-11, AC-10
+- [x] **P4.T1: Grid/flow areas for ranch stack** — covers: FR-10, AC-10
+  - [x] **P4.T1.1:** Replace absolute + `:has()` nudges and hardcoded tops (228px/176px and siblings)
+- [x] **P4.T2: Gift-chip + callout safety sweep** — covers: FR-11, AC-10
+
+**Result:** Ranch chrome holds at 393px portrait/landscape with gift
+shown/hidden and lineage open/shut; desktop byte-identical to Phase 3.
+AC-10 passes (see evidence doc for the residual-seat audit).
+**Checkpoint:** `8965e7d3`
+**Evidence:** `verification/phase-4.md`, `verification/p4-*.png`,
+`verification/p4-matrix-report.json`
 
 ## Phase 5: Board/Ghosts/Cloud clarity + copy pass
 
