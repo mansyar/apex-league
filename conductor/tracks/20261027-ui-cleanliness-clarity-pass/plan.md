@@ -130,6 +130,10 @@ Review fixes are appended by `conductor-review` as:
 - **Covers:** F1
 - **Touches:** `apps/client/src/hud/plates-score.ts`, `apps/client/src/hud/plates.test.ts`
 - **Verification:** `bun run verify && bun run build` + focused plates test
-- **Status:** pending
+- **Status:** verified (commit below; focused 38/0 + full gate 3320/0 in `verification/phase-R1.md`)
 
-- [ ] **R1.T1: Resolve F1 (trophy role="img" + test)** — covers: F1
+- [x] **R1.T1: Resolve F1 (trophy role="img" + test)** — covers: F1
+
+- **Result:** trophy accessible name exposed to assistive tech; FR-16/AC-13 fully covered
+- **Checkpoint:** `4a21c419`
+- **Evidence:** `verification/phase-R1.md`
