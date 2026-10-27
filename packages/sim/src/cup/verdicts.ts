@@ -31,6 +31,11 @@ export interface RoundVerdict {
    * events (spec FR5). Null only on a forfeit verdict — the round was
    * given away without a fight. */
   readonly battle: BattleResult | null
+  /** The two sides that fought, in fight order, present exactly when
+   * `battle` is present. The ghost bundle (cup/ghost) replays from these,
+   * so a finished session already carries everything a later reader needs
+   * without re-deriving kits from the bracket. */
+  readonly sides?: readonly BattleSide[] | null
 }
 
 /** One pre-resolved rival pairing of the player-independent subtree: the
@@ -183,6 +188,7 @@ export function resolvePairing(
       winner: result.winner,
       line,
       battle: result,
+      sides: [aSide, bSide],
     },
     winner: advancing,
     loser: advancing === a ? b : a,
