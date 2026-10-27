@@ -12,7 +12,7 @@
 
 import { type BranchDef, branchDef } from "./types"
 
-/** The six discovery forms: voltfox, galeheron, shalemole. */
+/** The nine discovery forms: voltfox, galeheron, shalemole, embercub, mossboar, mistkit. */
 export const DISCOVERY_BRANCHES: readonly BranchDef[] = Object.freeze([
   branchDef({
     id: "arc_courser",
@@ -79,5 +79,71 @@ export const DISCOVERY_BRANCHES: readonly BranchDef[] = Object.freeze([
     championBoost: { hp: 7, atk: 2, def: 6, spd: 0 },
     signatureMove: "boulder_toss",
     accentHue: 23,
+  }),
+  branchDef({
+    id: "ember_rusher",
+    speciesId: "embercub",
+    label: "Ember Rusher",
+    line: "Hit first and leave only warm pawprints behind.",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 4, atk: 7, def: 4, spd: 3 },
+    signatureMove: "cinder_shot",
+    accentHue: 26,
+  }),
+  branchDef({
+    id: "soot_warden",
+    speciesId: "embercub",
+    label: "Soot Warden",
+    line: "Curl around the coals and let the night burn itself out.",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 6, atk: 3, def: 7, spd: 0 },
+    signatureMove: "spark",
+    accentHue: 8,
+  }),
+  branchDef({
+    id: "briar_charger",
+    speciesId: "mossboar",
+    label: "Briar Charger",
+    line: "Burst from the thicket before the leaves finish shaking.",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 4, atk: 7, def: 3, spd: 4 },
+    signatureMove: "bramble_dart",
+    accentHue: 115,
+  }),
+  branchDef({
+    id: "moss_warden",
+    speciesId: "mossboar",
+    label: "Moss Warden",
+    line: "Settle into the moss and let every charge break on you.",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 7, atk: 3, def: 5, spd: 0 },
+    signatureMove: "seed_shot",
+    accentHue: 100,
+  }),
+  branchDef({
+    id: "mist_courser",
+    speciesId: "mistkit",
+    label: "Mist Courser",
+    line: "Ride the spray in fast and be gone before it settles.",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 6, atk: 6, def: 3, spd: 1 },
+    signatureMove: "splash_bolt",
+    accentHue: 210,
+  }),
+  branchDef({
+    id: "foam_warden",
+    speciesId: "mistkit",
+    label: "Foam Warden",
+    line: "Float easy in the foam and let the tide do the shouting.",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 7, atk: 2, def: 6, spd: 0 },
+    signatureMove: "bubble",
+    accentHue: 222,
   }),
 ])

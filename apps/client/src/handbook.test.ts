@@ -343,6 +343,9 @@ describe("the handbook's Raising page", () => {
       ["Voltfox", "Breed Electric with Wind."],
       ["Galeheron", "Breed Water with Wind."],
       ["Shalemole", "Breed Earth with Fire."],
+      ["Embercub", "Breed Fire with Plant."],
+      ["Mossboar", "Breed Plant with Water."],
+      ["Mistkit", "Breed Fire with Water."],
     ]
     for (const [name, recipe] of expected) {
       expect(terms).toContain(name)
