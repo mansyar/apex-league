@@ -240,7 +240,7 @@ describe("the production build injects the API origin", () => {
     const lines = source.split("\n")
     const starts: number[] = []
     for (let index = 0; index < lines.length; index++) {
-      if (/^      - name: /.test(lines[index] ?? "")) starts.push(index)
+      if (/^ {6}- name: /.test(lines[index] ?? "")) starts.push(index)
     }
     return starts.map((start, at) =>
       lines.slice(start, starts[at + 1] ?? lines.length).join("\n"),
@@ -250,9 +250,7 @@ describe("the production build injects the API origin", () => {
   const steps = stepBlocks(workflow)
   // Steps that wire the origin into the build environment (an `env:` mapping,
   // not a passing mention in a comment).
-  const originSteps = steps.filter((step) =>
-    step.includes("VITE_API_ORIGIN:"),
-  )
+  const originSteps = steps.filter((step) => step.includes("VITE_API_ORIGIN:"))
 
   test("the production build exports VITE_API_ORIGIN from vars.APEX_API_ORIGIN", () => {
     // FR-1/AC-1: the prod bundle talks to the live API only while the build
