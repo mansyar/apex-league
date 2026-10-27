@@ -19,7 +19,6 @@
 import type { CupSession, GameState, RoundVerdict } from "@apex/sim"
 import { forfeitCup } from "@apex/sim"
 import { createBattleHud } from "./battleHud"
-import { focusTrap } from "./battleUI"
 import type { BracketMatch } from "./bracket-model"
 import { buildBracketModel } from "./bracket-model"
 import { createArena } from "./cup/arena"
@@ -39,6 +38,7 @@ import {
 import { resolveMotionPref } from "./motion"
 import { icons } from "./ui/icons"
 import { chipButton } from "./ui/kit"
+import { closeModal, isModalOpen, openModal } from "./ui/modal"
 
 export type { CupHandlers } from "./cup/shared"
 
@@ -76,7 +76,7 @@ export function createCup(
   // Full-screen overlay, hidden until entry.
   const overlay = document.createElement("div")
   overlay.className = "cup-overlay"
-  overlay.style.display = "none"
+  overlay.classList.add("is-hidden")
 
   // Broadcast backdrop: the navy dome from the approved mock owns the
   // screen while a cup screen is up; it steps aside for arena battles.
@@ -104,7 +104,7 @@ export function createCup(
   close.style.display = ""
   shared.close = close
 
-  shared.giveup = buildGiveupModal(close)
+  shared.giveup = buildGiveupModal()
   shared.results = buildResultsScreen()
   shared.coach = buildCoachScreen()
   shared.battleChips = buildBattleChips()
@@ -222,12 +222,12 @@ export function createCup(
   shared.bracket.ctaGo.addEventListener("click", coachRoom.openCoach)
 
   shared.giveup.giveupStay.addEventListener("click", () => {
-    shared.giveup.root.style.display = "none"
-    close.focus()
+    // Stay is the explicit way back: the helper hands focus to the opener.
+    closeModal(shared.giveup.root)
   })
   shared.giveup.giveupQuit.addEventListener("click", () => {
     if (!mem.session) return
-    shared.giveup.root.style.display = "none"
+    closeModal(shared.giveup.root, { returnFocus: false })
     close.focus()
     board.ctaHide()
     // Forfeit the current round: the opponent advances without a fight,
@@ -254,19 +254,20 @@ export function createCup(
       entry.closeFree()
       return
     }
-    shared.giveup.root.style.display = ""
-    shared.giveup.giveupStay.focus()
+    // The give-up is a deliberate two-step: no scrim-out, Stay backs out.
+    openModal(shared.giveup.root, {
+      initialFocus: shared.giveup.giveupStay,
+      dismissOnScrim: false,
+    })
   })
 
   shared.results.resultBack.addEventListener("click", entry.closeFree)
 
-  // The cup owns the whole screen: Tab must stay inside it, never wander
-  // into the HUD hidden behind the backdrop. Escape mirrors Back.
-  const trapCupFocus = focusTrap(overlay)
+  // The cup owns the whole screen: the helper traps Tab inside it while it
+  // is open; Escape mirrors Back.
   overlay.addEventListener("keydown", (event) => {
-    trapCupFocus(event)
     if (event.key !== "Escape") return
-    if (shared.giveup.root.style.display !== "none") return
+    if (isModalOpen(shared.giveup.root)) return
     if (shared.bracket.screen.style.display === "none") return
     close.click()
   })

@@ -18,6 +18,7 @@ import { createBattleSession, cupStampTitle } from "../battle-session"
 import { castFighter } from "../battleUI"
 import type { FightCasting } from "../staging"
 import { visualSeedOf } from "../staging-seed"
+import { closeModal } from "../ui/modal"
 import type { CupShared } from "./shared"
 
 /** The stamp-hold pacing (ms), muted under reduced motion. */
@@ -111,7 +112,7 @@ export function createArena(shared: CupShared): {
     mem.inBattle = true
     mem.pendingId = null
     shared.showScreen(null)
-    shared.giveup.root.style.display = "none"
+    closeModal(shared.giveup.root, { returnFocus: false })
     overlay.classList.add("cup-battling")
     battleChips.battleChips.style.display = ""
     // Boss final (FR11): the lower-third carries the registry intro.

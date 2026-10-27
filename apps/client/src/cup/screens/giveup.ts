@@ -1,10 +1,9 @@
 /**
  * The give-up modal (cup_modules_per_screen split): a deliberate two-step
- * for a forfeit. Moved verbatim from cup-screens.ts — dialog semantics and
- * the focus trap included.
+ * for a forfeit. Moved verbatim from cup-screens.ts — dialog semantics
+ * included; open/close and focus management are the shared modal helper's
+ * (ui/modal), wired by the cup flow.
  */
-
-import { focusTrap } from "../../battleUI"
 
 /** The give-up modal's interactive surfaces. */
 export interface GiveupModalRefs {
@@ -15,14 +14,14 @@ export interface GiveupModalRefs {
 
 /**
  * Give-up modal (over the bracket): a deliberate two-step for a forfeit.
- * Dialog semantics + focus management: the scrim hides the bracket, so
- * Tab must cycle inside the card, and Escape bails out to Stay, handing
- * focus back to the bracket's close button (which owns the reopen).
+ * Dialog semantics live on the card; open/close, focus trap, and Escape are
+ * the shared modal helper's (ui/modal), wired by the cup flow — there is no
+ * scrim-out, and Stay is the explicit way back.
  */
-export function buildGiveupModal(close: HTMLElement): GiveupModalRefs {
+export function buildGiveupModal(): GiveupModalRefs {
   const root = document.createElement("div")
   root.className = "cup-giveup"
-  root.style.display = "none"
+  root.classList.add("is-hidden")
   const giveupCard = document.createElement("div")
   giveupCard.className = "cup-giveup-card"
   const giveupTab = document.createElement("span")
@@ -52,14 +51,5 @@ export function buildGiveupModal(close: HTMLElement): GiveupModalRefs {
   giveupCard.setAttribute("aria-modal", "true")
   giveupTitle.id = "cup-giveup-title"
   giveupCard.setAttribute("aria-labelledby", "cup-giveup-title")
-  const giveupTrap = focusTrap(giveupCard)
-  root.addEventListener("keydown", (event) => {
-    giveupTrap(event)
-    if (event.key === "Escape") {
-      event.stopPropagation()
-      root.style.display = "none"
-      close.focus()
-    }
-  })
   return { root, giveupStay, giveupQuit }
 }
