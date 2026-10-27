@@ -14,16 +14,16 @@
 - **Covers:** FR-1, FR-2, AC-1, AC-2
 - **Touches:** `apps/client/src/ui/modal.ts`, `apps/client/src/ui/focus.ts`, `apps/client/src/ui/kit.css`, `apps/client/src/**/(*modal*|*panel*|*dialog*|gift.ts|stable.ts|handbook.ts|gallery.ts)`
 - **Verification:** `bun run verify && bun run build` + Playwright open/close screenshots per overlay class
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Shared openModal/closeModal helper** — covers: FR-1
-  - [ ] **P1.T1.1:** Helper owns display class, focus trap, scrim-click, Escape, return-focus (incl. unmounted-target fallback)
-  - [ ] **P1.T1.2:** Unit tests for open/close/Escape/return-focus incl. fallback
-- [ ] **P1.T2: Migrate all ~14 overlays to the helper** — covers: FR-1, AC-1
-  - [ ] **P1.T2.1:** Migrate ranch surfaces (creature-detail, stable, gift, handbook, settings, recovery, save-transfer, graduation/nursery)
-  - [ ] **P1.T2.2:** Migrate cup + board + cloud surfaces (entry, giveup, cup overlay, board panel, cloud panel)
-- [ ] **P1.T3: Centralize --z-* tokens** — covers: FR-2, AC-2
-  - [ ] **P1.T3.1:** Define tokens in kit.css, replace literals (incl. gallery.ts/preview.ts inline values)
+- [x] **P1.T1: Shared openModal/closeModal helper** — covers: FR-1
+  - [x] **P1.T1.1:** Helper owns display class, focus trap, scrim-click, Escape, return-focus (incl. unmounted-target fallback)
+  - [x] **P1.T1.2:** Unit tests for open/close/Escape/return-focus incl. fallback
+- [x] **P1.T2: Migrate all ~14 overlays to the helper** — covers: FR-1, AC-1
+  - [x] **P1.T2.1:** Migrate ranch surfaces (creature-detail, stable, gift, handbook, settings, recovery, save-transfer, graduation/nursery)
+  - [x] **P1.T2.2:** Migrate cup + board + cloud surfaces (entry, giveup, cup overlay, board panel, cloud panel)
+- [x] **P1.T3: Centralize --z-* tokens** — covers: FR-2, AC-2
+  - [x] **P1.T3.1:** Define tokens in kit.css, replace literals (incl. gallery.ts/preview.ts inline values)
 
 <!--
 The primary appends after acceptance:
@@ -31,6 +31,10 @@ The primary appends after acceptance:
 **Checkpoint:** <short-sha>
 **Evidence:** conductor/tracks/20261027-ui-cleanliness-clarity-pass/verification/phase-1.md
 -->
+
+**Result:** verified (primary, 2026-10-27) — gates green + Playwright 6 classes × 2 viewports, 0 console/page errors
+**Checkpoint:** phase-1 commits (refactor ×4 + fix ×1, below) + state commit
+**Evidence:** conductor/tracks/20261027-ui-cleanliness-clarity-pass/verification/phase-1.md
 
 ## Phase 2: Kit consolidation (CSS + visibility)
 
