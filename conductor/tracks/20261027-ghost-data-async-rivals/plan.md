@@ -14,7 +14,7 @@
 - **Covers:** FR-1, NFR-1, AC-1
 - **Touches:** `packages/sim/src/cup/*`, `packages/sim/src/battle/*`
 - **Verification:** `bun test packages/sim --parallel=4` + `bun run check`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Ghost bundle builder + version pin** — covers: FR-1
   - [ ] **P1.T1.1: Define bundle shape (seed, kits, log, sim version)**
@@ -76,7 +76,7 @@ Review fixes are appended by `conductor-review` as:
 
 - **Goal:** Board preview + Fight launches local-only spar
 - **Depends on:** Phase 3
-- **Covers:** FR-4, FR-5, AC-4, AC-5
+- **Covers:** FR-4, FR-5, NFR-3, AC-4, AC-5
 - **Touches:** `apps/client/src/board/*`, `apps/client/src/spar/*`
 - **Verification:** `bun run check` + `bun run build` + visual screenshots desktop + 393px mobile clean console
 - **Status:** pending
