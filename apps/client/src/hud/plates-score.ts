@@ -44,8 +44,11 @@ export function buildScoreBug(): ScoreBugRefs {
   const apMeter = meter(0, ACTION_POINTS_PER_DAY)
   scoreAp.append(apLabel, apMeter.root)
   // Lifetime championships (save v5): one gold tally, no silent cap.
+  // role="img": without it assistive tech ignores aria-label on a
+  // generic span, so the painted count would never be announced.
   const trophy = document.createElement("span")
   trophy.className = "score-trophy"
+  trophy.setAttribute("role", "img")
   trophy.title = "Cup championships"
   const trophyCount = document.createElement("span")
   trophyCount.className = "score-trophy-count"
