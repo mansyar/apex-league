@@ -5,11 +5,11 @@
 - **Branch:** `feat/20261027-roster-wave-4`
 - **Range:** `4cd2d52a4cde39fa10346efe64ee563005a117fd..b9b0c2af`
 - **Date:** 2026-10-27 (UTC)
-- **Verdict:** `BLOCK`
+- **Verdict:** `PASS`
 
 ## Summary
 
-Large review (59 files, +3898/−63 excl. conductor, reviewed per phase + integration): the 15-species registry, fire-triangle lookup, cub/boar/otter archetypes, kits, branch forms, rival pools, and handbook surfaces are sound and fully gated — but the track is BLOCKED on one High finding: FR-6/AC-6 and plan P4.T1 require the six boss pairings *refreshed and each played end-to-end in the browser*, while the implementation keeps all six bosses 0-delta and substitutes probe gates plus a free spar. One Medium finding: no 852×393 landscape visual evidence (NFR-6) and unrecorded desktop resolution. Both findings are accepted with concrete fixes (spec/plan amendment + landscape capture) in Phase R1 below.
+Large review (59 files, +3898/−63 excl. conductor, reviewed per phase + integration): the 15-species registry, fire-triangle lookup, cub/boar/otter archetypes, kits, branch forms, rival pools, and handbook surfaces are sound and fully gated. Round 1 BLOCKED on R1 (AC-6 browser clause vs 0-delta keeps) + R2 (landscape evidence); both fixed in Phase R1 (spec/plan keep-with-gates amendment + 852×393 pass) and re-reviewed PASS with no remaining findings.
 
 ## Verification
 
@@ -99,12 +99,13 @@ Phases 1–3 fully compliant (Result/Checkpoint/Evidence present, tasks implemen
 
 ## Doc sync
 
-`updated` — `conductor/product.md` + `README.md` roster counts synced pre-review; spec FR-6/AC-6 + plan P4 wording amended in Phase R1 (recorded here, no product-decision change: keeps were the probed outcome).
+`updated` — `conductor/product.md` + `README.md` roster counts synced pre-review; spec FR-6/AC-6 + plan P4 wording amended in Phase R1 (recorded here, no product-decision change: keeps were the probed outcome); round-2 editorial touch on spec In-Scope line 29 for consistency.
 
 ## History
 
 | Round | Verdict | Critical | High | Medium | Low | Fixed |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | BLOCK | 0 | 1 | 1 | 0 | 0 |
+| 2 | PASS | 0 | 0 | 0 | 0 | 2 |
 
 Fixes proceed in plan.md `## Phase R1: Review Fixes`.

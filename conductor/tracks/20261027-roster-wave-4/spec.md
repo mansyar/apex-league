@@ -26,7 +26,7 @@ The roadmap targets 20–40 species; 12 exist, balanced at exactly 2 per element
 - Per-line kits composed only from existing move vocabulary; tuned against the balance probe.
 - Discovery as a pure breed-time lookup: order-independent element pairs — fire×plant → Embercub, plant×water → Mossboar, fire×water → Mistkit. Unlisted and same-element pairs inherit exactly as today. No overlap with Wave 3 pairs (electric×wind, wind×water, earth×fire).
 - Full lifecycle parity: egg hatch → training → two branching champion forms.
-- Rival pools draw the new species; the six authored gatekeeper boss pairings are refreshed and each verified end-to-end in the browser.
+- Rival pools draw the new species; the six authored gatekeeper boss pairings are validated against the wider roster (refreshed where probe thresholds fire, kept with probe-gate validation otherwise).
 - Client presentation: handbook entries (with openly listed recipes), pickers/plates/stable/creature-detail/growth/battle staging, element-true crest colors (Fire 18°, Plant 110°, Water 205°).
 - Copy single-sourced in the product voice.
 
