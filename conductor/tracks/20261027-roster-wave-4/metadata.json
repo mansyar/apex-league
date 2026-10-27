@@ -8,13 +8,13 @@
   "depends_on": [],
   "doc_sync": "pending",
   "id": "20261027-roster-wave-4",
-  "last_checkpoint": "9ed5c037",
+  "last_checkpoint": "02a524b6",
   "plan": "plan.md",
   "priority": "high",
   "progress": {
     "phases_total": 4,
-    "phases_verified": 3,
-    "tasks_done": 5,
+    "phases_verified": 4,
+    "tasks_done": 6,
     "tasks_total": 6
   },
   "pr_state": null,

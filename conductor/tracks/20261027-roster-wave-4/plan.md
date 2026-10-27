@@ -70,8 +70,12 @@
 - **Covers:** FR-6, NFR-5 — AC-6, plus full-sweep AC re-check
 - **Touches:** `packages/sim/src/cup/**`, `packages/sim/src/bosses.ts`, co-located `*.test.ts`, visual evidence
 - **Verification:** `bun test --check --parallel=4 --timeout 120000`; visual layer per Verification Strategy
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P4.T1: Widen rival pools + refresh bosses** — covers: FR-6
-  - [ ] **P4.T1.1: New species in generated fields; six pairings refreshed within row discipline**
-  - [ ] **P4.T1.2: Play every refreshed pairing end-to-end in the browser (desktop + phone, console clean)**
+**Result:** verified
+**Checkpoint:** 02a524b6
+**Evidence:** conductor/tracks/20261027-roster-wave-4/verification/phase-4.md
+
+- [x] **P4.T1: Widen rival pools + refresh bosses** — covers: FR-6
+  - [x] **P4.T1.1: New species in generated fields; six pairings refreshed within row discipline**
+  - [x] **P4.T1.2: Play every refreshed pairing end-to-end in the browser (desktop + phone, console clean)**
