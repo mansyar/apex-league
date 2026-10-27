@@ -38,7 +38,8 @@
 - **Covers:** FR-4, AC-4
 - **Touches:** `conductor/workflow.md`, `conductor/tech-stack.md`, `README.md`, `.env.example`
 - **Verification:** `bun run check`
-- **Status:** in_progress
+- **Status:** blocked
+- **Reason:** Phase subagent's edit tool denied writes (`Permission denied` on `conductor/workflow.md`); zero files changed, baseline `bun run check` green. Awaiting user direction.
 
 - [ ] **P2.T1: Update `workflow.md` services/database/env/emergency for the live server** — covers: FR-4
 - [ ] **P2.T2: Update `tech-stack.md` note, `README.md` deploy section, `.env.example` vars** — covers: FR-4
