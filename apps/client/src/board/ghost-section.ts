@@ -6,6 +6,7 @@
  * Empty, stale, and unreachable states all read as calm lines.
  */
 
+import { getMove } from "@apex/sim"
 import type { GhostBoardEntry } from "../cloud/api"
 import type { GhostBoardLoad } from "../cloud/ghosts"
 import { isVersionSkippedBundle, readGhostContender } from "../spar/ghost"
@@ -15,9 +16,9 @@ import {
   GHOST_ERROR_COPY,
   GHOST_FIGHT_LABEL,
   GHOST_SECTION_TITLE,
-  GHOST_STALE_COPY,
   GHOST_VERSION_COPY,
   ghostPreviewLine,
+  ghostStaleLine,
 } from "./copy"
 
 function stampOf(bundle: unknown, key: string): number | null {
@@ -54,6 +55,10 @@ function paintRow(
   name.append(badge)
   main.append(name)
 
+  // Preview-to-Fight continuity (FR-13): the preview names the champion
+  // and lists the kit the bout borrows — the contender's own kit, resolved
+  // to display names. The bout replays the exhibition rival's stats, so no
+  // stats appear here: nothing preview-only, no mismatched names.
   const contender = readGhostContender(entry.ghost)
   if (contender !== null) {
     const preview = document.createElement("span")
@@ -62,6 +67,7 @@ function paintRow(
       contender.name,
       stampOf(entry.ghost, "day"),
       stampOf(entry.ghost, "round"),
+      contender.kit.map((id) => getMove(id)?.displayName ?? id),
     )
     main.append(preview)
 
@@ -103,29 +109,34 @@ export function buildGhostSection(onFight: (entry: GhostBoardEntry) => void): {
 
   const status = document.createElement("p")
   status.className = "board-status board-ghost-status"
-  status.style.display = "none"
+  status.hidden = true
 
   const list = document.createElement("ul")
   list.className = "board-list"
 
   const empty = document.createElement("p")
   empty.className = "board-empty"
-  empty.style.display = "none"
+  empty.hidden = true
 
   section.append(heading, status, list, empty)
 
   function paint(result: GhostBoardLoad): void {
     list.replaceChildren()
     if (result.kind === "unavailable") {
-      status.style.display = ""
+      status.hidden = false
       status.textContent = GHOST_ERROR_COPY
-      empty.style.display = "none"
+      empty.hidden = true
       return
     }
-    status.style.display = result.kind === "snapshot" ? "" : "none"
-    status.textContent = result.kind === "snapshot" ? GHOST_STALE_COPY : ""
+    // A snapshot says it is a snapshot and how stale (FR-12), the same
+    // grammar as the score boards; a live board paints no status at all.
+    status.hidden = result.kind !== "snapshot"
+    status.textContent =
+      result.kind === "snapshot"
+        ? ghostStaleLine(result.fetchedAt, Date.now())
+        : ""
     for (const entry of result.entries) paintRow(list, entry, onFight)
-    empty.style.display = result.entries.length === 0 ? "" : "none"
+    empty.hidden = result.entries.length > 0
     empty.textContent = GHOST_EMPTY_COPY
   }
 

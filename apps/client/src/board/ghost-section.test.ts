@@ -5,7 +5,7 @@
  * the board panel suite's precedent.
  */
 import { afterAll, beforeAll, describe, expect, test } from "bun:test"
-import { type BattleSide, SIM_VERSION } from "@apex/sim"
+import { type BattleSide, getMove, SIM_VERSION } from "@apex/sim"
 import type { GhostBoardEntry } from "../cloud/api"
 import {
   GHOST_EMPTY_COPY,
@@ -13,6 +13,7 @@ import {
   GHOST_SECTION_TITLE,
   GHOST_STALE_COPY,
   GHOST_VERSION_COPY,
+  ghostPreviewLine,
 } from "./copy"
 import { buildGhostSection } from "./ghost-section"
 
@@ -124,6 +125,13 @@ function entry(
 }
 
 describe("ghost board section", () => {
+  // The preview resolves the contender's kit the way the section does, so
+  // this pins the wiring (the kit rides along) without pinning the sim's
+  // display names twice.
+  const kitNames = ["spark", "flame_charge", "cinder_shot", "blaze_bolt"].map(
+    (id) => getMove(id)?.displayName ?? id,
+  )
+
   test("live rows wear the badge, preview, and a Fight button in served order", () => {
     const section = buildGhostSection(() => {})
     section.paint({
@@ -141,8 +149,8 @@ describe("ghost board section", () => {
         main.children.map((cell) => cell.textContent),
       ),
     ).toEqual([
-      ["Ada", "Ember · day 12 · round 3"],
-      ["Bea", "Ember · day 12 · round 3"],
+      ["Ada", ghostPreviewLine("Ember", 12, 3, kitNames)],
+      ["Bea", ghostPreviewLine("Ember", 12, 3, kitNames)],
     ])
     // the badge and preview keep their own nodes.
     expect(nodesIn(section.element, "board-ghost-badge").length).toBe(2)
@@ -179,11 +187,17 @@ describe("ghost board section", () => {
 
   test("a snapshot serves the last board with the stale note", () => {
     const section = buildGhostSection(() => {})
-    section.paint({ kind: "snapshot", entries: [entry("Ada", 1)] })
+    section.paint({
+      kind: "snapshot",
+      entries: [entry("Ada", 1)],
+      fetchedAt: Date.now(),
+    })
     expect(nodesIn(section.element, "board-ghost-row").length).toBe(1)
-    expect(nodesIn(section.element, "board-ghost-status")[0]?.textContent).toBe(
-      GHOST_STALE_COPY,
-    )
+    const text =
+      nodesIn(section.element, "board-ghost-status")[0]?.textContent ?? ""
+    // The stale note names the last rivals and stamps how stale.
+    expect(text).toContain(GHOST_STALE_COPY)
+    expect(text).toMatch(/Updated (just now|\d+ min ago)\./)
   })
 
   test("an unreachable board is a calm line, and an empty one is words", () => {
