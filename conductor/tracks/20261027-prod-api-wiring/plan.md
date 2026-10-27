@@ -70,6 +70,25 @@
 **Evidence:** conductor/tracks/20261027-prod-api-wiring/verification/phase-3.md
 -->
 
+## Phase R1: Review Fixes
+
+- **Goal:** Resolve review findings F1, F2 (Low comment nits)
+- **Depends on:** Phase 3
+- **Covers:** F1, F2
+- **Touches:** `scripts/deploy/workflow.test.ts`
+- **Verification:** `bun test scripts/deploy/workflow.test.ts && bunx biome check scripts/deploy/workflow.test.ts`
+- **Status:** verified
+- **Resolution:** header names both contracts; phantom NFR-5 dropped. 17 pass, biome clean.
+
+- [x] **R1.T1: Resolve F1 (stale header)** — covers: F1
+- [x] **R1.T2: Resolve F2 (phantom NFR-5)** — covers: F2
+
+<!--
+**Result:** verified
+**Checkpoint:** cc824209
+**Evidence:** conductor/tracks/20261027-prod-api-wiring/review.md
+-->
+
 <!--
 Review fixes are appended by `conductor-review` as:
 
