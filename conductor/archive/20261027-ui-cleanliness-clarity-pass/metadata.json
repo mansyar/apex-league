@@ -4,7 +4,6 @@
   "branch": "refactor/20261027-ui-cleanliness-clarity-pass",
   "created_at": "2026-10-27T11:00:00Z",
   "depends_on": [],
-  "doc_sync": "pending",
   "id": "20261027-ui-cleanliness-clarity-pass",
   "plan": "plan.md",
   "priority": "high",
