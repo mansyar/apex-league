@@ -5,15 +5,18 @@
  */
 
 import { AXOLOTL_GRID, axolotlTemplate, buildAxolotl } from "./axolotl"
+import { BOAR_GRID, boarTemplate, buildBoar } from "./boar"
 import { BOVINE_GRID, bovineTemplate, buildBovine } from "./bovine"
 import type { CreatureBuild } from "./build"
 import { buildCrab, CRAB_GRID, crabTemplate } from "./crab"
+import { buildCub, CUB_GRID, cubTemplate } from "./cub"
 import { buildDrake, DRAKE_GRID, drakeTemplate } from "./drake"
 import { buildFalcon, FALCON_GRID, falconTemplate } from "./falcon"
 import { buildFox, FOX_GRID, foxTemplate } from "./fox"
 import { buildFrond, FROND_GRID, frondTemplate } from "./frond"
 import { buildHeron, HERON_GRID, heronTemplate } from "./heron"
 import { buildMole, MOLE_GRID, moleTemplate } from "./mole"
+import { buildOtter, OTTER_GRID, otterTemplate } from "./otter"
 import { sampleDna } from "./sample"
 import type { Dna, Template } from "./schema"
 import { buildSmolder, SMOLDER_GRID, smolderTemplate } from "./smolder"
@@ -106,6 +109,24 @@ export const archetypes: Record<string, ArchetypeDef> = {
     template: moleTemplate,
     grid: MOLE_GRID,
     build: buildMole,
+  },
+  cub: {
+    id: "cub",
+    template: cubTemplate,
+    grid: CUB_GRID,
+    build: buildCub,
+  },
+  boar: {
+    id: "boar",
+    template: boarTemplate,
+    grid: BOAR_GRID,
+    build: buildBoar,
+  },
+  otter: {
+    id: "otter",
+    template: otterTemplate,
+    grid: OTTER_GRID,
+    build: buildOtter,
   },
 }
 
