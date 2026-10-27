@@ -76,6 +76,42 @@ export interface BoardPayload {
   entries: BoardEntry[]
 }
 
+/**
+ * One ghost board row as `GET /ghosts` serves it. The client renders `rank`
+ * verbatim — recency already orders the board — and never recomputes it.
+ * The bundle stays opaque here; the spar reader decides replayability.
+ */
+export interface GhostBoardEntry {
+  rank: number
+  trainerId: string
+  name: string
+  updatedAt: number
+  ghost: unknown
+}
+
+/** What the public ghost board answers: the top-100, newest first. */
+export interface GhostBoardPayload {
+  entries: GhostBoardEntry[]
+}
+
+/** One trainer's stored ghost as the public single download serves it. */
+export interface GhostRecord {
+  trainerId: string
+  name: string
+  updatedAt: number
+  ghost: unknown
+}
+
+/** What a ghost upload answers: the stored row. */
+export interface GhostReceipt {
+  stored: boolean
+  entry: {
+    name: string
+    payload: string
+    updatedAt: number
+  }
+}
+
 export interface TrainerRecord {
   id: string
   name: string
@@ -111,6 +147,21 @@ export interface CloudApi {
    * never in the URL — there is nothing secret to send.
    */
   readBoard(category: ScoreCategory): Promise<ApiResult<BoardPayload>>
+  /**
+   * Upload this trainer's best ghost. Authenticates like a save push (the
+   * passphrase rides the body, never the URL). A 4xx/5xx is a value, never
+   * a throw — the caller stays quiet.
+   */
+  submitGhost(
+    id: string,
+    passphrase: string,
+    ghost: unknown,
+    name: string,
+  ): Promise<ApiResult<GhostReceipt>>
+  /** Read one trainer's stored ghost. Public like the board. */
+  readGhost(id: string): Promise<ApiResult<GhostRecord>>
+  /** Read the top-100 ghost board. Public: no passphrase, never in the URL. */
+  readGhosts(): Promise<ApiResult<GhostBoardPayload>>
 }
 
 /** The default deadline: a request that hangs is a request that failed. */
@@ -212,6 +263,25 @@ export function createCloudApi(opts: {
     // one-request-one-deadline shape as every other call above.
     readBoard: (category) =>
       call(`/leaderboard/${encodeURIComponent(category)}`, {
+        method: "GET",
+      }),
+
+    // The ghost upload authenticates like a save push; the board and the
+    // single download are public like the leaderboard — reading a ghost
+    // reveals nothing the board does not.
+    submitGhost: (id, passphrase, ghost, name) =>
+      call(
+        `${trainerPath(id)}/ghost`,
+        json("PUT", { passphrase, ghost, name }),
+      ),
+
+    readGhost: (id) =>
+      call(`${trainerPath(id)}/ghost`, {
+        method: "GET",
+      }),
+
+    readGhosts: () =>
+      call("/ghosts", {
         method: "GET",
       }),
   }
