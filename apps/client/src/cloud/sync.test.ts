@@ -124,6 +124,7 @@ function fakeApi(overrides: Partial<CloudApi> = {}): FakeApi {
         },
       }
     },
+    readBoard: async () => ({ ok: false, reason: "offline" }),
   }
   return Object.assign(api, overrides)
 }
@@ -282,6 +283,18 @@ describe("cloud sync — sign in and first upload (FR-7, AC-7)", () => {
     // The first upload reports the payload's own clock (F1): the wire's
     // `winner` is "incoming" | "stored", never a timestamp.
     expect(h.sync.status()).toEqual({ kind: "synced", at: 300 })
+  })
+
+  test("a trainer with no local save yet signs in settled, not stuck syncing", async () => {
+    const api = fakeApi({
+      pull: async () => ({ ok: false, reason: "not-found" }),
+    })
+    const h = harness({ api, local: null })
+    const result = await h.sync.signIn(TRAINER.id, TRAINER.passphrase)
+    expect(result).toEqual({ ok: true })
+    expect(api.pushes).toHaveLength(0)
+    expect(readCredentials(h.storage)).toEqual(TRAINER)
+    expect(h.sync.status()).toEqual({ kind: "synced", at: 0 })
   })
 
   test("an existing cloud save is never overwritten by signing in (AC-7)", async () => {

@@ -19,6 +19,8 @@ import {
 } from "./app/screens"
 import { buildArena } from "./arena"
 import { careCueForEvent } from "./audio/careCues"
+import { createBoardLoader } from "./board/fetch"
+import { buildBoardPanel } from "./board/panel"
 import { timeoutSignal } from "./cloud/api"
 import { createCloudSave } from "./cloud/cloud-save"
 import { readCredentials } from "./cloud/credentials"
@@ -41,6 +43,7 @@ import "./cup.css"
 import "./spar.css"
 import "./battle-hud.css"
 import "./cloud/cloud.css"
+import "./board/board.css"
 
 const app = document.querySelector<HTMLElement>("#app")
 if (!app) throw new Error("#app container missing")
@@ -218,12 +221,23 @@ const cloudPanel = cloud
     })
   : null
 
+// The boards (FR-5, FR-6): public lists via the cloud api. Local-only
+// builds have no cloud object, so they get no board either.
+const boardLoad = cloud
+  ? createBoardLoader({ api: cloud.api, storage, now: () => Date.now() })
+  : null
+const boardPanel = boardLoad
+  ? buildBoardPanel({ load: () => boardLoad.load() })
+  : null
+
 const hud = createHudScreen({
   ...screenDeps,
   graduation,
   storage,
   askImport: (data) => importModal.ask(data),
-  extraChips: cloudPanel ? [cloudPanel.chip] : undefined,
+  extraChips: cloudPanel
+    ? [cloudPanel.chip, ...(boardPanel ? [boardPanel.chip] : [])]
+    : undefined,
 })
 
 // Appended after the HUD so the replace-save dialog stacks above Settings
@@ -235,6 +249,11 @@ if (cloudPanel && cloud) {
   app.append(cloudPanel.root)
   cloud.sync.subscribe((status) => cloudPanel.paint(status))
   cloudPanel.paint(cloud.sync.status())
+}
+
+if (boardPanel) {
+  // Above the trainer card (same kit-modal layer; DOM order wins).
+  app.append(boardPanel.root)
 }
 
 // The store's fixed fanout: every commit persists (inside commit) and then
