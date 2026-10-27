@@ -80,9 +80,10 @@ export const GHOST_ERROR_COPY =
 /**
  * A champion recorded under another simulator version stays listed but
  * unboutable (the version-skew edge): kept for the board, not for bouts.
+ * Version-neutral on purpose — the skew may be older or newer.
  */
 export const GHOST_VERSION_COPY =
-  "Recorded on an older build — kept for the board, not for bouts."
+  "Recorded on a different build — kept for the board, not for bouts."
 
 /**
  * One ghost row's preview (FR-4): the champion's team name and the cup score

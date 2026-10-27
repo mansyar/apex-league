@@ -112,3 +112,23 @@ Review fixes are appended by `conductor-review` as:
 **Tests:** board+spar suites → 66 pass / 0 fail; check clean (client 442 files); build exit 0; module-size guard 5 pass (main.ts 12222 B); biome clean
 **AC:** AC-4 verified (badge + preview + Fight, empty/stale/offline copy, real local stack); AC-5 verified (ghost bout in-panel, no-mutation test, no save/cloud touch)
 **Deviations:** D1 sim SIM_VERSION re-export; D2 Spar.fightGhost member; D3 spar.ts session wiring; D4 main.ts boot wiring; D5 ghostBoutIntro copy; D6 board/boot.ts extraction (main.ts was 563 B over cap); D7 ghost-section.test.ts harness assertions; D8 migrate.test.ts format wrap
+
+## Phase R1: Review Fixes
+
+- **Goal:** Resolve review findings F1–F5 (round 1 BLOCK → re-review)
+- **Depends on:** Phase 4
+- **Covers:** F1, F2, F3, F4, F5
+- **Touches:** `apps/client/src/cup/*`, `apps/client/src/cloud/*`, `packages/sim/src/cup/*`, `apps/server/src/ghost/*`, `apps/client/src/spar.ts`, `apps/client/src/board/*`
+- **Verification:** `bun test apps/client/src/cup apps/client/src/cloud apps/client/src/spar apps/client/src/board packages/sim apps/server --parallel=4` + `bun run check` + `bun run build`
+- **Status:** in_progress
+
+- [x] **R1.T1: Wire cup-win ghost capture + queue (F1)** — covers: F1
+  - [x] **R1.T1.1: Cup→cloud integration test (champion queues, flush after push)**
+- [x] **R1.T2: Copy-on-capture + caps/reader alignment + teardown/copy nits (F2–F5)** — covers: F2, F3, F4, F5
+
+**Result:** verified
+**Checkpoint:** (commit on R1 acceptance)
+**Evidence:** conductor/tracks/20261027-ghost-data-async-rivals/verification/phase-r1.md
+**Tests:** cup/cloud/spar/board + sim + server suites → 1754 pass / 1 skip / 0 fail; check clean (sim 167 / client 444 / server 44 / voxel 145); build exit 0; module-size guard pass (main.ts 12256 B); biome clean
+**AC:** AC-1 verified (champion finalize captures + queues through the one production finalize site; integration test queues a real bundle and flushes it after the push); AC-2 verified (flush ordering unchanged — submitPending rides the save push; offline/reject behavior untouched)
+**Findings resolved:** F1 cup→queue wiring (captureCupGhost at onFinalize, cloudSync through ScreenDeps); F2 copy-on-capture (sides + events copied, mutation test); F3 caps require element (fixture already had it, rejection test added); F4 pendingGhost cleared on creature-loss teardown; F5 version copy is direction-neutral

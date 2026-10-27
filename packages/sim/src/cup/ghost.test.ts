@@ -113,6 +113,39 @@ describe("ghost bundle — deterministic replay", () => {
     expect(verifyGhostBundle(bundle)).toBe(true)
   })
 
+  test("the bundle is a copy: later session mutation never rewrites it", () => {
+    const { creature, day } = championCreatureAndSeed()
+    const species = getSpecies(creature.speciesId)
+    if (!species) throw new Error("unknown species")
+    const loadout = defaultLoadout(creature, species)
+    let session = startCupSession(creature, day, 17)
+    for (let round = 1; round <= 3; round++) {
+      session = resolvePlayerMatch(session, loadout, "balanced").session
+    }
+    const bundle = buildGhostBundle(session)
+    if (!bundle) throw new Error("champion session captured no bundle")
+
+    // Snapshot before mutating: the session's kit array is the loadout
+    // array itself, so the mutation below also rewrites `loadout`.
+    const kitBefore = [...bundle.player.kit]
+    const hpBefore = bundle.player.stats.hp
+    const eventsBefore = bundle.events.length
+
+    // The session stays live after the final: mutate everything mutable.
+    const final = session.playerVerdicts[session.playerVerdicts.length - 1]
+    if (!final?.battle || !final.sides) throw new Error("no final to mutate")
+    const [playerSide, rivalSide] = final.sides
+    if (!playerSide || !rivalSide) throw new Error("no sides to mutate")
+    ;(playerSide.kit as string[]).push("mutated_move")
+    ;(playerSide.stats as { hp: number }).hp = -1
+    ;(final.battle.events as unknown as unknown[]).length = 0
+
+    expect(bundle.player.kit).toEqual(kitBefore)
+    expect(bundle.player.stats.hp).toBe(hpBefore)
+    expect(bundle.events).toHaveLength(eventsBefore)
+    expect(verifyGhostBundle(bundle)).toBe(true)
+  })
+
   test("two runs of the same cup capture identical bundles", () => {
     const run = (): string => {
       const { creature, day } = championCreatureAndSeed()

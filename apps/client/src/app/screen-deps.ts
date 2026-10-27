@@ -1,3 +1,4 @@
+import type { CloudSync } from "../cloud/sync"
 import type { SceneHandle } from "../scene"
 import type { Staging } from "../staging"
 import type { GameStore } from "../store"
@@ -18,4 +19,10 @@ export interface ScreenDeps {
   scene: SceneHandle
   sceneSync: SceneSync
   staging: Staging
+  /**
+   * The cloud sync, or null when this build has no cloud
+   * (ghost_data_async_rivals R1/F1): the cup queues a championship ghost
+   * through it; every other screen ignores it.
+   */
+  cloudSync: Pick<CloudSync, "queueGhost"> | null
 }

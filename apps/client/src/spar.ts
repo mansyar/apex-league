@@ -258,6 +258,9 @@ export function createSpar(
         overlay.style.display = "none"
         battleHud.hide()
         sparButton.style.display = ""
+        // A stranded ghost contender outlives the partner it was built for:
+        // drop it with the session, like both close handlers do.
+        pendingGhost = null
         // Same teardown as a manual close — main.ts must drop
         // app-in-arena and re-show the ranch creature, or the app
         // strands itself in arena mode.

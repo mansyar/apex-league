@@ -29,10 +29,16 @@ function isNonNegativeInteger(value: unknown): value is number {
   return typeof value === "number" && Number.isInteger(value) && value >= 0
 }
 
-/** One battle side: a named fighter with a non-empty kit and frozen stats. */
+/** One battle side: a named fighter with an element, a non-empty kit and
+ * frozen stats. The element is required so the client's spar reader and the
+ * store agree on fightability: an element-less bundle would store and list
+ * yet never grow a Fight button. */
 function isGhostSide(value: unknown): boolean {
   if (!isRecord(value)) return false
   if (typeof value.name !== "string" || value.name.length === 0) return false
+  if (typeof value.element !== "string" || value.element.length === 0) {
+    return false
+  }
   if (!Array.isArray(value.kit) || value.kit.length === 0) return false
   if (!value.kit.every((move) => typeof move === "string")) return false
   return isRecord(value.stats)

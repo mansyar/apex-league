@@ -184,6 +184,7 @@ const screenDeps: ScreenDeps = {
   scene,
   sceneSync,
   staging,
+  cloudSync: cloud?.sync ?? null,
 }
 
 // The spar (with its arena hand-off), then the arena's presentation layer

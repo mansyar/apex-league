@@ -67,15 +67,24 @@ export function buildGhostBundle(session: CupSession): GhostBundle | null {
   const player = sides[0]
   const rival = sides[1]
   if (!player || !rival) return null
+  // Copy on capture: the session stays live after the final (the walk, the
+  // results screen, a refresh) and later mutation must never rewrite a
+  // queued bundle. Kit, stats, and the event log are the mutable parts —
+  // name/element/tactic are scalars and ride along.
+  const copySide = (side: BattleSide): BattleSide => ({
+    ...side,
+    stats: { ...side.stats },
+    kit: [...side.kit],
+  })
   return {
     simVersion: SIM_VERSION,
     seed: cupMatchSeed(session.bracket.day, final.round, 0),
     day: session.bracket.day,
     round: final.round,
-    player,
-    rival,
+    player: copySide(player),
+    rival: copySide(rival),
     winner: final.battle.winner,
-    events: final.battle.events,
+    events: [...final.battle.events],
   }
 }
 

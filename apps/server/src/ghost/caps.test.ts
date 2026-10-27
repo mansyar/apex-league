@@ -40,7 +40,7 @@ describe("ghost plausibility caps", () => {
     expect(isPlausibleGhost(shapeless)).toBe(false)
   })
 
-  test("rejects sides without a name, a kit, or stats", () => {
+  test("rejects sides without a name, an element, a kit, or stats", () => {
     const bundle = validGhostBundle()
     expect(isPlausibleGhost({ ...bundle, player: undefined })).toBe(false)
     expect(
@@ -67,6 +67,20 @@ describe("ghost plausibility caps", () => {
     const statless = { ...(bundle.player as Record<string, unknown>) }
     delete statless.stats
     expect(isPlausibleGhost({ ...bundle, rival: statless })).toBe(false)
+    // An element-less side would list but never bout: the store and the
+    // spar reader agree on fightability (F3).
+    const elementless = { ...(bundle.player as Record<string, unknown>) }
+    delete elementless.element
+    expect(isPlausibleGhost({ ...bundle, player: elementless })).toBe(false)
+    expect(
+      isPlausibleGhost({
+        ...bundle,
+        rival: {
+          ...(bundle.rival as Record<string, unknown>),
+          element: "",
+        },
+      }),
+    ).toBe(false)
   })
 
   test("a null winner (drawn final) is plausible, a non-name is not", () => {
