@@ -99,9 +99,16 @@ Review fixes are appended by `conductor-review` as:
 - **Covers:** FR-4, FR-5, NFR-3, AC-4, AC-5
 - **Touches:** `apps/client/src/board/*`, `apps/client/src/spar/*`
 - **Verification:** `bun run check` + `bun run build` + visual screenshots desktop + 393px mobile clean console
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P4.T1: Board badge + preview + Fight action** — covers: FR-4, AC-4
-  - [ ] **P4.T1.1: Empty-state + stale copy**
-- [ ] **P4.T2: Spar-vs-ghost wiring, local-only result** — covers: FR-5, AC-5
-  - [ ] **P4.T2.1: No cups/ladder mutation test**
+- [x] **P4.T1: Board badge + preview + Fight action** — covers: FR-4, AC-4
+  - [x] **P4.T1.1: Empty-state + stale copy**
+- [x] **P4.T2: Spar-vs-ghost wiring, local-only result** — covers: FR-5, AC-5
+  - [x] **P4.T2.1: No cups/ladder mutation test**
+
+**Result:** verified
+**Checkpoint:** d0a36e77
+**Evidence:** conductor/tracks/20261027-ghost-data-async-rivals/verification/phase-4.md (+ ghost-board-desktop.png, ghost-spar-desktop.png, ghost-board-mobile.png)
+**Tests:** board+spar suites → 66 pass / 0 fail; check clean (client 442 files); build exit 0; module-size guard 5 pass (main.ts 12222 B); biome clean
+**AC:** AC-4 verified (badge + preview + Fight, empty/stale/offline copy, real local stack); AC-5 verified (ghost bout in-panel, no-mutation test, no save/cloud touch)
+**Deviations:** D1 sim SIM_VERSION re-export; D2 Spar.fightGhost member; D3 spar.ts session wiring; D4 main.ts boot wiring; D5 ghostBoutIntro copy; D6 board/boot.ts extraction (main.ts was 563 B over cap); D7 ghost-section.test.ts harness assertions; D8 migrate.test.ts format wrap
