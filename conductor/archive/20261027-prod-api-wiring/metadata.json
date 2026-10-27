@@ -2,7 +2,7 @@
   "id": "20261027-prod-api-wiring",
   "title": "Prod API Wiring",
   "type": "chore",
-  "status": "in_progress",
+  "status": "complete",
   "priority": "high",
   "depends_on": [],
   "created_at": "2026-10-28T00:00:00Z",
@@ -27,6 +27,6 @@
   "reverted_at": null,
   "revert_commit": null,
   "revert_pr_url": null,
-  "archived_at": null,
-  "archive_path": null
+  "archived_at": "2026-10-27T20:18:00Z",
+  "archive_path": "conductor/archive/20261027-prod-api-wiring"
 }
