@@ -14,13 +14,19 @@
 - **Covers:** FR-1, NFR-1, AC-1
 - **Touches:** `packages/sim/src/cup/*`, `packages/sim/src/battle/*`
 - **Verification:** `bun test packages/sim --parallel=4` + `bun run check`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Ghost bundle builder + version pin** — covers: FR-1
-  - [ ] **P1.T1.1: Define bundle shape (seed, kits, log, sim version)**
-  - [ ] **P1.T1.2: Capture on cup win path**
-- [ ] **P1.T2: Deterministic replay verifier** — covers: FR-1, AC-1
-  - [ ] **P1.T2.1: Byte-identical playback test with fixed seeds**
+- [x] **P1.T1: Ghost bundle builder + version pin** — covers: FR-1
+  - [x] **P1.T1.1: Define bundle shape (seed, kits, log, sim version)**
+  - [x] **P1.T1.2: Capture on cup win path**
+- [x] **P1.T2: Deterministic replay verifier** — covers: FR-1, AC-1
+  - [x] **P1.T2.1: Byte-identical playback test with fixed seeds**
+
+**Result:** verified
+**Checkpoint:** 4df6be67
+**Evidence:** conductor/tracks/20261027-ghost-data-async-rivals/verification/phase-1.md
+**Tests:** bun test packages/sim --parallel=4 → 1387 pass / 1 skip / 0 fail; bun run check → clean (sim 167 / client 432 / server 36 / voxel 145 files)
+**AC:** AC-1 verified (bundle on cup win + identical playback)
 
 <!--
 The primary appends after acceptance:
@@ -36,7 +42,7 @@ The primary appends after acceptance:
 - **Covers:** FR-3, FR-7, NFR-4, AC-3, AC-7
 - **Touches:** `apps/server/src/ghost/*`, `apps/server/src/db/*`
 - **Verification:** `bun test apps/server --parallel=4` + `bun run check`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Ghost store + plausibility caps** — covers: FR-3, FR-7
   - [ ] **P2.T1.1: Upload/download routes with per-trainer best semantics**
