@@ -1,0 +1,67 @@
+/* Leaderboards (FR-5, FR-6): one quiet chip in the HUD's chip cluster and one
+   modal with all four boards. Scoped to `board-`/`.boards-chip` so nothing
+   here can reach the existing plates. Loaded only by a build with a cloud. */
+
+.boards-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.board-box {
+  text-align: left;
+  gap: 12px;
+}
+
+.board-status {
+  color: var(--ink-dim);
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0;
+  max-width: 340px;
+}
+
+.board-category {
+  display: grid;
+  gap: 6px;
+}
+
+.board-category-title {
+  color: var(--ink-dim);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.board-list {
+  display: grid;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.board-row {
+  display: grid;
+  font-size: 13px;
+  gap: 8px;
+  grid-template-columns: 3ch 1fr auto;
+}
+
+.board-rank {
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.board-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.board-empty {
+  color: var(--ink-dim);
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0;
+}

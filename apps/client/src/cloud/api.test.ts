@@ -166,4 +166,87 @@ describe("the cloud api", () => {
     await api.getTrainer("trn/../x")
     expect(seen[0]?.url).toBe("https://api.example.test/trainers/trn%2F..%2Fx")
   })
+
+  test("submitScore posts the entry with the passphrase in the body", async () => {
+    const { fetch, seen } = recordingFetch(200, {
+      updated: true,
+      entry: { category: "cups", value: 1, name: "Ana", updatedAt: 7 },
+    })
+    const { api } = apiOver(fetch)
+    const result = await api.submitScore("trn_abc", "kestrel-42", {
+      category: "cups",
+      value: 1,
+      name: "Ana",
+    })
+    expect(result).toEqual({
+      ok: true,
+      value: {
+        updated: true,
+        entry: { category: "cups", value: 1, name: "Ana", updatedAt: 7 },
+      },
+    })
+    const call = seen[0]
+    expect(call?.url).toBe("https://api.example.test/trainers/trn_abc/scores")
+    expect(call?.init?.method).toBe("POST")
+    expect(call?.url).not.toContain("kestrel-42")
+    expect(JSON.parse(String(call?.init?.body))).toEqual({
+      passphrase: "kestrel-42",
+      category: "cups",
+      value: 1,
+      name: "Ana",
+    })
+  })
+
+  test("a rejected submit is a value with the server's error", async () => {
+    const { fetch } = recordingFetch(400, { error: "invalid_value" })
+    const { api } = apiOver(fetch)
+    expect(
+      await api.submitScore("trn_abc", "kestrel-42", {
+        category: "ap",
+        value: 10,
+        name: "Ana",
+      }),
+    ).toEqual({ ok: false, reason: "rejected", error: "invalid_value" })
+  })
+})
+
+describe("the board read", () => {
+  test("readBoard gets the ranked list, with no passphrase anywhere", async () => {
+    const { fetch, seen } = recordingFetch(200, {
+      category: "cups",
+      entries: [{ rank: 1, trainerId: "trn_abc", name: "Ada", value: 3 }],
+    })
+    const { api } = apiOver(fetch)
+    const result = await api.readBoard("cups")
+    expect(result).toEqual({
+      ok: true,
+      value: {
+        category: "cups",
+        entries: [{ rank: 1, trainerId: "trn_abc", name: "Ada", value: 3 }],
+      },
+    })
+    expect(seen).toHaveLength(1)
+    expect(seen[0]?.url).toBe("https://api.example.test/leaderboard/cups")
+    expect(seen[0]?.init?.method).toBe("GET")
+  })
+
+  test("an unreachable board is offline, not an exception", async () => {
+    const { api } = apiOver(async () => {
+      throw new Error("connect ECONNREFUSED")
+    })
+    expect(await api.readBoard("ladder")).toEqual({
+      ok: false,
+      reason: "offline",
+    })
+  })
+
+  test("an unknown board is a rejected value", async () => {
+    const { fetch } = recordingFetch(400, { error: "invalid_category" })
+    const { api } = apiOver(fetch)
+    expect(await api.readBoard("cups")).toEqual({
+      ok: false,
+      reason: "rejected",
+      error: "invalid_category",
+    })
+  })
 })

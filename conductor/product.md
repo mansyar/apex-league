@@ -202,7 +202,10 @@ Phased delivery plan (each phase is independently playable):
   global leaderboards, ghost data. *(Landed 2026-10-26: anonymous trainer
   identity and cloud save sync ship as an ElysiaJS container on Coolify —
   boot pull, debounced push, conflict loser preserved. Still open:
-  leaderboards and ghost data.)*
+  leaderboards and ghost data. Landed 2026-10-27: per-trainer-best boards for
+  cup wins, ladder, AP, and collection with plausibility caps; Board tab with
+  offline snapshot; auto-submit alongside the save push. Still open: ghost
+  data.)*
 
 ### Phase 4 — Post-MVP
 - Async ghost PvP; live PvP (battle code designed for it from Phase 1).

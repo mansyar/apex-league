@@ -18,7 +18,7 @@ import {
   saveGame,
   serializeSave,
 } from "@apex/sim"
-import type { CloudApi, SaveRecord } from "./api"
+import type { CloudApi, SaveRecord, ScoreSubmission } from "./api"
 import { readCredentials, TRAINER_KEY, writeCredentials } from "./credentials"
 import { type CloudStatus, createCloudSync } from "./sync"
 
@@ -74,15 +74,18 @@ interface PushCall {
 interface FakeApi extends CloudApi {
   calls: string[]
   pushes: PushCall[]
+  submits: ScoreSubmission[]
 }
 
 /** The api as the sync sees it: scripted answers, recorded calls. */
 function fakeApi(overrides: Partial<CloudApi> = {}): FakeApi {
   const calls: string[] = []
   const pushes: PushCall[] = []
+  const submits: ScoreSubmission[] = []
   const api: FakeApi = {
     calls,
     pushes,
+    submits,
     createTrainer: async () => {
       calls.push("createTrainer")
       return { ok: true, value: { id: "trn_new" } }
@@ -110,6 +113,18 @@ function fakeApi(overrides: Partial<CloudApi> = {}): FakeApi {
       pushes.push({ id, payload, savedAt })
       return { ok: true, value: { stored: true, winner: "incoming" } }
     },
+    submitScore: async (id, _passphrase, submission) => {
+      calls.push(`submitScore:${id}:${submission.category}:${submission.value}`)
+      submits.push(submission)
+      return {
+        ok: true,
+        value: {
+          updated: true,
+          entry: { ...submission, updatedAt: 1 },
+        },
+      }
+    },
+    readBoard: async () => ({ ok: false, reason: "offline" }),
   }
   return Object.assign(api, overrides)
 }
@@ -270,6 +285,35 @@ describe("cloud sync — sign in and first upload (FR-7, AC-7)", () => {
     expect(h.sync.status()).toEqual({ kind: "synced", at: 300 })
   })
 
+  test("a trainer with no local save yet signs in settled, not stuck syncing", async () => {
+    const api = fakeApi({
+      pull: async () => ({ ok: false, reason: "not-found" }),
+    })
+    const h = harness({ api, local: null })
+    const result = await h.sync.signIn(TRAINER.id, TRAINER.passphrase)
+    expect(result).toEqual({ ok: true })
+    expect(api.pushes).toHaveLength(0)
+    expect(readCredentials(h.storage)).toEqual(TRAINER)
+    expect(h.sync.status()).toEqual({ kind: "synced", at: 0 })
+  })
+
+  test("a failed first upload keeps its failure status, never 'synced' (F1)", async () => {
+    let attempts = 0
+    const api = fakeApi({
+      pull: async () => ({ ok: false, reason: "not-found" }),
+      push: async () => {
+        attempts += 1
+        return { ok: false, reason: "offline" }
+      },
+    })
+    const h = harness({ api, local: { state: stateOn(3), savedAt: 300 } })
+    const result = await h.sync.signIn(TRAINER.id, TRAINER.passphrase)
+    expect(result).toEqual({ ok: true })
+    expect(attempts).toBe(1)
+    expect(readCredentials(h.storage)).toEqual(TRAINER)
+    expect(h.sync.status()).toEqual({ kind: "offline" })
+  })
+
   test("an existing cloud save is never overwritten by signing in (AC-7)", async () => {
     const api = fakeApi({
       pull: async () => ({ ok: true, value: cloudSave(200, 4) }),
@@ -404,6 +448,53 @@ describe("cloud sync — push behind the autosave", () => {
     // pushed payload's own clock, not the receipt (F1).
     expect(h.last()).toEqual({ kind: "synced", at: 104 })
     expect(typeof (h.sync.status() as { at?: unknown }).at).toBe("number")
+  })
+
+  test("a result push submits the changed scores next to the save", async () => {
+    const api = fakeApi()
+    const h = harness({ api, signedIn: true })
+    await h.sync.start()
+    api.calls.length = 0
+    h.sync.noteLocalWrite(rawOf({ ...stateOn(2), cupsWon: 1 }, 200))
+    h.clock.advance(2500)
+    await settle()
+    expect(api.pushes).toHaveLength(1)
+    const cups = api.submits.find((entry) => entry.category === "cups")
+    expect(cups).toMatchObject({ value: 1, name: "Ana" })
+    expect(h.last()).toEqual({ kind: "synced", at: 200 })
+  })
+
+  test("a failing score submit leaves the save push untouched", async () => {
+    const api = fakeApi({
+      submitScore: async () => ({ ok: false, reason: "offline" }),
+    })
+    const h = harness({ api, signedIn: true })
+    await h.sync.start()
+    h.sync.noteLocalWrite(rawOf({ ...stateOn(2), cupsWon: 1 }, 200))
+    h.clock.advance(2500)
+    await settle()
+    expect(api.pushes).toHaveLength(1)
+    const pushed = JSON.parse(api.pushes[0]?.payload ?? "null") as SaveData
+    expect(pushed.state.cupsWon).toBe(1)
+    expect(h.last()).toEqual({ kind: "synced", at: 200 })
+  })
+
+  test("a rejected score submit is quiet", async () => {
+    const api = fakeApi({
+      submitScore: async () => ({
+        ok: false,
+        reason: "rejected",
+        error: "invalid_value",
+      }),
+    })
+    const h = harness({ api, signedIn: true })
+    await h.sync.start()
+    h.sync.noteLocalWrite(rawOf(stateOn(2), 200))
+    h.clock.advance(2500)
+    await settle()
+    expect(api.pushes).toHaveLength(1)
+    expect(h.last()).toEqual({ kind: "synced", at: 200 })
+    expect(h.adopted).toEqual([])
   })
 
   test("a local write while signed out makes no request", async () => {

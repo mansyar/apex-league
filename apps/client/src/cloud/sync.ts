@@ -28,6 +28,7 @@ import {
   writeCredentials,
 } from "./credentials"
 import { createPushQueue, type PushQueue } from "./push-queue"
+import { createScoreSubmitter } from "./scores"
 
 /** What the quiet status line says. Information, never an alarm (FR-8). */
 export type CloudStatus =
@@ -152,6 +153,10 @@ export function createCloudSync(opts: {
   }
 
   async function pushNow(payload: string): Promise<void> {
+    // The leaderboard submit rides next to the save push: same trigger,
+    // fire-and-forget, and quiet by construction — it never throws and never
+    // touches the status below, so a failed submit cannot move the save.
+    scores.submitIfChanged(payload)
     const savedAt = savedAtOf(payload)
     if (credentials === null || savedAt === null) return
     const result = await api.push(
@@ -183,12 +188,22 @@ export function createCloudSync(opts: {
     capMs: opts.capMs,
   })
 
-  /** Upload this device's ranch as the trainer's first cloud save (FR-7). */
-  async function uploadLocal(): Promise<void> {
+  const scores = createScoreSubmitter({
+    api,
+    storage,
+    credentials: () => credentials,
+  })
+
+  /** Upload this device's ranch as the trainer's first cloud save (FR-7).
+   * Returns whether the caller must settle the status itself: false only when
+   * there was nothing to push (no local save). A failed push settles its own
+   * status via failureStatus, so it returns true — the caller must not
+   * overwrite that with "synced". */
+  async function uploadLocal(): Promise<boolean> {
     const payload = storage.getItem(SAVE_KEY)
-    if (payload === null || credentials === null) return
+    if (payload === null || credentials === null) return false
     const savedAt = savedAtOf(payload)
-    if (savedAt === null) return
+    if (savedAt === null) return false
     const result = await api.push(
       credentials.id,
       credentials.passphrase,
@@ -197,13 +212,14 @@ export function createCloudSync(opts: {
     )
     if (!result.ok) {
       failureStatus(result)
-      return
+      return true
     }
     // The receipt's `winner` is "incoming" | "stored", never a clock: the
     // synced stamp is the uploaded payload's own `savedAt`.
     setStatus(
       result.value.stored ? { kind: "synced", at: savedAt } : { kind: "ahead" },
     )
+    return true
   }
 
   function remember(next: TrainerCredentials): void {
@@ -281,8 +297,11 @@ export function createCloudSync(opts: {
       }
       if (pull.reason === "not-found") {
         // First sign-in for this trainer: the ranch here becomes theirs.
+        // With no local save yet there is nothing to upload — settle out of
+        // "syncing" so the panel never reads stuck (AC-5's quiet note needs a
+        // settled status underneath it).
         remember({ id: trainerId, name: trainer.value.name, passphrase })
-        await uploadLocal()
+        if (!(await uploadLocal())) setStatus({ kind: "synced", at: now() })
         return { ok: true }
       }
       if (pull.reason === "unauthorized") {
@@ -318,7 +337,7 @@ export function createCloudSync(opts: {
         return { ok: false, reason: "rejected" }
       }
       remember({ id, name: trainerName, passphrase })
-      await uploadLocal()
+      if (!(await uploadLocal())) setStatus({ kind: "synced", at: now() })
       return { ok: true }
     },
 

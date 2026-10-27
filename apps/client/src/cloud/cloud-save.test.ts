@@ -232,8 +232,22 @@ describe("the cloud save seam", () => {
     expect(pushes()).toBe(0)
     clockRef.advance(2000)
     expect(pushes()).toBe(1)
-    expect(requests.length - before).toBe(1)
-    const push = requests[requests.length - 1]
+    // The submit rides next to the push: every board is new on the first
+    // flush, so each posts once — the push count above is what stays one.
+    const posts = requests
+      .slice(before)
+      .filter((request) => request.method === "POST")
+    expect(posts).toHaveLength(4)
+    expect(posts.map((post) => JSON.parse(post.body).category).sort()).toEqual([
+      "ap",
+      "collection",
+      "cups",
+      "ladder",
+    ])
+    expect(requests.length - before).toBe(5)
+    const push = requests
+      .slice(before)
+      .find((request) => request.method === "PUT")
     expect(JSON.parse(push?.body ?? "{}")).toMatchObject({
       passphrase: TRAINER.passphrase,
       // The payload's own clock, not the clock at flush time.

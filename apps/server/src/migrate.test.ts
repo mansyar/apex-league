@@ -18,14 +18,15 @@ describe("migrations", () => {
     const db = freshDatabase()
     try {
       expect(schemaVersion(db)).toBeNull()
-      expect(migrate(db)).toEqual(["0001_init.sql"])
+      expect(migrate(db)).toEqual(["0001_init.sql", "0002_leaderboard.sql"])
       expect(tables(db)).toEqual([
         "_migrations",
         "displaced_saves",
+        "leaderboard_scores",
         "saves",
         "trainers",
       ])
-      expect(schemaVersion(db)).toBe("0001_init.sql")
+      expect(schemaVersion(db)).toBe("0002_leaderboard.sql")
     } finally {
       db.close()
     }
@@ -49,7 +50,10 @@ describe("migrations", () => {
         n: number
       }
       expect(counted.n).toBe(1)
-      expect(appliedMigrations(db)).toEqual(["0001_init.sql"])
+      expect(appliedMigrations(db)).toEqual([
+        "0001_init.sql",
+        "0002_leaderboard.sql",
+      ])
     } finally {
       db.close()
     }
@@ -63,7 +67,10 @@ describe("migrations", () => {
       const rows = db
         .query("SELECT name FROM _migrations ORDER BY name")
         .all() as { name: string }[]
-      expect(rows).toEqual([{ name: "0001_init.sql" }])
+      expect(rows).toEqual([
+        { name: "0001_init.sql" },
+        { name: "0002_leaderboard.sql" },
+      ])
     } finally {
       db.close()
     }
