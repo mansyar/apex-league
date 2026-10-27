@@ -38,7 +38,7 @@
 - **Covers:** FR-4, AC-4
 - **Touches:** `conductor/workflow.md`, `conductor/tech-stack.md`, `README.md`, `.env.example`
 - **Verification:** `bun run check`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Update `workflow.md` services/database/env/emergency for the live server** — covers: FR-4
 - [ ] **P2.T2: Update `tech-stack.md` note, `README.md` deploy section, `.env.example` vars** — covers: FR-4
