@@ -78,12 +78,19 @@ Review fixes are appended by `conductor-review` as:
 - **Covers:** FR-2, FR-6, NFR-2, NFR-5, AC-2, AC-6
 - **Touches:** `apps/client/src/cloud/*`
 - **Verification:** `bun test apps/client/src/cloud --parallel=4` + `bun run check`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Push-queue hook for auto-submit** — covers: FR-2, AC-2
-  - [ ] **P3.T1.1: Quiet non-blocking submit with flush ordering**
-- [ ] **P3.T2: Fetch-on-open + snapshot** — covers: FR-6, AC-6
-  - [ ] **P3.T2.1: Offline snapshot fallback test**
+- [x] **P3.T1: Push-queue hook for auto-submit** — covers: FR-2, AC-2
+  - [x] **P3.T1.1: Quiet non-blocking submit with flush ordering**
+- [x] **P3.T2: Fetch-on-open + snapshot** — covers: FR-6, AC-6
+  - [x] **P3.T2.1: Offline snapshot fallback test**
+
+**Result:** verified
+**Checkpoint:** 1d433395
+**Evidence:** conductor/tracks/20261027-ghost-data-async-rivals/verification/phase-3.md
+**Tests:** bun test apps/client/src/cloud --parallel=4 → 107 pass / 0 fail; bun run check → clean (client 435 files)
+**AC:** AC-2 verified (auto-submit quiet non-blocking), AC-6 verified (offline snapshot fallback)
+**Deviations:** save-payload.ts additive extraction (sync.ts was at 12KB cap); sync.test.ts fake-API stubs for extended CloudApi; malformed-wire stubs mirror board/fetch.test.ts precedent
 
 ## Phase 4: Board UI + spar-vs-ghost
 
@@ -92,7 +99,7 @@ Review fixes are appended by `conductor-review` as:
 - **Covers:** FR-4, FR-5, NFR-3, AC-4, AC-5
 - **Touches:** `apps/client/src/board/*`, `apps/client/src/spar/*`
 - **Verification:** `bun run check` + `bun run build` + visual screenshots desktop + 393px mobile clean console
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P4.T1: Board badge + preview + Fight action** — covers: FR-4, AC-4
   - [ ] **P4.T1.1: Empty-state + stale copy**
