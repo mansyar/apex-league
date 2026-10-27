@@ -1,29 +1,21 @@
 import {
-  ACTION_POINTS_PER_DAY,
   canGraduate,
   careAction,
   type GameState,
-  lineagePrestige,
   type TrainingProgram,
 } from "@apex/sim"
-import { meter, replay } from "../ui/kit"
+import { replay } from "../ui/kit"
 import {
   dockHeadTraining,
-  familyName,
   hatchDayStatusLine,
   REJECTION_COPY,
   stageLabel,
 } from "./copy"
 import { trainButtonState } from "./dock"
-import {
-  apPipPlan,
-  climbAnnouncement,
-  conditionDelta,
-  ladderRead,
-  lineageMeta,
-  statCell,
-} from "./plates"
+import { seatOverflowBelow } from "./overflow"
+import { conditionDelta, paintLineage, statCell } from "./plates"
 import { paintBranchBadge, paintCrest, paintFormChip } from "./plates-creature"
+import { paintScoreBug, type ScoreBugPaint } from "./plates-score"
 import { programRows, rovingRow } from "./programs"
 import { capturePrefChips } from "./settings"
 import type { HudHints, HudShell } from "./types"
@@ -48,18 +40,9 @@ export function createHudUpdate(
     lineage,
     motionWrap,
     creatureDetail,
+    overflow,
   } = refs
-  const {
-    phaseTab,
-    dayNum,
-    apMeter,
-    trophy,
-    trophyCount,
-    rank,
-    rankRank,
-    rankPts,
-    rankTitles,
-  } = scoreBug
+  const { apMeter } = scoreBug
   const {
     root: lowerThird,
     creatureName,
@@ -87,81 +70,33 @@ export function createHudUpdate(
     dockGraduate,
     graduateChip,
   } = dock
-  const { familyEl, metaEl } = lineage
   const { motionChip, cameraChip, soundChip } = settings
 
   let lastProgram: TrainingProgram | null = null
-  // Previous AP total — drives the one-shot spend flash on the meter.
-  let prevAp: number | null = null
-  // Ladder climb detection: the ticker announces a sub-tier promotion or
-  // cross-tier promotion exactly once, the update after the cup finalize
-  // that caused it (a Gold I → Legend I flip keeps subTier "I", so the
-  // full standing is compared).
-  let prevLadder: GameState["ladder"] | null = null
-  let climbLine: string | null = null
-  let apPips = apMeter.pips
+  // Score-bug paint state: the AP flash, climb handoff, and pip list the
+  // score owner module (hud/plates-score) carries between paints.
+  const scorePaint: ScoreBugPaint = {
+    prevAp: null,
+    prevLadder: null,
+    climbLine: null,
+    apPips: apMeter.pips,
+  }
+
+  // The open overflow panel seats below the lineage plate, so every
+  // primary stays visible behind it. Re-derived on every paint, when the
+  // anchor's seat is real — boot seats off a hidden anchor (starter-pick
+  // reveals it), and unhiding restarts the plate's settle animation, which
+  // the plate's animationend re-seat follows (hud/plates-lineage).
+  const reseatOverflow = (): void => {
+    if (view.overflowOpen) seatOverflowBelow(overflow, motionWrap, lineage.root)
+  }
 
   return (state: GameState): void => {
     view.current = state
-    // Score bug: the phase tab flips to accent gold on cup day.
-    const cupDay = state.phase === "cup"
-    phaseTab.textContent = cupDay ? "Cup day" : "Day phase"
-    phaseTab.className = cupDay ? "kit-tab" : "kit-tab is-outline"
-    dayNum.textContent = String(state.day)
-
-    // AP segmented meter. Cup bonus points extend past the daily max as
-    // chevron-cut bonus pips; a fresh spend flashes the drained pip out.
-    const { bonus, clamped, wantPips, flash } = apPipPlan(
-      state.actionPoints,
-      prevAp,
-    )
-    if (apPips.length !== wantPips) {
-      const rebuilt = meter(clamped, ACTION_POINTS_PER_DAY, bonus)
-      apMeter.root.replaceChildren(...rebuilt.pips)
-      apPips = rebuilt.pips
-    }
-    apPips.forEach((pip, i) => {
-      pip.classList.toggle("is-bonus", i >= ACTION_POINTS_PER_DAY)
-      pip.classList.toggle("is-empty", i >= clamped)
-      pip.classList.toggle("is-spent", i === flash)
-    })
-    prevAp = state.actionPoints
-
-    // Championship tally: designed overflow — "× N" scales to any count.
-    trophyCount.textContent = `× ${state.cupsWon}`
-    trophy.style.display = state.cupsWon > 0 ? "" : "none"
-
-    // Ladder standing (save v14): tier + sub-tier tab + points, matching
-    // the trophy segment's one-fact-per-segment grammar. Below the top
-    // sub-tier the read is progress-to-next; at the tier's top the points
-    // are banked toward the next tier, so the raw total is the honest
-    // number (Bronze I banks toward Silver, Silver I toward Gold, Gold I
-    // toward the Legend gate). Legend titles ride along on the plateau.
-    const ladder = state.ladder
-    const read = ladderRead(ladder, state.legendTitles)
-    rankRank.textContent = read.rank
-    rank.classList.remove(
-      "score-ladder--silver",
-      "score-ladder--gold",
-      "score-ladder--legend",
-    )
-    if (read.tierClass !== "bronze") {
-      rank.classList.add(`score-ladder--${read.tierClass}`)
-    }
-    rankPts.textContent = read.points
-    rankTitles.textContent = read.titles ?? ""
-    rankTitles.hidden = read.titles === null
-    rank.setAttribute("aria-label", read.ariaLabel)
-    const announcement = climbAnnouncement(prevLadder, ladder)
-    if (announcement !== null) {
-      climbLine = announcement
-      replay(rank, "chip-pop")
-    }
-    prevLadder = ladder
-    if (advanceLabel) {
-      advanceLabel.textContent =
-        state.phase === "cup" ? "Continue past cup" : "Advance Day"
-    }
+    // Score bug paints through its owner module (hud/plates-score); the
+    // climb handoff banks onto the shared paint state for the status line
+    // to consume below.
+    paintScoreBug(scoreBug, advanceLabel, state, scorePaint)
 
     const creature = state.creature
     if (!creature) {
@@ -175,6 +110,7 @@ export function createHudUpdate(
       lineage.root.style.display = "none"
       statusTicker.say("")
       motionWrap.style.display = ""
+      reseatOverflow()
       capturePrefChips({ motionChip, cameraChip, soundChip }, state.settings)
       settings.setVolumes({
         music: state.settings.musicVolume,
@@ -194,12 +130,8 @@ export function createHudUpdate(
 
     // Legacy (v10): the lineage plate mirrors the bloodline, and the
     // graduate chip appears only when the sim says the champion is eligible.
-    familyEl.textContent = familyName(creature.name, state.lineage.generation)
-    metaEl.textContent = lineageMeta(
-      state.lineage.generation,
-      lineagePrestige(state),
-      state.cupsWon,
-    )
+    paintLineage(lineage, state, view.lineageOpen)
+    reseatOverflow()
     const gradVerdict = canGraduate(state)
     dockGraduate.hidden = !gradVerdict.eligible
     graduateChip.disabled = !gradVerdict.eligible
@@ -293,8 +225,8 @@ export function createHudUpdate(
     // consumed here so the next routine line resumes the chain. (The
     // ticker holds its last line until the next update, so the promotion
     // stays visible after the cup overlay closes.)
-    const climb = climbLine
-    climbLine = null
+    const climb = scorePaint.climbLine
+    scorePaint.climbLine = null
     // FR-6: on a drifted hatch day the drift statement leads this pass —
     // element-independent, so flavor can never bury it. The graduation
     // announcement then composes the send-off and the drift beat.

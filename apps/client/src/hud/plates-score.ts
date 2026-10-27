@@ -1,6 +1,7 @@
-import { ACTION_POINTS_PER_DAY } from "@apex/sim"
+import { ACTION_POINTS_PER_DAY, type GameState } from "@apex/sim"
 import { icons } from "../ui/icons"
-import { meter, plate, tab } from "../ui/kit"
+import { meter, plate, replay, tab } from "../ui/kit"
+import { apPipPlan, climbAnnouncement, ladderRead } from "./ladder-read"
 
 /** The score-bug elements the daily update writes into. */
 export interface ScoreBugRefs {
@@ -87,5 +88,101 @@ export function buildScoreBug(): ScoreBugRefs {
     rankRank,
     rankPts,
     rankTitles,
+  }
+}
+
+/**
+ * The one-update bookkeeping the score-bug paint carries between paints:
+ * the AP spend flash, the climb-announcement handoff the ticker consumes,
+ * and the live pip element list.
+ */
+export interface ScoreBugPaint {
+  prevAp: number | null
+  prevLadder: GameState["ladder"] | null
+  climbLine: string | null
+  apPips: HTMLElement[]
+}
+
+/**
+ * Paint the top-center score bug: phase tab, day, AP segmented meter,
+ * championship tally, ladder standing, and the dock's advance label. The
+ * climb announcement banks onto the paint state for the status line to
+ * consume on the same update.
+ */
+export function paintScoreBug(
+  bug: ScoreBugRefs,
+  advanceLabel: HTMLElement | null,
+  state: GameState,
+  paint: ScoreBugPaint,
+): void {
+  const {
+    phaseTab,
+    dayNum,
+    apMeter,
+    trophy,
+    trophyCount,
+    rank,
+    rankRank,
+    rankPts,
+    rankTitles,
+  } = bug
+  // Score bug: the phase tab flips to accent gold on cup day.
+  const cupDay = state.phase === "cup"
+  phaseTab.textContent = cupDay ? "Cup day" : "Day phase"
+  phaseTab.className = cupDay ? "kit-tab" : "kit-tab is-outline"
+  dayNum.textContent = String(state.day)
+
+  // AP segmented meter. Cup bonus points extend past the daily max as
+  // chevron-cut bonus pips; a fresh spend flashes the drained pip out.
+  const { bonus, clamped, wantPips, flash } = apPipPlan(
+    state.actionPoints,
+    paint.prevAp,
+  )
+  if (paint.apPips.length !== wantPips) {
+    const rebuilt = meter(clamped, ACTION_POINTS_PER_DAY, bonus)
+    apMeter.root.replaceChildren(...rebuilt.pips)
+    paint.apPips = rebuilt.pips
+  }
+  paint.apPips.forEach((pip, i) => {
+    pip.classList.toggle("is-bonus", i >= ACTION_POINTS_PER_DAY)
+    pip.classList.toggle("is-empty", i >= clamped)
+    pip.classList.toggle("is-spent", i === flash)
+  })
+  paint.prevAp = state.actionPoints
+
+  // Championship tally: designed overflow — "× N" scales to any count.
+  trophyCount.textContent = `× ${state.cupsWon}`
+  trophy.style.display = state.cupsWon > 0 ? "" : "none"
+
+  // Ladder standing (save v14): tier + sub-tier tab + points, matching
+  // the trophy segment's one-fact-per-segment grammar. Below the top
+  // sub-tier the read is progress-to-next; at the tier's top the points
+  // are banked toward the next tier, so the raw total is the honest
+  // number (Bronze I banks toward Silver, Silver I toward Gold, Gold I
+  // toward the Legend gate). Legend titles ride along on the plateau.
+  const ladder = state.ladder
+  const read = ladderRead(ladder, state.legendTitles)
+  rankRank.textContent = read.rank
+  rank.classList.remove(
+    "score-ladder--silver",
+    "score-ladder--gold",
+    "score-ladder--legend",
+  )
+  if (read.tierClass !== "bronze") {
+    rank.classList.add(`score-ladder--${read.tierClass}`)
+  }
+  rankPts.textContent = read.points
+  rankTitles.textContent = read.titles ?? ""
+  rankTitles.hidden = read.titles === null
+  rank.setAttribute("aria-label", read.ariaLabel)
+  const announcement = climbAnnouncement(paint.prevLadder, ladder)
+  if (announcement !== null) {
+    paint.climbLine = announcement
+    replay(rank, "chip-pop")
+  }
+  paint.prevLadder = ladder
+  if (advanceLabel) {
+    advanceLabel.textContent =
+      state.phase === "cup" ? "Continue past cup" : "Advance Day"
   }
 }
