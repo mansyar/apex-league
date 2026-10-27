@@ -1,5 +1,7 @@
 /**
- * The deploy workflow's contract (release funnel FR-1, FR-2, NFR-3, AC-2).
+ * The deploy workflow's contract: the release-funnel gate (a red build must
+ * never reach the site) plus the prod API-origin wiring
+ * (20261027-prod-api-wiring FR-1..FR-3, AC-1..AC-3).
  *
  * `.github/workflows/deploy.yml` ships every push to `main`, and its gate is
  * the product of this track: a red build must never reach the site. These
@@ -217,7 +219,7 @@ describe("the smoke check's browser install uses the real package", () => {
 
 describe("the deploy target is written in one place", () => {
   test("the upload directory is apps/client/dist", () => {
-    // NFR-5: Pages publishes exactly this directory. A rename here would upload
+    // Pages publishes exactly this directory. A rename here would upload
     // a stale or empty tree while every other check stayed green.
     expect(config).toContain('"pages_build_output_dir": "apps/client/dist"')
   })
