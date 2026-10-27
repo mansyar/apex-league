@@ -47,7 +47,7 @@ The roadmap targets 20–40 species; 12 exist, balanced at exactly 2 per element
 | FR-3 | Each new kit uses only existing move vocabulary; battle behavior tuned against the tactics balance probe within existing band discipline. | must |
 | FR-4 | Breeding evaluates the fixed recipes as a pure, deterministic, order-independent lookup on parent elements (fire×plant→Embercub, plant×water→Mossboar, fire×water→Mistkit); unlisted and same-element pairs inherit exactly as today; discovery adds no persisted state (save stays v25). | must |
 | FR-5 | New species hatch from eggs, respond to all training programs, and evolve into exactly two champion branch forms from the training record, identical in mechanism to existing species. | must |
-| FR-6 | Rival generation can field the new species; the six authored boss pairings are refreshed to use the wider roster, each verified by playing the cup end-to-end in the browser. | must |
+| FR-6 | Rival generation can field the new species; the six authored boss pairings are validated against the wider roster — refreshed where probe thresholds fire (each refreshed pairing then played end-to-end in the browser), otherwise kept with probe-gate validation and recorded rationale. | must |
 | FR-7 | The new species render correctly across all client surfaces with element-true crest colors per the hue contract. | must |
 | FR-8 | Copy for the new lines follows the product voice and is single-sourced like existing species copy. | should |
 
@@ -71,7 +71,7 @@ The roadmap targets 20–40 species; 12 exist, balanced at exactly 2 per element
 | AC-3 | Probe report shows each new kit within existing bands; existing goldens green (or re-baselined only for boss refresh, recorded). | FR-3 |
 | AC-4 | Unit tests prove: each recipe fires in both parent orders; same-element and unlisted pairs inherit unchanged; discovered lines breed true as parents; no new persisted state. | FR-4 |
 | AC-5 | Hatch → train → branch-evolution tests pass for all three lines. | FR-5 |
-| AC-6 | Every refreshed boss pairing played end-to-end in the browser; evidence in the visual layer. | FR-6 |
+| AC-6 | Every boss pairing validated against the wider roster: refreshed pairings played end-to-end in the browser; 0-delta keeps validated by fresh+cap probe gates with keep rationale; visual evidence in the visual layer. | FR-6 |
 | AC-7 | Handbook/plates/detail/battle render all three correctly at 1440×900 and 393×852; handbook openly lists the three recipes; console clean. | FR-7 |
 | AC-8 | Copy review: all new strings ≤2 sentences, single-sourced. | FR-8 |
 

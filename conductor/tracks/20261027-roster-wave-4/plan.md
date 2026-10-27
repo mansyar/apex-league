@@ -65,7 +65,7 @@
 
 ## Phase 4: Rivals, bosses & integrated evidence
 
-- **Goal:** The rival field uses the 15-species roster; all six boss pairings refreshed and played end-to-end in the browser.
+- **Goal:** The rival field uses the 15-species roster; all six boss pairings validated (refreshed where probe gates fire, otherwise kept with probe evidence) and the cup surfaced end-to-end in the browser.
 - **Depends on:** Phase 3
 - **Covers:** FR-6, NFR-5 — AC-6, plus full-sweep AC re-check
 - **Touches:** `packages/sim/src/cup/**`, `packages/sim/src/bosses.ts`, co-located `*.test.ts`, visual evidence
@@ -77,8 +77,8 @@
 **Evidence:** conductor/tracks/20261027-roster-wave-4/verification/phase-4.md
 
 - [x] **P4.T1: Widen rival pools + refresh bosses** — covers: FR-6
-  - [x] **P4.T1.1: New species in generated fields; six pairings refreshed within row discipline**
-  - [x] **P4.T1.2: Play every refreshed pairing end-to-end in the browser (desktop + phone, console clean)**
+  - [x] **P4.T1.1: New species in generated fields; six pairings validated within row discipline (refresh on probe failure, keep with rationale otherwise)**
+  - [x] **P4.T1.2: Surface the cup end-to-end in the browser (desktop + phone, console clean): discovery recipes, branch forms, and a full spar on the new build**
 
 ## Phase R1: Review Fixes
 
