@@ -21,7 +21,7 @@
   "last_checkpoint": "f917ff33",
   "review_verdict": null,
   "review_rounds": 0,
-  "doc_sync": "pending",
+  "doc_sync": "complete",
   "pr_url": null,
   "pr_state": null,
   "reverted_at": null,
