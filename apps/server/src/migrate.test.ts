@@ -18,7 +18,11 @@ describe("migrations", () => {
     const db = freshDatabase()
     try {
       expect(schemaVersion(db)).toBeNull()
-      expect(migrate(db)).toEqual(["0001_init.sql", "0002_leaderboard.sql", "0003_ghost.sql"])
+      expect(migrate(db)).toEqual([
+        "0001_init.sql",
+        "0002_leaderboard.sql",
+        "0003_ghost.sql",
+      ])
       expect(tables(db)).toEqual([
         "_migrations",
         "displaced_saves",
