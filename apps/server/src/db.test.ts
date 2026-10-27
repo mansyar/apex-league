@@ -15,7 +15,7 @@ describe("openDatabase", () => {
     try {
       const db = openDatabase(join(dir, "apex.sqlite"))
       try {
-        expect(schemaVersion(db)).toBe("0002_leaderboard.sql")
+        expect(schemaVersion(db)).toBe("0003_ghost.sql")
       } finally {
         db.close()
       }
@@ -27,7 +27,7 @@ describe("openDatabase", () => {
   test("opens in-memory without touching the filesystem", () => {
     const db = openDatabase(":memory:")
     try {
-      expect(schemaVersion(db)).toBe("0002_leaderboard.sql")
+      expect(schemaVersion(db)).toBe("0003_ghost.sql")
     } finally {
       db.close()
     }
