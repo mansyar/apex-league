@@ -151,8 +151,11 @@ export function paintScoreBug(
   paint.prevAp = state.actionPoints
 
   // Championship tally: designed overflow — "× N" scales to any count.
+  // The count is visible text; the accessible name says what it counts
+  // (FR-16), so the meaning never lives only in the tooltip.
   trophyCount.textContent = `× ${state.cupsWon}`
   trophy.style.display = state.cupsWon > 0 ? "" : "none"
+  trophy.setAttribute("aria-label", `Cup championships: ${state.cupsWon}`)
 
   // Ladder standing (save v14): tier + sub-tier tab + points, matching
   // the trophy segment's one-fact-per-segment grammar. Below the top

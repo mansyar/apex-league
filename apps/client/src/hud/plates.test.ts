@@ -290,7 +290,7 @@ describe("form chip", () => {
 
     paintFormChip(chip, sick)
 
-    expect(chip.textContent).toBe("Sluggish")
+    expect(chip.textContent).toBe("Sluggish · ATK -2")
     expect(chip.title).toBe("Sluggish: ATK -2")
     expect(attrs["aria-label"]).toBe("Sluggish: ATK -2")
   })

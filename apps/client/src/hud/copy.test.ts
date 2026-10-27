@@ -31,6 +31,7 @@ import {
   graduationTickerLine,
   growthHint,
   hatchDayStatusLine,
+  ladderTeaser,
   NO_GAIN_TONIGHT,
   NO_GAIN_TONIGHT_FALLBACK,
   previewNote,
@@ -645,6 +646,22 @@ describe("selectHint — the four-tier ladder (gold_legend_ladder_20261017)", ()
       const hint = selectHint(at({ bossDefeats: [boss] }), new Set())
       expect(hint?.id).toBe(`boss-${boss}`)
     }
+  })
+
+  test("the division teasers share one template (ladderTeaser)", () => {
+    expect(ladderTeaser("bronze")).toBe(
+      "You've topped Bronze — the Silver division awaits. Keep banking cup wins; the climb continues soon.",
+    )
+    expect(ladderTeaser("silver")).toBe(
+      "You've topped Silver — the Gold division awaits. Keep banking cup wins; the climb continues soon.",
+    )
+    // The table reads through the template, so the two can never drift.
+    const bronze = selectHint(
+      at({ ladder: { points: 13, tier: "bronze", subTier: "I" } }),
+      new Set(),
+    )
+    expect(bronze?.id).toBe("silver-awaits")
+    expect(bronze?.text).toBe(ladderTeaser("bronze"))
   })
 
   test("Marlow's callout no longer promises a horizon — Gold is real", () => {

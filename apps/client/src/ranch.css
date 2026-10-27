@@ -1312,6 +1312,12 @@
   color: var(--ink-dim);
 }
 
+/* The catalog blurb reads inline under the tradeoff (FR-16): quiet note words, never a hover-only title. */
+.train-blurb {
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+
 .train-entry.is-capped .train-note {
   font-style: italic;
   color: rgb(184 173 156 / 0.65);

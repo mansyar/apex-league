@@ -223,13 +223,14 @@ export function formChipTitle(tier: FormTier): string {
 }
 
 /**
- * Paint the form chip from a creature. Text carries the tier, `title` and
- * `aria-label` carry the consequence, so the readout survives greyscale.
+ * Paint the form chip from a creature. Text carries the tier and its ATK
+ * consequence (FR-16), `title` and `aria-label` carry the labelled reading,
+ * so the readout survives greyscale and hover is never required.
  */
 export function paintFormChip(chip: HTMLElement, creature: Creature): void {
   const tier = formTier(creature)
   const read = formChipTitle(tier)
-  chip.textContent = FORM_COPY[tier].label
+  chip.textContent = `${FORM_COPY[tier].label} · ${formDeltaLine(tier)}`
   chip.title = read
   chip.setAttribute("aria-label", read)
 }
