@@ -6,7 +6,7 @@
   "priority": "high",
   "depends_on": [],
   "created_at": "2026-10-28T00:00:00Z",
-  "updated_at": "2026-10-27T19:55:30Z",
+  "updated_at": "2026-10-27T20:01:42Z",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "chore/20261027-prod-api-wiring",
@@ -14,11 +14,11 @@
   "base_sha": "3336f0b82e8878bbc96201afe023c6312fe840fc",
   "progress": {
     "phases_total": 3,
-    "phases_verified": 1,
+    "phases_verified": 2,
     "tasks_total": 13,
-    "tasks_done": 8
+    "tasks_done": 10
   },
-  "last_checkpoint": "660932b3",
+  "last_checkpoint": "3e1f5d0f",
   "review_verdict": null,
   "review_rounds": 0,
   "doc_sync": "pending",
