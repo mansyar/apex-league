@@ -157,9 +157,11 @@ export interface Hud {
  */
 export function createHud(root: HTMLElement, handlers: HudHandlers): Hud {
   const shell = createHudShell(root, handlers)
-  // The onboarding callout is appended last, where it has always sat.
+  // The onboarding callout joins the ranch flow column last, where it has
+  // always sat — so it paints above every plate and flows below the
+  // lineage plate on small screens.
   const hints = createHints(handlers.onHintSeen)
-  root.append(hints.root)
+  shell.refs.ranch.append(hints.root)
   const update = createHudUpdate(shell, hints)
   // The shell's own interactions re-render through this pass. The latest
   // state is kept so the graduation announcement can keep the hatch-day

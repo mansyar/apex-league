@@ -12,7 +12,7 @@ import {
   stageLabel,
 } from "./copy"
 import { trainButtonState } from "./dock"
-import { seatOverflowBelow } from "./overflow"
+import { seatOverflowBelow, seatRanchFlow } from "./overflow"
 import { conditionDelta, paintLineage, statCell } from "./plates"
 import { paintBranchBadge, paintCrest, paintFormChip } from "./plates-creature"
 import { paintScoreBug, type ScoreBugPaint } from "./plates-score"
@@ -82,13 +82,16 @@ export function createHudUpdate(
     apPips: apMeter.pips,
   }
 
-  // The open overflow panel seats below the lineage plate, so every
-  // primary stays visible behind it. Re-derived on every paint, when the
-  // anchor's seat is real — boot seats off a hidden anchor (starter-pick
-  // reveals it), and unhiding restarts the plate's settle animation, which
-  // the plate's animationend re-seat follows (hud/plates-lineage).
+  // The open overflow panel seats below the lineage plate, and the ranch
+  // flow column's lineage clearance seats below the real chip geometry —
+  // so every primary stays visible behind them. Re-derived on every paint,
+  // when the anchor seats are real — boot seats off hidden anchors
+  // (starter-pick reveals them), and unhiding restarts the plate's settle
+  // animation, which the plate's animationend re-seat follows
+  // (hud/plates-lineage).
   const reseatOverflow = (): void => {
     if (view.overflowOpen) seatOverflowBelow(overflow, motionWrap, lineage.root)
+    seatRanchFlow(lineage.root, scoreBug.root)
   }
 
   return (state: GameState): void => {
@@ -131,7 +134,6 @@ export function createHudUpdate(
     // Legacy (v10): the lineage plate mirrors the bloodline, and the
     // graduate chip appears only when the sim says the champion is eligible.
     paintLineage(lineage, state, view.lineageOpen)
-    reseatOverflow()
     const gradVerdict = canGraduate(state)
     dockGraduate.hidden = !gradVerdict.eligible
     graduateChip.disabled = !gradVerdict.eligible
@@ -148,6 +150,10 @@ export function createHudUpdate(
     // Onboarding callout: the first unseen hint whose moment is now.
     // Dismissal persists through the sim, so a hint never asks twice.
     hints.sync(state)
+    // Seats measure after every visibility change in this pass — the
+    // callout above flips on this same paint, and the lineage plate the
+    // seat clears was painted just before it.
+    reseatOverflow()
     stageTab.textContent = stageLabel(creature.stage)
     stageTab.className = "kit-tab is-stage"
     // Form chip: the tier word in text, the ATK consequence in its title.

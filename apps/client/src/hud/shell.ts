@@ -183,13 +183,15 @@ export function createHudShell(
   const hudStack = document.createElement("div")
   hudStack.className = "hud-stack"
   hudStack.append(lowerThird, cluster)
+  // Ranch flow column for motion, lineage, stack (+ callout via createHud).
+  const ranch = document.createElement("div")
+  ranch.className = "hud-ranch"
+  ranch.append(motionWrap, lineage.root, hudStack)
   // The onboarding callout is appended after this by createHud — it stays
-  // the last child of the HUD root, where it has always been.
+  // the last child of the flow column, where it has always sat.
   root.append(
     scoreBug.root,
-    motionWrap,
-    lineage.root,
-    hudStack,
+    ranch,
     resetModal,
     creatureDetail.root,
     gift.root,
@@ -215,6 +217,7 @@ export function createHudShell(
       stableChip,
       motionWrap,
       lineage,
+      ranch,
       overflow,
     },
     render: () => {},

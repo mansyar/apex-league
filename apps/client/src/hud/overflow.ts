@@ -48,6 +48,75 @@ export function seatOverflowBelow(
   overflow.panel.style.top = `${anchorBox.bottom - mountBox.top + 6}px`
 }
 
+/**
+ * Seat the ranch flow column's lineage row with a measured clearance:
+ * below the top-right chip column on phones, below the motion cluster
+ * and the visible teaching callout in short landscape windows. Pure
+ * geometry, no tier constants — the same pattern as the panel seat
+ * above, so gift-chip appearances (folded inside the panel) move
+ * nothing. On phones the plate rides in the ranch grid, so the seat is a
+ * margin that lets an expanding lineage push its flow siblings itself; in
+ * short landscape windows the wrapper is transparent (display: contents),
+ * so the seat is an absolute top below the measured anchors instead —
+ * body flow is not a seat. Clears both inline seats wherever neither tier
+ * matches (desktop keeps its absolute plates), and skips hidden lineages
+ * the way the panel seat skips hidden anchors.
+ */
+export function seatRanchFlow(
+  lineage: HTMLElement,
+  score: Element | null,
+): void {
+  if (typeof window === "undefined") return
+  const phone = window.matchMedia("(max-width: 767.98px)").matches
+  const squat = window.matchMedia(
+    "(orientation: landscape) and (max-height: 500px)",
+  ).matches
+  if (!phone && !squat) {
+    lineage.style.marginTop = ""
+    lineage.style.top = ""
+    return
+  }
+  if (lineage.getClientRects().length === 0) return
+  const frame =
+    lineage.ownerDocument.getElementById("app") ?? lineage.ownerDocument
+  const bottomOf = (el: Element | null): number => {
+    if (!el) return Number.NEGATIVE_INFINITY
+    const box = el.getBoundingClientRect()
+    return box.width === 0 && box.height === 0
+      ? Number.NEGATIVE_INFINITY
+      : box.bottom
+  }
+  if (squat) {
+    // The transparent wrapper leaves no flow to push with, so the lineage
+    // pins below the lowest visible anchor directly: the corner insets the
+    // stylesheet seats it at are the only constants involved.
+    lineage.style.marginTop = ""
+    const anchors = [
+      frame.querySelector(".hud-motion"),
+      frame.querySelector(".hud-callout"),
+    ]
+    const lowest = Math.max(...anchors.map(bottomOf))
+    lineage.style.top =
+      lowest === Number.NEGATIVE_INFINITY ? "" : `${Math.max(0, lowest + 8)}px`
+    return
+  }
+  const anchors = [
+    score,
+    frame.querySelector(".spar-button"),
+    frame.querySelector(".cup-button"),
+  ]
+  const current = Number.parseFloat(lineage.style.marginTop || "0") || 0
+  const natural = lineage.getBoundingClientRect().top - current
+  const lowest = Math.max(...anchors.map(bottomOf))
+  // The 8px step matches the column's own row gap, so the plate keeps the
+  // same rhythm it would have in pure flow.
+  lineage.style.top = ""
+  lineage.style.marginTop =
+    lowest === Number.NEGATIVE_INFINITY
+      ? ""
+      : `${Math.max(0, lowest - natural + 8)}px`
+}
+
 /** The seats the caller folds into the panel: the built chips plus the
  * composition root's extras, the cluster they mount beside, and the anchor
  * plate the open panel seats below. */
@@ -99,6 +168,12 @@ export function assembleOverflow(
     if (view.overflowOpen) {
       seatOverflowBelow(overflow, seats.mount, seats.anchor)
     }
+    // The lineage clearance follows the same triggers: resizes and font
+    // arrivals move the chip geometry it measures below.
+    seatRanchFlow(
+      seats.anchor,
+      seats.mount.ownerDocument.querySelector(".score-bug"),
+    )
   }
   requestAnimationFrame(reseat)
   if (typeof document !== "undefined" && "fonts" in document) {

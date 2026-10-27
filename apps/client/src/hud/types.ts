@@ -40,6 +40,8 @@ export interface HudRefs {
   stableChip: HTMLButtonElement
   motionWrap: HTMLElement
   lineage: LineagePlateRefs
+  /** The ranch flow column shell builds: motion, lineage, stack, callout. */
+  ranch: HTMLElement
   /** The More toggle + panel the secondary chips fold behind. */
   overflow: OverflowRefs
 }
