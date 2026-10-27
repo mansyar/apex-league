@@ -14,7 +14,7 @@
 - **Covers:** FR-1, FR-2, AC-1, AC-2
 - **Touches:** `apps/client/src/ui/modal.ts`, `apps/client/src/ui/focus.ts`, `apps/client/src/ui/kit.css`, `apps/client/src/**/(*modal*|*panel*|*dialog*|gift.ts|stable.ts|handbook.ts|gallery.ts)`
 - **Verification:** `bun run verify && bun run build` + Playwright open/close screenshots per overlay class
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Shared openModal/closeModal helper** — covers: FR-1
   - [ ] **P1.T1.1:** Helper owns display class, focus trap, scrim-click, Escape, return-focus (incl. unmounted-target fallback)
