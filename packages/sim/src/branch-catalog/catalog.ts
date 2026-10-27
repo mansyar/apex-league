@@ -13,7 +13,7 @@ import type { BranchDef } from "./types"
 import { WAVE2_BRANCHES } from "./wave2"
 
 /**
- * The twenty-four real forms: two per species, one offense and one
+ * The thirty real forms: two per species, one offense and one
  * defense. Their boosts preserve the legacy effective-stat budget (11
  * juvenile, 22 champion, HP counted double), so neither branch is a stat
  * upgrade over the other. A form's signature may be a kit row of its own

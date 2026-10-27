@@ -64,6 +64,9 @@ const NEW_LINES = [
   { id: "voltfox", name: "Voltfox", hue: 50 },
   { id: "galeheron", name: "Galeheron", hue: 165 },
   { id: "shalemole", name: "Shalemole", hue: 28 },
+  { id: "embercub", name: "Embercub", hue: 18 },
+  { id: "mossboar", name: "Mossboar", hue: 110 },
+  { id: "mistkit", name: "Mistkit", hue: 205 },
 ] as const
 
 describe("the new lines' crest identity", () => {
@@ -77,13 +80,20 @@ describe("the new lines' crest identity", () => {
     }
   })
 
-  test("no two new lines share a crest glyph", () => {
-    const glyphs = NEW_LINES.map((line) => {
+  test("each element keeps its own glyph, shared by its lines", () => {
+    // With nine lines over six elements, sibling lines share a crest glyph
+    // by design — the pin is that the glyph is the element's own, never a
+    // fallback, and distinct across elements.
+    const byElement = new Map<string, string>()
+    for (const line of NEW_LINES) {
       const species = getSpecies(line.id)
       if (!species) throw new Error(`missing species ${line.id}`)
-      return crestGlyph(species.element)
-    })
-    expect(new Set(glyphs).size).toBe(glyphs.length)
+      const glyph = crestGlyph(species.element)
+      const seen = byElement.get(species.element)
+      if (seen === undefined) byElement.set(species.element, glyph)
+      else expect(glyph).toBe(seen)
+    }
+    expect(new Set(byElement.values()).size).toBe(byElement.size)
   })
 })
 
@@ -125,6 +135,12 @@ describe("the new lines' champion forms", () => {
       ["marsh_warden", 160, "galeheron"],
       ["slate_ram", 33, "shalemole"],
       ["shale_keeper", 23, "shalemole"],
+      ["ember_rusher", 26, "embercub"],
+      ["soot_warden", 8, "embercub"],
+      ["briar_charger", 115, "mossboar"],
+      ["moss_warden", 100, "mossboar"],
+      ["mist_courser", 210, "mistkit"],
+      ["foam_warden", 222, "mistkit"],
     ]
     for (const [id, hue, speciesId] of expected) {
       const branch = getBranch(id)
@@ -141,6 +157,9 @@ describe("the new lines' champion forms", () => {
       ["voltfox", "arc_courser"],
       ["galeheron", "reed_diver"],
       ["shalemole", "slate_ram"],
+      ["embercub", "ember_rusher"],
+      ["mossboar", "briar_charger"],
+      ["mistkit", "mist_courser"],
     ]
     for (const [speciesId, branchId] of expected) {
       const creature = { ...createGiftEgg(speciesId, 5), branch: branchId }
@@ -162,6 +181,9 @@ describe("the new lines' champion forms", () => {
       voltfox: "arc_courser",
       galeheron: "reed_diver",
       shalemole: "slate_ram",
+      embercub: "ember_rusher",
+      mossboar: "briar_charger",
+      mistkit: "mist_courser",
     }
     for (const line of NEW_LINES) {
       const branchId = offense[line.id]

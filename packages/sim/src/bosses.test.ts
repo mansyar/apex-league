@@ -156,15 +156,31 @@ describe("boss registry", () => {
         .map((move) => `${boss.id}/${move}`)
     })
     expect(sharedSignatures).toEqual([
+      // fire_drake wields soot_warden's (embercub) signature, a kit row.
+      "koda/spark",
       // fire_drake wields ember_bank's (cindermoor) signature, a kit row.
       "koda/flame_charge",
+      // plant_ox wields moss_warden's (mossboar) signature, a kit row.
+      "hesse/seed_shot",
       // plant_ox wields spore_warden's (fernstag) signature, a kit row.
       "hesse/spore_burst",
+      // water_axolotl wields foam_warden's (mistkit) signature, a kit row.
+      "marlow/bubble",
+      // water_axolotl wields mist_courser's (mistkit) signature, a kit row.
+      "marlow/splash_bolt",
+      // water_axolotl wields foam_warden's (mistkit) signature, a kit row.
+      "delmar/bubble",
       // water_axolotl wields tide_sentinel's (reefclaw) signature, a kit row.
       "delmar/tide_shot",
+      // fire_drake wields soot_warden's (embercub) signature, a kit row.
+      "fenn/spark",
       // fire_drake again, via both cindermoor forms' signatures.
       "fenn/flame_charge",
       "fenn/pyre_lance",
+      // plant_ox wields moss_warden's (mossboar) signature, a kit row.
+      "thessa/seed_shot",
+      // plant_ox wields briar_charger's (mossboar) signature, a kit row.
+      "thessa/bramble_dart",
       // plant_ox wields frond_lasher's (fernstag) signature, a kit row.
       "thessa/root_quake",
     ])

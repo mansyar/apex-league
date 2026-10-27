@@ -374,6 +374,71 @@ export function facePlan(archetype: string, head: HeadShape): FacePlan {
     }
   }
 
+  if (archetype === "cub") {
+    // Cub eyes: round and mid-high on a broad young skull, set forward over
+    // the small snout. The snout is too narrow for a nostril pair, so the
+    // mouth line carries the muzzle alone.
+    const eyeY = center.y + half.y * 0.3
+    const eyeZ = center.z + half.z * 0.4
+    const muzzle = snout ?? { center, half }
+    return {
+      eyes: [eye(head, -1, eyeY, eyeZ, radii), eye(head, 1, eyeY, eyeZ, radii)],
+      mouth: mouthLine(
+        muzzle,
+        muzzle.center.y - muzzle.half.y * 0.55,
+        muzzle.half.x * 0.72,
+      ),
+      nostrils: [],
+    }
+  }
+
+  if (archetype === "boar") {
+    // Boar eyes: small and set high and wide on the heavy wedge skull, back
+    // from the rooting snout. The broad snout carries the mouth line, and
+    // the nose disc is wide enough for a nostril pair like the ox's.
+    const eyeY = center.y + half.y * 0.4
+    const eyeZ = center.z - half.z * 0.05
+    const muzzle = snout ?? { center, half }
+    return {
+      eyes: [eye(head, -1, eyeY, eyeZ, radii), eye(head, 1, eyeY, eyeZ, radii)],
+      mouth: mouthLine(
+        muzzle,
+        muzzle.center.y - muzzle.half.y * 0.5,
+        muzzle.half.x * 0.72,
+      ),
+      nostrils: [
+        vec3(
+          cell(center.x + muzzle.half.x * 0.55),
+          cell(muzzle.center.y),
+          cell(muzzle.center.z + muzzle.half.z * 0.95),
+        ),
+        vec3(
+          cell(center.x - muzzle.half.x * 0.55),
+          cell(muzzle.center.y),
+          cell(muzzle.center.z + muzzle.half.z * 0.95),
+        ),
+      ],
+    }
+  }
+
+  if (archetype === "otter") {
+    // Otter-kit eyes: set high and forward on the small rounded skull so the
+    // stare reads over the blunt muzzle. The short muzzle is too narrow for
+    // a nostril pair, so the mouth line carries it alone.
+    const eyeY = center.y + half.y * 0.35
+    const eyeZ = center.z + half.z * 0.4
+    const muzzle = snout ?? { center, half }
+    return {
+      eyes: [eye(head, -1, eyeY, eyeZ, radii), eye(head, 1, eyeY, eyeZ, radii)],
+      mouth: mouthLine(
+        muzzle,
+        muzzle.center.y - muzzle.half.y * 0.55,
+        muzzle.half.x * 0.72,
+      ),
+      nostrils: [],
+    }
+  }
+
   // Drake (the default silhouette): angled eyes under a heavy brow, a mouth
   // line running the length of the jaw, and a nostril pair on the snout top.
   const eyeY = center.y + half.y * 0.3

@@ -1,8 +1,8 @@
 /**
- * Breeding discovery (`roster_wave_3` FR-4): the three fixed parent-element
- * recipes resolve deterministically inside the existing breeding flow, both
- * parent orders, with unlisted and same-element pairs inheriting exactly as
- * before — and no new persisted state.
+ * Breeding discovery (`roster_wave_3` FR-4, `roster_wave_4` FR-3): the six
+ * fixed parent-element recipes resolve deterministically inside the existing
+ * breeding flow, both parent orders, with unlisted and same-element pairs
+ * inheriting exactly as before — and no new persisted state.
  */
 
 import { describe, expect, test } from "bun:test"
@@ -74,6 +74,12 @@ describe("discoverySpeciesForElements", () => {
     expect(discoverySpeciesForElements("water", "wind")).toBe("galeheron")
     expect(discoverySpeciesForElements("earth", "fire")).toBe("shalemole")
     expect(discoverySpeciesForElements("fire", "earth")).toBe("shalemole")
+    expect(discoverySpeciesForElements("fire", "plant")).toBe("embercub")
+    expect(discoverySpeciesForElements("plant", "fire")).toBe("embercub")
+    expect(discoverySpeciesForElements("plant", "water")).toBe("mossboar")
+    expect(discoverySpeciesForElements("water", "plant")).toBe("mossboar")
+    expect(discoverySpeciesForElements("fire", "water")).toBe("mistkit")
+    expect(discoverySpeciesForElements("water", "fire")).toBe("mistkit")
   })
 
   test("same-element pairs inherit — no recipe lists a pair with itself", () => {
@@ -91,9 +97,6 @@ describe("discoverySpeciesForElements", () => {
 
   test("unlisted cross-element pairs inherit exactly as before", () => {
     const unlisted: Array<[Element, Element]> = [
-      ["fire", "plant"],
-      ["fire", "water"],
-      ["plant", "water"],
       ["electric", "fire"],
       ["electric", "plant"],
       ["electric", "water"],
@@ -137,8 +140,23 @@ describe("speciesOptions with discovery", () => {
 
   test("an unlisted pair reads exactly the parents, as before", () => {
     expect(
+      speciesOptions([record("electric_hound", 0), record("fire_drake", 1)]),
+    ).toEqual(["electric_hound", "fire_drake"])
+  })
+
+  test("each fire-triangle recipe appends its line after the parents", () => {
+    expect(
       speciesOptions([record("fire_drake", 0), record("plant_ox", 1)]),
-    ).toEqual(["fire_drake", "plant_ox"])
+    ).toEqual(["fire_drake", "plant_ox", "embercub"])
+    expect(
+      speciesOptions([record("plant_ox", 1), record("fire_drake", 0)]),
+    ).toEqual(["plant_ox", "fire_drake", "embercub"])
+    expect(
+      speciesOptions([record("plant_ox", 0), record("water_axolotl", 1)]),
+    ).toEqual(["plant_ox", "water_axolotl", "mossboar"])
+    expect(
+      speciesOptions([record("fire_drake", 0), record("water_axolotl", 1)]),
+    ).toEqual(["fire_drake", "water_axolotl", "mistkit"])
   })
 
   test("a same-element pair reads one chip, as before", () => {
@@ -162,6 +180,17 @@ describe("speciesOptions with discovery", () => {
     expect(
       speciesOptions([record("shalemole", 2), record("fire_drake", 0)]),
     ).toEqual(["shalemole", "fire_drake"])
+    // A fire-triangle line breeding true: embercub × plant_ox is fire ×
+    // plant again, so the recipe fires but the embercub is already listed.
+    expect(
+      speciesOptions([record("embercub", 2), record("plant_ox", 0)]),
+    ).toEqual(["embercub", "plant_ox"])
+    expect(
+      speciesOptions([record("mossboar", 2), record("water_axolotl", 0)]),
+    ).toEqual(["mossboar", "water_axolotl"])
+    expect(
+      speciesOptions([record("mistkit", 2), record("fire_drake", 0)]),
+    ).toEqual(["mistkit", "fire_drake"])
   })
 })
 
@@ -172,6 +201,27 @@ describe("graduateWithPair to a discovered line", () => {
     if (!res.ok) throw new Error(`graduation failed: ${res.reason}`)
     expect(res.state.creature?.speciesId).toBe("voltfox")
     expect(res.state.creature?.element).toBe("electric")
+    expect(res.state.creature?.stage).toBe("baby")
+    expect(res.state.creature?.parents).toEqual([0, 1])
+  })
+
+  test("a fire × plant pair graduates an embercub", () => {
+    const owned = chooseStarter(createInitialState(), "fire_drake", 42)
+    const creature = owned.creature
+    if (!creature) throw new Error("expected a starter creature")
+    const before: GameState = {
+      ...owned,
+      day: GRADUATION_DAY,
+      lineage: {
+        generation: 2,
+        hallOfFame: [record("fire_drake", 0), record("plant_ox", 1)],
+      },
+      creature: { ...creature, stage: "champion", ageDays: GRADUATION_DAY },
+    }
+    const res = graduateWithPair(before, [0, 1], "embercub", 77)
+    if (!res.ok) throw new Error(`graduation failed: ${res.reason}`)
+    expect(res.state.creature?.speciesId).toBe("embercub")
+    expect(res.state.creature?.element).toBe("fire")
     expect(res.state.creature?.stage).toBe("baby")
     expect(res.state.creature?.parents).toEqual([0, 1])
   })

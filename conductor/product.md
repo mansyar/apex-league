@@ -196,6 +196,10 @@ Phased delivery plan (each phase is independently playable):
   with Wind), Shalemole (Breed Earth with Fire) — taking the roster to
   twelve species; recipes are listed openly in the handbook, discovery lines
   join non-Bronze rival fields, and each line ships two branch forms.
+  **Landed 2026-10-27: three more breeding-discovery lines ship** — Embercub
+  (Breed Fire with Plant), Mossboar (Breed Plant with Water), Mistkit
+  (Breed Fire with Water) — taking the roster to fifteen species, each with
+  two branch forms.
   Still open: the roster's climb toward 20-40
   species.)*
 - ElysiaJS backend: cloud save sync, trainer identity (anonymous ID + name),

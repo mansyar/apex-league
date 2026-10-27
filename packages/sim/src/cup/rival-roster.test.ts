@@ -1,10 +1,12 @@
 /**
  * FR-7: generated rival rosters may field the reward line — `electric_hound`
  * from Silver, `wind_falcon` from Gold, `earth_tortoise` from Legend — exactly
- * when `obtainableSpecies` opens their gate. Roster wave 3 (FR-6): every
- * non-Bronze field also carries the breeding-discovery lines (`voltfox`,
- * `galeheron`, `shalemole`) — rivals are wild opponents, so the acquisition
- * gate that keeps discovery out of `obtainableSpecies` does not bind them.
+ * when `obtainableSpecies` opens their gate. Roster wave 3 (FR-6) widened
+ * every non-Bronze field with the breeding-discovery lines, and roster
+ * wave 4 completes the set to six — the wave-3 trio (`voltfox`,
+ * `galeheron`, `shalemole`) plus `embercub`, `mossboar`, `mistkit` —
+ * rivals are wild opponents, so the acquisition gate that keeps discovery
+ * out of `obtainableSpecies` does not bind them.
  * Below a gate the pool is exactly the three starters, so every pre-Silver
  * bracket stays byte-identical to what the draw stream produced before
  * these tracks.
@@ -78,15 +80,44 @@ describe("generated rival rosters (FR-7)", () => {
       for (const day of DAYS) {
         for (const id of rivalSpecies(state, day)) met.add(id)
       }
-      // The widened pool is the reward-gated pool plus the wave-3 discovery
-      // lines: each unlocked species shows up across a two-dozen-day sweep,
-      // and no locked one leaks in early.
+      // The widened pool is the reward-gated pool plus the six discovery
+      // lines (waves 3+4): each unlocked species shows up across a
+      // two-dozen-day sweep, and no locked one leaks in early.
       const pool = new Set(
         [...obtainableSpecies(tier), ...DISCOVERY_SPECIES].map((s) => s.id),
       )
       expect(pool.size).toBeGreaterThan(STARTER_IDS.size)
       for (const id of pool) expect(met.has(id)).toBe(true)
       for (const id of met) expect(pool.has(id)).toBe(true)
+    }
+  })
+
+  /** The wave-4 trio joins the widened pool through DISCOVERY_SPECIES. */
+  const WAVE4_IDS: readonly string[] = ["embercub", "mossboar", "mistkit"]
+
+  test("each non-Bronze pool holds the six discovery lines over the reward gate", () => {
+    expect(DISCOVERY_SPECIES.map((species) => species.id)).toHaveLength(6)
+    const sizes = { silver: 11, gold: 13, legend: 15 } as const
+    for (const tier of ["silver", "gold", "legend"] as const) {
+      const pool = new Set(
+        [...obtainableSpecies(tier), ...DISCOVERY_SPECIES].map((s) => s.id),
+      )
+      expect(pool.size, `${tier} pool`).toBe(sizes[tier])
+      for (const id of WAVE4_IDS) expect(pool.has(id), tier).toBe(true)
+    }
+  })
+
+  test("the wave-4 lines join every non-Bronze field and never leak into Bronze", () => {
+    for (const tier of ["bronze", "silver", "gold", "legend"] as const) {
+      // Mirror the file's own sweep: DAYS across the tier's state.
+      const state = stateAt(tier)
+      const met = new Set<string>()
+      for (const day of DAYS) {
+        for (const id of rivalSpecies(state, day)) met.add(id)
+      }
+      for (const id of WAVE4_IDS) {
+        expect(met.has(id), `${tier} ${id}`).toBe(tier !== "bronze")
+      }
     }
   })
 

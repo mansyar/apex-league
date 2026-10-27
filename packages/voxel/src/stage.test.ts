@@ -24,6 +24,9 @@ const ARCHETYPE_SIGNATURES: Record<string, string[]> = {
   fox: ["voltRuffLeft", "voltRuffRight"],
   heron: ["crestBudLeft", "crestBudRight"],
   mole: ["scaleBudLeft", "scaleBudRight"],
+  cub: ["maneBudLeft", "maneBudRight"],
+  boar: ["mossBudLeft", "mossBudRight"],
+  otter: ["finBudLeft", "finBudRight"],
 }
 
 // The champion layer adds one more signature upgrade per archetype —
@@ -42,6 +45,9 @@ const CHAMPION_SIGNATURES: Record<string, string[]> = {
   fox: ["crownBoltLeft", "crownBoltRight"],
   heron: ["galeCrestLeft", "galeCrestRight"],
   mole: ["crownSlateLeft", "crownSlateRight"],
+  cub: ["crownFlameLeft", "crownFlameRight"],
+  boar: ["crownTuskLeft", "crownTuskRight"],
+  otter: ["crownFinLeft", "crownFinRight"],
 }
 
 describe("stage-variant build API", () => {

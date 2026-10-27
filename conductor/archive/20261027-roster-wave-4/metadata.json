@@ -1,0 +1,32 @@
+{
+  "archive_path": null,
+  "archived_at": null,
+  "base_branch": "main",
+  "base_sha": "4cd2d52a4cde39fa10346efe64ee563005a117fd",
+  "branch": "feat/20261027-roster-wave-4",
+  "created_at": "2026-10-27T09:08:55Z",
+  "depends_on": [],
+  "doc_sync": "pending",
+  "id": "20261027-roster-wave-4",
+  "last_checkpoint": "02a524b6",
+  "plan": "plan.md",
+  "priority": "high",
+  "progress": {
+    "phases_total": 4,
+    "phases_verified": 4,
+    "tasks_done": 6,
+    "tasks_total": 6
+  },
+  "pr_state": "OPEN",
+  "pr_url": "https://github.com/mansyar/apex-league/pull/61",
+  "review_rounds": 2,
+  "review_verdict": "PASS",
+  "reverted_at": null,
+  "revert_commit": null,
+  "revert_pr_url": null,
+  "spec": "spec.md",
+  "status": "complete",
+  "title": "Roster Wave 4 (Fire/Plant/Water Discovery)",
+  "type": "feature",
+  "updated_at": "2026-10-27T10:00Z"
+}

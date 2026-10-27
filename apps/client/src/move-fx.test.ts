@@ -302,6 +302,9 @@ describe("move table", () => {
       "voltfox",
       "galeheron",
       "shalemole",
+      "embercub",
+      "mossboar",
+      "mistkit",
     ] as const
     for (const speciesId of lines) {
       const species = getSpecies(speciesId)

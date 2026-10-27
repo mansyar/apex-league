@@ -175,6 +175,43 @@ export const PROPORTION_BUDGETS: Record<string, ProportionBudget> = {
       "bodyLength/bodyHeight": { min: 1.4, max: 3.2 },
     },
   },
+  // Cub: the Embercub — a small quadruped cub with an ember mane ruff that
+  // reads outside the barrel, so the measured torso matches the mole's
+  // stocky proportions. Ranges mirror the mole with slack for the ruff.
+  cub: {
+    ratios: {
+      "legLength/bodyHeight": { min: 0.3, max: 0.9 },
+      "neckLength/bodyLength": { min: 0.0, max: 0.6 },
+      "headHeight/bodyHeight": { min: 0.05, max: 0.9 },
+      "bodyLength/bodyHeight": { min: 1.2, max: 3.4 },
+    },
+  },
+  // Boar: the Mossboar — a stocky low barrel on short thick columns with a
+  // mossy ridge riding the crown outside the barrel. Ranges mirror the mole
+  // with slack for the crest; the leg floor sits low because the planted
+  // stance keeps only a short exposed column below the deep barrel.
+  boar: {
+    ratios: {
+      "legLength/bodyHeight": { min: 0.2, max: 0.9 },
+      "neckLength/bodyLength": { min: 0.0, max: 0.5 },
+      "headHeight/bodyHeight": { min: 0.05, max: 0.9 },
+      "bodyLength/bodyHeight": { min: 1.2, max: 3.4 },
+    },
+  },
+  // Otter: the Mistkit — a sleek low-slung swimmer hull on short flipper
+  // legs with a swept dorsal fin. The hull runs longer and lower than the
+  // land barrels, so the body budget sits above theirs: the coarse audit
+  // lattice inflates the long/thin read (measured up to ~4.2), and the
+  // short exposed flippers read small against the deep hull (measured
+  // ~0.29–1.0 across stages and seeds).
+  otter: {
+    ratios: {
+      "legLength/bodyHeight": { min: 0.2, max: 1.2 },
+      "neckLength/bodyLength": { min: 0.0, max: 0.5 },
+      "headHeight/bodyHeight": { min: 0.05, max: 0.9 },
+      "bodyLength/bodyHeight": { min: 1.2, max: 4.8 },
+    },
+  },
 }
 
 /** Inclusive check: a measured ratio inside its budget range. */

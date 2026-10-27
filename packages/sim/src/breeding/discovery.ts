@@ -1,10 +1,11 @@
 /**
- * Breeding discovery (`roster_wave_3` FR-4): fixed parent-element recipes
- * evaluated as a pure breed-time lookup. Two retired parents whose primary
- * elements match a recipe reveal the discovery line; every other pairing —
- * same-element pairs and unlisted cross-element pairs alike — inherits
- * exactly as before. The lookup reads the parents' elements only, rolls no
- * random stream, and persists nothing: discovery re-derives every time.
+ * Breeding discovery (`roster_wave_3` FR-4, `roster_wave_4` FR-3): fixed
+ * parent-element recipes evaluated as a pure breed-time lookup. Two retired
+ * parents whose primary elements match a recipe reveal the discovery line;
+ * every other pairing — same-element pairs and unlisted cross-element pairs
+ * alike — inherits exactly as before. The lookup reads the parents'
+ * elements only, rolls no random stream, and persists nothing: discovery
+ * re-derives every time.
  *
  * The egg's species choices live here too: the parents' species in selection
  * order, then the discovered line when a recipe fires and it is not already
@@ -23,13 +24,16 @@ interface DiscoveryRecipe {
 }
 
 /**
- * The three fixed recipes. The table is the whole seam — adding a line is
+ * The six fixed recipes. The table is the whole seam — adding a line is
  * adding a row, never touching the breeding flow.
  */
 const RECIPES: readonly DiscoveryRecipe[] = Object.freeze([
   { parents: ["electric", "wind"], speciesId: "voltfox" },
   { parents: ["wind", "water"], speciesId: "galeheron" },
   { parents: ["earth", "fire"], speciesId: "shalemole" },
+  { parents: ["fire", "plant"], speciesId: "embercub" },
+  { parents: ["plant", "water"], speciesId: "mossboar" },
+  { parents: ["fire", "water"], speciesId: "mistkit" },
 ])
 
 /** The order-independent recipe key: the sorted element pair. */

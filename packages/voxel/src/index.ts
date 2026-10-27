@@ -21,6 +21,13 @@ export {
   sampleAxolotlDna,
 } from "./axolotl"
 export {
+  BOAR_GRID,
+  type BoarBuild,
+  boarTemplate,
+  buildBoar,
+  sampleBoarDna,
+} from "./boar"
+export {
   BOVINE_GRID,
   type BovineBuild,
   bovineTemplate,
@@ -33,6 +40,13 @@ export {
   crabTemplate,
   sampleCrabDna,
 } from "./crab"
+export {
+  buildCub,
+  CUB_GRID,
+  type CubBuild,
+  cubTemplate,
+  sampleCubDna,
+} from "./cub"
 export { buildDrake, DRAKE_GRID, type DrakeBuild, drakeTemplate } from "./drake"
 export {
   buildFalcon,
@@ -77,6 +91,13 @@ export {
   moleTemplate,
   sampleMoleDna,
 } from "./mole"
+export {
+  buildOtter,
+  OTTER_GRID,
+  type OtterBuild,
+  otterTemplate,
+  sampleOtterDna,
+} from "./otter"
 export {
   generateProp,
   type PropBuild,

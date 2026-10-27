@@ -282,11 +282,71 @@ const CONTRACT: readonly BranchContract[] = [
     signatureMove: "boulder_toss",
     accentHue: 23,
   },
+  {
+    id: "ember_rusher",
+    speciesId: "embercub",
+    label: "Ember Rusher",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 4, atk: 7, def: 4, spd: 3 },
+    signatureMove: "cinder_shot",
+    accentHue: 26,
+  },
+  {
+    id: "soot_warden",
+    speciesId: "embercub",
+    label: "Soot Warden",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 6, atk: 3, def: 7, spd: 0 },
+    signatureMove: "spark",
+    accentHue: 8,
+  },
+  {
+    id: "briar_charger",
+    speciesId: "mossboar",
+    label: "Briar Charger",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 4, atk: 7, def: 3, spd: 4 },
+    signatureMove: "bramble_dart",
+    accentHue: 115,
+  },
+  {
+    id: "moss_warden",
+    speciesId: "mossboar",
+    label: "Moss Warden",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 7, atk: 3, def: 5, spd: 0 },
+    signatureMove: "seed_shot",
+    accentHue: 100,
+  },
+  {
+    id: "mist_courser",
+    speciesId: "mistkit",
+    label: "Mist Courser",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 6, atk: 6, def: 3, spd: 1 },
+    signatureMove: "splash_bolt",
+    accentHue: 210,
+  },
+  {
+    id: "foam_warden",
+    speciesId: "mistkit",
+    label: "Foam Warden",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 7, atk: 2, def: 6, spd: 0 },
+    signatureMove: "bubble",
+    accentHue: 222,
+  },
 ]
 
 describe("branch catalog", () => {
-  test("holds exactly the twenty-four contracted branches", () => {
-    expect(BRANCHES.length).toBe(24)
+  test("holds exactly the thirty contracted branches", () => {
+    expect(BRANCHES.length).toBe(30)
     expect(BRANCHES.map((branch) => branch.id)).toEqual(
       CONTRACT.map((row) => row.id),
     )
