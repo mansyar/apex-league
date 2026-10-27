@@ -87,7 +87,7 @@
 - **Covers:** R1, R2
 - **Touches:** `conductor/tracks/20261027-roster-wave-4/spec.md`, `conductor/tracks/20261027-roster-wave-4/plan.md`, `conductor/tracks/20261027-roster-wave-4/verification/phase-R1.md`, `.conductor/evidence/20261027-roster-wave-4/phase-R1-landscape.png`
 - **Verification:** `bun run verify && bun run build`; landscape browser pass with console check
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Resolve R1** — covers: R1
 - [ ] **R1.T2: Resolve R2** — covers: R2
