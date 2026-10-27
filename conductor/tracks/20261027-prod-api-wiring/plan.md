@@ -14,7 +14,7 @@
 - **Covers:** FR-1, FR-2, FR-3, AC-1, AC-2, AC-3
 - **Touches:** `.github/workflows/deploy.yml`, `scripts/deploy/workflow.test.ts`
 - **Verification:** `bun test scripts/deploy/workflow.test.ts --check`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Wire `APEX_API_ORIGIN` into `deploy.yml`** — covers: FR-1
   - [ ] **P1.T1.1: Export `VITE_API_ORIGIN` from vars at build on prod** — covers: FR-1
