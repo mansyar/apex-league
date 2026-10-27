@@ -9,7 +9,7 @@
   inset: 0;
   /* Above the HUD motion chips (45): the broadcast is a modal surface, and
      on phones the chips otherwise sit on top of the cup header. */
-  z-index: 50;
+  z-index: var(--z-cup);
   container-type: inline-size;
   display: flex;
   align-items: center;
@@ -389,7 +389,7 @@
   font-weight: 700;
   font-style: italic;
   color: var(--ink);
-  z-index: 30;
+  z-index: var(--z-sheet);
   animation: boss-intro-in 0.45s ease-out;
 }
 
@@ -652,7 +652,7 @@
   align-items: center;
   justify-content: center;
   background: rgb(0 0 0 / 0.5);
-  z-index: 2;
+  z-index: var(--z-cup-inner);
 }
 
 .cup-giveup-card {

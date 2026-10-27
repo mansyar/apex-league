@@ -59,6 +59,22 @@
   --kit-safe-left: env(safe-area-inset-left, 0px);
   --kit-safe-right: env(safe-area-inset-right, 0px);
 
+  /* Layer tokens (ui_cleanliness_20261027 Phase 1): every z-index in the
+     client reads one of these. Surfaces use `z-index: var(--z-*)` and never
+     a literal, so adding an overlay cannot bury another by accident. */
+  --z-battle: 1;
+  --z-cup-inner: 2;
+  --z-bar: 10;
+  --z-tip: 20;
+  --z-sheet: 30;
+  --z-veil: 40;
+  --z-dock: 45;
+  --z-cup: 50;
+  --z-notice: 60;
+  --z-grad: 65;
+  --z-modal: 70;
+  --z-failure: 80;
+
   /* Element identity palette (full colors; hues live in ui/element.ts).
      Consumed by .el-border-* custom-property setters and legacy styles. */
   --el-fire: #ff6b4a;
@@ -102,7 +118,7 @@
   top: 18px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 60;
+  z-index: var(--z-notice);
   max-width: min(560px, 90vw);
   padding: 10px 18px;
   text-align: center;
@@ -315,7 +331,7 @@
   position: absolute;
   bottom: calc(100% + 8px);
   left: 50%;
-  z-index: 20;
+  z-index: var(--z-tip);
   padding: 9px 13px;
   background: #201911;
   border: 1px solid var(--kit-keyline-warm);
@@ -379,6 +395,16 @@
   transform: translateY(1px) scale(0.99);
 }
 
+/* Overlay visibility (ui_cleanliness_20261027 Phase 1): the modal helper
+   owns open/close by toggling `is-hidden`. Every overlay root folds here,
+   so no modal path writes `style.display`. */
+.kit-modal.is-hidden,
+.cup-overlay.is-hidden,
+.cup-giveup.is-hidden,
+.starter-overlay.is-hidden {
+  display: none;
+}
+
 /* Modal shell: a full-screen scrim with one centered plate. Shared by every
    confirm dialog (reset, Hall of Fame, cup notices) — ranch hosts the DOM,
    but the classes are kit-level. The scrim click and Escape both back out —
@@ -386,7 +412,7 @@
 .kit-modal {
   position: fixed;
   inset: 0;
-  z-index: 70;
+  z-index: var(--z-modal);
   display: flex;
   align-items: center;
   justify-content: center;

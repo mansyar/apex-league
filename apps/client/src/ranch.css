@@ -946,7 +946,7 @@
   top: calc(146px + var(--kit-safe-top));
   left: calc(18px + var(--kit-safe-left));
   transform: none;
-  z-index: 60;
+  z-index: var(--z-notice);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -1139,7 +1139,7 @@
   position: absolute;
   top: 18px;
   left: 18px;
-  z-index: 45;
+  z-index: var(--z-dock);
   animation: settle-down 0.5s var(--kit-settle) 0.24s both;
   user-select: none;
 }
