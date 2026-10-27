@@ -15,8 +15,9 @@
     "tasks_total": 16
   },
   "spec": "spec.md",
-  "status": "in_progress",
+  "status": "complete",
   "doc_sync": "none",
+  "pr_url": "https://github.com/mansyar/apex-league/pull/60",
   "review_verdict": "PASS",
   "review_rounds": 2,
   "title": "UI Cleanliness & Clarity Pass",
