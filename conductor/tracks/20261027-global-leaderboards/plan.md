@@ -51,7 +51,15 @@
 - **Covers:** FR-5, FR-6, AC-3, AC-4, AC-5, NFR-5
 - **Touches:** `apps/client/src/board/**`, `apps/client/src/main.ts` (tab registration), `apps/client/src/cloud/scores.ts` (snapshot cache)
 - **Verification:** `bun test --check --parallel=4 --timeout 120000` (scoped) + playwright-cli Board pass (desktop + phone, live + offline)
-- **Status:** in_progress
+- **Status:** verified
+
+**Result:** verified
+**Checkpoint:** 3fdc8b69
+**Evidence:** conductor/tracks/20261027-global-leaderboards/verification/phase-3.md
+
+- [x] **P3.T1: Board surface** — covers: FR-5
+  - [x] **P3.T1.1: Four category lists (rank, name, value) + states**
+  - [x] **P3.T1.2: Fetch-on-open + last-snapshot cache with quiet offline note**
 
 - [ ] **P3.T1: Board surface** — covers: FR-5
   - [ ] **P3.T1.1: Four category lists (rank, name, value) + states**
