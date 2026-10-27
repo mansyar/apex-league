@@ -1,0 +1,72 @@
+{
+  "errors": [
+    "desktop: Failed to load resource: net::ERR_FAILED",
+    "desktop: Failed to load resource: net::ERR_FAILED",
+    "desktop: Failed to load resource: net::ERR_FAILED",
+    "desktop: Failed to load resource: net::ERR_FAILED",
+    "desktop: Failed to load resource: net::ERR_FAILED",
+    "desktop: Failed to load resource: net::ERR_FAILED",
+    "desktop: Failed to load resource: net::ERR_FAILED",
+    "desktop: Failed to load resource: net::ERR_FAILED",
+    "desktop: Failed to load resource: net::ERR_FAILED",
+    "desktop: Failed to load resource: net::ERR_FAILED",
+    "desktop: Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+    "desktop: Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+    "mobile: Failed to load resource: net::ERR_FAILED",
+    "mobile: Failed to load resource: net::ERR_FAILED",
+    "mobile: Failed to load resource: net::ERR_FAILED",
+    "mobile: Failed to load resource: net::ERR_FAILED",
+    "mobile: Failed to load resource: net::ERR_FAILED",
+    "mobile: Failed to load resource: net::ERR_FAILED",
+    "mobile: Failed to load resource: net::ERR_FAILED",
+    "mobile: Failed to load resource: net::ERR_FAILED",
+    "mobile: Failed to load resource: net::ERR_FAILED",
+    "mobile: Failed to load resource: net::ERR_FAILED",
+    "mobile: Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+    "mobile: Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+  ],
+  "desktop-board-status": "",
+  "desktop-ghost-preview": "Ember · day 12 · round 3 · kit: Spark, Flame Charge, Cinder Shot, Blaze Bolt",
+  "desktop-fight-count": 1,
+  "desktop-fight-opens-spar": true,
+  "desktop-pre-snapshot": {
+    "openModals": [],
+    "spar": "spar-overlay",
+    "chipBox": {
+      "x": 27,
+      "y": 306,
+      "w": 85.46875,
+      "h": 32
+    },
+    "overflow": "kit-plate hud-overflow"
+  },
+  "desktop-snapshot-status": "The cloud is out of reach — showing the last boards we saw. Updated just now.",
+  "desktop-snapshot-ghost-status": "The cloud is out of reach — showing the last ghost rivals we saw. Updated just now.",
+  "desktop-error-status": "Can't reach the boards right now — take another look later.",
+  "desktop-error-rows": 0,
+  "desktop-cloud-signed-out": "Cloud sync is off — this ranch lives on this device.",
+  "desktop-cloud-signed-in": "Cloud copy is up to date.",
+  "desktop-cloud-queue": "1 change waiting — they send on their own when the cloud is back.",
+  "mobile-board-status": "",
+  "mobile-ghost-preview": "Ember · day 12 · round 3 · kit: Spark, Flame Charge, Cinder Shot, Blaze Bolt",
+  "mobile-fight-count": 1,
+  "mobile-fight-opens-spar": true,
+  "mobile-pre-snapshot": {
+    "openModals": [],
+    "spar": "spar-overlay",
+    "chipBox": {
+      "x": 23,
+      "y": 354,
+      "w": 85.46875,
+      "h": 44
+    },
+    "overflow": "kit-plate hud-overflow"
+  },
+  "mobile-snapshot-status": "The cloud is out of reach — showing the last boards we saw. Updated just now.",
+  "mobile-snapshot-ghost-status": "The cloud is out of reach — showing the last ghost rivals we saw. Updated just now.",
+  "mobile-error-status": "Can't reach the boards right now — take another look later.",
+  "mobile-error-rows": 0,
+  "mobile-cloud-signed-out": "Cloud sync is off — this ranch lives on this device.",
+  "mobile-cloud-signed-in": "Cloud copy is up to date.",
+  "mobile-cloud-queue": "1 change waiting — they send on their own when the cloud is back."
+}

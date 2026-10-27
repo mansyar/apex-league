@@ -96,13 +96,17 @@ AC-10 passes (see evidence doc for the residual-seat audit).
 - **Covers:** FR-12, FR-13, FR-14, FR-15, FR-16, AC-11, AC-12, AC-13
 - **Touches:** `apps/client/src/board/*`, `apps/client/src/cloud/*`, `apps/client/src/hud/copy-*.ts`, `apps/client/src/hud/plates-*.ts`, `apps/client/src/hud/dock.ts`, `apps/client/src/detail/*`
 - **Verification:** `bun run verify && bun run build` + Playwright state matrix (empty/loading/offline/error × board/ghosts/cloud) + ghost preview→Fight parity check
-- **Status:** pending
+- **Status:** verified (commits `34f1ed63` P5.T1, `042f3753` P5.T2, `86c66a7c` P5.T3, `3c2b7b1c` P5.T4+T4.1, `da696dd9` dock-aria fix; gate + 12-shot matrix in `verification/phase-5.md`)
 
-- [ ] **P5.T1: Board explicit states (empty/loading/offline-snapshot/error)** — covers: FR-12, AC-11
-- [ ] **P5.T2: Ghost preview-to-Fight continuity** — covers: FR-13, AC-12
-- [ ] **P5.T3: Cloud actionable errors + offline queue honesty** — covers: FR-14, AC-11
-- [ ] **P5.T4: Full copy pass (teaser template, period/jargon, title-to-inline)** — covers: FR-15, FR-16, AC-13
-  - [ ] **P5.T4.1:** Bounded kit-only restyle of board/cloud tables within existing palette
+- [x] **P5.T1: Board explicit states (empty/loading/offline-snapshot/error)** — covers: FR-12, AC-11
+- [x] **P5.T2: Ghost preview-to-Fight continuity** — covers: FR-13, AC-12
+- [x] **P5.T3: Cloud actionable errors + offline queue honesty** — covers: FR-14, AC-11
+- [x] **P5.T4: Full copy pass (teaser template, period/jargon, title-to-inline)** — covers: FR-15, FR-16, AC-13
+  - [x] **P5.T4.1:** Bounded kit-only restyle of board/cloud tables within existing palette
+
+- **Result:** every Board/Cloud state says what it is and what to do next; ghost previews fight with the shown kit; copy facts live inline
+- **Checkpoint:** `da696dd9`
+- **Evidence:** `verification/phase-5.md`, `verification/p5-*.png`, `verification/p5-matrix-report.json`
 
 <!--
 Review fixes are appended by `conductor-review` as:
