@@ -85,6 +85,10 @@
 - **Covers:** F1
 - **Touches:** `apps/client/src/cloud/sync.ts`, `apps/client/src/cloud/sync.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000` (scoped: cloud) + `bun run check`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **R1.T1: Resolve F1** — covers: F1 (uploadLocal returns true after failureStatus; false only for nothing-to-upload; test pins failed-first-upload status)
+**Result:** verified
+**Checkpoint:** 72f8440d
+**Evidence:** conductor/tracks/20261027-global-leaderboards/verification/phase-R1.md
+
+- [x] **R1.T1: Resolve F1** — covers: F1 (uploadLocal returns true after failureStatus; false only for nothing-to-upload; test pins failed-first-upload status)
