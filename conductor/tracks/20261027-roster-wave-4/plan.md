@@ -79,3 +79,15 @@
 - [x] **P4.T1: Widen rival pools + refresh bosses** — covers: FR-6
   - [x] **P4.T1.1: New species in generated fields; six pairings refreshed within row discipline**
   - [x] **P4.T1.2: Play every refreshed pairing end-to-end in the browser (desktop + phone, console clean)**
+
+## Phase R1: Review Fixes
+
+- **Goal:** Resolve review findings R1, R2.
+- **Depends on:** Phase 4
+- **Covers:** R1, R2
+- **Touches:** `conductor/tracks/20261027-roster-wave-4/spec.md`, `conductor/tracks/20261027-roster-wave-4/plan.md`, `conductor/tracks/20261027-roster-wave-4/verification/phase-R1.md`, `.conductor/evidence/20261027-roster-wave-4/phase-R1-landscape.png`
+- **Verification:** `bun run verify && bun run build`; landscape browser pass with console check
+- **Status:** pending
+
+- [ ] **R1.T1: Resolve R1** — covers: R1
+- [ ] **R1.T2: Resolve R2** — covers: R2
