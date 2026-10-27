@@ -9,11 +9,10 @@ export function buildBattleChips(): {
   fastButton: HTMLButtonElement
 } {
   const battleChips = document.createElement("div")
-  battleChips.className = "cup-battle-chips"
-  battleChips.style.display = "none"
+  battleChips.className = "cup-battle-chips is-hidden"
   const fastButton = document.createElement("button")
   fastButton.type = "button"
-  fastButton.className = "cup-speed"
+  fastButton.className = "cup-speed kit-surface"
   battleChips.append(fastButton)
   return { battleChips, fastButton }
 }

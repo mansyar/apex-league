@@ -145,7 +145,7 @@ export function syncStableChip(
   button: HTMLButtonElement,
   state: GameState,
 ): void {
-  button.style.display = stableChipVisible(state) ? "" : "none"
+  button.classList.toggle("is-hidden", !stableChipVisible(state))
 }
 
 export interface StableModal {

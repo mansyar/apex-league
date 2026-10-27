@@ -233,7 +233,7 @@ export function buildCommandDock(handlers: {
   // champion eligible (canGraduate), so the dock never offers a dead end.
   const dockGraduate = document.createElement("div")
   dockGraduate.className = "dock-graduate"
-  dockGraduate.style.display = "none"
+  dockGraduate.hidden = true
   const graduateChip = button({
     label: "Graduate",
     tag: "",

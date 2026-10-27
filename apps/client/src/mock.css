@@ -387,12 +387,6 @@ body.mock {
   margin-bottom: 0;
 }
 
-.mock .resp-phone .creature-plate.is-collapsed .stat-row,
-.mock .resp-phone .creature-plate.is-collapsed .condition-list,
-.mock .resp-phone .creature-plate.is-collapsed .kit-ticker {
-  display: none;
-}
-
 /* Dock collapsed by default: care actions only, picker + train tucked. */
 .mock .resp-phone .command-dock .train-picker {
   display: none;

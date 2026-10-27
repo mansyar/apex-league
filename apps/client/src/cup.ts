@@ -112,8 +112,7 @@ export function createCup(
   // arena intro for the length of the boss fight. Shown only for boss
   // slots; reduced motion mutes the entrance animation.
   const bossIntro = document.createElement("div")
-  bossIntro.className = "cup-boss-intro"
-  bossIntro.style.display = "none"
+  bossIntro.className = "cup-boss-intro kit-surface is-hidden"
   shared.bossIntro = bossIntro
   shared.battleHud = battleHud
   shared.overlay = overlay
@@ -170,12 +169,12 @@ export function createCup(
   }
 
   shared.showScreen = (name): void => {
-    shared.bracket.screen.style.display = name === "bracket" ? "" : "none"
-    shared.coach.screen.style.display = name === "coach" ? "" : "none"
-    shared.results.screen.style.display = name === "results" ? "" : "none"
+    shared.bracket.screen.classList.toggle("is-hidden", name !== "bracket")
+    shared.coach.screen.classList.toggle("is-hidden", name !== "coach")
+    shared.results.screen.classList.toggle("is-hidden", name !== "results")
     // The global close belongs to the bracket only; the coach and the
     // results have their own exits.
-    close.style.display = name === "bracket" ? "" : "none"
+    close.classList.toggle("is-hidden", name !== "bracket")
   }
 
   const reducedMotion = (): boolean =>
@@ -267,7 +266,7 @@ export function createCup(
   overlay.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return
     if (isModalOpen(shared.giveup.root)) return
-    if (shared.bracket.screen.style.display === "none") return
+    if (shared.bracket.screen.classList.contains("is-hidden")) return
     close.click()
   })
 

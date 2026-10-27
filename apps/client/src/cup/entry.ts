@@ -34,7 +34,7 @@ export function createEntry(shared: CupShared): {
       gate: bossForCup(state),
     })
     cupHint.textContent = view.hint
-    cupButton.style.display = view.visible ? "" : "none"
+    cupButton.classList.toggle("is-hidden", !view.visible)
     cupButton.disabled = !view.enabled
   }
 
@@ -62,7 +62,7 @@ export function createEntry(shared: CupShared): {
     champ.classList.remove("crowned")
     champName.textContent = "—"
     for (const [id, card] of cards) {
-      card.el.className = `cup-match m-${id}`
+      card.el.className = `cup-match kit-surface m-${id}`
       card.slots.a.replaceChildren()
       card.slots.b.replaceChildren()
       colHeadEls[card.column].classList.remove("in")
@@ -123,7 +123,7 @@ export function createEntry(shared: CupShared): {
     champName.textContent = "—"
     // Reset the board, then start the strict-order reveal.
     for (const [id, card] of cards) {
-      card.el.className = `cup-match m-${id}`
+      card.el.className = `cup-match kit-surface m-${id}`
       colHeadEls[card.column].classList.remove("in")
     }
     shared.showScreen("bracket")

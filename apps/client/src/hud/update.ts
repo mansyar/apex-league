@@ -150,7 +150,7 @@ export function createHudUpdate(
     }
     rankPts.textContent = read.points
     rankTitles.textContent = read.titles ?? ""
-    rankTitles.style.display = read.titles === null ? "none" : ""
+    rankTitles.hidden = read.titles === null
     rank.setAttribute("aria-label", read.ariaLabel)
     const announcement = climbAnnouncement(prevLadder, ladder)
     if (announcement !== null) {
@@ -169,7 +169,7 @@ export function createHudUpdate(
       lowerThird.style.display = "none"
       dockRow.style.display = "none"
       dockTrain.style.display = "none"
-      dockGraduate.style.display = "none"
+      dockGraduate.hidden = true
       picker.style.display = "none"
       dockHeadMeta.textContent = ""
       lineage.root.style.display = "none"
@@ -201,7 +201,7 @@ export function createHudUpdate(
       state.cupsWon,
     )
     const gradVerdict = canGraduate(state)
-    dockGraduate.style.display = gradVerdict.eligible ? "" : "none"
+    dockGraduate.hidden = !gradVerdict.eligible
     graduateChip.disabled = !gradVerdict.eligible
 
     // The creature carries its own identity (the species catalog is only

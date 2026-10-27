@@ -847,18 +847,24 @@
   position: absolute;
   top: 3cqw;
   right: 3cqw;
-  /* Hidden by inline style at creation; the battle flips it via "" so the
-     class default (flex) applies. The class-level `display: none` here used
-     to swallow the inline "" — the fast-forward pill never showed in cup
-     battles (pre-existing bug, fixed with the battle-session shell). */
   display: flex;
   gap: 1cqw;
 }
 
+/* Cup chrome visibility (ui_cleanliness_20261027 Phase 2): the bracket,
+   coach and results screens, the global close, the battle chips and the
+   boss lower-third fold via `is-hidden` toggles in cup.ts / arena.ts —
+   no `style.display` writes. One rule each beats the surface `display`
+   declarations above. */
+.cup-screen.is-hidden,
+.cup-close.is-hidden,
+.cup-battle-chips.is-hidden,
+.cup-boss-intro.is-hidden {
+  display: none;
+}
+
 .cup-speed {
   padding: 0.6cqw 1.2cqw;
-  border: 1px solid var(--kit-keyline);
-  background: var(--kit-panel-bg);
   color: var(--ink);
   font-size: 1cqw;
   font-weight: 700;

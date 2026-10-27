@@ -64,7 +64,7 @@ export function buildScoreBug(): ScoreBugRefs {
   // the plateau — hidden for every other tier.
   const rankTitles = document.createElement("span")
   rankTitles.className = "score-ladder-titles"
-  rankTitles.style.display = "none"
+  rankTitles.hidden = true
   rank.append(rankRank, rankPts, rankTitles)
   root.append(
     phaseTab,

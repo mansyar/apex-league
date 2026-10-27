@@ -431,6 +431,14 @@
   display: none;
 }
 
+/* Chip visibility (ui_cleanliness_20261027 Phase 2): class-driven chip
+   folds — stable, sign-out and cup chips toggle `is-hidden` instead of
+   writing `style.display`. One rule beats every surface `display`
+   declaration these chips wear. */
+.kit-chip.is-hidden {
+  display: none;
+}
+
 /* Modal shell: a full-screen scrim with one centered plate. Shared by every
    confirm dialog (reset, Hall of Fame, cup notices) — ranch hosts the DOM,
    but the classes are kit-level. The scrim click and Escape both back out —

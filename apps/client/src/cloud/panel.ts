@@ -137,7 +137,7 @@ export function buildCloudPanel(opts: {
   /** The signed-in fields only make sense for the trainer they belong to. */
   function paintFields(): void {
     const stored = credentials()
-    signOut.style.display = stored === null ? "none" : ""
+    signOut.classList.toggle("is-hidden", stored === null)
     idInput.value = stored?.id ?? idInput.value
     nameInput.value = stored?.name ?? nameInput.value
   }
