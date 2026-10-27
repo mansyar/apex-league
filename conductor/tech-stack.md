@@ -341,7 +341,9 @@
 - **Framework**: ElysiaJS on Bun, in `apps/server` (endpoints: trainer
   identity, save sync, leaderboards, ghost data — the last two landed
   2026-10-26/27: per-trainer-best score boards and ghost store with top-100
-  listings, plausibility caps, and offline snapshots).
+  listings, plausibility caps, and offline snapshots; the client captures a
+  championship ghost at cup finalize (`captureCupGhost` → `queueGhost`,
+  flushed after the save push).
 - **Database**: SQLite via `bun:sqlite`, accessed through Drizzle ORM for a
   typed schema; schema kept Postgres-migratable. Migrations are committed SQL
   under `apps/server/migrations/`, applied by a ledger runner at boot.

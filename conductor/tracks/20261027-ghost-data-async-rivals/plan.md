@@ -127,7 +127,7 @@ Review fixes are appended by `conductor-review` as:
 - [x] **R1.T2: Copy-on-capture + caps/reader alignment + teardown/copy nits (F2–F5)** — covers: F2, F3, F4, F5
 
 **Result:** verified
-**Checkpoint:** (commit on R1 acceptance)
+**Checkpoint:** c1f8cc71
 **Evidence:** conductor/tracks/20261027-ghost-data-async-rivals/verification/phase-r1.md
 **Tests:** cup/cloud/spar/board + sim + server suites → 1754 pass / 1 skip / 0 fail; check clean (sim 167 / client 444 / server 44 / voxel 145); build exit 0; module-size guard pass (main.ts 12256 B); biome clean
 **AC:** AC-1 verified (champion finalize captures + queues through the one production finalize site; integration test queues a real bundle and flushes it after the push); AC-2 verified (flush ordering unchanged — submitPending rides the save push; offline/reject behavior untouched)

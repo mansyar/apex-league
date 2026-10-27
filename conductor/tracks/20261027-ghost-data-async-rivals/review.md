@@ -3,9 +3,9 @@
 - **Track:** `20261027-ghost-data-async-rivals`
 - **Type:** `feature`
 - **Branch:** `feat/20261027-ghost-data-async-rivals`
-- **Range:** `b88f211fd0813f5114454a61bf6cca78d3c3bb2c..562560ea`
+- **Range:** `b88f211fd0813f5114454a61bf6cca78d3c3bb2c..c1f8cc71`
 - **Date:** `2026-10-27`
-- **Verdict:** `BLOCK`
+- **Verdict:** `PASS`
 
 ## Summary
 
@@ -32,15 +32,15 @@ problem, no revert needed.
 
 | ID | Implemented by | Verified by | Status |
 | --- | --- | --- | --- |
-| FR-1 | P1.T1 | `packages/sim/src/cup/ghost.test.ts` | partial (F1: no production capture) |
-| FR-2 | P3.T1 | `apps/client/src/cloud/ghosts.test.ts` | partial (F1: queue never fed) |
+| FR-1 | P1.T1 + R1.T1 | `packages/sim/src/cup/ghost.test.ts`, `cup/ghost-capture.test.ts` | covered |
+| FR-2 | P3.T1 + R1.T1 | `apps/client/src/cloud/ghosts.test.ts`, `cup/ghost-capture.test.ts` | covered |
 | FR-3 | P2.T1, P2.T2 | `ghost/store.test.ts`, `ghost/routes.test.ts` | covered |
 | FR-4 | P4.T1 | `board/ghost-section.test.ts`, `board/panel.test.ts` | covered |
 | FR-5 | P4.T2 | `spar/ghost.test.ts` | covered |
 | FR-6 | P3.T2 | `apps/client/src/cloud/ghosts.test.ts` | covered |
 | FR-7 | P2.T1 | `ghost/caps.test.ts`, `ghost/routes.test.ts` | covered |
-| AC-1 | P1.T2 | `packages/sim/src/cup/ghost.test.ts` | partial (F1) |
-| AC-2 | P3.T1 | `apps/client/src/cloud/ghosts.test.ts` | partial (F1) |
+| AC-1 | P1.T2 + R1.T1 | `packages/sim/src/cup/ghost.test.ts`, `cup/ghost-capture.test.ts` | covered |
+| AC-2 | P3.T1 + R1.T1 | `apps/client/src/cloud/ghosts.test.ts`, `cup/ghost-capture.test.ts` | covered |
 | AC-3 | P2.T2 | `ghost/routes.test.ts` | covered |
 | AC-4 | P4.T1 | `board/ghost-section.test.ts`, `ghost-board-desktop.png` | covered |
 | AC-5 | P4.T2 | `spar/ghost.test.ts` | covered |
@@ -48,7 +48,7 @@ problem, no revert needed.
 | AC-7 | P2.T1 | `ghost/caps.test.ts`, `ghost/routes.test.ts` | covered |
 | NFR-1 | P1.T2 | `cup/ghost.test.ts` | covered |
 | NFR-2 | P1.T1, P3.T1 | save schema stays v25 | covered |
-| NFR-3 | P4.T1, P4.T2 | module-size guard 5 pass, `main.ts` 12222 B | covered |
+| NFR-3 | P4.T1, P4.T2, R1.T1 | module-size guard 5 pass, `main.ts` 12256 B | covered |
 | NFR-4 | P2.T1 | `caps.test.ts` (no PII in bundle) | covered |
 | NFR-5 | P3.T1, P3.T2 | `ghosts.test.ts` quiet/non-blocking | covered |
 
@@ -135,6 +135,33 @@ Unrecorded gap: P1.T1.2 "capture on cup win path" and P3.T1.1 "flush ordering"
 assumed a cup→`queueGhost` call site that does not exist — this is F1 above,
 now tracked as Phase R1.
 
+## Re-review (round 2)
+
+Phase R1 (`c1f8cc71`, evidence `verification/phase-r1.md`) resolves all five
+round-1 findings at their exact fix sites:
+
+- **F1:** `captureCupGhost` is called from the one production finalize site
+  (`createCupScreen` `onFinalize`, `apps/client/src/app/screens.ts`) with the
+  finished session; the cloud sync arrives via `ScreenDeps.cloudSync`
+  (deviation D9 — keeps `main.ts` at 12256 B, under cap). New
+  `cup/ghost-capture.test.ts` covers the reviewer's test gap verbatim:
+  champion queues a `verifyGhostBundle`-true bundle, loss/forfeit queue
+  nothing, and the queued bundle flushes after the save push through a real
+  `createGhostSubmitter`. FR-1/FR-2 and AC-1/AC-2 are now covered.
+- **F2:** sides and events are copied on capture; the mutation test
+  (kit push, hp overwrite, events truncation) asserts byte-identity and
+  replayability.
+- **F3:** `isGhostSide` requires a non-empty `element`; rejection tests for
+  missing/empty element added. Store and spar reader agree.
+- **F4:** creature-loss teardown clears `pendingGhost`, symmetric with both
+  close handlers.
+- **F5:** version note is direction-neutral.
+
+Re-verified: cup/cloud/spar/board + sim + server suites 1754 pass / 1 skip /
+0 fail; `check` clean (sim 167 / client 444 / server 44 / voxel 145);
+`build` exit 0; module-size guard pass; `biome check` on touched files clean.
+No new findings. Verdict flips to **PASS**.
+
 ## Out of scope
 
 - none (reviewer raised no out-of-scope discoveries)
@@ -146,11 +173,12 @@ now tracked as Phase R1.
 
 ## Doc sync
 
-`pending` — product/tech-stack already synced pre-review; re-check after R1
-(the F1 wiring may deserve one line in tech-stack).
+`done` — product/tech-stack synced pre-review; R1 adds one tech-stack line for
+the F1 finalize→queue wiring (`captureCupGhost` → `queueGhost`).
 
 ## History
 
 | Round | Verdict | Critical | High | Medium | Low | Fixed |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | BLOCK | 0 | 1 | 1 | 3 | 0 |
+| 2 | PASS | 0 | 0 | 0 | 0 | 5 |
