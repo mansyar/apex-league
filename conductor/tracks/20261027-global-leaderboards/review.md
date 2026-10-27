@@ -4,7 +4,7 @@
 - Branch: `feat/20261027-global-leaderboards`
 - Range: `0e5e006d..HEAD` (per-phase: `0e5e006d..34a26385`, `9b53829d..df16447c`, `f5f0d943..3fdc8b69`, `6f674696..c43d90eb`)
 - Date: 2026-10-27 (UTC)
-- Verdict: **BLOCK** — one High finding (F1), fix in progress in Phase R1.
+- Verdict: **PASS** — round 1 BLOCK (F1) fixed and confirmed in round 2. No open findings.
 - Strategy: 30 files / ~2859 lines → per-phase checkpoint review (P1 `34a26385`, P2 `df16447c`, P3 `3fdc8b69`, P4 `c43d90eb` evidence-only) + cross-phase integration check. Reviewer ran without shell; primary validated F1 against the code and confirmed it.
 
 ## Summary
@@ -72,13 +72,14 @@ All FR/NFR/AC covered (reviewer-confirmed against spec + in-suite pins):
 
 ## Debt
 
-None yet. F1 is being fixed in Phase R1, not deferred.
+None. F1 was fixed in Phase R1 and confirmed in round 2; no issues filed (`review.issues.enabled` false path — everything resolved in-track).
 
 ## History
 
 | Round | Verdict | C | H | M | L | Fixed |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | BLOCK | 0 | 1 | 0 | 0 | R1 pending |
+| 1 | BLOCK | 0 | 1 | 0 | 0 | — |
+| 2 | PASS | 0 | 0 | 0 | 0 | F1 fixed in R1 (`72f8440d`), confirmed by re-review |
 
 ## Doc sync
 
