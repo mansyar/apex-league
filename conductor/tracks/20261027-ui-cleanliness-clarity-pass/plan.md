@@ -61,11 +61,11 @@ The primary appends after acceptance:
 - **Covers:** FR-7, FR-8, FR-9, AC-7, AC-8, AC-9
 - **Touches:** `apps/client/src/hud/*`, `apps/client/src/ranch.css`
 - **Verification:** `bun run verify && bun run build` + Playwright screenshots (desktop + 393px, overflow open/closed, lineage collapsed/expanded)
-- **Status:** pending
+- **Status:** verified (commits `6136edbe` P3.T1, `f78f39db` P3.T2, `eabfe5a6` P3.T3; gate + 8-shot visual in `verification/phase-3.md`)
 
-- [ ] **P3.T1: Grouped collapsible overflow for secondary chips** — covers: FR-7, AC-7
-- [ ] **P3.T2: Lineage collapsible with detail-on-click** — covers: FR-8, AC-8
-- [ ] **P3.T3: Score-bug + dock hierarchy pass** — covers: FR-9, AC-9
+- [x] **P3.T1: Grouped collapsible overflow for secondary chips** — covers: FR-7, AC-7
+- [x] **P3.T2: Lineage collapsible with detail-on-click** — covers: FR-8, AC-8
+- [x] **P3.T3: Score-bug + dock hierarchy pass** — covers: FR-9, AC-9
 
 ## Phase 4: Responsive ranch layout without magic numbers
 
