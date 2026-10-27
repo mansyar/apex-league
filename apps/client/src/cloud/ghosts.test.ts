@@ -314,6 +314,7 @@ describe("the ghost board loader", () => {
     expect(loaded.kind).toBe("snapshot")
     if (loaded.kind !== "snapshot") throw new Error("unreachable")
     expect(loaded.entries).toHaveLength(1)
+    expect(loaded.fetchedAt).toBe(1)
     expect(readGhostSnapshot(storage)?.fetchedAt).toBe(1)
   })
 

@@ -38,12 +38,23 @@ export function cloudStatusLine(status: CloudStatus): string {
     case "ahead":
       return "The cloud copy is behind this device — it catches up on the next boot."
     case "offline":
-      return "Can't reach the cloud — playing on the local save, and the cloud copy is behind."
+      return "Can't reach the cloud — playing on the local save, and the cloud copy is behind. It sends when you are back online."
     case "locked":
       return "The cloud didn't accept these credentials — sign in again to resume syncing."
     case "unreadable":
       return "The cloud copy can't be read by this build — this ranch keeps playing."
   }
+}
+
+/**
+ * The offline queue's own line (FR-14): when changes are waiting for the
+ * cloud, the count reads in words beside the status — never an icon alone.
+ * Null when nothing is waiting, so the panel can hide the line entirely.
+ */
+export function cloudQueueLine(queued: number): string | null {
+  if (!Number.isInteger(queued) || queued <= 0) return null
+  const change = queued === 1 ? "change" : "changes"
+  return `${queued} ${change} waiting — they send on their own when the cloud is back.`
 }
 
 /** Why signing in did not happen, in the coach's voice. */

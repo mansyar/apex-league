@@ -210,14 +210,15 @@ const importModal = buildImportModal((data) => {
   hud.noticeSettings("Couldn't write that save — try again.", true)
 })
 
-// The trainer surface (FR-8, FR-11): trainer id, passphrase, sign-in, and the
-// quiet sync line. Built only when this build has a cloud, and its credentials
-// are read from their own key beside the save — never from inside it, because
-// a save is exported and shared (save-transfer.ts).
+// The trainer surface (FR-8, FR-11): id, passphrase, sign-in, sync line.
+// Built only when this build has a cloud; credentials live in their own key
+// beside the save — never inside it, because a save is exported and shared
+// (save-transfer.ts).
 const cloudPanel = cloud
   ? buildCloudPanel({
       sync: cloud.sync,
       credentials: () => readCredentials(storage),
+      queued: () => cloud.sync.queuedPushes(),
     })
   : null
 

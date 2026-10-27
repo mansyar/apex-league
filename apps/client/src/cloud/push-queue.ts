@@ -23,6 +23,8 @@ export interface PushQueue {
   note(payload: string): void
   /** Ship the pending payload now (a first sign-in cannot wait). */
   flush(): void
+  /** How many payloads are waiting for their window (0 or 1). */
+  pending(): number
 }
 
 const DEFAULT_DEBOUNCE_MS = 2000
@@ -66,5 +68,8 @@ export function createPushQueue(opts: PushQueueOptions): PushQueue {
       cap ??= schedule(flush, capMs)
     },
     flush,
+    pending() {
+      return latest === null ? 0 : 1
+    },
   }
 }

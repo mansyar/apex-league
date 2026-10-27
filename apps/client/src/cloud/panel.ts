@@ -14,7 +14,12 @@
  */
 import { button, chip } from "../ui/kit"
 import { closeModal, openModal } from "../ui/modal"
-import { cloudStatusLine, PASSPHRASE_NOTICE, signInFailureLine } from "./copy"
+import {
+  cloudQueueLine,
+  cloudStatusLine,
+  PASSPHRASE_NOTICE,
+  signInFailureLine,
+} from "./copy"
 import type { TrainerCredentials } from "./credentials"
 import type { CloudStatus, CloudSync } from "./sync"
 
@@ -52,8 +57,14 @@ export function buildCloudPanel(opts: {
   sync: CloudSync
   /** The credentials currently stored, or null when signed out. */
   credentials: () => TrainerCredentials | null
+  /**
+   * How many changes are waiting for the cloud (FR-14): when positive, the
+   * panel reads the count in words beside the status. Absent, the queue
+   * line stays hidden — the status sentence still says what to do.
+   */
+  queued?: () => number
 }): CloudPanel {
-  const { sync, credentials } = opts
+  const { sync, credentials, queued } = opts
 
   const root = document.createElement("div")
   root.className = "kit-modal"
@@ -87,6 +98,13 @@ export function buildCloudPanel(opts: {
   status.className = "cloud-status"
   status.setAttribute("role", "status")
 
+  // The offline queue reads in words beside the status (FR-14): a queued
+  // ghost or save is a sentence, never an icon the player must decode.
+  const queue = document.createElement("p")
+  queue.className = "cloud-queue"
+  queue.setAttribute("role", "status")
+  queue.hidden = true
+
   // Two rows: the pair a player acts with, then the quieter sign-out beside
   // Done. Three chips in one row wrap their own labels at 393px.
   const actions = document.createElement("div")
@@ -111,7 +129,7 @@ export function buildCloudPanel(opts: {
     field("Passphrase", passInput),
   )
 
-  box.append(title, notice, form, status, actions, footer)
+  box.append(title, notice, form, status, queue, actions, footer)
   root.append(box)
 
   const chipEl = chip({ label: "Cloud", variant: "dim", onClick: () => open() })
@@ -144,6 +162,11 @@ export function buildCloudPanel(opts: {
 
   function paint(next: CloudStatus): void {
     say(cloudStatusLine(next))
+    // Logged-out, offline-with-queue, and stale-snapshot states read
+    // differently in words (FR-14): the queue count is its own sentence.
+    const line = cloudQueueLine(queued?.() ?? 0)
+    queue.hidden = line === null
+    queue.textContent = line ?? ""
     chipEl.dataset.sync = next.kind
     // Text carries the meaning; the dot only reinforces it (accessibility:
     // colour is never the only carrier).

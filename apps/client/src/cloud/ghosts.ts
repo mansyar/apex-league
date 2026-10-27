@@ -25,7 +25,7 @@ export interface GhostSnapshot {
 /** What opening the ghost board paints: live, snapshot, or empty. */
 export type GhostBoardLoad =
   | { kind: "live"; entries: GhostBoardEntry[] }
-  | { kind: "snapshot"; entries: GhostBoardEntry[] }
+  | { kind: "snapshot"; entries: GhostBoardEntry[]; fetchedAt: number }
   | { kind: "unavailable" }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -178,7 +178,13 @@ export function createGhostBoardLoader(opts: {
   function fallback(): GhostBoardLoad {
     const snapshot = readGhostSnapshot(storage)
     if (snapshot === null) return { kind: "unavailable" }
-    return { kind: "snapshot", entries: snapshot.entries }
+    // The stamp rides along so the stale note can say how old "last"
+    // is (FR-12), same grammar as the score boards.
+    return {
+      kind: "snapshot",
+      entries: snapshot.entries,
+      fetchedAt: snapshot.fetchedAt,
+    }
   }
 
   return {

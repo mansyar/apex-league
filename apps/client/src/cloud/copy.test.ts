@@ -7,7 +7,12 @@
  * voice's two-sentence limit.
  */
 import { describe, expect, test } from "bun:test"
-import { cloudStatusLine, PASSPHRASE_NOTICE, signInFailureLine } from "./copy"
+import {
+  cloudQueueLine,
+  cloudStatusLine,
+  PASSPHRASE_NOTICE,
+  signInFailureLine,
+} from "./copy"
 import type { CloudStatus } from "./sync"
 
 /** Sentences, counted the way a reader counts them. */
@@ -66,6 +71,23 @@ describe("cloud copy", () => {
 
   test("a signed-out build promises nothing about the cloud", () => {
     expect(cloudStatusLine({ kind: "signed-out" })).toContain("this device")
+  })
+
+  test("an unreachable cloud says what happened and what to do", () => {
+    const line = cloudStatusLine({ kind: "offline" })
+    expect(line).toContain("back online")
+    expect(sentences(line)).toBeLessThanOrEqual(2)
+    expect(line).not.toContain("!")
+  })
+
+  test("a waiting queue reads as its own sentence, never an icon alone", () => {
+    expect(cloudQueueLine(0)).toBeNull()
+    expect(cloudQueueLine(-2)).toBeNull()
+    expect(cloudQueueLine(1)).toBe(
+      "1 change waiting — they send on their own when the cloud is back.",
+    )
+    expect(cloudQueueLine(3)).toContain("3 changes waiting")
+    expect(cloudQueueLine(3)).not.toContain("!")
   })
 
   test("sign-in failures are explainable and short", () => {
