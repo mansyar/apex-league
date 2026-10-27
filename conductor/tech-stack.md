@@ -339,8 +339,9 @@
 
 ## Server
 - **Framework**: ElysiaJS on Bun, in `apps/server` (endpoints: trainer
-  identity, save sync. Leaderboard and ghost data are still unbuilt, and this
-  file says so rather than listing them as existing).
+  identity, save sync, leaderboards, ghost data — the last two landed
+  2026-10-26/27: per-trainer-best score boards and ghost store with top-100
+  listings, plausibility caps, and offline snapshots).
 - **Database**: SQLite via `bun:sqlite`, accessed through Drizzle ORM for a
   typed schema; schema kept Postgres-migratable. Migrations are committed SQL
   under `apps/server/migrations/`, applied by a ledger runner at boot.
@@ -697,8 +698,9 @@
   builds a two-stage, non-root image published to GHCR by
   `.github/workflows/server-image.yml` on push to `main`, tagged with the commit
   SHA; a Coolify application pulls that tag and terminates TLS on its own
-  subdomain. Leaderboards and ghost data are still unbuilt and have no
-  endpoints, so nothing about them is hosted.
+  subdomain. Leaderboards and ghost data ship with the same image (score
+  submit + ranked-list routes, ghost upload/download + top-100 routes, all
+  behind committed-SQL migrations and plausibility caps).
 -   *2026-10-26 - Release funnel (track `20261026-release-funnel`): the client
     deploy is configuration now rather than a target. `deploy.yml` runs on push
     to `main` (plus `workflow_dispatch`) and uploads `apps/client/dist` with

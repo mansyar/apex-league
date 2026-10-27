@@ -204,8 +204,11 @@ Phased delivery plan (each phase is independently playable):
   boot pull, debounced push, conflict loser preserved. Still open:
   leaderboards and ghost data. Landed 2026-10-27: per-trainer-best boards for
   cup wins, ladder, AP, and collection with plausibility caps; Board tab with
-  offline snapshot; auto-submit alongside the save push. Still open: ghost
-  data.)*
+  offline snapshot; auto-submit alongside the save push. Landed 2026-10-27
+  (track `20261027-ghost-data-async-rivals`): ghost data — cup-winning replay
+  bundles (seed + both kits + event log, sim-version pinned, byte-identical
+  verify), per-trainer-best ghost store with a top-100 board, and a Board
+  Ghost rivals section with preview + Fight opening a local-only spar bout.)*
 
 ### Phase 4 — Post-MVP
 - Async ghost PvP; live PvP (battle code designed for it from Phase 1).
