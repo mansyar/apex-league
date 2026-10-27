@@ -6,7 +6,7 @@
   "priority": "high",
   "depends_on": [],
   "created_at": "2026-10-27T05:20:00Z",
-  "updated_at": "2026-10-27T07:00:00Z",
+  "updated_at": "2026-10-27T07:30:00Z",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "feat/20261027-global-leaderboards",
@@ -14,11 +14,11 @@
   "base_sha": "0e5e006d4f603c975a8b34e2b961f58aded564e2",
   "progress": {
     "phases_total": 4,
-    "phases_verified": 3,
+    "phases_verified": 4,
     "tasks_total": 4,
     "tasks_done": 4
   },
-  "last_checkpoint": "3fdc8b69",
+  "last_checkpoint": "c43d90eb",
   "review_verdict": null,
   "review_rounds": 0,
   "doc_sync": "pending",

@@ -68,7 +68,15 @@
 - **Covers:** AC-6, AC-7, NFR-1
 - **Touches:** `apps/server/Dockerfile` (only if the new table needs image changes — expected 0-delta), `conductor/tracks/20261027-global-leaderboards/verification/*`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+
+**Result:** verified
+**Checkpoint:** c43d90eb
+**Evidence:** conductor/tracks/20261027-global-leaderboards/verification/phase-4.md
+
+- [x] **P4.T1: Integration & evidence** — covers: AC-6, AC-7
+  - [x] **P4.T1.1: Full gate + build + image check**
+  - [x] **P4.T1.2: Two-device board check documented with screenshots**
 
 - [ ] **P4.T1: Integration & evidence** — covers: AC-6, AC-7
   - [ ] **P4.T1.1: Full gate + build + image check**
