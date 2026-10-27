@@ -8,13 +8,13 @@
   "depends_on": [],
   "doc_sync": "pending",
   "id": "20261027-roster-wave-4",
-  "last_checkpoint": null,
+  "last_checkpoint": "1d249352",
   "plan": "plan.md",
   "priority": "high",
   "progress": {
     "phases_total": 4,
-    "phases_verified": 0,
-    "tasks_done": 0,
+    "phases_verified": 1,
+    "tasks_done": 2,
     "tasks_total": 6
   },
   "pr_state": null,
@@ -28,5 +28,5 @@
   "status": "in_progress",
   "title": "Roster Wave 4 (Fire/Plant/Water Discovery)",
   "type": "feature",
-  "updated_at": "2026-10-27T09:14:39Z"
+  "updated_at": "2026-10-27T09:33:21Z"
 }

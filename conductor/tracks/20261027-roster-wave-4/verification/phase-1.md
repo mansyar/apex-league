@@ -57,3 +57,18 @@ the primary can reproduce it with the documented command.
 ## Evidence paths
 
 - `conductor/tracks/20261027-roster-wave-4/verification/phase-1.md` (this file)
+
+## Primary verification
+
+- Working tree clean at acceptance; range `331edfb0..1d249352` matches the
+  report (squashed to one commit; no foreign commits).
+- Deviations accepted: three test-pin files outside `Touches`
+  (`cup/gatekeeper-reach.test.ts` legend pin 12→15,
+  `graduation/nursery-vm.test.ts` option-list pins,
+  `breeding.test.ts` speciesOptions pin) — smallest necessary changes,
+  production code untouched.
+- Phase command `bun test --check --parallel=4 --timeout 120000`: exit 0
+  (3340 pass, 1 skip, 0 fail, 312 files).
+- `bun run verify`: exit 0 (after primary formatting fixes: `biome check
+  --write` on 3 code files + pretty-print of track `metadata.json`).
+- `bun run build`: exit 0.
