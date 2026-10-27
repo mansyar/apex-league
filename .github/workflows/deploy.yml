@@ -93,10 +93,38 @@ jobs:
           fi
           echo "Both deploy secrets are present."
 
+      # Fail in seconds rather than after the gate if the production API origin
+      # is not configured. Only the variable *name* is printed; the value
+      # travels through `env:` and is never echoed. Skipped off main: preview
+      # builds (manual runs on other branches) compile without the origin on
+      # purpose and stay offline-only.
+      - name: Check API origin variable
+        if: github.ref_name == 'main'
+        env:
+          APEX_API_ORIGIN: ${{ vars.APEX_API_ORIGIN }}
+        run: |
+          if [ -z "${APEX_API_ORIGIN}" ]; then
+            echo "::error::Missing GitHub Variable APEX_API_ORIGIN."
+            echo "::error::Add it under Settings > Secrets and variables > Actions > Variables as the production API origin."
+            exit 1
+          fi
+          echo "APEX_API_ORIGIN is set."
+
       - name: Verify (types, tests, biome, voxel determinism)
         run: bun run verify
 
-      - name: Build
+      # The origin is a build-time constant (`import.meta.env.VITE_API_ORIGIN`):
+      # only the production build injects it. The preview build compiles
+      # without it, so `cloudOrigin()` returns null and the bundle stays
+      # offline-only instead of touching prod data.
+      - name: Build (production)
+        if: github.ref_name == 'main'
+        env:
+          VITE_API_ORIGIN: ${{ vars.APEX_API_ORIGIN }}
+        run: bun run build
+
+      - name: Build (preview)
+        if: github.ref_name != 'main'
         run: bun run build
 
       # wrangler will not create a Pages project non-interactively, so without

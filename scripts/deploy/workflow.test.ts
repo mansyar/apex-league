@@ -1,5 +1,7 @@
 /**
- * The deploy workflow's contract (release funnel FR-1, FR-2, NFR-3, AC-2).
+ * The deploy workflow's contract: the release-funnel gate (a red build must
+ * never reach the site) plus the prod API-origin wiring
+ * (20261027-prod-api-wiring FR-1..FR-3, AC-1..AC-3).
  *
  * `.github/workflows/deploy.yml` ships every push to `main`, and its gate is
  * the product of this track: a red build must never reach the site. These
@@ -217,7 +219,7 @@ describe("the smoke check's browser install uses the real package", () => {
 
 describe("the deploy target is written in one place", () => {
   test("the upload directory is apps/client/dist", () => {
-    // NFR-5: Pages publishes exactly this directory. A rename here would upload
+    // Pages publishes exactly this directory. A rename here would upload
     // a stale or empty tree while every other check stayed green.
     expect(config).toContain('"pages_build_output_dir": "apps/client/dist"')
   })
@@ -231,5 +233,78 @@ describe("the deploy target is written in one place", () => {
     // that would replace it — the second cannot be satisfied by a comment.
     expect(workflow).toMatch(/sed -n .*wrangler\.jsonc/)
     expect(workflow).not.toContain('project="apex-league"')
+  })
+})
+
+describe("the production build injects the API origin", () => {
+  /** One `- name:` block per step, in order, without needing a YAML parser. */
+  function stepBlocks(source: string): string[] {
+    const lines = source.split("\n")
+    const starts: number[] = []
+    for (let index = 0; index < lines.length; index++) {
+      if (/^ {6}- name: /.test(lines[index] ?? "")) starts.push(index)
+    }
+    return starts.map((start, at) =>
+      lines.slice(start, starts[at + 1] ?? lines.length).join("\n"),
+    )
+  }
+
+  const steps = stepBlocks(workflow)
+  // Steps that wire the origin into the build environment (an `env:` mapping,
+  // not a passing mention in a comment).
+  const originSteps = steps.filter((step) => step.includes("VITE_API_ORIGIN:"))
+
+  test("the production build exports VITE_API_ORIGIN from vars.APEX_API_ORIGIN", () => {
+    // FR-1/AC-1: the prod bundle talks to the live API only while the build
+    // step injects the public variable as VITE_API_ORIGIN. A rename on either
+    // side would silently ship an offline-only bundle behind a green badge.
+    expect(originSteps.length).toBe(1)
+    for (const step of originSteps) {
+      expect(step).toMatch(/\$\{\{\s*vars\.APEX_API_ORIGIN/)
+      // FR-2's other half: the step that carries the origin runs on main
+      // only, so a preview build can never inherit prod data access.
+      expect(step).toContain("github.ref_name == 'main'")
+    }
+  })
+
+  test("a missing APEX_API_ORIGIN fails the prod run before the upload", () => {
+    // FR-3/AC-3: without the variable the prod build would compile
+    // offline-only and look green, so the guard fails the job fast — before
+    // the build, long before the upload — and names the variable plus where
+    // to set it.
+    const guard = steps.find((step) =>
+      step.includes("Check API origin variable"),
+    )
+    expect(guard).toBeDefined()
+    expect(guard).toContain("github.ref_name == 'main'")
+    expect(guard).toContain("APEX_API_ORIGIN")
+    expect(guard).toContain("Variables")
+    expect(guard).toContain("exit 1")
+    const guardIndex = workflow.indexOf("- name: Check API origin variable")
+    const buildIndex = workflow.indexOf("- name: Build")
+    const uploadIndex = workflow.indexOf("- name: Deploy to Cloudflare Pages")
+    expect(guardIndex).toBeGreaterThan(-1)
+    expect(guardIndex).toBeLessThan(buildIndex)
+    expect(buildIndex).toBeLessThan(uploadIndex)
+  })
+
+  test("preview builds carry no VITE_API_ORIGIN", () => {
+    // FR-2/AC-2: a manual run off main must never touch prod data, so its
+    // build step compiles without the origin and `cloudOrigin()` stays null.
+    const preview = steps.find((step) => step.includes("Build (preview)"))
+    expect(preview).toBeDefined()
+    expect(preview).not.toContain("VITE_API_ORIGIN")
+    expect(preview).toContain("github.ref_name != 'main'")
+  })
+
+  test("no variable is interpolated inside a `run:` body", () => {
+    // NFR-1's hygiene extended from secrets to vars: values reach the shell
+    // through `env:` only, so a future `set -x` cannot echo the origin into
+    // the Actions log. (`github.ref_name` in the upload's `--branch` flag is
+    // the branch name, not a configured value, and is allowed.)
+    for (const body of runBodies(workflow)) {
+      expect(body).not.toMatch(/\$\{\{\s*vars\./)
+    }
+    expect(workflow).toMatch(/\$\{\{\s*vars\.APEX_API_ORIGIN/)
   })
 })

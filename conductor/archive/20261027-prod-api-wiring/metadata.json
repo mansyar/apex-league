@@ -1,0 +1,32 @@
+{
+  "id": "20261027-prod-api-wiring",
+  "title": "Prod API Wiring",
+  "type": "chore",
+  "status": "complete",
+  "priority": "high",
+  "depends_on": [],
+  "created_at": "2026-10-28T00:00:00Z",
+  "updated_at": "2026-10-27T20:16:35Z",
+  "spec": "spec.md",
+  "plan": "plan.md",
+  "branch": "chore/20261027-prod-api-wiring",
+  "base_branch": "main",
+  "base_sha": "3336f0b82e8878bbc96201afe023c6312fe840fc",
+  "progress": {
+    "phases_total": 3,
+    "phases_verified": 3,
+    "tasks_total": 13,
+    "tasks_done": 13
+  },
+  "last_checkpoint": "cc824209",
+  "review_verdict": "PASS_WITH_NOTES",
+  "review_rounds": 1,
+  "doc_sync": "complete",
+  "pr_url": "https://github.com/mansyar/apex-league/pull/62",
+  "pr_state": "open",
+  "reverted_at": null,
+  "revert_commit": null,
+  "revert_pr_url": null,
+  "archived_at": "2026-10-27T20:18:00Z",
+  "archive_path": "conductor/archive/20261027-prod-api-wiring"
+}

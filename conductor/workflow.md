@@ -193,8 +193,10 @@ Four layers run for this project. Nothing else is required.
   it with `bun install --global @playwright/cli@0.1.22`.
 
 Integration, contract, and E2E suites do not exist in this project. The ElysiaJS
-server is deferred to Phase 3; when it lands, an HTTP layer is added here before
-endpoint work begins.
+server is live on Coolify at `https://apex-api.ansyar-world.top` (SQLite via
+`bun:sqlite` + Drizzle, `DATABASE_PATH=/data/apex.sqlite` on the named volume
+`apex-data:/data`); route tests run against `:memory:`, so the gate needs
+neither a port nor a network.
 
 ### Commands
 
@@ -224,16 +226,34 @@ endpoint work begins.
 
 ### Services and Fixtures
 
-- **Services:** the Vite dev server, `bun run dev`, at `http://localhost:5173`.
-  It is started for the visual layer and stopped afterwards. No backend runs.
-- **Containers:** none.
-- **Database:** none. The game persists to browser local storage through the
-  typed save adapter; SQLite arrives with the Phase 3 server.
+- **Services:** the Vite dev server, `bun run dev`, at `http://localhost:5173`,
+  plus the ElysiaJS API at `http://localhost:3457`, started with
+  `DATABASE_PATH=/tmp/apex-dev.sqlite PORT=3457
+  ALLOWED_ORIGIN=http://localhost:5173 bun apps/server/src/main.ts`. The dev
+  server is started for the visual layer and stopped afterwards; the API is
+  started only when the touched flow needs cloud save, boards, or ghosts.
+- **Containers:** the server image (`docker build -f apps/server/Dockerfile .`,
+  published to GHCR as `ghcr.io/mansyar/apex-league-server:<sha>` and pulled by
+  Coolify in production). Local development runs the API from source; no local
+  container is needed.
+- **Database:** SQLite. Production persists to the Coolify named volume
+  `apex-data:/data` (`DATABASE_PATH=/data/apex.sqlite`, single writer —
+  replicas exactly 1). Local development uses a scratch file such as
+  `/tmp/apex-dev.sqlite`. The game remains fully playable offline with no API
+  origin configured.
 - **Fixtures/seed data:** deterministic seeds in unit tests. Browser runs use
   the in-game starter/hatch flow; exported saves under `.playwright-cli/` are
   scratch evidence, not tracked fixtures.
-- **Environment variables:** none required for local development.
-- **Start/stop commands:** `bun run dev` to start; `playwright-cli close` and
+- **Environment variables:** `APEX_API_ORIGIN` (GitHub Variables; the public
+  production API origin, injected as `VITE_API_ORIGIN` at Pages build time —
+  build-time, not runtime), `VITE_API_ORIGIN` (the build constant; unset means
+  an offline-only client), `PORT` (default `3000`), `DATABASE_PATH` (default
+  `/data/apex.sqlite` in the image), `ALLOWED_ORIGIN` (Coolify runtime; the one
+  exact browser origin, e.g. `https://apex-league.pages.dev` — unset means no
+  CORS headers). Local development uses `VITE_API_ORIGIN=http://localhost:3457`
+  with `ALLOWED_ORIGIN=http://localhost:5173`; see `.env.example`.
+- **Start/stop commands:** `bun run dev` to start the client (plus the API
+  command above when a cloud flow is under test); `playwright-cli close` and
   stop the dev server when the pass is done.
 
 ### Visual Layer Procedure
@@ -383,9 +403,10 @@ Before a track PR is opened:
 
 ## Release & Deployment
 
-The client has a hosting path. `.github/workflows/deploy.yml` publishes the
-built client to Cloudflare Pages whenever `main` moves, and the Phase 3 server
-container is still deferred.
+The client has a hosting path and the server is live.
+`.github/workflows/deploy.yml` publishes the built client to Cloudflare Pages
+whenever `main` moves, and `.github/workflows/server-image.yml` publishes the
+API image to GHCR for Coolify on the same trigger.
 
 - **Trigger.** A push to `main`, or a manual `workflow_dispatch`. A manual run
   on any other branch lands as a preview deployment, not production; a push to
@@ -417,11 +438,18 @@ container is still deferred.
 - **The client deploy is configuration-complete but has not run yet.**
   `deploy.yml` has never been on `main`, and the two secrets are the owner's
   to add, so `https://apex-league.pages.dev/` does not resolve today.
+- **The server deploy is live since 2026-10-27.** The API runs at
+  `https://apex-api.ansyar-world.top` with
+  `ALLOWED_ORIGIN=https://apex-league.pages.dev`. The production Pages build
+  injects that origin via the `APEX_API_ORIGIN` repository variable (as
+  `VITE_API_ORIGIN` at build time) and fails fast on `main` when it is
+  missing; preview builds carry no origin and stay offline-only.
 
 ## Emergency Procedures
 
-This project is a client-only browser game with a static hosting path and no
-backend. Full-scale incident procedures do not apply yet.
+This project is a browser game with a static client and a live API on
+Coolify. Incident response is still track-flow-first: there is no expedited
+hotfix path.
 
 - **Critical bug after a merge to `main`:** follow the normal track flow —
   create a fix track against `main`, write a failing regression test, land the
@@ -429,14 +457,29 @@ backend. Full-scale incident procedures do not apply yet.
   hotfix path: a merged regression reaches production on the next green upload,
   and until that upload succeeds Pages keeps the previous deployment live, so a
   bad merge is bounded by the gate rather than by a rollback button.
-- **Data loss:** the game persists to browser local storage; there is no server
-  state to restore. Save-schema regressions are caught by the determinism and
+- **API down:** check `GET https://apex-api.ansyar-world.top/health` first —
+  it is unauthenticated and reports the applied migration. Then read the
+  Coolify logs: the boot line names the database path and the effective origin
+  (`allowed origin https://apex-league.pages.dev`). `cannot open the database
+  at /data/apex.sqlite` means the `/data` volume is missing or root-owned —
+  reattach `apex-data:/data` (named volume) or `chown -R 1000:1000` a bind
+  mount, then restart. The client degrades to offline-only while the API is
+  unreachable, so no locally-held progress is lost.
+- **Data loss:** browser local storage is the offline copy; server state lives
+  in the Coolify `apex-data` volume. Never redeploy without the volume
+  attached — without it every deploy starts from an empty database and every
+  player's saves are gone. No automated backup exists yet, so a volume loss is
+  unrecoverable. Save-schema regressions are caught by the determinism and
   unit layers plus `docs/save-schema.md` migrations.
 - **Security:** no secrets or credentials belong in the repo. The two deploy
   secrets (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`) live in repository
   secrets only, are referenced through `env:` blocks, and are never printed; the
-  workflow fails by name when either is missing. The only external surfaces are
-  static hosting and the Phase 3 server, the latter still deferred.
+  workflow fails by name when either is missing. `APEX_API_ORIGIN` is a public
+  origin and therefore a repository *variable*, not a secret, likewise
+  referenced through `env:` and never interpolated into `run:` bodies. The
+  external surfaces are static hosting and the live API. `ALLOWED_ORIGIN` is a
+  single exact origin, never `*`: a CORS failure in the browser almost always
+  means the Pages URL and `ALLOWED_ORIGIN` have drifted apart.
 
 ## Definition of Done
 

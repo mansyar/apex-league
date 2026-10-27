@@ -727,3 +727,11 @@
     on `main`, and the two secrets are the owner's to add, so
     `https://apex-league.pages.dev/` does not resolve today. The server half
     stays deferred, unchanged.*
+-   *2026-10-27 - Prod API wiring (track `20261027-prod-api-wiring`): the
+    server half is LIVE at `https://apex-api.ansyar-world.top` (Coolify,
+    `ALLOWED_ORIGIN=https://apex-league.pages.dev`, SQLite on the named volume
+    `apex-data:/data`). `deploy.yml` injects the origin from the
+    `APEX_API_ORIGIN` repository variable as `VITE_API_ORIGIN` at build time on
+    `main` and fails fast when it is missing; preview builds carry no origin
+    and stay offline-only. The 2026-10-26 note above ("has not run yet / stays
+    deferred") is superseded for the server.*
