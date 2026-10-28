@@ -137,8 +137,6 @@ export const PLANT_FX: Record<string, MoveFx> = {
       shove: -0.5,
     },
   },
-  // Vine Lash (tier 1 lash): the quick snap — a short coil whipping one
-  // fast vine tip that clings on landing rather than bursting outward.
   // Vine Lash (tier 2 lash): the whip-crack — one simultaneous three-streak
   // rake across the lane (vs the volley's staggered beats), a wide sideways
   // sweep in the pose, and a quick slash-ring snap for the landing.

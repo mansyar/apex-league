@@ -1,6 +1,13 @@
 import type { MoveFx } from "../moves"
 
 /**
+ * Shared dust tint for earth's non-luminous grit (neutral, not an element
+ * hue — NFR-4 hue contract untouched). Single-sourced so the grit can't
+ * drift between rows.
+ */
+export const EARTH_DUST_TINT = "#9c8f7d"
+
+/**
  * Per-element fallback bodies (spec FR-1): one authored launch/land grammar
  * per element for every move without a bespoke row. Each body carries its
  * element's shape language — fire rises and flickers, water lands heavy and
@@ -138,7 +145,7 @@ export const ELEMENT_FALLBACK_FX: Record<string, MoveFx> = {
       gravity: 12,
       flashGrow: 2.2,
       flash: false,
-      tint: "#9c8f7d",
+      tint: EARTH_DUST_TINT,
     },
     kick: -0.5,
     pose: {
@@ -154,7 +161,7 @@ export const ELEMENT_FALLBACK_FX: Record<string, MoveFx> = {
         gravity: 12,
         flashGrow: 2.6,
         flash: false,
-        tint: "#9c8f7d",
+        tint: EARTH_DUST_TINT,
       },
       shove: -0.55,
     },

@@ -85,7 +85,7 @@ export interface MoveFx {
 }
 
 /**
- * Bespoke looks, keyed by move id (spec FR9). A move with no entry renders
+ * Bespoke looks, keyed by move id (spec FR-2). A move with no entry renders
  * through its element's authored fallback body (`./moves/fallback`) plus
  * its element's shot look, so
  * two moves of the same element that are both absent from this map are

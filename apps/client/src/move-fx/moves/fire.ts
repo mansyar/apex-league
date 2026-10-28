@@ -6,7 +6,8 @@ import { barrierBody, beamBody, dashBody } from "./verbs"
  * rising flicker flight (buoyant gravity plus upward drift), arrivals that
  * bloom upward, scorch-disc floor marks — layered under each move name's
  * verb. Chips are fast and small, heavies are charged and big, and the
- * pyre_wall guard is a self-targeted barrier with no projectile.
+ * pyre_wall guard is a foe-targeted barrier eruption — no projectile,
+ * no shove.
  */
 export const FIRE_FX: Record<string, MoveFx> = {
   // Spark (tier 1 chip): the fastest, smallest fire row — a near-instant
@@ -211,9 +212,9 @@ export const FIRE_FX: Record<string, MoveFx> = {
       shove: -0.6,
     },
   },
-  // Pyre Wall (guard): a self-targeted barrier — no projectile, no enemy
-  // contact frame. A long raise swells a charge at the caster and lands
-  // as a flame ring with a scorch disc, with no shove.
+  // Pyre Wall (guard): a foe-targeted barrier eruption — no projectile, no
+  // shove. A long raise swells a charge and lands as a flame ring at the
+  // foe with the normal contact read, exactly like tide_aegis.
   pyre_wall: {
     ...barrierBody("fire"),
     pose: {
