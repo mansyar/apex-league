@@ -205,7 +205,7 @@ desktop/device-phone, clean console) with per-move earth-identity reads.
 - **Touches:** `apps/client/src/move-fx/moves/wind.ts`
 - **Verification:** `bun run verify && bun run build` + 8 wind screenshots
   desktop + phone, clean console
-- **Status:** pending
+- **Status:** in_progress (primary: brief written, subagent launched)
 
 - [ ] **P7.T1: New rows** (incl. `zephyr_veil` barrier, `hurricane_spiral`
   vortex, `talon_slash` streak) — covers: FR-2
