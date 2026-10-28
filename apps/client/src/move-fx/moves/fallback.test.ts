@@ -316,15 +316,13 @@ describe("element fallback bodies (FR-1)", () => {
     expect(slam.arrival.burst.ring).toBe(true)
     expect(slam.arrival.shove ?? 0).toBeLessThanOrEqual(-0.55)
     const stomp = MOVE_FX.quake_stomp
-    if (stomp === undefined)
-      throw new Error("missing bespoke row: quake_stomp")
+    if (stomp === undefined) throw new Error("missing bespoke row: quake_stomp")
     expect(stomp.charge).toBeDefined()
     expect(stomp.pose.windup.coilX ?? 0).toBeGreaterThanOrEqual(0.28)
     expect(stomp.arrival.burst.ring).toBe(true)
     expect(stomp.arrival.shove ?? 0).toBeLessThanOrEqual(-0.55)
     const toss = MOVE_FX.boulder_toss
-    if (toss === undefined)
-      throw new Error("missing bespoke row: boulder_toss")
+    if (toss === undefined) throw new Error("missing bespoke row: boulder_toss")
     expect(toss.charge).toBeDefined()
     expect(toss.shots).toHaveLength(1)
     const devil = MOVE_FX.dust_devil

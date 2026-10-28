@@ -245,12 +245,12 @@ describe("move table", () => {
   })
 
   test("the unauthored element signatures stay on the default body", () => {
-    expect(fxFor("basalt_guard")).toBe(DEFAULT_FX)
+    // basalt_guard left this list in Phase 6: it now owns a bespoke
+    // barrier row — see the AC-3 earth pins.
     expect(fxFor("zephyr_veil")).toBe(DEFAULT_FX)
     expect(fxFor("plasma_lance")).toBe(DEFAULT_FX)
     expect(fxFor(undefined)).toBe(DEFAULT_FX)
-    // Their element still supplies the look: default body + Earth/Wind shot.
-    expect(lookFor(getMove("basalt_guard")?.element)).toBe(look("earth"))
+    // Their element still supplies the look: default body + Wind shot.
     expect(lookFor(getMove("zephyr_veil")?.element)).toBe(look("wind"))
   })
 
