@@ -35,12 +35,14 @@ export interface ProjectileLayerHost {
 }
 
 export interface ProjectileLayer {
-  /** Launch a shot from the thrower's mouth line at the victim's chest. */
+  /** Launch a shot from the thrower's mouth line at the victim's chest.
+   * `moveId` selects the row's `MOVE_SHOT_LOOK` override; without it the
+   * shot renders its element default. */
   spawn(
-    from: { group: THREE.Group },
-    to: { group: THREE.Group },
+    from: { group: { position: THREE.Vector3 } },
+    to: { group: { position: THREE.Vector3 } },
     element: string | undefined,
-    opts?: { size?: number; life?: number; spread?: number },
+    opts?: { size?: number; life?: number; spread?: number; moveId?: string },
   ): void
   /** Position of the oldest shot in flight, for camera-director framing. */
   firstPosition(): THREE.Vector3 | null
@@ -116,14 +118,16 @@ export function createProjectileLayer(
 
   /** A glowing core in the element hue plus a tapering additive orb trail. */
   const spawn = (
-    from: { group: THREE.Group },
-    to: { group: THREE.Group },
+    from: { group: { position: THREE.Vector3 } },
+    to: { group: { position: THREE.Vector3 } },
     element: string | undefined,
-    opts?: { size?: number; life?: number; spread?: number },
+    opts?: { size?: number; life?: number; spread?: number; moveId?: string },
   ): void => {
     const size = opts?.size ?? 1
     const color = new THREE.Color(elementColor(element))
-    const look = lookFor(element)
+    // The row's flight look rides with the launch: fork/needle rows render
+    // their own geometry while every other row keeps its element default.
+    const look = lookFor(element, opts?.moveId)
     // Launch from the thrower's mouth line, land on the victim's chest.
     // `spread` fans the landing point sideways across the lane (z) for
     // volley choreography.

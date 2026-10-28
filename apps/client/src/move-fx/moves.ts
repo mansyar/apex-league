@@ -35,6 +35,11 @@ export interface BurstStyle {
   tint?: string
   /** Set false for non-emissive bursts (dust) with no glow shell. */
   flash?: boolean
+  /**
+   * Spawn at the target group origin (feet/floor) instead of the lifted
+   * burst base — opt-in for ground-erupting rings (Phase 7 pyre_wall).
+   */
+  grounded?: boolean
 }
 
 export interface Posture {
@@ -78,8 +83,26 @@ export interface MoveFx {
   charge?: { from: number; to: number }
   /** Launch body posture: windup curve and recoil curve. */
   pose: { windup: Posture; recoil: Posture }
-  /** Arrival treatment where the shot lands, plus the victim shove. */
-  arrival: { burst: BurstStyle; lanes?: number[]; shove: number }
+  /**
+   * Attacker body transit during the launch action (Phase 5 fix): the
+   * attacker mesh travels toward the target as a fraction of the live
+   * gap (far-range safe) with an optional vertical arc peak, then rides
+   * the same sine back home — offset-only, so later steps are
+   * unaffected. Absent on every row but the body-first dash pair. An
+   * optional `trail` style sheds flame puffs along the crossing (Phase 7).
+   */
+  transit?: { reach: number; lift?: number; trail?: BurstStyle }
+  /**
+   * Arrival treatment where the shot lands, plus the victim shove.
+   * `beyond` shifts the burst past the target along the attack axis
+   * (pass-through exit wound); absent everywhere but pyre_lance.
+   */
+  arrival: {
+    burst: BurstStyle
+    lanes?: number[]
+    shove: number
+    beyond?: number
+  }
   /** Point-blank compression: squeezed windup, micro-flight, beats. */
   compressed?: { wind: number; flight: number; beats: number[] }
 }

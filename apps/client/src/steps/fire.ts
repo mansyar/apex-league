@@ -4,6 +4,7 @@ import { type ReactionKind, reactionFor } from "../choreo"
 import type { DriveFighter } from "../fighter-driver"
 import { fxFor, PROJECTILE_LIFE_MS } from "../move-fx"
 import type { Side, StepIO } from "./context"
+import { applyTransit } from "./fire-transit"
 import { applyPosture, heavyHit, strikeReach } from "./pure"
 
 /**
@@ -91,7 +92,23 @@ export function arriveSpecial(
   side: Side,
 ): void {
   const fx = fxFor(step.moveId, step.element)
+  // Exit wound (Phase 5 fix, P5.F3): a row-driven exit offset lands the
+  // arrival burst past the defender along the attack axis. Zero on every
+  // other row, whose bursts stay exactly where they are.
+  const beyond = fx.arrival.beyond ?? 0
   const at = side.target.group.position.clone()
+  if (beyond !== 0) {
+    const ao = side.actor
+    const dx = side.target.group.position.x - ao.group.position.x
+    const dz = side.target.group.position.z - ao.group.position.z
+    const dist = Math.hypot(dx, dz)
+    if (dist > 1e-6) {
+      at.x += (dx / dist) * beyond
+      at.z += (dz / dist) * beyond
+    } else {
+      at.x += -ao.away * beyond
+    }
+  }
   if (fx.arrival.lanes) {
     for (const dz of fx.arrival.lanes) {
       const p = at.clone()
@@ -136,6 +153,10 @@ export function fireSpecial(
         : fx.shots.map((s) => s.at)
   const firedRef = { n: 0 }
   const landedRef = { done: false }
+  const zeroRef = { done: false }
+  const chargeRef = { done: false }
+  const beamRef = { done: false }
+  const trailRef = { bucket: -1 }
   // Point-blank: the shot lands inside this action; the victim
   // reacts at the landing beat, not before it. Clamped so a degenerate
   // schedule still fires the landing at the action's end.
@@ -165,6 +186,9 @@ export function fireSpecial(
           size: shot.size,
           life: compressed ? flight : shot.life,
           spread: shot.spread ?? 0,
+          // Thread the move id so the row's MOVE_SHOT_LOOK geometry
+          // (fork/needle from Phase 2 on) actually renders in flight.
+          moveId: step.moveId,
         })
         impulse(io, ao, fx.kick)
         if (firedRef.n === 0) {
@@ -176,6 +200,64 @@ export function fireSpecial(
           }
         }
         firedRef.n += 1
+      }
+      // Zero-shot body launches still read as an attack: stage the kick
+      // and clear the wreath once at the release beat, plus the muzzle
+      // pop when the row authors one. Launch-path only — guards land
+      // through the compressed impact below, which stays untouched.
+      if (
+        !compressed &&
+        fx.shots.length === 0 &&
+        !zeroRef.done &&
+        t >= (beats[0] ?? wind)
+      ) {
+        zeroRef.done = true
+        impulse(io, ao, fx.kick)
+        // Transit rows keep the wreath: it rides the crossing body and
+        // clears on the return (below) instead of vanishing at release.
+        if (fx.charge && fx.transit === undefined) io.effects.clearCharge()
+        if (fx.muzzle) {
+          const mouth = ao.group.position.clone()
+          mouth.y += 0.2
+          io.effects.spawnBurst(mouth, step.element, fx.muzzle)
+        }
+      }
+      // Pass-through beam (Phase 5 fix, P5.F3): a zero-shot row with a
+      // row-driven exit offset fires one piercing streak from the mouth
+      // through the defender to the exit point, so the flight geometry
+      // visibly extends past the body. The shot count stays zero — the
+      // streak is the beam, not a shot. Both paths: ranged and the
+      // point-blank replay.
+      const beamBeyond = fx.arrival.beyond ?? 0
+      if (
+        fx.shots.length === 0 &&
+        beamBeyond > 0 &&
+        !beamRef.done &&
+        t >= (beats[0] ?? wind)
+      ) {
+        beamRef.done = true
+        const bdx = side.target.group.position.x - ao.group.position.x
+        const bdz = side.target.group.position.z - ao.group.position.z
+        const bdist = Math.hypot(bdx, bdz)
+        let bnx = -away
+        let bnz = 0
+        if (bdist > 1e-6) {
+          bnx = bdx / bdist
+          bnz = bdz / bdist
+        }
+        const exit = side.target.group.position.clone()
+        exit.x += bnx * beamBeyond
+        exit.z += bnz * beamBeyond
+        io.effects.spawnProjectile(
+          ao,
+          { group: { position: exit } },
+          step.element,
+          {
+            size: fx.arrival.burst.size ?? 1,
+            life: 450,
+            moveId: step.moveId,
+          },
+        )
       }
       // Point-blank: the shot lands inside this action.
       if (compressed && !landedRef.done && t >= landBeat) {
@@ -193,6 +275,24 @@ export function fireSpecial(
       const release = beats[0] ?? wind
       const w = clamp01((t - release) / Math.max(0.01, 1 - release))
       applyPosture(fx.pose.recoil, w, ao, away)
+      // Attacker transit (Phase 5 fix, P5.F1/P5.F2; trail Phase 7):
+      // the body lunges and returns — see applyTransit. Applied after
+      // the recoil posture so it composes instead of being overwritten.
+      if (fx.transit !== undefined) {
+        applyTransit(
+          fx.transit,
+          fx.charge,
+          t,
+          release,
+          ao,
+          side.target.group.position,
+          away,
+          io,
+          step.element,
+          trailRef,
+          chargeRef,
+        )
+      }
     },
     side.actor,
     side.target,

@@ -28,7 +28,18 @@ export const PROJECTILE_ARC = 0.55
  */
 export interface ShotLook {
   /** Core geometry family built by the interpreter. */
-  geometry: "ember" | "teardrop" | "seedCluster" | "orb" | "boulder" | "streak"
+  geometry:
+    | "ember"
+    | "teardrop"
+    | "seedCluster"
+    | "orb"
+    | "boulder"
+    | "streak"
+    | "fork"
+    | "chunk"
+    | "needle"
+    | "spear"
+    | "jet"
   /** Additive halo opacity at the core (0 = none). */
   glow?: number
   /** Core size pulse amplitude (0 = none). */
@@ -95,9 +106,57 @@ export const SHOT_LOOKS: Record<string, ShotLook> = {
   },
 }
 
-export const lookFor = (element: string | undefined): ShotLook =>
-  (element !== undefined ? SHOT_LOOKS[element] : undefined) ?? {
+/**
+ * Per-row shot-look overrides (fire identity FR-1): a row listed here
+ * renders its own geometry + trail instead of its element's default, while
+ * every other look field rides the element row. Spark + flare_dart opted
+ * in during Phase 2 and cinder_shot + blaze_bolt during Phase 3 (P3.T1 +
+ * P3.T2), pyre_lance during the Phase 5 fix (P5.F3, reworked to the spear
+ * in Phase 7). Resolution pairs with `fxFor(moveId, element)`: pass the same
+ * pair to `lookFor`.
+ */
+export const MOVE_SHOT_LOOK: Record<string, Partial<ShotLook>> = {
+  // Spark (Phase 2, FR-2): a bright zigzag fork that snaps across the
+  // lane — high lateral wobble so the short flight crackles instead of
+  // reading as a travel ball. The halo and trail ride the fire default.
+  spark: { geometry: "fork", wobble: 0.3 },
+  // Flare Dart (Phase 2, FR-4): a molten needle on a laser-straight lane
+  // — no arc lift, no ripple, no tumble, no throb. The small row size
+  // keeps the inherited ember trail minimal.
+  flare_dart: { geometry: "needle", arc: 0, wobble: 0, spin: 0, pulse: 0 },
+  // Cinder Shot (Phase 3, FR-3): a heavy tumbling ember chunk — the rock
+  // plus its crack veins read at the large row size, and the 0.35 lateral
+  // wobble rolls it downrange instead of the fork's erratic crackle. Halo,
+  // pulse, arc, and trail ride the fire default.
+  cinder_shot: { geometry: "chunk", wobble: 0.35 },
+  // Blaze Bolt (Phase 3, FR-5): a fast head-first comet — the tapered
+  // additive pillar reads as one driving head with no lateral drift and no
+  // tumble. Halo, pulse, and arc ride the fire default.
+  blaze_bolt: { geometry: "jet", wobble: 0, spin: 0 },
+  // Pyre Lance (Phase 5 fix, P5.F3; Phase 7 spear rework): the piercing
+  // streak — a shaft driving a conical head through a guard collar on a
+  // laser-straight lane, no arc lift, no ripple, no tumble, no throb, so
+  // the beam reads through the defender to the exit wound.
+  // Row-scoped: every other element's beam keeps its exact look.
+  pyre_lance: { geometry: "spear", arc: 0, wobble: 0, spin: 0, pulse: 0 },
+}
+
+/**
+ * Resolve the shot look for a launch: the row's override merged over its
+ * element default, or the element default when the row opts out. Calling
+ * with no moveId keeps the exact pre-override read (the same object).
+ */
+export const lookFor = (
+  element: string | undefined,
+  moveId?: string | undefined,
+): ShotLook => {
+  const base: ShotLook = (element !== undefined
+    ? SHOT_LOOKS[element]
+    : undefined) ?? {
     geometry: "orb",
     arc: 1,
     trail: "orbs",
   }
+  const override = moveId !== undefined ? MOVE_SHOT_LOOK[moveId] : undefined
+  return override === undefined ? base : { ...base, ...override }
+}

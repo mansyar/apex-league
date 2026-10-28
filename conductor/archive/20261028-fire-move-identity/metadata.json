@@ -1,0 +1,31 @@
+{
+  "archived_at": "2026-10-29T02:10:00Z",
+  "archive_path": "conductor/archive/20261028-fire-move-identity",
+  "base_branch": "main",
+  "base_sha": "50e083d887e36d408a6d640dcbe80cf30c390eef",
+  "branch": "feat/20261028-fire-move-identity",
+  "created_at": "2026-10-28T22:05:00Z",
+  "depends_on": [],
+  "doc_sync": "updated",
+  "id": "20261028-fire-move-identity",
+  "last_checkpoint": "d0be8152",
+  "priority": "high",
+  "progress": {
+    "phases_total": 8,
+    "phases_verified": 8,
+    "tasks_done": 21,
+    "tasks_total": 21
+  },
+  "pr_state": "open",
+  "pr_url": "https://github.com/mansyar/apex-league/pull/64",
+  "review_rounds": 2,
+  "review_verdict": "PASS",
+  "reverted_at": null,
+  "revert_commit": null,
+  "revert_pr_url": null,
+  "spec": "spec.md",
+  "status": "complete",
+  "title": "Fire Move Identity",
+  "type": "feature",
+  "updated_at": "2026-10-28T22:05:00Z"
+}

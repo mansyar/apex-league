@@ -1,6 +1,19 @@
 import { describe, expect, test } from "bun:test"
+import type { PlaybackStep } from "@apex/sim"
 import { getMove } from "@apex/sim"
-import { lookFor } from "../looks"
+import * as THREE from "three"
+import { DEFAULT_PROFILE } from "../../choreo"
+import type { DriveFighter } from "../../fighter-driver"
+import { createBurstLayer } from "../../fx/bursts"
+import { decalRing, SHOT_TARGET_Y } from "../../fx/fx-data"
+import { EffectLoop, HitStop } from "../../fx/loop"
+import { buildShotCore } from "../../fx/shot-geometry"
+import type { BattleEffects } from "../../staging-fx"
+import type { Side, StepIO } from "../../steps/context"
+import { fireSpecial } from "../../steps/fire"
+import { applyPosture } from "../../steps/pure"
+import { lookFor, type ShotLook } from "../looks"
+import type { BurstStyle } from "../moves"
 import { DEFAULT_FX, fxFor, MOVE_FX } from "../moves"
 import { ELEMENT_FALLBACK_FX, fallbackFor } from "./fallback"
 import {
@@ -430,6 +443,142 @@ describe("element fallback bodies (FR-1)", () => {
   })
 })
 
+describe("fire fast pair (FR-2, FR-4)", () => {
+  test("spark opts into the fork look with an erratic flight", () => {
+    const fork = lookFor("fire", "spark")
+    expect(fork.geometry).toBe("fork")
+    expect(fork.wobble ?? 0).toBeGreaterThan(0.2)
+  })
+
+  test("spark is a near-instant snap with no travel ball", () => {
+    const row = MOVE_FX.spark
+    if (row === undefined) throw new Error("missing bespoke row: spark")
+    expect(row.wind).toBeLessThanOrEqual(0.15)
+    expect(row.shots).toHaveLength(1)
+    const shot = row.shots[0]
+    if (shot === undefined) throw new Error("spark built no shot")
+    expect(shot.life).toBeLessThanOrEqual(250)
+    expect(shot.at).toBe(row.wind)
+    // No mouth bloom: the arrival snap is the only flash.
+    expect(row.muzzle).toBeUndefined()
+    // Snap flash: tiny core, tall fast-fading swell, erratic scatter.
+    expect(row.arrival.burst.size ?? 1).toBeLessThanOrEqual(0.7)
+    expect(row.arrival.burst.flashGrow ?? 0).toBeGreaterThanOrEqual(3.5)
+    expect(row.arrival.burst.life ?? 9999).toBeLessThanOrEqual(300)
+  })
+
+  test("flare_dart opts into the needle look with flat locked flight", () => {
+    const needle = lookFor("fire", "flare_dart")
+    expect(needle.geometry).toBe("needle")
+    expect(needle.arc).toBe(0)
+    expect(needle.wobble ?? 0).toBe(0)
+    expect(needle.spin ?? 0).toBe(0)
+    expect(needle.pulse ?? 0).toBe(0)
+  })
+
+  test("flare_dart lands a tight pierce with no bloom", () => {
+    const row = MOVE_FX.flare_dart
+    if (row === undefined) throw new Error("missing bespoke row: flare_dart")
+    expect(row.shots).toHaveLength(1)
+    expect(row.arrival.burst.gravity).toBe(0)
+    expect(row.arrival.burst.sway).toBe(0)
+    expect(row.arrival.burst.size ?? 1).toBeLessThanOrEqual(0.8)
+    expect(row.arrival.burst.flashGrow ?? 99).toBeLessThanOrEqual(1.5)
+    expect(row.arrival.burst.life ?? 9999).toBeLessThanOrEqual(300)
+  })
+})
+
+describe("fire heavy pair (FR-3, FR-5)", () => {
+  test("cinder_shot opts into the chunk look with a heavy tumble", () => {
+    const chunk = lookFor("fire", "cinder_shot")
+    expect(chunk.geometry).toBe("chunk")
+    expect(chunk.wobble ?? 0).toBe(0.35)
+  })
+
+  test("cinder_shot is a slow heavy lob with no muzzle bloom", () => {
+    const row = MOVE_FX.cinder_shot
+    if (row === undefined) throw new Error("missing bespoke row: cinder_shot")
+    expect(row.shots).toHaveLength(1)
+    const shot = row.shots[0]
+    if (shot === undefined) throw new Error("cinder_shot built no shot")
+    expect(shot.life).toBeGreaterThanOrEqual(800)
+    // No mouth bloom: the chunk plus its drip trail carry the flight.
+    expect(row.muzzle).toBeUndefined()
+    // Slow heavy arrival: a large lingering thud that falls, not rises.
+    expect(row.arrival.burst.size ?? 0).toBeGreaterThanOrEqual(1.5)
+    expect(row.arrival.burst.life ?? 0).toBeGreaterThanOrEqual(550)
+    expect(row.arrival.burst.gravity ?? 0).toBeGreaterThan(0)
+    expect(row.arrival.burst.sway ?? 99).toBeLessThanOrEqual(0.3)
+  })
+
+  test("blaze_bolt opts into the jet look with a locked straight flight", () => {
+    const jet = lookFor("fire", "blaze_bolt")
+    expect(jet.geometry).toBe("jet")
+    expect(jet.wobble ?? 99).toBe(0)
+    expect(jet.spin ?? 99).toBe(0)
+  })
+
+  test("blaze_bolt is the fastest fire shot with a head-first bloom", () => {
+    const row = MOVE_FX.blaze_bolt
+    if (row === undefined) throw new Error("missing bespoke row: blaze_bolt")
+    expect(row.shots).toHaveLength(1)
+    const shot = row.shots[0]
+    if (shot === undefined) throw new Error("blaze_bolt built no shot")
+    // Fastest of the fire mediums: shorter than flare_dart and cinder_shot.
+    expect(shot.life).toBeLessThanOrEqual(350)
+    const flareShot = MOVE_FX.flare_dart?.shots[0]
+    const cinderShot = MOVE_FX.cinder_shot?.shots[0]
+    if (flareShot === undefined || cinderShot === undefined)
+      throw new Error("missing medium rows for the fastest pin")
+    expect(shot.life).toBeLessThan(flareShot.life)
+    expect(shot.life).toBeLessThan(cinderShot.life)
+    // Head-first bloom: the biggest lingering core with a focused swell.
+    expect(row.arrival.burst.size ?? 0).toBeGreaterThanOrEqual(1.8)
+    expect(row.arrival.burst.life ?? 0).toBeGreaterThanOrEqual(600)
+    expect(row.arrival.burst.puffs ?? 0).toBeGreaterThanOrEqual(12)
+    expect(row.arrival.burst.flashGrow ?? 0).toBeGreaterThanOrEqual(3.5)
+  })
+})
+
+describe("fire wall encirclement (FR-6)", () => {
+  test("pyre_wall ring is ~2.5x the barrier baseline with denser jets", () => {
+    const wall = MOVE_FX.pyre_wall
+    if (wall === undefined) throw new Error("missing bespoke row: pyre_wall")
+    const base = barrierBody("fire")
+    const baseSize = base.arrival.burst.size ?? 1
+    expect(wall.arrival.burst.ring).toBe(true)
+    // Encirclement, not a body-sized ring: 2.5x the barrier body's radius.
+    expect(wall.arrival.burst.size ?? 0).toBeGreaterThanOrEqual(baseSize * 2.5)
+    // Denser rising jets than the 12-jet body-sized ring.
+    expect(wall.arrival.burst.puffs ?? 0).toBeGreaterThanOrEqual(16)
+    expect(wall.arrival.burst.puffs ?? 0).toBeGreaterThan(
+      base.arrival.burst.puffs ?? 0,
+    )
+  })
+
+  test("pyre_wall keeps the foe-targeted guard contract with timing held", () => {
+    const wall = MOVE_FX.pyre_wall
+    if (wall === undefined) throw new Error("missing bespoke row: pyre_wall")
+    const base = barrierBody("fire")
+    // Eruption on the foe: no projectile travel, no shove.
+    expect(wall.shots).toHaveLength(0)
+    expect(wall.arrival.shove).toBe(0)
+    // Timing held: same windup beat as the barrier body. The arrival
+    // lingers longer now — the Phase-7 tower needs the long buoyant life
+    // to climb out of the ground.
+    expect(wall.wind).toBe(base.wind)
+    expect(wall.arrival.burst.life).toBe(1050)
+    // Rising jets, not falling debris.
+    expect(wall.arrival.burst.gravity ?? 0).toBeLessThan(0)
+  })
+
+  test("pyre_wall lands on a scorch disc", () => {
+    // Fire burns a solid scorch disc under the ring, never a ring outline;
+    // the impact path stamps it via contactReaction -> spawnDecal.
+    expect(decalRing("fire")).toBe(false)
+  })
+})
+
 describe("verb-family builders (FR-5)", () => {
   test("every builder starts from its element's fallback body", () => {
     for (const element of ELEMENTS) {
@@ -463,5 +612,689 @@ describe("verb-family builders (FR-5)", () => {
     expect(() => coneBody("shadow")).toThrow()
     expect(() => volleyFanBody("shadow")).toThrow()
     expect(() => beamBody("shadow")).toThrow()
+  })
+})
+
+/**
+ * Pins for the Phase 5 body-first dash trio (FR-7, AC-6): the three fire
+ * dash verbs stop flying projectiles — the attacker's crossing body is the
+ * hit — while the launch beat keeps its attack read (kick plus muzzle where
+ * the row authors one) and each landing stays distinct.
+ */
+
+const FIRE_TRIO = ["flame_charge", "cinder_dive", "pyre_lance"] as const
+
+function trioFighter(name: string, away: 1 | -1): DriveFighter {
+  return {
+    name,
+    group: new THREE.Group(),
+    stage: new THREE.Vector3(),
+    smooth: new THREE.Vector3(),
+    velocity: new THREE.Vector3(),
+    offset: new THREE.Vector3(),
+    squash: { s: 0, v: 0 },
+    walkPhase: 0,
+    phase: 0,
+    baseScale: 1,
+    profile: DEFAULT_PROFILE,
+    down: false,
+    away,
+    fall: 0,
+    lean: { pitch: 0, roll: 0 },
+    baseColors: new Map(),
+  }
+}
+
+interface TrioBurst {
+  at: THREE.Vector3
+  element: string | undefined
+  style?: BurstStyle
+}
+
+interface TrioDrive {
+  actor: DriveFighter
+  bursts: TrioBurst[]
+  projectiles: number
+}
+
+/** Drive one move through the real fireSpecial and capture what stages. */
+function driveTrioMove(moveId: string, compressed: boolean): TrioDrive {
+  const actor = trioFighter("actor", 1)
+  const target = trioFighter("target", -1)
+  const bursts: TrioBurst[] = []
+  let projectiles = 0
+  const effects: BattleEffects = {
+    hitStop: new HitStop(),
+    setPaused: () => {},
+    startFlash: () => {},
+    spawnProjectile: () => {
+      projectiles += 1
+    },
+    spawnBurst: (at, element, style) => {
+      bursts.push({ at: at.clone(), element, style })
+    },
+    spawnDecal: () => {},
+    setCharge: () => {},
+    clearCharge: () => {},
+    firstProjectilePosition: () => null,
+    disposeAllDecals: () => {},
+    disposeAll: () => {},
+  }
+  let run: ((t: number, ao: DriveFighter, at: DriveFighter) => void) | undefined
+  const io: StepIO = {
+    effects,
+    bigHit: () => {},
+    startAction: (fn) => {
+      run = fn
+    },
+    cancelAction: () => {},
+    animMs: () => 1000,
+    paceRatio: () => 1,
+    reduced: () => false,
+    prevKind: () => null,
+  }
+  const step: PlaybackStep = {
+    tick: 7,
+    kind: compressed ? "impact" : "projectile",
+    actor: "r",
+    target: "b",
+    moveId,
+    element: "fire",
+    hit: true,
+    hpAfter: {},
+    line: moveId,
+    beats: 6,
+    phases: { windup: 0.2, contact: 0.3, recovery: 0.5 },
+  }
+  fireSpecial(io, step, { actor, target } satisfies Side, compressed)
+  if (run === undefined) throw new Error(`no action staged for ${moveId}`)
+  run(1, actor, target)
+  return { actor, bursts, projectiles }
+}
+
+describe("fire body-first dash trio (FR-7)", () => {
+  test("all three read attacker-motion-first: zero shots, a real kick, distinct landings", () => {
+    const landings = new Set<string>()
+    for (const moveId of FIRE_TRIO) {
+      const row = MOVE_FX[moveId]
+      if (row === undefined) throw new Error(`missing bespoke row: ${moveId}`)
+      expect(getMove(moveId)?.element).toBe("fire")
+      // Body-first: nothing flies; the kick carries the launch read.
+      expect(row.shots).toHaveLength(0)
+      expect(row.kick).toBeLessThanOrEqual(-0.6)
+      landings.add(
+        JSON.stringify([
+          row.arrival.lanes ?? null,
+          row.arrival.burst.ring ?? false,
+          Math.sign(row.arrival.burst.gravity ?? 0),
+          row.arrival.shove,
+        ]),
+      )
+    }
+    expect(landings.size).toBe(FIRE_TRIO.length)
+  })
+
+  test("flame_charge is a pure crossing body hit with a launch flare and a driving bloom", () => {
+    const row = MOVE_FX.flame_charge
+    if (row === undefined) throw new Error("missing bespoke row: flame_charge")
+    expect(row.shots).toHaveLength(0)
+    expect(row.kick).toBeLessThanOrEqual(-0.7)
+    // Wreath: a charge swells around the crossing body, cleared at release.
+    expect(row.charge).toBeDefined()
+    // Nose-gap flare at launch.
+    expect(row.muzzle).toBeDefined()
+    // Crossing body hit: a forward-driving shove under a rising bloom.
+    expect(row.arrival.shove).toBe(-0.6)
+    expect(row.arrival.burst.gravity ?? 0).toBeLessThan(0)
+  })
+
+  test("cinder_dive is a zero-shot vertical crater with no pilot light", () => {
+    const row = MOVE_FX.cinder_dive
+    if (row === undefined) throw new Error("missing bespoke row: cinder_dive")
+    expect(row.shots).toHaveLength(0)
+    expect(row.kick).toBeLessThanOrEqual(-0.6)
+    // No muzzle, no pilot light: the body itself is the projectile.
+    expect(row.muzzle).toBeUndefined()
+    // Crater: a down-slamming ring, wider than the ember lob's thud.
+    expect(row.arrival.burst.ring).toBe(true)
+    expect(row.arrival.burst.gravity ?? 0).toBeGreaterThan(0)
+    expect(row.arrival.burst.size ?? 0).toBeGreaterThanOrEqual(1.8)
+  })
+
+  test("pyre_lance is a pass-through streak with a beam-line triplet landing", () => {
+    const row = MOVE_FX.pyre_lance
+    if (row === undefined) throw new Error("missing bespoke row: pyre_lance")
+    expect(row.shots).toHaveLength(0)
+    expect(row.kick).toBeLessThanOrEqual(-0.6)
+    // The beam charge stays: the streak still swells before release.
+    expect(row.charge).toBeDefined()
+    // Pass-line flash: tight, driftless, tall glow.
+    expect(row.muzzle?.sway).toBe(0)
+    expect(row.muzzle?.gravity).toBe(0)
+    // Landing triplet down the beam line, tighter than a cone fan.
+    expect(row.arrival.lanes).toHaveLength(3)
+    const spread = Math.max(
+      ...(row.arrival.lanes ?? [0]).map((dz) => Math.abs(dz)),
+    )
+    expect(spread).toBeLessThan(0.4)
+    expect(row.arrival.burst.flashGrow ?? 0).toBeGreaterThanOrEqual(3.4)
+  })
+
+  test("zero-shot launches still stage the kick, muzzle, and lance beam; guards stay silent", () => {
+    // Launch path: the crossing and diving bodies still read as an attack
+    // — the kick lands on the attacker's spring and no shot flies for the
+    // bodies themselves. The lance's piercing streak is the one
+    // projectile a zero-shot row fires: through the defender to the exit
+    // point (P5.F3), so it counts as the beam, not a shot.
+    for (const moveId of ["flame_charge", "cinder_dive"]) {
+      const launched = driveTrioMove(moveId, false)
+      expect(launched.projectiles).toBe(0)
+      expect(launched.actor.squash.v).toBeLessThan(0)
+    }
+    const lance = driveTrioMove("pyre_lance", false)
+    expect(lance.projectiles).toBe(1)
+    expect(lance.actor.squash.v).toBeLessThan(0)
+    // The authored muzzle pops belong to the crossing charge and the
+    // pass-through streak. The pilotless dive pops no muzzle — but since
+    // Phase 7 its transit trail sheds puffs along the arc, so even the
+    // single end-sample below catches the final trail puff (the full-run
+    // count lives in the Phase-7 trail pins).
+    expect(
+      driveTrioMove("flame_charge", false).bursts.length,
+    ).toBeGreaterThanOrEqual(1)
+    expect(
+      driveTrioMove("pyre_lance", false).bursts.length,
+    ).toBeGreaterThanOrEqual(1)
+    expect(
+      driveTrioMove("cinder_dive", false).bursts.length,
+    ).toBeGreaterThanOrEqual(1)
+    // Guards stay silent on their impact path: no flight, no mouth pop —
+    // just the ring at the foe.
+    const wall = driveTrioMove("pyre_wall", true)
+    expect(wall.projectiles).toBe(0)
+    expect(wall.bursts.length).toBeGreaterThanOrEqual(1)
+    expect(wall.bursts.every((burst) => burst.style?.ring === true)).toBe(true)
+  })
+})
+
+/**
+ * Pins for the Phase 5 fix round — true body motion plus pass-through
+ * (FR-7, AC-6): row-driven attacker transit (a lunge-and-return covering
+ * a fraction of the live gap, a vertical arc variant, reduced-motion
+ * dampened, deterministic per tick) and the lance exit wound (the beam
+ * overshoots the defender and the arrival burst lands behind it). Red
+ * until P5.F1–P5.F3 land the mechanism and the rows.
+ */
+
+/** One driven move with the fighters standing apart, sampled per beat. */
+interface FixDrive {
+  actor: DriveFighter
+  target: DriveFighter
+  bursts: TrioBurst[]
+  /** Where each spawned projectile was aimed (the `to` anchor). */
+  projFrom: THREE.Vector3[]
+  projTargets: THREE.Vector3[]
+  run: (t: number) => void
+}
+
+/**
+ * Drive one move at range: the actor holds the west post and the target
+ * the east, so a gap fraction reads as a world-space displacement. The
+ * recording effects layer captures flight anchors and burst positions.
+ */
+function driveFixMove(
+  moveId: string,
+  opts?: {
+    compressed?: boolean
+    reduced?: boolean
+    tick?: number
+    gap?: number
+  },
+): FixDrive {
+  const gap = opts?.gap ?? 5
+  const actor = trioFighter("actor", 1)
+  const target = trioFighter("target", -1)
+  actor.group.position.set(-gap / 2, 0, 0)
+  actor.stage.set(-gap / 2, 0, 0)
+  actor.smooth.set(-gap / 2, 0, 0)
+  target.group.position.set(gap / 2, 0, 0)
+  target.stage.set(gap / 2, 0, 0)
+  target.smooth.set(gap / 2, 0, 0)
+  const bursts: TrioBurst[] = []
+  const projFrom: THREE.Vector3[] = []
+  const projTargets: THREE.Vector3[] = []
+  const effects: BattleEffects = {
+    hitStop: new HitStop(),
+    setPaused: () => {},
+    startFlash: () => {},
+    spawnProjectile: (from, to) => {
+      projFrom.push(from.group.position.clone())
+      projTargets.push(to.group.position.clone())
+    },
+    spawnBurst: (at, element, style) => {
+      bursts.push({ at: at.clone(), element, style })
+    },
+    spawnDecal: () => {},
+    setCharge: () => {},
+    clearCharge: () => {},
+    firstProjectilePosition: () => null,
+    disposeAllDecals: () => {},
+    disposeAll: () => {},
+  }
+  let run: ((t: number, ao: DriveFighter, at: DriveFighter) => void) | undefined
+  const io: StepIO = {
+    effects,
+    bigHit: () => {},
+    startAction: (fn) => {
+      run = fn
+    },
+    cancelAction: () => {},
+    animMs: () => 1000,
+    paceRatio: () => 1,
+    reduced: () => opts?.reduced ?? false,
+    prevKind: () => null,
+  }
+  const compressed = opts?.compressed ?? false
+  const step: PlaybackStep = {
+    tick: opts?.tick ?? 7,
+    kind: compressed ? "impact" : "projectile",
+    actor: "r",
+    target: "b",
+    moveId,
+    element:
+      moveId === "volt_dash" || moveId === "gigavolt" ? "electric" : "fire",
+    hit: true,
+    hpAfter: {},
+    line: moveId,
+    beats: 6,
+    phases: { windup: 0.2, contact: 0.3, recovery: 0.5 },
+  }
+  fireSpecial(io, step, { actor, target } satisfies Side, compressed)
+  if (run === undefined) throw new Error(`no action staged for ${moveId}`)
+  const staged = run
+  return {
+    actor,
+    target,
+    bursts,
+    projFrom,
+    projTargets,
+    run: (t: number) => staged(t, actor, target),
+  }
+}
+
+/** The pure recoil offset at progress w, with no transit component. */
+function recoilOnly(moveId: string, w: number): { x: number; y: number } {
+  const row = MOVE_FX[moveId]
+  if (row === undefined) throw new Error(`missing bespoke row: ${moveId}`)
+  const probe = trioFighter("probe", 1)
+  applyPosture(row.pose.recoil, w, probe, 1)
+  return { x: probe.offset.x, y: probe.offset.y }
+}
+
+describe("phase-5 fix: true body motion plus pass-through (FR-7)", () => {
+  test("rows carry the row-driven transit and exit contract", () => {
+    const charge = MOVE_FX.flame_charge
+    const dive = MOVE_FX.cinder_dive
+    const lance = MOVE_FX.pyre_lance
+    if (!charge || !dive || !lance) throw new Error("missing trio rows")
+    // Zero-shot at schema level: the bodies carry the read, not shots.
+    for (const row of [charge, dive, lance]) {
+      expect(row.shots).toHaveLength(0)
+    }
+    expect(charge.transit?.reach).toBe(0.55)
+    expect(charge.transit?.lift).toBeUndefined()
+    expect(dive.transit?.reach).toBe(0.9)
+    expect(dive.transit?.lift).toBe(2.2)
+    expect(lance.transit).toBeUndefined()
+    expect(lance.arrival.beyond).toBe(2.2)
+  })
+
+  test("flame_charge lunges toward the target, then returns home", () => {
+    const driven = driveFixMove("flame_charge")
+    // Peak transit sits halfway between release (0.34) and the return.
+    driven.run(0.67)
+    const recoil = recoilOnly("flame_charge", 0.5)
+    expect(driven.actor.offset.x).toBeCloseTo(recoil.x + 5 * 0.55, 4)
+    expect(driven.actor.offset.y).toBeCloseTo(recoil.y, 4)
+    // Lunge-and-return: at the final beat only the recoil stance remains.
+    driven.run(1)
+    const home = recoilOnly("flame_charge", 1)
+    expect(driven.actor.offset.x).toBeCloseTo(home.x, 6)
+    expect(driven.actor.offset.y).toBeCloseTo(home.y, 6)
+  })
+
+  test("cinder_dive arcs airborne, then plunges back home", () => {
+    const driven = driveFixMove("cinder_dive")
+    // Peak arc sits halfway between release (0.58) and the return.
+    driven.run(0.79)
+    const recoil = recoilOnly("cinder_dive", 0.5)
+    expect(driven.actor.offset.x).toBeCloseTo(recoil.x + 5 * 0.9, 4)
+    // Visibly above ground mid-flight: the arc peak clears two units.
+    expect(driven.actor.offset.y).toBeCloseTo(recoil.y + 2.2, 4)
+    expect(driven.actor.offset.y).toBeGreaterThan(1)
+    driven.run(1)
+    const home = recoilOnly("cinder_dive", 1)
+    expect(driven.actor.offset.x).toBeCloseTo(home.x, 6)
+    expect(driven.actor.offset.y).toBeCloseTo(home.y, 6)
+  })
+
+  test("transit replays the same path for the same tick", () => {
+    const sample = (tick: number): Array<{ x: number; y: number }> => {
+      const driven = driveFixMove("cinder_dive", { tick })
+      const path: Array<{ x: number; y: number }> = []
+      for (const t of [0.4, 0.6, 0.79, 0.9, 1]) {
+        driven.run(t)
+        path.push({ x: driven.actor.offset.x, y: driven.actor.offset.y })
+      }
+      return path
+    }
+    expect(sample(23)).toEqual(sample(23))
+  })
+
+  test("transit covers the same gap fraction at any range", () => {
+    const recoil = recoilOnly("flame_charge", 0.5)
+    const near = driveFixMove("flame_charge", { gap: 5 })
+    near.run(0.67)
+    expect(near.actor.offset.x - recoil.x).toBeCloseTo(5 * 0.55, 4)
+    const far = driveFixMove("flame_charge", { gap: 9 })
+    far.run(0.67)
+    // Far-range approach interplay: the stride scales with the live gap.
+    expect(far.actor.offset.x - recoil.x).toBeCloseTo(9 * 0.55, 4)
+  })
+
+  test("reduced motion dampens the transit like the impulse", () => {
+    const full = driveFixMove("flame_charge")
+    full.run(0.67)
+    const calm = driveFixMove("flame_charge", { reduced: true })
+    calm.run(0.67)
+    const recoil = recoilOnly("flame_charge", 0.5)
+    expect(
+      (calm.actor.offset.x - recoil.x) / (full.actor.offset.x - recoil.x),
+    ).toBeCloseTo(0.4, 6)
+    const fullDive = driveFixMove("cinder_dive")
+    fullDive.run(0.79)
+    const calmDive = driveFixMove("cinder_dive", { reduced: true })
+    calmDive.run(0.79)
+    const recoilDive = recoilOnly("cinder_dive", 0.5)
+    expect(
+      (calmDive.actor.offset.y - recoilDive.y) /
+        (fullDive.actor.offset.y - recoilDive.y),
+    ).toBeCloseTo(0.4, 6)
+  })
+
+  test("other elements' dash and beam rows stay put", () => {
+    for (const moveId of ["volt_dash", "gigavolt"]) {
+      const row = MOVE_FX[moveId]
+      if (row === undefined) throw new Error(`missing row: ${moveId}`)
+      expect(row.transit).toBeUndefined()
+      expect(row.arrival.beyond).toBeUndefined()
+      const shot = row.shots[0]
+      if (shot === undefined) throw new Error(`${moveId} built no shot`)
+      const release = shot.at
+      const driven = driveFixMove(moveId)
+      driven.run(release + (1 - release) * 0.5)
+      const recoil = recoilOnly(moveId, 0.5)
+      expect(driven.actor.offset.x).toBeCloseTo(recoil.x, 6)
+      expect(driven.actor.offset.y).toBeCloseTo(recoil.y, 6)
+    }
+    // The untouched beam still lands its arrival on the defender — the
+    // mouth pop stays at the attacker, and nothing exits past the foe.
+    const beam = driveFixMove("gigavolt", { compressed: true })
+    beam.run(1)
+    expect(beam.bursts.some((burst) => Math.abs(burst.at.x - 2.5) < 1e-9)).toBe(
+      true,
+    )
+    for (const burst of beam.bursts) {
+      expect(burst.at.x).toBeLessThanOrEqual(2.5 + 1e-9)
+    }
+  })
+
+  test("pyre_lance pierces: beam overshoots, exit burst lands behind", () => {
+    // Ranged: one piercing streak from the mouth through to the exit.
+    const ranged = driveFixMove("pyre_lance")
+    ranged.run(0.9)
+    expect(ranged.projTargets).toHaveLength(1)
+    expect(ranged.projFrom[0]?.x).toBeCloseTo(-2.5, 6)
+    expect(ranged.projTargets[0]?.x).toBeCloseTo(2.5 + 2.2, 6)
+    expect(ranged.projTargets[0]?.z).toBeCloseTo(0, 6)
+    // The contact flash stays small at the pass line, ahead of the foe.
+    expect(ranged.bursts).toHaveLength(1)
+    expect(ranged.bursts[0]?.at.x).toBeCloseTo(-2.5, 6)
+    // Point-blank: the beam-line triplet lands behind the defender.
+    const close = driveFixMove("pyre_lance", { compressed: true })
+    close.run(1)
+    expect(close.bursts).toHaveLength(3)
+    for (const burst of close.bursts) {
+      expect(burst.at.x).toBeCloseTo(4.7, 6)
+    }
+    expect(
+      close.bursts.map((burst) => burst.at.z).sort((a, b) => a - b),
+    ).toEqual([-0.18, 0, 0.18])
+  })
+})
+
+/**
+ * Pins for the Phase 7 feedback rework — envelope, spear, tower: the
+ * transit trail shed along the crossing body (deterministic per tick),
+ * the lance's spear geometry (a shaft-head-guard group, vertex-distinct
+ * from the needle and jet), and the grounded wall eruption (spawning at
+ * the target origin instead of the lifted burst base). Red until
+ * P7.T1-P7.T3 land the mechanism and the row retunes.
+ */
+
+/** A minimal look naming a core family (trail rides along, unused here). */
+function phase7Look(geometry: ShotLook["geometry"]): ShotLook {
+  return { geometry, arc: 1, trail: "embers" }
+}
+
+/** Every mesh under an object, so a core group is inspectable. */
+function phase7Meshes(object: THREE.Object3D): THREE.Mesh[] {
+  const meshes: THREE.Mesh[] = []
+  object.traverse((child) => {
+    if (child instanceof THREE.Mesh) meshes.push(child)
+  })
+  return meshes
+}
+
+/** Every vertex position of a core plus each mesh's placement, flattened. */
+function phase7Positions(object: THREE.Object3D): number[] {
+  return phase7Meshes(object).flatMap((mesh) => [
+    ...Array.from(mesh.geometry.getAttribute("position").array),
+    mesh.position.x,
+    mesh.position.y,
+    mesh.position.z,
+  ])
+}
+
+/**
+ * Drive one move through its full transit span — sixty clock samples from
+ * release plus the exact end beat — and return every staged burst.
+ */
+function driveTransitBursts(moveId: string, tick = 7): TrioBurst[] {
+  const driven = driveFixMove(moveId, { tick })
+  const row = MOVE_FX[moveId]
+  if (row === undefined) throw new Error(`missing bespoke row: ${moveId}`)
+  for (let i = 0; i < 60; i++) {
+    driven.run(row.wind + (1 - row.wind) * (i / 60))
+  }
+  driven.run(1)
+  return driven.bursts
+}
+
+/** Bursts shed by the transit trail (style identity, not shape). */
+function trailBursts(bursts: TrioBurst[], moveId: string): TrioBurst[] {
+  const trail = MOVE_FX[moveId]?.transit?.trail
+  if (trail === undefined) return []
+  return bursts.filter((burst) => burst.style === trail)
+}
+
+describe("phase-7 feedback rework: envelope, spear, tower", () => {
+  test("charge and dive rows carry the envelope contract", () => {
+    const charge = MOVE_FX.flame_charge
+    if (charge === undefined)
+      throw new Error("missing bespoke row: flame_charge")
+    // The wreath engulfs through the crossing (was a 1.1 swell).
+    expect(charge.charge?.to).toBe(2.0)
+    expect(charge.transit?.reach).toBe(0.55)
+    expect(charge.transit?.trail).toEqual({
+      puffs: 3,
+      size: 1.1,
+      life: 320,
+      gravity: -2.2,
+      sway: 0.6,
+    })
+    const dive = MOVE_FX.cinder_dive
+    if (dive === undefined) throw new Error("missing bespoke row: cinder_dive")
+    // New envelope swelling pre-launch, riding the arc.
+    expect(dive.charge).toEqual({ from: 0.4, to: 2.4 })
+    expect(dive.transit?.reach).toBe(0.9)
+    expect(dive.transit?.lift).toBe(2.2)
+    expect(dive.transit?.trail).toEqual({
+      puffs: 4,
+      size: 1.4,
+      life: 380,
+      gravity: -2.2,
+      sway: 0.8,
+    })
+  })
+
+  test("the full transit run sheds one puff per twelfth of the crossing", () => {
+    // Buckets 0..12 of floor(u * 12): the launch slice plus one spawn per
+    // increment, so a finely sampled run sheds exactly 13 trail puffs.
+    for (const moveId of ["flame_charge", "cinder_dive"]) {
+      expect(trailBursts(driveTransitBursts(moveId), moveId)).toHaveLength(13)
+    }
+  })
+
+  test("the trail replays identically for the same tick", () => {
+    for (const moveId of ["flame_charge", "cinder_dive"]) {
+      const first = trailBursts(driveTransitBursts(moveId, 23), moveId)
+      const second = trailBursts(driveTransitBursts(moveId, 23), moveId)
+      expect(second.length).toBe(first.length)
+      const at = (bursts: TrioBurst[]): number[][] =>
+        bursts.map((burst) => burst.at.toArray())
+      expect(at(second)).toEqual(at(first))
+    }
+  })
+
+  test("transit rows without a trail shed nothing", () => {
+    const probe = "__phase7_no_trail_probe__"
+    const charge = MOVE_FX.flame_charge
+    if (charge === undefined)
+      throw new Error("missing bespoke row: flame_charge")
+    MOVE_FX[probe] = {
+      ...charge,
+      transit: { reach: charge.transit?.reach ?? 0.55 },
+    }
+    try {
+      const driven = driveFixMove(probe)
+      for (let i = 0; i < 60; i++) {
+        driven.run(charge.wind + (1 - charge.wind) * (i / 60))
+      }
+      driven.run(1)
+      // Only the authored muzzle pop at release — no trail style, no
+      // trail spawns across the whole crossing.
+      expect(driven.bursts).toHaveLength(1)
+    } finally {
+      delete MOVE_FX[probe]
+    }
+  })
+
+  test("pyre_lance flies a spear; flare_dart keeps its needle", () => {
+    const spear = lookFor("fire", "pyre_lance")
+    expect(spear.geometry).toBe("spear")
+    expect(spear.arc).toBe(0)
+    expect(spear.wobble ?? 0).toBe(0)
+    expect(spear.spin ?? 0).toBe(0)
+    expect(spear.pulse ?? 0).toBe(0)
+    expect(lookFor("fire", "flare_dart").geometry).toBe("needle")
+  })
+
+  test("the spear is a shaft-head-guard group streaming downrange", () => {
+    const color = new THREE.Color("#e8641b")
+    const meshes = phase7Meshes(buildShotCore(phase7Look("spear"), color, 1))
+    expect(meshes).toHaveLength(3)
+    const [shaft, head, guard] = meshes
+    if (shaft === undefined || head === undefined || guard === undefined)
+      throw new Error("spear built no trio")
+    expect(shaft.geometry.type).toBe("CylinderGeometry")
+    expect(head.geometry.type).toBe("ConeGeometry")
+    expect(guard.geometry.type).toBe("OctahedronGeometry")
+    for (const mesh of meshes) {
+      const material = mesh.material as THREE.MeshBasicMaterial
+      expect(material.blending).toBe(THREE.AdditiveBlending)
+    }
+    // Thin shaft trailing behind, head apex ahead, collar at the junction.
+    expect(shaft.position.z).toBeLessThan(0)
+    expect(head.position.z).toBeGreaterThan(0)
+    expect(guard.position.z).toBe(0)
+    expect(guard.scale.z).toBeCloseTo(0.35, 6)
+    expect(Math.min(...meshes.map((mesh) => mesh.position.z))).toBeLessThan(0)
+    expect(Math.max(...meshes.map((mesh) => mesh.position.z))).toBeGreaterThan(
+      0,
+    )
+  })
+
+  test("the spear builds deterministically, sharing no vertices with needle or jet", () => {
+    const color = new THREE.Color("#e8641b")
+    const a = phase7Positions(buildShotCore(phase7Look("spear"), color, 1))
+    const b = phase7Positions(buildShotCore(phase7Look("spear"), color, 1))
+    expect(a.length).toBeGreaterThan(0)
+    expect(a).toEqual(b)
+    for (const geometry of ["needle", "jet"] as const) {
+      const other = phase7Positions(
+        buildShotCore(phase7Look(geometry), color, 1),
+      )
+      expect(other.length).toBeGreaterThan(0)
+      expect(a).not.toEqual(other)
+    }
+  })
+
+  test("pyre_wall erupts grounded with a tall buoyant tower", () => {
+    const wall = MOVE_FX.pyre_wall
+    if (wall === undefined) throw new Error("missing bespoke row: pyre_wall")
+    const burst = wall.arrival.burst
+    expect(burst.grounded).toBe(true)
+    expect(burst.puffs).toBe(30)
+    expect(burst.life).toBe(1050)
+    expect(burst.gravity).toBe(-4.5)
+    expect(burst.size).toBe(3.75)
+    expect(burst.flashGrow).toBe(3.6)
+    expect(burst.sway).toBe(0.5)
+    expect(burst.ring).toBe(true)
+    expect(wall.arrival.shove).toBe(0)
+  })
+
+  test("grounded bursts spawn at the target origin; defaults lift to the burst base", () => {
+    // Pin at the spawn-arg level: a real group records where the flash
+    // and fragments land, behind an inert loop that never ticks.
+    const spawnHeights = (style: BurstStyle): number[] => {
+      const arenaGroup = new THREE.Group()
+      const loop = new EffectLoop(
+        () => false,
+        () => 0,
+        () => 0,
+        () => {},
+      )
+      const layer = createBurstLayer({
+        arenaGroup,
+        loop,
+        pref: () => "full",
+        killMesh: () => {},
+      })
+      layer.spawn(new THREE.Vector3(1, 2, 3), "fire", style)
+      const heights: number[] = []
+      arenaGroup.traverse((child) => {
+        if (child instanceof THREE.Mesh) heights.push(child.position.y)
+      })
+      layer.disposeAll()
+      return heights
+    }
+    const lifted = spawnHeights({ ring: true })
+    expect(lifted.length).toBeGreaterThan(0)
+    for (const y of lifted) expect(y).toBeCloseTo(2 + SHOT_TARGET_Y, 6)
+    const grounded = spawnHeights({ ring: true, grounded: true })
+    expect(grounded.length).toBe(lifted.length)
+    for (const y of grounded) expect(y).toBeCloseTo(2, 6)
   })
 })

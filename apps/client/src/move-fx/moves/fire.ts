@@ -10,12 +10,14 @@ import { barrierBody, beamBody, dashBody } from "./verbs"
  * no shove.
  */
 export const FIRE_FX: Record<string, MoveFx> = {
-  // Spark (tier 1 chip): the fastest, smallest fire row — a near-instant
-  // windup, one small fast ember, and a snappy buoyant arrival.
+  // Spark (tier 1 chip, Phase 2 FR-2): a near-instant zigzag snap — no
+  // windup to speak of, one small fast fork (MOVE_SHOT_LOOK geometry) that
+  // crackles downrange in ~200ms, no mouth bloom, and a white-hot snap
+  // flash on arrival: tiny core, tall swell, erratic scatter. The bright
+  // fork plus the erratic flight carry visibility at the small size.
   spark: {
-    wind: 0.34,
-    shots: [{ size: 0.7, life: 420, at: 0.34 }],
-    muzzle: {},
+    wind: 0.12,
+    shots: [{ size: 0.7, life: 200, at: 0.12 }],
     kick: -0.3,
     pose: {
       windup: { pitch: -0.14, hold: true, roll: 0.05, rise: 0.04, coilX: 0.12 },
@@ -23,21 +25,41 @@ export const FIRE_FX: Record<string, MoveFx> = {
     },
     arrival: {
       burst: {
-        puffs: 6,
-        size: 0.9,
-        life: 380,
+        puffs: 4,
+        size: 0.6,
+        life: 260,
         gravity: -2.2,
-        sway: 0.5,
-        flashGrow: 2.4,
+        sway: 1.6,
+        flashGrow: 4,
       },
       shove: -0.35,
     },
   },
-  // Flame Charge (tier 1 dash): the attacker dashes wreathed in flame —
-  // the dash verb carries the damage read, so the shot stays a single fast
-  // ember and the arrival lands as one forward-driving bloom.
+  // Flame Charge (tier 1 dash): the attacker crosses wreathed in flame —
+  // the crossing body is the hit, so the row flies zero shots. A charge
+  // wreath engulfs the body through the crossing and clears on the
+  // return, a nose-gap flare pops at launch, and the arrival lands as
+  // one forward-driving bloom.
   flame_charge: {
     ...dashBody("fire"),
+    wind: 0.34,
+    shots: [],
+    charge: { from: 0.3, to: 2.0 },
+    // The lunge carries the read: the body crosses over half the live
+    // gap toward the foe and back, wreath riding (P5.F1), shedding flame
+    // puffs along the crossing (Phase 7 trail).
+    transit: {
+      reach: 0.55,
+      trail: { puffs: 3, size: 1.1, life: 320, gravity: -2.2, sway: 0.6 },
+    },
+    muzzle: {
+      puffs: 5,
+      size: 0.9,
+      life: 300,
+      gravity: -2.2,
+      sway: 0.4,
+      flashGrow: 2.6,
+    },
     arrival: {
       burst: {
         puffs: 11,
@@ -50,19 +72,13 @@ export const FIRE_FX: Record<string, MoveFx> = {
       shove: -0.6,
     },
   },
-  // Cinder Shot (tier 1-2 workhorse): the steady ember shot — a held coil
-  // with an upward rise, one midweight ember, and a buoyant arrival.
+  // Cinder Shot (tier 1-2 workhorse, Phase 3 FR-3): a slow tumbling ember
+  // chunk — a held coil with an upward rise, one heavy chunk
+  // (MOVE_SHOT_LOOK geometry) rolling downrange on a 0.35 wobble, no mouth
+  // bloom, and a slow heavy arrival that thuds down instead of rising.
   cinder_shot: {
     wind: 0.55,
     shots: [{ size: 1.8, life: 850, at: 0.55 }],
-    muzzle: {
-      puffs: 5,
-      size: 0.9,
-      life: 320,
-      gravity: -2.2,
-      sway: 0.5,
-      flashGrow: 2.4,
-    },
     kick: -0.55,
     pose: {
       windup: {
@@ -76,26 +92,27 @@ export const FIRE_FX: Record<string, MoveFx> = {
     },
     arrival: {
       burst: {
-        puffs: 9,
+        puffs: 10,
         size: 1.6,
-        life: 460,
-        gravity: -2.2,
-        sway: 0.5,
+        life: 600,
+        gravity: 6,
+        sway: 0.3,
         flashGrow: 2.8,
       },
       shove: -0.5,
     },
   },
-  // Blaze Bolt (tier 2 charged bolt): the charge swells as gathering flame
-  // — held coil plus an ember draw-in at the mouth — then releases one
-  // bright bolt into a rising bloom.
+  // Blaze Bolt (tier 2 charged comet, Phase 3 FR-5): the charge swells as
+  // gathering flame — held coil plus an ember draw-in at the mouth — then
+  // releases one fast tapered jet (MOVE_SHOT_LOOK geometry) head-first
+  // into the biggest lingering bloom.
   blaze_bolt: {
     wind: 0.6,
     shots: [{ size: 1.05, life: 300, at: 0.6 }],
     muzzle: {
       puffs: 7,
       size: 1.2,
-      life: 380,
+      life: 260,
       gravity: -2.2,
       sway: 0.5,
       flashGrow: 2.6,
@@ -114,19 +131,20 @@ export const FIRE_FX: Record<string, MoveFx> = {
     },
     arrival: {
       burst: {
-        puffs: 9,
-        size: 1.5,
-        life: 460,
+        puffs: 12,
+        size: 1.9,
+        life: 620,
         gravity: -2.2,
-        sway: 0.5,
-        flashGrow: 2.8,
+        sway: 0.4,
+        flashGrow: 3.6,
       },
       shove: -0.55,
     },
   },
-  // Flare Dart (tier 1 fast bolt): small, quick, flat-trajectory ember —
-  // a touch longer in flight than spark with a brighter head at release,
-  // and no charge phase to separate it from blaze_bolt.
+  // Flare Dart (tier 1 fast bolt, Phase 2 FR-4): a flat molten needle —
+  // laser-straight flight (MOVE_SHOT_LOOK geometry, zeroed arc/ripple/
+  // tumble/throb) with a minimal ember trail, landing as a small tight
+  // pierce flash with a fast fade: no rise, no drift, no explosion bloom.
   flare_dart: {
     wind: 0.42,
     shots: [{ size: 0.9, life: 560, at: 0.42 }],
@@ -151,27 +169,30 @@ export const FIRE_FX: Record<string, MoveFx> = {
     },
     arrival: {
       burst: {
-        puffs: 7,
-        size: 1,
-        life: 400,
-        gravity: -2.2,
-        sway: 0.5,
-        flashGrow: 2.6,
+        puffs: 4,
+        size: 0.7,
+        life: 260,
+        gravity: 0,
+        sway: 0,
+        flashGrow: 1.2,
       },
       shove: -0.4,
     },
   },
-  // Pyre Lance (tier 3 beam): the heavy piercing read — a long charge
-  // swelling into one heavy fast shot that lands as a deep upward bloom.
+  // Pyre Lance (tier 3 beam): the heavy piercing read — the streak passes
+  // clean through, so the row flies zero shots. The beam charge still
+  // swells before release, a tight driftless flash pops on the pass line,
+  // and the arrival lands as a beam-line triplet with a tall fast glow.
   pyre_lance: {
     ...beamBody("fire"),
+    shots: [],
     muzzle: {
-      puffs: 7,
-      size: 1.1,
-      life: 360,
-      gravity: -2.2,
-      sway: 0.5,
-      flashGrow: 2.8,
+      puffs: 5,
+      size: 0.7,
+      life: 280,
+      gravity: 0,
+      sway: 0,
+      flashGrow: 3.4,
     },
     pose: {
       windup: { pitch: -0.3, hold: true, roll: 0.1, rise: 0.07, coilX: 0.28 },
@@ -179,42 +200,67 @@ export const FIRE_FX: Record<string, MoveFx> = {
     },
     arrival: {
       burst: {
-        puffs: 12,
-        size: 1.7,
-        life: 540,
-        gravity: -2.2,
-        sway: 0.5,
-        flashGrow: 3.2,
+        puffs: 9,
+        size: 1.1,
+        life: 380,
+        gravity: 0,
+        sway: 0,
+        flashGrow: 3.6,
       },
+      lanes: [-0.18, 0, 0.18],
       shove: -0.6,
+      // Exit wound: the main burst lands well behind the defender along
+      // the attack axis, where the piercing streak exits (P5.F3). The
+      // offset clears the defender's body so the exit reads as separate
+      // from the contact flash — a burst centered one unit past still
+      // overlaps the body and reads frontal.
+      beyond: 2.2,
     },
   },
   // Cinder Dive (cindermoor's attack form): the ram's head-down plunge —
-  // a deep held coil launching the body itself, so the dive carries the
-  // damage read and the arrival is one heavy ember burst at contact.
+  // the diving body is the hit, so the row flies zero shots and carries
+  // no muzzle. A deep held coil launches the vertical
+  // leap and the arrival lands as one down-slamming crater ring.
   cinder_dive: {
     ...dashBody("fire"),
     wind: 0.58,
-    shots: [{ size: 2.1, life: 600, at: 0.58 }],
+    shots: [],
+    muzzle: undefined,
+    // Phase 7: an envelope swells pre-launch and rides the arc, shedding
+    // flame puffs along the flight so the body reads wreathed end to end.
+    charge: { from: 0.4, to: 2.4 },
+    // The plunge is the hit: the body rises in an arc and comes down on
+    // the foe, nearly closing the live gap at the peak (P5.F2). The lift
+    // is deliberately taller than a body height so the arc reads in a
+    // single glance, even at close range over a short gap.
+    transit: {
+      reach: 0.9,
+      lift: 2.2,
+      trail: { puffs: 4, size: 1.4, life: 380, gravity: -2.2, sway: 0.8 },
+    },
     pose: {
       windup: { pitch: -0.32, hold: true, roll: 0.09, rise: 0.02, coilX: 0.3 },
       recoil: { pitchOut: 0.17, sweepX: [0.3, -0.62], riseOut: 0.03 },
     },
     arrival: {
       burst: {
-        puffs: 12,
-        size: 1.7,
-        life: 520,
-        gravity: -2.2,
-        sway: 0.5,
+        puffs: 14,
+        ring: true,
+        size: 2.0,
+        life: 560,
+        gravity: 6,
+        sway: 0.2,
         flashGrow: 3.2,
       },
       shove: -0.6,
     },
   },
-  // Pyre Wall (guard): a foe-targeted barrier eruption — no projectile, no
-  // shove. A long raise swells a charge and lands as a flame ring at the
-  // foe with the normal contact read, exactly like tide_aegis.
+  // Pyre Wall (guard, Phase 4 FR-6): a foe-targeted barrier eruption — no
+  // projectile, no shove. A long raise swells a charge and lands a ~2.5x
+  // encirclement ring at the foe that erupts from the ground as a fire
+  // tower (Phase 7 grounded retune) — denser rising jets plus the normal
+  // fire contact read (scorch disc) — with the barrier timing held, exactly
+  // like tide_aegis.
   pyre_wall: {
     ...barrierBody("fire"),
     pose: {
@@ -223,13 +269,14 @@ export const FIRE_FX: Record<string, MoveFx> = {
     },
     arrival: {
       burst: {
-        puffs: 12,
+        puffs: 30,
         ring: true,
-        size: 1.5,
-        life: 560,
-        gravity: -2.2,
+        size: 3.75,
+        life: 1050,
+        gravity: -4.5,
         sway: 0.5,
-        flashGrow: 3,
+        flashGrow: 3.6,
+        grounded: true,
       },
       shove: 0,
     },

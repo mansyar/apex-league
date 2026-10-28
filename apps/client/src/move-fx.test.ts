@@ -301,10 +301,11 @@ describe("move table", () => {
   test("each new attack form is authored in its element's grammar", () => {
     // One attack signature per new line: a held windup, a real kick, and an
     // arrival burst — the shared grammar of the existing tier-3 shots.
+    // cinder_dive went zero-shot body-first in Phase 5 (FR-7), so it no
+    // longer carries the one-shot form — see the trio pins.
     const forms: ReadonlyArray<[string, Element]> = [
       ["thorn_charge", "plant"],
       ["riptide_rush", "water"],
-      ["cinder_dive", "fire"],
     ]
     for (const [moveId, element] of forms) {
       const fx = fxFor(moveId)

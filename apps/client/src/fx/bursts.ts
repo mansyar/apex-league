@@ -128,7 +128,10 @@ export function createBurstLayer(host: BurstLayerHost): BurstLayer {
     const size = style.size ?? 1
     const puffs = style.puffs ?? 6
     const base = at.clone()
-    base.y += SHOT_TARGET_Y
+    // Grounded rings (Phase 7 pyre_wall) erupt from the floor: skip the
+    // chest-line lift so the flash and fragments start at the target
+    // group origin (feet/floor).
+    if (style.grounded !== true) base.y += SHOT_TARGET_Y
     let flashShell: THREE.Mesh | null = null
     if (style.flash !== false) {
       flashShell = new THREE.Mesh(
