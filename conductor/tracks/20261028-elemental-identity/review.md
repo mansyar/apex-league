@@ -153,9 +153,10 @@ repeated color literal), all mechanical and fixed in Phase R1.
 
 ## Doc sync
 
-`pending` — no product/tech-stack/save-schema changes in this track; sync step
-confirms `product.md` roadmap, `product-guidelines.md`, and `tech-stack.md`
-need no update.
+`updated` — tech-stack.md gained a dated 2026-10-28 note (client-side
+move-fx completion + dev-only Move Lab; sim/save/deps untouched). `product.md`
+roadmap and `product-guidelines.md` need no update (no behavior or UX-rule
+change); spec.md/plan.md already record everything.
 
 ## History
 

@@ -147,6 +147,18 @@
   pass, element particles, hit decals, big-hit vignette); the style is a
   saved v9 setting with live mid-battle switching, auto-pinned to broadcast
   under reduced motion.*
+-   *2026-10-28: elemental identity pass landed (track
+   `20261028-elemental-identity`). Client side only — sim, save schema (v25),
+   and dependencies untouched. Every catalog move now owns a bespoke
+   `MOVE_FX` row (48 specials: per-element shot grammar, verb-family bodies
+   for barrier/dash/eruption/cone/volley/beam, tier-scaled treatments, 0-shot
+   foe-targeted guard eruptions); unauthored ids fall back to six authored
+   per-element bodies. Wind decoupled onto its own `streak`/`streaks`
+   geometry/trail (no shared parts with water/plant); earth's grit tint is
+   the single-sourced neutral `EARTH_DUST_TINT`. Grayscale readability
+   verified per element. New dev-only `movelab/` rig (dynamic `import()`
+   behind `?movelab=1`, own bundle chunk) drives the staging stack directly
+   for deterministic visual evidence; excluded from the production bundle.*
 -   *2026-10-12: cup engine consolidated (track
   `cup_engine_consolidation_20261012`) — the legacy one-sitting path
   (`enterCup`, `resolveCup`, `runRound`, `playerSide`, `CupResult`/
