@@ -30,10 +30,13 @@
 - **Covers:** FR-2, FR-4, AC-1, AC-3
 - **Touches:** `apps/client/src/move-fx/moves/fire.ts`, `apps/client/src/move-fx/moves/fallback.test.ts`
 - **Verification:** `bun run verify && bun run build` + GIFs `fire-spark.gif`, `fire-flare_dart.gif`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Spark zigzag fork (no travel ball, snap flash)** — covers: FR-2, AC-1
-- [ ] **P2.T2: Flare Dart needle (flat, trailless, pierce impact)** — covers: FR-4, AC-3
+**Result:** verified
+**Evidence:** conductor/tracks/20261028-fire-move-identity/verification/phase-2.md
+
+- [x] **P2.T1: Spark zigzag fork (no travel ball, snap flash)** — covers: FR-2, AC-1
+- [x] **P2.T2: Flare Dart needle (flat, trailless, pierce impact)** — covers: FR-4, AC-3
 
 ## Phase 3: Heavy Pair — Cinder Lob + Blaze Artillery
 

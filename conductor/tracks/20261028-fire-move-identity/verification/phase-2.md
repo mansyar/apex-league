@@ -5,8 +5,8 @@
 - Date: 2026-10-28
 - Branch: feat/20261028-fire-move-identity
 - Base: 5e317577
-- Head: c5973591 (implementation; evidence commit follows)
-- Result: partial (code + gate verified; Move Lab GIFs pending capture)
+- Head: 55da7667 (implementation 2d4b4ae2, c5973591 + evidence)
+- Result: verified (code + gate by subagent; GIFs captured and visually confirmed by primary)
 
 ## Commands
 
@@ -25,8 +25,8 @@
 | --- | --- | --- | --- |
 | FR-2 | Spark reads as zigzag crackle, not a travel ball | `MOVE_SHOT_LOOK.spark = { geometry: "fork", wobble: 0.3 }`; row wind 0.12, shot life 200, no muzzle; arrival size 0.6 / flashGrow 4 / life 260 / sway 1.6; 4 new TDD pins green | Done (GIF pending) |
 | FR-4 | Flare Dart reads as flat pierce, not an explosion | `MOVE_SHOT_LOOK.flare_dart = { geometry: "needle", arc: 0, wobble: 0, spin: 0, pulse: 0 }`; arrival gravity 0 / sway 0 / size 0.7 / flashGrow 1.2 / life 260; 4 new TDD pins green | Done (GIF pending) |
-| AC-1 | Spark GIF: fork + erratic motion visible at small size | Capture recipe below; GIF not yet captured (no browser/recording tooling in this environment) | Pending primary capture |
-| AC-3 | Flare GIF: flat needle, minimal trail, pierce non-bloom impact | Capture recipe below; GIF not yet captured (same) | Pending primary capture |
+| AC-1 | Spark GIF: fork + erratic motion visible at small size | `.conductor/evidence/fire-spark.gif` (close, 900ms/step, seeds 11/23, impact staged); frame probe: thin pinkish-orange zigzag line mid-arena + mouth particles | Verified by primary (final user sign-off at Phase 6) |
+| AC-3 | Flare GIF: flat needle, minimal trail, pierce non-bloom impact | `.conductor/evidence/fire-flare_dart.gif` (same anchors); frame probe: cone-shaped dart at head of particle trail, distinct from spark fork | Verified by primary (final user sign-off at Phase 6) |
 
 ## Evidence paths
 
@@ -40,10 +40,10 @@ Implementation:
 - `apps/client/src/move-fx/moves/fallback.test.ts` (4 new FR-2/FR-4 pins)
 - `apps/client/src/move-fx/look-override.test.ts` (stale empty-table pin updated)
 
-GIFs (pending — intended paths):
+GIFs (captured by primary 2026-10-28):
 
-- `.conductor/evidence/fire-spark.gif` (NOT YET CAPTURED)
-- `.conductor/evidence/fire-flare_dart.gif` (NOT YET CAPTURED)
+- `.conductor/evidence/fire-spark.gif` (~1.9 MB, 12 fps) — fork zigzag confirmed
+- `.conductor/evidence/fire-flare_dart.gif` (~2.0 MB, 12 fps) — needle dart confirmed
 
 ## GIF capture recipe (for the primary's capture pass)
 
