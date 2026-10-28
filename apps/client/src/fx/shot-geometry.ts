@@ -185,9 +185,9 @@ export function buildShotCore(
   // to shot-spear.ts so this registry stays under the module size cap.
   if (look.geometry === "spear") return buildSpearCore(color, size)
   if (look.geometry === "jet") {
-    // Jet: Pyre Wall's ring flame pillar — a tapered additive column around
-    // a brighter core, standing straight up (+y) where the ring erupts
-    // rather than along the shot's travel.
+    // Jet: Blaze Bolt's charged comet head — a tapered additive column
+    // around a brighter core, standing straight up (+y) so the bolt
+    // reads as a rising comet rather than a thrown rock.
     const jet = new THREE.Group()
     const pillarMat = new THREE.MeshBasicMaterial({
       color,
