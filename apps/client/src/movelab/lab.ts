@@ -27,6 +27,20 @@ export interface MoveLabDeps {
 const SEEDED_A = 11
 const SEEDED_B = 23
 
+/**
+ * Apply the phone-width toggle through the same responsive path as a real
+ * phone viewport. The scene's resize wiring (`scene/frame.ts`) only runs
+ * on `window` resize events, reading the container's client size — a bare
+ * body-class flip never fires one, so the camera aspect and renderer kept
+ * their desktop size inside the narrowed shell (mis-framed arena with an
+ * empty strip). Dispatching the resize after the class change reuses that
+ * exact handler; the read forces layout, so the fresh 390px width applies.
+ */
+export function setLabPhoneWidth(on: boolean): void {
+  document.body.classList.toggle("app-in-movelab-phone", on)
+  window.dispatchEvent(new Event("resize"))
+}
+
 export function mountMoveLab(deps: MoveLabDeps): void {
   const { app, scene, staging, swap } = deps
   const groups = labMoveGroups()
@@ -169,7 +183,7 @@ export function mountMoveLab(deps: MoveLabDeps): void {
     )
   })
   refs.phone.addEventListener("change", () => {
-    document.body.classList.toggle("app-in-movelab-phone", refs.phone.checked)
+    setLabPhoneWidth(refs.phone.checked)
   })
   refs.attacker.addEventListener("change", () => cast(seeds()))
   refs.defender.addEventListener("change", () => cast(seeds()))
