@@ -95,9 +95,8 @@ export interface MoveFx {
  *
  * Split by element (battle_choreography_20261024): each `./moves/<element>`
  * table owns that element's rows and this record only assembles them, so the
- * element seam is also the size seam. A steady move of either heavy element
- * (`basalt_guard`, `zephyr_veil`) is deliberately absent from every table and
- * inherits the default body.
+ * element seam is also the size seam. All 48 catalog specials are bespoke
+ * (elemental-identity track); unknown ids fall back to their element body.
  */
 export const MOVE_FX: Record<string, MoveFx> = {
   ...FIRE_FX,
