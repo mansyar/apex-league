@@ -20,7 +20,7 @@
   needs verb dispatch)
 - **Verification:** `bun run verify && bun run build` + playwright fallback
   screenshots (one per element, desktop + phone, clean console)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Author 6 fallback bodies** — covers: FR-1
   - [ ] **P1.T1.1: Fire, water, plant fallbacks** (rising flicker shards;
