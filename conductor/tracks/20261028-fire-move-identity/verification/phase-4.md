@@ -5,9 +5,8 @@
 - Date: 2026-10-28
 - Branch: feat/20261028-fire-move-identity
 - Base: 50e083d8 (main)
-- Head: uncommitted — shell denied, no commits landed (see Notes)
-- Result: BLOCKED (shell tool denied: pins + row implemented but no test,
-  verify, build, or commit command could run)
+- Head: a2098832 (P4.T2; row P4.T1 9a6510d3) + GIF evidence (primary)
+- Result: VERIFIED (gates run by primary: verify exit 0 incl. determinism gate, build exit 0; GIF captured and visually confirmed)
 
 ## Goal
 
@@ -35,8 +34,8 @@ timing held. Covers FR-6, AC-5.
 | --- | --- | --- |
 | targeted `bun test` on `fallback.test.ts` (red, pins first) | NOT RUN | shell denied |
 | targeted `bun test` on `fallback.test.ts` (green, after row) | NOT RUN | shell denied |
-| `bun run verify` | NOT RUN | shell denied |
-| `bun run build` | NOT RUN | shell denied |
+| `bun run verify` (primary) | exit 0 | check 0 errors; tests pass; biome clean; determinism gate OK |
+| `bun run build` (primary) | exit 0 | pre-existing chunk-size warning only |
 
 Expected red→green (by inspection, unverified): before the row change,
 `size` 1.5 < 1.3 × 2.5 = 3.25 and `puffs` 12 < 16 fail; after the change
@@ -47,9 +46,11 @@ regression guards green throughout.
 
 | AC | Maps to | Status | Evidence |
 | --- | --- | --- | --- |
-| AC-5 | FR-6 wall ring encircles defender at ~2.5× within current timing | BLOCKED | row + pins written, GIF capture + gates left to the primary |
+| AC-5 | FR-6 wall ring encircles defender at ~2.5× within current timing | VERIFIED | strip: ground spark → full translucent dome encircling defender with clearance + lingering barrier + base embers; `phase-4/fire-pyre_wall.gif` (close, 900ms/step, seeds 103/104) |
 
-## GIF capture recipe (for the primary — no browser/recording tools in this environment)
+## GIF (captured by primary 2026-10-28)
+
+- `conductor/tracks/20261028-fire-move-identity/verification/phase-4/fire-pyre_wall.gif` (~2.0 MB, 12 fps) — dome encirclement confirmed (close, 900ms/step, seeds 103/104)
 
 1. `bun run dev`, open `?movelab`.
 2. Matchup: Ember Drake (draconic) vs Bramble Ox (bovine), fire group,
@@ -69,14 +70,11 @@ regression guards green throughout.
   to the `pyre_wall` row, so every other element's barrier is byte-identical.
 - No sim changes, no save bump, no new deps, no conductor edits.
 
-## Notes
+## Notes (primary handoff — resolved)
 
-- Shell tool returned `permission denied`, so per the phase rules nothing
-  was retried or worked around: no targeted test runs, no
-  `bun run verify` / `bun run build`, no commits (P4.T1 row + P4.T2 pins
-  both sit uncommitted in the working tree). The primary can land them as
-  two task commits (row, then pins+this report) after running the gates.
-- TDD red→green could not be executed here; the red/green expectations
-  above are by inspection against the pre-change values
+- Subagent shell was denied, so the primary ran the gates (`verify` exit 0
+  incl. determinism gate, `build` exit 0) and landed the two task commits
+  (row `9a6510d3`, pins+report `a2098832`) plus GIF capture.
+- TDD red→green was asserted by inspection against pre-change values
   (size 1.5, puffs 12) and the `barrierBody("fire")` baseline
-  (size 1.3, puffs 10, wind 0.62).
+  (size 1.3, puffs 10, wind 0.62); full suite green confirms green.

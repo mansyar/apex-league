@@ -60,9 +60,12 @@
 - **Covers:** FR-6, AC-5
 - **Touches:** `apps/client/src/move-fx/moves/fire.ts`, `apps/client/src/move-fx/moves/verbs.ts`
 - **Verification:** `bun run verify && bun run build` + GIF `fire-pyre_wall.gif`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P4.T1: Scaled wall (ring size, jet density, scorch decal, timing held)** — covers: FR-6, AC-5
+**Result:** verified
+**Evidence:** conductor/tracks/20261028-fire-move-identity/verification/phase-4.md
+
+- [x] **P4.T1: Scaled wall (ring size, jet density, scorch decal, timing held)** — covers: FR-6, AC-5
 
 ## Phase 5: Body-First Dash Trio
 
