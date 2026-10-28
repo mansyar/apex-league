@@ -4,13 +4,15 @@ import { getMove } from "@apex/sim"
 import * as THREE from "three"
 import { DEFAULT_PROFILE } from "../../choreo"
 import type { DriveFighter } from "../../fighter-driver"
-import { decalRing } from "../../fx/fx-data"
-import { HitStop } from "../../fx/loop"
+import { createBurstLayer } from "../../fx/bursts"
+import { decalRing, SHOT_TARGET_Y } from "../../fx/fx-data"
+import { EffectLoop, HitStop } from "../../fx/loop"
+import { buildShotCore } from "../../fx/shot-geometry"
 import type { BattleEffects } from "../../staging-fx"
 import type { Side, StepIO } from "../../steps/context"
 import { fireSpecial } from "../../steps/fire"
 import { applyPosture } from "../../steps/pure"
-import { lookFor } from "../looks"
+import { lookFor, type ShotLook } from "../looks"
 import type { BurstStyle } from "../moves"
 import { DEFAULT_FX, fxFor, MOVE_FX } from "../moves"
 import { ELEMENT_FALLBACK_FX, fallbackFor } from "./fallback"
@@ -561,9 +563,11 @@ describe("fire wall encirclement (FR-6)", () => {
     // Eruption on the foe: no projectile travel, no shove.
     expect(wall.shots).toHaveLength(0)
     expect(wall.arrival.shove).toBe(0)
-    // Timing held: same windup beat and arrival duration as the barrier body.
+    // Timing held: same windup beat as the barrier body. The arrival
+    // lingers longer now — the Phase-7 tower needs the long buoyant life
+    // to climb out of the ground.
     expect(wall.wind).toBe(base.wind)
-    expect(wall.arrival.burst.life).toBe(560)
+    expect(wall.arrival.burst.life).toBe(1050)
     // Rising jets, not falling debris.
     expect(wall.arrival.burst.gravity ?? 0).toBeLessThan(0)
   })
@@ -791,14 +795,19 @@ describe("fire body-first dash trio (FR-7)", () => {
     expect(lance.projectiles).toBe(1)
     expect(lance.actor.squash.v).toBeLessThan(0)
     // The authored muzzle pops belong to the crossing charge and the
-    // pass-through streak — never to the pilotless dive.
+    // pass-through streak. The pilotless dive pops no muzzle — but since
+    // Phase 7 its transit trail sheds puffs along the arc, so even the
+    // single end-sample below catches the final trail puff (the full-run
+    // count lives in the Phase-7 trail pins).
     expect(
       driveTrioMove("flame_charge", false).bursts.length,
     ).toBeGreaterThanOrEqual(1)
     expect(
       driveTrioMove("pyre_lance", false).bursts.length,
     ).toBeGreaterThanOrEqual(1)
-    expect(driveTrioMove("cinder_dive", false).bursts).toHaveLength(0)
+    expect(
+      driveTrioMove("cinder_dive", false).bursts.length,
+    ).toBeGreaterThanOrEqual(1)
     // Guards stay silent on their impact path: no flight, no mouth pop —
     // just the ring at the foe.
     const wall = driveTrioMove("pyre_wall", true)
@@ -1061,5 +1070,231 @@ describe("phase-5 fix: true body motion plus pass-through (FR-7)", () => {
     expect(
       close.bursts.map((burst) => burst.at.z).sort((a, b) => a - b),
     ).toEqual([-0.18, 0, 0.18])
+  })
+})
+
+/**
+ * Pins for the Phase 7 feedback rework — envelope, spear, tower: the
+ * transit trail shed along the crossing body (deterministic per tick),
+ * the lance's spear geometry (a shaft-head-guard group, vertex-distinct
+ * from the needle and jet), and the grounded wall eruption (spawning at
+ * the target origin instead of the lifted burst base). Red until
+ * P7.T1-P7.T3 land the mechanism and the row retunes.
+ */
+
+/** A minimal look naming a core family (trail rides along, unused here). */
+function phase7Look(geometry: ShotLook["geometry"]): ShotLook {
+  return { geometry, arc: 1, trail: "embers" }
+}
+
+/** Every mesh under an object, so a core group is inspectable. */
+function phase7Meshes(object: THREE.Object3D): THREE.Mesh[] {
+  const meshes: THREE.Mesh[] = []
+  object.traverse((child) => {
+    if (child instanceof THREE.Mesh) meshes.push(child)
+  })
+  return meshes
+}
+
+/** Every vertex position of a core plus each mesh's placement, flattened. */
+function phase7Positions(object: THREE.Object3D): number[] {
+  return phase7Meshes(object).flatMap((mesh) => [
+    ...Array.from(mesh.geometry.getAttribute("position").array),
+    mesh.position.x,
+    mesh.position.y,
+    mesh.position.z,
+  ])
+}
+
+/**
+ * Drive one move through its full transit span — sixty clock samples from
+ * release plus the exact end beat — and return every staged burst.
+ */
+function driveTransitBursts(moveId: string, tick = 7): TrioBurst[] {
+  const driven = driveFixMove(moveId, { tick })
+  const row = MOVE_FX[moveId]
+  if (row === undefined) throw new Error(`missing bespoke row: ${moveId}`)
+  for (let i = 0; i < 60; i++) {
+    driven.run(row.wind + (1 - row.wind) * (i / 60))
+  }
+  driven.run(1)
+  return driven.bursts
+}
+
+/** Bursts shed by the transit trail (style identity, not shape). */
+function trailBursts(bursts: TrioBurst[], moveId: string): TrioBurst[] {
+  const trail = MOVE_FX[moveId]?.transit?.trail
+  if (trail === undefined) return []
+  return bursts.filter((burst) => burst.style === trail)
+}
+
+describe("phase-7 feedback rework: envelope, spear, tower", () => {
+  test("charge and dive rows carry the envelope contract", () => {
+    const charge = MOVE_FX.flame_charge
+    if (charge === undefined)
+      throw new Error("missing bespoke row: flame_charge")
+    // The wreath engulfs through the crossing (was a 1.1 swell).
+    expect(charge.charge?.to).toBe(2.0)
+    expect(charge.transit?.reach).toBe(0.55)
+    expect(charge.transit?.trail).toEqual({
+      puffs: 3,
+      size: 1.1,
+      life: 320,
+      gravity: -2.2,
+      sway: 0.6,
+    })
+    const dive = MOVE_FX.cinder_dive
+    if (dive === undefined) throw new Error("missing bespoke row: cinder_dive")
+    // New envelope swelling pre-launch, riding the arc.
+    expect(dive.charge).toEqual({ from: 0.4, to: 2.4 })
+    expect(dive.transit?.reach).toBe(0.9)
+    expect(dive.transit?.lift).toBe(2.2)
+    expect(dive.transit?.trail).toEqual({
+      puffs: 4,
+      size: 1.4,
+      life: 380,
+      gravity: -2.2,
+      sway: 0.8,
+    })
+  })
+
+  test("the full transit run sheds one puff per twelfth of the crossing", () => {
+    // Buckets 0..12 of floor(u * 12): the launch slice plus one spawn per
+    // increment, so a finely sampled run sheds exactly 13 trail puffs.
+    for (const moveId of ["flame_charge", "cinder_dive"]) {
+      expect(trailBursts(driveTransitBursts(moveId), moveId)).toHaveLength(13)
+    }
+  })
+
+  test("the trail replays identically for the same tick", () => {
+    for (const moveId of ["flame_charge", "cinder_dive"]) {
+      const first = trailBursts(driveTransitBursts(moveId, 23), moveId)
+      const second = trailBursts(driveTransitBursts(moveId, 23), moveId)
+      expect(second.length).toBe(first.length)
+      const at = (bursts: TrioBurst[]): number[][] =>
+        bursts.map((burst) => burst.at.toArray())
+      expect(at(second)).toEqual(at(first))
+    }
+  })
+
+  test("transit rows without a trail shed nothing", () => {
+    const probe = "__phase7_no_trail_probe__"
+    const charge = MOVE_FX.flame_charge
+    if (charge === undefined)
+      throw new Error("missing bespoke row: flame_charge")
+    MOVE_FX[probe] = {
+      ...charge,
+      transit: { reach: charge.transit?.reach ?? 0.55 },
+    }
+    try {
+      const driven = driveFixMove(probe)
+      for (let i = 0; i < 60; i++) {
+        driven.run(charge.wind + (1 - charge.wind) * (i / 60))
+      }
+      driven.run(1)
+      // Only the authored muzzle pop at release — no trail style, no
+      // trail spawns across the whole crossing.
+      expect(driven.bursts).toHaveLength(1)
+    } finally {
+      delete MOVE_FX[probe]
+    }
+  })
+
+  test("pyre_lance flies a spear; flare_dart keeps its needle", () => {
+    const spear = lookFor("fire", "pyre_lance")
+    expect(spear.geometry).toBe("spear")
+    expect(spear.arc).toBe(0)
+    expect(spear.wobble ?? 0).toBe(0)
+    expect(spear.spin ?? 0).toBe(0)
+    expect(spear.pulse ?? 0).toBe(0)
+    expect(lookFor("fire", "flare_dart").geometry).toBe("needle")
+  })
+
+  test("the spear is a shaft-head-guard group streaming downrange", () => {
+    const color = new THREE.Color("#e8641b")
+    const meshes = phase7Meshes(buildShotCore(phase7Look("spear"), color, 1))
+    expect(meshes).toHaveLength(3)
+    const [shaft, head, guard] = meshes
+    if (shaft === undefined || head === undefined || guard === undefined)
+      throw new Error("spear built no trio")
+    expect(shaft.geometry.type).toBe("CylinderGeometry")
+    expect(head.geometry.type).toBe("ConeGeometry")
+    expect(guard.geometry.type).toBe("OctahedronGeometry")
+    for (const mesh of meshes) {
+      const material = mesh.material as THREE.MeshBasicMaterial
+      expect(material.blending).toBe(THREE.AdditiveBlending)
+    }
+    // Thin shaft trailing behind, head apex ahead, collar at the junction.
+    expect(shaft.position.z).toBeLessThan(0)
+    expect(head.position.z).toBeGreaterThan(0)
+    expect(guard.position.z).toBe(0)
+    expect(guard.scale.z).toBeCloseTo(0.35, 6)
+    expect(Math.min(...meshes.map((mesh) => mesh.position.z))).toBeLessThan(0)
+    expect(Math.max(...meshes.map((mesh) => mesh.position.z))).toBeGreaterThan(
+      0,
+    )
+  })
+
+  test("the spear builds deterministically, sharing no vertices with needle or jet", () => {
+    const color = new THREE.Color("#e8641b")
+    const a = phase7Positions(buildShotCore(phase7Look("spear"), color, 1))
+    const b = phase7Positions(buildShotCore(phase7Look("spear"), color, 1))
+    expect(a.length).toBeGreaterThan(0)
+    expect(a).toEqual(b)
+    for (const geometry of ["needle", "jet"] as const) {
+      const other = phase7Positions(
+        buildShotCore(phase7Look(geometry), color, 1),
+      )
+      expect(other.length).toBeGreaterThan(0)
+      expect(a).not.toEqual(other)
+    }
+  })
+
+  test("pyre_wall erupts grounded with a tall buoyant tower", () => {
+    const wall = MOVE_FX.pyre_wall
+    if (wall === undefined) throw new Error("missing bespoke row: pyre_wall")
+    const burst = wall.arrival.burst
+    expect(burst.grounded).toBe(true)
+    expect(burst.puffs).toBe(30)
+    expect(burst.life).toBe(1050)
+    expect(burst.gravity).toBe(-4.5)
+    expect(burst.size).toBe(3.75)
+    expect(burst.flashGrow).toBe(3.6)
+    expect(burst.sway).toBe(0.5)
+    expect(burst.ring).toBe(true)
+    expect(wall.arrival.shove).toBe(0)
+  })
+
+  test("grounded bursts spawn at the target origin; defaults lift to the burst base", () => {
+    // Pin at the spawn-arg level: a real group records where the flash
+    // and fragments land, behind an inert loop that never ticks.
+    const spawnHeights = (style: BurstStyle): number[] => {
+      const arenaGroup = new THREE.Group()
+      const loop = new EffectLoop(
+        () => false,
+        () => 0,
+        () => 0,
+        () => {},
+      )
+      const layer = createBurstLayer({
+        arenaGroup,
+        loop,
+        pref: () => "full",
+        killMesh: () => {},
+      })
+      layer.spawn(new THREE.Vector3(1, 2, 3), "fire", style)
+      const heights: number[] = []
+      arenaGroup.traverse((child) => {
+        if (child instanceof THREE.Mesh) heights.push(child.position.y)
+      })
+      layer.disposeAll()
+      return heights
+    }
+    const lifted = spawnHeights({ ring: true })
+    expect(lifted.length).toBeGreaterThan(0)
+    for (const y of lifted) expect(y).toBeCloseTo(2 + SHOT_TARGET_Y, 6)
+    const grounded = spawnHeights({ ring: true, grounded: true })
+    expect(grounded.length).toBe(lifted.length)
+    for (const y of grounded) expect(y).toBeCloseTo(2, 6)
   })
 })

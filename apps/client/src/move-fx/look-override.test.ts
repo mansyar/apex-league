@@ -9,7 +9,8 @@ import { lookFor, MOVE_SHOT_LOOK, SHOT_LOOKS, type ShotLook } from "./looks"
  * effect, and their determinism / vertex-level distinctness guarantees.
  * Spark + flare_dart opted in during Phase 2, cinder_shot + blaze_bolt
  * during Phase 3 (P3.T1 + P3.T2), pyre_lance during the Phase 5 fix
- * (P5.F3) — the identity loop below skips all five.
+ * (P5.F3, reworked from the needle to the spear in Phase 7) — the
+ * identity loop below skips all five.
  */
 
 const FIRE_ROWS = [
@@ -78,7 +79,7 @@ describe("per-row look override (FR-1)", () => {
     expect(lookFor("fire", "flare_dart").geometry).toBe("needle")
     expect(lookFor("fire", "cinder_shot").geometry).toBe("chunk")
     expect(lookFor("fire", "blaze_bolt").geometry).toBe("jet")
-    expect(lookFor("fire", "pyre_lance").geometry).toBe("needle")
+    expect(lookFor("fire", "pyre_lance").geometry).toBe("spear")
     // Unknown rows and unknown elements fall through the same way.
     expect(lookFor("fire", "plasma_lance")).toBe(fire)
     expect(lookFor("fire", undefined)).toBe(fire)
