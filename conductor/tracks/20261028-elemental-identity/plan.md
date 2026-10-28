@@ -87,13 +87,18 @@ main bundle.
 - **Touches:** `apps/client/src/move-fx/moves/fire.ts`
 - **Verification:** `bun run verify && bun run build` + 8 fire screenshots
   (Move Lab, desktop + phone, clean console)
-- **Status:** in_progress
+- **Status:** verified
 
 - [x] **P2.T1: New rows** (`spark` stinger, `flame_charge` dash, `flare_dart`
   fast bolt, `pyre_wall` barrier) — covers: FR-2
 - [x] **P2.T2: Upgrade 4 existing rows** to verb + identity grammar — covers:
   FR-2, FR-5
-- [ ] **P2.T3: Fire visual evidence in Move Lab** — covers: AC-1, AC-3
+- [x] **P2.T3: Fire visual evidence in Move Lab** — covers: AC-1, AC-3
+
+**Result:** verified — `bun run verify` exit 0 (3427 pass / 0 fail),
+`bun run build` exit 0, 32 Move-Lab frames (8 moves × travel/impact ×
+desktop/device-phone, clean console) with per-move fire-identity reads.
+**Evidence:** conductor/tracks/20261028-elemental-identity/verification/phase-2.md
 
 ## Phase 3: Water (4 new + 4 upgrades)
 
@@ -201,6 +206,9 @@ main bundle.
   element named from shape/motion) — covers: AC-2
 - [ ] **P8.T3: Acceptance sweep** (AC-1 lookup audit, AC-3 verb spot-checks,
   AC-5 caps/schema/deps) — covers: AC-1, AC-4, AC-5
+- [ ] **P8.T4: Lab phone-toggle framing fix** — the in-page Phone-width toggle
+  mis-frames the arena camera (empty strip); real phone viewports are fine.
+  Make the toggle drive the same responsive path or remove it — covers: FR-8
 
 <!--
 Review fixes are appended by `conductor-review` as:

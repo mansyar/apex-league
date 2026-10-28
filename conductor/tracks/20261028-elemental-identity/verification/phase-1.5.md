@@ -80,6 +80,14 @@ Screenshots taken +300 ms after the impact step stages (first pass at
 | `cinder_dive` | `cinder_dive.png` | head/horn aura + reddish impact sphere |
 | `pyre_wall` | `pyre_wall.png` | pinkish-orange barrier ring + floating sparks |
 
+## Phone-toggle framing (known issue → Phase 8 P8.T4)
+
+The in-page Phone-width toggle narrows the arena column but the Broadcast
+camera keeps its wide framing, showing an empty arena strip with the
+fighters out of frame. Real phone viewports (390×844 device emulation)
+render and frame correctly, so this is lab-chrome-only. All phone evidence
+uses device emulation until P8.T4 lands.
+
 ## Spark-visibility finding
 
 No Phase 2 row bug: `spark` DOES produce visible FX in the lab (burst over
