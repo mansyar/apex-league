@@ -261,8 +261,7 @@ describe("element fallback bodies (FR-1)", () => {
     expect(dash.kick).toBeLessThanOrEqual(-0.6)
     expect(dash.arrival.shove).toBeLessThanOrEqual(-0.6)
     const surge = MOVE_FX.storm_surge
-    if (surge === undefined)
-      throw new Error("missing bespoke row: storm_surge")
+    if (surge === undefined) throw new Error("missing bespoke row: storm_surge")
     expect(surge.shots).toHaveLength(3)
     const beam = MOVE_FX.gigavolt
     if (beam === undefined) throw new Error("missing bespoke row: gigavolt")
