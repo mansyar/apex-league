@@ -50,11 +50,13 @@ sim/save/deps untouched):
   end-sample now catches the final trail puff; wall life pin 560 →
   1050 with the timing-held comment reworded to windup-only).
 
-## Commits
+## Commits (primary)
 
-None — no shell access in this phase. The primary runs the gate,
-commits (one per task: P7.T1, P7.T2, P7.T3, pins+report), and captures
-GIFs.
+- `7e5f97d0` docs — re-land Phase 5 close-out section (missed by
+  `91f48906`, which committed only plan/metadata/GIFs).
+- `c23c382e` feat — P7.T1–T3 implementation (+2 extraction modules).
+- `375c82f5` test — P7.T4 pins + this report.
+- `e8bd7bea` docs — verify Phase 7 implementation and pins.
 
 ## Files changed
 
@@ -109,8 +111,8 @@ existing seams — no behavior change, public APIs untouched:
   / `fallback.test.ts` files).
 - `test(client)` — P7.T4 pins + this report.
 
-GIF re-capture stays with the primary (recipe above) — AC-5/AC-6 are
-GIF-gated and cannot be verified from pins alone.
+GIF re-capture done by the primary (see evidence section below) —
+AC-5/AC-6 verified from the GIFs, not from pins alone.
 
 ## Red → green
 
@@ -134,3 +136,44 @@ Re-capture 4 GIFs in Move Lab, **draconic vs bovine, 1× speed**:
   the defender).
 
 Then re-run the grayscale readability pass on the 4 before sign-off.
+
+## Primary evidence — 4 GIFs + grayscale (VERIFIED)
+
+Move Lab, draconic vs bovine, 1× (seeds 11/23): charge at FAR, the
+other three at close. All four triggers reached `impact staged`.
+
+- `fire-flame_charge.gif` (1.2 MB) — 10-frame strip: frames 1–5 static,
+  frame 6 drake lunging across the floor **engulfed in a bright
+  orange/yellow wreath with trail puffs behind**, frames 7–8 arrival,
+  9–10 aftermath. Verdict: crossing body reads engulfed end to end —
+  feedback item 1 (charge) FIXED.
+- `fire-cinder_dive.gif` (0.75 MB) — 10-frame strip: wind-up glow
+  (frame 2), expanding envelope (3), airborne ascent with riding
+  envelope + wake (4–5), steep plunge (6), crater bloom (7), settle
+  (8–10). Verdict: airborne wreathed plunge, envelope locked on —
+  feedback item 1 (dive) FIXED.
+- `fire-pyre_lance.gif` (0.73 MB) — the 300 ms flight falls between
+  1 fps strip samples (strip read "fail" is a sampling artifact, not a
+  code bug). Full-res second-8 frame: **elongated spear — slender
+  shaft + pointed conical head + collar/guard**, ⅓–½ body length, with
+  muzzle embers at the attacker. Impact frame: bright burst **behind /
+  right of the defender** (exit wound). Verdict: reads as a
+  lance/spear, not a generic bolt — feedback item 2 FIXED. Lesson:
+  sub-second flights need full-res frame reads, not 1 fps strips.
+- `fire-pyre_wall.gif` (0.89 MB) — 12-frame 1 fps strip: seconds 1–9
+  wind-up/positioning, second 10 **translucent pinkish-orange
+  dome/pillar erupting straight out of the ground, fully encircling
+  the defender, 1.5–2× body height, embers inside**, seconds 11–12
+  clear. Verdict: ground-erupting circular fire tower — feedback
+  item 3 FIXED.
+
+Grayscale re-read (color stripped, 2×2): charge = engulfed lunging
+body with trailing wake; dive = diving body in aerial envelope;
+lance = detached projectile point; wall = vertical pillar around the
+defender. **PASS — four distinct silhouettes, no hue dependence.**
+
+### Result
+
+**VERIFIED.** All three user feedback items fixed and proven live;
+grayscale holds. Implementation head: `c23c382e` (+ extraction
+modules); pins head: `375c82f5`; evidence: 4 GIFs in this folder.
