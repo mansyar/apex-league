@@ -231,14 +231,15 @@ desktop/device-phone, clean console) with per-move wind-identity reads.
   (evidence only; code only if a gap surfaces)
 - **Verification:** `bun run verify && bun run build` + complete catalog +
   grayscale pass, clean console
-- **Status:** in_progress (primary: T4 subagent launched; T1–T3 primary-executed)
+- **Status:** verified (primary: catalog indexed, grayscale pass complete,
+  acceptance sweep complete, T4 landed — see verification/phase-8.md)
 
-- [ ] **P8.T1: Assemble 48-move catalog in Move Lab** desktop + phone — covers: FR-7
-- [ ] **P8.T2: Grayscale readability check** (one reference move per element,
+- [x] **P8.T1: Assemble 48-move catalog in Move Lab** desktop + phone — covers: FR-7
+- [x] **P8.T2: Grayscale readability check** (one reference move per element,
   element named from shape/motion) — covers: AC-2
-- [ ] **P8.T3: Acceptance sweep** (AC-1 lookup audit, AC-3 verb spot-checks,
+- [x] **P8.T3: Acceptance sweep** (AC-1 lookup audit, AC-3 verb spot-checks,
   AC-5 caps/schema/deps) — covers: AC-1, AC-4, AC-5
-- [ ] **P8.T4: Lab phone-toggle framing fix** — the in-page Phone-width toggle
+- [x] **P8.T4: Lab phone-toggle framing fix** — the in-page Phone-width toggle
   mis-frames the arena camera (empty strip); real phone viewports are fine.
   Make the toggle drive the same responsive path or remove it — covers: FR-8
 

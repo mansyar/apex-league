@@ -14,9 +14,9 @@
   "priority": "high",
   "progress": {
     "phases_total": 9,
-    "phases_verified": 8,
-    "tasks_done": 31,
-    "tasks_total": 34
+    "phases_verified": 9,
+    "tasks_done": 35,
+    "tasks_total": 35
   },
   "review_rounds": 0,
   "review_verdict": null,
