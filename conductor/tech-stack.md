@@ -147,6 +147,19 @@
   pass, element particles, hit decals, big-hit vignette); the style is a
   saved v9 setting with live mid-battle switching, auto-pinned to broadcast
   under reduced motion.*
+-   *2026-10-29: fire move identity landed (track
+  `20261028-fire-move-identity`). Client side only — sim, save schema (v25),
+  and dependencies untouched. Per-row `MOVE_SHOT_LOOK` override mechanism
+  (`lookFor(element, moveId?)`, threaded through `spawn`/`spawnProjectile`
+  signatures) with four fire geometry pieces (`fork`, `chunk`, `needle`,
+  `jet`) plus `spear` (`buildSpearCore` in `fx/shot-spear.ts`): spark
+  zigzag, cinder lobbed chunk, flare pierce needle, blaze gathered comet,
+  2.5x grounded fire-tower wall, zero-shot body-first charge/dive, lance
+  pass-through with exit burst. Attacker body transit
+  (`steps/fire-transit.ts`, pace-scaled, reduced-motion dampened) carries
+  flame envelopes through crossings. Dead `buildGather` removed in review.
+  All modules within the 12 KB cap; 8 Move Lab GIFs + grayscale pass as
+  evidence; user GIF sign-off recorded.*
 -   *2026-10-28: elemental identity pass landed (track
    `20261028-elemental-identity`). Client side only — sim, save schema (v25),
    and dependencies untouched. Every catalog move now owns a bespoke

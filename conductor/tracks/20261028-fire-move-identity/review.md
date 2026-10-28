@@ -127,7 +127,7 @@ legibility passes.
 
 ## Doc sync
 
-`pending` — product/tech-stack dated notes after R1 fixes land.
+`updated` — tech-stack.md dated note (2026-10-29 fire move identity).
 
 ## History
 
