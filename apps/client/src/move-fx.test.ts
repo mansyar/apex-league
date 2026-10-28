@@ -254,21 +254,6 @@ describe("move table", () => {
     expect(lookFor(getMove("zephyr_veil")?.element)).toBe(look("wind"))
   })
 
-  test("the new lines' guard signatures ride the default body too", () => {
-    // The roster-expansion guards with no bespoke row yet inherit the
-    // default body and let their element supply the shot — the same rule
-    // the earth and wind guards follow. (pyre_wall left this list in
-    // Phase 2 and tide_aegis leaves it in Phase 3: each now owns a bespoke
-    // barrier row — see the AC-3 fire/water pins.)
-    const guards: ReadonlyArray<[string, Element]> = [
-      ["bramble_guard", "plant"],
-    ]
-    for (const [guard, element] of guards) {
-      expect(fxFor(guard)).toBe(DEFAULT_FX)
-      expect(lookFor(getMove(guard)?.element)).toBe(look(element))
-    }
-  })
-
   test("each new attack form is authored in its element's grammar", () => {
     // One attack signature per new line: a held windup, a real kick, and an
     // arrival burst — the shared grammar of the existing tier-3 shots.

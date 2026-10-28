@@ -47,12 +47,11 @@ describe("element fallback bodies (FR-1)", () => {
   })
 
   test("unauthored moves resolve to their element's fallback", () => {
-    // One unauthored special per element with moves still to land (fire and
-    // water are fully bespoke — see the AC-1 fire/water pins below): the
-    // guard line plus one attack the bespoke tables do not own.
+    // One unauthored special per element with moves still to land (fire,
+    // water, and plant are fully bespoke — see the AC-1 fire/water/plant
+    // pins below): the guard line plus one attack the bespoke tables do
+    // not own.
     const spot: ReadonlyArray<[string, (typeof ELEMENTS)[number]]> = [
-      ["seed_shot", "plant"],
-      ["bramble_guard", "plant"],
       ["static_jolt", "electric"],
       ["ion_wall", "electric"],
       ["pebble_shot", "earth"],
@@ -173,6 +172,64 @@ describe("element fallback bodies (FR-1)", () => {
     const bolt = MOVE_FX.splash_bolt
     if (bolt === undefined) throw new Error("missing bespoke row: splash_bolt")
     expect(bolt.charge).toBeDefined()
+  })
+
+  test("all 8 plant specials resolve to bespoke rows (AC-1 plant)", () => {
+    const plantMoves = [
+      "seed_shot",
+      "thorn_volley",
+      "spore_burst",
+      "bramble_dart",
+      "vine_lash",
+      "root_quake",
+      "thorn_charge",
+      "bramble_guard",
+    ]
+    for (const moveId of plantMoves) {
+      expect(getMove(moveId)?.element).toBe("plant")
+      const row = MOVE_FX[moveId]
+      if (row === undefined) throw new Error(`missing bespoke row: ${moveId}`)
+      expect(fxFor(moveId, "plant")).toBe(row)
+      expect(fxFor(moveId, "plant")).not.toBe(ELEMENT_FALLBACK_FX.plant)
+    }
+  })
+
+  test("plant verb reads (AC-3 plant)", () => {
+    // Guards raise a barrier: no projectile, no shove. The charge dashes
+    // the body with a deep shove; the volley fans three shots; the burst
+    // lands across three lanes; the quake keeps its charge phase and a
+    // deep ground coil.
+    const guard = MOVE_FX.bramble_guard
+    if (guard === undefined)
+      throw new Error("missing bespoke row: bramble_guard")
+    expect(guard.shots).toHaveLength(0)
+    expect(guard.arrival.shove).toBe(0)
+    expect(guard.arrival.burst.ring).toBe(true)
+    const charge = MOVE_FX.thorn_charge
+    if (charge === undefined)
+      throw new Error("missing bespoke row: thorn_charge")
+    expect(charge.kick).toBeLessThanOrEqual(-0.6)
+    const volley = MOVE_FX.thorn_volley
+    if (volley === undefined)
+      throw new Error("missing bespoke row: thorn_volley")
+    expect(volley.shots).toHaveLength(3)
+    const burst = MOVE_FX.spore_burst
+    if (burst === undefined)
+      throw new Error("missing bespoke row: spore_burst")
+    expect(burst.arrival.lanes).toHaveLength(3)
+    expect(burst.arrival.burst.ring).toBe(true)
+    const quake = MOVE_FX.root_quake
+    if (quake === undefined)
+      throw new Error("missing bespoke row: root_quake")
+    expect(quake.charge).toBeDefined()
+    expect(quake.pose.windup.coilX ?? 0).toBeGreaterThanOrEqual(0.28)
+    expect(quake.arrival.burst.ring).toBe(true)
+    expect(quake.arrival.shove ?? 0).toBeLessThanOrEqual(-0.55)
+    const dart = MOVE_FX.bramble_dart
+    if (dart === undefined)
+      throw new Error("missing bespoke row: bramble_dart")
+    expect(dart.shots).toHaveLength(1)
+    expect(dart.kick).toBeLessThanOrEqual(-0.5)
   })
 })
 
