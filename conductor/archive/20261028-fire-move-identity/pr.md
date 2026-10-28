@@ -60,14 +60,14 @@ other elements untouched.
 
 Final clips (re-captured after the Phase-7 rework):
 
-![Spark zigzag fork](.conductor/media/20261028-fire-move-identity/fire-spark.gif)
-![Flare dart needle](.conductor/media/20261028-fire-move-identity/fire-flare_dart.gif)
-![Cinder lobbed chunk](.conductor/media/20261028-fire-move-identity/fire-cinder_shot.gif)
-![Blaze gathered comet](.conductor/media/20261028-fire-move-identity/fire-blaze_bolt.gif)
-![Flame charge crossing](.conductor/media/20261028-fire-move-identity/fire-flame_charge.gif)
-![Cinder dive crater](.conductor/media/20261028-fire-move-identity/fire-cinder_dive.gif)
-![Pyre lance spear](.conductor/media/20261028-fire-move-identity/fire-pyre_lance.gif)
-![Pyre wall fire tower](.conductor/media/20261028-fire-move-identity/fire-pyre_wall.gif)
+![Spark zigzag fork](https://github.com/user-attachments/assets/0b6bf55d-c3bc-4fc8-bf16-528af0c30549)
+![Flare dart needle](https://github.com/user-attachments/assets/6e5a8d6c-974b-4573-ab2b-04e87e7343b3)
+![Cinder lobbed chunk](https://github.com/user-attachments/assets/0f1bb116-7528-401a-80f7-e63f06bb8b43)
+![Blaze gathered comet](https://github.com/user-attachments/assets/815a1aeb-9165-4916-93f0-6006357e0269)
+![Flame charge crossing](https://github.com/user-attachments/assets/d29fdcca-bae2-464b-a63e-e96f0c287066)
+![Cinder dive crater](https://github.com/user-attachments/assets/33457b3d-63aa-4762-9495-01075622bc09)
+![Pyre lance spear](https://github.com/user-attachments/assets/ec0c9268-100e-4aeb-8b60-cfeeccfbe3a4)
+![Pyre wall fire tower](https://github.com/user-attachments/assets/2fa69663-a510-4b0a-88d5-d02b636a08a6)
 
 ## Review
 
@@ -99,3 +99,4 @@ git revert --no-edit <squash-commit>
 Client-visual only: no migration, no flag, no data to roll back. Reverting
 restores the shared ember-grammar fire rows from the merged Elemental
 Identity Pass.
+
