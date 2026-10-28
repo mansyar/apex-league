@@ -48,12 +48,10 @@ describe("element fallback bodies (FR-1)", () => {
 
   test("unauthored moves resolve to their element's fallback", () => {
     // One unauthored special per element with moves still to land (fire,
-    // water, and plant are fully bespoke — see the AC-1 fire/water/plant
-    // pins below): the guard line plus one attack the bespoke tables do
-    // not own.
+    // water, plant, and electric are fully bespoke — see the AC-1
+    // fire/water/plant/electric pins below): the guard line plus one attack
+    // the bespoke tables do not own.
     const spot: ReadonlyArray<[string, (typeof ELEMENTS)[number]]> = [
-      ["static_jolt", "electric"],
-      ["ion_wall", "electric"],
       ["pebble_shot", "earth"],
       ["basalt_guard", "earth"],
       ["gust", "wind"],
@@ -227,6 +225,55 @@ describe("element fallback bodies (FR-1)", () => {
     if (dart === undefined) throw new Error("missing bespoke row: bramble_dart")
     expect(dart.shots).toHaveLength(1)
     expect(dart.kick).toBeLessThanOrEqual(-0.5)
+  })
+
+  test("all 8 electric specials resolve to bespoke rows (AC-1 electric)", () => {
+    const electricMoves = [
+      "static_jolt",
+      "volt_dash",
+      "arc_shot",
+      "storm_bolt",
+      "ion_dart",
+      "gigavolt",
+      "storm_surge",
+      "ion_wall",
+    ]
+    for (const moveId of electricMoves) {
+      expect(getMove(moveId)?.element).toBe("electric")
+      const row = MOVE_FX[moveId]
+      if (row === undefined) throw new Error(`missing bespoke row: ${moveId}`)
+      expect(fxFor(moveId, "electric")).toBe(row)
+      expect(fxFor(moveId, "electric")).not.toBe(ELEMENT_FALLBACK_FX.electric)
+    }
+  })
+
+  test("electric verb reads (AC-3 electric)", () => {
+    // Guards raise a barrier: no projectile, no shove. The dash launches
+    // the body with a deep shove; the volley fans three shots on staggered
+    // beats; the beam keeps its long charge phase.
+    const wall = MOVE_FX.ion_wall
+    if (wall === undefined) throw new Error("missing bespoke row: ion_wall")
+    expect(wall.shots).toHaveLength(0)
+    expect(wall.arrival.shove).toBe(0)
+    expect(wall.arrival.burst.ring).toBe(true)
+    const dash = MOVE_FX.volt_dash
+    if (dash === undefined) throw new Error("missing bespoke row: volt_dash")
+    expect(dash.kick).toBeLessThanOrEqual(-0.6)
+    expect(dash.arrival.shove).toBeLessThanOrEqual(-0.6)
+    const surge = MOVE_FX.storm_surge
+    if (surge === undefined)
+      throw new Error("missing bespoke row: storm_surge")
+    expect(surge.shots).toHaveLength(3)
+    const beam = MOVE_FX.gigavolt
+    if (beam === undefined) throw new Error("missing bespoke row: gigavolt")
+    expect(beam.charge).toBeDefined()
+    const bolt = MOVE_FX.storm_bolt
+    if (bolt === undefined) throw new Error("missing bespoke row: storm_bolt")
+    expect(bolt.charge).toBeDefined()
+    const jolt = MOVE_FX.static_jolt
+    if (jolt === undefined) throw new Error("missing bespoke row: static_jolt")
+    expect(jolt.shots).toHaveLength(1)
+    expect(jolt.charge).toBeUndefined()
   })
 })
 
