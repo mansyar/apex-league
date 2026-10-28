@@ -25,8 +25,8 @@
 | --- | --- | --- | --- |
 | FR-2 | Spark reads as zigzag crackle, not a travel ball | `MOVE_SHOT_LOOK.spark = { geometry: "fork", wobble: 0.3 }`; row wind 0.12, shot life 200, no muzzle; arrival size 0.6 / flashGrow 4 / life 260 / sway 1.6; 4 new TDD pins green | Done (GIF pending) |
 | FR-4 | Flare Dart reads as flat pierce, not an explosion | `MOVE_SHOT_LOOK.flare_dart = { geometry: "needle", arc: 0, wobble: 0, spin: 0, pulse: 0 }`; arrival gravity 0 / sway 0 / size 0.7 / flashGrow 1.2 / life 260; 4 new TDD pins green | Done (GIF pending) |
-| AC-1 | Spark GIF: fork + erratic motion visible at small size | `.conductor/evidence/fire-spark.gif` (close, 900ms/step, seeds 11/23, impact staged); frame probe: thin pinkish-orange zigzag line mid-arena + mouth particles | Verified by primary (final user sign-off at Phase 6) |
-| AC-3 | Flare GIF: flat needle, minimal trail, pierce non-bloom impact | `.conductor/evidence/fire-flare_dart.gif` (same anchors); frame probe: cone-shaped dart at head of particle trail, distinct from spark fork | Verified by primary (final user sign-off at Phase 6) |
+| AC-1 | Spark GIF: fork + erratic motion visible at small size | `verification/phase-2/fire-spark.gif` (close, 900ms/step, seeds 11/23, impact staged); frame probe: thin pinkish-orange zigzag line mid-arena + mouth particles | Verified by primary (final user sign-off at Phase 6) |
+| AC-3 | Flare GIF: flat needle, minimal trail, pierce non-bloom impact | `verification/phase-2/fire-flare_dart.gif` (same anchors); frame probe: cone-shaped dart at head of particle trail, distinct from spark fork | Verified by primary (final user sign-off at Phase 6) |
 
 ## Evidence paths
 
@@ -42,8 +42,8 @@ Implementation:
 
 GIFs (captured by primary 2026-10-28):
 
-- `.conductor/evidence/fire-spark.gif` (~1.9 MB, 12 fps) — fork zigzag confirmed
-- `.conductor/evidence/fire-flare_dart.gif` (~2.0 MB, 12 fps) — needle dart confirmed
+- `verification/phase-2/fire-spark.gif` (~1.9 MB, 12 fps) — fork zigzag confirmed
+- `verification/phase-2/fire-flare_dart.gif` (~2.0 MB, 12 fps) — needle dart confirmed
 
 ## GIF capture recipe (for the primary's capture pass)
 
