@@ -52,7 +52,7 @@ determinism gate OK), `bun run build` exit 0, 12 fallback screenshots
 - **Verification:** `bun run verify && bun run build` + lab opens via query
   param, triggers all 8 fire rows (incl. `spark`) with replay/slow-mo, clean
   console, production bundle contains no lab code
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.5.T1: DEV-gated lab entry** — query-param mount (dynamic
   `import()` behind `import.meta.env.DEV`), ranch bypass, hint overlays
