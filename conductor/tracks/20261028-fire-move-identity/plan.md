@@ -45,10 +45,13 @@
 - **Covers:** FR-3, FR-5, AC-2, AC-4
 - **Touches:** `apps/client/src/move-fx/moves/fire.ts`, `apps/client/src/move-fx/moves/fallback.test.ts`
 - **Verification:** `bun run verify && bun run build` + GIFs `fire-cinder_shot.gif`, `fire-blaze_bolt.gif`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Cinder Shot lobbed chunk (positive gravity, drip trail, scorch)** — covers: FR-3, AC-2
-- [ ] **P3.T2: Blaze Bolt charge gather + heavy smoke bolt + lingering burn** — covers: FR-5, AC-4
+**Result:** verified
+**Evidence:** conductor/tracks/20261028-fire-move-identity/verification/phase-3.md
+
+- [x] **P3.T1: Cinder Shot lobbed chunk (positive gravity, drip trail, scorch)** — covers: FR-3, AC-2
+- [x] **P3.T2: Blaze Bolt charge gather + heavy smoke bolt + lingering burn** — covers: FR-5, AC-4
 
 ## Phase 4: Pyre Wall Encirclement
 

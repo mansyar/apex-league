@@ -5,8 +5,8 @@
 - Date: 2026-10-28
 - Branch: feat/20261028-fire-move-identity
 - Base: 50e083d8 (main)
-- Head: 30c5269e (P3.T2; T3 report commit follows)
-- Result: PASS (code + gates; GIF capture left to the primary)
+- Head: 3f22be3e (P3.T3) + GIF evidence (primary)
+- Result: VERIFIED (code + gates by subagent; GIFs captured and visually confirmed by primary)
 
 ## Goal
 
@@ -28,13 +28,13 @@ Blaze Bolt a fast head-first comet (jet geometry). Covers FR-3, FR-5, AC-2, AC-4
 
 | AC | Maps to | Status | Evidence |
 | --- | --- | --- | --- |
-| AC-2 | FR-3 Cinder identifiable in motion at 1x | CODE-GREEN, GIF PENDING (primary) | chunk + wobble 0.35 pin; slow heavy row (850 ms flight, no muzzle, arrival 10/1.6/600 ms, gravity +6, sway 0.3); targeted 45/45; full suite green |
-| AC-4 | FR-5 Blaze identifiable in motion at 1x | CODE-GREEN, GIF PENDING (primary) | jet + wobble 0 / spin 0 pin; fastest flight (300 ms < flare 560 < cinder 850); biggest lingering bloom (12/1.9/620 ms, flashGrow 3.6); targeted 45/45; full suite green |
+| AC-2 | FR-3 Cinder identifiable in motion at 1x | VERIFIED | chunk + wobble 0.35 pin; strip: orange muzzle flash → brownish-orange puff string in flight → reddish-brown thud ring on defender; `phase-3/fire-cinder_shot.gif` (close, 900ms/step, seeds 103/104) |
+| AC-4 | FR-5 Blaze identifiable in motion at 1x | VERIFIED | jet + wobble 0 / spin 0 pin; strip: launch flash + bright vertical streak in flight → large red/orange shockwave bloom on defender; `phase-3/fire-blaze_bolt.gif` (close, 900ms/step, seeds 105/106) |
 
-## Shots (primary to capture)
+## Shots (captured by primary 2026-10-28)
 
-- `conductor/tracks/20261028-fire-move-identity/verification/phase-3/cinder_shot.gif` — PENDING
-- `conductor/tracks/20261028-fire-move-identity/verification/phase-3/blaze_bolt.gif` — PENDING
+- `conductor/tracks/20261028-fire-move-identity/verification/phase-3/fire-cinder_shot.gif` (~2.1 MB, 12 fps) — chunk tumble + thud ring confirmed
+- `conductor/tracks/20261028-fire-move-identity/verification/phase-3/fire-blaze_bolt.gif` (~2.2 MB, 12 fps) — comet streak + big bloom confirmed
 
 ### GIF capture recipe (for the primary — no browser/recording tools in this environment)
 
