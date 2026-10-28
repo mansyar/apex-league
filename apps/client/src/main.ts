@@ -25,6 +25,7 @@ import { createCloudSave } from "./cloud/cloud-save"
 import { readCredentials } from "./cloud/credentials"
 import { buildCloudPanel } from "./cloud/panel"
 import { showFailurePlate } from "./failure-plate"
+import { mountMoveLabIfRequested } from "./movelab/entry"
 import { buildRecoveryModal, recoveryFileName } from "./recovery"
 import { buildImportModal } from "./save-transfer"
 import { createScene, type SceneHandle } from "./scene"
@@ -85,16 +86,17 @@ const arena = buildArena(scene.sceneRoot)
 const staging = createStaging(arena.group)
 const swap = createSwap(scene, arena)
 
+// Dev-only Move Lab (elemental-identity FR-8, NFR-6): `?movelab` mounts the
+// staging-direct rig; the lab chunk stays out of production builds.
+const moveLabMode = mountMoveLabIfRequested({ app, scene, staging, swap })
+
 const storage: Storage = window.localStorage
-// Boot reads once and distinguishes three worlds: no save (silent fresh
-// start), an unreadable save (fresh start + a calm notice — the player is
-// never silently robbed of their ranch), and a healthy payload (state +
-// the riding cup session).
+// Boot reads once: no save (silent fresh start), an unreadable save (fresh
+// start + a calm notice), or a healthy payload (state + cup session).
 const boot = loadBoot(storage)
 const saved = boot && "state" in boot ? boot : null
-// A corrupt save opens a blocking recovery dialog instead of a banner: keep
-// the bytes downloadable, and never let the starter picker overwrite them
-// before the player explicitly chooses to start over.
+// A corrupt save opens a blocking recovery dialog; the starter picker must
+// never overwrite those bytes before the player chooses to start over.
 const corruptBoot = boot !== null && "corrupt" in boot
 const recovery = buildRecoveryModal({
   onDownload: () => {
@@ -120,18 +122,14 @@ const recovery = buildRecoveryModal({
 })
 app.append(recovery.root)
 if (corruptBoot) recovery.open()
-// A restored session is only resumable while its cup day is current: the
-// walk lives on the day it was entered, and a day that moved on is over.
+// A restored session only resumes while its cup day is current.
 const restoredSession =
   saved?.session && saved.session.bracket.day === saved.state.day
     ? saved.session
     : null
 
-// The cloud, if this build has one (FR-11, AC-11). An unset origin is decided
-// here, once, at construction: no cloud object, no adapter, no request, and
-// the chip never exists — a local-only build is byte-for-byte the old client
-// in behaviour. Boot stays local either way: `loadBoot` already ran above and
-// the pull below is started only after the ranch has rendered (NFR-2).
+// The cloud, if this build has one (FR-11, AC-11): an unset origin means
+// no cloud object, adapter, or request (NFR-2); boot stays local either way.
 const cloud = createCloudSave({
   origin: import.meta.env.VITE_API_ORIGIN,
   local: storage,
@@ -157,8 +155,7 @@ const store = createGameStore(
   },
 )
 
-// Scene sync first: the camera preference and the creature rebuild the
-// screens and the starter overlay both lean on.
+// Scene sync first: camera + creature rebuilds lean on it.
 const sceneSync = createSceneSync(scene, store)
 sceneSync.applyCameraStyle()
 
@@ -285,19 +282,20 @@ audio.player.setVolumes({
 audio.beds.setVolume(store.get().settings.musicVolume)
 
 // First run (or a migrated v1 save without a creature): offer the starter.
-let starter = store.get().creature
-  ? null
-  : createStarterChoice(app, {
-      onChoose: (speciesId) => {
-        // Runtime seed: each new game rolls a distinct partner, and every
-        // roll is reproducible from the saved state afterwards.
-        const seed = Date.now() % 2 ** 31
-        store.commit(chooseStarter(store.get(), speciesId, seed))
-        starter?.remove()
-        starter = null
-        sceneSync.syncScene()
-      },
-    })
+// Suppressed in Move Lab mode — the rig casts its own fighters.
+let starter =
+  store.get().creature || moveLabMode
+    ? null
+    : createStarterChoice(app, {
+        onChoose: (speciesId) => {
+          // Runtime seed: a distinct partner per game, reproducible afterwards.
+          const seed = Date.now() % 2 ** 31
+          store.commit(chooseStarter(store.get(), speciesId, seed))
+          starter?.remove()
+          starter = null
+          sceneSync.syncScene()
+        },
+      })
 
 sceneSync.syncScene()
 hud.update(store.get())
