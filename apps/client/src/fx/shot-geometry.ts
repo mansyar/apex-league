@@ -1,5 +1,4 @@
 import * as THREE from "three"
-import { jitter } from "../anim"
 import type { ShotLook } from "../move-fx"
 import { PROJECTILE_RADIUS, trailOpacity, trailRadius } from "./fx-data"
 import { buildSpearCore } from "./shot-spear"
@@ -234,63 +233,6 @@ export function buildShotCore(
   )
   if ((look.stretch ?? 1) > 1.2) core.scale.set(0.72, 0.72, look.stretch ?? 1)
   return core
-}
-
-/** Motes ringing the charge-gather effect (Blaze Bolt draw-in). */
-export const GATHER_MOTES = 10
-
-/**
- * Build the charge-gather effect: a swelling central orb ringed by motes
- * placed on a shell by a golden-angle lattice plus seeded jitter, so the
- * same seed always draws the same draw-in. A static arrangement — the
- * charge step animates the inward pull (Phase 3).
- */
-export function buildGather(
-  color: THREE.Color,
-  size: number,
-  seed = 1,
-): THREE.Group {
-  const gather = new THREE.Group()
-  gather.add(
-    new THREE.Mesh(
-      new THREE.SphereGeometry(PROJECTILE_RADIUS * 1.1 * size, 12, 10),
-      new THREE.MeshBasicMaterial({
-        color,
-        transparent: true,
-        opacity: 0.5,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      }),
-    ),
-  )
-  const moteGeo = new THREE.OctahedronGeometry(
-    PROJECTILE_RADIUS * 0.28 * size,
-    0,
-  )
-  const moteMat = new THREE.MeshBasicMaterial({
-    color,
-    transparent: true,
-    opacity: 0.85,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-  })
-  const shell = PROJECTILE_RADIUS * 5 * size
-  for (let i = 0; i < GATHER_MOTES; i++) {
-    const phi =
-      Math.acos(1 - (2 * (i + 0.5)) / GATHER_MOTES) +
-      jitter(seed, `gather:phi:${i}`, 0.2)
-    const theta = i * 2.399963 + jitter(seed, `gather:theta:${i}`, 0.25)
-    const radius =
-      shell + jitter(seed, `gather:radius:${i}`, PROJECTILE_RADIUS * 1.2 * size)
-    const mote = new THREE.Mesh(moteGeo, moteMat)
-    mote.position.set(
-      radius * Math.sin(phi) * Math.cos(theta),
-      radius * Math.cos(phi),
-      radius * Math.sin(phi) * Math.sin(theta),
-    )
-    gather.add(mote)
-  }
-  return gather
 }
 
 /**

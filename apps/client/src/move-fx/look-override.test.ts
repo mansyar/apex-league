@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test"
 import * as THREE from "three"
-import { buildGather, buildShotCore, GATHER_MOTES } from "../fx/shot-geometry"
+import { buildShotCore } from "../fx/shot-geometry"
 import { lookFor, MOVE_SHOT_LOOK, SHOT_LOOKS, type ShotLook } from "./looks"
 
 /**
  * Phase 1 pins for the fire-identity foundation (FR-1): the per-row look
- * override fallthrough, the four new geometry pieces plus the gather
- * effect, and their determinism / vertex-level distinctness guarantees.
+ * override fallthrough, the four new geometry pieces, and their
+ * determinism / vertex-level distinctness guarantees.
  * Spark + flare_dart opted in during Phase 2, cinder_shot + blaze_bolt
  * during Phase 3 (P3.T1 + P3.T2), pyre_lance during the Phase 5 fix
  * (P5.F3, reworked from the needle to the spear in Phase 7) — the
@@ -210,20 +210,6 @@ describe("new geometry pieces (FR-1)", () => {
     box.getSize(extent)
     expect(extent.y).toBeGreaterThan(extent.x * 2)
   })
-
-  test("gather is an orb ringed by seeded motes", () => {
-    const gather = buildGather(color, 1)
-    const meshes = meshesOf(gather)
-    expect(meshes.length).toBe(1 + GATHER_MOTES)
-    const orb = meshes[0]
-    if (orb === undefined) throw new Error("gather built no orb")
-    expect(orb.geometry.type).toBe("SphereGeometry")
-    for (const mote of meshes.slice(1)) {
-      expect(mote.geometry.type).toBe("OctahedronGeometry")
-      // Motes ring the orb on a shell, never at its center.
-      expect(mote.position.length()).toBeGreaterThan(0.5)
-    }
-  })
 })
 
 describe("piece determinism", () => {
@@ -237,19 +223,6 @@ describe("piece determinism", () => {
       expect(a).toEqual(b)
     })
   }
-
-  test("gather builds identically under a fixed seed", () => {
-    const a = allPositions(buildGather(color, 1, 7))
-    const b = allPositions(buildGather(color, 1, 7))
-    expect(a.length).toBeGreaterThan(0)
-    expect(a).toEqual(b)
-  })
-
-  test("gather answers its seed", () => {
-    const a = allPositions(buildGather(color, 1, 7))
-    const other = allPositions(buildGather(color, 1, 8))
-    expect(a).not.toEqual(other)
-  })
 })
 
 describe("piece distinctness", () => {
