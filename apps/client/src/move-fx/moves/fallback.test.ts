@@ -6,12 +6,12 @@ import { DEFAULT_PROFILE } from "../../choreo"
 import type { DriveFighter } from "../../fighter-driver"
 import { decalRing } from "../../fx/fx-data"
 import { HitStop } from "../../fx/loop"
-import { lookFor } from "../looks"
 import type { BattleEffects } from "../../staging-fx"
 import type { Side, StepIO } from "../../steps/context"
 import { fireSpecial } from "../../steps/fire"
-import { DEFAULT_FX, fxFor, MOVE_FX } from "../moves"
+import { lookFor } from "../looks"
 import type { BurstStyle } from "../moves"
+import { DEFAULT_FX, fxFor, MOVE_FX } from "../moves"
 import { ELEMENT_FALLBACK_FX, fallbackFor } from "./fallback"
 import {
   barrierBody,
@@ -675,9 +675,7 @@ function driveTrioMove(moveId: string, compressed: boolean): TrioDrive {
     disposeAllDecals: () => {},
     disposeAll: () => {},
   }
-  let run:
-    | ((t: number, ao: DriveFighter, at: DriveFighter) => void)
-    | undefined
+  let run: ((t: number, ao: DriveFighter, at: DriveFighter) => void) | undefined
   const io: StepIO = {
     effects,
     bigHit: () => {},
@@ -733,8 +731,7 @@ describe("fire body-first dash trio (FR-7)", () => {
 
   test("flame_charge is a pure crossing body hit with a launch flare and a driving bloom", () => {
     const row = MOVE_FX.flame_charge
-    if (row === undefined)
-      throw new Error("missing bespoke row: flame_charge")
+    if (row === undefined) throw new Error("missing bespoke row: flame_charge")
     expect(row.shots).toHaveLength(0)
     expect(row.kick).toBeLessThanOrEqual(-0.7)
     // Wreath: a charge swells around the crossing body, cleared at release.
@@ -788,16 +785,18 @@ describe("fire body-first dash trio (FR-7)", () => {
     }
     // The authored muzzle pops belong to the crossing charge and the
     // pass-through streak — never to the pilotless dive.
-    expect(driveTrioMove("flame_charge", false).bursts.length).toBeGreaterThanOrEqual(1)
-    expect(driveTrioMove("pyre_lance", false).bursts.length).toBeGreaterThanOrEqual(1)
+    expect(
+      driveTrioMove("flame_charge", false).bursts.length,
+    ).toBeGreaterThanOrEqual(1)
+    expect(
+      driveTrioMove("pyre_lance", false).bursts.length,
+    ).toBeGreaterThanOrEqual(1)
     expect(driveTrioMove("cinder_dive", false).bursts).toHaveLength(0)
     // Guards stay silent on their impact path: no flight, no mouth pop —
     // just the ring at the foe.
     const wall = driveTrioMove("pyre_wall", true)
     expect(wall.projectiles).toBe(0)
     expect(wall.bursts.length).toBeGreaterThanOrEqual(1)
-    expect(wall.bursts.every((burst) => burst.style?.ring === true)).toBe(
-      true,
-    )
+    expect(wall.bursts.every((burst) => burst.style?.ring === true)).toBe(true)
   })
 })
