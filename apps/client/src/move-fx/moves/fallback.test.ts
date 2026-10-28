@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { getMove } from "@apex/sim"
+import { lookFor } from "../looks"
 import { DEFAULT_FX, fxFor, MOVE_FX } from "../moves"
 import { ELEMENT_FALLBACK_FX, fallbackFor } from "./fallback"
 import {
@@ -46,22 +47,19 @@ describe("element fallback bodies (FR-1)", () => {
     expect(fallbackFor("shadow")).toBeUndefined()
   })
 
-  test("unauthored moves resolve to their element's fallback", () => {
-    // One unauthored special per element with moves still to land (fire,
-    // water, plant, electric, and earth are fully bespoke — see the AC-1
-    // fire/water/plant/electric/earth pins below): the guard line plus one
-    // attack the bespoke tables do not own.
-    const spot: ReadonlyArray<[string, (typeof ELEMENTS)[number]]> = [
+  test("no unauthored specials remain — the last wind spots now resolve bespoke", () => {
+    // Phase 7 closes the catalog: gust and zephyr_veil were the final
+    // unauthored specials. The fallback bodies above still serve unknown
+    // move ids (see the DEFAULT_FX pin below); no catalog move needs them.
+    const closed: ReadonlyArray<[string, (typeof ELEMENTS)[number]]> = [
       ["gust", "wind"],
       ["zephyr_veil", "wind"],
     ]
-    for (const [moveId, element] of spot) {
+    for (const [moveId, element] of closed) {
       expect(getMove(moveId)?.element).toBe(element)
-      expect(MOVE_FX[moveId]).toBeUndefined()
-      const expected = fallbackFor(element)
-      if (expected === undefined)
-        throw new Error(`missing fallback body for ${element}`)
-      expect(fxFor(moveId, element)).toBe(expected)
+      const row = MOVE_FX[moveId]
+      if (row === undefined) throw new Error(`missing bespoke row: ${moveId}`)
+      expect(fxFor(moveId, element)).toBe(row)
       expect(fxFor(moveId, element)).not.toBe(DEFAULT_FX)
     }
   })
@@ -70,9 +68,10 @@ describe("element fallback bodies (FR-1)", () => {
     expect(fxFor("cinder_shot", "fire")).not.toBe(ELEMENT_FALLBACK_FX.fire)
     expect(fxFor("quake_stomp", "earth")).not.toBe(ELEMENT_FALLBACK_FX.earth)
     expect(fxFor("cyclone_dive", "wind")).not.toBe(ELEMENT_FALLBACK_FX.wind)
+    expect(fxFor("gust", "wind")).not.toBe(ELEMENT_FALLBACK_FX.wind)
+    expect(fxFor("zephyr_veil", "wind")).not.toBe(ELEMENT_FALLBACK_FX.wind)
     // No element to resolve: today's generic read, so instant mode and any
     // legacy caller see byte-identical behavior.
-    expect(fxFor("zephyr_veil")).toBe(DEFAULT_FX)
     expect(fxFor(undefined)).toBe(DEFAULT_FX)
     expect(fxFor(undefined, undefined)).toBe(DEFAULT_FX)
     expect(fxFor("plasma_lance")).toBe(DEFAULT_FX)
@@ -338,6 +337,96 @@ describe("element fallback bodies (FR-1)", () => {
     if (clay === undefined) throw new Error("missing bespoke row: clay_burst")
     expect(clay.shots).toHaveLength(1)
     expect(clay.kick).toBeLessThanOrEqual(-0.5)
+  })
+
+  test("all 8 wind specials resolve to bespoke rows (AC-1 wind)", () => {
+    const windPins = [
+      ["gust", MOVE_FX.gust],
+      ["feather_dart", MOVE_FX.feather_dart],
+      ["gale_cutter", MOVE_FX.gale_cutter],
+      ["sky_bolt", MOVE_FX.sky_bolt],
+      ["talon_slash", MOVE_FX.talon_slash],
+      ["hurricane_spiral", MOVE_FX.hurricane_spiral],
+      ["cyclone_dive", MOVE_FX.cyclone_dive],
+      ["zephyr_veil", MOVE_FX.zephyr_veil],
+    ] as const
+    for (const [moveId, row] of windPins) {
+      expect(getMove(moveId)?.element).toBe("wind")
+      if (row === undefined) throw new Error(`missing bespoke row: ${moveId}`)
+      expect(fxFor(moveId, "wind")).toBe(row)
+      expect(fxFor(moveId, "wind")).not.toBe(ELEMENT_FALLBACK_FX.wind)
+    }
+  })
+
+  test("wind verb reads (AC-3 wind)", () => {
+    // Guards raise a barrier: no projectile, no shove. The talon rakes
+    // three simultaneous streaks on one shared beat (never a staggered
+    // volley); the spiral keeps its charge phase and a deep coil; the
+    // dive plunges chargeless with a rising windup and three lanes; the
+    // gust stays a chargeless chip.
+    const veil = MOVE_FX.zephyr_veil
+    if (veil === undefined) throw new Error("missing bespoke row: zephyr_veil")
+    expect(veil.shots).toHaveLength(0)
+    expect(veil.arrival.shove).toBe(0)
+    expect(veil.arrival.burst.ring).toBe(true)
+    const talon = MOVE_FX.talon_slash
+    if (talon === undefined) throw new Error("missing bespoke row: talon_slash")
+    expect(talon.shots).toHaveLength(3)
+    expect(new Set(talon.shots.map((shot) => shot.at)).size).toBe(1)
+    const spiral = MOVE_FX.hurricane_spiral
+    if (spiral === undefined)
+      throw new Error("missing bespoke row: hurricane_spiral")
+    expect(spiral.charge).toBeDefined()
+    expect(spiral.pose.windup.coilX ?? 0).toBeGreaterThanOrEqual(0.28)
+    expect(spiral.arrival.burst.ring).toBe(true)
+    expect(spiral.shots).toHaveLength(3)
+    const dive = MOVE_FX.cyclone_dive
+    if (dive === undefined) throw new Error("missing bespoke row: cyclone_dive")
+    expect(dive.charge).toBeUndefined()
+    expect(dive.pose.windup.rise ?? 0).toBeGreaterThan(0)
+    expect(dive.shots).toHaveLength(1)
+    expect(dive.arrival.lanes).toHaveLength(3)
+    // The finisher tops the dive on every axis: wider gust ring, heavier
+    // shove, deeper coil, later release.
+    expect(spiral.arrival.burst.size ?? 0).toBeGreaterThan(
+      dive.arrival.burst.size ?? 0,
+    )
+    expect(spiral.arrival.shove ?? 0).toBeLessThan(dive.arrival.shove ?? 0)
+    expect(spiral.wind).toBeGreaterThan(dive.wind)
+    const gust = MOVE_FX.gust
+    if (gust === undefined) throw new Error("missing bespoke row: gust")
+    expect(gust.shots).toHaveLength(1)
+    expect(gust.charge).toBeUndefined()
+  })
+
+  test("wind owns wind-only shot parts (FR-4)", () => {
+    // Wind shares no geometry/trail parts with water or plant: its look
+    // is the faceted streak core with a streak-sliver trail, in fallback
+    // and in every bespoke row. Rows carry no part keys — the look table
+    // is the single place parts are named, so the pin sits here.
+    const wind = lookFor("wind")
+    expect(wind.geometry).toBe("streak")
+    expect(wind.trail).toBe("streaks")
+    expect(wind.geometry).not.toBe(lookFor("water").geometry)
+    expect(wind.trail).not.toBe(lookFor("plant").trail)
+    // Every bespoke arrival lands as a low drifting gust ring, never a
+    // heavy or still burst.
+    const windMoves = [
+      "gust",
+      "feather_dart",
+      "gale_cutter",
+      "sky_bolt",
+      "talon_slash",
+      "hurricane_spiral",
+      "cyclone_dive",
+      "zephyr_veil",
+    ] as const
+    for (const moveId of windMoves) {
+      const row = MOVE_FX[moveId]
+      if (row === undefined) throw new Error(`missing bespoke row: ${moveId}`)
+      expect(row.arrival.burst.ring).toBe(true)
+      expect(row.arrival.burst.gravity ?? 7).toBeLessThan(4)
+    }
   })
 })
 
