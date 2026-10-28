@@ -172,17 +172,20 @@ export const FIRE_FX: Record<string, MoveFx> = {
       shove: -0.4,
     },
   },
-  // Pyre Lance (tier 3 beam): the heavy piercing read — a long charge
-  // swelling into one heavy fast shot that lands as a deep upward bloom.
+  // Pyre Lance (tier 3 beam): the heavy piercing read — the streak passes
+  // clean through, so the row flies zero shots. The beam charge still
+  // swells before release, a tight driftless flash pops on the pass line,
+  // and the arrival lands as a beam-line triplet with a tall fast glow.
   pyre_lance: {
     ...beamBody("fire"),
+    shots: [],
     muzzle: {
-      puffs: 7,
-      size: 1.1,
-      life: 360,
-      gravity: -2.2,
-      sway: 0.5,
-      flashGrow: 2.8,
+      puffs: 5,
+      size: 0.7,
+      life: 280,
+      gravity: 0,
+      sway: 0,
+      flashGrow: 3.4,
     },
     pose: {
       windup: { pitch: -0.3, hold: true, roll: 0.1, rise: 0.07, coilX: 0.28 },
@@ -190,13 +193,14 @@ export const FIRE_FX: Record<string, MoveFx> = {
     },
     arrival: {
       burst: {
-        puffs: 12,
-        size: 1.7,
-        life: 540,
-        gravity: -2.2,
-        sway: 0.5,
-        flashGrow: 3.2,
+        puffs: 9,
+        size: 1.1,
+        life: 380,
+        gravity: 0,
+        sway: 0,
+        flashGrow: 3.6,
       },
+      lanes: [-0.18, 0, 0.18],
       shove: -0.6,
     },
   },
