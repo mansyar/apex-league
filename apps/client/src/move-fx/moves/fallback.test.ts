@@ -934,10 +934,10 @@ describe("phase-5 fix: true body motion plus pass-through (FR-7)", () => {
     }
     expect(charge.transit?.reach).toBe(0.55)
     expect(charge.transit?.lift).toBeUndefined()
-    expect(dive.transit?.reach).toBe(0.85)
-    expect(dive.transit?.lift).toBe(1.3)
+    expect(dive.transit?.reach).toBe(0.9)
+    expect(dive.transit?.lift).toBe(2.2)
     expect(lance.transit).toBeUndefined()
-    expect(lance.arrival.beyond).toBe(1)
+    expect(lance.arrival.beyond).toBe(2.2)
   })
 
   test("flame_charge lunges toward the target, then returns home", () => {
@@ -959,9 +959,9 @@ describe("phase-5 fix: true body motion plus pass-through (FR-7)", () => {
     // Peak arc sits halfway between release (0.58) and the return.
     driven.run(0.79)
     const recoil = recoilOnly("cinder_dive", 0.5)
-    expect(driven.actor.offset.x).toBeCloseTo(recoil.x + 5 * 0.85, 4)
-    // Visibly above ground mid-flight: the arc peak clears one unit.
-    expect(driven.actor.offset.y).toBeCloseTo(recoil.y + 1.3, 4)
+    expect(driven.actor.offset.x).toBeCloseTo(recoil.x + 5 * 0.9, 4)
+    // Visibly above ground mid-flight: the arc peak clears two units.
+    expect(driven.actor.offset.y).toBeCloseTo(recoil.y + 2.2, 4)
     expect(driven.actor.offset.y).toBeGreaterThan(1)
     driven.run(1)
     const home = recoilOnly("cinder_dive", 1)
@@ -1046,7 +1046,7 @@ describe("phase-5 fix: true body motion plus pass-through (FR-7)", () => {
     ranged.run(0.9)
     expect(ranged.projTargets).toHaveLength(1)
     expect(ranged.projFrom[0]?.x).toBeCloseTo(-2.5, 6)
-    expect(ranged.projTargets[0]?.x).toBeCloseTo(2.5 + 1, 6)
+    expect(ranged.projTargets[0]?.x).toBeCloseTo(2.5 + 2.2, 6)
     expect(ranged.projTargets[0]?.z).toBeCloseTo(0, 6)
     // The contact flash stays small at the pass line, ahead of the foe.
     expect(ranged.bursts).toHaveLength(1)
@@ -1056,7 +1056,7 @@ describe("phase-5 fix: true body motion plus pass-through (FR-7)", () => {
     close.run(1)
     expect(close.bursts).toHaveLength(3)
     for (const burst of close.bursts) {
-      expect(burst.at.x).toBeCloseTo(3.5, 6)
+      expect(burst.at.x).toBeCloseTo(4.7, 6)
     }
     expect(
       close.bursts.map((burst) => burst.at.z).sort((a, b) => a - b),

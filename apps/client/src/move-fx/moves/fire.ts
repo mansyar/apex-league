@@ -205,9 +205,12 @@ export const FIRE_FX: Record<string, MoveFx> = {
       },
       lanes: [-0.18, 0, 0.18],
       shove: -0.6,
-      // Exit wound: the main burst lands behind the defender along the
-      // attack axis, where the piercing streak exits (P5.F3).
-      beyond: 1,
+      // Exit wound: the main burst lands well behind the defender along
+      // the attack axis, where the piercing streak exits (P5.F3). The
+      // offset clears the defender's body so the exit reads as separate
+      // from the contact flash — a burst centered one unit past still
+      // overlaps the body and reads frontal.
+      beyond: 2.2,
     },
   },
   // Cinder Dive (cindermoor's attack form): the ram's head-down plunge —
@@ -220,8 +223,10 @@ export const FIRE_FX: Record<string, MoveFx> = {
     shots: [],
     muzzle: undefined,
     // The plunge is the hit: the body rises in an arc and comes down on
-    // the foe, nearly closing the live gap at the peak (P5.F2).
-    transit: { reach: 0.85, lift: 1.3 },
+    // the foe, nearly closing the live gap at the peak (P5.F2). The lift
+    // is deliberately taller than a body height so the arc reads in a
+    // single glance, even at close range over a short gap.
+    transit: { reach: 0.9, lift: 2.2 },
     pose: {
       windup: { pitch: -0.32, hold: true, roll: 0.09, rise: 0.02, coilX: 0.3 },
       recoil: { pitchOut: 0.17, sweepX: [0.3, -0.62], riseOut: 0.03 },
