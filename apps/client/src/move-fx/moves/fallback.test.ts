@@ -214,20 +214,17 @@ describe("element fallback bodies (FR-1)", () => {
       throw new Error("missing bespoke row: thorn_volley")
     expect(volley.shots).toHaveLength(3)
     const burst = MOVE_FX.spore_burst
-    if (burst === undefined)
-      throw new Error("missing bespoke row: spore_burst")
+    if (burst === undefined) throw new Error("missing bespoke row: spore_burst")
     expect(burst.arrival.lanes).toHaveLength(3)
     expect(burst.arrival.burst.ring).toBe(true)
     const quake = MOVE_FX.root_quake
-    if (quake === undefined)
-      throw new Error("missing bespoke row: root_quake")
+    if (quake === undefined) throw new Error("missing bespoke row: root_quake")
     expect(quake.charge).toBeDefined()
     expect(quake.pose.windup.coilX ?? 0).toBeGreaterThanOrEqual(0.28)
     expect(quake.arrival.burst.ring).toBe(true)
     expect(quake.arrival.shove ?? 0).toBeLessThanOrEqual(-0.55)
     const dart = MOVE_FX.bramble_dart
-    if (dart === undefined)
-      throw new Error("missing bespoke row: bramble_dart")
+    if (dart === undefined) throw new Error("missing bespoke row: bramble_dart")
     expect(dart.shots).toHaveLength(1)
     expect(dart.kick).toBeLessThanOrEqual(-0.5)
   })
