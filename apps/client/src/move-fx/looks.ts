@@ -38,6 +38,7 @@ export interface ShotLook {
     | "fork"
     | "chunk"
     | "needle"
+    | "spear"
     | "jet"
   /** Additive halo opacity at the core (0 = none). */
   glow?: number
@@ -110,7 +111,8 @@ export const SHOT_LOOKS: Record<string, ShotLook> = {
  * renders its own geometry + trail instead of its element's default, while
  * every other look field rides the element row. Spark + flare_dart opted
  * in during Phase 2 and cinder_shot + blaze_bolt during Phase 3 (P3.T1 +
- * P3.T2). Resolution pairs with `fxFor(moveId, element)`: pass the same
+ * P3.T2), pyre_lance during the Phase 5 fix (P5.F3, reworked to the spear
+ * in Phase 7). Resolution pairs with `fxFor(moveId, element)`: pass the same
  * pair to `lookFor`.
  */
 export const MOVE_SHOT_LOOK: Record<string, Partial<ShotLook>> = {
@@ -131,11 +133,12 @@ export const MOVE_SHOT_LOOK: Record<string, Partial<ShotLook>> = {
   // additive pillar reads as one driving head with no lateral drift and no
   // tumble. Halo, pulse, and arc ride the fire default.
   blaze_bolt: { geometry: "jet", wobble: 0, spin: 0 },
-  // Pyre Lance (Phase 5 fix, P5.F3): the piercing streak — a molten
-  // needle on a laser-straight lane, no arc lift, no ripple, no tumble,
-  // no throb, so the beam reads through the defender to the exit wound.
+  // Pyre Lance (Phase 5 fix, P5.F3; Phase 7 spear rework): the piercing
+  // streak — a shaft driving a conical head through a guard collar on a
+  // laser-straight lane, no arc lift, no ripple, no tumble, no throb, so
+  // the beam reads through the defender to the exit wound.
   // Row-scoped: every other element's beam keeps its exact look.
-  pyre_lance: { geometry: "needle", arc: 0, wobble: 0, spin: 0, pulse: 0 },
+  pyre_lance: { geometry: "spear", arc: 0, wobble: 0, spin: 0, pulse: 0 },
 }
 
 /**

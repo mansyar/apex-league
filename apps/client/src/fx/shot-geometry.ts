@@ -2,6 +2,7 @@ import * as THREE from "three"
 import { jitter } from "../anim"
 import type { ShotLook } from "../move-fx"
 import { PROJECTILE_RADIUS, trailOpacity, trailRadius } from "./fx-data"
+import { buildSpearCore } from "./shot-spear"
 
 /**
  * Deterministic shot-mesh factories (FR5): the core built from a look
@@ -181,6 +182,9 @@ export function buildShotCore(
     dart.rotation.x = Math.PI / 2
     return dart
   }
+  // Spear: Pyre Lance's piercing lance (Phase 7 rework) — delegated
+  // to shot-spear.ts so this registry stays under the module size cap.
+  if (look.geometry === "spear") return buildSpearCore(color, size)
   if (look.geometry === "jet") {
     // Jet: Pyre Wall's ring flame pillar — a tapered additive column around
     // a brighter core, standing straight up (+y) where the ring erupts

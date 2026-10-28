@@ -37,17 +37,21 @@ export const FIRE_FX: Record<string, MoveFx> = {
   },
   // Flame Charge (tier 1 dash): the attacker crosses wreathed in flame —
   // the crossing body is the hit, so the row flies zero shots. A charge
-  // wreath swells around the body through the crossing and clears at
-  // release, a nose-gap flare pops at launch, and the arrival lands as
+  // wreath engulfs the body through the crossing and clears on the
+  // return, a nose-gap flare pops at launch, and the arrival lands as
   // one forward-driving bloom.
   flame_charge: {
     ...dashBody("fire"),
     wind: 0.34,
     shots: [],
-    charge: { from: 0.3, to: 1.1 },
+    charge: { from: 0.3, to: 2.0 },
     // The lunge carries the read: the body crosses over half the live
-    // gap toward the foe and back, wreath riding (P5.F1).
-    transit: { reach: 0.55 },
+    // gap toward the foe and back, wreath riding (P5.F1), shedding flame
+    // puffs along the crossing (Phase 7 trail).
+    transit: {
+      reach: 0.55,
+      trail: { puffs: 3, size: 1.1, life: 320, gravity: -2.2, sway: 0.6 },
+    },
     muzzle: {
       puffs: 5,
       size: 0.9,
@@ -215,18 +219,25 @@ export const FIRE_FX: Record<string, MoveFx> = {
   },
   // Cinder Dive (cindermoor's attack form): the ram's head-down plunge —
   // the diving body is the hit, so the row flies zero shots and carries
-  // no muzzle or pilot light. A deep held coil launches the vertical
+  // no muzzle. A deep held coil launches the vertical
   // leap and the arrival lands as one down-slamming crater ring.
   cinder_dive: {
     ...dashBody("fire"),
     wind: 0.58,
     shots: [],
     muzzle: undefined,
+    // Phase 7: an envelope swells pre-launch and rides the arc, shedding
+    // flame puffs along the flight so the body reads wreathed end to end.
+    charge: { from: 0.4, to: 2.4 },
     // The plunge is the hit: the body rises in an arc and comes down on
     // the foe, nearly closing the live gap at the peak (P5.F2). The lift
     // is deliberately taller than a body height so the arc reads in a
     // single glance, even at close range over a short gap.
-    transit: { reach: 0.9, lift: 2.2 },
+    transit: {
+      reach: 0.9,
+      lift: 2.2,
+      trail: { puffs: 4, size: 1.4, life: 380, gravity: -2.2, sway: 0.8 },
+    },
     pose: {
       windup: { pitch: -0.32, hold: true, roll: 0.09, rise: 0.02, coilX: 0.3 },
       recoil: { pitchOut: 0.17, sweepX: [0.3, -0.62], riseOut: 0.03 },
@@ -246,8 +257,9 @@ export const FIRE_FX: Record<string, MoveFx> = {
   },
   // Pyre Wall (guard, Phase 4 FR-6): a foe-targeted barrier eruption — no
   // projectile, no shove. A long raise swells a charge and lands a ~2.5x
-  // encirclement ring at the foe — denser rising jets plus the normal fire
-  // contact read (scorch disc) — with the barrier timing held, exactly
+  // encirclement ring at the foe that erupts from the ground as a fire
+  // tower (Phase 7 grounded retune) — denser rising jets plus the normal
+  // fire contact read (scorch disc) — with the barrier timing held, exactly
   // like tide_aegis.
   pyre_wall: {
     ...barrierBody("fire"),
@@ -257,13 +269,14 @@ export const FIRE_FX: Record<string, MoveFx> = {
     },
     arrival: {
       burst: {
-        puffs: 20,
+        puffs: 30,
         ring: true,
         size: 3.75,
-        life: 560,
-        gravity: -2.2,
+        life: 1050,
+        gravity: -4.5,
         sway: 0.5,
-        flashGrow: 3,
+        flashGrow: 3.6,
+        grounded: true,
       },
       shove: 0,
     },
