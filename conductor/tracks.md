@@ -35,3 +35,4 @@
 - [x] **Track: UI Cleanliness & Clarity Pass** - [20261027-ui-cleanliness-clarity-pass](./archive/20261027-ui-cleanliness-clarity-pass/index.md) - refactor - high *(archived 2026-10-27)*
 - [x] **Track: Roster Wave 4 (Fire/Plant/Water Discovery)** — [20261027-roster-wave-4](./archive/20261027-roster-wave-4/index.md) — feature — high
 - [x] **Track: Prod API Wiring** — [20261027-prod-api-wiring](./archive/20261027-prod-api-wiring/index.md) — chore — high
+- [ ] **Track: Elemental Identity Pass** — [20261028-elemental-identity](./tracks/20261028-elemental-identity/index.md) — feature — high
