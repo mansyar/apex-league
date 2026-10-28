@@ -243,17 +243,20 @@ desktop/device-phone, clean console) with per-move wind-identity reads.
   mis-frames the arena camera (empty strip); real phone viewports are fine.
   Make the toggle drive the same responsive path or remove it — covers: FR-8
 
-<!--
-Review fixes are appended by `conductor-review` as:
-
 ## Phase R1: Review Fixes
 
-- **Goal:** Resolve review findings ...
+- **Goal:** Resolve review findings F1–F4 (round 1, all Low, mechanical).
 - **Depends on:** Phase 8
-- **Covers:** review findings
-- **Touches:** ...
-- **Verification:** ...
-- **Status:** pending
+- **Covers:** F1, F2, F3, F4
+- **Touches:** `apps/client/src/move-fx/moves/plant.ts`,
+  `apps/client/src/move-fx/moves/fire.ts`,
+  `apps/client/src/move-fx/moves.ts`,
+  `apps/client/src/move-fx/moves/earth.ts`,
+  `apps/client/src/move-fx/moves/fallback.ts`
+- **Verification:** `bun run verify && bun run build`
+- **Status:** in_progress
 
-- [ ] **R1.T1: Resolve <finding ID>** — covers: <finding ID>
--->
+- [ ] **R1.T1: Resolve F1 (vine_lash stale header)** — covers: F1
+- [ ] **R1.T2: Resolve F2 (pyre_wall guard-targeting header)** — covers: F2
+- [ ] **R1.T3: Resolve F3 (FR9 dead reference)** — covers: F3
+- [ ] **R1.T4: Resolve F4 (EARTH_DUST_TINT constant)** — covers: F4
