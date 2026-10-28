@@ -30,7 +30,7 @@
 - **Covers:** FR-2, FR-4, AC-1, AC-3
 - **Touches:** `apps/client/src/move-fx/moves/fire.ts`, `apps/client/src/move-fx/moves/fallback.test.ts`
 - **Verification:** `bun run verify && bun run build` + GIFs `fire-spark.gif`, `fire-flare_dart.gif`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Spark zigzag fork (no travel ball, snap flash)** — covers: FR-2, AC-1
 - [ ] **P2.T2: Flare Dart needle (flat, trailless, pierce impact)** — covers: FR-4, AC-3
