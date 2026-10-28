@@ -110,7 +110,7 @@ desktop/device-phone, clean console) with per-move fire-identity reads.
 - **Touches:** `apps/client/src/move-fx/moves/water.ts`
 - **Verification:** `bun run verify && bun run build` + 8 water screenshots
   desktop + phone, clean console
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: New rows** (`bubble` floaty orb, `tide_shot`, `mist_spray` cone,
   `tide_aegis` barrier) — covers: FR-2
