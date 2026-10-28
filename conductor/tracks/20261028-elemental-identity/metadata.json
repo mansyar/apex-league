@@ -8,7 +8,7 @@
   "depends_on": [],
   "doc_sync": "pending",
   "id": "20261028-elemental-identity",
-  "last_checkpoint": null,
+  "last_checkpoint": "ec724ede",
   "pr_state": null,
   "pr_url": null,
   "priority": "high",
