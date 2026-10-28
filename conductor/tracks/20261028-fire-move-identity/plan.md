@@ -84,7 +84,6 @@
 - [x] **P5.T3: Pyre Lance pass-through beam (exit burst behind defender)** — covers: FR-7, AC-6
 
 ## Phase 6: GIF Catalog + Acceptance Sweep
-
 - **Goal:** 8 per-move GIFs captured, user sign-off recorded, full gate green, grayscale spot-check.
 - **Depends on:** Phases 2–5
 - **Covers:** FR-8, AC-7
@@ -94,3 +93,17 @@
 
 - [x] **P6.T1: Capture 8 GIFs + grayscale readability pass** — covers: FR-8
 - [ ] **P6.T2: Record user sign-off + close acceptance** — covers: AC-7
+
+## Phase 7: Feedback Rework — Envelope, Spear, Tower
+
+- **Goal:** User feedback round: flame envelope rides the crossing body (Charge + Dive), Lance flies as a spear, Wall erupts from the ground as a circular tower. Re-capture 4 GIFs, re-run grayscale on the 4, full gate green.
+- **Depends on:** Phase 5
+- **Covers:** FR-6, FR-7, AC-5, AC-6
+- **Touches:** `apps/client/src/move-fx/moves.ts`, `apps/client/src/move-fx/moves/fire.ts`, `apps/client/src/steps/fire.ts`, `apps/client/src/fx/bursts.ts`, `apps/client/src/fx/shot-geometry.ts`, `apps/client/src/move-fx/looks.ts`, `apps/client/src/move-fx/**/*.test.ts`
+- **Verification:** `bun run verify && bun run build` + 4 GIFs `fire-flame_charge.gif`, `fire-cinder_dive.gif`, `fire-pyre_lance.gif`, `fire-pyre_wall.gif` (re-captured) + grayscale re-read
+- **Status:** pending
+
+- [ ] **P7.T1: Transit flame trail — `transit.trail` schema + per-frame deterministic spawn; Charge wreath up + Dive envelope added** — covers: FR-7, AC-6
+- [ ] **P7.T2: Spear geometry — `spear` piece (shaft + head + guard) + lance override** — covers: FR-7, AC-6
+- [ ] **P7.T3: Ground-erupting tower — `grounded` burst option + tall buoyant ring retune** — covers: FR-6, AC-5
+- [ ] **P7.T4: TDD pins (trail determinism, spear vertices, grounded height) + phase-7.md evidence** — covers: FR-6, FR-7

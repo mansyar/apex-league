@@ -64,8 +64,8 @@ without move identity.
 | FR-3 | Cinder Shot reads as a heavy lobbed cinder chunk: high arc, falls onto the target, ember-drip trail, scorch mark | must |
 | FR-4 | Flare Dart reads as a flat needle: laser-straight, minimal trail, sharp pierce impact (no explosion bloom) | must |
 | FR-5 | Blaze Bolt reads as a charged heavy: visible gather/draw-in at the mouth, big slow bolt, thick smoke trail, largest bloom + lingering burn | must |
-| FR-6 | Pyre Wall reads as a wall: ~2.5× ring around the defender within existing timing, denser jets, clear encirclement | must |
-| FR-7 | Flame Charge is a pure body hit with zero shots; Cinder Dive and Pyre Lance each read as distinct from Charge and each other in motion, with attacker motion dominating and pilot shots minimized or removed | must |
+| FR-6 | Pyre Wall reads as a circular fire tower: flames erupt OUT OF THE GROUND in a ring around the defender, rising into a cylindrical wall within existing timing | must |
+| FR-7 | Flame Charge is a pure body hit with zero shots, visibly wreathed in flame through the whole crossing; Cinder Dive likewise carries its fire envelope through the arc; Pyre Lance flies as a spear (shaft + head + guard), not a needle; all three mutually distinct in motion, attacker motion dominating, pilot shots minimized or removed | must |
 | FR-8 | One Move Lab GIF per fire row (8 total) captured as track evidence | must |
 
 ## Non-Functional Requirements
@@ -86,8 +86,8 @@ without move identity.
 | AC-2 | Cinder GIF: lobbed arc, fall onto target, drip trail, scorch visible | FR-3 |
 | AC-3 | Flare GIF: flat needle, minimal trail, pierce (non-bloom) impact | FR-4 |
 | AC-4 | Blaze GIF: charge gather visible before release, smoke trail, biggest bloom + burn | FR-5 |
-| AC-5 | Wall GIF: ring clearly encircles defender at ~2.5× scale within current timing | FR-6 |
-| AC-6 | Charge / Dive / Lance GIFs: Charge has zero shots with body crossing the arena; all three mutually distinguishable in motion | FR-7 |
+| AC-5 | Wall GIF: flames visibly rise from the ground in a ring around the defender, forming a cylindrical tower within current timing | FR-6 |
+| AC-6 | Charge / Dive / Lance GIFs: Charge has zero shots with a flame-wreathed body crossing the arena; Dive carries its fire envelope through the arc; Lance flies as a recognizable spear; all three mutually distinguishable in motion | FR-7 |
 | AC-7 | User GIF sign-off on all 8 clips; `bun run verify && bun run build` green | FR-8, NFR-1–NFR-5 |
 
 ## Edge Cases
