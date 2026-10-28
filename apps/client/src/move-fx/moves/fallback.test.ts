@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { getMove } from "@apex/sim"
+import { decalRing } from "../../fx/fx-data"
 import { lookFor } from "../looks"
 import { DEFAULT_FX, fxFor, MOVE_FX } from "../moves"
 import { ELEMENT_FALLBACK_FX, fallbackFor } from "./fallback"
@@ -524,6 +525,43 @@ describe("fire heavy pair (FR-3, FR-5)", () => {
     expect(row.arrival.burst.life ?? 0).toBeGreaterThanOrEqual(600)
     expect(row.arrival.burst.puffs ?? 0).toBeGreaterThanOrEqual(12)
     expect(row.arrival.burst.flashGrow ?? 0).toBeGreaterThanOrEqual(3.5)
+  })
+})
+
+describe("fire wall encirclement (FR-6)", () => {
+  test("pyre_wall ring is ~2.5x the barrier baseline with denser jets", () => {
+    const wall = MOVE_FX.pyre_wall
+    if (wall === undefined) throw new Error("missing bespoke row: pyre_wall")
+    const base = barrierBody("fire")
+    const baseSize = base.arrival.burst.size ?? 1
+    expect(wall.arrival.burst.ring).toBe(true)
+    // Encirclement, not a body-sized ring: 2.5x the barrier body's radius.
+    expect(wall.arrival.burst.size ?? 0).toBeGreaterThanOrEqual(baseSize * 2.5)
+    // Denser rising jets than the 12-jet body-sized ring.
+    expect(wall.arrival.burst.puffs ?? 0).toBeGreaterThanOrEqual(16)
+    expect(wall.arrival.burst.puffs ?? 0).toBeGreaterThan(
+      base.arrival.burst.puffs ?? 0,
+    )
+  })
+
+  test("pyre_wall keeps the foe-targeted guard contract with timing held", () => {
+    const wall = MOVE_FX.pyre_wall
+    if (wall === undefined) throw new Error("missing bespoke row: pyre_wall")
+    const base = barrierBody("fire")
+    // Eruption on the foe: no projectile travel, no shove.
+    expect(wall.shots).toHaveLength(0)
+    expect(wall.arrival.shove).toBe(0)
+    // Timing held: same windup beat and arrival duration as the barrier body.
+    expect(wall.wind).toBe(base.wind)
+    expect(wall.arrival.burst.life).toBe(560)
+    // Rising jets, not falling debris.
+    expect(wall.arrival.burst.gravity ?? 0).toBeLessThan(0)
+  })
+
+  test("pyre_wall lands on a scorch disc", () => {
+    // Fire burns a solid scorch disc under the ring, never a ring outline;
+    // the impact path stamps it via contactReaction -> spawnDecal.
+    expect(decalRing("fire")).toBe(false)
   })
 })
 
