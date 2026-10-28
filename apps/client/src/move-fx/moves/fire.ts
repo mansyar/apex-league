@@ -210,9 +210,11 @@ export const FIRE_FX: Record<string, MoveFx> = {
       shove: -0.6,
     },
   },
-  // Pyre Wall (guard): a foe-targeted barrier eruption — no projectile, no
-  // shove. A long raise swells a charge and lands as a flame ring at the
-  // foe with the normal contact read, exactly like tide_aegis.
+  // Pyre Wall (guard, Phase 4 FR-6): a foe-targeted barrier eruption — no
+  // projectile, no shove. A long raise swells a charge and lands a ~2.5x
+  // encirclement ring at the foe — denser rising jets plus the normal fire
+  // contact read (scorch disc) — with the barrier timing held, exactly
+  // like tide_aegis.
   pyre_wall: {
     ...barrierBody("fire"),
     pose: {
@@ -221,9 +223,9 @@ export const FIRE_FX: Record<string, MoveFx> = {
     },
     arrival: {
       burst: {
-        puffs: 12,
+        puffs: 20,
         ring: true,
-        size: 1.5,
+        size: 3.75,
         life: 560,
         gravity: -2.2,
         sway: 0.5,
