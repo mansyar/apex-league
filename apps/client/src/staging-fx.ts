@@ -37,8 +37,8 @@ export interface BattleEffects {
   /** Launch a shot from the thrower's mouth line at the victim's chest.
    * `moveId` selects the row's `MOVE_SHOT_LOOK` override. */
   spawnProjectile(
-    from: { group: THREE.Group },
-    to: { group: THREE.Group },
+    from: { group: { position: THREE.Vector3 } },
+    to: { group: { position: THREE.Vector3 } },
     element: string | undefined,
     opts?: { size?: number; life?: number; spread?: number; moveId?: string },
   ): void

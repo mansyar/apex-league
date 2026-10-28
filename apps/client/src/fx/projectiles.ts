@@ -39,8 +39,8 @@ export interface ProjectileLayer {
    * `moveId` selects the row's `MOVE_SHOT_LOOK` override; without it the
    * shot renders its element default. */
   spawn(
-    from: { group: THREE.Group },
-    to: { group: THREE.Group },
+    from: { group: { position: THREE.Vector3 } },
+    to: { group: { position: THREE.Vector3 } },
     element: string | undefined,
     opts?: { size?: number; life?: number; spread?: number; moveId?: string },
   ): void
@@ -118,8 +118,8 @@ export function createProjectileLayer(
 
   /** A glowing core in the element hue plus a tapering additive orb trail. */
   const spawn = (
-    from: { group: THREE.Group },
-    to: { group: THREE.Group },
+    from: { group: { position: THREE.Vector3 } },
+    to: { group: { position: THREE.Vector3 } },
     element: string | undefined,
     opts?: { size?: number; life?: number; spread?: number; moveId?: string },
   ): void => {

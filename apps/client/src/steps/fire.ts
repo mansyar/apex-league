@@ -1,5 +1,4 @@
 import type { PlaybackStep } from "@apex/sim"
-import type * as THREE from "three"
 import { clamp01, jitter } from "../anim"
 import { type ReactionKind, reactionFor } from "../choreo"
 import type { DriveFighter } from "../fighter-driver"
@@ -251,7 +250,7 @@ export function fireSpecial(
         exit.z += bnz * beamBeyond
         io.effects.spawnProjectile(
           ao,
-          { group: { position: exit } as THREE.Group },
+          { group: { position: exit } },
           step.element,
           {
             size: fx.arrival.burst.size ?? 1,
