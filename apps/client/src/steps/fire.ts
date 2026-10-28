@@ -1,4 +1,5 @@
 import type { PlaybackStep } from "@apex/sim"
+import type * as THREE from "three"
 import { clamp01, jitter } from "../anim"
 import { type ReactionKind, reactionFor } from "../choreo"
 import type { DriveFighter } from "../fighter-driver"
@@ -91,7 +92,23 @@ export function arriveSpecial(
   side: Side,
 ): void {
   const fx = fxFor(step.moveId, step.element)
+  // Exit wound (Phase 5 fix, P5.F3): a row-driven exit offset lands the
+  // arrival burst past the defender along the attack axis. Zero on every
+  // other row, whose bursts stay exactly where they are.
+  const beyond = fx.arrival.beyond ?? 0
   const at = side.target.group.position.clone()
+  if (beyond !== 0) {
+    const ao = side.actor
+    const dx = side.target.group.position.x - ao.group.position.x
+    const dz = side.target.group.position.z - ao.group.position.z
+    const dist = Math.hypot(dx, dz)
+    if (dist > 1e-6) {
+      at.x += (dx / dist) * beyond
+      at.z += (dz / dist) * beyond
+    } else {
+      at.x += -ao.away * beyond
+    }
+  }
   if (fx.arrival.lanes) {
     for (const dz of fx.arrival.lanes) {
       const p = at.clone()
@@ -138,6 +155,7 @@ export function fireSpecial(
   const landedRef = { done: false }
   const zeroRef = { done: false }
   const chargeRef = { done: false }
+  const beamRef = { done: false }
   // Point-blank: the shot lands inside this action; the victim
   // reacts at the landing beat, not before it. Clamped so a degenerate
   // schedule still fires the landing at the action's end.
@@ -202,6 +220,43 @@ export function fireSpecial(
           mouth.y += 0.2
           io.effects.spawnBurst(mouth, step.element, fx.muzzle)
         }
+      }
+      // Pass-through beam (Phase 5 fix, P5.F3): a zero-shot row with a
+      // row-driven exit offset fires one piercing streak from the mouth
+      // through the defender to the exit point, so the flight geometry
+      // visibly extends past the body. The shot count stays zero — the
+      // streak is the beam, not a shot. Both paths: ranged and the
+      // point-blank replay.
+      const beamBeyond = fx.arrival.beyond ?? 0
+      if (
+        fx.shots.length === 0 &&
+        beamBeyond > 0 &&
+        !beamRef.done &&
+        t >= (beats[0] ?? wind)
+      ) {
+        beamRef.done = true
+        const bdx = side.target.group.position.x - ao.group.position.x
+        const bdz = side.target.group.position.z - ao.group.position.z
+        const bdist = Math.hypot(bdx, bdz)
+        let bnx = -away
+        let bnz = 0
+        if (bdist > 1e-6) {
+          bnx = bdx / bdist
+          bnz = bdz / bdist
+        }
+        const exit = side.target.group.position.clone()
+        exit.x += bnx * beamBeyond
+        exit.z += bnz * beamBeyond
+        io.effects.spawnProjectile(
+          ao,
+          { group: { position: exit } as THREE.Group },
+          step.element,
+          {
+            size: fx.arrival.burst.size ?? 1,
+            life: 450,
+            moveId: step.moveId,
+          },
+        )
       }
       // Point-blank: the shot lands inside this action.
       if (compressed && !landedRef.done && t >= landBeat) {

@@ -205,6 +205,9 @@ export const FIRE_FX: Record<string, MoveFx> = {
       },
       lanes: [-0.18, 0, 0.18],
       shove: -0.6,
+      // Exit wound: the main burst lands behind the defender along the
+      // attack axis, where the piercing streak exits (P5.F3).
+      beyond: 1,
     },
   },
   // Cinder Dive (cindermoor's attack form): the ram's head-down plunge —

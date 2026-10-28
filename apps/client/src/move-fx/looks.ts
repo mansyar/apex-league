@@ -131,6 +131,11 @@ export const MOVE_SHOT_LOOK: Record<string, Partial<ShotLook>> = {
   // additive pillar reads as one driving head with no lateral drift and no
   // tumble. Halo, pulse, and arc ride the fire default.
   blaze_bolt: { geometry: "jet", wobble: 0, spin: 0 },
+  // Pyre Lance (Phase 5 fix, P5.F3): the piercing streak — a molten
+  // needle on a laser-straight lane, no arc lift, no ripple, no tumble,
+  // no throb, so the beam reads through the defender to the exit wound.
+  // Row-scoped: every other element's beam keeps its exact look.
+  pyre_lance: { geometry: "needle", arc: 0, wobble: 0, spin: 0, pulse: 0 },
 }
 
 /**
