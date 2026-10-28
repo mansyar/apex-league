@@ -11,15 +11,15 @@
   "last_checkpoint": "91d2bb3c",
   "priority": "high",
   "progress": {
-    "phases_total": 7,
-    "phases_verified": 7,
-    "tasks_done": 17,
-    "tasks_total": 17
+    "phases_total": 8,
+    "phases_verified": 8,
+    "tasks_done": 21,
+    "tasks_total": 21
   },
   "pr_state": null,
   "pr_url": null,
-  "review_rounds": 1,
-  "review_verdict": "PASS WITH FINDINGS",
+  "review_rounds": 2,
+  "review_verdict": "PASS",
   "reverted_at": null,
   "revert_commit": null,
   "revert_pr_url": null,

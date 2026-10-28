@@ -5,7 +5,7 @@
 - **Branch:** `feat/20261028-fire-move-identity`
 - **Range:** `50e083d8..9dfbec38`
 - **Date:** `2026-10-29T00:30:00Z`
-- **Verdict:** `PASS WITH FINDINGS`
+- **Verdict:** `PASS`
 
 ## Summary
 
@@ -133,4 +133,5 @@ legibility passes.
 
 | Round | Verdict | Critical | High | Medium | Low | Fixed |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | PASS WITH FINDINGS | 0 | 0 | 0 | 4 | 0 |
+| 1 | PASS WITH FINDINGS | 0 | 0 | 0 | 4 | 4 |
+| 2 | PASS | 0 | 0 | 0 | 0 | — |

@@ -27,12 +27,13 @@ sim/save/deps untouched):
   gains `charge: { from: 0.4, to: 2.4 }` plus `trail: { puffs: 4,
   size: 1.4, life: 380, gravity: -2.2, sway: 0.8 }`.
 - **P7.T2 — Spear geometry.** `"spear"` added to the `ShotLook.geometry`
-  union (`apps/client/src/move-fx/looks.ts`); new builder in
-  `apps/client/src/fx/shot-geometry.ts` (Group pointing downrange +z:
+  union (`apps/client/src/move-fx/looks.ts`); new builder
+  `buildSpearCore` in `apps/client/src/fx/shot-spear.ts` (Group pointing
+  downrange +z:
   thin shaft ~0.16×PR radius × ~6×PR long centered behind, cone head
   ~0.5×PR × ~1.8×PR apex toward +z at the front, flattened octahedron
   guard ~0.75×PR thin in z at the junction; additive materials like the
-  jet). `MOVE_SHOT_LOOK.pyre_lance` now names `"spear"` (arc/wobble/
+  jet), reached via delegation from `apps/client/src/fx/shot-geometry.ts`. `MOVE_SHOT_LOOK.pyre_lance` now names `"spear"` (arc/wobble/
   spin/pulse stay 0); `flare_dart` keeps its needle.
 - **P7.T3 — Ground-erupting tower.** New opt-in `grounded?: boolean` on
   `BurstStyle`; `createBurstLayer`'s `spawn()` skips the `SHOT_TARGET_Y`
@@ -65,7 +66,10 @@ sim/save/deps untouched):
 - `apps/client/src/move-fx/moves/fire.ts` (charge/dive envelopes, wall
   tower retune)
 - `apps/client/src/move-fx/looks.ts` ("spear" union + lance override)
-- `apps/client/src/fx/shot-geometry.ts` (spear builder)
+- `apps/client/src/fx/shot-geometry.ts` (delegates the spear case to
+  `buildSpearCore`)
+- `apps/client/src/fx/shot-spear.ts` (new: the spear builder itself)
+- `apps/client/src/steps/fire-transit.ts` (new: transit application)
 - `apps/client/src/fx/bursts.ts` (grounded lift skip)
 - `apps/client/src/move-fx/moves/fallback.test.ts` (9 new pins, 2
   updated pins, 4 new imports)

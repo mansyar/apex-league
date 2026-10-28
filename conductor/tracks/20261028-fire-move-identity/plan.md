@@ -72,7 +72,7 @@
 - **Goal:** Charge tackles through horizontally with zero shots, Dive craters vertically, Lance railguns pass-through — attacker motion dominates.
 - **Depends on:** Phase 1
 - **Covers:** FR-7, AC-6
-- **Touches:** `apps/client/src/move-fx/moves/fire.ts`, `apps/client/src/move-fx/moves/verbs.ts`, `apps/client/src/move-fx/steps/fire.ts`
+- **Touches:** `apps/client/src/move-fx/moves/fire.ts`, `apps/client/src/move-fx/moves/verbs.ts`, `apps/client/src/steps/fire.ts`
 - **Verification:** `bun run verify && bun run build` + GIFs `fire-flame_charge.gif`, `fire-cinder_dive.gif`, `fire-pyre_lance.gif`
 - **Status:** verified
 
@@ -121,9 +121,12 @@
 - **Covers:** FR-5, FR-7 (nits + dead-code removal)
 - **Touches:** `apps/client/src/fx/shot-geometry.ts`, `apps/client/src/steps/fire.ts`, `apps/client/src/fx/projectiles.ts`, `apps/client/src/staging-fx.ts`, `apps/client/src/move-fx/look-override.test.ts`, `conductor/tracks/20261028-fire-move-identity/plan.md`, `conductor/tracks/20261028-fire-move-identity/verification/phase-7.md`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **R1.T1: Delete dead `buildGather`/`GATHER_MOTES` + orphaned pins** — covers: F1
-- [ ] **R1.T2: Fix stale jet comment** — covers: F2
-- [ ] **R1.T3: Drop the `as THREE.Group` cast (widen callee types or justify)** — covers: F3
-- [ ] **R1.T4: Fix plan typo + phase-7.md drift note** — covers: F4
+- [x] **R1.T1: Delete dead `buildGather`/`GATHER_MOTES` + orphaned pins** — covers: F1
+- [x] **R1.T2: Fix stale jet comment** — covers: F2
+- [x] **R1.T3: Drop the `as THREE.Group` cast (widen callee types or justify)** — covers: F3
+- [x] **R1.T4: Fix plan typo + phase-7.md drift note** — covers: F4
+
+**Result:** verified
+**Evidence:** conductor/tracks/20261028-fire-move-identity/verification/phase-R1.md — full gate green (3500 pass / 0 fail, determinism OK, build exit 0), no behavior change.
