@@ -89,10 +89,13 @@
 - **Covers:** FR-8, AC-7
 - **Touches:** `conductor/tracks/20261028-fire-move-identity/verification/`
 - **Verification:** `bun run verify && bun run build` + 8 GIFs in evidence folder
-- **Status:** in_progress
+- **Status:** verified
+
+**Result:** verified
+**Evidence:** conductor/tracks/20261028-fire-move-identity/verification/phase-6.md (8-GIF catalog + grayscale) + user sign-off on the 4 Phase-7 rework GIFs ("good"), which supersede the 4 reworked moves; the 4 untouched moves (spark, flare_dart, cinder_shot, blaze_bolt) stand as captured.
 
 - [x] **P6.T1: Capture 8 GIFs + grayscale readability pass** — covers: FR-8
-- [ ] **P6.T2: Record user sign-off + close acceptance** — covers: AC-7
+- [x] **P6.T2: Record user sign-off + close acceptance** — covers: AC-7
 
 ## Phase 7: Feedback Rework — Envelope, Spear, Tower
 
