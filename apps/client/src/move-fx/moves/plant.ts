@@ -139,33 +139,40 @@ export const PLANT_FX: Record<string, MoveFx> = {
   },
   // Vine Lash (tier 1 lash): the quick snap — a short coil whipping one
   // fast vine tip that clings on landing rather than bursting outward.
+  // Vine Lash (tier 2 lash): the whip-crack — one simultaneous three-streak
+  // rake across the lane (vs the volley's staggered beats), a wide sideways
+  // sweep in the pose, and a quick slash-ring snap for the landing.
   vine_lash: {
-    wind: 0.44,
-    shots: [{ size: 1, life: 560, at: 0.44 }],
+    wind: 0.42,
+    shots: [
+      { size: 0.85, life: 620, spread: -0.5, at: 0.42 },
+      { size: 0.85, life: 620, spread: 0, at: 0.42 },
+      { size: 0.85, life: 620, spread: 0.5, at: 0.42 },
+    ],
     muzzle: {
-      puffs: 4,
-      size: 0.8,
-      life: 280,
+      puffs: 5,
+      size: 0.9,
+      life: 260,
       gravity: 1.8,
-      sway: 1,
-      flashGrow: 2.6,
+      sway: 2.2,
+      flashGrow: 2.4,
     },
-    kick: -0.4,
+    kick: -0.5,
     pose: {
-      windup: { pitch: -0.18, hold: true, rise: -0.06, coilX: 0.16 },
-      recoil: { pitchOut: 0.12, sweepX: [0.16, -0.42] },
+      windup: { pitch: -0.22, hold: true, rise: -0.06, coilX: 0.2 },
+      recoil: { pitchOut: 0.16, sweepX: [0.2, -0.75] },
     },
     arrival: {
       burst: {
-        puffs: 8,
+        puffs: 6,
         ring: true,
-        size: 1.1,
-        life: 560,
+        size: 0.9,
+        life: 400,
         gravity: 1.8,
-        sway: 1,
-        flashGrow: 2.8,
+        sway: 1.5,
+        flashGrow: 2.0,
       },
-      shove: -0.45,
+      shove: -0.5,
     },
   },
   // Root Quake (tier 3 eruption): the ground-splitter — a long deep coil

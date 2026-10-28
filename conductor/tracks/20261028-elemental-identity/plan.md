@@ -132,12 +132,13 @@ desktop/device-phone, clean console) with per-move water-identity reads.
 - **Touches:** `apps/client/src/move-fx/moves/plant.ts`
 - **Verification:** `bun run verify && bun run build` + 8 plant screenshots
   desktop + phone, clean console
-- **Status:** in_progress
+- **Status:** verified (primary: 32 lab frames reviewed, vine_lash reworked
+  for lash-verb distinctness — see verification/phase-4.md)
 
-- [ ] **P4.T1: New rows** (`seed_shot`, `thorn_volley` fan, `vine_lash` lash,
+- [x] **P4.T1: New rows** (`seed_shot`, `thorn_volley` fan, `vine_lash` lash,
   `bramble_guard` barrier) — covers: FR-2
-- [ ] **P4.T2: Upgrade 4 existing rows** — covers: FR-2, FR-5
-- [ ] **P4.T3: Plant visual evidence** — covers: AC-1, AC-3
+- [x] **P4.T2: Upgrade 4 existing rows** — covers: FR-2, FR-5
+- [x] **P4.T3: Plant visual evidence** — covers: AC-1, AC-3
 
 ## Phase 5: Electric (8 new + `electric.ts`)
 

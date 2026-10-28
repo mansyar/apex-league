@@ -37,3 +37,30 @@ bramble-ring arrivals (`ring: true`), held coils with a slight dip
 - `0face2b0` feat(client): phase 4 bespoke plant rows for all 8 moves (P4.T1 + P4.T2)
 - `c14b23f5` test(client): phase 4 plant AC-1 and verb-family pins (P4.T3)
 - `343a2cee` style(client): collapse phase 4 pin guards to biome format
+
+## Primary evidence (P4.T3 lab capture)
+
+- 32 Move-Lab frames in `verification/phase-4/`: 8 moves × travel/impact ×
+  desktop (1280×800) / phone (390×844). Attacker Bramble Ox (bovine),
+  defender Tide Axolotl (axolotl, plant→water SE), far range, 1× pace,
+  seeded particles. Anchors: travel = projectile-staged +500ms, impact =
+  impact-staged +100ms.
+- Reads: seed_shot single seed cluster + drift motes; thorn_volley green
+  shard fan; bramble_dart workhorse streak; spore_burst wide spore fan;
+  vine_lash simultaneous 3-streak rake (see rework note); root_quake wide
+  bramble-ring eruption; thorn_charge dash flash; bramble_guard green
+  barrier eruption on the foe (barrier rule, no shove, no travel projectile).
+- Rework (primary, post-handoff): the first `vine_lash` row was a slightly
+  bigger `seed_shot` (single shot, same anchors) — travel/impact frames were
+  near-identical, violating the per-move-distinctness bar. Reworked to a
+  true lash: 3 simultaneous streaks (spread −0.5/0/0.5, same `at` — vs the
+  volley's staggered beats), wide sideways sweep pose, quick slash-ring
+  arrival. First attempt used life 440 and the streaks expired before the
+  +500ms travel anchor (empty frame — anchor lesson, not a row bug);
+  lengthened to life 620 and re-captured: the rake now reads clearly on
+  desktop and phone.
+- Viewport lesson: the shared runner session kept a narrow viewport between
+  runs with no code change (one full 8-move desktop pass captured portrait).
+  Fix: explicit `setViewportSize` in capture scripts (1280×800 desktop,
+  390×844 phone); affected pass re-ran. Future element phases should set
+  the viewport explicitly in every capture script.
