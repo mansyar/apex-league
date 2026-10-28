@@ -175,18 +175,25 @@ desktop/device-phone, clean console) with per-move water-identity reads.
 - **Touches:** `apps/client/src/move-fx/moves/earth.ts`
 - **Verification:** `bun run verify && bun run build` + 8 earth screenshots
   desktop + phone, clean console
-- **Status:** in_progress
+- **Status:** verified (primary: gate exit 0, 32 lab frames reviewed — see
+  verification/phase-6.md; earth-dust-vs-floor contrast flagged as P8.T2
+  grayscale input)
 
-- [ ] **P6.T1: New rows** (`pebble_shot` chip P6, `dust_devil` swirl P8,
+- [x] **P6.T1: New rows** (`pebble_shot` chip P6, `dust_devil` swirl P8,
   `sand_blast` cone P7, `clay_burst` P10, `boulder_toss` heavy P12,
   `tectonic_slam` finisher eruption P14, `basalt_guard` barrierBody
   foe-targeted eruption P9, no projectile, shove 0) — covers: FR-2
-- [ ] **P6.T2: Upgrade `quake_stomp`** (P12) to verb + identity grammar —
+- [x] **P6.T2: Upgrade `quake_stomp`** (P12) to verb + identity grammar —
   covers: FR-2, FR-5
-- [ ] **P6.T3: tests + lab evidence** — extend `fallback.test.ts` earth pins
+- [x] **P6.T3: tests + lab evidence** — extend `fallback.test.ts` earth pins
   (AC-1: all 8 bespoke; AC-3: verb pins, dot access). Primary runs the gate
   and captures lab evidence (attacker Basalt Tortoise `tortoise`, defender
   Storm Hound `storm_hound`, far, 1×, seeded, explicit viewports).
+
+**Result:** verified — `bun run verify` exit 0 (3447 pass / 0 fail),
+`bun run build` exit 0, 32 Move-Lab frames (8 moves × travel/impact ×
+desktop/device-phone, clean console) with per-move earth-identity reads.
+**Evidence:** conductor/tracks/20261028-elemental-identity/verification/phase-6.md
 
 ## Phase 7: Wind (7 new + 1 upgrade, decoupled parts)
 

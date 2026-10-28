@@ -76,6 +76,39 @@ None — all changes inside the brief's Touch map
 (`moves/earth.ts`, `moves/fallback.test.ts`, this report). No registry
 changes needed (earth file already wired into `MOVE_FX`).
 
+## Primary handoff (gate, commits, evidence)
+
+- **Result: verified** — primary ran the full gate on the committed
+  implementation:
+  - `bun run verify` exit 0: types clean (44 + 160 + 169 + 464 files),
+    **3447 pass / 1 skip / 0 fail**, Biome clean, determinism gate OK (all
+    15 species × 3 stages byte-identical + 5 props).
+  - `bun run build` exit 0 (pre-existing chunk-size warning only; lab still
+    split into its own chunk).
+  - The one `verify` failure during handoff was Biome formatting in the new
+    test pins — fixed with `bunx biome check --write` on those files only,
+    no semantic change. (The smoke `RESULT fail … file:///tmp/x` line is
+    the known negative-path probe, not a failure.)
+- Commits: `04e720ef` (P6.T1 earth.ts), `ec71c75a` (P6.T2 + P6.T3 pins +
+  this report), `0a221eeb` (Biome format on pins). Legacy
+  `move-fx.test.ts` guard pin trimmed `basalt_guard` → `zephyr_veil`
+  (now bespoke; same pattern as Phases 2–4).
+- **Evidence: 32 Move-Lab frames** in this directory (8 moves ×
+  travel/impact × desktop/phone), attacker Basalt Tortoise vs Storm Hound,
+  far, 1×, seeded, explicit viewports (1280×800 / 390×844), clean console.
+  All 8 desktop runs reported `travel: true`; all 8 phone runs ok.
+- Spot reads: `tectonic_slam` travel = tan slab mid-flight → impact =
+  hot flash core + dust on the hound (P14 weight lands);
+  `boulder_toss` travel = massive slow slab, clearly stepped up from
+  pebble shards; `basalt_guard` = raise glow → dust eruption + floor ring
+  on the foe (barrier rule holds, shove 0); `quake_stomp-p-impact`
+  legible at 390px.
+- **Phase-8 input (contrast note, not a Phase-6 fix):** earth's dust tint
+  (`#9c8f7d`) sits close to the grey arena floor, so the basalt ring
+  reads softer in stills than the fire/plant/water barriers. Ring shape +
+  decal + motion still carry it; flag for the P8.T2 grayscale pass to
+  judge explicitly.
+
 ## Notes
 
 - `coneBody("earth")` shots already carry `life: 700` and `barrierBody`
