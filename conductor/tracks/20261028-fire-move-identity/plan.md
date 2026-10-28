@@ -113,3 +113,17 @@
 - [x] **P7.T2: Spear geometry — `spear` piece (shaft + head + guard) + lance override** — covers: FR-7, AC-6
 - [x] **P7.T3: Ground-erupting tower — `grounded` burst option + tall buoyant ring retune** — covers: FR-6, AC-5
 - [x] **P7.T4: TDD pins (trail determinism, spear vertices, grounded height) + phase-7.md + size-cap extraction (primary)** — covers: FR-6, FR-7
+
+## Phase R1: Review Fixes (Round 1)
+
+- **Goal:** Address the 4 Low findings from review round 1 (PASS WITH FINDINGS); re-run the full gate.
+- **Depends on:** Phase 7
+- **Covers:** FR-5, FR-7 (nits + dead-code removal)
+- **Touches:** `apps/client/src/fx/shot-geometry.ts`, `apps/client/src/steps/fire.ts`, `apps/client/src/fx/projectiles.ts`, `apps/client/src/staging-fx.ts`, `apps/client/src/move-fx/look-override.test.ts`, `conductor/tracks/20261028-fire-move-identity/plan.md`, `conductor/tracks/20261028-fire-move-identity/verification/phase-7.md`
+- **Verification:** `bun run verify && bun run build`
+- **Status:** in_progress
+
+- [ ] **R1.T1: Delete dead `buildGather`/`GATHER_MOTES` + orphaned pins** — covers: F1
+- [ ] **R1.T2: Fix stale jet comment** — covers: F2
+- [ ] **R1.T3: Drop the `as THREE.Group` cast (widen callee types or justify)** — covers: F3
+- [ ] **R1.T4: Fix plan typo + phase-7.md drift note** — covers: F4
