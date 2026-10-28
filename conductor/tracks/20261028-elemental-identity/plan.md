@@ -110,12 +110,17 @@ desktop/device-phone, clean console) with per-move fire-identity reads.
 - **Touches:** `apps/client/src/move-fx/moves/water.ts`
 - **Verification:** `bun run verify && bun run build` + 8 water screenshots
   desktop + phone, clean console
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: New rows** (`bubble` floaty orb, `tide_shot`, `mist_spray` cone,
+- [x] **P3.T1: New rows** (`bubble` floaty orb, `tide_shot`, `mist_spray` cone,
   `tide_aegis` barrier) — covers: FR-2
-- [ ] **P3.T2: Upgrade 4 existing rows** — covers: FR-2, FR-5
-- [ ] **P3.T3: Water visual evidence** — covers: AC-1, AC-3
+- [x] **P3.T2: Upgrade 4 existing rows** — covers: FR-2, FR-5
+- [x] **P3.T3: Water visual evidence** — covers: AC-1, AC-3
+
+**Result:** verified — `bun run verify` exit 0 (3442 pass / 0 fail),
+`bun run build` exit 0, 32 Move-Lab frames (8 moves × travel/impact ×
+desktop/device-phone, clean console) with per-move water-identity reads.
+**Evidence:** conductor/tracks/20261028-elemental-identity/verification/phase-3.md
 
 ## Phase 4: Plant (4 new + 4 upgrades)
 
