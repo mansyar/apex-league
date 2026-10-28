@@ -154,28 +154,39 @@ desktop/device-phone, clean console) with per-move water-identity reads.
 - **Status:** verified (primary: gate exit 0, 32 lab frames reviewed — see
   verification/phase-5.md)
 
-- [ ] **P5.T1: Create `electric.ts`** with arc-tendril builders for all 8 rows
-  — covers: FR-2, FR-3
-- [ ] **P5.T2: Register + wire** (`ion_wall` self-targeted barrier path if
-  needed) — covers: FR-3
-- [ ] **P5.T3: Electric visual evidence** — covers: AC-1, AC-3
+- [x] **P5.T1: New `electric.ts`** — 8 rows in arc-tendril grammar
+  (`static_jolt`, `volt_dash`, `arc_shot`, `storm_bolt`, `ion_dart`,
+  `gigavolt` beam, `storm_surge` volley, `ion_wall` barrier) — covers:
+  FR-2, FR-3
+- [x] **P5.T2: Registry wiring** — `ELECTRIC_FX` spread into `MOVE_FX` —
+  covers: FR-3
+- [x] **P5.T3: tests + lab evidence** — AC-1/AC-3 pins + 32 lab frames —
+  covers: AC-1, AC-3
 
 ## Phase 6: Earth (7 new + 1 upgrade)
 
-- **Goal:** all 8 earth moves bespoke — `pebble_shot`, `dust_devil`,
-  `clay_burst`, `boulder_toss`, `sand_blast`, `tectonic_slam`, `basalt_guard`
-  new; `quake_stomp` upgraded.
+- **Goal:** all 8 earth moves bespoke (`pebble_shot`, `dust_devil`,
+  `sand_blast`, `clay_burst`, `boulder_toss`, `tectonic_slam`,
+  `basalt_guard` new; `quake_stomp` upgraded) with weighted-rock grammar.
+  Covers FR-2, FR-5; verification is P6.T3 (primary captures lab evidence
+  after handoff).
 - **Depends on:** Phase 1
 - **Covers:** FR-2, FR-5, AC-1 (earth), AC-3 (earth verbs)
 - **Touches:** `apps/client/src/move-fx/moves/earth.ts`
 - **Verification:** `bun run verify && bun run build` + 8 earth screenshots
   desktop + phone, clean console
-- **Status:** pending
+- **Status:** in_progress
 
-- [ ] **P6.T1: New rows** (incl. `tectonic_slam` eruption, `basalt_guard`
-  barrier, `boulder_toss` heavy arc) — covers: FR-2
-- [ ] **P6.T2: Upgrade `quake_stomp`** — covers: FR-2, FR-5
-- [ ] **P6.T3: Earth visual evidence** — covers: AC-1, AC-3
+- [ ] **P6.T1: New rows** (`pebble_shot` chip P6, `dust_devil` swirl P8,
+  `sand_blast` cone P7, `clay_burst` P10, `boulder_toss` heavy P12,
+  `tectonic_slam` finisher eruption P14, `basalt_guard` barrierBody
+  foe-targeted eruption P9, no projectile, shove 0) — covers: FR-2
+- [ ] **P6.T2: Upgrade `quake_stomp`** (P12) to verb + identity grammar —
+  covers: FR-2, FR-5
+- [ ] **P6.T3: tests + lab evidence** — extend `fallback.test.ts` earth pins
+  (AC-1: all 8 bespoke; AC-3: verb pins, dot access). Primary runs the gate
+  and captures lab evidence (attacker Basalt Tortoise `tortoise`, defender
+  Storm Hound `storm_hound`, far, 1×, seeded, explicit viewports).
 
 ## Phase 7: Wind (7 new + 1 upgrade, decoupled parts)
 
