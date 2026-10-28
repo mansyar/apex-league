@@ -216,6 +216,9 @@ export const FIRE_FX: Record<string, MoveFx> = {
     wind: 0.58,
     shots: [],
     muzzle: undefined,
+    // The plunge is the hit: the body rises in an arc and comes down on
+    // the foe, nearly closing the live gap at the peak (P5.F2).
+    transit: { reach: 0.85, lift: 1.3 },
     pose: {
       windup: { pitch: -0.32, hold: true, roll: 0.09, rise: 0.02, coilX: 0.3 },
       recoil: { pitchOut: 0.17, sweepX: [0.3, -0.62], riseOut: 0.03 },
