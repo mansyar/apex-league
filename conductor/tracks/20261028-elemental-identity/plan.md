@@ -231,7 +231,7 @@ desktop/device-phone, clean console) with per-move wind-identity reads.
   (evidence only; code only if a gap surfaces)
 - **Verification:** `bun run verify && bun run build` + complete catalog +
   grayscale pass, clean console
-- **Status:** pending
+- **Status:** in_progress (primary: T4 subagent launched; T1–T3 primary-executed)
 
 - [ ] **P8.T1: Assemble 48-move catalog in Move Lab** desktop + phone — covers: FR-7
 - [ ] **P8.T2: Grayscale readability check** (one reference move per element,
