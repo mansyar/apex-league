@@ -75,6 +75,18 @@ export function buildShotCore(
     core.add(chip)
     return core
   }
+  if (look.geometry === "streak") {
+    // Streak: a wind-only faceted needle (FR-4) — an octahedron pulled
+    // hard along travel, so it reads pale and fast next to water's
+    // smooth teardrop. Fixed geometry and materials only, no randomness
+    // at build time, like the boulder.
+    const needle = new THREE.Mesh(
+      new THREE.OctahedronGeometry(PROJECTILE_RADIUS * 0.75 * size, 0),
+      new THREE.MeshBasicMaterial({ color }),
+    )
+    needle.scale.set(0.55, 0.55, look.stretch ?? 2)
+    return needle
+  }
   // Teardrop and orb share the sphere core; stretch points it downrange.
   const core = new THREE.Mesh(
     new THREE.SphereGeometry(PROJECTILE_RADIUS * size, 12, 10),
@@ -86,7 +98,8 @@ export function buildShotCore(
 
 /**
  * One trail segment's facet shape: embers are shards, seeds are octahedra,
- * dust is a flat tetrahedral facet, and droplets/orbs stay round.
+ * streaks are stretched octahedra, dust is a flat tetrahedral facet, and
+ * droplets/orbs stay round.
  */
 function trailGeometry(
   family: ShotLook["trail"],
@@ -94,6 +107,13 @@ function trailGeometry(
 ): THREE.BufferGeometry {
   if (family === "embers") return new THREE.IcosahedronGeometry(r * 0.8, 0)
   if (family === "seeds") return new THREE.OctahedronGeometry(r * 0.8, 0)
+  if (family === "streaks") {
+    // Wind-only slivers (FR-4): faceted like plant's seeds but pulled
+    // along travel, so the tail reads as speed, not scatter.
+    const sliver = new THREE.OctahedronGeometry(r * 0.7, 0)
+    sliver.scale(0.6, 0.6, 1.7)
+    return sliver
+  }
   if (family === "dust") return new THREE.TetrahedronGeometry(r * 0.9, 0)
   return new THREE.SphereGeometry(r, 10, 8)
 }
@@ -115,7 +135,7 @@ export function buildTrail(
         transparent: true,
         opacity: trailOpacity(i),
         // Dust is non-luminous grit: it must not add light to the lane the
-        // way embers, droplets, seeds, and orbs do.
+        // way embers, droplets, seeds, streaks, and orbs do.
         blending:
           look.trail === "dust" ? THREE.NormalBlending : THREE.AdditiveBlending,
         depthWrite: false,

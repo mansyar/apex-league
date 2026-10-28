@@ -1,0 +1,467 @@
+import { describe, expect, test } from "bun:test"
+import { getMove } from "@apex/sim"
+import { lookFor } from "../looks"
+import { DEFAULT_FX, fxFor, MOVE_FX } from "../moves"
+import { ELEMENT_FALLBACK_FX, fallbackFor } from "./fallback"
+import {
+  barrierBody,
+  beamBody,
+  coneBody,
+  dashBody,
+  eruptionBody,
+  volleyFanBody,
+} from "./verbs"
+
+/**
+ * Pins for the Phase 1 identity foundation (FR-1, FR-5): the six authored
+ * per-element fallback bodies, the element-aware `MOVE_FX` lookup, and the
+ * shared verb-family builders the bespoke rows will compose.
+ */
+
+const ELEMENTS = [
+  "fire",
+  "water",
+  "plant",
+  "electric",
+  "earth",
+  "wind",
+] as const
+
+describe("element fallback bodies (FR-1)", () => {
+  test("every element owns an authored fallback body", () => {
+    for (const element of ELEMENTS) {
+      expect(ELEMENT_FALLBACK_FX[element]).toBeDefined()
+    }
+  })
+
+  test("fallback bodies are distinct per element", () => {
+    const bodies = ELEMENTS.map((element) => ELEMENT_FALLBACK_FX[element])
+    expect(new Set(bodies).size).toBe(ELEMENTS.length)
+  })
+
+  test("fallbackFor resolves each element; unknown reads undefined", () => {
+    for (const element of ELEMENTS) {
+      expect(fallbackFor(element)).toBe(ELEMENT_FALLBACK_FX[element])
+    }
+    expect(fallbackFor(undefined)).toBeUndefined()
+    expect(fallbackFor("shadow")).toBeUndefined()
+  })
+
+  test("no unauthored specials remain — the last wind spots now resolve bespoke", () => {
+    // Phase 7 closes the catalog: gust and zephyr_veil were the final
+    // unauthored specials. The fallback bodies above still serve unknown
+    // move ids (see the DEFAULT_FX pin below); no catalog move needs them.
+    const closed: ReadonlyArray<[string, (typeof ELEMENTS)[number]]> = [
+      ["gust", "wind"],
+      ["zephyr_veil", "wind"],
+    ]
+    for (const [moveId, element] of closed) {
+      expect(getMove(moveId)?.element).toBe(element)
+      const row = MOVE_FX[moveId]
+      if (row === undefined) throw new Error(`missing bespoke row: ${moveId}`)
+      expect(fxFor(moveId, element)).toBe(row)
+      expect(fxFor(moveId, element)).not.toBe(DEFAULT_FX)
+    }
+  })
+
+  test("authored rows keep their bodies; element-less lookup keeps DEFAULT_FX", () => {
+    expect(fxFor("cinder_shot", "fire")).not.toBe(ELEMENT_FALLBACK_FX.fire)
+    expect(fxFor("quake_stomp", "earth")).not.toBe(ELEMENT_FALLBACK_FX.earth)
+    expect(fxFor("cyclone_dive", "wind")).not.toBe(ELEMENT_FALLBACK_FX.wind)
+    expect(fxFor("gust", "wind")).not.toBe(ELEMENT_FALLBACK_FX.wind)
+    expect(fxFor("zephyr_veil", "wind")).not.toBe(ELEMENT_FALLBACK_FX.wind)
+    // No element to resolve: today's generic read, so instant mode and any
+    // legacy caller see byte-identical behavior.
+    expect(fxFor(undefined)).toBe(DEFAULT_FX)
+    expect(fxFor(undefined, undefined)).toBe(DEFAULT_FX)
+    expect(fxFor("plasma_lance")).toBe(DEFAULT_FX)
+  })
+
+  test("all 8 fire specials resolve to bespoke rows (AC-1 fire)", () => {
+    const fireMoves = [
+      "spark",
+      "flame_charge",
+      "cinder_shot",
+      "blaze_bolt",
+      "flare_dart",
+      "pyre_lance",
+      "cinder_dive",
+      "pyre_wall",
+    ]
+    for (const moveId of fireMoves) {
+      expect(getMove(moveId)?.element).toBe("fire")
+      const row = MOVE_FX[moveId]
+      if (row === undefined) throw new Error(`missing bespoke row: ${moveId}`)
+      expect(fxFor(moveId, "fire")).toBe(row)
+      expect(fxFor(moveId, "fire")).not.toBe(ELEMENT_FALLBACK_FX.fire)
+    }
+  })
+
+  test("fire verb reads (AC-3 fire)", () => {
+    // Guards raise a barrier: no projectile, no shove. Dashes launch the
+    // body with a deep shove; the lance keeps its charge phase.
+    const wall = MOVE_FX.pyre_wall
+    if (wall === undefined) throw new Error("missing bespoke row: pyre_wall")
+    expect(wall.shots).toHaveLength(0)
+    expect(wall.arrival.shove).toBe(0)
+    expect(wall.arrival.burst.ring).toBe(true)
+    const charge = MOVE_FX.flame_charge
+    if (charge === undefined)
+      throw new Error("missing bespoke row: flame_charge")
+    expect(charge.kick).toBeLessThanOrEqual(-0.6)
+    const dive = MOVE_FX.cinder_dive
+    if (dive === undefined) throw new Error("missing bespoke row: cinder_dive")
+    expect(dive.kick).toBeLessThanOrEqual(-0.6)
+    const lance = MOVE_FX.pyre_lance
+    if (lance === undefined) throw new Error("missing bespoke row: pyre_lance")
+    expect(lance.charge).toBeDefined()
+    const bolt = MOVE_FX.blaze_bolt
+    if (bolt === undefined) throw new Error("missing bespoke row: blaze_bolt")
+    expect(bolt.charge).toBeDefined()
+  })
+
+  test("all 8 water specials resolve to bespoke rows (AC-1 water)", () => {
+    const waterMoves = [
+      "bubble",
+      "tide_shot",
+      "foam_volley",
+      "splash_bolt",
+      "mist_spray",
+      "maelstrom",
+      "riptide_rush",
+      "tide_aegis",
+    ]
+    for (const moveId of waterMoves) {
+      expect(getMove(moveId)?.element).toBe("water")
+      const row = MOVE_FX[moveId]
+      if (row === undefined) throw new Error(`missing bespoke row: ${moveId}`)
+      expect(fxFor(moveId, "water")).toBe(row)
+      expect(fxFor(moveId, "water")).not.toBe(ELEMENT_FALLBACK_FX.water)
+    }
+  })
+
+  test("water verb reads (AC-3 water)", () => {
+    // Guards raise a barrier: no projectile, no shove. The rush dashes the
+    // body with a deep shove; the volley fans three shots; the spray lands
+    // across three lanes; the heavies keep their charge phase.
+    const aegis = MOVE_FX.tide_aegis
+    if (aegis === undefined) throw new Error("missing bespoke row: tide_aegis")
+    expect(aegis.shots).toHaveLength(0)
+    expect(aegis.arrival.shove).toBe(0)
+    expect(aegis.arrival.burst.ring).toBe(true)
+    const rush = MOVE_FX.riptide_rush
+    if (rush === undefined) throw new Error("missing bespoke row: riptide_rush")
+    expect(rush.kick).toBeLessThanOrEqual(-0.6)
+    const volley = MOVE_FX.foam_volley
+    if (volley === undefined)
+      throw new Error("missing bespoke row: foam_volley")
+    expect(volley.shots).toHaveLength(3)
+    const spray = MOVE_FX.mist_spray
+    if (spray === undefined) throw new Error("missing bespoke row: mist_spray")
+    expect(spray.arrival.lanes).toHaveLength(3)
+    expect(spray.arrival.burst.ring).toBe(true)
+    const storm = MOVE_FX.maelstrom
+    if (storm === undefined) throw new Error("missing bespoke row: maelstrom")
+    expect(storm.charge).toBeDefined()
+    expect(storm.shots).toHaveLength(2)
+    const bolt = MOVE_FX.splash_bolt
+    if (bolt === undefined) throw new Error("missing bespoke row: splash_bolt")
+    expect(bolt.charge).toBeDefined()
+  })
+
+  test("all 8 plant specials resolve to bespoke rows (AC-1 plant)", () => {
+    const plantMoves = [
+      "seed_shot",
+      "thorn_volley",
+      "spore_burst",
+      "bramble_dart",
+      "vine_lash",
+      "root_quake",
+      "thorn_charge",
+      "bramble_guard",
+    ]
+    for (const moveId of plantMoves) {
+      expect(getMove(moveId)?.element).toBe("plant")
+      const row = MOVE_FX[moveId]
+      if (row === undefined) throw new Error(`missing bespoke row: ${moveId}`)
+      expect(fxFor(moveId, "plant")).toBe(row)
+      expect(fxFor(moveId, "plant")).not.toBe(ELEMENT_FALLBACK_FX.plant)
+    }
+  })
+
+  test("plant verb reads (AC-3 plant)", () => {
+    // Guards raise a barrier: no projectile, no shove. The charge dashes
+    // the body with a deep shove; the volley fans three shots; the burst
+    // lands across three lanes; the quake keeps its charge phase and a
+    // deep ground coil.
+    const guard = MOVE_FX.bramble_guard
+    if (guard === undefined)
+      throw new Error("missing bespoke row: bramble_guard")
+    expect(guard.shots).toHaveLength(0)
+    expect(guard.arrival.shove).toBe(0)
+    expect(guard.arrival.burst.ring).toBe(true)
+    const charge = MOVE_FX.thorn_charge
+    if (charge === undefined)
+      throw new Error("missing bespoke row: thorn_charge")
+    expect(charge.kick).toBeLessThanOrEqual(-0.6)
+    const volley = MOVE_FX.thorn_volley
+    if (volley === undefined)
+      throw new Error("missing bespoke row: thorn_volley")
+    expect(volley.shots).toHaveLength(3)
+    const burst = MOVE_FX.spore_burst
+    if (burst === undefined) throw new Error("missing bespoke row: spore_burst")
+    expect(burst.arrival.lanes).toHaveLength(3)
+    expect(burst.arrival.burst.ring).toBe(true)
+    const quake = MOVE_FX.root_quake
+    if (quake === undefined) throw new Error("missing bespoke row: root_quake")
+    expect(quake.charge).toBeDefined()
+    expect(quake.pose.windup.coilX ?? 0).toBeGreaterThanOrEqual(0.28)
+    expect(quake.arrival.burst.ring).toBe(true)
+    expect(quake.arrival.shove ?? 0).toBeLessThanOrEqual(-0.55)
+    const dart = MOVE_FX.bramble_dart
+    if (dart === undefined) throw new Error("missing bespoke row: bramble_dart")
+    expect(dart.shots).toHaveLength(1)
+    expect(dart.kick).toBeLessThanOrEqual(-0.5)
+  })
+
+  test("all 8 electric specials resolve to bespoke rows (AC-1 electric)", () => {
+    const electricMoves = [
+      "static_jolt",
+      "volt_dash",
+      "arc_shot",
+      "storm_bolt",
+      "ion_dart",
+      "gigavolt",
+      "storm_surge",
+      "ion_wall",
+    ]
+    for (const moveId of electricMoves) {
+      expect(getMove(moveId)?.element).toBe("electric")
+      const row = MOVE_FX[moveId]
+      if (row === undefined) throw new Error(`missing bespoke row: ${moveId}`)
+      expect(fxFor(moveId, "electric")).toBe(row)
+      expect(fxFor(moveId, "electric")).not.toBe(ELEMENT_FALLBACK_FX.electric)
+    }
+  })
+
+  test("electric verb reads (AC-3 electric)", () => {
+    // Guards raise a barrier: no projectile, no shove. The dash launches
+    // the body with a deep shove; the volley fans three shots on staggered
+    // beats; the beam keeps its long charge phase.
+    const wall = MOVE_FX.ion_wall
+    if (wall === undefined) throw new Error("missing bespoke row: ion_wall")
+    expect(wall.shots).toHaveLength(0)
+    expect(wall.arrival.shove).toBe(0)
+    expect(wall.arrival.burst.ring).toBe(true)
+    const dash = MOVE_FX.volt_dash
+    if (dash === undefined) throw new Error("missing bespoke row: volt_dash")
+    expect(dash.kick).toBeLessThanOrEqual(-0.6)
+    expect(dash.arrival.shove).toBeLessThanOrEqual(-0.6)
+    const surge = MOVE_FX.storm_surge
+    if (surge === undefined) throw new Error("missing bespoke row: storm_surge")
+    expect(surge.shots).toHaveLength(3)
+    const beam = MOVE_FX.gigavolt
+    if (beam === undefined) throw new Error("missing bespoke row: gigavolt")
+    expect(beam.charge).toBeDefined()
+    const bolt = MOVE_FX.storm_bolt
+    if (bolt === undefined) throw new Error("missing bespoke row: storm_bolt")
+    expect(bolt.charge).toBeDefined()
+    const jolt = MOVE_FX.static_jolt
+    if (jolt === undefined) throw new Error("missing bespoke row: static_jolt")
+    expect(jolt.shots).toHaveLength(1)
+    expect(jolt.charge).toBeUndefined()
+  })
+
+  test("all 8 earth specials resolve to bespoke rows (AC-1 earth)", () => {
+    const earthPins = [
+      ["pebble_shot", MOVE_FX.pebble_shot],
+      ["dust_devil", MOVE_FX.dust_devil],
+      ["clay_burst", MOVE_FX.clay_burst],
+      ["boulder_toss", MOVE_FX.boulder_toss],
+      ["sand_blast", MOVE_FX.sand_blast],
+      ["tectonic_slam", MOVE_FX.tectonic_slam],
+      ["quake_stomp", MOVE_FX.quake_stomp],
+      ["basalt_guard", MOVE_FX.basalt_guard],
+    ] as const
+    for (const [moveId, row] of earthPins) {
+      expect(getMove(moveId)?.element).toBe("earth")
+      if (row === undefined) throw new Error(`missing bespoke row: ${moveId}`)
+      expect(fxFor(moveId, "earth")).toBe(row)
+      expect(fxFor(moveId, "earth")).not.toBe(ELEMENT_FALLBACK_FX.earth)
+    }
+  })
+
+  test("earth verb reads (AC-3 earth)", () => {
+    // Guards raise a barrier: no projectile, no shove. The blast fans one
+    // wide shot across three lanes; the slam and the stomp erupt ground
+    // with a charge phase and a deep coil; the devil swirls three
+    // simultaneous dust streaks (vs the cone's single fan); the pebble
+    // stays a chargeless chip and the clay a steady workhorse.
+    const guard = MOVE_FX.basalt_guard
+    if (guard === undefined)
+      throw new Error("missing bespoke row: basalt_guard")
+    expect(guard.shots).toHaveLength(0)
+    expect(guard.arrival.shove).toBe(0)
+    expect(guard.arrival.burst.ring).toBe(true)
+    const blast = MOVE_FX.sand_blast
+    if (blast === undefined) throw new Error("missing bespoke row: sand_blast")
+    expect(blast.arrival.lanes).toHaveLength(3)
+    expect(blast.arrival.burst.ring).toBe(true)
+    const slam = MOVE_FX.tectonic_slam
+    if (slam === undefined)
+      throw new Error("missing bespoke row: tectonic_slam")
+    expect(slam.charge).toBeDefined()
+    expect(slam.pose.windup.coilX ?? 0).toBeGreaterThanOrEqual(0.28)
+    expect(slam.arrival.burst.ring).toBe(true)
+    expect(slam.arrival.shove ?? 0).toBeLessThanOrEqual(-0.55)
+    const stomp = MOVE_FX.quake_stomp
+    if (stomp === undefined) throw new Error("missing bespoke row: quake_stomp")
+    expect(stomp.charge).toBeDefined()
+    expect(stomp.pose.windup.coilX ?? 0).toBeGreaterThanOrEqual(0.28)
+    expect(stomp.arrival.burst.ring).toBe(true)
+    expect(stomp.arrival.shove ?? 0).toBeLessThanOrEqual(-0.55)
+    const toss = MOVE_FX.boulder_toss
+    if (toss === undefined) throw new Error("missing bespoke row: boulder_toss")
+    expect(toss.charge).toBeDefined()
+    expect(toss.shots).toHaveLength(1)
+    const devil = MOVE_FX.dust_devil
+    if (devil === undefined) throw new Error("missing bespoke row: dust_devil")
+    expect(devil.shots).toHaveLength(3)
+    expect(new Set(devil.shots.map((shot) => shot.at)).size).toBe(1)
+    const pebble = MOVE_FX.pebble_shot
+    if (pebble === undefined)
+      throw new Error("missing bespoke row: pebble_shot")
+    expect(pebble.shots).toHaveLength(1)
+    expect(pebble.charge).toBeUndefined()
+    const clay = MOVE_FX.clay_burst
+    if (clay === undefined) throw new Error("missing bespoke row: clay_burst")
+    expect(clay.shots).toHaveLength(1)
+    expect(clay.kick).toBeLessThanOrEqual(-0.5)
+  })
+
+  test("all 8 wind specials resolve to bespoke rows (AC-1 wind)", () => {
+    const windPins = [
+      ["gust", MOVE_FX.gust],
+      ["feather_dart", MOVE_FX.feather_dart],
+      ["gale_cutter", MOVE_FX.gale_cutter],
+      ["sky_bolt", MOVE_FX.sky_bolt],
+      ["talon_slash", MOVE_FX.talon_slash],
+      ["hurricane_spiral", MOVE_FX.hurricane_spiral],
+      ["cyclone_dive", MOVE_FX.cyclone_dive],
+      ["zephyr_veil", MOVE_FX.zephyr_veil],
+    ] as const
+    for (const [moveId, row] of windPins) {
+      expect(getMove(moveId)?.element).toBe("wind")
+      if (row === undefined) throw new Error(`missing bespoke row: ${moveId}`)
+      expect(fxFor(moveId, "wind")).toBe(row)
+      expect(fxFor(moveId, "wind")).not.toBe(ELEMENT_FALLBACK_FX.wind)
+    }
+  })
+
+  test("wind verb reads (AC-3 wind)", () => {
+    // Guards raise a barrier: no projectile, no shove. The talon rakes
+    // three simultaneous streaks on one shared beat (never a staggered
+    // volley); the spiral keeps its charge phase and a deep coil; the
+    // dive plunges chargeless with a rising windup and three lanes; the
+    // gust stays a chargeless chip.
+    const veil = MOVE_FX.zephyr_veil
+    if (veil === undefined) throw new Error("missing bespoke row: zephyr_veil")
+    expect(veil.shots).toHaveLength(0)
+    expect(veil.arrival.shove).toBe(0)
+    expect(veil.arrival.burst.ring).toBe(true)
+    const talon = MOVE_FX.talon_slash
+    if (talon === undefined) throw new Error("missing bespoke row: talon_slash")
+    expect(talon.shots).toHaveLength(3)
+    expect(new Set(talon.shots.map((shot) => shot.at)).size).toBe(1)
+    const spiral = MOVE_FX.hurricane_spiral
+    if (spiral === undefined)
+      throw new Error("missing bespoke row: hurricane_spiral")
+    expect(spiral.charge).toBeDefined()
+    expect(spiral.pose.windup.coilX ?? 0).toBeGreaterThanOrEqual(0.28)
+    expect(spiral.arrival.burst.ring).toBe(true)
+    expect(spiral.shots).toHaveLength(3)
+    const dive = MOVE_FX.cyclone_dive
+    if (dive === undefined) throw new Error("missing bespoke row: cyclone_dive")
+    expect(dive.charge).toBeUndefined()
+    expect(dive.pose.windup.rise ?? 0).toBeGreaterThan(0)
+    expect(dive.shots).toHaveLength(1)
+    expect(dive.arrival.lanes).toHaveLength(3)
+    // The finisher tops the dive on every axis: wider gust ring, heavier
+    // shove, deeper coil, later release.
+    expect(spiral.arrival.burst.size ?? 0).toBeGreaterThan(
+      dive.arrival.burst.size ?? 0,
+    )
+    expect(spiral.arrival.shove ?? 0).toBeLessThan(dive.arrival.shove ?? 0)
+    expect(spiral.wind).toBeGreaterThan(dive.wind)
+    const gust = MOVE_FX.gust
+    if (gust === undefined) throw new Error("missing bespoke row: gust")
+    expect(gust.shots).toHaveLength(1)
+    expect(gust.charge).toBeUndefined()
+  })
+
+  test("wind owns wind-only shot parts (FR-4)", () => {
+    // Wind shares no geometry/trail parts with water or plant: its look
+    // is the faceted streak core with a streak-sliver trail, in fallback
+    // and in every bespoke row. Rows carry no part keys — the look table
+    // is the single place parts are named, so the pin sits here.
+    const wind = lookFor("wind")
+    expect(wind.geometry).toBe("streak")
+    expect(wind.trail).toBe("streaks")
+    expect(wind.geometry).not.toBe(lookFor("water").geometry)
+    expect(wind.trail).not.toBe(lookFor("plant").trail)
+    // Every bespoke arrival lands as a low drifting gust ring, never a
+    // heavy or still burst.
+    const windMoves = [
+      "gust",
+      "feather_dart",
+      "gale_cutter",
+      "sky_bolt",
+      "talon_slash",
+      "hurricane_spiral",
+      "cyclone_dive",
+      "zephyr_veil",
+    ] as const
+    for (const moveId of windMoves) {
+      const row = MOVE_FX[moveId]
+      if (row === undefined) throw new Error(`missing bespoke row: ${moveId}`)
+      expect(row.arrival.burst.ring).toBe(true)
+      expect(row.arrival.burst.gravity ?? 7).toBeLessThan(4)
+    }
+  })
+})
+
+describe("verb-family builders (FR-5)", () => {
+  test("every builder starts from its element's fallback body", () => {
+    for (const element of ELEMENTS) {
+      const base = fallbackFor(element)
+      if (base === undefined)
+        throw new Error(`missing fallback body for ${element}`)
+      expect(barrierBody(element).arrival.burst).toBeDefined()
+      expect(dashBody(element).shots).not.toBe(base.shots)
+      expect(eruptionBody(element).pose.windup.coilX).toBeGreaterThanOrEqual(
+        0.28,
+      )
+      expect(coneBody(element).arrival.lanes).toHaveLength(3)
+      expect(volleyFanBody(element).shots).toHaveLength(3)
+      expect(beamBody(element).charge).toBeDefined()
+    }
+  })
+
+  test("barriers hold no projectile and land with no shove", () => {
+    for (const element of ELEMENTS) {
+      const barrier = barrierBody(element)
+      expect(barrier.shots).toHaveLength(0)
+      expect(barrier.arrival.shove).toBe(0)
+      expect(barrier.arrival.burst.ring).toBe(true)
+    }
+  })
+
+  test("builders throw for unknown elements", () => {
+    expect(() => barrierBody("shadow")).toThrow()
+    expect(() => dashBody("shadow")).toThrow()
+    expect(() => eruptionBody("shadow")).toThrow()
+    expect(() => coneBody("shadow")).toThrow()
+    expect(() => volleyFanBody("shadow")).toThrow()
+    expect(() => beamBody("shadow")).toThrow()
+  })
+})

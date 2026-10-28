@@ -1,5 +1,7 @@
 import { PROJECTILE_LIFE_MS } from "./looks"
 import { EARTH_FX } from "./moves/earth"
+import { ELECTRIC_FX } from "./moves/electric"
+import { fallbackFor } from "./moves/fallback"
 import { FIRE_FX } from "./moves/fire"
 import { PLANT_FX } from "./moves/plant"
 import { WATER_FX } from "./moves/water"
@@ -83,8 +85,9 @@ export interface MoveFx {
 }
 
 /**
- * Bespoke looks, keyed by move id (spec FR9). A move with no entry renders
- * through the shared `DEFAULT_FX` object plus its element's shot look, so
+ * Bespoke looks, keyed by move id (spec FR-2). A move with no entry renders
+ * through its element's authored fallback body (`./moves/fallback`) plus
+ * its element's shot look, so
  * two moves of the same element that are both absent from this map are
  * pixel-identical apart from the numbers in the log — which is why each
  * element's heavy finisher (move_pool_20261018) earns an entry even though
@@ -92,19 +95,22 @@ export interface MoveFx {
  *
  * Split by element (battle_choreography_20261024): each `./moves/<element>`
  * table owns that element's rows and this record only assembles them, so the
- * element seam is also the size seam. A steady move of either heavy element
- * (`basalt_guard`, `zephyr_veil`) is deliberately absent from every table and
- * inherits the default body.
+ * element seam is also the size seam. All 48 catalog specials are bespoke
+ * (elemental-identity track); unknown ids fall back to their element body.
  */
 export const MOVE_FX: Record<string, MoveFx> = {
   ...FIRE_FX,
   ...WATER_FX,
   ...PLANT_FX,
+  ...ELECTRIC_FX,
   ...EARTH_FX,
   ...WIND_FX,
 }
 
-/** Shared tier 1-2 launch archetype; also the fallback for unknown ids. */
+/**
+ * Shared tier 1-2 launch archetype; the fallback for unknown ids of unknown
+ * elements. Known elements resolve to their authored fallback body first.
+ */
 export const DEFAULT_FX: MoveFx = {
   wind: CONTACT_T,
   shots: [{ size: 1, life: PROJECTILE_LIFE_MS, at: CONTACT_T }],
@@ -116,5 +122,10 @@ export const DEFAULT_FX: MoveFx = {
   arrival: { burst: {}, shove: 0 },
 }
 
-export const fxFor = (moveId: string | undefined): MoveFx =>
-  (moveId !== undefined ? MOVE_FX[moveId] : undefined) ?? DEFAULT_FX
+export const fxFor = (
+  moveId: string | undefined,
+  element?: string | undefined,
+): MoveFx =>
+  (moveId !== undefined ? MOVE_FX[moveId] : undefined) ??
+  fallbackFor(element) ??
+  DEFAULT_FX

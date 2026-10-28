@@ -135,11 +135,11 @@ describe("shot looks cover all six elements", () => {
 
   test("wind streaks: stretched, spinning fast, flat arc, faceted tail", () => {
     const wind = lookFor("wind")
-    expect(wind.geometry).toBe("teardrop")
+    expect(wind.geometry).toBe("streak")
     expect(wind.stretch ?? 1).toBeGreaterThan(1.8)
     expect(wind.spin ?? 0).toBeGreaterThan(0.024)
     expect(wind.arc ?? 1).toBeLessThan(0.4)
-    expect(wind.trail).toBe("seeds")
+    expect(wind.trail).toBe("streaks")
     expect(wind.wobble ?? 0).toBeGreaterThan(0)
   })
 
@@ -213,6 +213,50 @@ describe("shot geometry builders", () => {
     expect(positions(a)).toEqual(positions(b))
     expect(positions(a).length).toBeGreaterThan(0)
   })
+
+  test("wind builders share no geometry with water or plant (FR-4)", () => {
+    // The streak core is a single stretched octahedron: not water's
+    // smooth sphere, and a single needle rather than plant's 3-seed
+    // cluster. The streak-sliver trail matches neither plant's seeds
+    // nor water's droplets vertex-for-vertex.
+    const windCore = meshesOf(buildShotCore(lookFor("wind"), color, 1))
+    const windMesh = windCore[0]
+    if (windMesh === undefined)
+      throw new Error("the wind streak built no meshes")
+    expect(windCore.length).toBe(1)
+    expect(windMesh.geometry.type).toBe("OctahedronGeometry")
+    for (const mesh of meshesOf(buildShotCore(lookFor("water"), color, 1))) {
+      expect(mesh.geometry.type).not.toBe(windMesh.geometry.type)
+    }
+    const windTrail = buildTrail(lookFor("wind"), color, 1)
+    expect(windTrail.length).toBeGreaterThan(0)
+    const plantTrail = buildTrail(lookFor("plant"), color, 1)
+    const firstWind = windTrail[0]
+    if (firstWind === undefined)
+      throw new Error("the wind trail built no segments")
+    const firstPlant = plantTrail[0]
+    if (firstPlant === undefined)
+      throw new Error("the plant trail built no segments")
+    expect(vertexPositions(firstWind.geometry)).not.toEqual(
+      vertexPositions(firstPlant.geometry),
+    )
+    // Slivers are light, not grit: the trail stays additive.
+    for (const seg of windTrail) {
+      const material = seg.material as THREE.MeshBasicMaterial
+      expect(material.blending).toBe(THREE.AdditiveBlending)
+    }
+  })
+
+  test("the streak is built deterministically", () => {
+    // Wind's edge case, mirroring the boulder's: identical looks build
+    // identical meshes, so no randomness leaked into the new builder.
+    const a = buildShotCore(lookFor("wind"), color, 1)
+    const b = buildShotCore(lookFor("wind"), color, 1)
+    const positions = (object: THREE.Object3D): number[] =>
+      meshesOf(object).flatMap((mesh) => vertexPositions(mesh.geometry))
+    expect(positions(a)).toEqual(positions(b))
+    expect(positions(a).length).toBeGreaterThan(0)
+  })
 })
 
 describe("move table", () => {
@@ -245,29 +289,13 @@ describe("move table", () => {
   })
 
   test("the unauthored element signatures stay on the default body", () => {
-    expect(fxFor("basalt_guard")).toBe(DEFAULT_FX)
-    expect(fxFor("zephyr_veil")).toBe(DEFAULT_FX)
+    // All six guards went bespoke in Phases 2-7 (zephyr_veil closed the
+    // set in Phase 7): only unknown ids and element-less lookups hit
+    // DEFAULT_FX now — see the AC-3 wind pins.
     expect(fxFor("plasma_lance")).toBe(DEFAULT_FX)
     expect(fxFor(undefined)).toBe(DEFAULT_FX)
-    // Their element still supplies the look: default body + Earth/Wind shot.
-    expect(lookFor(getMove("basalt_guard")?.element)).toBe(look("earth"))
+    // Wind still supplies the look for its catalog moves.
     expect(lookFor(getMove("zephyr_veil")?.element)).toBe(look("wind"))
-  })
-
-  test("the new lines' guard signatures ride the default body too", () => {
-    // The three roster-expansion lines each bring one guard: a defensive move
-    // has no projectile grammar of its own, so it inherits the default body
-    // and lets its element supply the shot — the same rule the earth and wind
-    // guards follow.
-    const guards: ReadonlyArray<[string, Element]> = [
-      ["bramble_guard", "plant"],
-      ["tide_aegis", "water"],
-      ["pyre_wall", "fire"],
-    ]
-    for (const [guard, element] of guards) {
-      expect(fxFor(guard)).toBe(DEFAULT_FX)
-      expect(lookFor(getMove(guard)?.element)).toBe(look(element))
-    }
   })
 
   test("each new attack form is authored in its element's grammar", () => {

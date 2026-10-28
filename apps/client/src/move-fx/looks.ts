@@ -28,7 +28,7 @@ export const PROJECTILE_ARC = 0.55
  */
 export interface ShotLook {
   /** Core geometry family built by the interpreter. */
-  geometry: "ember" | "teardrop" | "seedCluster" | "orb" | "boulder"
+  geometry: "ember" | "teardrop" | "seedCluster" | "orb" | "boulder" | "streak"
   /** Additive halo opacity at the core (0 = none). */
   glow?: number
   /** Core size pulse amplitude (0 = none). */
@@ -37,12 +37,12 @@ export interface ShotLook {
   wobble?: number
   /** Spin rate around the travel axis, radians per ms. */
   spin?: number
-  /** Stretches the core along travel (teardrop) - 1 = round. */
+  /** Stretches the core along travel (teardrop, streak) - 1 = round. */
   stretch?: number
   /** Arc-lift multiplier over PROJECTILE_ARC. */
   arc?: number
   /** Trail segment family streaming behind the shot. */
-  trail: "embers" | "droplets" | "seeds" | "orbs" | "dust"
+  trail: "embers" | "droplets" | "seeds" | "orbs" | "dust" | "streaks"
 }
 
 export const SHOT_LOOKS: Record<string, ShotLook> = {
@@ -82,14 +82,16 @@ export const SHOT_LOOKS: Record<string, ShotLook> = {
     trail: "dust",
   },
   wind: {
-    // A streak rather than a ball: stretched hard along travel, spinning
-    // fast, wobbling sideways on a low flat arc with a faceted tail.
-    geometry: "teardrop",
+    // A wind-only streak (FR-4): a faceted needle pulled hard along
+    // travel, spinning fast on a low flat arc with a sliver tail. It
+    // shares no geometry with water's smooth teardrop and no trail with
+    // plant's seeds — wind owns every part it renders.
+    geometry: "streak",
     stretch: 2.1,
     wobble: 0.04,
     spin: 0.03,
     arc: 0.3,
-    trail: "seeds",
+    trail: "streaks",
   },
 }
 

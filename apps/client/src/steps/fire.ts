@@ -90,7 +90,7 @@ export function arriveSpecial(
   step: PlaybackStep,
   side: Side,
 ): void {
-  const fx = fxFor(step.moveId)
+  const fx = fxFor(step.moveId, step.element)
   const at = side.target.group.position.clone()
   if (fx.arrival.lanes) {
     for (const dz of fx.arrival.lanes) {
@@ -117,7 +117,7 @@ export function fireSpecial(
   side: Side,
   compressed: boolean,
 ): void {
-  const fx = fxFor(step.moveId)
+  const fx = fxFor(step.moveId, step.element)
   const away = side.actor.away
   const wind = compressed ? (fx.compressed?.wind ?? 0.32) : fx.wind
   // Scale the fixed micro-flight with the live pace, exactly like
