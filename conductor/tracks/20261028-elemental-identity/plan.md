@@ -151,7 +151,8 @@ desktop/device-phone, clean console) with per-move water-identity reads.
   `apps/client/src/move-fx/moves.ts` (registry)
 - **Verification:** `bun run verify && bun run build` + 8 electric screenshots
   desktop + phone, clean console
-- **Status:** in_progress
+- **Status:** verified (primary: gate exit 0, 32 lab frames reviewed — see
+  verification/phase-5.md)
 
 - [ ] **P5.T1: Create `electric.ts`** with arc-tendril builders for all 8 rows
   — covers: FR-2, FR-3

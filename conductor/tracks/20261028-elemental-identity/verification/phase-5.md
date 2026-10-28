@@ -3,10 +3,9 @@
 - Track: `20261028-elemental-identity`, Phase 5
 - Date: 2026-10-28
 - Branch: `feat/20261028-elemental-identity` (base `d9caf6c7` per brief)
-- Result: **blocked** — implementation + test pins written and self-reviewed;
-  task commits and `bun run verify && bun run build` could not run because
-  the `shell` tool returns `permission denied` in this session. The primary
-  owns the commit + verification run on handoff.
+- Result: **verified** — primary ran the gate and captured lab evidence
+  (see Primary evidence below). One biome-format fix on the pins
+  (`0df74ef2`); no behavior change.
 
 ## Tasks
 
@@ -35,18 +34,35 @@
   charge). All pins use dot access (`MOVE_FX.static_jolt`) with
   throw-narrowing, no `!`/`as`. Covers AC-1, AC-3.
   → `apps/client/src/move-fx/moves/fallback.test.ts`
-- [ ] **Primary on handoff:** stage + commit per task
-  (`feat(move-fx): ...`), run `bun run verify && bun run build`, capture
-  P5.T3 lab screenshots (Storm Hound `storm_hound` vs Tide Axolotl, far,
-  1×, seeded; explicit `setViewportSize` 1280×800 desktop / 390×844 phone).
+- [x] **Primary on handoff:** staged + committed per task (`13eb5170`
+  P5.T1, `68fefcc0` P5.T2, `d768a0b2` P5.T3, `0df74ef2` biome format), ran
+  `bun run verify && bun run build` (exit 0), captured P5.T3 lab
+  screenshots (Storm Hound `storm_hound` vs Tide Axolotl, far, 1×, seeded;
+  explicit `setViewportSize` 1280×800 desktop / 390×844 phone).
 
 ## Verification
 
 | Layer | Command | Exit | Summary |
 | --- | --- | --- | --- |
-| static+unit+determinism | `bun run verify` | not run | shell denied in this session |
-| build | `bun run build` | not run | shell denied in this session |
-| visual (lab) | primary captures | pending | P5.T3 screenshots after handoff |
+| static+unit+determinism | `bun run verify` | 0 | types clean (464 client files), 3445 pass / 1 skip / 0 fail, biome clean, determinism gate OK |
+| build | `bun run build` | 0 | client bundle builds; lab chunk still split |
+| visual (lab) | primary captured | done | 32 frames in verification/phase-5/, spot-reviewed |
+
+## Primary evidence (P5.T3 lab capture)
+
+- 32 Move-Lab frames in `verification/phase-5/`: 8 moves × travel/impact ×
+  desktop (1280×800) / phone (390×844). Attacker Storm Hound
+  (`storm_hound`), defender Tide Axolotl (electric→water SE), far range,
+  1× pace, seeded particles. Anchors: travel = projectile-staged +500ms,
+  impact = impact-staged +100ms.
+- Reads: gigavolt travel = huge yellow-white charge orb swelling at the
+  hound (beam charge); ion_wall impact = arc-tendril barrier ring erupting
+  on the foe (barrier rule); storm_surge travel = bright bolt-stream in
+  flight (beats overlap at the anchor — structural 3-shot stagger pinned in
+  tests); static_jolt phone travel = crackle at the hound with halo ring,
+  legible at 390px width.
+- Commits: `13eb5170` P5.T1 electric.ts, `68fefcc0` P5.T2 registry,
+  `d768a0b2` P5.T3 pins, `0df74ef2` biome format fix.
 
 ## Deviations
 
