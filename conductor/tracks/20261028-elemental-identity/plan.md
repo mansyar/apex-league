@@ -205,14 +205,21 @@ desktop/device-phone, clean console) with per-move earth-identity reads.
 - **Touches:** `apps/client/src/move-fx/moves/wind.ts`
 - **Verification:** `bun run verify && bun run build` + 8 wind screenshots
   desktop + phone, clean console
-- **Status:** in_progress (primary: brief written, subagent launched)
+- **Status:** verified (primary: gate exit 0, 32 lab frames reviewed — see
+  verification/phase-7.md)
 
-- [ ] **P7.T1: New rows** (incl. `zephyr_veil` barrier, `hurricane_spiral`
+- [x] **P7.T1: New rows** (incl. `zephyr_veil` barrier, `hurricane_spiral`
   vortex, `talon_slash` streak) — covers: FR-2
-- [ ] **P7.T2: Upgrade `cyclone_dive` + purge shared water/plant parts** —
+- [x] **P7.T2: Upgrade `cyclone_dive` + purge shared water/plant parts** —
   covers: FR-2, FR-4
-- [ ] **P7.T3: Wind visual evidence + no-shared-parts check** — covers: AC-1,
+- [x] **P7.T3: Wind visual evidence + no-shared-parts check** — covers: AC-1,
   AC-3
+
+**Result:** verified — `bun run verify` exit 0 (3452 pass / 0 fail),
+`bun run build` exit 0, 32 Move-Lab frames (8 moves × travel/impact ×
+desktop/device-phone, clean console) with per-move wind-identity reads.
+48/48 catalog specials now bespoke.
+**Evidence:** conductor/tracks/20261028-elemental-identity/verification/phase-7.md
 
 ## Phase 8: Catalog, grayscale, acceptance
 

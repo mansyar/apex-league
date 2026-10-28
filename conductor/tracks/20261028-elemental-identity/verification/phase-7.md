@@ -1,9 +1,39 @@
 # Phase 7 verification — Wind (7 new + 1 upgrade, decoupled parts)
 
-> Result: **blocked** — subagent shell is permission-denied in this
-> environment, so no task commits, no gate, and no lab evidence could be
-> produced here. All code and pins below are written and ready; the primary
-> runs the gate, commits per task, and captures the 8 wind Move-Lab frames.
+> Result: **verified** — primary ran the full gate on the committed
+> implementation, captured all 32 Move-Lab frames, and reviewed the
+> per-move wind reads. All code and pins below are committed; evidence
+> reviewed.
+
+## Primary handoff (gate, commits, evidence)
+
+- `bun run verify` exit 0: types clean (44 + 160 + 169 + 464 files),
+  **3452 pass / 1 skip / 0 fail**, Biome clean, determinism gate OK (all
+  15 species × 3 stages byte-identical + 5 props).
+- `bun run build` exit 0 (pre-existing chunk-size warning only; lab still
+  split into its own chunk). (The smoke `RESULT fail … file:///tmp/x`
+  line is the known negative-path probe, not a failure.)
+- Commits: `490fe468` (P7.T1+T2 implementation — the new-rows vs
+  upgrade split is inseparable inside the single-file `wind.ts` rewrite,
+  so both tasks ride one commit plus the FR-4 geometry/look files),
+  `258d543d` (P7.T3 pins + this report). Deviates from the suggested
+  3-commit sequence only in merging T1+T2; messages match the brief.
+- Primary also fixed the stale `moves.ts` registry comment the report
+  flagged (both heavy guards are bespoke now) — rides the T1+T2 commit.
+- **Evidence: 32 Move-Lab frames** in this directory (8 moves ×
+  travel/impact × desktop/phone), attacker Zephyr Falcon vs Basalt
+  Tortoise (wind body shows the streak grammar best; tortoise is bulky
+  enough to survive the set), far, 1×, seeded, explicit viewports
+  (1280×800 / 390×844), clean console. All 8 desktop + all 8 phone runs
+  reported `travel: true`.
+- Spot reads: `hurricane_spiral` travel = cyan vortex column mid-arena
+  (unmistakable wind finisher); `zephyr_veil` impact = pale gust-ring
+  eruption ON the tortoise (barrier rule holds); `talon_slash` travel =
+  3 simultaneous streak needles raking (lash, not volley);
+  `gale_cutter-p-impact` legible at 390px.
+- Module caps: gate's size-guard tests pass (`wind.ts` 8 rows ≈ earth
+  shape; `looks.ts`/`shot-geometry.ts` additions ~20 lines; no new
+  modules).
 
 ## Tasks
 
@@ -78,9 +108,9 @@ Pre-gate self-checks for the primary:
   no-shared-parts assertion).
 - Brief touch-map path `apps/client/src/move-fx/moves/move-fx.test.ts`
   does not exist; the file is `apps/client/src/move-fx.test.ts`.
-- `moves.ts` registry comment (lines ~87–101) still names `zephyr_veil`
-  as default-body — left untouched per touch map (same staleness
-  precedent as Phase 6's `basalt_guard`); flagging for a docs pass.
+- `moves.ts` registry comment staleness flagged above — **resolved by
+  primary** (comment now states all 48 specials bespoke; rides the
+  T1+T2 commit).
 
 ## Notes
 
