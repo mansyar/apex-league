@@ -28,7 +28,17 @@ export const PROJECTILE_ARC = 0.55
  */
 export interface ShotLook {
   /** Core geometry family built by the interpreter. */
-  geometry: "ember" | "teardrop" | "seedCluster" | "orb" | "boulder" | "streak"
+  geometry:
+    | "ember"
+    | "teardrop"
+    | "seedCluster"
+    | "orb"
+    | "boulder"
+    | "streak"
+    | "fork"
+    | "chunk"
+    | "needle"
+    | "jet"
   /** Additive halo opacity at the core (0 = none). */
   glow?: number
   /** Core size pulse amplitude (0 = none). */
@@ -95,9 +105,32 @@ export const SHOT_LOOKS: Record<string, ShotLook> = {
   },
 }
 
-export const lookFor = (element: string | undefined): ShotLook =>
-  (element !== undefined ? SHOT_LOOKS[element] : undefined) ?? {
+/**
+ * Per-row shot-look overrides (fire identity FR-1): a row listed here
+ * renders its own geometry + trail instead of its element's default, while
+ * every other look field rides the element row. Rows opt in during Phases
+ * 2-5 — this phase only proves the mechanism, so the table starts empty
+ * and no existing row changes its read. Resolution pairs with
+ * `fxFor(moveId, element)`: pass the same pair to `lookFor`.
+ */
+export const MOVE_SHOT_LOOK: Record<string, Partial<ShotLook>> = {}
+
+/**
+ * Resolve the shot look for a launch: the row's override merged over its
+ * element default, or the element default when the row opts out. Calling
+ * with no moveId keeps the exact pre-override read (the same object).
+ */
+export const lookFor = (
+  element: string | undefined,
+  moveId?: string | undefined,
+): ShotLook => {
+  const base: ShotLook = (element !== undefined
+    ? SHOT_LOOKS[element]
+    : undefined) ?? {
     geometry: "orb",
     arc: 1,
     trail: "orbs",
   }
+  const override = moveId !== undefined ? MOVE_SHOT_LOOK[moveId] : undefined
+  return override === undefined ? base : { ...base, ...override }
+}
