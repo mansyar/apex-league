@@ -106,22 +106,22 @@ describe("element fallback bodies (FR-1)", () => {
   test("fire verb reads (AC-3 fire)", () => {
     // Guards raise a barrier: no projectile, no shove. Dashes launch the
     // body with a deep shove; the lance keeps its charge phase.
-    const wall = MOVE_FX["pyre_wall"]
+    const wall = MOVE_FX.pyre_wall
     if (wall === undefined) throw new Error("missing bespoke row: pyre_wall")
     expect(wall.shots).toHaveLength(0)
     expect(wall.arrival.shove).toBe(0)
     expect(wall.arrival.burst.ring).toBe(true)
-    const charge = MOVE_FX["flame_charge"]
+    const charge = MOVE_FX.flame_charge
     if (charge === undefined)
       throw new Error("missing bespoke row: flame_charge")
     expect(charge.kick).toBeLessThanOrEqual(-0.6)
-    const dive = MOVE_FX["cinder_dive"]
+    const dive = MOVE_FX.cinder_dive
     if (dive === undefined) throw new Error("missing bespoke row: cinder_dive")
     expect(dive.kick).toBeLessThanOrEqual(-0.6)
-    const lance = MOVE_FX["pyre_lance"]
+    const lance = MOVE_FX.pyre_lance
     if (lance === undefined) throw new Error("missing bespoke row: pyre_lance")
     expect(lance.charge).toBeDefined()
-    const bolt = MOVE_FX["blaze_bolt"]
+    const bolt = MOVE_FX.blaze_bolt
     if (bolt === undefined) throw new Error("missing bespoke row: blaze_bolt")
     expect(bolt.charge).toBeDefined()
   })
@@ -150,32 +150,28 @@ describe("element fallback bodies (FR-1)", () => {
     // Guards raise a barrier: no projectile, no shove. The rush dashes the
     // body with a deep shove; the volley fans three shots; the spray lands
     // across three lanes; the heavies keep their charge phase.
-    const aegis = MOVE_FX["tide_aegis"]
-    if (aegis === undefined)
-      throw new Error("missing bespoke row: tide_aegis")
+    const aegis = MOVE_FX.tide_aegis
+    if (aegis === undefined) throw new Error("missing bespoke row: tide_aegis")
     expect(aegis.shots).toHaveLength(0)
     expect(aegis.arrival.shove).toBe(0)
     expect(aegis.arrival.burst.ring).toBe(true)
-    const rush = MOVE_FX["riptide_rush"]
-    if (rush === undefined)
-      throw new Error("missing bespoke row: riptide_rush")
+    const rush = MOVE_FX.riptide_rush
+    if (rush === undefined) throw new Error("missing bespoke row: riptide_rush")
     expect(rush.kick).toBeLessThanOrEqual(-0.6)
-    const volley = MOVE_FX["foam_volley"]
+    const volley = MOVE_FX.foam_volley
     if (volley === undefined)
       throw new Error("missing bespoke row: foam_volley")
     expect(volley.shots).toHaveLength(3)
-    const spray = MOVE_FX["mist_spray"]
-    if (spray === undefined)
-      throw new Error("missing bespoke row: mist_spray")
+    const spray = MOVE_FX.mist_spray
+    if (spray === undefined) throw new Error("missing bespoke row: mist_spray")
     expect(spray.arrival.lanes).toHaveLength(3)
     expect(spray.arrival.burst.ring).toBe(true)
-    const storm = MOVE_FX["maelstrom"]
+    const storm = MOVE_FX.maelstrom
     if (storm === undefined) throw new Error("missing bespoke row: maelstrom")
     expect(storm.charge).toBeDefined()
     expect(storm.shots).toHaveLength(2)
-    const bolt = MOVE_FX["splash_bolt"]
-    if (bolt === undefined)
-      throw new Error("missing bespoke row: splash_bolt")
+    const bolt = MOVE_FX.splash_bolt
+    if (bolt === undefined) throw new Error("missing bespoke row: splash_bolt")
     expect(bolt.charge).toBeDefined()
   })
 })
