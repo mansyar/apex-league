@@ -1,5 +1,6 @@
 import { PROJECTILE_LIFE_MS } from "./looks"
 import { EARTH_FX } from "./moves/earth"
+import { ELECTRIC_FX } from "./moves/electric"
 import { fallbackFor } from "./moves/fallback"
 import { FIRE_FX } from "./moves/fire"
 import { PLANT_FX } from "./moves/plant"
@@ -102,6 +103,7 @@ export const MOVE_FX: Record<string, MoveFx> = {
   ...FIRE_FX,
   ...WATER_FX,
   ...PLANT_FX,
+  ...ELECTRIC_FX,
   ...EARTH_FX,
   ...WIND_FX,
 }
