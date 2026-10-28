@@ -258,10 +258,10 @@ describe("move table", () => {
     // The roster-expansion guards with no bespoke row yet inherit the
     // default body and let their element supply the shot — the same rule
     // the earth and wind guards follow. (pyre_wall left this list in
-    // Phase 2: it now owns a bespoke barrier row — see the AC-3 fire pin.)
+    // Phase 2 and tide_aegis leaves it in Phase 3: each now owns a bespoke
+    // barrier row — see the AC-3 fire/water pins.)
     const guards: ReadonlyArray<[string, Element]> = [
       ["bramble_guard", "plant"],
-      ["tide_aegis", "water"],
     ]
     for (const [guard, element] of guards) {
       expect(fxFor(guard)).toBe(DEFAULT_FX)

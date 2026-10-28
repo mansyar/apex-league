@@ -47,12 +47,10 @@ describe("element fallback bodies (FR-1)", () => {
   })
 
   test("unauthored moves resolve to their element's fallback", () => {
-    // One unauthored special per element with moves still to land (fire is
-    // fully bespoke — see the AC-1 fire pin below): the guard line plus one
-    // attack the bespoke tables do not own.
+    // One unauthored special per element with moves still to land (fire and
+    // water are fully bespoke — see the AC-1 fire/water pins below): the
+    // guard line plus one attack the bespoke tables do not own.
     const spot: ReadonlyArray<[string, (typeof ELEMENTS)[number]]> = [
-      ["bubble", "water"],
-      ["tide_aegis", "water"],
       ["seed_shot", "plant"],
       ["bramble_guard", "plant"],
       ["static_jolt", "electric"],
@@ -125,6 +123,59 @@ describe("element fallback bodies (FR-1)", () => {
     expect(lance.charge).toBeDefined()
     const bolt = MOVE_FX["blaze_bolt"]
     if (bolt === undefined) throw new Error("missing bespoke row: blaze_bolt")
+    expect(bolt.charge).toBeDefined()
+  })
+
+  test("all 8 water specials resolve to bespoke rows (AC-1 water)", () => {
+    const waterMoves = [
+      "bubble",
+      "tide_shot",
+      "foam_volley",
+      "splash_bolt",
+      "mist_spray",
+      "maelstrom",
+      "riptide_rush",
+      "tide_aegis",
+    ]
+    for (const moveId of waterMoves) {
+      expect(getMove(moveId)?.element).toBe("water")
+      const row = MOVE_FX[moveId]
+      if (row === undefined) throw new Error(`missing bespoke row: ${moveId}`)
+      expect(fxFor(moveId, "water")).toBe(row)
+      expect(fxFor(moveId, "water")).not.toBe(ELEMENT_FALLBACK_FX.water)
+    }
+  })
+
+  test("water verb reads (AC-3 water)", () => {
+    // Guards raise a barrier: no projectile, no shove. The rush dashes the
+    // body with a deep shove; the volley fans three shots; the spray lands
+    // across three lanes; the heavies keep their charge phase.
+    const aegis = MOVE_FX["tide_aegis"]
+    if (aegis === undefined)
+      throw new Error("missing bespoke row: tide_aegis")
+    expect(aegis.shots).toHaveLength(0)
+    expect(aegis.arrival.shove).toBe(0)
+    expect(aegis.arrival.burst.ring).toBe(true)
+    const rush = MOVE_FX["riptide_rush"]
+    if (rush === undefined)
+      throw new Error("missing bespoke row: riptide_rush")
+    expect(rush.kick).toBeLessThanOrEqual(-0.6)
+    const volley = MOVE_FX["foam_volley"]
+    if (volley === undefined)
+      throw new Error("missing bespoke row: foam_volley")
+    expect(volley.shots).toHaveLength(3)
+    const spray = MOVE_FX["mist_spray"]
+    if (spray === undefined)
+      throw new Error("missing bespoke row: mist_spray")
+    expect(spray.arrival.lanes).toHaveLength(3)
+    expect(spray.arrival.burst.ring).toBe(true)
+    const storm = MOVE_FX["maelstrom"]
+    if (storm === undefined) throw new Error("missing bespoke row: maelstrom")
+    expect(storm.charge).toBeDefined()
+    expect(storm.shots).toHaveLength(2)
+    const bolt = MOVE_FX["splash_bolt"]
+    if (bolt === undefined)
+      throw new Error("missing bespoke row: splash_bolt")
     expect(bolt.charge).toBeDefined()
   })
 })
