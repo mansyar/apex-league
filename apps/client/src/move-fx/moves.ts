@@ -1,5 +1,6 @@
 import { PROJECTILE_LIFE_MS } from "./looks"
 import { EARTH_FX } from "./moves/earth"
+import { fallbackFor } from "./moves/fallback"
 import { FIRE_FX } from "./moves/fire"
 import { PLANT_FX } from "./moves/plant"
 import { WATER_FX } from "./moves/water"
@@ -84,7 +85,8 @@ export interface MoveFx {
 
 /**
  * Bespoke looks, keyed by move id (spec FR9). A move with no entry renders
- * through the shared `DEFAULT_FX` object plus its element's shot look, so
+ * through its element's authored fallback body (`./moves/fallback`) plus
+ * its element's shot look, so
  * two moves of the same element that are both absent from this map are
  * pixel-identical apart from the numbers in the log — which is why each
  * element's heavy finisher (move_pool_20261018) earns an entry even though
@@ -104,7 +106,10 @@ export const MOVE_FX: Record<string, MoveFx> = {
   ...WIND_FX,
 }
 
-/** Shared tier 1-2 launch archetype; also the fallback for unknown ids. */
+/**
+ * Shared tier 1-2 launch archetype; the fallback for unknown ids of unknown
+ * elements. Known elements resolve to their authored fallback body first.
+ */
 export const DEFAULT_FX: MoveFx = {
   wind: CONTACT_T,
   shots: [{ size: 1, life: PROJECTILE_LIFE_MS, at: CONTACT_T }],
@@ -116,5 +121,10 @@ export const DEFAULT_FX: MoveFx = {
   arrival: { burst: {}, shove: 0 },
 }
 
-export const fxFor = (moveId: string | undefined): MoveFx =>
-  (moveId !== undefined ? MOVE_FX[moveId] : undefined) ?? DEFAULT_FX
+export const fxFor = (
+  moveId: string | undefined,
+  element?: string | undefined,
+): MoveFx =>
+  (moveId !== undefined ? MOVE_FX[moveId] : undefined) ??
+  fallbackFor(element) ??
+  DEFAULT_FX

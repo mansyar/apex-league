@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import { elementColor } from "../move-fx"
-import { DECAL_LIFE_MS, DECAL_MAX, decalRadius } from "./fx-data"
+import { DECAL_LIFE_MS, DECAL_MAX, decalRadius, decalRing } from "./fx-data"
 import { decalPop, fadeOver } from "./fx-math"
 import type { EffectLoop } from "./loop"
 
@@ -67,8 +67,11 @@ export function createDecalLayer(host: {
         if (oldest) disposeDecal(oldest)
       }
       const color = new THREE.Color(elementColor(element)).multiplyScalar(0.22)
+      const radius = decalRadius(strength)
       const mesh = new THREE.Mesh(
-        new THREE.CircleGeometry(decalRadius(strength), 14),
+        decalRing(element)
+          ? new THREE.RingGeometry(radius * 0.55, radius, 20)
+          : new THREE.CircleGeometry(radius, 14),
         new THREE.MeshBasicMaterial({
           color,
           transparent: true,

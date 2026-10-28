@@ -20,27 +20,25 @@
   needs verb dispatch)
 - **Verification:** `bun run verify && bun run build` + playwright fallback
   screenshots (one per element, desktop + phone, clean console)
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Author 6 fallback bodies** — covers: FR-1
-  - [ ] **P1.T1.1: Fire, water, plant fallbacks** (rising flicker shards;
+- [x] **P1.T1: Author 6 fallback bodies** — covers: FR-1
+  - [x] **P1.T1.1: Fire, water, plant fallbacks** (rising flicker shards;
     heavy droplets + foam ring; seed cluster + petals)
-  - [ ] **P1.T1.2: Electric, earth, wind fallbacks** (arc-tendril halo + hot
+  - [x] **P1.T1.2: Electric, earth, wind fallbacks** (arc-tendril halo + hot
     core; tumbling grit, non-luminous; stretched streaks + gust ring)
-  - [ ] **P1.T1.3: Element-typed floor-mark treatments** in the decal layer —
+  - [x] **P1.T1.3: Element-typed floor-mark treatments** in the decal layer —
     covers: FR-6
-- [ ] **P1.T2: Verb-family helpers** — covers: FR-5
-  - [ ] **P1.T2.1: barrier, dash, eruption builders**
-  - [ ] **P1.T2.2: cone, volley-fan, beam builders**
-- [ ] **P1.T3: Lookup + fallback test** — covers: FR-1 (unknown moveId resolves
+- [x] **P1.T2: Verb-family helpers** — covers: FR-5
+  - [x] **P1.T2.1: barrier, dash, eruption builders**
+  - [x] **P1.T2.2: cone, volley-fan, beam builders**
+- [x] **P1.T3: Lookup + fallback test** — covers: FR-1 (unknown moveId resolves
   to its element's fallback; instant mode unaffected)
 
-<!--
-The primary appends after acceptance:
-**Result:** verified
-**Checkpoint:** <short-sha>
+**Result:** verified — `bun run verify` exit 0 (3425 pass / 0 fail,
+determinism gate OK), `bun run build` exit 0, 12 fallback screenshots
+(desktop + phone, clean console) in `verification/phase-1/`.
 **Evidence:** conductor/tracks/20261028-elemental-identity/verification/phase-1.md
--->
 
 ## Phase 2: Fire (4 new + 4 upgrades)
 

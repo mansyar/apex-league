@@ -20,12 +20,17 @@ export const SHOT_TARGET_Y = 0.6
 /**
  * Element-flavored fragment physics (FR7): fire embers are buoyant and
  * rise while flickering, water droplets fall heavy and fast, plant motes
- * float on a sideways drift. Anything else keeps the neutral scatter.
+ * float on a sideways drift, electric sparks jitter with an erratic sway,
+ * earth grit tumbles down heavy with no drift, and wind streaks ride out
+ * on a wide lateral draught. Anything else keeps the neutral scatter.
  */
 const ELEMENT_BURST: Record<string, { gravity: number; sway: number }> = {
   fire: { gravity: -2.2, sway: 0.5 },
   water: { gravity: 10, sway: 0 },
   plant: { gravity: 1.8, sway: 1.0 },
+  electric: { gravity: -1, sway: 1.6 },
+  earth: { gravity: 14, sway: 0 },
+  wind: { gravity: 1.2, sway: 1.4 },
 }
 
 /** Neutral scatter for elements with no flavor entry. */
@@ -37,6 +42,18 @@ export function burstPhysics(element: string | undefined): {
   sway: number
 } {
   return ELEMENT_BURST[element ?? ""] ?? NEUTRAL_BURST
+}
+
+/**
+ * Floor-mark shape per element (FR-6): water leaves a foam ring, wind a
+ * gust ring, and electric a scorched halo — the outline elements. Fire,
+ * earth, and plant burn solid discs (scorch, rubble, seedbed).
+ */
+const DECAL_RINGS: ReadonlySet<string> = new Set(["water", "wind", "electric"])
+
+/** Whether an element's floor mark reads as a ring rather than a disc. */
+export function decalRing(element: string | undefined): boolean {
+  return DECAL_RINGS.has(element ?? "")
 }
 
 /** Floor-mark radius: grows with the blow's strength, hard-capped. */
