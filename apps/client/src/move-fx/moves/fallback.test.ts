@@ -47,11 +47,10 @@ describe("element fallback bodies (FR-1)", () => {
   })
 
   test("unauthored moves resolve to their element's fallback", () => {
-    // Two unauthored specials per element: the guard line plus one attack
-    // the bespoke tables do not own.
+    // One unauthored special per element with moves still to land (fire is
+    // fully bespoke — see the AC-1 fire pin below): the guard line plus one
+    // attack the bespoke tables do not own.
     const spot: ReadonlyArray<[string, (typeof ELEMENTS)[number]]> = [
-      ["spark", "fire"],
-      ["pyre_wall", "fire"],
       ["bubble", "water"],
       ["tide_aegis", "water"],
       ["seed_shot", "plant"],
@@ -84,6 +83,49 @@ describe("element fallback bodies (FR-1)", () => {
     expect(fxFor(undefined)).toBe(DEFAULT_FX)
     expect(fxFor(undefined, undefined)).toBe(DEFAULT_FX)
     expect(fxFor("plasma_lance")).toBe(DEFAULT_FX)
+  })
+
+  test("all 8 fire specials resolve to bespoke rows (AC-1 fire)", () => {
+    const fireMoves = [
+      "spark",
+      "flame_charge",
+      "cinder_shot",
+      "blaze_bolt",
+      "flare_dart",
+      "pyre_lance",
+      "cinder_dive",
+      "pyre_wall",
+    ]
+    for (const moveId of fireMoves) {
+      expect(getMove(moveId)?.element).toBe("fire")
+      const row = MOVE_FX[moveId]
+      if (row === undefined) throw new Error(`missing bespoke row: ${moveId}`)
+      expect(fxFor(moveId, "fire")).toBe(row)
+      expect(fxFor(moveId, "fire")).not.toBe(ELEMENT_FALLBACK_FX.fire)
+    }
+  })
+
+  test("fire verb reads (AC-3 fire)", () => {
+    // Guards raise a barrier: no projectile, no shove. Dashes launch the
+    // body with a deep shove; the lance keeps its charge phase.
+    const wall = MOVE_FX["pyre_wall"]
+    if (wall === undefined) throw new Error("missing bespoke row: pyre_wall")
+    expect(wall.shots).toHaveLength(0)
+    expect(wall.arrival.shove).toBe(0)
+    expect(wall.arrival.burst.ring).toBe(true)
+    const charge = MOVE_FX["flame_charge"]
+    if (charge === undefined)
+      throw new Error("missing bespoke row: flame_charge")
+    expect(charge.kick).toBeLessThanOrEqual(-0.6)
+    const dive = MOVE_FX["cinder_dive"]
+    if (dive === undefined) throw new Error("missing bespoke row: cinder_dive")
+    expect(dive.kick).toBeLessThanOrEqual(-0.6)
+    const lance = MOVE_FX["pyre_lance"]
+    if (lance === undefined) throw new Error("missing bespoke row: pyre_lance")
+    expect(lance.charge).toBeDefined()
+    const bolt = MOVE_FX["blaze_bolt"]
+    if (bolt === undefined) throw new Error("missing bespoke row: blaze_bolt")
+    expect(bolt.charge).toBeDefined()
   })
 })
 

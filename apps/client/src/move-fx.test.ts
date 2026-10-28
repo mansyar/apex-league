@@ -255,14 +255,13 @@ describe("move table", () => {
   })
 
   test("the new lines' guard signatures ride the default body too", () => {
-    // The three roster-expansion lines each bring one guard: a defensive move
-    // has no projectile grammar of its own, so it inherits the default body
-    // and lets its element supply the shot — the same rule the earth and wind
-    // guards follow.
+    // The roster-expansion guards with no bespoke row yet inherit the
+    // default body and let their element supply the shot — the same rule
+    // the earth and wind guards follow. (pyre_wall left this list in
+    // Phase 2: it now owns a bespoke barrier row — see the AC-3 fire pin.)
     const guards: ReadonlyArray<[string, Element]> = [
       ["bramble_guard", "plant"],
       ["tide_aegis", "water"],
-      ["pyre_wall", "fire"],
     ]
     for (const [guard, element] of guards) {
       expect(fxFor(guard)).toBe(DEFAULT_FX)
