@@ -50,7 +50,7 @@ determinism gate OK), `bun run build` exit 0, 12 fallback screenshots
 - **Touches:** `apps/client/src/move-fx/moves/fire.ts`
 - **Verification:** `bun run verify && bun run build` + 8 fire screenshots
   desktop + phone, clean console
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: New rows** (`spark` stinger, `flame_charge` dash, `flare_dart`
   fast bolt, `pyre_wall` barrier) — covers: FR-2
