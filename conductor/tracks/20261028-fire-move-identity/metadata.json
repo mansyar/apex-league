@@ -1,1 +1,31 @@
-{"archived_at":null,"archive_path":null,"base_branch":"main","base_sha":"50e083d887e36d408a6d640dcbe80cf30c390eef","branch":"feat/20261028-fire-move-identity","created_at":"2026-10-28T22:05:00Z","depends_on":[],"doc_sync":"pending","id":"20261028-fire-move-identity","last_checkpoint":null,"priority":"high","progress":{"phases_total":6,"phases_verified":0,"tasks_done":0,"tasks_total":13},"pr_state":null,"pr_url":null,"review_rounds":0,"review_verdict":null,"reverted_at":null,"revert_commit":null,"revert_pr_url":null,"spec":"spec.md","status":"in_progress","title":"Fire Move Identity","type":"feature","updated_at":"2026-10-28T22:05:00Z"}
+{
+  "archived_at": null,
+  "archive_path": null,
+  "base_branch": "main",
+  "base_sha": "50e083d887e36d408a6d640dcbe80cf30c390eef",
+  "branch": "feat/20261028-fire-move-identity",
+  "created_at": "2026-10-28T22:05:00Z",
+  "depends_on": [],
+  "doc_sync": "pending",
+  "id": "20261028-fire-move-identity",
+  "last_checkpoint": "1ccdd313",
+  "priority": "high",
+  "progress": {
+    "phases_total": 6,
+    "phases_verified": 1,
+    "tasks_done": 3,
+    "tasks_total": 13
+  },
+  "pr_state": null,
+  "pr_url": null,
+  "review_rounds": 0,
+  "review_verdict": null,
+  "reverted_at": null,
+  "revert_commit": null,
+  "revert_pr_url": null,
+  "spec": "spec.md",
+  "status": "in_progress",
+  "title": "Fire Move Identity",
+  "type": "feature",
+  "updated_at": "2026-10-28T22:05:00Z"
+}

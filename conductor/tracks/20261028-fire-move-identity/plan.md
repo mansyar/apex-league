@@ -14,11 +14,14 @@
 - **Covers:** FR-1
 - **Touches:** `apps/client/src/move-fx/looks.ts`, `apps/client/src/move-fx/moves.ts`, `apps/client/src/fx/shot-geometry.ts`, `apps/client/src/move-fx/*.test.ts`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Row-level look override in `fxFor`** — covers: FR-1
-- [ ] **P1.T2: New geometry pieces (fork, chunk, needle, jet) + gather effect** — covers: FR-1
-- [ ] **P1.T3: Unit pins (override fallthrough, piece determinism, vertex-level distinctness)** — covers: FR-1
+**Result:** verified
+**Evidence:** conductor/tracks/20261028-fire-move-identity/verification/phase-1.md
+
+- [x] **P1.T1: Row-level look override in `fxFor`** — covers: FR-1
+- [x] **P1.T2: New geometry pieces (fork, chunk, needle, jet) + gather effect** — covers: FR-1
+- [x] **P1.T3: Unit pins (override fallthrough, piece determinism, vertex-level distinctness)** — covers: FR-1
 
 ## Phase 2: Fast Pair — Spark Fork + Flare Needle
 
