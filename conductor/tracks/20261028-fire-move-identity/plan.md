@@ -99,11 +99,14 @@
 - **Goal:** User feedback round: flame envelope rides the crossing body (Charge + Dive), Lance flies as a spear, Wall erupts from the ground as a circular tower. Re-capture 4 GIFs, re-run grayscale on the 4, full gate green.
 - **Depends on:** Phase 5
 - **Covers:** FR-6, FR-7, AC-5, AC-6
-- **Touches:** `apps/client/src/move-fx/moves.ts`, `apps/client/src/move-fx/moves/fire.ts`, `apps/client/src/steps/fire.ts`, `apps/client/src/fx/bursts.ts`, `apps/client/src/fx/shot-geometry.ts`, `apps/client/src/move-fx/looks.ts`, `apps/client/src/move-fx/**/*.test.ts`
+- **Touches:** `apps/client/src/move-fx/moves.ts`, `apps/client/src/move-fx/moves/fire.ts`, `apps/client/src/steps/fire.ts`, `apps/client/src/steps/fire-transit.ts` (new, primary size-cap extraction), `apps/client/src/fx/bursts.ts`, `apps/client/src/fx/shot-geometry.ts`, `apps/client/src/fx/shot-spear.ts` (new, primary size-cap extraction), `apps/client/src/move-fx/looks.ts`, `apps/client/src/move-fx/**/*.test.ts`
 - **Verification:** `bun run verify && bun run build` + 4 GIFs `fire-flame_charge.gif`, `fire-cinder_dive.gif`, `fire-pyre_lance.gif`, `fire-pyre_wall.gif` (re-captured) + grayscale re-read
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P7.T1: Transit flame trail — `transit.trail` schema + per-frame deterministic spawn; Charge wreath up + Dive envelope added** — covers: FR-7, AC-6
-- [ ] **P7.T2: Spear geometry — `spear` piece (shaft + head + guard) + lance override** — covers: FR-7, AC-6
-- [ ] **P7.T3: Ground-erupting tower — `grounded` burst option + tall buoyant ring retune** — covers: FR-6, AC-5
-- [ ] **P7.T4: TDD pins (trail determinism, spear vertices, grounded height) + phase-7.md evidence** — covers: FR-6, FR-7
+**Result:** verified
+**Evidence:** conductor/tracks/20261028-fire-move-identity/verification/phase-7.md
+
+- [x] **P7.T1: Transit flame trail — `transit.trail` schema + per-frame deterministic spawn; Charge wreath up + Dive envelope added** — covers: FR-7, AC-6
+- [x] **P7.T2: Spear geometry — `spear` piece (shaft + head + guard) + lance override** — covers: FR-7, AC-6
+- [x] **P7.T3: Ground-erupting tower — `grounded` burst option + tall buoyant ring retune** — covers: FR-6, AC-5
+- [x] **P7.T4: TDD pins (trail determinism, spear vertices, grounded height) + phase-7.md + size-cap extraction (primary)** — covers: FR-6, FR-7

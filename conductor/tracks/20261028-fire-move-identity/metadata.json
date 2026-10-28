@@ -12,8 +12,8 @@
   "priority": "high",
   "progress": {
     "phases_total": 7,
-    "phases_verified": 5,
-    "tasks_done": 12,
+    "phases_verified": 6,
+    "tasks_done": 16,
     "tasks_total": 17
   },
   "pr_state": null,
