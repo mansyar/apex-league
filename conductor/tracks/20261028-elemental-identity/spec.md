@@ -11,7 +11,9 @@ its name's verb (walls raise barriers, stomps erupt ground, charges dash)
 rendered in its element's shape language (fire rises and flickers, water arcs
 heavy, electric branches, earth tumbles, wind streaks), plus one authored
 per-element fallback body so no move ever renders generic again. Fire looks
-like fire, water like water — across all moves.
+like fire, water like water — across all moves. A dev-only Move Lab drives the
+staging stack directly (no sim, no AI) so every move is triggerable on demand
+for deterministic visual inspection and evidence capture.
 
 ## Problem / Motivation
 
@@ -47,6 +49,8 @@ generic foundation.
   name implies a ground effect.
 - Beat tuning inside `PLAYBACK_BEATS` only where a move cannot land its read
   in time, with contract-test updates.
+- Dev-only Move Lab (staging-direct trigger rig) used for all visual evidence
+  from Phase 2 onward.
 
 ### Out of Scope
 
@@ -65,6 +69,7 @@ generic foundation.
 | FR-5 | Every bespoke row defines windup, travel/dash, and arrival treatments scaled to its tier (chips fast/small, heavies charged/big, signatures unique) | must |
 | FR-6 | Impacts leave element-typed floor marks (scorch/puddle/cracks/rings) that fade after the bout beat | should |
 | FR-7 | Per-move screenshot catalog (desktop + phone) + grayscale element-readability check recorded as track evidence | must |
+| FR-8 | Dev-only Move Lab triggers any catalog move on demand against the staging stack (no sim/AI), with replay, slow-motion, pause/step, seeded particles, and fixed camera presets | must |
 
 ## Non-Functional Requirements
 
@@ -75,6 +80,7 @@ generic foundation.
 | NFR-3 | No save-schema change, no migration |
 | NFR-4 | No new dependencies; element hues stay single-sourced in `ui/element.ts` |
 | NFR-5 | No dropped-frame regression on phone widths (visual layer console-clean, pacing within existing beat budget unless justified) |
+| NFR-6 | Move Lab is dev-only: never in the production bundle (dynamic `import()` behind `import.meta.env.DEV`), excluded from module-size-cap enforcement |
 
 ## Acceptance Criteria
 
@@ -85,6 +91,7 @@ generic foundation.
 | AC-3 | Verb spot-checks read true: wall raises a barrier, stomp erupts ground, charge dashes the attacker, spray renders a cone, volley fires multiples | FR-2, FR-5 |
 | AC-4 | `bun run verify && bun run build` green + determinism gate + desktop/phone catalog with clean console | FR-7, NFR-2 |
 | AC-5 | Module-size tests green; no save-version bump; no new dependency | NFR-1, NFR-3, NFR-4 |
+| AC-6 | Move Lab triggers every catalog move on demand with deterministic replay; production bundle contains no lab code | FR-8, NFR-6 |
 
 ## Edge Cases
 
@@ -119,4 +126,6 @@ generic foundation.
 - `apps/client/src/move-fx/looks.ts`, `move-fx/moves/*.ts`, `fx/` layers,
   `steps/` choreography, `packages/sim/src/battle/moves.ts` (48-move catalog),
   `conductor/learnings.md`, AAA layering/shape-language research (Unity VFX
-  Graph, UE5 Niagara elemental-magic guides; game-feel analysis).
+  Graph, UE5 Niagara elemental-magic guides; game-feel analysis),
+  `apps/client/src/staging.ts` (`applyStep`/`setPace`), `apps/client/src/anim.ts`
+  (seeded determinism), `apps/client/src/app/screens.ts` (composition root).

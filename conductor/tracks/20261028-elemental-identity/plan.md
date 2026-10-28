@@ -40,23 +40,51 @@ determinism gate OK), `bun run build` exit 0, 12 fallback screenshots
 (desktop + phone, clean console) in `verification/phase-1/`.
 **Evidence:** conductor/tracks/20261028-elemental-identity/verification/phase-1.md
 
+## Phase 1.5: Move Lab (deterministic visual rig)
+
+- **Goal:** dev-only harness that drives the staging stack directly so any
+  catalog move is triggerable on demand — no sim, no AI, no feed-timing
+  races. All visual evidence from Phase 2 onward is captured in the lab.
+- **Depends on:** Phase 1
+- **Covers:** FR-8, NFR-6, AC-6
+- **Touches:** `apps/client/src/movelab/*` (new, dev-only), `apps/client/src`
+  boot composition (DEV-gated entry only)
+- **Verification:** `bun run verify && bun run build` + lab opens via query
+  param, triggers all 8 fire rows (incl. `spark`) with replay/slow-mo, clean
+  console, production bundle contains no lab code
+- **Status:** pending
+
+- [ ] **P1.5.T1: DEV-gated lab entry** — query-param mount (dynamic
+  `import()` behind `import.meta.env.DEV`), ranch bypass, hint overlays
+  suppressed — covers: FR-8, NFR-6
+- [ ] **P1.5.T2: Staging-direct driver** — attacker/defender species pickers,
+  range toggle, move dropdown sourced from the real `fxFor` registry
+  (fallbacks visible), trigger + replay via `applyStep`/`instant` — covers:
+  FR-8
+- [ ] **P1.5.T3: Determinism controls** — slow-motion via `setPace`,
+  pause/step, seeded particles (reuse `anim.ts` seeding), fixed camera
+  presets, phone-width toggle — covers: FR-8
+- [ ] **P1.5.T4: Lab verification** — all 8 fire moves triggered on demand,
+  clean console, prod-bundle exclusion check — covers: AC-6
+
 ## Phase 2: Fire (4 new + 4 upgrades)
 
 - **Goal:** all 8 fire moves bespoke — `spark`, `flame_charge`, `flare_dart`,
   `pyre_wall` new; `cinder_shot`, `blaze_bolt`, `pyre_lance`, `cinder_dive`
   upgraded for verb consistency.
-- **Depends on:** Phase 1
+- **Depends on:** Phases 1, 1.5 (rows are written; visual evidence is
+  captured in the Move Lab)
 - **Covers:** FR-2, FR-5, AC-1 (fire), AC-3 (fire verbs)
 - **Touches:** `apps/client/src/move-fx/moves/fire.ts`
 - **Verification:** `bun run verify && bun run build` + 8 fire screenshots
-  desktop + phone, clean console
+  (Move Lab, desktop + phone, clean console)
 - **Status:** in_progress
 
 - [ ] **P2.T1: New rows** (`spark` stinger, `flame_charge` dash, `flare_dart`
   fast bolt, `pyre_wall` barrier) — covers: FR-2
 - [ ] **P2.T2: Upgrade 4 existing rows** to verb + identity grammar — covers:
   FR-2, FR-5
-- [ ] **P2.T3: Fire visual evidence** — covers: AC-1, AC-3
+- [ ] **P2.T3: Fire visual evidence in Move Lab** — covers: AC-1, AC-3
 
 ## Phase 3: Water (4 new + 4 upgrades)
 
@@ -159,7 +187,7 @@ determinism gate OK), `bun run build` exit 0, 12 fallback screenshots
   grayscale pass, clean console
 - **Status:** pending
 
-- [ ] **P8.T1: Assemble 48-move catalog** desktop + phone — covers: FR-7
+- [ ] **P8.T1: Assemble 48-move catalog in Move Lab** desktop + phone — covers: FR-7
 - [ ] **P8.T2: Grayscale readability check** (one reference move per element,
   element named from shape/motion) — covers: AC-2
 - [ ] **P8.T3: Acceptance sweep** (AC-1 lookup audit, AC-3 verb spot-checks,

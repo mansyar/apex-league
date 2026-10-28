@@ -13,10 +13,10 @@
   "pr_url": null,
   "priority": "high",
   "progress": {
-    "phases_total": 8,
+    "phases_total": 9,
     "phases_verified": 1,
     "tasks_done": 8,
-    "tasks_total": 29
+    "tasks_total": 33
   },
   "review_rounds": 0,
   "review_verdict": null,
