@@ -90,7 +90,7 @@
 - **Covers:** FR-8, AC-7
 - **Touches:** `conductor/tracks/20261028-fire-move-identity/verification/`
 - **Verification:** `bun run verify && bun run build` + 8 GIFs in evidence folder
-- **Status:** pending
+- **Status:** in_progress
 
-- [ ] **P6.T1: Capture 8 GIFs + grayscale readability pass** — covers: FR-8
+- [x] **P6.T1: Capture 8 GIFs + grayscale readability pass** — covers: FR-8
 - [ ] **P6.T2: Record user sign-off + close acceptance** — covers: AC-7
