@@ -430,6 +430,51 @@ describe("element fallback bodies (FR-1)", () => {
   })
 })
 
+describe("fire fast pair (FR-2, FR-4)", () => {
+  test("spark opts into the fork look with an erratic flight", () => {
+    const fork = lookFor("fire", "spark")
+    expect(fork.geometry).toBe("fork")
+    expect(fork.wobble ?? 0).toBeGreaterThan(0.2)
+  })
+
+  test("spark is a near-instant snap with no travel ball", () => {
+    const row = MOVE_FX.spark
+    if (row === undefined) throw new Error("missing bespoke row: spark")
+    expect(row.wind).toBeLessThanOrEqual(0.15)
+    expect(row.shots).toHaveLength(1)
+    const shot = row.shots[0]
+    if (shot === undefined) throw new Error("spark built no shot")
+    expect(shot.life).toBeLessThanOrEqual(250)
+    expect(shot.at).toBe(row.wind)
+    // No mouth bloom: the arrival snap is the only flash.
+    expect(row.muzzle).toBeUndefined()
+    // Snap flash: tiny core, tall fast-fading swell, erratic scatter.
+    expect(row.arrival.burst.size ?? 1).toBeLessThanOrEqual(0.7)
+    expect(row.arrival.burst.flashGrow ?? 0).toBeGreaterThanOrEqual(3.5)
+    expect(row.arrival.burst.life ?? 9999).toBeLessThanOrEqual(300)
+  })
+
+  test("flare_dart opts into the needle look with flat locked flight", () => {
+    const needle = lookFor("fire", "flare_dart")
+    expect(needle.geometry).toBe("needle")
+    expect(needle.arc).toBe(0)
+    expect(needle.wobble ?? 0).toBe(0)
+    expect(needle.spin ?? 0).toBe(0)
+    expect(needle.pulse ?? 0).toBe(0)
+  })
+
+  test("flare_dart lands a tight pierce with no bloom", () => {
+    const row = MOVE_FX.flare_dart
+    if (row === undefined) throw new Error("missing bespoke row: flare_dart")
+    expect(row.shots).toHaveLength(1)
+    expect(row.arrival.burst.gravity).toBe(0)
+    expect(row.arrival.burst.sway).toBe(0)
+    expect(row.arrival.burst.size ?? 1).toBeLessThanOrEqual(0.8)
+    expect(row.arrival.burst.flashGrow ?? 99).toBeLessThanOrEqual(1.5)
+    expect(row.arrival.burst.life ?? 9999).toBeLessThanOrEqual(300)
+  })
+})
+
 describe("verb-family builders (FR-5)", () => {
   test("every builder starts from its element's fallback body", () => {
     for (const element of ELEMENTS) {

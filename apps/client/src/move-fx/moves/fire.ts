@@ -10,12 +10,14 @@ import { barrierBody, beamBody, dashBody } from "./verbs"
  * no shove.
  */
 export const FIRE_FX: Record<string, MoveFx> = {
-  // Spark (tier 1 chip): the fastest, smallest fire row — a near-instant
-  // windup, one small fast ember, and a snappy buoyant arrival.
+  // Spark (tier 1 chip, Phase 2 FR-2): a near-instant zigzag snap — no
+  // windup to speak of, one small fast fork (MOVE_SHOT_LOOK geometry) that
+  // crackles downrange in ~200ms, no mouth bloom, and a white-hot snap
+  // flash on arrival: tiny core, tall swell, erratic scatter. The bright
+  // fork plus the erratic flight carry visibility at the small size.
   spark: {
-    wind: 0.34,
-    shots: [{ size: 0.7, life: 420, at: 0.34 }],
-    muzzle: {},
+    wind: 0.12,
+    shots: [{ size: 0.7, life: 200, at: 0.12 }],
     kick: -0.3,
     pose: {
       windup: { pitch: -0.14, hold: true, roll: 0.05, rise: 0.04, coilX: 0.12 },
@@ -23,12 +25,12 @@ export const FIRE_FX: Record<string, MoveFx> = {
     },
     arrival: {
       burst: {
-        puffs: 6,
-        size: 0.9,
-        life: 380,
+        puffs: 4,
+        size: 0.6,
+        life: 260,
         gravity: -2.2,
-        sway: 0.5,
-        flashGrow: 2.4,
+        sway: 1.6,
+        flashGrow: 4,
       },
       shove: -0.35,
     },
@@ -124,9 +126,10 @@ export const FIRE_FX: Record<string, MoveFx> = {
       shove: -0.55,
     },
   },
-  // Flare Dart (tier 1 fast bolt): small, quick, flat-trajectory ember —
-  // a touch longer in flight than spark with a brighter head at release,
-  // and no charge phase to separate it from blaze_bolt.
+  // Flare Dart (tier 1 fast bolt, Phase 2 FR-4): a flat molten needle —
+  // laser-straight flight (MOVE_SHOT_LOOK geometry, zeroed arc/ripple/
+  // tumble/throb) with a minimal ember trail, landing as a small tight
+  // pierce flash with a fast fade: no rise, no drift, no explosion bloom.
   flare_dart: {
     wind: 0.42,
     shots: [{ size: 0.9, life: 560, at: 0.42 }],
@@ -151,12 +154,12 @@ export const FIRE_FX: Record<string, MoveFx> = {
     },
     arrival: {
       burst: {
-        puffs: 7,
-        size: 1,
-        life: 400,
-        gravity: -2.2,
-        sway: 0.5,
-        flashGrow: 2.6,
+        puffs: 4,
+        size: 0.7,
+        life: 260,
+        gravity: 0,
+        sway: 0,
+        flashGrow: 1.2,
       },
       shove: -0.4,
     },

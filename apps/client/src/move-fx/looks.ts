@@ -113,7 +113,16 @@ export const SHOT_LOOKS: Record<string, ShotLook> = {
  * and no existing row changes its read. Resolution pairs with
  * `fxFor(moveId, element)`: pass the same pair to `lookFor`.
  */
-export const MOVE_SHOT_LOOK: Record<string, Partial<ShotLook>> = {}
+export const MOVE_SHOT_LOOK: Record<string, Partial<ShotLook>> = {
+  // Spark (Phase 2, FR-2): a bright zigzag fork that snaps across the
+  // lane — high lateral wobble so the short flight crackles instead of
+  // reading as a travel ball. The halo and trail ride the fire default.
+  spark: { geometry: "fork", wobble: 0.3 },
+  // Flare Dart (Phase 2, FR-4): a molten needle on a laser-straight lane
+  // — no arc lift, no ripple, no tumble, no throb. The small row size
+  // keeps the inherited ember trail minimal.
+  flare_dart: { geometry: "needle", arc: 0, wobble: 0, spin: 0, pulse: 0 },
+}
 
 /**
  * Resolve the shot look for a launch: the row's override merged over its
