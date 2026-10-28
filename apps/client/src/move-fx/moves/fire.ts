@@ -82,16 +82,17 @@ export const FIRE_FX: Record<string, MoveFx> = {
       shove: -0.5,
     },
   },
-  // Blaze Bolt (tier 2 charged bolt): the charge swells as gathering flame
-  // — held coil plus an ember draw-in at the mouth — then releases one
-  // bright bolt into a rising bloom.
+  // Blaze Bolt (tier 2 charged comet, Phase 3 FR-5): the charge swells as
+  // gathering flame — held coil plus an ember draw-in at the mouth — then
+  // releases one fast tapered jet (MOVE_SHOT_LOOK geometry) head-first
+  // into the biggest lingering bloom.
   blaze_bolt: {
     wind: 0.6,
     shots: [{ size: 1.05, life: 300, at: 0.6 }],
     muzzle: {
       puffs: 7,
       size: 1.2,
-      life: 380,
+      life: 260,
       gravity: -2.2,
       sway: 0.5,
       flashGrow: 2.6,
@@ -110,12 +111,12 @@ export const FIRE_FX: Record<string, MoveFx> = {
     },
     arrival: {
       burst: {
-        puffs: 9,
-        size: 1.5,
-        life: 460,
+        puffs: 12,
+        size: 1.9,
+        life: 620,
         gravity: -2.2,
-        sway: 0.5,
-        flashGrow: 2.8,
+        sway: 0.4,
+        flashGrow: 3.6,
       },
       shove: -0.55,
     },

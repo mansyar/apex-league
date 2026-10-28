@@ -497,6 +497,34 @@ describe("fire heavy pair (FR-3, FR-5)", () => {
     expect(row.arrival.burst.gravity ?? 0).toBeGreaterThan(0)
     expect(row.arrival.burst.sway ?? 99).toBeLessThanOrEqual(0.3)
   })
+
+  test("blaze_bolt opts into the jet look with a locked straight flight", () => {
+    const jet = lookFor("fire", "blaze_bolt")
+    expect(jet.geometry).toBe("jet")
+    expect(jet.wobble ?? 99).toBe(0)
+    expect(jet.spin ?? 99).toBe(0)
+  })
+
+  test("blaze_bolt is the fastest fire shot with a head-first bloom", () => {
+    const row = MOVE_FX.blaze_bolt
+    if (row === undefined) throw new Error("missing bespoke row: blaze_bolt")
+    expect(row.shots).toHaveLength(1)
+    const shot = row.shots[0]
+    if (shot === undefined) throw new Error("blaze_bolt built no shot")
+    // Fastest of the fire mediums: shorter than flare_dart and cinder_shot.
+    expect(shot.life).toBeLessThanOrEqual(350)
+    const flareShot = MOVE_FX.flare_dart?.shots[0]
+    const cinderShot = MOVE_FX.cinder_shot?.shots[0]
+    if (flareShot === undefined || cinderShot === undefined)
+      throw new Error("missing medium rows for the fastest pin")
+    expect(shot.life).toBeLessThan(flareShot.life)
+    expect(shot.life).toBeLessThan(cinderShot.life)
+    // Head-first bloom: the biggest lingering core with a focused swell.
+    expect(row.arrival.burst.size ?? 0).toBeGreaterThanOrEqual(1.8)
+    expect(row.arrival.burst.life ?? 0).toBeGreaterThanOrEqual(600)
+    expect(row.arrival.burst.puffs ?? 0).toBeGreaterThanOrEqual(12)
+    expect(row.arrival.burst.flashGrow ?? 0).toBeGreaterThanOrEqual(3.5)
+  })
 })
 
 describe("verb-family builders (FR-5)", () => {

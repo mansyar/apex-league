@@ -109,9 +109,9 @@ export const SHOT_LOOKS: Record<string, ShotLook> = {
  * Per-row shot-look overrides (fire identity FR-1): a row listed here
  * renders its own geometry + trail instead of its element's default, while
  * every other look field rides the element row. Spark + flare_dart opted
- * in during Phase 2 and cinder_shot during Phase 3 (P3.T1); blaze_bolt
- * follows in P3.T2. Resolution pairs with `fxFor(moveId, element)`: pass
- * the same pair to `lookFor`.
+ * in during Phase 2 and cinder_shot + blaze_bolt during Phase 3 (P3.T1 +
+ * P3.T2). Resolution pairs with `fxFor(moveId, element)`: pass the same
+ * pair to `lookFor`.
  */
 export const MOVE_SHOT_LOOK: Record<string, Partial<ShotLook>> = {
   // Spark (Phase 2, FR-2): a bright zigzag fork that snaps across the
@@ -127,6 +127,10 @@ export const MOVE_SHOT_LOOK: Record<string, Partial<ShotLook>> = {
   // wobble rolls it downrange instead of the fork's erratic crackle. Halo,
   // pulse, arc, and trail ride the fire default.
   cinder_shot: { geometry: "chunk", wobble: 0.35 },
+  // Blaze Bolt (Phase 3, FR-5): a fast head-first comet — the tapered
+  // additive pillar reads as one driving head with no lateral drift and no
+  // tumble. Halo, pulse, and arc ride the fire default.
+  blaze_bolt: { geometry: "jet", wobble: 0, spin: 0 },
 }
 
 /**

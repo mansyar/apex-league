@@ -7,9 +7,8 @@ import { lookFor, MOVE_SHOT_LOOK, SHOT_LOOKS, type ShotLook } from "./looks"
  * Phase 1 pins for the fire-identity foundation (FR-1): the per-row look
  * override fallthrough, the four new geometry pieces plus the gather
  * effect, and their determinism / vertex-level distinctness guarantees.
- * Spark + flare_dart opted in during Phase 2, cinder_shot during Phase 3
- * (P3.T1) and blaze_bolt in P3.T2 — the identity loop below skips the
- * opted-in rows.
+ * Spark + flare_dart opted in during Phase 2, cinder_shot + blaze_bolt
+ * during Phase 3 (P3.T1 + P3.T2) — the identity loop below skips all four.
  */
 
 const FIRE_ROWS = [
@@ -61,7 +60,12 @@ describe("per-row look override (FR-1)", () => {
     if (fire === undefined) throw new Error("missing fire look")
     expect(lookFor("fire")).toBe(fire)
     for (const moveId of FIRE_ROWS) {
-      if (moveId === "spark" || moveId === "flare_dart" || moveId === "cinder_shot")
+      if (
+        moveId === "spark" ||
+        moveId === "flare_dart" ||
+        moveId === "cinder_shot" ||
+        moveId === "blaze_bolt"
+      )
         continue
       // Same object, not a copy: no override for these rows.
       expect(lookFor("fire", moveId)).toBe(fire)
@@ -70,6 +74,7 @@ describe("per-row look override (FR-1)", () => {
     expect(lookFor("fire", "spark").geometry).toBe("fork")
     expect(lookFor("fire", "flare_dart").geometry).toBe("needle")
     expect(lookFor("fire", "cinder_shot").geometry).toBe("chunk")
+    expect(lookFor("fire", "blaze_bolt").geometry).toBe("jet")
     // Unknown rows and unknown elements fall through the same way.
     expect(lookFor("fire", "plasma_lance")).toBe(fire)
     expect(lookFor("fire", undefined)).toBe(fire)
