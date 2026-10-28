@@ -173,3 +173,59 @@ contact with no beam through.
 GIF re-capture stays with the primary (recipe: Move Lab draconic vs
 bovine, charge at FAR, dive/lance at close, 1×, seeds 11/23) — AC-6 is
 GIF-gated and cannot be verified from pins alone.
+
+## Primary close-out — tuning + live proof (VERIFIED)
+
+### Tuning commit
+
+- `91d2bb3c` — `fix(client): widen dive arc and lance exit separation`:
+  `cinder_dive` transit `0.85/1.3 → 0.9/2.2` (lift taller than a body
+  height so the arc reads in a single glance); `pyre_lance`
+  `arrival.beyond 1 → 2.2` (a burst centered one unit past still overlaps
+  the defender's body and reads frontal — the offset must clear the
+  body); all affected pins updated to the new values.
+
+### Gate (primary-run, after tuning)
+
+- `bun run verify` → **exit 0** (typecheck clean, full suite green,
+  biome clean on both touched files, determinism gate OK — all species ×
+  stages byte-identical + 5 props).
+- `bun run build` → **exit 0** (pre-existing chunk-size warning only).
+
+### Live visual proof (Move Lab, draconic vs bovine, 1×)
+
+All three mechanisms verified live on a fresh bundle (a stale dev-bundle
+produced false-negative strips mid-investigation — always reload
+`?movelab` after code changes before capturing):
+
+- **Flame Charge (far):** 10-frame strip shows frames 1–5 static with
+  charge glow, frames 7–9 drake lunging across the floor trailing fire,
+  frame 10 contact + return. Body crossing CONFIRMED — FR-7 charge FIXED.
+- **Cinder Dive (close, slow-mo 23.64 s):** 12-frame @1 fps strip shows
+  frames 2–3 tall high arc over the center ring with plunge. Arc EXISTS
+  and reads; the 1× 380 ms arc falls between 2 fps samples (sampling
+  artifact, not a row bug).
+- **Pyre Lance (close, precise +150/+350 ms screenshots):** `+150 ms`
+  frame shows the white contact flash on the defender's back AND a
+  separate prominent ground glow (white core, yellow-orange outline)
+  right of the defender — confirmed via a 2×-magnified right-half crop.
+  The exit triplet (`beyond: 2.2` → spawn at defender + 2.2, logged live
+  as `exit=(4.80,-0.01)` vs defender `2.60`) renders as a distinct
+  exit wound. Earlier "frontal only" strip verdicts were observation
+  error on small/edge-merged frames, not code bugs (instrumented
+  `console.log` in `arriveSpecial`, since removed, was the decisive
+  proof).
+
+### Evidence GIFs (this folder)
+
+- `fire-flame_charge.gif` (~0.66 MB) — far range: lunge across + impact
+  burst (action confirmed frame 20 by vision probe).
+- `fire-cinder_dive.gif` (~0.74 MB) — close range: airborne dive + fire
+  breath (action confirmed frame 60).
+- `fire-pyre_lance.gif` (~0.74 MB) — close range: bright burst behind /
+  right of the defender (exit wound confirmed frame 70).
+
+### Result
+
+**VERIFIED.** FR-7 + AC-6 hold for all three rows: charge crosses,
+dive arcs, lance exits. Implementation head: `91d2bb3c`.
