@@ -74,11 +74,14 @@
 - **Covers:** FR-7, AC-6
 - **Touches:** `apps/client/src/move-fx/moves/fire.ts`, `apps/client/src/move-fx/moves/verbs.ts`, `apps/client/src/move-fx/steps/fire.ts`
 - **Verification:** `bun run verify && bun run build` + GIFs `fire-flame_charge.gif`, `fire-cinder_dive.gif`, `fire-pyre_lance.gif`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P5.T1: Flame Charge pure body hit — ZERO shots, attacker crosses the arena, wreath + ground trail + cone arrival** — covers: FR-7, AC-6
-- [ ] **P5.T2: Cinder Dive vertical crater (rise-plunge, radial eruption, pilot shot minimized or removed)** — covers: FR-7, AC-6
-- [ ] **P5.T3: Pyre Lance pass-through beam (exit burst behind defender)** — covers: FR-7, AC-6
+**Result:** verified
+**Evidence:** conductor/tracks/20261028-fire-move-identity/verification/phase-5.md
+
+- [x] **P5.T1: Flame Charge pure body hit — ZERO shots, attacker crosses the arena, wreath + ground trail + cone arrival** — covers: FR-7, AC-6
+- [x] **P5.T2: Cinder Dive vertical crater (rise-plunge, radial eruption, pilot shot minimized or removed)** — covers: FR-7, AC-6
+- [x] **P5.T3: Pyre Lance pass-through beam (exit burst behind defender)** — covers: FR-7, AC-6
 
 ## Phase 6: GIF Catalog + Acceptance Sweep
 

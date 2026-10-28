@@ -8,12 +8,12 @@
   "depends_on": [],
   "doc_sync": "pending",
   "id": "20261028-fire-move-identity",
-  "last_checkpoint": "a2098832",
+  "last_checkpoint": "91d2bb3c",
   "priority": "high",
   "progress": {
     "phases_total": 6,
-    "phases_verified": 4,
-    "tasks_done": 10,
+    "phases_verified": 5,
+    "tasks_done": 11,
     "tasks_total": 13
   },
   "pr_state": null,
