@@ -1,6 +1,6 @@
 {
-  "archive_path": null,
-  "archived_at": null,
+  "archive_path": "conductor/archive/20261028-elemental-identity",
+  "archived_at": "2026-10-28T12:00:00.000Z",
   "base_branch": "main",
   "base_sha": "751443c7fab78dfb83410e71211c94e2b0394e49",
   "branch": "feat/20261028-elemental-identity",
@@ -8,9 +8,9 @@
   "depends_on": [],
   "doc_sync": "updated",
   "id": "20261028-elemental-identity",
-  "last_checkpoint": "ec724ede",
-  "pr_state": null,
-  "pr_url": null,
+  "last_checkpoint": "45ff6766",
+  "pr_state": "open",
+  "pr_url": "https://github.com/mansyar/apex-league/pull/63",
   "priority": "high",
   "progress": {
     "phases_total": 10,
@@ -24,7 +24,7 @@
   "revert_pr_url": null,
   "reverted_at": null,
   "spec": "spec.md",
-  "status": "in_progress",
+  "status": "complete",
   "title": "Elemental Identity Pass",
   "type": "feature",
   "updated_at": "2026-10-28T12:00:00.000Z"
