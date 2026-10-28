@@ -45,6 +45,9 @@ export const FIRE_FX: Record<string, MoveFx> = {
     wind: 0.34,
     shots: [],
     charge: { from: 0.3, to: 1.1 },
+    // The lunge carries the read: the body crosses over half the live
+    // gap toward the foe and back, wreath riding (P5.F1).
+    transit: { reach: 0.55 },
     muzzle: {
       puffs: 5,
       size: 0.9,

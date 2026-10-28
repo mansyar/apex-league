@@ -1026,12 +1026,15 @@ describe("phase-5 fix: true body motion plus pass-through (FR-7)", () => {
       expect(driven.actor.offset.x).toBeCloseTo(recoil.x, 6)
       expect(driven.actor.offset.y).toBeCloseTo(recoil.y, 6)
     }
-    // The untouched beam still lands its arrival on the defender.
+    // The untouched beam still lands its arrival on the defender — the
+    // mouth pop stays at the attacker, and nothing exits past the foe.
     const beam = driveFixMove("gigavolt", { compressed: true })
     beam.run(1)
-    expect(beam.bursts.length).toBeGreaterThanOrEqual(1)
+    expect(
+      beam.bursts.some((burst) => Math.abs(burst.at.x - 2.5) < 1e-9),
+    ).toBe(true)
     for (const burst of beam.bursts) {
-      expect(burst.at.x).toBeCloseTo(2.5, 9)
+      expect(burst.at.x).toBeLessThanOrEqual(2.5 + 1e-9)
     }
   })
 

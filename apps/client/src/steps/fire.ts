@@ -137,6 +137,7 @@ export function fireSpecial(
   const firedRef = { n: 0 }
   const landedRef = { done: false }
   const zeroRef = { done: false }
+  const chargeRef = { done: false }
   // Point-blank: the shot lands inside this action; the victim
   // reacts at the landing beat, not before it. Clamped so a degenerate
   // schedule still fires the landing at the action's end.
@@ -193,7 +194,9 @@ export function fireSpecial(
       ) {
         zeroRef.done = true
         impulse(io, ao, fx.kick)
-        if (fx.charge) io.effects.clearCharge()
+        // Transit rows keep the wreath: it rides the crossing body and
+        // clears on the return (below) instead of vanishing at release.
+        if (fx.charge && fx.transit === undefined) io.effects.clearCharge()
         if (fx.muzzle) {
           const mouth = ao.group.position.clone()
           mouth.y += 0.2
@@ -216,6 +219,42 @@ export function fireSpecial(
       const release = beats[0] ?? wind
       const w = clamp01((t - release) / Math.max(0.01, 1 - release))
       applyPosture(fx.pose.recoil, w, ao, away)
+      // Attacker transit (Phase 5 fix, P5.F1/P5.F2): a row-driven
+      // lunge-and-return, applied after the recoil posture so it
+      // composes instead of being overwritten. Offset-only — the
+      // prelude zeroes offsets every step and the sine returns to 0 at
+      // t = 1, so later steps are unaffected. The stride is a fraction
+      // of the live gap (far-range safe), paced by the action clock,
+      // deterministic (no clock or RNG), and dampened under reduced
+      // motion exactly like the impulse. A row-authored charge wreath
+      // keeps swelling at the mouth line while the body crosses, then
+      // clears on the return.
+      if (fx.transit !== undefined && t >= release) {
+        const transitSpan = Math.max(1 - release, 0.0001)
+        const u = Math.min(1, (t - release) / transitSpan)
+        const curve = Math.sin(u * Math.PI)
+        const dx = side.target.group.position.x - ao.group.position.x
+        const dz = side.target.group.position.z - ao.group.position.z
+        const dist = Math.hypot(dx, dz)
+        let nx = -away
+        let nz = 0
+        if (dist > 1e-6) {
+          nx = dx / dist
+          nz = dz / dist
+        }
+        const damp = io.reduced() ? 0.4 : 1
+        ao.offset.x += nx * dist * fx.transit.reach * curve * damp
+        ao.offset.z += nz * dist * fx.transit.reach * curve * damp
+        const lift = fx.transit.lift ?? 0
+        if (lift !== 0) ao.offset.y += lift * curve * damp
+        if (fx.charge !== undefined && u < 1) {
+          io.effects.setCharge(ao, step.element, fx.charge.to)
+        }
+        if (fx.charge !== undefined && u >= 1 && !chargeRef.done) {
+          chargeRef.done = true
+          io.effects.clearCharge()
+        }
+      }
     },
     side.actor,
     side.target,
