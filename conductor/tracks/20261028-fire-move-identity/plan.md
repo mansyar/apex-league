@@ -101,7 +101,7 @@
 - **Covers:** FR-6, FR-7, AC-5, AC-6
 - **Touches:** `apps/client/src/move-fx/moves.ts`, `apps/client/src/move-fx/moves/fire.ts`, `apps/client/src/steps/fire.ts`, `apps/client/src/fx/bursts.ts`, `apps/client/src/fx/shot-geometry.ts`, `apps/client/src/move-fx/looks.ts`, `apps/client/src/move-fx/**/*.test.ts`
 - **Verification:** `bun run verify && bun run build` + 4 GIFs `fire-flame_charge.gif`, `fire-cinder_dive.gif`, `fire-pyre_lance.gif`, `fire-pyre_wall.gif` (re-captured) + grayscale re-read
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P7.T1: Transit flame trail — `transit.trail` schema + per-frame deterministic spawn; Charge wreath up + Dive envelope added** — covers: FR-7, AC-6
 - [ ] **P7.T2: Spear geometry — `spear` piece (shaft + head + guard) + lance override** — covers: FR-7, AC-6
