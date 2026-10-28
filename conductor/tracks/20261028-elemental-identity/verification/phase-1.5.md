@@ -85,3 +85,18 @@ Screenshots taken +300 ms after the impact step stages (first pass at
 No Phase 2 row bug: `spark` DOES produce visible FX in the lab (burst over
 the defender at +300 ms post-impact). Nothing to surface — recorded here
 because the brief asked for the check explicitly.
+
+## Barrier-target finding (P1.5.T5)
+
+The lab stages `pyre_wall`'s ring on the defender — investigated and
+confirmed production-faithful, NOT a lab bug. Sim source:
+`clock/engine.ts` targets `opponent` unconditionally for every special (no
+guard exception); staging positions arrivals at `side.target` derived from
+`actorKey` (`steps/index.ts`, `pure.ts`), never consulting `step.target`.
+A SELF_TARGETED experiment (impact `target=attacker`) was built, gated
+green, re-captured — ring still on defender — and fully reverted
+(byte-identical to HEAD). Forcing the ring onto the caster would fabricate a
+staging state production can never emit (plus a phantom self-hit), so the
+lab stays faithful. Consequence: guard rows read as foe-targeted eruptions
+("wall them in"); the spec edge case is amended accordingly. True self-cast
+guards would be a sim/balance change for a future track.

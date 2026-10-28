@@ -101,8 +101,10 @@ generic foundation.
   path) — bespoke arrivals must read at compressed scale.
 - KO mid-flight, misses (accuracy/dodge): arrival suppressed, whiff/dodge
   reads preserved.
-- Guard/veil/aegis rows are self-targeted barriers — no projectile, no enemy
-  contact frame.
+- Guard/veil/aegis rows are foe-targeted eruptions: the sim targets the
+  opponent for every special (no guard exception), so the barrier ring erupts
+  at the enemy with the normal contact read — no travel projectile.
+  (True self-cast guards would be a sim/balance change, out of scope.)
 - Phone widths + low-end GPUs: particle budgets per row stay within the
   current burst ceiling unless evidence justifies more.
 

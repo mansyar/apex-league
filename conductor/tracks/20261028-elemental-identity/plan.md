@@ -52,20 +52,29 @@ determinism gate OK), `bun run build` exit 0, 12 fallback screenshots
 - **Verification:** `bun run verify && bun run build` + lab opens via query
   param, triggers all 8 fire rows (incl. `spark`) with replay/slow-mo, clean
   console, production bundle contains no lab code
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.5.T1: DEV-gated lab entry** — query-param mount (dynamic
+- [x] **P1.5.T1: DEV-gated lab entry** — query-param mount (dynamic
   `import()` behind `import.meta.env.DEV`), ranch bypass, hint overlays
   suppressed — covers: FR-8, NFR-6
-- [ ] **P1.5.T2: Staging-direct driver** — attacker/defender species pickers,
+- [x] **P1.5.T2: Staging-direct driver** — attacker/defender species pickers,
   range toggle, move dropdown sourced from the real `fxFor` registry
   (fallbacks visible), trigger + replay via `applyStep`/`instant` — covers:
   FR-8
-- [ ] **P1.5.T3: Determinism controls** — slow-motion via `setPace`,
+- [x] **P1.5.T3: Determinism controls** — slow-motion via `setPace`,
   pause/step, seeded particles (reuse `anim.ts` seeding), fixed camera
   presets, phone-width toggle — covers: FR-8
-- [ ] **P1.5.T4: Lab verification** — all 8 fire moves triggered on demand,
+- [x] **P1.5.T4: Lab verification** — all 8 fire moves triggered on demand,
   clean console, prod-bundle exclusion check — covers: AC-6
+- [x] **P1.5.T5: Barrier-target fidelity decision** — ring-on-foe confirmed
+  production-faithful (sim targets opponent unconditionally); experiment
+  reverted; spec edge case amended
+
+**Result:** verified — `bun run verify` exit 0 (3440 pass), `bun run build`
+exit 0, lab at `?movelab=1` triggers all 8 fire rows with replay/slow-mo,
+clean console, lab split into its own prod chunk with no lab strings in the
+main bundle.
+**Evidence:** conductor/tracks/20261028-elemental-identity/verification/phase-1.5.md
 
 ## Phase 2: Fire (4 new + 4 upgrades)
 
@@ -80,9 +89,9 @@ determinism gate OK), `bun run build` exit 0, 12 fallback screenshots
   (Move Lab, desktop + phone, clean console)
 - **Status:** in_progress
 
-- [ ] **P2.T1: New rows** (`spark` stinger, `flame_charge` dash, `flare_dart`
+- [x] **P2.T1: New rows** (`spark` stinger, `flame_charge` dash, `flare_dart`
   fast bolt, `pyre_wall` barrier) — covers: FR-2
-- [ ] **P2.T2: Upgrade 4 existing rows** to verb + identity grammar — covers:
+- [x] **P2.T2: Upgrade 4 existing rows** to verb + identity grammar — covers:
   FR-2, FR-5
 - [ ] **P2.T3: Fire visual evidence in Move Lab** — covers: AC-1, AC-3
 
