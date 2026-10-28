@@ -254,9 +254,14 @@ desktop/device-phone, clean console) with per-move wind-identity reads.
   `apps/client/src/move-fx/moves/earth.ts`,
   `apps/client/src/move-fx/moves/fallback.ts`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **R1.T1: Resolve F1 (vine_lash stale header)** — covers: F1
-- [ ] **R1.T2: Resolve F2 (pyre_wall guard-targeting header)** — covers: F2
-- [ ] **R1.T3: Resolve F3 (FR9 dead reference)** — covers: F3
-- [ ] **R1.T4: Resolve F4 (EARTH_DUST_TINT constant)** — covers: F4
+- [x] **R1.T1: Resolve F1 (vine_lash stale header)** — covers: F1
+- [x] **R1.T2: Resolve F2 (pyre_wall guard-targeting header)** — covers: F2
+- [x] **R1.T3: Resolve F3 (FR9 dead reference)** — covers: F3
+- [x] **R1.T4: Resolve F4 (EARTH_DUST_TINT constant)** — covers: F4
+
+**Result:** verified — `bun run verify` exit 0 (3454 pass / 0 fail,
+determinism gate OK), `bun run build` exit 0, zero remaining raw tint
+literals outside the single definition.
+**Evidence:** conductor/tracks/20261028-elemental-identity/verification/phase-R1.md
