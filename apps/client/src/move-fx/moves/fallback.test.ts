@@ -48,12 +48,10 @@ describe("element fallback bodies (FR-1)", () => {
 
   test("unauthored moves resolve to their element's fallback", () => {
     // One unauthored special per element with moves still to land (fire,
-    // water, plant, and electric are fully bespoke — see the AC-1
-    // fire/water/plant/electric pins below): the guard line plus one attack
-    // the bespoke tables do not own.
+    // water, plant, electric, and earth are fully bespoke — see the AC-1
+    // fire/water/plant/electric/earth pins below): the guard line plus one
+    // attack the bespoke tables do not own.
     const spot: ReadonlyArray<[string, (typeof ELEMENTS)[number]]> = [
-      ["pebble_shot", "earth"],
-      ["basalt_guard", "earth"],
       ["gust", "wind"],
       ["zephyr_veil", "wind"],
     ]
@@ -74,7 +72,7 @@ describe("element fallback bodies (FR-1)", () => {
     expect(fxFor("cyclone_dive", "wind")).not.toBe(ELEMENT_FALLBACK_FX.wind)
     // No element to resolve: today's generic read, so instant mode and any
     // legacy caller see byte-identical behavior.
-    expect(fxFor("basalt_guard")).toBe(DEFAULT_FX)
+    expect(fxFor("zephyr_veil")).toBe(DEFAULT_FX)
     expect(fxFor(undefined)).toBe(DEFAULT_FX)
     expect(fxFor(undefined, undefined)).toBe(DEFAULT_FX)
     expect(fxFor("plasma_lance")).toBe(DEFAULT_FX)
@@ -273,6 +271,75 @@ describe("element fallback bodies (FR-1)", () => {
     if (jolt === undefined) throw new Error("missing bespoke row: static_jolt")
     expect(jolt.shots).toHaveLength(1)
     expect(jolt.charge).toBeUndefined()
+  })
+
+  test("all 8 earth specials resolve to bespoke rows (AC-1 earth)", () => {
+    const earthPins = [
+      ["pebble_shot", MOVE_FX.pebble_shot],
+      ["dust_devil", MOVE_FX.dust_devil],
+      ["clay_burst", MOVE_FX.clay_burst],
+      ["boulder_toss", MOVE_FX.boulder_toss],
+      ["sand_blast", MOVE_FX.sand_blast],
+      ["tectonic_slam", MOVE_FX.tectonic_slam],
+      ["quake_stomp", MOVE_FX.quake_stomp],
+      ["basalt_guard", MOVE_FX.basalt_guard],
+    ] as const
+    for (const [moveId, row] of earthPins) {
+      expect(getMove(moveId)?.element).toBe("earth")
+      if (row === undefined) throw new Error(`missing bespoke row: ${moveId}`)
+      expect(fxFor(moveId, "earth")).toBe(row)
+      expect(fxFor(moveId, "earth")).not.toBe(ELEMENT_FALLBACK_FX.earth)
+    }
+  })
+
+  test("earth verb reads (AC-3 earth)", () => {
+    // Guards raise a barrier: no projectile, no shove. The blast fans one
+    // wide shot across three lanes; the slam and the stomp erupt ground
+    // with a charge phase and a deep coil; the devil swirls three
+    // simultaneous dust streaks (vs the cone's single fan); the pebble
+    // stays a chargeless chip and the clay a steady workhorse.
+    const guard = MOVE_FX.basalt_guard
+    if (guard === undefined)
+      throw new Error("missing bespoke row: basalt_guard")
+    expect(guard.shots).toHaveLength(0)
+    expect(guard.arrival.shove).toBe(0)
+    expect(guard.arrival.burst.ring).toBe(true)
+    const blast = MOVE_FX.sand_blast
+    if (blast === undefined) throw new Error("missing bespoke row: sand_blast")
+    expect(blast.arrival.lanes).toHaveLength(3)
+    expect(blast.arrival.burst.ring).toBe(true)
+    const slam = MOVE_FX.tectonic_slam
+    if (slam === undefined)
+      throw new Error("missing bespoke row: tectonic_slam")
+    expect(slam.charge).toBeDefined()
+    expect(slam.pose.windup.coilX ?? 0).toBeGreaterThanOrEqual(0.28)
+    expect(slam.arrival.burst.ring).toBe(true)
+    expect(slam.arrival.shove ?? 0).toBeLessThanOrEqual(-0.55)
+    const stomp = MOVE_FX.quake_stomp
+    if (stomp === undefined)
+      throw new Error("missing bespoke row: quake_stomp")
+    expect(stomp.charge).toBeDefined()
+    expect(stomp.pose.windup.coilX ?? 0).toBeGreaterThanOrEqual(0.28)
+    expect(stomp.arrival.burst.ring).toBe(true)
+    expect(stomp.arrival.shove ?? 0).toBeLessThanOrEqual(-0.55)
+    const toss = MOVE_FX.boulder_toss
+    if (toss === undefined)
+      throw new Error("missing bespoke row: boulder_toss")
+    expect(toss.charge).toBeDefined()
+    expect(toss.shots).toHaveLength(1)
+    const devil = MOVE_FX.dust_devil
+    if (devil === undefined) throw new Error("missing bespoke row: dust_devil")
+    expect(devil.shots).toHaveLength(3)
+    expect(new Set(devil.shots.map((shot) => shot.at)).size).toBe(1)
+    const pebble = MOVE_FX.pebble_shot
+    if (pebble === undefined)
+      throw new Error("missing bespoke row: pebble_shot")
+    expect(pebble.shots).toHaveLength(1)
+    expect(pebble.charge).toBeUndefined()
+    const clay = MOVE_FX.clay_burst
+    if (clay === undefined) throw new Error("missing bespoke row: clay_burst")
+    expect(clay.shots).toHaveLength(1)
+    expect(clay.kick).toBeLessThanOrEqual(-0.5)
   })
 })
 
