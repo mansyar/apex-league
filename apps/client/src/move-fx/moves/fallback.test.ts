@@ -1,8 +1,17 @@
 import { describe, expect, test } from "bun:test"
+import type { PlaybackStep } from "@apex/sim"
 import { getMove } from "@apex/sim"
+import * as THREE from "three"
+import { DEFAULT_PROFILE } from "../../choreo"
+import type { DriveFighter } from "../../fighter-driver"
 import { decalRing } from "../../fx/fx-data"
+import { HitStop } from "../../fx/loop"
 import { lookFor } from "../looks"
+import type { BattleEffects } from "../../staging-fx"
+import type { Side, StepIO } from "../../steps/context"
+import { fireSpecial } from "../../steps/fire"
 import { DEFAULT_FX, fxFor, MOVE_FX } from "../moves"
+import type { BurstStyle } from "../moves"
 import { ELEMENT_FALLBACK_FX, fallbackFor } from "./fallback"
 import {
   barrierBody,
@@ -598,5 +607,197 @@ describe("verb-family builders (FR-5)", () => {
     expect(() => coneBody("shadow")).toThrow()
     expect(() => volleyFanBody("shadow")).toThrow()
     expect(() => beamBody("shadow")).toThrow()
+  })
+})
+
+/**
+ * Pins for the Phase 5 body-first dash trio (FR-7, AC-6): the three fire
+ * dash verbs stop flying projectiles — the attacker's crossing body is the
+ * hit — while the launch beat keeps its attack read (kick plus muzzle where
+ * the row authors one) and each landing stays distinct.
+ */
+
+const FIRE_TRIO = ["flame_charge", "cinder_dive", "pyre_lance"] as const
+
+function trioFighter(name: string, away: 1 | -1): DriveFighter {
+  return {
+    name,
+    group: new THREE.Group(),
+    stage: new THREE.Vector3(),
+    smooth: new THREE.Vector3(),
+    velocity: new THREE.Vector3(),
+    offset: new THREE.Vector3(),
+    squash: { s: 0, v: 0 },
+    walkPhase: 0,
+    phase: 0,
+    baseScale: 1,
+    profile: DEFAULT_PROFILE,
+    down: false,
+    away,
+    fall: 0,
+    lean: { pitch: 0, roll: 0 },
+    baseColors: new Map(),
+  }
+}
+
+interface TrioBurst {
+  at: THREE.Vector3
+  element: string | undefined
+  style?: BurstStyle
+}
+
+interface TrioDrive {
+  actor: DriveFighter
+  bursts: TrioBurst[]
+  projectiles: number
+}
+
+/** Drive one move through the real fireSpecial and capture what stages. */
+function driveTrioMove(moveId: string, compressed: boolean): TrioDrive {
+  const actor = trioFighter("actor", 1)
+  const target = trioFighter("target", -1)
+  const bursts: TrioBurst[] = []
+  let projectiles = 0
+  const effects: BattleEffects = {
+    hitStop: new HitStop(),
+    setPaused: () => {},
+    startFlash: () => {},
+    spawnProjectile: () => {
+      projectiles += 1
+    },
+    spawnBurst: (at, element, style) => {
+      bursts.push({ at: at.clone(), element, style })
+    },
+    spawnDecal: () => {},
+    setCharge: () => {},
+    clearCharge: () => {},
+    firstProjectilePosition: () => null,
+    disposeAllDecals: () => {},
+    disposeAll: () => {},
+  }
+  let run:
+    | ((t: number, ao: DriveFighter, at: DriveFighter) => void)
+    | undefined
+  const io: StepIO = {
+    effects,
+    bigHit: () => {},
+    startAction: (fn) => {
+      run = fn
+    },
+    cancelAction: () => {},
+    animMs: () => 1000,
+    paceRatio: () => 1,
+    reduced: () => false,
+    prevKind: () => null,
+  }
+  const step: PlaybackStep = {
+    tick: 7,
+    kind: compressed ? "impact" : "projectile",
+    actor: "r",
+    target: "b",
+    moveId,
+    element: "fire",
+    hit: true,
+    hpAfter: {},
+    line: moveId,
+    beats: 6,
+    phases: { windup: 0.2, contact: 0.3, recovery: 0.5 },
+  }
+  fireSpecial(io, step, { actor, target } satisfies Side, compressed)
+  if (run === undefined) throw new Error(`no action staged for ${moveId}`)
+  run(1, actor, target)
+  return { actor, bursts, projectiles }
+}
+
+describe("fire body-first dash trio (FR-7)", () => {
+  test("all three read attacker-motion-first: zero shots, a real kick, distinct landings", () => {
+    const landings = new Set<string>()
+    for (const moveId of FIRE_TRIO) {
+      const row = MOVE_FX[moveId]
+      if (row === undefined) throw new Error(`missing bespoke row: ${moveId}`)
+      expect(getMove(moveId)?.element).toBe("fire")
+      // Body-first: nothing flies; the kick carries the launch read.
+      expect(row.shots).toHaveLength(0)
+      expect(row.kick).toBeLessThanOrEqual(-0.6)
+      landings.add(
+        JSON.stringify([
+          row.arrival.lanes ?? null,
+          row.arrival.burst.ring ?? false,
+          Math.sign(row.arrival.burst.gravity ?? 0),
+          row.arrival.shove,
+        ]),
+      )
+    }
+    expect(landings.size).toBe(FIRE_TRIO.length)
+  })
+
+  test("flame_charge is a pure crossing body hit with a launch flare and a driving bloom", () => {
+    const row = MOVE_FX.flame_charge
+    if (row === undefined)
+      throw new Error("missing bespoke row: flame_charge")
+    expect(row.shots).toHaveLength(0)
+    expect(row.kick).toBeLessThanOrEqual(-0.7)
+    // Wreath: a charge swells around the crossing body, cleared at release.
+    expect(row.charge).toBeDefined()
+    // Nose-gap flare at launch.
+    expect(row.muzzle).toBeDefined()
+    // Crossing body hit: a forward-driving shove under a rising bloom.
+    expect(row.arrival.shove).toBe(-0.6)
+    expect(row.arrival.burst.gravity ?? 0).toBeLessThan(0)
+  })
+
+  test("cinder_dive is a zero-shot vertical crater with no pilot light", () => {
+    const row = MOVE_FX.cinder_dive
+    if (row === undefined) throw new Error("missing bespoke row: cinder_dive")
+    expect(row.shots).toHaveLength(0)
+    expect(row.kick).toBeLessThanOrEqual(-0.6)
+    // No muzzle, no pilot light: the body itself is the projectile.
+    expect(row.muzzle).toBeUndefined()
+    // Crater: a down-slamming ring, wider than the ember lob's thud.
+    expect(row.arrival.burst.ring).toBe(true)
+    expect(row.arrival.burst.gravity ?? 0).toBeGreaterThan(0)
+    expect(row.arrival.burst.size ?? 0).toBeGreaterThanOrEqual(1.8)
+  })
+
+  test("pyre_lance is a pass-through streak with a beam-line triplet landing", () => {
+    const row = MOVE_FX.pyre_lance
+    if (row === undefined) throw new Error("missing bespoke row: pyre_lance")
+    expect(row.shots).toHaveLength(0)
+    expect(row.kick).toBeLessThanOrEqual(-0.6)
+    // The beam charge stays: the streak still swells before release.
+    expect(row.charge).toBeDefined()
+    // Pass-line flash: tight, driftless, tall glow.
+    expect(row.muzzle?.sway).toBe(0)
+    expect(row.muzzle?.gravity).toBe(0)
+    // Landing triplet down the beam line, tighter than a cone fan.
+    expect(row.arrival.lanes).toHaveLength(3)
+    const spread = Math.max(
+      ...(row.arrival.lanes ?? [0]).map((dz) => Math.abs(dz)),
+    )
+    expect(spread).toBeLessThan(0.4)
+    expect(row.arrival.burst.flashGrow ?? 0).toBeGreaterThanOrEqual(3.4)
+  })
+
+  test("zero-shot launches still stage the kick and muzzle; guards stay silent", () => {
+    // Launch path: every trio row still reads as an attack — the kick
+    // lands on the attacker's spring and nothing flies.
+    for (const moveId of FIRE_TRIO) {
+      const launched = driveTrioMove(moveId, false)
+      expect(launched.projectiles).toBe(0)
+      expect(launched.actor.squash.v).toBeLessThan(0)
+    }
+    // The authored muzzle pops belong to the crossing charge and the
+    // pass-through streak — never to the pilotless dive.
+    expect(driveTrioMove("flame_charge", false).bursts.length).toBeGreaterThanOrEqual(1)
+    expect(driveTrioMove("pyre_lance", false).bursts.length).toBeGreaterThanOrEqual(1)
+    expect(driveTrioMove("cinder_dive", false).bursts).toHaveLength(0)
+    // Guards stay silent on their impact path: no flight, no mouth pop —
+    // just the ring at the foe.
+    const wall = driveTrioMove("pyre_wall", true)
+    expect(wall.projectiles).toBe(0)
+    expect(wall.bursts.length).toBeGreaterThanOrEqual(1)
+    expect(wall.bursts.every((burst) => burst.style?.ring === true)).toBe(
+      true,
+    )
   })
 })
