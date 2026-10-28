@@ -132,7 +132,7 @@ desktop/device-phone, clean console) with per-move water-identity reads.
 - **Touches:** `apps/client/src/move-fx/moves/plant.ts`
 - **Verification:** `bun run verify && bun run build` + 8 plant screenshots
   desktop + phone, clean console
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P4.T1: New rows** (`seed_shot`, `thorn_volley` fan, `vine_lash` lash,
   `bramble_guard` barrier) — covers: FR-2
