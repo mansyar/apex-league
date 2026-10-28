@@ -475,6 +475,30 @@ describe("fire fast pair (FR-2, FR-4)", () => {
   })
 })
 
+describe("fire heavy pair (FR-3, FR-5)", () => {
+  test("cinder_shot opts into the chunk look with a heavy tumble", () => {
+    const chunk = lookFor("fire", "cinder_shot")
+    expect(chunk.geometry).toBe("chunk")
+    expect(chunk.wobble ?? 0).toBe(0.35)
+  })
+
+  test("cinder_shot is a slow heavy lob with no muzzle bloom", () => {
+    const row = MOVE_FX.cinder_shot
+    if (row === undefined) throw new Error("missing bespoke row: cinder_shot")
+    expect(row.shots).toHaveLength(1)
+    const shot = row.shots[0]
+    if (shot === undefined) throw new Error("cinder_shot built no shot")
+    expect(shot.life).toBeGreaterThanOrEqual(800)
+    // No mouth bloom: the chunk plus its drip trail carry the flight.
+    expect(row.muzzle).toBeUndefined()
+    // Slow heavy arrival: a large lingering thud that falls, not rises.
+    expect(row.arrival.burst.size ?? 0).toBeGreaterThanOrEqual(1.5)
+    expect(row.arrival.burst.life ?? 0).toBeGreaterThanOrEqual(550)
+    expect(row.arrival.burst.gravity ?? 0).toBeGreaterThan(0)
+    expect(row.arrival.burst.sway ?? 99).toBeLessThanOrEqual(0.3)
+  })
+})
+
 describe("verb-family builders (FR-5)", () => {
   test("every builder starts from its element's fallback body", () => {
     for (const element of ELEMENTS) {

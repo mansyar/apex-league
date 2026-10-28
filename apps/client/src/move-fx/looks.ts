@@ -108,10 +108,10 @@ export const SHOT_LOOKS: Record<string, ShotLook> = {
 /**
  * Per-row shot-look overrides (fire identity FR-1): a row listed here
  * renders its own geometry + trail instead of its element's default, while
- * every other look field rides the element row. Rows opt in during Phases
- * 2-5 — this phase only proves the mechanism, so the table starts empty
- * and no existing row changes its read. Resolution pairs with
- * `fxFor(moveId, element)`: pass the same pair to `lookFor`.
+ * every other look field rides the element row. Spark + flare_dart opted
+ * in during Phase 2 and cinder_shot during Phase 3 (P3.T1); blaze_bolt
+ * follows in P3.T2. Resolution pairs with `fxFor(moveId, element)`: pass
+ * the same pair to `lookFor`.
  */
 export const MOVE_SHOT_LOOK: Record<string, Partial<ShotLook>> = {
   // Spark (Phase 2, FR-2): a bright zigzag fork that snaps across the
@@ -122,6 +122,11 @@ export const MOVE_SHOT_LOOK: Record<string, Partial<ShotLook>> = {
   // — no arc lift, no ripple, no tumble, no throb. The small row size
   // keeps the inherited ember trail minimal.
   flare_dart: { geometry: "needle", arc: 0, wobble: 0, spin: 0, pulse: 0 },
+  // Cinder Shot (Phase 3, FR-3): a heavy tumbling ember chunk — the rock
+  // plus its crack veins read at the large row size, and the 0.35 lateral
+  // wobble rolls it downrange instead of the fork's erratic crackle. Halo,
+  // pulse, arc, and trail ride the fire default.
+  cinder_shot: { geometry: "chunk", wobble: 0.35 },
 }
 
 /**

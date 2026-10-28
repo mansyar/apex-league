@@ -52,19 +52,13 @@ export const FIRE_FX: Record<string, MoveFx> = {
       shove: -0.6,
     },
   },
-  // Cinder Shot (tier 1-2 workhorse): the steady ember shot — a held coil
-  // with an upward rise, one midweight ember, and a buoyant arrival.
+  // Cinder Shot (tier 1-2 workhorse, Phase 3 FR-3): a slow tumbling ember
+  // chunk — a held coil with an upward rise, one heavy chunk
+  // (MOVE_SHOT_LOOK geometry) rolling downrange on a 0.35 wobble, no mouth
+  // bloom, and a slow heavy arrival that thuds down instead of rising.
   cinder_shot: {
     wind: 0.55,
     shots: [{ size: 1.8, life: 850, at: 0.55 }],
-    muzzle: {
-      puffs: 5,
-      size: 0.9,
-      life: 320,
-      gravity: -2.2,
-      sway: 0.5,
-      flashGrow: 2.4,
-    },
     kick: -0.55,
     pose: {
       windup: {
@@ -78,11 +72,11 @@ export const FIRE_FX: Record<string, MoveFx> = {
     },
     arrival: {
       burst: {
-        puffs: 9,
+        puffs: 10,
         size: 1.6,
-        life: 460,
-        gravity: -2.2,
-        sway: 0.5,
+        life: 600,
+        gravity: 6,
+        sway: 0.3,
         flashGrow: 2.8,
       },
       shove: -0.5,
