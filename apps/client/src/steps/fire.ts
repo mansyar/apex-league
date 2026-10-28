@@ -136,6 +136,7 @@ export function fireSpecial(
         : fx.shots.map((s) => s.at)
   const firedRef = { n: 0 }
   const landedRef = { done: false }
+  const zeroRef = { done: false }
   // Point-blank: the shot lands inside this action; the victim
   // reacts at the landing beat, not before it. Clamped so a degenerate
   // schedule still fires the landing at the action's end.
@@ -179,6 +180,25 @@ export function fireSpecial(
           }
         }
         firedRef.n += 1
+      }
+      // Zero-shot body launches still read as an attack: stage the kick
+      // and clear the wreath once at the release beat, plus the muzzle
+      // pop when the row authors one. Launch-path only — guards land
+      // through the compressed impact below, which stays untouched.
+      if (
+        !compressed &&
+        fx.shots.length === 0 &&
+        !zeroRef.done &&
+        t >= (beats[0] ?? wind)
+      ) {
+        zeroRef.done = true
+        impulse(io, ao, fx.kick)
+        if (fx.charge) io.effects.clearCharge()
+        if (fx.muzzle) {
+          const mouth = ao.group.position.clone()
+          mouth.y += 0.2
+          io.effects.spawnBurst(mouth, step.element, fx.muzzle)
+        }
       }
       // Point-blank: the shot lands inside this action.
       if (compressed && !landedRef.done && t >= landBeat) {
