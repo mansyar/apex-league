@@ -35,11 +35,24 @@ export const FIRE_FX: Record<string, MoveFx> = {
       shove: -0.35,
     },
   },
-  // Flame Charge (tier 1 dash): the attacker dashes wreathed in flame —
-  // the dash verb carries the damage read, so the shot stays a single fast
-  // ember and the arrival lands as one forward-driving bloom.
+  // Flame Charge (tier 1 dash): the attacker crosses wreathed in flame —
+  // the crossing body is the hit, so the row flies zero shots. A charge
+  // wreath swells around the body through the crossing and clears at
+  // release, a nose-gap flare pops at launch, and the arrival lands as
+  // one forward-driving bloom.
   flame_charge: {
     ...dashBody("fire"),
+    wind: 0.34,
+    shots: [],
+    charge: { from: 0.3, to: 1.1 },
+    muzzle: {
+      puffs: 5,
+      size: 0.9,
+      life: 300,
+      gravity: -2.2,
+      sway: 0.4,
+      flashGrow: 2.6,
+    },
     arrival: {
       burst: {
         puffs: 11,
