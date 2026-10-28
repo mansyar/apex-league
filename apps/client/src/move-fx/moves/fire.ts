@@ -201,23 +201,26 @@ export const FIRE_FX: Record<string, MoveFx> = {
     },
   },
   // Cinder Dive (cindermoor's attack form): the ram's head-down plunge —
-  // a deep held coil launching the body itself, so the dive carries the
-  // damage read and the arrival is one heavy ember burst at contact.
+  // the diving body is the hit, so the row flies zero shots and carries
+  // no muzzle or pilot light. A deep held coil launches the vertical
+  // leap and the arrival lands as one down-slamming crater ring.
   cinder_dive: {
     ...dashBody("fire"),
     wind: 0.58,
-    shots: [{ size: 2.1, life: 600, at: 0.58 }],
+    shots: [],
+    muzzle: undefined,
     pose: {
       windup: { pitch: -0.32, hold: true, roll: 0.09, rise: 0.02, coilX: 0.3 },
       recoil: { pitchOut: 0.17, sweepX: [0.3, -0.62], riseOut: 0.03 },
     },
     arrival: {
       burst: {
-        puffs: 12,
-        size: 1.7,
-        life: 520,
-        gravity: -2.2,
-        sway: 0.5,
+        puffs: 14,
+        ring: true,
+        size: 2.0,
+        life: 560,
+        gravity: 6,
+        sway: 0.2,
         flashGrow: 3.2,
       },
       shove: -0.6,
