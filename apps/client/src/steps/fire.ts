@@ -165,6 +165,9 @@ export function fireSpecial(
           size: shot.size,
           life: compressed ? flight : shot.life,
           spread: shot.spread ?? 0,
+          // Thread the move id so the row's MOVE_SHOT_LOOK geometry
+          // (fork/needle from Phase 2 on) actually renders in flight.
+          moveId: step.moveId,
         })
         impulse(io, ao, fx.kick)
         if (firedRef.n === 0) {

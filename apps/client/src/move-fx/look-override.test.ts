@@ -59,18 +59,22 @@ describe("per-row look override (FR-1)", () => {
     if (fire === undefined) throw new Error("missing fire look")
     expect(lookFor("fire")).toBe(fire)
     for (const moveId of FIRE_ROWS) {
-      // Same object, not a copy: no row opts in this phase.
+      if (moveId === "spark" || moveId === "flare_dart") continue
+      // Same object, not a copy: no override for these rows.
       expect(lookFor("fire", moveId)).toBe(fire)
     }
+    // Phase 2 opt-ins resolve to copies carrying their own geometry.
+    expect(lookFor("fire", "spark").geometry).toBe("fork")
+    expect(lookFor("fire", "flare_dart").geometry).toBe("needle")
     // Unknown rows and unknown elements fall through the same way.
     expect(lookFor("fire", "plasma_lance")).toBe(fire)
     expect(lookFor("fire", undefined)).toBe(fire)
-    expect(lookFor(undefined, "spark")).toEqual({
+    expect(lookFor(undefined, "cinder_shot")).toEqual({
       geometry: "orb",
       arc: 1,
       trail: "orbs",
     })
-    expect(lookFor("shadow", "spark")).toEqual({
+    expect(lookFor("shadow", "cinder_shot")).toEqual({
       geometry: "orb",
       arc: 1,
       trail: "orbs",
