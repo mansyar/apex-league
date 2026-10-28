@@ -835,7 +835,12 @@ interface FixDrive {
  */
 function driveFixMove(
   moveId: string,
-  opts?: { compressed?: boolean; reduced?: boolean; tick?: number; gap?: number },
+  opts?: {
+    compressed?: boolean
+    reduced?: boolean
+    tick?: number
+    gap?: number
+  },
 ): FixDrive {
   const gap = opts?.gap ?? 5
   const actor = trioFighter("actor", 1)
@@ -909,10 +914,7 @@ function driveFixMove(
 }
 
 /** The pure recoil offset at progress w, with no transit component. */
-function recoilOnly(
-  moveId: string,
-  w: number,
-): { x: number; y: number } {
+function recoilOnly(moveId: string, w: number): { x: number; y: number } {
   const row = MOVE_FX[moveId]
   if (row === undefined) throw new Error(`missing bespoke row: ${moveId}`)
   const probe = trioFighter("probe", 1)
@@ -1030,9 +1032,9 @@ describe("phase-5 fix: true body motion plus pass-through (FR-7)", () => {
     // mouth pop stays at the attacker, and nothing exits past the foe.
     const beam = driveFixMove("gigavolt", { compressed: true })
     beam.run(1)
-    expect(
-      beam.bursts.some((burst) => Math.abs(burst.at.x - 2.5) < 1e-9),
-    ).toBe(true)
+    expect(beam.bursts.some((burst) => Math.abs(burst.at.x - 2.5) < 1e-9)).toBe(
+      true,
+    )
     for (const burst of beam.bursts) {
       expect(burst.at.x).toBeLessThanOrEqual(2.5 + 1e-9)
     }

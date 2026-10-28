@@ -91,7 +91,12 @@ export interface MoveFx {
    * `beyond` shifts the burst past the target along the attack axis
    * (pass-through exit wound); absent everywhere but pyre_lance.
    */
-  arrival: { burst: BurstStyle; lanes?: number[]; shove: number; beyond?: number }
+  arrival: {
+    burst: BurstStyle
+    lanes?: number[]
+    shove: number
+    beyond?: number
+  }
   /** Point-blank compression: squeezed windup, micro-flight, beats. */
   compressed?: { wind: number; flight: number; beats: number[] }
 }
