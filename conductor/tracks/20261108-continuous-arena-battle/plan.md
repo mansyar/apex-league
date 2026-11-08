@@ -36,17 +36,21 @@
 - **Covers:** FR-1, FR-2, FR-3, AC-1, AC-2, AC-3
 - **Touches:** `packages/sim/src/battle/continuous/types.ts`, `packages/sim/src/battle/continuous/step.ts`, `packages/sim/src/battle/continuous/movement.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: State model** — covers: FR-2
-  - [ ] **P2.T1.1: Fixed-point 3-vector position** — millimetres, `y` pinned to 0, plus velocity, facing, and arena bounds.
-- [ ] **P2.T2: Continuous movement** — covers: FR-3
-  - [ ] **P2.T2.1: Acceleration and deceleration toward an intent** — speed derived from `spd`.
-  - [ ] **P2.T2.2: Lateral strafing and bounds clamping** — clamped without oscillation.
-- [ ] **P2.T3: Fixed-step stepper** — covers: FR-1
-  - [ ] **P2.T3.1: 20 ms step loop** — one seeded RNG and a stable state hash.
-- [ ] **P2.T4: Determinism tests** — covers: AC-1, AC-2, AC-3
-  - [ ] **P2.T4.1: Repeat-run hash equality, `y === 0` sampling, and distinct positions per engagement.**
+- [x] **P2.T1: State model** — covers: FR-2
+  - [x] **P2.T1.1: Fixed-point 3-vector position** — millimetres, `y` pinned to 0, plus velocity, facing, and arena bounds.
+- [x] **P2.T2: Continuous movement** — covers: FR-3
+  - [x] **P2.T2.1: Acceleration and deceleration toward an intent** — speed derived from `spd`.
+  - [x] **P2.T2.2: Lateral strafing and bounds clamping** — clamped without oscillation.
+- [x] **P2.T3: Fixed-step stepper** — covers: FR-1
+  - [x] **P2.T3.1: 20 ms step loop** — one seeded RNG and a stable state hash.
+- [x] **P2.T4: Determinism tests** — covers: AC-1, AC-2, AC-3
+  - [x] **P2.T4.1: Repeat-run hash equality, `y === 0` sampling, and distinct positions per engagement.**
+
+**Result:** verified
+**Checkpoint:** c1b771f5
+**Evidence:** conductor/tracks/20261108-continuous-arena-battle/verification/phase-2.md
 
 ## Phase 3: Strikes, Commitment, Trades
 

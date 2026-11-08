@@ -113,3 +113,14 @@ clean and no check was left unrun.
   than drifting mid-fight.
 - Every new module is well under the 12,288 B sim cap (the module-size guard
   passed as part of `bun run verify`).
+
+## Primary verification
+
+| Layer | Command | Exit | Result |
+| --- | --- | --- | --- |
+| static | `bun run verify` | 0 | 4 workspace typechecks clean; 3551 tests / 335 files, 3550 pass, 1 skip, 0 fail; biome 840 files clean; voxel determinism gate byte-identical |
+| build | `bun run build` | 0 | Vite built 370 modules; only the pre-existing chunk-size warning |
+
+Verified by the primary agent, not taken from the subagent report. The phase was
+squashed to `c1b771f5` (all four commits in the range were reported by the phase
+agent; no merge or unreported commit was present).
