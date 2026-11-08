@@ -52,10 +52,15 @@ export {
 
 export { DODGE_LEAD_MS } from "./controller-threat"
 
-/** How often the controller re-decides, in ms (tunable, whole steps). */
-export const DECISION_MS = 120
+/**
+ * How often the controller re-decides, in ms (tunable, whole steps, FR-3):
+ * 240 ms is four decisions a second, inside the 200-240 ms band. The old
+ * 120 ms cadence let a fighter re-commit the moment recovery ended, which is
+ * what made a fight read as a machine gun.
+ */
+export const DECISION_MS = 240
 
-/** The same cadence counted in fixed steps: a decision every six of them. */
+/** The same cadence counted in fixed steps: a decision every twelve of them. */
 export const DECISION_STEPS = DECISION_MS / STEP_MS
 
 /** Half-width of the range band a fighter tries to hold, in mm (tunable). */
@@ -127,7 +132,7 @@ export function createController(): ControllerState {
 
 /**
  * Fight time of the next decision, in ms. After `n` decisions the next lands
- * at `n * DECISION_MS`: a 600-step fight ends with 100 decisions and a next
+ * at `n * DECISION_MS`: a 600-step fight ends with 50 decisions and a next
  * decision at 12,000 ms.
  */
 export function nextDecisionMs(state: ControllerState): number {

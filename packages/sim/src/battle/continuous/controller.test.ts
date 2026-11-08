@@ -200,25 +200,25 @@ function incoming(): ProjectileState {
 }
 
 describe("controller — the fixed cadence (AC-11)", () => {
-  test("a decision lands on every sixth 20 ms step", () => {
+  test("a decision lands on every twelfth 20 ms step", () => {
     expect(DECISION_MS % STEP_MS).toBe(0)
-    expect(DECISION_MS).toBe(120)
-    expect(DECISION_STEPS).toBe(6)
+    expect(DECISION_MS).toBe(240)
+    expect(DECISION_STEPS).toBe(12)
   })
 
-  test("a 600-step fight takes exactly 100 decisions a side", () => {
+  test("a 600-step fight takes exactly 50 decisions a side", () => {
     const result = run(config(), 600)
-    expect(result.decisions).toEqual([100, 100])
+    expect(result.decisions).toEqual([50, 50])
     expect(nextDecisionMs(result.brains[0])).toBe(12000)
     expect(nextDecisionMs(result.brains[1])).toBe(12000)
   })
 
   test("between decisions the controller repeats the intent it holds", () => {
-    const { fight, controller } = place(config(), 6)
-    // Step 6 is a cadence step, so it decides.
+    const { fight, controller } = place(config(), DECISION_STEPS)
+    // The next step is a cadence step, so it decides.
     const atCadence = order(fight, controller)
     expect(atCadence.state.decisions).toBe(2)
-    // Step 7 is not: the order is the one already held, unchanged.
+    // One step later is not: the order is the one already held, unchanged.
     fight.advance([HOLD, HOLD])
     const between = order(fight, atCadence.state)
     expect(between.state).toBe(atCadence.state)
@@ -245,7 +245,7 @@ describe("controller — the six verbs (FR-11)", () => {
     // inside it, and the ninth decision lands on the first circle slot of the
     // ten-decision cycle.
     const cfg = config([side("home", 10, -450), side("away", 10, 450)])
-    const { fight, controller } = place(cfg, 48)
+    const { fight, controller } = place(cfg, 8 * DECISION_STEPS)
     const ordered = order(fight, controller)
     expect(ordered.verb).toBe("strafe")
     // A circle is perpendicular to the approach, never along it.
@@ -426,7 +426,7 @@ describe("controller — spacing (FR-1, FR-2)", () => {
     // Home has 50 mm of floor behind it: crowded, but no room to back off, so
     // it takes a circle slot instead of shivering against the fence.
     const cfg = config([side("home", 10, -3950), side("away", 10, -3400)])
-    const { fight, controller } = place(cfg, 48)
+    const { fight, controller } = place(cfg, 8 * DECISION_STEPS)
     const ordered = order(fight, controller)
     expect(ordered.verb).toBe("strafe")
     // Never a step further into the fence.
@@ -544,7 +544,7 @@ describe("controller — a fight progresses", () => {
     expect(result.state.fighters[1].pos).not.toEqual(opening[1].pos)
     const committed = result.commits.flat().filter((id) => id !== null)
     expect(committed.length).toBeGreaterThan(0)
-    expect(result.decisions).toEqual([100, 100])
+    expect(result.decisions).toEqual([50, 50])
     for (const pair of result.verbs) {
       for (const verb of pair) expect(VERBS).toContain(verb)
     }
