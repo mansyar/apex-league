@@ -74,34 +74,35 @@ export const ARENA_BOUNDS: ArenaBounds = Object.freeze({
 export const OPENING_GAP_MM = 2000
 
 /**
- * What a coach's tactic adds to its archetype's engagement, in the two fields
- * the controller steers by: the centre of the range band, in mm, and the share
- * of each cycle spent pressing, in percent. `specials` works the fight out at
- * distance and presses harder; `balanced` prefers the clinch and leans on its
- * basic. This is a mapping, not a second system: the archetype row stays the
- * base, so a rush rival still rushes (FR-11).
+ * What a coach's tactic does to its archetype's engagement, in the two fields
+ * the controller steers by: a multiplier on the preferred range, in permille,
+ * and a change to the share of each cycle spent pressing, in percent.
+ * `specials` works the fight out at distance and presses harder; `balanced`
+ * holds the edge of reach and leans on its basic. This is a mapping, not a
+ * second system: the archetype row stays the base, so a rush rival still rushes
+ * (FR-11). The range moves by a share because the range itself is derived from
+ * the pair's reach edge (FR-1); a fixed offset would push a tactic's band back
+ * inside the bodies.
  */
 export interface EngagementOverlay {
-  /** Added to the archetype's preferred range, in mm (negative closes). */
-  readonly rangeMm: number
+  /** Multiplies the archetype's preferred range, in permille. */
+  readonly rangePermille: number
   /** Added to the archetype's aggression, in percent. */
   readonly aggression: number
 }
 
 /**
  * The two overlays, frozen so a balance pass can move them here rather than
- * hunting through the resolver. The archetype rows sit 300 mm and 25 points
- * apart, so half a step each way changes the decisions a fight turns on without
- * inverting a temperament: rush + `balanced` holds 350 mm, slow + `specials`
- * holds 1,250 mm, and neither leaves its character behind. The range split was
- * 600 mm either way until Phase 10 measured it: one side then held 2,200 mm and
- * the other 400, so the first kited out of reach and the second chased it for
- * the whole fight, neither landing a blow.
+ * hunting through the resolver. A tenth either way changes the decisions a
+ * fight turns on without inverting a temperament: rush + `balanced` holds
+ * 1.02x its reach edge, slow + `specials` holds 1.38x. The split was a fixed
+ * 300 mm either way until the spacing pass, when a derived range turned that
+ * offset into contact distance for every close row.
  */
 export const TACTIC_OVERLAYS: Readonly<Record<Tactic, EngagementOverlay>> =
   Object.freeze({
-    balanced: Object.freeze({ rangeMm: -300, aggression: -10 }),
-    specials: Object.freeze({ rangeMm: 300, aggression: 10 }),
+    balanced: Object.freeze({ rangePermille: 950, aggression: -10 }),
+    specials: Object.freeze({ rangePermille: 1150, aggression: 10 }),
   })
 
 /** A share of the cycle, clamped to a percentage. */
@@ -121,7 +122,9 @@ export function engagementFor(
 ): ControllerProfile {
   const base = profileFor(temperament)
   const overlay = TACTIC_OVERLAYS[tactic]
-  const range = base.preferredRangeMm + overlay.rangeMm
+  const range = Math.trunc(
+    (base.preferredRangeMm * overlay.rangePermille) / 1000,
+  )
   return Object.freeze({
     ...base,
     preferredRangeMm: Math.max(RANGE_BAND_MM, range),
