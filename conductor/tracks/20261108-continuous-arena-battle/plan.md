@@ -14,7 +14,7 @@
 - **Covers:** FR-5, AC-5
 - **Touches:** `packages/sim/src/battle/frames.ts`, `packages/sim/src/battle/frames.test.ts`, `packages/sim/src/battle/moves.ts`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Frame data model** — covers: FR-5
   - [ ] **P1.T1.1: Define the frame-data shape** — startup, active, and recovery in ms; reach in mm; projectile speed; poise damage; stamina cost, beside the move catalog.
