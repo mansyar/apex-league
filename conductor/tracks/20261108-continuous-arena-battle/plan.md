@@ -223,7 +223,7 @@
 - **Covers:** FR-13, AC-13
 - **Touches:** `packages/sim/src/battle/continuous/stream.ts`, `apps/client/src/staging.ts`, `apps/client/src/playbackDriver.ts`, `apps/client/src/fighter-driver.ts`
 - **Verification:** `bun run verify && bun run build`, then a `playwright-cli` pass at desktop and phone widths
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P11.T1: Dense state stream** — covers: FR-13
   - [ ] **P11.T1.1: Sample positions and phases per step into a compact replayable stream.**

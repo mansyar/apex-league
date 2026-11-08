@@ -70,6 +70,14 @@ day is enough to see the new engine end to end.
     hear will not fire.
 13. **Bosses share the rival controller.** They are tuned by profile, not written
     bespoke, so a boss may not feel like a distinct opponent yet.
+14. **Roughly two in five fights are decided on points** at the 40 second cap
+    rather than by knockout. The pacing target is met, but some fights will end
+    with both fighters standing and the winner chosen by HP percentage. More
+    knockouts is a tuning job, deliberately left to the balance track.
+15. **Damage numbers are small against the bar.** A representative body carries
+    about 700 HP while a basic strike deals about 4, because HP was scaled up to
+    reach the fight-length target. If any surface shows raw damage, it will look
+    trivial; the bars themselves are percentage-based and read normally.
 
 ## What feedback is most useful
 
