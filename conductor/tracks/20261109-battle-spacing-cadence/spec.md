@@ -102,3 +102,20 @@ animation changes, the frozen gauge clock, `SIM_VERSION`.
 `packages/sim/src/battle/continuous/controller-profile.ts`,
 `controller.ts`, `controller-moves.ts`, `stamina.ts`, `strike.ts`,
 `resolve.ts`, `packages/sim/scripts/battle-telemetry.ts`.
+
+## Deferred follow-up - one number per stat (2026-11-09)
+
+The owner chose stat unification but placed it in the balance track, not here.
+Today the arena shows a scaled HP pool (floor(stats.hp * 390 / 100)) while the
+setup panel shows the raw HP, ATK, DEF and SPD, and BLOW_WEIGHT multiplies damage
+after the ATK term is read. Three invisible multipliers mean a player cannot
+predict an outcome from the sheet.
+
+The fix is to fold HP_SCALE_PERCENT and BLOW_WEIGHT into the creature stats and
+move power so the displayed number is the number the resolver uses. That is a
+save-format change and a species-wide re-tune, so it belongs with the balance
+pass, which will also repay the cap-share debt and the missed 25 s duration floor
+recorded in phases 4-6.
+
+Until then the scaling stays visible in the documentation and the fight
+inspector, which prints the pool, kit and profile the resolver actually uses.
