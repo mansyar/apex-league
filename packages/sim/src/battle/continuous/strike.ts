@@ -1,13 +1,8 @@
 /**
- * Strikes in space: reach, the facing arcs a blow is judged against, and the
- * attack lifecycle that decides when the blow may land.
- *
- * Continuous Arena Battle FR-4, FR-18. Reach is a squared Euclidean
- * comparison measured edge to edge, the height band is an overlap test, and
- * facing is an integer dot product, so a strike resolves from the two
- * positions, the two facings, and the two bodies with no trigonometry, no
- * clock, and no random source. The attack lifecycle and trade rule live in the
- * same module.
+ * Strikes in space (FR-4, FR-18): reach, the facing arcs a blow is judged
+ * against, and the attack lifecycle. Every test is an integer comparison of
+ * the two positions, facings and bodies — no trigonometry, clock or random
+ * source. The attack lifecycle and trade rule live here too.
  */
 
 import type { Element } from "../../creature"
@@ -28,23 +23,18 @@ import {
 /**
  * The front arc a strike must aim within, as the cosine of its half-width.
  * `0 / 1` is 90°, a 180° total arc: generous on purpose, so a strike only
- * misses when it is aimed clearly away from the target (AC-4). Tighten the
- * pair to narrow the arc; the comparison never needs trigonometry.
+ * misses when aimed clearly away (AC-4).
  */
 export const FRONT_ARC_COS: Ratio = Object.freeze({ num: 0, den: 1 })
 
 /**
  * The front and rear sectors used to place a hit, as the cosine of their
- * half-width. `1 / 2` is 60°, so a blow from within 60° of the victim's
- * facing is front, one from within 60° of its back is rear, and the two 60°
- * bands between are the flanks (FR-4).
+ * half-width: `1 / 2` is 60°, so the two 60° bands between are the flanks
+ * (FR-4).
  */
 export const FLANK_COS: Ratio = Object.freeze({ num: 1, den: 2 })
 
-/**
- * True when `dot / (|a| |b|)` is at least `cos.num / cos.den`. Squared on
- * both sides, so the whole comparison stays in integers.
- */
+/** `dot / (|a| |b|) >= cos`, squared so the comparison stays in integers. */
 function cosineAtLeast(
   dot: number,
   aSq: number,
@@ -55,10 +45,8 @@ function cosineAtLeast(
 }
 
 /**
- * True when the target lies inside the attacker's front arc (AC-4). Bodies
- * that share a centre count as in front: there is no direction to aim away
- * from. The boundary counts as inside, so a 180° arc covers the whole
- * half-plane including the perpendicular.
+ * True when the target lies inside the attacker's front arc (AC-4). A shared
+ * centre is in front, and the boundary counts as inside.
  */
 export function inFrontArc(facing: Dir2, from: Vec3, to: Vec3): boolean {
   const dx = to.x - from.x
@@ -74,11 +62,7 @@ export function inFrontArc(facing: Dir2, from: Vec3, to: Vec3): boolean {
   )
 }
 
-/**
- * Where the attacker stood relative to the victim's facing: inside the front
- * sector, inside the rear sector, or in one of the flank bands between. The
- * shared centre has no flank, so it reads as front.
- */
+/** Where the attacker stood: front, rear, or one of the flank bands. */
 export function hitPosition(
   victimFacing: Dir2,
   victim: Vec3,
@@ -103,27 +87,59 @@ export const ATTACK_PHASES: readonly AttackPhase[] = Object.freeze([
   "recovery",
 ])
 
-/** How long one phase lasts, in ms, straight from the authored row. */
-export function phaseDuration(row: FrameData, phase: AttackPhase): number {
+/**
+ * The `spd` at which authored recovery is used as written (tunable, FR-5):
+ * half the speed doubles recovery, double the speed halves it.
+ */
+export const RECOVERY_REFERENCE_SPD = 10
+
+/**
+ * A move's recovery for a fighter of this `spd`, in ms (FR-5):
+ * `recoveryMs * RECOVERY_REFERENCE_SPD / spd`, truncated. A non-positive
+ * speed or a result at or below zero is a config error, not a free attack.
+ */
+export function recoveryMsFor(row: FrameData, spd: number): number {
+  if (!Number.isInteger(spd)) {
+    throw new Error(`Recovery needs a whole spd: ${spd}`)
+  }
+  if (spd <= 0) {
+    throw new Error(`Recovery needs a positive spd: ${spd}`)
+  }
+  const scaled = Math.trunc((row.recoveryMs * RECOVERY_REFERENCE_SPD) / spd)
+  if (scaled <= 0) {
+    throw new Error(`Recovery scales to zero or below: ${row.recoveryMs} ms at spd ${spd}`)
+  }
+  return scaled
+}
+
+/**
+ * One phase's duration in ms: startup and active are authored, recovery is
+ * scaled by `spd` (defaulting to the reference speed).
+ */
+export function phaseDuration(
+  row: FrameData,
+  phase: AttackPhase,
+  spd: number = RECOVERY_REFERENCE_SPD,
+): number {
   if (phase === "startup") return row.startupMs
   if (phase === "active") return row.activeMs
-  return row.recoveryMs
+  return recoveryMsFor(row, spd)
 }
 
 /**
  * Advance one committed attack by a step, carrying the remainder across a
- * phase boundary so a 130 ms startup is 130 ms of fight time rather than
- * seven rounded steps. Returns null once recovery has run out. The landed
- * flag rides along: one swing lands at most once (FR-18).
+ * phase boundary so a 130 ms startup is 130 ms of fight time, not seven
+ * rounded steps. Null once recovery runs out; `landed` rides along (FR-18).
  */
 export function advanceAttack(
   attack: AttackState,
   row: FrameData,
+  spd: number = RECOVERY_REFERENCE_SPD,
 ): AttackState | null {
   let phase = attack.phase
   let elapsedMs = attack.elapsedMs + STEP_MS
   for (;;) {
-    const duration = phaseDuration(row, phase)
+    const duration = phaseDuration(row, phase, spd)
     if (elapsedMs < duration) {
       return { ...attack, phase, elapsedMs }
     }
@@ -139,7 +155,7 @@ export function advanceFighterAttack(fighter: FighterState): FighterState {
   if (!attack) return fighter
   const row = getFrameData(attack.moveId)
   if (!row) throw new Error(`Unknown move: ${attack.moveId}`)
-  return { ...fighter, attack: advanceAttack(attack, row) }
+  return { ...fighter, attack: advanceAttack(attack, row, fighter.spd) }
 }
 
 /**
@@ -185,9 +201,7 @@ export const NEUTRAL_STATS: StrikeStats = Object.freeze({ atk: 1, def: 1 })
 
 /**
  * The attacker's type factor against one victim; typeless is neutral. The
- * victim's secondary affinity is read on the incoming side, so a
- * super-effective hit that the secondary resists collapses to neutral — the
- * same rule the legacy clock uses (FR-4, audit finding 2).
+ * victim's secondary affinity is read on the incoming side (FR-4).
  */
 export function typeAgainst(
   attacker: StrikeStats,
@@ -229,19 +243,12 @@ export interface StrikeResolution {
 }
 
 /**
- * Resolve both sides' active frames against the same pre-step snapshot: every
- * hit test reads `before`, so overlapping frames trade (FR-7) and neither
- * blow can hide the other's.
- *
- * A step covers `[t, t + STEP_MS)`, so a swing is tested when its window is
- * open at either end of the step (FR-18): the post-advance phase alone lost
- * the final active step, and the pre-step phase alone would lose the opening
- * one. The victim's phase is the one it held at the top of the step, so a blow
- * on the last startup step interrupts and an active step is not a counter
- * because recovery began mid-step (FR-6). A swing that also strikes in that
- * step trades instead of being cancelled.
- *
- * A ranged move's window fires a projectile instead of landing here (FR-8).
+ * Resolve both sides' active frames against the same pre-step snapshot, so
+ * overlapping frames trade (FR-7) and neither blow hides the other's. A step
+ * covers `[t, t + STEP_MS)`, so a window is tested when it is open at either
+ * end (FR-18). The victim's phase is the one at the top of the step, so the
+ * last startup step interrupts and recovery begun mid-step is not a counter
+ * (FR-6). Ranged windows fire projectiles elsewhere (FR-8).
  */
 export function resolveStrikes(
   before: readonly [FighterState, FighterState],
@@ -308,12 +315,9 @@ export function resolveStrikes(
 }
 
 /**
- * The melee swings that closed their active window without landing a blow
- * (FR-18, AC-18). A swing is a whiff when the top of the step was still
- * active and untouched, the step that advanced it left the active phase, and
- * the swing did not land on that step — the victim stepped out of the arc, out
- * of reach, or out of the band. `after` is the post-strike state, so a blow
- * that landed on the window's final step is not also reported as a whiff.
+ * The melee swings that closed their active window untouched (FR-18, AC-18):
+ * active at the top of the step, out of active after it, and not landed —
+ * the victim stepped out of the arc, reach or band.
  */
 export function whiffsOf(
   before: readonly [FighterState, FighterState],

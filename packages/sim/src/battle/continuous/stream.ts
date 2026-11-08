@@ -30,6 +30,7 @@
 import { FRAME_DATA } from "../frames"
 import type { BattleResult } from "../resolver"
 import type { PinnedReport } from "./advance"
+import { phaseDuration } from "./strike"
 import {
   type ArenaBounds,
   type AttackState,
@@ -106,15 +107,10 @@ const PHASE_OF: Readonly<Record<AttackState["phase"], StreamPhase>> =
   })
 
 /** How far through its own window an attack is, 0-255. */
-function phaseProgress(attack: AttackState): number {
+function phaseProgress(attack: AttackState, spd: number): number {
   const row = FRAME_DATA[attack.moveId]
   if (!row) return 0
-  const duration =
-    attack.phase === "startup"
-      ? row.startupMs
-      : attack.phase === "active"
-        ? row.activeMs
-        : row.recoveryMs
+  const duration = phaseDuration(row, attack.phase, spd)
   if (duration <= 0) return 0
   return Math.min(255, Math.round((attack.elapsedMs / duration) * 255))
 }
@@ -166,7 +162,9 @@ export function createStreamRecorder(
       data[base + STREAM_FIELD.phase] = attack
         ? PHASE_OF[attack.phase]
         : STREAM_PHASE.none
-      data[base + STREAM_FIELD.phaseT] = attack ? phaseProgress(attack) : 0
+      data[base + STREAM_FIELD.phaseT] = attack
+        ? phaseProgress(attack, fighter.spd)
+        : 0
       data[base + STREAM_FIELD.hp] = fighter.hp
       data[base + STREAM_FIELD.hitstunMs] = Math.round(fighter.hitstunMs)
       data[base + STREAM_FIELD.pinned] = pinnedThisStep(pinned, fighter.key)

@@ -6,6 +6,7 @@
  */
 
 import { describe, expect, test } from "bun:test"
+import { getFrameData } from "../frames"
 import { type Body, bodyOf, reachesBody } from "./contact"
 import {
   createFight,
@@ -19,6 +20,7 @@ import {
   FRONT_ARC_COS,
   hitPosition,
   inFrontArc,
+  recoveryMsFor,
   typeAgainst,
 } from "./strike"
 import {
@@ -212,6 +214,47 @@ describe("attack lifecycle — commitment (FR-6)", () => {
   test("an unknown move is refused at commit", () => {
     const fight = duel()
     expect(() => fight.commit(0, "nope")).toThrow(/Unknown move/)
+  })
+})
+
+describe("recovery — scaled inversely by spd (FR-5)", () => {
+  test("a faster fighter recovers faster than the reference", () => {
+    const basic = getFrameData("basic")
+    if (!basic) throw new Error("basic is missing")
+    // basic authors 140 ms of recovery; the reference speed is 10.
+    expect(recoveryMsFor(basic, 5)).toBe(280)
+    expect(recoveryMsFor(basic, 10)).toBe(140)
+    expect(recoveryMsFor(basic, 20)).toBe(70)
+  })
+
+  test("a non-positive speed or a zero-length result is rejected", () => {
+    const basic = getFrameData("basic")
+    if (!basic) throw new Error("basic is missing")
+    expect(() => recoveryMsFor(basic, 0)).toThrow(/positive spd/)
+    expect(() => recoveryMsFor(basic, -5)).toThrow(/positive spd/)
+    // 140 * 10 / 2000 truncates to zero: that would be a free attack.
+    expect(() => recoveryMsFor(basic, 2000)).toThrow(/zero or below/)
+  })
+
+  test("the difference is measurable in a fight, not just arithmetic", () => {
+    function stepsToRecover(spd: number): number {
+      const fight = createFight({
+        seed: 20261108,
+        bounds: BOUNDS,
+        fighters: [
+          { ...side("home", -210, EAST), spd },
+          side("away", 210, WEST),
+        ],
+      })
+      fight.commit(0, "basic")
+      let steps = 0
+      while (fight.state.fighters[0].attack !== null && steps < 100) {
+        fight.advance(BOTH_HOLD)
+        steps++
+      }
+      return steps
+    }
+    expect(stepsToRecover(20)).toBeLessThan(stepsToRecover(10))
   })
 })
 
