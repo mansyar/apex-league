@@ -213,3 +213,34 @@ The dev server for the visual pass was started (`bun run dev`, port 5174 because
 | `apps/client/src/fighter-driver.ts` | `BOUNDS_Z` 1.8 → 2.4 so the sim's ±3,000 mm Z maps inside the stage clamp; `clampStage` test updated. |
 | `apps/client/src/playbackDriver.ts` | Gained the dense branch. The module was already near the 12 KB client cap, so its dense runner, pacing math, instant dump and script check were split into `dense-runner.ts`, `pacing.ts`, `instant-dump.ts`, `playback-script.ts`, and its director feed into `staging-director.ts`. Pure moves; `playbackDriver.test.ts` imports moved with them. |
 | `apps/client/src/dense-playback.ts` | New module rather than growing `staging.ts` (also capped at 12 KB). |
+
+## Primary verification
+
+| Layer | Command | Exit | Result |
+| --- | --- | --- | --- |
+| static + unit + determinism | `bun run verify` | 0 | 3,765 pass, 1 skip, 0 fail across 350 files; biome clean; determinism gate byte-identical |
+| build | `bun run build` | 0 | 396 modules, 1,026 kB / 281 kB gzip; chunk-size warning only |
+
+Runtime evidence gathered live against the dev server. The dense path was driven
+in a real browser session at desktop width, from draft day through a full spar:
+
+- The fight ran to a knockout, not the cap. The feed ended with `Ember Drake is
+  down!`, `VICTORY - TIDE AXOLOTL`, `A knockout finish.`
+- The feed announced the new mechanics, not just impacts: `Tide Shot misses Ember
+  Drake.` and `Ember Drake is knocked back.` So a miss and a knockback both reach
+  the player.
+- HP moved continuously rather than in jumps (78 -> 52 -> 12 -> 0 on the owned
+  side) and the range indicator read `IN CLOSE` through the exchange.
+- Zero console errors for the whole session.
+
+Recorded limitation - the pixel pass did not run. `browser.screenshot` returned
+`Screenshot needs a visible tab` on every attempt after the first, and the tool
+has no viewport emulation, so neither the desktop screenshot nor the phone-width
+check could be captured. `playwright-cli` is not on PATH for the phase agent, and
+`playwright` is not a dependency of this repo, so installing it would be a repo
+change outside this phase's scope.
+
+AC-13 is therefore verified functionally but not visually. The checks the owner
+must make at playtest are listed in `playtest.md`; the phone-width readability
+question is the one that cannot be answered without a real narrow viewport and
+stays open until someone looks at it.
