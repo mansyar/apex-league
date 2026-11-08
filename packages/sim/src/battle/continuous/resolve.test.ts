@@ -105,6 +105,18 @@ describe("resolveContinuous — the fight's endings", () => {
     expect(hpOf(result.finalHp, "reed")).toBe(0)
   })
 
+  test("a mirror keeps two sides in the result (FR-12)", () => {
+    // Both sides answer to the same key, so the fight's own key for side 1 is
+    // suffixed. `finalHp` and the log are filed under those keys, not under
+    // the two identical contract keys, so nothing collapses.
+    const mirror = side({ name: "Ember", id: "ember", kit: ["basic"] })
+    const result = resolveContinuous(mirror, mirror, 3)
+    expect(Object.keys(result.finalHp).sort()).toEqual(["ember", "ember#1"])
+    const keys = new Set(result.events.map((event) => event.actorKey))
+    expect(keys.has("ember")).toBe(true)
+    expect(keys.has("ember#1")).toBe(true)
+  })
+
   test("the same sides and seed replay byte for byte, log included", () => {
     const first = resolveContinuous(side(), side({ id: "reed" }), 9)
     const second = resolveContinuous(side(), side({ id: "reed" }), 9)
@@ -141,6 +153,61 @@ describe("resolveContinuous — the fight's endings", () => {
     )
     expect(even.winner).toBe("Ember")
     expect(odd.winner).toBe("Reed")
+  })
+})
+
+describe("resolveContinuous — the double KO (FR-12, AC-12)", () => {
+  /** A side that only shoots, one blow from down, and never closes. */
+  function gunner(): BattleSide {
+    return side({
+      name: "Ember",
+      id: "ember",
+      stats: { hp: 1, atk: 10, def: 1, spd: 0 },
+      kit: ["spark"],
+      tactic: "specials",
+    })
+  }
+
+  /** A side that only swings, one blow from down, and closes at `spd`. */
+  function swinger(spd = 30): BattleSide {
+    return side({
+      name: "Reed",
+      id: "reed",
+      element: "plant",
+      stats: { hp: 1, atk: 10, def: 1, spd },
+      kit: ["basic"],
+    })
+  }
+
+  test("a shot and a killing blow in the same step are a double KO", () => {
+    // Side 0 can only land a shot and side 1 can only land a melee blow, so a
+    // double KO here can only be the shot landing in the step its owner goes
+    // down (the doc claim at the top of resolve.ts).
+    // Seed one: the gunner's spark (tactic specials, so it fires from outside
+    // basic reach) arrives on the same step the swinger's blow lands.
+    const found = resolveContinuous(gunner(), swinger(26), 1)
+    expect(found.reason).toBe("double_ko")
+    expect(found.winner).toBeNull()
+    expect(Object.values(found.finalHp).every((hp) => hp === 0)).toBe(true)
+    // Both sides go down on the same step: two down beats, one tick.
+    const downs = found.events.filter((event) => event.kind === "down")
+    expect(downs).toHaveLength(2)
+    const tick = downs[0]?.tick
+    expect(downs[1]?.tick).toBe(tick)
+    // The same tick carries the shot and the blow that killed each owner.
+    const landed = found.events.filter(
+      (event) => event.tick === tick && event.hit === true,
+    )
+    expect(
+      landed.some(
+        (event) => event.kind === "impact" && event.actorKey === "ember",
+      ),
+    ).toBe(true)
+    expect(
+      landed.some(
+        (event) => event.kind === "basic" && event.actorKey === "reed",
+      ),
+    ).toBe(true)
   })
 })
 

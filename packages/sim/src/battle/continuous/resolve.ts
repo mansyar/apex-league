@@ -8,7 +8,8 @@
  * it to an ending, and reports that ending in the existing vocabulary:
  *
  * - exactly one side at zero HP is a `ko`; both at zero in the same step is a
- *   `double_ko`, including a shot that lands after its owner is already down;
+ *   `double_ko`, including a shot that lands in the same step its owner goes
+ *   down;
  * - at the cap the higher remaining HP percentage wins, then the higher poise
  *   damage dealt, then the seed — in exactly that order (`time`).
  *
@@ -136,9 +137,9 @@ export interface Ending {
 }
 
 /**
- * The fight's own keys: each side's stable key, with side 1 disambiguated
- * only when a mirror match would otherwise collide. `finalHp` keeps the
- * contract keys, so callers see the map the gauge clock emits.
+ * The fight's own keys: side 1 is disambiguated when a mirror would collide,
+ * and that pair is what the whole result is filed under, so a mirror keeps
+ * two sides.
  */
 function fightKeys(sides: Sides): [string, string] {
   const [first, second] = sides.keys
@@ -238,11 +239,13 @@ export function resolveContinuous(
   b: Readonly<BattleSide>,
   seed: number,
 ): BattleResult {
+  const names = [a.name, b.name] as const
   const sides: Sides = {
-    names: [a.name, b.name],
-    keys: [fighterKey(a), fighterKey(b)],
+    names,
+    // A mirror's second side is `name#1` in `finalHp` and the log (FR-12).
+    keys: fightKeys({ names, keys: [fighterKey(a), fighterKey(b)] }),
   }
-  const keys = fightKeys(sides)
+  const keys = sides.keys
   const fight: Fight = createFight({
     seed,
     bounds: ARENA_BOUNDS,
