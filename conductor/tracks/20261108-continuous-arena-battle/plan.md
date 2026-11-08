@@ -152,22 +152,26 @@
 - **Covers:** FR-17, FR-18, FR-19, AC-17, AC-18, AC-19
 - **Touches:** `packages/sim/src/battle/continuous/contact.ts`, `packages/sim/src/battle/continuous/strike.ts`, `packages/sim/src/battle/continuous/projectile.ts`, `packages/sim/src/battle/frames.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P8.T1: Body volumes** — covers: FR-17
-  - [ ] **P8.T1.1: Radius and height on the fighter, seeded from species and form.**
-  - [ ] **P8.T1.2: A height band on every move's frame data, validated.**
-- [ ] **P8.T2: Swept melee arcs** — covers: FR-18
-  - [ ] **P8.T2.1: Per-step sector test through the active window, reach measured edge to edge.**
-  - [ ] **P8.T2.2: A swing whiffs when the victim leaves the arc or the height band.**
-  - [ ] **P8.T2.3: Facing follows the opponent, not the movement intent, so circling no longer turns the body away.**
-- [ ] **P8.T3: Swept projectiles** — covers: FR-19
-  - [ ] **P8.T3.1: Segment-versus-capsule per step, no tunnelling, height-aware.**
-- [ ] **P8.T4: Type identity** — covers: FR-4, FR-8
-  - [ ] **P8.T4.1: Restore the secondary-element collapse so a dual-element body's resistance and weakness count.**
-- [ ] **P8.T5: Event fidelity and version gate** — covers: FR-13, FR-15
-  - [ ] **P8.T5.1: Emit launch, approach, and hold beats so a replay shows shots and movement.**
-  - [ ] **P8.T5.2: Bump `SIM_VERSION` at the switch, not after the cup has been writing new ghosts.**
+- [x] **P8.T1: Body volumes** — covers: FR-17
+  - [x] **P8.T1.1: Radius and height on the fighter, seeded from species and form.**
+  - [x] **P8.T1.2: A height band on every move's frame data, validated.**
+- [x] **P8.T2: Swept melee arcs** — covers: FR-18
+  - [x] **P8.T2.1: Per-step sector test through the active window, reach measured edge to edge.**
+  - [x] **P8.T2.2: A swing whiffs when the victim leaves the arc or the height band.**
+  - [x] **P8.T2.3: Facing follows the opponent, not the movement intent, so circling no longer turns the body away.**
+- [x] **P8.T3: Swept projectiles** — covers: FR-19
+  - [x] **P8.T3.1: Segment-versus-capsule per step, no tunnelling, height-aware.**
+- [x] **P8.T4: Type identity** — covers: FR-4, FR-8
+  - [x] **P8.T4.1: Restore the secondary-element collapse so a dual-element body's resistance and weakness count.**
+- [x] **P8.T5: Event fidelity and version gate** — covers: FR-13, FR-15
+  - [x] **P8.T5.1: Emit launch, approach, and hold beats so a replay shows shots and movement.**
+  - [x] **P8.T5.2: Bump `SIM_VERSION` at the switch, not after the cup has been writing new ghosts.**
+
+**Result:** verified
+**Checkpoint:** 4f105d00
+**Evidence:** conductor/tracks/20261108-continuous-arena-battle/verification/phase-8.md
 
 ## Phase 9: Hit Reactions
 

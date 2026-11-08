@@ -198,3 +198,31 @@ diff, and no pacing, aggression or frame timing value was tuned.
 - `packages/sim/src/battle/continuous/report.ts` — launch / close / hold beats
 - `packages/sim/src/species.ts` — `BODY_PROFILES`
 - `packages/sim/src/cup/ghost.ts` — `SIM_VERSION = 2`
+
+## Primary verification
+
+| Layer | Command | Exit | Result |
+| --- | --- | --- | --- |
+| static + unit + determinism | `bun run verify` | 0 | 4 workspace typechecks clean; 3,711 pass, 1 skip, 0 fail across 345 files; biome 860 files clean; determinism gate byte-identical |
+| build | `bun run build` | 0 | Vite built 384 modules; only the pre-existing chunk-size warning |
+
+Independently confirmed in code: `contact.ts` exports `bandOverlapsBody`,
+`reachesBody`, `segmentHitsBody`, `separateBodies`, `turnToward`, `faceOpponent`
+and is 9,571 B; `strike.ts` imports `incomingTypeFactor` from `../chart` and calls
+it at line 197, so the secondary-element collapse is genuinely restored;
+`cup/ghost.ts` line 34 is `export const SIM_VERSION = 2`. `battle/resolver.ts` and
+every `*.balance.test.ts` are absent from the diff, and `controller.ts` is
+unchanged at 12,158 B.
+
+**Not squashed:** the phase range holds the primary agent's hit-reactions phase
+(`7cacdf5f`) and the verticality note (`454df780`), which are not part of the
+subagent's work. Checkpoint is `4f105d00`.
+
+**Capacity warning for Phase 9:** `controller.ts` is 12,158 B against the 12,288 B
+cap — 130 B of headroom. Phase 9 tunes the dodge burst and Phase 10 adds pacing on
+top; the controller will almost certainly need something extracted before it can
+grow, and that extraction should be a deliberate split, not compression.
+
+**Golden coverage gap:** `cup.golden.test.ts` seed 7 was the eliminated-seed
+golden and is now a crown, so no golden currently covers the elimination path.
+Phase 10 must re-pin a true eliminated seed once pacing settles.
