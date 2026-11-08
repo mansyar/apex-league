@@ -16,7 +16,8 @@
 
 import type { Rng } from "../../rng"
 import { faceOpponent, separateBodies } from "./contact"
-import { moveFighter } from "./movement"
+import { blowDirection, isStunned, reactToBlow } from "./impulse"
+import { type FencePin, moveFighter, moveStunned } from "./movement"
 import { advancePoise, applyPoiseDamage } from "./poise"
 import {
   launchProjectile,
@@ -35,6 +36,7 @@ import {
 } from "./strike"
 import {
   type ArenaBounds,
+  type Dir2,
   type FighterState,
   type FightState,
   HOLD,
@@ -50,6 +52,17 @@ export interface DodgeReport {
   readonly paid: boolean
 }
 
+/**
+ * A body that spent the step pressed into the fence by knockback (FR-22): the
+ * axes it was pinned on, so "no room to retreat" is readable from a step.
+ */
+export interface PinnedReport {
+  /** The side held against the wall. */
+  readonly key: string
+  readonly x: FencePin["x"]
+  readonly z: FencePin["z"]
+}
+
 /** What one advance produced: the next state and every blow that landed. */
 export interface StepOutcome {
   readonly state: FightState
@@ -62,6 +75,8 @@ export interface StepOutcome {
   readonly whiffs: readonly WhiffReport[]
   /** Dodge orders this step, paid or refused, in fighter order (FR-10). */
   readonly dodges: readonly DodgeReport[]
+  /** Bodies that knockback held against the fence this step (FR-22). */
+  readonly pinned: readonly PinnedReport[]
 }
 
 /** What one advance produced: the next state, its hash, and what landed. */
@@ -104,13 +119,22 @@ export function stepFight(
     context.stats,
   )
   const launched = launchShots(state.step, before, advanced)
-  const settled = settleMeters(struck.strikes, flight.shots, flight.fighters)
+  // Damage, poise, knockback and hitstun all settle through one seam, which
+  // reads the blow directions off the top-of-step snapshot (FR-22, FR-23).
+  const settled = settleMeters(
+    before,
+    struck.strikes,
+    flight.shots,
+    flight.fighters,
+  )
   const whiffs = whiffsOf(before, advanced)
   const dodges: DodgeReport[] = []
-  // `applyIntent` carries the attack and both meters across (FR-6, FR-9, FR-10).
+  const pinned: PinnedReport[] = []
+  // `applyIntent` carries the attack and both meters across (FR-6, FR-9, FR-10)
+  // and, for a stunned body, spends the step sliding on its knockback instead.
   const moved: readonly [FighterState, FighterState] = [
-    applyIntent(settled[0], intents[0], bounds, dodges),
-    applyIntent(settled[1], intents[1], bounds, dodges),
+    applyIntent(settled[0], intents[0], bounds, dodges, pinned),
+    applyIntent(settled[1], intents[1], bounds, dodges, pinned),
   ]
   // Bodies are solid, so overlapping centres push apart before the next step
   // (FR-17). Facing then turns from the pre-step facing toward the opponent,
@@ -130,20 +154,35 @@ export function stepFight(
     launched,
     whiffs,
     dodges,
+    pinned,
   }
 }
 
 /**
- * Apply one side's order. A dodge pays its price first: paid, the burst runs
- * along the ordered direction; unpayable, the order is refused into a hold, so
- * the body neither bursts nor slides, and the refusal is reported.
+ * Apply one side's order. A stunned body cannot act: the order is ignored, a
+ * dodge is reported refused and never charged, and the step is spent sliding
+ * on the knockback (FR-23). A body that was pinned against the fence is
+ * reported so the caller can see it had nowhere to go (FR-22).
+ *
+ * Otherwise a dodge pays its price first: paid, the burst runs along the
+ * ordered direction; unpayable, the order is refused into a hold, so the body
+ * neither bursts nor slides, and the refusal is reported.
  */
 function applyIntent(
   fighter: FighterState,
   intent: MoveIntent,
   bounds: ArenaBounds,
   dodges: DodgeReport[],
+  pinned: PinnedReport[],
 ): FighterState {
+  if (isStunned(fighter)) {
+    if ("dodge" in intent) dodges.push({ key: fighter.key, paid: false })
+    const stunned = moveStunned(fighter, bounds)
+    if (stunned.pinned.x !== 0 || stunned.pinned.z !== 0) {
+      pinned.push({ key: fighter.key, ...stunned.pinned })
+    }
+    return stunned.fighter
+  }
   if (!("dodge" in intent)) return moveFighter(fighter, intent, bounds)
   const paid = spendDodge(fighter)
   if (!paid) {
@@ -188,10 +227,15 @@ function launchShots(
  * Settle both meters for one step (FR-9, FR-10, FR-12): clocks and
  * regeneration advance first, so a break opened now serves its whole window,
  * and a window that expires now refills before this step's blows land. Every
- * blow that lands then spends poise and hit points; hit points floor at zero,
- * which is what the endings read.
+ * blow that lands then spends poise, hit points and hitstun through one seam;
+ * hit points floor at zero, which is what the endings read.
+ *
+ * The knockback direction is read off the top-of-step snapshot: a melee blow
+ * pushes along the line from the attacker's centre to the victim's, a shot
+ * along the direction it was fired in (FR-22).
  */
 function settleMeters(
+  before: readonly [FighterState, FighterState],
   strikes: readonly StrikeReport[],
   shots: readonly ShotReport[],
   fighters: readonly [FighterState, FighterState],
@@ -200,19 +244,31 @@ function settleMeters(
     regenerateStamina(advancePoise(fighters[0])),
     regenerateStamina(advancePoise(fighters[1])),
   ]
-  const hit = (key: string, poiseDamage: number, damage: number): void => {
-    const side = settled[0].key === key ? 0 : 1
+  const sideOf = (key: string): 0 | 1 => (settled[0].key === key ? 0 : 1)
+  const hit = (
+    key: string,
+    poiseDamage: number,
+    damage: number,
+    dir: Dir2,
+  ): void => {
+    const side = sideOf(key)
+    const poised = applyPoiseDamage(settled[side], poiseDamage)
+    const broke = poised.poiseBreakMs > 0 && settled[side].poiseBreakMs === 0
     settled[side] = applyDamage(
-      applyPoiseDamage(settled[side], poiseDamage),
+      reactToBlow(poised, dir, poiseDamage, broke),
       damage,
     )
   }
   for (const strike of strikes) {
-    hit(strike.targetKey, strike.poiseDamage, strike.damage)
+    const dir = blowDirection(
+      before[sideOf(strike.attackerKey)].pos,
+      before[sideOf(strike.targetKey)].pos,
+    )
+    hit(strike.targetKey, strike.poiseDamage, strike.damage, dir)
   }
   for (const shot of shots) {
     if (shot.outcome === "hit") {
-      hit(shot.targetKey, shot.poiseDamage, shot.damage)
+      hit(shot.targetKey, shot.poiseDamage, shot.damage, shot.dir)
     }
   }
   return settled

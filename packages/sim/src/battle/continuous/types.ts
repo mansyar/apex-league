@@ -121,6 +121,8 @@ export interface FighterState {
   readonly staminaMax: number
   /** Fight time banked toward the next stamina regeneration tick, in ms. */
   readonly staminaRegenMs: number
+  /** Hitstun still to serve, in ms; movement and commits wait it out (FR-23). */
+  readonly hitstunMs: number
 }
 
 /** The whole fight at one instant: two sides in a fixed order. */

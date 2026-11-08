@@ -12,6 +12,7 @@ import { makeRng } from "../../rng"
 import { BODY_RADIUS_MM } from "../frames"
 import { type StepContext, type StepResult, stepFight } from "./advance"
 import { DEFAULT_BODY_HEIGHT_MM } from "./contact"
+import { isStunned, openingHitstun } from "./impulse"
 import { isBroken, openingPoise } from "./poise"
 import { openingStamina, spendAttack } from "./stamina"
 import {
@@ -75,8 +76,8 @@ export interface Fight {
   readonly state: FightState
   advance(intents: readonly [MoveIntent, MoveIntent]): StepResult
   /**
-   * Commit to a move; false when locked (FR-6), broken (FR-9), or short on
-   * stamina (FR-10).
+   * Commit to a move; false when locked (FR-6), broken (FR-9), stunned
+   * (FR-23), or short on stamina (FR-10).
    */
   commit(side: 0 | 1, moveId: string): boolean
 }
@@ -122,6 +123,7 @@ export function stateHash(state: FightState): number {
     mix(fighter.stamina)
     mix(fighter.staminaMax)
     mix(fighter.staminaRegenMs)
+    mix(fighter.hitstunMs)
     const attack = fighter.attack
     mix(attack ? 1 : 0)
     if (attack) {
@@ -211,6 +213,7 @@ function openFighter(init: FighterInit, bounds: ArenaBounds): FighterState {
     hpMax,
     ...openingPoise(init.poiseMax),
     ...openingStamina(init.staminaMax),
+    ...openingHitstun(),
   }
 }
 
@@ -264,11 +267,14 @@ export function createFight(config: FightConfig): Fight {
         launched: outcome.launched,
         whiffs: outcome.whiffs,
         dodges: outcome.dodges,
+        pinned: outcome.pinned,
       }
     },
     commit(side, moveId) {
       const fighter = state.fighters[side]
-      if (isBroken(fighter) || !canCommit(fighter)) return false
+      if (isBroken(fighter) || isStunned(fighter) || !canCommit(fighter)) {
+        return false
+      }
       const paid = spendAttack(fighter, moveId)
       if (!paid) return false
       const committed = commitAttack(paid, moveId)

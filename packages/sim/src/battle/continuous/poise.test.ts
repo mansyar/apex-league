@@ -57,6 +57,7 @@ function fighter(overrides: Partial<FighterState> = {}): FighterState {
     hpMax: 100,
     ...openingPoise(),
     ...openingStamina(),
+    hitstunMs: 0,
     ...overrides,
   }
 }

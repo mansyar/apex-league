@@ -88,6 +88,8 @@ export interface ShotReport {
   readonly counter: boolean
   /** True when the shot cancelled the victim's startup (FR-6). */
   readonly interrupted: boolean
+  /** The line the shot flew, which is the line it knocks back along (FR-22). */
+  readonly dir: Dir2
 }
 
 /** The shots still in flight after a step, plus the ones that resolved. */
@@ -230,6 +232,7 @@ export function resolveProjectiles(
         position,
         counter: false,
         interrupted: false,
+        dir: shot.dir,
       })
       continue
     }
@@ -259,6 +262,7 @@ export function resolveProjectiles(
       position,
       counter,
       interrupted,
+      dir: shot.dir,
     })
   }
   return { projectiles: flight, fighters: [home, away], shots }

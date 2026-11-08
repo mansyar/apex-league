@@ -96,6 +96,7 @@ function fighter(
     attack,
     ...openingPoise(),
     ...openingStamina(),
+    hitstunMs: 0,
   }
 }
 
