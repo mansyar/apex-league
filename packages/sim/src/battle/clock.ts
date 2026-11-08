@@ -3,6 +3,9 @@
  * Scripted actions only — tactics arrive in a later phase. Pure and
  * deterministic given the seed.
  *
+ * REPLAY-ONLY (continuous-arena-battle FR-15): frozen. Live fights resolve
+ * through ../continuous/resolve; nothing new may be built on this surface.
+ *
  * Cooldown semantics, pinned by the moves tests: the gate is checked before
  * the fighter's action, the entry steps after it. A newly used special is
  * set after the step, so it blocks exactly the move's next N actions.
