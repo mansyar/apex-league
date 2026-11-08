@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { PerspectiveCamera, Vector3 } from "three"
 
+import { ARENA_HALF_X, ARENA_HALF_Z } from "../arena-scale"
 import { arenaFramingAdjust } from "../scene-logic"
 
 /**
@@ -9,14 +10,18 @@ import { arenaFramingAdjust } from "../scene-logic"
  * + vertical FOV crop the stage corners out of frame. The adjustment
  * backs the camera off and widens the lens as the aspect narrows, with
  * caps so a phone never ends up with an absurd telescope shot.
+ *
+ * The corners are the painted arena itself (`ARENA_BOUNDS` at the
+ * presentation scale), so this pins the promise that no fighter can stand
+ * outside the paint *and* outside the shot.
  */
 
-/** Stage bounds the framing must keep in frame (scene.ts stage layout). */
-const STAGE_CORNERS = [
-  [3.4, 0, 2],
-  [-3.4, 0, 2],
-  [3.4, 0, -2],
-  [-3.4, 0, -2],
+/** The arena corners at the presentation scale, plus head height. */
+const ARENA_CORNERS = [
+  [ARENA_HALF_X, 0, ARENA_HALF_Z],
+  [-ARENA_HALF_X, 0, ARENA_HALF_Z],
+  [ARENA_HALF_X, 0, -ARENA_HALF_Z],
+  [-ARENA_HALF_X, 0, -ARENA_HALF_Z],
   [0, 1.4, 0], // fighter head height at center
 ] as const
 
@@ -88,7 +93,7 @@ describe("arena framing — aspect compensation", () => {
     // corner out of frame.
     const aspect = 390 / 844
     let maxAbsX = 0
-    for (const corner of STAGE_CORNERS) {
+    for (const corner of ARENA_CORNERS) {
       const ndc = project(aspect, BASE_FOV, BASE.radius, corner)
       maxAbsX = Math.max(maxAbsX, Math.abs(ndc.x))
     }
@@ -100,7 +105,7 @@ describe("arena framing — aspect compensation", () => {
       const adj = arenaFramingAdjust(aspect)
       const fov = BASE_FOV + adj.fovAdd
       const radius = BASE.radius * adj.radiusMult
-      for (const corner of STAGE_CORNERS) {
+      for (const corner of ARENA_CORNERS) {
         const ndc = project(aspect, fov, radius, corner)
         expect(Math.abs(ndc.x)).toBeLessThanOrEqual(1 + 1e-6)
         expect(Math.abs(ndc.y)).toBeLessThanOrEqual(1 + 1e-6)

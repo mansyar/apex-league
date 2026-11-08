@@ -6,6 +6,7 @@ import {
 } from "@apex/sim"
 import * as THREE from "three"
 import { clamp01 } from "./anim"
+import { MM_TO_WORLD, simX, simZ } from "./arena-scale"
 import type { DriveFighter } from "./fighter-driver"
 import type { BattleEffects } from "./staging-fx"
 import { koFall } from "./steps/pure"
@@ -30,25 +31,14 @@ import { koFall } from "./steps/pure"
  */
 
 /**
- * Sim millimetres → world units, in one place. The sim fights in an 8 m ×
- * 6 m arena (`ARENA_BOUNDS`, ±4,000 × ±3,000 mm) and holds its spacing at
- * 2–3 m, which at 0.0008 is the show floor's own stance: about 1.8–2.4
- * world units apart, exactly where the authored fight stands. One uniform
- * factor, so a straight run in the sim is a straight run on the floor and
- * no diagonal ever skews.
- *
- * The trade it makes: a committed blow closes to ~1 m, so the meshes
- * overlap for the two or three steps of the active window — masked by the
- * contact flash and burst, and gone again on the knockback. Mapping for
- * separation instead would shrink the creatures to dots on a phone.
+ * Sim millimetres → world units, owned by `arena-scale.ts`. The sim fights
+ * in an 8 m × 6 m arena (`ARENA_BOUNDS`, ±4,000 × ±3,000 mm); at 0.0008
+ * that is 6.4 × 4.8 world units, and each body is drawn at its own
+ * simulated width (`2 * radiusMm * MM_TO_WORLD`) rather than a normalized
+ * slot. One uniform factor, so a straight run in the sim is a straight run
+ * on the floor and no diagonal ever skews.
  */
-export const MM_TO_WORLD = 0.0008
-
-/** A sim x coordinate in world units. */
-export const simX = (mm: number): number => mm * MM_TO_WORLD
-
-/** A sim z coordinate in world units. */
-export const simZ = (mm: number): number => mm * MM_TO_WORLD
+export { MM_TO_WORLD, simX, simZ }
 
 /** How long a KO collapse takes, in stream steps (the reel's own length). */
 const FALL_STEPS = 14
