@@ -156,8 +156,14 @@
 - [ ] **P8.T2: Swept melee arcs** — covers: FR-18
   - [ ] **P8.T2.1: Per-step sector test through the active window, reach measured edge to edge.**
   - [ ] **P8.T2.2: A swing whiffs when the victim leaves the arc or the height band.**
+  - [ ] **P8.T2.3: Facing follows the opponent, not the movement intent, so circling no longer turns the body away.**
 - [ ] **P8.T3: Swept projectiles** — covers: FR-19
   - [ ] **P8.T3.1: Segment-versus-capsule per step, no tunnelling, height-aware.**
+- [ ] **P8.T4: Type identity** — covers: FR-4, FR-8
+  - [ ] **P8.T4.1: Restore the secondary-element collapse so a dual-element body's resistance and weakness count.**
+- [ ] **P8.T5: Event fidelity and version gate** — covers: FR-13, FR-15
+  - [ ] **P8.T5.1: Emit launch, approach, and hold beats so a replay shows shots and movement.**
+  - [ ] **P8.T5.2: Bump `SIM_VERSION` at the switch, not after the cup has been writing new ghosts.**
 
 ## Phase 9: Evasion and Pacing
 
