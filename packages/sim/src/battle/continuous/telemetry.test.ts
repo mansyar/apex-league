@@ -1,7 +1,8 @@
 /**
- * Fight telemetry (Continuous Arena Battle FR-14, AC-14, AC-24): the reference
- * sample's engagement distance, exchange rate, idle time, distinct positions
- * and cap share are measured, and every bound the harness enforces is enforced
+ * Fight telemetry (Continuous Arena Battle FR-14, AC-14, AC-24; Battle Spacing
+ * and Cadence AC-1, AC-2, AC-4): the reference sample's engagement distance,
+ * attack rate, idle time, distinct positions, contact share, retreat count and
+ * cap share are measured, and every bound the harness enforces is enforced
  * here too.
  *
  * The numbers come from `scripts/battle-telemetry.ts`, the same module the
@@ -62,6 +63,14 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
       expect(fight.gap.median).toBeLessThanOrEqual(fight.gap.max)
       expect(fight.idle).toBeGreaterThanOrEqual(0)
       expect(fight.idle).toBeLessThanOrEqual(1)
+      // Contact share is a share of the same steps, and retreats are whole
+      // orders that can only count up.
+      expect(fight.contact).toBeGreaterThanOrEqual(0)
+      expect(fight.contact).toBeLessThanOrEqual(1)
+      expect(Number.isInteger(fight.retreats[0])).toBe(true)
+      expect(Number.isInteger(fight.retreats[1])).toBe(true)
+      expect(fight.retreats[0]).toBeGreaterThanOrEqual(0)
+      expect(fight.retreats[1]).toBeGreaterThanOrEqual(0)
     }
   })
 
@@ -77,6 +86,27 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
     assertBounds(["distinctPositions"])
   })
 
+  test("contact, retreats and attack rate are measured and bounded", () => {
+    assertBounds(["contactShare", "retreatHome", "retreatAway"])
+    const measured = sample()
+    expect(measured.contact).toBeGreaterThanOrEqual(0)
+    expect(measured.contact).toBeLessThanOrEqual(1)
+    expect(measured.retreats.home).toBeGreaterThanOrEqual(0)
+    expect(measured.retreats.away).toBeGreaterThanOrEqual(0)
+    // The report names the new metrics with their observed values, so a local
+    // run and CI read the same table.
+    const lines = report(measured)
+    for (const metric of [
+      "contactShare",
+      "retreatHome",
+      "retreatAway",
+    ] as const) {
+      expect(lines.some((line) => line.startsWith(`ok   ${metric}:`))).toBe(
+        true,
+      )
+    }
+  })
+
   test("at most one fight in two is decided at the cap (AC-24)", () => {
     assertBounds(["capShare"])
     const cap = sample().cap
@@ -86,7 +116,7 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
 
   test("every metric has a bound, so none can be reported unenforced", () => {
     const metrics = BOUNDS.map((bound) => bound.metric)
-    expect(new Set(metrics).size).toBe(8)
+    expect(new Set(metrics).size).toBe(11)
   })
 
   test("a violated threshold is named with its observed value (AC-14)", () => {
@@ -98,10 +128,14 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
 
     const passive: SampleTelemetry = {
       ...measured,
-      exchange: { ...measured.exchange, home: 0 },
+      exchange: { ...measured.exchange, home: 99 },
     }
     const rate = violations(passive).map(describeViolation)
     expect(rate.some((line) => line.startsWith("exchangeHome:"))).toBe(true)
+
+    const crowded: SampleTelemetry = { ...measured, contact: 1.01 }
+    const contact = violations(crowded).map(describeViolation)
+    expect(contact.some((line) => line.startsWith("contactShare:"))).toBe(true)
 
     // A bound that holds is not reported.
     expect(violations(measured)).toEqual([])

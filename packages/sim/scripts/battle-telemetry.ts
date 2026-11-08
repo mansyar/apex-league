@@ -7,7 +7,7 @@
  * resolver already records (`streamOf`). The harness is a consumer: it does not
  * step the sim itself and does not change a single value in it.
  *
- * Four metrics, each defined precisely because a loose definition is how a
+ * Six metrics, each defined precisely because a loose definition is how a
  * turn-based fight would pass a "continuous" gate:
  *
  * - **Engagement distance** — the centre-to-centre gap in millimetres, sampled
@@ -16,13 +16,21 @@
  * - **Exchange rate** — committed attacks per second of fight time. A commit is
  *   a step where a side's attack phase moves from `none` to `startup`; it counts
  *   even when the attack is later interrupted, because the fighter still chose
- *   to commit. Reported per side and combined.
+ *   to commit. Reported per side and combined. This is the attack rate FR-3 and
+ *   FR-4 constrain.
  * - **Idle time** — the share of fight time in which neither side has an attack
  *   in any phase. This is the metric that separates a fight from two fighters
  *   circling. Hitstun counts as idle: a body held in hitstun has no attack
  *   running.
  * - **Distinct positions** — how many distinct 100 mm cells each side visits. A
  *   fight staged as two poses scores two; continuous movement scores many.
+ * - **Contact share** — the share of fight time the two bodies spend closer than
+ *   the sum of both radii plus `CONTACT_MARGIN_MM` (40 mm). The threshold is the
+ *   same for both sides, so one share describes the pair.
+ * - **Retreats** — retreat orders issued per side. The stream records positions
+ *   and attack phases, not the controller's verb, so this metric replays the
+ *   same deterministic decisions the resolver took and checks the replay ends on
+ *   the resolver's own step and hit points before reporting.
  *
  * Plus **cap share** (AC-24): the share of fights decided at `FIGHT_CAP_MS`
  * rather than by knockout. The cap is the top of the 25-40 s band, so the band
@@ -39,9 +47,20 @@
  */
 
 import {
+  type ControllerState,
+  createController,
+  decide,
+} from "../src/battle/continuous/controller"
+import {
+  ARENA_BOUNDS,
+  downEnding,
+  engagementFor,
   FIGHT_CAP_MS,
+  FIGHT_CAP_STEPS,
+  initFor,
   resolveContinuous,
 } from "../src/battle/continuous/resolve"
+import { createFight } from "../src/battle/continuous/step"
 import {
   type FightStream,
   readFrame,
@@ -49,11 +68,20 @@ import {
   type StreamFrame,
   streamOf,
 } from "../src/battle/continuous/stream"
-import { STEP_MS } from "../src/battle/continuous/types"
+import { HOLD, type MoveIntent, STEP_MS } from "../src/battle/continuous/types"
 import type { Tactic } from "../src/battle/policy"
-import type { BattleReason, BattleSide } from "../src/battle/resolver"
-import { branchesForSpecies } from "../src/branches"
-import { ALL_SPECIES, type SpeciesDef } from "../src/species"
+import type {
+  BattleReason,
+  BattleResult,
+  BattleSide,
+} from "../src/battle/resolver"
+import { branchesForSpecies, getBranch } from "../src/branches"
+import {
+  ALL_SPECIES,
+  bodyProfileFor,
+  getSpecies,
+  type SpeciesDef,
+} from "../src/species"
 
 /**
  * The stat line both sides are ramped to, exactly as `pacing.test.ts` does:
@@ -64,6 +92,14 @@ const REFERENCE = { hp: 90, atk: 10, def: 10, spd: 10 } as const
 
 /** The grid a "distinct position" is counted on, in millimetres. */
 const CELL_MM = 100
+
+/**
+ * How far past the sum of both body radii still counts as contact, in mm
+ * (measurement definition, not a sim tunable). Forty millimetres is the same
+ * clearance the dodge uses: a pair closer than this is touching or pressed
+ * together, not fighting at the edge of reach.
+ */
+const CONTACT_MARGIN_MM = 40
 
 type StatLine = { hp: number; atk: number; def: number; spd: number }
 
@@ -91,6 +127,21 @@ function sideOf(species: SpeciesDef, tactic: Tactic): BattleSide {
     temperament: species.temperament,
     branch: body?.id,
   }
+}
+
+/**
+ * The body radius the resolver gives a roster species, in mm (FR-17): its
+ * branch names a species, that species names an archetype, and the archetype's
+ * authored profile carries the radius. Mirrors `bodyFor` in ./resolve, which
+ * is private, so the contact threshold is the one the fight actually uses.
+ */
+function radiusOf(species: SpeciesDef): number {
+  const branch = branchesForSpecies(species.id)[0]
+  const resolved = branch ? getBranch(branch.id) : undefined
+  const target = resolved?.speciesId
+    ? getSpecies(resolved.speciesId)
+    : undefined
+  return bodyProfileFor(target?.archetypeId).radiusMm
 }
 
 /** One seeded pairing. */
@@ -142,6 +193,10 @@ export interface FightTelemetry {
   readonly idle: number
   /** Distinct 100 mm cells visited, home then away. */
   readonly distinct: readonly [number, number]
+  /** Share of fight steps inside both body radii + 40 mm, 0..1. */
+  readonly contact: number
+  /** Retreat orders issued, home then away. */
+  readonly retreats: readonly [number, number]
 }
 
 /** A blank frame to read into; `readFrame` overwrites every field. */
@@ -183,20 +238,99 @@ function hitsOf(
 }
 
 /**
+ * Replay one fight's controller decisions and count the retreat orders.
+ *
+ * The stream records where the bodies went, not what they wanted, so the verb
+ * tally has to be read where the verb lives. The replay is the resolver's own
+ * loop: the same `initFor` orders, the same `engagementFor` profiles, the same
+ * `createController` brains and the same `createFight` step. Nothing is random,
+ * so the replay must land on the resolver's step and hit points; if it does not,
+ * the tally would describe a different fight and the harness refuses to report
+ * it. Keys are arbitrary here because neither the step nor the controller reads
+ * them, and the sample has no mirror to disambiguate.
+ */
+function retreatsOf(
+  matchup: Matchup,
+  result: BattleResult,
+  stream: FightStream,
+  home: BattleSide,
+  away: BattleSide,
+): [number, number] {
+  const fight = createFight({
+    seed: matchup.seed,
+    bounds: ARENA_BOUNDS,
+    fighters: [initFor(home, "home", 0), initFor(away, "away", 1)],
+  })
+  const profiles = [
+    engagementFor(home.temperament, home.tactic),
+    engagementFor(away.temperament, away.tactic),
+  ] as const
+  const kits = [home.kit, away.kit] as const
+  const brains: [ControllerState, ControllerState] = [
+    createController(),
+    createController(),
+  ]
+  const retreats: [number, number] = [0, 0]
+  let state = fight.state
+
+  while (state.step < FIGHT_CAP_STEPS && !downEnding(state)) {
+    const orders: [MoveIntent, MoveIntent] = [HOLD, HOLD]
+    for (const side of [0, 1] as const) {
+      const order = decide({
+        state,
+        side,
+        controller: brains[side],
+        profile: profiles[side],
+        kit: kits[side],
+      })
+      brains[side] = order.state
+      orders[side] = order.intent
+      if (order.verb === "retreat") retreats[side] += 1
+      if (order.commit) fight.commit(side, order.commit)
+    }
+    state = fight.advance(orders).state
+  }
+
+  const replayHp = [state.fighters[0].hp, state.fighters[1].hp].sort(
+    (left, right) => left - right,
+  )
+  const resolvedHp = Object.values(result.finalHp).sort(
+    (left, right) => left - right,
+  )
+  if (
+    state.step !== stream.steps - 1 ||
+    replayHp[0] !== resolvedHp[0] ||
+    replayHp[1] !== resolvedHp[1]
+  ) {
+    throw new Error(
+      `${matchup.home.id} v ${matchup.away.id}: the order replay diverged from the resolver`,
+    )
+  }
+  return retreats
+}
+
+/**
  * Measure one fight. Every number comes from the stream or the event log the
- * resolver already produced; nothing here writes to either.
+ * resolver already produced; the retreat tally replays the same decisions and
+ * checks itself against the result before reporting.
  */
 export function measureFight(matchup: Matchup): FightTelemetry {
-  const result = resolveContinuous(
-    sideOf(matchup.home, matchup.seed % 2 === 0 ? "balanced" : "specials"),
-    sideOf(matchup.away, matchup.seed % 2 === 0 ? "specials" : "balanced"),
-    matchup.seed,
+  const homeSide = sideOf(
+    matchup.home,
+    matchup.seed % 2 === 0 ? "balanced" : "specials",
   )
+  const awaySide = sideOf(
+    matchup.away,
+    matchup.seed % 2 === 0 ? "specials" : "balanced",
+  )
+  const result = resolveContinuous(homeSide, awaySide, matchup.seed)
   const label = `${matchup.home.id} v ${matchup.away.id}`
   const stream: FightStream | undefined = streamOf(result)
   if (!stream) throw new Error(`${label} resolved without a stream`)
   if (stream.steps < 2) throw new Error(`${label} recorded no fight step`)
 
+  const contactMm =
+    radiusOf(matchup.home) + radiusOf(matchup.away) + CONTACT_MARGIN_MM
   const home = frame()
   const away = frame()
   readFrame(stream, 0, 0, home)
@@ -207,12 +341,15 @@ export function measureFight(matchup: Matchup): FightTelemetry {
   const cells: [Set<string>, Set<string>] = [new Set(), new Set()]
   const gaps: number[] = []
   let idleSteps = 0
+  let contactSteps = 0
 
   for (let step = 1; step < stream.steps; step++) {
     readFrame(stream, step, 0, home)
     readFrame(stream, step, 1, away)
 
-    gaps.push(Math.round(Math.hypot(home.x - away.x, home.z - away.z)))
+    const gap = Math.round(Math.hypot(home.x - away.x, home.z - away.z))
+    gaps.push(gap)
+    if (gap < contactMm) contactSteps += 1
 
     const phases: [number, number] = [home.phase, away.phase]
     if (home.phase === STREAM_PHASE.none && away.phase === STREAM_PHASE.none) {
@@ -251,6 +388,8 @@ export function measureFight(matchup: Matchup): FightTelemetry {
     gaps,
     idle: idleSteps / fightSteps,
     distinct: [cells[0].size, cells[1].size],
+    contact: contactSteps / fightSteps,
+    retreats: retreatsOf(matchup, result, stream, homeSide, awaySide),
   }
 }
 
@@ -269,6 +408,10 @@ export interface SampleTelemetry {
   }
   readonly idle: number
   readonly distinct: { readonly min: number; readonly median: number }
+  /** Share of all fight steps inside both body radii + 40 mm, 0..1. */
+  readonly contact: number
+  /** Retreat orders issued over the sample, home then away. */
+  readonly retreats: { readonly home: number; readonly away: number }
   readonly cap: {
     readonly count: number
     readonly total: number
@@ -283,6 +426,9 @@ export function measure(): SampleTelemetry {
   let commits = 0
   let seconds = 0
   let idle = 0
+  let contact = 0
+  let retreatHome = 0
+  let retreatAway = 0
   let capCount = 0
   const distinct: number[] = []
 
@@ -290,6 +436,9 @@ export function measure(): SampleTelemetry {
     seconds += fight.ms / 1000
     commits += fight.commits[0] + fight.commits[1]
     idle += fight.idle * (fight.ms / STEP_MS)
+    contact += fight.contact * (fight.ms / STEP_MS)
+    retreatHome += fight.retreats[0]
+    retreatAway += fight.retreats[1]
     distinct.push(fight.distinct[0], fight.distinct[1])
     gaps.push(...fight.gaps)
     if (fight.reason === "time") {
@@ -315,6 +464,8 @@ export function measure(): SampleTelemetry {
     },
     idle: idle / fightSteps,
     distinct: { min: Math.min(...distinct), median: median(distinct) },
+    contact: contact / fightSteps,
+    retreats: { home: retreatHome, away: retreatAway },
     cap: {
       count: capCount,
       total: fights.length,
@@ -332,6 +483,9 @@ export type Metric =
   | "exchangeAway"
   | "idleShare"
   | "distinctPositions"
+  | "contactShare"
+  | "retreatHome"
+  | "retreatAway"
   | "capShare"
 
 /** One CI-enforced bound, with the reason it exists. */
@@ -369,15 +523,15 @@ export const BOUNDS: readonly Bound[] = Object.freeze([
   },
   {
     metric: "exchangeHome",
-    kind: "min",
-    value: 1,
-    why: "the home side must keep committing attacks; measured 1.99/s",
+    kind: "max",
+    value: 2.5,
+    why: "the home side's attack rate is a ceiling, not a floor; measured 1.99/s",
   },
   {
     metric: "exchangeAway",
-    kind: "min",
-    value: 1,
-    why: "the away side must keep committing attacks, not let the fight be one-sided; measured 1.79/s",
+    kind: "max",
+    value: 2.5,
+    why: "the away side's attack rate is a ceiling, not a floor; measured 1.79/s",
   },
   {
     metric: "idleShare",
@@ -390,6 +544,24 @@ export const BOUNDS: readonly Bound[] = Object.freeze([
     kind: "min",
     value: 30,
     why: "every side must visit many positions, not hold two poses; measured min 45 cells",
+  },
+  {
+    metric: "contactShare",
+    kind: "max",
+    value: 0.7,
+    why: "the bodies must not spend most of the fight pressed together; measured 54.8%",
+  },
+  {
+    metric: "retreatHome",
+    kind: "min",
+    value: 14,
+    why: "AC-3: at least one retreat order per fight over the sample; measured 686 orders",
+  },
+  {
+    metric: "retreatAway",
+    kind: "min",
+    value: 14,
+    why: "AC-3: at least one retreat order per fight over the sample; measured 1328 orders",
   },
   {
     metric: "capShare",
@@ -422,6 +594,12 @@ export function observed(sample: SampleTelemetry, metric: Metric): number {
       return sample.idle
     case "distinctPositions":
       return sample.distinct.min
+    case "contactShare":
+      return sample.contact
+    case "retreatHome":
+      return sample.retreats.home
+    case "retreatAway":
+      return sample.retreats.away
     case "capShare":
       return sample.cap.share
   }
@@ -443,6 +621,7 @@ export function violations(sample: SampleTelemetry): Violation[] {
 function show(metric: Metric, value: number): string {
   switch (metric) {
     case "idleShare":
+    case "contactShare":
     case "capShare":
       return `${(value * 100).toFixed(1)}%`
     case "exchangeHome":
@@ -450,6 +629,9 @@ function show(metric: Metric, value: number): string {
       return `${value.toFixed(2)}/s`
     case "distinctPositions":
       return `${Math.round(value)} cells`
+    case "retreatHome":
+    case "retreatAway":
+      return `${Math.round(value)} orders`
     default:
       return `${Math.round(value)} mm`
   }
@@ -483,6 +665,10 @@ export function report(sample: SampleTelemetry): string[] {
   )
   lines.push("distinct positions:  distinct 100 mm cells each side visits")
   lines.push(
+    "contact share:       share of fight time inside both body radii + 40 mm",
+  )
+  lines.push("retreats:            retreat orders issued, home then away")
+  lines.push(
     `cap share:           fights decided at FIGHT_CAP_MS (${FIGHT_CAP_MS} ms) rather than by knockout (AC-24)`,
   )
   lines.push("")
@@ -502,6 +688,10 @@ export function report(sample: SampleTelemetry): string[] {
     `exchange:    home ${sample.exchange.home.toFixed(2)}/s  away ${sample.exchange.away.toFixed(2)}/s  combined ${sample.exchange.combined.toFixed(2)}/s`,
   )
   lines.push(`idle:        ${show("idleShare", sample.idle)}`)
+  lines.push(`contact:     ${show("contactShare", sample.contact)}`)
+  lines.push(
+    `retreats:    home ${sample.retreats.home}  away ${sample.retreats.away}`,
+  )
   lines.push(
     `positions:   min ${show("distinctPositions", sample.distinct.min)}  median ${show("distinctPositions", sample.distinct.median)}`,
   )
