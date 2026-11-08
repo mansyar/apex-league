@@ -161,3 +161,24 @@ them with `&&`, which this executor is not permitted to use.
   (cost on attacks and dodge, regeneration while not committing, refusal when
   insufficient) are both delivered in `75b65918`; they share one commit because
   `step.ts` wires both meters and would not compile split across two.
+
+## Primary verification
+
+| Layer | Command | Exit | Result |
+| --- | --- | --- | --- |
+| static | `bun run verify` | 0 | 4 workspace typechecks clean; 3640 tests / 340 files, 3640 pass, 1 skip, 0 fail; biome 850 files clean; determinism gate byte-identical |
+| build | `bun run build` | 0 | Vite built 370 modules; only the pre-existing chunk-size warning |
+
+Verified by the primary agent, not taken from the subagent report. The phase was
+squashed to `7066f1e8` (both commits in the range were reported).
+
+**Reviewed by hand:** the break and grace are durations in ms (600 / 1200), not
+action counts, so FR-9's "expressed in time" holds; a broken fighter absorbs
+further blows instead of re-locking; stamina regeneration is paused for the whole
+held attack, which is what makes the pool a gate rather than a delay; movement
+never reads the pool.
+
+**Capacity warning for later phases:** `step.ts` is now 12,143 bytes against the
+12,288 byte module cap — 145 bytes of headroom. Phase 6 (controller) and Phase 7
+(endings, HP, KO) both integrate through this file. Expect to extract the per-step
+pipeline into its own module rather than squeeze it.

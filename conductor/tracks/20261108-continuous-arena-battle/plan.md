@@ -98,12 +98,16 @@
 - **Covers:** FR-9, FR-10, AC-9, AC-10
 - **Touches:** `packages/sim/src/battle/continuous/poise.ts`, `packages/sim/src/battle/continuous/stamina.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P5.T1: Poise** — covers: FR-9
-  - [ ] **P5.T1.1: Depletion, break window in ms, and the time-expressed grace period.**
-- [ ] **P5.T2: Stamina** — covers: FR-10
-  - [ ] **P5.T2.1: Cost on attacks and dodge, regeneration while not committing, refusal when insufficient.**
+- [x] **P5.T1: Poise** — covers: FR-9
+  - [x] **P5.T1.1: Depletion, break window in ms, and the time-expressed grace period.**
+- [x] **P5.T2: Stamina** — covers: FR-10
+  - [x] **P5.T2.1: Cost on attacks and dodge, regeneration while not committing, refusal when insufficient.**
+
+**Result:** verified
+**Checkpoint:** 7066f1e8
+**Evidence:** conductor/tracks/20261108-continuous-arena-battle/verification/phase-5.md
 
 ## Phase 6: Real-Time Controller
 
