@@ -12,6 +12,12 @@
 import { makeRng, type Rng } from "../../rng"
 import { moveFighter } from "./movement"
 import {
+  launchProjectile,
+  type ProjectileState,
+  resolveProjectiles,
+  type ShotReport,
+} from "./projectile"
+import {
   ATTACK_PHASES,
   advanceFighterAttack,
   commitAttack,
@@ -55,6 +61,8 @@ export interface FightConfig {
 export interface StepOutcome {
   readonly state: FightState
   readonly strikes: readonly StrikeReport[]
+  /** Shots that resolved this step, hit or dodged (FR-8). */
+  readonly shots: readonly ShotReport[]
 }
 
 /** What one advance produced: the next state, its hash, and what landed. */
@@ -101,9 +109,16 @@ export function stepFight(
     advanceFighterAttack(before[1]),
   ]
   const struck = resolveStrikes(before, advanced, context.stats)
+  const flight = resolveProjectiles(
+    state.projectiles,
+    before,
+    struck.fighters,
+    context.stats,
+  )
+  const launched = launchShots(state.step, before, advanced)
   const fighters: readonly [FighterState, FighterState] = [
-    movedFighter(before[0], intents[0], struck.fighters[0], bounds),
-    movedFighter(before[1], intents[1], struck.fighters[1], bounds),
+    movedFighter(before[0], intents[0], flight.fighters[0], bounds),
+    movedFighter(before[1], intents[1], flight.fighters[1], bounds),
   ]
   return {
     state: {
@@ -111,9 +126,39 @@ export function stepFight(
       elapsedMs: state.elapsedMs + STEP_MS,
       bounds,
       fighters,
+      projectiles: [...flight.projectiles, ...launched],
     },
     strikes: struck.strikes,
+    shots: flight.shots,
   }
+}
+
+/**
+ * Launch one shot for each side whose active window just opened (FR-8). A
+ * melee move launches nothing, and a window that is already active fired on
+ * the step it opened, so one committed move fires exactly once. The shot's id
+ * is the launching step and side, which is unique because a side opens at
+ * most one window per step.
+ */
+function launchShots(
+  step: number,
+  before: readonly [FighterState, FighterState],
+  after: readonly [FighterState, FighterState],
+): ProjectileState[] {
+  const shots: ProjectileState[] = []
+  for (const side of [0, 1] as const) {
+    const attack = after[side].attack
+    if (attack?.phase !== "active") continue
+    if (before[side].attack?.phase === "active") continue
+    const shot = launchProjectile(
+      step * 2 + side,
+      before[side],
+      before[side === 0 ? 1 : 0],
+      attack.moveId,
+    )
+    if (shot) shots.push(shot)
+  }
+  return shots
 }
 
 /**
@@ -170,6 +215,26 @@ export function stateHash(state: FightState): number {
       mix(ATTACK_PHASES.indexOf(attack.phase))
       mix(attack.elapsedMs)
     }
+  }
+  mix(state.projectiles.length)
+  for (const shot of state.projectiles) {
+    mix(shot.id)
+    for (let i = 0; i < shot.ownerKey.length; i++) {
+      mix(shot.ownerKey.charCodeAt(i))
+    }
+    for (let i = 0; i < shot.moveId.length; i++) {
+      mix(shot.moveId.charCodeAt(i))
+    }
+    mix(shot.origin.x)
+    mix(shot.origin.y)
+    mix(shot.origin.z)
+    mix(shot.dir.x)
+    mix(shot.dir.z)
+    mix(shot.speedMmPerMs)
+    mix(shot.travelledMm)
+    mix(shot.pos.x)
+    mix(shot.pos.y)
+    mix(shot.pos.z)
   }
   return hash >>> 0
 }
@@ -245,7 +310,13 @@ export function createFight(config: FightConfig): Fight {
     away.stats ?? NEUTRAL_STATS,
   ]
   const context: StepContext = { bounds, rng, stats }
-  let state: FightState = { step: 0, elapsedMs: 0, bounds, fighters }
+  let state: FightState = {
+    step: 0,
+    elapsedMs: 0,
+    bounds,
+    fighters,
+    projectiles: [],
+  }
   return {
     get state() {
       return state
@@ -253,7 +324,12 @@ export function createFight(config: FightConfig): Fight {
     advance(intents) {
       const outcome = stepFight(state, intents, context)
       state = outcome.state
-      return { state, hash: stateHash(state), strikes: outcome.strikes }
+      return {
+        state,
+        hash: stateHash(state),
+        strikes: outcome.strikes,
+        shots: outcome.shots,
+      }
     },
     commit(side, moveId) {
       const fighter = state.fighters[side]

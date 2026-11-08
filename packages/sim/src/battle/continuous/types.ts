@@ -8,6 +8,8 @@
  * types only — the kinematics live in ./movement and the stepper in ./step.
  */
 
+import type { ProjectileState } from "./projectile"
+
 /** The fixed step length in ms (FR-1). Every fight advances in whole steps. */
 export const STEP_MS = 20
 
@@ -91,4 +93,6 @@ export interface FightState {
   readonly bounds: ArenaBounds
   /** Side 0 and side 1, in the order the config named them. */
   readonly fighters: readonly [FighterState, FighterState]
+  /** Shots still crossing the arena, in launch order (FR-8). */
+  readonly projectiles: readonly ProjectileState[]
 }

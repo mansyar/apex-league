@@ -185,7 +185,10 @@ export interface StrikeStats {
 export const NEUTRAL_STATS: StrikeStats = Object.freeze({ atk: 1, def: 1 })
 
 /** The attacker's type factor against one victim; typeless is neutral. */
-function typeAgainst(attacker: StrikeStats, victim: StrikeStats): TypeFactor {
+export function typeAgainst(
+  attacker: StrikeStats,
+  victim: StrikeStats,
+): TypeFactor {
   if (!attacker.element || !victim.element) return { num: 1, den: 1 }
   return typeFactor(attacker.element, victim.element)
 }
@@ -215,6 +218,9 @@ export interface StrikeResolution {
  * advanced attack phases; every hit test reads `before`, so two overlapping
  * active frames trade in one step (FR-7) and neither can cancel the other's
  * already-active frame. Only a victim's startup can be cancelled.
+ *
+ * This is the melee path: a ranged move's active window fires a projectile
+ * instead of landing on the spot (FR-8), so it never resolves here.
  */
 export function resolveStrikes(
   before: readonly [FighterState, FighterState],
@@ -230,6 +236,7 @@ export function resolveStrikes(
     const row = getFrameData(attack.moveId)
     const move = getMove(attack.moveId)
     if (!row || !move) throw new Error(`Unknown move: ${attack.moveId}`)
+    if (!move.melee) continue
     const other = side === 0 ? 1 : 0
     const attacker = before[side]
     const victim = before[other]
