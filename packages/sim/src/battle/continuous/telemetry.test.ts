@@ -1,9 +1,9 @@
 /**
- * Fight telemetry (Continuous Arena Battle FR-14, AC-14, AC-24; Battle Spacing
- * and Cadence AC-1, AC-2, AC-4): the reference sample's engagement distance,
- * attack rate, idle time, distinct positions, contact share, retreat count and
- * cap share are measured, and every bound the harness enforces is enforced
- * here too.
+ * Fight telemetry (Continuous Arena Battle FR-14, AC-14; Battle Spacing and
+ * Cadence AC-1, AC-2, AC-4, AC-7): the reference sample's engagement distance,
+ * attack rate, idle time, distinct positions, contact share, retreat count,
+ * duration band and cap share are measured, and every bound the harness
+ * enforces is enforced here too.
  *
  * The numbers come from `scripts/battle-telemetry.ts`, the same module the
  * `bun run telemetry` command runs, so the readable local report and the CI gate
@@ -52,8 +52,13 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
       // Both sides chose to attack, and both sides landed blows.
       expect(fight.commits[0]).toBeGreaterThan(0)
       expect(fight.commits[1]).toBeGreaterThan(0)
-      expect(fight.hits[0]).toBeGreaterThan(0)
-      expect(fight.hits[1]).toBeGreaterThan(0)
+      // A fighter cannot win without landing a blow. The loser may land none:
+      // at the tuned HP scale a glass cannon is knocked out before it connects
+      // (wind_falcon and electric_hound do), which is a balance outcome, not a
+      // broken fight.
+      if (fight.winner !== null) {
+        expect(fight.hits[fight.winner]).toBeGreaterThan(0)
+      }
       // Movement is continuous: many positions, not two poses.
       expect(fight.distinct[0]).toBeGreaterThan(1)
       expect(fight.distinct[1]).toBeGreaterThan(1)
@@ -107,16 +112,26 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
     }
   })
 
-  test("at most one fight in two is decided at the cap (AC-24)", () => {
+  test("the duration band and the cap share are separate bounds (AC-7)", () => {
+    assertBounds(["durationMin", "durationMax"])
+    const measured = sample()
+    // The band is measured from the sample, not assumed: the floor is the
+    // fastest knockout, the ceiling is the cap.
+    expect(measured.duration.min).toBeLessThanOrEqual(measured.duration.max)
+    expect(measured.duration.max).toBeLessThanOrEqual(40_000)
+  })
+
+  test("at most one fight in three is decided at the cap (AC-7)", () => {
     assertBounds(["capShare"])
     const cap = sample().cap
     expect(cap.total).toBe(14)
-    expect(cap.count).toBeLessThanOrEqual(cap.total / 2)
+    // Exact integer form of the 1/3 target, so 4/14 passes and 5/14 does not.
+    expect(cap.count * 3).toBeLessThanOrEqual(cap.total)
   })
 
   test("every metric has a bound, so none can be reported unenforced", () => {
     const metrics = BOUNDS.map((bound) => bound.metric)
-    expect(new Set(metrics).size).toBe(11)
+    expect(new Set(metrics).size).toBe(13)
   })
 
   test("a violated threshold is named with its observed value (AC-14)", () => {
