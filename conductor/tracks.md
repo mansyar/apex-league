@@ -38,3 +38,4 @@
 - [x] **Track: Elemental Identity Pass** — [20261028-elemental-identity](./archive/20261028-elemental-identity/index.md) — feature — high
 - [x] **Track: Fire Move Identity** - [20261028-fire-move-identity](./archive/20261028-fire-move-identity/index.md) - feature - high
 - [~] **Track: Continuous Arena Battle** — [20261108-continuous-arena-battle](./tracks/20261108-continuous-arena-battle/index.md) — feature — high
+- [ ] **Track: Battle Spacing and Cadence** — [20261109-battle-spacing-cadence](./tracks/20261109-battle-spacing-cadence/index.md) — feature — high
