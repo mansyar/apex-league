@@ -100,3 +100,17 @@
 - [x] **P6.T3: Poise and stamina scale with it** - covers: FR-5 — blows to a break and the stamina gate hold their place in the cycle
 - [x] **P6.T4: Knockback compensated** - covers: FR-5 — `KNOCKBACK_PER_POISE` divided by the weight so the shove is unchanged
 - [x] **P6.T5: Re-measure** - covers: AC-4, AC-7 — median 33.40 s, fastest 8.78 s, cap share 42.9%, bounds restored to 8 s not relaxed
+
+## Phase 7: Fight Inspector
+
+- **Goal:** diagnose one fight from data, deterministically, instead of from a screenshot.
+- **Depends on:** Phase 6
+- **Covers:** FR-7, AC-8, NFR-4
+- **Touches:** `packages/sim/scripts/battle-trace.ts`, `packages/sim/src/battle/continuous/battle-trace.test.ts`, `package.json`
+- **Verification:** `bun run verify && bun run build`, plus `bun run trace --seed 1 --check`
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** fb4b95a2
+- **Evidence:** `conductor/tracks/20261109-battle-spacing-cadence/verification/phase-7.md`
+
+- [x] **P7.T1: Headless per-step trace with invariants** - covers: FR-7, AC-8, NFR-4 - header, step log, summary with final hash, five named invariants, non-zero exit on violation
