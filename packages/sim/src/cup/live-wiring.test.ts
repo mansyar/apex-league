@@ -7,10 +7,6 @@
  * `BattleResult`: a real reason, a real final HP snapshot, and a log whose
  * last `hpAfter` is that snapshot. The same seed still replays the same
  * tournament.
- *
- * (Filename note: this file began life as the phase's temporary census probe.
- * The execution sandbox refuses file deletion, so it was kept and rewritten as
- * the wiring test it now is.)
  */
 import { describe, expect, test } from "bun:test"
 import { createCreature } from "../creature"
