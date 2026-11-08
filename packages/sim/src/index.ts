@@ -30,6 +30,7 @@ export {
   createTieOrder,
   ELEMENT_HUE,
   type FightStream,
+  getFrameData,
   getMove,
   HOLD,
   type MoveDef,

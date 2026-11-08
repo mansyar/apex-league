@@ -55,6 +55,7 @@ export {
 } from "./continuous/stream"
 export { strikeDamage } from "./damage"
 export { makeExhibition, type SparSetup } from "./exhibition"
+export { getFrameData } from "./frames"
 export { BASIC_MOVE, getMove, type MoveDef } from "./moves"
 export {
   buildPlaybackScript,

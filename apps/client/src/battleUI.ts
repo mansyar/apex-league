@@ -1,6 +1,7 @@
 import {
   type BattleResult,
   type Creature,
+  getFrameData,
   getMove,
   getSpecies,
   type LifeStage,
@@ -99,16 +100,23 @@ export interface KitPickerClasses {
 
 /**
  * One plain-language line of a move's combat stats: power, hit chance,
- * self-cooldown. With `daysToUnlock` set the line leads with the lock
- * ("Unlocks in 3 days · …"), so a locked row still tells the coach what
- * they are waiting for. Pure string — both kit pickers render it.
+ * recovery. Recovery is the engine's authored tail in ms, read from the frame
+ * table the continuous engine paces moves with — the legacy `cooldown` field
+ * counts actions under the frozen gauge clock and nothing on the live path
+ * reads it, so it is not shown. A move with no frame row shows power and
+ * accuracy only rather than a number the engine does not use. With
+ * `daysToUnlock` set the line leads with the lock ("Unlocks in 3 days · …"),
+ * so a locked row still tells the coach what they are waiting for. Pure
+ * string — both kit pickers render it.
  */
 export function moveStatLine(
   move: MoveDef,
   daysToUnlock?: number,
   evolutionUnlocks = false,
 ): string {
-  const stats = `Power ${move.power} · Accuracy ${move.accuracy}% · Cooldown ${move.cooldown}`
+  const row = getFrameData(move.id)
+  const base = `Power ${move.power} · Accuracy ${move.accuracy}%`
+  const stats = row ? `${base} · Recovery ${row.recoveryMs} ms` : base
   if (daysToUnlock === undefined) return stats
   const days = daysToUnlock === 1 ? "1 day" : `${daysToUnlock} days`
   const gate = evolutionUnlocks
