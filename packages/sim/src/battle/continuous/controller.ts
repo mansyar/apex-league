@@ -23,13 +23,17 @@ import {
   aimAt,
   awayFrom,
   dodgeIntent,
-  hasRoomToBackOff,
   planarGapSq,
   pressIntent,
+  retreatRoom,
   strafeIntent,
 } from "./controller-aim"
 import { chooseMove } from "./controller-moves"
-import type { ControllerProfile } from "./controller-profile"
+import {
+  type ControllerProfile,
+  preferredRangeFor,
+  reachEdgeMm,
+} from "./controller-profile"
 import { DODGE_LEAD_MS, incomingShot, incomingSwing } from "./controller-threat"
 import { isBroken } from "./poise"
 import { DODGE_STAMINA_COST, spendDodge } from "./stamina"
@@ -39,7 +43,11 @@ export {
   CONTROLLER_PROFILES,
   type ControllerProfile,
   type ProfileTable,
+  PREFERRED_REACH_BAND_PERMILLE,
+  preferredRangeFor,
   profileFor,
+  reachEdgeMm,
+  REFERENCE_REACH_EDGE_MM,
 } from "./controller-profile"
 
 export { DODGE_LEAD_MS } from "./controller-threat"
@@ -52,6 +60,22 @@ export const DECISION_STEPS = DECISION_MS / STEP_MS
 
 /** Half-width of the range band a fighter tries to hold, in mm (tunable). */
 export const RANGE_BAND_MM = 400
+
+/**
+ * The share of the preferred range at which a fighter gives ground, in
+ * thousandths (tunable, FR-2): inside 0.6x its preferred range the pair is too
+ * close to fight from, so it retreats. Once retreating it keeps going until the
+ * preferred range is reached, so the threshold is a commitment, not a coin flip
+ * the next decision can reverse.
+ */
+export const RETREAT_FRACTION_PERMILLE = 600
+
+/**
+ * How many of its own radii of open floor a retreat needs, in radii (tunable,
+ * FR-21): a body with less than this between it and the fence cannot give
+ * ground, so it circles and fights instead of backing into the wall.
+ */
+export const RETREAT_ROOM_RADII = 2
 
 /** Decisions in one tactical cycle; a profile's shares partition it. */
 const CYCLE = 10
@@ -209,26 +233,44 @@ export function decide(input: DecisionInput): ControllerDecision {
   }
 
   const gapSq = planarGapSq(me.pos, foe.pos)
-  const preferred = profile.preferredRangeMm
+  const preferred = preferredRangeFor(profile, reachEdgeMm(me, foe))
   const outer = preferred + RANGE_BAND_MM
-  const inner = Math.max(0, preferred - RANGE_BAND_MM)
   if (gapSq > outer * outer) return settle("advance", aimAt(me, foe))
-  if (gapSq < inner * inner) {
+
+  const slot = (decisions - 1) % CYCLE
+  const press = Math.min(CYCLE, Math.round(profile.aggression / 10))
+  const strafe = Math.min(CYCLE - press, Math.round(profile.strafeBias / 10))
+
+  // Giving ground (FR-2): inside 0.6x the preferred range the pair is too
+  // close to fight from, so the fighter backs off. Once it starts it keeps
+  // backing off until the preferred range is reached, so the threshold cannot
+  // be crossed back and forth decision after decision. The baseline's 2,014
+  // retreats against a 539 mm median were exactly that oscillation: the verb
+  // fired at contact distance and the fighter re-closed on the next window.
+  const retreating = controller.verb === "retreat"
+  const threshold = retreating
+    ? preferred
+    : Math.trunc((preferred * RETREAT_FRACTION_PERMILLE) / 1000)
+  if (gapSq < threshold * threshold) {
     const away = awayFrom(me, foe)
     // A body against a fence has nowhere to back off to (FR-21). Retreating
     // into the wall is how a cornered fighter used to spend the whole fight:
     // Phase 10 measured a pinned tortoise ordering 462 retreats, landing
     // nothing, while the foe swung freely. With its back to the fence it
-    // fights instead, so being cornered costs position, not the fight.
-    if (hasRoomToBackOff(me, away, state.bounds)) {
+    // circles and takes its press slots instead, so being cornered costs
+    // position, not the fight, and it never shivers against the wall.
+    const room = retreatRoom(me, away, state.bounds)
+    if (room >= me.radiusMm * RETREAT_ROOM_RADII) {
       return settle("retreat", away)
     }
+    if (slot < press) {
+      const moveId = chooseMove(me, foe, kit, gapSq)
+      if (moveId) return settle("commit", pressIntent(me, foe), moveId)
+    }
+    return settle("strafe", strafeIntent(me, foe, sign))
   }
 
   // Inside the band the cycle decides: press, circle, or close.
-  const slot = (decisions - 1) % CYCLE
-  const press = Math.min(CYCLE, Math.round(profile.aggression / 10))
-  const strafe = Math.min(CYCLE - press, Math.round(profile.strafeBias / 10))
   if (slot < press) {
     const moveId = chooseMove(me, foe, kit, gapSq)
     if (moveId) return settle("commit", pressIntent(me, foe), moveId)

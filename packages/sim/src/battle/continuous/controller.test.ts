@@ -20,8 +20,11 @@ import {
   DECISION_STEPS,
   decide,
   nextDecisionMs,
+  preferredRangeFor,
   profileFor,
   RANGE_BAND_MM,
+  reachEdgeMm,
+  RETREAT_FRACTION_PERMILLE,
 } from "./controller"
 import { type ProjectileState, pointAt, shotDirection } from "./projectile"
 import { DODGE_STAMINA_COST } from "./stamina"
@@ -237,8 +240,10 @@ describe("controller — the six verbs (FR-11)", () => {
   })
 
   test("inside the band it holds the range and circles", () => {
-    // The obedient band is 150–950 mm, so 900 mm sits inside it, and the
-    // ninth decision lands on the first circle slot of the ten-decision cycle.
+    // Two default bodies give the obedient row a reach edge of 860 mm and a
+    // preferred range of 967 mm, so its band is 567–1,367 mm. 900 mm sits
+    // inside it, and the ninth decision lands on the first circle slot of the
+    // ten-decision cycle.
     const cfg = config([side("home", 10, -450), side("away", 10, 450)])
     const { fight, controller } = place(cfg, 48)
     const ordered = order(fight, controller)
@@ -254,8 +259,8 @@ describe("controller — the six verbs (FR-11)", () => {
   })
 
   test("too close it retreats", () => {
-    // Narrow bodies so the two can stand inside the band's inner edge without
-    // the separation pass pushing them back out to contact distance.
+    // Narrow bodies so the two can stand inside 0.6x the preferred range
+    // without the separation pass pushing them back out to contact distance.
     const cfg = config([
       { ...side("home", 10, -60), radiusMm: 60 },
       { ...side("away", 10, 60), radiusMm: 60 },
@@ -316,6 +321,130 @@ describe("controller — the six verbs (FR-11)", () => {
     })
     expect(ordered.verb).not.toBe("dodge")
     expect(ordered.dodgeCost).toBe(0)
+  })
+})
+
+describe("controller — spacing (FR-1, FR-2)", () => {
+  /** The preferred range this pair actually steers by, in mm. */
+  function preferredOf(fight: Fight, temperament: Temperament = "obedient") {
+    const [me, foe] = fight.state.fighters
+    return preferredRangeFor(profileFor(temperament), reachEdgeMm(me, foe))
+  }
+
+  test("the preferred range sits between the reach edge and 1.5x it", () => {
+    const [me, foe] = createFight(config()).state.fighters
+    const edge = reachEdgeMm(me, foe)
+    const temperaments: readonly Temperament[] = ["rush", "obedient", "slow"]
+    for (const temperament of temperaments) {
+      const preferred = preferredRangeFor(profileFor(temperament), edge)
+      expect(preferred).toBeGreaterThanOrEqual(edge)
+      expect(preferred).toBeLessThanOrEqual(Math.trunc((edge * 3) / 2))
+    }
+    const rush = preferredRangeFor(profileFor("rush"), edge)
+    const obedient = preferredRangeFor(profileFor("obedient"), edge)
+    const slow = preferredRangeFor(profileFor("slow"), edge)
+    expect(rush).toBeLessThan(obedient)
+    expect(obedient).toBeLessThan(slow)
+  })
+
+  test("a fighter inside 0.6x its preferred range retreats", () => {
+    // 240 mm apart against a 607 mm preferred range for these narrow bodies:
+    // well inside the 364 mm retreat threshold.
+    const cfg = config([
+      { ...side("home", 10, -120), radiusMm: 60 },
+      { ...side("away", 10, 120), radiusMm: 60 },
+    ])
+    const { fight, controller } = place(cfg, 0)
+    const preferred = preferredOf(fight)
+    const threshold = Math.trunc(
+      (preferred * RETREAT_FRACTION_PERMILLE) / 1000,
+    )
+    expect(240).toBeLessThan(threshold)
+    expect(threshold).toBeLessThan(preferred)
+    expect(order(fight, controller).verb).toBe("retreat")
+  })
+
+  test("a fighter between 0.6x and 1x its preferred range does not retreat", () => {
+    // 500 mm apart: past the retreat threshold, still short of preferred.
+    const cfg = config([
+      { ...side("home", 10, -250), radiusMm: 60 },
+      { ...side("away", 10, 250), radiusMm: 60 },
+    ])
+    const { fight, controller } = place(cfg, 0)
+    const preferred = preferredOf(fight)
+    const threshold = Math.trunc(
+      (preferred * RETREAT_FRACTION_PERMILLE) / 1000,
+    )
+    expect(500).toBeGreaterThan(threshold)
+    expect(500).toBeLessThan(preferred)
+    expect(order(fight, controller).verb).not.toBe("retreat")
+  })
+
+  test("a retreat continues until the preferred range is reached", () => {
+    const cfg = config([
+      { ...side("home", 10, -120), radiusMm: 60 },
+      { ...side("away", 10, 120), radiusMm: 60 },
+    ])
+    const fight = createFight(cfg)
+    const profile = profileFor("obedient")
+    const preferred = preferredOf(fight)
+    let controller = createController()
+    const seen: { verb: ControllerVerb; gap: number }[] = []
+    for (let i = 0; i < 600; i++) {
+      const ordered = decide({
+        state: fight.state,
+        side: 0,
+        controller,
+        profile,
+        kit: KIT,
+      })
+      controller = ordered.state
+      if (i % DECISION_STEPS === 0) {
+        const [me, foe] = fight.state.fighters
+        const dx = foe.pos.x - me.pos.x
+        const dz = foe.pos.z - me.pos.z
+        seen.push({
+          verb: ordered.verb,
+          gap: Math.round(Math.sqrt(dx * dx + dz * dz)),
+        })
+      }
+      fight.advance([ordered.intent, HOLD])
+    }
+    // The first decision is a retreat, and every retreat after it holds the
+    // order until the gap is back at the preferred range.
+    expect(seen[0]?.verb).toBe("retreat")
+    const stopped = seen.findIndex((entry) => entry.verb !== "retreat")
+    expect(stopped).toBeGreaterThan(0)
+    for (const entry of seen.slice(0, stopped)) {
+      expect(entry.verb).toBe("retreat")
+      expect(entry.gap).toBeLessThan(preferred)
+    }
+    expect(seen[stopped]?.gap).toBeGreaterThanOrEqual(preferred)
+  })
+
+  test("a cornered fighter does not retreat into the wall", () => {
+    // Home has 50 mm of floor behind it: crowded, but no room to back off, so
+    // it takes a circle slot instead of shivering against the fence.
+    const cfg = config([side("home", 10, -3950), side("away", 10, -3400)])
+    const { fight, controller } = place(cfg, 48)
+    const ordered = order(fight, controller)
+    expect(ordered.verb).toBe("strafe")
+    // Never a step further into the fence.
+    expect(dir(ordered.intent).x).toBeGreaterThanOrEqual(0)
+  })
+
+  test("the retreat order is reported", () => {
+    const cfg = config([
+      { ...side("home", 10, -120), radiusMm: 60 },
+      { ...side("away", 10, 120), radiusMm: 60 },
+    ])
+    const { fight, controller } = place(cfg, 0)
+    const ordered = order(fight, controller)
+    expect(ordered.verb).toBe("retreat")
+    expect(ordered.commit).toBeNull()
+    expect(ordered.dodgeCost).toBe(0)
+    expect("dodge" in ordered.intent).toBe(false)
+    expect(dir(ordered.intent).x).toBeLessThan(0)
   })
 })
 

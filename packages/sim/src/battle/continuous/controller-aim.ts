@@ -12,6 +12,7 @@ import type { ProjectileState } from "./projectile"
 import { shotDirection } from "./projectile"
 import {
   type ArenaBounds,
+  DIR_SCALE,
   type Dir2,
   type FighterState,
   HOLD,
@@ -56,21 +57,29 @@ export function pressIntent(me: FighterState, foe: FighterState): MoveIntent {
 }
 
 /**
- * Whether a body can put two of its own widths between itself and where it
- * stands in `dir` without crossing a fence: the room a retreat needs. A body
- * with its back to the wall has none, so it stands and fights (FR-21).
+ * How much open floor a body has behind it in `dir`, in mm: the distance it
+ * could walk along that direction before a fence stopped it. A direction with
+ * no component has no room to measure and reads zero. Each axis is scaled by
+ * its share of the unit direction, so a diagonal reads the first fence it
+ * would meet, and the arithmetic stays whole-numbered.
  */
-export function hasRoomToBackOff(
+export function retreatRoom(
   me: FighterState,
   dir: Dir2,
   bounds: ArenaBounds,
-): boolean {
-  const margin = me.radiusMm * 2
-  const x = me.pos.x + Math.trunc((dir.x * margin) / 1000)
-  const z = me.pos.z + Math.trunc((dir.z * margin) / 1000)
-  return (
-    x >= bounds.minX && x <= bounds.maxX && z >= bounds.minZ && z <= bounds.maxZ
-  )
+): number {
+  const x = axisRoom(dir.x, me.pos.x - bounds.minX, bounds.maxX - me.pos.x)
+  const z = axisRoom(dir.z, me.pos.z - bounds.minZ, bounds.maxZ - me.pos.z)
+  if (x === null) return z ?? 0
+  if (z === null) return x
+  return Math.min(x, z)
+}
+
+/** Room along one axis, or null when the direction has no component there. */
+function axisRoom(dir: number, behind: number, ahead: number): number | null {
+  if (dir === 0) return null
+  const room = dir > 0 ? ahead : behind
+  return Math.trunc((room * DIR_SCALE) / Math.abs(dir))
 }
 
 /**
