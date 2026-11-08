@@ -8,11 +8,13 @@
  */
 
 import { describe, expect, test } from "bun:test"
+import { BLOW_WEIGHT } from "../frames"
 import {
   advanceHitstun,
   BREAK_HITSTUN_MS,
   HITSTUN_MS,
   isStunned,
+  KNOCKBACK_PER_POISE,
   knockbackVelocity,
   massOf,
   openingHitstun,
@@ -135,16 +137,18 @@ describe("hit reactions — mass from body volume (FR-22)", () => {
   })
 
   test("the same blow slides a heavy body less than a light one", () => {
+    // 6 poise is the basic blow since the weight; the rate is divided by the
+    // same weight, so these slides are the ones a 2-poise blow gave before.
     const heavy = reactToBlow(
       fighter({ radiusMm: 260, heightMm: 1250 }),
       EAST,
-      2,
+      6,
       false,
     )
     const light = reactToBlow(
       fighter({ radiusMm: 180, heightMm: 650 }),
       EAST,
-      2,
+      6,
       false,
     )
     const heavySlide = slide(heavy, 5)
@@ -156,11 +160,21 @@ describe("hit reactions — mass from body volume (FR-22)", () => {
   })
 
   test("the push follows the blow line and is inverse to mass", () => {
-    expect(knockbackVelocity(EAST, 4, 43560)).toEqual({ x: 4000, z: 0 })
-    expect(knockbackVelocity(EAST, 8, 43560)).toEqual({ x: 8000, z: 0 })
-    expect(knockbackVelocity(EAST, 4, 87120).x).toBe(2000)
-    expect(knockbackVelocity(WEST, 4, 43560)).toEqual({ x: -4000, z: 0 })
+    // A basic blow carries 6 poise since the weight, and the rate is divided by
+    // the same weight, so the shove is what 2 poise bought before: 1998 vs 2000.
+    expect(knockbackVelocity(EAST, 6, 43560)).toEqual({ x: 1998, z: 0 })
+    expect(knockbackVelocity(EAST, 12, 43560)).toEqual({ x: 3996, z: 0 })
+    expect(knockbackVelocity(EAST, 6, 87120).x).toBe(999)
+    expect(knockbackVelocity(WEST, 6, 43560)).toEqual({ x: -1998, z: 0 })
     expect(knockbackVelocity(EAST, 0, 43560)).toEqual({ x: 0, z: 0 })
+  })
+
+  test("the weight does not change how far a blow throws a body", () => {
+    // The pre-weight table: 2 poise at 1000 per point. The weighted table:
+    // 6 poise at 1000 / BLOW_WEIGHT. The two differ only by integer truncation.
+    const before = 2 * 1000
+    const after = 6 * KNOCKBACK_PER_POISE
+    expect(Math.abs(after - before)).toBeLessThanOrEqual(BLOW_WEIGHT)
   })
 })
 
@@ -196,7 +210,8 @@ describe("hit reactions — hitstun (FR-23)", () => {
 describe("hit reactions — the fence (FR-22, AC-22)", () => {
   test("a body knocked into the fence stops at it and is reported pinned", () => {
     const atWall = fighter({ pos: { x: BOUNDS.maxX - 40, y: 0, z: 0 } })
-    let body = reactToBlow(atWall, EAST, 9, false)
+    // 27 poise is the heavy row since the weight; it buys the same push as 9 did.
+    let body = reactToBlow(atWall, EAST, 27, false)
     const pins: number[] = []
     const xs: number[] = []
     for (let i = 0; i < 5; i++) {

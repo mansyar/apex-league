@@ -207,13 +207,15 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
       // moved QF2 and SF2 once more.
       // Pacing ripple (phase 10): QF2 and SF2 moved again — Gilded Horn takes
       // QF2 and Tidecaller Nibbles takes SF2.
+      // Blow-weight ripple (phase 6): QF4 moved with SF2 — Tidecaller Nibbles
+      // now takes both.
       {
         seed: 19,
         rivalWinners: [
           "Driftbelle",
           "Gilded Horn",
-          "Reedle Mirefin",
-          "Reedle Mirefin",
+          "Tidecaller Nibbles",
+          "Tidecaller Nibbles",
         ],
       },
     ]

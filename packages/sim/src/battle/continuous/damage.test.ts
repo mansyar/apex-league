@@ -6,6 +6,7 @@
 
 import { describe, expect, test } from "bun:test"
 import { strikeDamage } from "../damage"
+import { BLOW_WEIGHT } from "../frames"
 import {
   COUNTER_RATIO,
   FLANK_RATIO,
@@ -31,8 +32,10 @@ function hit(overrides: Partial<PositionalDamage> = {}): number {
 }
 
 describe("positional damage — the existing formula, extended", () => {
-  test("a front non-counter hit is the catalog formula exactly", () => {
-    expect(hit()).toBe(strikeDamage(6, 30, 20, 1, 1, true))
+  test("a front non-counter hit is the catalog formula, weighted", () => {
+    // The blow weight multiplies the numerator; the legacy formula is intact.
+    expect(hit()).toBe(strikeDamage(6, 30, 20, BLOW_WEIGHT, 1, true))
+    expect(hit()).toBe(27)
   })
 
   test("the type factor still multiplies through", () => {
@@ -90,5 +93,31 @@ describe("positional damage — the ratios", () => {
     for (const ratio of [FLANK_RATIO, REAR_RATIO, COUNTER_RATIO]) {
       expect(ratio.num).toBeGreaterThan(ratio.den)
     }
+  })
+})
+
+describe("positional damage — the blow weight (Phase 6)", () => {
+  test("the weight is the authored whole number", () => {
+    expect(BLOW_WEIGHT).toBe(3)
+    expect(Number.isInteger(BLOW_WEIGHT)).toBe(true)
+  })
+
+  test("a landed blow is BLOW_WEIGHT times the unweighted one", () => {
+    // power 6, atk 30, def 20: 6 * 30 / 20 = 9, tripled = 27.
+    expect(strikeDamage(6, 30, 20, 1, 1, true)).toBe(9)
+    expect(hit()).toBe(9 * BLOW_WEIGHT)
+  })
+
+  test("the legacy formula itself is untouched, so the frozen clock holds", () => {
+    // strikeDamage is shared with the legacy gauge clock; only the continuous
+    // engine's positionalDamage carries the weight.
+    expect(strikeDamage(4, 10, 10, 1, 1, true)).toBe(4)
+    expect(strikeDamage(0, 10, 10, 1, 1, false)).toBe(0)
+  })
+
+  test("a chip hit still floors to one point, weighted or not", () => {
+    const chip = { power: 4, atk: 1, def: 100 } as const
+    expect(hit(chip)).toBe(1)
+    expect(hit({ ...chip, position: "flank" })).toBe(2)
   })
 })

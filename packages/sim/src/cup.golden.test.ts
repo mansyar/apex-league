@@ -284,6 +284,8 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
   // resolver, so every rival row moved with it.
   // Pacing ripple (phase 10): longer fights moved QF1, QF2, QF3 and SF2 once
   // more; the player's three rounds are unchanged.
+  // Blow-weight ripple (phase 6): QF1 is now a double knockout on seed 17; the
+  // player's three rounds are still unchanged.
   test("champion path (seed 17): the player takes all three rounds", () => {
     const session = playToCompletion(DAY, 17)
     expect(session.status).toBe("champion")
@@ -294,8 +296,8 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
         1,
         "Emberhold Flicker",
         "Mossbottom Brute",
-        "Mossbottom Brute",
-        "Mossbottom Brute takes the Quarterfinal!",
+        null,
+        "Both fighters are down — the Quarterfinal is a draw.",
       ],
       [
         1,
@@ -330,7 +332,7 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
       [
         2,
         "Ember Drake",
-        "Mossbottom Brute",
+        "Emberhold Flicker",
         "Ember Drake",
         "Ember Drake takes the Semifinal!",
       ],

@@ -9,7 +9,7 @@
 
 import { describe, expect, test } from "bun:test"
 import { strikeDamage } from "../damage"
-import { BODY_RADIUS_MM } from "../frames"
+import { BLOW_WEIGHT, BODY_RADIUS_MM } from "../frames"
 import { bodyOf, segmentHitsBody } from "./contact"
 import { openingPoise } from "./poise"
 import {
@@ -286,7 +286,7 @@ describe("projectiles — damage reuses the strike path (FR-4)", () => {
     expect(report.position).toBe("front")
     expect(report.counter).toBe(false)
     expect(report.interrupted).toBe(false)
-    expect(report.damage).toBe(strikeDamage(6, 30, 20, 1, 1, true))
+    expect(report.damage).toBe(strikeDamage(6, 30, 20, BLOW_WEIGHT, 1, true))
     expect(result.projectiles).toHaveLength(0)
   })
 
@@ -305,7 +305,9 @@ describe("projectiles — damage reuses the strike path (FR-4)", () => {
         typed,
       ).shots,
     )
-    expect(report.damage).toBe(strikeDamage(6, 30, 20, 3, 2, true))
+    expect(report.damage).toBe(
+      strikeDamage(6, 30, 20, 3 * BLOW_WEIGHT, 2, true),
+    )
   })
 
   test("a shot on a recovering victim is a counter", () => {

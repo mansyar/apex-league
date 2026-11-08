@@ -80,15 +80,16 @@ describe("advance — the dodge price (FR-10)", () => {
   })
 
   test("a refusal costs nothing and leaves the fighter free to act", () => {
-    // Five points cannot pay the eight-point dodge but can pay a basic, so
-    // the refused dodge leaves enough to commit once.
-    const poor: FighterInit = { ...side("home", -2000), staminaMax: 5 }
+    // Seven points cannot pay the eight-point dodge. Since the blow weight the
+    // cheapest commit costs 9, more than the dodge, so no pool can refuse the
+    // dodge and still afford a commit; the refusal is shown to cost nothing and
+    // to wedge nothing, which is what the test is for.
+    const poor: FighterInit = { ...side("home", -2000), staminaMax: 7 }
     const fight = createFight(config([poor, side("away", 2000)]))
     fight.advance(ORDERS)
     const held = fight.state.fighters[0]
-    expect(held.stamina).toBe(5)
-    // Not wedged: it can still commit, and a plain intent still moves it.
-    expect(fight.commit(0, "basic")).toBe(true)
+    expect(held.stamina).toBe(7)
+    // Not wedged: a plain intent still moves it.
     const moved = fight.advance([{ x: 1000, z: 0 }, HOLD]).state.fighters[0]
     expect(moved.pos.x).toBeGreaterThan(held.pos.x)
   })

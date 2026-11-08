@@ -5,7 +5,10 @@
  */
 
 import { describe, expect, test } from "bun:test"
+import { DEFAULT_POISE_MAX } from "./continuous/poise"
+import { RECOVERY_REFERENCE_SPD, recoveryMsFor } from "./continuous/strike"
 import {
+  BLOW_WEIGHT,
   BODY_RADIUS_MM,
   FRAME_DATA,
   getFrameData,
@@ -142,6 +145,52 @@ describe("frame data — authored ordering", () => {
         expect(fastest).toBeLessThan(slowest)
       }
     }
+  })
+})
+
+describe("frame data — the blow weight (Phase 6)", () => {
+  test("every per-blow field carries the weight, so none can drift", () => {
+    for (const move of ALL_MOVES) {
+      const row = frameOf(move.id)
+      const fields = ["recoveryMs", "poiseDamage", "staminaCost"] as const
+      for (const field of fields) {
+        expect(row[field] % BLOW_WEIGHT).toBe(0)
+        expect(row[field] / BLOW_WEIGHT).toBeGreaterThan(0)
+      }
+    }
+  })
+
+  test("the basic row is the pre-weight row times the weight", () => {
+    const basic = frameOf(BASIC_MOVE.id)
+    expect(basic.recoveryMs).toBe(750)
+    expect(basic.poiseDamage).toBe(6)
+    expect(basic.staminaCost).toBe(6)
+  })
+
+  test("a poise break still lands after the same frame time", () => {
+    // A break is tuned in blows and in seconds of fight, not in points. The
+    // weight triples the poise one blow carries and the tail it costs, so
+    // blows-to-break × cycle must land where the pre-weight table put it.
+    // Forgetting poise (2 per blow, 890 ms cycle) would read 8900 ms; forgetting
+    // recovery (6 poise, 390 ms cycle) would read 1560 ms — both fail loudly.
+    const basic = frameOf(BASIC_MOVE.id)
+    const blows = Math.ceil(DEFAULT_POISE_MAX / basic.poiseDamage)
+    const cycleMs =
+      basic.startupMs +
+      basic.activeMs +
+      recoveryMsFor(basic, RECOVERY_REFERENCE_SPD)
+    const preWeightBlows = Math.ceil(
+      DEFAULT_POISE_MAX / (basic.poiseDamage / BLOW_WEIGHT),
+    )
+    const preWeightCycleMs =
+      basic.startupMs + basic.activeMs + basic.recoveryMs / BLOW_WEIGHT
+    expect(blows).toBe(4)
+    expect(preWeightBlows).toBe(10)
+    const weightedMs = blows * cycleMs
+    const preWeightMs = preWeightBlows * preWeightCycleMs
+    expect(Math.abs(weightedMs - preWeightMs)).toBeLessThan(
+      Math.trunc(preWeightMs / 5),
+    )
   })
 })
 
