@@ -8,8 +8,10 @@
  *    signature of the legacy path — and the live path never returns one.
  * 2. Nothing new in production may call `resolveBattle` or build a clock.
  *    The allow-list below is the whole current truth: the resolver itself
- *    (the frozen path) and the clock's own definitions. Adding a site fails
- *    here on purpose — a new fight routed through the gauge clock is a
+ *    (the frozen path), the clock's own definitions, and the one dev probe in
+ *    `packages/sim/scripts` that measures the legacy numbers. The scan covers
+ *    `packages/sim/src`, `packages/sim/scripts` and `apps`. Adding a site
+ *    fails here on purpose — a new fight routed through the gauge clock is a
  *    design decision, not a quiet import.
  *
  * The scan reads source text, comments included: naming a call in prose with
@@ -73,8 +75,12 @@ describe("the gauge clock is replay-only", () => {
 
 const REPO_ROOT = join(import.meta.dir, "../../../..")
 
-/** Every tree a shipped module can live in. Tests are exempt below. */
-const SCAN_ROOTS = ["packages/sim/src", "apps"] as const
+/**
+ * Every tree a production module can live in, plus the dev scripts: a script
+ * is not shipped, but one that resolves a legacy battle is still a call site,
+ * so the fence scans it too. Tests are exempt below.
+ */
+const SCAN_ROOTS = ["packages/sim/src", "packages/sim/scripts", "apps"] as const
 
 /** Build output and dependency trees hold no hand-written module. */
 const SKIP_DIRS = new Set([
@@ -98,9 +104,13 @@ const CLOCK_CALL = /\b(?:resolveBattle|createClock|createClockFighter)\s*\(/
  *   clock's constructors. No production fight reaches it: the spar moved to
  *   the continuous engine (Phase 13 rework), so only the legacy replay
  *   path — and the tests that pin it — drives this file;
- * - `battle/clock/engine.ts` — the constructors' definitions.
+ * - `battle/clock/engine.ts` — the constructors' definitions;
+ * - `scripts/balance-probe.ts` — a dev probe that measures the legacy balance
+ *   numbers. It is not a fight the game plays and not a shipped module; it is
+ *   listed here so the scan's allow-list stays the whole truth.
  */
 const EXPECTED_CALL_SITES: string[] = [
+  "packages/sim/scripts/balance-probe.ts",
   "packages/sim/src/battle/clock/engine.ts",
   "packages/sim/src/battle/resolver.ts",
 ]
