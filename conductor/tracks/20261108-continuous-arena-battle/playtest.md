@@ -98,3 +98,8 @@ because animation is Phase 11 and beyond.
 16. **No minimum range on any move.** A long lance fires just as happily at
     200 mm as at 5,000 mm, so a weapon with reach has no blind spot. A dead zone
     per move is recorded in the spec as a follow-up, not fixed here.
+17. **Animations do not know about the new mechanics.** Bodies move, strafe,
+    close, telegraph and topple from the simulation, but the animation set is
+    still the old one: hitstun and poise break have no pose, the dodge is a fast
+    slide rather than a roll, and knockback skates because there is no recoil or
+    planted foot. Animation mapping is a separate follow-up track.

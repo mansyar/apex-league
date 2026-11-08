@@ -284,3 +284,31 @@ quarters. The follow-up adds a `minReachMm` (or a sweet-spot band) per frame row
 refuses or degrades a move fired inside its dead zone, and gives a short-range
 archetype a reason to exist. It changes fight outcomes, so it belongs with the
 balance track that re-tunes win rates, not here.
+
+### Deferred follow-up - presentation mapping
+
+Recorded 2026-11-08 at the owner's direction, deliberately **out of this track**
+and scheduled as its own track after this one merges.
+
+This track retargets *playback*: the client renders the dense stream, so bodies
+move, strafe, close, telegraph and topple from simulation state. It does not
+retarget the *animation vocabulary*, which is still keyed to the old step model.
+The follow-up maps simulation state onto animation:
+
+- hitstun and poise-break poses (a stunned body currently just stops moving)
+- a dodge animation (a 3x burst currently renders as a fast slide)
+- knockback recoil and planted feet (the slide skates; the only knockback the
+  choreography ever had was the fake `contactReaction` stage nudge removed in
+  Phase 11 rework 1)
+- body scale from `BODY_PROFILES`, so a model's bulk matches its simulated
+  radius and height
+- one facing model shared by the sim and the renderer (they currently ease at
+  different rates and can visibly disagree mid-circle)
+- height-band variation in the swing, so a HIGH move missing a LOW body reads as
+  a rule rather than a bug
+- animation timing driven by authored `startupMs` / `activeMs` / `recoveryMs`
+  instead of the `choreo` archetype profiles
+
+Two defects found while playtesting belong here as well: the painted ring is
+smaller than `ARENA_BOUNDS`, so fights happen outside the paint, and bodies
+overlap at contact range so the owned creature hides inside its rival.
