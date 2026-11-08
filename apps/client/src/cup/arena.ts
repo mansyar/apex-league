@@ -13,6 +13,7 @@ import {
   getBoss,
   getSpecies,
   resolvePlayerMatch,
+  startingHp,
 } from "@apex/sim"
 import { createBattleSession, cupStampTitle } from "../battle-session"
 import { castFighter } from "../battleUI"
@@ -94,18 +95,20 @@ export function createArena(shared: CupShared): {
     const cs = getSpecies(creature.speciesId)
     const rs = getSpecies(opponent.speciesId)
     if (!cs || !rs) throw new Error("Unknown species: cannot frame the fight")
+    // Both denominators are the pool the continuous resolver fights on, not
+    // the stat HP the bracket shows (same bug the spar had).
     mem.fightNow = {
       owned: {
         name: creature.name,
         key: creature.name,
         element: cs.element,
-        maxHp: battleStats(creature).hp,
+        maxHp: startingHp({ stats: battleStats(creature) }),
       },
       rival: {
         name: opponent.name,
         key: opponent.name,
         element: rs.element,
-        maxHp: opponent.stats.hp,
+        maxHp: startingHp(opponent),
       },
     }
     // Into the arena: screens out, broadcast chrome in.
