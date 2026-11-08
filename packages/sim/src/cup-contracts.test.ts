@@ -181,9 +181,11 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
         // Mossbottom Brute.
         // Pacing ripple (phase 10): longer fights moved QF1 to Tidecaller
         // Nibbles; SF2 stayed on Mossbottom Brute.
+        // Recovery-band ripple (spacing/cadence phase 5): the wider tail flips
+        // QF2 from Tidecaller Nibbles to Reedle Mirefin; the rest hold.
         seed: 101,
         rivalWinners: [
-          "Tidecaller Nibbles",
+          "Reedle Mirefin",
           "Ash-ledger",
           "Mossbottom Brute",
           "Mossbottom Brute",
@@ -270,17 +272,20 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     expect(done.completionVerdicts).toHaveLength(0)
   })
 
-  test("champion path: seed 3, specials — placement 1", () => {
+  test("semifinal exit: seed 3, specials — placement 3, no champion yet", () => {
     const creature = cupDayCreature()
     // Re-pinned for the HP re-tune (spacing/cadence phase 4): this seed used to
     // exit in the semifinal (placement 3, conqueror Bonfire Brook winning the
     // final). At HP_SCALE_PERCENT 210 the player takes the crown, so there is
     // no conqueror final left to run.
+    // Recovery-band ripple (spacing/cadence phase 5): the wider tail sends the
+    // player out in the semifinal again. `playToCompletion` stops at the loss,
+    // so the bracket is never completed and no champion is named.
     const done = playToCompletion(creature, 7, 3, "specials")
-    expect(done.status).toBe("champion")
-    expect(done.championName).toBe("Ember Drake")
-    expect(done.playerVerdicts).toHaveLength(3)
-    expect(cupPlacement(done)).toBe(1)
+    expect(done.status).toBe("eliminated")
+    expect(done.championName).toBeNull()
+    expect(done.playerVerdicts).toHaveLength(2)
+    expect(cupPlacement(done)).toBe(3)
     expect(done.completionVerdicts).toHaveLength(0)
   })
 
@@ -306,7 +311,9 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     expect(done.status).toBe("eliminated")
     expect(cupPlacement(done)).toBe(4)
     // Pacing ripple (phase 10): Tidecaller Nibbles takes SF2 and the final.
-    expect(done.championName).toBe("Tidecaller Nibbles")
+    // Recovery-band ripple (spacing/cadence phase 5): QF2 flips to Reedle
+    // Mirefin, who then takes SF1 and the final.
+    expect(done.championName).toBe("Reedle Mirefin")
     // The forfeit verdict names the opponent, no battle attached.
     const ff = done.playerVerdicts[0]
     expect(ff?.winner).toBe("Bonfire Brook")
@@ -318,8 +325,8 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     expect(
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
     ).toEqual([
-      [2, "Bonfire Brook", "Tidecaller Nibbles", "Tidecaller Nibbles"],
-      [3, "Tidecaller Nibbles", "Mossbottom Brute", "Tidecaller Nibbles"],
+      [2, "Bonfire Brook", "Reedle Mirefin", "Reedle Mirefin"],
+      [3, "Reedle Mirefin", "Mossbottom Brute", "Reedle Mirefin"],
     ])
   })
 
@@ -353,8 +360,9 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     // Re-pinned for the HP re-tune (spacing/cadence phase 4): QF1 is now a
     // double knockout (winner null). The bracket still advances via the cup's
     // double-KO tiebreak; only the verdict's winner is null.
+    // Recovery-band ripple (spacing/cadence phase 5): QF2 is a clean win again.
     expect(session.rivalVerdicts.map((v) => v.winner)).toEqual([
-      null,
+      "Tidecaller Nibbles",
       "Ash-ledger",
       "Mossbottom Brute",
       "Mossbottom Brute",
