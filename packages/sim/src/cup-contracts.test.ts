@@ -246,12 +246,13 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
       "Ember Drake",
       "Ember Drake",
     ])
-    // Tactic sensitivity, pinned: on seed 1 the balanced pick loses the
-    // final while the aggressive pick takes the crown (phase 10 re-pin —
-    // pacing moved this sensitivity off seed 17, which now sweeps under both).
+    // Tactic sensitivity, re-pinned for the HP re-tune (spacing/cadence phase
+    // 4): on seed 1 both picks now take the crown. Phase 10 had pinned the
+    // balanced pick losing the final (placement 2) while the aggressive pick
+    // won; at HP_SCALE_PERCENT 210 the balanced pick wins it too.
     const balancedOne = playToCompletion(creature, 7, 1, "balanced")
-    expect(balancedOne.status).toBe("eliminated")
-    expect(cupPlacement(balancedOne)).toBe(2)
+    expect(balancedOne.status).toBe("champion")
+    expect(cupPlacement(balancedOne)).toBe(1)
     const specialsOne = playToCompletion(creature, 7, 1, "specials")
     expect(specialsOne.status).toBe("champion")
   })
@@ -269,18 +270,18 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     expect(done.completionVerdicts).toHaveLength(0)
   })
 
-  test("SF exit: seed 3, specials — placement 3, conqueror runs the final", () => {
+  test("champion path: seed 3, specials — placement 1", () => {
     const creature = cupDayCreature()
-    const elim = playToCompletion(creature, 7, 3, "specials")
-    expect(elim.status).toBe("eliminated")
-    expect(elim.playerVerdicts).toHaveLength(2)
-    expect(cupPlacement(elim)).toBe(3)
-    const done = completeCup(elim)
-    // Pacing ripple (phase 10): the SF2 winner and the final moved.
-    expect(done.championName).toBe("Bonfire Brook")
-    expect(
-      done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
-    ).toEqual([[3, "Thistledown Ash", "Bonfire Brook", "Bonfire Brook"]])
+    // Re-pinned for the HP re-tune (spacing/cadence phase 4): this seed used to
+    // exit in the semifinal (placement 3, conqueror Bonfire Brook winning the
+    // final). At HP_SCALE_PERCENT 210 the player takes the crown, so there is
+    // no conqueror final left to run.
+    const done = playToCompletion(creature, 7, 3, "specials")
+    expect(done.status).toBe("champion")
+    expect(done.championName).toBe("Ember Drake")
+    expect(done.playerVerdicts).toHaveLength(3)
+    expect(cupPlacement(done)).toBe(1)
+    expect(done.completionVerdicts).toHaveLength(0)
   })
 
   test("QF exit: seed 5, specials — placement 4, bracket completes in order", () => {
@@ -349,8 +350,11 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
       "Pondskipper Grub",
       "Mossbottom Brute",
     ])
+    // Re-pinned for the HP re-tune (spacing/cadence phase 4): QF1 is now a
+    // double knockout (winner null). The bracket still advances via the cup's
+    // double-KO tiebreak; only the verdict's winner is null.
     expect(session.rivalVerdicts.map((v) => v.winner)).toEqual([
-      "Tidecaller Nibbles",
+      null,
       "Ash-ledger",
       "Mossbottom Brute",
       "Mossbottom Brute",

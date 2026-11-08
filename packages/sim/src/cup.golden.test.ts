@@ -352,12 +352,14 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
   // Re-pinned again for contact geometry (phase 8): with lock-on facing and
   // body volumes the same seed won the final.
   // Re-pinned for pacing (phase 10): the longer fights hand the final back to
-  // Cindersnout, so this row is a true final loss again — the elimination the
-  // comment above kept asking for.
+  // Cindersnout, so this row is a true final loss again.
+  // Re-pinned for the HP re-tune (spacing/cadence phase 4): Driftbelle now
+  // takes QF1, SF2 and the final, so the champion moved from Cindersnout to
+  // Driftbelle and the player still loses the final (placement 2).
   test("seed 7: the final is lost, not crowned", () => {
     const session = playToCompletion(DAY, 7)
     expect(session.status).toBe("eliminated")
-    expect(session.championName).toBe("Cindersnout")
+    expect(session.championName).toBe("Driftbelle")
     expect(cupPlacement(session)).toBe(2)
     expect(session.rivalVerdicts.map(row)).toEqual([
       [
@@ -371,8 +373,8 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
         1,
         "Driftbelle",
         "Cindersnout",
-        "Cindersnout",
-        "Cindersnout takes the Quarterfinal!",
+        "Driftbelle",
+        "Driftbelle takes the Quarterfinal!",
       ],
       [
         1,
@@ -383,10 +385,10 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
       ],
       [
         2,
-        "Cindersnout",
+        "Driftbelle",
         "Tidecaller Nibbles",
-        "Cindersnout",
-        "Cindersnout takes the Semifinal!",
+        "Driftbelle",
+        "Driftbelle takes the Semifinal!",
       ],
     ])
     expect(session.playerVerdicts.map(row)).toEqual([
@@ -407,9 +409,9 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
       [
         3,
         "Ember Drake",
-        "Cindersnout",
-        "Cindersnout",
-        "Cindersnout takes the Final!",
+        "Driftbelle",
+        "Driftbelle",
+        "Driftbelle takes the Final!",
       ],
     ])
     expect(session.completionVerdicts.map(row)).toEqual([])
