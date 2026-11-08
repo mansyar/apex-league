@@ -244,9 +244,9 @@ describe("buildBracketModel — the 8-slot bracket", () => {
   })
 
   test("verdicts land on the right matches across an eliminated run", () => {
-    // Seed 23 under the aggressive pick exits in QF1 (re-pinned for the
-    // continuous engine, phase 7 — the tactic now moves the run).
-    const session = play(creature(), CUP_DAY, 23, "specials")
+    // Seed 5 under the aggressive pick exits in QF1 (phase 10 re-pin: pacing
+    // moved the elimination off seed 23).
+    const session = play(creature(), CUP_DAY, 5, "specials")
     const model = buildBracketModel(session)
     const byId = new Map(model.map((m) => [m.id, m]))
     expect(byId.get("qf1")?.verdict).toEqual(session.playerVerdicts[0])
@@ -546,7 +546,7 @@ describe("results presentation", () => {
   })
 
   test("resultRows: an elimination lists consolation plus the ladder row", () => {
-    const session = play(creature(), CUP_DAY, 23, "specials")
+    const session = play(creature(), CUP_DAY, 5, "specials")
     expect(cupPlacement(session)).toBe(4)
     const rows = resultRows(
       session,

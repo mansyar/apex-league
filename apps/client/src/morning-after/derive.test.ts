@@ -141,9 +141,10 @@ describe("deriveMorningAfter — the outcome classifier (FR-1)", () => {
   })
 
   test("a plain elimination derives exit — placement never read", () => {
-    // Seed 23 under the aggressive pick exits in QF1 (phase 7 re-pin: the
-    // tactic now moves the run; the classifier reads only the session facts).
-    const session = play(creature(), 23, "specials")
+    // Seed 5 under the aggressive pick exits in QF1 (phase 10 re-pin: pacing
+    // moved the elimination off seed 23; the classifier reads only the
+    // session facts).
+    const session = play(creature(), 5, "specials")
     expect(session.status).toBe("eliminated")
     const d = deriveMorningAfter(session, freshState(), freshState())
     expect(d).not.toBeNull()

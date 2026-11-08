@@ -87,15 +87,18 @@ export interface EngagementOverlay {
 
 /**
  * The two overlays, frozen so a balance pass can move them here rather than
- * hunting through the resolver. The archetype rows sit 1,200 mm and 40 points
- * apart, so half a step each way is enough to change the decisions a fight
- * turns on without inverting a temperament: rush + `balanced` holds 800 mm,
- * slow + `specials` holds 3,200 mm, and neither leaves its character behind.
+ * hunting through the resolver. The archetype rows sit 300 mm and 25 points
+ * apart, so half a step each way changes the decisions a fight turns on without
+ * inverting a temperament: rush + `balanced` holds 350 mm, slow + `specials`
+ * holds 1,250 mm, and neither leaves its character behind. The range split was
+ * 600 mm either way until Phase 10 measured it: one side then held 2,200 mm and
+ * the other 400, so the first kited out of reach and the second chased it for
+ * the whole fight, neither landing a blow.
  */
 export const TACTIC_OVERLAYS: Readonly<Record<Tactic, EngagementOverlay>> =
   Object.freeze({
-    balanced: Object.freeze({ rangeMm: -600, aggression: -10 }),
-    specials: Object.freeze({ rangeMm: 600, aggression: 10 }),
+    balanced: Object.freeze({ rangeMm: -300, aggression: -10 }),
+    specials: Object.freeze({ rangeMm: 300, aggression: 10 }),
   })
 
 /** A share of the cycle, clamped to a percentage. */
@@ -153,8 +156,23 @@ function bodyFor(side: BattleSide): { radiusMm: number; heightMm: number } {
   return { radiusMm: body.radiusMm, heightMm: body.heightMm }
 }
 
+/**
+ * The hit-point scale every fighter enters with, in percent (tunable, FR-21).
+ *
+ * The band is a duration, and duration is hit points over the damage the foe's
+ * innate strike deals, so this is the pacing dial that does not touch a single
+ * frame or the damage formula. Phase 10 measured the unscaled roster at
+ * 4.9–23.6 s per fight (Phase 10 baseline, 14 pairings) and set the scale from
+ * that table; see the phase evidence for the arithmetic.
+ */
+export const HP_SCALE_PERCENT = 390
+
 /** One side's opening order: stats, hit points, body volume, and a facing at its foe. */
-function initFor(side: BattleSide, key: string, index: 0 | 1): FighterInit {
+export function initFor(
+  side: BattleSide,
+  key: string,
+  index: 0 | 1,
+): FighterInit {
   const way = index === 0 ? 1 : -1
   const body = bodyFor(side)
   return {
@@ -168,7 +186,7 @@ function initFor(side: BattleSide, key: string, index: 0 | 1): FighterInit {
       element: side.element,
       affinity: side.affinity ?? null,
     },
-    hp: side.stats.hp,
+    hp: Math.floor((side.stats.hp * HP_SCALE_PERCENT) / 100),
     radiusMm: body.radiusMm,
     heightMm: body.heightMm,
   }
@@ -290,10 +308,14 @@ export function resolveContinuous(
       line: `Time's up. ${sides.names[side]} is still standing.`,
     })
   } else if (ending.reason === "double_ko") {
+    // The draw has no winner, but an event still belongs to a slot: playback
+    // and the cup's per-slot filters key on `actorKey`, so the beat is filed
+    // under the first side with a line that names neither as the victor.
     events.push({
       tick: state.step,
       kind: "draw",
-      actor: "",
+      actor: sides.names[0],
+      actorKey: sides.keys[0],
       hpAfter: hpSnapshot(state, sides.keys),
       line: "Both fighters are down. The spar is a draw.",
     })

@@ -144,9 +144,11 @@ function expectCupWin(session: CupSession, creature: Creature): void {
 /** Assert a resolved cup without pinning the stage: the run ends with real
  * battle replays behind every played verdict. Phase 7 re-pin — the continuous
  * engine drops the grown tortoise before the crown, and the pacing phase that
- * follows will move the stage again, so only the mechanism is pinned here. */
+ * follows will move the stage again, so only the mechanism is pinned here.
+ * Phase 10: pacing now carries this tortoise all the way, so the ending is
+ * read as "resolved" rather than pinned to one side of it. */
 function expectCupRun(session: CupSession): void {
-  expect(session.status).toBe("eliminated")
+  expect(["champion", "eliminated"]).toContain(session.status)
   expect(session.playerVerdicts.length).toBeGreaterThan(0)
   for (const verdict of session.playerVerdicts) {
     expect(verdict.battle).not.toBeNull()

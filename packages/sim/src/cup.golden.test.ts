@@ -282,6 +282,8 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
   // Re-pinned again for the continuous engine (phase 7): the same seed keeps
   // its crown, but the rival subtree resolves differently under the new
   // resolver, so every rival row moved with it.
+  // Pacing ripple (phase 10): longer fights moved QF1, QF2, QF3 and SF2 once
+  // more; the player's three rounds are unchanged.
   test("champion path (seed 17): the player takes all three rounds", () => {
     const session = playToCompletion(DAY, 17)
     expect(session.status).toBe("champion")
@@ -292,29 +294,29 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
         1,
         "Emberhold Flicker",
         "Mossbottom Brute",
-        "Mossbottom Brute",
-        "Mossbottom Brute takes the Quarterfinal!",
+        "Emberhold Flicker",
+        "Emberhold Flicker takes the Quarterfinal!",
       ],
       [
         1,
         "Ash-ledger",
         "Reedle Mirefin",
-        "Reedle Mirefin",
-        "Reedle Mirefin takes the Quarterfinal!",
+        "Ash-ledger",
+        "Ash-ledger takes the Quarterfinal!",
       ],
       [
         1,
         "Bonfire Brook",
         "Thistledown Ash",
-        "Bonfire Brook",
-        "Bonfire Brook takes the Quarterfinal!",
+        "Thistledown Ash",
+        "Thistledown Ash takes the Quarterfinal!",
       ],
       [
         2,
-        "Reedle Mirefin",
-        "Bonfire Brook",
-        "Bonfire Brook",
-        "Bonfire Brook takes the Semifinal!",
+        "Ash-ledger",
+        "Thistledown Ash",
+        "Thistledown Ash",
+        "Thistledown Ash takes the Semifinal!",
       ],
     ])
     expect(session.playerVerdicts.map(row)).toEqual([
@@ -328,14 +330,14 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
       [
         2,
         "Ember Drake",
-        "Mossbottom Brute",
+        "Emberhold Flicker",
         "Ember Drake",
         "Ember Drake takes the Semifinal!",
       ],
       [
         3,
         "Ember Drake",
-        "Bonfire Brook",
+        "Thistledown Ash",
         "Ember Drake",
         "Ember Drake takes the Final!",
       ],
@@ -348,14 +350,15 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
   // the final instead of falling in the semifinal, so the bracket completes
   // without any further match (no completion verdicts).
   // Re-pinned again for contact geometry (phase 8): with lock-on facing and
-  // body volumes the same seed now wins the final, so this row is a second
-  // crown rather than an elimination. Phase 9 owns re-pinning a true
-  // eliminated seed once pacing settles.
-  test("seed 7: contact geometry turns the final into a crown", () => {
+  // body volumes the same seed won the final.
+  // Re-pinned for pacing (phase 10): the longer fights hand the final back to
+  // Cindersnout, so this row is a true final loss again — the elimination the
+  // comment above kept asking for.
+  test("seed 7: the final is lost, not crowned", () => {
     const session = playToCompletion(DAY, 7)
-    expect(session.status).toBe("champion")
-    expect(session.championName).toBe("Ember Drake")
-    expect(cupPlacement(session)).toBe(1)
+    expect(session.status).toBe("eliminated")
+    expect(session.championName).toBe("Cindersnout")
+    expect(cupPlacement(session)).toBe(2)
     expect(session.rivalVerdicts.map(row)).toEqual([
       [
         1,
@@ -405,8 +408,8 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
         3,
         "Ember Drake",
         "Cindersnout",
-        "Ember Drake",
-        "Ember Drake takes the Final!",
+        "Cindersnout",
+        "Cindersnout takes the Final!",
       ],
     ])
     expect(session.completionVerdicts.map(row)).toEqual([])
@@ -417,19 +420,21 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
   // forfeited quarterfinal resolves differently, so the conqueror changed.
   // Hit-reaction ripple (phase 9): knockback moved SF2 and the final back to
   // Mossbottom Brute.
+  // Pacing ripple (phase 10): QF1 and SF2 moved again — Tidecaller Nibbles
+  // takes QF1, SF2 and the final.
   test("forfeit path (seed 101): the forfeit line, then the bracket completes", () => {
     const creature = playerCreature()
     const session = forfeitCup(startCupSession(creature, DAY, 101))
     expect(session.status).toBe("eliminated")
-    expect(session.championName).toBe("Mossbottom Brute")
+    expect(session.championName).toBe("Tidecaller Nibbles")
     expect(cupPlacement(session)).toBe(4)
     expect(session.rivalVerdicts.map(row)).toEqual([
       [
         1,
         "Tidecaller Nibbles",
         "Reedle Mirefin",
-        "Reedle Mirefin",
-        "Reedle Mirefin takes the Quarterfinal!",
+        "Tidecaller Nibbles",
+        "Tidecaller Nibbles takes the Quarterfinal!",
       ],
       [
         1,
@@ -466,16 +471,16 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
       [
         2,
         "Bonfire Brook",
-        "Reedle Mirefin",
-        "Reedle Mirefin",
-        "Reedle Mirefin takes the Semifinal!",
+        "Tidecaller Nibbles",
+        "Tidecaller Nibbles",
+        "Tidecaller Nibbles takes the Semifinal!",
       ],
       [
         3,
-        "Reedle Mirefin",
+        "Tidecaller Nibbles",
         "Mossbottom Brute",
-        "Mossbottom Brute",
-        "Mossbottom Brute takes the Final!",
+        "Tidecaller Nibbles",
+        "Tidecaller Nibbles takes the Final!",
       ],
     ])
   })

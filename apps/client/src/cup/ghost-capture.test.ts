@@ -61,9 +61,9 @@ describe("cup-win ghost capture", () => {
     const species = getSpecies(creature.speciesId)
     if (!species) throw new Error("unknown species")
     const loadout = defaultLoadout(creature, species)
-    // Seed 17 under the aggressive pick loses the quarterfinal (phase 7
-    // re-pin: the tactic now moves the run).
-    let elim = startCupSession(creature, 7, 17)
+    // Seed 5 under the aggressive pick loses the quarterfinal (phase 10
+    // re-pin: pacing moved the elimination off seed 17).
+    let elim = startCupSession(creature, 7, 5)
     elim = resolvePlayerMatch(elim, loadout, "specials").session
     const forfeited = forfeitCup(startCupSession(creature, 7, 17))
     const queued: unknown[] = []

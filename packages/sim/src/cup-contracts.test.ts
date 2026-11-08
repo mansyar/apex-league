@@ -179,9 +179,11 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
         // to Ash-ledger instead of a second Mossbottom Brute win.
         // Hit-reaction ripple (phase 9): knockback moved SF2 back to
         // Mossbottom Brute.
+        // Pacing ripple (phase 10): longer fights moved QF1 to Tidecaller
+        // Nibbles; SF2 stayed on Mossbottom Brute.
         seed: 101,
         rivalWinners: [
-          "Reedle Mirefin",
+          "Tidecaller Nibbles",
           "Ash-ledger",
           "Mossbottom Brute",
           "Mossbottom Brute",
@@ -201,13 +203,15 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
       // Continuous-engine ripple (phase 7): QF4 and SF2 both moved again.
       // Contact-geometry ripple (phase 8): lock-on facing and body volumes
       // moved QF2 and SF2 once more.
+      // Pacing ripple (phase 10): QF2 and SF2 moved again — Gilded Horn takes
+      // QF2 and Tidecaller Nibbles takes SF2.
       {
         seed: 19,
         rivalWinners: [
           "Driftbelle",
-          "Thistledown Ash",
+          "Gilded Horn",
           "Tidecaller Nibbles",
-          "Thistledown Ash",
+          "Tidecaller Nibbles",
         ],
       },
     ]
@@ -242,52 +246,56 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
       "Ember Drake",
       "Ember Drake",
     ])
-    // Tactic sensitivity, pinned: the aggressive pick loses the QF opener.
-    const specials = playToCompletion(creature, 7, 17, "specials")
-    expect(specials.status).toBe("eliminated")
-    expect(cupPlacement(specials)).toBe(4)
+    // Tactic sensitivity, pinned: on seed 1 the balanced pick loses the
+    // final while the aggressive pick takes the crown (phase 10 re-pin —
+    // pacing moved this sensitivity off seed 17, which now sweeps under both).
+    const balancedOne = playToCompletion(creature, 7, 1, "balanced")
+    expect(balancedOne.status).toBe("eliminated")
+    expect(cupPlacement(balancedOne)).toBe(2)
+    const specialsOne = playToCompletion(creature, 7, 1, "specials")
+    expect(specialsOne.status).toBe("champion")
   })
 
-  test("final loss: seed 1, specials — placement 2, champion via completeCup", () => {
+  test("final loss: seed 9, specials — placement 2, champion via completeCup", () => {
     const creature = cupDayCreature()
-    const elim = playToCompletion(creature, 7, 1, "specials")
+    const elim = playToCompletion(creature, 7, 9, "specials")
     expect(elim.status).toBe("eliminated")
     expect(elim.playerVerdicts).toHaveLength(3)
-    expect(elim.playerVerdicts[2]?.winner).toBe("Cindersnout")
+    expect(elim.playerVerdicts[2]?.winner).toBe("Mossbottom Brute")
     expect(cupPlacement(elim)).toBe(2)
     // The final loss leaves the SF2 winner as champion: no more fights.
     const done = completeCup(elim)
-    expect(done.championName).toBe("Cindersnout")
+    expect(done.championName).toBe("Mossbottom Brute")
     expect(done.completionVerdicts).toHaveLength(0)
   })
 
-  test("SF exit: seed 9, specials — placement 3, conqueror runs the final", () => {
+  test("SF exit: seed 3, specials — placement 3, conqueror runs the final", () => {
     const creature = cupDayCreature()
-    const elim = playToCompletion(creature, 7, 9, "specials")
+    const elim = playToCompletion(creature, 7, 3, "specials")
     expect(elim.status).toBe("eliminated")
     expect(elim.playerVerdicts).toHaveLength(2)
     expect(cupPlacement(elim)).toBe(3)
     const done = completeCup(elim)
-    // Hit-reaction ripple (phase 9): the SF2 winner and the final moved.
-    expect(done.championName).toBe("Mossbottom Brute")
+    // Pacing ripple (phase 10): the SF2 winner and the final moved.
+    expect(done.championName).toBe("Bonfire Brook")
     expect(
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
-    ).toEqual([[3, "Gilded Horn", "Mossbottom Brute", "Mossbottom Brute"]])
+    ).toEqual([[3, "Thistledown Ash", "Bonfire Brook", "Bonfire Brook"]])
   })
 
-  test("QF exit: seed 23, specials — placement 4, bracket completes in order", () => {
+  test("QF exit: seed 5, specials — placement 4, bracket completes in order", () => {
     const creature = cupDayCreature()
-    const elim = playToCompletion(creature, 7, 23, "specials")
+    const elim = playToCompletion(creature, 7, 5, "specials")
     expect(elim.status).toBe("eliminated")
     expect(elim.playerVerdicts).toHaveLength(1)
     expect(cupPlacement(elim)).toBe(4)
     const done = completeCup(elim)
-    expect(done.championName).toBe("Emberhold Flicker")
+    expect(done.championName).toBe("Mossbottom Brute")
     expect(
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
     ).toEqual([
-      [2, "Pondskipper Grub", "Reedle Mirefin", "Pondskipper Grub"],
-      [3, "Pondskipper Grub", "Emberhold Flicker", "Emberhold Flicker"],
+      [2, "Reedle Mirefin", "Pondskipper Grub", "Reedle Mirefin"],
+      [3, "Reedle Mirefin", "Mossbottom Brute", "Mossbottom Brute"],
     ])
   })
 
@@ -296,8 +304,8 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     const done = forfeitCup(startCupSession(creature, 7, 101))
     expect(done.status).toBe("eliminated")
     expect(cupPlacement(done)).toBe(4)
-    // Hit-reaction ripple (phase 9): Mossbottom Brute takes SF2 and the final.
-    expect(done.championName).toBe("Mossbottom Brute")
+    // Pacing ripple (phase 10): Tidecaller Nibbles takes SF2 and the final.
+    expect(done.championName).toBe("Tidecaller Nibbles")
     // The forfeit verdict names the opponent, no battle attached.
     const ff = done.playerVerdicts[0]
     expect(ff?.winner).toBe("Bonfire Brook")
@@ -309,8 +317,8 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     expect(
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
     ).toEqual([
-      [2, "Bonfire Brook", "Reedle Mirefin", "Reedle Mirefin"],
-      [3, "Reedle Mirefin", "Mossbottom Brute", "Mossbottom Brute"],
+      [2, "Bonfire Brook", "Tidecaller Nibbles", "Tidecaller Nibbles"],
+      [3, "Tidecaller Nibbles", "Mossbottom Brute", "Tidecaller Nibbles"],
     ])
   })
 
