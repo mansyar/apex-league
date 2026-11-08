@@ -138,6 +138,9 @@ const BOTH_HOLD: readonly [MoveIntent, MoveIntent] = [HOLD, HOLD]
 /** The away side backs off; the home side holds. */
 const BACK_OFF: readonly [MoveIntent, MoveIntent] = [HOLD, { x: 1000, z: 0 }]
 
+/** The away side walks in; the home side holds. */
+const CLOSE: readonly [MoveIntent, MoveIntent] = [HOLD, { x: -1000, z: 0 }]
+
 function side(key: string, x: number, facing: Dir2): FighterInit {
   return { key, spd: 10, at: { x, z: 0 }, facing, stats: { atk: 30, def: 20 } }
 }
@@ -224,6 +227,28 @@ describe("attack lifecycle — interruption and counters (FR-6, AC-6)", () => {
     expect(fight.state.fighters[1].attack).toBeNull()
   })
 
+  test("a blow on the victim's final startup step interrupts (AC-6)", () => {
+    // The victim faces away and the turn rate is too slow to swing it round in
+    // four steps, so its own blow cannot land on the step its window opens:
+    // the attacker's blow lands alone and cancels the swing.
+    const fight = createFight({
+      seed: 20261108,
+      bounds: BOUNDS,
+      fighters: [side("home", -210, EAST), side("away", 210, EAST)],
+    })
+    fight.commit(1, "basic")
+    // basic's 80 ms startup is steps one to four: the fourth step ends it, and
+    // the attacker's blow lands inside that same step, so the victim was still
+    // winding up at the top of it.
+    fight.commit(0, "basic")
+    const fourth = run(fight, 4)
+    const blow = fourth.strikes.find((s) => s.attackerKey === "home")
+    expect(blow?.targetKey).toBe("away")
+    expect(blow?.interrupted).toBe(true)
+    expect(blow?.counter).toBe(false)
+    expect(fight.state.fighters[1].attack).toBeNull()
+  })
+
   test("a hit during recovery is a counter", () => {
     function recoveryHit(victimCommits: boolean): number {
       const fight = duel()
@@ -292,6 +317,23 @@ describe("strikes in the step — reach and facing (FR-4, FR-18, AC-4)", () => {
       whiffs += fight.advance(BOTH_HOLD).whiffs.length
     expect(whiffs).toBe(0)
   })
+
+  test("the final active step is still a strike test (FR-18)", () => {
+    // The victim starts outside reach and walks in, arriving only on the last
+    // active step: basic's window is [80, 140) ms — steps five to seven — and
+    // step seven is the one a post-advance gate never tested.
+    const fight = duel(960)
+    fight.commit(0, "basic")
+    let strikes = 0
+    for (let step = 0; step < 6; step++)
+      strikes += fight.advance(CLOSE).strikes.length
+    expect(strikes).toBe(0)
+    const last = fight.advance(CLOSE)
+    expect(last.strikes).toHaveLength(1)
+    expect(last.strikes[0]?.attackerKey).toBe("home")
+    expect(last.strikes[0]?.counter).toBe(false)
+    expect(last.strikes[0]?.interrupted).toBe(false)
+  })
 })
 
 describe("trades — overlapping active frames (FR-7, AC-7)", () => {
@@ -305,11 +347,15 @@ describe("trades — overlapping active frames (FR-7, AC-7)", () => {
     const away = fourth.strikes.find((s) => s.attackerKey === "away")
     expect(home?.damage).toBeGreaterThan(0)
     expect(away?.damage).toBeGreaterThan(0)
-    expect(home?.interrupted).toBe(false)
-    expect(away?.interrupted).toBe(false)
-    // Neither blow cancelled the other side's already-active frame.
+    // Step four opens both windows and ends both startups, so each blow
+    // lands on the other side's final startup step. Both blows register and
+    // both swings trade, so neither is cancelled (FR-6, FR-7, AC-7).
+    expect(home?.interrupted).toBe(true)
+    expect(away?.interrupted).toBe(true)
     expect(fight.state.fighters[0].attack?.phase).toBe("active")
     expect(fight.state.fighters[1].attack?.phase).toBe("active")
+    expect(fight.state.fighters[0].attack?.landed).toBe(true)
+    expect(fight.state.fighters[1].attack?.landed).toBe(true)
   })
 })
 

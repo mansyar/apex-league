@@ -229,18 +229,19 @@ export interface StrikeResolution {
 }
 
 /**
- * Resolve both sides' active frames against the same pre-step snapshot.
- * `before` is the state at the top of the step and `after` carries the
- * advanced attack phases; every hit test reads `before`, so two overlapping
- * active frames trade in one step (FR-7) and neither can cancel the other's
- * already-active frame. Only a victim's startup can be cancelled.
+ * Resolve both sides' active frames against the same pre-step snapshot: every
+ * hit test reads `before`, so overlapping frames trade (FR-7) and neither
+ * blow can hide the other's.
  *
- * A swing is tested on every active step (FR-18): the victim's live position,
- * height, and the attacker's arc decide, edge to edge. The first landing sets
- * the swing's `landed` flag, so a 60 ms window lands one blow, not three.
+ * A step covers `[t, t + STEP_MS)`, so a swing is tested when its window is
+ * open at either end of the step (FR-18): the post-advance phase alone lost
+ * the final active step, and the pre-step phase alone would lose the opening
+ * one. The victim's phase is the one it held at the top of the step, so a blow
+ * on the last startup step interrupts and an active step is not a counter
+ * because recovery began mid-step (FR-6). A swing that also strikes in that
+ * step trades instead of being cancelled.
  *
- * This is the melee path: a ranged move's active window fires a projectile
- * instead of landing on the spot (FR-8), so it never resolves here.
+ * A ranged move's window fires a projectile instead of landing here (FR-8).
  */
 export function resolveStrikes(
   before: readonly [FighterState, FighterState],
@@ -248,11 +249,17 @@ export function resolveStrikes(
   stats: readonly [StrikeStats, StrikeStats],
 ): StrikeResolution {
   const strikes: StrikeReport[] = []
-  let home = after[0]
-  let away = after[1]
+  // `after` is read only, so one side's cancellation cannot hide the other's
+  // simultaneous strike (FR-7). A swing that struck this step trades, so it is
+  // not cancelled; a swing that did not is.
+  const landed: [boolean, boolean] = [false, false]
+  const disarmed: [boolean, boolean] = [false, false]
   for (const side of [0, 1] as const) {
     const attack = after[side].attack
-    if (attack?.phase !== "active" || attack.landed) continue
+    // Open when the window is open at either end of the step (FR-18).
+    const open =
+      attack?.phase === "active" || before[side].attack?.phase === "active"
+    if (!attack || !open || attack.landed) continue
     const row = getFrameData(attack.moveId)
     const move = getMove(attack.moveId)
     if (!row || !move) throw new Error(`Unknown move: ${attack.moveId}`)
@@ -263,15 +270,12 @@ export function resolveStrikes(
     if (!bandOverlapsBody(row.band, victim.heightMm)) continue
     if (!reachesBody(bodyOf(attacker), bodyOf(victim), row.reachMm)) continue
     if (!inFrontArc(attacker.facing, attacker.pos, victim.pos)) continue
-    const struck: FighterState = {
-      ...after[side],
-      attack: { ...attack, landed: true },
-    }
-    if (side === 0) home = struck
-    else away = struck
-    const victimAttack = after[other].attack
+    landed[side] = true
+    // The victim's phase is the one it held at the top of the step (FR-6).
+    const victimAttack = before[other].attack
     const counter = victimAttack?.phase === "recovery"
     const interrupted = victimAttack?.phase === "startup"
+    if (interrupted) disarmed[other] = true
     const position = hitPosition(victim.facing, victim.pos, attacker.pos)
     const damage = positionalDamage({
       power: move.power,
@@ -281,11 +285,6 @@ export function resolveStrikes(
       position,
       counter,
     })
-    if (interrupted) {
-      const disarmed = { ...after[other], attack: null }
-      if (other === 0) home = disarmed
-      else away = disarmed
-    }
     strikes.push({
       attackerKey: attacker.key,
       targetKey: victim.key,
@@ -297,14 +296,24 @@ export function resolveStrikes(
       interrupted,
     })
   }
-  return { fighters: [home, away], strikes }
+  const settle = (side: 0 | 1): FighterState => {
+    const state = after[side]
+    // Only a swing that did not strike is cancelled by the blow.
+    if (disarmed[side] && !landed[side]) return { ...state, attack: null }
+    const attack = state.attack
+    if (!landed[side] || !attack) return state
+    return { ...state, attack: { ...attack, landed: true } }
+  }
+  return { fighters: [settle(0), settle(1)], strikes }
 }
 
 /**
  * The melee swings that closed their active window without landing a blow
  * (FR-18, AC-18). A swing is a whiff when the top of the step was still
- * active and untouched, and the step that advanced it left the active phase —
- * the victim stepped out of the arc, out of reach, or out of the band.
+ * active and untouched, the step that advanced it left the active phase, and
+ * the swing did not land on that step — the victim stepped out of the arc, out
+ * of reach, or out of the band. `after` is the post-strike state, so a blow
+ * that landed on the window's final step is not also reported as a whiff.
  */
 export function whiffsOf(
   before: readonly [FighterState, FighterState],
@@ -315,6 +324,7 @@ export function whiffsOf(
     const previous = before[side].attack
     if (previous?.phase !== "active" || previous.landed) continue
     if (after[side].attack?.phase === "active") continue
+    if (after[side].attack?.landed) continue
     const move = getMove(previous.moveId)
     if (!move?.melee) continue
     whiffs.push({ attackerKey: before[side].key, moveId: previous.moveId })

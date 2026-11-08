@@ -14,7 +14,6 @@
  * commit path.
  */
 
-import type { Rng } from "../../rng"
 import { faceOpponent, separateBodies } from "./contact"
 import { blowDirection, isStunned, reactToBlow } from "./impulse"
 import { dodgeSpeed, type FencePin, moveFighter, moveStunned } from "./movement"
@@ -88,12 +87,12 @@ export interface StepResult extends StepOutcome {
 }
 
 /**
- * What one step needs beyond the state: the fence it is played inside, the
- * fight's single seeded stream (FR-1), and both sides' strike stats.
+ * What one step needs beyond the state: the fence it is played inside and both
+ * sides' strike stats. There is no random source: the step is seed-free
+ * (NFR-1), and the seed only decides a capped fight in ./resolve.
  */
 export interface StepContext {
   readonly bounds: ArenaBounds
-  readonly rng: Rng
   /** Both sides' strike stats, in fighter order. */
   readonly stats: readonly [StrikeStats, StrikeStats]
 }
@@ -130,7 +129,9 @@ export function stepFight(
     flight.shots,
     flight.fighters,
   )
-  const whiffs = whiffsOf(before, advanced)
+  // Whiffs read the post-strike state: a blow that landed on the window's
+  // final active step is a hit, not also a swing that touched nothing.
+  const whiffs = whiffsOf(before, struck.fighters)
   const dodges: DodgeReport[] = []
   const pinned: PinnedReport[] = []
   // `applyIntent` carries the attack and both meters across (FR-6, FR-9, FR-10)
