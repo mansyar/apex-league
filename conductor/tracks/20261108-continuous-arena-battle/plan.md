@@ -134,7 +134,7 @@
 - **Covers:** FR-12, AC-12
 - **Touches:** `packages/sim/src/battle/continuous/resolve.ts`, `packages/sim/src/battle/resolver.ts`, `packages/sim/src/battle/index.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P7.T1: Endings** — covers: FR-12
   - [ ] **P7.T1.1: KO, double KO, and time cap judged by HP%, then poise damage dealt, then seed.**
