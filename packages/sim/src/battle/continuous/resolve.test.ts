@@ -112,7 +112,9 @@ describe("resolveContinuous — the fight's endings", () => {
   })
 
   test("the cap is a duration, and a stalemate reaches it", () => {
-    const still = { hp: 100, atk: 1, def: 1, spd: 0 }
+    // A symmetric pair with a pool far larger than a cap-length fight can
+    // spend: neither side can fall, so the clock decides.
+    const still = { hp: 1000, atk: 1, def: 1, spd: 0 }
     const result = resolveContinuous(
       side({ name: "Ember", id: "ember", stats: still, kit: [] }),
       side({ name: "Reed", id: "reed", stats: still, kit: [] }),
@@ -120,12 +122,13 @@ describe("resolveContinuous — the fight's endings", () => {
     )
     expect(result.reason).toBe("time")
     expect(lastEvent(result.events).kind).toBe("time")
-    expect(result.finalHp).toEqual({ ember: 100, reed: 100 })
+    expect(hpOf(result.finalHp, "ember")).toBeGreaterThan(0)
+    expect(hpOf(result.finalHp, "ember")).toBe(hpOf(result.finalHp, "reed"))
     expect(FIGHT_CAP_MS).toBe(40000)
   })
 
   test("an even seed breaks a dead heat to side 0, an odd seed to side 1", () => {
-    const still = { hp: 100, atk: 1, def: 1, spd: 0 }
+    const still = { hp: 1000, atk: 1, def: 1, spd: 0 }
     const even = resolveContinuous(
       side({ name: "Ember", id: "ember", stats: still, kit: [] }),
       side({ name: "Reed", id: "reed", stats: still, kit: [] }),

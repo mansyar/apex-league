@@ -15,7 +15,7 @@ import {
   type BattleEvent,
   type BattleResult,
   type BattleSide,
-  resolveBattle,
+  resolveContinuous,
 } from "../battle"
 import type { CupSession } from "./session/walk"
 import { cupMatchSeed } from "./verdicts"
@@ -90,7 +90,7 @@ export function buildGhostBundle(session: CupSession): GhostBundle | null {
 
 /** Replay the deciding battle from the bundle alone (no session needed). */
 export function replayGhost(bundle: GhostBundle): BattleResult {
-  return resolveBattle(bundle.player, bundle.rival, bundle.seed)
+  return resolveContinuous(bundle.player, bundle.rival, bundle.seed)
 }
 
 /**

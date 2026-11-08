@@ -31,11 +31,14 @@ export {
   ARENA_BOUNDS,
   downEnding,
   type Ending,
+  type EngagementOverlay,
+  engagementFor,
   FIGHT_CAP_MS,
   FIGHT_CAP_STEPS,
   OPENING_GAP_MM,
   pointsWinner,
   resolveContinuous,
+  TACTIC_OVERLAYS,
 } from "./continuous/resolve"
 export { strikeDamage } from "./damage"
 export { makeExhibition, type SparSetup } from "./exhibition"

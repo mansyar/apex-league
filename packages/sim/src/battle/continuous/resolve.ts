@@ -21,7 +21,9 @@
  * legacy path, and this engine is a separate entry point.
  */
 
+import type { Temperament } from "../../species"
 import { type BattleEvent, fighterKey } from "../clock"
+import type { Tactic } from "../policy"
 import type { BattleReason, BattleResult, BattleSide } from "../resolver"
 import {
   type ControllerProfile,
@@ -29,6 +31,7 @@ import {
   createController,
   decide,
   profileFor,
+  RANGE_BAND_MM,
 } from "./controller"
 import { hpSnapshot, type Sides, stepEvents } from "./report"
 import { createFight, type Fight, type FighterInit } from "./step"
@@ -65,6 +68,59 @@ export const ARENA_BOUNDS: ArenaBounds = Object.freeze({
 
 /** How far from the centre line each side opens, in mm. */
 export const OPENING_GAP_MM = 2000
+
+/**
+ * What a coach's tactic adds to its archetype's engagement, in the two fields
+ * the controller steers by: the centre of the range band, in mm, and the share
+ * of each cycle spent pressing, in percent. `specials` works the fight out at
+ * distance and presses harder; `balanced` prefers the clinch and leans on its
+ * basic. This is a mapping, not a second system: the archetype row stays the
+ * base, so a rush rival still rushes (FR-11).
+ */
+export interface EngagementOverlay {
+  /** Added to the archetype's preferred range, in mm (negative closes). */
+  readonly rangeMm: number
+  /** Added to the archetype's aggression, in percent. */
+  readonly aggression: number
+}
+
+/**
+ * The two overlays, frozen so a balance pass can move them here rather than
+ * hunting through the resolver. The archetype rows sit 1,200 mm and 40 points
+ * apart, so half a step each way is enough to change the decisions a fight
+ * turns on without inverting a temperament: rush + `balanced` holds 800 mm,
+ * slow + `specials` holds 3,200 mm, and neither leaves its character behind.
+ */
+export const TACTIC_OVERLAYS: Readonly<Record<Tactic, EngagementOverlay>> =
+  Object.freeze({
+    balanced: Object.freeze({ rangeMm: -600, aggression: -10 }),
+    specials: Object.freeze({ rangeMm: 600, aggression: 10 }),
+  })
+
+/** A share of the cycle, clamped to a percentage. */
+function share(value: number): number {
+  return Math.min(100, Math.max(0, value))
+}
+
+/**
+ * One side's controller tuning: its archetype row with the coach's tactic laid
+ * over the engagement fields only — preferred range and aggression. Strafe and
+ * dodge stay the archetype's own, and the range keeps a floor of one band so a
+ * band can never invert.
+ */
+export function engagementFor(
+  temperament: Temperament,
+  tactic: Tactic,
+): ControllerProfile {
+  const base = profileFor(temperament)
+  const overlay = TACTIC_OVERLAYS[tactic]
+  const range = base.preferredRangeMm + overlay.rangeMm
+  return Object.freeze({
+    ...base,
+    preferredRangeMm: Math.max(RANGE_BAND_MM, range),
+    aggression: share(base.aggression + overlay.aggression),
+  })
+}
 
 /** How one fight ended: the winning side, or null for a double KO, and why. */
 export interface Ending {
@@ -160,8 +216,8 @@ export function resolveContinuous(
     createController(),
   ]
   const profiles: [ControllerProfile, ControllerProfile] = [
-    profileFor(a.temperament),
-    profileFor(b.temperament),
+    engagementFor(a.temperament, a.tactic),
+    engagementFor(b.temperament, b.tactic),
   ]
   const kits: [readonly string[], readonly string[]] = [a.kit, b.kit]
   const poiseDealt: [number, number] = [0, 0]
