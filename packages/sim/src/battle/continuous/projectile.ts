@@ -1,28 +1,35 @@
 /**
  * Shots in flight: a projectile is a body that takes real time to cross real
- * distance.
+ * distance and sweeps the space between steps.
  *
- * Continuous Arena Battle FR-8. A ranged move launches one shot as its active
- * window opens, from the shooter's body centre toward the victim's body centre
- * at that instant. The shot then travels along that fixed line at the move's
- * authored `speedMmPerMs`, so the same shot fired from far lands later than
- * one fired from near (AC-8) with no clock and no roll.
+ * Continuous Arena Battle FR-8, FR-19. A ranged move launches one shot as its
+ * active window opens, from the shooter's body centre toward the victim's body
+ * centre at that instant. The shot then travels along that fixed line at the
+ * move's authored `speedMmPerMs`, so the same shot fired from far lands later
+ * than one fired from near (AC-8) with no clock and no roll.
+ *
+ * Every step the shot sweeps a segment from last step's position to this
+ * step's, and the segment is tested against the victim's body volume: inside
+ * the radius at a height the move reaches is a hit, outside is a miss, and a
+ * fast shot cannot tunnel through a body between two sampled positions
+ * (FR-19). The victim's lateral movement is what dodges, never a random roll.
  *
  * Every value is an integer: the line is a thousandth-scaled direction,
- * progress is whole millimetres accumulated from the launch, and arrival and
- * dodge are comparisons on a dot and a cross product. The position is rebuilt
+ * progress is whole millimetres accumulated from the launch, and the segment
+ * test is a squared distance with integer division. The position is rebuilt
  * from the cumulative distance rather than stepped by a rounded delta, so the
  * scaling remainder never drifts.
- *
- * A shot resolves when it has reached the victim's line position or passed it.
- * The victim's perpendicular offset from the line then decides the outcome:
- * inside {@link DODGE_CLEARANCE_MM} the shot hits, and a body that moved
- * laterally further than that dodges it. Damage is the same positional path a
- * melee strike uses (./damage), so a shot and a blow agree.
  */
 
 import { BODY_RADIUS_MM, getFrameData } from "../frames"
 import { getMove } from "../moves"
+import {
+  type Body,
+  bodyOf,
+  divRound,
+  segmentHitsBody,
+  shotDirection,
+} from "./contact"
 import { type HitPosition, positionalDamage } from "./damage"
 import { hitPosition, type StrikeStats, typeAgainst } from "./strike"
 import {
@@ -33,10 +40,12 @@ import {
   type Vec3,
 } from "./types"
 
+export { shotDirection }
+
 /**
- * How far off the line a body stands before a shot is judged to miss, in mm.
- * A body is one radius wide, so standing further out than that is out of the
- * shot's path — the dodge is lateral motion, never a random roll (FR-8).
+ * The nominal clearance a body needs to slip a shot, in mm: one body radius
+ * off the line. The controller reads it to notice an incoming shot; the
+ * resolution itself uses the swept body test (FR-19).
  */
 export const DODGE_CLEARANCE_MM = BODY_RADIUS_MM
 
@@ -86,40 +95,6 @@ export interface ProjectileResolution {
   readonly projectiles: readonly ProjectileState[]
   readonly fighters: readonly [FighterState, FighterState]
   readonly shots: readonly ShotReport[]
-}
-
-/** Integer square root, floored: Newton's method on whole numbers only. */
-function integerSqrt(value: number): number {
-  let guess = value
-  let next = Math.floor((guess + 1) / 2)
-  while (next < guess) {
-    guess = next
-    next = Math.floor((guess + Math.floor(value / guess)) / 2)
-  }
-  return guess
-}
-
-/** Integer division rounding halves away from zero, so mirrored aims match. */
-function divRound(value: number, divisor: number): number {
-  const half = Math.floor(divisor / 2)
-  const rounded = Math.floor((Math.abs(value) + half) / divisor)
-  return value < 0 ? -rounded : rounded
-}
-
-/**
- * The thousandth-scaled unit direction from `from` to `to`. Two points that
- * share a centre have no direction, so the line stays still and the shot is
- * judged on the spot.
- */
-export function shotDirection(from: Vec3, to: Vec3): Dir2 {
-  const dx = to.x - from.x
-  const dz = to.z - from.z
-  const length = integerSqrt(dx * dx + dz * dz)
-  if (length === 0) return { x: 0, z: 0 }
-  return {
-    x: divRound(dx * DIR_SCALE, length),
-    z: divRound(dz * DIR_SCALE, length),
-  }
 }
 
 /** The point `travelledMm` along a line, in whole millimetres. */
@@ -185,16 +160,16 @@ export function perpendicularOffsetMm(shot: ProjectileState, at: Vec3): number {
 }
 
 /**
- * True when the shot has reached the body's line position or passed it. The
- * body radius is the last stretch of travel that still counts as reaching the
- * victim, so one long step cannot tunnel straight past a body it should hit.
+ * True once the shot has travelled past the body's far surface along its
+ * line, so the step's swept segment can no longer reach it. This is the miss
+ * condition: the body stepped off the line and the shot is spent (FR-19).
  */
-export function hasArrived(shot: ProjectileState, victim: Vec3): boolean {
-  const dx = victim.x - shot.origin.x
-  const dz = victim.z - shot.origin.z
+export function passedBody(shot: ProjectileState, victim: Body): boolean {
+  const dx = victim.pos.x - shot.origin.x
+  const dz = victim.pos.z - shot.origin.z
   const alongScaled = shot.dir.x * dx + shot.dir.z * dz
   return (
-    shot.travelledMm * DIR_SCALE >= alongScaled - BODY_RADIUS_MM * DIR_SCALE
+    shot.travelledMm * DIR_SCALE > alongScaled + victim.radiusMm * DIR_SCALE
   )
 }
 
@@ -212,11 +187,12 @@ function sideOf(
 }
 
 /**
- * Advance every shot one step and resolve the ones that arrived. Positions
- * come from the top-of-step snapshot `before`, and the victim's attack phase
- * from `after`, so a shot resolves against the same snapshot a melee strike
- * does. A body further off the line than {@link DODGE_CLEARANCE_MM} dodges;
- * everything else takes the shared positional damage path (FR-4, FR-8).
+ * Advance every shot one step and resolve the ones whose swept segment
+ * crossed the victim's body at a height the move reaches. Positions come from
+ * the top-of-step snapshot `before`, and the victim's attack phase from
+ * `after`, so a shot resolves against the same snapshot a melee strike does.
+ * A shot that clears the body and has travelled past it is a dodge; every hit
+ * takes the shared positional damage path (FR-4, FR-8).
  */
 export function resolveProjectiles(
   projectiles: readonly ProjectileState[],
@@ -233,15 +209,17 @@ export function resolveProjectiles(
     const owner = sideOf(before, shot.ownerKey)
     const victim = owner === 0 ? 1 : 0
     const target = before[victim]
-    if (!hasArrived(shot, target.pos)) {
-      flight.push(shot)
-      continue
-    }
     const move = getMove(shot.moveId)
     const row = getFrameData(shot.moveId)
     if (!move || !row) throw new Error(`Unknown move: ${shot.moveId}`)
+    const body = bodyOf(target)
+    const hit = segmentHitsBody(inFlight.pos, shot.pos, body, row.band)
+    if (!hit && !passedBody(shot, body)) {
+      flight.push(shot)
+      continue
+    }
     const position = hitPosition(target.facing, target.pos, before[owner].pos)
-    if (perpendicularOffsetMm(shot, target.pos) > DODGE_CLEARANCE_MM) {
+    if (!hit) {
       shots.push({
         ownerKey: shot.ownerKey,
         targetKey: target.key,

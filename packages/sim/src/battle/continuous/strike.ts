@@ -1,16 +1,20 @@
 /**
- * Strikes in space: reach and the facing arcs a blow is judged against.
+ * Strikes in space: reach, the facing arcs a blow is judged against, and the
+ * attack lifecycle that decides when the blow may land.
  *
- * Continuous Arena Battle FR-4. Reach is a squared Euclidean comparison and
+ * Continuous Arena Battle FR-4, FR-18. Reach is a squared Euclidean
+ * comparison measured edge to edge, the height band is an overlap test, and
  * facing is an integer dot product, so a strike resolves from the two
- * positions and the two facings with no trigonometry, no clock, and no
- * random source. The attack lifecycle and trade rule live in the same module.
+ * positions, the two facings, and the two bodies with no trigonometry, no
+ * clock, and no random source. The attack lifecycle and trade rule live in the
+ * same module.
  */
 
 import type { Element } from "../../creature"
-import { type TypeFactor, typeFactor } from "../chart"
+import { incomingTypeFactor, type TypeFactor } from "../chart"
 import { type FrameData, getFrameData } from "../frames"
 import { getMove } from "../moves"
+import { bandOverlapsBody, bodyOf, reachesBody } from "./contact"
 import { type HitPosition, positionalDamage, type Ratio } from "./damage"
 import {
   type AttackPhase,
@@ -36,17 +40,6 @@ export const FRONT_ARC_COS: Ratio = Object.freeze({ num: 0, den: 1 })
  * bands between are the flanks (FR-4).
  */
 export const FLANK_COS: Ratio = Object.freeze({ num: 1, den: 2 })
-
-/** True when the target's centre is inside the attacker's planar reach. */
-export function withinReach(
-  attacker: Vec3,
-  target: Vec3,
-  reachMm: number,
-): boolean {
-  const dx = target.x - attacker.x
-  const dz = target.z - attacker.z
-  return dx * dx + dz * dz <= reachMm * reachMm
-}
 
 /**
  * True when `dot / (|a| |b|)` is at least `cos.num / cos.den`. Squared on
@@ -120,7 +113,8 @@ export function phaseDuration(row: FrameData, phase: AttackPhase): number {
 /**
  * Advance one committed attack by a step, carrying the remainder across a
  * phase boundary so a 130 ms startup is 130 ms of fight time rather than
- * seven rounded steps. Returns null once recovery has run out.
+ * seven rounded steps. Returns null once recovery has run out. The landed
+ * flag rides along: one swing lands at most once (FR-18).
  */
 export function advanceAttack(
   attack: AttackState,
@@ -131,7 +125,7 @@ export function advanceAttack(
   for (;;) {
     const duration = phaseDuration(row, phase)
     if (elapsedMs < duration) {
-      return { moveId: attack.moveId, phase, elapsedMs }
+      return { ...attack, phase, elapsedMs }
     }
     if (phase === "recovery") return null
     elapsedMs -= duration
@@ -170,7 +164,10 @@ export function commitAttack(
   if (!getMove(moveId) || !getFrameData(moveId)) {
     throw new Error(`Unknown move: ${moveId}`)
   }
-  return { ...fighter, attack: { moveId, phase: "startup", elapsedMs: 0 } }
+  return {
+    ...fighter,
+    attack: { moveId, phase: "startup", elapsedMs: 0, landed: false },
+  }
 }
 
 /** The combat stats a strike reads; `spd` lives on the fighter itself. */
@@ -179,18 +176,29 @@ export interface StrikeStats {
   readonly def: number
   /** Catalog element; absent for the typeless basic strike. */
   readonly element?: Element | undefined
+  /** Secondary type affinity; read on the side taking the blow (FR-4). */
+  readonly affinity?: Element | null | undefined
 }
 
 /** The profile a fight gets when it names no stats: typeless 1/1. */
 export const NEUTRAL_STATS: StrikeStats = Object.freeze({ atk: 1, def: 1 })
 
-/** The attacker's type factor against one victim; typeless is neutral. */
+/**
+ * The attacker's type factor against one victim; typeless is neutral. The
+ * victim's secondary affinity is read on the incoming side, so a
+ * super-effective hit that the secondary resists collapses to neutral — the
+ * same rule the legacy clock uses (FR-4, audit finding 2).
+ */
 export function typeAgainst(
   attacker: StrikeStats,
   victim: StrikeStats,
 ): TypeFactor {
   if (!attacker.element || !victim.element) return { num: 1, den: 1 }
-  return typeFactor(attacker.element, victim.element)
+  return incomingTypeFactor(
+    attacker.element,
+    victim.element,
+    victim.affinity ?? null,
+  )
 }
 
 /** One landed blow, as the step reports it. */
@@ -208,6 +216,12 @@ export interface StrikeReport {
   readonly interrupted: boolean
 }
 
+/** One swing that swept its whole active window and touched nothing (FR-18). */
+export interface WhiffReport {
+  readonly attackerKey: string
+  readonly moveId: string
+}
+
 /** The fighters after resolution, plus every blow that landed. */
 export interface StrikeResolution {
   readonly fighters: readonly [FighterState, FighterState]
@@ -220,6 +234,10 @@ export interface StrikeResolution {
  * advanced attack phases; every hit test reads `before`, so two overlapping
  * active frames trade in one step (FR-7) and neither can cancel the other's
  * already-active frame. Only a victim's startup can be cancelled.
+ *
+ * A swing is tested on every active step (FR-18): the victim's live position,
+ * height, and the attacker's arc decide, edge to edge. The first landing sets
+ * the swing's `landed` flag, so a 60 ms window lands one blow, not three.
  *
  * This is the melee path: a ranged move's active window fires a projectile
  * instead of landing on the spot (FR-8), so it never resolves here.
@@ -234,7 +252,7 @@ export function resolveStrikes(
   let away = after[1]
   for (const side of [0, 1] as const) {
     const attack = after[side].attack
-    if (attack?.phase !== "active") continue
+    if (attack?.phase !== "active" || attack.landed) continue
     const row = getFrameData(attack.moveId)
     const move = getMove(attack.moveId)
     if (!row || !move) throw new Error(`Unknown move: ${attack.moveId}`)
@@ -242,8 +260,15 @@ export function resolveStrikes(
     const other = side === 0 ? 1 : 0
     const attacker = before[side]
     const victim = before[other]
-    if (!withinReach(attacker.pos, victim.pos, row.reachMm)) continue
+    if (!bandOverlapsBody(row.band, victim.heightMm)) continue
+    if (!reachesBody(bodyOf(attacker), bodyOf(victim), row.reachMm)) continue
     if (!inFrontArc(attacker.facing, attacker.pos, victim.pos)) continue
+    const struck: FighterState = {
+      ...after[side],
+      attack: { ...attack, landed: true },
+    }
+    if (side === 0) home = struck
+    else away = struck
     const victimAttack = after[other].attack
     const counter = victimAttack?.phase === "recovery"
     const interrupted = victimAttack?.phase === "startup"
@@ -273,4 +298,26 @@ export function resolveStrikes(
     })
   }
   return { fighters: [home, away], strikes }
+}
+
+/**
+ * The melee swings that closed their active window without landing a blow
+ * (FR-18, AC-18). A swing is a whiff when the top of the step was still
+ * active and untouched, and the step that advanced it left the active phase —
+ * the victim stepped out of the arc, out of reach, or out of the band.
+ */
+export function whiffsOf(
+  before: readonly [FighterState, FighterState],
+  after: readonly [FighterState, FighterState],
+): WhiffReport[] {
+  const whiffs: WhiffReport[] = []
+  for (const side of [0, 1] as const) {
+    const previous = before[side].attack
+    if (previous?.phase !== "active" || previous.landed) continue
+    if (after[side].attack?.phase === "active") continue
+    const move = getMove(previous.moveId)
+    if (!move?.melee) continue
+    whiffs.push({ attackerKey: before[side].key, moveId: previous.moveId })
+  }
+  return whiffs
 }

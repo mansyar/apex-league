@@ -50,6 +50,8 @@ function fighter(overrides: Partial<FighterState> = {}): FighterState {
     pos: { x: 0, y: 0, z: 0 },
     vel: { x: 0, y: 0, z: 0 },
     facing: EAST,
+    radiusMm: 220,
+    heightMm: 900,
     spd: 10,
     hp: 100,
     hpMax: 100,
@@ -149,6 +151,7 @@ describe("poise — the break window (FR-9, AC-9)", () => {
       moveId: "basic",
       phase: "active",
       elapsedMs: 0,
+      landed: false,
     }
     const broken = applyPoiseDamage(fighter({ poise: 1, attack }), 1)
     expect(broken.attack).toBeNull()
@@ -219,12 +222,12 @@ describe("poise — the grace period (FR-9)", () => {
 
 describe("poise — the fight (FR-9, AC-9)", () => {
   test("a trade empties both meters and cancels both active frames", () => {
-    const fight = duel(4)
+    const fight = duel(2)
     expect(fight.commit(0, "basic")).toBe(true)
     expect(fight.commit(1, "basic")).toBe(true)
-    // basic opens its active window on the fourth step; two blows (2 points
-    // each) empty a 4-point pool.
-    hold(fight, 5)
+    // basic opens its active window on the fourth step and lands one blow of
+    // 2 poise, which empties a 2-point pool (one blow per swing, FR-18).
+    hold(fight, 4)
     for (const one of fight.state.fighters) {
       expect(isBroken(one)).toBe(true)
       expect(one.poise).toBe(0)
@@ -236,13 +239,13 @@ describe("poise — the fight (FR-9, AC-9)", () => {
   })
 
   test("the punish window expires and the victim can commit again", () => {
-    const fight = duel(4)
+    const fight = duel(2)
     fight.commit(0, "basic")
-    hold(fight, 5)
+    hold(fight, 4)
     hold(fight, POISE_BREAK_MS / STEP_MS)
     const victim = fight.state.fighters[1]
     expect(isBroken(victim)).toBe(false)
-    expect(victim.poise).toBe(4)
+    expect(victim.poise).toBe(2)
     expect(victim.poiseGraceMs).toBe(POISE_GRACE_MS)
     expect(fight.commit(1, "spark")).toBe(true)
   })

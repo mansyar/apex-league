@@ -10,14 +10,15 @@
 import { describe, expect, test } from "bun:test"
 import { strikeDamage } from "../damage"
 import { BODY_RADIUS_MM } from "../frames"
+import { bodyOf, segmentHitsBody } from "./contact"
 import { openingPoise } from "./poise"
 import {
   advanceProjectile,
   DODGE_CLEARANCE_MM,
-  hasArrived,
   launchProjectile,
   type ProjectileResolution,
   type ProjectileState,
+  passedBody,
   perpendicularOffsetMm,
   resolveProjectiles,
   type ShotReport,
@@ -87,6 +88,8 @@ function fighter(
     pos: at(x),
     vel: { x: 0, y: 0, z: 0 },
     facing,
+    radiusMm: 220,
+    heightMm: 900,
     spd: 10,
     hp: 100,
     hpMax: 100,
@@ -205,18 +208,31 @@ describe("projectiles — travel (FR-8)", () => {
     expect(advanceProjectile(advanceProjectile(slow)).travelledMm).toBe(160)
   })
 
-  test("arrival is a body radius short of the line position", () => {
+  test("a shot is spent once it has passed the body", () => {
     const fight = duel(3000)
     const [home, away] = fight.state.fighters
+    const body = bodyOf(away)
     const shot = launched(home, away, "spark")
-    expect(hasArrived(shot, away.pos)).toBe(false)
-    expect(
-      hasArrived({ ...shot, travelledMm: 3000 - BODY_RADIUS_MM - 1 }, away.pos),
-    ).toBe(false)
-    expect(
-      hasArrived({ ...shot, travelledMm: 3000 - BODY_RADIUS_MM }, away.pos),
-    ).toBe(true)
-    expect(hasArrived({ ...shot, travelledMm: 4000 }, away.pos)).toBe(true)
+    expect(passedBody(shot, body)).toBe(false)
+    expect(passedBody({ ...shot, travelledMm: 3220 }, body)).toBe(false)
+    expect(passedBody({ ...shot, travelledMm: 3221 }, body)).toBe(true)
+    expect(passedBody({ ...shot, travelledMm: 4000 }, body)).toBe(true)
+  })
+
+  test("a fast shot cannot tunnel through a small body between steps", () => {
+    const home = fighter("home", 0, EAST)
+    const away = { ...fighter("away", 350, WEST), radiusMm: 100 }
+    const shot = launched(home, away, "spark")
+    const first = advanceProjectile(shot)
+    const second = advanceProjectile(first)
+    const body = bodyOf(away)
+    const band = { fromMm: 150, toMm: 1100 }
+    expect(second.travelledMm).toBe(480)
+    expect(segmentHitsBody(first.pos, second.pos, body, band)).toBe(true)
+    const report = onlyShot(
+      resolveShot(shot, [home, away], [home, away], STATS).shots,
+    )
+    expect(report.outcome).toBe("hit")
   })
 
   test("perpendicular offset is a cross product, never trigonometry", () => {
@@ -298,6 +314,7 @@ describe("projectiles — damage reuses the strike path (FR-4)", () => {
       moveId: "basic",
       phase: "recovery",
       elapsedMs: 0,
+      landed: true,
     }
     const report = onlyShot(
       resolveShot(
@@ -318,6 +335,7 @@ describe("projectiles — damage reuses the strike path (FR-4)", () => {
       moveId: "basic",
       phase: "startup",
       elapsedMs: 0,
+      landed: false,
     }
     const result = resolveShot(
       launched(home, away, "spark"),

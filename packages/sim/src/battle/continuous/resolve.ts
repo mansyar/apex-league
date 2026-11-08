@@ -21,7 +21,8 @@
  * legacy path, and this engine is a separate entry point.
  */
 
-import type { Temperament } from "../../species"
+import { getBranch } from "../../branches"
+import { bodyProfileFor, getSpecies, type Temperament } from "../../species"
 import { type BattleEvent, fighterKey } from "../clock"
 import type { Tactic } from "../policy"
 import type { BattleReason, BattleResult, BattleSide } from "../resolver"
@@ -139,16 +140,37 @@ function fightKeys(sides: Sides): [string, string] {
   return [first, first === second ? `${second}#1` : second]
 }
 
-/** One side's opening order: stats, hit points, and a facing at its foe. */
+/**
+ * The body volume a side opens with (FR-17): its form names a species, the
+ * species names an archetype, and the archetype's authored profile gives the
+ * radius and height. A side with no branch, or a branch with no species (the
+ * legacy form), takes the default body rather than inventing a size.
+ */
+function bodyFor(side: BattleSide): { radiusMm: number; heightMm: number } {
+  const branch = side.branch ? getBranch(side.branch) : undefined
+  const species = branch?.speciesId ? getSpecies(branch.speciesId) : undefined
+  const body = bodyProfileFor(species?.archetypeId)
+  return { radiusMm: body.radiusMm, heightMm: body.heightMm }
+}
+
+/** One side's opening order: stats, hit points, body volume, and a facing at its foe. */
 function initFor(side: BattleSide, key: string, index: 0 | 1): FighterInit {
   const way = index === 0 ? 1 : -1
+  const body = bodyFor(side)
   return {
     key,
     spd: side.stats.spd,
     at: { x: way * OPENING_GAP_MM, z: 0 },
     facing: { x: way * DIR_SCALE, z: 0 },
-    stats: { atk: side.stats.atk, def: side.stats.def, element: side.element },
+    stats: {
+      atk: side.stats.atk,
+      def: side.stats.def,
+      element: side.element,
+      affinity: side.affinity ?? null,
+    },
     hp: side.stats.hp,
+    radiusMm: body.radiusMm,
+    heightMm: body.heightMm,
   }
 }
 

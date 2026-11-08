@@ -78,6 +78,11 @@ export interface AttackState {
   readonly phase: AttackPhase
   /** Time already spent in the current phase, in ms. */
   readonly elapsedMs: number
+  /**
+   * True once this swing has landed a blow. One swing lands at most once
+   * (FR-18), so the active window keeps sweeping without a second hit.
+   */
+  readonly landed: boolean
 }
 
 /** One fighter's continuous state. */
@@ -90,6 +95,10 @@ export interface FighterState {
   readonly vel: Vec3
   /** Where the fighter looks, as a planar direction. */
   readonly facing: Dir2
+  /** Half the body's width in mm: two radii are the closest centres may sit. */
+  readonly radiusMm: number
+  /** How tall the body stands from the floor, in mm (FR-17). */
+  readonly heightMm: number
   /** The speed stat the movement tunables read. */
   readonly spd: number
   /** Hit points left; a fighter at 0 is down (FR-12). */

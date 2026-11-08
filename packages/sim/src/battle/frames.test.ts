@@ -68,6 +68,14 @@ describe("frame data — catalog completeness", () => {
     }
   })
 
+  test("authors a non-empty height band on every row", () => {
+    for (const move of ALL_MOVES) {
+      const band = frameOf(move.id).band
+      expect(band.toMm).toBeGreaterThan(band.fromMm)
+      expect(band.fromMm).toBeGreaterThanOrEqual(0)
+    }
+  })
+
   test("gives every ranged move a speed and the melee basic none", () => {
     expect(frameOf(BASIC_MOVE.id).speedMmPerMs).toBe(0)
     for (const move of CATALOG) {
@@ -158,11 +166,46 @@ describe("frame data — validation", () => {
     ).toThrow(/positive recovery/)
   })
 
-  test("rejects an empty active window", () => {
+  test("rejects an active window shorter than one step", () => {
     const spark = moveOf("spark")
     expect(() =>
       validateFrameData(spark, { ...frameOf(spark.id), activeMs: 0 }),
-    ).toThrow(/positive active window/)
+    ).toThrow(/at least one step/)
+    expect(() =>
+      validateFrameData(spark, { ...frameOf(spark.id), activeMs: 19 }),
+    ).toThrow(/at least one step/)
+    expect(() =>
+      validateFrameData(spark, { ...frameOf(spark.id), activeMs: 20 }),
+    ).not.toThrow()
+  })
+
+  test("rejects an empty or inverted height band", () => {
+    const spark = moveOf("spark")
+    const base = frameOf(spark.id)
+    expect(() =>
+      validateFrameData(spark, {
+        ...base,
+        band: { fromMm: 600, toMm: 600 },
+      }),
+    ).toThrow(/positive height/)
+    expect(() =>
+      validateFrameData(spark, {
+        ...base,
+        band: { fromMm: 900, toMm: 300 },
+      }),
+    ).toThrow(/positive height/)
+    expect(() =>
+      validateFrameData(spark, {
+        ...base,
+        band: { fromMm: -1, toMm: 600 },
+      }),
+    ).toThrow(/below the floor/)
+    expect(() =>
+      validateFrameData(spark, {
+        ...base,
+        band: { fromMm: 0, toMm: 2001 },
+      }),
+    ).toThrow(/implausibly high/)
   })
 
   test("rejects a projectile that never travels", () => {

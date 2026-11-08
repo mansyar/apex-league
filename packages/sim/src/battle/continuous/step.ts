@@ -9,7 +9,9 @@
  */
 
 import { makeRng } from "../../rng"
+import { BODY_RADIUS_MM } from "../frames"
 import { type StepContext, type StepResult, stepFight } from "./advance"
+import { DEFAULT_BODY_HEIGHT_MM } from "./contact"
 import { isBroken, openingPoise } from "./poise"
 import { openingStamina, spendAttack } from "./stamina"
 import {
@@ -47,6 +49,10 @@ export interface FighterInit {
   readonly at: Readonly<{ x: number; z: number }>
   /** Opening facing; defaults to looking down +z. */
   readonly facing?: Dir2
+  /** Body radius in mm; defaults to `BODY_RADIUS_MM` (FR-17). */
+  readonly radiusMm?: number
+  /** Body height in mm; defaults to `DEFAULT_BODY_HEIGHT_MM` (FR-17). */
+  readonly heightMm?: number
   /** Combat stats a strike reads; defaults to typeless 1/1 (FR-4). */
   readonly stats?: StrikeStats
   /** Hit points at the opening; defaults to `DEFAULT_HP` (FR-12). */
@@ -104,6 +110,8 @@ export function stateHash(state: FightState): number {
     mix(fighter.vel.z)
     mix(fighter.facing.x)
     mix(fighter.facing.z)
+    mix(fighter.radiusMm)
+    mix(fighter.heightMm)
     mix(fighter.spd)
     mix(fighter.hp)
     mix(fighter.hpMax)
@@ -122,6 +130,7 @@ export function stateHash(state: FightState): number {
       }
       mix(ATTACK_PHASES.indexOf(attack.phase))
       mix(attack.elapsedMs)
+      mix(attack.landed ? 1 : 0)
     }
   }
   mix(state.projectiles.length)
@@ -184,11 +193,19 @@ function openFighter(init: FighterInit, bounds: ArenaBounds): FighterState {
   const hpMax = init.hp ?? DEFAULT_HP
   requireInteger(hpMax, `${init.key} hp`)
   if (hpMax <= 0) throw new Error(`${init.key} needs a positive hp`)
+  const radiusMm = init.radiusMm ?? BODY_RADIUS_MM
+  const heightMm = init.heightMm ?? DEFAULT_BODY_HEIGHT_MM
+  requireInteger(radiusMm, `${init.key} radius`)
+  requireInteger(heightMm, `${init.key} height`)
+  if (radiusMm <= 0) throw new Error(`${init.key} needs a positive radius`)
+  if (heightMm <= 0) throw new Error(`${init.key} needs a positive height`)
   return {
     key: init.key,
     pos: { x: init.at.x, y: 0, z: init.at.z },
     vel: { x: 0, y: 0, z: 0 },
     facing,
+    radiusMm,
+    heightMm,
     spd: init.spd,
     hp: hpMax,
     hpMax,
@@ -244,6 +261,8 @@ export function createFight(config: FightConfig): Fight {
         hash: stateHash(state),
         strikes: outcome.strikes,
         shots: outcome.shots,
+        launched: outcome.launched,
+        whiffs: outcome.whiffs,
         dodges: outcome.dodges,
       }
     },

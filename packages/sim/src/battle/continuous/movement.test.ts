@@ -43,6 +43,8 @@ function fighter(overrides: Partial<FighterState> = {}): FighterState {
     pos: { x: 0, y: 0, z: 0 },
     vel: { x: 0, y: 0, z: 0 },
     facing: FACING_POSITIVE_Z,
+    radiusMm: 220,
+    heightMm: 900,
     spd: 10,
     hp: 100,
     hpMax: 100,

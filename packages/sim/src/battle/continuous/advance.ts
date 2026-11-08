@@ -15,6 +15,7 @@
  */
 
 import type { Rng } from "../../rng"
+import { faceOpponent, separateBodies } from "./contact"
 import { moveFighter } from "./movement"
 import { advancePoise, applyPoiseDamage } from "./poise"
 import {
@@ -29,6 +30,8 @@ import {
   resolveStrikes,
   type StrikeReport,
   type StrikeStats,
+  type WhiffReport,
+  whiffsOf,
 } from "./strike"
 import {
   type ArenaBounds,
@@ -53,6 +56,10 @@ export interface StepOutcome {
   readonly strikes: readonly StrikeReport[]
   /** Shots that resolved this step, hit or dodged (FR-8). */
   readonly shots: readonly ShotReport[]
+  /** Shots launched this step, as their active windows opened (FR-8). */
+  readonly launched: readonly ProjectileState[]
+  /** Melee swings that closed their window without landing (FR-18). */
+  readonly whiffs: readonly WhiffReport[]
   /** Dodge orders this step, paid or refused, in fighter order (FR-10). */
   readonly dodges: readonly DodgeReport[]
 }
@@ -98,12 +105,18 @@ export function stepFight(
   )
   const launched = launchShots(state.step, before, advanced)
   const settled = settleMeters(struck.strikes, flight.shots, flight.fighters)
+  const whiffs = whiffsOf(before, advanced)
   const dodges: DodgeReport[] = []
   // `applyIntent` carries the attack and both meters across (FR-6, FR-9, FR-10).
-  const fighters: readonly [FighterState, FighterState] = [
+  const moved: readonly [FighterState, FighterState] = [
     applyIntent(settled[0], intents[0], bounds, dodges),
     applyIntent(settled[1], intents[1], bounds, dodges),
   ]
+  // Bodies are solid, so overlapping centres push apart before the next step
+  // (FR-17). Facing then turns from the pre-step facing toward the opponent,
+  // so strafing no longer swings a body's back into a blow (FR-18, T2.3).
+  const separated = separateBodies(moved, bounds)
+  const fighters = faceOpponent(separated, before)
   return {
     state: {
       step: state.step + 1,
@@ -114,6 +127,8 @@ export function stepFight(
     },
     strikes: struck.strikes,
     shots: flight.shots,
+    launched,
+    whiffs,
     dodges,
   }
 }
@@ -142,9 +157,11 @@ function applyIntent(
 /**
  * Launch one shot for each side whose active window just opened (FR-8). A
  * melee move launches nothing, and a window that is already active fired on
- * the step it opened, so one committed move fires exactly once. The shot's id
- * is the launching step and side, which is unique because a side opens at
- * most one window per step.
+ * the step it opened, so one committed move fires exactly once. `frames.ts`
+ * rejects an active window shorter than one step, so the opening step is
+ * always observed here rather than skipped over (FR-19, audit finding 8). The
+ * shot's id is the launching step and side, which is unique because a side
+ * opens at most one window per step.
  */
 function launchShots(
   step: number,
