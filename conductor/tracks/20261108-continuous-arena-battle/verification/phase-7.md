@@ -165,5 +165,39 @@ the diff.
 - `packages/sim/src/battle/continuous/resolve.test.ts` — 9 tests over the
   endings and the contract
 - `packages/sim/src/battle/continuous/{types,step,advance}.ts` — HP seam
-- `packages/sim/src/cup/__rework_probe.test.ts` — the live cup consumes the
+- `packages/sim/src/cup/__rework_probe.test.ts` - the live cup consumes the
   continuous `BattleResult`
+
+## Primary verification
+
+| Layer | Command | Exit | Result |
+| --- | --- | --- | --- |
+| static | `bun run verify` | 0 | 4 workspace typechecks clean; 3673 pass, 1 skip, 0 fail across 344 files; biome 858 files clean; determinism gate byte-identical |
+| build | `bun run build` | 0 | Vite built 383 modules; only the pre-existing chunk-size warning |
+
+Verified by the primary agent. `battle/resolver.ts` and every `*.balance.test.ts`
+are absent from the phase diff, so the legacy path and the calibrated suites are
+untouched.
+
+**Rework 1:** the phase first reported blocked on `P7.T2.1` because the coach's
+`tactic` is the player's only input on the cup path and the continuous controller
+never read it. Ruling: tactic maps onto the engagement profile. `engagementFor`
+now starts from the temperament row and overrides only `preferredRangeMm` (±600
+mm) and `aggression` (±10), so coaching still decides *where* the fight happens
+and the archetype still decides *how* it fights. The two tactic-sensitivity
+property tests pass unmodified; 9 test files were re-pinned to new outcomes.
+
+**Primary cleanup:** the phase left its temporary census probe at
+`packages/sim/src/cup/__rework_probe.test.ts` because the execution sandbox
+refused deletion. The test is real and worth keeping, so it was renamed to
+`packages/sim/src/cup/live-wiring.test.ts` and its filename note removed.
+
+**Not squashed:** the range holds the primary agent's contact-model amendment
+(`860c6a59`) and the audit fold-in (`ad16982e`), which are unreported relative to
+the phase and must not be folded into a feature commit. Checkpoint is the cleanup
+commit `8b0d32a3`.
+
+**Debt carried into Phase 8:** `BattleSide.affinity` is still unread by the
+continuous damage path (P8.T4), the event log emits only `down`/`basic`/`impact`/
+`stagger`/`time`/`draw` so replays show no shots or approach (P8.T5.1), and
+`SIM_VERSION` is still 1 after the cup switched engines (P8.T5.2).

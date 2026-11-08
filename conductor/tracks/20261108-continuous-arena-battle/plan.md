@@ -134,12 +134,16 @@
 - **Covers:** FR-12, AC-12
 - **Touches:** `packages/sim/src/battle/continuous/resolve.ts`, `packages/sim/src/battle/resolver.ts`, `packages/sim/src/battle/index.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P7.T1: Endings** — covers: FR-12
-  - [ ] **P7.T1.1: KO, double KO, and time cap judged by HP%, then poise damage dealt, then seed.**
-- [ ] **P7.T2: Resolver adapter** — covers: FR-12
-  - [ ] **P7.T2.1: Emit the existing `BattleResult` shape and wire the exhibition and cup call sites.**
+- [x] **P7.T1: Endings** — covers: FR-12
+  - [x] **P7.T1.1: KO, double KO, and time cap judged by HP%, then poise damage dealt, then seed.**
+- [x] **P7.T2: Resolver adapter** — covers: FR-12
+  - [x] **P7.T2.1: Emit the existing `BattleResult` shape and wire the exhibition and cup call sites.**
+
+**Result:** verified
+**Checkpoint:** 8b0d32a3
+**Evidence:** conductor/tracks/20261108-continuous-arena-battle/verification/phase-7.md
 
 ## Phase 8: Contact Geometry
 
