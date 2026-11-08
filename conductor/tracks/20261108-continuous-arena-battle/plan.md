@@ -116,7 +116,7 @@
 - **Covers:** FR-11, AC-11
 - **Touches:** `packages/sim/src/battle/continuous/controller.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P6.T1: Intent model and cadence** — covers: FR-11
   - [ ] **P6.T1.1: Advance, retreat, strafe, hold, commit, and dodge on a fixed decision cadence.**
