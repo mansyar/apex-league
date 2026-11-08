@@ -76,7 +76,8 @@ describe("frame data — catalog completeness", () => {
   })
 
   test("looks rows up by id, refusing unknown and prototype keys", () => {
-    expect(frameOf("spark")).toBe(FRAME_DATA.spark)
+    const spark = frameOf("spark")
+    expect(FRAME_DATA.spark).toBe(spark)
     expect(getFrameData("no_such_move")).toBeUndefined()
     expect(getFrameData("constructor")).toBeUndefined()
   })
@@ -194,11 +195,11 @@ describe("frame data — validation", () => {
   test("rejects negative poise damage and stamina cost", () => {
     const spark = moveOf("spark")
     const base = frameOf(spark.id)
-    expect(() => validateFrameData(spark, { ...base, poiseDamage: -1 })).toThrow(
-      /Poise damage/,
-    )
-    expect(() => validateFrameData(spark, { ...base, staminaCost: -1 })).toThrow(
-      /Stamina cost/,
-    )
+    expect(() =>
+      validateFrameData(spark, { ...base, poiseDamage: -1 }),
+    ).toThrow(/Poise damage/)
+    expect(() =>
+      validateFrameData(spark, { ...base, staminaCost: -1 }),
+    ).toThrow(/Stamina cost/)
   })
 })
