@@ -201,7 +201,7 @@
 - **Covers:** FR-20, FR-21, AC-20, AC-21
 - **Touches:** `packages/sim/src/battle/continuous/controller.ts`, `packages/sim/src/battle/continuous/advance.ts`, `packages/sim/src/battle/continuous/movement.ts`, `packages/sim/src/battle/continuous/resolve.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P10.T1: Dodge burst** — covers: FR-20
   - [ ] **P10.T1.1: Burst speed, duration, cooldown, and stamina price, aimed clear of the incoming line.**
