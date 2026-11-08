@@ -40,6 +40,18 @@ export {
   resolveContinuous,
   TACTIC_OVERLAYS,
 } from "./continuous/resolve"
+export {
+  type FightStream,
+  readFrame,
+  rememberStream,
+  STREAM_FIELD,
+  STREAM_FIELDS,
+  STREAM_PHASE,
+  type StreamFrame,
+  type StreamPhase,
+  stepIndexAt,
+  streamOf,
+} from "./continuous/stream"
 export { strikeDamage } from "./damage"
 export { makeExhibition, type SparSetup } from "./exhibition"
 export { BASIC_MOVE, getMove, type MoveDef } from "./moves"

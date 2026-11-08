@@ -36,6 +36,7 @@ import {
 } from "./controller"
 import { hpSnapshot, type Sides, stepEvents } from "./report"
 import { createFight, type Fight, type FighterInit } from "./step"
+import { createStreamRecorder, rememberStream } from "./stream"
 import {
   type ArenaBounds,
   DIR_SCALE,
@@ -162,8 +163,7 @@ function bodyFor(side: BattleSide): { radiusMm: number; heightMm: number } {
  * The band is a duration, and duration is hit points over the damage the foe's
  * innate strike deals, so this is the pacing dial that does not touch a single
  * frame or the damage formula. Phase 10 measured the unscaled roster at
- * 4.9–23.6 s per fight (Phase 10 baseline, 14 pairings) and set the scale from
- * that table; see the phase evidence for the arithmetic.
+ * 4.9–23.6 s per fight (14 pairings) and set the scale from that table.
  */
 export const HP_SCALE_PERCENT = 390
 
@@ -194,8 +194,7 @@ export function initFor(
 
 /**
  * The ending a state has already reached, or null while the fight is live.
- * Both sides at zero is a double KO whatever order they fell in: the step is
- * judged as a whole (FR-7, FR-12).
+ * Both sides at zero is a double KO (FR-7, FR-12).
  */
 export function downEnding(state: FightState): Ending | null {
   const [home, away] = state.fighters
@@ -265,6 +264,12 @@ export function resolveContinuous(
   const events: BattleEvent[] = []
   let ending: Ending | null = null
   let state = fight.state
+  const recorder = createStreamRecorder(
+    keys,
+    ARENA_BOUNDS,
+    FIGHT_CAP_STEPS + 1,
+    state,
+  )
 
   for (let step = 0; step < FIGHT_CAP_STEPS && !ending; step++) {
     const before = state
@@ -293,6 +298,7 @@ export function resolveContinuous(
       poiseDealt[side] += shot.poiseDamage
     }
     events.push(...stepEvents(result, sides, before, downed))
+    recorder.push(state, result.pinned)
     ending = downEnding(state)
   }
 
@@ -308,9 +314,8 @@ export function resolveContinuous(
       line: `Time's up. ${sides.names[side]} is still standing.`,
     })
   } else if (ending.reason === "double_ko") {
-    // The draw has no winner, but an event still belongs to a slot: playback
-    // and the cup's per-slot filters key on `actorKey`, so the beat is filed
-    // under the first side with a line that names neither as the victor.
+    // A draw still files under a slot: playback and the cup's filters key on
+    // `actorKey`, and the line names neither side as the victor.
     events.push({
       tick: state.step,
       kind: "draw",
@@ -321,10 +326,13 @@ export function resolveContinuous(
     })
   }
 
-  return {
+  const result: BattleResult = {
     winner: ending.side === null ? null : sides.names[ending.side],
     reason: ending.reason,
     finalHp: hpSnapshot(state, sides.keys),
     events,
   }
+  // The dense trace rides with the result in memory (never in the save):
+  // the arena that plays this fight reads it, a restored verdict does not.
+  return rememberStream(result, recorder.finish())
 }
