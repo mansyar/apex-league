@@ -244,3 +244,131 @@ AC-13 is therefore verified functionally but not visually. The checks the owner
 must make at playtest are listed in `playtest.md`; the phone-width readability
 question is the one that cannot be answered without a real narrow viewport and
 stays open until someone looks at it.
+
+## Rework 1 — position ownership
+
+The owner reported that a creature is shoved forward by a special and then snaps
+back. `.conductor/evidence/teleport-repro.md` shows the simulation is clean (24
+seeded fights, 14,520 steps, worst per-step move 47.2 mm, zero jumps over
+120 mm): the pop is client-side. `staging.applyStep` still ran the impact and
+projectile choreography in dense mode, and that choreography wrote `stage` —
+`contactReaction`'s shove, the dodge dash, the melee stance spacing and the reel
+slide — while `dense-playback` overwrote the same field from the trace on the
+next frame. Out by the step, back by the stream: one frame of fake displacement
+per impact, duplicating the knockback Phase 9 added to the sim.
+
+### The failing test (written first)
+
+`apps/client/src/steps/fire.test.ts` gained a `position ownership` suite. It
+drives the **real** `impactStep` / `meleeStep` / `reelStep` through a fake
+`StepIO` (`probeFighter` builds the `DriveFighter` slice, the effects port counts
+flashes / decals / bursts / projectiles / punches, and the staged action is
+captured so the test can run its beats). Each test asserts both halves:
+
+| scenario | dense (`streamOwnsBodies() === true`) | legacy (flag off) |
+|---|---|---|
+| landed impact | `stage` of both fighters **byte-identical** to the pre-step pose | `x` 2.5 → 1.75 (`strikeReach(6)` = 0.75), `z` = `contactJitter(7, "b", 6)` |
+| point-blank special (`pyre_wall`, fire) | `stage` unchanged; burst + flash + decal still fire | same treatment **and** the 0.75 shove |
+| dodged impact (instant) | `stage` and `smooth` unchanged | dash `reactionFor("dodge").dash`, `z` + 0.45, `smooth` snapped |
+| instant melee whiff | `stage` of both unchanged | target dashes 0.85, attacker set to `target.x + 2.1`, `smooth` snapped |
+| knockback reel (instant) | `stage` unchanged | `x` −2.5 → −2.5 + `reactionFor("knockback").slide`, `smooth` snapped |
+
+Run before the fix, with the port declared but nothing gated, it failed for
+exactly the reported reason — the step moved the body the stream owns:
+
+```
+position ownership — the dense stream owns the bodies > a landed impact nudges
+the victim only when the step owns positions
+  expect(received).toEqual(expected)
+  [
+-   2.5,
++   1.75,
+    0,
+-   -0.4,
++   -0.43033576227732373,
+  ]
+  at apps/client/src/steps/fire.test.ts:295:42
+```
+
+The other four failed the same way (1.65 on the dodge and the melee dash, −1.6
+on the reel slide). The legacy assertions in the same tests already passed, so
+the suite proved the bug was confined to the dense branch.
+
+### The flag
+
+`StepIO` (`apps/client/src/steps/context.ts`) gained one port next to the
+others:
+
+```ts
+/** True while the dense stream owns the bodies (FR-13) ... */
+streamOwnsBodies(): boolean
+```
+
+`staging.ts` supplies it from the state it already had —
+`streamOwnsBodies: () => denseMode` — and `denseMode` is set only by
+`applyFrame` (the dense branch) and cleared by `stop()`. `staging.applyStep`'s
+dense branch is unchanged; the same `choreo.apply(step, …)` call now reads the
+flag through the port.
+
+### Files gated
+
+Every `stage` write and every `snapTo` the repro listed, and no others:
+
+| file | gated |
+|---|---|
+| `steps/fire.ts` | `contactReaction`'s `stage.x += away * strikeReach` and `stage.z += contactJitter` |
+| `steps/impact.ts` | dodge `stage.x/z += shift`, the instant `snapTo(target)` after the dodge, the instant `snapTo(target)` after a hit |
+| `steps/melee.ts` | instant dodged `stage.x += away * 0.85` + `snapTo`, the `stage.set(target.x + away * STANCE_GAP, 0, target.z)` + `snapTo(actor)`, and the non-instant landing dash |
+| `steps/reel.ts` | `stage.x += away * spec.slide` and the instant `snapTo(actor)` |
+
+`approach.ts` and `down.ts` also write `stage`, but no dense branch ever runs
+those kinds (`applyStep` only forwards `projectile` and `impact`), so they are
+untouched. `dense-playback.ts`'s stream→stage mapping and `packages/sim/**` were
+not touched.
+
+### Every effect kept
+
+Only positional mutation was removed. Still running in dense mode: the squash
+`impulse` (asserted non-zero), `effects.startFlash`, `bigHit` (camera punch,
+asserted once per landed hit), `effects.spawnDecal`, `arriveSpecial`'s burst
+ring (asserted ≥ 1 for the point-blank special), charge/lane/beam painting, and
+the reel's `reelWobble` lean. Sounds are driven by the playback log, which this
+rework does not touch.
+
+### Legacy path unchanged
+
+The same tests pin the old numbers exactly: the 0.75 m shove plus the seeded
+jitter on `z`, the dodge dash and its 0.45 lateral offset, the 2.1 stance gap,
+the reel slide, and the instant `snapTo` copying `stage` onto `smooth`. The
+whole existing suite (`playbackDriver.test.ts`, `playbackDriver-dense.test.ts`,
+`move-fx/**`, `steps/fire.test.ts`'s contact-jitter and call-site guards) passes
+unchanged — 3,779 pass, 0 fail on the run after the fix. The determinism gate
+did not get to run in any post-change run because the suite step before it
+failed on the unrelated voxel timeouts (see below); nothing under
+`packages/sim/**` was touched, so it has no input to disagree with.
+
+### Deviations
+
+| file | why |
+|---|---|
+| `apps/client/src/move-fx/moves/fallback.test.ts` | Its two fake `StepIO` literals had to gain `streamOwnsBodies: () => false` for the new port to typecheck. Test-only, one line each. |
+| `apps/client/src/staging.ts` | Adding the port pushed the module 183 B over the 12 KB cap (`module-size.test.ts`) — it was already 1 B under. One stale two-line comment ("Resting gap … now live in the steps registry") was shortened to one line to fit; text only, no code. |
+
+### Commands
+
+| command | exit | result |
+|---|---:|---|
+| `bun run verify` — before the fix | 1 | the five new tests fail as quoted above, plus the 12 KB cap on `staging.ts` (12,471 B) |
+| `bun run verify` — after the fix | 1 | tests 3,779 pass, 1 skip, **0 fail** across 351 files; biome flagged two formatting issues in the new test file (import order, two wrapped `expect`s) — fixed |
+| `bun run verify` — after the format fix | 1 | 3,778 pass, 1 skip, 1 fail: `packages/voxel/src/proportion.test.ts` timed out at 126.8 s against the suite's 120 s cap |
+| `bun run verify` — retry | 1 | 3,777 pass, 1 skip, 2 fail: `proportion.test.ts` 127.2 s and `packages/voxel/src/stage.test.ts` 133.7 s, same timeout |
+| `bun run build` | 0 | 396 modules, `index-DXnqqf4n.js` 1,026.20 kB (280.83 kB gzip); chunk-size warning only |
+
+The voxel failures are **not** this rework: no file under `packages/voxel/**`
+changed, both suites are CPU-heavy proportion audits that passed in full in the
+second run above (3,779 pass, 0 fail) at the same source tree — the only later
+edits were formatting in `steps/fire.test.ts` — and they fail only by exceeding
+the 120 s timeout while the 20× parallel suite runs on a loaded machine. The
+client, sim and steps suites — including all five new ownership tests — are
+green in every run after the fix.
+
