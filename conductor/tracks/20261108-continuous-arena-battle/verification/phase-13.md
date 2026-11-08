@@ -177,3 +177,30 @@ second run was clean. Suite count moved 3,790 → 3,792: exactly the two new
 | File | Why |
 | --- | --- |
 | `packages/sim/src/index.ts` | One additive `resolveContinuous` export. Without it the client cannot call the continuous resolver at all (`@apex/sim` exposes only its root entry), so the phase goal is unreachable. No simulation behaviour, no signature, and no other export changed. |
+
+## Primary verification
+
+| Layer | Command | Exit | Result |
+| --- | --- | --- | --- |
+| static + unit + determinism | `bun run verify` | 0 | 3792 pass, Ran 3793 tests across 353 files. [110.42s] |
+| build | `bun run build` | 0 | client build clean |
+
+**Rework 1 — spar was still on the gauge clock.** `apps/client/src/spar.ts:130`
+resolved every spar through `resolveBattle`, so FR-15 was false and the mode the
+owner would playtest was the old engine. Spar now resolves through
+`resolveSpar` -> `resolveContinuous`, the dense stream reaches the arena through
+the existing session, and spar is off the freeze test's allowlist. The
+teleport the owner reported was seen on this legacy path, where `denseMode` is
+false and the old stage nudges are intended; the Phase 11 ownership fix does not
+reach it, which is why migrating spar mattered more than the fix.
+
+**Docs truth pass (P13.T4), done by the primary** because the phase agent is
+denied edits under `conductor/`: the roadmap records the continuous engine, and
+`learnings.md` gained section 13 (a mechanic you cannot reach is not
+implemented — the dodge, the tactic and the flank bonus) and section 14
+(retargeting playback is not retargeting animation; two writers to one field is
+a pop; bounds and the painted ring must be the same number). Committed as
+`3768c4d5`.
+
+Not squashed: the phase held four commits across two agents plus the primary's
+docs sync.

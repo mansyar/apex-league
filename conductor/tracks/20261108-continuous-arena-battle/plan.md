@@ -261,15 +261,18 @@
 - **Covers:** FR-15, FR-16, AC-15, AC-16
 - **Touches:** `packages/sim/src/battle/clock/`, `packages/sim/src/battle/playback.ts`, `packages/sim/src/cup/ghost.ts`, `conductor/product.md`, `conductor/learnings.md`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 865cb8b8
+- **Evidence:** `conductor/tracks/20261108-continuous-arena-battle/verification/phase-13.md`
 
-- [ ] **P13.T1: Freeze the clock** — covers: FR-15
+- [x] **P13.T1: Freeze the clock** — covers: FR-15
   - [ ] **P13.T1.1: Mark `clock/` and `playback.ts` replay-only and route new fights away from them.**
-- [ ] **P13.T2: Version gate** — covers: FR-15
+- [x] **P13.T2: Version gate** — covers: FR-15
   - [ ] **P13.T2.1: Assert mismatched ghost bundles are skipped, now that the bump landed in Phase 8.**
-- [ ] **P13.T3: Compatibility test** — covers: FR-16
+- [x] **P13.T3: Compatibility test** — covers: FR-16
   - [ ] **P13.T3.1: A pre-track save loads and its in-flight cup completes.**
-- [ ] **P13.T4: Docs truth pass** — covers: FR-15
+- [x] **P13.T4: Docs truth pass** — covers: FR-15
   - [ ] **P13.T4.1: Update the product roadmap and learnings.**
 
 ## Playtest at merge
