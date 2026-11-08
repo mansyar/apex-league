@@ -45,6 +45,7 @@ export {
   readFrame,
   rememberStream,
   resolveBattle,
+  resolveContinuous,
   type SparSetup,
   STREAM_FIELD,
   STREAM_FIELDS,

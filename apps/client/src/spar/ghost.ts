@@ -96,7 +96,7 @@ export function readGhostContender(value: unknown): GhostContender | null {
 
 /**
  * A seeded exhibition whose rival wears the ghost champion's kit and name.
- * The bout resolves through the spar's usual `resolveBattle` path, so a
+ * The bout resolves through the spar's usual `resolveContinuous` path, so a
  * ghost win or loss lives only in the panel — no cups, ladder,
  * morning-after, or ghost re-submit can observe it.
  */
