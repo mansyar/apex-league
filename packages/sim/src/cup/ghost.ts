@@ -93,7 +93,11 @@ export function buildGhostBundle(session: CupSession): GhostBundle | null {
   }
 }
 
-/** Replay the deciding battle from the bundle alone (no session needed). */
+/**
+ * Replay the deciding battle from the bundle alone (no session needed). This
+ * primitive does not read `simVersion`; the gate lives in
+ * `verifyGhostBundle`, and a reader that cannot verify skips the replay.
+ */
 export function replayGhost(bundle: GhostBundle): BattleResult {
   return resolveContinuous(bundle.player, bundle.rival, bundle.seed)
 }

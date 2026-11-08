@@ -6,7 +6,7 @@
  */
 
 import { describe, expect, test } from "bun:test"
-import type { Creature } from "../index"
+import type { BattleSide, Creature } from "../index"
 import {
   advanceDay,
   CONDITION_START,
@@ -22,6 +22,7 @@ import {
 } from "../index"
 import {
   buildGhostBundle,
+  type GhostBundle,
   replayGhost,
   SIM_VERSION,
   verifyGhostBundle,
@@ -197,5 +198,75 @@ describe("ghost bundle — deterministic replay", () => {
     expect(verifyGhostBundle({ ...bundle, events: [] })).toBe(false)
     const swapped = [...bundle.events].reverse()
     expect(verifyGhostBundle({ ...bundle, events: swapped })).toBe(false)
+  })
+})
+
+describe("ghost bundle — the simulator version gate (FR-15, AC-15)", () => {
+  /**
+   * One real championship bundle, built once: the gate cases below only read
+   * it (every foreign version is a spread copy), so the cup walk is not
+   * repeated per assertion.
+   */
+  let cached: GhostBundle | null = null
+  function championBundle(): GhostBundle {
+    if (cached) return cached
+    const { creature, day } = championCreatureAndSeed()
+    const species = getSpecies(creature.speciesId)
+    if (!species) throw new Error("unknown species")
+    const loadout = defaultLoadout(creature, species)
+    let session = startCupSession(creature, day, 17)
+    for (let round = 1; round <= 3; round++) {
+      session = resolvePlayerMatch(session, loadout, "balanced").session
+    }
+    const bundle = buildGhostBundle(session)
+    if (!bundle) throw new Error("champion session captured no bundle")
+    cached = bundle
+    return bundle
+  }
+
+  test("the marker stays at v2 — another bump is a deliberate act", () => {
+    // v2 is the continuous contact-geometry generation. Bumping it again
+    // invalidates every stored bundle, so it must be a decision, not a
+    // side effect of a later phase.
+    expect(SIM_VERSION).toBe(2)
+  })
+
+  test("a pre-track (v1) bundle is rejected instead of misreplayed", () => {
+    expect(verifyGhostBundle({ ...championBundle(), simVersion: 1 })).toBe(
+      false,
+    )
+  })
+
+  test("a future (v3) bundle is rejected", () => {
+    expect(
+      verifyGhostBundle({ ...championBundle(), simVersion: SIM_VERSION + 1 }),
+    ).toBe(false)
+    expect(SIM_VERSION + 1).toBe(3)
+  })
+
+  test("a matching bundle still replays byte-identically", () => {
+    const bundle = championBundle()
+    expect(verifyGhostBundle(bundle)).toBe(true)
+    expect(replayGhost(bundle).events).toEqual(bundle.events)
+  })
+
+  test("the gate fails closed before the resolver runs", () => {
+    // A side the resolver cannot walk: if verification replayed before it
+    // read the version, this would throw instead of answering false.
+    const poisoned = {
+      ...championBundle(),
+      player: null as unknown as BattleSide,
+    }
+    expect(verifyGhostBundle({ ...poisoned, simVersion: 1 })).toBe(false)
+    expect(verifyGhostBundle({ ...poisoned, simVersion: 3 })).toBe(false)
+  })
+
+  test("the guarded replay skips a mismatched bundle quietly", () => {
+    const bundle = championBundle()
+    const guarded = (value: GhostBundle) =>
+      verifyGhostBundle(value) ? replayGhost(value) : null
+    expect(guarded({ ...bundle, simVersion: 1 })).toBeNull()
+    expect(guarded({ ...bundle, simVersion: 3 })).toBeNull()
+    expect(guarded(bundle)?.winner).toBe(bundle.winner)
   })
 })
