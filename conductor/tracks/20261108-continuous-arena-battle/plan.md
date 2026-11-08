@@ -59,7 +59,7 @@
 - **Covers:** FR-4, FR-6, FR-7, AC-4, AC-6, AC-7
 - **Touches:** `packages/sim/src/battle/continuous/strike.ts`, `packages/sim/src/battle/continuous/damage.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Reach and positional damage** — covers: FR-4
   - [ ] **P3.T1.1: Euclidean reach check and flank/rear bonus** — applied to the existing integer damage formula.
