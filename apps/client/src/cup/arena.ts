@@ -143,6 +143,7 @@ export function createArena(shared: CupShared): {
     onStep: (step, instant) => {
       handlers.onStep(step, instant)
     },
+    onFrame: (stream, step) => handlers.onFrame(stream, step),
     onLine: shared.setLine,
     onFightStart: (casting) => handlers.onFightStart(casting),
     onPace: (msPerStep) => handlers.onPace(msPerStep),

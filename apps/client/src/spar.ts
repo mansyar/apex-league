@@ -78,6 +78,7 @@ export function createSpar(
     onStep: (step, instant) => {
       handlers.onStep?.(step, instant)
     },
+    onFrame: (stream, step) => handlers.onFrame?.(stream, step),
     onLine: (text) => showLine(text),
     onReplayStart: (run) => {
       log.replaceChildren()

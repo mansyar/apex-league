@@ -1,7 +1,7 @@
-import type { LifeStage, PlaybackStep } from "@apex/sim"
+import type { FightStream, LifeStage, PlaybackStep } from "@apex/sim"
 import type * as THREE from "three"
-import { clamp01 } from "./anim"
-import type { DirectorContext, DirectorStep } from "./director"
+import { createDenseStage, type DenseStage } from "./dense-playback"
+import type { DirectorContext } from "./director"
 import { createFighterDriver, type DriveFighter } from "./fighter-driver"
 import {
   buildSpot,
@@ -9,6 +9,7 @@ import {
   disposeFighter,
   settlePalettes,
 } from "./roster"
+import { createDirectorFeed } from "./staging-director"
 import { createBattleEffects } from "./staging-fx"
 import { createStepChoreo } from "./steps"
 
@@ -62,6 +63,12 @@ export interface Staging {
   cast(casting: FightCasting): void
   /** Drive one playback step: closes, strikes, recoils, dodges, falls. */
   applyStep(step: PlaybackStep, instant?: boolean): void
+  /**
+   * Draw one step of the dense stream (FR-13): the fight plays as a
+   * continuous trace instead of a pose per event. Takes over the bodies
+   * from `applyStep`, which then only paints shot effects on top.
+   */
+  applyFrame(stream: FightStream, step: number): void
   /** Big-hit hook: main.ts points this at the broadcast camera shake. */
   setBigHitHandler(handler: (strength: number) => void): void
   /**
@@ -92,6 +99,10 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   let rival: Combatant | null = null
   let actionRaf: number | null = null
   let driveRaf: number | null = null
+  /** Dense playback machinery (created on the first streamed frame). */
+  let dense: DenseStage | null = null
+  /** True while a dense stream owns the bodies (FR-13). */
+  let denseMode = false
   /** Current spar pacing (ms per playback step); animations scale off it. */
   let paceMs = NORMAL_STEP_MS
   /** Kind of the previously applied step - tells a ranged arrival
@@ -100,30 +111,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   /** Camera-director plumbing: the latest step + when it started. */
   let directorHandler: ((ctx: DirectorContext) => void) | null = null
   let lastStep: PlaybackStep | null = null
-  // Reused per frame - the feed runs on every drive tick, so allocating
-  // fresh objects here would churn the GC in the render loop. The mapped
-  // twin strips readonly for the scratch only; the public contract stays.
-  type MutableDirectorStep = {
-    -readonly [K in keyof DirectorStep]: DirectorStep[K]
-  }
-  type MutableDirectorContext = {
-    -readonly [K in keyof DirectorContext]: DirectorContext[K]
-  }
-  const feedStep: MutableDirectorStep = {
-    kind: "idle",
-    t: 0,
-    tick: 0,
-    reaction: undefined,
-    damage: undefined,
-    ko: undefined,
-  }
-  const feedCtx: MutableDirectorContext = {
-    step: null,
-    actor: { x: 0, y: 0, z: 0 },
-    target: { x: 0, y: 0, z: 0 },
-    projectile: null,
-  }
   let lastStepAt = 0
+  const feedDirector = createDirectorFeed()
   /** Action animation length at the current pace, floor-clamped. */
   const animMs = (): number =>
     Math.max(120, BASE_STEP_ANIM_MS * (paceMs / NORMAL_STEP_MS))
@@ -188,23 +177,16 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         step !== null && (step.kind === "melee" || step.kind === "projectile")
           ? animMs()
           : paceMs
-      const t =
-        step === null ? 0 : clamp01((now - lastStepAt) / Math.max(1, span))
-      if (step === null) {
-        feedCtx.step = null
-      } else {
-        feedStep.kind = step.kind
-        feedStep.t = t
-        feedStep.tick = step.tick
-        feedStep.reaction = step.reaction
-        feedStep.damage = step.damage
-        feedStep.ko = step.ko
-        feedCtx.step = feedStep
-      }
-      feedCtx.actor = owned.group.position
-      feedCtx.target = rival.group.position
-      feedCtx.projectile = effects.firstProjectilePosition()
-      directorHandler(feedCtx)
+      feedDirector({
+        handler: directorHandler,
+        step,
+        span,
+        startedAt: lastStepAt,
+        now,
+        actor: owned.group.position,
+        target: rival.group.position,
+        projectile: effects.firstProjectilePosition(),
+      })
     }
     driveRaf = requestAnimationFrame(drive)
   }
@@ -231,6 +213,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     prevStepKind = null
     lastStep = null
     lastStepAt = 0
+    denseMode = false
+    dense?.reset()
     effects.disposeAll()
   }
 
@@ -310,8 +294,35 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       const kind = step.kind
       lastStep = step
       lastStepAt = performance.now()
+      if (denseMode) {
+        // The stream owns the bodies. The shot beats still run: a launch
+        // and its arrival are effect choreography (the orb, the bolt in
+        // flight, the pop), not position — and the stream has no
+        // projectile track to draw them from.
+        if (kind === "projectile" || kind === "impact") {
+          choreo.apply(step, instant, o, r)
+        }
+        prevStepKind = kind
+        return
+      }
       choreo.apply(step, instant, o, r)
       prevStepKind = kind
+    },
+    applyFrame(stream, step) {
+      if (!owned || !rival) return
+      if (!dense) {
+        dense = createDenseStage({
+          arenaGroup,
+          effects,
+          shake: (strength) => {
+            if (motionPref === "full" && onBigHit.current) {
+              onBigHit.current(strength)
+            }
+          },
+        })
+      }
+      denseMode = true
+      dense.apply(stream, step, owned, rival)
     },
     setBigHitHandler(handler) {
       onBigHit.current = handler
@@ -330,6 +341,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     },
     clear() {
       stop()
+      dense?.dispose()
+      dense = null
       effects.disposeAllDecals()
       settlePalettes([owned, rival])
       disposeFighter(owned, arenaGroup)

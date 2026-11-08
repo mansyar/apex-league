@@ -13,14 +13,9 @@ import {
   type PlaybackStep,
   resolveBattle,
 } from "@apex/sim"
+import { dilatedPace, KO_DILATION, STAMP_BEATS, stampDelay } from "./pacing"
 import type { PlaybackDriverHandlers, PlaybackRun } from "./playbackDriver"
-import {
-  createPlaybackDriver,
-  dilatedPace,
-  KO_DILATION,
-  STAMP_BEATS,
-  stampDelay,
-} from "./playbackDriver"
+import { createPlaybackDriver } from "./playbackDriver"
 import type { PlaybackSpeed } from "./playbackSpeed"
 
 /** A real resolved battle to drive: owned fire drake, seeded rival. */

@@ -4,7 +4,12 @@
  * pass around. Same names and signatures as when they lived in spar.ts.
  */
 
-import type { Creature, makeExhibition, PlaybackStep } from "@apex/sim"
+import type {
+  Creature,
+  FightStream,
+  makeExhibition,
+  PlaybackStep,
+} from "@apex/sim"
 import type { TacticButton } from "../battleUI"
 import type { FightCasting } from "../staging"
 
@@ -21,6 +26,11 @@ export interface SparHandlers {
   onFightStart?: (casting: FightCasting) => void
   /** One playback step should now play in the arena. */
   onStep?: (step: PlaybackStep, instant: boolean) => void
+  /**
+   * One dense stream step should play in the arena (FR-13). Only a fight
+   * resolved in this session carries a trace; the rest never call this.
+   */
+  onFrame?: (stream: FightStream, step: number) => void
   /** The sparring panel closes: the scene swaps back to the ranch. */
   onClose?: () => void
   /**

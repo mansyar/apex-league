@@ -10,10 +10,19 @@ import type { PlaybackStep } from "@apex/sim"
 import {
   type BattleEvent,
   type BattleResult,
-  buildPlaybackScript,
+  type FightStream,
+  streamOf,
 } from "@apex/sim"
 import type { BattleHudFighter } from "./battleHud"
+import {
+  createDenseRunner,
+  type DenseClock,
+  defaultDenseClock,
+} from "./dense-runner"
+import { dumpInstant } from "./instant-dump"
 import { resolveMotionPref } from "./motion"
+import { dilatedPace, KO_DILATION, stampDelay } from "./pacing"
+import { scriptFor } from "./playback-script"
 import {
   PLAYBACK_SPEED_MS,
   type PlaybackSpeed,
@@ -32,11 +41,19 @@ export interface PlaybackRun {
   verdict: Readonly<BattleResult>
   events: readonly BattleEvent[]
   steps: readonly PlaybackStep[]
+  /** The dense trace, when this fight was resolved in this session (FR-13). */
+  stream?: FightStream
 }
 
 export interface PlaybackDriverHandlers {
   /** One playback step should play in the arena (instant = reduced path). */
   onStep: (step: PlaybackStep, instant: boolean) => void
+  /**
+   * One dense stream step should be drawn (FR-13). Present only while a
+   * fight resolved in this session is playing: the arena maps the step onto
+   * the stage instead of stepping between scripted poses.
+   */
+  onFrame?: (stream: FightStream, step: number) => void
   /** The announcer line for the current event (the log / feed). */
   onLine: (text: string) => void
   /** A replay pass is starting: the UI resets its log and stamp chrome. */
@@ -89,29 +106,9 @@ export interface PlaybackDriverOptions {
    * shipped broadcast pacing; tests collapse it to keep the suite fast.
    */
   pace?: (speed: PlaybackSpeed) => number
+  /** Dense playback clock; defaults to animation frames on wall time. */
+  clock?: DenseClock
 }
-
-/**
- * The final blow plays in slow motion (FR8): the wait around a terminal
- * KO step (and the live pace the arena animates to) stretches by this
- * factor, then eases back to the broadcast rhythm.
- */
-export const KO_DILATION = 2.5
-
-/** The pacing math, pure: a KO step dilates the base wait, others do not. */
-export const dilatedPace = (base: number, ko: boolean): number =>
-  ko ? Math.round(base * KO_DILATION) : base
-
-/** How many step-lengths the dust settles for before the stamp lands. */
-export const STAMP_BEATS = 1.2
-
-/**
- * The verdict stamp beat (FR8): the run's terminal wait before the stamp
- * fires. It stretches on a KO so the collapse and dust ring finish
- * breathing before the verdict slams in.
- */
-export const stampDelay = (base: number, ko: boolean): number =>
-  Math.round(base * (ko ? KO_DILATION : 1) * STAMP_BEATS)
 
 export function createPlaybackDriver(
   handlers: PlaybackDriverHandlers,
@@ -119,6 +116,8 @@ export function createPlaybackDriver(
 ): PlaybackDriver {
   const paceFor = (speed: PlaybackSpeed): number =>
     options.pace?.(speed) ?? PLAYBACK_SPEED_MS[speed]
+  /** Dense playback samples fight time on this clock (frames by default). */
+  const clock = options.clock ?? defaultDenseClock
 
   let timer: ReturnType<typeof setTimeout> | null = null
   /**
@@ -168,6 +167,35 @@ export function createPlaybackDriver(
 
   // True while the current run sits in the KO slow-motion beat.
   let dilated = false
+
+  // ── Dense playback (FR-13) ────────────────────────────────────────────
+  // A fight resolved in this session carries its 50 Hz trace. Playing that
+  // is a playhead over fight time, not a timer per event: every frame the
+  // playhead advances, the arena draws that step, and the event log still
+  // speaks at the tick each line belongs to. A verdict with no trace (a
+  // restored save, a legacy replay) keeps the paced step path above. The
+  // clock arithmetic lives in dense-runner.ts.
+  const dense = createDenseRunner(clock)
+
+  /** Start the dense path over a run (fresh start or a replay). */
+  const startDense = (run: PlaybackRun, stream: FightStream): void => {
+    const last = run.steps[run.steps.length - 1]
+    dense.start(
+      {
+        stream,
+        verdict: run.verdict,
+        events: run.events,
+        steps: run.steps,
+        onLine: handlers.onLine,
+        onStep: (step) => handlers.onStep(step, false),
+        holdMs: () => stampDelay(pace(), last?.ko === true),
+        slowBy: KO_DILATION,
+        onFrame: handlers.onFrame,
+        finish,
+      },
+      speed,
+    )
+  }
 
   const finish = (verdict: Readonly<BattleResult>): void => {
     clearTimer()
@@ -232,19 +260,15 @@ export function createPlaybackDriver(
   return {
     start(fight, verdict) {
       clearTimer()
+      dense.stop()
       // A run stopped mid-KO-beat must not leak slow motion into the
       // next one (the flag self-heals later, but announce cleanly).
       dilated = false
-      const steps = buildPlaybackScript(verdict.events)
-      // buildPlaybackScript is a 1:1 event→step map; fail loud if the sim
-      // ever grows an unmapped event kind instead of silently desyncing
-      // the HUD from the log.
-      if (steps.length !== verdict.events.length) {
-        throw new Error(
-          `Playback script out of sync: ${steps.length} steps for ${verdict.events.length} events`,
-        )
-      }
-      lastRun = { fight, verdict, events: verdict.events, steps }
+      const steps = scriptFor(verdict)
+      // The dense trace exists only for a fight resolved in this session;
+      // a restored verdict falls back to the paced step path unchanged.
+      const stream = streamOf(verdict)
+      lastRun = { fight, verdict, events: verdict.events, steps, stream }
       replaying = false
       if (reducedMotion()) {
         runInstant = true
@@ -252,17 +276,18 @@ export function createPlaybackDriver(
         // text-only stepped path for those who want the build-up anyway.
         // The staging jumps straight to its final posture (post-step of
         // the last event).
-        for (let i = 0; i < verdict.events.length; i++) {
-          const event = verdict.events[i]
-          const step = steps[i] ?? steps[steps.length - 1]
-          if (event) handlers.onLine(event.line)
-          if (step) handlers.onStep(step, true)
-        }
+        dumpInstant(verdict.events, steps, handlers.onLine, handlers.onStep)
         finish(verdict)
         return "instant"
       }
       runInstant = false
       speed = "normal"
+      if (stream) {
+        // The dense path owns pacing: the stream plays at its own 50 Hz,
+        // scaled by the pill, so there is no step pace to announce.
+        startDense(lastRun, stream)
+        return "paced"
+      }
       handlers.onPace?.(pace())
       play(verdict.events, 0, verdict, steps)
       return "paced"
@@ -271,16 +296,22 @@ export function createPlaybackDriver(
     replay() {
       if (!lastRun) return
       clearTimer()
+      dense.stop()
       dilated = false
       replaying = true
       speed = "normal"
       handlers.onPace?.(pace())
       handlers.onReplayStart?.(lastRun)
+      if (lastRun.stream) {
+        startDense(lastRun, lastRun.stream)
+        return
+      }
       play(lastRun.events, 0, lastRun.verdict, lastRun.steps)
     },
 
     speedToggle() {
       speed = toggleSpeed(speed)
+      dense.setSpeed(speed)
       // Keep the KO slow motion through a mid-beat toggle: the arena
       // would otherwise snap back to full speed mid-collapse.
       handlers.onPace?.(dilatedPace(pace(), dilated))
@@ -289,11 +320,17 @@ export function createPlaybackDriver(
 
     stop() {
       clearTimer()
+      dense.stop()
     },
 
     setPaused(next) {
       if (next === isPaused) return
       isPaused = next
+      if (dense.running) {
+        if (next) dense.pause()
+        else dense.resume()
+        return
+      }
       if (next) {
         // Hold the beat: drop the timer, keep the continuation.
         if (timer !== null) {

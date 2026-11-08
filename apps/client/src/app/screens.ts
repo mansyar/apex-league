@@ -61,6 +61,8 @@ export function createSparScreen(deps: ScreenDeps): Spar {
       audio.playStepCue(step, instant)
       staging.applyStep(step, instant)
     },
+    // Continuous fights play their dense stream through the arena (FR-13).
+    onFrame: (stream, step) => staging.applyFrame(stream, step),
     onClose: arena.exitArena,
     // The arena scales its action animations to the playback pace, so
     // fast-forward speeds the whole fight up instead of cutting swings.
@@ -98,6 +100,7 @@ export function createCupScreen(deps: CupScreenDeps): Cup {
         audio.playStepCue(step, instant)
         staging.applyStep(step, instant)
       },
+      onFrame: (stream, step) => staging.applyFrame(stream, step),
       onPace: (msPerStep) => staging.setPace(msPerStep),
       onArenaExit: arena.exitArena,
       // The first arena fight consumes the cup (endCup flips the phase) —

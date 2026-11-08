@@ -34,10 +34,13 @@ const SQUASH_D = 13
 /**
  * Show-floor bounds: fighters are clamped well inside the painted
  * boundary ring (8.3) and comfortably inside the broadcast framing, so
- * nobody leaves the arena or the camera's view.
+ * nobody leaves the arena or the camera's view. X matches the sim arena's
+ * half-width exactly; Z is the sim's 3,000 mm half-depth at the dense
+ * mapping (`MM_TO_WORLD` in dense-playback.ts), so a streamed fight is
+ * never clamped — the stream already respects its own fence.
  */
 const BOUNDS_X = 3.2
-const BOUNDS_Z = 1.8
+const BOUNDS_Z = 2.4
 
 /** How deep the squash spring dips the body into the floor. */
 const SQUASH_DIP = 0.42
