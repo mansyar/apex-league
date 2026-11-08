@@ -5,38 +5,39 @@
 - **Date:** 2026-11-08
 - **Branch:** `feat/20261108-continuous-arena-battle`
 - **Base commit:** `2c860c9cb9edefd6b1c55356e5fced72e3253f4c`
-- **Head commit (code under verification):** `93b19b9238060e37d4b64240faad05379a6e2bc7`
-- **Result:** **blocked** — the code state is complete, but the phase executor's
-  shell was denied the verification command. The primary must run it and record
-  the real result.
+- **Head commit (code under verification):** `bd96aabb42e8998043f60809df97d8b904c78eb6`
+- **Result:** **verified** — `bun run verify` and `bun run build` both exit 0.
 
 ## Commands
 
+Run as two separate invocations (the agent rules forbid joining them with `&&`).
+
 | Layer | Command | Exit | Summary |
 | --- | --- | --- | --- |
-| static + unit + determinism + build | `bun run verify && bun run build` | denied | `Permission denied: shell` — the phase executor is not permitted to run it. |
-| static + unit + determinism | `bun run verify` | denied | Same denial when the `&&` chain was split into its first half; not retried further. |
-| client build | `bun run build` | not reached | Blocked behind `verify`. |
+| static | `bun run verify` | 0 | 4 workspace typechecks clean (voxel 160, sim 171, server 44, client 468 files); 3517 tests across 333 files — 3516 pass, 1 skip, 0 fail, 437,088 assertions; `biome check` 835 files clean; voxel determinism gate byte-identical for all 48 creature GLBs plus the 5 props. |
+| build | `bun run build` | 0 | Vite built 370 modules; `dist` assets emitted (996 kB main chunk — the pre-existing >500 kB warning, not an error). |
 
-**Blocker for the primary.** Run `bun run verify && bun run build` at
-`D:\Projects\battle-pets` on `feat/20261108-continuous-arena-battle`. Expected:
-exit 0 — workspace typechecks (`bun check`), the typed parallel suite including
-`packages/sim/src/battle/frames.test.ts` and the 12 KB sim module cap, `biome
-check`, the voxel determinism gate, then the client build.
+### Rework 1
+
+The primary's first run failed on `frames.test.ts(79,35)`: `FRAME_DATA.spark` is
+`FrameData | undefined` under `noUncheckedIndexedAccess`, and bun:test types
+`toBe(expected)` from the received value. Fixed by comparing the table entry
+against a known-present lookup (`const spark = frameOf("spark")`), without
+weakening `frames.ts`. A formatter-only break in the negative poise/stamina
+assertions was fixed in the same commit.
 
 ## Acceptance criteria
 
 | ID | Criterion | Evidence | Status |
 | --- | --- | --- | --- |
-| AC-5 | Every catalog move has complete, non-default frame data, verified by a completeness test. | `packages/sim/src/battle/frames.ts` — `FRAME_DATA` holds 49 rows keyed by move id (the basic strike plus all 48 specials). `frames.test.ts`: "has exactly one row per catalog id and no strays", "authors non-default timing on every row", "passes validation for every catalog move". | pending — test authored, command denied |
-| FR-5 | Every move carries startup, active, recovery, reach, projectile speed, poise damage, and stamina cost. | `FrameData` in `frames.ts` carries exactly those seven fields; `validateFrameData` rejects the rows the engine cannot run. | pending — command denied |
+| AC-5 | Every catalog move has complete, non-default frame data, verified by a completeness test. | `packages/sim/src/battle/frames.ts` — `FRAME_DATA` holds 49 rows keyed by move id (the basic strike plus all 48 specials). `frames.test.ts`: "has exactly one row per catalog id and no strays", "authors non-default timing on every row", "passes validation for every catalog move", "keeps every reach at or above the body radius", "gives every ranged move a speed and the melee basic none". | met |
+| FR-5 | Every move carries startup, active, recovery, reach, projectile speed, poise damage, and stamina cost. | `FrameData` carries exactly those seven fields, units in the type and in each field's doc comment; `validateFrameData` rejects the rows the engine cannot run; every row passes it in the suite. | met |
 
 ## What changed
 
 - `packages/sim/src/battle/frames.ts` (new, ~6 KB — under the 12,288 B cap)
   - `FrameData`: `startupMs`, `activeMs`, `recoveryMs` (ms), `reachMm` (mm),
-    `speedMmPerMs` (mm/ms = m/s), `poiseDamage`, `staminaCost`. Units are in the
-    type and in each field's doc comment.
+    `speedMmPerMs` (mm/ms = m/s), `poiseDamage`, `staminaCost`.
   - `BODY_RADIUS_MM = 220` — the single body-radius constant validation reads.
   - `FRAME_DATA`: one frozen row per move id, ordered like `moves.ts`.
   - `getFrameData(id)` — `Object.hasOwn`-guarded lookup, so prototype keys
@@ -47,9 +48,15 @@ check`, the voxel determinism gate, then the client build.
     damage or stamina cost. Throws a friendly error naming the move, matching
     `validateLoadout`'s style.
 - `packages/sim/src/battle/frames.test.ts` (new) — completeness, authored
-  ordering, and validation suites (15 tests).
+  ordering, and validation suites (16 tests).
 - `packages/sim/src/battle/moves.ts` — **untouched**. The catalog already
   carries the stable ids the table keys off.
+
+## Evidence paths
+
+- `packages/sim/src/battle/frames.ts`
+- `packages/sim/src/battle/frames.test.ts`
+- `conductor/tracks/20261108-continuous-arena-battle/verification/phase-1.md`
 
 ## Deviations
 
@@ -70,7 +77,3 @@ check`, the voxel determinism gate, then the client build.
   mm, all clear of `BODY_RADIUS_MM` (220 mm). `y` stays 0, so reach is planar.
 - **Balance is out of scope** for this track (as the brief states): the numbers
   are plausible and internally ordered, not tuned.
-- **If the verification fails, look here first:** Biome formatting of the 49
-  one-line `frame(...)` rows and the `expect(() => ...)` breaks in
-  `frames.test.ts`; `Object.hasOwn` requires the ES2022 lib, which
-  `tsconfig.base.json` already sets.
