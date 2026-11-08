@@ -243,13 +243,16 @@
 - **Covers:** FR-14, AC-14
 - **Touches:** `packages/sim/scripts/battle-telemetry.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`, `.github/workflows/ci.yml`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 58defa3d
+- **Evidence:** `conductor/tracks/20261108-continuous-arena-battle/verification/phase-12.md`
 
-- [ ] **P12.T1: Recorder** — covers: FR-14
-  - [ ] **P12.T1.1: Engagement distance, exchange rate, idle time, and distinct positions.**
-- [ ] **P12.T2: Thresholds** — covers: FR-14
-  - [ ] **P12.T2.1: Seeded sample across matchups with CI-enforced bounds.**
-  - [ ] **P12.T2.2: Report the share of fights decided at the cap and bound it, so AC-21 cannot be met by stalling.**
+- [x] **P12.T1: Recorder** — covers: FR-14
+  - [x] **P12.T1.1: Engagement distance, exchange rate, idle time, and distinct positions.**
+- [x] **P12.T2: Thresholds** — covers: FR-14
+  - [x] **P12.T2.1: Seeded sample across matchups with CI-enforced bounds.**
+  - [x] **P12.T2.2: Report the share of fights decided at the cap and bound it, so AC-21 cannot be met by stalling.**
 
 ## Phase 13: Legacy Freeze
 

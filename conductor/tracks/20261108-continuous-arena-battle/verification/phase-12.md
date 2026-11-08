@@ -150,3 +150,40 @@ Expected: the table in §2, eight `ok …` lines, exit `0`.
 
 Untouched: every file under `packages/sim/src/battle/continuous/` except the new
 test; `*.balance.test.ts`; `battle/resolver.ts`; the legacy clock; `SIM_VERSION`.
+
+## Primary verification
+
+| Layer | Command | Exit | Result |
+| --- | --- | --- | --- |
+| static + unit + determinism | `bun run verify` | 0 | 3,774 pass, 1 skip, 0 fail, 351 files, 64.56 s; typecheck clean on four packages; Biome 879 files; determinism byte-identical |
+| build | `bun run build` | 0 | 396 modules |
+| telemetry | `bun run telemetry` | 0 | 14 matchups, 8 bound lines all `ok` |
+
+**The phase agent could not run the telemetry command itself** (its shell
+allowlist refused `bun run telemetry`), so it reported blocked with the harness
+implemented and only the standalone invocation unrun. The primary ran it:
+exit 0, the 14-row table reproduced the Phase 10 sample exactly (25.28-40.00 s,
+8 KO / 6 cap), and all eight bounds pass:
+
+```
+ok   engagementMin: observed 379 mm, bound <= 900 mm
+ok   engagementMedian: observed 539 mm, bound <= 1500 mm
+ok   engagementMax: observed 3984 mm, bound <= 4500 mm
+ok   exchangeHome: observed 1.99/s, bound >= 1.00/s
+ok   exchangeAway: observed 1.79/s, bound >= 1.00/s
+ok   idleShare: observed 31.4%, bound <= 40.0%
+ok   distinctPositions: observed 45 cells, bound >= 30 cells
+ok   capShare: observed 42.9%, bound <= 50.0%
+```
+
+Notes on the bounds. `engagementMax` is 3,984 mm in every row because it is the
+opening stance, so it is only a gross-disengagement guard. `capShare` is the
+AC-24 bound fixed by the spec at one in two; the sample sits at 42.9%, which
+tolerates exactly one more cap fight before failing, so the balance track should
+bring the number down rather than the bound up. The remaining concern is that
+this is the same sample the bounds were derived from, so the margins are not
+independent evidence; the CI sample should stay seeded and grow.
+
+Not squashed: the three commits were all the phase agent's, but `package.json`
+now carries the `telemetry` script that CI calls, which is a repo-wide entry
+point rather than phase internals.
