@@ -98,7 +98,7 @@
 - **Covers:** FR-9, FR-10, AC-9, AC-10
 - **Touches:** `packages/sim/src/battle/continuous/poise.ts`, `packages/sim/src/battle/continuous/stamina.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P5.T1: Poise** — covers: FR-9
   - [ ] **P5.T1.1: Depletion, break window in ms, and the time-expressed grace period.**
