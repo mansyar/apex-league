@@ -214,6 +214,45 @@ seconds and a hit rate above zero for both sides.
 scope; body height and height bands are contact geometry, not movement in three
 dimensions.
 
+## Amendment — Hit Reactions (2026-11-08)
+
+Approved after Phase 7 landed and the engine was audited end to end. Contact
+geometry gives a blow a place to land, but nothing in the simulation transfers
+force: a hit is an HP deduction and a poise deduction, and that is all. A fighter
+can therefore only reach the fence by choosing to walk there, and "backed into
+the corner" cannot happen. This amendment adds the missing dynamics. Movement
+stays planar; nothing here introduces verticality.
+
+**FR-22 — Impulse.** A landed blow adds velocity to the victim along the blow
+direction, scaled by the move's poise damage and resisted by the victim's mass.
+Mass is derived from body volume, so a heavy body slides a short distance and a
+light body is thrown further. Knockback decays over a short window and is clamped
+by the arena fence, so a body can be pinned against it but never pushed through.
+
+**FR-23 — Hitstun.** A landed blow suspends the victim's movement and blocks new
+commits for a short window; a poise break suspends them for longer. The victim
+keeps its facing and its stamina. Hitstun is expressed in milliseconds of fight
+time, not in action windows.
+
+**Turn rate (extends FR-18).** Facing eases toward the opponent at a bounded rate
+rather than snapping to it, so a fighter that circles faster than the turn rate
+can still be struck in the flank or rear while a fighter that stands and fights
+always faces its opponent.
+
+**AC-22.** A heavy body and a light body struck by the same blow travel different
+distances, the heavier travelling less; a body knocked at the fence stops at the
+boundary and never crosses it; a body with no room to retreat is observable as
+pinned.
+
+**AC-23.** A struck fighter does not move under its own intent for the hitstun
+window and cannot commit a new attack during it; the same fighter resumes on the
+step after it ends; a broken fighter is suspended for longer than a merely struck
+one.
+
+**Out of scope (reaffirmed).** Projectile arcs, gravity, lobs, splash damage, and
+shot-versus-shot collisions. Every shot stays a straight line at its authored
+speed; an arc field on frame data is a later data extension.
+
 ## References
 
 - `conductor/product.md`, `conductor/workflow.md`

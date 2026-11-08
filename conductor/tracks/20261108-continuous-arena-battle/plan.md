@@ -169,68 +169,85 @@
   - [ ] **P8.T5.1: Emit launch, approach, and hold beats so a replay shows shots and movement.**
   - [ ] **P8.T5.2: Bump `SIM_VERSION` at the switch, not after the cup has been writing new ghosts.**
 
-## Phase 9: Evasion and Pacing
+## Phase 9: Hit Reactions
+
+- **Goal:** a blow moves you, so the fence becomes a threat and the arena's width matters.
+- **Depends on:** Phase 8
+- **Covers:** FR-22, FR-23, AC-22, AC-23
+- **Touches:** `packages/sim/src/battle/continuous/impulse.ts`, `packages/sim/src/battle/continuous/advance.ts`, `packages/sim/src/battle/continuous/movement.ts`, `packages/sim/src/battle/continuous/types.ts`, co-located tests
+- **Verification:** `bun run verify && bun run build`
+- **Status:** pending
+
+- [ ] **P9.T1: Impulse and knockback** — covers: FR-22
+  - [ ] **P9.T1.1: A landed blow adds velocity along the blow direction, scaled by poise damage and resisted by mass.**
+  - [ ] **P9.T1.2: Knockback decays, cannot carry a body through the fence, and a pinned fighter is observable.**
+- [ ] **P9.T2: Hitstun** — covers: FR-23
+  - [ ] **P9.T2.1: A landed blow stops movement and blocks commits for a short window; a broken fighter is helpless for longer.**
+- [ ] **P9.T3: Mass** — covers: FR-22
+  - [ ] **P9.T3.1: Mass derived from body volume, so a heavy body slides less and a light body is thrown further.**
+
+## Phase 10: Evasion and Pacing
 
 - **Goal:** dodging works, and fights last as long as the spec says.
-- **Depends on:** Phase 8
+- **Depends on:** Phase 9
 - **Covers:** FR-20, FR-21, AC-20, AC-21
 - **Touches:** `packages/sim/src/battle/continuous/controller.ts`, `packages/sim/src/battle/continuous/advance.ts`, `packages/sim/src/battle/continuous/movement.ts`, `packages/sim/src/battle/continuous/resolve.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
 - **Status:** pending
 
-- [ ] **P9.T1: Dodge burst** — covers: FR-20
-  - [ ] **P9.T1.1: Burst speed, duration, cooldown, and stamina price, aimed clear of the incoming line.**
-  - [ ] **P9.T1.2: A dodge inside a shot's flight or a swing's active window turns the hit into a miss.**
-- [ ] **P9.T2: Melee evasion balance** — covers: FR-20
-  - [ ] **P9.T2.1: Arc, reach, and timing tuned so evading a swing is possible and not free.**
-- [ ] **P9.T3: Pacing** — covers: FR-21
-  - [ ] **P9.T3.1: Fights land in the 25-40 s band with both sides landing blows.**
-  - [ ] **P9.T3.2: Re-pin the cup and lifecycle outcomes the new contact model moves.**
+- [ ] **P10.T1: Dodge burst** — covers: FR-20
+  - [ ] **P10.T1.1: Burst speed, duration, cooldown, and stamina price, aimed clear of the incoming line.**
+  - [ ] **P10.T1.2: A dodge inside a shot's flight or a swing's active window turns the hit into a miss.**
+- [ ] **P10.T2: Melee evasion balance** — covers: FR-20
+  - [ ] **P10.T2.1: Arc, reach, and timing tuned so evading a swing is possible and not free.**
+- [ ] **P10.T3: Pacing** — covers: FR-21
+  - [ ] **P10.T3.1: Fights land in the 25-40 s band with both sides landing blows.**
+  - [ ] **P10.T3.2: Re-pin the cup and lifecycle outcomes the new contact model moves.**
 
-## Phase 10: Dense Playback and Staging
+## Phase 11: Dense Playback and Staging
 
 - **Goal:** the client renders the continuous fight without snapping.
-- **Depends on:** Phase 9
+- **Depends on:** Phase 10
 - **Covers:** FR-13, AC-13
 - **Touches:** `packages/sim/src/battle/continuous/stream.ts`, `apps/client/src/staging.ts`, `apps/client/src/playbackDriver.ts`, `apps/client/src/fighter-driver.ts`
 - **Verification:** `bun run verify && bun run build`, then a `playwright-cli` pass at desktop and phone widths
 - **Status:** pending
 
-- [ ] **P10.T1: Dense state stream** — covers: FR-13
-  - [ ] **P10.T1.1: Sample positions and phases per step into a compact replayable stream.**
-- [ ] **P10.T2: Staging mapping** — covers: FR-13
-  - [ ] **P10.T2.1: Map sim millimetres to world units and add startup telegraphs.**
-- [ ] **P10.T3: Reduced motion** — covers: FR-13
-  - [ ] **P10.T3.1: Keep the instant text path readable for the new endings.**
+- [ ] **P11.T1: Dense state stream** — covers: FR-13
+  - [ ] **P11.T1.1: Sample positions and phases per step into a compact replayable stream.**
+- [ ] **P11.T2: Staging mapping** — covers: FR-13
+  - [ ] **P11.T2.1: Map sim millimetres to world units and add startup telegraphs.**
+- [ ] **P11.T3: Reduced motion** — covers: FR-13
+  - [ ] **P11.T3.1: Keep the instant text path readable for the new endings.**
 
-## Phase 11: Telemetry Harness
+## Phase 12: Telemetry Harness
 
 - **Goal:** "not turn-based" is measured, not asserted.
-- **Depends on:** Phase 9
+- **Depends on:** Phase 10
 - **Covers:** FR-14, AC-14
 - **Touches:** `packages/sim/scripts/battle-telemetry.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`, `.github/workflows/ci.yml`
 - **Verification:** `bun run verify && bun run build`
 - **Status:** pending
 
-- [ ] **P11.T1: Recorder** — covers: FR-14
-  - [ ] **P11.T1.1: Engagement distance, exchange rate, idle time, and distinct positions.**
-- [ ] **P11.T2: Thresholds** — covers: FR-14
-  - [ ] **P11.T2.1: Seeded sample across matchups with CI-enforced bounds.**
+- [ ] **P12.T1: Recorder** — covers: FR-14
+  - [ ] **P12.T1.1: Engagement distance, exchange rate, idle time, and distinct positions.**
+- [ ] **P12.T2: Thresholds** — covers: FR-14
+  - [ ] **P12.T2.1: Seeded sample across matchups with CI-enforced bounds.**
 
-## Phase 12: Legacy Freeze and Version Bump
+## Phase 13: Legacy Freeze
 
 - **Goal:** old battles keep replaying; new ones never touch the gauge clock.
-- **Depends on:** Phase 10
+- **Depends on:** Phase 11
 - **Covers:** FR-15, FR-16, AC-15, AC-16
 - **Touches:** `packages/sim/src/battle/clock/`, `packages/sim/src/battle/playback.ts`, `packages/sim/src/cup/ghost.ts`, `conductor/product.md`, `conductor/learnings.md`
 - **Verification:** `bun run verify && bun run build`
 - **Status:** pending
 
-- [ ] **P12.T1: Freeze the clock** — covers: FR-15
-  - [ ] **P12.T1.1: Mark `clock/` and `playback.ts` replay-only and route new fights away from them.**
-- [ ] **P12.T2: Version bump** — covers: FR-15
-  - [ ] **P12.T2.1: Bump `SIM_VERSION` and skip mismatched ghost bundles.**
-- [ ] **P12.T3: Compatibility test** — covers: FR-16
-  - [ ] **P12.T3.1: A pre-track save loads and its in-flight cup completes.**
-- [ ] **P12.T4: Docs truth pass** — covers: FR-15
-  - [ ] **P12.T4.1: Update the product roadmap and learnings.**
+- [ ] **P13.T1: Freeze the clock** — covers: FR-15
+  - [ ] **P13.T1.1: Mark `clock/` and `playback.ts` replay-only and route new fights away from them.**
+- [ ] **P13.T2: Version gate** — covers: FR-15
+  - [ ] **P13.T2.1: Assert mismatched ghost bundles are skipped, now that the bump landed in Phase 8.**
+- [ ] **P13.T3: Compatibility test** — covers: FR-16
+  - [ ] **P13.T3.1: A pre-track save loads and its in-flight cup completes.**
+- [ ] **P13.T4: Docs truth pass** — covers: FR-15
+  - [ ] **P13.T4.1: Update the product roadmap and learnings.**
