@@ -180,7 +180,7 @@
 - **Covers:** FR-22, FR-23, AC-22, AC-23
 - **Touches:** `packages/sim/src/battle/continuous/impulse.ts`, `packages/sim/src/battle/continuous/advance.ts`, `packages/sim/src/battle/continuous/movement.ts`, `packages/sim/src/battle/continuous/types.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P9.T1: Impulse and knockback** — covers: FR-22
   - [ ] **P9.T1.1: A landed blow adds velocity along the blow direction, scaled by poise damage and resisted by mass.**
