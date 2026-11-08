@@ -84,105 +84,51 @@ permissions:
   - action: shell
     resource: "git ls-files *"
     effect: allow
-  # Project commands (from conductor/workflow.md Workflow Config, plus the
-  # repo's own test/verify scripts). Bare + " *" pairs: a pattern ending in
-  # " *" also matches the bare command.
   - action: shell
-    resource: "bun install"
+    resource: "git branch *"
     effect: allow
+  - action: shell
+    resource: "git remote *"
+    effect: allow
+  - action: shell
+    resource: "git ls-remote *"
+    effect: allow
+  - action: shell
+    resource: "git commit --amend *"
+    effect: deny
   - action: shell
     resource: "bun install *"
-    effect: allow
-  - action: shell
-    resource: "bun run dev"
     effect: allow
   - action: shell
     resource: "bun run dev *"
     effect: allow
   - action: shell
-    resource: "bun test --timeout 120000"
-    effect: allow
-  - action: shell
     resource: "bun test --timeout 120000 *"
-    effect: allow
-  - action: shell
-    resource: "bun test --check --parallel=4 --timeout 120000"
     effect: allow
   - action: shell
     resource: "bun test --check --parallel=4 --timeout 120000 *"
     effect: allow
   - action: shell
-    resource: "bun test *"
-    effect: allow
-  - action: shell
-    resource: "bun test"
-    effect: allow
-  - action: shell
-    resource: "bun run test:phase"
-    effect: allow
-  - action: shell
-    resource: "bun run test:phase *"
-    effect: allow
-  - action: shell
-    resource: "bun run test:fuzz"
-    effect: allow
-  - action: shell
-    resource: "bun run test:fuzz *"
-    effect: allow
-  - action: shell
-    resource: "bunx biome check"
-    effect: allow
-  - action: shell
-    resource: "bunx biome check *"
-    effect: allow
-  - action: shell
-    resource: "bun run check"
-    effect: allow
-  - action: shell
-    resource: "bun run check *"
-    effect: allow
-  - action: shell
-    resource: "biome check"
-    effect: allow
-  - action: shell
     resource: "biome check *"
-    effect: allow
-  - action: shell
-    resource: "biome check --write"
     effect: allow
   - action: shell
     resource: "biome check --write *"
     effect: allow
   - action: shell
-    resource: "bun run build"
+    resource: "bun run check *"
     effect: allow
   - action: shell
     resource: "bun run build *"
     effect: allow
   - action: shell
-    resource: "playwright-cli"
+    resource: "bun run verify && bun run build *"
     effect: allow
   - action: shell
     resource: "playwright-cli *"
     effect: allow
-  - action: shell
-    resource: "bun run gate:determinism"
-    effect: allow
-  - action: shell
-    resource: "bun run gate:determinism *"
-    effect: allow
-  - action: shell
-    resource: "bun run verify"
-    effect: allow
-  - action: shell
-    resource: "bun run verify *"
-    effect: allow
-  - action: shell
-    resource: "bun run verify && bun run build"
-    effect: allow
 ---
 
-<!-- Conductor agent template: v2.2 -->
+<!-- Conductor agent template: v2.3 -->
 
 You are the **Conductor Phase Executor**. You execute exactly one phase of one
 Conductor track. The primary agent remains responsible for Conductor state.
@@ -199,7 +145,10 @@ Conductor track. The primary agent remains responsible for Conductor state.
 - Use the native `grep`, `glob`, and `read` tools for search and file reading.
   Never invoke `grep`, `rg`, `findstr`, `cat`, or `find` through shell; shell is
   restricted to Git, the verification commands named in the brief, and the
-  configured project commands.
+  configured project commands. Bound git output with flags, never pipes:
+  `git log --oneline --max-count=20 <range>`, `git diff --stat`,
+  `git show --stat <sha>`. Pipes do not work under your permissions; do not
+  attempt them.
 - Work only on the assigned phase. Do not start another phase.
 - Stay within the `Touches` paths in the brief.
 - If the phase goal requires touching a file outside `Touches`, make the

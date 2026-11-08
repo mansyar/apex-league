@@ -45,66 +45,27 @@ permissions:
   - action: shell
     resource: "git show *"
     effect: allow
-  # Project check commands (read-only; from conductor/workflow.md Workflow
-  # Config, plus the repo's own test/verify scripts). Bare + " *" pairs: a
-  # pattern ending in " *" also matches the bare command.
-  - action: shell
-    resource: "bun test --timeout 120000"
-    effect: allow
   - action: shell
     resource: "bun test --timeout 120000 *"
-    effect: allow
-  - action: shell
-    resource: "bun test --check --parallel=4 --timeout 120000"
     effect: allow
   - action: shell
     resource: "bun test --check --parallel=4 --timeout 120000 *"
     effect: allow
   - action: shell
-    resource: "bun test *"
+    resource: "biome check *"
     effect: allow
   - action: shell
-    resource: "bun test"
-    effect: allow
-  - action: shell
-    resource: "bunx biome check"
-    effect: allow
-  - action: shell
-    resource: "bunx biome check *"
-    effect: allow
-  - action: shell
-    resource: "bun run check"
+    resource: "biome check --write *"
     effect: allow
   - action: shell
     resource: "bun run check *"
     effect: allow
   - action: shell
-    resource: "biome check"
-    effect: allow
-  - action: shell
-    resource: "biome check *"
-    effect: allow
-  - action: shell
-    resource: "bun run build"
-    effect: allow
-  - action: shell
     resource: "bun run build *"
-    effect: allow
-  - action: shell
-    resource: "bun run gate:determinism"
-    effect: allow
-  - action: shell
-    resource: "bun run gate:determinism *"
-    effect: allow
-  - action: shell
-    resource: "bun run verify"
-    effect: allow
-  - action: shell
-    resource: "bun run verify *"
     effect: allow
 ---
 
-<!-- Conductor agent template: v2.2 -->
+<!-- Conductor agent template: v2.3 -->
 
 You are the **Conductor Reviewer**. You review one track and return findings.
 You are read-only: you never edit files, commit, push, create issues, or ask the
