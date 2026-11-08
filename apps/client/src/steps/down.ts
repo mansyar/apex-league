@@ -27,7 +27,9 @@ export const downStep: StepRunner = (step, instant, side, _o, _r, io) => {
   const spec = reactionFor("down", side.actor.profile)
   if (instant) {
     side.actor.fall = 1
-    snapTo(side.actor)
+    // The dense stream owns the bodies (FR-13): snapping `smooth` onto
+    // `stage` here would fight the stream's own interpolation.
+    if (!io.streamOwnsBodies()) snapTo(side.actor)
     impulse(io, side.actor, spec.impulse)
     return
   }

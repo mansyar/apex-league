@@ -18,7 +18,9 @@ import { DEFAULT_PROFILE, reactionFor } from "../choreo"
 import type { DriveFighter } from "../fighter-driver"
 import { HitStop } from "../fx/loop"
 import type { BattleEffects } from "../staging-fx"
+import { approachStep } from "./approach"
 import type { StepIO } from "./context"
+import { downStep } from "./down"
 import { CONTACT_JITTER, contactJitter } from "./fire"
 import { impactStep } from "./impact"
 import { meleeStep } from "./melee"
@@ -433,5 +435,56 @@ describe("position ownership — the dense stream owns the bodies", () => {
     reelStep(reel, true, legacy, legacy.actor, legacy.target, fakeIO(false).io)
     expect(legacy.actor.stage.x).toBe(-2.5 + slide)
     expect(legacy.actor.smooth.toArray()).toEqual(legacy.actor.stage.toArray())
+  })
+
+  test("an approach stance move happens only when the step owns positions", () => {
+    const approach = stepOf({ kind: "approach" })
+
+    const dense = pair()
+    const denseBefore = dense.actor.stage.clone()
+    approachStep(
+      approach,
+      true,
+      dense,
+      dense.actor,
+      dense.target,
+      fakeIO(true).io,
+    )
+    expect(dense.actor.stage.toArray()).toEqual(denseBefore.toArray())
+
+    const legacy = pair()
+    approachStep(
+      approach,
+      true,
+      legacy,
+      legacy.actor,
+      legacy.target,
+      fakeIO(false).io,
+    )
+    // The stance on the target's flank: 2.1 m out, woven by the tick's side.
+    expect(legacy.actor.stage.x).toBe(2.5 + 2.1)
+    expect(legacy.actor.stage.z).toBe(-0.4 - 0.55)
+    expect(legacy.actor.smooth.toArray()).toEqual(legacy.actor.stage.toArray())
+  })
+
+  test("a down snap happens only when the step owns positions", () => {
+    const down = stepOf({ kind: "down" })
+
+    const dense = pair()
+    dense.actor.stage.set(-2.2, 0, 0.6)
+    dense.actor.velocity.set(1, 0, 0)
+    downStep(down, true, dense, dense.actor, dense.target, fakeIO(true).io)
+    // The pose flag still lands; the smooth body keeps the stream's value.
+    expect(dense.actor.down).toBe(true)
+    expect(dense.actor.smooth.toArray()).toEqual([-2.5, 0, 0.4])
+    expect(dense.actor.velocity.x).toBe(1)
+
+    const legacy = pair()
+    legacy.actor.stage.set(-2.2, 0, 0.6)
+    legacy.actor.velocity.set(1, 0, 0)
+    downStep(down, true, legacy, legacy.actor, legacy.target, fakeIO(false).io)
+    expect(legacy.actor.down).toBe(true)
+    expect(legacy.actor.smooth.toArray()).toEqual([-2.2, 0, 0.6])
+    expect(legacy.actor.velocity.x).toBe(0)
   })
 })
