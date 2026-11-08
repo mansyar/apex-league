@@ -95,3 +95,6 @@ day is enough to see the new engine end to end.
 
 Feedback on those seven is worth more than a list of animation polish items,
 because animation is Phase 11 and beyond.
+16. **No minimum range on any move.** A long lance fires just as happily at
+    200 mm as at 5,000 mm, so a weapon with reach has no blind spot. A dead zone
+    per move is recorded in the spec as a follow-up, not fixed here.

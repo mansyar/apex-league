@@ -273,3 +273,14 @@ frame data plus animation rather than a rewrite of the step.
   `damage.ts`, `resolver.ts`, `playback.ts`
 - `packages/sim/src/cup/ghost.ts` (`SIM_VERSION`)
 - `apps/client/src/staging.ts`, `apps/client/src/fighter-driver.ts`
+
+### Deferred follow-up - per-move minimum reach
+
+Recorded 2026-11-08 at the owner's direction, deliberately **out of this track**.
+
+Every move has a maximum reach (FR-18); none has a minimum, so a 6,500 mm lance
+can be fired at point-blank range and a long weapon has no weakness at close
+quarters. The follow-up adds a `minReachMm` (or a sweet-spot band) per frame row,
+refuses or degrades a move fired inside its dead zone, and gives a short-range
+archetype a reason to exist. It changes fight outcomes, so it belongs with the
+balance track that re-tunes win rates, not here.
