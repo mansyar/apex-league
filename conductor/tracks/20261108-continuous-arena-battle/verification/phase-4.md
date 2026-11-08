@@ -127,3 +127,26 @@ them with `&&`, which this executor is not permitted to use.
 - **Tasks:** P4.T1 (projectile entities, travel from distance at authored speed,
   resolved on arrival) and P4.T2 (dodge from lateral motion relative to the shot
   line) are both delivered in `df404399`.
+
+## Primary verification
+
+| Layer | Command | Exit | Result |
+| --- | --- | --- | --- |
+| static | `bun run verify` | 0 | 4 workspace typechecks clean; full suite pass, 1 skip, 0 fail; biome clean; determinism gate byte-identical |
+| build | `bun run build` | 0 | Vite built 370 modules; only the pre-existing chunk-size warning |
+
+Verified by the primary agent, not taken from the subagent report. The phase was
+squashed to `836bd774` (both commits in the range were reported).
+
+**Reviewed by hand:** `launchShots` fires only on the transition into the active
+window, so a multi-step window cannot spawn a second shot; `pointAt` rebuilds
+position from cumulative distance, so travel time stays proportional to distance;
+arrival uses the body radius as the last stretch, so a fast shot cannot tunnel
+past a body in one 20 ms step.
+
+**Debt noted for review:** `validateFrameData` only rejects `activeMs <= 0`. A
+future row with `activeMs < STEP_MS` would carry its remainder straight through
+the active phase, so `launchShots` would never see the open window and the shot
+would silently never fire. Every authored row today is 60 ms or longer, so this
+is latent rather than live; it needs a `>= STEP_MS` guard when frame data is next
+touched.

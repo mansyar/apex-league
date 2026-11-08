@@ -80,12 +80,16 @@
 - **Covers:** FR-8, AC-8
 - **Touches:** `packages/sim/src/battle/continuous/projectile.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P4.T1: Projectile entities** — covers: FR-8
-  - [ ] **P4.T1.1: Travel from distance and authored speed** — resolved on arrival.
-- [ ] **P4.T2: Dodge** — covers: FR-8
-  - [ ] **P4.T2.1: Dodge judged against lateral motion relative to the shot's line.**
+- [x] **P4.T1: Projectile entities** — covers: FR-8
+  - [x] **P4.T1.1: Travel from distance and authored speed** — resolved on arrival.
+- [x] **P4.T2: Dodge** — covers: FR-8
+  - [x] **P4.T2.1: Dodge judged against lateral motion relative to the shot's line.**
+
+**Result:** verified
+**Checkpoint:** 836bd774
+**Evidence:** conductor/tracks/20261108-continuous-arena-battle/verification/phase-4.md
 
 ## Phase 5: Poise and Stamina
 
