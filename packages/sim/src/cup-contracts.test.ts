@@ -197,13 +197,15 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
       // FR6 rebalance ripple: the double-KO that used to sit at QF4 moved
       // off this seed entirely (QF3 winner changed with it).
       // Continuous-engine ripple (phase 7): QF4 and SF2 both moved again.
+      // Contact-geometry ripple (phase 8): lock-on facing and body volumes
+      // moved QF2 and SF2 once more.
       {
         seed: 19,
         rivalWinners: [
           "Driftbelle",
-          "Gilded Horn",
+          "Thistledown Ash",
           "Tidecaller Nibbles",
-          "Gilded Horn",
+          "Thistledown Ash",
         ],
       },
     ]
@@ -338,8 +340,8 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     expect(session.rivalVerdicts.map((v) => v.winner)).toEqual([
       "Tidecaller Nibbles",
       "Ash-ledger",
-      "Pondskipper Grub",
-      "Pondskipper Grub",
+      "Mossbottom Brute",
+      "Ash-ledger",
     ])
   })
 })

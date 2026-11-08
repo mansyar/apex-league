@@ -347,11 +347,15 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
   // Re-pinned for the continuous engine (phase 7): the same seed now reaches
   // the final instead of falling in the semifinal, so the bracket completes
   // without any further match (no completion verdicts).
-  test("eliminated path (seed 7): final loss, the conqueror takes the crown", () => {
+  // Re-pinned again for contact geometry (phase 8): with lock-on facing and
+  // body volumes the same seed now wins the final, so this row is a second
+  // crown rather than an elimination. Phase 9 owns re-pinning a true
+  // eliminated seed once pacing settles.
+  test("seed 7: contact geometry turns the final into a crown", () => {
     const session = playToCompletion(DAY, 7)
-    expect(session.status).toBe("eliminated")
-    expect(session.championName).toBe("Gilded Horn")
-    expect(cupPlacement(session)).toBe(2)
+    expect(session.status).toBe("champion")
+    expect(session.championName).toBe("Ember Drake")
+    expect(cupPlacement(session)).toBe(1)
     expect(session.rivalVerdicts.map(row)).toEqual([
       [
         1,
@@ -371,15 +375,15 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
         1,
         "Gilded Horn",
         "Tidecaller Nibbles",
-        "Gilded Horn",
-        "Gilded Horn takes the Quarterfinal!",
+        "Tidecaller Nibbles",
+        "Tidecaller Nibbles takes the Quarterfinal!",
       ],
       [
         2,
         "Cindersnout",
-        "Gilded Horn",
-        "Gilded Horn",
-        "Gilded Horn takes the Semifinal!",
+        "Tidecaller Nibbles",
+        "Cindersnout",
+        "Cindersnout takes the Semifinal!",
       ],
     ])
     expect(session.playerVerdicts.map(row)).toEqual([
@@ -400,9 +404,9 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
       [
         3,
         "Ember Drake",
-        "Gilded Horn",
-        "Gilded Horn",
-        "Gilded Horn takes the Final!",
+        "Cindersnout",
+        "Ember Drake",
+        "Ember Drake takes the Final!",
       ],
     ])
     expect(session.completionVerdicts.map(row)).toEqual([])
