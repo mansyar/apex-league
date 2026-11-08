@@ -223,14 +223,18 @@
 - **Covers:** FR-13, AC-13
 - **Touches:** `packages/sim/src/battle/continuous/stream.ts`, `apps/client/src/staging.ts`, `apps/client/src/playbackDriver.ts`, `apps/client/src/fighter-driver.ts`
 - **Verification:** `bun run verify && bun run build`, then a `playwright-cli` pass at desktop and phone widths
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P11.T1: Dense state stream** — covers: FR-13
-  - [ ] **P11.T1.1: Sample positions and phases per step into a compact replayable stream.**
-- [ ] **P11.T2: Staging mapping** — covers: FR-13
-  - [ ] **P11.T2.1: Map sim millimetres to world units and add startup telegraphs.**
-- [ ] **P11.T3: Reduced motion** — covers: FR-13
-  - [ ] **P11.T3.1: Keep the instant text path readable for the new endings.**
+- [x] **P11.T1: Dense state stream** — covers: FR-13
+  - [x] **P11.T1.1: Sample positions and phases per step into a compact replayable stream.**
+- [x] **P11.T2: Staging mapping** — covers: FR-13
+  - [x] **P11.T2.1: Map sim millimetres to world units and add startup telegraphs.**
+- [x] **P11.T3: Reduced motion** — covers: FR-13
+  - [x] **P11.T3.1: Keep the instant text path readable for the new endings.**
+
+**Result:** verified functionally; the visual pass is deferred to the owner's playtest because the browser tool could not capture a screenshot and has no viewport emulation (recorded in the evidence file)
+**Checkpoint:** 8c66e275
+**Evidence:** conductor/tracks/20261108-continuous-arena-battle/verification/phase-11.md
 
 ## Phase 12: Telemetry Harness
 
