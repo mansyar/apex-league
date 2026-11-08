@@ -1,7 +1,8 @@
 /**
  * Stamina (Continuous Arena Battle FR-10, AC-10): a commit costs its authored
- * price, a commit the pool cannot cover is refused observably, a dodge costs a
- * fixed price, and the pool refills only while the fighter is not committed.
+ * price (with a floor on the innate strike), a commit the pool cannot cover is
+ * refused observably, a dodge costs a fixed price, and the pool refills only
+ * while the fighter is not committed.
  *
  * The pure tests pin the arithmetic; the fight tests pin the same rules
  * through `createFight`, where a refused commit leaves no attack behind and a
@@ -16,6 +17,7 @@ import {
   canAfford,
   DEFAULT_STAMINA_MAX,
   DODGE_STAMINA_COST,
+  MIN_ATTACK_STAMINA_COST,
   openingStamina,
   regenerateStamina,
   STAMINA_REGEN_INTERVAL_MS,
@@ -137,16 +139,25 @@ describe("stamina — the opening pool", () => {
 })
 
 describe("stamina — paying for a commit (FR-10, AC-10)", () => {
-  test("a move costs its authored price", () => {
-    expect(attackCost("basic")).toBe(getFrameData("basic")?.staminaCost ?? -1)
+  test("a move costs its authored weight, with a floor on the basic", () => {
+    // The basic authors 2, below the floor; the slam authors its full 10.
+    expect(getFrameData("basic")?.staminaCost).toBe(2)
+    expect(attackCost("basic")).toBe(MIN_ATTACK_STAMINA_COST)
     expect(attackCost("tectonic_slam")).toBe(10)
     expect(() => attackCost("nope")).toThrow(/Unknown move/)
+  })
+
+  test("sustained output is at most one basic per 1.5 s (FR-4)", () => {
+    const secondsPerBasic =
+      (STAMINA_REGEN_INTERVAL_MS / STAMINA_REGEN_PER_INTERVAL) *
+      attackCost("basic")
+    expect(secondsPerBasic).toBeGreaterThanOrEqual(1500)
   })
 
   test("spending returns a paid fighter and leaves the old one alone", () => {
     const before = fighter({ stamina: 10, staminaMax: 10 })
     const paid = spendAttack(before, "basic")
-    expect(paid?.stamina).toBe(8)
+    expect(paid?.stamina).toBe(7)
     expect(before.stamina).toBe(10)
   })
 
@@ -158,7 +169,7 @@ describe("stamina — paying for a commit (FR-10, AC-10)", () => {
   })
 
   test("an exact price is payable", () => {
-    const exact = fighter({ stamina: 2, staminaMax: 10 })
+    const exact = fighter({ stamina: 3, staminaMax: 10 })
     expect(spendAttack(exact, "basic")?.stamina).toBe(0)
   })
 
@@ -210,7 +221,8 @@ describe("stamina — regeneration (FR-10)", () => {
 
   test("the pool never overfills", () => {
     let state = fighter({ stamina: 19, staminaMax: 20 })
-    for (let i = 0; i < 10; i++) state = regenerateStamina(state)
+    for (let i = 0; i < STAMINA_REGEN_INTERVAL_MS / STEP_MS; i++)
+      state = regenerateStamina(state)
     expect(state.stamina).toBe(20)
   })
 })
@@ -219,24 +231,36 @@ describe("stamina — the fight (FR-10, AC-10)", () => {
   test("a spent pool refuses the next commit, then pays once it refills", () => {
     const fight = duel(3)
     expect(fight.commit(0, "basic")).toBe(true)
-    expect(fight.state.fighters[0].stamina).toBe(1)
+    expect(fight.state.fighters[0].stamina).toBe(0)
     // basic is 80 + 60 + 140 ms: fourteen steps, during which nothing refills.
     run(fight, 14, HOLDING)
     expect(fight.state.fighters[0].attack).toBeNull()
-    expect(fight.state.fighters[0].stamina).toBe(1)
+    expect(fight.state.fighters[0].stamina).toBe(0)
     expect(fight.commit(0, "basic")).toBe(false)
     expect(fight.state.fighters[0].attack).toBeNull()
-    run(fight, 5, HOLDING)
+    // One point per 500 ms: 90 steps refill the three-point pool.
+    run(fight, 90, HOLDING)
     expect(fight.state.fighters[0].stamina).toBe(3)
     expect(fight.commit(0, "basic")).toBe(true)
-    expect(fight.state.fighters[0].stamina).toBe(1)
+    expect(fight.state.fighters[0].stamina).toBe(0)
+  })
+
+  test("a refused commit does not wedge the fighter: it can still move", () => {
+    const fight = duel(3)
+    fight.commit(0, "basic")
+    run(fight, 14, HOLDING)
+    const before = fight.state.fighters[0].pos.x
+    expect(fight.commit(0, "basic")).toBe(false)
+    fight.advance(ADVANCE)
+    expect(fight.state.fighters[0].pos.x).toBeGreaterThan(before)
+    expect(fight.state.fighters[0].attack).toBeNull()
   })
 
   test("regeneration pauses while the fighter holds an attack", () => {
     const fight = duel(10)
     fight.commit(0, "basic")
     run(fight, 3, HOLDING)
-    expect(fight.state.fighters[0].stamina).toBe(8)
+    expect(fight.state.fighters[0].stamina).toBe(7)
     expect(fight.state.fighters[0].staminaRegenMs).toBe(0)
   })
 

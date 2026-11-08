@@ -21,10 +21,18 @@ import { type FighterState, STEP_MS } from "./types"
 export const DEFAULT_STAMINA_MAX = 100
 
 /** How much fight time one regeneration tick covers, in ms (tunable). */
-export const STAMINA_REGEN_INTERVAL_MS = 100
+export const STAMINA_REGEN_INTERVAL_MS = 500
 
 /** Points regained per regeneration tick while not committed (tunable). */
-export const STAMINA_REGEN_PER_INTERVAL = 2
+export const STAMINA_REGEN_PER_INTERVAL = 1
+
+/**
+ * The least any committed attack costs (tunable, FR-4). The innate strike
+ * authors 2; at 2 points/s that would allow one a second, so the floor makes
+ * the cheapest attack cost 1.5 s of regeneration — FR-4's sustained rate.
+ * Specials keep their authored 4-10, so they stay the expensive choice.
+ */
+export const MIN_ATTACK_STAMINA_COST = 3
 
 /** What one dodge costs, in points (tunable). */
 export const DODGE_STAMINA_COST = 8
@@ -75,11 +83,15 @@ export function spendStamina(
   return { ...fighter, stamina: fighter.stamina - cost }
 }
 
-/** The authored stamina price of committing a move, from `FRAME_DATA`. */
+/**
+ * The stamina price of committing a move: its authored weight, raised to
+ * `MIN_ATTACK_STAMINA_COST` when cheaper. The authored row is the relative
+ * cost; this is the price the pool actually pays.
+ */
 export function attackCost(moveId: string): number {
   const row = getFrameData(moveId)
   if (!row) throw new Error(`Unknown move: ${moveId}`)
-  return row.staminaCost
+  return Math.max(MIN_ATTACK_STAMINA_COST, row.staminaCost)
 }
 
 /** Pay for one committed move, or null when the pool cannot cover it. */

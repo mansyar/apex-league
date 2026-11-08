@@ -8,7 +8,7 @@
 
 import { getFrameData } from "../frames"
 import { BASIC_MOVE, getMove } from "../moves"
-import { canAfford } from "./stamina"
+import { attackCost, canAfford } from "./stamina"
 import type { FighterState } from "./types"
 
 /**
@@ -42,7 +42,7 @@ export function chooseMove(
     const row = getFrameData(moveId)
     if (!move || !row) continue
     if (!inReach(me, foe, moveId, gapSq)) continue
-    if (!canAfford(me, row.staminaCost)) continue
+    if (!canAfford(me, attackCost(moveId))) continue
     const better = move.power > bestPower
     const tie = move.power === bestPower && bestId !== null && moveId < bestId
     if (!better && !tie) continue

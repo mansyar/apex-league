@@ -80,11 +80,13 @@ describe("advance — the dodge price (FR-10)", () => {
   })
 
   test("a refusal costs nothing and leaves the fighter free to act", () => {
-    const poor: FighterInit = { ...side("home", -2000), staminaMax: 4 }
+    // Five points cannot pay the eight-point dodge but can pay a basic, so
+    // the refused dodge leaves enough to commit once.
+    const poor: FighterInit = { ...side("home", -2000), staminaMax: 5 }
     const fight = createFight(config([poor, side("away", 2000)]))
     fight.advance(ORDERS)
     const held = fight.state.fighters[0]
-    expect(held.stamina).toBe(4)
+    expect(held.stamina).toBe(5)
     // Not wedged: it can still commit, and a plain intent still moves it.
     expect(fight.commit(0, "basic")).toBe(true)
     const moved = fight.advance([{ x: 1000, z: 0 }, HOLD]).state.fighters[0]
