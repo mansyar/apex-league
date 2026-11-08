@@ -80,7 +80,7 @@
 - **Covers:** FR-8, AC-8
 - **Touches:** `packages/sim/src/battle/continuous/projectile.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P4.T1: Projectile entities** — covers: FR-8
   - [ ] **P4.T1.1: Travel from distance and authored speed** — resolved on arrival.
