@@ -177,12 +177,14 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
         // doubled HP pool let the higher-HP fighter survive the exchange.
         // Continuous-engine ripple (phase 7): the SF2 pairing now resolves
         // to Ash-ledger instead of a second Mossbottom Brute win.
+        // Hit-reaction ripple (phase 9): knockback moved SF2 back to
+        // Mossbottom Brute.
         seed: 101,
         rivalWinners: [
           "Reedle Mirefin",
           "Ash-ledger",
           "Mossbottom Brute",
-          "Ash-ledger",
+          "Mossbottom Brute",
         ],
       },
       {
@@ -266,10 +268,11 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     expect(elim.playerVerdicts).toHaveLength(2)
     expect(cupPlacement(elim)).toBe(3)
     const done = completeCup(elim)
-    expect(done.championName).toBe("Ash-ledger")
+    // Hit-reaction ripple (phase 9): the SF2 winner and the final moved.
+    expect(done.championName).toBe("Mossbottom Brute")
     expect(
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
-    ).toEqual([[3, "Gilded Horn", "Ash-ledger", "Ash-ledger"]])
+    ).toEqual([[3, "Gilded Horn", "Mossbottom Brute", "Mossbottom Brute"]])
   })
 
   test("QF exit: seed 23, specials — placement 4, bracket completes in order", () => {
@@ -293,7 +296,8 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     const done = forfeitCup(startCupSession(creature, 7, 101))
     expect(done.status).toBe("eliminated")
     expect(cupPlacement(done)).toBe(4)
-    expect(done.championName).toBe("Ash-ledger")
+    // Hit-reaction ripple (phase 9): Mossbottom Brute takes SF2 and the final.
+    expect(done.championName).toBe("Mossbottom Brute")
     // The forfeit verdict names the opponent, no battle attached.
     const ff = done.playerVerdicts[0]
     expect(ff?.winner).toBe("Bonfire Brook")
@@ -306,7 +310,7 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
     ).toEqual([
       [2, "Bonfire Brook", "Reedle Mirefin", "Reedle Mirefin"],
-      [3, "Reedle Mirefin", "Ash-ledger", "Ash-ledger"],
+      [3, "Reedle Mirefin", "Mossbottom Brute", "Mossbottom Brute"],
     ])
   })
 
@@ -341,7 +345,7 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
       "Tidecaller Nibbles",
       "Ash-ledger",
       "Mossbottom Brute",
-      "Ash-ledger",
+      "Mossbottom Brute",
     ])
   })
 })

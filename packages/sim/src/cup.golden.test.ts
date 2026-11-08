@@ -415,11 +415,13 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
   // Forfeit ending: seed 101, the player walks at the quarterfinal.
   // Re-pinned for the continuous engine (phase 7): the rival subtree under the
   // forfeited quarterfinal resolves differently, so the conqueror changed.
+  // Hit-reaction ripple (phase 9): knockback moved SF2 and the final back to
+  // Mossbottom Brute.
   test("forfeit path (seed 101): the forfeit line, then the bracket completes", () => {
     const creature = playerCreature()
     const session = forfeitCup(startCupSession(creature, DAY, 101))
     expect(session.status).toBe("eliminated")
-    expect(session.championName).toBe("Ash-ledger")
+    expect(session.championName).toBe("Mossbottom Brute")
     expect(cupPlacement(session)).toBe(4)
     expect(session.rivalVerdicts.map(row)).toEqual([
       [
@@ -447,8 +449,8 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
         2,
         "Ash-ledger",
         "Mossbottom Brute",
-        "Ash-ledger",
-        "Ash-ledger takes the Semifinal!",
+        "Mossbottom Brute",
+        "Mossbottom Brute takes the Semifinal!",
       ],
     ])
     expect(session.playerVerdicts.map(row)).toEqual([
@@ -471,9 +473,9 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
       [
         3,
         "Reedle Mirefin",
-        "Ash-ledger",
-        "Ash-ledger",
-        "Ash-ledger takes the Final!",
+        "Mossbottom Brute",
+        "Mossbottom Brute",
+        "Mossbottom Brute takes the Final!",
       ],
     ])
   })

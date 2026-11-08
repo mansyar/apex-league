@@ -228,9 +228,11 @@ describe("attack lifecycle — interruption and counters (FR-6, AC-6)", () => {
     function recoveryHit(victimCommits: boolean): number {
       const fight = duel()
       if (victimCommits) fight.commit(1, "basic")
-      // Seven steps: basic's 80 ms startup and 60 ms active are done, so the
-      // victim is in recovery and cannot interrupt the attacker's startup.
-      run(fight, 7)
+      // Eight steps: basic's 80 ms startup and 60 ms active are done, so the
+      // victim is in recovery and cannot interrupt the attacker's startup. The
+      // eighth step is the one that clears the hitstun the victim's blow left
+      // on the attacker (FR-23), which would otherwise refuse the commit.
+      run(fight, 8)
       fight.commit(0, "basic")
       const fourth = run(fight, 4)
       expect(fourth.strikes).toHaveLength(1)
