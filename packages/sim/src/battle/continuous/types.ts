@@ -81,6 +81,20 @@ export interface FighterState {
   readonly spd: number
   /** The committed attack, if any (FR-6); null once recovery has run out. */
   readonly attack?: AttackState | null
+  /** Poise points left before a break (FR-9); 0 only while broken. */
+  readonly poise: number
+  /** Size of the poise pool, fixed at the opening. */
+  readonly poiseMax: number
+  /** Punish window still to serve, in ms; 0 when not broken (FR-9). */
+  readonly poiseBreakMs: number
+  /** Time left before the fighter can break again, in ms (FR-9). */
+  readonly poiseGraceMs: number
+  /** Stamina points left to spend (FR-10). */
+  readonly stamina: number
+  /** Size of the stamina pool, fixed at the opening. */
+  readonly staminaMax: number
+  /** Fight time banked toward the next stamina regeneration tick, in ms. */
+  readonly staminaRegenMs: number
 }
 
 /** The whole fight at one instant: two sides in a fixed order. */

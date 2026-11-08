@@ -10,6 +10,7 @@
 import { describe, expect, test } from "bun:test"
 import { strikeDamage } from "../damage"
 import { BODY_RADIUS_MM } from "../frames"
+import { openingPoise } from "./poise"
 import {
   advanceProjectile,
   DODGE_CLEARANCE_MM,
@@ -22,6 +23,7 @@ import {
   type ShotReport,
   shotDirection,
 } from "./projectile"
+import { openingStamina } from "./stamina"
 import { createFight, type Fight, type FighterInit, stateHash } from "./step"
 import type { StrikeStats } from "./strike"
 import {
@@ -80,7 +82,16 @@ function fighter(
   facing: Dir2,
   attack?: AttackState | null,
 ): FighterState {
-  return { key, pos: at(x), vel: { x: 0, y: 0, z: 0 }, facing, spd: 10, attack }
+  return {
+    key,
+    pos: at(x),
+    vel: { x: 0, y: 0, z: 0 },
+    facing,
+    spd: 10,
+    attack,
+    ...openingPoise(),
+    ...openingStamina(),
+  }
 }
 
 function launched(

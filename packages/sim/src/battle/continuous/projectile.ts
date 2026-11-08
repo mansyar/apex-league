@@ -71,6 +71,8 @@ export interface ShotReport {
   readonly outcome: ShotOutcome
   /** Damage dealt; 0 on a dodge. */
   readonly damage: number
+  /** Poise removed from the victim by this shot; 0 on a dodge (FR-9). */
+  readonly poiseDamage: number
   /** Where the shooter stood relative to the victim's facing (FR-4). */
   readonly position: HitPosition
   /** True when the victim was in recovery as the shot landed (FR-6). */
@@ -236,7 +238,8 @@ export function resolveProjectiles(
       continue
     }
     const move = getMove(shot.moveId)
-    if (!move) throw new Error(`Unknown move: ${shot.moveId}`)
+    const row = getFrameData(shot.moveId)
+    if (!move || !row) throw new Error(`Unknown move: ${shot.moveId}`)
     const position = hitPosition(target.facing, target.pos, before[owner].pos)
     if (perpendicularOffsetMm(shot, target.pos) > DODGE_CLEARANCE_MM) {
       shots.push({
@@ -245,6 +248,7 @@ export function resolveProjectiles(
         moveId: shot.moveId,
         outcome: "dodged",
         damage: 0,
+        poiseDamage: 0,
         position,
         counter: false,
         interrupted: false,
@@ -273,6 +277,7 @@ export function resolveProjectiles(
       moveId: shot.moveId,
       outcome: "hit",
       damage,
+      poiseDamage: row.poiseDamage,
       position,
       counter,
       interrupted,

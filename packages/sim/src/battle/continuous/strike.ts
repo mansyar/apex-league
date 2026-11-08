@@ -199,6 +199,8 @@ export interface StrikeReport {
   readonly targetKey: string
   readonly moveId: string
   readonly damage: number
+  /** Poise removed from the victim by this blow (FR-9). */
+  readonly poiseDamage: number
   readonly position: HitPosition
   /** True when the victim was in recovery: the blow was a counter (FR-6). */
   readonly counter: boolean
@@ -264,6 +266,7 @@ export function resolveStrikes(
       targetKey: victim.key,
       moveId: attack.moveId,
       damage,
+      poiseDamage: row.poiseDamage,
       position,
       counter,
       interrupted,

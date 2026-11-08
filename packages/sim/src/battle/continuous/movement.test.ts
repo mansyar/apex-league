@@ -17,6 +17,8 @@ import {
   targetVelocity,
   topSpeed,
 } from "./movement"
+import { openingPoise } from "./poise"
+import { openingStamina } from "./stamina"
 import {
   type ArenaBounds,
   FACING_POSITIVE_Z,
@@ -42,6 +44,8 @@ function fighter(overrides: Partial<FighterState> = {}): FighterState {
     vel: { x: 0, y: 0, z: 0 },
     facing: FACING_POSITIVE_Z,
     spd: 10,
+    ...openingPoise(),
+    ...openingStamina(),
     ...overrides,
   }
 }

@@ -157,10 +157,9 @@ export function moveFighter(
     bounds,
   )
   return {
-    key: fighter.key,
+    ...fighter,
     pos: moved.pos,
     vel: moved.vel,
     facing: facingFor(intent, fighter.facing),
-    spd: fighter.spd,
   }
 }

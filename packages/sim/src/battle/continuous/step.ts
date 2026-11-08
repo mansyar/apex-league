@@ -11,15 +11,18 @@
 
 import { makeRng, type Rng } from "../../rng"
 import { moveFighter } from "./movement"
+import { advancePoise, applyPoiseDamage, isBroken, openingPoise } from "./poise"
 import {
   launchProjectile,
   type ProjectileState,
   resolveProjectiles,
   type ShotReport,
 } from "./projectile"
+import { openingStamina, regenerateStamina, spendAttack } from "./stamina"
 import {
   ATTACK_PHASES,
   advanceFighterAttack,
+  canCommit,
   commitAttack,
   NEUTRAL_STATS,
   resolveStrikes,
@@ -48,6 +51,10 @@ export interface FighterInit {
   readonly facing?: Dir2
   /** Combat stats a strike reads; defaults to typeless 1/1 (FR-4). */
   readonly stats?: StrikeStats
+  /** Poise pool size; defaults to `DEFAULT_POISE_MAX` (FR-9). */
+  readonly poiseMax?: number
+  /** Stamina pool size; defaults to `DEFAULT_STAMINA_MAX` (FR-10). */
+  readonly staminaMax?: number
 }
 
 /** Everything a fight needs to open. */
@@ -75,8 +82,8 @@ export interface Fight {
   readonly state: FightState
   advance(intents: readonly [MoveIntent, MoveIntent]): StepResult
   /**
-   * Order one side to commit to a move. Returns false when the fighter is
-   * locked in an active or recovery window (FR-6).
+   * Commit to a move; false when locked (FR-6), broken (FR-9), or short on
+   * stamina (FR-10).
    */
   commit(side: 0 | 1, moveId: string): boolean
 }
@@ -116,9 +123,11 @@ export function stepFight(
     context.stats,
   )
   const launched = launchShots(state.step, before, advanced)
+  const settled = settleMeters(struck.strikes, flight.shots, flight.fighters)
+  // `moveFighter` carries the attack and both meters across (FR-6, FR-9, FR-10).
   const fighters: readonly [FighterState, FighterState] = [
-    movedFighter(before[0], intents[0], flight.fighters[0], bounds),
-    movedFighter(before[1], intents[1], flight.fighters[1], bounds),
+    moveFighter(settled[0], intents[0], bounds),
+    moveFighter(settled[1], intents[1], bounds),
   ]
   return {
     state: {
@@ -162,18 +171,28 @@ function launchShots(
 }
 
 /**
- * Move one fighter and keep the attack the strike phase left it holding.
- * `moveFighter` owns the kinematics and knows nothing about attacks, so the
- * attack state is reattached here rather than duplicated there.
+ * Settle both meters for one step (FR-9, FR-10): clocks and regeneration
+ * advance first, so a break opened now serves its whole window, and a window
+ * that expires now refills before this step's blows land.
  */
-function movedFighter(
-  before: FighterState,
-  intent: MoveIntent,
-  after: FighterState,
-  bounds: ArenaBounds,
-): FighterState {
-  const moved = moveFighter(before, intent, bounds)
-  return after.attack === undefined ? moved : { ...moved, attack: after.attack }
+function settleMeters(
+  strikes: readonly StrikeReport[],
+  shots: readonly ShotReport[],
+  fighters: readonly [FighterState, FighterState],
+): readonly [FighterState, FighterState] {
+  const settled: [FighterState, FighterState] = [
+    regenerateStamina(advancePoise(fighters[0])),
+    regenerateStamina(advancePoise(fighters[1])),
+  ]
+  const hit = (key: string, poiseDamage: number): void => {
+    const side = settled[0].key === key ? 0 : 1
+    settled[side] = applyPoiseDamage(settled[side], poiseDamage)
+  }
+  for (const strike of strikes) hit(strike.targetKey, strike.poiseDamage)
+  for (const shot of shots) {
+    if (shot.outcome === "hit") hit(shot.targetKey, shot.poiseDamage)
+  }
+  return settled
 }
 
 /**
@@ -206,6 +225,13 @@ export function stateHash(state: FightState): number {
     mix(fighter.facing.x)
     mix(fighter.facing.z)
     mix(fighter.spd)
+    mix(fighter.poise)
+    mix(fighter.poiseMax)
+    mix(fighter.poiseBreakMs)
+    mix(fighter.poiseGraceMs)
+    mix(fighter.stamina)
+    mix(fighter.staminaMax)
+    mix(fighter.staminaRegenMs)
     const attack = fighter.attack
     mix(attack ? 1 : 0)
     if (attack) {
@@ -279,6 +305,8 @@ function openFighter(init: FighterInit, bounds: ArenaBounds): FighterState {
     vel: { x: 0, y: 0, z: 0 },
     facing,
     spd: init.spd,
+    ...openingPoise(init.poiseMax),
+    ...openingStamina(init.staminaMax),
   }
 }
 
@@ -333,8 +361,11 @@ export function createFight(config: FightConfig): Fight {
     },
     commit(side, moveId) {
       const fighter = state.fighters[side]
-      const committed = commitAttack(fighter, moveId)
-      if (committed === fighter) return false
+      if (isBroken(fighter) || !canCommit(fighter)) return false
+      const paid = spendAttack(fighter, moveId)
+      if (!paid) return false
+      const committed = commitAttack(paid, moveId)
+      if (committed === paid) return false
       const fighters: readonly [FighterState, FighterState] =
         side === 0
           ? [committed, state.fighters[1]]
