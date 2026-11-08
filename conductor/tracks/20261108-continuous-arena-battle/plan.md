@@ -116,12 +116,16 @@
 - **Covers:** FR-11, AC-11
 - **Touches:** `packages/sim/src/battle/continuous/controller.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P6.T1: Intent model and cadence** — covers: FR-11
-  - [ ] **P6.T1.1: Advance, retreat, strafe, hold, commit, and dodge on a fixed decision cadence.**
-- [ ] **P6.T2: Commitment locks and archetype parameters** — covers: FR-11
-  - [ ] **P6.T2.1: No twitch re-decision inside a commitment; per-archetype tuning shared by rivals and bosses.**
+- [x] **P6.T1: Intent model and cadence** — covers: FR-11
+  - [x] **P6.T1.1: Advance, retreat, strafe, hold, commit, and dodge on a fixed decision cadence.**
+- [x] **P6.T2: Commitment locks and archetype parameters** — covers: FR-11
+  - [x] **P6.T2.1: No twitch re-decision inside a commitment; per-archetype tuning shared by rivals and bosses.**
+
+**Result:** verified
+**Checkpoint:** 5a2e6221
+**Evidence:** conductor/tracks/20261108-continuous-arena-battle/verification/phase-6.md
 
 ## Phase 7: Endings and Resolver Integration
 

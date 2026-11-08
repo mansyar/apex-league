@@ -174,6 +174,30 @@ Rework 1 (the dodge price):
   12,143 B to roughly 8.6 KB, so Phase 7 can integrate through the step path without
   extracting anything. The Phase 5 capacity warning is retired.
 - **Tasks:** P6.T1 (intent model and cadence) and P6.T2 (commitment locks and
-  archetype parameters) are both delivered in `251a89fd` — one commit, because both
+  archetype parameters) are both delivered in `251a89fd` - one commit, because both
   are facets of one decision function and neither would compile or be meaningful
-  split out — and the dodge price found by review is closed in `ef0b5a93`.
+  split out - and the dodge price found by review is closed in `ef0b5a93`.
+
+## Primary verification
+
+| Layer | Command | Exit | Result |
+| --- | --- | --- | --- |
+| static | `bun run verify` | 0 | 4 workspace typechecks clean; 3661 tests / 342 files, 3660 pass, 1 skip, 0 fail; biome 854 files clean; determinism gate byte-identical |
+| build | `bun run build` | 0 | Vite built 370 modules; only the pre-existing chunk-size warning |
+
+Verified by the primary agent. The phase was squashed to `5a2e6221` (all four
+commits in the range were reported).
+
+**Rework 1 (found by primary review, not by the phase agent):** the controller
+gated its dodge decision through `spendDodge` and reported `dodgeCost`, but the
+returned fighter was discarded and the step never charged the pool, so a fighter
+that was not committing could dodge on every cadence forever. FR-10 says stamina
+gates attacks **and** dodges. The fix added a `DodgeIntent` variant, charged
+`DODGE_STAMINA_COST` at the step seam, turned an unpayable order into a hold
+reported as `{ key, paid: false }` on `StepOutcome.dodges`, and — because that
+pushed `step.ts` past the module cap — extracted the per-step pipeline into
+`continuous/advance.ts`.
+
+**Capacity after the split:** `step.ts` 7,962 B, `advance.ts` 6,436 B,
+`controller.ts` 12,158 B (130 B of headroom). The Phase 5 warning on `step.ts` is
+retired; `controller.ts` is now the tightest file and Phase 7 should not grow it.
