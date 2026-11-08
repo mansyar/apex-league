@@ -48,6 +48,23 @@ export interface ArenaBounds {
   readonly maxZ: number
 }
 
+/** Where a committed attack sits in its authored timing (FR-6). */
+export type AttackPhase = "startup" | "active" | "recovery"
+
+/**
+ * One committed attack, as the fighter holds it. `elapsedMs` is the time
+ * already spent in the current phase, so a step can carry the remainder
+ * across a phase boundary instead of rounding every window to whole steps.
+ */
+export interface AttackState {
+  /** Catalog move id, resolved against `FRAME_DATA`. */
+  readonly moveId: string
+  /** The phase the attack is in right now. */
+  readonly phase: AttackPhase
+  /** Time already spent in the current phase, in ms. */
+  readonly elapsedMs: number
+}
+
 /** One fighter's continuous state. */
 export interface FighterState {
   /** Stable side key (the fight's id, else the display name). */
@@ -60,6 +77,8 @@ export interface FighterState {
   readonly facing: Dir2
   /** The speed stat the movement tunables read. */
   readonly spd: number
+  /** The committed attack, if any (FR-6); null once recovery has run out. */
+  readonly attack?: AttackState | null
 }
 
 /** The whole fight at one instant: two sides in a fixed order. */

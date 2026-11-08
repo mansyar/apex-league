@@ -12,6 +12,15 @@
 import { makeRng, type Rng } from "../../rng"
 import { moveFighter } from "./movement"
 import {
+  ATTACK_PHASES,
+  advanceFighterAttack,
+  commitAttack,
+  NEUTRAL_STATS,
+  resolveStrikes,
+  type StrikeReport,
+  type StrikeStats,
+} from "./strike"
+import {
   type ArenaBounds,
   type Dir2,
   FACING_POSITIVE_Z,
@@ -31,6 +40,8 @@ export interface FighterInit {
   readonly at: Readonly<{ x: number; z: number }>
   /** Opening facing; defaults to looking down +z. */
   readonly facing?: Dir2
+  /** Combat stats a strike reads; defaults to typeless 1/1 (FR-4). */
+  readonly stats?: StrikeStats
 }
 
 /** Everything a fight needs to open. */
@@ -40,9 +51,14 @@ export interface FightConfig {
   readonly fighters: readonly [FighterInit, FighterInit]
 }
 
-/** What one advance produced: the next state and its hash. */
-export interface StepResult {
+/** What one advance produced: the next state and every blow that landed. */
+export interface StepOutcome {
   readonly state: FightState
+  readonly strikes: readonly StrikeReport[]
+}
+
+/** What one advance produced: the next state, its hash, and what landed. */
+export interface StepResult extends StepOutcome {
   readonly hash: number
 }
 
@@ -50,38 +66,69 @@ export interface StepResult {
 export interface Fight {
   readonly state: FightState
   advance(intents: readonly [MoveIntent, MoveIntent]): StepResult
+  /**
+   * Order one side to commit to a move. Returns false when the fighter is
+   * locked in an active or recovery window (FR-6).
+   */
+  commit(side: 0 | 1, moveId: string): boolean
 }
 
 /**
- * What one step needs beyond the state: the fence it is played inside and
- * the fight's single seeded stream (FR-1). Movement draws nothing from the
- * stream yet; the strike and dodge phases will, on this same one.
+ * What one step needs beyond the state: the fence it is played inside, the
+ * fight's single seeded stream (FR-1), and both sides' strike stats.
  */
 export interface StepContext {
   readonly bounds: ArenaBounds
   readonly rng: Rng
+  /** Both sides' strike stats, in fighter order. */
+  readonly stats: readonly [StrikeStats, StrikeStats]
 }
 
 /**
  * Advance one fixed step. Both sides move from the same pre-step state, so
- * neither sees the other's move until the next step.
+ * neither sees the other's move until the next step, and both strike tests
+ * read that same snapshot so overlapping active frames trade (FR-7).
  */
 export function stepFight(
   state: FightState,
   intents: readonly [MoveIntent, MoveIntent],
   context: StepContext,
-): FightState {
+): StepOutcome {
   const bounds = context.bounds
+  const before = state.fighters
+  const advanced: readonly [FighterState, FighterState] = [
+    advanceFighterAttack(before[0]),
+    advanceFighterAttack(before[1]),
+  ]
+  const struck = resolveStrikes(before, advanced, context.stats)
   const fighters: readonly [FighterState, FighterState] = [
-    moveFighter(state.fighters[0], intents[0], bounds),
-    moveFighter(state.fighters[1], intents[1], bounds),
+    movedFighter(before[0], intents[0], struck.fighters[0], bounds),
+    movedFighter(before[1], intents[1], struck.fighters[1], bounds),
   ]
   return {
-    step: state.step + 1,
-    elapsedMs: state.elapsedMs + STEP_MS,
-    bounds,
-    fighters,
+    state: {
+      step: state.step + 1,
+      elapsedMs: state.elapsedMs + STEP_MS,
+      bounds,
+      fighters,
+    },
+    strikes: struck.strikes,
   }
+}
+
+/**
+ * Move one fighter and keep the attack the strike phase left it holding.
+ * `moveFighter` owns the kinematics and knows nothing about attacks, so the
+ * attack state is reattached here rather than duplicated there.
+ */
+function movedFighter(
+  before: FighterState,
+  intent: MoveIntent,
+  after: FighterState,
+  bounds: ArenaBounds,
+): FighterState {
+  const moved = moveFighter(before, intent, bounds)
+  return after.attack === undefined ? moved : { ...moved, attack: after.attack }
 }
 
 /**
@@ -114,6 +161,15 @@ export function stateHash(state: FightState): number {
     mix(fighter.facing.x)
     mix(fighter.facing.z)
     mix(fighter.spd)
+    const attack = fighter.attack
+    mix(attack ? 1 : 0)
+    if (attack) {
+      for (let i = 0; i < attack.moveId.length; i++) {
+        mix(attack.moveId.charCodeAt(i))
+      }
+      mix(ATTACK_PHASES.indexOf(attack.phase))
+      mix(attack.elapsedMs)
+    }
   }
   return hash >>> 0
 }
@@ -123,6 +179,14 @@ function requireInteger(value: number, label: string): void {
   if (!Number.isInteger(value)) {
     throw new Error(`${label} must be an integer: ${value}`)
   }
+}
+
+/** Strike stats must be whole and positive, or the damage floor lies. */
+function requireStats(stats: StrikeStats, key: string): void {
+  requireInteger(stats.atk, `${key} atk`)
+  requireInteger(stats.def, `${key} def`)
+  if (stats.atk <= 0) throw new Error(`${key} needs a positive atk`)
+  if (stats.def <= 0) throw new Error(`${key} needs a positive def`)
 }
 
 /** Build one side at rest, inside the fence and facing the way it was told. */
@@ -143,6 +207,7 @@ function openFighter(init: FighterInit, bounds: ArenaBounds): FighterState {
   if (facing.x === 0 && facing.z === 0) {
     throw new Error(`${init.key} needs a facing direction`)
   }
+  requireStats(init.stats ?? NEUTRAL_STATS, init.key)
   return {
     key: init.key,
     pos: { x: init.at.x, y: 0, z: init.at.z },
@@ -175,15 +240,31 @@ export function createFight(config: FightConfig): Fight {
     throw new Error(`Two sides cannot share the key ${fighters[0].key}`)
   }
   const rng = makeRng(config.seed >>> 0)
-  const context: StepContext = { bounds, rng }
+  const stats: readonly [StrikeStats, StrikeStats] = [
+    home.stats ?? NEUTRAL_STATS,
+    away.stats ?? NEUTRAL_STATS,
+  ]
+  const context: StepContext = { bounds, rng, stats }
   let state: FightState = { step: 0, elapsedMs: 0, bounds, fighters }
   return {
     get state() {
       return state
     },
     advance(intents) {
-      state = stepFight(state, intents, context)
-      return { state, hash: stateHash(state) }
+      const outcome = stepFight(state, intents, context)
+      state = outcome.state
+      return { state, hash: stateHash(state), strikes: outcome.strikes }
+    },
+    commit(side, moveId) {
+      const fighter = state.fighters[side]
+      const committed = commitAttack(fighter, moveId)
+      if (committed === fighter) return false
+      const fighters: readonly [FighterState, FighterState] =
+        side === 0
+          ? [committed, state.fighters[1]]
+          : [state.fighters[0], committed]
+      state = { ...state, fighters }
+      return true
     },
   }
 }
