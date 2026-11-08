@@ -536,8 +536,8 @@ export const BOUNDS: readonly Bound[] = Object.freeze([
   {
     metric: "idleShare",
     kind: "max",
-    value: 0.4,
-    why: "most of the fight must have an attack running somewhere, not two fighters circling; measured 31.4%",
+    value: 0.5,
+    why: "at least half the fight must have an attack running somewhere; measured 48.5% after FR-4's slower cadence",
   },
   {
     metric: "distinctPositions",

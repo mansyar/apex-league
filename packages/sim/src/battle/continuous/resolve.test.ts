@@ -126,7 +126,8 @@ describe("resolveContinuous — the fight's endings", () => {
   test("the cap is a duration, and a stalemate reaches it", () => {
     // A symmetric pair with a pool far larger than a cap-length fight can
     // spend: neither side can fall, so the clock decides.
-    const still = { hp: 1000, atk: 1, def: 1, spd: 0 }
+    // spd 1 is the slowest legal speed: recovery must stay positive.
+    const still = { hp: 1000, atk: 1, def: 1, spd: 1 }
     const result = resolveContinuous(
       side({ name: "Ember", id: "ember", stats: still, kit: [] }),
       side({ name: "Reed", id: "reed", stats: still, kit: [] }),
@@ -140,7 +141,7 @@ describe("resolveContinuous — the fight's endings", () => {
   })
 
   test("an even seed breaks a dead heat to side 0, an odd seed to side 1", () => {
-    const still = { hp: 1000, atk: 1, def: 1, spd: 0 }
+    const still = { hp: 1000, atk: 1, def: 1, spd: 1 }
     const even = resolveContinuous(
       side({ name: "Ember", id: "ember", stats: still, kit: [] }),
       side({ name: "Reed", id: "reed", stats: still, kit: [] }),
@@ -162,7 +163,7 @@ describe("resolveContinuous — the double KO (FR-12, AC-12)", () => {
     return side({
       name: "Ember",
       id: "ember",
-      stats: { hp: 1, atk: 10, def: 1, spd: 0 },
+      stats: { hp: 1, atk: 10, def: 1, spd: 1 },
       kit: ["spark"],
       tactic: "specials",
     })
@@ -179,13 +180,16 @@ describe("resolveContinuous — the double KO (FR-12, AC-12)", () => {
     })
   }
 
-  test("a shot and a killing blow in the same step are a double KO", () => {
-    // Side 0 can only land a shot and side 1 can only land a melee blow, so a
-    // double KO here can only be the shot landing in the step its owner goes
-    // down (the doc claim at the top of resolve.ts).
-    // Seed one: the gunner's spark (tactic specials, so it fires from outside
-    // basic reach) arrives on the same step the swinger's blow lands.
-    const found = resolveContinuous(gunner(), swinger(26), 1)
+  test("a killing blow from each side in the same step is a double KO", () => {
+    // Both sides are one blow from down, so whichever lands first ends it. A
+    // double KO can only come from both blows resolving on the same step (the
+    // doc claim at the top of resolve.ts).
+    // Phase 3 re-pin: the gunner used to stay outside basic reach and kill
+    // with the spark. At FR-3's 240 ms cadence the swinger reaches it during
+    // the spark's 130 ms startup, so the gunner is forced into a basic and the
+    // trade is blow-for-blow. The simultaneous downs are what FR-12 asserts;
+    // the projectile path still has its own coverage in the shot tests.
+    const found = resolveContinuous(gunner(), swinger(27), 1)
     expect(found.reason).toBe("double_ko")
     expect(found.winner).toBeNull()
     expect(Object.values(found.finalHp).every((hp) => hp === 0)).toBe(true)
@@ -194,21 +198,18 @@ describe("resolveContinuous — the double KO (FR-12, AC-12)", () => {
     expect(downs).toHaveLength(2)
     const tick = downs[0]?.tick
     expect(downs[1]?.tick).toBe(tick)
-    // The same tick carries the shot and the blow that killed each owner.
+    // The same tick carries the blow that killed each owner.
     const landed = found.events.filter(
       (event) => event.tick === tick && event.hit === true,
     )
-    expect(
-      landed.some(
-        (event) => event.kind === "impact" && event.actorKey === "ember",
-      ),
-    ).toBe(true)
+    expect(landed.some((event) => event.actorKey === "ember")).toBe(true)
     expect(
       landed.some(
         (event) => event.kind === "basic" && event.actorKey === "reed",
       ),
     ).toBe(true)
   })
+
 })
 
 describe("downEnding — one step, judged as a whole", () => {

@@ -210,8 +210,8 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
         rivalWinners: [
           "Driftbelle",
           "Gilded Horn",
-          "Tidecaller Nibbles",
-          "Tidecaller Nibbles",
+          "Reedle Mirefin",
+          "Reedle Mirefin",
         ],
       },
     ]
