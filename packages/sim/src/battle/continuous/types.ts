@@ -30,14 +30,27 @@ export interface Dir2 {
 }
 
 /**
- * One fighter's movement order for a step. It is a direction, not a speed:
- * the magnitude asks for a share of top speed (see ./movement), so the same
- * type orders a full advance, a half-speed approach, or standing still.
+ * One fighter's movement order for a step: a direction, or a dodge.
+ *
+ * A plain `Dir2` is a direction, not a speed: the magnitude asks for a share
+ * of top speed (see ./movement), so the same order covers a full advance, a
+ * half-speed approach, or standing still. A `DodgeIntent` is a lateral burst
+ * that costs stamina (FR-10) — the step charges it and refuses it when the
+ * pool cannot pay, which is the only thing that tells a dodge from a strafe.
  */
-export type MoveIntent = Dir2
+export type MoveIntent = Dir2 | DodgeIntent
+
+/**
+ * A dodge burst: the direction to step in, paid for out of the stamina pool
+ * at the seam that owns fighter state (./advance), never by the caller.
+ */
+export interface DodgeIntent {
+  /** The direction the burst runs in, in thousandths of a unit vector. */
+  readonly dodge: Dir2
+}
 
 /** Standing still and keeping the current facing. */
-export const HOLD: MoveIntent = Object.freeze({ x: 0, z: 0 })
+export const HOLD: Dir2 = Object.freeze({ x: 0, z: 0 })
 
 /** Looking down +z, the stance a config gets when it names no facing. */
 export const FACING_POSITIVE_Z: Dir2 = Object.freeze({ x: 0, z: DIR_SCALE })

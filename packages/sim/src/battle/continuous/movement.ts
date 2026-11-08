@@ -49,12 +49,21 @@ function divRound(value: number, divisor: number): number {
   return value < 0 ? -Math.round(-value / divisor) : Math.round(value / divisor)
 }
 
+/**
+ * The direction an order asks for, whether it is a plain intent or a dodge's
+ * burst (FR-10). Kinematics only ever need the vector, never the verb.
+ */
+export function directionOf(intent: MoveIntent): Dir2 {
+  return "dodge" in intent ? intent.dodge : intent
+}
+
 /** The velocity an intent asks for once fully ramped up, per axis. */
 export function targetVelocity(spd: number, intent: MoveIntent): Dir2 {
   const top = topSpeed(spd)
+  const dir = directionOf(intent)
   return {
-    x: divRound(top * intent.x, DIR_SCALE),
-    z: divRound(top * intent.z, DIR_SCALE),
+    x: divRound(top * dir.x, DIR_SCALE),
+    z: divRound(top * dir.z, DIR_SCALE),
   }
 }
 
@@ -133,11 +142,12 @@ function sign(value: number): number {
  * facing vector has a comparable magnitude.
  */
 export function facingFor(intent: MoveIntent, previous: Dir2): Dir2 {
-  const ax = Math.abs(intent.x)
-  const az = Math.abs(intent.z)
+  const dir = directionOf(intent)
+  const ax = Math.abs(dir.x)
+  const az = Math.abs(dir.z)
   if (ax === 0 && az === 0) return previous
-  const sx = sign(intent.x)
-  const sz = sign(intent.z)
+  const sx = sign(dir.x)
+  const sz = sign(dir.z)
   const nearDiagonal = Math.min(ax, az) * 2 >= Math.max(ax, az)
   if (ax > 0 && az > 0 && nearDiagonal) {
     return { x: sx * DIAGONAL, z: sz * DIAGONAL }

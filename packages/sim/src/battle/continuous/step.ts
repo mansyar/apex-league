@@ -1,32 +1,22 @@
 /**
- * The fixed-step stepper: one 20 ms advance of the continuous fight.
+ * The fixed-step fight: one seeded stream, one state, advanced in steps.
  *
- * Continuous Arena Battle FR-1. A fight owns exactly one seeded RNG stream,
- * created in the factory and threaded through every step, so the same seed
- * and the same intents replay the same fight. The step is integer arithmetic
- * on the state in ./types, the movement lives in ./movement, and the hash is
- * a stable FNV-1a over the quantized state — the same pattern as keyHash in
- * battle/clock/engine.ts.
+ * Continuous Arena Battle FR-1. A fight owns exactly one RNG stream, created
+ * in the factory and threaded through every step, so the same seed and the
+ * same intents replay the same fight. The per-step pipeline lives in
+ * ./advance, the movement in ./movement, and the hash is a stable FNV-1a over
+ * the quantized state — the same pattern as keyHash in battle/clock/engine.ts.
  */
 
-import { makeRng, type Rng } from "../../rng"
-import { moveFighter } from "./movement"
-import { advancePoise, applyPoiseDamage, isBroken, openingPoise } from "./poise"
-import {
-  launchProjectile,
-  type ProjectileState,
-  resolveProjectiles,
-  type ShotReport,
-} from "./projectile"
-import { openingStamina, regenerateStamina, spendAttack } from "./stamina"
+import { makeRng } from "../../rng"
+import { type StepContext, type StepResult, stepFight } from "./advance"
+import { isBroken, openingPoise } from "./poise"
+import { openingStamina, spendAttack } from "./stamina"
 import {
   ATTACK_PHASES,
-  advanceFighterAttack,
   canCommit,
   commitAttack,
   NEUTRAL_STATS,
-  resolveStrikes,
-  type StrikeReport,
   type StrikeStats,
 } from "./strike"
 import {
@@ -36,8 +26,9 @@ import {
   type FighterState,
   type FightState,
   type MoveIntent,
-  STEP_MS,
 } from "./types"
+
+export type { StepResult } from "./advance"
 
 /** One side's opening order. */
 export interface FighterInit {
@@ -64,19 +55,6 @@ export interface FightConfig {
   readonly fighters: readonly [FighterInit, FighterInit]
 }
 
-/** What one advance produced: the next state and every blow that landed. */
-export interface StepOutcome {
-  readonly state: FightState
-  readonly strikes: readonly StrikeReport[]
-  /** Shots that resolved this step, hit or dodged (FR-8). */
-  readonly shots: readonly ShotReport[]
-}
-
-/** What one advance produced: the next state, its hash, and what landed. */
-export interface StepResult extends StepOutcome {
-  readonly hash: number
-}
-
 /** A running fight: one RNG stream, one state, advanced in fixed steps. */
 export interface Fight {
   readonly state: FightState
@@ -86,113 +64,6 @@ export interface Fight {
    * stamina (FR-10).
    */
   commit(side: 0 | 1, moveId: string): boolean
-}
-
-/**
- * What one step needs beyond the state: the fence it is played inside, the
- * fight's single seeded stream (FR-1), and both sides' strike stats.
- */
-export interface StepContext {
-  readonly bounds: ArenaBounds
-  readonly rng: Rng
-  /** Both sides' strike stats, in fighter order. */
-  readonly stats: readonly [StrikeStats, StrikeStats]
-}
-
-/**
- * Advance one fixed step. Both sides move from the same pre-step state, so
- * neither sees the other's move until the next step, and both strike tests
- * read that same snapshot so overlapping active frames trade (FR-7).
- */
-export function stepFight(
-  state: FightState,
-  intents: readonly [MoveIntent, MoveIntent],
-  context: StepContext,
-): StepOutcome {
-  const bounds = context.bounds
-  const before = state.fighters
-  const advanced: readonly [FighterState, FighterState] = [
-    advanceFighterAttack(before[0]),
-    advanceFighterAttack(before[1]),
-  ]
-  const struck = resolveStrikes(before, advanced, context.stats)
-  const flight = resolveProjectiles(
-    state.projectiles,
-    before,
-    struck.fighters,
-    context.stats,
-  )
-  const launched = launchShots(state.step, before, advanced)
-  const settled = settleMeters(struck.strikes, flight.shots, flight.fighters)
-  // `moveFighter` carries the attack and both meters across (FR-6, FR-9, FR-10).
-  const fighters: readonly [FighterState, FighterState] = [
-    moveFighter(settled[0], intents[0], bounds),
-    moveFighter(settled[1], intents[1], bounds),
-  ]
-  return {
-    state: {
-      step: state.step + 1,
-      elapsedMs: state.elapsedMs + STEP_MS,
-      bounds,
-      fighters,
-      projectiles: [...flight.projectiles, ...launched],
-    },
-    strikes: struck.strikes,
-    shots: flight.shots,
-  }
-}
-
-/**
- * Launch one shot for each side whose active window just opened (FR-8). A
- * melee move launches nothing, and a window that is already active fired on
- * the step it opened, so one committed move fires exactly once. The shot's id
- * is the launching step and side, which is unique because a side opens at
- * most one window per step.
- */
-function launchShots(
-  step: number,
-  before: readonly [FighterState, FighterState],
-  after: readonly [FighterState, FighterState],
-): ProjectileState[] {
-  const shots: ProjectileState[] = []
-  for (const side of [0, 1] as const) {
-    const attack = after[side].attack
-    if (attack?.phase !== "active") continue
-    if (before[side].attack?.phase === "active") continue
-    const shot = launchProjectile(
-      step * 2 + side,
-      before[side],
-      before[side === 0 ? 1 : 0],
-      attack.moveId,
-    )
-    if (shot) shots.push(shot)
-  }
-  return shots
-}
-
-/**
- * Settle both meters for one step (FR-9, FR-10): clocks and regeneration
- * advance first, so a break opened now serves its whole window, and a window
- * that expires now refills before this step's blows land.
- */
-function settleMeters(
-  strikes: readonly StrikeReport[],
-  shots: readonly ShotReport[],
-  fighters: readonly [FighterState, FighterState],
-): readonly [FighterState, FighterState] {
-  const settled: [FighterState, FighterState] = [
-    regenerateStamina(advancePoise(fighters[0])),
-    regenerateStamina(advancePoise(fighters[1])),
-  ]
-  const hit = (key: string, poiseDamage: number): void => {
-    const side = settled[0].key === key ? 0 : 1
-    settled[side] = applyPoiseDamage(settled[side], poiseDamage)
-  }
-  for (const strike of strikes) hit(strike.targetKey, strike.poiseDamage)
-  for (const shot of shots) {
-    if (shot.outcome === "hit") hit(shot.targetKey, shot.poiseDamage)
-  }
-  return settled
 }
 
 /**
@@ -357,6 +228,7 @@ export function createFight(config: FightConfig): Fight {
         hash: stateHash(state),
         strikes: outcome.strikes,
         shots: outcome.shots,
+        dodges: outcome.dodges,
       }
     },
     commit(side, moveId) {
