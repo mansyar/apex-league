@@ -235,3 +235,37 @@ being loosened.
   150 s budget, but that headroom is thinner than it was.
 - `initFor` is now exported. `pacing.test.ts` is the only consumer; the cup path
   is unchanged.
+
+## Primary verification
+
+| Layer | Command | Exit | Result |
+| --- | --- | --- | --- |
+| static + unit + determinism | `bun run verify` | 0 | 3,735 pass, 1 skip, 0 fail across 347 files; biome 867 files clean; determinism gate byte-identical |
+| build | `bun run build` | 0 | Vite built 389 modules; only the pre-existing chunk-size warning |
+
+Independently confirmed in code: `resolve.ts` exports `HP_SCALE_PERCENT = 390` and
+`initFor` applies it at line 189; `movement.ts` exports
+`DODGE_BURST_FLOOR_MILLI_MM_PER_MS = 3000`; `controller-threat.ts` holds
+`DODGE_LEAD_MS = 240` and `DODGE_CLEAR_MS = 100`. Module sizes are all inside the
+cap — `resolve.ts` is the largest at 12,046 B (242 B headroom), so the controller
+split moved the pressure rather than removing it.
+
+**Not squashed:** all three commits in the range are the subagent's.
+
+**Concern 1 — the band is met partly by the cap.** Six of fourteen sampled fights
+are decided on points at 40.00 s. That satisfies AC-21 as written, but only
+because `FIGHT_CAP_MS` is the top of the band, so a stalled fight and a long fight
+are indistinguishable. Recorded as **AC-24** in the spec (cap share reported and
+bounded at one in two; target one in three, owned by the balance track) and
+**P12.T2.2** in the plan so telemetry enforces it rather than the spec trusting
+it.
+
+**Concern 2 — damage numbers are now tiny against the bar.** `HP_SCALE_PERCENT`
+390 on top of the effective-stat HP doubling means a representative body carries
+roughly 700 HP while a basic strike deals about 4. Any UI that shows raw damage,
+or a player reading the announcer, will see single-digit numbers moving a bar by a
+fraction of a percent. Internally consistent and invisible if the HUD only uses
+percentages — but it must be checked at the playtest, and flagged there.
+
+**Concern 3 — suite time.** 84 s against the 150 s phase budget. Fine now,
+thinner than Phase 9 because fights are ~3x longer in steps.

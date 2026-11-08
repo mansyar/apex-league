@@ -210,6 +210,12 @@ outside it does not, and an unaffordable dodge is refused.
 **AC-21.** A seeded sample of matchups reports fight durations inside 25-40
 seconds and a hit rate above zero for both sides.
 
+**AC-24.** The same sample reports the share of fights decided at the time cap,
+and that share does not exceed one in two. A fight cannot satisfy AC-21 by
+stalling until the cap, because the cap is the top of the band; the bound exists
+to stop a stalled fight from counting as good pacing. The target is one in three
+or better, which the balance track owns.
+
 **Scope correction.** "Verticality, jumping, and airborne moves" remains out of
 scope; body height and height bands are contact geometry, not movement in three
 dimensions.

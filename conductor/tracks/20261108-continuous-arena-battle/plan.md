@@ -201,16 +201,20 @@
 - **Covers:** FR-20, FR-21, AC-20, AC-21
 - **Touches:** `packages/sim/src/battle/continuous/controller.ts`, `packages/sim/src/battle/continuous/advance.ts`, `packages/sim/src/battle/continuous/movement.ts`, `packages/sim/src/battle/continuous/resolve.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P10.T1: Dodge burst** — covers: FR-20
-  - [ ] **P10.T1.1: Burst speed, duration, cooldown, and stamina price, aimed clear of the incoming line.**
-  - [ ] **P10.T1.2: A dodge inside a shot's flight or a swing's active window turns the hit into a miss.**
-- [ ] **P10.T2: Melee evasion balance** — covers: FR-20
-  - [ ] **P10.T2.1: Arc, reach, and timing tuned so evading a swing is possible and not free.**
-- [ ] **P10.T3: Pacing** — covers: FR-21
-  - [ ] **P10.T3.1: Fights land in the 25-40 s band with both sides landing blows.**
-  - [ ] **P10.T3.2: Re-pin the cup and lifecycle outcomes the new contact model moves.**
+- [x] **P10.T1: Dodge burst** — covers: FR-20
+  - [x] **P10.T1.1: Burst speed, duration, cooldown, and stamina price, aimed clear of the incoming line.**
+  - [x] **P10.T1.2: A dodge inside a shot's flight or a swing's active window turns the hit into a miss.**
+- [x] **P10.T2: Melee evasion balance** — covers: FR-20
+  - [x] **P10.T2.1: Arc, reach, and timing tuned so evading a swing is possible and not free.**
+- [x] **P10.T3: Pacing** — covers: FR-21
+  - [x] **P10.T3.1: Fights land in the 25-40 s band with both sides landing blows.**
+  - [x] **P10.T3.2: Re-pin the cup and lifecycle outcomes the new contact model moves.**
+
+**Result:** verified
+**Checkpoint:** ced0bc86
+**Evidence:** conductor/tracks/20261108-continuous-arena-battle/verification/phase-10.md
 
 ## Phase 11: Dense Playback and Staging
 
@@ -241,6 +245,7 @@
   - [ ] **P12.T1.1: Engagement distance, exchange rate, idle time, and distinct positions.**
 - [ ] **P12.T2: Thresholds** — covers: FR-14
   - [ ] **P12.T2.1: Seeded sample across matchups with CI-enforced bounds.**
+  - [ ] **P12.T2.2: Report the share of fights decided at the cap and bound it, so AC-21 cannot be met by stalling.**
 
 ## Phase 13: Legacy Freeze
 
