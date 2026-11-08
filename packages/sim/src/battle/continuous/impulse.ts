@@ -15,7 +15,7 @@
  * no random source, no floats.
  */
 
-import { BODY_RADIUS_MM } from "../frames"
+import { BLOW_WEIGHT, BODY_RADIUS_MM } from "../frames"
 import { DEFAULT_BODY_HEIGHT_MM, divRound, shotDirection } from "./contact"
 import {
   DIR_SCALE,
@@ -44,11 +44,15 @@ export const KNOCKBACK_REFERENCE_MASS = Math.floor(
 
 /**
  * Velocity added per point of poise damage at reference mass (tunable), in
- * thousandths of a mm/ms. A basic blow (2 poise) gives an average body 2 m/s of
+ * thousandths of a mm/ms. A basic blow gives an average body about 2 m/s of
  * knockback before decay, which slides it a few tens of mm; a light body takes
  * low hundreds, a heavy one less still.
+ *
+ * Divided by `BLOW_WEIGHT` because the weight triples every move's poise
+ * damage: the shove is already tuned, so only the damage gets heavier and a
+ * blow still displaces what it did before the weight (Phase 6).
  */
-export const KNOCKBACK_PER_POISE = 1000
+export const KNOCKBACK_PER_POISE = Math.trunc(1000 / BLOW_WEIGHT)
 
 /**
  * Fraction of a stunned body's velocity kept per step (tunable): a half. The

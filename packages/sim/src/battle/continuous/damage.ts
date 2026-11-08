@@ -5,12 +5,17 @@
  * Continuous Arena Battle FR-4 and FR-6. A flank or rear hit multiplies by
  * `num / den` — never a float — and a blow that lands on a recovering victim
  * adds the counter term. Both terms are integers, so the result is exact and
- * deterministic on every platform. A front, non-counter hit is byte-identical
- * to `strikeDamage` in ../damage.
+ * deterministic on every platform. A front, non-counter hit is exactly
+ * `strikeDamage` in ../damage times `BLOW_WEIGHT`.
+ *
+ * The blow weight lives here, not in `strikeDamage`: the legacy gauge clock
+ * still reads that formula and its arithmetic is frozen, so only the
+ * continuous engine's blows get heavier (Phase 6).
  */
 
 import type { TypeFactor } from "../chart"
 import { strikeDamage } from "../damage"
+import { BLOW_WEIGHT } from "../frames"
 
 /** An integer multiplier `num / den`. */
 export interface Ratio {
@@ -53,9 +58,9 @@ export interface PositionalDamage {
 }
 
 /**
- * Damage for one landed blow. The positional and counter terms multiply into
- * the numerator and denominator the existing formula already takes, so every
- * hit still floors to an integer of at least 1.
+ * Damage for one landed blow. The blow weight and the positional and counter
+ * terms multiply into the numerator and denominator the existing formula
+ * already takes, so every hit still floors to an integer of at least 1.
  *
  * A bonus is never a no-op: on a chip hit the floor can swallow +25% (1 → 1),
  * so a positional or counter bonus keeps at least one point over the same
@@ -69,7 +74,7 @@ export function positionalDamage(input: PositionalDamage): number {
     input.power,
     input.atk,
     input.def,
-    input.type.num * position.num * counter.num,
+    input.type.num * position.num * counter.num * BLOW_WEIGHT,
     input.type.den * position.den * counter.den,
     true,
   )
@@ -78,7 +83,7 @@ export function positionalDamage(input: PositionalDamage): number {
     input.power,
     input.atk,
     input.def,
-    input.type.num,
+    input.type.num * BLOW_WEIGHT,
     input.type.den,
     true,
   )
