@@ -204,3 +204,100 @@ a pop; bounds and the painted ring must be the same number). Committed as
 
 Not squashed: the phase held four commits across two agents plus the primary's
 docs sync.
+
+## Rework 2 — HP pool single source
+
+The owner reported no damage in spar: the fight ran, the announcer called hits,
+and the HP bars stayed full. Two pools were in play.
+
+| Side (seed 7 drake, spar seed 4242) | Stat HP (setup panel) | Fight pool (sim) | HUD denominator before | HUD denominator after |
+| --- | --- | --- | --- | --- |
+| Ember Drake | 76 | 296 | 76 → `hpFraction(296, 76)` clamps to 1 | 296 |
+| Bramble Ox (rival) | 100 | 390 | 100 → clamps to 1 | 390 |
+
+`resolve.ts` opens every side at `floor(stats.hp * HP_SCALE_PERCENT / 100)` with
+`HP_SCALE_PERCENT = 390`, so the first step's `hpAfter` (296) was already above
+the HUD's maximum (76). `hpFraction` clamps, so the bar never moved; the same
+was true of the cup, which also framed its fight from stat HP
+(`apps/client/src/cup/arena.ts` — `battleStats(creature).hp`, `opponent.stats.hp`)
+even though `resolvePlayerMatch` fights on the continuous engine.
+
+### The helper
+
+New module `packages/sim/src/battle/continuous/hp.ts`:
+
+```ts
+export const HP_SCALE_PERCENT = 390
+
+/** A side's opening pool: its stat HP at the scale above, floored. */
+export function startingHp(side: Pick<BattleSide, "stats">): number {
+  return Math.floor((side.stats.hp * HP_SCALE_PERCENT) / 100)
+}
+```
+
+`initFor` now takes its opening HP from `startingHp(side)`, so the resolver and
+the client call the same function — the number cannot drift. The constant moved
+out of `resolve.ts` into the same module (still re-exported from `resolve.ts`,
+so that module's surface is unchanged) because `resolve.ts` was already 12,257 B
+against the 12,288 B module-size cap and the helper pushed it over; splitting the
+HP seam is what the cap's own message asks for. `HP_SCALE_PERCENT` is exported
+from `@apex/sim` only through `startingHp` — the client never spells 390.
+
+### Both call sites
+
+`apps/client/src/spar/casting.ts` — `fightNowFor`:
+
+```ts
+maxHp: startingHp(setup.ownedSide),   // was setup.ownedSide.stats.hp
+maxHp: startingHp(setup.rivalSide),   // was setup.rivalSide.stats.hp
+```
+
+`apps/client/src/cup/arena.ts` — `mem.fightNow`:
+
+```ts
+maxHp: startingHp({ stats: battleStats(creature) }),  // was battleStats(creature).hp
+maxHp: startingHp(opponent),                          // was opponent.stats.hp
+```
+
+The cup was wrong for the same reason and is fixed here. The setup panel is
+untouched: it renders the stat line from the sides' stats (`spar/loadout-vm.ts`
+`statLine`), so it still shows 76/100; only the in-battle HUD shows the pool it
+tracks. The legacy replay path is untouched — a `PlaybackFight` is only ever
+built for a fight this session just resolved, and the paced fallback reads the
+same object it always did.
+
+### The new test
+
+`apps/client/src/spar/casting.test.ts` (new, two tests, seed 4242):
+
+- *maxHp is the pool the resolver opens the fight with* — both sides'
+  `maxHp` equals `startingHp(side)`, and is strictly greater than the side's
+  stat HP (296 > 76, 390 > 100).
+- *the first landed hit takes a bar below full* — walks the real playback
+  script (`scriptFor(verdict)`) to the **first** step with `damage > 0`, finds
+  the side(s) whose `hpAfter` is below their maximum, and asserts
+  `hpFraction(hpAfter, maxHp) < 1`. This is the assertion the bug needed: it
+  was verified red by temporarily restoring `stats.hp` in `fightNowFor` — both
+  tests failed (expected 296, received 76; `dropped.length` 0), then green with
+  the fix.
+
+### Commands
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `bun run verify` | 0 | typecheck 4 packages clean (voxel 160, sim 209, server 44, client 500 files); **3,794 pass, 1 skip, 0 fail** (3,795 tests, 354 files, 465,745 `expect()` calls); biome clean on 884 files; determinism gate OK for all 45 species/form digests + 5 props |
+| `bun run build` | 0 | vite production build, 398 modules, `dist/assets/index-Bpg-Bpc3.js` 1,018.93 kB |
+
+Run as two separate commands. Two `bun run verify` attempts were needed after
+the first edit: the first failed `packages/sim/src/module-size.test.ts`
+(`resolve.ts` 12,657 B, 369 B over the 12,288 B cap), which is why the helper
+moved to `continuous/hp.ts`; the second failed only biome's export ordering in
+the two barrels, fixed by hand. Suite count moved 3,792 → 3,794: exactly the two
+new `casting` tests.
+
+### Deviations
+
+| File | Why |
+| --- | --- |
+| `packages/sim/src/battle/continuous/hp.ts` (new) | The helper and `HP_SCALE_PERCENT` could not live in `resolve.ts` without breaking the 12 KB module-size cap; the constant moved with the helper so there is still exactly one copy. |
+| `packages/sim/src/battle/index.ts`, `packages/sim/src/index.ts` | One additive `startingHp` re-export each; without it the client cannot reach the helper through `@apex/sim`. |
