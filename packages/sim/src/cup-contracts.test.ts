@@ -183,9 +183,11 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
         // Nibbles; SF2 stayed on Mossbottom Brute.
         // Recovery-band ripple (spacing/cadence phase 5): the wider tail flips
         // QF2 from Tidecaller Nibbles to Reedle Mirefin; the rest hold.
+        // Blow-weight ripple (phase 6): the triple-length cycle flips QF2 back
+        // to Tidecaller Nibbles; SF2 and the final stay on Mossbottom Brute.
         seed: 101,
         rivalWinners: [
-          "Reedle Mirefin",
+          "Tidecaller Nibbles",
           "Ash-ledger",
           "Mossbottom Brute",
           "Mossbottom Brute",
@@ -207,15 +209,15 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
       // moved QF2 and SF2 once more.
       // Pacing ripple (phase 10): QF2 and SF2 moved again — Gilded Horn takes
       // QF2 and Tidecaller Nibbles takes SF2.
-      // Blow-weight ripple (phase 6): QF4 moved with SF2 — Tidecaller Nibbles
-      // now takes both.
+      // Blow-weight ripple (phase 6): QF4 and SF2 go back to Reedle Mirefin,
+      // as they were before the widening.
       {
         seed: 19,
         rivalWinners: [
           "Driftbelle",
           "Gilded Horn",
-          "Tidecaller Nibbles",
-          "Tidecaller Nibbles",
+          "Reedle Mirefin",
+          "Reedle Mirefin",
         ],
       },
     ]
@@ -315,7 +317,9 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     // Pacing ripple (phase 10): Tidecaller Nibbles takes SF2 and the final.
     // Recovery-band ripple (spacing/cadence phase 5): QF2 flips to Reedle
     // Mirefin, who then takes SF1 and the final.
-    expect(done.championName).toBe("Reedle Mirefin")
+    // Blow-weight ripple (phase 6): QF2 flips back to Tidecaller Nibbles, and
+    // Mossbottom Brute takes SF1 and the final.
+    expect(done.championName).toBe("Mossbottom Brute")
     // The forfeit verdict names the opponent, no battle attached.
     const ff = done.playerVerdicts[0]
     expect(ff?.winner).toBe("Bonfire Brook")
@@ -327,8 +331,8 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     expect(
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
     ).toEqual([
-      [2, "Bonfire Brook", "Reedle Mirefin", "Reedle Mirefin"],
-      [3, "Reedle Mirefin", "Mossbottom Brute", "Reedle Mirefin"],
+      [2, "Bonfire Brook", "Tidecaller Nibbles", "Bonfire Brook"],
+      [3, "Bonfire Brook", "Mossbottom Brute", "Mossbottom Brute"],
     ])
   })
 

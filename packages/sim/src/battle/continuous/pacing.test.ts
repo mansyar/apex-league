@@ -31,12 +31,11 @@ import { STEP_MS } from "./types"
 
 /**
  * The tuned band, in ms. Phase 4 re-pinned the floor from 24 s to 8 s after
- * the HP re-tune, and Phase 6 re-pinned it to 5 s after the blow weight: the
- * fastest knockout (wind_falcon v water_axolotl) lands at 5.36 s, because a
- * 40-damage special now ends a low-HP matchup in three blows. The top is the
- * cap, unchanged.
+ * the HP re-tune: the fastest knockout lands just under 9 s, because a
+ * 40-damage special ends a low-HP matchup in three blows. The top is the cap,
+ * unchanged.
  */
-const MIN_MS = 5_000
+const MIN_MS = 8_000
 const MAX_MS = 40_000
 
 /**

@@ -226,9 +226,9 @@ describe("poise — the fight (FR-9, AC-9)", () => {
     const fight = duel(2)
     expect(fight.commit(0, "basic")).toBe(true)
     expect(fight.commit(1, "basic")).toBe(true)
-    // basic opens its active window on the fourth step and lands one blow of
-    // 2 poise, which empties a 2-point pool (one blow per swing, FR-18).
-    hold(fight, 4)
+    // basic opens its active window on the twelfth step and lands one blow of
+    // 6 poise, which empties a 2-point pool (one blow per swing, FR-18).
+    hold(fight, 12)
     for (const one of fight.state.fighters) {
       expect(isBroken(one)).toBe(true)
       expect(one.poise).toBe(0)
@@ -242,7 +242,7 @@ describe("poise — the fight (FR-9, AC-9)", () => {
   test("the punish window expires and the victim can commit again", () => {
     const fight = duel(2)
     fight.commit(0, "basic")
-    hold(fight, 4)
+    hold(fight, 12)
     hold(fight, POISE_BREAK_MS / STEP_MS)
     const victim = fight.state.fighters[1]
     expect(isBroken(victim)).toBe(false)

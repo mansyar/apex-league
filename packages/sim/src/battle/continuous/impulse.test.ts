@@ -112,7 +112,7 @@ function duel(victim: Partial<FighterInit> = {}): Fight {
 function land(fight: Fight): ReturnType<Fight["advance"]> {
   let result = fight.advance(HOLD_BOTH)
   let guard = 0
-  while (result.strikes.length === 0 && guard < 8) {
+  while (result.strikes.length === 0 && guard < 14) {
     result = fight.advance(HOLD_BOTH)
     guard++
   }
@@ -289,7 +289,7 @@ describe("hit reactions — a landed blow in a fight (AC-22, AC-23)", () => {
     expect(fight.commit(0, "spark")).toBe(true)
     let result = fight.advance(HOLD_BOTH)
     let guard = 0
-    while (result.shots.length === 0 && guard < 20) {
+    while (result.shots.length === 0 && guard < 60) {
       result = fight.advance(HOLD_BOTH)
       guard++
     }

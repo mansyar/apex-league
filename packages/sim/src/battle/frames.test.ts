@@ -152,7 +152,13 @@ describe("frame data — the blow weight (Phase 6)", () => {
   test("every per-blow field carries the weight, so none can drift", () => {
     for (const move of ALL_MOVES) {
       const row = frameOf(move.id)
-      const fields = ["recoveryMs", "poiseDamage", "staminaCost"] as const
+      const fields = [
+        "startupMs",
+        "activeMs",
+        "recoveryMs",
+        "poiseDamage",
+        "staminaCost",
+      ] as const
       for (const field of fields) {
         expect(row[field] % BLOW_WEIGHT).toBe(0)
         expect(row[field] / BLOW_WEIGHT).toBeGreaterThan(0)
@@ -169,10 +175,11 @@ describe("frame data — the blow weight (Phase 6)", () => {
 
   test("a poise break still lands after the same frame time", () => {
     // A break is tuned in blows and in seconds of fight, not in points. The
-    // weight triples the poise one blow carries and the tail it costs, so
-    // blows-to-break × cycle must land where the pre-weight table put it.
-    // Forgetting poise (2 per blow, 890 ms cycle) would read 8900 ms; forgetting
-    // recovery (6 poise, 390 ms cycle) would read 1560 ms — both fail loudly.
+    // weight triples the poise one blow carries and the whole cycle it costs,
+    // so blows-to-break × cycle must land where the pre-weight table put it.
+    // Forgetting poise (2 per blow, 1170 ms cycle) would read 11700 ms;
+    // forgetting startup and active (6 poise, 670 ms cycle) would read 2680 ms —
+    // both fail loudly.
     const basic = frameOf(BASIC_MOVE.id)
     const blows = Math.ceil(DEFAULT_POISE_MAX / basic.poiseDamage)
     const cycleMs =
@@ -183,13 +190,15 @@ describe("frame data — the blow weight (Phase 6)", () => {
       DEFAULT_POISE_MAX / (basic.poiseDamage / BLOW_WEIGHT),
     )
     const preWeightCycleMs =
-      basic.startupMs + basic.activeMs + basic.recoveryMs / BLOW_WEIGHT
+      (basic.startupMs + basic.activeMs + basic.recoveryMs) / BLOW_WEIGHT
     expect(blows).toBe(4)
     expect(preWeightBlows).toBe(10)
     const weightedMs = blows * cycleMs
     const preWeightMs = preWeightBlows * preWeightCycleMs
+    // Within a quarter: the break is 20 poise, so the integer ceiling rounds 3.3
+    // blows up to 4 and the weighted break lands a fifth sooner in frame time.
     expect(Math.abs(weightedMs - preWeightMs)).toBeLessThan(
-      Math.trunc(preWeightMs / 5),
+      Math.trunc(preWeightMs / 4),
     )
   })
 })

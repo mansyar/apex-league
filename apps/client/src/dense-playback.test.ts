@@ -208,6 +208,40 @@ describe("dense staging", () => {
     expect(mesh.visible).toBe(false)
   })
 
+  test("a long startup keeps the telegraph up until the phase turns active", () => {
+    // The blow weight tripled every startup (basic 80 -> 240 ms, twelve stream
+    // steps), so the tell has to survive a window that now spans many steps and
+    // still vanish on the step the phase turns active.
+    const { stage, arena } = stageFor()
+    const left = fighter("left", 0)
+    const right = fighter("right", 0)
+    const records: Array<[Rec, Rec]> = []
+    for (let step = 0; step < 12; step++) {
+      const phaseT = Math.round((step * 255) / 11)
+      records.push([
+        { ...rest(-1200), phase: STREAM_PHASE.startup, phaseT },
+        rest(1200),
+      ])
+    }
+    records.push([
+      { ...rest(-1200), phase: STREAM_PHASE.active, phaseT: 0 },
+      rest(1200),
+    ])
+    const trace = stream(records)
+    const tell = arena.children[0] as THREE.Group
+    const mesh = tell.children[0] as THREE.Mesh
+    let last = 0
+    for (let step = 0; step < 12; step++) {
+      stage.apply(trace, step, left, right)
+      expect(mesh.visible).toBe(true)
+      last = (mesh.material as THREE.MeshBasicMaterial).opacity
+    }
+    // The tell was still growing as the window closed.
+    expect(last).toBeGreaterThan(0.7)
+    stage.apply(trace, 12, left, right)
+    expect(mesh.visible).toBe(false)
+  })
+
   test("reacts to a hit once, on the step that took the points", () => {
     const { stage, fx, shakes } = stageFor()
     const left = fighter("left", 0)

@@ -252,8 +252,8 @@ describe("projectiles — arrival and dodge (FR-8, AC-8)", () => {
     const far = runUntilResolved(duel(4500), "spark", BOTH_HOLD)
     expect(onlyShot(near.shots).outcome).toBe("hit")
     expect(onlyShot(far.shots).outcome).toBe("hit")
-    expect(near.step).toBe(13)
-    expect(far.step).toBe(25)
+    expect(near.step).toBe(26)
+    expect(far.step).toBe(38)
     expect(far.step).toBeGreaterThan(near.step)
   })
 
@@ -374,7 +374,7 @@ describe("projectiles — in the step (FR-8)", () => {
     expect(fight.commit(0, "spark")).toBe(true)
     let strikes = 0
     let shots = 0
-    for (let step = 0; step < 20; step++) {
+    for (let step = 0; step < 60; step++) {
       const result = fight.advance(BOTH_HOLD)
       strikes += result.strikes.length
       shots += result.shots.length
@@ -387,7 +387,7 @@ describe("projectiles — in the step (FR-8)", () => {
     const fight = duel(3000)
     expect(fight.commit(0, "pyre_wall")).toBe(true)
     let shots = 0
-    for (let step = 0; step < 40; step++) {
+    for (let step = 0; step < 80; step++) {
       shots += fight.advance(BOTH_HOLD).shots.length
     }
     expect(shots).toBe(1)
@@ -397,7 +397,7 @@ describe("projectiles — in the step (FR-8)", () => {
     const fight = duel(1500)
     expect(fight.commit(0, "spark")).toBe(true)
     let inFlight = 0
-    for (let step = 0; step < 20; step++) {
+    for (let step = 0; step < 60; step++) {
       fight.advance(BOTH_HOLD)
       inFlight = Math.max(inFlight, fight.state.projectiles.length)
     }
@@ -428,7 +428,7 @@ describe("projectiles — determinism (NFR-1)", () => {
       fight.commit(0, "spark")
       const hashes: number[] = []
       const shots: string[] = []
-      for (let step = 0; step < 40; step++) {
+      for (let step = 0; step < 60; step++) {
         const result = fight.advance(STRAFE)
         hashes.push(result.hash)
         for (const shot of result.shots) {
@@ -449,7 +449,7 @@ describe("projectiles — determinism (NFR-1)", () => {
   test("the hash covers the shots in flight", () => {
     const fight = duel(4500)
     fight.commit(0, "spark")
-    for (let step = 0; step < 8; step++) fight.advance(BOTH_HOLD)
+    for (let step = 0; step < 21; step++) fight.advance(BOTH_HOLD)
     const shot = onlyProjectile(fight)
     expect(stateHash(fight.state)).not.toBe(
       stateHash({ ...fight.state, projectiles: [] }),
