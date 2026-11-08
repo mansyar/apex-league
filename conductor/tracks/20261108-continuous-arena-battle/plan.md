@@ -255,3 +255,22 @@
   - [ ] **P13.T3.1: A pre-track save loads and its in-flight cup completes.**
 - [ ] **P13.T4: Docs truth pass** — covers: FR-15
   - [ ] **P13.T4.1: Update the product roadmap and learnings.**
+
+## Playtest at merge
+
+Standing instruction from the product owner (2026-11-08): when asking for merge
+approval, **open the game in the Review pane first** so it can be played before
+the merge is agreed.
+
+The sequence before the merge question is asked:
+
+1. Run `bun run dev` and confirm the Vite server is up on `http://localhost:5173`.
+2. Open that URL in a browser tab, which surfaces it in the Review pane.
+3. Watch at least one cup day and one spar, so the merge question is asked about
+   a build that has actually rendered a fight.
+4. Put the playtest brief (`./playtest.md`) in front of the owner with the merge
+   question, and repeat its headline limitations in the question itself — the
+   answer must be given with the deferred items in view, not discovered after.
+
+If the dev server cannot be started in the session, say so explicitly in the
+merge question rather than asking for approval blind.

@@ -3,6 +3,7 @@
 - [Specification](./spec.md)
 - [Implementation Plan](./plan.md)
 - [Metadata](./metadata.json)
+- [Playtest Brief](./playtest.md) — what to expect at merge, and what is deferred
 
 **Type:** `feature`
 **Priority:** `high`
