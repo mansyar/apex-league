@@ -78,7 +78,8 @@ frozen path builds a clock*.
   `apps/client/src/spar.ts:130` (`runBattle`, used by both the normal spar and
   `ghostSparSetup`). It is the one entry the freeze cannot fence off without a
   product decision, so it is allow-listed in the scan and reported here rather
-  than deleted or rerouted.
+  than deleted or rerouted. **Fixed in Rework 1 below:** spar now resolves
+  through `resolveContinuous` and is off the allow-list.
 - **`SIM_VERSION` was not bumped.** It is 2 and a test now pins it, so a later
   phase cannot invalidate stored bundles by accident.
 - `continuous/` was not modified; no simulation behaviour changed. Only prose
@@ -88,3 +89,91 @@ frozen path builds a clock*.
 - The client-side quiet skip (`isVersionSkippedBundle` → note, no button) and
   the server's permissive `isPlausibleGhost` (any non-negative integer version)
   were left as they are: the server stores, the client and sim gate.
+
+## Rework 1 — spar on the continuous engine
+
+Commits: `711d925c`, `f57fbbd6`, `e0ee2620` (plus this evidence file).
+
+### The call site, before and after
+
+Before — `apps/client/src/spar.ts` `runBattle` resolved every spar on the
+frozen gauge clock, and its result carried no trace:
+
+```ts
+import { ..., resolveBattle, ... } from "@apex/sim"
+const verdict = resolveBattle(setup.ownedSide, setup.rivalSide, seed)
+```
+
+After — the spar's verdict has its own module, `spar/resolve.ts`, and both the
+normal exhibition and the ghost bout go through it:
+
+```ts
+export function resolveSpar(setup: SparSetup, seed: number): BattleResult {
+  return resolveContinuous(setup.ownedSide, setup.rivalSide, seed)
+}
+```
+
+```ts
+const verdict = resolveSpar(setup, seed)
+```
+
+`resolveContinuous` was not reachable from the client: `packages/sim/src/index.ts`
+re-exports the battle barrel by name and did not list it. One additive export
+line was added (no simulation code touched, no behaviour changed).
+
+### Stream wiring
+
+`spar.ts` already forwards `onFrame` into `createBattleSession`, and
+`createBattleSession` hands it to the playback driver; `app/screens.ts` wires
+it to `staging.applyFrame`. The only missing link was the trace itself: the
+driver reads `streamOf(verdict)` in `start()`/`replay()`, so a spar now takes
+the same dense path as a cup fight — the playhead advances at 50 Hz, the arena
+draws each frame, and `StepIO.streamOwnsBodies()` is true, so the Phase 11
+position-ownership fix finally reaches the legacy path the owner was playing.
+Announcer lines ride the same events (`onLine`), and the finish hold is
+untouched: the driver still stamps and calls `onFinish`, and spar's chrome
+(replay pill, chip row, log toggle) is unchanged.
+
+### The freeze fence
+
+`packages/sim/src/battle/clock.freeze.test.ts`:
+
+- `EXPECTED_CALL_SITES` no longer contains `apps/client/src/spar.ts`; the
+  allow-list is now exactly the frozen resolver and the clock's constructors.
+- The header and constant docs now say no production fight reaches the frozen
+  resolver — only the legacy replay path and the tests that pin it.
+- The scan itself is unchanged, so a new `resolveBattle(` caller still fails.
+
+### The new test
+
+`apps/client/src/spar/resolve.test.ts` (new, two tests):
+
+- *a spar resolves on the continuous engine with its dense trace* — a seeded
+  exhibition through `resolveSpar` has `streamOf(verdict)` defined and a
+  non-empty event log.
+- *the same seed replays the same events* — two resolutions of the same seed
+  yield identical `events`, `winner`, and `finalHp`.
+
+`spar/ghost.test.ts` was moved onto `resolveSpar` (the old `resolveBattle`
+calls asserted a path production no longer takes) and now also pins that a
+ghost bout carries a trace. Ghost version gating is untouched:
+`readGhostContender` still rejects any bundle whose `simVersion` is not the
+current `SIM_VERSION`, so pre-v2 bundles are skipped quietly.
+
+### Commands
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `bun run verify` | 0 | typecheck 4 packages clean (voxel 160, sim 208, server 44, client 498 files); **3,792 pass, 1 skip, 0 fail** (3,793 tests, 353 files, 465,739 `expect()` calls); biome clean on 882 files; determinism gate OK for all 45 species/form digests + 5 props |
+| `bun run build` | 0 | vite production build, 397 modules, `dist/assets/index-Ca66_dfN.js` 1,018.94 kB |
+
+Run as two separate commands, as the brief requires. The first `bun run verify`
+failed at `tsc` (the missing `resolveContinuous` re-export); after adding it the
+second run was clean. Suite count moved 3,790 → 3,792: exactly the two new
+`resolveSpar` tests.
+
+### Deviations
+
+| File | Why |
+| --- | --- |
+| `packages/sim/src/index.ts` | One additive `resolveContinuous` export. Without it the client cannot call the continuous resolver at all (`@apex/sim` exposes only its root entry), so the phase goal is unreachable. No simulation behaviour, no signature, and no other export changed. |
