@@ -1,14 +1,16 @@
 /**
- * The fixed-step fight: one seeded stream, one state, advanced in steps.
+ * The fixed-step fight: one state, advanced in steps.
  *
- * Continuous Arena Battle FR-1. A fight owns exactly one RNG stream, created
- * in the factory and threaded through every step, so the same seed and the
- * same intents replay the same fight. The per-step pipeline lives in
- * ./advance, the movement in ./movement, and the hash is a stable FNV-1a over
- * the quantized state — the same pattern as keyHash in battle/clock/engine.ts.
+ * Continuous Arena Battle FR-1. The step loop draws nothing: every value is
+ * integer arithmetic over the state, so the same sides and the same intents
+ * replay the same fight byte for byte. The fight is therefore seed-free — the
+ * seed decides nothing here and is not consumed by `createFight`; the only
+ * place a seed decides anything is the capped-fight tiebreak in ./resolve,
+ * which reads it from the caller. The per-step pipeline lives in ./advance,
+ * the movement in ./movement, and the hash is a stable FNV-1a over the
+ * quantized state — the same pattern as keyHash in battle/clock/engine.ts.
  */
 
-import { makeRng } from "../../rng"
 import { BODY_RADIUS_MM } from "../frames"
 import { type StepContext, type StepResult, stepFight } from "./advance"
 import { DEFAULT_BODY_HEIGHT_MM } from "./contact"
@@ -66,12 +68,18 @@ export interface FighterInit {
 
 /** Everything a fight needs to open. */
 export interface FightConfig {
+  /**
+   * The fight's seed, validated for the caller's contract. The engine is
+   * seed-free: nothing in the step loop draws from it, and `createFight` only
+   * checks that it is an integer. The capped-fight tiebreak in ./resolve reads
+   * the seed its own caller passed, not this field.
+   */
   readonly seed: number
   readonly bounds: ArenaBounds
   readonly fighters: readonly [FighterInit, FighterInit]
 }
 
-/** A running fight: one RNG stream, one state, advanced in fixed steps. */
+/** A running fight: one state, advanced in fixed steps. */
 export interface Fight {
   readonly state: FightState
   advance(intents: readonly [MoveIntent, MoveIntent]): StepResult
@@ -239,12 +247,11 @@ export function createFight(config: FightConfig): Fight {
   if (fighters[0].key === fighters[1].key) {
     throw new Error(`Two sides cannot share the key ${fighters[0].key}`)
   }
-  const rng = makeRng(config.seed >>> 0)
   const stats: readonly [StrikeStats, StrikeStats] = [
     home.stats ?? NEUTRAL_STATS,
     away.stats ?? NEUTRAL_STATS,
   ]
-  const context: StepContext = { bounds, rng, stats }
+  const context: StepContext = { bounds, stats }
   let state: FightState = {
     step: 0,
     elapsedMs: 0,
