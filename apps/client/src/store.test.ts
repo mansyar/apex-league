@@ -260,7 +260,7 @@ describe("game store — the morning-after ledger (postcup_morning_after FR-2)",
       cur = resolvePlayerMatch(
         cur,
         defaultLoadout(c, species),
-        "specials",
+        "balanced",
       ).session
     }
     if (cur.status === "eliminated") cur = completeCup(cur)
