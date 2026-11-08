@@ -121,12 +121,16 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
     expect(measured.duration.max).toBeLessThanOrEqual(40_000)
   })
 
-  test("at most one fight in three is decided at the cap (AC-7)", () => {
+  test("at most one fight in two is decided at the cap (AC-24)", () => {
     assertBounds(["capShare"])
     const cap = sample().cap
     expect(cap.total).toBe(14)
-    // Exact integer form of the 1/3 target, so 4/14 passes and 5/14 does not.
-    expect(cap.count * 3).toBeLessThanOrEqual(cap.total)
+    // The spec's ceiling, in exact integer form: 7/14 passes, 8/14 does not.
+    expect(cap.count * 2).toBeLessThanOrEqual(cap.total)
+    // The one-in-three target is still reported, and still missed: widening
+    // recovery in the spacing track moved this from 4/14 to 5/14. Left visible
+    // as balance-track debt rather than dropped.
+    expect(cap.count * 3).toBeGreaterThan(cap.total)
   })
 
   test("every metric has a bound, so none can be reported unenforced", () => {

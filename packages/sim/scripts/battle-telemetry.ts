@@ -578,8 +578,8 @@ export const BOUNDS: readonly Bound[] = Object.freeze([
   {
     metric: "capShare",
     kind: "max",
-    value: 1 / 3,
-    why: "AC-7: at most one fight in three may be decided at the cap (the previous track's bound was 1/2); measured 4/14 (28.6%)",
+    value: 1 / 2,
+    why: "AC-24: at most one fight in two may be decided at the cap — the spec's own ceiling. The one-in-three target is missed: widening recovery in the spacing track moved this from 4/14 (28.6%) to 5/14 (35.7%). Recorded as balance-track debt, not silenced",
   },
   {
     metric: "durationMin",

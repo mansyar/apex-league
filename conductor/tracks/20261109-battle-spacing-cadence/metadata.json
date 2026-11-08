@@ -4,21 +4,23 @@
   "type": "feature",
   "status": "in_progress",
   "priority": "high",
-  "depends_on": ["20261108-continuous-arena-battle"],
+  "depends_on": [
+    "20261108-continuous-arena-battle"
+  ],
   "created_at": "2026-11-09T10:05:00+11:00",
-  "updated_at": "2026-11-09T12:10:00+11:00",
+  "updated_at": "2026-11-09T12:05:00+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "feat/20261109-battle-spacing-cadence",
   "base_branch": "feat/20261108-continuous-arena-battle",
   "base_sha": "2fcd7f57c43de57feb2fe472c2625524ef8f6ee0",
   "progress": {
-    "phases_total": 4,
-    "phases_verified": 4,
-    "tasks_total": 9,
-    "tasks_done": 9
+    "phases_total": 5,
+    "phases_verified": 5,
+    "tasks_total": 12,
+    "tasks_done": 12
   },
-  "last_checkpoint": "2a4e348c",
+  "last_checkpoint": "cff754fb",
   "review_verdict": null,
   "review_rounds": 0,
   "doc_sync": "pending",

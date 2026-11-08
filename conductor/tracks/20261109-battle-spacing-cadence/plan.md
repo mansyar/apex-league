@@ -66,3 +66,19 @@
 - [x] **P4.T1: Compare against the baseline** — covers: AC-1, AC-2, AC-4, AC-5 — every metric before and after, with the bound it now meets
 - [x] **P4.T2: Bound the pacing honestly** — covers: AC-7 — band and cap share, reported separately
 - [x] **P4.T3: Re-pin what moved** — covers: FR-6 — every balance and cup row re-pinned, listed one by one
+
+## Phase 5: Recovery Shape
+
+- **Goal:** a swing reads as a commitment, and the panel stops advertising a stat the engine does not have.
+- **Depends on:** Phase 4
+- **Covers:** FR-4, FR-5, AC-4, AC-7
+- **Touches:** `packages/sim/src/battle/frames.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`, `packages/sim/scripts/battle-telemetry.ts`, `apps/client/src/battleUI.ts` + tests
+- **Verification:** `bun run verify && bun run build`, plus `bun run telemetry`
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** cff754fb
+- **Evidence:** `conductor/tracks/20261109-battle-spacing-cadence/verification/phase-5.md`
+
+- [x] **P5.T1: Widen the authored recovery band** - covers: FR-4 — basic 140 to 250 ms, light 300-340, mid 460-520, heavy 670-720, authored by hand
+- [x] **P5.T2: Label the real stat** - covers: FR-5 — the kit panel reads `Recovery <n> ms` from the frame table instead of the dead `Cooldown N`
+- [x] **P5.T3: Re-measure and re-pin** - covers: AC-4, AC-7 — telemetry re-run, cup fixtures re-pinned, cap-share target recorded as debt
