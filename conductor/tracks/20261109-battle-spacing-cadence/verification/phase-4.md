@@ -188,3 +188,25 @@ here rather than hidden behind the looser bound.
 | `packages/sim/src/battle/continuous/controller.ts` | pre-existing `biome check` export-order failure at `6d03b841` |
 | `packages/sim/src/battle/continuous/resolve.test.ts` | pre-existing `biome check` blank-line failure at `6d03b841` |
 | `packages/sim/src/battle/continuous/strike.ts` | pre-existing `biome check` line-wrap failure at `6d03b841` |
+
+## Primary verification
+
+| Layer | Command | Exit | Result |
+| --- | --- | --- | --- |
+| static + unit + determinism | `bun run verify` | 0 | 3,814 pass, 0 fail, 3,815 tests / 354 files, 54.59 s |
+| build | `bun run build` | 0 | 398 modules |
+
+The suite is green and the engine now behaves like a fight rather than a
+slugfest. One acceptance criterion is **not** met and is recorded as debt
+rather than quietly relaxed: the 25-40 s duration floor. At HP scale 210 the
+sample is 10 KO / 4 cap with a 28.6% cap share (target 1/3, met), but the
+duration range is 8.96-40.00 s, because a glass-cannon matchup empties a pool
+in under 10 s while a tank matchup still needs the cap. Every scale that keeps
+a KO majority misses the floor, so the floor and the KO majority are in direct
+conflict under one global HP dial. Resolving it needs per-matchup or per-stat
+tuning, which is the balance track's job, not a number this phase can pick.
+
+Also recorded: the idle bound sits at 0.5 because the slower cadence spends
+more time between exchanges (measured 46.1%). That is a consequence of the
+fix the owner asked for, not a regression, but the bound is now weaker than
+the one the previous track shipped.
