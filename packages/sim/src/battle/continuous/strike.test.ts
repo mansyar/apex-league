@@ -221,10 +221,10 @@ describe("recovery — scaled inversely by spd (FR-5)", () => {
   test("a faster fighter recovers faster than the reference", () => {
     const basic = getFrameData("basic")
     if (!basic) throw new Error("basic is missing")
-    // basic authors 140 ms of recovery; the reference speed is 10.
-    expect(recoveryMsFor(basic, 5)).toBe(280)
-    expect(recoveryMsFor(basic, 10)).toBe(140)
-    expect(recoveryMsFor(basic, 20)).toBe(70)
+    // basic authors 250 ms of recovery; the reference speed is 10.
+    expect(recoveryMsFor(basic, 5)).toBe(500)
+    expect(recoveryMsFor(basic, 10)).toBe(250)
+    expect(recoveryMsFor(basic, 20)).toBe(125)
   })
 
   test("a non-positive speed or a zero-length result is rejected", () => {
@@ -232,8 +232,8 @@ describe("recovery — scaled inversely by spd (FR-5)", () => {
     if (!basic) throw new Error("basic is missing")
     expect(() => recoveryMsFor(basic, 0)).toThrow(/positive spd/)
     expect(() => recoveryMsFor(basic, -5)).toThrow(/positive spd/)
-    // 140 * 10 / 2000 truncates to zero: that would be a free attack.
-    expect(() => recoveryMsFor(basic, 2000)).toThrow(/zero or below/)
+    // 250 * 10 / 3000 truncates to zero: that would be a free attack.
+    expect(() => recoveryMsFor(basic, 3000)).toThrow(/zero or below/)
   })
 
   test("the difference is measurable in a fight, not just arithmetic", () => {
