@@ -243,7 +243,7 @@
 - **Covers:** FR-14, AC-14
 - **Touches:** `packages/sim/scripts/battle-telemetry.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`, `.github/workflows/ci.yml`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P12.T1: Recorder** — covers: FR-14
   - [ ] **P12.T1.1: Engagement distance, exchange rate, idle time, and distinct positions.**
