@@ -121,6 +121,38 @@ day 7 and day 14, which moves SF2 and the final on the pinned seeds:
   `specials`, because knockback moved every balanced final-loss seed out of
   1..60. The QF-exit test still resolves on a balanced seed.
 
+## Primary verification
+
+| Layer | Command | Exit | Result |
+| --- | --- | --- | --- |
+| static + unit + determinism | `bun run verify` | 0 | 3,725 pass, 1 skip, 0 fail across 346 files; biome 862 files clean; determinism gate byte-identical |
+| build | `bun run build` | 0 | Vite built 385 modules; only the pre-existing chunk-size warning |
+
+Independently confirmed in code: `impulse.ts` (174 lines) derives mass as
+`radius² × height / 1000`, pushes along `blowDirection` scaled by
+`KNOCKBACK_PER_POISE` and divided by mass, and opens hitstun with
+`Math.max(remaining, duration)` so it cannot stack; `advance.ts` takes the
+stunned branch in `applyIntent` before any intent runs and reports `pinned`
+axes on `StepOutcome`; `step.ts` refuses `commit` on `isBroken || isStunned`
+and mixes `hitstunMs` into `stateHash`. `controller.ts` is still 12,158 B,
+`report.ts` and `resolve.ts` are untouched, and no `*.balance.test.ts` moved.
+
+**Not squashed:** the phase range holds the primary's playtest-protocol commit
+(`3d8558c6`), which is not part of the subagent's work. Checkpoint is
+`e98c3994`.
+
+**`SIM_VERSION` ruling (resolving the subagent's flag):** leave it at 2. The
+constant was introduced on this branch in Phase 8 and has never shipped, so no
+bundle in the wild carries it; every ghost written on this branch is disposable,
+and Phase 10 will move outcomes again. Bumping per phase would churn a marker
+that only means something once the engine is final. The rule instead: `v2` is the
+version the continuous engine ships under, and Phase 13's version-gate task
+confirms the constant matches the shipped engine — no bundle written before the
+merge is trusted.
+
+**Measured spread (AC-22), same basic blow:** heavy draconic 40 mm, default body
+78 mm, light heron 160 mm.
+
 ## Notes
 
 - **Pacing is untouched.** Fight length, tactic overlays, controller and the

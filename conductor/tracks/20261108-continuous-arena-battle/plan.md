@@ -180,15 +180,19 @@
 - **Covers:** FR-22, FR-23, AC-22, AC-23
 - **Touches:** `packages/sim/src/battle/continuous/impulse.ts`, `packages/sim/src/battle/continuous/advance.ts`, `packages/sim/src/battle/continuous/movement.ts`, `packages/sim/src/battle/continuous/types.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P9.T1: Impulse and knockback** — covers: FR-22
-  - [ ] **P9.T1.1: A landed blow adds velocity along the blow direction, scaled by poise damage and resisted by mass.**
-  - [ ] **P9.T1.2: Knockback decays, cannot carry a body through the fence, and a pinned fighter is observable.**
-- [ ] **P9.T2: Hitstun** — covers: FR-23
-  - [ ] **P9.T2.1: A landed blow stops movement and blocks commits for a short window; a broken fighter is helpless for longer.**
-- [ ] **P9.T3: Mass** — covers: FR-22
-  - [ ] **P9.T3.1: Mass derived from body volume, so a heavy body slides less and a light body is thrown further.**
+- [x] **P9.T1: Impulse and knockback** — covers: FR-22
+  - [x] **P9.T1.1: A landed blow adds velocity along the blow direction, scaled by poise damage and resisted by mass.**
+  - [x] **P9.T1.2: Knockback decays, cannot carry a body through the fence, and a pinned fighter is observable.**
+- [x] **P9.T2: Hitstun** — covers: FR-23
+  - [x] **P9.T2.1: A landed blow stops movement and blocks commits for a short window; a broken fighter is helpless for longer.**
+- [x] **P9.T3: Mass** — covers: FR-22
+  - [x] **P9.T3.1: Mass derived from body volume, so a heavy body slides less and a light body is thrown further.**
+
+**Result:** verified
+**Checkpoint:** e98c3994
+**Evidence:** conductor/tracks/20261108-continuous-arena-battle/verification/phase-9.md
 
 ## Phase 10: Evasion and Pacing
 
