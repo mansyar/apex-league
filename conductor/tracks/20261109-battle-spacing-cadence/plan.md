@@ -82,3 +82,21 @@
 - [x] **P5.T1: Widen the authored recovery band** - covers: FR-4 — basic 140 to 250 ms, light 300-340, mid 460-520, heavy 670-720, authored by hand
 - [x] **P5.T2: Label the real stat** - covers: FR-5 — the kit panel reads `Recovery <n> ms` from the frame table instead of the dead `Cooldown N`
 - [x] **P5.T3: Re-measure and re-pin** - covers: AC-4, AC-7 — telemetry re-run, cup fixtures re-pinned, cap-share target recorded as debt
+
+## Phase 6: Blow Weight
+
+- **Goal:** fewer, heavier blows at the same fight length.
+- **Depends on:** Phase 5
+- **Covers:** FR-4, FR-5, AC-4, AC-7
+- **Touches:** `packages/sim/src/battle/frames.ts`, `continuous/damage.ts`, `continuous/impulse.ts`, `continuous/stamina.ts` + tests, telemetry bounds
+- **Verification:** `bun run verify && bun run build`, plus `bun run telemetry`
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** cc4df29a
+- **Evidence:** `conductor/tracks/20261109-battle-spacing-cadence/verification/phase-6.md`
+
+- [x] **P6.T1: BLOW_WEIGHT on damage** - covers: FR-4 — applied in `continuous/damage.ts` only, so the frozen legacy clock does not move
+- [x] **P6.T2: The whole frame cycle carries the weight** - covers: FR-4 — startup, active and recovery all x3, basic 390 to 1170 ms
+- [x] **P6.T3: Poise and stamina scale with it** - covers: FR-5 — blows to a break and the stamina gate hold their place in the cycle
+- [x] **P6.T4: Knockback compensated** - covers: FR-5 — `KNOCKBACK_PER_POISE` divided by the weight so the shove is unchanged
+- [x] **P6.T5: Re-measure** - covers: AC-4, AC-7 — median 33.40 s, fastest 8.78 s, cap share 42.9%, bounds restored to 8 s not relaxed
