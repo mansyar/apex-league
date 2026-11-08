@@ -152,7 +152,7 @@
 - **Covers:** FR-17, FR-18, FR-19, AC-17, AC-18, AC-19
 - **Touches:** `packages/sim/src/battle/continuous/contact.ts`, `packages/sim/src/battle/continuous/strike.ts`, `packages/sim/src/battle/continuous/projectile.ts`, `packages/sim/src/battle/frames.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P8.T1: Body volumes** — covers: FR-17
   - [ ] **P8.T1.1: Radius and height on the fighter, seeded from species and form.**
