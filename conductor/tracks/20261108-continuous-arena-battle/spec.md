@@ -161,6 +161,59 @@ animation on top, and the arena's floor space is decoration.
   `packages/sim/src/battle/frames.ts`, separate from the move catalog, so the
   catalog stays a pure data table.
 
+## Amendment — Contact Model (2026-11-08)
+
+Approved mid-track after Phases 1-6 landed: the first engine treated a body as a
+point with one shared radius, and tested a melee swing once against the snapshot
+at the top of the step. That made melee evasion impossible and the dodge verb
+decorative — a dodge order displaced roughly 100 mm against a 220 mm clearance.
+The amendment replaces the contact model with volumes and sweeps. Movement stays
+planar: feet remain on `y = 0` and there is still no jump, crouch, or aerial
+move, so FR-2 is unchanged.
+
+**FR-17 — Body volumes.** Every fighter carries a body radius and a body height,
+seeded from species and form, and every move carries a height band. A blow whose
+band does not overlap the victim's height misses.
+
+**FR-18 — Swept melee.** A melee attack is tested every step of its active
+window against the victim's live position, inside a reach-and-arc sector measured
+edge to edge. A victim that leaves the arc, the reach, or the band during the
+window makes the swing whiff, and reach is measured between body surfaces rather
+than centres.
+
+**FR-19 — Swept projectiles.** A shot is tested as the segment between its
+previous and current position against the victim's body volume each step, so a
+shot can clip a body, pass within a radius, or miss narrowly, and a fast shot
+cannot tunnel through a body between steps.
+
+**FR-20 — Dodge burst.** A dodge is a short burst faster than a walk, with a
+duration, a cooldown, and a stamina price, aimed clear of the incoming line. A
+dodge inside a shot's flight or a swing's active window turns that hit into a
+miss; a dodge outside one does not.
+
+**FR-21 — Pacing.** Fights land in the 25-40 second band the Goals section names,
+and neither side spends a whole fight failing to land a blow.
+
+**AC-17.** A tall body is hit by a high band and missed by a low one, and a small
+body is missed by a band above its height.
+
+**AC-18.** A victim that steps out of a swing's arc during its active window
+takes no damage, and the same swing lands when the victim stands still.
+
+**AC-19.** A shot whose swept segment passes within the body radius hits, one
+that passes outside it misses, and a shot faster than the body is wide still
+cannot pass through it between steps.
+
+**AC-20.** A dodge during a shot's flight converts the hit into a miss, a dodge
+outside it does not, and an unaffordable dodge is refused.
+
+**AC-21.** A seeded sample of matchups reports fight durations inside 25-40
+seconds and a hit rate above zero for both sides.
+
+**Scope correction.** "Verticality, jumping, and airborne moves" remains out of
+scope; body height and height bands are contact geometry, not movement in three
+dimensions.
+
 ## References
 
 - `conductor/product.md`, `conductor/workflow.md`

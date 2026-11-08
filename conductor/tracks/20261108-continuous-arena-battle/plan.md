@@ -141,50 +141,86 @@
 - [ ] **P7.T2: Resolver adapter** — covers: FR-12
   - [ ] **P7.T2.1: Emit the existing `BattleResult` shape and wire the exhibition and cup call sites.**
 
-## Phase 8: Dense Playback and Staging
+## Phase 8: Contact Geometry
+
+- **Goal:** bodies and blows have volume, so a swing or a shot can actually miss.
+- **Depends on:** Phase 7
+- **Covers:** FR-17, FR-18, FR-19, AC-17, AC-18, AC-19
+- **Touches:** `packages/sim/src/battle/continuous/contact.ts`, `packages/sim/src/battle/continuous/strike.ts`, `packages/sim/src/battle/continuous/projectile.ts`, `packages/sim/src/battle/frames.ts`, co-located tests
+- **Verification:** `bun run verify && bun run build`
+- **Status:** pending
+
+- [ ] **P8.T1: Body volumes** — covers: FR-17
+  - [ ] **P8.T1.1: Radius and height on the fighter, seeded from species and form.**
+  - [ ] **P8.T1.2: A height band on every move's frame data, validated.**
+- [ ] **P8.T2: Swept melee arcs** — covers: FR-18
+  - [ ] **P8.T2.1: Per-step sector test through the active window, reach measured edge to edge.**
+  - [ ] **P8.T2.2: A swing whiffs when the victim leaves the arc or the height band.**
+- [ ] **P8.T3: Swept projectiles** — covers: FR-19
+  - [ ] **P8.T3.1: Segment-versus-capsule per step, no tunnelling, height-aware.**
+
+## Phase 9: Evasion and Pacing
+
+- **Goal:** dodging works, and fights last as long as the spec says.
+- **Depends on:** Phase 8
+- **Covers:** FR-20, FR-21, AC-20, AC-21
+- **Touches:** `packages/sim/src/battle/continuous/controller.ts`, `packages/sim/src/battle/continuous/advance.ts`, `packages/sim/src/battle/continuous/movement.ts`, `packages/sim/src/battle/continuous/resolve.ts`, co-located tests
+- **Verification:** `bun run verify && bun run build`
+- **Status:** pending
+
+- [ ] **P9.T1: Dodge burst** — covers: FR-20
+  - [ ] **P9.T1.1: Burst speed, duration, cooldown, and stamina price, aimed clear of the incoming line.**
+  - [ ] **P9.T1.2: A dodge inside a shot's flight or a swing's active window turns the hit into a miss.**
+- [ ] **P9.T2: Melee evasion balance** — covers: FR-20
+  - [ ] **P9.T2.1: Arc, reach, and timing tuned so evading a swing is possible and not free.**
+- [ ] **P9.T3: Pacing** — covers: FR-21
+  - [ ] **P9.T3.1: Fights land in the 25-40 s band with both sides landing blows.**
+  - [ ] **P9.T3.2: Re-pin the cup and lifecycle outcomes the new contact model moves.**
+
+## Phase 10: Dense Playback and Staging
 
 - **Goal:** the client renders the continuous fight without snapping.
-- **Depends on:** Phase 7
+- **Depends on:** Phase 9
 - **Covers:** FR-13, AC-13
 - **Touches:** `packages/sim/src/battle/continuous/stream.ts`, `apps/client/src/staging.ts`, `apps/client/src/playbackDriver.ts`, `apps/client/src/fighter-driver.ts`
 - **Verification:** `bun run verify && bun run build`, then a `playwright-cli` pass at desktop and phone widths
 - **Status:** pending
 
-- [ ] **P8.T1: Dense state stream** — covers: FR-13
-  - [ ] **P8.T1.1: Sample positions and phases per step into a compact replayable stream.**
-- [ ] **P8.T2: Staging mapping** — covers: FR-13
-  - [ ] **P8.T2.1: Map sim millimetres to world units and add startup telegraphs.**
-- [ ] **P8.T3: Reduced motion** — covers: FR-13
-  - [ ] **P8.T3.1: Keep the instant text path readable for the new endings.**
+- [ ] **P10.T1: Dense state stream** — covers: FR-13
+  - [ ] **P10.T1.1: Sample positions and phases per step into a compact replayable stream.**
+- [ ] **P10.T2: Staging mapping** — covers: FR-13
+  - [ ] **P10.T2.1: Map sim millimetres to world units and add startup telegraphs.**
+- [ ] **P10.T3: Reduced motion** — covers: FR-13
+  - [ ] **P10.T3.1: Keep the instant text path readable for the new endings.**
 
-## Phase 9: Telemetry Harness
+## Phase 11: Telemetry Harness
 
 - **Goal:** "not turn-based" is measured, not asserted.
-- **Depends on:** Phase 7
+- **Depends on:** Phase 9
 - **Covers:** FR-14, AC-14
 - **Touches:** `packages/sim/scripts/battle-telemetry.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`, `.github/workflows/ci.yml`
 - **Verification:** `bun run verify && bun run build`
 - **Status:** pending
 
-- [ ] **P9.T1: Recorder** — covers: FR-14
-  - [ ] **P9.T1.1: Engagement distance, exchange rate, idle time, and distinct positions.**
-- [ ] **P9.T2: Thresholds** — covers: FR-14
-  - [ ] **P9.T2.1: Seeded sample across matchups with CI-enforced bounds.**
+- [ ] **P11.T1: Recorder** — covers: FR-14
+  - [ ] **P11.T1.1: Engagement distance, exchange rate, idle time, and distinct positions.**
+- [ ] **P11.T2: Thresholds** — covers: FR-14
+  - [ ] **P11.T2.1: Seeded sample across matchups with CI-enforced bounds.**
 
-## Phase 10: Legacy Freeze and Version Bump
+## Phase 12: Legacy Freeze and Version Bump
 
 - **Goal:** old battles keep replaying; new ones never touch the gauge clock.
-- **Depends on:** Phase 8
+- **Depends on:** Phase 10
 - **Covers:** FR-15, FR-16, AC-15, AC-16
 - **Touches:** `packages/sim/src/battle/clock/`, `packages/sim/src/battle/playback.ts`, `packages/sim/src/cup/ghost.ts`, `conductor/product.md`, `conductor/learnings.md`
 - **Verification:** `bun run verify && bun run build`
 - **Status:** pending
 
-- [ ] **P10.T1: Freeze the clock** — covers: FR-15
-  - [ ] **P10.T1.1: Mark `clock/` and `playback.ts` replay-only and route new fights away from them.**
-- [ ] **P10.T2: Version bump** — covers: FR-15
-  - [ ] **P10.T2.1: Bump `SIM_VERSION` and skip mismatched ghost bundles.**
-- [ ] **P10.T3: Compatibility test** — covers: FR-16
-  - [ ] **P10.T3.1: A pre-track save loads and its in-flight cup completes.**
-- [ ] **P10.T4: Docs truth pass** — covers: FR-15
-  - [ ] **P10.T4.1: Update the product roadmap and learnings.**
+- [ ] **P12.T1: Freeze the clock** — covers: FR-15
+  - [ ] **P12.T1.1: Mark `clock/` and `playback.ts` replay-only and route new fights away from them.**
+- [ ] **P12.T2: Version bump** — covers: FR-15
+  - [ ] **P12.T2.1: Bump `SIM_VERSION` and skip mismatched ghost bundles.**
+- [ ] **P12.T3: Compatibility test** — covers: FR-16
+  - [ ] **P12.T3.1: A pre-track save loads and its in-flight cup completes.**
+- [ ] **P12.T4: Docs truth pass** — covers: FR-15
+  - [ ] **P12.T4.1: Update the product roadmap and learnings.**
