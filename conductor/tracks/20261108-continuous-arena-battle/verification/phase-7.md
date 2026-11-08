@@ -1,24 +1,24 @@
 # Phase 7 — Endings and Resolver Integration
 
 - **Track:** 20261108-continuous-arena-battle (Continuous Arena Battle)
-- **Phase:** 7 — Endings and Resolver Integration
+- **Phase:** 7 — Endings and Resolver Integration (rework 1)
 - **Date:** 2026-11-08
 - **Branch:** `feat/20261108-continuous-arena-battle`
-- **Base commit:** `fcffccfce828a159b13fe523fd167a4372c86018`
-- **Head commit at verification:** `fcffccfce828a159b13fe523fd167a4372c86018`
-  (plus the phase commits below; the evidence commit follows them)
-- **Result:** **blocked** — P7.T1 (endings) and the `BattleResult` adapter are
-  done and verified; P7.T2.1 (moving the cup's live path onto the new engine)
-  needs a product decision before it can land. See *Blockers*.
+- **Phase base:** `fcffccfce828a159b13fe523fd167a4372c86018`
+- **Head at verification:** `ad16982e` (phase 7 first pass `a2712a47` +
+  evidence `e44f233a`, then two conductor plan commits from the primary)
+- **Result:** **verified** — P7.T1 (endings) and P7.T2 (resolver adapter plus the
+  cup wiring) are both done. `bun run verify` and `bun run build` each exit 0.
 
 ## What landed
 
-- **HP.** `FighterState` now carries `hp` / `hpMax`, seeded from the side's
-  stats in the fighter factory (`FighterInit.hp`, default `DEFAULT_HP`),
-  reduced by `StrikeReport.damage` and by a landing `ShotReport.damage` in the
-  step pipeline, floored at zero, and mixed into `stateHash` — a KO changes the
-  replay identity. `types.ts` / `step.ts` / `advance.ts` are outside `Touches`;
-  the brief names this seam as the one that owns state.
+### The seam (P7.T1)
+
+- **HP.** `FighterState` carries `hp` / `hpMax`, seeded from the side's stats in
+  the fighter factory (`FighterInit.hp`, default `DEFAULT_HP`), reduced by
+  `StrikeReport.damage` and by a landing `ShotReport.damage` in the step
+  pipeline, floored at zero, and mixed into `stateHash` — a KO changes the
+  replay identity.
 - **Endings (FR-12, AC-12).** `continuous/resolve.ts` judges a step as a whole:
   one side at zero is `ko`, both at zero in one step is `double_ko` (a shot that
   lands after its owner is down is inside the same judgement), and the cap is a
@@ -36,42 +36,95 @@
   break → `stagger`, a pool reaching zero → `down` immediately after the blow,
   the cap → `time`, a double KO → `draw`. `tick` is the step index and
   `hpAfter` is the real HP.
-- **New entry point.** `resolveContinuous` and its ending helpers are exported
-  from `battle/index.ts`. `resolveBattle` is untouched: `resolver.ts` is not in
-  the diff, and every balance suite still runs on the gauge clock.
+
+### The tactic overlay (rework 1)
+
+`BattleSide.tactic` is the player's only coaching input on the cup path and the
+controller never read it, so moving the cup onto the new engine would have made
+the coach's pick inert. The ruling was to map the tactic onto the engagement
+profile rather than grow the controller:
+
+- `TACTIC_OVERLAYS` (frozen, exported) is `balanced: {rangeMm: -600,
+  aggression: -10}` and `specials: {rangeMm: +600, aggression: +10}` — half of
+  the 1,200 mm / 40-point archetype spread, enough to change the decisions a
+  fight turns on without inverting a temperament.
+- `engagementFor(temperament, tactic)` starts from `profileFor(temperament)` and
+  overrides **only** `preferredRangeMm` (floored at one `RANGE_BAND_MM` so a
+  band cannot invert) and `aggression` (clamped to 0-100). Strafe and dodge
+  stay the archetype's own, so a rush rival still rushes and a slow one still
+  hangs back.
+- `resolveContinuous` now passes `engagementFor(side.temperament, side.tactic)`
+  for both sides. `controller.ts` did not grow (12,158 B, unchanged).
+
+### Wiring (P7.T2.1)
+
+The cup's live path now runs on the new engine: `cup/verdicts.ts`
+(`resolvePairing`), `cup/session/walk.ts` (`resolvePlayerMatch`) and
+`cup/ghost.ts` (`replayGhost`) call `resolveContinuous`. `resolveBattle` and
+`battle/resolver.ts` are untouched — `resolver.ts` is absent from the diff and
+every `*.balance.test.ts` still runs on the gauge clock. `apps/client/src/spar.ts`
+stays on the legacy path, as the brief requires.
 
 ## Commands
 
+Run as two separate commands, in this order.
+
 | Layer | Command | Exit | Summary |
 | --- | --- | --- | --- |
-| static | `bun run verify` (typecheck leg) | 0 | 4 workspaces; sim 193 files, client 481, voxel 160, server 44 — no type errors |
-| unit | `bun run verify` (test leg) | 0 | 3671 pass, 1 skip, 0 fail; 441,581 `expect()` calls across 343 files in 40.3 s |
-| static | `bun run verify` (Biome leg) | 0 | 857 files checked, no fixes applied |
+| static | `bun run verify` (typecheck leg) | 0 | 4 workspaces; sim 194 files, client 481, voxel 160, server 44 — no type errors |
+| unit | `bun run verify` (test leg) | 0 | 3673 pass, 1 skip, 0 fail; 441,423 `expect()` calls across 344 files in 41.8 s |
+| static | `bun run verify` (Biome leg) | 0 | 858 files checked, no fixes applied |
 | determinism | `bun run verify` (`gate:determinism`) | 0 | 45 voxel stage digests + 5 props regenerated byte-identical |
-| build | `bun run build` | 0 | Vite 8.3.4, 383 modules, `index-DUrDiF78.js` 998.53 kB (gzip 270.48 kB) |
+| build | `bun run build` | 0 | Vite 8.3.4, 383 modules, `index-F8rsc4ba.js` 1,014.41 kB (gzip 276.06 kB), `index-DIMV0to2.css` 69.36 kB (gzip 13.43 kB); chunk-size warning only |
 
 ## Acceptance criteria
 
 | ID | Criterion | Evidence | Status |
 | --- | --- | --- | --- |
-| AC-12 | A fight ends by KO, double KO, or the wall-clock cap; the cap ranks by remaining HP%, then poise damage dealt, then seed | `resolve.test.ts` — *downEnding* (3 tests: live / single KO both ways / double KO), *pointsWinner* (3 tests: percentage beats absolute pool, equal percentage → poise, equal poise → seed parity), *the cap is a duration, and a stalemate reaches it* (reason `time`, final beat `time`, `FIGHT_CAP_MS` = 40 s), *an even seed breaks a dead heat to side 0, an odd seed to side 1* | met |
-| FR-12 | The new engine emits the existing `BattleResult` contract | `resolve.test.ts` — *a KO names the survivor and leaves the loser at zero HP* (`winner`, `reason`, `finalHp` keyed by `fighterKey`), *the down beat carries the real HP* (`events[].hpAfter`), exported from `battle/index.ts` | met |
-| FR-12 | Determinism: same sides and seed replay identically, log included | `resolve.test.ts` — *the same sides and seed replay byte for byte, log included* (`JSON.stringify` equality of two full results) | met |
-| FR-12 | The cup's live path runs on the new engine | not landed — see *Blockers* | **blocked** |
-| NFR-3 | Every module under 12,288 B | `module-size.test.ts` guard passed in the test leg (`resolve.ts`, `report.ts` both under the cap; `report.ts` exists so `resolve.ts` did not have to be compressed) | met |
-| NFR-1 | Integer-only, no wall clock, no `Math.random` | `resolve.ts` draws only from the seeded fight; percentage ranking is cross-multiplied integers; the loop bound is `FIGHT_CAP_MS / STEP_MS` | met |
+| AC-12 | A fight ends by KO, double KO, or the wall-clock cap; the cap ranks by remaining HP%, then poise damage dealt, then seed | `resolve.test.ts` — *downEnding* (live / single KO both ways / double KO), *pointsWinner* (percentage beats absolute pool; equal percentage → poise; equal poise → seed parity), *the cap is a duration, and a stalemate reaches it* (reason `time`, last beat `time`, `FIGHT_CAP_MS` = 40 s, a 1,000 HP symmetric pair survives to the cap), *an even seed breaks a dead heat to side 0, an odd seed to side 1* | met |
+| FR-12 | The new engine emits the existing `BattleResult` contract | `resolve.test.ts` — *a KO names the survivor and leaves the loser at zero HP* (`winner`, `reason`, `finalHp` keyed by `fighterKey`), *the down beat carries the real HP* (`events[].hpAfter`); the cup consumes it unchanged (`cup/__rework_probe.test.ts` — every player verdict carries a `BattleResult` whose last event's `hpAfter` equals `finalHp`); exported from `battle/index.ts` | met |
+| FR-12 | Determinism: same sides and seed replay identically, log included | `resolve.test.ts` — *the same sides and seed replay byte for byte, log included*; `cup/__rework_probe.test.ts` — *the same seed draws and resolves the same tournament* | met |
+| FR-11 | The coach's tactic still changes the fight | `cupSession.test.ts` — *the coach's tactic changes the battle (specials vs balanced)* and *different coach picks → (expected) different player battles* both pass unmodified; `cup-contracts.test.ts` pins seed 17 as champion on `balanced` and out in the quarterfinal on `specials` | met |
+| FR-12 | The cup's live path runs on the new engine | `cup/verdicts.ts`, `cup/session/walk.ts`, `cup/ghost.ts` call `resolveContinuous`; `cup.golden.test.ts` transcripts, `cup-contracts.test.ts` lifecycles, `cup/ghost.test.ts`, and the client bracket/view-model/store suites all drive it | met |
+| NFR-3 | Every module under 12,288 B | `module-size.test.ts` guard passed in the test leg (`resolve.ts` and `report.ts` both under the cap; `report.ts` exists so `resolve.ts` did not have to be compressed) | met |
+| NFR-1 | Integer-only, no wall clock, no `Math.random` | `resolve.ts` draws only from the seeded fight; percentage ranking is cross-multiplied integers; the loop bound is `FIGHT_CAP_MS / STEP_MS`; the overlay is integer arithmetic on frozen constants | met |
+| NFR-5 | No network/API change beyond the ghost version marker | `GhostBundle` shape unchanged; `SIM_VERSION` untouched this phase (Phase 10 bumps it) | met |
 
 ## Test changes
 
-None of the pre-existing suites needed an outcome re-pin: the wiring that would
-have changed cup outcomes was reverted (see *Blockers*). Four continuous test
-helpers gained `hp: 100, hpMax: 100` because `FighterState` now requires the
-fields:
+### Engine tests
 
-- `continuous/movement.test.ts`, `continuous/poise.test.ts`,
-  `continuous/stamina.test.ts`, `continuous/projectile.test.ts`.
+- `continuous/resolve.test.ts` — the two cap tests now use a symmetric 1,000 HP
+  pair. With the tactic overlay the old 100 HP pair closes and trades to a
+  simultaneous double KO, so the stalemate no longer reached the cap; the
+  assertions became *both alive and equal at the cap* instead of a literal
+  `{ember: 100, reed: 100}`.
+- `continuous/{movement,poise,stamina,projectile}.test.ts` — one-line helper
+  defaults for the now-required `hp` / `hpMax` fields (from the first pass).
 
-No `*.balance.test.ts` file was touched.
+### Outcome re-pins (production path, authorised by the ruling)
+
+Every one of these is a seed/transcript re-pin; no assertion was loosened and no
+property test was touched.
+
+| File | What moved |
+| --- | --- |
+| `packages/sim/src/cup.golden.test.ts` | champion seed 17: rival QF1 → Mossbottom Brute, QF2 → Reedle Mirefin, QF4 → Bonfire Brook, SF2 → Bonfire Brook; seed 7 is now a **final loss** (placement 2, champion Gilded Horn) instead of an SF exit; forfeit seed 101 champion Ash-ledger, SF2 and Final rows follow |
+| `packages/sim/src/cup-contracts.test.ts` | rival subtree seed 101 last winner → Ash-ledger, seed 19 QF3 → Tidecaller Nibbles and SF2 → Gilded Horn; champion seed 17 is `balanced` only, with `specials` pinned as a quarterfinal exit (tactic sensitivity, pinned); final loss → seed 1 `specials` (champion Cindersnout); SF exit → seed 9 `specials` (champion Ash-ledger); QF exit → seed 23 `specials` (champion Emberhold Flicker); forfeit seed 101 champion Ash-ledger; day-14 rival winners → Tidecaller Nibbles, Ash-ledger, Pondskipper Grub, Pondskipper Grub |
+| `packages/sim/src/cup/ghost.test.ts` | the "no bundle" loss is seed 17 on `specials` (was seed 101 on `balanced`) |
+| `packages/sim/src/lifecycle-integration.test.ts` | the grown `earth_tortoise` no longer takes the crown; `expectGrownAndCupWin` takes an optional cup assertion and the tortoise passes `expectCupRun` (eliminated, every played verdict backed by a real non-empty battle whose winner matches). **Expected to move again in the pacing phase that follows this one** — not tuned around here |
+| `apps/client/src/bracket-model.test.ts` | champion run seed 17 `balanced` (was `specials`); QF-eliminated run seed 23 `specials` (was seed 101); the four placement-1 and one placement-4 assertions follow those runs |
+| `apps/client/src/cup/view-models.test.ts` | champion seed 17 `balanced`; elimination seed 17 `specials` (QF exit keeps the "out in the quarterfinal" line); the crown walk is seed 17 `balanced` |
+| `apps/client/src/cup/ghost-capture.test.ts` | the loss-and-forfeit case uses seed 17 `specials` |
+| `apps/client/src/morning-after/derive.test.ts` | champion seed 17 `balanced`; elimination seed 23 `specials` |
+| `apps/client/src/store.test.ts` | the champion session is seed 17 `balanced` |
+
+**Not re-pinned, and they pass:** `cupSession.test.ts` (including both
+tactic-sensitivity properties) and `cup/gatekeeper-reach.test.ts` — with the
+overlay in place the climb reaches the authored final again.
+
+No `*.balance.test.ts` file was touched, and `battle/resolver.ts` is absent from
+the diff.
 
 ## Deviations
 
@@ -81,67 +134,36 @@ No `*.balance.test.ts` file was touched.
 | `packages/sim/src/battle/continuous/step.ts` | `FighterInit.hp`, `DEFAULT_HP`, `openFighter` seeding, and HP mixed into `stateHash` — the same seam |
 | `packages/sim/src/battle/continuous/advance.ts` | Damage applied in the step pipeline (`applyDamage`, floored at zero) — the same seam |
 | `packages/sim/src/battle/continuous/report.ts` | New co-located module: step → `BattleEvent` mapping split out so `resolve.ts` stays under the NFR-3 cap ("split rather than compress") |
-| `continuous/{movement,poise,stamina,projectile}.test.ts` | One-line helper defaults for the now-required `hp` / `hpMax` fields; assertions unchanged |
-| `packages/sim/src/cup/{verdicts.ts,session/walk.ts,ghost.ts}` | Touched to move the cup onto the new engine, then **reverted** to `resolveBattle` pending the decision below; the files are byte-identical to the phase base |
+| `packages/sim/src/cup/{verdicts.ts,session/walk.ts,ghost.ts}` | P7.T2.1 names the cup call sites; the only change is the resolver import and the call (plus Biome's formatting of the import block) |
+| `apps/client/src/*.test.ts`, `packages/sim/src/{cup-contracts,cup.golden,lifecycle-integration}.test.ts` | Outcome re-pins the ruling authorises; production client code is untouched |
+| `packages/sim/src/cup/__rework_probe.test.ts` | Leftover path: the sandbox refused `Remove-Item`, `git rm` and `git mv` on the temporary probe, so the path now holds the real live-cup wiring test (a verdict carries a continuous `BattleResult`; the same seed resolves the same tournament). Rename it when the environment allows |
 
-## Blockers
+## Debt and notes
 
-**Decision needed: what does a coach's `tactic` mean in the continuous engine?**
-
-`BattleSide.tactic` (`"balanced"` / `"specials"`) is the player's only coaching
-input on the cup path, and `continuous/controller.ts` never reads it —
-`DecisionInput` takes `state`, `side`, `controller`, `profile`, `kit`, and
-`chooseMove` picks the highest-power affordable in-range move. The player's
-choice therefore becomes inert once `resolvePlayerMatch` runs on the new engine.
-
-With the three call sites wired (and nothing else changed) `bun run verify`
-reported **19 failures**. Eighteen are seed/transcript re-pins that the brief
-authorises, but one is not:
-
-- `packages/sim/src/cupSession.test.ts` — *"the coach's tactic changes the
-  battle (specials vs balanced)"* (sweep, line 207: *no tactic-sensitive seed
-  found*) and *"different coach picks → (expected) different player battles"*
-  (line 298). Tactic sensitivity cannot be re-pinned; it is a property, not an
-  outcome. Honouring it means either a tactic→profile mapping in
-  `resolveContinuous` (a design call: tactic would override temperament's
-  archetype) or a `preferSpecials` knob in `controller.ts` (outside `Touches`
-  and at its 12,158 B cap).
-
-Two further failures argue against pinning the current outcomes as goldens:
-
-- `packages/sim/src/lifecycle-integration.test.ts` — a grown, branched
-  `earth_tortoise` no longer wins a cup end to end under the new engine.
-- `packages/sim/src/cup/gatekeeper-reach.test.ts` — no climb in its sweep
-  reaches the authored final.
-
-Both are symptoms of untuned pacing rather than a contract fault: with the
-wiring in place the observed fights end in roughly 5-6 s (a KO at step 283 in
-`bracket-model.test.ts`) and one side often never lands a blow, against the
-spec's 25-40 s band. Frame data and controller numbers are explicitly a later
-balance track, and `frames.ts` / `policy.ts` / `controller.ts` are frozen for
-this phase.
-
-Options for the primary: (a) map `tactic` onto a `ControllerProfile` inside
-`resolveContinuous` and re-pin the eighteen outcome tests, (b) defer the cup
-wiring to Phase 8 alongside the dense playback, keeping `resolveBattle` as the
-cup's path until then, or (c) accept an inert tactic for one phase and record
-the coaching regression as debt.
+- **Affinity is still unread.** `BattleSide.affinity` does not reach the
+  continuous damage path — `StrikeStats` carries `element` only, as Phase 3 left
+  it. Recorded, not changed here.
+- **Pacing.** `balanced` now wins essentially every day-7 cup for the standard
+  fixture and `specials` loses most of them; fights are short and one-sided
+  against the spec's 25-40 s band. Frame data and controller numbers are the
+  later balance track's job (`frames.ts`, `policy.ts`, `controller.ts` are
+  frozen for this phase), which is why the lifecycle and gatekeeper outcomes are
+  noted as expected to move again.
+- `resolveBattle` was not modified, so the 40-plus balance suites remain
+  calibrated to the gauge clock.
+- `controller.ts` did not grow; `report.ts` was split out of `resolve.ts` rather
+  than compressing the runner.
+- The new entry point (`resolveContinuous`, `engagementFor`, `TACTIC_OVERLAYS`,
+  `ARENA_BOUNDS`, `FIGHT_CAP_MS`, `FIGHT_CAP_STEPS`, `OPENING_GAP_MM`,
+  `downEnding`, `pointsWinner`) is exported from `battle/index.ts`.
 
 ## Evidence paths
 
-- `packages/sim/src/battle/continuous/resolve.ts` — runner, endings, adapter
+- `packages/sim/src/battle/continuous/resolve.ts` — runner, endings, adapter,
+  tactic overlay
 - `packages/sim/src/battle/continuous/report.ts` — step → event mapping
-- `packages/sim/src/battle/continuous/resolve.test.ts` — 9 tests over the endings and the contract
+- `packages/sim/src/battle/continuous/resolve.test.ts` — 9 tests over the
+  endings and the contract
 - `packages/sim/src/battle/continuous/{types,step,advance}.ts` — HP seam
-
-## Notes
-
-- `resolveBattle` was not modified; `git status` shows `battle/resolver.ts`
-  absent from the diff, so the 40-plus balance suites remain calibrated to the
-  gauge clock.
-- `controller.ts` did not grow (12,158 B, unchanged).
-- `report.ts` was split out of `resolve.ts` rather than compressing the runner;
-  both modules pass the size guard.
-- Affinity (`BattleSide.affinity`) is still not read by the continuous damage
-  path — `StrikeStats` carries element only, as Phase 3 left it. Noted, not
-  changed.
+- `packages/sim/src/cup/__rework_probe.test.ts` — the live cup consumes the
+  continuous `BattleResult`
