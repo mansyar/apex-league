@@ -8,14 +8,15 @@ import { describe, expect, test } from "bun:test"
 import {
   type BattleSide,
   createCreature,
-  resolveBattle,
   SIM_VERSION,
+  streamOf,
 } from "@apex/sim"
 import {
   ghostSparSetup,
   isVersionSkippedBundle,
   readGhostContender,
 } from "./ghost"
+import { resolveSpar } from "./resolve"
 
 const CHAMPION_KIT = ["spark", "flame_charge", "cinder_shot", "blaze_bolt"]
 
@@ -134,17 +135,11 @@ describe("ghostSparSetup", () => {
     const first = ghostSparSetup(drake, contender, "balanced")
     const second = ghostSparSetup(drake, contender, "balanced")
     expect(second).toEqual(first)
-    const firstVerdict = resolveBattle(
-      first.ownedSide,
-      first.rivalSide,
-      contender.seed,
-    )
-    const secondVerdict = resolveBattle(
-      second.ownedSide,
-      second.rivalSide,
-      contender.seed,
-    )
+    const firstVerdict = resolveSpar(first, contender.seed)
+    const secondVerdict = resolveSpar(second, contender.seed)
     expect(secondVerdict).toEqual(firstVerdict)
+    // A ghost bout is a spar: it carries the dense trace too.
+    expect(streamOf(firstVerdict)).toBeDefined()
   })
 
   test("frozen inputs survive: the bout reads, never writes", () => {
@@ -160,11 +155,7 @@ describe("ghostSparSetup", () => {
       ladder: Object.freeze({ points: 12 }),
     })
     const setup = ghostSparSetup(frozenCreature, frozenContender, "balanced")
-    const verdict = resolveBattle(
-      setup.ownedSide,
-      setup.rivalSide,
-      frozenContender.seed,
-    )
+    const verdict = resolveSpar(setup, frozenContender.seed)
     expect(typeof verdict.winner).toBe("string")
     // The local-only rule, structurally: cups, ladder, and the bundle the
     // bout borrowed from are exactly as they were.
