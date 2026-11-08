@@ -101,8 +101,8 @@ function sample(): Fought[] {
     const home = roster[i % roster.length]
     let away = roster[(i * 5 + 7) % roster.length]
     if (!home || !away) throw new Error("the roster shrank")
-    // A mirror keys both sides the same, so the event log cannot attribute a
-    // blow to a side. Real cup fields never contain two of the same species.
+    // Real cup fields never contain two of the same species; the hop keeps the
+    // sample on two distinct sides so each blow has one owner.
     for (let hop = 1; away.id === home.id && hop < roster.length; hop++) {
       away = roster[(i * 5 + 7 + hop) % roster.length] ?? away
     }
@@ -128,6 +128,15 @@ describe("pacing — the 25-40 s band (FR-21, AC-21)", () => {
       expect(f.hits[0]).toBeGreaterThan(0)
       expect(f.hits[1]).toBeGreaterThan(0)
     }
+  })
+
+  test("a majority ends by KO, so the band is not met by stalling", () => {
+    // The cap is the top of the band, so a fight that simply runs out the
+    // clock would satisfy the range on its own (AC-21). The sample has to
+    // mostly finish on a knockout for the band to mean anything.
+    const fought = sample()
+    const byKo = fought.filter((f) => f.reason !== "time").length
+    expect(byKo).toBeGreaterThan(fought.length / 2)
   })
 
   test("the sample replays byte for byte", () => {
