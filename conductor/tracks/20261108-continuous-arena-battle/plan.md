@@ -36,7 +36,7 @@
 - **Covers:** FR-1, FR-2, FR-3, AC-1, AC-2, AC-3
 - **Touches:** `packages/sim/src/battle/continuous/types.ts`, `packages/sim/src/battle/continuous/step.ts`, `packages/sim/src/battle/continuous/movement.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: State model** — covers: FR-2
   - [ ] **P2.T1.1: Fixed-point 3-vector position** — millimetres, `y` pinned to 0, plus velocity, facing, and arena bounds.
