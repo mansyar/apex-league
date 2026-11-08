@@ -209,7 +209,6 @@ describe("resolveContinuous — the double KO (FR-12, AC-12)", () => {
       ),
     ).toBe(true)
   })
-
 })
 
 describe("downEnding — one step, judged as a whole", () => {

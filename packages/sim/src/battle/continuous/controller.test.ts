@@ -23,8 +23,8 @@ import {
   preferredRangeFor,
   profileFor,
   RANGE_BAND_MM,
-  reachEdgeMm,
   RETREAT_FRACTION_PERMILLE,
+  reachEdgeMm,
 } from "./controller"
 import { type ProjectileState, pointAt, shotDirection } from "./projectile"
 import { DODGE_STAMINA_COST } from "./stamina"
@@ -356,9 +356,7 @@ describe("controller — spacing (FR-1, FR-2)", () => {
     ])
     const { fight, controller } = place(cfg, 0)
     const preferred = preferredOf(fight)
-    const threshold = Math.trunc(
-      (preferred * RETREAT_FRACTION_PERMILLE) / 1000,
-    )
+    const threshold = Math.trunc((preferred * RETREAT_FRACTION_PERMILLE) / 1000)
     expect(240).toBeLessThan(threshold)
     expect(threshold).toBeLessThan(preferred)
     expect(order(fight, controller).verb).toBe("retreat")
@@ -372,9 +370,7 @@ describe("controller — spacing (FR-1, FR-2)", () => {
     ])
     const { fight, controller } = place(cfg, 0)
     const preferred = preferredOf(fight)
-    const threshold = Math.trunc(
-      (preferred * RETREAT_FRACTION_PERMILLE) / 1000,
-    )
+    const threshold = Math.trunc((preferred * RETREAT_FRACTION_PERMILLE) / 1000)
     expect(500).toBeGreaterThan(threshold)
     expect(500).toBeLessThan(preferred)
     expect(order(fight, controller).verb).not.toBe("retreat")

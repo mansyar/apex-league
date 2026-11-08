@@ -107,7 +107,9 @@ export function recoveryMsFor(row: FrameData, spd: number): number {
   }
   const scaled = Math.trunc((row.recoveryMs * RECOVERY_REFERENCE_SPD) / spd)
   if (scaled <= 0) {
-    throw new Error(`Recovery scales to zero or below: ${row.recoveryMs} ms at spd ${spd}`)
+    throw new Error(
+      `Recovery scales to zero or below: ${row.recoveryMs} ms at spd ${spd}`,
+    )
   }
   return scaled
 }

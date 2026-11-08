@@ -42,12 +42,12 @@ import { type FightState, HOLD, type MoveIntent, STEP_MS } from "./types"
 export {
   CONTROLLER_PROFILES,
   type ControllerProfile,
-  type ProfileTable,
   PREFERRED_REACH_BAND_PERMILLE,
+  type ProfileTable,
   preferredRangeFor,
   profileFor,
-  reachEdgeMm,
   REFERENCE_REACH_EDGE_MM,
+  reachEdgeMm,
 } from "./controller-profile"
 
 export { DODGE_LEAD_MS } from "./controller-threat"
