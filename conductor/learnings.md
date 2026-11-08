@@ -243,3 +243,44 @@ hard way:
     surface work in triangles against the pre-track artifact; this track
     spent 1.7-1.95x the original triangle count and almost no voxels,
     because AO and colour classes are vertex work.
+
+## 13. A mechanic you cannot reach is not implemented
+
+(20261108-continuous-arena-battle, 2026-11-08) Three mechanics passed their
+tests and still did nothing in play:
+
+- The **dodge** displaced about 60-110 mm per order while the hit test required
+  a 220 mm lateral offset, so a dodge could never convert a hit into a miss —
+  and it charged stamina for the privilege. The test asserted "a dodge moves
+  you"; the spec wanted "a dodge saves you".
+- The **tactic** overlay was never read by the continuous controller, so moving
+  the cup onto the new engine would have silently deleted the player's only
+  coaching choice. Two cup tests asserted the *property* that tactics change
+  outcomes, which is why the regression surfaced instead of shipping.
+- **Flank and rear damage bonuses** were unreachable the moment facing was
+  about to snap to the opponent: with instant lock-on nobody can be hit from
+  the side. Fixing it meant making facing ease at a bounded turn rate.
+
+Lesson: for every mechanic, write the assertion in the player's terms ("this
+action changes the outcome"), not the implementation's ("this action changes a
+variable"). If the two differ, the mechanic is decoration.
+
+## 14. Retargeting playback is not retargeting animation
+
+(20261108-continuous-arena-battle, 2026-11-08) The dense stream made the client
+render where the simulation says the bodies are, and the fight still looked
+wrong: hitstun had no pose, the dodge was a fast slide, knockback skated, and
+the models' bulk disagreed with the simulated radius and height. Rendering the
+correct positions is one job; giving the new states an animation vocabulary is
+another, and it needs its own track.
+
+Two concrete traps from the same work:
+
+- **Two writers to one field is a pop.** The legacy choreography nudged
+  `fighter.stage` on every impact while the stream also assigned it each frame,
+  so bodies jumped out and snapped back. Ownership of a field must be explicit
+  and singular — one boolean on the step contract, not a convention.
+- **Bounds and the painted ring must be the same number.** The simulation
+  arena was ±4,000 x ±3,000 mm while the floor ring was far smaller, so fights
+  visibly happened outside the paint. Any world-space constant that appears in
+  both the sim and the art is a coupling, and it needs a test.

@@ -85,6 +85,17 @@ Phased delivery plan (each phase is independently playable):
   *(Landed: care loop with 5 conditions, AP day phase, 3 starters. 2026-10-18:
   a healthy night restores no energy — REST (+40) is now the way to refill,
   making it a real AP decision; relief tiers kept.)*
+- Continuous arena battle: the action gauge is replaced by a fixed-step,
+  real-time simulation where fighters occupy real space. *(Landed 2026-11-08:
+  20 ms fixed step, mm-precision 3-vector positions, bodies with radius and
+  height, authored frame data on all 49 moves, swept melee arcs and
+  segment-versus-capsule projectiles, commitment with startup interruption and
+  recovery counters, simultaneous trades, poise break and stamina, mass-scaled
+  knockback with hitstun, a real dodge burst, a six-verb real-time controller,
+  dense stream playback with startup telegraphs, and a telemetry harness whose
+  bounds are enforced in CI. Fights run 25–40 s with both sides landing. The
+  gauge clock is frozen as a replay-only path and `SIM_VERSION` is 2. Cup and
+  Spar both resolve on the new engine.)*
 - Battle system: 4 stats + 6 types, move pool + equip-4, type/HP battle AI.
   *(Landed core 2026-10-10: headless deterministic resolver — speed-gauge action
   clock, type chart, projectile specials with travel/accuracy/dodge, equip-4
