@@ -12,10 +12,13 @@
 - **Covers:** FR-1, FR-3, FR-4, AC-1, AC-2, AC-4
 - **Touches:** `packages/sim/scripts/battle-telemetry.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 7ed4dcd9
+- **Evidence:** `conductor/tracks/20261109-battle-spacing-cadence/verification/phase-1.md`
 
-- [ ] **P1.T1: Add the missing metrics** — covers: AC-1, AC-2, AC-4 — contact share (time inside the sum of radii), attack rate per side, retreat count, median engagement distance
-- [ ] **P1.T2: Record the baseline** — covers: FR-1 — run the harness and record every metric before any tuning
+- [x] **P1.T1: Add the missing metrics** — covers: AC-1, AC-2, AC-4 — contact share (time inside the sum of radii), attack rate per side, retreat count, median engagement distance
+- [x] **P1.T2: Record the baseline** — covers: FR-1 — run the harness and record every metric before any tuning
 
 ## Phase 2: Spacing
 
