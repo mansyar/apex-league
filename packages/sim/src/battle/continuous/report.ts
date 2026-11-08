@@ -1,20 +1,29 @@
 /**
  * Step outcomes as the existing event vocabulary.
  *
- * Continuous Arena Battle FR-12. The playback and the cup already read one
- * `BattleEvent` log, so the continuous engine maps its own step reports onto
- * those kinds rather than inventing a second language: a melee hit is
- * `basic`, a shot arriving is `impact` (a dodge is the same beat with
- * `hit: false`), a fresh poise break is `stagger`, and a blow that empties a
- * pool is followed immediately by that side's `down` — the adjacency
- * `buildPlaybackScript` reads as the killing blow. `tick` is the step index
- * and `hpAfter` is the real HP, so a replay shows the same fight.
+ * Continuous Arena Battle FR-12, FR-13. The playback and the cup already read
+ * one `BattleEvent` log, so the continuous engine maps its own step reports
+ * onto those kinds rather than inventing a second language: a melee hit is
+ * `basic`, a swing that swept its window and touched nothing is the same beat
+ * with `hit: false`, a shot arriving is `impact` (a dodge is the same beat
+ * with `hit: false`), a shot leaving the hand is `launch`, a fresh poise break
+ * is `stagger`, and a blow that empties a pool is followed immediately by that
+ * side's `down` — the adjacency `buildPlaybackScript` reads as the killing
+ * blow. `tick` is the step index and `hpAfter` is the real HP, so a replay
+ * shows the same fight.
+ *
+ * Movement needs beats too, or a replay shows two bodies teleporting between
+ * blows: every decision window (120 ms) each side that is not mid-attack gets
+ * an approach beat when it closed the gap and an idle beat when it did not.
+ * That keeps the log dense enough to show footwork without emitting a beat on
+ * all 2000 steps.
  *
  * Pure mapping: no clock, no random source, no DOM.
  */
 
 import type { BattleEvent } from "../clock"
 import { getMove } from "../moves"
+import { DECISION_STEPS } from "./controller"
 import { POISE_BREAK_MS } from "./poise"
 import type { FightState } from "./types"
 
@@ -57,6 +66,16 @@ export interface StepReport {
     readonly outcome: string
     readonly damage: number
   }[]
+  /** Shots whose active window opened this step (FR-8). */
+  readonly launched: readonly {
+    readonly ownerKey: string
+    readonly moveId: string
+  }[]
+  /** Melee swings that closed their window without landing (FR-18). */
+  readonly whiffs: readonly {
+    readonly attackerKey: string
+    readonly moveId: string
+  }[]
 }
 
 /**
@@ -88,6 +107,29 @@ export function stepEvents(
       hpAfter,
       line: `${sides.names[target]} goes down.`,
     })
+  }
+  const gapSq = (snapshot: FightState, side: 0 | 1): number => {
+    const me = snapshot.fighters[side].pos
+    const foe = snapshot.fighters[side === 0 ? 1 : 0].pos
+    const dx = me.x - foe.x
+    const dz = me.z - foe.z
+    return dx * dx + dz * dz
+  }
+  if (state.step % DECISION_STEPS === 0) {
+    for (const side of [0, 1] as const) {
+      if (state.fighters[side].attack) continue
+      const closed = gapSq(state, side) < gapSq(before, side)
+      events.push({
+        tick,
+        kind: closed ? "close" : "hold",
+        actor: sides.names[side],
+        actorKey: sides.keys[side],
+        hpAfter,
+        line: closed
+          ? `${sides.names[side]} closes the gap.`
+          : `${sides.names[side]} holds.`,
+      })
+    }
   }
   for (const strike of report.strikes) {
     const side = sideOf(strike.attackerKey)
@@ -126,6 +168,33 @@ export function stepEvents(
         : `${sides.names[target]} slips ${moveName(shot.moveId)}.`,
     })
     if (hit) land(side, target)
+  }
+  for (const launch of report.launched) {
+    const side = sideOf(launch.ownerKey)
+    events.push({
+      tick,
+      kind: "launch",
+      actor: sides.names[side],
+      actorKey: sides.keys[side],
+      moveId: launch.moveId,
+      hpAfter,
+      line: `${sides.names[side]} looses ${moveName(launch.moveId)}.`,
+    })
+  }
+  for (const whiff of report.whiffs) {
+    const side = sideOf(whiff.attackerKey)
+    const target = side === 0 ? 1 : 0
+    events.push({
+      tick,
+      kind: "basic",
+      actor: sides.names[side],
+      actorKey: sides.keys[side],
+      target: sides.names[target],
+      moveId: whiff.moveId,
+      hit: false,
+      hpAfter,
+      line: `${sides.names[side]}'s ${moveName(whiff.moveId)} swings wide.`,
+    })
   }
   for (const side of [0, 1] as const) {
     const broke =
