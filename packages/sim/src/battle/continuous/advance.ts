@@ -168,9 +168,11 @@ function launchShots(
 }
 
 /**
- * Settle both meters for one step (FR-9, FR-10): clocks and regeneration
- * advance first, so a break opened now serves its whole window, and a window
- * that expires now refills before this step's blows land.
+ * Settle both meters for one step (FR-9, FR-10, FR-12): clocks and
+ * regeneration advance first, so a break opened now serves its whole window,
+ * and a window that expires now refills before this step's blows land. Every
+ * blow that lands then spends poise and hit points; hit points floor at zero,
+ * which is what the endings read.
  */
 function settleMeters(
   strikes: readonly StrikeReport[],
@@ -181,13 +183,29 @@ function settleMeters(
     regenerateStamina(advancePoise(fighters[0])),
     regenerateStamina(advancePoise(fighters[1])),
   ]
-  const hit = (key: string, poiseDamage: number): void => {
+  const hit = (key: string, poiseDamage: number, damage: number): void => {
     const side = settled[0].key === key ? 0 : 1
-    settled[side] = applyPoiseDamage(settled[side], poiseDamage)
+    settled[side] = applyDamage(
+      applyPoiseDamage(settled[side], poiseDamage),
+      damage,
+    )
   }
-  for (const strike of strikes) hit(strike.targetKey, strike.poiseDamage)
+  for (const strike of strikes) {
+    hit(strike.targetKey, strike.poiseDamage, strike.damage)
+  }
   for (const shot of shots) {
-    if (shot.outcome === "hit") hit(shot.targetKey, shot.poiseDamage)
+    if (shot.outcome === "hit") {
+      hit(shot.targetKey, shot.poiseDamage, shot.damage)
+    }
   }
   return settled
+}
+
+/**
+ * Take one blow's damage: whole points off the pool, floored at zero so a
+ * downed fighter reads 0 and never goes negative (FR-12).
+ */
+function applyDamage(fighter: FighterState, damage: number): FighterState {
+  if (damage <= 0) return fighter
+  return { ...fighter, hp: Math.max(0, fighter.hp - damage) }
 }

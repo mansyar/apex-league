@@ -30,6 +30,13 @@ import {
 
 export type { StepResult } from "./advance"
 
+/**
+ * The hit-point pool a side gets when its init names none (tunable). A fight
+ * only ends when a pool reaches zero (FR-12), so the default is a whole
+ * fight's worth rather than a placeholder.
+ */
+export const DEFAULT_HP = 100
+
 /** One side's opening order. */
 export interface FighterInit {
   /** Stable side key, unique within the fight. */
@@ -42,6 +49,8 @@ export interface FighterInit {
   readonly facing?: Dir2
   /** Combat stats a strike reads; defaults to typeless 1/1 (FR-4). */
   readonly stats?: StrikeStats
+  /** Hit points at the opening; defaults to `DEFAULT_HP` (FR-12). */
+  readonly hp?: number
   /** Poise pool size; defaults to `DEFAULT_POISE_MAX` (FR-9). */
   readonly poiseMax?: number
   /** Stamina pool size; defaults to `DEFAULT_STAMINA_MAX` (FR-10). */
@@ -96,6 +105,8 @@ export function stateHash(state: FightState): number {
     mix(fighter.facing.x)
     mix(fighter.facing.z)
     mix(fighter.spd)
+    mix(fighter.hp)
+    mix(fighter.hpMax)
     mix(fighter.poise)
     mix(fighter.poiseMax)
     mix(fighter.poiseBreakMs)
@@ -170,12 +181,17 @@ function openFighter(init: FighterInit, bounds: ArenaBounds): FighterState {
     throw new Error(`${init.key} needs a facing direction`)
   }
   requireStats(init.stats ?? NEUTRAL_STATS, init.key)
+  const hpMax = init.hp ?? DEFAULT_HP
+  requireInteger(hpMax, `${init.key} hp`)
+  if (hpMax <= 0) throw new Error(`${init.key} needs a positive hp`)
   return {
     key: init.key,
     pos: { x: init.at.x, y: 0, z: init.at.z },
     vel: { x: 0, y: 0, z: 0 },
     facing,
     spd: init.spd,
+    hp: hpMax,
+    hpMax,
     ...openingPoise(init.poiseMax),
     ...openingStamina(init.staminaMax),
   }

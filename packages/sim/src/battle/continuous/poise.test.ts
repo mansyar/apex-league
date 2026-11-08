@@ -51,6 +51,8 @@ function fighter(overrides: Partial<FighterState> = {}): FighterState {
     vel: { x: 0, y: 0, z: 0 },
     facing: EAST,
     spd: 10,
+    hp: 100,
+    hpMax: 100,
     ...openingPoise(),
     ...openingStamina(),
     ...overrides,

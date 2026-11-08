@@ -27,6 +27,16 @@ export {
   type Range,
   type TickOutcome,
 } from "./clock"
+export {
+  ARENA_BOUNDS,
+  downEnding,
+  type Ending,
+  FIGHT_CAP_MS,
+  FIGHT_CAP_STEPS,
+  OPENING_GAP_MM,
+  pointsWinner,
+  resolveContinuous,
+} from "./continuous/resolve"
 export { strikeDamage } from "./damage"
 export { makeExhibition, type SparSetup } from "./exhibition"
 export { BASIC_MOVE, getMove, type MoveDef } from "./moves"

@@ -88,6 +88,8 @@ function fighter(
     vel: { x: 0, y: 0, z: 0 },
     facing,
     spd: 10,
+    hp: 100,
+    hpMax: 100,
     attack,
     ...openingPoise(),
     ...openingStamina(),

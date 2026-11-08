@@ -92,6 +92,10 @@ export interface FighterState {
   readonly facing: Dir2
   /** The speed stat the movement tunables read. */
   readonly spd: number
+  /** Hit points left; a fighter at 0 is down (FR-12). */
+  readonly hp: number
+  /** Size of the hit-point pool, fixed at the opening. */
+  readonly hpMax: number
   /** The committed attack, if any (FR-6); null once recovery has run out. */
   readonly attack?: AttackState | null
   /** Poise points left before a break (FR-9); 0 only while broken. */
