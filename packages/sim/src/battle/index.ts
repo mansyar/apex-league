@@ -27,6 +27,7 @@ export {
   type Range,
   type TickOutcome,
 } from "./clock"
+export { startingHp } from "./continuous/hp"
 export {
   ARENA_BOUNDS,
   downEnding,

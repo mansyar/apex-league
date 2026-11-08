@@ -34,6 +34,7 @@ import {
   profileFor,
   RANGE_BAND_MM,
 } from "./controller"
+import { startingHp } from "./hp"
 import { hpSnapshot, type Sides, stepEvents } from "./report"
 import { createFight, type Fight, type FighterInit } from "./step"
 import { createStreamRecorder, rememberStream } from "./stream"
@@ -159,13 +160,10 @@ function bodyFor(side: BattleSide): { radiusMm: number; heightMm: number } {
 
 /**
  * The hit-point scale every fighter enters with, in percent (tunable, FR-21).
- *
- * The band is a duration, and duration is hit points over the damage the foe's
- * innate strike deals, so this is the pacing dial that does not touch a single
- * frame or the damage formula. Phase 10 measured the unscaled roster at
- * 4.9–23.6 s per fight (14 pairings) and set the scale from that table.
+ * It lives in `./hp` with `startingHp`, which applies it to a side; kept
+ * exported here so the resolver's own surface is unchanged.
  */
-export const HP_SCALE_PERCENT = 390
+export { HP_SCALE_PERCENT } from "./hp"
 
 /** One side's opening order: stats, hit points, body volume, and a facing at its foe. */
 export function initFor(
@@ -186,7 +184,7 @@ export function initFor(
       element: side.element,
       affinity: side.affinity ?? null,
     },
-    hp: Math.floor((side.stats.hp * HP_SCALE_PERCENT) / 100),
+    hp: startingHp(side),
     radiusMm: body.radiusMm,
     heightMm: body.heightMm,
   }

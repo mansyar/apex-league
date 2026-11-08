@@ -52,6 +52,7 @@ export {
   STREAM_PHASE,
   type StreamFrame,
   type StreamPhase,
+  startingHp,
   stepIndexAt,
   streamOf,
   strikeDamage,
