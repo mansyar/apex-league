@@ -77,3 +77,18 @@ assertions was fixed in the same commit.
   mm, all clear of `BODY_RADIUS_MM` (220 mm). `y` stays 0, so reach is planar.
 - **Balance is out of scope** for this track (as the brief states): the numbers
   are plausible and internally ordered, not tuned.
+
+## Primary verification
+
+| Layer | Command | Exit | Result |
+| --- | --- | --- | --- |
+| static | `bun run verify` | 0 | 4 workspace typechecks clean; 3517 tests, 3516 pass / 1 skip / 0 fail; biome 835 files clean; voxel determinism gate byte-identical (48 GLBs + 5 props) |
+| build | `bun run build` | 0 | Vite built 370 modules; only the pre-existing >500 kB chunk warning |
+
+Verified by the primary agent, not taken from the subagent report.
+
+Note: the phase range also contains `9095f61d chore(conductor): allow split
+verify command for phase subagents` — a tooling fix by the primary so the phase
+agent can run `bun run verify` and `bun run build` as separate commands. It is
+outside the plan's `Touches` and carries no product behavior. Because the range
+holds a commit the phase agent did not report, the phase was **not** squashed.

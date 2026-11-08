@@ -14,16 +14,20 @@
 - **Covers:** FR-5, AC-5
 - **Touches:** `packages/sim/src/battle/frames.ts`, `packages/sim/src/battle/frames.test.ts`, `packages/sim/src/battle/moves.ts`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Frame data model** — covers: FR-5
-  - [ ] **P1.T1.1: Define the frame-data shape** — startup, active, and recovery in ms; reach in mm; projectile speed; poise damage; stamina cost, beside the move catalog.
-  - [ ] **P1.T1.2: Add validation** — reject non-positive recovery, zero projectile speed on a non-melee move, and reach below the body radius.
-- [ ] **P1.T2: Author all 49 rows** — covers: FR-5
-  - [ ] **P1.T2.1: Author the six kit rows per element** — Spark through the element's heavy finisher.
-  - [ ] **P1.T2.2: Author the wider pool and both branch signatures per element.**
-- [ ] **P1.T3: Completeness test** — covers: FR-5, AC-5
-  - [ ] **P1.T3.1: Assert every catalog id has a row and every row passes validation.**
+- [x] **P1.T1: Frame data model** — covers: FR-5
+  - [x] **P1.T1.1: Define the frame-data shape** — startup, active, and recovery in ms; reach in mm; projectile speed; poise damage; stamina cost, beside the move catalog.
+  - [x] **P1.T1.2: Add validation** — reject non-positive recovery, zero projectile speed on a non-melee move, and reach below the body radius.
+- [x] **P1.T2: Author all 49 rows** — covers: FR-5
+  - [x] **P1.T2.1: Author the six kit rows per element** — Spark through the element's heavy finisher.
+  - [x] **P1.T2.2: Author the wider pool and both branch signatures per element.**
+- [x] **P1.T3: Completeness test** — covers: FR-5, AC-5
+  - [x] **P1.T3.1: Assert every catalog id has a row and every row passes validation.**
+
+**Result:** verified
+**Checkpoint:** 2696002b
+**Evidence:** conductor/tracks/20261108-continuous-arena-battle/verification/phase-1.md
 
 ## Phase 2: Fixed-Step Engine Core
 
