@@ -8,10 +8,9 @@
  *    signature of the legacy path — and the live path never returns one.
  * 2. Nothing new in production may call `resolveBattle` or build a clock.
  *    The allow-list below is the whole current truth: the resolver itself
- *    (the frozen path), the clock's own definitions, and one known live
- *    caller (`apps/client/src/spar.ts`) that Phase 13 reported rather than
- *    deleted. Adding a site fails here on purpose — a new fight routed
- *    through the gauge clock is a design decision, not a quiet import.
+ *    (the frozen path) and the clock's own definitions. Adding a site fails
+ *    here on purpose — a new fight routed through the gauge clock is a
+ *    design decision, not a quiet import.
  *
  * The scan reads source text, comments included: naming a call in prose with
  * parentheses trips it too. That is deliberate — the fence should be hard to
@@ -96,12 +95,12 @@ const CLOCK_CALL = /\b(?:resolveBattle|createClock|createClockFighter)\s*\(/
  * The current truth, repo-relative with `/` separators:
  *
  * - `battle/resolver.ts` — the frozen resolver, and the only caller of the
- *   clock's constructors;
- * - `battle/clock/engine.ts` — the constructors' definitions;
- * - `apps/client/src/spar.ts` — the known live caller Phase 13 reported.
+ *   clock's constructors. No production fight reaches it: the spar moved to
+ *   the continuous engine (Phase 13 rework), so only the legacy replay
+ *   path — and the tests that pin it — drives this file;
+ * - `battle/clock/engine.ts` — the constructors' definitions.
  */
 const EXPECTED_CALL_SITES: string[] = [
-  "apps/client/src/spar.ts",
   "packages/sim/src/battle/clock/engine.ts",
   "packages/sim/src/battle/resolver.ts",
 ]
