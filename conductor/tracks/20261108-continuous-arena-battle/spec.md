@@ -253,6 +253,13 @@ one.
 shot-versus-shot collisions. Every shot stays a straight line at its authored
 speed; an arc field on frame data is a later data extension.
 
+**Verticality is deferred, not dropped.** Per the product owner's decision of
+2026-11-08, jumping, crouching, and airborne moves are a follow-up track once this
+engine is stable. The representation is already prepared for it: positions are
+3-vectors with `y` present and pinned to 0 (FR-2), bodies carry a height (FR-17),
+and every move carries a height band. Adding verticality should therefore be
+frame data plus animation rather than a rewrite of the step.
+
 ## References
 
 - `conductor/product.md`, `conductor/workflow.md`
