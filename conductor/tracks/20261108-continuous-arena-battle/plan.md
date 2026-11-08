@@ -59,15 +59,19 @@
 - **Covers:** FR-4, FR-6, FR-7, AC-4, AC-6, AC-7
 - **Touches:** `packages/sim/src/battle/continuous/strike.ts`, `packages/sim/src/battle/continuous/damage.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Reach and positional damage** — covers: FR-4
-  - [ ] **P3.T1.1: Euclidean reach check and flank/rear bonus** — applied to the existing integer damage formula.
-- [ ] **P3.T2: Attack lifecycle** — covers: FR-6
-  - [ ] **P3.T2.1: Startup, active, and recovery phases with commitment.**
-  - [ ] **P3.T2.2: Interruption during startup and counter bonus during recovery.**
-- [ ] **P3.T3: Trades** — covers: FR-7
-  - [ ] **P3.T3.1: Overlapping active frames both land in the same step.**
+- [x] **P3.T1: Reach and positional damage** — covers: FR-4
+  - [x] **P3.T1.1: Euclidean reach check and flank/rear bonus** — applied to the existing integer damage formula.
+- [x] **P3.T2: Attack lifecycle** — covers: FR-6
+  - [x] **P3.T2.1: Startup, active, and recovery phases with commitment.**
+  - [x] **P3.T2.2: Interruption during startup and counter bonus during recovery.**
+- [x] **P3.T3: Trades** — covers: FR-7
+  - [x] **P3.T3.1: Overlapping active frames both land in the same step.**
+
+**Result:** verified
+**Checkpoint:** 16603677
+**Evidence:** conductor/tracks/20261108-continuous-arena-battle/verification/phase-3.md
 
 ## Phase 4: Projectiles and Dodge
 

@@ -122,4 +122,21 @@ them with `&&`, which this executor is not permitted to use.
 |---|---|
 | `bun run verify` | exit 0 |
 | `bun run build` | exit 0 |
-| Tasks P3.T1–P3.T3 | done |
+| Tasks P3.T1-P3.T3 | done |
+
+## Primary verification
+
+| Layer | Command | Exit | Result |
+| --- | --- | --- | --- |
+| static | `bun run verify` | 0 | 4 workspace typechecks clean; 3584 tests / 337 files, 3583 pass, 1 skip, 0 fail; biome 844 files clean; determinism gate byte-identical |
+| build | `bun run build` | 0 | Vite built 370 modules; only the pre-existing chunk-size warning |
+
+Verified by the primary agent, not taken from the subagent report. The phase was
+squashed to `16603677` (all three commits in the range were reported; no merge or
+unreported commit).
+
+**Deferred, recorded deliberately:** `FighterState` still carries no `hp` field,
+so `StrikeReport.damage` is reported but never subtracted from a pool. That is
+Phase 7's scope (FR-12 endings), not Phase 3's (FR-4/6/7 resolve and trade). Phase
+7 must add `hp` to `FighterState`, apply `strike.damage` in `stepFight`, and
+include it in `stateHash` — noted here so it cannot be missed.
