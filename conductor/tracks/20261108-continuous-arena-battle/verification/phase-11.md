@@ -372,3 +372,31 @@ the 120 s timeout while the 20× parallel suite runs on a loaded machine. The
 client, sim and steps suites — including all five new ownership tests — are
 green in every run after the fix.
 
+
+## Primary verification of rework 1
+
+The rework agent reported waiting on its own `bun run verify`, so the primary
+ran the combined tree (rework plus Phase 12 telemetry, which had landed
+meanwhile):
+
+| Layer | Command | Exit | Result |
+| --- | --- | --- | --- |
+| static + unit + determinism | `bun run verify` | 0 | 3,779 pass, 1 skip, 0 fail, 3,780 tests / 351 files, 175.25 s; determinism gate byte-identical for 5 props |
+| build | `bun run build` | 0 | client build clean |
+
+An earlier run of the same command exited 1 on the same tree while the two
+agents were still editing it, and a full suite run timed out under load. The
+targeted suites (`steps/`, `move-fx/`, `staging-fx`, `dense-playback`,
+`playbackDriver`, `playbackDriver-dense`, `staging-seed`, `fighter-driver`:
+213 tests) all passed on the committed tree, and the clean full run above
+supersedes the red one. The failure was never reproduced, so it is recorded
+here rather than explained away.
+
+**Hand review of the fix.** `StepIO.streamOwnsBodies()` is wired to
+`denseMode` in `staging.ts:244`; `fire.ts:75`, `impact.ts:20`,
+`melee.ts:22,95` and `reel.ts:17` gate every positional write and `snapTo` on
+it. Effects are untouched. One residual risk, recorded not fixed: `denseMode`
+latches true for the life of a staging instance and is only cleared by
+`clear()`, so any future path that plays a legacy script on a staging
+instance that has already shown a dense fight would keep positions
+suppressed. No such path exists today.
