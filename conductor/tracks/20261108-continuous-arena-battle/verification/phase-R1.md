@@ -89,3 +89,23 @@ mossboar v embercub              38.48s ko    86-71
    changing behaviour.
 5. **`conductor/tracks/.../plan.md` is modified in the working tree** by the
    primary agent (the R1 task list). It is not part of any commit here.
+
+## Primary verification
+
+| Layer | Command | Exit | Result |
+| --- | --- | --- | --- |
+| static + unit + determinism | `bun run verify` | 0 | 3801 pass, 3802 tests / 354 files, 118.01 s |
+| build | `bun run build` | 0 | 398 modules |
+
+The High finding was real and I had missed it: the swing was gated on the
+post-advance phase while positions came from the pre-step snapshot, so every
+active window lost its final 20 ms and a blow landing in a victim's last startup
+step failed to interrupt it. The fix reads both ends of the step.
+
+One deviation from the review's literal instruction is accepted and worth
+recording: classifying interruption from the pre-step phase cancels both swings
+in a simultaneous boundary trade, which broke the authored recovery and pushed
+pacing to 24.80 s with idle at 46.7%. The fix therefore skips the cancellation
+when the victim also landed in that step, so FR-6 (interruption) and FR-7
+(trades) both hold. That is a judgement call, not a workaround, and it is pinned
+by the re-pinned trade test.

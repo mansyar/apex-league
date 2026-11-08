@@ -282,15 +282,18 @@
 - **Covers:** FR-18, AC-6, FR-21, AC-21, FR-15, FR-12, AC-12, FR-13, NFR-1
 - **Touches:** `packages/sim/src/battle/continuous/strike.ts`, `pacing.test.ts`, `resolve.ts`, `advance.ts`, `step.ts`, `packages/sim/src/battle/clock.freeze.test.ts`, `apps/client/src/steps/approach.ts`, `apps/client/src/steps/down.ts`, `apps/client/src/steps/fire.test.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 213db60e
+- **Evidence:** `conductor/tracks/20261108-continuous-arena-battle/verification/phase-R1.md`
 
-- [ ] **R1.F1: Strike window overlap** - covers: FR-18, AC-6 — gate the swing on interval overlap and classify counter/interruption from the pre-step phase
-- [ ] **R1.F2: Pacing split** - covers: FR-21, AC-21 — assert the KO-versus-cap split, not just the ceiling
-- [ ] **R1.F3: Freeze scan covers scripts** - covers: FR-15
-- [ ] **R1.F4: Double-KO pinned** - covers: FR-12, AC-12
-- [ ] **R1.F5: Unused RNG stream removed** - covers: NFR-1
-- [ ] **R1.F6: Approach and down gated** - covers: FR-13, AC-13
-- [ ] **R1.F7: Mirror keys in the result** - covers: FR-12
+- [x] **R1.F1: Strike window overlap** - covers: FR-18, AC-6 — gate the swing on interval overlap and classify counter/interruption from the pre-step phase
+- [x] **R1.F2: Pacing split** - covers: FR-21, AC-21 — assert the KO-versus-cap split, not just the ceiling
+- [x] **R1.F3: Freeze scan covers scripts** - covers: FR-15
+- [x] **R1.F4: Double-KO pinned** - covers: FR-12, AC-12
+- [x] **R1.F5: Unused RNG stream removed** - covers: NFR-1
+- [x] **R1.F6: Approach and down gated** - covers: FR-13, AC-13
+- [x] **R1.F7: Mirror keys in the result** - covers: FR-12
 
 ## Playtest at merge
 
