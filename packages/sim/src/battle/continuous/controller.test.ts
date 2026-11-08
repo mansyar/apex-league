@@ -180,9 +180,9 @@ function order(
   })
 }
 
-/** A shot from the away side closing on the home side at x = -2000. */
+/** A shot closing on the home side's line at x = -2000, 2,200 mm out. */
 function incoming(): ProjectileState {
-  const origin = { x: 0, y: 0, z: 0 }
+  const origin = { x: 500, y: 0, z: 0 }
   const dir = shotDirection(origin, { x: -2000, y: 0, z: 0 })
   return {
     id: 1,
@@ -191,8 +191,8 @@ function incoming(): ProjectileState {
     origin,
     dir,
     speedMmPerMs: 12,
-    travelledMm: 1000,
-    pos: pointAt(origin, dir, 1000),
+    travelledMm: 300,
+    pos: pointAt(origin, dir, 300),
   }
 }
 
@@ -237,9 +237,10 @@ describe("controller — the six verbs (FR-11)", () => {
   })
 
   test("inside the band it holds the range and circles", () => {
-    const cfg = config([side("home", 10, -1000), side("away", 10, 1000)])
-    const { fight, controller } = place(cfg, 36)
-    // Six decisions so far, so this one lands on slot 6 — a strafe slot.
+    // The obedient band is 150–950 mm, so 900 mm sits inside it, and the
+    // ninth decision lands on the first circle slot of the ten-decision cycle.
+    const cfg = config([side("home", 10, -450), side("away", 10, 450)])
+    const { fight, controller } = place(cfg, 48)
     const ordered = order(fight, controller)
     expect(ordered.verb).toBe("strafe")
     // A circle is perpendicular to the approach, never along it.
@@ -253,7 +254,12 @@ describe("controller — the six verbs (FR-11)", () => {
   })
 
   test("too close it retreats", () => {
-    const cfg = config([side("home", 10, -400), side("away", 10, 400)])
+    // Narrow bodies so the two can stand inside the band's inner edge without
+    // the separation pass pushing them back out to contact distance.
+    const cfg = config([
+      { ...side("home", 10, -60), radiusMm: 60 },
+      { ...side("away", 10, 60), radiusMm: 60 },
+    ])
     const { fight, controller } = place(cfg, 0)
     const ordered = order(fight, controller)
     expect(ordered.verb).toBe("retreat")
@@ -261,7 +267,9 @@ describe("controller — the six verbs (FR-11)", () => {
   })
 
   test("in the band on a press slot it commits the heaviest reach", () => {
-    const cfg = config([side("home", 10, -1000), side("away", 10, 1000)])
+    // 900 mm is outside the innate strike's edge-to-edge reach for these two
+    // bodies (860 mm), so the heaviest special that reaches is the press.
+    const cfg = config([side("home", 10, -450), side("away", 10, 450)])
     const { fight, controller } = place(cfg, 0)
     const ordered = order(fight, controller)
     expect(ordered.verb).toBe("commit")
@@ -269,8 +277,9 @@ describe("controller — the six verbs (FR-11)", () => {
     expect(ordered.dodgeCost).toBe(0)
   })
 
-  test("an inbound shot on the line is dodged, for the documented price", () => {
-    const { fight, controller } = place(config(), 0)
+  test("an inbound shot on the body's line is dodged, for the documented price", () => {
+    const cfg = config([side("home", 12, -2000, 100), side("away", 10, 2000)])
+    const { fight, controller } = place(cfg, 0)
     const shot = incoming()
     const state: FightState = { ...fight.state, projectiles: [shot] }
     const ordered = decide({

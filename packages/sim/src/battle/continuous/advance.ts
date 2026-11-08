@@ -17,7 +17,7 @@
 import type { Rng } from "../../rng"
 import { faceOpponent, separateBodies } from "./contact"
 import { blowDirection, isStunned, reactToBlow } from "./impulse"
-import { type FencePin, moveFighter, moveStunned } from "./movement"
+import { dodgeSpeed, type FencePin, moveFighter, moveStunned } from "./movement"
 import { advancePoise, applyPoiseDamage } from "./poise"
 import {
   launchProjectile,
@@ -44,11 +44,14 @@ import {
   STEP_MS,
 } from "./types"
 
-/** A dodge order and whether the pool covered it (FR-10). */
+/** A dodge order and whether the burst ran (FR-10, FR-20). */
 export interface DodgeReport {
   /** The side that ordered the dodge. */
   readonly key: string
-  /** True when the pool paid and the burst ran; false when the body held. */
+  /**
+   * True when the burst ran; false when the body held. The price is charged
+   * once, on the step the burst starts, so a held order keeps reporting true.
+   */
   readonly paid: boolean
 }
 
@@ -184,13 +187,26 @@ function applyIntent(
     return stunned.fighter
   }
   if (!("dodge" in intent)) return moveFighter(fighter, intent, bounds)
-  const paid = spendDodge(fighter)
+  const paid = bursting(fighter, intent.dodge) ? fighter : spendDodge(fighter)
   if (!paid) {
     dodges.push({ key: fighter.key, paid: false })
     return moveFighter(fighter, HOLD, bounds)
   }
   dodges.push({ key: fighter.key, paid: true })
-  return moveFighter(paid, intent.dodge, bounds)
+  return moveFighter(paid, intent, bounds)
+}
+
+/**
+ * True when the body is already running the burst it was ordered into: its
+ * velocity is at or beyond lunge speed along that direction. A dodge charges
+ * its price once, when the burst starts, so holding the order through the
+ * window is the same lunge rather than a second one (FR-20).
+ */
+function bursting(fighter: FighterState, dir: Dir2): boolean {
+  const speed = dodgeSpeed(fighter.spd)
+  const moving = fighter.vel.x * fighter.vel.x + fighter.vel.z * fighter.vel.z
+  if (moving < speed * speed) return false
+  return fighter.vel.x * dir.x + fighter.vel.z * dir.z > 0
 }
 
 /**

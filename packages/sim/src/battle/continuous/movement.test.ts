@@ -120,6 +120,28 @@ describe("continuous movement — acceleration", () => {
   })
 })
 
+describe("continuous movement — the dodge burst (FR-20)", () => {
+  const LUNGE: MoveIntent = { dodge: { x: 0, z: 1000 } }
+
+  test("a lunge is at least two and a half times a walk, and never ramps", () => {
+    const burst = targetVelocity(10, LUNGE)
+    expect(burst.x).toBe(0)
+    expect(burst.z).toBeGreaterThanOrEqual(topSpeed(10) * 2.5)
+    // A lunge snaps: the very first step already runs at burst speed.
+    const first = accelerate({ x: 0, y: 0, z: 0 }, 10, LUNGE)
+    expect(first.z).toBe(burst.z)
+  })
+
+  test("one window of lunge clears the widest body off a shot's line", () => {
+    // The widest body is 300 mm across its radius, plus a 40 mm margin; a
+    // 120 ms window of lunge must put that much air between the body and the
+    // line, even for the slowest body in the roster.
+    let state = fighter({ spd: 2 })
+    for (let i = 0; i < 6; i++) state = moveFighter(state, LUNGE, BOUNDS)
+    expect(state.pos.z).toBeGreaterThanOrEqual(340)
+  })
+})
+
 describe("continuous movement — strafing and the fence", () => {
   test("a lateral intent moves only on z", () => {
     const after = moveFighter(fighter(), { x: 0, z: 1000 }, BOUNDS)

@@ -37,12 +37,37 @@ export const ACCEL_MILLI_MM_PER_MS_PER_STEP = 400
 /** Velocity a fighter sheds when the intent slows or reverses (tunable). */
 export const DECEL_MILLI_MM_PER_MS_PER_STEP = 600
 
+/**
+ * How much faster than its own walk a dodge burst moves (tunable, FR-20): a
+ * dodge is a lunge, not a quicker stroll, so it is the one intent that does
+ * not ramp.
+ */
+export const DODGE_SPEED_MULTIPLIER = 3
+
+/**
+ * The floor under a dodge burst, in thousandths of a mm/ms (tunable): a slow
+ * body would otherwise sidestep less than its own width, and the burst has to
+ * clear the widest body in the roster (600 mm across) inside one window.
+ */
+export const DODGE_BURST_FLOOR_MILLI_MM_PER_MS = 3000
+
 /** The diagonal length in thousandths: √2/2, so diagonals are not faster. */
 const DIAGONAL = 707
 
 /** Top speed in thousandths of a mm/ms for a speed stat. */
 export function topSpeed(spd: number): number {
   return SPEED_BASE_MILLI_MM_PER_MS + SPEED_GAIN_MILLI_MM_PER_MS * spd
+}
+
+/**
+ * The speed a dodge burst runs at, in thousandths of a mm/ms: a multiple of
+ * the walk with a floor, so even the slowest body lunges clear of itself.
+ */
+export function dodgeSpeed(spd: number): number {
+  return Math.max(
+    topSpeed(spd) * DODGE_SPEED_MULTIPLIER,
+    DODGE_BURST_FLOOR_MILLI_MM_PER_MS,
+  )
 }
 
 /** Integer division rounding halves away from zero, so mirrored paths match. */
@@ -60,7 +85,7 @@ export function directionOf(intent: MoveIntent): Dir2 {
 
 /** The velocity an intent asks for once fully ramped up, per axis. */
 export function targetVelocity(spd: number, intent: MoveIntent): Dir2 {
-  const top = topSpeed(spd)
+  const top = "dodge" in intent ? dodgeSpeed(spd) : topSpeed(spd)
   const dir = directionOf(intent)
   return {
     x: divRound(top * dir.x, DIR_SCALE),
@@ -85,9 +110,14 @@ function approach(current: number, target: number): number {
     : Math.max(target, current - rate)
 }
 
-/** One step of acceleration toward the intent. */
+/**
+ * One step of acceleration toward the intent. A dodge is a lunge: it snaps to
+ * its burst velocity instead of ramping, which is what makes the burst a
+ * sidestep rather than a faster walk. Every other intent ramps as before.
+ */
 export function accelerate(vel: Vec3, spd: number, intent: MoveIntent): Vec3 {
   const target = targetVelocity(spd, intent)
+  if ("dodge" in intent) return { x: target.x, y: 0, z: target.z }
   return {
     x: approach(vel.x, target.x),
     y: 0,
