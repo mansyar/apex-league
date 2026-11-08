@@ -28,8 +28,7 @@ const NORMAL_STEP_MS = 900
 /** How long one scripted attack animates for at the normal pace, in ms. */
 const BASE_STEP_ANIM_MS = 620
 
-/** Resting gap between fighters and the contact distance now live in
- * the steps registry (steps/pure.ts) - the only places they're used. */
+/** Resting gap and contact distance live in the steps registry. */
 
 /**
  * Show-floor bounds live in the fighter-driver module (the pose loop
@@ -242,6 +241,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     paceRatio: () => paceMs / NORMAL_STEP_MS,
     reduced: () => motionPref === "reduced",
     prevKind: () => prevStepKind,
+    streamOwnsBodies: () => denseMode,
   })
 
   /** One scripted action on staging's own clock (hit-stop aware). */

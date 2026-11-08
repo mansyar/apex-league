@@ -39,6 +39,13 @@ export interface StepIO {
   reduced(): boolean
   /** Kind of the previously applied step (unified-fire arrival check). */
   prevKind(): PlaybackStep["kind"] | null
+  /**
+   * True while the dense stream owns the bodies (FR-13): `dense-playback`
+   * writes every fighter's `stage` from the trace each frame, so the step
+   * choreography paints effects only and never moves a body. False on the
+   * legacy paced path, which still drives positions itself.
+   */
+  streamOwnsBodies(): boolean
 }
 
 /** One step runner: perform a single playback step's choreography. */

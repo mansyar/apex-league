@@ -11,9 +11,15 @@ import { reelWobble } from "./pure"
 export const reelStep: StepRunner = (step, instant, side, _o, _r, io) => {
   const kind: ReactionKind = step.kind === "knockback" ? "knockback" : "stagger"
   const spec = reactionFor(kind, side.actor.profile)
-  if (spec.slide > 0) side.actor.stage.x += side.actor.away * spec.slide
+  // Dense playback owns the bodies: the slide and the snap are position,
+  // so they belong to the legacy path only (Phase 11 rework 1). The reel
+  // wobble below is a lean and still plays.
+  const ownPositions = !io.streamOwnsBodies()
+  if (ownPositions && spec.slide > 0) {
+    side.actor.stage.x += side.actor.away * spec.slide
+  }
   if (instant) {
-    snapTo(side.actor)
+    if (ownPositions) snapTo(side.actor)
     return
   }
   io.startAction(

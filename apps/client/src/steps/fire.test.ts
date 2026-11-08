@@ -12,7 +12,17 @@
 import { describe, expect, test } from "bun:test"
 import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
+import { PLAYBACK_PHASES, type PlaybackStep } from "@apex/sim"
+import * as THREE from "three"
+import { DEFAULT_PROFILE, reactionFor } from "../choreo"
+import type { DriveFighter } from "../fighter-driver"
+import { HitStop } from "../fx/loop"
+import type { BattleEffects } from "../staging-fx"
+import type { StepIO } from "./context"
 import { CONTACT_JITTER, contactJitter } from "./fire"
+import { impactStep } from "./impact"
+import { meleeStep } from "./melee"
+import { reelStep } from "./reel"
 
 describe("contactJitter — the seeded contact offset", () => {
   test("identical step fields always yield the identical offset", () => {
@@ -123,5 +133,305 @@ describe("steps/ holds no unseeded randomness", () => {
       readFileSync(path, "utf8").includes("Math.random"),
     )
     expect(offenders).toEqual([])
+  })
+})
+
+/**
+ * Position ownership (Phase 11 rework 1). In dense playback the stream owns
+ * every body position: `dense-playback.apply` writes `stage` from the trace
+ * on every frame. The step choreography therefore must not write `stage` at
+ * all, or the body is shoved out by the step and pulled back by the next
+ * frame — the out-and-back pop the owner reported. The legacy path keeps its
+ * authored shoves untouched.
+ *
+ * These drive the real step runners through a fake `StepIO`, the same port
+ * shape the move-fx suites stage `fireSpecial` with.
+ */
+
+/** A fighter slice the step runners can drive without a scene or a driver. */
+function probeFighter(name: string, away: 1 | -1): DriveFighter {
+  return {
+    name,
+    group: new THREE.Group(),
+    stage: new THREE.Vector3(),
+    smooth: new THREE.Vector3(),
+    velocity: new THREE.Vector3(),
+    offset: new THREE.Vector3(),
+    squash: { s: 0, v: 0 },
+    walkPhase: 0,
+    phase: 0,
+    baseScale: 1,
+    profile: DEFAULT_PROFILE,
+    down: false,
+    away,
+    fall: 0,
+    lean: { pitch: 0, roll: 0 },
+    baseColors: new Map(),
+  }
+}
+
+/** What the fake effects layer saw, so "keep every effect" is pinnable. */
+interface EffectLog {
+  flashes: number
+  decals: number
+  bursts: number
+  projectiles: number
+  punches: number
+}
+
+/**
+ * The fake port: `streamOwnsBodies` is the flag under test, every effect is
+ * counted, and the staged action is captured so the test can run its beats.
+ */
+function fakeIO(
+  streamOwnsBodies: boolean,
+  prev: PlaybackStep["kind"] | null = null,
+): {
+  io: StepIO
+  log: EffectLog
+  run(t: number, ao: DriveFighter, at: DriveFighter): void
+} {
+  const log: EffectLog = {
+    flashes: 0,
+    decals: 0,
+    bursts: 0,
+    projectiles: 0,
+    punches: 0,
+  }
+  const effects: BattleEffects = {
+    hitStop: new HitStop(),
+    setPaused: () => {},
+    startFlash: () => {
+      log.flashes += 1
+    },
+    spawnProjectile: () => {
+      log.projectiles += 1
+    },
+    spawnBurst: () => {
+      log.bursts += 1
+    },
+    spawnDecal: () => {
+      log.decals += 1
+    },
+    setCharge: () => {},
+    clearCharge: () => {},
+    firstProjectilePosition: () => null,
+    disposeAllDecals: () => {},
+    disposeAll: () => {},
+  }
+  let staged: ((t: number, ao: DriveFighter, at: DriveFighter) => void) | null =
+    null
+  const io: StepIO = {
+    effects,
+    bigHit: () => {
+      log.punches += 1
+    },
+    startAction: (fn) => {
+      staged = fn
+    },
+    cancelAction: () => {},
+    animMs: () => 1000,
+    paceRatio: () => 1,
+    reduced: () => false,
+    prevKind: () => prev,
+    streamOwnsBodies: () => streamOwnsBodies,
+  }
+  return {
+    io,
+    log,
+    run(t, ao, at) {
+      if (staged === null) throw new Error("no action staged")
+      staged(t, ao, at)
+    },
+  }
+}
+
+/** One playback step with the shared fields filled in. */
+function stepOf(
+  over: Partial<PlaybackStep> & Pick<PlaybackStep, "kind">,
+): PlaybackStep {
+  return {
+    tick: 7,
+    actor: "a",
+    target: "b",
+    hit: true,
+    damage: 6,
+    hpAfter: {},
+    line: "probe",
+    beats: 1,
+    phases: PLAYBACK_PHASES[over.kind],
+    ...over,
+  }
+}
+
+/** Both fighters facing each other, off-axis so a z nudge is visible. */
+function pair(): { actor: DriveFighter; target: DriveFighter } {
+  const actor = probeFighter("a", 1)
+  actor.stage.set(-2.5, 0, 0.4)
+  actor.smooth.copy(actor.stage)
+  const target = probeFighter("b", -1)
+  target.stage.set(2.5, 0, -0.4)
+  target.smooth.copy(target.stage)
+  return { actor, target }
+}
+
+describe("position ownership — the dense stream owns the bodies", () => {
+  test("a landed impact nudges the victim only when the step owns positions", () => {
+    // Dense: the stream wrote stage this frame; the step must not touch it.
+    const dense = pair()
+    const denseBefore = {
+      actor: dense.actor.stage.clone(),
+      target: dense.target.stage.clone(),
+    }
+    const denseIO = fakeIO(true, "projectile")
+    impactStep(
+      stepOf({ kind: "impact" }),
+      false,
+      dense,
+      dense.actor,
+      dense.target,
+      denseIO.io,
+    )
+    expect(dense.target.stage.toArray()).toEqual(denseBefore.target.toArray())
+    expect(dense.actor.stage.toArray()).toEqual(denseBefore.actor.toArray())
+    // Every effect survives: squash, flash, camera punch, decal.
+    expect(denseIO.log).toEqual({
+      flashes: 1,
+      decals: 1,
+      bursts: 0,
+      projectiles: 0,
+      punches: 1,
+    })
+    expect(dense.target.squash.v).not.toBe(0)
+
+    // Legacy: the authored shove, exactly as it is today.
+    const legacy = pair()
+    const legacyIO = fakeIO(false, "projectile")
+    impactStep(
+      stepOf({ kind: "impact" }),
+      false,
+      legacy,
+      legacy.actor,
+      legacy.target,
+      legacyIO.io,
+    )
+    // strikeReach(6) = 0.75, outward on the victim's own away side.
+    expect(legacy.target.stage.x).toBe(2.5 - 0.75)
+    expect(legacy.target.stage.z).toBe(-0.4 + contactJitter(7, "b", 6))
+    expect(legacy.actor.stage.toArray()).toEqual([-2.5, 0, 0.4])
+    expect(legacyIO.log.flashes).toBe(1)
+  })
+
+  test("a point-blank special keeps its burst and decal in both modes", () => {
+    const dense = pair()
+    const denseBefore = dense.target.stage.clone()
+    const denseIO = fakeIO(true)
+    impactStep(
+      stepOf({ kind: "impact", element: "fire", moveId: "pyre_wall" }),
+      false,
+      dense,
+      dense.actor,
+      dense.target,
+      denseIO.io,
+    )
+    // Run the compressed flight to its landing beat.
+    denseIO.run(1, dense.actor, dense.target)
+    expect(dense.target.stage.toArray()).toEqual(denseBefore.toArray())
+    expect(denseIO.log.bursts).toBeGreaterThanOrEqual(1)
+    expect(denseIO.log.flashes).toBe(1)
+    expect(denseIO.log.decals).toBe(1)
+
+    // The legacy replay still lands the same treatment and the same shove.
+    const legacy = pair()
+    const legacyIO = fakeIO(false)
+    impactStep(
+      stepOf({ kind: "impact", element: "fire", moveId: "pyre_wall" }),
+      false,
+      legacy,
+      legacy.actor,
+      legacy.target,
+      legacyIO.io,
+    )
+    legacyIO.run(1, legacy.actor, legacy.target)
+    expect(legacy.target.stage.x).toBe(2.5 - 0.75)
+    expect(legacyIO.log.bursts).toBeGreaterThanOrEqual(1)
+  })
+
+  test("a dodged impact dashes only on the legacy path", () => {
+    const dodge = stepOf({
+      kind: "impact",
+      hit: false,
+      missReason: "dodge",
+      dodgeDirection: "left",
+    })
+    const dash = reactionFor("dodge", DEFAULT_PROFILE).dash
+
+    const dense = pair()
+    const denseBefore = {
+      actor: dense.actor.stage.clone(),
+      target: dense.target.stage.clone(),
+    }
+    impactStep(dodge, true, dense, dense.actor, dense.target, fakeIO(true).io)
+    expect(dense.target.stage.toArray()).toEqual(denseBefore.target.toArray())
+    expect(dense.target.smooth.toArray()).toEqual(denseBefore.target.toArray())
+
+    const legacy = pair()
+    impactStep(
+      dodge,
+      true,
+      legacy,
+      legacy.actor,
+      legacy.target,
+      fakeIO(false).io,
+    )
+    expect(legacy.target.stage.x).toBe(2.5 - dash)
+    expect(legacy.target.stage.z).toBe(-0.4 + 0.45)
+    // Instant resolves the dash on the spot (the legacy snapTo).
+    expect(legacy.target.smooth.toArray()).toEqual(
+      legacy.target.stage.toArray(),
+    )
+  })
+
+  test("an instant melee sets stance spacing only on the legacy path", () => {
+    const whiff = stepOf({ kind: "melee", hit: false, missReason: "dodge" })
+
+    const dense = pair()
+    const denseBefore = {
+      actor: dense.actor.stage.clone(),
+      target: dense.target.stage.clone(),
+    }
+    meleeStep(whiff, true, dense, dense.actor, dense.target, fakeIO(true).io)
+    expect(dense.target.stage.toArray()).toEqual(denseBefore.target.toArray())
+    expect(dense.actor.stage.toArray()).toEqual(denseBefore.actor.toArray())
+
+    const legacy = pair()
+    meleeStep(
+      whiff,
+      true,
+      legacy,
+      legacy.actor,
+      legacy.target,
+      fakeIO(false).io,
+    )
+    // The slipped target dashes 0.85 out; the attacker then sets stance gap.
+    expect(legacy.target.stage.x).toBe(2.5 - 0.85)
+    expect(legacy.actor.stage.x).toBe(2.5 - 0.85 + 2.1)
+    expect(legacy.actor.stage.z).toBe(legacy.target.stage.z)
+    expect(legacy.actor.smooth.toArray()).toEqual(legacy.actor.stage.toArray())
+  })
+
+  test("a knockback reel slides only on the legacy path", () => {
+    const reel = stepOf({ kind: "knockback", reaction: "knockback" })
+    const slide = reactionFor("knockback", DEFAULT_PROFILE).slide
+
+    const dense = pair()
+    const denseBefore = dense.actor.stage.clone()
+    reelStep(reel, true, dense, dense.actor, dense.target, fakeIO(true).io)
+    expect(dense.actor.stage.toArray()).toEqual(denseBefore.toArray())
+
+    const legacy = pair()
+    reelStep(reel, true, legacy, legacy.actor, legacy.target, fakeIO(false).io)
+    expect(legacy.actor.stage.x).toBe(-2.5 + slide)
+    expect(legacy.actor.smooth.toArray()).toEqual(legacy.actor.stage.toArray())
   })
 })

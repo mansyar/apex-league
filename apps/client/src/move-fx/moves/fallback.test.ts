@@ -692,6 +692,7 @@ function driveTrioMove(moveId: string, compressed: boolean): TrioDrive {
     paceRatio: () => 1,
     reduced: () => false,
     prevKind: () => null,
+    streamOwnsBodies: () => false,
   }
   const step: PlaybackStep = {
     tick: 7,
@@ -893,6 +894,7 @@ function driveFixMove(
     paceRatio: () => 1,
     reduced: () => opts?.reduced ?? false,
     prevKind: () => null,
+    streamOwnsBodies: () => false,
   }
   const compressed = opts?.compressed ?? false
   const step: PlaybackStep = {

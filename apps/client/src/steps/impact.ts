@@ -15,15 +15,20 @@ import { dodgeShift, heavyHit } from "./pure"
  * direction, weighted by the reaction library.
  */
 export const impactStep: StepRunner = (step, instant, side, _o, _r, io) => {
+  // Dense playback owns the bodies: the dodge and the snap are position,
+  // so they belong to the legacy path only (Phase 11 rework 1).
+  const ownPositions = !io.streamOwnsBodies()
   if (!step.hit) {
     if (step.missReason === "dodge") {
       const spec = reactionFor("dodge", side.target.profile)
       const shift = dodgeShift(side.target.away, spec.dash, step.dodgeDirection)
-      side.target.stage.x += shift.dx
-      side.target.stage.z += shift.dz
+      if (ownPositions) {
+        side.target.stage.x += shift.dx
+        side.target.stage.z += shift.dz
+      }
       if (instant) {
         impulse(io, side.target, spec.impulse)
-        snapTo(side.target)
+        if (ownPositions) snapTo(side.target)
       }
     }
     return
@@ -37,7 +42,7 @@ export const impactStep: StepRunner = (step, instant, side, _o, _r, io) => {
       step.element,
       step.tick,
     )
-    snapTo(side.target)
+    if (ownPositions) snapTo(side.target)
     if (step.element) arriveSpecial(io, step, side)
     return
   }
