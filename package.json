@@ -15,6 +15,7 @@
     "test:fuzz": "APEX_FUZZ_SWEEP=full bun test --check --parallel --timeout 120000 packages/voxel/src/fuzz",
     "gate:determinism": "bun packages/voxel/scripts/determinism-gate.ts",
     "telemetry": "bun packages/sim/scripts/battle-telemetry.ts",
+    "trace": "bun packages/sim/scripts/battle-trace.ts",
     "verify": "bun run check && bun test --check --parallel --timeout 120000 && biome check && bun run gate:determinism"
   },
   "devDependencies": {
