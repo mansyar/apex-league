@@ -43,7 +43,7 @@ function assertBounds(metrics: readonly Metric[]): void {
 }
 
 describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
-  test("reports the four metrics for every matchup", () => {
+  test("reports every metric for every matchup", () => {
     const measured = sample()
     console.log(report(measured).join("\n"))
     expect(measured.fights.length).toBe(14)
