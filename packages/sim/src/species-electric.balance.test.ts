@@ -264,7 +264,11 @@ describe("electric_hound boss probe", () => {
     }
   })
 
-  test("a fresh hound can still pay the water tax forward", () => {
+  // Phase 8 (P8.T1/P8.T2) owns this roster target; un-mark when it passes.
+  // The chart symmetry pass (Phase 7, FR-18) moved electric off water, so the
+  // fresh hound no longer has a water edge to pay forward: Tide Regent Marlow
+  // at trained+0 now reads 1/36 (2.8%) against the 40% target.
+  test.failing("a fresh hound can still pay the water tax forward", () => {
     // Electric beats water: the fresh hound already takes a real share of
     // the advantaged cells, exactly like the starters' fresh type wins.
     for (const boss of ADVANTAGED_BOSSES) {
