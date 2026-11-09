@@ -211,7 +211,7 @@ numbers are measured by a tool that predates them.
 - **Covers:** FR-21, FR-7, AC-18, AC-7
 - **Touches:** `packages/sim/src/battle/continuous/strike.ts`, `projectile.ts`, `step.ts`, `advance.ts`, `report.ts`, `packages/sim/scripts/battle-balance-report.ts` + co-located tests
 - **Verification:** `bun run verify`, `bun run build`, `bun run balance`, `bun run telemetry` (four separate commands)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P10.T1: Variance** — covers: FR-21
   - [ ] P10.T1.1 Roll every attack against its authored accuracy, and make a miss an observable event with a reason.
