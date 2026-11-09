@@ -58,6 +58,12 @@ permissions:
     resource: "biome check --write *"
     effect: allow
   - action: shell
+    resource: "bun run telemetry *"
+    effect: allow
+  - action: shell
+    resource: "bun run trace *"
+    effect: allow
+  - action: shell
     resource: "bun run check *"
     effect: allow
   - action: shell

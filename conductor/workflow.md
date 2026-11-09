@@ -47,6 +47,8 @@ commands:
   typecheck: "bun run check"
   build: "bun run build"
   visual: "playwright-cli"
+  telemetry: "bun run telemetry"
+  trace: "bun run trace"
   verify_phase: "bun run verify && bun run build"
 coverage:
   gate: "none"
@@ -119,6 +121,23 @@ bun run verify
 `bun run verify` is the CI gate: workspace typechecks, typed parallel tests,
 Biome, and the voxel determinism gate. The phase verification command adds the
 production build on top of it.
+
+### Inspecting a fight
+
+Two harnesses exist for battle behaviour, and a screenshot is the last resort,
+not the first:
+
+- `bun run telemetry` measures the 14-seed sample against the pacing bounds. It
+  is a regression gate, not a per-fight view.
+- `bun run trace --seed N --check` replays one seeded fight headless and prints
+  the header, a per-step log and a summary with the final state hash. `--check`
+  asserts the invariants (y zero, HP in range, arena bounds, integer arithmetic,
+  seed determinism) and exits non-zero naming the one that broke.
+
+When a fight looks wrong, run the trace before reading the source: a phase agent
+is expected to prove a battle-behaviour claim with trace output rather than a
+description, and to paste the relevant step lines into its evidence file.
+
 
 ## Phase & Task Workflow
 
