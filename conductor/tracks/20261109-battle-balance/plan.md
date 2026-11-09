@@ -264,7 +264,7 @@ numbers are measured by a tool that predates them.
   `packages/sim/src/battle/continuous/balance-report.test.ts`.
 - **Verification:** `bun run verify`, `bun run build`, `bun run balance`,
   `bun run telemetry` - four separate commands.
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P12.T1: Measure each species at its own typical roll** - covers: FR-22
   - [ ] **P12.T1.1:** Build each measured side from that species' `statBounds` midpoint
