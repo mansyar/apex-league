@@ -227,3 +227,88 @@ starter's" was un-marked: the fold makes it pass.
   table; untouched here, owned by P8.T4.
 - Pacing is still the Phase 4 provisional picture: 7/14 (50%) at cap, two
   fights under 25 s (13.06 s, 21.12 s). Phase 8 owns the final pass.
+
+## Primary verification
+
+| Check | Command | Exit | Result |
+| --- | --- | --- | --- |
+| Types, tests, biome, determinism | `bun run verify` | 0 | 3,933 pass / 1 skip / 0 fail, 365 files, 44.53 s; types clean on four packages; Biome clean; determinism gate byte-identical |
+| Client bundle | `bun run build` | 0 | 409 modules |
+
+### The fold is real
+
+Grepped every production module: **no read of `HP_SCALE_PERCENT` or `BLOW_WEIGHT`
+remains**. Both names survive only in `no-scale.test.ts` (which fails if either is
+reintroduced in production code), in two explanatory comments, and as a
+test-local constant in `frames.test.ts`. `startingHp` is now an identity read of
+`side.stats.hp` and is kept because the resolver and the HUD must share one
+denominator.
+
+The fold is neutral, which is the proof it is a fold and not a rebalance: powers and
+pool both doubled, so `moves-band.test.ts` still reports basic 5.29%, kit 6.35-11.64%
+and the rear counter 21.69%, with `BAND_MIN_PERCENT`/`BAND_MAX_PERCENT` untouched.
+
+### The HP training cap was the trap, and it was handled
+
+Per-point value: was `2 * 2.1 = 4.2` HP, now `2` on a stat that is itself 2.1x
+larger — so the cap moved instead of the coefficient: `HP_TRAINING_CAP = 13`
+against `TRAINING_CAP = 6` for every other stat, behind one `trainingCap(stat)`
+reader used by the care program, settlement gains and save validation. Max trained
+HP: 25.2 before, 26 after. Full-training pool: 214 before, 215 after. Coefficient
+stays 2 and `effectiveStats` remains the single composition point, so nothing else
+had to learn about the fold.
+
+### Migration
+
+`SAVE_VERSION` 25 -> 26 with a `v25` step in the existing chain: folds creature,
+stable, Hall, bracket, `finalRival`, `nextOpponent` and verdicts; maps
+`balanced` -> `press` and `specials` -> `kite`; idempotent under the version gate;
+non-HP fields untouched. A migrated side is proved to fight under the mapped doctrine,
+so a returning player is not left without a plan.
+
+### Drift, measured through the real resolver
+
+Worst pool drift 0.48% (at trained 5-6), fight-duration drift 0.00% at trained
+0/2/4/6 — inside the FR-9 bound of under 1% per trained HP point, and measured by
+resolving the same seeded fight on both sides of the fold rather than by comparing
+formulas.
+
+### Legacy drift, authorised and listed
+
+`MoveDef.power` feeds `strikeDamage`, which the frozen clock uses, so legacy damage
+roughly doubles. FR-10 authorises it and the formula was deliberately **not**
+compensated. Re-pinned with per-row comments in `clock.contract`, `clock`,
+`heavy-hit`, `policy`, `projectile`, `resolver`, `affinity`, `exhibition` and
+`legacy.test.ts`; every row is listed in the section above. The legacy path is
+replay-only and its ghosts are already skipped at `SIM_VERSION` 2, so no player sees
+a doubled legacy replay.
+
+### Roster targets stay Phase 8's
+
+The fold moved six more roster targets. Five became `test.failing` with their text
+unchanged and a P8 comment (`chart.balance`, `species-electric`,
+`branch-balance`, `form.balance`, `species-roster.balance`; `tactics.balance`
+only for the balanced x mirror cell). One went the other way: the roster
+distinct-vector test **un-marked itself because the fold makes it pass** — the
+`test.failing` mechanism working as designed, which is the evidence that the
+conversions are not a hiding place.
+
+### Provisional, unchanged, Phase 8's
+
+Cap share 7/14 (50.0%), durations 13.06-40.00 s with two under 25 s (13.06 s,
+21.12 s), engagement 379/1152/3984 mm, exchange 0.24/0.22 per second, idle 37.6%,
+contact 3.5%. All 13 telemetry bounds pass; the cap-share target and the 25 s floor
+are still unmet and still Phase 8's.
+
+### Debt noted, not fixed
+
+`frames.test.ts` still carries a local `BLOW_WEIGHT = 2` used to assert frame rows
+are even and to halve the poise and cycle ratios. It is a test-local constant, not a
+production read, but it now encodes a ratio that no longer exists and constrains
+future frame authoring to even numbers for no reason. Left in place because frame
+data is frozen this phase; Phase 8 owns frame and cooldown tuning.
+
+### Not squashed
+
+Range `55b439f9..HEAD` held only the subagent's two reported commits (`09e8724d`,
+`6094903f`).

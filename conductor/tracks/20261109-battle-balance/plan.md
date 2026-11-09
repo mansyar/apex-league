@@ -107,17 +107,20 @@ numbers are measured by a tool that predates them.
 - **Covers:** FR-2, FR-3, FR-9, FR-10, AC-2, AC-3
 - **Touches:** `packages/sim/src/battle/continuous/hp.ts`, `damage.ts`, `resolve.ts`, `packages/sim/src/battle/moves.ts`, `packages/sim/src/creature.ts`, `packages/sim/src/save/` + co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 6094903f
+- **Evidence:** [phase-5.md](./verification/phase-5.md)
 
-- [ ] **P5.T1: Fold** — covers: FR-2
-  - [ ] P5.T1.1 Fold the HP scale and blow weight into stored stats and move power; no multiplier remains between sheet and resolver.
-  - [ ] P5.T1.2 Scale the HP training cap with the fold so a fully trained creature is worth the same HP as before, and a trained HP point keeps its value.
-- [ ] **P5.T2: Migration** — covers: FR-3, FR-9
-  - [ ] P5.T2.1 Bump `SAVE_VERSION` and add a migration that folds the scale with integer rounding.
-  - [ ] P5.T2.2 Map old `balanced`/`specials` tactics onto doctrines.
-  - [ ] P5.T2.3 Measure drift: a pre-change fight versus the same fight after, under 1% per trained HP point.
-- [ ] **P5.T3: Legacy** — covers: FR-10
-  - [ ] P5.T3.1 Re-pin every frozen balance suite the fold moves, listed row by row.
+- [x] **P5.T1: Fold** — covers: FR-2
+  - [x] P5.T1.1 Fold the HP scale and blow weight into stored stats and move power; no multiplier remains between sheet and resolver.
+  - [x] P5.T1.2 Scale the HP training cap with the fold so a fully trained creature is worth the same HP as before, and a trained HP point keeps its value.
+- [x] **P5.T2: Migration** — covers: FR-3, FR-9
+  - [x] P5.T2.1 Bump `SAVE_VERSION` and add a migration that folds the scale with integer rounding.
+  - [x] P5.T2.2 Map old `balanced`/`specials` tactics onto doctrines.
+  - [x] P5.T2.3 Measure drift: a pre-change fight versus the same fight after, under 1% per trained HP point.
+- [x] **P5.T3: Legacy** — covers: FR-10
+  - [x] P5.T3.1 Re-pin every frozen balance suite the fold moves, listed row by row.
 
 ## Phase 6: Balance Report Harness
 
