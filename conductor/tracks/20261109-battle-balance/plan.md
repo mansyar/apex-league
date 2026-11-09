@@ -291,7 +291,7 @@ numbers are measured by a tool that predates them.
   `packages/sim/src/bosses.ts`, `packages/sim/src/battle/frames.ts` + co-located tests.
 - **Verification:** `bun run verify`, `bun run build`, `bun run balance`,
   `bun run telemetry` - four separate commands.
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P13.T1: Species into band** - covers: FR-5, AC-5
   - [ ] **P13.T1.1:** Bring every species inside 45-55% by stats and kit shape, preferring
