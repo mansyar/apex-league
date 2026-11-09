@@ -20,15 +20,18 @@ numbers are measured by a tool that predates them.
 - **Covers:** FR-11, FR-12, FR-15, FR-16, AC-11, AC-12, AC-15
 - **Touches:** `packages/sim/src/battle/continuous/controller-profile.ts`, `controller.ts`, `resolve.ts`, `apps/client/src/spar/`, `apps/client/src/cup/`, `apps/client/src/battleHud.ts` + co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** ef514222
+- **Evidence:** `conductor/tracks/20261109-battle-balance/verification/phase-1.md`
 
-- [ ] **P1.T1: Doctrine model** — covers: FR-11
+- [x] **P1.T1: Doctrine model** — covers: FR-11
   - [ ] P1.T1.1 Replace the two tactics with four frozen doctrines: Press, Circle, Kite, Counter.
   - [ ] P1.T1.2 Derive each doctrine's range band from the reach edge, keeping the band outside contact.
-- [ ] **P1.T2: Precedence** — covers: FR-12
+- [x] **P1.T2: Precedence** — covers: FR-12
   - [ ] P1.T2.1 Doctrine owns intent; temperament shades intensity inside the band and cannot cross its floor or ceiling.
   - [ ] P1.T2.2 Test: `rush` and `slow` on the same doctrine both stay inside the band.
-- [ ] **P1.T3: Effect and legibility** — covers: FR-15, FR-16
+- [x] **P1.T3: Effect and legibility** — covers: FR-15, FR-16
   - [ ] P1.T3.1 Test: Circle yields more rear hits than Press on the same matchup and seed.
   - [ ] P1.T3.2 HUD names the doctrine in force.
 

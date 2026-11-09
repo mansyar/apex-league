@@ -325,3 +325,41 @@ without re-litigating the metric.
 Commands on the final tree: `bun run verify` exit 0 (3861 pass, 1 skip, 0 fail,
 459,355 expects, 356 files; typecheck 0 errors; Biome 893 files, no fixes;
 determinism OK); `bun run build` exit 0 (402 modules, 1,047.74 kB, 356 ms).
+
+## Primary verification
+
+| Check | Result |
+| --- | --- |
+| `bun run verify` | exit 0 — typecheck clean on four packages, 3,861 pass / 1 skip / 0 fail, 459,355 expects, 356 files, Biome 893 files, determinism gate byte-identical |
+| `bun run build` | exit 0 — 402 modules, 1,047.74 kB |
+
+Independently confirmed in code: `TURN_UNITS_PER_STEP` 50 free, 12 startup,
+12 recovery, 0 active, 0 hitstun, selected by `turnBudget()` from hitstun then
+attack phase; `slipSpeed` at 5/2 of walk with `SLIP_STAMINA_COST` 6 and its own
+refusal path; four frozen doctrines with `seeksRear` only on Circle.
+
+Two rounds were needed and both changed the design rather than the assertion:
+
+1. **Rework 1.** The first pass implemented the doctrine intent correctly but
+   AC-11 measured 0 rear hits for both doctrines. The cause was arithmetic:
+   circling rotates the line at `speed / gap` (~1.15 deg/step) while facing
+   tracked at ~2.86 deg/step in every state, so locking facing alone left a flank
+   needing 52 steps. The fix was the step-around burst plus state-dependent turn
+   budgets, which the owner chose over a global slow turn.
+2. **Rework 2.** The mechanic then earned 8 flanks and 0 rears across seeds 1-8.
+   One committed swing yields at most 88.9 deg and the closest hit measured
+   105.7 deg, so the >120 deg rear arc is not reachable inside a single
+   commitment. The owner ruled that rear stays a rare crit and AC-11 measures
+   flank-or-rear; the AC text and the resolved-items section were amended and the
+   `test.failing` marker was replaced with a passing assertion.
+
+Accepted deviation, all reported: the movement intents gained a `slip` arm, which
+touched `movement.ts`, `advance.ts`, `stamina.ts`, `step.ts` and `types.ts`
+beyond the phase's stated Touches. `controller.ts` had grown to 13,977 B, so the
+slip, dodge and rear-arc logic were extracted into `controller-slip.ts`,
+`controller-dodge.ts` and `controller-rear.ts` rather than compressing comments.
+
+Debt carried to Phase 4: flank x1.25, rear x1.5 and counter x1.25 stack to 1.875x,
+so a rear counter hit can exceed a 12% ceiling. The damage band must be defined on
+the base hit with positional multipliers explicitly allowed above it, or rear hits
+authored lower to compensate.
