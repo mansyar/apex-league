@@ -43,12 +43,15 @@ numbers are measured by a tool that predates them.
 - **Covers:** FR-13, AC-13
 - **Touches:** `packages/sim/src/battle/continuous/controller.ts`, new `controller-rule.ts`, `apps/client/src/spar/`, `apps/client/src/cup/` + co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 122b93b2
+- **Evidence:** `conductor/tracks/20261109-battle-balance/verification/phase-2.md`
 
-- [ ] **P2.T1: Rule set** — covers: FR-13
+- [x] **P2.T1: Rule set** — covers: FR-13
   - [ ] P2.T1.1 Four rules: save the heavy for a break, dodge every telegraph, disengage below a stamina floor, never commit into a startup.
   - [ ] P2.T1.2 Exactly one equipped; an unequipped rule has no effect; a rule returns to the doctrine after firing.
-- [ ] **P2.T2: Safety** — covers: FR-13
+- [x] **P2.T2: Safety** — covers: FR-13
   - [ ] P2.T2.1 An impossible rule (stamina floor with no stamina) holds or strafes instead of deadlocking.
 
 ## Phase 3: AI Execution

@@ -133,3 +133,22 @@ No cup golden, bracket, ghost, lifecycle, trace, telemetry, or pacing row moved.
   `spar/casting.ts` are all inside `apps/client/src/{spar,cup}` or are the
   plumbing that carries `rule` beside `doctrine`; no pacing or stamina constant
   changed.
+
+## Primary verification
+
+| Check | Result |
+| --- | --- |
+| `bun run verify` | exit 0 — 3,884 pass / 1 skip / 0 fail, Biome clean, determinism gate byte-identical |
+| `bun run build` | exit 0 — 403 modules, 1,050.79 kB |
+
+Independently confirmed: `controller-rule.ts` exports the frozen `RULE_IDS`,
+`RULES` and `RULE_LABELS` with `KEEP_BACK_FLOOR_PERCENT = 30` and
+`FINISHER_HP_PERCENT = 25`, and the keep-back guard reads the pool by
+cross-multiplication rather than division. The unequipped-is-inert claim is
+credible because it is supported by byte-identical traces, telemetry rows and
+pacing rows against Phase 1 rather than by assertion alone.
+
+Debt recorded: `controller.ts` is now **12,286 B against a 12,288 B cap — two
+bytes of headroom.** Any further seam in that file fails the module-size guard, so
+Phase 3 must put the opponent reach model and the pattern memory in their own
+modules, not in `controller.ts`.
