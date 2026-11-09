@@ -252,8 +252,8 @@ describe("projectiles — arrival and dodge (FR-8, AC-8)", () => {
     const far = runUntilResolved(duel(4500), "spark", BOTH_HOLD)
     expect(onlyShot(near.shots).outcome).toBe("hit")
     expect(onlyShot(far.shots).outcome).toBe("hit")
-    expect(near.step).toBe(26)
-    expect(far.step).toBe(38)
+    expect(near.step).toBe(19)
+    expect(far.step).toBe(31)
     expect(far.step).toBeGreaterThan(near.step)
   })
 

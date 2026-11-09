@@ -171,11 +171,11 @@ describe("attack lifecycle — commitment (FR-6)", () => {
     const opening = run(fight, 1)
     expect(fight.state.fighters[0].attack?.phase).toBe("startup")
     expect(opening.strikes).toHaveLength(0)
-    // basic: 240 ms startup, so the twelfth 20 ms step opens the active window.
-    const twelfth = run(fight, 11)
+    // basic: 160 ms startup, so the eighth 20 ms step opens the active window.
+    const eighth = run(fight, 7)
     expect(fight.state.fighters[0].attack?.phase).toBe("active")
-    expect(twelfth.strikes).toHaveLength(1)
-    const strike = twelfth.strikes[0]
+    expect(eighth.strikes).toHaveLength(1)
+    const strike = eighth.strikes[0]
     expect(strike?.attackerKey).toBe("home")
     expect(strike?.targetKey).toBe("away")
     expect(strike?.moveId).toBe("basic")
@@ -187,14 +187,14 @@ describe("attack lifecycle — commitment (FR-6)", () => {
   test("one swing lands one blow across its whole active window", () => {
     const fight = duel()
     fight.commit(0, "basic")
-    // basic: 240 ms startup, so the twelfth step opens a 180 ms active window.
-    const twelfth = run(fight, 12)
-    expect(twelfth.strikes).toHaveLength(1)
-    // The window stays open at the top of eight more steps and closes on the
-    // ninth: nine further chances to land, and `AttackState.landed` takes them
-    // all. A longer active window must still be exactly one blow per swing.
+    // basic: 160 ms startup, so the eighth step opens a 120 ms active window.
+    const eighth = run(fight, 8)
+    expect(eighth.strikes).toHaveLength(1)
+    // The window stays open at the top of five more steps and closes on the
+    // sixth: six chances to land, and `AttackState.landed` takes them all. A
+    // longer active window must still be exactly one blow per swing.
     let extra = 0
-    for (let step = 0; step < 8; step++) {
+    for (let step = 0; step < 5; step++) {
       extra += fight.advance(BOTH_HOLD).strikes.length
       expect(fight.state.fighters[0].attack?.phase).toBe("active")
     }
@@ -210,8 +210,8 @@ describe("attack lifecycle — commitment (FR-6)", () => {
     run(fight, 1)
     expect(fight.commit(0, "spark")).toBe(true)
     expect(fight.state.fighters[0].attack?.moveId).toBe("spark")
-    // spark: 390 ms startup, so the twentieth 20 ms step opens the active window.
-    run(fight, 20)
+    // spark: 260 ms startup, so the thirteenth 20 ms step opens the active window.
+    run(fight, 13)
     expect(fight.state.fighters[0].attack?.phase).toBe("active")
     expect(fight.commit(0, "basic")).toBe(false)
     expect(fight.state.fighters[0].attack?.moveId).toBe("spark")
@@ -227,11 +227,11 @@ describe("recovery — scaled inversely by spd (FR-5)", () => {
   test("a faster fighter recovers faster than the reference", () => {
     const basic = getFrameData("basic")
     if (!basic) throw new Error("basic is missing")
-    // basic authors 750 ms of recovery (250 ms before the blow weight); the
+    // basic authors 500 ms of recovery (250 ms before the blow weight); the
     // reference speed is 10.
-    expect(recoveryMsFor(basic, 5)).toBe(1500)
-    expect(recoveryMsFor(basic, 10)).toBe(750)
-    expect(recoveryMsFor(basic, 20)).toBe(375)
+    expect(recoveryMsFor(basic, 5)).toBe(1000)
+    expect(recoveryMsFor(basic, 10)).toBe(500)
+    expect(recoveryMsFor(basic, 20)).toBe(250)
   })
 
   test("a non-positive speed or a zero-length result is rejected", () => {
@@ -239,7 +239,7 @@ describe("recovery — scaled inversely by spd (FR-5)", () => {
     if (!basic) throw new Error("basic is missing")
     expect(() => recoveryMsFor(basic, 0)).toThrow(/positive spd/)
     expect(() => recoveryMsFor(basic, -5)).toThrow(/positive spd/)
-    // 750 * 10 / 8000 truncates to zero: that would be a free attack.
+    // 500 * 10 / 8000 truncates to zero: that would be a free attack.
     expect(() => recoveryMsFor(basic, 8000)).toThrow(/zero or below/)
   })
 
@@ -270,16 +270,16 @@ describe("attack lifecycle — interruption and counters (FR-6, AC-6)", () => {
     const fight = duel()
     expect(fight.commit(1, "tectonic_slam")).toBe(true)
     fight.commit(0, "basic")
-    const twelfth = run(fight, 12)
-    expect(twelfth.strikes).toHaveLength(1)
-    expect(twelfth.strikes[0]?.targetKey).toBe("away")
-    expect(twelfth.strikes[0]?.interrupted).toBe(true)
+    const eighth = run(fight, 8)
+    expect(eighth.strikes).toHaveLength(1)
+    expect(eighth.strikes[0]?.targetKey).toBe("away")
+    expect(eighth.strikes[0]?.interrupted).toBe(true)
     expect(fight.state.fighters[1].attack).toBeNull()
   })
 
   test("a blow on the victim's final startup step interrupts (AC-6)", () => {
     // The victim faces away and the turn rate is too slow to swing it round in
-    // four steps, so its own blow cannot land on the step its window opens:
+    // eight steps, so its own blow cannot land on the step its window opens:
     // the attacker's blow lands alone and cancels the swing.
     const fight = createFight({
       seed: 20261108,
@@ -287,12 +287,12 @@ describe("attack lifecycle — interruption and counters (FR-6, AC-6)", () => {
       fighters: [side("home", -210, EAST), side("away", 210, EAST)],
     })
     fight.commit(1, "basic")
-    // basic's 240 ms startup is steps one to twelve: the twelfth step ends it,
+    // basic's 160 ms startup is steps one to eight: the eighth step ends it,
     // and the attacker's blow lands inside that same step, so the victim was
     // still winding up at the top of it.
     fight.commit(0, "basic")
-    const twelfth = run(fight, 12)
-    const blow = twelfth.strikes.find((s) => s.attackerKey === "home")
+    const eighth = run(fight, 8)
+    const blow = eighth.strikes.find((s) => s.attackerKey === "home")
     expect(blow?.targetKey).toBe("away")
     expect(blow?.interrupted).toBe(true)
     expect(blow?.counter).toBe(false)
@@ -303,15 +303,15 @@ describe("attack lifecycle — interruption and counters (FR-6, AC-6)", () => {
     function recoveryHit(victimCommits: boolean): number {
       const fight = duel()
       if (victimCommits) fight.commit(1, "basic")
-      // Twenty-one steps: basic's 240 ms startup and 180 ms active are done, so
+      // Fourteen steps: basic's 160 ms startup and 120 ms active are done, so
       // the victim is in recovery and cannot interrupt the attacker's startup.
-      // Step twenty-one is the one that clears the hitstun the victim's blow
+      // Step fourteen is the one that clears the hitstun the victim's blow
       // left on the attacker (FR-23), which would otherwise refuse the commit.
-      run(fight, 21)
+      run(fight, 14)
       fight.commit(0, "basic")
-      const twelfth = run(fight, 12)
-      expect(twelfth.strikes).toHaveLength(1)
-      const strike = twelfth.strikes[0]
+      const eighth = run(fight, 8)
+      expect(eighth.strikes).toHaveLength(1)
+      const strike = eighth.strikes[0]
       expect(strike?.counter).toBe(victimCommits)
       expect(strike?.interrupted).toBe(false)
       return strike?.damage ?? 0
@@ -324,7 +324,7 @@ describe("strikes in the step — reach and facing (FR-4, FR-18, AC-4)", () => {
   test("a strike out of reach does not land", () => {
     const fight = duel(900)
     fight.commit(0, "basic")
-    expect(run(fight, 12).strikes).toHaveLength(0)
+    expect(run(fight, 8).strikes).toHaveLength(0)
   })
 
   test("a strike aimed away does not land", () => {
@@ -335,13 +335,13 @@ describe("strikes in the step — reach and facing (FR-4, FR-18, AC-4)", () => {
     })
     fight.commit(0, "basic")
     // The target is 420 mm away, inside reach, but the attacker looks west.
-    expect(run(fight, 12).strikes).toHaveLength(0)
+    expect(run(fight, 8).strikes).toHaveLength(0)
   })
 
   test("the same swing lands when the victim stands still (AC-18)", () => {
     const fight = duel(860)
     fight.commit(0, "basic")
-    expect(run(fight, 12).strikes).toHaveLength(1)
+    expect(run(fight, 8).strikes).toHaveLength(1)
   })
 
   test("a victim who steps out of reach turns the swing into a whiff (AC-18)", () => {
@@ -369,12 +369,12 @@ describe("strikes in the step — reach and facing (FR-4, FR-18, AC-4)", () => {
   })
 
   test("the final active step is still a strike test (FR-18)", () => {
-    // basic's window is [240, 420) ms — steps thirteen to twenty-one — and step
-    // twenty-one is the one a post-advance gate never tested: the phase has
-    // already flipped to recovery when the step ends. A victim that walks in
-    // from outside reach can therefore land no later than step twenty-one; if
-    // the gate read the post-advance phase instead of the snapshot, the latest
-    // possible landing would be step twenty.
+    // basic's window is [160, 280) ms — the eighth step ends startup and steps
+    // nine to fourteen are active — and step fourteen is the one a post-advance
+    // gate never tested: the phase has already flipped to recovery when the step
+    // ends. A victim that walks in from outside reach can therefore land no
+    // later than step fourteen; if the gate read the post-advance phase instead
+    // of the snapshot, the latest possible landing would be step thirteen.
     let latest = -1
     for (let gap = 880; gap < 1600; gap += 10) {
       const fight = duel(gap)
@@ -386,7 +386,7 @@ describe("strikes in the step — reach and facing (FR-4, FR-18, AC-4)", () => {
         }
       }
     }
-    expect(latest).toBe(21)
+    expect(latest).toBe(14)
   })
 })
 
@@ -395,13 +395,13 @@ describe("trades — overlapping active frames (FR-7, AC-7)", () => {
     const fight = duel()
     fight.commit(0, "basic")
     fight.commit(1, "basic")
-    const twelfth = run(fight, 12)
-    expect(twelfth.strikes).toHaveLength(2)
-    const home = twelfth.strikes.find((s) => s.attackerKey === "home")
-    const away = twelfth.strikes.find((s) => s.attackerKey === "away")
+    const eighth = run(fight, 8)
+    expect(eighth.strikes).toHaveLength(2)
+    const home = eighth.strikes.find((s) => s.attackerKey === "home")
+    const away = eighth.strikes.find((s) => s.attackerKey === "away")
     expect(home?.damage).toBeGreaterThan(0)
     expect(away?.damage).toBeGreaterThan(0)
-    // Step twelve opens both windows and ends both startups, so each blow
+    // Step eight opens both windows and ends both startups, so each blow
     // lands on the other side's final startup step. Both blows register and
     // both swings trade, so neither is cancelled (FR-6, FR-7, AC-7).
     expect(home?.interrupted).toBe(true)
@@ -507,7 +507,7 @@ describe("body volumes reach the step (FR-17)", () => {
     })
     wide.commit(0, "basic")
     // 860 mm of centres: two 300 mm radii leave 260 mm, inside 420 mm reach.
-    expect(run(wide, 12).strikes).toHaveLength(1)
+    expect(run(wide, 8).strikes).toHaveLength(1)
   })
 })
 

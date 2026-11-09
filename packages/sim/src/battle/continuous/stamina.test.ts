@@ -140,11 +140,11 @@ describe("stamina — the opening pool", () => {
 
 describe("stamina — paying for a commit (FR-10, AC-10)", () => {
   test("a move costs its authored weight, with a floor on the basic", () => {
-    // The basic authors 6 (2 before the blow weight) and the floor is 9.
-    expect(getFrameData("basic")?.staminaCost).toBe(6)
+    // The basic authors 4 (2 before the blow weight) and the floor is 6.
+    expect(getFrameData("basic")?.staminaCost).toBe(4)
     expect(attackCost("basic")).toBe(MIN_ATTACK_STAMINA_COST)
-    expect(attackCost("basic")).toBe(9)
-    expect(attackCost("tectonic_slam")).toBe(30)
+    expect(attackCost("basic")).toBe(6)
+    expect(attackCost("tectonic_slam")).toBe(20)
     expect(() => attackCost("nope")).toThrow(/Unknown move/)
   })
 
@@ -158,7 +158,7 @@ describe("stamina — paying for a commit (FR-10, AC-10)", () => {
   test("spending returns a paid fighter and leaves the old one alone", () => {
     const before = fighter({ stamina: 10, staminaMax: 10 })
     const paid = spendAttack(before, "basic")
-    expect(paid?.stamina).toBe(1)
+    expect(paid?.stamina).toBe(4)
     expect(before.stamina).toBe(10)
   })
 
@@ -170,7 +170,7 @@ describe("stamina — paying for a commit (FR-10, AC-10)", () => {
   })
 
   test("an exact price is payable", () => {
-    const exact = fighter({ stamina: 9, staminaMax: 10 })
+    const exact = fighter({ stamina: 6, staminaMax: 10 })
     expect(spendAttack(exact, "basic")?.stamina).toBe(0)
   })
 
@@ -230,27 +230,27 @@ describe("stamina — regeneration (FR-10)", () => {
 
 describe("stamina — the fight (FR-10, AC-10)", () => {
   test("a spent pool refuses the next commit, then pays once it refills", () => {
-    const fight = duel(9)
+    const fight = duel(6)
     expect(fight.commit(0, "basic")).toBe(true)
     expect(fight.state.fighters[0].stamina).toBe(0)
-    // basic is 240 + 180 + 750 ms: fifty-nine steps, during which nothing
+    // basic is 160 + 120 + 500 ms: thirty-nine steps, during which nothing
     // refills.
-    run(fight, 59, HOLDING)
+    run(fight, 39, HOLDING)
     expect(fight.state.fighters[0].attack).toBeNull()
     expect(fight.state.fighters[0].stamina).toBe(0)
     expect(fight.commit(0, "basic")).toBe(false)
     expect(fight.state.fighters[0].attack).toBeNull()
-    // One point per 500 ms: 230 steps refill the nine-point pool.
-    run(fight, 230, HOLDING)
-    expect(fight.state.fighters[0].stamina).toBe(9)
+    // One point per 500 ms: 150 steps refill the six-point pool.
+    run(fight, 150, HOLDING)
+    expect(fight.state.fighters[0].stamina).toBe(6)
     expect(fight.commit(0, "basic")).toBe(true)
     expect(fight.state.fighters[0].stamina).toBe(0)
   })
 
   test("a refused commit does not wedge the fighter: it can still move", () => {
-    const fight = duel(9)
+    const fight = duel(6)
     fight.commit(0, "basic")
-    run(fight, 59, HOLDING)
+    run(fight, 39, HOLDING)
     const before = fight.state.fighters[0].pos.x
     expect(fight.commit(0, "basic")).toBe(false)
     fight.advance(ADVANCE)
@@ -262,7 +262,7 @@ describe("stamina — the fight (FR-10, AC-10)", () => {
     const fight = duel(10)
     fight.commit(0, "basic")
     run(fight, 3, HOLDING)
-    expect(fight.state.fighters[0].stamina).toBe(1)
+    expect(fight.state.fighters[0].stamina).toBe(4)
     expect(fight.state.fighters[0].staminaRegenMs).toBe(0)
   })
 

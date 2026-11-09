@@ -148,7 +148,7 @@ describe("frame data — authored ordering", () => {
   })
 })
 
-describe("frame data — the blow weight (Phase 6)", () => {
+describe("frame data — the blow weight (Phase 8)", () => {
   test("every per-blow field carries the weight, so none can drift", () => {
     for (const move of ALL_MOVES) {
       const row = frameOf(move.id)
@@ -168,17 +168,17 @@ describe("frame data — the blow weight (Phase 6)", () => {
 
   test("the basic row is the pre-weight row times the weight", () => {
     const basic = frameOf(BASIC_MOVE.id)
-    expect(basic.recoveryMs).toBe(750)
-    expect(basic.poiseDamage).toBe(6)
-    expect(basic.staminaCost).toBe(6)
+    expect(basic.recoveryMs).toBe(500)
+    expect(basic.poiseDamage).toBe(4)
+    expect(basic.staminaCost).toBe(4)
   })
 
   test("a poise break still lands after the same frame time", () => {
     // A break is tuned in blows and in seconds of fight, not in points. The
-    // weight triples the poise one blow carries and the whole cycle it costs,
+    // weight doubles the poise one blow carries and the whole cycle it costs,
     // so blows-to-break × cycle must land where the pre-weight table put it.
-    // Forgetting poise (2 per blow, 1170 ms cycle) would read 11700 ms;
-    // forgetting startup and active (6 poise, 670 ms cycle) would read 2680 ms —
+    // Forgetting poise (2 per blow, 780 ms cycle) would read 7800 ms;
+    // forgetting startup and active (4 poise, 500 ms cycle) would read 2500 ms —
     // both fail loudly.
     const basic = frameOf(BASIC_MOVE.id)
     const blows = Math.ceil(DEFAULT_POISE_MAX / basic.poiseDamage)
@@ -191,12 +191,12 @@ describe("frame data — the blow weight (Phase 6)", () => {
     )
     const preWeightCycleMs =
       (basic.startupMs + basic.activeMs + basic.recoveryMs) / BLOW_WEIGHT
-    expect(blows).toBe(4)
+    expect(blows).toBe(5)
     expect(preWeightBlows).toBe(10)
     const weightedMs = blows * cycleMs
     const preWeightMs = preWeightBlows * preWeightCycleMs
-    // Within a quarter: the break is 20 poise, so the integer ceiling rounds 3.3
-    // blows up to 4 and the weighted break lands a fifth sooner in frame time.
+    // Within a quarter: the break is 20 poise, so at weight 2 five blows of 4
+    // land it exactly and the weighted frame time matches the pre-weight one.
     expect(Math.abs(weightedMs - preWeightMs)).toBeLessThan(
       Math.trunc(preWeightMs / 4),
     )

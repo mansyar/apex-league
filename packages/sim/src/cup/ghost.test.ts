@@ -77,10 +77,10 @@ describe("ghost bundle — capture on a cup win", () => {
     if (!species) throw new Error("unknown species")
     const loadout = defaultLoadout(creature, species)
 
-    // Seed 5 under the aggressive pick loses the quarterfinal (phase 10
-    // re-pin: pacing moved the elimination off seed 17), so the bracket has
-    // no crown.
-    let elim = startCupSession(creature, day, 5)
+    // Seed 11 under the aggressive pick loses the quarterfinal (phase 8
+    // re-pin: the halved blow weight carried seed 5 to the final), so the
+    // bracket has no crown.
+    let elim = startCupSession(creature, day, 11)
     elim = resolvePlayerMatch(elim, loadout, "specials").session
     expect(elim.status).toBe("eliminated")
     expect(buildGhostBundle(completeCup(elim))).toBeNull()

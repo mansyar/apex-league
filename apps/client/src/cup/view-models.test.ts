@@ -86,9 +86,9 @@ describe("resultsView — the results screen assembly", () => {
   })
 
   test("an elimination names the champion and the exit stage", () => {
-    // Seed 5 under the aggressive pick falls in QF1 (phase 10 re-pin: the
-    // pacing pass carries seed 17 to the crown, so the elimination pin moved).
-    const session = play(creature(), CUP_DAY, 5, "specials")
+    // Seed 11 under the aggressive pick falls in QF1 (phase 8 re-pin: the
+    // halved blow weight carried seed 5 all the way to the final).
+    const session = play(creature(), CUP_DAY, 11, "specials")
     expect(session.status).toBe("eliminated")
     const view = resultsView(session, LADDER_BEFORE, LADDER_BEFORE, 0)
     expect(view.won).toBe(false)

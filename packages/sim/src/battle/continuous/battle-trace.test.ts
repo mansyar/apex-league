@@ -84,7 +84,9 @@ describe("battle trace — one fight, step by step", () => {
       (event) => event.kind === "shot-dodged" || event.kind === "dodge",
     )
     expect(dodged.length).toBeGreaterThan(0)
-    const lines = report(trace, { ...trace.options, every: 50 })
+    // Print every changed step: a 1-in-50 sample can miss the single tick a
+    // dodge lands on now that the cycle is shorter (phase 8, weight 2).
+    const lines = report(trace, { ...trace.options, every: 0 })
     console.log(lines.join("\n"))
     expect(lines.some((line) => line.includes("slips"))).toBe(true)
   })

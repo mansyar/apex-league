@@ -185,9 +185,11 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
         // QF2 from Tidecaller Nibbles to Reedle Mirefin; the rest hold.
         // Blow-weight ripple (phase 6): the triple-length cycle flips QF2 back
         // to Tidecaller Nibbles; SF2 and the final stay on Mossbottom Brute.
+        // Blow-weight ripple (phase 8, weight 2): QF2 flips back to Reedle
+        // Mirefin; SF2 and the final hold.
         seed: 101,
         rivalWinners: [
-          "Tidecaller Nibbles",
+          "Reedle Mirefin",
           "Ash-ledger",
           "Mossbottom Brute",
           "Mossbottom Brute",
@@ -211,13 +213,15 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
       // QF2 and Tidecaller Nibbles takes SF2.
       // Blow-weight ripple (phase 6): QF4 and SF2 go back to Reedle Mirefin,
       // as they were before the widening.
+      // Blow-weight ripple (phase 8, weight 2): QF4 and SF2 move to Tidecaller
+      // Nibbles.
       {
         seed: 19,
         rivalWinners: [
           "Driftbelle",
           "Gilded Horn",
-          "Reedle Mirefin",
-          "Reedle Mirefin",
+          "Tidecaller Nibbles",
+          "Tidecaller Nibbles",
         ],
       },
     ]
@@ -293,19 +297,21 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     expect(done.completionVerdicts).toHaveLength(0)
   })
 
-  test("QF exit: seed 5, specials — placement 4, bracket completes in order", () => {
+  test("QF exit: seed 11, specials — placement 4, bracket completes in order", () => {
+    // Blow-weight ripple (phase 8, weight 2): seed 5 now reaches the final, so
+    // the QF-exit pin moves to seed 11 (playerVerdicts 1, placement 4).
     const creature = cupDayCreature()
-    const elim = playToCompletion(creature, 7, 5, "specials")
+    const elim = playToCompletion(creature, 7, 11, "specials")
     expect(elim.status).toBe("eliminated")
     expect(elim.playerVerdicts).toHaveLength(1)
     expect(cupPlacement(elim)).toBe(4)
     const done = completeCup(elim)
-    expect(done.championName).toBe("Mossbottom Brute")
+    expect(done.championName).toBe("Emberhold Flicker")
     expect(
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
     ).toEqual([
-      [2, "Reedle Mirefin", "Pondskipper Grub", "Reedle Mirefin"],
-      [3, "Reedle Mirefin", "Mossbottom Brute", "Mossbottom Brute"],
+      [2, "Pondskipper Grub", "Gilded Horn", "Pondskipper Grub"],
+      [3, "Pondskipper Grub", "Emberhold Flicker", "Emberhold Flicker"],
     ])
   })
 
@@ -319,7 +325,9 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     // Mirefin, who then takes SF1 and the final.
     // Blow-weight ripple (phase 6): QF2 flips back to Tidecaller Nibbles, and
     // Mossbottom Brute takes SF1 and the final.
-    expect(done.championName).toBe("Mossbottom Brute")
+    // Blow-weight ripple (phase 8, weight 2): QF2 flips to Reedle Mirefin, who
+    // then takes SF1 and the final.
+    expect(done.championName).toBe("Reedle Mirefin")
     // The forfeit verdict names the opponent, no battle attached.
     const ff = done.playerVerdicts[0]
     expect(ff?.winner).toBe("Bonfire Brook")
@@ -331,8 +339,8 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     expect(
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
     ).toEqual([
-      [2, "Bonfire Brook", "Tidecaller Nibbles", "Bonfire Brook"],
-      [3, "Bonfire Brook", "Mossbottom Brute", "Mossbottom Brute"],
+      [2, "Bonfire Brook", "Reedle Mirefin", "Reedle Mirefin"],
+      [3, "Reedle Mirefin", "Mossbottom Brute", "Reedle Mirefin"],
     ])
   })
 
@@ -367,8 +375,9 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     // double knockout (winner null). The bracket still advances via the cup's
     // double-KO tiebreak; only the verdict's winner is null.
     // Recovery-band ripple (spacing/cadence phase 5): QF2 is a clean win again.
+    // Blow-weight ripple (phase 8, weight 2): QF2 moves to Reedle Mirefin.
     expect(session.rivalVerdicts.map((v) => v.winner)).toEqual([
-      "Tidecaller Nibbles",
+      "Reedle Mirefin",
       "Ash-ledger",
       "Mossbottom Brute",
       "Mossbottom Brute",

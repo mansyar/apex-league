@@ -35,7 +35,7 @@ describe("positional damage — the existing formula, extended", () => {
   test("a front non-counter hit is the catalog formula, weighted", () => {
     // The blow weight multiplies the numerator; the legacy formula is intact.
     expect(hit()).toBe(strikeDamage(6, 30, 20, BLOW_WEIGHT, 1, true))
-    expect(hit()).toBe(27)
+    expect(hit()).toBe(18)
   })
 
   test("the type factor still multiplies through", () => {
@@ -96,14 +96,14 @@ describe("positional damage — the ratios", () => {
   })
 })
 
-describe("positional damage — the blow weight (Phase 6)", () => {
+describe("positional damage — the blow weight (Phase 8)", () => {
   test("the weight is the authored whole number", () => {
-    expect(BLOW_WEIGHT).toBe(3)
+    expect(BLOW_WEIGHT).toBe(2)
     expect(Number.isInteger(BLOW_WEIGHT)).toBe(true)
   })
 
   test("a landed blow is BLOW_WEIGHT times the unweighted one", () => {
-    // power 6, atk 30, def 20: 6 * 30 / 20 = 9, tripled = 27.
+    // power 6, atk 30, def 20: 6 * 30 / 20 = 9, doubled = 18.
     expect(strikeDamage(6, 30, 20, 1, 1, true)).toBe(9)
     expect(hit()).toBe(9 * BLOW_WEIGHT)
   })

@@ -90,7 +90,7 @@ describe("moveStatLine", () => {
 
   test("an unlocked move reads power, accuracy, recovery", () => {
     expect(moveStatLine(spark)).toBe(
-      "Power 24 · Accuracy 85% · Recovery 900 ms",
+      "Power 24 · Accuracy 85% · Recovery 600 ms",
     )
   })
 
@@ -104,7 +104,7 @@ describe("moveStatLine", () => {
       melee: true,
     }
     expect(moveStatLine(strike)).toBe(
-      "Power 4 · Accuracy 100% · Recovery 750 ms",
+      "Power 4 · Accuracy 100% · Recovery 500 ms",
     )
   })
 
@@ -123,19 +123,19 @@ describe("moveStatLine", () => {
 
   test("a locked move leads with the unlock day", () => {
     expect(moveStatLine(spark, 3)).toBe(
-      "Unlocks in 3 days · Power 24 · Accuracy 85% · Recovery 900 ms",
+      "Unlocks in 3 days · Power 24 · Accuracy 85% · Recovery 600 ms",
     )
   })
 
   test("a one-day lock reads in the singular", () => {
     expect(moveStatLine(spark, 1)).toBe(
-      "Unlocks in 1 day · Power 24 · Accuracy 85% · Recovery 900 ms",
+      "Unlocks in 1 day · Power 24 · Accuracy 85% · Recovery 600 ms",
     )
   })
 
   test("a lock that evolution also opens says so", () => {
     expect(moveStatLine(spark, 3, true)).toBe(
-      "Unlocks in 3 days or on evolution · Power 24 · Accuracy 85% · Recovery 900 ms",
+      "Unlocks in 3 days or on evolution · Power 24 · Accuracy 85% · Recovery 600 ms",
     )
   })
 })
