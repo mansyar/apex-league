@@ -1,16 +1,18 @@
 /**
  * The fixed-step fight: one state, advanced in steps.
  *
- * Continuous Arena Battle FR-1. The step loop draws nothing: every value is
- * integer arithmetic over the state, so the same sides and the same intents
- * replay the same fight byte for byte. The fight is therefore seed-free — the
- * seed decides nothing here and is not consumed by `createFight`; the only
- * place a seed decides anything is the capped-fight tiebreak in ./resolve,
- * which reads it from the caller. The per-step pipeline lives in ./advance,
- * the movement in ./movement, and the hash is a stable FNV-1a over the
- * quantized state — the same pattern as keyHash in battle/clock/engine.ts.
+ * Continuous Arena Battle FR-1, FR-21. Movement, the attack lifecycle and the
+ * meters are integer arithmetic over the state, so the same sides, intents and
+ * seed replay the same fight byte for byte. The seed's one job is the fight's
+ * RNG, which is drawn from exactly twice — the accuracy roll and the downward
+ * damage spread — and whose draw count is folded into the state hash. That is
+ * what makes a rematch differ while a replay of the same seed still repeats
+ * exactly (AC-18). The per-step pipeline lives in ./advance, the movement in
+ * ./movement, and the hash is a stable FNV-1a over the quantized state — the
+ * same pattern as keyHash in battle/clock/engine.ts.
  */
 
+import { makeRng } from "../../rng"
 import { BODY_RADIUS_MM } from "../frames"
 import { type StepContext, type StepResult, stepFight } from "./advance"
 import { DEFAULT_BODY_HEIGHT_MM } from "./contact"
@@ -70,10 +72,9 @@ export interface FighterInit {
 /** Everything a fight needs to open. */
 export interface FightConfig {
   /**
-   * The fight's seed, validated for the caller's contract. The engine is
-   * seed-free: nothing in the step loop draws from it, and `createFight` only
-   * checks that it is an integer. The capped-fight tiebreak in ./resolve reads
-   * the seed its own caller passed, not this field.
+   * The fight's seed. It seeds the fight's one RNG, which decides the accuracy
+   * rolls and the damage spread (FR-21) — so two seeds play two different
+   * fights, and the same seed replays one exactly. It must be an integer.
    */
   readonly seed: number
   readonly bounds: ArenaBounds
@@ -96,7 +97,7 @@ export interface Fight {
  * side 1, position before velocity before facing. Integers are folded in as
  * unsigned 32-bit words, so a negative coordinate still hashes stably.
  */
-export function stateHash(state: FightState): number {
+export function stateHash(state: FightState, rngCursor = 0): number {
   let hash = 2166136261
   const mix = (value: number): void => {
     hash ^= value >>> 0
@@ -104,6 +105,10 @@ export function stateHash(state: FightState): number {
   }
   mix(state.step)
   mix(state.elapsedMs)
+  // How many numbers the fight's RNG has produced. A replay that drew a
+  // different count has diverged even when every visible field still matches
+  // (FR-21), so the cursor is part of the state's identity.
+  mix(rngCursor)
   mix(state.bounds.minX)
   mix(state.bounds.maxX)
   mix(state.bounds.minZ)
@@ -260,7 +265,11 @@ export function createFight(config: FightConfig): Fight {
     home.stats ?? NEUTRAL_STATS,
     away.stats ?? NEUTRAL_STATS,
   ]
-  const context: StepContext = { bounds, stats }
+  const context: StepContext = {
+    bounds,
+    stats,
+    rng: makeRng(config.seed),
+  }
   let state: FightState = {
     step: 0,
     elapsedMs: 0,
@@ -277,7 +286,7 @@ export function createFight(config: FightConfig): Fight {
       state = outcome.state
       return {
         state,
-        hash: stateHash(state),
+        hash: stateHash(state, context.rng.cursor()),
         strikes: outcome.strikes,
         shots: outcome.shots,
         launched: outcome.launched,

@@ -674,6 +674,7 @@ function stubRng(draws: number[]): Rng & { count(): number } {
     next,
     int: (maxExclusive: number) => Math.floor(next() * maxExclusive),
     count: () => count,
+    cursor: () => count,
   }
 }
 

@@ -84,7 +84,9 @@ describe("seeded RNG seam", () => {
     const fixed: Rng = {
       next: () => 0.5,
       int: () => 3,
+      cursor: () => 0,
     }
     expect(fixed.int(6)).toBe(3)
+    expect(fixed.cursor()).toBe(0)
   })
 })

@@ -7,6 +7,12 @@ export interface Rng {
   next(): number
   /** Next integer in [0, maxExclusive). */
   int(maxExclusive: number): number
+  /**
+   * Draws taken so far. Folding this into a state hash catches a divergence
+   * caused only by a different number of draws, which an otherwise identical
+   * state would hide (FR-21).
+   */
+  cursor(): number
 }
 
 /**
@@ -15,7 +21,9 @@ export interface Rng {
  */
 export function makeRng(seed: number): Rng {
   let a = seed >>> 0
+  let draws = 0
   const next = (): number => {
+    draws += 1
     a = (a + 0x6d2b79f5) >>> 0
     let t = a
     t = Math.imul(t ^ (t >>> 15), t | 1)
@@ -25,5 +33,6 @@ export function makeRng(seed: number): Rng {
   return {
     next,
     int: (maxExclusive: number) => Math.floor(next() * maxExclusive),
+    cursor: () => draws,
   }
 }

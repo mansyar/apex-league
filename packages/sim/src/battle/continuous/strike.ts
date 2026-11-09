@@ -1,16 +1,18 @@
 /**
- * Strikes in space (FR-4, FR-18): reach, the facing arcs a blow is judged
- * against, and the attack lifecycle. Every test is an integer comparison of
- * the two positions, facings and bodies — no trigonometry, clock or random
- * source. The attack lifecycle and trade rule live here too.
+ * Strikes in space (FR-4, FR-18): reach, the facing arcs, and the attack
+ * lifecycle. Every geometric test is an integer comparison — no trigonometry,
+ * no clock. The fight's seeded RNG is read only by the accuracy roll and the
+ * damage spread (FR-21).
  */
 
 import type { Element } from "../../creature"
+import type { Rng } from "../../rng"
 import { incomingTypeFactor, type TypeFactor } from "../chart"
 import { type FrameData, getFrameData } from "../frames"
 import { getMove } from "../moves"
 import { bandOverlapsBody, bodyOf, reachesBody } from "./contact"
 import { type HitPosition, positionalDamage, type Ratio } from "./damage"
+import { rollHits, spreadDamage } from "./roll"
 import {
   type AttackPhase,
   type AttackState,
@@ -232,37 +234,42 @@ export interface StrikeReport {
   readonly interrupted: boolean
 }
 
-/** One swing that swept its whole active window and touched nothing (FR-18). */
+/** One swing that did not land, and why (FR-18, FR-21). */
 export interface WhiffReport {
   readonly attackerKey: string
   readonly moveId: string
+  /** `reach` if the window swept nothing; `accuracy` if the roll missed. */
+  readonly reason: "reach" | "accuracy"
 }
 
 /** The fighters after resolution, plus every blow that landed. */
 export interface StrikeResolution {
   readonly fighters: readonly [FighterState, FighterState]
   readonly strikes: readonly StrikeReport[]
+  /** Melee swings this step that connected but rolled a miss (FR-21). */
+  readonly misses: readonly WhiffReport[]
 }
 
 /**
  * Resolve both sides' active frames against the same pre-step snapshot, so
- * overlapping frames trade (FR-7) and neither blow hides the other's. A step
- * covers `[t, t + STEP_MS)`, so a window is tested when it is open at either
- * end (FR-18). The victim's phase is the one at the top of the step, so the
- * last startup step interrupts and recovery begun mid-step is not a counter
- * (FR-6). Ranged windows fire projectiles elsewhere (FR-8).
+ * overlapping frames trade (FR-7). A window is tested when it is open at either
+ * end of the step (FR-18); the victim's phase is the one it held at the top of
+ * the step (FR-6). Ranged windows fire projectiles elsewhere (FR-8).
  */
 export function resolveStrikes(
   before: readonly [FighterState, FighterState],
   after: readonly [FighterState, FighterState],
   stats: readonly [StrikeStats, StrikeStats],
+  rng: Rng,
 ): StrikeResolution {
   const strikes: StrikeReport[] = []
+  const misses: WhiffReport[] = []
   // `after` is read only, so one side's cancellation cannot hide the other's
   // simultaneous strike (FR-7). A swing that struck this step trades, so it is
   // not cancelled; a swing that did not is.
   const landed: [boolean, boolean] = [false, false]
   const disarmed: [boolean, boolean] = [false, false]
+  const rolled: [boolean, boolean] = [false, false]
   for (const side of [0, 1] as const) {
     const attack = after[side].attack
     // Open when the window is open at either end of the step (FR-18).
@@ -279,6 +286,16 @@ export function resolveStrikes(
     if (!bandOverlapsBody(row.band, victim.heightMm)) continue
     if (!reachesBody(bodyOf(attacker), bodyOf(victim), row.reachMm)) continue
     if (!inFrontArc(attacker.facing, attacker.pos, victim.pos)) continue
+    // The geometry connected; whether the swing was aimed true is the roll.
+    if (!rollHits(move.accuracy, rng)) {
+      misses.push({
+        attackerKey: attacker.key,
+        moveId: attack.moveId,
+        reason: "accuracy",
+      })
+      rolled[side] = true
+      continue
+    }
     landed[side] = true
     // The victim's phase is the one it held at the top of the step (FR-6).
     const victimAttack = before[other].attack
@@ -286,14 +303,17 @@ export function resolveStrikes(
     const interrupted = victimAttack?.phase === "startup"
     if (interrupted) disarmed[other] = true
     const position = hitPosition(victim.facing, victim.pos, attacker.pos)
-    const damage = positionalDamage({
-      power: move.power,
-      atk: stats[side].atk,
-      def: stats[other].def,
-      type: typeAgainst(stats[side], stats[other]),
-      position,
-      counter,
-    })
+    const damage = spreadDamage(
+      positionalDamage({
+        power: move.power,
+        atk: stats[side].atk,
+        def: stats[other].def,
+        type: typeAgainst(stats[side], stats[other]),
+        position,
+        counter,
+      }),
+      rng,
+    )
     strikes.push({
       attackerKey: attacker.key,
       targetKey: victim.key,
@@ -307,20 +327,16 @@ export function resolveStrikes(
   }
   const settle = (side: 0 | 1): FighterState => {
     const state = after[side]
-    // Only a swing that did not strike is cancelled by the blow.
     if (disarmed[side] && !landed[side]) return { ...state, attack: null }
     const attack = state.attack
-    if (!landed[side] || !attack) return state
+    if (!attack) return state
+    if (!landed[side] && !rolled[side]) return state
     return { ...state, attack: { ...attack, landed: true } }
   }
-  return { fighters: [settle(0), settle(1)], strikes }
+  return { fighters: [settle(0), settle(1)], strikes, misses }
 }
 
-/**
- * The melee swings that closed their active window untouched (FR-18, AC-18):
- * active at the top of the step, out of active after it, and not landed —
- * the victim stepped out of the arc, reach or band.
- */
+/** Melee swings that closed their active window untouched (FR-18). */
 export function whiffsOf(
   before: readonly [FighterState, FighterState],
   after: readonly [FighterState, FighterState],
@@ -333,7 +349,11 @@ export function whiffsOf(
     if (after[side].attack?.landed) continue
     const move = getMove(previous.moveId)
     if (!move?.melee) continue
-    whiffs.push({ attackerKey: before[side].key, moveId: previous.moveId })
+    whiffs.push({
+      attackerKey: before[side].key,
+      moveId: previous.moveId,
+      reason: "reach",
+    })
   }
   return whiffs
 }

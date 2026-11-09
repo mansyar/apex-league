@@ -68,7 +68,7 @@ describe("evolution discovery state (save v17)", () => {
 })
 
 /** Rng stub that never rolls a sickness onset (mirrors save.test.ts). */
-const CALM_RNG = { next: () => 0.99, int: () => 0 }
+const CALM_RNG = { next: () => 0.99, int: () => 0, cursor: () => 0 }
 
 /** A well-cared-for creature at the requested stage, ready to settle. */
 function caredFor(

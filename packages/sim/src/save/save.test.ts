@@ -582,7 +582,7 @@ describe("reduced motion preference (v5)", () => {
 
 describe("evolution stage (v6)", () => {
   /** Rng stub that never rolls a sickness onset (see evolution.test.ts). */
-  const CALM_RNG = { next: () => 0.99, int: () => 0 }
+  const CALM_RNG = { next: () => 0.99, int: () => 0, cursor: () => 0 }
 
   test("a v5 save migrates to v6 with the sickness cooldown stamped clean", () => {
     // v5 creatures predate the cooldown field — strip it from a fresh one.

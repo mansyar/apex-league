@@ -30,7 +30,7 @@ function stateWith(conditions: Partial<Creature["conditions"]>): GameState {
 
 /** Fixed rng whose next() always returns `value`. */
 function fixedRng(value: number): Rng {
-  return { next: () => value, int: () => 0 }
+  return { next: () => value, int: () => 0, cursor: () => 0 }
 }
 
 /** Day-1 state with an owned creature, hand-set conditions and training fields. */
@@ -479,6 +479,7 @@ describe("settlement — training payout", () => {
           return 0.99
         },
         int: () => 0,
+        cursor: () => 0,
       },
     )
     advanceDay(programState(rested, {}), {
@@ -487,6 +488,7 @@ describe("settlement — training payout", () => {
         return 0.99
       },
       int: () => 0,
+      cursor: () => 0,
     })
     expect(withProgram).toBe(withoutProgram)
     expect(withProgram).toBe(1)

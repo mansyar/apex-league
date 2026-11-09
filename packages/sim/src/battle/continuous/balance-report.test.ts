@@ -37,17 +37,18 @@ function sample(): BalanceSample {
  * roster rows; update the row, never the bound, when one is fixed. Phase 8
  * (FR-20) cleared the cap-share row, so it is no longer listed.
  */
+const SLACK = "bound |rate - 50%| <= 9.3% (design target 45.0%..55.0%)"
+
 const KNOWN_MISSES = [
-  "species:fire_drake: observed 35.7% (20/56), bound 45.0%..55.0%",
-  "species:plant_ox: observed 28.6% (16/56), bound 45.0%..55.0%",
-  "species:electric_hound: observed 17.9% (10/56), bound 45.0%..55.0%",
-  "species:wind_falcon: observed 25.0% (14/56), bound 45.0%..55.0%",
-  "species:reefclaw: observed 57.1% (32/56), bound 45.0%..55.0%",
-  "species:cindermoor: observed 57.1% (32/56), bound 45.0%..55.0%",
-  "species:voltfox: observed 92.9% (52/56), bound 45.0%..55.0%",
-  "species:galeheron: observed 82.1% (46/56), bound 45.0%..55.0%",
-  "species:shalemole: observed 85.7% (48/56), bound 45.0%..55.0%",
-  "species:mistkit: observed 17.9% (10/56), bound 45.0%..55.0%",
+  `species:fire_drake: observed 35.7% (40/112, 23 distinct, se 4.5%), ${SLACK}`,
+  `species:plant_ox: observed 32.1% (36/112, 21 distinct, se 4.4%), ${SLACK}`,
+  `species:electric_hound: observed 10.7% (12/112, 21 distinct, se 2.9%), ${SLACK}`,
+  `species:wind_falcon: observed 23.2% (26/112, 16 distinct, se 4.0%), ${SLACK}`,
+  `species:voltfox: observed 92.9% (104/112, 14 distinct, se 2.4%), ${SLACK}`,
+  `species:galeheron: observed 82.1% (92/112, 10 distinct, se 3.6%), ${SLACK}`,
+  `species:shalemole: observed 83.9% (94/112, 12 distinct, se 3.5%), ${SLACK}`,
+  `species:mistkit: observed 23.2% (26/112, 14 distinct, se 4.0%), ${SLACK}`,
+  "capShare: observed 33.8% (284/840), bound <= 33.3%",
 ] as const
 
 describe("balance report — one deterministic command (FR-7, AC-7)", () => {
@@ -55,7 +56,7 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     const measured = sample()
     console.log(report(measured).join("\n"))
     expect(measured.matrix.species.length).toBe(ALL_SPECIES.length)
-    expect(measured.matrix.fights).toBe(420)
+    expect(measured.matrix.fights).toBe(840)
     expect(measured.doctrines.length).toBe(4)
     for (const row of measured.doctrines) expect(row.fights).toBe(6)
     expect(measured.bosses.length).toBe(6)
@@ -68,18 +69,35 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
 
   test("states the sample size in the output", () => {
     const lines = report(sample()).join("\n")
-    expect(lines).toContain("210 ordered pairings x 2 seeds = 420 fights")
-    expect(lines).toContain("56 games per species")
+    expect(lines).toContain("210 ordered pairings x 4 seeds = 840 fights")
+    expect(lines).toContain("112 games per species")
     expect(lines).toContain("24 doctrine fights")
     expect(lines).toContain("180 boss fights")
+  })
+
+  test("reports distinct fights and a binomial error per row (FR-21, P10.T2.1)", () => {
+    const measured = sample()
+    for (const row of measured.matrix.species) {
+      // The whole point of Phase 10: a row can no longer look like 112
+      // independent samples if the fights repeated.
+      expect(row.distinct).toBeGreaterThan(1)
+      expect(row.distinct).toBeLessThanOrEqual(row.games)
+      expect(row.se).toBeGreaterThan(0)
+      expect(row.se).toBeCloseTo(
+        Math.sqrt((row.rate * (1 - row.rate)) / row.games),
+        6,
+      )
+    }
+    // The engine draws now, so some pairings must flip with the seed.
+    expect(measured.matrix.diversity).toBeGreaterThan(0)
   })
 
   test("excludes mirrors and gives every species the same schedule", () => {
     const measured = sample()
     const opponents = ALL_SPECIES.length - 1
     for (const row of measured.matrix.species) {
-      // 14 opponents x 2 orders x 2 seeds; a species never fights itself.
-      expect(row.games).toBe(opponents * 4)
+      // 14 opponents x 2 orders x 4 seeds; a species never fights itself.
+      expect(row.games).toBe(opponents * 8)
       expect(row.wins + row.draws).toBeLessThanOrEqual(row.games)
     }
   })
@@ -138,14 +156,14 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     expect(
       lines.some((line) =>
         line.startsWith(
-          "FAIL species:voltfox: observed 92.9% (52/56), bound 45.0%..55.0%",
+          "FAIL species:voltfox: observed 92.9% (104/112, 14 distinct, se 2.4%), bound |rate - 50%| <= 9.3%",
         ),
       ),
     ).toBe(true)
-    // Phase 8 (FR-20) cleared the cap share, so the resolvability targets pass
-    // and only the roster rows keep the gate non-zero.
-    expect(lines.some((line) => line.startsWith("FAIL capShare:"))).toBe(false)
-    expect(lines.some((line) => line.startsWith("ok   capShare:"))).toBe(true)
+    // The cap share sits 0.5pp above the one-in-three target at this sample
+    // size (its own standard error is 1.6pp), recorded as a miss rather than
+    // hidden by widening the bound.
+    expect(lines.some((line) => line.startsWith("FAIL capShare:"))).toBe(true)
   })
 
   test("a target that holds is not reported as a violation", () => {

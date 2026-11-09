@@ -71,10 +71,12 @@ export interface StepReport {
     readonly ownerKey: string
     readonly moveId: string
   }[]
-  /** Melee swings that closed their window without landing (FR-18). */
+  /** Melee swings that resolved without landing (FR-18, FR-21). */
   readonly whiffs: readonly {
     readonly attackerKey: string
     readonly moveId: string
+    /** `reach` swept and touched nothing; `accuracy` connected and rolled out. */
+    readonly reason: "reach" | "accuracy"
   }[]
 }
 
@@ -152,6 +154,14 @@ export function stepEvents(
     const side = sideOf(shot.ownerKey)
     const target = side === 0 ? 1 : 0
     const hit = shot.outcome === "hit"
+    // Two different questions, two different words: a shot the victim moved
+    // out of was `dodged`; a shot that reached the body but was not aimed true
+    // was `missed` (FR-21). The client draws both, and neither hides the other.
+    const missReason = hit
+      ? null
+      : shot.outcome === "missed"
+        ? "accuracy"
+        : "dodge"
     events.push({
       tick,
       kind: "impact",
@@ -161,11 +171,13 @@ export function stepEvents(
       moveId: shot.moveId,
       damage: shot.damage,
       hit,
-      ...(hit ? {} : { missReason: "dodge" as const }),
+      ...(missReason ? { missReason } : {}),
       hpAfter,
       line: hit
         ? `${sides.names[side]}'s ${moveName(shot.moveId)} hits.`
-        : `${sides.names[target]} slips ${moveName(shot.moveId)}.`,
+        : missReason === "accuracy"
+          ? `${sides.names[side]}'s ${moveName(shot.moveId)} goes wide.`
+          : `${sides.names[target]} slips ${moveName(shot.moveId)}.`,
     })
     if (hit) land(side, target)
   }
@@ -192,8 +204,16 @@ export function stepEvents(
       target: sides.names[target],
       moveId: whiff.moveId,
       hit: false,
+      // A rolled miss names itself; a swing that touched nothing is told apart
+      // by the line, which is the vocabulary the stream already had (FR-18).
+      ...(whiff.reason === "accuracy"
+        ? { missReason: "accuracy" as const }
+        : {}),
       hpAfter,
-      line: `${sides.names[side]}'s ${moveName(whiff.moveId)} swings wide.`,
+      line:
+        whiff.reason === "accuracy"
+          ? `${sides.names[side]}'s ${moveName(whiff.moveId)} goes wide.`
+          : `${sides.names[side]}'s ${moveName(whiff.moveId)} swings wide.`,
     })
   }
   for (const side of [0, 1] as const) {

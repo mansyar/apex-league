@@ -14,6 +14,7 @@
  * commit path.
  */
 
+import type { Rng } from "../../rng"
 import { faceOpponent, separateBodies } from "./contact"
 import { tickCooldowns } from "./cooldown"
 import { blowDirection, isStunned, reactToBlow } from "./impulse"
@@ -104,14 +105,16 @@ export interface StepResult extends StepOutcome {
 }
 
 /**
- * What one step needs beyond the state: the fence it is played inside and both
- * sides' strike stats. There is no random source: the step is seed-free
- * (NFR-1), and the seed only decides a capped fight in ./resolve.
+ * What one step needs beyond the state: the fence, both sides' strike stats and
+ * the fight's single seeded random source, read only by the accuracy roll and
+ * the damage spread (FR-21).
  */
 export interface StepContext {
   readonly bounds: ArenaBounds
   /** Both sides' strike stats, in fighter order. */
   readonly stats: readonly [StrikeStats, StrikeStats]
+  /** The fight's seeded RNG: the only random source in the step (FR-21). */
+  readonly rng: Rng
 }
 
 /**
@@ -130,12 +133,13 @@ export function stepFight(
     advanceFighterAttack(before[0]),
     advanceFighterAttack(before[1]),
   ]
-  const struck = resolveStrikes(before, advanced, context.stats)
+  const struck = resolveStrikes(before, advanced, context.stats, context.rng)
   const flight = resolveProjectiles(
     state.projectiles,
     before,
     struck.fighters,
     context.stats,
+    context.rng,
   )
   const launched = launchShots(state.step, before, advanced)
   // Damage, poise, knockback and hitstun all settle through one seam, which
@@ -147,8 +151,10 @@ export function stepFight(
     flight.fighters,
   )
   // Whiffs read the post-strike state: a blow that landed on the window's
-  // final active step is a hit, not also a swing that touched nothing.
-  const whiffs = whiffsOf(before, struck.fighters)
+  // final active step is a hit, not also a swing that touched nothing. A swing
+  // that connected but rolled a miss is resolved the same way and reported
+  // with its own reason (FR-21).
+  const whiffs = [...struck.misses, ...whiffsOf(before, struck.fighters)]
   const dodges: DodgeReport[] = []
   const slips: SlipReport[] = []
   const pinned: PinnedReport[] = []

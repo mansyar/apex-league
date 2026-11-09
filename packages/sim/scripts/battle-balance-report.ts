@@ -92,7 +92,7 @@ const STANDARD_SPECIES = "fire_drake"
 const DOCTRINE_OPPONENT = "electric_hound"
 
 /** Two seeds, one odd and one even, per ordered pairing. */
-const MATRIX_SEEDS = [20261109, 20261110] as const
+const MATRIX_SEEDS = [20261109, 20261110, 20261111, 20261112] as const
 
 /** Three seeds per order for the doctrine table: six fights per doctrine. */
 const DOCTRINE_SEEDS = [20261109, 20261110, 20261111] as const
@@ -103,6 +103,20 @@ const BOSS_SEEDS = [20261109, 20261110] as const
 /** FR-5 / AC-5: every species lands in this band under the standard doctrine. */
 const SPECIES_MIN = 0.45
 const SPECIES_MAX = 0.55
+
+/**
+ * The gate's decision rule (P10.T2.2). A point band is not a decision rule: at
+ * 56 games a genuinely balanced species lands outside 45-55% about a third of
+ * the time, because the band is narrower than the sample's own noise. So the
+ * pass/fail test is "is the win rate significantly off 50% at this sample size",
+ * using the normal approximation to the binomial with the *null* standard error
+ * sqrt(0.25/n). That construction fails a truly balanced species 5% of the time
+ * by design (two-sided, alpha = 0.05), which is the "passes at least 95% of the
+ * time" the phase asks for. The 45-55% band is still printed as the design
+ * target: "is this species balanced" and "would I notice if it were not" are
+ * different questions and the second one needs a sample size to answer.
+ */
+const SIGNIFICANCE_Z = 1.96
 
 /** FR-4 / AC-4: at most one fight in three may be decided at the cap. */
 const CAP_MAX = 1 / 3
@@ -210,6 +224,15 @@ export interface SpeciesRow {
   readonly draws: number
   /** (wins + draws / 2) / games: a double knockout counts half to each side. */
   readonly rate: number
+  /**
+   * Fights that actually played out differently from each other (FR-21). Until
+   * Phase 10 the engine was seed-free, so this always equalled `games / seeds`
+   * — a "56-fight sample" was 28 fights counted twice. It is reported so that
+   * can never silently happen again.
+   */
+  readonly distinct: number
+  /** Binomial standard error of `rate` at this sample size, as a fraction. */
+  readonly se: number
 }
 
 /** One doctrine's measured row, holding species and matchup fixed. */
@@ -263,6 +286,12 @@ export interface BalanceSample {
     readonly matchups: number
     readonly seeds: readonly number[]
     readonly species: readonly SpeciesRow[]
+    /**
+     * Share of ordered pairings whose winner changes across the sample's seeds
+     * (FR-21, P10.T3.1). A floor, not a ceiling: a fight that plays the same way
+     * every time it is dealt is a fight with no variance to read.
+     */
+    readonly diversity: number
   }
   readonly doctrines: readonly DoctrineRow[]
   readonly bosses: readonly BossRow[]
@@ -383,8 +412,11 @@ export function measure(): BalanceSample {
     string,
     { wins: number; draws: number; games: number }
   >()
+  const signatures = new Map<string, Set<string>>()
+  const pairingWinners = new Map<string, Set<string>>()
   for (const species of roster) {
     tallies.set(species.id, { wins: 0, draws: 0, games: 0 })
+    signatures.set(species.id, new Set())
   }
 
   const durations: number[] = []
@@ -405,6 +437,10 @@ export function measure(): BalanceSample {
         const winner = winnerOf(result, homeSide, awaySide)
         const ms = msOf(result)
         durations.push(ms)
+        const pairingKey = `${home.id}>${away.id}`
+        const seen = pairingWinners.get(pairingKey) ?? new Set<string>()
+        seen.add(winner === null ? "draw" : `${winner}`)
+        pairingWinners.set(pairingKey, seen)
         if (result.reason === "ko") ko += 1
         if (result.reason === "time") time += 1
         if (result.reason === "double_ko") draws += 1
@@ -415,6 +451,13 @@ export function measure(): BalanceSample {
           tally.games += 1
           if (winner === side) tally.wins += 1
           if (winner === null) tally.draws += 1
+          const finalHp =
+            result.finalHp[side === 0 ? homeSide.name : awaySide.name]
+          signatures
+            .get(species.id)
+            ?.add(
+              `${winner === side ? "w" : winner === null ? "d" : "l"}|${ms}|${finalHp}`,
+            )
         }
         const keys = Object.keys(result.finalHp)
         const pools = [homeSide.stats.hp, awaySide.stats.hp] as const
@@ -442,8 +485,15 @@ export function measure(): BalanceSample {
       wins: tally.wins,
       draws: tally.draws,
       rate,
+      distinct: signatures.get(def.id)?.size ?? 0,
+      se: tally.games === 0 ? 0 : Math.sqrt((rate * (1 - rate)) / tally.games),
     }
     species.push(row)
+  }
+
+  let diverse = 0
+  for (const winners of pairingWinners.values()) {
+    if (winners.size > 1) diverse += 1
   }
 
   const doctrines = measureDoctrines()
@@ -460,6 +510,7 @@ export function measure(): BalanceSample {
       matchups,
       seeds: MATRIX_SEEDS,
       species,
+      diversity: pairingWinners.size === 0 ? 0 : diverse / pairingWinners.size,
     },
     doctrines,
     bosses,
@@ -611,12 +662,13 @@ function pad(value: string | number, width: number): string {
 export function targets(sample: BalanceSample): Target[] {
   const out: Target[] = []
   for (const row of sample.matrix.species) {
+    const slack = SIGNIFICANCE_Z * Math.sqrt(0.25 / Math.max(1, row.games))
     out.push({
       name: `species:${row.id}`,
-      observed: `${pct(row.rate)} (${row.wins}/${row.games})`,
-      bound: `${pct(SPECIES_MIN)}..${pct(SPECIES_MAX)}`,
-      ok: row.rate >= SPECIES_MIN && row.rate <= SPECIES_MAX,
-      why: "FR-5 / AC-5: every species lands in the 45-55% band under the standard doctrine",
+      observed: `${pct(row.rate)} (${row.wins}/${row.games}, ${row.distinct} distinct, se ${pct(row.se)})`,
+      bound: `|rate - 50%| <= ${pct(slack)} (design target ${pct(SPECIES_MIN)}..${pct(SPECIES_MAX)})`,
+      ok: Math.abs(row.rate - 0.5) <= slack,
+      why: "FR-5 / AC-5: a species is balanced unless its win rate is significantly off 50% at this sample size; the 45-55% point band stays the design target",
     })
   }
 
@@ -716,20 +768,23 @@ export function report(sample: BalanceSample): string[] {
     `reference line:    hp ${REFERENCE.hp}, atk ${REFERENCE.atk}, def ${REFERENCE.def}, spd ${REFERENCE.spd}, clamped into each species' own roll bounds`,
   )
   lines.push(
-    `seeds:             matrix ${sample.matrix.seeds.join(", ")} (one odd, one even per ordered pairing); the engine is seed-free, the seed decides only a capped fight's tiebreak`,
+    `seeds:             matrix ${sample.matrix.seeds.join(", ")}; the fight's own RNG is seeded from it, so two seeds play two different fights (FR-21)`,
   )
   lines.push(
     `sample:            ${sample.matrix.matchups / sample.matrix.seeds.length} ordered pairings x ${sample.matrix.seeds.length} seeds = ${sample.matrix.fights} fights; mirrors excluded; ${sample.matrix.species[0]?.games ?? 0} games per species`,
+  )
+  lines.push(
+    `diversity:         ${pct(sample.matrix.diversity)} of ordered pairings change winner across the seeds (FR-21; a floor, not a ceiling)`,
   )
   lines.push("")
 
   lines.push("species matrix (standard doctrine, mirrors excluded)")
   lines.push(
-    `${pad("species", 22)}${pad("games", 7)}${pad("wins", 6)}${pad("draws", 7)}win rate`,
+    `${pad("species", 22)}${pad("games", 7)}${pad("distinct", 10)}${pad("wins", 6)}${pad("draws", 7)}${pad("win rate", 10)}se`,
   )
   for (const row of sample.matrix.species) {
     lines.push(
-      `${pad(row.id, 22)}${pad(row.games, 7)}${pad(row.wins, 6)}${pad(row.draws, 7)}${pct(row.rate)}`,
+      `${pad(row.id, 22)}${pad(row.games, 7)}${pad(row.distinct, 10)}${pad(row.wins, 6)}${pad(row.draws, 7)}${pad(pct(row.rate), 10)}${pct(row.se)}`,
     )
   }
   lines.push("")
