@@ -16,7 +16,12 @@ import {
   segmentGapSq,
   segmentHitsBody,
   separateBodies,
+  TURN_ACTIVE_UNITS_PER_STEP,
+  TURN_HITSTUN_UNITS_PER_STEP,
+  TURN_RECOVERY_UNITS_PER_STEP,
+  TURN_STARTUP_UNITS_PER_STEP,
   TURN_UNITS_PER_STEP,
+  turnBudget,
   turnToward,
 } from "./contact"
 import { createFight, type FighterInit } from "./step"
@@ -186,6 +191,68 @@ describe("body separation — a clinch keeps a gap (FR-17)", () => {
     const [home, away] = separateBodies(pair(0, 0), corner)
     expect(home.pos.x).toBeGreaterThanOrEqual(corner.minX)
     expect(away.pos.x).toBe(0)
+  })
+})
+
+describe("facing — limited by what the body is doing (FR-11, AC-11)", () => {
+  const fighter = (
+    phase: "startup" | "active" | "recovery" | null,
+    hitstunMs = 0,
+  ) => {
+    const base = duel().state.fighters[0]
+    return {
+      ...base,
+      hitstunMs,
+      attack: phase
+        ? { moveId: "basic", phase, elapsedMs: 0, landed: false }
+        : null,
+    }
+  }
+
+  test("each state has its own turn budget", () => {
+    expect(turnBudget(fighter(null))).toBe(TURN_UNITS_PER_STEP)
+    expect(turnBudget(fighter("startup"))).toBe(TURN_STARTUP_UNITS_PER_STEP)
+    expect(turnBudget(fighter("active"))).toBe(TURN_ACTIVE_UNITS_PER_STEP)
+    expect(turnBudget(fighter("recovery"))).toBe(TURN_RECOVERY_UNITS_PER_STEP)
+    expect(turnBudget(fighter(null, 20))).toBe(TURN_HITSTUN_UNITS_PER_STEP)
+    expect(TURN_ACTIVE_UNITS_PER_STEP).toBe(0)
+    expect(TURN_HITSTUN_UNITS_PER_STEP).toBe(0)
+    expect(TURN_STARTUP_UNITS_PER_STEP).toBeGreaterThan(0)
+    expect(TURN_STARTUP_UNITS_PER_STEP).toBeLessThan(TURN_UNITS_PER_STEP)
+    expect(TURN_RECOVERY_UNITS_PER_STEP).toBe(TURN_STARTUP_UNITS_PER_STEP)
+  })
+
+  test("an active swing cannot pivot, and neither can hitstun", () => {
+    for (const state of [fighter("active"), fighter(null, 20)]) {
+      const previous = [state, state] as const
+      const moved = [
+        { ...state, pos: at(0) },
+        { ...state, pos: at(0, 500) },
+      ] as const
+      const [turned] = faceOpponent(moved, previous)
+      expect(turned.facing).toEqual(state.facing)
+    }
+  })
+
+  test("startup and recovery turn less than a free body", () => {
+    const free = fighter(null)
+    const startup = fighter("startup")
+    const moved = [
+      { ...free, pos: at(0) },
+      { ...free, pos: at(0, 500) },
+    ] as const
+    const previous = [free, free] as const
+    const [freeTurned] = faceOpponent(moved, previous)
+    const [startupTurned] = faceOpponent(
+      [{ ...startup, pos: at(0) }, moved[1]] as const,
+      [startup, startup] as const,
+    )
+    expect(freeTurned.facing).not.toEqual(free.facing)
+    expect(startupTurned.facing).not.toEqual(startup.facing)
+    expect(startupTurned.facing).not.toEqual(freeTurned.facing)
+    expect(Math.abs(startupTurned.facing.z)).toBeLessThan(
+      Math.abs(freeTurned.facing.z),
+    )
   })
 })
 

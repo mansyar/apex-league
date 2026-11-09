@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test"
+import { createCreature } from "../../creature"
 import type { Temperament } from "../../species"
+import { makeExhibition } from "../exhibition"
 import { createController, decide } from "./controller"
 import { strafeIntent } from "./controller-aim"
 import {
@@ -13,7 +15,11 @@ import {
   REFERENCE_REACH_EDGE_MM,
   tacticForDoctrine,
 } from "./controller-profile"
+import { slipSpeed, topSpeed } from "./movement"
+import { resolveContinuous } from "./resolve"
 import { createFight } from "./step"
+import { readFrame, type StreamFrame, streamOf } from "./stream"
+import { hitPosition } from "./strike"
 import { HOLD } from "./types"
 
 const TEMPERAMENTS: readonly Temperament[] = ["rush", "obedient", "slow"]
@@ -210,5 +216,124 @@ describe("Circle seeks the rear arc (FR-11, AC-11)", () => {
     expect(bandFor(circle, REACH).floorMm).toBeLessThan(
       bandFor(kite, REACH).floorMm,
     )
+  })
+})
+
+describe("the step-around earns the angle (FR-11, AC-11)", () => {
+  test("Circle cuts, Press never does", () => {
+    const run = (doctrine: DoctrineId) => {
+      const fight = fightAt(1200)
+      const profile = profileForDoctrine(DOCTRINES[doctrine], "obedient")
+      let controller = createController()
+      let slips = 0
+      for (let step = 0; step < 240; step++) {
+        const order = decide({
+          state: fight.state,
+          side: 0,
+          controller,
+          profile,
+          kit: ["basic"],
+        })
+        controller = order.state
+        if (order.verb === "slip") slips += 1
+        fight.advance([order.intent, HOLD])
+      }
+      return slips
+    }
+    expect(run("circle")).toBeGreaterThan(0)
+    expect(run("press")).toBe(0)
+  })
+
+  test("a cut covers more angle than a walk over the same window", () => {
+    // At spd 10 a walk is 1 mm/ms (20 mm/step) and a cut 2.5 mm/ms (50 mm/step).
+    // At the reference edge that is ~1.15 deg/step walking against ~2.86
+    // cutting, so the cut is what earns an angle once the foe is committed.
+    const walkMm = topSpeed(10) / 1000
+    const cutMm = slipSpeed(10) / 1000
+    expect(cutMm).toBeGreaterThan(walkMm)
+    expect(Math.atan2(cutMm, REFERENCE_REACH_EDGE_MM)).toBeGreaterThan(
+      Math.atan2(walkMm, REFERENCE_REACH_EDGE_MM),
+    )
+  })
+})
+
+function rearHits(doctrine: DoctrineId, seed: number) {
+  const owned = createCreature("fire_drake", 1)
+  const setup = makeExhibition(owned, "balanced", seed, doctrine)
+  const result = resolveContinuous(setup.ownedSide, setup.rivalSide, seed)
+  const stream = streamOf(result)
+  if (!stream) throw new Error("the fight kept no stream")
+  const counts = { front: 0, flank: 0, rear: 0, closestDot: 0 }
+  const frame = (): StreamFrame => ({
+    x: 0,
+    z: 0,
+    facingX: 0,
+    facingZ: 0,
+    phase: 0,
+    phaseT: 0,
+    hp: 0,
+    hitstunMs: 0,
+    pinned: false,
+  })
+  const before: [StreamFrame, StreamFrame] = [frame(), frame()]
+  const after: [StreamFrame, StreamFrame] = [frame(), frame()]
+  for (const side of [0, 1] as const) readFrame(stream, 0, side, before[side])
+  for (let step = 1; step < stream.steps; step++) {
+    for (const side of [0, 1] as const)
+      readFrame(stream, step, side, after[side])
+    for (const side of [0, 1] as const) {
+      const victim = before[side]
+      if (after[side].hp < victim.hp) {
+        const attacker = before[side === 0 ? 1 : 0]
+        const position = hitPosition(
+          { x: victim.facingX, z: victim.facingZ },
+          { x: victim.x, y: 0, z: victim.z },
+          { x: attacker.x, y: 0, z: attacker.z },
+        )
+        counts[position] += 1
+        const dx = attacker.x - victim.x
+        const dz = attacker.z - victim.z
+        const len = Math.sqrt(dx * dx + dz * dz) || 1
+        const dot = (victim.facingX * dx + victim.facingZ * dz) / (len * 1000)
+        counts.closestDot = Math.min(counts.closestDot, Math.trunc(dot * 100))
+      }
+      before[side] = { ...after[side] }
+    }
+  }
+  return counts
+}
+
+/**
+ * AC-11 as written: Circle strictly more rear hits than Press on the same
+ * matchup and seed. Measured 0 vs 0 (see the measurement test below and the
+ * verification note): facing is refreshed at the end of every step, so the
+ * angle a cut earns decays before the next hit. Left failing on purpose; the
+ * owner decides whether the arcs or the mechanic change.
+ */
+describe("Circle lands more rear hits than Press (AC-11)", () => {
+  test.failing("the same matchup and seed, Circle strictly ahead", () => {
+    for (const seed of [1, 2, 3, 4]) {
+      const press = rearHits("press", seed)
+      const circle = rearHits("circle", seed)
+      expect(circle.rear).toBeGreaterThan(press.rear)
+    }
+  })
+
+  test("measured: Circle earns a flank, neither doctrine reaches the rear", () => {
+    let circleFlanks = 0
+    let closest = 0
+    for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
+      const press = rearHits("press", seed)
+      const circle = rearHits("circle", seed)
+      expect(circle.front + circle.flank + circle.rear).toBeGreaterThan(0)
+      expect(circle.rear).toBe(0)
+      expect(press.rear).toBe(0)
+      expect(circle.flank).toBeGreaterThan(press.flank)
+      circleFlanks += circle.flank
+      closest = Math.min(closest, circle.closestDot)
+    }
+    expect(circleFlanks).toBe(8)
+    // -50/100 = 120 degrees: the nearest a Circle hit got, still a flank.
+    expect(closest).toBeGreaterThan(-50)
   })
 })

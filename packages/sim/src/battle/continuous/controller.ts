@@ -22,22 +22,22 @@
 import {
   aimAt,
   awayFrom,
-  dodgeIntent,
   planarGapSq,
   pressIntent,
-  rearArc,
   retreatRoom,
   strafeIntent,
 } from "./controller-aim"
+import { dodgeOrder } from "./controller-dodge"
 import { chooseMove } from "./controller-moves"
 import {
   bandFor,
   type ControllerProfile,
   reachEdgeMm,
 } from "./controller-profile"
-import { DODGE_LEAD_MS, incomingShot, incomingSwing } from "./controller-threat"
+import { rearCommit } from "./controller-rear"
+import { slipOrder } from "./controller-slip"
 import { isBroken } from "./poise"
-import { DODGE_STAMINA_COST, spendDodge } from "./stamina"
+import { DODGE_STAMINA_COST } from "./stamina"
 import { type FightState, HOLD, type MoveIntent, STEP_MS } from "./types"
 
 export {
@@ -86,20 +86,7 @@ export const RETREAT_ROOM_RADII = 2
 /** Decisions in one tactical cycle; a profile's shares partition it. */
 const CYCLE = 10
 
-/**
- * How long a fighter must wait after a burst before it can lunge again, in ms
- * (tunable, FR-20): long enough that a dodge is a commitment, not a stutter.
- */
-export const DODGE_COOLDOWN_MS = 700
-
-/**
- * How far past its own width a body must clear an incoming line before it
- * stops dodging, in mm (tunable, FR-20): the margin over `radiusMm` that makes
- * a cleared shot a miss rather than a graze.
- */
-export const DODGE_MARGIN_MM = 40
-
-/** The six things a fighter can want (FR-11). */
+/** The seven things a fighter can want (FR-11). */
 export type ControllerVerb =
   | "advance"
   | "retreat"
@@ -107,6 +94,7 @@ export type ControllerVerb =
   | "hold"
   | "commit"
   | "dodge"
+  | "slip"
 
 /**
  * The controller's own state: its clock, the intent it is holding, and when it
@@ -121,6 +109,10 @@ export interface ControllerState {
   readonly verb: ControllerVerb
   /** Fight time this controller may next order a dodge, in ms (FR-20). */
   readonly dodgeReadyMs: number
+  /** Fight time this controller may next order a step-around, in ms (FR-11). */
+  readonly slipReadyMs: number
+  /** Fight time the current cut ends, in ms; 0 when no cut is running. */
+  readonly slipUntilMs: number
 }
 
 /**
@@ -128,7 +120,14 @@ export interface ControllerState {
  * beat of a fight is a choice rather than a default, and it may lunge at once.
  */
 export function createController(): ControllerState {
-  return { decisions: 0, intent: HOLD, verb: "hold", dodgeReadyMs: 0 }
+  return {
+    decisions: 0,
+    intent: HOLD,
+    verb: "hold",
+    dodgeReadyMs: 0,
+    slipReadyMs: 0,
+    slipUntilMs: 0,
+  }
 }
 
 /**
@@ -192,9 +191,27 @@ export function decide(input: DecisionInput): ControllerDecision {
   const sign: 1 | -1 = side === 0 ? 1 : -1
 
   // The cadence: one decision per cadence step, and never twice on one step.
-  if (state.step % DECISION_STEPS !== 0) return hold(controller)
-  if (controller.decisions > state.step / DECISION_STEPS)
+  const decisionStep =
+    state.step % DECISION_STEPS === 0 &&
+    controller.decisions <= state.step / DECISION_STEPS
+  if (!decisionStep) {
+    // A cut has a fixed length (FR-11): between decisions it is released into
+    // a hold at the step the window closes, so the burst is a cut and not a
+    // second walk speed.
+    if (
+      controller.slipUntilMs > 0 &&
+      state.elapsedMs >= controller.slipUntilMs
+    ) {
+      return {
+        state: { ...controller, intent: HOLD, verb: "hold", slipUntilMs: 0 },
+        verb: "hold",
+        intent: HOLD,
+        commit: null,
+        dodgeCost: 0,
+      }
+    }
     return hold(controller)
+  }
 
   const decisions = controller.decisions + 1
   const settle = (
@@ -203,8 +220,17 @@ export function decide(input: DecisionInput): ControllerDecision {
     commit: string | null = null,
     dodgeCost = 0,
     dodgeReadyMs = controller.dodgeReadyMs,
+    slipReadyMs = controller.slipReadyMs,
+    slipUntilMs = 0,
   ): ControllerDecision => {
-    const next: ControllerState = { decisions, intent, verb, dodgeReadyMs }
+    const next: ControllerState = {
+      decisions,
+      intent,
+      verb,
+      dodgeReadyMs,
+      slipReadyMs,
+      slipUntilMs,
+    }
     return { state: next, verb, intent, commit, dodgeCost }
   }
 
@@ -218,36 +244,45 @@ export function decide(input: DecisionInput): ControllerDecision {
   // This outranks the dodge gate: the rear window is exactly when the foe has
   // just swung past, and punching the back beats stepping away from it.
   if (profile.seeksRear) {
-    const rearMove = chooseMove(me, foe, kit, planarGapSq(me.pos, foe.pos))
-    if (rearMove && rearArc(me, foe)) {
-      return settle("commit", pressIntent(me, foe), rearMove)
-    }
+    const rearMove = rearCommit(me, foe, kit)
+    if (rearMove) return settle("commit", pressIntent(me, foe), rearMove)
   }
 
-  // A blow about to land is the one thing worth interrupting for (FR-20): a
-  // swing still winding up is stepped away from, and a shot nearly home on
-  // this body's line is stepped across. Both are gated by the price
-  // `spendDodge` charges and by the burst cooldown, so the gate and the pool
-  // cannot drift and a refusal is never a no-op.
-  if (state.elapsedMs >= controller.dodgeReadyMs && spendDodge(me) !== null) {
-    const ready = state.elapsedMs + DODGE_COOLDOWN_MS
-    const swing = incomingSwing(state, side)
-    const away = swing ? awayFrom(me, swing) : HOLD
-    if (away.x !== 0 || away.z !== 0) {
-      return settle("dodge", { dodge: away }, null, DODGE_STAMINA_COST, ready)
-    }
-    const shot = incomingShot(
-      state,
-      side,
-      profile.dodgeThresholdMm,
-      me.radiusMm + DODGE_MARGIN_MM,
-      DODGE_LEAD_MS,
+  // A blow about to land is the one thing worth interrupting for (FR-20).
+  // ./controller-dodge owns the gate, its price, and the burst cooldown.
+  const dodge = dodgeOrder(state, side, me, profile, controller.dodgeReadyMs)
+  if (dodge) {
+    return settle(
+      "dodge",
+      dodge.intent,
+      null,
+      DODGE_STAMINA_COST,
+      dodge.readyMs,
     )
-    if (shot) {
-      const intent = dodgeIntent(shot, me, sign)
-      return settle("dodge", intent, null, DODGE_STAMINA_COST, ready)
-    }
   }
+
+  // A step-around cut (FR-11): a circling doctrine spends stamina for a short
+  // burst of angle while the foe's facing is held down by its own swing. Its
+  // own price and cooldown live in ./controller-slip; ./advance charges it.
+  const cut = slipOrder(
+    me,
+    foe,
+    profile.seeksRear === true,
+    state.elapsedMs,
+    controller.slipReadyMs,
+  )
+  const circle = (): ControllerDecision =>
+    cut
+      ? settle(
+          "slip",
+          cut.intent,
+          null,
+          0,
+          controller.dodgeReadyMs,
+          cut.readyMs,
+          cut.untilMs,
+        )
+      : settle("strafe", strafeIntent(me, foe, sign, profile.seeksRear))
 
   const gapSq = planarGapSq(me.pos, foe.pos)
   const band = bandFor(profile, reachEdgeMm(me, foe))
@@ -285,21 +320,21 @@ export function decide(input: DecisionInput): ControllerDecision {
       const moveId = chooseMove(me, foe, kit, gapSq)
       if (moveId) return settle("commit", pressIntent(me, foe), moveId)
     }
-    return settle("strafe", strafeIntent(me, foe, sign, profile.seeksRear))
+    return circle()
   }
 
   // Inside the band the cycle decides: press, circle, or close. Counter waits
   // out startup and only commits into recovery (FR-11).
   if (slot < press) {
     if (profile.commit === "punish" && foe.attack?.phase === "startup") {
-      return settle("strafe", strafeIntent(me, foe, sign, profile.seeksRear))
+      return circle()
     }
     const moveId = chooseMove(me, foe, kit, gapSq)
     if (moveId) return settle("commit", pressIntent(me, foe), moveId)
     return settle("advance", aimAt(me, foe))
   }
   if (slot < press + strafe) {
-    return settle("strafe", strafeIntent(me, foe, sign, profile.seeksRear))
+    return circle()
   }
   return settle("advance", aimAt(me, foe))
 }

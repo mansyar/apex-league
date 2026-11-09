@@ -46,6 +46,35 @@ export const DEFAULT_BODY_HEIGHT_MM = 900
  */
 export const TURN_UNITS_PER_STEP = 50
 
+/**
+ * Turn budgets by what the body is doing (FR-11, AC-11), in thousandths of a
+ * unit direction per step, beside {@link TURN_UNITS_PER_STEP}:
+ *
+ * - Free: today's rate. A body with nothing else to do pivots fast.
+ * - Startup: a quarter. Winding up a blow costs the ability to re-aim.
+ * - Active: zero. A committed swing cannot pivot; this is the angle window.
+ * - Recovery: a quarter, the same as startup.
+ * - Hitstun: zero. A stunned body does not re-track.
+ *
+ * The window is what makes circling pay: a step-around turns the line at
+ * roughly the free rate, so it can only out-turn a foe whose own facing is
+ * held down by a swing.
+ */
+export const TURN_STARTUP_UNITS_PER_STEP = 12
+export const TURN_ACTIVE_UNITS_PER_STEP = 0
+export const TURN_RECOVERY_UNITS_PER_STEP = 12
+export const TURN_HITSTUN_UNITS_PER_STEP = 0
+
+/** The turn budget a fighter gets this step, from its own state. */
+export function turnBudget(fighter: FighterState): number {
+  if (fighter.hitstunMs > 0) return TURN_HITSTUN_UNITS_PER_STEP
+  const phase = fighter.attack?.phase
+  if (phase === "active") return TURN_ACTIVE_UNITS_PER_STEP
+  if (phase === "startup") return TURN_STARTUP_UNITS_PER_STEP
+  if (phase === "recovery") return TURN_RECOVERY_UNITS_PER_STEP
+  return TURN_UNITS_PER_STEP
+}
+
 /** A body's opening volume, seeded from the species and form. */
 export function openingBody(
   radiusMm: number = BODY_RADIUS_MM,
@@ -226,8 +255,8 @@ export function separateBodies(
 }
 
 /** One small rotation step of a facing vector, renormalized to `DIR_SCALE`. */
-function spin(facing: Dir2, sign: 1 | -1): Dir2 {
-  const step = sign * TURN_UNITS_PER_STEP
+function spin(facing: Dir2, sign: 1 | -1, budget: number): Dir2 {
+  const step = sign * budget
   const x = facing.x - divRound(step * facing.z, DIR_SCALE)
   const z = facing.z + divRound(step * facing.x, DIR_SCALE)
   const length = integerSqrt(x * x + z * z)
@@ -239,25 +268,30 @@ function spin(facing: Dir2, sign: 1 | -1): Dir2 {
 }
 
 /**
- * Turn a facing toward a point by at most {@link TURN_UNITS_PER_STEP}. The
- * sign comes from the integer cross product, and a target within one step is
- * snapped to exactly, so a lock-on converges instead of jittering. A target
+ * Turn a facing toward a point by at most `budget` (default: the free rate).
+ * The sign comes from the integer cross product, and a target within one step
+ * is snapped to exactly, so a lock-on converges instead of jittering. A target
  * directly behind has no cross product to read, so the body turns the same way
  * every time until it has a side to prefer.
  */
-export function turnToward(facing: Dir2, from: Vec3, to: Vec3): Dir2 {
+export function turnToward(
+  facing: Dir2,
+  from: Vec3,
+  to: Vec3,
+  budget: number = TURN_UNITS_PER_STEP,
+): Dir2 {
   const desired = shotDirection(from, to)
   if (desired.x === 0 && desired.z === 0) return facing
   const dot = facing.x * desired.x + facing.z * desired.z
   const cross = facing.x * desired.z - facing.z * desired.x
-  if (cross === 0) return dot > 0 ? desired : spin(facing, 1)
+  if (cross === 0) return dot > 0 ? desired : spin(facing, 1, budget)
   // Only snap when the target is ahead and inside one step: near the opposite
   // direction the sine is small too, and snapping there would spin a body
   // round instantly (the flank would become unreachable).
-  if (dot > 0 && Math.abs(cross) <= TURN_UNITS_PER_STEP * DIR_SCALE) {
+  if (dot > 0 && Math.abs(cross) <= budget * DIR_SCALE) {
     return desired
   }
-  return spin(facing, cross > 0 ? 1 : -1)
+  return spin(facing, cross > 0 ? 1 : -1, budget)
 }
 
 /**
@@ -275,6 +309,7 @@ export function faceOpponent(
       previous[side].facing,
       fighters[side].pos,
       fighters[other].pos,
+      turnBudget(fighters[side]),
     )
     return facing === previous[side].facing
       ? fighters[side]

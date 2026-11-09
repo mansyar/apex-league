@@ -274,6 +274,7 @@ export function createFight(config: FightConfig): Fight {
         launched: outcome.launched,
         whiffs: outcome.whiffs,
         dodges: outcome.dodges,
+        slips: outcome.slips,
         pinned: outcome.pinned,
       }
     },

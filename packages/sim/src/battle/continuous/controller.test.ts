@@ -61,15 +61,18 @@ const VERBS: readonly ControllerVerb[] = [
   "hold",
   "commit",
   "dodge",
+  "slip",
 ]
 
 function side(key: string, spd: number, x: number, z = 0): FighterInit {
   return { key, spd, at: { x, z } }
 }
 
-/** The direction an order asks for, whether it is a move or a dodge. */
+/** The direction an order asks for, whether it is a move, dodge, or slip. */
 function dir(intent: MoveIntent): Dir2 {
-  return "dodge" in intent ? intent.dodge : intent
+  if ("dodge" in intent) return intent.dodge
+  if ("slip" in intent) return intent.slip
+  return intent
 }
 
 function config(

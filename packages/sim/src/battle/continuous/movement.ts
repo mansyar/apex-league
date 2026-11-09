@@ -70,22 +70,45 @@ export function dodgeSpeed(spd: number): number {
   )
 }
 
+/**
+ * How much faster than its own walk a step-around runs (FR-11, tunable): 2.5x
+ * is the slow end of the burst band. At the reference reach edge a 2.5x cut
+ * turns the line at the same rate a free body can track it, so an angle is
+ * only earned while the foe's own facing is limited by a swing (./contact).
+ */
+export const SLIP_SPEED_NUMERATOR = 5
+export const SLIP_SPEED_DENOMINATOR = 2
+
+/** The speed a step-around runs at, in thousandths of a mm/ms. */
+export function slipSpeed(spd: number): number {
+  return Math.trunc(
+    (topSpeed(spd) * SLIP_SPEED_NUMERATOR) / SLIP_SPEED_DENOMINATOR,
+  )
+}
+
 /** Integer division rounding halves away from zero, so mirrored paths match. */
 function divRound(value: number, divisor: number): number {
   return value < 0 ? -Math.round(-value / divisor) : Math.round(value / divisor)
 }
 
 /**
- * The direction an order asks for, whether it is a plain intent or a dodge's
- * burst (FR-10). Kinematics only ever need the vector, never the verb.
+ * The direction an order asks for, whether it is a plain intent or a burst's
+ * vector (FR-10). Kinematics only ever need the vector, never the verb.
  */
 export function directionOf(intent: MoveIntent): Dir2 {
-  return "dodge" in intent ? intent.dodge : intent
+  if ("dodge" in intent) return intent.dodge
+  if ("slip" in intent) return intent.slip
+  return intent
 }
 
 /** The velocity an intent asks for once fully ramped up, per axis. */
 export function targetVelocity(spd: number, intent: MoveIntent): Dir2 {
-  const top = "dodge" in intent ? dodgeSpeed(spd) : topSpeed(spd)
+  const top =
+    "dodge" in intent
+      ? dodgeSpeed(spd)
+      : "slip" in intent
+        ? slipSpeed(spd)
+        : topSpeed(spd)
   const dir = directionOf(intent)
   return {
     x: divRound(top * dir.x, DIR_SCALE),
@@ -117,7 +140,9 @@ function approach(current: number, target: number): number {
  */
 export function accelerate(vel: Vec3, spd: number, intent: MoveIntent): Vec3 {
   const target = targetVelocity(spd, intent)
-  if ("dodge" in intent) return { x: target.x, y: 0, z: target.z }
+  if ("dodge" in intent || "slip" in intent) {
+    return { x: target.x, y: 0, z: target.z }
+  }
   return {
     x: approach(vel.x, target.x),
     y: 0,

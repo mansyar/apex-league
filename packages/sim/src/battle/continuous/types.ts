@@ -37,8 +37,10 @@ export interface Dir2 {
  * half-speed approach, or standing still. A `DodgeIntent` is a lateral burst
  * that costs stamina (FR-10) — the step charges it and refuses it when the
  * pool cannot pay, which is the only thing that tells a dodge from a strafe.
+ * A `SlipIntent` is the slower, shorter step-around a circling doctrine uses
+ * to earn an angle (FR-11): a separate burst with its own price.
  */
-export type MoveIntent = Dir2 | DodgeIntent
+export type MoveIntent = Dir2 | DodgeIntent | SlipIntent
 
 /**
  * A dodge burst: the direction to step in, paid for out of the stamina pool
@@ -47,6 +49,15 @@ export type MoveIntent = Dir2 | DodgeIntent
 export interface DodgeIntent {
   /** The direction the burst runs in, in thousandths of a unit vector. */
   readonly dodge: Dir2
+}
+
+/**
+ * A step-around burst (FR-11): a short lateral cut that buys an angle while
+ * the foe is committed. It runs below dodge speed and pays its own price.
+ */
+export interface SlipIntent {
+  /** The direction the step-around runs in, in thousandths of a unit vector. */
+  readonly slip: Dir2
 }
 
 /** Standing still and keeping the current facing. */

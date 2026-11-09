@@ -42,6 +42,13 @@ export const MIN_ATTACK_STAMINA_COST = 3 * BLOW_WEIGHT
 /** What one dodge costs, in points (tunable). */
 export const DODGE_STAMINA_COST = 8
 
+/**
+ * What one step-around costs, in points (tunable, FR-11). It is cheaper than
+ * a dodge because it buys position rather than safety, and it is charged on
+ * the step the cut starts so a held order is one cut, not a meter drain.
+ */
+export const SLIP_STAMINA_COST = 6
+
 /** The stamina fields one fighter carries; see `FighterState` in ./types. */
 export interface StaminaFields {
   /** Points left to spend. */
@@ -110,6 +117,11 @@ export function spendAttack(
 /** Pay for one dodge, or null when the pool cannot cover it (Phase 6). */
 export function spendDodge(fighter: FighterState): FighterState | null {
   return spendStamina(fighter, DODGE_STAMINA_COST)
+}
+
+/** Pay for one step-around, or null when the pool cannot cover it (FR-11). */
+export function spendSlip(fighter: FighterState): FighterState | null {
+  return spendStamina(fighter, SLIP_STAMINA_COST)
 }
 
 /**

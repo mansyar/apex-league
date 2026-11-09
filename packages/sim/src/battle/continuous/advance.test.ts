@@ -9,9 +9,9 @@
  */
 
 import { describe, expect, test } from "bun:test"
-import type { DodgeReport } from "./advance"
+import type { DodgeReport, SlipReport } from "./advance"
 import type { ShotReport } from "./projectile"
-import { DODGE_STAMINA_COST } from "./stamina"
+import { DODGE_STAMINA_COST, SLIP_STAMINA_COST } from "./stamina"
 import {
   createFight,
   type Fight,
@@ -113,6 +113,55 @@ describe("advance — the dodge price (FR-10)", () => {
     // The pool is charged once per lunge, so holding the order is not a drain.
     expect(fight.state.fighters[0].stamina).toBe(paid)
     expect(fight.state.fighters[0].pos.z).toBeGreaterThan(60)
+  })
+})
+
+describe("advance — the step-around price (FR-11)", () => {
+  const CUT: MoveIntent = { slip: { x: 0, z: 1000 } }
+  const CUT_ORDERS: readonly [MoveIntent, MoveIntent] = [CUT, HOLD]
+
+  function driveCut(steps: number): { hashes: number[]; slips: SlipReport[] } {
+    const fight = createFight(config([side("home", -2000), side("away", 2000)]))
+    const hashes: number[] = []
+    const slips: SlipReport[] = []
+    for (let i = 0; i < steps; i++) {
+      const result = fight.advance(CUT_ORDERS)
+      hashes.push(result.hash)
+      slips.push(...result.slips)
+    }
+    return { hashes, slips }
+  }
+
+  test("a cut pays its own price, not the dodge's, and moves sideways", () => {
+    const fight = createFight(config([side("home", -2000), side("away", 2000)]))
+    const before = fight.state.fighters[0]
+    const result = fight.advance(CUT_ORDERS)
+    const after = result.state.fighters[0]
+    expect(after.stamina).toBe(before.stamina - SLIP_STAMINA_COST)
+    expect(result.slips).toEqual([{ key: "home", paid: true }])
+    expect(result.dodges).toEqual([])
+    expect(after.pos.z).toBeGreaterThan(before.pos.z)
+  })
+
+  test("an empty pool refuses the cut into a hold, reported", () => {
+    const poor: FighterInit = { ...side("home", -2000), staminaMax: 5 }
+    const fight = createFight(config([poor, side("away", 2000)]))
+    const before = fight.state.fighters[0]
+    const result = fight.advance(CUT_ORDERS)
+    const after = result.state.fighters[0]
+    expect(after.stamina).toBe(before.stamina)
+    expect(result.slips).toEqual([{ key: "home", paid: false }])
+    expect(after.pos).toEqual(before.pos)
+    expect(after.vel).toEqual(before.vel)
+  })
+
+  test("a held cut charges once per cut, not once per step", () => {
+    const first = driveCut(20)
+    const second = driveCut(20)
+    expect(second.hashes).toEqual(first.hashes)
+    expect(second.slips).toEqual(first.slips)
+    expect(first.slips).toHaveLength(20)
+    expect(first.slips.every((slip) => slip.paid)).toBe(true)
   })
 })
 
