@@ -39,6 +39,14 @@ export {
   type RangeBand,
   tacticForDoctrine,
 } from "./continuous/controller"
+export {
+  KEEP_BACK_FLOOR_PERCENT,
+  RULE_IDS,
+  RULE_LABELS,
+  RULES,
+  type RuleDef,
+  type RuleId,
+} from "./continuous/controller-rule"
 export { startingHp } from "./continuous/hp"
 export {
   ARENA_BOUNDS,

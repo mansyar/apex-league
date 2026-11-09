@@ -246,6 +246,7 @@ export function resolveContinuous(
         controller: brains[side],
         profile: profiles[side],
         kit: kits[side],
+        rule: (side === 0 ? a : b).rule,
       })
       brains[side] = order.state
       orders[side] = order.intent

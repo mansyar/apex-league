@@ -1,22 +1,12 @@
 /**
  * The real-time controller: what one fighter wants, re-decided on a fixed
- * cadence while the fight keeps moving underneath it.
+ * cadence while the fight moves underneath it (FR-11, AC-11).
  *
- * Continuous Arena Battle FR-11 and AC-11. `../policy` picks one action per
- * gauge window; this orders six verbs — advance, retreat, strafe, hold,
- * commit, dodge — every `DECISION_MS` of fight time and holds that intent in
- * between, so a replay observes the cadence and two runs from one seed order
- * the same fight.
- *
- * A fighter locked into an attack is never re-decided out of it (FR-6), so a
- * swing cannot be twitched away and a refused commit cannot be spammed. The
- * one thing worth interrupting for is a blow about to land: a swing still
- * winding up, or a shot nearly home on this body's line, is answered with a
- * one-window dodge burst aimed clear of it (FR-20), then held off by a
- * cooldown. One `ControllerProfile` table keyed off `Temperament` serves
- * rivals and bosses alike, and nothing rolls: a profile's shares partition a
- * fixed ten-decision cycle, so the rhythm comes from the table, not from a
- * random source.
+ * A locked fighter is never re-decided out of an attack (FR-6). The one thing
+ * worth interrupting for is a blow about to land: a swing winding up, or a
+ * shot nearly home, is answered with a one-window dodge burst (FR-20), then
+ * held off by a cooldown. Nothing rolls: a profile's shares partition a fixed
+ * ten-decision cycle, so the rhythm comes from the table.
  */
 
 import {
@@ -35,6 +25,14 @@ import {
   reachEdgeMm,
 } from "./controller-profile"
 import { rearCommit } from "./controller-rear"
+import {
+  type RuleId,
+  type RuleOrder,
+  ruleDisengage,
+  ruleDodge,
+  ruleRefuses,
+  withRule,
+} from "./controller-rule"
 import { slipOrder } from "./controller-slip"
 import { isBroken } from "./poise"
 import { DODGE_STAMINA_COST } from "./stamina"
@@ -67,9 +65,7 @@ export { DODGE_LEAD_MS } from "./controller-threat"
 
 /**
  * How often the controller re-decides, in ms (tunable, whole steps, FR-3):
- * 240 ms is four decisions a second, inside the 200-240 ms band. The old
- * 120 ms cadence let a fighter re-commit the moment recovery ended, which is
- * what made a fight read as a machine gun.
+ * 240 ms is four decisions a second, inside the 200-240 ms band.
  */
 export const DECISION_MS = 240
 
@@ -151,6 +147,11 @@ export interface DecisionInput {
   readonly profile: ControllerProfile
   /** The moves this side may commit, in kit order. */
   readonly kit: readonly string[]
+  /**
+   * The conditional rule in force (FR-13). Absent is the default and changes
+   * nothing; exactly one id can be carried, so rules never stack.
+   */
+  readonly rule?: RuleId
 }
 
 /** What one decision ordered: the next state, the verb, and any commit. */
@@ -165,6 +166,8 @@ export interface ControllerDecision {
   readonly commit: string | null
   /** Stamina the step charges for this dodge, in points; 0 otherwise. */
   readonly dodgeCost: number
+  /** The rule that changed this decision (FR-13), or absent when none did. */
+  readonly rule?: RuleId
 }
 
 /** Between decisions the controller repeats exactly what it ordered. */
@@ -179,10 +182,9 @@ function hold(controller: ControllerState): ControllerDecision {
 }
 
 /**
- * Order one fighter's next intent. Between decisions this returns the held
- * intent untouched; on a cadence step it picks a verb from the fight state
- * alone. A locked fighter keeps the verb and intent it had and asks for no
- * commit, so nothing here can cancel a swing or spam a refusal.
+ * Order one fighter's next intent: the held intent between decisions, or a
+ * fresh verb from the fight state on a cadence step. A locked fighter keeps
+ * what it had, so nothing here can cancel a swing or spam a refusal.
  */
 export function decide(input: DecisionInput): ControllerDecision {
   const { state, side, controller, profile, kit } = input
@@ -195,9 +197,8 @@ export function decide(input: DecisionInput): ControllerDecision {
     state.step % DECISION_STEPS === 0 &&
     controller.decisions <= state.step / DECISION_STEPS
   if (!decisionStep) {
-    // A cut has a fixed length (FR-11): between decisions it is released into
-    // a hold at the step the window closes, so the burst is a cut and not a
-    // second walk speed.
+    // A cut has a fixed length (FR-11): it is released into a hold at the step
+    // the window closes, so the burst is a cut and not a second walk speed.
     if (
       controller.slipUntilMs > 0 &&
       state.elapsedMs >= controller.slipUntilMs
@@ -233,11 +234,27 @@ export function decide(input: DecisionInput): ControllerDecision {
     }
     return { state: next, verb, intent, commit, dodgeCost }
   }
+  const apply = (order: RuleOrder): ControllerDecision =>
+    withRule(
+      settle(
+        order.verb,
+        order.intent,
+        null,
+        order.dodgeCost,
+        order.dodgeReadyMs,
+      ),
+      order.id,
+    )
 
   // Commitment lock (FR-6): startup, active, and recovery all own the
   // fighter. Re-deciding here is what would let it kite mid-swing.
   if (me.attack) return settle(controller.verb, controller.intent)
   if (isBroken(me)) return settle(controller.verb, controller.intent)
+
+  // The dodge rule (FR-13) answers a wind-up before the doctrine reacts;
+  // ./controller-rule owns its trigger, direction, and cooldown.
+  const dodgeNote = ruleDodge(input)
+  if (dodgeNote) return apply(dodgeNote)
 
   // Circle takes the rear the moment it has it (FR-11): a basic strike's
   // startup is short enough that a body deep in the arc still lands there.
@@ -284,6 +301,11 @@ export function decide(input: DecisionInput): ControllerDecision {
         )
       : settle("strafe", strafeIntent(me, foe, sign, profile.seeksRear))
 
+  // "Keep something back" (FR-13) is a plan-level note: it gives ground while
+  // the pool is under its floor, after the dodge gate has had its say.
+  const holdNote = ruleDisengage(input, RETREAT_ROOM_RADII)
+  if (holdNote) return apply(holdNote)
+
   const gapSq = planarGapSq(me.pos, foe.pos)
   const band = bandFor(profile, reachEdgeMm(me, foe))
   if (gapSq > band.ceilingMm * band.ceilingMm) {
@@ -295,21 +317,18 @@ export function decide(input: DecisionInput): ControllerDecision {
   const strafe = Math.min(CYCLE - press, Math.round(profile.strafeBias / 10))
 
   // Giving ground (FR-2): below the doctrine's range floor the pair is too
-  // close to fight from, so the fighter backs off. Once it starts it keeps
-  // backing off until the preferred range is reached, so the threshold cannot
-  // be crossed back and forth decision after decision. The baseline's 2,014
-  // retreats against a 539 mm median were exactly that oscillation: the verb
-  // fired at contact distance and the fighter re-closed on the next window.
+  // close to fight from, so it backs off, and keeps backing off until the
+  // preferred range is reached. Without that latch the verb fired at contact
+  // distance and the fighter re-closed on the next window: the baseline's
+  // 2,014 retreats against a 539 mm median were exactly that oscillation.
   const retreating = controller.verb === "retreat"
   const threshold = retreating ? band.preferredMm : band.floorMm
   if (gapSq < threshold * threshold) {
     const away = awayFrom(me, foe)
-    // A body against a fence has nowhere to back off to (FR-21). Retreating
-    // into the wall is how a cornered fighter used to spend the whole fight:
-    // Phase 10 measured a pinned tortoise ordering 462 retreats, landing
-    // nothing, while the foe swung freely. With its back to the fence it
-    // circles and takes its press slots instead, so being cornered costs
-    // position, not the fight, and it never shivers against the wall.
+    // A body against a fence has nowhere to back off to (FR-21): retreating
+    // into the wall is how a cornered fighter used to spend the whole fight
+    // (Phase 10: a pinned tortoise ordered 462 retreats and landed nothing).
+    // With its back to the fence it circles and takes its press slots instead.
     const room = retreatRoom(me, away, state.bounds)
     if (room >= me.radiusMm * RETREAT_ROOM_RADII) {
       return settle("retreat", away)
@@ -318,7 +337,11 @@ export function decide(input: DecisionInput): ControllerDecision {
       profile.commit === "punish" && foe.attack?.phase === "startup"
     if (slot < press && !waiting) {
       const moveId = chooseMove(me, foe, kit, gapSq)
-      if (moveId) return settle("commit", pressIntent(me, foe), moveId)
+      const refused = ruleRefuses(input, moveId)
+      if (moveId && !refused) {
+        return settle("commit", pressIntent(me, foe), moveId)
+      }
+      if (refused) return withRule(circle(), refused)
     }
     return circle()
   }
@@ -330,8 +353,11 @@ export function decide(input: DecisionInput): ControllerDecision {
       return circle()
     }
     const moveId = chooseMove(me, foe, kit, gapSq)
-    if (moveId) return settle("commit", pressIntent(me, foe), moveId)
-    return settle("advance", aimAt(me, foe))
+    const refused = ruleRefuses(input, moveId)
+    if (moveId && !refused) {
+      return settle("commit", pressIntent(me, foe), moveId)
+    }
+    return withRule(settle("advance", aimAt(me, foe)), refused)
   }
   if (slot < press + strafe) {
     return circle()

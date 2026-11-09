@@ -25,6 +25,7 @@ import {
   DOCTRINE_IDS,
   doctrineForTactic,
 } from "./continuous/controller-profile"
+import type { RuleId } from "./continuous/controller-rule"
 import type { Tactic } from "./policy"
 import type { BattleSide } from "./resolver"
 import { rivalKit } from "./rival-kit"
@@ -49,6 +50,7 @@ export function makeExhibition(
   tactic: Tactic,
   seed: number,
   doctrine?: DoctrineId,
+  rule?: RuleId,
 ): SparSetup {
   const species = getSpecies(owned.speciesId)
   if (!species) throw new Error(`Unknown species: ${owned.speciesId}`)
@@ -82,6 +84,7 @@ export function makeExhibition(
     kit: owned.loadout ?? defaultLoadout(owned, species),
     tactic,
     doctrine: doctrine ?? doctrineForTactic(tactic),
+    ...(rule ? { rule } : {}),
     temperament: species.temperament,
     branch: owned.branch ?? "legacy",
   }

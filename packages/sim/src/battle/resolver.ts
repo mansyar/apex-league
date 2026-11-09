@@ -21,6 +21,7 @@ import {
   type PlanFn,
 } from "./clock"
 import type { DoctrineId } from "./continuous/controller-profile"
+import type { RuleId } from "./continuous/controller-rule"
 import { chooseAction, type Tactic } from "./policy"
 
 export type BattleReason = "ko" | "double_ko" | "time"
@@ -50,6 +51,13 @@ export interface BattleSide {
    * legacy names with the save migration.
    */
   readonly doctrine?: DoctrineId
+  /**
+   * The one conditional rule this side fights under (FR-13). Optional and
+   * absent by default, exactly like `doctrine`: a side without one behaves as
+   * it did before rules existed. Additive for the same reason; Phase 5 folds
+   * it into the save.
+   */
+  readonly rule?: RuleId
   readonly temperament: Temperament
   /**
    * The form this side fights in, for display only (FR-9). The resolver
