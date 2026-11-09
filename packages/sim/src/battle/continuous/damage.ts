@@ -10,7 +10,7 @@
  *
  * The blow weight lives here, not in `strikeDamage`: the legacy gauge clock
  * still reads that formula and its arithmetic is frozen, so only the
- * continuous engine's blows get heavier (Phase 6).
+ * continuous engine's blows get heavier (Phase 8).
  */
 
 import type { TypeFactor } from "../chart"

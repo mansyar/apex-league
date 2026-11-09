@@ -33,8 +33,8 @@ export const STAMINA_REGEN_PER_INTERVAL = 1
  * Specials keep their authored 4-10, so they stay the expensive choice.
  *
  * The floor is a per-blow price, so it carries `BLOW_WEIGHT` like every other
- * one (Phase 6): the cheapest attack still costs 1.5 s of regeneration, which
- * is now three basic cycles rather than one, so the gate binds at the same
+ * one (Phase 8): the cheapest attack still costs 1.5 s of regeneration, which
+ * is now two basic cycles rather than one, so the gate binds at the same
  * point in the cycle as before the weight.
  */
 export const MIN_ATTACK_STAMINA_COST = 3 * BLOW_WEIGHT

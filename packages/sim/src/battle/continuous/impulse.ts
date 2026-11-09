@@ -48,9 +48,9 @@ export const KNOCKBACK_REFERENCE_MASS = Math.floor(
  * knockback before decay, which slides it a few tens of mm; a light body takes
  * low hundreds, a heavy one less still.
  *
- * Divided by `BLOW_WEIGHT` because the weight triples every move's poise
+ * Divided by `BLOW_WEIGHT` because the weight doubles every move's poise
  * damage: the shove is already tuned, so only the damage gets heavier and a
- * blow still displaces what it did before the weight (Phase 6).
+ * blow still displaces what it did before the weight (Phase 8).
  */
 export const KNOCKBACK_PER_POISE = Math.trunc(1000 / BLOW_WEIGHT)
 

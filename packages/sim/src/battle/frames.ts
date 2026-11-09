@@ -10,11 +10,11 @@
  * the 20261109 cadence track widened every tail so it is comparable to startup
  * plus active, and the same track's blow-weight pass then multiplied all five
  * frame fields (startup, active, recovery, poise damage, stamina cost) by
- * `BLOW_WEIGHT` so a fight lands a third as many blows, each three times
- * heavier. Startup and active carry the weight because damage does: a blow
- * that is three times heavier must also take three times as long to arrive and
- * to commit, or damage per second climbs. The table below carries the weighted
- * values; the pre-weight numbers are `row / BLOW_WEIGHT`.
+ * `BLOW_WEIGHT` so a fight lands half as many blows, each twice as heavy.
+ * Startup and active carry the weight because damage does: a blow that is
+ * twice as heavy must also take twice as long to arrive and to commit, or
+ * damage per second climbs. The table below carries the weighted values; the
+ * pre-weight numbers are `row / BLOW_WEIGHT`.
  *
  * Units are fixed-point integers: durations in milliseconds, distances in
  * millimetres, speeds in millimetres per millisecond (1 mm/ms = 1 m/s). `y` is
@@ -66,26 +66,26 @@ export interface FrameData {
 export const BODY_RADIUS_MM = 220
 
 /**
- * The blow weight (tunable, Phase 6): how many of the authored unit blows one
+ * The blow weight (tunable, Phase 8): how many of the authored unit blows one
  * live blow is worth. It is applied to every per-blow quantity, never to a
  * per-second one, so a fight keeps its length and its shape and only its
- * granularity changes — a third as many blows, each three times heavier.
+ * granularity changes — half as many blows, each twice as heavy.
  *
  * - Damage: `positionalDamage` multiplies the numerator by it (not
  *   `strikeDamage`, which the frozen legacy clock shares).
  * - Startup, active, recovery, poise damage and stamina cost: every row below
  *   is authored already multiplied, so the five cannot drift apart. Startup and
  *   active have to carry it too: damage per second is damage over the whole
- *   cycle, and scaling only the tail would leave the blow three times heavier
- *   on a cycle that grew by less than three.
+ *   cycle, and scaling only the tail would leave the blow twice as heavy on a
+ *   cycle that grew by less than two.
  * - Knockback: `KNOCKBACK_PER_POISE` divides it back out, because a blow now
- *   carries three times the poise for the same shove.
+ *   carries twice the poise for the same shove.
  *
  * It is deliberately not applied to a rate: stamina regeneration, the dodge
  * price, decision cadence and the HP scale stay as they are, which is what
  * keeps the stamina budget and the fight length per second unchanged.
  */
-export const BLOW_WEIGHT = 3
+export const BLOW_WEIGHT = 2
 
 /** No authored band may reach higher than this, in mm (sane-range guard). */
 const BAND_CEILING_MM = 2000
@@ -138,82 +138,72 @@ function frame(
  * and frames.test.ts proves the key set matches the catalog exactly.
  */
 export const FRAME_DATA: Readonly<Record<string, FrameData>> = Object.freeze({
-  basic: frame(240, 180, 750, 420, BASIC_FROM, BASIC_TO, 0, 6, 6),
+  basic: frame(160, 120, 500, 420, BASIC_FROM, BASIC_TO, 0, 4, 4),
 
   // fire — fast projectiles, quick chip, slow pyre
-  spark: frame(390, 180, 900, 5200, MID_FROM, MID_TO, 12, 9, 12),
-  flame_charge: frame(450, 210, 990, 5600, MID_FROM, MID_TO, 14, 12, 15),
-  cinder_shot: frame(660, 240, 1410, 6000, MID_FROM, MID_TO, 11, 15, 18),
-  blaze_bolt: frame(840, 270, 1530, 6200, HIGH_FROM, HIGH_TO, 13, 21, 24),
-  flare_dart: frame(330, 150, 900, 5000, MID_FROM, MID_TO, 15, 9, 12),
-  pyre_lance: frame(1080, 330, 2070, 6500, HIGH_FROM, HIGH_TO, 10, 27, 30),
+  spark: frame(260, 120, 600, 5200, MID_FROM, MID_TO, 12, 6, 8),
+  flame_charge: frame(300, 140, 660, 5600, MID_FROM, MID_TO, 14, 8, 10),
+  cinder_shot: frame(440, 160, 940, 6000, MID_FROM, MID_TO, 11, 10, 12),
+  blaze_bolt: frame(560, 180, 1020, 6200, HIGH_FROM, HIGH_TO, 13, 14, 16),
+  flare_dart: frame(220, 100, 600, 5000, MID_FROM, MID_TO, 15, 6, 8),
+  pyre_lance: frame(720, 220, 1380, 6500, HIGH_FROM, HIGH_TO, 10, 18, 20),
 
   // plant — slow seeds, long roots
-  seed_shot: frame(390, 180, 900, 5200, MID_FROM, MID_TO, 8, 9, 12),
-  thorn_volley: frame(510, 210, 990, 5600, MID_FROM, MID_TO, 9, 12, 15),
-  spore_burst: frame(660, 240, 1410, 6000, LOW_FROM, LOW_TO, 7, 15, 18),
-  bramble_dart: frame(840, 270, 1530, 6200, MID_FROM, MID_TO, 10, 21, 24),
-  vine_lash: frame(330, 150, 900, 5000, MID_FROM, MID_TO, 9, 9, 12),
-  root_quake: frame(1140, 330, 2130, 6500, LOW_FROM, LOW_TO, 6, 27, 30),
+  seed_shot: frame(260, 120, 600, 5200, MID_FROM, MID_TO, 8, 6, 8),
+  thorn_volley: frame(340, 140, 660, 5600, MID_FROM, MID_TO, 9, 8, 10),
+  spore_burst: frame(440, 160, 940, 6000, LOW_FROM, LOW_TO, 7, 10, 12),
+  bramble_dart: frame(560, 180, 1020, 6200, MID_FROM, MID_TO, 10, 14, 16),
+  vine_lash: frame(220, 100, 600, 5000, MID_FROM, MID_TO, 9, 6, 8),
+  root_quake: frame(760, 220, 1420, 6500, LOW_FROM, LOW_TO, 6, 18, 20),
 
   // water — steady travel, wide spray
-  bubble: frame(390, 180, 900, 5200, MID_FROM, MID_TO, 8, 9, 12),
-  tide_shot: frame(510, 210, 990, 5600, MID_FROM, MID_TO, 10, 12, 15),
-  foam_volley: frame(660, 240, 1410, 6000, LOW_FROM, LOW_TO, 9, 15, 18),
-  splash_bolt: frame(840, 270, 1530, 6200, MID_FROM, MID_TO, 11, 21, 24),
-  mist_spray: frame(330, 150, 900, 5000, LOW_FROM, LOW_TO, 12, 9, 12),
-  maelstrom: frame(1080, 330, 2070, 6500, HIGH_FROM, HIGH_TO, 7, 27, 30),
+  bubble: frame(260, 120, 600, 5200, MID_FROM, MID_TO, 8, 6, 8),
+  tide_shot: frame(340, 140, 660, 5600, MID_FROM, MID_TO, 10, 8, 10),
+  foam_volley: frame(440, 160, 940, 6000, LOW_FROM, LOW_TO, 9, 10, 12),
+  splash_bolt: frame(560, 180, 1020, 6200, MID_FROM, MID_TO, 11, 14, 16),
+  mist_spray: frame(220, 100, 600, 5000, LOW_FROM, LOW_TO, 12, 6, 8),
+  maelstrom: frame(720, 220, 1380, 6500, HIGH_FROM, HIGH_TO, 7, 18, 20),
 
   // wider pool: dashes and walls, then the branch signatures
-  cinder_dive: frame(720, 300, 1470, 6000, MID_FROM, MID_TO, 16, 21, 24),
-  pyre_wall: frame(780, 660, 1410, 4200, LOW_FROM, LOW_TO, 8, 15, 18),
-  thorn_charge: frame(780, 300, 1530, 5800, MID_FROM, MID_TO, 12, 21, 24),
-  bramble_guard: frame(840, 720, 1440, 4000, LOW_FROM, LOW_TO, 6, 15, 18),
-  riptide_rush: frame(750, 270, 1500, 5800, MID_FROM, MID_TO, 14, 21, 24),
-  tide_aegis: frame(810, 660, 1410, 4200, LOW_FROM, LOW_TO, 7, 15, 18),
+  cinder_dive: frame(480, 200, 980, 6000, MID_FROM, MID_TO, 16, 14, 16),
+  pyre_wall: frame(520, 440, 940, 4200, LOW_FROM, LOW_TO, 8, 10, 12),
+  thorn_charge: frame(520, 200, 1020, 5800, MID_FROM, MID_TO, 12, 14, 16),
+  bramble_guard: frame(560, 480, 960, 4000, LOW_FROM, LOW_TO, 6, 10, 12),
+  riptide_rush: frame(500, 180, 1000, 5800, MID_FROM, MID_TO, 14, 14, 16),
+  tide_aegis: frame(540, 440, 940, 4200, LOW_FROM, LOW_TO, 7, 10, 12),
 
   // electric — the fastest shots in the catalog
-  static_jolt: frame(360, 180, 900, 5200, MID_FROM, MID_TO, 14, 9, 12),
-  volt_dash: frame(420, 210, 990, 5600, MID_FROM, MID_TO, 18, 12, 15),
-  arc_shot: frame(600, 240, 1380, 6000, MID_FROM, MID_TO, 15, 15, 18),
-  storm_bolt: frame(780, 270, 1500, 6200, HIGH_FROM, HIGH_TO, 16, 21, 24),
-  ion_dart: frame(300, 150, 900, 5000, MID_FROM, MID_TO, 17, 9, 12),
-  gigavolt: frame(1020, 330, 2040, 6500, HIGH_FROM, HIGH_TO, 13, 27, 30),
+  static_jolt: frame(240, 120, 600, 5200, MID_FROM, MID_TO, 14, 6, 8),
+  volt_dash: frame(280, 140, 660, 5600, MID_FROM, MID_TO, 18, 8, 10),
+  arc_shot: frame(400, 160, 920, 6000, MID_FROM, MID_TO, 15, 10, 12),
+  storm_bolt: frame(520, 180, 1000, 6200, HIGH_FROM, HIGH_TO, 16, 14, 16),
+  ion_dart: frame(200, 100, 600, 5000, MID_FROM, MID_TO, 17, 6, 8),
+  gigavolt: frame(680, 220, 1360, 6500, HIGH_FROM, HIGH_TO, 13, 18, 20),
 
-  storm_surge: frame(720, 270, 1470, 6200, MID_FROM, MID_TO, 18, 21, 24),
-  ion_wall: frame(750, 600, 1380, 4400, LOW_FROM, LOW_TO, 12, 15, 18),
+  storm_surge: frame(480, 180, 980, 6200, MID_FROM, MID_TO, 18, 14, 16),
+  ion_wall: frame(500, 400, 920, 4400, LOW_FROM, LOW_TO, 12, 10, 12),
 
   // earth — heavy, slow, hard to dodge
-  pebble_shot: frame(450, 180, 930, 5200, MID_FROM, MID_TO, 7, 9, 12),
-  dust_devil: frame(570, 210, 1020, 5600, LOW_FROM, LOW_TO, 8, 12, 15),
-  clay_burst: frame(720, 240, 1440, 6000, MID_FROM, MID_TO, 6, 15, 18),
-  boulder_toss: frame(900, 270, 1560, 6200, HIGH_FROM, HIGH_TO, 5, 21, 24),
-  sand_blast: frame(360, 150, 900, 5000, LOW_FROM, LOW_TO, 9, 9, 12),
-  tectonic_slam: frame(1200, 330, 2160, 6500, LOW_FROM, LOW_TO, 4, 27, 30),
+  pebble_shot: frame(300, 120, 620, 5200, MID_FROM, MID_TO, 7, 6, 8),
+  dust_devil: frame(380, 140, 680, 5600, LOW_FROM, LOW_TO, 8, 8, 10),
+  clay_burst: frame(480, 160, 960, 6000, MID_FROM, MID_TO, 6, 10, 12),
+  boulder_toss: frame(600, 180, 1040, 6200, HIGH_FROM, HIGH_TO, 5, 14, 16),
+  sand_blast: frame(240, 100, 600, 5000, LOW_FROM, LOW_TO, 9, 6, 8),
+  tectonic_slam: frame(800, 220, 1440, 6500, LOW_FROM, LOW_TO, 4, 18, 20),
 
-  quake_stomp: frame(960, 360, 1560, 5200, LOW_FROM, LOW_TO, 5, 21, 24),
-  basalt_guard: frame(900, 780, 1470, 3800, LOW_FROM, LOW_TO, 4, 15, 18),
+  quake_stomp: frame(640, 240, 1040, 5200, LOW_FROM, LOW_TO, 5, 14, 16),
+  basalt_guard: frame(600, 520, 980, 3800, LOW_FROM, LOW_TO, 4, 10, 12),
 
   // wind — the quickest starts, the lightest footing
-  gust: frame(330, 180, 900, 5200, MID_FROM, MID_TO, 15, 9, 12),
-  feather_dart: frame(420, 210, 990, 5600, MID_FROM, MID_TO, 18, 12, 15),
-  gale_cutter: frame(600, 240, 1380, 6000, MID_FROM, MID_TO, 16, 15, 18),
-  sky_bolt: frame(750, 270, 1500, 6200, HIGH_FROM, HIGH_TO, 17, 21, 24),
-  talon_slash: frame(270, 150, 900, 5000, MID_FROM, MID_TO, 19, 9, 12),
-  hurricane_spiral: frame(
-    1020,
-    330,
-    2010,
-    6500,
-    HIGH_FROM,
-    HIGH_TO,
-    12,
-    27,
-    30,
-  ),
+  gust: frame(220, 120, 600, 5200, MID_FROM, MID_TO, 15, 6, 8),
+  feather_dart: frame(280, 140, 660, 5600, MID_FROM, MID_TO, 18, 8, 10),
+  gale_cutter: frame(400, 160, 920, 6000, MID_FROM, MID_TO, 16, 10, 12),
+  sky_bolt: frame(500, 180, 1000, 6200, HIGH_FROM, HIGH_TO, 17, 14, 16),
+  talon_slash: frame(180, 100, 600, 5000, MID_FROM, MID_TO, 19, 6, 8),
+  hurricane_spiral: frame(680, 220, 1340, 6500, HIGH_FROM, HIGH_TO, 12, 18, 20),
 
-  cyclone_dive: frame(690, 270, 1440, 6000, MID_FROM, MID_TO, 20, 21, 24),
-  zephyr_veil: frame(720, 630, 1380, 4400, LOW_FROM, LOW_TO, 14, 15, 18),
+  cyclone_dive: frame(460, 180, 960, 6000, MID_FROM, MID_TO, 20, 14, 16),
+  zephyr_veil: frame(480, 420, 920, 4400, LOW_FROM, LOW_TO, 14, 10, 12),
 })
 
 /** The authored row for a move id, or undefined when the id is unknown. */
