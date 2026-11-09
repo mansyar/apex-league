@@ -291,17 +291,20 @@ numbers are measured by a tool that predates them.
   `packages/sim/src/bosses.ts`, `packages/sim/src/battle/frames.ts` + co-located tests.
 - **Verification:** `bun run verify`, `bun run build`, `bun run balance`,
   `bun run telemetry` - four separate commands.
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** c1b460e7
+- **Evidence:** `conductor/tracks/20261109-battle-balance/verification/phase-13.md`
 
-- [ ] **P13.T1: Species into band** - covers: FR-5, AC-5
-  - [ ] **P13.T1.1:** Bring every species inside 45-55% by stats and kit shape, preferring
+- [x] **P13.T1: Species into band** - covers: FR-5, AC-5
+  - [x] **P13.T1.1:** Bring every species inside 45-55% by stats and kit shape, preferring
         the smaller change and justifying each by mechanism.
-  - [ ] **P13.T1.2:** Show the whole roster passing the gate - `bun run balance` exits 0.
-- [ ] **P13.T2: Pacing held** - covers: FR-4, AC-4
-  - [ ] **P13.T2.1:** Cap share at most one in three, knockout share at least two in three,
+  - [x] **P13.T1.2:** Show the whole roster passing the gate - `bun run balance` exits 0.
+- [x] **P13.T2: Pacing held** - covers: FR-4, AC-4
+  - [x] **P13.T2.1:** Cap share at most one in three, knockout share at least two in three,
         median strictly below `FIGHT_CAP_MS` and inside 25-40 s, all 13 telemetry bounds.
-- [ ] **P13.T3: Bosses** - covers: FR-6, AC-6
-  - [ ] **P13.T3.1:** Record each boss's intended stage, what the player brings, and its
+- [x] **P13.T3: Bosses** - covers: FR-6, AC-6
+  - [x] **P13.T3.1:** Record each boss's intended stage, what the player brings, and its
         measured win rate; `0 < wins < fights` is the floor, not the target.
-- [ ] **P13.T4: Tier order** - covers: FR-19
-  - [ ] **P13.T4.1:** The ladder still ascends and the heavy still earns its slot.
+- [x] **P13.T4: Tier order** - covers: FR-19
+  - [x] **P13.T4.1:** The ladder still ascends and the heavy still earns its slot.

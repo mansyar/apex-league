@@ -331,3 +331,71 @@ No client golden, bracket fixture or ghost test moved beyond the cup rows listed
   share, which does not exist yet.
 - The trace header still prints the cosmetic literal "hp 90" while the pool is
   189 — a Phase 5 leftover, not a behaviour.
+
+## Primary verification
+
+Independent verification of Phase 13 on the tree at `c1b460e7`. All four commands run
+separately, by me, on the committed tree.
+
+| command | result |
+| --- | --- |
+| `bun run verify` | exit 0 — 3,964 pass / 1 skip / 0 fail, 3,965 tests / 367 files |
+| `bun run build` | exit 0 — 410 modules |
+| `bun run balance` | **exit 0** — the first time in this track |
+| `bun run telemetry` | exit 0 — 13/13 bounds |
+
+The species table, read from the harness:
+
+| species | before | after | distinct fights |
+| --- | --- | --- | --- |
+| mistkit | 17.9% | 51.8% | 16 |
+| electric_hound | 23.2% | 46.4% | 13 |
+| wind_falcon | 25.0% | 50.0% | 17 |
+| fire_drake | 28.6% | 50.0% | 14 |
+| fernstag | 33.9% | 57.1% | 19 |
+| plant_ox | 39.3% | 51.8% | 20 |
+| cindermoor | 60.7% | 48.2% | 17 |
+| reefclaw | 64.3% | 50.0% | 18 |
+| galeheron | 82.1% | 53.6% | 14 |
+| shalemole | 85.7% | 51.8% | 17 |
+| voltfox | 89.3% | 44.6% | 14 |
+| embercub | 50.0% | 42.9% | 19 |
+| water_axolotl | 50.0% | 53.6% | 15 |
+| mossboar | 57.1% | 51.8% | 17 |
+| earth_tortoise | 42.9% | 46.4% | 4 |
+
+Gate 15/15. Design band 12/15 — `fernstag` 57.1%, `voltfox` 44.6% and `embercub` 42.9%
+sit outside 45-55% but inside the gate's 9.3-point slack, and all three have 14-19
+distinct fights, so they are measurements rather than noise.
+
+Resolvability and pacing, from `bun run balance`:
+
+```
+ok   capShare:     29.3% (246/840), bound <= 33.3%
+ok   durationBand: 52.4% (440/840), bound >= 50.0% in 25.00s..40.00s
+ok   durationMin:  8.20s, bound >= 8.00s
+ok   damageBand:   49/49 moves inside, bound 4%..12% of the 189 pool
+```
+
+`durationMin` came from 4.84 s to 8.20 s without cutting any species' offence below the
+band — the floor was closed with durability, which is the only honest way to do it. The
+30-point HP plateau the agent measured is what makes that credible rather than
+knife-edge tuning.
+
+Three things recorded and not fixed, all of which I agree with:
+
+1. **`earth_tortoise` still has 4 distinct fights of 112.** Its 46.4% is four coin flips.
+   Tuning it would have been fitting noise, so not tuning it is correct — but it also
+   means one of the fifteen rows is not actually verified, and the evidence says so.
+2. **Diversity overall is 9.5%.** Accuracy remains near-decorative at `MISS_SCALE 5`
+   (94-100% effective) because honouring the authored 70-100 ladder costs 15-20 points of
+   cap share. Standing debt with numbers attached.
+3. **Two authored `species-balance` targets became `test.failing` with the conflict
+   recorded**: a fresh hound now steals one boss fight in nine, and at the training cap
+   every species beats every boss. Neither was relaxed to pass.
+
+What makes this phase trustworthy where Phase 11 was not: the lever was stats at the
+species' own typical value, the search was logged with rejected iterations, and the
+report itself was fixed first. Tuning a measurement you cannot see is how three phases
+got spent.
+
