@@ -1,9 +1,10 @@
 /**
  * The ranch spar (spec FR11): a free two-click exhibition with no stakes.
  * The panel pre-rolls the rival from the battle seed, a tactic click starts
- * the fight, and the announcer log plays back step by step with a
- * fast-forward. Nothing here touches GameState, AP, conditions, or the
- * save — the result lives only in this panel.
+ * the fight, and the bout resolves through the continuous engine — its
+ * dense stream drives the arena and the announcer log rides its events —
+ * with a fast-forward. Nothing here touches GameState, AP, conditions, or
+ * the save — the result lives only in this panel.
  *
  * spar_modules split: the panel, its setup rows and the casting live in
  * ./spar/*; this file keeps the session wiring, the fight/start path, the
@@ -14,7 +15,6 @@
 import {
   type Creature,
   makeExhibition,
-  resolveBattle,
   type SparSetup,
   type Tactic,
 } from "@apex/sim"
@@ -30,6 +30,7 @@ import {
 } from "./spar/ghost"
 import { logToggleLabel } from "./spar/log"
 import { buildSparPanel } from "./spar/panel"
+import { resolveSpar } from "./spar/resolve"
 import { refreshPrep, renderRival } from "./spar/setup"
 import type { Spar, SparHandlers } from "./spar/types"
 
@@ -78,6 +79,7 @@ export function createSpar(
     onStep: (step, instant) => {
       handlers.onStep?.(step, instant)
     },
+    onFrame: (stream, step) => handlers.onFrame?.(stream, step),
     onLine: (text) => showLine(text),
     onReplayStart: (run) => {
       log.replaceChildren()
@@ -126,7 +128,7 @@ export function createSpar(
     const setup = ghost
       ? ghostSparSetup(owned, ghost, playerTactic)
       : makeExhibition(owned, playerTactic, battleSeed)
-    const verdict = resolveBattle(setup.ownedSide, setup.rivalSide, seed)
+    const verdict = resolveSpar(setup, seed)
 
     intro.textContent = `${setup.rival.name} accepts the spar!`
     for (const { button } of tacticButtons) button.style.display = "none"

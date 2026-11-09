@@ -1,6 +1,7 @@
 import type { LifeStage } from "@apex/sim"
 import { generate } from "@apex/voxel"
 import * as THREE from "three"
+import { bodyScaleFor } from "./arena-scale"
 import { profileFor } from "./choreo"
 import { applyBranchTint, buildCreatureGroup } from "./creature"
 import { findEyes } from "./face-motion"
@@ -9,19 +10,6 @@ import { disposeObject3D, lambertMaterialOf } from "./scene-utils"
 
 /** Canonical home-slot x for a cast fighter, mirrored by `away`. */
 export const HOME_X = 2.6
-/** Arena normalization: the whole-creature ground footprint every cast is
- * scaled to at cast time (fighting-game stage normalization). Gap
- * constants, camera framing, and authored choreography then stay
- * species-independent; silhouette and bulk still read, only overall
- * scale is equalized. The ranch and gallery keep natural sizes. */
-export const ARENA_FOOTPRINT = 1.7
-
-/** Holder scale that fits a creature's widest ground span into the
- * canonical arena slot. The 0.001 floor guards degenerate bounds. */
-export function arenaFootprintScale(size: { x: number; z: number }): number {
-  const footprint = Math.max(size.x, size.z, 0.001)
-  return ARENA_FOOTPRINT / footprint
-}
 
 /** One staged fighter: a DriveFighter plus its fixed home spot. */
 export interface Combatant extends DriveFighter {
@@ -74,12 +62,16 @@ export function buildSpot(
   const group = new THREE.Group()
   group.add(inner)
   inner.position.set(-center.x, 0, -center.z)
-  // Arena normalization: scale the holder so the whole-creature footprint
-  // fits the canonical slot. Applied to the holder (not the rig) so the
-  // baked voxel scale contract is untouched and the squash spring keeps
-  // composing on top of it.
+  // Sim scale: the holder is sized so the rig's widest ground span equals
+  // this archetype's simulated diameter (`2 * radiusMm * MM_TO_WORLD`), so
+  // a tortoise reads bigger than a heron and a body never outgrows the gap
+  // the resolver holds. Applied to the holder (not the rig) so the baked
+  // voxel scale contract is untouched and the squash spring keeps composing
+  // on top of it.
   const size = innerBox.getSize(new THREE.Vector3())
-  group.scale.setScalar(arenaFootprintScale(size))
+  group.scale.setScalar(
+    bodyScaleFor(info.archetypeId, Math.max(size.x, size.z)),
+  )
   const combatant: Combatant = {
     name: info.name,
     key: info.key,

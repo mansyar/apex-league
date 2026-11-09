@@ -1,0 +1,339 @@
+/**
+ * Strikes in space (FR-4, FR-18): reach, the facing arcs a blow is judged
+ * against, and the attack lifecycle. Every test is an integer comparison of
+ * the two positions, facings and bodies — no trigonometry, clock or random
+ * source. The attack lifecycle and trade rule live here too.
+ */
+
+import type { Element } from "../../creature"
+import { incomingTypeFactor, type TypeFactor } from "../chart"
+import { type FrameData, getFrameData } from "../frames"
+import { getMove } from "../moves"
+import { bandOverlapsBody, bodyOf, reachesBody } from "./contact"
+import { type HitPosition, positionalDamage, type Ratio } from "./damage"
+import {
+  type AttackPhase,
+  type AttackState,
+  type Dir2,
+  type FighterState,
+  STEP_MS,
+  type Vec3,
+} from "./types"
+
+/**
+ * The front arc a strike must aim within, as the cosine of its half-width.
+ * `0 / 1` is 90°, a 180° total arc: generous on purpose, so a strike only
+ * misses when aimed clearly away (AC-4).
+ */
+export const FRONT_ARC_COS: Ratio = Object.freeze({ num: 0, den: 1 })
+
+/**
+ * The front and rear sectors used to place a hit, as the cosine of their
+ * half-width: `1 / 2` is 60°, so the two 60° bands between are the flanks
+ * (FR-4).
+ */
+export const FLANK_COS: Ratio = Object.freeze({ num: 1, den: 2 })
+
+/** `dot / (|a| |b|) >= cos`, squared so the comparison stays in integers. */
+function cosineAtLeast(
+  dot: number,
+  aSq: number,
+  bSq: number,
+  cos: Ratio,
+): boolean {
+  return dot * dot * cos.den * cos.den >= aSq * bSq * cos.num * cos.num
+}
+
+/**
+ * True when the target lies inside the attacker's front arc (AC-4). A shared
+ * centre is in front, and the boundary counts as inside.
+ */
+export function inFrontArc(facing: Dir2, from: Vec3, to: Vec3): boolean {
+  const dx = to.x - from.x
+  const dz = to.z - from.z
+  if (dx === 0 && dz === 0) return true
+  const dot = facing.x * dx + facing.z * dz
+  if (dot < 0) return false
+  return cosineAtLeast(
+    dot,
+    facing.x * facing.x + facing.z * facing.z,
+    dx * dx + dz * dz,
+    FRONT_ARC_COS,
+  )
+}
+
+/** Where the attacker stood: front, rear, or one of the flank bands. */
+export function hitPosition(
+  victimFacing: Dir2,
+  victim: Vec3,
+  attacker: Vec3,
+): HitPosition {
+  const dx = attacker.x - victim.x
+  const dz = attacker.z - victim.z
+  if (dx === 0 && dz === 0) return "front"
+  const dot = victimFacing.x * dx + victimFacing.z * dz
+  const facingSq =
+    victimFacing.x * victimFacing.x + victimFacing.z * victimFacing.z
+  if (!cosineAtLeast(dot, facingSq, dx * dx + dz * dz, FLANK_COS)) {
+    return "flank"
+  }
+  return dot >= 0 ? "front" : "rear"
+}
+
+/** The authored phases in the order an attack walks them. */
+export const ATTACK_PHASES: readonly AttackPhase[] = Object.freeze([
+  "startup",
+  "active",
+  "recovery",
+])
+
+/**
+ * The `spd` at which authored recovery is used as written (tunable, FR-5):
+ * half the speed doubles recovery, double the speed halves it.
+ */
+export const RECOVERY_REFERENCE_SPD = 10
+
+/**
+ * A move's recovery for a fighter of this `spd`, in ms (FR-5):
+ * `recoveryMs * RECOVERY_REFERENCE_SPD / spd`, truncated. A non-positive
+ * speed or a result at or below zero is a config error, not a free attack.
+ */
+export function recoveryMsFor(row: FrameData, spd: number): number {
+  if (!Number.isInteger(spd)) {
+    throw new Error(`Recovery needs a whole spd: ${spd}`)
+  }
+  if (spd <= 0) {
+    throw new Error(`Recovery needs a positive spd: ${spd}`)
+  }
+  const scaled = Math.trunc((row.recoveryMs * RECOVERY_REFERENCE_SPD) / spd)
+  if (scaled <= 0) {
+    throw new Error(
+      `Recovery scales to zero or below: ${row.recoveryMs} ms at spd ${spd}`,
+    )
+  }
+  return scaled
+}
+
+/**
+ * One phase's duration in ms: startup and active are authored, recovery is
+ * scaled by `spd` (defaulting to the reference speed).
+ */
+export function phaseDuration(
+  row: FrameData,
+  phase: AttackPhase,
+  spd: number = RECOVERY_REFERENCE_SPD,
+): number {
+  if (phase === "startup") return row.startupMs
+  if (phase === "active") return row.activeMs
+  return recoveryMsFor(row, spd)
+}
+
+/**
+ * Advance one committed attack by a step, carrying the remainder across a
+ * phase boundary so a 130 ms startup is 130 ms of fight time, not seven
+ * rounded steps. Null once recovery runs out; `landed` rides along (FR-18).
+ */
+export function advanceAttack(
+  attack: AttackState,
+  row: FrameData,
+  spd: number = RECOVERY_REFERENCE_SPD,
+): AttackState | null {
+  let phase = attack.phase
+  let elapsedMs = attack.elapsedMs + STEP_MS
+  for (;;) {
+    const duration = phaseDuration(row, phase, spd)
+    if (elapsedMs < duration) {
+      return { ...attack, phase, elapsedMs }
+    }
+    if (phase === "recovery") return null
+    elapsedMs -= duration
+    phase = phase === "startup" ? "active" : "recovery"
+  }
+}
+
+/** Advance the attack a fighter holds, if any, leaving the rest untouched. */
+export function advanceFighterAttack(fighter: FighterState): FighterState {
+  const attack = fighter.attack
+  if (!attack) return fighter
+  const row = getFrameData(attack.moveId)
+  if (!row) throw new Error(`Unknown move: ${attack.moveId}`)
+  return { ...fighter, attack: advanceAttack(attack, row, fighter.spd) }
+}
+
+/**
+ * True when the fighter may commit: it holds no attack, or it is still in
+ * startup — the one window that can be cancelled (FR-6). Active and recovery
+ * are locked, so a committed attack cannot be taken back once startup ends.
+ */
+export function canCommit(fighter: FighterState): boolean {
+  return !fighter.attack || fighter.attack.phase === "startup"
+}
+
+/**
+ * Start an attack. A commit during startup replaces the current one; a
+ * commit during active or recovery is refused and the fighter comes back
+ * unchanged, so the caller can tell by identity.
+ */
+export function commitAttack(
+  fighter: FighterState,
+  moveId: string,
+): FighterState {
+  if (!canCommit(fighter)) return fighter
+  if (!getMove(moveId) || !getFrameData(moveId)) {
+    throw new Error(`Unknown move: ${moveId}`)
+  }
+  return {
+    ...fighter,
+    attack: { moveId, phase: "startup", elapsedMs: 0, landed: false },
+  }
+}
+
+/** The combat stats a strike reads; `spd` lives on the fighter itself. */
+export interface StrikeStats {
+  readonly atk: number
+  readonly def: number
+  /** Catalog element; absent for the typeless basic strike. */
+  readonly element?: Element | undefined
+  /** Secondary type affinity; read on the side taking the blow (FR-4). */
+  readonly affinity?: Element | null | undefined
+}
+
+/** The profile a fight gets when it names no stats: typeless 1/1. */
+export const NEUTRAL_STATS: StrikeStats = Object.freeze({ atk: 1, def: 1 })
+
+/**
+ * The attacker's type factor against one victim; typeless is neutral. The
+ * victim's secondary affinity is read on the incoming side (FR-4).
+ */
+export function typeAgainst(
+  attacker: StrikeStats,
+  victim: StrikeStats,
+): TypeFactor {
+  if (!attacker.element || !victim.element) return { num: 1, den: 1 }
+  return incomingTypeFactor(
+    attacker.element,
+    victim.element,
+    victim.affinity ?? null,
+  )
+}
+
+/** One landed blow, as the step reports it. */
+export interface StrikeReport {
+  readonly attackerKey: string
+  readonly targetKey: string
+  readonly moveId: string
+  readonly damage: number
+  /** Poise removed from the victim by this blow (FR-9). */
+  readonly poiseDamage: number
+  readonly position: HitPosition
+  /** True when the victim was in recovery: the blow was a counter (FR-6). */
+  readonly counter: boolean
+  /** True when the blow cancelled the victim's startup (FR-6). */
+  readonly interrupted: boolean
+}
+
+/** One swing that swept its whole active window and touched nothing (FR-18). */
+export interface WhiffReport {
+  readonly attackerKey: string
+  readonly moveId: string
+}
+
+/** The fighters after resolution, plus every blow that landed. */
+export interface StrikeResolution {
+  readonly fighters: readonly [FighterState, FighterState]
+  readonly strikes: readonly StrikeReport[]
+}
+
+/**
+ * Resolve both sides' active frames against the same pre-step snapshot, so
+ * overlapping frames trade (FR-7) and neither blow hides the other's. A step
+ * covers `[t, t + STEP_MS)`, so a window is tested when it is open at either
+ * end (FR-18). The victim's phase is the one at the top of the step, so the
+ * last startup step interrupts and recovery begun mid-step is not a counter
+ * (FR-6). Ranged windows fire projectiles elsewhere (FR-8).
+ */
+export function resolveStrikes(
+  before: readonly [FighterState, FighterState],
+  after: readonly [FighterState, FighterState],
+  stats: readonly [StrikeStats, StrikeStats],
+): StrikeResolution {
+  const strikes: StrikeReport[] = []
+  // `after` is read only, so one side's cancellation cannot hide the other's
+  // simultaneous strike (FR-7). A swing that struck this step trades, so it is
+  // not cancelled; a swing that did not is.
+  const landed: [boolean, boolean] = [false, false]
+  const disarmed: [boolean, boolean] = [false, false]
+  for (const side of [0, 1] as const) {
+    const attack = after[side].attack
+    // Open when the window is open at either end of the step (FR-18).
+    const open =
+      attack?.phase === "active" || before[side].attack?.phase === "active"
+    if (!attack || !open || attack.landed) continue
+    const row = getFrameData(attack.moveId)
+    const move = getMove(attack.moveId)
+    if (!row || !move) throw new Error(`Unknown move: ${attack.moveId}`)
+    if (!move.melee) continue
+    const other = side === 0 ? 1 : 0
+    const attacker = before[side]
+    const victim = before[other]
+    if (!bandOverlapsBody(row.band, victim.heightMm)) continue
+    if (!reachesBody(bodyOf(attacker), bodyOf(victim), row.reachMm)) continue
+    if (!inFrontArc(attacker.facing, attacker.pos, victim.pos)) continue
+    landed[side] = true
+    // The victim's phase is the one it held at the top of the step (FR-6).
+    const victimAttack = before[other].attack
+    const counter = victimAttack?.phase === "recovery"
+    const interrupted = victimAttack?.phase === "startup"
+    if (interrupted) disarmed[other] = true
+    const position = hitPosition(victim.facing, victim.pos, attacker.pos)
+    const damage = positionalDamage({
+      power: move.power,
+      atk: stats[side].atk,
+      def: stats[other].def,
+      type: typeAgainst(stats[side], stats[other]),
+      position,
+      counter,
+    })
+    strikes.push({
+      attackerKey: attacker.key,
+      targetKey: victim.key,
+      moveId: attack.moveId,
+      damage,
+      poiseDamage: row.poiseDamage,
+      position,
+      counter,
+      interrupted,
+    })
+  }
+  const settle = (side: 0 | 1): FighterState => {
+    const state = after[side]
+    // Only a swing that did not strike is cancelled by the blow.
+    if (disarmed[side] && !landed[side]) return { ...state, attack: null }
+    const attack = state.attack
+    if (!landed[side] || !attack) return state
+    return { ...state, attack: { ...attack, landed: true } }
+  }
+  return { fighters: [settle(0), settle(1)], strikes }
+}
+
+/**
+ * The melee swings that closed their active window untouched (FR-18, AC-18):
+ * active at the top of the step, out of active after it, and not landed —
+ * the victim stepped out of the arc, reach or band.
+ */
+export function whiffsOf(
+  before: readonly [FighterState, FighterState],
+  after: readonly [FighterState, FighterState],
+): WhiffReport[] {
+  const whiffs: WhiffReport[] = []
+  for (const side of [0, 1] as const) {
+    const previous = before[side].attack
+    if (previous?.phase !== "active" || previous.landed) continue
+    if (after[side].attack?.phase === "active") continue
+    if (after[side].attack?.landed) continue
+    const move = getMove(previous.moveId)
+    if (!move?.melee) continue
+    whiffs.push({ attackerKey: before[side].key, moveId: previous.moveId })
+  }
+  return whiffs
+}

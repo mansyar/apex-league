@@ -127,7 +127,7 @@ function drawnFinal(seed = 101): CupSession {
 
 describe("deriveMorningAfter — the outcome classifier (FR-1)", () => {
   test("a champion session derives title", () => {
-    const session = play(creature(), 17, "specials")
+    const session = play(creature(), 17, "balanced")
     expect(session.status).toBe("champion")
     const d = deriveMorningAfter(session, freshState(), freshState())
     expect(d).toEqual({ class: "title", amplifiers: [], bossId: null })
@@ -141,7 +141,10 @@ describe("deriveMorningAfter — the outcome classifier (FR-1)", () => {
   })
 
   test("a plain elimination derives exit — placement never read", () => {
-    const session = play(creature(), 101)
+    // Seed 5 under the aggressive pick exits in QF1 (phase 10 re-pin: pacing
+    // moved the elimination off seed 23; the classifier reads only the
+    // session facts).
+    const session = play(creature(), 5, "specials")
     expect(session.status).toBe("eliminated")
     const d = deriveMorningAfter(session, freshState(), freshState())
     expect(d).not.toBeNull()
@@ -244,7 +247,7 @@ describe("deriveMorningAfter — the outcome classifier (FR-1)", () => {
   })
 
   test("the finalize's persisted firsts ride along as amplifiers (FR-4)", () => {
-    const session = play(creature(), 17, "specials")
+    const session = play(creature(), 17, "balanced")
     const gate = getBoss("koda")
     if (!gate) throw new Error("missing boss koda")
     // The same finalize: the gate cup won in the final (scalped koda), the

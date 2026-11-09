@@ -15,7 +15,7 @@ import {
   type BattleEvent,
   type BattleResult,
   type BattleSide,
-  resolveBattle,
+  resolveContinuous,
 } from "../battle"
 import type { CupSession } from "./session/walk"
 import { cupMatchSeed } from "./verdicts"
@@ -25,8 +25,13 @@ import { cupMatchSeed } from "./verdicts"
  * battle or cup resolution changes meaning (damage, clock, policy, seeds,
  * kits): a reader whose version differs must skip the replay rather than
  * misread it.
+ *
+ * v2 (2026-11-08, continuous contact geometry): bodies have volume, blows
+ * sweep arcs and height bands, shots sweep segments, facing is lock-on, and
+ * the event log carries launch/close/hold beats. Fights recorded under v1
+ * cannot replay here, which is exactly why the bump lands with the change.
  */
-export const SIM_VERSION = 1
+export const SIM_VERSION = 2
 
 /** A full replay bundle for one cup-winning final: everything a later
  * reader needs to replay the deciding battle without the session. No
@@ -88,9 +93,13 @@ export function buildGhostBundle(session: CupSession): GhostBundle | null {
   }
 }
 
-/** Replay the deciding battle from the bundle alone (no session needed). */
+/**
+ * Replay the deciding battle from the bundle alone (no session needed). This
+ * primitive does not read `simVersion`; the gate lives in
+ * `verifyGhostBundle`, and a reader that cannot verify skips the replay.
+ */
 export function replayGhost(bundle: GhostBundle): BattleResult {
-  return resolveBattle(bundle.player, bundle.rival, bundle.seed)
+  return resolveContinuous(bundle.player, bundle.rival, bundle.seed)
 }
 
 /**

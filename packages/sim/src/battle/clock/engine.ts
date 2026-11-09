@@ -6,6 +6,11 @@
  * phase 2) — pure relocation, no behavior change. The shared vocabulary
  * (fighter snapshots, events, tuning constants) lives in ./types, the hit
  * rules in ./hits.
+ *
+ * REPLAY-ONLY (continuous-arena-battle FR-15): frozen. Live fights resolve in
+ * ../continuous; this stepper only re-walks a log the game already owns, and
+ * clock.freeze.test.ts pins its production callers so a new fight cannot
+ * reach it.
  */
 
 import { makeRng, type Rng } from "../../rng"

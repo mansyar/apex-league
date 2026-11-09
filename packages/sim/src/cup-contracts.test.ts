@@ -175,6 +175,18 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
         // HP-doubling ripple (element_chart_20261016): the QF1 double-KO
         // that used to sit on this seed resolved into a clean win — the
         // doubled HP pool let the higher-HP fighter survive the exchange.
+        // Continuous-engine ripple (phase 7): the SF2 pairing now resolves
+        // to Ash-ledger instead of a second Mossbottom Brute win.
+        // Hit-reaction ripple (phase 9): knockback moved SF2 back to
+        // Mossbottom Brute.
+        // Pacing ripple (phase 10): longer fights moved QF1 to Tidecaller
+        // Nibbles; SF2 stayed on Mossbottom Brute.
+        // Recovery-band ripple (spacing/cadence phase 5): the wider tail flips
+        // QF2 from Tidecaller Nibbles to Reedle Mirefin; the rest hold.
+        // Blow-weight ripple (phase 6): the triple-length cycle flips QF2 back
+        // to Tidecaller Nibbles; SF2 and the final stay on Mossbottom Brute.
+        // Blow-weight ripple (phase 8, weight 2): QF2 flips back to Reedle
+        // Mirefin; SF2 and the final hold.
         seed: 101,
         rivalWinners: [
           "Reedle Mirefin",
@@ -194,13 +206,22 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
       },
       // FR6 rebalance ripple: the double-KO that used to sit at QF4 moved
       // off this seed entirely (QF3 winner changed with it).
+      // Continuous-engine ripple (phase 7): QF4 and SF2 both moved again.
+      // Contact-geometry ripple (phase 8): lock-on facing and body volumes
+      // moved QF2 and SF2 once more.
+      // Pacing ripple (phase 10): QF2 and SF2 moved again — Gilded Horn takes
+      // QF2 and Tidecaller Nibbles takes SF2.
+      // Blow-weight ripple (phase 6): QF4 and SF2 go back to Reedle Mirefin,
+      // as they were before the widening.
+      // Blow-weight ripple (phase 8, weight 2): QF4 and SF2 move to Tidecaller
+      // Nibbles.
       {
         seed: 19,
         rivalWinners: [
           "Driftbelle",
           "Gilded Horn",
-          "Reedle Mirefin",
-          "Reedle Mirefin",
+          "Tidecaller Nibbles",
+          "Tidecaller Nibbles",
         ],
       },
     ]
@@ -216,70 +237,81 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
 })
 
 describe("cup engine contracts: player lifecycle golden (default picks)", () => {
-  test("champion path: seed 17, placement 1 — and the tactic cannot change it", () => {
-    // On cup day the default kit is two moves of cooldown 1, so both
-    // tactics rank identically (the objectives only diverge when a
-    // cooldown-2 move joins the kit). The champion path is therefore
-    // pinned under BOTH tactics as a tactic-invariance guard for the
-    // day-7 baby cup specifically.
+  test("champion path: seed 17, balanced — placement 1", () => {
+    // The continuous engine makes the tactic a real coaching choice: the
+    // same seed that sweeps the bracket under `balanced` falls in the
+    // quarterfinal under `specials` (pinned at the end of this test).
     const creature = cupDayCreature()
-    for (const tactic of ["specials", "balanced"] as const) {
-      const done = playToCompletion(creature, 7, 17, tactic)
-      expect(done.status).toBe("champion")
-      expect(done.championName).toBe("Ember Drake")
-      expect(cupPlacement(done)).toBe(1)
-      expect(done.playerVerdicts.map((v) => v.line)).toEqual([
-        "Ember Drake takes the Quarterfinal!",
-        "Ember Drake takes the Semifinal!",
-        "Ember Drake takes the Final!",
-      ])
-      expect(done.playerVerdicts.map((v) => v.winner)).toEqual([
-        "Ember Drake",
-        "Ember Drake",
-        "Ember Drake",
-      ])
-    }
+    const done = playToCompletion(creature, 7, 17, "balanced")
+    expect(done.status).toBe("champion")
+    expect(done.championName).toBe("Ember Drake")
+    expect(cupPlacement(done)).toBe(1)
+    expect(done.playerVerdicts.map((v) => v.line)).toEqual([
+      "Ember Drake takes the Quarterfinal!",
+      "Ember Drake takes the Semifinal!",
+      "Ember Drake takes the Final!",
+    ])
+    expect(done.playerVerdicts.map((v) => v.winner)).toEqual([
+      "Ember Drake",
+      "Ember Drake",
+      "Ember Drake",
+    ])
+    // Tactic sensitivity, re-pinned for the HP re-tune (spacing/cadence phase
+    // 4): on seed 1 both picks now take the crown. Phase 10 had pinned the
+    // balanced pick losing the final (placement 2) while the aggressive pick
+    // won; at HP_SCALE_PERCENT 210 the balanced pick wins it too.
+    const balancedOne = playToCompletion(creature, 7, 1, "balanced")
+    expect(balancedOne.status).toBe("champion")
+    expect(cupPlacement(balancedOne)).toBe(1)
+    const specialsOne = playToCompletion(creature, 7, 1, "specials")
+    expect(specialsOne.status).toBe("champion")
   })
 
-  test("final loss: seed 6, balanced — placement 2, champion via completeCup", () => {
+  test("final loss: seed 9, specials — placement 2, champion via completeCup", () => {
     const creature = cupDayCreature()
-    const elim = playToCompletion(creature, 7, 6, "balanced")
+    const elim = playToCompletion(creature, 7, 9, "specials")
     expect(elim.status).toBe("eliminated")
     expect(elim.playerVerdicts).toHaveLength(3)
-    expect(elim.playerVerdicts[2]?.winner).toBe("Pondskipper Grub")
+    expect(elim.playerVerdicts[2]?.winner).toBe("Mossbottom Brute")
     expect(cupPlacement(elim)).toBe(2)
     // The final loss leaves the SF2 winner as champion: no more fights.
     const done = completeCup(elim)
-    expect(done.championName).toBe("Pondskipper Grub")
+    expect(done.championName).toBe("Mossbottom Brute")
     expect(done.completionVerdicts).toHaveLength(0)
   })
 
-  test("SF exit: seed 3, balanced — placement 3, conqueror runs the final", () => {
+  test("semifinal exit: seed 3, specials — placement 3, no champion yet", () => {
     const creature = cupDayCreature()
-    const elim = playToCompletion(creature, 7, 3, "balanced")
-    expect(elim.status).toBe("eliminated")
-    expect(elim.playerVerdicts).toHaveLength(2)
-    expect(cupPlacement(elim)).toBe(3)
-    const done = completeCup(elim)
-    expect(done.championName).toBe("Bonfire Brook")
-    expect(
-      done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
-    ).toEqual([[3, "Thistledown Ash", "Bonfire Brook", "Bonfire Brook"]])
+    // Re-pinned for the HP re-tune (spacing/cadence phase 4): this seed used to
+    // exit in the semifinal (placement 3, conqueror Bonfire Brook winning the
+    // final). At HP_SCALE_PERCENT 210 the player takes the crown, so there is
+    // no conqueror final left to run.
+    // Recovery-band ripple (spacing/cadence phase 5): the wider tail sends the
+    // player out in the semifinal again. `playToCompletion` stops at the loss,
+    // so the bracket is never completed and no champion is named.
+    const done = playToCompletion(creature, 7, 3, "specials")
+    expect(done.status).toBe("eliminated")
+    expect(done.championName).toBeNull()
+    expect(done.playerVerdicts).toHaveLength(2)
+    expect(cupPlacement(done)).toBe(3)
+    expect(done.completionVerdicts).toHaveLength(0)
   })
 
-  test("QF exit: seed 101, balanced — placement 4, bracket completes in order", () => {
+  test("QF exit: seed 11, specials — placement 4, bracket completes in order", () => {
+    // Blow-weight ripple (phase 8, weight 2): seed 5 now reaches the final, so
+    // the QF-exit pin moves to seed 11 (playerVerdicts 1, placement 4).
     const creature = cupDayCreature()
-    const elim = playToCompletion(creature, 7, 101, "balanced")
+    const elim = playToCompletion(creature, 7, 11, "specials")
     expect(elim.status).toBe("eliminated")
     expect(elim.playerVerdicts).toHaveLength(1)
     expect(cupPlacement(elim)).toBe(4)
     const done = completeCup(elim)
-    expect(done.championName).toBe("Reedle Mirefin")
+    expect(done.championName).toBe("Emberhold Flicker")
     expect(
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
     ).toEqual([
-      [2, "Bonfire Brook", "Reedle Mirefin", "Reedle Mirefin"],
-      [3, "Reedle Mirefin", "Mossbottom Brute", "Reedle Mirefin"],
+      [2, "Pondskipper Grub", "Gilded Horn", "Pondskipper Grub"],
+      [3, "Pondskipper Grub", "Emberhold Flicker", "Emberhold Flicker"],
     ])
   })
 
@@ -288,6 +320,13 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     const done = forfeitCup(startCupSession(creature, 7, 101))
     expect(done.status).toBe("eliminated")
     expect(cupPlacement(done)).toBe(4)
+    // Pacing ripple (phase 10): Tidecaller Nibbles takes SF2 and the final.
+    // Recovery-band ripple (spacing/cadence phase 5): QF2 flips to Reedle
+    // Mirefin, who then takes SF1 and the final.
+    // Blow-weight ripple (phase 6): QF2 flips back to Tidecaller Nibbles, and
+    // Mossbottom Brute takes SF1 and the final.
+    // Blow-weight ripple (phase 8, weight 2): QF2 flips to Reedle Mirefin, who
+    // then takes SF1 and the final.
     expect(done.championName).toBe("Reedle Mirefin")
     // The forfeit verdict names the opponent, no battle attached.
     const ff = done.playerVerdicts[0]
@@ -332,8 +371,13 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
       "Pondskipper Grub",
       "Mossbottom Brute",
     ])
+    // Re-pinned for the HP re-tune (spacing/cadence phase 4): QF1 is now a
+    // double knockout (winner null). The bracket still advances via the cup's
+    // double-KO tiebreak; only the verdict's winner is null.
+    // Recovery-band ripple (spacing/cadence phase 5): QF2 is a clean win again.
+    // Blow-weight ripple (phase 8, weight 2): QF2 moves to Reedle Mirefin.
     expect(session.rivalVerdicts.map((v) => v.winner)).toEqual([
-      "Tidecaller Nibbles",
+      "Reedle Mirefin",
       "Ash-ledger",
       "Mossbottom Brute",
       "Mossbottom Brute",

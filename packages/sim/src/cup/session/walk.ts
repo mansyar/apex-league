@@ -10,7 +10,7 @@
  * ../verdicts, the final standing in ./standing.
  */
 
-import { type BattleResult, resolveBattle, type Tactic } from "../../battle"
+import { type BattleResult, resolveContinuous, type Tactic } from "../../battle"
 import type { BossDef } from "../../bosses"
 import type { Creature } from "../../creature"
 import type { CupKind } from "../../ladder"
@@ -150,7 +150,7 @@ export function resolvePlayerMatch(
   const seed = cupMatchSeed(session.bracket.day, round, 0)
   const playerSide = slotPlayerSide(playerSlot, loadout, tactic)
   const rivalSide = battleSideForSlot(opponent, seed)
-  const result: BattleResult = resolveBattle(playerSide, rivalSide, seed)
+  const result: BattleResult = resolveContinuous(playerSide, rivalSide, seed)
   const line = result.winner
     ? `${result.winner} takes the ${roundLabel(round)}!`
     : `Both fighters are down — the ${roundLabel(round)} is a draw.`

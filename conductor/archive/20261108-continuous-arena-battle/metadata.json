@@ -1,0 +1,32 @@
+{
+  "id": "20261108-continuous-arena-battle",
+  "title": "Continuous Arena Battle",
+  "type": "feature",
+  "status": "complete",
+  "priority": "high",
+  "depends_on": [],
+  "created_at": "2026-11-08T15:30:51+11:00",
+  "updated_at": "2026-11-09T14:35:00+11:00",
+  "spec": "spec.md",
+  "plan": "plan.md",
+  "branch": "feat/20261108-continuous-arena-battle",
+  "base_branch": "main",
+  "base_sha": "e5bda39d9849aa3a42d6e57cc66cda3475ddc55b",
+  "progress": {
+    "phases_total": 13,
+    "phases_verified": 13,
+    "tasks_total": 45,
+    "tasks_done": 45
+  },
+  "last_checkpoint": "213db60e",
+  "review_verdict": "BLOCK",
+  "review_rounds": 1,
+  "doc_sync": "synced",
+  "pr_url": "https://github.com/mansyar/apex-league/pull/66",
+  "pr_state": "merged_pending",
+  "reverted_at": null,
+  "revert_commit": null,
+  "revert_pr_url": null,
+  "archived_at": "2026-11-09T14:35:00+11:00",
+  "archive_path": "conductor/archive/20261108-continuous-arena-battle"
+}

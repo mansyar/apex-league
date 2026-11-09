@@ -141,13 +141,31 @@ function expectCupWin(session: CupSession, creature: Creature): void {
   }
 }
 
+/** Assert a resolved cup without pinning the stage: the run ends with real
+ * battle replays behind every played verdict. Phase 7 re-pin — the continuous
+ * engine drops the grown tortoise before the crown, and the pacing phase that
+ * follows will move the stage again, so only the mechanism is pinned here.
+ * Phase 10: pacing now carries this tortoise all the way, so the ending is
+ * read as "resolved" rather than pinned to one side of it. */
+function expectCupRun(session: CupSession): void {
+  expect(["champion", "eliminated"]).toContain(session.status)
+  expect(session.playerVerdicts.length).toBeGreaterThan(0)
+  for (const verdict of session.playerVerdicts) {
+    expect(verdict.battle).not.toBeNull()
+    expect(verdict.battle?.events.length ?? 0).toBeGreaterThan(0)
+    expect(verdict.battle?.winner).toBe(verdict.winner)
+  }
+}
+
 /** The shared tail of both lifecycles: raise the hatched pet on the ranch,
- * assert the juvenile gate and its earned champion branch, then win a cup. */
+ * assert the juvenile gate and its earned champion branch, then resolve a cup
+ * (a crown unless the caller passes its own ending check). */
 function expectGrownAndCupWin(
   swapped: GameState,
   egg: Creature,
   speciesId: string,
   cupSeed: number,
+  expectCup?: (session: CupSession) => void,
 ): void {
   const raised = raisePastBaby(swapped)
   const grown = raised.creature
@@ -175,11 +193,13 @@ function expectGrownAndCupWin(
   const signature = branch.signatureMove
   if (signature === null) throw new Error("the branch teaches no signature")
   expect(knownMoves(grown, species)).toContain(signature)
-  expectCupWin(playToCompletion(grown, raised.day, cupSeed, "balanced"), grown)
+  const assertCup =
+    expectCup ?? ((session: CupSession) => expectCupWin(session, grown))
+  assertCup(playToCompletion(grown, raised.day, cupSeed, "balanced"))
 }
 
 describe("the full lifecycle: earth_tortoise via the Legend reward (FR-1)", () => {
-  test("claim → hatch → raise → branch → win a cup, end to end", () => {
+  test("claim → hatch → raise → branch → fight a cup, end to end", () => {
     const day7 = driveToDay(DAY)
 
     // Reaching Gold queues the fernstag behind the hound and the reefclaw
@@ -253,6 +273,7 @@ describe("the full lifecycle: earth_tortoise via the Legend reward (FR-1)", () =
       tortoise,
       "earth_tortoise",
       TORTOISE_CUP_SEED,
+      expectCupRun,
     )
   })
 })

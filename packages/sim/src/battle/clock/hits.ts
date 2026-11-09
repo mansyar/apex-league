@@ -6,6 +6,10 @@
  * Split out of the former monolithic battle/clock.ts (sim-voxel-size-guard,
  * phase 2) — pure relocation, no behavior change. The tick stepper lives in
  * ./engine, the shared vocabulary in ./types.
+ *
+ * REPLAY-ONLY (continuous-arena-battle FR-15): frozen with the clock. These
+ * rules replay old battles byte-for-byte; live blows resolve in
+ * ../continuous/strike.
  */
 
 import type { Rng } from "../../rng"

@@ -11,7 +11,11 @@
  * ./bracket, the live session in ./session.
  */
 
-import { type BattleResult, type BattleSide, resolveBattle } from "../battle"
+import {
+  type BattleResult,
+  type BattleSide,
+  resolveContinuous,
+} from "../battle"
 import { rivalBranch, rivalKit } from "../battle/rival-kit"
 import { getBoss } from "../bosses"
 import { makeRng } from "../rng"
@@ -169,7 +173,7 @@ export function resolvePairing(
   }
   const aSide = battleSideForSlot(a, seed)
   const bSide = battleSideForSlot(b, seed ^ 1)
-  const result: BattleResult = resolveBattle(aSide, bSide, seed)
+  const result: BattleResult = resolveContinuous(aSide, bSide, seed)
   const line = result.winner
     ? `${result.winner} takes the ${roundLabel(round)}!`
     : `Both fighters are down — the ${roundLabel(round)} is a draw.`

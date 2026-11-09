@@ -121,7 +121,16 @@ permissions:
     resource: "bun run build *"
     effect: allow
   - action: shell
-    resource: "bun run verify && bun run build *"
+    resource: "bun run verify *"
+    effect: allow
+  - action: shell
+    resource: "bun run telemetry *"
+    effect: allow
+  - action: shell
+    resource: "bun run trace *"
+    effect: allow
+  - action: shell
+    resource: "bun test *"
     effect: allow
   - action: shell
     resource: "playwright-cli *"

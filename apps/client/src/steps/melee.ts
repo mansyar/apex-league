@@ -16,6 +16,10 @@ import { heavyHit, meleeContact, STANCE_GAP, strikePose, weave } from "./pure"
 export const meleeStep: StepRunner = (step, instant, side, _o, _r, io) => {
   const hit = step.hit !== false
   const dodged = !hit && step.missReason === "dodge"
+  // Dense playback owns the bodies: the dodge dash, the stance spacing and
+  // the snaps are position, so they belong to the legacy path only
+  // (Phase 11 rework 1). The strike itself is an offset and still plays.
+  const ownPositions = !io.streamOwnsBodies()
   if (instant) {
     // Resolve instantly: run the contact consequences with no anim.
     if (hit)
@@ -27,16 +31,18 @@ export const meleeStep: StepRunner = (step, instant, side, _o, _r, io) => {
         step.element,
         step.tick,
       )
-    if (dodged) {
-      side.target.stage.x += side.target.away * 0.85
-      snapTo(side.target)
+    if (ownPositions) {
+      if (dodged) {
+        side.target.stage.x += side.target.away * 0.85
+        snapTo(side.target)
+      }
+      side.actor.stage.set(
+        side.target.stage.x + side.actor.away * STANCE_GAP,
+        0,
+        side.target.stage.z,
+      )
+      snapTo(side.actor)
     }
-    side.actor.stage.set(
-      side.target.stage.x + side.actor.away * STANCE_GAP,
-      0,
-      side.target.stage.z,
-    )
-    snapTo(side.actor)
     return
   }
   const from = side.actor.group.position.clone()
@@ -86,7 +92,7 @@ export const meleeStep: StepRunner = (step, instant, side, _o, _r, io) => {
             )
           } else if (dodged) {
             // The target slipped: a quick dash off the lane.
-            at.stage.x += at.away * 0.85
+            if (!io.streamOwnsBodies()) at.stage.x += at.away * 0.85
             impulse(io, at, -0.3)
           }
         }

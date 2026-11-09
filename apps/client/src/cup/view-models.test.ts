@@ -64,9 +64,9 @@ const LADDER_AFTER = { points: 6, tier: "bronze" as const, subTier: "II" }
 
 describe("resultsView — the results screen assembly", () => {
   test("a champion reads Champion · takes the {tier} Cup! · unbeaten", () => {
-    // Seed 17 wins with the default creature fixture (proven by
-    // bracket-model.test.ts's champion runs).
-    const session = play(creature(), CUP_DAY, 17, "specials")
+    // Seed 17 sweeps the bracket with the default creature fixture under the
+    // balanced pick (phase 7 re-pin: the tactic now moves the run).
+    const session = play(creature(), CUP_DAY, 17, "balanced")
     expect(session.status).toBe("champion")
     expect(cupPlacement(session)).toBe(1)
     const view = resultsView(session, LADDER_AFTER, LADDER_BEFORE, 0)
@@ -86,7 +86,9 @@ describe("resultsView — the results screen assembly", () => {
   })
 
   test("an elimination names the champion and the exit stage", () => {
-    const session = play(creature(), CUP_DAY, 101)
+    // Seed 11 under the aggressive pick falls in QF1 (phase 8 re-pin: the
+    // halved blow weight carried seed 5 all the way to the final).
+    const session = play(creature(), CUP_DAY, 11, "specials")
     expect(session.status).toBe("eliminated")
     const view = resultsView(session, LADDER_BEFORE, LADDER_BEFORE, 0)
     expect(view.won).toBe(false)
@@ -179,13 +181,13 @@ describe("walkStep — the strict reveal decisions", () => {
     const c = creature()
     const species = getSpecies(c.speciesId)
     if (!species) throw new Error("unknown species")
-    // Seed 17 with the specials tactic is the champion fixture of
+    // Seed 17 with the balanced pick is the champion fixture of
     // bracket-model.test.ts for this creature.
     let cur = startCupSession(c, CUP_DAY, 17)
     const loadout = defaultLoadout(c, species)
-    cur = resolvePlayerMatch(cur, loadout, "specials").session
-    cur = resolvePlayerMatch(cur, loadout, "specials").session
-    cur = resolvePlayerMatch(cur, loadout, "specials").session
+    cur = resolvePlayerMatch(cur, loadout, "balanced").session
+    cur = resolvePlayerMatch(cur, loadout, "balanced").session
+    cur = resolvePlayerMatch(cur, loadout, "balanced").session
     expect(cur.status).toBe("champion")
     // Cursor 6 = f1, resolved by the player's own win.
     const final = walkStep(cur, 6)

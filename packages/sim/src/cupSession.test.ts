@@ -315,33 +315,36 @@ describe("determinism contract — the live cup is replayable", () => {
 })
 
 describe("completeCup / forfeitCup / finalizeCup — the cup's end", () => {
-  /** Sweep to a session where the player lost in the given round. */
+  /**
+   * Sweep to a session where the player lost in the given round. The tactic
+   * sweep is the phase-9 hit-reaction ripple: knockback moved the balanced
+   * final-loss seeds out of the range, so the aggressive pick covers it.
+   */
   function eliminatedAt(round: 1 | 2 | 3): {
     s: GameState
     session: ReturnType<typeof prepareCup> & NonNullable<unknown>
     creature: Creature
   } {
-    for (let seed = 1; seed <= 60; seed++) {
-      const s = cupDayState(seed)
-      let session = prepareCup(s)
-      if (!session) throw new Error("session did not resolve")
-      const creature = s.creature as Creature
-      const species = getSpecies(creature.speciesId)
-      if (!species) throw new Error("unknown species")
-      const picks = {
-        loadout: defaultLoadout(creature, species),
-        tactic: "balanced" as Tactic,
+    for (const tactic of ["balanced", "specials"] as const) {
+      for (let seed = 1; seed <= 60; seed++) {
+        const s = cupDayState(seed)
+        let session = prepareCup(s)
+        if (!session) throw new Error("session did not resolve")
+        const creature = s.creature as Creature
+        const species = getSpecies(creature.speciesId)
+        if (!species) throw new Error("unknown species")
+        const picks = { loadout: defaultLoadout(creature, species), tactic }
+        for (let r = 1; r < round; r++) {
+          const step = resolvePlayerMatch(session, picks.loadout, picks.tactic)
+          if (step.verdict.winner !== creature.name) break // lost early — try next seed
+          session = step.session
+        }
+        if (session.playerVerdicts.length !== round - 1) continue
+        const last = resolvePlayerMatch(session, picks.loadout, picks.tactic)
+        if (last.verdict.winner === creature.name) continue
+        if (last.session.playerVerdicts.length !== round) continue
+        return { s, session: last.session, creature }
       }
-      for (let r = 1; r < round; r++) {
-        const step = resolvePlayerMatch(session, picks.loadout, picks.tactic)
-        if (step.verdict.winner !== creature.name) break // lost early — try next seed
-        session = step.session
-      }
-      if (session.playerVerdicts.length !== round - 1) continue
-      const last = resolvePlayerMatch(session, picks.loadout, picks.tactic)
-      if (last.verdict.winner === creature.name) continue
-      if (last.session.playerVerdicts.length !== round) continue
-      return { s, session: last.session, creature }
     }
     throw new Error(`no seed eliminates the player in round ${round}`)
   }

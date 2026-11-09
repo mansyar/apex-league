@@ -1,5 +1,6 @@
 import { makeRng } from "@apex/voxel"
 import * as THREE from "three"
+import { ARENA_HALF_X, ARENA_HALF_Z } from "./arena-scale"
 import { RANCH_SKY } from "./environment"
 import { disposeObject3D } from "./scene-utils"
 
@@ -59,6 +60,35 @@ export interface ArenaHandle {
   dispose(): void
 }
 
+/** Width of the painted boundary line, in world units. */
+const BOUNDARY_WIDTH = 0.18
+
+/**
+ * A flat rectangular frame whose inner edge is exactly the arena bounds, so
+ * the paint and the resolver's fence are the same rectangle. One Shape with
+ * a rectangular hole keeps the whole boundary to a single draw call.
+ */
+function boundaryFrameGeometry(
+  halfX: number,
+  halfZ: number,
+  width: number,
+): THREE.ShapeGeometry {
+  const outer = new THREE.Shape()
+  outer.moveTo(-halfX - width, -halfZ - width)
+  outer.lineTo(halfX + width, -halfZ - width)
+  outer.lineTo(halfX + width, halfZ + width)
+  outer.lineTo(-halfX - width, halfZ + width)
+  outer.closePath()
+  const hole = new THREE.Path()
+  hole.moveTo(-halfX, -halfZ)
+  hole.lineTo(halfX, -halfZ)
+  hole.lineTo(halfX, halfZ)
+  hole.lineTo(-halfX, halfZ)
+  hole.closePath()
+  outer.holes.push(hole)
+  return new THREE.ShapeGeometry(outer)
+}
+
 export function buildArena(scene: THREE.Scene): ArenaHandle {
   const group = new THREE.Group()
   group.name = "arena"
@@ -73,10 +103,11 @@ export function buildArena(scene: THREE.Scene): ArenaHandle {
   floor.receiveShadow = true
   group.add(floor)
 
-  // Painted lines: the boundary ring the fighters stay inside of, a
-  // center circle, and a low wall torus that catches the key light.
+  // Painted lines: the boundary is the resolver's own fence, drawn from
+  // `ARENA_BOUNDS` at the presentation scale, a center circle, and a low
+  // wall torus that catches the key light.
   const boundaryRing = new THREE.Mesh(
-    new THREE.RingGeometry(8.3, 8.55, 64),
+    boundaryFrameGeometry(ARENA_HALF_X, ARENA_HALF_Z, BOUNDARY_WIDTH),
     new THREE.MeshBasicMaterial({ color: FLOOR_LINE_COLOR }),
   )
   boundaryRing.rotation.x = -Math.PI / 2

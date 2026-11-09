@@ -5,6 +5,7 @@ import {
   gait as gaitBob,
   stepSquash,
 } from "./anim"
+import { ARENA_HALF_X, ARENA_HALF_Z } from "./arena-scale"
 import { type BodyProfile, idleSway } from "./choreo"
 import { driveFace, type FaceEyes } from "./face-motion"
 
@@ -32,12 +33,13 @@ const SQUASH_K = 210
 const SQUASH_D = 13
 
 /**
- * Show-floor bounds: fighters are clamped well inside the painted
- * boundary ring (8.3) and comfortably inside the broadcast framing, so
- * nobody leaves the arena or the camera's view.
+ * Show-floor bounds: fighters are clamped to the painted boundary, which is
+ * drawn from the same `ARENA_BOUNDS` the resolver uses (`arena-scale.ts`),
+ * so nobody leaves the paint or the camera's view. The stream already
+ * respects its own fence, so a streamed fight is never bent to fit.
  */
-const BOUNDS_X = 3.2
-const BOUNDS_Z = 1.8
+const BOUNDS_X = ARENA_HALF_X
+const BOUNDS_Z = ARENA_HALF_Z
 
 /** How deep the squash spring dips the body into the floor. */
 const SQUASH_DIP = 0.42

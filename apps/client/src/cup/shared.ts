@@ -7,6 +7,7 @@
 import type {
   CupSession,
   CupSlot,
+  FightStream,
   GameState,
   PlaybackStep,
   RoundVerdict,
@@ -30,6 +31,8 @@ export interface CupHandlers {
   onFightStart: (casting: FightCasting) => void
   /** Every playback step steps the arena staging. */
   onStep: (step: PlaybackStep, instant: boolean) => void
+  /** Every dense stream step drives the arena staging (FR-13). */
+  onFrame: (stream: FightStream, step: number) => void
   /** The arena scales action animations to the playback pace. */
   onPace: (msPerStep: number) => void
   /** The arena match ended; the bracket takes over again. */

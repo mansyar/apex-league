@@ -244,7 +244,9 @@ describe("buildBracketModel — the 8-slot bracket", () => {
   })
 
   test("verdicts land on the right matches across an eliminated run", () => {
-    const session = play(creature(), CUP_DAY, 101)
+    // Seed 11 under the aggressive pick exits in QF1 (phase 8 re-pin: the
+    // halved blow weight carried seed 5 to the final).
+    const session = play(creature(), CUP_DAY, 11, "specials")
     const model = buildBracketModel(session)
     const byId = new Map(model.map((m) => [m.id, m]))
     expect(byId.get("qf1")?.verdict).toEqual(session.playerVerdicts[0])
@@ -259,10 +261,9 @@ describe("buildBracketModel — the 8-slot bracket", () => {
   })
 
   test("a champion run: the player's matches are exactly qf1, sf1, f1", () => {
-    // Seed 17 still wins the cup after the FR6 rebalance (seed 1 now falls
-    // in the final); on cup day the tactic cannot change the run (a fresh
-    // baby's two-move kit ranks identically under both tactics).
-    const session = play(creature(), CUP_DAY, 17, "specials")
+    // Seed 17 sweeps the cup under `balanced` (re-pinned for the continuous
+    // engine, phase 7: the same seed exits in the QF under `specials`).
+    const session = play(creature(), CUP_DAY, 17, "balanced")
     expect(session.status).toBe("champion")
     const model = buildBracketModel(session)
     const playerMatches = model.filter((m) => m.isPlayerMatch).map((m) => m.id)
@@ -480,7 +481,7 @@ describe("results presentation", () => {
   })
 
   test("resultRows: a Gold champion sees the stacked AP bonus", () => {
-    const session = play(creature(), CUP_DAY, 17, "specials")
+    const session = play(creature(), CUP_DAY, 17, "balanced")
     expect(cupPlacement(session)).toBe(1)
     const rows = resultRows(
       session,
@@ -493,7 +494,7 @@ describe("results presentation", () => {
   })
 
   test("resultRows: a Legend champion sees the stacked AP bonus and the title", () => {
-    const session = play(creature(), CUP_DAY, 17, "specials")
+    const session = play(creature(), CUP_DAY, 17, "balanced")
     expect(cupPlacement(session)).toBe(1)
     const rows = resultRows(
       session,
@@ -508,7 +509,7 @@ describe("results presentation", () => {
   })
 
   test("resultRows: a Silver champion keeps the plain bonus row", () => {
-    const session = play(creature(), CUP_DAY, 17, "specials")
+    const session = play(creature(), CUP_DAY, 17, "balanced")
     expect(cupPlacement(session)).toBe(1)
     const rows = resultRows(
       session,
@@ -522,9 +523,9 @@ describe("results presentation", () => {
   })
 
   test("resultRows: a champion lists the win bundle", () => {
-    // Seed 17 still wins the cup after the FR6 rebalance (see the champion
-    // run test above).
-    const session = play(creature(), CUP_DAY, 17, "specials")
+    // Seed 17 sweeps the cup under the balanced pick (see the champion run
+    // test above).
+    const session = play(creature(), CUP_DAY, 17, "balanced")
     expect(cupPlacement(session)).toBe(1)
     const rows = resultRows(
       session,
@@ -545,7 +546,7 @@ describe("results presentation", () => {
   })
 
   test("resultRows: an elimination lists consolation plus the ladder row", () => {
-    const session = play(creature(), CUP_DAY, 101)
+    const session = play(creature(), CUP_DAY, 11, "specials")
     expect(cupPlacement(session)).toBe(4)
     const rows = resultRows(
       session,

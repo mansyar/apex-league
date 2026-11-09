@@ -27,8 +27,35 @@ export {
   type Range,
   type TickOutcome,
 } from "./clock"
+export { startingHp } from "./continuous/hp"
+export {
+  ARENA_BOUNDS,
+  downEnding,
+  type Ending,
+  type EngagementOverlay,
+  engagementFor,
+  FIGHT_CAP_MS,
+  FIGHT_CAP_STEPS,
+  OPENING_GAP_MM,
+  pointsWinner,
+  resolveContinuous,
+  TACTIC_OVERLAYS,
+} from "./continuous/resolve"
+export {
+  type FightStream,
+  readFrame,
+  rememberStream,
+  STREAM_FIELD,
+  STREAM_FIELDS,
+  STREAM_PHASE,
+  type StreamFrame,
+  type StreamPhase,
+  stepIndexAt,
+  streamOf,
+} from "./continuous/stream"
 export { strikeDamage } from "./damage"
 export { makeExhibition, type SparSetup } from "./exhibition"
+export { getFrameData } from "./frames"
 export { BASIC_MOVE, getMove, type MoveDef } from "./moves"
 export {
   buildPlaybackScript,

@@ -1,4 +1,4 @@
-import type { BattleResult, PlaybackStep } from "@apex/sim"
+import type { BattleResult, FightStream, PlaybackStep } from "@apex/sim"
 import type { createBattleHud } from "./battleHud"
 import { reasonLine, renderSpeedButton, winningSideKey } from "./battleUI"
 import {
@@ -106,6 +106,11 @@ export interface BattleSessionIo {
   speedButton: HTMLButtonElement
   /** One playback step plays in the arena (the consumer also forwards it). */
   onStep: (step: PlaybackStep, instant: boolean) => void
+  /**
+   * One dense stream step for the arena (FR-13), when the fight carries a
+   * trace. Optional: the reduced-motion and legacy paths never call it.
+   */
+  onFrame?: (stream: FightStream, step: number) => void
   /** The announcer line for the current event (log / feed). */
   onLine: (text: string) => void
   /** A replay pass is starting (optional; only the spar resets a log here). */
@@ -165,6 +170,7 @@ export function createBattleSession(io: BattleSessionIo): BattleSession {
       io.hud.update(step)
     },
     onLine: io.onLine,
+    onFrame: io.onFrame,
     onReplayStart: io.onReplayStart,
     onFinish: ({ verdict, replayed, instant }) => {
       // Verdict as a broadcast stamp over the full-bleed arena; the

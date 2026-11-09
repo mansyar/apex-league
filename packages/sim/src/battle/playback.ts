@@ -7,6 +7,12 @@
  * Durations ("beats") are per-step-kind constants, so a fast-forward can
  * simply scale them. A `launch` fires and its letter arrives at the later
  * `impact` step, mirroring the clock's travel semantics.
+ *
+ * REPLAY-ONLY PACING (continuous-arena-battle FR-15): the gauge clock this
+ * vocabulary came from is frozen. A fight resolved in this session plays its
+ * dense stream and reads these steps only for the announcer lines; the paced
+ * beat path is the legacy fallback for a stream-less verdict. New fights
+ * never take their motion from these beats.
  */
 
 import type { BattleEvent, BattleEventKind } from "./clock"

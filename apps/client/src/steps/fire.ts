@@ -58,6 +58,11 @@ export function contactJitter(
  * somewhere new. Omitting it stays supported - the offset then keys off
  * the victim and damage alone. Either way the lateral offset is a pure
  * function of the step (FR-7) - no clock, no RNG.
+ *
+ * Under dense playback the stream owns the bodies, so the shove is
+ * skipped entirely: the sim's own knockback already moved the body, and a
+ * stage write here would be undone by the next frame (Phase 11 rework 1).
+ * The reaction's effects still play.
  */
 export function contactReaction(
   io: StepIO,
@@ -67,7 +72,7 @@ export function contactReaction(
   element?: string,
   seed?: number,
 ): void {
-  if (!heavy) {
+  if (!heavy && !io.streamOwnsBodies()) {
     const knock = strikeReach(damage)
     // Knockback pushes the victim OUTWARD (own away side, same convention
     // as the dodge dash) - a minus here drags the pair into each other

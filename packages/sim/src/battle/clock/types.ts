@@ -5,6 +5,10 @@
  * Split out of the former monolithic battle/clock.ts (sim-voxel-size-guard,
  * phase 2) — pure relocation, no behavior change. The tick stepper lives in
  * ./engine.
+ *
+ * REPLAY-ONLY (continuous-arena-battle FR-15): frozen with the clock. New
+ * fights carry the dense stream from ../continuous and never read these
+ * constants; retuning one would rewrite every battle already saved.
  */
 
 import type { CreatureStats, Element } from "../../creature"

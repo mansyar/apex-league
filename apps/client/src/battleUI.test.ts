@@ -78,9 +78,9 @@ describe("toggleKitChoice", () => {
 })
 
 describe("moveStatLine", () => {
-  const flameLash: MoveDef = {
-    id: "flame_lash",
-    displayName: "Flame Lash",
+  const spark: MoveDef = {
+    id: "spark",
+    displayName: "Spark",
     element: "fire",
     power: 24,
     accuracy: 85,
@@ -88,8 +88,10 @@ describe("moveStatLine", () => {
     melee: false,
   }
 
-  test("an unlocked move reads power, accuracy, cooldown", () => {
-    expect(moveStatLine(flameLash)).toBe("Power 24 · Accuracy 85% · Cooldown 1")
+  test("an unlocked move reads power, accuracy, recovery", () => {
+    expect(moveStatLine(spark)).toBe(
+      "Power 24 · Accuracy 85% · Recovery 600 ms",
+    )
   })
 
   test("the basic strike's stats read the same way", () => {
@@ -101,24 +103,39 @@ describe("moveStatLine", () => {
       cooldown: 0,
       melee: true,
     }
-    expect(moveStatLine(strike)).toBe("Power 4 · Accuracy 100% · Cooldown 0")
+    expect(moveStatLine(strike)).toBe(
+      "Power 4 · Accuracy 100% · Recovery 500 ms",
+    )
+  })
+
+  test("a move with no frame row shows no recovery number", () => {
+    const legacy: MoveDef = {
+      id: "flame_lash",
+      displayName: "Flame Lash",
+      element: "fire",
+      power: 24,
+      accuracy: 85,
+      cooldown: 1,
+      melee: false,
+    }
+    expect(moveStatLine(legacy)).toBe("Power 24 · Accuracy 85%")
   })
 
   test("a locked move leads with the unlock day", () => {
-    expect(moveStatLine(flameLash, 3)).toBe(
-      "Unlocks in 3 days · Power 24 · Accuracy 85% · Cooldown 1",
+    expect(moveStatLine(spark, 3)).toBe(
+      "Unlocks in 3 days · Power 24 · Accuracy 85% · Recovery 600 ms",
     )
   })
 
   test("a one-day lock reads in the singular", () => {
-    expect(moveStatLine(flameLash, 1)).toBe(
-      "Unlocks in 1 day · Power 24 · Accuracy 85% · Cooldown 1",
+    expect(moveStatLine(spark, 1)).toBe(
+      "Unlocks in 1 day · Power 24 · Accuracy 85% · Recovery 600 ms",
     )
   })
 
   test("a lock that evolution also opens says so", () => {
-    expect(moveStatLine(flameLash, 3, true)).toBe(
-      "Unlocks in 3 days or on evolution · Power 24 · Accuracy 85% · Cooldown 1",
+    expect(moveStatLine(spark, 3, true)).toBe(
+      "Unlocks in 3 days or on evolution · Power 24 · Accuracy 85% · Recovery 600 ms",
     )
   })
 })

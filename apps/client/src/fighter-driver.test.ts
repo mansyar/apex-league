@@ -134,7 +134,7 @@ describe("clampStage", () => {
   test("funnels overshoot back inside the painted ring", () => {
     const s = clampStage(9, -7)
     expect(s.x).toBe(3.2)
-    expect(s.z).toBe(-1.8)
+    expect(s.z).toBe(-2.4)
   })
 })
 

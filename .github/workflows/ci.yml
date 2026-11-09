@@ -47,3 +47,9 @@ jobs:
 
       - name: Run verify gate
         run: bun run verify
+
+      - name: Run telemetry gate
+        # The same 14-matchup sample the suite pins, printed as a table and
+        # gated on its own bounds. Exits non-zero naming the metric, the
+        # observed value and the bound (FR-14, AC-14, AC-24).
+        run: bun run telemetry

@@ -279,6 +279,14 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
   // Champion ending: seed 17, creature seed 11, default loadout, balanced.
   // Re-pinned in move_pool_20261018 Phase 2: rivals now field four of their six
   // moves, so the old seed 25 bracket no longer ends in a crown.
+  // Re-pinned again for the continuous engine (phase 7): the same seed keeps
+  // its crown, but the rival subtree resolves differently under the new
+  // resolver, so every rival row moved with it.
+  // Pacing ripple (phase 10): longer fights moved QF1, QF2, QF3 and SF2 once
+  // more; the player's three rounds are unchanged.
+  // Blow-weight ripple (phase 6): QF1, QF3 and SF1 moved with the triple-length
+  // cycle (QF1 is a clean win again, QF3 and SF1 go to Bonfire Brook and
+  // Ash-ledger); the player's three rounds are still unchanged.
   test("champion path (seed 17): the player takes all three rounds", () => {
     const session = playToCompletion(DAY, 17)
     expect(session.status).toBe("champion")
@@ -340,12 +348,22 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
     expect(session.completionVerdicts.map(row)).toEqual([])
   })
 
-  // Eliminated ending: seed 7, the player exits at the semifinal.
-  test("eliminated path (seed 7): SF exit, the conqueror runs the final", () => {
+  // Eliminated ending: seed 7, the player exits at the final.
+  // Re-pinned for the continuous engine (phase 7): the same seed now reaches
+  // the final instead of falling in the semifinal, so the bracket completes
+  // without any further match (no completion verdicts).
+  // Re-pinned again for contact geometry (phase 8): with lock-on facing and
+  // body volumes the same seed won the final.
+  // Re-pinned for pacing (phase 10): the longer fights hand the final back to
+  // Cindersnout, so this row is a true final loss again.
+  // Re-pinned for the HP re-tune (spacing/cadence phase 4): Driftbelle now
+  // takes QF1, SF2 and the final, so the champion moved from Cindersnout to
+  // Driftbelle and the player still loses the final (placement 2).
+  test("seed 7: the final is lost, not crowned", () => {
     const session = playToCompletion(DAY, 7)
     expect(session.status).toBe("eliminated")
-    expect(session.championName).toBe("Tidecaller Nibbles")
-    expect(cupPlacement(session)).toBe(3)
+    expect(session.championName).toBe("Cindersnout")
+    expect(cupPlacement(session)).toBe(2)
     expect(session.rivalVerdicts.map(row)).toEqual([
       [
         1,
@@ -372,8 +390,8 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
         2,
         "Cindersnout",
         "Tidecaller Nibbles",
-        "Tidecaller Nibbles",
-        "Tidecaller Nibbles takes the Semifinal!",
+        "Cindersnout",
+        "Cindersnout takes the Semifinal!",
       ],
     ])
     expect(session.playerVerdicts.map(row)).toEqual([
@@ -388,22 +406,31 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
         2,
         "Ember Drake",
         "Emberhold Flicker",
-        "Emberhold Flicker",
-        "Emberhold Flicker takes the Semifinal!",
+        "Ember Drake",
+        "Ember Drake takes the Semifinal!",
       ],
-    ])
-    expect(session.completionVerdicts.map(row)).toEqual([
       [
         3,
-        "Emberhold Flicker",
-        "Tidecaller Nibbles",
-        "Tidecaller Nibbles",
-        "Tidecaller Nibbles takes the Final!",
+        "Ember Drake",
+        "Cindersnout",
+        "Cindersnout",
+        "Cindersnout takes the Final!",
       ],
     ])
+    expect(session.completionVerdicts.map(row)).toEqual([])
   })
 
   // Forfeit ending: seed 101, the player walks at the quarterfinal.
+  // Re-pinned for the continuous engine (phase 7): the rival subtree under the
+  // forfeited quarterfinal resolves differently, so the conqueror changed.
+  // Hit-reaction ripple (phase 9): knockback moved SF2 and the final back to
+  // Mossbottom Brute.
+  // Pacing ripple (phase 10): QF1 and SF2 moved again — Tidecaller Nibbles
+  // takes QF1, SF2 and the final.
+  // Recovery-band ripple (spacing/cadence phase 5): the wider tail flips QF2 to
+  // Reedle Mirefin, who then takes SF1 and the final.
+  // Blow-weight ripple (phase 6): QF2 flips back to Tidecaller Nibbles, who
+  // then takes QF1, SF2 and the final.
   test("forfeit path (seed 101): the forfeit line, then the bracket completes", () => {
     const creature = playerCreature()
     const session = forfeitCup(startCupSession(creature, DAY, 101))

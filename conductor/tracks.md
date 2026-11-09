@@ -36,4 +36,6 @@
 - [x] **Track: Roster Wave 4 (Fire/Plant/Water Discovery)** — [20261027-roster-wave-4](./archive/20261027-roster-wave-4/index.md) — feature — high
 - [x] **Track: Prod API Wiring** — [20261027-prod-api-wiring](./archive/20261027-prod-api-wiring/index.md) — chore — high
 - [x] **Track: Elemental Identity Pass** — [20261028-elemental-identity](./archive/20261028-elemental-identity/index.md) — feature — high
-- [x] **Track: Fire Move Identity** — [20261028-fire-move-identity](./archive/20261028-fire-move-identity/index.md) — feature — high
+- [x] **Track: Fire Move Identity** - [20261028-fire-move-identity](./archive/20261028-fire-move-identity/index.md) - feature - high
+- [x] **Track: Continuous Arena Battle** — [20261108-continuous-arena-battle](./archive/20261108-continuous-arena-battle/index.md) — feature — high
+- [x] **Track: Battle Spacing and Cadence** — [20261109-battle-spacing-cadence](./archive/20261109-battle-spacing-cadence/index.md) — feature — high

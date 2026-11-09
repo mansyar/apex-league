@@ -3,7 +3,7 @@
  * casts and the HUD's fight view for the bout. Moved verbatim out of spar.ts.
  */
 
-import type { Creature } from "@apex/sim"
+import { type Creature, startingHp } from "@apex/sim"
 import type { PlaybackFight } from "../battle-session"
 import { castFighter } from "../battleUI"
 import type { FightCasting } from "../staging"
@@ -40,20 +40,26 @@ export function castingFor(owned: Creature, setup: SparSetup): FightCasting {
   }
 }
 
-/** The HUD's view of both fighters for the duration of the bout. */
+/** The HUD's view of both fighters for the duration of the bout.
+ *
+ *  `maxHp` is the pool the resolver actually fights on, not the stat HP the
+ *  setup panel shows: the continuous engine scales every side's HP
+ *  (`HP_SCALE_PERCENT`), so a stat-HP denominator left every step's
+ *  `hpAfter` above its maximum and the bars never moved.
+ */
 export function fightNowFor(setup: SparSetup): PlaybackFight {
   return {
     owned: {
       name: setup.ownedSide.name,
       key: setup.ownedSide.id ?? setup.ownedSide.name,
       element: setup.ownedSide.element,
-      maxHp: setup.ownedSide.stats.hp,
+      maxHp: startingHp(setup.ownedSide),
     },
     rival: {
       name: setup.rivalSide.name,
       key: setup.rivalSide.id ?? setup.rivalSide.name,
       element: setup.rivalSide.element,
-      maxHp: setup.rivalSide.stats.hp,
+      maxHp: startingHp(setup.rivalSide),
     },
   }
 }
