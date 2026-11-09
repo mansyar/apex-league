@@ -264,19 +264,22 @@ numbers are measured by a tool that predates them.
   `packages/sim/src/battle/continuous/balance-report.test.ts`.
 - **Verification:** `bun run verify`, `bun run build`, `bun run balance`,
   `bun run telemetry` - four separate commands.
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** bf6be3ca
+- **Evidence:** `conductor/tracks/20261109-battle-balance/verification/phase-12.md`
 
-- [ ] **P12.T1: Measure each species at its own typical roll** - covers: FR-22
-  - [ ] **P12.T1.1:** Build each measured side from that species' `statBounds` midpoint
+- [x] **P12.T1: Measure each species at its own typical roll** - covers: FR-22
+  - [x] **P12.T1.1:** Build each measured side from that species' `statBounds` midpoint
         (integer midpoint per stat) instead of the clamped reference line, and state the
         definition in the report header.
-  - [ ] **P12.T1.2:** Keep the equal-investment reference line in the output as a
+  - [x] **P12.T1.2:** Keep the equal-investment reference line in the output as a
         diagnostic only - printed, never gating - so "is any species stronger at equal
         investment" stays answerable.
-- [ ] **P12.T2: Prove a stat is visible to the gate** - covers: AC-19
-  - [ ] **P12.T2.1:** A test that moves one species' `atk` bounds by 2 and shows its
+- [x] **P12.T2: Prove a stat is visible to the gate** - covers: AC-19
+  - [x] **P12.T2.1:** A test that moves one species' `atk` bounds by 2 and shows its
         measured win rate moves, so a future re-tune can rely on the gate.
-  - [ ] **P12.T2.2:** Re-baseline every row, re-pin what the new measurement moves, and
+  - [x] **P12.T2.2:** Re-baseline every row, re-pin what the new measurement moves, and
         report the new spread with n and the binomial standard error per species.
 
 ## Phase 13: Roster Re-tune

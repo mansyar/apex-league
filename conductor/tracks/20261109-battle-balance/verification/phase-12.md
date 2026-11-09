@@ -221,3 +221,49 @@ legitimately exits 1.
 - The doctrine table's Circle median gap (950 mm) is now *shorter* than Press
   (1176 mm) at real stat lines — the opposite of the clamped-reference reading.
   Recorded, not fixed.
+
+## Primary verification
+
+Independent verification of Phase 12 on the tree at `bf6be3ca`.
+
+| command | result |
+| --- | --- |
+| `bun run verify` | exit 0 — 3,964 pass / 1 skip / 0 fail, 3,965 tests / 367 files |
+| `bun run build` | exit 0 — 410 modules |
+| `bun run balance` | exit 1 — eleven species rows plus `durationMin 4.84s`, all Phase 13's |
+| `bun run telemetry` | exit 0 — 13/13 bounds, unchanged, as expected |
+
+The gate now reads the creature rather than a clamped reference, and the proof is in the
+output: every row prints its own distinct-fight count and standard error, and a species'
+bounds move its rate (`fire_drake` atk −2 → 28.6%, authored → 28.6%, +2 → 35.7%).
+
+The honest baseline, n=112, mirrors excluded:
+
+| pass the 95% rule | rate | note |
+| --- | --- | --- |
+| water_axolotl | 50.0% | in the design band |
+| embercub | 50.0% | in the design band |
+| mossboar | 57.1% | outside 45-55, inside the gate |
+| earth_tortoise | 42.9% | **only 4 distinct fights of 112** |
+
+Eleven rows miss: `mistkit` 17.9%, `electric_hound` 23.2%, `wind_falcon` 25.0%,
+`fire_drake` 28.6%, `fernstag` 33.9%, `plant_ox` 39.3%, `cindermoor` 60.7%,
+`reefclaw` 64.3%, `galeheron` 82.1%, `shalemole` 85.7%, `voltfox` 89.3%.
+
+Two things I want on the record before Phase 13 starts:
+
+1. **`earth_tortoise`'s 42.9% is not a measurement.** Four distinct fights out of 112
+   means the row is four coin flips dressed as a sample, and the standard error printed
+   beside it (4.7%) describes the wrong thing. This is the diversity debt from Phase 10
+   arriving where it hurts: a species whose fights are all the same fight cannot be
+   balanced, because there is nothing to balance. Phase 13 must say so rather than tune
+   against it.
+2. **The new `durationMin` miss is real, not a regression.** Frailer typical creatures —
+   `wind_falcon` with a 130 pool, `mistkit` at 178/9 — now blow out in under five
+   seconds, because they are no longer being measured as a 189 HP reference body. The
+   bound was not touched, which is right. It also means the pacing floor and the species
+   band are now coupled: a glass cannon that wins 50% by dying fast is not a good outcome.
+
+The instrument is finally honest. That is the whole point of this phase, and it cost two
+blocked phases to learn.
+
