@@ -130,7 +130,7 @@ numbers are measured by a tool that predates them.
 - **Covers:** FR-7, FR-4, FR-5, FR-6, AC-4, AC-5, AC-6, AC-7
 - **Touches:** new `packages/sim/scripts/battle-balance-report.ts`, new `packages/sim/src/battle/continuous/balance-report.test.ts`, `package.json`
 - **Verification:** `bun run verify && bun run build && bun run balance`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P6.T1: Report** — covers: FR-7
   - [ ] P6.T1.1 Report the species matrix, win rates, doctrine effects, damage shares, durations and cap share; state the sample size.
