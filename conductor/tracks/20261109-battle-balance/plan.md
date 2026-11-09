@@ -62,7 +62,7 @@ numbers are measured by a tool that predates them.
 - **Covers:** FR-14, AC-14
 - **Touches:** `packages/sim/src/battle/continuous/controller*.ts`, `resolve.ts` + co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Spacing** — covers: FR-14
   - [ ] P3.T1.1 Model the opponent's reach and hold just outside it.
