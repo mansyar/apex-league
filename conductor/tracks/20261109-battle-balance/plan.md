@@ -151,9 +151,12 @@ numbers are measured by a tool that predates them.
 - **Covers:** FR-18, AC-10
 - **Touches:** `packages/sim/src/battle/chart.ts` + co-located tests
 - **Verification:** `bun run verify && bun run build && bun run balance`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** f375e61f
+- **Evidence:** `conductor/tracks/20261109-battle-balance/verification/phase-7.md`
 
-- [ ] **P7.T1: Symmetry** — covers: FR-18
+- [x] **P7.T1: Symmetry** — covers: FR-18
   - [ ] P7.T1.1 Two 3-cycles: fire>plant>water>fire, electric>earth>wind>electric.
   - [ ] P7.T1.2 Test: every element wins exactly once and loses exactly once; the factor stays 1.5x / 0.667x.
 

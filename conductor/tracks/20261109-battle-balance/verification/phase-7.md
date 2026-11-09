@@ -168,3 +168,40 @@ cap share), both recorded above with their new observed values.
 - The new matrix is a *finding*: the chart is now fair in shape but the roster
   was tuned against the old shape, so 12 of 15 species are outside the band.
   Phase 9 must re-tune against this table, not the old one.
+
+## Primary verification
+
+Independent verification of Phase 7 on the tree at `f375e61f`.
+
+| command | result |
+| --- | --- |
+| `bun run verify` | exit 0 — 3,947 pass / 1 skip / 0 fail, 3,948 tests across 366 files, 47.33 s; typecheck clean on four packages; biome clean; determinism gate byte-identical |
+| `bun run build` | exit 0 — 409 modules |
+| `bun run balance` | exit 1 by design — the gate names 12 of 15 species outside 45-55% and `capShare 84.8%`; Phase 9 owns the first, Phase 8 the second |
+| `bun run telemetry` | cap share 8/14 (57.1%) is a miss owned by Phase 8; recorded, bound not relaxed |
+
+Confirmed in code rather than from the report: `chart.ts` `BEATS` is exactly
+`fire>plant`, `plant>water`, `water>fire`, `electric>earth`, `earth>wind`,
+`wind>electric` — two 3-cycles, so every element wins once and loses once. The old
+table gave water two losses and wind none; that asymmetry is gone. Strength is
+untouched at 3/2 and 2/3, so FR-17 holds: only the shape changed.
+
+The four new tests in `chart.test.ts` prove symmetry by counting wins and losses from
+the table rather than restating it, which is the assertion that would have caught the
+original asymmetry.
+
+`chart.ts`'s doc comment claimed "2x / 0.5x" while the code used 3/2 and 2/3. That
+mismatch is how the asymmetry survived two tracks of balance work, and it is now
+corrected to match the code.
+
+Two things this phase deliberately did **not** do, both recorded as debt:
+
+1. **The matrix got worse, not better** — 12 of 15 species outside 45-55%, worst
+   `electric_hound` and `mossboar` at 21.4%, best `voltfox` at 89.3%. Symmetry removed
+   a structural advantage; it did not create balance. Phase 9 re-tunes the roster
+   against this chart.
+2. **Resolvability regressed** — cap share rose from 7/14 to 8/14 in the telemetry
+   sample and stands at 84.8% of the 420-fight matrix with a median duration of
+   exactly 40.00 s. That is precisely why Phase 8 exists and why it precedes the
+   re-tune: measuring win rates on a stalemate would only redistribute the stalemate.
+
