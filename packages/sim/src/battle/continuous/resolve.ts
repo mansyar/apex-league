@@ -31,9 +31,11 @@ import {
   type ControllerProfile,
   type ControllerState,
   createController,
+  DOCTRINES,
+  type DoctrineId,
   decide,
-  profileFor,
-  RANGE_BAND_MM,
+  doctrineForTactic,
+  profileForDoctrine,
 } from "./controller"
 import { startingHp } from "./hp"
 import { hpSnapshot, type Sides, stepEvents } from "./report"
@@ -74,62 +76,21 @@ export const ARENA_BOUNDS: ArenaBounds = Object.freeze({
 export const OPENING_GAP_MM = 2000
 
 /**
- * What a coach's tactic does to its archetype's engagement, in the two fields
- * the controller steers by: a multiplier on the preferred range, in permille,
- * and a change to the share of each cycle spent pressing, in percent.
- * `specials` works the fight out at distance and presses harder; `balanced`
- * holds the edge of reach and leans on its basic. This is a mapping, not a
- * second system: the archetype row stays the base, so a rush rival still rushes
- * (FR-11). The range moves by a share because the range itself is derived from
- * the pair's reach edge (FR-1); a fixed offset would push a tactic's band back
- * inside the bodies.
- */
-export interface EngagementOverlay {
-  /** Multiplies the archetype's preferred range, in permille. */
-  readonly rangePermille: number
-  /** Added to the archetype's aggression, in percent. */
-  readonly aggression: number
-}
-
-/**
- * The two overlays, frozen so a balance pass can move them here rather than
- * hunting through the resolver. A tenth either way changes the decisions a
- * fight turns on without inverting a temperament: rush + `balanced` holds
- * 1.02x its reach edge, slow + `specials` holds 1.38x. The split was a fixed
- * 300 mm either way until the spacing pass, when a derived range turned that
- * offset into contact distance for every close row.
- */
-export const TACTIC_OVERLAYS: Readonly<Record<Tactic, EngagementOverlay>> =
-  Object.freeze({
-    balanced: Object.freeze({ rangePermille: 950, aggression: -10 }),
-    specials: Object.freeze({ rangePermille: 1150, aggression: 10 }),
-  })
-
-/** A share of the cycle, clamped to a percentage. */
-function share(value: number): number {
-  return Math.min(100, Math.max(0, value))
-}
-
-/**
- * One side's controller tuning: its archetype row with the coach's tactic laid
- * over the engagement fields only — preferred range and aggression. Strafe and
- * dodge stay the archetype's own, and the range keeps a floor of one band so a
- * band can never invert.
+ * One side's controller tuning (FR-11, FR-12): the doctrine owns the band,
+ * the strafe intent and the dodge policy, and the temperament only shades the
+ * intensity inside it. A side that carries an explicit doctrine uses it; a
+ * legacy save or gauge-clock side names a tactic instead, mapped forward at
+ * this boundary so old saves still compile and still have a plan.
  */
 export function engagementFor(
   temperament: Temperament,
   tactic: Tactic,
+  doctrine?: DoctrineId,
 ): ControllerProfile {
-  const base = profileFor(temperament)
-  const overlay = TACTIC_OVERLAYS[tactic]
-  const range = Math.trunc(
-    (base.preferredRangeMm * overlay.rangePermille) / 1000,
+  return profileForDoctrine(
+    DOCTRINES[doctrine ?? doctrineForTactic(tactic)],
+    temperament,
   )
-  return Object.freeze({
-    ...base,
-    preferredRangeMm: Math.max(RANGE_BAND_MM, range),
-    aggression: share(base.aggression + overlay.aggression),
-  })
 }
 
 /** How one fight ended: the winning side, or null for a double KO, and why. */
@@ -259,8 +220,8 @@ export function resolveContinuous(
     createController(),
   ]
   const profiles: [ControllerProfile, ControllerProfile] = [
-    engagementFor(a.temperament, a.tactic),
-    engagementFor(b.temperament, b.tactic),
+    engagementFor(a.temperament, a.tactic, a.doctrine),
+    engagementFor(b.temperament, b.tactic, b.doctrine),
   ]
   const kits: [readonly string[], readonly string[]] = [a.kit, b.kit]
   const poiseDealt: [number, number] = [0, 0]

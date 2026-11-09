@@ -80,7 +80,10 @@ describe("ghost bundle — capture on a cup win", () => {
     // Seed 11 under the aggressive pick loses the quarterfinal (phase 8
     // re-pin: the halved blow weight carried seed 5 to the final), so the
     // bracket has no crown.
-    let elim = startCupSession(creature, day, 11)
+    // Doctrine ripple (battle-balance phase 1): seed 11 now survives the
+    // quarterfinal under the `specials` pick, so the QF-exit pin moves to seed
+    // 5, which loses it and leaves no crown.
+    let elim = startCupSession(creature, day, 5)
     elim = resolvePlayerMatch(elim, loadout, "specials").session
     expect(elim.status).toBe("eliminated")
     expect(buildGhostBundle(completeCup(elim))).toBeNull()

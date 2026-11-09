@@ -10,7 +10,12 @@
  * ../verdicts, the final standing in ./standing.
  */
 
-import { type BattleResult, resolveContinuous, type Tactic } from "../../battle"
+import {
+  type BattleResult,
+  type DoctrineId,
+  resolveContinuous,
+  type Tactic,
+} from "../../battle"
 import type { BossDef } from "../../bosses"
 import type { Creature } from "../../creature"
 import type { CupKind } from "../../ladder"
@@ -110,6 +115,7 @@ function slotPlayerSide(
   slot: CupSlot,
   loadout: readonly string[],
   tactic: Tactic,
+  doctrine?: DoctrineId,
 ): ReturnType<typeof battleSideForSlot> {
   const species = getSpecies(slot.speciesId)
   if (!species) throw new Error(`Unknown species: ${slot.speciesId}`)
@@ -119,6 +125,7 @@ function slotPlayerSide(
     stats: slot.stats,
     kit: loadout,
     tactic,
+    ...(doctrine ? { doctrine } : {}),
     temperament: species.temperament,
     // The frozen player slot's secondary, if the creature drift-bred one;
     // omitted when absent so pre-amendment slots build identical sides.
@@ -136,6 +143,7 @@ export function resolvePlayerMatch(
   session: CupSession,
   loadout: readonly string[],
   tactic: Tactic,
+  doctrine?: DoctrineId,
 ): { session: CupSession; verdict: RoundVerdict } {
   if (session.status !== "player-turn") {
     throw new Error("The cup is not waiting on the player")
@@ -148,7 +156,7 @@ export function resolvePlayerMatch(
   }
   // The player's own pairing is index 0 of its round.
   const seed = cupMatchSeed(session.bracket.day, round, 0)
-  const playerSide = slotPlayerSide(playerSlot, loadout, tactic)
+  const playerSide = slotPlayerSide(playerSlot, loadout, tactic, doctrine)
   const rivalSide = battleSideForSlot(opponent, seed)
   const result: BattleResult = resolveContinuous(playerSide, rivalSide, seed)
   const line = result.winner

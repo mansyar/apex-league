@@ -25,13 +25,14 @@ import {
   dodgeIntent,
   planarGapSq,
   pressIntent,
+  rearArc,
   retreatRoom,
   strafeIntent,
 } from "./controller-aim"
 import { chooseMove } from "./controller-moves"
 import {
+  bandFor,
   type ControllerProfile,
-  preferredRangeFor,
   reachEdgeMm,
 } from "./controller-profile"
 import { DODGE_LEAD_MS, incomingShot, incomingSwing } from "./controller-threat"
@@ -40,14 +41,26 @@ import { DODGE_STAMINA_COST, spendDodge } from "./stamina"
 import { type FightState, HOLD, type MoveIntent, STEP_MS } from "./types"
 
 export {
+  bandFor,
   CONTROLLER_PROFILES,
   type ControllerProfile,
+  DOCTRINE_IDS,
+  DOCTRINE_LABELS,
+  DOCTRINES,
+  type Doctrine,
+  type DoctrineId,
+  doctrineForTactic,
   PREFERRED_REACH_BAND_PERMILLE,
   type ProfileTable,
   preferredRangeFor,
   profileFor,
+  profileForDoctrine,
+  RANGE_BAND_MM,
+  type RangeBand,
   REFERENCE_REACH_EDGE_MM,
+  RETREAT_FRACTION_PERMILLE,
   reachEdgeMm,
+  tacticForDoctrine,
 } from "./controller-profile"
 
 export { DODGE_LEAD_MS } from "./controller-threat"
@@ -62,18 +75,6 @@ export const DECISION_MS = 240
 
 /** The same cadence counted in fixed steps: a decision every twelve of them. */
 export const DECISION_STEPS = DECISION_MS / STEP_MS
-
-/** Half-width of the range band a fighter tries to hold, in mm (tunable). */
-export const RANGE_BAND_MM = 400
-
-/**
- * The share of the preferred range at which a fighter gives ground, in
- * thousandths (tunable, FR-2): inside 0.6x its preferred range the pair is too
- * close to fight from, so it retreats. Once retreating it keeps going until the
- * preferred range is reached, so the threshold is a commitment, not a coin flip
- * the next decision can reverse.
- */
-export const RETREAT_FRACTION_PERMILLE = 600
 
 /**
  * How many of its own radii of open floor a retreat needs, in radii (tunable,
@@ -212,6 +213,17 @@ export function decide(input: DecisionInput): ControllerDecision {
   if (me.attack) return settle(controller.verb, controller.intent)
   if (isBroken(me)) return settle(controller.verb, controller.intent)
 
+  // Circle takes the rear the moment it has it (FR-11): a basic strike's
+  // startup is short enough that a body deep in the arc still lands there.
+  // This outranks the dodge gate: the rear window is exactly when the foe has
+  // just swung past, and punching the back beats stepping away from it.
+  if (profile.seeksRear) {
+    const rearMove = chooseMove(me, foe, kit, planarGapSq(me.pos, foe.pos))
+    if (rearMove && rearArc(me, foe)) {
+      return settle("commit", pressIntent(me, foe), rearMove)
+    }
+  }
+
   // A blow about to land is the one thing worth interrupting for (FR-20): a
   // swing still winding up is stepped away from, and a shot nearly home on
   // this body's line is stepped across. Both are gated by the price
@@ -238,24 +250,23 @@ export function decide(input: DecisionInput): ControllerDecision {
   }
 
   const gapSq = planarGapSq(me.pos, foe.pos)
-  const preferred = preferredRangeFor(profile, reachEdgeMm(me, foe))
-  const outer = preferred + RANGE_BAND_MM
-  if (gapSq > outer * outer) return settle("advance", aimAt(me, foe))
+  const band = bandFor(profile, reachEdgeMm(me, foe))
+  if (gapSq > band.ceilingMm * band.ceilingMm) {
+    return settle("advance", aimAt(me, foe))
+  }
 
   const slot = (decisions - 1) % CYCLE
   const press = Math.min(CYCLE, Math.round(profile.aggression / 10))
   const strafe = Math.min(CYCLE - press, Math.round(profile.strafeBias / 10))
 
-  // Giving ground (FR-2): inside 0.6x the preferred range the pair is too
+  // Giving ground (FR-2): below the doctrine's range floor the pair is too
   // close to fight from, so the fighter backs off. Once it starts it keeps
   // backing off until the preferred range is reached, so the threshold cannot
   // be crossed back and forth decision after decision. The baseline's 2,014
   // retreats against a 539 mm median were exactly that oscillation: the verb
   // fired at contact distance and the fighter re-closed on the next window.
   const retreating = controller.verb === "retreat"
-  const threshold = retreating
-    ? preferred
-    : Math.trunc((preferred * RETREAT_FRACTION_PERMILLE) / 1000)
+  const threshold = retreating ? band.preferredMm : band.floorMm
   if (gapSq < threshold * threshold) {
     const away = awayFrom(me, foe)
     // A body against a fence has nowhere to back off to (FR-21). Retreating
@@ -268,21 +279,27 @@ export function decide(input: DecisionInput): ControllerDecision {
     if (room >= me.radiusMm * RETREAT_ROOM_RADII) {
       return settle("retreat", away)
     }
-    if (slot < press) {
+    const waiting =
+      profile.commit === "punish" && foe.attack?.phase === "startup"
+    if (slot < press && !waiting) {
       const moveId = chooseMove(me, foe, kit, gapSq)
       if (moveId) return settle("commit", pressIntent(me, foe), moveId)
     }
-    return settle("strafe", strafeIntent(me, foe, sign))
+    return settle("strafe", strafeIntent(me, foe, sign, profile.seeksRear))
   }
 
-  // Inside the band the cycle decides: press, circle, or close.
+  // Inside the band the cycle decides: press, circle, or close. Counter waits
+  // out startup and only commits into recovery (FR-11).
   if (slot < press) {
+    if (profile.commit === "punish" && foe.attack?.phase === "startup") {
+      return settle("strafe", strafeIntent(me, foe, sign, profile.seeksRear))
+    }
     const moveId = chooseMove(me, foe, kit, gapSq)
     if (moveId) return settle("commit", pressIntent(me, foe), moveId)
     return settle("advance", aimAt(me, foe))
   }
   if (slot < press + strafe) {
-    return settle("strafe", strafeIntent(me, foe, sign))
+    return settle("strafe", strafeIntent(me, foe, sign, profile.seeksRear))
   }
   return settle("advance", aimAt(me, foe))
 }

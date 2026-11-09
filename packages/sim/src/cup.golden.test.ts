@@ -318,8 +318,8 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
         2,
         "Ash-ledger",
         "Thistledown Ash",
-        "Thistledown Ash",
-        "Thistledown Ash takes the Semifinal!",
+        "Ash-ledger",
+        "Ash-ledger takes the Semifinal!",
       ],
     ])
     expect(session.playerVerdicts.map(row)).toEqual([
@@ -340,7 +340,7 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
       [
         3,
         "Ember Drake",
-        "Thistledown Ash",
+        "Ash-ledger",
         "Ember Drake",
         "Ember Drake takes the Final!",
       ],
@@ -362,7 +362,7 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
   test("seed 7: the final is lost, not crowned", () => {
     const session = playToCompletion(DAY, 7)
     expect(session.status).toBe("eliminated")
-    expect(session.championName).toBe("Cindersnout")
+    expect(session.championName).toBe("Tidecaller Nibbles")
     expect(cupPlacement(session)).toBe(2)
     expect(session.rivalVerdicts.map(row)).toEqual([
       [
@@ -390,8 +390,8 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
         2,
         "Cindersnout",
         "Tidecaller Nibbles",
-        "Cindersnout",
-        "Cindersnout takes the Semifinal!",
+        "Tidecaller Nibbles",
+        "Tidecaller Nibbles takes the Semifinal!",
       ],
     ])
     expect(session.playerVerdicts.map(row)).toEqual([
@@ -412,9 +412,9 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
       [
         3,
         "Ember Drake",
-        "Cindersnout",
-        "Cindersnout",
-        "Cindersnout takes the Final!",
+        "Tidecaller Nibbles",
+        "Tidecaller Nibbles",
+        "Tidecaller Nibbles takes the Final!",
       ],
     ])
     expect(session.completionVerdicts.map(row)).toEqual([])
@@ -435,15 +435,15 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
     const creature = playerCreature()
     const session = forfeitCup(startCupSession(creature, DAY, 101))
     expect(session.status).toBe("eliminated")
-    expect(session.championName).toBe("Reedle Mirefin")
+    expect(session.championName).toBe("Tidecaller Nibbles")
     expect(cupPlacement(session)).toBe(4)
     expect(session.rivalVerdicts.map(row)).toEqual([
       [
         1,
         "Tidecaller Nibbles",
         "Reedle Mirefin",
-        "Reedle Mirefin",
-        "Reedle Mirefin takes the Quarterfinal!",
+        "Tidecaller Nibbles",
+        "Tidecaller Nibbles takes the Quarterfinal!",
       ],
       [
         1,
@@ -480,16 +480,16 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
       [
         2,
         "Bonfire Brook",
-        "Reedle Mirefin",
-        "Reedle Mirefin",
-        "Reedle Mirefin takes the Semifinal!",
+        "Tidecaller Nibbles",
+        "Tidecaller Nibbles",
+        "Tidecaller Nibbles takes the Semifinal!",
       ],
       [
         3,
-        "Reedle Mirefin",
+        "Tidecaller Nibbles",
         "Mossbottom Brute",
-        "Reedle Mirefin",
-        "Reedle Mirefin takes the Final!",
+        "Tidecaller Nibbles",
+        "Tidecaller Nibbles takes the Final!",
       ],
     ])
   })

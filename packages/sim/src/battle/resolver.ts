@@ -20,6 +20,7 @@ import {
   fighterKey,
   type PlanFn,
 } from "./clock"
+import type { DoctrineId } from "./continuous/controller-profile"
 import { chooseAction, type Tactic } from "./policy"
 
 export type BattleReason = "ko" | "double_ko" | "time"
@@ -42,6 +43,13 @@ export interface BattleSide {
   /** The fighter's four equipped special move ids, in kit order. */
   readonly kit: readonly string[]
   readonly tactic: Tactic
+  /**
+   * The plan this side fights under (FR-11). Optional so old saves and every
+   * legacy `Tactic` call site keep compiling; the continuous resolver maps a
+   * missing doctrine from `tactic` at the boundary. Phase 5 removes the
+   * legacy names with the save migration.
+   */
+  readonly doctrine?: DoctrineId
   readonly temperament: Temperament
   /**
    * The form this side fights in, for display only (FR-9). The resolver
