@@ -157,22 +157,40 @@ numbers are measured by a tool that predates them.
   - [ ] P7.T1.1 Two 3-cycles: fire>plant>water>fire, electric>earth>wind>electric.
   - [ ] P7.T1.2 Test: every element wins exactly once and loses exactly once; the factor stays 1.5x / 0.667x.
 
-## Phase 8: Roster Re-tune
+## Phase 8: Resolvability
+
+**Goal:** the standard doctrine can actually finish a fight.
+
+- **Depends on:** Phase 7
+- **Covers:** FR-20, FR-4, FR-19, AC-17, AC-4
+- **Touches:** `packages/sim/src/battle/continuous/{impulse,stamina,cooldown,controller-profile}.ts`, `packages/sim/src/battle/frames.ts` (recovery and poise only), `moves.ts` (power inside the band) + co-located tests
+- **Verification:** `bun run verify && bun run build && bun run balance && bun run telemetry`
+- **Status:** pending
+
+- [ ] **P8.T1: Resolve** — covers: FR-20
+  - [ ] P8.T1.1 Raise the standard-doctrine knockout majority to at least two in three and hold the cap share at or below one in three, measured with `bun run balance`.
+  - [ ] P8.T1.2 Get the median duration strictly below the cap, in the 25-40 s band, without raising `FIGHT_CAP_MS`.
+- [ ] **P8.T2: Levers** — covers: FR-4
+  - [ ] P8.T2.1 Move one lever at a time, recording the measured effect of each (knockback, hitstun, recovery, cooldown, stamina, press profile, power inside the band).
+  - [ ] P8.T2.2 Keep the base-hit band at 4-12% and the rear-counter ceiling where they are; the fix is not "more damage per blow".
+- [ ] **P8.T3: Cooldown durations** — covers: FR-19
+  - [ ] P8.T3.1 Replace the provisional Phase 4 cooldown table with tuned values, judged on the matrix and the pacing band.
+  - [ ] P8.T3.2 Prove a heavy is still worth carrying: it must out-damage the moves available while it cools, or its cooldown comes down.
+
+## Phase 9: Roster Re-tune
 
 **Goal:** every species is playable.
 
-- **Depends on:** Phase 7
-- **Covers:** FR-5, FR-4, AC-5, AC-4
+- **Depends on:** Phase 8
+- **Covers:** FR-5, FR-4, FR-6, AC-5, AC-4, AC-6
 - **Touches:** `packages/sim/src/species.ts`, `packages/sim/src/battle/frames.ts`, `moves.ts`, `bosses.ts` + co-located tests
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run telemetry`
 - **Status:** pending
 
-- [ ] **P8.T1: Species** — covers: FR-5
-  - [ ] P8.T1.1 Bring every available species inside 45-55%, adjusting stats and move power only.
-- [ ] **P8.T2: Pacing** — covers: FR-4
-  - [ ] P8.T2.1 Cap share at or below one in three with a majority inside 25-40 s.
-- [ ] **P8.T3: Bosses** — covers: FR-6
-  - [ ] P8.T3.1 Document an answer per boss and prove it at the intended stage.
-- [ ] **P8.T4: Cooldown durations** — covers: FR-19, FR-8
-  - [ ] P8.T4.1 Tune the per-move cooldown table against the roster matrix and the pacing band, replacing the provisional Phase 4 values.
-  - [ ] P8.T4.2 Prove a heavy is still worth carrying: it must out-damage the moves available while it cools, or its cooldown comes down.
+- [ ] **P9.T1: Species** — covers: FR-5
+  - [ ] P9.T1.1 Bring every available species inside 45-55%, adjusting stats and move power only.
+- [ ] **P9.T2: Pacing** — covers: FR-4
+  - [ ] P9.T2.1 Cap share at or below one in three with a majority inside 25-40 s, held after the species changes.
+- [ ] **P9.T3: Bosses** — covers: FR-6
+  - [ ] P9.T3.1 Document an answer per boss and prove it at the intended stage.
+

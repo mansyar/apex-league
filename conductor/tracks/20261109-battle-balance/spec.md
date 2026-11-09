@@ -97,6 +97,7 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
 | FR-17 | The type chart stays at 1.5x / 0.667x. Upsets come from training and positioning, not from weakening or strengthening type. | Must |
 | FR-18 | The elemental chart is made symmetric: fire>plant>water>fire and electric>earth>wind>electric, so every element wins once and loses once. | Must |
 | FR-19 | Every special carries a real per-move cooldown on the live path, derived from its authored `cooldown` tier, so a special cannot be fired again until its timer expires. The basic strike has no cooldown. Cooldown is per move and separate from recovery and from the shared stamina pool, so a kit is a rotation rather than a best-move button. The specific durations are provisional when the mechanism lands and are owned by the balance phase. | Must |
+| FR-20 | Under the standard doctrine at the reference line a fight resolves: at least two fights in three end by knockout and the median duration is strictly below `FIGHT_CAP_MS`. The cap is a safety valve, not the typical ending, so a stalemate cannot be presented as balanced pacing. | Must |
 
 ## Non-Functional Requirements
 
@@ -129,6 +130,7 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
 | AC-9 | `bun run verify`, `bun run build`, `bun run telemetry` and the report all pass. | FR-1..18 |
 | AC-10 | The chart is symmetric: every element has exactly one win and one loss. | FR-18 |
 | AC-16 | A special cannot be committed again before its cooldown expires, the basic strike is always available, and within the damage band every special hits strictly harder than the basic with the tiers strictly ordered. | FR-1, FR-8, FR-19 |
+| AC-17 | `bun run balance` reports, on the standard-doctrine matrix, a knockout share of at least two in three and a median duration strictly below `FIGHT_CAP_MS`, and fails naming the target when either is missed. | FR-20, FR-4 |
 
 ## Edge Cases
 
@@ -200,6 +202,13 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
   swing earns at most 88.9 deg and the >120 deg rear arc is not reachable inside
   a single commitment. Rear therefore stays a rare crit and AC-11 measures
   flank-or-rear hits, which the mechanic does reach.
+- **Resolved (2026-11-09, owner):** the standard-doctrine grind is fixed before the
+  roster is re-tuned. The Phase 6 baseline measured 83.8% of matrix fights decided
+  at the 40 s cap with a median duration of exactly 40.00 s, so a fight under the
+  standard doctrine usually cannot produce a knockout. Re-tuning species win rates
+  on top of a stalemate would only redistribute a fight that never resolves, so a
+  resolvability phase (Phase 8) precedes the roster re-tune (Phase 9) and owns
+  FR-20/AC-17, the cooldown durations and the pacing band.
 
 ## References
 
