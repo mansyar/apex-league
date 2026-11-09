@@ -6,16 +6,15 @@
  * `num / den` — never a float — and a blow that lands on a recovering victim
  * adds the counter term. Both terms are integers, so the result is exact and
  * deterministic on every platform. A front, non-counter hit is exactly
- * `strikeDamage` in ../damage times `BLOW_WEIGHT`.
+ * `strikeDamage` in ../damage.
  *
- * The blow weight lives here, not in `strikeDamage`: the legacy gauge clock
- * still reads that formula and its arithmetic is frozen, so only the
- * continuous engine's blows get heavier (Phase 8).
+ * Phase 5 folded the old 2x blow weight into `MoveDef.power` (FR-2), so this
+ * function applies no weight of its own: the catalog's power is the whole
+ * attack term, and the frozen legacy clock reads the same `strikeDamage`.
  */
 
 import type { TypeFactor } from "../chart"
 import { strikeDamage } from "../damage"
-import { BLOW_WEIGHT } from "../frames"
 
 /** An integer multiplier `num / den`. */
 export interface Ratio {
@@ -74,7 +73,7 @@ export function positionalDamage(input: PositionalDamage): number {
     input.power,
     input.atk,
     input.def,
-    input.type.num * position.num * counter.num * BLOW_WEIGHT,
+    input.type.num * position.num * counter.num,
     input.type.den * position.den * counter.den,
     true,
   )
@@ -83,7 +82,7 @@ export function positionalDamage(input: PositionalDamage): number {
     input.power,
     input.atk,
     input.def,
-    input.type.num * BLOW_WEIGHT,
+    input.type.num,
     input.type.den,
     true,
   )

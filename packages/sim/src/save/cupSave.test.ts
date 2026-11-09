@@ -21,7 +21,7 @@ import {
 
 describe("save schema cup fields (v5 origin)", () => {
   test("current version matches the schema", () => {
-    expect(SAVE_VERSION).toBe(25)
+    expect(SAVE_VERSION).toBe(26)
   })
 
   test("a v4 save migrates to v5 with cupsWon 0 and lastCupDay null", () => {
@@ -153,7 +153,7 @@ describe("pre-track save compatibility (FR-16, AC-16)", () => {
     const loaded = loadSave(adapter)
     if (!loaded?.session) throw new Error("the session did not load")
     // No migration ran: the payload was already current.
-    expect(loaded.version).toBe(25)
+    expect(loaded.version).toBe(26)
     expect(loaded.savedAt).toBe(1234)
     expect(loaded.state.creature?.speciesId).toBe("fire_drake")
     // The cup is mid-flight: one verdict filed, no champion crowned.

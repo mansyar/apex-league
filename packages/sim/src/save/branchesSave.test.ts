@@ -102,7 +102,7 @@ function speciesOf(id: string) {
 
 describe("save v19 — the earned branch", () => {
   test("the schema version is 19", () => {
-    expect(SAVE_VERSION).toBe(25)
+    expect(SAVE_VERSION).toBe(26)
   })
 
   test("a v18 baby migrates with no branch and identical numbers", () => {
@@ -113,9 +113,12 @@ describe("save v19 — the earned branch", () => {
     const migrated = migrate(raw)
     const creature = migrated.state.creature
     if (!creature) throw new Error("no creature")
-    expect(migrated.version).toBe(25)
+    expect(migrated.version).toBe(26)
     expect(creature.branch).toBeNull()
-    expect(creature.stats).toEqual(before.creature.stats)
+    expect(creature.stats).toEqual({
+      ...before.creature.stats,
+      hp: Math.round((before.creature.stats.hp * 21) / 10),
+    })
     expect(creature.trained).toEqual(before.creature.trained)
     expect(creature.trainingDays).toBe(4)
     expect(creature.loadout).toEqual(["spark", "cinder_shot"])
@@ -132,21 +135,37 @@ describe("save v19 — the earned branch", () => {
     const creature = migrated.state.creature
     if (!creature) throw new Error("no creature")
     expect(creature.branch).toBe("legacy")
-    expect(creature.stats).toEqual(before.creature.stats)
+    expect(creature.stats).toEqual({
+      ...before.creature.stats,
+      hp: Math.round((before.creature.stats.hp * 21) / 10),
+    })
     expect(creature.trainingDays).toBe(6)
     // "legacy" owns no signature move: the known pool is the species kit.
     expect(creature.branch).not.toBe("cinder_courser")
   })
 
-  test("a v18 champion migrates to legacy with identical effective stats", () => {
+  test("a v18 champion migrates to legacy with the folded pool", () => {
     const raw = v18({ stage: "champion", trainingDays: 6 })
     const before = structuredClone(raw.state) as { creature: Creature }
     const migrated = migrate(raw)
     const creature = migrated.state.creature
     if (!creature) throw new Error("no creature")
     expect(creature.branch).toBe("legacy")
-    expect(creature.stats).toEqual(before.creature.stats)
-    expect(effectiveStats(creature)).toEqual(effectiveStats(before.creature))
+    expect(creature.stats).toEqual({
+      ...before.creature.stats,
+      hp: Math.round((before.creature.stats.hp * 21) / 10),
+    })
+    // Phase 5 (FR-2, FR-9): the fold bakes 210% into the stored HP, so the
+    // sheet now shows the pool. Non-HP stats are untouched; the trained bonus
+    // is re-based to 2 per point (the HP cap moved instead), which is the only
+    // difference from the old pool and the documented trained-HP drift.
+    const after = effectiveStats(creature)
+    const beforeStats = effectiveStats(before.creature)
+    expect({ ...after, hp: 0 }).toEqual({ ...beforeStats, hp: 0 })
+    expect(after.hp).toBe(
+      Math.round((before.creature.stats.hp * 21) / 10) +
+        2 * before.creature.trained.hp,
+    )
   })
 
   test("a v18 mid-cup save forwards its session untouched", () => {
@@ -182,6 +201,10 @@ describe("save v19 — the earned branch", () => {
     const migrated = migrate(raw)
     expect(migrated.state.lineage.hallOfFame[0]).toEqual({
       ...HALL_RECORD,
+      stats: {
+        ...HALL_RECORD.stats,
+        hp: Math.round((HALL_RECORD.stats.hp * 21) / 10),
+      },
       branch: "legacy",
       affinity: null,
       giftEgg: false,
@@ -323,7 +346,7 @@ describe("v19 export and import", () => {
     const result = inspectSaveImport(exported.json)
     expect(result.ok).toBe(true)
     if (result.ok) {
-      expect(result.data.version).toBe(25)
+      expect(result.data.version).toBe(26)
       expect(result.data.state.creature?.branch).toBe("cinder_courser")
       expect(result.data.state.creature?.stage).toBe("juvenile")
     }

@@ -152,18 +152,18 @@ describe("the cancel rule rides the resolver's incoming damage path", () => {
         affinity: "water",
       },
     )
-    // Seed 22 (pinned in resolver.test.ts): the first Flame Charge impact
-    // lands at the super-effective 3/2x for 24. The water affinity cancels
-    // the incoming pair to neutral 1x for 16 (same power, atk, def).
+    // Seed 22 (pinned in resolver.test.ts): the first Blaze Bolt impact lands
+    // at the super-effective 3/2x for 60. The water affinity cancels the
+    // incoming pair to neutral 1x for 40 (same power, atk, def).
     const bare = resolveBattle(bolt, reed, 22)
     const soft = resolveBattle(bolt, defended, 22)
     expect(firstImpactOn(bare, "Reed")).toEqual({
-      moveId: "flame_charge",
-      damage: strikeDamage(8, 20, 10, 3, 2, true),
+      moveId: "blaze_bolt",
+      damage: strikeDamage(20, 20, 10, 3, 2, true),
     })
     expect(firstImpactOn(soft, "Reed")).toEqual({
-      moveId: "flame_charge",
-      damage: strikeDamage(8, 20, 10, 1, 1, true),
+      moveId: "blaze_bolt",
+      damage: strikeDamage(20, 20, 10, 1, 1, true),
     })
     // Both KOs floor at the same overkill under the compressed band; the
     // per-impact assertion above is the softening claim.

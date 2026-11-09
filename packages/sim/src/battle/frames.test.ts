@@ -8,13 +8,15 @@ import { describe, expect, test } from "bun:test"
 import { DEFAULT_POISE_MAX } from "./continuous/poise"
 import { RECOVERY_REFERENCE_SPD, recoveryMsFor } from "./continuous/strike"
 import {
-  BLOW_WEIGHT,
   BODY_RADIUS_MM,
   FRAME_DATA,
   getFrameData,
   validateFrameData,
 } from "./frames"
 import { BASIC_MOVE, CATALOG, getMove } from "./moves"
+
+/** The historical authoring weight, folded into power in Phase 5 (FR-2). */
+const BLOW_WEIGHT = 2
 
 const ELEMENTS = ["fire", "plant", "water", "electric", "earth", "wind"]
 

@@ -39,7 +39,6 @@ import {
   preferredRangeFor,
   reachEdgeMm,
 } from "../src/battle/continuous/controller"
-import { HP_SCALE_PERCENT } from "../src/battle/continuous/hp"
 import { POISE_BREAK_MS } from "../src/battle/continuous/poise"
 import {
   hpSnapshot,
@@ -86,7 +85,7 @@ import {
  * therefore reproduces its telemetry row rather than a second, private stat
  * convention.
  */
-const REFERENCE = { hp: 90, atk: 10, def: 10, spd: 10 } as const
+const REFERENCE = { hp: 189, atk: 10, def: 10, spd: 10 } as const
 
 /** The default pair: the telemetry sample's KO row at an odd seed. */
 const DEFAULT_OWNED = "plant_ox"
@@ -980,7 +979,7 @@ function sideCell(body: FrameSide): string {
 function sideHeader(label: string, side: SideTrace, pool: number): string[] {
   return [
     `${label.padEnd(8)} ${side.name} [${side.speciesId}]  ${side.element}  ${side.temperament}  tactic ${side.tactic}`,
-    `${"".padEnd(8)} stats hp ${side.stats.hp} atk ${side.stats.atk} def ${side.stats.def} spd ${side.stats.spd}  →  pool ${pool} hp (×${HP_SCALE_PERCENT}%)`,
+    `${"".padEnd(8)} stats hp ${side.stats.hp} atk ${side.stats.atk} def ${side.stats.def} spd ${side.stats.spd}  →  pool ${pool} hp`,
     `${"".padEnd(8)} body radius ${side.radiusMm} mm  height ${side.heightMm} mm  branch ${side.branch ?? "none"}`,
     `${"".padEnd(8)} kit ${side.kit.join(", ")}`,
     `${"".padEnd(8)} profile preferred ${side.preferredRangeMm} mm for this pair (row ${side.profile.preferredRangeMm}, reach edge ${side.reachEdgeMm})`,

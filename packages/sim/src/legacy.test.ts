@@ -307,7 +307,7 @@ describe("inheritedFloor", () => {
 
   it("returns half the parent's effective stats when inside bounds", () => {
     expect(inheritedFloor(parentStats, drake, 0)).toEqual({
-      hp: 80,
+      hp: 160,
       atk: 12,
       def: 8,
       spd: 9,
@@ -317,7 +317,7 @@ describe("inheritedFloor", () => {
   it("clamps a huge parent down to the species maximums", () => {
     const huge: CreatureStats = { hp: 500, atk: 500, def: 500, spd: 500 }
     expect(inheritedFloor(huge, drake, 0)).toEqual({
-      hp: 92,
+      hp: 193,
       atk: 13,
       def: 10,
       spd: 12,
@@ -327,7 +327,7 @@ describe("inheritedFloor", () => {
   it("clamps a weak parent up to the species minimums", () => {
     const weak: CreatureStats = { hp: 2, atk: 2, def: 2, spd: 2 }
     expect(inheritedFloor(weak, drake, 0)).toEqual({
-      hp: 76,
+      hp: 160,
       atk: 9,
       def: 7,
       spd: 9,
@@ -338,7 +338,7 @@ describe("inheritedFloor", () => {
     expect(
       inheritedFloor(parentStats, drake, PRESTIGE_ESTABLISHED_LINE),
     ).toEqual({
-      hp: 81,
+      hp: 161,
       atk: 13,
       def: 9,
       spd: 10,
@@ -349,7 +349,7 @@ describe("inheritedFloor", () => {
     expect(
       inheritedFloor(parentStats, drake, PRESTIGE_ESTABLISHED_LINE - 1),
     ).toEqual({
-      hp: 80,
+      hp: 160,
       atk: 12,
       def: 8,
       spd: 9,
@@ -360,7 +360,7 @@ describe("inheritedFloor", () => {
     // A 0.55 share would lift hp to 89 — the single-parent successor floor
     // deliberately keeps the plain 0.5 fraction.
     expect(inheritedFloor(parentStats, drake, PRESTIGE_REFINED_BLOOD)).toEqual({
-      hp: 81,
+      hp: 161,
       atk: 13,
       def: 9,
       spd: 10,

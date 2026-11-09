@@ -144,7 +144,7 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
       "Mossbottom Brute(water_axolotl)",
     ])
     expect(session.bracket.slots[1]?.stats).toEqual({
-      hp: 83,
+      hp: 172,
       atk: 10,
       def: 9,
       spd: 9,

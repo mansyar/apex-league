@@ -37,12 +37,12 @@ describe("battle catalog", () => {
 
   test("same six-row tier table for every element", () => {
     const tiers = [
-      { power: 6, accuracy: 100, cooldown: 1 },
-      { power: 8, accuracy: 90, cooldown: 1 },
-      { power: 9, accuracy: 85, cooldown: 2 },
-      { power: 10, accuracy: 75, cooldown: 2 },
-      { power: 7, accuracy: 95, cooldown: 1 },
-      { power: 11, accuracy: 70, cooldown: 3 },
+      { power: 12, accuracy: 100, cooldown: 1 },
+      { power: 16, accuracy: 90, cooldown: 1 },
+      { power: 18, accuracy: 85, cooldown: 2 },
+      { power: 20, accuracy: 75, cooldown: 2 },
+      { power: 14, accuracy: 95, cooldown: 1 },
+      { power: 22, accuracy: 70, cooldown: 3 },
     ]
     for (const element of [
       "fire",
@@ -83,18 +83,18 @@ describe("battle catalog", () => {
     ]
     const numbers: Readonly<Record<string, readonly [number, number, number]>> =
       {
-        spark: [6, 100, 1],
-        flame_charge: [8, 90, 1],
-        cinder_shot: [9, 85, 2],
-        blaze_bolt: [10, 75, 2],
-        seed_shot: [6, 100, 1],
-        thorn_volley: [8, 90, 1],
-        spore_burst: [9, 85, 2],
-        bramble_dart: [10, 75, 2],
-        bubble: [6, 100, 1],
-        tide_shot: [8, 90, 1],
-        foam_volley: [9, 85, 2],
-        splash_bolt: [10, 75, 2],
+        spark: [12, 100, 1],
+        flame_charge: [16, 90, 1],
+        cinder_shot: [18, 85, 2],
+        blaze_bolt: [20, 75, 2],
+        seed_shot: [12, 100, 1],
+        thorn_volley: [16, 90, 1],
+        spore_burst: [18, 85, 2],
+        bramble_dart: [20, 75, 2],
+        bubble: [12, 100, 1],
+        tide_shot: [16, 90, 1],
+        foam_volley: [18, 85, 2],
+        splash_bolt: [20, 75, 2],
       }
     for (const id of original) {
       const move = CATALOG.find((m) => m.id === id)
@@ -189,10 +189,10 @@ describe("battle catalog", () => {
       if (!offense || !defense)
         throw new Error(`signature missing: ${offenseId}`)
       expect([offense.power, offense.accuracy, offense.cooldown]).toEqual([
-        10, 80, 2,
+        20, 80, 2,
       ])
       expect([defense.power, defense.accuracy, defense.cooldown]).toEqual([
-        8, 100, 2,
+        16, 100, 2,
       ])
       expect(offense.element).toBe(defense.element)
       expect((offense.power * offense.accuracy) / 100).toBe(
@@ -209,8 +209,8 @@ describe("battle catalog", () => {
 })
 
 describe("basic strike", () => {
-  test("is innate: power 5, accuracy 100, no cooldown, typeless melee", () => {
-    expect(BASIC_MOVE.power).toBe(5)
+  test("is innate: power 10, accuracy 100, no cooldown, typeless melee", () => {
+    expect(BASIC_MOVE.power).toBe(10)
     expect(BASIC_MOVE.accuracy).toBe(100)
     expect(BASIC_MOVE.cooldown).toBe(0)
     expect(BASIC_MOVE.element).toBeUndefined()
@@ -386,12 +386,12 @@ describe("electric kit (electric_species_line)", () => {
 
   /** The universal tier table, pinned for the electric rows too. */
   const TIERS: Readonly<Record<string, readonly [number, number, number]>> = {
-    static_jolt: [6, 100, 1],
-    volt_dash: [8, 90, 1],
-    arc_shot: [9, 85, 2],
-    storm_bolt: [10, 75, 2],
-    ion_dart: [7, 95, 1],
-    gigavolt: [11, 70, 3],
+    static_jolt: [12, 100, 1],
+    volt_dash: [16, 90, 1],
+    arc_shot: [18, 85, 2],
+    storm_bolt: [20, 75, 2],
+    ion_dart: [14, 95, 1],
+    gigavolt: [22, 70, 3],
   }
 
   /** A minimal creature pick for the learn/equip helpers. */
@@ -496,12 +496,12 @@ describe("earth kit (earth-wind-species-line)", () => {
 
   /** The universal tier table, pinned for the earth rows too. */
   const TIERS: Readonly<Record<string, readonly [number, number, number]>> = {
-    pebble_shot: [6, 100, 1],
-    dust_devil: [8, 90, 1],
-    clay_burst: [9, 85, 2],
-    boulder_toss: [10, 75, 2],
-    sand_blast: [7, 95, 1],
-    tectonic_slam: [11, 70, 3],
+    pebble_shot: [12, 100, 1],
+    dust_devil: [16, 90, 1],
+    clay_burst: [18, 85, 2],
+    boulder_toss: [20, 75, 2],
+    sand_blast: [14, 95, 1],
+    tectonic_slam: [22, 70, 3],
   }
 
   /** A minimal creature pick for the learn/equip helpers. */
@@ -605,12 +605,12 @@ describe("wind kit (earth-wind-species-line)", () => {
 
   /** The universal tier table, pinned for the wind rows too. */
   const TIERS: Readonly<Record<string, readonly [number, number, number]>> = {
-    gust: [6, 100, 1],
-    feather_dart: [8, 90, 1],
-    gale_cutter: [9, 85, 2],
-    sky_bolt: [10, 75, 2],
-    talon_slash: [7, 95, 1],
-    hurricane_spiral: [11, 70, 3],
+    gust: [12, 100, 1],
+    feather_dart: [16, 90, 1],
+    gale_cutter: [18, 85, 2],
+    sky_bolt: [20, 75, 2],
+    talon_slash: [14, 95, 1],
+    hurricane_spiral: [22, 70, 3],
   }
 
   function pick(

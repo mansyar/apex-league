@@ -15,7 +15,7 @@
  * no random source, no floats.
  */
 
-import { BLOW_WEIGHT, BODY_RADIUS_MM } from "../frames"
+import { BODY_RADIUS_MM } from "../frames"
 import { DEFAULT_BODY_HEIGHT_MM, divRound, shotDirection } from "./contact"
 import {
   DIR_SCALE,
@@ -48,11 +48,11 @@ export const KNOCKBACK_REFERENCE_MASS = Math.floor(
  * knockback before decay, which slides it a few tens of mm; a light body takes
  * low hundreds, a heavy one less still.
  *
- * Divided by `BLOW_WEIGHT` because the weight doubles every move's poise
- * damage: the shove is already tuned, so only the damage gets heavier and a
- * blow still displaces what it did before the weight (Phase 8).
+ * The 500 is the old `1000 / blow-weight` shove, now a literal (Phase 5, FR-2):
+ * the weight doubles every move's poise damage, and the shove is already tuned,
+ * so only the damage gets heavier and a blow still displaces what it did before.
  */
-export const KNOCKBACK_PER_POISE = Math.trunc(1000 / BLOW_WEIGHT)
+export const KNOCKBACK_PER_POISE = 500
 
 /**
  * Fraction of a stunned body's velocity kept per step (tunable): a half. The

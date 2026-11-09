@@ -14,7 +14,7 @@
  * exactly. Every function is pure.
  */
 
-import { BLOW_WEIGHT, getFrameData } from "../frames"
+import { getFrameData } from "../frames"
 import { type FighterState, STEP_MS } from "./types"
 
 /** A fighter's stamina pool when the config names none (tunable). */
@@ -32,12 +32,11 @@ export const STAMINA_REGEN_PER_INTERVAL = 1
  * the cheapest attack cost 1.5 s of regeneration — FR-4's sustained rate.
  * Specials keep their authored 4-10, so they stay the expensive choice.
  *
- * The floor is a per-blow price, so it carries `BLOW_WEIGHT` like every other
- * one (Phase 8): the cheapest attack still costs 1.5 s of regeneration, which
- * is now two basic cycles rather than one, so the gate binds at the same
- * point in the cycle as before the weight.
+ * The floor is a per-blow price. Phase 5 folded the old 3 x blow-weight floor
+ * into the literal 6 (FR-2), so the cheapest attack still costs 1.5 s of
+ * regeneration; the number is unchanged, only its derivation is gone.
  */
-export const MIN_ATTACK_STAMINA_COST = 3 * BLOW_WEIGHT
+export const MIN_ATTACK_STAMINA_COST = 6
 
 /** What one dodge costs, in points (tunable). */
 export const DODGE_STAMINA_COST = 8

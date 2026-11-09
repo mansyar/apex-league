@@ -20,7 +20,7 @@ import { getFrameData } from "./frames"
 import { BASIC_MOVE, CATALOG, type MoveDef } from "./moves"
 
 /** The reference stat line: the middle of the starter band (spec assumption). */
-const REFERENCE_STATS = { hp: 90, atk: 10, def: 10, spd: 10 } as const
+const REFERENCE_STATS = { hp: 189, atk: 10, def: 10, spd: 10 } as const
 
 /** The pool a reference body fights on, derived exactly as the resolver does. */
 const REFERENCE_POOL = startingHp({ stats: REFERENCE_STATS })

@@ -43,7 +43,7 @@ const MAX_MS = 40_000
  * is what a cup day's player brings. Every side is clamped into its own
  * species' legal roll bounds, exactly as `rampStats` does with no ramp.
  */
-const REFERENCE = { hp: 90, atk: 10, def: 10, spd: 10 } as const
+const REFERENCE = { hp: 189, atk: 10, def: 10, spd: 10 } as const
 
 type StatLine = { hp: number; atk: number; def: number; spd: number }
 

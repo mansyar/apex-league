@@ -128,7 +128,6 @@ function bodyFor(side: BattleSide): { radiusMm: number; heightMm: number } {
  * It lives in `./hp` with `startingHp`, which applies it to a side; kept
  * exported here so the resolver's own surface is unchanged.
  */
-export { HP_SCALE_PERCENT } from "./hp"
 
 /** One side's opening order: stats, hit points, body volume, and a facing at its foe. */
 export function initFor(

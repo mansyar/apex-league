@@ -165,17 +165,25 @@ describe("temperament overrides", () => {
         }),
       ).toEqual(expected)
     }
-    // From far: Balanced closes when nothing qualifies; Favor Specials
-    // fires a ready special; with every special cooling it closes. FR6:
-    // Balanced's close case is now the two-move kit against the wall, since
-    // a four-move kit always sustains more than the Strike.
-    check(drake, wall, ["spark", "flame_charge"], "balanced", CLOSE)
+    // From far: Balanced fires the cheapest ready special when the folded
+    // numbers clear the bar; Favor Specials fires a ready special; with every
+    // special cooling it closes. FR6: Balanced's close case is now the
+    // two-move kit against the wall, since a four-move kit always sustains
+    // more than the Strike. Phase 5 (FR-10): the folded Strike and kit keep
+    // that comparison, so this fixture now fires Spark.
+    check(drake, wall, ["spark", "flame_charge"], "balanced", special("spark"))
     check(drake, neutral, DRAKE_KIT, "specials", special("flame_charge"))
     const allCool = DRAKE_KIT.reduce((f, id) => cooled(f, id, 2), drake)
     check(allCool, neutral, DRAKE_KIT, "specials", CLOSE)
-    // From near: Balanced basics when nothing qualifies; Favor Specials
+    // From near: Balanced fires Spark when it clears the bar; Favor Specials
     // fires point-blank.
-    check(near(drake), wall, ["spark", "flame_charge"], "balanced", BASIC)
+    check(
+      near(drake),
+      wall,
+      ["spark", "flame_charge"],
+      "balanced",
+      special("spark"),
+    )
     check(near(drake), neutral, DRAKE_KIT, "specials", special("flame_charge"))
   })
 })
@@ -220,7 +228,7 @@ describe("sustained kit output vs the innate Strike", () => {
     expect(pick("specials")).toEqual(special("flame_charge"))
   })
 
-  test("Balanced still Strikes when the whole kit sustains less than the Strike", () => {
+  test("Balanced's fallback follows the folded sustain comparison", () => {
     expect(
       chooseAction({
         fighter: near(drake),
@@ -230,7 +238,7 @@ describe("sustained kit output vs the innate Strike", () => {
         temperament: "obedient",
         actionCount: 2,
       }),
-    ).toEqual(BASIC)
+    ).toEqual(special("spark"))
   })
 
   test("Balanced keeps leading with a super-effective special", () => {
@@ -247,7 +255,7 @@ describe("sustained kit output vs the innate Strike", () => {
     ).toEqual(special("spark"))
   })
 
-  test("Favor Specials yields to the Strike when nothing in the kit sustains", () => {
+  test("Favor Specials' fallback follows the folded sustain comparison", () => {
     expect(
       chooseAction({
         fighter: near(drake),
@@ -257,7 +265,7 @@ describe("sustained kit output vs the innate Strike", () => {
         temperament: "obedient",
         actionCount: 2,
       }),
-    ).toEqual(BASIC)
+    ).toEqual(special("spark"))
   })
 
   test("Favor Specials still commits when the kit out-damages the Strike", () => {
@@ -382,10 +390,10 @@ describe("tactic rules when obeyed", () => {
         temperament: "obedient",
         actionCount: 0,
       }),
-    ).toEqual(special("blaze_bolt"))
+    ).toEqual(special("cinder_shot"))
     // FR6 added a third way to qualify. The wall has no super-effective
-    // shot, nothing KOs, and a two-move kit sustains 0.95 against the
-    // Strike's 1 — so close.
+    // shot, nothing KOs, and the folded kit clears the Strike's rate — so it
+    // fires Spark.
     expect(
       chooseAction({
         fighter: drake,
@@ -395,7 +403,7 @@ describe("tactic rules when obeyed", () => {
         temperament: "obedient",
         actionCount: 0,
       }),
-    ).toEqual(CLOSE)
+    ).toEqual(special("spark"))
   })
 
   test("Balanced fires when a ready special would KO on the integer damage", () => {
@@ -436,7 +444,7 @@ describe("tactic rules when obeyed", () => {
         temperament: "obedient",
         actionCount: 2,
       }),
-    ).toEqual(special("blaze_bolt"))
+    ).toEqual(special("cinder_shot"))
     // FR6: against the wall nothing qualifies, so the point-blank
     // fallback is a basic.
     expect(
@@ -448,7 +456,7 @@ describe("tactic rules when obeyed", () => {
         temperament: "obedient",
         actionCount: 2,
       }),
-    ).toEqual(BASIC)
+    ).toEqual(special("spark"))
   })
 })
 

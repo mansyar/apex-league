@@ -88,7 +88,7 @@ import {
  * the middle of the starter band, clamped into each species' own roll bounds,
  * which is what `rampStats` builds for a real cup fight.
  */
-const REFERENCE = { hp: 90, atk: 10, def: 10, spd: 10 } as const
+const REFERENCE = { hp: 189, atk: 10, def: 10, spd: 10 } as const
 
 /** The grid a "distinct position" is counted on, in millimetres. */
 const CELL_MM = 100

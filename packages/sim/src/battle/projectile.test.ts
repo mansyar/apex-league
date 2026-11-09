@@ -72,9 +72,9 @@ describe("projectiles", () => {
     expect(r2.events[0]?.actor).toBe("Bolt")
     expect(r2.events[0]?.target).toBe("Reed")
     expect(r2.events[0]?.hit).toBe(true)
-    expect(r2.events[0]?.damage).toBe(15)
-    expect(r2.events[0]?.line).toBe("Blaze Bolt hits Reed for 15.")
-    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: 25 })
+    expect(r2.events[0]?.damage).toBe(30)
+    expect(r2.events[0]?.line).toBe("Blaze Bolt hits Reed for 30.")
+    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: 10 })
     // The impact ran before gauges and actions: Bolt is cooling down and
     // holds; Reed (SPD 5) never reaches the gauge.
     expect(kinds(r2.events)).toEqual(["impact", "hold"])
@@ -99,9 +99,9 @@ describe("projectiles", () => {
     expect(r2.events[0]?.target).toBe("Bolt")
     expect(r2.events[0]?.moveId).toBe("seed_shot")
     expect(r2.events[0]?.hit).toBe(true)
-    expect(r2.events[0]?.damage).toBe(3)
-    expect(r2.events[0]?.line).toBe("Seed Shot hits Bolt for 3.")
-    expect(r2.events[0]?.hpAfter).toEqual({ Reed: 40, Bolt: 37 })
+    expect(r2.events[0]?.damage).toBe(6)
+    expect(r2.events[0]?.line).toBe("Seed Shot hits Bolt for 6.")
+    expect(r2.events[0]?.hpAfter).toEqual({ Reed: 40, Bolt: 34 })
   })
 
   test("an accuracy miss leaves HP untouched and consumes no dodge roll", () => {
@@ -176,9 +176,9 @@ describe("dodge against a moving target", () => {
     expect(r2.events[0]?.kind).toBe("impact")
     expect(r2.events[0]?.hit).toBe(true)
     expect(r2.events[0]?.missReason).toBeUndefined()
-    expect(r2.events[0]?.damage).toBe(15)
-    expect(r2.events[0]?.line).toBe("Blaze Bolt hits Reed for 15.")
-    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: 25 })
+    expect(r2.events[0]?.damage).toBe(30)
+    expect(r2.events[0]?.line).toBe("Blaze Bolt hits Reed for 30.")
+    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: 10 })
   })
 
   test("standing still never consumes a dodge roll", () => {
@@ -201,8 +201,8 @@ describe("dodge against a moving target", () => {
     const r2 = clock.advance(plan)
     expect(kinds(r2.events)).toEqual(["impact", "hold", "stagger"])
     expect(r2.events[0]?.hit).toBe(true)
-    expect(r2.events[0]?.damage).toBe(15)
-    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: 25 })
+    expect(r2.events[0]?.damage).toBe(30)
+    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: 10 })
   })
 })
 
@@ -236,11 +236,11 @@ describe("shots in flight at the end", () => {
     const r2 = clock.advance(plan)
     // Both impacts land in launch order; the down follows its own impact.
     expect(kinds(r2.events)).toEqual(["impact", "down", "impact"])
-    expect(r2.events[0]?.damage).toBe(40)
-    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: 0 })
+    expect(r2.events[0]?.damage).toBe(81)
+    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: -41 })
     expect(r2.events[1]?.line).toBe("Reed is down!")
-    expect(r2.events[2]?.damage).toBe(4)
-    expect(r2.events[2]?.hpAfter).toEqual({ Bolt: 36, Reed: 0 })
+    expect(r2.events[2]?.damage).toBe(8)
+    expect(r2.events[2]?.hpAfter).toEqual({ Bolt: 32, Reed: -41 })
     // After the step is judged, no pending shot fires and only a live
     // fighter acts.
     const r3 = clock.advance(() => HOLD)

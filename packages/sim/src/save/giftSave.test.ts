@@ -151,7 +151,7 @@ describe("the legacy gift bookkeeping migrates into the reward record", () => {
 
 describe("save v21 — the gift bookkeeping defaults", () => {
   test("the schema version is 25", () => {
-    expect(SAVE_VERSION).toBe(25)
+    expect(SAVE_VERSION).toBe(26)
   })
 
   test("a v20 creature and state migrate with the reward defaults stamped", () => {
@@ -169,7 +169,12 @@ describe("save v21 — the gift bookkeeping defaults", () => {
     const before = structuredClone(owned.creature)
     const migrated = migrate(raw)
     if (!migrated.state.creature) throw new Error("no creature")
-    expect(migrated.state.creature.stats).toEqual(before.stats)
+    // Phase 5 (FR-2/FR-10): the migration folds the stored HP onto the
+    // doubled scale; every other number passes through untouched.
+    expect(migrated.state.creature.stats).toEqual({
+      ...before.stats,
+      hp: Math.round((before.stats.hp * 21) / 10),
+    })
     expect(migrated.state.creature.trained).toEqual(before.trained)
     expect(migrated.state.creature.conditions).toEqual(before.conditions)
     expect(migrated.savedAt).toBe(99)
@@ -202,6 +207,10 @@ describe("save v21 — the gift bookkeeping defaults", () => {
     const migrated = migrate(raw)
     expect(migrated.state.lineage.hallOfFame[0]).toEqual({
       ...record,
+      stats: {
+        ...record.stats,
+        hp: Math.round((record.stats.hp * 21) / 10),
+      },
       giftEgg: false,
     })
   })
@@ -232,7 +241,7 @@ describe("save v25 — the per-tier league reward record (FR-8)", () => {
         pendingGift: { speciesId: "electric_hound", seed: 4242 },
       }),
     )
-    expect(migrated.version).toBe(25)
+    expect(migrated.version).toBe(26)
     expect(migrated.state.claimedTiers).toEqual(["silver"])
     // The pending Storm Gift becomes the head of the queue — a pending
     // Silver reward, lowest tier first.
@@ -258,6 +267,12 @@ describe("save v25 — the per-tier league reward record (FR-8)", () => {
       ...chooseStarter(createInitialState(), "fire_drake", 42),
       claimedTiers: ["silver"] as GameState["claimedTiers"],
       pendingRewards: [{ speciesId: "electric_hound", seed: 4242 }],
+    }
+    // Phase 5 (FR-10): the mapping is lossless once the HP fold is applied.
+    if (equivalent.creature) {
+      equivalent.creature.stats.hp = Math.round(
+        (equivalent.creature.stats.hp * 21) / 10,
+      )
     }
     expect(migrated.state).toEqual(equivalent)
   })
@@ -498,7 +513,7 @@ describe("reward-record export and import", () => {
     const result = inspectSaveImport(exported.json)
     expect(result.ok).toBe(true)
     if (result.ok) {
-      expect(result.data.version).toBe(25)
+      expect(result.data.version).toBe(26)
       expect(result.data.state.claimedTiers).toEqual(["silver"])
       expect(result.data.state.creature?.giftEgg).toBe(true)
     }

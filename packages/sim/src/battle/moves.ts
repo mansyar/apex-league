@@ -7,11 +7,14 @@
  * Pure data and small helpers — no DOM, no jobs, no I/O.
  * Cooldowns are counted in the fighter's own actions, never in clock ticks.
  *
- * Power is one authored ladder, 5..11: the innate strike is 5, the kit rows
- * are 6/8/9/10 with the fast chip at 7, and the heavy finisher is 11. On the
- * reference line a base hit is therefore 5.3-11.6% of the pool, inside the
- * 4-12% band (FR-1); a rear counter may still reach 1.875x that, which is the
- * reward for earning the angle, not a hole in the band.
+ * Power is one authored ladder, 10..22: the innate strike is 10, the kit rows
+ * are 12/16/18/20 with the fast chip at 14, and the heavy finisher is 22.
+ * These already carry the 2x blow weight the continuous engine used to apply
+ * (Phase 5 folded it in, FR-2), just as the HP stat carries the old 210%
+ * arena scale: the sheet's number is the number the fight resolves with. On
+ * the folded reference line (189 pool) a base hit is therefore 5.3-11.6%,
+ * inside the 4-12% band (FR-1); a rear counter may still reach 1.875x that,
+ * which is the reward for earning the angle, not a hole in the band.
  */
 
 import type { Element } from "../creature"
@@ -39,7 +42,7 @@ export const BASIC_MOVE: MoveDef = Object.freeze({
   id: "basic",
   displayName: "Strike",
   element: undefined,
-  power: 5,
+  power: 10,
   accuracy: 100,
   cooldown: 0,
   melee: true,
@@ -71,54 +74,54 @@ function special(
  * identical.
  */
 export const CATALOG: readonly MoveDef[] = Object.freeze([
-  special("spark", "Spark", "fire", 6, 100, 1),
-  special("flame_charge", "Flame Charge", "fire", 8, 90, 1),
-  special("cinder_shot", "Cinder Shot", "fire", 9, 85, 2),
-  special("blaze_bolt", "Blaze Bolt", "fire", 10, 75, 2),
-  special("flare_dart", "Flare Dart", "fire", 7, 95, 1),
-  special("pyre_lance", "Pyre Lance", "fire", 11, 70, 3),
-  special("seed_shot", "Seed Shot", "plant", 6, 100, 1),
-  special("thorn_volley", "Thorn Volley", "plant", 8, 90, 1),
-  special("spore_burst", "Spore Burst", "plant", 9, 85, 2),
-  special("bramble_dart", "Bramble Dart", "plant", 10, 75, 2),
-  special("vine_lash", "Vine Lash", "plant", 7, 95, 1),
-  special("root_quake", "Root Quake", "plant", 11, 70, 3),
-  special("bubble", "Bubble", "water", 6, 100, 1),
-  special("tide_shot", "Tide Shot", "water", 8, 90, 1),
-  special("foam_volley", "Foam Volley", "water", 9, 85, 2),
-  special("splash_bolt", "Splash Bolt", "water", 10, 75, 2),
-  special("mist_spray", "Mist Spray", "water", 7, 95, 1),
-  special("maelstrom", "Maelstrom", "water", 11, 70, 3),
-  special("cinder_dive", "Cinder Dive", "fire", 10, 80, 2),
-  special("pyre_wall", "Pyre Wall", "fire", 8, 100, 2),
-  special("thorn_charge", "Thorn Charge", "plant", 10, 80, 2),
-  special("bramble_guard", "Bramble Guard", "plant", 8, 100, 2),
-  special("riptide_rush", "Riptide Rush", "water", 10, 80, 2),
-  special("tide_aegis", "Tide Aegis", "water", 8, 100, 2),
-  special("static_jolt", "Static Jolt", "electric", 6, 100, 1),
-  special("volt_dash", "Volt Dash", "electric", 8, 90, 1),
-  special("arc_shot", "Arc Shot", "electric", 9, 85, 2),
-  special("storm_bolt", "Storm Bolt", "electric", 10, 75, 2),
-  special("ion_dart", "Ion Dart", "electric", 7, 95, 1),
-  special("gigavolt", "Gigavolt", "electric", 11, 70, 3),
-  special("storm_surge", "Storm Surge", "electric", 10, 80, 2),
-  special("ion_wall", "Ion Wall", "electric", 8, 100, 2),
-  special("pebble_shot", "Pebble Shot", "earth", 6, 100, 1),
-  special("dust_devil", "Dust Devil", "earth", 8, 90, 1),
-  special("clay_burst", "Clay Burst", "earth", 9, 85, 2),
-  special("boulder_toss", "Boulder Toss", "earth", 10, 75, 2),
-  special("sand_blast", "Sand Blast", "earth", 7, 95, 1),
-  special("tectonic_slam", "Tectonic Slam", "earth", 11, 70, 3),
-  special("quake_stomp", "Quake Stomp", "earth", 10, 80, 2),
-  special("basalt_guard", "Basalt Guard", "earth", 8, 100, 2),
-  special("gust", "Gust", "wind", 6, 100, 1),
-  special("feather_dart", "Feather Dart", "wind", 8, 90, 1),
-  special("gale_cutter", "Gale Cutter", "wind", 9, 85, 2),
-  special("sky_bolt", "Sky Bolt", "wind", 10, 75, 2),
-  special("talon_slash", "Talon Slash", "wind", 7, 95, 1),
-  special("hurricane_spiral", "Hurricane Spiral", "wind", 11, 70, 3),
-  special("cyclone_dive", "Cyclone Dive", "wind", 10, 80, 2),
-  special("zephyr_veil", "Zephyr Veil", "wind", 8, 100, 2),
+  special("spark", "Spark", "fire", 12, 100, 1),
+  special("flame_charge", "Flame Charge", "fire", 16, 90, 1),
+  special("cinder_shot", "Cinder Shot", "fire", 18, 85, 2),
+  special("blaze_bolt", "Blaze Bolt", "fire", 20, 75, 2),
+  special("flare_dart", "Flare Dart", "fire", 14, 95, 1),
+  special("pyre_lance", "Pyre Lance", "fire", 22, 70, 3),
+  special("seed_shot", "Seed Shot", "plant", 12, 100, 1),
+  special("thorn_volley", "Thorn Volley", "plant", 16, 90, 1),
+  special("spore_burst", "Spore Burst", "plant", 18, 85, 2),
+  special("bramble_dart", "Bramble Dart", "plant", 20, 75, 2),
+  special("vine_lash", "Vine Lash", "plant", 14, 95, 1),
+  special("root_quake", "Root Quake", "plant", 22, 70, 3),
+  special("bubble", "Bubble", "water", 12, 100, 1),
+  special("tide_shot", "Tide Shot", "water", 16, 90, 1),
+  special("foam_volley", "Foam Volley", "water", 18, 85, 2),
+  special("splash_bolt", "Splash Bolt", "water", 20, 75, 2),
+  special("mist_spray", "Mist Spray", "water", 14, 95, 1),
+  special("maelstrom", "Maelstrom", "water", 22, 70, 3),
+  special("cinder_dive", "Cinder Dive", "fire", 20, 80, 2),
+  special("pyre_wall", "Pyre Wall", "fire", 16, 100, 2),
+  special("thorn_charge", "Thorn Charge", "plant", 20, 80, 2),
+  special("bramble_guard", "Bramble Guard", "plant", 16, 100, 2),
+  special("riptide_rush", "Riptide Rush", "water", 20, 80, 2),
+  special("tide_aegis", "Tide Aegis", "water", 16, 100, 2),
+  special("static_jolt", "Static Jolt", "electric", 12, 100, 1),
+  special("volt_dash", "Volt Dash", "electric", 16, 90, 1),
+  special("arc_shot", "Arc Shot", "electric", 18, 85, 2),
+  special("storm_bolt", "Storm Bolt", "electric", 20, 75, 2),
+  special("ion_dart", "Ion Dart", "electric", 14, 95, 1),
+  special("gigavolt", "Gigavolt", "electric", 22, 70, 3),
+  special("storm_surge", "Storm Surge", "electric", 20, 80, 2),
+  special("ion_wall", "Ion Wall", "electric", 16, 100, 2),
+  special("pebble_shot", "Pebble Shot", "earth", 12, 100, 1),
+  special("dust_devil", "Dust Devil", "earth", 16, 90, 1),
+  special("clay_burst", "Clay Burst", "earth", 18, 85, 2),
+  special("boulder_toss", "Boulder Toss", "earth", 20, 75, 2),
+  special("sand_blast", "Sand Blast", "earth", 14, 95, 1),
+  special("tectonic_slam", "Tectonic Slam", "earth", 22, 70, 3),
+  special("quake_stomp", "Quake Stomp", "earth", 20, 80, 2),
+  special("basalt_guard", "Basalt Guard", "earth", 16, 100, 2),
+  special("gust", "Gust", "wind", 12, 100, 1),
+  special("feather_dart", "Feather Dart", "wind", 16, 90, 1),
+  special("gale_cutter", "Gale Cutter", "wind", 18, 85, 2),
+  special("sky_bolt", "Sky Bolt", "wind", 20, 75, 2),
+  special("talon_slash", "Talon Slash", "wind", 14, 95, 1),
+  special("hurricane_spiral", "Hurricane Spiral", "wind", 22, 70, 3),
+  special("cyclone_dive", "Cyclone Dive", "wind", 20, 80, 2),
+  special("zephyr_veil", "Zephyr Veil", "wind", 16, 100, 2),
 ])
 
 const MOVE_INDEX = new Map(

@@ -26,7 +26,7 @@ export const STARTER_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "pyre_lance",
     ],
     temperament: "rush",
-    statBounds: { hp: [76, 92], atk: [9, 13], def: [7, 10], spd: [9, 12] },
+    statBounds: { hp: [160, 193], atk: [9, 13], def: [7, 10], spd: [9, 12] },
   },
   {
     id: "plant_ox",
@@ -44,7 +44,7 @@ export const STARTER_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "root_quake",
     ],
     temperament: "slow",
-    statBounds: { hp: [88, 104], atk: [8, 11], def: [10, 14], spd: [5, 8] },
+    statBounds: { hp: [185, 218], atk: [8, 11], def: [10, 14], spd: [5, 8] },
   },
   {
     id: "water_axolotl",
@@ -62,6 +62,6 @@ export const STARTER_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "maelstrom",
     ],
     temperament: "obedient",
-    statBounds: { hp: [80, 96], atk: [8, 12], def: [8, 11], spd: [8, 11] },
+    statBounds: { hp: [168, 202], atk: [8, 12], def: [8, 11], spd: [8, 11] },
   },
 ])

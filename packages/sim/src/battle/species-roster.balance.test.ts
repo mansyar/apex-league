@@ -269,7 +269,7 @@ describe("new-species boss probe (species-roster-expansion)", () => {
   })
 
   // Phase 8 (P8.T1/P8.T2) owns this roster target; un-mark when it passes.
-  test.failing("each cap vector is distinct from every starter's", () => {
+  test("each cap vector is distinct from every starter's", () => {
     for (const speciesId of NEW_SPECIES) {
       const vector = BOSSES.map((boss) => winRate(duelBoss(speciesId, boss, 6)))
       for (const def of STARTER_SPECIES) {

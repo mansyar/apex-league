@@ -9,12 +9,11 @@
  * recover longer, which frames.test.ts pins. Recovery is a real commitment:
  * the 20261109 cadence track widened every tail so it is comparable to startup
  * plus active, and the same track's blow-weight pass then multiplied all five
- * frame fields (startup, active, recovery, poise damage, stamina cost) by
- * `BLOW_WEIGHT` so a fight lands half as many blows, each twice as heavy.
- * Startup and active carry the weight because damage does: a blow that is
- * twice as heavy must also take twice as long to arrive and to commit, or
- * damage per second climbs. The table below carries the weighted values; the
- * pre-weight numbers are `row / BLOW_WEIGHT`.
+ * frame fields (startup, active, recovery, poise damage, stamina cost) by 2 so
+ * a fight lands half as many blows, each twice as heavy. Phase 5 folded that
+ * weight into `MoveDef.power` and into these rows (FR-2), so the table is now
+ * the literal budget: a blow that is twice as heavy also takes twice as long
+ * to arrive and to commit, and damage per second stays put.
  *
  * Units are fixed-point integers: durations in milliseconds, distances in
  * millimetres, speeds in millimetres per millisecond (1 mm/ms = 1 m/s). `y` is
@@ -64,28 +63,6 @@ export interface FrameData {
  * apart, so a strike only has to cross the space between their surfaces.
  */
 export const BODY_RADIUS_MM = 220
-
-/**
- * The blow weight (tunable, Phase 8): how many of the authored unit blows one
- * live blow is worth. It is applied to every per-blow quantity, never to a
- * per-second one, so a fight keeps its length and its shape and only its
- * granularity changes — half as many blows, each twice as heavy.
- *
- * - Damage: `positionalDamage` multiplies the numerator by it (not
- *   `strikeDamage`, which the frozen legacy clock shares).
- * - Startup, active, recovery, poise damage and stamina cost: every row below
- *   is authored already multiplied, so the five cannot drift apart. Startup and
- *   active have to carry it too: damage per second is damage over the whole
- *   cycle, and scaling only the tail would leave the blow twice as heavy on a
- *   cycle that grew by less than two.
- * - Knockback: `KNOCKBACK_PER_POISE` divides it back out, because a blow now
- *   carries twice the poise for the same shove.
- *
- * It is deliberately not applied to a rate: stamina regeneration, the dodge
- * price, decision cadence and the HP scale stay as they are, which is what
- * keeps the stamina budget and the fight length per second unchanged.
- */
-export const BLOW_WEIGHT = 2
 
 /** No authored band may reach higher than this, in mm (sane-range guard). */
 const BAND_CEILING_MM = 2000

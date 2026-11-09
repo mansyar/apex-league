@@ -130,38 +130,39 @@ function serialize(result: BattleResult): string {
  * ranking + the sustained-score qualifier) changed every mirror and every
  * fire-vs-plant / plant-vs-fire / ox-vs-axolotl battle — the authorized
  * rebalance — while fire-vs-water kit2 and water-vs-fire kit2 happened to
- * keep their streams.
+ * keep their streams. Recaptured again in Phase 5 (FR-10): folding the blow
+ * weight into MoveDef.power doubles legacy damage, so every stream moves.
  */
 const GOLDEN: Readonly<Record<string, string>> = {
   // Mirrors: each species fights itself (three kit tiers).
-  "fire_drake|fire_drake|kit2": "e7768895",
-  "fire_drake|fire_drake|kit3": "04b5f05b",
-  "fire_drake|fire_drake|kit4": "7794e481",
-  "plant_ox|plant_ox|kit2": "495358d5",
-  "plant_ox|plant_ox|kit3": "2afe7e80",
-  "plant_ox|plant_ox|kit4": "c6e83b62",
-  "water_axolotl|water_axolotl|kit2": "c7fe580d",
-  "water_axolotl|water_axolotl|kit3": "a21fda68",
-  "water_axolotl|water_axolotl|kit4": "eddf6740",
+  "fire_drake|fire_drake|kit2": "1920ab9d",
+  "fire_drake|fire_drake|kit3": "907d6275",
+  "fire_drake|fire_drake|kit4": "a45ed952",
+  "plant_ox|plant_ox|kit2": "7568c3a5",
+  "plant_ox|plant_ox|kit3": "5db9e77c",
+  "plant_ox|plant_ox|kit4": "f5f1b4be",
+  "water_axolotl|water_axolotl|kit2": "20cabd99",
+  "water_axolotl|water_axolotl|kit3": "cb6981e2",
+  "water_axolotl|water_axolotl|kit4": "60f91e2d",
   // Cross-element: fire>plant, water>fire, plant>water, both side orders.
-  "fire_drake|plant_ox|kit2": "664b687d",
-  "fire_drake|plant_ox|kit3": "9c6ef65d",
-  "fire_drake|plant_ox|kit4": "8b75e6a7",
-  "plant_ox|fire_drake|kit2": "60fe269d",
-  "plant_ox|fire_drake|kit3": "af52c543",
-  "plant_ox|fire_drake|kit4": "bdde0e11",
-  "fire_drake|water_axolotl|kit2": "5bda3411",
-  "fire_drake|water_axolotl|kit3": "231d1a3c",
-  "fire_drake|water_axolotl|kit4": "945aceec",
-  "water_axolotl|fire_drake|kit2": "fd24aa3d",
-  "water_axolotl|fire_drake|kit3": "0d007c66",
-  "water_axolotl|fire_drake|kit4": "de868ff0",
-  "plant_ox|water_axolotl|kit2": "47ca39c9",
-  "plant_ox|water_axolotl|kit3": "94437327",
-  "plant_ox|water_axolotl|kit4": "5dd6206d",
-  "water_axolotl|plant_ox|kit2": "35f0f1b5",
-  "water_axolotl|plant_ox|kit3": "8e46c0f9",
-  "water_axolotl|plant_ox|kit4": "8e14b99d",
+  "fire_drake|plant_ox|kit2": "439b3605",
+  "fire_drake|plant_ox|kit3": "81a3d08b",
+  "fire_drake|plant_ox|kit4": "49f89e95",
+  "plant_ox|fire_drake|kit2": "99a1db95",
+  "plant_ox|fire_drake|kit3": "fcb50da7",
+  "plant_ox|fire_drake|kit4": "662b5135",
+  "fire_drake|water_axolotl|kit2": "3bfd7ac9",
+  "fire_drake|water_axolotl|kit3": "54efd548",
+  "fire_drake|water_axolotl|kit4": "d0503dcc",
+  "water_axolotl|fire_drake|kit2": "33739175",
+  "water_axolotl|fire_drake|kit3": "d6e0cc90",
+  "water_axolotl|fire_drake|kit4": "d611c260",
+  "plant_ox|water_axolotl|kit2": "6891cb89",
+  "plant_ox|water_axolotl|kit3": "7fe4069d",
+  "plant_ox|water_axolotl|kit4": "35414d23",
+  "water_axolotl|plant_ox|kit2": "95b85605",
+  "water_axolotl|plant_ox|kit3": "25045b3b",
+  "water_axolotl|plant_ox|kit4": "aa798f35",
 }
 
 interface RunSummary {
@@ -302,9 +303,9 @@ describe("seeded battle event-stream contract", () => {
         )
       }
     }
-    // Phase 4 band: the innate Strike is power 5, so the best attainable
-    // Strike is 9 (still under the lowest heavy threshold).
-    expect(bestStrike).toBe(9)
+    // Phase 5 fold (FR-10): the innate Strike is power 10, so the best
+    // attainable Strike is 18 (still under the lowest heavy threshold).
+    expect(bestStrike).toBe(18)
     expect(bestStrike).toBeLessThan(lowestThreshold)
   })
 
