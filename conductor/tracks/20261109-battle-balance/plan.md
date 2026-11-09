@@ -233,7 +233,7 @@ numbers are measured by a tool that predates them.
 - **Covers:** FR-5, FR-4, FR-6, AC-5, AC-4, AC-6
 - **Touches:** `packages/sim/src/species.ts`, `packages/sim/src/battle/moves.ts`, `packages/sim/src/bosses.ts`, `packages/sim/src/battle/frames.ts` + co-located tests
 - **Verification:** `bun run verify`, `bun run build`, `bun run balance`, `bun run telemetry` (four separate commands)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P11.T1: Kit shape and species** — covers: FR-5
   - [ ] P11.T1.1 Make the leading kit rows a tuning lever: which four moves a species leads with, and their cooldown tiers.
