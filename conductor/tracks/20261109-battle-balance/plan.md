@@ -20,7 +20,7 @@ numbers are measured by a tool that predates them.
 - **Covers:** FR-11, FR-12, FR-15, FR-16, AC-11, AC-12, AC-15
 - **Touches:** `packages/sim/src/battle/continuous/controller-profile.ts`, `controller.ts`, `resolve.ts`, `apps/client/src/spar/`, `apps/client/src/cup/`, `apps/client/src/battleHud.ts` + co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Doctrine model** — covers: FR-11
   - [ ] P1.T1.1 Replace the two tactics with four frozen doctrines: Press, Circle, Kite, Counter.
