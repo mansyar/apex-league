@@ -96,6 +96,21 @@ Phased delivery plan (each phase is independently playable):
   bounds are enforced in CI. Fights run 25–40 s with both sides landing. The
   gauge clock is frozen as a replay-only path and `SIM_VERSION` is 2. Cup and
   Spar both resolve on the new engine.)*
+- Battle agency and balance: the player decides *how* a fight is fought, and the
+  numbers are measured rather than assumed. *(Landed 2026-11-10: four positioning
+  doctrines - Press, Circle, Kite, Counter - plus one conditional coach's note,
+  with temperament shading execution inside the doctrine's band rather than
+  setting it; a controller that executes competently (opponent reach model,
+  whiff-and-punish, commitment timing, stamina reserve, bounded pattern memory);
+  a real per-move cooldown so a kit is a rotation and specials out-damage the
+  basic; a symmetric type chart of two 3-cycles at 1.5x / 0.667x; the HP scale
+  and blow weight folded into the stats and move power so the sheet shows the
+  numbers the fight uses (save v26 migrates in place); damage on every move
+  inside 4-12% of the reference pool; seeded accuracy rolls and a bounded damage
+  spread so a rematch is a different fight while a replay still repeats exactly;
+  and a deterministic balance gate that measures each species at its own typical
+  roll and holds 15/15 inside its band with 12 in the 45-55% target. Fights
+  resolve - 29% decided at the cap, 71% by knockout, median 26.6 s.)*
 - Battle system: 4 stats + 6 types, move pool + equip-4, type/HP battle AI.
   *(Landed core 2026-10-10: headless deterministic resolver — speed-gauge action
   clock, type chart, projectile specials with travel/accuracy/dodge, equip-4

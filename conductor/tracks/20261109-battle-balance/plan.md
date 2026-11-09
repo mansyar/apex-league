@@ -234,7 +234,7 @@ numbers are measured by a tool that predates them.
 - **Touches:** `packages/sim/src/species.ts`, `packages/sim/src/battle/moves.ts`, `packages/sim/src/bosses.ts`, `packages/sim/src/battle/frames.ts` + co-located tests
 - **Verification:** `bun run verify`, `bun run build`, `bun run balance`, `bun run telemetry` (four separate commands)
 - **Status:** blocked
-- **Result:** blocked - superseded
+- **Result:** blocked - superseded by Phase 12 (measurement) and Phase 13 (re-tune)
 - **Why:** the gate cannot see a species' stats. `speciesSide` clamps the reference
   line 189/10/10/10 into each species' `statBounds`, so a stat only registers when its
   bounds exclude 10. Kit shape was therefore the only visible lever, and it is a 20-40

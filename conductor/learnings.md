@@ -284,3 +284,69 @@ Two concrete traps from the same work:
   arena was ±4,000 x ±3,000 mm while the floor ring was far smaller, so fights
   visibly happened outside the paint. Any world-space constant that appears in
   both the sim and the art is a coupling, and it needs a test.
+
+## 15. A gate that cannot see the lever is not a gate
+
+(20261109-battle-balance, 2026-11-10) The roster re-tune failed twice before it
+worked, and both failures had the same cause: the balance report measured every
+species by clamping one reference line (`189/10/10/10`) into that species' roll
+bounds. A species' stats therefore only reached the fight when its bounds
+excluded 10, so two species whose bounds straddled 10 were measured as the same
+creature. Three phases were spent tuning a measurement that could not see the
+thing being tuned.
+
+What the blindness produced:
+
+- **A wrong conclusion that read like an insight.** "The spread is not in the
+  stat lines, it is kit shape" was true *of the harness*, not of the game. It
+  sent the next phase into a 15-way round robin where a kit reorder moves every
+  row by 10-40 points, which does not converge, and the phase correctly refused
+  to ship a probe fit rather than fake it.
+- **An instrument change is a legitimate deliverable.** The fix was a dozen
+  lines in a script plus two tests - measure each species at the integer
+  midpoint of its own bounds, keep the equal-investment line as a printed
+  diagnostic that never gates - and the re-tune then converged in one phase to
+  15/15 inside the band.
+
+The rule: before tuning a system, prove the measurement moves when you move the
+system. A test that shifts one species' bounds by 2 and shows its measured win
+rate move is worth more than any amount of searching. And when a phase reports
+"this cannot be reached", the first hypothesis should be that the instrument is
+blind, not that the goal is wrong.
+
+Corollary: **refusing to ship a bad fit is the correct outcome.** Phase 11
+returned `failed` with a clean tree and a measured explanation, which is what
+made Phase 12 possible. A phase that had quietly committed the probe roster would
+have poisoned every number after it.
+
+## 16. A target met on average is not met
+
+(20261109-battle-balance, 2026-11-10) Two separate places in this track had to
+choose between an honest miss and a comfortable pass, and both times the honest
+miss was right.
+
+- Phase 10's first pass landed 33.8% cap share against a 33.3% bound and 66.2%
+  knockout against 66.7% - half a point outside on 840 fights, well within one
+  standard error. Softening the damage-spread floor from `base/8` to `base/16`
+  closed it. "Within one SE" is how a regression gate becomes decorative.
+- Phase 4 relaxed a knockout-majority assertion to "at least half" to absorb a
+  7/7 split. That was caught and reverted to a strict guard marked `test.failing`,
+  so the miss stayed visible instead of becoming the new definition of passing.
+
+The related trap is a statistical gate whose slack is wider than its target. A
+95% test over 112 games per species has +/-9.3 points of slack, so a species can
+"pass" at 42% when the design band is 45-55%. Keep both numbers in the output:
+the gate is what CI enforces, the band is what the game wants, and a report that
+prints only the gate is lying by omission.
+
+Two more from the same track worth remembering:
+
+- **A damage band that only holds before positional multipliers is not a band.**
+  Flank (1.25x) x rear (1.5x) x counter (1.25x) stacks to 1.875x, so a 12% base
+  hit reaches 21.7%. That is fine - it is an earned-angle reward - but it has to
+  be stated, or the next person reads 12% as the ceiling and is wrong.
+- **Diversity is part of balance.** With accuracy near-decorative (94-100%
+  effective) only 9.5% of ordered pairings change winner across seeds, and one
+  species produced 4 distinct fights in 112. A row like that is four coin flips
+  with a standard error printed beside it; it cannot be balanced and should not
+  be reported as balanced.
