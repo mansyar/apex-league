@@ -62,14 +62,17 @@ numbers are measured by a tool that predates them.
 - **Covers:** FR-14, AC-14
 - **Touches:** `packages/sim/src/battle/continuous/controller*.ts`, `resolve.ts` + co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 02cc32ec
+- **Evidence:** `conductor/tracks/20261109-battle-balance/verification/phase-3.md`
 
-- [ ] **P3.T1: Spacing** — covers: FR-14
+- [x] **P3.T1: Spacing** — covers: FR-14
   - [ ] P3.T1.1 Model the opponent's reach and hold just outside it.
-- [ ] **P3.T2: Punishment** — covers: FR-14
+- [x] **P3.T2: Punishment** — covers: FR-14
   - [ ] P3.T2.1 Step out of a whiff and commit into its recovery; test proves both halves.
   - [ ] P3.T2.2 Time commitments for recovery and poise breaks rather than raw affordability.
-- [ ] **P3.T3: Discipline** — covers: FR-14
+- [x] **P3.T3: Discipline** — covers: FR-14
   - [ ] P3.T3.1 Reserve stamina for a punish window.
   - [ ] P3.T3.2 Bounded pattern memory of the opponent's dodge direction and opening move.
 
@@ -81,7 +84,7 @@ numbers are measured by a tool that predates them.
 - **Covers:** FR-1, FR-8, AC-1, AC-8
 - **Touches:** `packages/sim/src/battle/frames.ts`, `moves.ts`, `continuous/damage.ts` + co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P4.T1: Band** — covers: FR-1
   - [ ] P4.T1.1 Author all 49 rows so every move lands between 4% and 12% of the reference pool.

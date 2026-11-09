@@ -271,3 +271,33 @@ each is a value re-pin with a comment naming this phase, never a logic change.
   Both are `controller*.ts` and inside `Touches`.
 - Diagnostic artifacts were written under `.conductor/evidence/` (cup seed
   probe, module-size probe); they are git-ignored and not part of any commit.
+
+## Primary verification
+
+| Check | Result |
+| --- | --- |
+| `bun run verify` | exit 0 — Biome clean, determinism gate byte-identical |
+| `bun run build` | exit 0 — 407 modules, 1,053.07 kB |
+
+Independently confirmed: `controller.ts` is **10,305 B** (1,983 B of headroom,
+down from 2 bytes), and `controller-profile.ts` is byte-identical to the Phase 1
+checkpoint `ef514222` — so the doctrine rows, bands and temperament shading were
+not touched by an "execution" phase, which was the risk.
+
+The whiff-and-punish is measured rather than asserted: away's basic commits at
+1,086 mm, home steps out and the swing whiffs with home still at full HP, then
+home commits a `flare_dart` at 1,166 mm during the recovery and lands 17 with the
+counter flag. Reserve is 6 points and binds only when the foe is within 4 poise of
+a break — an unconditional reserve pushed cap share to 9/14, so the condition is
+load-bearing rather than decorative.
+
+Memory lives on `ControllerState`, not `FighterState`, so `stateHash` is unchanged
+in shape; a 3-field record with a 2000 ms expiry refreshed only on new
+observations, and it only picks the cut side. Determinism is preserved because the
+trace replay is byte-identical across seeds 1, 2 and 20261111.
+
+**Risk accepted, to be repaid in Phase 6:** six cup and client golden files were
+re-pinned to received values. The controller genuinely moves those outcomes, so the
+re-pin is legitimate, but pinning to whatever came out is not evidence that the new
+outcome is correct. Phase 6's balance report re-derives expectations independently,
+and that is where these pins get validated rather than merely accepted.
