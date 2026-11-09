@@ -39,7 +39,7 @@ describe("battle catalog", () => {
     const tiers = [
       { power: 12, accuracy: 100, cooldown: 1 },
       { power: 16, accuracy: 90, cooldown: 1 },
-      { power: 18, accuracy: 85, cooldown: 2 },
+      { power: 19, accuracy: 85, cooldown: 2 },
       { power: 20, accuracy: 75, cooldown: 2 },
       { power: 14, accuracy: 95, cooldown: 1 },
       { power: 22, accuracy: 100, cooldown: 3 },
@@ -85,15 +85,15 @@ describe("battle catalog", () => {
       {
         spark: [12, 100, 1],
         flame_charge: [16, 90, 1],
-        cinder_shot: [18, 85, 2],
+        cinder_shot: [19, 85, 2],
         blaze_bolt: [20, 75, 2],
         seed_shot: [12, 100, 1],
         thorn_volley: [16, 90, 1],
-        spore_burst: [18, 85, 2],
+        spore_burst: [19, 85, 2],
         bramble_dart: [20, 75, 2],
         bubble: [12, 100, 1],
         tide_shot: [16, 90, 1],
-        foam_volley: [18, 85, 2],
+        foam_volley: [19, 85, 2],
         splash_bolt: [20, 75, 2],
       }
     for (const id of original) {
@@ -388,7 +388,7 @@ describe("electric kit (electric_species_line)", () => {
   const TIERS: Readonly<Record<string, readonly [number, number, number]>> = {
     static_jolt: [12, 100, 1],
     volt_dash: [16, 90, 1],
-    arc_shot: [18, 85, 2],
+    arc_shot: [19, 85, 2],
     storm_bolt: [20, 75, 2],
     ion_dart: [14, 95, 1],
     gigavolt: [22, 100, 3],
@@ -498,7 +498,7 @@ describe("earth kit (earth-wind-species-line)", () => {
   const TIERS: Readonly<Record<string, readonly [number, number, number]>> = {
     pebble_shot: [12, 100, 1],
     dust_devil: [16, 90, 1],
-    clay_burst: [18, 85, 2],
+    clay_burst: [19, 85, 2],
     boulder_toss: [20, 75, 2],
     sand_blast: [14, 95, 1],
     tectonic_slam: [22, 100, 3],
@@ -607,7 +607,7 @@ describe("wind kit (earth-wind-species-line)", () => {
   const TIERS: Readonly<Record<string, readonly [number, number, number]>> = {
     gust: [12, 100, 1],
     feather_dart: [16, 90, 1],
-    gale_cutter: [18, 85, 2],
+    gale_cutter: [19, 85, 2],
     sky_bolt: [20, 75, 2],
     talon_slash: [14, 95, 1],
     hurricane_spiral: [22, 100, 3],

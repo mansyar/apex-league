@@ -46,7 +46,7 @@ const KNOWN_MISSES = [
   "species:cindermoor: observed 57.1% (32/56), bound 45.0%..55.0%",
   "species:voltfox: observed 92.9% (52/56), bound 45.0%..55.0%",
   "species:galeheron: observed 82.1% (46/56), bound 45.0%..55.0%",
-  "species:shalemole: observed 78.6% (44/56), bound 45.0%..55.0%",
+  "species:shalemole: observed 85.7% (48/56), bound 45.0%..55.0%",
   "species:mistkit: observed 17.9% (10/56), bound 45.0%..55.0%",
 ] as const
 

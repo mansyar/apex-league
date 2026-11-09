@@ -132,37 +132,40 @@ function serialize(result: BattleResult): string {
  * rebalance — while fire-vs-water kit2 and water-vs-fire kit2 happened to
  * keep their streams. Recaptured again in Phase 5 (FR-10): folding the blow
  * weight into MoveDef.power doubles legacy damage, so every stream moves.
+ * Recaptured in Phase 9 (FR-10): the tier-2 mid row moves 18 -> 19 to restore
+ * the light < mid < heavy damage order, which the frozen clock reads through
+ * MoveDef.power. Only kit3 and kit4 move — kit2 does not field a tier-2 row.
  */
 const GOLDEN: Readonly<Record<string, string>> = {
   // Mirrors: each species fights itself (three kit tiers).
   "fire_drake|fire_drake|kit2": "1920ab9d",
-  "fire_drake|fire_drake|kit3": "907d6275",
-  "fire_drake|fire_drake|kit4": "a45ed952",
+  "fire_drake|fire_drake|kit3": "1d8fd1b5",
+  "fire_drake|fire_drake|kit4": "9b2017be",
   "plant_ox|plant_ox|kit2": "7568c3a5",
-  "plant_ox|plant_ox|kit3": "5db9e77c",
-  "plant_ox|plant_ox|kit4": "f5f1b4be",
+  "plant_ox|plant_ox|kit3": "f626202a",
+  "plant_ox|plant_ox|kit4": "17e28f00",
   "water_axolotl|water_axolotl|kit2": "20cabd99",
-  "water_axolotl|water_axolotl|kit3": "cb6981e2",
-  "water_axolotl|water_axolotl|kit4": "60f91e2d",
+  "water_axolotl|water_axolotl|kit3": "809da5a1",
+  "water_axolotl|water_axolotl|kit4": "a26858d7",
   // Cross-element: fire>plant, water>fire, plant>water, both side orders.
   "fire_drake|plant_ox|kit2": "439b3605",
-  "fire_drake|plant_ox|kit3": "81a3d08b",
-  "fire_drake|plant_ox|kit4": "49f89e95",
+  "fire_drake|plant_ox|kit3": "6edb2491",
+  "fire_drake|plant_ox|kit4": "a7835e11",
   "plant_ox|fire_drake|kit2": "99a1db95",
-  "plant_ox|fire_drake|kit3": "fcb50da7",
-  "plant_ox|fire_drake|kit4": "662b5135",
+  "plant_ox|fire_drake|kit3": "1f803667",
+  "plant_ox|fire_drake|kit4": "a727862d",
   "fire_drake|water_axolotl|kit2": "3bfd7ac9",
-  "fire_drake|water_axolotl|kit3": "54efd548",
-  "fire_drake|water_axolotl|kit4": "d0503dcc",
+  "fire_drake|water_axolotl|kit3": "d9348ba0",
+  "fire_drake|water_axolotl|kit4": "3c20363f",
   "water_axolotl|fire_drake|kit2": "33739175",
-  "water_axolotl|fire_drake|kit3": "d6e0cc90",
-  "water_axolotl|fire_drake|kit4": "d611c260",
+  "water_axolotl|fire_drake|kit3": "6706df28",
+  "water_axolotl|fire_drake|kit4": "46c7becd",
   "plant_ox|water_axolotl|kit2": "6891cb89",
-  "plant_ox|water_axolotl|kit3": "7fe4069d",
-  "plant_ox|water_axolotl|kit4": "35414d23",
+  "plant_ox|water_axolotl|kit3": "44e39d6a",
+  "plant_ox|water_axolotl|kit4": "16d14fd9",
   "water_axolotl|plant_ox|kit2": "95b85605",
-  "water_axolotl|plant_ox|kit3": "25045b3b",
-  "water_axolotl|plant_ox|kit4": "aa798f35",
+  "water_axolotl|plant_ox|kit3": "28b7abd0",
+  "water_axolotl|plant_ox|kit4": "2c1138f7",
 }
 
 interface RunSummary {

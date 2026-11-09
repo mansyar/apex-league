@@ -311,8 +311,10 @@ describe("electric_hound boss probe", () => {
     }
   })
 
-  // Phase 8 (P8.T1/P8.T2) owns this roster target; un-mark when it passes.
-  test.failing("every cap cell sits inside the existing roster's envelope", () => {
+  // Un-marked deliberately (Phase 9, FR-5): the mid-tier power bump moved the
+  // legacy cap cells back inside the starters' envelope, so the strict
+  // assertion holds again. The marker is removed, not relaxed.
+  test("every cap cell sits inside the existing roster's envelope", () => {
     for (const boss of BOSSES) {
       const starterRates = STARTER_SPECIES.map((def) =>
         winRate(duelAs(def.id, boss, 6)),
