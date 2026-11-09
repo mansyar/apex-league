@@ -170,4 +170,22 @@ describe("plateName — the plate names the doctrine (FR-16, AC-15)", () => {
       "Ember · Counter",
     ])
   })
+
+  test("a rule rides after the doctrine on the same plate (FR-13)", () => {
+    expect(plateName({ ...EMBER, doctrine: "kite", rule: "read_tell" })).toBe(
+      "Ember · Kite · Read the tell",
+    )
+  })
+
+  test("a rule with no doctrine still shows, and all four have a label", () => {
+    const labels = (
+      ["save_heavy", "read_tell", "keep_back", "never_trade"] as const
+    ).map((rule) => plateName({ ...EMBER, rule }))
+    expect(labels).toEqual([
+      "Ember · Save the heavy",
+      "Ember · Read the tell",
+      "Ember · Keep something back",
+      "Ember · Never trade",
+    ])
+  })
 })

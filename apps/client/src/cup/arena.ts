@@ -87,6 +87,7 @@ export function createArena(shared: CupShared): {
       mem.picks.loadout,
       tacticForDoctrine(mem.picks.doctrine),
       mem.picks.doctrine,
+      mem.picks.rule ?? undefined,
     )
     mem.session = resolved.session
     handlers.onSession?.(resolved.session)
@@ -107,6 +108,7 @@ export function createArena(shared: CupShared): {
         element: cs.element,
         maxHp: startingHp({ stats: battleStats(creature) }),
         doctrine: sides[0]?.doctrine,
+        rule: sides[0]?.rule,
       },
       rival: {
         name: opponent.name,
@@ -114,6 +116,7 @@ export function createArena(shared: CupShared): {
         element: rs.element,
         maxHp: startingHp(opponent),
         doctrine: sides[1]?.doctrine,
+        rule: sides[1]?.rule,
       },
     }
     // Into the arena: screens out, broadcast chrome in.

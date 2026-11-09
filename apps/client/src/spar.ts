@@ -16,6 +16,7 @@ import {
   type Creature,
   type DoctrineId,
   makeExhibition,
+  type RuleId,
   type SparSetup,
   tacticForDoctrine,
 } from "@apex/sim"
@@ -41,7 +42,13 @@ export function createSpar(
   root: HTMLElement,
   handlers: SparHandlers = {},
 ): Spar {
-  const refs = buildSparPanel(root, (doctrine) => runBattle(doctrine))
+  const refs = buildSparPanel(
+    root,
+    (doctrine) => runBattle(doctrine, playerRule),
+    (rule) => {
+      playerRule = rule
+    },
+  )
   const {
     sparButton,
     overlay,
@@ -71,6 +78,8 @@ export function createSpar(
   // never leak into a later spar — and a ghost bout always re-resolves from
   // the bundle, never from a stale setup.
   let pendingGhost: GhostContender | null = null
+  // The coach's note the panel has selected (FR-13); null is the default.
+  let playerRule: RuleId | null = null
 
   // The shared battle-session shell: driver wiring, HUD updates, the
   // speed pill, and the verdict stamp live there; spar owns its chrome.
@@ -118,21 +127,25 @@ export function createSpar(
     if (!log.hidden) log.scrollTop = log.scrollHeight
   }
 
-  const runBattle = (playerDoctrine: DoctrineId): void => {
+  const runBattle = (
+    playerDoctrine: DoctrineId,
+    playerRule: RuleId | null,
+  ): void => {
     if (!owned) return
     session.stop()
     // A ghost bout re-resolves from the bundle with the same seed, so the
     // rival the player previewed is the rival they fight; only the player's
-    // doctrine changes. The verdict still lives only in this panel.
+    // doctrine and note change. The verdict still lives only in this panel.
     const ghost = pendingGhost
     const seed = ghost ? ghost.seed : battleSeed
     const setup = ghost
-      ? ghostSparSetup(owned, ghost, playerDoctrine)
+      ? ghostSparSetup(owned, ghost, playerDoctrine, playerRule ?? undefined)
       : makeExhibition(
           owned,
           tacticForDoctrine(playerDoctrine),
           battleSeed,
           playerDoctrine,
+          playerRule ?? undefined,
         )
     const verdict = resolveSpar(setup, seed)
 

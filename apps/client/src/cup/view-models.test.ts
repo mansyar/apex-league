@@ -343,6 +343,7 @@ describe("coach picks — reset per match", () => {
     expect(picks).toEqual({
       loadout: [...defaultLoadout(bare, cs)],
       doctrine: "press",
+      rule: null,
     })
     // A fresh array: mutating the picks must not touch the species kit.
     expect(picks.loadout).not.toBe(defaultLoadout(bare, cs))
@@ -353,6 +354,7 @@ describe("coach picks — reset per match", () => {
     expect(initialPicks(c)).toEqual({
       loadout: ["spark", "flame_charge"],
       doctrine: "press",
+      rule: null,
     })
   })
 

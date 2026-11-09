@@ -5,17 +5,27 @@
  * and the open/close path) stays in spar.ts.
  */
 
-import type { DoctrineId } from "@apex/sim"
-import { buildDoctrineRow, renderSpeedButton } from "../battleUI"
+import type { DoctrineId, RuleId } from "@apex/sim"
+import { RULE_IDS, RULE_LABELS } from "@apex/sim"
+import {
+  buildChoiceRow,
+  buildDoctrineRow,
+  renderSpeedButton,
+} from "../battleUI"
 import { icons } from "../ui/icons"
 import { chipButton, crest } from "../ui/kit"
 import { DOCTRINE_LABELS, DOCTRINE_PREVIEWS } from "./copy"
 import type { SparPanelRefs } from "./types"
 
+/** The rule row's values: no note, or exactly one of the four (FR-13). */
+const RULE_CHOICES = ["none", ...RULE_IDS] as const
+type RuleChoice = (typeof RULE_CHOICES)[number]
+
 /** Build the spar's DOM and hand back its writable surfaces. */
 export function buildSparPanel(
   root: HTMLElement,
   onPickTactic: (doctrine: DoctrineId) => void,
+  onPickRule: (rule: RuleId | null) => void,
 ): SparPanelRefs {
   // Top-right spar chip: its own control, separate from the care cluster.
   // Kit chip with the mock's title/sub text stack.
@@ -92,6 +102,20 @@ export function buildSparPanel(
     onPick: (doctrine) => onPickTactic(doctrine),
   })
 
+  // The coach's note (FR-13): exactly one rule, or none. The row is a plain
+  // selector; the note itself is read by the sim's controller on every
+  // cadence, and the HUD names it on the plate when it fires.
+  const { row: rules } = buildChoiceRow<RuleChoice>({
+    rowClass: "spar-rules",
+    values: RULE_CHOICES,
+    describe: (rule) => ({
+      label: rule === "none" ? "No note" : RULE_LABELS[rule],
+    }),
+    classes: { base: "spar-rule kit-line", on: "on" },
+    initialOn: "none",
+    onPick: (rule) => onPickRule(rule === "none" ? null : rule),
+  })
+
   const fastButton = document.createElement("button")
   fastButton.className = "spar-fast kit-line"
   fastButton.type = "button"
@@ -146,6 +170,7 @@ export function buildSparPanel(
     cards,
     loadoutRow,
     tactics,
+    rules,
   )
   overlay.append(panel)
 

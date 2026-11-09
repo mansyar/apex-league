@@ -12,6 +12,7 @@ import {
   type Creature,
   type DoctrineId,
   makeExhibition,
+  type RuleId,
   SIM_VERSION,
   type SparSetup,
   tacticForDoctrine,
@@ -105,12 +106,14 @@ export function ghostSparSetup(
   owned: Creature,
   contender: GhostContender,
   doctrine: DoctrineId,
+  rule?: RuleId,
 ): SparSetup {
   const setup = makeExhibition(
     owned,
     tacticForDoctrine(doctrine),
     contender.seed,
     doctrine,
+    rule,
   )
   return {
     ...setup,
