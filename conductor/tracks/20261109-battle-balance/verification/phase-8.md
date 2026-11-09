@@ -249,3 +249,49 @@ Untouched as required: `FIGHT_CAP_MS` (40,000), the type chart, damage ratios (f
 - The trace header still prints the cosmetic literal "reference line (hp 90 …)" while the actual pools are 189/143 — a Phase 5 leftover, left alone.
 - Six of fourteen telemetry fights still hit the cap, all against earth_tortoise or reefclaw. Recorded for Phase 9.
 - The decision-verb probe that found the standoff lives under `.conductor/evidence/` (gitignored): 167 decisions, 11 commits, 51 retreats, zero refusals.
+
+## Primary verification
+
+Independent verification of Phase 8 on the tree at `8a68c189`.
+
+| command | result |
+| --- | --- |
+| `bun run verify` | exit 0 — 3,949 pass / 1 skip / 0 fail, 3,950 tests across 366 files, 55.11 s; typecheck clean on four packages; biome clean; determinism gate byte-identical |
+| `bun run build` | exit 0 |
+| `bun run balance` | exit 1 **only** on 10 species rows, which are Phase 9's. Every resolvability and boss target prints `ok` |
+| `bun run telemetry` | 6/14 cap (42.9%), all 13 bounds ok |
+
+Read from the harness output rather than the report:
+
+```
+ok   capShare:     observed 31.4% (132/420), bound <= 33.3%
+ok   durationBand: observed 63.8% (268/420), bound >= 50.0% in 25.00s..40.00s
+ok   durationMin:  observed 9.30s,  bound >= 8.00s
+ok   durationMax:  observed 40.00s, bound <= 40.00s
+ok   damageBand:   observed 49/49 moves inside, bound 4%..12% of the 189 pool
+duration:          min 9.30s  median 28.86s  max 40.00s
+```
+
+So FR-20 and AC-17 are met: cap share 84.8% → 31.4%, knockout share 15.2% → 68.6%,
+median duration 40.00 s → 28.86 s and strictly below `FIGHT_CAP_MS`. The median is
+not the cap, which was the failure mode the phase was written to prevent.
+
+**The decisive lever was not a number, it was a geometry error.** The press band's
+floor sat exactly on the reference reach edge, so the retreat latch fired on roughly
+60% of decisions — a permanent retreat/advance standoff that read as a stalemate in
+every fight. Recovery, cooldowns and stamina were all tried and measured first and
+moved the number far less; cooldowns had no effect at all, which is why measuring one
+lever at a time was worth the cost. This is the second time in this track that a
+mechanic looked present and was inert; it belongs in `learnings.md` alongside the
+"a mechanic you cannot reach is not implemented" entry.
+
+The band survived untouched: 49/49 moves at 5.29-11.64%, rear counter still 1.875x.
+The tier-3 heavy now out-earns the light on the damage clock in all six elements
+(8.15-8.72 vs 8.00 power/s, from 3.21 vs 5.00) — via accuracy 70→100, cooldown
+3000→2600 and one recovery trim, not by pushing power through the band ceiling.
+
+Two findings recorded and deliberately left to Phase 9: the mid tier `cinder_shot`
+now sits below the light tier at 7.65 power/s, and the heavy is still the worse slot
+per stamina point (4.40 vs 6.00) because it pays 20 stamina for 22 power. Six of the
+14 telemetry fights still cap, all against `earth_tortoise` or `reefclaw`.
+

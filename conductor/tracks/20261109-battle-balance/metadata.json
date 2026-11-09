@@ -6,7 +6,7 @@
   "priority": "high",
   "depends_on": [],
   "created_at": "2026-11-09T16:10:00+11:00",
-  "updated_at": "2026-11-09T08:44:01+00:00",
+  "updated_at": "2026-11-09T09:37:59+00:00",
   "spec": "conductor/tracks/20261109-battle-balance/spec.md",
   "plan": "conductor/tracks/20261109-battle-balance/plan.md",
   "branch": "feat/20261109-battle-balance",
@@ -14,11 +14,11 @@
   "base_sha": "d36d5995edf747c3a875af7905919a063ed052d8",
   "progress": {
     "phases_total": 9,
-    "phases_verified": 7,
+    "phases_verified": 8,
     "tasks_total": 23,
-    "tasks_done": 17
+    "tasks_done": 20
   },
-  "last_checkpoint": "f375e61f",
+  "last_checkpoint": "8a68c189",
   "review_verdict": null,
   "review_rounds": 0,
   "doc_sync": "pending",
