@@ -233,7 +233,17 @@ numbers are measured by a tool that predates them.
 - **Covers:** FR-5, FR-4, FR-6, AC-5, AC-4, AC-6
 - **Touches:** `packages/sim/src/species.ts`, `packages/sim/src/battle/moves.ts`, `packages/sim/src/bosses.ts`, `packages/sim/src/battle/frames.ts` + co-located tests
 - **Verification:** `bun run verify`, `bun run build`, `bun run balance`, `bun run telemetry` (four separate commands)
-- **Status:** in_progress
+- **Status:** blocked
+- **Result:** blocked - superseded
+- **Why:** the gate cannot see a species' stats. `speciesSide` clamps the reference
+  line 189/10/10/10 into each species' `statBounds`, so a stat only registers when its
+  bounds exclude 10. Kit shape was therefore the only visible lever, and it is a 20-40
+  point cliff in a 15-way round robin: one reorder swung fire_drake 35.7 -> 78.6 and
+  earth_tortoise 44.6 -> 17.9 in the same pass, and two coordinate-descent searches only
+  reached 12-14/15 at identity-destroying assignments. A probe roster scored 15/15 but
+  only by combining kit order with stat deltas the harness cannot express, so it was
+  discarded rather than shipped. No files changed; the tree is at `39b1b5ef`.
+- **Evidence:** ./verification/phase-11.md
 
 - [ ] **P11.T1: Kit shape and species** — covers: FR-5
   - [ ] P11.T1.1 Make the leading kit rows a tuning lever: which four moves a species leads with, and their cooldown tiers.
@@ -244,3 +254,51 @@ numbers are measured by a tool that predates them.
   - [ ] P11.T3.1 Record each boss's intended stage and its measured answer.
 - [ ] **P11.T4: Tier order** — covers: FR-19
   - [ ] P11.T4.1 Confirm the ladder still ascends after the re-tune and the heavy still earns its slot.
+
+## Phase 12: Measure the Creature
+
+- **Goal:** the gate can see a species' stats, so a stat is a lever.
+- **Depends on:** Phase 10 (checkpoint `39b1b5ef`); Phase 11 is blocked, not a dependency.
+- **Covers:** FR-22, AC-19.
+- **Touches:** `packages/sim/scripts/battle-balance-report.ts`,
+  `packages/sim/src/battle/continuous/balance-report.test.ts`.
+- **Verification:** `bun run verify`, `bun run build`, `bun run balance`,
+  `bun run telemetry` - four separate commands.
+- **Status:** pending
+
+- [ ] **P12.T1: Measure each species at its own typical roll** - covers: FR-22
+  - [ ] **P12.T1.1:** Build each measured side from that species' `statBounds` midpoint
+        (integer midpoint per stat) instead of the clamped reference line, and state the
+        definition in the report header.
+  - [ ] **P12.T1.2:** Keep the equal-investment reference line in the output as a
+        diagnostic only - printed, never gating - so "is any species stronger at equal
+        investment" stays answerable.
+- [ ] **P12.T2: Prove a stat is visible to the gate** - covers: AC-19
+  - [ ] **P12.T2.1:** A test that moves one species' `atk` bounds by 2 and shows its
+        measured win rate moves, so a future re-tune can rely on the gate.
+  - [ ] **P12.T2.2:** Re-baseline every row, re-pin what the new measurement moves, and
+        report the new spread with n and the binomial standard error per species.
+
+## Phase 13: Roster Re-tune
+
+- **Goal:** every species is a coin flip, on a gate that can see the whole creature.
+- **Depends on:** Phase 12.
+- **Covers:** FR-5, FR-4, FR-6, FR-19, AC-5, AC-4, AC-6.
+- **Touches:** `packages/sim/src/species.ts`, `packages/sim/src/battle/moves.ts`,
+  `packages/sim/src/bosses.ts`, `packages/sim/src/battle/frames.ts` + co-located tests.
+- **Verification:** `bun run verify`, `bun run build`, `bun run balance`,
+  `bun run telemetry` - four separate commands.
+- **Status:** pending
+
+- [ ] **P13.T1: Species into band** - covers: FR-5, AC-5
+  - [ ] **P13.T1.1:** Bring every species inside 45-55% by stats and kit shape, preferring
+        the smaller change and justifying each by mechanism.
+  - [ ] **P13.T1.2:** Show the whole roster passing the gate - `bun run balance` exits 0.
+- [ ] **P13.T2: Pacing held** - covers: FR-4, AC-4
+  - [ ] **P13.T2.1:** Cap share at most one in three, knockout share at least two in three,
+        median strictly below `FIGHT_CAP_MS` and inside 25-40 s, all 13 telemetry bounds.
+- [ ] **P13.T3: Bosses** - covers: FR-6, AC-6
+  - [ ] **P13.T3.1:** Record each boss's intended stage, what the player brings, and its
+        measured win rate; `0 < wins < fights` is the floor, not the target.
+- [ ] **P13.T4: Tier order** - covers: FR-19
+  - [ ] **P13.T4.1:** The ladder still ascends and the heavy still earns its slot.

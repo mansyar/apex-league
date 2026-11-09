@@ -100,6 +100,12 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
 | FR-20 | Under the standard doctrine at the reference line a fight resolves: at least two fights in three end by knockout and the median duration is strictly below `FIGHT_CAP_MS`. The cap is a safety valve, not the typical ending, so a stalemate cannot be presented as balanced pacing. | Must |
 | FR-21 | Every fight draws on the seeded RNG: each attack rolls against its authored accuracy, a landed blow carries a bounded damage spread that cannot push any base hit past the 12% ceiling, and the same seed with the same sides replays byte-identically while different seeds produce different fights. A spectator watching a rematch must see a different fight, and a replay must still repeat exactly. | Must |
 
+- **FR-22 (Must):** The balance gate measures each species at its own typical roll -
+  the integer midpoint of its authored stat bounds, the creature a player would own - and
+  prints the equal-investment reference line as a diagnostic that never gates. A species'
+  stats must be a lever the gate can see: changing a species' bounds must move its measured
+  win rate.
+
 ## Non-Functional Requirements
 
 | ID | Requirement |
@@ -133,6 +139,11 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
 | AC-16 | A special cannot be committed again before its cooldown expires, the basic strike is always available, and within the damage band every special hits strictly harder than the basic with the tiers strictly ordered. | FR-1, FR-8, FR-19 |
 | AC-17 | `bun run balance` reports, on the standard-doctrine matrix, a knockout share of at least two in three and a median duration strictly below `FIGHT_CAP_MS`, and fails naming the target when either is missed. | FR-20, FR-4 |
 | AC-18 | Two different seeds on the same pairing produce different outcomes in a measured share of the matrix, the same seed reproduces its events and state hash exactly, an accuracy miss appears as an event with a reason, and no rolled hit exceeds the 12% band ceiling. | FR-21, FR-1 |
+
+- **AC-19:** `bun run balance` builds every measured side from its species' bounds
+  midpoint, prints the reference-line diagnostic without gating on it, and a test that
+  shifts one species' `atk` bounds by 2 moves that species' measured win rate. Verifies:
+  FR-22
 
 ## Edge Cases
 
@@ -218,6 +229,17 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
   on top of a stalemate would only redistribute a fight that never resolves, so a
   resolvability phase (Phase 8) precedes the roster re-tune (Phase 9) and owns
   FR-20/AC-17, the cooldown durations and the pacing band.
+
+- **Resolved (2026-11-10, owner): the gate measures the typical creature.** Phase 11
+  blocked rather than ship a probe fit: `speciesSide` clamped the reference line
+  `189/10/10/10` into each species' `statBounds`, so a species' stats only registered when
+  its bounds excluded 10, which left kit shape as the only visible lever and made it a
+  20-40 point cliff in a 15-way round robin. The type chart contributes no bias - fire,
+  plant and water are three species each and each beats three and loses three; earth,
+  electric and wind are two each and beat two and lose two - so the spread was kit plus
+  that clamp. The owner ruled that the gate measures each species at its bounds midpoint
+  and keeps the equal-investment line as a diagnostic. Phase 12 owns FR-22 and AC-19;
+  Phase 13 owns the re-tune.
 
 ## References
 
