@@ -191,7 +191,7 @@ numbers are measured by a tool that predates them.
 - **Covers:** FR-5, FR-4, FR-6, AC-5, AC-4, AC-6
 - **Touches:** `packages/sim/src/species.ts`, `packages/sim/src/battle/frames.ts`, `moves.ts`, `bosses.ts` + co-located tests
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run telemetry`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P9.T1: Species** — covers: FR-5
   - [ ] P9.T1.1 Bring every available species inside 45-55%, adjusting stats and move power only.
