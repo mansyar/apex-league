@@ -112,7 +112,7 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
 
 | ID | Criterion | Verifies |
 | --- | --- | --- |
-| AC-11 | Each doctrine produces a distinct engagement profile, and a test asserts Circle yields more rear hits than Press on the same matchup and seed. | FR-11, FR-15 |
+| AC-11 | Each doctrine produces a distinct engagement profile, and a test asserts Circle earns strictly more flank-or-rear hits than Press on the same matchup and seed. Rear hits are reported separately and stay rare: the rear arc is reached only when a committed swing is fully punished, so no floor is set on rear hits. | FR-11, FR-15 |
 | AC-12 | Temperament changes execution inside the doctrine's band and a test proves it cannot cross the band: a `rush` and a `slow` creature on the same doctrine both stay within its range floor and ceiling. | FR-12 |
 | AC-13 | Each rule changes an observable decision, exactly one can be equipped, and an unequipped rule has no effect. | FR-13 |
 | AC-14 | A test proves the controller steps out of a whiff and punishes the recovery, and reserves stamina for a break window. | FR-14 |
@@ -185,6 +185,14 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
   the chart stays weak at 1.5x/0.667x and training stays at `TRAINING_CAP` 6.
 - **Resolved (2026-11-09, owner):** agency is doctrine plus one conditional rule;
   controller improvements are execution-only, never adaptive strategy.
+- **Resolved (2026-11-09, owner):** an angle is earned by a step-around burst
+  (2.5x walk, 150-200 ms, own stamina price) against a body whose turn rate
+  depends on what it is doing: free when idle, reduced in startup and recovery,
+  zero in the active window and in hitstun. Measured angular gain is 2.86 deg per
+  step for the cut against 0.69 during startup or recovery, so one full basic
+  swing earns at most 88.9 deg and the >120 deg rear arc is not reachable inside
+  a single commitment. Rear therefore stays a rare crit and AC-11 measures
+  flank-or-rear hits, which the mechanic does reach.
 
 ## References
 
