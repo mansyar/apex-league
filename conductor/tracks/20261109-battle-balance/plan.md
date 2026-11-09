@@ -105,12 +105,13 @@ numbers are measured by a tool that predates them.
 
 - **Depends on:** Phase 4
 - **Covers:** FR-2, FR-3, FR-9, FR-10, AC-2, AC-3
-- **Touches:** `packages/sim/src/battle/continuous/hp.ts`, `damage.ts`, `resolve.ts`, `packages/sim/src/save/` + co-located tests
+- **Touches:** `packages/sim/src/battle/continuous/hp.ts`, `damage.ts`, `resolve.ts`, `packages/sim/src/battle/moves.ts`, `packages/sim/src/creature.ts`, `packages/sim/src/save/` + co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P5.T1: Fold** — covers: FR-2
   - [ ] P5.T1.1 Fold the HP scale and blow weight into stored stats and move power; no multiplier remains between sheet and resolver.
+  - [ ] P5.T1.2 Scale the HP training cap with the fold so a fully trained creature is worth the same HP as before, and a trained HP point keeps its value.
 - [ ] **P5.T2: Migration** — covers: FR-3, FR-9
   - [ ] P5.T2.1 Bump `SAVE_VERSION` and add a migration that folds the scale with integer rounding.
   - [ ] P5.T2.2 Map old `balanced`/`specials` tactics onto doctrines.
