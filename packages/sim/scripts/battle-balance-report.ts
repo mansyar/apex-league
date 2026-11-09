@@ -122,6 +122,19 @@ const SPECIES_MAX = 0.55
 const SIGNIFICANCE_Z = 1.96
 
 /** FR-4 / AC-4: at most one fight in three may be decided at the cap. */
+/**
+ * The least number of *distinct* fights a species row may rest on (R1, F1).
+ *
+ * The matrix has 28 independent cells per species (14 opponents x 2 seat
+ * orders); extra seeds only re-roll a fight that was already decided by the
+ * RNG, so they add games without adding independent information. The best
+ * standard error those 28 cells can buy is `1.96 * sqrt(0.25 / 28)` = 18.5
+ * points wide, i.e. 9.3 points each way. A row below 12 distinct fights is
+ * therefore certifying something the sample cannot see, and is reported
+ * `UNVERIFIED` and failed rather than passed.
+ */
+export const DISTINCT_FLOOR = 12
+
 const CAP_MAX = 1 / 3
 
 /** FR-4: a majority of fights finish inside the tuned band. */
@@ -292,7 +305,11 @@ export interface SpeciesRow {
    * can never silently happen again.
    */
   readonly distinct: number
-  /** Binomial standard error of `rate` at this sample size, as a fraction. */
+  /**
+   * Binomial standard error of `rate` over the *distinct* fights, as a
+   * fraction. R1 (F1): the game count is not the sample size — 112 games
+   * resting on 4 distinct fights carry the noise of 4.
+   */
   readonly se: number
 }
 
@@ -304,9 +321,17 @@ export interface DoctrineRow {
   readonly rate: number
   /** Share of the measured side's landed blows that were flank or rear. */
   readonly rearOrFlank: number
+  /** Share of the measured side's landed blows that came from behind (R1, F2). */
+  readonly rear: number
   /** Median centre-to-centre gap over every step of every fight, in mm. */
   readonly engagementMedian: number
-  /** Dodged swings / (dodged swings + landed blows), measured side only. */
+  /** Paid dodges the measured side spent (R1, F2). */
+  readonly dodges: number
+  /**
+   * Paid dodges per controller decision, measured side only (R1, F2). A melee
+   * step-out is a `reach` whiff in the event log, so this reads the step's own
+   * `DodgeReport` rather than the projectile `dodge` reason.
+   */
   readonly dodgeRate: number
 }
 
@@ -337,6 +362,12 @@ export interface Target {
   readonly observed: string
   readonly bound: string
   readonly ok: boolean
+  /**
+   * Set when the sample cannot support the judgement at all (R1, F1): a row
+   * resting on fewer than `DISTINCT_FLOOR` distinct fights. An unverified
+   * target always fails the gate — it is never a silent pass.
+   */
+  readonly unverified?: boolean
   readonly why: string
 }
 
@@ -362,6 +393,8 @@ export interface BalanceSample {
   }
   readonly doctrines: readonly DoctrineRow[]
   readonly bosses: readonly BossRow[]
+  /** Paid dodges where a dodge is observable (R1, F2). */
+  readonly dodgeProbe: readonly DodgeRow[]
   readonly damage: {
     readonly pool: number
     readonly rows: readonly DamageRow[]
@@ -375,6 +408,8 @@ export interface BalanceSample {
     readonly time: number
     readonly draws: number
     readonly inBand: number
+    /** 5th-percentile fight length in ms (R1, F4): the pacing floor's sample. */
+    readonly p05: number
   }
   /** Median landed blow as a percent of the victim's pool, matrix-wide. */
   readonly observedBlowShare: number
@@ -400,8 +435,14 @@ interface PositionTally {
   flank: number
   rear: number
   landed: number
+  /** Paid dodges this side spent (R1, F2). */
   dodged: number
+  /** Controller decisions this side took: the dodge rate's denominator. */
+  decisions: number
 }
+
+/** Steps between controller decisions (`DECISION_MS / STEP_MS`). */
+const DECISION_STEPS = 240 / STEP_MS
 
 /**
  * Attribute one fight's landed blows to front/flank/rear from the recorded
@@ -422,10 +463,6 @@ function positionsOf(
     if (event.kind !== "basic" && event.kind !== "impact") continue
     if (!event.actorKey) continue
     const side = event.actorKey === keys[0] ? 0 : 1
-    if (event.missReason === "dodge") {
-      tallies[side].dodged += 1
-      continue
-    }
     if (event.hit !== true) continue
     tallies[side].landed += 1
     const index = Math.min(stream.steps - 1, Math.max(0, event.tick - 1))
@@ -439,6 +476,15 @@ function positionsOf(
     if (position === "flank") tallies[side].flank += 1
     if (position === "rear") tallies[side].rear += 1
   }
+  // R1 (F2): a melee step-out is a `reach` whiff in the event log and a paid
+  // dodge in the step's own report, so the event log alone can never show a
+  // dodge. Read the step outcome: the side that paid is the side that dodged.
+  const paid = result.dodges ?? [0, 0]
+  tallies[0].dodged += paid[0]
+  tallies[1].dodged += paid[1]
+  const decisions = Math.floor(Math.max(0, stream.steps - 1) / DECISION_STEPS)
+  tallies[0].decisions += decisions
+  tallies[1].decisions += decisions
 }
 
 /** Add one fight's tally into a doctrine row's running total. */
@@ -447,6 +493,7 @@ function mergeTally(into: PositionTally, from: PositionTally): void {
   into.rear += from.rear
   into.landed += from.landed
   into.dodged += from.dodged
+  into.decisions += from.decisions
 }
 
 /** The base hit every move lands on the reference line, front and no counter. */
@@ -594,6 +641,7 @@ export function measure(options: MeasureOptions = {}): BalanceSample {
     if (!tally) throw new Error(`no tally for ${def.id}`)
     const rate =
       tally.games === 0 ? 0 : (tally.wins + tally.draws / 2) / tally.games
+    const distinct = signatures.get(def.id)?.size ?? 0
     const row: SpeciesRow = {
       id: def.id,
       name: def.displayName,
@@ -601,8 +649,8 @@ export function measure(options: MeasureOptions = {}): BalanceSample {
       wins: tally.wins,
       draws: tally.draws,
       rate,
-      distinct: signatures.get(def.id)?.size ?? 0,
-      se: tally.games === 0 ? 0 : Math.sqrt((rate * (1 - rate)) / tally.games),
+      distinct,
+      se: distinct === 0 ? 0 : Math.sqrt(0.25 / distinct),
     }
     species.push(row)
   }
@@ -631,12 +679,16 @@ export function measure(options: MeasureOptions = {}): BalanceSample {
   }
 
   const doctrines = measureDoctrines(lines)
+  const dodgeProbe = measureDodges(lines)
   const bosses = measureBosses(lines)
 
   const sorted = [...durations].sort((left, right) => left - right)
   const inBand = durations.filter(
     (ms) => ms >= BAND_MIN_MS && ms <= BAND_MAX_MS,
   ).length
+  // R1 (F4): the 5th percentile, not the single fastest fight. One blowout in
+  // 840 is not a pacing defect; five percent of the sample ending early is.
+  const p05 = sorted.length === 0 ? 0 : sorted[Math.floor(sorted.length * 0.05)] ?? 0
 
   return {
     matrix: {
@@ -648,11 +700,13 @@ export function measure(options: MeasureOptions = {}): BalanceSample {
       diversity: pairingWinners.size === 0 ? 0 : diverse / pairingWinners.size,
     },
     doctrines,
+    dodgeProbe,
     bosses,
     damage: { pool: startingHp({ stats: REFERENCE }), rows: damageRows() },
     duration: {
       total: durations.length,
       min: sorted[0] ?? 0,
+      p05,
       median: median(durations),
       max: sorted[sorted.length - 1] ?? 0,
       ko,
@@ -749,12 +803,7 @@ function measureDoctrines(lines: LineMap): DoctrineRow[] {
       rear: 0,
       landed: 0,
       dodged: 0,
-    }
-    const incomingTally: PositionTally = {
-      flank: 0,
-      rear: 0,
-      landed: 0,
-      dodged: 0,
+      decisions: 0,
     }
     const gaps: number[] = []
     let wins = 0
@@ -781,13 +830,12 @@ function measureDoctrines(lines: LineMap): DoctrineRow[] {
         const stream = streamOf(result)
         if (!stream) throw new Error(`${doctrine} resolved without a stream`)
         const tallies: [PositionTally, PositionTally] = [
-          { flank: 0, rear: 0, landed: 0, dodged: 0 },
-          { flank: 0, rear: 0, landed: 0, dodged: 0 },
+          { flank: 0, rear: 0, landed: 0, dodged: 0, decisions: 0 },
+          { flank: 0, rear: 0, landed: 0, dodged: 0, decisions: 0 },
         ]
         positionsOf(result, stream, tallies)
         const watch = order === 0 ? 0 : 1
         mergeTally(measuredTally, tallies[watch])
-        mergeTally(incomingTally, tallies[watch === 0 ? 1 : 0])
         const winner = winnerOf(result, homeSide, awaySide)
         if (winner === watch) wins += 1
         if (winner === null) draws += 1
@@ -807,7 +855,6 @@ function measureDoctrines(lines: LineMap): DoctrineRow[] {
     // A dodge is filed on the swinger's event, so the measured side's dodge
     // rate is the share of the opponent's swings it made miss for `dodge`.
     const measuredSwings = measuredTally.landed + measuredTally.dodged
-    const incomingSwings = incomingTally.landed + incomingTally.dodged
     rows.push({
       id: doctrine,
       label: DOCTRINE_LABELS[doctrine],
@@ -817,9 +864,73 @@ function measureDoctrines(lines: LineMap): DoctrineRow[] {
         measuredSwings === 0
           ? 0
           : (measuredTally.flank + measuredTally.rear) / measuredSwings,
+      rear:
+        measuredSwings === 0 ? 0 : measuredTally.rear / measuredSwings,
       engagementMedian: median(gaps),
+      dodges: measuredTally.dodged,
       dodgeRate:
-        incomingSwings === 0 ? 0 : incomingTally.dodged / incomingSwings,
+        measuredTally.decisions === 0
+          ? 0
+          : measuredTally.dodged / measuredTally.decisions,
+    })
+  }
+  return rows
+}
+
+/**
+ * Paid dodges, measured where a dodge is observable (R1, F2). The doctrine
+ * table's fixed matchup draws none: both sides stand at about 1.2 m and trade
+ * shots, and the controller's dodge gate fires only on an incoming swing or a
+ * shot already on this body's line, so that pairing reports 0.0% honestly. This
+ * fixture puts each doctrine under real pressure (electric_hound's short-reach
+ * kit against the tortoise's guard) and reports the paid dodges apart from the
+ * table rather than inventing a number for a matchup that has none.
+ */
+export interface DodgeRow {
+  readonly id: DoctrineId
+  readonly label: string
+  readonly fights: number
+  readonly dodges: number
+  readonly perFight: number
+}
+
+const DODGE_SPECIES = "electric_hound"
+const DODGE_OPPONENT = "earth_tortoise"
+
+/** Paid dodges per fight, one row per doctrine (R1, F2). */
+export function measureDodges(lines: LineMap): DodgeRow[] {
+  const subject = ALL_SPECIES.find((species) => species.id === DODGE_SPECIES)
+  const rival = ALL_SPECIES.find((species) => species.id === DODGE_OPPONENT)
+  if (!subject || !rival) throw new Error("the dodge fixture left the roster")
+  const rows: DodgeRow[] = []
+  for (const doctrine of DOCTRINE_IDS) {
+    let dodges = 0
+    let fights = 0
+    for (const seed of DOCTRINE_SEEDS) {
+      for (const order of [0, 1] as const) {
+        fights += 1
+        const home = order === 0 ? subject : rival
+        const away = order === 0 ? rival : subject
+        const homeSide = speciesSide(
+          home,
+          order === 0 ? doctrine : STANDARD_DOCTRINE,
+          typicalOf(lines, home),
+        )
+        const awaySide = speciesSide(
+          away,
+          order === 0 ? STANDARD_DOCTRINE : doctrine,
+          typicalOf(lines, away),
+        )
+        const result = resolveContinuous(homeSide, awaySide, seed)
+        dodges += result.dodges?.[order === 0 ? 0 : 1] ?? 0
+      }
+    }
+    rows.push({
+      id: doctrine,
+      label: DOCTRINE_LABELS[doctrine],
+      fights,
+      dodges,
+      perFight: fights === 0 ? 0 : dodges / fights,
     })
   }
   return rows
@@ -874,13 +985,20 @@ function pad(value: string | number, width: number): string {
 export function targets(sample: BalanceSample): Target[] {
   const out: Target[] = []
   for (const row of sample.matrix.species) {
-    const slack = SIGNIFICANCE_Z * Math.sqrt(0.25 / Math.max(1, row.games))
+    // R1 (F1): the decision rests on distinct fights, not games. `distinct`
+    // is the effective sample; the null standard error is `sqrt(0.25 / n)`.
+    const unverified = row.distinct < DISTINCT_FLOOR
+    const slack =
+      SIGNIFICANCE_Z * Math.sqrt(0.25 / Math.max(DISTINCT_FLOOR, row.distinct))
     out.push({
       name: `species:${row.id}`,
       observed: `${pct(row.rate)} (${row.wins}/${row.games}, ${row.distinct} distinct, se ${pct(row.se)})`,
-      bound: `|rate - 50%| <= ${pct(slack)} (design target ${pct(SPECIES_MIN)}..${pct(SPECIES_MAX)})`,
-      ok: Math.abs(row.rate - 0.5) <= slack,
-      why: "FR-5 / AC-5: a species is balanced unless its win rate is significantly off 50% at this sample size; the 45-55% point band stays the design target",
+      bound: unverified
+        ? `needs >= ${DISTINCT_FLOOR} distinct fights to be judged (has ${row.distinct})`
+        : `|rate - 50%| <= ${pct(slack)} (design target ${pct(SPECIES_MIN)}..${pct(SPECIES_MAX)})`,
+      ok: !unverified && Math.abs(row.rate - 0.5) <= slack,
+      unverified,
+      why: "FR-5 / AC-5: a species is balanced unless its win rate is significantly off 50% over its distinct fights; the 45-55% band is the design target, not the pass condition",
     })
   }
 
@@ -903,19 +1021,22 @@ export function targets(sample: BalanceSample): Target[] {
     why: "FR-4: a majority of fights finish inside the tuned 25-40s band",
   })
 
+  // R1 (F4): the pacing floor is the 5th percentile, not the single fastest
+  // fight — a bound on one fight in 840 invites propping up a glass cannon.
+  // `durationMin` stays printed in the summary as a diagnostic.
   out.push({
-    name: "durationMin",
-    observed: `${(cap.min / 1000).toFixed(2)}s`,
+    name: "durationP05",
+    observed: `${(cap.p05 / 1000).toFixed(2)}s (min ${(cap.min / 1000).toFixed(2)}s, diagnostic)`,
     bound: `>= ${(DURATION_MIN_MS / 1000).toFixed(2)}s`,
-    ok: cap.min >= DURATION_MIN_MS,
-    why: "AC-7: no fight may end before the tuned floor",
+    ok: cap.p05 >= DURATION_MIN_MS,
+    why: "FR-4 / FR-20: the 5th-percentile fight may not end before the tuned floor",
   })
   out.push({
     name: "durationMax",
     observed: `${(cap.max / 1000).toFixed(2)}s`,
     bound: `<= ${(DURATION_MAX_MS / 1000).toFixed(2)}s`,
     ok: cap.max <= DURATION_MAX_MS,
-    why: "AC-7: no fight may run past the cap",
+    why: "FR-4 / FR-20: no fight may run past the cap",
   })
 
   const offenders = sample.damage.rows.filter(
@@ -1019,11 +1140,24 @@ export function report(sample: BalanceSample): string[] {
 
   lines.push("doctrine table (one species, one matchup, one row per doctrine)")
   lines.push(
-    `${pad("doctrine", 10)}${pad("fights", 8)}${pad("win rate", 10)}${pad("rear-or-flank", 15)}${pad("median gap", 12)}dodge rate`,
+    `${pad("doctrine", 10)}${pad("fights", 8)}${pad("win rate", 10)}${pad("rear-or-flank", 15)}${pad("rear", 8)}${pad("median gap", 12)}${pad("dodges", 8)}dodge rate`,
   )
   for (const row of sample.doctrines) {
     lines.push(
-      `${pad(row.label, 10)}${pad(row.fights, 8)}${pad(pct(row.rate), 10)}${pad(pct(row.rearOrFlank), 15)}${pad(`${Math.round(row.engagementMedian)}mm`, 12)}${pct(row.dodgeRate)}`,
+      `${pad(row.label, 10)}${pad(row.fights, 8)}${pad(pct(row.rate), 10)}${pad(pct(row.rearOrFlank), 15)}${pad(pct(row.rear), 8)}${pad(`${Math.round(row.engagementMedian)}mm`, 12)}${pad(row.dodges, 8)}${pct(row.dodgeRate)}`,
+    )
+  }
+  lines.push("")
+
+  lines.push(
+    "dodge probe (paid dodges where a dodge is observable; the table above draws none in its fixed matchup) (R1, F2)",
+  )
+  lines.push(
+    `${pad("doctrine", 10)}${pad("fights", 8)}${pad("dodges", 8)}per fight`,
+  )
+  for (const row of sample.dodgeProbe) {
+    lines.push(
+      `${pad(row.label, 10)}${pad(row.fights, 8)}${pad(row.dodges, 8)}${row.perFight.toFixed(2)}`,
     )
   }
   lines.push("")
@@ -1070,7 +1204,9 @@ export function report(sample: BalanceSample): string[] {
   )
   lines.push("")
   for (const target of targets(sample)) {
-    lines.push(`${target.ok ? "ok  " : "FAIL"} ${describe(target)}`)
+    lines.push(
+      `${target.unverified === true ? "UNVERIFIED" : target.ok ? "ok  " : "FAIL"} ${describe(target)}`,
+    )
   }
   return lines
 }

@@ -75,6 +75,12 @@ export interface BattleResult {
   readonly reason: BattleReason
   readonly finalHp: Readonly<Record<string, number>>
   readonly events: readonly BattleEvent[]
+  /**
+   * Paid dodges per side, home then away (R1, F2). A melee step-out is a
+   * `reach` whiff in the event log, so the event log cannot show a dodge; this
+   * carries the step's own `DodgeReport` tally out to the balance report.
+   */
+  readonly dodges?: readonly [number, number]
 }
 
 /**

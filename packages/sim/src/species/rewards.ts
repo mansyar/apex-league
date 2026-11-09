@@ -69,7 +69,7 @@ export const REWARD_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "hurricane_spiral",
     ],
     temperament: "rush",
-    statBounds: { hp: [183, 208], atk: [8, 12], def: [6, 8], spd: [17, 19] },
+    statBounds: { hp: [130, 160], atk: [10, 16], def: [6, 8], spd: [17, 19] },
   },
   {
     id: "reefclaw",
@@ -109,7 +109,7 @@ export const REWARD_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "tectonic_slam",
     ],
     temperament: "slow",
-    statBounds: { hp: [163, 209], atk: [8, 11], def: [17, 20], spd: [3, 5] },
+    statBounds: { hp: [163, 209], atk: [10, 14], def: [17, 20], spd: [4, 6] },
   },
   {
     id: "cindermoor",

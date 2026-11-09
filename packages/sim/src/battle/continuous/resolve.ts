@@ -235,6 +235,7 @@ export function resolveContinuous(
     state,
   )
 
+  const dodges: [number, number] = [0, 0]
   for (let step = 0; step < FIGHT_CAP_STEPS && !ending; step++) {
     const before = state
     const orders: [MoveIntent, MoveIntent] = [HOLD, HOLD]
@@ -253,6 +254,11 @@ export function resolveContinuous(
     }
     const result = fight.advance(orders)
     state = result.state
+    for (const dodge of result.dodges) {
+      if (!dodge.paid) continue
+      const side = state.fighters[0].key === dodge.key ? 0 : 1
+      dodges[side] += 1
+    }
     for (const strike of result.strikes) {
       const side = state.fighters[0].key === strike.attackerKey ? 0 : 1
       poiseDealt[side] += strike.poiseDamage
@@ -296,6 +302,7 @@ export function resolveContinuous(
     reason: ending.reason,
     finalHp: hpSnapshot(state, sides.keys),
     events,
+    dodges,
   }
   // The dense trace rides with the result in memory (never in the save):
   // the arena that plays this fight reads it, a restored verdict does not.
