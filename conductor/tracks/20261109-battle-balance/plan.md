@@ -168,7 +168,7 @@ numbers are measured by a tool that predates them.
 - **Covers:** FR-20, FR-4, FR-19, AC-17, AC-4
 - **Touches:** `packages/sim/src/battle/continuous/{impulse,stamina,cooldown,controller-profile}.ts`, `packages/sim/src/battle/frames.ts` (recovery and poise only), `moves.ts` (power inside the band) + co-located tests
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run telemetry`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P8.T1: Resolve** — covers: FR-20
   - [ ] P8.T1.1 Raise the standard-doctrine knockout majority to at least two in three and hold the cap share at or below one in three, measured with `bun run balance`.
