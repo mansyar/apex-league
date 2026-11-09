@@ -289,10 +289,11 @@ the HP drops in the recorded stream and classified with `hitPosition`:
 
 `controller-doctrine.test.ts` keeps the AC-11 assertion as written in a
 `test.failing` ("Circle strictly ahead") and a green measurement test that
-pins the numbers above. AC-11 is therefore **not met**; the finding is the
-≈ 89° ceiling per committed swing against a 120° threshold. Reaching it needs
-either a wider committed window, a faster cut, or a different hit-position
-rule — an owner decision, not a test change.
+pins the numbers above. AC-11 is therefore **not met** under that original
+rear-only wording; the finding is the ≈ 89° ceiling per committed swing
+against a 120° threshold. Reaching it needs either a wider committed window, a
+faster cut, or a different hit-position rule — an owner decision, not a test
+change. (Rework 2 below records the owner's amended metric.)
 
 ### Re-pinned rows (rework)
 
@@ -301,3 +302,26 @@ None. The turn budget and the cut changed the trace hashes and added
 passed with every existing fixture untouched, and pacing/telemetry stayed at
 their pre-rework values (durations 10.54–40.00 s, cap share 6/14, engagement
 median 1114 mm).
+
+## Rework 2 - AC-11 metric
+
+The owner amended AC-11 to: *"Circle earns strictly more flank-or-rear hits
+than Press on the same matchup and seed"*, with rear reported separately and no
+floor on rear. `spec.md` is the source of that wording; this note records the
+metric only.
+
+| Doctrine | Front | Flank | Rear | Flank-or-rear |
+|----------|-------|-------|------|---------------|
+| Press | varies (≈ 8–19) | 0 | 0 | 0 |
+| Circle | varies (≈ 9–18) | 1 per seed (8 total over seeds 1–8) | 0 | 8 over seeds 1–8 |
+
+`controller-doctrine.test.ts` now asserts the amended AC directly (seeds 1–4,
+Circle strictly ahead on flank-or-rear, at least one across the sample) and
+keeps the measurement test pinning the separate flank and rear counts. Rear
+hits are rare by design — one committed swing earns ≈ 89° against the >120°
+rear sector — and the AC places no floor on them, so the number can move later
+without re-litigating the metric.
+
+Commands on the final tree: `bun run verify` exit 0 (3861 pass, 1 skip, 0 fail,
+459,355 expects, 356 files; typecheck 0 errors; Biome 893 files, no fixes;
+determinism OK); `bun run build` exit 0 (402 modules, 1,047.74 kB, 356 ms).
