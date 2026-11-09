@@ -196,3 +196,108 @@ decision, so it is reported rather than guessed.
   under the 12,288 B cap (`module-size.test.ts` green). `controller-profile.ts`
   was split back under the cap by moving the band constants in and trimming
   its header, not by compressing behaviour.
+
+## Rework 1 — earning an angle
+
+The owner chose the step-around burst plus committed facing. Both landed; the
+AC-11 measurement is unchanged at 0 rear hits for both doctrines, and this
+section records the numbers rather than loosening the assertion or the arcs.
+
+### Commands (rework)
+
+| # | Command | Exit | Result |
+|---|---------|------|--------|
+| 1 | `bun run verify` | 0 | typecheck 0 errors (voxel 160, sim 215, server 44, client 504); 3861 pass, 1 skip, 0 fail, 459,351 expects, 356 files; Biome 893 files, no fixes; determinism gate OK |
+| 2 | `bun run build` | 0 | vite 8.3.4, 402 modules, `dist/assets/index-4xHdI7_a.js` 1,047.74 kB (gzip 286.86 kB), 411 ms |
+
+`bun test packages/sim/src/battle/continuous` → 294 pass, 0 fail, 19,456
+expects, 17 files. `bun test controller-doctrine.test.ts` → 13 pass, 0 fail,
+222 expects.
+
+### Per-state turn budget (`contact.ts`, FR-11)
+
+Facing still locks on, but the budget depends on what the body is doing. Each
+value is one exported tunable beside `TURN_UNITS_PER_STEP`; `turnBudget` picks
+it from the fighter's own state and `faceOpponent` passes it to `turnToward`.
+
+| State | Constant | Units/step | Degrees/step |
+|-------|----------|-----------|--------------|
+| free (no attack, no hitstun) | `TURN_UNITS_PER_STEP` | 50 | 2.86° |
+| attack startup | `TURN_STARTUP_UNITS_PER_STEP` | 12 | 0.69° |
+| attack active | `TURN_ACTIVE_UNITS_PER_STEP` | 0 | 0° |
+| attack recovery | `TURN_RECOVERY_UNITS_PER_STEP` | 12 | 0.69° |
+| hitstun | `TURN_HITSTUN_UNITS_PER_STEP` | 0 | 0° |
+
+`contact.test.ts` proves each state differs, that active and hitstun never
+pivot (`facing` unchanged after `faceOpponent`), and that startup/recovery turn
+strictly less than a free body.
+
+### The step-around cut (`controller-slip.ts`, FR-11)
+
+| Constant | Value | Rationale |
+|----------|-------|-----------|
+| `SLIP_SPEED_NUMERATOR` / `DENOMINATOR` | 5 / 2 | 2.5× a walk: at the reference edge this matches the free turn budget, so angle is earned only while the foe is committed |
+| `SLIP_MS` | 200 | ten fixed steps, long enough to cross a startup window |
+| `SLIP_COOLDOWN_MS` | 240 | one decision, so cuts can chain but never faster than re-deciding |
+| `SLIP_STAMINA_COST` | 6 | cheaper than a dodge (8), charged once per cut at the seam |
+
+A cut is a new `MoveIntent` arm (`{ slip: Dir2 }`) moved by `movement.ts` at
+`slipSpeed(spd) = trunc(topSpeed(spd) * 5 / 2)`, charged by `advance.ts` via
+`spendSlip` and reported in `StepOutcome.slips` exactly like a dodge. An
+unaffordable cut is refused into a hold (`paid: false`), never a free move.
+`movement.test.ts` proves a cut runs at 2.5× a walk, snaps to that speed, and
+covers more angle over the same window; `advance.test.ts` proves the price, the
+refusal, and the one-charge-per-cut behaviour. `controller.ts` issues a cut
+from the circling slots (`slipOrder`) and `controller-rear.ts` keeps Circle's
+rear-arc commit; `controller-dodge.ts` holds the reactive dodge gate. The three
+extractions are what brought `controller.ts` back under the 12,288 B cap
+(13,977 B → under cap) without compressing behaviour.
+
+### Measured angular gain per step
+
+At a 1,000 mm gap and `spd 10`:
+
+- walk: `topSpeed(10) = 1000` milli-mm/ms → 20 mm/step → `atan(20/1000)` =
+  1.15°/step.
+- cut: `slipSpeed(10) = 2500` milli-mm/ms → 50 mm/step → `atan(50/1000)` =
+  2.86°/step.
+- free facing: 50 units = 2.86°/step.
+
+Net gain while the foe is committed (cut minus its turn budget):
+
+| Foe state | Steps in a basic swing | Net °/step | ° earned |
+|-----------|------------------------|-----------|----------|
+| startup (160 ms) | 8 | 2.86 − 0.69 = 2.17 | 17.4° |
+| active (120 ms) | 6 | 2.86 − 0 = 2.86 | 17.2° |
+| recovery (500 ms) | 25 | 2.86 − 0.69 = 2.17 | 54.3° |
+| **whole swing** | **39** | — | **≈ 88.9°** |
+
+A rear hit needs more than 120° off the front (`FLANK_COS = 1/2`), so one full
+committed swing can at most bring a circling body to ≈ 89°, and the foe's free
+steps between swings re-track the rest. The measured closest approach confirms
+it: the nearest Circle hit sat at `dot = −0.27` (≈ 105.7°), still a flank.
+
+### Rear / flank counts, same matchup and seed
+
+`fire_drake` (seed 1 creature) vs the exhibition rival, seeds 1–8, counted from
+the HP drops in the recorded stream and classified with `hitPosition`:
+
+| Doctrine | Front | Flank | Rear |
+|----------|-------|-------|------|
+| Press | varies (≈ 8–19) | 0 | 0 |
+| Circle | varies (≈ 9–18) | 1 per seed (8 total) | 0 |
+
+`controller-doctrine.test.ts` keeps the AC-11 assertion as written in a
+`test.failing` ("Circle strictly ahead") and a green measurement test that
+pins the numbers above. AC-11 is therefore **not met**; the finding is the
+≈ 89° ceiling per committed swing against a 120° threshold. Reaching it needs
+either a wider committed window, a faster cut, or a different hit-position
+rule — an owner decision, not a test change.
+
+### Re-pinned rows (rework)
+
+None. The turn budget and the cut changed the trace hashes and added
+`slips` lines, but no pinned cup/spar expectation moved: `bun run verify`
+passed with every existing fixture untouched, and pacing/telemetry stayed at
+their pre-rework values (durations 10.54–40.00 s, cap share 6/14, engagement
+median 1114 mm).
