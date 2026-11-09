@@ -42,7 +42,7 @@ describe("battle catalog", () => {
       { power: 18, accuracy: 85, cooldown: 2 },
       { power: 20, accuracy: 75, cooldown: 2 },
       { power: 14, accuracy: 95, cooldown: 1 },
-      { power: 22, accuracy: 70, cooldown: 3 },
+      { power: 22, accuracy: 100, cooldown: 3 },
     ]
     for (const element of [
       "fire",
@@ -391,7 +391,7 @@ describe("electric kit (electric_species_line)", () => {
     arc_shot: [18, 85, 2],
     storm_bolt: [20, 75, 2],
     ion_dart: [14, 95, 1],
-    gigavolt: [22, 70, 3],
+    gigavolt: [22, 100, 3],
   }
 
   /** A minimal creature pick for the learn/equip helpers. */
@@ -501,7 +501,7 @@ describe("earth kit (earth-wind-species-line)", () => {
     clay_burst: [18, 85, 2],
     boulder_toss: [20, 75, 2],
     sand_blast: [14, 95, 1],
-    tectonic_slam: [22, 70, 3],
+    tectonic_slam: [22, 100, 3],
   }
 
   /** A minimal creature pick for the learn/equip helpers. */
@@ -610,7 +610,7 @@ describe("wind kit (earth-wind-species-line)", () => {
     gale_cutter: [18, 85, 2],
     sky_bolt: [20, 75, 2],
     talon_slash: [14, 95, 1],
-    hurricane_spiral: [22, 70, 3],
+    hurricane_spiral: [22, 100, 3],
   }
 
   function pick(

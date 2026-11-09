@@ -318,8 +318,8 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
         2,
         "Ash-ledger",
         "Thistledown Ash",
-        "Ash-ledger",
-        "Ash-ledger takes the Semifinal!",
+        "Thistledown Ash",
+        "Thistledown Ash takes the Semifinal!",
       ],
     ])
     expect(session.playerVerdicts.map(row)).toEqual([
@@ -340,7 +340,7 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
       [
         3,
         "Ember Drake",
-        "Ash-ledger",
+        "Thistledown Ash",
         "Ember Drake",
         "Ember Drake takes the Final!",
       ],

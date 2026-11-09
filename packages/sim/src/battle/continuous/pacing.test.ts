@@ -151,10 +151,10 @@ describe("pacing — the tuned duration band (FR-21, AC-7)", () => {
     }
   })
 
-  // Phase 8 (P8.T4) owns this pacing target; un-mark when it passes.
-  // Strict form restored: the band plus provisional cooldowns leave 7 KO / 7
-  // cap (50%), a provisional miss recorded in the evidence, not relaxed here.
-  test.failing("the sample finishes a majority of fights by knockout", () => {
+  // Phase 8 (FR-20): the pacing levers moved the sample from 7 KO / 7 cap to
+  // 9 KO / 5 cap, so the strict guard passes again. The marker is removed
+  // deliberately; the assertion was never relaxed.
+  test("the sample finishes a majority of fights by knockout", () => {
     const fought = sample()
     const byKo = fought.filter((f) => f.reason !== "time").length
     expect(byKo * 2).toBeGreaterThan(fought.length)

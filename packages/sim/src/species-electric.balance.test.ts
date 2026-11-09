@@ -256,8 +256,10 @@ describe("electric_hound boss probe", () => {
     }
   })
 
-  // Phase 8 (P8.T1/P8.T2) owns this roster target; un-mark when it passes.
-  test.failing("a fresh hound never beats an even-element boss", () => {
+  // Un-marked deliberately (Phase 8, FR-20): the pacing levers closed the gap
+  // this target recorded — a fresh hound no longer beats an even-element boss,
+  // so the strict assertion now holds and the marker is removed, not relaxed.
+  test("a fresh hound never beats an even-element boss", () => {
     for (const boss of EVEN_BOSSES) {
       const tally = duelBoss(boss, 0)
       expect(winRate(tally), `${boss.name} at trained+0`).toBe(0)

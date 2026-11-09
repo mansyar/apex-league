@@ -68,8 +68,8 @@ describe("the punish window", () => {
   test("the window is what is left of the recovery, or the break", () => {
     const { foe } = arena()
     expect(windowMs(foe)).toBe(0)
-    // blaze_bolt recovers for 1,020 ms at spd 10.
-    expect(windowMs(recovering(foe, "blaze_bolt", 900))).toBe(120)
+    // blaze_bolt recovers for 1,234 ms at spd 10.
+    expect(windowMs(recovering(foe, "blaze_bolt", 900))).toBe(334)
     expect(windowMs({ ...foe, poiseBreakMs: 600 })).toBe(600)
   })
 

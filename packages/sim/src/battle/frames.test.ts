@@ -170,7 +170,9 @@ describe("frame data — the blow weight (Phase 8)", () => {
 
   test("the basic row is the pre-weight row times the weight", () => {
     const basic = frameOf(BASIC_MOVE.id)
-    expect(basic.recoveryMs).toBe(500)
+    // Phase 8 (FR-20): every authored recovery was raised by ~1.2x to bring the
+    // median fight into the 25-40 s band; 500 x 1.212 = 606.
+    expect(basic.recoveryMs).toBe(606)
     expect(basic.poiseDamage).toBe(4)
     expect(basic.staminaCost).toBe(4)
   })

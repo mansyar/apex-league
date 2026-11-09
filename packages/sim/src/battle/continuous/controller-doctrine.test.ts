@@ -130,11 +130,15 @@ describe("temperament shades intensity, doctrine owns intent (AC-12)", () => {
         temperament,
         profile: profileForDoctrine(doctrine, temperament),
       }))
-      const first = bandFor(profileForDoctrine(doctrine, "rush"), REACH)
+      const firstProfile = profileForDoctrine(doctrine, "rush")
+      const first = bandFor(firstProfile, REACH)
       for (const row of rows) {
         expect(bandFor(row.profile, REACH)).toEqual(first)
-        expect(row.profile.floorRangeMm).toBe(first.floorMm)
-        expect(row.profile.ceilingRangeMm).toBe(first.ceilingMm)
+        // The doctrine's own floor and ceiling, not the band's clamped floor:
+        // a floor below the reach edge is lifted by the pair, identically for
+        // every temperament, so the fields still have to agree exactly.
+        expect(row.profile.floorRangeMm).toBe(firstProfile.floorRangeMm)
+        expect(row.profile.ceilingRangeMm).toBe(firstProfile.ceilingRangeMm)
       }
     }
   })

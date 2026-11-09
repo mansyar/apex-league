@@ -201,13 +201,13 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
       },
       {
         seed: 1,
-        // Controller ripple (battle-balance phase 3): QF2 and SF2 move to
-        // Thistledown Ash.
+        // Pacing ripple (battle-balance phase 8, FR-20): QF2 moves to
+        // Ash-ledger and SF2 to Cindersnout.
         rivalWinners: [
           "Reedle Mirefin",
-          "Thistledown Ash",
+          "Ash-ledger",
           "Cindersnout",
-          "Thistledown Ash",
+          "Cindersnout",
         ],
       },
       // FR6 rebalance ripple: the double-KO that used to sit at QF4 moved
@@ -262,16 +262,15 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
       "Ember Drake",
       "Ember Drake",
     ])
-    // Tactic sensitivity, re-pinned for the damage band (battle-balance phase
-    // 4): on seed 1 both picks now lose the final; the aggressive pick still
-    // reaches it. Phase 10 had pinned the balanced pick losing while the
-    // aggressive pick won; at the compressed band neither takes the crown.
+    // Tactic sensitivity, re-pinned for the pacing pass (battle-balance phase 8,
+    // FR-20): the shorter fights let both picks sweep seed 1 now. The band
+    // phase had pinned both losing the final; the pacing pass flipped the seed.
     const balancedOne = playToCompletion(creature, 7, 1, "balanced")
-    expect(balancedOne.status).toBe("eliminated")
-    expect(cupPlacement(balancedOne)).toBe(2)
+    expect(balancedOne.status).toBe("champion")
+    expect(cupPlacement(balancedOne)).toBe(1)
     const specialsOne = playToCompletion(creature, 7, 1, "specials")
-    expect(specialsOne.status).toBe("eliminated")
-    expect(cupPlacement(specialsOne)).toBe(2)
+    expect(specialsOne.status).toBe("champion")
+    expect(cupPlacement(specialsOne)).toBe(1)
   })
 
   test("final loss: seed 9, specials — placement 2, champion via completeCup", () => {
@@ -299,18 +298,21 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     expect(done.completionVerdicts).toHaveLength(0)
   })
 
-  test("final loss: seed 11, specials — placement 2, champion via completeCup", () => {
-    // Doctrine ripple (battle-balance phase 1): the `specials` pick now maps to
-    // Kite and reaches the final on this seed, so the QF-exit pin moved off it.
+  test("semifinal exit: seed 11, specials — placement 3", () => {
+    // Pacing ripple (battle-balance phase 8, FR-20): the shorter fights hand the
+    // semifinal to Gilded Horn, so the final-loss pin moved off this seed. The
+    // doctrine ripple (phase 1) had sent the `specials` pick to the final.
     const creature = cupDayCreature()
     const elim = playToCompletion(creature, 7, 11, "specials")
     expect(elim.status).toBe("eliminated")
-    expect(elim.playerVerdicts).toHaveLength(3)
-    expect(cupPlacement(elim)).toBe(2)
+    expect(elim.playerVerdicts).toHaveLength(2)
+    expect(elim.playerVerdicts[1]?.winner).toBe("Gilded Horn")
+    expect(cupPlacement(elim)).toBe(3)
     const done = completeCup(elim)
     expect(done.championName).toBe("Emberhold Flicker")
-    // The player's loss was the final: no pairing left to complete.
-    expect(done.completionVerdicts).toHaveLength(0)
+    expect(
+      done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
+    ).toEqual([[3, "Gilded Horn", "Emberhold Flicker", "Emberhold Flicker"]])
   })
 
   test("forfeit at the QF: seed 101 — as-if-lost placement 4, conqueror plays SF1", () => {
@@ -348,13 +350,14 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
   test("forfeit at the QF: seed 1 — SF1 pairs the conqueror with the QF2 winner", () => {
     const creature = cupDayCreature()
     const done = forfeitCup(startCupSession(creature, 7, 1))
-    // Controller ripple (battle-balance phase 3): the conqueror's run moved.
-    expect(done.championName).toBe("Thistledown Ash")
+    // Pacing ripple (battle-balance phase 8, FR-20): Cindersnout takes SF1 and
+    // the final now; the controller pass (phase 3) had Thistledown Ash winning.
+    expect(done.championName).toBe("Cindersnout")
     expect(
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
     ).toEqual([
       [2, "Mossbottom Brute", "Reedle Mirefin", "Reedle Mirefin"],
-      [3, "Reedle Mirefin", "Thistledown Ash", "Thistledown Ash"],
+      [3, "Reedle Mirefin", "Cindersnout", "Cindersnout"],
     ])
   })
 

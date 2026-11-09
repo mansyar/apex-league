@@ -97,13 +97,13 @@ describe("threat band", () => {
   test("a shipped doctrine floor at the threat is lifted", () => {
     const [me, foe] = pair()
     const press = profileForDoctrine(DOCTRINES.press, "obedient")
-    // Press holds 1,000 permille of the 860 mm reference edge: its floor is
-    // exactly the foe's innate edge, so it is lifted one standoff clear.
+    // Press's floor sits below the 860 mm reference edge, so the band's own
+    // floor is the edge; the threat lift still pushes it one standoff clear.
     expect(bandFor(press, 860).floorMm).toBe(860)
     const lifted = threatBandFor(press, me, foe)
     expect(lifted.floorMm).toBe(940)
-    expect(lifted.preferredMm).toBe(1032)
-    expect(lifted.ceilingMm).toBe(1204)
+    expect(lifted.preferredMm).toBe(946)
+    expect(lifted.ceilingMm).toBe(1290)
   })
 
   test("a legacy row keeps its old band exactly", () => {

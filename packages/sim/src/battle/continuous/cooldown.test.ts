@@ -47,14 +47,14 @@ function stepsUntilReady(
 
 describe("the authored cooldown table", () => {
   test("is one frozen table of whole 20 ms steps", () => {
-    expect(COOLDOWN_MS).toEqual({ 0: 0, 1: 1200, 2: 2000, 3: 2400 })
+    expect(COOLDOWN_MS).toEqual({ 0: 0, 1: 1500, 2: 2000, 3: 2600 })
     for (const ms of Object.values(COOLDOWN_MS)) {
       expect(ms % STEP_MS).toBe(0)
     }
     expect(cooldownMsFor("basic")).toBe(0)
-    expect(cooldownMsFor("spark")).toBe(1200)
+    expect(cooldownMsFor("spark")).toBe(1500)
     expect(cooldownMsFor("cinder_shot")).toBe(2000)
-    expect(cooldownMsFor("pyre_lance")).toBe(2400)
+    expect(cooldownMsFor("pyre_lance")).toBe(2600)
   })
 })
 
@@ -62,15 +62,15 @@ describe("a committed special is gated by its timer", () => {
   test("cannot fire twice before the timer expires", () => {
     const fight = fightOf()
     expect(fight.commit(0, "spark")).toBe(true)
-    expect(cooldownRemaining(fight.state.fighters[0], "spark")).toBe(1200)
+    expect(cooldownRemaining(fight.state.fighters[0], "spark")).toBe(1500)
 
-    // Spark's own attack is 980 ms; 1,000 ms leaves 200 ms on the timer.
-    advance(fight, 50)
+    // Spark's own attack is 1,106 ms; 1,120 ms leaves 380 ms on the timer.
+    advance(fight, 56)
     expect(fight.state.fighters[0].attack).toBeNull()
-    expect(cooldownRemaining(fight.state.fighters[0], "spark")).toBe(200)
+    expect(cooldownRemaining(fight.state.fighters[0], "spark")).toBe(380)
     expect(fight.commit(0, "spark")).toBe(false)
 
-    advance(fight, 10)
+    advance(fight, 19)
     expect(isCooldownReady(fight.state.fighters[0], "spark")).toBe(true)
     expect(fight.commit(0, "spark")).toBe(true)
   })
@@ -84,8 +84,8 @@ describe("a committed special is gated by its timer", () => {
     expect(heavy.commit(0, "pyre_lance")).toBe(true)
     const heavySteps = stepsUntilReady(heavy, "pyre_lance")
 
-    expect(lightSteps).toBe(60)
-    expect(heavySteps).toBe(120)
+    expect(lightSteps).toBe(75)
+    expect(heavySteps).toBe(130)
     expect(lightSteps).toBeLessThan(heavySteps)
   })
 

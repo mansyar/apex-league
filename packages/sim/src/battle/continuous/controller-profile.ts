@@ -54,8 +54,9 @@ export const DOCTRINES: Readonly<Record<DoctrineId, Doctrine>> = Object.freeze({
   press: Object.freeze({
     id: "press",
     label: "Press",
-    floorPermille: 1000,
-    ceilingPermille: 1400,
+    // Phase 8 (FR-20): see the lever table; 1500 ends the standoff.
+    floorPermille: 700,
+    ceilingPermille: 1500,
     aggression: 85,
     strafeBias: 10,
     dodgeThresholdMm: 2200,
@@ -76,7 +77,8 @@ export const DOCTRINES: Readonly<Record<DoctrineId, Doctrine>> = Object.freeze({
   kite: Object.freeze({
     id: "kite",
     label: "Kite",
-    floorPermille: 1450,
+    // Phase 8 (FR-20): press reaches 1500, so kite stands outside it at 1600.
+    floorPermille: 1600,
     ceilingPermille: 2050,
     aggression: 40,
     strafeBias: 30,

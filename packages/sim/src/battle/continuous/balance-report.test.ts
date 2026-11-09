@@ -33,24 +33,21 @@ function sample(): BalanceSample {
 
 /**
  * Today's misses, in the order the report declares them: every species outside
- * 45-55% under the standard doctrine, then the cap share. Phase 8 (P8.T1/P8.T2
- * for the roster, P8.T4 for pacing) owns each row; update the row, never the
- * bound, when it is fixed.
+ * 45-55% under the standard doctrine, then the cap share. Phase 9 owns the
+ * roster rows; update the row, never the bound, when one is fixed. Phase 8
+ * (FR-20) cleared the cap-share row, so it is no longer listed.
  */
 const KNOWN_MISSES = [
-  "species:fire_drake: observed 32.1% (18/56), bound 45.0%..55.0%",
-  "species:plant_ox: observed 32.1% (18/56), bound 45.0%..55.0%",
-  "species:electric_hound: observed 21.4% (12/56), bound 45.0%..55.0%",
-  "species:wind_falcon: observed 42.9% (24/56), bound 45.0%..55.0%",
-  "species:reefclaw: observed 64.3% (36/56), bound 45.0%..55.0%",
-  "species:earth_tortoise: observed 57.1% (32/56), bound 45.0%..55.0%",
-  "species:cindermoor: observed 60.7% (34/56), bound 45.0%..55.0%",
-  "species:voltfox: observed 89.3% (50/56), bound 45.0%..55.0%",
-  "species:galeheron: observed 71.4% (40/56), bound 45.0%..55.0%",
-  "species:shalemole: observed 64.3% (36/56), bound 45.0%..55.0%",
-  "species:mossboar: observed 21.4% (12/56), bound 45.0%..55.0%",
-  "species:mistkit: observed 35.7% (20/56), bound 45.0%..55.0%",
-  "capShare: observed 84.8% (356/420), bound <= 33.3%",
+  "species:fire_drake: observed 35.7% (20/56), bound 45.0%..55.0%",
+  "species:plant_ox: observed 28.6% (16/56), bound 45.0%..55.0%",
+  "species:electric_hound: observed 17.9% (10/56), bound 45.0%..55.0%",
+  "species:wind_falcon: observed 25.0% (14/56), bound 45.0%..55.0%",
+  "species:reefclaw: observed 57.1% (32/56), bound 45.0%..55.0%",
+  "species:cindermoor: observed 57.1% (32/56), bound 45.0%..55.0%",
+  "species:voltfox: observed 92.9% (52/56), bound 45.0%..55.0%",
+  "species:galeheron: observed 82.1% (46/56), bound 45.0%..55.0%",
+  "species:shalemole: observed 78.6% (44/56), bound 45.0%..55.0%",
+  "species:mistkit: observed 17.9% (10/56), bound 45.0%..55.0%",
 ] as const
 
 describe("balance report — one deterministic command (FR-7, AC-7)", () => {
@@ -141,13 +138,14 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     expect(
       lines.some((line) =>
         line.startsWith(
-          "FAIL species:voltfox: observed 89.3% (50/56), bound 45.0%..55.0%",
+          "FAIL species:voltfox: observed 92.9% (52/56), bound 45.0%..55.0%",
         ),
       ),
     ).toBe(true)
-    expect(
-      lines.some((line) => line.startsWith("FAIL capShare: observed 84.8%")),
-    ).toBe(true)
+    // Phase 8 (FR-20) cleared the cap share, so the resolvability targets pass
+    // and only the roster rows keep the gate non-zero.
+    expect(lines.some((line) => line.startsWith("FAIL capShare:"))).toBe(false)
+    expect(lines.some((line) => line.startsWith("ok   capShare:"))).toBe(true)
   })
 
   test("a target that holds is not reported as a violation", () => {

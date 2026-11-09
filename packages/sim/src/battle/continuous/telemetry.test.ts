@@ -121,19 +121,17 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
     expect(measured.duration.max).toBeLessThanOrEqual(40_000)
   })
 
-  // Phase 8 (P8.T4) owns this pacing target; un-mark when it passes. The chart
-  // symmetry pass moved the cap share from 7/14 to 8/14 (57.1%), so the spec's
-  // own one-in-two ceiling is missed as well as the one-in-three target. The
-  // bound is not relaxed; the miss is recorded here and in the evidence.
-  test.failing("at most one fight in two is decided at the cap (AC-24)", () => {
+  // Phase 8 (FR-20, P8.T4): the pacing levers moved the cap share from 8/14
+  // (57.1%) to 6/14 (42.9%), inside the spec's one-in-two ceiling. The marker
+  // is removed deliberately; the bound was never relaxed.
+  test("at most one fight in two is decided at the cap (AC-24)", () => {
     assertBounds(["capShare"])
     const cap = sample().cap
     expect(cap.total).toBe(14)
     // The spec's ceiling, in exact integer form: 7/14 passes, 8/14 does not.
     expect(cap.count * 2).toBeLessThanOrEqual(cap.total)
-    // The one-in-three target is missed again at 6/14 (42.9%): the weight
-    // lengthens every cycle, so more fights reach the cap before a knockout.
-    // Pinned as debt, not as met — the spec's own ceiling is the bound above.
+    // The one-in-three target is still missed at 6/14 (42.9%). Pinned as debt,
+    // not as met — the spec's own ceiling is the bound above.
     expect(cap.count * 3).toBeGreaterThan(cap.total)
   })
 
@@ -160,23 +158,13 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
     const contact = violations(crowded).map(describeViolation)
     expect(contact.some((line) => line.startsWith("contactShare:"))).toBe(true)
 
-    // A bound that holds is not reported. The sample's own cap share is a known
-    // Phase 8 miss (P8.T4), named by the test above; here the claim is only
-    // that a bound with no violation stays silent.
-    const clean: SampleTelemetry = {
-      ...measured,
-      cap: { ...measured.cap, share: 0 },
-    }
-    expect(violations(clean)).toEqual([])
+    // A bound that holds is not reported.
+    expect(violations(measured)).toEqual([])
   })
 
   test("the harness exits non-zero when a bound is violated (AC-14)", () => {
     const passing: string[] = []
-    const clean: SampleTelemetry = {
-      ...sample(),
-      cap: { ...sample().cap, share: 0 },
-    }
-    expect(run(clean, (line) => passing.push(line))).toBe(0)
+    expect(run(sample(), (line) => passing.push(line))).toBe(0)
     expect(passing.some((line) => line.startsWith("FAIL"))).toBe(false)
 
     const stalled: SampleTelemetry = { ...sample(), idle: 0.99 }

@@ -244,8 +244,9 @@ describe("buildBracketModel — the 8-slot bracket", () => {
   })
 
   test("verdicts land on the right matches across an eliminated run", () => {
-    // Doctrine ripple (battle-balance phase 1): seed 11 under the `specials`
-    // pick now reaches the final and loses there, so every match is played.
+    // Pacing ripple (battle-balance phase 8, FR-20): seed 11 under the
+    // `specials` pick now exits in the semifinal, so the final has no verdict
+    // and the run is an eliminated one again.
     const session = play(creature(), CUP_DAY, 11, "specials")
     const model = buildBracketModel(session)
     const byId = new Map(model.map((m) => [m.id, m]))
@@ -255,7 +256,10 @@ describe("buildBracketModel — the 8-slot bracket", () => {
     expect(byId.get("qf4")?.verdict).toEqual(session.rivalVerdicts[2])
     expect(byId.get("sf1")?.verdict).toEqual(session.playerVerdicts[1])
     expect(byId.get("sf2")?.verdict).toEqual(session.rivalVerdicts[3])
-    expect(byId.get("f1")?.verdict).toEqual(session.playerVerdicts[2])
+    // The player is out in the semifinal: two player verdicts, and the final is
+    // a rival-only match whose winner is the champion.
+    expect(session.status).toBe("eliminated")
+    expect(session.playerVerdicts).toHaveLength(2)
     expect(byId.get("f1")?.verdict?.winner).toBe(session.championName)
   })
 

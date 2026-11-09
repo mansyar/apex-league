@@ -23,8 +23,24 @@ export const DEFAULT_STAMINA_MAX = 100
 /** How much fight time one regeneration tick covers, in ms (tunable). */
 export const STAMINA_REGEN_INTERVAL_MS = 500
 
-/** Points regained per regeneration tick while not committed (tunable). */
-export const STAMINA_REGEN_PER_INTERVAL = 1
+/**
+ * Points regained per regeneration tick while not committed (tunable).
+ *
+ * Phase 8 (FR-20): measured at 1 point per 500 ms (2 points/s) the pool was the
+ * exchange rate. A special prices 8-14 and its swing runs 0.98-1.76 s, so the
+ * recharge that followed cost 4-7 s — four times the swing it paid for — and a
+ * fight settled into ~0.23 attacks/s with 36.5% of its time idle. The trace
+ * confirmed the pool bottomed at 0 on both sides. Raising it to 4 points per
+ * tick moved the cap share from 84.8% to 76.2% and nothing else, so the pool was
+ * a real but secondary constraint; once the press standoff was fixed (see
+ * controller-profile) the pacing resolved and the pool stopped binding at all.
+ * It is left at 2 points per tick (4/s) because that is the largest rate that
+ * keeps FR-4's invariant — the cheapest attack (6) still costs 1.5 s of
+ * regeneration, so sustained output is at most one basic per 1.5 s. Faster
+ * refills measured the same pacing (median 24.52 s at 6/s vs 24.56 s at 4/s) and
+ * only weakened the floor. The price ordering is unchanged.
+ */
+export const STAMINA_REGEN_PER_INTERVAL = 2
 
 /**
  * The least any committed attack costs (tunable, FR-4). The innate strike

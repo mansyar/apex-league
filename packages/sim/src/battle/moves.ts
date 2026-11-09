@@ -15,6 +15,10 @@
  * the folded reference line (189 pool) a base hit is therefore 5.3-11.6%,
  * inside the 4-12% band (FR-1); a rear counter may still reach 1.875x that,
  * which is the reward for earning the angle, not a hole in the band.
+ *
+ * The heavy finisher authors accuracy 100 (P8.T3.2). At 70 it lost to its own
+ * light row on damage per second even with the cooldown gate pulled back to its
+ * swing; the finisher is the slot you spend on a payoff, not on a miss.
  */
 
 import type { Element } from "../creature"
@@ -79,19 +83,19 @@ export const CATALOG: readonly MoveDef[] = Object.freeze([
   special("cinder_shot", "Cinder Shot", "fire", 18, 85, 2),
   special("blaze_bolt", "Blaze Bolt", "fire", 20, 75, 2),
   special("flare_dart", "Flare Dart", "fire", 14, 95, 1),
-  special("pyre_lance", "Pyre Lance", "fire", 22, 70, 3),
+  special("pyre_lance", "Pyre Lance", "fire", 22, 100, 3),
   special("seed_shot", "Seed Shot", "plant", 12, 100, 1),
   special("thorn_volley", "Thorn Volley", "plant", 16, 90, 1),
   special("spore_burst", "Spore Burst", "plant", 18, 85, 2),
   special("bramble_dart", "Bramble Dart", "plant", 20, 75, 2),
   special("vine_lash", "Vine Lash", "plant", 14, 95, 1),
-  special("root_quake", "Root Quake", "plant", 22, 70, 3),
+  special("root_quake", "Root Quake", "plant", 22, 100, 3),
   special("bubble", "Bubble", "water", 12, 100, 1),
   special("tide_shot", "Tide Shot", "water", 16, 90, 1),
   special("foam_volley", "Foam Volley", "water", 18, 85, 2),
   special("splash_bolt", "Splash Bolt", "water", 20, 75, 2),
   special("mist_spray", "Mist Spray", "water", 14, 95, 1),
-  special("maelstrom", "Maelstrom", "water", 22, 70, 3),
+  special("maelstrom", "Maelstrom", "water", 22, 100, 3),
   special("cinder_dive", "Cinder Dive", "fire", 20, 80, 2),
   special("pyre_wall", "Pyre Wall", "fire", 16, 100, 2),
   special("thorn_charge", "Thorn Charge", "plant", 20, 80, 2),
@@ -103,7 +107,7 @@ export const CATALOG: readonly MoveDef[] = Object.freeze([
   special("arc_shot", "Arc Shot", "electric", 18, 85, 2),
   special("storm_bolt", "Storm Bolt", "electric", 20, 75, 2),
   special("ion_dart", "Ion Dart", "electric", 14, 95, 1),
-  special("gigavolt", "Gigavolt", "electric", 22, 70, 3),
+  special("gigavolt", "Gigavolt", "electric", 22, 100, 3),
   special("storm_surge", "Storm Surge", "electric", 20, 80, 2),
   special("ion_wall", "Ion Wall", "electric", 16, 100, 2),
   special("pebble_shot", "Pebble Shot", "earth", 12, 100, 1),
@@ -111,7 +115,7 @@ export const CATALOG: readonly MoveDef[] = Object.freeze([
   special("clay_burst", "Clay Burst", "earth", 18, 85, 2),
   special("boulder_toss", "Boulder Toss", "earth", 20, 75, 2),
   special("sand_blast", "Sand Blast", "earth", 14, 95, 1),
-  special("tectonic_slam", "Tectonic Slam", "earth", 22, 70, 3),
+  special("tectonic_slam", "Tectonic Slam", "earth", 22, 100, 3),
   special("quake_stomp", "Quake Stomp", "earth", 20, 80, 2),
   special("basalt_guard", "Basalt Guard", "earth", 16, 100, 2),
   special("gust", "Gust", "wind", 12, 100, 1),
@@ -119,7 +123,7 @@ export const CATALOG: readonly MoveDef[] = Object.freeze([
   special("gale_cutter", "Gale Cutter", "wind", 18, 85, 2),
   special("sky_bolt", "Sky Bolt", "wind", 20, 75, 2),
   special("talon_slash", "Talon Slash", "wind", 14, 95, 1),
-  special("hurricane_spiral", "Hurricane Spiral", "wind", 22, 70, 3),
+  special("hurricane_spiral", "Hurricane Spiral", "wind", 22, 100, 3),
   special("cyclone_dive", "Cyclone Dive", "wind", 20, 80, 2),
   special("zephyr_veil", "Zephyr Veil", "wind", 16, 100, 2),
 ])
@@ -134,22 +138,27 @@ export function getMove(id: string): MoveDef | undefined {
 }
 
 /**
- * The live cooldown tier, in milliseconds (FR-19, AC-16). The catalog's
+ * The live cooldown tier, in milliseconds (FR-19, AC-16, P8.T3). The catalog's
  * `cooldown` field is the tier key; this table is the one place the duration
- * is written. One second per tier step, and every value is a whole 20 ms step
- * (60 / 100 / 120), so the timer never rounds. Tier 3 is the heavy's gate.
+ * is written. Every value is a whole 20 ms step, so the timer never rounds.
  * Tier 0 is the innate strike, never gated.
  *
- * PROVISIONAL: these durations are owned by the balance phase (P8.T4). They
- * exist to prove the mechanism and to measure its pacing cost; Phase 8 tunes
- * them against the roster. The damage band is authored independently and must
- * not move to fit them.
+ * Phase 8 measured the gate against the swing: the exchange rate is set by the
+ * swing (startup + active + recovery) and the press band, not by this timer.
+ * The gate's job is narrower and still real — a special cannot be fired twice
+ * in a row before its own timer runs out. Tiers 1 and 2 sit just above their
+ * own swing (spark 1,106 ms against 1.5 s; cinder_shot 1,738 ms against 2 s).
+ * Tier 3 is authored *at* its swing (pyre_lance 2,610 ms against 2.6 s) because
+ * P8.T3.2 proved the heavy has to stop paying twice: a 3 s gate on a 2.61 s
+ * swing was the last thing making the finisher worse per second than the light
+ * it displaces. Anything shorter than a tier's swing is inert, and an inert
+ * gate is honest — the recovery already covers it.
  */
 export const COOLDOWN_MS: Readonly<Record<number, number>> = Object.freeze({
   0: 0,
-  1: 1200,
+  1: 1500,
   2: 2000,
-  3: 2400,
+  3: 2600,
 })
 
 /** The live cooldown of a move, in ms; 0 for the innate strike. */
