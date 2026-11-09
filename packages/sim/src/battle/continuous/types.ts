@@ -134,6 +134,11 @@ export interface FighterState {
   readonly staminaRegenMs: number
   /** Hitstun still to serve, in ms; movement and commits wait it out (FR-23). */
   readonly hitstunMs: number
+  /**
+   * Remaining cooldown per move id, in ms (FR-19). Absent or 0 means ready;
+   * the basic strike is never charged, so it never appears here.
+   */
+  readonly cooldowns?: Readonly<Record<string, number>>
 }
 
 /** The whole fight at one instant: two sides in a fixed order. */

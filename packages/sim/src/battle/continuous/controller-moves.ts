@@ -9,6 +9,7 @@
 import { type FrameData, getFrameData } from "../frames"
 import { BASIC_MOVE, getMove } from "../moves"
 import { integerSqrt } from "./contact"
+import { isCooldownReady } from "./cooldown"
 import { attackCost, canAfford } from "./stamina"
 import type { FighterState } from "./types"
 
@@ -80,6 +81,8 @@ export function chooseMove(
     const move = getMove(moveId)
     const row = getFrameData(moveId)
     if (!move || !row) continue
+    // A spent special is not a choice until its timer expires (FR-19).
+    if (!isCooldownReady(me, moveId)) continue
     if (!inReach(me, foe, moveId, gapSq)) continue
     if (!fits(move, row)) continue
     const cost = attackCost(moveId)

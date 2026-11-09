@@ -15,6 +15,7 @@
  */
 
 import { faceOpponent, separateBodies } from "./contact"
+import { tickCooldowns } from "./cooldown"
 import { blowDirection, isStunned, reactToBlow } from "./impulse"
 import {
   dodgeSpeed,
@@ -167,7 +168,8 @@ export function stepFight(
       step: state.step + 1,
       elapsedMs: state.elapsedMs + STEP_MS,
       bounds,
-      fighters,
+      // One fixed step of live time comes off every running move cooldown.
+      fighters: [tickCooldowns(fighters[0]), tickCooldowns(fighters[1])],
       projectiles: [...flight.projectiles, ...launched],
     },
     strikes: struck.strikes,

@@ -14,6 +14,7 @@
 import { BODY_RADIUS_MM } from "../frames"
 import { type StepContext, type StepResult, stepFight } from "./advance"
 import { DEFAULT_BODY_HEIGHT_MM } from "./contact"
+import { chargeCooldown, isCooldownReady } from "./cooldown"
 import { isStunned, openingHitstun } from "./impulse"
 import { isBroken, openingPoise } from "./poise"
 import { openingStamina, spendAttack } from "./stamina"
@@ -132,6 +133,13 @@ export function stateHash(state: FightState): number {
     mix(fighter.staminaMax)
     mix(fighter.staminaRegenMs)
     mix(fighter.hitstunMs)
+    const cooldowns = fighter.cooldowns ?? {}
+    const cooldownIds = Object.keys(cooldowns).sort()
+    mix(cooldownIds.length)
+    for (const id of cooldownIds) {
+      for (let i = 0; i < id.length; i++) mix(id.charCodeAt(i))
+      mix(cooldowns[id] ?? 0)
+    }
     const attack = fighter.attack
     mix(attack ? 1 : 0)
     if (attack) {
@@ -222,6 +230,7 @@ function openFighter(init: FighterInit, bounds: ArenaBounds): FighterState {
     ...openingPoise(init.poiseMax),
     ...openingStamina(init.staminaMax),
     ...openingHitstun(),
+    cooldowns: {},
   }
 }
 
@@ -283,14 +292,17 @@ export function createFight(config: FightConfig): Fight {
       if (isBroken(fighter) || isStunned(fighter) || !canCommit(fighter)) {
         return false
       }
+      // Charged at commit, before the blow is known to land (FR-19).
+      if (!isCooldownReady(fighter, moveId)) return false
       const paid = spendAttack(fighter, moveId)
       if (!paid) return false
       const committed = commitAttack(paid, moveId)
       if (committed === paid) return false
+      const charged = chargeCooldown(committed, moveId)
       const fighters: readonly [FighterState, FighterState] =
         side === 0
-          ? [committed, state.fighters[1]]
-          : [state.fighters[0], committed]
+          ? [charged, state.fighters[1]]
+          : [state.fighters[0], charged]
       state = { ...state, fighters }
       return true
     },

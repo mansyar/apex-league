@@ -130,6 +130,36 @@ export function getMove(id: string): MoveDef | undefined {
   return MOVE_INDEX.get(id)
 }
 
+/**
+ * The live cooldown tier, in milliseconds (FR-19, AC-16). The catalog's
+ * `cooldown` field is the tier key; this table is the one place the duration
+ * is written. One second per tier step, and every value is a whole 20 ms step
+ * (60 / 100 / 120), so the timer never rounds. Tier 3 is the heavy's gate.
+ * Tier 0 is the innate strike, never gated.
+ *
+ * PROVISIONAL: these durations are owned by the balance phase (P8.T4). They
+ * exist to prove the mechanism and to measure its pacing cost; Phase 8 tunes
+ * them against the roster. The damage band is authored independently and must
+ * not move to fit them.
+ */
+export const COOLDOWN_MS: Readonly<Record<number, number>> = Object.freeze({
+  0: 0,
+  1: 1200,
+  2: 2000,
+  3: 2400,
+})
+
+/** The live cooldown of a move, in ms; 0 for the innate strike. */
+export function cooldownMsFor(id: string): number {
+  const move = getMove(id)
+  if (!move) throw new Error(`Unknown move: ${id}`)
+  const ms = COOLDOWN_MS[move.cooldown]
+  if (ms === undefined) {
+    throw new Error(`No cooldown tier for ${id}: ${move.cooldown}`)
+  }
+  return ms
+}
+
 /** A special is selectable once its remaining cooldown has counted down to 0. */
 export function isMoveReady(remainingCooldown: number): boolean {
   return remainingCooldown <= 0
