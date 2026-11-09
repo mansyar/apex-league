@@ -114,3 +114,18 @@
 - **Evidence:** `conductor/tracks/20261109-battle-spacing-cadence/verification/phase-7.md`
 
 - [x] **P7.T1: Headless per-step trace with invariants** - covers: FR-7, AC-8, NFR-4 - header, step log, summary with final hash, five named invariants, non-zero exit on violation
+
+## Phase 8: Weight 2
+
+- **Goal:** one committed attack every ~2 s, damage around 2.5-3% of the pool.
+- **Depends on:** Phase 7
+- **Covers:** FR-4, AC-4, AC-7
+- **Touches:** `frames.ts`, `continuous/damage.ts`, `continuous/impulse.ts`, `continuous/stamina.ts` + tests
+- **Verification:** `bun run verify && bun run build`, `bun run trace --check`, `bun run telemetry`
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 9bc5d23e
+- **Evidence:** `conductor/tracks/20261109-battle-spacing-cadence/verification/phase-8.md`
+
+- [x] **P8.T1: Halve the weight** - covers: FR-4 - BLOW_WEIGHT 3 to 2, frame rows re-authored from the pre-Phase-6 baseline doubled, knockback and stamina floor follow
+- [x] **P8.T2: Measure with the harness** - covers: AC-4, AC-7 - five trace seeds plus telemetry; misses recorded as debt, no bound relaxed
