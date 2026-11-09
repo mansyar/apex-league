@@ -5,17 +5,17 @@
  * and the open/close path) stays in spar.ts.
  */
 
-import type { Tactic } from "@apex/sim"
-import { buildTacticRow, renderSpeedButton } from "../battleUI"
+import type { DoctrineId } from "@apex/sim"
+import { buildDoctrineRow, renderSpeedButton } from "../battleUI"
 import { icons } from "../ui/icons"
 import { chipButton, crest } from "../ui/kit"
-import { TACTIC_LABELS, TACTIC_PREVIEWS } from "./copy"
+import { DOCTRINE_LABELS, DOCTRINE_PREVIEWS } from "./copy"
 import type { SparPanelRefs } from "./types"
 
 /** Build the spar's DOM and hand back its writable surfaces. */
 export function buildSparPanel(
   root: HTMLElement,
-  onPickTactic: (tactic: Tactic) => void,
+  onPickTactic: (doctrine: DoctrineId) => void,
 ): SparPanelRefs {
   // Top-right spar chip: its own control, separate from the care cluster.
   // Kit chip with the mock's title/sub text stack.
@@ -80,16 +80,16 @@ export function buildSparPanel(
   resetPill.textContent = "Reset kit"
   loadoutRow.append(loadoutLabel, kitStrip, resetPill, kitHint)
 
-  const { row: tactics, buttons: tacticButtons } = buildTacticRow({
+  const { row: tactics, buttons: doctrineButtons } = buildDoctrineRow({
     rowClass: "spar-tactics",
-    describe: (tactic) => ({
-      label: TACTIC_LABELS[tactic],
-      preview: TACTIC_PREVIEWS[tactic],
+    describe: (doctrine) => ({
+      label: DOCTRINE_LABELS[doctrine],
+      preview: DOCTRINE_PREVIEWS[doctrine],
       labelClass: "spar-tactic-label",
       previewClass: "spar-preview",
     }),
     classes: { base: "spar-tactic kit-line" },
-    onPick: (tactic) => onPickTactic(tactic),
+    onPick: (doctrine) => onPickTactic(doctrine),
   })
 
   const fastButton = document.createElement("button")
@@ -175,7 +175,7 @@ export function buildSparPanel(
     kitHint,
     resetPill,
     tactics,
-    tacticButtons,
+    doctrineButtons,
     fastButton,
     replayButton,
     logBox,

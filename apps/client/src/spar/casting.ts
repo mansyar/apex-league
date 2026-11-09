@@ -54,12 +54,14 @@ export function fightNowFor(setup: SparSetup): PlaybackFight {
       key: setup.ownedSide.id ?? setup.ownedSide.name,
       element: setup.ownedSide.element,
       maxHp: startingHp(setup.ownedSide),
+      doctrine: setup.ownedSide.doctrine,
     },
     rival: {
       name: setup.rivalSide.name,
       key: setup.rivalSide.id ?? setup.rivalSide.name,
       element: setup.rivalSide.element,
       maxHp: startingHp(setup.rivalSide),
+      doctrine: setup.rivalSide.doctrine,
     },
   }
 }

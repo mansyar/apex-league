@@ -244,8 +244,8 @@ describe("buildBracketModel — the 8-slot bracket", () => {
   })
 
   test("verdicts land on the right matches across an eliminated run", () => {
-    // Seed 11 under the aggressive pick exits in QF1 (phase 8 re-pin: the
-    // halved blow weight carried seed 5 to the final).
+    // Doctrine ripple (battle-balance phase 1): seed 11 under the `specials`
+    // pick now reaches the final and loses there, so every match is played.
     const session = play(creature(), CUP_DAY, 11, "specials")
     const model = buildBracketModel(session)
     const byId = new Map(model.map((m) => [m.id, m]))
@@ -253,10 +253,9 @@ describe("buildBracketModel — the 8-slot bracket", () => {
     expect(byId.get("qf2")?.verdict).toEqual(session.rivalVerdicts[0])
     expect(byId.get("qf3")?.verdict).toEqual(session.rivalVerdicts[1])
     expect(byId.get("qf4")?.verdict).toEqual(session.rivalVerdicts[2])
-    // Eliminated in the QF: SF1 and the final are completion matches.
-    expect(byId.get("sf1")?.verdict).toEqual(session.completionVerdicts[0])
+    expect(byId.get("sf1")?.verdict).toEqual(session.playerVerdicts[1])
     expect(byId.get("sf2")?.verdict).toEqual(session.rivalVerdicts[3])
-    expect(byId.get("f1")?.verdict).toEqual(session.completionVerdicts[1])
+    expect(byId.get("f1")?.verdict).toEqual(session.playerVerdicts[2])
     expect(byId.get("f1")?.verdict?.winner).toBe(session.championName)
   })
 
@@ -546,7 +545,8 @@ describe("results presentation", () => {
   })
 
   test("resultRows: an elimination lists consolation plus the ladder row", () => {
-    const session = play(creature(), CUP_DAY, 11, "specials")
+    // Doctrine ripple (battle-balance phase 1): seed 5 still exits in QF1.
+    const session = play(creature(), CUP_DAY, 5, "specials")
     expect(cupPlacement(session)).toBe(4)
     const rows = resultRows(
       session,

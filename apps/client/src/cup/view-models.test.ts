@@ -86,9 +86,9 @@ describe("resultsView — the results screen assembly", () => {
   })
 
   test("an elimination names the champion and the exit stage", () => {
-    // Seed 11 under the aggressive pick falls in QF1 (phase 8 re-pin: the
-    // halved blow weight carried seed 5 all the way to the final).
-    const session = play(creature(), CUP_DAY, 11, "specials")
+    // Doctrine ripple (battle-balance phase 1): seed 5 falls in QF1; seed 11
+    // now reaches the final.
+    const session = play(creature(), CUP_DAY, 5, "specials")
     expect(session.status).toBe("eliminated")
     const view = resultsView(session, LADDER_BEFORE, LADDER_BEFORE, 0)
     expect(view.won).toBe(false)
@@ -342,7 +342,7 @@ describe("coach picks — reset per match", () => {
     const picks = initialPicks(bare)
     expect(picks).toEqual({
       loadout: [...defaultLoadout(bare, cs)],
-      tactic: "balanced",
+      doctrine: "press",
     })
     // A fresh array: mutating the picks must not touch the species kit.
     expect(picks.loadout).not.toBe(defaultLoadout(bare, cs))
@@ -352,7 +352,7 @@ describe("coach picks — reset per match", () => {
     const c = { ...creature(), loadout: ["spark", "flame_charge"] }
     expect(initialPicks(c)).toEqual({
       loadout: ["spark", "flame_charge"],
-      tactic: "balanced",
+      doctrine: "press",
     })
   })
 

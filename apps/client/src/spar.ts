@@ -14,9 +14,10 @@
 
 import {
   type Creature,
+  type DoctrineId,
   makeExhibition,
   type SparSetup,
-  type Tactic,
+  tacticForDoctrine,
 } from "@apex/sim"
 import { createBattleSession, sparStampTitle } from "./battle-session"
 import { createBattleHud } from "./battleHud"
@@ -40,7 +41,7 @@ export function createSpar(
   root: HTMLElement,
   handlers: SparHandlers = {},
 ): Spar {
-  const refs = buildSparPanel(root, (tactic) => runBattle(tactic))
+  const refs = buildSparPanel(root, (doctrine) => runBattle(doctrine))
   const {
     sparButton,
     overlay,
@@ -48,7 +49,7 @@ export function createSpar(
     intro,
     kitHint,
     resetPill,
-    tacticButtons,
+    doctrineButtons,
     fastButton,
     replayButton,
     logToggle,
@@ -105,7 +106,7 @@ export function createSpar(
       } else {
         replayButton.style.display = "none"
       }
-      for (const { button } of tacticButtons) button.style.display = "none"
+      for (const { button } of doctrineButtons) button.style.display = "none"
     },
   })
 
@@ -117,21 +118,26 @@ export function createSpar(
     if (!log.hidden) log.scrollTop = log.scrollHeight
   }
 
-  const runBattle = (playerTactic: Tactic): void => {
+  const runBattle = (playerDoctrine: DoctrineId): void => {
     if (!owned) return
     session.stop()
     // A ghost bout re-resolves from the bundle with the same seed, so the
     // rival the player previewed is the rival they fight; only the player's
-    // tactic changes. The verdict still lives only in this panel.
+    // doctrine changes. The verdict still lives only in this panel.
     const ghost = pendingGhost
     const seed = ghost ? ghost.seed : battleSeed
     const setup = ghost
-      ? ghostSparSetup(owned, ghost, playerTactic)
-      : makeExhibition(owned, playerTactic, battleSeed)
+      ? ghostSparSetup(owned, ghost, playerDoctrine)
+      : makeExhibition(
+          owned,
+          tacticForDoctrine(playerDoctrine),
+          battleSeed,
+          playerDoctrine,
+        )
     const verdict = resolveSpar(setup, seed)
 
     intro.textContent = `${setup.rival.name} accepts the spar!`
-    for (const { button } of tacticButtons) button.style.display = "none"
+    for (const { button } of doctrineButtons) button.style.display = "none"
     const fightNow = fightNowFor(setup)
     // Broadcast rework: the panel exits, the arena plays full-bleed, and
     // the chips row is the only control surface left.
@@ -166,7 +172,7 @@ export function createSpar(
     // A close mid-replay leaves the pill disabled; re-arm it here or a
     // reduced-motion spar after that stays permanently dead.
     replayButton.disabled = false
-    for (const { button } of tacticButtons) button.style.display = ""
+    for (const { button } of doctrineButtons) button.style.display = ""
     // The Spar chip would collide with the placard's right plate.
     sparButton.style.display = "none"
     overlay.style.display = ""
@@ -180,7 +186,7 @@ export function createSpar(
     battleSeed = Date.now() % 2 ** 31
     presentSetup(
       creature,
-      makeExhibition(creature, "balanced", battleSeed),
+      makeExhibition(creature, "balanced", battleSeed, "press"),
       "Pick how your partner fights. No AP, nothing saved.",
     )
   }
@@ -197,7 +203,7 @@ export function createSpar(
     battleSeed = contender.seed
     presentSetup(
       creature,
-      ghostSparSetup(creature, contender, "balanced"),
+      ghostSparSetup(creature, contender, "press"),
       ghostBoutIntro(contender.name),
     )
     return true

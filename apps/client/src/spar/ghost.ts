@@ -10,10 +10,11 @@
 
 import {
   type Creature,
+  type DoctrineId,
   makeExhibition,
   SIM_VERSION,
   type SparSetup,
-  type Tactic,
+  tacticForDoctrine,
 } from "@apex/sim"
 
 /**
@@ -103,9 +104,14 @@ export function readGhostContender(value: unknown): GhostContender | null {
 export function ghostSparSetup(
   owned: Creature,
   contender: GhostContender,
-  tactic: Tactic,
+  doctrine: DoctrineId,
 ): SparSetup {
-  const setup = makeExhibition(owned, tactic, contender.seed)
+  const setup = makeExhibition(
+    owned,
+    tacticForDoctrine(doctrine),
+    contender.seed,
+    doctrine,
+  )
   return {
     ...setup,
     rivalSide: { ...setup.rivalSide, name: contender.name, kit: contender.kit },

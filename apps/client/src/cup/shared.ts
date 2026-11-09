@@ -7,11 +7,11 @@
 import type {
   CupSession,
   CupSlot,
+  DoctrineId,
   FightStream,
   GameState,
   PlaybackStep,
   RoundVerdict,
-  Tactic,
 } from "@apex/sim"
 import type { createBattleSession, PlaybackFight } from "../battle-session"
 import type { createBattleHud } from "../battleHud"
@@ -74,7 +74,7 @@ export interface CupMemory {
   /** The match id currently waiting for the player (CTA shown). */
   pendingId: MatchId | null
   /** The coach's working picks for the pending match. */
-  picks: { loadout: string[]; tactic: Tactic } | null
+  picks: { loadout: string[]; doctrine: DoctrineId } | null
   /** The fight currently in the arena (stamp wording + cleanup). */
   fightNow: PlaybackFight | null
   /** The verdict quip awaiting the stamp hold (null outside boss fights). */

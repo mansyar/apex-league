@@ -61,9 +61,9 @@ describe("cup-win ghost capture", () => {
     const species = getSpecies(creature.speciesId)
     if (!species) throw new Error("unknown species")
     const loadout = defaultLoadout(creature, species)
-    // Seed 11 under the aggressive pick loses the quarterfinal (phase 8
-    // re-pin: the halved blow weight carried seed 5 to the final).
-    let elim = startCupSession(creature, 7, 11)
+    // Doctrine ripple (battle-balance phase 1): seed 5 under the aggressive
+    // pick loses the quarterfinal; seed 11 now reaches the final.
+    let elim = startCupSession(creature, 7, 5)
     elim = resolvePlayerMatch(elim, loadout, "specials").session
     const forfeited = forfeitCup(startCupSession(creature, 7, 17))
     const queued: unknown[] = []

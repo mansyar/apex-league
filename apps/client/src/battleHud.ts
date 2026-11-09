@@ -1,14 +1,12 @@
 /**
- * Battle HUD (Phase D, broadcast rework): the arena fight plays full-bleed
- * and this module owns the broadcast chrome — one top-center placard whose
- * skewed plates drain toward the VS chip, a rangefinder with chevrons, the
- * announcer lower-third, and the verdict stamp. Read-only furniture:
+ * Battle HUD (Phase D, broadcast rework): the broadcast chrome over a
+ * full-bleed fight — the top placard and VS chip, the rangefinder, the
+ * announcer lower-third and the verdict stamp. Read-only furniture:
  * pointer-events stay off, and everything derives from the same
- * `PlaybackStep` stream the arena staging consumes, so the HUD can never
- * contradict the resolver (hpAfter travels with every step, keyed by the
- * stable side id from the mirror-match fix).
+ * `PlaybackStep` stream the staging consumes, so the HUD cannot contradict
+ * the resolver.
  */
-import type { PlaybackStep } from "@apex/sim"
+import { DOCTRINE_LABELS, type DoctrineId, type PlaybackStep } from "@apex/sim"
 import { crestGlyph, elementHue } from "./element"
 
 /** The rangefinder's two states: bodies touching, or holding at range. */
@@ -68,6 +66,13 @@ export interface BattleHudFighter {
   key: string
   element: string
   maxHp: number
+  /** The plan this side fights under (FR-16); named on its plate. */
+  doctrine?: DoctrineId
+}
+
+/** The plate label: the fighter's name, with its doctrine when one is known. */
+export function plateName(f: BattleHudFighter): string {
+  return f.doctrine ? `${f.name} · ${DOCTRINE_LABELS[f.doctrine]}` : f.name
 }
 
 export interface BattleHud {
@@ -196,7 +201,7 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
     nameRow.className = "battle-plate-head"
     const name = document.createElement("span")
     name.className = "battle-hud-name"
-    name.textContent = f.name
+    name.textContent = plateName(f)
     const num = document.createElement("span")
     num.className = "battle-hp-num"
     num.textContent = String(f.maxHp)

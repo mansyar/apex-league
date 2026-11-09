@@ -3,6 +3,7 @@ import {
   chevronsFor,
   hitReaction,
   hpFraction,
+  plateName,
   type RangeState,
   rangeAfterStep,
 } from "./battleHud"
@@ -144,5 +145,29 @@ describe("chevronsFor", () => {
   })
   test("close quarters lights all three", () => {
     expect(chevronsFor("close")).toBe(3)
+  })
+})
+
+describe("plateName — the plate names the doctrine (FR-16, AC-15)", () => {
+  const EMBER = { name: "Ember", key: "ember", element: "fire", maxHp: 80 }
+
+  test("a fighter with a doctrine shows it beside the name", () => {
+    expect(plateName({ ...EMBER, doctrine: "kite" })).toBe("Ember · Kite")
+  })
+
+  test("a fighter with no doctrine shows only the name", () => {
+    expect(plateName(EMBER)).toBe("Ember")
+  })
+
+  test("all four doctrines have a label", () => {
+    const labels = (["press", "circle", "kite", "counter"] as const).map(
+      (doctrine) => plateName({ ...EMBER, doctrine }),
+    )
+    expect(labels).toEqual([
+      "Ember · Press",
+      "Ember · Circle",
+      "Ember · Kite",
+      "Ember · Counter",
+    ])
   })
 })
