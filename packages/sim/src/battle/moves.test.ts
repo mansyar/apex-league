@@ -39,10 +39,10 @@ describe("battle catalog", () => {
     const tiers = [
       { power: 6, accuracy: 100, cooldown: 1 },
       { power: 8, accuracy: 90, cooldown: 1 },
-      { power: 10, accuracy: 85, cooldown: 2 },
-      { power: 12, accuracy: 75, cooldown: 2 },
+      { power: 9, accuracy: 85, cooldown: 2 },
+      { power: 10, accuracy: 75, cooldown: 2 },
       { power: 7, accuracy: 95, cooldown: 1 },
-      { power: 14, accuracy: 70, cooldown: 3 },
+      { power: 11, accuracy: 70, cooldown: 3 },
     ]
     for (const element of [
       "fire",
@@ -66,7 +66,7 @@ describe("battle catalog", () => {
     }
   })
 
-  test("the four original rows keep their ids, numbers, and indices", () => {
+  test("the four original rows keep their ids, indices, and band numbers", () => {
     const original = [
       "spark",
       "flame_charge",
@@ -85,16 +85,16 @@ describe("battle catalog", () => {
       {
         spark: [6, 100, 1],
         flame_charge: [8, 90, 1],
-        cinder_shot: [10, 85, 2],
-        blaze_bolt: [12, 75, 2],
+        cinder_shot: [9, 85, 2],
+        blaze_bolt: [10, 75, 2],
         seed_shot: [6, 100, 1],
         thorn_volley: [8, 90, 1],
-        spore_burst: [10, 85, 2],
-        bramble_dart: [12, 75, 2],
+        spore_burst: [9, 85, 2],
+        bramble_dart: [10, 75, 2],
         bubble: [6, 100, 1],
         tide_shot: [8, 90, 1],
-        foam_volley: [10, 85, 2],
-        splash_bolt: [12, 75, 2],
+        foam_volley: [9, 85, 2],
+        splash_bolt: [10, 75, 2],
       }
     for (const id of original) {
       const move = CATALOG.find((m) => m.id === id)
@@ -189,10 +189,10 @@ describe("battle catalog", () => {
       if (!offense || !defense)
         throw new Error(`signature missing: ${offenseId}`)
       expect([offense.power, offense.accuracy, offense.cooldown]).toEqual([
-        12, 75, 2,
+        10, 80, 2,
       ])
       expect([defense.power, defense.accuracy, defense.cooldown]).toEqual([
-        9, 100, 2,
+        8, 100, 2,
       ])
       expect(offense.element).toBe(defense.element)
       expect((offense.power * offense.accuracy) / 100).toBe(
@@ -209,8 +209,8 @@ describe("battle catalog", () => {
 })
 
 describe("basic strike", () => {
-  test("is innate: power 4, accuracy 100, no cooldown, typeless melee", () => {
-    expect(BASIC_MOVE.power).toBe(4)
+  test("is innate: power 5, accuracy 100, no cooldown, typeless melee", () => {
+    expect(BASIC_MOVE.power).toBe(5)
     expect(BASIC_MOVE.accuracy).toBe(100)
     expect(BASIC_MOVE.cooldown).toBe(0)
     expect(BASIC_MOVE.element).toBeUndefined()
@@ -388,10 +388,10 @@ describe("electric kit (electric_species_line)", () => {
   const TIERS: Readonly<Record<string, readonly [number, number, number]>> = {
     static_jolt: [6, 100, 1],
     volt_dash: [8, 90, 1],
-    arc_shot: [10, 85, 2],
-    storm_bolt: [12, 75, 2],
+    arc_shot: [9, 85, 2],
+    storm_bolt: [10, 75, 2],
     ion_dart: [7, 95, 1],
-    gigavolt: [14, 70, 3],
+    gigavolt: [11, 70, 3],
   }
 
   /** A minimal creature pick for the learn/equip helpers. */
@@ -498,10 +498,10 @@ describe("earth kit (earth-wind-species-line)", () => {
   const TIERS: Readonly<Record<string, readonly [number, number, number]>> = {
     pebble_shot: [6, 100, 1],
     dust_devil: [8, 90, 1],
-    clay_burst: [10, 85, 2],
-    boulder_toss: [12, 75, 2],
+    clay_burst: [9, 85, 2],
+    boulder_toss: [10, 75, 2],
     sand_blast: [7, 95, 1],
-    tectonic_slam: [14, 70, 3],
+    tectonic_slam: [11, 70, 3],
   }
 
   /** A minimal creature pick for the learn/equip helpers. */
@@ -607,10 +607,10 @@ describe("wind kit (earth-wind-species-line)", () => {
   const TIERS: Readonly<Record<string, readonly [number, number, number]>> = {
     gust: [6, 100, 1],
     feather_dart: [8, 90, 1],
-    gale_cutter: [10, 85, 2],
-    sky_bolt: [12, 75, 2],
+    gale_cutter: [9, 85, 2],
+    sky_bolt: [10, 75, 2],
     talon_slash: [7, 95, 1],
-    hurricane_spiral: [14, 70, 3],
+    hurricane_spiral: [11, 70, 3],
   }
 
   function pick(

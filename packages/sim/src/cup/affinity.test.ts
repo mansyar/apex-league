@@ -99,7 +99,9 @@ describe("cup slot affinity threads into the battle side", () => {
     if (!move) throw new Error(`Unknown move: ${bareHit.moveId}`)
     expect(bareHit.damage).toBe(strikeDamage(move.power, 20, 10, 3, 2, true))
     expect(softHit.damage).toBe(strikeDamage(move.power, 20, 10, 1, 1, true))
-    expect(soft.finalHp.Reed).toBeGreaterThan(bare.finalHp.Reed ?? 0)
+    // Both KOs floor at the same overkill under the compressed band; the
+    // per-impact assertions above are the softening claim.
+    expect(soft.finalHp.Reed).toBeGreaterThanOrEqual(bare.finalHp.Reed ?? 0)
   })
 
   test("a slot without a secondary is byte-identical; null behaves as absent", () => {

@@ -72,9 +72,9 @@ describe("projectiles", () => {
     expect(r2.events[0]?.actor).toBe("Bolt")
     expect(r2.events[0]?.target).toBe("Reed")
     expect(r2.events[0]?.hit).toBe(true)
-    expect(r2.events[0]?.damage).toBe(18)
-    expect(r2.events[0]?.line).toBe("Blaze Bolt hits Reed for 18.")
-    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: 22 })
+    expect(r2.events[0]?.damage).toBe(15)
+    expect(r2.events[0]?.line).toBe("Blaze Bolt hits Reed for 15.")
+    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: 25 })
     // The impact ran before gauges and actions: Bolt is cooling down and
     // holds; Reed (SPD 5) never reaches the gauge.
     expect(kinds(r2.events)).toEqual(["impact", "hold"])
@@ -176,9 +176,9 @@ describe("dodge against a moving target", () => {
     expect(r2.events[0]?.kind).toBe("impact")
     expect(r2.events[0]?.hit).toBe(true)
     expect(r2.events[0]?.missReason).toBeUndefined()
-    expect(r2.events[0]?.damage).toBe(18)
-    expect(r2.events[0]?.line).toBe("Blaze Bolt hits Reed for 18.")
-    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: 22 })
+    expect(r2.events[0]?.damage).toBe(15)
+    expect(r2.events[0]?.line).toBe("Blaze Bolt hits Reed for 15.")
+    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: 25 })
   })
 
   test("standing still never consumes a dodge roll", () => {
@@ -201,17 +201,17 @@ describe("dodge against a moving target", () => {
     const r2 = clock.advance(plan)
     expect(kinds(r2.events)).toEqual(["impact", "hold", "stagger"])
     expect(r2.events[0]?.hit).toBe(true)
-    expect(r2.events[0]?.damage).toBe(18)
-    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: 22 })
+    expect(r2.events[0]?.damage).toBe(15)
+    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: 25 })
   })
 })
 
 describe("shots in flight at the end", () => {
   test("an impact step resolves every in-flight shot before the judgment", () => {
-    // Bolt's ATK 23 Blaze Bolt deals 41 fire-into-plant (1.5x) and downs
+    // Bolt's ATK 27 Blaze Bolt deals 40 fire-into-plant (1.5x) and downs
     // the 40-HP Reed at the tick-2 impact step, but the whole step
     // resolves first, so Reed's launched Bramble Dart still lands against
-    // the pre-step HP (2/3x into fire against DEF 15: 5 — kept below the
+    // the pre-step HP (2/3x into fire against DEF 15: 4 — kept below the
     // stagger floor). The disposition is judged after the step, and the
     // fight-over tick runs no actions.
     const boltPlans: PlanFn_ = (f) =>
@@ -225,7 +225,7 @@ describe("shots in flight at the end", () => {
     const plan: PlanFn_ = (f) =>
       f.name === "Bolt" ? boltPlans(f) : reedPlans(f)
     const clock = clockOf(
-      snap("Bolt", "fire", stats(12, 23, 15, 40)),
+      snap("Bolt", "fire", stats(12, 27, 15, 40)),
       snap("Reed", "plant", stats(12, 10, 10, 40)),
       22,
     )
@@ -236,11 +236,11 @@ describe("shots in flight at the end", () => {
     const r2 = clock.advance(plan)
     // Both impacts land in launch order; the down follows its own impact.
     expect(kinds(r2.events)).toEqual(["impact", "down", "impact"])
-    expect(r2.events[0]?.damage).toBe(41)
-    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: -1 })
+    expect(r2.events[0]?.damage).toBe(40)
+    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: 0 })
     expect(r2.events[1]?.line).toBe("Reed is down!")
-    expect(r2.events[2]?.damage).toBe(5)
-    expect(r2.events[2]?.hpAfter).toEqual({ Bolt: 35, Reed: -1 })
+    expect(r2.events[2]?.damage).toBe(4)
+    expect(r2.events[2]?.hpAfter).toEqual({ Bolt: 36, Reed: 0 })
     // After the step is judged, no pending shot fires and only a live
     // fighter acts.
     const r3 = clock.advance(() => HOLD)

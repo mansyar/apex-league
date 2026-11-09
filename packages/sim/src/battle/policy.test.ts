@@ -94,7 +94,7 @@ describe("temperament overrides", () => {
         temperament: "rush",
         actionCount: 3,
       }),
-    ).toEqual(special("blaze_bolt"))
+    ).toEqual(special("cinder_shot"))
     expect(
       chooseAction({
         fighter: bolt,
@@ -133,7 +133,7 @@ describe("temperament overrides", () => {
         temperament: "slow",
         actionCount: 1,
       }),
-    ).toEqual(special("bramble_dart"))
+    ).toEqual(special("spore_burst"))
     expect(
       chooseAction({
         fighter: ox,
@@ -199,7 +199,7 @@ describe("sustained kit output vs the innate Strike", () => {
         temperament: "obedient",
         actionCount: 2,
       }),
-    ).toEqual(special("blaze_bolt"))
+    ).toEqual(special("cinder_shot"))
   })
 
   test("the two tactics rank one kit differently", () => {
@@ -216,7 +216,7 @@ describe("sustained kit output vs the innate Strike", () => {
         temperament: "obedient",
         actionCount: 2,
       })
-    expect(pick("balanced")).toEqual(special("blaze_bolt"))
+    expect(pick("balanced")).toEqual(special("cinder_shot"))
     expect(pick("specials")).toEqual(special("flame_charge"))
   })
 

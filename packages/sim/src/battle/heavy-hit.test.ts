@@ -76,9 +76,9 @@ interface AttackPath {
 
 const PATHS: readonly AttackPath[] = [
   {
-    // Strike: floor(4 * 60 / 10) = 24.
+    // Strike: floor(5 * 48 / 10) = 24.
     name: "melee",
-    bolt: stats(13, 60, 10, 40),
+    bolt: stats(13, 48, 10, 40),
     queue: [CLOSE, BASIC],
   },
   {
@@ -162,7 +162,7 @@ describe("heavy-hit rule parity across both paths", () => {
       const elements = ELEMENT_BY_PATH[path.name] ?? ["fire", "plant"]
       // Same shape, lethal numbers: each path floors past Reed's 40 HP.
       const killer =
-        path.name === "melee" ? stats(13, 200, 10, 40) : stats(13, 70, 10, 40)
+        path.name === "melee" ? stats(13, 160, 10, 40) : stats(13, 70, 10, 40)
       const clock = clockOf(
         [
           snap("Bolt", elements[0], killer),
@@ -218,7 +218,7 @@ describe("heavy-hit rule parity across both paths", () => {
       drive(
         clockOf(
           [
-            snap("Bolt", "fire", stats(13, 25, 10, 40)),
+            snap("Bolt", "fire", stats(13, 20, 10, 40)),
             snap("Reed", "plant", victim),
           ],
           seed,
