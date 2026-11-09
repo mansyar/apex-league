@@ -308,3 +308,42 @@ numbers are measured by a tool that predates them.
         measured win rate; `0 < wins < fights` is the floor, not the target.
 - [x] **P13.T4: Tier order** - covers: FR-19
   - [x] **P13.T4.1:** The ladder still ascends and the heavy still earns its slot.
+
+## Phase R1: Review Fixes
+
+- **Goal:** the gate measures what it claims to measure, and the doctrine table shows the
+  behaviour the doctrines claim to have.
+- **Depends on:** Phase 13 (checkpoint `c1b460e7`).
+- **Covers:** FR-5, FR-15, FR-12, FR-13, FR-21, FR-4, AC-5, AC-11.
+- **Touches:** `packages/sim/scripts/battle-balance-report.ts`,
+  `packages/sim/scripts/battle-telemetry.ts`,
+  `packages/sim/src/battle/continuous/{balance-report,telemetry}.test.ts`,
+  `packages/sim/src/species/**`, `packages/sim/src/species.test.ts`,
+  `packages/sim/src/battle/continuous/{controller-profile,controller-rule,roll}.ts` +
+  tests.
+- **Verification:** `bun run verify`, `bun run build`, `bun run balance`,
+  `bun run telemetry` - four separate commands.
+- **Status:** in_progress
+
+- [ ] **R1.F1: Significance from distinct fights** - covers: FR-5, AC-5
+  - [ ] **R1.F1.1:** Effective standard error from the distinct-fight count, a stated
+        distinct floor, and `UNVERIFIED` as a gate failure rather than a pass.
+  - [ ] **R1.F1.2:** Make `earth_tortoise` measurable - its fights must resolve rather
+        than always reach the cap - and re-check the band and pacing.
+- [ ] **R1.F2: The doctrine table shows real dodges** - covers: FR-15, AC-11
+  - [ ] **R1.F2.1:** Count paid dodges rather than projectile evasions, add a separate
+        rear column, and assert a non-zero dodge rate for the dodging doctrine.
+  - [ ] **R1.F2.2:** Explain or fix the Press/Kite engagement-profile overlap with numbers.
+- [ ] **R1.F3: Spec and artifact agree** - covers: FR-5, AC-5
+  - [ ] **R1.F3.1:** Amend FR-5/AC-5 to the authorised decision rule with 45-55% as the
+        design target, re-word P13.T1.1, and name the out-of-band rows in `KNOWN_MISSES`.
+- [ ] **R1.F4: Restore the falcon's frailty** - covers: FR-5
+  - [ ] **R1.F4.1:** Falcon HP ceiling at or below the tortoise's HP floor, re-tuned with
+        ATK, SPD or kit shape.
+  - [ ] **R1.F4.2:** Replace the `durationMin` gate with `durationP05` and keep
+        `durationMin` as a diagnostic; restore a non-tautological bulk assertion.
+- [ ] **R1.F5: Press's floor is a lever or it is not** - covers: FR-12
+- [ ] **R1.F6: Accuracy debt in the spec** - covers: FR-21
+- [ ] **R1.F7: keep_back defers to the doctrine's strafe** - covers: FR-13
+- [ ] **R1.F8: Say which command gates the cap share** - covers: FR-4
+- [ ] **R1.F9: Correct the duration targets' requirement labels** - covers: FR-4
