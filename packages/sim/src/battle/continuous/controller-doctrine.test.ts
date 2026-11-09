@@ -341,7 +341,9 @@ describe("Circle lands more flank-or-rear hits than Press (AC-11)", () => {
       circleFlanks += circle.flank
       closest = Math.min(closest, circle.closestDot)
     }
-    expect(circleFlanks).toBe(8)
+    // Phase 13 (FR-5) re-rolled the roster's stat lines; the arc still earns
+    // Circle more flanks than Press, and the count moved 8 -> 9 with it.
+    expect(circleFlanks).toBe(9)
     // -50/100 = 120 degrees: the nearest a Circle hit got, still a flank.
     expect(closest).toBeGreaterThan(-50)
   })

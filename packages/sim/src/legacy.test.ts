@@ -306,10 +306,12 @@ describe("inheritedFloor", () => {
   })
 
   it("returns half the parent's effective stats when inside bounds", () => {
+    // Phase 13 (FR-5): the fire-drake bounds were re-rolled for the band, so
+    // the clamped floor moves with them.
     expect(inheritedFloor(parentStats, drake, 0)).toEqual({
-      hp: 160,
+      hp: 145,
       atk: 12,
-      def: 8,
+      def: 10,
       spd: 9,
     })
   })
@@ -317,9 +319,9 @@ describe("inheritedFloor", () => {
   it("clamps a huge parent down to the species maximums", () => {
     const huge: CreatureStats = { hp: 500, atk: 500, def: 500, spd: 500 }
     expect(inheritedFloor(huge, drake, 0)).toEqual({
-      hp: 193,
-      atk: 13,
-      def: 10,
+      hp: 178,
+      atk: 15,
+      def: 13,
       spd: 12,
     })
   })
@@ -327,9 +329,9 @@ describe("inheritedFloor", () => {
   it("clamps a weak parent up to the species minimums", () => {
     const weak: CreatureStats = { hp: 2, atk: 2, def: 2, spd: 2 }
     expect(inheritedFloor(weak, drake, 0)).toEqual({
-      hp: 160,
-      atk: 9,
-      def: 7,
+      hp: 145,
+      atk: 11,
+      def: 10,
       spd: 9,
     })
   })
@@ -338,9 +340,9 @@ describe("inheritedFloor", () => {
     expect(
       inheritedFloor(parentStats, drake, PRESTIGE_ESTABLISHED_LINE),
     ).toEqual({
-      hp: 161,
+      hp: 146,
       atk: 13,
-      def: 9,
+      def: 11,
       spd: 10,
     })
   })
@@ -349,9 +351,9 @@ describe("inheritedFloor", () => {
     expect(
       inheritedFloor(parentStats, drake, PRESTIGE_ESTABLISHED_LINE - 1),
     ).toEqual({
-      hp: 160,
+      hp: 145,
       atk: 12,
-      def: 8,
+      def: 10,
       spd: 9,
     })
   })
@@ -360,9 +362,9 @@ describe("inheritedFloor", () => {
     // A 0.55 share would lift hp to 89 — the single-parent successor floor
     // deliberately keeps the plain 0.5 fraction.
     expect(inheritedFloor(parentStats, drake, PRESTIGE_REFINED_BLOOD)).toEqual({
-      hp: 161,
+      hp: 146,
       atk: 13,
-      def: 9,
+      def: 11,
       spd: 10,
     })
   })

@@ -144,9 +144,9 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
       "Mossbottom Brute(water_axolotl)",
     ])
     expect(session.bracket.slots[1]?.stats).toEqual({
-      hp: 172,
-      atk: 10,
-      def: 9,
+      hp: 158,
+      atk: 12,
+      def: 10,
       spd: 9,
     })
   })
@@ -224,11 +224,13 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
       // Variance ripple (phase 10, FR-21): the accuracy roll and damage spread
       // are live, so QF3 moved from Gilded Horn to Thistledown Ash. Rework 1
       // narrowed the spread floor and it moved back; the roll is what decides it.
+      // Roster ripple (phase 13, FR-5): the stat re-roll moves QF3 back to
+      // Thistledown Ash.
       {
         seed: 19,
         rivalWinners: [
           "Driftbelle",
-          "Gilded Horn",
+          "Thistledown Ash",
           "Tidecaller Nibbles",
           "Tidecaller Nibbles",
         ],
@@ -336,7 +338,9 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     // Variance ripple (battle-balance phase 10, FR-21): the accuracy roll and
     // damage spread are live. Rework 1 narrowed the spread floor and the final
     // returns to Reedle Mirefin, as it stood before the variance pass.
-    expect(done.championName).toBe("Reedle Mirefin")
+    // Roster ripple (phase 13, FR-5): the stat re-roll hands the crown to
+    // Bonfire Brook.
+    expect(done.championName).toBe("Bonfire Brook")
     // The forfeit verdict names the opponent, no battle attached.
     const ff = done.playerVerdicts[0]
     expect(ff?.winner).toBe("Bonfire Brook")
@@ -345,11 +349,12 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
       "Bonfire Brook advances — Ember Drake forfeits the Quarterfinal.",
     )
     // Completion includes the conqueror's SF1 (round 2, pairing 0).
+    // Roster ripple (phase 13, FR-5): Bonfire Brook takes SF1 and the final.
     expect(
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
     ).toEqual([
-      [2, "Bonfire Brook", "Reedle Mirefin", "Reedle Mirefin"],
-      [3, "Reedle Mirefin", "Mossbottom Brute", "Reedle Mirefin"],
+      [2, "Bonfire Brook", "Reedle Mirefin", "Bonfire Brook"],
+      [3, "Bonfire Brook", "Mossbottom Brute", "Bonfire Brook"],
     ])
   })
 

@@ -102,8 +102,9 @@ describe("createBredCreature — seeded golden", () => {
       generation: 1,
     })
     const child = createBredCreature("fire_drake", 42, [sire, dam], 1)
-    // Phase 5 (FR-2): HP bounds and parent HP are authored on the folded scale.
-    expect(child.stats).toEqual({ hp: 182, atk: 11, def: 10, spd: 11 })
+    // Phase 13 (FR-5): the fire-drake bounds were re-rolled for the band, so
+    // this golden moves with them.
+    expect(child.stats).toEqual({ hp: 167, atk: 13, def: 13, spd: 11 })
     expect(child.traits).toEqual(["sturdy"])
     expect(child.parents).toEqual([0, 1])
   })
@@ -376,9 +377,9 @@ describe("inheritedFloorFromPair", () => {
 
   it("uses 50% of the stronger parent plus 10% of the weaker, then clamps", () => {
     expect(inheritedFloorFromPair(strong, weak, DRAKE, 0, [])).toEqual({
-      hp: 160,
+      hp: 145,
       atk: 11,
-      def: 8,
+      def: 10,
       spd: 9,
     })
   })
@@ -392,20 +393,20 @@ describe("inheritedFloorFromPair", () => {
   it("adds trait bonuses after the weighted roll", () => {
     expect(
       inheritedFloorFromPair(strong, weak, DRAKE, 0, ["sturdy", "fierce"]),
-    ).toEqual({ hp: 162, atk: 12, def: 8, spd: 9 })
+    ).toEqual({ hp: 147, atk: 12, def: 10, spd: 9 })
   })
 
   it("adds the established-line +1 to every stat", () => {
     expect(
       inheritedFloorFromPair(strong, weak, DRAKE, 5, ["sturdy", "fierce"]),
-    ).toEqual({ hp: 163, atk: 13, def: 9, spd: 10 })
+    ).toEqual({ hp: 148, atk: 13, def: 11, spd: 10 })
   })
 
   it("keeps the 0.5 stronger-parent share at prestige 6 (AC-4 below)", () => {
     expect(inheritedFloorFromPair(strong, weak, DRAKE, 6, [])).toEqual({
-      hp: 161,
+      hp: 146,
       atk: 12,
-      def: 9,
+      def: 11,
       spd: 10,
     })
   })
@@ -416,9 +417,9 @@ describe("inheritedFloorFromPair", () => {
     // spd: 0.55*16 + 1 = 9.8 -> 10 (+1). hp stays clamped at the species
     // minimum on both sides of the boundary.
     expect(inheritedFloorFromPair(strong, weak, DRAKE, 7, [])).toEqual({
-      hp: 161,
+      hp: 146,
       atk: 13,
-      def: 10,
+      def: 11,
       spd: 11,
     })
   })
@@ -432,9 +433,9 @@ describe("inheritedFloorFromPair", () => {
   it("clamps a huge pair down to the species maximums", () => {
     const huge: CreatureStats = { hp: 500, atk: 500, def: 500, spd: 500 }
     expect(inheritedFloorFromPair(huge, huge, DRAKE, 0, [])).toEqual({
-      hp: 193,
-      atk: 13,
-      def: 10,
+      hp: 178,
+      atk: 15,
+      def: 13,
       spd: 12,
     })
   })
@@ -442,9 +443,9 @@ describe("inheritedFloorFromPair", () => {
   it("clamps a weak pair up to the species minimums", () => {
     const tiny: CreatureStats = { hp: 2, atk: 2, def: 2, spd: 2 }
     expect(inheritedFloorFromPair(tiny, tiny, DRAKE, 0, [])).toEqual({
-      hp: 160,
-      atk: 9,
-      def: 7,
+      hp: 145,
+      atk: 11,
+      def: 10,
       spd: 9,
     })
   })

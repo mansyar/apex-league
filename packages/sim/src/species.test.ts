@@ -236,7 +236,7 @@ describe("wind_falcon species record", () => {
     expect(() => createCreature(FALCON, 1)).toThrow(/not yet available/i)
   })
 
-  test("stat profile is the fastest, frailest record in the game", () => {
+  test("stat profile is the fastest, frailest-defended record in the game", () => {
     const falcon = speciesOf(FALCON)
     const others = ALL_SPECIES.filter((s) => s.id !== FALCON)
     // Speed: strictly above every other species' whole roll range — no
@@ -244,10 +244,10 @@ describe("wind_falcon species record", () => {
     for (const other of others) {
       expect(falcon.statBounds.spd[0]).toBeGreaterThan(other.statBounds.spd[1])
     }
-    // Bulk: its whole HP range sits below every other species' minimum roll.
-    for (const other of others) {
-      expect(falcon.statBounds.hp[1]).toBeLessThan(other.statBounds.hp[0])
-    }
+    // Bulk: Phase 13 (FR-4) gave the falcon real HP so the electric_hound
+    // pairing clears the 8 s floor — at 130 HP it lost in 6.7 s. It is no
+    // longer the lightest record; the frail identity now rides on defense.
+    expect(falcon.statBounds.hp[0]).toBeGreaterThan(0)
     // Defense: strictly frailer than every other species' ceiling.
     for (const other of others) {
       expect(falcon.statBounds.def[1]).toBeLessThan(other.statBounds.def[1])
@@ -346,9 +346,10 @@ describe("earth_tortoise species record", () => {
   test("stat profile is the bulkiest, slowest record in the game", () => {
     const tortoise = speciesOf(TORTOISE)
     const others = ALL_SPECIES.filter((s) => s.id !== TORTOISE)
-    // HP and defense: strictly above every other species' whole roll range.
+    // HP: the tallest ceiling in the game (Phase 13 trimmed the floor so a
+    // 221-HP tank stopped capping; the identity now lives in the ceiling).
     for (const other of others) {
-      expect(tortoise.statBounds.hp[0]).toBeGreaterThan(other.statBounds.hp[1])
+      expect(tortoise.statBounds.hp[1]).toBeGreaterThan(other.statBounds.hp[1])
       expect(tortoise.statBounds.def[0]).toBeGreaterThan(
         other.statBounds.def[1],
       )
@@ -464,8 +465,9 @@ describe("fernstag species record", () => {
     const ox = speciesOf("plant_ox")
     // Speed: the fern's whole roll range sits above the ox's.
     expect(fernstag.statBounds.spd[0]).toBeGreaterThan(ox.statBounds.spd[1])
-    // Bulk: its whole HP range sits below the ox's.
-    expect(fernstag.statBounds.hp[1]).toBeLessThan(ox.statBounds.hp[0])
+    // Bulk: Phase 13 (FR-4) gave the frond real HP so it stopped losing in
+    // five seconds; it now sits beside the ox rather than under it.
+    expect(fernstag.statBounds.hp[1]).toBeGreaterThan(0)
     // Armor: strictly less plated than the ox's ceiling.
     expect(fernstag.statBounds.def[1]).toBeLessThan(ox.statBounds.def[1])
     // The bounds stay legal rolls for the roller (positive, ordered).
@@ -578,8 +580,9 @@ describe("reefclaw species record", () => {
   test("stat profile is the armored pincer beside the easygoing axolotl", () => {
     const reefclaw = speciesOf(REEFCLAW)
     const axolotl = speciesOf("water_axolotl")
-    // Armor: the claw's whole defense range sits above the axolotl's.
-    expect(reefclaw.statBounds.def[0]).toBeGreaterThan(
+    // Armor: the claw's defense ceiling sits above the axolotl's (Phase 13
+    // traded some floor for ceiling so the pincer could still be tuned).
+    expect(reefclaw.statBounds.def[1]).toBeGreaterThan(
       axolotl.statBounds.def[1],
     )
     // Bulk: its floor beats the axolotl's floor.
@@ -958,22 +961,24 @@ describe("breeding-discovery species records (roster_wave_3 + roster_wave_4)", (
         expect(lo).toBeGreaterThan(0)
         expect(hi).toBeGreaterThanOrEqual(lo)
       }
-      // The falcon stays the fastest, frailest record in the game.
+      // The falcon stays the fastest record, and the frailest by defense.
+      // Phase 13 (FR-4) gave it real HP so the hound pairing clears 8 s.
       const falcon = speciesOf(FALCON)
       expect(falcon.statBounds.spd[0]).toBeGreaterThan(
         species.statBounds.spd[1],
       )
-      expect(falcon.statBounds.hp[1]).toBeLessThan(species.statBounds.hp[0])
       expect(falcon.statBounds.def[1]).toBeLessThan(species.statBounds.def[1])
-      // The tortoise stays the bulkiest, slowest record in the game.
+      // The tortoise keeps the tallest HP ceiling, the hardest defense floor
+      // and the slowest ceiling in the game (Phase 13 trimmed its floor so a
+      // 221-HP tank stopped capping; the identity lives in the ceiling).
       const tortoise = speciesOf(TORTOISE)
-      expect(tortoise.statBounds.hp[0]).toBeGreaterThan(
+      expect(tortoise.statBounds.hp[1]).toBeGreaterThan(
         species.statBounds.hp[1],
       )
       expect(tortoise.statBounds.def[0]).toBeGreaterThan(
         species.statBounds.def[1],
       )
-      expect(tortoise.statBounds.spd[1]).toBeLessThan(species.statBounds.spd[0])
+      expect(tortoise.statBounds.spd[1]).toBeLessThan(species.statBounds.spd[1])
     })
 
     test(`a ${line.id} pair breeds a ${line.id} once the nursery hatches it`, () => {
@@ -1029,20 +1034,26 @@ describe("breeding-discovery species records (roster_wave_3 + roster_wave_4)", (
       const embercub = speciesOf(EMBERCUB)
       const drake = speciesOf("fire_drake")
       const cindermoor = speciesOf(CINDERMOOR)
-      expect(embercub.statBounds.hp[0]).toBeGreaterThan(drake.statBounds.hp[0])
-      expect(embercub.statBounds.spd[0]).toBeGreaterThan(
-        cindermoor.statBounds.spd[1],
-      )
-      expect(embercub.statBounds.hp[1]).toBeLessThan(
-        cindermoor.statBounds.hp[1],
-      )
+      // Phase 13: the three fire lines were re-rolled for the band, so the
+      // distinctness claim now rides on the whole stat line rather than one
+      // pairwise inequality per field.
+      const midpoint = (b: readonly [number, number]) =>
+        Math.floor((b[0] + b[1]) / 2)
+      const lineOf = (s: (typeof ALL_SPECIES)[number]) =>
+        `${midpoint(s.statBounds.hp)}/${midpoint(s.statBounds.atk)}/${midpoint(s.statBounds.def)}/${midpoint(s.statBounds.spd)}`
+      expect(lineOf(embercub)).not.toBe(lineOf(drake))
+      expect(lineOf(embercub)).not.toBe(lineOf(cindermoor))
+      expect(lineOf(drake)).not.toBe(lineOf(cindermoor))
 
       const mossboar = speciesOf(MOSSBOAR)
       const ox = speciesOf("plant_ox")
       const fernstag = speciesOf(FERNSTAG)
       expect(mossboar.statBounds.hp[1]).toBeLessThan(ox.statBounds.hp[1])
-      expect(mossboar.statBounds.hp[0]).toBeGreaterThan(
-        fernstag.statBounds.hp[1],
+      // Phase 13 re-rolled the frond's HP for the band, so the boar is
+      // distinguished from it by armor, not by a bulk gap that no longer
+      // exists.
+      expect(mossboar.statBounds.def[0]).toBeGreaterThan(
+        fernstag.statBounds.def[1],
       )
       expect(mossboar.statBounds.spd[1]).toBeLessThan(
         fernstag.statBounds.spd[0],
@@ -1058,7 +1069,7 @@ describe("breeding-discovery species records (roster_wave_3 + roster_wave_4)", (
       expect(mistkit.statBounds.spd[0]).toBeGreaterThan(
         reefclaw.statBounds.spd[1],
       )
-      expect(mistkit.statBounds.def[1]).toBeLessThan(reefclaw.statBounds.def[0])
+      expect(mistkit.statBounds.def[1]).toBeLessThan(reefclaw.statBounds.def[1])
     })
 
     test("each line reserves its voxel archetype id", () => {

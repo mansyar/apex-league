@@ -42,22 +42,7 @@ function sample(): BalanceSample {
  * the rows are the honest spread at real stat lines and Phase 13 owns the
  * re-tune. Update a row, never the bound, when one is fixed.
  */
-const SLACK = "bound |rate - 50%| <= 9.3% (design target 45.0%..55.0%)"
-
-const KNOWN_MISSES = [
-  `species:fire_drake: observed 28.6% (32/112, 19 distinct, se 4.3%), ${SLACK}`,
-  `species:plant_ox: observed 39.3% (44/112, 24 distinct, se 4.6%), ${SLACK}`,
-  `species:electric_hound: observed 23.2% (26/112, 14 distinct, se 4.0%), ${SLACK}`,
-  `species:fernstag: observed 33.9% (38/112, 19 distinct, se 4.5%), ${SLACK}`,
-  `species:wind_falcon: observed 25.0% (28/112, 16 distinct, se 4.1%), ${SLACK}`,
-  `species:reefclaw: observed 64.3% (72/112, 17 distinct, se 4.5%), ${SLACK}`,
-  `species:cindermoor: observed 60.7% (68/112, 15 distinct, se 4.6%), ${SLACK}`,
-  `species:voltfox: observed 89.3% (100/112, 15 distinct, se 2.9%), ${SLACK}`,
-  `species:galeheron: observed 82.1% (92/112, 15 distinct, se 3.6%), ${SLACK}`,
-  `species:shalemole: observed 85.7% (96/112, 14 distinct, se 3.3%), ${SLACK}`,
-  `species:mistkit: observed 17.9% (20/112, 16 distinct, se 3.6%), ${SLACK}`,
-  "durationMin: observed 4.84s, bound >= 8.00s",
-] as const
+const KNOWN_MISSES = [] as const
 
 describe("balance report — one deterministic command (FR-7, AC-7)", () => {
   test("reports the roster, the doctrines, the bosses and every move", () => {
@@ -210,24 +195,19 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
   })
 
   test("today's misses are named targets with their observed values", () => {
+    // Phase 13 (FR-5): the roster pass brought every species inside the gate
+    // and every resolvability target with it, so the miss list is empty.
     expect(violations(sample()).map(describeTarget)).toEqual([...KNOWN_MISSES])
   })
 
-  test("the gate exits non-zero and names the violated target", () => {
+  test("the gate exits zero and reports no violated target", () => {
     const lines: string[] = []
-    expect(run(sample(), (line) => lines.push(line))).toBe(1)
-    expect(
-      lines.some((line) =>
-        line.startsWith(
-          "FAIL species:voltfox: observed 89.3% (100/112, 15 distinct, se 2.9%), bound |rate - 50%| <= 9.3%",
-        ),
-      ),
-    ).toBe(true)
-    // Rework 1 softened the spread floor and brought the cap share back inside
-    // one in three (32.1%), so the resolvability targets pass and only the
-    // roster rows keep the gate non-zero.
-    expect(lines.some((line) => line.startsWith("FAIL capShare:"))).toBe(false)
+    expect(run(sample(), (line) => lines.push(line))).toBe(0)
+    expect(lines.some((line) => line.startsWith("FAIL "))).toBe(false)
     expect(lines.some((line) => line.startsWith("ok   capShare:"))).toBe(true)
+    expect(lines.some((line) => line.startsWith("ok   durationMin:"))).toBe(
+      true,
+    )
   })
 
   test("a target that holds is not reported as a violation", () => {
