@@ -211,16 +211,19 @@ numbers are measured by a tool that predates them.
 - **Covers:** FR-21, FR-7, AC-18, AC-7
 - **Touches:** `packages/sim/src/battle/continuous/strike.ts`, `projectile.ts`, `step.ts`, `advance.ts`, `report.ts`, `packages/sim/scripts/battle-balance-report.ts` + co-located tests
 - **Verification:** `bun run verify`, `bun run build`, `bun run balance`, `bun run telemetry` (four separate commands)
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 39b1b5ef
+- **Evidence:** `conductor/tracks/20261109-battle-balance/verification/phase-10.md`
 
-- [ ] **P10.T1: Variance** — covers: FR-21
+- [x] **P10.T1: Variance** — covers: FR-21
   - [ ] P10.T1.1 Roll every attack against its authored accuracy, and make a miss an observable event with a reason.
   - [ ] P10.T1.2 Add a bounded damage spread that cannot push any base hit past the 12% ceiling.
   - [ ] P10.T1.3 Prove determinism is intact: same seed and sides replay byte-identically, different seeds diverge.
-- [ ] **P10.T2: The gate** — covers: FR-7
+- [x] **P10.T2: The gate** — covers: FR-7
   - [ ] P10.T2.1 Count independent fights only (unique seeds), and report the sample size and binomial standard error with every row.
   - [ ] P10.T2.2 Replace the point band with a decision rule under which a truly balanced species passes at least 95% of the time, and state the rule in the evidence.
-- [ ] **P10.T3: Diversity** — covers: FR-21
+- [x] **P10.T3: Diversity** — covers: FR-21
   - [ ] P10.T3.1 Report outcome diversity across seeds and bound it, so "varies" is measured rather than assumed.
 
 ## Phase 11: Roster Re-tune

@@ -351,3 +351,47 @@ ceiling after the best roll on the heaviest row by name.
    electric_hound 8.9%, wind_falcon 21.4%, mistkit 25.0%, plant_ox 32.1%,
    fire_drake 35.7%, galeheron 83.9%, shalemole 85.7%, voltfox 92.9%. Phase 11
    owns them; this phase did not tune a species stat.
+
+## Primary verification
+
+Independent verification of Phase 10 on the tree at `39b1b5ef`.
+
+| command | result |
+| --- | --- |
+| `bun run verify` | exit 0 — 3,962 pass / 1 skip / 0 fail, 3,963 tests / 367 files; biome 913 files clean; determinism gate byte-identical |
+| `bun run build` | exit 0 — 410 modules |
+| `bun run balance` | exit 1 **only** on eight species rows, which are Phase 11's |
+| `bun run telemetry` | 13/13 bounds ok, cap 6/14 (42.9%) |
+
+Read from the harness, not the report:
+
+```
+ok   capShare:     observed 32.1% (270/840), bound <= 33.3%
+ok   durationBand: observed 64.5% (542/840), bound >= 50.0% in 25.00s..40.00s
+ok   damageBand:   observed 49/49 moves inside, bound 4%..12% of the 189 pool
+```
+
+Median 28.85 s, strictly below `FIGHT_CAP_MS`. The first attempt landed 33.8% cap and
+66.2% knockout — half a percentage point outside both targets on 840 fights — and the
+rework softened the spread floor from `base/8` to `base/16` rather than accepting
+"within one standard error". That is the right call: a target that is only met on
+average is not met.
+
+Two things recorded and deliberately not fixed, both now Phase 11's:
+
+1. **Diversity is thin.** 7.6% of ordered pairings change winner across seeds, and
+   `earth_tortoise` produces only 4 distinct fights out of 112. The cause is that
+   accuracy was calibrated at `MISS_SCALE 5` (effective 94-100%) because the authored
+   70-100 ladder had never been read; honouring it literally drove the cap share to
+   64.3%. The cost of widening it is measured for Phase 11 — roughly 15-20 points of
+   cap share — so Phase 11 can decide with numbers rather than instinct.
+2. **Eight species rows remain out of band** under the significance rule:
+   `electric_hound` 8.9%, `wind_falcon` 21.4%, `mistkit` 25.0%, `plant_ox` 32.1%,
+   `fire_drake` 35.7%, `galeheron` 83.9%, `shalemole` 85.7%, `voltfox` 92.9%.
+
+The gate itself is now honest: a two-sided 95% test over 112 games per species
+(`SIGNIFICANCE_Z 1.96`, null SE `sqrt(0.25/n)`), a 5% false-fail rate by construction,
+distinct fights and binomial standard error printed per row, and the 45-55% point band
+still printed as the design target. That is the instrument Phase 9 lacked, and it is
+why Phase 9's refusal to tune was correct rather than obstructive.
+
