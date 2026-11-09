@@ -88,7 +88,9 @@ describe("resultsView — the results screen assembly", () => {
   test("an elimination names the champion and the exit stage", () => {
     // Doctrine ripple (battle-balance phase 1): seed 5 falls in QF1; seed 11
     // now reaches the final.
-    const session = play(creature(), CUP_DAY, 5, "specials")
+    // Controller ripple (battle-balance phase 3): seed 5 reaches the final, so
+    // the QF-exit pin moves to seed 13.
+    const session = play(creature(), CUP_DAY, 13, "specials")
     expect(session.status).toBe("eliminated")
     const view = resultsView(session, LADDER_BEFORE, LADDER_BEFORE, 0)
     expect(view.won).toBe(false)

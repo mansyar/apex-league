@@ -18,15 +18,16 @@ import {
   strafeIntent,
 } from "./controller-aim"
 import { dodgeOrder } from "./controller-dodge"
+import { observe, strafeSide } from "./controller-memory"
 import { chooseMove } from "./controller-moves"
 import {
-  bandFor,
-  type ControllerProfile,
-  reachEdgeMm,
-} from "./controller-profile"
+  PUNISH_RESERVE_STAMINA,
+  punishMove,
+  whiffStep,
+} from "./controller-punish"
+import { threatBandFor } from "./controller-reach"
 import { rearCommit } from "./controller-rear"
 import {
-  type RuleId,
   type RuleOrder,
   ruleDisengage,
   ruleDodge,
@@ -34,9 +35,17 @@ import {
   withRule,
 } from "./controller-rule"
 import { slipOrder } from "./controller-slip"
+import {
+  type ControllerDecision,
+  type ControllerState,
+  type ControllerVerb,
+  DECISION_STEPS,
+  type DecisionInput,
+  hold,
+} from "./controller-state"
 import { isBroken } from "./poise"
 import { DODGE_STAMINA_COST } from "./stamina"
-import { type FightState, HOLD, type MoveIntent, STEP_MS } from "./types"
+import { HOLD, type MoveIntent } from "./types"
 
 export {
   bandFor,
@@ -61,16 +70,18 @@ export {
   tacticForDoctrine,
 } from "./controller-profile"
 
+export {
+  type ControllerDecision,
+  type ControllerState,
+  type ControllerVerb,
+  createController,
+  DECISION_MS,
+  DECISION_STEPS,
+  type DecisionInput,
+  nextDecisionMs,
+} from "./controller-state"
+
 export { DODGE_LEAD_MS } from "./controller-threat"
-
-/**
- * How often the controller re-decides, in ms (tunable, whole steps, FR-3):
- * 240 ms is four decisions a second, inside the 200-240 ms band.
- */
-export const DECISION_MS = 240
-
-/** The same cadence counted in fixed steps: a decision every twelve of them. */
-export const DECISION_STEPS = DECISION_MS / STEP_MS
 
 /**
  * How many of its own radii of open floor a retreat needs, in radii (tunable,
@@ -81,105 +92,6 @@ export const RETREAT_ROOM_RADII = 2
 
 /** Decisions in one tactical cycle; a profile's shares partition it. */
 const CYCLE = 10
-
-/** The seven things a fighter can want (FR-11). */
-export type ControllerVerb =
-  | "advance"
-  | "retreat"
-  | "strafe"
-  | "hold"
-  | "commit"
-  | "dodge"
-  | "slip"
-
-/**
- * The controller's own state: its clock, the intent it is holding, and when it
- * may lunge again. Everything else it needs comes from the fight.
- */
-export interface ControllerState {
-  /** Decisions taken since the opening; the cadence AC-11 observes. */
-  readonly decisions: number
-  /** The intent held between decisions; the fight moves under it. */
-  readonly intent: MoveIntent
-  /** The verb that intent expresses. */
-  readonly verb: ControllerVerb
-  /** Fight time this controller may next order a dodge, in ms (FR-20). */
-  readonly dodgeReadyMs: number
-  /** Fight time this controller may next order a step-around, in ms (FR-11). */
-  readonly slipReadyMs: number
-  /** Fight time the current cut ends, in ms; 0 when no cut is running. */
-  readonly slipUntilMs: number
-}
-
-/**
- * Open a controller held still. It decides on its first step, so the opening
- * beat of a fight is a choice rather than a default, and it may lunge at once.
- */
-export function createController(): ControllerState {
-  return {
-    decisions: 0,
-    intent: HOLD,
-    verb: "hold",
-    dodgeReadyMs: 0,
-    slipReadyMs: 0,
-    slipUntilMs: 0,
-  }
-}
-
-/**
- * Fight time of the next decision, in ms. After `n` decisions the next lands
- * at `n * DECISION_MS`: a 600-step fight ends with 50 decisions and a next
- * decision at 12,000 ms.
- */
-export function nextDecisionMs(state: ControllerState): number {
-  return state.decisions * DECISION_MS
-}
-
-/** Everything one decision reads: the fight, the side, and its own tuning. */
-export interface DecisionInput {
-  /** The fight as it stands at the top of the step. */
-  readonly state: FightState
-  /** Which side this controller orders. */
-  readonly side: 0 | 1
-  /** The controller's state, as the last decision left it. */
-  readonly controller: ControllerState
-  /** The archetype tuning the controller reads. */
-  readonly profile: ControllerProfile
-  /** The moves this side may commit, in kit order. */
-  readonly kit: readonly string[]
-  /**
-   * The conditional rule in force (FR-13). Absent is the default and changes
-   * nothing; exactly one id can be carried, so rules never stack.
-   */
-  readonly rule?: RuleId
-}
-
-/** What one decision ordered: the next state, the verb, and any commit. */
-export interface ControllerDecision {
-  /** The controller's state after the decision, or the held one. */
-  readonly state: ControllerState
-  /** The verb the intent expresses. */
-  readonly verb: ControllerVerb
-  /** The movement order to advance the next step with. */
-  readonly intent: MoveIntent
-  /** Move id to commit, or null. Refusals are avoided, never spammed. */
-  readonly commit: string | null
-  /** Stamina the step charges for this dodge, in points; 0 otherwise. */
-  readonly dodgeCost: number
-  /** The rule that changed this decision (FR-13), or absent when none did. */
-  readonly rule?: RuleId
-}
-
-/** Between decisions the controller repeats exactly what it ordered. */
-function hold(controller: ControllerState): ControllerDecision {
-  return {
-    state: controller,
-    verb: controller.verb,
-    intent: controller.intent,
-    commit: null,
-    dodgeCost: 0,
-  }
-}
 
 /**
  * Order one fighter's next intent: the held intent between decisions, or a
@@ -215,6 +127,7 @@ export function decide(input: DecisionInput): ControllerDecision {
   }
 
   const decisions = controller.decisions + 1
+  const memory = observe(controller.memory, me, foe, state.elapsedMs)
   const settle = (
     verb: ControllerVerb,
     intent: MoveIntent,
@@ -231,6 +144,7 @@ export function decide(input: DecisionInput): ControllerDecision {
       dodgeReadyMs,
       slipReadyMs,
       slipUntilMs,
+      memory,
     }
     return { state: next, verb, intent, commit, dodgeCost }
   }
@@ -278,6 +192,14 @@ export function decide(input: DecisionInput): ControllerDecision {
     )
   }
 
+  const gapSq = planarGapSq(me.pos, foe.pos)
+
+  // Step out of a whiff (FR-14): when the burst is on cooldown or the pool
+  // cannot pay, a swing a walk can clear is still left rather than stood in.
+  // ./controller-punish owns the clearance and the walk budget.
+  const stepOut = whiffStep(me, foe, gapSq)
+  if (stepOut) return settle("retreat", stepOut)
+
   // A step-around cut (FR-11): a circling doctrine spends stamina for a short
   // burst of angle while the foe's facing is held down by its own swing. Its
   // own price and cooldown live in ./controller-slip; ./advance charges it.
@@ -299,17 +221,36 @@ export function decide(input: DecisionInput): ControllerDecision {
           cut.readyMs,
           cut.untilMs,
         )
-      : settle("strafe", strafeIntent(me, foe, sign, profile.seeksRear))
+      : settle(
+          "strafe",
+          strafeIntent(
+            me,
+            foe,
+            strafeSide(memory, state.elapsedMs, sign, profile.seeksRear),
+            profile.seeksRear,
+          ),
+        )
 
   // "Keep something back" (FR-13) is a plan-level note: it gives ground while
   // the pool is under its floor, after the dodge gate has had its say.
   const holdNote = ruleDisengage(input, RETREAT_ROOM_RADII)
   if (holdNote) return apply(holdNote)
 
-  const gapSq = planarGapSq(me.pos, foe.pos)
-  const band = bandFor(profile, reachEdgeMm(me, foe))
+  const band = threatBandFor(profile, me, foe)
   if (gapSq > band.ceilingMm * band.ceilingMm) {
     return settle("advance", aimAt(me, foe))
+  }
+
+  // Punish timing (FR-14): a recovering or broken foe is a window the cycle
+  // does not get to miss, and it outranks giving ground — the doctrine's own
+  // outer bound above still applies. ./controller-punish owns the read and the
+  // move; the rule still gets to refuse it. Circle punishes through the rear
+  // arc instead: a frontal press would trade its plan for another's (FR-14).
+  const punish =
+    profile.commit === "punish" ? punishMove(input, gapSq, memory) : null
+  if (punish) {
+    const refused = ruleRefuses(input, punish)
+    if (!refused) return settle("commit", pressIntent(me, foe), punish)
   }
 
   const slot = (decisions - 1) % CYCLE
@@ -336,7 +277,7 @@ export function decide(input: DecisionInput): ControllerDecision {
     const waiting =
       profile.commit === "punish" && foe.attack?.phase === "startup"
     if (slot < press && !waiting) {
-      const moveId = chooseMove(me, foe, kit, gapSq)
+      const moveId = chooseMove(me, foe, kit, gapSq, PUNISH_RESERVE_STAMINA)
       const refused = ruleRefuses(input, moveId)
       if (moveId && !refused) {
         return settle("commit", pressIntent(me, foe), moveId)
@@ -352,7 +293,7 @@ export function decide(input: DecisionInput): ControllerDecision {
     if (profile.commit === "punish" && foe.attack?.phase === "startup") {
       return circle()
     }
-    const moveId = chooseMove(me, foe, kit, gapSq)
+    const moveId = chooseMove(me, foe, kit, gapSq, PUNISH_RESERVE_STAMINA)
     const refused = ruleRefuses(input, moveId)
     if (moveId && !refused) {
       return settle("commit", pressIntent(me, foe), moveId)

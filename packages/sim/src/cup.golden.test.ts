@@ -359,62 +359,64 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
   // Re-pinned for the HP re-tune (spacing/cadence phase 4): Driftbelle now
   // takes QF1, SF2 and the final, so the champion moved from Cindersnout to
   // Driftbelle and the player still loses the final (placement 2).
-  test("seed 7: the final is lost, not crowned", () => {
-    const session = playToCompletion(DAY, 7)
+  // Controller ripple (battle-balance phase 3): seed 7 now takes the crown, so
+  // the final-loss pin moves to seed 1 (champion Thistledown Ash).
+  test("seed 1: the final is lost, not crowned", () => {
+    const session = playToCompletion(DAY, 1)
     expect(session.status).toBe("eliminated")
-    expect(session.championName).toBe("Tidecaller Nibbles")
+    expect(session.championName).toBe("Thistledown Ash")
     expect(cupPlacement(session)).toBe(2)
     expect(session.rivalVerdicts.map(row)).toEqual([
       [
         1,
         "Reedle Mirefin",
-        "Emberhold Flicker",
-        "Emberhold Flicker",
-        "Emberhold Flicker takes the Quarterfinal!",
+        "Tidecaller Nibbles",
+        "Reedle Mirefin",
+        "Reedle Mirefin takes the Quarterfinal!",
       ],
       [
         1,
-        "Driftbelle",
+        "Ash-ledger",
+        "Thistledown Ash",
+        "Thistledown Ash",
+        "Thistledown Ash takes the Quarterfinal!",
+      ],
+      [
+        1,
+        "Emberhold Flicker",
         "Cindersnout",
         "Cindersnout",
         "Cindersnout takes the Quarterfinal!",
       ],
       [
-        1,
-        "Gilded Horn",
-        "Tidecaller Nibbles",
-        "Tidecaller Nibbles",
-        "Tidecaller Nibbles takes the Quarterfinal!",
-      ],
-      [
         2,
+        "Thistledown Ash",
         "Cindersnout",
-        "Tidecaller Nibbles",
-        "Tidecaller Nibbles",
-        "Tidecaller Nibbles takes the Semifinal!",
+        "Thistledown Ash",
+        "Thistledown Ash takes the Semifinal!",
       ],
     ])
     expect(session.playerVerdicts.map(row)).toEqual([
       [
         1,
         "Ember Drake",
-        "Pondskipper Grub",
+        "Mossbottom Brute",
         "Ember Drake",
         "Ember Drake takes the Quarterfinal!",
       ],
       [
         2,
         "Ember Drake",
-        "Emberhold Flicker",
+        "Reedle Mirefin",
         "Ember Drake",
         "Ember Drake takes the Semifinal!",
       ],
       [
         3,
         "Ember Drake",
-        "Tidecaller Nibbles",
-        "Tidecaller Nibbles",
-        "Tidecaller Nibbles takes the Final!",
+        "Thistledown Ash",
+        "Thistledown Ash",
+        "Thistledown Ash takes the Final!",
       ],
     ])
     expect(session.completionVerdicts.map(row)).toEqual([])
@@ -435,15 +437,15 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
     const creature = playerCreature()
     const session = forfeitCup(startCupSession(creature, DAY, 101))
     expect(session.status).toBe("eliminated")
-    expect(session.championName).toBe("Tidecaller Nibbles")
+    expect(session.championName).toBe("Reedle Mirefin")
     expect(cupPlacement(session)).toBe(4)
     expect(session.rivalVerdicts.map(row)).toEqual([
       [
         1,
         "Tidecaller Nibbles",
         "Reedle Mirefin",
-        "Tidecaller Nibbles",
-        "Tidecaller Nibbles takes the Quarterfinal!",
+        "Reedle Mirefin",
+        "Reedle Mirefin takes the Quarterfinal!",
       ],
       [
         1,
@@ -480,16 +482,16 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
       [
         2,
         "Bonfire Brook",
-        "Tidecaller Nibbles",
-        "Tidecaller Nibbles",
-        "Tidecaller Nibbles takes the Semifinal!",
+        "Reedle Mirefin",
+        "Reedle Mirefin",
+        "Reedle Mirefin takes the Semifinal!",
       ],
       [
         3,
-        "Tidecaller Nibbles",
+        "Reedle Mirefin",
         "Mossbottom Brute",
-        "Tidecaller Nibbles",
-        "Tidecaller Nibbles takes the Final!",
+        "Reedle Mirefin",
+        "Reedle Mirefin takes the Final!",
       ],
     ])
   })

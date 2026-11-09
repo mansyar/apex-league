@@ -546,7 +546,9 @@ describe("results presentation", () => {
 
   test("resultRows: an elimination lists consolation plus the ladder row", () => {
     // Doctrine ripple (battle-balance phase 1): seed 5 still exits in QF1.
-    const session = play(creature(), CUP_DAY, 5, "specials")
+    // Controller ripple (battle-balance phase 3): seed 5 reaches the final, so
+    // the QF-exit pin moves to seed 13.
+    const session = play(creature(), CUP_DAY, 13, "specials")
     expect(cupPlacement(session)).toBe(4)
     const rows = resultRows(
       session,

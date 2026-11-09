@@ -162,9 +162,11 @@ describe("a side with no rule equipped is the doctrine alone (AC-13)", () => {
     expect(ranged.verb).toBe("commit")
     expect(ranged.rule).toBeUndefined()
 
+    // With no stamina for the burst it steps out of the swing instead of
+    // standing in it (FR-14), still naming no rule.
     const dry = order(undefined, { gap: 860, tell: "basic", stamina: 6 })
-    expect(dry.verb).toBe("commit")
-    expect(dry.commit).toBe("basic")
+    expect(dry.verb).toBe("retreat")
+    expect(dry.commit).toBeNull()
     expect(dry.rule).toBeUndefined()
   })
 })
@@ -343,15 +345,13 @@ describe("keep something back (FR-13)", () => {
 
 describe("never trade into a startup (FR-13)", () => {
   test("refuses the commit the doctrine would make", () => {
-    const free = order(undefined, { gap: 860, tell: "basic", stamina: 6 })
-    expect(free.commit).toBe("basic")
+    // A melee wind-up is stepped out of before the press now (FR-14), so the
+    // trade the rule exists to refuse is a ranged tell inside the band.
+    const free = order(undefined, { tell: "spark" })
+    expect(free.commit).toBe("spark")
     expect(free.rule).toBeUndefined()
 
-    const trade = order("never_trade", {
-      gap: 860,
-      tell: "basic",
-      stamina: 6,
-    })
+    const trade = order("never_trade", { tell: "spark" })
     expect(trade.verb).toBe("advance")
     expect(trade.commit).toBeNull()
     expect(trade.rule).toBe("never_trade")

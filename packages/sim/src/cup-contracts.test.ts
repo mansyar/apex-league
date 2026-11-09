@@ -190,8 +190,10 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
         seed: 101,
         // Doctrine ripple (battle-balance phase 1): QF1 moves to Tidecaller
         // Nibbles; the other three rows hold.
+        // Controller ripple (battle-balance phase 3): QF1 moves to Reedle
+        // Mirefin; the other three rows hold.
         rivalWinners: [
-          "Tidecaller Nibbles",
+          "Reedle Mirefin",
           "Ash-ledger",
           "Mossbottom Brute",
           "Mossbottom Brute",
@@ -199,11 +201,13 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
       },
       {
         seed: 1,
+        // Controller ripple (battle-balance phase 3): QF2 and SF2 move to
+        // Thistledown Ash.
         rivalWinners: [
           "Reedle Mirefin",
-          "Ash-ledger",
+          "Thistledown Ash",
           "Cindersnout",
-          "Cindersnout",
+          "Thistledown Ash",
         ],
       },
       // FR6 rebalance ripple: the double-KO that used to sit at QF4 moved
@@ -262,9 +266,11 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     // 4): on seed 1 both picks now take the crown. Phase 10 had pinned the
     // balanced pick losing the final (placement 2) while the aggressive pick
     // won; at HP_SCALE_PERCENT 210 the balanced pick wins it too.
+    // Controller ripple (battle-balance phase 3): the balanced pick loses
+    // again; the aggressive pick still takes the crown.
     const balancedOne = playToCompletion(creature, 7, 1, "balanced")
-    expect(balancedOne.status).toBe("champion")
-    expect(cupPlacement(balancedOne)).toBe(1)
+    expect(balancedOne.status).toBe("eliminated")
+    expect(cupPlacement(balancedOne)).toBe(2)
     const specialsOne = playToCompletion(creature, 7, 1, "specials")
     expect(specialsOne.status).toBe("champion")
   })
@@ -322,7 +328,9 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     // Doctrine ripple (battle-balance phase 1): QF2 moves to Tidecaller
     // Nibbles, who then loses SF1 to Bonfire Brook; Mossbottom Brute takes the
     // final.
-    expect(done.championName).toBe("Mossbottom Brute")
+    // Controller ripple (battle-balance phase 3): Reedle Mirefin takes SF1 and
+    // the final.
+    expect(done.championName).toBe("Reedle Mirefin")
     // The forfeit verdict names the opponent, no battle attached.
     const ff = done.playerVerdicts[0]
     expect(ff?.winner).toBe("Bonfire Brook")
@@ -334,20 +342,21 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     expect(
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
     ).toEqual([
-      [2, "Bonfire Brook", "Tidecaller Nibbles", "Bonfire Brook"],
-      [3, "Bonfire Brook", "Mossbottom Brute", "Mossbottom Brute"],
+      [2, "Bonfire Brook", "Reedle Mirefin", "Reedle Mirefin"],
+      [3, "Reedle Mirefin", "Mossbottom Brute", "Reedle Mirefin"],
     ])
   })
 
   test("forfeit at the QF: seed 1 — SF1 pairs the conqueror with the QF2 winner", () => {
     const creature = cupDayCreature()
     const done = forfeitCup(startCupSession(creature, 7, 1))
-    expect(done.championName).toBe("Cindersnout")
+    // Controller ripple (battle-balance phase 3): the conqueror's run moved.
+    expect(done.championName).toBe("Thistledown Ash")
     expect(
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
     ).toEqual([
       [2, "Mossbottom Brute", "Reedle Mirefin", "Reedle Mirefin"],
-      [3, "Reedle Mirefin", "Cindersnout", "Cindersnout"],
+      [3, "Reedle Mirefin", "Thistledown Ash", "Thistledown Ash"],
     ])
   })
 
@@ -372,11 +381,12 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     // Recovery-band ripple (spacing/cadence phase 5): QF2 is a clean win again.
     // Doctrine ripple (battle-balance phase 1): QF2 moves to Tidecaller
     // Nibbles; the other rows hold.
+    // Controller ripple (battle-balance phase 3): SF2 moves to Ash-ledger.
     expect(session.rivalVerdicts.map((v) => v.winner)).toEqual([
       "Tidecaller Nibbles",
       "Ash-ledger",
       "Mossbottom Brute",
-      "Mossbottom Brute",
+      "Ash-ledger",
     ])
   })
 })

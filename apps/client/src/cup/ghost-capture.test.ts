@@ -63,7 +63,9 @@ describe("cup-win ghost capture", () => {
     const loadout = defaultLoadout(creature, species)
     // Doctrine ripple (battle-balance phase 1): seed 5 under the aggressive
     // pick loses the quarterfinal; seed 11 now reaches the final.
-    let elim = startCupSession(creature, 7, 5)
+    // Controller ripple (battle-balance phase 3): seed 5 reaches the final, so
+    // the QF-exit pin moves to seed 13.
+    let elim = startCupSession(creature, 7, 13)
     elim = resolvePlayerMatch(elim, loadout, "specials").session
     const forfeited = forfeitCup(startCupSession(creature, 7, 17))
     const queued: unknown[] = []
