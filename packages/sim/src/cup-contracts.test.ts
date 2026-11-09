@@ -222,12 +222,13 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
       // Blow-weight ripple (phase 8, weight 2): QF4 and SF2 move to Tidecaller
       // Nibbles.
       // Variance ripple (phase 10, FR-21): the accuracy roll and damage spread
-      // are live, so QF3 moves from Gilded Horn to Thistledown Ash.
+      // are live, so QF3 moved from Gilded Horn to Thistledown Ash. Rework 1
+      // narrowed the spread floor and it moved back; the roll is what decides it.
       {
         seed: 19,
         rivalWinners: [
           "Driftbelle",
-          "Thistledown Ash",
+          "Gilded Horn",
           "Tidecaller Nibbles",
           "Tidecaller Nibbles",
         ],
@@ -333,8 +334,9 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     // Controller ripple (battle-balance phase 3): Reedle Mirefin takes SF1 and
     // the final.
     // Variance ripple (battle-balance phase 10, FR-21): the accuracy roll and
-    // damage spread are live, so Mossbottom Brute takes the final again.
-    expect(done.championName).toBe("Mossbottom Brute")
+    // damage spread are live. Rework 1 narrowed the spread floor and the final
+    // returns to Reedle Mirefin, as it stood before the variance pass.
+    expect(done.championName).toBe("Reedle Mirefin")
     // The forfeit verdict names the opponent, no battle attached.
     const ff = done.playerVerdicts[0]
     expect(ff?.winner).toBe("Bonfire Brook")
@@ -347,8 +349,7 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
     ).toEqual([
       [2, "Bonfire Brook", "Reedle Mirefin", "Reedle Mirefin"],
-      // Phase 10 (FR-21): variance flips the final to Mossbottom Brute.
-      [3, "Reedle Mirefin", "Mossbottom Brute", "Mossbottom Brute"],
+      [3, "Reedle Mirefin", "Mossbottom Brute", "Reedle Mirefin"],
     ])
   })
 

@@ -32,23 +32,22 @@ function sample(): BalanceSample {
 }
 
 /**
- * Today's misses, in the order the report declares them: every species outside
- * 45-55% under the standard doctrine, then the cap share. Phase 9 owns the
- * roster rows; update the row, never the bound, when one is fixed. Phase 8
- * (FR-20) cleared the cap-share row, so it is no longer listed.
+ * Today's misses, in the order the report declares them: every species whose win
+ * rate is significantly off 50% under the standard doctrine. Phase 11 owns these
+ * rows; update the row, never the bound, when one is fixed. The cap-share row is
+ * not listed — Phase 8 (FR-20) cleared it and rework 1 restored it (32.1%).
  */
 const SLACK = "bound |rate - 50%| <= 9.3% (design target 45.0%..55.0%)"
 
 const KNOWN_MISSES = [
-  `species:fire_drake: observed 35.7% (40/112, 23 distinct, se 4.5%), ${SLACK}`,
-  `species:plant_ox: observed 32.1% (36/112, 21 distinct, se 4.4%), ${SLACK}`,
-  `species:electric_hound: observed 10.7% (12/112, 21 distinct, se 2.9%), ${SLACK}`,
-  `species:wind_falcon: observed 23.2% (26/112, 16 distinct, se 4.0%), ${SLACK}`,
+  `species:fire_drake: observed 35.7% (40/112, 21 distinct, se 4.5%), ${SLACK}`,
+  `species:plant_ox: observed 32.1% (36/112, 20 distinct, se 4.4%), ${SLACK}`,
+  `species:electric_hound: observed 8.9% (10/112, 19 distinct, se 2.7%), ${SLACK}`,
+  `species:wind_falcon: observed 21.4% (24/112, 14 distinct, se 3.9%), ${SLACK}`,
   `species:voltfox: observed 92.9% (104/112, 14 distinct, se 2.4%), ${SLACK}`,
-  `species:galeheron: observed 82.1% (92/112, 10 distinct, se 3.6%), ${SLACK}`,
-  `species:shalemole: observed 83.9% (94/112, 12 distinct, se 3.5%), ${SLACK}`,
-  `species:mistkit: observed 23.2% (26/112, 14 distinct, se 4.0%), ${SLACK}`,
-  "capShare: observed 33.8% (284/840), bound <= 33.3%",
+  `species:galeheron: observed 83.9% (94/112, 10 distinct, se 3.5%), ${SLACK}`,
+  `species:shalemole: observed 85.7% (96/112, 8 distinct, se 3.3%), ${SLACK}`,
+  `species:mistkit: observed 25.0% (28/112, 12 distinct, se 4.1%), ${SLACK}`,
 ] as const
 
 describe("balance report — one deterministic command (FR-7, AC-7)", () => {
@@ -160,10 +159,11 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
         ),
       ),
     ).toBe(true)
-    // The cap share sits 0.5pp above the one-in-three target at this sample
-    // size (its own standard error is 1.6pp), recorded as a miss rather than
-    // hidden by widening the bound.
-    expect(lines.some((line) => line.startsWith("FAIL capShare:"))).toBe(true)
+    // Rework 1 softened the spread floor and brought the cap share back inside
+    // one in three (32.1%), so the resolvability targets pass and only the
+    // roster rows keep the gate non-zero.
+    expect(lines.some((line) => line.startsWith("FAIL capShare:"))).toBe(false)
+    expect(lines.some((line) => line.startsWith("ok   capShare:"))).toBe(true)
   })
 
   test("a target that holds is not reported as a violation", () => {

@@ -7,10 +7,15 @@ import type { Rng } from "../../rng"
 
 /**
  * Downward-only damage spread. The best roll is the authored base hit, which is
- * what keeps the 4-12% band honest after the roll as well as before it; the cost
- * is roughly 6% average damage, which the pacing was re-measured against.
+ * what keeps the 4-12% band honest after the roll as well as before it.
+ *
+ * A divisor of 8 cost about 6% of average damage and pushed two Phase 8 targets
+ * off by half a percentage point each (cap share 33.8% vs 33.3%, knockout share
+ * 66.2% vs 66.7% on 840 fights). Halving the floor to 16 gives back most of that
+ * throughput — about 3% average — while the spread stays visible: a heavy still
+ * rolls 21-22 rather than a flat 22.
  */
-export const SPREAD_DIVISOR = 8
+export const SPREAD_DIVISOR = 16
 
 /** A blow between `base - floor(base / SPREAD_DIVISOR)` and `base`. */
 export function spreadDamage(base: number, rng: Rng): number {
