@@ -43,7 +43,7 @@ numbers are measured by a tool that predates them.
 - **Covers:** FR-13, AC-13
 - **Touches:** `packages/sim/src/battle/continuous/controller.ts`, new `controller-rule.ts`, `apps/client/src/spar/`, `apps/client/src/cup/` + co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Rule set** — covers: FR-13
   - [ ] P2.T1.1 Four rules: save the heavy for a break, dodge every telegraph, disengage below a stamina floor, never commit into a startup.
