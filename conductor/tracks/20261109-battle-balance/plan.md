@@ -81,16 +81,23 @@ numbers are measured by a tool that predates them.
 **Goal:** no blow is a footnote and none decides a fight alone.
 
 - **Depends on:** Phase 3
-- **Covers:** FR-1, FR-8, AC-1, AC-8
+- **Covers:** FR-1, FR-8, FR-19, AC-1, AC-8, AC-16
 - **Touches:** `packages/sim/src/battle/frames.ts`, `moves.ts`, `continuous/damage.ts` + co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** d02a42fe
+- **Evidence:** [phase-4.md](./verification/phase-4.md)
 
-- [ ] **P4.T1: Band** — covers: FR-1
+- [x] **P4.T1: Band** — covers: FR-1
   - [ ] P4.T1.1 Author all 49 rows so every move lands between 4% and 12% of the reference pool.
   - [ ] P4.T1.2 Test walks every move and asserts the band; record any tier exception with a reason.
-- [ ] **P4.T2: Tiers** — covers: FR-8
+- [x] **P4.T2: Tiers** — covers: FR-8
   - [ ] P4.T2.1 Heavy still costs more stamina, recovers slower and lands harder than light.
+- [x] **P4.T3: Per-move cooldown** — covers: FR-19, AC-16
+  - [ ] P4.T3.1 Turn the authored `cooldown` tier into a live per-move timer in ms on `FighterState`, mixed into the state hash and decremented by the step.
+  - [ ] P4.T3.2 A move on cooldown cannot be committed; the basic strike is always available; a test proves both.
+  - [ ] P4.T3.3 Re-measure pacing: cooldown lengthens the attack interval, so report durations and cap share against the 25-40 s band and the one-in-three target.
 
 ## Phase 5: Stat Fold and Migration
 
@@ -159,3 +166,6 @@ numbers are measured by a tool that predates them.
   - [ ] P8.T2.1 Cap share at or below one in three with a majority inside 25-40 s.
 - [ ] **P8.T3: Bosses** — covers: FR-6
   - [ ] P8.T3.1 Document an answer per boss and prove it at the intended stage.
+- [ ] **P8.T4: Cooldown durations** — covers: FR-19, FR-8
+  - [ ] P8.T4.1 Tune the per-move cooldown table against the roster matrix and the pacing band, replacing the provisional Phase 4 values.
+  - [ ] P8.T4.2 Prove a heavy is still worth carrying: it must out-damage the moves available while it cools, or its cooldown comes down.

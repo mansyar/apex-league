@@ -96,6 +96,7 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
 | FR-10 | Folding the weight into power may change legacy gauge-clock outcomes, since legacy ghosts are already skipped at `SIM_VERSION` 2; every frozen balance suite is re-pinned deliberately and listed. | Must |
 | FR-17 | The type chart stays at 1.5x / 0.667x. Upsets come from training and positioning, not from weakening or strengthening type. | Must |
 | FR-18 | The elemental chart is made symmetric: fire>plant>water>fire and electric>earth>wind>electric, so every element wins once and loses once. | Must |
+| FR-19 | Every special carries a real per-move cooldown on the live path, derived from its authored `cooldown` tier, so a special cannot be fired again until its timer expires. The basic strike has no cooldown. Cooldown is per move and separate from recovery and from the shared stamina pool, so a kit is a rotation rather than a best-move button. The specific durations are provisional when the mechanism lands and are owned by the balance phase. | Must |
 
 ## Non-Functional Requirements
 
@@ -127,6 +128,7 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
 | AC-8 | A test asserts a heavy move costs more stamina, recovers slower and lands harder than a light one. | FR-8 |
 | AC-9 | `bun run verify`, `bun run build`, `bun run telemetry` and the report all pass. | FR-1..18 |
 | AC-10 | The chart is symmetric: every element has exactly one win and one loss. | FR-18 |
+| AC-16 | A special cannot be committed again before its cooldown expires, the basic strike is always available, and within the damage band every special hits strictly harder than the basic with the tiers strictly ordered. | FR-1, FR-8, FR-19 |
 
 ## Edge Cases
 
@@ -185,6 +187,11 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
   the chart stays weak at 1.5x/0.667x and training stays at `TRAINING_CAP` 6.
 - **Resolved (2026-11-09, owner):** agency is doctrine plus one conditional rule;
   controller improvements are execution-only, never adaptive strategy.
+- **Resolved (2026-11-09, owner):** specials hit harder than the basic strike and
+  pay for it with a per-move cooldown derived from the authored 1/2/3 tier, held on
+  `FighterState` and mixed into the state hash. Cooldown is separate from recovery
+  and from the shared stamina pool, so a kit is a rotation rather than a
+  best-move button; the basic strike is always available.
 - **Resolved (2026-11-09, owner):** an angle is earned by a step-around burst
   (2.5x walk, 150-200 ms, own stamina price) against a body whose turn rate
   depends on what it is doing: free when idle, reduced in startup and recovery,
