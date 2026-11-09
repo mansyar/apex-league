@@ -14,8 +14,8 @@
  */
 
 import { describe, expect, test } from "bun:test"
-import { startingHp } from "./continuous/hp"
 import { positionalDamage } from "./continuous/damage"
+import { startingHp } from "./continuous/hp"
 import { getFrameData } from "./frames"
 import { BASIC_MOVE, CATALOG, type MoveDef } from "./moves"
 
@@ -178,7 +178,8 @@ describe("damage tiers — a heavy lands harder, costs more, recovers slower (FR
       const light = kit[0]
       const mid = kit[2]
       const heavy = kit[5]
-      if (!light || !mid || !heavy) throw new Error(`incomplete kit: ${element}`)
+      if (!light || !mid || !heavy)
+        throw new Error(`incomplete kit: ${element}`)
 
       const label = `${element}: ${light.id} < ${mid.id} < ${heavy.id}`
       expect(baseDamage(light), `${label} light vs basic`).toBeGreaterThan(

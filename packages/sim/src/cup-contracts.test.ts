@@ -262,17 +262,16 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
       "Ember Drake",
       "Ember Drake",
     ])
-    // Tactic sensitivity, re-pinned for the HP re-tune (spacing/cadence phase
-    // 4): on seed 1 both picks now take the crown. Phase 10 had pinned the
-    // balanced pick losing the final (placement 2) while the aggressive pick
-    // won; at HP_SCALE_PERCENT 210 the balanced pick wins it too.
-    // Controller ripple (battle-balance phase 3): the balanced pick loses
-    // again; the aggressive pick still takes the crown.
+    // Tactic sensitivity, re-pinned for the damage band (battle-balance phase
+    // 4): on seed 1 both picks now lose the final; the aggressive pick still
+    // reaches it. Phase 10 had pinned the balanced pick losing while the
+    // aggressive pick won; at the compressed band neither takes the crown.
     const balancedOne = playToCompletion(creature, 7, 1, "balanced")
     expect(balancedOne.status).toBe("eliminated")
     expect(cupPlacement(balancedOne)).toBe(2)
     const specialsOne = playToCompletion(creature, 7, 1, "specials")
-    expect(specialsOne.status).toBe("champion")
+    expect(specialsOne.status).toBe("eliminated")
+    expect(cupPlacement(specialsOne)).toBe(2)
   })
 
   test("final loss: seed 9, specials — placement 2, champion via completeCup", () => {
@@ -288,16 +287,15 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     expect(done.completionVerdicts).toHaveLength(0)
   })
 
-  test("champion path: seed 3, specials — placement 1", () => {
+  test("semifinal exit: seed 3, specials — placement 3", () => {
     const creature = cupDayCreature()
-    // Doctrine ripple (battle-balance phase 1): the `specials` pick now maps to
-    // Kite and sweeps this seed, where the old overlay sent the player out in
-    // the semifinal.
+    // Re-pinned for the damage band (battle-balance phase 4): the compressed
+    // band hands the semifinal to Thistledown Ash, so the champion path this
+    // test used to pin is now a semifinal exit.
     const done = playToCompletion(creature, 7, 3, "specials")
-    expect(done.status).toBe("champion")
-    expect(done.championName).toBe("Ember Drake")
-    expect(done.playerVerdicts).toHaveLength(3)
-    expect(cupPlacement(done)).toBe(1)
+    expect(done.status).toBe("eliminated")
+    expect(done.playerVerdicts).toHaveLength(2)
+    expect(cupPlacement(done)).toBe(3)
     expect(done.completionVerdicts).toHaveLength(0)
   })
 
@@ -382,11 +380,13 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     // Doctrine ripple (battle-balance phase 1): QF2 moves to Tidecaller
     // Nibbles; the other rows hold.
     // Controller ripple (battle-balance phase 3): SF2 moves to Ash-ledger.
+    // Damage-band ripple (battle-balance phase 4): SF2 moves to Mossbottom
+    // Brute.
     expect(session.rivalVerdicts.map((v) => v.winner)).toEqual([
       "Tidecaller Nibbles",
       "Ash-ledger",
       "Mossbottom Brute",
-      "Ash-ledger",
+      "Mossbottom Brute",
     ])
   })
 })

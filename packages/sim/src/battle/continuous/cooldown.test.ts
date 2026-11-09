@@ -11,11 +11,7 @@
 import { describe, expect, test } from "bun:test"
 import { COOLDOWN_MS, cooldownMsFor } from "../moves"
 import { chooseMove } from "./controller-moves"
-import {
-  cooldownRemaining,
-  isCooldownReady,
-  tickCooldowns,
-} from "./cooldown"
+import { cooldownRemaining, isCooldownReady, tickCooldowns } from "./cooldown"
 import { ARENA_BOUNDS } from "./resolve"
 import { createFight, stateHash } from "./step"
 import { HOLD, STEP_MS } from "./types"

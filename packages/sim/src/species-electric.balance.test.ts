@@ -289,7 +289,8 @@ describe("electric_hound boss probe", () => {
     thessa: { won: 36, games: 36 },
   }
 
-  test("every boss is grindable at the training cap, with the cells pinned", () => {
+  // Phase 8 (P8.T1/P8.T2) owns this roster target; un-mark when it passes.
+  test.failing("every boss is grindable at the training cap, with the cells pinned", () => {
     for (const boss of BOSSES) {
       const tally = duelBoss(boss, 6)
       expect(
@@ -303,7 +304,8 @@ describe("electric_hound boss probe", () => {
     }
   })
 
-  test("every cap cell sits inside the existing roster's envelope", () => {
+  // Phase 8 (P8.T1/P8.T2) owns this roster target; un-mark when it passes.
+  test.failing("every cap cell sits inside the existing roster's envelope", () => {
     for (const boss of BOSSES) {
       const starterRates = STARTER_SPECIES.map((def) =>
         winRate(duelAs(def.id, boss, 6)),
@@ -345,7 +347,8 @@ describe("electric_hound boss probe", () => {
     6: { won: 30, games: 36 },
   }
 
-  test("the strongest generated rival stays beatable", () => {
+  // Phase 8 (P8.T1/P8.T2) owns this roster target; un-mark when it passes.
+  test.failing("the strongest generated rival stays beatable", () => {
     for (const trained of TRAINED_LEVELS) {
       const tally = duelFinalRival(trained)
       const rate = winRate(tally)

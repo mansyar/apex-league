@@ -135,33 +135,33 @@ function serialize(result: BattleResult): string {
 const GOLDEN: Readonly<Record<string, string>> = {
   // Mirrors: each species fights itself (three kit tiers).
   "fire_drake|fire_drake|kit2": "e7768895",
-  "fire_drake|fire_drake|kit3": "984d0d5f",
-  "fire_drake|fire_drake|kit4": "68561deb",
+  "fire_drake|fire_drake|kit3": "04b5f05b",
+  "fire_drake|fire_drake|kit4": "7794e481",
   "plant_ox|plant_ox|kit2": "495358d5",
-  "plant_ox|plant_ox|kit3": "af8ba575",
-  "plant_ox|plant_ox|kit4": "83417af3",
+  "plant_ox|plant_ox|kit3": "2afe7e80",
+  "plant_ox|plant_ox|kit4": "c6e83b62",
   "water_axolotl|water_axolotl|kit2": "c7fe580d",
-  "water_axolotl|water_axolotl|kit3": "b0a5ab49",
-  "water_axolotl|water_axolotl|kit4": "1921a564",
+  "water_axolotl|water_axolotl|kit3": "a21fda68",
+  "water_axolotl|water_axolotl|kit4": "eddf6740",
   // Cross-element: fire>plant, water>fire, plant>water, both side orders.
-  "fire_drake|plant_ox|kit2": "03b10851",
-  "fire_drake|plant_ox|kit3": "2aec4e45",
-  "fire_drake|plant_ox|kit4": "437864b3",
-  "plant_ox|fire_drake|kit2": "34058741",
-  "plant_ox|fire_drake|kit3": "676ec15f",
-  "plant_ox|fire_drake|kit4": "6fd7558f",
-  "fire_drake|water_axolotl|kit2": "b7846c1d",
-  "fire_drake|water_axolotl|kit3": "7d5b7280",
-  "fire_drake|water_axolotl|kit4": "f4696f13",
-  "water_axolotl|fire_drake|kit2": "e1081741",
-  "water_axolotl|fire_drake|kit3": "e8709b88",
-  "water_axolotl|fire_drake|kit4": "57472fc3",
-  "plant_ox|water_axolotl|kit2": "341412fd",
-  "plant_ox|water_axolotl|kit3": "368b2328",
-  "plant_ox|water_axolotl|kit4": "a761f8aa",
-  "water_axolotl|plant_ox|kit2": "747b1f5d",
-  "water_axolotl|plant_ox|kit3": "4c209fe6",
-  "water_axolotl|plant_ox|kit4": "c454b76a",
+  "fire_drake|plant_ox|kit2": "664b687d",
+  "fire_drake|plant_ox|kit3": "9c6ef65d",
+  "fire_drake|plant_ox|kit4": "8b75e6a7",
+  "plant_ox|fire_drake|kit2": "60fe269d",
+  "plant_ox|fire_drake|kit3": "af52c543",
+  "plant_ox|fire_drake|kit4": "bdde0e11",
+  "fire_drake|water_axolotl|kit2": "5bda3411",
+  "fire_drake|water_axolotl|kit3": "231d1a3c",
+  "fire_drake|water_axolotl|kit4": "945aceec",
+  "water_axolotl|fire_drake|kit2": "fd24aa3d",
+  "water_axolotl|fire_drake|kit3": "0d007c66",
+  "water_axolotl|fire_drake|kit4": "de868ff0",
+  "plant_ox|water_axolotl|kit2": "47ca39c9",
+  "plant_ox|water_axolotl|kit3": "94437327",
+  "plant_ox|water_axolotl|kit4": "5dd6206d",
+  "water_axolotl|plant_ox|kit2": "35f0f1b5",
+  "water_axolotl|plant_ox|kit3": "8e46c0f9",
+  "water_axolotl|plant_ox|kit4": "8e14b99d",
 }
 
 interface RunSummary {
@@ -302,7 +302,9 @@ describe("seeded battle event-stream contract", () => {
         )
       }
     }
-    expect(bestStrike).toBe(7)
+    // Phase 4 band: the innate Strike is power 5, so the best attainable
+    // Strike is 9 (still under the lowest heavy threshold).
+    expect(bestStrike).toBe(9)
     expect(bestStrike).toBeLessThan(lowestThreshold)
   })
 

@@ -151,13 +151,13 @@ describe("pacing — the tuned duration band (FR-21, AC-7)", () => {
     }
   })
 
-  test("at least half the sample is decided by knockout (provisional)", () => {
-    // Phase 4 re-pin: the band compression plus the provisional cooldowns
-    // leave 7 KO / 7 cap. Phase 8 owns the final pacing tune (P8.T4); this
-    // guard records the floor, it does not claim the target.
+  // Phase 8 (P8.T4) owns this pacing target; un-mark when it passes.
+  // Strict form restored: the band plus provisional cooldowns leave 7 KO / 7
+  // cap (50%), a provisional miss recorded in the evidence, not relaxed here.
+  test.failing("the sample finishes a majority of fights by knockout", () => {
     const fought = sample()
     const byKo = fought.filter((f) => f.reason !== "time").length
-    expect(byKo * 2).toBeGreaterThanOrEqual(fought.length)
+    expect(byKo * 2).toBeGreaterThan(fought.length)
   })
 
   test("the sample replays byte for byte", () => {

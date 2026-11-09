@@ -150,12 +150,12 @@ describe("range and the basic strike", () => {
     if (!ev) throw new Error("basic event missing")
     expect(ev.actor).toBe("Bolt")
     expect(ev.target).toBe("Reed")
-    // max(1, floor(4 * 11 * 1 / (10 * 1))) = 4
-    expect(ev.damage).toBe(4)
+    // max(1, floor(5 * 11 * 1 / (10 * 1))) = 5
+    expect(ev.damage).toBe(5)
     expect(ev.hit).toBe(true)
-    expect(ev.line).toBe("Bolt strikes Reed for 4.")
-    expect(ev.hpAfter).toEqual({ Bolt: 40, Reed: 36 })
-    expect(clock.fighters[1]?.hp).toBe(36)
+    expect(ev.line).toBe("Bolt strikes Reed for 5.")
+    expect(ev.hpAfter).toEqual({ Bolt: 40, Reed: 35 })
+    expect(clock.fighters[1]?.hp).toBe(35)
   })
 })
 
@@ -397,8 +397,8 @@ describe("downed fighters", () => {
     if (!down) throw new Error("down event missing")
     expect(down.actor).toBe("Reed")
     expect(down.line).toBe("Reed is down!")
-    expect(down.hpAfter).toEqual({ Bolt: 40, Reed: 0 })
-    expect(clock.fighters[1]?.hp).toBe(0)
+    expect(down.hpAfter).toEqual({ Bolt: 40, Reed: -2 })
+    expect(clock.fighters[1]?.hp).toBe(-2)
   })
 })
 

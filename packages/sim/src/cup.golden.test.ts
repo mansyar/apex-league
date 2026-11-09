@@ -348,24 +348,14 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
     expect(session.completionVerdicts.map(row)).toEqual([])
   })
 
-  // Eliminated ending: seed 7, the player exits at the final.
-  // Re-pinned for the continuous engine (phase 7): the same seed now reaches
-  // the final instead of falling in the semifinal, so the bracket completes
-  // without any further match (no completion verdicts).
-  // Re-pinned again for contact geometry (phase 8): with lock-on facing and
-  // body volumes the same seed won the final.
-  // Re-pinned for pacing (phase 10): the longer fights hand the final back to
-  // Cindersnout, so this row is a true final loss again.
-  // Re-pinned for the HP re-tune (spacing/cadence phase 4): Driftbelle now
-  // takes QF1, SF2 and the final, so the champion moved from Cindersnout to
-  // Driftbelle and the player still loses the final (placement 2).
-  // Controller ripple (battle-balance phase 3): seed 7 now takes the crown, so
-  // the final-loss pin moves to seed 1 (champion Thistledown Ash).
-  test("seed 1: the final is lost, not crowned", () => {
+  // Champion ending: seed 1, the player takes all three rounds.
+  // Re-pinned for the damage band (battle-balance phase 4): the final moved
+  // from Thistledown Ash to Cindersnout, and Ember Drake now takes it.
+  test("seed 1: the player takes the crown", () => {
     const session = playToCompletion(DAY, 1)
-    expect(session.status).toBe("eliminated")
-    expect(session.championName).toBe("Thistledown Ash")
-    expect(cupPlacement(session)).toBe(2)
+    expect(session.status).toBe("champion")
+    expect(session.championName).toBe("Ember Drake")
+    expect(cupPlacement(session)).toBe(1)
     expect(session.rivalVerdicts.map(row)).toEqual([
       [
         1,
@@ -378,8 +368,8 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
         1,
         "Ash-ledger",
         "Thistledown Ash",
-        "Thistledown Ash",
-        "Thistledown Ash takes the Quarterfinal!",
+        "Ash-ledger",
+        "Ash-ledger takes the Quarterfinal!",
       ],
       [
         1,
@@ -390,10 +380,10 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
       ],
       [
         2,
-        "Thistledown Ash",
+        "Ash-ledger",
         "Cindersnout",
-        "Thistledown Ash",
-        "Thistledown Ash takes the Semifinal!",
+        "Cindersnout",
+        "Cindersnout takes the Semifinal!",
       ],
     ])
     expect(session.playerVerdicts.map(row)).toEqual([
@@ -414,9 +404,9 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
       [
         3,
         "Ember Drake",
-        "Thistledown Ash",
-        "Thistledown Ash",
-        "Thistledown Ash takes the Final!",
+        "Cindersnout",
+        "Ember Drake",
+        "Ember Drake takes the Final!",
       ],
     ])
     expect(session.completionVerdicts.map(row)).toEqual([])

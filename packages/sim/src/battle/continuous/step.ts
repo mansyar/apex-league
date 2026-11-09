@@ -300,9 +300,7 @@ export function createFight(config: FightConfig): Fight {
       if (committed === paid) return false
       const charged = chargeCooldown(committed, moveId)
       const fighters: readonly [FighterState, FighterState] =
-        side === 0
-          ? [charged, state.fighters[1]]
-          : [state.fighters[0], charged]
+        side === 0 ? [charged, state.fighters[1]] : [state.fighters[0], charged]
       state = { ...state, fighters }
       return true
     },
