@@ -206,3 +206,68 @@ Roster and pacing `test.failing` markers were not touched and remain Phase 8's.
 - The harness is a consumer of the public resolver (`resolveContinuous`), not a
   re-implementation; `battle-telemetry.ts` stays the movement/pacing read and
   `battle-balance-report.ts` is the roster/band/boss read.
+
+## Primary verification
+
+| Check | Command | Exit | Result |
+| --- | --- | --- | --- |
+| Types, tests, biome, determinism | `bun run verify` | 0 | 3,943 pass / 1 skip / 0 fail, 366 files, 46.95 s |
+| Client bundle | `bun run build` | 0 | 409 modules |
+| Balance gate | `bun run balance` | **1** | Exits 1 by design: 13 named violated targets. This is the gate working, not a defect. |
+
+### The gate fails loudly and names everything
+
+Run by hand on the final tree. It prints `ok` for every passing row and `FAIL` with
+observed value and bound for every miss, then exits 1:
+
+```
+FAIL species:voltfox: observed 82.1% (46/56), bound 45.0%..55.0%
+FAIL species:mossboar: observed 21.4% (12/56), bound 45.0%..55.0%
+FAIL capShare: observed 83.8% (352/420), bound <= 33.3%
+```
+
+Twelve of fifteen species sit outside 45-55%, spanning 21.4% (mossboar) to 82.1%
+(voltfox). All six bosses pass their own bound (marlow 14/30, delmar 8/30, fenn
+17/30, thessa 14/30, and two more) — beatable at their stage, none trivial, none
+outside the band because bosses are deliberately excluded from it.
+
+### Separation holds
+
+Species are measured under one stated standard doctrine with mirrors excluded;
+doctrines are measured under one stated standard species with only the measured side
+varying. That is the edge case the spec demanded, and it is visible in the doctrine
+table: Circle is the only row earning flank-or-rear (16.7% against Press 0.0%) and
+holds the longest median gap (1,106 mm against 832 mm), while still losing all six
+fights in that matchup. A doctrine's effect shows up as movement, not as a species
+looking strong.
+
+### Sample, and why it is enough
+
+420 matrix fights (15 species x 14 opponents x 2 orders x 2 seeds, 56 per species),
+24 doctrine fights (4 doctrines x 2 orders x 3 seeds), 180 boss fights. Two seeds
+suffice because the continuous engine draws nothing from the seed — only a capped
+fight's tiebreak reads it. The command runs in about 7 s and is byte-identical on a
+double resolve, with an assertion that no clock time leaks into the output.
+
+### The headline finding, and it is bigger than the roster
+
+**83.8% of matrix fights are decided at the 40 s cap** (352/420), against telemetry's
+50.0%. The difference is not a bug: telemetry mixes the `balanced` and `specials`
+overlays while this matrix is press-on-press at the reference line. So under the
+standard doctrine, four fights in five never produce a knockout — they grind to the
+cap and are settled on HP percentage. Median duration is 40.00 s exactly.
+
+That reframes Phase 8. It is not only "move twelve species into 45-55%"; the standard
+doctrine itself cannot close a fight, so the re-tune has to fix the grind before win
+rates mean anything. Recorded here as the baseline Phase 8 is judged against.
+
+### Instrument before numbers
+
+The whole point of this phase was ordering: the tool now exists before the numbers
+move, so Phase 8's re-tune is measured rather than asserted, and Phase 7's chart
+change will show its effect in a table that already exists.
+
+### Not squashed
+
+Range `a7f50e84..HEAD` held only the subagent's two reported commits (`2cde9cee`,
+`94bad595`).

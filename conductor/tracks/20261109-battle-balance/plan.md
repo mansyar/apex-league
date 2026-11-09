@@ -130,15 +130,18 @@ numbers are measured by a tool that predates them.
 - **Covers:** FR-7, FR-4, FR-5, FR-6, AC-4, AC-5, AC-6, AC-7
 - **Touches:** new `packages/sim/scripts/battle-balance-report.ts`, new `packages/sim/src/battle/continuous/balance-report.test.ts`, `package.json`
 - **Verification:** `bun run verify && bun run build && bun run balance`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 94bad595
+- **Evidence:** [phase-6.md](./verification/phase-6.md)
 
-- [ ] **P6.T1: Report** — covers: FR-7
-  - [ ] P6.T1.1 Report the species matrix, win rates, doctrine effects, damage shares, durations and cap share; state the sample size.
-  - [ ] P6.T1.2 Exit non-zero naming the violated target.
-- [ ] **P6.T2: Measurements** — covers: FR-4, FR-5, FR-6
-  - [ ] P6.T2.1 Species measured under a standard doctrine; doctrines measured separately; mirrors excluded.
-  - [ ] P6.T2.2 Bosses listed with their documented answer, beatable at stage and not trivially.
-  - [ ] P6.T2.3 Measure the current roster and record the gaps as the re-tune baseline.
+- [x] **P6.T1: Report** — covers: FR-7
+  - [x] P6.T1.1 Report the species matrix, win rates, doctrine effects, damage shares, durations and cap share; state the sample size.
+  - [x] P6.T1.2 Exit non-zero naming the violated target.
+- [x] **P6.T2: Measurements** — covers: FR-4, FR-5, FR-6
+  - [x] P6.T2.1 Species measured under a standard doctrine; doctrines measured separately; mirrors excluded.
+  - [x] P6.T2.2 Bosses listed with their documented answer, beatable at stage and not trivially.
+  - [x] P6.T2.3 Measure the current roster and record the gaps as the re-tune baseline.
 
 ## Phase 7: Chart Symmetry
 
