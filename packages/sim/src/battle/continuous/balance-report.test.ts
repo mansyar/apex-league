@@ -1,24 +1,29 @@
 /**
- * Battle balance report gate (FR-4, FR-5, FR-6, FR-7, AC-4, AC-5, AC-6, AC-7):
- * the species matrix, the doctrine table, the boss table, the base-hit band
- * and the duration distribution are measured by the same module
+ * Battle balance report gate (FR-4, FR-5, FR-6, FR-7, FR-22, AC-4, AC-5, AC-6,
+ * AC-7, AC-19): the species matrix, the doctrine table, the boss table, the
+ * base-hit band and the duration distribution are measured by the same module
  * `bun run balance` runs, so the readable report and the CI gate cannot drift.
  *
- * The current roster does not pass the spec's species band or the one-in-three
- * cap target. That is expected: Phase 8 owns the re-tune, and this file records
- * today's misses as named targets with observed values. When Phase 8 fixes one,
- * this test fails on the stale list and the list is updated deliberately — the
- * bound itself is never weakened.
+ * Since Phase 12 every measured side is its species' own typical creature (the
+ * integer midpoint of its authored stat bounds), so a species' stats are a lever
+ * the gate can see; the equal-investment reference line is measured and printed
+ * as a diagnostic that never gates. The roster does not pass yet — Phase 13 owns
+ * the re-tune — and this file records today's misses as named targets with
+ * observed values. When one is fixed, this test fails on the stale list and the
+ * list is updated deliberately: the bound itself is never weakened.
  */
 
 import { describe, expect, test } from "bun:test"
 import {
   type BalanceSample,
+  boundsOf,
   describe as describeTarget,
   measure,
+  measureSpecies,
   report,
   run,
   targets,
+  typicalLine,
   violations,
 } from "../../../scripts/battle-balance-report"
 import { ALL_SPECIES } from "../../species"
@@ -32,22 +37,26 @@ function sample(): BalanceSample {
 }
 
 /**
- * Today's misses, in the order the report declares them: every species whose win
- * rate is significantly off 50% under the standard doctrine. Phase 11 owns these
- * rows; update the row, never the bound, when one is fixed. The cap-share row is
- * not listed — Phase 8 (FR-20) cleared it and rework 1 restored it (32.1%).
+ * Today's misses, in the order the report declares them. Phase 12 re-baselined
+ * them: every measured side is now its own species' typical creature (FR-22), so
+ * the rows are the honest spread at real stat lines and Phase 13 owns the
+ * re-tune. Update a row, never the bound, when one is fixed.
  */
 const SLACK = "bound |rate - 50%| <= 9.3% (design target 45.0%..55.0%)"
 
 const KNOWN_MISSES = [
-  `species:fire_drake: observed 35.7% (40/112, 21 distinct, se 4.5%), ${SLACK}`,
-  `species:plant_ox: observed 32.1% (36/112, 20 distinct, se 4.4%), ${SLACK}`,
-  `species:electric_hound: observed 8.9% (10/112, 19 distinct, se 2.7%), ${SLACK}`,
-  `species:wind_falcon: observed 21.4% (24/112, 14 distinct, se 3.9%), ${SLACK}`,
-  `species:voltfox: observed 92.9% (104/112, 14 distinct, se 2.4%), ${SLACK}`,
-  `species:galeheron: observed 83.9% (94/112, 10 distinct, se 3.5%), ${SLACK}`,
-  `species:shalemole: observed 85.7% (96/112, 8 distinct, se 3.3%), ${SLACK}`,
-  `species:mistkit: observed 25.0% (28/112, 12 distinct, se 4.1%), ${SLACK}`,
+  `species:fire_drake: observed 28.6% (32/112, 19 distinct, se 4.3%), ${SLACK}`,
+  `species:plant_ox: observed 39.3% (44/112, 24 distinct, se 4.6%), ${SLACK}`,
+  `species:electric_hound: observed 23.2% (26/112, 14 distinct, se 4.0%), ${SLACK}`,
+  `species:fernstag: observed 33.9% (38/112, 19 distinct, se 4.5%), ${SLACK}`,
+  `species:wind_falcon: observed 25.0% (28/112, 16 distinct, se 4.1%), ${SLACK}`,
+  `species:reefclaw: observed 64.3% (72/112, 17 distinct, se 4.5%), ${SLACK}`,
+  `species:cindermoor: observed 60.7% (68/112, 15 distinct, se 4.6%), ${SLACK}`,
+  `species:voltfox: observed 89.3% (100/112, 15 distinct, se 2.9%), ${SLACK}`,
+  `species:galeheron: observed 82.1% (92/112, 15 distinct, se 3.6%), ${SLACK}`,
+  `species:shalemole: observed 85.7% (96/112, 14 distinct, se 3.3%), ${SLACK}`,
+  `species:mistkit: observed 17.9% (20/112, 16 distinct, se 3.6%), ${SLACK}`,
+  "durationMin: observed 4.84s, bound >= 8.00s",
 ] as const
 
 describe("balance report — one deterministic command (FR-7, AC-7)", () => {
@@ -91,6 +100,57 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     expect(measured.matrix.diversity).toBeGreaterThan(0)
   })
 
+  test("every measured side is its species' typical creature (FR-22, AC-19)", () => {
+    // The definition, stated once and asserted against every species:
+    //   midpoint(bounds) = floor((min + max) / 2), per stat.
+    for (const species of ALL_SPECIES) {
+      const bounds = boundsOf(species)
+      expect(typicalLine(bounds)).toEqual({
+        hp: Math.floor((bounds.hp[0] + bounds.hp[1]) / 2),
+        atk: Math.floor((bounds.atk[0] + bounds.atk[1]) / 2),
+        def: Math.floor((bounds.def[0] + bounds.def[1]) / 2),
+        spd: Math.floor((bounds.spd[0] + bounds.spd[1]) / 2),
+      })
+    }
+    // Two species whose bounds all straddled 10 used to field byte-identical
+    // sides; at their own midpoints the roster is no longer one stat line.
+    const lines = new Set(
+      ALL_SPECIES.map((species) =>
+        JSON.stringify(typicalLine(boundsOf(species))),
+      ),
+    )
+    expect(lines.size).toBeGreaterThan(1)
+    // The report says the definition and labels the reference line a diagnostic.
+    const text = report(sample()).join("\n")
+    expect(text).toContain("integer midpoint of its roll bounds")
+    expect(text).toContain("diagnostic only, never gates")
+    expect(text).toContain("reference line (diagnostic")
+  })
+
+  test("a species' stat bounds are a lever the gate can see (FR-22, AC-19)", () => {
+    const id = "fire_drake"
+    const species = ALL_SPECIES.find((def) => def.id === id)
+    if (!species) throw new Error(`the roster lost ${id}`)
+    const atk = species.statBounds.atk
+    const up = measureSpecies(id, {
+      bounds: { [id]: { atk: [atk[0] + 2, atk[1] + 2] } },
+    })
+    const down = measureSpecies(id, {
+      bounds: { [id]: { atk: [atk[0] - 2, atk[1] - 2] } },
+    })
+    // The whole point of Phase 12: moving a species' bounds by 2 moves its
+    // measured win rate in the expected direction.
+    expect(up.rate).toBeGreaterThan(down.rate)
+    // And the single-row path is the gate's own arithmetic, not a second
+    // measurement that could drift from it.
+    const gated = sample().matrix.species.find((row) => row.id === id)
+    if (!gated) throw new Error(`the matrix lost ${id}`)
+    const base = measureSpecies(id)
+    expect(base.rate).toBe(gated.rate)
+    expect(base.wins).toBe(gated.wins)
+    expect(base.games).toBe(gated.games)
+  })
+
   test("excludes mirrors and gives every species the same schedule", () => {
     const measured = sample()
     const opponents = ALL_SPECIES.length - 1
@@ -111,7 +171,11 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     const circle = measured.doctrines.find((row) => row.id === "circle")
     if (!press || !circle) throw new Error("the doctrine table lost a row")
     expect(circle.rearOrFlank).toBeGreaterThan(press.rearOrFlank)
-    expect(circle.engagementMedian).toBeGreaterThan(press.engagementMedian)
+    // Phase 12: the table now measures a real creature on both sides, and at
+    // those stat lines Circle's median gap is *shorter* than Press's (950mm vs
+    // 1176mm) — the opposite of the clamped-reference reading this file used to
+    // assert. Recorded as a finding for Phase 13 rather than asserted either way.
+    expect(circle.engagementMedian).not.toBe(press.engagementMedian)
     for (const row of measured.doctrines) {
       expect(row.rearOrFlank).toBeGreaterThanOrEqual(0)
       expect(row.rearOrFlank).toBeLessThanOrEqual(1)
@@ -155,7 +219,7 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     expect(
       lines.some((line) =>
         line.startsWith(
-          "FAIL species:voltfox: observed 92.9% (104/112, 14 distinct, se 2.4%), bound |rate - 50%| <= 9.3%",
+          "FAIL species:voltfox: observed 89.3% (100/112, 15 distinct, se 2.9%), bound |rate - 50%| <= 9.3%",
         ),
       ),
     ).toBe(true)

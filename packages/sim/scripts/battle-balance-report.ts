@@ -19,12 +19,13 @@
  *   each must be beatable and not trivial, so each row reports the player's
  *   measured wins against that boss.
  *
- * The sample is fixed and stated in the output. The continuous engine is
- * seed-free (`advance.ts`): the seed only decides a capped fight's tiebreak, so
- * the matrix plays one odd and one even seed per ordered pairing — a capped
- * fight's tiebreak cannot favour one side — and the movement metrics are read
- * from the same deterministic fights. Fifteen species give 15 x 14 x 2 orders x
- * 2 seeds = 840 matrix fights, 56 games per species (1.8% per game).
+ * The sample is fixed and stated in the output. Each measured side is a species'
+ * own typical creature (FR-22): the integer midpoint of its authored stat
+ * bounds, per stat. The equal-investment reference line is still measured and
+ * printed as a diagnostic, and never gates. The engine draws from a seeded RNG
+ * (FR-21), so the matrix plays four seeds per ordered pairing — fifteen species
+ * give 15 x 14 x 4 seeds = 840 matrix fights, 112 games per species — and the
+ * diversity line reports how many pairings actually change winner with the seed.
  *
  * Run it as one command:
  *
@@ -67,10 +68,12 @@ import { battleSideForSlot } from "../src/cup/verdicts"
 import { ALL_SPECIES, type SpeciesDef } from "../src/species"
 
 /**
- * The stat line every side is ramped to, exactly as `pacing.test.ts` and
- * `battle-telemetry.ts` do: the middle of the starter band, clamped into each
- * species' own roll bounds. The sheet's HP is the pool since Phase 5 folded
- * the scale away.
+ * The equal-investment line: the middle of the starter band, as
+ * `pacing.test.ts` and `battle-telemetry.ts` use it. Since Phase 12 (FR-22) this
+ * is **not** how a species is measured — a measured side is built from its own
+ * bounds midpoint. The reference line survives as a printed diagnostic that
+ * answers one question ("is any species stronger when every creature has
+ * identical stats?") and never gates.
  */
 const REFERENCE = { hp: 189, atk: 10, def: 10, spd: 10 } as const
 
@@ -136,20 +139,78 @@ const DAMAGE_MAX_PERCENT = 12
 
 type StatLine = { hp: number; atk: number; def: number; spd: number }
 
+/** One stat's authored roll range, as `species.statBounds` holds it. */
+export type StatBounds = {
+  readonly hp: readonly [number, number]
+  readonly atk: readonly [number, number]
+  readonly def: readonly [number, number]
+  readonly spd: readonly [number, number]
+}
+
+/** A partial bounds override, used by the stat-visibility test. */
+export type BoundsOverride = Readonly<Record<string, Partial<StatBounds>>>
+
 function clampStat(value: number, bounds: readonly [number, number]): number {
   return Math.min(bounds[1], Math.max(bounds[0], value))
 }
 
-/** A roster species as a cup slot would build it, under a stated doctrine. */
-function speciesSide(species: SpeciesDef, doctrine: DoctrineId): BattleSide {
-  const body = branchesForSpecies(species.id)[0]
-  const bounds = species.statBounds
-  const stats: StatLine = {
+/**
+ * A species' bounds, with any override applied. Kept a pure function of the
+ * species and the override map so the report and the stat-visibility test see
+ * exactly the same arithmetic.
+ */
+export function boundsOf(
+  species: SpeciesDef,
+  overrides?: BoundsOverride,
+): StatBounds {
+  const authored = species.statBounds
+  const patch = overrides?.[species.id]
+  return {
+    hp: patch?.hp ?? authored.hp,
+    atk: patch?.atk ?? authored.atk,
+    def: patch?.def ?? authored.def,
+    spd: patch?.spd ?? authored.spd,
+  }
+}
+
+/**
+ * The typical creature of a species (FR-22): the integer midpoint of each
+ * authored roll range, per stat.
+ *
+ *   midpoint(bounds) = Math.floor((bounds[0] + bounds[1]) / 2)
+ *
+ * This is the creature a player would own after a fair roll, so it is what the
+ * gate measures. Before Phase 12 the harness clamped one reference line into
+ * every species' bounds, which meant a species' stats only reached the fight
+ * when its bounds excluded 10 — the gate was blind to the only lever that could
+ * tune it.
+ */
+export function typicalLine(bounds: StatBounds): StatLine {
+  return {
+    hp: Math.floor((bounds.hp[0] + bounds.hp[1]) / 2),
+    atk: Math.floor((bounds.atk[0] + bounds.atk[1]) / 2),
+    def: Math.floor((bounds.def[0] + bounds.def[1]) / 2),
+    spd: Math.floor((bounds.spd[0] + bounds.spd[1]) / 2),
+  }
+}
+
+/** The equal-investment line, clamped into a species' bounds: the diagnostic. */
+export function referenceLine(bounds: StatBounds): StatLine {
+  return {
     hp: clampStat(REFERENCE.hp, bounds.hp),
     atk: clampStat(REFERENCE.atk, bounds.atk),
     def: clampStat(REFERENCE.def, bounds.def),
     spd: clampStat(REFERENCE.spd, bounds.spd),
   }
+}
+
+/** A roster species as a cup slot would build it, at a stated stat line. */
+function speciesSide(
+  species: SpeciesDef,
+  doctrine: DoctrineId,
+  stats: StatLine,
+): BattleSide {
+  const body = branchesForSpecies(species.id)[0]
   return {
     name: species.displayName,
     id: species.id,
@@ -287,6 +348,12 @@ export interface BalanceSample {
     readonly seeds: readonly number[]
     readonly species: readonly SpeciesRow[]
     /**
+     * The equal-investment diagnostic (FR-22): the same matrix replayed with
+     * every side clamped to `REFERENCE`. It answers "is any species stronger
+     * when every creature has identical stats?" and is printed, never gated.
+     */
+    readonly reference: readonly SpeciesRow[]
+    /**
      * Share of ordered pairings whose winner changes across the sample's seeds
      * (FR-21, P10.T3.1). A floor, not a ceiling: a fight that plays the same way
      * every time it is dealt is a fight with no variance to read.
@@ -405,10 +472,32 @@ export function damageRows(): DamageRow[] {
   return rows
 }
 
+/** How to build the measured sides; the stat-visibility test overrides bounds. */
+export interface MeasureOptions {
+  /**
+   * Per-species bounds overrides (FR-22, AC-19). Absent means the authored
+   * `species.statBounds`. It exists so a test can prove a stat is a lever the
+   * gate can see without editing `species/**`.
+   */
+  readonly bounds?: BoundsOverride
+}
+
 /** Measure the species matrix, the doctrine table and the boss table. */
-export function measure(): BalanceSample {
+export function measure(options: MeasureOptions = {}): BalanceSample {
   const roster = ALL_SPECIES
+  const lines = new Map<string, { typical: StatLine; reference: StatLine }>()
+  for (const species of roster) {
+    const bounds = boundsOf(species, options.bounds)
+    lines.set(species.id, {
+      typical: typicalLine(bounds),
+      reference: referenceLine(bounds),
+    })
+  }
   const tallies = new Map<
+    string,
+    { wins: number; draws: number; games: number }
+  >()
+  const referenceTallies = new Map<
     string,
     { wins: number; draws: number; games: number }
   >()
@@ -416,6 +505,7 @@ export function measure(): BalanceSample {
   const pairingWinners = new Map<string, Set<string>>()
   for (const species of roster) {
     tallies.set(species.id, { wins: 0, draws: 0, games: 0 })
+    referenceTallies.set(species.id, { wins: 0, draws: 0, games: 0 })
     signatures.set(species.id, new Set())
   }
 
@@ -431,12 +521,38 @@ export function measure(): BalanceSample {
       if (home.id === away.id) continue
       for (const seed of MATRIX_SEEDS) {
         matchups += 1
-        const homeSide = speciesSide(home, STANDARD_DOCTRINE)
-        const awaySide = speciesSide(away, STANDARD_DOCTRINE)
+        const homeLines = lines.get(home.id)
+        const awayLines = lines.get(away.id)
+        if (!homeLines || !awayLines) throw new Error("a species has no line")
+        const homeSide = speciesSide(home, STANDARD_DOCTRINE, homeLines.typical)
+        const awaySide = speciesSide(away, STANDARD_DOCTRINE, awayLines.typical)
         const result = resolveContinuous(homeSide, awaySide, seed)
         const winner = winnerOf(result, homeSide, awaySide)
         const ms = msOf(result)
         durations.push(ms)
+        // The equal-investment diagnostic (FR-22): the same pairing played with
+        // both sides clamped to REFERENCE. Measured so the report can print it,
+        // never gated.
+        const homeRef = speciesSide(
+          home,
+          STANDARD_DOCTRINE,
+          homeLines.reference,
+        )
+        const awayRef = speciesSide(
+          away,
+          STANDARD_DOCTRINE,
+          awayLines.reference,
+        )
+        const refResult = resolveContinuous(homeRef, awayRef, seed)
+        const refWinner = winnerOf(refResult, homeRef, awayRef)
+        for (const side of [0, 1] as const) {
+          const species = side === 0 ? home : away
+          const tally = referenceTallies.get(species.id)
+          if (!tally) throw new Error(`no reference tally for ${species.id}`)
+          tally.games += 1
+          if (refWinner === side) tally.wins += 1
+          if (refWinner === null) tally.draws += 1
+        }
         const pairingKey = `${home.id}>${away.id}`
         const seen = pairingWinners.get(pairingKey) ?? new Set<string>()
         seen.add(winner === null ? "draw" : `${winner}`)
@@ -491,13 +607,31 @@ export function measure(): BalanceSample {
     species.push(row)
   }
 
+  const reference: SpeciesRow[] = []
+  for (const def of roster) {
+    const tally = referenceTallies.get(def.id)
+    if (!tally) throw new Error(`no reference tally for ${def.id}`)
+    const rate =
+      tally.games === 0 ? 0 : (tally.wins + tally.draws / 2) / tally.games
+    reference.push({
+      id: def.id,
+      name: def.displayName,
+      games: tally.games,
+      wins: tally.wins,
+      draws: tally.draws,
+      rate,
+      distinct: 0,
+      se: tally.games === 0 ? 0 : Math.sqrt((rate * (1 - rate)) / tally.games),
+    })
+  }
+
   let diverse = 0
   for (const winners of pairingWinners.values()) {
     if (winners.size > 1) diverse += 1
   }
 
-  const doctrines = measureDoctrines()
-  const bosses = measureBosses()
+  const doctrines = measureDoctrines(lines)
+  const bosses = measureBosses(lines)
 
   const sorted = [...durations].sort((left, right) => left - right)
   const inBand = durations.filter(
@@ -510,6 +644,7 @@ export function measure(): BalanceSample {
       matchups,
       seeds: MATRIX_SEEDS,
       species,
+      reference,
       diversity: pairingWinners.size === 0 ? 0 : diverse / pairingWinners.size,
     },
     doctrines,
@@ -529,8 +664,79 @@ export function measure(): BalanceSample {
   }
 }
 
+/**
+ * One species' row, measured on exactly the schedule the matrix uses (FR-22):
+ * the same fourteen opponents, both seat orders and every matrix seed, with
+ * every side built from its own bounds midpoint. The full `measure()` plays all
+ * fifteen species at once; this plays one, so a re-tune can read a single row —
+ * and prove a stat is a lever — without paying for the whole matrix.
+ */
+export function measureSpecies(
+  id: string,
+  options: MeasureOptions = {},
+): SpeciesRow {
+  const species = ALL_SPECIES.find((def) => def.id === id)
+  if (!species) throw new Error(`no species ${id}`)
+  const line = typicalLine(boundsOf(species, options.bounds))
+  const signatures = new Set<string>()
+  let wins = 0
+  let draws = 0
+  let games = 0
+  for (const opponent of ALL_SPECIES) {
+    if (opponent.id === species.id) continue
+    const opponentLine = typicalLine(boundsOf(opponent, options.bounds))
+    for (const order of [0, 1] as const) {
+      for (const seed of MATRIX_SEEDS) {
+        const home = order === 0 ? species : opponent
+        const away = order === 0 ? opponent : species
+        const homeSide = speciesSide(
+          home,
+          STANDARD_DOCTRINE,
+          order === 0 ? line : opponentLine,
+        )
+        const awaySide = speciesSide(
+          away,
+          STANDARD_DOCTRINE,
+          order === 0 ? opponentLine : line,
+        )
+        const result = resolveContinuous(homeSide, awaySide, seed)
+        const winner = winnerOf(result, homeSide, awaySide)
+        const watch = order === 0 ? 0 : 1
+        games += 1
+        if (winner === watch) wins += 1
+        if (winner === null) draws += 1
+        const finalHp =
+          result.finalHp[order === 0 ? homeSide.name : awaySide.name]
+        signatures.add(
+          `${winner === watch ? "w" : winner === null ? "d" : "l"}|${msOf(result)}|${finalHp}`,
+        )
+      }
+    }
+  }
+  const rate = games === 0 ? 0 : (wins + draws / 2) / games
+  return {
+    id: species.id,
+    name: species.displayName,
+    games,
+    wins,
+    draws,
+    rate,
+    distinct: signatures.size,
+    se: games === 0 ? 0 : Math.sqrt((rate * (1 - rate)) / games),
+  }
+}
+
+/** The typical stat line a species fights at, from the precomputed map. */
+type LineMap = ReadonlyMap<string, { typical: StatLine; reference: StatLine }>
+
+function typicalOf(lines: LineMap, species: SpeciesDef): StatLine {
+  const line = lines.get(species.id)
+  if (!line) throw new Error(`no line for ${species.id}`)
+  return line.typical
+}
+
 /** The doctrine table: one species, one matchup, one row per doctrine. */
-function measureDoctrines(): DoctrineRow[] {
+function measureDoctrines(lines: LineMap): DoctrineRow[] {
   const standard = ALL_SPECIES.find((s) => s.id === STANDARD_SPECIES)
   const opponent = ALL_SPECIES.find((s) => s.id === DOCTRINE_OPPONENT)
   if (!standard || !opponent) {
@@ -564,10 +770,12 @@ function measureDoctrines(): DoctrineRow[] {
         const homeSide = speciesSide(
           home,
           order === 0 ? doctrine : STANDARD_DOCTRINE,
+          typicalOf(lines, home),
         )
         const awaySide = speciesSide(
           away,
           order === 0 ? STANDARD_DOCTRINE : doctrine,
+          typicalOf(lines, away),
         )
         const result = resolveContinuous(homeSide, awaySide, seed)
         const stream = streamOf(result)
@@ -617,8 +825,8 @@ function measureDoctrines(): DoctrineRow[] {
   return rows
 }
 
-/** The boss table: every boss against the whole roster at the reference line. */
-function measureBosses(): BossRow[] {
+/** The boss table: every boss against the whole roster at its typical line. */
+function measureBosses(lines: LineMap): BossRow[] {
   const rows: BossRow[] = []
   for (const boss of BOSSES) {
     let playerWins = 0
@@ -627,7 +835,11 @@ function measureBosses(): BossRow[] {
     for (const species of ALL_SPECIES) {
       for (const seed of BOSS_SEEDS) {
         fights += 1
-        const player = speciesSide(species, STANDARD_DOCTRINE)
+        const player = speciesSide(
+          species,
+          STANDARD_DOCTRINE,
+          typicalOf(lines, species),
+        )
         const rival = bossSide(boss, seed)
         const result = resolveContinuous(player, rival, seed)
         const winner = winnerOf(result, player, rival)
@@ -765,7 +977,10 @@ export function report(sample: BalanceSample): string[] {
     `doctrine table:    species ${STANDARD_SPECIES} vs ${DOCTRINE_OPPONENT}, measured side varies, opponent stays ${STANDARD_DOCTRINE}`,
   )
   lines.push(
-    `reference line:    hp ${REFERENCE.hp}, atk ${REFERENCE.atk}, def ${REFERENCE.def}, spd ${REFERENCE.spd}, clamped into each species' own roll bounds`,
+    `measured line:     each species' own typical creature — the integer midpoint of its roll bounds, floor((min + max) / 2) per stat (FR-22)`,
+  )
+  lines.push(
+    `reference line:    hp ${REFERENCE.hp}, atk ${REFERENCE.atk}, def ${REFERENCE.def}, spd ${REFERENCE.spd}, clamped into each species' own roll bounds — diagnostic only, never gates`,
   )
   lines.push(
     `seeds:             matrix ${sample.matrix.seeds.join(", ")}; the fight's own RNG is seeded from it, so two seeds play two different fights (FR-21)`,
@@ -785,6 +1000,19 @@ export function report(sample: BalanceSample): string[] {
   for (const row of sample.matrix.species) {
     lines.push(
       `${pad(row.id, 22)}${pad(row.games, 7)}${pad(row.distinct, 10)}${pad(row.wins, 6)}${pad(row.draws, 7)}${pad(pct(row.rate), 10)}${pct(row.se)}`,
+    )
+  }
+  lines.push("")
+
+  lines.push(
+    "reference line (diagnostic — every species at the equal-investment line; printed, never gated)",
+  )
+  lines.push(
+    `${pad("species", 22)}${pad("games", 7)}${pad("wins", 6)}${pad("draws", 7)}win rate`,
+  )
+  for (const row of sample.matrix.reference) {
+    lines.push(
+      `${pad(row.id, 22)}${pad(row.games, 7)}${pad(row.wins, 6)}${pad(row.draws, 7)}${pct(row.rate)}`,
     )
   }
   lines.push("")
