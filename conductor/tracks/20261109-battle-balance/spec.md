@@ -98,6 +98,7 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
 | FR-18 | The elemental chart is made symmetric: fire>plant>water>fire and electric>earth>wind>electric, so every element wins once and loses once. | Must |
 | FR-19 | Every special carries a real per-move cooldown on the live path, derived from its authored `cooldown` tier, so a special cannot be fired again until its timer expires. The basic strike has no cooldown. Cooldown is per move and separate from recovery and from the shared stamina pool, so a kit is a rotation rather than a best-move button. The specific durations are provisional when the mechanism lands and are owned by the balance phase. | Must |
 | FR-20 | Under the standard doctrine at the reference line a fight resolves: at least two fights in three end by knockout and the median duration is strictly below `FIGHT_CAP_MS`. The cap is a safety valve, not the typical ending, so a stalemate cannot be presented as balanced pacing. | Must |
+| FR-21 | Every fight draws on the seeded RNG: each attack rolls against its authored accuracy, a landed blow carries a bounded damage spread that cannot push any base hit past the 12% ceiling, and the same seed with the same sides replays byte-identically while different seeds produce different fights. A spectator watching a rematch must see a different fight, and a replay must still repeat exactly. | Must |
 
 ## Non-Functional Requirements
 
@@ -131,6 +132,7 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
 | AC-10 | The chart is symmetric: every element has exactly one win and one loss. | FR-18 |
 | AC-16 | A special cannot be committed again before its cooldown expires, the basic strike is always available, and within the damage band every special hits strictly harder than the basic with the tiers strictly ordered. | FR-1, FR-8, FR-19 |
 | AC-17 | `bun run balance` reports, on the standard-doctrine matrix, a knockout share of at least two in three and a median duration strictly below `FIGHT_CAP_MS`, and fails naming the target when either is missed. | FR-20, FR-4 |
+| AC-18 | Two different seeds on the same pairing produce different outcomes in a measured share of the matrix, the same seed reproduces its events and state hash exactly, an accuracy miss appears as an event with a reason, and no rolled hit exceeds the 12% band ceiling. | FR-21, FR-1 |
 
 ## Edge Cases
 
@@ -202,6 +204,13 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
   swing earns at most 88.9 deg and the >120 deg rear arc is not reachable inside
   a single commitment. Rear therefore stays a rare crit and AC-11 measures
   flank-or-rear hits, which the mechanic does reach.
+- **Resolved (2026-11-10, owner):** fights get variance before the roster is
+  re-tuned. The engine was measured to be effectively seed-free — only 8 of 210
+  ordered pairings changed outcome across four seeds, because `accuracy` and the
+  seeded RNG were never read on the continuous path — so every rematch of the same
+  pair played out identically and the 56-fight species sample was 28 distinct fights
+  counted twice. Phase 10 owns FR-21 and a gate that a balanced species passes at
+  least 95% of the time; Phase 11 owns the re-tune on that gate.
 - **Resolved (2026-11-09, owner):** the standard-doctrine grind is fixed before the
   roster is re-tuned. The Phase 6 baseline measured 83.8% of matrix fights decided
   at the 40 s cap with a median duration of exactly 40.00 s, so a fight under the

@@ -191,7 +191,11 @@ numbers are measured by a tool that predates them.
 - **Covers:** FR-5, FR-4, FR-6, AC-5, AC-4, AC-6
 - **Touches:** `packages/sim/src/species.ts`, `packages/sim/src/battle/frames.ts`, `moves.ts`, `bosses.ts` + co-located tests
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run telemetry`
-- **Status:** in_progress
+- **Status:** blocked
+- **Result:** blocked on FR-5 — the 56-fight sample is 28 distinct fights counted
+  twice, so a truly balanced species fails the +/-5 point band about 60% of the
+  time; the remaining spread is kit shape, not stat lines. Superseded by Phase 10
+  (variance and a sound gate) and Phase 11 (re-tune).
 
 - [ ] **P9.T1: Species** — covers: FR-5
   - [ ] P9.T1.1 Bring every available species inside 45-55%, adjusting stats and move power only.
@@ -200,3 +204,40 @@ numbers are measured by a tool that predates them.
 - [ ] **P9.T3: Bosses** — covers: FR-6
   - [ ] P9.T3.1 Document an answer per boss and prove it at the intended stage.
 
+## Phase 10: Outcome Variance
+
+- **Goal:** a fight varies between seeds, and a replay still repeats exactly.
+- **Depends on:** Phase 9
+- **Covers:** FR-21, FR-7, AC-18, AC-7
+- **Touches:** `packages/sim/src/battle/continuous/strike.ts`, `projectile.ts`, `step.ts`, `advance.ts`, `report.ts`, `packages/sim/scripts/battle-balance-report.ts` + co-located tests
+- **Verification:** `bun run verify`, `bun run build`, `bun run balance`, `bun run telemetry` (four separate commands)
+- **Status:** pending
+
+- [ ] **P10.T1: Variance** — covers: FR-21
+  - [ ] P10.T1.1 Roll every attack against its authored accuracy, and make a miss an observable event with a reason.
+  - [ ] P10.T1.2 Add a bounded damage spread that cannot push any base hit past the 12% ceiling.
+  - [ ] P10.T1.3 Prove determinism is intact: same seed and sides replay byte-identically, different seeds diverge.
+- [ ] **P10.T2: The gate** — covers: FR-7
+  - [ ] P10.T2.1 Count independent fights only (unique seeds), and report the sample size and binomial standard error with every row.
+  - [ ] P10.T2.2 Replace the point band with a decision rule under which a truly balanced species passes at least 95% of the time, and state the rule in the evidence.
+- [ ] **P10.T3: Diversity** — covers: FR-21
+  - [ ] P10.T3.1 Report outcome diversity across seeds and bound it, so "varies" is measured rather than assumed.
+
+## Phase 11: Roster Re-tune
+
+- **Goal:** every species is a coin flip, measured on a gate that means something.
+- **Depends on:** Phase 10
+- **Covers:** FR-5, FR-4, FR-6, AC-5, AC-4, AC-6
+- **Touches:** `packages/sim/src/species.ts`, `packages/sim/src/battle/moves.ts`, `packages/sim/src/bosses.ts`, `packages/sim/src/battle/frames.ts` + co-located tests
+- **Verification:** `bun run verify`, `bun run build`, `bun run balance`, `bun run telemetry` (four separate commands)
+- **Status:** pending
+
+- [ ] **P11.T1: Kit shape and species** — covers: FR-5
+  - [ ] P11.T1.1 Make the leading kit rows a tuning lever: which four moves a species leads with, and their cooldown tiers.
+  - [ ] P11.T1.2 Bring every species inside the band on the sound gate, justified by mechanism.
+- [ ] **P11.T2: Pacing held** — covers: FR-4
+  - [ ] P11.T2.1 Prove the resolvability targets and all telemetry bounds still hold after the roster moves.
+- [ ] **P11.T3: Bosses** — covers: FR-6
+  - [ ] P11.T3.1 Record each boss's intended stage and its measured answer.
+- [ ] **P11.T4: Tier order** — covers: FR-19
+  - [ ] P11.T4.1 Confirm the ladder still ascends after the re-tune and the heavy still earns its slot.
