@@ -151,7 +151,7 @@ numbers are measured by a tool that predates them.
 - **Covers:** FR-18, AC-10
 - **Touches:** `packages/sim/src/battle/chart.ts` + co-located tests
 - **Verification:** `bun run verify && bun run build && bun run balance`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P7.T1: Symmetry** — covers: FR-18
   - [ ] P7.T1.1 Two 3-cycles: fire>plant>water>fire, electric>earth>wind>electric.
