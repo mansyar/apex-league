@@ -20,6 +20,7 @@ import {
   CAP_MARGIN_FLOOR_BP,
   describe as describeTarget,
   designBandMisses,
+  fightSignature,
   measure,
   measureSpecies,
   report,
@@ -92,6 +93,30 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     }
     // The engine draws now, so some pairings must flip with the seed.
     expect(measured.matrix.diversity).toBeGreaterThan(0)
+  })
+
+  test("a distinct fight is more than its winner and duration (R3 T1)", () => {
+    // The defect this pins: the signature read `finalHp[side.name]` while the
+    // resolver keys `finalHp` by `id ?? name`, so the HP half was `undefined`
+    // on every fight and `distinct` counted only (winner, duration). Two fights
+    // that share both but end on different HP are two fights.
+    expect(fightSignature("fire_drake", "w", 31_200, 40)).not.toBe(
+      fightSignature("fire_drake", "w", 31_200, 41),
+    )
+    // A missing key is a harness defect, not a quietly narrower sample.
+    expect(() => fightSignature("fire_drake", "w", 31_200, undefined)).toThrow(
+      /go blind/,
+    )
+    // The corrected counts, pinned on the two rows that used to fail. Before
+    // R3 these read 30 and 16 — the blind count of the same 112 games.
+    const measured = sample()
+    const byId = new Map(measured.matrix.species.map((row) => [row.id, row]))
+    expect(byId.get("earth_tortoise")?.distinct).toBe(34)
+    expect(byId.get("reefclaw")?.distinct).toBe(24)
+    // The one-species replay reads the same key, so it must agree.
+    for (const id of ["earth_tortoise", "reefclaw"]) {
+      expect(measureSpecies(id).distinct).toBe(byId.get(id)?.distinct)
+    }
   })
 
   test("every measured side is its species' typical creature (FR-22, AC-19)", () => {
@@ -288,16 +313,14 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // is updated deliberately. The list is computed, printed and asserted, so
     // it cannot silently go stale like the old one-row KNOWN_MISSES.
     const DESIGN_BAND_MISSES = [
-      "fire_drake",
       "plant_ox",
+      "water_axolotl",
+      "electric_hound",
       "fernstag",
       "wind_falcon",
       "reefclaw",
       "earth_tortoise",
       "cindermoor",
-      "voltfox",
-      "galeheron",
-      "shalemole",
       "embercub",
       "mossboar",
     ] as const
