@@ -63,8 +63,19 @@ function sample(): BalanceSample {
  * innate strike and `boulder_toss`. Shortening `boulder_toss` startup 600 -> 512
  * moved the row from 26.8% to 39.3% with every pacing row still green, so the
  * list is empty and the gate exits 0.
+ *
+ * Phase 1 re-pin (P1.T1.2, Rework 1): honest rolls re-opened two named
+ * misses — cindermoor sits 0.2 points over its interval's edge (64.3% vs a
+ * 64.1% bound) and cap share sits half a point over its bound (33.6% vs
+ * 33.3%). Both are recorded here with observed values; the bounds above are
+ * untouched. Closing the half-point cap gap is Phase 4's multi-row work:
+ * Rework 1 mapped the single-tick frontier (bolt 94: no-op; chip 99: -2
+ * fights; chip 98: no-op) and stopped there.
  */
-const KNOWN_MISSES: readonly string[] = []
+const KNOWN_MISSES: readonly string[] = [
+  "species:cindermoor: observed 64.3% (72/112, 48 distinct, se 7.2%), bound |rate - 50%| <= 14.1% (design target 45.0%..55.0%)",
+  "capShare: observed 33.6% (282/840), bound <= 33.3%",
+]
 
 describe("balance report — one deterministic command (FR-7, AC-7)", () => {
   test("reports the roster, the doctrines, the bosses and every move", () => {
@@ -124,10 +135,13 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // 10-14 (the 13-17 band it briefly carried made more of its fights distinct
     // because it won more of them). R5's `boulder_toss` startup moved both:
     // the tortoise to 35, reefclaw to 22, because the two play each other.
+    // Phase 1 re-pin (P1.T1.2): honest rolls moved both again — the tortoise
+    // to 48, reefclaw to 50 — because real misses make more fights distinct.
+    // Rework 1 kept the Phase-1 ladder plus one chip tick (99): 48 and 50.
     const measured = sample()
     const byId = new Map(measured.matrix.species.map((row) => [row.id, row]))
-    expect(byId.get("earth_tortoise")?.distinct).toBe(35)
-    expect(byId.get("reefclaw")?.distinct).toBe(22)
+    expect(byId.get("earth_tortoise")?.distinct).toBe(48)
+    expect(byId.get("reefclaw")?.distinct).toBe(50)
     // The one-species replay reads the same key, so it must agree.
     for (const id of ["earth_tortoise", "reefclaw"]) {
       expect(measureSpecies(id).distinct).toBe(byId.get(id)?.distinct ?? -1)
@@ -389,20 +403,22 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // at 42.9%: the tortoise's shorter `boulder_toss` startup is a swing the
     // hound no longer gets to interrupt, so the tank's main victim loses six of
     // its 112 games. That is the lever working, and the row is recorded here
-    // rather than argued with.
+    // rather than argued with. Phase 1 re-pin (P1.T1.2): honest rolls moved
+    // four rows inside the band (fire_drake, fernstag, wind_falcon, shalemole)
+    // and three outside it (voltfox, galeheron, mistkit). Rework 1 kept that
+    // list at the locked chip-99 ladder.
     const DESIGN_BAND_MISSES = [
-      "fire_drake",
       "plant_ox",
       "water_axolotl",
       "electric_hound",
-      "fernstag",
-      "wind_falcon",
       "reefclaw",
       "earth_tortoise",
       "cindermoor",
-      "shalemole",
+      "voltfox",
+      "galeheron",
       "embercub",
       "mossboar",
+      "mistkit",
     ] as const
     const measured = sample()
     expect(designBandMisses(measured).map((row) => row.id)).toEqual([
@@ -428,19 +444,19 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
   })
 
   test("today's target misses are named with their observed values", () => {
-    // R5: the list is empty. Every species row sits inside its interval, cap
-    // share, decisive share, cap-win quality, median, p05, the damage band and
-    // the bosses all hold. The rows still outside the 45-55% design band are a
-    // separate assertion about the roster, not about the gate.
+    // Was empty in R5; Phase 1 (Rework 1) re-pinned the two misses the honest
+    // ladder opened — cindermoor and cap share — with the received strings
+    // above. The gate test below stays red on those two lines until Phase 4.
     expect(violations(sample()).map(describeTarget)).toEqual([...KNOWN_MISSES])
-    expect(KNOWN_MISSES).toHaveLength(0)
   })
 
   test("the gate is green end to end (R5)", () => {
     // A cap win counts as a decisive outlasting win when its margin clears the
-    // floor, and every species row's interval covers 50% — the tortoise's
-    // included, at 39.3% against a 16.6-point bound. When a row regresses this
-    // test fails on the FAIL list and is updated deliberately.
+    // floor. Phase 1 (Rework 1) leaves this gate red on two FAIL lines —
+    // cindermoor (64.3% vs a 64.1% bound) and cap share (33.6% vs 33.3%) —
+    // both recorded in KNOWN_MISSES with observed values. Every other row
+    // holds, including decisive share, median, p05, the damage band and the
+    // bosses. Closing the two lines is Phase 4's multi-row work.
     const lines: string[] = []
     expect(run(sample(), (line) => lines.push(line))).toBe(0)
     const failures = lines.filter((line) => line.startsWith("FAIL "))

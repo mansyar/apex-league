@@ -45,15 +45,15 @@ describe("battle catalog", () => {
     // row stayed at it (75 -> 95) so the branch sidegrade probe still
     // measures a sidegrade (at full neutral the gamble signature's wasted
     // rounds stood out and the first sibling tally fell to 41.7%, outside
-    // the 45–55% contract), and the chip row went guaranteed (95 -> 100)
-    // to pay back the pacing the mid-row cut costs so the cap share stays
-    // inside its third.
+    // the 45–55% contract), and the chip row sits one tick under guaranteed
+    // (100 -> 99): the Rework-1 probe for the half-point cap gap (bolt 94
+    // proved unobservable — the finisher policy rarely fires that row).
     const tiers = [
       { power: 10, accuracy: 100, cooldown: 1 },
       { power: 14, accuracy: 99, cooldown: 1 },
       { power: 16, accuracy: 88, cooldown: 2 },
       { power: 17, accuracy: 95, cooldown: 2 },
-      { power: 12, accuracy: 100, cooldown: 1 },
+      { power: 12, accuracy: 99, cooldown: 1 },
       { power: 19, accuracy: 100, cooldown: 3 },
     ]
     for (const element of [
@@ -405,7 +405,7 @@ describe("electric kit (electric_species_line)", () => {
     volt_dash: [14, 99, 1],
     arc_shot: [16, 88, 2],
     storm_bolt: [17, 95, 2],
-    ion_dart: [12, 100, 1],
+    ion_dart: [12, 99, 1],
     gigavolt: [19, 100, 3],
   }
 
@@ -516,7 +516,7 @@ describe("earth kit (earth-wind-species-line)", () => {
     dust_devil: [14, 99, 1],
     clay_burst: [16, 88, 2],
     boulder_toss: [17, 95, 2],
-    sand_blast: [12, 100, 1],
+    sand_blast: [12, 99, 1],
     tectonic_slam: [19, 100, 3],
   }
 
@@ -625,7 +625,7 @@ describe("wind kit (earth-wind-species-line)", () => {
     feather_dart: [14, 99, 1],
     gale_cutter: [16, 88, 2],
     sky_bolt: [17, 95, 2],
-    talon_slash: [12, 100, 1],
+    talon_slash: [12, 99, 1],
     hurricane_spiral: [19, 100, 3],
   }
 

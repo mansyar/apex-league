@@ -46,7 +46,7 @@
  * stays a variance choice rather than a power one. Phase 1 of the variance
  * track re-authored the kit-row accuracies: the mid row stopped below the
  * hit rate the old MISS_SCALE = 5 transform produced (85 -> 88), the bolt
- * row stayed at it (75 -> 95), the chip row went guaranteed (95 -> 100),
+ * row stayed at it (75 -> 95), the chip row sits one tick under guaranteed (Rework-1 cap-gap probe),
  * and the flame row rose above it (90 -> 99). At full neutral the gamble
  * signature's wasted rounds stood out against near-certain shared rows and
  * the first sibling tally fell to 41.7%, outside the 45–55% sidegrade
@@ -129,19 +129,19 @@ export const CATALOG: readonly MoveDef[] = Object.freeze([
   special("flame_charge", "Flame Charge", "fire", 14, 99, 1),
   special("cinder_shot", "Cinder Shot", "fire", 16, 88, 2),
   special("blaze_bolt", "Blaze Bolt", "fire", 17, 95, 2),
-  special("flare_dart", "Flare Dart", "fire", 12, 100, 1),
+  special("flare_dart", "Flare Dart", "fire", 12, 99, 1),
   special("pyre_lance", "Pyre Lance", "fire", 19, 100, 3),
   special("seed_shot", "Seed Shot", "plant", 10, 100, 1),
   special("thorn_volley", "Thorn Volley", "plant", 14, 99, 1),
   special("spore_burst", "Spore Burst", "plant", 16, 88, 2),
   special("bramble_dart", "Bramble Dart", "plant", 17, 95, 2),
-  special("vine_lash", "Vine Lash", "plant", 12, 100, 1),
+  special("vine_lash", "Vine Lash", "plant", 12, 99, 1),
   special("root_quake", "Root Quake", "plant", 19, 100, 3),
   special("bubble", "Bubble", "water", 10, 100, 1),
   special("tide_shot", "Tide Shot", "water", 14, 99, 1),
   special("foam_volley", "Foam Volley", "water", 16, 88, 2),
   special("splash_bolt", "Splash Bolt", "water", 17, 95, 2),
-  special("mist_spray", "Mist Spray", "water", 12, 100, 1),
+  special("mist_spray", "Mist Spray", "water", 12, 99, 1),
   special("maelstrom", "Maelstrom", "water", 19, 100, 3),
   special("cinder_dive", "Cinder Dive", "fire", 15, 80, 2),
   special("pyre_wall", "Pyre Wall", "fire", 12, 100, 2),
@@ -153,7 +153,7 @@ export const CATALOG: readonly MoveDef[] = Object.freeze([
   special("volt_dash", "Volt Dash", "electric", 14, 99, 1),
   special("arc_shot", "Arc Shot", "electric", 16, 88, 2),
   special("storm_bolt", "Storm Bolt", "electric", 17, 95, 2),
-  special("ion_dart", "Ion Dart", "electric", 12, 100, 1),
+  special("ion_dart", "Ion Dart", "electric", 12, 99, 1),
   special("gigavolt", "Gigavolt", "electric", 19, 100, 3),
   special("storm_surge", "Storm Surge", "electric", 15, 80, 2),
   special("ion_wall", "Ion Wall", "electric", 12, 100, 2),
@@ -161,7 +161,7 @@ export const CATALOG: readonly MoveDef[] = Object.freeze([
   special("dust_devil", "Dust Devil", "earth", 14, 99, 1),
   special("clay_burst", "Clay Burst", "earth", 16, 88, 2),
   special("boulder_toss", "Boulder Toss", "earth", 17, 95, 2),
-  special("sand_blast", "Sand Blast", "earth", 12, 100, 1),
+  special("sand_blast", "Sand Blast", "earth", 12, 99, 1),
   special("tectonic_slam", "Tectonic Slam", "earth", 19, 100, 3),
   special("quake_stomp", "Quake Stomp", "earth", 15, 80, 2),
   special("basalt_guard", "Basalt Guard", "earth", 12, 100, 2),
@@ -169,7 +169,7 @@ export const CATALOG: readonly MoveDef[] = Object.freeze([
   special("feather_dart", "Feather Dart", "wind", 14, 99, 1),
   special("gale_cutter", "Gale Cutter", "wind", 16, 88, 2),
   special("sky_bolt", "Sky Bolt", "wind", 17, 95, 2),
-  special("talon_slash", "Talon Slash", "wind", 12, 100, 1),
+  special("talon_slash", "Talon Slash", "wind", 12, 99, 1),
   special("hurricane_spiral", "Hurricane Spiral", "wind", 19, 100, 3),
   special("cyclone_dive", "Cyclone Dive", "wind", 15, 80, 2),
   special("zephyr_veil", "Zephyr Veil", "wind", 12, 100, 2),

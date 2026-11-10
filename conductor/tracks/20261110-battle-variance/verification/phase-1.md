@@ -112,3 +112,58 @@ positions min 77 cells, duration 24.72–40.00s.
 | AC-1 | 100 never draws | PASS — returns true before any RNG draw |
 | AC-1 | Ladder strictly authored probability | PASS — no scaling factor remains |
 | AC-2 | No rolled hit exceeds 12% | PASS — band test 49/49, heaviest max 10.05% |
+
+## Rework 1 — close the half-point cap gap with the ladder, then pin what moved
+
+Locked ladder change (single tick): **chip 12/100 → 12/99** (all six kits;
+`moves.test.ts` tiers/brackets + header notes; `variance.test.ts` AC-1 loop
+already spot-checks 99). Final ladder: 100 / 99 / 88 / 95 / **99** / 100.
+
+Single-tick frontier (measured `capShare` each time, `bun run balance`):
+
+| Move (from settled 284/33.8%) | capShare | Verdict |
+|---|---|---|
+| bolt 95 → 94 | 284/840 = 33.8% (bitwise-identical sample) | No-op: the finisher policy rarely fires that row, so ~no roll draws 94 |
+| chip 100 → 99 | **282/840 = 33.6%** | Best move: −2 fights, all constraints hold; locked |
+| chip 99 → 98 | 282/840 = 33.6% (bitwise-identical to 99) | Saturated: no roll draws exactly 98; reverted, not kept |
+
+Why it holds here: accuracy rolls per row number in the low hundreds across the
+840-fight sample, so a one-point tick flips only a couple of fights — the lever
+is real but too fine to close a 3-fight gap alone. Multi-row tuning belongs to
+Phase 4; this phase stops at the best single-tick state per the brief.
+
+Not tried, with reason: flame 99→98 or 100 (sibling fails 41.7–43.8% / 61.5%);
+mid 88→87/89 (sibling fails both sides); bolt 95→96 (wrong direction — 97/100
+lengthen caps to 34–35%); light/basic/heavy/reliable/branch rows (sibling rows
+or equality-locked 15×80% = 12×100%; touching them breaks bounds, not pins).
+
+Three pins re-pinned to received values (P1.T1.2 authority; no bound/floor/slack
+touched), all in `battle/continuous/balance-report.test.ts`:
+- tortoise distinct 35 → **48**, reefclaw 22 → **50** (honest rolls → more
+  distinct fights; `measureSpecies` agreement loop still cross-checks).
+- Design-band miss list → 11 ids: plant_ox, water_axolotl, electric_hound,
+  reefclaw, earth_tortoise, cindermoor, voltfox, galeheron, embercub, mossboar,
+  mistkit (fire_drake, fernstag, wind_falcon, shalemole moved inside; voltfox,
+  galeheron, mistkit moved outside).
+- KNOWN_MISSES → 2 received strings: `species:cindermoor: observed 64.3%
+  (72/112, 48 distinct, se 7.2%), bound |rate - 50%| <= 14.1% …` and
+  `capShare: observed 33.6% (282/840), bound <= 33.3%` (emptiness assertion
+  removed — the list is no longer empty; gate test comment updated to name the
+  two red lines as Phase-4 work).
+
+Commands at the locked tree (base `4e5b39fb`, separate, exact):
+- `bun run verify` → exit **1**: **3975 pass, 1 skip, 1 fail** — the only
+  failure is the end-to-end gate (`run()=1` on the two KNOWN_MISSES lines).
+  All 3 re-pins and all Phase-1 work green.
+- `bun run build` → exit **0** (410 modules; chunk-size warning only).
+- `bun run balance` → exit 1, exactly the 2 FAIL lines above. Otherwise green:
+  decisive **94.3%** (558 ko + 234), median **33.37s**, p05 **15.98s**,
+  max 40.00s, damage **49/49**, bosses all ok, dodge probe Circle 2.00 /
+  Kite 16.00, Kite 0/6 finding unchanged, reference spread 22.3%..78.6%.
+- `bun run telemetry` → exit **0**, 13/13 ok, cap **7/14 = 50.0%** (at bound,
+  not over), idle 28.4%, duration 24.72–40.00s.
+
+AC-1/AC-2 hold at the locked ladder: 70/80/88/95/99 within ±0.02 over 20k
+draws; 100 never draws; 49/49 band, heaviest max 10.05%. FR-5 distinct median is
+**46/112** (sorted 39,40,40,41,41,43,43,46,46,46,47,48,48,50,53) vs the ≥56
+target — Phase 4's gap, recorded not widened.
