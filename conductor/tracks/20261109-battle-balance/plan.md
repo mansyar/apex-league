@@ -363,30 +363,33 @@ numbers are measured by a tool that predates them.
 - **Verification:** `bun run verify`, `bun run build`, `bun run balance`,
   `bun run telemetry` - four separate commands.
 - **Status:** verified
+- **Result:** verified - the gate is honest and green: cap share 30.0%, decisive share 92.4%, median 31.21 s, p05 14.96 s, damage 49/49, 15/15 species inside the 95% interval, `bun run balance` exit 0 for the first time. The knockout-only band is a printed diagnostic because the owner ruled an outlasting win legitimate. Roster balance is not claimed: 12 of 15 rows sit outside the printed 45-55% design band on intervals 24-28 points wide, recorded as debt that needs the diversity lever first.
+- **Checkpoint:** e1d9a9e7
+- **Evidence:** conductor/tracks/20261109-battle-balance/verification/phase-R2.md
 
-- [ ] **R2.T1: The band counts only resolved fights** - covers: FR-4, AC-4
-  - [ ] **R2.T1.1:** Carry the ending reason beside each duration and exclude
+- [x] **R2.T1: The band counts only resolved fights** - covers: FR-4, AC-4
+  - [x] **R2.T1.1:** Carry the ending reason beside each duration and exclude
         `reason === "time"` from the band; print `resolvedInBand` and `capShare`
         separately and set the bound on `resolvedInBand`.
-- [ ] **R2.T2: The gate gates FR-20** - covers: FR-20, AC-17
-  - [ ] **R2.T2.1:** Add a `knockoutShare` target (>= two in three) and a
+- [x] **R2.T2: The gate gates FR-20** - covers: FR-20, AC-17
+  - [x] **R2.T2.1:** Add a `knockoutShare` target (>= two in three) and a
         `medianDuration` target (strictly below `FIGHT_CAP_MS`), both naming FR-20/AC-17,
         with tests that each produces a violation when missed.
-- [ ] **R2.T3: The miss list names the design-band rows** - covers: FR-5, AC-5
-  - [ ] **R2.T3.1:** Print the design-band miss list and assert it against a maintained
+- [x] **R2.T3: The miss list names the design-band rows** - covers: FR-5, AC-5
+  - [x] **R2.T3.1:** Print the design-band miss list and assert it against a maintained
         array, so a row drifting across 45% or 55% fails the suite.
-- [ ] **R2.T4: Narrow the distribution** - covers: FR-4, FR-20
-  - [ ] **R2.T4.1:** Compress the top of the authored ladder so heavy-move fights stop
+- [x] **R2.T4: Narrow the distribution** - covers: FR-4, FR-20
+  - [x] **R2.T4.1:** Compress the top of the authored ladder so heavy-move fights stop
         ending under 25 s, keeping the tier order strict and every row inside 4-12%.
-  - [ ] **R2.T4.2:** Reach `capShare` <= 33.3%, a median inside 25-40 s, a fifth
+  - [x] **R2.T4.2:** Reach `capShare` <= 33.3%, a median inside 25-40 s, a fifth
         percentile >= 8 s and a decisive share >= 66.7% at the same time, with the
         knockout-only band printed as a diagnostic.
-- [ ] **R2.T5: The doctrine dodge column is real** - covers: FR-15, AC-11
-  - [ ] **R2.T5.1:** Print a dodge rate that differs by doctrine in the doctrine table
+- [x] **R2.T5: The doctrine dodge column is real** - covers: FR-15, AC-11
+  - [x] **R2.T5.1:** Print a dodge rate that differs by doctrine in the doctrine table
         itself, and record the Kite 0/6 result as a finding with a verdict.
-- [ ] **R2.T6: Correct the record** - covers: FR-10, FR-20
-  - [ ] **R2.T6.1:** Restore legacy clock knockback coverage or assert its absence
+- [x] **R2.T6: Correct the record** - covers: FR-10, FR-20
+  - [x] **R2.T6.1:** Restore legacy clock knockback coverage or assert its absence
         explicitly; fix the stale comments and the evidence figures.
-- [ ] **R2.T7: Measure the outlasting win** - covers: FR-20, AC-17
-  - [ ] **R2.T7.1:** Print the cap-margin distribution and gate a decisive share
+- [x] **R2.T7: Measure the outlasting win** - covers: FR-20, AC-17
+  - [x] **R2.T7.1:** Print the cap-margin distribution and gate a decisive share
         (knockouts plus cap wins above the margin floor) at two in three.
