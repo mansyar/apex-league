@@ -25,6 +25,13 @@
  * poise while costing more stamina and recovering slower — it is the trade, not
  * a free upgrade (moves-band.test.ts).
  *
+ * R5: the order above is a power ladder, and power is not the whole sheet. The
+ * frame fields are authored per row in `frames.ts`, and startup is the one of
+ * them `spd` does not scale — recovery is multiplied by `10 / spd`, so the
+ * slowest archetype pays 2.5x on every swing and cannot buy volume back
+ * anywhere else. The tank's `boulder_toss` startup (600 -> 512) is that lever,
+ * and it is the only startup the phase touched.
+ *
  * R1 (Wall 1) scaled the whole ladder down together, because damage and fight
  * length are inverse: the old 10..22 line put 46.0% of the matrix inside the
  * 25-40 s band. R2 then compressed it once more, to the shipped 9..19, to move a

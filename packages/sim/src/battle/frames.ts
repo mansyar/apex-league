@@ -164,7 +164,11 @@ export const FRAME_DATA: Readonly<Record<string, FrameData>> = Object.freeze({
   pebble_shot: frame(300, 120, 750, 5200, MID_FROM, MID_TO, 7, 6, 8),
   dust_devil: frame(380, 140, 822, 5600, LOW_FROM, LOW_TO, 8, 8, 10),
   clay_burst: frame(480, 160, 1162, 6000, MID_FROM, MID_TO, 6, 10, 12),
-  boulder_toss: frame(600, 180, 1258, 6200, HIGH_FROM, HIGH_TO, 5, 14, 16),
+  // R5: startup pulled from 600 to 512, the one frame field the tortoise can
+  // spend on volume. Recovery is SPD-scaled (2.5x at spd 4) and frozen, so a
+  // swing it cannot shorten is a swing it cannot afford; startup is authored
+  // and stays 512 — still a step above clay_burst, still under the finisher.
+  boulder_toss: frame(512, 180, 1258, 6200, HIGH_FROM, HIGH_TO, 5, 14, 16),
   sand_blast: frame(240, 100, 726, 5000, LOW_FROM, LOW_TO, 9, 6, 8),
   // P8.T3.2: the earth finisher had the longest swing of any heavy (2,762 ms),
   // which left it the only one out-earned by its own light row on the damage
