@@ -32,14 +32,17 @@
 - **Covers:** FR-3, FR-4, FR-7, AC-3, AC-4, AC-7
 - **Touches:** `packages/sim/src/battle/continuous/controller-noise.ts`, `packages/sim/src/battle/continuous/controller.ts`, `packages/sim/src/battle/continuous/step.ts`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** blocked
+- **Result:** blocked — mechanism complete (AC-3/AC-4/AC-7 green: focused 103/103, determinism both ways, bands pinned; capShare 33.6%→21.0% PASS, distinct median 46→109/112). 10 golden snapshots re-pinned (rework 1). 4 balance-report pins red, carried to Phase 4 per owner waiver (Phase-1 pattern): tortoise distinct, design-band list, KNOWN_MISSES, end-to-end gate. No bound widened.
+- **Checkpoint:** 68a03b73
+- **Evidence:** conductor/tracks/20261110-battle-variance/verification/phase-2.md
 
-- [ ] **P2.T1: Seeded timing jitter** — covers: FR-3, AC-3
-  - [ ] **P2.T1.1: Vary cadence and commit phasing per seed with the RNG cursor in the state hash**
-- [ ] **P2.T2: Execution-only decision noise** — covers: FR-4, AC-4
-  - [ ] **P2.T2.1: Vary commit timing, dodge side, and punish-window use; pin doctrine bands, strafe intent, and dodge policy unchanged**
-- [ ] **P2.T3: Determinism both ways** — covers: FR-7, AC-7
-  - [ ] **P2.T3.1: Same seed byte-identical, different seeds different fights, misses as events with reasons**
+- [x] **P2.T1: Seeded timing jitter** — covers: FR-3, AC-3
+  - [x] **P2.T1.1: Vary cadence and commit phasing per seed with the RNG cursor in the state hash**
+- [x] **P2.T2: Execution-only decision noise** — covers: FR-4, AC-4
+  - [x] **P2.T2.1: Vary commit timing, dodge side, and punish-window use; pin doctrine bands, strafe intent, and dodge policy unchanged**
+- [x] **P2.T3: Determinism both ways** — covers: FR-7, AC-7
+  - [x] **P2.T3.1: Same seed byte-identical, different seeds different fights, misses as events with reasons**
 
 ## Phase 3: Kite Finds a Win
 
