@@ -204,11 +204,13 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
         // Pacing ripple (battle-balance phase 8, FR-20): QF2 moves to
         // Ash-ledger and SF2 to Cindersnout.
         // Ladder ripple (battle-balance R1): the scaled-down authored ladder
-        // draws QF4 and SF2 — SF2 is a draw, so the row is null.
+        // draws QF4 and SF2 — SF2 was a draw, so the row was null.
+        // R2 (battle-balance): the compressed ladder resolves SF2 cleanly for
+        // Emberhold Flicker.
         rivalWinners: [
           "Reedle Mirefin",
           "Ash-ledger",
-          null,
+          "Emberhold Flicker",
           "Emberhold Flicker",
         ],
       },
@@ -338,9 +340,10 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     // damage spread are live. Rework 1 narrowed the spread floor and the final
     // returns to Reedle Mirefin, as it stood before the variance pass.
     // Roster ripple (phase 13, FR-5): the stat re-roll handed the crown to
-    // Bonfire Brook. R1 (battle-balance): the scaled-down ladder hands it to
-    // Mossbottom Brute.
-    expect(done.championName).toBe("Mossbottom Brute")
+    // Bonfire Brook. R1 (battle-balance): the scaled-down ladder handed it to
+    // Mossbottom Brute. R2 (battle-balance): the compressed ladder hands it
+    // back to Bonfire Brook.
+    expect(done.championName).toBe("Bonfire Brook")
     // The forfeit verdict names the opponent, no battle attached.
     const ff = done.playerVerdicts[0]
     expect(ff?.winner).toBe("Bonfire Brook")
@@ -356,7 +359,7 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
     ).toEqual([
       [2, "Bonfire Brook", "Reedle Mirefin", "Bonfire Brook"],
-      [3, "Bonfire Brook", "Mossbottom Brute", "Mossbottom Brute"],
+      [3, "Bonfire Brook", "Mossbottom Brute", "Bonfire Brook"],
     ])
   })
 

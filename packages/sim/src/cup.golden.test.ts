@@ -423,11 +423,13 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
   // Reedle Mirefin, who then takes SF1 and the final.
   // Blow-weight ripple (phase 6): QF2 flips back to Tidecaller Nibbles, who
   // then takes QF1, SF2 and the final.
+  // R2 (battle-balance): the compressed ladder hands the crown to Bonfire
+  // Brook.
   test("forfeit path (seed 101): the forfeit line, then the bracket completes", () => {
     const creature = playerCreature()
     const session = forfeitCup(startCupSession(creature, DAY, 101))
     expect(session.status).toBe("eliminated")
-    expect(session.championName).toBe("Mossbottom Brute")
+    expect(session.championName).toBe("Bonfire Brook")
     expect(cupPlacement(session)).toBe(4)
     expect(session.rivalVerdicts.map(row)).toEqual([
       [
@@ -480,8 +482,8 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
         3,
         "Bonfire Brook",
         "Mossbottom Brute",
-        "Mossbottom Brute",
-        "Mossbottom Brute takes the Final!",
+        "Bonfire Brook",
+        "Bonfire Brook takes the Final!",
       ],
     ])
   })

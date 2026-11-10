@@ -138,37 +138,41 @@ function serialize(result: BattleResult): string {
  * Recaptured in R1 (battle-balance): the authored ladder was scaled down
  * together (basic 10 -> 9, kit 12/16/19/20/14/22 -> 11/15/18/19/13/21), so
  * every stream moves again; the two branch signatures stay at 20/16.
+ * Recaptured in R2 (battle-balance, FR-4/FR-10): the ladder was compressed
+ * again (basic 9, kit 10/14/16/17/12/19, branches 15/12) so the fast fights
+ * stop resolving under 25 s, and the tortoise/shalemole defense floors came
+ * down; every stream moves.
  */
 const GOLDEN: Readonly<Record<string, string>> = {
   // Mirrors: each species fights itself (three kit tiers).
-  "fire_drake|fire_drake|kit2": "5e503651",
-  "fire_drake|fire_drake|kit3": "815a90e8",
-  "fire_drake|fire_drake|kit4": "41f942d9",
-  "plant_ox|plant_ox|kit2": "8ae9a985",
-  "plant_ox|plant_ox|kit3": "0fb82e07",
-  "plant_ox|plant_ox|kit4": "bea8eb58",
-  "water_axolotl|water_axolotl|kit2": "4d058b3d",
-  "water_axolotl|water_axolotl|kit3": "f36b95c2",
-  "water_axolotl|water_axolotl|kit4": "3f91a2ce",
+  "fire_drake|fire_drake|kit2": "903c04c5",
+  "fire_drake|fire_drake|kit3": "0c301a4b",
+  "fire_drake|fire_drake|kit4": "f50a03df",
+  "plant_ox|plant_ox|kit2": "442fe0b5",
+  "plant_ox|plant_ox|kit3": "69dddb5a",
+  "plant_ox|plant_ox|kit4": "046e81c3",
+  "water_axolotl|water_axolotl|kit2": "15b8f825",
+  "water_axolotl|water_axolotl|kit3": "350b2c56",
+  "water_axolotl|water_axolotl|kit4": "5799b46f",
   // Cross-element: fire>plant, water>fire, plant>water, both side orders.
-  "fire_drake|plant_ox|kit2": "a2677d7d",
-  "fire_drake|plant_ox|kit3": "048d47b9",
-  "fire_drake|plant_ox|kit4": "8eec036f",
-  "plant_ox|fire_drake|kit2": "0cf4beed",
-  "plant_ox|fire_drake|kit3": "e32c63b3",
-  "plant_ox|fire_drake|kit4": "eb6e57fd",
-  "fire_drake|water_axolotl|kit2": "433134ed",
-  "fire_drake|water_axolotl|kit3": "021d00e1",
-  "fire_drake|water_axolotl|kit4": "a45a30ca",
-  "water_axolotl|fire_drake|kit2": "a9671aad",
-  "water_axolotl|fire_drake|kit3": "a69dd417",
-  "water_axolotl|fire_drake|kit4": "a7765ecc",
-  "plant_ox|water_axolotl|kit2": "c48189b5",
-  "plant_ox|water_axolotl|kit3": "f68b30fc",
-  "plant_ox|water_axolotl|kit4": "18f898c9",
-  "water_axolotl|plant_ox|kit2": "e84f645d",
-  "water_axolotl|plant_ox|kit3": "911b02de",
-  "water_axolotl|plant_ox|kit4": "7893f5ab",
+  "fire_drake|plant_ox|kit2": "a57ec6dd",
+  "fire_drake|plant_ox|kit3": "dbb561d3",
+  "fire_drake|plant_ox|kit4": "5d3de9d8",
+  "plant_ox|fire_drake|kit2": "a775a239",
+  "plant_ox|fire_drake|kit3": "6e9416b9",
+  "plant_ox|fire_drake|kit4": "01061888",
+  "fire_drake|water_axolotl|kit2": "f971a42d",
+  "fire_drake|water_axolotl|kit3": "08d16a88",
+  "fire_drake|water_axolotl|kit4": "abead972",
+  "water_axolotl|fire_drake|kit2": "2bd633e5",
+  "water_axolotl|fire_drake|kit3": "68815f0e",
+  "water_axolotl|fire_drake|kit4": "e0634a74",
+  "plant_ox|water_axolotl|kit2": "39dd617d",
+  "plant_ox|water_axolotl|kit3": "0ff1b3e2",
+  "plant_ox|water_axolotl|kit4": "78795766",
+  "water_axolotl|plant_ox|kit2": "289cf795",
+  "water_axolotl|plant_ox|kit3": "013b4fae",
+  "water_axolotl|plant_ox|kit4": "94813c6a",
 }
 
 interface RunSummary {
@@ -254,7 +258,9 @@ describe("seeded battle event-stream contract", () => {
     // R1 (battle-balance): scaling the authored ladder down keeps the matrix's
     // projectile impacts under the 35% heavy fraction, so the knockback arm is
     // no longer reached here; the melee heavy rules stay unit-tested in
-    // clock.test.ts, and the digest matrix below still walks stagger and down.
+    // clock.test.ts, and the dedicated synthetic fixture below walks the
+    // knockback path end to end. The digest matrix still walks stagger and
+    // down.
     expect({
       impactStagger: coverage.impactStagger > 0,
       impactKnockback: coverage.impactKnockback > 0,
@@ -286,6 +292,38 @@ describe("seeded battle event-stream contract", () => {
 
     expect(actual).toEqual({ ...GOLDEN })
     expect(SPECIES_CASE_IDS).toHaveLength(SPECIES_PAIRS.length * 2)
+  })
+
+  test("a synthetic heavy blow still walks the legacy knockback path", () => {
+    // R2 (T6): the ladder cut took the matrix's projectile impacts under the
+    // heavy fraction, and the digest re-pin turned `impactKnockback` and
+    // `knockbacks` from true to false — silently removing the only end-to-end
+    // coverage of the legacy knockback arm. This fixture restores it with
+    // synthetic stats: Strike 9 at atk 100 against def 10 deals 90, far above
+    // STAGGER_DAMAGE_FRACTION (35%) of the victim's 100 HP, so a near hit
+    // knocks both fighters apart.
+    const heavy = (name: string, key: string): BattleSide => ({
+      name,
+      id: key,
+      element: "fire",
+      stats: { hp: 100, atk: 100, def: 10, spd: 10 },
+      kit: [],
+      tactic: "balanced",
+      temperament: "rush",
+    })
+    const result = resolveBattle(
+      heavy("Heavy A", "a"),
+      heavy("Heavy B", "b"),
+      5,
+    )
+    expect(
+      result.events.some(
+        (event) =>
+          event.kind === "knockback" ||
+          (event.kind === "basic" && event.reaction === "knockback"),
+      ),
+    ).toBe(true)
+    expect(result.events.some((event) => event.kind === "down")).toBe(true)
   })
 
   test("the innate Strike can never reach the heavy-hit thresholds", () => {
