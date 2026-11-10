@@ -81,6 +81,8 @@ interface Fought {
   readonly reason: string
   readonly winner: 0 | 1 | null
   readonly hits: readonly [number, number]
+  /** Shots launched plus melee swings: blows thrown, landed or not. */
+  readonly thrown: number
 }
 
 /** One fight, measured from the event log the game replays. */
@@ -91,7 +93,9 @@ function fight(home: SpeciesDef, away: SpeciesDef, seed: number): Fought {
     seed,
   )
   const hits: [number, number] = [0, 0]
+  let thrown = 0
   for (const event of result.events) {
+    if (event.kind === "launch" || event.kind === "basic") thrown += 1
     if (event.hit !== true) continue
     if (event.kind !== "basic" && event.kind !== "impact") continue
     hits[event.actorKey === home.id ? 0 : 1] += 1
@@ -108,6 +112,7 @@ function fight(home: SpeciesDef, away: SpeciesDef, seed: number): Fought {
           ? 0
           : 1,
     hits,
+    thrown,
   }
 }
 
@@ -151,9 +156,13 @@ describe("pacing — the tuned duration band (FR-21, AC-7)", () => {
       expect(f.ms).toBeGreaterThanOrEqual(MIN_MS)
       expect(f.ms).toBeLessThanOrEqual(MAX_MS)
       // The loser may land nothing (a glass cannon can be knocked out before
-      // it connects); a winner landing nothing would be a logic regression.
-      if (f.winner !== null) {
-        expect(f.hits[f.winner]).toBeGreaterThan(0)
+      // it connects). Phase 2 (variance): a winner landing nothing is no
+      // longer automatically a logic regression — seed 20261121 throws 15
+      // blows and the tortoise dodges every one, so the fight was fought and
+      // lost on points. The regression this guard owns is a fight where no
+      // blows are thrown at all.
+      if (f.winner !== null && f.hits[f.winner] === 0) {
+        expect(f.thrown).toBeGreaterThan(0)
       }
     }
   })
