@@ -39,4 +39,4 @@
 - [x] **Track: Fire Move Identity** - [20261028-fire-move-identity](./archive/20261028-fire-move-identity/index.md) - feature - high
 - [x] **Track: Continuous Arena Battle** — [20261108-continuous-arena-battle](./archive/20261108-continuous-arena-battle/index.md) — feature — high
 - [x] **Track: Battle Spacing and Cadence** - [20261109-battle-spacing-cadence](./archive/20261109-battle-spacing-cadence/index.md) - feature - high
-- [~] **Track: Battle Agency and Balance** - [20261109-battle-balance](./tracks/20261109-battle-balance/index.md) - feature - high
+- [x] **Track: Battle Agency and Balance** - [20261109-battle-balance](./archive/20261109-battle-balance/index.md) - feature - high
