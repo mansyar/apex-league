@@ -393,3 +393,36 @@ numbers are measured by a tool that predates them.
 - [x] **R2.T7: Measure the outlasting win** - covers: FR-20, AC-17
   - [x] **R2.T7.1:** Print the cap-margin distribution and gate a decisive share
         (knockouts plus cap wins above the margin floor) at two in three.
+
+## Phase R3: The Gate Can See
+
+- **Goal:** the species gate measures real fights, and the five rows it has been hiding are honest.
+- **Depends on:** Phase R2 (`e1d9a9e7`).
+- **Covers:** FR-5, FR-20, FR-1, FR-8, FR-19, AC-5, AC-17, AC-1, AC-8, NFR-3.
+- **Touches:** `packages/sim/scripts/battle-balance-report.ts`,
+  `packages/sim/src/battle/continuous/{balance-report,moves-band,variance}.test.ts`,
+  `packages/sim/src/battle/{moves,roll}.ts`, `packages/sim/src/species/**`,
+  `packages/sim/src/module-size.test.ts`, `conductor/product.md`,
+  `conductor/learnings.md` + tests.
+- **Verification:** `bun run verify`, `bun run build`, `bun run balance`,
+  `bun run telemetry` - four separate commands.
+- **Status:** in_progress
+
+- [ ] **R3.T1: The distinct count reads real final HP** - covers: FR-5, AC-5
+  - [ ] **R3.T1.1:** Key `finalHp` by `side.id ?? side.name` in `measure()` and
+        `measureSpecies()`, and give `measureSpecies` the same distinct-based `se`.
+  - [ ] **R3.T1.2:** Pin the corrected distinct count and a case where two fights share
+        winner and duration but differ in final HP.
+- [ ] **R3.T2: Five species into the gate** - covers: FR-5, AC-5
+  - [ ] **R3.T2.1:** Re-tune reefclaw, earth_tortoise, cindermoor, voltfox and shalemole
+        by whole-band stat shifts, holding every pacing target.
+- [ ] **R3.T3: The decisive share can fail** - covers: FR-20, AC-17
+  - [ ] **R3.T3.1:** Gate `decisiveCapWins / capWins >= 2/3` separately and correct the
+        margin-floor rationale in the code and the spec.
+- [ ] **R3.T4: Branch parity is pinned** - covers: FR-1, FR-8
+  - [ ] **R3.T4.1:** Assert `heavy.power * heavy.accuracy === reliable.power * reliable.accuracy`
+        for every element, and fix the `roll.ts` example.
+- [ ] **R3.T5: The record stops contradicting itself** - covers: FR-19, NFR-3
+  - [ ] **R3.T5.1:** Rewrite the `moves.ts` catalog header, the `product.md` balance
+        bullet, the two stale `spec.md` paragraphs and learnings 16 and 19.
+  - [ ] **R3.T5.2:** Decide and record whether `scripts/` is inside the module-size guard.
