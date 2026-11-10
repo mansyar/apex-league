@@ -429,3 +429,26 @@ numbers are measured by a tool that predates them.
   - [x] **R3.T5.1:** Rewrite the `moves.ts` catalog header, the `product.md` balance
         bullet, the two stale `spec.md` paragraphs and learnings 16 and 19.
   - [x] **R3.T5.2:** Decide and record whether `scripts/` is inside the module-size guard.
+
+## Phase R5: Give the Tank a Landable Swing
+
+- **Goal:** the roster's tank gets a swing that lands inside the exchange, not one that loses to
+  a faster one.
+- **Depends on:** Phase R4 (`29614cbd`).
+- **Covers:** FR-5, FR-20, AC-5.
+- **Touches:** `packages/sim/src/battle/frames.ts`, `packages/sim/src/battle/moves.ts`,
+  `packages/sim/src/battle/continuous/balance-report.test.ts`.
+- **Verification:** `bun run verify`, `bun run build`, `bun run balance`, `bun run telemetry`.
+- **Status:** verified
+- **Result:** verified - the tortoise commits to exactly two rows, so only `boulder_toss` startup
+  moved (600 -> 512); the row went 26.8% (30/112, 30 distinct) to 39.3% (44/112, 35 distinct,
+  se 8.5%) inside its 16.6-point bound and `KNOWN_MISSES` is empty. Gate fully green: cap 30.0%,
+  decisive 92.4%, cap-win quality 74.6%, median 30.69 s, p05 14.96 s, damage 49/49, bosses
+  14/11/10/10/16/12. Recorded residual: the axolotl matchup is unchanged at 1 blow to 11 because
+  those swings are evaded rather than interrupted, so the row went green on other pairings.
+- **Checkpoint:** d191d72d
+- **Evidence:** conductor/tracks/20261109-battle-balance/verification/phase-R5.md
+
+- [x] **R5.T1: Shorten the tank's wind-up** - covers: FR-5
+- [x] **R5.T2: Measure, then decide** - covers: FR-20, AC-5
+- [x] **R5.T3: Record it** - covers: FR-5

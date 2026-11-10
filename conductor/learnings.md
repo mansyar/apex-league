@@ -418,3 +418,24 @@ Twelve of fifteen species still sit outside the 45-55% design band, and they pas
 interval is 24-28 points wide - distinct fights are 12-20 of 112. A gate that passes a 26.8%
 row is telling you it cannot see, not that the row is fine. Print the number on every row so
 nobody can mistake a wide interval for a balanced creature.
+
+## 20. A stat that scales three systems at once taxes the archetype it describes
+
+SPD in this engine drives walk speed, recovery (`recoveryMsFor` = `recoveryMs * 10 / spd`) and
+the dodge threshold. At `spd 4` that is 2.5x recovery on every attack, so the roster's tank
+walked at 460 mm/s *and* waited two and a half times as long between swings. Measured on seed 1
+it closed to a 988 mm median gap - reach was never the problem - and still lost the exchange 8
+blows to 10, and 1 blow to 11 against a neutral opponent, with its own poise bottoming at 0
+while the opponent never dropped below 16. The loop is self-reinforcing: fewer swings, so it
+loses the exchange, so it lives in hitstun and poise break, so its commits are refused, so it
+swings less.
+
+The fix that worked was the one field SPD does not scale: `startupMs` 600 -> 512 on the single
+move it actually commits to, which took the row from 26.8% to 39.3% without touching recovery,
+power or pacing. Two lessons. First, when one stat feeds several systems, a creature defined by
+having little of it is penalised several times over, and the honest fix is to attack the
+multiplication rather than the number. Second, a row can go green on pairings other than the one
+that produced the diagnosis: the hound matchup improved from 8/10 to 10/12 blows, while the
+axolotl matchup stayed at 1 blow to 11, because there the tank's swings are *evaded* rather than
+*interrupted* and a shorter wind-up buys nothing. Record the matchup you diagnosed, not just the
+row you moved.
