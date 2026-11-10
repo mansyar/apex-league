@@ -25,6 +25,8 @@ import {
   measureSpecies,
   report,
   run,
+  SPECIES_MAX,
+  SPECIES_MIN,
   targets,
   typicalLine,
   violations,
@@ -443,14 +445,24 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // galeheron to 37.5% and pushed water_axolotl to a 60.7% gate FAIL).
     // Both rows are held by explicit margin waiver; this test fails if
     // either drifts within one point of an edge, forcing a deliberate
-    // re-pin instead of a silent slide.
+    // re-pin instead of a silent slide. The inset is derived from the
+    // band constants (one point inside the printed 45..55 band), so a band
+    // move carries the test with it.
     const measured = sample()
     const byId = new Map(measured.matrix.species.map((row) => [row.id, row]))
     for (const id of ["galeheron", "cindermoor"]) {
       const rate = byId.get(id)?.rate ?? -1
-      expect(rate).toBeGreaterThanOrEqual(0.46)
-      expect(rate).toBeLessThanOrEqual(0.54)
+      expect(rate).toBeGreaterThanOrEqual(SPECIES_MIN + 0.01)
+      expect(rate).toBeLessThanOrEqual(SPECIES_MAX - 0.01)
     }
+    // Review round 2: voltfox (45.5%) holds only half a point of margin,
+    // thinner than the one-point standard above, so it is pinned here to
+    // inside-only rather than the full inset. Any excursion across either
+    // edge fails the suite via DESIGN_BAND_MISSES; this pin is the early
+    // warning, not the guard.
+    const voltfox = byId.get("voltfox")?.rate ?? -1
+    expect(voltfox).toBeGreaterThanOrEqual(SPECIES_MIN)
+    expect(voltfox).toBeLessThanOrEqual(SPECIES_MAX)
   })
 
   test("the doctrine table's dodge column differs by doctrine (R2 T5)", () => {

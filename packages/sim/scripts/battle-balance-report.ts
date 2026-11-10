@@ -104,8 +104,8 @@ const DOCTRINE_SEEDS = [20261109, 20261110, 20261111] as const
 const BOSS_SEEDS = [20261109, 20261110] as const
 
 /** FR-5 / AC-5: every species lands in this band under the standard doctrine. */
-const SPECIES_MIN = 0.45
-const SPECIES_MAX = 0.55
+export const SPECIES_MIN = 0.45
+export const SPECIES_MAX = 0.55
 
 /**
  * The gate's decision rule (P10.T2.2). A point band is not a decision rule: at
