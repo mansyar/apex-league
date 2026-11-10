@@ -80,6 +80,19 @@ The primary appends after acceptance:
 - [x] **P3.T3: Golden re-pin wave** — covers: FR-5, AC-5
   - [x] **P3.T3.1: Re-pin the Phase-1/Phase-2 golden churn (exhibition, makeBracket, cup-contracts seed-101, clock.contract digest) to received values, each named; no logic change in any of them**
 
+## Phase R1: Review Fixes (round 1 BLOCK)
+
+- **Goal:** plant_ox inside 45-55% point-wise with margin, the out-of-band guardrail verified for every assumption row, edge rows given margin or pinned waivers.
+- **Depends on:** Phase 3 `d80d702a` (gate green, all four commands 0)
+- **Covers:** FR-1, FR-4, FR-5, AC-1
+- **Touches:** `packages/sim/src/species/**` (+ co-located tests), `packages/sim/src/battle/continuous/balance-report.test.ts`, `packages/sim/scripts/battle-balance-report.ts` (only if the guardrail needs a computed table), plus forced golden re-pins. No other production code.
+- **Verification:** `bun run verify`, `bun run build`, `bun run balance`, `bun run telemetry` (four separate runs)
+- **Status:** in_progress
+
+- [ ] **R1.T1: plant_ox inside the band with margin** — covers: FR-1, AC-1
+- [ ] **R1.T2: out-of-band guardrail verified** — covers: FR-5
+- [ ] **R1.T3: edge margins or pinned waivers** — covers: FR-4
+
 <!--
 The primary appends after acceptance:
 **Result:** verified

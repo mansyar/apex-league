@@ -5,7 +5,9 @@
   "base_sha": "7a08d42759d1efcc62bbdc19d476e1a531b9eb8d",
   "branch": "feat/20261111-roster-retune",
   "created_at": "2026-11-11T16:15:00+11:00",
-  "depends_on": ["20261110-battle-variance"],
+  "depends_on": [
+    "20261110-battle-variance"
+  ],
   "doc_sync": "pending",
   "id": "20261111-roster-retune",
   "last_checkpoint": "d80d702a",
@@ -22,11 +24,13 @@
   "revert_commit": null,
   "revert_pr_url": null,
   "reverted_at": null,
-  "review_rounds": 0,
-  "review_verdict": null,
+  "review_rounds": 1,
+  "review_verdict": "BLOCK",
   "spec": "spec.md",
   "status": "in_progress",
   "title": "Roster Re-tune",
   "type": "feature",
-  "updated_at": "2026-11-11T17:30:00+11:00"
+  "updated_at": "2026-11-11T18:00:00+11:00",
+  "phases_total": 4,
+  "tasks_total": 21
 }
