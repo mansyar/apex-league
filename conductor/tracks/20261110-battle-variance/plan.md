@@ -14,7 +14,7 @@
 - **Covers:** FR-1, FR-2, AC-1, AC-2
 - **Touches:** `packages/sim/src/battle/continuous/roll.ts`, `packages/sim/src/battle/moves.ts`, `packages/sim/src/battle/moves-band.test.ts`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Make authored accuracy real** — covers: FR-1, AC-1
   - [ ] **P1.T1.1: Remove the MISS_SCALE transform so each row below 100 rolls its authored probability and 100 consumes no RNG**
