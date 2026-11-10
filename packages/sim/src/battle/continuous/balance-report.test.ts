@@ -308,11 +308,69 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     expect(median.why).toContain("FR-20")
   })
 
+  test("cap-win quality is its own row, not a side effect of decisive share (R3 T3)", () => {
+    // decisiveShare is ko + decisive cap wins over every fight, so a sample
+    // full of knockouts passes it no matter how the cap wins finish. This row
+    // judges the cap wins alone: two in three must clear the margin floor.
+    const measured = sample()
+    const nearTies: BalanceSample = {
+      ...measured,
+      duration: {
+        ...measured.duration,
+        ko: measured.duration.total - 100,
+        time: 100,
+        capMargins: Array.from({ length: 100 }, () => CAP_MARGIN_FLOOR_BP - 1),
+      },
+    }
+    // decisiveShare is satisfied - 740 of 840 fights are knockouts.
+    expect(
+      violations(nearTies).some((row) => row.name === "decisiveShare"),
+    ).toBe(false)
+    const quality = violations(nearTies).find(
+      (row) => row.name === "capWinQuality",
+    )
+    if (!quality) throw new Error("cap-win quality produced no violation")
+    expect(quality.why).toContain("FR-20")
+    expect(quality.why).toContain("AC-17")
+    // Two of three at the floor pass; one basis point below does not.
+    const passes: BalanceSample = {
+      ...measured,
+      duration: {
+        ...measured.duration,
+        ko: 0,
+        time: 100,
+        capMargins: [
+          ...Array.from({ length: 67 }, () => CAP_MARGIN_FLOOR_BP),
+          ...Array.from({ length: 33 }, () => CAP_MARGIN_FLOOR_BP - 1),
+        ],
+      },
+    }
+    expect(
+      violations(passes).some((row) => row.name === "capWinQuality"),
+    ).toBe(false)
+    const fails: BalanceSample = {
+      ...measured,
+      duration: {
+        ...measured.duration,
+        ko: 0,
+        time: 100,
+        capMargins: [
+          ...Array.from({ length: 66 }, () => CAP_MARGIN_FLOOR_BP),
+          ...Array.from({ length: 34 }, () => CAP_MARGIN_FLOOR_BP - 1),
+        ],
+      },
+    }
+    expect(
+      violations(fails).some((row) => row.name === "capWinQuality"),
+    ).toBe(true)
+  })
+
   test("the report names the design-band misses it computes (FR-5, R2 T3)", () => {
     // AC-5's maintained list: a row drifting across 45% or 55% fails here and
     // is updated deliberately. The list is computed, printed and asserted, so
     // it cannot silently go stale like the old one-row KNOWN_MISSES.
     const DESIGN_BAND_MISSES = [
+      "fire_drake",
       "plant_ox",
       "water_axolotl",
       "electric_hound",
@@ -321,6 +379,7 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
       "reefclaw",
       "earth_tortoise",
       "cindermoor",
+      "shalemole",
       "embercub",
       "mossboar",
     ] as const

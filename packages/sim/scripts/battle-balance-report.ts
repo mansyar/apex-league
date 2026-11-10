@@ -145,12 +145,13 @@ const BAND_MAX_MS = 40_000
  * FR-20 / AC-17: two fights in three must end decisively — a knockout, or an
  * outlasting win at the cap whose HP margin clears `CAP_MARGIN_FLOOR_BP`.
  *
- * The floor is one basic strike's worth of pool: `BASIC_MOVE` power 9 against
- * the 189-HP reference line is 4.76%. A cap win must be ahead by **5.00
- * percentage points** of remaining pool, so the margin cannot be produced by
- * the last exchange alone; below that the cap is deciding a tiebreak, not an
- * outlasting. A winner that holds 5% more of its pool than the loser is the
- * smallest gap that survives one more hit.
+ * The margin is measured **per side's own pool**: `winnerHp/winnerMax -
+ * loserHp/loserMax` in hundredths of a point. That is not the 189-HP reference
+ * line — the authored pools run 145-209 HP, so one basic strike (`BASIC_MOVE`,
+ * power 9) is 4.9-6.2% of a 145-186 pool, not 4.76%. Five percentage points is
+ * therefore roughly **one basic hit** of separation: the smallest gap that
+ * survives one more exchange, and the point below which the cap is deciding a
+ * tiebreak rather than an outlasting.
  */
 export const CAP_MARGIN_FLOOR_BP = 500
 export const DECISIVE_SHARE_MIN = 2 / 3
@@ -1129,6 +1130,13 @@ export function targets(sample: BalanceSample): Target[] {
     why: "FR-20 / AC-17: two fights in three must end decisively — a knockout, or an outlasting cap win whose HP margin clears the stated floor",
   })
   out.push({
+    name: "capWinQuality",
+    observed: `${pct(cap.time === 0 ? 0 : decisiveCapWins / cap.time)} (${decisiveCapWins}/${cap.time} cap wins clear ${(CAP_MARGIN_FLOOR_BP / 100).toFixed(2)} pts)`,
+    bound: `>= ${pct(DECISIVE_SHARE_MIN)}`,
+    ok: cap.time !== 0 && decisiveCapWins * 3 >= cap.time * 2,
+    why: "FR-20 / AC-17 (R3): decisiveShare counts knockouts, so it cannot fail on the quality of the cap wins it adds — this row judges the cap wins alone: two in three must finish far enough ahead to be an outlasting, not a tiebreak",
+  })
+  out.push({
     name: "medianDuration",
     observed: `${(cap.median / 1000).toFixed(2)}s`,
     bound: "inside 25.00s..40.00s (>= 25.00s and < 40.00s)",
@@ -1380,6 +1388,9 @@ export function report(sample: BalanceSample): string[] {
   const decisive = duration.ko + decisiveCapWins
   lines.push(
     `decisive share:    ${decisive}/${duration.total} (${pct(duration.total === 0 ? 0 : decisive / duration.total)}; ${duration.ko} ko + ${decisiveCapWins} cap wins at >= ${(CAP_MARGIN_FLOOR_BP / 100).toFixed(2)} pts)`,
+  )
+  lines.push(
+    `cap-win quality:   ${decisiveCapWins}/${duration.time} cap wins clear the floor (${pct(duration.time === 0 ? 0 : decisiveCapWins / duration.time)}; FR-20 / AC-17, gated separately from decisive share)`,
   )
   if (margins.length === 0) {
     lines.push("cap margin:        no cap wins")
