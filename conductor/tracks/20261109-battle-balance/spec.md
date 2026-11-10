@@ -87,7 +87,7 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
 | FR-1 | Every catalog move deals between 4% and 12% of a reference pool, measured on the reference body. | Must |
 | FR-2 | Creature stats are the numbers fought: no scale or weight multiplier sits between the stat sheet and the resolver. | Must |
 | FR-3 | The HP scale is migrated into stored stats in place, and old `balanced`/`specials` tactics map onto doctrines, so an existing creature keeps fighting. | Must |
-| FR-4 | At most one fight in three is decided at the cap, and the majority finish inside 25-40 s. | Must |
+| FR-4 | At most one fight in three is decided at the cap, and the **median** fight finishes inside 25-40 s with a fifth percentile at or above 8 s. A fight decided at the cap is a legitimate outlasting win and is counted by cap share, never by the duration band. | Must |
 | FR-5 | Every available species passes a two-sided 95% test on its seeded matrix win rate, measured under a standard doctrine, with the standard error derived from its **distinct-fight count** rather than its game count. A row below the stated distinct floor is reported as unverified and fails the gate. 45-55% is the design target the tuning aims at and is printed on every row, but it is not the pass condition: 28 independent cells (14 opponents, two orders) cannot resolve a five-point band, so a species that is genuinely balanced would fail a point-band test most of the time. | Must |
 | FR-6 | Bosses and gatekeepers are excluded from the band, but each must have a documented answer available at its intended stage. | Must |
 | FR-7 | One deterministic command reports the matrix, win rates, doctrine effects, damage shares and durations, and fails on a violated target. | Must |
@@ -97,7 +97,7 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
 | FR-17 | The type chart stays at 1.5x / 0.667x. Upsets come from training and positioning, not from weakening or strengthening type. | Must |
 | FR-18 | The elemental chart is made symmetric: fire>plant>water>fire and electric>earth>wind>electric, so every element wins once and loses once. | Must |
 | FR-19 | Every special carries a real per-move cooldown on the live path, derived from its authored `cooldown` tier, so a special cannot be fired again until its timer expires. The basic strike has no cooldown. Cooldown is per move and separate from recovery and from the shared stamina pool, so a kit is a rotation rather than a best-move button. The specific durations are provisional when the mechanism lands and are owned by the balance phase. | Must |
-| FR-20 | Under the standard doctrine at the reference line a fight resolves: at least two fights in three end by knockout and the median duration is strictly below `FIGHT_CAP_MS`. The cap is a safety valve, not the typical ending, so a stalemate cannot be presented as balanced pacing. | Must |
+| FR-20 | Under the standard doctrine at the reference line a fight resolves decisively: at least two fights in three end with a decisive result - a knockout, or an outlasting win at the cap carrying a stated HP margin - and the median duration is strictly below `FIGHT_CAP_MS`. The cap is a safety valve and outlasting is a valid victory, so a stall is measured by its margin and its diversity, not by declaring the archetype illegitimate. | Must |
 | FR-21 | Every fight draws on the seeded RNG: each attack rolls against its authored accuracy, a landed blow carries a bounded damage spread that cannot push any base hit past the 12% ceiling, and the same seed with the same sides replays byte-identically while different seeds produce different fights. A spectator watching a rematch must see a different fight, and a replay must still repeat exactly. | Must |
 
 - **FR-22 (Must):** The balance gate measures each species at its own typical roll -
@@ -129,7 +129,7 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
 | AC-1 | A test walks all 49 moves and asserts each lands inside 4-12% of the reference pool. | FR-1 |
 | AC-2 | No production module reads an HP scale or blow weight. | FR-2 |
 | AC-3 | A pre-change save loads, its creature fights within tolerance, old tactics map to doctrines, and the save is written at the new version. | FR-3, FR-9 |
-| AC-4 | The report shows cap share at or below one in three and a majority of **resolved** fights inside 25-40 s. A fight decided at the cap is counted by cap share and never by the duration band: it did not finish in the window, it ran out of time at the top of it. | FR-4 |
+| AC-4 | The report shows cap share at or below one in three, a median duration inside 25-40 s, a fifth percentile at or above 8 s, and prints the knockout-only duration band as a diagnostic that does not gate. | FR-4 |
 | AC-5 | The report prints each species' rate, distinct-fight count and effective standard error, prints 45-55% as the design target, fails on any species that misses the 95% test or is unverified, and names the rows currently outside the design band in a maintained miss list, so a row drifting silently fails the suite. | FR-5 |
 | AC-6 | Every boss is listed with its documented answer and is beatable at its stage, not trivially. | FR-6 |
 | AC-7 | The report is one command, deterministic across runs, exiting non-zero naming the violated target. | FR-7 |
@@ -137,7 +137,7 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
 | AC-9 | `bun run verify`, `bun run build`, `bun run telemetry` and the report all pass. | FR-1..18 |
 | AC-10 | The chart is symmetric: every element has exactly one win and one loss. | FR-18 |
 | AC-16 | A special cannot be committed again before its cooldown expires, the basic strike is always available, and within the damage band every special hits strictly harder than the basic with the tiers strictly ordered. | FR-1, FR-8, FR-19 |
-| AC-17 | `bun run balance` reports, on the standard-doctrine matrix, a knockout share of at least two in three and a median duration strictly below `FIGHT_CAP_MS`, and fails naming the target when either is missed. | FR-20, FR-4 |
+| AC-17 | The report shows a decisive share of at least two in three (knockouts plus cap wins with a margin at or above the stated floor), a median duration strictly below `FIGHT_CAP_MS`, and a printed cap-margin distribution, failing by name when any is missed. | FR-20 |
 | AC-18 | Two different seeds on the same pairing produce different outcomes in a measured share of the matrix, the same seed reproduces its events and state hash exactly, an accuracy miss appears as an event with a reason, and no rolled hit exceeds the 12% band ceiling. | FR-21, FR-1 |
 
 - **AC-19:** `bun run balance` builds every measured side from its species' bounds
@@ -249,6 +249,21 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
   45-55% stays printed as the design target. A tank whose fights always reach the cap
   cannot be balanced because there is nothing to vary, so making its fights resolve is
   part of the fix, not a workaround.
+
+### Resolved - outlasting is a valid victory (2026-11-10)
+
+The owner ruled that a tanky build is a legitimate build: if the opponent cannot kill it and
+it holds more HP at the end, that is a win, not a stalemate. The track's earlier framing
+treated every cap decision as a failure, which declared a legal archetype illegitimate and
+drove a metric (`resolvedInBand`) that punished it by construction. FR-4 now bounds the
+median and the fifth percentile and keeps cap share as a pacing bound; FR-20 measures a
+**decisive** share - a knockout, or a cap win carrying a stated HP margin - and requires the
+cap-margin distribution to be printed. The knockout-only band survives as a diagnostic so
+nothing is hidden. What replaces the old band is stricter where it matters: a median in the
+window, a floor on the fastest fifth, a margin floor on outlasting wins, and a cap share
+bound, all reported together. The remaining defect for a slow tank is diversity, not
+validity: near-deterministic cap decisions mean the same fight every time, which the
+diversity metric already reports.
 
 ### Stated limitation - the distinct floor is permissive
 

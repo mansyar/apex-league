@@ -322,3 +322,68 @@ and is unaffected.
 
 The balance report remains byte-identical across runs.
 
+## Primary verification
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `bun run verify` | 0 | 3,970 pass, 1 skip, 0 fail, 3,971 tests across 367 files, 64.88 s |
+| `bun run build` | 0 | client bundle, no new warnings |
+| `bun run balance` | 0 | every target holds - first green balance gate in this track |
+| `bun run telemetry` | 0 | 13/13 bounds |
+
+Checkpoint under verification: `d0b6abba` plus the primary's re-pin of the two gate
+tests (`balance-report.test.ts`) and the `metadata.json` trailing newline.
+
+### What the gate now says
+
+| Row | Observed | Bound |
+| --- | --- | --- |
+| cap share | 30.0% (252/840) | <= 33.3% |
+| decisive share | 92.4% (776/840 = 588 ko + 188 cap wins >= 5.00 pts) | >= 66.7% |
+| median duration | 31.21 s | inside 25-40 s |
+| fifth percentile | 14.96 s (min 6.68 s, diagnostic) | >= 8.00 s |
+| damage band | 49/49 moves | 4-12% of the 189 pool |
+| species rows | 15/15 inside the 95% interval | two-sided, `se` from distinct fights |
+| knockout-only band | 41.0% (344/840) | diagnostic only - a cap win is an outlasting win |
+
+### Why the band stopped gating, and why that is not a loosened bound
+
+The owner ruled on 2026-11-10 that a tanky build is a valid build: if the opponent cannot
+kill it and it holds more HP at the end, that is a win. The previous framing counted every
+cap decision as a failure, which declared a legal archetype illegitimate and produced a
+metric that punished it by construction - `resolvedInBand` was 23.1% on a distribution whose
+median was already inside the window.
+
+What replaced it is stricter where it matters and reported together: a median inside 25-40 s
+(was: an unbounded "majority in band"), a floor on the fastest fifth (new), a margin floor on
+outlasting wins so a coin-flip cap decision does not count as decisive (new, `CAP_MARGIN_FLOOR_BP
+= 500`, more than one basic strike's 4.76% so the last exchange alone cannot produce it), and
+cap share at or below one in three. The knockout-only band still prints, labelled diagnostic,
+and a test pins that a pure-cap sample reads 0.0% for it - so nothing is hidden.
+
+### What is honestly not done
+
+The gate is green; the roster is not balanced. Twelve of fifteen species sit outside the
+45-55% design band (reefclaw 71.4%, cindermoor 67.9%, mossboar 64.3%, fernstag 60.7%,
+fire_drake 58.9%, plant_ox 57.1% on the strong side; voltfox 32.1%, shalemole 33.9%,
+galeheron 39.3%, embercub 42.9%, wind_falcon 42.9%, earth_tortoise 26.8% on the weak side).
+They pass because the interval is wide: distinct fights are 12-20 of 112, so `se` is
+12.1-14.4% and the slack is 24-28 points. A gate that passes a 26.8% row cannot tell 26.8%
+from 50%, and saying so is the point of printing the number on every row.
+
+The root cause is variance, not tuning: 112 games are 12-20 distinct fights because the
+engine's outcome is close to a function of the pairing. Balancing the roster needs the
+diversity lever (authored accuracy is transformed by `MISS_SCALE 5` and is near-decorative
+at 94-100% effective) before a five-point band is resolvable. That is recorded as debt in
+the spec's accuracy follow-up and in `learnings.md`, and it is the next balance track's
+first job - not a number to nudge here.
+
+Two further items recorded and not fixed: Kite loses all six sampled fights (a doctrine that
+never wins is not a choice - owner decision, with 24.00 paid dodges per fight as evidence it
+is executing), and the reference-line spread at equal investment runs 14.3%-89.3%, which is
+kit shape rather than stats.
+
+### Not squashed
+
+The range held primary commits (spec amendments, plan surgery, the gate-test re-pin), so the
+phase commits were not squashed into one.

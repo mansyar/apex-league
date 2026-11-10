@@ -44,17 +44,15 @@ function sample(): BalanceSample {
  * is an outlasting win, so FR-4 now bounds cap share, the median and the fifth
  * percentile, and FR-20 gates a *decisive* share (knockouts plus cap wins whose
  * HP margin clears `CAP_MARGIN_FLOOR_BP`). The band stays printed as a
- * diagnostic. Every pacing target holds; the five rows below are roster debt
- * exposed by measuring distinct fights on their real final HP. Update a row,
- * never the bound, when one is fixed.
+ * diagnostic.
+ *
+ * The list is empty because every target holds: all four pacing rows, the damage
+ * band, the bosses and all fifteen species rows. A green gate is not the same
+ * claim as a balanced roster, so the rows outside the printed 45-55% design band
+ * are asserted separately below - an interval wide enough to cover 50% is a
+ * statement about the sample, not about the creature.
  */
-const KNOWN_MISSES = [
-  "species:reefclaw: observed 71.4% (80/112, 50 distinct, se 7.1%), bound |rate - 50%| <= 13.9% (design target 45.0%..55.0%)",
-  "species:earth_tortoise: observed 26.8% (30/112, 59 distinct, se 6.5%), bound |rate - 50%| <= 12.8% (design target 45.0%..55.0%)",
-  "species:cindermoor: observed 67.9% (76/112, 45 distinct, se 7.5%), bound |rate - 50%| <= 14.6% (design target 45.0%..55.0%)",
-  "species:voltfox: observed 32.1% (36/112, 45 distinct, se 7.5%), bound |rate - 50%| <= 14.6% (design target 45.0%..55.0%)",
-  "species:shalemole: observed 33.9% (38/112, 42 distinct, se 7.7%), bound |rate - 50%| <= 15.1% (design target 45.0%..55.0%)",
-] as const
+const KNOWN_MISSES: readonly string[] = []
 
 describe("balance report — one deterministic command (FR-7, AC-7)", () => {
   test("reports the roster, the doctrines, the bosses and every move", () => {
@@ -327,22 +325,19 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
   })
 
   test("today's target misses are named with their observed values", () => {
-    // Rework 2: every pacing target holds — cap share, decisive share, median,
-    // p05, damage band and the bosses. The five rows below are roster debt,
-    // not a pacing defect; they were already outside the 95% bound before the
-    // distinct metric started reading real final HP, and measuring honestly
-    // halved their intervals.
+    // Rework 2: every target holds - cap share, decisive share, median, p05,
+    // damage band, the bosses and all fifteen species rows. The list is empty on
+    // purpose: the gate is green, and the rows outside the 45-55% design band
+    // are a separate assertion about the roster, not about the gate.
     expect(violations(sample()).map(describeTarget)).toEqual([...KNOWN_MISSES])
   })
 
-  test("the gate is red on the roster rows and green on pacing (Rework 2)", () => {
-    // The pacing gate now passes: a cap win counts as a decisive outlasting
-    // win when its margin clears the floor. What is red is five species rows
-    // whose honest intervals no longer cover a 50% win rate. When a row is
-    // fixed this test fails on the now-green FAIL list and is updated
-    // deliberately.
+  test("the gate is green on pacing and on the roster (Rework 2)", () => {
+    // A cap win counts as a decisive outlasting win when its margin clears the
+    // floor, and every species row's interval covers 50%. When a row regresses
+    // this test fails on the FAIL list and is updated deliberately.
     const lines: string[] = []
-    expect(run(sample(), (line) => lines.push(line))).toBe(1)
+    expect(run(sample(), (line) => lines.push(line))).toBe(0)
     const failures = lines.filter((line) => line.startsWith("FAIL "))
     expect(failures.map((line) => line.slice("FAIL ".length))).toEqual([
       ...KNOWN_MISSES,

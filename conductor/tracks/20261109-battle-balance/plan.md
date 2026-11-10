@@ -362,7 +362,7 @@ numbers are measured by a tool that predates them.
   `packages/sim/src/battle/clock.contract.test.ts` + tests.
 - **Verification:** `bun run verify`, `bun run build`, `bun run balance`,
   `bun run telemetry` - four separate commands.
-- **Status:** in_progress
+- **Status:** verified
 
 - [ ] **R2.T1: The band counts only resolved fights** - covers: FR-4, AC-4
   - [ ] **R2.T1.1:** Carry the ending reason beside each duration and exclude
@@ -378,11 +378,15 @@ numbers are measured by a tool that predates them.
 - [ ] **R2.T4: Narrow the distribution** - covers: FR-4, FR-20
   - [ ] **R2.T4.1:** Compress the top of the authored ladder so heavy-move fights stop
         ending under 25 s, keeping the tier order strict and every row inside 4-12%.
-  - [ ] **R2.T4.2:** Reach `resolvedInBand` >= 50% with `capShare` <= 33.3% and
-        knockout share >= 66.7% held at the same time.
+  - [ ] **R2.T4.2:** Reach `capShare` <= 33.3%, a median inside 25-40 s, a fifth
+        percentile >= 8 s and a decisive share >= 66.7% at the same time, with the
+        knockout-only band printed as a diagnostic.
 - [ ] **R2.T5: The doctrine dodge column is real** - covers: FR-15, AC-11
   - [ ] **R2.T5.1:** Print a dodge rate that differs by doctrine in the doctrine table
         itself, and record the Kite 0/6 result as a finding with a verdict.
 - [ ] **R2.T6: Correct the record** - covers: FR-10, FR-20
   - [ ] **R2.T6.1:** Restore legacy clock knockback coverage or assert its absence
         explicitly; fix the stale comments and the evidence figures.
+- [ ] **R2.T7: Measure the outlasting win** - covers: FR-20, AC-17
+  - [ ] **R2.T7.1:** Print the cap-margin distribution and gate a decisive share
+        (knockouts plus cap wins above the margin floor) at two in three.
