@@ -64,6 +64,9 @@ permissions:
     resource: "bun run trace *"
     effect: allow
   - action: shell
+    resource: "bun run balance *"
+    effect: allow
+  - action: shell
     resource: "bun run check *"
     effect: allow
   - action: shell

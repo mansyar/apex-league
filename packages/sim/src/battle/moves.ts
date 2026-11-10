@@ -5,7 +5,49 @@
  * pool's fast chip move and heavy finisher); the last two are the branch
  * signatures, one heavy and one reliable.
  * Pure data and small helpers — no DOM, no jobs, no I/O.
- * Cooldowns are counted in the fighter's own actions, never in clock ticks.
+ *
+ * Cooldowns are milliseconds (`COOLDOWN_MS`), one tier just above the row's own
+ * swing so the gate bites on the second use rather than the first; the fight
+ * clock counts real time, not the fighter's action count (R2).
+ *
+ * Power is one authored ladder, 9..19: the innate strike is 9, the kit rows are
+ * 10/12/14/16/17/19, and the branch signatures are 15/80% (heavy) and 12/100%
+ * (reliable). These already carry the 2x blow weight the continuous engine used
+ * to apply (Phase 5 folded it in, FR-2), just as the HP stat carries the old
+ * 210% arena scale: the sheet's number is the number the fight resolves with.
+ * On the folded reference line (189 pool) a base hit is therefore 4.76-10.05%,
+ * inside the 4-12% band (FR-1); a rear counter may still reach 1.875x that,
+ * which is the reward for earning the angle, not a hole in the band.
+ *
+ * The tier order is strictly ascending and readable straight off the ladder:
+ * basic 9 < light 10 < chip 12 < mid 14 < mid2 16 < bolt 17 < heavy 19. The
+ * six kit rows stay distinct, and a heavy beats its light row on damage and on
+ * poise while costing more stamina and recovering slower — it is the trade, not
+ * a free upgrade (moves-band.test.ts).
+ *
+ * R5: the order above is a power ladder, and power is not the whole sheet. The
+ * frame fields are authored per row in `frames.ts`, and startup is the one of
+ * them `spd` does not scale — recovery is multiplied by `10 / spd`, so the
+ * slowest archetype pays 2.5x on every swing and cannot buy volume back
+ * anywhere else. The tank's `boulder_toss` startup (600 -> 512) is that lever,
+ * and it is the only startup the phase touched.
+ *
+ * R1 (Wall 1) scaled the whole ladder down together, because damage and fight
+ * length are inverse: the old 10..22 line put 46.0% of the matrix inside the
+ * 25-40 s band. R2 then compressed it once more, to the shipped 9..19, to move a
+ * metric that was retired in the same phase; the compression was kept because
+ * the pacing targets it produced are the ones the gate holds today. Two coarser
+ * cuts were measured first: 0.85 gave band 71.9% but cap share 35.0%, and 0.90
+ * gave band 65.5% with cap share 34.3% — both over the one-in-three bound, and
+ * both collapsed the slowest rows' distinct counts.
+ *
+ * The two branch signatures are an equal-expected-damage pair: 15 x 80% =
+ * 12 x 100% = 1200, pinned per element in moves-band.test.ts so the branch
+ * stays a variance choice rather than a power one.
+ *
+ * The heavy finisher authors accuracy 100 (P8.T3.2). At 70 it lost to its own
+ * light row on damage per second even with the cooldown gate pulled back to its
+ * swing; the finisher is the slot you spend on a payoff, not on a miss.
  */
 
 import type { Element } from "../creature"
@@ -22,7 +64,13 @@ export interface MoveDef {
   power: number
   /** Hit chance in percent 1–100. */
   accuracy: number
-  /** How many of the user's own following actions stay blocked. */
+  /**
+   * The cooldown tier: the key `COOLDOWN_MS` maps to milliseconds. Tier 0 is
+   * the innate strike (0 ms, never gated); tiers 1-3 are 1500/2000/2600 ms. The
+   * timer starts when the move commits and is decremented by the fight step, so
+   * a special cannot be fired twice before it runs out. This is not an action
+   * count — the fight clock is real time.
+   */
   cooldown: number
   /** Melee basic resolves only at near; specials are projectiles. */
   melee: boolean
@@ -33,7 +81,7 @@ export const BASIC_MOVE: MoveDef = Object.freeze({
   id: "basic",
   displayName: "Strike",
   element: undefined,
-  power: 4,
+  power: 9,
   accuracy: 100,
   cooldown: 0,
   melee: true,
@@ -65,54 +113,54 @@ function special(
  * identical.
  */
 export const CATALOG: readonly MoveDef[] = Object.freeze([
-  special("spark", "Spark", "fire", 6, 100, 1),
-  special("flame_charge", "Flame Charge", "fire", 8, 90, 1),
-  special("cinder_shot", "Cinder Shot", "fire", 10, 85, 2),
-  special("blaze_bolt", "Blaze Bolt", "fire", 12, 75, 2),
-  special("flare_dart", "Flare Dart", "fire", 7, 95, 1),
-  special("pyre_lance", "Pyre Lance", "fire", 14, 70, 3),
-  special("seed_shot", "Seed Shot", "plant", 6, 100, 1),
-  special("thorn_volley", "Thorn Volley", "plant", 8, 90, 1),
-  special("spore_burst", "Spore Burst", "plant", 10, 85, 2),
-  special("bramble_dart", "Bramble Dart", "plant", 12, 75, 2),
-  special("vine_lash", "Vine Lash", "plant", 7, 95, 1),
-  special("root_quake", "Root Quake", "plant", 14, 70, 3),
-  special("bubble", "Bubble", "water", 6, 100, 1),
-  special("tide_shot", "Tide Shot", "water", 8, 90, 1),
-  special("foam_volley", "Foam Volley", "water", 10, 85, 2),
-  special("splash_bolt", "Splash Bolt", "water", 12, 75, 2),
-  special("mist_spray", "Mist Spray", "water", 7, 95, 1),
-  special("maelstrom", "Maelstrom", "water", 14, 70, 3),
-  special("cinder_dive", "Cinder Dive", "fire", 12, 75, 2),
-  special("pyre_wall", "Pyre Wall", "fire", 9, 100, 2),
-  special("thorn_charge", "Thorn Charge", "plant", 12, 75, 2),
-  special("bramble_guard", "Bramble Guard", "plant", 9, 100, 2),
-  special("riptide_rush", "Riptide Rush", "water", 12, 75, 2),
-  special("tide_aegis", "Tide Aegis", "water", 9, 100, 2),
-  special("static_jolt", "Static Jolt", "electric", 6, 100, 1),
-  special("volt_dash", "Volt Dash", "electric", 8, 90, 1),
-  special("arc_shot", "Arc Shot", "electric", 10, 85, 2),
-  special("storm_bolt", "Storm Bolt", "electric", 12, 75, 2),
-  special("ion_dart", "Ion Dart", "electric", 7, 95, 1),
-  special("gigavolt", "Gigavolt", "electric", 14, 70, 3),
-  special("storm_surge", "Storm Surge", "electric", 12, 75, 2),
-  special("ion_wall", "Ion Wall", "electric", 9, 100, 2),
-  special("pebble_shot", "Pebble Shot", "earth", 6, 100, 1),
-  special("dust_devil", "Dust Devil", "earth", 8, 90, 1),
-  special("clay_burst", "Clay Burst", "earth", 10, 85, 2),
-  special("boulder_toss", "Boulder Toss", "earth", 12, 75, 2),
-  special("sand_blast", "Sand Blast", "earth", 7, 95, 1),
-  special("tectonic_slam", "Tectonic Slam", "earth", 14, 70, 3),
-  special("quake_stomp", "Quake Stomp", "earth", 12, 75, 2),
-  special("basalt_guard", "Basalt Guard", "earth", 9, 100, 2),
-  special("gust", "Gust", "wind", 6, 100, 1),
-  special("feather_dart", "Feather Dart", "wind", 8, 90, 1),
-  special("gale_cutter", "Gale Cutter", "wind", 10, 85, 2),
-  special("sky_bolt", "Sky Bolt", "wind", 12, 75, 2),
-  special("talon_slash", "Talon Slash", "wind", 7, 95, 1),
-  special("hurricane_spiral", "Hurricane Spiral", "wind", 14, 70, 3),
-  special("cyclone_dive", "Cyclone Dive", "wind", 12, 75, 2),
-  special("zephyr_veil", "Zephyr Veil", "wind", 9, 100, 2),
+  special("spark", "Spark", "fire", 10, 100, 1),
+  special("flame_charge", "Flame Charge", "fire", 14, 90, 1),
+  special("cinder_shot", "Cinder Shot", "fire", 16, 85, 2),
+  special("blaze_bolt", "Blaze Bolt", "fire", 17, 75, 2),
+  special("flare_dart", "Flare Dart", "fire", 12, 95, 1),
+  special("pyre_lance", "Pyre Lance", "fire", 19, 100, 3),
+  special("seed_shot", "Seed Shot", "plant", 10, 100, 1),
+  special("thorn_volley", "Thorn Volley", "plant", 14, 90, 1),
+  special("spore_burst", "Spore Burst", "plant", 16, 85, 2),
+  special("bramble_dart", "Bramble Dart", "plant", 17, 75, 2),
+  special("vine_lash", "Vine Lash", "plant", 12, 95, 1),
+  special("root_quake", "Root Quake", "plant", 19, 100, 3),
+  special("bubble", "Bubble", "water", 10, 100, 1),
+  special("tide_shot", "Tide Shot", "water", 14, 90, 1),
+  special("foam_volley", "Foam Volley", "water", 16, 85, 2),
+  special("splash_bolt", "Splash Bolt", "water", 17, 75, 2),
+  special("mist_spray", "Mist Spray", "water", 12, 95, 1),
+  special("maelstrom", "Maelstrom", "water", 19, 100, 3),
+  special("cinder_dive", "Cinder Dive", "fire", 15, 80, 2),
+  special("pyre_wall", "Pyre Wall", "fire", 12, 100, 2),
+  special("thorn_charge", "Thorn Charge", "plant", 15, 80, 2),
+  special("bramble_guard", "Bramble Guard", "plant", 12, 100, 2),
+  special("riptide_rush", "Riptide Rush", "water", 15, 80, 2),
+  special("tide_aegis", "Tide Aegis", "water", 12, 100, 2),
+  special("static_jolt", "Static Jolt", "electric", 10, 100, 1),
+  special("volt_dash", "Volt Dash", "electric", 14, 90, 1),
+  special("arc_shot", "Arc Shot", "electric", 16, 85, 2),
+  special("storm_bolt", "Storm Bolt", "electric", 17, 75, 2),
+  special("ion_dart", "Ion Dart", "electric", 12, 95, 1),
+  special("gigavolt", "Gigavolt", "electric", 19, 100, 3),
+  special("storm_surge", "Storm Surge", "electric", 15, 80, 2),
+  special("ion_wall", "Ion Wall", "electric", 12, 100, 2),
+  special("pebble_shot", "Pebble Shot", "earth", 10, 100, 1),
+  special("dust_devil", "Dust Devil", "earth", 14, 90, 1),
+  special("clay_burst", "Clay Burst", "earth", 16, 85, 2),
+  special("boulder_toss", "Boulder Toss", "earth", 17, 75, 2),
+  special("sand_blast", "Sand Blast", "earth", 12, 95, 1),
+  special("tectonic_slam", "Tectonic Slam", "earth", 19, 100, 3),
+  special("quake_stomp", "Quake Stomp", "earth", 15, 80, 2),
+  special("basalt_guard", "Basalt Guard", "earth", 12, 100, 2),
+  special("gust", "Gust", "wind", 10, 100, 1),
+  special("feather_dart", "Feather Dart", "wind", 14, 90, 1),
+  special("gale_cutter", "Gale Cutter", "wind", 16, 85, 2),
+  special("sky_bolt", "Sky Bolt", "wind", 17, 75, 2),
+  special("talon_slash", "Talon Slash", "wind", 12, 95, 1),
+  special("hurricane_spiral", "Hurricane Spiral", "wind", 19, 100, 3),
+  special("cyclone_dive", "Cyclone Dive", "wind", 15, 80, 2),
+  special("zephyr_veil", "Zephyr Veil", "wind", 12, 100, 2),
 ])
 
 const MOVE_INDEX = new Map(
@@ -122,6 +170,41 @@ const MOVE_INDEX = new Map(
 /** Look up a move by id, or undefined when unknown. */
 export function getMove(id: string): MoveDef | undefined {
   return MOVE_INDEX.get(id)
+}
+
+/**
+ * The live cooldown tier, in milliseconds (FR-19, AC-16, P8.T3). The catalog's
+ * `cooldown` field is the tier key; this table is the one place the duration
+ * is written. Every value is a whole 20 ms step, so the timer never rounds.
+ * Tier 0 is the innate strike, never gated.
+ *
+ * Phase 8 measured the gate against the swing: the exchange rate is set by the
+ * swing (startup + active + recovery) and the press band, not by this timer.
+ * The gate's job is narrower and still real — a special cannot be fired twice
+ * in a row before its own timer runs out. Tiers 1 and 2 sit just above their
+ * own swing (spark 1,106 ms against 1.5 s; cinder_shot 1,738 ms against 2 s).
+ * Tier 3 is authored *at* its swing (pyre_lance 2,610 ms against 2.6 s) because
+ * P8.T3.2 proved the heavy has to stop paying twice: a 3 s gate on a 2.61 s
+ * swing was the last thing making the finisher worse per second than the light
+ * it displaces. Anything shorter than a tier's swing is inert, and an inert
+ * gate is honest — the recovery already covers it.
+ */
+export const COOLDOWN_MS: Readonly<Record<number, number>> = Object.freeze({
+  0: 0,
+  1: 1500,
+  2: 2000,
+  3: 2600,
+})
+
+/** The live cooldown of a move, in ms; 0 for the innate strike. */
+export function cooldownMsFor(id: string): number {
+  const move = getMove(id)
+  if (!move) throw new Error(`Unknown move: ${id}`)
+  const ms = COOLDOWN_MS[move.cooldown]
+  if (ms === undefined) {
+    throw new Error(`No cooldown tier for ${id}: ${move.cooldown}`)
+  }
+  return ms
 }
 
 /** A special is selectable once its remaining cooldown has counted down to 0. */

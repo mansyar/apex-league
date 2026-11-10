@@ -284,3 +284,158 @@ Two concrete traps from the same work:
   arena was ±4,000 x ±3,000 mm while the floor ring was far smaller, so fights
   visibly happened outside the paint. Any world-space constant that appears in
   both the sim and the art is a coupling, and it needs a test.
+
+## 15. A gate that cannot see the lever is not a gate
+
+(20261109-battle-balance, 2026-11-10) The roster re-tune failed twice before it
+worked, and both failures had the same cause: the balance report measured every
+species by clamping one reference line (`189/10/10/10`) into that species' roll
+bounds. A species' stats therefore only reached the fight when its bounds
+excluded 10, so two species whose bounds straddled 10 were measured as the same
+creature. Three phases were spent tuning a measurement that could not see the
+thing being tuned.
+
+What the blindness produced:
+
+- **A wrong conclusion that read like an insight.** "The spread is not in the
+  stat lines, it is kit shape" was true *of the harness*, not of the game. It
+  sent the next phase into a 15-way round robin where a kit reorder moves every
+  row by 10-40 points, which does not converge, and the phase correctly refused
+  to ship a probe fit rather than fake it.
+- **An instrument change is a legitimate deliverable.** The fix was a dozen
+  lines in a script plus two tests - measure each species at the integer
+  midpoint of its own bounds, keep the equal-investment line as a printed
+  diagnostic that never gates - and the re-tune then converged in one phase to
+  15/15 inside the band.
+
+The rule: before tuning a system, prove the measurement moves when you move the
+system. A test that shifts one species' bounds by 2 and shows its measured win
+rate move is worth more than any amount of searching. And when a phase reports
+"this cannot be reached", the first hypothesis should be that the instrument is
+blind, not that the goal is wrong.
+
+Corollary: **refusing to ship a bad fit is the correct outcome.** Phase 11
+returned `failed` with a clean tree and a measured explanation, which is what
+made Phase 12 possible. A phase that had quietly committed the probe roster would
+have poisoned every number after it.
+
+## 16. A target met on average is not met
+
+(20261109-battle-balance, 2026-11-10) Two separate places in this track had to
+choose between an honest miss and a comfortable pass, and both times the honest
+miss was right.
+
+- Phase 10's first pass landed 33.8% cap share against a 33.3% bound and 66.2%
+  knockout against 66.7% - half a point outside on 840 fights, well within one
+  standard error. Softening the damage-spread floor from `base/8` to `base/16`
+  closed it. "Within one SE" is how a regression gate becomes decorative.
+- Phase 4 relaxed a knockout-majority assertion to "at least half" to absorb a
+  7/7 split. That was caught and reverted to a strict guard marked `test.failing`,
+  so the miss stayed visible instead of becoming the new definition of passing.
+
+The related trap is a statistical gate whose slack is wider than its target. A
+95% test over 112 games per species now derives its error from distinct fights, which are 21-34
+of 112, so the slack is 17-21 points and a species can
+"pass" at 42% when the design band is 45-55%. Keep both numbers in the output:
+the gate is what CI enforces, the band is what the game wants, and a report that
+prints only the gate is lying by omission.
+
+Two more from the same track worth remembering:
+
+- **A damage band that only holds before positional multipliers is not a band.**
+  Flank (1.25x) x rear (1.5x) x counter (1.25x) stacks to 1.875x, so a 12% base
+  hit reaches 21.7%. That is fine - it is an earned-angle reward - but it has to
+  be stated, or the next person reads 12% as the ceiling and is wrong.
+- **Diversity is part of balance.** With accuracy near-decorative (94-100%
+  effective) only 9.5% of ordered pairings change winner across seeds, and one
+  species produced 4 distinct fights in 112. A row like that is four coin flips
+  with a standard error printed beside it; it cannot be balanced and should not
+  be reported as balanced.
+
+## 17. A measurement you cannot make is a finding, not a number to fudge
+
+The balance gate computed a binomial standard error from the game count - 112 fights per
+species - while one row contained only 6 distinct fights. The printed error said 4.7
+points; the real spread was plus or minus twenty. The row passed, and the pass was luck.
+
+Two rules came out of it. First, the error must come from the effective sample: derive it
+from the distinct-fight count, state a floor below which a row cannot be judged, and make
+an unverified row **fail** the gate. A gate with an escape hatch is worse than a gate that
+says no, because the escape hatch is invisible in the summary line.
+
+Second, and more useful: if a species cannot be measured, that is a finding about the
+game, not a defect in the harness. A slow tank's fights reach the time cap, a cap decision
+is made on HP percentage, and HP percentage is near-deterministic - so the seed barely
+matters and six coin flips get dressed up as a sample. The honest output is a named
+unverified row with the reason attached, and the real fix is a design answer (mobility, a
+closing move, a cap rule that is not a near-tie), not a stat nudge. Raising that species'
+attack far enough to end fights by knockout overshot the win-rate gate before it satisfied
+the distinct floor, which is the signature of a design problem wearing tuning clothes.
+
+## 18. Pace is a global lever, and identity outranks a pacing bound
+
+Restoring a frail species to frailty dropped the share of fights inside the 25-40 s window
+from 52% to 46%, and the obvious local fix - more defence on the two fastest killers - did
+nothing: their own win rates moved 25-38 points and the band stayed pinned at 46.0%. The
+mass of fights sat just under 25 s across the whole matrix, so only a global lever moved
+it. Scaling the entire authored damage ladder down together, staying inside the frozen 4-12%
+band and keeping the tier order, took the band to 54.5%.
+
+The lesson is about which direction to reach for. A per-species lever moves that species'
+row; a per-system lever moves the distribution. When a distribution statistic is wrong, look
+for a lever that touches every fight before you touch one creature. And when the two
+conflict - a frail creature shortens fights, and a pacing bound wants longer ones - identity
+wins: giving a glass cannon a tank's HP to satisfy a duration target is the same error as
+deleting the invariant that says it is frail, only quieter. Replace the fragile bound
+instead: a floor on the single fastest fight in an 840-fight sample is a target that invites
+propping up an archetype, where a fifth-percentile floor says the same thing without
+demanding that no fight ever be quick.
+
+## 19. A win condition you call a failure will be balanced away
+
+The pacing metric was `resolvedInBand`: the share of fights that ended by knockout inside
+25-40 s. It read 23.1% and the team spent a phase compressing the authored ladder to move
+it, reaching 41.0% while cap share, knockout share and the median were all already healthy.
+The metric was wrong, not the game: a cap decision is how a tank wins, and counting it as
+"did not resolve" made a legal archetype a defect. Worse, the fix for a metric like that is
+always to weaken the archetype - the ladder compression was already trimming the heavy tier
+that the tank's durability exists to survive.
+
+For the record, the ladder compression was made *for* `resolvedInBand`, the metric this
+learning calls wrong, and it was kept afterwards because the pacing targets it moved were real.
+That is the honest sequence: the work was right, the target was not.
+
+The rule: before optimising a metric, ask what behaviour it *rewards*. A metric that can only
+be improved by deleting a legitimate strategy is a specification bug. The replacement kept
+the parts that were true (a median inside the window, a floor on the fastest fifth, cap share
+bounded) and added the part that was missing (an outlasting win counts when its HP margin
+clears a floor, so a coin-flip cap decision does not count as decisive). Cap share 30.0%,
+decisive share 92.4%, median 31.21 s, and the gate went green for the first time - with no
+ladder change beyond what the honest numbers had already asked for.
+
+The corollary is about honesty in the other direction: a green gate is not a balanced roster.
+Twelve of fifteen species still sit outside the 45-55% design band, and they pass because the
+interval is 24-28 points wide - distinct fights are 12-20 of 112. A gate that passes a 26.8%
+row is telling you it cannot see, not that the row is fine. Print the number on every row so
+nobody can mistake a wide interval for a balanced creature.
+
+## 20. A stat that scales three systems at once taxes the archetype it describes
+
+SPD in this engine drives walk speed, recovery (`recoveryMsFor` = `recoveryMs * 10 / spd`) and
+the dodge threshold. At `spd 4` that is 2.5x recovery on every attack, so the roster's tank
+walked at 460 mm/s *and* waited two and a half times as long between swings. Measured on seed 1
+it closed to a 988 mm median gap - reach was never the problem - and still lost the exchange 8
+blows to 10, and 1 blow to 11 against a neutral opponent, with its own poise bottoming at 0
+while the opponent never dropped below 16. The loop is self-reinforcing: fewer swings, so it
+loses the exchange, so it lives in hitstun and poise break, so its commits are refused, so it
+swings less.
+
+The fix that worked was the one field SPD does not scale: `startupMs` 600 -> 512 on the single
+move it actually commits to, which took the row from 26.8% to 39.3% without touching recovery,
+power or pacing. Two lessons. First, when one stat feeds several systems, a creature defined by
+having little of it is penalised several times over, and the honest fix is to attack the
+multiplication rather than the number. Second, a row can go green on pairings other than the one
+that produced the diagnosis: the hound matchup improved from 8/10 to 10/12 blows, while the
+axolotl matchup stayed at 1 blow to 11, because there the tank's swings are *evaded* rather than
+*interrupted* and a shorter wind-up buys nothing. Record the matchup you diagnosed, not just the
+row you moved.

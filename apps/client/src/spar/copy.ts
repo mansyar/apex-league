@@ -3,7 +3,7 @@
  * tactic buttons' labels and previews. Moved verbatim out of spar.ts.
  */
 
-import type { SpeciesDef, Tactic } from "@apex/sim"
+import type { DoctrineId, SpeciesDef, Tactic } from "@apex/sim"
 
 /** FR6 temperament lines, coach-side. */
 export const TEMPERAMENT_LINES: Record<SpeciesDef["temperament"], string> = {
@@ -26,6 +26,22 @@ export const TACTIC_PREVIEWS: Record<Tactic, string> = {
 export const TACTIC_LABELS: Record<Tactic, string> = {
   balanced: "Balanced",
   specials: "Favor Specials",
+}
+
+/** The four positioning doctrines, named the way the HUD names them. */
+export const DOCTRINE_LABELS: Record<DoctrineId, string> = {
+  press: "Press",
+  circle: "Circle",
+  kite: "Kite",
+  counter: "Counter",
+}
+
+/** One line per doctrine, shown before the whistle (FR-11). */
+export const DOCTRINE_PREVIEWS: Record<DoctrineId, string> = {
+  press: "Walks them down, stays on the front foot, barely circles.",
+  circle: "Circles hard and hunts the rear arc.",
+  kite: "Holds long range, backs off below its band, dodges often.",
+  counter: "Holds mid range, waits out startup, punishes recovery.",
 }
 
 /**

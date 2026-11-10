@@ -236,7 +236,7 @@ describe("graduateWithPair to a discovered line", () => {
 
   test("persists nothing new: the save stays at v25 and round-trips", () => {
     const before = recipeState()
-    expect(SAVE_VERSION).toBe(25)
+    expect(SAVE_VERSION).toBe(26)
     const res = graduateWithPair(before, [0, 1], "voltfox", 77)
     if (!res.ok) throw new Error(`graduation failed: ${res.reason}`)
     // The state shape is the GameState shape — no new top-level slice.
@@ -245,6 +245,6 @@ describe("graduateWithPair to a discovered line", () => {
     saveGame(adapter, res.state, 1)
     const loaded = loadGame(adapter)
     expect(loaded?.creature?.speciesId).toBe("voltfox")
-    expect(loadSave(adapter)?.version).toBe(25)
+    expect(loadSave(adapter)?.version).toBe(26)
   })
 })

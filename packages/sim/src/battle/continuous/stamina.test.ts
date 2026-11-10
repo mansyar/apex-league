@@ -233,15 +233,15 @@ describe("stamina — the fight (FR-10, AC-10)", () => {
     const fight = duel(6)
     expect(fight.commit(0, "basic")).toBe(true)
     expect(fight.state.fighters[0].stamina).toBe(0)
-    // basic is 160 + 120 + 500 ms: thirty-nine steps, during which nothing
+    // basic is 160 + 120 + 606 ms: forty-five steps, during which nothing
     // refills.
-    run(fight, 39, HOLDING)
+    run(fight, 45, HOLDING)
     expect(fight.state.fighters[0].attack).toBeNull()
     expect(fight.state.fighters[0].stamina).toBe(0)
     expect(fight.commit(0, "basic")).toBe(false)
     expect(fight.state.fighters[0].attack).toBeNull()
-    // One point per 500 ms: 150 steps refill the six-point pool.
-    run(fight, 150, HOLDING)
+    // Two points per 500 ms: 75 steps refill the six-point pool.
+    run(fight, 75, HOLDING)
     expect(fight.state.fighters[0].stamina).toBe(6)
     expect(fight.commit(0, "basic")).toBe(true)
     expect(fight.state.fighters[0].stamina).toBe(0)
@@ -250,7 +250,7 @@ describe("stamina — the fight (FR-10, AC-10)", () => {
   test("a refused commit does not wedge the fighter: it can still move", () => {
     const fight = duel(6)
     fight.commit(0, "basic")
-    run(fight, 39, HOLDING)
+    run(fight, 45, HOLDING)
     const before = fight.state.fighters[0].pos.x
     expect(fight.commit(0, "basic")).toBe(false)
     fight.advance(ADVANCE)

@@ -32,13 +32,13 @@ function waitingPet(overrides: Partial<Creature> = {}): Creature {
 
 describe("save v24 — the stable", () => {
   test("the schema version is 24", () => {
-    expect(SAVE_VERSION).toBe(25)
+    expect(SAVE_VERSION).toBe(26)
   })
 
   test("a v23 save migrates to an empty stable", () => {
     const owned = chooseStarter(createInitialState(), "fire_drake", 42)
     const migrated = migrate(v23Payload(owned))
-    expect(migrated.version).toBe(25)
+    expect(migrated.version).toBe(26)
     expect(migrated.state.stable).toEqual([])
   })
 

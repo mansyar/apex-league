@@ -153,12 +153,16 @@ describe("the trace stays out of the save", () => {
     const verdict = resolveContinuous(side(), side({ name: "Brook" }), 11)
     expect(streamOf(verdict)).toBeDefined()
     const restored = JSON.parse(JSON.stringify(verdict))
+    // R1 (F2): the verdict gained the paid-dodge tuple, which is plain data and
+    // therefore survives a save round-trip. The stream is what must not.
     expect(Object.keys(restored).sort()).toEqual([
+      "dodges",
       "events",
       "finalHp",
       "reason",
       "winner",
     ])
+    expect(Object.keys(restored)).not.toContain(STREAM_FIELD)
     expect(streamOf(restored)).toBeUndefined()
   })
 

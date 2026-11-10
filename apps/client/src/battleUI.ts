@@ -1,6 +1,8 @@
 import {
   type BattleResult,
   type Creature,
+  DOCTRINE_IDS,
+  type DoctrineId,
   getFrameData,
   getMove,
   getSpecies,
@@ -182,38 +184,44 @@ export function buildKitPicker(options: {
   return { fragment, rows }
 }
 
-export interface TacticButton {
+export interface ChoiceButton<T extends string> {
   button: HTMLButtonElement
-  tactic: Tactic
+  value: T
 }
 
-/**
- * Build the two-button tactic row shared by the spar (label + preview,
- * click starts the fight) and the cup (plain labels, select-then-go).
- * When onClass is given the factory owns the .on selection state;
- * without it buttons stay stateless and every click goes to onPick.
- */
-export function buildTacticRow(options: {
+/** A choice row's shape, shared by tactics and doctrines. */
+export interface ChoiceRowOptions<T extends string> {
   /** Class for the row container itself (`spar-tactics` / `cup-tactic-row`). */
   rowClass: string
-  describe: (tactic: Tactic) => {
+  values: readonly T[]
+  describe: (value: T) => {
     label: string
     preview?: string
     labelClass?: string
     previewClass?: string
   }
   classes: { base: string; on?: string }
-  initialOn?: Tactic
-  onPick: (tactic: Tactic) => void
-}): { row: HTMLDivElement; buttons: TacticButton[] } {
+  initialOn?: T
+  onPick: (value: T) => void
+}
+
+/**
+ * Build a choice row shared by the spar (label + preview, click starts the
+ * fight) and the cup (plain labels, select-then-go). When onClass is given
+ * the factory owns the .on selection state; without it buttons stay
+ * stateless and every click goes to onPick.
+ */
+export function buildChoiceRow<T extends string>(
+  options: ChoiceRowOptions<T>,
+): { row: HTMLDivElement; buttons: ChoiceButton<T>[] } {
   const row = document.createElement("div")
   row.className = options.rowClass
-  const buttons: TacticButton[] = []
-  for (const tactic of ["balanced", "specials"] as const) {
+  const buttons: ChoiceButton<T>[] = []
+  for (const value of options.values) {
     const button = document.createElement("button")
     button.type = "button"
     button.className = options.classes.base
-    const described = options.describe(tactic)
+    const described = options.describe(value)
     if (described.preview !== undefined) {
       const label = document.createElement("span")
       label.className = described.labelClass ?? ""
@@ -231,16 +239,42 @@ export function buildTacticRow(options: {
           selected.classList.toggle(options.classes.on, selected === button)
         }
       }
-      options.onPick(tactic)
+      options.onPick(value)
     })
-    buttons.push({ button, tactic })
+    buttons.push({ button, value })
     row.append(button)
   }
   if (options.initialOn && options.classes.on) {
-    const first = buttons.find((b) => b.tactic === options.initialOn)
+    const first = buttons.find((b) => b.value === options.initialOn)
     first?.button.classList.add(options.classes.on)
   }
   return { row, buttons }
+}
+
+/** A tactic button, kept for callers that still speak the legacy names. */
+export interface TacticButton extends ChoiceButton<Tactic> {
+  tactic: Tactic
+}
+
+/** The legacy two-button tactic row (kept until Phase 5's migration). */
+export function buildTacticRow(
+  options: Omit<ChoiceRowOptions<Tactic>, "values">,
+): { row: HTMLDivElement; buttons: TacticButton[] } {
+  const { row, buttons } = buildChoiceRow<Tactic>({
+    ...options,
+    values: ["balanced", "specials"],
+  })
+  return {
+    row,
+    buttons: buttons.map((entry) => ({ ...entry, tactic: entry.value })),
+  }
+}
+
+/** The four-doctrine row the spar and the cup use (FR-11). */
+export function buildDoctrineRow(
+  options: Omit<ChoiceRowOptions<DoctrineId>, "values">,
+): { row: HTMLDivElement; buttons: ChoiceButton<DoctrineId>[] } {
+  return buildChoiceRow<DoctrineId>({ ...options, values: DOCTRINE_IDS })
 }
 
 /**

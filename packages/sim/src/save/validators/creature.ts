@@ -9,7 +9,7 @@
  */
 
 import { getBranch, LEGACY_BRANCH } from "../../branches"
-import { type Creature, TRAINING_CAP } from "../../creature"
+import { type Creature, type StatKey, trainingCap } from "../../creature"
 import { SICK_COOLDOWN_NIGHTS } from "../../evolution"
 import type { RetiredRecord } from "../../legacy"
 import { getSpecies } from "../../species"
@@ -114,7 +114,7 @@ export function isValidCreature(c: unknown): c is Creature {
       typeof value !== "number" ||
       !Number.isInteger(value) ||
       value < 0 ||
-      value > TRAINING_CAP
+      value > trainingCap(key as StatKey)
     ) {
       return false
     }
@@ -198,12 +198,14 @@ export function isValidRetiredRecord(r: unknown): r is RetiredRecord {
   }
   const trained = rec.trained
   if (typeof trained !== "object" || trained === null) return false
-  for (const value of Object.values(trained as Record<string, unknown>)) {
+  for (const [key, value] of Object.entries(
+    trained as Record<string, unknown>,
+  )) {
     if (
       typeof value !== "number" ||
       !Number.isInteger(value) ||
       value < 0 ||
-      value > TRAINING_CAP
+      value > trainingCap(key as StatKey)
     ) {
       return false
     }

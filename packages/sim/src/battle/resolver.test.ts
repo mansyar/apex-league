@@ -70,19 +70,18 @@ describe("resolveBattle", () => {
 
   test("a one-sided KO ends with winner, reason ko, and a down event", () => {
     // Seed 22's first two rolls (62, 23) are under both accuracies, so the
-    // ATK 20 fights resolve: T1 both launch (Flame Charge / Thorn Volley),
-    // T2 Flame Charge hits Reed for 24 (1.5x, pow 8) and staggers her while
-    // Thorn Volley clips Bolt for 5 (2/3x), and Bolt queues Blaze Bolt.
-    // T3 Blaze Bolt lands for 36 and downs the 40-HP Reed (24 + 36 = 60).
-    // The stagger keeps Reed from ever launching the cooldown-2 Bramble
-    // Dart, so Bolt keeps 35 of 40.
+    // ATK 20 fight resolves: T1 both launch, T2 Flame Charge lands and
+    // staggers Reed while Thorn Volley clips Bolt, and Bolt queues Blaze
+    // Bolt. T3 Blaze Bolt lands and downs the 40-HP Reed (R2 ladder: the two
+    // fire hits total 51). The stagger keeps Reed from ever launching the
+    // cooldown-2 Bramble Dart, so Bolt keeps 31 of 40.
     const bolt = side("Bolt", "fire", { atk: 20 })
     const reed = side("Reed", "plant", {}, { kit: OX_KIT })
     const result = resolveBattle(bolt, reed, 22)
 
     expect(result.reason).toBe("ko")
     expect(result.winner).toBe("Bolt")
-    expect(result.finalHp).toEqual({ Bolt: 35, Reed: -20 })
+    expect(result.finalHp).toEqual({ Bolt: 31, Reed: -11 })
     // The down lands mid-log now: the whole impact step resolves before the
     // judgment, so Reed's own Bramble Dart still appears after the down.
     const down = result.events.find(

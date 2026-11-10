@@ -150,12 +150,13 @@ describe("range and the basic strike", () => {
     if (!ev) throw new Error("basic event missing")
     expect(ev.actor).toBe("Bolt")
     expect(ev.target).toBe("Reed")
-    // max(1, floor(4 * 11 * 1 / (10 * 1))) = 4
-    expect(ev.damage).toBe(4)
+    // Phase 5 fold (FR-10); R1 (battle-balance) power 9, so
+    // max(1, floor(9 * 11 * 1 / (10 * 1))) = 9
+    expect(ev.damage).toBe(9)
     expect(ev.hit).toBe(true)
-    expect(ev.line).toBe("Bolt strikes Reed for 4.")
-    expect(ev.hpAfter).toEqual({ Bolt: 40, Reed: 36 })
-    expect(clock.fighters[1]?.hp).toBe(36)
+    expect(ev.line).toBe("Bolt strikes Reed for 9.")
+    expect(ev.hpAfter).toEqual({ Bolt: 40, Reed: 31 })
+    expect(clock.fighters[1]?.hp).toBe(31)
   })
 })
 
@@ -237,12 +238,12 @@ describe("stagger on heavy blows", () => {
   })
 
   test("a big neutral hit staggers on the damage fraction alone", () => {
-    // atk 36: basic deals floor(4*36/10) = 14 of 40 (35%) — exactly at
-    // the heavy fraction while type-neutral. The victim must still lose
-    // its next window.
+    // Phase 5 fold (FR-10); R1 (battle-balance) power 9: atk 16 keeps
+    // floor(9*16/10) = 14 of 40 (35%) — exactly at the heavy fraction while
+    // type-neutral. The victim must still lose its next window.
     const clock = clockOf(
       [
-        snap("Bolt", "fire", stats(13, 36, 10, 40)),
+        snap("Bolt", "fire", stats(13, 16, 10, 40)),
         snap("Reed", "plant", stats(5, 11, 10, 40)),
       ],
       7,
@@ -255,12 +256,12 @@ describe("stagger on heavy blows", () => {
   })
 
   test("a light super-effective chip does not stagger", () => {
-    // atk 4: Spark deals floor(6*4*2/10) = 4 of 40 (10%) — under the
-    // 15% super-effective floor, so no stagger even though the type
-    // chart favors the blow.
+    // Phase 5 fold (FR-10): power 12; atk 2 keeps floor(12*2*3/(10*2)) = 3 of
+    // 40 (7.5%) — under the 15% super-effective floor, so no stagger even
+    // though the type chart favors the blow.
     const clock = clockOf(
       [
-        snap("Bolt", "fire", stats(13, 4, 10, 40)),
+        snap("Bolt", "fire", stats(13, 2, 10, 40)),
         snap("Reed", "plant", stats(5, 11, 10, 40)),
       ],
       7,
@@ -276,8 +277,8 @@ describe("stagger on heavy blows", () => {
   })
 
   test("a downing blow never staggers", () => {
-    // Reed hp 12: Spark's 12 damage (6 × atk 14 × 1.5x / 10) downs it
-    // outright — a down event, no stagger for the fallen fighter.
+    // Phase 5 fold (FR-10): power 12; Spark's 25 damage (12 × atk 14 × 1.5 / 10)
+    // downs it outright — a down event, no stagger for the fallen fighter.
     const clock = clockOf(
       [
         snap("Bolt", "fire", stats(13, 14, 10, 40)),
@@ -297,16 +298,16 @@ describe("stagger on heavy blows", () => {
   })
 
   test("an already-staggered victim does not stack a second lock", () => {
-    // atk 36: the basic deals floor(4*36/10) = 14 (35%) — heavy, and two
-    // of them (40 HP victim) stay non-lethal. The blows are spaced past
-    // the grace window (triggers t2 and t5) so each is allowed to lock:
-    // t2 basic staggers AND knocks both apart; t3 Reed staggers through
-    // its window; t3 Bolt re-closes (mutual separation), t5 his second
-    // heavy basic re-sets the flag — Reed still loses exactly ONE window
-    // per stagger (t3, t5), never two from a single blow.
+    // Phase 5 fold (FR-10); R1 (battle-balance) power 9: atk 16 keeps the
+    // basic at 14 (35%) — heavy, and two of them (40 HP victim) stay
+    // non-lethal. The blows are spaced past the grace window (triggers t2 and
+    // t5) so each is allowed to lock: t2 basic staggers AND knocks both apart;
+    // t3 Reed staggers through its window; t3 Bolt re-closes (mutual
+    // separation), t5 his second heavy basic re-sets the flag — Reed still
+    // loses exactly ONE window per stagger (t3, t5), never two from one blow.
     const clock = clockOf(
       [
-        snap("Bolt", "fire", stats(13, 36, 10, 40)),
+        snap("Bolt", "fire", stats(13, 16, 10, 40)),
         snap("Reed", "plant", stats(5, 11, 10, 40)),
       ],
       7,
@@ -325,7 +326,7 @@ describe("stagger on heavy blows", () => {
   })
 
   test("cooldowns do not step during a staggered window", () => {
-    // Reed spd 12 acts at t1 (launching a light seed_shot — 3 resisted
+    // Reed spd 12 acts at t1 (launching a light seed_shot — 8 resisted
     // damage, too small to stagger Bolt) putting Spark on a 1-action
     // cooldown; t2 Bolt's point-blank Spark staggers Reed and Reed's
     // own t2 window is the stagger — Spark's cooldown must still read 1
@@ -397,8 +398,8 @@ describe("downed fighters", () => {
     if (!down) throw new Error("down event missing")
     expect(down.actor).toBe("Reed")
     expect(down.line).toBe("Reed is down!")
-    expect(down.hpAfter).toEqual({ Bolt: 40, Reed: 0 })
-    expect(clock.fighters[1]?.hp).toBe(0)
+    expect(down.hpAfter).toEqual({ Bolt: 40, Reed: -10 })
+    expect(clock.fighters[1]?.hp).toBe(-10)
   })
 })
 
@@ -536,12 +537,13 @@ describe("range-shifting knockback", () => {
   })
 
   test("the separation is not grace-gated", () => {
-    // Two heavies land within the 3-tick grace (t2 and t4): the second
-    // lock is suppressed, but the separation still fires so spacing stays
-    // dynamic (clock.ts header contract).
+    // Phase 5 fold (FR-10); R1 (battle-balance) power 9: atk 16 keeps each
+    // basic at 14 (35%), so two heavies land within the 3-tick grace (t2 and
+    // t4): the second lock is suppressed, but the separation still fires so
+    // spacing stays dynamic (clock.ts header contract).
     const clock = clockOf(
       [
-        snap("Bolt", "fire", stats(13, 36, 10, 40)),
+        snap("Bolt", "fire", stats(13, 16, 10, 40)),
         snap("Reed", "plant", stats(5, 11, 10, 40)),
       ],
       7,

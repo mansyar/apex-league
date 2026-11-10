@@ -4,9 +4,23 @@
  * from `createCup` — the pick bounds and labels live in battleUI, the
  * fresh-picks decision in view-models (initialPicks).
  */
-import { battleStats, type Creature, getMove, getSpecies } from "@apex/sim"
-import { buildKitPicker, buildTacticRow, toggleKitChoice } from "../battleUI"
+import {
+  battleStats,
+  type Creature,
+  getMove,
+  getSpecies,
+  RULE_IDS,
+  RULE_LABELS,
+  type RuleId,
+} from "@apex/sim"
+import {
+  buildChoiceRow,
+  buildDoctrineRow,
+  buildKitPicker,
+  toggleKitChoice,
+} from "../battleUI"
 import { formRead } from "../hud/copy-care"
+import { DOCTRINE_LABELS } from "../spar/copy"
 import type { CupShared } from "./shared"
 import { coachTabLabel, initialPicks } from "./view-models"
 
@@ -176,18 +190,33 @@ export function createCoachRoom(shared: CupShared): {
     renderKit()
     const tacticHead = document.createElement("div")
     tacticHead.className = "cup-card-title tactic"
-    tacticHead.textContent = "Tactic"
+    tacticHead.textContent = "Doctrine"
     kitCard.append(tacticHead)
-    const { row: tacticRow } = buildTacticRow({
+    const { row: tacticRow } = buildDoctrineRow({
       rowClass: "cup-tactic-row",
-      describe: (t) => ({ label: t === "balanced" ? "Balanced" : "Specials" }),
+      describe: (d) => ({ label: DOCTRINE_LABELS[d] }),
       classes: { base: "cup-tactic kit-line", on: "on" },
-      initialOn: "balanced",
-      onPick: (t) => {
-        if (mem.picks) mem.picks.tactic = t
+      initialOn: "press",
+      onPick: (d) => {
+        if (mem.picks) mem.picks.doctrine = d
       },
     })
     kitCard.append(tacticRow)
+    const noteHead = document.createElement("div")
+    noteHead.className = "cup-card-title tactic"
+    noteHead.textContent = "Note"
+    kitCard.append(noteHead)
+    const { row: noteRow } = buildChoiceRow<"none" | RuleId>({
+      rowClass: "cup-rule-row",
+      values: ["none", ...RULE_IDS],
+      describe: (r) => ({ label: r === "none" ? "No note" : RULE_LABELS[r] }),
+      classes: { base: "cup-tactic kit-line", on: "on" },
+      initialOn: "none",
+      onPick: (r) => {
+        if (mem.picks) mem.picks.rule = r === "none" ? null : r
+      },
+    })
+    kitCard.append(noteRow)
 
     shared.showScreen("coach")
     // The coaching room is a screen change, not a modal: hand focus to its

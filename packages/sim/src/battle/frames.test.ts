@@ -8,13 +8,15 @@ import { describe, expect, test } from "bun:test"
 import { DEFAULT_POISE_MAX } from "./continuous/poise"
 import { RECOVERY_REFERENCE_SPD, recoveryMsFor } from "./continuous/strike"
 import {
-  BLOW_WEIGHT,
   BODY_RADIUS_MM,
   FRAME_DATA,
   getFrameData,
   validateFrameData,
 } from "./frames"
 import { BASIC_MOVE, CATALOG, getMove } from "./moves"
+
+/** The historical authoring weight, folded into power in Phase 5 (FR-2). */
+const BLOW_WEIGHT = 2
 
 const ELEMENTS = ["fire", "plant", "water", "electric", "earth", "wind"]
 
@@ -168,7 +170,9 @@ describe("frame data — the blow weight (Phase 8)", () => {
 
   test("the basic row is the pre-weight row times the weight", () => {
     const basic = frameOf(BASIC_MOVE.id)
-    expect(basic.recoveryMs).toBe(500)
+    // Phase 8 (FR-20): every authored recovery was raised by ~1.2x to bring the
+    // median fight into the 25-40 s band; 500 x 1.212 = 606.
+    expect(basic.recoveryMs).toBe(606)
     expect(basic.poiseDamage).toBe(4)
     expect(basic.staminaCost).toBe(4)
   })

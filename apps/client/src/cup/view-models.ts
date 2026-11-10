@@ -13,12 +13,13 @@ import {
   type Creature,
   type CupSession,
   cupPlacement,
+  type DoctrineId,
   defaultLoadout,
   type GameState,
   getSpecies,
   isCupDay,
   type RoundVerdict,
-  type Tactic,
+  type RuleId,
 } from "@apex/sim"
 import {
   buildBracketModel,
@@ -91,17 +92,19 @@ export function coachTabLabel(label: string): string {
 }
 
 /** The coach's working picks for a pending match: the creature's own
- * loadout (or the species default) and the balanced tactic, fresh every
- * time the coaching room opens. */
+ * loadout (or the species default), the Press doctrine, and no note, fresh
+ * every time the coaching room opens (FR-13: none is a valid default). */
 export function initialPicks(creature: Creature): {
   loadout: string[]
-  tactic: Tactic
+  doctrine: DoctrineId
+  rule: RuleId | null
 } {
   const cs = getSpecies(creature.speciesId)
   if (!cs) throw new Error("Unknown species: cannot open the coach")
   return {
     loadout: [...(creature.loadout ?? defaultLoadout(creature, cs))],
-    tactic: "balanced",
+    doctrine: "press",
+    rule: null,
   }
 }
 

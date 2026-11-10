@@ -105,19 +105,19 @@ describe("makeExhibition", () => {
         seed: 3,
         species: "water_axolotl",
         tactic: "balanced",
-        stats: { hp: 88, atk: 12, def: 10, spd: 10 },
+        stats: { hp: 162, atk: 12, def: 10, spd: 10 },
       },
       {
         seed: 15,
         species: "fire_drake",
         tactic: "balanced",
-        stats: { hp: 77, atk: 9, def: 7, spd: 12 },
+        stats: { hp: 148, atk: 11, def: 10, spd: 12 },
       },
       {
         seed: 42,
         species: "plant_ox",
         tactic: "specials",
-        stats: { hp: 93, atk: 10, def: 12, spd: 6 },
+        stats: { hp: 171, atk: 11, def: 14, spd: 7 },
       },
     ] as const
     for (const row of pin) {

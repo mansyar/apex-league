@@ -40,7 +40,9 @@ const AT_LEGEND: LadderState = { points: 40, tier: "legend", subTier: "I" }
 /** Cup seeds where the grown reward species takes the bracket (the field
  * is a function of day + seed + the creature's own stats). */
 const TORTOISE_CUP_SEED = 1
-const FALCON_CUP_SEED = 2
+// Re-pinned for the doctrine model (battle-balance phase 1): seed 2 no longer
+// sweeps under Press; seed 1 does.
+const FALCON_CUP_SEED = 1
 
 /** Drive a fresh save to `day` the way the contracts fixture does: bare
  * nightly ticks (the fixture restores the steady conditions afterwards). */

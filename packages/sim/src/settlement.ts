@@ -9,8 +9,8 @@ import {
   type Creature,
   type CreatureConditions,
   type StatKey,
-  TRAINING_CAP,
   type TrainingResult,
+  trainingCap,
 } from "./creature"
 import {
   evaluateEvolution,
@@ -130,10 +130,14 @@ export function trainingPlan(creature: Creature): TrainingPlan {
   }
 
   const gains: Partial<Record<StatKey, number>> = {}
-  if (creature.trained[def.primary] < TRAINING_CAP) gains[def.primary] = 1
+  if (creature.trained[def.primary] < trainingCap(def.primary))
+    gains[def.primary] = 1
   const trickleNight =
     creature.trainingDays > 0 && creature.trainingDays % 3 === 0
-  if (trickleNight && creature.trained[def.trickle] < TRAINING_CAP) {
+  if (
+    trickleNight &&
+    creature.trained[def.trickle] < trainingCap(def.trickle)
+  ) {
     gains[def.trickle] = 1
   }
   return { result: "gained", gains, energyCost: TRAINING_ENERGY_COST }
@@ -176,7 +180,7 @@ export function settleCreature(
   >) {
     trained = {
       ...trained,
-      [stat]: Math.min(TRAINING_CAP, trained[stat] + amount),
+      [stat]: Math.min(trainingCap(stat), trained[stat] + amount),
     }
   }
   const trainingResult = plan.result

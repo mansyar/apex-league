@@ -36,6 +36,15 @@
  * rather than by knockout. The cap is the top of the 25-40 s band, so the band
  * alone cannot tell a long fight from a stalled one.
  *
+ * R1 (F8): FR-4's one-in-three cap target is gated by `bun run balance` over
+ * the standard-doctrine matrix (210 ordered pairings x 4 seeds, every measured
+ * side its species' own typical creature). This script is a different sample —
+ * a small mixed-doctrine smoke fixture whose rows deliberately span rush,
+ * obedient and slow temperaments — so it carries its own looser bound
+ * (`1/2`, the spec's own ceiling) and must not be read as FR-4's verdict.
+ * The bound is not tightened here on purpose: a 14-fight fixture cannot
+ * resolve one-in-three, and tightening it would make the smoke test flaky.
+ *
  * Run it as one command:
  *
  *   bun packages/sim/scripts/battle-telemetry.ts
@@ -88,7 +97,7 @@ import {
  * the middle of the starter band, clamped into each species' own roll bounds,
  * which is what `rampStats` builds for a real cup fight.
  */
-const REFERENCE = { hp: 90, atk: 10, def: 10, spd: 10 } as const
+const REFERENCE = { hp: 189, atk: 10, def: 10, spd: 10 } as const
 
 /** The grid a "distinct position" is counted on, in millimetres. */
 const CELL_MM = 100

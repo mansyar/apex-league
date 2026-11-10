@@ -119,7 +119,7 @@ describe("ghostSparSetup", () => {
     const contender = readGhostContender(ghostBundle())
     expect(contender).not.toBeNull()
     if (contender === null) return
-    const setup = ghostSparSetup(drake, contender, "specials")
+    const setup = ghostSparSetup(drake, contender, "kite")
     expect(setup.rivalSide.name).toBe("Ember")
     expect([...setup.rivalSide.kit]).toEqual(CHAMPION_KIT)
     // The exhibition underneath is untouched: the owner fights their own
@@ -132,8 +132,8 @@ describe("ghostSparSetup", () => {
     const contender = readGhostContender(ghostBundle())
     expect(contender).not.toBeNull()
     if (contender === null) return
-    const first = ghostSparSetup(drake, contender, "balanced")
-    const second = ghostSparSetup(drake, contender, "balanced")
+    const first = ghostSparSetup(drake, contender, "press")
+    const second = ghostSparSetup(drake, contender, "press")
     expect(second).toEqual(first)
     const firstVerdict = resolveSpar(first, contender.seed)
     const secondVerdict = resolveSpar(second, contender.seed)
@@ -154,7 +154,7 @@ describe("ghostSparSetup", () => {
       cups: Object.freeze({ wins: 3 }),
       ladder: Object.freeze({ points: 12 }),
     })
-    const setup = ghostSparSetup(frozenCreature, frozenContender, "balanced")
+    const setup = ghostSparSetup(frozenCreature, frozenContender, "press")
     const verdict = resolveSpar(setup, frozenContender.seed)
     expect(typeof verdict.winner).toBe("string")
     // The local-only rule, structurally: cups, ladder, and the bundle the

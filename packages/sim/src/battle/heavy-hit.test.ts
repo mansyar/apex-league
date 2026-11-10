@@ -76,15 +76,16 @@ interface AttackPath {
 
 const PATHS: readonly AttackPath[] = [
   {
-    // Strike: floor(4 * 60 / 10) = 24.
+    // R1: the ladder scaled to Strike 9 — floor(9 * 54 / 10) = 48.
     name: "melee",
-    bolt: stats(13, 60, 10, 40),
+    bolt: stats(13, 54, 10, 84),
     queue: [CLOSE, BASIC],
   },
   {
-    // Spark, point-blank and type-neutral on its own: floor(6 * 40 / 10) = 24.
+    // R2: Spark is power 10 — floor(10 * 48 / 10) = 48, point-blank and
+    // type-neutral on its own, matching the melee path.
     name: "projectile",
-    bolt: stats(13, 40, 10, 40),
+    bolt: stats(13, 48, 10, 84),
     queue: [CLOSE, { kind: "special", moveId: "spark" }],
   },
 ]
@@ -128,7 +129,7 @@ describe("heavy-hit rule parity across both paths", () => {
       const clock = clockOf(
         [
           snap("Bolt", elements[0], path.bolt),
-          snap("Reed", elements[1], stats(5, 11, 10, 40)),
+          snap("Reed", elements[1], stats(5, 11, 10, 84)),
         ],
         7,
       )
@@ -142,13 +143,13 @@ describe("heavy-hit rule parity across both paths", () => {
     // window is consumed reeling.
     expect(seen).toEqual({
       melee: {
-        hit: { kind: "basic", reaction: "knockback", damage: 24 },
+        hit: { kind: "basic", reaction: "knockback", damage: 48 },
         knockbacks: 1,
         staggers: 1,
         downs: 0,
       },
       projectile: {
-        hit: { kind: "impact", reaction: "knockback", damage: 24 },
+        hit: { kind: "impact", reaction: "knockback", damage: 48 },
         knockbacks: 1,
         staggers: 1,
         downs: 0,
@@ -160,13 +161,13 @@ describe("heavy-hit rule parity across both paths", () => {
     const seen: Record<string, ReturnType<typeof outcome>> = {}
     for (const path of PATHS) {
       const elements = ELEMENT_BY_PATH[path.name] ?? ["fire", "plant"]
-      // Same shape, lethal numbers: each path floors past Reed's 40 HP.
+      // Same shape, lethal numbers: each path floors past Reed's 84 HP.
       const killer =
-        path.name === "melee" ? stats(13, 200, 10, 40) : stats(13, 70, 10, 40)
+        path.name === "melee" ? stats(13, 160, 10, 84) : stats(13, 85, 10, 84)
       const clock = clockOf(
         [
           snap("Bolt", elements[0], killer),
-          snap("Reed", elements[1], stats(5, 11, 10, 40)),
+          snap("Reed", elements[1], stats(5, 11, 10, 84)),
         ],
         7,
       )
@@ -177,14 +178,15 @@ describe("heavy-hit rule parity across both paths", () => {
 
     expect(seen).toEqual({
       melee: {
-        hit: { kind: "basic", reaction: undefined, damage: 80 },
+        // R1: Strike 9 at atk 160 — floor(9 * 160 / 10) = 144.
+        hit: { kind: "basic", reaction: undefined, damage: 144 },
         knockbacks: 0,
         staggers: 0,
         downs: 1,
       },
       projectile: {
-        // Neutral pairing: floor(6 * 70 / 10) = 42, past Reed's 40 HP.
-        hit: { kind: "impact", reaction: undefined, damage: 42 },
+        // Neutral pairing: floor(10 * 85 / 10) = 85, past Reed's 84 HP.
+        hit: { kind: "impact", reaction: undefined, damage: 85 },
         knockbacks: 0,
         staggers: 0,
         downs: 1,
@@ -194,19 +196,19 @@ describe("heavy-hit rule parity across both paths", () => {
 
   test("the innate Strike ignores the type chart while a special does not", () => {
     // The guard that makes FR1's "the melee path passes 1/1" load-bearing:
-    // an identical 10 damage (25% of 40 HP) staggers Reed through super-
+    // an identical 21 damage (25% of 84 HP) staggers Reed through super-
     // effective Spark (1.5x under the 3/2·2/3 chart) but NOT through the
     // typeless innate Strike, which only staggers by sheer size. A shared
     // rule that recomputed the type factor from the fighters' elements
     // would fail the melee half of this.
-    const victim = stats(5, 11, 10, 40)
+    const victim = stats(5, 11, 10, 84)
     const seed = 7
 
     const viaSpecial = outcome(
       drive(
         clockOf(
           [
-            snap("Bolt", "fire", stats(13, 12, 10, 40)),
+            snap("Bolt", "fire", stats(13, 12, 10, 84)),
             snap("Reed", "plant", victim),
           ],
           seed,
@@ -218,7 +220,7 @@ describe("heavy-hit rule parity across both paths", () => {
       drive(
         clockOf(
           [
-            snap("Bolt", "fire", stats(13, 25, 10, 40)),
+            snap("Bolt", "fire", stats(13, 20, 10, 84)),
             snap("Reed", "plant", victim),
           ],
           seed,
@@ -227,12 +229,15 @@ describe("heavy-hit rule parity across both paths", () => {
       ),
     )
 
-    expect(viaSpecial.hit.damage).toBe(10)
-    expect(viaStrike.hit.damage).toBe(10)
-    // Super-effective: 25% clears the lighter 15% floor -> staggers.
+    // R2: the ladder compressed — Spark 10 at atk 12 is floor(10 * 12 / 10)
+    // = 12, 18 after the 3/2 chart; Strike 9 at atk 20 is floor(9 * 20 / 10)
+    // = 18.
+    expect(viaSpecial.hit.damage).toBe(18)
+    expect(viaStrike.hit.damage).toBe(18)
+    // Super-effective: 21% clears the lighter 15% floor -> staggers.
     expect(viaSpecial.hit.reaction).toBe("knockback")
     expect(viaSpecial.staggers).toBe(1)
-    // Typeless: 25% is under the 35% fraction floor -> nothing.
+    // Typeless: 21% is under the 35% fraction floor -> nothing.
     expect(viaStrike.hit.reaction).toBeUndefined()
     expect(viaStrike.staggers).toBe(0)
   })

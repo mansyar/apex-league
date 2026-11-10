@@ -26,6 +26,7 @@ import {
   RETREAT_FRACTION_PERMILLE,
   reachEdgeMm,
 } from "./controller"
+import { DOCTRINES, profileForDoctrine } from "./controller-profile"
 import { type ProjectileState, pointAt, shotDirection } from "./projectile"
 import { DODGE_STAMINA_COST } from "./stamina"
 import {
@@ -61,15 +62,18 @@ const VERBS: readonly ControllerVerb[] = [
   "hold",
   "commit",
   "dodge",
+  "slip",
 ]
 
 function side(key: string, spd: number, x: number, z = 0): FighterInit {
   return { key, spd, at: { x, z } }
 }
 
-/** The direction an order asks for, whether it is a move or a dodge. */
+/** The direction an order asks for, whether it is a move, dodge, or slip. */
 function dir(intent: MoveIntent): Dir2 {
-  return "dodge" in intent ? intent.dodge : intent
+  if ("dodge" in intent) return intent.dodge
+  if ("slip" in intent) return intent.slip
+  return intent
 }
 
 function config(
@@ -544,5 +548,99 @@ describe("controller — a fight progresses", () => {
     for (const pair of result.verbs) {
       for (const verb of pair) expect(VERBS).toContain(verb)
     }
+  })
+})
+
+describe("controller — step out of a whiff, punish the recovery (FR-14, AC-14)", () => {
+  test("the swing is left and the recovery is hit", () => {
+    // Home is Counter at 1,270 mm; the away closes at spd 8 and swings the
+    // innate strike. Twelve run-up steps (one decision cadence) leave the pair
+    // ~1,078 mm apart with the away closing at 0.82 mm/ms. The Counter floor
+    // is 1,058 mm, so the band alone would hold here. The strike's edge is
+    // 860 mm: standing still, the closing covers 230 mm over the 280 ms
+    // startup+active and the blow lands at ~848 mm.
+    const cfg = config([
+      { ...side("home", 10, 0), facing: { x: -1000, z: 0 } },
+      { ...side("away", 8, -1270), facing: { x: 1000, z: 0 } },
+    ])
+    const fight = createFight(cfg)
+    const profile = profileForDoctrine(DOCTRINES.counter, "obedient")
+    let controller = createController()
+    const toward: Dir2 = { x: 1000, z: 0 }
+    for (let i = 0; i < DECISION_STEPS; i++) fight.advance([HOLD, toward])
+    const gapAtCommit = Math.trunc(
+      Math.hypot(
+        fight.state.fighters[1].pos.x - fight.state.fighters[0].pos.x,
+        fight.state.fighters[1].pos.z - fight.state.fighters[0].pos.z,
+      ),
+    )
+    expect(fight.commit(1, "basic")).toBe(true)
+
+    const ordered = decide({
+      state: fight.state,
+      side: 0,
+      controller,
+      profile,
+      kit: KIT,
+    })
+    controller = ordered.state
+    // Half one: the swing is left rather than stood in.
+    expect(ordered.verb).toBe("retreat")
+    expect(dir(ordered.intent).x).toBeGreaterThan(0)
+
+    const homeHp = fight.state.fighters[0].hp
+    const awayHp = fight.state.fighters[1].hp
+    let whiffed = false
+    let whiffMove = ""
+    let landedOnHome = false
+    let punishCommit = false
+    let punishMove = ""
+    let punished = false
+    let punishGap = 0
+    for (let step = 0; step < 120; step++) {
+      const home = decide({
+        state: fight.state,
+        side: 0,
+        controller,
+        profile,
+        kit: KIT,
+      })
+      controller = home.state
+      if (home.commit) {
+        if (fight.state.fighters[1].attack?.phase === "recovery") {
+          punishCommit = true
+          punishMove = home.commit
+          punishGap = Math.trunc(
+            Math.hypot(
+              fight.state.fighters[1].pos.x - fight.state.fighters[0].pos.x,
+              fight.state.fighters[1].pos.z - fight.state.fighters[0].pos.z,
+            ),
+          )
+        }
+        fight.commit(0, home.commit)
+      }
+      const out = fight.advance([home.intent, toward])
+      const whiff = out.whiffs.find((w) => w.attackerKey === "away")
+      if (whiff) {
+        whiffed = true
+        whiffMove = whiff.moveId
+      }
+      for (const strike of out.strikes) {
+        if (strike.targetKey === "home") landedOnHome = true
+      }
+      for (const shot of out.shots) {
+        if (shot.ownerKey === "home" && shot.counter) punished = true
+      }
+    }
+    // Half two: the whiff was real and the recovery was punished.
+    expect(whiffed).toBe(true)
+    expect(landedOnHome).toBe(false)
+    expect(fight.state.fighters[0].hp).toBe(homeHp)
+    expect(punishCommit).toBe(true)
+    expect(punished).toBe(true)
+    expect(fight.state.fighters[1].hp).toBeLessThan(awayHp)
+    console.log(
+      `whiff punish: away swings ${whiffMove} at ${gapAtCommit} mm, home steps out, home commits ${punishMove} at ${punishGap} mm into the recovery, away hp ${awayHp} -> ${fight.state.fighters[1].hp} (${awayHp - fight.state.fighters[1].hp} damage, counter)`,
+    )
   })
 })

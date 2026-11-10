@@ -4,12 +4,15 @@
  *
  * Continuous Arena Battle FR-8 and AC-8. The travel tests pin the integer
  * stepping and the distance-proportional arrival; the dodge tests pin lateral
- * motion as the only way to miss, so the arena — not a roll — decides.
+ * motion as one way to miss. Since Phase 10 a shot can also be rolled out by
+ * its accuracy (FR-21), reported as `missed` and kept apart from `dodged`;
+ * these fixtures take the maximum roll, so geometry is what they measure.
  */
 
 import { describe, expect, test } from "bun:test"
+import type { Rng } from "../../rng"
 import { strikeDamage } from "../damage"
-import { BLOW_WEIGHT, BODY_RADIUS_MM } from "../frames"
+import { BODY_RADIUS_MM } from "../frames"
 import { bodyOf, segmentHitsBody } from "./contact"
 import { openingPoise } from "./poise"
 import {
@@ -122,16 +125,24 @@ function onlyProjectile(fight: Fight): ProjectileState {
   return shot
 }
 
-/** Advance one shot until it resolves, with both bodies held still. */
+/**
+ * Advance one shot until it resolves, with both bodies held still.
+ *
+ * The RNG is the maximum roll — every accuracy check passes and the spread
+ * subtracts nothing — so these fixtures measure geometry and the damage
+ * formula, not the variance. The rolls themselves are tested in
+ * `strike.test.ts` and `variance.test.ts`.
+ */
 function resolveShot(
   shot: ProjectileState,
   before: readonly [FighterState, FighterState],
   after: readonly [FighterState, FighterState],
   stats: readonly [StrikeStats, StrikeStats],
+  rng: Rng = { next: () => 0, int: () => 0, cursor: () => 0 },
 ): ProjectileResolution {
   let projectiles: readonly ProjectileState[] = [shot]
   for (let step = 0; step < 60; step++) {
-    const result = resolveProjectiles(projectiles, before, after, stats)
+    const result = resolveProjectiles(projectiles, before, after, stats, rng)
     if (result.shots.length > 0) return result
     projectiles = result.projectiles
   }
@@ -286,7 +297,7 @@ describe("projectiles — damage reuses the strike path (FR-4)", () => {
     expect(report.position).toBe("front")
     expect(report.counter).toBe(false)
     expect(report.interrupted).toBe(false)
-    expect(report.damage).toBe(strikeDamage(6, 30, 20, BLOW_WEIGHT, 1, true))
+    expect(report.damage).toBe(strikeDamage(10, 30, 20, 1, 1, true))
     expect(result.projectiles).toHaveLength(0)
   })
 
@@ -305,9 +316,7 @@ describe("projectiles — damage reuses the strike path (FR-4)", () => {
         typed,
       ).shots,
     )
-    expect(report.damage).toBe(
-      strikeDamage(6, 30, 20, 3 * BLOW_WEIGHT, 2, true),
-    )
+    expect(report.damage).toBe(strikeDamage(10, 30, 20, 3, 2, true))
   })
 
   test("a shot on a recovering victim is a counter", () => {

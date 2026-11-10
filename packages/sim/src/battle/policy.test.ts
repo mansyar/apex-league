@@ -94,7 +94,7 @@ describe("temperament overrides", () => {
         temperament: "rush",
         actionCount: 3,
       }),
-    ).toEqual(special("blaze_bolt"))
+    ).toEqual(special("cinder_shot"))
     expect(
       chooseAction({
         fighter: bolt,
@@ -133,7 +133,7 @@ describe("temperament overrides", () => {
         temperament: "slow",
         actionCount: 1,
       }),
-    ).toEqual(special("bramble_dart"))
+    ).toEqual(special("spore_burst"))
     expect(
       chooseAction({
         fighter: ox,
@@ -165,17 +165,32 @@ describe("temperament overrides", () => {
         }),
       ).toEqual(expected)
     }
-    // From far: Balanced closes when nothing qualifies; Favor Specials
-    // fires a ready special; with every special cooling it closes. FR6:
-    // Balanced's close case is now the two-move kit against the wall, since
-    // a four-move kit always sustains more than the Strike.
-    check(drake, wall, ["spark", "flame_charge"], "balanced", CLOSE)
+    // From far: Balanced fires the cheapest ready special when the folded
+    // numbers clear the bar; Favor Specials fires a ready special; with every
+    // special cooling it closes. FR6: Balanced's close case is now the
+    // two-move kit against the wall, since a four-move kit always sustains
+    // more than the Strike. Phase 5 (FR-10): the folded Strike and kit keep
+    // that comparison, so this fixture now fires Flame Charge (R1: the 0.94
+    // ladder keeps flame_charge ahead of spark on sustain).
+    check(
+      drake,
+      wall,
+      ["spark", "flame_charge"],
+      "balanced",
+      special("flame_charge"),
+    )
     check(drake, neutral, DRAKE_KIT, "specials", special("flame_charge"))
     const allCool = DRAKE_KIT.reduce((f, id) => cooled(f, id, 2), drake)
     check(allCool, neutral, DRAKE_KIT, "specials", CLOSE)
-    // From near: Balanced basics when nothing qualifies; Favor Specials
-    // fires point-blank.
-    check(near(drake), wall, ["spark", "flame_charge"], "balanced", BASIC)
+    // From near: Balanced fires Flame Charge when it clears the bar; Favor
+    // Specials fires point-blank.
+    check(
+      near(drake),
+      wall,
+      ["spark", "flame_charge"],
+      "balanced",
+      special("flame_charge"),
+    )
     check(near(drake), neutral, DRAKE_KIT, "specials", special("flame_charge"))
   })
 })
@@ -199,7 +214,7 @@ describe("sustained kit output vs the innate Strike", () => {
         temperament: "obedient",
         actionCount: 2,
       }),
-    ).toEqual(special("blaze_bolt"))
+    ).toEqual(special("cinder_shot"))
   })
 
   test("the two tactics rank one kit differently", () => {
@@ -216,11 +231,13 @@ describe("sustained kit output vs the innate Strike", () => {
         temperament: "obedient",
         actionCount: 2,
       })
-    expect(pick("balanced")).toEqual(special("blaze_bolt"))
+    expect(pick("balanced")).toEqual(special("cinder_shot"))
     expect(pick("specials")).toEqual(special("flame_charge"))
   })
 
-  test("Balanced still Strikes when the whole kit sustains less than the Strike", () => {
+  test("Balanced's fallback follows the folded sustain comparison", () => {
+    // R1 (battle-balance): the 0.94 ladder leaves flame_charge the best
+    // sustained row in this kit, so the fallback moved off spark.
     expect(
       chooseAction({
         fighter: near(drake),
@@ -230,7 +247,7 @@ describe("sustained kit output vs the innate Strike", () => {
         temperament: "obedient",
         actionCount: 2,
       }),
-    ).toEqual(BASIC)
+    ).toEqual(special("flame_charge"))
   })
 
   test("Balanced keeps leading with a super-effective special", () => {
@@ -247,7 +264,7 @@ describe("sustained kit output vs the innate Strike", () => {
     ).toEqual(special("spark"))
   })
 
-  test("Favor Specials yields to the Strike when nothing in the kit sustains", () => {
+  test("Favor Specials' fallback follows the folded sustain comparison", () => {
     expect(
       chooseAction({
         fighter: near(drake),
@@ -257,7 +274,7 @@ describe("sustained kit output vs the innate Strike", () => {
         temperament: "obedient",
         actionCount: 2,
       }),
-    ).toEqual(BASIC)
+    ).toEqual(special("flame_charge"))
   })
 
   test("Favor Specials still commits when the kit out-damages the Strike", () => {
@@ -382,10 +399,10 @@ describe("tactic rules when obeyed", () => {
         temperament: "obedient",
         actionCount: 0,
       }),
-    ).toEqual(special("blaze_bolt"))
+    ).toEqual(special("cinder_shot"))
     // FR6 added a third way to qualify. The wall has no super-effective
-    // shot, nothing KOs, and a two-move kit sustains 0.95 against the
-    // Strike's 1 — so close.
+    // shot, nothing KOs, and the folded kit clears the Strike's rate — so it
+    // fires Flame Charge (R1: flame_charge now leads the pair on sustain).
     expect(
       chooseAction({
         fighter: drake,
@@ -395,7 +412,7 @@ describe("tactic rules when obeyed", () => {
         temperament: "obedient",
         actionCount: 0,
       }),
-    ).toEqual(CLOSE)
+    ).toEqual(special("flame_charge"))
   })
 
   test("Balanced fires when a ready special would KO on the integer damage", () => {
@@ -436,9 +453,10 @@ describe("tactic rules when obeyed", () => {
         temperament: "obedient",
         actionCount: 2,
       }),
-    ).toEqual(special("blaze_bolt"))
+    ).toEqual(special("cinder_shot"))
     // FR6: against the wall nothing qualifies, so the point-blank
-    // fallback is a basic.
+    // fallback is a basic. R1: the two-move kit now clears the bar through
+    // flame_charge, which is the row the folded sustain comparison picks.
     expect(
       chooseAction({
         fighter: near(drake),
@@ -448,7 +466,7 @@ describe("tactic rules when obeyed", () => {
         temperament: "obedient",
         actionCount: 2,
       }),
-    ).toEqual(BASIC)
+    ).toEqual(special("flame_charge"))
   })
 })
 

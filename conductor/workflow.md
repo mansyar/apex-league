@@ -49,6 +49,7 @@ commands:
   visual: "playwright-cli"
   telemetry: "bun run telemetry"
   trace: "bun run trace"
+  balance: "bun run balance"
   verify_phase: "bun run verify && bun run build"
 coverage:
   gate: "none"

@@ -14,9 +14,17 @@
  * commit path.
  */
 
+import type { Rng } from "../../rng"
 import { faceOpponent, separateBodies } from "./contact"
+import { tickCooldowns } from "./cooldown"
 import { blowDirection, isStunned, reactToBlow } from "./impulse"
-import { dodgeSpeed, type FencePin, moveFighter, moveStunned } from "./movement"
+import {
+  dodgeSpeed,
+  type FencePin,
+  moveFighter,
+  moveStunned,
+  slipSpeed,
+} from "./movement"
 import { advancePoise, applyPoiseDamage } from "./poise"
 import {
   launchProjectile,
@@ -24,7 +32,7 @@ import {
   resolveProjectiles,
   type ShotReport,
 } from "./projectile"
-import { regenerateStamina, spendDodge } from "./stamina"
+import { regenerateStamina, spendDodge, spendSlip } from "./stamina"
 import {
   advanceFighterAttack,
   resolveStrikes,
@@ -54,6 +62,14 @@ export interface DodgeReport {
   readonly paid: boolean
 }
 
+/** A step-around order and whether the cut ran (FR-11). */
+export interface SlipReport {
+  /** The side that ordered the cut. */
+  readonly key: string
+  /** True when the cut ran; false when the body held for lack of stamina. */
+  readonly paid: boolean
+}
+
 /**
  * A body that spent the step pressed into the fence by knockback (FR-22): the
  * axes it was pinned on, so "no room to retreat" is readable from a step.
@@ -77,6 +93,8 @@ export interface StepOutcome {
   readonly whiffs: readonly WhiffReport[]
   /** Dodge orders this step, paid or refused, in fighter order (FR-10). */
   readonly dodges: readonly DodgeReport[]
+  /** Step-around orders this step, paid or refused, in fighter order (FR-11). */
+  readonly slips: readonly SlipReport[]
   /** Bodies that knockback held against the fence this step (FR-22). */
   readonly pinned: readonly PinnedReport[]
 }
@@ -87,14 +105,16 @@ export interface StepResult extends StepOutcome {
 }
 
 /**
- * What one step needs beyond the state: the fence it is played inside and both
- * sides' strike stats. There is no random source: the step is seed-free
- * (NFR-1), and the seed only decides a capped fight in ./resolve.
+ * What one step needs beyond the state: the fence, both sides' strike stats and
+ * the fight's single seeded random source, read only by the accuracy roll and
+ * the damage spread (FR-21).
  */
 export interface StepContext {
   readonly bounds: ArenaBounds
   /** Both sides' strike stats, in fighter order. */
   readonly stats: readonly [StrikeStats, StrikeStats]
+  /** The fight's seeded RNG: the only random source in the step (FR-21). */
+  readonly rng: Rng
 }
 
 /**
@@ -113,12 +133,13 @@ export function stepFight(
     advanceFighterAttack(before[0]),
     advanceFighterAttack(before[1]),
   ]
-  const struck = resolveStrikes(before, advanced, context.stats)
+  const struck = resolveStrikes(before, advanced, context.stats, context.rng)
   const flight = resolveProjectiles(
     state.projectiles,
     before,
     struck.fighters,
     context.stats,
+    context.rng,
   )
   const launched = launchShots(state.step, before, advanced)
   // Damage, poise, knockback and hitstun all settle through one seam, which
@@ -130,15 +151,18 @@ export function stepFight(
     flight.fighters,
   )
   // Whiffs read the post-strike state: a blow that landed on the window's
-  // final active step is a hit, not also a swing that touched nothing.
-  const whiffs = whiffsOf(before, struck.fighters)
+  // final active step is a hit, not also a swing that touched nothing. A swing
+  // that connected but rolled a miss is resolved the same way and reported
+  // with its own reason (FR-21).
+  const whiffs = [...struck.misses, ...whiffsOf(before, struck.fighters)]
   const dodges: DodgeReport[] = []
+  const slips: SlipReport[] = []
   const pinned: PinnedReport[] = []
   // `applyIntent` carries the attack and both meters across (FR-6, FR-9, FR-10)
   // and, for a stunned body, spends the step sliding on its knockback instead.
   const moved: readonly [FighterState, FighterState] = [
-    applyIntent(settled[0], intents[0], bounds, dodges, pinned),
-    applyIntent(settled[1], intents[1], bounds, dodges, pinned),
+    applyIntent(settled[0], intents[0], bounds, dodges, slips, pinned),
+    applyIntent(settled[1], intents[1], bounds, dodges, slips, pinned),
   ]
   // Bodies are solid, so overlapping centres push apart before the next step
   // (FR-17). Facing then turns from the pre-step facing toward the opponent,
@@ -150,7 +174,8 @@ export function stepFight(
       step: state.step + 1,
       elapsedMs: state.elapsedMs + STEP_MS,
       bounds,
-      fighters,
+      // One fixed step of live time comes off every running move cooldown.
+      fighters: [tickCooldowns(fighters[0]), tickCooldowns(fighters[1])],
       projectiles: [...flight.projectiles, ...launched],
     },
     strikes: struck.strikes,
@@ -158,6 +183,7 @@ export function stepFight(
     launched,
     whiffs,
     dodges,
+    slips,
     pinned,
   }
 }
@@ -177,23 +203,36 @@ function applyIntent(
   intent: MoveIntent,
   bounds: ArenaBounds,
   dodges: DodgeReport[],
+  slips: SlipReport[],
   pinned: PinnedReport[],
 ): FighterState {
   if (isStunned(fighter)) {
     if ("dodge" in intent) dodges.push({ key: fighter.key, paid: false })
+    if ("slip" in intent) slips.push({ key: fighter.key, paid: false })
     const stunned = moveStunned(fighter, bounds)
     if (stunned.pinned.x !== 0 || stunned.pinned.z !== 0) {
       pinned.push({ key: fighter.key, ...stunned.pinned })
     }
     return stunned.fighter
   }
-  if (!("dodge" in intent)) return moveFighter(fighter, intent, bounds)
-  const paid = bursting(fighter, intent.dodge) ? fighter : spendDodge(fighter)
+  if (!("dodge" in intent) && !("slip" in intent)) {
+    return moveFighter(fighter, intent, bounds)
+  }
+  const dodge = "dodge" in intent
+  const dir = dodge ? intent.dodge : intent.slip
+  const speed = dodge ? dodgeSpeed(fighter.spd) : slipSpeed(fighter.spd)
+  const paid = bursting(fighter, dir, speed)
+    ? fighter
+    : dodge
+      ? spendDodge(fighter)
+      : spendSlip(fighter)
   if (!paid) {
-    dodges.push({ key: fighter.key, paid: false })
+    if (dodge) dodges.push({ key: fighter.key, paid: false })
+    else slips.push({ key: fighter.key, paid: false })
     return moveFighter(fighter, HOLD, bounds)
   }
-  dodges.push({ key: fighter.key, paid: true })
+  if (dodge) dodges.push({ key: fighter.key, paid: true })
+  else slips.push({ key: fighter.key, paid: true })
   return moveFighter(paid, intent, bounds)
 }
 
@@ -203,8 +242,7 @@ function applyIntent(
  * its price once, when the burst starts, so holding the order through the
  * window is the same lunge rather than a second one (FR-20).
  */
-function bursting(fighter: FighterState, dir: Dir2): boolean {
-  const speed = dodgeSpeed(fighter.spd)
+function bursting(fighter: FighterState, dir: Dir2, speed: number): boolean {
   const moving = fighter.vel.x * fighter.vel.x + fighter.vel.z * fighter.vel.z
   if (moving < speed * speed) return false
   return fighter.vel.x * dir.x + fighter.vel.z * dir.z > 0

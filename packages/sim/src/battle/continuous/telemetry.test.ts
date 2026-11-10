@@ -121,15 +121,17 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
     expect(measured.duration.max).toBeLessThanOrEqual(40_000)
   })
 
+  // Phase 8 (FR-20, P8.T4): the pacing levers moved the cap share from 8/14
+  // (57.1%) to 6/14 (42.9%), inside the spec's one-in-two ceiling. The marker
+  // is removed deliberately; the bound was never relaxed.
   test("at most one fight in two is decided at the cap (AC-24)", () => {
     assertBounds(["capShare"])
     const cap = sample().cap
     expect(cap.total).toBe(14)
     // The spec's ceiling, in exact integer form: 7/14 passes, 8/14 does not.
     expect(cap.count * 2).toBeLessThanOrEqual(cap.total)
-    // The one-in-three target is missed again at 6/14 (42.9%): the weight
-    // lengthens every cycle, so more fights reach the cap before a knockout.
-    // Pinned as debt, not as met — the spec's own ceiling is the bound above.
+    // The one-in-three target is still missed at 6/14 (42.9%). Pinned as debt,
+    // not as met — the spec's own ceiling is the bound above.
     expect(cap.count * 3).toBeGreaterThan(cap.total)
   })
 

@@ -85,7 +85,7 @@ export const BOSSES: readonly BossDef[] = Object.freeze([
     name: "Sear Marshal Koda",
     speciesId: "fire_drake",
     branch: "legacy",
-    stats: { hp: 92, atk: 13, def: 10, spd: 12 },
+    stats: { hp: 178, atk: 13, def: 10, spd: 12 },
     loadout: ["spark", "flame_charge", "blaze_bolt", "flare_dart"],
     tactic: "specials",
     intro:
@@ -102,7 +102,7 @@ export const BOSSES: readonly BossDef[] = Object.freeze([
     name: "Verdant Dame Hesse",
     speciesId: "plant_ox",
     branch: "legacy",
-    stats: { hp: 100, atk: 11, def: 13, spd: 8 },
+    stats: { hp: 193, atk: 11, def: 13, spd: 8 },
     loadout: ["seed_shot", "thorn_volley", "spore_burst", "vine_lash"],
     tactic: "balanced",
     intro:
@@ -119,7 +119,7 @@ export const BOSSES: readonly BossDef[] = Object.freeze([
     name: "Tide Regent Marlow",
     speciesId: "water_axolotl",
     branch: "legacy",
-    stats: { hp: 92, atk: 12, def: 9, spd: 11 },
+    stats: { hp: 178, atk: 12, def: 9, spd: 11 },
     loadout: ["bubble", "splash_bolt", "foam_volley", "mist_spray"],
     tactic: "specials",
     intro:
@@ -136,7 +136,7 @@ export const BOSSES: readonly BossDef[] = Object.freeze([
     name: "Squall Herald Delmar",
     speciesId: "water_axolotl",
     branch: "legacy",
-    stats: { hp: 93, atk: 11, def: 11, spd: 11 },
+    stats: { hp: 178, atk: 11, def: 11, spd: 11 },
     loadout: ["bubble", "tide_shot", "foam_volley", "mist_spray"],
     tactic: "specials",
     intro:
@@ -153,7 +153,7 @@ export const BOSSES: readonly BossDef[] = Object.freeze([
     name: "Cinder Abbot Fenn",
     speciesId: "fire_drake",
     branch: "legacy",
-    stats: { hp: 92, atk: 13, def: 9, spd: 12 },
+    stats: { hp: 178, atk: 13, def: 10, spd: 12 },
     loadout: ["spark", "flame_charge", "blaze_bolt", "pyre_lance"],
     tactic: "balanced",
     intro:
@@ -170,7 +170,7 @@ export const BOSSES: readonly BossDef[] = Object.freeze([
     name: "Grove Sovereign Thessa",
     speciesId: "plant_ox",
     branch: "legacy",
-    stats: { hp: 95, atk: 11, def: 13, spd: 8 },
+    stats: { hp: 193, atk: 11, def: 13, spd: 8 },
     loadout: ["seed_shot", "thorn_volley", "bramble_dart", "root_quake"],
     tactic: "specials",
     intro:

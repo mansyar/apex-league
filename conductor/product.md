@@ -96,6 +96,22 @@ Phased delivery plan (each phase is independently playable):
   bounds are enforced in CI. Fights run 25–40 s with both sides landing. The
   gauge clock is frozen as a replay-only path and `SIM_VERSION` is 2. Cup and
   Spar both resolve on the new engine.)*
+- Battle agency and balance: the player decides *how* a fight is fought, and the
+  numbers are measured rather than assumed. *(Landed 2026-11-10: four positioning
+  doctrines - Press, Circle, Kite, Counter - plus one conditional coach's note,
+  with temperament shading execution inside the doctrine's band rather than
+  setting it; a controller that executes competently (opponent reach model,
+  whiff-and-punish, commitment timing, stamina reserve, bounded pattern memory);
+  a real per-move cooldown so a kit is a rotation and specials out-damage the
+  basic; a symmetric type chart of two 3-cycles at 1.5x / 0.667x; the HP scale
+  and blow weight folded into the stats and move power so the sheet shows the
+  numbers the fight uses (save v26 migrates in place); damage on every move
+  inside 4-12% of the reference pool; seeded accuracy rolls and a bounded damage
+  spread so a rematch is a different fight while a replay still repeats exactly;
+  and a deterministic balance gate that measures each species at its own typical
+  roll and holds every species to a two-sided 95% test on a matrix measured at its bounds
+  midpoint. Shipped figures are in the balance-gate bullet below.)*
+- Balance gate: `bun run balance` measures every species at its bounds midpoint across a seeded matrix and fails on any row that misses the two-sided 95% test or cannot be judged. An outlasting win is a legitimate victory: a tank that survives and holds more HP at the cap wins, so the gate bounds cap share (<= 1/3), the median duration (25-40 s), the fastest fifth (>= 8 s), a decisive share (knockouts plus cap wins with a real HP margin, >= 2/3) and cap-win quality (>= 2/3 of cap wins clear the margin floor), and prints the knockout-only band as a diagnostic. Shipped: 15/15 species pass, 29.8% decided at the cap, 70.2% by knockout, median 30.6 s. The gate is green; the roster is not yet balanced - three of fifteen species sit inside the printed 45-55% design band and twelve outside it, because 112 games are only 21-34 distinct fights, which buys a 17-21 point interval. Widening fight variance comes before narrowing that band.
 - Battle system: 4 stats + 6 types, move pool + equip-4, type/HP battle AI.
   *(Landed core 2026-10-10: headless deterministic resolver — speed-gauge action
   clock, type chart, projectile specials with travel/accuracy/dodge, equip-4

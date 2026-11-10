@@ -227,11 +227,11 @@ describe("recovery — scaled inversely by spd (FR-5)", () => {
   test("a faster fighter recovers faster than the reference", () => {
     const basic = getFrameData("basic")
     if (!basic) throw new Error("basic is missing")
-    // basic authors 500 ms of recovery (250 ms before the blow weight); the
+    // basic authors 606 ms of recovery (the Phase 8 authored scale); the
     // reference speed is 10.
-    expect(recoveryMsFor(basic, 5)).toBe(1000)
-    expect(recoveryMsFor(basic, 10)).toBe(500)
-    expect(recoveryMsFor(basic, 20)).toBe(250)
+    expect(recoveryMsFor(basic, 5)).toBe(1212)
+    expect(recoveryMsFor(basic, 10)).toBe(606)
+    expect(recoveryMsFor(basic, 20)).toBe(303)
   })
 
   test("a non-positive speed or a zero-length result is rejected", () => {

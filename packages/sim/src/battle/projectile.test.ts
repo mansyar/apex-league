@@ -72,9 +72,9 @@ describe("projectiles", () => {
     expect(r2.events[0]?.actor).toBe("Bolt")
     expect(r2.events[0]?.target).toBe("Reed")
     expect(r2.events[0]?.hit).toBe(true)
-    expect(r2.events[0]?.damage).toBe(18)
-    expect(r2.events[0]?.line).toBe("Blaze Bolt hits Reed for 18.")
-    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: 22 })
+    expect(r2.events[0]?.damage).toBe(25)
+    expect(r2.events[0]?.line).toBe("Blaze Bolt hits Reed for 25.")
+    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: 15 })
     // The impact ran before gauges and actions: Bolt is cooling down and
     // holds; Reed (SPD 5) never reaches the gauge.
     expect(kinds(r2.events)).toEqual(["impact", "hold"])
@@ -82,8 +82,8 @@ describe("projectiles", () => {
 
   test("a point-blank special resolves on the acting tick with accuracy only", () => {
     // Reed (plant, ox kit) closes tick 1 and fires Seed Shot tick 2: plant
-    // is 2/3x into fire, so 6 power from ATK 8 into DEF 10 is 3 damage; no
-    // launch event and no travel.
+    // is 2/3x into fire, so the 10-power row from ATK 8 into DEF 10 is 5
+    // damage; no launch event and no travel.
     const reedPlans: PlanFn_ = (f) =>
       f.range === "far" ? CLOSE : special("seed_shot")
     const clock = clockOf(
@@ -99,9 +99,9 @@ describe("projectiles", () => {
     expect(r2.events[0]?.target).toBe("Bolt")
     expect(r2.events[0]?.moveId).toBe("seed_shot")
     expect(r2.events[0]?.hit).toBe(true)
-    expect(r2.events[0]?.damage).toBe(3)
-    expect(r2.events[0]?.line).toBe("Seed Shot hits Bolt for 3.")
-    expect(r2.events[0]?.hpAfter).toEqual({ Reed: 40, Bolt: 37 })
+    expect(r2.events[0]?.damage).toBe(5)
+    expect(r2.events[0]?.line).toBe("Seed Shot hits Bolt for 5.")
+    expect(r2.events[0]?.hpAfter).toEqual({ Reed: 40, Bolt: 35 })
   })
 
   test("an accuracy miss leaves HP untouched and consumes no dodge roll", () => {
@@ -164,7 +164,7 @@ describe("dodge against a moving target", () => {
 
   test("the hit lands when the dodge roll fails (seed 5)", () => {
     // Seed 5 draws d1 = 68 (accuracy hit) and d2 = 77 (over 56): the shot
-    // lands for 24 fire-into-plant.
+    // lands for 25 fire-into-plant.
     const clock = clockOf(
       snap("Bolt", "fire", stats(12)),
       snap("Reed", "plant", stats(12, 10, 10, 40)),
@@ -176,19 +176,19 @@ describe("dodge against a moving target", () => {
     expect(r2.events[0]?.kind).toBe("impact")
     expect(r2.events[0]?.hit).toBe(true)
     expect(r2.events[0]?.missReason).toBeUndefined()
-    expect(r2.events[0]?.damage).toBe(18)
-    expect(r2.events[0]?.line).toBe("Blaze Bolt hits Reed for 18.")
-    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: 22 })
+    expect(r2.events[0]?.damage).toBe(25)
+    expect(r2.events[0]?.line).toBe("Blaze Bolt hits Reed for 25.")
+    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: 15 })
   })
 
   test("standing still never consumes a dodge roll", () => {
     // Seed 1 draws d1 = 62 (accuracy hit) and d2 = 0. Reed holds, so the
     // engine must not draw a dodge roll at all: a wrongly drawn 0 would
     // dodge the shot, and this test pins that it does not.
-    // Golden update (element chart, FR1): 18 of 40 HP is 45% — the victim
+    // Golden update (element chart, FR1): 25 of 40 HP is 62.5% — the victim
     // still staggers instead of holding its second window. Bolt sorts
     // before Reed in the t2 ready loop, so the tail is ["impact", "hold",
-    // "stagger"]. The dodge-roll pin is unchanged: hit true, full 18
+    // "stagger"]. The dodge-roll pin is unchanged: hit true, full 25
     // damage, no dodge drawn.
     const plan: PlanFn_ = (f) => (f.name === "Bolt" ? boltPlans(f) : HOLD)
     const clock = clockOf(
@@ -201,17 +201,17 @@ describe("dodge against a moving target", () => {
     const r2 = clock.advance(plan)
     expect(kinds(r2.events)).toEqual(["impact", "hold", "stagger"])
     expect(r2.events[0]?.hit).toBe(true)
-    expect(r2.events[0]?.damage).toBe(18)
-    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: 22 })
+    expect(r2.events[0]?.damage).toBe(25)
+    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: 15 })
   })
 })
 
 describe("shots in flight at the end", () => {
   test("an impact step resolves every in-flight shot before the judgment", () => {
-    // Bolt's ATK 23 Blaze Bolt deals 41 fire-into-plant (1.5x) and downs
+    // Bolt's ATK 27 Blaze Bolt deals 68 fire-into-plant (1.5x) and downs
     // the 40-HP Reed at the tick-2 impact step, but the whole step
     // resolves first, so Reed's launched Bramble Dart still lands against
-    // the pre-step HP (2/3x into fire against DEF 15: 5 — kept below the
+    // the pre-step HP (2/3x into fire against DEF 15: 7 — kept below the
     // stagger floor). The disposition is judged after the step, and the
     // fight-over tick runs no actions.
     const boltPlans: PlanFn_ = (f) =>
@@ -225,7 +225,7 @@ describe("shots in flight at the end", () => {
     const plan: PlanFn_ = (f) =>
       f.name === "Bolt" ? boltPlans(f) : reedPlans(f)
     const clock = clockOf(
-      snap("Bolt", "fire", stats(12, 23, 15, 40)),
+      snap("Bolt", "fire", stats(12, 27, 15, 40)),
       snap("Reed", "plant", stats(12, 10, 10, 40)),
       22,
     )
@@ -236,11 +236,11 @@ describe("shots in flight at the end", () => {
     const r2 = clock.advance(plan)
     // Both impacts land in launch order; the down follows its own impact.
     expect(kinds(r2.events)).toEqual(["impact", "down", "impact"])
-    expect(r2.events[0]?.damage).toBe(41)
-    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: -1 })
+    expect(r2.events[0]?.damage).toBe(68)
+    expect(r2.events[0]?.hpAfter).toEqual({ Bolt: 40, Reed: -28 })
     expect(r2.events[1]?.line).toBe("Reed is down!")
-    expect(r2.events[2]?.damage).toBe(5)
-    expect(r2.events[2]?.hpAfter).toEqual({ Bolt: 35, Reed: -1 })
+    expect(r2.events[2]?.damage).toBe(7)
+    expect(r2.events[2]?.hpAfter).toEqual({ Bolt: 33, Reed: -28 })
     // After the step is judged, no pending shot fires and only a live
     // fighter acts.
     const r3 = clock.advance(() => HOLD)

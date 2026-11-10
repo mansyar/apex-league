@@ -348,48 +348,40 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
     expect(session.completionVerdicts.map(row)).toEqual([])
   })
 
-  // Eliminated ending: seed 7, the player exits at the final.
-  // Re-pinned for the continuous engine (phase 7): the same seed now reaches
-  // the final instead of falling in the semifinal, so the bracket completes
-  // without any further match (no completion verdicts).
-  // Re-pinned again for contact geometry (phase 8): with lock-on facing and
-  // body volumes the same seed won the final.
-  // Re-pinned for pacing (phase 10): the longer fights hand the final back to
-  // Cindersnout, so this row is a true final loss again.
-  // Re-pinned for the HP re-tune (spacing/cadence phase 4): Driftbelle now
-  // takes QF1, SF2 and the final, so the champion moved from Cindersnout to
-  // Driftbelle and the player still loses the final (placement 2).
-  test("seed 7: the final is lost, not crowned", () => {
-    const session = playToCompletion(DAY, 7)
-    expect(session.status).toBe("eliminated")
-    expect(session.championName).toBe("Cindersnout")
-    expect(cupPlacement(session)).toBe(2)
+  // Champion ending: seed 1, the player takes all three rounds.
+  // Re-pinned for the damage band (battle-balance phase 4): the final moved
+  // from Thistledown Ash to Cindersnout, and Ember Drake now takes it.
+  test("seed 1: the player takes the crown", () => {
+    const session = playToCompletion(DAY, 1)
+    expect(session.status).toBe("champion")
+    expect(session.championName).toBe("Ember Drake")
+    expect(cupPlacement(session)).toBe(1)
     expect(session.rivalVerdicts.map(row)).toEqual([
       [
         1,
         "Reedle Mirefin",
-        "Emberhold Flicker",
-        "Emberhold Flicker",
-        "Emberhold Flicker takes the Quarterfinal!",
+        "Tidecaller Nibbles",
+        "Reedle Mirefin",
+        "Reedle Mirefin takes the Quarterfinal!",
       ],
       [
         1,
-        "Driftbelle",
+        "Ash-ledger",
+        "Thistledown Ash",
+        "Ash-ledger",
+        "Ash-ledger takes the Quarterfinal!",
+      ],
+      [
+        1,
+        "Emberhold Flicker",
         "Cindersnout",
         "Cindersnout",
         "Cindersnout takes the Quarterfinal!",
       ],
       [
-        1,
-        "Gilded Horn",
-        "Tidecaller Nibbles",
-        "Tidecaller Nibbles",
-        "Tidecaller Nibbles takes the Quarterfinal!",
-      ],
-      [
         2,
+        "Ash-ledger",
         "Cindersnout",
-        "Tidecaller Nibbles",
         "Cindersnout",
         "Cindersnout takes the Semifinal!",
       ],
@@ -398,14 +390,14 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
       [
         1,
         "Ember Drake",
-        "Pondskipper Grub",
+        "Mossbottom Brute",
         "Ember Drake",
         "Ember Drake takes the Quarterfinal!",
       ],
       [
         2,
         "Ember Drake",
-        "Emberhold Flicker",
+        "Reedle Mirefin",
         "Ember Drake",
         "Ember Drake takes the Semifinal!",
       ],
@@ -413,8 +405,8 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
         3,
         "Ember Drake",
         "Cindersnout",
-        "Cindersnout",
-        "Cindersnout takes the Final!",
+        "Ember Drake",
+        "Ember Drake takes the Final!",
       ],
     ])
     expect(session.completionVerdicts.map(row)).toEqual([])
@@ -431,11 +423,13 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
   // Reedle Mirefin, who then takes SF1 and the final.
   // Blow-weight ripple (phase 6): QF2 flips back to Tidecaller Nibbles, who
   // then takes QF1, SF2 and the final.
+  // R2 (battle-balance): the compressed ladder hands the crown to Bonfire
+  // Brook.
   test("forfeit path (seed 101): the forfeit line, then the bracket completes", () => {
     const creature = playerCreature()
     const session = forfeitCup(startCupSession(creature, DAY, 101))
     expect(session.status).toBe("eliminated")
-    expect(session.championName).toBe("Reedle Mirefin")
+    expect(session.championName).toBe("Bonfire Brook")
     expect(cupPlacement(session)).toBe(4)
     expect(session.rivalVerdicts.map(row)).toEqual([
       [
@@ -481,15 +475,15 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
         2,
         "Bonfire Brook",
         "Reedle Mirefin",
-        "Reedle Mirefin",
-        "Reedle Mirefin takes the Semifinal!",
+        "Bonfire Brook",
+        "Bonfire Brook takes the Semifinal!",
       ],
       [
         3,
-        "Reedle Mirefin",
+        "Bonfire Brook",
         "Mossbottom Brute",
-        "Reedle Mirefin",
-        "Reedle Mirefin takes the Final!",
+        "Bonfire Brook",
+        "Bonfire Brook takes the Final!",
       ],
     ])
   })

@@ -68,7 +68,7 @@ describe("evolution discovery state (save v17)", () => {
 })
 
 /** Rng stub that never rolls a sickness onset (mirrors save.test.ts). */
-const CALM_RNG = { next: () => 0.99, int: () => 0 }
+const CALM_RNG = { next: () => 0.99, int: () => 0, cursor: () => 0 }
 
 /** A well-cared-for creature at the requested stage, ready to settle. */
 function caredFor(
@@ -191,7 +191,7 @@ function v16Payload(stage: LifeStage | null): Record<string, unknown> {
 
 describe("save v17 — discovery inferred from the persisted stage", () => {
   test("the schema version is 19", () => {
-    expect(SAVE_VERSION).toBe(25)
+    expect(SAVE_VERSION).toBe(26)
   })
 
   test("a v16 juvenile save knows the juvenile gate only", () => {

@@ -38,6 +38,6 @@ describe("cloud origin", () => {
   })
 
   test("the cloud never changes the save schema (NFR-1)", () => {
-    expect(SAVE_VERSION).toBe(25)
+    expect(SAVE_VERSION).toBe(26)
   })
 })

@@ -75,10 +75,13 @@ describe("prepareCup — the live cup session (design locked, pre-resolution)", 
     expect(qf3.slotB).toBe(slotName(5))
     expect(qf4.slotA).toBe(slotName(6))
     expect(qf4.slotB).toBe(slotName(7))
-    // SF2 joins the QF3/QF4 winners.
+    // SF2 joins the QF3/QF4 winners. On a draw (double KO) the verdict's
+    // winner is null but the bracket still advances the higher-HP slot, so the
+    // participant — not the winner — is what must be one of the two.
     expect(sf2.round).toBe(2)
-    expect([qf3.winner, qf4.winner]).toContain(sf2.slotA)
-    expect([qf3.winner, qf4.winner]).toContain(sf2.slotB)
+    const advanced = [qf3.slotA, qf3.slotB, qf4.slotA, qf4.slotB]
+    expect(advanced).toContain(sf2.slotA)
+    expect(advanced).toContain(sf2.slotB)
     // None of the pre-resolved pairings involve the player.
     for (const v of session.rivalVerdicts) {
       expect(v.slotA).not.toBe(s.creature?.name)

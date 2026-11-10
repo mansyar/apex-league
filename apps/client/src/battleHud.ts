@@ -1,24 +1,24 @@
 /**
- * Battle HUD (Phase D, broadcast rework): the arena fight plays full-bleed
- * and this module owns the broadcast chrome — one top-center placard whose
- * skewed plates drain toward the VS chip, a rangefinder with chevrons, the
- * announcer lower-third, and the verdict stamp. Read-only furniture:
- * pointer-events stay off, and everything derives from the same
- * `PlaybackStep` stream the arena staging consumes, so the HUD can never
- * contradict the resolver (hpAfter travels with every step, keyed by the
- * stable side id from the mirror-match fix).
+ * Battle HUD (Phase D, broadcast rework): the broadcast chrome over a
+ * full-bleed fight — placard and VS chip, rangefinder, lower-third, verdict
+ * stamp. Read-only furniture driven by the same `PlaybackStep` stream the
+ * staging consumes, so the HUD cannot contradict the resolver.
  */
-import type { PlaybackStep } from "@apex/sim"
+import {
+  DOCTRINE_LABELS,
+  type DoctrineId,
+  type PlaybackStep,
+  RULE_LABELS,
+  type RuleId,
+} from "@apex/sim"
 import { crestGlyph, elementHue } from "./element"
 
 /** The rangefinder's two states: bodies touching, or holding at range. */
 export type RangeState = "close" | "hold"
 
 /**
- * Range after a step: only an approach closes the distance (the clock's
- * `close` sets *both* fighters near); every other kind keeps the state.
- * The transition is therefore monotonic hold→close — correct while the
- * sim has no knockback; revisit if a step kind ever reopens distance.
+ * Range after a step: only an approach closes the distance; every other kind
+ * keeps the state, so the transition is monotonic hold→close.
  */
 export function rangeAfterStep(
   kind: PlaybackStep["kind"],
@@ -68,6 +68,17 @@ export interface BattleHudFighter {
   key: string
   element: string
   maxHp: number
+  /** The plan this side fights under (FR-16); named on its plate. */
+  doctrine?: DoctrineId
+  /** The note laid over that plan (FR-13, FR-16); named after it. */
+  rule?: RuleId
+}
+
+/** The plate label: name, then doctrine, then rule when known (FR-16). */
+export function plateName(f: BattleHudFighter): string {
+  const plan = f.doctrine ? ` · ${DOCTRINE_LABELS[f.doctrine]}` : ""
+  const note = f.rule ? ` · ${RULE_LABELS[f.rule]}` : ""
+  return `${f.name}${plan}${note}`
 }
 
 export interface BattleHud {
@@ -196,7 +207,7 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
     nameRow.className = "battle-plate-head"
     const name = document.createElement("span")
     name.className = "battle-hud-name"
-    name.textContent = f.name
+    name.textContent = plateName(f)
     const num = document.createElement("span")
     num.className = "battle-hp-num"
     num.textContent = String(f.maxHp)

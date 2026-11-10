@@ -6,11 +6,12 @@
 
 import type {
   Creature,
+  DoctrineId,
   FightStream,
   makeExhibition,
   PlaybackStep,
 } from "@apex/sim"
-import type { TacticButton } from "../battleUI"
+import type { ChoiceButton } from "../battleUI"
 import type { FightCasting } from "../staging"
 
 export interface SparHandlers {
@@ -80,7 +81,7 @@ export interface SparPanelRefs {
   kitHint: HTMLElement
   resetPill: HTMLButtonElement
   tactics: HTMLElement
-  tacticButtons: TacticButton[]
+  doctrineButtons: ChoiceButton<DoctrineId>[]
   fastButton: HTMLButtonElement
   replayButton: HTMLButtonElement
   logBox: HTMLElement

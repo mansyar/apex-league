@@ -34,7 +34,7 @@ import {
  * chance) and always rolls 0 for int(). Keeps multi-night integrations
  * deterministic without caring about mulberry32 sequences.
  */
-const CALM_RNG = { next: () => 0.99, int: () => 0 }
+const CALM_RNG = { next: () => 0.99, int: () => 0, cursor: () => 0 }
 
 /**
  * A state whose creature is hand-tuned for evolution scenarios. The pet's

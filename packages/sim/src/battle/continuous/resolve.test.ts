@@ -158,7 +158,7 @@ describe("resolveContinuous — the fight's endings", () => {
 })
 
 describe("resolveContinuous — the double KO (FR-12, AC-12)", () => {
-  /** A side that only shoots, one blow from down, and never closes. */
+  /** A side that shoots, one blow from down. */
   function gunner(): BattleSide {
     return side({
       name: "Ember",
@@ -166,30 +166,18 @@ describe("resolveContinuous — the double KO (FR-12, AC-12)", () => {
       stats: { hp: 1, atk: 10, def: 1, spd: 1 },
       kit: ["spark"],
       tactic: "specials",
-    })
-  }
-
-  /** A side that only swings, one blow from down, and closes at `spd`. */
-  function swinger(spd = 30): BattleSide {
-    return side({
-      name: "Reed",
-      id: "reed",
-      element: "plant",
-      stats: { hp: 1, atk: 10, def: 1, spd },
-      kit: ["basic"],
+      doctrine: "press",
     })
   }
 
   test("a killing blow from each side in the same step is a double KO", () => {
     // Both sides are one blow from down, so whichever lands first ends it. A
     // double KO can only come from both blows resolving on the same step (the
-    // doc claim at the top of resolve.ts).
-    // Phase 3 re-pin: the gunner used to stay outside basic reach and kill
-    // with the spark. At FR-3's 240 ms cadence the swinger reaches it during
-    // the spark's 130 ms startup, so the gunner is forced into a basic and the
-    // trade is blow-for-blow. The simultaneous downs are what FR-12 asserts;
-    // the projectile path still has its own coverage in the shot tests.
-    const found = resolveContinuous(gunner(), swinger(27), 1)
+    // doc claim at the top of resolve.ts). Mirror the two sides so their
+    // decisions coincide and both sparks land on the same tick; the doctrine
+    // change made the old asymmetric gunner/swinger pair land a step apart.
+    const mirror = { ...gunner(), name: "Reed", id: "reed" }
+    const found = resolveContinuous(gunner(), mirror, 1)
     expect(found.reason).toBe("double_ko")
     expect(found.winner).toBeNull()
     expect(Object.values(found.finalHp).every((hp) => hp === 0)).toBe(true)
@@ -203,11 +191,7 @@ describe("resolveContinuous — the double KO (FR-12, AC-12)", () => {
       (event) => event.tick === tick && event.hit === true,
     )
     expect(landed.some((event) => event.actorKey === "ember")).toBe(true)
-    expect(
-      landed.some(
-        (event) => event.kind === "basic" && event.actorKey === "reed",
-      ),
-    ).toBe(true)
+    expect(landed.some((event) => event.actorKey === "reed")).toBe(true)
   })
 })
 

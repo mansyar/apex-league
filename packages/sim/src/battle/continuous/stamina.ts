@@ -14,7 +14,7 @@
  * exactly. Every function is pure.
  */
 
-import { BLOW_WEIGHT, getFrameData } from "../frames"
+import { getFrameData } from "../frames"
 import { type FighterState, STEP_MS } from "./types"
 
 /** A fighter's stamina pool when the config names none (tunable). */
@@ -23,8 +23,24 @@ export const DEFAULT_STAMINA_MAX = 100
 /** How much fight time one regeneration tick covers, in ms (tunable). */
 export const STAMINA_REGEN_INTERVAL_MS = 500
 
-/** Points regained per regeneration tick while not committed (tunable). */
-export const STAMINA_REGEN_PER_INTERVAL = 1
+/**
+ * Points regained per regeneration tick while not committed (tunable).
+ *
+ * Phase 8 (FR-20): measured at 1 point per 500 ms (2 points/s) the pool was the
+ * exchange rate. A special prices 8-14 and its swing runs 0.98-1.76 s, so the
+ * recharge that followed cost 4-7 s — four times the swing it paid for — and a
+ * fight settled into ~0.23 attacks/s with 36.5% of its time idle. The trace
+ * confirmed the pool bottomed at 0 on both sides. Raising it to 4 points per
+ * tick moved the cap share from 84.8% to 76.2% and nothing else, so the pool was
+ * a real but secondary constraint; once the press standoff was fixed (see
+ * controller-profile) the pacing resolved and the pool stopped binding at all.
+ * It is left at 2 points per tick (4/s) because that is the largest rate that
+ * keeps FR-4's invariant — the cheapest attack (6) still costs 1.5 s of
+ * regeneration, so sustained output is at most one basic per 1.5 s. Faster
+ * refills measured the same pacing (median 24.52 s at 6/s vs 24.56 s at 4/s) and
+ * only weakened the floor. The price ordering is unchanged.
+ */
+export const STAMINA_REGEN_PER_INTERVAL = 2
 
 /**
  * The least any committed attack costs (tunable, FR-4). The innate strike
@@ -32,15 +48,21 @@ export const STAMINA_REGEN_PER_INTERVAL = 1
  * the cheapest attack cost 1.5 s of regeneration — FR-4's sustained rate.
  * Specials keep their authored 4-10, so they stay the expensive choice.
  *
- * The floor is a per-blow price, so it carries `BLOW_WEIGHT` like every other
- * one (Phase 8): the cheapest attack still costs 1.5 s of regeneration, which
- * is now two basic cycles rather than one, so the gate binds at the same
- * point in the cycle as before the weight.
+ * The floor is a per-blow price. Phase 5 folded the old 3 x blow-weight floor
+ * into the literal 6 (FR-2), so the cheapest attack still costs 1.5 s of
+ * regeneration; the number is unchanged, only its derivation is gone.
  */
-export const MIN_ATTACK_STAMINA_COST = 3 * BLOW_WEIGHT
+export const MIN_ATTACK_STAMINA_COST = 6
 
 /** What one dodge costs, in points (tunable). */
 export const DODGE_STAMINA_COST = 8
+
+/**
+ * What one step-around costs, in points (tunable, FR-11). It is cheaper than
+ * a dodge because it buys position rather than safety, and it is charged on
+ * the step the cut starts so a held order is one cut, not a meter drain.
+ */
+export const SLIP_STAMINA_COST = 6
 
 /** The stamina fields one fighter carries; see `FighterState` in ./types. */
 export interface StaminaFields {
@@ -110,6 +132,11 @@ export function spendAttack(
 /** Pay for one dodge, or null when the pool cannot cover it (Phase 6). */
 export function spendDodge(fighter: FighterState): FighterState | null {
   return spendStamina(fighter, DODGE_STAMINA_COST)
+}
+
+/** Pay for one step-around, or null when the pool cannot cover it (FR-11). */
+export function spendSlip(fighter: FighterState): FighterState | null {
+  return spendStamina(fighter, SLIP_STAMINA_COST)
 }
 
 /**

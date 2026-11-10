@@ -4,7 +4,7 @@
  * reasons the UI maps to copy. No DOM, no rendering, no I/O.
  */
 
-import { type Creature, TRAINING_CAP } from "./creature"
+import { type Creature, trainingCap } from "./creature"
 import { clampCondition, SICK_HEALTH } from "./settlement"
 import type { GameState } from "./state"
 import { getTrainingProgram, type TrainingProgram } from "./training"
@@ -167,7 +167,7 @@ export function assignTraining(
   }
   if (program !== null) {
     const def = getTrainingProgram(program)
-    if (creature.trained[def.primary] >= TRAINING_CAP) {
+    if (creature.trained[def.primary] >= trainingCap(def.primary)) {
       return { ok: false, reason: "at-cap" }
     }
   }

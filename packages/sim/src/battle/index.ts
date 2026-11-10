@@ -27,19 +27,37 @@ export {
   type Range,
   type TickOutcome,
 } from "./clock"
+export {
+  bandFor,
+  DOCTRINE_IDS,
+  DOCTRINE_LABELS,
+  DOCTRINES,
+  type Doctrine,
+  type DoctrineId,
+  doctrineForTactic,
+  profileForDoctrine,
+  type RangeBand,
+  tacticForDoctrine,
+} from "./continuous/controller"
+export {
+  KEEP_BACK_FLOOR_PERCENT,
+  RULE_IDS,
+  RULE_LABELS,
+  RULES,
+  type RuleDef,
+  type RuleId,
+} from "./continuous/controller-rule"
 export { startingHp } from "./continuous/hp"
 export {
   ARENA_BOUNDS,
   downEnding,
   type Ending,
-  type EngagementOverlay,
   engagementFor,
   FIGHT_CAP_MS,
   FIGHT_CAP_STEPS,
   OPENING_GAP_MM,
   pointsWinner,
   resolveContinuous,
-  TACTIC_OVERLAYS,
 } from "./continuous/resolve"
 export {
   type FightStream,

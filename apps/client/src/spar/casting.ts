@@ -42,10 +42,9 @@ export function castingFor(owned: Creature, setup: SparSetup): FightCasting {
 
 /** The HUD's view of both fighters for the duration of the bout.
  *
- *  `maxHp` is the pool the resolver actually fights on, not the stat HP the
- *  setup panel shows: the continuous engine scales every side's HP
- *  (`HP_SCALE_PERCENT`), so a stat-HP denominator left every step's
- *  `hpAfter` above its maximum and the bars never moved.
+ *  `maxHp` is the pool the resolver actually fights on. Since Phase 5 folded
+ *  the old HP scale into the stat, that is the stat HP itself — the setup
+ *  panel and the bar now read the same number (FR-2).
  */
 export function fightNowFor(setup: SparSetup): PlaybackFight {
   return {
@@ -54,12 +53,16 @@ export function fightNowFor(setup: SparSetup): PlaybackFight {
       key: setup.ownedSide.id ?? setup.ownedSide.name,
       element: setup.ownedSide.element,
       maxHp: startingHp(setup.ownedSide),
+      doctrine: setup.ownedSide.doctrine,
+      rule: setup.ownedSide.rule,
     },
     rival: {
       name: setup.rivalSide.name,
       key: setup.rivalSide.id ?? setup.rivalSide.name,
       element: setup.rivalSide.element,
       maxHp: startingHp(setup.rivalSide),
+      doctrine: setup.rivalSide.doctrine,
+      rule: setup.rivalSide.rule,
     },
   }
 }

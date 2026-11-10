@@ -20,6 +20,8 @@ import {
   fighterKey,
   type PlanFn,
 } from "./clock"
+import type { DoctrineId } from "./continuous/controller-profile"
+import type { RuleId } from "./continuous/controller-rule"
 import { chooseAction, type Tactic } from "./policy"
 
 export type BattleReason = "ko" | "double_ko" | "time"
@@ -42,6 +44,20 @@ export interface BattleSide {
   /** The fighter's four equipped special move ids, in kit order. */
   readonly kit: readonly string[]
   readonly tactic: Tactic
+  /**
+   * The plan this side fights under (FR-11). Optional so old saves and every
+   * legacy `Tactic` call site keep compiling; the continuous resolver maps a
+   * missing doctrine from `tactic` at the boundary. Phase 5 removes the
+   * legacy names with the save migration.
+   */
+  readonly doctrine?: DoctrineId
+  /**
+   * The one conditional rule this side fights under (FR-13). Optional and
+   * absent by default, exactly like `doctrine`: a side without one behaves as
+   * it did before rules existed. Additive for the same reason; Phase 5 folds
+   * it into the save.
+   */
+  readonly rule?: RuleId
   readonly temperament: Temperament
   /**
    * The form this side fights in, for display only (FR-9). The resolver
@@ -59,6 +75,12 @@ export interface BattleResult {
   readonly reason: BattleReason
   readonly finalHp: Readonly<Record<string, number>>
   readonly events: readonly BattleEvent[]
+  /**
+   * Paid dodges per side, home then away (R1, F2). A melee step-out is a
+   * `reach` whiff in the event log, so the event log cannot show a dodge; this
+   * carries the step's own `DodgeReport` tally out to the balance report.
+   */
+  readonly dodges?: readonly [number, number]
 }
 
 /**

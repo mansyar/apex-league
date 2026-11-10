@@ -4,11 +4,17 @@
  * kit-gate progress, the kit picker). Moved verbatim out of spar.ts.
  */
 
-import { battleStats, type Creature, formTier, getSpecies } from "@apex/sim"
+import {
+  battleStats,
+  type Creature,
+  doctrineForTactic,
+  formTier,
+  getSpecies,
+} from "@apex/sim"
 import { buildKitPicker } from "../battleUI"
 import { crestGlyph, elementHue } from "../element"
 import { formReadout } from "../hud/copy-care"
-import { TACTIC_LABELS, TEMPERAMENT_LINES } from "./copy"
+import { DOCTRINE_LABELS, TEMPERAMENT_LINES } from "./copy"
 import {
   kitHintMessage,
   kitProgress,
@@ -28,8 +34,10 @@ export function renderRival(
   rivalName.textContent = setup.rival.name
   rivalCrest.innerHTML = crestGlyph(setup.rival.element)
   rivalCrest.style.setProperty("--hue", String(elementHue(setup.rival.element)))
-  rivalDetail.textContent = `Rival tactic: ${
-    TACTIC_LABELS[setup.rivalTactic]
+  const rivalDoctrine =
+    setup.rivalSide.doctrine ?? doctrineForTactic(setup.rivalTactic)
+  rivalDetail.textContent = `Rival doctrine: ${
+    DOCTRINE_LABELS[rivalDoctrine]
   } · ${TEMPERAMENT_LINES[setup.rivalSide.temperament]} · Seed ${battleSeed}`
   ownedCard.className = `spar-card el-border-${setup.ownedSide.element}`
   rivalCard.className = `spar-card el-border-${setup.rivalSide.element}`

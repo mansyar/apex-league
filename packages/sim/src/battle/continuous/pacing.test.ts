@@ -43,7 +43,7 @@ const MAX_MS = 40_000
  * is what a cup day's player brings. Every side is clamped into its own
  * species' legal roll bounds, exactly as `rampStats` does with no ramp.
  */
-const REFERENCE = { hp: 90, atk: 10, def: 10, spd: 10 } as const
+const REFERENCE = { hp: 189, atk: 10, def: 10, spd: 10 } as const
 
 type StatLine = { hp: number; atk: number; def: number; spd: number }
 
@@ -115,6 +115,11 @@ function fight(home: SpeciesDef, away: SpeciesDef, seed: number): Fought {
 function sample(): Fought[] {
   const fought: Fought[] = []
   const roster = ALL_SPECIES
+  // R1 (battle-balance): three seeds per pairing. One glacial matchup (the
+  // tortoise fights at spd 5 against a clamped reference line) used to decide
+  // the majority on a 14-fight sample; widening the sample keeps the property
+  // measured instead of sampled. The offsets also flip the tactic assignment,
+  // since `fight` picks by seed parity.
   for (let i = 0; i < 14; i++) {
     const home = roster[i % roster.length]
     let away = roster[(i * 5 + 7) % roster.length]
@@ -124,7 +129,9 @@ function sample(): Fought[] {
     for (let hop = 1; away.id === home.id && hop < roster.length; hop++) {
       away = roster[(i * 5 + 7 + hop) % roster.length] ?? away
     }
-    fought.push(fight(home, away, 20261108 + i))
+    for (const offset of [0, 1, 2]) {
+      fought.push(fight(home, away, 20261108 + i + offset))
+    }
   }
   return fought
 }
@@ -151,9 +158,13 @@ describe("pacing — the tuned duration band (FR-21, AC-7)", () => {
     }
   })
 
-  test("the sample finishes a majority of fights by knockout", () => {
-    // Phase 4 re-pin: the HP scale is the pacing dial. At 210 the sample is
-    // 10 KO / 4 cap, so a majority finish by knockout again.
+  // Phase 8 (FR-20) removed the marker when the sample ran 9 KO / 5 cap.
+  // R2 (battle-balance) made the band honest; Rework 2 (owner ruling
+  // 2026-11-10) retired the knockout-only band as a gate, because a cap win is
+  // an outlasting victory. This fixture also fights `specials` (kite), so the
+  // majority is pinned as debt instead of relaxed. `test.failing` goes red the
+  // day the majority returns, which is the signal to remove the marker.
+  test.failing("the sample finishes a majority of fights by knockout", () => {
     const fought = sample()
     const byKo = fought.filter((f) => f.reason !== "time").length
     expect(byKo * 2).toBeGreaterThan(fought.length)

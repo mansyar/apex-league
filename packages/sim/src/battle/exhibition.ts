@@ -20,6 +20,12 @@ import { battleStats } from "../form"
 import { defaultLoadout } from "../loadout"
 import { makeRng } from "../rng"
 import { getSpecies, STARTER_SPECIES } from "../species"
+import type { DoctrineId } from "./continuous/controller-profile"
+import {
+  DOCTRINE_IDS,
+  doctrineForTactic,
+} from "./continuous/controller-profile"
+import type { RuleId } from "./continuous/controller-rule"
 import type { Tactic } from "./policy"
 import type { BattleSide } from "./resolver"
 import { rivalKit } from "./rival-kit"
@@ -43,6 +49,8 @@ export function makeExhibition(
   owned: Readonly<Creature>,
   tactic: Tactic,
   seed: number,
+  doctrine?: DoctrineId,
+  rule?: RuleId,
 ): SparSetup {
   const species = getSpecies(owned.speciesId)
   if (!species) throw new Error(`Unknown species: ${owned.speciesId}`)
@@ -54,6 +62,9 @@ export function makeExhibition(
   if (!rivalSpecies) throw new Error("No starter species is available")
   const creatureSeed = Math.floor(rng.next() * 0x7fffffff)
   const rivalTactic = TACTICS[rng.int(TACTICS.length)] ?? "balanced"
+  // Drawn after the tactic, so every existing seed keeps its rival species,
+  // stats and kit; only the rival's plan is new.
+  const rivalDoctrine = DOCTRINE_IDS[rng.int(DOCTRINE_IDS.length)] ?? "press"
 
   const rolled = createCreature(rivalSpecies.id, creatureSeed)
   const rivalSpeciesDef = getSpecies(rolled.speciesId)
@@ -72,6 +83,8 @@ export function makeExhibition(
     stats: battleStats(owned),
     kit: owned.loadout ?? defaultLoadout(owned, species),
     tactic,
+    doctrine: doctrine ?? doctrineForTactic(tactic),
+    ...(rule ? { rule } : {}),
     temperament: species.temperament,
     branch: owned.branch ?? "legacy",
   }
@@ -82,6 +95,7 @@ export function makeExhibition(
     stats: rival.stats,
     kit: rivalKit(rivalSpeciesDef, creatureSeed),
     tactic: rivalTactic,
+    doctrine: rivalDoctrine,
     temperament: rivalSpeciesDef.temperament,
     branch: rival.branch ?? "legacy",
   }

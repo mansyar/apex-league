@@ -8,7 +8,6 @@
  */
 
 import { describe, expect, test } from "bun:test"
-import { BLOW_WEIGHT } from "../frames"
 import {
   advanceHitstun,
   BREAK_HITSTUN_MS,
@@ -160,8 +159,8 @@ describe("hit reactions — mass from body volume (FR-22)", () => {
   })
 
   test("the push follows the blow line and is inverse to mass", () => {
-    // A basic blow carries 4 poise since the weight, and the rate is divided by
-    // the same weight, so the shove is what 2 poise bought before: 2000 either way.
+    // A basic blow carries 4 poise and the rate is 500 per point, so the shove
+    // is the 2000 the old weighted table gave: 2000 either way.
     expect(knockbackVelocity(EAST, 4, 43560)).toEqual({ x: 2000, z: 0 })
     expect(knockbackVelocity(EAST, 8, 43560)).toEqual({ x: 4000, z: 0 })
     expect(knockbackVelocity(EAST, 4, 87120).x).toBe(1000)
@@ -169,12 +168,11 @@ describe("hit reactions — mass from body volume (FR-22)", () => {
     expect(knockbackVelocity(EAST, 0, 43560)).toEqual({ x: 0, z: 0 })
   })
 
-  test("the weight does not change how far a blow throws a body", () => {
-    // The pre-weight table: 2 poise at 1000 per point. The weighted table:
-    // 4 poise at 1000 / BLOW_WEIGHT. The two differ only by integer truncation.
-    const before = 2 * 1000
-    const after = 4 * KNOCKBACK_PER_POISE
-    expect(Math.abs(after - before)).toBeLessThanOrEqual(BLOW_WEIGHT)
+  test("the folded table throws a body as far as the weighted one did", () => {
+    // Phase 5 folded the weight into the table: 4 poise at 500 per point is
+    // the old 2 poise at 1000 per point, exactly.
+    expect(KNOCKBACK_PER_POISE).toBe(500)
+    expect(4 * KNOCKBACK_PER_POISE).toBe(2 * 1000)
   })
 })
 

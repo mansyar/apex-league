@@ -30,7 +30,7 @@ export const REWARD_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "gigavolt",
     ],
     temperament: "rush",
-    statBounds: { hp: [70, 84], atk: [10, 14], def: [5, 8], spd: [12, 16] },
+    statBounds: { hp: [165, 177], atk: [10, 16], def: [4, 10], spd: [12, 16] },
   },
   {
     id: "fernstag",
@@ -50,7 +50,7 @@ export const REWARD_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "bramble_guard",
     ],
     temperament: "obedient",
-    statBounds: { hp: [70, 84], atk: [8, 12], def: [8, 11], spd: [10, 14] },
+    statBounds: { hp: [161, 190], atk: [8, 12], def: [8, 11], spd: [11, 15] },
   },
   {
     id: "wind_falcon",
@@ -69,7 +69,7 @@ export const REWARD_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "hurricane_spiral",
     ],
     temperament: "rush",
-    statBounds: { hp: [56, 68], atk: [10, 14], def: [4, 7], spd: [17, 19] },
+    statBounds: { hp: [130, 160], atk: [10, 16], def: [6, 8], spd: [17, 19] },
   },
   {
     id: "reefclaw",
@@ -89,7 +89,7 @@ export const REWARD_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "tide_aegis",
     ],
     temperament: "slow",
-    statBounds: { hp: [86, 100], atk: [10, 13], def: [12, 14], spd: [4, 7] },
+    statBounds: { hp: [157, 186], atk: [8, 11], def: [8, 12], spd: [4, 7] },
   },
   {
     id: "earth_tortoise",
@@ -109,7 +109,7 @@ export const REWARD_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "tectonic_slam",
     ],
     temperament: "slow",
-    statBounds: { hp: [105, 120], atk: [7, 10], def: [15, 18], spd: [2, 4] },
+    statBounds: { hp: [163, 209], atk: [10, 14], def: [9, 12], spd: [3, 5] },
   },
   {
     id: "cindermoor",
@@ -129,6 +129,6 @@ export const REWARD_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "pyre_wall",
     ],
     temperament: "rush",
-    statBounds: { hp: [84, 98], atk: [11, 14], def: [9, 12], spd: [6, 8] },
+    statBounds: { hp: [151, 181], atk: [9, 16], def: [9, 12], spd: [6, 8] },
   },
 ])

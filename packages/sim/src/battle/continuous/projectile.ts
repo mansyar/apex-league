@@ -6,13 +6,15 @@
  * active window opens, from the shooter's body centre toward the victim's body
  * centre at that instant. The shot then travels along that fixed line at the
  * move's authored `speedMmPerMs`, so the same shot fired from far lands later
- * than one fired from near (AC-8) with no clock and no roll.
+ * than one fired from near (AC-8) with no clock.
  *
  * Every step the shot sweeps a segment from last step's position to this
  * step's, and the segment is tested against the victim's body volume: inside
  * the radius at a height the move reaches is a hit, outside is a miss, and a
  * fast shot cannot tunnel through a body between two sampled positions
- * (FR-19). The victim's lateral movement is what dodges, never a random roll.
+ * (FR-19). The victim's lateral movement is what dodges, never a random roll;
+ * the roll is asked a different question — did the shot land where it was
+ * aimed (FR-21) — and the two are reported apart, `dodged` and `missed`.
  *
  * Every value is an integer: the line is a thousandth-scaled direction,
  * progress is whole millimetres accumulated from the launch, and the segment
@@ -21,6 +23,7 @@
  * scaling remainder never drifts.
  */
 
+import type { Rng } from "../../rng"
 import { BODY_RADIUS_MM, getFrameData } from "../frames"
 import { getMove } from "../moves"
 import {
@@ -31,6 +34,7 @@ import {
   shotDirection,
 } from "./contact"
 import { type HitPosition, positionalDamage } from "./damage"
+import { rollHits, spreadDamage } from "./roll"
 import { hitPosition, type StrikeStats, typeAgainst } from "./strike"
 import {
   DIR_SCALE,
@@ -70,7 +74,7 @@ export interface ProjectileState {
 }
 
 /** What a shot did when it resolved. */
-export type ShotOutcome = "hit" | "dodged"
+export type ShotOutcome = "hit" | "dodged" | "missed"
 
 /** One resolved shot, as the step reports it. */
 export interface ShotReport {
@@ -201,6 +205,7 @@ export function resolveProjectiles(
   before: readonly [FighterState, FighterState],
   after: readonly [FighterState, FighterState],
   stats: readonly [StrikeStats, StrikeStats],
+  rng: Rng,
 ): ProjectileResolution {
   const shots: ShotReport[] = []
   const flight: ProjectileState[] = []
@@ -239,14 +244,33 @@ export function resolveProjectiles(
     const victimAttack = after[victim].attack
     const counter = victimAttack?.phase === "recovery"
     const interrupted = victimAttack?.phase === "startup"
-    const damage = positionalDamage({
-      power: move.power,
-      atk: stats[owner].atk,
-      def: stats[victim].def,
-      type: typeAgainst(stats[owner], stats[victim]),
-      position,
-      counter,
-    })
+    // The shot reached the body; whether it was aimed true is the roll (FR-21).
+    if (!rollHits(move.accuracy, rng)) {
+      shots.push({
+        ownerKey: shot.ownerKey,
+        targetKey: target.key,
+        moveId: shot.moveId,
+        outcome: "missed",
+        damage: 0,
+        poiseDamage: 0,
+        position,
+        counter: false,
+        interrupted: false,
+        dir: shot.dir,
+      })
+      continue
+    }
+    const damage = spreadDamage(
+      positionalDamage({
+        power: move.power,
+        atk: stats[owner].atk,
+        def: stats[victim].def,
+        type: typeAgainst(stats[owner], stats[victim]),
+        position,
+        counter,
+      }),
+      rng,
+    )
     if (interrupted) {
       const disarmed = { ...after[victim], attack: null }
       if (victim === 0) home = disarmed

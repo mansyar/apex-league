@@ -28,8 +28,12 @@ import {
 import type { BattleSide } from "../resolver"
 import { resolveContinuous } from "./resolve"
 
-/** The default fight: the telemetry sample's KO row at an odd seed. */
-const KO = { seed: 1, owned: "plant_ox", rival: "embercub" }
+/**
+ * A KO row from the telemetry sample. Phase 10 rework 1: the narrower spread
+ * moved the old KO fixture (plant_ox v embercub, seed 1) to the cap, so the
+ * fixture moved to a pairing that still knocks out inside the band.
+ */
+const KO = { seed: 20261111, owned: "wind_falcon", rival: "water_axolotl" }
 
 /** The telemetry sample's cap row: fire_drake v earth_tortoise, 40.00 s. */
 const CAP = { seed: 20261108, owned: "fire_drake", rival: "earth_tortoise" }

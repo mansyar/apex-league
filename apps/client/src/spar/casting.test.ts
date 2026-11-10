@@ -27,9 +27,9 @@ describe("fightNowFor", () => {
   test("maxHp is the pool the resolver opens the fight with", () => {
     expect(fight.owned.maxHp).toBe(startingHp(setup.ownedSide))
     expect(fight.rival.maxHp).toBe(startingHp(setup.rivalSide))
-    // The bug in one line: stat HP is not the pool the fight is fought on.
-    expect(fight.owned.maxHp).toBeGreaterThan(setup.ownedSide.stats.hp)
-    expect(fight.rival.maxHp).toBeGreaterThan(setup.rivalSide.stats.hp)
+    // Phase 5 (FR-2): the sheet's HP is the pool the fight is fought on.
+    expect(fight.owned.maxHp).toBe(setup.ownedSide.stats.hp)
+    expect(fight.rival.maxHp).toBe(setup.rivalSide.stats.hp)
   })
 
   test("the first landed hit takes a bar below full", () => {

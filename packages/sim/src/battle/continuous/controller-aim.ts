@@ -39,15 +39,43 @@ export function awayFrom(me: FighterState, foe: FighterState): Dir2 {
   return { x: -dir.x, z: -dir.z }
 }
 
-/** The perpendicular of the approach: circling without closing. */
+/**
+ * The side that puts the body behind the foe: the approach crossed with the
+ * foe's facing. A foe looking straight down the line has no rear side to
+ * prefer, so the fallback sign circles as before.
+ */
+function rearSign(dir: Dir2, facing: Dir2, fallback: 1 | -1): 1 | -1 {
+  const cross = dir.x * facing.z - dir.z * facing.x
+  if (cross === 0) return fallback
+  return cross > 0 ? -1 : 1
+}
+
+/**
+ * True when the body is deep in the foe's rear arc: the foe's facing, read
+ * against the line back to this body, points at least 154 degrees away. The
+ * margin covers the victim's turn during a basic strike's startup, so a
+ * commit made from here still lands on the rear (Circle, FR-11).
+ */
+export function rearArc(me: FighterState, foe: FighterState): boolean {
+  const dir = shotDirection(foe.pos, me.pos)
+  const dot = dir.x * foe.facing.x + dir.z * foe.facing.z
+  return dot < -900000
+}
+
+/**
+ * The perpendicular of the approach: circling without closing. A doctrine
+ * that seeks the rear arc circles toward the foe's back (Circle, FR-11).
+ */
 export function strafeIntent(
   me: FighterState,
   foe: FighterState,
   sign: 1 | -1,
+  seeksRear = false,
 ): MoveIntent {
   const dir = shotDirection(me.pos, foe.pos)
   if (dir.x === 0 && dir.z === 0) return HOLD
-  return { x: -dir.z * sign, z: dir.x * sign }
+  const around = seeksRear ? rearSign(dir, foe.facing, sign) : sign
+  return { x: -dir.z * around, z: dir.x * around }
 }
 
 /** A half-speed step at the foe: plant and keep the facing on the target. */

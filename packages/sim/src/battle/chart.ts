@@ -13,16 +13,16 @@ export interface TypeFactor {
 
 /**
  * Attacker beats defender. The reverse pair is a resist (see `typeFactor`).
- * Two triangles: Fire→Plant→Water→Fire, and Electric→Water, Earth→Electric,
- * Wind→Earth. No immunities.
+ * Two 3-cycles: Fire→Plant→Water→Fire, and Electric→Earth→Wind→Electric.
+ * Every element wins exactly once and loses exactly once. No immunities.
  */
 const BEATS: ReadonlyArray<readonly [Element, Element]> = [
   ["fire", "plant"],
   ["plant", "water"],
   ["water", "fire"],
-  ["electric", "water"],
-  ["earth", "electric"],
-  ["wind", "earth"],
+  ["electric", "earth"],
+  ["earth", "wind"],
+  ["wind", "electric"],
 ]
 
 function beats(attack: Element, defense: Element): boolean {
@@ -31,7 +31,7 @@ function beats(attack: Element, defense: Element): boolean {
 
 /**
  * Type multiplier for one ordered pair.
- * 2× when the attacker beats the defender, 0.5× when the defender beats the
+ * 3/2× when the attacker beats the defender, 2/3× when the defender beats the
  * attacker, 1× otherwise. Never 0×.
  */
 export function typeFactor(attack: Element, defense: Element): TypeFactor {

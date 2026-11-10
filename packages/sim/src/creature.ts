@@ -96,7 +96,7 @@ export interface Creature {
   stats: CreatureStats
   /**
    * Trained bonus per stat, on top of the rolled base. Each field stays
-   * within [0, TRAINING_CAP]; the display/combat value is stats + trained.
+   * within [0, trainingCap(stat)]; the display/combat value is stats + trained.
    */
   trained: CreatureStats
   /** Tonight's assigned training program, or null when nothing is assigned. */
@@ -132,6 +132,20 @@ export type TrainingResult = "gained" | "sick" | "hungry" | "exhausted"
 
 /** Trained bonus cap per stat, above the rolled base. */
 export const TRAINING_CAP = 6
+
+/**
+ * Trained HP cap (Phase 5, FR-2/FR-9). The HP stat now carries the old 210%
+ * arena scale, and a trained HP point still pays 2, so the cap is scaled to
+ * keep a fully trained creature worth the same pool: the old ceiling was
+ * `2 * 6 * 2.1 = 25.2`, the new one is `2 * 13 = 26` (the 12.6 rounds up).
+ * Every other stat keeps `TRAINING_CAP`.
+ */
+export const HP_TRAINING_CAP = 13
+
+/** The trained-bonus ceiling for one stat. */
+export function trainingCap(stat: StatKey): number {
+  return stat === "hp" ? HP_TRAINING_CAP : TRAINING_CAP
+}
 
 /** Trained bonus of a newly hatched creature: nothing trained yet. */
 export const TRAINED_START: CreatureStats = Object.freeze({
@@ -170,7 +184,10 @@ export const CONDITION_START: CreatureConditions = Object.freeze({
  *
  * Since element_chart_20261016 doubled the HP scale, a trained HP point pays
  * double (+2 per point) so a training day keeps the same relative worth it
- * had before the scale-up; atk/def/spd points are unchanged.
+ * had before the scale-up; atk/def/spd points are unchanged. Phase 5 folded
+ * that scale into the stat itself, so the coefficient stays 2 and the HP
+ * training cap moved instead (`HP_TRAINING_CAP`): this function remains the
+ * one place base and trained values compose.
  */
 export function effectiveStats(
   creature: Pick<Creature, "stats" | "trained">,
@@ -190,6 +207,8 @@ function rollStat(rng: Rng, bounds: StatBounds): number {
 
 function rollStats(rng: Rng, species: SpeciesDef): CreatureStats {
   return {
+    // HP bounds are authored at the folded scale (Phase 5, FR-2), so the roll
+    // is already the pool; the roll order stays hp/atk/def/spd.
     hp: rollStat(rng, species.statBounds.hp),
     atk: rollStat(rng, species.statBounds.atk),
     def: rollStat(rng, species.statBounds.def),

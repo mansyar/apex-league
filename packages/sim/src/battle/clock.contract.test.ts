@@ -130,38 +130,49 @@ function serialize(result: BattleResult): string {
  * ranking + the sustained-score qualifier) changed every mirror and every
  * fire-vs-plant / plant-vs-fire / ox-vs-axolotl battle — the authorized
  * rebalance — while fire-vs-water kit2 and water-vs-fire kit2 happened to
- * keep their streams.
+ * keep their streams. Recaptured again in Phase 5 (FR-10): folding the blow
+ * weight into MoveDef.power doubles legacy damage, so every stream moves.
+ * Recaptured in Phase 9 (FR-10): the tier-2 mid row moves 18 -> 19 to restore
+ * the light < mid < heavy damage order, which the frozen clock reads through
+ * MoveDef.power. Only kit3 and kit4 move — kit2 does not field a tier-2 row.
+ * Recaptured in R1 (battle-balance): the authored ladder was scaled down
+ * together (basic 10 -> 9, kit 12/16/19/20/14/22 -> 11/15/18/19/13/21), so
+ * every stream moves again; the two branch signatures stay at 20/16.
+ * Recaptured in R2 (battle-balance, FR-4/FR-10): the ladder was compressed
+ * again (basic 9, kit 10/14/16/17/12/19, branches 15/12) so the fast fights
+ * stop resolving under 25 s, and the tortoise/shalemole defense floors came
+ * down; every stream moves.
  */
 const GOLDEN: Readonly<Record<string, string>> = {
   // Mirrors: each species fights itself (three kit tiers).
-  "fire_drake|fire_drake|kit2": "e7768895",
-  "fire_drake|fire_drake|kit3": "984d0d5f",
-  "fire_drake|fire_drake|kit4": "68561deb",
-  "plant_ox|plant_ox|kit2": "495358d5",
-  "plant_ox|plant_ox|kit3": "af8ba575",
-  "plant_ox|plant_ox|kit4": "83417af3",
-  "water_axolotl|water_axolotl|kit2": "c7fe580d",
-  "water_axolotl|water_axolotl|kit3": "b0a5ab49",
-  "water_axolotl|water_axolotl|kit4": "1921a564",
+  "fire_drake|fire_drake|kit2": "903c04c5",
+  "fire_drake|fire_drake|kit3": "0c301a4b",
+  "fire_drake|fire_drake|kit4": "f50a03df",
+  "plant_ox|plant_ox|kit2": "442fe0b5",
+  "plant_ox|plant_ox|kit3": "69dddb5a",
+  "plant_ox|plant_ox|kit4": "046e81c3",
+  "water_axolotl|water_axolotl|kit2": "15b8f825",
+  "water_axolotl|water_axolotl|kit3": "350b2c56",
+  "water_axolotl|water_axolotl|kit4": "5799b46f",
   // Cross-element: fire>plant, water>fire, plant>water, both side orders.
-  "fire_drake|plant_ox|kit2": "03b10851",
-  "fire_drake|plant_ox|kit3": "2aec4e45",
-  "fire_drake|plant_ox|kit4": "437864b3",
-  "plant_ox|fire_drake|kit2": "34058741",
-  "plant_ox|fire_drake|kit3": "676ec15f",
-  "plant_ox|fire_drake|kit4": "6fd7558f",
-  "fire_drake|water_axolotl|kit2": "b7846c1d",
-  "fire_drake|water_axolotl|kit3": "7d5b7280",
-  "fire_drake|water_axolotl|kit4": "f4696f13",
-  "water_axolotl|fire_drake|kit2": "e1081741",
-  "water_axolotl|fire_drake|kit3": "e8709b88",
-  "water_axolotl|fire_drake|kit4": "57472fc3",
-  "plant_ox|water_axolotl|kit2": "341412fd",
-  "plant_ox|water_axolotl|kit3": "368b2328",
-  "plant_ox|water_axolotl|kit4": "a761f8aa",
-  "water_axolotl|plant_ox|kit2": "747b1f5d",
-  "water_axolotl|plant_ox|kit3": "4c209fe6",
-  "water_axolotl|plant_ox|kit4": "c454b76a",
+  "fire_drake|plant_ox|kit2": "a57ec6dd",
+  "fire_drake|plant_ox|kit3": "dbb561d3",
+  "fire_drake|plant_ox|kit4": "5d3de9d8",
+  "plant_ox|fire_drake|kit2": "a775a239",
+  "plant_ox|fire_drake|kit3": "6e9416b9",
+  "plant_ox|fire_drake|kit4": "01061888",
+  "fire_drake|water_axolotl|kit2": "f971a42d",
+  "fire_drake|water_axolotl|kit3": "08d16a88",
+  "fire_drake|water_axolotl|kit4": "abead972",
+  "water_axolotl|fire_drake|kit2": "2bd633e5",
+  "water_axolotl|fire_drake|kit3": "68815f0e",
+  "water_axolotl|fire_drake|kit4": "e0634a74",
+  "plant_ox|water_axolotl|kit2": "39dd617d",
+  "plant_ox|water_axolotl|kit3": "0ff1b3e2",
+  "plant_ox|water_axolotl|kit4": "78795766",
+  "water_axolotl|plant_ox|kit2": "289cf795",
+  "water_axolotl|plant_ox|kit3": "013b4fae",
+  "water_axolotl|plant_ox|kit4": "94813c6a",
 }
 
 interface RunSummary {
@@ -244,6 +255,12 @@ describe("seeded battle event-stream contract", () => {
 
     // Coverage: the contract is worthless unless the matrix actually walks
     // the heavy-hit rule — which it reaches through the projectile path.
+    // R1 (battle-balance): scaling the authored ladder down keeps the matrix's
+    // projectile impacts under the 35% heavy fraction, so the knockback arm is
+    // no longer reached here; the melee heavy rules stay unit-tested in
+    // clock.test.ts, and the dedicated synthetic fixture below walks the
+    // knockback path end to end. The digest matrix still walks stagger and
+    // down.
     expect({
       impactStagger: coverage.impactStagger > 0,
       impactKnockback: coverage.impactKnockback > 0,
@@ -252,10 +269,10 @@ describe("seeded battle event-stream contract", () => {
       knockbacks: coverage.knockbacks > 0,
     }).toEqual({
       impactStagger: true,
-      impactKnockback: true,
+      impactKnockback: false,
       downs: true,
       staggers: true,
-      knockbacks: true,
+      knockbacks: false,
     })
 
     // The melee branch's heavy rule is unreachable with starter stats, so it
@@ -275,6 +292,38 @@ describe("seeded battle event-stream contract", () => {
 
     expect(actual).toEqual({ ...GOLDEN })
     expect(SPECIES_CASE_IDS).toHaveLength(SPECIES_PAIRS.length * 2)
+  })
+
+  test("a synthetic heavy blow still walks the legacy knockback path", () => {
+    // R2 (T6): the ladder cut took the matrix's projectile impacts under the
+    // heavy fraction, and the digest re-pin turned `impactKnockback` and
+    // `knockbacks` from true to false — silently removing the only end-to-end
+    // coverage of the legacy knockback arm. This fixture restores it with
+    // synthetic stats: Strike 9 at atk 100 against def 10 deals 90, far above
+    // STAGGER_DAMAGE_FRACTION (35%) of the victim's 100 HP, so a near hit
+    // knocks both fighters apart.
+    const heavy = (name: string, key: string): BattleSide => ({
+      name,
+      id: key,
+      element: "fire",
+      stats: { hp: 100, atk: 100, def: 10, spd: 10 },
+      kit: [],
+      tactic: "balanced",
+      temperament: "rush",
+    })
+    const result = resolveBattle(
+      heavy("Heavy A", "a"),
+      heavy("Heavy B", "b"),
+      5,
+    )
+    expect(
+      result.events.some(
+        (event) =>
+          event.kind === "knockback" ||
+          (event.kind === "basic" && event.reaction === "knockback"),
+      ),
+    ).toBe(true)
+    expect(result.events.some((event) => event.kind === "down")).toBe(true)
   })
 
   test("the innate Strike can never reach the heavy-hit thresholds", () => {
@@ -302,7 +351,10 @@ describe("seeded battle event-stream contract", () => {
         )
       }
     }
-    expect(bestStrike).toBe(7)
+    // Phase 5 fold (FR-10); R1 (battle-balance) scaled the innate Strike to
+    // power 9, so the best attainable Strike is 16 (still under the lowest
+    // heavy threshold).
+    expect(bestStrike).toBe(16)
     expect(bestStrike).toBeLessThan(lowestThreshold)
   })
 

@@ -14,6 +14,7 @@ import {
   moveFighter,
   SPEED_BASE_MILLI_MM_PER_MS,
   SPEED_GAIN_MILLI_MM_PER_MS,
+  slipSpeed,
   targetVelocity,
   topSpeed,
 } from "./movement"
@@ -139,6 +140,26 @@ describe("continuous movement — the dodge burst (FR-20)", () => {
     let state = fighter({ spd: 2 })
     for (let i = 0; i < 6; i++) state = moveFighter(state, LUNGE, BOUNDS)
     expect(state.pos.z).toBeGreaterThanOrEqual(340)
+  })
+})
+
+describe("continuous movement — the step-around (FR-11)", () => {
+  const CUT: MoveIntent = { slip: { x: 0, z: 1000 } }
+
+  test("a cut runs at two and a half times a walk and snaps to it", () => {
+    expect(slipSpeed(10)).toBe(Math.trunc((topSpeed(10) * 5) / 2))
+    const first = accelerate({ x: 0, y: 0, z: 0 }, 10, CUT)
+    expect(first.z).toBe(slipSpeed(10))
+  })
+
+  test("a cut covers more ground, so more angle, than a walk", () => {
+    let walked = fighter()
+    let cut = fighter()
+    for (let i = 0; i < 9; i++) {
+      walked = moveFighter(walked, { x: 0, z: 1000 }, BOUNDS)
+      cut = moveFighter(cut, CUT, BOUNDS)
+    }
+    expect(cut.pos.z).toBeGreaterThan(walked.pos.z)
   })
 })
 
