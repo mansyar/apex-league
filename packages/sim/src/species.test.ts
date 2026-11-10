@@ -362,10 +362,11 @@ describe("earth_tortoise species record", () => {
     // 221-HP tank stopped capping; the identity now lives in the ceiling).
     for (const other of others) {
       expect(tortoise.statBounds.hp[1]).toBeGreaterThan(other.statBounds.hp[1])
-      expect(tortoise.statBounds.def[0]).toBeGreaterThan(
-        other.statBounds.def[1],
-      )
     }
+    // R2 (battle-balance): the defense floor is no longer the identity. The
+    // tortoise's whole role is "slow and hard to move", but its 17..20 DEF
+    // floor made every opponent stall to the 40 s cap; the cap only came down
+    // when the floor did, so the record now keeps HP and speed, not defense.
     // Speed: strictly below every other species' whole roll range.
     for (const other of others) {
       expect(tortoise.statBounds.spd[0]).toBeLessThan(other.statBounds.spd[0])
@@ -980,15 +981,14 @@ describe("breeding-discovery species records (roster_wave_3 + roster_wave_4)", (
         species.statBounds.spd[1],
       )
       expect(falcon.statBounds.def[1]).toBeLessThan(species.statBounds.def[1])
-      // The tortoise keeps the tallest HP ceiling, the hardest defense floor
-      // and the slowest ceiling in the game (Phase 13 trimmed its floor so a
-      // 221-HP tank stopped capping; the identity lives in the ceiling).
+      // The tortoise keeps the tallest HP ceiling and the slowest ceiling in
+      // the game (Phase 13 trimmed its floor so a 221-HP tank stopped capping;
+      // the identity lives in the ceiling). R2 (battle-balance) retired the
+      // "hardest defense floor" half: keeping DEF at 17..20 held every fight
+      // at the 40 s cap.
       const tortoise = speciesOf(TORTOISE)
       expect(tortoise.statBounds.hp[1]).toBeGreaterThan(
         species.statBounds.hp[1],
-      )
-      expect(tortoise.statBounds.def[0]).toBeGreaterThan(
-        species.statBounds.def[1],
       )
       expect(tortoise.statBounds.spd[1]).toBeLessThan(species.statBounds.spd[1])
     })

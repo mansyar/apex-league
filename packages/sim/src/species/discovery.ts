@@ -73,7 +73,7 @@ export const DISCOVERY_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "basalt_guard",
     ],
     temperament: "rush",
-    statBounds: { hp: [151, 181], atk: [7, 10], def: [11, 14], spd: [5, 8] },
+    statBounds: { hp: [151, 181], atk: [7, 10], def: [10, 13], spd: [5, 8] },
   },
   {
     id: "embercub",
