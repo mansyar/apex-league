@@ -41,6 +41,14 @@ numbers against a controller that has stopped moving.
   midpoint, gates on a two-sided 95% interval derived from **distinct** fights rather than
   game count, and fails a row it cannot judge instead of passing it.
 
+## Three reviews, and the numbers that were wrong twice
+
+The first pacing pass reported 54.5% and was manufactured (cap fights counted as in-band). The
+second green gate was blind (`finalHp` looked up by display name, so `distinct` counted winner
+and duration only, inflating every interval to 24-28 points). Both were caught by review, not by
+tests, which is why the shipped gate now carries a test that two fights sharing winner and
+duration but differing in final HP count as two distinct fights.
+
 ## The one that mattered most
 
 The first pacing pass looked like a 54.5% success and was manufactured: every cap-decided
@@ -58,23 +66,28 @@ stricter than an unbounded "majority in band".
 
 | Row | Before this track | After |
 | --- | --- | --- |
-| cap share (matrix) | 83.8% | **30.0%** |
+| cap share (matrix) | 83.8% | **29.8%** |
 | decisive share | not measured | **92.4%** |
-| median duration | 40.00 s (the cap) | **31.21 s** |
-| fifth percentile | not measured | **14.96 s** |
+| median duration | 40.00 s (the cap) | **30.58 s** |
+| fifth percentile | not measured | **14.60 s** |
 | damage band | basics 1.2%, heavies 22-27% | **49/49 inside 4-12%** |
 | attack rate | 3.78/s combined (a clinch) | 0.66/s, median gap ~1.1 m |
-| species rows inside the 95% gate | never measured | **15/15** |
+| species rows inside the 95% gate | never measured | **15/15**, on distinct fights |
+| cap-win quality | not measured | **74.4%** of cap wins clear the margin floor |
 
-`bun run verify` 3,970 pass / 1 skip / 0 fail; `bun run build` exit 0; `bun run balance` exit
-0 for the first time in this track; `bun run telemetry` 13/13.
+`bun run verify` 3,975 pass / 1 skip / 0 fail; `bun run build` exit 0; `bun run balance` exit
+0 for the first time in this track; `bun run telemetry` 13/13 (cap share 7/14 = 50.0%, exactly
+at its bound).
 
 ## Known and recorded, not claimed fixed
 
-- **The roster is not balanced.** Twelve of fifteen species sit outside the printed 45-55%
-  design band (reefclaw 71.4%, cindermoor 67.9%, mossboar 64.3% ... voltfox 32.1%, shalemole
-  33.9%, earth_tortoise 26.8%). They pass because the interval is 24-28 points wide: 112 games
-  are only 12-20 distinct fights. Widening variance comes before narrowing that band.
+- **The roster is not balanced.** Three of fifteen species sit inside the printed 45-55% design
+  band and twelve outside it (cindermoor 67.9%, mossboar 64.3%, fernstag 60.7% ... earth_tortoise
+  35.7%, galeheron 39.3%). They pass because the interval is 17-21 points wide: 112 games are
+  only 21-34 distinct fights. Widening variance comes before narrowing that band - and the gate
+  now derives its error from distinct fights, which is what exposed the four rows this phase
+  actually moved (reefclaw 71.4 -> 55.4, earth_tortoise 26.8 -> 35.7, voltfox 33.9 -> 51.8,
+  shalemole 33.9 -> 57.1).
 - **Authored accuracy is transformed.** `MISS_SCALE 5` turns the 70-100 ladder into 94-100%
   effective. Honouring it literally costs ~20 points of cap share; recorded as debt with the
   measured lever table.
