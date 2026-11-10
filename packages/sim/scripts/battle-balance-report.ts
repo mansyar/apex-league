@@ -126,12 +126,17 @@ const SIGNIFICANCE_Z = 1.96
  * The least number of *distinct* fights a species row may rest on (R1, F1).
  *
  * The matrix has 28 independent cells per species (14 opponents x 2 seat
- * orders); extra seeds only re-roll a fight that was already decided by the
- * RNG, so they add games without adding independent information. The best
- * standard error those 28 cells can buy is `1.96 * sqrt(0.25 / 28)` = 18.5
- * points wide, i.e. 9.3 points each way. A row below 12 distinct fights is
- * therefore certifying something the sample cannot see, and is reported
- * `UNVERIFIED` and failed rather than passed.
+ * orders). Extra seeds do move fights — the engine draws now (FR-21), so a
+ * fourth seed can flip a winner — but they move them less than a fresh cell
+ * does, and the count they add is bounded by how many distinguishable endings
+ * the RNG actually produces: measured, the roster lands at 21-34 distinct of
+ * 112 games, not at 112. The gate therefore rests on the distinct count rather
+ * than the game count, and reports the standard error that count buys (8.6-10.9
+ * points on the shipped roster, i.e. an interval 16.8-21.4 points wide). A row
+ * below 12 distinct fights is certifying something the sample cannot see, and is
+ * reported `UNVERIFIED` and failed rather than passed. The floor is permissive
+ * by design and the width it admits is stated on every row (see the spec's
+ * limitation note), so a pass at the floor is not read as a precise measurement.
  */
 export const DISTINCT_FLOOR = 12
 
@@ -154,7 +159,7 @@ const BAND_MAX_MS = 40_000
  * final exchange can cross it in either direction, so this floor does not prove
  * the winner was ahead before the last blow.
  *
- * `decisiveShare` alone also cannot police this. Knockouts are 588/840 (70.0%)
+ * `decisiveShare` alone also cannot police this. Knockouts are 590/840 (70.2%)
  * of the matrix on their own, already past the 66.7% bound, so cap-win quality
  * is invisible in that ratio; `capWinQuality` gates `decisiveCapWins / capWins`
  * separately (R3).
@@ -1139,8 +1144,12 @@ export function targets(sample: BalanceSample): Target[] {
     name: "capWinQuality",
     observed: `${pct(cap.time === 0 ? 0 : decisiveCapWins / cap.time)} (${decisiveCapWins}/${cap.time} cap wins clear ${(CAP_MARGIN_FLOOR_BP / 100).toFixed(2)} pts)`,
     bound: `>= ${pct(DECISIVE_SHARE_MIN)}`,
-    ok: cap.time !== 0 && decisiveCapWins * 3 >= cap.time * 2,
-    why: "FR-20 / AC-17 (R3): decisiveShare counts knockouts, so it cannot fail on the quality of the cap wins it adds — this row judges the cap wins alone: two in three must finish far enough ahead to be an outlasting, not a tiebreak",
+    // Vacuous when there is nothing to judge: a matrix where every fight ends
+    // by knockout has no cap wins, so "two in three cap wins" is satisfied by
+    // the absence of the population rather than by its quality. FR-4 explicitly
+    // allows a 0% cap share, so this row must not fail on it (R4 T1).
+    ok: cap.time === 0 || decisiveCapWins * 3 >= cap.time * 2,
+    why: "FR-20 / AC-17 (R3, amended R4): decisiveShare counts knockouts, so it cannot fail on the quality of the cap wins it adds — this row judges the cap wins alone: two in three must finish far enough ahead to be an outlasting, not a tiebreak; with no cap wins there is nothing to judge and the row is satisfied",
   })
   out.push({
     name: "medianDuration",
