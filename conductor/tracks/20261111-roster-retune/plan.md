@@ -14,7 +14,7 @@
 - **Covers:** FR-1, FR-3, AC-1, AC-3
 - **Touches:** `packages/sim/src/species/**` (+ co-located species tests only)
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: plant_ox into the band** — covers: FR-1
   - [ ] **P1.T1.1: Whole-band downshift scored by measureSpecies, accepted only past its se**
