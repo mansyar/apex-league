@@ -21,6 +21,7 @@ import { getMove } from "../moves"
 import { bodyOf, reachesBody } from "./contact"
 import { awayFrom, retreatRoom, strafeIntent } from "./controller-aim"
 import { DODGE_COOLDOWN_MS } from "./controller-dodge"
+import { strafeSide } from "./controller-memory"
 import type { ControllerDecision, DecisionInput } from "./controller-state"
 import { isBroken } from "./poise"
 import { DODGE_STAMINA_COST } from "./stamina"
@@ -176,7 +177,16 @@ export function ruleDisengage(
   if (room >= me.radiusMm * retreatRadii) {
     return { id: "keep_back", verb: "retreat", intent: away }
   }
-  const sign: 1 | -1 = input.side === 0 ? 1 : -1
+  // R1 (F7): the fallback strafe used to hard-code `side === 0 ? 1 : -1`,
+  // which ignored the pattern memory the doctrine's own strafe reads. It now
+  // goes through the same helper, so a rule-driven strafe breaks off the same
+  // way the plan would.
+  const sign = strafeSide(
+    input.controller.memory,
+    input.state.elapsedMs,
+    input.side === 0 ? 1 : -1,
+    input.profile.seeksRear,
+  )
   return {
     id: "keep_back",
     verb: "strafe",

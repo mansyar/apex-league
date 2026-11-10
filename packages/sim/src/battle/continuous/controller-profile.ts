@@ -304,7 +304,7 @@ export interface RangeBand {
   readonly ceilingMm: number
 }
 
-/** Scale one reference-edge distance onto the pair in the ring. */
+// R1 (F5): a floor at or below the reach edge is inert (pinned dead zone).
 function scaleRange(mm: number, reachEdge: number): number {
   return Math.max(
     reachEdge,
