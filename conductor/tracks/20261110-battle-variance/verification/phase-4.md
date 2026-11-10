@@ -68,6 +68,12 @@ The gate's arithmetic was checked, not blamed: slack is
 1.96·sqrt(0.25/max(12, distinct)) and the misses are ±5–11 pts beyond the
 interval edges — no mis-measurement to tighten, so no script change was made.
 
+## Primary verification
+
+- Independently confirmed at `03bbb4d0`: verify exit 1 with 1 fail of 3988 (only the end-to-end gate assertion); build exit 0; balance exit 1 on exactly 4 species rows (plant_ox +8.2, earth_tortoise −10.7, cindermoor +5.5, galeheron −6.7 pts outside); telemetry exit 0, 13/13.
+- Pins 1–3 re-baselined values-only and green; pin 4 (gate exit 0) stands red by decision, not omission. No production diff this phase; DISTINCT_FLOOR 12; nothing widened.
+- Track position: all 4 phases executed. P1/P2/P3 mechanism-complete with waivers recorded; P4 frontier-recorded. The only remaining lever (species stat tuning) is out of scope. Phase NOT squashed.
+
 ## Frontier verdict: gate red, carried as a finding (status `blocked`)
 
 The matrix reports median distinct 109/112 (≥ 56, FR-5 headline met) with

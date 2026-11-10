@@ -67,9 +67,12 @@
 - **Covers:** FR-5, FR-8, AC-5, AC-8
 - **Touches:** `packages/sim/scripts/battle-balance-report.ts`, `packages/sim/src/battle/continuous/balance-report.test.ts`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run telemetry`
-- **Status:** in_progress
+- **Status:** blocked
+- **Result:** blocked with measured frontier — pins re-baselined to variance reality (distinct 100-112, design-band 8 ids, KNOWN_MISSES the 4 measured rows); gate red on exactly plant_ox +8.2, earth_tortoise −10.7, cindermoor +5.5, galeheron −6.7 pts outside their intervals. Moving them needs species stat tuning (out of scope — roster re-tune track). No bound widened, no test.failing, DISTINCT_FLOOR 12.
+- **Checkpoint:** 03bbb4d0
+- **Evidence:** conductor/tracks/20261110-battle-variance/verification/phase-4.md
 
-- [ ] **P4.T1: Distinct half** — covers: FR-5, AC-5
-  - [ ] **P4.T1.1: Report median distinct at or above 56 of 112 with distinct-derived errors; keep DISTINCT_FLOOR at 12**
-- [ ] **P4.T2: Bounds hold** — covers: FR-8, AC-8
-  - [ ] **P4.T2.1: Hold cap, decisive, cap-win quality, median, p05, damage, bosses, and telemetry 13/13 with no bound widened**
+- [x] **P4.T1: Distinct half** — covers: FR-5, AC-5
+  - [x] **P4.T1.1: Report median distinct at or above 56 of 112 with distinct-derived errors; keep DISTINCT_FLOOR at 12**
+- [x] **P4.T2: Bounds hold** — covers: FR-8, AC-8
+  - [x] **P4.T2.1: Hold cap, decisive, cap-win quality, median, p05, damage, bosses, and telemetry 13/13 with no bound widened**
