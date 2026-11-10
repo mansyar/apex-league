@@ -63,11 +63,11 @@
 ## Phase 4: Gate and Re-measure
 
 - **Goal:** The matrix reports at least half distinct fights with every pacing, cap, decisive, quality, and damage bound green.
-- **Depends on:** Phase 3
+- **Depends on:** Phase 3 (blocked with owner waiver: Kite 2/6 pinned, gate red on 4 balance-report pins carried here)
 - **Covers:** FR-5, FR-8, AC-5, AC-8
 - **Touches:** `packages/sim/scripts/battle-balance-report.ts`, `packages/sim/src/battle/continuous/balance-report.test.ts`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run telemetry`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P4.T1: Distinct half** — covers: FR-5, AC-5
   - [ ] **P4.T1.1: Report median distinct at or above 56 of 112 with distinct-derived errors; keep DISTINCT_FLOOR at 12**
