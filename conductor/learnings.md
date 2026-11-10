@@ -389,3 +389,27 @@ deleting the invariant that says it is frail, only quieter. Replace the fragile 
 instead: a floor on the single fastest fight in an 840-fight sample is a target that invites
 propping up an archetype, where a fifth-percentile floor says the same thing without
 demanding that no fight ever be quick.
+
+## 19. A win condition you call a failure will be balanced away
+
+The pacing metric was `resolvedInBand`: the share of fights that ended by knockout inside
+25-40 s. It read 23.1% and the team spent a phase compressing the authored ladder to move
+it, reaching 41.0% while cap share, knockout share and the median were all already healthy.
+The metric was wrong, not the game: a cap decision is how a tank wins, and counting it as
+"did not resolve" made a legal archetype a defect. Worse, the fix for a metric like that is
+always to weaken the archetype - the ladder compression was already trimming the heavy tier
+that the tank's durability exists to survive.
+
+The rule: before optimising a metric, ask what behaviour it *rewards*. A metric that can only
+be improved by deleting a legitimate strategy is a specification bug. The replacement kept
+the parts that were true (a median inside the window, a floor on the fastest fifth, cap share
+bounded) and added the part that was missing (an outlasting win counts when its HP margin
+clears a floor, so a coin-flip cap decision does not count as decisive). Cap share 30.0%,
+decisive share 92.4%, median 31.21 s, and the gate went green for the first time - with no
+ladder change beyond what the honest numbers had already asked for.
+
+The corollary is about honesty in the other direction: a green gate is not a balanced roster.
+Twelve of fifteen species still sit outside the 45-55% design band, and they pass because the
+interval is 24-28 points wide - distinct fights are 12-20 of 112. A gate that passes a 26.8%
+row is telling you it cannot see, not that the row is fine. Print the number on every row so
+nobody can mistake a wide interval for a balanced creature.
