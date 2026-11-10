@@ -14,13 +14,16 @@
 - **Covers:** FR-1, FR-2, AC-1, AC-2
 - **Touches:** `packages/sim/src/battle/continuous/roll.ts`, `packages/sim/src/battle/moves.ts`, `packages/sim/src/battle/moves-band.test.ts`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** blocked
+- **Result:** blocked — mechanism complete (AC-1/AC-2 green, ladder 100/99/88/95/99/100, MISS_SCALE deleted), gate red on 2 lines carried to Phase 4 per owner waiver: capShare 282/840 = 33.6% vs ≤33.3% (2 fights), cindermoor species row. Single-tick frontier exhausted (bolt94 no-op, chip99 282, chip98 no-op reverted). No bound widened.
+- **Checkpoint:** 55c39242
+- **Evidence:** conductor/tracks/20261110-battle-variance/verification/phase-1.md
 
-- [ ] **P1.T1: Make authored accuracy real** — covers: FR-1, AC-1
-  - [ ] **P1.T1.1: Remove the MISS_SCALE transform so each row below 100 rolls its authored probability and 100 consumes no RNG**
-  - [ ] **P1.T1.2: Re-author the 49 accuracy values against pacing headroom and re-pin forced goldens row by row**
-- [ ] **P1.T2: Hold the damage ceiling** — covers: FR-2, AC-2
-  - [ ] **P1.T2.1: Prove no rolled hit breaches 12% after the best roll with the band test green at 49/49**
+- [x] **P1.T1: Make authored accuracy real** — covers: FR-1, AC-1
+  - [x] **P1.T1.1: Remove the MISS_SCALE transform so each row below 100 rolls its authored probability and 100 consumes no RNG**
+  - [x] **P1.T1.2: Re-author the 49 accuracy values against pacing headroom and re-pin forced goldens row by row**
+- [x] **P1.T2: Hold the damage ceiling** — covers: FR-2, AC-2
+  - [x] **P1.T2.1: Prove no rolled hit breaches 12% after the best roll with the band test green at 49/49**
 
 ## Phase 2: Execution Noise
 

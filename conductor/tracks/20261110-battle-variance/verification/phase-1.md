@@ -167,3 +167,9 @@ AC-1/AC-2 hold at the locked ladder: 70/80/88/95/99 within ±0.02 over 20k
 draws; 100 never draws; 49/49 band, heaviest max 10.05%. FR-5 distinct median is
 **46/112** (sorted 39,40,40,41,41,43,43,46,46,46,47,48,48,50,53) vs the ≥56
 target — Phase 4's gap, recorded not widened.
+
+## Primary verification
+
+- Independently confirmed: initial verify exit 1 with 3972 pass / 1 skip / 4 fail, all 4 in `battle/continuous/balance-report.test.ts`. Rework 1 narrowed it to 3975 pass / 1 fail (gate only, 2 FAIL lines: cindermoor, capShare 282/840 = 33.6%).
+- AC-1/AC-2 hold per evidence. Mechanism complete; nothing in Touches left undone.
+- Owner ruling (2026-11-11): carry the red gate to Phase 4. Ladder frozen at 100/99/88/95/99/100; single-tick frontier exhausted; no bound widened. Phase 2 proceeds with the gate red as its recorded baseline. Phase NOT squashed: range holds subagent commits, history kept for the waiver audit.
