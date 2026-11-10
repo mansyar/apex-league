@@ -36,11 +36,11 @@ The primary appends after acceptance:
 ## Phase 2: Warm the Cold Rows
 
 - **Goal:** earth_tortoise and galeheron both measure inside 45–55% with identity, swing, and telemetry intact.
-- **Depends on:** Phase 1
+- **Depends on:** Phase 1 (blocked with waiver: mechanics complete, pins carried forward)
 - **Covers:** FR-2, FR-4, AC-2, AC-4
 - **Touches:** `packages/sim/src/species/**` (+ co-located species tests only)
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: earth_tortoise into the band** — covers: FR-2
   - [ ] **P2.T1.1: Upshift keeping the slowest record and a defensible attack ceiling; startup-512 row untouched**
