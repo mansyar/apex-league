@@ -109,7 +109,7 @@ export const REWARD_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "tectonic_slam",
     ],
     temperament: "slow",
-    statBounds: { hp: [163, 209], atk: [13, 17], def: [9, 12], spd: [3, 5] },
+    statBounds: { hp: [163, 209], atk: [10, 14], def: [9, 12], spd: [3, 5] },
   },
   {
     id: "cindermoor",
