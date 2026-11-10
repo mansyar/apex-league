@@ -44,7 +44,7 @@ export const STARTER_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "root_quake",
     ],
     temperament: "slow",
-    statBounds: { hp: [157, 190], atk: [8, 11], def: [11, 15], spd: [6, 9] },
+    statBounds: { hp: [160, 193], atk: [8, 11], def: [11, 15], spd: [6, 9] },
   },
   {
     id: "water_axolotl",
