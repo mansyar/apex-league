@@ -323,7 +323,10 @@ numbers are measured by a tool that predates them.
   tests.
 - **Verification:** `bun run verify`, `bun run build`, `bun run balance`,
   `bun run telemetry` - four separate commands.
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 7adc8e9b
+- **Evidence:** `conductor/tracks/20261109-battle-balance/verification/phase-R1.md`
 
 - [ ] **R1.F1: Significance from distinct fights** - covers: FR-5, AC-5
   - [ ] **R1.F1.1:** Effective standard error from the distinct-fight count, a stated

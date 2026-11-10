@@ -88,7 +88,7 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
 | FR-2 | Creature stats are the numbers fought: no scale or weight multiplier sits between the stat sheet and the resolver. | Must |
 | FR-3 | The HP scale is migrated into stored stats in place, and old `balanced`/`specials` tactics map onto doctrines, so an existing creature keeps fighting. | Must |
 | FR-4 | At most one fight in three is decided at the cap, and the majority finish inside 25-40 s. | Must |
-| FR-5 | Every available species lands within 45-55% win rate across the seeded matrix, measured under a standard doctrine. | Must |
+| FR-5 | Every available species passes a two-sided 95% test on its seeded matrix win rate, measured under a standard doctrine, with the standard error derived from its **distinct-fight count** rather than its game count. A row below the stated distinct floor is reported as unverified and fails the gate. 45-55% is the design target the tuning aims at and is printed on every row, but it is not the pass condition: 28 independent cells (14 opponents, two orders) cannot resolve a five-point band, so a species that is genuinely balanced would fail a point-band test most of the time. | Must |
 | FR-6 | Bosses and gatekeepers are excluded from the band, but each must have a documented answer available at its intended stage. | Must |
 | FR-7 | One deterministic command reports the matrix, win rates, doctrine effects, damage shares and durations, and fails on a violated target. | Must |
 | FR-8 | Damage, poise and stamina tiers stay distinct: a heavy move costs more and lands harder than a light one. | Must |
@@ -130,7 +130,7 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
 | AC-2 | No production module reads an HP scale or blow weight. | FR-2 |
 | AC-3 | A pre-change save loads, its creature fights within tolerance, old tactics map to doctrines, and the save is written at the new version. | FR-3, FR-9 |
 | AC-4 | The report shows cap share at or below one in three and a majority inside 25-40 s. | FR-4 |
-| AC-5 | The report shows every available species inside 45-55%, and fails when one is not. | FR-5 |
+| AC-5 | The report prints each species' rate, distinct-fight count and effective standard error, prints 45-55% as the design target, fails on any species that misses the 95% test or is unverified, and names the rows currently outside the design band in a maintained miss list, so a row drifting silently fails the suite. | FR-5 |
 | AC-6 | Every boss is listed with its documented answer and is beatable at its stage, not trivially. | FR-6 |
 | AC-7 | The report is one command, deterministic across runs, exiting non-zero naming the violated target. | FR-7 |
 | AC-8 | A test asserts a heavy move costs more stamina, recovers slower and lands harder than a light one. | FR-8 |
@@ -240,6 +240,31 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
   that clamp. The owner ruled that the gate measures each species at its bounds midpoint
   and keeps the equal-investment line as a diagnostic. Phase 12 owns FR-22 and AC-19;
   Phase 13 owns the re-tune.
+
+- **Resolved (2026-11-10, owner): the gate judges significance, not a point band.** The
+  review found the gate computing its standard error from 112 games while one row
+  (`earth_tortoise`) contained 4 distinct fights, so it certified a species it could not
+  measure. FR-5 and AC-5 now state the decision rule: the error comes from the distinct
+  count, a stated distinct floor makes a row unverified, and an unverified row fails.
+  45-55% stays printed as the design target. A tank whose fights always reach the cap
+  cannot be balanced because there is nothing to vary, so making its fights resolve is
+  part of the fix, not a workaround.
+
+### Deferred follow-up - authored accuracy is transformed
+
+`continuous/roll.ts` rolls against `100 - floor((100 - accuracy) / MISS_SCALE)` with
+`MISS_SCALE = 5`, so the catalog's authored 70 lands 94% of the time and an authored 100
+never draws at all. The mechanism is live and FR-21 is met in the sense that every attack
+rolls, but the number in `MoveDef.accuracy` is no longer the probability it lands.
+
+`MISS_SCALE` 5 is deliberate. Measured cost of honouring the authored ladder literally is
+a telemetry cap share of 64.3% (against a one-in-three requirement); a floor of 90 reads
+57.1%; the shipped 5 reads 42.9%. Re-authoring the ladder to real values therefore needs
+roughly 15-20 points of cap-share headroom, which means a pacing change alongside it.
+
+Debt carried by the balance pass: either re-author the 49 accuracy values against a pacing
+lever that can absorb the cost, or drop the field and stop printing it. Until then the
+catalog number is a tier hint, not a probability.
 
 ## References
 

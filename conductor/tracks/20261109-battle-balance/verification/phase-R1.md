@@ -287,3 +287,75 @@ Checked and passing **without** an edit: `species-balance.test.ts` (four
   and its signatures collapse. Six stat/kit combinations were measured; none
   cleared both the floor and the win bound.
 - Pacing smoke sample — 17 KO / 25 cap over 42 fights, pinned `test.failing`.
+
+## Primary verification
+
+# Primary verification — Phase R1
+
+## Commands (run separately on `7adc8e9b`, tree clean apart from the primary's `spec.md`)
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `bun run verify` | 0 | 3,965 pass / 1 skip / 0 fail over 3,966 tests across 367 files, 63.56 s; biome clean; determinism gate OK |
+| `bun run build` | 0 | Vite, chunk-size warning only |
+| `bun run balance` | **1** | one `UNVERIFIED` row and nothing else |
+| `bun run telemetry` | 0 | 13/13 bounds; cap 50.0%, durationMin 20.98 s, durationMax 40.00 s |
+
+## What the review asked for, and what landed
+
+| Finding | Outcome |
+| --- | --- |
+| F1 High — significance from 112 games while a row had 4 distinct fights | `DISTINCT_FLOOR = 12`; `se = sqrt(0.25 / distinct)`; `UNVERIFIED` rows carry a flag and **fail** the gate; a synthetic `distinct = 4, games = 112` sample can no longer pass |
+| F1 follow-on — make the tank measurable | tortoise bounds reshaped and `spd [3,5]` restored; distinct 4 → 6, still under the floor |
+| F2 High — dodge rate zero by construction | paid `DodgeReport` entries now reach the report through `BattleResult.dodges`; rear column added; a probe measured Press 24 / Circle 72 / Kite 48 / Counter 132 paid dodges over six fights each, so the signal is real |
+| F3 — spec contradicted the gate | FR-5 and AC-5 amended to the authorised rule, 45-55% kept as the design target, `KNOWN_MISSES` names the out-of-band rows |
+| F4 — falcon identity erased | falcon HP `[130,160]`, the roster's lowest; the bulk assertion asserts the real property |
+| F4.2 — `durationMin` was a one-fight bound | replaced by `durationP05` ≥ 8.00 s; `durationMin` kept as a diagnostic |
+| F5 — Press's floor inert | dead zone documented and pinned by a test |
+| F6 — accuracy transformed | recorded in the spec as a deferred follow-up with the measured lever table |
+| F7 — keep_back strafe ignored the doctrine | passed through `strafeSide`; test re-pinned |
+| F8 — telemetry cap bound twice the requirement | header states FR-4 is gated by `bun run balance`; the smoke fixture keeps its own bound |
+| F9 — mislabelled duration targets | relabelled FR-4/FR-20 |
+
+## The one number that did not land
+
+`bun run balance` exits 1 on a single row:
+
+```
+UNVERIFIED species:earth_tortoise: observed 55.4% (62/112, 6 distinct, se 20.4%),
+bound needs >= 12 distinct fights to be judged (has 6)
+```
+
+This is the honest outcome, and it is a design finding rather than a tuning miss. The
+tortoise is a `spd 3` tank: it cannot close, so its fights reach the 40 s cap, and a cap
+decision is made on HP percentage, which is near-deterministic. Six distinct fights in 112
+is six coin flips, so no tuning of its stats can produce a measured win rate — raising
+`atk` far enough to end fights by knockout overshot the gate (`atk [16,20]` gave 16
+distinct at 86%), and moving the tier-3 finisher into the fighting four made it worse
+(71.4% at 4 distinct, 92.9% at 9 distinct).
+
+The gate is therefore **not** green, by design of the fix the review asked for: an
+unverified row must not pass. Two things follow, and both are recorded rather than hidden:
+
+- **AC-5 is partially met.** Fourteen species are judged and pass; one is unverified.
+- **The real fix is a mobility answer for a slow tank** — a passive, a closing move, or a
+  cap-decision rule that is not a near-tie — and that is a design decision for the owner,
+  not a number to nudge.
+
+## What moved, measured
+
+- `durationBand` 46.0% → **54.5%** by scaling the whole authored ladder down together
+  (uniform ~0.94 cut; 0.85 and 0.90 both broke `capShare`). Ladder top shipped at power 21
+  = 11.11% because 20 and 19 pushed cap share to 34.3% and 35.0%; basic shipped at 4.76%
+  because 4.4-4.6% is unreachable in integer powers.
+- `capShare` 23.1% → 31.4% (bound 33.3%), `durationP05` 11.94 s, `durationMax` 40.00 s,
+  `damageBand` 49/49, all six bosses still inside `0 < wins < 30`.
+- The pacing fixture's knockout majority is pinned as `test.failing` at 17 KO / 25 cap
+  (40.5%) on its own 42-fight sample; the matrix reports 68.6% KO, so the two samples
+  disagree and the assertion names `bun run balance` as the pace gate.
+
+## Not squashed
+
+The range held the primary's `conductor(plan)` and spec commits, so the phase commits were
+kept as reported.
+
