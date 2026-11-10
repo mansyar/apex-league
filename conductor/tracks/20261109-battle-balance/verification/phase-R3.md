@@ -260,3 +260,150 @@ twelve outside it, on intervals 17-21 points wide because 112 games are 21-34 di
 That is stated in the spec, the product doc and learnings 16/19, and the next balance track's
 first job is variance, not the band. Kite still loses all six sampled fights at 24 paid dodges
 per fight - an owner decision, not a tuning number.
+
+## Rework 4 - closing the round-4 findings
+
+Round-4 verdict was PASS WITH FINDINGS: five text fixes, one latent bug, one judgement call.
+Branch `feat/20261109-battle-balance`, base `caa55529` (plus the PR-body commit `3739756f`).
+
+### T1 - `capWinQuality` is vacuous when there is nothing to judge
+
+`targets()` read `ok: cap.time !== 0 && decisiveCapWins * 3 >= cap.time * 2`. FR-4 explicitly
+allows a 0% cap share, so a matrix where every fight ends by knockout has no cap wins to judge
+and the row failed on the empty population, printing `0.0% (0/0 cap wins clear 5.00 pts)`
+against a 66.7% bound. It now reads `ok: cap.time === 0 || decisiveCapWins * 3 >= cap.time * 2`,
+and the existing `duration.time: 0` sample in `balance-report.test.ts` asserts that
+`violations()` contains no `capWinQuality` row. The comment states why the population's absence
+satisfies a condition about its quality, so the `||` does not read as a weakened bound.
+
+### T2 - the tortoise: measured, then reverted
+
+The round-3 record accepted `earth_tortoise` `atk [10,14] -> [13,17]` on +8.9 points against its
+own `se` of 8.6, and rejected `[14,18]` for a ceiling above every starter's and above
+cindermoor's 16 - a reason already true of 13-17. The finding is correct on both counts, so the
+band was measured before it was decided.
+
+**Identity criterion used.** The tortoise is the roster's slowest creature (`spd [3,5]`, strictly
+below every other roll range) and its bulkiest (`hp [163,209]`, the tallest ceiling). Its attack
+band may not exceed the highest attack ceiling a *starter* can roll. The roster's attack
+ceilings, read from `species/{starters,rewards,discovery}.ts`:
+
+| ceiling | species |
+| --- | --- |
+| 16 | electric_hound [10,16], wind_falcon [10,16], cindermoor [9,16] |
+| 15 | fire_drake [11,15] (highest starter), mistkit [12,15] |
+| 14 | earth_tortoise [10,14] |
+| 13 | embercub [9,13] |
+| 12 | plant_ox, water_axolotl, fernstag, mossboar |
+| 11 | reefclaw, voltfox, galeheron, shalemole |
+
+So the largest defensible tortoise ceiling is 15: it ties the highest starter and mistkit and
+stays under the three 16s. `[13,17]` is the roster's only 17 - the slowest creature carrying the
+highest attack ceiling in the game, which is the identity break the finding names.
+
+**The lever is a step function.** Each species is measured at its bounds midpoint, so only the
+midpoint moves the gate, and the tortoise's midpoint plateaus. Width-4 sweep, 112 games each:
+
+| band | mid | rate | wins | distinct | se | slack | gate |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 6-10 | 8 | 21.4% | 24 | 31 | 9.0% | 17.6 | FAIL |
+| 7-11 | 9 | 19.6% | 22 | 30 | 9.1% | 17.9 | FAIL |
+| 8-12 | 10 | 21.4% | 24 | 30 | 9.1% | 17.9 | FAIL |
+| 9-13 | 11 | 21.4% | 24 | 28 | 9.4% | 18.5 | FAIL |
+| **10-14** | **12** | **26.8%** | **30** | **30** | **9.1%** | **17.9** | **FAIL** |
+| **11-15** | **13** | **26.8%** | **30** | **30** | **9.1%** | **17.9** | **FAIL** |
+| 12-16 | 14 | 33.9% | 38 | 32 | 8.8% | 17.3 | ok |
+| 13-17 | 15 | 35.7% | 40 | 34 | 8.6% | 16.8 | ok |
+| 14-18 | 16 | 50.0% | 56 | 33 | 8.7% | 17.1 | ok |
+| 15-19 | 17 | 50.0% | 56 | 32 | 8.8% | 17.3 | ok |
+| 16-20 | 18 | 50.0% | 56 | 32 | 8.8% | 17.3 | ok |
+
+**Paired delta.** Same 28 ordered pairings x 4 seeds = 112 cells, `[10,14]` against each
+candidate, counting per-cell win/loss flips (draws never occurred):
+
+| candidate | flips | l->w | w->l | sqrt(flips) | rate | se |
+| --- | --- | --- | --- | --- | --- | --- |
+| 11-15 (ceiling 15) | 0 | 0 | 0 | 0.00 | 26.8% | 9.1% |
+| 12-15 (ceiling 15, w3) | 0 | 0 | 0 | 0.00 | 26.8% | 9.1% |
+| 13-15 (ceiling 15, w2) | 8 | 8 | 0 | 2.83 | 33.9% | 8.8% |
+| 14-15 (ceiling 15, w1) | 8 | 8 | 0 | 2.83 | 33.9% | 8.8% |
+| 12-14 (w2) | 0 | 0 | 0 | 0.00 | 26.8% | 9.1% |
+| 13-14 (w1) | 0 | 0 | 0 | 0.00 | 26.8% | 9.1% |
+| 12-16 (ceiling 16) | 8 | 8 | 0 | 2.83 | 33.9% | 8.8% |
+| 13-17 (shipped) | 10 | 10 | 0 | 3.16 | 35.7% | 8.6% |
+
+Stated as the brief asks: `[11,15]` flips **0** cells against `sqrt(0)` = 0.00 - it changes
+nothing at all, not a single fight of 112. `[13,17]` flips **10** against `sqrt(10)` = 3.16, and
+`[13,15]`/`[14,15]`/`[12,16]` flip **8** against `sqrt(8)` = 2.83. The flips are entirely
+one-directional, so they are a consistency measure, not a magnitude one: 10 flips of 112 is
++8.9 points, which is the same quantity the round-3 record already had.
+
+**Whole-band shifts with ceiling <= 15.** There is exactly one: `[11,15]`, and it is a
+zero-flip change. Every other ceiling-respecting configuration that clears the gate narrows the
+roll to reach midpoint 14 - `[13,15]` (width 2) and `[14,15]` (width 1), both 33.9%, both
+identical to the `[12,16]` that round 3 rejected as a sub-`se` move. The gate reads only the
+midpoint, so its green at `[13,15]` is the `[12,16]` green: a +7.1-point move against an 8.8-point
+standard error, dressed in a narrower band. That is two levers at once (mean up, variance down)
+and it accepts by the back door the move the record refused at the front, so it was not shipped.
+
+**Decision: revert to `[10,14]`.** Measured full-gate runs for the three candidates:
+
+| band | failing rows | tortoise | cap share | decisive | cap-win quality | median | p05 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 10-14 (shipped) | 1 (tortoise) | 26.8% d30 | 29.8% | 93.6% | 78.4% | 31.04 s | 14.96 s |
+| 13-15 (refused) | 0 | 33.9% d32 | 29.8% | 93.6% | 78.4% | 31.04 s | 14.60 s |
+| 13-17 (round 3) | 0 | 35.7% d34 | 29.8% | 92.4% | 74.4% | 30.58 s | 14.60 s |
+
+The revert is not a regression on the rest of the gate: it *improves* decisive share (92.4 ->
+93.6), cap-win quality (74.4 -> 78.4) and lifts electric_hound from 41.1% to 48.2% and mistkit
+from 51.8% to 53.6%, because a weaker tortoise stops absorbing other species' wins. Only the
+tortoise row itself is red.
+
+**`earth_tortoise` is recorded beside `cindermoor` as a frontier the tuning budget cannot
+reach.** The budget is one species, one stat, floor and ceiling moved together so the roll width
+is unchanged. Under it the tortoise cannot be moved: the only shift whose ceiling stays at or
+below 15 does not move the row, and every shift that reaches the gate either lifts the ceiling
+above the highest starter's (`[12,16]` 33.9%, `[13,17]` 35.7%, `[14,18]` 50.0%) or compresses the
+roll. Cindermoor is the milder case - it passes on its own 19.6-point interval and cannot be
+moved usefully; the tortoise fails at 26.8%, 5.2 points beyond its 17.9-point bound, and cannot
+be moved legally at all. The difference is in the consequence, not in the reach.
+
+**AC-5 is partial by decision and needs owner sign-off.** The gate is red on
+`species:earth_tortoise` and this phase did not manufacture green to close it. The row is pinned
+in `KNOWN_MISSES` so the suite records it deliberately; the gate exit code is 1.
+
+### T3 / T4 - text and record: landed in code, denied in the docs
+
+`spec.md`, `product.md` and `plan.md` are write-protected for this agent
+(`Permission denied: edit`, four attempts). The code-side record corrections landed; the doc
+ones are listed below with the exact text to apply, in `blockers`.
+
+Landed:
+- `moves.ts`: `MoveDef.cooldown` now documents the tier key `COOLDOWN_MS` maps to milliseconds,
+  tier 0 for the innate strike and never gated, and states it is not an action count. The ladder
+  note now says a heavy beats its light row on damage and poise while costing more stamina and
+  recovering slower - the direction `moves-band.test.ts` actually asserts.
+- `battle-balance-report.ts:157`: knockouts are 590/840 (70.2%), not 588/840 (70.0%).
+- `battle-balance-report.ts` `DISTINCT_FLOOR`: the premise is corrected. Extra seeds *do* move
+  fights (the engine draws, FR-21); the count they add is bounded by how many distinguishable
+  endings the RNG produces - measured 21-34 distinct of 112, se 8.6-10.9, half-width 16.8-21.4.
+  The floor stays at 12 for the reason the spec's limitation note gives, not because 28 is the
+  ceiling on information.
+- `capWinQuality`'s `why` cites the amended condition, which T3's denied edit would have written
+  into FR-20/AC-17.
+
+### Verification
+
+| command | exit | result |
+| --- | --- | --- |
+| `bun run verify` | 0 | 3,975 pass / 1 skip / 0 fail across 367 files; biome clean, 913 files; determinism 45 regenerations |
+| `bun run build` | 0 | vite 410 modules, 1,056.78 kB bundle |
+| `bun run balance` | **1** | one FAIL by decision: `species:earth_tortoise 26.8% (30/112, 30 distinct, se 9.1%), bound <= 17.9%`; every other row ok |
+| `bun run telemetry` | 0 | cap share 7/14 (50.0%), all 13 bounds ok |
+
+Re-pinned deliberately in `balance-report.test.ts`, each because the revert changed a measured
+count: `earth_tortoise` distinct 34 -> 30, `reefclaw` distinct 24 -> 23, `DESIGN_BAND_MISSES`
+12 -> 11 ids (electric_hound 41.1% -> 48.2%, now inside the design band), `KNOWN_MISSES` empty ->
+the one tortoise row, and the gate test now asserts exit 1 with exactly one FAIL line instead of
+a green gate. The bound itself was not weakened anywhere: `DISTINCT_FLOOR`, `SIGNIFICANCE_Z`,
+`CAP_MAX`, `DECISIVE_SHARE_MIN` and the damage band are untouched.
