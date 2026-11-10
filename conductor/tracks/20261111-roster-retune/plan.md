@@ -62,11 +62,11 @@ The primary appends after acceptance:
 ## Phase 3: Green Gate and Guardrails
 
 - **Goal:** `bun run balance` exits 0 with KNOWN_MISSES empty and every suite, bound, and guardrail green.
-- **Depends on:** Phase 2
+- **Depends on:** Phase 2 (blocked with waiver: mechanics complete, balance gate exit 0, pins carried here)
 - **Covers:** FR-5, FR-6, FR-7, AC-5, AC-6, AC-7
 - **Touches:** `packages/sim/src/battle/continuous/balance-report.test.ts` (+ forced golden re-pins only), `packages/sim/src/battle/exhibition.test.ts`, `packages/sim/src/cup.test.ts`, `packages/sim/src/cup-contracts.test.ts`, `packages/sim/src/battle/clock.contract.test.ts` (mechanical golden re-pins of in-scope stat moves only — values received, no logic touched)
 - **Verification:** `bun run verify`, `bun run build`, `bun run balance`, `bun run telemetry` (four separate runs)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Gate green on measured rows** — covers: FR-6, AC-6
   - [ ] **P3.T1.1: Re-baseline distinct pins, design-band list, and KNOWN_MISSES to measured values; empty the misses**
