@@ -115,7 +115,7 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     expect(byId.get("reefclaw")?.distinct).toBe(24)
     // The one-species replay reads the same key, so it must agree.
     for (const id of ["earth_tortoise", "reefclaw"]) {
-      expect(measureSpecies(id).distinct).toBe(byId.get(id)?.distinct)
+      expect(measureSpecies(id).distinct).toBe(byId.get(id)?.distinct ?? -1)
     }
   })
 
@@ -345,9 +345,9 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
         ],
       },
     }
-    expect(
-      violations(passes).some((row) => row.name === "capWinQuality"),
-    ).toBe(false)
+    expect(violations(passes).some((row) => row.name === "capWinQuality")).toBe(
+      false,
+    )
     const fails: BalanceSample = {
       ...measured,
       duration: {
@@ -360,9 +360,9 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
         ],
       },
     }
-    expect(
-      violations(fails).some((row) => row.name === "capWinQuality"),
-    ).toBe(true)
+    expect(violations(fails).some((row) => row.name === "capWinQuality")).toBe(
+      true,
+    )
   })
 
   test("the report names the design-band misses it computes (FR-5, R2 T3)", () => {
