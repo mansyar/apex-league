@@ -16,21 +16,21 @@
  * and different seeds diverge.
  */
 
-import type { Rng } from "../../rng";
-import { awayFrom } from "./controller-aim";
-import type { ControllerDecision, ControllerState } from "./controller-state";
-import { hold } from "./controller-state";
-import type { FighterState, MoveIntent } from "./types";
+import type { Rng } from "../../rng"
+import { awayFrom } from "./controller-aim"
+import type { ControllerDecision, ControllerState } from "./controller-state"
+import { hold } from "./controller-state"
+import type { FighterState, MoveIntent } from "./types"
 
 /**
  * Cadence jitter (FR-3/AC-3): one cadence in sixteen is skipped, holding the
  * previous order without advancing the doctrine cycle. Cadence and commit
  * phasing therefore drift per seed while the 12-step decision rhythm stays.
  */
-export const CADENCE_SKIP_DENOM = 16;
+export const CADENCE_SKIP_DENOM = 16
 
 /** Commit timing (FR-4/AC-4): one press-slot commit in 32 is delayed a step. */
-export const COMMIT_SKIP_DENOM = 32;
+export const COMMIT_SKIP_DENOM = 32
 
 /**
  * Punish-window use (FR-4/AC-4): one punish window in sixteen is let go. The
@@ -38,7 +38,7 @@ export const COMMIT_SKIP_DENOM = 32;
  * still shows in the variance, while the telemetry cap share (AC-24) keeps
  * its headroom.
  */
-export const PUNISH_SKIP_DENOM = 16;
+export const PUNISH_SKIP_DENOM = 16
 
 /**
  * Cadence jitter gate. Returns a hold when this cadence is skipped, or null
@@ -49,8 +49,8 @@ export function cadenceHold(
   controller: ControllerState,
   rng: Rng,
 ): ControllerDecision | null {
-  if (rng.int(CADENCE_SKIP_DENOM) === 0) return hold(controller);
-  return null;
+  if (rng.int(CADENCE_SKIP_DENOM) === 0) return hold(controller)
+  return null
 }
 
 /**
@@ -59,9 +59,9 @@ export function cadenceHold(
  * tests, legacy callers) every commit goes ahead, exactly as before.
  */
 export function takeCommit(rng: Rng | undefined, punish: boolean): boolean {
-  if (!rng) return true;
-  const denom = punish ? PUNISH_SKIP_DENOM : COMMIT_SKIP_DENOM;
-  return rng.int(denom) !== 0;
+  if (!rng) return true
+  const denom = punish ? PUNISH_SKIP_DENOM : COMMIT_SKIP_DENOM
+  return rng.int(denom) !== 0
 }
 
 /**
@@ -77,11 +77,11 @@ export function flankDodge(
   foe: FighterState,
   rng: Rng | undefined,
 ): MoveIntent {
-  if (!rng || !("dodge" in intent)) return intent;
-  const away = awayFrom(me, foe);
-  if (intent.dodge.x === away.x && intent.dodge.z === away.z) return intent;
+  if (!rng || !("dodge" in intent)) return intent
+  const away = awayFrom(me, foe)
+  if (intent.dodge.x === away.x && intent.dodge.z === away.z) return intent
   if (rng.int(2) === 0) {
-    return { dodge: { x: -intent.dodge.x, z: -intent.dodge.z } };
+    return { dodge: { x: -intent.dodge.x, z: -intent.dodge.z } }
   }
-  return intent;
+  return intent
 }

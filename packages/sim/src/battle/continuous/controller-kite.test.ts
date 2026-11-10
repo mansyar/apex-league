@@ -1,13 +1,13 @@
 import { describe, expect, test } from "bun:test"
 import { branchesForSpecies } from "../../branches"
-import type { BattleSide } from "../resolver"
 import { ALL_SPECIES, type SpeciesDef } from "../../species"
-import { resolveContinuous } from "./resolve"
+import type { BattleSide } from "../resolver"
 import {
   DOCTRINE_IDS,
   type DoctrineId,
   tacticForDoctrine,
 } from "./controller-profile"
+import { resolveContinuous } from "./resolve"
 
 /**
  * Kite regression pin (variance Phase 3, FR-6 / AC-6): the doctrine probe's
@@ -54,15 +54,22 @@ function probeSide(species: SpeciesDef, doctrine: DoctrineId): BattleSide {
 function probeRow(doctrine: DoctrineId): { wins: number; draws: number } {
   const standard = ALL_SPECIES.find((s) => s.id === STANDARD_SPECIES)
   const opponent = ALL_SPECIES.find((s) => s.id === DOCTRINE_OPPONENT)
-  if (!standard || !opponent) throw new Error("the probe matchup left the roster")
+  if (!standard || !opponent)
+    throw new Error("the probe matchup left the roster")
   let wins = 0
   let draws = 0
   for (const order of [0, 1] as const) {
     for (const seed of DOCTRINE_SEEDS) {
       const home = order === 0 ? standard : opponent
       const away = order === 0 ? opponent : standard
-      const homeSide = probeSide(home, order === 0 ? doctrine : STANDARD_DOCTRINE)
-      const awaySide = probeSide(away, order === 0 ? STANDARD_DOCTRINE : doctrine)
+      const homeSide = probeSide(
+        home,
+        order === 0 ? doctrine : STANDARD_DOCTRINE,
+      )
+      const awaySide = probeSide(
+        away,
+        order === 0 ? STANDARD_DOCTRINE : doctrine,
+      )
       const result = resolveContinuous(homeSide, awaySide, seed)
       const watch = order === 0 ? 0 : 1
       const watchName = watch === 0 ? homeSide.name : awaySide.name

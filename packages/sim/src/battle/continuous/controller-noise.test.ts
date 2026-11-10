@@ -24,9 +24,9 @@ import { awayFrom } from "./controller-aim"
 import {
   CADENCE_SKIP_DENOM,
   COMMIT_SKIP_DENOM,
-  PUNISH_SKIP_DENOM,
   cadenceHold,
   flankDodge,
+  PUNISH_SKIP_DENOM,
   takeCommit,
 } from "./controller-noise"
 import type { ControllerVerb } from "./controller-state"
@@ -233,9 +233,7 @@ describe("execution-only noise (FR-3/FR-4)", () => {
   })
 
   test("cadence jitter moves the decision counts per seed", () => {
-    const totals = [1, 2, 3, 4].map((seed) =>
-      resolveDecisions(seed, 600),
-    )
+    const totals = [1, 2, 3, 4].map((seed) => resolveDecisions(seed, 600))
     expect(new Set(totals).size).toBeGreaterThan(1)
   })
 })

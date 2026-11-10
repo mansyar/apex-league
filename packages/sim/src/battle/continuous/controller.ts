@@ -9,6 +9,7 @@
  * ten-decision cycle, so the rhythm comes from the table.
  */
 
+import type { Rng } from "../../rng"
 import {
   aimAt,
   awayFrom,
@@ -45,7 +46,6 @@ import {
   hold,
 } from "./controller-state"
 import { isBroken } from "./poise"
-import type { Rng } from "../../rng"
 import { DODGE_STAMINA_COST } from "./stamina"
 import { HOLD, type MoveIntent } from "./types"
 
