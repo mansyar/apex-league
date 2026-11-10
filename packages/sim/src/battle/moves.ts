@@ -7,14 +7,27 @@
  * Pure data and small helpers — no DOM, no jobs, no I/O.
  * Cooldowns are counted in the fighter's own actions, never in clock ticks.
  *
- * Power is one authored ladder, 10..22: the innate strike is 10, the kit rows
- * are 12/16/18/20 with the fast chip at 14, and the heavy finisher is 22.
+ * Power is one authored ladder, 9..21: the innate strike is 9, the kit rows
+ * are 11/15/18/19 with the fast chip at 13, and the heavy finisher is 21.
  * These already carry the 2x blow weight the continuous engine used to apply
  * (Phase 5 folded it in, FR-2), just as the HP stat carries the old 210%
  * arena scale: the sheet's number is the number the fight resolves with. On
- * the folded reference line (189 pool) a base hit is therefore 5.3-11.6%,
+ * the folded reference line (189 pool) a base hit is therefore 4.8-11.1%,
  * inside the 4-12% band (FR-1); a rear counter may still reach 1.875x that,
  * which is the reward for earning the angle, not a hole in the band.
+ *
+ * R1 (Wall 1): the whole ladder was scaled down together — the old 10..22
+ * line put 46.0% of the matrix inside the 25-40 s band. Damage and fight
+ * length are inverse, so the uniform cut lengthens every fight without
+ * leaving the 4-12% band, changing a ratio, or moving the cap. The tier order
+ * (basic < chip < light < mid < bolt < heavy) is strictly ascending and the
+ * six kit rows stay distinct (moves-band.test.ts). Two coarser cuts were
+ * measured first: 0.85 gave band 71.9% but cap share 35.0%, and 0.90 gave
+ * band 65.5% with cap share 34.3% — both over the one-in-three bound, and
+ * both collapsed the slowest rows' distinct counts. 0.94 is the smallest cut
+ * that clears the band with the cap inside its bound. The two branch
+ * signatures stay at 20/16 so their equal-expected-damage pair (20 x 80% =
+ * 16 x 100%) survives integer rounding.
  *
  * The heavy finisher authors accuracy 100 (P8.T3.2). At 70 it lost to its own
  * light row on damage per second even with the cooldown gate pulled back to its
@@ -46,7 +59,7 @@ export const BASIC_MOVE: MoveDef = Object.freeze({
   id: "basic",
   displayName: "Strike",
   element: undefined,
-  power: 10,
+  power: 9,
   accuracy: 100,
   cooldown: 0,
   melee: true,
@@ -78,52 +91,52 @@ function special(
  * identical.
  */
 export const CATALOG: readonly MoveDef[] = Object.freeze([
-  special("spark", "Spark", "fire", 12, 100, 1),
-  special("flame_charge", "Flame Charge", "fire", 16, 90, 1),
-  special("cinder_shot", "Cinder Shot", "fire", 19, 85, 2),
-  special("blaze_bolt", "Blaze Bolt", "fire", 20, 75, 2),
-  special("flare_dart", "Flare Dart", "fire", 14, 95, 1),
-  special("pyre_lance", "Pyre Lance", "fire", 22, 100, 3),
-  special("seed_shot", "Seed Shot", "plant", 12, 100, 1),
-  special("thorn_volley", "Thorn Volley", "plant", 16, 90, 1),
-  special("spore_burst", "Spore Burst", "plant", 19, 85, 2),
-  special("bramble_dart", "Bramble Dart", "plant", 20, 75, 2),
-  special("vine_lash", "Vine Lash", "plant", 14, 95, 1),
-  special("root_quake", "Root Quake", "plant", 22, 100, 3),
-  special("bubble", "Bubble", "water", 12, 100, 1),
-  special("tide_shot", "Tide Shot", "water", 16, 90, 1),
-  special("foam_volley", "Foam Volley", "water", 19, 85, 2),
-  special("splash_bolt", "Splash Bolt", "water", 20, 75, 2),
-  special("mist_spray", "Mist Spray", "water", 14, 95, 1),
-  special("maelstrom", "Maelstrom", "water", 22, 100, 3),
+  special("spark", "Spark", "fire", 11, 100, 1),
+  special("flame_charge", "Flame Charge", "fire", 15, 90, 1),
+  special("cinder_shot", "Cinder Shot", "fire", 18, 85, 2),
+  special("blaze_bolt", "Blaze Bolt", "fire", 19, 75, 2),
+  special("flare_dart", "Flare Dart", "fire", 13, 95, 1),
+  special("pyre_lance", "Pyre Lance", "fire", 21, 100, 3),
+  special("seed_shot", "Seed Shot", "plant", 11, 100, 1),
+  special("thorn_volley", "Thorn Volley", "plant", 15, 90, 1),
+  special("spore_burst", "Spore Burst", "plant", 18, 85, 2),
+  special("bramble_dart", "Bramble Dart", "plant", 19, 75, 2),
+  special("vine_lash", "Vine Lash", "plant", 13, 95, 1),
+  special("root_quake", "Root Quake", "plant", 21, 100, 3),
+  special("bubble", "Bubble", "water", 11, 100, 1),
+  special("tide_shot", "Tide Shot", "water", 15, 90, 1),
+  special("foam_volley", "Foam Volley", "water", 18, 85, 2),
+  special("splash_bolt", "Splash Bolt", "water", 19, 75, 2),
+  special("mist_spray", "Mist Spray", "water", 13, 95, 1),
+  special("maelstrom", "Maelstrom", "water", 21, 100, 3),
   special("cinder_dive", "Cinder Dive", "fire", 20, 80, 2),
   special("pyre_wall", "Pyre Wall", "fire", 16, 100, 2),
   special("thorn_charge", "Thorn Charge", "plant", 20, 80, 2),
   special("bramble_guard", "Bramble Guard", "plant", 16, 100, 2),
   special("riptide_rush", "Riptide Rush", "water", 20, 80, 2),
   special("tide_aegis", "Tide Aegis", "water", 16, 100, 2),
-  special("static_jolt", "Static Jolt", "electric", 12, 100, 1),
-  special("volt_dash", "Volt Dash", "electric", 16, 90, 1),
-  special("arc_shot", "Arc Shot", "electric", 19, 85, 2),
-  special("storm_bolt", "Storm Bolt", "electric", 20, 75, 2),
-  special("ion_dart", "Ion Dart", "electric", 14, 95, 1),
-  special("gigavolt", "Gigavolt", "electric", 22, 100, 3),
+  special("static_jolt", "Static Jolt", "electric", 11, 100, 1),
+  special("volt_dash", "Volt Dash", "electric", 15, 90, 1),
+  special("arc_shot", "Arc Shot", "electric", 18, 85, 2),
+  special("storm_bolt", "Storm Bolt", "electric", 19, 75, 2),
+  special("ion_dart", "Ion Dart", "electric", 13, 95, 1),
+  special("gigavolt", "Gigavolt", "electric", 21, 100, 3),
   special("storm_surge", "Storm Surge", "electric", 20, 80, 2),
   special("ion_wall", "Ion Wall", "electric", 16, 100, 2),
-  special("pebble_shot", "Pebble Shot", "earth", 12, 100, 1),
-  special("dust_devil", "Dust Devil", "earth", 16, 90, 1),
-  special("clay_burst", "Clay Burst", "earth", 19, 85, 2),
-  special("boulder_toss", "Boulder Toss", "earth", 20, 75, 2),
-  special("sand_blast", "Sand Blast", "earth", 14, 95, 1),
-  special("tectonic_slam", "Tectonic Slam", "earth", 22, 100, 3),
+  special("pebble_shot", "Pebble Shot", "earth", 11, 100, 1),
+  special("dust_devil", "Dust Devil", "earth", 15, 90, 1),
+  special("clay_burst", "Clay Burst", "earth", 18, 85, 2),
+  special("boulder_toss", "Boulder Toss", "earth", 19, 75, 2),
+  special("sand_blast", "Sand Blast", "earth", 13, 95, 1),
+  special("tectonic_slam", "Tectonic Slam", "earth", 21, 100, 3),
   special("quake_stomp", "Quake Stomp", "earth", 20, 80, 2),
   special("basalt_guard", "Basalt Guard", "earth", 16, 100, 2),
-  special("gust", "Gust", "wind", 12, 100, 1),
-  special("feather_dart", "Feather Dart", "wind", 16, 90, 1),
-  special("gale_cutter", "Gale Cutter", "wind", 19, 85, 2),
-  special("sky_bolt", "Sky Bolt", "wind", 20, 75, 2),
-  special("talon_slash", "Talon Slash", "wind", 14, 95, 1),
-  special("hurricane_spiral", "Hurricane Spiral", "wind", 22, 100, 3),
+  special("gust", "Gust", "wind", 11, 100, 1),
+  special("feather_dart", "Feather Dart", "wind", 15, 90, 1),
+  special("gale_cutter", "Gale Cutter", "wind", 18, 85, 2),
+  special("sky_bolt", "Sky Bolt", "wind", 19, 75, 2),
+  special("talon_slash", "Talon Slash", "wind", 13, 95, 1),
+  special("hurricane_spiral", "Hurricane Spiral", "wind", 21, 100, 3),
   special("cyclone_dive", "Cyclone Dive", "wind", 20, 80, 2),
   special("zephyr_veil", "Zephyr Veil", "wind", 16, 100, 2),
 ])
