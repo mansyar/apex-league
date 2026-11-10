@@ -55,7 +55,7 @@ export const DISCOVERY_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "zephyr_veil",
     ],
     temperament: "slow",
-    statBounds: { hp: [140, 169], atk: [8, 11], def: [6, 9], spd: [9, 13] },
+    statBounds: { hp: [140, 169], atk: [8, 11], def: [7, 10], spd: [9, 13] },
   },
   {
     id: "shalemole",
