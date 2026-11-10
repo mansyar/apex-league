@@ -52,14 +52,19 @@ function sample(): BalanceSample {
  * authored 10-14, because no whole-band shift with a ceiling at or below 15
  * moves the row at all — 11-15 is a zero-flip change — and the only bands that
  * clear the gate either lift the ceiling above every starter's (12-16, 13-17)
- * or compress the roll to reach the same midpoint (13-15). The row is recorded
- * here as a red gate by decision, not a stale list: AC-5 is partial and needs
- * owner sign-off. The rest of the gate — all four pacing rows, cap-win quality,
- * the damage band, the bosses and the other fourteen species rows — holds.
+ * or compress the roll to reach the same midpoint (13-15). The row was recorded
+ * as a red gate by decision, not a stale list.
+ *
+ * R5 closed it from the other side of the sheet. The tortoise's problem was
+ * volume, not reach or power: `recoveryMsFor` scales recovery by
+ * `10 / spd`, so at spd 4 every swing costs 2.5x recovery and it got a third of
+ * its opponent's attempts. Startup is the one authored frame field that is not
+ * SPD-scaled, and the trace shows the tank commits to exactly two rows — the
+ * innate strike and `boulder_toss`. Shortening `boulder_toss` startup 600 -> 512
+ * moved the row from 26.8% to 39.3% with every pacing row still green, so the
+ * list is empty and the gate exits 0.
  */
-const KNOWN_MISSES: readonly string[] = [
-  "species:earth_tortoise: observed 26.8% (30/112, 30 distinct, se 9.1%), bound |rate - 50%| <= 17.9% (design target 45.0%..55.0%)",
-]
+const KNOWN_MISSES: readonly string[] = []
 
 describe("balance report — one deterministic command (FR-7, AC-7)", () => {
   test("reports the roster, the doctrines, the bosses and every move", () => {
@@ -115,13 +120,14 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     )
     // The corrected counts, pinned on the two rows that used to fail. Before
     // R3 these read 30 and 16 — the blind count of the same 112 games. The
-    // tortoise reads 30 again since R4 reverted its atk band to the authored
+    // tortoise read 30 again after R4 reverted its atk band to the authored
     // 10-14 (the 13-17 band it briefly carried made more of its fights distinct
-    // because it won more of them).
+    // because it won more of them). R5's `boulder_toss` startup moved both:
+    // the tortoise to 35, reefclaw to 22, because the two play each other.
     const measured = sample()
     const byId = new Map(measured.matrix.species.map((row) => [row.id, row]))
-    expect(byId.get("earth_tortoise")?.distinct).toBe(30)
-    expect(byId.get("reefclaw")?.distinct).toBe(23)
+    expect(byId.get("earth_tortoise")?.distinct).toBe(35)
+    expect(byId.get("reefclaw")?.distinct).toBe(22)
     // The one-species replay reads the same key, so it must agree.
     for (const id of ["earth_tortoise", "reefclaw"]) {
       expect(measureSpecies(id).distinct).toBe(byId.get(id)?.distinct ?? -1)
@@ -379,11 +385,16 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // is updated deliberately. The list is computed, printed and asserted, so
     // it cannot silently go stale like the old one-row KNOWN_MISSES. R4 removed
     // electric_hound: reverting the tortoise's atk band to 10-14 raised the
-    // hound's row from 41.1% to 48.2%, inside the design band.
+    // hound's row from 41.1% to 48.2%, inside the design band. R5 put it back
+    // at 42.9%: the tortoise's shorter `boulder_toss` startup is a swing the
+    // hound no longer gets to interrupt, so the tank's main victim loses six of
+    // its 112 games. That is the lever working, and the row is recorded here
+    // rather than argued with.
     const DESIGN_BAND_MISSES = [
       "fire_drake",
       "plant_ox",
       "water_axolotl",
+      "electric_hound",
       "fernstag",
       "wind_falcon",
       "reefclaw",
@@ -417,26 +428,23 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
   })
 
   test("today's target misses are named with their observed values", () => {
-    // Rework 4: the gate holds on every row except `earth_tortoise`, which is
-    // red by decision (see KNOWN_MISSES). The rest — cap share, decisive share,
-    // cap-win quality, median, p05, damage band, the bosses and fourteen species
-    // rows — holds, and the rows outside the 45-55% design band are a separate
-    // assertion about the roster, not about the gate.
+    // R5: the list is empty. Every species row sits inside its interval, cap
+    // share, decisive share, cap-win quality, median, p05, the damage band and
+    // the bosses all hold. The rows still outside the 45-55% design band are a
+    // separate assertion about the roster, not about the gate.
     expect(violations(sample()).map(describeTarget)).toEqual([...KNOWN_MISSES])
+    expect(KNOWN_MISSES).toHaveLength(0)
   })
 
-  test("the gate is green on pacing, and red on one row by decision (R4 T2)", () => {
+  test("the gate is green end to end (R5)", () => {
     // A cap win counts as a decisive outlasting win when its margin clears the
-    // floor, and every species row's interval covers 50% except the tortoise's.
-    // When a row regresses this test fails on the FAIL list and is updated
-    // deliberately: the exit code is 1 because exactly one target misses.
+    // floor, and every species row's interval covers 50% — the tortoise's
+    // included, at 39.3% against a 16.6-point bound. When a row regresses this
+    // test fails on the FAIL list and is updated deliberately.
     const lines: string[] = []
-    expect(run(sample(), (line) => lines.push(line))).toBe(1)
+    expect(run(sample(), (line) => lines.push(line))).toBe(0)
     const failures = lines.filter((line) => line.startsWith("FAIL "))
-    expect(failures.map((line) => line.slice("FAIL ".length))).toEqual([
-      ...KNOWN_MISSES,
-    ])
-    expect(failures.every((line) => line.includes("earth_tortoise"))).toBe(true)
+    expect(failures).toEqual([])
     expect(lines.some((line) => line.startsWith("ok   capShare:"))).toBe(true)
     expect(lines.some((line) => line.startsWith("ok   decisiveShare:"))).toBe(
       true,
@@ -448,6 +456,9 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
       true,
     )
     expect(lines.some((line) => line.startsWith("ok   damageBand:"))).toBe(true)
+    expect(
+      lines.some((line) => line.startsWith("ok   species:earth_tortoise:")),
+    ).toBe(true)
   })
 
   test("a target that holds is not reported as a violation", () => {
