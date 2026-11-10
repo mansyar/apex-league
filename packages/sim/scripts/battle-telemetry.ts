@@ -254,11 +254,13 @@ function hitsOf(
  * The stream records where the bodies went, not what they wanted, so the verb
  * tally has to be read where the verb lives. The replay is the resolver's own
  * loop: the same `initFor` orders, the same `engagementFor` profiles, the same
- * `createController` brains and the same `createFight` step. Nothing is random,
- * so the replay must land on the resolver's step and hit points; if it does not,
- * the tally would describe a different fight and the harness refuses to report
- * it. Keys are arbitrary here because neither the step nor the controller reads
- * them, and the sample has no mirror to disambiguate.
+ * `createController` brains and the same `createFight` step. The only draws
+ * are the fight's own seeded RNG — execution noise and accuracy share it — so
+ * the replay threads `fight.rng` exactly like the resolver and must land on
+ * the resolver's step and hit points; if it does not, the tally would
+ * describe a different fight and the harness refuses to report it. Keys are
+ * arbitrary here because neither the step nor the controller reads them, and
+ * the sample has no mirror to disambiguate.
  */
 function retreatsOf(
   matchup: Matchup,
@@ -287,13 +289,18 @@ function retreatsOf(
   while (state.step < FIGHT_CAP_STEPS && !downEnding(state)) {
     const orders: [MoveIntent, MoveIntent] = [HOLD, HOLD]
     for (const side of [0, 1] as const) {
-      const order = decide({
-        state,
-        side,
-        controller: brains[side],
-        profile: profiles[side],
-        kit: kits[side],
-      })
+      // Phase 2 (variance): the replay must draw the same execution noise
+      // as the resolver, so it threads the fight's RNG like resolve.ts does.
+      const order = decide(
+        {
+          state,
+          side,
+          controller: brains[side],
+          profile: profiles[side],
+          kit: kits[side],
+        },
+        fight.rng,
+      )
       brains[side] = order.state
       orders[side] = order.intent
       if (order.verb === "retreat") retreats[side] += 1

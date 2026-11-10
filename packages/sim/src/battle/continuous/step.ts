@@ -12,7 +12,7 @@
  * same pattern as keyHash in battle/clock/engine.ts.
  */
 
-import { makeRng } from "../../rng"
+import { makeRng, type Rng } from "../../rng"
 import { BODY_RADIUS_MM } from "../frames"
 import { type StepContext, type StepResult, stepFight } from "./advance"
 import { DEFAULT_BODY_HEIGHT_MM } from "./contact"
@@ -84,6 +84,13 @@ export interface FightConfig {
 /** A running fight: one state, advanced in fixed steps. */
 export interface Fight {
   readonly state: FightState
+  /**
+   * The fight's one seeded RNG (variance Phase 2): the controller draws its
+   * execution-only noise from here, so the same matchup fights differently
+   * per seed and identically per replay. Accuracy and spread draw from the
+   * same cursor, which is folded into the state hash.
+   */
+  readonly rng: Rng
   advance(intents: readonly [MoveIntent, MoveIntent]): StepResult
   /**
    * Commit to a move; false when locked (FR-6), broken (FR-9), stunned
@@ -281,6 +288,7 @@ export function createFight(config: FightConfig): Fight {
     get state() {
       return state
     },
+    rng: context.rng,
     advance(intents) {
       const outcome = stepFight(state, intents, context)
       state = outcome.state

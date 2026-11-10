@@ -464,13 +464,18 @@ function replay(options: TraceOptions): Replay {
     const tickEvents: TraceEvent[] = []
 
     for (const side of [0, 1] as const) {
-      const order = decide({
-        state: before,
-        side,
-        controller: brains[side],
-        profile: profiles[side],
-        kit: kits[side],
-      })
+      // Phase 2 (variance): the replay must draw the same execution noise
+      // as the resolver, so it threads the fight's RNG like resolve.ts does.
+      const order = decide(
+        {
+          state: before,
+          side,
+          controller: brains[side],
+          profile: profiles[side],
+          kit: kits[side],
+        },
+        fight.rng,
+      )
       brains[side] = order.state
       orders[side] = order.intent
       const label = side === 0 ? "owned" : "rival"
