@@ -350,3 +350,39 @@ numbers are measured by a tool that predates them.
 - [x] **R1.F7: keep_back defers to the doctrine's strafe** - covers: FR-13
 - [x] **R1.F8: Say which command gates the cap share** - covers: FR-4
 - [x] **R1.F9: Correct the duration targets' requirement labels** - covers: FR-4
+
+## Phase R2: Honest Pacing
+
+- **Goal:** the gate tells the truth about pacing, and the distribution actually narrows.
+- **Depends on:** Phase R1 (`7adc8e9b`).
+- **Covers:** FR-4, FR-20, FR-5, FR-15, AC-4, AC-17, AC-5, AC-11.
+- **Touches:** `packages/sim/scripts/{battle-balance-report,battle-telemetry}.ts`,
+  `packages/sim/src/battle/continuous/{balance-report,pacing}.test.ts`,
+  `packages/sim/src/battle/moves.ts`, `packages/sim/src/species/**`,
+  `packages/sim/src/battle/clock.contract.test.ts` + tests.
+- **Verification:** `bun run verify`, `bun run build`, `bun run balance`,
+  `bun run telemetry` - four separate commands.
+- **Status:** in_progress
+
+- [ ] **R2.T1: The band counts only resolved fights** - covers: FR-4, AC-4
+  - [ ] **R2.T1.1:** Carry the ending reason beside each duration and exclude
+        `reason === "time"` from the band; print `resolvedInBand` and `capShare`
+        separately and set the bound on `resolvedInBand`.
+- [ ] **R2.T2: The gate gates FR-20** - covers: FR-20, AC-17
+  - [ ] **R2.T2.1:** Add a `knockoutShare` target (>= two in three) and a
+        `medianDuration` target (strictly below `FIGHT_CAP_MS`), both naming FR-20/AC-17,
+        with tests that each produces a violation when missed.
+- [ ] **R2.T3: The miss list names the design-band rows** - covers: FR-5, AC-5
+  - [ ] **R2.T3.1:** Print the design-band miss list and assert it against a maintained
+        array, so a row drifting across 45% or 55% fails the suite.
+- [ ] **R2.T4: Narrow the distribution** - covers: FR-4, FR-20
+  - [ ] **R2.T4.1:** Compress the top of the authored ladder so heavy-move fights stop
+        ending under 25 s, keeping the tier order strict and every row inside 4-12%.
+  - [ ] **R2.T4.2:** Reach `resolvedInBand` >= 50% with `capShare` <= 33.3% and
+        knockout share >= 66.7% held at the same time.
+- [ ] **R2.T5: The doctrine dodge column is real** - covers: FR-15, AC-11
+  - [ ] **R2.T5.1:** Print a dodge rate that differs by doctrine in the doctrine table
+        itself, and record the Kite 0/6 result as a finding with a verdict.
+- [ ] **R2.T6: Correct the record** - covers: FR-10, FR-20
+  - [ ] **R2.T6.1:** Restore legacy clock knockback coverage or assert its absence
+        explicitly; fix the stale comments and the evidence figures.

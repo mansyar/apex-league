@@ -129,7 +129,7 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
 | AC-1 | A test walks all 49 moves and asserts each lands inside 4-12% of the reference pool. | FR-1 |
 | AC-2 | No production module reads an HP scale or blow weight. | FR-2 |
 | AC-3 | A pre-change save loads, its creature fights within tolerance, old tactics map to doctrines, and the save is written at the new version. | FR-3, FR-9 |
-| AC-4 | The report shows cap share at or below one in three and a majority inside 25-40 s. | FR-4 |
+| AC-4 | The report shows cap share at or below one in three and a majority of **resolved** fights inside 25-40 s. A fight decided at the cap is counted by cap share and never by the duration band: it did not finish in the window, it ran out of time at the top of it. | FR-4 |
 | AC-5 | The report prints each species' rate, distinct-fight count and effective standard error, prints 45-55% as the design target, fails on any species that misses the 95% test or is unverified, and names the rows currently outside the design band in a maintained miss list, so a row drifting silently fails the suite. | FR-5 |
 | AC-6 | Every boss is listed with its documented answer and is beatable at its stage, not trivially. | FR-6 |
 | AC-7 | The report is one command, deterministic across runs, exiting non-zero naming the violated target. | FR-7 |
@@ -249,6 +249,16 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
   45-55% stays printed as the design target. A tank whose fights always reach the cap
   cannot be balanced because there is nothing to vary, so making its fights resolve is
   part of the fix, not a workaround.
+
+### Stated limitation - the distinct floor is permissive
+
+`DISTINCT_FLOOR = 12` admits a row whose 95% interval is about plus or minus 28
+points, because that is what 1.96 x sqrt(0.25 / 12) gives. It is a permissive floor chosen
+to admit the roster, not a derived precision target: a row at exactly 12 distinct fights
+passes a test that cannot tell 22% from 78%. The alternative is a floor of 28, which would
+mark most of the roster unverified and is the honest consequence of demanding plus or minus
+18.5 points from 28 independent cells. The floor stays at 12 for now with that width stated
+on every row, so no reader mistakes a pass at the floor for a precise measurement.
 
 ### Deferred follow-up - authored accuracy is transformed
 
