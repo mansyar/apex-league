@@ -252,7 +252,9 @@ describe("wind_falcon species record", () => {
     // still owns the roster's lowest HP midpoint.
     const tortoise = ALL_SPECIES.find((s) => s.id === "earth_tortoise")
     if (!tortoise) throw new Error("earth_tortoise missing")
-    expect(falcon.statBounds.hp[1]).toBeLessThanOrEqual(tortoise.statBounds.hp[0])
+    expect(falcon.statBounds.hp[1]).toBeLessThanOrEqual(
+      tortoise.statBounds.hp[0],
+    )
     const midpoint = (s: (typeof ALL_SPECIES)[number]) =>
       Math.floor((s.statBounds.hp[0] + s.statBounds.hp[1]) / 2)
     for (const other of others) {

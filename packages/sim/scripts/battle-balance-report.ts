@@ -688,7 +688,8 @@ export function measure(options: MeasureOptions = {}): BalanceSample {
   ).length
   // R1 (F4): the 5th percentile, not the single fastest fight. One blowout in
   // 840 is not a pacing defect; five percent of the sample ending early is.
-  const p05 = sorted.length === 0 ? 0 : sorted[Math.floor(sorted.length * 0.05)] ?? 0
+  const p05 =
+    sorted.length === 0 ? 0 : (sorted[Math.floor(sorted.length * 0.05)] ?? 0)
 
   return {
     matrix: {
@@ -864,8 +865,7 @@ function measureDoctrines(lines: LineMap): DoctrineRow[] {
         measuredSwings === 0
           ? 0
           : (measuredTally.flank + measuredTally.rear) / measuredSwings,
-      rear:
-        measuredSwings === 0 ? 0 : measuredTally.rear / measuredSwings,
+      rear: measuredSwings === 0 ? 0 : measuredTally.rear / measuredSwings,
       engagementMedian: median(gaps),
       dodges: measuredTally.dodged,
       dodgeRate:
