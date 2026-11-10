@@ -109,7 +109,7 @@ export const DISCOVERY_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "bramble_guard",
     ],
     temperament: "rush",
-    statBounds: { hp: [157, 186], atk: [9, 12], def: [13, 16], spd: [5, 8] },
+    statBounds: { hp: [157, 186], atk: [8, 11], def: [13, 16], spd: [5, 8] },
   },
   {
     id: "mistkit",
