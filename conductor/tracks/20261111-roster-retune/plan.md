@@ -14,14 +14,17 @@
 - **Covers:** FR-1, FR-3, AC-1, AC-3
 - **Touches:** `packages/sim/src/species/**` (+ co-located species tests only)
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** blocked
+- **Result:** blocked with owner-pattern waiver (mechanics complete: plant_ox 51.8%, cindermoor 51.8%, no other row red; verify red on 3 gate pins carried to Phase 3 per AC-3 plus 4 golden churn re-pins now owned by Phase 3 P3.T3)
+- **Checkpoint:** 26bf60b6
+- **Evidence:** conductor/tracks/20261111-roster-retune/verification/phase-1.md
 
-- [ ] **P1.T1: plant_ox into the band** — covers: FR-1
-  - [ ] **P1.T1.1: Whole-band downshift scored by measureSpecies, accepted only past its se**
-  - [ ] **P1.T1.2: Kit reorder if stats alone cannot reach without identity break; full-matrix confirm**
-- [ ] **P1.T2: cindermoor into the band** — covers: FR-3
-  - [ ] **P1.T2.1: Smallest downshift that clears +5.5 pts with margin, not oscillation**
-  - [ ] **P1.T2.2: Confirm no green row flips to red; gate pins left red for Phase 3 (no interim re-baseline)**
+- [x] **P1.T1: plant_ox into the band** — covers: FR-1
+  - [x] **P1.T1.1: Whole-band downshift scored by measureSpecies, accepted only past its se**
+  - [x] **P1.T1.2: Kit reorder if stats alone cannot reach without identity break; full-matrix confirm**
+- [x] **P1.T2: cindermoor into the band** — covers: FR-3
+  - [x] **P1.T2.1: Smallest downshift that clears +5.5 pts with margin, not oscillation**
+  - [x] **P1.T2.2: Confirm no green row flips to red; gate pins left red for Phase 3 (no interim re-baseline)**
 
 <!--
 The primary appends after acceptance:
@@ -58,7 +61,7 @@ The primary appends after acceptance:
 - **Goal:** `bun run balance` exits 0 with KNOWN_MISSES empty and every suite, bound, and guardrail green.
 - **Depends on:** Phase 2
 - **Covers:** FR-5, FR-6, FR-7, AC-5, AC-6, AC-7
-- **Touches:** `packages/sim/src/battle/continuous/balance-report.test.ts` (+ forced golden re-pins only)
+- **Touches:** `packages/sim/src/battle/continuous/balance-report.test.ts` (+ forced golden re-pins only), `packages/sim/src/battle/exhibition.test.ts`, `packages/sim/src/cup.test.ts`, `packages/sim/src/cup-contracts.test.ts`, `packages/sim/src/battle/clock.contract.test.ts` (mechanical golden re-pins of in-scope stat moves only — values received, no logic touched)
 - **Verification:** `bun run verify`, `bun run build`, `bun run balance`, `bun run telemetry` (four separate runs)
 - **Status:** pending
 
@@ -68,6 +71,8 @@ The primary appends after acceptance:
 - [ ] **P3.T2: Guardrails hold** — covers: FR-5, FR-7, AC-5, AC-7
   - [ ] **P3.T2.1: Verify/build/telemetry green; all 11 other rows gate-green; no `test.failing` conversion anywhere**
   - [ ] **P3.T2.2: Check the out-of-band assumption (no outside-band row worsened by more than its se)**
+- [ ] **P3.T3: Golden re-pin wave** — covers: FR-5, AC-5
+  - [ ] **P3.T3.1: Re-pin the Phase-1/Phase-2 golden churn (exhibition, makeBracket, cup-contracts seed-101, clock.contract digest) to received values, each named; no logic change in any of them**
 
 <!--
 The primary appends after acceptance:

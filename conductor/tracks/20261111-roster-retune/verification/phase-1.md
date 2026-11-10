@@ -101,3 +101,11 @@ moves; files outside Touches — needs a primary re-pin decision, NOT fixed here
 - `bun run verify` → exit 1 (3980 pass / 1 skip / 7 fail, inventoried above).
 - `bun run build` → exit 0.
 - `bun run telemetry` → exit 0 (13/13).
+
+## Primary verification
+
+- Independently confirmed at `26bf60b6`: verify exit 1 with 3980 pass / 1 skip / 7 fail — 3 gate pins (design-band list, KNOWN_MISSES, gate-green end-to-end) carried to Phase 3 per AC-3, plus 4 golden churn fails (exhibition seeded-rival, cup-contracts seed-101 day-14, clock.contract digest, makeBracket seed-21) now owned by Phase 3 P3.T3. No other failures.
+- Mechanics complete: plant_ox 67.9% → 51.8% (103 distinct), cindermoor 59.8% → 51.8% (110 distinct), mossboar held at 52.7% via the compensating trim (accepted: in-scope, identity-preserving, required by the phase goal). Tortoise 33.9% / galeheron 37.5% still red — Phase 2's rows.
+- `bun run build` exit 0. `bun run balance` exit 1 on exactly the two Phase-2 rows. `bun run telemetry` exit 0, 13/13, cap 50.0% at bound.
+- Mossboar deviation accepted and recorded. Ox HP ceiling restored to [160,193] keeps boss absolutes (hesse/thessa 193) inside roll bounds — noted, no action.
+- Phase NOT squashed: range holds subagent commits 4554d96c/91a422d3/900857cd plus evidence 26bf60b6; history kept for the waiver audit.
