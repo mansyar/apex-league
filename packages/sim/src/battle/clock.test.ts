@@ -150,12 +150,13 @@ describe("range and the basic strike", () => {
     if (!ev) throw new Error("basic event missing")
     expect(ev.actor).toBe("Bolt")
     expect(ev.target).toBe("Reed")
-    // Phase 5 fold (FR-10): power 10, so max(1, floor(10 * 11 * 1 / (10 * 1))) = 11
-    expect(ev.damage).toBe(11)
+    // Phase 5 fold (FR-10); R1 (battle-balance) power 9, so
+    // max(1, floor(9 * 11 * 1 / (10 * 1))) = 9
+    expect(ev.damage).toBe(9)
     expect(ev.hit).toBe(true)
-    expect(ev.line).toBe("Bolt strikes Reed for 11.")
-    expect(ev.hpAfter).toEqual({ Bolt: 40, Reed: 29 })
-    expect(clock.fighters[1]?.hp).toBe(29)
+    expect(ev.line).toBe("Bolt strikes Reed for 9.")
+    expect(ev.hpAfter).toEqual({ Bolt: 40, Reed: 31 })
+    expect(clock.fighters[1]?.hp).toBe(31)
   })
 })
 
@@ -237,12 +238,12 @@ describe("stagger on heavy blows", () => {
   })
 
   test("a big neutral hit staggers on the damage fraction alone", () => {
-    // Phase 5 fold (FR-10): power 10; atk 14 keeps floor(10*14/10) = 14 of 40
-    // (35%) — exactly at the heavy fraction while type-neutral. The victim must
-    // still lose its next window.
+    // Phase 5 fold (FR-10); R1 (battle-balance) power 9: atk 16 keeps
+    // floor(9*16/10) = 14 of 40 (35%) — exactly at the heavy fraction while
+    // type-neutral. The victim must still lose its next window.
     const clock = clockOf(
       [
-        snap("Bolt", "fire", stats(13, 14, 10, 40)),
+        snap("Bolt", "fire", stats(13, 16, 10, 40)),
         snap("Reed", "plant", stats(5, 11, 10, 40)),
       ],
       7,
@@ -297,16 +298,16 @@ describe("stagger on heavy blows", () => {
   })
 
   test("an already-staggered victim does not stack a second lock", () => {
-    // Phase 5 fold (FR-10): power 10; atk 14 keeps the basic at 14 (35%) —
-    // heavy, and two of them (40 HP victim) stay non-lethal. The blows are
-    // spaced past the grace window (triggers t2 and t5) so each is allowed to
-    // lock: t2 basic staggers AND knocks both apart; t3 Reed staggers through
-    // its window; t3 Bolt re-closes (mutual separation), t5 his second heavy
-    // basic re-sets the flag — Reed still loses exactly ONE window per stagger
-    // (t3, t5), never two from a single blow.
+    // Phase 5 fold (FR-10); R1 (battle-balance) power 9: atk 16 keeps the
+    // basic at 14 (35%) — heavy, and two of them (40 HP victim) stay
+    // non-lethal. The blows are spaced past the grace window (triggers t2 and
+    // t5) so each is allowed to lock: t2 basic staggers AND knocks both apart;
+    // t3 Reed staggers through its window; t3 Bolt re-closes (mutual
+    // separation), t5 his second heavy basic re-sets the flag — Reed still
+    // loses exactly ONE window per stagger (t3, t5), never two from one blow.
     const clock = clockOf(
       [
-        snap("Bolt", "fire", stats(13, 14, 10, 40)),
+        snap("Bolt", "fire", stats(13, 16, 10, 40)),
         snap("Reed", "plant", stats(5, 11, 10, 40)),
       ],
       7,
@@ -397,8 +398,8 @@ describe("downed fighters", () => {
     if (!down) throw new Error("down event missing")
     expect(down.actor).toBe("Reed")
     expect(down.line).toBe("Reed is down!")
-    expect(down.hpAfter).toEqual({ Bolt: 40, Reed: -12 })
-    expect(clock.fighters[1]?.hp).toBe(-12)
+    expect(down.hpAfter).toEqual({ Bolt: 40, Reed: -10 })
+    expect(clock.fighters[1]?.hp).toBe(-10)
   })
 })
 
@@ -536,13 +537,13 @@ describe("range-shifting knockback", () => {
   })
 
   test("the separation is not grace-gated", () => {
-    // Phase 5 fold (FR-10): power 10; atk 14 keeps each basic at 14 (35%), so
-    // two heavies land within the 3-tick grace (t2 and t4): the second lock is
-    // suppressed, but the separation still fires so spacing stays dynamic
-    // (clock.ts header contract).
+    // Phase 5 fold (FR-10); R1 (battle-balance) power 9: atk 16 keeps each
+    // basic at 14 (35%), so two heavies land within the 3-tick grace (t2 and
+    // t4): the second lock is suppressed, but the separation still fires so
+    // spacing stays dynamic (clock.ts header contract).
     const clock = clockOf(
       [
-        snap("Bolt", "fire", stats(13, 14, 10, 40)),
+        snap("Bolt", "fire", stats(13, 16, 10, 40)),
         snap("Reed", "plant", stats(5, 11, 10, 40)),
       ],
       7,

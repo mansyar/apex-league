@@ -245,9 +245,10 @@ describe("buildBracketModel — the 8-slot bracket", () => {
 
   test("verdicts land on the right matches across an eliminated run", () => {
     // Pacing ripple (battle-balance phase 8, FR-20): seed 11 under the
-    // `specials` pick now exits in the semifinal, so the final has no verdict
-    // and the run is an eliminated one again.
-    const session = play(creature(), CUP_DAY, 11, "specials")
+    // `specials` pick now exits in the semifinal. R1 (battle-balance): the
+    // scaled-down ladder sweeps seed 11, so this pin moved to seed 3 — the
+    // remaining `specials` semifinal exit — to keep the eliminated-run shape.
+    const session = play(creature(), CUP_DAY, 3, "specials")
     const model = buildBracketModel(session)
     const byId = new Map(model.map((m) => [m.id, m]))
     expect(byId.get("qf1")?.verdict).toEqual(session.playerVerdicts[0])

@@ -36,13 +36,15 @@ describe("battle catalog", () => {
   })
 
   test("same six-row tier table for every element", () => {
+    // R1: the whole ladder was scaled down together (Wall 1) — 12/16/19/20/14/22
+    // became 11/15/18/19/13/21. The order is still strictly ascending.
     const tiers = [
-      { power: 12, accuracy: 100, cooldown: 1 },
-      { power: 16, accuracy: 90, cooldown: 1 },
-      { power: 19, accuracy: 85, cooldown: 2 },
-      { power: 20, accuracy: 75, cooldown: 2 },
-      { power: 14, accuracy: 95, cooldown: 1 },
-      { power: 22, accuracy: 100, cooldown: 3 },
+      { power: 11, accuracy: 100, cooldown: 1 },
+      { power: 15, accuracy: 90, cooldown: 1 },
+      { power: 18, accuracy: 85, cooldown: 2 },
+      { power: 19, accuracy: 75, cooldown: 2 },
+      { power: 13, accuracy: 95, cooldown: 1 },
+      { power: 21, accuracy: 100, cooldown: 3 },
     ]
     for (const element of [
       "fire",
@@ -83,18 +85,19 @@ describe("battle catalog", () => {
     ]
     const numbers: Readonly<Record<string, readonly [number, number, number]>> =
       {
-        spark: [12, 100, 1],
-        flame_charge: [16, 90, 1],
-        cinder_shot: [19, 85, 2],
-        blaze_bolt: [20, 75, 2],
-        seed_shot: [12, 100, 1],
-        thorn_volley: [16, 90, 1],
-        spore_burst: [19, 85, 2],
-        bramble_dart: [20, 75, 2],
-        bubble: [12, 100, 1],
-        tide_shot: [16, 90, 1],
-        foam_volley: [19, 85, 2],
-        splash_bolt: [20, 75, 2],
+        // R1: scaled with the ladder (12/16/19/20 -> 11/15/18/19).
+        spark: [11, 100, 1],
+        flame_charge: [15, 90, 1],
+        cinder_shot: [18, 85, 2],
+        blaze_bolt: [19, 75, 2],
+        seed_shot: [11, 100, 1],
+        thorn_volley: [15, 90, 1],
+        spore_burst: [18, 85, 2],
+        bramble_dart: [19, 75, 2],
+        bubble: [11, 100, 1],
+        tide_shot: [15, 90, 1],
+        foam_volley: [18, 85, 2],
+        splash_bolt: [19, 75, 2],
       }
     for (const id of original) {
       const move = CATALOG.find((m) => m.id === id)
@@ -188,6 +191,9 @@ describe("battle catalog", () => {
       const defense = getMove(defenseId)
       if (!offense || !defense)
         throw new Error(`signature missing: ${offenseId}`)
+      // Branch signatures are deliberately unscaled (20 / 16): the pair must
+      // carry equal expected damage (20 * 80% = 16 * 100%), which integer
+      // rounding of the 0.94 ladder would break by a hair.
       expect([offense.power, offense.accuracy, offense.cooldown]).toEqual([
         20, 80, 2,
       ])
@@ -209,8 +215,8 @@ describe("battle catalog", () => {
 })
 
 describe("basic strike", () => {
-  test("is innate: power 10, accuracy 100, no cooldown, typeless melee", () => {
-    expect(BASIC_MOVE.power).toBe(10)
+  test("is innate: power 9, accuracy 100, no cooldown, typeless melee", () => {
+    expect(BASIC_MOVE.power).toBe(9)
     expect(BASIC_MOVE.accuracy).toBe(100)
     expect(BASIC_MOVE.cooldown).toBe(0)
     expect(BASIC_MOVE.element).toBeUndefined()
@@ -386,12 +392,12 @@ describe("electric kit (electric_species_line)", () => {
 
   /** The universal tier table, pinned for the electric rows too. */
   const TIERS: Readonly<Record<string, readonly [number, number, number]>> = {
-    static_jolt: [12, 100, 1],
-    volt_dash: [16, 90, 1],
-    arc_shot: [19, 85, 2],
-    storm_bolt: [20, 75, 2],
-    ion_dart: [14, 95, 1],
-    gigavolt: [22, 100, 3],
+    static_jolt: [11, 100, 1],
+    volt_dash: [15, 90, 1],
+    arc_shot: [18, 85, 2],
+    storm_bolt: [19, 75, 2],
+    ion_dart: [13, 95, 1],
+    gigavolt: [21, 100, 3],
   }
 
   /** A minimal creature pick for the learn/equip helpers. */
@@ -496,12 +502,13 @@ describe("earth kit (earth-wind-species-line)", () => {
 
   /** The universal tier table, pinned for the earth rows too. */
   const TIERS: Readonly<Record<string, readonly [number, number, number]>> = {
-    pebble_shot: [12, 100, 1],
-    dust_devil: [16, 90, 1],
-    clay_burst: [19, 85, 2],
-    boulder_toss: [20, 75, 2],
-    sand_blast: [14, 95, 1],
-    tectonic_slam: [22, 100, 3],
+    // R1: scaled with the ladder (12/16/19/20/14/22 -> 11/15/18/19/13/21).
+    pebble_shot: [11, 100, 1],
+    dust_devil: [15, 90, 1],
+    clay_burst: [18, 85, 2],
+    boulder_toss: [19, 75, 2],
+    sand_blast: [13, 95, 1],
+    tectonic_slam: [21, 100, 3],
   }
 
   /** A minimal creature pick for the learn/equip helpers. */
@@ -605,12 +612,12 @@ describe("wind kit (earth-wind-species-line)", () => {
 
   /** The universal tier table, pinned for the wind rows too. */
   const TIERS: Readonly<Record<string, readonly [number, number, number]>> = {
-    gust: [12, 100, 1],
-    feather_dart: [16, 90, 1],
-    gale_cutter: [19, 85, 2],
-    sky_bolt: [20, 75, 2],
-    talon_slash: [14, 95, 1],
-    hurricane_spiral: [22, 100, 3],
+    gust: [11, 100, 1],
+    feather_dart: [15, 90, 1],
+    gale_cutter: [18, 85, 2],
+    sky_bolt: [19, 75, 2],
+    talon_slash: [13, 95, 1],
+    hurricane_spiral: [21, 100, 3],
   }
 
   function pick(

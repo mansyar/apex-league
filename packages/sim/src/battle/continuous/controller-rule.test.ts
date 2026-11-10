@@ -308,6 +308,26 @@ describe("keep something back (FR-13)", () => {
     expect(next.intent).toEqual(
       strafeIntent(state.fighters[0], state.fighters[1], 1, PRESS.seeksRear),
     )
+    // R1 (F7): with no read in memory the fallback is the side's own sign, but
+    // once the pattern memory holds a read the strafe breaks off it exactly as
+    // the doctrine's own strafe would — the rule no longer hard-codes the sign.
+    const base = createController()
+    const read = {
+      ...base,
+      memory: { ...base.memory, dodgeSign: 1 as const, untilMs: 10_000 },
+    }
+    const broken = decide({
+      state,
+      side: 0,
+      controller: read,
+      profile: PRESS,
+      kit: KIT,
+      rule: "keep_back",
+    })
+    expect(broken.verb).toBe("strafe")
+    expect(broken.intent).toEqual(
+      strafeIntent(state.fighters[0], state.fighters[1], -1, PRESS.seeksRear),
+    )
   })
 
   test("the doctrine resumes the cadence after the note fires", () => {

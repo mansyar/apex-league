@@ -112,6 +112,19 @@ describe("doctrines (FR-11, FR-12)", () => {
     }
   })
 
+  test("a floor at or below the reach edge is inert, and pinned as such (R1, F5)", () => {
+    // `scaleRange` clamps up to the pair's reach edge, so any authored floor of
+    // 1000 permille or less reads exactly like 1000. Press is authored at 700,
+    // which means its floor *is* the edge — the number is a documented dead
+    // zone, not a lever. Pin the clamp so the dead zone cannot be mistaken for
+    // live tuning, and so a future sub-1000 floor is noticed.
+    expect(DOCTRINES.press.floorPermille).toBeLessThanOrEqual(1000)
+    const press = profileForDoctrine(DOCTRINES.press, "obedient")
+    const band = bandFor(press, REACH)
+    expect(band.floorMm).toBe(REACH)
+    expect(scaled(DOCTRINES.press.floorPermille)).toBeLessThan(REACH)
+  })
+
   test("legacy tactics map onto doctrines, both ways", () => {
     expect(doctrineForTactic("balanced")).toBe("press")
     expect(doctrineForTactic("specials")).toBe("kite")
@@ -342,8 +355,9 @@ describe("Circle lands more flank-or-rear hits than Press (AC-11)", () => {
       closest = Math.min(closest, circle.closestDot)
     }
     // Phase 13 (FR-5) re-rolled the roster's stat lines; the arc still earns
-    // Circle more flanks than Press, and the count moved 8 -> 9 with it.
-    expect(circleFlanks).toBe(9)
+    // Circle more flanks than Press. R1 (battle-balance) re-pinned the count
+    // 9 -> 8 after the authored ladder was scaled down.
+    expect(circleFlanks).toBe(8)
     // -50/100 = 120 degrees: the nearest a Circle hit got, still a flank.
     expect(closest).toBeGreaterThan(-50)
   })

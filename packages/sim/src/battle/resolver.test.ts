@@ -82,7 +82,7 @@ describe("resolveBattle", () => {
 
     expect(result.reason).toBe("ko")
     expect(result.winner).toBe("Bolt")
-    expect(result.finalHp).toEqual({ Bolt: 30, Reed: -20 })
+    expect(result.finalHp).toEqual({ Bolt: 30, Reed: -17 })
     // The down lands mid-log now: the whole impact step resolves before the
     // judgment, so Reed's own Bramble Dart still appears after the down.
     const down = result.events.find(

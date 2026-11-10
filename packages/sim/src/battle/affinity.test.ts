@@ -153,21 +153,24 @@ describe("the cancel rule rides the resolver's incoming damage path", () => {
       },
     )
     // Seed 22 (pinned in resolver.test.ts): the first Blaze Bolt impact lands
-    // at the super-effective 3/2x for 60. The water affinity cancels the
-    // incoming pair to neutral 1x for 40 (same power, atk, def).
+    // at the super-effective 3/2x for 57 (power 19 on the R1 ladder). The water
+    // affinity cancels the incoming pair to neutral 1x for 38 (same atk, def).
     const bare = resolveBattle(bolt, reed, 22)
     const soft = resolveBattle(bolt, defended, 22)
     expect(firstImpactOn(bare, "Reed")).toEqual({
       moveId: "blaze_bolt",
-      damage: strikeDamage(20, 20, 10, 3, 2, true),
+      damage: strikeDamage(19, 20, 10, 3, 2, true),
     })
     expect(firstImpactOn(soft, "Reed")).toEqual({
       moveId: "blaze_bolt",
-      damage: strikeDamage(20, 20, 10, 1, 1, true),
+      damage: strikeDamage(19, 20, 10, 1, 1, true),
     })
-    // Both KOs floor at the same overkill under the compressed band; the
-    // per-impact assertion above is the softening claim.
-    expect(soft.finalHp.Reed).toBeGreaterThanOrEqual(bare.finalHp.Reed ?? 0)
+    // Both KOs floor below zero; the per-impact assertion above is the
+    // softening claim. R1 (battle-balance): the softened fight survives one
+    // more impact, so its final HP floors deeper (-34 vs -17) rather than
+    // higher — the inequality pinned here is "both are down", not an ordering.
+    expect(bare.finalHp.Reed).toBeLessThan(0)
+    expect(soft.finalHp.Reed).toBeLessThan(0)
   })
 
   test("an attacker's secondary never moves outgoing damage", () => {

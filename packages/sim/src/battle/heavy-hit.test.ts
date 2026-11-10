@@ -76,15 +76,16 @@ interface AttackPath {
 
 const PATHS: readonly AttackPath[] = [
   {
-    // Strike: floor(10 * 48 / 10) = 48.
+    // R1: the ladder scaled to Strike 9 — floor(9 * 54 / 10) = 48.
     name: "melee",
-    bolt: stats(13, 48, 10, 84),
+    bolt: stats(13, 54, 10, 84),
     queue: [CLOSE, BASIC],
   },
   {
-    // Spark, point-blank and type-neutral on its own: floor(12 * 40 / 10) = 48.
+    // R1: Spark is power 11 — floor(11 * 44 / 10) = 48, point-blank and
+    // type-neutral on its own.
     name: "projectile",
-    bolt: stats(13, 40, 10, 84),
+    bolt: stats(13, 44, 10, 84),
     queue: [CLOSE, { kind: "special", moveId: "spark" }],
   },
 ]
@@ -162,7 +163,7 @@ describe("heavy-hit rule parity across both paths", () => {
       const elements = ELEMENT_BY_PATH[path.name] ?? ["fire", "plant"]
       // Same shape, lethal numbers: each path floors past Reed's 84 HP.
       const killer =
-        path.name === "melee" ? stats(13, 160, 10, 84) : stats(13, 71, 10, 84)
+        path.name === "melee" ? stats(13, 160, 10, 84) : stats(13, 78, 10, 84)
       const clock = clockOf(
         [
           snap("Bolt", elements[0], killer),
@@ -177,13 +178,14 @@ describe("heavy-hit rule parity across both paths", () => {
 
     expect(seen).toEqual({
       melee: {
-        hit: { kind: "basic", reaction: undefined, damage: 160 },
+        // R1: Strike 9 at atk 160 — floor(9 * 160 / 10) = 144.
+        hit: { kind: "basic", reaction: undefined, damage: 144 },
         knockbacks: 0,
         staggers: 0,
         downs: 1,
       },
       projectile: {
-        // Neutral pairing: floor(12 * 71 / 10) = 85, past Reed's 84 HP.
+        // Neutral pairing: floor(11 * 78 / 10) = 85, past Reed's 84 HP.
         hit: { kind: "impact", reaction: undefined, damage: 85 },
         knockbacks: 0,
         staggers: 0,
@@ -206,7 +208,7 @@ describe("heavy-hit rule parity across both paths", () => {
       drive(
         clockOf(
           [
-            snap("Bolt", "fire", stats(13, 12, 10, 84)),
+            snap("Bolt", "fire", stats(13, 11, 10, 84)),
             snap("Reed", "plant", victim),
           ],
           seed,
@@ -218,7 +220,7 @@ describe("heavy-hit rule parity across both paths", () => {
       drive(
         clockOf(
           [
-            snap("Bolt", "fire", stats(13, 21, 10, 84)),
+            snap("Bolt", "fire", stats(13, 20, 10, 84)),
             snap("Reed", "plant", victim),
           ],
           seed,
@@ -227,12 +229,14 @@ describe("heavy-hit rule parity across both paths", () => {
       ),
     )
 
-    expect(viaSpecial.hit.damage).toBe(21)
-    expect(viaStrike.hit.damage).toBe(21)
-    // Super-effective: 25% clears the lighter 15% floor -> staggers.
+    // R1: the ladder scaled — Spark 11 at atk 11 is floor(11 * 11 / 10) = 12,
+    // 18 after the 3/2 chart; Strike 9 at atk 20 is floor(9 * 20 / 10) = 18.
+    expect(viaSpecial.hit.damage).toBe(18)
+    expect(viaStrike.hit.damage).toBe(18)
+    // Super-effective: 21% clears the lighter 15% floor -> staggers.
     expect(viaSpecial.hit.reaction).toBe("knockback")
     expect(viaSpecial.staggers).toBe(1)
-    // Typeless: 25% is under the 35% fraction floor -> nothing.
+    // Typeless: 21% is under the 35% fraction floor -> nothing.
     expect(viaStrike.hit.reaction).toBeUndefined()
     expect(viaStrike.staggers).toBe(0)
   })

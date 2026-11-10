@@ -99,9 +99,12 @@ describe("cup slot affinity threads into the battle side", () => {
     if (!move) throw new Error(`Unknown move: ${bareHit.moveId}`)
     expect(bareHit.damage).toBe(strikeDamage(move.power, 20, 10, 3, 2, true))
     expect(softHit.damage).toBe(strikeDamage(move.power, 20, 10, 1, 1, true))
-    // Both KOs floor at the same overkill under the compressed band; the
-    // per-impact assertions above are the softening claim.
-    expect(soft.finalHp.Reed).toBeGreaterThanOrEqual(bare.finalHp.Reed ?? 0)
+    // R1 (battle-balance): overkill is no longer comparable across the pair —
+    // the softened fight runs long enough to land one more finisher, so its
+    // final HP floors deeper. The softening claim is the per-impact assertion
+    // above; at fight level the check is that both sides still go down.
+    expect(bare.finalHp.Reed).toBeLessThan(0)
+    expect(soft.finalHp.Reed).toBeLessThan(0)
   })
 
   test("a slot without a secondary is byte-identical; null behaves as absent", () => {

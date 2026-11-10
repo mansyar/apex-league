@@ -427,7 +427,7 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
     const creature = playerCreature()
     const session = forfeitCup(startCupSession(creature, DAY, 101))
     expect(session.status).toBe("eliminated")
-    expect(session.championName).toBe("Bonfire Brook")
+    expect(session.championName).toBe("Mossbottom Brute")
     expect(cupPlacement(session)).toBe(4)
     expect(session.rivalVerdicts.map(row)).toEqual([
       [
@@ -480,8 +480,8 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
         3,
         "Bonfire Brook",
         "Mossbottom Brute",
-        "Bonfire Brook",
-        "Bonfire Brook takes the Final!",
+        "Mossbottom Brute",
+        "Mossbottom Brute takes the Final!",
       ],
     ])
   })

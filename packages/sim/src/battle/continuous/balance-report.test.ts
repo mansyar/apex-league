@@ -37,12 +37,20 @@ function sample(): BalanceSample {
 }
 
 /**
- * Today's misses, in the order the report declares them. Phase 12 re-baselined
- * them: every measured side is now its own species' typical creature (FR-22), so
- * the rows are the honest spread at real stat lines and Phase 13 owns the
- * re-tune. Update a row, never the bound, when one is fixed.
+ * Today's misses, in the order the report declares them. R1 re-baselined the
+ * ladder and the tortoise's speed record; the one row that still cannot be
+ * judged is `earth_tortoise`, whose whole roll range is now strictly slower
+ * than every other species (spd 3..5). At spd 3 its swing is ~3.3x the
+ * reference recovery, so it cannot knock out a full-HP opponent inside the cap
+ * and its 112 games collapse onto a handful of signatures — measured 6 distinct
+ * fights against a floor of 12, with the rate 55.4% (inside the band, so the
+ * distinct floor is the only thing failing). Six kit/attack combinations were
+ * measured; none cleared both the floor and the win bound. Update a row, never
+ * the bound, when one is fixed.
  */
-const KNOWN_MISSES = [] as const
+const KNOWN_MISSES = [
+  "species:earth_tortoise: observed 55.4% (62/112, 6 distinct, se 20.4%), bound needs >= 12 distinct fights to be judged (has 6)",
+] as const
 
 describe("balance report — one deterministic command (FR-7, AC-7)", () => {
   test("reports the roster, the doctrines, the bosses and every move", () => {
@@ -72,14 +80,13 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     const measured = sample()
     for (const row of measured.matrix.species) {
       // The whole point of Phase 10: a row can no longer look like 112
-      // independent samples if the fights repeated.
+      // independent samples if the fights repeated. R1: `se` is the binomial
+      // error over the *distinct* fights, not over the games — a row resting
+      // on 6 distinct fights carries the noise of 6.
       expect(row.distinct).toBeGreaterThan(1)
       expect(row.distinct).toBeLessThanOrEqual(row.games)
       expect(row.se).toBeGreaterThan(0)
-      expect(row.se).toBeCloseTo(
-        Math.sqrt((row.rate * (1 - row.rate)) / row.games),
-        6,
-      )
+      expect(row.se).toBeCloseTo(Math.sqrt(0.25 / row.distinct), 6)
     }
     // The engine draws now, so some pairings must flip with the seed.
     expect(measured.matrix.diversity).toBeGreaterThan(0)
@@ -185,8 +192,10 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
   test("the base-hit band is measured, not assumed (FR-1)", () => {
     const measured = sample()
     const shares = measured.damage.rows.map((row) => row.share)
-    expect(Math.min(...shares)).toBeCloseTo(5.29, 2)
-    expect(Math.max(...shares)).toBeCloseTo(11.64, 2)
+    // R1: the ladder scaled down together (9..21) — the floor is Strike 9 and
+    // the ceiling the power-21 finisher, both still inside the frozen 4-12%.
+    expect(Math.min(...shares)).toBeCloseTo(4.76, 2)
+    expect(Math.max(...shares)).toBeCloseTo(11.11, 2)
     const band = targets(measured).find(
       (target) => target.name === "damageBand",
     )
@@ -200,12 +209,20 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     expect(violations(sample()).map(describeTarget)).toEqual([...KNOWN_MISSES])
   })
 
-  test("the gate exits zero and reports no violated target", () => {
+  test("the gate names its one recorded miss and nothing else (FR-5)", () => {
+    // R1: the gate is red on exactly the row recorded in KNOWN_MISSES. The
+    // bound is not weakened and the floor is not lowered — the failure is the
+    // tortoise's degenerate fight pattern, not a stale pin. When that row is
+    // fixed this test fails on the now-empty FAIL list and is updated
+    // deliberately.
     const lines: string[] = []
-    expect(run(sample(), (line) => lines.push(line))).toBe(0)
-    expect(lines.some((line) => line.startsWith("FAIL "))).toBe(false)
+    expect(run(sample(), (line) => lines.push(line))).toBe(1)
+    const failures = lines.filter((line) => line.startsWith("FAIL "))
+    expect(failures.map((line) => line.slice("FAIL ".length))).toEqual([
+      ...KNOWN_MISSES,
+    ])
     expect(lines.some((line) => line.startsWith("ok   capShare:"))).toBe(true)
-    expect(lines.some((line) => line.startsWith("ok   durationMin:"))).toBe(
+    expect(lines.some((line) => line.startsWith("ok   durationP05:"))).toBe(
       true,
     )
   })

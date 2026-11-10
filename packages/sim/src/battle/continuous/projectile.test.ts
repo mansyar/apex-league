@@ -297,7 +297,7 @@ describe("projectiles — damage reuses the strike path (FR-4)", () => {
     expect(report.position).toBe("front")
     expect(report.counter).toBe(false)
     expect(report.interrupted).toBe(false)
-    expect(report.damage).toBe(strikeDamage(12, 30, 20, 1, 1, true))
+    expect(report.damage).toBe(strikeDamage(11, 30, 20, 1, 1, true))
     expect(result.projectiles).toHaveLength(0)
   })
 
@@ -316,7 +316,7 @@ describe("projectiles — damage reuses the strike path (FR-4)", () => {
         typed,
       ).shots,
     )
-    expect(report.damage).toBe(strikeDamage(12, 30, 20, 3, 2, true))
+    expect(report.damage).toBe(strikeDamage(11, 30, 20, 3, 2, true))
   })
 
   test("a shot on a recovering victim is a counter", () => {

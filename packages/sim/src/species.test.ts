@@ -246,8 +246,18 @@ describe("wind_falcon species record", () => {
     }
     // Bulk: Phase 13 (FR-4) gave the falcon real HP so the electric_hound
     // pairing clears the 8 s floor — at 130 HP it lost in 6.7 s. It is no
-    // longer the lightest record; the frail identity now rides on defense.
-    expect(falcon.statBounds.hp[0]).toBeGreaterThan(0)
+    // longer the lightest record in absolute HP, so the assertion names the
+    // two facts that actually hold instead of restating `hp[0] > 0` (R1, F4.3):
+    // the falcon's whole HP roll sits at or below the tortoise's floor, and it
+    // still owns the roster's lowest HP midpoint.
+    const tortoise = ALL_SPECIES.find((s) => s.id === "earth_tortoise")
+    if (!tortoise) throw new Error("earth_tortoise missing")
+    expect(falcon.statBounds.hp[1]).toBeLessThanOrEqual(tortoise.statBounds.hp[0])
+    const midpoint = (s: (typeof ALL_SPECIES)[number]) =>
+      Math.floor((s.statBounds.hp[0] + s.statBounds.hp[1]) / 2)
+    for (const other of others) {
+      expect(midpoint(falcon)).toBeLessThan(midpoint(other))
+    }
     // Defense: strictly frailer than every other species' ceiling.
     for (const other of others) {
       expect(falcon.statBounds.def[1]).toBeLessThan(other.statBounds.def[1])
