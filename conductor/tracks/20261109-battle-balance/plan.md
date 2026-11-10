@@ -396,7 +396,7 @@ numbers are measured by a tool that predates them.
 
 ## Phase R3: The Gate Can See
 
-- **Goal:** the species gate measures real fights, and the five rows it has been hiding are honest.
+- **Goal:** the species gate measures real fights, and the two rows it has been hiding are honest.
 - **Depends on:** Phase R2 (`e1d9a9e7`).
 - **Covers:** FR-5, FR-20, FR-1, FR-8, FR-19, AC-5, AC-17, AC-1, AC-8, NFR-3.
 - **Touches:** `packages/sim/scripts/battle-balance-report.ts`,
@@ -417,7 +417,7 @@ numbers are measured by a tool that predates them.
   - [x] **R3.T1.2:** Pin the corrected distinct count and a case where two fights share
         winner and duration but differ in final HP.
 - [x] **R3.T2: Five species into the gate** - covers: FR-5, AC-5
-  - [x] **R3.T2.1:** Re-tune reefclaw, earth_tortoise, cindermoor, voltfox and shalemole
+  - [x] **R3.T2.1:** Re-tune reefclaw, voltfox and shalemole, with earth_tortoise reverted and cindermoor a recorded frontier
         by whole-band stat shifts, holding every pacing target.
 - [x] **R3.T3: The decisive share can fail** - covers: FR-20, AC-17
   - [x] **R3.T3.1:** Gate `decisiveCapWins / capWins >= 2/3` separately and correct the

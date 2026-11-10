@@ -97,7 +97,7 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
 | FR-17 | The type chart stays at 1.5x / 0.667x. Upsets come from training and positioning, not from weakening or strengthening type. | Must |
 | FR-18 | The elemental chart is made symmetric: fire>plant>water>fire and electric>earth>wind>electric, so every element wins once and loses once. | Must |
 | FR-19 | Every special carries a real per-move cooldown on the live path, derived from its authored `cooldown` tier, so a special cannot be fired again until its timer expires. The basic strike has no cooldown. Cooldown is per move and separate from recovery and from the shared stamina pool, so a kit is a rotation rather than a best-move button. The specific durations are provisional when the mechanism lands and are owned by the balance phase. | Must |
-| FR-20 | Under the standard doctrine at the reference line a fight resolves decisively: at least two fights in three end with a decisive result - a knockout, or an outlasting win at the cap carrying a stated HP margin - and the median duration is strictly below `FIGHT_CAP_MS`. The cap is a safety valve and outlasting is a valid victory, so a stall is measured by its margin and its diversity, not by declaring the archetype illegitimate. | Must |
+| FR-20 | Under the standard doctrine at the reference line a fight resolves decisively: at least two fights in three end with a decisive result - a knockout, or an outlasting win at the cap carrying a stated HP margin - and the median duration is strictly below `FIGHT_CAP_MS`. The cap is a safety valve and outlasting is a valid victory, so a stall is measured by its margin and its diversity, not by declaring the archetype illegitimate. This is two conditions, not one: the decisive share counts knockouts, so it cannot fail on the quality of the cap wins it absorbs. Separately, of the fights that do reach the cap, at least two in three must clear the same margin floor - a cap win is an outlasting win only when it finished ahead, and a matrix where most cap wins are near-ties has not resolved those fights even though its decisive share passes. That second condition is vacuous when no fight reaches the cap, which the one-in-three cap bound allows. | Must |
 | FR-21 | Every fight draws on the seeded RNG: each attack rolls against its authored accuracy, a landed blow carries a bounded damage spread that cannot push any base hit past the 12% ceiling, and the same seed with the same sides replays byte-identically while different seeds produce different fights. A spectator watching a rematch must see a different fight, and a replay must still repeat exactly. | Must |
 
 - **FR-22 (Must):** The balance gate measures each species at its own typical roll -
@@ -137,7 +137,7 @@ raising is the game, battles are the exam, but the exam asks the player nothing.
 | AC-9 | `bun run verify`, `bun run build`, `bun run telemetry` and the report all pass. | FR-1..18 |
 | AC-10 | The chart is symmetric: every element has exactly one win and one loss. | FR-18 |
 | AC-16 | A special cannot be committed again before its cooldown expires, the basic strike is always available, and within the damage band every special hits strictly harder than the basic with the tiers strictly ordered. | FR-1, FR-8, FR-19 |
-| AC-17 | The report shows a decisive share of at least two in three (knockouts plus cap wins with a margin at or above the stated floor), a median duration strictly below `FIGHT_CAP_MS`, and a printed cap-margin distribution, failing by name when any is missed. | FR-20 |
+| AC-17 | The report shows a decisive share of at least two in three (knockouts plus cap wins with a margin at or above the stated floor), separately shows that at least two in three cap wins clear that floor (vacuous when no fight reaches the cap), a median duration strictly below FIGHT_CAP_MS, and a printed cap-margin distribution, failing by name when any is missed. | FR-20 |
 | AC-18 | Two different seeds on the same pairing produce different outcomes in a measured share of the matrix, the same seed reproduces its events and state hash exactly, an accuracy miss appears as an event with a reason, and no rolled hit exceeds the 12% band ceiling. | FR-21, FR-1 |
 
 - **AC-19:** `bun run balance` builds every measured side from its species' bounds
@@ -281,8 +281,9 @@ on every row, so no reader mistakes a pass at the floor for a precise measuremen
 `MISS_SCALE = 5`, so the catalog's authored 70 lands 94% of the time and an authored 100
 never draws at all, because a 100 is a guaranteed connect that consumes no RNG. The mechanism
 is live: every attack whose authored accuracy is below 100 rolls. FR-21's accuracy clause is
-met in that sense only, and is deferred with the value re-authoring. Every attack
-rolls, but the number in `MoveDef.accuracy` is no longer the probability it lands.
+met in that sense only, and is deferred with the value re-authoring. An authored 100 is a
+guaranteed connect; every other row rolls, and the number in `MoveDef.accuracy` is no longer
+the probability it lands.
 
 `MISS_SCALE` 5 is deliberate. Measured cost of honouring the authored ladder literally is
 a telemetry cap share of 64.3% (against a one-in-three requirement); a floor of 90 reads

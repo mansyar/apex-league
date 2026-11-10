@@ -109,8 +109,8 @@ Phased delivery plan (each phase is independently playable):
   inside 4-12% of the reference pool; seeded accuracy rolls and a bounded damage
   spread so a rematch is a different fight while a replay still repeats exactly;
   and a deterministic balance gate that measures each species at its own typical
-  roll and holds 15/15 inside its band with 12 in the 45-55% target. Fights
-  resolve - 29% decided at the cap, 71% by knockout, median 26.6 s.)*
+  roll and holds every species to a two-sided 95% test on a matrix measured at its bounds
+  midpoint. Shipped figures are in the balance-gate bullet below.)*
 - Balance gate: `bun run balance` measures every species at its bounds midpoint across a seeded matrix and fails on any row that misses the two-sided 95% test or cannot be judged. An outlasting win is a legitimate victory: a tank that survives and holds more HP at the cap wins, so the gate bounds cap share (<= 1/3), the median duration (25-40 s), the fastest fifth (>= 8 s), a decisive share (knockouts plus cap wins with a real HP margin, >= 2/3) and cap-win quality (>= 2/3 of cap wins clear the margin floor), and prints the knockout-only band as a diagnostic. Shipped: 15/15 species pass, 29.8% decided at the cap, 70.2% by knockout, median 30.6 s. The gate is green; the roster is not yet balanced - three of fifteen species sit inside the printed 45-55% design band and twelve outside it, because 112 games are only 21-34 distinct fights, which buys a 17-21 point interval. Widening fight variance comes before narrowing that band.
 - Battle system: 4 stats + 6 types, move pool + equip-4, type/HP battle AI.
   *(Landed core 2026-10-10: headless deterministic resolver — speed-gauge action
