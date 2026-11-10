@@ -21,8 +21,9 @@
  *
  * The tier order is strictly ascending and readable straight off the ladder:
  * basic 9 < light 10 < chip 12 < mid 14 < mid2 16 < bolt 17 < heavy 19. The
- * six kit rows stay distinct and a heavy beats its light row on damage, stamina,
- * recovery and poise (moves-band.test.ts).
+ * six kit rows stay distinct, and a heavy beats its light row on damage and on
+ * poise while costing more stamina and recovering slower — it is the trade, not
+ * a free upgrade (moves-band.test.ts).
  *
  * R1 (Wall 1) scaled the whole ladder down together, because damage and fight
  * length are inverse: the old 10..22 line put 46.0% of the matrix inside the
@@ -56,7 +57,13 @@ export interface MoveDef {
   power: number
   /** Hit chance in percent 1–100. */
   accuracy: number
-  /** How many of the user's own following actions stay blocked. */
+  /**
+   * The cooldown tier: the key `COOLDOWN_MS` maps to milliseconds. Tier 0 is
+   * the innate strike (0 ms, never gated); tiers 1-3 are 1500/2000/2600 ms. The
+   * timer starts when the move commits and is decremented by the fight step, so
+   * a special cannot be fired twice before it runs out. This is not an action
+   * count — the fight clock is real time.
+   */
   cooldown: number
   /** Melee basic resolves only at near; specials are projectiles. */
   melee: boolean
