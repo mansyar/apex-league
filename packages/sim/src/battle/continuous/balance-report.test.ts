@@ -72,13 +72,13 @@ function sample(): BalanceSample {
  * earth_tortoise, cindermoor, galeheron); closing them needs stat tuning,
  * which is out of scope (roster re-tune track). The pins below record that
  * frontier with observed values; the bounds above are untouched.
+ *
+ * Roster re-tune green (P3.T1.1): Phase 1 cooled plant_ox and cindermoor into
+ * the band, Phase 2 lifted earth_tortoise (50.0%) and galeheron (53.6%) in
+ * after it, and the gate exits 0 — so the list is empty again, pinning the
+ * green reality rather than forcing it.
  */
-const KNOWN_MISSES: readonly string[] = [
-  "species:plant_ox: observed 67.9% (76/112, 102 distinct, se 5.0%), bound |rate - 50%| <= 9.7% (design target 45.0%..55.0%)",
-  "species:earth_tortoise: observed 29.5% (33/112, 100 distinct, se 5.0%), bound |rate - 50%| <= 9.8% (design target 45.0%..55.0%)",
-  "species:cindermoor: observed 59.8% (67/112, 110 distinct, se 4.8%), bound |rate - 50%| <= 9.3% (design target 45.0%..55.0%)",
-  "species:galeheron: observed 33.9% (38/112, 109 distinct, se 4.8%), bound |rate - 50%| <= 9.4% (design target 45.0%..55.0%)",
-]
+const KNOWN_MISSES: readonly string[] = []
 
 describe("balance report — one deterministic command (FR-7, AC-7)", () => {
   test("reports the roster, the doctrines, the bosses and every move", () => {
@@ -142,9 +142,11 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // the tortoise to 100, reefclaw to 109 — because real misses plus jitter
     // make more of the 112 games distinct. The pins assert the measured
     // variance reality; DISTINCT_FLOOR stays 12 and no bound moved.
+    // Roster re-tune (P3.T1.1): the tortoise's whole-band lift (atk/def up
+    // one) moves more of its games distinct, 100 -> 106; reefclaw holds 109.
     const measured = sample()
     const byId = new Map(measured.matrix.species.map((row) => [row.id, row]))
-    expect(byId.get("earth_tortoise")?.distinct).toBe(100)
+    expect(byId.get("earth_tortoise")?.distinct).toBe(106)
     expect(byId.get("reefclaw")?.distinct).toBe(109)
     // The one-species replay reads the same key, so it must agree.
     for (const id of ["earth_tortoise", "reefclaw"]) {
@@ -413,15 +415,15 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // list at the locked chip-99 ladder. Phase 4 re-baseline (P4.T2.1):
     // variance reality moved reefclaw, voltfox and mistkit back inside, so the
     // maintained list shrinks 11 -> 8; the 4 gate-red rows stay named here.
+    // Roster re-tune (P3.T1.1): all four gate-red rows moved into the band
+    // (plant_ox 44.6%, earth_tortoise 50.0%, cindermoor inside, galeheron
+    // 53.6%), so the maintained list shrinks 8 -> 4: exactly the rows still
+    // outside 45-55% in the measured run, no more and no fewer.
     const DESIGN_BAND_MISSES = [
       "plant_ox",
       "water_axolotl",
-      "electric_hound",
-      "earth_tortoise",
-      "cindermoor",
-      "galeheron",
+      "voltfox",
       "embercub",
-      "mossboar",
     ] as const
     const measured = sample()
     expect(designBandMisses(measured).map((row) => row.id)).toEqual([
@@ -453,6 +455,8 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // PASS) while four imbalanced species rows stand named with observed
     // values. The gate test below stays red on those four lines: closing them
     // needs stat tuning, which is a roster re-tune track's job, not this one's.
+    // Roster re-tune (P3.T1.1): the re-tune closed all four rows and the gate
+    // exits 0, so the list is empty — pinning the green reality.
     expect(violations(sample()).map(describeTarget)).toEqual([...KNOWN_MISSES])
   })
 
@@ -465,6 +469,9 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // p05, the damage band and the bosses. Variance tightens intervals around
     // the same point estimates; moving those four rows needs stat tuning,
     // which is out of scope, so the assertion below stands as the frontier.
+    // Roster re-tune (P3.T1.2): the re-tune moved all four rows into the band
+    // with no widened bound, floor or tolerance, so the gate below asserts
+    // the green end to end — including both lifted rows by name.
     const lines: string[] = []
     expect(run(sample(), (line) => lines.push(line))).toBe(0)
     const failures = lines.filter((line) => line.startsWith("FAIL "))
@@ -482,6 +489,9 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     expect(lines.some((line) => line.startsWith("ok   damageBand:"))).toBe(true)
     expect(
       lines.some((line) => line.startsWith("ok   species:earth_tortoise:")),
+    ).toBe(true)
+    expect(
+      lines.some((line) => line.startsWith("ok   species:galeheron:")),
     ).toBe(true)
   })
 

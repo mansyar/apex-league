@@ -142,6 +142,8 @@ function serialize(result: BattleResult): string {
  * again (basic 9, kit 10/14/16/17/12/19, branches 15/12) so the fast fights
  * stop resolving under 25 s, and the tortoise/shalemole defense floors came
  * down; every stream moves.
+ * Recaptured in the roster re-tune: the plant_ox cool (atk/def down one)
+ * moves the fifteen plant_ox streams; every other stream holds.
  */
 const GOLDEN: Readonly<Record<string, string>> = {
   // Mirrors: each species fights itself (three kit tiers).
@@ -149,30 +151,30 @@ const GOLDEN: Readonly<Record<string, string>> = {
   "fire_drake|fire_drake|kit3": "db4ca3b4",
   "fire_drake|fire_drake|kit4": "67927655",
   "plant_ox|plant_ox|kit2": "e15295dd",
-  "plant_ox|plant_ox|kit3": "ed27a1fb",
-  "plant_ox|plant_ox|kit4": "c90b5dad",
+  "plant_ox|plant_ox|kit3": "68dd691d",
+  "plant_ox|plant_ox|kit4": "569e153d",
   "water_axolotl|water_axolotl|kit2": "15b8f825",
   "water_axolotl|water_axolotl|kit3": "cd951317",
   "water_axolotl|water_axolotl|kit4": "65256acd",
   // Cross-element: fire>plant, water>fire, plant>water, both side orders.
-  "fire_drake|plant_ox|kit2": "a57ec6dd",
-  "fire_drake|plant_ox|kit3": "dbb561d3",
-  "fire_drake|plant_ox|kit4": "511de49b",
-  "plant_ox|fire_drake|kit2": "a775a239",
-  "plant_ox|fire_drake|kit3": "6e9416b9",
-  "plant_ox|fire_drake|kit4": "41ed330b",
+  "fire_drake|plant_ox|kit2": "56b14ef1",
+  "fire_drake|plant_ox|kit3": "824b3b7d",
+  "fire_drake|plant_ox|kit4": "15cfc809",
+  "plant_ox|fire_drake|kit2": "cfe03ef1",
+  "plant_ox|fire_drake|kit3": "6f72ae37",
+  "plant_ox|fire_drake|kit4": "d37d7213",
   "fire_drake|water_axolotl|kit2": "f971a42d",
   "fire_drake|water_axolotl|kit3": "dfd9c82f",
   "fire_drake|water_axolotl|kit4": "7c79ea9b",
   "water_axolotl|fire_drake|kit2": "2bd633e5",
   "water_axolotl|fire_drake|kit3": "0cc1cf87",
   "water_axolotl|fire_drake|kit4": "f49b97c3",
-  "plant_ox|water_axolotl|kit2": "39dd617d",
-  "plant_ox|water_axolotl|kit3": "09683393",
-  "plant_ox|water_axolotl|kit4": "4d4082aa",
-  "water_axolotl|plant_ox|kit2": "289cf795",
-  "water_axolotl|plant_ox|kit3": "36263d5d",
-  "water_axolotl|plant_ox|kit4": "8fafedd4",
+  "plant_ox|water_axolotl|kit2": "260781b9",
+  "plant_ox|water_axolotl|kit3": "5d792aa7",
+  "plant_ox|water_axolotl|kit4": "a5bde313",
+  "water_axolotl|plant_ox|kit2": "68c8fd1d",
+  "water_axolotl|plant_ox|kit3": "22fec9b1",
+  "water_axolotl|plant_ox|kit4": "b79b862b",
 }
 
 interface RunSummary {
@@ -261,6 +263,12 @@ describe("seeded battle event-stream contract", () => {
     // clock.test.ts, and the dedicated synthetic fixture below walks the
     // knockback path end to end. The digest matrix still walks stagger and
     // down.
+    // Roster re-tune: the plant_ox cool (atk/def down one) drops the matrix's
+    // only borderline super-effective hits below the 15%-of-pool heavy line
+    // (max impact 25 vs a ~26 line), so the stagger arm is no longer reached
+    // here either; the matrix walks down only. The stagger rule itself stays
+    // unit-tested in clock.test.ts and playback.test.ts, and the digests below
+    // still prove byte-identical replay at full strength.
     expect({
       impactStagger: coverage.impactStagger > 0,
       impactKnockback: coverage.impactKnockback > 0,
@@ -268,10 +276,10 @@ describe("seeded battle event-stream contract", () => {
       staggers: coverage.staggers > 0,
       knockbacks: coverage.knockbacks > 0,
     }).toEqual({
-      impactStagger: true,
+      impactStagger: false,
       impactKnockback: false,
       downs: true,
-      staggers: true,
+      staggers: false,
       knockbacks: false,
     })
 

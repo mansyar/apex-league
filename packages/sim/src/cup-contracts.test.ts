@@ -437,8 +437,10 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     // Brute.
     // Execution-noise ripple (variance Phase 2): per-seed commit timing and
     // dodge-side noise flips QF2 to Reedle Mirefin; the other rows hold.
+    // Roster re-tune ripple: the cooled plant_ox/galeheron/tortoise rows flip
+    // the day-14 QF2 rematch back to Tidecaller Nibbles; the other rows hold.
     expect(session.rivalVerdicts.map((v) => v.winner)).toEqual([
-      "Reedle Mirefin",
+      "Tidecaller Nibbles",
       "Ash-ledger",
       "Mossbottom Brute",
       "Mossbottom Brute",

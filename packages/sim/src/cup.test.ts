@@ -192,6 +192,8 @@ describe("makeBracket — cup bracket generation", () => {
     // not just the seed. Any added/removed/reordered rng draw in
     // makeBracket changes which opponents a given (day, save) meets —
     // silently rewriting cup history. This golden catches that.
+    // Roster re-tune: the plant_ox cool (atk/def down one) moves the five
+    // plant_ox rivals' rolled stats with it; the draw itself still holds.
     const bracket = makeBracket(playerCreature(11), 7, 21)
     expect(JSON.parse(JSON.stringify(bracket.slots))).toEqual([
       {
@@ -204,31 +206,31 @@ describe("makeBracket — cup bracket generation", () => {
         isPlayer: false,
         name: "Pondskipper Grub",
         speciesId: "plant_ox",
-        stats: { hp: 160, atk: 11, def: 13, spd: 8 },
+        stats: { hp: 160, atk: 10, def: 12, spd: 8 },
       },
       {
         isPlayer: false,
         name: "Bramble Knoll Ox",
         speciesId: "plant_ox",
-        stats: { hp: 160, atk: 12, def: 12, spd: 9 },
+        stats: { hp: 160, atk: 11, def: 11, spd: 9 },
       },
       {
         isPlayer: false,
         name: "Thistledown Ash",
         speciesId: "plant_ox",
-        stats: { hp: 161, atk: 12, def: 13, spd: 9 },
+        stats: { hp: 161, atk: 11, def: 12, spd: 9 },
       },
       {
         isPlayer: false,
         name: "Reedle Mirefin",
         speciesId: "plant_ox",
-        stats: { hp: 160, atk: 12, def: 12, spd: 9 },
+        stats: { hp: 160, atk: 11, def: 11, spd: 9 },
       },
       {
         isPlayer: false,
         name: "Cindersnout",
         speciesId: "plant_ox",
-        stats: { hp: 163, atk: 12, def: 13, spd: 8 },
+        stats: { hp: 163, atk: 11, def: 13, spd: 8 },
       },
       {
         isPlayer: false,
