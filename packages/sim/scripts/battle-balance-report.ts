@@ -147,11 +147,17 @@ const BAND_MAX_MS = 40_000
  *
  * The margin is measured **per side's own pool**: `winnerHp/winnerMax -
  * loserHp/loserMax` in hundredths of a point. That is not the 189-HP reference
- * line — the authored pools run 145-209 HP, so one basic strike (`BASIC_MOVE`,
- * power 9) is 4.9-6.2% of a 145-186 pool, not 4.76%. Five percentage points is
- * therefore roughly **one basic hit** of separation: the smallest gap that
- * survives one more exchange, and the point below which the cap is deciding a
- * tiebreak rather than an outlasting.
+ * line — the authored roll bounds span 130-209 HP and the measured typical pools
+ * 145-186 HP, so one basic strike (`BASIC_MOVE`, power 9) is 4.9-6.2% of a
+ * typical pool, not 4.76%. Five points is therefore
+ * about one basic hit of separation, which is a scale, not a guarantee: a single
+ * final exchange can cross it in either direction, so this floor does not prove
+ * the winner was ahead before the last blow.
+ *
+ * `decisiveShare` alone also cannot police this. Knockouts are 588/840 (70.0%)
+ * of the matrix on their own, already past the 66.7% bound, so cap-win quality
+ * is invisible in that ratio; `capWinQuality` gates `decisiveCapWins / capWins`
+ * separately (R3).
  */
 export const CAP_MARGIN_FLOOR_BP = 500
 export const DECISIVE_SHARE_MIN = 2 / 3
