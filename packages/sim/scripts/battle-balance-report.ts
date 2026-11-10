@@ -302,6 +302,30 @@ function winnerOf(
   )
 }
 
+/**
+ * One fight's identity for the distinct-fight count (FR-21): the measured
+ * side's outcome, the fight's length, and that side's final HP.
+ *
+ * R3 (T1): this used to read `finalHp[side.name]` while the resolver keys
+ * `finalHp` by `fighterKey = id ?? name`, and `speciesSide` always sets an id.
+ * The lookup was therefore `undefined` on every fight, the signature collapsed
+ * to `(outcome, duration)`, and `distinct` counted a fraction of the sample it
+ * claimed. The key is passed in from the caller's own `id ?? name`, and a
+ * missing key throws: a blind count must fail loudly, not quietly widen every
+ * species' interval.
+ */
+export function fightSignature(
+  key: string,
+  outcome: "w" | "l" | "d",
+  ms: number,
+  finalHp: number | undefined,
+): string {
+  if (finalHp === undefined) {
+    throw new Error(`no final HP for ${key}: the distinct count would go blind`)
+  }
+  return `${outcome}|${ms}|${finalHp}`
+}
+
 /** One species' measured row in the matrix. */
 export interface SpeciesRow {
   readonly id: string
@@ -665,12 +689,19 @@ export function measure(options: MeasureOptions = {}): BalanceSample {
           tally.games += 1
           if (winner === side) tally.wins += 1
           if (winner === null) tally.draws += 1
-          const finalHp =
-            result.finalHp[side === 0 ? homeSide.name : awaySide.name]
+          // R3 (T1): read the key the resolver wrote, and let the signature
+          // helper throw if it is missing. `finalHp` is keyed by
+          // `fighterKey = id ?? name`, and `speciesSide` always sets an id.
+          const finalHpKey = side === 0 ? homeKey : awayKey
           signatures
             .get(species.id)
             ?.add(
-              `${winner === side ? "w" : winner === null ? "d" : "l"}|${ms}|${finalHp}`,
+              fightSignature(
+                finalHpKey,
+                winner === side ? "w" : winner === null ? "d" : "l",
+                ms,
+                result.finalHp[finalHpKey],
+              ),
             )
         }
         const keys = Object.keys(result.finalHp)
@@ -818,15 +849,26 @@ export function measureSpecies(
         games += 1
         if (winner === watch) wins += 1
         if (winner === null) draws += 1
-        const finalHp =
-          result.finalHp[order === 0 ? homeSide.name : awaySide.name]
+        // R3 (T1): the same `id ?? name` key the resolver wrote, through the
+        // same signature helper the matrix uses — a second, games-based error
+        // in an exported function is a trap.
+        const watchKey =
+          order === 0
+            ? (homeSide.id ?? homeSide.name)
+            : (awaySide.id ?? awaySide.name)
         signatures.add(
-          `${winner === watch ? "w" : winner === null ? "d" : "l"}|${msOf(result)}|${finalHp}`,
+          fightSignature(
+            watchKey,
+            winner === watch ? "w" : winner === null ? "d" : "l",
+            msOf(result),
+            result.finalHp[watchKey],
+          ),
         )
       }
     }
   }
   const rate = games === 0 ? 0 : (wins + draws / 2) / games
+  const distinct = signatures.size
   return {
     id: species.id,
     name: species.displayName,
@@ -834,8 +876,8 @@ export function measureSpecies(
     wins,
     draws,
     rate,
-    distinct: signatures.size,
-    se: games === 0 ? 0 : Math.sqrt((rate * (1 - rate)) / games),
+    distinct,
+    se: distinct === 0 ? 0 : Math.sqrt(0.25 / distinct),
   }
 }
 
