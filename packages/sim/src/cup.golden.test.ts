@@ -429,19 +429,22 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
   // R2 (battle-balance): the compressed ladder hands the crown to Bonfire
   // Brook. Honest rolls (variance Phase 1): the authored ladder rolls at
   // face value and the crown moves to Tidecaller Nibbles.
+  // Execution-noise ripple (variance Phase 2): per-seed commit timing and
+  // dodge-side noise flips QF1 to Reedle Mirefin, who then takes SF1 and
+  // the final.
   test("forfeit path (seed 101): the forfeit line, then the bracket completes", () => {
     const creature = playerCreature()
     const session = forfeitCup(startCupSession(creature, DAY, 101))
     expect(session.status).toBe("eliminated")
-    expect(session.championName).toBe("Tidecaller Nibbles")
+    expect(session.championName).toBe("Reedle Mirefin")
     expect(cupPlacement(session)).toBe(4)
     expect(session.rivalVerdicts.map(row)).toEqual([
       [
         1,
         "Tidecaller Nibbles",
         "Reedle Mirefin",
-        "Tidecaller Nibbles",
-        "Tidecaller Nibbles takes the Quarterfinal!",
+        "Reedle Mirefin",
+        "Reedle Mirefin takes the Quarterfinal!",
       ],
       [
         1,
@@ -478,16 +481,16 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
       [
         2,
         "Bonfire Brook",
-        "Tidecaller Nibbles",
-        "Tidecaller Nibbles",
-        "Tidecaller Nibbles takes the Semifinal!",
+        "Reedle Mirefin",
+        "Reedle Mirefin",
+        "Reedle Mirefin takes the Semifinal!",
       ],
       [
         3,
-        "Tidecaller Nibbles",
+        "Reedle Mirefin",
         "Mossbottom Brute",
-        "Tidecaller Nibbles",
-        "Tidecaller Nibbles takes the Final!",
+        "Reedle Mirefin",
+        "Reedle Mirefin takes the Final!",
       ],
     ])
   })

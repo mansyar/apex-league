@@ -140,15 +140,19 @@ describe("deriveMorningAfter — the outcome classifier (FR-1)", () => {
     expect(d?.bossId).toBeNull()
   })
 
-  test("a plain elimination derives exit — placement never read", () => {
-    // Seed 5 under the aggressive pick exits in QF1 (phase 10 re-pin: pacing
+  // Execution-noise ripple (variance Phase 2): per-seed commit timing and
+  // dodge-side noise sweeps seed 5 to a title, so the elimination this test
+  // used to pin is now a champion run. Exit-class coverage stays with the
+  // scripted finals below.
+  test("a plain champion run derives title", () => {
+    // Seed 5 under the aggressive pick sweeps the cup (phase 10 re-pin: pacing
     // moved the elimination off seed 23; the classifier reads only the
     // session facts).
     const session = play(creature(), 5, "specials")
-    expect(session.status).toBe("eliminated")
+    expect(session.status).toBe("champion")
     const d = deriveMorningAfter(session, freshState(), freshState())
     expect(d).not.toBeNull()
-    expect(d?.class).toBe("exit")
+    expect(d?.class).toBe("title")
     expect(d?.bossId).toBeNull()
   })
 

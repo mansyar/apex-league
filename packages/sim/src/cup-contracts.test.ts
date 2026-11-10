@@ -194,8 +194,10 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
         // Mirefin; the other three rows hold.
         // Honest rolls (variance Phase 1): QF1 returns to Tidecaller Nibbles;
         // the other three rows hold.
+        // Execution-noise ripple (variance Phase 2): per-seed commit timing
+        // and dodge-side noise flips QF1 to Reedle Mirefin; the rest hold.
         rivalWinners: [
-          "Tidecaller Nibbles",
+          "Reedle Mirefin",
           "Ash-ledger",
           "Mossbottom Brute",
           "Mossbottom Brute",
@@ -211,11 +213,14 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
         // Emberhold Flicker.
         // Honest-rolls ripple (variance Phase 1): the authored ladder rolls
         // at face value; QF2 holds on Reedle Mirefin.
+        // Execution-noise ripple (variance Phase 2): per-seed commit timing
+        // and dodge-side noise hands SF2 and the final to Cindersnout; QF2
+        // and QF4 hold.
         rivalWinners: [
           "Reedle Mirefin",
           "Ash-ledger",
-          "Emberhold Flicker",
-          "Emberhold Flicker",
+          "Cindersnout",
+          "Cindersnout",
         ],
       },
       // FR6 rebalance ripple: the double-KO that used to sit at QF4 moved
@@ -286,43 +291,58 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     expect(cupPlacement(specialsOne)).toBe(1)
   })
 
-  test("final loss: seed 9, specials — placement 2, champion via completeCup", () => {
+  // Execution-noise ripple (variance Phase 2): per-seed commit timing and
+  // dodge-side noise hands the final to the player, so the final loss this
+  // test used to pin is now a champion path.
+  test("champion path: seed 9, specials — placement 1", () => {
     const creature = cupDayCreature()
-    const elim = playToCompletion(creature, 7, 9, "specials")
-    expect(elim.status).toBe("eliminated")
-    expect(elim.playerVerdicts).toHaveLength(3)
-    expect(elim.playerVerdicts[2]?.winner).toBe("Mossbottom Brute")
-    expect(cupPlacement(elim)).toBe(2)
-    // The final loss leaves the SF2 winner as champion: no more fights.
-    const done = completeCup(elim)
-    expect(done.championName).toBe("Mossbottom Brute")
+    const done = playToCompletion(creature, 7, 9, "specials")
+    expect(done.status).toBe("champion")
+    expect(done.playerVerdicts).toHaveLength(3)
+    expect(done.playerVerdicts[2]?.winner).toBe("Ember Drake")
+    expect(cupPlacement(done)).toBe(1)
+    // The sweep leaves no one else to crown: no completion fights.
+    expect(done.championName).toBe("Ember Drake")
     expect(done.completionVerdicts).toHaveLength(0)
   })
 
-  test("semifinal exit: seed 3, specials — placement 3", () => {
+  // Execution-noise ripple (variance Phase 2): per-seed commit timing and
+  // dodge-side noise hands the semifinal to the player, so the semifinal
+  // exit this test used to pin is now a champion path.
+  test("champion path: seed 3, specials — placement 1", () => {
     const creature = cupDayCreature()
     // Re-pinned for the damage band (battle-balance phase 4): the compressed
     // band hands the semifinal to Thistledown Ash, so the champion path this
     // test used to pin is now a semifinal exit.
     const done = playToCompletion(creature, 7, 3, "specials")
-    expect(done.status).toBe("eliminated")
-    expect(done.playerVerdicts).toHaveLength(2)
-    expect(cupPlacement(done)).toBe(3)
+    expect(done.status).toBe("champion")
+    expect(done.playerVerdicts).toHaveLength(3)
+    expect(cupPlacement(done)).toBe(1)
+    expect(done.championName).toBe("Ember Drake")
     expect(done.completionVerdicts).toHaveLength(0)
   })
 
-  test("champion path: seed 11, specials — placement 1", () => {
+  // Execution-noise ripple (variance Phase 2): per-seed commit timing and
+  // dodge-side noise costs the player the final, so the champion path this
+  // test used to pin is now a final loss.
+  test("final loss: seed 11, specials — placement 2, champion via completeCup", () => {
     // Pacing ripple (battle-balance phase 8, FR-20): the shorter fights handed the
     // semifinal to Gilded Horn. R1 (battle-balance) re-pinned again: the
     // scaled-down authored ladder sweeps the bracket, so this seed is a
     // champion path once more.
+    // Execution-noise ripple (variance Phase 2): per-seed commit timing and
+    // dodge-side noise costs the player a fight; the received exit is pinned
+    // below.
     const creature = cupDayCreature()
-    const done = playToCompletion(creature, 7, 11, "specials")
-    expect(done.status).toBe("champion")
-    expect(cupPlacement(done)).toBe(1)
-    expect(done.playerVerdicts).toHaveLength(3)
+    const elim = playToCompletion(creature, 7, 11, "specials")
+    expect(elim.status).toBe("eliminated")
+    expect(elim.playerVerdicts).toHaveLength(3)
+    expect(elim.playerVerdicts[2]?.winner).toBe("Emberhold Flicker")
+    expect(cupPlacement(elim)).toBe(2)
+    // The final loss leaves the SF2 winner as champion: no more fights.
+    const done = completeCup(elim)
+    expect(done.championName).toBe("Emberhold Flicker")
     expect(done.completionVerdicts).toHaveLength(0)
-    expect(done.championName).toBe("Ember Drake")
   })
 
   test("forfeit at the QF: seed 101 — as-if-lost placement 4, conqueror plays SF1", () => {
@@ -348,7 +368,10 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     // Mossbottom Brute. R2 (battle-balance): the compressed ladder hands it
     // back to Bonfire Brook. Honest rolls (variance Phase 1): the authored
     // ladder rolls at face value and the crown moves to Tidecaller Nibbles.
-    expect(done.championName).toBe("Tidecaller Nibbles")
+    // Execution-noise ripple (variance Phase 2): per-seed commit timing and
+    // dodge-side noise flips QF1 to Reedle Mirefin, who then takes SF1 and
+    // the final.
+    expect(done.championName).toBe("Reedle Mirefin")
     // The forfeit verdict names the opponent, no battle attached.
     const ff = done.playerVerdicts[0]
     expect(ff?.winner).toBe("Bonfire Brook")
@@ -365,8 +388,8 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     expect(
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
     ).toEqual([
-      [2, "Bonfire Brook", "Tidecaller Nibbles", "Tidecaller Nibbles"],
-      [3, "Tidecaller Nibbles", "Mossbottom Brute", "Tidecaller Nibbles"],
+      [2, "Bonfire Brook", "Reedle Mirefin", "Reedle Mirefin"],
+      [3, "Reedle Mirefin", "Mossbottom Brute", "Reedle Mirefin"],
     ])
   })
 
@@ -377,12 +400,14 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     // the final; the controller pass (phase 3) had Thistledown Ash winning.
     // R1 (battle-balance): the scaled-down ladder hands the crown to
     // Emberhold Flicker.
-    expect(done.championName).toBe("Emberhold Flicker")
+    // Execution-noise ripple (variance Phase 2): per-seed commit timing and
+    // dodge-side noise hands the final to Cindersnout instead.
+    expect(done.championName).toBe("Cindersnout")
     expect(
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
     ).toEqual([
       [2, "Mossbottom Brute", "Reedle Mirefin", "Reedle Mirefin"],
-      [3, "Reedle Mirefin", "Emberhold Flicker", "Emberhold Flicker"],
+      [3, "Reedle Mirefin", "Cindersnout", "Cindersnout"],
     ])
   })
 
@@ -410,8 +435,10 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     // Controller ripple (battle-balance phase 3): SF2 moves to Ash-ledger.
     // Damage-band ripple (battle-balance phase 4): SF2 moves to Mossbottom
     // Brute.
+    // Execution-noise ripple (variance Phase 2): per-seed commit timing and
+    // dodge-side noise flips QF2 to Reedle Mirefin; the other rows hold.
     expect(session.rivalVerdicts.map((v) => v.winner)).toEqual([
-      "Tidecaller Nibbles",
+      "Reedle Mirefin",
       "Ash-ledger",
       "Mossbottom Brute",
       "Mossbottom Brute",
