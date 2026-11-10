@@ -350,3 +350,42 @@ Two more from the same track worth remembering:
   species produced 4 distinct fights in 112. A row like that is four coin flips
   with a standard error printed beside it; it cannot be balanced and should not
   be reported as balanced.
+
+## 17. A measurement you cannot make is a finding, not a number to fudge
+
+The balance gate computed a binomial standard error from the game count - 112 fights per
+species - while one row contained only 6 distinct fights. The printed error said 4.7
+points; the real spread was plus or minus twenty. The row passed, and the pass was luck.
+
+Two rules came out of it. First, the error must come from the effective sample: derive it
+from the distinct-fight count, state a floor below which a row cannot be judged, and make
+an unverified row **fail** the gate. A gate with an escape hatch is worse than a gate that
+says no, because the escape hatch is invisible in the summary line.
+
+Second, and more useful: if a species cannot be measured, that is a finding about the
+game, not a defect in the harness. A slow tank's fights reach the time cap, a cap decision
+is made on HP percentage, and HP percentage is near-deterministic - so the seed barely
+matters and six coin flips get dressed up as a sample. The honest output is a named
+unverified row with the reason attached, and the real fix is a design answer (mobility, a
+closing move, a cap rule that is not a near-tie), not a stat nudge. Raising that species'
+attack far enough to end fights by knockout overshot the win-rate gate before it satisfied
+the distinct floor, which is the signature of a design problem wearing tuning clothes.
+
+## 18. Pace is a global lever, and identity outranks a pacing bound
+
+Restoring a frail species to frailty dropped the share of fights inside the 25-40 s window
+from 52% to 46%, and the obvious local fix - more defence on the two fastest killers - did
+nothing: their own win rates moved 25-38 points and the band stayed pinned at 46.0%. The
+mass of fights sat just under 25 s across the whole matrix, so only a global lever moved
+it. Scaling the entire authored damage ladder down together, staying inside the frozen 4-12%
+band and keeping the tier order, took the band to 54.5%.
+
+The lesson is about which direction to reach for. A per-species lever moves that species'
+row; a per-system lever moves the distribution. When a distribution statistic is wrong, look
+for a lever that touches every fight before you touch one creature. And when the two
+conflict - a frail creature shortens fights, and a pacing bound wants longer ones - identity
+wins: giving a glass cannon a tank's HP to satisfy a duration target is the same error as
+deleting the invariant that says it is frail, only quieter. Replace the fragile bound
+instead: a floor on the single fastest fight in an 840-fight sample is a target that invites
+propping up an archetype, where a fifth-percentile floor says the same thing without
+demanding that no fight ever be quick.
