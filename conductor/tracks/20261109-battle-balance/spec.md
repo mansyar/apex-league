@@ -279,12 +279,15 @@ on every row, so no reader mistakes a pass at the floor for a precise measuremen
 
 `continuous/roll.ts` rolls against `100 - floor((100 - accuracy) / MISS_SCALE)` with
 `MISS_SCALE = 5`, so the catalog's authored 70 lands 94% of the time and an authored 100
-never draws at all. The mechanism is live and FR-21 is met in the sense that every attack
+never draws at all, because a 100 is a guaranteed connect that consumes no RNG. The mechanism
+is live: every attack whose authored accuracy is below 100 rolls. FR-21's accuracy clause is
+met in that sense only, and is deferred with the value re-authoring. Every attack
 rolls, but the number in `MoveDef.accuracy` is no longer the probability it lands.
 
 `MISS_SCALE` 5 is deliberate. Measured cost of honouring the authored ladder literally is
 a telemetry cap share of 64.3% (against a one-in-three requirement); a floor of 90 reads
-57.1%; the shipped 5 reads 42.9%. Re-authoring the ladder to real values therefore needs
+57.1%; the shipped 5 reads 50.0% on the current ladder - exactly at the telemetry cap-share
+bound of 50.0%, with no headroom left for any further variance or ladder change. Re-authoring the ladder to real values therefore needs
 roughly 15-20 points of cap-share headroom, which means a pacing change alongside it.
 
 Debt carried by the balance pass: either re-author the 49 accuracy values against a pacing

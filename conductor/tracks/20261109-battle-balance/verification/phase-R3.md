@@ -203,3 +203,60 @@ the report's `blockers` for the primary to apply.
 Report replay is byte-identical (existing test). Integers only, no clock reads, no RNG change.
 `FIGHT_CAP_MS`, the chart, the 4-12% band, damage ratios, `DECISION_MS`, training caps, doctrine
 definitions, turn budgets, `MISS_SCALE` and `DISTINCT_FLOOR` are untouched.
+
+## Primary verification
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `bun run verify` | 0 | 3,975 pass, 1 skip, 0 fail across 367 files |
+| `bun run build` | 0 | client bundle clean |
+| `bun run balance` | 0 | every row ok - cap 29.8%, decisive 92.4%, cap-win quality 74.4%, median 30.58 s, p05 14.60 s, damage 49/49 |
+| `bun run telemetry` | 0 | 13/13 bounds (cap share 7/14 = 50.0%, exactly at its bound) |
+
+Checkpoint: `326d3fcc` plus the primary's doc corrections (product bullet, two spec paragraphs,
+learnings 16 and 19).
+
+### The blocking finding was real, and the predicted fix was wrong twice
+
+Round 3 blocked because `measure()` read `result.finalHp[side.name]` while the map is keyed by
+`fighterKey = id ?? name`, so the HP component was always `undefined` and `distinct` counted
+`(winner, duration)` pairs only. The review predicted 42-64 distinct, `se` 6.3-7.7% and five
+failing rows. Measured after the fix: **21-34 distinct, `se` 8.6-10.9%, two failing rows**
+(reefclaw 71.4%, earth_tortoise 26.8%). A signature audit (own HP, both HP, event stream)
+reproduced no variant near 42-64, so the five-row prediction was itself an unmeasured
+projection. Two wrong numbers in a row is the reason the fix shipped with a test that a pair of
+fights sharing winner and duration but differing in final HP counts as two, rather than with a
+tuned constant.
+
+### Tuning, and what was refused
+
+Four whole-band stat moves were accepted, each shifting its row by more than its own standard
+error and each followed by a full pacing re-check: reefclaw atk 10-13 -> 8-11 (71.4 -> 55.4),
+earth_tortoise atk 10-14 -> 13-17 (26.8 -> 35.7, +8.9 against `se` 8.6 - the marginal one, and
+`atk 14-18` measured 50.0 but was rejected as an identity break), voltfox atk 7-10 -> 8-11
+(33.9 -> 51.8), shalemole atk 7-10 -> 8-11 (33.9 -> 57.1). Cindermoor (67.9%) is reported as a
+frontier: it passes on its own 19.6-point interval and no whole-band move shifts it by one
+standard error, so it was not forced. No bounds floor was pushed across 10.
+
+### New gate row
+
+`decisiveShare` could not fail on cap-win quality - knockouts alone are 70.2%, above its 66.7%
+bound - so `capWinQuality` (186/250 = 74.4% of cap wins clearing the margin floor) is gated
+separately, with a test where every cap win is a near tie: `decisiveShare` passes and
+`capWinQuality` fails. The 500 bp rationale now states the truth - it is measured against each
+side's own pool (bounds 130-209, typical 145-186, so one basic hit is 4.9-6.2%), which means a
+single final exchange can cross it, and 92.4% means "not a near-tie", not "survives another hit".
+
+### NFR-3 answered by extending the guard
+
+`module-size.test.ts` walked `packages/sim/src` only, so the 1,389-line report script escaped it.
+The guard now walks `scripts/` under a stated 64 KB ceiling and forbids `src/` importing it -
+extended rather than exempted.
+
+### Still not claimed
+
+The roster is not balanced: three of fifteen rows are inside the printed 45-55% design band and
+twelve outside it, on intervals 17-21 points wide because 112 games are 21-34 distinct fights.
+That is stated in the spec, the product doc and learnings 16/19, and the next balance track's
+first job is variance, not the band. Kite still loses all six sampled fights at 24 paid dodges
+per fight - an owner decision, not a tuning number.

@@ -406,23 +406,26 @@ numbers are measured by a tool that predates them.
   `conductor/learnings.md` + tests.
 - **Verification:** `bun run verify`, `bun run build`, `bun run balance`,
   `bun run telemetry` - four separate commands.
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified - the distinct count reads real final HP (21-34 of 112, se 8.6-10.9%), four species moved into the gate by whole-band stat shifts, cindermoor recorded as a frontier rather than forced, cap-win quality gated as its own row at 74.4%, branch parity pinned in code, and the module-size guard extended to `scripts/`. Gate green for a reason that survives reading the code: cap 29.8%, decisive 92.4%, median 30.58 s, p05 14.60 s, damage 49/49, 15/15 species. Roster balance still not claimed - three of fifteen rows inside the printed 45-55% band.
+- **Checkpoint:** 326d3fcc
+- **Evidence:** conductor/tracks/20261109-battle-balance/verification/phase-R3.md
 
-- [ ] **R3.T1: The distinct count reads real final HP** - covers: FR-5, AC-5
-  - [ ] **R3.T1.1:** Key `finalHp` by `side.id ?? side.name` in `measure()` and
+- [x] **R3.T1: The distinct count reads real final HP** - covers: FR-5, AC-5
+  - [x] **R3.T1.1:** Key `finalHp` by `side.id ?? side.name` in `measure()` and
         `measureSpecies()`, and give `measureSpecies` the same distinct-based `se`.
-  - [ ] **R3.T1.2:** Pin the corrected distinct count and a case where two fights share
+  - [x] **R3.T1.2:** Pin the corrected distinct count and a case where two fights share
         winner and duration but differ in final HP.
-- [ ] **R3.T2: Five species into the gate** - covers: FR-5, AC-5
-  - [ ] **R3.T2.1:** Re-tune reefclaw, earth_tortoise, cindermoor, voltfox and shalemole
+- [x] **R3.T2: Five species into the gate** - covers: FR-5, AC-5
+  - [x] **R3.T2.1:** Re-tune reefclaw, earth_tortoise, cindermoor, voltfox and shalemole
         by whole-band stat shifts, holding every pacing target.
-- [ ] **R3.T3: The decisive share can fail** - covers: FR-20, AC-17
-  - [ ] **R3.T3.1:** Gate `decisiveCapWins / capWins >= 2/3` separately and correct the
+- [x] **R3.T3: The decisive share can fail** - covers: FR-20, AC-17
+  - [x] **R3.T3.1:** Gate `decisiveCapWins / capWins >= 2/3` separately and correct the
         margin-floor rationale in the code and the spec.
-- [ ] **R3.T4: Branch parity is pinned** - covers: FR-1, FR-8
-  - [ ] **R3.T4.1:** Assert `heavy.power * heavy.accuracy === reliable.power * reliable.accuracy`
+- [x] **R3.T4: Branch parity is pinned** - covers: FR-1, FR-8
+  - [x] **R3.T4.1:** Assert `heavy.power * heavy.accuracy === reliable.power * reliable.accuracy`
         for every element, and fix the `roll.ts` example.
-- [ ] **R3.T5: The record stops contradicting itself** - covers: FR-19, NFR-3
-  - [ ] **R3.T5.1:** Rewrite the `moves.ts` catalog header, the `product.md` balance
+- [x] **R3.T5: The record stops contradicting itself** - covers: FR-19, NFR-3
+  - [x] **R3.T5.1:** Rewrite the `moves.ts` catalog header, the `product.md` balance
         bullet, the two stale `spec.md` paragraphs and learnings 16 and 19.
-  - [ ] **R3.T5.2:** Decide and record whether `scripts/` is inside the module-size guard.
+  - [x] **R3.T5.2:** Decide and record whether `scripts/` is inside the module-size guard.

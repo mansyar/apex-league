@@ -334,7 +334,8 @@ miss was right.
   so the miss stayed visible instead of becoming the new definition of passing.
 
 The related trap is a statistical gate whose slack is wider than its target. A
-95% test over 112 games per species has +/-9.3 points of slack, so a species can
+95% test over 112 games per species now derives its error from distinct fights, which are 21-34
+of 112, so the slack is 17-21 points and a species can
 "pass" at 42% when the design band is 45-55%. Keep both numbers in the output:
 the gate is what CI enforces, the band is what the game wants, and a report that
 prints only the gate is lying by omission.
@@ -399,6 +400,10 @@ The metric was wrong, not the game: a cap decision is how a tank wins, and count
 "did not resolve" made a legal archetype a defect. Worse, the fix for a metric like that is
 always to weaken the archetype - the ladder compression was already trimming the heavy tier
 that the tank's durability exists to survive.
+
+For the record, the ladder compression was made *for* `resolvedInBand`, the metric this
+learning calls wrong, and it was kept afterwards because the pacing targets it moved were real.
+That is the honest sequence: the work was right, the target was not.
 
 The rule: before optimising a metric, ask what behaviour it *rewards*. A metric that can only
 be improved by deleting a legitimate strategy is a specification bug. The replacement kept
