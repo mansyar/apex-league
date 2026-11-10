@@ -129,6 +129,6 @@ export const REWARD_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "pyre_wall",
     ],
     temperament: "rush",
-    statBounds: { hp: [151, 181], atk: [9, 16], def: [9, 12], spd: [6, 8] },
+    statBounds: { hp: [151, 181], atk: [9, 16], def: [8, 11], spd: [6, 8] },
   },
 ])
