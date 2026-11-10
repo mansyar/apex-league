@@ -66,14 +66,14 @@ stricter than an unbounded "majority in band".
 
 | Row | Before this track | After |
 | --- | --- | --- |
-| cap share (matrix) | 83.8% | **29.8%** |
+| cap share (matrix) | 83.8% | **30.0%** |
 | decisive share | not measured | **92.4%** |
-| median duration | 40.00 s (the cap) | **30.58 s** |
-| fifth percentile | not measured | **14.60 s** |
+| median duration | 40.00 s (the cap) | **30.69 s** |
+| fifth percentile | not measured | **14.96 s** |
 | damage band | basics 1.2%, heavies 22-27% | **49/49 inside 4-12%** |
 | attack rate | 3.78/s combined (a clinch) | 0.66/s, median gap ~1.1 m |
 | species rows inside the 95% gate | never measured | **15/15**, on distinct fights |
-| cap-win quality | not measured | **74.4%** of cap wins clear the margin floor |
+| cap-win quality | not measured | **74.6%** of cap wins clear the margin floor |
 
 `bun run verify` 3,975 pass / 1 skip / 0 fail; `bun run build` exit 0; `bun run balance` exit
 0 for the first time in this track; `bun run telemetry` 13/13 (cap share 7/14 = 50.0%, exactly
@@ -81,19 +81,18 @@ at its bound).
 
 ## Known and recorded, not claimed fixed
 
-- **The roster is not balanced.** Three of fifteen species sit inside the printed 45-55% design
-  band and twelve outside it (cindermoor 67.9%, mossboar 64.3%, fernstag 60.7% ... earth_tortoise
-  35.7%, galeheron 39.3%). They pass because the interval is 17-21 points wide: 112 games are
-  only 21-34 distinct fights. Widening variance comes before narrowing that band - and the gate
-  now derives its error from distinct fights, which is what exposed the four rows this phase
-  actually moved (reefclaw 71.4 -> 55.4, earth_tortoise 26.8 -> 35.7, voltfox 33.9 -> 51.8,
-  shalemole 33.9 -> 57.1).
-- **Authored accuracy is transformed.** `MISS_SCALE 5` turns the 70-100 ladder into 94-100%
-  effective. Honouring it literally costs ~20 points of cap share; recorded as debt with the
-  measured lever table.
-- **Kite loses all six sampled fights** at 24 paid dodges per fight — it is executing, so this
-  is a design question for the owner, not a tuning number.
-- Deferred by decision: verticality, blocking, ring-out, per-move minimum reach, and the
-  animation vocabulary (the fight moves correctly before it reads correctly).
+- **The roster is still not balanced, and the gate now says so honestly.** Three of fifteen
+  species sit inside the printed 45-55% design band and twelve outside it, because 112 games are
+  only 21-35 distinct fights - a 17-21 point interval. All fifteen pass the two-sided 95% test
+  with the error derived from distinct fights, which is what exposed the four rows this track
+  actually moved (reefclaw 71.4 -> 55.4, voltfox 33.9 -> 51.8, shalemole 33.9 -> 57.1, and the
+  tank below). Widening variance comes before narrowing that band.
+- **The tank needed a landable swing, not legs.** `earth_tortoise` read 26.8% and closed to a
+  988 mm median gap while losing 8 blows to 10, and 1 blow to 11 against a neutral opponent,
+  because `recoveryMsFor` scales recovery by `10 / spd` and `spd 4` means 2.5x recovery on every
+  swing. Shortening `startupMs` 600 -> 512 on the one move it actually commits to took the row to
+  39.3% inside its bound without touching recovery, power or pacing. Recorded residual: the
+  axolotl matchup is unchanged at 1 blow to 11, because there the tank's swings are evaded rather
+  than interrupted, so the row went green on other pairings.
 
 🤖 Generated with [Conductor](https://github.com/mansyar/apex-league)
