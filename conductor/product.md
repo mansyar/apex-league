@@ -111,6 +111,7 @@ Phased delivery plan (each phase is independently playable):
   and a deterministic balance gate that measures each species at its own typical
   roll and holds 15/15 inside its band with 12 in the 45-55% target. Fights
   resolve - 29% decided at the cap, 71% by knockout, median 26.6 s.)*
+- Balance gate: un run balance measures every species at its bounds midpoint across a seeded matrix and fails on any row that misses the 95% test or cannot be judged; a row with too few distinct fights is reported UNVERIFIED rather than passed. Fourteen of fifteen species are judged and inside the gate. arth_tortoise is UNVERIFIED (6 distinct fights of 112) because a spd-3 tank cannot close, so its fights time out and the winner is decided on a near-deterministic HP comparison - fixing it needs a mobility answer, not a stat nudge.
 - Battle system: 4 stats + 6 types, move pool + equip-4, type/HP battle AI.
   *(Landed core 2026-10-10: headless deterministic resolver — speed-gauge action
   clock, type chart, projectile specials with travel/accuracy/dodge, equip-4
