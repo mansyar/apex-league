@@ -64,17 +64,20 @@ function sample(): BalanceSample {
  * moved the row from 26.8% to 39.3% with every pacing row still green, so the
  * list is empty and the gate exits 0.
  *
- * Phase 1 re-pin (P1.T1.2, Rework 1): honest rolls re-opened two named
- * misses — cindermoor sits 0.2 points over its interval's edge (64.3% vs a
- * 64.1% bound) and cap share sits half a point over its bound (33.6% vs
- * 33.3%). Both are recorded here with observed values; the bounds above are
- * untouched. Closing the half-point cap gap is Phase 4's multi-row work:
- * Rework 1 mapped the single-tick frontier (bolt 94: no-op; chip 99: -2
- * fights; chip 98: no-op) and stopped there.
+ * Phase 4 re-baseline (P4.T1.1/P4.T2.1, variance reality): honest rolls plus
+ * per-seed execution noise moved cap share 33.6% -> 21.0% (PASS again) and
+ * lifted distinct medians to ~100-112, but the same variance tightens
+ * intervals around the same point estimates — it cannot move a 67.9% row
+ * into the band. The measured frontier is 4 red species rows (plant_ox,
+ * earth_tortoise, cindermoor, galeheron); closing them needs stat tuning,
+ * which is out of scope (roster re-tune track). The pins below record that
+ * frontier with observed values; the bounds above are untouched.
  */
 const KNOWN_MISSES: readonly string[] = [
-  "species:cindermoor: observed 64.3% (72/112, 48 distinct, se 7.2%), bound |rate - 50%| <= 14.1% (design target 45.0%..55.0%)",
-  "capShare: observed 33.6% (282/840), bound <= 33.3%",
+  "species:plant_ox: observed 67.9% (76/112, 102 distinct, se 5.0%), bound |rate - 50%| <= 9.7% (design target 45.0%..55.0%)",
+  "species:earth_tortoise: observed 29.5% (33/112, 100 distinct, se 5.0%), bound |rate - 50%| <= 9.8% (design target 45.0%..55.0%)",
+  "species:cindermoor: observed 59.8% (67/112, 110 distinct, se 4.8%), bound |rate - 50%| <= 9.3% (design target 45.0%..55.0%)",
+  "species:galeheron: observed 33.9% (38/112, 109 distinct, se 4.8%), bound |rate - 50%| <= 9.4% (design target 45.0%..55.0%)",
 ]
 
 describe("balance report — one deterministic command (FR-7, AC-7)", () => {
@@ -135,13 +138,14 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // 10-14 (the 13-17 band it briefly carried made more of its fights distinct
     // because it won more of them). R5's `boulder_toss` startup moved both:
     // the tortoise to 35, reefclaw to 22, because the two play each other.
-    // Phase 1 re-pin (P1.T1.2): honest rolls moved both again — the tortoise
-    // to 48, reefclaw to 50 — because real misses make more fights distinct.
-    // Rework 1 kept the Phase-1 ladder plus one chip tick (99): 48 and 50.
+    // Phase 4 re-baseline (P4.T1.1): per-seed execution noise lifted both —
+    // the tortoise to 100, reefclaw to 109 — because real misses plus jitter
+    // make more of the 112 games distinct. The pins assert the measured
+    // variance reality; DISTINCT_FLOOR stays 12 and no bound moved.
     const measured = sample()
     const byId = new Map(measured.matrix.species.map((row) => [row.id, row]))
-    expect(byId.get("earth_tortoise")?.distinct).toBe(48)
-    expect(byId.get("reefclaw")?.distinct).toBe(50)
+    expect(byId.get("earth_tortoise")?.distinct).toBe(100)
+    expect(byId.get("reefclaw")?.distinct).toBe(109)
     // The one-species replay reads the same key, so it must agree.
     for (const id of ["earth_tortoise", "reefclaw"]) {
       expect(measureSpecies(id).distinct).toBe(byId.get(id)?.distinct ?? -1)
@@ -406,19 +410,18 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // rather than argued with. Phase 1 re-pin (P1.T1.2): honest rolls moved
     // four rows inside the band (fire_drake, fernstag, wind_falcon, shalemole)
     // and three outside it (voltfox, galeheron, mistkit). Rework 1 kept that
-    // list at the locked chip-99 ladder.
+    // list at the locked chip-99 ladder. Phase 4 re-baseline (P4.T2.1):
+    // variance reality moved reefclaw, voltfox and mistkit back inside, so the
+    // maintained list shrinks 11 -> 8; the 4 gate-red rows stay named here.
     const DESIGN_BAND_MISSES = [
       "plant_ox",
       "water_axolotl",
       "electric_hound",
-      "reefclaw",
       "earth_tortoise",
       "cindermoor",
-      "voltfox",
       "galeheron",
       "embercub",
       "mossboar",
-      "mistkit",
     ] as const
     const measured = sample()
     expect(designBandMisses(measured).map((row) => row.id)).toEqual([
@@ -445,18 +448,23 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
 
   test("today's target misses are named with their observed values", () => {
     // Was empty in R5; Phase 1 (Rework 1) re-pinned the two misses the honest
-    // ladder opened — cindermoor and cap share — with the received strings
-    // above. The gate test below stays red on those two lines until Phase 4.
+    // ladder opened — cindermoor and cap share. Phase 4 re-baselined the list
+    // to the measured variance reality: cap share healed (33.6% -> 21.0%,
+    // PASS) while four imbalanced species rows stand named with observed
+    // values. The gate test below stays red on those four lines: closing them
+    // needs stat tuning, which is a roster re-tune track's job, not this one's.
     expect(violations(sample()).map(describeTarget)).toEqual([...KNOWN_MISSES])
   })
 
   test("the gate is green end to end (R5)", () => {
     // A cap win counts as a decisive outlasting win when its margin clears the
-    // floor. Phase 1 (Rework 1) leaves this gate red on two FAIL lines —
-    // cindermoor (64.3% vs a 64.1% bound) and cap share (33.6% vs 33.3%) —
-    // both recorded in KNOWN_MISSES with observed values. Every other row
-    // holds, including decisive share, median, p05, the damage band and the
-    // bosses. Closing the two lines is Phase 4's multi-row work.
+    // floor. Phase 4 frontier: this gate is red on four FAIL species lines —
+    // plant_ox (67.9%), earth_tortoise (29.5%), cindermoor (59.8%), galeheron
+    // (33.9%) — all recorded in KNOWN_MISSES with observed values. Every
+    // other row holds, including cap share (21.0%), decisive share, median,
+    // p05, the damage band and the bosses. Variance tightens intervals around
+    // the same point estimates; moving those four rows needs stat tuning,
+    // which is out of scope, so the assertion below stands as the frontier.
     const lines: string[] = []
     expect(run(sample(), (line) => lines.push(line))).toBe(0)
     const failures = lines.filter((line) => line.startsWith("FAIL "))
