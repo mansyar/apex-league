@@ -4,6 +4,9 @@ import type { CreatureStats, Element } from "../creature"
 // Phase E: the pure tactic/temperament policy. No clock, no seed, no rng:
 // the choice is a total function of the snapshots, the tactic, the kit, and
 // the fighter's action count.
+// Phase 1 (variance track): the re-authored ladder moved six balanced
+// choices from the mid row to the bolt row (expected damage now favors
+// 17x95 over 16x88); the ranking rules are untouched, only the winners.
 
 import type { ClockFighter, PlannedAction } from "./clock"
 import { BASIC, CLOSE, HOLD } from "./clock"
@@ -94,7 +97,7 @@ describe("temperament overrides", () => {
         temperament: "rush",
         actionCount: 3,
       }),
-    ).toEqual(special("cinder_shot"))
+    ).toEqual(special("blaze_bolt"))
     expect(
       chooseAction({
         fighter: bolt,
@@ -133,7 +136,7 @@ describe("temperament overrides", () => {
         temperament: "slow",
         actionCount: 1,
       }),
-    ).toEqual(special("spore_burst"))
+    ).toEqual(special("bramble_dart"))
     expect(
       chooseAction({
         fighter: ox,
@@ -214,7 +217,7 @@ describe("sustained kit output vs the innate Strike", () => {
         temperament: "obedient",
         actionCount: 2,
       }),
-    ).toEqual(special("cinder_shot"))
+    ).toEqual(special("blaze_bolt"))
   })
 
   test("the two tactics rank one kit differently", () => {
@@ -231,7 +234,7 @@ describe("sustained kit output vs the innate Strike", () => {
         temperament: "obedient",
         actionCount: 2,
       })
-    expect(pick("balanced")).toEqual(special("cinder_shot"))
+    expect(pick("balanced")).toEqual(special("blaze_bolt"))
     expect(pick("specials")).toEqual(special("flame_charge"))
   })
 
@@ -399,7 +402,7 @@ describe("tactic rules when obeyed", () => {
         temperament: "obedient",
         actionCount: 0,
       }),
-    ).toEqual(special("cinder_shot"))
+    ).toEqual(special("blaze_bolt"))
     // FR6 added a third way to qualify. The wall has no super-effective
     // shot, nothing KOs, and the folded kit clears the Strike's rate — so it
     // fires Flame Charge (R1: flame_charge now leads the pair on sustain).
@@ -453,7 +456,7 @@ describe("tactic rules when obeyed", () => {
         temperament: "obedient",
         actionCount: 2,
       }),
-    ).toEqual(special("cinder_shot"))
+    ).toEqual(special("blaze_bolt"))
     // FR6: against the wall nothing qualifies, so the point-blank
     // fallback is a basic. R1: the two-move kit now clears the bar through
     // flame_charge, which is the row the folded sustain comparison picks.

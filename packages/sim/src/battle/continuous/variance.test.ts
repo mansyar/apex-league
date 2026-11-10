@@ -82,8 +82,28 @@ describe("accuracy rolls (FR-21)", () => {
     ).toBe(false)
   })
 
+  test("every authored value lands near its own number over a seeded sample", () => {
+    // AC-1: the number on the card is the probability. Twenty draws on each
+    // of 1,000 seeds per value, covering the AC example (70), the branch
+    // gamble (80), and every re-authored kit row (88/95/99).
+    for (const accuracy of [70, 80, 88, 95, 99]) {
+      let hits = 0
+      let total = 0
+      for (let seed = 1; seed <= 1000; seed += 1) {
+        const rng = makeRng(seed)
+        for (let i = 0; i < 20; i += 1) {
+          total += 1
+          if (rollHits(accuracy, rng)) hits += 1
+        }
+      }
+      const rate = hits / total
+      expect(rate).toBeGreaterThan(accuracy / 100 - 0.02)
+      expect(rate).toBeLessThan(accuracy / 100 + 0.02)
+    }
+  })
+
   test("a miss is an event with a reason, and the dodge is still its own reason", () => {
-    // Blaze Bolt is 75 accuracy; with a minimum roll every shot goes wide.
+    // Blaze Bolt is 95 accuracy; with a minimum roll every shot goes wide.
     const result = resolveContinuous(
       side("Ash", ["blaze_bolt", "blaze_bolt", "blaze_bolt", "blaze_bolt"]),
       side("Reed", ["blaze_bolt", "blaze_bolt", "blaze_bolt", "blaze_bolt"]),
@@ -93,7 +113,7 @@ describe("accuracy rolls (FR-21)", () => {
     const misses = events.filter((event) => event.missReason === "accuracy")
     const dodges = events.filter((event) => event.missReason === "dodge")
     // The fight was played with a real seed, so accuracy misses must occur on
-    // a 75-accuracy kit; the point is that when one happens it is labelled.
+    // a 95-accuracy kit; the point is that when one happens it is labelled.
     for (const miss of misses) {
       expect(miss.hit).toBe(false)
       expect(miss.line).toContain("goes wide")
@@ -101,7 +121,7 @@ describe("accuracy rolls (FR-21)", () => {
     for (const dodge of dodges) {
       expect(dodge.line).toContain("slips")
     }
-    // A 75-accuracy exchange that lands at least one blow proves the stream
+    // A 95-accuracy exchange that lands at least one blow proves the stream
     // distinguishes landed shots from rolled ones.
     expect(events.some((event) => event.kind === "impact")).toBe(true)
   })

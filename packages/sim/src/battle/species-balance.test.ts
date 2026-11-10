@@ -261,7 +261,9 @@ describe("new-species boss probe (earth-wind-species-line)", () => {
   // lowered the boss HP ceilings, and a fresh falcon now steals Tide Regent
   // Marlow 1/9. Blocking it again would need boss HP the roster cannot grind at
   // cap, so the two targets cannot both hold. Marked, not relaxed.
-  test.failing("a fresh locked species never beats an authored boss", () => {
+  // Honest rolls (variance Phase 1) moved this genuinely green: the authored
+  // ladder rolls at face value and the fresh-locked lockout holds.
+  test("a fresh locked species never beats an authored boss", () => {
     for (const speciesId of NEW_SPECIES) {
       for (const boss of BOSSES) {
         const tally = duelBoss(speciesId, boss, 0)

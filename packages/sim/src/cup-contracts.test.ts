@@ -192,8 +192,10 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
         // Nibbles; the other three rows hold.
         // Controller ripple (battle-balance phase 3): QF1 moves to Reedle
         // Mirefin; the other three rows hold.
+        // Honest rolls (variance Phase 1): QF1 returns to Tidecaller Nibbles;
+        // the other three rows hold.
         rivalWinners: [
-          "Reedle Mirefin",
+          "Tidecaller Nibbles",
           "Ash-ledger",
           "Mossbottom Brute",
           "Mossbottom Brute",
@@ -207,6 +209,8 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
         // draws QF4 and SF2 — SF2 was a draw, so the row was null.
         // R2 (battle-balance): the compressed ladder resolves SF2 cleanly for
         // Emberhold Flicker.
+        // Honest-rolls ripple (variance Phase 1): the authored ladder rolls
+        // at face value; QF2 holds on Reedle Mirefin.
         rivalWinners: [
           "Reedle Mirefin",
           "Ash-ledger",
@@ -342,8 +346,9 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     // Roster ripple (phase 13, FR-5): the stat re-roll handed the crown to
     // Bonfire Brook. R1 (battle-balance): the scaled-down ladder handed it to
     // Mossbottom Brute. R2 (battle-balance): the compressed ladder hands it
-    // back to Bonfire Brook.
-    expect(done.championName).toBe("Bonfire Brook")
+    // back to Bonfire Brook. Honest rolls (variance Phase 1): the authored
+    // ladder rolls at face value and the crown moves to Tidecaller Nibbles.
+    expect(done.championName).toBe("Tidecaller Nibbles")
     // The forfeit verdict names the opponent, no battle attached.
     const ff = done.playerVerdicts[0]
     expect(ff?.winner).toBe("Bonfire Brook")
@@ -355,11 +360,13 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     // Roster ripple (phase 13, FR-5): Bonfire Brook took SF1 and the final.
     // R1 (battle-balance): Bonfire Brook still takes SF1; the final flips to
     // Mossbottom Brute.
+    // Honest rolls (variance Phase 1): Tidecaller Nibbles takes SF1 over
+    // Bonfire Brook and then the final over Mossbottom Brute.
     expect(
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
     ).toEqual([
-      [2, "Bonfire Brook", "Reedle Mirefin", "Bonfire Brook"],
-      [3, "Bonfire Brook", "Mossbottom Brute", "Bonfire Brook"],
+      [2, "Bonfire Brook", "Tidecaller Nibbles", "Tidecaller Nibbles"],
+      [3, "Tidecaller Nibbles", "Mossbottom Brute", "Tidecaller Nibbles"],
     ])
   })
 

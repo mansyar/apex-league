@@ -287,6 +287,9 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
   // Blow-weight ripple (phase 6): QF1, QF3 and SF1 moved with the triple-length
   // cycle (QF1 is a clean win again, QF3 and SF1 go to Bonfire Brook and
   // Ash-ledger); the player's three rounds are still unchanged.
+  // Honest-rolls ripple (variance Phase 1): the authored ladder rolls at
+  // face value, so the Emberhold Flicker quarterfinal goes to the home
+  // rival; the player's three rounds are still unchanged.
   test("champion path (seed 17): the player takes all three rounds", () => {
     const session = playToCompletion(DAY, 17)
     expect(session.status).toBe("champion")
@@ -297,8 +300,8 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
         1,
         "Emberhold Flicker",
         "Mossbottom Brute",
-        "Mossbottom Brute",
-        "Mossbottom Brute takes the Quarterfinal!",
+        "Emberhold Flicker",
+        "Emberhold Flicker takes the Quarterfinal!",
       ],
       [
         1,
@@ -333,7 +336,7 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
       [
         2,
         "Ember Drake",
-        "Mossbottom Brute",
+        "Emberhold Flicker",
         "Ember Drake",
         "Ember Drake takes the Semifinal!",
       ],
@@ -424,20 +427,21 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
   // Blow-weight ripple (phase 6): QF2 flips back to Tidecaller Nibbles, who
   // then takes QF1, SF2 and the final.
   // R2 (battle-balance): the compressed ladder hands the crown to Bonfire
-  // Brook.
+  // Brook. Honest rolls (variance Phase 1): the authored ladder rolls at
+  // face value and the crown moves to Tidecaller Nibbles.
   test("forfeit path (seed 101): the forfeit line, then the bracket completes", () => {
     const creature = playerCreature()
     const session = forfeitCup(startCupSession(creature, DAY, 101))
     expect(session.status).toBe("eliminated")
-    expect(session.championName).toBe("Bonfire Brook")
+    expect(session.championName).toBe("Tidecaller Nibbles")
     expect(cupPlacement(session)).toBe(4)
     expect(session.rivalVerdicts.map(row)).toEqual([
       [
         1,
         "Tidecaller Nibbles",
         "Reedle Mirefin",
-        "Reedle Mirefin",
-        "Reedle Mirefin takes the Quarterfinal!",
+        "Tidecaller Nibbles",
+        "Tidecaller Nibbles takes the Quarterfinal!",
       ],
       [
         1,
@@ -474,16 +478,16 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
       [
         2,
         "Bonfire Brook",
-        "Reedle Mirefin",
-        "Bonfire Brook",
-        "Bonfire Brook takes the Semifinal!",
+        "Tidecaller Nibbles",
+        "Tidecaller Nibbles",
+        "Tidecaller Nibbles takes the Semifinal!",
       ],
       [
         3,
-        "Bonfire Brook",
+        "Tidecaller Nibbles",
         "Mossbottom Brute",
-        "Bonfire Brook",
-        "Bonfire Brook takes the Final!",
+        "Tidecaller Nibbles",
+        "Tidecaller Nibbles takes the Final!",
       ],
     ])
   })

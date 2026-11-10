@@ -38,13 +38,22 @@ describe("battle catalog", () => {
   test("same six-row tier table for every element", () => {
     // R2: the top of the ladder was compressed again (11/15/18/19/13/21 became
     // 10/14/16/17/12/19) so heavy-move fights stop resolving under 25 s. The
-    // order is still strictly ascending.
+    // order is still strictly ascending. Phase 1 (variance track) re-authored
+    // the accuracies: the flame row rose above the old effective rates
+    // (90 -> 99), the branch 80/100 pair and both original 100s are
+    // untouched, the mid row stopped below neutral (85 -> 88) and the bolt
+    // row stayed at it (75 -> 95) so the branch sidegrade probe still
+    // measures a sidegrade (at full neutral the gamble signature's wasted
+    // rounds stood out and the first sibling tally fell to 41.7%, outside
+    // the 45–55% contract), and the chip row went guaranteed (95 -> 100)
+    // to pay back the pacing the mid-row cut costs so the cap share stays
+    // inside its third.
     const tiers = [
       { power: 10, accuracy: 100, cooldown: 1 },
-      { power: 14, accuracy: 90, cooldown: 1 },
-      { power: 16, accuracy: 85, cooldown: 2 },
-      { power: 17, accuracy: 75, cooldown: 2 },
-      { power: 12, accuracy: 95, cooldown: 1 },
+      { power: 14, accuracy: 99, cooldown: 1 },
+      { power: 16, accuracy: 88, cooldown: 2 },
+      { power: 17, accuracy: 95, cooldown: 2 },
+      { power: 12, accuracy: 100, cooldown: 1 },
       { power: 19, accuracy: 100, cooldown: 3 },
     ]
     for (const element of [
@@ -88,17 +97,17 @@ describe("battle catalog", () => {
       {
         // R2: scaled with the ladder (11/15/18/19 -> 10/14/16/17).
         spark: [10, 100, 1],
-        flame_charge: [14, 90, 1],
-        cinder_shot: [16, 85, 2],
-        blaze_bolt: [17, 75, 2],
+        flame_charge: [14, 99, 1],
+        cinder_shot: [16, 88, 2],
+        blaze_bolt: [17, 95, 2],
         seed_shot: [10, 100, 1],
-        thorn_volley: [14, 90, 1],
-        spore_burst: [16, 85, 2],
-        bramble_dart: [17, 75, 2],
+        thorn_volley: [14, 99, 1],
+        spore_burst: [16, 88, 2],
+        bramble_dart: [17, 95, 2],
         bubble: [10, 100, 1],
-        tide_shot: [14, 90, 1],
-        foam_volley: [16, 85, 2],
-        splash_bolt: [17, 75, 2],
+        tide_shot: [14, 99, 1],
+        foam_volley: [16, 88, 2],
+        splash_bolt: [17, 95, 2],
       }
     for (const id of original) {
       const move = CATALOG.find((m) => m.id === id)
@@ -393,10 +402,10 @@ describe("electric kit (electric_species_line)", () => {
   /** The universal tier table, pinned for the electric rows too. */
   const TIERS: Readonly<Record<string, readonly [number, number, number]>> = {
     static_jolt: [10, 100, 1],
-    volt_dash: [14, 90, 1],
-    arc_shot: [16, 85, 2],
-    storm_bolt: [17, 75, 2],
-    ion_dart: [12, 95, 1],
+    volt_dash: [14, 99, 1],
+    arc_shot: [16, 88, 2],
+    storm_bolt: [17, 95, 2],
+    ion_dart: [12, 100, 1],
     gigavolt: [19, 100, 3],
   }
 
@@ -504,10 +513,10 @@ describe("earth kit (earth-wind-species-line)", () => {
   const TIERS: Readonly<Record<string, readonly [number, number, number]>> = {
     // R2: scaled with the ladder (11/15/18/19/13/21 -> 10/14/16/17/12/19).
     pebble_shot: [10, 100, 1],
-    dust_devil: [14, 90, 1],
-    clay_burst: [16, 85, 2],
-    boulder_toss: [17, 75, 2],
-    sand_blast: [12, 95, 1],
+    dust_devil: [14, 99, 1],
+    clay_burst: [16, 88, 2],
+    boulder_toss: [17, 95, 2],
+    sand_blast: [12, 100, 1],
     tectonic_slam: [19, 100, 3],
   }
 
@@ -613,10 +622,10 @@ describe("wind kit (earth-wind-species-line)", () => {
   /** The universal tier table, pinned for the wind rows too. */
   const TIERS: Readonly<Record<string, readonly [number, number, number]>> = {
     gust: [10, 100, 1],
-    feather_dart: [14, 90, 1],
-    gale_cutter: [16, 85, 2],
-    sky_bolt: [17, 75, 2],
-    talon_slash: [12, 95, 1],
+    feather_dart: [14, 99, 1],
+    gale_cutter: [16, 88, 2],
+    sky_bolt: [17, 95, 2],
+    talon_slash: [12, 100, 1],
     hurricane_spiral: [19, 100, 3],
   }
 

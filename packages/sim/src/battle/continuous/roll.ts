@@ -27,19 +27,15 @@ export function spreadDamage(base: number, rng: Rng): number {
 }
 
 /**
- * How much of an authored miss chance survives. The catalog's accuracy numbers
- * (70-100) were written while nothing read them, so the pacing Phase 8 tuned
- * assumed every blow landed; read literally they are a 15-30% damage cut on the
- * rows the controller fires most, and they pushed the 14-matchup cap share from
- * 35.7% to 64.3%. Dividing the authored miss chance by five keeps the ladder's
- * ordering and relative risk while a miss stays a real, drawable event. The
- * authored numbers themselves are a Phase 11 question.
+ * How much of an authored miss chance survives. Phase 1 of the variance track
+ * removed the old divisor entirely: the number on the card is the
+ * probability. Every authored value below 100 rolls its own number and an
+ * authored 100 is a guaranteed connect that draws nothing, so a kit of
+ * guaranteed rows consumes no accuracy RNG. Integer arithmetic only: one
+ * integer draw against the authored bound.
  */
-export const MISS_SCALE = 5
-
 /** True when a swing aimed at `accuracy` connects. A hundred draws nothing. */
 export function rollHits(accuracy: number, rng: Rng): boolean {
-  const aimed = 100 - Math.floor((100 - accuracy) / MISS_SCALE)
-  if (aimed >= 100) return true
-  return rng.int(100) < aimed
+  if (accuracy >= 100) return true
+  return rng.int(100) < accuracy
 }

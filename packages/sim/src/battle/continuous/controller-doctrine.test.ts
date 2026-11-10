@@ -356,8 +356,9 @@ describe("Circle lands more flank-or-rear hits than Press (AC-11)", () => {
     }
     // Phase 13 (FR-5) re-rolled the roster's stat lines; the arc still earns
     // Circle more flanks than Press. R1 (battle-balance) re-pinned the count
-    // 9 -> 8 after the authored ladder was scaled down.
-    expect(circleFlanks).toBe(8)
+    // 9 -> 8 after the authored ladder was scaled down. Phase 1 (variance):
+    // the ladder rolls at face value again and the count returns to 9.
+    expect(circleFlanks).toBe(9)
     // -50/100 = 120 degrees: the nearest a Circle hit got, still a flank.
     expect(closest).toBeGreaterThan(-50)
   })
