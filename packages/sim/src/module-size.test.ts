@@ -3,6 +3,7 @@ import {
   existsSync,
   mkdtempSync,
   readdirSync,
+  readFileSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -18,13 +19,28 @@ import { join } from "node:path"
  * `cup/` folders are all covered.
  *
  * The rule is byte size, not line count. Only co-located test suites
- * (`*.test.ts`, `*.test.tsx`) are exempt. There is no allowlist by name and
- * no per-folder exception: this package holds no type shim, so it needs no
- * name exemption.
+ * (`*.test.ts`, `*.test.tsx`) are exempt. Inside `src/` there is no allowlist
+ * by name and no per-folder exception: this package holds no type shim, so it
+ * needs no name exemption. `scripts/` — the hand-run developer tools — sits
+ * outside the module cap but is walked too, under the stated `SCRIPT_CAP_BYTES`
+ * ceiling, and no `src/` module may import it (R3).
  */
 const CAP_BYTES = 12 * 1024
 
 const SRC_DIR = import.meta.dir
+
+/**
+ * The package's developer tools (R3): `scripts/` is not shipped — no `src/`
+ * module may import it — but it is not unmeasured either. The R3 review found
+ * `scripts/battle-balance-report.ts`, the whole balance gate, escaping a guard
+ * that only walked `src/`. A dev tool gets its own stated ceiling rather than
+ * the module cap, because a report script is one linear procedure by design;
+ * the ceiling exists so a runaway tool is still visible on the same run that
+ * grows it.
+ */
+const SCRIPT_CAP_BYTES = 64 * 1024
+
+const SCRIPT_DIR = join(import.meta.dir, "..", "scripts")
 
 const SOURCE_EXTENSIONS = /\.(ts|tsx|mts)$/
 
@@ -121,6 +137,35 @@ describe("sim module size cap", () => {
       `  b/largest.ts — ${CAP_BYTES + 900} B (900 B over the ${CAP_BYTES} B cap)`,
       `  a/small.ts — ${CAP_BYTES + 10} B (10 B over the ${CAP_BYTES} B cap)`,
     ])
+  })
+
+  test("walks the package's dev scripts and holds them to their own cap (R3)", () => {
+    // The four tools `bun run balance`, `telemetry` and `trace` run by hand.
+    // Enumerated, not globbed, so a new tool is a deliberate addition.
+    const files = moduleFiles(SCRIPT_DIR, "scripts")
+    expect(files.map((file) => file.path).sort()).toEqual([
+      "scripts/balance-probe.ts",
+      "scripts/battle-balance-report.ts",
+      "scripts/battle-telemetry.ts",
+      "scripts/battle-trace.ts",
+    ])
+    const over = files
+      .filter((file) => file.bytes > SCRIPT_CAP_BYTES)
+      .map((file) => `${file.path} ${file.bytes} B`)
+    expect(over).toEqual([])
+  })
+
+  test("no shipped module imports a dev script (R3)", () => {
+    // The scripts rule only holds if `src/` cannot depend on `scripts/`: a
+    // shipped module importing a tool would put the tool in the bundle and
+    // outside this guard's cap.
+    const importers = moduleFiles()
+      .filter((file) => {
+        const text = readFileSync(join(SRC_DIR, file.path), "utf8")
+        return /from\s+["'][^"']*scripts\//.test(text)
+      })
+      .map((file) => file.path)
+    expect(importers).toEqual([])
   })
 
   test("negative control: an oversized module is rejected, then removed", () => {
