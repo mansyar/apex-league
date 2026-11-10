@@ -28,11 +28,11 @@
 ## Phase 2: Execution Noise
 
 - **Goal:** The same matchup fights differently per seed and identically per replay, without changing any doctrine band or strategy.
-- **Depends on:** Phase 1
+- **Depends on:** Phase 1 (blocked with owner waiver 2026-11-11: ladder frozen, gate red on capShare 33.6% + cindermoor carried to Phase 4)
 - **Covers:** FR-3, FR-4, FR-7, AC-3, AC-4, AC-7
 - **Touches:** `packages/sim/src/battle/continuous/controller-noise.ts`, `packages/sim/src/battle/continuous/controller.ts`, `packages/sim/src/battle/continuous/step.ts`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Seeded timing jitter** — covers: FR-3, AC-3
   - [ ] **P2.T1.1: Vary cadence and commit phasing per seed with the RNG cursor in the state hash**
