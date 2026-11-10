@@ -68,3 +68,9 @@ No row worsened past its se — every frontier-red row moved into the design ban
 - `packages/sim/src/battle/continuous/controller.ts` (organizeImports)
 
 Fixing them requires expanding scope (and editing a production file with commands this phase may not run), so they are recorded here instead of fixed. Test scope is fully green: 3987 pass / 1 skip / 0 fail, stable across two full runs.
+
+## Primary verification
+
+- The biome finding above is now FIXED by the primary (outside the phase's scope, which was test-files-only): `bunx biome check --write` on the 4 files, committed as `d80d702a style(sim): apply repo no-semicolon formatting to four controller files`. Pre-existing at the stack base (zero diff vs `7a08d427` before the fix); repo style is no-semicolons (`biome.json` formatter `semicolons: asNeeded`, confirmed against untouched files). Diff reviewed: import reordering + semicolon stripping only, zero semantic change.
+- Full record at `d80d702a`: `bun run verify` exit 0 (3987 pass / 1 skip / 0 fail, 3988 tests / 369 files, determinism gate byte-identical incl. otter stages and 5 props); `bun run build` exit 0; `bun run balance` exit 0 (KNOWN_MISSES empty); `bun run telemetry` exit 0 (13/13, cap 50.0% at bound).
+- Phase NOT squashed: range holds subagent commits ac088f9c/8fe31818 plus primary format commit d80d702a.

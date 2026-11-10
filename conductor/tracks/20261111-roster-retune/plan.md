@@ -66,16 +66,19 @@ The primary appends after acceptance:
 - **Covers:** FR-5, FR-6, FR-7, AC-5, AC-6, AC-7
 - **Touches:** `packages/sim/src/battle/continuous/balance-report.test.ts` (+ forced golden re-pins only), `packages/sim/src/battle/exhibition.test.ts`, `packages/sim/src/cup.test.ts`, `packages/sim/src/cup-contracts.test.ts`, `packages/sim/src/battle/clock.contract.test.ts` (mechanical golden re-pins of in-scope stat moves only — values received, no logic touched)
 - **Verification:** `bun run verify`, `bun run build`, `bun run balance`, `bun run telemetry` (four separate runs)
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified (all four commands exit 0: verify 3987 pass / 0 fail, build 0, balance 0 with KNOWN_MISSES empty, telemetry 13/13; biome finding fixed by primary as format-only commit d80d702a)
+- **Checkpoint:** d80d702a
+- **Evidence:** conductor/tracks/20261111-roster-retune/verification/phase-3.md
 
-- [ ] **P3.T1: Gate green on measured rows** — covers: FR-6, AC-6
-  - [ ] **P3.T1.1: Re-baseline distinct pins, design-band list, and KNOWN_MISSES to measured values; empty the misses**
-  - [ ] **P3.T1.2: Prove `bun run balance` exits 0 with no widened bound, floor, or tolerance**
-- [ ] **P3.T2: Guardrails hold** — covers: FR-5, FR-7, AC-5, AC-7
-  - [ ] **P3.T2.1: Verify/build/telemetry green; all 11 other rows gate-green; no `test.failing` conversion anywhere**
-  - [ ] **P3.T2.2: Check the out-of-band assumption (no outside-band row worsened by more than its se)**
-- [ ] **P3.T3: Golden re-pin wave** — covers: FR-5, AC-5
-  - [ ] **P3.T3.1: Re-pin the Phase-1/Phase-2 golden churn (exhibition, makeBracket, cup-contracts seed-101, clock.contract digest) to received values, each named; no logic change in any of them**
+- [x] **P3.T1: Gate green on measured rows** — covers: FR-6, AC-6
+  - [x] **P3.T1.1: Re-baseline distinct pins, design-band list, and KNOWN_MISSES to measured values; empty the misses**
+  - [x] **P3.T1.2: Prove `bun run balance` exits 0 with no widened bound, floor, or tolerance**
+- [x] **P3.T2: Guardrails hold** — covers: FR-5, FR-7, AC-5, AC-7
+  - [x] **P3.T2.1: Verify/build/telemetry green; all 11 other rows gate-green; no `test.failing` conversion anywhere**
+  - [x] **P3.T2.2: Check the out-of-band assumption (no outside-band row worsened by more than its se)**
+- [x] **P3.T3: Golden re-pin wave** — covers: FR-5, AC-5
+  - [x] **P3.T3.1: Re-pin the Phase-1/Phase-2 golden churn (exhibition, makeBracket, cup-contracts seed-101, clock.contract digest) to received values, each named; no logic change in any of them**
 
 <!--
 The primary appends after acceptance:
