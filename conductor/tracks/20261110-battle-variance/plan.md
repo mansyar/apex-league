@@ -47,11 +47,11 @@
 ## Phase 3: Kite Finds a Win
 
 - **Goal:** Kite records a non-zero win share without redesigning any doctrine.
-- **Depends on:** Phase 2
+- **Depends on:** Phase 2 (blocked with owner waiver: gate red on 4 balance-report pins carried to Phase 4; noise mechanism complete)
 - **Covers:** FR-6, AC-6
 - **Touches:** `packages/sim/src/battle/continuous/controller-profile.ts`, `packages/sim/src/species/discovery.ts`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Minimal Kite fix** — covers: FR-6, AC-6
   - [ ] **P3.T1.1: Give Kite its way in with the smallest lever that moves its probe row above zero**
