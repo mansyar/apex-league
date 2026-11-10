@@ -415,16 +415,17 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // list at the locked chip-99 ladder. Phase 4 re-baseline (P4.T2.1):
     // variance reality moved reefclaw, voltfox and mistkit back inside, so the
     // maintained list shrinks 11 -> 8; the 4 gate-red rows stay named here.
-    // Roster re-tune (P3.T1.1): all four gate-red rows moved into the band
-    // (plant_ox 44.6%, earth_tortoise 50.0%, cindermoor inside, galeheron
-    // 53.6%), so the maintained list shrinks 8 -> 4: exactly the rows still
-    // outside 45-55% in the measured run, no more and no fewer.
-    const DESIGN_BAND_MISSES = [
-      "plant_ox",
-      "water_axolotl",
-      "voltfox",
-      "embercub",
-    ] as const
+    // Roster re-tune (R1.T1): the review round fixed three of the four
+    // misses without widening any bound — plant_ox 44.6% -> 46.4% (the
+    // embercub/voltfox trims feed it wins), voltfox 55.8% -> 45.5% (def
+    // trim cools the hot row and clears its guardrail regress), embercub
+    // 55.4% -> 53.6% — so the maintained list shrinks 4 -> 1. The one row
+    // still outside 45-55% is water_axolotl (57.1%), held by explicit
+    // waiver (phase-R1 evidence: improving vs the 58.9% frontier with
+    // |delta| < se, and every tune direction pops a fire row or the
+    // telemetry cap). The list names exactly the rows outside 45-55% in
+    // the measured run, no more and no fewer.
+    const DESIGN_BAND_MISSES = ["water_axolotl"] as const
     const measured = sample()
     expect(designBandMisses(measured).map((row) => row.id)).toEqual([
       ...DESIGN_BAND_MISSES,
@@ -432,6 +433,24 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     const text = report(measured).join("\n")
     expect(text).toContain("design-band misses (outside 45.0%..55.0%")
     for (const id of DESIGN_BAND_MISSES) expect(text).toContain(id)
+  })
+
+  test("near-edge rows keep at least a point of design-band margin (R1 T3)", () => {
+    // Review round 1: galeheron (53.6%) and cindermoor (51.8%) sit inside
+    // 45-55% but within one se of an edge, and no whole-band integer shift
+    // re-centers either without breaking a neighbor (phase-R1 evidence:
+    // the galeheron atk trim centered plant_ox at 50.0% but crashed
+    // galeheron to 37.5% and pushed water_axolotl to a 60.7% gate FAIL).
+    // Both rows are held by explicit margin waiver; this test fails if
+    // either drifts within one point of an edge, forcing a deliberate
+    // re-pin instead of a silent slide.
+    const measured = sample()
+    const byId = new Map(measured.matrix.species.map((row) => [row.id, row]))
+    for (const id of ["galeheron", "cindermoor"]) {
+      const rate = byId.get(id)?.rate ?? -1
+      expect(rate).toBeGreaterThanOrEqual(0.46)
+      expect(rate).toBeLessThanOrEqual(0.54)
+    }
   })
 
   test("the doctrine table's dodge column differs by doctrine (R2 T5)", () => {

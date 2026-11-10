@@ -37,7 +37,7 @@ export const DISCOVERY_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "ion_wall",
     ],
     temperament: "obedient",
-    statBounds: { hp: [136, 166], atk: [8, 11], def: [7, 10], spd: [10, 14] },
+    statBounds: { hp: [136, 166], atk: [8, 11], def: [6, 9], spd: [10, 14] },
   },
   {
     id: "galeheron",
@@ -91,7 +91,7 @@ export const DISCOVERY_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "pyre_wall",
     ],
     temperament: "obedient",
-    statBounds: { hp: [144, 173], atk: [9, 13], def: [8, 11], spd: [8, 11] },
+    statBounds: { hp: [144, 173], atk: [8, 12], def: [8, 11], spd: [8, 11] },
   },
   {
     id: "mossboar",
