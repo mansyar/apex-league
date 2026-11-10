@@ -13,7 +13,8 @@ import type { Rng } from "../../rng"
  * off by half a percentage point each (cap share 33.8% vs 33.3%, knockout share
  * 66.2% vs 66.7% on 840 fights). Halving the floor to 16 gives back most of that
  * throughput — about 3% average — while the spread stays visible: a heavy still
- * rolls 21-22 rather than a flat 22.
+ * rolls 18-19 rather than a flat 19 (R3: the ladder's finisher is 19 now, not
+ * the pre-R2 22).
  */
 export const SPREAD_DIVISOR = 16
 

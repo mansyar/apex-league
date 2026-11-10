@@ -152,6 +152,35 @@ describe("damage tiers — a heavy lands harder, costs more, recovers slower (FR
     }
   })
 
+  test("each element's branch pair trades power for accuracy at one expected damage (R3 T4)", () => {
+    // The two branch moves are a choice, not a trap: the gamble (15 x 80) and
+    // the reliable row (12 x 100) deliver the same expected damage — 1200 — so
+    // the branch is a variance decision, not a power one. Pinned per element
+    // because a later retune of either row would quietly make one branch the
+    // only correct pick.
+    for (const element of ELEMENTS) {
+      const rows = CATALOG.filter((move) => move.element === element)
+      const gamble = rows.find((move) => move.accuracy === 80)
+      const reliable = rows.find(
+        (move) => move.power === 12 && move.accuracy === 100,
+      )
+      if (!gamble || !reliable)
+        throw new Error(`incomplete branch pair: ${element}`)
+      expect(
+        gamble.power * gamble.accuracy,
+        `${element}: ${gamble.id} expected damage`,
+      ).toBe(1200)
+      expect(
+        reliable.power * reliable.accuracy,
+        `${element}: ${reliable.id} expected damage`,
+      ).toBe(1200)
+      expect(
+        gamble.power * gamble.accuracy,
+        `${element}: branch parity ${gamble.id} vs ${reliable.id}`,
+      ).toBe(reliable.power * reliable.accuracy)
+    }
+  })
+
   test("a kit's six power tiers stay distinct", () => {
     for (const element of ELEMENTS) {
       const powers = CATALOG.filter((move) => move.element === element)

@@ -5,29 +5,37 @@
  * pool's fast chip move and heavy finisher); the last two are the branch
  * signatures, one heavy and one reliable.
  * Pure data and small helpers — no DOM, no jobs, no I/O.
- * Cooldowns are counted in the fighter's own actions, never in clock ticks.
  *
- * Power is one authored ladder, 9..21: the innate strike is 9, the kit rows
- * are 11/15/18/19 with the fast chip at 13, and the heavy finisher is 21.
- * These already carry the 2x blow weight the continuous engine used to apply
- * (Phase 5 folded it in, FR-2), just as the HP stat carries the old 210%
- * arena scale: the sheet's number is the number the fight resolves with. On
- * the folded reference line (189 pool) a base hit is therefore 4.8-11.1%,
+ * Cooldowns are milliseconds (`COOLDOWN_MS`), one tier just above the row's own
+ * swing so the gate bites on the second use rather than the first; the fight
+ * clock counts real time, not the fighter's action count (R2).
+ *
+ * Power is one authored ladder, 9..19: the innate strike is 9, the kit rows are
+ * 10/12/14/16/17/19, and the branch signatures are 15/80% (heavy) and 12/100%
+ * (reliable). These already carry the 2x blow weight the continuous engine used
+ * to apply (Phase 5 folded it in, FR-2), just as the HP stat carries the old
+ * 210% arena scale: the sheet's number is the number the fight resolves with.
+ * On the folded reference line (189 pool) a base hit is therefore 4.76-10.05%,
  * inside the 4-12% band (FR-1); a rear counter may still reach 1.875x that,
  * which is the reward for earning the angle, not a hole in the band.
  *
- * R1 (Wall 1): the whole ladder was scaled down together — the old 10..22
- * line put 46.0% of the matrix inside the 25-40 s band. Damage and fight
- * length are inverse, so the uniform cut lengthens every fight without
- * leaving the 4-12% band, changing a ratio, or moving the cap. The tier order
- * (basic < chip < light < mid < bolt < heavy) is strictly ascending and the
- * six kit rows stay distinct (moves-band.test.ts). Two coarser cuts were
- * measured first: 0.85 gave band 71.9% but cap share 35.0%, and 0.90 gave
- * band 65.5% with cap share 34.3% — both over the one-in-three bound, and
- * both collapsed the slowest rows' distinct counts. 0.94 is the smallest cut
- * that clears the band with the cap inside its bound. The two branch
- * signatures stay at 20/16 so their equal-expected-damage pair (20 x 80% =
- * 16 x 100%) survives integer rounding.
+ * The tier order is strictly ascending and readable straight off the ladder:
+ * basic 9 < light 10 < chip 12 < mid 14 < mid2 16 < bolt 17 < heavy 19. The
+ * six kit rows stay distinct and a heavy beats its light row on damage, stamina,
+ * recovery and poise (moves-band.test.ts).
+ *
+ * R1 (Wall 1) scaled the whole ladder down together, because damage and fight
+ * length are inverse: the old 10..22 line put 46.0% of the matrix inside the
+ * 25-40 s band. R2 then compressed it once more, to the shipped 9..19, to move a
+ * metric that was retired in the same phase; the compression was kept because
+ * the pacing targets it produced are the ones the gate holds today. Two coarser
+ * cuts were measured first: 0.85 gave band 71.9% but cap share 35.0%, and 0.90
+ * gave band 65.5% with cap share 34.3% — both over the one-in-three bound, and
+ * both collapsed the slowest rows' distinct counts.
+ *
+ * The two branch signatures are an equal-expected-damage pair: 15 x 80% =
+ * 12 x 100% = 1200, pinned per element in moves-band.test.ts so the branch
+ * stays a variance choice rather than a power one.
  *
  * The heavy finisher authors accuracy 100 (P8.T3.2). At 70 it lost to its own
  * light row on damage per second even with the cooldown gate pulled back to its
