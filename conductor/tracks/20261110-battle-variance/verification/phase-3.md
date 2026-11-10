@@ -107,4 +107,10 @@ dodges per fight — and now wins with them.
 |---|---|---|---|
 | AC-6a | Kite wins at least one sampled fight | probe 2/6; new test asserts strict wins > 0 | PASS |
 | AC-6b | No other doctrine goes to zero | Press 2/6, Circle 4/6, Counter 6/6; new test asserts rate > 0 for all four | PASS |
+
+## Primary verification
+
+- Independently confirmed at `5df9cdab`: verify exit 1 with 4 fail of 3988, exactly the 4 known balance-report pins (distinct-fight, gate end-to-end, design-band list, KNOWN_MISSES). New `controller-kite.test.ts` 2/2 pass. Build exit 0.
+- Probe claim holds: Kite 2/6 (Press 2/6, Circle 4/6, Counter 6/6) — all non-zero, Kite above zero. Zero production change is the correct minimal lever; the pin asserts floors (>0), not tuned values, so it cannot go brittle.
+- Owner pattern (Phases 1–2 waivers extended): gate red carried to Phase 4. Phase NOT squashed: single test+evidence commit kept for audit.
 | AC-6c | Without a doctrine redesign | zero production change; bands/intents/policy/strategy untouched (`git status` shows only the new test + this evidence) | PASS |

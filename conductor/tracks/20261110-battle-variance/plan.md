@@ -51,11 +51,14 @@
 - **Covers:** FR-6, AC-6
 - **Touches:** `packages/sim/src/battle/continuous/controller-profile.ts`, `packages/sim/src/species/discovery.ts`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** blocked
+- **Result:** blocked with owner waiver — Kite already wins 2/6 at phase head (Press 2/6, Circle 4/6, Counter 6/6), so the minimal lever is zero production change plus a co-located AC-6 regression pin. Only the 4 known Phase-4-owned balance-report pins fail; carried to Phase 4. No bound widened.
+- **Checkpoint:** 5df9cdab
+- **Evidence:** conductor/tracks/20261110-battle-variance/verification/phase-3.md
 
-- [ ] **P3.T1: Minimal Kite fix** — covers: FR-6, AC-6
-  - [ ] **P3.T1.1: Give Kite its way in with the smallest lever that moves its probe row above zero**
-  - [ ] **P3.T1.2: Prove Press, Circle, and Counter stay non-zero in the same probe**
+- [x] **P3.T1: Minimal Kite fix** — covers: FR-6, AC-6
+  - [x] **P3.T1.1: Give Kite its way in with the smallest lever that moves its probe row above zero**
+  - [x] **P3.T1.2: Prove Press, Circle, and Counter stay non-zero in the same probe**
 
 ## Phase 4: Gate and Re-measure
 
