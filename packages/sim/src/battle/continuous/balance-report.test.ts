@@ -17,6 +17,7 @@ import { describe, expect, test } from "bun:test"
 import {
   type BalanceSample,
   boundsOf,
+  CAP_MARGIN_FLOOR_BP,
   describe as describeTarget,
   designBandMisses,
   measure,
@@ -38,14 +39,21 @@ function sample(): BalanceSample {
 }
 
 /**
- * Today's target misses, in the order the report declares them. R2 made the
- * gate honest: the duration band now counts only resolved fights, so the
- * pacing failure shows up as `resolvedInBand` instead of hiding behind the
- * cap. Every species row is verifiable at its typical creature. Update a row,
+ * Today's target misses, in the order the report declares them. Rework 2 (owner
+ * ruling 2026-11-10) retired the knockout-only band as a gate: a cap decision
+ * is an outlasting win, so FR-4 now bounds cap share, the median and the fifth
+ * percentile, and FR-20 gates a *decisive* share (knockouts plus cap wins whose
+ * HP margin clears `CAP_MARGIN_FLOOR_BP`). The band stays printed as a
+ * diagnostic. Every pacing target holds; the five rows below are roster debt
+ * exposed by measuring distinct fights on their real final HP. Update a row,
  * never the bound, when one is fixed.
  */
 const KNOWN_MISSES = [
-  "resolvedInBand: observed 41.0% (344/840; 58.5% of 588 resolved), bound >= 50.0% of all fights in 25.00s..40.00s, cap fights excluded",
+  "species:reefclaw: observed 71.4% (80/112, 50 distinct, se 7.1%), bound |rate - 50%| <= 13.9% (design target 45.0%..55.0%)",
+  "species:earth_tortoise: observed 26.8% (30/112, 59 distinct, se 6.5%), bound |rate - 50%| <= 12.8% (design target 45.0%..55.0%)",
+  "species:cindermoor: observed 67.9% (76/112, 45 distinct, se 7.5%), bound |rate - 50%| <= 14.6% (design target 45.0%..55.0%)",
+  "species:voltfox: observed 32.1% (36/112, 45 distinct, se 7.5%), bound |rate - 50%| <= 14.6% (design target 45.0%..55.0%)",
+  "species:shalemole: observed 33.9% (38/112, 42 distinct, se 7.7%), bound |rate - 50%| <= 15.1% (design target 45.0%..55.0%)",
 ] as const
 
 describe("balance report — one deterministic command (FR-7, AC-7)", () => {
@@ -199,11 +207,12 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     expect(band.ok).toBe(true)
   })
 
-  test("a cap fight is never counted inside the band (FR-4, R2 T1)", () => {
+  test("a cap fight is never counted inside the knockout band (FR-4, Rework 2)", () => {
     // The R1 gate printed 54.5% by counting every 40.00 s cap fight as
     // "inside 25-40 s". The honest figure was 23.1%. A sample of pure cap
-    // fights must therefore report a 0% resolved band, even though every
-    // duration sits at the top of the window.
+    // fights must therefore report a 0% knockout band, even though every
+    // duration sits at the top of the window — and that band no longer gates,
+    // because the owner ruled a cap win is an outlasting victory.
     const measured = sample()
     const allCaps: BalanceSample = {
       ...measured,
@@ -215,22 +224,55 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
         resolvedInBand: 0,
       },
     }
-    const band = targets(allCaps).find((row) => row.name === "resolvedInBand")
-    if (!band) throw new Error("the report lost the resolved band target")
-    expect(band.observed.startsWith("0.0%")).toBe(true)
-    expect(band.ok).toBe(false)
+    expect(targets(allCaps).some((row) => row.name === "resolvedInBand")).toBe(
+      false,
+    )
+    const text = report(allCaps).join("\n")
+    expect(text).toContain("knockout band:     0/840 (0.0%")
+    expect(text).toContain("diagnostic only")
   })
 
-  test("the gate gates FR-20's knockout share and median (R2 T2)", () => {
+  test("the gate gates FR-20's decisive share and median (Rework 2)", () => {
     const measured = sample()
+    // No knockouts and no cap margin to speak of: nothing ended decisively.
     const noKo: BalanceSample = {
       ...measured,
-      duration: { ...measured.duration, ko: 0 },
+      duration: { ...measured.duration, ko: 0, capMargins: [] },
     }
-    const ko = violations(noKo).find((row) => row.name === "knockoutShare")
-    if (!ko) throw new Error("knockout share produced no violation")
-    expect(ko.why).toContain("FR-20")
-    expect(ko.why).toContain("AC-17")
+    const decisive = violations(noKo).find(
+      (row) => row.name === "decisiveShare",
+    )
+    if (!decisive) throw new Error("decisive share produced no violation")
+    expect(decisive.why).toContain("FR-20")
+    expect(decisive.why).toContain("AC-17")
+    // The margin floor is integer-exact: a cap win exactly at the floor is
+    // decisive, one basis point below it is not.
+    const atFloor: BalanceSample = {
+      ...measured,
+      duration: {
+        ...measured.duration,
+        ko: 0,
+        time: 560,
+        total: 840,
+        capMargins: Array.from({ length: 560 }, () => CAP_MARGIN_FLOOR_BP),
+      },
+    }
+    const belowFloor: BalanceSample = {
+      ...measured,
+      duration: {
+        ...measured.duration,
+        ko: 0,
+        time: 560,
+        total: 840,
+        capMargins: Array.from({ length: 560 }, () => CAP_MARGIN_FLOOR_BP - 1),
+      },
+    }
+    expect(
+      violations(atFloor).some((row) => row.name === "decisiveShare"),
+    ).toBe(false)
+    expect(
+      violations(belowFloor).some((row) => row.name === "decisiveShare"),
+    ).toBe(true)
     const atCap: BalanceSample = {
       ...measured,
       duration: { ...measured.duration, median: 40_000 },
@@ -239,8 +281,8 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
       (row) => row.name === "medianDuration",
     )
     if (!median) throw new Error("median duration produced no violation")
+    expect(median.why).toContain("FR-4")
     expect(median.why).toContain("FR-20")
-    expect(median.why).toContain("AC-17")
   })
 
   test("the report names the design-band misses it computes (FR-5, R2 T3)", () => {
@@ -285,25 +327,28 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
   })
 
   test("today's target misses are named with their observed values", () => {
-    // R2: every species row is verifiable at its typical creature, so the
-    // violation list is empty. The pacing target is the honest band, which
-    // fails; it is a target miss, not a species row.
+    // Rework 2: every pacing target holds — cap share, decisive share, median,
+    // p05, damage band and the bosses. The five rows below are roster debt,
+    // not a pacing defect; they were already outside the 95% bound before the
+    // distinct metric started reading real final HP, and measuring honestly
+    // halved their intervals.
     expect(violations(sample()).map(describeTarget)).toEqual([...KNOWN_MISSES])
   })
 
-  test("the gate is red on the honest band and nothing else (FR-4, R2)", () => {
-    // R2: the gate is red on exactly the resolved band. Every other target —
-    // including the new knockout share and median — holds, and no species row
-    // is unverified. When the band is fixed this test fails on the now-green
-    // FAIL list and is updated deliberately.
+  test("the gate is red on the roster rows and green on pacing (Rework 2)", () => {
+    // The pacing gate now passes: a cap win counts as a decisive outlasting
+    // win when its margin clears the floor. What is red is five species rows
+    // whose honest intervals no longer cover a 50% win rate. When a row is
+    // fixed this test fails on the now-green FAIL list and is updated
+    // deliberately.
     const lines: string[] = []
     expect(run(sample(), (line) => lines.push(line))).toBe(1)
     const failures = lines.filter((line) => line.startsWith("FAIL "))
     expect(failures.map((line) => line.slice("FAIL ".length))).toEqual([
-      "resolvedInBand: observed 41.0% (344/840; 58.5% of 588 resolved), bound >= 50.0% of all fights in 25.00s..40.00s, cap fights excluded",
+      ...KNOWN_MISSES,
     ])
     expect(lines.some((line) => line.startsWith("ok   capShare:"))).toBe(true)
-    expect(lines.some((line) => line.startsWith("ok   knockoutShare:"))).toBe(
+    expect(lines.some((line) => line.startsWith("ok   decisiveShare:"))).toBe(
       true,
     )
     expect(lines.some((line) => line.startsWith("ok   medianDuration:"))).toBe(
@@ -312,6 +357,7 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     expect(lines.some((line) => line.startsWith("ok   durationP05:"))).toBe(
       true,
     )
+    expect(lines.some((line) => line.startsWith("ok   damageBand:"))).toBe(true)
   })
 
   test("a target that holds is not reported as a violation", () => {

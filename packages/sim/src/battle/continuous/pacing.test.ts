@@ -159,12 +159,11 @@ describe("pacing — the tuned duration band (FR-21, AC-7)", () => {
   })
 
   // Phase 8 (FR-20) removed the marker when the sample ran 9 KO / 5 cap.
-  // R2 (battle-balance) re-measured the honest band: cap fights are no longer
-  // counted as "inside 25-40 s", so `bun run balance` reports 42.6% resolved
-  // in band (358/840) with 30.0% at the cap, not the 57.1% the old row
-  // printed. This fixture also fights `specials` (kite), so the majority is
-  // pinned as debt instead of relaxed. `test.failing` goes red the day the
-  // majority returns, which is the signal to remove the marker.
+  // R2 (battle-balance) made the band honest; Rework 2 (owner ruling
+  // 2026-11-10) retired the knockout-only band as a gate, because a cap win is
+  // an outlasting victory. This fixture also fights `specials` (kite), so the
+  // majority is pinned as debt instead of relaxed. `test.failing` goes red the
+  // day the majority returns, which is the signal to remove the marker.
   test.failing("the sample finishes a majority of fights by knockout", () => {
     const fought = sample()
     const byKo = fought.filter((f) => f.reason !== "time").length

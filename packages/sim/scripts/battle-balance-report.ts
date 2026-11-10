@@ -137,13 +137,23 @@ export const DISTINCT_FLOOR = 12
 
 const CAP_MAX = 1 / 3
 
-/** FR-4: a majority of fights finish inside the tuned band. */
+/** FR-4: the window the median must land inside (Rework 2 - outlasting wins). */
 const BAND_MIN_MS = 25_000
 const BAND_MAX_MS = 40_000
-const BAND_SHARE_MIN = 0.5
 
-/** FR-20 / AC-17: at least two fights in three end by knockout. */
-const KNOCKOUT_SHARE_MIN = 2 / 3
+/**
+ * FR-20 / AC-17: two fights in three must end decisively — a knockout, or an
+ * outlasting win at the cap whose HP margin clears `CAP_MARGIN_FLOOR_BP`.
+ *
+ * The floor is one basic strike's worth of pool: `BASIC_MOVE` power 9 against
+ * the 189-HP reference line is 4.76%. A cap win must be ahead by **5.00
+ * percentage points** of remaining pool, so the margin cannot be produced by
+ * the last exchange alone; below that the cap is deciding a tiebreak, not an
+ * outlasting. A winner that holds 5% more of its pool than the loser is the
+ * smallest gap that survives one more hit.
+ */
+export const CAP_MARGIN_FLOOR_BP = 500
+export const DECISIVE_SHARE_MIN = 2 / 3
 
 /** The engine's measured floor and the fight cap, in ms (AC-7). */
 const DURATION_MIN_MS = 8_000
@@ -418,6 +428,13 @@ export interface BalanceSample {
      * duration precisely so this count cannot be reconstructed wrongly.
      */
     readonly resolvedInBand: number
+    /**
+     * HP-margin distribution of the cap wins, in basis points of the pool
+     * (Rework 2). Margin is `winnerHp/winnerMax - loserHp/loserMax` in
+     * hundredths of a point, so 500 = 5.00 points. An outlasting win is
+     * decisive when it clears `CAP_MARGIN_FLOOR_BP`.
+     */
+    readonly capMargins: readonly number[]
     /** 5th-percentile fight length in ms (R1, F4): the pacing floor's sample. */
     readonly p05: number
   }
@@ -568,6 +585,7 @@ export function measure(options: MeasureOptions = {}): BalanceSample {
 
   const durations: number[] = []
   const endings: { ms: number; reason: BattleReason }[] = []
+  const capMargins: number[] = []
   const blowShares: number[] = []
   let ko = 0
   let time = 0
@@ -586,9 +604,30 @@ export function measure(options: MeasureOptions = {}): BalanceSample {
         const awaySide = speciesSide(away, STANDARD_DOCTRINE, awayLines.typical)
         const result = resolveContinuous(homeSide, awaySide, seed)
         const winner = winnerOf(result, homeSide, awaySide)
+        const homeKey = homeSide.id ?? homeSide.name
+        const awayKey = awaySide.id ?? awaySide.name
         const ms = msOf(result)
         durations.push(ms)
         endings.push({ ms, reason: result.reason })
+        // Rework 2: a cap decision is an outlasting win. Record how far ahead
+        // the winner finished, in basis points of its own pool, so the report
+        // can print the distribution and the gate can ask whether the win was
+        // decisive rather than a coin-flip tiebreak. Integer arithmetic only:
+        // `pointsWinner` already ranks by `hp * foeMax`, so the difference is
+        // the same comparison scaled to hundredths of a point.
+        if (result.reason === "time" && winner !== null) {
+          const winnerSide = winner === 0 ? homeSide : awaySide
+          const loserSide = winner === 0 ? awaySide : homeSide
+          const winnerMax = winnerSide.stats.hp
+          const loserMax = loserSide.stats.hp
+          const winnerHp = result.finalHp[winner === 0 ? homeKey : awayKey] ?? 0
+          const loserHp = result.finalHp[winner === 0 ? awayKey : homeKey] ?? 0
+          const den = winnerMax * loserMax
+          const num = winnerHp * loserMax - loserHp * winnerMax
+          capMargins.push(
+            den === 0 ? 0 : Math.max(0, Math.floor((num * 10_000) / den)),
+          )
+        }
         // The equal-investment diagnostic (FR-22): the same pairing played with
         // both sides clamped to REFERENCE. Measured so the report can print it,
         // never gated.
@@ -732,6 +771,7 @@ export function measure(options: MeasureOptions = {}): BalanceSample {
       time,
       draws,
       resolvedInBand,
+      capMargins,
     },
     observedBlowShare: median(blowShares),
   }
@@ -1030,34 +1070,28 @@ export function targets(sample: BalanceSample): Target[] {
     why: "FR-4 / AC-4: at most one fight in three may be decided at the cap",
   })
 
-  // R2 (T1): the band counts resolved fights only. A cap fight ran out of
-  // time at the top of the window; it is cap share's business, not the band's.
-  const resolvedShare = cap.total === 0 ? 0 : cap.resolvedInBand / cap.total
+  // Rework 2 (owner ruling 2026-11-10): a cap decision is an outlasting win,
+  // not a stalemate, so FR-4 no longer gates the knockout-only band. The band
+  // stays in the sample and is printed as a diagnostic. What gates instead is
+  // the *decisive* share: knockouts plus cap wins that finished far enough
+  // ahead to be an outlasting rather than a tiebreak.
+  const decisiveCapWins = cap.capMargins.filter(
+    (bp) => bp >= CAP_MARGIN_FLOOR_BP,
+  ).length
+  const decisive = cap.ko + decisiveCapWins
   out.push({
-    name: "resolvedInBand",
-    observed: `${pct(resolvedShare)} (${cap.resolvedInBand}/${cap.total}; ${cap.total === cap.time ? "no resolved fights" : `${pct(cap.resolvedInBand / (cap.total - cap.time))} of ${cap.total - cap.time} resolved`})`,
-    bound: `>= ${pct(BAND_SHARE_MIN)} of all fights in 25.00s..40.00s, cap fights excluded`,
-    ok: resolvedShare >= BAND_SHARE_MIN,
-    why: "FR-4: a majority of fights must finish inside the tuned 25-40s band; a cap fight did not finish in the window and is counted by cap share only",
-  })
-
-  // R2 (T2): FR-20 / AC-17 had no row here at all, so a sample of nothing but
-  // time-outs could pass the gate. A knockout share and a median below the cap
-  // are the two statements the requirement actually makes.
-  const knockoutShare = cap.total === 0 ? 0 : cap.ko / cap.total
-  out.push({
-    name: "knockoutShare",
-    observed: `${pct(knockoutShare)} (${cap.ko}/${cap.total})`,
-    bound: `>= ${pct(KNOCKOUT_SHARE_MIN)}`,
-    ok: knockoutShare >= KNOCKOUT_SHARE_MIN,
-    why: "FR-20 / AC-17: at least two fights in three must end by knockout",
+    name: "decisiveShare",
+    observed: `${pct(cap.total === 0 ? 0 : decisive / cap.total)} (${decisive}/${cap.total}; ${cap.ko} ko + ${decisiveCapWins} cap wins at >= ${(CAP_MARGIN_FLOOR_BP / 100).toFixed(2)} pts)`,
+    bound: `>= ${pct(DECISIVE_SHARE_MIN)}`,
+    ok: cap.total !== 0 && decisive * 3 >= cap.total * 2,
+    why: "FR-20 / AC-17: two fights in three must end decisively — a knockout, or an outlasting cap win whose HP margin clears the stated floor",
   })
   out.push({
     name: "medianDuration",
     observed: `${(cap.median / 1000).toFixed(2)}s`,
-    bound: `< ${(DURATION_MAX_MS / 1000).toFixed(2)}s`,
-    ok: cap.median < DURATION_MAX_MS,
-    why: "FR-20 / AC-17: the median fight must be strictly shorter than the cap",
+    bound: "inside 25.00s..40.00s (>= 25.00s and < 40.00s)",
+    ok: cap.median >= BAND_MIN_MS && cap.median < DURATION_MAX_MS,
+    why: "FR-4 / AC-4: the median fight lands inside the window; FR-20 / AC-17: and strictly below the cap",
   })
 
   // R1 (F4): the pacing floor is the 5th percentile, not the single fastest
@@ -1068,14 +1102,14 @@ export function targets(sample: BalanceSample): Target[] {
     observed: `${(cap.p05 / 1000).toFixed(2)}s (min ${(cap.min / 1000).toFixed(2)}s, diagnostic)`,
     bound: `>= ${(DURATION_MIN_MS / 1000).toFixed(2)}s`,
     ok: cap.p05 >= DURATION_MIN_MS,
-    why: "FR-4 / FR-20: the 5th-percentile fight may not end before the tuned floor",
+    why: "FR-4 / AC-4: the 5th-percentile fight may not end before the tuned floor",
   })
   out.push({
     name: "durationMax",
     observed: `${(cap.max / 1000).toFixed(2)}s`,
     bound: `<= ${(DURATION_MAX_MS / 1000).toFixed(2)}s`,
     ok: cap.max <= DURATION_MAX_MS,
-    why: "FR-4 / FR-20: no fight may run past the cap",
+    why: "FR-4 / AC-4: no fight may run past the cap",
   })
 
   const offenders = sample.damage.rows.filter(
@@ -1292,11 +1326,30 @@ export function report(sample: BalanceSample): string[] {
   )
   const resolvedCount = duration.total - duration.time
   lines.push(
-    `resolved in band:  ${duration.resolvedInBand}/${duration.total} (${pct(duration.resolvedInBand / duration.total)} of all fights, ${resolvedCount === 0 ? "no resolved fights" : `${pct(duration.resolvedInBand / resolvedCount)} of ${resolvedCount} resolved`}) — cap fights excluded (R2, T1)`,
+    `knockout band:     ${duration.resolvedInBand}/${duration.total} (${pct(duration.resolvedInBand / duration.total)} of all fights, ${resolvedCount === 0 ? "no resolved fights" : `${pct(duration.resolvedInBand / resolvedCount)} of ${resolvedCount} resolved`}) — diagnostic only (FR-4: a cap win is an outlasting win)`,
   )
   lines.push(
-    `knockout share:    ${duration.ko}/${duration.total} (${pct(duration.ko / duration.total)})`,
+    `knockout share:    ${duration.ko}/${duration.total} (${pct(duration.ko / duration.total)}) — diagnostic`,
   )
+  const margins = [...duration.capMargins].sort((left, right) => left - right)
+  const decisiveCapWins = margins.filter(
+    (bp) => bp >= CAP_MARGIN_FLOOR_BP,
+  ).length
+  const decisive = duration.ko + decisiveCapWins
+  lines.push(
+    `decisive share:    ${decisive}/${duration.total} (${pct(duration.total === 0 ? 0 : decisive / duration.total)}; ${duration.ko} ko + ${decisiveCapWins} cap wins at >= ${(CAP_MARGIN_FLOOR_BP / 100).toFixed(2)} pts)`,
+  )
+  if (margins.length === 0) {
+    lines.push("cap margin:        no cap wins")
+  } else {
+    const at = (share: number): number =>
+      margins[
+        Math.min(margins.length - 1, Math.floor(margins.length * share))
+      ] ?? 0
+    lines.push(
+      `cap margin:        p05 ${(at(0.05) / 100).toFixed(2)} pts / median ${(median(margins) / 100).toFixed(2)} pts / p95 ${(at(0.95) / 100).toFixed(2)} pts over ${margins.length} cap wins; ${margins.length - decisiveCapWins} inside ${(CAP_MARGIN_FLOOR_BP / 100).toFixed(2)} pts (not decisive)`,
+    )
+  }
   lines.push(
     `observed blow:     median ${sample.observedBlowShare.toFixed(2)}% of the victim's pool`,
   )
