@@ -142,6 +142,9 @@ const BAND_MIN_MS = 25_000
 const BAND_MAX_MS = 40_000
 const BAND_SHARE_MIN = 0.5
 
+/** FR-20 / AC-17: at least two fights in three end by knockout. */
+const KNOCKOUT_SHARE_MIN = 2 / 3
+
 /** The engine's measured floor and the fight cap, in ms (AC-7). */
 const DURATION_MIN_MS = 8_000
 const DURATION_MAX_MS = 40_000
@@ -407,7 +410,14 @@ export interface BalanceSample {
     readonly ko: number
     readonly time: number
     readonly draws: number
-    readonly inBand: number
+    /**
+     * Fights that finished inside the band **and were not decided by the
+     * clock** (R2, T1). A cap fight lasts exactly `FIGHT_CAP_MS`, so counting
+     * it as "inside 25-40 s" made the gate print 54.5% for a sample whose
+     * honest figure was 23.1%. The ending reason is carried beside every
+     * duration precisely so this count cannot be reconstructed wrongly.
+     */
+    readonly resolvedInBand: number
     /** 5th-percentile fight length in ms (R1, F4): the pacing floor's sample. */
     readonly p05: number
   }
@@ -557,6 +567,7 @@ export function measure(options: MeasureOptions = {}): BalanceSample {
   }
 
   const durations: number[] = []
+  const endings: { ms: number; reason: BattleReason }[] = []
   const blowShares: number[] = []
   let ko = 0
   let time = 0
@@ -577,6 +588,7 @@ export function measure(options: MeasureOptions = {}): BalanceSample {
         const winner = winnerOf(result, homeSide, awaySide)
         const ms = msOf(result)
         durations.push(ms)
+        endings.push({ ms, reason: result.reason })
         // The equal-investment diagnostic (FR-22): the same pairing played with
         // both sides clamped to REFERENCE. Measured so the report can print it,
         // never gated.
@@ -683,8 +695,14 @@ export function measure(options: MeasureOptions = {}): BalanceSample {
   const bosses = measureBosses(lines)
 
   const sorted = [...durations].sort((left, right) => left - right)
-  const inBand = durations.filter(
-    (ms) => ms >= BAND_MIN_MS && ms <= BAND_MAX_MS,
+  // R2 (T1): only a fight that finished can finish *inside* the band. The cap
+  // sits at the top of the window, so a cap fight has always been counted here
+  // as a success; it is counted by cap share instead and never by the band.
+  const resolvedInBand = endings.filter(
+    (ending) =>
+      ending.reason !== "time" &&
+      ending.ms >= BAND_MIN_MS &&
+      ending.ms <= BAND_MAX_MS,
   ).length
   // R1 (F4): the 5th percentile, not the single fastest fight. One blowout in
   // 840 is not a pacing defect; five percent of the sample ending early is.
@@ -713,7 +731,7 @@ export function measure(options: MeasureOptions = {}): BalanceSample {
       ko,
       time,
       draws,
-      inBand,
+      resolvedInBand,
     },
     observedBlowShare: median(blowShares),
   }
@@ -1012,13 +1030,34 @@ export function targets(sample: BalanceSample): Target[] {
     why: "FR-4 / AC-4: at most one fight in three may be decided at the cap",
   })
 
-  const bandShare = cap.total === 0 ? 0 : cap.inBand / cap.total
+  // R2 (T1): the band counts resolved fights only. A cap fight ran out of
+  // time at the top of the window; it is cap share's business, not the band's.
+  const resolvedShare = cap.total === 0 ? 0 : cap.resolvedInBand / cap.total
   out.push({
-    name: "durationBand",
-    observed: `${pct(bandShare)} (${cap.inBand}/${cap.total})`,
-    bound: `>= ${pct(BAND_SHARE_MIN)} in 25.00s..40.00s`,
-    ok: bandShare >= BAND_SHARE_MIN,
-    why: "FR-4: a majority of fights finish inside the tuned 25-40s band",
+    name: "resolvedInBand",
+    observed: `${pct(resolvedShare)} (${cap.resolvedInBand}/${cap.total}; ${cap.total === cap.time ? "no resolved fights" : `${pct(cap.resolvedInBand / (cap.total - cap.time))} of ${cap.total - cap.time} resolved`})`,
+    bound: `>= ${pct(BAND_SHARE_MIN)} of all fights in 25.00s..40.00s, cap fights excluded`,
+    ok: resolvedShare >= BAND_SHARE_MIN,
+    why: "FR-4: a majority of fights must finish inside the tuned 25-40s band; a cap fight did not finish in the window and is counted by cap share only",
+  })
+
+  // R2 (T2): FR-20 / AC-17 had no row here at all, so a sample of nothing but
+  // time-outs could pass the gate. A knockout share and a median below the cap
+  // are the two statements the requirement actually makes.
+  const knockoutShare = cap.total === 0 ? 0 : cap.ko / cap.total
+  out.push({
+    name: "knockoutShare",
+    observed: `${pct(knockoutShare)} (${cap.ko}/${cap.total})`,
+    bound: `>= ${pct(KNOCKOUT_SHARE_MIN)}`,
+    ok: knockoutShare >= KNOCKOUT_SHARE_MIN,
+    why: "FR-20 / AC-17: at least two fights in three must end by knockout",
+  })
+  out.push({
+    name: "medianDuration",
+    observed: `${(cap.median / 1000).toFixed(2)}s`,
+    bound: `< ${(DURATION_MAX_MS / 1000).toFixed(2)}s`,
+    ok: cap.median < DURATION_MAX_MS,
+    why: "FR-20 / AC-17: the median fight must be strictly shorter than the cap",
   })
 
   // R1 (F4): the pacing floor is the 5th percentile, not the single fastest
@@ -1074,6 +1113,22 @@ export function violations(sample: BalanceSample): Target[] {
   return targets(sample).filter((target) => !target.ok)
 }
 
+/**
+ * The species rows outside the printed 45-55% design band (FR-5 / AC-5).
+ *
+ * This is a *report*, not a pass condition: the gate's decision rule is the
+ * two-sided significance test over distinct fights. AC-5 still requires the
+ * rows outside the design target to be named in a maintained list, so the
+ * report computes them from the sample and the suite asserts the list against
+ * a recorded array — a row drifting across 45% or 55% fails the suite and the
+ * list is updated deliberately.
+ */
+export function designBandMisses(sample: BalanceSample): SpeciesRow[] {
+  return sample.matrix.species.filter(
+    (row) => row.rate < SPECIES_MIN || row.rate > SPECIES_MAX,
+  )
+}
+
 /** The one-line result the harness prints, and the test asserts. */
 export function describe(target: Target): string {
   return `${target.name}: observed ${target.observed}, bound ${target.bound}`
@@ -1123,6 +1178,14 @@ export function report(sample: BalanceSample): string[] {
       `${pad(row.id, 22)}${pad(row.games, 7)}${pad(row.distinct, 10)}${pad(row.wins, 6)}${pad(row.draws, 7)}${pad(pct(row.rate), 10)}${pct(row.se)}`,
     )
   }
+  const misses = designBandMisses(sample)
+  lines.push(
+    `design-band misses (outside ${pct(SPECIES_MIN)}..${pct(SPECIES_MAX)}, FR-5 / AC-5): ${
+      misses.length === 0
+        ? "none"
+        : misses.map((row) => `${row.id} ${pct(row.rate)}`).join(", ")
+    }`,
+  )
   lines.push("")
 
   lines.push(
@@ -1136,15 +1199,46 @@ export function report(sample: BalanceSample): string[] {
       `${pad(row.id, 22)}${pad(row.games, 7)}${pad(row.wins, 6)}${pad(row.draws, 7)}${pct(row.rate)}`,
     )
   }
+  // R2 (T6): the spread is a finding, not a target. At identical stats the
+  // roster still ranges from the drake to the voltfox, so kit shape — reach,
+  // recovery, accuracy and cooldown — dominates at equal investment.
+  const spread = [...sample.matrix.reference].sort(
+    (left, right) => left.rate - right.rate,
+  )
+  const lowest = spread[0]
+  const highest = spread[spread.length - 1]
+  if (lowest && highest) {
+    lines.push(
+      `finding: reference-line spread ${lowest.id} ${pct(lowest.rate)} .. ${highest.id} ${pct(highest.rate)} at equal investment — kit shape, not stats, dominates (FR-22 diagnostic, recorded not gated)`,
+    )
+  }
   lines.push("")
 
+  const probeByDoctrine = new Map(
+    sample.dodgeProbe.map((row) => [row.id, row] as const),
+  )
   lines.push("doctrine table (one species, one matchup, one row per doctrine)")
   lines.push(
-    `${pad("doctrine", 10)}${pad("fights", 8)}${pad("win rate", 10)}${pad("rear-or-flank", 15)}${pad("rear", 8)}${pad("median gap", 12)}${pad("dodges", 8)}dodge rate`,
+    `${pad("doctrine", 10)}${pad("fights", 8)}${pad("win rate", 10)}${pad("rear-or-flank", 15)}${pad("rear", 8)}${pad("median gap", 12)}${pad("dodges", 8)}${pad("dodge rate", 12)}probe/fight`,
   )
   for (const row of sample.doctrines) {
+    const probe = probeByDoctrine.get(row.id)
     lines.push(
-      `${pad(row.label, 10)}${pad(row.fights, 8)}${pad(pct(row.rate), 10)}${pad(pct(row.rearOrFlank), 15)}${pad(pct(row.rear), 8)}${pad(`${Math.round(row.engagementMedian)}mm`, 12)}${pad(row.dodges, 8)}${pct(row.dodgeRate)}`,
+      `${pad(row.label, 10)}${pad(row.fights, 8)}${pad(pct(row.rate), 10)}${pad(pct(row.rearOrFlank), 15)}${pad(pct(row.rear), 8)}${pad(`${Math.round(row.engagementMedian)}mm`, 12)}${pad(row.dodges, 8)}${pad(pct(row.dodgeRate), 12)}${probe ? probe.perFight.toFixed(2) : "-"}`,
+    )
+  }
+  // R2 (T5): the table's fixed matchup draws no paid dodges, so its own dodge
+  // column is honestly 0.0% on every row. The probe column beside it is the
+  // measured dodge behaviour, and it separates the doctrines; the table now
+  // shows both rather than a column of zeroes pretending to be a measurement.
+  const kite = sample.doctrines.find((row) => row.id === "kite")
+  if (kite) {
+    const verdict =
+      kite.rate === 0
+        ? "a doctrine that loses every sampled fight is not a choice; the owner needs to decide whether Kite is a trap or a missing tool"
+        : `Kite wins ${pct(kite.rate)} of its sampled fights; the R1 0/6 result is no longer the verdict`
+    lines.push(
+      `finding: ${kite.label} ${kite.rate === 0 ? "0/6" : `${pct(kite.rate)} (${kite.fights} fights)`} — ${verdict}`,
     )
   }
   lines.push("")
@@ -1196,8 +1290,12 @@ export function report(sample: BalanceSample): string[] {
   lines.push(
     `cap share:         ${duration.time}/${duration.total} (${pct(duration.time / duration.total)})`,
   )
+  const resolvedCount = duration.total - duration.time
   lines.push(
-    `25-40s band:       ${duration.inBand}/${duration.total} (${pct(duration.inBand / duration.total)})`,
+    `resolved in band:  ${duration.resolvedInBand}/${duration.total} (${pct(duration.resolvedInBand / duration.total)} of all fights, ${resolvedCount === 0 ? "no resolved fights" : `${pct(duration.resolvedInBand / resolvedCount)} of ${resolvedCount} resolved`}) — cap fights excluded (R2, T1)`,
+  )
+  lines.push(
+    `knockout share:    ${duration.ko}/${duration.total} (${pct(duration.ko / duration.total)})`,
   )
   lines.push(
     `observed blow:     median ${sample.observedBlowShare.toFixed(2)}% of the victim's pool`,
@@ -1221,10 +1319,11 @@ export function run(
   sample: BalanceSample,
   out: (line: string) => void = console.log,
 ): number {
+  // `report` already marks every target with `ok`, `FAIL` or `UNVERIFIED`, so
+  // the run does not repeat the failing rows: a duplicate FAIL line is how the
+  // old gate looked like it had two problems when it had one.
   for (const line of report(sample)) out(line)
-  const broken = violations(sample)
-  for (const target of broken) out(`FAIL ${describe(target)}`)
-  return broken.length === 0 ? 0 : 1
+  return violations(sample).length === 0 ? 0 : 1
 }
 
 /** Measure the roster and run the gate. */

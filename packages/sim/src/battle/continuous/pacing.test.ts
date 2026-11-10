@@ -159,12 +159,12 @@ describe("pacing — the tuned duration band (FR-21, AC-7)", () => {
   })
 
   // Phase 8 (FR-20) removed the marker when the sample ran 9 KO / 5 cap.
-  // R1 (battle-balance): scaling the authored ladder down lengthens the
-  // mixed-doctrine sample again — 17 KO / 25 cap over 42 fights (40.5% KO).
-  // The pace gate is `bun run balance` (press doctrine: cap share 31.4%,
-  // 25-40s band 57.1%); this fixture also fights `specials` (kite), so the
-  // majority is pinned as debt instead of relaxed. `test.failing` goes red the
-  // day the majority returns, which is the signal to remove the marker.
+  // R2 (battle-balance) re-measured the honest band: cap fights are no longer
+  // counted as "inside 25-40 s", so `bun run balance` reports 42.6% resolved
+  // in band (358/840) with 30.0% at the cap, not the 57.1% the old row
+  // printed. This fixture also fights `specials` (kite), so the majority is
+  // pinned as debt instead of relaxed. `test.failing` goes red the day the
+  // majority returns, which is the signal to remove the marker.
   test.failing("the sample finishes a majority of fights by knockout", () => {
     const fought = sample()
     const byKo = fought.filter((f) => f.reason !== "time").length

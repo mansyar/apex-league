@@ -18,6 +18,7 @@ import {
   type BalanceSample,
   boundsOf,
   describe as describeTarget,
+  designBandMisses,
   measure,
   measureSpecies,
   report,
@@ -37,19 +38,14 @@ function sample(): BalanceSample {
 }
 
 /**
- * Today's misses, in the order the report declares them. R1 re-baselined the
- * ladder and the tortoise's speed record; the one row that still cannot be
- * judged is `earth_tortoise`, whose whole roll range is now strictly slower
- * than every other species (spd 3..5). At spd 3 its swing is ~3.3x the
- * reference recovery, so it cannot knock out a full-HP opponent inside the cap
- * and its 112 games collapse onto a handful of signatures — measured 6 distinct
- * fights against a floor of 12, with the rate 55.4% (inside the band, so the
- * distinct floor is the only thing failing). Six kit/attack combinations were
- * measured; none cleared both the floor and the win bound. Update a row, never
- * the bound, when one is fixed.
+ * Today's target misses, in the order the report declares them. R2 made the
+ * gate honest: the duration band now counts only resolved fights, so the
+ * pacing failure shows up as `resolvedInBand` instead of hiding behind the
+ * cap. Every species row is verifiable at its typical creature. Update a row,
+ * never the bound, when one is fixed.
  */
 const KNOWN_MISSES = [
-  "species:earth_tortoise: observed 55.4% (62/112, 6 distinct, se 20.4%), bound needs >= 12 distinct fights to be judged (has 6)",
+  "resolvedInBand: observed 41.0% (344/840; 58.5% of 588 resolved), bound >= 50.0% of all fights in 25.00s..40.00s, cap fights excluded",
 ] as const
 
 describe("balance report — one deterministic command (FR-7, AC-7)", () => {
@@ -192,10 +188,10 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
   test("the base-hit band is measured, not assumed (FR-1)", () => {
     const measured = sample()
     const shares = measured.damage.rows.map((row) => row.share)
-    // R1: the ladder scaled down together (9..21) — the floor is Strike 9 and
-    // the ceiling the power-21 finisher, both still inside the frozen 4-12%.
+    // R2: the ladder's top compressed (9..19) — the floor is Strike 9 and the
+    // ceiling the power-19 finisher, both still inside the frozen 4-12%.
     expect(Math.min(...shares)).toBeCloseTo(4.76, 2)
-    expect(Math.max(...shares)).toBeCloseTo(11.11, 2)
+    expect(Math.max(...shares)).toBeCloseTo(10.05, 2)
     const band = targets(measured).find(
       (target) => target.name === "damageBand",
     )
@@ -203,25 +199,116 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     expect(band.ok).toBe(true)
   })
 
-  test("today's misses are named targets with their observed values", () => {
-    // Phase 13 (FR-5): the roster pass brought every species inside the gate
-    // and every resolvability target with it, so the miss list is empty.
+  test("a cap fight is never counted inside the band (FR-4, R2 T1)", () => {
+    // The R1 gate printed 54.5% by counting every 40.00 s cap fight as
+    // "inside 25-40 s". The honest figure was 23.1%. A sample of pure cap
+    // fights must therefore report a 0% resolved band, even though every
+    // duration sits at the top of the window.
+    const measured = sample()
+    const allCaps: BalanceSample = {
+      ...measured,
+      duration: {
+        ...measured.duration,
+        time: measured.duration.total,
+        ko: 0,
+        draws: 0,
+        resolvedInBand: 0,
+      },
+    }
+    const band = targets(allCaps).find((row) => row.name === "resolvedInBand")
+    if (!band) throw new Error("the report lost the resolved band target")
+    expect(band.observed.startsWith("0.0%")).toBe(true)
+    expect(band.ok).toBe(false)
+  })
+
+  test("the gate gates FR-20's knockout share and median (R2 T2)", () => {
+    const measured = sample()
+    const noKo: BalanceSample = {
+      ...measured,
+      duration: { ...measured.duration, ko: 0 },
+    }
+    const ko = violations(noKo).find((row) => row.name === "knockoutShare")
+    if (!ko) throw new Error("knockout share produced no violation")
+    expect(ko.why).toContain("FR-20")
+    expect(ko.why).toContain("AC-17")
+    const atCap: BalanceSample = {
+      ...measured,
+      duration: { ...measured.duration, median: 40_000 },
+    }
+    const median = violations(atCap).find(
+      (row) => row.name === "medianDuration",
+    )
+    if (!median) throw new Error("median duration produced no violation")
+    expect(median.why).toContain("FR-20")
+    expect(median.why).toContain("AC-17")
+  })
+
+  test("the report names the design-band misses it computes (FR-5, R2 T3)", () => {
+    // AC-5's maintained list: a row drifting across 45% or 55% fails here and
+    // is updated deliberately. The list is computed, printed and asserted, so
+    // it cannot silently go stale like the old one-row KNOWN_MISSES.
+    const DESIGN_BAND_MISSES = [
+      "fire_drake",
+      "plant_ox",
+      "fernstag",
+      "wind_falcon",
+      "reefclaw",
+      "earth_tortoise",
+      "cindermoor",
+      "voltfox",
+      "galeheron",
+      "shalemole",
+      "embercub",
+      "mossboar",
+    ] as const
+    const measured = sample()
+    expect(designBandMisses(measured).map((row) => row.id)).toEqual([
+      ...DESIGN_BAND_MISSES,
+    ])
+    const text = report(measured).join("\n")
+    expect(text).toContain("design-band misses (outside 45.0%..55.0%")
+    for (const id of DESIGN_BAND_MISSES) expect(text).toContain(id)
+  })
+
+  test("the doctrine table's dodge column differs by doctrine (R2 T5)", () => {
+    // The fixed matchup draws no paid dodge, so the table's own rate is zero
+    // for three rows. The probe rate is printed alongside it; at least two
+    // doctrines must show distinct non-zero rates.
+    const measured = sample()
+    const rates = measured.dodgeProbe
+      .map((row) => row.perFight)
+      .filter((rate) => rate > 0)
+    expect(new Set(rates).size).toBeGreaterThanOrEqual(2)
+    const text = report(measured).join("\n")
+    expect(text).toContain("probe/fight")
+    expect(text).toContain("finding: Kite")
+  })
+
+  test("today's target misses are named with their observed values", () => {
+    // R2: every species row is verifiable at its typical creature, so the
+    // violation list is empty. The pacing target is the honest band, which
+    // fails; it is a target miss, not a species row.
     expect(violations(sample()).map(describeTarget)).toEqual([...KNOWN_MISSES])
   })
 
-  test("the gate names its one recorded miss and nothing else (FR-5)", () => {
-    // R1: the gate is red on exactly the row recorded in KNOWN_MISSES. The
-    // bound is not weakened and the floor is not lowered — the failure is the
-    // tortoise's degenerate fight pattern, not a stale pin. When that row is
-    // fixed this test fails on the now-empty FAIL list and is updated
-    // deliberately.
+  test("the gate is red on the honest band and nothing else (FR-4, R2)", () => {
+    // R2: the gate is red on exactly the resolved band. Every other target —
+    // including the new knockout share and median — holds, and no species row
+    // is unverified. When the band is fixed this test fails on the now-green
+    // FAIL list and is updated deliberately.
     const lines: string[] = []
     expect(run(sample(), (line) => lines.push(line))).toBe(1)
     const failures = lines.filter((line) => line.startsWith("FAIL "))
     expect(failures.map((line) => line.slice("FAIL ".length))).toEqual([
-      ...KNOWN_MISSES,
+      "resolvedInBand: observed 41.0% (344/840; 58.5% of 588 resolved), bound >= 50.0% of all fights in 25.00s..40.00s, cap fights excluded",
     ])
     expect(lines.some((line) => line.startsWith("ok   capShare:"))).toBe(true)
+    expect(lines.some((line) => line.startsWith("ok   knockoutShare:"))).toBe(
+      true,
+    )
+    expect(lines.some((line) => line.startsWith("ok   medianDuration:"))).toBe(
+      true,
+    )
     expect(lines.some((line) => line.startsWith("ok   durationP05:"))).toBe(
       true,
     )
