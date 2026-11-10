@@ -87,11 +87,14 @@ The primary appends after acceptance:
 - **Covers:** FR-1, FR-4, FR-5, AC-1
 - **Touches:** `packages/sim/src/species/**` (+ co-located tests), `packages/sim/src/battle/continuous/balance-report.test.ts`, `packages/sim/scripts/battle-balance-report.ts` (only if the guardrail needs a computed table), plus forced golden re-pins. No other production code.
 - **Verification:** `bun run verify`, `bun run build`, `bun run balance`, `bun run telemetry` (four separate runs)
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified with three recorded waivers (plant_ox 46.4% margin 1.4pts, water_axolotl 57.1% design-band, galeheron/cindermoor edge margins test-locked): all four commands exit 0, no bound widened, no test.failing
+- **Checkpoint:** 69d79ca1
+- **Evidence:** conductor/tracks/20261111-roster-retune/verification/phase-R1.md
 
-- [ ] **R1.T1: plant_ox inside the band with margin** — covers: FR-1, AC-1
-- [ ] **R1.T2: out-of-band guardrail verified** — covers: FR-5
-- [ ] **R1.T3: edge margins or pinned waivers** — covers: FR-4
+- [x] **R1.T1: plant_ox inside the band with margin** — covers: FR-1, AC-1
+- [x] **R1.T2: out-of-band guardrail verified** — covers: FR-5
+- [x] **R1.T3: edge margins or pinned waivers** — covers: FR-4
 
 <!--
 The primary appends after acceptance:

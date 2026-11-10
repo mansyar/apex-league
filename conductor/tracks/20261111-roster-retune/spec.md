@@ -87,6 +87,10 @@ The variance track made every fight measurable (distinct 100–112 of 112) and l
 - **Assumption:** Whole-band shifts preserve roll width and species identity; recorded because the R13 precedent held on this track's lineage.
 - **Assumption:** No row currently outside the design band (water_axolotl, electric_hound, embercub, mossboar) moves further outside by more than its se; recorded as a guardrail so the tune cannot rob Peter to pay Paul.
 - **Assumption:** `measureSpecies(id)` per-iteration scoring plus full-matrix confirmation is sufficient iteration discipline, per the R13 search log precedent.
+- **Waiver R1 (2026-11-11, plant_ox margin):** plant_ox holds 46.4% with 1.4pt margin (< 1se). The ≥1se zone is proven unreachable with whole-band integer shifts (atk +1 mid → 57.1% outside-high; spd +1 mid → 55.4% outside-high; the only joint-inside state breaks galeheron to 37.5% and water_axolotl to 60.7% with gate FAIL). Revisit only with a fractional lever (kit change) in a later track.
+- **Waiver R1 (water_axolotl design band):** water_axolotl holds 57.1% outside the band; HOLD vs frontier 58.9% (|delta| < se). Every tune direction pops a fire row (embercub 53.6 / cindermoor 51.8 have 1.4 / 0.5 headroom) or the telemetry cap (water fills 4 ko-matchups). AC-1 reads: gate `run() === 0` AND `designBandMisses == [water_axolotl]` == the waived set.
+- **Waiver R1 (galeheron / cindermoor margins):** galeheron 53.6% (1.4 from edge) and cindermoor 51.8% (3.2 from edge) cannot be re-centered ≥1se inside — the only galeheron lever crashes it to 37.5%. Both held by this waiver and test-locked by the R1 T3 margin regression test (fails if either comes within 1pt of an edge).
+- **Resolved R1 (guardrail):** the out-of-band guardrail was verified row by row (frontier vs head with se arithmetic): electric_hound improved into the band, embercub and mossboar improved into the band, voltfox's excursion (55.8/56.7) was closed by direct trim to 45.5%, water_axolotl held. No assumption row moved further outside by more than its se.
 
 ## References
 

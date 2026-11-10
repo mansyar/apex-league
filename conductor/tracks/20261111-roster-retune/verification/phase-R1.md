@@ -236,3 +236,24 @@ executor may not edit spec.md per Conductor rules)
 3. galeheron/cindermoor margin waivers (F3): 53.6%/51.8%, test-locked.
 AC-1 reads: gate run() === 0 AND designBandMisses == [water_axolotl] ==
 the waived set. No bound/floor/tolerance widened; no test.failing.
+
+## Primary verification (at 69d79ca1 + format fix)
+
+- Independently ran all four commands on the R1 tree: `bun run verify`
+  exit 0 (after one primary-owned biome format pass on
+  `conductor/tracks/20261111-roster-retune/metadata.json`, the file the
+  phase executor must not touch — same precedent as Phase 3);
+  `bun run build` exit 0; `bun run balance` exit 0 (misses
+  [water_axolotl 57.1%] only); `bun run telemetry` exit 0 (13/13,
+  cap 7/14 = 50.0% at bound, zero headroom preserved).
+- F1: plant_ox 44.6% → 46.4% point-inside via the voltfox-trim keystone
+  (D-state), not a direct ox shift — direct levers overshoot (+12.5 atk,
+  +10.8 spd) and the joint E-state breaks two other rows. Margin 1.4pts
+  accepted as frontier with waiver pinned in spec Assumptions.
+- F2: guardrail table verified row by row; voltfox excursion closed by
+  trim (55.8/56.7 → 45.5), not waived. Water HOLD recorded as waiver.
+- F3: galeheron/cindermoor re-centering proven impossible (atk -1 →
+  37.5%); waivers pinned and test-locked by the new margin regression
+  test.
+- Not squashed: range holds the subagent's `69d79ca1` plus the primary's
+  spec/metadata commits, kept for the waiver audit trail.
