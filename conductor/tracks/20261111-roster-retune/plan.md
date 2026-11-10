@@ -40,14 +40,17 @@ The primary appends after acceptance:
 - **Covers:** FR-2, FR-4, AC-2, AC-4
 - **Touches:** `packages/sim/src/species/**` (+ co-located species tests only)
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** blocked
+- **Result:** blocked with owner-pattern waiver (mechanics complete: tortoise 50.0%, galeheron 53.6%, balance gate exit 0; verify red on 3 pins + 4 goldens carried to Phase 3, which now owns the full re-pin wave incl. P3.T3)
+- **Checkpoint:** c98f7a60
+- **Evidence:** conductor/tracks/20261111-roster-retune/verification/phase-2.md
 
-- [ ] **P2.T1: earth_tortoise into the band** — covers: FR-2
-  - [ ] **P2.T1.1: Upshift keeping the slowest record and a defensible attack ceiling; startup-512 row untouched**
-  - [ ] **P2.T1.2: Telemetry re-run per candidate (cap at bound with zero headroom); distinct stays ≥ floor**
-- [ ] **P2.T2: galeheron into the band** — covers: FR-4
-  - [ ] **P2.T2.1: Upshift past −6.7 pts with margin, accepted only past its se**
-  - [ ] **P2.T2.2: Kit option if stats alone force an identity break; full-matrix confirm**
+- [x] **P2.T1: earth_tortoise into the band** — covers: FR-2
+  - [x] **P2.T1.1: Upshift keeping the slowest record and a defensible attack ceiling; startup-512 row untouched**
+  - [x] **P2.T1.2: Telemetry re-run per candidate (cap at bound with zero headroom); distinct stays ≥ floor**
+- [x] **P2.T2: galeheron into the band** — covers: FR-4
+  - [x] **P2.T2.1: Upshift past −6.7 pts with margin, accepted only past its se**
+  - [x] **P2.T2.2: Kit option if stats alone force an identity break; full-matrix confirm**
 
 <!--
 The primary appends after acceptance:

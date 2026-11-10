@@ -131,3 +131,11 @@ Deviations: none (no files outside Touches; no product/design decisions taken).
 Frozen items untouched: FIGHT_CAP_MS, chart, damage ratios, 4–12% band,
 DECISION_MS, training caps, doctrines, turn budgets, MISS_SCALE,
 DISTINCT_FLOOR, global move powers, guard rails.
+
+## Primary verification
+
+- Independently confirmed at `c98f7a60`: verify exit 1 with 3980 pass / 1 skip / 7 fail — 3 gate pins (distinct, design-band, KNOWN_MISSES) + 4 goldens (exhibition seeded-rival, cup-contracts seed-101 day-14, clock.contract digest, makeBracket seed-21). The gate-green end-to-end pin now PASSES (balance exit 0). No smoke failure in this run (the agent's flagged flake did not reproduce).
+- Mechanics complete: tortoise 33.9% → 50.0% (atk[10,14]→[11,15] + def[9,12]→[10,13]; def-only 44.6% rejected as no-margin, recorded), galeheron 37.5% → 53.6% (def[6,9]→[7,10], stats-only, kit untouched). Both ceiling-respecting, slowest record kept, startup-512 untouched.
+- `bun run balance` exit 0 — first fully green gate on this stack. `bun run build` exit 0. `bun run telemetry` exit 0, 13/13, cap 50.0% at bound after each move.
+- No deviations, no species-test re-pins needed (identity pins hold). Agent's `verified` status downgraded to blocked per track convention (verify red; pins carried to Phase 3).
+- Phase NOT squashed: range holds subagent commits 0400e568/97168d86 plus evidence c98f7a60.
