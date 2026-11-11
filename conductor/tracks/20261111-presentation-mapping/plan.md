@@ -68,6 +68,24 @@
 - **Checkpoint:** df2d8261
 - **Evidence:** conductor/tracks/20261111-presentation-mapping/verification/phase-4.md
 
-- [x] **P4.T1: Reduced-motion flashes, outcome-identical** — covers: FR-9, AC-9
-- [x] **P4.T2: Replay-parity proof (hashes equal main)** — covers: NFR-1, AC-11
-- [x] **P4.T3: Visual pass + frame-time profile** — covers: NFR-3
+- [x] **P4.T1: Reduced-motion flashes, outcome-identical** - covers: FR-9, AC-9
+- [x] **P4.T2: Replay-parity proof (hashes equal main)** - covers: NFR-1, AC-11
+- [x] **P4.T3: Visual pass + frame-time profile** - covers: NFR-3
+
+## Phase R1: Review Fixes (round 1)
+- **Goal:** All five round-1 findings closed in this track.
+- **Depends on:** Phase 4 (`df2d8261`)
+- **Covers:** FR-3, FR-6, AC-3, AC-6, NFR-3
+- **Touches:** `apps/client/src/**` (client-only first; a minimal additive `packages/sim` stream export only with a proven client-only impossibility, recorded as a deviation), co-located tests
+- **Verification:** `bun run verify && bun run build`
+- **Status:** in_progress
+- **Tasks:**
+  - [ ] **R1.F1: Slip no longer trips the roll pose** — covers: FR-3, AC-3
+    - [ ] **R1.F1.1:** Roll pose requires a genuine dodge (burst travel or client-side slip/dodge disambiguation); slip at 50–90 mm/tick must not render roll.
+  - [ ] **R1.F2: Wall tells stop overstating reach** — covers: FR-6, AC-6
+    - [ ] **R1.F2.1:** Same-startup rows resolve to the committed row's reach (client inference first; sim export only if proven impossible).
+  - [ ] **R1.F3: Roll tucks along travel** — covers: FR-3
+  - [ ] **R1.F4: Remove the unjustified `as`** — covers: NFR-3
+    - [ ] **R1.F4.1:** Guard or type the value at `reduced-flash.ts:95` instead of casting.
+  - [ ] **R1.F5: No default wedge on the first sample** — covers: FR-6
+    - [ ] **R1.F5.1:** Hide the telegraph while `runSteps < 2`; pin with a test.
