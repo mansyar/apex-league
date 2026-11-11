@@ -98,9 +98,12 @@
 - **Covers:** FR-9, AC-8
 - **Touches:** `apps/client/src/tell-wedge.ts`, `apps/client/src/tell-scale.ts`, `apps/client/src/tell-scale.test.ts`, `apps/client/src/dense-playback.ts`
 - **Verification:** `bun run verify` and `bun run build` as two separate commands
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 9ef1ebcb
+- **Evidence:** conductor/tracks/20261111-minimum-reach/verification/phase-5.md
 
-- [ ] **P5.T1: Derive the inner edge** — covers: FR-9, AC-8
-  - [ ] **P5.T1.1: `tellInnerWorld(minReachMm, radiusMm)` clamped below the outer radius; the wedge geometry cuts the hole; test pins the inner radius and that it never exceeds the outer.**
-- [ ] **P5.T2: Keep the replay hash untouched** — covers: NFR-1, NFR-4
-  - [ ] **P5.T2.1: Client-only; a playback test proves the same seed still produces the same dense stream and hash.**
+- [x] **P5.T1: Derive the inner edge** — covers: FR-9, AC-8
+  - [x] **P5.T1.1: `tellInnerWorld(minReachMm, radiusMm)` clamped below the outer radius; the wedge geometry cuts the hole; test pins the inner radius and that it never exceeds the outer.**
+- [x] **P5.T2: Keep the replay hash untouched** — covers: NFR-1, NFR-4
+  - [x] **P5.T2.1: Client-only; a playback test proves the same seed still produces the same dense stream and hash.**
