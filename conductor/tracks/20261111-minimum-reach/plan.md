@@ -73,9 +73,9 @@
 - **Goal:** a fighter inside its own blind spot steps out of it, and the dead zone ships at the largest value both gates accept.
 - **Depends on:** Phase 3
 - **Covers:** FR-4, FR-6, FR-7, FR-10, AC-5, AC-6, AC-9
-- **Touches:** `packages/sim/src/battle/continuous/controller-moves.ts`, `packages/sim/src/battle/continuous/controller-profile.ts`, `packages/sim/src/battle/continuous/controller.ts`, `packages/sim/src/battle/continuous/controller.test.ts`, `packages/sim/src/battle/frames.ts`, `packages/sim/src/battle/frames.test.ts`, `packages/sim/src/species/**`, `packages/sim/scripts/battle-telemetry.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`, `packages/sim/src/battle/continuous/balance-report.test.ts`
+- **Touches:** `packages/sim/src/battle/continuous/controller-moves.ts`, `packages/sim/src/battle/continuous/controller.ts`, `packages/sim/src/battle/continuous/controller.test.ts`, `packages/sim/src/battle/continuous/controller-punish.ts`, `packages/sim/src/battle/frames.ts`, `packages/sim/src/battle/frames.test.ts`, `packages/sim/src/species/**`, `packages/sim/src/cup/**`, `packages/sim/scripts/battle-telemetry.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`, `packages/sim/src/battle/continuous/balance-report.test.ts`
 - **Verification:** `bun run balance`, `bun run telemetry`, `bun run verify`, `bun run build` — four separate commands
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P4.T1: Retreat-to-fight** — covers: FR-10, AC-9
   - [ ] **P4.T1.1: When the chooser finds no legal move but a ready move exists beyond the gap, order a step away from the foe until the gap enters that move's interval; unit test proves the direction and that the order stops at the inner edge. No new RNG draw.**
