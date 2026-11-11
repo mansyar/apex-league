@@ -14,7 +14,7 @@
 - **Covers:** FR-1, FR-2, FR-5, FR-10, AC-1, AC-2, AC-5, AC-10
 - **Touches:** `apps/client/src/choreo*.ts`, `apps/client/src/fighter-driver.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Hitstun flinch + poise-break crumple** — covers: FR-1
   - [ ] **P1.T1.1: Flinch for the sim's hitstun window**
