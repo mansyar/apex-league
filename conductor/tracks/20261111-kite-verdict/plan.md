@@ -32,7 +32,7 @@
 - **Covers:** FR-3, FR-6, AC-3, AC-6
 - **Touches:** `packages/sim/src/battle/continuous/controller-profile.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Move range band and strafe one at a time** — covers: FR-3
   - [ ] **P2.T1.1: Score each move on the 6-fight probe with pacing re-check.**
