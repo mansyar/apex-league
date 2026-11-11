@@ -50,9 +50,12 @@
 - **Covers:** FR-4, FR-5, AC-4, AC-5
 - **Touches:** `packages/sim/src/battle/continuous/controller*.ts`, `apps/client/src/spar/*`, `apps/client/src/cup/coach-room.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified — FR-4 branch shipped (Kite 5/6, dodges firing, bounds green); P3.T2 evaluated and deliberately not executed.
+- **Checkpoint:** b82214cf
+- **Evidence:** conductor/tracks/20261111-kite-verdict/verification/phase-3.md
 
-- [ ] **P3.T1: Ship the missing tool** — covers: FR-4
-  - [ ] **P3.T1.1: Probe at least 2/6 with dodges firing and bounds green.**
-- [ ] **P3.T2: Or label the trap** — covers: FR-5
-  - [ ] **P3.T2.1: Situational copy in spar picker and coach room; spec records the verdict.**
+- [x] **P3.T1: Ship the missing tool** — covers: FR-4
+  - [x] **P3.T1.1: Probe at least 2/6 with dodges firing and bounds green.**
+- [x] **P3.T2: Or label the trap** — covers: FR-5
+  - [x] **P3.T2.1: Situational copy in spar picker and coach room; spec records the verdict.**
