@@ -9,7 +9,7 @@
  * `pacing.test.ts` builds its own 42-fight sample and does not call
  * `matchups()`.
  *
- * Six metrics, each defined precisely because a loose definition is how a
+ * Seven metrics, each defined precisely because a loose definition is how a
  * turn-based fight would pass a "continuous" gate:
  *
  * - **Engagement distance** — the centre-to-centre gap in millimetres, sampled
@@ -33,6 +33,11 @@
  *   and attack phases, not the controller's verb, so this metric replays the
  *   same deterministic decisions the resolver took and checks the replay ends on
  *   the resolver's own step and hit points before reporting.
+ * - **Dead zone** — the share of commits whose only failure was the move's inner
+ *   edge: a swing that stood inside its own blind spot, or a shot loosed from
+ *   inside it. Counted from the same replay, because a `range` whiff is a
+ *   decision the stream only shows as a miss with no contact. This is the metric
+ *   that says the blind spot is real (FR-7); it is not a target to shrink.
  *
  * Plus **cap share** (AC-24): the share of fights decided at `FIGHT_CAP_MS`
  * rather than by knockout. The cap is the top of the 25-40 s band, so the band
@@ -240,6 +245,12 @@ export interface FightTelemetry {
   readonly contact: number
   /** Retreat orders issued, home then away. */
   readonly retreats: readonly [number, number]
+  /**
+   * Commits whose only failure was the move's inner edge (FR-5, FR-7): a melee
+   * swing that stood inside its own blind spot, or a shot loosed from inside
+   * it. Read from the order replay, which is the same fight the resolver ran.
+   */
+  readonly deadZone: number
 }
 
 /** A blank frame to read into; `readFrame` overwrites every field. */
@@ -281,26 +292,28 @@ function hitsOf(
 }
 
 /**
- * Replay one fight's controller decisions and count the retreat orders.
+ * Replay one fight's controller decisions: the retreat orders issued, and the
+ * commits that missed only the move's inner edge.
  *
  * The stream records where the bodies went, not what they wanted, so the verb
- * tally has to be read where the verb lives. The replay is the resolver's own
- * loop: the same `initFor` orders, the same `engagementFor` profiles, the same
- * `createController` brains and the same `createFight` step. The only draws
- * are the fight's own seeded RNG — execution noise and accuracy share it — so
- * the replay threads `fight.rng` exactly like the resolver and must land on
- * the resolver's step and hit points; if it does not, the tally would
- * describe a different fight and the harness refuses to report it. Keys are
- * arbitrary here because neither the step nor the controller reads them, and
- * the sample has no mirror to disambiguate.
+ * tally and the dead-zone count have to be read where the verb and the miss
+ * live. The replay is the resolver's own loop: the same `initFor` orders, the
+ * same `engagementFor` profiles, the same `createController` brains and the
+ * same `createFight` step. The only draws are the fight's own seeded RNG —
+ * execution noise and accuracy share it — so the replay threads `fight.rng`
+ * exactly like the resolver and must land on the resolver's step and hit
+ * points; if it does not, the tally would describe a different fight and the
+ * harness refuses to report it. Keys are arbitrary here because neither the
+ * step nor the controller reads them, and the sample has no mirror to
+ * disambiguate.
  */
-function retreatsOf(
+function replayOf(
   matchup: Matchup,
   result: BattleResult,
   stream: FightStream,
   home: BattleSide,
   away: BattleSide,
-): [number, number] {
+): { retreats: [number, number]; deadZone: number } {
   const fight = createFight({
     seed: matchup.seed,
     bounds: ARENA_BOUNDS,
@@ -316,6 +329,7 @@ function retreatsOf(
     createController(),
   ]
   const retreats: [number, number] = [0, 0]
+  let deadZone = 0
   let state = fight.state
 
   while (state.step < FIGHT_CAP_STEPS && !downEnding(state)) {
@@ -338,7 +352,17 @@ function retreatsOf(
       if (order.verb === "retreat") retreats[side] += 1
       if (order.commit) fight.commit(side, order.commit)
     }
-    state = fight.advance(orders).state
+    const outcome = fight.advance(orders)
+    state = outcome.state
+    // A `range` miss is a commit whose only failure was the inner edge
+    // (FR-5): a swing that stood inside its own blind spot, or a shot loosed
+    // from inside it. Every other whiff reached and touched nothing.
+    for (const whiff of outcome.whiffs) {
+      if (whiff.reason === "range") deadZone += 1
+    }
+    for (const shot of outcome.shots) {
+      if (shot.outcome === "range") deadZone += 1
+    }
   }
 
   const replayHp = [state.fighters[0].hp, state.fighters[1].hp].sort(
@@ -356,7 +380,7 @@ function retreatsOf(
       `${matchup.home.id} v ${matchup.away.id}: the order replay diverged from the resolver`,
     )
   }
-  return retreats
+  return { retreats, deadZone }
 }
 
 /**
@@ -424,6 +448,7 @@ export function measureFight(matchup: Matchup): FightTelemetry {
   }
 
   const fightSteps = stream.steps - 1
+  const replay = replayOf(matchup, result, stream, homeSide, awaySide)
   return {
     label,
     ms: fightSteps * STEP_MS,
@@ -441,7 +466,8 @@ export function measureFight(matchup: Matchup): FightTelemetry {
     idle: idleSteps / fightSteps,
     distinct: [cells[0].size, cells[1].size],
     contact: contactSteps / fightSteps,
-    retreats: retreatsOf(matchup, result, stream, homeSide, awaySide),
+    retreats: replay.retreats,
+    deadZone: replay.deadZone,
   }
 }
 
@@ -464,6 +490,11 @@ export interface SampleTelemetry {
   readonly contact: number
   /** Retreat orders issued over the sample, home then away. */
   readonly retreats: { readonly home: number; readonly away: number }
+  /**
+   * Commits that missed only the move's inner edge, and their share of every
+   * commit in the sample (FR-7, AC-6): the blind spot measured, not asserted.
+   */
+  readonly deadZone: { readonly misses: number; readonly share: number }
   readonly cap: {
     readonly count: number
     readonly total: number
@@ -482,6 +513,7 @@ export function pool(fights: readonly FightTelemetry[]): SampleTelemetry {
   let contact = 0
   let retreatHome = 0
   let retreatAway = 0
+  let deadZone = 0
   let capCount = 0
   const distinct: number[] = []
 
@@ -492,6 +524,7 @@ export function pool(fights: readonly FightTelemetry[]): SampleTelemetry {
     contact += fight.contact * (fight.ms / STEP_MS)
     retreatHome += fight.retreats[0]
     retreatAway += fight.retreats[1]
+    deadZone += fight.deadZone
     distinct.push(fight.distinct[0], fight.distinct[1])
     gaps.push(...fight.gaps)
     if (fight.reason === "time") {
@@ -519,6 +552,10 @@ export function pool(fights: readonly FightTelemetry[]): SampleTelemetry {
     distinct: { min: Math.min(...distinct), median: median(distinct) },
     contact: contact / fightSteps,
     retreats: { home: retreatHome, away: retreatAway },
+    deadZone: {
+      misses: deadZone,
+      share: commits === 0 ? 0 : deadZone / commits,
+    },
     cap: {
       count: capCount,
       total: fights.length,
@@ -548,6 +585,7 @@ export type Metric =
   | "contactShare"
   | "retreatHome"
   | "retreatAway"
+  | "deadZoneShare"
   | "capShare"
   | "durationMin"
   | "durationMax"
@@ -632,6 +670,12 @@ export const BOUNDS: readonly Bound[] = Object.freeze([
     why: "AC-3: at least one retreat order per fight. Scaled to the 42-fight sample for the same reason as the home side; measured 19826 orders (~472 per fight)",
   },
   {
+    metric: "deadZoneShare",
+    kind: "max",
+    value: 1 / 2,
+    why: "FR-7 / AC-6: a loose ceiling, because this metric says the blind spot is real, not that it must be small. Measured 0.0% on the shipped sample (every row authors minReachMm = 0) and 92.5% at the 1,000 mm candidate, so half is a ceiling with the whole range of a real dead zone still allowed under it. The phase-4 sweep could not find a positive value both this gate and the 840-fight roster accept",
+  },
+  {
     metric: "capShare",
     kind: "max",
     value: 3 / 5,
@@ -680,6 +724,8 @@ export function observed(sample: SampleTelemetry, metric: Metric): number {
       return sample.retreats.home
     case "retreatAway":
       return sample.retreats.away
+    case "deadZoneShare":
+      return sample.deadZone.share
     case "capShare":
       return sample.cap.share
     case "durationMin":
@@ -706,6 +752,7 @@ function show(metric: Metric, value: number): string {
   switch (metric) {
     case "idleShare":
     case "contactShare":
+    case "deadZoneShare":
     case "capShare":
       return `${(value * 100).toFixed(1)}%`
     case "exchangeHome":
@@ -787,6 +834,9 @@ export function report(sample: SampleTelemetry): string[] {
   )
   lines.push("retreats:            retreat orders issued, home then away")
   lines.push(
+    "dead zone:           commits that missed only the move's inner edge, as a share of commits (FR-7)",
+  )
+  lines.push(
     `cap share:           fights decided at FIGHT_CAP_MS (${FIGHT_CAP_MS} ms) rather than by knockout (AC-7)`,
   )
   lines.push("")
@@ -809,6 +859,9 @@ export function report(sample: SampleTelemetry): string[] {
   lines.push(`contact:     ${show("contactShare", sample.contact)}`)
   lines.push(
     `retreats:    home ${sample.retreats.home}  away ${sample.retreats.away}`,
+  )
+  lines.push(
+    `dead zone:   ${sample.deadZone.misses} commits (${show("deadZoneShare", sample.deadZone.share)})`,
   )
   lines.push(
     `positions:   min ${show("distinctPositions", sample.distinct.min)}  median ${show("distinctPositions", sample.distinct.median)}`,

@@ -95,7 +95,12 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
   })
 
   test("contact, retreats and attack rate are measured and bounded", () => {
-    assertBounds(["contactShare", "retreatHome", "retreatAway"])
+    assertBounds([
+      "contactShare",
+      "retreatHome",
+      "retreatAway",
+      "deadZoneShare",
+    ])
     const measured = sample()
     expect(measured.contact).toBeGreaterThanOrEqual(0)
     expect(measured.contact).toBeLessThanOrEqual(1)
@@ -108,11 +113,28 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
       "contactShare",
       "retreatHome",
       "retreatAway",
+      "deadZoneShare",
     ] as const) {
       expect(lines.some((line) => line.startsWith(`ok   ${metric}:`))).toBe(
         true,
       )
     }
+  })
+
+  // Minimum Reach phase 4 (FR-7, AC-6): the share of commits whose only failure
+  // was the move's inner edge. It exists to say the blind spot is real, not that
+  // it must be small, so the ceiling is deliberately loose: measured 0.0% on the
+  // shipped sample (no dead zone authored — the phase-4 sweep could not find a
+  // positive value both gates accept), and 92.5% at the 1,000 mm candidate.
+  test("the dead zone share is measured and reported (FR-7, AC-6)", () => {
+    assertBounds(["deadZoneShare"])
+    const measured = sample()
+    expect(measured.deadZone.share).toBeGreaterThanOrEqual(0)
+    expect(measured.deadZone.share).toBeLessThanOrEqual(1)
+    expect(Number.isInteger(measured.deadZone.misses)).toBe(true)
+    expect(measured.deadZone.misses).toBeGreaterThanOrEqual(0)
+    const lines = report(measured)
+    expect(lines.some((line) => line.startsWith("dead zone:"))).toBe(true)
   })
 
   test("the duration band and the cap share are separate bounds (AC-7)", () => {
@@ -144,7 +166,7 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
 
   test("every metric has a bound, so none can be reported unenforced", () => {
     const metrics = BOUNDS.map((bound) => bound.metric)
-    expect(new Set(metrics).size).toBe(13)
+    expect(new Set(metrics).size).toBe(14)
   })
 
   test("every re-derived bound is pinned at its chosen value (AC-10)", () => {
@@ -164,6 +186,7 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
       contactShare: 0.7,
       retreatHome: 42,
       retreatAway: 42,
+      deadZoneShare: 0.5,
       capShare: 0.6,
       durationMin: 8000,
       durationMax: 40000,
