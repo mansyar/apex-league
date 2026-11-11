@@ -216,6 +216,9 @@ Phased delivery plan (each phase is independently playable):
      identity and move index.)*
   2. Kite verdict: decide whether Kite (2/6 wins) is a trap doctrine or
      missing a tool — blocks doctrine credibility; do not tune around it.
+     *(Landed 2026-11-11: the missing tool was engagement — Kite
+     aggression 40 → 55, fixed probe 2/6 → 5/6 with paid dodges intact
+     and every pacing bound green; trap branch evaluated and not shipped.)*
   3. Band-margin hardening: only when relative-matrix drift actually breaks
      a row (plant_ox 46.4% / voltfox 45.5% margins are thin, water_axolotl
      57.1% is waived) — never pre-emptive.

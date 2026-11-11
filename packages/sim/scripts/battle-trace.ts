@@ -39,6 +39,11 @@ import {
   preferredRangeFor,
   reachEdgeMm,
 } from "../src/battle/continuous/controller"
+import {
+  DOCTRINE_IDS,
+  type DoctrineId,
+  tacticForDoctrine,
+} from "../src/battle/continuous/controller-profile"
 import { POISE_BREAK_MS } from "../src/battle/continuous/poise"
 import {
   hpSnapshot,
@@ -101,6 +106,14 @@ export interface TraceOptions {
   readonly rival: string
   readonly kit: readonly string[] | null
   readonly rivalKit: readonly string[] | null
+  /**
+   * An explicit doctrine per side (FR-11). Null keeps the telemetry harness's
+   * seed-parity tactics; a named doctrine fields that side on the doctrine,
+   * with the tactic mapped forward, so a traced fight can be a doctrine-probe
+   * fight (kite diagnosis, Phase 1 of the Kite verdict).
+   */
+  readonly doctrine: DoctrineId | null
+  readonly rivalDoctrine: DoctrineId | null
   /** Sample every n steps instead of printing only steps that changed. */
   readonly every: number
   readonly json: boolean
@@ -114,6 +127,8 @@ export interface SideTrace {
   readonly element: Element
   readonly temperament: Temperament
   readonly tactic: Tactic
+  /** The explicit doctrine, or null when the tactic mapped forward. */
+  readonly doctrine: DoctrineId | null
   readonly stats: {
     readonly hp: number
     readonly atk: number
@@ -240,6 +255,7 @@ function battleSideOf(
   species: SpeciesDef,
   tactic: Tactic,
   kit: readonly string[] | null,
+  doctrine: DoctrineId | null,
 ): BattleSide {
   const body = branchesForSpecies(species.id)[0]
   const bounds = species.statBounds
@@ -257,6 +273,7 @@ function battleSideOf(
     },
     kit: kit ?? species.kit.slice(0, 4),
     tactic,
+    ...(doctrine === null ? {} : { doctrine }),
     temperament: species.temperament,
     branch: body?.id,
   }
@@ -387,10 +404,22 @@ interface Replay {
 function replay(options: TraceOptions): Replay {
   // Tactics follow the telemetry harness's seed-parity rule, so a traced fight
   // is the same fight as its telemetry row (an odd seed fields specials on the
-  // owned side). The seed still decides nothing inside the step loop.
+  // owned side). The seed still decides nothing inside the step loop. An
+  // explicit doctrine overrides the parity rule for that side, with the tactic
+  // mapped forward, so the trace is the doctrine-probe fight for that pairing.
   const even = options.seed % 2 === 0
-  const ownedTactic: Tactic = even ? "balanced" : "specials"
-  const rivalTactic: Tactic = even ? "specials" : "balanced"
+  const ownedTactic: Tactic =
+    options.doctrine === null
+      ? even
+        ? "balanced"
+        : "specials"
+      : tacticForDoctrine(options.doctrine)
+  const rivalTactic: Tactic =
+    options.rivalDoctrine === null
+      ? even
+        ? "specials"
+        : "balanced"
+      : tacticForDoctrine(options.rivalDoctrine)
   const ownedDef = getSpecies(options.owned)
   const rivalDef = getSpecies(options.rival)
   if (!ownedDef) {
@@ -403,8 +432,18 @@ function replay(options: TraceOptions): Replay {
       `unknown species "${options.rival}" — one of: ${ALL_SPECIES.map((row) => row.id).join(", ")}`,
     )
   }
-  const ownedSide = battleSideOf(ownedDef, ownedTactic, options.kit)
-  const rivalSide = battleSideOf(rivalDef, rivalTactic, options.rivalKit)
+  const ownedSide = battleSideOf(
+    ownedDef,
+    ownedTactic,
+    options.kit,
+    options.doctrine,
+  )
+  const rivalSide = battleSideOf(
+    rivalDef,
+    rivalTactic,
+    options.rivalKit,
+    options.rivalDoctrine,
+  )
 
   const names = [ownedSide.name, rivalSide.name] as const
   const firstKey = fighterKey(ownedSide)
@@ -425,8 +464,16 @@ function replay(options: TraceOptions): Replay {
     createController(),
   ]
   const profiles: [ControllerProfile, ControllerProfile] = [
-    engagementFor(ownedSide.temperament, ownedSide.tactic),
-    engagementFor(rivalSide.temperament, rivalSide.tactic),
+    engagementFor(
+      ownedSide.temperament,
+      ownedSide.tactic,
+      options.doctrine ?? undefined,
+    ),
+    engagementFor(
+      rivalSide.temperament,
+      rivalSide.tactic,
+      options.rivalDoctrine ?? undefined,
+    ),
   ]
   const kits: [readonly string[], readonly string[]] = [
     ownedSide.kit,
@@ -698,6 +745,7 @@ function replay(options: TraceOptions): Replay {
       element: ownedSide.element,
       temperament: ownedSide.temperament,
       tactic: ownedSide.tactic,
+      doctrine: options.doctrine,
       stats: ownedSide.stats,
       kit: ownedSide.kit,
       branch: ownedSide.branch ?? null,
@@ -716,6 +764,7 @@ function replay(options: TraceOptions): Replay {
       element: rivalSide.element,
       temperament: rivalSide.temperament,
       tactic: rivalSide.tactic,
+      doctrine: options.rivalDoctrine,
       stats: rivalSide.stats,
       kit: rivalSide.kit,
       branch: rivalSide.branch ?? null,
@@ -983,7 +1032,7 @@ function sideCell(body: FrameSide): string {
 /** A side's opening sheet, for the header. */
 function sideHeader(label: string, side: SideTrace, pool: number): string[] {
   return [
-    `${label.padEnd(8)} ${side.name} [${side.speciesId}]  ${side.element}  ${side.temperament}  tactic ${side.tactic}`,
+    `${label.padEnd(8)} ${side.name} [${side.speciesId}]  ${side.element}  ${side.temperament}  tactic ${side.tactic}${side.doctrine === null ? "" : `  doctrine ${side.doctrine}`}`,
     `${"".padEnd(8)} stats hp ${side.stats.hp} atk ${side.stats.atk} def ${side.stats.def} spd ${side.stats.spd}  →  pool ${pool} hp`,
     `${"".padEnd(8)} body radius ${side.radiusMm} mm  height ${side.heightMm} mm  branch ${side.branch ?? "none"}`,
     `${"".padEnd(8)} kit ${side.kit.join(", ")}`,
@@ -1223,6 +1272,20 @@ function kitFlag(
   return ids
 }
 
+/** An explicit doctrine flag, validated against the doctrine table. */
+function doctrineFlag(
+  argv: readonly string[],
+  name: string,
+): DoctrineId | null {
+  const raw = flagValue(argv, name)
+  if (raw === undefined) return null
+  if (raw === null) throw new Error(`--${name} needs a value`)
+  if (!(DOCTRINE_IDS as readonly string[]).includes(raw)) {
+    throw new Error(`--${name} must be one of: ${DOCTRINE_IDS.join(", ")}`)
+  }
+  return raw as DoctrineId
+}
+
 /** Parse the command line. Unknown flags are an error, not silently ignored. */
 export function parseArgs(argv: readonly string[]): TraceOptions {
   const known = new Set([
@@ -1231,6 +1294,8 @@ export function parseArgs(argv: readonly string[]): TraceOptions {
     "rival",
     "kit",
     "rival-kit",
+    "doctrine",
+    "rival-doctrine",
     "every",
     "json",
     "check",
@@ -1241,6 +1306,8 @@ export function parseArgs(argv: readonly string[]): TraceOptions {
     "rival",
     "kit",
     "rival-kit",
+    "doctrine",
+    "rival-doctrine",
     "every",
   ])
   for (let index = 0; index < argv.length; index++) {
@@ -1261,6 +1328,8 @@ export function parseArgs(argv: readonly string[]): TraceOptions {
     rival: stringFlag(argv, "rival", DEFAULT_RIVAL),
     kit: kitFlag(argv, "kit"),
     rivalKit: kitFlag(argv, "rival-kit"),
+    doctrine: doctrineFlag(argv, "doctrine"),
+    rivalDoctrine: doctrineFlag(argv, "rival-doctrine"),
     every: integerFlag(argv, "every", 0, 1),
     json: flagOn(argv, "json"),
     check: flagOn(argv, "check"),
