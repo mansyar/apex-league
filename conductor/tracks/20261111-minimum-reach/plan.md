@@ -33,7 +33,7 @@
 - **Verification:** `bun run verify` and `bun run build` as two separate commands
 - **Status:** verified
 - **Result:** verified
-- **Checkpoint:** PENDING_CHECKPOINT
+- **Checkpoint:** dd3ab23d
 - **Evidence:** conductor/tracks/20261111-minimum-reach/verification/phase-2.md
 
 - [x] **P2.T1: One interval test in contact** — covers: FR-2, AC-2
