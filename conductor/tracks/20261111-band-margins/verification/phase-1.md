@@ -65,3 +65,11 @@ None. No file outside Touches was read for modification; `packages/sim/src/battl
 ## Notes
 
 Read-only phase by design: ran the two gate commands, recorded figures, no fixes applied. No FAIL lines in either output. Evidence file committed on the track branch.
+
+## Primary verification
+
+- Independent `bun run balance` exit 0: 15/15 species ok, capShare 23.5%, median 30.16s, decisive 94.9%, damage 49/49. Matches the evidence tables row for row.
+- Independent `bun run telemetry` exit 0: 13/13 ok, capShare 7/14 = 50.0% at bound.
+- Range `ca2e94af..HEAD` holds exactly the one reported evidence commit; working tree clean.
+- AC-1 satisfied: gate state on file, green, Phase 2 does not execute. Thin margins unchanged (ox 46.4%, voltfox 45.5%, water 57.1% waived) — recorded, not hardened, per the roadmap rule.
+- Squashed to the track-level message below; no code or test changed at any point.
