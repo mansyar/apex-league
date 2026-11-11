@@ -1,30 +1,15 @@
-# Review — Presentation Mapping
+# Review record — Presentation Mapping
 
-## Round 1: PASS WITH FINDINGS
+## Round 1: PASS WITH FINDINGS (5 findings)
+- F1 Medium: slip travel trips the roll pose → fixed in Phase R1 via D1 dodge-burst stream flag.
+- F2 Medium: same-startup rows read longest reach → fixed in Phase R1 via D1 move-index stream field.
+- F3 Low: forward-only roll tuck → fixed (lateral share channel).
+- F4 Low: unjustified `as` at reduced-flash.ts:95 → fixed (typed FlashMesh).
+- F5 Low: first-sample default wedge → fixed (hidden while runSteps < 2).
 
-- Range: `3c525eae..ff78be76` · Reviewer: conductor-reviewer (read-only).
-- Replay parity holds (empty sim diff confirmed by reviewer via git; hash
-  `0xc579e9ae` unchanged; no wall clock or randomness in new code — the only
-  `Math.random` nearby is pre-existing burst scatter that never feeds the sim).
-- Reduced-motion contract holds (identical pose/stage/verdict, parity test +
-  live reduced spars at both widths).
-- Module seams clean; all touched files under 12,288 B
-  (`fighter-driver.ts` 12,147 B closest — 141 B headroom).
+## Round 2: PASS WITH FINDINGS (2 Low)
+- Scope: full track range `3c525eae..HEAD`; reviewer confirmed all five round-1 findings genuinely closed and pinned, D1 export behavior-free (spare-bit packing inverts exactly, replay hash `0xc579e9ae` intact, balance bands untouched), full FR/AC/NFR coverage, targeted suites 185/185 green, module-size guards green.
+- F6 Low (docs): spec §Out of Scope still bars `packages/sim` changes while D1 ships → fix in Phase R2 (one-line carve-out).
+- F7 Low (NFR-2): fighter-driver.ts at 12,272 B (16 B headroom) → fix in Phase R2 (pre-emptive extraction of the pose-application block).
 
-## Findings
-
-- **F1 Medium (FR-3, open):** slip cuts (~50–90 mm/step) trip `ROLL_TRAVEL_MM`
-  (50), so routine Circle footwork plays a dodge tuck. No threshold separates
-  slip from dodge (floor 60); honest fix needs a dodge flag on `StreamFrame`
-  — a sim change barred by this track's scope.
-- **F2 Medium (FR-6, open):** longest-reach collisions overstate guard/wall tells
-  by ~40–55% (ion_wall 4400→6200 etc.). A per-startup override cannot fix it
-  without a move id; honest fix is a stream move-id/reach export in a follow-up.
-- **F3 Low (FR-3):** roll tuck always forward, even for lateral dodges.
-- **F4 Low (style):** unjustified `as` assertion, `reduced-flash.ts:95`.
-- **F5 Low (FR-6):** first startup frame paints the basic default for one step.
-
-## Reviewer needs (primary to confirm)
-
-- `bun run verify` on the final tree (running in background at review time).
-- Module-size guard on the final tree.
+No open Medium/High findings. No bound widened, no `test.failing`, no balance number changed across either round.

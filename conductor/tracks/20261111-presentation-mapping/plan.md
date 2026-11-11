@@ -92,3 +92,14 @@
     - [x] **R1.F4.1:** Guard or type the value at `reduced-flash.ts:95` instead of casting.
   - [x] **R1.F5: No default wedge on the first sample** — covers: FR-6
     - [x] **R1.F5.1:** Hide the telegraph while `runSteps < 2`; pin with a test.
+
+## Phase R2: Review Fixes (round 2)
+- **Goal:** Close both round-2 Low findings: spec scope wording and driver headroom.
+- **Depends on:** Phase R1 (5705f603)
+- **Covers:** NFR-1, NFR-2
+- **Touches:** spec.md (F6 one-liner), fighter-driver.ts + one new co-located module (F7 extraction), co-located tests
+- **Verification:** `bun run verify && bun run build`
+- **Status:** in_progress
+- **Tasks:**
+  - [ ] **R2.F6: Spec carves out the D1 export**
+  - [ ] **R2.F7: Extract the pose-application block**

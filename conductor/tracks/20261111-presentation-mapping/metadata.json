@@ -18,7 +18,7 @@
     "tasks_done": 0,
     "tasks_total": 13
   },
-  "review_rounds": 1,
+  "review_rounds": 2,
   "review_verdict": "PASS WITH FINDINGS",
   "revert_commit": null,
   "revert_pr_url": null,
@@ -29,5 +29,6 @@
   "type": "feature",
   "updated_at": "2026-11-11T13:40:00+11:00",
   "phases_verified": 4,
-  "tasks_done": 18
+  "tasks_done": 18,
+  "tasks_total": 20
 }
