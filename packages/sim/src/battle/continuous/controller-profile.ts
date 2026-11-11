@@ -80,7 +80,7 @@ export const DOCTRINES: Readonly<Record<DoctrineId, Doctrine>> = Object.freeze({
     // Phase 8 (FR-20): press reaches 1500, so kite stands outside it at 1600.
     floorPermille: 1600,
     ceilingPermille: 2050,
-    aggression: 40,
+    aggression: 55,
     strafeBias: 30,
     dodgeThresholdMm: 3200,
     commit: "always",

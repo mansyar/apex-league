@@ -30,7 +30,6 @@ import {
   CUP_ROUNDS,
   type CupSession,
   chooseStarter,
-  completeCup,
   createInitialState,
   cupPlacement,
   defaultLoadout,
@@ -239,11 +238,13 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
       // narrowed the spread floor and it moved back; the roll is what decides it.
       // Roster ripple (phase 13, FR-5): the stat re-roll moves QF3 back to
       // Thistledown Ash.
+      // Kite-verdict ripple (phase 2, FR-3): Kite aggression 40 -> 55 hands
+      // QF3 to Gilded Horn; the rest hold.
       {
         seed: 19,
         rivalWinners: [
           "Driftbelle",
-          "Thistledown Ash",
+          "Gilded Horn",
           "Tidecaller Nibbles",
           "Tidecaller Nibbles",
         ],
@@ -325,7 +326,10 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
   // Execution-noise ripple (variance Phase 2): per-seed commit timing and
   // dodge-side noise costs the player the final, so the champion path this
   // test used to pin is now a final loss.
-  test("final loss: seed 11, specials — placement 2, champion via completeCup", () => {
+  // Kite-verdict ripple (phase 2, FR-3): Kite aggression 40 -> 55 hands the
+  // player the final, so the final loss this test used to pin is now a
+  // champion path once more.
+  test("champion path: seed 11, specials — placement 1", () => {
     // Pacing ripple (battle-balance phase 8, FR-20): the shorter fights handed the
     // semifinal to Gilded Horn. R1 (battle-balance) re-pinned again: the
     // scaled-down authored ladder sweeps the bracket, so this seed is a
@@ -334,14 +338,13 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     // dodge-side noise costs the player a fight; the received exit is pinned
     // below.
     const creature = cupDayCreature()
-    const elim = playToCompletion(creature, 7, 11, "specials")
-    expect(elim.status).toBe("eliminated")
-    expect(elim.playerVerdicts).toHaveLength(3)
-    expect(elim.playerVerdicts[2]?.winner).toBe("Emberhold Flicker")
-    expect(cupPlacement(elim)).toBe(2)
-    // The final loss leaves the SF2 winner as champion: no more fights.
-    const done = completeCup(elim)
-    expect(done.championName).toBe("Emberhold Flicker")
+    const done = playToCompletion(creature, 7, 11, "specials")
+    expect(done.status).toBe("champion")
+    expect(done.playerVerdicts).toHaveLength(3)
+    expect(done.playerVerdicts[2]?.winner).toBe("Ember Drake")
+    expect(cupPlacement(done)).toBe(1)
+    // The sweep leaves no one else to crown: no completion fights.
+    expect(done.championName).toBe("Ember Drake")
     expect(done.completionVerdicts).toHaveLength(0)
   })
 
