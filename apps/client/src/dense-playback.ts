@@ -1,4 +1,9 @@
-import { type FightStream, readFrame, type StreamFrame } from "@apex/sim"
+import {
+  type FightStream,
+  readFrame,
+  STREAM_PHASE,
+  type StreamFrame,
+} from "@apex/sim"
 import type * as THREE from "three"
 import { clamp01 } from "./anim"
 import { bodyProfileOf, MM_TO_WORLD, simX, simZ } from "./arena-scale"
@@ -10,6 +15,7 @@ import {
   createPoseTracker,
   type PoseTracker,
 } from "./pose-track"
+import { createReducedReporter } from "./reduced-flash"
 import type { BattleEffects } from "./staging-fx"
 import { koFall } from "./steps/pure"
 import { createTellSet, type TellSet } from "./tell-wedge"
@@ -119,8 +125,14 @@ export function createDenseStage(io: {
   effects: BattleEffects
   /** Camera punch only — dense playback never freezes the stream. */
   shake: (strength: number) => void
+  /** Reduced-motion read: flashes replace poses, bursts and the wedge. */
+  pref?: () => "full" | "reduced"
 }): DenseStage {
   const tells: TellSet = createTellSet(io.arenaGroup)
+  // Reduced-motion reports (FR-9): static flashes own every entry edge.
+  // Full motion never touches the reporter; reduced never touches bursts.
+  const reducedUi = createReducedReporter({ arenaGroup: io.arenaGroup })
+  const reduced = (): boolean => io.pref?.() === "reduced"
   // Phase-1 poses: one step-counted tracker per side maps each frame onto
   // exactly one pose (the driver renders it). The KO path below still owns
   // a downed body — a "ko" pose never reaches the driver's pose channels.
@@ -226,33 +238,62 @@ export function createDenseStage(io: {
           c.stage.x = simX(frame.x + nudges[side].x)
           c.stage.z = simZ(frame.z + nudges[side].z)
         }
-        showTell(
-          side,
-          c,
-          frame,
-          pair[side] ?? DEFAULT_RADIUS_MM,
-          stream.stepMs,
-          step,
-        )
+        // Reduced motion hides the wedge: the startup entry flashes once.
+        const charging = frame.phase === STREAM_PHASE.startup
+        if (reduced()) {
+          reducedUi.startup(side, charging, fresh, c.group.position)
+        } else {
+          showTell(
+            side,
+            c,
+            frame,
+            pair[side] ?? DEFAULT_RADIUS_MM,
+            stream.stepMs,
+            step,
+          )
+        }
         const pose = poses[side].update(step, frame, foe, contactMm)
         c.pose = pose.pose
         c.poseK = pose.intensity
+        // Reduced motion reports dodges and clinches the full path poses.
+        if (reduced()) {
+          reducedUi.pose(side, pose.pose, frame.pinned, fresh, c.group.position)
+        }
         // The fence pin reports on its rising edge: the recoil pose reads
         // at full intensity with planted feet (the driver parks the gait)
         // and this dust ring marks the pinned feet. No flash, no punch.
         if (fresh && frame.pinned && !wasPinned[side]) {
-          io.effects.spawnBurst(c.group.position, undefined, PIN_BURST)
+          if (reduced()) {
+            reducedUi.pin(c.group.position)
+          } else {
+            io.effects.spawnBurst(c.group.position, undefined, PIN_BURST)
+          }
         }
         wasPinned[side] = frame.pinned
         if (fresh && lastHp[side] > 0 && frame.hp < lastHp[side]) {
-          react(c, lastHp[side] - frame.hp)
+          // The KO owns its own report (topple below): a killing blow must
+          // flash once as the ko, never twice as a hit plus a ko.
+          if (reduced()) {
+            if (frame.hp > 0) {
+              reducedUi.hit(pose.pose, frame.pinned, c.group.position)
+            }
+          } else {
+            react(c, lastHp[side] - frame.hp)
+          }
         }
-        if (frame.hp <= 0 || downAt[side] >= 0) topple(side, c, step, fresh)
+        if (frame.hp <= 0 || downAt[side] >= 0) {
+          if (reduced()) {
+            reducedUi.ko(side, step, fresh, c, c.group.position)
+          } else {
+            topple(side, c, step, fresh)
+          }
+        }
         lastHp[side] = frame.hp
       }
     },
     reset() {
       tells.reset()
+      reducedUi.reset()
       for (const tracker of poses) tracker.reset()
       lastHp[0] = 0
       lastHp[1] = 0
@@ -266,6 +307,7 @@ export function createDenseStage(io: {
     },
     dispose() {
       tells.dispose()
+      reducedUi.disposeAll()
     },
   }
 }
