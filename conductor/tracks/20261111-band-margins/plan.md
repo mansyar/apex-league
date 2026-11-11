@@ -14,7 +14,7 @@
 - **Covers:** FR-1, AC-1
 - **Touches:** `packages/sim/scripts/battle-balance-report.ts` (read-only run), `packages/sim/src/battle/continuous/balance-report.test.ts` (only if output format drifted)
 - **Verification:** `bun run balance` and `bun run telemetry` as two separate commands
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Run the gate on the current tree** — covers: FR-1
   - [ ] **P1.T1.1: Record per-row rates, distinct counts, and pacing figures against the shipped bounds.**
