@@ -8,7 +8,7 @@
   "depends_on": [],
   "doc_sync": "pending",
   "id": "20261111-minimum-reach",
-  "last_checkpoint": "dd3ab23d",
+  "last_checkpoint": "09ca1ee3",
   "plan": "conductor/tracks/20261111-minimum-reach/plan.md",
   "pr_revert_url": null,
   "pr_state": null,
@@ -16,8 +16,8 @@
   "priority": "high",
   "progress": {
     "phases_total": 5,
-    "phases_verified": 2,
-    "tasks_done": 8,
+    "phases_verified": 3,
+    "tasks_done": 11,
     "tasks_total": 17
   },
   "revert_commit": null,
@@ -29,5 +29,5 @@
   "status": "in_progress",
   "title": "Minimum Reach",
   "type": "feature",
-  "updated_at": "2026-11-12T09:40:00+11:00"
+  "updated_at": "2026-11-12T11:02:00+11:00"
 }

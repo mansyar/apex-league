@@ -56,14 +56,17 @@
 - **Covers:** FR-7, AC-10, NFR-2
 - **Touches:** `packages/sim/scripts/battle-telemetry.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`
 - **Verification:** `bun run telemetry`, `bun run verify`, `bun run build` — three separate commands
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 09ca1ee3
+- **Evidence:** conductor/tracks/20261111-minimum-reach/verification/phase-3.md
 
-- [ ] **P3.T1: Widen the sample** — covers: FR-7, AC-10
-  - [ ] **P3.T1.1: Raise the seeded matchup count from 14 to at least 40, keeping the existing matchup families, and print the per-metric spread so a reader can see the estimate is stable.**
-- [ ] **P3.T2: Re-derive every bound** — covers: FR-7, NFR-2, AC-10
-  - [ ] **P3.T2.1: Record a before/after table for all 13 bounds at the new sample size, choose each value with stated headroom, and never lower a floor; the approval for this exception is noted in the bound docs.**
-- [ ] **P3.T3: Pin the sample** — covers: FR-7, NFR-3
-  - [ ] **P3.T3.1: `telemetry.test.ts` asserts the new sample size and every re-derived value, and the widened run still fits the phase budget.**
+- [x] **P3.T1: Widen the sample** — covers: FR-7, AC-10
+  - [x] **P3.T1.1: Raise the seeded matchup count from 14 to at least 40, keeping the existing matchup families, and print the per-metric spread so a reader can see the estimate is stable.**
+- [x] **P3.T2: Re-derive every bound** — covers: FR-7, NFR-2, AC-10
+  - [x] **P3.T2.1: Record a before/after table for all 13 bounds at the new sample size, choose each value with stated headroom, and never lower a floor; the approval for this exception is noted in the bound docs.**
+- [x] **P3.T3: Pin the sample** — covers: FR-7, NFR-3
+  - [x] **P3.T3.1: `telemetry.test.ts` asserts the new sample size and every re-derived value, and the widened run still fits the phase budget.**
 
 ## Phase 4: Retreat-to-fight and the authored dead zone
 
