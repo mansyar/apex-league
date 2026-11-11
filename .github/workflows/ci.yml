@@ -6,8 +6,14 @@ name: CI
 on:
   pull_request:
     branches: [main]
+    paths-ignore:
+      # Conductor state (specs, plans, metadata, evidence) is reviewed as
+      # content, not code. Conductor-only changes skip CI entirely.
+      - 'conductor/**'
   push:
     branches: [main]
+    paths-ignore:
+      - 'conductor/**'
 
 permissions:
   contents: read
