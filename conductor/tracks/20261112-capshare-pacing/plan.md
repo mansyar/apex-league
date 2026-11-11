@@ -19,7 +19,7 @@
 - **Verification:** `bun run telemetry` reproduces 25/42 and the evidence names a
   cause for each; `bun run trace --seed 20261108 --check` replays a stalled fight
   and its summary shows the standoff.
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Reproduce the sample and tabulate the time-outs** — covers: FR-1
   - [ ] **P1.T1.1: List every time-out with its pairing, seed and both sides' tactic** (seed parity flips `balanced`/`specials`)
