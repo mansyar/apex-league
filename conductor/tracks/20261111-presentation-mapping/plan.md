@@ -99,7 +99,10 @@
 - **Covers:** NFR-1, NFR-2
 - **Touches:** spec.md (F6 one-liner), fighter-driver.ts + one new co-located module (F7 extraction), co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** e91a017b
+- **Evidence:** conductor/tracks/20261111-presentation-mapping/verification/phase-R2.md
 - **Tasks:**
-  - [ ] **R2.F6: Spec carves out the D1 export**
-  - [ ] **R2.F7: Extract the pose-application block**
+  - [x] **R2.F6: Spec carves out the D1 export**
+  - [x] **R2.F7: Extract the pose-application block**
