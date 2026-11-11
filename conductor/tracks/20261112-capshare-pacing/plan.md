@@ -52,20 +52,33 @@ The primary appends after acceptance:
   `packages/sim/src/cup/**`
 - **Verification:** `bun run balance`, then `bun run telemetry`, then
   `bun run verify`, then `bun run build` (four separate commands)
-- **Status:** in_progress
+- **Status:** blocked
+- **Result:** blocked — resolved by withdrawing FR-2 on 2026-11-12; the identity
+  guard is the surviving deliverable
+- **Checkpoint:** 99d2a618
+- **Evidence:** conductor/tracks/20261112-capshare-pacing/verification/phase-2.md
 
-- [ ] **P2.T1: Write the identity guard first** — covers: FR-2a
-  - [ ] **P2.T1.1: A test pins `spd` bounds exactly `[3, 5]`, `hp`/`def` bounds no lower than shipped, `temperament === "slow"`, `archetypeId === "tortoise"`, `element === "earth"`, and every kit id inside the six it shipped with**
-  - [ ] **P2.T1.2: Confirm the guard passes on the untouched tree, so it is a fence and not a wish**
-- [ ] **P2.T2: Choose the lever inside the tortoise's own data** — covers: FR-2
-  - [ ] **P2.T2.1: Try stat movement inside the existing bounds first (its `atk`/`hp` envelope), measuring `bun run telemetry` after each candidate**
-  - [ ] **P2.T2.2: If stats are not enough, change which four of its six moves the kit selects — never add a move it does not own, never raise `spd`**
-  - [ ] **P2.T2.3: Record every candidate and its telemetry reading, including the rejected ones**
-- [ ] **P2.T3: Keep the 840-fight roster honest** — covers: FR-5
-  - [ ] **P2.T3.1: `bun run balance` stays green: 15/15 species in band, cap ≤ 1/3, median 25–40 s, decisive ≥ 2/3, 49/49 moves in the 4–12% damage band**
-  - [ ] **P2.T3.2: Re-pin only the figures the change moved, each with a comment; no tolerance, floor or `DISTINCT_FLOOR` is edited**
-- [ ] **P2.T4: Settle the version guard** — covers: FR-7
-  - [ ] **P2.T4.1: Prove the fix touched neither controller policy nor frame data, so `SIM_VERSION` stays 3 and the ghost pins pass unchanged; if it did, bump to 4 and update the pins**
+- [x] **P2.T1: Write the identity guard first** — covers: FR-2a
+  - [x] **P2.T1.1: A test pins `spd` bounds exactly `[3, 5]`, `hp`/`def` bounds no lower than shipped, `temperament === "slow"`, `archetypeId === "tortoise"`, `element === "earth"`, and every kit id inside the six it shipped with**
+  - [x] **P2.T1.2: Confirm the guard passes on the untouched tree, so it is a fence and not a wish**
+- [x] **P2.T2: Choose the lever inside the tortoise's own data** — covers: FR-2
+  - [x] **P2.T2.1: Try stat movement inside the existing bounds first (its `atk`/`hp` envelope), measuring `bun run telemetry` after each candidate**
+  - [x] **P2.T2.2: If stats are not enough, change which four of its six moves the kit selects — never add a move it does not own, never raise `spd`**
+  - [x] **P2.T2.3: Record every candidate and its telemetry reading, including the rejected ones** — six rungs; none resolved a collapse fight without breaking the species band
+- [x] **P2.T3: Keep the 840-fight roster honest** — covers: FR-5
+  - [x] **P2.T3.1: `bun run balance` stays green: 15/15 species in band, cap ≤ 1/3, median 25–40 s, decisive ≥ 2/3, 49/49 moves in the 4–12% damage band**
+  - [x] **P2.T3.2: Re-pin only the figures the change moved, each with a comment; no tolerance, floor or `DISTINCT_FLOOR` is edited** — nothing moved, so nothing was re-pinned
+- [x] **P2.T4: Settle the version guard** — covers: FR-7
+  - [x] **P2.T4.1: Prove the fix touched neither controller policy nor frame data, so `SIM_VERSION` stays 3 and the ghost pins pass unchanged; if it did, bump to 4 and update the pins**
+
+> **Why this phase is blocked, and why that is the answer.** Six
+> identity-preserving rungs were measured. Every green rung resolves **zero** of
+> the tortoise's nine collapse fights; the cheapest rung that resolves any takes it
+> to **65.2%** on the 840-fight matrix. The species is already balanced at
+> **52.7% as an outlaster**, and this project rules that a cap win is an outlasting
+> win — so its caps are its identity working. FR-2 and AC-2 were withdrawn
+> (`spec.md`, 2026-11-12); the guard (FR-2a/AC-2a) ships, no species value changed,
+> and `rewards.ts` is byte-identical to the phase base.
 
 <!--
 The primary appends after acceptance:
@@ -79,7 +92,9 @@ The primary appends after acceptance:
 - **Goal:** `matchups()` returns 42 distinct pairings spread across the roster,
   `capShare` reads at most 52% on them with the 3/5 ceiling untouched, and both
   readings are recorded side by side.
-- **Depends on:** Phase 2
+- **Depends on:** Phase 2 (blocked, resolved by withdrawing FR-2 — the guard is in
+  place and no species value moved, so the sample can be re-composed against a
+  stable roster)
 - **Covers:** FR-3, FR-4, FR-6, FR-8, FR-9, AC-3, AC-4, AC-6, AC-8, AC-9
 - **Touches:** `packages/sim/scripts/battle-telemetry.ts`,
   `packages/sim/src/battle/continuous/telemetry.test.ts`,

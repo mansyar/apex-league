@@ -52,17 +52,19 @@ with no room to measure.
 
 ## Goals & Success Metrics
 
-- **Goal:** the fixture's cap share reflects the roster's pacing, and the one
-  species that stalls can close — **without ceasing to be a tortoise.**
+- **Goal:** the fixture's cap share reflects the roster's pacing rather than its
+  own composition, and the one species that stalls is left **intact** — its caps
+  are its identity, not a defect.
 - **Metric:** `capShare` at most **52%** on a re-composed 42-distinct-pairing
   sample (at most 21 of 42), with the 3/5 ceiling left at its current value, and
   the 840-fight balance matrix still green.
 - **Metric:** the identity guard holds — `spd` still `[3, 5]`, `temperament`
   still `"slow"`, the kit still its own six moves, `hp`/`def` not lowered — and
-  the tortoise's win rate stays inside the species band rather than swinging to
-  either extreme.
-- **Goal:** the diagnosis is written down before anything is changed, so the fix
-  is traceable to a cause rather than to a number.
+  no species value ships changed at all, because the six measured rungs showed the
+  fix would cost the tortoise its balance.
+- **Goal:** the diagnosis is written down before anything is changed, so any fix
+  is traceable to a cause rather than to a number — including the fix that was
+  measured, rejected and withdrawn.
 
 ## Scope
 
@@ -70,13 +72,13 @@ with no room to measure.
 
 - A written diagnosis of the stalling pairings: which side fails to close, what
   its threat band, reach and kit say, and why the fight reaches the cap.
-- A fix **inside `earth_tortoise`'s own authored data** — its stat bounds and the
-  four moves its kit selects — that **preserves its identity**: it stays the
-  slowest body in the roster (`spd` bounds `[3, 5]`, unchanged), the tankiest
-  earth wall (`hp`/`def` bounds not lowered), `temperament: "slow"` and
-  `archetypeId: "tortoise"` unchanged, and its kit drawn only from the six moves
-  it already owns. It may be made *effective* from where it stands; it may not be
-  made *fast*, *aggressive* or *re-skinned*. No shared rule moves.
+- An identity guard on `earth_tortoise` — a test that pins the slowest body in the
+  roster (`spd` bounds `[3, 5]`), the tankiest earth wall (`hp`/`def` bounds not
+  lowered), `temperament: "slow"`, `archetypeId: "tortoise"` and a kit drawn only
+  from the six moves it already owns — so that no future pacing pass can "fix" the
+  stall by quietly deleting the species. **No species value changes.** A fix inside
+  the tortoise's own data was measured across six rungs and withdrawn; the
+  evidence and the reason are in `verification/phase-2.md`.
 - Re-composing `matchups()` in `packages/sim/scripts/battle-telemetry.ts` from
   14 pairings × 3 seeds to **42 distinct pairings, one seed each**, keeping the
   roster walk, the no-mirror rule and determinism.
@@ -110,7 +112,7 @@ with no room to measure.
 | ID | Requirement | Priority |
 | --- | --- | --- |
 | FR-1 | Before any change, the track records a per-pairing diagnosis of every time-out in the shipped sample: the stalling side, its gap at the cap, its threat band versus its own reach, and its kit. | Must |
-| FR-2 | The fix changes only `earth_tortoise`'s authored stat bounds and kit selection. No other species, and no shared rule, is edited. | Must |
+| FR-2 | **Withdrawn 2026-11-12.** ~~The fix changes only `earth_tortoise`'s authored stat bounds and kit selection.~~ Six identity-preserving rungs were measured and every one of them resolves **zero** of the tortoise's nine collapse fights; the cheapest rung that resolves any takes it to 65.2% on the 840-fight matrix and fails the species band. The species is already balanced at 52.7% *as an outlaster*, and this project rules that a cap win is an outlasting win, so its stalls are its identity working rather than a defect to fix. Evidence: `verification/phase-2.md`. | Withdrawn |
 | FR-2a | The fix preserves the tortoise's identity: `spd` bounds stay `[3, 5]`, `hp`/`def` bounds are not lowered, `temperament` stays `"slow"`, `archetypeId` stays `"tortoise"`, `element` stays `earth`, and the kit is drawn only from the six moves it already owns (`pebble_shot`, `dust_devil`, `clay_burst`, `boulder_toss`, `sand_blast`, `tectonic_slam`). A fix that only works by making it faster is out of bounds. | Must |
 | FR-3 | `matchups()` returns 42 distinct pairings, one seed each, no mirrors, drawn by a written rule over the full 210-pair enumeration (not hand-picked), so the sample stays deterministic, reproducible, and spread across the roster rather than reusing three away species. | Must |
 | FR-4 | `capShare` reads at most 52% (`cap.count * 100 <= 52 * cap.total`, i.e. at most 21 of 42) on the re-composed sample, and the ceiling stays 3/5. | Must |
@@ -134,7 +136,7 @@ with no room to measure.
 | ID | Criterion | Verifies |
 | --- | --- | --- |
 | AC-1 | The diagnosis exists and names, for every time-out in the shipped sample, the stalling side and the geometric or policy reason it did not close. | FR-1 |
-| AC-2 | `git diff` on species data touches only `earth_tortoise`; the shared band, controller and frame data are unchanged. | FR-2 |
+| AC-2 | **Withdrawn 2026-11-12** with FR-2. No species value ships changed; `packages/sim/src/species/rewards.ts` is byte-identical to the phase base, which `git diff --stat` proves. | FR-2 |
 | AC-2a | A test pins the identity invariants: `spd` bounds exactly `[3, 5]`, `hp`/`def` bounds no lower than shipped, `temperament === "slow"`, `archetypeId === "tortoise"`, `element === "earth"`, and every kit id inside the six it shipped with. | FR-2a |
 | AC-3 | `matchups()` returns 42 entries, all pairings distinct, no mirrors, the same list on two calls, and every species appears as home and as away at least twice (the shipped walk only ever put three species on the away side). | FR-3 |
 | AC-4 | `bun run telemetry` exits 0 and prints `capShare` at most 21/42 with the 3/5 bound unchanged in the source. | FR-4 |
@@ -193,12 +195,26 @@ with no room to measure.
   stays the slowest, tankiest earth body with `temperament: "slow"` and its own
   six moves; the fix may make it effective from a standstill, never fast. Pinned
   mechanically by AC-2a so the cheapest fix — raising `spd` — cannot pass.
+- **Decided 2026-11-12 (withdrawal):** the fix is withdrawn and the guard kept.
+  Six rungs were measured (`verification/phase-2.md`): the brief's preferred kit
+  reorder resolves 0 of the 9 collapses; reorder + `atk` 13 resolves 0; evicting
+  `boulder_toss` resolves 2 but takes the tortoise to 71.4% and the matrix red;
+  the same kit at shipped `atk` still reads 65.2%, so the kit is the oppressor.
+  The tortoise sits at 52.7% on the 840-fight matrix *as an outlaster*, and this
+  project already rules that a cap win is an outlasting win — so its nine caps are
+  its design working. The guard ships; the sample re-composition carries the
+  target; the global 16 become debt **D-1** and the kite-band/spd mismatch **D-2**.
 - **Assumption:** the stall is tortoise-shaped. The diagnosis phase exists to
   confirm or refute this before any value changes; if refuted, the track reports
-  rather than widening its own scope.
+  rather than widening its own scope. **Refuted 2026-11-12:** 9 of 25 time-outs are
+  the tortoise's own, 16 are global throughput (D-1), and six identity-preserving
+  rungs resolved none of the 9 — so FR-2 was withdrawn and the track reports, as
+  this assumption required.
 - **Assumption:** ≤ 52% is reachable without engine pressure. If the fixture
-  cannot get there by fixing one species and re-composing the sample, that is a
-  finding about the game's pacing, not a reason to move the bound.
+  cannot get there by re-composing the sample, that is a finding about the game's
+  pacing, not a reason to move the bound. **Still open:** Phase 3 is now the only
+  lever, and if the re-composed sample lands above 52% the track stops and reports
+  rather than relaxing the target or re-picking pairings.
 - **Assumption:** `pacing.test.ts` and the telemetry sample are separate fixtures
   that happen to share a roster walk today; only telemetry is re-composed here.
 

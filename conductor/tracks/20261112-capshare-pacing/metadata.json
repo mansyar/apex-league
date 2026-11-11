@@ -17,7 +17,7 @@
   "progress": {
     "phases_total": 3,
     "phases_verified": 1,
-    "tasks_done": 2,
+    "tasks_done": 6,
     "tasks_total": 10
   },
   "revert_commit": null,
@@ -29,5 +29,5 @@
   "status": "in_progress",
   "title": "Capshare Pacing",
   "type": "chore",
-  "updated_at": "2026-11-12T18:05:00+11:00"
+  "updated_at": "2026-11-12T19:05:00+11:00"
 }
