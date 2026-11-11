@@ -56,7 +56,7 @@
 - **Covers:** FR-7, AC-10, NFR-2
 - **Touches:** `packages/sim/scripts/battle-telemetry.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`
 - **Verification:** `bun run telemetry`, `bun run verify`, `bun run build` — three separate commands
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Widen the sample** — covers: FR-7, AC-10
   - [ ] **P3.T1.1: Raise the seeded matchup count from 14 to at least 40, keeping the existing matchup families, and print the per-metric spread so a reader can see the estimate is stable.**
