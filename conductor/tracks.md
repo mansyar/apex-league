@@ -43,4 +43,4 @@
 - [x] **Track: Battle Variance** - [20261110-battle-variance](./archive/20261110-battle-variance/index.md) - feature - high
 - [x] **Track: Roster Re-tune** - [20261111-roster-retune](./archive/20261111-roster-retune/index.md) - feature - high
 - [x] **Track: Presentation Mapping** - [20261111-presentation-mapping](./archive/20261111-presentation-mapping/index.md) - feature - high
-- [ ] **Track: Kite Verdict** - [20261111-kite-verdict](./tracks/20261111-kite-verdict/index.md) - feature - high
+- [~] **Track: Kite Verdict** - [20261111-kite-verdict](./tracks/20261111-kite-verdict/index.md) - feature - high
