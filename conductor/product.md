@@ -224,7 +224,21 @@ Phased delivery plan (each phase is independently playable):
      57.1% is waived) — never pre-emptive.
   4. Minimum reach / dead zones: long moves need a blind spot, but it
      changes outcomes, so it ships with the balance track alongside, not
-     as a presentation tweak.
+     as a presentation tweak. **Landed 2026-11-12:** every frame row carries
+     an authored `minReachMm` (90 mm on all 42 rows with `reachMm >= 5000`,
+     `0` on the short rows and the innate basic), strikes and shots resolve
+     only inside `[minReach + both radii, reach + both radii]`, and a blow
+     that fails only the inner edge reports a `range` miss. The chooser judges
+     the gap at the move's active frame rather than the current one, and a
+     fighter with no landing move fires a backing shot that gives ground so the
+     launch opens past the inner edge, falling back to a step back. Telemetry
+     grew from 14 to 42 fights, all thirteen bounds were re-derived with
+     before/after figures, and a fourteenth metric (`deadZoneShare`, 2.4%)
+     gates the blind spot; the tell wedge derives its inner edge from the same
+     authored value. `SIM_VERSION` is 3. Balance holds at 840 fights: 15/15
+     species, cap 26.7%, decisive 95.6%, 49/49 moves in band. The authored
+     value is gate-limited to a narrow window (~85-99 mm), and `capShare` sits
+     at 59.5% against a 60.0% ceiling — recorded as debt, not widened.
 
 ### Phase 3 — Content & Meta
 - Roster to 20-40 species across 6 types; rare tournament reward eggs.

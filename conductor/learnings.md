@@ -458,3 +458,38 @@ away later. Cost of the alternative on the table (move-id export for
 honest wall tells) was one more small export; taken only if the review
 demands it, since the current longest-reach reading is a documented
 approximation, not a leak.
+
+## 22. A dead zone is a switch, not a dial - because the interval is tested where the blow lands
+
+Minimum reach looked like a knob: author 1,200 mm on long moves and fighters
+learn to respect it. It is not. The interval is tested at the gap the blow
+resolves at, so the *effective* blind spot is `minReachMm + closing x startup`,
+which is 100-250 mm wider than the authored number for the fastest rows. The
+first sweep therefore went from "no dead zone" at 0 mm to 14/14 cap and 79% idle
+at 1,200 mm, and the smallest positive integer the validator accepts - 1 mm -
+already moved three species 8-13 points. Measure a mechanic's real range before
+promising a tuning curve.
+
+## 23. When a gate cannot measure the change, fix the gate first
+
+The 14-fight telemetry fixture read 7/14 caps and then produced a
+non-monotonic answer to a monotonic change: 50 mm -> 10/14, 150 -> 9/14, 300 ->
+8/14, 400 -> 10/14, while the 840-fight matrix said 23.5% throughout. The
+mechanic was not chaotic; the sample was. Widening to 42 fights (the same 14
+pairings x 3 seeds, so the first fight still matches byte for byte) and
+re-deriving all thirteen bounds with before/after figures turned the same
+question into a clean window: ~85-99 mm is accepted, 100 mm fails balance by one
+win, 75 mm fails telemetry by one fight. The approved exception to "never widen
+a bound" is the sample and its re-derivation - not the ceiling that a later
+mechanic trips.
+
+## 24. Refusing a shot costs a ranged kit its damage, so answer the blind spot by firing backwards
+
+With the chooser refusing every move whose active-frame gap fell inside the
+inner edge, `voltfox` fell to 32.1% - 3.8 standard errors below even - because a
+ranged kit told "not from here" has nothing else to do with its startup. The fix
+that unblocked the whole track was not a wider band or a smaller dead zone: it
+was letting the commit *give ground* so the launch opens outside the inner edge,
+with a step back as the fallback and the basic as the last resort. Whenever a new
+geometric rule removes an option, ask what the fighter does instead - the answer
+is usually an intent the controller already has, pointed the other way.
