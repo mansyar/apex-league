@@ -14,7 +14,7 @@
 - **Covers:** FR-1, FR-2, AC-1, AC-2
 - **Touches:** `packages/sim/scripts/battle-trace.ts`, `packages/sim/src/battle/continuous/balance-report.test.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Baseline the probe** — covers: FR-1
   - [ ] **P1.T1.1: Record wins and paid dodges per fight on pinned seeds.**
