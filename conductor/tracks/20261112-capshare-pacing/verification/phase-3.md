@@ -299,18 +299,30 @@ pin proves all of it at run time rather than by argument: 42 distinct pairings,
 second `matchups()` call returning the same list. I re-ran `bun run telemetry`
 myself and got the same `20/42`.
 
-**Finding — the fixture still does not read like the matrix, and the reason is the
-stat basis, not this change.** The re-composed sample measures 47.6% cap while the
-840-fight balance matrix measures 26.7% on the same tree. The difference is not
-composition any more: `measureFight` builds both sides from
-`REFERENCE = { hp: 189, atk: 10, def: 10, spd: 10 }` clamped *up* into each
-species' bounds (`atk 10` → 11 for the tortoise, 15 for a striker), whereas the
-balance report fights each species at its **bounds midpoint** (`atk` 13 for the
-tortoise). Reference-stat bodies hit softer and carry deeper effective pools, so
-more fights run out the clock. Recorded as **debt D-4**: the harness measures
-reference-stat pacing, not species pacing, and closing that gap means changing the
-stat basis of the gate — a measurement redesign this track did not approve. The
-`capShare` ceiling was chosen to absorb exactly that conservatism.
+**Finding — the fixture still does not read like the matrix, for at least two
+unseparated reasons.** The re-composed sample measures 47.6% cap while the 840-fight
+balance matrix measures 26.7% on the same tree. Composition is no longer the
+explanation — both now draw from the same roster — but the two samples still differ
+in two ways, and this phase did not isolate which one costs what:
+
+1. **Stat basis.** `measureFight` builds both sides from
+   `REFERENCE = { hp: 189, atk: 10, def: 10, spd: 10 }` clamped *up* into each
+   species' bounds (`atk 10` → 11 for the tortoise, 15 for a striker), whereas the
+   balance report fights each species at its **bounds midpoint** (`atk` 13 for the
+   tortoise). Reference-stat bodies hit softer and carry deeper effective pools.
+2. **Doctrine mix.** `measureFight` sets one side `balanced` and the other
+   `specials` — press versus kite in `controller-profile.ts` — so every fixture
+   fight is press-versus-kite, while the matrix runs one doctrine (press) on both
+   sides for all 840 fights. Phase 1's finding 2 already says the kite band is
+   unholdable at `spd 5`, so kite participation is a plausible co-cause.
+
+Recorded as **debt D-4** with the attribution explicitly **unmeasured**: the balance
+report prints win rates for its reference line but no cap share, so there is no
+existing figure that would separate the two. The honest claim is "the fixture is not
+a sample of the matrix's fight population, for at least these two reasons", not "the
+gap is the stat basis". A measurement redesign should add a reference-line cap share
+to `battle-balance-report.ts` — one diagnostic line — before acting on either
+variable. The `capShare` ceiling was chosen to absorb exactly that conservatism.
 
 **Debt still owed.** The spec's own one-in-three target is still missed: 20/42
 (47.6%) against 14/42. The pin is kept, not promoted. Phase 1's **D-1** (global
@@ -319,7 +331,12 @@ throughput shortfall) and **D-2** (kite band vs `spd 5`) remain the causes, and
 
 **AC verdicts.** AC-3 met (42 distinct pairings, every species home and away ≥ 2,
 pinned). AC-4 met (20/42 ≤ 21/42, with one fight of headroom, asserted in
-`telemetry.test.ts`). AC-6 met (14/14 bounds green, none widened or lowered). AC-8
-met trivially and provably (`SIM_VERSION` still 3; no simulation file in the diff).
-AC-9 met (both readings recorded side by side, with the not-comparable statement
-in the `BOUNDS` rationale, the test comment and this file).
+`telemetry.test.ts`). AC-6 met (`pacing.test.ts` untouched and re-run — 4 pass,
+0 fail, 87 assertions — with its `test.failing` still failing as designed and no
+`.skip` added). AC-7 met (`SIM_VERSION` still 3; no simulation file in the diff;
+the trace hash is unmoved). AC-8 met, amended: no `BOUNDS` value edited, and
+`deadZoneShare` reports 2.9% on the new sample against 2.4% on the old one — the
+same mechanic measured over a different fight set, which is why the criterion was
+amended rather than claimed. AC-9 met (both readings recorded side by side, with
+the not-comparable statement in the `BOUNDS` rationale, the test comment and this
+file).

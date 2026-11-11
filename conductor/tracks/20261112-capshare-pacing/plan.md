@@ -139,3 +139,27 @@ Review fixes are appended by `conductor-review` as:
 
 - [ ] **R1.T1: Resolve <finding ID>** — covers: <finding ID>
 -->
+
+## Phase R1: Review Fixes
+
+- **Goal:** Resolve the five findings from review round 1 — one Medium (an
+  unmeasured attribution stated as fact) and four Low (documentation accuracy) —
+  without touching a bound or a behaviour.
+- **Depends on:** Phase 3
+- **Covers:** review findings F1–F5
+- **Touches:** `conductor/tracks/20261112-capshare-pacing/spec.md`,
+  `verification/integrated.md`, `verification/phase-3.md`, `conductor/product.md`,
+  `conductor/learnings.md`, `packages/sim/scripts/battle-telemetry.ts` (comment
+  text only)
+- **Verification:** `bun test` on the three affected suites, then
+  `bun run telemetry`, then `bun run verify`
+- **Status:** verified
+- **Result:** verified — all five findings fixed, no bound or behaviour moved
+- **Checkpoint:** `3130937d` plus the fix commit
+- **Evidence:** `conductor/tracks/20261112-capshare-pacing/review.md`
+
+- [x] **R1.T1: Name both causes of the fixture-versus-matrix gap and mark the attribution unmeasured** — covers: F1
+- [x] **R1.T2: Correct the spec's time-out figures (15, not 12; ten pairings, not nine)** — covers: F2
+- [x] **R1.T3: Say "every green rung", naming the two rungs that resolved a fight** — covers: F3
+- [x] **R1.T4: Refresh the thirteen stale `BOUNDS` `why` measurements to the 42-distinct readings, labelled by sample** — covers: F4
+- [x] **R1.T5: Relabel the AC-6/7/8 verdicts in the phase 3 evidence** — covers: F5

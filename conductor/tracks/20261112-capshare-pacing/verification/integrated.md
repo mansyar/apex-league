@@ -70,13 +70,31 @@ AC-2a ship.
 - **D-3 (one-in-three target), still owed.** The re-composed sample reads 20/42
   (47.6%) against the spec's own 14/42 target. The `test.failing`-style debt pin is
   kept at `cap.count * 3 > cap.total`, not promoted.
-- **D-4 (stat basis), new.** The telemetry harness fights **reference-stat** bodies
-  (`REFERENCE = { hp: 189, atk: 10, def: 10, spd: 10 }` clamped *up* into each
-  species' bounds) while the balance matrix fights each species at its **bounds
-  midpoint**. Reference bodies hit softer and carry deeper effective pools, which
-  is why the same tree reads 47.6% cap on the fixture and 26.7% on the matrix.
-  Closing that gap is a measurement redesign, not a fixture tweak.
-- **Documentary:** the other thirteen `BOUNDS` `why` strings still quote the
-  shipped 14 × 3 readings (e.g. `distinctPositions` "65", `durationMin` "18.44 s");
-  several moved on the new sample. Left byte-identical deliberately so the diff
-  shows no value churn; the new per-bound values are in `phase-3.md` §3.
+- **D-4 (stat basis and doctrine mix), new.** The fixture reads 47.6% cap while
+  the balance matrix reads 26.7% on the same tree, and the two samples differ in
+  **two** ways, neither of which has been isolated:
+
+  1. **Stat basis.** The telemetry harness builds both sides from
+     `REFERENCE = { hp: 189, atk: 10, def: 10, spd: 10 }` clamped *up* into each
+     species' bounds (`atk 10` → 11 for the tortoise, 15 for a striker), whereas
+     the balance report fights each species at its **bounds midpoint** (`atk` 13
+     for the tortoise). Reference bodies hit softer and carry deeper effective
+     pools.
+  2. **Doctrine mix.** `measureFight` sets one side `balanced` and the other
+     `specials`, which `controller-profile.ts` maps to press and kite, so every
+     fixture fight is press-versus-kite; the matrix runs one doctrine (press) on
+     both sides for all 840 fights. Phase 1's finding 2 already says the kite band
+     is unholdable at `spd 5`, so kite participation is a plausible co-cause of
+     longer fights.
+
+  **Attribution unmeasured.** The track did not run a factorial that separates the
+  two, and the balance report prints win rates for its reference line but never a
+  cap share, so there is no existing figure to compare against. The honest reading
+  is "the fixture is not a sample of the matrix's fight population, for at least
+  these two reasons" — not "the gap is the stat basis". A future measurement
+  redesign should add a reference-line cap share to `battle-balance-report.ts` (one
+  diagnostic line) before acting on either variable.
+- **Documentary:** the thirteen other `BOUNDS` `why` strings quoted the shipped
+  14 × 3 readings. They now quote the 42-distinct readings and name the sample they
+  came from, so the gate's rationale and its output agree. The values themselves
+  were not touched.

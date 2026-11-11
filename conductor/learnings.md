@@ -504,8 +504,9 @@ and `SEEDS_PER_PAIRING = 3`, so the ten pairings that stalled each contributed
 often ten chosen matchups were replayed. Re-composing it to 42 *distinct* pairings
 (one seed each, a written stride-11 rule, a pin that proves distinctness, no
 mirrors and coverage) read 47.6%, and the remaining gap to the matrix turned out to
-be a second, unrelated property: the harness fights reference-stat bodies while the
-matrix fights each species at its bounds midpoint. Two lessons. First, before
+have at least two candidates, neither isolated: the harness fights reference-stat
+bodies while the matrix fights each species at its bounds midpoint, and the fixture
+runs press-versus-kite while the matrix runs press on both sides. Two lessons. First, before
 believing a fixture's number, count how many distinct samples it actually draws -
 a repeated pairing is a weighting, and a weighting set by a modulo is invisible
 until someone looks. Second, when a gate and a broader measurement disagree by more

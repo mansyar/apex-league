@@ -34,16 +34,19 @@ across it:
 
 Two facts follow, and both are defects of measurement as much as of pacing:
 
-1. **The stall is species-shaped.** `earth_tortoise` is a side in **12 of the 25**
+1. **The stall is species-shaped.** `earth_tortoise` is a side in **15 of the 25**
    time-outs. This is the long-standing "mobility residual" debt: a spd-5 body
    whose reach and threat band leave it unable to close, so both sides hold and
-   the fight runs out. Fixing it fixes most of the fixture.
-2. **The fixture triple-counts a pairing.** Nine stalled pairings produce
+   the fight runs out. Fixing it fixes most of the fixture. (Corrected
+   2026-11-12 from "12 of the 25", which the phase 1 per-fight table refuted.)
+2. **The fixture triple-counts a pairing.** **Ten** stalled pairings produce
    twenty-five time-outs because each pairing is fought three times. `capShare`
-   is therefore not a rate over forty-two fights; it is closer to "nine of
+   is therefore not a rate over forty-two fights; it is closer to "ten of
    fourteen pairings stalled, weighted". The balance matrix — 210 ordered
    pairings, one doctrine, four seeds — reads 26.7%, so the fixture is
-   measuring its own composition, not the game's pacing.
+   measuring its own composition, not the game's pacing. (Corrected 2026-11-12
+   from "nine"; `phase-1.md` Table A carries ten distinct pairings with at least
+   one cap.)
 
 If this is not fixed, the ceiling that the Minimum Reach track consumed two
 fights of headroom from will be tripped by the next mechanic that lengthens a
@@ -112,7 +115,7 @@ with no room to measure.
 | ID | Requirement | Priority |
 | --- | --- | --- |
 | FR-1 | Before any change, the track records a per-pairing diagnosis of every time-out in the shipped sample: the stalling side, its gap at the cap, its threat band versus its own reach, and its kit. | Must |
-| FR-2 | **Withdrawn 2026-11-12.** ~~The fix changes only `earth_tortoise`'s authored stat bounds and kit selection.~~ Six identity-preserving rungs were measured and every one of them resolves **zero** of the tortoise's nine collapse fights; the cheapest rung that resolves any takes it to 65.2% on the 840-fight matrix and fails the species band. The species is already balanced at 52.7% *as an outlaster*, and this project rules that a cap win is an outlasting win, so its stalls are its identity working rather than a defect to fix. Evidence: `verification/phase-2.md`. | Withdrawn |
+| FR-2 | **Withdrawn 2026-11-12.** ~~The fix changes only `earth_tortoise`'s authored stat bounds and kit selection.~~ Six identity-preserving rungs were measured. Every **green** rung resolves **zero** of the tortoise's nine collapse fights; the two rungs that resolve any (2 and 1 of the nine) both fail the species band, the cheapest of them taking the tortoise to 65.2% on the 840-fight matrix. The species is already balanced at 52.7% *as an outlaster*, and this project rules that a cap win is an outlasting win, so its stalls are its identity working rather than a defect to fix. Evidence: `verification/phase-2.md`. | Withdrawn |
 | FR-2a | The fix preserves the tortoise's identity: `spd` bounds stay `[3, 5]`, `hp`/`def` bounds are not lowered, `temperament` stays `"slow"`, `archetypeId` stays `"tortoise"`, `element` stays `earth`, and the kit is drawn only from the six moves it already owns (`pebble_shot`, `dust_devil`, `clay_burst`, `boulder_toss`, `sand_blast`, `tectonic_slam`). A fix that only works by making it faster is out of bounds. | Must |
 | FR-3 | `matchups()` returns 42 distinct pairings, one seed each, no mirrors, drawn by a written rule over the full 210-pair enumeration (not hand-picked), so the sample stays deterministic, reproducible, and spread across the roster rather than reusing three away species. | Must |
 | FR-4 | `capShare` reads at most 52% (`cap.count * 100 <= 52 * cap.total`, i.e. at most 21 of 42) on the re-composed sample, and the ceiling stays 3/5. | Must |

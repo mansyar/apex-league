@@ -256,9 +256,11 @@ Phased delivery plan (each phase is independently playable):
       rule, and the gate reads 20/42 (47.6%) against a 21/42 target with every
       other bound untouched. No simulation code changed and `SIM_VERSION` stays 3.
       Still owed: the one-in-three target (20/42), the global throughput
-      shortfall, the kite band at `spd 5`, and the fact that the harness fights
-      reference-stat bodies while the matrix fights bounds midpoints (47.6% vs
-      26.7%).
+      shortfall, the kite band at `spd 5`, and the fact that the fixture is not a
+      sample of the matrix's fight population — reference-stat bodies against
+      bounds midpoints, and a press-versus-kite doctrine mix against the matrix's
+      press-versus-press — an attribution the track deliberately left unmeasured
+      (47.6% vs 26.7%).
 
 ### Phase 3 — Content & Meta
 - Roster to 20-40 species across 6 types; rare tournament reward eggs.
