@@ -311,3 +311,28 @@ Blocked. No files changed, no commits, no verification run. All analysis is
 done and the exact patches are quoted above — the primary (or a re-permitted
 executor) can apply F6 then F7, run the scoped tests plus `bun run verify`
 and `bun run build`, and record the two task commits.
+
+## Primary verification
+
+The primary applied both patches on top of the R2 analysis and closed the
+phase green. Record, because the agent's command table above predates it:
+
+- F6: applied verbatim to `spec.md`. F7: `apps/client/src/pose-apply.ts`
+  created (5,150 B; shortestAngle/composeScale/composePosition/yawStep —
+  `leanTarget`, `advanceWalkPhase`, `clampStage`, `topplePose` and the
+  DriveFighter interface stay in the driver, which keeps the rAF loop, the
+  downed branch, and all sizing constants). The driver keeps a value import
+  of `composeScale` for its downed branch plus the re-export, so test
+  imports are untouched.
+- Driver 8,759 B (was 12,272 B) — ~3.5 KB of new headroom, well clear of
+  the 12 KB cap. Scoped run: 44 pass / 0 fail
+  (`fighter-driver.test.ts` incl. the new pose-seam identity test,
+  both `module-size.test.ts`).
+- One primary-owned fix after the extraction: the downed branch's
+  `composeScale` use needed the value import (TS2304 caught by `bun run
+  check`; fixed, no test touched).
+- `bun run verify` exit 0 (`.conductor/evidence/vR2b.log`), `bun run build`
+  exit 0. Replay parity preserved (no sim files touched in R2; the R1
+  stream export keeps the byte-identical hash).
+- R2 delivered as two commits on top of `139f8682`: the pose-apply
+  extraction + seam test (R2.F7), and this evidence note.

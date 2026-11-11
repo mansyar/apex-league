@@ -30,7 +30,7 @@ The animation set predates the sim. Hitstun and poise break have no pose, the do
 
 ### Out of Scope
 
-- Any change under `packages/sim` (no stream fields, no frame data, no numbers).
+- Any change under `packages/sim` (no stream fields, no frame data, no numbers) — except additive spare-bit exports (no new fields, no frame-data/number changes), recorded as D1.
 - New mechanics, stats, bands, pacing, or balance changes.
 - Voxel mesh rebuilds or pipeline changes (true mesh-to-sim-size agreement stays a later art pass).
 - Keyframed clips, skeletons, new animation assets.

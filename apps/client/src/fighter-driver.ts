@@ -1,14 +1,18 @@
 import * as THREE from "three"
-import {
-  approach,
-  breath as breathSine,
-  gait as gaitBob,
-  stepSquash,
-} from "./anim"
+import { approach, stepSquash } from "./anim"
 import { ARENA_HALF_X, ARENA_HALF_Z } from "./arena-scale"
-import { type BodyProfile, idleSway } from "./choreo"
-import { poseAdjust, type StreamPose } from "./choreo-poses"
+import type { BodyProfile } from "./choreo"
+import type { StreamPose } from "./choreo-poses"
 import { driveFace, type FaceEyes } from "./face-motion"
+import { applyUprightPose, composeScale } from "./pose-apply"
+
+/** Pose-math helpers, owned by pose-apply.ts (R2/F7 split). */
+export {
+  composePosition,
+  composeScale,
+  shortestAngle,
+  yawStep,
+} from "./pose-apply"
 
 /**
  * The living-fight driver: one loop owns every fighter's pose every
@@ -21,10 +25,6 @@ import { driveFace, type FaceEyes } from "./face-motion"
 /** Stage-glide rate (exp smoothing) — the pace of a purposeful walk. */
 const GLIDE = 4.5
 
-/** Idle breathing + gait amplitudes (reduced motion zeroes the gait). */
-const BREATH_AMP = 0.03
-const BREATH_FREQ = 2.2
-const GAIT_AMP = 0.085
 /** Forward lean into movement, radians per unit of speed. */
 const LEAN_PER_SPEED = 0.045
 const LEAN_MAX = 0.14
@@ -42,64 +42,10 @@ const SQUASH_D = 13
 const BOUNDS_X = ARENA_HALF_X
 const BOUNDS_Z = ARENA_HALF_Z
 
-/** How deep the squash spring dips the body into the floor. */
-const SQUASH_DIP = 0.42
 /** Lift of a fallen body so it still reads on the floor. */
 const DOWN_LIFT = 0.28
-/** Yaw-follow strength of the face-the-rival ease. */
-const FACE_RATE = 9
 /** Gait cadence: walk cycles per unit of travelled distance. */
 const GAIT_PER_SPEED = 5.2
-
-/** Wrap an angle delta into [-π, π) so yaw always takes the short way. */
-export function shortestAngle(a: number): number {
-  const turn = Math.PI * 2
-  return ((((a + Math.PI) % turn) + turn) % turn) - Math.PI
-}
-
-/** Squash-and-stretch scale for a fighter: x/z widen, y flattens. A
- * downed body floors its collapse so the topple never inverts the mesh. */
-export function composeScale(
-  base: number,
-  squash: number,
-  downed: boolean,
-): { x: number; y: number; z: number } {
-  return {
-    x: base * (1 + squash * 0.34),
-    y: downed
-      ? base * Math.max(0.05, 1 - squash * 0.5)
-      : base * (1 - squash * 0.5),
-    z: base * (1 + squash * 0.34),
-  }
-}
-
-/** Compose the body position: walk position + action offset + gait bob +
- * breath at rest, all minus the squash dip (weight). The floor is a hard
- * clamp — no pose may sink the creature below it. */
-export function composePosition(
-  smooth: { x: number; y: number; z: number },
-  offset: { x: number; y: number; z: number },
-  gait: number,
-  breath: number,
-  sway: number,
-  squashS: number,
-): { x: number; y: number; z: number } {
-  return {
-    x: smooth.x + offset.x,
-    y: Math.max(0, smooth.y + offset.y + gait + breath - squashS * SQUASH_DIP),
-    z: smooth.z + offset.z + sway,
-  }
-}
-
-/** One step of the face-the-rival ease: yaw closes on the desired angle
- * along the wrapped short path, weighted by the approach factor. */
-export function yawStep(
-  current: number,
-  desired: number,
-  factor: number,
-): number {
-  return current + shortestAngle(desired - current) * factor
-}
 
 /** Forward lean target for the current speed, scaled by the archetype's
  * body-language profile and clamped so sprints never fold the body. */
@@ -263,54 +209,9 @@ export function createFighterDriver(io: {
       c.lean.pitch = approach(c.lean.pitch, pitch, 8, dt)
       c.lean.roll = approach(c.lean.roll, 0, 6, dt)
 
-      // Compose the pose: walk position + action offset + gait bob +
-      // breath at rest, all scaled by the squash spring (weight). The
-      // archetype's body-language profile (FR5) weights every term. A roll
-      // tucks while the glide carries the travel and a recoil plants its
-      // feet — the gait bob would skate either, so both poses park it.
-      const rest = speed < 0.15 ? 1 : 0
-      const padj = poseAdjust(
-        c.pose ?? "none",
-        c.poseK ?? 0,
-        c.away,
-        life,
-        c.poseLateral ?? 0,
-      )
-      const gait =
-        gaitBob(c.walkPhase, GAIT_AMP * c.profile.gaitAmp, life) *
-        (c.pose === "roll" || c.pose === "recoil" ? 0 : 1)
-      const breath = breathSine(
-        now,
-        BREATH_FREQ * 2 * c.profile.breathFreq,
-        BREATH_AMP * c.profile.breathAmp * rest,
-        c.phase,
-      )
-      const sway = idleSway(c.profile, now, c.phase) * rest
-      const pos = composePosition(
-        c.smooth,
-        c.offset,
-        gait,
-        breath,
-        sway,
-        c.squash.s,
-      )
-      // Phase-1 stream poses ride on the driver's own channels, over the
-      // composed pose — a flinch can never fight the gait it interrupts.
-      // (padj is composed above so the roll/recoil can park the gait.)
-      c.group.position.set(pos.x + padj.dx, Math.max(0, pos.y + padj.dy), pos.z)
-      const upScale = composeScale(c.baseScale, c.squash.s + padj.squash, false)
-      c.group.scale.set(upScale.x, upScale.y, upScale.z)
-      // Face the rival every frame; yaw leads, pitch/roll support.
-      const dx = other.group.position.x - c.group.position.x
-      const dz = other.group.position.z - c.group.position.z
-      const desired = Math.atan2(dx, dz)
-      c.group.rotation.y = yawStep(
-        c.group.rotation.y,
-        desired,
-        approach(0, 1, FACE_RATE, dt),
-      )
-      c.group.rotation.x = c.lean.pitch + padj.pitch
-      c.group.rotation.z = c.lean.roll + padj.roll
+      // The upright pose math lives in pose-apply.ts (R2/F7 split) — the
+      // driver keeps the glide, the lean, and the downed branch.
+      applyUprightPose(c, other, { now, dt, life, speed })
     }
   }
 

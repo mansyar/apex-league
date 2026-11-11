@@ -13,6 +13,7 @@ import {
   topplePose,
   yawStep,
 } from "./fighter-driver"
+import { applyUprightPose } from "./pose-apply"
 
 describe("shortestAngle", () => {
   test("leaves in-range deltas untouched", () => {
@@ -293,5 +294,24 @@ describe("stream poses in the driver", () => {
     expect(c.group.rotation.x).toBeGreaterThan(0)
     expect(c.group.position.x).toBe(0)
     expect(c.group.scale.y).toBeLessThan(c.group.scale.x)
+  })
+
+  test("the extracted pose seam applies a flinch identically (R2/F7)", () => {
+    const via = fighterAt(0)
+    via.pose = "flinch"
+    via.poseK = 1
+    stepOnce(via, fighterAt(0))
+    const direct = fighterAt(0)
+    direct.pose = "flinch"
+    direct.poseK = 1
+    applyUprightPose(direct, fighterAt(0), {
+      now: 1016,
+      dt: 0.016,
+      life: 1,
+      speed: 0,
+    })
+    expect(direct.group.rotation.x).toBeCloseTo(via.group.rotation.x)
+    expect(direct.group.position.x).toBeCloseTo(via.group.position.x)
+    expect(direct.group.position.y).toBeCloseTo(via.group.position.y)
   })
 })
