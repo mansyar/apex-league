@@ -26,6 +26,7 @@ import {
   RETREAT_FRACTION_PERMILLE,
   reachEdgeMm,
 } from "./controller"
+import { chooseMove } from "./controller-moves"
 import { DOCTRINES, profileForDoctrine } from "./controller-profile"
 import { type ProjectileState, pointAt, shotDirection } from "./projectile"
 import { DODGE_STAMINA_COST } from "./stamina"
@@ -38,6 +39,7 @@ import {
 import {
   type ArenaBounds,
   type Dir2,
+  type FighterState,
   type FightState,
   HOLD,
   type MoveIntent,
@@ -200,6 +202,9 @@ function incoming(): ProjectileState {
     speedMmPerMs: 12,
     travelledMm: 300,
     pos: pointAt(origin, dir, 300),
+    minReachMm: 1200,
+    shooterRadiusMm: 220,
+    launchGapSq: 2500 * 2500,
   }
 }
 
@@ -642,5 +647,24 @@ describe("controller — step out of a whiff, punish the recovery (FR-14, AC-14)
     console.log(
       `whiff punish: away swings ${whiffMove} at ${gapAtCommit} mm, home steps out, home commits ${punishMove} at ${punishGap} mm into the recovery, away hp ${awayHp} -> ${fight.state.fighters[1].hp} (${awayHp - fight.state.fighters[1].hp} damage, counter)`,
     )
+  })
+})
+
+describe("the chooser stands outside a move's dead zone (FR-4, AC-4)", () => {
+  // Every shipped row authors a 0 minimum pending the balance pass, so the
+  // inner edge is the contact floor: both body radii. The authored minimum is
+  // covered in projectile/contact tests with a row value injected.
+  const INNER = 440
+  const HEAVY = ["pyre_lance"]
+
+  function pair(): [FighterState, FighterState] {
+    const fight = createFight(config())
+    return [fight.state.fighters[0], fight.state.fighters[1]]
+  }
+
+  test("a move whose dead zone holds the gap is refused", () => {
+    const [me, foe] = pair()
+    expect(chooseMove(me, foe, HEAVY, (INNER - 1) ** 2, 0, false)).toBeNull()
+    expect(chooseMove(me, foe, HEAVY, INNER ** 2, 0, false)).toBe("pyre_lance")
   })
 })

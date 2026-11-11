@@ -8,7 +8,7 @@
 
 import { type FrameData, getFrameData } from "../frames"
 import { BASIC_MOVE, getMove } from "../moves"
-import { integerSqrt } from "./contact"
+import { gapInReachInterval, integerSqrt } from "./contact"
 import { isCooldownReady } from "./cooldown"
 import { attackCost, canAfford } from "./stamina"
 import type { FighterState } from "./types"
@@ -37,12 +37,14 @@ const RESERVE_POISE = 4
  * move whose startup plus travel would land after it is skipped, so a punish
  * is timed for the recovery rather than picked for raw power (FR-14).
  *
- * Reach is edge to edge, the same test the swept strike resolves with (FR-18):
- * `reachMm` plus both bodies' radii against the centre gap. Measuring the bare
- * reach against the centre gap made the innate strike (420 mm of reach against
- * two bodies 440 mm across) unreachable until the bodies overlapped, so a
- * fighter standing at contact range always picked a shot instead — the
- * "one side lands nothing" Phase 10 baseline.
+ * Reach is an interval, the same one the swept strike resolves with (FR-2,
+ * FR-18): `minReachMm` to `reachMm`, both plus both bodies' radii, against the
+ * centre gap. A special whose inner edge is beyond the foe is refused, so the
+ * innate strike answers a clinch instead of a blow that would swing through
+ * its own blind spot. Measuring the bare reach against the centre gap made the
+ * innate strike (420 mm of reach against two bodies 440 mm across) unreachable
+ * until the bodies overlapped, so a fighter standing at contact range always
+ * picked a shot instead — the "one side lands nothing" Phase 10 baseline.
  *
  * Contact is the one place a shot is a bad press: it arrives inside the
  * defender's reaction window, so it is the blow most likely to be dodged, and
@@ -97,7 +99,12 @@ export function chooseMove(
   return bestId
 }
 
-/** Whether a move's authored reach covers the centre gap, edge to edge. */
+/**
+ * Whether a move's reach interval covers the centre gap, edge to edge: the
+ * same test the strike and the shot resolve with (FR-2, FR-4). A move whose
+ * inner edge is beyond the gap is refused — standing in its own blind spot is
+ * no reason to commit to it, and the innate strike covers that space instead.
+ */
 function inReach(
   me: FighterState,
   foe: FighterState,
@@ -106,6 +113,10 @@ function inReach(
 ): boolean {
   const row = getFrameData(moveId)
   if (!row) return false
-  const reach = row.reachMm + me.radiusMm + foe.radiusMm
-  return reach * reach >= gapSq
+  return gapInReachInterval(
+    gapSq,
+    row.minReachMm,
+    row.reachMm,
+    me.radiusMm + foe.radiusMm,
+  )
 }

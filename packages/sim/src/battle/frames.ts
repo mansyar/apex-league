@@ -126,85 +126,74 @@ export const FRAME_DATA: Readonly<Record<string, FrameData>> = Object.freeze({
   basic: frame(160, 120, 606, 420, BASIC_FROM, BASIC_TO, 0, 4, 4),
 
   // fire — fast projectiles, quick chip, slow pyre
-  spark: frame(260, 120, 726, 5200, MID_FROM, MID_TO, 12, 6, 8, 1200),
-  flame_charge: frame(300, 140, 798, 5600, MID_FROM, MID_TO, 14, 8, 10, 1200),
-  cinder_shot: frame(440, 160, 1138, 6000, MID_FROM, MID_TO, 11, 10, 12, 1200),
-  blaze_bolt: frame(560, 180, 1234, 6200, HIGH_FROM, HIGH_TO, 13, 14, 16, 1200),
-  flare_dart: frame(220, 100, 726, 5000, MID_FROM, MID_TO, 15, 6, 8, 1200),
-  pyre_lance: frame(720, 220, 1670, 6500, HIGH_FROM, HIGH_TO, 10, 18, 20, 1200),
+  spark: frame(260, 120, 726, 5200, MID_FROM, MID_TO, 12, 6, 8, 0),
+  flame_charge: frame(300, 140, 798, 5600, MID_FROM, MID_TO, 14, 8, 10, 0),
+  cinder_shot: frame(440, 160, 1138, 6000, MID_FROM, MID_TO, 11, 10, 12, 0),
+  blaze_bolt: frame(560, 180, 1234, 6200, HIGH_FROM, HIGH_TO, 13, 14, 16, 0),
+  flare_dart: frame(220, 100, 726, 5000, MID_FROM, MID_TO, 15, 6, 8, 0),
+  pyre_lance: frame(720, 220, 1670, 6500, HIGH_FROM, HIGH_TO, 10, 18, 20, 0),
 
   // plant — slow seeds, long roots
-  seed_shot: frame(260, 120, 726, 5200, MID_FROM, MID_TO, 8, 6, 8, 1200),
-  thorn_volley: frame(340, 140, 798, 5600, MID_FROM, MID_TO, 9, 8, 10, 1200),
-  spore_burst: frame(440, 160, 1138, 6000, LOW_FROM, LOW_TO, 7, 10, 12, 1200),
-  bramble_dart: frame(560, 180, 1234, 6200, MID_FROM, MID_TO, 10, 14, 16, 1200),
-  vine_lash: frame(220, 100, 726, 5000, MID_FROM, MID_TO, 9, 6, 8, 1200),
-  root_quake: frame(760, 220, 1718, 6500, LOW_FROM, LOW_TO, 6, 18, 20, 1200),
+  seed_shot: frame(260, 120, 726, 5200, MID_FROM, MID_TO, 8, 6, 8, 0),
+  thorn_volley: frame(340, 140, 798, 5600, MID_FROM, MID_TO, 9, 8, 10, 0),
+  spore_burst: frame(440, 160, 1138, 6000, LOW_FROM, LOW_TO, 7, 10, 12, 0),
+  bramble_dart: frame(560, 180, 1234, 6200, MID_FROM, MID_TO, 10, 14, 16, 0),
+  vine_lash: frame(220, 100, 726, 5000, MID_FROM, MID_TO, 9, 6, 8, 0),
+  root_quake: frame(760, 220, 1718, 6500, LOW_FROM, LOW_TO, 6, 18, 20, 0),
 
   // water — steady travel, wide spray
-  bubble: frame(260, 120, 726, 5200, MID_FROM, MID_TO, 8, 6, 8, 1200),
-  tide_shot: frame(340, 140, 798, 5600, MID_FROM, MID_TO, 10, 8, 10, 1200),
-  foam_volley: frame(440, 160, 1138, 6000, LOW_FROM, LOW_TO, 9, 10, 12, 1200),
-  splash_bolt: frame(560, 180, 1234, 6200, MID_FROM, MID_TO, 11, 14, 16, 1200),
-  mist_spray: frame(220, 100, 726, 5000, LOW_FROM, LOW_TO, 12, 6, 8, 1200),
-  maelstrom: frame(720, 220, 1670, 6500, HIGH_FROM, HIGH_TO, 7, 18, 20, 1200),
+  bubble: frame(260, 120, 726, 5200, MID_FROM, MID_TO, 8, 6, 8, 0),
+  tide_shot: frame(340, 140, 798, 5600, MID_FROM, MID_TO, 10, 8, 10, 0),
+  foam_volley: frame(440, 160, 1138, 6000, LOW_FROM, LOW_TO, 9, 10, 12, 0),
+  splash_bolt: frame(560, 180, 1234, 6200, MID_FROM, MID_TO, 11, 14, 16, 0),
+  mist_spray: frame(220, 100, 726, 5000, LOW_FROM, LOW_TO, 12, 6, 8, 0),
+  maelstrom: frame(720, 220, 1670, 6500, HIGH_FROM, HIGH_TO, 7, 18, 20, 0),
 
   // wider pool: dashes and walls, then the branch signatures
-  cinder_dive: frame(480, 200, 1186, 6000, MID_FROM, MID_TO, 16, 14, 16, 1200),
+  cinder_dive: frame(480, 200, 1186, 6000, MID_FROM, MID_TO, 16, 14, 16, 0),
   pyre_wall: frame(520, 440, 1138, 4200, LOW_FROM, LOW_TO, 8, 10, 12),
-  thorn_charge: frame(520, 200, 1234, 5800, MID_FROM, MID_TO, 12, 14, 16, 1200),
+  thorn_charge: frame(520, 200, 1234, 5800, MID_FROM, MID_TO, 12, 14, 16, 0),
   bramble_guard: frame(560, 480, 1162, 4000, LOW_FROM, LOW_TO, 6, 10, 12),
-  riptide_rush: frame(500, 180, 1210, 5800, MID_FROM, MID_TO, 14, 14, 16, 1200),
+  riptide_rush: frame(500, 180, 1210, 5800, MID_FROM, MID_TO, 14, 14, 16, 0),
   tide_aegis: frame(540, 440, 1138, 4200, LOW_FROM, LOW_TO, 7, 10, 12),
 
   // electric — the fastest shots in the catalog
-  static_jolt: frame(240, 120, 726, 5200, MID_FROM, MID_TO, 14, 6, 8, 1200),
-  volt_dash: frame(280, 140, 798, 5600, MID_FROM, MID_TO, 18, 8, 10, 1200),
-  arc_shot: frame(400, 160, 1112, 6000, MID_FROM, MID_TO, 15, 10, 12, 1200),
-  storm_bolt: frame(520, 180, 1210, 6200, HIGH_FROM, HIGH_TO, 16, 14, 16, 1200),
-  ion_dart: frame(200, 100, 726, 5000, MID_FROM, MID_TO, 17, 6, 8, 1200),
-  gigavolt: frame(680, 220, 1646, 6500, HIGH_FROM, HIGH_TO, 13, 18, 20, 1200),
+  static_jolt: frame(240, 120, 726, 5200, MID_FROM, MID_TO, 14, 6, 8, 0),
+  volt_dash: frame(280, 140, 798, 5600, MID_FROM, MID_TO, 18, 8, 10, 0),
+  arc_shot: frame(400, 160, 1112, 6000, MID_FROM, MID_TO, 15, 10, 12, 0),
+  storm_bolt: frame(520, 180, 1210, 6200, HIGH_FROM, HIGH_TO, 16, 14, 16, 0),
+  ion_dart: frame(200, 100, 726, 5000, MID_FROM, MID_TO, 17, 6, 8, 0),
+  gigavolt: frame(680, 220, 1646, 6500, HIGH_FROM, HIGH_TO, 13, 18, 20, 0),
 
-  storm_surge: frame(480, 180, 1186, 6200, MID_FROM, MID_TO, 18, 14, 16, 1200),
+  storm_surge: frame(480, 180, 1186, 6200, MID_FROM, MID_TO, 18, 14, 16, 0),
   ion_wall: frame(500, 400, 1112, 4400, LOW_FROM, LOW_TO, 12, 10, 12),
 
   // earth — heavy, slow, hard to dodge
-  pebble_shot: frame(300, 120, 750, 5200, MID_FROM, MID_TO, 7, 6, 8, 1200),
-  dust_devil: frame(380, 140, 822, 5600, LOW_FROM, LOW_TO, 8, 8, 10, 1200),
-  clay_burst: frame(480, 160, 1162, 6000, MID_FROM, MID_TO, 6, 10, 12, 1200),
+  pebble_shot: frame(300, 120, 750, 5200, MID_FROM, MID_TO, 7, 6, 8, 0),
+  dust_devil: frame(380, 140, 822, 5600, LOW_FROM, LOW_TO, 8, 8, 10, 0),
+  clay_burst: frame(480, 160, 1162, 6000, MID_FROM, MID_TO, 6, 10, 12, 0),
   // R5: startup pulled from 600 to 512, the one frame field the tortoise can
   // spend on volume. Recovery is SPD-scaled (2.5x at spd 4) and frozen, so a
   // swing it cannot shorten is a swing it cannot afford; startup is authored
   // and stays 512 — still a step above clay_burst, still under the finisher.
-  boulder_toss: frame(
-    512,
-    180,
-    1258,
-    6200,
-    HIGH_FROM,
-    HIGH_TO,
-    5,
-    14,
-    16,
-    1200,
-  ),
-  sand_blast: frame(240, 100, 726, 5000, LOW_FROM, LOW_TO, 9, 6, 8, 1200),
+  boulder_toss: frame(512, 180, 1258, 6200, HIGH_FROM, HIGH_TO, 5, 14, 16, 0),
+  sand_blast: frame(240, 100, 726, 5000, LOW_FROM, LOW_TO, 9, 6, 8, 0),
   // P8.T3.2: the earth finisher had the longest swing of any heavy (2,762 ms),
   // which left it the only one out-earned by its own light row on the damage
   // clock. Its recovery is pulled back to the other heavies' band (2,690 ms of
   // swing) so the tier is worth carrying; startup, active, poise and stamina
   // are unchanged.
-  tectonic_slam: frame(800, 220, 1670, 6500, LOW_FROM, LOW_TO, 4, 18, 20, 1200),
+  tectonic_slam: frame(800, 220, 1670, 6500, LOW_FROM, LOW_TO, 4, 18, 20, 0),
 
-  quake_stomp: frame(640, 240, 1258, 5200, LOW_FROM, LOW_TO, 5, 14, 16, 1200),
+  quake_stomp: frame(640, 240, 1258, 5200, LOW_FROM, LOW_TO, 5, 14, 16, 0),
   basalt_guard: frame(600, 520, 1186, 3800, LOW_FROM, LOW_TO, 4, 10, 12),
 
   // wind — the quickest starts, the lightest footing
-  gust: frame(220, 120, 726, 5200, MID_FROM, MID_TO, 15, 6, 8, 1200),
-  feather_dart: frame(280, 140, 798, 5600, MID_FROM, MID_TO, 18, 8, 10, 1200),
-  gale_cutter: frame(400, 160, 1112, 6000, MID_FROM, MID_TO, 16, 10, 12, 1200),
-  sky_bolt: frame(500, 180, 1210, 6200, HIGH_FROM, HIGH_TO, 17, 14, 16, 1200),
-  talon_slash: frame(180, 100, 726, 5000, MID_FROM, MID_TO, 19, 6, 8, 1200),
+  gust: frame(220, 120, 726, 5200, MID_FROM, MID_TO, 15, 6, 8, 0),
+  feather_dart: frame(280, 140, 798, 5600, MID_FROM, MID_TO, 18, 8, 10, 0),
+  gale_cutter: frame(400, 160, 1112, 6000, MID_FROM, MID_TO, 16, 10, 12, 0),
+  sky_bolt: frame(500, 180, 1210, 6200, HIGH_FROM, HIGH_TO, 17, 14, 16, 0),
+  talon_slash: frame(180, 100, 726, 5000, MID_FROM, MID_TO, 19, 6, 8, 0),
   hurricane_spiral: frame(
     680,
     220,
@@ -215,10 +204,10 @@ export const FRAME_DATA: Readonly<Record<string, FrameData>> = Object.freeze({
     12,
     18,
     20,
-    1200,
+    0,
   ),
 
-  cyclone_dive: frame(460, 180, 1162, 6000, MID_FROM, MID_TO, 20, 14, 16, 1200),
+  cyclone_dive: frame(460, 180, 1162, 6000, MID_FROM, MID_TO, 20, 14, 16, 0),
   zephyr_veil: frame(480, 420, 1112, 4400, LOW_FROM, LOW_TO, 14, 10, 12),
 })
 

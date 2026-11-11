@@ -18,7 +18,7 @@
 
 import { getFrameData } from "../frames"
 import { getMove } from "../moves"
-import { bodyOf, reachesBody } from "./contact"
+import { bodyOf, reachVerdict } from "./contact"
 import { awayFrom, retreatRoom, strafeIntent } from "./controller-aim"
 import { DODGE_COOLDOWN_MS } from "./controller-dodge"
 import { strafeSide } from "./controller-memory"
@@ -116,12 +116,24 @@ function finisher(foe: FighterState): boolean {
   return foe.hp * 100 <= foe.hpMax * FINISHER_HP_PERCENT
 }
 
-/** True when the foe is winding up a move whose authored reach covers this body. */
+/**
+ * True when the foe is winding up a move whose reach interval covers this
+ * body: the same test the swing itself resolves with, so the rule dodges only
+ * what can actually land and a body standing in the blind spot is left to the
+ * whiff it has coming (FR-4).
+ */
 function tellReaches(foe: FighterState, me: FighterState): boolean {
   const attack = foe.attack
   if (attack?.phase !== "startup") return false
   const row = getFrameData(attack.moveId)
-  return row !== undefined && reachesBody(bodyOf(foe), bodyOf(me), row.reachMm)
+  if (row === undefined) return false
+  const verdict = reachVerdict(
+    bodyOf(foe),
+    bodyOf(me),
+    row.minReachMm,
+    row.reachMm,
+  )
+  return verdict === "in"
 }
 
 /** The two bodies a decision reads, from the side it orders. */

@@ -5,13 +5,17 @@
  * damage spread (FR-21).
  */
 
-import type { Element } from "../../creature"
 import type { Rng } from "../../rng"
-import { incomingTypeFactor, type TypeFactor } from "../chart"
 import { type FrameData, getFrameData } from "../frames"
 import { getMove } from "../moves"
-import { bandOverlapsBody, bodyOf, reachesBody } from "./contact"
-import { type HitPosition, positionalDamage, type Ratio } from "./damage"
+import { bandOverlapsBody, bodyOf, reachVerdict } from "./contact"
+import {
+  type HitPosition,
+  positionalDamage,
+  type Ratio,
+  type StrikeStats,
+  typeAgainst,
+} from "./damage"
 import { rollHits, spreadDamage } from "./roll"
 import {
   type AttackPhase,
@@ -190,34 +194,9 @@ export function commitAttack(
   }
 }
 
-/** The combat stats a strike reads; `spd` lives on the fighter itself. */
-export interface StrikeStats {
-  readonly atk: number
-  readonly def: number
-  /** Catalog element; absent for the typeless basic strike. */
-  readonly element?: Element | undefined
-  /** Secondary type affinity; read on the side taking the blow (FR-4). */
-  readonly affinity?: Element | null | undefined
-}
-
-/** The profile a fight gets when it names no stats: typeless 1/1. */
-export const NEUTRAL_STATS: StrikeStats = Object.freeze({ atk: 1, def: 1 })
-
-/**
- * The attacker's type factor against one victim; typeless is neutral. The
- * victim's secondary affinity is read on the incoming side (FR-4).
- */
-export function typeAgainst(
-  attacker: StrikeStats,
-  victim: StrikeStats,
-): TypeFactor {
-  if (!attacker.element || !victim.element) return { num: 1, den: 1 }
-  return incomingTypeFactor(
-    attacker.element,
-    victim.element,
-    victim.affinity ?? null,
-  )
-}
+// The strike stats and their type factor moved to ./damage, the module that
+// already owns everything one landed blow needs; the public surface stays here.
+export { NEUTRAL_STATS, type StrikeStats, typeAgainst } from "./damage"
 
 /** One landed blow, as the step reports it. */
 export interface StrikeReport {
@@ -238,8 +217,11 @@ export interface StrikeReport {
 export interface WhiffReport {
   readonly attackerKey: string
   readonly moveId: string
-  /** `reach` if the window swept nothing; `accuracy` if the roll missed. */
-  readonly reason: "reach" | "accuracy"
+  /**
+   * `reach` if the window swept nothing; `range` if the foe stood inside the
+   * move's blind spot; `accuracy` if the roll missed.
+   */
+  readonly reason: "reach" | "range" | "accuracy"
 }
 
 /** The fighters after resolution, plus every blow that landed. */
@@ -284,15 +266,25 @@ export function resolveStrikes(
     const attacker = before[side]
     const victim = before[other]
     if (!bandOverlapsBody(row.band, victim.heightMm)) continue
-    if (!reachesBody(bodyOf(attacker), bodyOf(victim), row.reachMm)) continue
+    const verdict = reachVerdict(
+      bodyOf(attacker),
+      bodyOf(victim),
+      row.minReachMm,
+      row.reachMm,
+    )
+    if (verdict === "far") continue
     if (!inFrontArc(attacker.facing, attacker.pos, victim.pos)) continue
+    const miss = (reason: WhiffReport["reason"]): void => {
+      misses.push({ attackerKey: attacker.key, moveId: attack.moveId, reason })
+    }
+    // Inside the inner edge the swing is in its own blind spot (FR-2, FR-5).
+    if (verdict === "short") {
+      miss("range")
+      continue
+    }
     // The geometry connected; whether the swing was aimed true is the roll.
     if (!rollHits(move.accuracy, rng)) {
-      misses.push({
-        attackerKey: attacker.key,
-        moveId: attack.moveId,
-        reason: "accuracy",
-      })
+      miss("accuracy")
       rolled[side] = true
       continue
     }

@@ -71,12 +71,15 @@ export interface StepReport {
     readonly ownerKey: string
     readonly moveId: string
   }[]
-  /** Melee swings that resolved without landing (FR-18, FR-21). */
+  /** Melee swings that resolved without landing (FR-18, FR-21, FR-5). */
   readonly whiffs: readonly {
     readonly attackerKey: string
     readonly moveId: string
-    /** `reach` swept and touched nothing; `accuracy` connected and rolled out. */
-    readonly reason: "reach" | "accuracy"
+    /**
+     * `reach` swept and touched nothing; `range` stood inside the inner edge;
+     * `accuracy` connected and rolled out.
+     */
+    readonly reason: "reach" | "range" | "accuracy"
   }[]
 }
 
@@ -151,12 +154,17 @@ export function stepEvents(
     land(side, target)
   }
   for (const shot of report.shots) {
+    // A shot loosed from inside the move's inner edge passes the body and is
+    // spent (FR-3). The log has no word for a shot that passed — the stream's
+    // miss reasons are `accuracy` and `dodge` only (NFR-4) — so it reports no
+    // impact rather than mislabelling a range miss as either.
+    if (shot.outcome === "range") continue
     const side = sideOf(shot.ownerKey)
     const target = side === 0 ? 1 : 0
     const hit = shot.outcome === "hit"
     // Two different questions, two different words: a shot the victim moved
     // out of was `dodged`; a shot that reached the body but was not aimed true
-    // was `missed` (FR-21). The client draws both, and neither hides the other.
+    // was `missed` (FR-21).
     const missReason = hit
       ? null
       : shot.outcome === "missed"
@@ -213,7 +221,9 @@ export function stepEvents(
       line:
         whiff.reason === "accuracy"
           ? `${sides.names[side]}'s ${moveName(whiff.moveId)} goes wide.`
-          : `${sides.names[side]}'s ${moveName(whiff.moveId)} swings wide.`,
+          : whiff.reason === "range"
+            ? `${sides.names[side]}'s ${moveName(whiff.moveId)} is too close.`
+            : `${sides.names[side]}'s ${moveName(whiff.moveId)} swings wide.`,
     })
   }
   for (const side of [0, 1] as const) {

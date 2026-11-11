@@ -31,20 +31,23 @@
 - **Covers:** FR-2, FR-3, FR-4, FR-5, FR-6, FR-8, AC-2, AC-3, AC-4, AC-5, AC-7
 - **Touches:** `packages/sim/src/battle/continuous/contact.ts`, `packages/sim/src/battle/continuous/strike.ts`, `packages/sim/src/battle/continuous/projectile.ts`, `packages/sim/src/battle/continuous/contact.test.ts`, `packages/sim/src/battle/continuous/strike.test.ts`, `packages/sim/src/battle/continuous/projectile.test.ts`, `packages/sim/src/battle/continuous/controller-moves.ts`, `packages/sim/src/battle/continuous/controller-punish.ts`, `packages/sim/src/battle/continuous/controller-rule.ts`, `packages/sim/src/battle/continuous/controller.test.ts`, `packages/sim/src/battle/continuous/controller-punish.test.ts`, `packages/sim/src/battle/continuous/controller-rule.test.ts`, `packages/sim/src/battle/frames.ts`, `packages/sim/src/battle/frames.test.ts`, `packages/sim/src/cup/ghost.ts`, `packages/sim/src/cup/ghost.test.ts`
 - **Verification:** `bun run verify` and `bun run build` as two separate commands
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** PENDING_CHECKPOINT
+- **Evidence:** conductor/tracks/20261111-minimum-reach/verification/phase-2.md
 
-- [ ] **P2.T1: One interval test in contact** — covers: FR-2, AC-2
-  - [ ] **P2.T1.1: A helper answering "inside the interval" from gap and min/reach, used by both resolution paths; boundary test lands at exactly `minReach + radii` and whiffs one millimetre inside.**
-- [ ] **P2.T2: Strikes and shots honour the inner edge** — covers: FR-2, FR-3, AC-2, AC-3
-  - [ ] **P2.T2.1: A shot carries the minimum reach and the shooter radius it needs; a point-blank shot passes the body instead of hitting, and the same shot at the boundary hits.**
-- [ ] **P2.T3: A distinct range miss** — covers: FR-5, AC-2, AC-3
-  - [ ] **P2.T3.1: `WhiffReport`/`ShotReport` gain the `range` reason, distinct from `accuracy` and from `dodged`; strike and shot tests assert the reason, not just the miss.**
-- [ ] **P2.T4: The chooser refuses the dead zone** — covers: FR-4, AC-4
-  - [ ] **P2.T4.1: `inReach` becomes interval-aware in `chooseMove` and the punish chooser; point-blank returns the basic, the same gap outside the dead zone returns the long move, and `opponentReachMm` stays conservative with a test pinning that.**
-- [ ] **P2.T5: Keep the gate green while the mechanic lands** — covers: FR-6, AC-5
-  - [ ] **P2.T5.1: `minReachMm` is the first knob; species stats move only inside their existing roll bounds; every moved value is recorded as a deviation.**
-- [ ] **P2.T6: Bump `SIM_VERSION` to 3** — covers: FR-8, AC-7
-  - [ ] **P2.T6.1: Constant, version note and both test pins updated; `bun run trace --seed N --check` still passes its five invariants.**
+- [x] **P2.T1: One interval test in contact** — covers: FR-2, AC-2
+  - [x] **P2.T1.1: A helper answering "inside the interval" from gap and min/reach, used by both resolution paths; boundary test lands at exactly `minReach + radii` and whiffs one millimetre inside.**
+- [x] **P2.T2: Strikes and shots honour the inner edge** — covers: FR-2, FR-3, AC-2, AC-3
+  - [x] **P2.T2.1: A shot carries the minimum reach and the shooter radius it needs; a point-blank shot passes the body instead of hitting, and the same shot at the boundary hits.**
+- [x] **P2.T3: A distinct range miss** — covers: FR-5, AC-2, AC-3
+  - [x] **P2.T3.1: `WhiffReport`/`ShotReport` gain the `range` reason, distinct from `accuracy` and from `dodged`; strike and shot tests assert the reason, not just the miss.**
+- [x] **P2.T4: The chooser refuses the dead zone** — covers: FR-4, AC-4
+  - [x] **P2.T4.1: `inReach` becomes interval-aware in `chooseMove` and the punish chooser; point-blank returns the basic, the same gap outside the dead zone returns the long move, and `opponentReachMm` stays conservative with a test pinning that. (The authored value that exercises it in a real fight belongs to Phase 4.)**
+- [x] **P2.T5: Keep the gate green while the mechanic lands** — covers: FR-6, AC-5
+  - [x] **P2.T5.1: `minReachMm` is the first knob; species stats move only inside their existing roll bounds; every moved value is recorded as a deviation. (Measured: no positive value on the 42 long rows survives the frozen `capShare` pin, so the value ships at `0` until Phase 3 re-derives the sample.)**
+- [x] **P2.T6: Bump `SIM_VERSION` to 3** — covers: FR-8, AC-7
+  - [x] **P2.T6.1: Constant, version note and both test pins updated; `bun run trace --seed N --check` still passes its five invariants.**
 
 ## Phase 3: Balance and the dead-zone gate
 

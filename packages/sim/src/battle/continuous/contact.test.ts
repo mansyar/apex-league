@@ -11,8 +11,11 @@ import {
   bodyOf,
   DEFAULT_BODY_HEIGHT_MM,
   faceOpponent,
+  gapInReachInterval,
   integerSqrt,
+  minReachEdgeMm,
   reachesBody,
+  reachVerdict,
   segmentGapSq,
   segmentHitsBody,
   separateBodies,
@@ -100,6 +103,36 @@ describe("body volume — reach is edge to edge (FR-18)", () => {
 
   test("a blow cannot reach a body it is not touching", () => {
     expect(reachesBody(body(0), body(1000), 420)).toBe(false)
+  })
+})
+
+describe("reach interval — the blind spot (FR-2, AC-2)", () => {
+  test("the inner edge is the authored minimum plus both radii", () => {
+    expect(minReachEdgeMm(150, 440)).toBe(590)
+    expect(minReachEdgeMm(0, 440)).toBe(440)
+  })
+
+  test("the interval includes both of its edges", () => {
+    const inner = 590 * 590
+    const outer = 5440 * 5440
+    expect(gapInReachInterval(inner, 150, 5000, 440)).toBe(true)
+    expect(gapInReachInterval(inner - 1, 150, 5000, 440)).toBe(false)
+    expect(gapInReachInterval(outer, 150, 5000, 440)).toBe(true)
+    expect(gapInReachInterval(outer + 1, 150, 5000, 440)).toBe(false)
+  })
+
+  test("a body lands at the inner edge and whiffs one mm inside", () => {
+    expect(reachVerdict(body(0), body(590), 150, 5000)).toBe("in")
+    expect(reachVerdict(body(0), body(589), 150, 5000)).toBe("short")
+    expect(reachVerdict(body(0), body(5440), 150, 5000)).toBe("in")
+    expect(reachVerdict(body(0), body(5441), 150, 5000)).toBe("far")
+  })
+
+  test("a move with no authored minimum is blind only inside the bodies", () => {
+    // The innate strike: minReach 0 puts the inner edge on the contact floor,
+    // so a clinch at touching distance is the closest a blow can land.
+    expect(reachVerdict(body(0), body(440), 0, 420)).toBe("in")
+    expect(reachVerdict(body(0), body(439), 0, 420)).toBe("short")
   })
 })
 

@@ -97,16 +97,14 @@ describe("frame data — catalog completeness", () => {
 })
 
 describe("frame data — minimum reach (FR-1)", () => {
-  test("gives every long row the first-pass dead zone, the rest none", () => {
-    const long = ALL_MOVES.filter((move) => frameOf(move.id).reachMm >= 5000)
-    const short = ALL_MOVES.filter((move) => frameOf(move.id).reachMm < 5000)
-    // Both groups must exist, or the two loops below prove nothing.
-    expect(long.length).toBeGreaterThan(0)
-    expect(short.length).toBeGreaterThan(0)
-    for (const move of long) {
-      expect(frameOf(move.id).minReachMm).toBe(1200)
-    }
-    for (const move of short) {
+  test("authors no dead zone yet: the shipped rows all read zero", () => {
+    // The first pass authored 1,200 mm on every long row. The balance gate and
+    // the recorded cup transcripts pin exact figures, so no live dead zone can
+    // land until the balance phase re-pins them (measured in the phase-2
+    // evidence): every row ships at 0, which FR-1 defines as "no dead zone".
+    // The interval geometry itself is live and pinned in contact/strike/
+    // projectile tests with an authored minimum injected.
+    for (const move of ALL_MOVES) {
       expect(frameOf(move.id).minReachMm).toBe(0)
     }
   })

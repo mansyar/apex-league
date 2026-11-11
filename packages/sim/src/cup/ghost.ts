@@ -30,8 +30,14 @@ import { cupMatchSeed } from "./verdicts"
  * sweep arcs and height bands, shots sweep segments, facing is lock-on, and
  * the event log carries launch/close/hold beats. Fights recorded under v1
  * cannot replay here, which is exactly why the bump lands with the change.
+ *
+ * v3 (2026-11-11, minimum reach): every frame row carries an inner edge, so a
+ * blow only lands between `minReachMm` and `reachMm` beyond both radii. A
+ * fighter standing inside the inner edge is in the move's blind spot, and a
+ * shot loosed from there passes the body. Fights recorded under v2 resolved
+ * those swings and shots as hits, so they cannot replay here.
  */
-export const SIM_VERSION = 2
+export const SIM_VERSION = 3
 
 /** A full replay bundle for one cup-winning final: everything a later
  * reader needs to replay the deciding battle without the session. No

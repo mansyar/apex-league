@@ -29,13 +29,20 @@ import { getMove } from "../moves"
 import {
   type Body,
   bodyOf,
+  centreGapSq,
   divRound,
+  minReachEdgeMm,
   segmentHitsBody,
   shotDirection,
 } from "./contact"
-import { type HitPosition, positionalDamage } from "./damage"
+import {
+  type HitPosition,
+  positionalDamage,
+  type StrikeStats,
+  typeAgainst,
+} from "./damage"
 import { rollHits, spreadDamage } from "./roll"
-import { hitPosition, type StrikeStats, typeAgainst } from "./strike"
+import { hitPosition } from "./strike"
 import {
   DIR_SCALE,
   type Dir2,
@@ -71,10 +78,21 @@ export interface ProjectileState {
   readonly travelledMm: number
   /** Where the shot is now, in mm: `origin` plus `travelledMm` along the line. */
   readonly pos: Vec3
+  /** The authored inner edge the shot must clear, in mm (FR-3). */
+  readonly minReachMm: number
+  /** The shooter's body radius, which the inner edge counts (FR-3). */
+  readonly shooterRadiusMm: number
+  /**
+   * The squared centre gap at launch. A shot loosed from inside the move's
+   * inner edge is short: it passes the body and is spent (FR-3, AC-3). The
+   * launch gap is what the rule reads, not where the target has since walked,
+   * so a body that closes on an honest shot cannot dodge it by standing near.
+   */
+  readonly launchGapSq: number
 }
 
 /** What a shot did when it resolved. */
-export type ShotOutcome = "hit" | "dodged" | "missed"
+export type ShotOutcome = "hit" | "dodged" | "missed" | "range"
 
 /** One resolved shot, as the step reports it. */
 export interface ShotReport {
@@ -138,6 +156,9 @@ export function launchProjectile(
     speedMmPerMs: row.speedMmPerMs,
     travelledMm: 0,
     pos: origin,
+    minReachMm: row.minReachMm,
+    shooterRadiusMm: shooter.radiusMm,
+    launchGapSq: centreGapSq(shooter.pos, target.pos),
   }
 }
 
@@ -177,6 +198,20 @@ export function passedBody(shot: ProjectileState, victim: Body): boolean {
   return (
     shot.travelledMm * DIR_SCALE > alongScaled + victim.radiusMm * DIR_SCALE
   )
+}
+
+/**
+ * Whether a shot was loosed from inside its move's inner edge, and so passes
+ * the body it was aimed at instead of hitting it (FR-3, AC-3). The verdict is
+ * the launch geometry: a body that closes on an honest shot does not turn it
+ * short.
+ */
+export function shortShot(shot: ProjectileState, victim: Body): boolean {
+  const inner = minReachEdgeMm(
+    shot.minReachMm,
+    shot.shooterRadiusMm + victim.radiusMm,
+  )
+  return shot.launchGapSq < inner * inner
 }
 
 /**
@@ -225,13 +260,16 @@ export function resolveProjectiles(
       flight.push(shot)
       continue
     }
+    // A shot loosed from inside the move's inner edge is short: the line
+    // passes the body and the shot is spent (FR-3, FR-5).
+    const short = shortShot(shot, body)
     const position = hitPosition(target.facing, target.pos, before[owner].pos)
-    if (!hit) {
+    if (!hit || short) {
       shots.push({
         ownerKey: shot.ownerKey,
         targetKey: target.key,
         moveId: shot.moveId,
-        outcome: "dodged",
+        outcome: short ? "range" : "dodged",
         damage: 0,
         poiseDamage: 0,
         position,

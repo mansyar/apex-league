@@ -13,7 +13,8 @@
  * attack term, and the frozen legacy clock reads the same `strikeDamage`.
  */
 
-import type { TypeFactor } from "../chart"
+import type { Element } from "../../creature"
+import { incomingTypeFactor, type TypeFactor } from "../chart"
 import { strikeDamage } from "../damage"
 
 /** An integer multiplier `num / den`. */
@@ -36,6 +37,35 @@ export const COUNTER_RATIO: Ratio = Object.freeze({ num: 5, den: 4 })
 
 /** Where the attacker stood relative to the victim's facing (FR-4). */
 export type HitPosition = "front" | "flank" | "rear"
+
+/** The combat stats a strike reads; `spd` lives on the fighter itself. */
+export interface StrikeStats {
+  readonly atk: number
+  readonly def: number
+  /** Catalog element; absent for the typeless basic strike. */
+  readonly element?: Element | undefined
+  /** Secondary type affinity; read on the side taking the blow (FR-4). */
+  readonly affinity?: Element | null | undefined
+}
+
+/** The profile a fight gets when it names no stats: typeless 1/1. */
+export const NEUTRAL_STATS: StrikeStats = Object.freeze({ atk: 1, def: 1 })
+
+/**
+ * The attacker's type factor against one victim; typeless is neutral. The
+ * victim's secondary affinity is read on the incoming side (FR-4).
+ */
+export function typeAgainst(
+  attacker: StrikeStats,
+  victim: StrikeStats,
+): TypeFactor {
+  if (!attacker.element || !victim.element) return { num: 1, den: 1 }
+  return incomingTypeFactor(
+    attacker.element,
+    victim.element,
+    victim.affinity ?? null,
+  )
+}
 
 /** The multiplier one hit position carries. */
 export function positionRatio(position: HitPosition): Ratio {

@@ -155,6 +155,47 @@ export function reachesBody(
   return centreGapSq(attacker.pos, target.pos) <= reach * reach
 }
 
+/** The inner edge of a move's space, in mm: `minReachMm` plus both radii. */
+export function minReachEdgeMm(
+  minReachMm: number,
+  radiusSumMm: number,
+): number {
+  return minReachMm + radiusSumMm
+}
+
+/**
+ * True when a centre gap lies inside a move's reach interval, edge to edge:
+ * `minReachMm` to `reachMm` beyond both radii (FR-2). The space inside the
+ * inner edge is the blind spot where a blow cannot land.
+ */
+export function gapInReachInterval(
+  gapSq: number,
+  minReachMm: number,
+  reachMm: number,
+  radiusSumMm: number,
+): boolean {
+  const inner = minReachEdgeMm(minReachMm, radiusSumMm)
+  const outer = reachMm + radiusSumMm
+  return gapSq >= inner * inner && gapSq <= outer * outer
+}
+
+/** Where a body stands relative to a move's reach interval. */
+export type ReachVerdict = "in" | "short" | "far"
+
+/** The interval verdict for one pair of bodies (FR-2). */
+export function reachVerdict(
+  attacker: Body,
+  target: Body,
+  minReachMm: number,
+  reachMm: number,
+): ReachVerdict {
+  const radii = attacker.radiusMm + target.radiusMm
+  const gapSq = centreGapSq(attacker.pos, target.pos)
+  const inner = minReachEdgeMm(minReachMm, radii)
+  if (gapSq < inner * inner) return "short"
+  return gapInReachInterval(gapSq, minReachMm, reachMm, radii) ? "in" : "far"
+}
+
 /**
  * Squared planar distance from `point` to the segment `from`→`to`, floored to
  * whole mm². The projection is integer division, so the closest point is
