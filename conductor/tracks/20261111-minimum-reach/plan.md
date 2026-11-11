@@ -14,7 +14,7 @@
 - **Covers:** FR-1, AC-1
 - **Touches:** `packages/sim/src/battle/frames.ts`, `packages/sim/src/battle/frames.test.ts`
 - **Verification:** `bun run verify` and `bun run build` as two separate commands
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Add the field and its validator** — covers: FR-1
   - [ ] **P1.T1.1: `minReachMm` on `FrameData`, a `0` default in `frame()`, and validator rules `>= 0`, `< reachMm`, basic `0`; `frames.test.ts` pins both failure directions.**
