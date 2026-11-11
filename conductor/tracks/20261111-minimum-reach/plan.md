@@ -70,7 +70,7 @@
 
 ## Phase 4: Retreat-to-fight and the authored dead zone
 
-- **Goal:** the chooser commits only where the blow lands, a fighter with no landing move backs off to the landing edge, and the dead zone ships at the largest value both gates accept.
+- **Goal:** the chooser commits only where the blow lands, a fighter with no landing move fires a backing shot or steps back, and the dead zone ships at the largest value both gates accept.
 - **Depends on:** Phase 3
 - **Covers:** FR-4, FR-6, FR-7, FR-10, AC-4, AC-5, AC-6, AC-9
 - **Touches:** `packages/sim/src/battle/continuous/controller-moves.ts`, `packages/sim/src/battle/continuous/controller.ts`, `packages/sim/src/battle/continuous/controller.test.ts`, `packages/sim/src/battle/continuous/controller-punish.ts`, `packages/sim/src/battle/frames.ts`, `packages/sim/src/battle/frames.test.ts`, `packages/sim/src/species/**`, `packages/sim/src/cup/**`, `packages/sim/scripts/battle-telemetry.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`, `packages/sim/src/battle/continuous/balance-report.test.ts`
@@ -79,8 +79,8 @@
 
 - [ ] **P4.T1: Judge the active-frame gap** — covers: FR-4, AC-4
   - [ ] **P4.T1.1: A move is legal only when the gap at its active frame — the current gap minus the closing travel during its startup, in integer mm — lands inside the interval; a point-blank or closing-too-fast commit is refused, and a test pins both the refusal and the legal boundary. No new RNG draw.**
-- [ ] **P4.T2: Retreat to the landing edge** — covers: FR-10, AC-9
-  - [ ] **P4.T2.1: When no ready move lands, order a step away from the foe until the gap reaches the nearest landing edge; unit test proves the direction and that the order stops at that edge, and a fight-level check proves commits and hits stay above zero.**
+- [ ] **P4.T2: Backing shot, then step back** — covers: FR-10, AC-9
+  - [ ] **P4.T2.1: When no forward move lands, commit the heaviest ready shot whose launch — the gap opened by giving ground over its startup — lands inside the interval, using a giving-ground intent instead of the press; failing that, step back to the landing edge. Unit test proves the backing launch clears the inner edge, the step-back direction, and that a cornered fighter neither backs into the fence nor stands still; a fight-level check proves commits and hits stay above zero.**
 - [ ] **P4.T3: Author the value** — covers: FR-6, AC-5
   - [ ] **P4.T3.1: Sweep candidate values against both the widened telemetry sample and the 840-fight roster gate, ship the largest both accept, and record every candidate's figures; stats move inside their existing roll bounds only if the sweep cannot restore the gate.**
 - [ ] **P4.T4: Add the dead-zone metric** — covers: FR-7, AC-6

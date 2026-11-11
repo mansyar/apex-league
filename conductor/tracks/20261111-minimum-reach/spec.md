@@ -31,7 +31,8 @@ outcomes, so it ships with the balance track alongside."
 
 - **Goal:** every long move (reach ≥ 5,000 mm) has a real blind spot; the innate
   basic is the universal close-range answer; a fighter that finds itself inside
-  its own blind spot steps out of it instead of standing there.
+  its own blind spot answers it — a backing shot where the kit has one, a step
+  back where it does not — instead of standing there.
 - **Metric:** a point-blank long move whiffs with a distinct `range` reason;
   `bun run balance` exit 0 with all 15 rows green; `bun run telemetry` exit 0 on
   a sample large enough to measure pacing, including the new dead-zone bound;
@@ -54,9 +55,11 @@ outcomes, so it ships with the balance track alongside."
   **at its active frame** — the current gap plus the closing travel during its
   startup — lands inside the interval, so a fighter that commits while closing
   does not launch into its own blind spot.
-- **Retreat-to-fight:** when no ready move's interval covers the current gap,
-  the fighter steps back to the nearest gap at which a ready move lands rather
-  than holding. This is the behaviour that keeps the doctrine hold point from
+- **Retreat-to-fire:** when no ready move lands from the current gap, the fighter
+  commits a shot whose intent gives ground, so the launch opens outside the
+  inner edge; when the kit has no such shot or the fence is behind it, it steps
+  back and re-decides on the next cadence. This is what keeps a ranged kit's
+  damage alive inside its own blind spot, and what stops the doctrine hold point
   deadlocking inside a dead zone (see Edge Cases).
 - `SIM_VERSION` 2 → 3, with the ghost doc comment and pins updated.
 - Balance pass: tune `minReachMm` first, species stats only inside their
@@ -92,7 +95,7 @@ outcomes, so it ships with the balance track alongside."
 | FR-7 | Telemetry's sample is widened enough to measure pacing (the shipped 14-fight sample sat exactly on its own `capShare` bound), its bounds are re-derived with headroom and recorded before/after, and one gated dead-zone metric is added. | Must |
 | FR-8 | `SIM_VERSION` is 3, with `ghost.ts`'s version note and `ghost.test.ts` pins updated. | Must |
 | FR-9 | The tell wedge shows the inner dead-zone edge derived from the same authored data. | Should |
-| FR-10 | When no ready move lands from the current gap, the fighter steps back toward the nearest gap where one does, instead of holding still. | Must |
+| FR-10 | When no ready move lands from the current gap, the fighter commits a shot whose intent gives ground so the launch opens outside the inner edge; with no such shot, or no room behind it, it steps back and re-decides. | Must |
 
 ## Non-Functional Requirements
 
@@ -115,7 +118,7 @@ outcomes, so it ships with the balance track alongside."
 | AC-6 | `bun run telemetry` exits 0 on the widened sample, printing the dead-zone share and every re-derived bound with visible headroom. | FR-7 |
 | AC-7 | `ghost.test.ts` pins `SIM_VERSION === 3` and `SIM_VERSION + 1 === 4`; `bun run trace --seed N --check` passes. | FR-8, NFR-1 |
 | AC-8 | The wedge's inner radius equals `tellInnerWorld(minReachMm, radiusMm)` and never exceeds its outer radius. | FR-9 |
-| AC-9 | With the dead zone authored, a full telemetry fight shows the fighter leaving its own blind spot and committing from a gap where the blow lands: commits stay above zero, `idleShare` stays inside its bound, and the `range` whiff share stays well under half of commits, with a test or trace proving the retreat order is what moved it. | FR-10 |
+| AC-9 | With the dead zone authored, a full telemetry fight shows the fighter answering its own blind spot: commits and hits stay above zero, `idleShare` stays inside its bound, the `range` whiff share stays well under half of commits, and a test or trace proves a backing shot is what a ranged kit commits from inside the inner edge. | FR-10 |
 | AC-10 | The telemetry sample size, every re-derived bound, and the before/after values are recorded in the track's evidence, and the run reports visible headroom on each. | FR-7, NFR-2 |
 
 ## Edge Cases
@@ -133,8 +136,14 @@ outcomes, so it ships with the balance track alongside."
   on the 42-fight sample: at 400 mm of dead zone, 31.4% of commits were `range`
   whiffs and `capShare` hit 92.9%, because the doctrine's ~946 mm preferred range
   is inside the inner edge once startup travel is counted. The chooser therefore
-  judges the active-frame gap, not the current one (FR-4), and FR-10 backs off to
-  the landing edge.
+  judges the active-frame gap, not the current one (FR-4).
+- **Blind spot, no answer:** measured at 1 mm of authored dead zone on the
+  840-fight matrix, a chooser that only refuses and backs off cost `voltfox`
+  17.9 points of win rate (32.1%, 3.8σ below 50%) and moved `wind_falcon` to
+  59.4%: a ranged kit that is refused its shot inside the inner edge loses its
+  damage entirely. Hence FR-10 commits a *backing* shot — the launch opens
+  outside the inner edge because the fighter gave ground during startup — rather
+  than only stepping back.
 - **Mutual clinch:** both sides inside each other's dead zones → basic-only
   exchange. The existing `contactShare ≤ 0.7` bound guards against it becoming
   the whole fight.
@@ -164,6 +173,11 @@ outcomes, so it ships with the balance track alongside."
   sweep showed the doctrine hold point is inside the inner edge once startup
   travel is counted, so a chooser that only tests the current gap commits from
   where it cannot land; the bands themselves stay as the Kite verdict left them.
+- **Decided 2026-11-12 (third):** retreat-to-fire replaces retreat-only. The
+  second sweep measured that a chooser which refuses and backs off costs a
+  ranged kit its damage (`voltfox` 32.1%, 3.8σ below 50% at 1 mm), so FR-10
+  commits a backing shot; the earlier avoid-only decision is withdrawn on that
+  evidence.
 - **Assumption:** the basic strike (420 mm) is the intended close-range answer,
   so no row needs a dead zone smaller than the basic's reach.
 - **Assumption:** the tell wedge can draw an inner edge without a stream change,
