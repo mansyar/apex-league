@@ -101,19 +101,22 @@ The primary appends after acceptance:
   `packages/sim/src/battle/continuous/pacing.test.ts`
 - **Verification:** `bun run telemetry`, then `bun run verify`, then
   `bun run build` (three separate commands)
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified — `capShare` 20/42 (47.6%), every other bound unchanged
+- **Checkpoint:** c08ff05a
+- **Evidence:** conductor/tracks/20261112-capshare-pacing/verification/phase-3.md
 
-- [ ] **P3.T1: Replace the 14 × 3 walk with 42 distinct pairings** — covers: FR-3
-  - [ ] **P3.T1.1: Draw the pairings by a written rule over the full 210-pair enumeration (fixed stride, mirrors skipped), not by hand — the rule lives in `matchups()`'s doc so the sample is reproducible**
-  - [ ] **P3.T1.2: Pin the coverage the old walk lacked: 42 entries, all distinct, no mirrors, every species appearing as home and as away at least twice, and the same list on two calls**
-- [ ] **P3.T2: Hold the line on every other bound** — covers: FR-4, FR-8
-  - [ ] **P3.T2.1: `capShare` reads at most 21/42 with the ceiling still 3/5 in the source; `deadZoneShare`, retreat floors, duration band and `distinctPositions` keep their values**
-  - [ ] **P3.T2.2: If the new sample cannot reach 52% without a second species fix, stop and report blocked — do not pick pairings that dodge the stalls and do not move the bound**
-- [ ] **P3.T3: Leave `pacing.test.ts` truthful** — covers: FR-6
-  - [ ] **P3.T3.1: A `test.failing` whose body now passes is promoted to a normal assertion; a pin that still fails keeps a comment saying why. No `.skip` is added**
-- [ ] **P3.T4: Record both readings** — covers: FR-9
-  - [ ] **P3.T4.1: The evidence carries the shipped 14 × 3 reading and the new 42-distinct reading side by side, with a verdict per bound and the reason each still holds**
-  - [ ] **P3.T4.2: State plainly that the two readings are not comparable — the claim is "the new sample reads ≤ 52%", never "we removed eight time-outs"**
+- [x] **P3.T1: Replace the 14 × 3 walk with 42 distinct pairings** — covers: FR-3
+  - [x] **P3.T1.1: Draw the pairings by a written rule over the full 210-pair enumeration (fixed stride, mirrors skipped), not by hand — the rule lives in `matchups()`'s doc so the sample is reproducible** — stride 11 plus a per-lap carry; the brief's suggested stride 7 collided after the mirror hop (39 distinct), which the new pin would have caught
+  - [x] **P3.T1.2: Pin the coverage the old walk lacked: 42 entries, all distinct, no mirrors, every species appearing as home and as away at least twice, and the same list on two calls**
+- [x] **P3.T2: Hold the line on every other bound** — covers: FR-4, FR-8
+  - [x] **P3.T2.1: `capShare` reads at most 21/42 with the ceiling still 3/5 in the source; `deadZoneShare`, retreat floors, duration band and `distinctPositions` keep their values** — 20/42; no `BOUNDS` value edited, only `capShare.why` prose
+  - [x] **P3.T2.2: If the new sample cannot reach 52% without a second species fix, stop and report blocked — do not pick pairings that dodge the stalls and do not move the bound** — not needed; the rule was fixed before measuring and was not iterated
+- [x] **P3.T3: Leave `pacing.test.ts` truthful** — covers: FR-6
+  - [x] **P3.T3.1: A `test.failing` whose body now passes is promoted to a normal assertion; a pin that still fails keeps a comment saying why. No `.skip` is added** — untouched and re-run to prove no pin changed state (4 pass, 0 fail, 87 assertions)
+- [x] **P3.T4: Record both readings** — covers: FR-9
+  - [x] **P3.T4.1: The evidence carries the shipped 14 × 3 reading and the new 42-distinct reading side by side, with a verdict per bound and the reason each still holds**
+  - [x] **P3.T4.2: State plainly that the two readings are not comparable — the claim is "the new sample reads ≤ 52%", never "we removed eight time-outs"**
 
 <!--
 The primary appends after acceptance:
