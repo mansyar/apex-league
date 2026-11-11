@@ -31,7 +31,7 @@
 - **Covers:** FR-2, FR-3, FR-4, FR-5, FR-6, FR-8, AC-2, AC-3, AC-4, AC-5, AC-7
 - **Touches:** `packages/sim/src/battle/continuous/contact.ts`, `packages/sim/src/battle/continuous/strike.ts`, `packages/sim/src/battle/continuous/projectile.ts`, `packages/sim/src/battle/continuous/contact.test.ts`, `packages/sim/src/battle/continuous/strike.test.ts`, `packages/sim/src/battle/continuous/projectile.test.ts`, `packages/sim/src/battle/continuous/controller-moves.ts`, `packages/sim/src/battle/continuous/controller-punish.ts`, `packages/sim/src/battle/continuous/controller-rule.ts`, `packages/sim/src/battle/continuous/controller.test.ts`, `packages/sim/src/battle/continuous/controller-punish.test.ts`, `packages/sim/src/battle/continuous/controller-rule.test.ts`, `packages/sim/src/battle/frames.ts`, `packages/sim/src/battle/frames.test.ts`, `packages/sim/src/cup/ghost.ts`, `packages/sim/src/cup/ghost.test.ts`
 - **Verification:** `bun run verify` and `bun run build` as two separate commands
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: One interval test in contact** — covers: FR-2, AC-2
   - [ ] **P2.T1.1: A helper answering "inside the interval" from gap and min/reach, used by both resolution paths; boundary test lands at exactly `minReach + radii` and whiffs one millimetre inside.**
