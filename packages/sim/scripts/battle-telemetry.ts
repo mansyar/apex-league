@@ -175,17 +175,20 @@ export interface Matchup {
 }
 
 /**
- * How many pairings the walk visits: every roster species as home once.
+ * How many pairings the walk visits: 42, so every fight in the sample is a
+ * different pairing.
  */
-const PAIRINGS = 14
+const PAIRINGS = 42
 
 /**
- * Seeds per pairing. A single seed per pairing is what made the old 14-fight
- * sample a coin flip — the same pairing lands on a knockout or on the cap
- * depending on the draw. Three draws per pairing average that luck out, and it
- * is the shape `pacing.test.ts` already uses for its own 42-fight sample.
+ * Seeds per pairing: one. The 42 fights are spent on 42 distinct pairings
+ * rather than replaying ten pairings three times each, which is what made the
+ * old sample read its own composition: a pairing that stalled contributed
+ * three caps. One seed per pairing also means a pairing sees a single tactic
+ * assignment (`measureFight` picks by seed parity), so the seeds alternate
+ * parity to keep both doctrines in play.
  */
-const SEEDS_PER_PAIRING = 3
+const SEEDS_PER_PAIRING = 1
 
 /**
  * How many seeded fights the sample plays. Minimum Reach phase 3 raised this
@@ -195,20 +198,45 @@ const SEEDS_PER_PAIRING = 3
 export const SAMPLE_SIZE = PAIRINGS * SEEDS_PER_PAIRING
 
 /**
- * The sample's matchups: a deterministic roster walk with no mirrors (a mirror
- * keys both sides the same, so the event log cannot attribute a blow to a side,
- * and no real cup field contains two of a species), three contiguous seeds per
- * pairing so each pairing sees both tactic assignments.
+ * The sample's matchups: 42 distinct pairings over the full 210-pair
+ * enumeration (15 species x 14 opponents), one seed each, no mirrors.
+ *
+ * The pairing is drawn by a written rule, not a hand-picked list:
+ *
+ *     home = roster[i % roster.length]
+ *     lap  = floor(i / roster.length)
+ *     away = roster[(i * 11 + lap + 1) % roster.length]   // gcd(11, 15) = 1
+ *
+ * **Distinctness.** `home` is fixed by `i % 15` and `lap` by `floor(i / 15)`,
+ * so the pair (home index, lap) is unique for every `i` below 225. For a fixed
+ * home, `away = (11 * home + lap + 1) mod 15` differs between laps, and
+ * different homes are different pairings, so no pairing can repeat.
+ *
+ * **Coverage.** The stride is coprime to the roster, so lap 0 puts each of the
+ * 15 species on the away side exactly once; lap 1 does it again. Home cycles
+ * through the roster, so every species is home 2-3 times and away at least
+ * twice. The old walk's stride of 5 (`gcd(5, 15) = 5`) only ever put three
+ * species on the away side, which is why its caps were a reading of its own
+ * composition.
+ *
+ * **No mirrors.** A mirror needs `10 * home + lap + 1` divisible by 15;
+ * `gcd(10, 15) = 5` and `lap + 1` is 1..3 for the three laps this sample
+ * visits, so none is. The hop-past-a-mirror rule is kept as the guard that
+ * keeps the walk mirror-free if the roster changes.
+ *
+ * **Seeds.** One contiguous seed per pairing from 20261108, so parity
+ * alternates and each doctrine takes 21 of the 42 fights.
  */
 export function matchups(): Matchup[] {
   const out: Matchup[] = []
   const roster = ALL_SPECIES
   for (let i = 0; i < PAIRINGS; i++) {
     const home = roster[i % roster.length]
-    let away = roster[(i * 5 + 7) % roster.length]
+    const lap = Math.floor(i / roster.length)
+    let away = roster[(i * 11 + lap + 1) % roster.length]
     if (!home || !away) throw new Error("the roster shrank")
     for (let hop = 1; away.id === home.id && hop < roster.length; hop++) {
-      away = roster[(i * 5 + 7 + hop) % roster.length] ?? away
+      away = roster[(i * 11 + lap + 1 + hop) % roster.length] ?? away
     }
     for (let offset = 0; offset < SEEDS_PER_PAIRING; offset++) {
       out.push({ home, away, seed: 20261108 + i + offset })
@@ -679,7 +707,7 @@ export const BOUNDS: readonly Bound[] = Object.freeze([
     metric: "capShare",
     kind: "max",
     value: 3 / 5,
-    why: "AC-24: at most one fight in two may be decided at the cap. The widened sample measured 22/42 (52.4%) at minReachMm = 0, so the smoke ceiling was re-derived to 3/5 under the approved FR-7 exception: three fights of headroom at that value, and which pairings are glacial — not seed luck — sets the share. The shipped 90 mm dead zone then consumed two of those three fights, so the tree measures 25/42 (59.5%) with one fight of headroom. The one-in-three target is still missed: the triple-length cycle means fewer blows per fight, so more fights run out the clock. This is a pacing finding for the balance pass, not a relaxation hiding a regression — the bound has not moved since the approved re-derivation",
+    why: "AC-24: at most three fights in five may be decided at the cap. The value has not moved since the approved Minimum Reach re-derivation (22/42, 52.4% at minReachMm = 0). Two readings are recorded because they are not comparable. The shipped 14-pairing x 3-seed walk measured 25/42 (59.5%) — one fight of headroom — but that number was largely a reading of the fixture's own composition: ten stalled pairings replayed three times each. The re-composed 42-distinct-pairing walk measures 20/42 (47.6%), which is five fights of headroom under this ceiling and one under the track's 52% target (21/42). It is not an improvement from 59.5% to 47.6%; the old sample measured its own composition and the new one measures the roster. The one-in-three target is still missed at 20/42",
   },
   {
     metric: "durationMin",

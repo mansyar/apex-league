@@ -9,12 +9,14 @@
  * `bun run telemetry` command runs, so the readable local report and the CI gate
  * cannot drift: there is one `BOUNDS` table and one `measure()` call.
  *
- * The sample is 42 seeded fights: the same 14 pairings `pacing.test.ts` plays,
- * drawn three times each by the script's own roster walk. Minimum Reach phase 3
- * widened it from 14 (FR-7) because a 14-fight sample could not adjudicate an
- * outcome-changing mechanic. It is driven through the public resolver and read
- * from the stream the resolver already records, so the harness changes nothing
- * in the simulation.
+ * The sample is 42 seeded fights on 42 distinct pairings, drawn by the script's
+ * own written roster rule — one seed each, so a stalled pairing cannot count
+ * three times. Minimum Reach phase 3 widened the sample from 14 (FR-7) because
+ * a 14-fight sample could not adjudicate an outcome-changing mechanic; this
+ * track re-composed it because the old 14-pairing x 3-seed walk replayed ten
+ * pairings three times and measured its own composition. It is driven through
+ * the public resolver and read from the stream the resolver already records, so
+ * the harness changes nothing in the simulation.
  */
 
 import { describe, expect, test } from "bun:test"
@@ -22,12 +24,14 @@ import {
   BOUNDS,
   describe as describeViolation,
   type Metric,
+  matchups,
   measure,
   report,
   run,
   type SampleTelemetry,
   violations,
 } from "../../../scripts/battle-telemetry"
+import { ALL_SPECIES } from "../../species"
 
 /** The sample is 42 fights, so measure it once for the whole file. */
 let cached: SampleTelemetry | undefined
@@ -46,6 +50,38 @@ function assertBounds(metrics: readonly Metric[]): void {
 }
 
 describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
+  // FR-3 / AC-3: the fixture must measure the roster, not its own composition.
+  // The old walk was 14 pairings x 3 seeds with `away = (i * 5 + 7) % 15`;
+  // gcd(5, 15) = 5, so only three species ever appeared on the away side and a
+  // stalled pairing contributed three caps. These pins are what stop the walk
+  // drifting back to triple-counting.
+  test("the sample is 42 distinct pairings spread across the roster (FR-3)", () => {
+    const drawn = matchups()
+    expect(drawn.length).toBe(42)
+    // 42 fights, 42 distinct pairings: no `home v away` may appear twice.
+    expect(new Set(drawn.map((m) => `${m.home.id} v ${m.away.id}`)).size).toBe(
+      42,
+    )
+    // One seed each, and every seed distinct.
+    expect(new Set(drawn.map((m) => m.seed)).size).toBe(42)
+    // No mirrors: a mirror keys both sides the same, so the event log cannot
+    // attribute a blow to a side.
+    for (const matchup of drawn) {
+      expect(matchup.home.id).not.toBe(matchup.away.id)
+    }
+    // Every species is home and away at least twice. The old walk only ever put
+    // three species on the away side, which is why its cap share was largely a
+    // reading of its own composition.
+    for (const species of ALL_SPECIES) {
+      const home = drawn.filter((m) => m.home.id === species.id).length
+      const away = drawn.filter((m) => m.away.id === species.id).length
+      expect(home).toBeGreaterThanOrEqual(2)
+      expect(away).toBeGreaterThanOrEqual(2)
+    }
+    // The rule is deterministic: two calls draw the same list.
+    expect(matchups()).toEqual(drawn)
+  })
+
   test("reports every metric for every matchup", () => {
     const measured = sample()
     console.log(report(measured).join("\n"))
@@ -152,18 +188,25 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
   // (42.9%) on the old 14-fight sample. Minimum Reach phase 3 widened the sample
   // to 42 fights and re-derived the smoke ceiling from the measurement: 22/42
   // (52.4%) at minReachMm = 0, so the ceiling is 3/5, three fights of headroom.
-  // Phase 4's 90 mm dead zone then consumed two of them: the shipped tree reads
-  // 25/42 (59.5%), one fight of headroom. The spec's one-in-two target is now
-  // missed on this fixture — that is a pacing finding recorded in the track's
-  // evidence, not a regression from this phase, and the bound was not widened
-  // again.
+  // Phase 4's 90 mm dead zone then consumed two of them: the shipped 14-pairing
+  // x 3-seed walk read 25/42 (59.5%), one fight of headroom.
+  //
+  // That reading was largely a reading of the fixture's own composition: ten
+  // stalled pairings, each replayed three times. This track re-composed the
+  // sample to 42 distinct pairings with one seed each (FR-3), and the tree now
+  // measures 20/42 (47.6%) — five fights of headroom under the untouched 3/5
+  // ceiling, one under the track's 52% target. The two numbers are not
+  // comparable, so this is not "improved from 59.5% to 47.6%".
   test("the cap share stays inside its re-derived smoke ceiling (AC-24)", () => {
     assertBounds(["capShare"])
     const cap = sample().cap
     expect(cap.total).toBe(42)
     // The re-derived ceiling, in exact integer form: 25/42 passes, 26/42 fails.
     expect(cap.count * 5).toBeLessThanOrEqual(cap.total * 3)
-    // The one-in-three target is still missed at 25/42 (59.5%). Pinned as debt,
+    // The track's target on the re-composed sample: at most 21 of 42 (52%).
+    // 20/42 passes with one fight of headroom; 22/42 fails.
+    expect(cap.count * 100).toBeLessThanOrEqual(cap.total * 52)
+    // The one-in-three target is still missed at 20/42 (47.6%). Pinned as debt,
     // not as met — the spec's own ceiling is the bound above.
     expect(cap.count * 3).toBeGreaterThan(cap.total)
   })
