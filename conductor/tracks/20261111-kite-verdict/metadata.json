@@ -8,15 +8,15 @@
   "doc_sync": "pending",
   "depends_on": [],
   "id": "20261111-kite-verdict",
-  "last_checkpoint": "ef6ee61d",
+  "last_checkpoint": "e238d2a9",
   "plan": "conductor/tracks/20261111-kite-verdict/plan.md",
   "pr_state": null,
   "pr_url": null,
   "priority": "high",
   "progress": {
     "phases_total": 3,
-    "phases_verified": 1,
-    "tasks_done": 5,
+    "phases_verified": 2,
+    "tasks_done": 10,
     "tasks_total": 14
   },
   "reverted_at": null,
@@ -28,5 +28,5 @@
   "status": "in_progress",
   "title": "Kite Verdict",
   "type": "feature",
-  "updated_at": "2026-11-11T17:30:00+11:00"
+  "updated_at": "2026-11-11T18:00:00+11:00"
 }

@@ -133,3 +133,21 @@ FR-6 is covered by the non-zero paid-dodge hold across every kept move.
 - The kept winner moves the doctrine probe 2/6 -> 5/6 with paid dodges
   intact (16 doctrine-table, 9.67/fight dodge probe) while every other
   doctrine row stays non-zero.
+
+## Primary verification
+
+- `bun run verify` exit 0 (log `.conductor/evidence/vK2.log`): 4113 pass,
+  1 skip, 0 fail across 4114 tests / 373 files. Determinism gate
+  byte-identical.
+- `bun run build` exit 0 (log `.conductor/evidence/bK2.log`).
+- Range `1c9da8c8..HEAD` held exactly the two reported commits, so
+  squashed to `e238d2a9` (3 files, +150/−12: profile, cup-contracts
+  re-pins, evidence).
+- Deviation accepted: the two cup goldens pin the old losing
+  Kite/specials behaviour and flip under ANY winning lever; re-pinned
+  with ripple comments plus removal of the consequently unused import —
+  smallest necessary change, no tuning numbers touched.
+- AC-3: six levers each scored with probe + pacing re-check; five
+  reverted with measured reasons (bound breaks, silenced dodges, or
+  zero delta). AC-6: kept path never zeroes paid dodges (16 doctrine /
+  58 dodge-probe).
