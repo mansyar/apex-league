@@ -10,7 +10,7 @@
   "id": "20261110-battle-variance",
   "last_checkpoint": "03bbb4d0",
   "plan": "plan.md",
-  "pr_state": "merged_pending",
+  "pr_state": "merged",
   "pr_url": "https://github.com/mansyar/apex-league/pull/68",
   "priority": "high",
   "progress": {
@@ -28,5 +28,5 @@
   "status": "complete",
   "title": "Battle Variance",
   "type": "feature",
-  "updated_at": "2026-11-11T19:30:00+11:00"
+  "updated_at": "2026-11-11T19:45:00+11:00"
 }

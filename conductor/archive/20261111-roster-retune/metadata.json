@@ -10,7 +10,7 @@
   "id": "20261111-roster-retune",
   "last_checkpoint": "69d79ca1",
   "plan": "plan.md",
-  "pr_state": "merged_pending",
+  "pr_state": "merged",
   "pr_url": "https://github.com/mansyar/apex-league/pull/68",
   "priority": "high",
   "progress": {
@@ -28,7 +28,7 @@
   "status": "complete",
   "title": "Roster Re-tune",
   "type": "feature",
-  "updated_at": "2026-11-11T19:30:00+11:00",
+  "updated_at": "2026-11-11T19:45:00+11:00",
   "phases_total": 4,
   "tasks_total": 21,
   "phases_verified": 2,
