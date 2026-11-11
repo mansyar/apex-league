@@ -94,3 +94,19 @@ mid-fight at both widths.
 - Frame-time: no quantitative profiler exists in the repo; per the spec
   assumption the visual pass is the harness. No new per-frame work was
   added (flashes spawn outside the frame loop, ≤4 alive, static).
+
+## Primary verification
+
+- Range `65ce6bc9..HEAD`: six subagent commits, all reported, squashed to
+  `df2d8261` (no merge, unreported, or user commits in range).
+- `bun run verify` exit 0 (independent run; determinism gate byte-identical).
+  `bun run build` exit 0 (chunk-size warning pre-existing).
+- Sizes: `reduced-flash.ts` 6,416 B (new), `dense-playback.ts` 11,056 B
+  (down from 12,582 B breach via the anticipated split). All under cap.
+- Deviation accepted: reporter split is the brief-anticipated cap split,
+  same Touches.
+- AC-9/11 + NFR-1/3/5 proven; replay hash `0xc579e9ae` confirmed unchanged.
+  Screenshots (4 PNGs, desktop + phone, end + replay) present under
+  `.conductor/evidence/20261111-presentation-mapping/` (gitignored, not committed).
+- Noted for follow-up (pre-existing, outside Touches, not fixed): `.hud-motion`
+  overlay intercepts the Spar tap at iPhone 15 width; dev server left on :5175.
