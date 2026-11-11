@@ -202,6 +202,50 @@ export function landingEdgeMm(
 }
 
 /**
+ * A shot to fire while giving ground, so the launch opens outside the inner
+ * edge (FR-10, AC-9). The mirror of `landingGapMm`: a move that lands only
+ * after the pair has closed `closingMm` is committed from that much further
+ * out, and a fighter that answers by backing off instead of pressing in opens
+ * the same distance over the startup, so the launch gap is the current gap
+ * plus that travel. Only shots qualify — a melee dash cannot open its own gap —
+ * and both edges are checked, because backing off past the outer edge makes the
+ * shot fall short. Same filters and the same highest-power choice as
+ * `chooseMove`; `null` means there is nothing to fire from here.
+ */
+export function backingShot(
+  me: FighterState,
+  foe: FighterState,
+  kit: readonly string[],
+  gapSq: number,
+  reserve = 0,
+): string | null {
+  const gap = integerSqrt(gapSq)
+  const radii = me.radiusMm + foe.radiusMm
+  const holding = holdsBreak(foe, reserve)
+  let bestId: string | null = null
+  let bestPower = -1
+  for (const moveId of kit) {
+    const move = getMove(moveId)
+    const row = getFrameData(moveId)
+    if (!move || !row) continue
+    // Giving ground cannot open a melee blow's gap: it has no travel.
+    if (row.speedMmPerMs <= 0) continue
+    if (!spendable(me, moveId, holding, reserve)) continue
+    const outer = row.reachMm + radii
+    if (gapSq > outer * outer) continue
+    const launch = gap + closingMm(me, foe, gap, row.startupMs)
+    if (launch < minReachEdgeMm(row.minReachMm, radii) || launch > outer)
+      continue
+    const better = move.power > bestPower
+    const tie = move.power === bestPower && bestId !== null && moveId < bestId
+    if (!better && !tie) continue
+    bestId = moveId
+    bestPower = move.power
+  }
+  return bestId
+}
+
+/**
  * Whether a move's reach interval covers the centre gap, edge to edge: the
  * same test the strike and the shot resolve with (FR-2, FR-4). The outer edge
  * is read at the gap now — a move out of reach is out of reach, and closing

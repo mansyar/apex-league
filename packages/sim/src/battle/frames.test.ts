@@ -97,15 +97,16 @@ describe("frame data — catalog completeness", () => {
 })
 
 describe("frame data — minimum reach (FR-1)", () => {
-  test("authors no dead zone yet: the shipped rows all read zero", () => {
-    // The first pass authored 1,200 mm on every long row. The balance gate and
-    // the recorded cup transcripts pin exact figures, so no live dead zone can
-    // land until the balance phase re-pins them (measured in the phase-2
-    // evidence): every row ships at 0, which FR-1 defines as "no dead zone".
-    // The interval geometry itself is live and pinned in contact/strike/
-    // projectile tests with an authored minimum injected.
+  test("authors the shipped dead zone on every long row (AC-1)", () => {
+    // The balance pass shipped 90 mm: the largest value both gates accept
+    // (phase-4 sweep — 100 mm drops embercub one win outside its bound, and
+    // every rung from 75 mm down loses the telemetry cap share). Rows shorter
+    // than 5,000 mm and the innate basic stay at 0, which FR-1 defines as
+    // "no dead zone".
     for (const move of ALL_MOVES) {
-      expect(frameOf(move.id).minReachMm).toBe(0)
+      const row = frameOf(move.id)
+      const authored = row.reachMm >= 5000 ? 90 : 0
+      expect(row.minReachMm).toBe(authored)
     }
   })
 

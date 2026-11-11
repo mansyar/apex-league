@@ -18,9 +18,10 @@ import {
   retreatRoom,
   strafeIntent,
 } from "./controller-aim"
+import { backingOrder, stepBackOrder } from "./controller-blind"
 import { dodgeOrder } from "./controller-dodge"
 import { observe, strafeSide } from "./controller-memory"
-import { chooseMove, landingEdgeMm } from "./controller-moves"
+import { chooseMove } from "./controller-moves"
 import { cadenceHold, flankDodge, takeCommit } from "./controller-noise"
 import {
   PUNISH_RESERVE_STAMINA,
@@ -317,20 +318,17 @@ export function decide(input: DecisionInput, rng?: Rng): ControllerDecision {
     if (moveId && !refused && takeCommit(rng, false)) {
       return settle("commit", pressIntent(me, foe), moveId)
     }
-    // Nothing lands from here (FR-10, AC-9): if a ready move would land from
-    // further out, give ground until the gap reaches that edge instead of
-    // circling inside the blind spot. The order is re-decided every cadence,
-    // so the walk stops as soon as the gap is on the edge; a cornered fighter
-    // still circles, because backing into the fence is not a step away.
+    // Nothing lands from here (FR-10, AC-9): fire a shot whose intent gives
+    // ground so the launch opens outside the inner edge, else step back until
+    // the gap reaches the nearest ready move's landing edge. Re-decided every
+    // cadence, so the walk stops on the edge; a cornered fighter still circles.
     if (!moveId) {
-      const edge = landingEdgeMm(me, foe, kit, gapSq, PUNISH_RESERVE_STAMINA)
-      if (edge !== null && gapSq < edge * edge) {
-        const away = awayFrom(me, foe)
-        const room = retreatRoom(me, away, state.bounds)
-        if (room >= me.radiusMm * RETREAT_ROOM_RADII) {
-          return settle("retreat", away)
-        }
+      const shot = backingOrder(me, foe, kit, gapSq, state.bounds)
+      if (shot && !ruleRefuses(input, shot.commit) && takeCommit(rng, false)) {
+        return settle("commit", shot.away, shot.commit)
       }
+      const back = stepBackOrder(me, foe, kit, gapSq, state.bounds)
+      if (back) return settle("retreat", back)
     }
     return withRule(settle("advance", aimAt(me, foe)), refused)
   }
