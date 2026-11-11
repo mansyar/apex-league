@@ -48,10 +48,13 @@
 - **Covers:** FR-6, FR-8, AC-6, AC-8
 - **Touches:** `apps/client/src/dense-playback.ts`, `apps/client/src/effects*`, shader files, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 127049f2
+- **Evidence:** conductor/tracks/20261111-presentation-mapping/verification/phase-3.md
 
-- [ ] **P3.T1: Reach-derived wedge** — covers: FR-6
-- [ ] **P3.T2: Bounded shader accents with capped instances** — covers: FR-8
+- [x] **P3.T1: Reach-derived wedge** — covers: FR-6
+- [x] **P3.T2: Bounded shader accents with capped instances** — covers: FR-8
 
 ## Phase 4: Reduced Motion + Visual Pass
 

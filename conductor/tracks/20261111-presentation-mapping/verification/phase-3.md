@@ -82,3 +82,17 @@ authored startup length (startup is never `spd`-scaled), per the spec's
   override table, never a sim export.
 - First startup frame still shows the basic-size default until the second
   sample firms the estimate (one step).
+
+## Primary verification
+
+- Range `a06c9978..HEAD`: three subagent commits, all reported, squashed to
+  `127049f2` (no merge, unreported, or user commits in range).
+- `bun run verify` exit 0 (independent run; determinism gate byte-identical).
+  `bun run build` exit 0 (chunk-size warning pre-existing).
+- Sizes: `tell-scale.ts` 4,682 B, `tell-wedge.ts` 5,759 B (new);
+  `fighter-driver.ts` untouched at 12,147 B. All under cap.
+- No deviations; every change inside Touches.
+- AC-6/8 proven by the cited tests; replay parity holds (zero sim diff by
+  construction).
+- Recorded approximations (not misses): same-startup rows read the longest
+  reach; first startup frame shows the basic default for one step.
