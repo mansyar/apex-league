@@ -1,10 +1,12 @@
 /**
  * The startup telegraph's meshes (presentation mapping FR-6): one wedge plus
  * one pulse ring per side, aimed down the stream facing at the body's feet.
- * Length and arc derive from the committed move's reachMm (estimated from
- * the startup run — the stream carries no move id) plus the attacker's body
- * radius; geometry is rebuilt only when the reach bucket changes, never per
- * frame. Two fixed meshes per side, so instances are capped by construction.
+ * Length and arc derive from the committed move's reachMm (the stream's
+ * move index when the trace carries one, else estimated from the startup
+ * run) plus the attacker's body radius; geometry is rebuilt only when the
+ * reach changes, never per frame. The first sample stays hidden: until a
+ * second sample firms the run, the wedge would paint an unconfirmed threat.
+ * Two fixed meshes per side, so instances are capped by construction.
  */
 
 import { STREAM_PHASE, type StreamFrame } from "@apex/sim"
@@ -13,6 +15,7 @@ import { clamp01 } from "./anim"
 import {
   DEFAULT_TELL_REACH_MM,
   estimateStartupMs,
+  reachForMoveIdx,
   reachForStartupMs,
   TELL_INNER,
   tellHalfAngle,
@@ -128,20 +131,27 @@ export function createTellSet(arenaGroup: THREE.Group): TellSet {
     update(side, body, frame, radiusMm, stepMs, step) {
       const tell = sides[side]
       const charging = frame.phase === STREAM_PHASE.startup
-      tell.mesh.visible = charging
-      tell.ring.visible = charging
       if (!charging) {
+        tell.mesh.visible = false
+        tell.ring.visible = false
         tell.runSteps = 0
         return
       }
-      // One observation per step: the phaseT span across the run measures
-      // the authored startup length, which names the move's reach.
+      // One observation per step: the committed row's own index wins when
+      // the trace carries it (R1/F2) — exact, no bucket — else the phaseT
+      // span across the run measures the authored startup length, which
+      // names the move's reach. The first sample stays hidden (R1/F5):
+      // until the run firms up, the wedge would paint an unconfirmed row.
       if (step !== tell.lastStep) {
         tell.lastStep = step
         tell.runSteps += 1
         if (tell.runSteps === 1) {
           tell.firstPhaseT = frame.phaseT
-        } else {
+        }
+        const exact = reachForMoveIdx(frame.moveIdx ?? 0)
+        if (exact !== undefined) {
+          tell.reachMm = exact
+        } else if (tell.runSteps > 1) {
           const estimate = estimateStartupMs(
             tell.runSteps,
             tell.firstPhaseT,
@@ -153,6 +163,9 @@ export function createTellSet(arenaGroup: THREE.Group): TellSet {
           }
         }
       }
+      const settled = tell.runSteps >= 2
+      tell.mesh.visible = settled
+      tell.ring.visible = settled
       const outer = tellOuterWorld(tell.reachMm, radiusMm)
       const halfAngle = tellHalfAngle(tell.reachMm)
       if (outer !== tell.outer || halfAngle !== tell.halfAngle) {

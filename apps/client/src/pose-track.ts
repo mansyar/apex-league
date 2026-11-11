@@ -72,7 +72,9 @@ export function createPoseTracker(stepMs = 20): PoseTracker {
       if (frame.hitstunMs > PLAIN_HITSTUN_MS) {
         if (step + holdSteps > breakUntil) breakUntil = step + holdSteps
       }
-      const travelMm = prev ? Math.hypot(frame.x - prev.x, frame.z - prev.z) : 0
+      const dx = prev ? frame.x - prev.x : 0
+      const dz = prev ? frame.z - prev.z : 0
+      const travelMm = Math.hypot(dx, dz)
       prev = { x: frame.x, z: frame.z }
       if (step < breakUntil) {
         seen = { pose: "crumple", intensity: 1 }
@@ -86,10 +88,29 @@ export function createPoseTracker(stepMs = 20): PoseTracker {
       } else if (frame.hitstunMs <= 0) {
         recoilHold = false
       }
+      const facing = Math.hypot(frame.facingX, frame.facingZ)
+      const lateral =
+        travelMm > 0 && facing > 0
+          ? Math.max(
+              -1,
+              Math.min(
+                1,
+                (dx * frame.facingZ - dz * frame.facingX) / (travelMm * facing),
+              ),
+            )
+          : 0
       const gapMm = foe
         ? Math.hypot(foe.x - frame.x, foe.z - frame.z)
         : undefined
-      seen = poseForFrame(frame, { travelMm, gapMm, contactMm })
+      seen = poseForFrame(frame, {
+        travelMm,
+        gapMm,
+        contactMm,
+        dodgeBurst: frame.dodgeBurst,
+      })
+      if (seen.pose === "roll" && lateral !== 0) {
+        seen = { ...seen, lateral }
+      }
       if (recoilHold && frame.hitstunMs > 0 && seen.pose === "flinch") {
         seen = { pose: "recoil", intensity: RECOIL_FLOOR }
       }

@@ -275,7 +275,7 @@ export function resolveContinuous(
       poiseDealt[side] += shot.poiseDamage
     }
     events.push(...stepEvents(result, sides, before, downed))
-    recorder.push(state, result.pinned)
+    recorder.push(state, result.pinned, result.dodges)
     ending = downEnding(state)
   }
 

@@ -85,14 +85,17 @@ export interface ReducedFlashLayer {
   /** Clear every flash and free nothing else (no shared resources). */
   disposeAll(): void
 }
+/** The layer's own marker: authored here, so its material type is known. */
+type FlashMesh = THREE.Mesh<THREE.SphereGeometry, THREE.MeshBasicMaterial>
+
 export function createReducedFlashLayer(host: {
   arenaGroup: THREE.Group
 }): ReducedFlashLayer {
-  const alive: Array<THREE.Mesh> = []
-  const drop = (mesh: THREE.Mesh): void => {
+  const alive: Array<FlashMesh> = []
+  const drop = (mesh: FlashMesh): void => {
     host.arenaGroup.remove(mesh)
     mesh.geometry.dispose()
-    ;(mesh.material as THREE.Material).dispose()
+    mesh.material.dispose()
   }
   return {
     spawn(at, kind) {

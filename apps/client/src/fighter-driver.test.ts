@@ -244,6 +244,21 @@ describe("stream poses in the driver", () => {
     expect(c.group.position.y).toBe(0)
   })
 
+  test("a sideways roll tips the body into the roll (R1/F3)", () => {
+    const forward = fighterAt(0)
+    forward.pose = "roll"
+    forward.poseK = 1
+    stepOnce(forward, fighterAt(0))
+    const c = fighterAt(0)
+    c.pose = "roll"
+    c.poseK = 1
+    c.poseLateral = 1
+    stepOnce(c, fighterAt(0))
+    expect(c.group.rotation.z).toBeGreaterThan(0.2)
+    // The forward tuck gives way to the sideways tip.
+    expect(c.group.rotation.x).toBeLessThan(forward.group.rotation.x)
+  })
+
   test("a recoil leans back harder than any flinch and shoves along away", () => {
     const c = fighterAt(0)
     c.pose = "recoil"

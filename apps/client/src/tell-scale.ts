@@ -11,6 +11,7 @@
  * way to keep one source of truth.
  */
 
+import { STREAM_MOVE_IDS } from "@apex/sim"
 import {
   FRAME_DATA,
   type FrameData,
@@ -75,6 +76,19 @@ export function reachForStartupMs(estimateMs: number): number {
     }
   }
   return best
+}
+
+/**
+ * The committed move's reach for a stream move index (R1/F2): exact, no
+ * bucket involved — an ion_wall startup reads ~4,400 mm even though its
+ * 500 ms bucket's longest threat is 6,200. Returns `undefined` for 0 (no
+ * attack, or a legacy trace), which keeps the estimator path below.
+ */
+export function reachForMoveIdx(moveIdx: number): number | undefined {
+  if (moveIdx <= 0) return undefined
+  const id = STREAM_MOVE_IDS[moveIdx - 1]
+  if (id === undefined) return undefined
+  return FRAME_DATA[id]?.reachMm
 }
 
 /**

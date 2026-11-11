@@ -291,6 +291,8 @@ function rearHits(doctrine: DoctrineId, seed: number) {
     hp: 0,
     hitstunMs: 0,
     pinned: false,
+    dodgeBurst: false,
+    moveIdx: 0,
   })
   const before: [StreamFrame, StreamFrame] = [frame(), frame()]
   const after: [StreamFrame, StreamFrame] = [frame(), frame()]

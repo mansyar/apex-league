@@ -495,3 +495,87 @@ describe("poseAdjust — roll, recoil and press signatures", () => {
     }
   })
 })
+
+describe("poseForFrame — the dodge flag outranks travel (R1/F1)", () => {
+  test("a flagged dodge rolls even when its travel reads like a walk", () => {
+    const state = poseForFrame(frame(), { travelMm: 20, dodgeBurst: true })
+    expect(state.pose).toBe("roll")
+  })
+
+  test("a flagged dodge rolls from rest (the burst is the signal)", () => {
+    const state = poseForFrame(frame(), { travelMm: 0, dodgeBurst: true })
+    expect(state.pose).toBe("roll")
+    expect(state.intensity).toBe(0)
+  })
+
+  test("an unflagged step in the roll band reads as footwork, not a roll", () => {
+    expect(
+      poseForFrame(frame(), { travelMm: 70, dodgeBurst: false }).pose,
+    ).toBe("none")
+  })
+
+  test("a legacy frame without the flag keeps the travel threshold", () => {
+    expect(poseForFrame(frame(), { travelMm: 70 }).pose).toBe("roll")
+    expect(poseForFrame(frame(), { travelMm: 20 }).pose).toBe("none")
+  })
+})
+
+describe("createPoseTracker — the dodge flag and lateral (R1/F1, R1/F3)", () => {
+  test("a flagged sidestep rolls below the travel threshold", () => {
+    const tracker = createPoseTracker()
+    expect(tracker.update(10, frame({ x: 0 })).pose).toBe("none")
+    expect(tracker.update(11, frame({ x: 30, dodgeBurst: true })).pose).toBe(
+      "roll",
+    )
+    expect(tracker.update(12, frame({ x: 30 })).pose).toBe("none")
+  })
+
+  test("an unflagged slip in the roll band never rolls", () => {
+    const tracker = createPoseTracker()
+    tracker.update(10, frame({ x: 0 }))
+    expect(tracker.update(11, frame({ x: 70, dodgeBurst: false })).pose).toBe(
+      "none",
+    )
+  })
+
+  test("a sideways dodge carries its lateral, a forward one carries none", () => {
+    const tracker = createPoseTracker()
+    tracker.update(10, frame({ x: 0, z: 0 }))
+    const sideways = tracker.update(
+      11,
+      frame({ x: 70, z: 0, dodgeBurst: true }),
+    )
+    expect(sideways.pose).toBe("roll")
+    expect(sideways.lateral).toBeCloseTo(1)
+    const forward = tracker.update(
+      12,
+      frame({ x: 70, z: 70, dodgeBurst: true }),
+    )
+    expect(forward.pose).toBe("roll")
+    expect(forward.lateral ?? 0).toBeCloseTo(0)
+  })
+})
+
+describe("poseAdjust — the roll tucks along its travel (R1/F3)", () => {
+  test("a sideways dodge tips the tuck into a roll", () => {
+    const right = poseAdjust("roll", 1, 1, 1, 1)
+    expect(right.pitch).toBeCloseTo(0)
+    expect(right.roll).toBeCloseTo(0.3)
+    const left = poseAdjust("roll", 1, 1, 1, -1)
+    expect(left.pitch).toBeCloseTo(0)
+    expect(left.roll).toBeCloseTo(-right.roll)
+  })
+
+  test("a forward dodge keeps the straight-ahead tuck", () => {
+    expect(poseAdjust("roll", 1, 1, 1)).toEqual(poseAdjust("roll", 1, 1, 1, 0))
+    const half = poseAdjust("roll", 1, 1, 1, 0.5)
+    expect(half.pitch).toBeCloseTo(0.15)
+    expect(half.roll).toBeCloseTo(0.15)
+  })
+
+  test("other poses ignore the lateral", () => {
+    expect(poseAdjust("flinch", 1, 1, 1, 1)).toEqual(
+      poseAdjust("flinch", 1, 1, 1),
+    )
+  })
+})

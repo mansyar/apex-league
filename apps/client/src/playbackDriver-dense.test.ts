@@ -265,7 +265,11 @@ describe("the dense path", () => {
     const seen = new Set<number>()
     for (let step = 0; step < stream.steps; step++) {
       for (const side of [0, 1] as const) {
-        seen.add(stream.data[(step * 2 + side) * STREAM_FIELDS + 4] as number)
+        // The phase field carries the committed-move index above bit 1
+        // (R1/F2); the phase itself is the low two bits.
+        seen.add(
+          (stream.data[(step * 2 + side) * STREAM_FIELDS + 4] as number) & 3,
+        )
       }
     }
     expect(seen.has(STREAM_PHASE.startup)).toBe(true)

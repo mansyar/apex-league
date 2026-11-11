@@ -151,6 +151,8 @@ export function createDenseStage(io: {
     hp: 0,
     hitstunMs: 0,
     pinned: false,
+    dodgeBurst: false,
+    moveIdx: 0,
   })
   const frames: [StreamFrame, StreamFrame] = [blank(), blank()]
   const lastHp: [number, number] = [0, 0]
@@ -255,6 +257,7 @@ export function createDenseStage(io: {
         const pose = poses[side].update(step, frame, foe, contactMm)
         c.pose = pose.pose
         c.poseK = pose.intensity
+        c.poseLateral = pose.lateral ?? 0
         // Reduced motion reports dodges and clinches the full path poses.
         if (reduced()) {
           reducedUi.pose(side, pose.pose, frame.pinned, fresh, c.group.position)

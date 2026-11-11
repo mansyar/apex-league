@@ -6,9 +6,11 @@
  */
 
 import { describe, expect, test } from "bun:test"
+import { STREAM_MOVE_IDS } from "@apex/sim"
 import {
   DEFAULT_TELL_REACH_MM,
   estimateStartupMs,
+  reachForMoveIdx,
   reachForStartupMs,
   STARTUP_REACH,
   TELL_INNER,
@@ -96,6 +98,25 @@ describe("tellHalfAngle", () => {
   test("clamps at both ends", () => {
     expect(tellHalfAngle(0)).toBe(0.62)
     expect(tellHalfAngle(99999)).toBe(0.22)
+  })
+})
+
+describe("reachForMoveIdx (R1/F2)", () => {
+  test("names the committed row exactly, even inside a shared bucket", () => {
+    const wall = STREAM_MOVE_IDS.indexOf("ion_wall") + 1
+    const bolt = STREAM_MOVE_IDS.indexOf("sky_bolt") + 1
+    expect(wall).toBeGreaterThan(0)
+    expect(bolt).toBeGreaterThan(0)
+    // Both share the 500 ms startup; the bucket read would be 6,200 for
+    // both. The index keeps the wall's own 4,400.
+    expect(reachForMoveIdx(wall)).toBe(4400)
+    expect(reachForMoveIdx(bolt)).toBe(6200)
+  })
+
+  test("yields to the estimator on zero, negative, and unknown indexes", () => {
+    expect(reachForMoveIdx(0)).toBeUndefined()
+    expect(reachForMoveIdx(-1)).toBeUndefined()
+    expect(reachForMoveIdx(STREAM_MOVE_IDS.length + 1)).toBeUndefined()
   })
 })
 

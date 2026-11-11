@@ -193,6 +193,8 @@ export interface DriveFighter {
    */
   pose?: StreamPose
   poseK?: number
+  /** Roll tip -1..1 (R1/F3). */
+  poseLateral?: number
 }
 
 export interface FighterDriver {
@@ -267,7 +269,13 @@ export function createFighterDriver(io: {
       // tucks while the glide carries the travel and a recoil plants its
       // feet — the gait bob would skate either, so both poses park it.
       const rest = speed < 0.15 ? 1 : 0
-      const padj = poseAdjust(c.pose ?? "none", c.poseK ?? 0, c.away, life)
+      const padj = poseAdjust(
+        c.pose ?? "none",
+        c.poseK ?? 0,
+        c.away,
+        life,
+        c.poseLateral ?? 0,
+      )
       const gait =
         gaitBob(c.walkPhase, GAIT_AMP * c.profile.gaitAmp, life) *
         (c.pose === "roll" || c.pose === "recoil" ? 0 : 1)

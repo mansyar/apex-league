@@ -8,6 +8,7 @@
 
 import { describe, expect, test } from "bun:test"
 import {
+  DODGE_PHASET_BIT,
   type FightStream,
   STREAM_FIELD,
   STREAM_FIELDS,
@@ -53,6 +54,8 @@ interface Rec {
   pinned?: boolean
   phase?: number
   phaseT?: number
+  /** A paid dodge burst rides the spare phaseT bit (R1/F1). */
+  dodge?: boolean
 }
 
 /** Build a stream from one record per side per step. */
@@ -65,7 +68,8 @@ function stream(records: Array<[Rec, Rec]>): FightStream {
     data[base + STREAM_FIELD.facingX] = side === 0 ? 1 : -1
     data[base + STREAM_FIELD.facingZ] = 0
     data[base + STREAM_FIELD.phase] = rec.phase ?? STREAM_PHASE.none
-    data[base + STREAM_FIELD.phaseT] = rec.phaseT ?? 0
+    data[base + STREAM_FIELD.phaseT] =
+      (rec.phaseT ?? 0) | (rec.dodge === true ? DODGE_PHASET_BIT : 0)
     data[base + STREAM_FIELD.hp] = rec.hp
     data[base + STREAM_FIELD.hitstunMs] = rec.hitstunMs ?? 0
     data[base + STREAM_FIELD.pinned] = rec.pinned ? 1 : 0
@@ -166,6 +170,20 @@ describe("reduced flash layer", () => {
     expect(arena.children.length).toBe(REDUCED_FLASH_MAX)
   })
 
+  test("an evicted flash leaves the arena consistent (R1/F4)", () => {
+    // The marker's material type is authored, not cast — so eviction runs
+    // the typed dispose path. The survivor is the newest: the oldest was
+    // dropped and freed.
+    const arena = new THREE.Group()
+    const layer = createReducedFlashLayer({ arenaGroup: arena })
+    for (let i = 0; i < REDUCED_FLASH_MAX + 1; i++) {
+      layer.spawn(new THREE.Vector3(i, 0, 0), "hit")
+    }
+    expect(layer.live()).toBe(REDUCED_FLASH_MAX)
+    expect(arena.children.length).toBe(REDUCED_FLASH_MAX)
+    expect((arena.children[0] as THREE.Mesh).position.x).toBe(1)
+  })
+
   test("markers are static: fixed heights, no travel", () => {
     const arena = new THREE.Group()
     const layer = createReducedFlashLayer({ arenaGroup: arena })
@@ -232,7 +250,7 @@ describe("dense reduced path", () => {
     const s = stage(() => "reduced")
     const fight = stream([
       [rest(0), rest(3000)],
-      [rest(300), rest(3000)],
+      [{ ...rest(300), dodge: true }, rest(3000)],
       [rest(300), rest(3000)],
     ])
     s.dense.apply(fight, 0, s.owned, s.rival)

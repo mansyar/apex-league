@@ -98,6 +98,10 @@ export interface StreamPoseState {
    * and none reads 0.
    */
   readonly intensity: number
+  /**
+   * Sideways share of the travel, -1..1 (R1/F3); the roll only.
+   */
+  readonly lateral?: number
 }
 
 /**
@@ -114,6 +118,10 @@ export interface PoseMotion {
   readonly gapMm?: number
   /** Gap below which the pair reads as contact, in mm. */
   readonly contactMm?: number
+  /**
+   * Paid dodge burst (R1/F1); absent keeps the travel threshold.
+   */
+  readonly dodgeBurst?: boolean
 }
 
 /** Press intensity 0.5 at the contact edge, 1 at touch or deeper. */
@@ -132,6 +140,7 @@ function pressIntensity(gapMm: number, contactMm: number): number {
  * else reports none. The roll never turns the body — yaw stays the
  * driver's face-the-rival, the tuck is all pitch — and a recovering frame
  * still reports none: recovery is the absence of a telegraph, not a pose.
+ * The dodge flag outranks travel (R1/F1).
  */
 export function poseForFrame(
   frame: StreamFrame,
@@ -157,7 +166,9 @@ export function poseForFrame(
       intensity: clamp01(frame.hitstunMs / PLAIN_HITSTUN_MS),
     }
   }
-  if (motion.travelMm >= ROLL_TRAVEL_MM) {
+  const flaggedDodge = motion.dodgeBurst === true
+  const flaggedSlip = motion.dodgeBurst === false
+  if (flaggedDodge || (!flaggedSlip && motion.travelMm >= ROLL_TRAVEL_MM)) {
     return {
       pose: "roll",
       intensity: clamp01(motion.travelMm / ROLL_FULL_MM),
@@ -254,6 +265,7 @@ export function poseAdjust(
   intensity: number,
   away: 1 | -1,
   life: number,
+  lateral = 0,
 ): PoseAdjust {
   if (pose === "none" || pose === "ko") return NO_ADJUST
   const k = clamp01(intensity) * life
@@ -277,11 +289,12 @@ export function poseAdjust(
     }
   }
   if (pose === "roll") {
+    const side = Math.max(-1, Math.min(1, lateral))
     return {
       dx: 0,
       dy: -ROLL_DIP * k,
-      pitch: ROLL_TUCK * k,
-      roll: 0,
+      pitch: ROLL_TUCK * k * (1 - Math.abs(side)),
+      roll: ROLL_TUCK * k * side,
       squash: ROLL_SQUASH * k,
     }
   }
