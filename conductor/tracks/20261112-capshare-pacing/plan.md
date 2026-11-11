@@ -101,7 +101,7 @@ The primary appends after acceptance:
   `packages/sim/src/battle/continuous/pacing.test.ts`
 - **Verification:** `bun run telemetry`, then `bun run verify`, then
   `bun run build` (three separate commands)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Replace the 14 × 3 walk with 42 distinct pairings** — covers: FR-3
   - [ ] **P3.T1.1: Draw the pairings by a written rule over the full 210-pair enumeration (fixed stride, mirrors skipped), not by hand — the rule lives in `matchups()`'s doc so the sample is reproducible**
