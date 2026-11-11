@@ -8,7 +8,7 @@
 
 import { type FrameData, getFrameData } from "../frames"
 import { BASIC_MOVE, getMove } from "../moves"
-import { gapInReachInterval, integerSqrt } from "./contact"
+import { integerSqrt, minReachEdgeMm } from "./contact"
 import { isCooldownReady } from "./cooldown"
 import { attackCost, canAfford } from "./stamina"
 import type { FighterState } from "./types"
@@ -19,6 +19,71 @@ import type { FighterState } from "./types"
  * special 6, so 4 is one blow away.
  */
 const RESERVE_POISE = 4
+
+/**
+ * Whether the pool is being held back for a break (FR-14): the reserve only
+ * binds while the foe is whole and not already open.
+ */
+function holdsBreak(foe: FighterState, reserve: number): boolean {
+  return (
+    reserve > 0 &&
+    foe.poise <= RESERVE_POISE &&
+    foe.poiseBreakMs === 0 &&
+    foe.attack?.phase !== "recovery"
+  )
+}
+
+/** Whether a special is ready to spend: off cooldown, affordable, unreserved. */
+function spendable(
+  me: FighterState,
+  moveId: string,
+  holding: boolean,
+  reserve: number,
+): boolean {
+  if (!isCooldownReady(me, moveId)) return false
+  const cost = attackCost(moveId)
+  if (!canAfford(me, cost)) return false
+  return !(holding && me.stamina - cost < reserve)
+}
+
+/**
+ * Whole millimetres the pair closes over `ms`, floored at zero: the relative
+ * velocity projected on the line to the foe, integrated. Read exactly like
+ * ./controller-punish's closing term — velocity in thousandths of a mm per ms
+ * against a millimetre gap — so a separating pair reads zero and never makes a
+ * blow look longer than it is (FR-4).
+ */
+function closingMm(
+  me: FighterState,
+  foe: FighterState,
+  gap: number,
+  ms: number,
+): number {
+  if (gap <= 0) return 0
+  const dot =
+    (me.vel.x - foe.vel.x) * (foe.pos.x - me.pos.x) +
+    (me.vel.z - foe.vel.z) * (foe.pos.z - me.pos.z)
+  if (dot <= 0) return 0
+  return Math.trunc((dot * ms) / (1000 * gap))
+}
+
+/**
+ * The gap the blow will stand at when its active frame opens: today's gap less
+ * the travel the pair closes over the move's startup, floored at the two radii
+ * because bodies cannot overlap (./contact's `separateBodies` keeps them
+ * apart). Judging the current gap instead let a fighter commit while closing
+ * and launch into its own blind spot — measured on the phase-4 sample as 31.4%
+ * of commits being `range` whiffs at 400 mm of dead zone (FR-4, AC-4).
+ */
+function landingGapMm(
+  me: FighterState,
+  foe: FighterState,
+  gap: number,
+  row: FrameData,
+): number {
+  const floor = me.radiusMm + foe.radiusMm
+  return Math.max(floor, gap - closingMm(me, foe, gap, row.startupMs))
+}
 
 /**
  * The move to commit: the innate strike when the foe is inside its reach,
@@ -61,11 +126,7 @@ export function chooseMove(
   windowMs = 0,
 ): string | null {
   const gap = integerSqrt(gapSq)
-  const holding =
-    reserve > 0 &&
-    foe.poise <= RESERVE_POISE &&
-    foe.poiseBreakMs === 0 &&
-    foe.attack?.phase !== "recovery"
+  const holding = holdsBreak(foe, reserve)
   const fits = (move: { melee: boolean }, row: FrameData): boolean => {
     if (windowMs <= 0) return true
     const travel = move.melee
@@ -79,31 +140,78 @@ export function chooseMove(
   }
   let bestId: string | null = null
   let bestPower = -1
+  let shorted = false
   for (const moveId of kit) {
     const move = getMove(moveId)
     const row = getFrameData(moveId)
     if (!move || !row) continue
     // A spent special is not a choice until its timer expires (FR-19).
-    if (!isCooldownReady(me, moveId)) continue
-    if (!inReach(me, foe, moveId, gapSq)) continue
+    if (!spendable(me, moveId, holding, reserve)) continue
+    if (!inReach(me, foe, moveId, gapSq)) {
+      if (shortOfInner(me, foe, moveId, gapSq)) shorted = true
+      continue
+    }
     if (!fits(move, row)) continue
-    const cost = attackCost(moveId)
-    if (!canAfford(me, cost)) continue
-    if (holding && me.stamina - cost < reserve) continue
     const better = move.power > bestPower
     const tie = move.power === bestPower && bestId !== null && moveId < bestId
     if (!better && !tie) continue
     bestId = moveId
     bestPower = move.power
   }
+  // A blind spot is the one refusal the innate strike answers (FR-4): a shot
+  // that would open inside its own dead zone is replaced by the close blow
+  // rather than standing the window out. Gated on a move actually being
+  // shorted, so with no dead zone authored the chooser is the old one.
+  if (bestId === null && shorted && inReach(me, foe, BASIC_MOVE.id, gapSq)) {
+    const basic = getFrameData(BASIC_MOVE.id)
+    if (basic && fits(BASIC_MOVE, basic)) return BASIC_MOVE.id
+  }
   return bestId
 }
 
 /**
+ * The nearest gap at which a ready move would land, or null when nothing in
+ * the kit is ready to commit: the same cooldown, pool and reserve filters as
+ * `chooseMove`, plus the travel each row's own startup adds, because a move
+ * that lands only after the pair has closed 300 mm must be committed from
+ * 300 mm further out (FR-10, AC-9). Backing off to this edge is what keeps a
+ * fighter from standing inside its own blind spot — measured on the phase-2
+ * sample as 79.1% idle and 100% cap at a 1,200 mm dead zone.
+ */
+export function landingEdgeMm(
+  me: FighterState,
+  foe: FighterState,
+  kit: readonly string[],
+  gapSq: number,
+  reserve = 0,
+): number | null {
+  const gap = integerSqrt(gapSq)
+  const radii = me.radiusMm + foe.radiusMm
+  const holding = holdsBreak(foe, reserve)
+  let best: number | null = null
+  for (const moveId of kit) {
+    const row = getFrameData(moveId)
+    if (!row) continue
+    if (!spendable(me, moveId, holding, reserve)) continue
+    const edge =
+      minReachEdgeMm(row.minReachMm, radii) +
+      closingMm(me, foe, gap, row.startupMs)
+    if (best === null || edge < best) best = edge
+  }
+  return best
+}
+
+/**
  * Whether a move's reach interval covers the centre gap, edge to edge: the
- * same test the strike and the shot resolve with (FR-2, FR-4). A move whose
- * inner edge is beyond the gap is refused — standing in its own blind spot is
- * no reason to commit to it, and the innate strike covers that space instead.
+ * same test the strike and the shot resolve with (FR-2, FR-4). The outer edge
+ * is read at the gap now — a move out of reach is out of reach, and closing
+ * into it is the movement's job. The inner edge is read at the gap the blow
+ * will be standing at when its active frame opens, because that is the gap the
+ * swing or the launch resolves against: committing while closing used to put
+ * the blow inside its own blind spot. A row that authors no dead zone reads the
+ * inner edge against the gap now, exactly as before the interval existed, so
+ * FR-1's "no dead zone" is the old chooser and a sub-contact probe still reads
+ * outside the interval.
  */
 function inReach(
   me: FighterState,
@@ -113,10 +221,34 @@ function inReach(
 ): boolean {
   const row = getFrameData(moveId)
   if (!row) return false
-  return gapInReachInterval(
-    gapSq,
-    row.minReachMm,
-    row.reachMm,
-    me.radiusMm + foe.radiusMm,
-  )
+  const radii = me.radiusMm + foe.radiusMm
+  const outer = row.reachMm + radii
+  if (gapSq > outer * outer) return false
+  const inner = minReachEdgeMm(row.minReachMm, radii)
+  if (row.minReachMm <= 0) return gapSq >= inner * inner
+  const landing = landingGapMm(me, foe, integerSqrt(gapSq), row)
+  return landing * landing >= inner * inner
+}
+
+/**
+ * Whether a move is refused by its own inner edge alone: inside its outer
+ * reach, but with a landing gap inside the blind spot. That is the one refusal
+ * the innate strike answers (FR-4) — a shot that would open inside its own dead
+ * zone is replaced by the close blow rather than standing the window out.
+ */
+function shortOfInner(
+  me: FighterState,
+  foe: FighterState,
+  moveId: string,
+  gapSq: number,
+): boolean {
+  const row = getFrameData(moveId)
+  if (!row) return false
+  const radii = me.radiusMm + foe.radiusMm
+  const inner = minReachEdgeMm(row.minReachMm, radii)
+  if (inner <= radii) return false
+  const outer = row.reachMm + radii
+  if (gapSq > outer * outer) return false
+  const landing = landingGapMm(me, foe, integerSqrt(gapSq), row)
+  return landing * landing < inner * inner
 }
