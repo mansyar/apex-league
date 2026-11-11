@@ -42,4 +42,4 @@
 - [x] **Track: Battle Agency and Balance** - [20261109-battle-balance](./archive/20261109-battle-balance/index.md) - feature - high
 - [x] **Track: Battle Variance** - [20261110-battle-variance](./archive/20261110-battle-variance/index.md) - feature - high
 - [x] **Track: Roster Re-tune** - [20261111-roster-retune](./archive/20261111-roster-retune/index.md) - feature - high
-- [~] **Track: Presentation Mapping** - [20261111-presentation-mapping](./tracks/20261111-presentation-mapping/index.md) - feature - high
+- [x] **Track: Presentation Mapping** - [20261111-presentation-mapping](./archive/20261111-presentation-mapping/index.md) - feature - high
