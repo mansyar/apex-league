@@ -26,7 +26,7 @@
   "review_rounds": 0,
   "review_verdict": null,
   "spec": "conductor/tracks/20261112-capshare-pacing/spec.md",
-  "status": "new",
+  "status": "in_progress",
   "title": "Capshare Pacing",
   "type": "chore",
   "updated_at": "2026-11-12T17:10:00+11:00"
