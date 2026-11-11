@@ -14,12 +14,15 @@
 - **Covers:** FR-1, AC-1
 - **Touches:** `packages/sim/src/battle/frames.ts`, `packages/sim/src/battle/frames.test.ts`
 - **Verification:** `bun run verify` and `bun run build` as two separate commands
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 493f201a
+- **Evidence:** conductor/tracks/20261111-minimum-reach/verification/phase-1.md
 
-- [ ] **P1.T1: Add the field and its validator** — covers: FR-1
-  - [ ] **P1.T1.1: `minReachMm` on `FrameData`, a `0` default in `frame()`, and validator rules `>= 0`, `< reachMm`, basic `0`; `frames.test.ts` pins both failure directions.**
-- [ ] **P1.T2: Author the first pass** — covers: FR-1, AC-1
-  - [ ] **P1.T2.1: Every row with `reachMm >= 5000` set to `1200`, every row below `0`; test proves the rule row by row and that the basic is `0`.**
+- [x] **P1.T1: Add the field and its validator** — covers: FR-1
+  - [x] **P1.T1.1: `minReachMm` on `FrameData`, a `0` default in `frame()`, and validator rules `>= 0`, `< reachMm`, basic `0`; `frames.test.ts` pins both failure directions.**
+- [x] **P1.T2: Author the first pass** — covers: FR-1, AC-1
+  - [x] **P1.T2.1: Every row with `reachMm >= 5000` set to `1200`, every row below `0`; test proves the rule row by row and that the basic is `0`.**
 
 ## Phase 2: Interval geometry and the range miss
 
