@@ -203,6 +203,21 @@ Phased delivery plan (each phase is independently playable):
   gate and breakthrough nights, save v18, and a derived ATK-only form that
   reaches the arena - surfaced on the dock picker, Training tab, coach room,
   spar prep card, creature plate and the handbook's Raising page).*
+- Battle follow-ups, in this order (recorded 2026-11-11 — the sim is correct
+  but not yet fully readable or robust):
+  1. Presentation mapping: the animation set predates the continuous sim —
+     map hitstun and poise-break poses, a dodge roll, knockback recoil with
+     planted feet, body scale from the body table, one shared facing model,
+     and height-band swing variation onto the simulated state. The fight
+     moves correctly before it reads correctly.
+  2. Kite verdict: decide whether Kite (2/6 wins) is a trap doctrine or
+     missing a tool — blocks doctrine credibility; do not tune around it.
+  3. Band-margin hardening: only when relative-matrix drift actually breaks
+     a row (plant_ox 46.4% / voltfox 45.5% margins are thin, water_axolotl
+     57.1% is waived) — never pre-emptive.
+  4. Minimum reach / dead zones: long moves need a blind spot, but it
+     changes outcomes, so it ships with the balance track alongside, not
+     as a presentation tweak.
 
 ### Phase 3 — Content & Meta
 - Roster to 20-40 species across 6 types; rare tournament reward eggs.
