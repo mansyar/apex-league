@@ -78,14 +78,17 @@
 - **Covers:** FR-3, FR-6, AC-3, AC-6, NFR-3
 - **Touches:** `apps/client/src/**` (client-only first; a minimal additive `packages/sim` stream export only with a proven client-only impossibility, recorded as a deviation), co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 5705f603
+- **Evidence:** conductor/tracks/20261111-presentation-mapping/verification/phase-R1.md
 - **Tasks:**
-  - [ ] **R1.F1: Slip no longer trips the roll pose** — covers: FR-3, AC-3
-    - [ ] **R1.F1.1:** Roll pose requires a genuine dodge (burst travel or client-side slip/dodge disambiguation); slip at 50–90 mm/tick must not render roll.
-  - [ ] **R1.F2: Wall tells stop overstating reach** — covers: FR-6, AC-6
-    - [ ] **R1.F2.1:** Same-startup rows resolve to the committed row's reach (client inference first; sim export only if proven impossible).
-  - [ ] **R1.F3: Roll tucks along travel** — covers: FR-3
-  - [ ] **R1.F4: Remove the unjustified `as`** — covers: NFR-3
-    - [ ] **R1.F4.1:** Guard or type the value at `reduced-flash.ts:95` instead of casting.
-  - [ ] **R1.F5: No default wedge on the first sample** — covers: FR-6
-    - [ ] **R1.F5.1:** Hide the telegraph while `runSteps < 2`; pin with a test.
+  - [x] **R1.F1: Slip no longer trips the roll pose** — covers: FR-3, AC-3
+    - [x] **R1.F1.1:** Roll pose requires a genuine dodge (burst travel or client-side slip/dodge disambiguation); slip at 50–90 mm/tick must not render roll.
+  - [x] **R1.F2: Wall tells stop overstating reach** — covers: FR-6, AC-6
+    - [x] **R1.F2.1:** Same-startup rows resolve to the committed row's reach (client inference first; sim export only if proven impossible).
+  - [x] **R1.F3: Roll tucks along travel** — covers: FR-3
+  - [x] **R1.F4: Remove the unjustified `as`** — covers: NFR-3
+    - [x] **R1.F4.1:** Guard or type the value at `reduced-flash.ts:95` instead of casting.
+  - [x] **R1.F5: No default wedge on the first sample** — covers: FR-6
+    - [x] **R1.F5.1:** Hide the telegraph while `runSteps < 2`; pin with a test.

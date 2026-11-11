@@ -61,4 +61,11 @@ Verification took four `verify` runs: (1) two type errors from the new imports/o
 ## Notes
 
 - No sim behavior, frame data, moves, controller, doctrines, or balance tests touched; no bound widened; no `test.failing` used.
+
+## Primary verification
+- Squashed `07a6d11e..HEAD` (3 reported commits) to `5705f603`; tree clean after squash.
+- `bun run verify` exit 0 (4111 pass, 1 skip, 0 fail, 4112 tests / 373 files; replay hash `0xc579e9ae` printed twice in the log; determinism gate byte-identical); `bun run build` exit 0.
+- Sim diff hand-reviewed: `stream.ts` packs paid-dodge/move-index into spare bits of the same 9 fields; `readFrame` masks them back; `resolve.ts` one-line threading of the pre-existing paid `result.dodges`; readers without the flag/index behave exactly as before. Behavior-free claim accepted.
+- Sizes: fighter-driver 12,272 B (16 B headroom — tightest file in the track; do not touch without a split plan), choreo-poses 12,095 B, dense-playback 11,137 B, tell-wedge 6,408 B, stream.ts 10,743 B. All caps green.
+- D1 deviation accepted: client-only impossibility proven by test before the export; additive, no behavior change, hash unchanged.
 - Shell policy note: ad-hoc shell (e.g. `git diff --stat`, bare `bunx`) is denied for this executor; all diagnosis and verification ran through the brief's own `bun run verify` / `bun run build` commands plus one scoped `bun test` run per failing file. Raw `git diff` output was not reviewable, so the per-finding summary above is reconstructed from the authored edits and the green suite, not from a diff read.
