@@ -30,9 +30,9 @@
 - **Goal:** Dodge roll, knockback recoil with planted feet and fence pins, contact squash/offset.
 - **Depends on:** Phase 1
 - **Covers:** FR-3, FR-4, FR-7, AC-3, AC-4, AC-7
-- **Touches:** `apps/client/src/fighter-driver.ts`, `apps/client/src/staging*.ts`, `apps/client/src/effects*`, co-located tests
+- **Touches:** `apps/client/src/fighter-driver.ts`, `apps/client/src/staging*.ts`, `apps/client/src/effects*`, `apps/client/src/dense-playback.ts` (pose wiring only, accepted pattern from Phase 1), co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Dodge roll along the dodge vector** — covers: FR-3
 - [ ] **P2.T2: Knockback recoil, planted feet, fence-pin report** — covers: FR-4
