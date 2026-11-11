@@ -1,0 +1,33 @@
+{
+  "archive_path": null,
+  "archived_at": null,
+  "base_branch": "main",
+  "base_sha": "e9a0f4b848ce92d6bf98669bd2b6e897991806d3",
+  "branch": "feat/20261111-minimum-reach",
+  "created_at": "2026-11-11T20:10:00+11:00",
+  "depends_on": [],
+  "doc_sync": "pending",
+  "id": "20261111-minimum-reach",
+  "last_checkpoint": null,
+  "plan": "conductor/tracks/20261111-minimum-reach/plan.md",
+  "pr_revert_url": null,
+  "pr_state": null,
+  "pr_url": null,
+  "priority": "high",
+  "progress": {
+    "phases_total": 5,
+    "phases_verified": 0,
+    "tasks_done": 0,
+    "tasks_total": 12
+  },
+  "revert_commit": null,
+  "reverted_at": null,
+  "revert_pr_url": null,
+  "review_rounds": 0,
+  "review_verdict": null,
+  "spec": "conductor/tracks/20261111-minimum-reach/spec.md",
+  "status": "new",
+  "title": "Minimum Reach",
+  "type": "feature",
+  "updated_at": "2026-11-11T20:10:00+11:00"
+}
