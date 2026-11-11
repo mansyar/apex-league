@@ -50,11 +50,14 @@ outcomes, so it ships with the balance track alongside."
 - A distinct miss signal (`reason: "range"`) for both strikes and shots that
   fail only the inner edge.
 - Controller: `chooseMove` and the punish chooser filter on the interval; a
-  point-blank fighter falls back to the basic.
+  point-blank fighter falls back to the basic. A move is legal only when the gap
+  **at its active frame** — the current gap plus the closing travel during its
+  startup — lands inside the interval, so a fighter that commits while closing
+  does not launch into its own blind spot.
 - **Retreat-to-fight:** when no ready move's interval covers the current gap,
-  the fighter steps back out of its own blind spot rather than holding. This is
-  the behaviour that keeps the doctrine hold point from deadlocking inside a
-  dead zone (see Edge Cases).
+  the fighter steps back to the nearest gap at which a ready move lands rather
+  than holding. This is the behaviour that keeps the doctrine hold point from
+  deadlocking inside a dead zone (see Edge Cases).
 - `SIM_VERSION` 2 → 3, with the ghost doc comment and pins updated.
 - Balance pass: tune `minReachMm` first, species stats only inside their
   existing roll bounds.
@@ -83,13 +86,13 @@ outcomes, so it ships with the balance track alongside."
 | FR-1 | `FrameData` carries `minReachMm`; the validator rejects `minReachMm < 0` or `minReachMm ≥ reachMm`; the basic strike is 0. | Must |
 | FR-2 | A melee strike connects only when the centre gap lies inside `[minReach + r₁ + r₂, reach + r₁ + r₂]`; inside the inner edge it whiffs. | Must |
 | FR-3 | A shot hits only when the swept contact point is at least `minReach + r₁ + r₂` from the shooter's origin; inside it the shot passes and is spent. | Must |
-| FR-4 | `chooseMove` and the punish chooser reject a move whose interval excludes the current gap; the basic is the fallback. | Must |
+| FR-4 | `chooseMove` and the punish chooser reject a move whose interval excludes the gap **at the move's active frame** (current gap plus closing travel during startup); the basic is the fallback. | Must |
 | FR-5 | A strike or shot that fails only the inner edge reports a distinct `range` miss, never `accuracy` and never a dodge. | Must |
 | FR-6 | The gate is green on the final tree: 15/15 species, pacing, bosses and damage band all pass. | Must |
 | FR-7 | Telemetry's sample is widened enough to measure pacing (the shipped 14-fight sample sat exactly on its own `capShare` bound), its bounds are re-derived with headroom and recorded before/after, and one gated dead-zone metric is added. | Must |
 | FR-8 | `SIM_VERSION` is 3, with `ghost.ts`'s version note and `ghost.test.ts` pins updated. | Must |
 | FR-9 | The tell wedge shows the inner dead-zone edge derived from the same authored data. | Should |
-| FR-10 | When no ready move covers the current gap, the fighter steps back toward the nearest distance where one does, instead of holding still. | Must |
+| FR-10 | When no ready move lands from the current gap, the fighter steps back toward the nearest gap where one does, instead of holding still. | Must |
 
 ## Non-Functional Requirements
 
@@ -107,12 +110,12 @@ outcomes, so it ships with the balance track alongside."
 | AC-1 | `frames.test.ts` proves every row satisfies `0 ≤ minReach < reach`, the basic is `0`, and (in the balance phase) every `reachMm ≥ 5000` row carries the authored value while every shorter row stays `0`. | FR-1 |
 | AC-2 | A melee test lands at exactly `minReach + radii` and whiffs one millimetre inside it, with `reason: "range"`. | FR-2, FR-5 |
 | AC-3 | A projectile test fired at a target inside `minReach` reports a `range` miss, not a hit and not a dodge; the same shot at the boundary hits. | FR-3, FR-5 |
-| AC-4 | `chooseMove` at a point-blank gap returns the basic, and returns a long move at the same gap once the foe is outside its dead zone. | FR-4 |
+| AC-4 | `chooseMove` at a point-blank gap returns the basic, and returns a long move at the same gap once the foe is outside its dead zone; a move whose active-frame gap would fall inside the inner edge is refused even when the current gap is legal. | FR-4 |
 | AC-5 | `bun run balance` exits 0 with all 15 species inside the statistical bound, and every moved figure is recorded. | FR-6, NFR-2 |
 | AC-6 | `bun run telemetry` exits 0 on the widened sample, printing the dead-zone share and every re-derived bound with visible headroom. | FR-7 |
 | AC-7 | `ghost.test.ts` pins `SIM_VERSION === 3` and `SIM_VERSION + 1 === 4`; `bun run trace --seed N --check` passes. | FR-8, NFR-1 |
 | AC-8 | The wedge's inner radius equals `tellInnerWorld(minReachMm, radiusMm)` and never exceeds its outer radius. | FR-9 |
-| AC-9 | With the dead zone authored, a full telemetry fight shows the fighter leaving its own blind spot: commits stay above zero and `idleShare` stays inside its bound, with a test or trace proving the retreat order is what moved it. | FR-10 |
+| AC-9 | With the dead zone authored, a full telemetry fight shows the fighter leaving its own blind spot and committing from a gap where the blow lands: commits stay above zero, `idleShare` stays inside its bound, and the `range` whiff share stays well under half of commits, with a test or trace proving the retreat order is what moved it. | FR-10 |
 | AC-10 | The telemetry sample size, every re-derived bound, and the before/after values are recorded in the track's evidence, and the run reports visible headroom on each. | FR-7, NFR-2 |
 
 ## Edge Cases
@@ -125,6 +128,13 @@ outcomes, so it ships with the balance track alongside."
   while the basic is still too short, so without FR-10 the fighter stands and
   does nothing — measured at 1,200 mm as 100% cap, 79.1% idle, 0.3% contact.
   FR-10 is what makes a dead zone larger than ~200 mm playable at all.
+- **Commit while closing:** a shot is judged on its launch gap, and the gap
+  shrinks 150–700 mm between commit and launch at real closing speeds. Measured
+  on the 42-fight sample: at 400 mm of dead zone, 31.4% of commits were `range`
+  whiffs and `capShare` hit 92.9%, because the doctrine's ~946 mm preferred range
+  is inside the inner edge once startup travel is counted. The chooser therefore
+  judges the active-frame gap, not the current one (FR-4), and FR-10 backs off to
+  the landing edge.
 - **Mutual clinch:** both sides inside each other's dead zones → basic-only
   exchange. The existing `contactShare ≤ 0.7` bound guards against it becoming
   the whole fight.
@@ -149,6 +159,11 @@ outcomes, so it ships with the balance track alongside."
   sample fix (FR-7) and retreat-to-fight (FR-10). Both were previously out of
   scope; the user approved the expansion after Phase 2 measured that no positive
   value survives the frozen `capShare` pin.
+- **Decided 2026-11-12 (second):** the unblock is a projection-aware chooser
+  (FR-4 judges the active-frame gap), not a lift of the doctrine bands. Phase 4's
+  sweep showed the doctrine hold point is inside the inner edge once startup
+  travel is counted, so a chooser that only tests the current gap commits from
+  where it cannot land; the bands themselves stay as the Kite verdict left them.
 - **Assumption:** the basic strike (420 mm) is the intended close-range answer,
   so no row needs a dead zone smaller than the basic's reach.
 - **Assumption:** the tell wedge can draw an inner edge without a stream change,
