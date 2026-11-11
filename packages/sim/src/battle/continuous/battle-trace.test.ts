@@ -46,6 +46,8 @@ function options(seed: number, owned: string, rival: string) {
     rival,
     kit: null,
     rivalKit: null,
+    doctrine: null,
+    rivalDoctrine: null,
     every: 0,
     json: false,
     check: true,
@@ -296,6 +298,8 @@ describe("battle trace — one fight, step by step", () => {
       rival: "embercub",
       kit: null,
       rivalKit: null,
+      doctrine: null,
+      rivalDoctrine: null,
       every: 0,
       json: false,
       check: false,
@@ -309,6 +313,10 @@ describe("battle trace — one fight, step by step", () => {
       check: true,
     })
     expect(parseArgs(["--kit=basic"])).toMatchObject({ kit: ["basic"] })
+    expect(
+      parseArgs(["--doctrine", "kite", "--rival-doctrine=press"]),
+    ).toMatchObject({ doctrine: "kite", rivalDoctrine: "press" })
+    expect(() => parseArgs(["--doctrine", "snipe"])).toThrow("one of")
     expect(() => parseArgs(["--seed"])).toThrow()
     expect(() => parseArgs(["--seed", "1.5"])).toThrow()
     expect(() => parseArgs(["--every", "0"])).toThrow()
