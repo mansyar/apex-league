@@ -30,10 +30,12 @@ outcomes, so it ships with the balance track alongside."
 ## Goals & Success Metrics
 
 - **Goal:** every long move (reach ≥ 5,000 mm) has a real blind spot; the innate
-  basic is the universal close-range answer.
+  basic is the universal close-range answer; a fighter that finds itself inside
+  its own blind spot steps out of it instead of standing there.
 - **Metric:** a point-blank long move whiffs with a distinct `range` reason;
-  `bun run balance` exit 0 with all 15 rows green; `bun run telemetry` exit 0 at
-  14/14 including the new dead-zone bound; replay hash stable per seed.
+  `bun run balance` exit 0 with all 15 rows green; `bun run telemetry` exit 0 on
+  a sample large enough to measure pacing, including the new dead-zone bound;
+  replay hash stable per seed.
 
 ## Scope
 
@@ -41,18 +43,25 @@ outcomes, so it ships with the balance track alongside."
 
 - `FrameData.minReachMm` (authored integer, `0` = no dead zone) plus the
   validator rule `0 ≤ minReachMm < reachMm`.
-- First pass: every row with `reachMm ≥ 5000` gets `minReachMm = 1200`; every
-  row below stays `0`. The innate basic stays `0`.
+- The dead-zone value authored from measurement in the balance phase, not from
+  a fixed first pass: every row with `reachMm ≥ 5000` gets one value, every row
+  below stays `0`, and the innate basic stays `0`. The value is the first knob.
 - One interval test shared by melee strikes, projectiles, and the move chooser.
 - A distinct miss signal (`reason: "range"`) for both strikes and shots that
   fail only the inner edge.
 - Controller: `chooseMove` and the punish chooser filter on the interval; a
-  point-blank fighter falls back to the basic. No new retreat logic.
+  point-blank fighter falls back to the basic.
+- **Retreat-to-fight:** when no ready move's interval covers the current gap,
+  the fighter steps back out of its own blind spot rather than holding. This is
+  the behaviour that keeps the doctrine hold point from deadlocking inside a
+  dead zone (see Edge Cases).
 - `SIM_VERSION` 2 → 3, with the ghost doc comment and pins updated.
-- Balance pass: tune `minReachMm` first, species stats only if that cannot
-  restore the gate.
-- Telemetry: one new gated metric (dead-zone whiff share) alongside the
-  existing 13.
+- Balance pass: tune `minReachMm` first, species stats only inside their
+  existing roll bounds.
+- Telemetry: the sample is widened so `capShare` and its neighbours measure
+  behaviour rather than a 14-fight coin flip, its bound values are re-derived
+  from that sample with stated headroom and recorded before/after, and one new
+  gated dead-zone metric is added.
 - Presentation: the tell wedge draws its inner edge from `minReachMm`.
 
 ### Out of Scope
@@ -61,9 +70,11 @@ outcomes, so it ships with the balance track alongside."
 - Blocking, parries, ring-out.
 - Exploiting the blind spot defensively (holding *inside* the foe's dead zone):
   the threat model stays conservative — it treats the whole disc as dangerous.
-- Retreat-to-fire spacing AI.
 - New moves, species, doctrines, or elements.
-- Any widening of an existing bound, floor, tolerance, or `DISTINCT_FLOOR`.
+- Any widening of an existing bound, floor, tolerance, or `DISTINCT_FLOOR` to
+  hide a regression. The single exception is the telemetry sample and its
+  re-derived bound values (FR-7), approved on 2026-11-12 because the shipped
+  bound sat exactly on its measured value.
 
 ## Functional Requirements
 
@@ -75,16 +86,17 @@ outcomes, so it ships with the balance track alongside."
 | FR-4 | `chooseMove` and the punish chooser reject a move whose interval excludes the current gap; the basic is the fallback. | Must |
 | FR-5 | A strike or shot that fails only the inner edge reports a distinct `range` miss, never `accuracy` and never a dodge. | Must |
 | FR-6 | The gate is green on the final tree: 15/15 species, pacing, bosses and damage band all pass. | Must |
-| FR-7 | Telemetry gains one gated dead-zone metric with headroom; the existing 13 bounds are unchanged. | Must |
+| FR-7 | Telemetry's sample is widened enough to measure pacing (the shipped 14-fight sample sat exactly on its own `capShare` bound), its bounds are re-derived with headroom and recorded before/after, and one gated dead-zone metric is added. | Must |
 | FR-8 | `SIM_VERSION` is 3, with `ghost.ts`'s version note and `ghost.test.ts` pins updated. | Must |
 | FR-9 | The tell wedge shows the inner dead-zone edge derived from the same authored data. | Should |
+| FR-10 | When no ready move covers the current gap, the fighter steps back toward the nearest distance where one does, instead of holding still. | Must |
 
 ## Non-Functional Requirements
 
 | ID | Requirement |
 | --- | --- |
 | NFR-1 | Integer arithmetic only; no new RNG draw; same seed → same hash and event sequence. |
-| NFR-2 | No existing bound, floor, tolerance or `DISTINCT_FLOOR` is widened; the new telemetry bound is additive. |
+| NFR-2 | No existing bound, floor, tolerance or `DISTINCT_FLOOR` is widened to hide a regression. The one approved exception is FR-7's telemetry sample and re-derived bounds, recorded with before/after figures and stated headroom. |
 | NFR-3 | The full suite stays inside the 150 s phase budget. |
 | NFR-4 | No new stream field beyond what the existing event vocabulary already carries. |
 
@@ -92,28 +104,37 @@ outcomes, so it ships with the balance track alongside."
 
 | ID | Criterion | Verifies |
 | --- | --- | --- |
-| AC-1 | `frames.test.ts` proves every `reachMm ≥ 5000` row has `minReachMm = 1200`, every row below is `0`, and no row violates `0 ≤ minReach < reach`. | FR-1 |
+| AC-1 | `frames.test.ts` proves every row satisfies `0 ≤ minReach < reach`, the basic is `0`, and (in the balance phase) every `reachMm ≥ 5000` row carries the authored value while every shorter row stays `0`. | FR-1 |
 | AC-2 | A melee test lands at exactly `minReach + radii` and whiffs one millimetre inside it, with `reason: "range"`. | FR-2, FR-5 |
 | AC-3 | A projectile test fired at a target inside `minReach` reports a `range` miss, not a hit and not a dodge; the same shot at the boundary hits. | FR-3, FR-5 |
 | AC-4 | `chooseMove` at a point-blank gap returns the basic, and returns a long move at the same gap once the foe is outside its dead zone. | FR-4 |
-| AC-5 | `bun run balance` exits 0 with all 15 species inside the statistical bound; no existing bound moved. | FR-6, NFR-2 |
-| AC-6 | `bun run telemetry` exits 0 at 14/14, printing the dead-zone share with visible headroom. | FR-7 |
+| AC-5 | `bun run balance` exits 0 with all 15 species inside the statistical bound, and every moved figure is recorded. | FR-6, NFR-2 |
+| AC-6 | `bun run telemetry` exits 0 on the widened sample, printing the dead-zone share and every re-derived bound with visible headroom. | FR-7 |
 | AC-7 | `ghost.test.ts` pins `SIM_VERSION === 3` and `SIM_VERSION + 1 === 4`; `bun run trace --seed N --check` passes. | FR-8, NFR-1 |
 | AC-8 | The wedge's inner radius equals `tellInnerWorld(minReachMm, radiusMm)` and never exceeds its outer radius. | FR-9 |
+| AC-9 | With the dead zone authored, a full telemetry fight shows the fighter leaving its own blind spot: commits stay above zero and `idleShare` stays inside its bound, with a test or trace proving the retreat order is what moved it. | FR-10 |
+| AC-10 | The telemetry sample size, every re-derived bound, and the before/after values are recorded in the track's evidence, and the run reports visible headroom on each. | FR-7, NFR-2 |
 
 ## Edge Cases
 
 - **Gap changes during startup:** a fighter commits outside the dead zone and
   the foe closes inside it before the active window — the swing whiffs.
   Expected, and exactly what the dead-zone metric counts.
+- **Hold point inside the dead zone:** the doctrine bands hold near 1,088 mm. A
+  dead zone wider than the basic's standoff makes every special illegal there
+  while the basic is still too short, so without FR-10 the fighter stands and
+  does nothing — measured at 1,200 mm as 100% cap, 79.1% idle, 0.3% contact.
+  FR-10 is what makes a dead zone larger than ~200 mm playable at all.
 - **Mutual clinch:** both sides inside each other's dead zones → basic-only
   exchange. The existing `contactShare ≤ 0.7` bound guards against it becoming
   the whole fight.
 - **Mid rows and the basic:** reach < 5,000 keeps `minReachMm = 0`, so
   close-range play never becomes move-starved.
-- **Tuning direction:** if 1,200 mm breaks pacing, move the number (one knob,
-  all long rows) before touching stats; if a row still misses, stats move inside
-  their existing roll bounds.
+- **Tuning direction:** the value moves before stats; if a row still misses,
+  stats move inside their existing roll bounds.
+- **Sample size:** a 14-fight sample cannot adjudicate an outcome-changing
+  mechanic — 50 mm moved `capShare` from 7/14 to 10/14 while 400 mm moved it
+  back to 10/14. The sample grows before the value is chosen.
 - **Old ghosts:** bundles at v2 stop verifying and skip replay, which is the
   version's designed behaviour.
 
@@ -124,13 +145,17 @@ outcomes, so it ships with the balance track alongside."
 
 ## Open Questions & Assumptions
 
-- **Assumption:** one uniform 1,200 mm value for all long rows is tunable
-  enough; if the gate disagrees, the value moves before per-row values are
-  considered.
+- **Decided 2026-11-12:** a real dead zone ships, which requires the telemetry
+  sample fix (FR-7) and retreat-to-fight (FR-10). Both were previously out of
+  scope; the user approved the expansion after Phase 2 measured that no positive
+  value survives the frozen `capShare` pin.
 - **Assumption:** the basic strike (420 mm) is the intended close-range answer,
   so no row needs a dead zone smaller than the basic's reach.
 - **Assumption:** the tell wedge can draw an inner edge without a stream change,
   because `minReachMm` is authored data the client already imports.
+- **Open:** the final value is whatever the widened sample and the 840-fight
+  roster gate both accept; 400–800 mm is the expected band from the Phase 2
+  measurements.
 
 ## References
 
@@ -145,3 +170,5 @@ outcomes, so it ships with the balance track alongside."
   must learn the inner edge.
 - `packages/sim/scripts/battle-balance-report.ts` and
   `packages/sim/scripts/battle-telemetry.ts` — the gates.
+- `conductor/tracks/20261111-minimum-reach/verification/phase-2.md` — the
+  measured tuning curve behind the FR-7 and FR-10 decisions.
