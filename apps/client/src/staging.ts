@@ -1,5 +1,6 @@
 import type { FightStream, LifeStage, PlaybackStep } from "@apex/sim"
 import type * as THREE from "three"
+import { bodyProfileOf } from "./arena-scale"
 import { createDenseStage, type DenseStage } from "./dense-playback"
 import type { DirectorContext } from "./director"
 import { createFighterDriver, type DriveFighter } from "./fighter-driver"
@@ -63,9 +64,8 @@ export interface Staging {
   /** Drive one playback step: closes, strikes, recoils, dodges, falls. */
   applyStep(step: PlaybackStep, instant?: boolean): void
   /**
-   * Draw one step of the dense stream (FR-13): the fight plays as a
-   * continuous trace instead of a pose per event. Takes over the bodies
-   * from `applyStep`, which then only paints shot effects on top.
+   * Draw one dense-stream step (FR-13): the fight plays as a continuous
+   * trace, and `applyStep` only paints shot effects on top.
    */
   applyFrame(stream: FightStream, step: number): void
   /** Big-hit hook: main.ts points this at the broadcast camera shake. */
@@ -100,6 +100,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
   let driveRaf: number | null = null
   /** Dense playback machinery (created on the first streamed frame). */
   let dense: DenseStage | null = null
+  /** This cast's sim body radii in mm for the contact distance. */
+  let denseRadii: [number, number] | undefined
   /** True while a dense stream owns the bodies (FR-13). */
   let denseMode = false
   /** Current spar pacing (ms per playback step); animations scale off it. */
@@ -206,9 +208,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
       cancelAnimationFrame(driveRaf)
       driveRaf = null
     }
-    // Cross-fight staleness: a fight ending on a projectile must not make
-    // the NEXT fight's first point-blank special skip its launch body,
-    // and stale last-step context must not fire a director cut at cast.
+    // Cross-fight staleness: no launch skip, no stale director cut.
     prevStepKind = null
     lastStep = null
     lastStepAt = 0
@@ -217,14 +217,8 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
     effects.disposeAll()
   }
 
-  // ── Step choreography ──────────────────────────────────────────────────
-  /**
-   * Drive one step. Fighters hold their stage position between steps, so
-   * the fight stays continuous — an approach that never got answered is
-   * still standing there in the next beat. The per-kind choreography
-   * lives in the steps/ registry; staging supplies the clocks and the
-   * effect machinery through the StepIO port.
-   */
+  // ── Step choreography ──
+  /** Drive one step; the per-kind work lives in the steps/ registry. */
   const choreo = createStepChoreo({
     effects,
     bigHit: (damage) => bigHit(damage),
@@ -285,6 +279,10 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
 
       owned = buildSpot(casting.owned, -1, arenaGroup)
       rival = buildSpot(casting.rival, 1, arenaGroup)
+      denseRadii = [
+        bodyProfileOf(casting.owned.archetypeId).radiusMm,
+        bodyProfileOf(casting.rival.archetypeId).radiusMm,
+      ]
       startDrive()
     },
     applyStep(step, instant = false) {
@@ -322,7 +320,7 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         })
       }
       denseMode = true
-      dense.apply(stream, step, owned, rival)
+      dense.apply(stream, step, owned, rival, denseRadii)
     },
     setBigHitHandler(handler) {
       onBigHit.current = handler

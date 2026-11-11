@@ -60,11 +60,15 @@ export {
   resolveContinuous,
 } from "./continuous/resolve"
 export {
+  DODGE_PHASET_BIT,
   type FightStream,
+  MOVE_INDEX_SHIFT,
+  PHASE_MASK,
   readFrame,
   rememberStream,
   STREAM_FIELD,
   STREAM_FIELDS,
+  STREAM_MOVE_IDS,
   STREAM_PHASE,
   type StreamFrame,
   type StreamPhase,

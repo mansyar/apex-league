@@ -59,7 +59,12 @@ export interface BurstLayer {
   ): void
   /** Free every live burst. */
   disposeAll(): void
+  /** How many bursts are alive right now (never more than BURST_MAX). */
+  live(): number
 }
+
+/** Most impact bursts kept alive at once (FR-8): the oldest is recycled first. */
+export const BURST_MAX = 8
 
 export function createBurstLayer(host: BurstLayerHost): BurstLayer {
   const { arenaGroup, loop, killMesh } = host
@@ -178,6 +183,13 @@ export function createBurstLayer(host: BurstLayerHost): BurstLayer {
       arenaGroup.add(mesh)
     }
     const physics = burstPhysics(element)
+    // Bounded accents (FR-8): the oldest burst is recycled first (FIFO, the
+    // same policy as the floor marks), so a heavy trade can never grow the
+    // layer without bound. Deterministic: spawn order decides, never a roll.
+    while (bursts.length >= BURST_MAX) {
+      const oldest = bursts.shift()
+      if (oldest) disposeBurst(oldest)
+    }
     bursts.push({
       flash: flashShell,
       particles,
@@ -196,5 +208,6 @@ export function createBurstLayer(host: BurstLayerHost): BurstLayer {
       for (const b of bursts) disposeBurst(b)
       bursts.length = 0
     },
+    live: () => bursts.length,
   }
 }

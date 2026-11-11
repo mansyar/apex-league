@@ -439,3 +439,22 @@ that produced the diagnosis: the hound matchup improved from 8/10 to 10/12 blows
 axolotl matchup stayed at 1 blow to 11, because there the tank's swings are *evaded* rather than
 *interrupted* and a shorter wind-up buys nothing. Record the matchup you diagnosed, not just the
 row you moved.
+
+## 21. A client that cannot tell two events apart needs one bit, not a redesign
+
+The review asked the client to render a dodge roll sometimes and a cut
+(slip) other times. The client only sees positions, so a 60-91 mm overlap
+band made the two indistinguishable - and a test with 100 controller seeds
+proved no threshold separates them: it is information-theoretic, not a
+tuning problem.
+
+The answer was one spare bit on the stream's phaseT word plus a 1-based
+move index riding above the phase bits: an additive export, 9 fields stay
+9, the replay hash byte-identical (0xc579e9ae before and after). The rule
+generalises: when the consumer provably cannot derive X from the channel,
+add the cheapest explicit signal that carries X - and the proof that it
+cannot be derived is part of the evidence, so nobody "simplifies" the bit
+away later. Cost of the alternative on the table (move-id export for
+honest wall tells) was one more small export; taken only if the review
+demands it, since the current longest-reach reading is a documented
+approximation, not a leak.

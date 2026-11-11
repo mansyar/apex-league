@@ -1,14 +1,19 @@
 import { describe, expect, test } from "bun:test"
+import * as THREE from "three"
+import { DEFAULT_PROFILE } from "./choreo"
 import {
   advanceWalkPhase,
   clampStage,
   composePosition,
   composeScale,
+  createFighterDriver,
+  type DriveFighter,
   leanTarget,
   shortestAngle,
   topplePose,
   yawStep,
 } from "./fighter-driver"
+import { applyUprightPose } from "./pose-apply"
 
 describe("shortestAngle", () => {
   test("leaves in-range deltas untouched", () => {
@@ -156,5 +161,163 @@ describe("topplePose", () => {
     const p = topplePose(1, 0, 0)
     expect(p.rotZ).toBeCloseTo(0) // -1 * (π/2) * 0 → -0 is fine
     expect(p.y).toBe(0)
+  })
+})
+
+describe("stream poses in the driver", () => {
+  function fighterAt(x: number): DriveFighter {
+    return {
+      name: "ember",
+      key: "left",
+      group: new THREE.Group(),
+      stage: new THREE.Vector3(x, 0, 0),
+      smooth: new THREE.Vector3(x, 0, 0),
+      velocity: new THREE.Vector3(),
+      offset: new THREE.Vector3(),
+      squash: { s: 0, v: 0 },
+      walkPhase: 0,
+      phase: 0,
+      baseScale: 1,
+      profile: DEFAULT_PROFILE,
+      down: false,
+      away: 1,
+      fall: 0,
+      lean: { pitch: 0, roll: 0 },
+      baseColors: new Map(),
+    }
+  }
+
+  function stepOnce(c: DriveFighter, other: DriveFighter): void {
+    const driver = createFighterDriver({
+      pair: () => [
+        [c, other],
+        [other, c],
+      ],
+      pref: () => "full",
+    })
+    driver.syncClock(1000)
+    driver.step(1016)
+  }
+
+  test("no pose leaves the composed pose untouched", () => {
+    const c = fighterAt(0)
+    stepOnce(c, fighterAt(0))
+    expect(c.group.rotation.x).toBe(0)
+    expect(c.group.rotation.z).toBe(0)
+    expect(c.group.position.x).toBe(0)
+  })
+
+  test("a flinch leans the body back and recoils it along away", () => {
+    const c = fighterAt(0)
+    c.pose = "flinch"
+    c.poseK = 1
+    stepOnce(c, fighterAt(0))
+    expect(c.group.rotation.x).toBeLessThan(-0.1)
+    expect(c.group.position.x).toBeCloseTo(0.12)
+  })
+
+  test("a crouch dips the body to the floor and coils it forward", () => {
+    const c = fighterAt(0)
+    c.pose = "crouch"
+    c.poseK = 1
+    stepOnce(c, fighterAt(0))
+    expect(c.group.rotation.x).toBeCloseTo(0.16)
+    expect(c.group.position.y).toBe(0)
+  })
+
+  test("a crumple folds forward, deeper than any crouch", () => {
+    const c = fighterAt(0)
+    c.pose = "crumple"
+    c.poseK = 1
+    stepOnce(c, fighterAt(0))
+    expect(c.group.rotation.x).toBeCloseTo(0.38)
+    expect(c.group.rotation.z).toBeCloseTo(0.08)
+    expect(c.group.position.y).toBe(0)
+  })
+
+  test("a roll tucks forward into its run without recoiling", () => {
+    const c = fighterAt(0)
+    c.pose = "roll"
+    c.poseK = 1
+    stepOnce(c, fighterAt(0))
+    expect(c.group.rotation.x).toBeGreaterThan(0.2)
+    expect(c.group.position.x).toBe(0)
+    expect(c.group.position.y).toBe(0)
+  })
+
+  test("a sideways roll tips the body into the roll (R1/F3)", () => {
+    const forward = fighterAt(0)
+    forward.pose = "roll"
+    forward.poseK = 1
+    stepOnce(forward, fighterAt(0))
+    const c = fighterAt(0)
+    c.pose = "roll"
+    c.poseK = 1
+    c.poseLateral = 1
+    stepOnce(c, fighterAt(0))
+    expect(c.group.rotation.z).toBeGreaterThan(0.2)
+    // The forward tuck gives way to the sideways tip.
+    expect(c.group.rotation.x).toBeLessThan(forward.group.rotation.x)
+  })
+
+  test("a recoil leans back harder than any flinch and shoves along away", () => {
+    const c = fighterAt(0)
+    c.pose = "recoil"
+    c.poseK = 1
+    stepOnce(c, fighterAt(0))
+    expect(c.group.rotation.x).toBeLessThan(-0.2)
+    expect(c.group.position.x).toBeCloseTo(0.2)
+  })
+
+  test("a roll and a recoil plant the gait (no skate, no vibration)", () => {
+    // Mid-stride phase: the |sin| bob reads at full amplitude.
+    const free = fighterAt(0)
+    free.walkPhase = 0.5
+    stepOnce(free, fighterAt(0))
+    for (const pose of ["roll", "recoil"] as const) {
+      const planted = fighterAt(0)
+      planted.walkPhase = 0.5
+      planted.pose = pose
+      planted.poseK = 1
+      stepOnce(planted, fighterAt(0))
+      expect(
+        Math.abs(free.group.position.y - planted.group.position.y),
+      ).toBeGreaterThan(0.03)
+    }
+  })
+
+  test("a press leans into the foe with squash and no recoil", () => {
+    const c = fighterAt(0)
+    c.pose = "press"
+    c.poseK = 1
+    stepOnce(c, fighterAt(0))
+    expect(c.group.rotation.x).toBeGreaterThan(0)
+    expect(c.group.position.x).toBe(0)
+    expect(c.group.scale.y).toBeLessThan(c.group.scale.x)
+  })
+
+  test("the extracted pose seam applies a flinch identically (R2/F7)", () => {
+    const via = fighterAt(0)
+    via.pose = "flinch"
+    via.poseK = 1
+    stepOnce(via, fighterAt(0))
+    const direct = fighterAt(0)
+    direct.pose = "flinch"
+    direct.poseK = 1
+    applyUprightPose(direct, fighterAt(0), {
+      now: 1016,
+      dt: 0.016,
+      life: 1,
+      speed: 0,
+    })
+    expect(direct.group.rotation.x).toBeCloseTo(via.group.rotation.x)
+    expect(direct.group.rotation.y).toBeCloseTo(via.group.rotation.y)
+    expect(direct.group.rotation.z).toBeCloseTo(via.group.rotation.z)
+    expect(direct.group.position.x).toBeCloseTo(via.group.position.x)
+    expect(direct.group.position.y).toBeCloseTo(via.group.position.y)
+    expect(direct.group.position.z).toBeCloseTo(via.group.position.z)
+    expect(direct.group.scale.x).toBeCloseTo(via.group.scale.x)
+    expect(direct.group.scale.y).toBeCloseTo(via.group.scale.y)
+    expect(direct.group.scale.z).toBeCloseTo(via.group.scale.z)
   })
 })

@@ -29,7 +29,7 @@
 
 import { FRAME_DATA } from "../frames"
 import type { BattleResult } from "../resolver"
-import type { PinnedReport } from "./advance"
+import type { DodgeReport, PinnedReport } from "./advance"
 import { phaseDuration } from "./strike"
 import {
   type ArenaBounds,
@@ -40,6 +40,29 @@ import {
 
 /** How many numbers each side contributes to one step. */
 export const STREAM_FIELDS = 9
+
+/**
+ * The stream's spare-bit exports (R1/F1, R1/F2): the 9-field layout never
+ * changes, so old traces, the size bound, and the replay hash keep passing.
+ * Bit 9 of the stored phaseT (progress itself is 0-255) rides a paid dodge
+ * burst; bits 2-7 of the stored phase (0-3 is the `StreamPhase`) carry the
+ * 1-based index into `STREAM_MOVE_IDS` (0 = none, or a legacy trace). Both
+ * are additive: a legacy trace reads back with the flag clear and index 0.
+ */
+export const DODGE_PHASET_BIT = 512
+/** How far the committed-move index shifts inside the stored phase field. */
+export const MOVE_INDEX_SHIFT = 2
+/** The `StreamPhase` inside the stored phase field (bits 0-1). */
+export const PHASE_MASK = 3
+
+/** Every catalog move id, sorted and frozen: the stream's move vocabulary. */
+export const STREAM_MOVE_IDS: readonly string[] = Object.freeze(
+  Object.keys(FRAME_DATA).sort(),
+)
+
+const MOVE_INDEX = new Map<string, number>(
+  STREAM_MOVE_IDS.map((id, index) => [id, index + 1]),
+)
 
 /** Field order inside a side's record. */
 export const STREAM_FIELD = Object.freeze({
@@ -83,6 +106,20 @@ export interface StreamFrame {
   hp: number
   hitstunMs: number
   pinned: boolean
+  /**
+   * True while a paid dodge burst moves this side (R1/F1): the one signal
+   * that separates a genuine dodge from a slip whose travel overlaps the
+   * dodge band. Rides the stream's spare phaseT bit; absent on hand-built
+   * frames, which keep the travel threshold, and false on legacy traces.
+   */
+  dodgeBurst?: boolean
+  /**
+   * 1-based index into `STREAM_MOVE_IDS` for the committed move (R1/F2),
+   * or 0 when no attack runs. Absent on hand-built frames (keep the
+   * estimator) and on legacy traces. Lets the wedge paint the committed
+   * row's reach instead of the bucket's longest threat.
+   */
+  moveIdx?: number
 }
 
 /** A resolved fight's dense trace, ready to play back. */
@@ -127,10 +164,26 @@ function pinnedThisStep(
   return false
 }
 
+/** True while a paid dodge burst moved this side this step. */
+function dodgeThisStep(
+  dodges: readonly DodgeReport[] | undefined,
+  key: string,
+): boolean {
+  if (!dodges) return false
+  for (const report of dodges) {
+    if (report.key === key && report.paid) return true
+  }
+  return false
+}
+
 /** Collects the per-step records while a fight runs. */
 export interface StreamRecorder {
   /** Record one state (the opening state first, then each advanced step). */
-  push(state: FightState, pinned?: readonly PinnedReport[]): void
+  push(
+    state: FightState,
+    pinned?: readonly PinnedReport[],
+    dodges?: readonly DodgeReport[],
+  ): void
   /** The finished stream; safe to call more than once. */
   finish(): FightStream
 }
@@ -149,22 +202,27 @@ export function createStreamRecorder(
   const data = new Int16Array(capacity * 2 * STREAM_FIELDS)
   let steps = 0
 
-  const record = (state: FightState, pinned?: readonly PinnedReport[]) => {
+  const record = (
+    state: FightState,
+    pinned?: readonly PinnedReport[],
+    dodges?: readonly DodgeReport[],
+  ) => {
     if (steps >= capacity) return
     for (const side of [0, 1] as const) {
       const fighter = state.fighters[side]
       const attack = fighter.attack
+      const moveIdx = attack ? (MOVE_INDEX.get(attack.moveId) ?? 0) : 0
       const base = (steps * 2 + side) * STREAM_FIELDS
       data[base + STREAM_FIELD.x] = fighter.pos.x
       data[base + STREAM_FIELD.z] = fighter.pos.z
       data[base + STREAM_FIELD.facingX] = fighter.facing.x
       data[base + STREAM_FIELD.facingZ] = fighter.facing.z
-      data[base + STREAM_FIELD.phase] = attack
-        ? PHASE_OF[attack.phase]
-        : STREAM_PHASE.none
-      data[base + STREAM_FIELD.phaseT] = attack
-        ? phaseProgress(attack, fighter.spd)
-        : 0
+      data[base + STREAM_FIELD.phase] =
+        (attack ? PHASE_OF[attack.phase] : STREAM_PHASE.none) |
+        (moveIdx << MOVE_INDEX_SHIFT)
+      data[base + STREAM_FIELD.phaseT] =
+        (attack ? phaseProgress(attack, fighter.spd) : 0) |
+        (dodgeThisStep(dodges, fighter.key) ? DODGE_PHASET_BIT : 0)
       data[base + STREAM_FIELD.hp] = fighter.hp
       data[base + STREAM_FIELD.hitstunMs] = Math.round(fighter.hitstunMs)
       data[base + STREAM_FIELD.pinned] = pinnedThisStep(pinned, fighter.key)
@@ -201,8 +259,12 @@ export function readFrame(
   out.z = data[base + STREAM_FIELD.z] as number
   out.facingX = data[base + STREAM_FIELD.facingX] as number
   out.facingZ = data[base + STREAM_FIELD.facingZ] as number
-  out.phase = data[base + STREAM_FIELD.phase] as StreamPhase
-  out.phaseT = data[base + STREAM_FIELD.phaseT] as number
+  out.phase = ((data[base + STREAM_FIELD.phase] as number) &
+    PHASE_MASK) as StreamPhase
+  out.moveIdx = (data[base + STREAM_FIELD.phase] as number) >> MOVE_INDEX_SHIFT
+  const rawT = data[base + STREAM_FIELD.phaseT] as number
+  out.phaseT = rawT & 255
+  out.dodgeBurst = (rawT & DODGE_PHASET_BIT) !== 0
   out.hp = data[base + STREAM_FIELD.hp] as number
   out.hitstunMs = data[base + STREAM_FIELD.hitstunMs] as number
   out.pinned = data[base + STREAM_FIELD.pinned] !== 0

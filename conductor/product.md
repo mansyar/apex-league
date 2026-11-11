@@ -209,7 +209,11 @@ Phased delivery plan (each phase is independently playable):
      map hitstun and poise-break poses, a dodge roll, knockback recoil with
      planted feet, body scale from the body table, one shared facing model,
      and height-band swing variation onto the simulated state. The fight
-     moves correctly before it reads correctly.
+     moves correctly before it reads correctly. *(Landed 2026-11-11:
+     client-only stream-to-pose mapping with a byte-identical replay hash,
+     telegraph wedge derived from reach, bounded effects, reduced-motion
+     language, one justified 9-bit stream addition carrying paid-dodge
+     identity and move index.)*
   2. Kite verdict: decide whether Kite (2/6 wins) is a trap doctrine or
      missing a tool — blocks doctrine credibility; do not tune around it.
   3. Band-margin hardening: only when relative-matrix drift actually breaks
