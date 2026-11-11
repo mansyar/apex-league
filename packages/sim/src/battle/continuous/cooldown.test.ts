@@ -102,9 +102,11 @@ describe("a committed special is gated by its timer", () => {
     const fight = fightOf()
     const me = { ...fight.state.fighters[0], cooldowns: {} }
     const foe = fight.state.fighters[1]
-    expect(chooseMove(me, foe, ["spark"], 0, 0, false)).toBe("spark")
+    // A gap inside the move's reach interval, so only the timer can refuse it.
+    const gapSq = 1000 * 1000
+    expect(chooseMove(me, foe, ["spark"], gapSq, 0, false)).toBe("spark")
     const spent = { ...me, cooldowns: { spark: 1200 } }
-    expect(chooseMove(spent, foe, ["spark"], 0, 0, false)).toBeNull()
+    expect(chooseMove(spent, foe, ["spark"], gapSq, 0, false)).toBeNull()
   })
 })
 

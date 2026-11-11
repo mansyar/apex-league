@@ -18,6 +18,7 @@ import {
   retreatRoom,
   strafeIntent,
 } from "./controller-aim"
+import { backingOrder, stepBackOrder } from "./controller-blind"
 import { dodgeOrder } from "./controller-dodge"
 import { observe, strafeSide } from "./controller-memory"
 import { chooseMove } from "./controller-moves"
@@ -316,6 +317,18 @@ export function decide(input: DecisionInput, rng?: Rng): ControllerDecision {
     const refused = ruleRefuses(input, moveId)
     if (moveId && !refused && takeCommit(rng, false)) {
       return settle("commit", pressIntent(me, foe), moveId)
+    }
+    // Nothing lands from here (FR-10, AC-9): fire a shot whose intent gives
+    // ground so the launch opens outside the inner edge, else step back until
+    // the gap reaches the nearest ready move's landing edge. Re-decided every
+    // cadence, so the walk stops on the edge; a cornered fighter still circles.
+    if (!moveId) {
+      const shot = backingOrder(me, foe, kit, gapSq, state.bounds)
+      if (shot && !ruleRefuses(input, shot.commit) && takeCommit(rng, false)) {
+        return settle("commit", shot.away, shot.commit)
+      }
+      const back = stepBackOrder(me, foe, kit, gapSq, state.bounds)
+      if (back) return settle("retreat", back)
     }
     return withRule(settle("advance", aimAt(me, foe)), refused)
   }

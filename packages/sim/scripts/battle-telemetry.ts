@@ -2,12 +2,14 @@
  * Battle telemetry harness — "not turn-based" measured, not asserted
  * (Continuous Arena Battle FR-14, AC-14, AC-24).
  *
- * Plays the same 14 seeded matchups `pacing.test.ts` plays, through the same
- * public resolver the cup calls, and reads the dense per-step stream the
- * resolver already records (`streamOf`). The harness is a consumer: it does not
- * step the sim itself and does not change a single value in it.
+ * Plays a 42-fight seeded sample through the same public resolver the cup
+ * calls, and reads the dense per-step stream the resolver already records
+ * (`streamOf`). The harness is a consumer: it does not step the sim itself and
+ * does not change a single value in it. The walk is this module's own;
+ * `pacing.test.ts` builds its own 42-fight sample and does not call
+ * `matchups()`.
  *
- * Six metrics, each defined precisely because a loose definition is how a
+ * Seven metrics, each defined precisely because a loose definition is how a
  * turn-based fight would pass a "continuous" gate:
  *
  * - **Engagement distance** — the centre-to-centre gap in millimetres, sampled
@@ -31,6 +33,11 @@
  *   and attack phases, not the controller's verb, so this metric replays the
  *   same deterministic decisions the resolver took and checks the replay ends on
  *   the resolver's own step and hit points before reporting.
+ * - **Dead zone** — the share of commits whose only failure was the move's inner
+ *   edge: a swing that stood inside its own blind spot, or a shot loosed from
+ *   inside it. Counted from the same replay, because a `range` whiff is a
+ *   decision the stream only shows as a miss with no contact. This is the metric
+ *   that says the blind spot is real (FR-7); it is not a target to shrink.
  *
  * Plus **cap share** (AC-24): the share of fights decided at `FIGHT_CAP_MS`
  * rather than by knockout. The cap is the top of the 25-40 s band, so the band
@@ -39,11 +46,18 @@
  * R1 (F8): FR-4's one-in-three cap target is gated by `bun run balance` over
  * the standard-doctrine matrix (210 ordered pairings x 4 seeds, every measured
  * side its species' own typical creature). This script is a different sample —
- * a small mixed-doctrine smoke fixture whose rows deliberately span rush,
- * obedient and slow temperaments — so it carries its own looser bound
- * (`1/2`, the spec's own ceiling) and must not be read as FR-4's verdict.
- * The bound is not tightened here on purpose: a 14-fight fixture cannot
- * resolve one-in-three, and tightening it would make the smoke test flaky.
+ * a mixed-doctrine fixture whose rows deliberately span rush, obedient and slow
+ * temperaments — so it carries its own looser bound (`1/2`, the spec's own
+ * ceiling) and must not be read as FR-4's verdict. The bound is not tightened
+ * here on purpose: tightening it would make the smoke test flaky.
+ *
+ * The sample is 42 fights because a 14-fight fixture could not adjudicate an
+ * outcome-changing mechanic (Minimum Reach, phase 2: 50 mm of dead zone moved
+ * `capShare` from 7/14 to 10/14 and 400 mm moved it back). Growing the sample
+ * is the one approved exception to the no-widening rule (spec FR-7, NFR-2,
+ * approved 2026-11-12); every bound value was re-derived from the 42-fight
+ * measurement with stated headroom, and the before/after table lives in
+ * `conductor/tracks/20261111-minimum-reach/verification/phase-3.md`.
  *
  * Run it as one command:
  *
@@ -161,21 +175,44 @@ export interface Matchup {
 }
 
 /**
- * The 14 matchups `pacing.test.ts` pins: the same roster walk, the same seeds,
- * no mirrors (a mirror keys both sides the same, so the event log cannot
- * attribute a blow to a side, and no real cup field contains two of a species).
+ * How many pairings the walk visits: every roster species as home once.
+ */
+const PAIRINGS = 14
+
+/**
+ * Seeds per pairing. A single seed per pairing is what made the old 14-fight
+ * sample a coin flip — the same pairing lands on a knockout or on the cap
+ * depending on the draw. Three draws per pairing average that luck out, and it
+ * is the shape `pacing.test.ts` already uses for its own 42-fight sample.
+ */
+const SEEDS_PER_PAIRING = 3
+
+/**
+ * How many seeded fights the sample plays. Minimum Reach phase 3 raised this
+ * from 14 (FR-7): a 14-fight sample could not adjudicate an outcome-changing
+ * mechanic, and 42 fights give a cap-share step of 2.4 points.
+ */
+export const SAMPLE_SIZE = PAIRINGS * SEEDS_PER_PAIRING
+
+/**
+ * The sample's matchups: a deterministic roster walk with no mirrors (a mirror
+ * keys both sides the same, so the event log cannot attribute a blow to a side,
+ * and no real cup field contains two of a species), three contiguous seeds per
+ * pairing so each pairing sees both tactic assignments.
  */
 export function matchups(): Matchup[] {
   const out: Matchup[] = []
   const roster = ALL_SPECIES
-  for (let i = 0; i < 14; i++) {
+  for (let i = 0; i < PAIRINGS; i++) {
     const home = roster[i % roster.length]
     let away = roster[(i * 5 + 7) % roster.length]
     if (!home || !away) throw new Error("the roster shrank")
     for (let hop = 1; away.id === home.id && hop < roster.length; hop++) {
       away = roster[(i * 5 + 7 + hop) % roster.length] ?? away
     }
-    out.push({ home, away, seed: 20261108 + i })
+    for (let offset = 0; offset < SEEDS_PER_PAIRING; offset++) {
+      out.push({ home, away, seed: 20261108 + i + offset })
+    }
   }
   return out
 }
@@ -208,6 +245,12 @@ export interface FightTelemetry {
   readonly contact: number
   /** Retreat orders issued, home then away. */
   readonly retreats: readonly [number, number]
+  /**
+   * Commits whose only failure was the move's inner edge (FR-5, FR-7): a melee
+   * swing that stood inside its own blind spot, or a shot loosed from inside
+   * it. Read from the order replay, which is the same fight the resolver ran.
+   */
+  readonly deadZone: number
 }
 
 /** A blank frame to read into; `readFrame` overwrites every field. */
@@ -249,26 +292,28 @@ function hitsOf(
 }
 
 /**
- * Replay one fight's controller decisions and count the retreat orders.
+ * Replay one fight's controller decisions: the retreat orders issued, and the
+ * commits that missed only the move's inner edge.
  *
  * The stream records where the bodies went, not what they wanted, so the verb
- * tally has to be read where the verb lives. The replay is the resolver's own
- * loop: the same `initFor` orders, the same `engagementFor` profiles, the same
- * `createController` brains and the same `createFight` step. The only draws
- * are the fight's own seeded RNG — execution noise and accuracy share it — so
- * the replay threads `fight.rng` exactly like the resolver and must land on
- * the resolver's step and hit points; if it does not, the tally would
- * describe a different fight and the harness refuses to report it. Keys are
- * arbitrary here because neither the step nor the controller reads them, and
- * the sample has no mirror to disambiguate.
+ * tally and the dead-zone count have to be read where the verb and the miss
+ * live. The replay is the resolver's own loop: the same `initFor` orders, the
+ * same `engagementFor` profiles, the same `createController` brains and the
+ * same `createFight` step. The only draws are the fight's own seeded RNG —
+ * execution noise and accuracy share it — so the replay threads `fight.rng`
+ * exactly like the resolver and must land on the resolver's step and hit
+ * points; if it does not, the tally would describe a different fight and the
+ * harness refuses to report it. Keys are arbitrary here because neither the
+ * step nor the controller reads them, and the sample has no mirror to
+ * disambiguate.
  */
-function retreatsOf(
+function replayOf(
   matchup: Matchup,
   result: BattleResult,
   stream: FightStream,
   home: BattleSide,
   away: BattleSide,
-): [number, number] {
+): { retreats: [number, number]; deadZone: number } {
   const fight = createFight({
     seed: matchup.seed,
     bounds: ARENA_BOUNDS,
@@ -284,6 +329,7 @@ function retreatsOf(
     createController(),
   ]
   const retreats: [number, number] = [0, 0]
+  let deadZone = 0
   let state = fight.state
 
   while (state.step < FIGHT_CAP_STEPS && !downEnding(state)) {
@@ -306,7 +352,17 @@ function retreatsOf(
       if (order.verb === "retreat") retreats[side] += 1
       if (order.commit) fight.commit(side, order.commit)
     }
-    state = fight.advance(orders).state
+    const outcome = fight.advance(orders)
+    state = outcome.state
+    // A `range` miss is a commit whose only failure was the inner edge
+    // (FR-5): a swing that stood inside its own blind spot, or a shot loosed
+    // from inside it. Every other whiff reached and touched nothing.
+    for (const whiff of outcome.whiffs) {
+      if (whiff.reason === "range") deadZone += 1
+    }
+    for (const shot of outcome.shots) {
+      if (shot.outcome === "range") deadZone += 1
+    }
   }
 
   const replayHp = [state.fighters[0].hp, state.fighters[1].hp].sort(
@@ -324,7 +380,7 @@ function retreatsOf(
       `${matchup.home.id} v ${matchup.away.id}: the order replay diverged from the resolver`,
     )
   }
-  return retreats
+  return { retreats, deadZone }
 }
 
 /**
@@ -392,6 +448,7 @@ export function measureFight(matchup: Matchup): FightTelemetry {
   }
 
   const fightSteps = stream.steps - 1
+  const replay = replayOf(matchup, result, stream, homeSide, awaySide)
   return {
     label,
     ms: fightSteps * STEP_MS,
@@ -409,7 +466,8 @@ export function measureFight(matchup: Matchup): FightTelemetry {
     idle: idleSteps / fightSteps,
     distinct: [cells[0].size, cells[1].size],
     contact: contactSteps / fightSteps,
-    retreats: retreatsOf(matchup, result, stream, homeSide, awaySide),
+    retreats: replay.retreats,
+    deadZone: replay.deadZone,
   }
 }
 
@@ -432,6 +490,11 @@ export interface SampleTelemetry {
   readonly contact: number
   /** Retreat orders issued over the sample, home then away. */
   readonly retreats: { readonly home: number; readonly away: number }
+  /**
+   * Commits that missed only the move's inner edge, and their share of every
+   * commit in the sample (FR-7, AC-6): the blind spot measured, not asserted.
+   */
+  readonly deadZone: { readonly misses: number; readonly share: number }
   readonly cap: {
     readonly count: number
     readonly total: number
@@ -441,9 +504,8 @@ export interface SampleTelemetry {
   readonly duration: { readonly min: number; readonly max: number }
 }
 
-/** Play the reference sample and pool its metrics. */
-export function measure(): SampleTelemetry {
-  const fights = matchups().map(measureFight)
+/** Pool measured fights into the sample's numbers. */
+export function pool(fights: readonly FightTelemetry[]): SampleTelemetry {
   const gaps: number[] = []
   let commits = 0
   let seconds = 0
@@ -451,6 +513,7 @@ export function measure(): SampleTelemetry {
   let contact = 0
   let retreatHome = 0
   let retreatAway = 0
+  let deadZone = 0
   let capCount = 0
   const distinct: number[] = []
 
@@ -461,6 +524,7 @@ export function measure(): SampleTelemetry {
     contact += fight.contact * (fight.ms / STEP_MS)
     retreatHome += fight.retreats[0]
     retreatAway += fight.retreats[1]
+    deadZone += fight.deadZone
     distinct.push(fight.distinct[0], fight.distinct[1])
     gaps.push(...fight.gaps)
     if (fight.reason === "time") {
@@ -488,6 +552,10 @@ export function measure(): SampleTelemetry {
     distinct: { min: Math.min(...distinct), median: median(distinct) },
     contact: contact / fightSteps,
     retreats: { home: retreatHome, away: retreatAway },
+    deadZone: {
+      misses: deadZone,
+      share: commits === 0 ? 0 : deadZone / commits,
+    },
     cap: {
       count: capCount,
       total: fights.length,
@@ -498,6 +566,11 @@ export function measure(): SampleTelemetry {
       max: Math.max(...fights.map((fight) => fight.ms)),
     },
   }
+}
+
+/** Play the reference sample and pool its metrics. */
+export function measure(): SampleTelemetry {
+  return pool(matchups().map(measureFight))
 }
 
 /** The metric a bound constrains. */
@@ -512,6 +585,7 @@ export type Metric =
   | "contactShare"
   | "retreatHome"
   | "retreatAway"
+  | "deadZoneShare"
   | "capShare"
   | "durationMin"
   | "durationMax"
@@ -525,83 +599,93 @@ export interface Bound {
 }
 
 /**
- * The thresholds, each set after measuring the sample and chosen with headroom:
- * the measured value is in each `why`, and the bound sits far enough above or
- * below it that a one-point move in an unrelated constant cannot fail CI. Only
- * `capShare` is the spec's own ceiling (AC-24) rather than a measured choice.
+ * The thresholds, each re-derived on the 42-fight sample (Minimum Reach phase 3)
+ * and chosen with headroom: the measured value is in each `why`, and the bound
+ * sits far enough above or below it that a one-point move in an unrelated
+ * constant cannot fail CI. The sample widening and these values are the one
+ * approved exception to the no-widening rule (spec FR-7, NFR-2, 2026-11-12); the
+ * before/after table is in
+ * `conductor/tracks/20261111-minimum-reach/verification/phase-3.md`. A ceiling
+ * stayed a ceiling and no floor was lowered.
  */
 export const BOUNDS: readonly Bound[] = Object.freeze([
   {
     metric: "engagementMin",
     kind: "max",
     value: 900,
-    why: "the fighters must close to strike range; measured min 379 mm",
+    why: "the fighters must close to strike range; measured min 380 mm",
   },
   {
     metric: "engagementMedian",
     kind: "max",
     value: 1500,
-    why: "the fight must be fought at fighting range, not at opposite ends; measured median 807 mm",
+    why: "the fight must be fought at fighting range, not at opposite ends; measured median 1085 mm",
   },
   {
     metric: "engagementMax",
     kind: "max",
     value: 4500,
-    why: "neither side may flee the engagement; measured max 3984 mm, which is the opening stance, so this bound only catches a gross disengagement",
+    why: "neither side may flee the engagement; measured max 3992 mm, which is the opening stance, so this bound only catches a gross disengagement",
   },
   {
     metric: "exchangeHome",
     kind: "max",
     value: 2.5,
-    why: "the home side's attack rate is a ceiling, not a floor; measured 0.26/s after the blow weight",
+    why: "the home side's attack rate is a ceiling, not a floor; measured 0.31/s after the blow weight",
   },
   {
     metric: "exchangeAway",
     kind: "max",
     value: 2.5,
-    why: "the away side's attack rate is a ceiling, not a floor; measured 0.24/s after the blow weight",
+    why: "the away side's attack rate is a ceiling, not a floor; measured 0.27/s after the blow weight",
   },
   {
     metric: "idleShare",
     kind: "max",
     value: 0.5,
-    why: "at least half the fight must have an attack running somewhere; measured 28.2% after the blow weight (the Phase 3 relaxation to 0.5 is still the smallest bound the tuned engine meets; the pre-track 0.4 is not met)",
+    why: "at least half the fight must have an attack running somewhere; measured 26.1% after the blow weight (0.5 is the smallest bound the tuned engine meets; the pre-track 0.4 is not met)",
   },
   {
     metric: "distinctPositions",
     kind: "min",
     value: 20,
-    why: "every side must visit many positions, not hold two poses; measured min 23 cells after the blow weight (the fastest fight ends in 8.78 s, so it has less time to walk)",
+    why: "every side must visit many positions, not hold two poses; measured min 65 cells after the blow weight (the fastest fight ends in 18.44 s, so it has less time to walk)",
   },
   {
     metric: "contactShare",
     kind: "max",
     value: 0.7,
-    why: "the bodies must not spend most of the fight pressed together; measured 15.5%",
+    why: "the bodies must not spend most of the fight pressed together; measured 7.3%",
   },
   {
     metric: "retreatHome",
     kind: "min",
-    value: 14,
-    why: "AC-3: at least one retreat order per fight over the sample; measured 5003 orders",
+    value: 42,
+    why: "AC-3: at least one retreat order per fight. This bound is an absolute count over the sample, so it scales with the sample: 42 fights, measured 20157 orders (~480 per fight). Leaving it at 14 would have weakened the intent to a third of one order per fight",
   },
   {
     metric: "retreatAway",
     kind: "min",
-    value: 14,
-    why: "AC-3: at least one retreat order per fight over the sample; measured 5260 orders",
+    value: 42,
+    why: "AC-3: at least one retreat order per fight. Scaled to the 42-fight sample for the same reason as the home side; measured 19826 orders (~472 per fight)",
+  },
+  {
+    metric: "deadZoneShare",
+    kind: "max",
+    value: 1 / 2,
+    why: "FR-7 / AC-6: a loose ceiling, because this metric says the blind spot is real, not that it must be small. Every row with reachMm >= 5000 authors 90 mm, so the shipped sample measures 2.4%, and the 1,000 mm candidate measured 92.5% — half keeps the whole range of a real dead zone allowed under it while still failing a tree where the blind spot swallows the fight",
   },
   {
     metric: "capShare",
     kind: "max",
-    value: 1 / 2,
-    why: "AC-24: at most one fight in two may be decided at the cap — the spec's own ceiling. The one-in-three target is missed at 6/14 (42.9%): the triple-length cycle means fewer blows per fight, so more fights run out the clock",
+    value: 3 / 5,
+    why: "AC-24: at most one fight in two may be decided at the cap. The widened sample measured 22/42 (52.4%) at minReachMm = 0, so the smoke ceiling was re-derived to 3/5 under the approved FR-7 exception: three fights of headroom at that value, and which pairings are glacial — not seed luck — sets the share. The shipped 90 mm dead zone then consumed two of those three fights, so the tree measures 25/42 (59.5%) with one fight of headroom. The one-in-three target is still missed: the triple-length cycle means fewer blows per fight, so more fights run out the clock. This is a pacing finding for the balance pass, not a relaxation hiding a regression — the bound has not moved since the approved re-derivation",
   },
   {
     metric: "durationMin",
     kind: "min",
     value: 8_000,
-    why: "AC-7: no fight may end before the tuned floor; measured fastest 8.78 s with every frame field weighted, where a 40-damage special ends a low-HP matchup in three blows. The spec's 25 s floor is still missed",
+    why: "AC-7: no fight may end before the tuned floor; measured fastest 18.44 s with every frame field weighted, where a 40-damage special ends a low-HP matchup in three blows. The spec's 25 s floor is still missed",
   },
   {
     metric: "durationMax",
@@ -640,6 +724,8 @@ export function observed(sample: SampleTelemetry, metric: Metric): number {
       return sample.retreats.home
     case "retreatAway":
       return sample.retreats.away
+    case "deadZoneShare":
+      return sample.deadZone.share
     case "capShare":
       return sample.cap.share
     case "durationMin":
@@ -666,6 +752,7 @@ function show(metric: Metric, value: number): string {
   switch (metric) {
     case "idleShare":
     case "contactShare":
+    case "deadZoneShare":
     case "capShare":
       return `${(value * 100).toFixed(1)}%`
     case "exchangeHome":
@@ -695,6 +782,37 @@ function pad(value: string | number, width: number): string {
   return String(value).padEnd(width)
 }
 
+/** The cumulative sample sizes the stability table re-pools at. */
+const SPREAD_AT = [14, 30, SAMPLE_SIZE] as const
+
+/**
+ * The same metric re-pooled as the sample grows. One number cannot say whether
+ * it is an estimate or a coin flip: the first column is a 14-fight prefix of the
+ * same fights — the size this harness shipped before Minimum Reach phase 3 —
+ * and a metric that jumps between columns is one a small sample cannot
+ * adjudicate. Retreats are shown per fight so the columns stay comparable —
+ * their bound is a count over the whole sample.
+ */
+function stability(fights: readonly FightTelemetry[]): string[] {
+  const sizes = SPREAD_AT.filter((size) => size <= fights.length)
+  const lines = [
+    `estimate stability: each metric re-pooled at ${sizes.join(", ")} fights (retreats per fight)`,
+    `${pad("metric", 18)}${sizes.map((size) => pad(`n=${size}`, 14)).join("")}`,
+  ]
+  for (const bound of BOUNDS) {
+    const cells = sizes.map((size) => {
+      const value = observed(pool(fights.slice(0, size)), bound.metric)
+      const text =
+        bound.metric === "retreatHome" || bound.metric === "retreatAway"
+          ? `${(value / size).toFixed(2)}/fight`
+          : show(bound.metric, value)
+      return pad(text, 14)
+    })
+    lines.push(`${pad(bound.metric, 18)}${cells.join("")}`)
+  }
+  return lines
+}
+
 /** The readable report, as lines. */
 export function report(sample: SampleTelemetry): string[] {
   const lines: string[] = []
@@ -715,6 +833,9 @@ export function report(sample: SampleTelemetry): string[] {
     "contact share:       share of fight time inside both body radii + 40 mm",
   )
   lines.push("retreats:            retreat orders issued, home then away")
+  lines.push(
+    "dead zone:           commits that missed only the move's inner edge, as a share of commits (FR-7)",
+  )
   lines.push(
     `cap share:           fights decided at FIGHT_CAP_MS (${FIGHT_CAP_MS} ms) rather than by knockout (AC-7)`,
   )
@@ -740,6 +861,9 @@ export function report(sample: SampleTelemetry): string[] {
     `retreats:    home ${sample.retreats.home}  away ${sample.retreats.away}`,
   )
   lines.push(
+    `dead zone:   ${sample.deadZone.misses} commits (${show("deadZoneShare", sample.deadZone.share)})`,
+  )
+  lines.push(
     `positions:   min ${show("distinctPositions", sample.distinct.min)}  median ${show("distinctPositions", sample.distinct.median)}`,
   )
   lines.push(
@@ -748,6 +872,8 @@ export function report(sample: SampleTelemetry): string[] {
   lines.push(
     `duration:    ${show("durationMin", sample.duration.min)} .. ${show("durationMax", sample.duration.max)}`,
   )
+  lines.push("")
+  lines.push(...stability(sample.fights))
   lines.push("")
   for (const bound of BOUNDS) {
     const value = observed(sample, bound.metric)

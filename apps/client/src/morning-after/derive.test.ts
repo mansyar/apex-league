@@ -148,7 +148,10 @@ describe("deriveMorningAfter — the outcome classifier (FR-1)", () => {
     // Seed 5 under the aggressive pick sweeps the cup (phase 10 re-pin: pacing
     // moved the elimination off seed 23; the classifier reads only the
     // session facts).
-    const session = play(creature(), 5, "specials")
+    // Minimum Reach phase 4 (dead zone authored at 90 mm): seed 5 now falls,
+    // so the plain champion run moves to seed 6; the classifier reads only the
+    // session facts.
+    const session = play(creature(), 6, "specials")
     expect(session.status).toBe("champion")
     const d = deriveMorningAfter(session, freshState(), freshState())
     expect(d).not.toBeNull()

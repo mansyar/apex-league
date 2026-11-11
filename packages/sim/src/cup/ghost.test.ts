@@ -229,11 +229,11 @@ describe("ghost bundle — the simulator version gate (FR-15, AC-15)", () => {
     return bundle
   }
 
-  test("the marker stays at v2 — another bump is a deliberate act", () => {
-    // v2 is the continuous contact-geometry generation. Bumping it again
-    // invalidates every stored bundle, so it must be a decision, not a
-    // side effect of a later phase.
-    expect(SIM_VERSION).toBe(2)
+  test("the marker stays at v3 — another bump is a deliberate act", () => {
+    // v3 is the minimum-reach generation: the inner edge changes which blows
+    // land and which shots pass. Bumping it again invalidates every stored
+    // bundle, so it must be a decision, not a side effect of a later phase.
+    expect(SIM_VERSION).toBe(3)
   })
 
   test("a pre-track (v1) bundle is rejected instead of misreplayed", () => {
@@ -242,11 +242,11 @@ describe("ghost bundle — the simulator version gate (FR-15, AC-15)", () => {
     )
   })
 
-  test("a future (v3) bundle is rejected", () => {
+  test("a future (v4) bundle is rejected", () => {
     expect(
       verifyGhostBundle({ ...championBundle(), simVersion: SIM_VERSION + 1 }),
     ).toBe(false)
-    expect(SIM_VERSION + 1).toBe(3)
+    expect(SIM_VERSION + 1).toBe(4)
   })
 
   test("a matching bundle still replays byte-identically", () => {
@@ -263,7 +263,9 @@ describe("ghost bundle — the simulator version gate (FR-15, AC-15)", () => {
       player: null as unknown as BattleSide,
     }
     expect(verifyGhostBundle({ ...poisoned, simVersion: 1 })).toBe(false)
-    expect(verifyGhostBundle({ ...poisoned, simVersion: 3 })).toBe(false)
+    expect(
+      verifyGhostBundle({ ...poisoned, simVersion: SIM_VERSION + 1 }),
+    ).toBe(false)
   })
 
   test("the guarded replay skips a mismatched bundle quietly", () => {
@@ -271,7 +273,7 @@ describe("ghost bundle — the simulator version gate (FR-15, AC-15)", () => {
     const guarded = (value: GhostBundle) =>
       verifyGhostBundle(value) ? replayGhost(value) : null
     expect(guarded({ ...bundle, simVersion: 1 })).toBeNull()
-    expect(guarded({ ...bundle, simVersion: 3 })).toBeNull()
+    expect(guarded({ ...bundle, simVersion: SIM_VERSION + 1 })).toBeNull()
     expect(guarded(bundle)?.winner).toBe(bundle.winner)
   })
 })

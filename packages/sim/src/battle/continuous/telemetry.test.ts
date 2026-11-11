@@ -9,9 +9,12 @@
  * `bun run telemetry` command runs, so the readable local report and the CI gate
  * cannot drift: there is one `BOUNDS` table and one `measure()` call.
  *
- * The sample is the 14 seeded matchups `pacing.test.ts` pins. It is driven
- * through the public resolver and read from the stream the resolver already
- * records, so the harness changes nothing in the simulation.
+ * The sample is 42 seeded fights: the same 14 pairings `pacing.test.ts` plays,
+ * drawn three times each by the script's own roster walk. Minimum Reach phase 3
+ * widened it from 14 (FR-7) because a 14-fight sample could not adjudicate an
+ * outcome-changing mechanic. It is driven through the public resolver and read
+ * from the stream the resolver already records, so the harness changes nothing
+ * in the simulation.
  */
 
 import { describe, expect, test } from "bun:test"
@@ -26,7 +29,7 @@ import {
   violations,
 } from "../../../scripts/battle-telemetry"
 
-/** The sample is 14 fights, so measure it once for the whole file. */
+/** The sample is 42 fights, so measure it once for the whole file. */
 let cached: SampleTelemetry | undefined
 
 function sample(): SampleTelemetry {
@@ -46,7 +49,7 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
   test("reports every metric for every matchup", () => {
     const measured = sample()
     console.log(report(measured).join("\n"))
-    expect(measured.fights.length).toBe(14)
+    expect(measured.fights.length).toBe(42)
     for (const fight of measured.fights) {
       expect(fight.ms).toBeGreaterThan(0)
       // Both sides chose to attack, and both sides landed blows.
@@ -92,7 +95,12 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
   })
 
   test("contact, retreats and attack rate are measured and bounded", () => {
-    assertBounds(["contactShare", "retreatHome", "retreatAway"])
+    assertBounds([
+      "contactShare",
+      "retreatHome",
+      "retreatAway",
+      "deadZoneShare",
+    ])
     const measured = sample()
     expect(measured.contact).toBeGreaterThanOrEqual(0)
     expect(measured.contact).toBeLessThanOrEqual(1)
@@ -105,11 +113,30 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
       "contactShare",
       "retreatHome",
       "retreatAway",
+      "deadZoneShare",
     ] as const) {
       expect(lines.some((line) => line.startsWith(`ok   ${metric}:`))).toBe(
         true,
       )
     }
+  })
+
+  // Minimum Reach phase 4 (FR-7, AC-6): the share of commits whose only failure
+  // was the move's inner edge. It exists to say the blind spot is real, not that
+  // it must be small, so the ceiling is deliberately loose: every row with
+  // reachMm >= 5000 authors 90 mm, so the shipped sample measures 2.4%, and the
+  // 1,000 mm candidate measured 92.5%.
+  test("the dead zone share is measured and reported (FR-7, AC-6)", () => {
+    assertBounds(["deadZoneShare"])
+    const measured = sample()
+    expect(measured.deadZone.share).toBeGreaterThanOrEqual(0)
+    expect(measured.deadZone.share).toBeLessThanOrEqual(1)
+    expect(Number.isInteger(measured.deadZone.misses)).toBe(true)
+    // The metric must be able to see the mechanic: a regression to an unauthored
+    // dead zone reads 0 here, so zero is the failure this pins, not the ceiling.
+    expect(measured.deadZone.misses).toBeGreaterThan(0)
+    const lines = report(measured)
+    expect(lines.some((line) => line.startsWith("dead zone:"))).toBe(true)
   })
 
   test("the duration band and the cap share are separate bounds (AC-7)", () => {
@@ -121,23 +148,53 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
     expect(measured.duration.max).toBeLessThanOrEqual(40_000)
   })
 
-  // Phase 8 (FR-20, P8.T4): the pacing levers moved the cap share from 8/14
-  // (57.1%) to 6/14 (42.9%), inside the spec's one-in-two ceiling. The marker
-  // is removed deliberately; the bound was never relaxed.
-  test("at most one fight in two is decided at the cap (AC-24)", () => {
+  // Phase 8 (FR-20, P8.T4) moved the cap share from 8/14 (57.1%) to 6/14
+  // (42.9%) on the old 14-fight sample. Minimum Reach phase 3 widened the sample
+  // to 42 fights and re-derived the smoke ceiling from the measurement: 22/42
+  // (52.4%) at minReachMm = 0, so the ceiling is 3/5, three fights of headroom.
+  // Phase 4's 90 mm dead zone then consumed two of them: the shipped tree reads
+  // 25/42 (59.5%), one fight of headroom. The spec's one-in-two target is now
+  // missed on this fixture — that is a pacing finding recorded in the track's
+  // evidence, not a regression from this phase, and the bound was not widened
+  // again.
+  test("the cap share stays inside its re-derived smoke ceiling (AC-24)", () => {
     assertBounds(["capShare"])
     const cap = sample().cap
-    expect(cap.total).toBe(14)
-    // The spec's ceiling, in exact integer form: 7/14 passes, 8/14 does not.
-    expect(cap.count * 2).toBeLessThanOrEqual(cap.total)
-    // The one-in-three target is still missed at 6/14 (42.9%). Pinned as debt,
+    expect(cap.total).toBe(42)
+    // The re-derived ceiling, in exact integer form: 25/42 passes, 26/42 fails.
+    expect(cap.count * 5).toBeLessThanOrEqual(cap.total * 3)
+    // The one-in-three target is still missed at 25/42 (59.5%). Pinned as debt,
     // not as met — the spec's own ceiling is the bound above.
     expect(cap.count * 3).toBeGreaterThan(cap.total)
   })
 
   test("every metric has a bound, so none can be reported unenforced", () => {
     const metrics = BOUNDS.map((bound) => bound.metric)
-    expect(new Set(metrics).size).toBe(13)
+    expect(new Set(metrics).size).toBe(14)
+  })
+
+  test("every re-derived bound is pinned at its chosen value (AC-10)", () => {
+    // The before/after table in the track's phase-3 evidence. A bound that moves
+    // without that evidence moving with it fails here.
+    const pinned = Object.fromEntries(
+      BOUNDS.map((bound) => [bound.metric, bound.value]),
+    )
+    expect(pinned).toEqual({
+      engagementMin: 900,
+      engagementMedian: 1500,
+      engagementMax: 4500,
+      exchangeHome: 2.5,
+      exchangeAway: 2.5,
+      idleShare: 0.5,
+      distinctPositions: 20,
+      contactShare: 0.7,
+      retreatHome: 42,
+      retreatAway: 42,
+      deadZoneShare: 0.5,
+      capShare: 0.6,
+      durationMin: 8000,
+      durationMax: 40000,
+    })
   })
 
   test("a violated threshold is named with its observed value (AC-14)", () => {

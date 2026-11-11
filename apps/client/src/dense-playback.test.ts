@@ -9,13 +9,18 @@
 
 import { describe, expect, test } from "bun:test"
 import {
+  type BattleResult,
+  createCreature,
   DODGE_PHASET_BIT,
   type FightStream,
   MOVE_INDEX_SHIFT,
+  makeExhibition,
+  resolveContinuous,
   STREAM_FIELD,
   STREAM_FIELDS,
   STREAM_MOVE_IDS,
   STREAM_PHASE,
+  streamOf,
 } from "@apex/sim"
 import * as THREE from "three"
 import { DEFAULT_PROFILE } from "./choreo"
@@ -28,6 +33,7 @@ import {
 } from "./dense-playback"
 import { clampStage, type DriveFighter } from "./fighter-driver"
 import type { BattleEffects } from "./staging-fx"
+import { TELL_INNER, tellInnerWorld } from "./tell-scale"
 
 /** A drive fighter with everything the pose loop reads, nothing else. */
 function fighter(name: string, x: number): DriveFighter {
@@ -374,6 +380,7 @@ describe("reach-derived telegraph", () => {
     group: THREE.Group
     mesh: THREE.Mesh
     ring: THREE.Mesh
+    inner: number
     outer: number
     arc: number
   } => {
@@ -385,6 +392,7 @@ describe("reach-derived telegraph", () => {
       group,
       mesh,
       ring,
+      inner: params.innerRadius,
       outer: params.outerRadius,
       arc: params.thetaLength,
     }
@@ -424,6 +432,24 @@ describe("reach-derived telegraph", () => {
     expect(lance.outer).toBe(4.0)
     expect(lance.outer).toBeGreaterThan(jab.outer * 4)
     expect(lance.arc).toBeLessThan(jab.arc)
+  })
+
+  test("the drawn dead-zone edge is the authored row's (FR-9, AC-8)", () => {
+    // The lance authors 90 mm; with the attacker's 220 mm body that edge
+    // converts to 0.248 world, inside the body's own ground, so the hole
+    // closes and the wedge is the one it always drew.
+    const lanceTrace = stream(startupRun(720))
+    const lance = wedgeOf(drive(lanceTrace.steps, lanceTrace).arena)
+    expect(lance.inner).toBe(tellInnerWorld(90, 220, lance.outer))
+    expect(lance.inner).toBe(TELL_INNER)
+    expect(lance.inner).toBeLessThan(lance.outer)
+  })
+
+  test("a row that authors 0 keeps the un-holed sector", () => {
+    const basicTrace = stream(startupRun(160))
+    const basic = wedgeOf(drive(basicTrace.steps, basicTrace).arena)
+    expect(basic.inner).toBe(tellInnerWorld(0, 220, basic.outer))
+    expect(basic.inner).toBe(TELL_INNER)
   })
 
   test("the attacker's body radius widens the wedge", () => {
@@ -573,5 +599,52 @@ describe("reach-derived telegraph", () => {
     stage.apply(trace, 1, left, right)
     // Sixty millimetres without the burst flag reads as footwork.
     expect(left.pose).toBe("none")
+  })
+})
+
+describe("the replay is untouched (NFR-1, NFR-4)", () => {
+  /** FNV-1a over the trace's int16 cells: stable and dependency-free. */
+  function streamHash(trace: FightStream): number {
+    let hash = 0x811c9dc5
+    for (let i = 0; i < trace.data.length; i++) {
+      hash ^= trace.data[i] as number
+      hash = Math.imul(hash, 0x01000193)
+    }
+    return hash >>> 0
+  }
+
+  const drake = createCreature("fire_drake", 7)
+  const SEED = 4242
+
+  const resolve = (): BattleResult => {
+    const setup = makeExhibition(drake, "balanced", SEED)
+    return resolveContinuous(setup.ownedSide, setup.rivalSide, SEED)
+  }
+
+  test("the same seed still produces the same dense stream and hash", () => {
+    const first = resolve()
+    const second = resolve()
+    const a = streamOf(first)
+    const b = streamOf(second)
+    if (!a || !b) throw new Error("the continuous engine must file a trace")
+    expect(a.steps).toBe(b.steps)
+    expect(a.data).toEqual(b.data)
+    expect(streamHash(a)).toBe(streamHash(b))
+    expect(second.events).toEqual(first.events)
+  })
+
+  test("playing the fight back leaves the trace byte-identical", () => {
+    // The tell reads authored data and never feeds the sim, so driving the
+    // whole trace through the wedge path cannot move a byte of it.
+    const trace = streamOf(resolve())
+    if (!trace) throw new Error("the continuous engine must file a trace")
+    const before = streamHash(trace)
+    const { stage } = stageFor()
+    const left = fighter("left", 0)
+    const right = fighter("right", 0)
+    for (let step = 0; step < trace.steps; step++) {
+      stage.apply(trace, step, left, right)
+    }
+    expect(streamHash(trace)).toBe(before)
   })
 })

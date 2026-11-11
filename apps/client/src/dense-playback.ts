@@ -161,9 +161,11 @@ export function createDenseStage(io: {
   const wasPinned: [boolean, boolean] = [false, false]
   let lastStep = -1
 
-  // The reach-derived telegraph: length and arc come from the committed
-  // move's reachMm plus the attacker's body radius (tell-wedge owns the
-  // estimator and the meshes); aiming stays down the stream facing.
+  // The reach-derived telegraph: outer length, inner dead-zone edge and arc
+  // come from the committed move's reachMm and minReachMm plus the attacker's
+  // body radius (tell-wedge owns the estimator and the meshes); aiming stays
+  // down the stream facing. Presentation only — it reads authored data and
+  // never feeds the sim.
   const showTell = (
     side: 0 | 1,
     c: DriveFighter,

@@ -21,6 +21,8 @@ import {
   hitPosition,
   inFrontArc,
   recoveryMsFor,
+  resolveStrikes,
+  type StrikeStats,
   typeAgainst,
 } from "./strike"
 import {
@@ -387,6 +389,46 @@ describe("strikes in the step — reach and facing (FR-4, FR-18, AC-4)", () => {
       }
     }
     expect(latest).toBe(14)
+  })
+})
+
+describe("the range miss — inside the inner edge (FR-2, FR-5, AC-2)", () => {
+  // A fixed RNG: every accuracy roll passes and no spread is subtracted, so a
+  // miss here can only come from the geometry.
+  const SURE = { next: () => 0, int: () => 0, cursor: () => 0 }
+  const STATS: readonly [StrikeStats, StrikeStats] = [
+    { atk: 30, def: 20 },
+    { atk: 30, def: 20 },
+  ]
+
+  /** The home side's basic swing, live, against a body `gap` mm away. */
+  function swing(gap: number): ReturnType<typeof resolveStrikes> {
+    const fight = duel()
+    const [home, away] = fight.state.fighters
+    const attack = {
+      moveId: "basic",
+      phase: "active" as const,
+      elapsedMs: 0,
+      landed: false,
+    }
+    const attacker = { ...home, pos: at(0), facing: EAST, attack }
+    const target = { ...away, pos: at(gap), facing: WEST }
+    return resolveStrikes([attacker, target], [attacker, target], STATS, SURE)
+  }
+
+  test("a blow lands at the inner edge of the move", () => {
+    // The innate strike authors no minimum, so its inner edge is the contact
+    // floor: two radii, 440 mm.
+    const result = swing(440)
+    expect(result.strikes).toHaveLength(1)
+    expect(result.misses).toHaveLength(0)
+  })
+
+  test("one millimetre inside it reports a range miss, not an accuracy miss", () => {
+    const result = swing(439)
+    expect(result.strikes).toHaveLength(0)
+    expect(result.misses).toHaveLength(1)
+    expect(result.misses[0]?.reason).toBe("range")
   })
 })
 

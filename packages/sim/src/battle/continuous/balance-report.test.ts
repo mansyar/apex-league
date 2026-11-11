@@ -146,10 +146,12 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // variance reality; DISTINCT_FLOOR stays 12 and no bound moved.
     // Roster re-tune (P3.T1.1): the tortoise's whole-band lift (atk/def up
     // one) moves more of its games distinct, 100 -> 106; reefclaw holds 109.
+    // Minimum Reach phase 4 (dead zone authored at 90 mm): reefclaw's 112 games
+    // land 106 distinct; the tortoise stays at 106. DISTINCT_FLOOR is untouched.
     const measured = sample()
     const byId = new Map(measured.matrix.species.map((row) => [row.id, row]))
     expect(byId.get("earth_tortoise")?.distinct).toBe(106)
-    expect(byId.get("reefclaw")?.distinct).toBe(109)
+    expect(byId.get("reefclaw")?.distinct).toBe(106)
     // The one-species replay reads the same key, so it must agree.
     for (const id of ["earth_tortoise", "reefclaw"]) {
       expect(measureSpecies(id).distinct).toBe(byId.get(id)?.distinct ?? -1)
@@ -427,7 +429,17 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // |delta| < se, and every tune direction pops a fire row or the
     // telemetry cap). The list names exactly the rows outside 45-55% in
     // the measured run, no more and no fewer.
-    const DESIGN_BAND_MISSES = ["water_axolotl"] as const
+    // Minimum Reach phase 4 (dead zone authored at 90 mm): the mechanic moves
+    // three more rows outside the printed band — reefclaw 43.8%, voltfox 43.8%,
+    // embercub 41.5% — all still inside their statistical bounds, so the gate
+    // stays green. The list names exactly the rows outside 45-55% in the
+    // measured run, no more and no fewer.
+    const DESIGN_BAND_MISSES = [
+      "water_axolotl",
+      "reefclaw",
+      "voltfox",
+      "embercub",
+    ] as const
     const measured = sample()
     expect(designBandMisses(measured).map((row) => row.id)).toEqual([
       ...DESIGN_BAND_MISSES,
@@ -448,9 +460,14 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // re-pin instead of a silent slide. The inset is derived from the
     // band constants (one point inside the printed 45..55 band), so a band
     // move carries the test with it.
+    // Minimum Reach phase 4 (dead zone authored at 90 mm): cindermoor drifted
+    // to 54.5%, inside the band but within half a point of the edge, so it no
+    // longer satisfies this test's premise; fire_drake (53.6%) takes its slot.
+    // galeheron holds at 50.9%. The inset is still derived from the band
+    // constants, so a band move carries the test with it.
     const measured = sample()
     const byId = new Map(measured.matrix.species.map((row) => [row.id, row]))
-    for (const id of ["galeheron", "cindermoor"]) {
+    for (const id of ["galeheron", "fire_drake"]) {
       const rate = byId.get(id)?.rate ?? -1
       expect(rate).toBeGreaterThanOrEqual(SPECIES_MIN + 0.01)
       expect(rate).toBeLessThanOrEqual(SPECIES_MAX - 0.01)
@@ -460,9 +477,12 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // inside-only rather than the full inset. Any excursion across either
     // edge fails the suite via DESIGN_BAND_MISSES; this pin is the early
     // warning, not the guard.
-    const voltfox = byId.get("voltfox")?.rate ?? -1
-    expect(voltfox).toBeGreaterThanOrEqual(SPECIES_MIN)
-    expect(voltfox).toBeLessThanOrEqual(SPECIES_MAX)
+    // Minimum Reach phase 4: voltfox is now outside the band (43.8%, named in
+    // DESIGN_BAND_MISSES and inside its statistical bound), so the thin-margin
+    // pin moves to cindermoor (54.5%).
+    const thin = byId.get("cindermoor")?.rate ?? -1
+    expect(thin).toBeGreaterThanOrEqual(SPECIES_MIN)
+    expect(thin).toBeLessThanOrEqual(SPECIES_MAX)
   })
 
   test("the doctrine table's dodge column differs by doctrine (R2 T5)", () => {

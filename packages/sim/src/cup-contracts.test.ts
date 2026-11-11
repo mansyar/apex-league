@@ -218,8 +218,8 @@ describe("cup engine contracts: draw-stream golden (day 7, creature seed 42)", (
         rivalWinners: [
           "Reedle Mirefin",
           "Ash-ledger",
-          "Cindersnout",
-          "Cindersnout",
+          "Emberhold Flicker",
+          "Emberhold Flicker",
         ],
       },
       // FR6 rebalance ripple: the double-KO that used to sit at QF4 moved
@@ -295,9 +295,12 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
   // Execution-noise ripple (variance Phase 2): per-seed commit timing and
   // dodge-side noise hands the final to the player, so the final loss this
   // test used to pin is now a champion path.
-  test("champion path: seed 9, specials — placement 1", () => {
+  // Minimum Reach phase 4 (dead zone authored at 90 mm): the mechanic hands
+  // seeds 9, 3 and 11 to the rivals, so the champion-path coverage moves to
+  // seeds 6, 4 and 12 — the same three shapes, one champion sweep each.
+  test("champion path: seed 6, specials — placement 1", () => {
     const creature = cupDayCreature()
-    const done = playToCompletion(creature, 7, 9, "specials")
+    const done = playToCompletion(creature, 7, 6, "specials")
     expect(done.status).toBe("champion")
     expect(done.playerVerdicts).toHaveLength(3)
     expect(done.playerVerdicts[2]?.winner).toBe("Ember Drake")
@@ -310,12 +313,12 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
   // Execution-noise ripple (variance Phase 2): per-seed commit timing and
   // dodge-side noise hands the semifinal to the player, so the semifinal
   // exit this test used to pin is now a champion path.
-  test("champion path: seed 3, specials — placement 1", () => {
+  test("champion path: seed 4, specials — placement 1", () => {
     const creature = cupDayCreature()
     // Re-pinned for the damage band (battle-balance phase 4): the compressed
     // band hands the semifinal to Thistledown Ash, so the champion path this
     // test used to pin is now a semifinal exit.
-    const done = playToCompletion(creature, 7, 3, "specials")
+    const done = playToCompletion(creature, 7, 4, "specials")
     expect(done.status).toBe("champion")
     expect(done.playerVerdicts).toHaveLength(3)
     expect(cupPlacement(done)).toBe(1)
@@ -329,7 +332,7 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
   // Kite-verdict ripple (phase 2, FR-3): Kite aggression 40 -> 55 hands the
   // player the final, so the final loss this test used to pin is now a
   // champion path once more.
-  test("champion path: seed 11, specials — placement 1", () => {
+  test("champion path: seed 12, specials — placement 1", () => {
     // Pacing ripple (battle-balance phase 8, FR-20): the shorter fights handed the
     // semifinal to Gilded Horn. R1 (battle-balance) re-pinned again: the
     // scaled-down authored ladder sweeps the bracket, so this seed is a
@@ -338,7 +341,7 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     // dodge-side noise costs the player a fight; the received exit is pinned
     // below.
     const creature = cupDayCreature()
-    const done = playToCompletion(creature, 7, 11, "specials")
+    const done = playToCompletion(creature, 7, 12, "specials")
     expect(done.status).toBe("champion")
     expect(done.playerVerdicts).toHaveLength(3)
     expect(done.playerVerdicts[2]?.winner).toBe("Ember Drake")
@@ -405,12 +408,14 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     // Emberhold Flicker.
     // Execution-noise ripple (variance Phase 2): per-seed commit timing and
     // dodge-side noise hands the final to Cindersnout instead.
-    expect(done.championName).toBe("Cindersnout")
+    // Minimum Reach phase 4 (dead zone authored at 90 mm): the crown moves
+    // back to Emberhold Flicker; the two completion rows hold.
+    expect(done.championName).toBe("Emberhold Flicker")
     expect(
       done.completionVerdicts.map((v) => [v.round, v.slotA, v.slotB, v.winner]),
     ).toEqual([
       [2, "Mossbottom Brute", "Reedle Mirefin", "Reedle Mirefin"],
-      [3, "Reedle Mirefin", "Cindersnout", "Cindersnout"],
+      [3, "Reedle Mirefin", "Emberhold Flicker", "Emberhold Flicker"],
     ])
   })
 
@@ -442,8 +447,10 @@ describe("cup engine contracts: player lifecycle golden (default picks)", () => 
     // dodge-side noise flips QF2 to Reedle Mirefin; the other rows hold.
     // Roster re-tune ripple: the cooled plant_ox/galeheron/tortoise rows flip
     // the day-14 QF2 rematch back to Tidecaller Nibbles; the other rows hold.
+    // Minimum Reach phase 4 (dead zone authored at 90 mm): QF2 flips back to
+    // Reedle Mirefin; the other rows hold.
     expect(session.rivalVerdicts.map((v) => v.winner)).toEqual([
-      "Tidecaller Nibbles",
+      "Reedle Mirefin",
       "Ash-ledger",
       "Mossbottom Brute",
       "Mossbottom Brute",

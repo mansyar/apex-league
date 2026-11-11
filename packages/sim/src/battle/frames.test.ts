@@ -96,6 +96,33 @@ describe("frame data — catalog completeness", () => {
   })
 })
 
+describe("frame data — minimum reach (FR-1)", () => {
+  test("authors the shipped dead zone on every long row (AC-1)", () => {
+    // The balance pass shipped 90 mm: the largest value both gates accept
+    // (phase-4 sweep — 100 mm drops embercub one win outside its bound, and
+    // every rung from 75 mm down loses the telemetry cap share). Rows shorter
+    // than 5,000 mm and the innate basic stay at 0, which FR-1 defines as
+    // "no dead zone".
+    for (const move of ALL_MOVES) {
+      const row = frameOf(move.id)
+      const authored = row.reachMm >= 5000 ? 90 : 0
+      expect(row.minReachMm).toBe(authored)
+    }
+  })
+
+  test("keeps the innate basic free of a dead zone", () => {
+    expect(frameOf(BASIC_MOVE.id).minReachMm).toBe(0)
+  })
+
+  test("never lets a dead zone swallow the whole move", () => {
+    for (const move of ALL_MOVES) {
+      const row = frameOf(move.id)
+      expect(row.minReachMm).toBeGreaterThanOrEqual(0)
+      expect(row.minReachMm).toBeLessThan(row.reachMm)
+    }
+  })
+})
+
 describe("frame data — authored ordering", () => {
   test("each element's heavy finisher is the slowest row in its kit", () => {
     for (const element of ELEMENTS) {
@@ -284,7 +311,32 @@ describe("frame data — validation", () => {
       validateFrameData(spark, { ...base, reachMm: BODY_RADIUS_MM - 1 }),
     ).toThrow(/below the body radius/)
     expect(() =>
-      validateFrameData(spark, { ...base, reachMm: BODY_RADIUS_MM }),
+      validateFrameData(spark, {
+        ...base,
+        reachMm: BODY_RADIUS_MM,
+        minReachMm: 0,
+      }),
+    ).not.toThrow()
+  })
+
+  test("rejects a negative minimum reach", () => {
+    const spark = moveOf("spark")
+    expect(() =>
+      validateFrameData(spark, { ...frameOf(spark.id), minReachMm: -1 }),
+    ).toThrow(/Minimum reach cannot be negative/)
+  })
+
+  test("rejects a minimum reach at or past the reach", () => {
+    const spark = moveOf("spark")
+    const base = frameOf(spark.id)
+    expect(() =>
+      validateFrameData(spark, { ...base, minReachMm: base.reachMm }),
+    ).toThrow(/inside the reach/)
+    expect(() =>
+      validateFrameData(spark, { ...base, minReachMm: base.reachMm + 1 }),
+    ).toThrow(/inside the reach/)
+    expect(() =>
+      validateFrameData(spark, { ...base, minReachMm: base.reachMm - 1 }),
     ).not.toThrow()
   })
 

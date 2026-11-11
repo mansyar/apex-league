@@ -10,6 +10,7 @@
 
 import { describe, expect, test } from "bun:test"
 import type { Temperament } from "../../species"
+import { BASIC_MOVE } from "../moves"
 import {
   CONTROLLER_PROFILES,
   type ControllerProfile,
@@ -26,6 +27,7 @@ import {
   RETREAT_FRACTION_PERMILLE,
   reachEdgeMm,
 } from "./controller"
+import { backingShot, chooseMove } from "./controller-moves"
 import { DOCTRINES, profileForDoctrine } from "./controller-profile"
 import { type ProjectileState, pointAt, shotDirection } from "./projectile"
 import { DODGE_STAMINA_COST } from "./stamina"
@@ -38,6 +40,7 @@ import {
 import {
   type ArenaBounds,
   type Dir2,
+  type FighterState,
   type FightState,
   HOLD,
   type MoveIntent,
@@ -200,6 +203,9 @@ function incoming(): ProjectileState {
     speedMmPerMs: 12,
     travelledMm: 300,
     pos: pointAt(origin, dir, 300),
+    minReachMm: 1200,
+    shooterRadiusMm: 220,
+    launchGapSq: 2500 * 2500,
   }
 }
 
@@ -642,5 +648,91 @@ describe("controller — step out of a whiff, punish the recovery (FR-14, AC-14)
     console.log(
       `whiff punish: away swings ${whiffMove} at ${gapAtCommit} mm, home steps out, home commits ${punishMove} at ${punishGap} mm into the recovery, away hp ${awayHp} -> ${fight.state.fighters[1].hp} (${awayHp - fight.state.fighters[1].hp} damage, counter)`,
     )
+  })
+})
+
+describe("the chooser stands outside a move's dead zone (FR-4, AC-4)", () => {
+  // The authored minimum is 90 mm on every long row, so the inner edge is
+  // 90 + both body radii.
+  const INNER = 90 + 440
+  const HEAVY = ["pyre_lance"]
+
+  function pair(): [FighterState, FighterState] {
+    const fight = createFight(config())
+    return [fight.state.fighters[0], fight.state.fighters[1]]
+  }
+
+  test("a move whose dead zone holds the gap falls back to the basic", () => {
+    const [me, foe] = pair()
+    // Inside the inner edge the special is refused and the innate strike is the
+    // fallback (FR-4, AC-4); one millimetre out, the special is legal again.
+    expect(chooseMove(me, foe, HEAVY, (INNER - 1) ** 2, 0, false)).toBe("basic")
+    expect(chooseMove(me, foe, HEAVY, INNER ** 2, 0, false)).toBe("pyre_lance")
+  })
+})
+
+describe("a shot that gives ground opens the gap (FR-10, AC-9)", () => {
+  // A fighter closing on a foe just outside basic reach would land its special
+  // inside its own blind spot. The answer is a backing shot: the launch opens
+  // by the same travel the closing would have eaten.
+  function pair(gap: number, vel = 0): FightState {
+    const half = gap / 2
+    const fight = createFight(
+      config([side("home", 12, -half), side("away", 10, half)]),
+    )
+    const [me, foe] = fight.state.fighters
+    return {
+      ...fight.state,
+      fighters: [{ ...me, vel: { x: vel, y: 0, z: 0 } }, foe],
+    }
+  }
+
+  test("a shot refused by the inner edge is fired while backing off", () => {
+    const state = pair(900, 1000)
+    const [me, foe] = state.fighters
+    expect(chooseMove(me, foe, ["pyre_lance"], 900 ** 2, 0, false)).toBeNull()
+    expect(backingShot(me, foe, ["pyre_lance"], 900 ** 2, 0)).toBe("pyre_lance")
+  })
+
+  test("the controller commits it with the giving-ground intent", () => {
+    const state = pair(900, 1000)
+    const order = decide({
+      state,
+      side: 0,
+      controller: createController(),
+      profile: profileFor("obedient"),
+      kit: ["pyre_lance"],
+    })
+    expect(order.verb).toBe("commit")
+    expect(order.commit).toBe("pyre_lance")
+    expect(dir(order.intent).x).toBeLessThan(0)
+  })
+
+  test("a shot that would overshoot the outer edge is refused", () => {
+    const still = pair(5400)
+    expect(
+      backingShot(
+        still.fighters[0],
+        still.fighters[1],
+        ["flare_dart"],
+        5400 ** 2,
+        0,
+      ),
+    ).toBe("flare_dart")
+    const closing = pair(5400, 1000)
+    expect(
+      backingShot(
+        closing.fighters[0],
+        closing.fighters[1],
+        ["flare_dart"],
+        5400 ** 2,
+        0,
+      ),
+    ).toBeNull()
+  })
+
+  test("a melee row never backs off", () => {
+    const [me, foe] = pair(900, 1000).fighters
+    expect(backingShot(me, foe, [BASIC_MOVE.id], 900 ** 2, 0)).toBeNull()
   })
 })

@@ -1,21 +1,27 @@
 /**
- * The reach-derived telegraph's contract (FR-6, AC-6): a basic startup maps
- * to a short reach, a lance startup to a long one; collisions read the
- * longest threat deterministically; the wedge stays on the show floor and
- * narrows with reach; the ring pulse is pure progress math.
+ * The reach-derived telegraph's contract (FR-6, AC-6; minimum-reach FR-9,
+ * AC-8): a basic startup maps to a short reach, a lance startup to a long
+ * one; collisions read the longest threat deterministically; the wedge stays
+ * on the show floor and narrows with reach; the inner edge is the authored
+ * dead zone, floored at the body's own ground and never meeting the outer
+ * edge; the ring pulse is pure progress math.
  */
 
 import { describe, expect, test } from "bun:test"
 import { STREAM_MOVE_IDS } from "@apex/sim"
+import { FRAME_DATA } from "../../../packages/sim/src/battle/frames"
 import {
   DEFAULT_TELL_REACH_MM,
   estimateStartupMs,
+  minReachForMoveIdx,
+  minReachForStartupMs,
   reachForMoveIdx,
   reachForStartupMs,
   STARTUP_REACH,
   TELL_INNER,
   TELL_MAX_OUTER,
   tellHalfAngle,
+  tellInnerWorld,
   tellOuterWorld,
   tellRing,
 } from "./tell-scale"
@@ -48,6 +54,16 @@ describe("reachForStartupMs", () => {
     // 550 ms sits halfway between tide_aegis (540/4,200) and the 560 group.
     expect(reachForStartupMs(550)).toBe(6200)
     expect(reachForStartupMs(550)).toBe(reachForStartupMs(550))
+  })
+})
+
+describe("minReachForStartupMs", () => {
+  test("reads the winning row's own dead zone, not a neighbour's", () => {
+    expect(minReachForStartupMs(160)).toBe(0) // basic: no dead zone
+    expect(minReachForStartupMs(720)).toBe(90) // pyre_lance / maelstrom
+    // 500 ms is sky_bolt (6,200 / 90) over riptide_rush and ion_wall (0).
+    expect(minReachForStartupMs(500)).toBe(90)
+    expect(minReachForStartupMs(550)).toBe(90)
   })
 })
 
@@ -86,6 +102,42 @@ describe("tellOuterWorld", () => {
   })
 })
 
+describe("tellInnerWorld", () => {
+  test("the authored dead zone plus the attacker's radius, converted", () => {
+    const outer = tellOuterWorld(3000, 220)
+    expect(tellInnerWorld(1200, 220, outer)).toBeCloseTo((1200 + 220) * 0.0008)
+  })
+
+  test("a row that authors 0 draws exactly the sector it drew before", () => {
+    // 0 + 220 mm converts to 0.176 world, inside the body's own ground, so
+    // the hole closes on today's inner radius rather than opening a new one.
+    const outer = tellOuterWorld(420, 220)
+    expect(tellInnerWorld(0, 220, outer)).toBe(TELL_INNER)
+  })
+
+  test("the shipped 90 mm dead zone also sits under the body's ground", () => {
+    // 90 + 220 mm converts to 0.248 world: still inside 0.3, so a long row's
+    // tell is unchanged by the authored value it now reads.
+    const outer = tellOuterWorld(6500, 220)
+    expect(tellInnerWorld(90, 220, outer)).toBe(TELL_INNER)
+    expect(tellInnerWorld(90, 220, outer)).toBe(tellInnerWorld(0, 220, outer))
+  })
+
+  test("stays strictly inside the outer edge for every authored row", () => {
+    for (const row of Object.values(FRAME_DATA)) {
+      const outer = tellOuterWorld(row.reachMm, 220)
+      const inner = tellInnerWorld(row.minReachMm, 220, outer)
+      expect(inner).toBeLessThan(outer)
+      expect(inner).toBeGreaterThanOrEqual(TELL_INNER)
+    }
+  })
+
+  test("a dead zone wider than the show floor keeps a visible body", () => {
+    const outer = tellOuterWorld(6500, 220)
+    expect(tellInnerWorld(6400, 220, outer)).toBeCloseTo(outer - 0.05)
+  })
+})
+
 describe("tellHalfAngle", () => {
   test("a short swing fans wide, a lance runs narrow", () => {
     const basic = tellHalfAngle(420)
@@ -117,6 +169,25 @@ describe("reachForMoveIdx (R1/F2)", () => {
     expect(reachForMoveIdx(0)).toBeUndefined()
     expect(reachForMoveIdx(-1)).toBeUndefined()
     expect(reachForMoveIdx(STREAM_MOVE_IDS.length + 1)).toBeUndefined()
+  })
+})
+
+describe("minReachForMoveIdx (FR-9, AC-8)", () => {
+  test("names the committed row's own dead zone, not its bucket's", () => {
+    const wall = STREAM_MOVE_IDS.indexOf("ion_wall") + 1
+    const bolt = STREAM_MOVE_IDS.indexOf("sky_bolt") + 1
+    expect(wall).toBeGreaterThan(0)
+    expect(bolt).toBeGreaterThan(0)
+    // Both share the 500 ms startup and its 6,200 / 90 bucket; the wall
+    // authors no dead zone, so its own tell keeps the full sector.
+    expect(minReachForMoveIdx(wall)).toBe(0)
+    expect(minReachForMoveIdx(bolt)).toBe(90)
+  })
+
+  test("yields to the estimator on zero, negative, and unknown indexes", () => {
+    expect(minReachForMoveIdx(0)).toBeUndefined()
+    expect(minReachForMoveIdx(-1)).toBeUndefined()
+    expect(minReachForMoveIdx(STREAM_MOVE_IDS.length + 1)).toBeUndefined()
   })
 })
 

@@ -300,8 +300,8 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
         1,
         "Emberhold Flicker",
         "Mossbottom Brute",
-        "Emberhold Flicker",
-        "Emberhold Flicker takes the Quarterfinal!",
+        "Mossbottom Brute",
+        "Mossbottom Brute takes the Quarterfinal!",
       ],
       [
         1,
@@ -336,7 +336,7 @@ describe("cup goldens — full session transcripts (one per ending)", () => {
       [
         2,
         "Ember Drake",
-        "Emberhold Flicker",
+        "Mossbottom Brute",
         "Ember Drake",
         "Ember Drake takes the Semifinal!",
       ],

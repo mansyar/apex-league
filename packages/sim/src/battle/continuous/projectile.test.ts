@@ -232,15 +232,18 @@ describe("projectiles — travel (FR-8)", () => {
   })
 
   test("a fast shot cannot tunnel through a small body between steps", () => {
+    // The body stands outside the move's inner edge, so only the sweep can
+    // catch it: no single sample lands inside a 100 mm radius.
     const home = fighter("home", 0, EAST)
-    const away = { ...fighter("away", 350, WEST), radiusMm: 100 }
+    const away = { ...fighter("away", 700, WEST), radiusMm: 100 }
     const shot = launched(home, away, "spark")
     const first = advanceProjectile(shot)
     const second = advanceProjectile(first)
+    const third = advanceProjectile(second)
     const body = bodyOf(away)
     const band = { fromMm: 150, toMm: 1100 }
-    expect(second.travelledMm).toBe(480)
-    expect(segmentHitsBody(first.pos, second.pos, body, band)).toBe(true)
+    expect(third.travelledMm).toBe(720)
+    expect(segmentHitsBody(second.pos, third.pos, body, band)).toBe(true)
     const report = onlyShot(
       resolveShot(shot, [home, away], [home, away], STATS).shots,
     )
@@ -279,6 +282,54 @@ describe("projectiles — arrival and dodge (FR-8, AC-8)", () => {
   test("the dodge clearance is the body radius", () => {
     expect(DODGE_CLEARANCE_MM).toBe(BODY_RADIUS_MM)
     expect(DODGE_CLEARANCE_MM).toBe(220)
+  })
+})
+
+describe("projectiles — the blind spot (FR-3, FR-5, AC-3)", () => {
+  test("a point-blank shot is short: no hit, no dodge, no damage", () => {
+    // The shipped long rows author 90 mm, but this test injects the row value
+    // so it pins the geometry rather than the tuning: with 200 mm the inner
+    // edge is 200 + 220 + 220, and a shot loosed at 500 mm is inside it.
+    const home = fighter("home", 0, EAST)
+    const away = fighter("away", 500, WEST)
+    const shot = {
+      ...launched(home, away, "pyre_lance"),
+      minReachMm: 200,
+      launchGapSq: 500 * 500,
+    }
+    const result = resolveShot(shot, [home, away], [home, away], STATS)
+    const report = onlyShot(result.shots)
+    expect(report.outcome).toBe("range")
+    expect(report.damage).toBe(0)
+    expect(report.poiseDamage).toBe(0)
+    // The shot passes the body and is spent: nothing is left in flight.
+    expect(result.projectiles).toHaveLength(0)
+  })
+
+  test("the same shot at the inner edge lands", () => {
+    const home = fighter("home", 0, EAST)
+    const away = fighter("away", 640, WEST)
+    const shot = {
+      ...launched(home, away, "pyre_lance"),
+      minReachMm: 200,
+      launchGapSq: 640 * 640,
+    }
+    const result = resolveShot(shot, [home, away], [home, away], STATS)
+    const report = onlyShot(result.shots)
+    expect(report.outcome).toBe("hit")
+    expect(report.damage).toBeGreaterThan(0)
+  })
+
+  test("a body that closes on an honest shot does not make it short", () => {
+    // Launched from 1,400 mm — well outside the inner edge — and resolved with
+    // the victim already standing at 500 mm: the launch gap is what counts.
+    const home = fighter("home", 0, EAST)
+    const away = fighter("away", 1400, WEST)
+    const shot = { ...launched(home, away, "pyre_lance"), minReachMm: 200 }
+    const close = fighter("away", 500, WEST)
+    const result = resolveShot(shot, [home, close], [home, close], STATS)
+    const report = onlyShot(result.shots)
+    expect(report.outcome).toBe("hit")
   })
 })
 
