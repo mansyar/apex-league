@@ -89,3 +89,17 @@ verify log is pre-existing baseline noise, identical before this phase.
   display squash. Dodge roll, knockback recoil, contact squash, telegraph
   wedge, and shader accents are Phases 2–4 and must reuse these channels,
   not add new geometry.
+
+## Primary verification
+
+- Range `24b75c6f..HEAD`: five subagent commits, all reported, squashed to
+  `77e8a091` (no merge, unreported, or user commits in range).
+- `bun run verify` exit 0 (independent run; determinism gate byte-identical on
+  otter stages + 5 props). `bun run build` exit 0 (chunk-size warning pre-existing).
+- Sizes: `choreo-poses.ts` 7,390 B (new), `fighter-driver.ts` 11,828 B
+  (< 12,288 B cap). No file over cap.
+- Deviation accepted: `dense-playback.ts` +12 lines is the only stream→driver
+  path; minimal, no existing behaviour changed. Phase 2's Touches should list
+  `dense-playback.ts` explicitly if it wires the roll/recoil there.
+- AC-1/2/5/10/11 all proven by the cited tests; replay hash `0xc579e9ae`
+  unchanged — zero sim diff confirmed.

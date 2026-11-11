@@ -14,13 +14,16 @@
 - **Covers:** FR-1, FR-2, FR-5, FR-10, AC-1, AC-2, AC-5, AC-10
 - **Touches:** `apps/client/src/choreo*.ts`, `apps/client/src/fighter-driver.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 77e8a091
+- **Evidence:** conductor/tracks/20261111-presentation-mapping/verification/phase-1.md
 
-- [ ] **P1.T1: Hitstun flinch + poise-break crumple** — covers: FR-1
-  - [ ] **P1.T1.1: Flinch for the sim's hitstun window**
-  - [ ] **P1.T1.2: Distinct crumple until the break ends**
-- [ ] **P1.T2: Startup crouch** — covers: FR-5
-- [ ] **P1.T3: Stream-to-pose mapping tests** — covers: FR-10, AC-10
+- [x] **P1.T1: Hitstun flinch + poise-break crumple** — covers: FR-1
+  - [x] **P1.T1.1: Flinch for the sim's hitstun window**
+  - [x] **P1.T1.2: Distinct crumple until the break ends**
+- [x] **P1.T2: Startup crouch** — covers: FR-5
+- [x] **P1.T3: Stream-to-pose mapping tests** — covers: FR-10, AC-10
 
 ## Phase 2: Dodge, Knockback, Contact
 
