@@ -233,4 +233,50 @@ describe("stream poses in the driver", () => {
     expect(c.group.rotation.z).toBeCloseTo(0.08)
     expect(c.group.position.y).toBe(0)
   })
+
+  test("a roll tucks forward into its run without recoiling", () => {
+    const c = fighterAt(0)
+    c.pose = "roll"
+    c.poseK = 1
+    stepOnce(c, fighterAt(0))
+    expect(c.group.rotation.x).toBeGreaterThan(0.2)
+    expect(c.group.position.x).toBe(0)
+    expect(c.group.position.y).toBe(0)
+  })
+
+  test("a recoil leans back harder than any flinch and shoves along away", () => {
+    const c = fighterAt(0)
+    c.pose = "recoil"
+    c.poseK = 1
+    stepOnce(c, fighterAt(0))
+    expect(c.group.rotation.x).toBeLessThan(-0.2)
+    expect(c.group.position.x).toBeCloseTo(0.2)
+  })
+
+  test("a roll and a recoil plant the gait (no skate, no vibration)", () => {
+    // Mid-stride phase: the |sin| bob reads at full amplitude.
+    const free = fighterAt(0)
+    free.walkPhase = 0.5
+    stepOnce(free, fighterAt(0))
+    for (const pose of ["roll", "recoil"] as const) {
+      const planted = fighterAt(0)
+      planted.walkPhase = 0.5
+      planted.pose = pose
+      planted.poseK = 1
+      stepOnce(planted, fighterAt(0))
+      expect(
+        Math.abs(free.group.position.y - planted.group.position.y),
+      ).toBeGreaterThan(0.03)
+    }
+  })
+
+  test("a press leans into the foe with squash and no recoil", () => {
+    const c = fighterAt(0)
+    c.pose = "press"
+    c.poseK = 1
+    stepOnce(c, fighterAt(0))
+    expect(c.group.rotation.x).toBeGreaterThan(0)
+    expect(c.group.position.x).toBe(0)
+    expect(c.group.scale.y).toBeLessThan(c.group.scale.x)
+  })
 })

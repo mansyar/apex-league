@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { STREAM_PHASE, type StreamFrame } from "@apex/sim"
-import { createPoseTracker, poseAdjust, poseForFrame } from "./choreo-poses"
+import { CONTACT_MARGIN_MM, poseAdjust, poseForFrame } from "./choreo-poses"
+import { contactOffset, createPoseTracker } from "./pose-track"
 
 /** A readable frame with everything unset; each test names what it needs. */
 function frame(over: Partial<StreamFrame> = {}): StreamFrame {
@@ -90,9 +91,10 @@ describe("poseForFrame — one event kind, one pose (FR-10)", () => {
     expect(state.pose).toBe("ko")
   })
 
-  test("a pinned-but-free frame maps to none (Phase 2 owns the pin)", () => {
+  test("a pinned frame reports a full recoil (Phase 2 owns the pin)", () => {
     const state = poseForFrame(frame({ pinned: true }))
-    expect(state.pose).toBe("none")
+    expect(state.pose).toBe("recoil")
+    expect(state.intensity).toBe(1)
   })
 
   test("a hit during startup flinches instead of crouching", () => {
@@ -232,5 +234,264 @@ describe("poseAdjust — one pose, one channel signature", () => {
     expect(half.pitch).toBeCloseTo(full.pitch / 2)
     expect(half.roll).toBeCloseTo(full.roll / 2)
     expect(half.squash).toBeCloseTo(full.squash / 2)
+  })
+})
+
+describe("poseForFrame — dodge roll (FR-3)", () => {
+  test("a fast free step rolls along its own travel", () => {
+    const state = poseForFrame(frame(), { travelMm: 70 })
+    expect(state.pose).toBe("roll")
+    expect(state.intensity).toBeCloseTo(70 / 120)
+  })
+
+  test("a walk never trips the roll", () => {
+    expect(poseForFrame(frame(), { travelMm: 36 }).pose).toBe("none")
+    expect(poseForFrame(frame(), { travelMm: 49 }).pose).toBe("none")
+  })
+
+  test("a roll beats the startup crouch (travel is the louder signal)", () => {
+    const state = poseForFrame(
+      frame({ phase: STREAM_PHASE.startup, phaseT: 200 }),
+      { travelMm: 70 },
+    )
+    expect(state.pose).toBe("roll")
+  })
+})
+
+describe("poseForFrame — knockback recoil (FR-4)", () => {
+  test("a sliding hitstun recoils instead of flinching", () => {
+    const state = poseForFrame(frame({ hp: 88, hitstunMs: 100 }), {
+      travelMm: 40,
+    })
+    expect(state.pose).toBe("recoil")
+  })
+
+  test("a still hitstun still flinches (no slide, no recoil)", () => {
+    const state = poseForFrame(frame({ hp: 88, hitstunMs: 100 }), {
+      travelMm: 3,
+    })
+    expect(state.pose).toBe("flinch")
+  })
+
+  test("a heavy body's short slide still recoils at the floor", () => {
+    const state = poseForFrame(frame({ hp: 88, hitstunMs: 100 }), {
+      travelMm: 16,
+    })
+    expect(state.pose).toBe("recoil")
+    expect(state.intensity).toBeGreaterThanOrEqual(0.35)
+  })
+
+  test("a crumple outranks a pinned slide (the break owns the body)", () => {
+    const state = poseForFrame(frame({ hp: 80, hitstunMs: 400, pinned: true }))
+    expect(state.pose).toBe("crumple")
+  })
+})
+
+describe("poseForFrame — contact press (FR-7)", () => {
+  // Default pair: 220 + 220 + margin.
+  const contact = 440 + CONTACT_MARGIN_MM
+
+  test("bodies at touch press with full intensity", () => {
+    const state = poseForFrame(frame(), {
+      travelMm: 0,
+      gapMm: 440,
+      contactMm: contact,
+    })
+    expect(state.pose).toBe("press")
+    expect(state.intensity).toBe(1)
+  })
+
+  test("the press fades to half at the contact edge and releases beyond", () => {
+    const edge = poseForFrame(frame(), {
+      travelMm: 0,
+      gapMm: contact - 1,
+      contactMm: contact,
+    })
+    expect(edge.pose).toBe("press")
+    expect(edge.intensity).toBeGreaterThan(0.5)
+    expect(edge.intensity).toBeLessThan(1)
+    expect(
+      poseForFrame(frame(), {
+        travelMm: 0,
+        gapMm: contact + 10,
+        contactMm: contact,
+      }).pose,
+    ).toBe("none")
+  })
+
+  test("a roll beats the press (fast travel through the clinch)", () => {
+    const state = poseForFrame(frame(), {
+      travelMm: 70,
+      gapMm: 400,
+      contactMm: contact,
+    })
+    expect(state.pose).toBe("roll")
+  })
+
+  test("a hit beats the press (the blow owns the clinch)", () => {
+    const state = poseForFrame(frame({ hp: 88, hitstunMs: 60 }), {
+      travelMm: 0,
+      gapMm: 400,
+      contactMm: contact,
+    })
+    expect(state.pose).toBe("flinch")
+  })
+
+  test("the press beats the startup crouch (contact is louder)", () => {
+    const state = poseForFrame(
+      frame({ phase: STREAM_PHASE.startup, phaseT: 200 }),
+      { travelMm: 0, gapMm: 400, contactMm: contact },
+    )
+    expect(state.pose).toBe("press")
+  })
+})
+
+describe("createPoseTracker — roll, recoil and press across steps", () => {
+  const contact = 440 + CONTACT_MARGIN_MM
+
+  test("a dodge burst rolls for its travel and releases at rest", () => {
+    const tracker = createPoseTracker()
+    expect(tracker.update(10, frame({ x: 0 })).pose).toBe("none")
+    expect(tracker.update(11, frame({ x: 70 })).pose).toBe("roll")
+    expect(tracker.update(12, frame({ x: 140 })).pose).toBe("roll")
+    expect(tracker.update(13, frame({ x: 140 })).pose).toBe("none")
+  })
+
+  test("a same-step repeat never flickers a roll", () => {
+    const tracker = createPoseTracker()
+    tracker.update(10, frame({ x: 0 }))
+    expect(tracker.update(11, frame({ x: 70 })).pose).toBe("roll")
+    expect(tracker.update(11, frame({ x: 70 })).pose).toBe("roll")
+  })
+
+  test("a knockback slide latches the recoil through the hitstun tail", () => {
+    const tracker = createPoseTracker()
+    expect(
+      tracker.update(10, frame({ hp: 88, hitstunMs: 100, x: 0 })).pose,
+    ).toBe("flinch")
+    expect(
+      tracker.update(11, frame({ hp: 88, hitstunMs: 80, x: 40 })).pose,
+    ).toBe("recoil")
+    // The slide halves below the trip wire; the tail stays a recoil.
+    expect(
+      tracker.update(12, frame({ hp: 88, hitstunMs: 60, x: 50 })).pose,
+    ).toBe("recoil")
+    expect(
+      tracker.update(13, frame({ hp: 88, hitstunMs: 40, x: 55 })).pose,
+    ).toBe("recoil")
+    // Served: the pose releases instead of decaying into a flinch.
+    expect(
+      tracker.update(14, frame({ hp: 88, hitstunMs: 0, x: 56 })).pose,
+    ).toBe("none")
+  })
+
+  test("a pinned step recoils at full intensity with no travel", () => {
+    const tracker = createPoseTracker()
+    const state = tracker.update(
+      10,
+      frame({ hp: 88, hitstunMs: 80, pinned: true }),
+    )
+    expect(state.pose).toBe("recoil")
+    expect(state.intensity).toBe(1)
+  })
+
+  test("a clinch presses both sides symmetrically", () => {
+    const home = createPoseTracker()
+    const away = createPoseTracker()
+    const homeFrame = frame({ x: -200 })
+    const awayFrame = frame({ x: 200 })
+    expect(home.update(10, homeFrame, awayFrame, contact).pose).toBe("press")
+    expect(away.update(10, awayFrame, homeFrame, contact).pose).toBe("press")
+  })
+
+  test("a KO inside a roll wins and clears every latch", () => {
+    const tracker = createPoseTracker()
+    tracker.update(11, frame({ x: 70 }))
+    expect(tracker.update(12, frame({ hp: 0, x: 140 })).pose).toBe("ko")
+    expect(tracker.update(13, frame({ hp: 0, x: 140 })).pose).toBe("ko")
+  })
+
+  test("reset forgets travel, latches and the same-step cache", () => {
+    const tracker = createPoseTracker()
+    tracker.update(11, frame({ x: 70 }))
+    tracker.reset()
+    expect(tracker.update(12, frame({ x: 140 })).pose).toBe("none")
+  })
+})
+
+describe("contactOffset — the clinch nudge", () => {
+  test("clear bodies hold still", () => {
+    expect(contactOffset(0, 0, 500, 0, 480)).toEqual({
+      x0: 0,
+      z0: 0,
+      x1: 0,
+      z1: 0,
+    })
+  })
+
+  test("touching bodies split the overlap half each", () => {
+    const nudge = contactOffset(-200, 0, 200, 0, 480)
+    expect(nudge.x0).toBeCloseTo(-40)
+    expect(nudge.x1).toBeCloseTo(40)
+    expect(nudge.z0).toBeCloseTo(0)
+    expect(nudge.z1).toBeCloseTo(0)
+  })
+
+  test("the push caps instead of shoving", () => {
+    const nudge = contactOffset(-10, 0, 10, 0, 480)
+    expect(Math.abs(nudge.x0)).toBeLessThanOrEqual(60)
+    expect(nudge.x0).toBe(-nudge.x1)
+  })
+
+  test("coincident centres still get an axis", () => {
+    const nudge = contactOffset(100, 50, 100, 50, 480)
+    expect(nudge.x0).toBeLessThan(0)
+    expect(nudge.x1).toBeGreaterThan(0)
+  })
+
+  test("the nudge is symmetric and deterministic", () => {
+    const a = contactOffset(-150, 30, 250, -40, 480)
+    const b = contactOffset(-150, 30, 250, -40, 480)
+    expect(a).toEqual(b)
+    expect(a.x0).toBeCloseTo(-a.x1)
+    expect(a.z0).toBeCloseTo(-a.z1)
+  })
+})
+
+describe("poseAdjust — roll, recoil and press signatures", () => {
+  test("a roll tucks forward deeper than any crouch, without recoiling", () => {
+    const roll = poseAdjust("roll", 1, 1, 1)
+    const crouch = poseAdjust("crouch", 1, 1, 1)
+    expect(roll.dx).toBe(0)
+    expect(roll.dy).toBeLessThan(0)
+    expect(roll.pitch).toBeGreaterThan(crouch.pitch)
+    expect(roll.squash).toBeGreaterThan(crouch.squash)
+  })
+
+  test("a recoil shoves back harder than any flinch, feet planted", () => {
+    const recoil = poseAdjust("recoil", 1, 1, 1)
+    const flinch = poseAdjust("flinch", 1, 1, 1)
+    expect(recoil.dx).toBeGreaterThan(flinch.dx)
+    expect(recoil.pitch).toBeLessThan(flinch.pitch)
+    expect(recoil.squash).toBeGreaterThan(flinch.squash)
+    expect(poseAdjust("recoil", 1, -1, 1).dx).toBeCloseTo(-recoil.dx)
+  })
+
+  test("a press leans into the foe with squash and no recoil", () => {
+    const press = poseAdjust("press", 1, 1, 1)
+    expect(press.dx).toBe(0)
+    expect(press.dy).toBeLessThan(0)
+    expect(press.pitch).toBeGreaterThan(0)
+    expect(press.squash).toBeGreaterThan(0)
+  })
+
+  test("the new poses scale with intensity and die under reduced motion", () => {
+    for (const pose of ["roll", "recoil", "press"] as const) {
+      const full = poseAdjust(pose, 1, 1, 1)
+      const half = poseAdjust(pose, 0.5, 1, 1)
+      expect(half.pitch).toBeCloseTo(full.pitch / 2)
+      expect(half.squash).toBeCloseTo(full.squash / 2)
+      expect(poseAdjust(pose, 1, 1, 0)).toEqual(poseAdjust("none", 1, 1, 1))
+    }
   })
 })

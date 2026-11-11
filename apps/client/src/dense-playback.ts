@@ -6,9 +6,15 @@ import {
 } from "@apex/sim"
 import * as THREE from "three"
 import { clamp01 } from "./anim"
-import { MM_TO_WORLD, simX, simZ } from "./arena-scale"
-import { createPoseTracker, type PoseTracker } from "./choreo-poses"
+import { bodyProfileOf, MM_TO_WORLD, simX, simZ } from "./arena-scale"
+import { CONTACT_MARGIN_MM } from "./choreo-poses"
 import type { DriveFighter } from "./fighter-driver"
+import type { BurstStyle } from "./move-fx"
+import {
+  contactOffset,
+  createPoseTracker,
+  type PoseTracker,
+} from "./pose-track"
 import type { BattleEffects } from "./staging-fx"
 import { koFall } from "./steps/pure"
 
@@ -43,6 +49,30 @@ export { MM_TO_WORLD, simX, simZ }
 
 /** How long a KO collapse takes, in stream steps (the reel's own length). */
 const FALL_STEPS = 14
+
+/** Fallback body radius when the cast supplies none, in mm. */
+const DEFAULT_RADIUS_MM = bodyProfileOf(undefined).radiusMm
+/** Radii used until the cast reports the pair's own. */
+const DEFAULT_RADII: readonly [number, number] = [
+  DEFAULT_RADIUS_MM,
+  DEFAULT_RADIUS_MM,
+]
+
+/**
+ * The fence-pin report: a low dust ring at the pinned feet. No flash —
+ * Phase 4 owns the flash language — and no camera punch: the pin reads
+ * through the full-intensity recoil pose plus this mark, not a shake.
+ */
+const PIN_BURST: BurstStyle = {
+  puffs: 7,
+  ring: true,
+  gravity: 2.2,
+  life: 600,
+  flash: false,
+  tint: "#9a9184",
+  size: 1.1,
+  flashGrow: 0,
+}
 
 /** Telegraph wedge: inner/outer radius, half-angle, and lift off the floor. */
 const TELL_INNER = 0.3
@@ -101,14 +131,17 @@ function disposeTell(arenaGroup: THREE.Group, tell: Tell): void {
 export interface DenseStage {
   /**
    * Show one stream step. Called once per display frame with the current
-   * step; `fresh` work (damage, the topple) only runs when the step changes,
-   * so a paused or slow frame cannot replay a blow.
+   * step; `fresh` work (damage, the topple, the pin report) only runs when
+   * the step changes, so a paused or slow frame cannot replay a blow.
+   * `radii` carries this pair's sim body radii in mm for the contact
+   * distance; omitted means the default body on both sides.
    */
   apply(
     stream: FightStream,
     step: number,
     owned: DriveFighter,
     rival: DriveFighter,
+    radii?: readonly [number, number],
   ): void
   /** Drop telegraphs and reaction state (new fight, panel closed). */
   reset(): void
@@ -149,6 +182,7 @@ export function createDenseStage(io: {
   const lastHp: [number, number] = [0, 0]
   const downAt: [number, number] = [-1, -1]
   const thudded: [boolean, boolean] = [false, false]
+  const wasPinned: [boolean, boolean] = [false, false]
   let lastStep = -1
 
   const showTell = (side: 0 | 1, c: DriveFighter, frame: StreamFrame): void => {
@@ -205,23 +239,51 @@ export function createDenseStage(io: {
   }
 
   return {
-    apply(stream, step, owned, rival) {
+    apply(stream, step, owned, rival, radii?) {
       const fighters: [DriveFighter, DriveFighter] = [owned, rival]
       const fresh = step !== lastStep
       lastStep = step
+      // Both frames before either pose: the contact gap needs the pair,
+      // and the trackers must see the same step together.
+      const self: [StreamFrame, StreamFrame] = [
+        readFrame(stream, step, 0, frames[0]),
+        readFrame(stream, step, 1, frames[1]),
+      ]
+      const pair = radii ?? DEFAULT_RADII
+      const contactMm = pair[0] + pair[1] + CONTACT_MARGIN_MM
+      // The clinch nudge: inside contact distance both stage targets slide
+      // apart along the contact axis (bounded, deterministic) so the rigs
+      // read as two bodies colliding, never one inside the other. A downed
+      // body is owned by the topple, so the clinch releases at any KO.
+      const clinch = self[0].hp > 0 && self[1].hp > 0
+      const nudge = clinch
+        ? contactOffset(self[0].x, self[0].z, self[1].x, self[1].z, contactMm)
+        : { x0: 0, z0: 0, x1: 0, z1: 0 }
+      const nudges: [{ x: number; z: number }, { x: number; z: number }] = [
+        { x: nudge.x0, z: nudge.z0 },
+        { x: nudge.x1, z: nudge.z1 },
+      ]
       for (const side of [0, 1] as const) {
         const c = fighters[side]
-        const frame = readFrame(stream, step, side, frames[side])
+        const frame = self[side]
+        const foe = self[side === 0 ? 1 : 0]
         // The driver walks toward this target on its own clock — the stream
         // sets where the body belongs, never where it is.
         if (!c.down) {
-          c.stage.x = simX(frame.x)
-          c.stage.z = simZ(frame.z)
+          c.stage.x = simX(frame.x + nudges[side].x)
+          c.stage.z = simZ(frame.z + nudges[side].z)
         }
         showTell(side, c, frame)
-        const pose = poses[side].update(step, frame)
+        const pose = poses[side].update(step, frame, foe, contactMm)
         c.pose = pose.pose
         c.poseK = pose.intensity
+        // The fence pin reports on its rising edge: the recoil pose reads
+        // at full intensity with planted feet (the driver parks the gait)
+        // and this dust ring marks the pinned feet. No flash, no punch.
+        if (fresh && frame.pinned && !wasPinned[side]) {
+          io.effects.spawnBurst(c.group.position, undefined, PIN_BURST)
+        }
+        wasPinned[side] = frame.pinned
         if (fresh && lastHp[side] > 0 && frame.hp < lastHp[side]) {
           react(c, lastHp[side] - frame.hp)
         }
@@ -238,6 +300,8 @@ export function createDenseStage(io: {
       downAt[1] = -1
       thudded[0] = false
       thudded[1] = false
+      wasPinned[0] = false
+      wasPinned[1] = false
       lastStep = -1
     },
     dispose() {

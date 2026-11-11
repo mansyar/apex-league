@@ -186,9 +186,10 @@ export interface DriveFighter {
    */
   baseColors: Map<THREE.Mesh, THREE.Color>
   /**
-   * The live stream pose (flinch/crumple/crouch) and its 0..1 intensity.
-   * Dense playback sets both every step; the driver renders them. Absent
-   * means no pose — the legacy paths never set one, so they read untouched.
+   * The live stream pose (flinch/crumple/crouch/roll/recoil/press) and
+   * its 0..1 intensity. Dense playback sets both every step; the driver
+   * renders them. Absent means no pose — the legacy paths never set one,
+   * so they read untouched.
    */
   pose?: StreamPose
   poseK?: number
@@ -262,9 +263,14 @@ export function createFighterDriver(io: {
 
       // Compose the pose: walk position + action offset + gait bob +
       // breath at rest, all scaled by the squash spring (weight). The
-      // archetype's body-language profile (FR5) weights every term.
+      // archetype's body-language profile (FR5) weights every term. A roll
+      // tucks while the glide carries the travel and a recoil plants its
+      // feet — the gait bob would skate either, so both poses park it.
       const rest = speed < 0.15 ? 1 : 0
-      const gait = gaitBob(c.walkPhase, GAIT_AMP * c.profile.gaitAmp, life)
+      const padj = poseAdjust(c.pose ?? "none", c.poseK ?? 0, c.away, life)
+      const gait =
+        gaitBob(c.walkPhase, GAIT_AMP * c.profile.gaitAmp, life) *
+        (c.pose === "roll" || c.pose === "recoil" ? 0 : 1)
       const breath = breathSine(
         now,
         BREATH_FREQ * 2 * c.profile.breathFreq,
@@ -282,7 +288,7 @@ export function createFighterDriver(io: {
       )
       // Phase-1 stream poses ride on the driver's own channels, over the
       // composed pose — a flinch can never fight the gait it interrupts.
-      const padj = poseAdjust(c.pose ?? "none", c.poseK ?? 0, c.away, life)
+      // (padj is composed above so the roll/recoil can park the gait.)
       c.group.position.set(pos.x + padj.dx, Math.max(0, pos.y + padj.dy), pos.z)
       const upScale = composeScale(c.baseScale, c.squash.s + padj.squash, false)
       c.group.scale.set(upScale.x, upScale.y, upScale.z)
