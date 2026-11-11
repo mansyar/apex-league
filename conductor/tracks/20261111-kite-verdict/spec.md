@@ -106,6 +106,7 @@ would bake the breakage into every species row.
 - **Assumption:** the pinned probe matchup is representative enough to judge the doctrine; matrix-wide Kite viability is explicitly not this track's question.
 - **Assumption:** 2 of 6 is "viable but weak" rather than noise; a 1/6 outcome keeps the trap verdict on the table with the mechanism named.
 - **Assumption:** a doctrine-level tool exists in the space of range/strafe/dodge-policy; if the diagnosis points outside it (e.g. needs a new verb), the track records that as the verdict instead of forcing it.
+- **Resolved (2026-11-11, tool verdict):** the missing tool was engagement — Kite aggression 40 → 55, measured 2/6 → 5/6 on the fixed probe with paid dodges intact and every pacing bound green. The trap branch (FR-5) was evaluated and deliberately not shipped.
 
 ## References
 
