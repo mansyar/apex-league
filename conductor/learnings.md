@@ -493,3 +493,38 @@ was letting the commit *give ground* so the launch opens outside the inner edge,
 with a step back as the fallback and the basic as the last resort. Whenever a new
 geometric rule removes an option, ask what the fighter does instead - the answer
 is usually an intent the controller already has, pointed the other way.
+
+## 25. A fixture that replays one pairing three times measures its own composition
+
+The 42-fight telemetry gate read 59.5% cap while the 840-fight matrix read 26.7% on
+the same tree. Nobody had written down that the walk was `away = (i * 5 + 7) % 15`
+with `gcd(5, 15) = 5` - so only **three** species ever appeared on the away side -
+and `SEEDS_PER_PAIRING = 3`, so the ten pairings that stalled each contributed
+**three** caps. The gate was not measuring the game's pacing; it was measuring how
+often ten chosen matchups were replayed. Re-composing it to 42 *distinct* pairings
+(one seed each, a written stride-11 rule, a pin that proves distinctness, no
+mirrors and coverage) read 47.6%, and the remaining gap to the matrix turned out to
+be a second, unrelated property: the harness fights reference-stat bodies while the
+matrix fights each species at its bounds midpoint. Two lessons. First, before
+believing a fixture's number, count how many distinct samples it actually draws -
+a repeated pairing is a weighting, and a weighting set by a modulo is invisible
+until someone looks. Second, when a gate and a broader measurement disagree by more
+than a few points, one of them is measuring something else; find out which before
+you tune anything to satisfy either.
+
+## 26. A species that wins by outlasting is not a stall to fix
+
+The tortoise was a side in fifteen of twenty-five time-outs, and the obvious read
+was "it cannot close". Six identity-preserving rungs later the read was wrong:
+every green configuration resolved **zero** of its nine collapse fights, and the
+cheapest rung that resolved even one pushed it to 65.2% on the 840-fight matrix.
+The species was already at 52.7% *as an outlaster*, and the project had long ago
+ruled that a cap win is an outlasting win - so its caps were the design working,
+and "fixing" them meant deleting the thing that makes it a tortoise. Two habits
+worth keeping. Write the identity fence **before** the fix, as a test that passes
+on the untouched tree (`spd` exactly `[3, 5]`, `temperament`, `archetypeId`, its
+own six moves); it turns "don't lose the identity" from a vibe into a build
+failure, and it is what made withdrawing the fix cheap instead of embarrassing.
+And when a gate fails, check whether the thing it is complaining about is a
+feature with a cost before treating it as a defect - the honest fix may be the
+measurement, not the species.
