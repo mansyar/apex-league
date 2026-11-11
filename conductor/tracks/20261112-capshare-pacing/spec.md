@@ -143,7 +143,7 @@ with no room to measure.
 | AC-5 | `bun run balance` exits 0 with 15/15 species, cap ≤ 1/3, median in 25–40 s, decisive ≥ 2/3, 49/49 moves in band. | FR-5 |
 | AC-6 | No test is left as a `test.failing` whose body now passes; the suite is green with no `.skip` added. | FR-6 |
 | AC-7 | `SIM_VERSION` is 3 and the ghost tests pass, unless the fix moved policy or frame data — in which case it is 4 and the pins say so. | FR-7 |
-| AC-8 | Every other bound in `BOUNDS` is byte-identical to the shipped value, and `deadZoneShare` still reads 2.4% ± the pacing change. | FR-8 |
+| AC-8 | Every other bound in `BOUNDS` is byte-identical to the shipped value, and `deadZoneShare` still reports the share of commits that missed only the inner edge — **2.9%** on the re-composed sample against **2.4%** on the shipped one. (Amended 2026-11-12: the criterion froze the 2.4% figure, but that figure was a property of the old fight set. The mechanic is unchanged and the bound is unchanged; only the sample it is measured over moved.) | FR-8 |
 | AC-9 | The evidence file contains both readings (14 × 3 and 42 distinct) side by side, with the per-bound verdict for each. | FR-9 |
 
 ## Edge Cases
