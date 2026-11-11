@@ -10,7 +10,7 @@
   "id": "20261111-kite-verdict",
   "last_checkpoint": "b82214cf",
   "plan": "conductor/tracks/20261111-kite-verdict/plan.md",
-  "pr_state": "merged_pending",
+  "pr_state": "merged",
   "pr_url": "https://github.com/mansyar/apex-league/pull/70",
   "priority": "high",
   "progress": {
