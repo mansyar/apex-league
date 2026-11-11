@@ -31,7 +31,9 @@
 - **Covers:** FR-2, FR-3, AC-2, AC-3
 - **Touches:** `packages/sim/src/species/**`, co-located tests
 - **Verification:** `bun run verify` and `bun run build` as two separate commands
-- **Status:** pending
+- **Status:** verified
+- **Result:** no-op — closed per the conditional plan. Phase 1 re-measured green, so there are no broken rows and no water resolution to perform. No commits; Phase 1 evidence stands as the record.
+- **Evidence:** conductor/tracks/20261111-band-margins/verification/phase-1.md
 
 - [ ] **P2.T1: Shift broken rows** — covers: FR-2, AC-2
   - [ ] **P2.T1.1: Whole-band moves only, ceilings respected, pacing re-checked per candidate.**
@@ -45,7 +47,9 @@
 - **Covers:** FR-4, AC-4
 - **Touches:** `packages/sim/src/battle/continuous/balance-report.test.ts`
 - **Verification:** `bun run verify` and `bun run build` as two separate commands
-- **Status:** pending
+- **Status:** verified
+- **Result:** no-op — closed per the conditional plan. Phase 2 moved no rows, so there is nothing to guard. No commits; Phase 1 evidence stands as the record.
+- **Evidence:** conductor/tracks/20261111-band-margins/verification/phase-1.md
 
 - [ ] **P3.T1: Extend the inset test** — covers: FR-4, AC-4
   - [ ] **P3.T1.1: Touched rows assert inside the 0.46/0.54 inset; full `bun run balance` exit 0.**
