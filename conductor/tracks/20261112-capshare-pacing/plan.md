@@ -52,7 +52,7 @@ The primary appends after acceptance:
   `packages/sim/src/cup/**`
 - **Verification:** `bun run balance`, then `bun run telemetry`, then
   `bun run verify`, then `bun run build` (four separate commands)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Write the identity guard first** — covers: FR-2a
   - [ ] **P2.T1.1: A test pins `spd` bounds exactly `[3, 5]`, `hp`/`def` bounds no lower than shipped, `temperament === "slow"`, `archetypeId === "tortoise"`, `element === "earth"`, and every kit id inside the six it shipped with**
