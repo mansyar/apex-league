@@ -311,7 +311,13 @@ describe("stream poses in the driver", () => {
       speed: 0,
     })
     expect(direct.group.rotation.x).toBeCloseTo(via.group.rotation.x)
+    expect(direct.group.rotation.y).toBeCloseTo(via.group.rotation.y)
+    expect(direct.group.rotation.z).toBeCloseTo(via.group.rotation.z)
     expect(direct.group.position.x).toBeCloseTo(via.group.position.x)
     expect(direct.group.position.y).toBeCloseTo(via.group.position.y)
+    expect(direct.group.position.z).toBeCloseTo(via.group.position.z)
+    expect(direct.group.scale.x).toBeCloseTo(via.group.scale.x)
+    expect(direct.group.scale.y).toBeCloseTo(via.group.scale.y)
+    expect(direct.group.scale.z).toBeCloseTo(via.group.scale.z)
   })
 })
