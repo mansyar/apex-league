@@ -50,7 +50,7 @@
 - **Covers:** FR-4, FR-5, AC-4, AC-5
 - **Touches:** `packages/sim/src/battle/continuous/controller*.ts`, `apps/client/src/spar/*`, `apps/client/src/cup/coach-room.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Ship the missing tool** — covers: FR-4
   - [ ] **P3.T1.1: Probe at least 2/6 with dodges firing and bounds green.**
