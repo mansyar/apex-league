@@ -9,7 +9,7 @@
   "doc_sync": "synced",
   "id": "20261111-presentation-mapping",
   "last_checkpoint": "e91a017b",
-  "pr_state": "merged_pending",
+  "pr_state": "merged",
   "pr_url": "https://github.com/mansyar/apex-league/pull/69",
   "priority": "high",
   "progress": {
@@ -27,7 +27,7 @@
   "status": "complete",
   "title": "Presentation Mapping",
   "type": "feature",
-  "updated_at": "2026-11-11T15:00:00+11:00",
+  "updated_at": "2026-11-11T19:05:00+11:00",
   "phases_verified": 4,
   "tasks_done": 20,
   "tasks_total": 20
