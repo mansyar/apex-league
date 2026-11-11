@@ -39,3 +39,10 @@
 
 No open Medium/High findings. No bound widened, no `test.failing`, no balance
 number changed across either round.
+
+## Round 3 (closure on R2, 2026-11-11)
+
+Scope: 139f8682..9c7bb838. Verdict: **PASS WITH FINDINGS** (1 Low).
+
+- R2.F6 and R2.F7 closed; pose-apply extraction behavior-preserving with intact re-export surface and empty sim diff.
+- F1 Low (seam test pins 3/7 channels): fixed by the primary in 5efbcaf0 — identity test now asserts rotation x/y/z, position x/y/z and scale x/y/z; scoped 32 pass / 0 fail; full verify + build exit 0 on the final tree.
