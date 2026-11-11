@@ -19,14 +19,17 @@
 - **Verification:** `bun run telemetry` reproduces 25/42 and the evidence names a
   cause for each; `bun run trace --seed 20261108 --check` replays a stalled fight
   and its summary shows the standoff.
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 8023c00f
+- **Evidence:** conductor/tracks/20261112-capshare-pacing/verification/phase-1.md
 
-- [ ] **P1.T1: Reproduce the sample and tabulate the time-outs** — covers: FR-1
-  - [ ] **P1.T1.1: List every time-out with its pairing, seed and both sides' tactic** (seed parity flips `balanced`/`specials`)
-  - [ ] **P1.T1.2: Record the gap at the cap, the commits each side made, and the idle share for each stalled fight**
-- [ ] **P1.T2: Name the cause and confirm the fix surface** — covers: FR-1
-  - [ ] **P1.T2.1: For each stall, compare the stalling side's threat band against its own reach, kit and `spd`, and say which one leaves it unable to commit**
-  - [ ] **P1.T2.2: State whether the cause is tortoise-local. If any stall is not, record it as debt and say so explicitly instead of widening scope**
+- [x] **P1.T1: Reproduce the sample and tabulate the time-outs** — covers: FR-1
+  - [x] **P1.T1.1: List every time-out with its pairing, seed and both sides' tactic** (seed parity flips `balanced`/`specials`)
+  - [x] **P1.T1.2: Record the gap at the cap, the commits each side made, and the idle share for each stalled fight**
+- [x] **P1.T2: Name the cause and confirm the fix surface** — covers: FR-1
+  - [x] **P1.T2.1: For each stall, compare the stalling side's threat band against its own reach, kit and `spd`, and say which one leaves it unable to commit**
+  - [x] **P1.T2.2: State whether the cause is tortoise-local. If any stall is not, record it as debt and say so explicitly instead of widening scope**
 
 <!--
 The primary appends after acceptance:
