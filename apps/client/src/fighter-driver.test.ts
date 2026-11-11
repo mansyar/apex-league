@@ -1,9 +1,13 @@
 import { describe, expect, test } from "bun:test"
+import * as THREE from "three"
+import { DEFAULT_PROFILE } from "./choreo"
 import {
   advanceWalkPhase,
   clampStage,
   composePosition,
   composeScale,
+  createFighterDriver,
+  type DriveFighter,
   leanTarget,
   shortestAngle,
   topplePose,
@@ -156,5 +160,77 @@ describe("topplePose", () => {
     const p = topplePose(1, 0, 0)
     expect(p.rotZ).toBeCloseTo(0) // -1 * (π/2) * 0 → -0 is fine
     expect(p.y).toBe(0)
+  })
+})
+
+describe("stream poses in the driver", () => {
+  function fighterAt(x: number): DriveFighter {
+    return {
+      name: "ember",
+      key: "left",
+      group: new THREE.Group(),
+      stage: new THREE.Vector3(x, 0, 0),
+      smooth: new THREE.Vector3(x, 0, 0),
+      velocity: new THREE.Vector3(),
+      offset: new THREE.Vector3(),
+      squash: { s: 0, v: 0 },
+      walkPhase: 0,
+      phase: 0,
+      baseScale: 1,
+      profile: DEFAULT_PROFILE,
+      down: false,
+      away: 1,
+      fall: 0,
+      lean: { pitch: 0, roll: 0 },
+      baseColors: new Map(),
+    }
+  }
+
+  function stepOnce(c: DriveFighter, other: DriveFighter): void {
+    const driver = createFighterDriver({
+      pair: () => [
+        [c, other],
+        [other, c],
+      ],
+      pref: () => "full",
+    })
+    driver.syncClock(1000)
+    driver.step(1016)
+  }
+
+  test("no pose leaves the composed pose untouched", () => {
+    const c = fighterAt(0)
+    stepOnce(c, fighterAt(0))
+    expect(c.group.rotation.x).toBe(0)
+    expect(c.group.rotation.z).toBe(0)
+    expect(c.group.position.x).toBe(0)
+  })
+
+  test("a flinch leans the body back and recoils it along away", () => {
+    const c = fighterAt(0)
+    c.pose = "flinch"
+    c.poseK = 1
+    stepOnce(c, fighterAt(0))
+    expect(c.group.rotation.x).toBeLessThan(-0.1)
+    expect(c.group.position.x).toBeCloseTo(0.12)
+  })
+
+  test("a crouch dips the body to the floor and coils it forward", () => {
+    const c = fighterAt(0)
+    c.pose = "crouch"
+    c.poseK = 1
+    stepOnce(c, fighterAt(0))
+    expect(c.group.rotation.x).toBeCloseTo(0.16)
+    expect(c.group.position.y).toBe(0)
+  })
+
+  test("a crumple folds forward, deeper than any crouch", () => {
+    const c = fighterAt(0)
+    c.pose = "crumple"
+    c.poseK = 1
+    stepOnce(c, fighterAt(0))
+    expect(c.group.rotation.x).toBeCloseTo(0.38)
+    expect(c.group.rotation.z).toBeCloseTo(0.08)
+    expect(c.group.position.y).toBe(0)
   })
 })

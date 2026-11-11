@@ -7,6 +7,7 @@ import {
 } from "./anim"
 import { ARENA_HALF_X, ARENA_HALF_Z } from "./arena-scale"
 import { type BodyProfile, idleSway } from "./choreo"
+import { poseAdjust, type StreamPose } from "./choreo-poses"
 import { driveFace, type FaceEyes } from "./face-motion"
 
 /**
@@ -184,6 +185,13 @@ export interface DriveFighter {
    * a victim without downcasting to staging's concrete combatant.
    */
   baseColors: Map<THREE.Mesh, THREE.Color>
+  /**
+   * The live stream pose (flinch/crumple/crouch) and its 0..1 intensity.
+   * Dense playback sets both every step; the driver renders them. Absent
+   * means no pose — the legacy paths never set one, so they read untouched.
+   */
+  pose?: StreamPose
+  poseK?: number
 }
 
 export interface FighterDriver {
@@ -272,8 +280,11 @@ export function createFighterDriver(io: {
         sway,
         c.squash.s,
       )
-      c.group.position.set(pos.x, pos.y, pos.z)
-      const upScale = composeScale(c.baseScale, c.squash.s, false)
+      // Phase-1 stream poses ride on the driver's own channels, over the
+      // composed pose — a flinch can never fight the gait it interrupts.
+      const padj = poseAdjust(c.pose ?? "none", c.poseK ?? 0, c.away, life)
+      c.group.position.set(pos.x + padj.dx, Math.max(0, pos.y + padj.dy), pos.z)
+      const upScale = composeScale(c.baseScale, c.squash.s + padj.squash, false)
       c.group.scale.set(upScale.x, upScale.y, upScale.z)
       // Face the rival every frame; yaw leads, pitch/roll support.
       const dx = other.group.position.x - c.group.position.x
@@ -284,8 +295,8 @@ export function createFighterDriver(io: {
         desired,
         approach(0, 1, FACE_RATE, dt),
       )
-      c.group.rotation.x = c.lean.pitch
-      c.group.rotation.z = c.lean.roll
+      c.group.rotation.x = c.lean.pitch + padj.pitch
+      c.group.rotation.z = c.lean.roll + padj.roll
     }
   }
 

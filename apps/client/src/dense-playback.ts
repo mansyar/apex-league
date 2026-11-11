@@ -7,6 +7,7 @@ import {
 import * as THREE from "three"
 import { clamp01 } from "./anim"
 import { MM_TO_WORLD, simX, simZ } from "./arena-scale"
+import { createPoseTracker, type PoseTracker } from "./choreo-poses"
 import type { DriveFighter } from "./fighter-driver"
 import type { BattleEffects } from "./staging-fx"
 import { koFall } from "./steps/pure"
@@ -125,6 +126,13 @@ export function createDenseStage(io: {
     createTell(io.arenaGroup),
     createTell(io.arenaGroup),
   ]
+  // Phase-1 poses: one step-counted tracker per side maps each frame onto
+  // exactly one pose (the driver renders it). The KO path below still owns
+  // a downed body — a "ko" pose never reaches the driver's pose channels.
+  const poses: [PoseTracker, PoseTracker] = [
+    createPoseTracker(),
+    createPoseTracker(),
+  ]
   // Reused per frame: playback must not allocate in the render loop.
   const blank = (): StreamFrame => ({
     x: 0,
@@ -211,6 +219,9 @@ export function createDenseStage(io: {
           c.stage.z = simZ(frame.z)
         }
         showTell(side, c, frame)
+        const pose = poses[side].update(step, frame)
+        c.pose = pose.pose
+        c.poseK = pose.intensity
         if (fresh && lastHp[side] > 0 && frame.hp < lastHp[side]) {
           react(c, lastHp[side] - frame.hp)
         }
@@ -220,6 +231,7 @@ export function createDenseStage(io: {
     },
     reset() {
       for (const tell of tells) tell.mesh.visible = false
+      for (const tracker of poses) tracker.reset()
       lastHp[0] = 0
       lastHp[1] = 0
       downAt[0] = -1
