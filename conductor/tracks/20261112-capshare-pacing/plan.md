@@ -155,7 +155,7 @@ Review fixes are appended by `conductor-review` as:
   `bun run telemetry`, then `bun run verify`
 - **Status:** verified
 - **Result:** verified — all five findings fixed, no bound or behaviour moved
-- **Checkpoint:** `3130937d` plus the fix commit
+- **Checkpoint:** 3bab33c7
 - **Evidence:** `conductor/tracks/20261112-capshare-pacing/review.md`
 
 - [x] **R1.T1: Name both causes of the fixture-versus-matrix gap and mark the attribution unmeasured** — covers: F1
