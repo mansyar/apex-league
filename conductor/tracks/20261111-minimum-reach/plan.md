@@ -98,7 +98,7 @@
 - **Covers:** FR-9, AC-8
 - **Touches:** `apps/client/src/tell-wedge.ts`, `apps/client/src/tell-scale.ts`, `apps/client/src/tell-scale.test.ts`, `apps/client/src/dense-playback.ts`
 - **Verification:** `bun run verify` and `bun run build` as two separate commands
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P5.T1: Derive the inner edge** — covers: FR-9, AC-8
   - [ ] **P5.T1.1: `tellInnerWorld(minReachMm, radiusMm)` clamped below the outer radius; the wedge geometry cuts the hole; test pins the inner radius and that it never exceeds the outer.**
