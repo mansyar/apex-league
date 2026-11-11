@@ -40,5 +40,5 @@
 - [x] **Track: Continuous Arena Battle** — [20261108-continuous-arena-battle](./archive/20261108-continuous-arena-battle/index.md) — feature — high
 - [x] **Track: Battle Spacing and Cadence** - [20261109-battle-spacing-cadence](./archive/20261109-battle-spacing-cadence/index.md) - feature - high
 - [x] **Track: Battle Agency and Balance** - [20261109-battle-balance](./archive/20261109-battle-balance/index.md) - feature - high
-- [~] **Track: Battle Variance** - [20261110-battle-variance](./tracks/20261110-battle-variance/index.md) - feature - high
-- [~] **Track: Roster Re-tune** - [20261111-roster-retune](./tracks/20261111-roster-retune/index.md) - feature - high
+- [x] **Track: Battle Variance** - [20261110-battle-variance](./archive/20261110-battle-variance/index.md) - feature - high
+- [x] **Track: Roster Re-tune** - [20261111-roster-retune](./archive/20261111-roster-retune/index.md) - feature - high

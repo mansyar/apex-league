@@ -1,6 +1,6 @@
 {
-  "archive_path": null,
-  "archived_at": null,
+  "archive_path": "conductor/archive/20261110-battle-variance",
+  "archived_at": "2026-11-11T19:30:00+11:00",
   "base_branch": "main",
   "base_sha": "d7e5af3c4427acf87670ad8ebde467fc12331c9f",
   "branch": "feat/20261110-battle-variance",
@@ -10,8 +10,8 @@
   "id": "20261110-battle-variance",
   "last_checkpoint": "03bbb4d0",
   "plan": "plan.md",
-  "pr_state": null,
-  "pr_url": null,
+  "pr_state": "merged_pending",
+  "pr_url": "https://github.com/mansyar/apex-league/pull/68",
   "priority": "high",
   "progress": {
     "phases_total": 4,
@@ -25,8 +25,8 @@
   "review_rounds": 0,
   "review_verdict": null,
   "spec": "spec.md",
-  "status": "in_progress",
+  "status": "complete",
   "title": "Battle Variance",
   "type": "feature",
-  "updated_at": "2026-11-11T10:00:00+11:00"
+  "updated_at": "2026-11-11T19:30:00+11:00"
 }
