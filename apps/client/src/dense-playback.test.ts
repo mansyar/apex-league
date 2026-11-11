@@ -318,3 +318,151 @@ describe("dense staging", () => {
     expect(arena.children.length).toBe(0)
   })
 })
+
+describe("reach-derived telegraph", () => {
+  /**
+   * A startup run with authentic stream phaseT: elapsed advances 20 ms per
+   * step and phaseT is the rounded progress, exactly as the sim records it.
+   */
+  const startupRun = (durationMs: number): Array<[Rec, Rec]> => {
+    const records: Array<[Rec, Rec]> = []
+    for (let elapsed = 20; elapsed < durationMs; elapsed += 20) {
+      records.push([
+        {
+          ...rest(-1200),
+          phase: STREAM_PHASE.startup,
+          phaseT: Math.round((elapsed / durationMs) * 255),
+        },
+        rest(1200),
+      ])
+    }
+    return records
+  }
+
+  const wedgeOf = (
+    arena: THREE.Group,
+    side = 0,
+  ): {
+    group: THREE.Group
+    mesh: THREE.Mesh
+    ring: THREE.Mesh
+    outer: number
+    arc: number
+  } => {
+    const group = arena.children[side] as THREE.Group
+    const mesh = group.children[0] as THREE.Mesh
+    const ring = group.children[1] as THREE.Mesh
+    const params = (mesh.geometry as THREE.RingGeometry).parameters
+    return {
+      group,
+      mesh,
+      ring,
+      outer: params.outerRadius,
+      arc: params.thetaLength,
+    }
+  }
+
+  const drive = (steps: number, trace: FightStream) => {
+    const { stage, arena } = stageFor()
+    const left = fighter("left", 0)
+    const right = fighter("right", 0)
+    for (let step = 0; step < steps; step++) {
+      stage.apply(trace, step, left, right)
+    }
+    return { stage, arena }
+  }
+
+  test("a basic startup reads short and wide", () => {
+    const records = startupRun(160)
+    const trace = stream(records)
+    const { arena } = drive(trace.steps, trace)
+    const { outer, arc } = wedgeOf(arena)
+    // reach 420 mm plus the default 220 mm body, mapped to the floor.
+    expect(outer).toBeCloseTo((420 + 220) * 0.0008)
+    expect(arc).toBeGreaterThan(1.0)
+  })
+
+  test("a lance startup reads long and narrow", () => {
+    const records = startupRun(720)
+    const trace = stream(records)
+    const { arena } = drive(trace.steps, trace)
+    const basic = startupRun(160)
+    const basicTrace = stream(basic)
+    const short = drive(basicTrace.steps, basicTrace)
+    const lance = wedgeOf(arena)
+    const jab = wedgeOf(short.arena)
+    // reach 6,500 mm overflows the show floor, so the lance clamps to the
+    // arena's half-diagonal — still many times the basic's wedge.
+    expect(lance.outer).toBe(4.0)
+    expect(lance.outer).toBeGreaterThan(jab.outer * 4)
+    expect(lance.arc).toBeLessThan(jab.arc)
+  })
+
+  test("the attacker's body radius widens the wedge", () => {
+    const records = startupRun(160)
+    const trace = stream(records)
+    const { stage, arena } = stageFor()
+    const left = fighter("left", 0)
+    const right = fighter("right", 0)
+    for (let step = 0; step < trace.steps; step++) {
+      stage.apply(trace, step, left, right, [300, 220])
+    }
+    expect(wedgeOf(arena).outer).toBeCloseTo((420 + 300) * 0.0008)
+  })
+
+  test("geometry rebuilds only when the reach bucket changes", () => {
+    const records = startupRun(720)
+    const trace = stream(records)
+    const { stage, arena } = stageFor()
+    const left = fighter("left", 0)
+    const right = fighter("right", 0)
+    stage.apply(trace, 0, left, right)
+    const first = wedgeOf(arena).mesh.geometry as THREE.RingGeometry
+    stage.apply(trace, 1, left, right)
+    // The second sample firms the estimate (basic default -> lance reach).
+    const firmed = wedgeOf(arena).mesh.geometry as THREE.RingGeometry
+    expect(firmed).not.toBe(first)
+    for (let step = 2; step < trace.steps; step++) {
+      stage.apply(trace, step, left, right)
+    }
+    // No further rebuilds across the rest of the run.
+    expect(wedgeOf(arena).mesh.geometry as THREE.RingGeometry).toBe(firmed)
+  })
+
+  test("a repeated step never counts the startup run twice", () => {
+    const records = startupRun(160)
+    const trace = stream(records)
+    const { stage, arena } = stageFor()
+    const left = fighter("left", 0)
+    const right = fighter("right", 0)
+    stage.apply(trace, 0, left, right)
+    stage.apply(trace, 1, left, right)
+    stage.apply(trace, 1, left, right)
+    for (let step = 2; step < trace.steps; step++) {
+      stage.apply(trace, step, left, right)
+    }
+    expect(wedgeOf(arena).outer).toBeCloseTo((420 + 220) * 0.0008)
+  })
+
+  test("the pulse ring rides the wedge and hides with it", () => {
+    const records = startupRun(160)
+    const trace = stream(records)
+    const { stage, arena } = stageFor()
+    const left = fighter("left", 0)
+    const right = fighter("right", 0)
+    stage.apply(trace, 0, left, right)
+    const { mesh, ring } = wedgeOf(arena)
+    expect(mesh.visible).toBe(true)
+    expect(ring.visible).toBe(true)
+    expect(ring.scale.x).toBeGreaterThan(0)
+    const active = stream([
+      [{ ...rest(-1200), phase: STREAM_PHASE.active, phaseT: 120 }, rest(1200)],
+    ])
+    stage.apply(active, 0, left, right)
+    expect(mesh.visible).toBe(false)
+    expect(ring.visible).toBe(false)
+    stage.apply(trace, 0, left, right)
+    stage.reset()
+    expect(ring.visible).toBe(false)
+  })
+})

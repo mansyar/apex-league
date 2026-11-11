@@ -1,10 +1,5 @@
-import {
-  type FightStream,
-  readFrame,
-  STREAM_PHASE,
-  type StreamFrame,
-} from "@apex/sim"
-import * as THREE from "three"
+import { type FightStream, readFrame, type StreamFrame } from "@apex/sim"
+import type * as THREE from "three"
 import { clamp01 } from "./anim"
 import { bodyProfileOf, MM_TO_WORLD, simX, simZ } from "./arena-scale"
 import { CONTACT_MARGIN_MM } from "./choreo-poses"
@@ -17,6 +12,7 @@ import {
 } from "./pose-track"
 import type { BattleEffects } from "./staging-fx"
 import { koFall } from "./steps/pure"
+import { createTellSet, type TellSet } from "./tell-wedge"
 
 /**
  * Dense playback (Continuous Arena Battle FR-13, AC-13): the client half of
@@ -74,59 +70,28 @@ const PIN_BURST: BurstStyle = {
   flashGrow: 0,
 }
 
-/** Telegraph wedge: inner/outer radius, half-angle, and lift off the floor. */
-const TELL_INNER = 0.3
-const TELL_OUTER = 1.7
-const TELL_HALF_ANGLE = 0.55
-const TELL_LIFT = 0.03
-/** Telegraph tint: warm amber, distinct from every element burst. */
-const TELL_COLOR = 0xffb347
+/**
+ * The KO dissolve: the downed body breaks into settling dust at the floor.
+ * Same dust palette as the pin report (the pinned read stays consistent),
+ * grounded so it erupts from the feet rather than the chest line, and
+ * covered by the burst layer's cap like every other accent. No flash —
+ * Phase 4 owns the flash language.
+ */
+const KO_DISSOLVE: BurstStyle = {
+  puffs: 9,
+  ring: true,
+  gravity: 2.2,
+  life: 750,
+  flash: false,
+  tint: "#9a9184",
+  size: 1.3,
+  flashGrow: 0,
+  grounded: true,
+}
 
 /** Big-hit camera punch strength, matching the hit-stop's own scale. */
 const punchStrength = (damage: number): number =>
   Math.min(0.09, 0.02 + damage / 80)
-
-/** One side's telegraph: a flat wedge that grows out of the attacker. */
-interface Tell {
-  group: THREE.Group
-  mesh: THREE.Mesh
-  material: THREE.MeshBasicMaterial
-}
-
-function createTell(arenaGroup: THREE.Group): Tell {
-  const group = new THREE.Group()
-  const geometry = new THREE.RingGeometry(
-    TELL_INNER,
-    TELL_OUTER,
-    18,
-    1,
-    -Math.PI / 2 - TELL_HALF_ANGLE,
-    TELL_HALF_ANGLE * 2,
-  )
-  const material = new THREE.MeshBasicMaterial({
-    color: TELL_COLOR,
-    transparent: true,
-    opacity: 0,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-    side: THREE.DoubleSide,
-  })
-  const mesh = new THREE.Mesh(geometry, material)
-  // The ring is authored in the XY plane; lay it flat, then let the group's
-  // yaw aim the wedge down the fighter's facing.
-  mesh.rotation.x = -Math.PI / 2
-  mesh.position.y = TELL_LIFT
-  mesh.visible = false
-  group.add(mesh)
-  arenaGroup.add(group)
-  return { group, mesh, material }
-}
-
-function disposeTell(arenaGroup: THREE.Group, tell: Tell): void {
-  arenaGroup.remove(tell.group)
-  tell.mesh.geometry.dispose()
-  tell.material.dispose()
-}
 
 export interface DenseStage {
   /**
@@ -155,10 +120,7 @@ export function createDenseStage(io: {
   /** Camera punch only — dense playback never freezes the stream. */
   shake: (strength: number) => void
 }): DenseStage {
-  const tells: [Tell, Tell] = [
-    createTell(io.arenaGroup),
-    createTell(io.arenaGroup),
-  ]
+  const tells: TellSet = createTellSet(io.arenaGroup)
   // Phase-1 poses: one step-counted tracker per side maps each frame onto
   // exactly one pose (the driver renders it). The KO path below still owns
   // a downed body — a "ko" pose never reaches the driver's pose channels.
@@ -185,18 +147,18 @@ export function createDenseStage(io: {
   const wasPinned: [boolean, boolean] = [false, false]
   let lastStep = -1
 
-  const showTell = (side: 0 | 1, c: DriveFighter, frame: StreamFrame): void => {
-    const tell = tells[side]
-    const charging = frame.phase === STREAM_PHASE.startup
-    tell.mesh.visible = charging
-    if (!charging) return
-    const t = clamp01(frame.phaseT / 255)
-    // Aim the wedge down the body's facing, at its feet.
-    tell.group.position.set(c.group.position.x, 0, c.group.position.z)
-    tell.group.rotation.y = Math.atan2(frame.facingX, frame.facingZ)
-    const grow = 0.55 + t * 0.45
-    tell.group.scale.setScalar(grow)
-    tell.material.opacity = 0.16 + t * 0.62
+  // The reach-derived telegraph: length and arc come from the committed
+  // move's reachMm plus the attacker's body radius (tell-wedge owns the
+  // estimator and the meshes); aiming stays down the stream facing.
+  const showTell = (
+    side: 0 | 1,
+    c: DriveFighter,
+    frame: StreamFrame,
+    radiusMm: number,
+    stepMs: number,
+    step: number,
+  ): void => {
+    tells.update(side, c.group, frame, radiusMm, stepMs, step)
   }
 
   const react = (c: DriveFighter, damage: number): void => {
@@ -225,16 +187,7 @@ export function createDenseStage(io: {
     if (fresh && pose.thud && !thudded[side]) {
       thudded[side] = true
       c.squash.v += 9
-      io.effects.spawnBurst(c.group.position, undefined, {
-        puffs: 9,
-        ring: true,
-        gravity: 2.2,
-        life: 750,
-        flash: false,
-        tint: "#9a9184",
-        size: 1.3,
-        flashGrow: 0,
-      })
+      io.effects.spawnBurst(c.group.position, undefined, KO_DISSOLVE)
     }
   }
 
@@ -273,7 +226,14 @@ export function createDenseStage(io: {
           c.stage.x = simX(frame.x + nudges[side].x)
           c.stage.z = simZ(frame.z + nudges[side].z)
         }
-        showTell(side, c, frame)
+        showTell(
+          side,
+          c,
+          frame,
+          pair[side] ?? DEFAULT_RADIUS_MM,
+          stream.stepMs,
+          step,
+        )
         const pose = poses[side].update(step, frame, foe, contactMm)
         c.pose = pose.pose
         c.poseK = pose.intensity
@@ -292,7 +252,7 @@ export function createDenseStage(io: {
       }
     },
     reset() {
-      for (const tell of tells) tell.mesh.visible = false
+      tells.reset()
       for (const tracker of poses) tracker.reset()
       lastHp[0] = 0
       lastHp[1] = 0
@@ -305,7 +265,7 @@ export function createDenseStage(io: {
       lastStep = -1
     },
     dispose() {
-      for (const tell of tells) disposeTell(io.arenaGroup, tell)
+      tells.dispose()
     },
   }
 }
