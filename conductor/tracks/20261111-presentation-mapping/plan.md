@@ -32,11 +32,14 @@
 - **Covers:** FR-3, FR-4, FR-7, AC-3, AC-4, AC-7
 - **Touches:** `apps/client/src/fighter-driver.ts`, `apps/client/src/staging*.ts`, `apps/client/src/effects*`, `apps/client/src/dense-playback.ts` (pose wiring only, accepted pattern from Phase 1), co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** 36d0a24d
+- **Evidence:** conductor/tracks/20261111-presentation-mapping/verification/phase-2.md
 
-- [ ] **P2.T1: Dodge roll along the dodge vector** — covers: FR-3
-- [ ] **P2.T2: Knockback recoil, planted feet, fence-pin report** — covers: FR-4
-- [ ] **P2.T3: Contact squash + render offset** — covers: FR-7
+- [x] **P2.T1: Dodge roll along the dodge vector** — covers: FR-3
+- [x] **P2.T2: Knockback recoil, planted feet, fence-pin report** — covers: FR-4
+- [x] **P2.T3: Contact squash + render offset** — covers: FR-7
 
 ## Phase 3: Telegraph + Shader Accents
 

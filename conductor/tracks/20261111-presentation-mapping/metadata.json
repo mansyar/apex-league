@@ -8,7 +8,7 @@
   "depends_on": [],
   "doc_sync": "pending",
   "id": "20261111-presentation-mapping",
-  "last_checkpoint": "77e8a091",
+  "last_checkpoint": "36d0a24d",
   "pr_state": null,
   "pr_url": null,
   "priority": "high",
@@ -27,7 +27,7 @@
   "status": "in_progress",
   "title": "Presentation Mapping",
   "type": "feature",
-  "updated_at": "2026-11-11T13:00:00+11:00",
-  "phases_verified": 1,
-  "tasks_done": 3
+  "updated_at": "2026-11-11T13:30:00+11:00",
+  "phases_verified": 2,
+  "tasks_done": 6
 }

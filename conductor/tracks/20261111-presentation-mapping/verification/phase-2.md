@@ -121,3 +121,20 @@ clock, no randomness. Replay hash unchanged (`0xc579e9ae`).
 - Contact distance is per-pair radii (`bodyProfileOf` both archetypes) plus
   a 40 mm margin; the nudge cap (60 mm) keeps the offset a report, never a
   shove.
+
+## Primary verification
+
+- Range `d063bb56..HEAD`: four subagent commits, all reported, squashed to
+  `36d0a24d` (no merge, unreported, or user commits in range).
+- `bun run verify` exit 0 (independent run; determinism gate byte-identical).
+  `bun run build` exit 0 (chunk-size warning pre-existing).
+- Sizes: `choreo-poses.ts` 11,594 B, `pose-track.ts` 4,726 B (new),
+  `fighter-driver.ts` 12,147 B (141 B headroom — Phase 3/4 must not grow the
+  driver without extracting first), `staging.ts` 11,923 B. All under cap.
+- Deviations accepted: `pose-track.ts` split is cap-mandated and moves one
+  seam; `staging.ts` change is comment-only trims compensating the radii
+  addition, no behaviour change.
+- AC-3/4/7 all proven by the cited tests; replay hash `0xc579e9ae`
+  unchanged — zero sim diff confirmed.
+- Accepted approximation (recorded, not a miss): slip reads as partial roll;
+  pin burst is not life-gated (Phase 4 owns).
