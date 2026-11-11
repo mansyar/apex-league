@@ -63,7 +63,7 @@
 - **Covers:** FR-9, NFR-1, NFR-3, NFR-5, AC-9, AC-11
 - **Touches:** `apps/client/src/*` (reduced-motion path), `verification/` evidence, visual pass artifacts
 - **Verification:** `bun run verify && bun run build` + playwright visual pass (desktop + phone)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P4.T1: Reduced-motion flashes, outcome-identical** — covers: FR-9, AC-9
 - [ ] **P4.T2: Replay-parity proof (hashes equal main)** — covers: NFR-1, AC-11
