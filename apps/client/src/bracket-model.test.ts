@@ -243,7 +243,11 @@ describe("buildBracketModel — the 8-slot bracket", () => {
     expect(second?.b?.name).toBe("C")
   })
 
-  test("verdicts land on the right matches across an eliminated run", () => {
+  // Execution-noise ripple (variance Phase 2): per-seed commit timing and
+  // dodge-side noise sweeps seed 3 to a title, so the eliminated run this
+  // test used to pin is now a champion run. The verdict→match mapping is
+  // the same property, asserted on the champion shape.
+  test("verdicts land on the right matches across a champion run", () => {
     // Pacing ripple (battle-balance phase 8, FR-20): seed 11 under the
     // `specials` pick now exits in the semifinal. R1 (battle-balance): the
     // scaled-down ladder sweeps seed 11, so this pin moved to seed 3 — the
@@ -257,10 +261,11 @@ describe("buildBracketModel — the 8-slot bracket", () => {
     expect(byId.get("qf4")?.verdict).toEqual(session.rivalVerdicts[2])
     expect(byId.get("sf1")?.verdict).toEqual(session.playerVerdicts[1])
     expect(byId.get("sf2")?.verdict).toEqual(session.rivalVerdicts[3])
-    // The player is out in the semifinal: two player verdicts, and the final is
-    // a rival-only match whose winner is the champion.
-    expect(session.status).toBe("eliminated")
-    expect(session.playerVerdicts).toHaveLength(2)
+    // The player sweeps: three player verdicts, and the final is the
+    // player's own match.
+    expect(session.status).toBe("champion")
+    expect(session.playerVerdicts).toHaveLength(3)
+    expect(byId.get("f1")?.verdict).toEqual(session.playerVerdicts[2])
     expect(byId.get("f1")?.verdict?.winner).toBe(session.championName)
   })
 

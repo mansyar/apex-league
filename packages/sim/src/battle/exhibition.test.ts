@@ -100,6 +100,8 @@ describe("makeExhibition", () => {
   test("the seeded rival itself is unchanged by the wider pool", () => {
     // Captured before the pool widened: the pool only changes which four the
     // rival fields, never which rival it is.
+    // Roster re-tune: the plant_ox cool (atk/def down one) moves the seed-42
+    // rival's rolled stats with it; the rival's identity still holds.
     const pin = [
       {
         seed: 3,
@@ -117,7 +119,7 @@ describe("makeExhibition", () => {
         seed: 42,
         species: "plant_ox",
         tactic: "specials",
-        stats: { hp: 171, atk: 11, def: 14, spd: 7 },
+        stats: { hp: 171, atk: 10, def: 13, spd: 7 },
       },
     ] as const
     for (const row of pin) {

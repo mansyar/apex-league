@@ -9,6 +9,7 @@
  * ten-decision cycle, so the rhythm comes from the table.
  */
 
+import type { Rng } from "../../rng"
 import {
   aimAt,
   awayFrom,
@@ -20,6 +21,7 @@ import {
 import { dodgeOrder } from "./controller-dodge"
 import { observe, strafeSide } from "./controller-memory"
 import { chooseMove } from "./controller-moves"
+import { cadenceHold, flankDodge, takeCommit } from "./controller-noise"
 import {
   PUNISH_RESERVE_STAMINA,
   punishMove,
@@ -97,8 +99,13 @@ const CYCLE = 10
  * Order one fighter's next intent: the held intent between decisions, or a
  * fresh verb from the fight state on a cadence step. A locked fighter keeps
  * what it had, so nothing here can cancel a swing or spam a refusal.
+ *
+ * Execution-only noise (variance Phase 2, FR-3/FR-4): pass the fight's RNG
+ * and the cadence, commits, and dodge sides jitter per seed. Without it the
+ * controller decides exactly as before, so doctrine bands, strafe intent,
+ * dodge policy, and move choice are pinned unchanged.
  */
-export function decide(input: DecisionInput): ControllerDecision {
+export function decide(input: DecisionInput, rng?: Rng): ControllerDecision {
   const { state, side, controller, profile, kit } = input
   const me = state.fighters[side]
   const foe = state.fighters[side === 0 ? 1 : 0]
@@ -124,6 +131,14 @@ export function decide(input: DecisionInput): ControllerDecision {
       }
     }
     return hold(controller)
+  }
+
+  // Seeded cadence jitter (FR-3): a skipped cadence holds without advancing
+  // the doctrine cycle, so commit phasing drifts per seed. Slip release above
+  // is time-based and never skipped.
+  if (rng) {
+    const held = cadenceHold(controller, rng)
+    if (held) return held
   }
 
   const decisions = controller.decisions + 1
@@ -176,7 +191,9 @@ export function decide(input: DecisionInput): ControllerDecision {
   // just swung past, and punching the back beats stepping away from it.
   if (profile.seeksRear) {
     const rearMove = rearCommit(me, foe, kit)
-    if (rearMove) return settle("commit", pressIntent(me, foe), rearMove)
+    if (rearMove && takeCommit(rng, false)) {
+      return settle("commit", pressIntent(me, foe), rearMove)
+    }
   }
 
   // A blow about to land is the one thing worth interrupting for (FR-20).
@@ -185,7 +202,7 @@ export function decide(input: DecisionInput): ControllerDecision {
   if (dodge) {
     return settle(
       "dodge",
-      dodge.intent,
+      flankDodge(dodge.intent, me, foe, rng),
       null,
       DODGE_STAMINA_COST,
       dodge.readyMs,
@@ -250,7 +267,9 @@ export function decide(input: DecisionInput): ControllerDecision {
     profile.commit === "punish" ? punishMove(input, gapSq, memory) : null
   if (punish) {
     const refused = ruleRefuses(input, punish)
-    if (!refused) return settle("commit", pressIntent(me, foe), punish)
+    if (!refused && takeCommit(rng, true)) {
+      return settle("commit", pressIntent(me, foe), punish)
+    }
   }
 
   const slot = (decisions - 1) % CYCLE
@@ -279,7 +298,7 @@ export function decide(input: DecisionInput): ControllerDecision {
     if (slot < press && !waiting) {
       const moveId = chooseMove(me, foe, kit, gapSq, PUNISH_RESERVE_STAMINA)
       const refused = ruleRefuses(input, moveId)
-      if (moveId && !refused) {
+      if (moveId && !refused && takeCommit(rng, false)) {
         return settle("commit", pressIntent(me, foe), moveId)
       }
       if (refused) return withRule(circle(), refused)
@@ -295,7 +314,7 @@ export function decide(input: DecisionInput): ControllerDecision {
     }
     const moveId = chooseMove(me, foe, kit, gapSq, PUNISH_RESERVE_STAMINA)
     const refused = ruleRefuses(input, moveId)
-    if (moveId && !refused) {
+    if (moveId && !refused && takeCommit(rng, false)) {
       return settle("commit", pressIntent(me, foe), moveId)
     }
     return withRule(settle("advance", aimAt(me, foe)), refused)

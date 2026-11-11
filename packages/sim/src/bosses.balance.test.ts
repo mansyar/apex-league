@@ -294,7 +294,9 @@ describe("boss balance probe (FR12)", () => {
   }
 
   // Phase 8 (P8.T1/P8.T2) owns this roster target; un-mark when it passes.
-  test.failing("a fresh player never beats the boss on even or worse elements", () => {
+  // Honest rolls (variance Phase 1) moved this genuinely green: the authored
+  // ladder rolls at face value and the fresh-player lockout holds.
+  test("a fresh player never beats the boss on even or worse elements", () => {
     const probe = runBossProbe()
     for (const boss of BOSSES) {
       const bossDef = getSpecies(boss.speciesId)

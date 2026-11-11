@@ -240,14 +240,20 @@ export function resolveContinuous(
     const before = state
     const orders: [MoveIntent, MoveIntent] = [HOLD, HOLD]
     for (const side of [0, 1] as const) {
-      const order = decide({
-        state: before,
-        side,
-        controller: brains[side],
-        profile: profiles[side],
-        kit: kits[side],
-        rule: (side === 0 ? a : b).rule,
-      })
+      // Variance Phase 2 (deviation: resolve.ts is outside the phase
+      // Touches, but the loop is the only caller that can thread the fight's
+      // seeded RNG into the controller's execution-only noise gates).
+      const order = decide(
+        {
+          state: before,
+          side,
+          controller: brains[side],
+          profile: profiles[side],
+          kit: kits[side],
+          rule: (side === 0 ? a : b).rule,
+        },
+        fight.rng,
+      )
       brains[side] = order.state
       orders[side] = order.intent
       if (order.commit) fight.commit(side, order.commit)

@@ -25,6 +25,8 @@ import {
   measureSpecies,
   report,
   run,
+  SPECIES_MAX,
+  SPECIES_MIN,
   targets,
   typicalLine,
   violations,
@@ -63,6 +65,20 @@ function sample(): BalanceSample {
  * innate strike and `boulder_toss`. Shortening `boulder_toss` startup 600 -> 512
  * moved the row from 26.8% to 39.3% with every pacing row still green, so the
  * list is empty and the gate exits 0.
+ *
+ * Phase 4 re-baseline (P4.T1.1/P4.T2.1, variance reality): honest rolls plus
+ * per-seed execution noise moved cap share 33.6% -> 21.0% (PASS again) and
+ * lifted distinct medians to ~100-112, but the same variance tightens
+ * intervals around the same point estimates — it cannot move a 67.9% row
+ * into the band. The measured frontier is 4 red species rows (plant_ox,
+ * earth_tortoise, cindermoor, galeheron); closing them needs stat tuning,
+ * which is out of scope (roster re-tune track). The pins below record that
+ * frontier with observed values; the bounds above are untouched.
+ *
+ * Roster re-tune green (P3.T1.1): Phase 1 cooled plant_ox and cindermoor into
+ * the band, Phase 2 lifted earth_tortoise (50.0%) and galeheron (53.6%) in
+ * after it, and the gate exits 0 — so the list is empty again, pinning the
+ * green reality rather than forcing it.
  */
 const KNOWN_MISSES: readonly string[] = []
 
@@ -124,10 +140,16 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // 10-14 (the 13-17 band it briefly carried made more of its fights distinct
     // because it won more of them). R5's `boulder_toss` startup moved both:
     // the tortoise to 35, reefclaw to 22, because the two play each other.
+    // Phase 4 re-baseline (P4.T1.1): per-seed execution noise lifted both —
+    // the tortoise to 100, reefclaw to 109 — because real misses plus jitter
+    // make more of the 112 games distinct. The pins assert the measured
+    // variance reality; DISTINCT_FLOOR stays 12 and no bound moved.
+    // Roster re-tune (P3.T1.1): the tortoise's whole-band lift (atk/def up
+    // one) moves more of its games distinct, 100 -> 106; reefclaw holds 109.
     const measured = sample()
     const byId = new Map(measured.matrix.species.map((row) => [row.id, row]))
-    expect(byId.get("earth_tortoise")?.distinct).toBe(35)
-    expect(byId.get("reefclaw")?.distinct).toBe(22)
+    expect(byId.get("earth_tortoise")?.distinct).toBe(106)
+    expect(byId.get("reefclaw")?.distinct).toBe(109)
     // The one-species replay reads the same key, so it must agree.
     for (const id of ["earth_tortoise", "reefclaw"]) {
       expect(measureSpecies(id).distinct).toBe(byId.get(id)?.distinct ?? -1)
@@ -389,21 +411,23 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // at 42.9%: the tortoise's shorter `boulder_toss` startup is a swing the
     // hound no longer gets to interrupt, so the tank's main victim loses six of
     // its 112 games. That is the lever working, and the row is recorded here
-    // rather than argued with.
-    const DESIGN_BAND_MISSES = [
-      "fire_drake",
-      "plant_ox",
-      "water_axolotl",
-      "electric_hound",
-      "fernstag",
-      "wind_falcon",
-      "reefclaw",
-      "earth_tortoise",
-      "cindermoor",
-      "shalemole",
-      "embercub",
-      "mossboar",
-    ] as const
+    // rather than argued with. Phase 1 re-pin (P1.T1.2): honest rolls moved
+    // four rows inside the band (fire_drake, fernstag, wind_falcon, shalemole)
+    // and three outside it (voltfox, galeheron, mistkit). Rework 1 kept that
+    // list at the locked chip-99 ladder. Phase 4 re-baseline (P4.T2.1):
+    // variance reality moved reefclaw, voltfox and mistkit back inside, so the
+    // maintained list shrinks 11 -> 8; the 4 gate-red rows stay named here.
+    // Roster re-tune (R1.T1): the review round fixed three of the four
+    // misses without widening any bound — plant_ox 44.6% -> 46.4% (the
+    // embercub/voltfox trims feed it wins), voltfox 55.8% -> 45.5% (def
+    // trim cools the hot row and clears its guardrail regress), embercub
+    // 55.4% -> 53.6% — so the maintained list shrinks 4 -> 1. The one row
+    // still outside 45-55% is water_axolotl (57.1%), held by explicit
+    // waiver (phase-R1 evidence: improving vs the 58.9% frontier with
+    // |delta| < se, and every tune direction pops a fire row or the
+    // telemetry cap). The list names exactly the rows outside 45-55% in
+    // the measured run, no more and no fewer.
+    const DESIGN_BAND_MISSES = ["water_axolotl"] as const
     const measured = sample()
     expect(designBandMisses(measured).map((row) => row.id)).toEqual([
       ...DESIGN_BAND_MISSES,
@@ -411,6 +435,34 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     const text = report(measured).join("\n")
     expect(text).toContain("design-band misses (outside 45.0%..55.0%")
     for (const id of DESIGN_BAND_MISSES) expect(text).toContain(id)
+  })
+
+  test("near-edge rows keep at least a point of design-band margin (R1 T3)", () => {
+    // Review round 1: galeheron (53.6%) and cindermoor (51.8%) sit inside
+    // 45-55% but within one se of an edge, and no whole-band integer shift
+    // re-centers either without breaking a neighbor (phase-R1 evidence:
+    // the galeheron atk trim centered plant_ox at 50.0% but crashed
+    // galeheron to 37.5% and pushed water_axolotl to a 60.7% gate FAIL).
+    // Both rows are held by explicit margin waiver; this test fails if
+    // either drifts within one point of an edge, forcing a deliberate
+    // re-pin instead of a silent slide. The inset is derived from the
+    // band constants (one point inside the printed 45..55 band), so a band
+    // move carries the test with it.
+    const measured = sample()
+    const byId = new Map(measured.matrix.species.map((row) => [row.id, row]))
+    for (const id of ["galeheron", "cindermoor"]) {
+      const rate = byId.get(id)?.rate ?? -1
+      expect(rate).toBeGreaterThanOrEqual(SPECIES_MIN + 0.01)
+      expect(rate).toBeLessThanOrEqual(SPECIES_MAX - 0.01)
+    }
+    // Review round 2: voltfox (45.5%) holds only half a point of margin,
+    // thinner than the one-point standard above, so it is pinned here to
+    // inside-only rather than the full inset. Any excursion across either
+    // edge fails the suite via DESIGN_BAND_MISSES; this pin is the early
+    // warning, not the guard.
+    const voltfox = byId.get("voltfox")?.rate ?? -1
+    expect(voltfox).toBeGreaterThanOrEqual(SPECIES_MIN)
+    expect(voltfox).toBeLessThanOrEqual(SPECIES_MAX)
   })
 
   test("the doctrine table's dodge column differs by doctrine (R2 T5)", () => {
@@ -428,19 +480,29 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
   })
 
   test("today's target misses are named with their observed values", () => {
-    // R5: the list is empty. Every species row sits inside its interval, cap
-    // share, decisive share, cap-win quality, median, p05, the damage band and
-    // the bosses all hold. The rows still outside the 45-55% design band are a
-    // separate assertion about the roster, not about the gate.
+    // Was empty in R5; Phase 1 (Rework 1) re-pinned the two misses the honest
+    // ladder opened — cindermoor and cap share. Phase 4 re-baselined the list
+    // to the measured variance reality: cap share healed (33.6% -> 21.0%,
+    // PASS) while four imbalanced species rows stand named with observed
+    // values. The gate test below stays red on those four lines: closing them
+    // needs stat tuning, which is a roster re-tune track's job, not this one's.
+    // Roster re-tune (P3.T1.1): the re-tune closed all four rows and the gate
+    // exits 0, so the list is empty — pinning the green reality.
     expect(violations(sample()).map(describeTarget)).toEqual([...KNOWN_MISSES])
-    expect(KNOWN_MISSES).toHaveLength(0)
   })
 
   test("the gate is green end to end (R5)", () => {
     // A cap win counts as a decisive outlasting win when its margin clears the
-    // floor, and every species row's interval covers 50% — the tortoise's
-    // included, at 39.3% against a 16.6-point bound. When a row regresses this
-    // test fails on the FAIL list and is updated deliberately.
+    // floor. Phase 4 frontier: this gate is red on four FAIL species lines —
+    // plant_ox (67.9%), earth_tortoise (29.5%), cindermoor (59.8%), galeheron
+    // (33.9%) — all recorded in KNOWN_MISSES with observed values. Every
+    // other row holds, including cap share (21.0%), decisive share, median,
+    // p05, the damage band and the bosses. Variance tightens intervals around
+    // the same point estimates; moving those four rows needs stat tuning,
+    // which is out of scope, so the assertion below stands as the frontier.
+    // Roster re-tune (P3.T1.2): the re-tune moved all four rows into the band
+    // with no widened bound, floor or tolerance, so the gate below asserts
+    // the green end to end — including both lifted rows by name.
     const lines: string[] = []
     expect(run(sample(), (line) => lines.push(line))).toBe(0)
     const failures = lines.filter((line) => line.startsWith("FAIL "))
@@ -458,6 +520,9 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     expect(lines.some((line) => line.startsWith("ok   damageBand:"))).toBe(true)
     expect(
       lines.some((line) => line.startsWith("ok   species:earth_tortoise:")),
+    ).toBe(true)
+    expect(
+      lines.some((line) => line.startsWith("ok   species:galeheron:")),
     ).toBe(true)
   })
 

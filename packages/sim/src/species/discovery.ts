@@ -37,7 +37,7 @@ export const DISCOVERY_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "ion_wall",
     ],
     temperament: "obedient",
-    statBounds: { hp: [136, 166], atk: [8, 11], def: [7, 10], spd: [10, 14] },
+    statBounds: { hp: [136, 166], atk: [8, 11], def: [6, 9], spd: [10, 14] },
   },
   {
     id: "galeheron",
@@ -55,7 +55,7 @@ export const DISCOVERY_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "zephyr_veil",
     ],
     temperament: "slow",
-    statBounds: { hp: [140, 169], atk: [8, 11], def: [6, 9], spd: [9, 13] },
+    statBounds: { hp: [140, 169], atk: [8, 11], def: [7, 10], spd: [9, 13] },
   },
   {
     id: "shalemole",
@@ -91,7 +91,7 @@ export const DISCOVERY_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "pyre_wall",
     ],
     temperament: "obedient",
-    statBounds: { hp: [144, 173], atk: [9, 13], def: [8, 11], spd: [8, 11] },
+    statBounds: { hp: [144, 173], atk: [8, 12], def: [8, 11], spd: [8, 11] },
   },
   {
     id: "mossboar",
@@ -109,7 +109,7 @@ export const DISCOVERY_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "bramble_guard",
     ],
     temperament: "rush",
-    statBounds: { hp: [157, 186], atk: [9, 12], def: [13, 16], spd: [5, 8] },
+    statBounds: { hp: [157, 186], atk: [8, 11], def: [13, 16], spd: [5, 8] },
   },
   {
     id: "mistkit",
