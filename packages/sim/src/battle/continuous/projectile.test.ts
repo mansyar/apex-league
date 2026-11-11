@@ -287,9 +287,9 @@ describe("projectiles — arrival and dodge (FR-8, AC-8)", () => {
 
 describe("projectiles — the blind spot (FR-3, FR-5, AC-3)", () => {
   test("a point-blank shot is short: no hit, no dodge, no damage", () => {
-    // The shipped rows author no minimum yet (the balance phase tunes it), so
-    // the 200 mm row value is injected here: its inner edge is 200 + 220 + 220,
-    // and a shot loosed at 500 mm is inside it.
+    // The shipped long rows author 90 mm, but this test injects the row value
+    // so it pins the geometry rather than the tuning: with 200 mm the inner
+    // edge is 200 + 220 + 220, and a shot loosed at 500 mm is inside it.
     const home = fighter("home", 0, EAST)
     const away = fighter("away", 500, WEST)
     const shot = {

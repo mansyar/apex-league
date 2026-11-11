@@ -2,7 +2,7 @@
  * Battle telemetry harness — "not turn-based" measured, not asserted
  * (Continuous Arena Battle FR-14, AC-14, AC-24).
  *
- * Plays a 45-fight seeded sample through the same public resolver the cup
+ * Plays a 42-fight seeded sample through the same public resolver the cup
  * calls, and reads the dense per-step stream the resolver already records
  * (`streamOf`). The harness is a consumer: it does not step the sim itself and
  * does not change a single value in it. The walk is this module's own;
@@ -673,13 +673,13 @@ export const BOUNDS: readonly Bound[] = Object.freeze([
     metric: "deadZoneShare",
     kind: "max",
     value: 1 / 2,
-    why: "FR-7 / AC-6: a loose ceiling, because this metric says the blind spot is real, not that it must be small. Measured 0.0% on the shipped sample (every row authors minReachMm = 0) and 92.5% at the 1,000 mm candidate, so half is a ceiling with the whole range of a real dead zone still allowed under it. The phase-4 sweep could not find a positive value both this gate and the 840-fight roster accept",
+    why: "FR-7 / AC-6: a loose ceiling, because this metric says the blind spot is real, not that it must be small. Every row with reachMm >= 5000 authors 90 mm, so the shipped sample measures 2.4%, and the 1,000 mm candidate measured 92.5% — half keeps the whole range of a real dead zone allowed under it while still failing a tree where the blind spot swallows the fight",
   },
   {
     metric: "capShare",
     kind: "max",
     value: 3 / 5,
-    why: "AC-24: at most one fight in two may be decided at the cap. The widened sample measures 22/42 (52.4%), so the smoke ceiling is re-derived to 3/5 (25/42) under the approved FR-7 exception: three fights of headroom, and which pairings are glacial — not seed luck — sets the share. The one-in-three target is still missed at 52.4%: the triple-length cycle means fewer blows per fight, so more fights run out the clock. This is a pacing finding for the balance pass, not a relaxation hiding a regression — no simulation code changed",
+    why: "AC-24: at most one fight in two may be decided at the cap. The widened sample measured 22/42 (52.4%) at minReachMm = 0, so the smoke ceiling was re-derived to 3/5 under the approved FR-7 exception: three fights of headroom at that value, and which pairings are glacial — not seed luck — sets the share. The shipped 90 mm dead zone then consumed two of those three fights, so the tree measures 25/42 (59.5%) with one fight of headroom. The one-in-three target is still missed: the triple-length cycle means fewer blows per fight, so more fights run out the clock. This is a pacing finding for the balance pass, not a relaxation hiding a regression — the bound has not moved since the approved re-derivation",
   },
   {
     metric: "durationMin",

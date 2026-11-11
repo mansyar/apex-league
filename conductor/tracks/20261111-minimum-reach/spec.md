@@ -88,7 +88,7 @@ outcomes, so it ships with the balance track alongside."
 | --- | --- | --- |
 | FR-1 | `FrameData` carries `minReachMm`; the validator rejects `minReachMm < 0` or `minReachMm ≥ reachMm`; the basic strike is 0. | Must |
 | FR-2 | A melee strike connects only when the centre gap lies inside `[minReach + r₁ + r₂, reach + r₁ + r₂]`; inside the inner edge it whiffs. | Must |
-| FR-3 | A shot hits only when the swept contact point is at least `minReach + r₁ + r₂` from the shooter's origin; inside it the shot passes and is spent. | Must |
+| FR-3 | A shot is judged at its launch gap: it hits only when that gap is at least `minReach + r₁ + r₂` from the shooter's origin; loosed inside it the shot passes and is spent. (Amended 2026-11-12 from a swept-contact reading — see Edge Cases, "Commit while closing".) | Must |
 | FR-4 | `chooseMove` and the punish chooser reject a move whose interval excludes the gap **at the move's active frame** (current gap plus closing travel during startup); the basic is the fallback. | Must |
 | FR-5 | A strike or shot that fails only the inner edge reports a distinct `range` miss, never `accuracy` and never a dodge. | Must |
 | FR-6 | The gate is green on the final tree: 15/15 species, pacing, bosses and damage band all pass. | Must |
@@ -101,7 +101,7 @@ outcomes, so it ships with the balance track alongside."
 
 | ID | Requirement |
 | --- | --- |
-| NFR-1 | Integer arithmetic only; no new RNG draw; same seed → same hash and event sequence. |
+| NFR-1 | Integer arithmetic only; same seed → same hash and event sequence. No new RNG stream: the one added draw site (`takeCommit` on the backing-shot path) draws from the existing stream, so replay and the ghost contract are unchanged. |
 | NFR-2 | No existing bound, floor, tolerance or `DISTINCT_FLOOR` is widened to hide a regression. The one approved exception is FR-7's telemetry sample and re-derived bounds, recorded with before/after figures and stated headroom. |
 | NFR-3 | The full suite stays inside the 150 s phase budget. |
 | NFR-4 | No new stream field beyond what the existing event vocabulary already carries. |
@@ -178,13 +178,22 @@ outcomes, so it ships with the balance track alongside."
   ranged kit its damage (`voltfox` 32.1%, 3.8σ below 50% at 1 mm), so FR-10
   commits a backing shot; the earlier avoid-only decision is withdrawn on that
   evidence.
+- **Decided 2026-11-12 (review):** FR-3 is amended to judge a shot at its
+  launch gap, and NFR-1 is restated as "no new RNG stream" rather than "no new
+  draw". Both were written before the geometry existed: a shot's flight cannot
+  be judged against a gap that closes while it travels, and the backing shot
+  takes its commit draw from the existing stream. The shipped rule and the
+  deterministic replay hash are unchanged; only the requirement text moved to
+  match what shipped.
 - **Assumption:** the basic strike (420 mm) is the intended close-range answer,
   so no row needs a dead zone smaller than the basic's reach.
 - **Assumption:** the tell wedge can draw an inner edge without a stream change,
   because `minReachMm` is authored data the client already imports.
-- **Open:** the final value is whatever the widened sample and the 840-fight
-  roster gate both accept; 400–800 mm is the expected band from the Phase 2
-  measurements.
+- **Settled:** the value is **90 mm**, the middle of the ~85–99 mm window both
+  gates accept (100 mm fails the roster gate by one win, 75 mm and 50 mm fail
+  telemetry by one fight). The 400–800 mm expectation above was measured and
+  rejected: the effective blind spot is `minReachMm + closing × startup`, so the
+  authored number behaves like a switch near the basic's standoff.
 
 ## References
 

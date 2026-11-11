@@ -34,11 +34,12 @@ Run on the track tip after all five phases were verified. Branch
 | `bun run build` | 0 | vite 418 modules, `built in 301ms`, only the pre-existing >500 kB chunk warning |
 | `bun run trace --seed 20261111 --check` | 0 | 17 landed blows (8 owned / 9 rival), final hash `0xb6cce858`, 5 invariants ok including "same seed replays to the same hash and event sequence" |
 
-The trace hash at the tip is `0xb6cce858`. The phase 4 evidence records
-`0xff6f3d62` for its own run; `git diff 32e1044f..HEAD` touches only client and
-conductor files, so no simulation change separates the two — the earlier figure
-was captured during the value sweep rather than at the checkpoint, and the tip
-value above is the authoritative one.
+The trace hash at the tip is `0xb6cce858` for `bun run trace --seed 20261111
+--check` (17 landed blows, 8 owned / 9 rival). The phase 4 and phase 5 evidence
+files record `0xff6f3d62`, which is `trace.test.ts`'s own pinned fixture
+(`wind_falcon v water_axolotl`) — a different pair, not a different tree.
+`git diff 32e1044f..HEAD` touches only client and conductor files, so the
+simulation has not moved since the phase 4 checkpoint.
 
 ## Acceptance criteria
 

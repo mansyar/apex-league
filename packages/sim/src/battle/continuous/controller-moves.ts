@@ -252,10 +252,11 @@ export function backingShot(
  * into it is the movement's job. The inner edge is read at the gap the blow
  * will be standing at when its active frame opens, because that is the gap the
  * swing or the launch resolves against: committing while closing used to put
- * the blow inside its own blind spot. A row that authors no dead zone reads the
- * inner edge against the gap now, exactly as before the interval existed, so
- * FR-1's "no dead zone" is the old chooser and a sub-contact probe still reads
- * outside the interval.
+ * the blow inside its own blind spot. A row that authors no dead zone keeps the
+ * outer test and gains the contact floor as its inner edge — the two body radii
+ * apart — so FR-1's "no dead zone" is the old chooser everywhere the old one
+ * resolved, and only a sub-contact clinch (a gap below the two radii, which the
+ * solver's separation pass keeps from persisting) reads outside the interval.
  */
 function inReach(
   me: FighterState,
