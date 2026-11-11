@@ -14,13 +14,16 @@
 - **Covers:** FR-1, FR-2, AC-1, AC-2
 - **Touches:** `packages/sim/scripts/battle-trace.ts`, `packages/sim/src/battle/continuous/balance-report.test.ts`, co-located tests
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** ef6ee61d
+- **Evidence:** conductor/tracks/20261111-kite-verdict/verification/phase-1.md
 
-- [ ] **P1.T1: Baseline the probe** — covers: FR-1
-  - [ ] **P1.T1.1: Record wins and paid dodges per fight on pinned seeds.**
-- [ ] **P1.T2: Name the mechanism** — covers: FR-2
-  - [ ] **P1.T2.1: Cite gap, timing, and fence traces for the loss.**
-  - [ ] **P1.T2.2: Rule dodge volume in or out as the cause.**
+- [x] **P1.T1: Baseline the probe** — covers: FR-1
+  - [x] **P1.T1.1: Record wins and paid dodges per fight on pinned seeds.**
+- [x] **P1.T2: Name the mechanism** — covers: FR-2
+  - [x] **P1.T2.1: Cite gap, timing, and fence traces for the loss.**
+  - [x] **P1.T2.2: Rule dodge volume in or out as the cause.**
 
 ## Phase 2: Lever Experiments
 

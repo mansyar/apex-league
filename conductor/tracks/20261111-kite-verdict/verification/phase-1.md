@@ -120,3 +120,24 @@ formatting and was deliberately not touched.
   paid/fight) and 3/6 dodge-probe (15.17 paid/fight).
 - Commit `dodgeProbeFights` naming mirrors the report's "dodge probe"
   (R1, F2) fixture: hound vs tortoise, opponent press.
+
+## Primary verification
+
+- `bun run verify` exit 0 (log `.conductor/evidence/vK1.log`): 4113 pass,
+  1 skip, 0 fail across 4114 tests / 373 files; the single `smoke fail`
+  line is the known environmental non-http(s) URL probe, not a test
+  failure. Determinism gate byte-identical.
+- `bun run build` exit 0 (log `.conductor/evidence/bK1.log`).
+- Range `85f8b4a0..HEAD`: `f81fbea0` (probe recording, reported),
+  `87a5c042` (evidence, reported), `ef6ee61d` (primary-owned biome format
+  of `metadata.json` — content-identical, single-line to pretty-printed).
+  NOT squashed: the range holds the primary's unreported formatting
+  commit, so the task commits are kept and the reason recorded here.
+- AC-1: per-fight wins and paid dodges pinned on seeds 20261109/10/11 ×
+  both orders in `controller-kite.test.ts` (`probeFights`,
+  `dodgeProbeFights`), cross-checked against the balance report in the
+  same run. AC-2: mechanism named "lost in the approach" with gap
+  (~88% of steps below the 1600 floor), timing (half the press output),
+  and dodge/stamina/fence ruled out by trace reads — evidence §FR-2.
+- No production, pacing, doctrine, or bounds changes; all files inside
+  Touches plus the evidence file.
