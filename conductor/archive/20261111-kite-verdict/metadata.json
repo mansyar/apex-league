@@ -1,6 +1,6 @@
 {
-  "archive_path": null,
-  "archived_at": null,
+  "archive_path": "conductor/archive/20261111-kite-verdict",
+  "archived_at": "2026-11-11T18:30:00+11:00",
   "base_branch": "main",
   "base_sha": "16fae61e77468c6d9d0e7e7a62e17b008d2266a0",
   "branch": "feat/20261111-kite-verdict",
@@ -10,8 +10,8 @@
   "id": "20261111-kite-verdict",
   "last_checkpoint": "b82214cf",
   "plan": "conductor/tracks/20261111-kite-verdict/plan.md",
-  "pr_state": null,
-  "pr_url": null,
+  "pr_state": "merged_pending",
+  "pr_url": "https://github.com/mansyar/apex-league/pull/70",
   "priority": "high",
   "progress": {
     "phases_total": 3,
@@ -25,7 +25,7 @@
   "review_rounds": 1,
   "review_verdict": "PASS WITH FINDINGS",
   "spec": "conductor/tracks/20261111-kite-verdict/spec.md",
-  "status": "in_progress",
+  "status": "complete",
   "title": "Kite Verdict",
   "type": "feature",
   "updated_at": "2026-11-11T18:20:00+11:00"
