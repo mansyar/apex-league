@@ -434,6 +434,15 @@ export interface BalanceSample {
      */
     readonly reference: readonly SpeciesRow[]
     /**
+     * The reference pass's own cap share (FR-7): how many of the same fights,
+     * replayed at the equal-investment line, ran out the clock. A diagnostic
+     * printed beside the reference-line table; it gates nothing.
+     */
+    readonly referenceCap: {
+      readonly count: number
+      readonly total: number
+    }
+    /**
      * Share of ordered pairings whose winner changes across the sample's seeds
      * (FR-21, P10.T3.1). A floor, not a ceiling: a fight that plays the same way
      * every time it is dealt is a fight with no variance to read.
@@ -627,6 +636,8 @@ export function measure(options: MeasureOptions = {}): BalanceSample {
   let time = 0
   let draws = 0
   let matchups = 0
+  /** Fights in the reference pass that ended at the cap (FR-7). */
+  let referenceTime = 0
 
   for (const home of roster) {
     for (const away of roster) {
@@ -679,6 +690,10 @@ export function measure(options: MeasureOptions = {}): BalanceSample {
         )
         const refResult = resolveContinuous(homeRef, awayRef, seed)
         const refWinner = winnerOf(refResult, homeRef, awayRef)
+        // FR-7: the reference pass already ran, so its cap share costs one
+        // counter. A `time` ending is a fight that ran to `FIGHT_CAP_MS`; it
+        // is printed beside the reference-line table and gates nothing.
+        if (refResult.reason === "time") referenceTime += 1
         for (const side of [0, 1] as const) {
           const species = side === 0 ? home : away
           const tally = referenceTallies.get(species.id)
@@ -798,6 +813,7 @@ export function measure(options: MeasureOptions = {}): BalanceSample {
       seeds: MATRIX_SEEDS,
       species,
       reference,
+      referenceCap: { count: referenceTime, total: matchups },
       diversity: pairingWinners.size === 0 ? 0 : diverse / pairingWinners.size,
     },
     doctrines,
@@ -1311,6 +1327,13 @@ export function report(sample: BalanceSample): string[] {
       `finding: reference-line spread ${lowest.id} ${pct(lowest.rate)} .. ${highest.id} ${pct(highest.rate)} at equal investment — kit shape, not stats, dominates (FR-22 diagnostic, recorded not gated)`,
     )
   }
+  // FR-7: the same pass's clock endings. One line, no bound, no target — the
+  // reference line stays a diagnostic, and this is the only new thing said
+  // about it.
+  const referenceCap = sample.matrix.referenceCap
+  lines.push(
+    `reference line cap share: ${referenceCap.count}/${referenceCap.total} (${pct(referenceCap.total === 0 ? 0 : referenceCap.count / referenceCap.total)}) — diagnostic only`,
+  )
   lines.push("")
 
   const probeByDoctrine = new Map(

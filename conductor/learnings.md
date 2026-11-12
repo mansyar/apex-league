@@ -529,3 +529,55 @@ failure, and it is what made withdrawing the fix cheap instead of embarrassing.
 And when a gate fails, check whether the thing it is complaining about is a
 feature with a cost before treating it as a defect - the honest fix may be the
 measurement, not the species.
+
+## 27. A required check cannot be path-filtered, so gate the steps and not the workflow
+
+`paths-ignore: ['conductor/**']` on a `pull_request` trigger reads like "don't run
+CI for docs". What it actually does is create **no run at all**, and a required
+status check that is never created can never pass - the PR sits at "Expected —
+waiting" forever and merges only by an admin bypass. Removing the filter is the
+obvious fix and costs a full gate on every typo fix in a spec.
+
+The shape that works: trigger on every PR, diff the branch against its base in a
+cheap step, and put `if: steps.scope.outputs.code == 'true'` on each heavy step.
+Keep the *job name* identical so the ruleset needs no edit, and make the job
+always run so the check always reaches a conclusion - a job skipped by `if:`
+reports "Skipped", which required checks handle badly, while a job that runs and
+skips its steps reports a clean success. Make every ambiguous case fall through to
+"run": no PR, an unresolvable base, a failed diff. The saving is a runner spin-up
+instead of three minutes.
+
+The corollary is worth knowing before you plan the proof: a `pull_request`
+workflow executes from the PR's **merge commit**, so a PR that changes the trigger
+runs the new workflow *and* is a code PR by construction. **You cannot prove a
+workflow change from inside the PR that makes it.** Prove the decision logic
+locally against real diffs, then run the live case one merge later against a base
+that already carries the change - and say so in the plan instead of discovering it
+during verification.
+
+## 28. A fixture's pairing walk is a variable, and it is the one nobody measures
+
+Two harnesses measured "how often does a fight run out the clock" and disagreed:
+the 42-fight fixture said 47.6%, the 840-fight matrix said 26.7%. The obvious
+explanation was two known differences - the fixture fights reference-stat bodies
+while the matrix fights bounds midpoints, and the fixture runs press-versus-kite
+while the matrix runs press on both sides. Both were real and both were
+measurable: the stat basis is worth 28.6 points, doctrine 7.1, and they interact
+by -11.9, so quoting either alone would have been wrong.
+
+But those four cells only decompose the same-pairing gap. A second gap - the
+fixture against the matrix, 47.6% against 26.7% - had a leftover, and the
+temptation was to label it "population" and move on. Instead the leftover was
+split: the same 42 pairings, over 168 fights, with the matrix's own seeds, read
+17.9% against cell D's 11.9%, so about six of the fourteen points were simply one
+seed per pairing, and the remaining eight or so (z ≈ -2.6) were the **walk
+itself** - which pairings the fixture chooses. That is worth more than the
+doctrine effect at the fixture's stats (7.1 points) and less than the same
+doctrine effect at the matrix's (19.0), which is exactly why the anchor has to be
+named before the comparison is made.
+
+The general lesson: when two samples of "the same thing" disagree, enumerate every
+difference in how they were built, including the boring ones (which pairs, which
+seeds, which stat line, which doctrine), then test the residual instead of naming
+it. A deterministic fixture is reproducible and still biased; reproducibility is
+not representativeness.

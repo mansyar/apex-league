@@ -256,11 +256,32 @@ Phased delivery plan (each phase is independently playable):
       rule, and the gate reads 20/42 (47.6%) against a 21/42 target with every
       other bound untouched. No simulation code changed and `SIM_VERSION` stays 3.
       Still owed: the one-in-three target (20/42), the global throughput
-      shortfall, the kite band at `spd 5`, and the fact that the fixture is not a
-      sample of the matrix's fight population — reference-stat bodies against
-      bounds midpoints, and a press-versus-kite doctrine mix against the matrix's
-      press-versus-press — an attribution the track deliberately left unmeasured
-      (47.6% vs 26.7%).
+      shortfall, and the kite band at `spd 5`.
+      **Audited 2026-11-13:** the fixture-versus-matrix gap is now decomposed
+      instead of guessed. On the fixture's 42 pairings the four cells read 47.6%
+      (reference stats, press-versus-kite), 40.5% (reference, press-versus-press),
+      31.0% (midpoints, press-versus-kite) and 11.9% (midpoints,
+      press-versus-press); the balance report's own reference pass over 840
+      fights reads 44.9%. The **stat basis** is therefore worth 28.6 points at
+      press doctrine (18.2 on the 840-fight population) against **7.1 points for
+      the doctrine mix** at reference stats — and the two do not add: doctrine is
+      worth 19.0 points once the stats sit at midpoints, so 11.9 points of the
+      35.7-point gap is interaction. That 35.7 is cell A against cell D and is
+      fully accounted for by the cells; a second, different gap is the fixture
+      against the matrix (47.6% against 26.7% = 20.9 points), and the 14.8-point
+      part of it that sits between cell D and the matrix was measured rather than
+      assumed: the same 42 pairings over 168 fights with the matrix's own seeds
+      read 17.9%, so ~6.0 of those points are just one seed per pairing and the
+      remaining ~8.8 (z ≈ −2.6) are the pairing walk, a systematically more
+      decisive subset than the roster — every telemetry bound therefore describes
+      that walk, and re-stratifying it is a gate redesign with its own
+      before/after, not a fix to smuggle in.
+      **Infrastructure, same date:** the CI gate now triggers on every pull
+      request and skips its heavy steps when the diff touches only `conductor/`.
+      A workflow-level path filter had meant a conductor-only PR created no run at
+      all — so the required check never existed and such a PR could only merge by
+      an admin bypass this project forbids. The gate now always reports, and a
+      docs-only PR costs a runner spin-up instead of the full gate.
 
 ### Phase 3 — Content & Meta
 - Roster to 20-40 species across 6 types; rare tournament reward eggs.

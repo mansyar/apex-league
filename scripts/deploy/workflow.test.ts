@@ -154,6 +154,51 @@ describe("the job can run the pinned wrangler", () => {
   })
 })
 
+describe("the CI gate always reports", () => {
+  // `conductor/**` in a `paths-ignore` filter makes GitHub create no run at all
+  // for a conductor-only PR, so the required check never exists and the PR can
+  // only merge by an admin bypass this project forbids. The saving belongs
+  // inside the job, not in the trigger: the `scope` step decides, and every
+  // heavy step is gated on it. These three assertions are the regression fence,
+  // because the failure mode - no run at all - is invisible from a green badge.
+  const ci = readFileSync(
+    join(import.meta.dir, "../../.github/workflows/ci.yml"),
+    "utf8",
+  )
+
+  test("never filters the pull request trigger by path", () => {
+    // The key, not the word: the header comment explains the filter by name.
+    expect(/^\s+paths-ignore:/m.test(ci)).toBe(false)
+  })
+
+  test("has no duplicate push trigger", () => {
+    // Every merge re-ran the same gate on a tree the pull request had already
+    // verified. `nightly.yml` covers determinism and fuzz on main.
+    expect(/^\s{2}push:/m.test(ci)).toBe(false)
+  })
+
+  test("gates every step after the scope step on the scope output", () => {
+    const gate = "if: steps.scope.outputs.code == 'true'"
+    const steps = ci
+      .split(/^ {6}- /m)
+      .slice(1)
+      .map((block) => block.trim())
+    expect(steps.length).toBeGreaterThanOrEqual(7)
+    const unconditional = steps.filter(
+      (step) =>
+        step.startsWith("name: Check out") || step.startsWith("id: scope"),
+    )
+    expect(unconditional.length).toBe(2)
+    for (const step of steps) {
+      if (unconditional.includes(step)) {
+        expect(step).not.toContain(gate)
+      } else {
+        expect(step).toContain(gate)
+      }
+    }
+  })
+})
+
 describe("the runtime can actually typecheck", () => {
   // `bun check` is the type checker the three workspace `check` scripts call
   // (`"check": "bun check"` in each package.json), and it is what

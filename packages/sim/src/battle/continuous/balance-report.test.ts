@@ -185,6 +185,32 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     expect(text).toContain("reference line (diagnostic")
   })
 
+  // FR-7: the report already replays the whole matrix at the reference line, so
+  // it can say how many of those fights ran out the clock. It is a diagnostic
+  // beside that table: no target, no bound, no gate.
+  test("the reference line prints its own cap share and it does not gate (FR-7)", () => {
+    const measured = sample()
+    const cap = measured.matrix.referenceCap
+    expect(cap.total).toBe(measured.matrix.fights)
+    expect(cap.count).toBeGreaterThanOrEqual(0)
+    expect(cap.count).toBeLessThanOrEqual(cap.total)
+    const lines = report(measured)
+    const line = lines.find((text) =>
+      text.startsWith("reference line cap share:"),
+    )
+    if (!line) throw new Error("the report lost the reference-line cap share")
+    expect(line).toContain(`${cap.count}/${cap.total} (`)
+    // A diagnostic is not a gate: it adds no target, and it has no ok/FAIL line.
+    expect(
+      targets(measured).some((target) => target.name.includes("reference")),
+    ).toBe(false)
+    expect(
+      lines.some((text) =>
+        /^(ok|FAIL|UNVERIFIED).*reference line cap share/.test(text),
+      ),
+    ).toBe(false)
+  })
+
   test("a species' stat bounds are a lever the gate can see (FR-22, AC-19)", () => {
     const id = "fire_drake"
     const species = ALL_SPECIES.find((def) => def.id === id)

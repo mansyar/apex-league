@@ -126,20 +126,66 @@ const CONTACT_MARGIN_MM = 40
 
 type StatLine = { hp: number; atk: number; def: number; spd: number }
 
+/** Which stat line a side is built from (FR-6). */
+export type StatBasis = "reference" | "midpoint"
+
+/** How the two sides' doctrines are assigned (FR-6). */
+export type DoctrineMix = "split" | "press"
+
+/**
+ * How one fight is measured (FR-6). Both fields default to the shipped
+ * fixture, so `measureFight(matchup)` is still the gate's own reading; the
+ * other three cells are reachable by asking for them.
+ */
+export interface MeasureOptions {
+  readonly statBasis?: StatBasis
+  readonly doctrine?: DoctrineMix
+}
+
 function clampStat(value: number, bounds: readonly [number, number]): number {
   return Math.min(bounds[1], Math.max(bounds[0], value))
 }
 
-/** A roster species as the side a cup slot would build. */
-function sideOf(species: SpeciesDef, tactic: Tactic): BattleSide {
-  const body = branchesForSpecies(species.id)[0]
-  const bounds = species.statBounds
-  const stats: StatLine = {
+/** The equal-investment line, clamped into a species' own roll bounds. */
+function referenceOf(bounds: SpeciesDef["statBounds"]): StatLine {
+  return {
     hp: clampStat(REFERENCE.hp, bounds.hp),
     atk: clampStat(REFERENCE.atk, bounds.atk),
     def: clampStat(REFERENCE.def, bounds.def),
     spd: clampStat(REFERENCE.spd, bounds.spd),
   }
+}
+
+/**
+ * A species' typical creature (FR-6): the integer midpoint of each authored
+ * roll range, per stat —
+ *
+ *     midpoint(bounds) = floor((min + max) / 2)
+ *
+ * which is the creature `battle-balance-report.ts` measures. The arithmetic is
+ * duplicated rather than imported because a script must not import another
+ * script; `fixture-audit.test.ts` asserts the two agree for every species, so
+ * the copy cannot drift silently.
+ */
+export function midpointOf(bounds: SpeciesDef["statBounds"]): StatLine {
+  return {
+    hp: Math.floor((bounds.hp[0] + bounds.hp[1]) / 2),
+    atk: Math.floor((bounds.atk[0] + bounds.atk[1]) / 2),
+    def: Math.floor((bounds.def[0] + bounds.def[1]) / 2),
+    spd: Math.floor((bounds.spd[0] + bounds.spd[1]) / 2),
+  }
+}
+
+/** A roster species as the side a cup slot would build, at a stated stat basis. */
+function sideOf(
+  species: SpeciesDef,
+  tactic: Tactic,
+  basis: StatBasis,
+): BattleSide {
+  const body = branchesForSpecies(species.id)[0]
+  const bounds = species.statBounds
+  const stats: StatLine =
+    basis === "midpoint" ? midpointOf(bounds) : referenceOf(bounds)
   return {
     name: species.displayName,
     id: species.id,
@@ -412,19 +458,32 @@ function replayOf(
 }
 
 /**
+ * The two sides' tactics under a doctrine mix (FR-6). `split` is the shipped
+ * rule — the seed's parity decides which side presses and which plays specials
+ * — and `press` puts the standard `balanced` tactic on both sides, which is
+ * what the balance matrix runs.
+ */
+function tacticsFor(seed: number, mix: DoctrineMix): [Tactic, Tactic] {
+  if (mix === "press") return ["balanced", "balanced"]
+  return seed % 2 === 0 ? ["balanced", "specials"] : ["specials", "balanced"]
+}
+
+/**
  * Measure one fight. Every number comes from the stream or the event log the
  * resolver already produced; the retreat tally replays the same decisions and
  * checks itself against the result before reporting.
  */
-export function measureFight(matchup: Matchup): FightTelemetry {
-  const homeSide = sideOf(
-    matchup.home,
-    matchup.seed % 2 === 0 ? "balanced" : "specials",
+export function measureFight(
+  matchup: Matchup,
+  options: MeasureOptions = {},
+): FightTelemetry {
+  const basis = options.statBasis ?? "reference"
+  const [homeTactic, awayTactic] = tacticsFor(
+    matchup.seed,
+    options.doctrine ?? "split",
   )
-  const awaySide = sideOf(
-    matchup.away,
-    matchup.seed % 2 === 0 ? "specials" : "balanced",
-  )
+  const homeSide = sideOf(matchup.home, homeTactic, basis)
+  const awaySide = sideOf(matchup.away, awayTactic, basis)
   const result = resolveContinuous(homeSide, awaySide, matchup.seed)
   const label = `${matchup.home.id} v ${matchup.away.id}`
   const stream: FightStream | undefined = streamOf(result)
@@ -598,7 +657,7 @@ export function pool(fights: readonly FightTelemetry[]): SampleTelemetry {
 
 /** Play the reference sample and pool its metrics. */
 export function measure(): SampleTelemetry {
-  return pool(matchups().map(measureFight))
+  return pool(matchups().map((matchup) => measureFight(matchup)))
 }
 
 /** The metric a bound constrains. */
