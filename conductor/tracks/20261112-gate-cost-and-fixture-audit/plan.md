@@ -54,17 +54,20 @@
 - **Covers:** FR-8, FR-9, FR-10, AC-8, AC-9, AC-10
 - **Touches:** `packages/sim/scripts/fixture-audit.ts` (new), `packages/sim/src/battle/continuous/fixture-audit.test.ts` (new), `package.json` (script entry only)
 - **Verification:** `bun run verify`, then `bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified — four cells measured on the same 42 pairings; the stat basis dominates (28.6 points against 7.1 for doctrine), 11.9 points of the gap is interaction, and the residual was measured to be the pairing set rather than seed noise
+- **Checkpoint:** d6de0094
+- **Evidence:** conductor/tracks/20261112-gate-cost-and-fixture-audit/verification/phase-3.md
 
-- [ ] **P3.T1: Write the four-cell audit script** — covers: FR-8
-  - [ ] **P3.T1.1: Run the same 42 pairings and seeds through all four (stat basis × doctrine) cells** — covers: FR-8
-  - [ ] **P3.T1.2: Print a table with cap count, cap share and duration per cell** — covers: FR-8
-- [ ] **P3.T2: Pin the cells so they cannot drift silently** — covers: FR-9
-  - [ ] **P3.T2.1: Assert cell 1 equals the telemetry gate's cap count exactly** — covers: FR-9, AC-8
-  - [ ] **P3.T2.2: Pin the other three readings with a comment naming what moved them** — covers: FR-9, AC-8
-- [ ] **P3.T3: Write the verdict** — covers: FR-10
-  - [ ] **P3.T3.1: Name which variable dominates, or state they are not separable and name the residual** — covers: FR-10, AC-9
-  - [ ] **P3.T3.2: Prove nothing about the game moved — trace hash `0xb6cce858`, `SIM_VERSION` 3, no bound or species value in the diff** — covers: AC-10
+- [x] **P3.T1: Write the four-cell audit script** — covers: FR-8
+  - [x] **P3.T1.1: Run the same 42 pairings and seeds through all four (stat basis × doctrine) cells** — covers: FR-8
+  - [x] **P3.T1.2: Print a table with cap count, cap share and duration per cell** — covers: FR-8
+- [x] **P3.T2: Pin the cells so they cannot drift silently** — covers: FR-9
+  - [x] **P3.T2.1: Assert cell 1 equals the telemetry gate's cap count exactly** — covers: FR-9, AC-8
+  - [x] **P3.T2.2: Pin the other three readings with a comment naming what moved them** — covers: FR-9, AC-8
+- [x] **P3.T3: Write the verdict** — covers: FR-10
+  - [x] **P3.T3.1: Name which variable dominates, or state they are not separable and name the residual** — covers: FR-10, AC-9
+  - [x] **P3.T3.2: Prove nothing about the game moved — trace hash `0xb6cce858`, `SIM_VERSION` 3, no bound or species value in the diff** — covers: AC-10
 
 <!--
 Acceptance appends (written by the primary, never by a phase agent):
