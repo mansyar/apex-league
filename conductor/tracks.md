@@ -46,3 +46,4 @@
 - [x] **Track: Kite Verdict** - [20261111-kite-verdict](./archive/20261111-kite-verdict/index.md) - feature - high
 - [x] **Track: Band Margins** — [20261111-band-margins](./archive/20261111-band-margins/index.md) — chore — high
 - [x] **Track: Minimum Reach** — [20261111-minimum-reach](./archive/20261111-minimum-reach/index.md) — feature — high
+- [x] **Track: Capshare Pacing** — [20261112-capshare-pacing](./archive/20261112-capshare-pacing/index.md) — chore — high

@@ -239,6 +239,28 @@ Phased delivery plan (each phase is independently playable):
      species, cap 26.7%, decisive 95.6%, 49/49 moves in band. The authored
      value is gate-limited to a narrow window (~85-99 mm), and `capShare` sits
      at 59.5% against a 60.0% ceiling — recorded as debt, not widened.
+   5. Cap-share pacing: the telemetry fixture measured its own composition.
+      **Landed 2026-11-12:** a diagnosis of all 25 time-outs showed nine were the
+      tortoise's own and sixteen were global throughput, and six identity-
+      preserving rungs then showed the tortoise cannot be helped from inside its
+      own data — the preferred kit reorder resolved none of the nine, and the
+      cheapest rung that resolved any took it to 65.2% and the matrix red. The
+      species sits at 52.7% on the 840-fight matrix *as an outlaster*, and a cap
+      win is an outlasting win, so its caps are its identity working: the fix was
+      withdrawn and an identity guard now pins `spd` `[3, 5]`, `temperament`,
+      `archetypeId` and its own six moves so no future pacing pass can delete the
+      species to make a number go down. The fixture itself was the defect: the old
+      walk had `gcd(5, 15) = 5`, so only three species ever appeared on the away
+      side and ten stalled pairings were replayed three times each. `matchups()`
+      now draws 42 **distinct** pairings, one seed each, by a written stride-11
+      rule, and the gate reads 20/42 (47.6%) against a 21/42 target with every
+      other bound untouched. No simulation code changed and `SIM_VERSION` stays 3.
+      Still owed: the one-in-three target (20/42), the global throughput
+      shortfall, the kite band at `spd 5`, and the fact that the fixture is not a
+      sample of the matrix's fight population — reference-stat bodies against
+      bounds midpoints, and a press-versus-kite doctrine mix against the matrix's
+      press-versus-press — an attribution the track deliberately left unmeasured
+      (47.6% vs 26.7%).
 
 ### Phase 3 — Content & Meta
 - Roster to 20-40 species across 6 types; rare tournament reward eggs.
