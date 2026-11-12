@@ -54,7 +54,7 @@
 - **Covers:** FR-8, FR-9, FR-10, AC-8, AC-9, AC-10
 - **Touches:** `packages/sim/scripts/fixture-audit.ts` (new), `packages/sim/src/battle/continuous/fixture-audit.test.ts` (new), `package.json` (script entry only)
 - **Verification:** `bun run verify`, then `bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Write the four-cell audit script** — covers: FR-8
   - [ ] **P3.T1.1: Run the same 42 pairings and seeds through all four (stat basis × doctrine) cells** — covers: FR-8
