@@ -90,5 +90,5 @@
 - [x] **R1.T10: Fix the dev-script count in the module-size comment** — covers: F10
 
 **Result:** verified — all ten findings fixed; no bound, species value or gate reading moved
-**Checkpoint:** <recorded below>
+**Checkpoint:** 97fe2469
 **Evidence:** conductor/tracks/20261112-gate-cost-and-fixture-audit/review.md
