@@ -24,7 +24,7 @@
   - [ ] **P1.T2.3: Leave the job's display name untouched, character for character** — covers: FR-4
 - [ ] **P1.T3: Record the before/after of the workflow in the evidence** — covers: AC-1, AC-2, AC-3
 
-> **Primary note:** the live proof (AC-4) needs `git push` and `gh`, which phase agents are forbidden. The primary performs the throwaway conductor-only PR as part of accepting this phase and appends it to `verification/phase-1.md`.
+> **Primary note:** the live proof (AC-4) needs `git push` and `gh`, which phase agents are forbidden — and it can only be run **after this track merges**. A `pull_request` workflow executes from the PR's merge commit, so a PR that changes `ci.yml` is a code PR by construction and exercises the full path only. The primary proves the decision logic locally while the track is open, then runs the throwaway conductor-only PR against the merged `main` and appends both to `verification/phase-1.md` and the archived evidence.
 
 ## Phase 2: Parameterise the harness without moving it
 

@@ -80,7 +80,7 @@ Two chores with one root cause: a number we trust was measuring the harness, and
 | AC-1 | `ci.yml` has no `paths-ignore` under `pull_request` and no `push` trigger, proven by reading the file in the evidence. | FR-1, FR-5 |
 | AC-2 | A scope step exists, every heavy step carries the skip condition, and the documented default on ambiguity is "run the full gate". | FR-2, FR-3 |
 | AC-3 | The job name string is byte-identical to today's, shown as a before/after diff line. | FR-4 |
-| AC-4 | A throwaway conductor-only PR reports the check **green**, with wall time recorded and ≤ 60 s. The PR is closed unmerged and its branch deleted. | FR-1, FR-2, NFR-1 |
+| AC-4 | A throwaway conductor-only PR reports the check **green**, with wall time recorded and ≤ 60 s. The PR is closed unmerged and its branch deleted. (Amended 2026-11-12: this proof is performed **immediately after merge**, not during the track. A `pull_request` workflow runs from the PR's merge commit, so any PR whose own diff contains `ci.yml` is a code PR by construction and exercises the full path only. The decision logic is proven locally inside the track; the live proof lands one merge later and is recorded in the archived evidence.) | FR-1, FR-2, NFR-1 |
 | AC-5 | This track's own PR runs every step, recorded in `verification/integrated.md` at PR time. | NFR-2 |
 | AC-6 | With defaults, `bun run telemetry` still reports 20/42 (47.6%) and all 14 bounds green. | FR-6, NFR-3 |
 | AC-7 | `bun run balance` still reports 26.7% cap share, and now also prints a reference-line cap share. | FR-7, NFR-3 |
@@ -95,7 +95,8 @@ Two chores with one root cause: a number we trust was measuring the harness, and
 - **A PR from a fork.** `fetch-depth: 0` makes the base commit reachable, so the diff works. If it does not, FR-3 applies and the full gate runs.
 - **`workflow_dispatch` on `main`.** No base ref exists; treated as ambiguous and the full gate runs.
 - **The diff command fails or the base is unknown.** Full gate. Never skip.
-- **An empty diff.** Treated as conductor-only: there is nothing to verify.
+- **An empty diff.** Runs the **full** gate. An empty diff is an anomaly, not evidence that there is nothing to verify, and the scope step's fail-safe direction is "run". (Corrected 2026-11-12: this entry previously said conductor-only, which contradicted FR-3's fail-safe rule and the shipped step.)
+- **Proving the change from inside the PR.** A `pull_request` workflow runs from the PR's **merge commit**, so a PR whose diff contains `ci.yml` runs the new workflow — and is simultaneously a code PR, so it can only exercise the full path. The skip path therefore cannot be proven by any PR that also changes the trigger; it is proven after merge. This is a property of GitHub's model, not a shortcut.
 - **The four cells do not add up to the gap.** The verdict must say the variables interact rather than pick a favourite.
 - **Cell 4 does not reproduce 26.7%.** Expected — different population (42 pairings versus 840). The residual is named, not explained away.
 - **The throwaway PR's check does not appear.** The phase fails; it is not waived with a note. This is the exact case the track exists to fix.
