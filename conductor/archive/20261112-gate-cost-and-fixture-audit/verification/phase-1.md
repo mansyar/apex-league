@@ -359,3 +359,60 @@ this file and to `verification/integrated.md` at that point.
 `ci.yml` line 100 still says "The same 14-matchup sample the suite pins", but the sample has been 42
 fights since `20261112-capshare-pacing`. The line is outside this phase's change and is left
 untouched rather than quietly edited; recorded as a follow-up.
+
+## The live proof — AC-4 and AC-5, run 2026-11-13 after merge
+
+Both criteria were deferred because a `pull_request` workflow executes from the PR's **merge commit**:
+any PR whose diff contains `ci.yml` is a code PR by construction and can only exercise the full path.
+They were therefore run one merge later, against `main` at `0a80c925`.
+
+### AC-5 — a code PR still runs every step
+
+PR [#74](https://github.com/mansyar/apex-league/pull/74) (this track) changed `ci.yml`, so the scope
+step read the whole PR diff, found code, and wrote `code=true`.
+
+| | |
+| --- | --- |
+| Check | `Verify (types, tests, biome, voxel determinism)` |
+| Result | **pass** |
+| Duration | **2m57s** |
+| Run | https://github.com/mansyar/apex-league/actions/runs/43177007721 |
+
+### AC-4 — a conductor-only PR reports green, ≤ 60 s
+
+A throwaway branch added one file, `conductor/gate-skip-proof.md`, and nothing else — a
+conductor-only diff by construction.
+
+| | |
+| --- | --- |
+| PR | [#75](https://github.com/mansyar/apex-league/pull/75) — closed unmerged, branch deleted |
+| Check | `Verify (types, tests, biome, voxel determinism)` |
+| Result | **pass** |
+| Duration | **13 s** |
+| Run | https://github.com/mansyar/apex-league/actions/runs/43178551827 |
+
+The required check exists, reports success, and satisfies a ruleset that keys on the job name — which
+is the whole point. The step list is the proof that the saving is real:
+
+| Step | Conclusion |
+| --- | --- |
+| Set up job | success |
+| Check out | success |
+| Decide whether the code gate applies | success |
+| Set up Bun | **skipped** |
+| Restore Bun package cache | **skipped** |
+| Install dependencies | **skipped** |
+| Run verify gate | **skipped** |
+| Run telemetry gate | **skipped** |
+| Post Check out | success |
+| Complete job | success |
+
+13 s against 2m57s is a **13.6× saving** on a documentation PR, and the job name is byte-identical to
+the pre-track one, so no ruleset edit was needed.
+
+### What this closes
+
+AC-4's live proof was the last open item on this track. With it recorded, every acceptance criterion
+has been met or explicitly amended: the workflow always reports, a conductor-only diff skips the heavy
+steps and says so, and the decision logic is proven both by the six-case shell reproduction in
+`review.md` and by this run on the real runner.

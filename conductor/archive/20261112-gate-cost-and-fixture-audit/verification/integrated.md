@@ -71,8 +71,8 @@ resolver file.
 | AC-1 — no path filter on `pull_request`, no `push` trigger | met (`ci.yml:20-23`) |
 | AC-2 — a `scope` step skips the heavy steps for a conductor-only diff, and runs on every ambiguity | met, after review F5: the first version read `grep -q`'s SIGPIPE and any grep error as "conductor-only" |
 | AC-3 — the job name is byte-identical | met (`ci.yml:34` against `7467753d`) |
-| AC-4 — a conductor-only PR reports green, wall time recorded, ≤ 60 s | **deferred to post-merge** (debt 1) |
-| AC-5 — a code PR still runs every step | **pending** — recorded at PR time, from this track's own run |
+| AC-4 — a conductor-only PR reports green, wall time recorded, ≤ 60 s | **met** — PR #75, `pass` in **13 s**, all five heavy steps skipped (run 43178551827) |
+| AC-5 — a code PR still runs every step | **met** — PR #74, `pass` in 2m57s with every step run (run 43177007721) |
 | AC-6 — telemetry and balance readings unchanged | met |
 | AC-7 — four cells recorded with a verdict | met |
 | AC-8 — cell A equals the gate's count by import | met |
@@ -81,11 +81,18 @@ resolver file.
 
 ## Debt and follow-ups
 
-**1. AC-3's live proof is structurally post-merge.** A `pull_request` workflow runs from the PR's
-merge commit, so any PR whose diff contains `ci.yml` runs the new workflow *and* is a code PR by
-construction — it can only exercise the full path. The decision logic was proven locally for five
-diff shapes inside the track; the live conductor-only run is performed immediately after this track
-merges, against a `main` that already carries the workflow, and appended here.
+**1. AC-3's live proof is structurally post-merge — now run and closed.** A `pull_request` workflow
+runs from the PR's merge commit, so any PR whose diff contains `ci.yml` runs the new workflow *and* is
+a code PR by construction — it can only exercise the full path. The decision logic was proven locally
+for six diff shapes inside the track (see `review.md`, which also reproduces the fail-open the first
+version had). The live conductor-only run was then performed against `main` at `0a80c925`:
+
+| PR | Diff | Check | Duration | Steps |
+| --- | --- | --- | --- | --- |
+| [#74](https://github.com/mansyar/apex-league/pull/74) | `ci.yml` + conductor | `pass` | 2m57s | all run |
+| [#75](https://github.com/mansyar/apex-league/pull/75) | conductor only | `pass` | **13 s** | five heavy steps skipped |
+
+PR #75 was closed unmerged and its branch deleted. Details in `verification/phase-1.md`.
 
 **2. The 42-pairing walk is a biased subset — measured, not assumed, and not the whole residual.**
 The subagent's verdict called the 14.8-point gap between cell D (11.9%) and the matrix (26.7%)
