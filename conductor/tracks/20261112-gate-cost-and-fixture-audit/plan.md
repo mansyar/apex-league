@@ -13,7 +13,7 @@
 - **Covers:** FR-1, FR-2, FR-3, FR-4, FR-5, AC-1, AC-2, AC-3
 - **Touches:** `.github/workflows/ci.yml`
 - **Verification:** `bun run verify`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Trigger on every PR and drop the duplicate push run** — covers: FR-1, FR-5
   - [ ] **P1.T1.1: Remove `paths-ignore` from `pull_request` and remove the `push` trigger, adding `workflow_dispatch`** — covers: FR-1, FR-5
