@@ -36,13 +36,16 @@
 - **Covers:** FR-6, FR-7, AC-6, AC-7
 - **Touches:** `packages/sim/scripts/battle-telemetry.ts`, `packages/sim/scripts/battle-balance-report.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`, `packages/sim/src/battle/continuous/balance-report.test.ts`
 - **Verification:** `bun run telemetry`, then `bun run balance`, then `bun run verify`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified — both parameters landed with frozen defaults; the reference pass's own cap share (377/840, 44.9%) came free and already isolates the stat axis
+- **Checkpoint:** 9bc1dd72
+- **Evidence:** conductor/tracks/20261112-gate-cost-and-fixture-audit/verification/phase-2.md
 
-- [ ] **P2.T1: Give `measureFight` optional stat-basis and doctrine parameters** — covers: FR-6
-  - [ ] **P2.T1.1: Default to the shipped behaviour and prove it — 20/42 (47.6%) and all 14 bounds unchanged** — covers: FR-6, AC-6
-  - [ ] **P2.T1.2: Build midpoint sides the same way the balance report does, so the two harnesses agree on what "midpoint" means** — covers: FR-6
-- [ ] **P2.T2: Print a reference-line cap share in the balance report** — covers: FR-7
-  - [ ] **P2.T2.1: Add the line to the existing reference-line block only — no bound, no gate, no new failure mode** — covers: FR-7, AC-7
+- [x] **P2.T1: Give `measureFight` optional stat-basis and doctrine parameters** — covers: FR-6
+  - [x] **P2.T1.1: Default to the shipped behaviour and prove it — 20/42 (47.6%) and all 14 bounds unchanged** — covers: FR-6, AC-6
+  - [x] **P2.T1.2: Build midpoint sides the same way the balance report does, so the two harnesses agree on what "midpoint" means** — covers: FR-6
+- [x] **P2.T2: Print a reference-line cap share in the balance report** — covers: FR-7
+  - [x] **P2.T2.1: Add the line to the existing reference-line block only — no bound, no gate, no new failure mode** — covers: FR-7, AC-7
 
 ## Phase 3: The four cells and the verdict
 

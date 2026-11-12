@@ -324,4 +324,41 @@ balance report's own `typicalLine`.
   design band, the significance rule.
 - Species data, frame data, the resolver, `SIM_VERSION`, the trace hash.
 - No gate, no `ok`/`FAIL` line, no new `Metric`, no new target.
-- `spec.md`, `plan.md`, `metadata.json`, `tracks.md` — untouched.
+- `spec.md`, `plan.md`, `metadata.json`, `tracks.md` - untouched.
+
+---
+
+## Primary verification
+
+### Commands
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `bun run telemetry` | 0 | `cap share: 20/42 (47.6%)`, `dead zone: 27 commits (2.9%)`, 14/14 `ok`, every observed value identical to the pre-phase table |
+| `bun run balance` | 0 | `cap share: 224/840 (26.7%)`, `decisive share: 803/840 (95.6%)`, `median 31.21s`, `49/49` moves in band, one new diagnostic line: `reference line cap share: 377/840 (44.9%)` |
+| `bun run verify` | 0 | 4,153 pass / 1 skip / 0 fail (two added, none re-pinned), Biome clean, determinism byte-identical |
+
+### Diff review
+
+Five files: the two scripts, their two test files, and this evidence file. `git diff --stat` = 476
+insertions / 14 deletions, of which 327 are this file. No species data, frame data, resolver,
+`SIM_VERSION`, `BOUNDS` value, `PAIRINGS`, `SEEDS_PER_PAIRING` or `REFERENCE` value moved.
+
+The one subtle thing the subagent got right and worth recording: `matchups().map(measureFight)`
+would have passed the array index as the new second argument, silently turning `options` into `0`.
+It wrapped that call site so the default path cannot be reached with a stray index. That is exactly
+the class of bug a "defaults must not move" refactor invites, and it was caught before commit.
+
+### The first number of the audit
+
+`reference line cap share: 377/840 (44.9%)` is not decoration - it is half of the factorial already.
+The report's reference pass fights **reference stats with one doctrine on both sides**, so:
+
+| Basis | Doctrine | Cap share | Source |
+| --- | --- | --- | --- |
+| reference | press vs press | **44.9%** (377/840) | this phase |
+| midpoint | press vs press | **26.7%** (224/840) | the matrix, unchanged |
+
+Holding doctrine fixed, moving the stat line from bounds midpoints to the reference line adds
+**18.2 points** of cap share. Phase 3 measures the other axis on the fixture's 42 pairings and can
+now attribute the 47.6%-vs-26.7% gap instead of guessing at it.
