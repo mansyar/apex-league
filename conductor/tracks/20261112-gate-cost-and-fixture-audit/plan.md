@@ -13,16 +13,19 @@
 - **Covers:** FR-1, FR-2, FR-3, FR-4, FR-5, AC-1, AC-2, AC-3
 - **Touches:** `.github/workflows/ci.yml`
 - **Verification:** `bun run verify`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified — the workflow always triggers, the scope step gates every heavy step, and the decision logic is proven for five diff shapes; AC-4's live run is post-merge by construction
+- **Checkpoint:** cb0a26f0
+- **Evidence:** conductor/tracks/20261112-gate-cost-and-fixture-audit/verification/phase-1.md
 
-- [ ] **P1.T1: Trigger on every PR and drop the duplicate push run** — covers: FR-1, FR-5
-  - [ ] **P1.T1.1: Remove `paths-ignore` from `pull_request` and remove the `push` trigger, adding `workflow_dispatch`** — covers: FR-1, FR-5
-  - [ ] **P1.T1.2: Confirm no other workflow relied on the `push` run** — `deploy.yml` triggers independently on `push`; `nightly.yml` is a cron; nothing gates on `ci.yml`'s push job
-- [ ] **P1.T2: Skip the heavy steps for a conductor-only diff** — covers: FR-2, FR-3, FR-4
-  - [ ] **P1.T2.1: Add a scope step that diffs the branch against its base and writes `code=true|false`** — covers: FR-2
-  - [ ] **P1.T2.2: Gate setup-bun, the cache, install, `verify` and `telemetry` on that output, defaulting to "run" on any ambiguity** — covers: FR-3
-  - [ ] **P1.T2.3: Leave the job's display name untouched, character for character** — covers: FR-4
-- [ ] **P1.T3: Record the before/after of the workflow in the evidence** — covers: AC-1, AC-2, AC-3
+- [x] **P1.T1: Trigger on every PR and drop the duplicate push run** — covers: FR-1, FR-5
+  - [x] **P1.T1.1: Remove `paths-ignore` from `pull_request` and remove the `push` trigger, adding `workflow_dispatch`** — covers: FR-1, FR-5
+  - [x] **P1.T1.2: Confirm no other workflow relied on the `push` run** — `deploy.yml` triggers independently on `push`; `nightly.yml` is a cron; nothing gates on `ci.yml`'s push job
+- [x] **P1.T2: Skip the heavy steps for a conductor-only diff** — covers: FR-2, FR-3, FR-4
+  - [x] **P1.T2.1: Add a scope step that diffs the branch against its base and writes `code=true|false`** — covers: FR-2
+  - [x] **P1.T2.2: Gate setup-bun, the cache, install, `verify` and `telemetry` on that output, defaulting to "run" on any ambiguity** — covers: FR-3
+  - [x] **P1.T2.3: Leave the job's display name untouched, character for character** — covers: FR-4
+- [x] **P1.T3: Record the before/after of the workflow in the evidence** — covers: AC-1, AC-2, AC-3
 
 > **Primary note:** the live proof (AC-4) needs `git push` and `gh`, which phase agents are forbidden — and it can only be run **after this track merges**. A `pull_request` workflow executes from the PR's merge commit, so a PR that changes `ci.yml` is a code PR by construction and exercises the full path only. The primary proves the decision logic locally while the track is open, then runs the throwaway conductor-only PR against the merged `main` and appends both to `verification/phase-1.md` and the archived evidence.
 
