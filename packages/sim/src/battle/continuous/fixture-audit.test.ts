@@ -12,13 +12,15 @@
  */
 
 import { describe, expect, test } from "bun:test"
-import { BOUNDS, measure } from "../../../scripts/battle-telemetry"
+import { typicalLine } from "../../../scripts/battle-balance-report"
+import { BOUNDS, measure, midpointOf } from "../../../scripts/battle-telemetry"
 import {
   attribution,
   audit,
   type CellReading,
   report,
 } from "../../../scripts/fixture-audit"
+import { ALL_SPECIES } from "../../species/catalog"
 
 /** Four cells x 42 fights: measure them once for the whole file. */
 let cached: CellReading[] | undefined
@@ -103,5 +105,23 @@ describe("fixture audit — the four cells and the attribution (FR-8, FR-9)", ()
       split.statAtSplitPoints - split.statPoints,
       10,
     )
+  })
+})
+
+describe("the two harnesses agree on what a midpoint is (FR-6)", () => {
+  // `battle-telemetry.ts` and `battle-balance-report.ts` each write the same
+  // `floor((min + max) / 2)` arithmetic, because a script must not import
+  // another script. The copy is one line and it decides whether the fixture's
+  // midpoint cells describe the matrix's bodies at all, so it is asserted
+  // rather than trusted: if either side changes its rounding, the audit's
+  // attribution silently stops meaning what it says.
+  test("midpointOf matches typicalLine for every species", () => {
+    expect(ALL_SPECIES.length).toBeGreaterThan(0)
+    for (const species of ALL_SPECIES) {
+      expect(
+        midpointOf(species.statBounds),
+        `${species.id}: the two midpoint helpers disagree`,
+      ).toEqual(typicalLine(species.statBounds))
+    }
   })
 })

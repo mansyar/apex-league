@@ -188,11 +188,12 @@ A  conductor/tracks/.../verification/phase-3.md
 ## 6. What this changes about D-1 and D-2
 
 **D-1 (global pacing).** The fixture's 47.6% is mostly a property of its stat line, not of the game's
-pacing. Twenty-eight of the 35.7 points that separate the fixture from the matrix cell come from
+pacing. Twenty-eight of the 35.7 points that separate cell A from the same-pairing cell D come from
 ramping both sides to `REFERENCE` and clamping that up into each species' bounds, which makes creatures
 beefier than the midpoint creature the matrix fights and pushes fights into the 40 s cap. The real
 pacing debt is therefore the **26.7% at midpoints**, not the 47.6% the fixture reports: the fixture
-overstates it by 2.2× against the matrix and by 4× against the same-pairing cell D (11.9%). Two
+overstates it by 1.8× against the matrix (47.6 / 26.7) and by 4.0× against the same-pairing cell D
+(47.6 / 11.9). Two
 consequences follow. First, the telemetry fixture's cap share should stop being read as a pacing
 signal on its own — it is a signal about the stat line, and it passes its own 60% ceiling comfortably
 while the game at midpoints sits at 26.7%. Second, any work on D-1 should be measured on the matrix
@@ -280,6 +281,27 @@ More seeds do not close it. The 42 strided pairings stay near 16–18% against t
 even at 168 fights, so the residual is the **pairing set**, not seed noise and not either of the two
 variables under test. Cell A was re-run through the same harness in the same pass and returned
 20/42, confirming the harness call is right and the D reading is not a bug.
+
+**How to reproduce those three rows.** They came from a throwaway script (`.conductor/` is gitignored,
+so it is not committed); this is its whole body, and `fixture-audit.ts` deliberately has no seed flag
+so its default cell A cannot drift:
+
+```ts
+import { matchups, measureFight } from "./packages/sim/scripts/battle-telemetry"
+
+const MIDPOINT_PRESS = { statBasis: "midpoint", doctrine: "press" } as const
+const seeds = [20261109, 20261110, 20261111, 20261112] // the matrix's four
+const pairs = matchups()
+
+const one = pairs.filter(
+  (m) => measureFight(m, MIDPOINT_PRESS).reason === "time",
+).length // 5 / 42 = 11.9%
+
+const four = pairs.flatMap((m) =>
+  seeds.map((s) => measureFight({ ...m, seed: s }, MIDPOINT_PRESS)),
+)
+const capped = four.filter((f) => f.reason === "time").length // 30 / 168 = 17.9%
+```
 
 What this means, stated plainly: **the telemetry fixture's 42-pairing walk is a systematically more
 decisive subset than the 210-pair matrix at midpoint stats.** That is a property of the walk, not of

@@ -565,12 +565,16 @@ while the matrix runs press on both sides. Both were real and both were
 measurable: the stat basis is worth 28.6 points, doctrine 7.1, and they interact
 by -11.9, so quoting either alone would have been wrong.
 
-But the two variables did not account for the whole gap, and the temptation was to
-label the leftover "population" and move on. Instead the leftover was tested: the
-same 42 pairings, over 168 fights, with the matrix's own seeds, still read 17.9%
-against 26.7% (z ≈ -2.6). More seeds did not close it. The third variable was the
-**walk itself** - which pairings the fixture chooses - and it was worth more than
-the doctrine effect the review had been arguing about.
+But those four cells only decompose the same-pairing gap. A second gap - the
+fixture against the matrix, 47.6% against 26.7% - had a leftover, and the
+temptation was to label it "population" and move on. Instead the leftover was
+split: the same 42 pairings, over 168 fights, with the matrix's own seeds, read
+17.9% against cell D's 11.9%, so about six of the fourteen points were simply one
+seed per pairing, and the remaining eight or so (z ≈ -2.6) were the **walk
+itself** - which pairings the fixture chooses. That is worth more than the
+doctrine effect at the fixture's stats (7.1 points) and less than the same
+doctrine effect at the matrix's (19.0), which is exactly why the anchor has to be
+named before the comparison is made.
 
 The general lesson: when two samples of "the same thing" disagree, enumerate every
 difference in how they were built, including the boring ones (which pairs, which

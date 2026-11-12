@@ -65,14 +65,30 @@
 - [x] **P3.T2: Pin the cells so they cannot drift silently** — covers: FR-9
   - [x] **P3.T2.1: Assert cell 1 equals the telemetry gate's cap count exactly** — covers: FR-9, AC-8
   - [x] **P3.T2.2: Pin the other three readings with a comment naming what moved them** — covers: FR-9, AC-8
-- [x] **P3.T3: Write the verdict** — covers: FR-10
-  - [x] **P3.T3.1: Name which variable dominates, or state they are not separable and name the residual** — covers: FR-10, AC-9
-  - [x] **P3.T3.2: Prove nothing about the game moved — trace hash `0xb6cce858`, `SIM_VERSION` 3, no bound or species value in the diff** — covers: AC-10
+- [x] **P3.T3: Write the verdict** - covers: FR-10
+  - [x] **P3.T3.1: Name which variable dominates, or state they are not separable and name the residual** - covers: FR-10, AC-9
+  - [x] **P3.T3.2: Prove nothing about the game moved - trace hash `0xb6cce858`, `SIM_VERSION` 3, no bound or species value in the diff** - covers: AC-10
 
-<!--
-Acceptance appends (written by the primary, never by a phase agent):
+## Phase R1: Review Fixes
 
-**Result:** verified
-**Checkpoint:** <short-sha>
-**Evidence:** conductor/tracks/20261112-gate-cost-and-fixture-audit/verification/phase-1.md
--->
+- **Goal:** resolve the ten findings from review round 1 — six Medium, four Low — without moving a bound, a game value or the gate's own readings.
+- **Depends on:** Phase 3
+- **Covers:** F1–F10
+- **Touches:** `.github/workflows/ci.yml`, `scripts/deploy/workflow.test.ts`, `packages/sim/scripts/battle-telemetry.ts`, `packages/sim/src/battle/continuous/fixture-audit.test.ts`, `packages/sim/src/module-size.test.ts`, `conductor/tracks/20261112-gate-cost-and-fixture-audit/verification/{phase-2,phase-3,integrated}.md`, `conductor/product.md`, `conductor/learnings.md`
+- **Verification:** `bun test scripts/deploy/workflow.test.ts`, then `bun test packages/sim/src/battle/continuous/fixture-audit.test.ts`, then `bun run telemetry`, then `bun run verify`
+- **Status:** verified
+
+- [x] **R1.T1: Renumber the integrated AC table to the spec's IDs** — covers: F1
+- [x] **R1.T2: Fix the 14.8-point attribution in `product.md` and `learnings.md`** — covers: F2
+- [x] **R1.T3: Correct the 2.2× ratio to 1.8× against the matrix, 4.0× against cell D** — covers: F3
+- [x] **R1.T4: Align which population is the game's across the two evidence files** — covers: F4
+- [x] **R1.T5: Close the scope step's fail-open branch** — covers: F5
+- [x] **R1.T6: Assert the two midpoint helpers agree, or drop the claim** — covers: F6
+- [x] **R1.T7: Add the workflow regression assertions** — covers: F7
+- [x] **R1.T8: Stop pre-claiming the code-PR criterion** — covers: F8
+- [x] **R1.T9: Make the residual probe reproducible from the repo** — covers: F9
+- [x] **R1.T10: Fix the dev-script count in the module-size comment** — covers: F10
+
+**Result:** verified — all ten findings fixed; no bound, species value or gate reading moved
+**Checkpoint:** <recorded below>
+**Evidence:** conductor/tracks/20261112-gate-cost-and-fixture-audit/review.md

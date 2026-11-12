@@ -68,15 +68,15 @@ resolver file.
 
 | AC | Verdict |
 | --- | --- |
-| AC-1 — no path filter on `pull_request`, no `push` trigger | met |
-| AC-2 — the job name is byte-identical | met |
-| AC-3 — conductor-only PR reports green, wall time recorded, ≤ 60 s | **deferred to post-merge** (see below) |
-| AC-4 — a code PR still runs every step | met by this track's own PR |
-| AC-5 — `bun run verify` and `bun run build` green | met |
+| AC-1 — no path filter on `pull_request`, no `push` trigger | met (`ci.yml:20-23`) |
+| AC-2 — a `scope` step skips the heavy steps for a conductor-only diff, and runs on every ambiguity | met, after review F5: the first version read `grep -q`'s SIGPIPE and any grep error as "conductor-only" |
+| AC-3 — the job name is byte-identical | met (`ci.yml:34` against `7467753d`) |
+| AC-4 — a conductor-only PR reports green, wall time recorded, ≤ 60 s | **deferred to post-merge** (debt 1) |
+| AC-5 — a code PR still runs every step | **pending** — recorded at PR time, from this track's own run |
 | AC-6 — telemetry and balance readings unchanged | met |
 | AC-7 — four cells recorded with a verdict | met |
 | AC-8 — cell A equals the gate's count by import | met |
-| AC-9 — the verdict names the dominant variable in points | met |
+| AC-9 — the verdict names the dominant variable in points | met, after review F2/F4 corrected the attribution |
 | AC-10 — nothing about the game moved | met |
 
 ## Debt and follow-ups
@@ -87,13 +87,27 @@ construction — it can only exercise the full path. The decision logic was prov
 diff shapes inside the track; the live conductor-only run is performed immediately after this track
 merges, against a `main` that already carries the workflow, and appended here.
 
-**2. The 42-pairing walk is a biased subset — measured, not assumed.** The subagent's verdict called
-the 14.8-point residual between cell D (11.9%) and the matrix (26.7%) "population". That was tested
-rather than accepted: the same 42 pairings over 168 fights, using the matrix's own four seeds, read
-**17.9%** (z ≈ −2.6). More seeds do not close it, so the residual is the **pairing set**, not seed
-noise and not either variable. The telemetry fixture's walk is therefore systematically more decisive
-than the roster at midpoint stats. This does not invalidate the gate — it measures a fixed,
-deterministic sample and bounds it — but every telemetry bound describes *that walk*, not the roster.
+**2. The 42-pairing walk is a biased subset — measured, not assumed, and not the whole residual.**
+The subagent's verdict called the 14.8-point gap between cell D (11.9%) and the matrix (26.7%)
+"population". That was tested rather than accepted, and the test split it in two:
+
+| Run | Fights | Caps | Share |
+| --- | --- | --- | --- |
+| cell D, fixture seeds | 42 | 5 | 11.9% |
+| same 42 pairings, the matrix's four seeds | 168 | 30 | 17.9% |
+| the matrix itself (210 pairings, four seeds) | 840 | 224 | 26.7% |
+
+So **~6.0 of the 14.8 points are seed count** (11.9% → 17.9%) and **~8.8 are the pairing set**
+(17.9% → 26.7%, z ≈ −2.6). More seeds do not close the gap, which is what makes the pairing set the
+survivor — but most of the raw number is simply that the fixture fights one seed per pairing.
+
+Note the two gaps that are easy to confuse, because review F2 caught exactly that:
+- **Same pairings, both variables:** A − D = 47.6% − 11.9% = **35.7 points**, and the four cells
+  decompose it *exactly* (7.1 doctrine at reference stats + 28.6 stat basis at press doctrine). There
+  is no remainder here.
+- **Fixture versus matrix:** A − matrix = 47.6% − 26.7% = **20.9 points**, of which cell D to matrix
+  is the 14.8 above and the rest is the variables the cells already account for.
+
 Re-stratifying the walk is a gate redesign and belongs in its own track with its own before/after.
 
 **3. `ci.yml` line 100 is stale.** The telemetry step's comment still says "The same 14-matchup
@@ -101,10 +115,18 @@ sample the suite pins"; the sample has been 42 fights since `20261112-capshare-p
 untouched because it is outside this phase's change, and recorded rather than quietly fixed.
 
 **4. What this does to the two debts the previous track recorded.**
-- **D-1 (global pacing)** is resized. The honest figure for cup-representative stat lines is
-  **44.9%** cap share, not the fixture's 47.6%; for idealised midpoint bodies it is **26.7%**. The
-  shortfall is real at the reference line and absent at midpoints, which is a statement about
-  investment, not about the clock.
+- **D-1 (global pacing)** is resized, and the two figures must not be swapped. **26.7%** is the
+  number the project treats as the game's: it is the balance gate's own population, built on each
+  species' bounds midpoint, which `battle-balance-report.ts` calls "the creature a player would own
+  after a fair roll" (FR-22). **44.9%** is the equal-investment reference line — every side clamped
+  to `REFERENCE = { hp: 189, atk: 10, def: 10, spd: 10 }` — which the same file labels *diagnostic
+  only*. So the honest statement is: the shortfall is 26.7% at the basis the project measures the
+  game on, and 44.9% when both fighters are equal-investment bodies, which is a statement about
+  investment rather than about the clock. `verification/phase-3.md` reaches the same conclusion.
+  One loose thread, recorded not fixed: `battle-telemetry.ts` documents its `REFERENCE` as "what
+  `rampStats` builds for a real cup fight", but `rampStats` scales a rival against the *player's own*
+  effective stats, so neither fixed line is universally "the cup" — it depends on player investment.
+  A third population could be measured; this track did not.
 - **D-2 (the kite band at `spd 5`)** stays worth fixing, but it is **second**: doctrine is worth 7.1
   points at the fixture's stats and 19.0 at the matrix's, against 28.6 for the stat basis. Fixing it
   will not move the fixture's number much; it will move the game's.

@@ -60,11 +60,18 @@ jobs:
             echo "code=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          if printf '%s\n' "$files" | grep -qv '^conductor/'; then
-            echo "code=true" >> "$GITHUB_OUTPUT"
-          else
+          # Only a clean exit status of 1 ("every path is under conductor/") may
+          # skip. `grep -q` would exit on the first match and let `printf` die of
+          # SIGPIPE, which under `pipefail` reads as "no match" - a code PR
+          # silently skipping the gate. So drain the pipe, and treat a grep error
+          # (status 2) or any other status as "run".
+          status=0
+          printf '%s\n' "$files" | grep -v '^conductor/' > /dev/null || status=$?
+          if [ "$status" -eq 1 ]; then
             echo "code=false" >> "$GITHUB_OUTPUT"
             echo "Conductor-only change — the code gate does not apply." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "code=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Set up Bun

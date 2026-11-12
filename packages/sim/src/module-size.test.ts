@@ -140,8 +140,8 @@ describe("sim module size cap", () => {
   })
 
   test("walks the package's dev scripts and holds them to their own cap (R3)", () => {
-    // The five tools `bun run balance`, `telemetry`, `trace` and
-    // `fixture-audit` run by hand.
+    // The five dev scripts `bun run balance`, `telemetry`, `trace`,
+    // `fixture-audit` and `balance-probe` run by hand.
     // Enumerated, not globbed, so a new tool is a deliberate addition.
     const files = moduleFiles(SCRIPT_DIR, "scripts")
     expect(files.map((file) => file.path).sort()).toEqual([

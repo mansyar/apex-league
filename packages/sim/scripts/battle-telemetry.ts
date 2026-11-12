@@ -164,10 +164,10 @@ function referenceOf(bounds: SpeciesDef["statBounds"]): StatLine {
  *
  * which is the creature `battle-balance-report.ts` measures. The arithmetic is
  * duplicated rather than imported because a script must not import another
- * script; the fixture audit proves the two harnesses agree on what "midpoint"
- * means, and the matrix's own readings do not move.
+ * script; `fixture-audit.test.ts` asserts the two agree for every species, so
+ * the copy cannot drift silently.
  */
-function midpointOf(bounds: SpeciesDef["statBounds"]): StatLine {
+export function midpointOf(bounds: SpeciesDef["statBounds"]): StatLine {
   return {
     hp: Math.floor((bounds.hp[0] + bounds.hp[1]) / 2),
     atk: Math.floor((bounds.atk[0] + bounds.atk[1]) / 2),

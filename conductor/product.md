@@ -266,12 +266,16 @@ Phased delivery plan (each phase is independently playable):
       press doctrine (18.2 on the 840-fight population) against **7.1 points for
       the doctrine mix** at reference stats — and the two do not add: doctrine is
       worth 19.0 points once the stats sit at midpoints, so 11.9 points of the
-      35.7-point gap is interaction. The remaining 14.8 points are the pairing
-      walk itself, measured rather than assumed: the same 42 pairings over 168
-      fights with the matrix's own seeds still read 17.9% (z ≈ −2.6), so the
-      telemetry walk is a systematically more decisive subset than the roster and
-      every telemetry bound describes that walk. Re-stratifying it is a gate
-      redesign with its own before/after, not a fix to smuggle in.
+      35.7-point gap is interaction. That 35.7 is cell A against cell D and is
+      fully accounted for by the cells; a second, different gap is the fixture
+      against the matrix (47.6% against 26.7% = 20.9 points), and the 14.8-point
+      part of it that sits between cell D and the matrix was measured rather than
+      assumed: the same 42 pairings over 168 fights with the matrix's own seeds
+      read 17.9%, so ~6.0 of those points are just one seed per pairing and the
+      remaining ~8.8 (z ≈ −2.6) are the pairing walk, a systematically more
+      decisive subset than the roster — every telemetry bound therefore describes
+      that walk, and re-stratifying it is a gate redesign with its own
+      before/after, not a fix to smuggle in.
       **Infrastructure, same date:** the CI gate now triggers on every pull
       request and skips its heavy steps when the diff touches only `conductor/`.
       A workflow-level path filter had meant a conductor-only PR created no run at

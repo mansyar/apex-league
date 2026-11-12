@@ -307,9 +307,12 @@ This is `floor((min + max) / 2)` per stat — the same arithmetic
 measures. The harness could not import that function: both are entry-point
 scripts (`import.meta.main`, `process.exitCode`), and a script importing another
 script would execute the other's `main` guard graph and couple two gates' entry
-points. The rule it encodes is one line, so it is written twice and the two
-copies are proven to agree by the fixture audit in Phase 3, which builds a side
-both ways and compares the stats.
+points. The rule it encodes is one line, so it is written twice — and the copies
+are asserted to agree: review F6 found that this paragraph originally claimed a
+guard that did not exist, so `fixture-audit.test.ts` now imports both
+`midpointOf` and `typicalLine` and asserts they produce the same stat line for
+every species. Without that assertion the audit's midpoint cells could stop
+describing the matrix's bodies and nothing would fail.
 
 Keeping it local also keeps this phase's blast radius to the four files in
 `Touches`: no new shared module, no `package.json` change, no edit to the
