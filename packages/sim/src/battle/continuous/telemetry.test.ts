@@ -23,9 +23,11 @@ import { describe, expect, test } from "bun:test"
 import {
   BOUNDS,
   describe as describeViolation,
+  type MeasureOptions,
   type Metric,
   matchups,
   measure,
+  measureFight,
   report,
   run,
   type SampleTelemetry,
@@ -273,6 +275,31 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
     expect(failing.some((line) => line.startsWith("FAIL idleShare:"))).toBe(
       true,
     )
+  })
+
+  // FR-6: the harness can be asked for the other three (stat basis x doctrine)
+  // cells, and asking for nothing is still the shipped fixture. Phase 3 pins the
+  // four readings; this pins only that the parameters are wired and that
+  // omitting them is the same path as naming the defaults.
+  test("the stat basis and the doctrine mix default to the shipped fixture (FR-6)", () => {
+    const [first] = matchups()
+    if (!first) throw new Error("the sample is empty")
+    const shipped = measureFight(first)
+    expect(measureFight(first, {})).toEqual(shipped)
+    expect(
+      measureFight(first, { statBasis: "reference", doctrine: "split" }),
+    ).toEqual(shipped)
+    // Both parameters are live: some pairing in the sample plays differently
+    // under each of the other settings. `some` stops at the first difference,
+    // so this stays cheap.
+    const moves = (options: MeasureOptions): boolean =>
+      matchups().some(
+        (matchup) =>
+          JSON.stringify(measureFight(matchup, options)) !==
+          JSON.stringify(measureFight(matchup)),
+      )
+    expect(moves({ statBasis: "midpoint" })).toBe(true)
+    expect(moves({ doctrine: "press" })).toBe(true)
   })
 
   test("the sample replays byte for byte", () => {
