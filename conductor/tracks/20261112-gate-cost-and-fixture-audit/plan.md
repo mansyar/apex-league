@@ -36,7 +36,7 @@
 - **Covers:** FR-6, FR-7, AC-6, AC-7
 - **Touches:** `packages/sim/scripts/battle-telemetry.ts`, `packages/sim/scripts/battle-balance-report.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`, `packages/sim/src/battle/continuous/balance-report.test.ts`
 - **Verification:** `bun run telemetry`, then `bun run balance`, then `bun run verify`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Give `measureFight` optional stat-basis and doctrine parameters** — covers: FR-6
   - [ ] **P2.T1.1: Default to the shipped behaviour and prove it — 20/42 (47.6%) and all 14 bounds unchanged** — covers: FR-6, AC-6
