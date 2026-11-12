@@ -11,7 +11,7 @@
   "last_checkpoint": "3bab33c7",
   "plan": "conductor/tracks/20261112-capshare-pacing/plan.md",
   "pr_revert_url": null,
-  "pr_state": "open",
+  "pr_state": "merged",
   "pr_url": "https://github.com/mansyar/apex-league/pull/73",
   "priority": "high",
   "progress": {
@@ -29,5 +29,5 @@
   "status": "complete",
   "title": "Capshare Pacing",
   "type": "chore",
-  "updated_at": "2026-11-12T21:40:00+11:00"
+  "updated_at": "2026-11-12T22:05:00+11:00"
 }
