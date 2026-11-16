@@ -54,7 +54,7 @@ metadata commit is the probe.
   `conductor/tracks/20261117-main-push-path-filters/verification/phase-2.md`
 - **Verification:** `bun test scripts/deploy/workflow.test.ts`, then `bun run verify`, then `bun run build`
   (three separate commands)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Pin the workflow contract** - covers: FR-4, NFR-1, AC-4
   - [ ] **P2.T1.1: Assert both workflows declare exactly the six `paths-ignore` entries under `push:` and neither uses a `paths:` allow-list**
