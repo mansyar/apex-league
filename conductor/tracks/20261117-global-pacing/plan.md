@@ -36,12 +36,12 @@ The primary appends after acceptance:
 - **Goal:** a conservative controller-policy change lowers the fixture cap share to at most 14/42 while the matrix stays at most 1/3 and every other gate row remains green, with the two debt pins promoted and ghosts re-versioned.
 - **Depends on:** Phase 1
 - **Covers:** FR-2, FR-4, FR-5, FR-6, FR-7, FR-8, FR-9, FR-10, NFR-1, NFR-2, NFR-3, NFR-4, AC-2, AC-4, AC-5, AC-6, AC-7, AC-8, AC-9, AC-10
-- **Touches:** `packages/sim/src/battle/continuous/controller.ts`, `controller-noise.ts`, `controller-profile.ts`, `controller*.test.ts`, `packages/sim/src/cup/ghost.ts`, `ghost.test.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`, `pacing.test.ts`, `conductor/tracks/20261117-global-pacing/verification/phase-2.md`
+- **Touches:** `packages/sim/src/battle/continuous/controller.ts`, `controller-noise.ts`, `controller-state.ts`, `controller-profile.ts`, `controller*.test.ts`, `packages/sim/src/cup/ghost.ts`, `ghost.test.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`, `pacing.test.ts`, `balance-report.test.ts`, `conductor/tracks/20261117-global-pacing/verification/phase-2.md`
 - **Verification:** `bun run telemetry`, then `bun run balance`, then `bun run trace --seed 20261111 --check`, then `bun run verify`, then `bun run build` (five separate commands)
 - **Status:** pending
 
 - [ ] **P2.T1: Sweep the controller rungs** — covers: FR-2, FR-9
-  - [ ] **P2.T1.1: Candidate order is cheapest first — commit-skip denominator, cadence-skip denominator, punish-skip denominator, then cycle/press shares — changing one knob at a time inside integer arithmetic**
+  - [ ] **P2.T1.1: Candidate order is cheapest first — commit-skip denominator, cadence-skip denominator, punish-skip denominator, then cycle/press shares and decision cadence (`DECISION_MS`) — changing one knob at a time inside integer arithmetic**
   - [ ] **P2.T1.2: Measure each rung on the 42-fight fixture first, then confirm every surviving rung on the 840-fight matrix; record cap share, dead-zone share, idle, commits, median duration, species band and damage band for each**
   - [ ] **P2.T1.3: Reject and record any rung that breaks a bound, floor, tolerance, species band, damage band, median duration, decisive share or the tortoise identity fence**
 - [ ] **P2.T2: Ship the smallest passing change** — covers: FR-2, FR-4, FR-7, FR-8, FR-10
