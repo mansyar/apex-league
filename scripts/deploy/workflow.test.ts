@@ -199,6 +199,72 @@ describe("the CI gate always reports", () => {
   })
 })
 
+describe("the main-push filters pin the non-build paths", () => {
+  // FR-4 / NFR-1 / AC-4: Deploy and Server image are not required checks, so a
+  // `paths-ignore` filter here means no run at all for a doc-only push — the
+  // outcome this track wants. Pin the exact six patterns so a later edit cannot
+  // widen the list to a build input (silently skipping a real build) or drop a
+  // pattern (resurrecting the doc-push cost). Text-based like the contracts
+  // above, so no YAML parser is introduced.
+  const IGNORED = [
+    "conductor/**",
+    "docs/**",
+    ".opencode/**",
+    "README.md",
+    "AGENTS.md",
+    "*.png",
+  ]
+
+  /** Patterns under `paths-ignore:`, in file order, with quotes stripped. */
+  function ignoredPatterns(source: string): string[] {
+    const lines = source.split("\n")
+    const key = lines.findIndex((line) => /^\s*paths-ignore:\s*$/.test(line))
+    if (key === -1) return []
+    const keyLine = lines[key] ?? ""
+    const keyIndent = keyLine.length - keyLine.trimStart().length
+    const patterns: string[] = []
+    for (let index = key + 1; index < lines.length; index++) {
+      const line = lines[index] ?? ""
+      const trimmed = line.trim()
+      if (trimmed === "") continue
+      const indent = line.length - line.trimStart().length
+      if (indent <= keyIndent) break
+      const item = /^-\s+(.+?)\s*$/.exec(trimmed)
+      if (item?.[1]) patterns.push(item[1].replace(/^['"]|['"]$/g, ""))
+    }
+    return patterns
+  }
+
+  for (const name of ["deploy.yml", "server-image.yml"]) {
+    const source = readFileSync(
+      join(import.meta.dir, "../../.github/workflows", name),
+      "utf8",
+    )
+
+    test(`${name} ignores exactly the six non-build paths, in order`, () => {
+      // Quotes are syntax (`*.png` is a YAML alias indicator when unquoted),
+      // so compare the pattern values after stripping an optional surrounding
+      // quote. Array equality also pins the shipped order and rejects a missing
+      // or extra entry.
+      expect(ignoredPatterns(source)).toEqual(IGNORED)
+    })
+
+    test(`${name} has no paths: allow-list`, () => {
+      // An allow-list inverts the filter: a code path omitted by mistake would
+      // stop triggering the workflow altogether. `paths-ignore:` is the only
+      // path key allowed; `paths:` (with no trailing `-ignore`) must be absent.
+      expect(/^\s*paths:/m.test(source)).toBe(false)
+    })
+
+    test(`${name} keeps its manual trigger`, () => {
+      // Path filters do not apply to workflow_dispatch, so a doc-only change can
+      // still be deployed or published on demand. Removing it removes the only
+      // escape hatch for a push the filter skipped.
+      expect(/^\s{2}workflow_dispatch:\s*$/m.test(source)).toBe(true)
+    })
+  }
+})
+
 describe("the runtime can actually typecheck", () => {
   // `bun check` is the type checker the three workspace `check` scripts call
   // (`"check": "bun check"` in each package.json), and it is what
