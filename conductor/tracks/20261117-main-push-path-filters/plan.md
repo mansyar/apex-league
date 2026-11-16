@@ -16,7 +16,7 @@
 - **Touches:** `.github/workflows/deploy.yml`, `.github/workflows/server-image.yml`,
   `conductor/tracks/20261117-main-push-path-filters/verification/phase-1.md`
 - **Verification:** `bun run verify`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Filter the Deploy push trigger** - covers: FR-1, NFR-2, AC-1, AC-2
   - [ ] **P1.T1.1: Add exactly `conductor/**`, `docs/**`, `.opencode/**`, `README.md`, `AGENTS.md`, `*.png` under `push:`**
