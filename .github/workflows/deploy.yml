@@ -14,6 +14,20 @@ name: Deploy
 on:
   push:
     branches: [main]
+    # Path filter for pushes only. None of these paths feeds the Vite client
+    # bundle, so none can change what this job verifies or uploads to Pages:
+    # `conductor/**` is specs, plans and evidence; `docs/**` is prose;
+    # `.opencode/**` is local agent config; `README.md` and `AGENTS.md` are root
+    # documentation; `*.png` is a root screenshot. Anything under `apps/`,
+    # `packages/` or `scripts/`, or a root config file, still triggers. Path
+    # filters do not apply to `workflow_dispatch`, so manual runs are unaffected.
+    paths-ignore:
+      - conductor/**
+      - docs/**
+      - .opencode/**
+      - README.md
+      - AGENTS.md
+      - '*.png'
   # Manual re-run. Anything other than main lands as a Pages preview
   # deployment, not on the production URL.
   workflow_dispatch:

@@ -7,6 +7,20 @@ name: Server image
 on:
   push:
     branches: [main]
+    # Path filter for pushes only. None of these paths is an input to the API
+    # container image, so none can change what this job builds and pushes:
+    # `conductor/**` is specs, plans and evidence; `docs/**` is prose;
+    # `.opencode/**` is local agent config; `README.md` and `AGENTS.md` are root
+    # documentation; `*.png` is a root screenshot. Anything under `apps/`,
+    # `packages/` or `scripts/`, or a root config file, still triggers. Path
+    # filters do not apply to `workflow_dispatch`, so manual runs are unaffected.
+    paths-ignore:
+      - conductor/**
+      - docs/**
+      - .opencode/**
+      - README.md
+      - AGENTS.md
+      - '*.png'
   workflow_dispatch:
 
 # `packages: write` is what lets the workflow token push to GHCR. It is the
