@@ -104,7 +104,7 @@ jobs:
 
       - name: Run telemetry gate
         if: steps.scope.outputs.code == 'true'
-        # The same 14-matchup sample the suite pins, printed as a table and
+        # The same 42-fight sample the suite pins, printed as a table and
         # gated on its own bounds. Exits non-zero naming the metric, the
         # observed value and the bound (FR-14, AC-14, AC-24).
         run: bun run telemetry
