@@ -48,4 +48,4 @@
 - [x] **Track: Minimum Reach** — [20261111-minimum-reach](./archive/20261111-minimum-reach/index.md) — feature — high
 - [x] **Track: Capshare Pacing** — [20261112-capshare-pacing](./archive/20261112-capshare-pacing/index.md) — chore — high
 - [x] **Track: Gate Cost and Fixture Audit** - [20261112-gate-cost-and-fixture-audit](./archive/20261112-gate-cost-and-fixture-audit/index.md) - chore - medium
-- [ ] **Track: Main Push Path Filters** — [20261117-main-push-path-filters](./tracks/20261117-main-push-path-filters/index.md) — chore — medium
+- [~] **Track: Main Push Path Filters** — [20261117-main-push-path-filters](./tracks/20261117-main-push-path-filters/index.md) — chore — medium
