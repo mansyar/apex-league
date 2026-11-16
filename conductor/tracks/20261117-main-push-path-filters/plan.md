@@ -54,16 +54,19 @@ metadata commit is the probe.
   `conductor/tracks/20261117-main-push-path-filters/verification/phase-2.md`
 - **Verification:** `bun test scripts/deploy/workflow.test.ts`, then `bun run verify`, then `bun run build`
   (three separate commands)
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified — both push contracts pinned with mutation proofs; the stale sample comment corrected; AC-5 remains post-merge
+- **Checkpoint:** e9d6d3c5
+- **Evidence:** conductor/tracks/20261117-main-push-path-filters/verification/phase-2.md
 
-- [ ] **P2.T1: Pin the workflow contract** - covers: FR-4, NFR-1, AC-4
-  - [ ] **P2.T1.1: Assert both workflows declare exactly the six `paths-ignore` entries under `push:` and neither uses a `paths:` allow-list**
-  - [ ] **P2.T1.2: Assert both still declare `workflow_dispatch`, and re-use the existing assertions that `ci.yml` has no path filter and no `push` trigger**
-  - [ ] **P2.T1.3: Prove the fence bites: temporarily remove one pattern and one `workflow_dispatch`, show each fails the suite, then restore both**
-- [ ] **P2.T2: Correct the stale comment** - covers: FR-6, AC-6
-  - [ ] **P2.T2.1: Change `ci.yml:100` from "The same 14-matchup sample" to the current 42-fight wording; change no YAML**
-- [ ] **P2.T3: Record the verification** - covers: NFR-3, AC-7
-  - [ ] **P2.T3.1: Paste the test, verify and build results, and show that no file under `apps/` or `packages/` changed**
+- [x] **P2.T1: Pin the workflow contract** - covers: FR-4, NFR-1, AC-4
+  - [x] **P2.T1.1: Assert both workflows declare exactly the six `paths-ignore` entries under `push:` and neither uses a `paths:` allow-list**
+  - [x] **P2.T1.2: Assert both still declare `workflow_dispatch`, and re-use the existing assertions that `ci.yml` has no path filter and no `push` trigger**
+  - [x] **P2.T1.3: Prove the fence bites: temporarily remove one pattern and one `workflow_dispatch`, show each fails the suite, then restore both**
+- [x] **P2.T2: Correct the stale comment** - covers: FR-6, AC-6
+  - [x] **P2.T2.1: Change `ci.yml:100` from "The same 14-matchup sample" to the current 42-fight wording; change no YAML**
+- [x] **P2.T3: Record the verification** - covers: NFR-3, AC-7
+  - [x] **P2.T3.1: Paste the test, verify and build results, and show that no file under `apps/` or `packages/` changed**
 
 <!--
 Review fixes are appended by `conductor-review` as:
