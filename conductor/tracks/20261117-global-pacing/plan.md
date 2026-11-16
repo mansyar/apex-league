@@ -41,7 +41,7 @@ The primary appends after acceptance:
 - **Covers:** FR-2, FR-4, FR-5, FR-6, FR-7, FR-8, FR-9, FR-10, NFR-1, NFR-2, NFR-3, NFR-4, AC-2, AC-4, AC-5, AC-6, AC-7, AC-8, AC-9, AC-10
 - **Touches:** `packages/sim/src/battle/continuous/controller.ts`, `controller-noise.ts`, `controller-state.ts`, `controller-profile.ts`, `controller*.test.ts`, `packages/sim/src/cup/ghost.ts`, `ghost.test.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`, `pacing.test.ts`, `balance-report.test.ts`, `conductor/tracks/20261117-global-pacing/verification/phase-2.md`
 - **Verification:** `bun run telemetry`, then `bun run balance`, then `bun run trace --seed 20261111 --check`, then `bun run verify`, then `bun run build` (five separate commands)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Sweep the controller rungs** — covers: FR-2, FR-9
   - [ ] **P2.T1.1: Candidate order is cheapest first — commit-skip denominator, cadence-skip denominator, punish-skip denominator, then cycle/press shares and decision cadence (`DECISION_MS`) — changing one knob at a time inside integer arithmetic**
