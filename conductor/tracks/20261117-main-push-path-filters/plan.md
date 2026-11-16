@@ -38,11 +38,13 @@ The primary appends after acceptance:
 **Evidence:** conductor/tracks/20261117-main-push-path-filters/verification/phase-1.md
 -->
 
-**Primary note:** AC-5 cannot be executed inside the track. The live conductor-only push to `main` is
-the commit that records this track's merge, so it is observed immediately after merge against a `main`
-that already carries the filters, then appended to `verification/phase-1.md` and
-`verification/integrated.md` in the archived copy. Do not open a second throwaway PR for it — the
-metadata commit is the probe.
+**Primary note:** AC-5 cannot be executed inside the track. The probe is the **first
+workflow-compliant conductor-only push to `main` after merge** — `workflow.md` creates no post-merge
+metadata commit, so in practice this is the next track's initialize or plan commit. Observe it
+against a `main` that already carries the filters, then append the `gh run list` and SHA to
+`verification/phase-1.md` and `verification/integrated.md` in the archived copy. Do not open a
+throwaway PR for it — a `pull_request` run would not exercise a `push` trigger at all. (Amended
+2026-11-17, review F1.)
 
 ## Phase 2: The fence and the stale comment
 
@@ -68,17 +70,18 @@ metadata commit is the probe.
 - [x] **P2.T3: Record the verification** - covers: NFR-3, AC-7
   - [x] **P2.T3.1: Paste the test, verify and build results, and show that no file under `apps/` or `packages/` changed**
 
-<!--
-Review fixes are appended by `conductor-review` as:
-
 ## Phase R1: Review Fixes
 
-- **Goal:** Resolve review findings ...
+- **Goal:** Resolve review finding F1 — align the post-merge AC-5/FR-5 probe wording with `workflow.md`, which creates no post-merge metadata commit.
 - **Depends on:** Phase 2
-- **Covers:** review findings
-- **Touches:** ...
-- **Verification:** ...
-- **Status:** pending
+- **Covers:** F1
+- **Touches:** `conductor/tracks/20261117-main-push-path-filters/spec.md`, `plan.md`, `verification/integrated.md`, `review.md`
+- **Verification:** `bun test scripts/deploy/workflow.test.ts`, then `bun run verify`
+- **Status:** verified
+- **Result:** verified — the probe is the first workflow-compliant conductor-only push after merge; no code changed
+- **Checkpoint:** <filled by the primary>
+- **Evidence:** conductor/tracks/20261117-main-push-path-filters/review.md
 
-- [ ] **R1.T1: Resolve <finding ID>** - covers: <finding ID>
--->
+- [x] **R1.T1: Resolve F1** - covers: F1
+  - [x] **R1.T1.1: Rename the probe in spec.md AC-5, the post-merge edge case and the decided assumption, and in this plan's primary note**
+  - [x] **R1.T1.2: Align `verification/integrated.md` AC-5 and debt 1 with `workflow.md`'s no-post-merge-commit rule**

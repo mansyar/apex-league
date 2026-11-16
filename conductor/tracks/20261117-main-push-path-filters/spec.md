@@ -100,7 +100,7 @@ deployment history indistinguishably from a real release.
 | AC-2 | The two lists are identical, and a written rule next to each names and justifies every entry. | FR-1, FR-2, NFR-2 |
 | AC-3 | Both workflows still declare `workflow_dispatch`; no step, Bun pin, or gate command changed in either file. | FR-3 |
 | AC-4 | `bun test scripts/deploy/workflow.test.ts` is green, and a temporary local removal of one pattern or one `workflow_dispatch` is shown to fail it before being restored. | FR-4 |
-| AC-5 | After merge, the conductor-only metadata commit produces no new Deploy or Server image run; the observed `gh run list` and SHA are appended to the archived `verification/phase-1.md`. | FR-5 |
+| AC-5 | After merge, the first workflow-compliant conductor-only push to `main` (for example the next track's initialize or plan commit — `workflow.md` creates no post-merge metadata commit) produces no new Deploy or Server image run; the observed `gh run list` and SHA are appended to the archived `verification/phase-1.md`. | FR-5 |
 | AC-6 | `ci.yml` no longer says "14-matchup"; it names the 42-fight sample. | FR-6 |
 | AC-7 | `bun run verify` and `bun run build` are green, and no file under `apps/`, `packages/` or `scripts/` (other than the test) changed. | NFR-1, NFR-3 |
 
@@ -115,7 +115,10 @@ deployment history indistinguishably from a real release.
   docs-like directory, will trigger both workflows. That is the conservative direction; the written
   rule says to add a pattern only with a reason, never by inference.
 - **The live proof is post-merge.** A push to `main` can only be observed after this track's squash
-  lands. The commit that records `pr_state: "merged"` is itself conductor-only and is the probe.
+  lands. `workflow.md` creates no post-merge metadata commit ("after a merge there is nothing to
+  commit"), so the probe is the **first workflow-compliant conductor-only push after merge** — for
+  example the next track's initialize or plan commit. (Amended 2026-11-17, review F1: the original
+  wording named a metadata commit that the documented workflow does not produce.)
 - **A run still starts.** If a filtered push does start a run, the phase reports blocked with the run
   ID and the actual file list; no pattern is widened or the assertion softened to make it pass.
 
@@ -129,7 +132,8 @@ deployment history indistinguishably from a real release.
 
 - **Decided 2026-11-17:** type `chore`, priority `medium`; ignore exactly the six patterns on both
   main-push workflows; pin the filters and the manual trigger in the committed workflow test; fix the
-  stale `ci.yml` comment here; prove the skip with the post-merge metadata commit.
+  stale `ci.yml` comment here; prove the skip with the first workflow-compliant conductor-only push
+  after merge.
 - **Assumption:** `docs/`, the root `.png` screenshots, `README.md`, `AGENTS.md` and `.opencode/**`
   are not inputs to the Vite client build or the API container image. Verified by the build's own
   dependency graph at planning time and recorded in the written rule.
