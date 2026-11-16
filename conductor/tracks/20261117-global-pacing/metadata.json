@@ -6,7 +6,7 @@
   "priority": "high",
   "depends_on": [],
   "created_at": "2026-11-17T12:00:00+11:00",
-  "updated_at": "2026-11-17T12:30:00+11:00",
+  "updated_at": "2026-11-17T13:20:00+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "chore/20261117-global-pacing",
@@ -14,11 +14,11 @@
   "base_sha": "0c9b8fca344ed0b145a8c7f220d8f9f7c50afe1a",
   "progress": {
     "phases_total": 4,
-    "phases_verified": 0,
+    "phases_verified": 1,
     "tasks_total": 11,
-    "tasks_done": 0
+    "tasks_done": 2
   },
-  "last_checkpoint": null,
+  "last_checkpoint": "b97075da",
   "review_verdict": null,
   "review_rounds": 0,
   "doc_sync": "pending",

@@ -14,15 +14,18 @@
 - **Covers:** FR-1, AC-1
 - **Touches:** `conductor/tracks/20261117-global-pacing/verification/phase-1.md` (evidence only — no source file)
 - **Verification:** `bun run telemetry`, then `bun run balance`, then `bun run trace --seed 20261111 --check` (three separate commands)
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified — throughput shortfall on both sides in all 20 capped fights, `COMMIT_SKIP_DENOM` recommended first, no bound touched
+- **Checkpoint:** b97075da
+- **Evidence:** conductor/tracks/20261117-global-pacing/verification/phase-1.md
 
-- [ ] **P1.T1: Reproduce both shipped readings** — covers: FR-1
-  - [ ] **P1.T1.1: Record telemetry `cap share: 20/42 (47.6%)` with all 14 bounds green and balance `224/840 (26.7%)`, 15/15 species and 49/49 moves in band**
-  - [ ] **P1.T1.2: Record the trace hash `0xb6cce858` and the five invariants as the pre-change replay baseline**
-- [ ] **P1.T2: Name the mechanism** — covers: FR-1, AC-1
-  - [ ] **P1.T2.1: Tabulate the clock-bound fights from the fixture with pairing, seed, commits, hits, idle share, median gap and damage throughput for both sides**
-  - [ ] **P1.T2.2: State which side fails to convert and why, separating throughput from band, reach, stamina, cooldown, rule refusal and opponent kiting; cite the trace lines used for each claim**
-  - [ ] **P1.T2.3: Recommend the first controller rung and record what would make the phase blocked rather than a licence to move a bound**
+- [x] **P1.T1: Reproduce both shipped readings** — covers: FR-1
+  - [x] **P1.T1.1: Record telemetry `cap share: 20/42 (47.6%)` with all 14 bounds green and balance `224/840 (26.7%)`, 15/15 species and 49/49 moves in band**
+  - [x] **P1.T1.2: Record the trace hash `0xb6cce858` and the five invariants as the pre-change replay baseline**
+- [x] **P1.T2: Name the mechanism** — covers: FR-1, AC-1
+  - [x] **P1.T2.1: Tabulate the clock-bound fights from the fixture with pairing, seed, commits, hits, idle share, median gap and damage throughput for both sides**
+  - [x] **P1.T2.2: State which side fails to convert and why, separating throughput from band, reach, stamina, cooldown, rule refusal and opponent kiting; cite the trace lines used for each claim**
+  - [x] **P1.T2.3: Recommend the first controller rung and record what would make the phase blocked rather than a licence to move a bound**
 
 <!--
 The primary appends after acceptance:
