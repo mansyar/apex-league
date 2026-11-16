@@ -16,17 +16,20 @@
 - **Touches:** `.github/workflows/deploy.yml`, `.github/workflows/server-image.yml`,
   `conductor/tracks/20261117-main-push-path-filters/verification/phase-1.md`
 - **Verification:** `bun run verify`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified — both push workflows ignore the six non-build paths with the written rule; YAML parses and no existing line changed
+- **Checkpoint:** d784ec81
+- **Evidence:** conductor/tracks/20261117-main-push-path-filters/verification/phase-1.md
 
-- [ ] **P1.T1: Filter the Deploy push trigger** - covers: FR-1, NFR-2, AC-1, AC-2
-  - [ ] **P1.T1.1: Add exactly `conductor/**`, `docs/**`, `.opencode/**`, `README.md`, `AGENTS.md`, `*.png` under `push:`**
-  - [ ] **P1.T1.2: Write the rule beside it — what each path is and why it cannot feed the Vite bundle or the Pages upload**
-  - [ ] **P1.T1.3: Leave `workflow_dispatch`, `permissions`, `concurrency`, the production `bun run verify` gate and the Bun pin untouched**
-- [ ] **P1.T2: Filter the Server image push trigger** - covers: FR-2, FR-3, AC-1, AC-2, AC-3
-  - [ ] **P1.T2.1: Add the same six entries, character for character, under `push:`**
-  - [ ] **P1.T2.2: Keep `workflow_dispatch`, the GHCR tag/promotion steps and the container build unchanged**
-- [ ] **P1.T3: Record the before/after** - covers: NFR-4, AC-3
-  - [ ] **P1.T3.1: Show the two `on:` blocks before and after, and list the runs that the doc-only commit `e2038303` started (43178773457, 43178773306)**
+- [x] **P1.T1: Filter the Deploy push trigger** - covers: FR-1, NFR-2, AC-1, AC-2
+  - [x] **P1.T1.1: Add exactly `conductor/**`, `docs/**`, `.opencode/**`, `README.md`, `AGENTS.md`, `*.png` under `push:`**
+  - [x] **P1.T1.2: Write the rule beside it — what each path is and why it cannot feed the Vite bundle or the Pages upload**
+  - [x] **P1.T1.3: Leave `workflow_dispatch`, `permissions`, `concurrency`, the production `bun run verify` gate and the Bun pin untouched**
+- [x] **P1.T2: Filter the Server image push trigger** - covers: FR-2, FR-3, AC-1, AC-2, AC-3
+  - [x] **P1.T2.1: Add the same six entries, character for character, under `push:`**
+  - [x] **P1.T2.2: Keep `workflow_dispatch`, the GHCR tag/promotion steps and the container build unchanged**
+- [x] **P1.T3: Record the before/after** - covers: NFR-4, AC-3
+  - [x] **P1.T3.1: Show the two `on:` blocks before and after, and list the runs that the doc-only commit `e2038303` started (43178773457, 43178773306)**
 
 <!--
 The primary appends after acceptance:
