@@ -50,19 +50,19 @@ pacing gates are unchanged by construction. `git status --porcelain` is clean.
 | AC-2 | The two lists are identical and a written rule justifies every entry | `phase-1.md` comments; YAML parse returned the same six values for both | met |
 | AC-3 | Both keep `workflow_dispatch`; no step, Bun pin or gate command changed | 14 insertions / 0 deletions per file; new test assertion | met |
 | AC-4 | Workflow test green; both mutations shown failing then restored | `phase-2.md` mutation proofs (25 pass / 1 fail / exit 1 each) and final 26/0 | met |
-| AC-5 | Post-merge conductor-only push starts zero Deploy and zero Server image runs | Not executable inside the track: the probe is the first workflow-compliant conductor-only push after merge (the documented workflow creates no post-merge commit; in practice the next track's initialize/plan commit). Recorded in the archived `verification/phase-1.md` when it lands. | pending — post-merge |
+| AC-5 | Post-merge conductor-only push starts zero Deploy and zero Server image runs | Observed after merge: conductor-only `d4485d44` produced `RUN_COUNT=0` from `gh run list --commit`; full transcript in archived `verification/phase-1.md` | met — post-merge |
 | AC-6 | `ci.yml` no longer says "14-matchup" | One-line comment diff in `phase-2.md` | met |
 | AC-7 | `verify` and `build` green; no `apps/`/`packages/` change | Gate table above; whole-track `git diff --name-only` | met |
 
 ## Debt and follow-ups
 
-1. **AC-5 / FR-5 is structurally post-merge.** A conductor-only push to `main` can only happen after
-   the track's PR merges, and `workflow.md` creates no post-merge metadata commit ("after a merge
-   there is nothing to commit"). The probe is therefore the first workflow-compliant conductor-only
-   push after merge — in practice the next track's initialize or plan commit. The observation
-   (`gh run list`, commit SHA, zero Deploy and zero Server image runs) is appended to the archived
-   `phase-1.md` when that push lands. Review F1 corrected the earlier wording that named a
-   nonexistent post-merge metadata commit.
+1. **AC-5 / FR-5 was structurally post-merge, and is now closed.** A conductor-only push to `main` could
+   only be observed after the track's PR merged; `workflow.md` creates no post-merge metadata commit
+   ("after a merge there is nothing to commit"). The probe was the immediate next conductor-only push,
+   `d4485d44`, which recorded the merge state. `gh run list --commit d4485d44` returned `RUN_COUNT=0`
+   — zero Deploy and zero Server image runs — and the observation is appended to archived
+   `phase-1.md`. Review F1 corrected the earlier wording that named a nonexistent post-merge
+   metadata commit.
 2. **Path filters are per-workflow, not global.** A future workflow added on `push: main` with no
    filter will reintroduce the cost. The new test pins only the two named workflows; that is the
    intended scope.

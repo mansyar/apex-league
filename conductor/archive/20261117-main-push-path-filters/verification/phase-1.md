@@ -175,3 +175,26 @@ undefined YAML alias and that the two lists are identical (AC-1, AC-2).
 AC-1, AC-2, AC-3 and NFR-2, NFR-4 are met. AC-5 remains post-merge by construction: the
 conductor-only commit that records this track's merge is the probe, and the run lists will be
 appended to this file in the archived copy.
+
+## Live proof (AC-5 / FR-5) — observed 2026-11-17
+
+PR #76 merged as squash commit `fdfa1258` ("chore(ci): stop documentation-only pushes from starting
+build workflows (#76)"). That merge contains workflow code, so both `push: main` workflows correctly
+started on it and are visible as the two `in_progress` runs for `fdfa1258`.
+
+The immediate next push to `main` was conductor-only: `d4485d44` ("chore(conductor): record PR #76 as
+merged"), changing only
+`conductor/archive/20261117-main-push-path-filters/metadata.json`. The observation:
+
+```
+gh run list --commit d4485d44 --json name,event,status,conclusion
+RUN_COUNT=0
+```
+
+Zero runs of any kind started for that commit — in particular zero `Deploy` and zero `Server image`.
+This is the proof that the six-entry `paths-ignore` block suppresses both build workflows for a
+documentation-only push to `main` (AC-5, FR-5). Neither workflow was manually dispatched for this
+probe, so the surviving `workflow_dispatch` trigger is not part of the measurement.
+
+This observation is appended after merge because a `push` trigger cannot be exercised before the
+filter lands on `main`; no throwaway PR was needed or opened.
