@@ -14,7 +14,7 @@
 - **Covers:** FR-1, AC-1
 - **Touches:** `conductor/tracks/20261117-global-pacing/verification/phase-1.md` (evidence only — no source file)
 - **Verification:** `bun run telemetry`, then `bun run balance`, then `bun run trace --seed 20261111 --check` (three separate commands)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Reproduce both shipped readings** — covers: FR-1
   - [ ] **P1.T1.1: Record telemetry `cap share: 20/42 (47.6%)` with all 14 bounds green and balance `224/840 (26.7%)`, 15/15 species and 49/49 moves in band**
