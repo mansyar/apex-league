@@ -79,7 +79,7 @@ throwaway PR for it — a `pull_request` run would not exercise a `push` trigger
 - **Verification:** `bun test scripts/deploy/workflow.test.ts`, then `bun run verify`
 - **Status:** verified
 - **Result:** verified — the probe is the first workflow-compliant conductor-only push after merge; no code changed
-- **Checkpoint:** <filled by the primary>
+- **Checkpoint:** a294362c
 - **Evidence:** conductor/tracks/20261117-main-push-path-filters/review.md
 
 - [x] **R1.T1: Resolve F1** - covers: F1
