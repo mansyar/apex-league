@@ -93,12 +93,18 @@
 - **Covers:** FR-9, NFR-1, NFR-2, AC-9, AC-10
 - **Touches:** `conductor/tracks/20261117-polish-showcase/verification/phase-5.md`, `.conductor/evidence/20261117-polish-showcase/**` (gitignored captures)
 - **Verification:** `bun run verify && bun run build`; visual layer per workflow
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P5.T1: Visual evidence + marquee capture** - covers: FR-9, AC-9
-  - [ ] **P5.T1.1: Desktop (1440x900) and iPhone 15 (393x852) screenshots, console check, cup-run capture**
-- [ ] **P5.T2: Invariant proof** - covers: NFR-1, NFR-2, AC-10
-  - [ ] **P5.T2.1: Record determinism, module-size and full-verify results in the evidence file**
+- [x] **P5.T1: Visual evidence + marquee capture** - covers: FR-9, AC-9
+  - [x] **P5.T1.1: Desktop (1440x900) and iPhone 15 (393x852) screenshots, console check, cup-run capture**
+- [x] **P5.T2: Invariant proof** - covers: NFR-1, NFR-2, AC-10
+  - [x] **P5.T2.1: Record determinism, module-size and full-verify results in the evidence file**
+
+<!--
+**Result:** verified
+**Checkpoint:** ae6d6ee0
+**Evidence:** conductor/tracks/20261117-polish-showcase/verification/phase-5.md
+-->
 
 <!--
 Review fixes are appended by `conductor-review` as:
