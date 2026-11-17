@@ -59,6 +59,11 @@ decisive blow, and two test pins keep asserting that failure as the expected sta
   species' existing authored roll bounds**, never outside them; `earth_tortoise` stays subject to
   the shipped `identity.test.ts` fence (`spd [3, 5]`, `hp`/`def` floors, `temperament "slow"`,
   `archetypeId "tortoise"`, its own six moves).
+- **Combined fix (amended 2026-11-17):** if one controller rung meets the fixture and matrix cap
+  targets but breaks a species win-rate row, that policy rung may ship **together with** the minimum
+  per-species stat corrections that restore every broken row, provided no roll envelope widens and
+  every identity fence stays green. This supersedes the stats-only reading of Phase 3; FR-2's
+  controller-first order and FR-4's no-widening fence still apply.
 - Promotion of the two debt pins when they genuinely pass, with their comments rewritten to record
   the new figures rather than silently deleting the debt history.
 - A `SIM_VERSION` bump from 3 to 4 when controller policy, frame data or resolution changes; ghost
@@ -72,8 +77,10 @@ decisive blow, and two test pins keep asserting that failure as the expected sta
 
 - Changing any bound, floor, tolerance, `DISTINCT_FLOOR`, `BOUNDS` value, `CAP_MAX`, the 40 s fight
   cap, the one-in-three target itself, or the species win band to make a result pass.
-- Changing `earth_tortoise`'s identity or any species' authored stat bounds, archetype, element,
-  temperament, kit or frame data; adding moves, species, elements or doctrines.
+- Changing `earth_tortoise`'s identity or any species' archetype, element, temperament, kit or
+  frame data; adding moves, species, elements or doctrines. A stat bound pair may be shifted or
+  narrowed by whole stat points under FR-3/FR-11 only if its envelope never widens, every generated
+  stat stays inside the original envelope, and `identity.test.ts` remains green.
 - Treating a cap win as a failure or lowering `CAP_MARGIN_FLOOR_BP`; outlasting remains a valid
   victory.
 - Re-composing the 42-pairing telemetry fixture, changing `PAIRINGS`/`SEEDS_PER_PAIRING`, or moving
@@ -95,6 +102,7 @@ decisive blow, and two test pins keep asserting that failure as the expected sta
 | FR-8 | Keep species identity intact: `identity.test.ts` stays green and no authored stat bound, archetype, element, temperament or kit entry is relaxed. | must |
 | FR-9 | Record the full candidate sweep, including rejected rungs and the reason each was rejected, in the phase evidence and integrated record. | must |
 | FR-10 | Keep cap wins valid: no change to the decisive-share or cap-win-quality rules, and a cap win still counts when it clears the existing margin floor. | must |
+| FR-11 | **Added 2026-11-17.** When a controller rung meets the cap targets but breaks a species row, ship that rung with the minimum per-species stat corrections that restore every broken row; never widen a roll envelope, lower a floor or touch an identity-defining stat. | must |
 
 ## Non-Functional Requirements
 
@@ -119,6 +127,7 @@ decisive blow, and two test pins keep asserting that failure as the expected sta
 | AC-8 | `bun run balance` still reports 15/15 species, 49/49 moves in the damage band, median 25–40 s and decisive share at least 2/3; `bun run telemetry` prints all 14 bounds inside their limits. | FR-7, FR-10 |
 | AC-9 | `bun run verify` and `bun run build` are green on the final tree, and the diff contains no re-pinning that weakens an assertion. | NFR-2, NFR-3 |
 | AC-10 | If no in-scope candidate satisfies AC-4 without violating AC-7 or AC-8, the phase reports blocked with the measured sweep and no bound moves; the track does not silently downgrade its target. | FR-4, FR-9 |
+| AC-11 | **Added 2026-11-17.** The combined tree reproduces fixture ≤ 14/42 and matrix ≤ 1/3 with all 15 species and 49 moves green, `identity.test.ts` unchanged, `SIM_VERSION` 4 with both ghost pins updated, a recorded new trace hash, and a before/after table proving no roll envelope widened and no gate bound moved. | FR-11, FR-6 |
 
 ## Edge Cases
 
@@ -134,6 +143,12 @@ decisive blow, and two test pins keep asserting that failure as the expected sta
   its comment must retain the old debt figure for context.
 - **No candidate works.** Report blocked with the full sweep and the measured reason, exactly as the
   Capshare Pacing track did for the tortoise fix; do not widen the target or pick favourable seeds.
+- **A controller rung passes the caps but breaks species rows (occurred 2026-11-17).**
+  `DECISION_MS 240→200` read 13/42 and 188/840 with every cap gate green but put `fire_drake`
+  59.8% (≤ 59.4), `plant_ox` 62.5% (≤ 59.6), `voltfox` 39.3% (≥ 40.7) and `shalemole` 60.7%
+  (≤ 59.5) outside their bands. FR-11 permits correcting those four with the smallest stat moves
+  that restore every row, without widening any envelope; Phase 2's block is evidence, not a lowered
+  target.
 - **A cap win still occurs.** It remains a valid outlasting victory under
   `CAP_MARGIN_FLOOR_BP`; the metric is fewer stalls, not invalidation of caps.
 
@@ -155,6 +170,10 @@ decisive blow, and two test pins keep asserting that failure as the expected sta
   promotion is a real improvement, not a gate relaxation.
 - **Assumption:** the kite-band issue (D-2) and fixture re-stratification remain separate tracks and
   are not silently folded into this one.
+- **Decided 2026-11-17 (resume):** after Phase 2 blocked, the user chose the combined fix. Phase 2
+  stays recorded as blocked; FR-11/AC-11 are added rather than renumbering anything, and Phase 3 is
+  re-scoped from stats-only to controller policy plus the minimum species corrections that restore
+  every green row. No bound, floor, tolerance or target moves.
 
 ## References
 

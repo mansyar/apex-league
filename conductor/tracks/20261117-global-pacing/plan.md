@@ -67,6 +67,11 @@ The primary appends after acceptance:
 > moved, and all five verification commands passed on the unchanged base. The
 > plan's Phase 3 stats fallback remains unexecuted because the active goal treats
 > a blocked phase as a hard stop.
+>
+> **Amended 2026-11-17 (user decision, resumed goal):** Phase 2 remains blocked as evidence.
+> The user chose the combined fix, so FR-11/AC-11 were added (no IDs renumbered) and Phase 3
+> is re-scoped below from a stats-only fallback to controller policy plus the minimum species
+> corrections that restore every green row.
 
 <!--
 The primary appends after acceptance:
@@ -75,25 +80,33 @@ The primary appends after acceptance:
 **Evidence:** conductor/tracks/20261117-global-pacing/verification/phase-2.md
 -->
 
-## Phase 3: Stats inside authored bounds, only if needed
+## Phase 3: Combined cadence and species correction
 
-- **Goal:** if no controller-only rung reached both targets, a second sweep of effective stats inside existing authored bounds closes the remaining gap without weakening any fence; if Phase 2 already met both targets, this phase proves the tree is unchanged and records a no-op.
-- **Depends on:** Phase 2
-- **Covers:** FR-3, FR-4, FR-8, FR-9, AC-3, AC-7, AC-10
-- **Touches:** `packages/sim/src/species/rewards.ts`, `starters.ts`, `discovery.ts`, `packages/sim/src/species/identity.test.ts` (read only — never edited), `packages/sim/src/battle/continuous/balance-report.test.ts`, `conductor/tracks/20261117-global-pacing/verification/phase-3.md`
+- **Goal:** re-apply the one controller rung that met both cap targets (`DECISION_MS` 240→200) and
+  correct only the species rows it broke, inside their original stat envelopes, so both samples and
+  every other gate row are green without moving a bound or tolerance.
+- **Depends on:** Phase 2 (blocked; resolved by the FR-11/AC-11 amendment recorded above)
+- **Covers:** FR-3, FR-4, FR-5, FR-6, FR-8, FR-9, FR-11, AC-3, AC-4, AC-5, AC-6, AC-7, AC-8, AC-9, AC-10, AC-11
+- **Touches:** `packages/sim/src/battle/continuous/controller-state.ts`, `controller.test.ts`, `packages/sim/src/species/starters.ts`, `discovery.ts`, `rewards.ts`, `packages/sim/src/species/identity.test.ts` (read-only fence), `packages/sim/src/cup/ghost.ts`, `ghost.test.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`, `pacing.test.ts`, `balance-report.test.ts`, `conductor/tracks/20261117-global-pacing/verification/phase-3.md`
 - **Verification:** `bun run telemetry`, then `bun run balance`, then `bun run trace --seed 20261111 --check`, then `bun run verify`, then `bun run build` (five separate commands)
 - **Status:** pending
 
-- [ ] **P3.T1: Decide whether this phase is needed** — covers: FR-3, AC-10
-  - [ ] **P3.T1.1: If Phase 2 met both targets, run the five commands untouched and record a no-op with the two cap shares**
-  - [ ] **P3.T1.2: If Phase 2 reported blocked, sweep effective stats only inside each species' authored roll bounds, one value at a time, with the identity test green before and after**
-  - [ ] **P3.T1.3: Record every rejected stat rung and never move a bound, floor, tolerance, `DISTINCT_FLOOR`, archetype, element, temperament or kit entry**
-- [ ] **P3.T2: Prove the resulting tree** — covers: FR-4, FR-8, AC-3, AC-7
-  - [ ] **P3.T2.1: Re-run both gates and show the fixture at most 14/42, the matrix at most 1/3 and every other row green**
-  - [ ] **P3.T2.2: Show `git diff` contains no authored bound change and that `identity.test.ts` is unchanged**
-- [ ] **P3.T3: Settle the version guard for a stats-only tree** — covers: FR-6, AC-6
-  - [ ] **P3.T3.1: Leave `SIM_VERSION` as phase 2 left it and prove the trace hash moved only if a policy change shipped**
-  - [ ] **P3.T3.2: Re-pin only figures that actually moved, with comments explaining why, and weaken no assertion**
+- [ ] **P3.T1: Re-apply the winning cadence** — covers: FR-2, FR-11
+  - [ ] **P3.T1.1: Set `DECISION_MS` 200 / `DECISION_STEPS` 10 and update the `controller.test.ts` pin with a comment naming the Phase 2 measurement**
+  - [ ] **P3.T1.2: Re-run the fixture (13/42) and matrix (188/840) to confirm the Phase 2 rung reproduces before touching any species value**
+- [ ] **P3.T2: Correct only the broken species rows** — covers: FR-3, FR-8, FR-11, AC-3, AC-11
+  - [ ] **P3.T2.1: For `fire_drake`, `plant_ox`, `voltfox` and `shalemole`, move the smallest whole-point stat value that restores each row inside its published band, never widening a roll envelope**
+  - [ ] **P3.T2.2: Prove `identity.test.ts` is unchanged and green, and that no archetype, element, temperament, kit or frame-data value moved**
+  - [ ] **P3.T2.3: Record every rejected stat rung with its win rate and the reason it was rejected**
+- [ ] **P3.T3: Promote the debt pins** — covers: FR-5, AC-5
+  - [ ] **P3.T3.1: Replace the failing one-in-three debt assertion in `telemetry.test.ts` with a normal passing expectation, retaining the old 20/42 figure in its comment**
+  - [ ] **P3.T3.2: Promote `pacing.test.ts`'s `test.failing` majority-by-KO body only if its body passes, never adding `.skip`**
+- [ ] **P3.T4: Settle the version guard** — covers: FR-6, NFR-1, AC-6
+  - [ ] **P3.T4.1: Bump `SIM_VERSION` 3 → 4 and update both ghost pins, since controller policy moved**
+  - [ ] **P3.T4.2: Re-run the trace, record the new hash and prove replay remains byte-identical for the same seed**
+- [ ] **P3.T5: Record the verdict** — covers: FR-9, AC-2, AC-7, AC-9, AC-11
+  - [ ] **P3.T5.1: Paste the full gate output and a before/after table proving no gate bound, roll envelope, tolerance or target moved**
+  - [ ] **P3.T5.2: State plainly if any row is still red instead of claiming a target met**
 
 <!--
 The primary appends after acceptance:
@@ -106,7 +119,7 @@ The primary appends after acceptance:
 
 - **Goal:** the integrated record states the final cap shares, the sweep verdict, the version decision and every debt still owed, with the full gate output pasted from the final tree.
 - **Depends on:** Phase 3
-- **Covers:** FR-9, FR-10, NFR-2, AC-8, AC-9
+- **Covers:** FR-9, FR-10, FR-11, NFR-2, AC-8, AC-9, AC-11
 - **Touches:** `conductor/tracks/20261117-global-pacing/verification/integrated.md` (evidence only — no source file)
 - **Verification:** `bun run verify`, then `bun run build` (two separate commands)
 - **Status:** pending
