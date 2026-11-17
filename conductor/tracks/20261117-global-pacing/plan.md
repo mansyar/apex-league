@@ -203,7 +203,7 @@ The primary appends after acceptance:
 - **Verification:** `bunx biome check`, `bun run gate:determinism`, `bun run verify`, `bun run build`
 - **Status:** verified
 - **Result:** verified — F1 fixed, no game change, all checks green
-- **Checkpoint:** <filled by the completion commit>
+- **Checkpoint:** 64bef142
 - **Evidence:** conductor/tracks/20261117-global-pacing/review.md
 
 - [x] **R1.T1: Mark the stale debt-pin promotion metric Withdrawn** — covers: F1
