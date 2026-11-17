@@ -89,8 +89,19 @@ The primary appends after acceptance:
 - **Covers:** FR-3, FR-4, FR-5, FR-6, FR-8, FR-9, FR-11, FR-12, AC-3, AC-4, AC-5, AC-6, AC-7, AC-8, AC-9, AC-10, AC-11, AC-12
 - **Touches:** the source files from attempt 1 (`controller-state.ts`, `controller.test.ts`, `species/starters.ts`, `species/discovery.ts`, `species/rewards.ts`, read-only `species/identity.test.ts`, `cup/ghost.ts`, `ghost.test.ts`, `continuous/telemetry.test.ts`, `continuous/pacing.test.ts`, `continuous/balance-report.test.ts`) **plus the cadence- and species-sensitive test files that `bun run verify` reports as moved**, including `battle/continuous/controller-doctrine.test.ts` (Circle probe), `battle/continuous/battle-trace.test.ts`, `apps/client/src/bracket-model.test.ts`, `apps/client/src/morning-after/derive.test.ts`, `packages/sim/src/bosses.test.ts`, `breeding.test.ts`, `branch-balance.test.ts`, `legacy.test.ts`, `species.test.ts`, `cup/rival-roster.test.ts`, `cup.golden.test.ts`, `cup.test.ts`, `battle/clock.contract.test.ts`, `battle/exhibition.test.ts`, `battle/continuous/stream.test.ts` and `battle/continuous/fixture-audit.test.ts`; plus `conductor/tracks/20261117-global-pacing/verification/phase-3.md`
 - **Verification:** `bun run telemetry`, then `bun run balance`, then `bun run trace --seed 20261111 --check`, then `bun run verify`, then `bun run build` (five separate commands)
-- **Status:** in_progress
+- **Status:** blocked
+- **Result:** blocked — attempt 3 exhausted a 14-rung in-envelope grid; the only config clearing matrix and sibling band together breaks the boss atk-11 fence and the Fenn balance floor, and the closest legal miss is one win outside the band
+- **Checkpoint:** 7f9b296e
+- **Evidence:** conductor/tracks/20261117-global-pacing/verification/phase-3.md
 
+> **Attempt 3 was blocked** at `7f9b296e`: with `DECISION_MS = 200` held fixed,
+> no content-legal subset of the four red species' authored envelopes clears
+> matrix ≤ 1/3, all 15 species rows, the 45–55% sibling band and the boss/form
+> gates together. Section 20.4 of the evidence gives the structural proof from
+> `bosses.ts` pins. Re-pinning the boss fence, the Fenn floor or the sibling band
+> is forbidden by FR-4/FR-11/FR-12. Every candidate was reverted; all five
+> configured commands pass on the restored base.
+>
 > **Third resume (2026-11-17):** the user chose to find a different in-envelope
 > species configuration that keeps the 45–55% sibling band, rather than moving
 > the band. Task P3.T7 below owns that search; no gate value may move.

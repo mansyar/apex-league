@@ -475,3 +475,17 @@ content-legal config satisfies every gate); AC-12 not met (no re-pins shipped).
 - Notes: the tree is byte-identical to phase base `ad9308f7`; no code commit
   was made. §20.3 is the complete resume grid; B5 and B10 are the two closest
   misses and their failure reasons are authoritative for any further attempt.
+
+## Primary verification (attempt 3)
+
+| Check | Result |
+| --- | --- |
+| `git status --porcelain` | empty when the subagent reported; only `verification/phase-3.md` changed in `ad9308f7..HEAD` (+108/−0) |
+| `bun run verify` (primary re-run on the restored base) | exit 0 — `4167 pass`, `1 skip`, `0 fail`, `Ran 4168 tests across 375 files [108.16s]`, `Checked 940 files … No fixes applied`, determinism gate byte-identical |
+
+The block is structural, not a tool denial or an environment failure: §20.4
+traces it to the boss stat fences in `bosses.ts` and the Fenn balance floor,
+all of which FR-4/FR-11/FR-12 forbid moving. AC-10 remains met because the
+phase stops with the full grid and closest misses rather than lowering a gate.
+No code, pin, version or bound change is staged; the only open files are the
+Conductor plan/metadata recording this block.
