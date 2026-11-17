@@ -72,17 +72,17 @@
 - **Covers:** FR-5, FR-6, FR-7, NFR-5, AC-5, AC-6, AC-7
 - **Touches:** `apps/client/src/ui/focus.ts`, `apps/client/src/ui/announcer.ts`, `apps/client/src/ui/announcer.test.ts`, `apps/client/src/app/hud-screen.ts`, `apps/client/src/cup/results.ts`, `apps/client/src/graduation/flow.ts`, `apps/client/src/cloud/panel.ts`, `apps/client/src/hud/copy*.ts`, `apps/client/src/ui/kit.css`, `apps/client/src/base.css`
 - **Verification:** `bun run verify && bun run build`; visual layer (`playwright-cli`, desktop + iPhone 15)
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P4.T1: Polite live-region announcer** - covers: FR-5, AC-5
-  - [ ] **P4.T1.1: Coalesced single region for verdict, KO, cup advancement, save/load; suppress instant dumps**
-- [ ] **P4.T2: Focus visibility** - covers: FR-6, AC-6
-- [ ] **P4.T3: Copy compliance audit** - covers: FR-7, AC-7
-- [ ] **P4.T4: 393px bar re-check (both orientations)** - covers: NFR-5
+- [x] **P4.T1: Polite live-region announcer** - covers: FR-5, AC-5
+  - [x] **P4.T1.1: Coalesced single region for verdict, KO, cup advancement, save/load; suppress instant dumps**
+- [x] **P4.T2: Focus visibility** - covers: FR-6, AC-6
+- [x] **P4.T3: Copy compliance audit** - covers: FR-7, AC-7
+- [x] **P4.T4: 393px bar re-check (both orientations)** - covers: NFR-5
 
 <!--
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 8eb89f6f
 **Evidence:** conductor/tracks/20261117-polish-showcase/verification/phase-4.md
 -->
 
