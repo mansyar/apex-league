@@ -49,3 +49,15 @@ None. Only the evidence file was added outside the two code Touches, as permitte
 - TDD followed: failing test written first (red), implementation added (green), then full verification.
 - One verification fix applied (Biome import ordering in `cues.test.ts`) — within the two-attempt limit; final run is fully green.
 - Working tree is clean after the two task-level commits plus this evidence commit. No `--amend`, no push/merge/rebase/reset.
+
+## Primary verification
+
+Independent primary-agent check of the squashed phase (checkpoint `69d1da09`):
+
+| Layer | Command | Exit | Result |
+| --- | --- | --- | --- |
+| Full verify + build | `bun run verify && bun run build` | 0 | check OK; 4175 pass / 1 skip / 0 fail (491221 expect() calls, 375 files); Biome clean (941 files); determinism gate OK (all 15 species + 5 props byte-identical); client build exit 0 |
+| Worktree | `git status --porcelain` | 0 | clean |
+| Scope | `git diff --name-only 2d0655b2..HEAD` | 0 | only `cues.ts`, `cues.test.ts`, `verification/phase-1.md` — within Touches |
+
+Phase accepted: all P1 tasks complete, AC-1 and AC-8 satisfied by pure tests, no unreported files.

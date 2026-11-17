@@ -14,20 +14,17 @@
 - **Covers:** FR-1, FR-8, AC-1, AC-8
 - **Touches:** `apps/client/src/audio/cues.ts`, `apps/client/src/audio/cues.test.ts`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** `69d1da09`
+- **Evidence:** conductor/tracks/20261117-polish-showcase/verification/phase-1.md
 
-- [ ] **P1.T1: Extend the cue mapping** - covers: FR-1
-  - [ ] **P1.T1.1: Add UI navigate/confirm and cup-transition cue types with gate checks**
-  - [ ] **P1.T1.2: Add evolution/graduation cues and reduced-motion calm variants**
-- [ ] **P1.T2: Pure cue tests** - covers: FR-1, AC-1, AC-8
-  - [ ] **P1.T2.1: Cover every new mapping, success and unmapped failure cases**
-  - [ ] **P1.T2.2: Assert calm variants and silent instant dumps**
-
-<!--
-**Result:** verified
-**Checkpoint:** <short-sha>
-**Evidence:** conductor/tracks/20261117-polish-showcase/verification/phase-1.md
--->
+- [x] **P1.T1: Extend the cue mapping** - covers: FR-1
+  - [x] **P1.T1.1: Add UI navigate/confirm and cup-transition cue types with gate checks**
+  - [x] **P1.T1.2: Add evolution/graduation cues and reduced-motion calm variants**
+- [x] **P1.T2: Pure cue tests** - covers: FR-1, AC-1, AC-8
+  - [x] **P1.T2.1: Cover every new mapping, success and unmapped failure cases**
+  - [x] **P1.T2.2: Assert calm variants and silent instant dumps**
 
 ## Phase 2: Bundled assets, new CC0 pack & wiring
 
