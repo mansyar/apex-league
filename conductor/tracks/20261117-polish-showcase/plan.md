@@ -52,7 +52,7 @@
 - **Covers:** FR-4, NFR-6, AC-4
 - **Touches:** `apps/client/src/audio/duck.ts`, `apps/client/src/audio/duck.test.ts`, `apps/client/src/audio/player.ts`, `apps/client/src/audio/musicBeds.ts`, `apps/client/src/app/audio.ts`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Pure ducking envelope** - covers: FR-4
   - [ ] **P3.T1.1: Duck/restore tests including mute toggle and scene change mid-duck**
