@@ -1,0 +1,31 @@
+{
+  "id": "20261118-crab-fuzz-boundary",
+  "title": "Nightly fuzz red: crab boundary",
+  "type": "bug",
+  "status": "new",
+  "priority": "high",
+  "depends_on": [],
+  "created_at": "2026-11-18T09:18:38.4354562+11:00",
+  "updated_at": "2026-11-18T09:18:38.4354562+11:00",
+  "spec": "spec.md",
+  "plan": "plan.md",
+  "branch": "fix/20261118-crab-fuzz-boundary",
+  "base_branch": "main",
+  "base_sha": "b7fcaf47fad9810396b13c3776589448423d4fda",
+  "progress": {
+    "phases_total": 2,
+    "phases_verified": 0,
+    "tasks_total": 4,
+    "tasks_done": 0
+  },
+  "last_checkpoint": null,
+  "review_verdict": null,
+  "review_rounds": 0,
+  "doc_sync": "pending",
+  "pr_url": null,
+  "reverted_at": null,
+  "revert_commit": null,
+  "revert_pr_url": null,
+  "archived_at": null,
+  "archive_path": null
+}
