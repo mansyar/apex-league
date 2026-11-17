@@ -181,3 +181,144 @@ No tool call was denied. The block is a design outcome, not a permission failure
 - Task ledger: P2.T1 (sweep) done; P2.T2 (ship smallest passing rung) failed — none
   passed; P2.T3 (promote pins) not performed by protocol; P2.T4 (version guard) done
   as a no-op hash proof; P2.T5 (record) done.
+
+---
+
+# Attempt 2 — combined skip/cycle rungs (phase base `b3fd4dd5`, 2026-11-17)
+
+## 13. Verdict
+
+**blocked.** No combination of two or three controller knobs 1–4, with `DECISION_MS`
+held at 240 and `DECISION_STEPS` at 12, meets fixture ≤ 14/42 **and** matrix ≤ 1/3
+with every other gate green. Two rungs (R5, R12) reached the fixture target at
+13/42 and matrix 198/840 (23.6%), but both turned two matrix species rows red
+(`fernstag` 68.8% against a ≤59.5% bound; `embercub` 35.3% against a ≥40.5%
+bound). Species values, boss stat pins, the 0.35 boss floor, the 45–55% sibling
+band, `BOUNDS`, `CAP_MAX`, `DISTINCT_FLOOR`, the damage band and the targets are
+all out of scope, so neither rung is shippable. The tree was restored byte-for-byte
+to phase base `b3fd4dd5`; no policy shipped.
+
+## 14. Primary verification (real exit codes, restored base tree)
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `bun run telemetry` | 0 | cap 20/42 (47.6%), 14/14 bounds ok, dead zone 27 commits (2.9%), idle 25.7%, exchange 0.32/0.32, engagement 380/1079/3992 mm, positions min 46/median 163, contact 6.7%, duration 14.48–40.00 s, retreats 18948/19333 |
+| `bun run balance` | 0 | 840 fights (ko 615, time 224, draw 1), cap 224/840 (26.7%), decisive 803/840 (95.6%), cap-win quality 188/224 (83.9%), median 31.21 s, p05 16.60 s, max 40.00 s, damageBand 49/49, 15/15 species ok, 6/6 bosses ok, reference line 377/840 (44.9%) diagnostic, diversity 39.0% |
+| `bun run trace --seed 20261111 --check` | 0 | final hash `0xb6cce858` (UNCHANGED), 5/5 invariants ok, ko — Embercub wins, blows 8/9, damage 82/196, 31,000 ms, gap 499/961/3984 mm |
+| `bun run verify` | 0 | 4167 pass / 1 skip / 0 fail, 491,194 expect() calls, 4168 tests / 375 files, Biome 940 files no fixes, determinism gate OK for all 15 species and 5 props |
+| `bun run build` | 0 | 418 modules transformed, only the pre-existing >500 kB chunk warning |
+
+## 15. Combined rung grid
+
+`C` = `COMMIT_SKIP_DENOM` (base 32), `P` = `PUNISH_SKIP_DENOM` (base 16),
+`D` = `CADENCE_SKIP_DENOM` (base 16), `cycle` = `CYCLE` in `controller.ts` (base 10),
+`press`/`strafe` = divisor in `controller.ts:277-278` (base 10/10).
+`100000` means effectively no skips while retaining the same `rng.int(denom)`
+call, so the seeded RNG draw count is unchanged in every rung. Every rung below
+kept `DECISION_MS = 240` / `DECISION_STEPS = 12` and reported all 14 telemetry
+bounds `ok`.
+
+| Rung | Knobs (changed only) | Fixture | Matrix | Result / exact reason |
+| --- | --- | --- | --- | --- |
+| R1 | C 64, P 32 | 20/42 | not run | REJECT — no change; moderate skips almost never hit 0 |
+| R2 | C 64, P 32, D 32 | 20/42 | not run | REJECT — no change |
+| R3 | C 100000, P 100000 | 18/42 | not run | REJECT — punish-skip adds nothing beyond commit-skip |
+| R4 | C 100000, P 100000, D 100000 | 18/42 | not run | REJECT — no further gain from cadence-skip |
+| R5 | C 100000, P 100000, press /6 | **13/42** | 198/840 | REJECT — `fernstag` 68.8% (77/112, ≤59.5%) and `embercub` 35.3% (39/112, ≥40.5%) FAIL; all other matrix gates ok (decisive 802/840, cap-win 161/198, median 30.52 s, p05 15.92 s, damageBand 49/49, 6/6 bosses) |
+| R6 | C 100000, P 100000, press /7 | 16/42 | not run | REJECT — fixture |
+| R7 | C 100000, P 100000, cycle 8 | 16/42 | not run | REJECT — fixture |
+| R8 | C 100000, D 100000, press /6 | 17/42 | not run | REJECT — punish-skip-off is required for the fixture pass |
+| R9 | D 100000, P 100000, press /6 | 17/42 | not run | REJECT — commit-skip-off is required for the fixture pass |
+| R10 | C 100000, P 100000, strafe /20 | 17/42 | not run | REJECT — strafe share is not an effective lever |
+| R11 | C 100000, P 100000, press /6, cycle 12 | 16/42 | not run | REJECT — fixture |
+| R12 | C 100000, P 64, press /6 | **13/42** | 198/840 | REJECT — same two species rows FAIL as R5 (fernstag 68.8%, embercub 35.3%); matrix otherwise identical |
+| R13 | C 100000, P 100000, press /7, cycle 9 | 18/42 | not run | REJECT — fixture |
+| R14 | C 100000, P 100000, press /6, cycle 8 | 15/42 | not run | REJECT — closest fixture miss, still above 14/42 |
+| R15 | C 100000, P 100000, press /6, cycle 9 | 16/42 | not run | REJECT — fixture |
+| R16 | C 100000, P 100000, press /6, cycle 11 | 16/42 | not run | REJECT — fixture |
+| R17 | C 100000, P 100000, press /10, cycle 9 | 24/42 | not run | REJECT — fixture much worse |
+| R18 | C 100000, P 100000, press /6, D 4 | 25/42 | not run | REJECT — extra cadence holds reduce throughput |
+| R19 | C 100000, P 100000, press /6, D 8 | 19/42 | not run | REJECT — extra cadence holds reduce throughput |
+
+## 16. Mechanism and closest miss
+
+- Small-to-moderate denominator changes (32→64, 16→32) do not affect the seeded
+  stream: `rng.int(denom)` must land exactly on 0 for a skip, so changing the
+  denominator by a small factor rarely flips any given draw. Only effectively-no-skip
+  denominators (100000) changed outcomes, and those alone bottom out at 18/42.
+- The only fixture pass comes from `press = round(aggression / 6)`, which makes
+  `press` saturate `CYCLE = 10` for every doctrine (85/6→14, 65/6→11, 55/6→9,
+  all capped to 10 or 9). Pure-commit press doctrine amplifies raw stat
+  differences: `fernstag` rises 54.5%→68.8% and `embercub` falls 41.5%→35.3%
+  beyond their statistical bands. No other CYCLE (8, 9, 11, 12), press divisor
+  (7, 10) or cadence rate (4, 8, 16, 100000) preserved the fixture pass, so the
+  species conflict is structural within knob families 1–4.
+- Closest fixture miss: R14 at 15/42 (one conversion short), all 14 bounds ok,
+  distinct-positions min 23 (still ≥20). Closest complete miss: R5/R12, which
+  clear both cap targets but fail exactly two species rows.
+
+## 17. Rejected changes, final diff review
+
+All knob edits were reverted: `COMMIT_SKIP_DENOM` 100000→32 with its base comment
+restored, `PUNISH_SKIP_DENOM` 100000→16, `CADENCE_SKIP_DENOM` 8→16,
+`controller.ts` `CYCLE` 10 at base, `press` divisor /6→/10 and `strafe` divisor
+at /10. `git diff --stat` and `git status --short --branch` showed a clean tree
+at `b3fd4dd5f153b79c010397bdede3a84833ae6201`. `git rev-parse HEAD` confirmed
+that commit.
+
+## 18. Pins, version guard and re-pins (not shipped)
+
+- `telemetry.test.ts:213` stays the debt assertion
+  `expect(cap.count * 3).toBeGreaterThan(cap.total)` with its 20/42 comment; it
+  was **not** promoted because no policy shipped and the base fixture remains
+  20/42.
+- `pacing.test.ts:176` stays `test.failing(...)`; its body does not pass at base.
+- `SIM_VERSION` stays 3 in `cup/ghost.ts`; `ghost.test.ts` pins stay 3 and 4;
+  no re-versioning without a shipped policy.
+- No value/golden/relation test was re-pinned because no knob change remained in
+  the final tree. `balance-report.test.ts:191` still pins the base diagnostic
+  reference-line text (377/840).
+
+## 19. Before/after gate table (nothing moved)
+
+| Gate | Base | Final (base restored) | Moved? |
+| --- | --- | --- | --- |
+| fixture one-in-three ≤14/42 | 20/42 | 20/42 | no |
+| matrix cap ≤1/3 | 224/840 | 224/840 | no |
+| species statistical bound | `SIGNIFICANCE_Z` slack | unchanged | no |
+| damage band 4–12% | 49/49 | 49/49 | no |
+| DISTINCT_FLOOR | 12 | 12 | no |
+| cap duration | 40,000 ms | 40,000 ms | no |
+| DECISION_MS band | 240 / 12 steps | 240 / 12 steps | no |
+| boss stat pins and 0.35 floor | authored | unchanged | no |
+| 45–55% sibling band | 45–55% | unchanged | no |
+| identity fence | `identity.test.ts` byte-identical | unchanged | no |
+| trace hash | `0xb6cce858` | `0xb6cce858` | no |
+
+## 20. AC verdicts (attempt 2)
+
+AC-2 not met (no controller change shipped); AC-4 not met (fixture 20/42);
+AC-5 not met (pins not promoted); AC-6 met (hash unchanged proves no policy
+shipped); AC-7 met (before/after cap shares recorded); AC-8 met (14 telemetry
+bounds, 15 species, 49 moves measured per rung); AC-9 met (`verify` and `build`
+green on base, no assertion weakened); AC-10 met (blocked with the full 19-rung
+grid and closest miss); AC-12 met (no fence, band, target or tolerance moved;
+no unshipped re-pins); AC-13 met (five commands run exactly as written).
+
+## 21. Deviations / blockers / notes
+
+- Deviations: none. Every edit stayed inside `controller.ts` and
+  `controller-noise.ts`; every edit was reverted.
+- Blocker 1 (design): no combination of knobs 1–4 reaches the fixture target
+  without pushing two species rows past their statistical bands, and species
+  values and tolerances are out of scope. Clearing this needs a product decision
+  to allow a species/stat changes or a different controller family; both are
+  forbidden here.
+- Blocker 2 (tool denial, from attempt 1, recorded again for continuity): the
+  piped command `bun run balance 2>&1 | Select-String -Pattern '...'` was denied
+  (`Permission denied: shell`) because pipes are forbidden for this phase. No
+  equivalent command was retried; unfiltered `bun run balance` was used instead.
+- Notes: the tree is byte-identical to phase base `b3fd4dd5`; the only change in
+  this attempt is this evidence file. The fixture-passing R5/R12 configuration
+  (`COMMIT_SKIP_DENOM=100000`, `PUNISH_SKIP_DENOM=64` or `100000`, press divisor
+  6) is the resume point if the user later authorises species corrections.
