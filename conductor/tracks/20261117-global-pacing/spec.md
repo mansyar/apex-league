@@ -103,6 +103,7 @@ decisive blow, and two test pins keep asserting that failure as the expected sta
 | FR-9 | Record the full candidate sweep, including rejected rungs and the reason each was rejected, in the phase evidence and integrated record. | must |
 | FR-10 | Keep cap wins valid: no change to the decisive-share or cap-win-quality rules, and a cap win still counts when it clears the existing margin floor. | must |
 | FR-11 | **Added 2026-11-17.** When a controller rung meets the cap targets but breaks a species row, ship that rung with the minimum per-species stat corrections that restore every broken row; never widen a roll envelope, lower a floor or touch an identity-defining stat. | must |
+| FR-12 | **Added 2026-11-17 (user decision).** With the combined tree shipped, re-pin the cadence- and species-sensitive golden, digest and relation tests that legitimately moved. Circle's lost flank/rear counts at 200 ms and the two champion cup fixtures that flip to eliminated are **accepted consequences**, not regressions to hide. No gate bound, target, tolerance, roll envelope, damage band or identity fence moves; no probe is simply deleted or skipped. | must |
 
 ## Non-Functional Requirements
 
@@ -128,6 +129,7 @@ decisive blow, and two test pins keep asserting that failure as the expected sta
 | AC-9 | `bun run verify` and `bun run build` are green on the final tree, and the diff contains no re-pinning that weakens an assertion. | NFR-2, NFR-3 |
 | AC-10 | If no in-scope candidate satisfies AC-4 without violating AC-7 or AC-8, the phase reports blocked with the measured sweep and no bound moves; the track does not silently downgrade its target. | FR-4, FR-9 |
 | AC-11 | **Added 2026-11-17.** The combined tree reproduces fixture ≤ 14/42 and matrix ≤ 1/3 with all 15 species and 49 moves green, `identity.test.ts` unchanged, `SIM_VERSION` 4 with both ghost pins updated, a recorded new trace hash, and a before/after table proving no roll envelope widened and no gate bound moved. | FR-11, FR-6 |
+| AC-12 | **Added 2026-11-17.** `bun run verify` is green with only value/golden/relation re-pins in the cadence- and species-sensitive tests; each re-pin has a comment naming the 200 ms cadence or the species correction that moved it, and no assertion is deleted, `.skip`ped or weakened to hide a failure. The evidence names every moved file and quotes the old and new expected values. | FR-12 |
 
 ## Edge Cases
 
@@ -143,6 +145,11 @@ decisive blow, and two test pins keep asserting that failure as the expected sta
   its comment must retain the old debt figure for context.
 - **No candidate works.** Report blocked with the full sweep and the measured reason, exactly as the
   Capshare Pacing track did for the tortoise fix; do not widen the target or pick favourable seeds.
+- **Cadence changes rewrite doctrine/cup outcomes (occurred 2026-11-17).** At 200 ms,
+  Circle's flank/rear probe drops to zero and two champion fixtures flip to eliminated.
+  The user explicitly accepted these as the cost of the pacing fix (FR-12). Re-author the
+  affected probes to the new expected values and say so; never delete a probe, add `.skip`,
+  or relax a gate bound to make them pass.
 - **A controller rung passes the caps but breaks species rows (occurred 2026-11-17).**
   `DECISION_MS 240→200` read 13/42 and 188/840 with every cap gate green but put `fire_drake`
   59.8% (≤ 59.4), `plant_ox` 62.5% (≤ 59.6), `voltfox` 39.3% (≥ 40.7) and `shalemole` 60.7%
@@ -174,6 +181,11 @@ decisive blow, and two test pins keep asserting that failure as the expected sta
   stays recorded as blocked; FR-11/AC-11 are added rather than renumbering anything, and Phase 3 is
   re-scoped from stats-only to controller policy plus the minimum species corrections that restore
   every green row. No bound, floor, tolerance or target moves.
+- **Decided 2026-11-17 (second resume):** after Phase 3 measured 30 red assertions outside
+  `Touches`, the user chose to expand scope and accept the measured behaviour changes. FR-12/AC-12
+  were added without renumbering; the cadence-sensitive golden, digest, relation and fixture tests
+  become re-pinnable with named reasons. The alternative — a narrower policy preserving Circle
+  flanks and cup outcomes — was offered and not chosen.
 
 ## References
 

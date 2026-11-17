@@ -86,13 +86,17 @@ The primary appends after acceptance:
   correct only the species rows it broke, inside their original stat envelopes, so both samples and
   every other gate row are green without moving a bound or tolerance.
 - **Depends on:** Phase 2 (blocked; resolved by the FR-11/AC-11 amendment recorded above)
-- **Covers:** FR-3, FR-4, FR-5, FR-6, FR-8, FR-9, FR-11, AC-3, AC-4, AC-5, AC-6, AC-7, AC-8, AC-9, AC-10, AC-11
-- **Touches:** `packages/sim/src/battle/continuous/controller-state.ts`, `controller.test.ts`, `packages/sim/src/species/starters.ts`, `discovery.ts`, `rewards.ts`, `packages/sim/src/species/identity.test.ts` (read-only fence), `packages/sim/src/cup/ghost.ts`, `ghost.test.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`, `pacing.test.ts`, `balance-report.test.ts`, `conductor/tracks/20261117-global-pacing/verification/phase-3.md`
+- **Covers:** FR-3, FR-4, FR-5, FR-6, FR-8, FR-9, FR-11, FR-12, AC-3, AC-4, AC-5, AC-6, AC-7, AC-8, AC-9, AC-10, AC-11, AC-12
+- **Touches:** the source files from attempt 1 (`controller-state.ts`, `controller.test.ts`, `species/starters.ts`, `species/discovery.ts`, `species/rewards.ts`, read-only `species/identity.test.ts`, `cup/ghost.ts`, `ghost.test.ts`, `continuous/telemetry.test.ts`, `continuous/pacing.test.ts`, `continuous/balance-report.test.ts`) **plus the cadence- and species-sensitive test files that `bun run verify` reports as moved**, including `battle/continuous/controller-doctrine.test.ts` (Circle probe), `battle/continuous/battle-trace.test.ts`, `apps/client/src/bracket-model.test.ts`, `apps/client/src/morning-after/derive.test.ts`, `packages/sim/src/bosses.test.ts`, `breeding.test.ts`, `branch-balance.test.ts`, `legacy.test.ts`, `species.test.ts`, `cup/rival-roster.test.ts`, `cup.golden.test.ts`, `cup.test.ts`, `battle/clock.contract.test.ts`, `battle/exhibition.test.ts`, `battle/continuous/stream.test.ts` and `battle/continuous/fixture-audit.test.ts`; plus `conductor/tracks/20261117-global-pacing/verification/phase-3.md`
 - **Verification:** `bun run telemetry`, then `bun run balance`, then `bun run trace --seed 20261111 --check`, then `bun run verify`, then `bun run build` (five separate commands)
-- **Status:** blocked
-- **Result:** blocked — the combined 200 ms + in-envelope species tree met 13/42 and 190/840 with all 15 species green, but `bun run verify` failed 30 assertions (17 cadence-caused, 13 species-caused), including a Circle-flank regression and two champion-fixture flips; 12 red test files sit outside Touches
-- **Checkpoint:** 3d26ede2
-- **Evidence:** conductor/tracks/20261117-global-pacing/verification/phase-3.md
+- **Status:** in_progress
+
+> **Attempt 1 was blocked** at `3d26ede2`: the 200 ms + in-envelope species tree met
+> 13/42 and 190/840 with all 15 species green, but `bun run verify` failed 30
+> assertions (17 cadence-caused, 13 species-caused) across at least 12 test files.
+> The user chose to expand scope and accept the measured Circle/cup behaviour
+> changes on 2026-11-17, so FR-12/AC-12 were added and this phase reopened.
+> The blocked attempt and its full rung table remain in `verification/phase-3.md`.
 
 - [x] **P3.T1: Re-apply the winning cadence** — covers: FR-2, FR-11
   - [x] **P3.T1.1: Set `DECISION_MS` 200 / `DECISION_STEPS` 10 and update the `controller.test.ts` pin with a comment naming the Phase 2 measurement** — measured then reverted
@@ -110,6 +114,11 @@ The primary appends after acceptance:
 - [x] **P3.T5: Record the verdict** — covers: FR-9, AC-2, AC-7, AC-9, AC-11
   - [x] **P3.T5.1: Paste the full gate output and a before/after table proving no gate bound, roll envelope, tolerance or target moved**
   - [x] **P3.T5.2: State plainly if any row is still red instead of claiming a target met**
+- [ ] **P3.T6: Re-pin the moved golden, digest and relation tests (attempt 2)** — covers: FR-12, AC-12
+  - [ ] **P3.T6.1: Apply the 200 ms cadence and the in-envelope species corrections together, then let `bun run verify` enumerate every failing assertion**
+  - [ ] **P3.T6.2: Re-author each moved expectation to the new measured value with a comment naming the cadence or species change; delete no probe, add no `.skip`, and weaken no gate bound, species band or damage band**
+  - [ ] **P3.T6.3: Extend `verification/phase-3.md` with the attempt-2 result: every re-pinned file, old → new values, the accepted Circle/cup behaviour changes, the new trace hash and all five green gates**
+  - [ ] **P3.T6.4: Prove the final tree still reads fixture ≤ 14/42, matrix ≤ 1/3, 15/15 species and 49/49 moves, with both debt pins promoted and `SIM_VERSION` 4**
 
 > **Blocked, not downgraded.** No candidate shipped. The tree is byte-identical
 > to the phase base; all five verification commands pass on it. Making the
