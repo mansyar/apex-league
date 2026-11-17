@@ -33,7 +33,7 @@
 - **Covers:** FR-2, FR-3, AC-2, AC-3
 - **Touches:** `apps/client/public/audio/**`, `apps/client/public/audio/CREDITS.md`, `apps/client/src/audio/cueUrls.ts`, `apps/client/src/audio/cueUrls.test.ts`, `apps/client/src/audio/beds.ts`, `apps/client/src/audio/beds.test.ts`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Bundle and wire new assets** - covers: FR-2
   - [ ] **P2.T1.1: Add new SFX and one bed from already-credited packs; transcode to .ogg**
