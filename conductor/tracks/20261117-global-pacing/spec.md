@@ -181,6 +181,11 @@ decisive blow, and two test pins keep asserting that failure as the expected sta
   stays recorded as blocked; FR-11/AC-11 are added rather than renumbering anything, and Phase 3 is
   re-scoped from stats-only to controller policy plus the minimum species corrections that restore
   every green row. No bound, floor, tolerance or target moves.
+- **Decided 2026-11-17 (third resume):** after attempt 2 broke the 45–55% sibling band
+  (Cinder Courser 56.3%, Thorn Ram 55.7%) while trying to restore all 15 species rows,
+  the user chose to search for a **different in-envelope species configuration** that
+  preserves that band. No bound, tolerance or band moves; the accepted FR-12 re-pin
+  scope stays as written.
 - **Decided 2026-11-17 (second resume):** after Phase 3 measured 30 red assertions outside
   `Touches`, the user chose to expand scope and accept the measured behaviour changes. FR-12/AC-12
   were added without renumbering; the cadence-sensitive golden, digest, relation and fixture tests

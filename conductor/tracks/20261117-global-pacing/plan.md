@@ -89,10 +89,11 @@ The primary appends after acceptance:
 - **Covers:** FR-3, FR-4, FR-5, FR-6, FR-8, FR-9, FR-11, FR-12, AC-3, AC-4, AC-5, AC-6, AC-7, AC-8, AC-9, AC-10, AC-11, AC-12
 - **Touches:** the source files from attempt 1 (`controller-state.ts`, `controller.test.ts`, `species/starters.ts`, `species/discovery.ts`, `species/rewards.ts`, read-only `species/identity.test.ts`, `cup/ghost.ts`, `ghost.test.ts`, `continuous/telemetry.test.ts`, `continuous/pacing.test.ts`, `continuous/balance-report.test.ts`) **plus the cadence- and species-sensitive test files that `bun run verify` reports as moved**, including `battle/continuous/controller-doctrine.test.ts` (Circle probe), `battle/continuous/battle-trace.test.ts`, `apps/client/src/bracket-model.test.ts`, `apps/client/src/morning-after/derive.test.ts`, `packages/sim/src/bosses.test.ts`, `breeding.test.ts`, `branch-balance.test.ts`, `legacy.test.ts`, `species.test.ts`, `cup/rival-roster.test.ts`, `cup.golden.test.ts`, `cup.test.ts`, `battle/clock.contract.test.ts`, `battle/exhibition.test.ts`, `battle/continuous/stream.test.ts` and `battle/continuous/fixture-audit.test.ts`; plus `conductor/tracks/20261117-global-pacing/verification/phase-3.md`
 - **Verification:** `bun run telemetry`, then `bun run balance`, then `bun run trace --seed 20261111 --check`, then `bun run verify`, then `bun run build` (five separate commands)
-- **Status:** blocked
-- **Result:** blocked — attempt 2 restored all 15 matrix species rows at 197/840 but pushed the branch-balance sibling band to 56.3% / 55.7% against its 45–55% bound; re-pinning that band is forbidden by FR-12/AC-12
-- **Checkpoint:** 2cbeeaf1
-- **Evidence:** conductor/tracks/20261117-global-pacing/verification/phase-3.md
+- **Status:** in_progress
+
+> **Third resume (2026-11-17):** the user chose to find a different in-envelope
+> species configuration that keeps the 45–55% sibling band, rather than moving
+> the band. Task P3.T7 below owns that search; no gate value may move.
 
 > **Attempt 2 was blocked** at `2cbeeaf1` under the expanded scope: the only
 > in-envelope configuration that restored all 15 species rows kept 56.3% Cinder
@@ -128,6 +129,10 @@ The primary appends after acceptance:
   - [ ] **P3.T6.2: Re-author each moved expectation to the new measured value with a comment naming the cadence or species change; delete no probe, add no `.skip`, and weaken no gate bound, species band or damage band**
   - [ ] **P3.T6.3: Extend `verification/phase-3.md` with the attempt-2 result: every re-pinned file, old → new values, the accepted Circle/cup behaviour changes, the new trace hash and all five green gates**
   - [ ] **P3.T6.4: Prove the final tree still reads fixture ≤ 14/42, matrix ≤ 1/3, 15/15 species and 49/49 moves, with both debt pins promoted and `SIM_VERSION` 4**
+- [ ] **P3.T7: Find an in-envelope configuration that keeps the sibling band (attempt 3)** — covers: FR-11, FR-12, AC-11, AC-12
+  - [ ] **P3.T7.1: With `DECISION_MS = 200` held fixed, search all four red species and all four stat dimensions for bound pairs that are subsets of the authored envelopes; vary hp, def and spd, not just atk, and remember that Cinder Courser / Thorn Ram are the offense branches of `fire_drake` / `plant_ox` against their defense siblings**
+  - [ ] **P3.T7.2: Accept a configuration only if fixture ≤ 14/42, matrix ≤ 1/3, all 15 species rows green, all sibling rates inside 45–55%, 49/49 moves, median 25–40 s and decisive ≥ 2/3 all hold together**
+  - [ ] **P3.T7.3: If no configuration exists, report blocked with the searched grid and the closest measured miss; never move the sibling band, a species band, a tolerance or a target**
 
 > **Blocked, not downgraded.** No candidate shipped. The tree is byte-identical
 > to the phase base; all five verification commands pass on it. Making the
