@@ -33,20 +33,17 @@
 - **Covers:** FR-2, FR-3, AC-2, AC-3
 - **Touches:** `apps/client/public/audio/**`, `apps/client/public/audio/CREDITS.md`, `apps/client/src/audio/cueUrls.ts`, `apps/client/src/audio/cueUrls.test.ts`, `apps/client/src/audio/beds.ts`, `apps/client/src/audio/beds.test.ts`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** `975ab968`
+- **Evidence:** conductor/tracks/20261117-polish-showcase/verification/phase-2.md
 
-- [ ] **P2.T1: Bundle and wire new assets** - covers: FR-2
-  - [ ] **P2.T1.1: Add new SFX and one bed from already-credited packs; transcode to .ogg**
-  - [ ] **P2.T1.2: Extend `cueUrls`/`beds` tables and URL-resolution tests**
-- [ ] **P2.T2: Source the new CC0 pack** - covers: FR-3
-  - [ ] **P2.T2.1: Vet license, bundle files, add exact provenance rows to CREDITS.md**
-- [ ] **P2.T3: Provenance completeness check** - covers: AC-2, AC-3
-
-<!--
-**Result:** verified
-**Checkpoint:** <short-sha>
-**Evidence:** conductor/tracks/20261117-polish-showcase/verification/phase-2.md
--->
+- [x] **P2.T1: Bundle and wire new assets** - covers: FR-2
+  - [x] **P2.T1.1: Add new SFX and one bed from already-credited packs; transcode to .ogg**
+  - [x] **P2.T1.2: Extend `cueUrls`/`beds` tables and URL-resolution tests**
+- [x] **P2.T2: Source the new CC0 pack** - covers: FR-3
+  - [x] **P2.T2.1: Vet license, bundle files, add exact provenance rows to CREDITS.md**
+- [x] **P2.T3: Provenance completeness check** - covers: AC-2, AC-3
 
 ## Phase 3: Ducking mix envelope
 
