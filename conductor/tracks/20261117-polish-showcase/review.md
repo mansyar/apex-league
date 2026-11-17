@@ -5,7 +5,7 @@
 - **Branch:** `feat/20261117-polish-showcase`
 - **Range:** `23c6750900cb3285dc36d399a29a15061a73c3cb..543b6191`
 - **Date:** 2026-11-18
-- **Verdict:** `PASS WITH FINDINGS`
+- **Verdict:** `PASS` (round 1: `PASS WITH FINDINGS`; round 2 delta: `PASS` after Review Fixes)
 
 ## Summary
 
@@ -14,8 +14,10 @@ sound. The read-only reviewer found two Medium gaps: the cup-results verdict
 line is synchronously overwritten by the advancement line in the real results
 path, and AC-9's literal "committed" requirement for the marquee capture is
 unmet because all captures are gitignored/untracked. Both findings are in
-scope, objective and fixable; `review.strict: true` requires fixes before the
-PR, so a Review Fixes phase is appended.
+scope, objective and fixable; `review.strict: true` required fixes before the
+PR, so a Review Fixes phase was appended. Phase R1 fixed both findings;
+the round-2 delta re-review returned `PASS` with no new findings, and the
+primary re-ran the full gate green (4205 pass / 1 skip / 0 fail).
 
 ## Verification
 
@@ -37,11 +39,11 @@ PR, so a Review Fixes phase is appended.
 | FR-2 | P2.T1 | `cueUrls.test.ts`, `beds.test.ts` | covered |
 | FR-3 | P2.T2/T3 | `CREDITS.md`, provenance test | covered |
 | FR-4 | P3.T1/T2 | `duck.test.ts`, `player.ts`, `musicBeds.ts` | covered |
-| FR-5 | P4.T1 | `announcer.test.ts`, `results.ts`, visual pass | partial (F1) |
+| FR-5 | P4.T1 + R1.T1 | `announcer.test.ts`, `results.ts`, visual pass | covered (F1 fixed) |
 | FR-6 | P4.T2 | visual focus pass | covered |
 | FR-7 | P4.T3 | copy audit in `phase-4.md` | covered |
 | FR-8 | P1.T2, P4.T1 | `cues.test.ts`, `announcer.test.ts` | covered |
-| FR-9 | P5.T1 | `phase-5.md`, `integrated.md` | partial (F2) |
+| FR-9 | P5.T1 + R1.T2 | `phase-5.md`, `integrated.md`, `git ls-files` | covered (F2 fixed) |
 | FR-10 | all phases | diff scope, determinism gate | covered |
 | NFR-1 | all phases | determinism gate, hash unchanged | covered |
 | NFR-2 | all phases | module-size tests in `verify` | covered |
@@ -53,11 +55,11 @@ PR, so a Review Fixes phase is appended.
 | AC-2 | P2.T1/T3 | `cueUrls.test.ts` CREDITS completeness test | covered |
 | AC-3 | P2.T2/T3 | `CREDITS.md:39,42`, `phase-2.md` | covered |
 | AC-4 | P3.T1/T2 | `duck.test.ts` | covered |
-| AC-5 | P4.T1 | `announcer.test.ts`, DOM check | partial (F1) |
+| AC-5 | P4.T1 + R1.T1 | `announcer.test.ts`, DOM check | covered (F1 fixed) |
 | AC-6 | P4.T2 | visual focus check | covered |
 | AC-7 | P4.T3 | `announcer.test.ts`, copy audit | covered |
 | AC-8 | P1.T2, P4.T1 | `cues.test.ts`, `announcer.test.ts` | covered |
-| AC-9 | P5.T1 | `phase-5.md`, `integrated.md` | partial (F2) |
+| AC-9 | P5.T1 + R1.T2 | `phase-5.md`, `integrated.md`, `git ls-files` | covered (F2 fixed) |
 | AC-10 | P5.T2 | determinism gate, `verify && build` | covered |
 
 ## Findings
@@ -106,6 +108,15 @@ PR, so a Review Fixes phase is appended.
 
 - <none>
 
+### Resolution (round 2)
+
+- **F1 — fixed.** `resultsAnnouncement()` composes one perceivable line;
+  `results.ts` speaks it once. `announcer.test.ts` asserts both parts,
+  instant silence and reduced-motion calm wording. Delta re-review: PASS.
+- **F2 — fixed.** Six screenshots and the marquee GIF were force-added;
+  `git ls-files` confirms exactly those seven tracked files with no unrelated
+  `.conductor/` artifacts. Delta re-review: PASS.
+
 ## Overrides
 
 - <none>
@@ -124,15 +135,17 @@ changes. The only plan/spec conflict is F2.
 
 ## Debt
 
-- <none; strict mode requires all findings fixed or explicitly overridden>
+- <none; both findings fixed under strict mode, no overrides required>
 
 ## Doc sync
 
-`pending` — post-review sync will update `review.md` and `metadata.json` after
-the Review Fixes phase.
+`updated` — product.md and tech-stack.md were synced before review with owner
+approval of the product note; this post-review sync records the round-2 PASS,
+the resolved findings and `doc_sync: updated` in `metadata.json`.
 
 ## History
 
 | Round | Verdict | Critical | High | Medium | Low | Fixed |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | PASS WITH FINDINGS | 0 | 0 | 2 | 0 | 0 |
+| 2 (delta) | PASS | 0 | 0 | 0 | 0 | 2 |

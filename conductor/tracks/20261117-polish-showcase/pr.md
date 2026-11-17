@@ -24,6 +24,7 @@ gate — no simulation, save-schema, voxel or dependency changes.
 | 3: Ducking mix envelope | Music dips under priority cues and restores exact user volume | verified | `578ec550` | Reworked to exclude routine UI clicks from ducking. |
 | 4: Accessibility & legibility | Four event classes announced politely, focus visible, 393 px bar holds | verified | `8eb89f6f` | One shared polite region; KO already covered by existing regions. |
 | 5: Showcase evidence & capture | Desktop/mobile screenshots, clean console, one marquee cup-run capture | verified | `ae6d6ee0` | Six screenshots + WebM/GIF capture; determinism, module caps and full verify green. |
+| R1: Review Fixes | Fix review findings F1 and F2 | verified | `1655bb57` | Combined perceivable results line + committed captures; full gate re-run green. |
 
 ## Requirements
 
@@ -60,7 +61,7 @@ gate — no simulation, save-schema, voxel or dependency changes.
 | --- | --- | --- | --- |
 | typecheck | `bun run check` | pass | 44 server + 528 client files, no type errors |
 | lint/format | `bunx biome check` | pass | 945 files, no fixes (`biome` resolves via `bun run verify`) |
-| unit | `bun test --timeout 120000` | pass | 4201 pass / 1 skip / 0 fail, 491,422 `expect()` calls |
+| unit | `bun test --timeout 120000` | pass | 4205 pass / 1 skip / 0 fail, 491,435 `expect()` calls (final R1 run) |
 | determinism | `bun run gate:determinism` | pass | 45 species GLBs + 5 prop digests byte-identical |
 | build | `bun run build` | pass | Vite 420 modules, exit 0 |
 | visual | `playwright-cli` against `bun run dev` | pass | 6 screenshots, console 0 errors/0 warnings, 393×852 / 852×393 |
@@ -75,10 +76,11 @@ confirm modal, captured at `07c04c50` (8 fps, 6.1 MB):
 
 ## Review
 
-- **Verdict:** TBD
-- **Rounds:** TBD
-- **Fixed:** TBD findings
-- **Accepted/deferred:** TBD (see `review.md`)
+- **Verdict:** PASS (round 1 PASS WITH FINDINGS, round 2 delta PASS)
+- **Rounds:** 2
+- **Fixed:** 2 Medium findings — F1 (cup verdict line overwritten in the
+  single live region) and F2 (AC-9 captures uncommitted).
+- **Accepted/deferred:** none; no overrides required. See `review.md`.
 
 ## Deviations and risks
 
@@ -89,6 +91,10 @@ confirm modal, captured at `07c04c50` (8 fps, 6.1 MB):
   eligibility needs 60 in-game days; no product code or config changed.
 - The cup music bed is bundled and addressable but not switched on; no
   in-scope file owns a bed handle, and cross-layer coupling was avoided.
+- AC-9 explicitly requires the marquee capture to be committed, so six
+  screenshots and the marquee GIF were force-added under `.conductor/` despite
+  the general no-media-binaries guidance. `.gitignore` was not modified; the
+  WebM and phase-4 screenshots remain untracked.
 - Physical device-lab verification remains human-only and is deferred to the
   owner after merge.
 
