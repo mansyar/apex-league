@@ -72,7 +72,7 @@ gate — no simulation, save-schema, voxel or dependency changes.
 Marquee cup run — arena entry through Champion verdict into the graduation
 confirm modal, captured at `07c04c50` (8 fps, 6.1 MB):
 
-![Marquee cup run](.conductor/media/20261117-polish-showcase/phase-5-cup-run.gif)
+![Marquee cup run](https://github.com/user-attachments/assets/9faadaae-ce8c-43f9-a544-eb188e925b7a)
 
 ## Review
 
