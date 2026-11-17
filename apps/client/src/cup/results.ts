@@ -5,6 +5,7 @@
  * module only renders rows and flips the sim's phase.
  */
 import { finalizeCup, leagueRewardPreview } from "@apex/sim"
+import { announcer } from "../ui/announcer"
 import type { CupShared } from "./shared"
 import { resultsView } from "./view-models"
 
@@ -50,6 +51,15 @@ export function createResults(shared: CupShared): {
       row.style.animationDelay = `${0.25 + i * 0.22}s`
       resultRewards.append(row)
     })
+    // FR-5: speak the verdict and the advancement line politely through the
+    // one shared region — never stealing focus from the Back button below.
+    const announce = announcer()
+    const opts = { reducedMotion: mem.state.settings.reducedMotion }
+    announce.announce(
+      { kind: "verdict", title: view.title, sub: view.sub },
+      opts,
+    )
+    announce.announce({ kind: "advancement", line: view.line }, opts)
     // Restart the entrance animations.
     resultCard.classList.remove("play")
     void resultCard.offsetWidth

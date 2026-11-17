@@ -12,6 +12,7 @@
  * keeps playing. A failed request paints a sentence; it never blocks, and it
  * never touches the save.
  */
+import { announcer } from "../ui/announcer"
 import { button, chip } from "../ui/kit"
 import { closeModal, openModal } from "../ui/modal"
 import {
@@ -96,7 +97,9 @@ export function buildCloudPanel(opts: {
 
   const status = document.createElement("p")
   status.className = "cloud-status"
-  status.setAttribute("role", "status")
+  // FR-5: the polite announcement now comes from the single shared region
+  // below (via `say`), so this paragraph is visual-only — leaving an implicit
+  // `role="status"` here would make screen readers speak every line twice.
 
   // The offline queue reads in words beside the status (FR-14): a queued
   // ghost or save is a sentence, never an icon the player must decode.
@@ -140,6 +143,9 @@ export function buildCloudPanel(opts: {
   // shared modal helper's (ui/modal).
   function say(message: string): void {
     status.textContent = message
+    // Sign-in / create / sign-out are the cloud's save/load events. Speak the
+    // same status sentence politely on the one shared region; never move focus.
+    announcer().say(message)
   }
 
   function open(): void {
