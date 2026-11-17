@@ -5,7 +5,7 @@
 - **Branch:** `fix/20261118-crab-fuzz-boundary`
 - **Range:** `b7fcaf47fad9810396b13c3776589448423d4fda..38725b8ac6fbe6fcccf51ecc1027ce03dff1170c`
 - **Date:** 2026-11-18
-- **Verdict:** PASS WITH FINDINGS
+- **Verdict:** PASS (round 1 PASS WITH FINDINGS; round 2 delta PASS after Review Fixes)
 
 ## Summary
 
@@ -15,9 +15,10 @@ so no leg voxel can touch the boundary at any girth. Leg radii and the coarse
 audit lattice are unchanged. The full fuzz sweep is green (97 pass / 0 fail),
 the three seed-42 crab artifact pairs were regenerated through the documented
 exporter with old/new hashes recorded, and the determinism gate is byte-identical.
-All FR/NFR/AC requirements are functionally covered. Two Low findings remain
-around the PR-visible smoke chunk; because `review.strict` is true, they will be
-fixed in a Review Fixes phase rather than deferred.
+All FR/NFR/AC requirements are functionally covered. Round 1 found two Low
+findings around the PR-visible smoke chunk; because `review.strict` is true they
+were fixed in Phase R1 rather than deferred. Round 2 delta re-review returned
+PASS with no new findings.
 
 ## Verification
 
@@ -50,7 +51,7 @@ This is an environment observation, not a diff finding. The expected
 | NFR-1 | covered | gate byte-identical after explicit regeneration |
 | NFR-2 | covered | voxel module-size guard in `bun run verify` |
 | NFR-3 | covered | no sim/save/SIM_VERSION/dependency change; hash `0xff6f3d62` |
-| NFR-4 | partial | smoke prefix preserved and full-sweep exclusivity intact, but each shard adds a fourth PR-visible seed (F1/F2) |
+| NFR-4 | covered | R1 restored the original three-seed PR slice in both shards; `APEX_FUZZ_SWEEP=full` remains exclusive to `test:fuzz` |
 | NFR-5 | covered | commands, counts, and hashes in all three evidence reports |
 | AC-1 | covered | pre-fix failure baseline + passing named regressions |
 | AC-2 | covered | full sweep 97 pass / 0 fail |
@@ -89,17 +90,25 @@ None.
   - **Requirement:** NFR-4
   - **Test gap:** none.
 
+### Resolution (round 2)
+
+Phase R1 removed `SMOKE_CHUNK` from both shards and restored the original
+`FULL_CHUNK.slice(0, 3)` PR smoke slice (checkpoint `12264d57`). The always-on
+named seed-24 / seed-37 regressions were left byte-identical, so gate visibility
+is preserved. The primary re-ran the exact verification command (4207 pass /
+1 skip / 0 fail; fuzz 97 pass / 0 fail) and the delta re-review returned PASS
+for both findings with no new in-scope findings.
+
 ## Overrides
 
-None. `review.strict` is true, so both Low findings are scheduled for resolution
-in Phase R1 rather than deferred.
+None. Both Low findings were fixed in Phase R1; no deferral was needed.
 
 ## Plan compliance
 
-Phase 1 (`d2c9f679`) and Phase 2 (`8de7d999`) are both marked verified with
-evidence; all P1/P2 task boxes are checked. The 9-file / 53+/13- non-Conductor
-diff matches the union of phase Touches. No task was dropped. No sim, save, UI,
-or dependency change is present.
+Phase 1 (`d2c9f679`), Phase 2 (`8de7d999`), and Phase R1 (`12264d57`) are all
+marked verified with evidence; all P1/P2/R1 task boxes are checked. The final
+9-file / 53+/13- non-Conductor diff matches the union of phase Touches. No task
+was dropped. No sim, save, UI, or dependency change is present.
 
 ## Out of scope
 
@@ -114,11 +123,13 @@ findings are local and fixable.
 
 ## Doc sync
 
-`pending` — pre-review sync is already applied (`conductor/tech-stack.md` dated
-note); the post-review sync will record this round and set `doc_sync: updated`.
+`updated` — pre-review sync applied the `conductor/tech-stack.md` dated note;
+the post-review sync records round-2 PASS and sets metadata `doc_sync: updated`.
+No product or guideline change was needed for this bug fix.
 
 ## History
 
 | Round | Verdict | Critical | High | Medium | Low | Fixed |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | PASS WITH FINDINGS | 0 | 0 | 0 | 2 | 0 |
+| 2 (delta) | PASS | 0 | 0 | 0 | 0 | 2 |
