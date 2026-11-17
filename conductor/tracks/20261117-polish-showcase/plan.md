@@ -106,17 +106,16 @@
 **Evidence:** conductor/tracks/20261117-polish-showcase/verification/phase-5.md
 -->
 
-<!--
-Review fixes are appended by `conductor-review` as:
-
 ## Phase R1: Review Fixes
 
-- **Goal:** Resolve review findings ...
+- **Goal:** Resolve F1 (one perceivable cup verdict + advancement line) and F2 (commit the approved captures).
 - **Depends on:** Phase 5
-- **Covers:** review findings
-- **Touches:** ...
-- **Verification:** ...
+- **Covers:** F1, F2
+- **Touches:** `apps/client/src/ui/announcer.ts`, `apps/client/src/ui/announcer.test.ts`, `apps/client/src/cup/results.ts`, `.conductor/evidence/20261117-polish-showcase/*.png`, `.conductor/media/20261117-polish-showcase/*.gif`, `verification/phase-R1.md`
+- **Verification:** `bun run verify && bun run build`; `git ls-files .conductor/evidence/20261117-polish-showcase .conductor/media/20261117-polish-showcase`
 - **Status:** pending
 
-- [ ] **R1.T1: Resolve <finding ID>** - covers: <finding ID>
--->
+- [ ] **R1.T1: Resolve F1 — perceivable results announcement** - covers: F1
+  - [ ] **R1.T1.1: Pure helper for combined results line, wire once in `results.ts`, test both parts**
+- [ ] **R1.T2: Resolve F2 — committed captures** - covers: F2
+  - [ ] **R1.T2.1: Force-add six screenshots + marquee GIF, verify with `git ls-files`**
