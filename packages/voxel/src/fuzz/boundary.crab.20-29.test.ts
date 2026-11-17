@@ -10,10 +10,11 @@ import { voxelize } from "../voxelizer"
 // the seed list; `bun run test:fuzz` sets APEX_FUZZ_SWEEP=full for the rest.
 
 const FULL_CHUNK = [20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
-// PR gate keeps the three-seed smoke prefix and adds seed 24 (the nightly
-// regression seed); the full sweep still covers all ten seeds unchanged.
-const SMOKE_CHUNK = [20, 21, 22, 24]
-const CHUNK = process.env.APEX_FUZZ_SWEEP === "full" ? FULL_CHUNK : SMOKE_CHUNK
+// PR gate keeps the three-seed smoke prefix; the full sweep still covers all
+// ten seeds unchanged. Seed 24 is covered by the always-on named regression
+// test below (one seed per shard).
+const CHUNK =
+  process.env.APEX_FUZZ_SWEEP === "full" ? FULL_CHUNK : FULL_CHUNK.slice(0, 3)
 
 test("no crab voxel touches the grid boundary over the gate slice (first quarter of seeds; full list via APEX_FUZZ_SWEEP=full)", () => {
   const R = CRAB_GRID - 1
