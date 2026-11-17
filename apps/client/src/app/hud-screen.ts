@@ -27,6 +27,7 @@ import { morningAfterDebriefGate } from "../hud/copy-morning-after"
 import type { MorningAfterDerivation } from "../morning-after/derive"
 import { importBlocked, transferNotice } from "../save-transfer"
 import { visualSeedOf } from "../staging-seed"
+import { announcer } from "../ui/announcer"
 import type { ScreenDeps } from "./screen-deps"
 
 /**
@@ -86,6 +87,14 @@ export function createHudScreen(deps: HudScreenDeps): Hud {
   const { app, store, audio, arena, scene, sceneSync, graduation, storage } =
     deps
   const { askImport } = deps
+
+  // FR-5: a rejected save import is a load failure. The settings notice is
+  // visual only, so pair it with a polite announcement on the one region.
+  const announceLoadFailure = () =>
+    announcer().announce(
+      { kind: "save", ok: false, action: "load" },
+      { reducedMotion: store.get().settings.reducedMotion },
+    )
 
   const hud = createHud(app, {
     onAdvanceDay: () => {
@@ -191,6 +200,12 @@ export function createHudScreen(deps: HudScreenDeps): Hud {
       anchor.click()
       URL.revokeObjectURL(url)
       hud.noticeSettings(`Downloaded ${filename}`)
+      // FR-5: the settings notice is purely visual, so speak the save result
+      // through the one shared polite region as well.
+      announcer().announce(
+        { kind: "save", ok: true, action: "save" },
+        { reducedMotion: store.get().settings.reducedMotion },
+      )
     },
     onImportFile: async (file) => {
       let raw: string
@@ -198,11 +213,13 @@ export function createHudScreen(deps: HudScreenDeps): Hud {
         raw = await file.text()
       } catch {
         hud.noticeSettings(transferNotice("malformed"), true)
+        announceLoadFailure()
         return
       }
       const result = inspectSaveImport(raw)
       if (!result.ok) {
         hud.noticeSettings(transferNotice(result.reason), true)
+        announceLoadFailure()
         return
       }
       askImport(result.data)

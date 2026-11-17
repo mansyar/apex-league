@@ -49,4 +49,5 @@
 - [x] **Track: Capshare Pacing** — [20261112-capshare-pacing](./archive/20261112-capshare-pacing/index.md) — chore — high
 - [x] **Track: Gate Cost and Fixture Audit** - [20261112-gate-cost-and-fixture-audit](./archive/20261112-gate-cost-and-fixture-audit/index.md) - chore - medium
 - [x] **Track: Main Push Path Filters** — [20261117-main-push-path-filters](./archive/20261117-main-push-path-filters/index.md) — chore — medium
-- [x] **Track: Global Pacing** — [20261117-global-pacing](./archive/20261117-global-pacing/index.md) — chore — high
+- [x] **Track: Global Pacing** - [20261117-global-pacing](./archive/20261117-global-pacing/index.md) - chore - high
+- [x] **Track: Polish & Showcase** - [20261117-polish-showcase](./archive/20261117-polish-showcase/index.md) - feature - medium

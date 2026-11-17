@@ -22,11 +22,23 @@ Provenance recorded here for reference only.
 | `sfx/care-play.ogg` | Kenney Interface Sounds (CC0) | `pluck_001.ogg` |
 | `sfx/care-pet.ogg` | Kenney Interface Sounds (CC0) | `pluck_002.ogg` |
 | `sfx/dawn-chime.ogg` | Kenney Interface Sounds (CC0) | `confirmation_002.ogg` |
+| `sfx/ui-navigate.ogg` | Kenney UI Audio (CC0) | `Audio/rollover1.ogg` |
+| `sfx/ui-navigate-calm.ogg` | Kenney UI Audio (CC0) | `Audio/rollover4.ogg` |
+| `sfx/ui-confirm.ogg` | Kenney UI Audio (CC0) | `Audio/click1.ogg` |
+| `sfx/ui-confirm-calm.ogg` | Kenney UI Audio (CC0) | `Audio/click4.ogg` |
+| `sfx/cup-transition.ogg` | Kenney UI Audio (CC0) | `Audio/switch18.ogg` |
+| `sfx/cup-transition-calm.ogg` | Kenney UI Audio (CC0) | `Audio/switch20.ogg` |
+| `sfx/evolution.ogg` | Kenney UI Audio (CC0) | `Audio/switch30.ogg` |
+| `sfx/evolution-calm.ogg` | Kenney UI Audio (CC0) | `Audio/switch32.ogg` |
+| `sfx/graduation.ogg` | Kenney UI Audio (CC0) | `Audio/switch38.ogg` |
+| `sfx/graduation-calm.ogg` | Kenney UI Audio (CC0) | `Audio/switch36.ogg` |
 | `jingles/verdict-0.ogg` | Kenney Music Jingles (CC0) | `Audio/8-Bit jingles/jingles_NES00.ogg` |
 | `jingles/verdict-1.ogg` | Kenney Music Jingles (CC0) | `Audio/8-Bit jingles/jingles_NES04.ogg` |
 | `music/ranch.ogg` | OpenGameArt "Peasant Theme" by nihilocrat (CC0) | https://opengameart.org/content/peasant-theme |
 | `music/arena.ogg` | OpenGameArt "Fast fight / battle music (looped)" by Ville Nousiainen / XCVG (CC0) | https://opengameart.org/content/fast-fight-battle-music-looped (transcoded WAV→OGG q5) |
+| `music/cup.ogg` | OpenGameArt "8-Bit Victory Loop" by Wolfgang_ (CC0) | https://opengameart.org/content/8-bit-victory-loop (transcoded to OGG q3, metadata stripped) |
 
-- Kenney packs: https://kenney.nl/assets (impact-sounds, sci-fi-sounds, music-jingles, interface-sounds, rpg-audio)
+- Kenney packs: https://kenney.nl/assets (impact-sounds, sci-fi-sounds, music-jingles, interface-sounds, rpg-audio, ui-audio)
+- 20261117-polish-showcase: Kenney **UI Audio** (https://kenney.nl/assets/ui-audio — CC0 per the asset page and its in-pack `License.txt`) supplies the ten UI/cup/milestone cues; OpenGameArt "8-Bit Victory Loop" by Wolfgang_ (CC0) supplies the `cup` bed.
 - Care cues (`care-*.ogg` + `dawn-chime.ogg`) are curated to ~55 KB total, each file under 15 KB.
 - `-calm` suffixed files are the calm-mix variants selected by reduced-motion.

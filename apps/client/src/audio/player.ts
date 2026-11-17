@@ -26,6 +26,14 @@ export interface Gate {
 /** The imperative playback seam: actually make a cue sound (or not). */
 export type CuePlayer = (cue: AnyCueId, gain: number) => void
 
+/**
+ * An optional observer for cues that actually sounded (20261117-polish-showcase
+ * FR-4). The wiring uses it to start a music-duck window; because it lives at
+ * the same gate as the seam, a muted/locked/zero-SFX play never ducks. A hook
+ * that throws is swallowed just like the seam — audio stays load-bearing-free.
+ */
+export type CueHook = (cue: AnyCueId) => void
+
 /** The persisted mix, both buses 0..1 (save v16). */
 export interface VolumeMix {
   music: number
@@ -62,7 +70,10 @@ export class AudioPlayer {
   private music = 1
   private sfx = 1
 
-  constructor(private readonly playCue: CuePlayer) {}
+  constructor(
+    private readonly playCue: CuePlayer,
+    private readonly cueHook?: CueHook,
+  ) {}
 
   /** Called from a real user-gesture handler to authorize playback. */
   unlock(): void {
@@ -96,10 +107,21 @@ export class AudioPlayer {
   play(cue: AnyCueId): void {
     if (!isAudible({ unlocked: this.unlocked, muted: this.muted })) return
     if (this.sfx <= 0) return
+    this.notifyHook(cue)
     try {
       this.playCue(cue, this.sfx)
     } catch {
       // Silent no-op fallback: broken audio must never break the arena.
+    }
+  }
+
+  /** Notify the observer without letting a bad hook break playback. */
+  private notifyHook(cue: AnyCueId): void {
+    if (!this.cueHook) return
+    try {
+      this.cueHook(cue)
+    } catch {
+      // Same no-audio fallback as the seam: ducking is only polish.
     }
   }
 }

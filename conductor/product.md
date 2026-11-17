@@ -332,8 +332,14 @@ Phased delivery plan (each phase is independently playable):
   deploys to Cloudflare Pages from a GitHub Actions workflow gated on the
   same `bun run verify` that protects pull requests, and a Playwright smoke
   check runs against the deployed URL after the upload; the site itself goes
-  live on the owner's first push with the two repository secrets in place.
-  Still open: the device-lab pass, audio expansion and polish.)*
+  live on the owner's first push with the two repository secrets in place.)*
+  *(Audio expansion and polish landed 2026-11-17, track
+  `20261117-polish-showcase`: ten new CC0 UI/cup/milestone cues with calm
+  variants, a third music bed, a pure music-ducking envelope, and a single
+  polite live-region announcer with visible focus — proven by desktop/mobile
+  captures and a marquee cup-run clip, with determinism unchanged. Still
+  open: the hardware device-lab pass, roster expansion and the global-pacing
+  product decision.)*
 
 ## Target Audience
 Creature-collector fans who love the raising sim subgenre (Digimon World
