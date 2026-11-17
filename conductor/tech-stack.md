@@ -461,7 +461,21 @@
   table (`audio/careCues.ts`) over the existing player, with
   `care-feed`/`care-rest`/`care-treat`/`care-play`, `care-pet` and a
   `dawn-chime`, all CC0 and mapped in CREDITS.md. No new dependency and no
-  save-schema change.)*
+  save-schema change.)* *(polish_showcase_20261117, 2026-11-17, track
+  `20261117-polish-showcase`: ten presentation cues — UI navigate/confirm,
+  cup transition, evolution and graduation, each with a calm variant —
+  extend the pure `cues.ts` gate table and fold into `cueUrls.ts`; a third
+  music bed `music/cup.ogg` and the ten SFX come from Kenney UI Audio (CC0,
+  in-pack `License.txt`) and OpenGameArt "8-Bit Victory Loop" by Wolfgang_
+  (CC0), all attributed in `CREDITS.md` with an automated completeness test.
+  A pure `audio/duck.ts` `DuckEnvelope` dips music under KO/verdict/cup/
+  evolution/graduation punctuation only — never routine UI clicks — and
+  restores the exact user volume via a single existing 100 ms ticker; the
+  crossfade and volume sliders are untouched. On the accessibility side a
+  single shared polite/atomic `ui/announcer.ts` region covers verdict,
+  advancement and save/load with a pure, coalescing policy; existing polite
+  regions in `battleHud.ts` already cover KO. No sim, save, voxel or
+  dependency changes; determinism gate byte-identical.)*
 
 -   *2026-10-20: Evolution threshold discovery landed (track
   `20261020-evolution-discovery-ui`) - save v17 is additive:
