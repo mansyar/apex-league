@@ -57,7 +57,7 @@
 - **Covers:** F1, F2, NFR-4
 - **Touches:** `packages/voxel/src/fuzz/boundary.crab.20-29.test.ts`, `packages/voxel/src/fuzz/boundary.crab.30-39.test.ts`, `conductor/tracks/20261118-crab-fuzz-boundary/verification/phase-R1.md`
 - **Verification:** `bun run verify && bun run build && bun run test:fuzz`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Restore the unchanged PR smoke slice** — covers: F1, F2, NFR-4
   - [ ] **R1.T1.1:** In both shards, restore `const CHUNK = process.env.APEX_FUZZ_SWEEP === "full" ? FULL_CHUNK : FULL_CHUNK.slice(0, 3)`, remove `SMOKE_CHUNK`, and leave the named seed-24 / seed-37 regression tests, assertions, comments, and `FULL_CHUNK` untouched.
