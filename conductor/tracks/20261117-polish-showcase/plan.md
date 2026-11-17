@@ -14,7 +14,7 @@
 - **Covers:** FR-1, FR-8, AC-1, AC-8
 - **Touches:** `apps/client/src/audio/cues.ts`, `apps/client/src/audio/cues.test.ts`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Extend the cue mapping** - covers: FR-1
   - [ ] **P1.T1.1: Add UI navigate/confirm and cup-transition cue types with gate checks**
