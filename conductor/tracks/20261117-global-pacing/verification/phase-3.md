@@ -223,3 +223,134 @@ the phase base.
 The blocker is a design/scope decision, not a tool denial or a failed environment
 check. AC-10 is met because the phase reports blocked with the full sweep rather
 than moving a line.
+
+---
+
+# Attempt 2 — expanded scope (FR-12 / AC-12)
+
+Phase base `daf28970`. The user approved scope expansion and the measured
+Circle/cup behaviour changes; the combined tree was re-applied and swept again.
+No code shipped: every edit was reverted, and the final `git diff --stat` is
+empty. This section records the full attempt so the primary can resume without
+re-measuring.
+
+## 12. Five verification commands on the restored base tree
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `bun run telemetry` | 0 | cap 20/42 (47.6%); 14/14 bounds ok; dead zone 27 (2.9%); idle 25.7%; positions min 46 / median 163; engagement 380/1079/3992 mm; exchange 0.32/0.32; duration 14.48–40.00 s |
+| `bun run balance` | 0 | 840 fights (ko 615, time 224, draw 1); cap 224/840 (26.7%); decisive 803/840 (95.6%); cap-win 188/224 (83.9%); median 31.21 s; p05 16.60 s; damageBand 49/49; 15/15 species ok; 6/6 bosses ok; reference line 377/840 (44.9%) diagnostic |
+| `bun run trace --seed 20261111 --check` | 0 | final hash `0xb6cce858`; 5/5 invariants ok; `ko — Embercub wins`; blows 8/9; damage 82/196; 31,000 ms; gap 499/961/3984 mm |
+| `bun run verify` | 0 | 4167 pass / 1 skip / 0 fail; 491,194 expect() calls; 4168 tests / 375 files; Biome 940 files no fixes; determinism gate OK |
+| `bun run build` | 0 | 418 modules transformed; only the pre-existing >500 kB chunk warning |
+
+## 13. R5a reproduction before any species edit
+
+`controller-state.ts` `DECISION_MS` 240→200 / `DECISION_STEPS` 12→10, with the
+`controller.test.ts` pins re-pointed to 200/10/60 and the R5a comment.
+`bun run telemetry`: cap **13/42 (31.0%)**, 14/14 bounds ok.
+`bun run balance`: exit 1, cap **188/840 (22.4%)**, decisive 809/840 (96.3%),
+cap-win 158/188 (84.0%), median 28.95 s, damageBand 49/49, all 6 bosses ok, but
+exactly four species rows red:
+
+| Species | Observed | Bound |
+| --- | --- | --- |
+| fire_drake | 59.8% (67/112) | ≤ 59.4% |
+| plant_ox | 62.5% (70/112) | ≤ 59.6% |
+| voltfox | 39.3% (44/112) | ≥ 40.7% |
+| shalemole | 60.7% (68/112) | ≤ 59.5% |
+
+## 14. Species sweep (one whole point at a time, envelope subset rule)
+
+| Rung | Edit | Balance outcome |
+| --- | --- | --- |
+| S1 | fire_drake atk 15→14 | fire_drake unchanged 59.8%; voltfox 40.2%; REJECT |
+| S2 | fire_drake hp hi 178→176 | fire_drake 58.9% ok, but breaks boss/rival hp-178 pins and the hound relation in `species.test.ts`; REJECT |
+| S3 | plant_ox def 15→14 | plant_ox 51.8% ok, voltfox 42.9% ok; shalemole still 61.6%; PARTIAL |
+| S4 | shalemole hp hi 181→180 | shalemole unchanged 61.6%; REJECT |
+| S5 | shalemole atk 11→9 | shalemole 44.6% ok, but fire_drake bounced to 59.8%; PARTIAL |
+| S6 | fire_drake def 13→11 | all 15 rows green, cap 190/840; but `verify` failed 30 assertions; see §15 |
+| S7 | restore fire_drake hp hi to 178 | all 15 rows still green, cap 190/840, fire_drake 51.3% |
+
+### Attempt-2 re-sweep against the branch-balance gate
+
+| Config (fire_drake / plant_ox / shalemole) | Balance | `branch-balance.test.ts` sibling |
+| --- | --- | --- |
+| atk 14 def 11 / def 14 / hp 180 atk 9 | all rows green, 190/840 | Cinder 64.6% FAIL |
+| atk 14 def 13 / def 15 / hp 180 atk 9 | fire_drake 59.4% FAIL | Cinder 59.4% FAIL |
+| atk 15 def 11 / def 14 / hp 180 atk 9 | not measured (rejected branch first) | Cinder 56.3% FAIL |
+| atk 15 def 12 / def 15 / hp 180 atk 9 | 61.6% / 64.3% / 39.3% FAIL | Cinder 58.3% FAIL |
+| **atk 15 def 11 / atk 9 def 15 / hp 180 atk 9** | **all rows green, 197/840, decisive 806/840, cap-win 164/197, median 29.13 s, damageBand 49/49, 6/6 bosses** | **Cinder 56.3% and Thorn 55.7% FAIL (need ≤ 55%)** |
+| hp lo 146 / hp lo 161 (same otherwise) | not measured (branch rejected first) | Cinder 58.3% FAIL, Thorn 54.2% ok |
+
+The last green-matrix config is the closest reachable point: only two sibling
+rates sit 1.3 and 0.7 points above the published 45–55% relation band.
+
+## 15. Why the tree could not ship
+
+With the §14 best config (and with the earlier S7 config) `bun run verify`
+reported 26 failures (4141 pass / 1 skip / 26 fail; log saved at
+`…sh_1e84682dc001GmlHEB2Lnh5WT1.out`). Every one is a legitimate value/golden/
+relation move that FR-12/AC-12 asks to re-pin with a named reason; none was
+re-pinned because the phase was stopped before the edits could be verified:
+
+- `controller-doctrine.test.ts:348,367` — Circle edge/flank counts both 0 at 200 ms (accepted).
+- `controller-kite.test.ts:165,171` — kite probe 0/6 wins, 0 draws.
+- `derive.test.ts:155`, `bracket-model.test.ts:268`, `cup-contracts.test.ts:288,304,345`, `cup.golden.test.ts:359` — champion → eliminated (accepted for two fixtures).
+- `cup-contracts.test.ts:145` slot stats def 13→12; `:255` rivalVerdicts list; `:413` championName Emberhold Flicker → Thistledown Ash.
+- `legacy.test.ts:321`, `breeding.test.ts:107,435`, `cup.test.ts:198`, `exhibition.test.ts:129`, `cup/engine.test.ts` draw-stream golden — narrowed-stat goldens.
+- `clock.contract.test.ts:365` bestStrike 16→15; `branch-balance.test.ts:164` sibling band; `battle-trace.test.ts:198,262` KO fixture now ends `time` and the detail probe has no `strike` event; `fixture-audit.test.ts:72` four cells; `balance-report.test.ts:153,470,511` distinct 106→101, design-band miss list `["cindermoor","voltfox"]`, thin-margin row moved off cindermoor.
+
+Re-pinning the `branch-balance.test.ts` sibling band would require moving the
+45–55% gate bound, which FR-12/AC-12 forbid. Searching the in-envelope stat
+space (§14) did not produce a config where the matrix rows and that band are
+both green, so a design decision is required.
+
+## 16. Pin and version state (all reverted)
+
+`telemetry.test.ts` was promoted to `expect(cap.count * 3).toBeLessThanOrEqual(cap.total)`
+with the old 20/42 retained in the comment; it has been restored to the debt
+form. `pacing.test.ts` stayed `test.failing`: attempt 2 re-measured 16/42 by KO
+(32 > 42 fails), so promotion would be a false claim. `SIM_VERSION` was bumped
+to 4 with both ghost pins (4/5) and the trace hash `0x167662b8` was measured;
+all have been restored to `SIM_VERSION = 3` and hash `0xb6cce858`.
+
+## 17. Before/after gate table
+
+| Gate | Base | Attempt-2 candidate | Moved? |
+| --- | --- | --- | --- |
+| cap target ≤ 1/3 | 224/840, ≤ 280/840 | 188–197/840 | no |
+| fixture one-in-three | 20/42 | 13/42 | no |
+| species statistical bound | `SIGNIFICANCE_Z` slack | unchanged | no |
+| damage band 4–12% | 49/49 | 49/49 | no |
+| DISTINCT_FLOOR | 12 | 12 | no |
+| cap duration | 40,000 ms | unchanged | no |
+| DECISION_MS band | 200–240 ms | 200 ms | no |
+| stat envelopes | authored roll bounds | subset-narrowed only | no |
+| identity fence | `identity.test.ts` byte-identical | unchanged | no |
+| branch-balance sibling band | 45–55% | 56.3% / 55.7% measured | no (could not re-pin) |
+
+## 18. AC verdicts (attempt 2)
+
+AC-2 partly met (13/42 fixture); AC-3 met (in-envelope subset corrections only);
+AC-4 met (188–197/840); AC-5 not met (pins reverted); AC-6 not met (version
+reverted); AC-7 met (§17); AC-8 met (14 bounds, 15 species, 49 moves measured);
+AC-9 not met (`verify` red before re-pins); AC-10 met (blocked with full sweep);
+AC-11 not met (sibling band red); AC-12 not met (no re-pins shipped).
+
+## 19. Deviations / blockers / notes
+
+- Deviations: none. All edits were inside the expanded `Touches` list; no bound,
+  tolerance, target, envelope, frame datum or identity stat was changed.
+- Blocker 1 (design): the two sibling rates cannot be brought inside 45–55%
+  while keeping all 15 matrix rows green, under the envelope-subset rule. Move
+  the band or accept the measured rates — neither is permitted here.
+- Blocker 2 (tool denial): the exact command
+  `bun run balance 2>&1 | Select-String -Pattern 'FAIL species|cap share:|species:fire_drake|species:plant_ox|Exit code|error:'`
+  was denied (`Permission denied: shell`) because it used a pipe and shell
+  redirection, both forbidden for this phase. It was needed only to filter the
+  balance output to the failing rows; the equivalent value was already available
+  from the unfiltered `bun run balance` runs recorded in §14, so no retry was
+  made.
+- Notes: the tree is byte-identical to phase base `daf28970`; no code commit was
+  made. The §14 best config and the §15 re-pin list are the resume point.
