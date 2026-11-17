@@ -181,7 +181,7 @@ The primary appends after acceptance:
 - **Covers:** FR-9, FR-10, FR-11, FR-14, NFR-2, AC-8, AC-9, AC-11, AC-14
 - **Touches:** `conductor/tracks/20261117-global-pacing/verification/integrated.md` (evidence only — no source file)
 - **Verification:** `bun run verify`, then `bun run build` (two separate commands)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P4.T1: Write the integrated record** — covers: FR-9, FR-10
   - [ ] **P4.T1.1: Paste the final telemetry, balance, trace, verify and build output with the before/after cap shares side by side**
