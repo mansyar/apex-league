@@ -50,17 +50,20 @@
 **Evidence:** conductor/tracks/20261118-crab-fuzz-boundary/verification/phase-2.md
 -->
 
-<!--
-Review fixes are appended by `conductor-review` as:
-
 ## Phase R1: Review Fixes
 
-- **Goal:** Resolve review findings ...
+- **Goal:** Resolve F1 and F2 by restoring the three-seed PR smoke slice in both crab boundary shards while keeping the named seed-24 / seed-37 regression tests that make the fix gate-visible.
 - **Depends on:** Phase 2
-- **Covers:** review findings
-- **Touches:** ...
-- **Verification:** ...
+- **Covers:** F1, F2, NFR-4
+- **Touches:** `packages/voxel/src/fuzz/boundary.crab.20-29.test.ts`, `packages/voxel/src/fuzz/boundary.crab.30-39.test.ts`, `conductor/tracks/20261118-crab-fuzz-boundary/verification/phase-R1.md`
+- **Verification:** `bun run verify && bun run build && bun run test:fuzz`
 - **Status:** pending
 
-- [ ] **R1.T1: Resolve <finding ID>** — covers: <finding ID>
+- [ ] **R1.T1: Restore the unchanged PR smoke slice** — covers: F1, F2, NFR-4
+  - [ ] **R1.T1.1:** In both shards, restore `const CHUNK = process.env.APEX_FUZZ_SWEEP === "full" ? FULL_CHUNK : FULL_CHUNK.slice(0, 3)`, remove `SMOKE_CHUNK`, and leave the named seed-24 / seed-37 regression tests, assertions, comments, and `FULL_CHUNK` untouched.
+
+<!--
+**Result:** verified
+**Checkpoint:** <short-sha>
+**Evidence:** conductor/tracks/20261118-crab-fuzz-boundary/verification/phase-R1.md
 -->
