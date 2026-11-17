@@ -89,8 +89,17 @@ The primary appends after acceptance:
 - **Covers:** FR-3, FR-4, FR-5, FR-6, FR-8, FR-9, FR-11, FR-12, AC-3, AC-4, AC-5, AC-6, AC-7, AC-8, AC-9, AC-10, AC-11, AC-12
 - **Touches:** the source files from attempt 1 (`controller-state.ts`, `controller.test.ts`, `species/starters.ts`, `species/discovery.ts`, `species/rewards.ts`, read-only `species/identity.test.ts`, `cup/ghost.ts`, `ghost.test.ts`, `continuous/telemetry.test.ts`, `continuous/pacing.test.ts`, `continuous/balance-report.test.ts`) **plus the cadence- and species-sensitive test files that `bun run verify` reports as moved**, including `battle/continuous/controller-doctrine.test.ts` (Circle probe), `battle/continuous/battle-trace.test.ts`, `apps/client/src/bracket-model.test.ts`, `apps/client/src/morning-after/derive.test.ts`, `packages/sim/src/bosses.test.ts`, `breeding.test.ts`, `branch-balance.test.ts`, `legacy.test.ts`, `species.test.ts`, `cup/rival-roster.test.ts`, `cup.golden.test.ts`, `cup.test.ts`, `battle/clock.contract.test.ts`, `battle/exhibition.test.ts`, `battle/continuous/stream.test.ts` and `battle/continuous/fixture-audit.test.ts`; plus `conductor/tracks/20261117-global-pacing/verification/phase-3.md`
 - **Verification:** `bun run telemetry`, then `bun run balance`, then `bun run trace --seed 20261111 --check`, then `bun run verify`, then `bun run build` (five separate commands)
-- **Status:** in_progress
+- **Status:** blocked
+- **Result:** blocked — attempt 2 restored all 15 matrix species rows at 197/840 but pushed the branch-balance sibling band to 56.3% / 55.7% against its 45–55% bound; re-pinning that band is forbidden by FR-12/AC-12
+- **Checkpoint:** 2cbeeaf1
+- **Evidence:** conductor/tracks/20261117-global-pacing/verification/phase-3.md
 
+> **Attempt 2 was blocked** at `2cbeeaf1` under the expanded scope: the only
+> in-envelope configuration that restored all 15 species rows kept 56.3% Cinder
+> Courser and 55.7% Thorn Ram against the 45–55% sibling band. Moving that band
+> would violate FR-12/AC-12, and the user has not authorised it. Every candidate
+> edit was reverted; all five configured commands pass on the restored base.
+>
 > **Attempt 1 was blocked** at `3d26ede2`: the 200 ms + in-envelope species tree met
 > 13/42 and 190/840 with all 15 species green, but `bun run verify` failed 30
 > assertions (17 cadence-caused, 13 species-caused) across at least 12 test files.

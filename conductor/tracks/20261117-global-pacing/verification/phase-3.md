@@ -354,3 +354,16 @@ AC-11 not met (sibling band red); AC-12 not met (no re-pins shipped).
   made.
 - Notes: the tree is byte-identical to phase base `daf28970`; no code commit was
   made. The §14 best config and the §15 re-pin list are the resume point.
+
+## Primary verification (attempt 2)
+
+| Check | Result |
+| --- | --- |
+| `git status --porcelain` | empty |
+| `git diff --stat daf28970..HEAD` | 1 file, +131/−0 — evidence only, no code or test shipped |
+| `bun run verify` (primary re-run) | exit 0 on the restored base |
+
+The blocker is a product decision, not an environment failure: clearing it
+requires moving the 45–55% branch-balance sibling band to include 56.3% /
+55.7%, which FR-12/AC-12 explicitly forbid. AC-10 is met because the phase
+reports blocked with the full sweep rather than moving a line.
