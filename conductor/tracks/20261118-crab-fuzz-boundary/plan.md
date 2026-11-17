@@ -14,19 +14,18 @@
 - **Covers:** FR-1, FR-3, FR-4, FR-5, NFR-1, NFR-2, NFR-3, NFR-4, AC-2, AC-3, AC-4, AC-5
 - **Touches:** `packages/voxel/src/crab.ts`, `artifacts/crab-42*.glb`, `artifacts/crab-42*.manifest.json`, `conductor/tracks/20261118-crab-fuzz-boundary/verification/phase-1.md`
 - **Verification:** `bun run verify && bun run build && bun run test:fuzz`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Raise the crab leg foot floor** — covers: FR-1, FR-5, FR-3, AC-2, AC-4
-  - [ ] **P1.T1.1:** Increase the `footY` expression in `crab.ts` so the leg capsule/sphere cannot reach `y = 0` at maximum girth; keep leg radii unchanged.
-  - [ ] **P1.T1.2:** Confirm the full fuzz sweep reports zero boundary violations across all shards and that crab proportion/audit tests remain green.
-- [ ] **P1.T2: Regenerate affected deterministic artifacts** — covers: FR-4, NFR-1, AC-3
-  - [ ] **P1.T2.1:** Use the documented `export-artifact.ts` path to regenerate all three seed-42 crab GLB/manifest pairs.
-  - [ ] **P1.T2.2:** Re-run `bun run gate:determinism` and record old/new hashes plus the regeneration command in phase evidence.
+- [x] **P1.T1: Raise the crab leg foot floor** — covers: FR-1, FR-5, FR-3, AC-2, AC-4
+  - [x] **P1.T1.1:** Increase the `footY` expression in `crab.ts` so the leg capsule/sphere cannot reach `y = 0` at maximum girth; keep leg radii unchanged.
+  - [x] **P1.T1.2:** Confirm the full fuzz sweep reports zero boundary violations across all shards and that crab proportion/audit tests remain green.
+- [x] **P1.T2: Regenerate affected deterministic artifacts** — covers: FR-4, NFR-1, AC-3
+  - [x] **P1.T2.1:** Use the documented `export-artifact.ts` path to regenerate all three seed-42 crab GLB/manifest pairs.
+  - [x] **P1.T2.2:** Re-run `bun run gate:determinism` and record old/new hashes plus the regeneration command in phase evidence.
 
 <!--
-The primary appends after acceptance:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** d2c9f679
 **Evidence:** conductor/tracks/20261118-crab-fuzz-boundary/verification/phase-1.md
 -->
 
