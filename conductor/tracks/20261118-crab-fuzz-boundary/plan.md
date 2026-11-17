@@ -36,7 +36,7 @@
 - **Covers:** FR-2, FR-6, NFR-4, NFR-5, AC-1, AC-6
 - **Touches:** `packages/voxel/src/fuzz/boundary.crab.20-29.test.ts`, `packages/voxel/src/fuzz/boundary.crab.30-39.test.ts`, `conductor/tracks/20261118-crab-fuzz-boundary/verification/phase-2.md`
 - **Verification:** `bun run verify && bun run build && bun run test:fuzz`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Make the failing seeds gate-visible** — covers: FR-2, AC-1
   - [ ] **P2.T1.1:** Add explicit seed 24 and seed 37 cases to the two crab boundary shards (or a dedicated co-located regression test) asserting no coordinate equals `0` or `CRAB_GRID - 1`.
