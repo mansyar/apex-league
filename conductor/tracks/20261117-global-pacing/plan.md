@@ -194,17 +194,18 @@ The primary appends after acceptance:
   - [x] **P4.T2.1: Record the fixture-only withdrawal verbatim with the audit and three failed sweeps as evidence, and state that the matrix's 26.7% already satisfies the product rule**
   - [x] **P4.T2.2: Prove the final diff contains no `packages/`, `apps/`, species, controller, ghost or pin change; telemetry still 20/42 with 14/14 bounds, balance 224/840, trace hash `0xb6cce858` and `SIM_VERSION` 3**
 
-<!--
-Review fixes are appended by `conductor-review` as:
-
 ## Phase R1: Review Fixes
 
-- **Goal:** Resolve review findings ...
+- **Goal:** Resolve the single Low finding from review round 1 without changing the no-ship outcome or any gate value
 - **Depends on:** Phase 4
-- **Covers:** review findings
-- **Touches:** ...
-- **Verification:** ...
-- **Status:** pending
+- **Covers:** F1
+- **Touches:** `spec.md`, `review.md`
+- **Verification:** `bunx biome check`, `bun run gate:determinism`, `bun run verify`, `bun run build`
+- **Status:** verified
+- **Result:** verified — F1 fixed, no game change, all checks green
+- **Checkpoint:** <filled by the completion commit>
+- **Evidence:** conductor/tracks/20261117-global-pacing/review.md
 
-- [ ] **R1.T1: Resolve <finding ID>** - covers: <finding ID>
--->
+- [x] **R1.T1: Mark the stale debt-pin promotion metric Withdrawn** — covers: F1
+  - [x] **R1.T1.1: Align `spec.md:49-51` with the amended no-ship metric and FR-14/AC-14, recording the real pin locations and `verification/integrated.md` §4**
+  - [x] **R1.T1.2: Satisfy the reviewer's `needs` with `bunx biome check` and `bun run gate:determinism`, and record the primary's full verify/build results in `review.md`**

@@ -49,6 +49,10 @@ decisive blow, and two test pins keep asserting that failure as the expected sta
 - **Metric:** two debt pins are promoted, not deleted: the one-in-three assertion in
   `telemetry.test.ts` becomes a normal passing expectation, and the `test.failing` majority-by-KO
   body in `pacing.test.ts` becomes a normal test if its body now passes.
+  **Withdrawn 2026-11-17 (review F1):** this promotion was the original success condition and is
+  superseded by the no-ship outcome in FR-14/AC-14. Both pins remain in their debt form on the
+  final tree — `telemetry.test.ts:213` still asserts the 20/42 miss and `pacing.test.ts:176` is
+  still `test.failing` — and the miss is recorded as debt in `verification/integrated.md` §4.
 
 ## Scope
 
