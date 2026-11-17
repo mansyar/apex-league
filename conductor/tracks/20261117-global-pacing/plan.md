@@ -89,24 +89,33 @@ The primary appends after acceptance:
 - **Covers:** FR-3, FR-4, FR-5, FR-6, FR-8, FR-9, FR-11, AC-3, AC-4, AC-5, AC-6, AC-7, AC-8, AC-9, AC-10, AC-11
 - **Touches:** `packages/sim/src/battle/continuous/controller-state.ts`, `controller.test.ts`, `packages/sim/src/species/starters.ts`, `discovery.ts`, `rewards.ts`, `packages/sim/src/species/identity.test.ts` (read-only fence), `packages/sim/src/cup/ghost.ts`, `ghost.test.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`, `pacing.test.ts`, `balance-report.test.ts`, `conductor/tracks/20261117-global-pacing/verification/phase-3.md`
 - **Verification:** `bun run telemetry`, then `bun run balance`, then `bun run trace --seed 20261111 --check`, then `bun run verify`, then `bun run build` (five separate commands)
-- **Status:** in_progress
+- **Status:** blocked
+- **Result:** blocked — the combined 200 ms + in-envelope species tree met 13/42 and 190/840 with all 15 species green, but `bun run verify` failed 30 assertions (17 cadence-caused, 13 species-caused), including a Circle-flank regression and two champion-fixture flips; 12 red test files sit outside Touches
+- **Checkpoint:** 3d26ede2
+- **Evidence:** conductor/tracks/20261117-global-pacing/verification/phase-3.md
 
-- [ ] **P3.T1: Re-apply the winning cadence** — covers: FR-2, FR-11
-  - [ ] **P3.T1.1: Set `DECISION_MS` 200 / `DECISION_STEPS` 10 and update the `controller.test.ts` pin with a comment naming the Phase 2 measurement**
-  - [ ] **P3.T1.2: Re-run the fixture (13/42) and matrix (188/840) to confirm the Phase 2 rung reproduces before touching any species value**
-- [ ] **P3.T2: Correct only the broken species rows** — covers: FR-3, FR-8, FR-11, AC-3, AC-11
-  - [ ] **P3.T2.1: For `fire_drake`, `plant_ox`, `voltfox` and `shalemole`, move the smallest whole-point stat value that restores each row inside its published band, never widening a roll envelope**
-  - [ ] **P3.T2.2: Prove `identity.test.ts` is unchanged and green, and that no archetype, element, temperament, kit or frame-data value moved**
-  - [ ] **P3.T2.3: Record every rejected stat rung with its win rate and the reason it was rejected**
-- [ ] **P3.T3: Promote the debt pins** — covers: FR-5, AC-5
+- [x] **P3.T1: Re-apply the winning cadence** — covers: FR-2, FR-11
+  - [x] **P3.T1.1: Set `DECISION_MS` 200 / `DECISION_STEPS` 10 and update the `controller.test.ts` pin with a comment naming the Phase 2 measurement** — measured then reverted
+  - [x] **P3.T1.2: Re-run the fixture (13/42) and matrix (188/840) to confirm the Phase 2 rung reproduces before touching any species value** — reproduced exactly
+- [x] **P3.T2: Correct only the broken species rows** — covers: FR-3, FR-8, FR-11, AC-3, AC-11
+  - [x] **P3.T2.1: For `fire_drake`, `plant_ox`, `voltfox` and `shalemole`, move the smallest whole-point stat value that restores each row inside its published band, never widening a roll envelope** — found a solution restoring all 15 rows at 190/840
+  - [x] **P3.T2.2: Prove `identity.test.ts` is unchanged and green, and that no archetype, element, temperament, kit or frame-data value moved**
+  - [x] **P3.T2.3: Record every rejected stat rung with its win rate and the reason it was rejected** — evidence §4
+- [ ] **P3.T3: Promote the debt pins** — covers: FR-5, AC-5 — **not performed: the candidate tree could not ship**
   - [ ] **P3.T3.1: Replace the failing one-in-three debt assertion in `telemetry.test.ts` with a normal passing expectation, retaining the old 20/42 figure in its comment**
-  - [ ] **P3.T3.2: Promote `pacing.test.ts`'s `test.failing` majority-by-KO body only if its body passes, never adding `.skip`**
-- [ ] **P3.T4: Settle the version guard** — covers: FR-6, NFR-1, AC-6
+  - [ ] **P3.T3.2: Promote `pacing.test.ts`'s `test.failing` majority-by-KO body only if its body passes, never adding `.skip`** — **measured 16/42 by KO, so the body correctly stays failing**
+- [ ] **P3.T4: Settle the version guard** — covers: FR-6, NFR-1, AC-6 — **not shipped; candidate hash `0xe00a0782` recorded, base stays `0xb6cce858`**
   - [ ] **P3.T4.1: Bump `SIM_VERSION` 3 → 4 and update both ghost pins, since controller policy moved**
   - [ ] **P3.T4.2: Re-run the trace, record the new hash and prove replay remains byte-identical for the same seed**
-- [ ] **P3.T5: Record the verdict** — covers: FR-9, AC-2, AC-7, AC-9, AC-11
-  - [ ] **P3.T5.1: Paste the full gate output and a before/after table proving no gate bound, roll envelope, tolerance or target moved**
-  - [ ] **P3.T5.2: State plainly if any row is still red instead of claiming a target met**
+- [x] **P3.T5: Record the verdict** — covers: FR-9, AC-2, AC-7, AC-9, AC-11
+  - [x] **P3.T5.1: Paste the full gate output and a before/after table proving no gate bound, roll envelope, tolerance or target moved**
+  - [x] **P3.T5.2: State plainly if any row is still red instead of claiming a target met**
+
+> **Blocked, not downgraded.** No candidate shipped. The tree is byte-identical
+> to the phase base; all five verification commands pass on it. Making the
+> candidate green needs 12 test files outside Touches plus a product decision
+> about Circle flanks and which cup runs stay winnable. No bound, tolerance,
+> envelope, assertion or target moved.
 
 <!--
 The primary appends after acceptance:

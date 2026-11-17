@@ -211,3 +211,15 @@ the phase base.
   cadence-sensitive golden/relation tests and settles the doctrine-fixture question,
   or a different controller policy that raises fixture throughput without changing
   Circle's flank behaviour or cup outcomes.
+
+## Primary verification
+
+| Check | Result |
+| --- | --- |
+| `git status --porcelain` | empty |
+| `git diff --stat 8164616d..HEAD` | 1 file, +213/−0 — evidence only; no code or test shipped |
+| `bun run verify` (primary re-run) | exit 0 on the restored base; candidate hash `0xe00a0782` was measured but never shipped |
+
+The blocker is a design/scope decision, not a tool denial or a failed environment
+check. AC-10 is met because the phase reports blocked with the full sweep rather
+than moving a line.
