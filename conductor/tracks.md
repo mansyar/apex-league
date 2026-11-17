@@ -51,4 +51,4 @@
 - [x] **Track: Main Push Path Filters** — [20261117-main-push-path-filters](./archive/20261117-main-push-path-filters/index.md) — chore — medium
 - [x] **Track: Global Pacing** - [20261117-global-pacing](./archive/20261117-global-pacing/index.md) - chore - high
 - [x] **Track: Polish & Showcase** - [20261117-polish-showcase](./archive/20261117-polish-showcase/index.md) - feature - medium
-- [ ] **Track: Nightly fuzz red: crab boundary** - [20261118-crab-fuzz-boundary](./tracks/20261118-crab-fuzz-boundary/index.md) - bug - high
+- [~] **Track: Nightly fuzz red: crab boundary** - [20261118-crab-fuzz-boundary](./tracks/20261118-crab-fuzz-boundary/index.md) - bug - high
