@@ -9,6 +9,7 @@ import {
   announcementFor,
   coalesce,
   createAnnouncer,
+  resultsAnnouncement,
 } from "./announcer"
 
 const VERDICT: AnnouncementEvent = {
@@ -98,6 +99,33 @@ describe("coalesce — a burst settles on one line (NFR-5)", () => {
   })
 })
 
+describe("resultsAnnouncement — one perceivable results line (F1)", () => {
+  const verdict = { title: "Champion", sub: "Pip takes the Bronze Cup!" }
+  const advancement = { line: "Pip · unbeaten through three rounds" }
+
+  test("the one line carries both the verdict and the advancement", () => {
+    const line = resultsAnnouncement(verdict, advancement) ?? ""
+    expect(line).toContain(verdict.title)
+    expect(line).toContain("Bronze Cup")
+    expect(line).toContain("unbeaten through three rounds")
+    expect(line).not.toContain("·")
+  })
+
+  test("an instant dump is silent", () => {
+    expect(
+      resultsAnnouncement(verdict, advancement, { instant: true }),
+    ).toBeNull()
+  })
+
+  test("reduced motion keeps both parts calm", () => {
+    const line =
+      resultsAnnouncement(verdict, advancement, { reducedMotion: true }) ?? ""
+    expect(line).toContain(verdict.title)
+    expect(line).toContain("unbeaten through three rounds")
+    expect(line).not.toContain("!")
+  })
+})
+
 /** Minimal fake element: enough for createAnnouncer's one-region contract. */
 class FakeElement {
   readonly children: FakeElement[] = []
@@ -156,5 +184,23 @@ describe("createAnnouncer — one region, no focus theft (AC-5)", () => {
     const a = createAnnouncer(root as unknown as HTMLElement)
     a.announce(VERDICT, { instant: true })
     expect(root.children).toHaveLength(0)
+  })
+
+  test("speaking the combined results line once leaves both parts perceivable", () => {
+    const root = new FakeElement()
+    const a = createAnnouncer(root as unknown as HTMLElement)
+    const line =
+      resultsAnnouncement(
+        { title: "Champion", sub: "Pip takes the Bronze Cup!" },
+        { line: "Pip · unbeaten through three rounds" },
+      ) ?? ""
+    a.say(line)
+    expect(root.children).toHaveLength(1)
+    expect(root.children[0]?.textContent).toBe(line)
+    expect(root.children[0]?.textContent).toContain("Bronze Cup")
+    expect(root.children[0]?.textContent).toContain(
+      "unbeaten through three rounds",
+    )
+    expect(root.children[0]?.focusCalls).toBe(0)
   })
 })

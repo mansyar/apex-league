@@ -85,6 +85,28 @@ export function coalesce(lines: ReadonlyArray<string | null>): string | null {
 }
 
 /**
+ * Compose the cup-results line: the verdict and the advancement detail in one
+ * speakable sentence (F1). Two `announce()` calls in one synchronous tick let
+ * the advancement overwrite the verdict in the single live region, silencing
+ * the headline; this folds both through `announcementFor` into one line that
+ * is spoken once. Instant dumps stay silent and reduced motion keeps calm
+ * wording because both parts inherit the same options.
+ */
+export function resultsAnnouncement(
+  verdict: { title: string; sub: string },
+  advancement: { line: string },
+  options: AnnouncementOptions = {},
+): string | null {
+  const verdictLine = announcementFor({ kind: "verdict", ...verdict }, options)
+  const advancementLine = announcementFor(
+    { kind: "advancement", ...advancement },
+    options,
+  )
+  if (verdictLine === null || advancementLine === null) return null
+  return `${verdictLine} ${advancementLine}`
+}
+
+/**
  * A thin imperative wrapper: one region, created on first speak and appended
  * once. DOM failures are swallowed; focus is never read or written.
  */
