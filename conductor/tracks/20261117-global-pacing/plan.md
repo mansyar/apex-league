@@ -89,7 +89,7 @@ The primary appends after acceptance:
 - **Covers:** FR-3, FR-4, FR-5, FR-6, FR-8, FR-9, FR-11, AC-3, AC-4, AC-5, AC-6, AC-7, AC-8, AC-9, AC-10, AC-11
 - **Touches:** `packages/sim/src/battle/continuous/controller-state.ts`, `controller.test.ts`, `packages/sim/src/species/starters.ts`, `discovery.ts`, `rewards.ts`, `packages/sim/src/species/identity.test.ts` (read-only fence), `packages/sim/src/cup/ghost.ts`, `ghost.test.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`, `pacing.test.ts`, `balance-report.test.ts`, `conductor/tracks/20261117-global-pacing/verification/phase-3.md`
 - **Verification:** `bun run telemetry`, then `bun run balance`, then `bun run trace --seed 20261111 --check`, then `bun run verify`, then `bun run build` (five separate commands)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Re-apply the winning cadence** — covers: FR-2, FR-11
   - [ ] **P3.T1.1: Set `DECISION_MS` 200 / `DECISION_STEPS` 10 and update the `controller.test.ts` pin with a comment naming the Phase 2 measurement**
