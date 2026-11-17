@@ -1,5 +1,5 @@
 /**
- * The music-bed player (audio_foundation_20261017 FR4): two bundled CC0
+ * The music-bed player (audio_foundation_20261017 FR4): three bundled CC0
  * loops, one per scene, crossfaded on scene swaps and stopped while
  * muted. Imperative by design — the pure scene→bed table lives in
  * beds.ts; this file only drives browser audio primitives, so it is
@@ -11,13 +11,23 @@
  * (paused at 0 volume) underneath so a swap back is instant and
  * gapless.
  *
+ * Ducking (20261117-polish-showcase FR-4): the same single interval also
+ * watches the pure envelope. When its gain crosses a window boundary the
+ * current bed is re-targeted through a short ramp, so a priority cue dips
+ * the music and the exact user level comes back after mute/scene changes.
+ * No second timer is introduced.
+ *
  * Every failure is swallowed: audio must never break the game loop.
  */
 import { type BedScene, bedUrl } from "./beds"
+import type { DuckEnvelope } from "./duck"
 import { clampGain } from "./player"
 
 /** Crossfade window in milliseconds. */
 const FADE_MS = 1200
+
+/** Duck-level ramp in milliseconds (a crossing re-target, not a crossfade). */
+const DUCK_RAMP_MS = 200
 
 /** Fade step interval in milliseconds. */
 const FADE_STEP_MS = 100
@@ -28,17 +38,38 @@ const BED_VOLUME = 0.35
 /** Per-tick volume travel (full fade spans FADE_MS). */
 const STEP_DELTA = (BED_VOLUME * FADE_STEP_MS) / FADE_MS
 
+/** Faster per-tick travel for duck-level re-targets only. */
+const DUCK_STEP_DELTA = (BED_VOLUME * FADE_STEP_MS) / DUCK_RAMP_MS
+
 export class MusicBeds {
   private readonly elements = new Map<BedScene, HTMLAudioElement>()
   private current: BedScene | null = null
   private muted = false
   private volume = 1
-  /** Active fades: element → {target, done}. One interval drives them all. */
+  /** Pure duck window observed by the single mixer interval. */
+  private duck: DuckEnvelope | null = null
+  /** Last observed duck gain, so a window boundary triggers a re-target. */
+  private lastDuckGain = 1
+  /** Active fades: element → ramp. One interval drives them all. */
   private readonly fades = new Map<
     HTMLAudioElement,
-    { target: number; done?: () => void }
+    { target: number; delta: number; done?: () => void }
   >()
   private ticker: number | null = null
+
+  /**
+   * Attach the pure duck envelope. Called once at wiring time, before any
+   * scene is set, so every later `target()` read composes the current gain.
+   */
+  setDuck(envelope: DuckEnvelope): void {
+    this.duck = envelope
+    this.lastDuckGain = this.duckGain()
+  }
+
+  /** The envelope's multiplier at now (1 when no envelope is attached). */
+  private duckGain(): number {
+    return this.duck ? this.duck.gain(Date.now()) : 1
+  }
 
   /** Points the music at a scene (or away with `null`). Crossfades. */
   setScene(scene: BedScene | null): void {
@@ -133,9 +164,14 @@ export class MusicBeds {
     }
   }
 
-  /** The current bed level: base loudness scaled by the music setting. */
-  private target(): number {
-    return BED_VOLUME * this.volume
+  /**
+   * The current bed level: base loudness × the user's music setting × the
+   * duck multiplier. Pass `gain` to reuse one clock read across a tick;
+   * outside a duck window the gain is exactly 1, so this is the exact user
+   * level and restoration is byte-for-byte.
+   */
+  private target(gain = this.duckGain()): number {
+    return BED_VOLUME * this.volume * gain
   }
 
   /** Lazily creates the looping element for a scene. */
@@ -149,32 +185,76 @@ export class MusicBeds {
     return el
   }
 
-  /** Schedules a linear volume ramp; replaces any fade already on this element. */
-  private fade(el: HTMLAudioElement, target: number, done?: () => void): void {
+  /**
+   * Schedules a linear volume ramp; replaces any fade already on this
+   * element. `delta` is the per-tick travel: the default preserves the 1200ms
+   * crossfade, while duck re-targets pass the faster 200ms travel.
+   */
+  private fade(
+    el: HTMLAudioElement,
+    target: number,
+    done?: () => void,
+    delta = STEP_DELTA,
+  ): void {
     const existing = this.fades.get(el)
     if (existing) existing.done = undefined // superseded: no stale pause()
-    this.fades.set(el, { target, done })
+    this.fades.set(el, { target, delta, done })
     if (this.ticker === null) {
       this.ticker = window.setInterval(() => this.tick(), FADE_STEP_MS)
     }
   }
 
-  /** One mixer tick: every fading element steps toward its target. */
+  /**
+   * Re-target the audible bed through the short duck ramp after the envelope
+   * crosses a window boundary. Mute/scene changes recompute `target()` with
+   * the current gain, so this only handles the boundaries themselves.
+   */
+  private retargetDuck(gain: number): void {
+    const scene = this.current
+    if (!scene || this.muted) return
+    try {
+      const el = this.element(scene)
+      const target = this.target(gain)
+      if (target <= 0) {
+        this.fade(el, 0, () => el.pause(), DUCK_STEP_DELTA)
+        return
+      }
+      if (el.paused) {
+        el.volume = 0
+        void el.play().catch(() => {})
+      }
+      this.fade(el, target, undefined, DUCK_STEP_DELTA)
+    } catch {
+      // Silent no-op fallback — beds are polish, never load-bearing.
+    }
+  }
+
+  /** One mixer tick: duck boundary first, then step every fading element. */
   private tick(): void {
     try {
+      const gain = this.duckGain()
+      if (gain !== this.lastDuckGain) {
+        this.lastDuckGain = gain
+        this.retargetDuck(gain)
+      }
       for (const [el, fade] of this.fades) {
-        const delta = fade.target > el.volume ? STEP_DELTA : -STEP_DELTA
-        const next = el.volume + delta
+        const step = fade.target > el.volume ? fade.delta : -fade.delta
+        const next = el.volume + step
         const arrived =
-          (delta > 0 && next >= fade.target) ||
-          (delta < 0 && next <= fade.target)
+          (step > 0 && next >= fade.target) || (step < 0 && next <= fade.target)
         el.volume = arrived ? fade.target : next
         if (arrived) {
           this.fades.delete(el)
           fade.done?.()
         }
       }
-      if (this.fades.size === 0 && this.ticker !== null) {
+      // Keep the single interval alive while a bed is current so the next
+      // duck start/end is noticed even when no crossfade is in flight.
+      if (
+        this.fades.size === 0 &&
+        this.current === null &&
+        this.ticker !== null
+      ) {
         window.clearInterval(this.ticker)
         this.ticker = null
       }

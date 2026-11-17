@@ -1,21 +1,24 @@
 import type { PlaybackStep } from "@apex/sim"
 import { cueForStep } from "../audio/cues"
+import { DuckEnvelope, ducksFor } from "../audio/duck"
 import { MusicBeds } from "../audio/musicBeds"
 import { playCue } from "../audio/playCue"
 import { AudioPlayer } from "../audio/player"
 import type { GameStore } from "../store"
 
 /**
- * Audio wiring (composition-root split): the player, the two music beds, the
- * first-gesture unlock and the playback step-cue bridge. Moved out of
+ * Audio wiring (composition-root split): the player, the three music beds,
+ * the first-gesture unlock and the playback step-cue bridge. Moved out of
  * `main.ts` unchanged; the handles stay exposed so the composition root can
  * keep its mute/volume fanout in registration order.
  */
 export interface AudioWiring {
   /** SFX player: holds the unlock gate and the persisted mix. */
   readonly player: AudioPlayer
-  /** Ranch and arena music beds. */
+  /** Ranch, arena and cup music beds. */
   readonly beds: MusicBeds
+  /** The single duck window shared by the player hook and the beds. */
+  readonly duck: DuckEnvelope
   /** One playback step through the pure cue table into the player. */
   playStepCue(step: PlaybackStep, instant: boolean): void
 }
@@ -26,10 +29,16 @@ export function createAudioWiring(store: GameStore): AudioWiring {
   // voices the bundled CC0 assets. Unlock waits for the first gesture
   // (autoplay policy); the persisted mute rides the store fanout; instant
   // reduced-motion dumps stay silent by design.
-  const player = new AudioPlayer(playCue)
+  // One pure envelope drives both sides: the player hook opens a window for
+  // priority cues, the beds read the same gain when computing their target.
+  const duck = new DuckEnvelope()
+  const player = new AudioPlayer(playCue, (cue) => {
+    if (ducksFor(cue)) duck.duck(Date.now())
+  })
   // Music beds: ranch loop by default, crossfaded to the arena loop by the
   // shared enter/exit choreography, faded out while muted.
   const beds = new MusicBeds()
+  beds.setDuck(duck)
   beds.setScene("ranch")
   const unlockAudio = (): void => {
     player.unlock()
@@ -44,5 +53,5 @@ export function createAudioWiring(store: GameStore): AudioWiring {
     if (cue) player.play(cue)
   }
 
-  return { player, beds, playStepCue }
+  return { player, beds, duck, playStepCue }
 }
