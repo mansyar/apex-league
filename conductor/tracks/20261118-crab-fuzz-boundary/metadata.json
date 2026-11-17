@@ -6,7 +6,7 @@
   "priority": "high",
   "depends_on": [],
   "created_at": "2026-11-18T09:18:38.4354562+11:00",
-  "updated_at": "2026-11-18T09:55:00.0000000+11:00",
+  "updated_at": "2026-11-18T10:35:00.0000000+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "fix/20261118-crab-fuzz-boundary",
@@ -14,11 +14,11 @@
   "base_sha": "b7fcaf47fad9810396b13c3776589448423d4fda",
   "progress": {
     "phases_total": 2,
-    "phases_verified": 1,
+    "phases_verified": 2,
     "tasks_total": 4,
-    "tasks_done": 2
+    "tasks_done": 4
   },
-  "last_checkpoint": "d2c9f679",
+  "last_checkpoint": "8de7d999",
   "review_verdict": null,
   "review_rounds": 0,
   "doc_sync": "pending",

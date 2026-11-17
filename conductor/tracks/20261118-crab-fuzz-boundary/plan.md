@@ -36,13 +36,19 @@
 - **Covers:** FR-2, FR-6, NFR-4, NFR-5, AC-1, AC-6
 - **Touches:** `packages/voxel/src/fuzz/boundary.crab.20-29.test.ts`, `packages/voxel/src/fuzz/boundary.crab.30-39.test.ts`, `conductor/tracks/20261118-crab-fuzz-boundary/verification/phase-2.md`
 - **Verification:** `bun run verify && bun run build && bun run test:fuzz`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Make the failing seeds gate-visible** — covers: FR-2, AC-1
-  - [ ] **P2.T1.1:** Add explicit seed 24 and seed 37 cases to the two crab boundary shards (or a dedicated co-located regression test) asserting no coordinate equals `0` or `CRAB_GRID - 1`.
-  - [ ] **P2.T1.2:** Record that these assertions fail on the pre-fix generator evidence and pass on the fixed code.
-- [ ] **P2.T2: Record scope and evidence** — covers: FR-6, NFR-5, AC-6
-  - [ ] **P2.T2.1:** Run a `git diff --name-only` scope check against the plan Touches and record exact commands, counts, and hashes in phase evidence.
+- [x] **P2.T1: Make the failing seeds gate-visible** — covers: FR-2, AC-1
+  - [x] **P2.T1.1:** Add explicit seed 24 and seed 37 cases to the two crab boundary shards (or a dedicated co-located regression test) asserting no coordinate equals `0` or `CRAB_GRID - 1`.
+  - [x] **P2.T1.2:** Record that these assertions fail on the pre-fix generator evidence and pass on the fixed code.
+- [x] **P2.T2: Record scope and evidence** — covers: FR-6, NFR-5, AC-6
+  - [x] **P2.T2.1:** Run a `git diff --name-only` scope check against the plan Touches and record exact commands, counts, and hashes in phase evidence.
+
+<!--
+**Result:** verified
+**Checkpoint:** 8de7d999
+**Evidence:** conductor/tracks/20261118-crab-fuzz-boundary/verification/phase-2.md
+-->
 
 <!--
 Review fixes are appended by `conductor-review` as:
