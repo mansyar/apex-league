@@ -104,6 +104,7 @@ decisive blow, and two test pins keep asserting that failure as the expected sta
 | FR-10 | Keep cap wins valid: no change to the decisive-share or cap-win-quality rules, and a cap win still counts when it clears the existing margin floor. | must |
 | FR-11 | **Added 2026-11-17.** When a controller rung meets the cap targets but breaks a species row, ship that rung with the minimum per-species stat corrections that restore every broken row; never widen a roll envelope, lower a floor or touch an identity-defining stat. | must |
 | FR-12 | **Added 2026-11-17 (user decision).** With the combined tree shipped, re-pin the cadence- and species-sensitive golden, digest and relation tests that legitimately moved. Circle's lost flank/rear counts at 200 ms and the two champion cup fixtures that flip to eliminated are **accepted consequences**, not regressions to hide. No gate bound, target, tolerance, roll envelope, damage band or identity fence moves; no probe is simply deleted or skipped. | must |
+| FR-13 | **Added 2026-11-17 (user decision).** Before any fence is reconsidered, sweep *combinations* of moderate controller-policy changes with `DECISION_MS` held at 240, no species value and no gate fence touched. If a combined rung meets both cap targets with every other gate green, ship it: promote the debt pins, bump `SIM_VERSION` to 4 and re-pin only cadence-moved tests under FR-12. | must |
 
 ## Non-Functional Requirements
 
@@ -130,6 +131,7 @@ decisive blow, and two test pins keep asserting that failure as the expected sta
 | AC-10 | If no in-scope candidate satisfies AC-4 without violating AC-7 or AC-8, the phase reports blocked with the measured sweep and no bound moves; the track does not silently downgrade its target. | FR-4, FR-9 |
 | AC-11 | **Added 2026-11-17.** The combined tree reproduces fixture ≤ 14/42 and matrix ≤ 1/3 with all 15 species and 49 moves green, `identity.test.ts` unchanged, `SIM_VERSION` 4 with both ghost pins updated, a recorded new trace hash, and a before/after table proving no roll envelope widened and no gate bound moved. | FR-11, FR-6 |
 | AC-12 | **Added 2026-11-17.** `bun run verify` is green with only value/golden/relation re-pins in the cadence- and species-sensitive tests; each re-pin has a comment naming the 200 ms cadence or the species correction that moved it, and no assertion is deleted, `.skip`ped or weakened to hide a failure. The evidence names every moved file and quotes the old and new expected values. | FR-12 |
+| AC-13 | **Added 2026-11-17.** A combined-controller rung, if shipped, leaves `DECISION_MS = 240`, every species value and every fence (45–55% sibling band, boss stat pins, 0.35 boss floor, `BOUNDS`, `CAP_MAX`, `DISTINCT_FLOOR`, damage band) untouched; it reproduces fixture ≤ 14/42 and matrix ≤ 1/3 with 15/15 species, 49/49 moves and all other gates green; debt pins are promoted, `SIM_VERSION` is 4 with both ghost pins updated, and the evidence records the new hash and every re-pin. If no combination works, the phase reports blocked with the measured grid. | FR-13, FR-4 |
 
 ## Edge Cases
 
@@ -181,6 +183,11 @@ decisive blow, and two test pins keep asserting that failure as the expected sta
   stays recorded as blocked; FR-11/AC-11 are added rather than renumbering anything, and Phase 3 is
   re-scoped from stats-only to controller policy plus the minimum species corrections that restore
   every green row. No bound, floor, tolerance or target moves.
+- **Decided 2026-11-17 (fourth resume):** after the in-envelope grid proved no species
+  configuration clears all fences, the user chose to leave every fence untouched and
+  finish the controller search instead. FR-13/AC-13 add the untested space of
+  **combined moderate controller rungs** at `DECISION_MS = 240`. Phase 2 is reopened
+  for that search; all three blocked Phase 3 attempts stay as evidence.
 - **Decided 2026-11-17 (third resume):** after attempt 2 broke the 45–55% sibling band
   (Cinder Courser 56.3%, Thorn Ram 55.7%) while trying to restore all 15 species rows,
   the user chose to search for a **different in-envelope species configuration** that

@@ -38,13 +38,15 @@ The primary appends after acceptance:
 
 - **Goal:** a conservative controller-policy change lowers the fixture cap share to at most 14/42 while the matrix stays at most 1/3 and every other gate row remains green, with the two debt pins promoted and ghosts re-versioned.
 - **Depends on:** Phase 1
-- **Covers:** FR-2, FR-4, FR-5, FR-6, FR-7, FR-8, FR-9, FR-10, NFR-1, NFR-2, NFR-3, NFR-4, AC-2, AC-4, AC-5, AC-6, AC-7, AC-8, AC-9, AC-10
-- **Touches:** `packages/sim/src/battle/continuous/controller.ts`, `controller-noise.ts`, `controller-state.ts`, `controller-profile.ts`, `controller*.test.ts`, `packages/sim/src/cup/ghost.ts`, `ghost.test.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`, `pacing.test.ts`, `balance-report.test.ts`, `conductor/tracks/20261117-global-pacing/verification/phase-2.md`
+- **Covers:** FR-2, FR-4, FR-5, FR-6, FR-7, FR-8, FR-9, FR-10, FR-12, FR-13, NFR-1, NFR-2, NFR-3, NFR-4, AC-2, AC-4, AC-5, AC-6, AC-7, AC-8, AC-9, AC-10, AC-12, AC-13
+- **Touches:** `packages/sim/src/battle/continuous/controller.ts`, `controller-noise.ts`, `controller-state.ts`, `controller-profile.ts`, `controller*.test.ts`, `packages/sim/src/cup/ghost.ts`, `ghost.test.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`, `pacing.test.ts`, `balance-report.test.ts`, `packages/sim/src/cup.golden.test.ts`, `packages/sim/src/cup.test.ts`, `packages/sim/src/legacy.test.ts`, `packages/sim/src/battle/exhibition.test.ts`, `packages/sim/src/battle/clock.contract.test.ts`, `packages/sim/src/battle/continuous/battle-trace.test.ts`, `packages/sim/src/bosses.test.ts`, `packages/sim/src/bosses.balance.test.ts`, `apps/client/src/bracket-model.test.ts`, `apps/client/src/morning-after/derive.test.ts`, `conductor/tracks/20261117-global-pacing/verification/phase-2.md`
 - **Verification:** `bun run telemetry`, then `bun run balance`, then `bun run trace --seed 20261111 --check`, then `bun run verify`, then `bun run build` (five separate commands)
-- **Status:** blocked
-- **Result:** blocked — the only fixture passer (`DECISION_MS` 240→200, 13/42) turned four matrix species rows red and flipped `bun run balance` to exit 1; all other rungs stayed above 14/42
-- **Checkpoint:** bd2def07
-- **Evidence:** conductor/tracks/20261117-global-pacing/verification/phase-2.md
+- **Status:** in_progress
+
+> **Fourth resume (2026-11-17):** the user chose not to move any fence and to
+> finish the controller search. Phase 2 is reopened for **combined moderate
+> rungs** at `DECISION_MS = 240` (FR-13/AC-13); the single-knob sweep below and
+> all three blocked Phase 3 attempts remain as evidence.
 
 - [x] **P2.T1: Sweep the controller rungs** — covers: FR-2, FR-9
   - [x] **P2.T1.1: Candidate order is cheapest first — commit-skip denominator, cadence-skip denominator, punish-skip denominator, then cycle/press shares and decision cadence (`DECISION_MS`) — changing one knob at a time inside integer arithmetic**
@@ -61,6 +63,11 @@ The primary appends after acceptance:
   - [x] **P2.T4.2: If no policy changed, keep 3 and show the trace hash is unchanged** — `0xb6cce858` re-proven
 - [x] **P2.T5: Record the sweep and the verdict** — covers: FR-9, AC-2, AC-7, AC-9, AC-10
   - [x] **P2.T5.1: Paste the fixture and matrix tables, the rejected rungs and the before/after gate output; state plainly if the phase is blocked instead of claiming a target met**
+- [ ] **P2.T6: Sweep combined controller rungs at 240 ms (attempt 2)** — covers: FR-13, FR-12, AC-13, AC-12
+  - [ ] **P2.T6.1: Hold `DECISION_MS = 240` / `DECISION_STEPS = 12` and change two or three skip/cycle knobs together (commit-skip, cadence-skip, punish-skip, cycle/press shares); no species value, species bound, boss pin, boss floor, sibling band, `BOUNDS`, `CAP_MAX` or `DISTINCT_FLOOR` moves**
+  - [ ] **P2.T6.2: Measure each combined rung on the 42-fight fixture first, then confirm the matrix; accept only fixture ≤ 14/42, matrix ≤ 1/3, 15/15 species, 49/49 moves, median 25–40 s, decisive ≥ 2/3 and every other bound green**
+  - [ ] **P2.T6.3: Ship the smallest passing combination; promote the two debt pins, bump `SIM_VERSION` 3 → 4 with both ghost pins updated, record the new hash, and re-pin only the moved value/golden/relation tests with a comment naming the cause (FR-12/AC-12)**
+  - [ ] **P2.T6.4: If no combination passes, report blocked with the measured grid and closest miss; do not move a fence or lower a gate**
 
 > **Blocked, not downgraded.** AC-4 was not met. Every knob was restored to its
 > exact base value, no bound/floor/tolerance/`DISTINCT_FLOOR`/cap duration/target
