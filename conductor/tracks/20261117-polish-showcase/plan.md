@@ -52,16 +52,16 @@
 - **Covers:** FR-4, NFR-6, AC-4
 - **Touches:** `apps/client/src/audio/duck.ts`, `apps/client/src/audio/duck.test.ts`, `apps/client/src/audio/player.ts`, `apps/client/src/audio/musicBeds.ts`, `apps/client/src/app/audio.ts`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Pure ducking envelope** - covers: FR-4
-  - [ ] **P3.T1.1: Duck/restore tests including mute toggle and scene change mid-duck**
-- [ ] **P3.T2: Wire without contract changes** - covers: FR-4, AC-4
-  - [ ] **P3.T2.1: Integrate via existing `AudioPlayer`/`MusicBeds` APIs; preserve first-gesture unlock**
+- [x] **P3.T1: Pure ducking envelope** - covers: FR-4
+  - [x] **P3.T1.1: Duck/restore tests including mute toggle and scene change mid-duck**
+- [x] **P3.T2: Wire without contract changes** - covers: FR-4, AC-4
+  - [x] **P3.T2.1: Integrate via existing `AudioPlayer`/`MusicBeds` APIs; preserve first-gesture unlock**
 
 <!--
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 578ec550
 **Evidence:** conductor/tracks/20261117-polish-showcase/verification/phase-3.md
 -->
 
