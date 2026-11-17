@@ -322,3 +322,18 @@ no unshipped re-pins); AC-13 met (five commands run exactly as written).
   this attempt is this evidence file. The fixture-passing R5/R12 configuration
   (`COMMIT_SKIP_DENOM=100000`, `PUNISH_SKIP_DENOM=64` or `100000`, press divisor
   6) is the resume point if the user later authorises species corrections.
+
+## Primary verification (attempt 2)
+
+| Check | Result |
+| --- | --- |
+| `git status --porcelain` | empty when the subagent reported; only `verification/phase-2.md` changed in `b3fd4dd5..HEAD` (+141/−0) |
+| `bun run verify` (primary re-run on the restored base) | exit 0 — `4167 pass`, `1 skip`, `0 fail`, `Ran 4168 tests across 375 files [114.51s]`, `Checked 940 files … No fixes applied` |
+
+The block is a product constraint, not an environment failure. The only
+fixture-passing rungs reach 13/42 and 198/840 by saturating `press`, which
+pushes two species outside their statistical bands; no other combination in
+the 19-rung grid reaches 14/42. AC-13 is met because the phase stops with the
+measured grid instead of moving a fence; no code, pin, version or bound change
+is staged. The only open files are the Conductor plan/metadata recording this
+block.
