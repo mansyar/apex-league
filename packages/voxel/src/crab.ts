@@ -99,9 +99,11 @@ export function buildCrab(dna: Dna, stage: Stage = "baby"): CrabBuild {
   // leaves the leg fields claiming no voxels.
   const bodyY = 11.4 + 0.5 * j
   const hipY = bodyY - 2
-  // Feet ride clear of the ground plane: a leg capsule that reaches y = 0
-  // puts the model's lowest voxel on the grid boundary.
-  const footY = 2.4 + 0.4 * bg
+  // Feet ride clear of the ground plane: the lowest voxel center sits at
+  // y = 0.5, so the leg capsule bottom (footY minus its 1.9 * bg radius)
+  // must stay above it. Tying footY to that radius holds the invariant at
+  // every girth without shrinking the legs or clamping voxels after the fact.
+  const footY = 1.9 * bg + 1.0
 
   // Surface zones: the carapace's real y extent, derived from the ellipsoid
   // radii, so a stage or girth shift moves the bands with the shell.
