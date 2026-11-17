@@ -367,3 +367,111 @@ The blocker is a product decision, not an environment failure: clearing it
 requires moving the 45–55% branch-balance sibling band to include 56.3% /
 55.7%, which FR-12/AC-12 explicitly forbid. AC-10 is met because the phase
 reports blocked with the full sweep rather than moving a line.
+
+## 20. Attempt 3 — full in-envelope grid (phase base `ad9308f7`)
+
+Verdict: **blocked**. Holding `DECISION_MS = 200` fixed (the only cadence that
+meets both cap targets), no in-envelope, content-legal subset of the four red
+species' bounds restores all 15 matrix rows while keeping every branch sibling
+rate inside 45–55% **and** every boss/form gate green. The tree was restored
+byte-identically to phase base `ad9308f7`; no code, pin, version or bound
+change shipped.
+
+### 20.1 Five verification commands on the restored base (real exit codes)
+
+| Command | Exit | Measured result |
+| --- | --- | --- |
+| `bun run telemetry` | 0 | cap 20/42 (47.6%), 14/14 bounds ok, dead zone 27 (2.9%), idle 25.7%, positions min 46 / median 163, engagement 380/1079/3992 mm, exchange 0.32/0.32, duration 14.48–40.00 s |
+| `bun run balance` | 0 | 840 fights (ko 615, time 224, draw 1), cap 224/840 (26.7%), decisive 803/840 (95.6%), cap-win quality 188/224 (83.9%), median 31.21 s, p05 16.60 s, max 40.00 s, damageBand 49/49, 15/15 species rows ok, 6/6 bosses ok, reference line 377/840 (44.9%) diagnostic |
+| `bun run trace --seed 20261111 --check` | 0 | hash `0xb6cce858`, 5/5 invariants ok, ko — Embercub wins, blows 8/9, damage 82/196, 31,000 ms |
+| `bun run verify` | 0 | 4167 pass / 1 skip / 0 fail, 491,194 expect() calls, 4168 tests / 375 files, Biome 940 files no fixes, determinism gate OK |
+| `bun run build` | 0 | 418 modules transformed, ~679 ms, only the pre-existing >500 kB chunk warning |
+
+### 20.2 R5a reproduction at the start of attempt 3
+
+`DECISION_MS` 240→200, `DECISION_STEPS` 12→10, all species at authored base:
+`bun run balance` exit 1, cap 188/840 (22.4%) ok, but the same four rows red —
+fire_drake 59.8% (≤59.4%), plant_ox 62.5% (≤59.6%), voltfox 39.3% (≥40.7%),
+shalemole 60.7% (≤59.5%). All other gates green. Branch-balance at base species
+is green: Cinder 52.1% / Pyre 47.9%, Thorn 46.9% / Bramble 53.1%. Crucially,
+`branch-balance.test.ts` uses the **discrete** resolver, so cadence does not
+move it; only species bounds do.
+
+### 20.3 Searched grid (all rejected; every rung obeys `newLo>=oldLo && newHi<=oldHi`)
+
+| # | Species change (others at base unless noted) | Matrix | Branch sibling | Boss/form gate | Result |
+| --- | --- | --- | --- | --- | --- |
+| A1 | fire_drake spd `[9,12]→[9,10]` | fire_drake 55.4% ok | Cinder 52.1% (unchanged) | boss spd 12 pin outside new hi | rejected |
+| A2 | + plant_ox spd `[6,9]→[6,7]` | 187/840 all 15 ok | all pass | boss spd 11/12 outside new hi | rejected |
+| B1 | voltfox atk `[8,11]→[9,11]` | voltfox 51.8% ok, fire_drake 58.0% ok, plant_ox 59.8% red, shalemole 60.7% red | unchanged | ok | rejected |
+| B2 | + voltfox def `[6,9]→[7,9]` | voltfox 65.2% red | unchanged | ok | rejected |
+| B3 | + shalemole atk `[8,11]→[8,9]` | shalemole 43.8% ok but fire_drake 59.8% / plant_ox 61.6% red | unchanged | ok | rejected |
+| B4 | shalemole def `[10,13]→[10,11]` (with voltfox atk[9,11]) | fire_drake 58.9% ok, shalemole 46.4% ok, plant_ox 61.6% red | unchanged | ok | rejected |
+| B5 | + plant_ox hp `[160,193]→[161,193]` + atk `[8,11]→[8,9]` | **all 15 ok**, cap 189/840 | **all pass** (Thorn 54.2% / Bramble 45.8%) | **boss atk fence 11>9; Fenn vs plant_ox 0.25<0.35** | rejected |
+| B6 | plant_ox atk `[8,11]→[9,11]` + def `[11,15]→[11,14]` | plant_ox 64.3% red | Thorn 42.7% / Bramble 57.3% | atk fence ok, def ok | rejected |
+| B7 | plant_ox def `[11,15]→[11,14]` | plant_ox 54.5% ok, cap 182/840 | Thorn 43.2% / Bramble 56.8% | def fence ok | rejected |
+| B8 | + plant_ox hp lo 161 | plant_ox 54.5% ok, cap 182/840 | Thorn 43.2% / Bramble 56.8% | def fence ok | rejected |
+| B9 | + plant_ox spd lo 7 | plant_ox 50.9% ok, cap 179/840 | unchanged (spd absent from discrete battle) | ok | rejected |
+| B10 | plant_ox def `[11,15]→[11,13]` | plant_ox 54.5% ok, cap 181–182/840 | **Thorn 44.8% / Bramble 55.2% — closest miss, 1 win each** | **Fenn vs plant_ox 0.139<0.35** | rejected |
+| B11 | plant_ox def `[11,13]` + hp lo 161 | all 15 ok, cap 182/840 | Thorn 44.8% / Bramble 55.2% | same Fenn failure | rejected |
+| C1 | voltfox hp `[136,166]→[138,166]` (plant_ox base) | plant_ox 61.6% still red | unchanged | ok | rejected |
+| C2 | voltfox hp `[136,166]→[142,166]` | plant_ox 61.6% still red (voltfox 54.5%) | unchanged | ok | rejected |
+
+### 20.4 Why no config can clear the band — structural proof
+
+plant_ox must shed wins at R5a (61.6% vs ≤59.6%). Its matrix "typical"
+creature is `floor((lo+hi)/2)` per stat; every authored content pin constrains
+the legal moves:
+
+- `bosses.ts` pins plant_ox **hp hi 193, atk hi 11, def hi 13, spd hi 8**
+  (`bosses.test.ts:66` enforces `boss.stats[stat] <= statBounds[stat][1]`).
+  Therefore atk hi cannot fall below 11 and hp hi cannot fall below 193.
+- The only content-legal way to lower plant_ox's matrix midpoint is
+  **def hi 15→14 or 13** (def mid 13→12). That makes plant_ox weaker — which
+  also breaks the `bosses.balance.test.ts:349` gate (Cinder Abbot Fenn vs
+  plant_ox at cap falls to 0.25 / 0.139, below 0.35).
+- The only way to restore the sibling band after that is lowering the atk
+  midpoint (the offense branch favors atk/spd, the defense branch hp/def);
+  that requires atk hi ≤ 9, which the boss atk-11 fence forbids.
+- hp-lo raises, spd changes and voltfox/shalemole coupling were measured and
+  have either no band effect or push other rows red.
+
+The closest miss (B10/B11) fails on both the 1-win sibling shortfall and the
+Fenn boss gate; the only config that clears matrix + band together (B5) fails
+two hard content fences. Moving either the 45–55% band, the boss-fence
+assertion, the boss-balance floor or the species envelopes is explicitly
+forbidden by FR-4/FR-11/FR-12, so the phase is blocked.
+
+### 20.5 State, pins, version, before/after
+
+- Pin promotion: **not done** — telemetry `cap.count * 3` remains `toBeGreaterThan` debt
+  (20/42); `pacing.test.ts` remains `test.failing` (attempt 1 measured 16/42 by KO,
+  so promotion would be a false claim). Both were reverted with the tree.
+- Version guard: **not bumped** — `SIM_VERSION` stays 3; trace hash stays
+  `0xb6cce858`; both ghost pins remain 3 / 4.
+- Before/after gate table: cap target ≤1/3 unchanged, fixture target ≤14/42
+  unchanged, statistical slack unchanged, damage band 4–12% unchanged,
+  `DISTINCT_FLOOR` 12 unchanged, cap duration 40,000 ms unchanged,
+  DECISION_MS band 200–240 ms unchanged, species envelopes unchanged,
+  identity fence unchanged, sibling band 45–55% unchanged.
+
+### 20.6 AC verdicts (attempt 3)
+
+AC-2 met (13/42 fixture reproduced); AC-3 met (all rungs envelope subsets);
+AC-4 met (188/840 reproduced); AC-5 not met (pins reverted); AC-6 not met
+(version reverted); AC-7 met (§20.1/§20.3); AC-8 met (14 bounds, 15 species,
+49 moves measured); AC-9 not met (no shippable tree passes verify); AC-10 met
+(blocked with the full searched grid and closest miss); AC-11 not met (no
+content-legal config satisfies every gate); AC-12 not met (no re-pins shipped).
+
+### 20.7 Deviations / blockers / notes
+
+- Deviations: none. All temporary edits stayed inside `Touches`; nothing
+  outside it was written except this evidence file.
+- Blocker (design): no in-envelope, content-legal subset of the four species'
+  bounds satisfies matrix ≤1/3, all 15 species rows, the 45–55% sibling band
+  and the boss/form gates simultaneously. Clearing it requires moving a
+  forbidden fence (boss stat envelope, boss-balance floor or sibling band).
+- Notes: the tree is byte-identical to phase base `ad9308f7`; no code commit
+  was made. §20.3 is the complete resume grid; B5 and B10 are the two closest
+  misses and their failure reasons are authoritative for any further attempt.
