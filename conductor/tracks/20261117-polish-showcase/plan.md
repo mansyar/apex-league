@@ -113,7 +113,7 @@
 - **Covers:** F1, F2
 - **Touches:** `apps/client/src/ui/announcer.ts`, `apps/client/src/ui/announcer.test.ts`, `apps/client/src/cup/results.ts`, `.conductor/evidence/20261117-polish-showcase/*.png`, `.conductor/media/20261117-polish-showcase/*.gif`, `verification/phase-R1.md`
 - **Verification:** `bun run verify && bun run build`; `git ls-files .conductor/evidence/20261117-polish-showcase .conductor/media/20261117-polish-showcase`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Resolve F1 — perceivable results announcement** - covers: F1
   - [ ] **R1.T1.1: Pure helper for combined results line, wire once in `results.ts`, test both parts**
