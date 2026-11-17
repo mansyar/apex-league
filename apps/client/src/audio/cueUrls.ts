@@ -5,10 +5,13 @@
  * `-calm` suffixed rows are the reduced-motion variants of their base cue.
  */
 import type { CareCueId } from "./careCues"
-import type { CueId } from "./cues"
+import type { CueId, PresentationCueId } from "./cues"
 
-/** The union of every bundled cue: battle steps plus ranch care events. */
-export type AnyCueId = CueId | CareCueId
+/**
+ * The union of every bundled cue: battle steps, ranch care events and
+ * presentation events (20261117-polish-showcase FR-2).
+ */
+export type AnyCueId = CueId | CareCueId | PresentationCueId
 
 /** Every cue id, listed so the URL table can be checked for completeness. */
 export const CUE_IDS: readonly AnyCueId[] = [
@@ -28,6 +31,16 @@ export const CUE_IDS: readonly AnyCueId[] = [
   "care-play",
   "care-pet",
   "dawn-chime",
+  "ui-navigate",
+  "ui-navigate-calm",
+  "ui-confirm",
+  "ui-confirm-calm",
+  "cup-transition",
+  "cup-transition-calm",
+  "evolution",
+  "evolution-calm",
+  "graduation",
+  "graduation-calm",
 ] as const
 
 /** Cue id → the Vite-served path of its bundled .ogg asset. */
@@ -48,4 +61,14 @@ export const cueUrl: Record<AnyCueId, string> = {
   "care-play": "/audio/sfx/care-play.ogg",
   "care-pet": "/audio/sfx/care-pet.ogg",
   "dawn-chime": "/audio/sfx/dawn-chime.ogg",
+  "ui-navigate": "/audio/sfx/ui-navigate.ogg",
+  "ui-navigate-calm": "/audio/sfx/ui-navigate-calm.ogg",
+  "ui-confirm": "/audio/sfx/ui-confirm.ogg",
+  "ui-confirm-calm": "/audio/sfx/ui-confirm-calm.ogg",
+  "cup-transition": "/audio/sfx/cup-transition.ogg",
+  "cup-transition-calm": "/audio/sfx/cup-transition-calm.ogg",
+  evolution: "/audio/sfx/evolution.ogg",
+  "evolution-calm": "/audio/sfx/evolution-calm.ogg",
+  graduation: "/audio/sfx/graduation.ogg",
+  "graduation-calm": "/audio/sfx/graduation-calm.ogg",
 }

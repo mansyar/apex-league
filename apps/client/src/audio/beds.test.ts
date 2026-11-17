@@ -10,7 +10,7 @@ describe("beds", () => {
     }
   })
 
-  test("the table covers exactly the two scene beds", () => {
-    expect([...BED_SCENES].sort()).toEqual(["arena", "ranch"])
+  test("the table covers exactly the three scene beds", () => {
+    expect([...BED_SCENES].sort()).toEqual(["arena", "cup", "ranch"])
   })
 })
