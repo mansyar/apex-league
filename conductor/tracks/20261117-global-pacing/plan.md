@@ -42,7 +42,7 @@ The primary appends after acceptance:
 - **Touches:** `packages/sim/src/battle/continuous/controller.ts`, `controller-noise.ts`, `controller-state.ts`, `controller-profile.ts`, `controller*.test.ts`, `packages/sim/src/cup/ghost.ts`, `ghost.test.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`, `pacing.test.ts`, `balance-report.test.ts`, `packages/sim/src/cup.golden.test.ts`, `packages/sim/src/cup.test.ts`, `packages/sim/src/legacy.test.ts`, `packages/sim/src/battle/exhibition.test.ts`, `packages/sim/src/battle/clock.contract.test.ts`, `packages/sim/src/battle/continuous/battle-trace.test.ts`, `packages/sim/src/bosses.test.ts`, `packages/sim/src/bosses.balance.test.ts`, `apps/client/src/bracket-model.test.ts`, `apps/client/src/morning-after/derive.test.ts`, `conductor/tracks/20261117-global-pacing/verification/phase-2.md`
 - **Verification:** `bun run telemetry`, then `bun run balance`, then `bun run trace --seed 20261111 --check`, then `bun run verify`, then `bun run build` (five separate commands)
 - **Status:** blocked
-- **Result:** blocked — attempt 2 swept 19 combined rungs at 240 ms; R5/R12 clear both caps (13/42, 198/840) but push `fernstag` to 68.8% and `embercub` to 35.3%, and R14 is one conversion short at 15/42
+- **Result:** blocked — resolved by the 2026-11-17 withdrawal of the fixture-only target; attempt 2 swept 19 combined rungs at 240 ms, R5/R12 cleared both caps (13/42, 198/840) but broke two species bands, and R14 was one conversion short at 15/42. No game change shipped.
 - **Checkpoint:** f5383dd1
 - **Evidence:** conductor/tracks/20261117-global-pacing/verification/phase-2.md
 
@@ -106,7 +106,7 @@ The primary appends after acceptance:
 - **Touches:** the source files from attempt 1 (`controller-state.ts`, `controller.test.ts`, `species/starters.ts`, `species/discovery.ts`, `species/rewards.ts`, read-only `species/identity.test.ts`, `cup/ghost.ts`, `ghost.test.ts`, `continuous/telemetry.test.ts`, `continuous/pacing.test.ts`, `continuous/balance-report.test.ts`) **plus the cadence- and species-sensitive test files that `bun run verify` reports as moved**, including `battle/continuous/controller-doctrine.test.ts` (Circle probe), `battle/continuous/battle-trace.test.ts`, `apps/client/src/bracket-model.test.ts`, `apps/client/src/morning-after/derive.test.ts`, `packages/sim/src/bosses.test.ts`, `breeding.test.ts`, `branch-balance.test.ts`, `legacy.test.ts`, `species.test.ts`, `cup/rival-roster.test.ts`, `cup.golden.test.ts`, `cup.test.ts`, `battle/clock.contract.test.ts`, `battle/exhibition.test.ts`, `battle/continuous/stream.test.ts` and `battle/continuous/fixture-audit.test.ts`; plus `conductor/tracks/20261117-global-pacing/verification/phase-3.md`
 - **Verification:** `bun run telemetry`, then `bun run balance`, then `bun run trace --seed 20261111 --check`, then `bun run verify`, then `bun run build` (five separate commands)
 - **Status:** blocked
-- **Result:** blocked — attempt 3 exhausted a 14-rung in-envelope grid; the only config clearing matrix and sibling band together breaks the boss atk-11 fence and the Fenn balance floor, and the closest legal miss is one win outside the band
+- **Result:** blocked — resolved by the 2026-11-17 withdrawal of the fixture-only target; attempt 3 exhausted a 14-rung in-envelope grid, the only config clearing matrix and sibling band together broke the boss atk-11 fence and the Fenn balance floor, and the closest legal miss was one win outside the band. No game change shipped.
 - **Checkpoint:** 7f9b296e
 - **Evidence:** conductor/tracks/20261117-global-pacing/verification/phase-3.md
 
@@ -178,7 +178,7 @@ The primary appends after acceptance:
 
 - **Goal:** the integrated record states the final cap shares, the sweep verdict, the version decision and every debt still owed, with the full gate output pasted from the final tree.
 - **Depends on:** Phase 3
-- **Covers:** FR-9, FR-10, FR-11, NFR-2, AC-8, AC-9, AC-11
+- **Covers:** FR-9, FR-10, FR-11, FR-14, NFR-2, AC-8, AC-9, AC-11, AC-14
 - **Touches:** `conductor/tracks/20261117-global-pacing/verification/integrated.md` (evidence only — no source file)
 - **Verification:** `bun run verify`, then `bun run build` (two separate commands)
 - **Status:** pending
@@ -187,6 +187,9 @@ The primary appends after acceptance:
   - [ ] **P4.T1.1: Paste the final telemetry, balance, trace, verify and build output with the before/after cap shares side by side**
   - [ ] **P4.T1.2: State which lever shipped, which were tried and rejected, what `SIM_VERSION` is and why, and which debts remain (D-1/D-2/D-3, kite band, fixture bias)**
   - [ ] **P4.T1.3: Map every FR, NFR and AC to its evidence and record any honest miss as debt rather than silent scope reduction**
+- [ ] **P4.T2: Prove the no-ship outcome (FR-14, AC-14)** — covers: FR-14, AC-14
+  - [ ] **P4.T2.1: Record the fixture-only withdrawal verbatim with the audit and three failed sweeps as evidence, and state that the matrix's 26.7% already satisfies the product rule**
+  - [ ] **P4.T2.2: Prove the final diff contains no `packages/`, `apps/`, species, controller, ghost or pin change; telemetry still 20/42 with 14/14 bounds, balance 224/840, trace hash `0xb6cce858` and `SIM_VERSION` 3**
 
 <!--
 Review fixes are appended by `conductor-review` as:

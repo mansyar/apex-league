@@ -34,11 +34,15 @@ decisive blow, and two test pins keep asserting that failure as the expected sta
 
 ## Goals & Success Metrics
 
-- **Goal:** fighters close fights through play rather than through the clock, on both measurement
-  populations, without turning a slow species into a fast one or widening a gate.
-- **Metric:** telemetry `cap.count * 3 <= cap.total` on the 42-distinct-pairing fixture
-  (at most 14 of 42) and balance `cap share <= 1/3` on the 840-fight matrix (at most 280 of 840),
-  with both `BOUNDS` and `CAP_MAX` untouched.
+- **Goal:** the pacing debt is measured and honestly classified, with the game's real population
+  kept inside the one-in-three rule and no gate, fence or species identity moved to satisfy a
+  biased fixture. *(Amended 2026-11-17 after all three controller/species searches failed.)*
+- **Metric:** balance `cap share <= 1/3` on the 840-fight matrix (at most 280 of 840), with both
+  `BOUNDS` and `CAP_MAX` untouched. The fixture-only target `cap.count * 3 <= cap.total`
+  (at most 14 of 42) is **Withdrawn 2026-11-17**: the matrix already meets the product rule and
+  the fixture is a proven biased diagnostic, not the game population.
+- **Metric:** the fixture's 20/42 remains recorded as debt, and the two debt pins remain in place
+  asserting that miss rather than being promoted on a tree that does not actually close fights.
 - **Metric:** the 840-fight matrix still reports 15/15 species inside their win band, 49/49 moves
   inside the 4–12% damage band, median duration inside 25–40 s and decisive share at least 2/3.
   Cap wins keep counting as outlasting wins under the existing `CAP_MARGIN_FLOOR_BP` rule.
@@ -93,7 +97,7 @@ decisive blow, and two test pins keep asserting that failure as the expected sta
 | ID | Requirement | Priority |
 | --- | --- | --- |
 | FR-1 | Before changing behaviour, record a diagnosis naming which side fails to convert and why, with per-fight commits, hits, idle share, gap and damage throughput for the stalling pairings. | must |
-| FR-2 | Sweep controller-policy candidates that can raise commit throughput or cut idle, cheapest and most conservative first; measure each on the fixture, then the matrix, and keep byte-identical integer arithmetic and one RNG stream. | must |
+| FR-2 | Sweep controller-policy candidates that can raise commit throughput or cut idle, cheapest and most conservative first; measure each on the fixture, then the matrix, and keep byte-identical integer arithmetic and one RNG stream. **Fixture target Withdrawn 2026-11-17; the sweep and its measured grid remain required.** | must |
 | FR-3 | If controller-only candidates cannot reach both targets, sweep effective stats only inside existing authored roll bounds, keeping the tortoise identity fence green throughout. | should |
 | FR-4 | Never widen a bound, floor, tolerance, `DISTINCT_FLOOR`, cap duration or target; record every figure before and after and name any miss as debt rather than moving the line. | must |
 | FR-5 | Promote the one-in-three debt pin in `telemetry.test.ts` and the `test.failing` majority pin in `pacing.test.ts` when and only when their bodies pass, retaining their history in comments. | must |
@@ -122,7 +126,7 @@ decisive blow, and two test pins keep asserting that failure as the expected sta
 | AC-1 | `verification/phase-1.md` names the stall mechanism with per-fight commit/hit/idle/throughput figures before any behaviour change. | FR-1 |
 | AC-2 | Every candidate is recorded with its fixture and matrix readings; no candidate is accepted on the fixture alone. | FR-2, FR-9 |
 | AC-3 | If used, every stat value sits strictly inside its species' authored roll bounds and the tortoise identity test passes. | FR-3, FR-8 |
-| AC-4 | The 42-fight fixture reports `cap.count * 3 <= cap.total` and the 840-fight matrix reports cap share at most 1/3, with all other gate rows still green. | FR-4, FR-7 |
+| AC-4 | **Withdrawn 2026-11-17 (fixture half only).** The 840-fight matrix reports cap share at most 1/3 with all other gate rows green; the 42-fight fixture's 14/42 target is withdrawn as a shipping criterion and stays recorded as debt. | FR-4, FR-7 |
 | AC-5 | The debt pin in `telemetry.test.ts` and the `test.failing` majority pin in `pacing.test.ts` are promoted to normal passing assertions when their bodies pass; neither is deleted or `.skip`ped. | FR-5 |
 | AC-6 | `SIM_VERSION` is 4 with ghost pins updated if policy or resolution moved; otherwise it is 3 and the trace hash `0xb6cce858` is unchanged for the same seed. | FR-6, NFR-1 |
 | AC-7 | A before/after table proves no bound, floor, tolerance, `DISTINCT_FLOOR`, cap duration or target value changed in the diff. | FR-4 |
@@ -132,6 +136,8 @@ decisive blow, and two test pins keep asserting that failure as the expected sta
 | AC-11 | **Added 2026-11-17.** The combined tree reproduces fixture ≤ 14/42 and matrix ≤ 1/3 with all 15 species and 49 moves green, `identity.test.ts` unchanged, `SIM_VERSION` 4 with both ghost pins updated, a recorded new trace hash, and a before/after table proving no roll envelope widened and no gate bound moved. | FR-11, FR-6 |
 | AC-12 | **Added 2026-11-17.** `bun run verify` is green with only value/golden/relation re-pins in the cadence- and species-sensitive tests; each re-pin has a comment naming the 200 ms cadence or the species correction that moved it, and no assertion is deleted, `.skip`ped or weakened to hide a failure. The evidence names every moved file and quotes the old and new expected values. | FR-12 |
 | AC-13 | **Added 2026-11-17.** A combined-controller rung, if shipped, leaves `DECISION_MS = 240`, every species value and every fence (45–55% sibling band, boss stat pins, 0.35 boss floor, `BOUNDS`, `CAP_MAX`, `DISTINCT_FLOOR`, damage band) untouched; it reproduces fixture ≤ 14/42 and matrix ≤ 1/3 with 15/15 species, 49/49 moves and all other gates green; debt pins are promoted, `SIM_VERSION` is 4 with both ghost pins updated, and the evidence records the new hash and every re-pin. If no combination works, the phase reports blocked with the measured grid. | FR-13, FR-4 |
+| FR-14 | **Added 2026-11-17 (user choice).** When every in-scope search fails without a fence change, ship **no game change**: leave species values, controller policy, `SIM_VERSION` and all debt pins at their base values, and record the fixture miss as debt with the full measured grids and the reason the matrix target is already met. | must |
+| AC-14 | The final diff contains no `packages/`, `apps/`, species, frame, controller, ghost or pin change; `bun run balance` still reads 224/840 (26.7%), `bun run telemetry` still reads 20/42 with all 14 bounds green, trace hash is `0xb6cce858` and `SIM_VERSION` is 3; the integrated record states the withdrawal and the residual debt. | FR-14 |
 
 ## Edge Cases
 
@@ -183,6 +189,10 @@ decisive blow, and two test pins keep asserting that failure as the expected sta
   stays recorded as blocked; FR-11/AC-11 are added rather than renumbering anything, and Phase 3 is
   re-scoped from stats-only to controller policy plus the minimum species corrections that restore
   every green row. No bound, floor, tolerance or target moves.
+- **Decided 2026-11-17 (fifth resume):** after 19 combined controller rungs also failed
+  without moving a fence, the user chose option 1: **close the track as debt and ship no
+  game change**. The fixture-only target in AC-4 is `Withdrawn`; FR-14/AC-14 record the
+  no-ship outcome. The matrix's 26.7% already satisfies the product's one-in-three rule.
 - **Decided 2026-11-17 (fourth resume):** after the in-envelope grid proved no species
   configuration clears all fences, the user chose to leave every fence untouched and
   finish the controller search instead. FR-13/AC-13 add the untested space of
