@@ -5,7 +5,7 @@
 - **Date:** 2026-11-18
 - **Branch:** feat/20261118-roster-wave-1
 - **Phase base:** 03c8973a
-- **Head:** a1b2bbf2
+- **Head:** 7d6c53c1 (reviewed HEAD after R1 state commit; squashed R1 checkpoint b198c03f)
 - **Result:** verified (primary independently re-ran the exact full gate green)
 
 ## Summary
@@ -27,7 +27,7 @@ File: `packages/sim/scripts/battle-telemetry.ts` (matchup doc block, ~lines 254-
    are skipped; kept `(gcd(5, 15) = 5)` but qualified it as the old 15-species
    walk.
 
-Commit: `a1b2bbf2 docs(sim): correct telemetry matchup doc block for 18-species roster`
+Commit: `b198c03f docs(sim): correct telemetry matchup doc block for 18-species roster`
 
 ## Commands
 
@@ -43,7 +43,7 @@ pass / 0 fail.
 
 | ID | Severity | Criterion | Evidence | Status |
 | --- | --- | --- | --- | --- |
-| F1 | Low | Matchup doc block matches 18-species implementation | `git diff` confined to doc block; commit `a1b2bbf2`; full gate green | fixed |
+| F1 | Low | Matchup doc block matches 18-species implementation | `git diff` confined to doc block; commit `b198c03f`; full gate green | fixed |
 
 ## Deviations
 
@@ -65,7 +65,7 @@ None.
 | Build | `bun run build` | exit 0 — Vite 423 modules |
 | Balance | `bun run balance` | exit 0 — 18/18, unchanged gates |
 | Fuzz | `bun run test:fuzz` | exit 0 — 118 pass / 0 fail, 128931 `expect()` calls |
-| Commit | `git log --oneline --max-count=3 03c8973a..HEAD` | `a1b2bbf2 docs(sim): correct telemetry matchup doc block for 18-species roster` |
+| Commit | `git log --oneline --max-count=3 03c8973a..HEAD` | `7d6c53c1 conductor(plan): Mark phase 'Review Fixes' as complete`; `b198c03f docs(sim): correct telemetry matchup doc block for 18-species roster` |
 
 Output: `C:\Users\Ansyar\.local\share\opencode\shell\4b140c9c7577b3ebb6aa72ff77e0ac4624c0c569\sh_r1_gate.txt`. The expected non-gating `smoke: RESULT fail ... not an http(s) URL: file:///tmp/x` diagnostic remains unchanged.
 
