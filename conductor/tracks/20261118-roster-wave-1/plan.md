@@ -66,13 +66,13 @@
 - **Covers:** F1
 - **Touches:** `packages/sim/scripts/battle-telemetry.ts`, `conductor/tracks/20261118-roster-wave-1/verification/phase-R1.md`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **R1.T1: Resolve F1** - covers: F1
-  - [ ] **R1.T1.1:** Update the matchup doc block to `gcd(11, 18)`, 18-species modulo/lap formulas, and `below 42`; mention mirror-hop start 9.
+- [x] **R1.T1: Resolve F1** - covers: F1
+  - [x] **R1.T1.1:** Update the matchup doc block to `gcd(11, 18)`, 18-species modulo/lap formulas, and `below 42`; mention mirror-hop start 9.
 
 <!--
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** b198c03f
 **Evidence:** conductor/tracks/20261118-roster-wave-1/verification/phase-R1.md
 -->
