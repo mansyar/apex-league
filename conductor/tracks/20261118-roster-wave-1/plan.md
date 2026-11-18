@@ -14,7 +14,7 @@
 - **Covers:** FR-1, FR-2, FR-3, FR-4, FR-5, FR-6, FR-9, NFR-1, NFR-2, NFR-3, NFR-6, AC-1, AC-2, AC-3, AC-4, AC-5, AC-6, AC-9, AC-10
 - **Touches:** `packages/sim/src/species/**`, `packages/sim/src/breeding/discovery.ts`, `packages/sim/src/breeding/discovery.test.ts`, `packages/sim/src/branch-catalog/**`, `packages/voxel/src/**`, `packages/voxel/scripts/**`, `artifacts/<new-archetype>-42*`, `conductor/tracks/20261118-roster-wave-1/verification/phase-1.md`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Add species, recipes, and branch forms** — covers: FR-1, FR-2, FR-3, AC-1, AC-2, AC-3
   - [ ] **P1.T1.1:** Add `dune_jerboa`, `spark_ray`, and `gale_moth` catalog rows with distinct kits, valid stat bounds, flavors, and temperaments.
