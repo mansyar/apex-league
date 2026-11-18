@@ -310,7 +310,11 @@ Phased delivery plan (each phase is independently playable):
   **Landed 2026-10-27: three more breeding-discovery lines ship** — Embercub
   (Breed Fire with Plant), Mossboar (Breed Plant with Water), Mistkit
   (Breed Fire with Water) — taking the roster to fifteen species, each with
-  two branch forms.
+  two branch forms. **Landed 2026-11-18: roster wave 1 ships** - Dune Jerboa
+  (Breed Earth with Wind), Spark Ray (Breed Fire with Electric) and Gale Moth
+  (Breed Plant with Wind) - taking the roster to eighteen species, each with
+  two branch forms, three new voxel archetypes and nine new seed-42 artifact
+  pairs; all 18/18 pass the unchanged hard balance gate with no waivers.
   Still open: the roster's climb toward 20-40
   species.)*
 - ElysiaJS backend: cloud save sync, trainer identity (anonymous ID + name),
@@ -343,7 +347,8 @@ Phased delivery plan (each phase is independently playable):
   variants, a third music bed, a pure music-ducking envelope, and a single
   polite live-region announcer with visible focus — proven by desktop/mobile
   captures and a marquee cup-run clip, with determinism unchanged. Still
-  open: the hardware device-lab pass and roster expansion. **Owner decision
+  open: the hardware device-lab pass and the roster climb toward 20-40 species
+  (18/18 in band after roster wave 1). **Owner decision
   2026-11-18:** the global-pacing D-1 decision is closed — the ≤1/3 cap-share
   fence stays on the 840-fight matrix, the 20/42 fixture miss (D-3) and its
   population bias (D-4) remain recorded debt, the kite band (D-2) stays open,

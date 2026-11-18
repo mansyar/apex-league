@@ -786,3 +786,19 @@
     and the determinism gate is byte-identical (15 species plus 5 props). Full
     sweep 97 pass / 0 fail; `SIM_VERSION` and the battle hash `0xff6f3d62`
     unchanged; no product/guideline change.*
+-   *2026-11-18 - Roster wave 1 (track `20261118-roster-wave-1`): three
+    breeding-discovery lines (Dune Jerboa earth/jerboa, Spark Ray
+    electric/ray, Gale Moth wind/moth) and their three fixed unordered recipes,
+    six branch forms, and three voxel archetypes are added through the existing
+    sim/catalog/registry seams; nine new seed-42 GLB/manifest pairs are authored
+    with `determinism-gate.ts --write-missing` and the 45 existing pairs remain
+    byte-identical. All 18 species pass the unchanged hard balance gate;
+    `SIM_VERSION`, save schema, balance thresholds, pacing fences and the D-1
+    debt pin remain unchanged - the pacing diagnostic fixture is pinned to the
+    baseline 15-species roster. The telemetry sample's mirror-hop start is 9
+    (stride 11, sample size 42 and all assertions unchanged) to keep away
+    coverage at 42 fights. The client handbook reads the sim recipe seam with
+    no duplicate table; the mixed gallery rotation stays registry-derived and
+    new archetypes are reachable via per-archetype URLs. Full verify 4302 pass,
+    balance 18/18, determinism 54 pairs, fuzz 118 pass / 0 fail, desktop + 393px
+    visual evidence clean; battle hash `0xff6f3d62` unchanged.*
