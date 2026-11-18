@@ -52,7 +52,7 @@ Adds three breeding-discovery species — Dune Jerboa (Earth+Wind), Spark Ray (F
 
 ## Media
 
-![Roster Wave 1 showcase](.conductor/media/20261118-roster-wave-1/roster-wave-1-showcase.gif)
+![Roster Wave 1 showcase](https://github.com/user-attachments/assets/1b8352f9-299c-4b82-997e-a2b429d3e59f)
 
 Six desktop/phone screenshots of the handbook and new archetypes are recorded in `verification/phase-2.md` under the gitignored `.conductor/evidence/20261118-roster-wave-1/` directory. The showcase GIF is also gitignored and is attached to this PR only.
 
