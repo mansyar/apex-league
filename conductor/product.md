@@ -255,8 +255,13 @@ Phased delivery plan (each phase is independently playable):
       now draws 42 **distinct** pairings, one seed each, by a written stride-11
       rule, and the gate reads 20/42 (47.6%) against a 21/42 target with every
       other bound untouched. No simulation code changed and `SIM_VERSION` stays 3.
-      Still owed: the one-in-three target (20/42), the global throughput
-      shortfall, and the kite band at `spd 5`.
+      **Owner decision 2026-11-18:** D-1 is accepted as standing debt; the
+      one-in-three fence stays on the 840-fight matrix (224/840 = 26.7%, already
+      inside it). The 20/42 fixture result remains a biased diagnostic, its
+      fixture-only target stays withdrawn, and both debt pins remain in place
+      as honest markers. Any future pacing attempt must change the controller
+      family or obtain a new product decision to move a fence. The global
+      throughput shortfall and the kite band at `spd 5` remain open debt (D-2).
       **Audited 2026-11-13:** the fixture-versus-matrix gap is now decomposed
       instead of guessed. On the fixture's 42 pairings the four cells read 47.6%
       (reference stats, press-versus-kite), 40.5% (reference, press-versus-press),
@@ -338,8 +343,11 @@ Phased delivery plan (each phase is independently playable):
   variants, a third music bed, a pure music-ducking envelope, and a single
   polite live-region announcer with visible focus — proven by desktop/mobile
   captures and a marquee cup-run clip, with determinism unchanged. Still
-  open: the hardware device-lab pass, roster expansion and the global-pacing
-  product decision.)*
+  open: the hardware device-lab pass and roster expansion. **Owner decision
+  2026-11-18:** the global-pacing D-1 decision is closed — the ≤1/3 cap-share
+  fence stays on the 840-fight matrix, the 20/42 fixture miss (D-3) and its
+  population bias (D-4) remain recorded debt, the kite band (D-2) stays open,
+  and both debt pins remain in place.)*
 
 ## Target Audience
 Creature-collector fans who love the raising sim subgenre (Digimon World
