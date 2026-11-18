@@ -76,3 +76,21 @@
 **Checkpoint:** b198c03f
 **Evidence:** conductor/tracks/20261118-roster-wave-1/verification/phase-R1.md
 -->
+
+## Phase R2: Review Fixes (delta)
+
+- **Goal:** Correct the commit provenance recorded in R1 evidence so it matches the real squashed checkpoint and reviewed HEAD; no behavior change.
+- **Depends on:** Phase R1
+- **Covers:** F2
+- **Touches:** `conductor/tracks/20261118-roster-wave-1/verification/phase-R1.md`, `conductor/tracks/20261118-roster-wave-1/verification/phase-R2.md`
+- **Verification:** `git log --oneline --max-count=3 03c8973a..HEAD` plus `bun run verify`
+- **Status:** pending
+
+- [ ] **R2.T1: Resolve F2** - covers: F2
+  - [ ] **R2.T1.1:** Replace pre-squash commit references with the real R1 checkpoint `b198c03f` and record reviewed HEAD `7d6c53c1`.
+
+<!--
+**Result:** verified
+**Checkpoint:** <short-sha>
+**Evidence:** conductor/tracks/20261118-roster-wave-1/verification/phase-R2.md
+-->
