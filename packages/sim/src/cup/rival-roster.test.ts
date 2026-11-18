@@ -80,8 +80,8 @@ describe("generated rival rosters (FR-7)", () => {
       for (const day of DAYS) {
         for (const id of rivalSpecies(state, day)) met.add(id)
       }
-      // The widened pool is the reward-gated pool plus the six discovery
-      // lines (waves 3+4): each unlocked species shows up across a
+      // The widened pool is the reward-gated pool plus the nine discovery
+      // lines (waves 3–5): each unlocked species shows up across a
       // two-dozen-day sweep, and no locked one leaks in early.
       const pool = new Set(
         [...obtainableSpecies(tier), ...DISCOVERY_SPECIES].map((s) => s.id),
@@ -95,9 +95,9 @@ describe("generated rival rosters (FR-7)", () => {
   /** The wave-4 trio joins the widened pool through DISCOVERY_SPECIES. */
   const WAVE4_IDS: readonly string[] = ["embercub", "mossboar", "mistkit"]
 
-  test("each non-Bronze pool holds the six discovery lines over the reward gate", () => {
-    expect(DISCOVERY_SPECIES.map((species) => species.id)).toHaveLength(6)
-    const sizes = { silver: 11, gold: 13, legend: 15 } as const
+  test("each non-Bronze pool holds the nine discovery lines over the reward gate", () => {
+    expect(DISCOVERY_SPECIES.map((species) => species.id)).toHaveLength(9)
+    const sizes = { silver: 14, gold: 16, legend: 18 } as const
     for (const tier of ["silver", "gold", "legend"] as const) {
       const pool = new Set(
         [...obtainableSpecies(tier), ...DISCOVERY_SPECIES].map((s) => s.id),

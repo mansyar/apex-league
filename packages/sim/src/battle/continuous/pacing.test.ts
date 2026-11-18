@@ -119,7 +119,13 @@ function fight(home: SpeciesDef, away: SpeciesDef, seed: number): Fought {
 /** A dozen-plus pairings spread across the roster, deterministic, no mirrors. */
 function sample(): Fought[] {
   const fought: Fought[] = []
-  const roster = ALL_SPECIES
+  // The pacing-debt fixture is pinned to the pre-wave roster so the
+  // owner-ratified debt marker keeps measuring the same 15-species population;
+  // new-species pacing is covered by the balance/fuzz gates.
+  const roster = ALL_SPECIES.filter(
+    (species) =>
+      !["dune_jerboa", "spark_ray", "gale_moth"].includes(species.id),
+  )
   // R1 (battle-balance): three seeds per pairing. One glacial matchup (the
   // tortoise fights at spd 5 against a clamped reference line) used to decide
   // the majority on a 14-fight sample; widening the sample keeps the property

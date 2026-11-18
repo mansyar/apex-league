@@ -83,6 +83,13 @@ export {
   heronTemplate,
   sampleHeronDna,
 } from "./heron"
+export {
+  buildJerboa,
+  JERBOA_GRID,
+  type JerboaBuild,
+  jerboaTemplate,
+  sampleJerboaDna,
+} from "./jerboa"
 export { type MeshePart, meshGrid } from "./mesher"
 export {
   buildMole,
@@ -91,6 +98,13 @@ export {
   moleTemplate,
   sampleMoleDna,
 } from "./mole"
+export {
+  buildMoth,
+  MOTH_GRID,
+  type MothBuild,
+  mothTemplate,
+  sampleMothDna,
+} from "./moth"
 export {
   buildOtter,
   OTTER_GRID,
@@ -106,6 +120,13 @@ export {
   type PropGenerated,
   props,
 } from "./props"
+export {
+  buildRay,
+  RAY_GRID,
+  type RayBuild,
+  rayTemplate,
+  sampleRayDna,
+} from "./ray"
 export { makeRng, type Rng } from "./rng"
 export { sampleDna } from "./sample"
 export {

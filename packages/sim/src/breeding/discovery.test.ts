@@ -80,6 +80,12 @@ describe("discoverySpeciesForElements", () => {
     expect(discoverySpeciesForElements("water", "plant")).toBe("mossboar")
     expect(discoverySpeciesForElements("fire", "water")).toBe("mistkit")
     expect(discoverySpeciesForElements("water", "fire")).toBe("mistkit")
+    expect(discoverySpeciesForElements("earth", "wind")).toBe("dune_jerboa")
+    expect(discoverySpeciesForElements("wind", "earth")).toBe("dune_jerboa")
+    expect(discoverySpeciesForElements("fire", "electric")).toBe("spark_ray")
+    expect(discoverySpeciesForElements("electric", "fire")).toBe("spark_ray")
+    expect(discoverySpeciesForElements("plant", "wind")).toBe("gale_moth")
+    expect(discoverySpeciesForElements("wind", "plant")).toBe("gale_moth")
   })
 
   test("same-element pairs inherit — no recipe lists a pair with itself", () => {
@@ -96,20 +102,37 @@ describe("discoverySpeciesForElements", () => {
   })
 
   test("unlisted cross-element pairs inherit exactly as before", () => {
+    // earth+wind, fire+electric and plant+wind are listed this wave, so they
+    // are deliberately absent here; every pair below still inherits.
     const unlisted: Array<[Element, Element]> = [
-      ["electric", "fire"],
       ["electric", "plant"],
       ["electric", "water"],
       ["electric", "earth"],
       ["wind", "fire"],
-      ["wind", "plant"],
-      ["wind", "earth"],
       ["earth", "water"],
       ["earth", "plant"],
     ]
     for (const [a, b] of unlisted) {
       expect(discoverySpeciesForElements(a, b), `${a}+${b}`).toBeNull()
     }
+  })
+
+  test("no two recipes share an order-independent key", () => {
+    // A key collision would silently overwrite one line in RECIPE_INDEX. The
+    // nine parent pairs must stay distinct once sorted.
+    const pairs: Array<[Element, Element]> = [
+      ["electric", "wind"],
+      ["wind", "water"],
+      ["earth", "fire"],
+      ["fire", "plant"],
+      ["plant", "water"],
+      ["fire", "water"],
+      ["earth", "wind"],
+      ["fire", "electric"],
+      ["plant", "wind"],
+    ]
+    const keys = pairs.map(([a, b]) => [a, b].sort().join("+"))
+    expect(new Set(keys).size).toBe(keys.length)
   })
 })
 
@@ -123,11 +146,13 @@ describe("discoverySpeciesForParents", () => {
 
   test("returns null unless the pair is exactly two recipe records", () => {
     const hound = record("electric_hound", 0)
-    const drake = record("fire_drake", 1)
     expect(discoverySpeciesForParents([hound])).toBeNull()
     expect(discoverySpeciesForParents([])).toBeNull()
     expect(discoverySpeciesForParents([hound, hound])).toBeNull()
-    expect(discoverySpeciesForParents([hound, drake])).toBeNull()
+    // electric + water is unlisted, unlike electric + fire (spark_ray).
+    expect(
+      discoverySpeciesForParents([hound, record("water_axolotl", 1)]),
+    ).toBeNull()
   })
 })
 
@@ -139,9 +164,10 @@ describe("speciesOptions with discovery", () => {
   })
 
   test("an unlisted pair reads exactly the parents, as before", () => {
+    // electric + water has no recipe; electric + fire now discovers spark_ray.
     expect(
-      speciesOptions([record("electric_hound", 0), record("fire_drake", 1)]),
-    ).toEqual(["electric_hound", "fire_drake"])
+      speciesOptions([record("electric_hound", 0), record("water_axolotl", 1)]),
+    ).toEqual(["electric_hound", "water_axolotl"])
   })
 
   test("each fire-triangle recipe appends its line after the parents", () => {
@@ -157,6 +183,24 @@ describe("speciesOptions with discovery", () => {
     expect(
       speciesOptions([record("fire_drake", 0), record("water_axolotl", 1)]),
     ).toEqual(["fire_drake", "water_axolotl", "mistkit"])
+  })
+
+  test("each new recipe appends its line after the parents, in either order", () => {
+    const cases: Array<[string, string, string]> = [
+      ["earth_tortoise", "wind_falcon", "dune_jerboa"],
+      ["wind_falcon", "earth_tortoise", "dune_jerboa"],
+      ["electric_hound", "fire_drake", "spark_ray"],
+      ["fire_drake", "electric_hound", "spark_ray"],
+      ["plant_ox", "wind_falcon", "gale_moth"],
+      ["wind_falcon", "plant_ox", "gale_moth"],
+    ]
+    for (const [a, b, discovered] of cases) {
+      expect(speciesOptions([record(a, 3), record(b, 4)])).toEqual([
+        a,
+        b,
+        discovered,
+      ])
+    }
   })
 
   test("a same-element pair reads one chip, as before", () => {
@@ -191,6 +235,17 @@ describe("speciesOptions with discovery", () => {
     expect(
       speciesOptions([record("mistkit", 2), record("fire_drake", 0)]),
     ).toEqual(["mistkit", "fire_drake"])
+    // This wave's lines breeding true: the recipe still fires, but the
+    // discovered parent is already an option, so no duplicate appears.
+    expect(
+      speciesOptions([record("dune_jerboa", 2), record("wind_falcon", 0)]),
+    ).toEqual(["dune_jerboa", "wind_falcon"])
+    expect(
+      speciesOptions([record("spark_ray", 2), record("fire_drake", 0)]),
+    ).toEqual(["spark_ray", "fire_drake"])
+    expect(
+      speciesOptions([record("gale_moth", 2), record("plant_ox", 0)]),
+    ).toEqual(["gale_moth", "plant_ox"])
   })
 })
 

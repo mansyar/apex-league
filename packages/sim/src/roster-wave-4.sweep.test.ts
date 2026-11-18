@@ -33,8 +33,8 @@ const WAVE4_IDS: readonly string[] = ["embercub", "mossboar", "mistkit"]
 const TIERS: readonly LadderTier[] = ["bronze", "silver", "gold", "legend"]
 
 describe("roster wave 4 integrated sweep", () => {
-  test("all fifteen species enter play through exactly one seam (AC-1)", () => {
-    expect(ALL_SPECIES).toHaveLength(15)
+  test("all eighteen species enter play through exactly one seam (AC-1)", () => {
+    expect(ALL_SPECIES).toHaveLength(18)
     // The discovery seam is breeding-only at every gate...
     for (const tier of TIERS) {
       const obtainable = new Set(
@@ -49,12 +49,12 @@ describe("roster wave 4 integrated sweep", () => {
       obtainableSpecies("legend").map((species) => species.id),
     )
     expect(legend.size).toBe(9)
-    expect(DISCOVERY_SPECIES.map((species) => species.id)).toHaveLength(6)
+    expect(DISCOVERY_SPECIES.map((species) => species.id)).toHaveLength(9)
     const covered = new Set([
       ...legend,
       ...DISCOVERY_SPECIES.map((species) => species.id),
     ])
-    expect(covered.size).toBe(15)
+    expect(covered.size).toBe(18)
     for (const species of ALL_SPECIES) {
       expect(covered.has(species.id), species.id).toBe(true)
     }
@@ -71,6 +71,9 @@ describe("roster wave 4 integrated sweep", () => {
       embercub: ["fire", "plant"],
       mossboar: ["plant", "water"],
       mistkit: ["fire", "water"],
+      dune_jerboa: ["earth", "wind"],
+      spark_ray: ["electric", "fire"],
+      gale_moth: ["plant", "wind"],
     }
     expect(DISCOVERY_SPECIES.map((species) => species.id).sort()).toEqual(
       Object.keys(expected).sort(),
@@ -120,17 +123,17 @@ describe("roster wave 4 integrated sweep", () => {
     expect(signatures.size).toBe(6)
   })
 
-  test("rival pools widen per tier to the fifteen-species roster (AC-6 sim half)", () => {
+  test("rival pools widen per tier to the eighteen-species roster (AC-6 sim half)", () => {
     // Pool construction mirrors production `prepareCup`: Bronze draws the
     // default three-starter pool, every higher tier the reward-gated pool
-    // plus all six discovery lines. Draw coverage lives in
+    // plus all nine discovery lines. Draw coverage lives in
     // `cup/rival-roster.test.ts`; this pins the composition.
     expect(STARTER_SPECIES.map((species) => species.id)).toHaveLength(3)
     const sizes: Readonly<Record<LadderTier, number>> = {
       bronze: 3,
-      silver: 11,
-      gold: 13,
-      legend: 15,
+      silver: 14,
+      gold: 16,
+      legend: 18,
     }
     for (const tier of TIERS) {
       const pool =

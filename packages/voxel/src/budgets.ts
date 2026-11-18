@@ -212,6 +212,42 @@ export const PROPORTION_BUDGETS: Record<string, ProportionBudget> = {
       "bodyLength/bodyHeight": { min: 1.2, max: 4.8 },
     },
   },
+  // Dune jerboa: oversized hind legs over a compact torso, a short neck and
+  // a head that reads tall against the shallow body. The long whip tail is a
+  // separate part and does not inflate the body-length ratio. The envelope
+  // covers the audited 200-seed lattice (baby/juvenile/champion) with slack,
+  // including the spring-loaded leg pivots of the mature stages.
+  jerboa: {
+    ratios: {
+      "legLength/bodyHeight": { min: 0.2, max: 2.8 },
+      "neckLength/bodyLength": { min: 0.0, max: 0.8 },
+      "headHeight/bodyHeight": { min: 0.05, max: 1.1 },
+      "bodyLength/bodyHeight": { min: 0.4, max: 3.0 },
+    },
+  },
+  // Spark ray: a non-quadruped glider. The head seats directly on the trunk,
+  // so the measured neck ratio is identically zero; the two pelvic fin-lobes
+  // named legFL/legFR are vestigial and read far shorter than a land animal's
+  // limbs. The flattened disc runs long and low.
+  ray: {
+    ratios: {
+      "legLength/bodyHeight": { min: 0.0, max: 0.6 },
+      "neckLength/bodyLength": { min: 0.0, max: 0.0 },
+      "headHeight/bodyHeight": { min: 0.02, max: 0.6 },
+      "bodyLength/bodyHeight": { min: 1.0, max: 5.0 },
+    },
+  },
+  // Gale moth: a slender thorax and tapering abdomen on six fine legs, with
+  // a short neck and small head; the wings are separate parts. Six splayed
+  // legs reach well past the shallow thorax on the audited 200-seed lattice.
+  moth: {
+    ratios: {
+      "legLength/bodyHeight": { min: 0.2, max: 4.6 },
+      "neckLength/bodyLength": { min: 0.0, max: 0.6 },
+      "headHeight/bodyHeight": { min: 0.05, max: 1.1 },
+      "bodyLength/bodyHeight": { min: 0.6, max: 5.4 },
+    },
+  },
 }
 
 /** Inclusive check: a measured ratio inside its budget range. */

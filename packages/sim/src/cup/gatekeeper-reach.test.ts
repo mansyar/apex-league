@@ -238,7 +238,9 @@ describe("authored gatekeepers reach their stage under the widened field", () =>
       expect(metFinal).toBeGreaterThan(0)
       expect(foughtFinal).toBeGreaterThan(0)
     }
-  })
+    // The wider 18-species rival pool makes each seeded climb do more draft
+    // work; assertions are unchanged, only the wall-clock headroom grows.
+  }, 60000)
 
   test("every stage bracket draws only species the save has unlocked", () => {
     for (const stage of STAGES) {
@@ -262,7 +264,7 @@ describe("authored gatekeepers reach their stage under the widened field", () =>
     }
   })
 
-  test("the silver field draws the reward line, the legend field draws all fifteen", () => {
+  test("the silver field draws the reward line, the legend field draws all eighteen", () => {
     const silver = obtainableSpecies("silver").map((s) => s.id)
     const legend = obtainableSpecies("legend").map((s) => s.id)
     expect(silver).toContain("fernstag")
@@ -272,8 +274,8 @@ describe("authored gatekeepers reach their stage under the widened field", () =>
       expect(legend).toContain(id)
     }
     // The generated legend field is the nine obtainable species plus the
-    // six wave-3/wave-4 discovery lines.
-    expect([...legend, ...DISCOVERY_SPECIES.map((s) => s.id)]).toHaveLength(15)
+    // nine wave-3/wave-4/wave-5 discovery lines.
+    expect([...legend, ...DISCOVERY_SPECIES.map((s) => s.id)]).toHaveLength(18)
   })
 
   test("each stage's field really contains the wider line it has unlocked", () => {

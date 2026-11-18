@@ -24,7 +24,7 @@ interface DiscoveryRecipe {
 }
 
 /**
- * The six fixed recipes. The table is the whole seam — adding a line is
+ * The nine fixed recipes. The table is the whole seam — adding a line is
  * adding a row, never touching the breeding flow.
  */
 const RECIPES: readonly DiscoveryRecipe[] = Object.freeze([
@@ -34,6 +34,9 @@ const RECIPES: readonly DiscoveryRecipe[] = Object.freeze([
   { parents: ["fire", "plant"], speciesId: "embercub" },
   { parents: ["plant", "water"], speciesId: "mossboar" },
   { parents: ["fire", "water"], speciesId: "mistkit" },
+  { parents: ["earth", "wind"], speciesId: "dune_jerboa" },
+  { parents: ["fire", "electric"], speciesId: "spark_ray" },
+  { parents: ["plant", "wind"], speciesId: "gale_moth" },
 ])
 
 /** The order-independent recipe key: the sorted element pair. */

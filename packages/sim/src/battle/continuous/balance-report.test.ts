@@ -87,23 +87,23 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     const measured = sample()
     console.log(report(measured).join("\n"))
     expect(measured.matrix.species.length).toBe(ALL_SPECIES.length)
-    expect(measured.matrix.fights).toBe(840)
+    expect(measured.matrix.fights).toBe(1224)
     expect(measured.doctrines.length).toBe(4)
     for (const row of measured.doctrines) expect(row.fights).toBe(6)
     expect(measured.bosses.length).toBe(6)
     for (const row of measured.bosses) {
-      expect(row.fights).toBe(30)
+      expect(row.fights).toBe(36)
       expect(row.stage.length).toBeGreaterThan(0)
     }
     expect(measured.damage.rows.length).toBe(49)
-  })
+  }, 240000)
 
   test("states the sample size in the output", () => {
     const lines = report(sample()).join("\n")
-    expect(lines).toContain("210 ordered pairings x 4 seeds = 840 fights")
-    expect(lines).toContain("112 games per species")
+    expect(lines).toContain("306 ordered pairings x 4 seeds = 1224 fights")
+    expect(lines).toContain("136 games per species")
     expect(lines).toContain("24 doctrine fights")
-    expect(lines).toContain("180 boss fights")
+    expect(lines).toContain("216 boss fights")
   })
 
   test("reports distinct fights and a binomial error per row (FR-21, P10.T2.1)", () => {
@@ -150,8 +150,8 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // land 106 distinct; the tortoise stays at 106. DISTINCT_FLOOR is untouched.
     const measured = sample()
     const byId = new Map(measured.matrix.species.map((row) => [row.id, row]))
-    expect(byId.get("earth_tortoise")?.distinct).toBe(106)
-    expect(byId.get("reefclaw")?.distinct).toBe(106)
+    expect(byId.get("earth_tortoise")?.distinct).toBe(124)
+    expect(byId.get("reefclaw")?.distinct).toBe(130)
     // The one-species replay reads the same key, so it must agree.
     for (const id of ["earth_tortoise", "reefclaw"]) {
       expect(measureSpecies(id).distinct).toBe(byId.get(id)?.distinct ?? -1)
@@ -316,7 +316,7 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
       false,
     )
     const text = report(allCaps).join("\n")
-    expect(text).toContain("knockout band:     0/840 (0.0%")
+    expect(text).toContain("knockout band:     0/1224 (0.0%")
     expect(text).toContain("diagnostic only")
   })
 
@@ -462,8 +462,9 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // measured run, no more and no fewer.
     const DESIGN_BAND_MISSES = [
       "water_axolotl",
-      "reefclaw",
+      "cindermoor",
       "voltfox",
+      "shalemole",
       "embercub",
     ] as const
     const measured = sample()
@@ -503,10 +504,11 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // inside-only rather than the full inset. Any excursion across either
     // edge fails the suite via DESIGN_BAND_MISSES; this pin is the early
     // warning, not the guard.
-    // Minimum Reach phase 4: voltfox is now outside the band (43.8%, named in
-    // DESIGN_BAND_MISSES and inside its statistical bound), so the thin-margin
-    // pin moves to cindermoor (54.5%).
-    const thin = byId.get("cindermoor")?.rate ?? -1
+    // Roster Wave 1 rework: cindermoor, voltfox, shalemole, water_axolotl and
+    // embercub are outside the printed band (each still inside its statistical
+    // bound), so the inside-only margin pin moves to dune_jerboa (53.7%, 1.3
+    // points below the ceiling).
+    const thin = byId.get("dune_jerboa")?.rate ?? -1
     expect(thin).toBeGreaterThanOrEqual(SPECIES_MIN)
     expect(thin).toBeLessThanOrEqual(SPECIES_MAX)
   })

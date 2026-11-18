@@ -342,11 +342,71 @@ const CONTRACT: readonly BranchContract[] = [
     signatureMove: "bubble",
     accentHue: 222,
   },
+  {
+    id: "dune_sprinter",
+    speciesId: "dune_jerboa",
+    label: "Dune Sprinter",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 4, atk: 7, def: 4, spd: 3 },
+    signatureMove: "sand_blast",
+    accentHue: 38,
+  },
+  {
+    id: "dune_burrower",
+    speciesId: "dune_jerboa",
+    label: "Dune Burrower",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 7, atk: 2, def: 6, spd: 0 },
+    signatureMove: "clay_burst",
+    accentHue: 28,
+  },
+  {
+    id: "arc_glider",
+    speciesId: "spark_ray",
+    label: "Arc Glider",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 6, atk: 6, def: 3, spd: 1 },
+    signatureMove: "ion_dart",
+    accentHue: 60,
+  },
+  {
+    id: "charge_anchor",
+    speciesId: "spark_ray",
+    label: "Charge Anchor",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 6, atk: 3, def: 7, spd: 0 },
+    signatureMove: "arc_shot",
+    accentHue: 42,
+  },
+  {
+    id: "gale_dancer",
+    speciesId: "gale_moth",
+    label: "Gale Dancer",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 4, atk: 7, def: 3, spd: 4 },
+    signatureMove: "gale_cutter",
+    accentHue: 165,
+  },
+  {
+    id: "moth_veilward",
+    speciesId: "gale_moth",
+    label: "Moth Veilward",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 7, atk: 3, def: 5, spd: 0 },
+    signatureMove: "feather_dart",
+    accentHue: 155,
+  },
 ]
 
 describe("branch catalog", () => {
-  test("holds exactly the thirty contracted branches", () => {
-    expect(BRANCHES.length).toBe(30)
+  test("holds exactly the thirty-six contracted branches", () => {
+    expect(BRANCHES.length).toBe(36)
     expect(BRANCHES.map((branch) => branch.id)).toEqual(
       CONTRACT.map((row) => row.id),
     )

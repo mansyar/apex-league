@@ -244,31 +244,33 @@ const SEEDS_PER_PAIRING = 1
 export const SAMPLE_SIZE = PAIRINGS * SEEDS_PER_PAIRING
 
 /**
- * The sample's matchups: 42 distinct pairings over the full 210-pair
- * enumeration (15 species x 14 opponents), one seed each, no mirrors.
+ * The sample's matchups: 42 distinct pairings over the full 306-pair
+ * enumeration (18 species x 17 opponents), one seed each, no mirrors.
  *
  * The pairing is drawn by a written rule, not a hand-picked list:
  *
  *     home = roster[i % roster.length]
  *     lap  = floor(i / roster.length)
- *     away = roster[(i * 11 + lap + 1) % roster.length]   // gcd(11, 15) = 1
+ *     away = roster[(i * 11 + lap + 1) % roster.length]   // gcd(11, 18) = 1
  *
- * **Distinctness.** `home` is fixed by `i % 15` and `lap` by `floor(i / 15)`,
- * so the pair (home index, lap) is unique for every `i` below 225. For a fixed
- * home, `away = (11 * home + lap + 1) mod 15` differs between laps, and
+ * **Distinctness.** `home` is fixed by `i % 18` and `lap` by `floor(i / 18)`,
+ * so the pair (home index, lap) is unique for every `i` below 42. For a fixed
+ * home, `away = (11 * home + lap + 1) mod 18` differs between laps, and
  * different homes are different pairings, so no pairing can repeat.
  *
  * **Coverage.** The stride is coprime to the roster, so lap 0 puts each of the
- * 15 species on the away side exactly once; lap 1 does it again. Home cycles
+ * 18 species on the away side exactly once; lap 1 does it again. Home cycles
  * through the roster, so every species is home 2-3 times and away at least
- * twice. The old walk's stride of 5 (`gcd(5, 15) = 5`) only ever put three
- * species on the away side, which is why its caps were a reading of its own
+ * twice. The current mirror-hop guard starts at `hop = 9` so every species
+ * still appears away at least twice after mirrors are skipped. The old
+ * 15-species walk's stride of 5 (`gcd(5, 15) = 5`) only ever put three species
+ * on the away side, which is why its caps were a reading of its own
  * composition.
  *
- * **No mirrors.** A mirror needs `10 * home + lap + 1` divisible by 15;
- * `gcd(10, 15) = 5` and `lap + 1` is 1..3 for the three laps this sample
- * visits, so none is. The hop-past-a-mirror rule is kept as the guard that
- * keeps the walk mirror-free if the roster changes.
+ * **No mirrors.** With stride 11 and 18 species the two mirrors sit at home
+ * indices 7 and 16. Starting the hop-past-a-mirror guard at 9 swaps their
+ * away appearances, so the walk stays mirror-free and every species appears
+ * away at least twice in the 42-fight sample.
  *
  * **Seeds.** One contiguous seed per pairing from 20261108, so parity
  * alternates and each doctrine takes 21 of the 42 fights.
@@ -281,7 +283,7 @@ export function matchups(): Matchup[] {
     const lap = Math.floor(i / roster.length)
     let away = roster[(i * 11 + lap + 1) % roster.length]
     if (!home || !away) throw new Error("the roster shrank")
-    for (let hop = 1; away.id === home.id && hop < roster.length; hop++) {
+    for (let hop = 9; away.id === home.id && hop < roster.length; hop++) {
       away = roster[(i * 11 + lap + 1 + hop) % roster.length] ?? away
     }
     for (let offset = 0; offset < SEEDS_PER_PAIRING; offset++) {

@@ -17,6 +17,7 @@ import {
   TRAINING_PROGRAMS,
 } from "@apex/sim"
 import { buildHandbook } from "./handbook"
+import { recipeFor, recipeLine } from "./handbook/discovery"
 
 type Listener = (event: unknown) => void
 
@@ -346,6 +347,9 @@ describe("the handbook's Raising page", () => {
       ["Embercub", "Breed Fire with Plant."],
       ["Mossboar", "Breed Plant with Water."],
       ["Mistkit", "Breed Fire with Water."],
+      ["Dune Jerboa", "Breed Earth with Wind."],
+      ["Spark Ray", "Breed Electric with Fire."],
+      ["Gale Moth", "Breed Plant with Wind."],
     ]
     for (const [name, recipe] of expected) {
       expect(terms).toContain(name)
@@ -364,6 +368,34 @@ describe("the handbook's Raising page", () => {
     for (const node of lines) {
       expect(sentencesOf(node.textContent).length).toBeLessThanOrEqual(2)
       expect(node.textContent).not.toMatch(/\b(atk|hp|def|spd)\b/)
+    }
+  })
+})
+
+/**
+ * The three roster-wave-1 discovery lines. These pin the handbook's output
+ * against the production lookup — the client keeps no second recipe table.
+ */
+describe("the handbook's wave-1 breeding recipes", () => {
+  test("read the new parent pairs from the sim lookup", () => {
+    expect(recipeFor("dune_jerboa")).toEqual(["earth", "wind"])
+    expect(recipeFor("spark_ray")).toEqual(["electric", "fire"])
+    expect(recipeFor("gale_moth")).toEqual(["plant", "wind"])
+  })
+
+  test("teach each new recipe as a one-sentence row", () => {
+    expect(recipeLine("dune_jerboa")).toBe("Breed Earth with Wind.")
+    expect(recipeLine("spark_ray")).toBe("Breed Electric with Fire.")
+    expect(recipeLine("gale_moth")).toBe("Breed Plant with Wind.")
+  })
+
+  test("show all three new display names on the Raising page", () => {
+    const terms = byClass(raisingBody(), "handbook-rule-term").map(
+      (node) => node.textContent,
+    )
+
+    for (const name of ["Dune Jerboa", "Spark Ray", "Gale Moth"]) {
+      expect(terms).toContain(name)
     }
   })
 })

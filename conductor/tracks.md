@@ -52,3 +52,4 @@
 - [x] **Track: Global Pacing** - [20261117-global-pacing](./archive/20261117-global-pacing/index.md) - chore - high
 - [x] **Track: Polish & Showcase** - [20261117-polish-showcase](./archive/20261117-polish-showcase/index.md) - feature - medium
 - [x] **Track: Nightly fuzz red: crab boundary** - [20261118-crab-fuzz-boundary](./archive/20261118-crab-fuzz-boundary/index.md) - bug - high
+- [x] **Track: Roster Wave 1** - [20261118-roster-wave-1](./archive/20261118-roster-wave-1/index.md) - feature - medium
