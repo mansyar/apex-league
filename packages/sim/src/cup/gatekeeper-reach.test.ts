@@ -240,7 +240,7 @@ describe("authored gatekeepers reach their stage under the widened field", () =>
     }
     // The wider 18-species rival pool makes each seeded climb do more draft
     // work; assertions are unchanged, only the wall-clock headroom grows.
-  }, 20000)
+  }, 60000)
 
   test("every stage bracket draws only species the save has unlocked", () => {
     for (const stage of STAGES) {

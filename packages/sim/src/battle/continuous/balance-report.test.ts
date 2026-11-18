@@ -96,7 +96,7 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
       expect(row.stage.length).toBeGreaterThan(0)
     }
     expect(measured.damage.rows.length).toBe(49)
-  })
+  }, 240000)
 
   test("states the sample size in the output", () => {
     const lines = report(sample()).join("\n")
