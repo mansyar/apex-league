@@ -41,7 +41,7 @@
 - **Covers:** FR-7, FR-8, NFR-4, NFR-5, AC-7, AC-8, AC-9, AC-10
 - **Touches:** `apps/client/src/gallery.ts`, `apps/client/src/gallery.test.ts`, `apps/client/src/handbook/**`, `apps/client/src/handbook.test.ts`, `conductor/tracks/20261118-roster-wave-1/verification/phase-2.md`, `.conductor/evidence/20261118-roster-wave-1/**`
 - **Verification:** `bun run verify && bun run build` plus the visual layer per `workflow.md` (`playwright-cli` against `bun run dev`, desktop 1440×900 and iPhone 15 393×852, console check)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Wire client discoverability** — covers: FR-7, AC-7
   - [ ] **P2.T1.1:** Show the three new species in the dev gallery and keep existing gallery tests green.
