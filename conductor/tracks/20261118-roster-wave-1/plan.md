@@ -59,17 +59,20 @@
 **Evidence:** conductor/tracks/20261118-roster-wave-1/verification/phase-2.md
 -->
 
-<!--
-Review fixes are appended by `conductor-review` as:
-
 ## Phase R1: Review Fixes
 
-- **Goal:** Resolve review findings ...
+- **Goal:** Correct the stale telemetry pairing documentation so it matches the 18-species implementation; no behavior changes.
 - **Depends on:** Phase 2
-- **Covers:** review findings
-- **Touches:** ...
-- **Verification:** ...
+- **Covers:** F1
+- **Touches:** `packages/sim/scripts/battle-telemetry.ts`, `conductor/tracks/20261118-roster-wave-1/verification/phase-R1.md`
+- **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`
 - **Status:** pending
 
-- [ ] **R1.T1: Resolve <finding ID>** — covers: <finding ID>
+- [ ] **R1.T1: Resolve F1** - covers: F1
+  - [ ] **R1.T1.1:** Update the matchup doc block to `gcd(11, 18)`, 18-species modulo/lap formulas, and `below 42`; mention mirror-hop start 9.
+
+<!--
+**Result:** verified
+**Checkpoint:** <short-sha>
+**Evidence:** conductor/tracks/20261118-roster-wave-1/verification/phase-R1.md
 -->
