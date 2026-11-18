@@ -84,13 +84,13 @@
 - **Covers:** F2
 - **Touches:** `conductor/tracks/20261118-roster-wave-1/verification/phase-R1.md`, `conductor/tracks/20261118-roster-wave-1/verification/phase-R2.md`
 - **Verification:** `git log --oneline --max-count=3 03c8973a..HEAD` plus `bun run verify`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **R2.T1: Resolve F2** - covers: F2
-  - [ ] **R2.T1.1:** Replace pre-squash commit references with the real R1 checkpoint `b198c03f` and record reviewed HEAD `7d6c53c1`.
+- [x] **R2.T1: Resolve F2** - covers: F2
+  - [x] **R2.T1.1:** Replace pre-squash commit references with the real R1 checkpoint `b198c03f` and record reviewed HEAD `7d6c53c1`.
 
 <!--
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** d66f37fc
 **Evidence:** conductor/tracks/20261118-roster-wave-1/verification/phase-R2.md
 -->
