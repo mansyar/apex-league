@@ -41,17 +41,23 @@
 - **Covers:** FR-7, FR-8, NFR-4, NFR-5, AC-7, AC-8, AC-9, AC-10
 - **Touches:** `apps/client/src/gallery.ts`, `apps/client/src/gallery.test.ts`, `apps/client/src/handbook/**`, `apps/client/src/handbook.test.ts`, `conductor/tracks/20261118-roster-wave-1/verification/phase-2.md`, `.conductor/evidence/20261118-roster-wave-1/**`
 - **Verification:** `bun run verify && bun run build` plus the visual layer per `workflow.md` (`playwright-cli` against `bun run dev`, desktop 1440×900 and iPhone 15 393×852, console check)
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Wire client discoverability** — covers: FR-7, AC-7
-  - [ ] **P2.T1.1:** Show the three new species in the dev gallery and keep existing gallery tests green.
-  - [ ] **P2.T1.2:** Expose the three new recipes in the handbook discovery page from the sim recipe seam and cover with client tests.
-- [ ] **P2.T2: Capture visual evidence** — covers: FR-8, NFR-4, NFR-5, AC-8
-  - [ ] **P2.T2.1:** Capture desktop and iPhone 15 screenshots of the gallery and handbook recipe page; confirm no horizontal scroll and a clean console.
-  - [ ] **P2.T2.2:** Write the phase evidence report with commands, counts, screenshot paths, and console result.
-- [ ] **P2.T3: Re-prove final invariants** — covers: AC-9, AC-10
-  - [ ] **P2.T3.1:** Re-run full verify, build, balance, determinism, and fuzz after client wiring.
-  - [ ] **P2.T3.2:** Re-check scope proof for no contract, schema, or fence changes.
+- [x] **P2.T1: Wire client discoverability** - covers: FR-7, AC-7
+  - [x] **P2.T1.1:** Show the three new species in the dev gallery and keep existing gallery tests green.
+  - [x] **P2.T1.2:** Expose the three new recipes in the handbook discovery page from the sim recipe seam and cover with client tests.
+- [x] **P2.T2: Capture visual evidence** - covers: FR-8, NFR-4, NFR-5, AC-8
+  - [x] **P2.T2.1:** Capture desktop and iPhone 15 screenshots of the gallery and handbook recipe page; confirm no horizontal scroll and a clean console.
+  - [x] **P2.T2.2:** Write the phase evidence report with commands, counts, screenshot paths, and console result.
+- [x] **P2.T3: Re-prove final invariants** - covers: AC-9, AC-10
+  - [x] **P2.T3.1:** Re-run full verify, build, balance, determinism, and fuzz after client wiring.
+  - [x] **P2.T3.2:** Re-check scope proof for no contract, schema, or fence changes.
+
+<!--
+**Result:** verified
+**Checkpoint:** 51b03182
+**Evidence:** conductor/tracks/20261118-roster-wave-1/verification/phase-2.md
+-->
 
 <!--
 Review fixes are appended by `conductor-review` as:
