@@ -774,3 +774,15 @@
     `main` and fails fast when it is missing; preview builds carry no origin
     and stay offline-only. The 2026-10-26 note above ("has not run yet / stays
     deferred") is superseded for the server.*
+-   *2026-11-18 - Crab fuzz boundary fix (track `20261118-crab-fuzz-boundary`):
+    the crab leg foot floor is now `footY = 1.9 * bg + 1.0`, tying clearance to
+    the capsule radius so the leg bottom stays 1.0 above `y = 0` for every
+    girth; leg radii and the coarse audit lattice are unchanged. Seeds 24 and
+    37, previously red only on the nightly full sweep but hidden from PR smoke
+    slices, are now named always-on regression assertions in the two crab
+    boundary shards; the PR-visible chunk keeps its three-seed prefix and
+    `APEX_FUZZ_SWEEP=full` still covers all ten seeds per shard. All three
+    seed-42 crab GLB/manifest pairs were regenerated through `export-artifact.ts`
+    and the determinism gate is byte-identical (15 species plus 5 props). Full
+    sweep 97 pass / 0 fail; `SIM_VERSION` and the battle hash `0xff6f3d62`
+    unchanged; no product/guideline change.*
