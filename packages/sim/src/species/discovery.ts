@@ -8,18 +8,18 @@
  * Each kit recomposes its element's existing vocabulary into a distinct
  * six-move set (the sorted set differs from every sibling line's); each
  * stat spread sits inside the bands the falcon/tortoise bounds pins enforce
- * over `ALL_SPECIES`. Each wave-4 kit embeds the sibling lines' branch
+ * over `ALL_SPECIES`. Each wave's kit embeds the sibling lines' branch
  * signatures as kit rows, leaving the element's remaining free specials for
- * the new line's own branches. The `archetypeId` values reserve the voxel
- * recipes Phase 2 authors — the fox, the heron, the mole, the cub, the
- * boar, and the otter.
+ * the new line's own branches. The `archetypeId` values name the voxel
+ * recipes: the fox, heron, mole, cub, boar, otter, and — for this wave — the
+ * jerboa, the ray, and the moth.
  *
  * Pure data only — no DOM, no rendering, no I/O.
  */
 
 import type { SpeciesDef } from "./types"
 
-/** The six breeding-discovery species, in recipe-table order. */
+/** The nine breeding-discovery species, in recipe-table order. */
 export const DISCOVERY_SPECIES: readonly SpeciesDef[] = Object.freeze([
   {
     id: "voltfox",
@@ -129,5 +129,62 @@ export const DISCOVERY_SPECIES: readonly SpeciesDef[] = Object.freeze([
     ],
     temperament: "rush",
     statBounds: { hp: [147, 176], atk: [12, 15], def: [8, 11], spd: [10, 14] },
+  },
+  {
+    id: "dune_jerboa",
+    archetypeId: "jerboa",
+    displayName: "Dune Jerboa",
+    element: "earth",
+    flavor:
+      "A long-legged hopper that bounds between dunes without leaving a print.",
+    available: false,
+    kit: [
+      "tectonic_slam",
+      "boulder_toss",
+      "quake_stomp",
+      "basalt_guard",
+      "pebble_shot",
+      "dust_devil",
+    ],
+    temperament: "rush",
+    statBounds: { hp: [156, 158], atk: [20, 20], def: [8, 11], spd: [17, 17] },
+  },
+  {
+    id: "spark_ray",
+    archetypeId: "ray",
+    displayName: "Spark Ray",
+    element: "electric",
+    flavor:
+      "A wide-winged glider that gathers static in its fins and lets it go in a silent flash.",
+    available: false,
+    kit: [
+      "storm_surge",
+      "ion_wall",
+      "gigavolt",
+      "storm_bolt",
+      "static_jolt",
+      "volt_dash",
+    ],
+    temperament: "slow",
+    statBounds: { hp: [150, 164], atk: [17, 20], def: [8, 11], spd: [15, 16] },
+  },
+  {
+    id: "gale_moth",
+    archetypeId: "moth",
+    displayName: "Gale Moth",
+    element: "wind",
+    flavor:
+      "A powder-winged moth that rides the breeze and leaves a glittering trail behind.",
+    available: false,
+    kit: [
+      "gust",
+      "talon_slash",
+      "sky_bolt",
+      "hurricane_spiral",
+      "cyclone_dive",
+      "zephyr_veil",
+    ],
+    temperament: "obedient",
+    statBounds: { hp: [140, 152], atk: [13, 14], def: [7, 10], spd: [13, 16] },
   },
 ])

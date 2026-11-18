@@ -12,7 +12,7 @@
 
 import { type BranchDef, branchDef } from "./types"
 
-/** The nine discovery forms: voltfox, galeheron, shalemole, embercub, mossboar, mistkit. */
+/** The eighteen discovery forms: two champion branches for each of nine lines. */
 export const DISCOVERY_BRANCHES: readonly BranchDef[] = Object.freeze([
   branchDef({
     id: "arc_courser",
@@ -145,5 +145,71 @@ export const DISCOVERY_BRANCHES: readonly BranchDef[] = Object.freeze([
     championBoost: { hp: 7, atk: 2, def: 6, spd: 0 },
     signatureMove: "bubble",
     accentHue: 222,
+  }),
+  branchDef({
+    id: "dune_sprinter",
+    speciesId: "dune_jerboa",
+    label: "Dune Sprinter",
+    line: "Cross the dunes in three bounds and let the sand do the chasing.",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 4, atk: 7, def: 4, spd: 3 },
+    signatureMove: "sand_blast",
+    accentHue: 38,
+  }),
+  branchDef({
+    id: "dune_burrower",
+    speciesId: "dune_jerboa",
+    label: "Dune Burrower",
+    line: "Sink into the warm sand and let the storm pass overhead.",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 7, atk: 2, def: 6, spd: 0 },
+    signatureMove: "clay_burst",
+    accentHue: 28,
+  }),
+  branchDef({
+    id: "arc_glider",
+    speciesId: "spark_ray",
+    label: "Arc Glider",
+    line: "Ride the charge in low and leave a bright line across the field.",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 6, atk: 6, def: 3, spd: 1 },
+    signatureMove: "ion_dart",
+    accentHue: 60,
+  }),
+  branchDef({
+    id: "charge_anchor",
+    speciesId: "spark_ray",
+    label: "Charge Anchor",
+    line: "Hold the storm in your wings until the whole arena hums.",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 6, atk: 3, def: 7, spd: 0 },
+    signatureMove: "arc_shot",
+    accentHue: 42,
+  }),
+  branchDef({
+    id: "gale_dancer",
+    speciesId: "gale_moth",
+    label: "Gale Dancer",
+    line: "Spin into the breeze and let the wind carry the first strike.",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 4, atk: 7, def: 3, spd: 4 },
+    signatureMove: "gale_cutter",
+    accentHue: 165,
+  }),
+  branchDef({
+    id: "moth_veilward",
+    speciesId: "gale_moth",
+    label: "Moth Veilward",
+    line: "Wrap yourself in the dust of your wings and let the gale break on you.",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 7, atk: 3, def: 5, spd: 0 },
+    signatureMove: "feather_dart",
+    accentHue: 155,
   }),
 ])

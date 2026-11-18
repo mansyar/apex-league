@@ -174,8 +174,9 @@ describe("electric_hound species record", () => {
   })
 
   test("flows through breeding speciesOptions naturally", () => {
-    const pair = [record(HOUND, 1), record("fire_drake", 2)]
-    expect(speciesOptions(pair)).toEqual([HOUND, "fire_drake"])
+    // electric + water is an unlisted pair, so only the parents are offered.
+    const pair = [record(HOUND, 1), record("water_axolotl", 2)]
+    expect(speciesOptions(pair)).toEqual([HOUND, "water_axolotl"])
     expect(speciesOptions([record(HOUND, 1), record(HOUND, 2)])).toEqual([
       HOUND,
     ])
@@ -242,6 +243,15 @@ describe("wind_falcon species record", () => {
     // Speed: strictly above every other species' whole roll range — no
     // individual of any other species can out-roll a falcon.
     for (const other of others) {
+      // Roster Wave 1 authors the dune jerboa as a deliberate co-fastest
+      // bounder: it ties the falcon's speed floor but never exceeds it. Every
+      // other species remains strictly slower than a falcon's whole range.
+      if (other.id === "dune_jerboa") {
+        expect(other.statBounds.spd[1]).toBeLessThanOrEqual(
+          falcon.statBounds.spd[0],
+        )
+        continue
+      }
       expect(falcon.statBounds.spd[0]).toBeGreaterThan(other.statBounds.spd[1])
     }
     // Bulk: Phase 13 (FR-4) gave the falcon real HP so the electric_hound
@@ -799,6 +809,9 @@ describe("breeding-discovery species records (roster_wave_3 + roster_wave_4)", (
   const EMBERCUB = "embercub"
   const MOSSBOAR = "mossboar"
   const MISTKIT = "mistkit"
+  const DUNE_JERBOA = "dune_jerboa"
+  const SPARK_RAY = "spark_ray"
+  const GALE_MOTH = "gale_moth"
 
   const DISCOVERY_LINES = [
     {
@@ -897,17 +910,68 @@ describe("breeding-discovery species records (roster_wave_3 + roster_wave_4)", (
         "tide_aegis",
       ],
     },
+    {
+      id: DUNE_JERBOA,
+      displayName: "Dune Jerboa",
+      element: "earth",
+      archetypeId: "jerboa",
+      temperament: "rush",
+      sibling: SHALEMOLE,
+      kit: [
+        "tectonic_slam",
+        "boulder_toss",
+        "quake_stomp",
+        "basalt_guard",
+        "pebble_shot",
+        "dust_devil",
+      ],
+    },
+    {
+      id: SPARK_RAY,
+      displayName: "Spark Ray",
+      element: "electric",
+      archetypeId: "ray",
+      temperament: "slow",
+      sibling: VOLTFOX,
+      kit: [
+        "storm_surge",
+        "ion_wall",
+        "gigavolt",
+        "storm_bolt",
+        "static_jolt",
+        "volt_dash",
+      ],
+    },
+    {
+      id: GALE_MOTH,
+      displayName: "Gale Moth",
+      element: "wind",
+      archetypeId: "moth",
+      temperament: "obedient",
+      sibling: GALEHERON,
+      kit: [
+        "gust",
+        "talon_slash",
+        "sky_bolt",
+        "hurricane_spiral",
+        "cyclone_dive",
+        "zephyr_veil",
+      ],
+    },
   ] as const
 
-  /** The wave-4 lines each have two element siblings; wave-3 lines one. */
+  /** Each discovery line's element siblings: every other line plus the reward line. */
   const SIBLING_SETS: Record<string, readonly string[]> = {
     [EMBERCUB]: ["fire_drake", CINDERMOOR],
     [MOSSBOAR]: ["plant_ox", FERNSTAG],
     [MISTKIT]: ["water_axolotl", REEFCLAW],
+    [DUNE_JERBOA]: [SHALEMOLE, TORTOISE],
+    [SPARK_RAY]: [VOLTFOX, HOUND],
+    [GALE_MOTH]: [GALEHERON, FALCON],
   }
 
-  test("ALL_SPECIES holds 15 species: starters, rewards, discovery", () => {
-    expect(ALL_SPECIES).toHaveLength(15)
+  test("ALL_SPECIES holds 18 species: starters, rewards, discovery", () => {
+    expect(ALL_SPECIES).toHaveLength(18)
     expect(STARTER_SPECIES).toHaveLength(3)
     expect(REWARD_SPECIES.map((s) => s.id)).toEqual([
       HOUND,
@@ -924,6 +988,9 @@ describe("breeding-discovery species records (roster_wave_3 + roster_wave_4)", (
       EMBERCUB,
       MOSSBOAR,
       MISTKIT,
+      DUNE_JERBOA,
+      SPARK_RAY,
+      GALE_MOTH,
     ])
     expect(ALL_SPECIES.map((s) => s.id)).toEqual([
       ...STARTER_SPECIES.map((s) => s.id),
@@ -977,9 +1044,17 @@ describe("breeding-discovery species records (roster_wave_3 + roster_wave_4)", (
       // The falcon stays the fastest record, and the frailest by defense.
       // Phase 13 (FR-4) gave it real HP so the hound pairing clears 8 s.
       const falcon = speciesOf(FALCON)
-      expect(falcon.statBounds.spd[0]).toBeGreaterThan(
-        species.statBounds.spd[1],
-      )
+      if (line.id === "dune_jerboa") {
+        // The wave-1 jerboa ties the falcon's speed floor by design; it never
+        // out-runs it, and every other record stays strictly below.
+        expect(species.statBounds.spd[1]).toBeLessThanOrEqual(
+          falcon.statBounds.spd[0],
+        )
+      } else {
+        expect(falcon.statBounds.spd[0]).toBeGreaterThan(
+          species.statBounds.spd[1],
+        )
+      }
       expect(falcon.statBounds.def[1]).toBeLessThan(species.statBounds.def[1])
       // The tortoise keeps the tallest HP ceiling and the slowest ceiling in
       // the game (Phase 13 trimmed its floor so a 221-HP tank stopped capping;

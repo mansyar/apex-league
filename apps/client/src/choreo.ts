@@ -284,6 +284,54 @@ const PROFILES: Record<string, BodyProfile> = {
     recoilMult: 0.95,
     strikeMult: 1.05,
   },
+  // A dune jerboa bounds in long springy arcs, holds a bright alert stance,
+  // and snaps out of a very short coil into a hard, high-commit strike.
+  jerboa: {
+    gaitAmp: 1.5,
+    gaitFreq: 1.35,
+    leanPitch: 1.35,
+    swayAmp: 0.019,
+    swayFreq: 1.45,
+    breathAmp: 0.85,
+    breathFreq: 1.4,
+    hurtMult: 0.85,
+    staggerMult: 0.8,
+    windupMult: 0.6,
+    recoilMult: 1.4,
+    strikeMult: 1.55,
+  },
+  // A spark ray glides on a wide, near-still plane, breathing slowly, then
+  // discharges from a shallow coil with a sharp recoil.
+  ray: {
+    gaitAmp: 0.65,
+    gaitFreq: 0.9,
+    leanPitch: 0.75,
+    swayAmp: 0.035,
+    swayFreq: 0.8,
+    breathAmp: 0.7,
+    breathFreq: 0.85,
+    hurtMult: 0.95,
+    staggerMult: 1.05,
+    windupMult: 0.7,
+    recoilMult: 1.2,
+    strikeMult: 1.1,
+  },
+  // A gale moth drifts on a light trembling stride, sways on a slow breeze,
+  // and commits with a quick spin and a soft landing.
+  moth: {
+    gaitAmp: 0.75,
+    gaitFreq: 1.1,
+    leanPitch: 0.95,
+    swayAmp: 0.034,
+    swayFreq: 1.05,
+    breathAmp: 0.75,
+    breathFreq: 1.25,
+    hurtMult: 0.75,
+    staggerMult: 0.65,
+    windupMult: 0.8,
+    recoilMult: 0.85,
+    strikeMult: 1.25,
+  },
 }
 
 export const DEFAULT_PROFILE: BodyProfile = Object.freeze(NEUTRAL)

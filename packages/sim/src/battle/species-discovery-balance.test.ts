@@ -59,6 +59,9 @@ const SIBLINGS: Readonly<Record<string, string>> = Object.freeze({
   embercub: "fire_drake",
   mossboar: "plant_ox",
   mistkit: "water_axolotl",
+  dune_jerboa: "earth_tortoise",
+  spark_ray: "electric_hound",
+  gale_moth: "wind_falcon",
 })
 
 /**
@@ -158,7 +161,7 @@ function report(scores: Readonly<Record<string, number>>): void {
 }
 
 describe("discovery kit sustained band", () => {
-  test("the roster reads nine shipped kits plus the six discovery kits", () => {
+  test("the roster reads nine shipped kits plus the nine discovery kits", () => {
     expect([...STARTER_SPECIES, ...REWARD_SPECIES]).toHaveLength(9)
     expect(DISCOVERY_SPECIES.map((s) => s.id)).toEqual([
       "voltfox",
@@ -167,6 +170,9 @@ describe("discovery kit sustained band", () => {
       "embercub",
       "mossboar",
       "mistkit",
+      "dune_jerboa",
+      "spark_ray",
+      "gale_moth",
     ])
   })
 

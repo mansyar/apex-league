@@ -27,6 +27,9 @@ const ARCHETYPES = [
   "cub",
   "boar",
   "otter",
+  "jerboa",
+  "ray",
+  "moth",
 ] as const
 
 /** Every knob a profile carries, in table order. */

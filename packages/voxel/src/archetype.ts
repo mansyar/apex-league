@@ -15,8 +15,11 @@ import { buildFalcon, FALCON_GRID, falconTemplate } from "./falcon"
 import { buildFox, FOX_GRID, foxTemplate } from "./fox"
 import { buildFrond, FROND_GRID, frondTemplate } from "./frond"
 import { buildHeron, HERON_GRID, heronTemplate } from "./heron"
+import { buildJerboa, JERBOA_GRID, jerboaTemplate } from "./jerboa"
 import { buildMole, MOLE_GRID, moleTemplate } from "./mole"
+import { buildMoth, MOTH_GRID, mothTemplate } from "./moth"
 import { buildOtter, OTTER_GRID, otterTemplate } from "./otter"
+import { buildRay, RAY_GRID, rayTemplate } from "./ray"
 import { sampleDna } from "./sample"
 import type { Dna, Template } from "./schema"
 import { buildSmolder, SMOLDER_GRID, smolderTemplate } from "./smolder"
@@ -127,6 +130,24 @@ export const archetypes: Record<string, ArchetypeDef> = {
     template: otterTemplate,
     grid: OTTER_GRID,
     build: buildOtter,
+  },
+  jerboa: {
+    id: "jerboa",
+    template: jerboaTemplate,
+    grid: JERBOA_GRID,
+    build: buildJerboa,
+  },
+  ray: {
+    id: "ray",
+    template: rayTemplate,
+    grid: RAY_GRID,
+    build: buildRay,
+  },
+  moth: {
+    id: "moth",
+    template: mothTemplate,
+    grid: MOTH_GRID,
+    build: buildMoth,
   },
 }
 

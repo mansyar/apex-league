@@ -43,9 +43,10 @@ describe("fixture audit — the four cells and the attribution (FR-8, FR-9)", ()
   test("cell A is the telemetry gate's own reading (FR-9, AC-8)", () => {
     // AC-8 asks for agreement between the two harnesses rather than the same
     // literal pinned twice: `measure()` is the call the CI gate makes, so this
-    // fails if the audit ever measures a different fixture. 20/42 is the
-    // gate's cap count; a cell A that reads anything else means the audit's
-    // call is wrong, not that the gate moved.
+    // fails if the audit ever measures a different fixture. The pin below
+    // tracks the gate's cap count at the 18-species roster; a cell A that
+    // reads anything else means the audit's call is wrong, not that the gate
+    // moved.
     const gate = measure()
     const [cellA] = cells()
     if (!cellA) throw new Error("the audit returned no cells")
@@ -71,23 +72,23 @@ describe("fixture audit — the four cells and the attribution (FR-8, FR-9)", ()
     ])
     expect(pinned).toEqual([
       // A — the telemetry gate as it ships: reference stats, split doctrine.
-      // 20/42 (47.6%), median 39.69 s. The count is the gate's own, asserted
+      // 20/42 (47.6%), median 39.71 s. The count is the gate's own, asserted
       // against `measure()` above rather than trusted from this literal.
-      ["A", 20, 39_690, 22],
+      ["A", 20, 39_710, 22],
       // B — A with the doctrine moved to press on both sides (the matrix's
-      // doctrine), stats still reference. 17/42 (40.5%), median 38.38 s: the
-      // doctrine alone removes three caps and 1.31 s of median fight.
-      ["B", 17, 38_380, 25],
+      // doctrine), stats still reference. 15/42 (35.7%), median 37.70 s: on
+      // the 18-species roster this cell is a drift pin for the doctrine
+      // interaction, not a target.
+      ["B", 15, 37_700, 27],
       // C — A with the stat basis moved to bounds midpoints (the matrix's stat
-      // line), doctrine still split. 13/42 (31.0%), median 35.72 s: the stat
-      // line alone removes seven caps and 3.97 s of median fight.
-      ["C", 13, 35_720, 29],
-      // D — both variables moved: midpoint stats, press on both sides. 5/42
-      // (11.9%), median 29.32 s. The pair accounts for 15 of A's 20 caps, and
-      // D is 14.8 points below the matrix's 26.7% — a different population
-      // (42 strided pairings, one seed each, versus 210 x 4), recorded as the
-      // verdict's residual rather than explained away.
-      ["D", 5, 29_320, 37],
+      // line), doctrine still split. 15/42 (35.7%), median 31.02 s: the stat
+      // line alone removes five caps and 8.69 s of median fight.
+      ["C", 15, 31_020, 27],
+      // D — both variables moved: midpoint stats, press on both sides. 11/42
+      // (26.2%), median 28.40 s. This is a different population from the
+      // 306 x 4 matrix (42 strided pairings, one seed each); the residual is
+      // recorded here rather than explained away.
+      ["D", 11, 28_400, 31],
     ])
   })
 
