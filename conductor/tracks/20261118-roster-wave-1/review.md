@@ -5,11 +5,11 @@
 - **Branch:** feat/20261118-roster-wave-1
 - **Range:** 99c07b35bb01fc658cf646f9e89bb67c4d81eaad..3e08fb81
 - **Date:** 2026-11-18
-- **Verdict:** PASS WITH FINDINGS
+- **Verdict:** PASS (round 1 PASS WITH FINDINGS; round 2 delta BLOCK on an evidence-provenance error; round 3 delta PASS after R2)
 
 ## Summary
 
-All three breeding-discovery species, six branch forms, three voxel archetypes, nine seed-42 artifact pairs, and client discoverability surfaces are present and consistent with the specification, plan, and evidence. The hard balance gate remains at 18/18 with no waivers or threshold changes; determinism and full fuzz gates are green. One Low finding requires a fix under `review.strict`: a stale 15-species doc block in the telemetry script contradicts the 18-species implementation it documents. No Critical, High, or Medium findings were raised.
+All three breeding-discovery species, six branch forms, three voxel archetypes, nine seed-42 artifact pairs, and client discoverability surfaces are present and consistent with the specification, plan, and evidence. The hard balance gate remains at 18/18 with no waivers or threshold changes; determinism and full fuzz gates are green. Round 1 raised one Low finding (stale 15-species telemetry doc block), fixed in R1. The round-2 delta confirmed F1 fixed but raised one Low evidence-provenance finding (pre-squash SHA in phase-R1.md), fixed in R2. The final delta re-review returned PASS with no new findings. No Critical, High, or Medium findings were raised in any round.
 
 ## Verification
 
@@ -80,9 +80,14 @@ None.
 - **Requirement:** general style rule (documentation matches code)
 - **Test gap:** none
 
+### Resolution (rounds 2 and 3)
+
+- **F1** fixed in R1: the telemetry matchup doc block now uses `gcd(11, 18)`, 18-species modulo/lap formulas, `below 42`, and mentions mirror-hop start 9. No behavior changed; full gate green at checkpoint `b198c03f`.
+- **F2** raised in the round-2 delta: `verification/phase-R1.md` cited pre-squash SHA `a1b2bbf2` as Head/F1 commit/git-log output. Fixed in R2 by recording reviewed HEAD `7d6c53c1` and real checkpoint `b198c03f`; evidence at `verification/phase-R2.md`, checkpoint `d66f37fc`. Final delta re-review PASS with no new findings.
+
 ## Overrides
 
-None. `review.strict` is true, so F1 will be fixed in Phase R1 rather than deferred.
+None. `review.strict` is true, so both Low findings were fixed rather than deferred.
 
 ## Plan compliance
 
@@ -102,10 +107,12 @@ No debt recorded. Issues are disabled for this project.
 
 ## Doc sync
 
-pending
+updated — product.md and tech-stack.md were synced pre-review with owner approval; post-review records resolved F1/F2 and final PASS in metadata with `doc_sync: updated`.
 
 ## History
 
 | Round | Verdict | Critical | High | Medium | Low | Fixed |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | PASS WITH FINDINGS | 0 | 0 | 0 | 1 | 0 |
+| 2 (delta) | BLOCK | 0 | 0 | 0 | 1 | 1 |
+| 3 (delta) | PASS | 0 | 0 | 0 | 0 | 1 |
