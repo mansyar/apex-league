@@ -251,18 +251,20 @@ export const SAMPLE_SIZE = PAIRINGS * SEEDS_PER_PAIRING
  *
  *     home = roster[i % roster.length]
  *     lap  = floor(i / roster.length)
- *     away = roster[(i * 11 + lap + 1) % roster.length]   // gcd(11, 15) = 1
+ *     away = roster[(i * 11 + lap + 1) % roster.length]   // gcd(11, 18) = 1
  *
- * **Distinctness.** `home` is fixed by `i % 15` and `lap` by `floor(i / 15)`,
- * so the pair (home index, lap) is unique for every `i` below 225. For a fixed
- * home, `away = (11 * home + lap + 1) mod 15` differs between laps, and
+ * **Distinctness.** `home` is fixed by `i % 18` and `lap` by `floor(i / 18)`,
+ * so the pair (home index, lap) is unique for every `i` below 42. For a fixed
+ * home, `away = (11 * home + lap + 1) mod 18` differs between laps, and
  * different homes are different pairings, so no pairing can repeat.
  *
  * **Coverage.** The stride is coprime to the roster, so lap 0 puts each of the
  * 18 species on the away side exactly once; lap 1 does it again. Home cycles
  * through the roster, so every species is home 2-3 times and away at least
- * twice. The old walk's stride of 5 (`gcd(5, 15) = 5`) only ever put three
- * species on the away side, which is why its caps were a reading of its own
+ * twice. The current mirror-hop guard starts at `hop = 9` so every species
+ * still appears away at least twice after mirrors are skipped. The old
+ * 15-species walk's stride of 5 (`gcd(5, 15) = 5`) only ever put three species
+ * on the away side, which is why its caps were a reading of its own
  * composition.
  *
  * **No mirrors.** With stride 11 and 18 species the two mirrors sit at home
