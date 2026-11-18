@@ -14,24 +14,23 @@
 - **Covers:** FR-1, FR-2, FR-3, FR-4, FR-5, FR-6, FR-9, NFR-1, NFR-2, NFR-3, NFR-6, AC-1, AC-2, AC-3, AC-4, AC-5, AC-6, AC-9, AC-10
 - **Touches:** `packages/sim/src/species/**`, `packages/sim/src/breeding/discovery.ts`, `packages/sim/src/breeding/discovery.test.ts`, `packages/sim/src/branch-catalog/**`, `packages/voxel/src/**`, `packages/voxel/scripts/**`, `artifacts/<new-archetype>-42*`, `conductor/tracks/20261118-roster-wave-1/verification/phase-1.md`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Add species, recipes, and branch forms** — covers: FR-1, FR-2, FR-3, AC-1, AC-2, AC-3
-  - [ ] **P1.T1.1:** Add `dune_jerboa`, `spark_ray`, and `gale_moth` catalog rows with distinct kits, valid stat bounds, flavors, and temperaments.
-  - [ ] **P1.T1.2:** Add earth+wind, fire+electric, and plant+wind discovery recipes with order-independent and collision tests.
-  - [ ] **P1.T1.3:** Add two champion branch forms per new species with equal budgets and one signature special each; run branch-balance tests.
-- [ ] **P1.T2: Author three voxel archetypes and artifacts** — covers: FR-4, FR-5, AC-4, AC-5, NFR-1, NFR-6
-  - [ ] **P1.T2.1:** Author `jerboa`, `ray`, and `moth` templates/builders and register them in archetype, budget, body-profile, and choreography tables.
-  - [ ] **P1.T2.2:** Add template, proportion, boundary, and registry tests for each new archetype.
-  - [ ] **P1.T2.3:** Export seed-42 baby/juvenile/champion GLB+manifest pairs via the documented exporter; record hashes and prove the 45 existing artifacts are unchanged.
-- [ ] **P1.T3: Prove invariants and scope** — covers: FR-6, FR-9, NFR-2, NFR-3, AC-6, AC-9, AC-10
-  - [ ] **P1.T3.1:** Run the full verification command and record balance at 18/18 with no waivers.
-  - [ ] **P1.T3.2:** Prove no change to save schema, `SIM_VERSION`, balance fences, pacing pins, or dependency manifests; check module-size caps.
+- [x] **P1.T1: Add species, recipes, and branch forms** — covers: FR-1, FR-2, FR-3, AC-1, AC-2, AC-3
+  - [x] **P1.T1.1:** Add `dune_jerboa`, `spark_ray`, and `gale_moth` catalog rows with distinct kits, valid stat bounds, flavors, and temperaments.
+  - [x] **P1.T1.2:** Add earth+wind, fire+electric, and plant+wind discovery recipes with order-independent and collision tests.
+  - [x] **P1.T1.3:** Add two champion branch forms per new species with equal budgets and one signature special each; run branch-balance tests.
+- [x] **P1.T2: Author three voxel archetypes and artifacts** — covers: FR-4, FR-5, AC-4, AC-5, NFR-1, NFR-6
+  - [x] **P1.T2.1:** Author `jerboa`, `ray`, and `moth` templates/builders and register them in archetype, budget, body-profile, and choreography tables.
+  - [x] **P1.T2.2:** Add template, proportion, boundary, and registry tests for each new archetype.
+  - [x] **P1.T2.3:** Export seed-42 baby/juvenile/champion GLB+manifest pairs via the documented exporter; record hashes and prove the 45 existing artifacts are unchanged.
+- [x] **P1.T3: Prove invariants and scope** — covers: FR-6, FR-9, NFR-2, NFR-3, AC-6, AC-9, AC-10
+  - [x] **P1.T3.1:** Run the full verification command and record balance at 18/18 with no waivers.
+  - [x] **P1.T3.2:** Prove no change to save schema, `SIM_VERSION`, balance fences, pacing pins, or dependency manifests; check module-size caps.
 
 <!--
-The primary appends after acceptance:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 0dc9995c
 **Evidence:** conductor/tracks/20261118-roster-wave-1/verification/phase-1.md
 -->
 
