@@ -14,7 +14,7 @@
 - **Covers:** FR-1, FR-2, FR-3, FR-4, FR-5, FR-6, FR-9, NFR-1, NFR-2, NFR-3, NFR-4, AC-1, AC-2, AC-3, AC-4, AC-5, AC-6, AC-9, AC-10
 - **Touches:** `packages/sim/src/species/**`, `packages/sim/src/species.ts`, `packages/sim/src/breeding/discovery.ts`, `packages/sim/src/breeding/discovery.test.ts`, `packages/sim/src/branch-catalog/**`, `packages/sim/src/branches.test.ts`, `packages/sim/src/bosses.test.ts`, `packages/sim/src/battle/**`, `packages/sim/src/cup/**`, `packages/sim/src/roster-wave-*.test.ts`, `packages/sim/scripts/battle-telemetry.ts`, `packages/voxel/src/**`, `artifacts/{sprite,golem,wing}-42*`, `apps/client/src/choreo.ts`, `apps/client/src/choreo.test.ts`, `conductor/tracks/20261118-roster-wave-2/verification/phase-1.md`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Add sim species, recipes, and branch forms** — covers: FR-1, FR-2, FR-3
   - [ ] **P1.T1.1: Add thornvolt, siltback, and emberwing discovery definitions with fixed kits, roles, and authored stat envelopes**
