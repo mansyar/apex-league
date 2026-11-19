@@ -54,3 +54,4 @@
 - [x] **Track: Nightly fuzz red: crab boundary** - [20261118-crab-fuzz-boundary](./archive/20261118-crab-fuzz-boundary/index.md) - bug - high
 - [x] **Track: Roster Wave 1** - [20261118-roster-wave-1](./archive/20261118-roster-wave-1/index.md) - feature - medium
 - [x] **Track: Roster Wave 2** - [20261118-roster-wave-2](./archive/20261118-roster-wave-2/index.md) - feature - medium
+- [ ] **Track: Live PvP Foundation Spike** - [20261119-live-pvp-foundation](./tracks/20261119-live-pvp-foundation/index.md) - feature - high
