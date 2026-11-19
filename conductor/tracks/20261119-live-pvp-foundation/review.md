@@ -3,9 +3,9 @@
 - **Track:** `20261119-live-pvp-foundation`
 - **Type:** `feature`
 - **Branch:** `feat/20261119-live-pvp-foundation`
-- **Range:** `ab1c83f98a512a9a973e8480dc8fe18faad5be7d..7ef7d2dd`
+- **Range:** `ab1c83f98a512a9a973e8480dc8fe18faad5be7d..e6ab3362`
 - **Date:** `2026-11-20`
-- **Verdict:** `BLOCK` (round 2 delta review: one new High finding F5)
+- **Verdict:** `PASS` (final delta review: all findings resolved, no new findings)
 
 ## Summary
 
@@ -13,11 +13,10 @@ The track delivers the planned server-authoritative live-PvP foundation: a
 versioned protocol, two-seat room machine, 20/50/20 loop, in-memory Elysia
 WebSocket route, client invite/transport slice, architecture decision record and
 a real two-client browser proof. All configured checks pass on the final tree.
-The review found no Critical or High issues. Three Medium findings affect
-joiner-side rendering fidelity, seat reuse after a host disconnect, and missing
-landscape-orientation evidence; one Low finding is a misleading local name.
-`review.strict` is `true`, so none of these may be deferred — they are scheduled
-as Phase R1.
+Round 1 found three Medium findings and one Low; the strict-mode Phase R1 fixed
+F1, F3 and F4, but introduced the High F5 in the vacated-seat flow. Phase R2
+fixed F5 with a non-vacuous in-memory route test. The final delta review is
+PASS: no Critical, High, Medium or Low findings remain.
 
 ## Verification
 
@@ -28,7 +27,7 @@ as Phase R1.
 | lint | `biome check` | pass | clean |
 | typecheck | `bun run check` | pass | sim / server / client (547 files) |
 | build | `bun run build` | pass | Vite OK |
-| full verify | `bun run verify` | pass | 4438 pass / 1 skip / 0 fail; hash `0xff6f3d62` |
+| full verify | `bun run verify` | pass | final 4443 pass / 1 skip / 0 fail; hash `0xff6f3d62` |
 | balance | `bun run balance` | pass | capShare 30.8%, 34 gates |
 | determinism | `bun run gate:determinism` | pass | byte-identical, all species/props |
 | fuzz | `bun run test:fuzz` | pass | 139 pass / 0 fail |
@@ -38,11 +37,11 @@ as Phase R1.
 | ID | Implemented by | Verified by | Status |
 | --- | --- | --- | --- |
 | FR-1 | P1.T1 | `types.test.ts`, `parse.test.ts` | covered |
-| FR-2 | P1.T2 | `room.test.ts`; R2 route test pending | partial (F5) |
+| FR-2 | P1.T2 / R1.T2 / R2 | `room.test.ts`, `route.test.ts` (vacated-seat route test) | covered |
 | FR-3 | P1.T3 | `loop.test.ts`, `fight.test.ts` | covered |
 | FR-4 | P2.T1 | `route.test.ts` (in-memory) | covered |
 | FR-5 | P3.T1 | `state.test.ts`, screenshots | covered |
-| FR-6 | P3.T2 | `protocol.test.ts`, browser run | partial (F1) |
+| FR-6 | P3.T2 / R1.T1 | `invite.test.ts`, `protocol.test.ts`, browser run | covered |
 | FR-7 | P3.T3.1 | `decision.md` | covered |
 | FR-8 | P3.T3.2 | `integrated.md` | covered |
 | FR-9 | P3.T3 | five-command table, hash unchanged | covered |
@@ -50,10 +49,10 @@ as Phase R1.
 | NFR-2 | P1–P3 | module-cap table (largest 9561 B) | covered |
 | NFR-3 | P2.T1 / P3.T2 | scope proof, no manifest/CORS diff | covered |
 | NFR-4 | P2.T1 / P3.T2 | `route.test.ts`, `protocol.test.ts` | covered |
-| NFR-5 | P3.T1 | desktop + phone portrait proof | partial (F3) |
+| NFR-5 | P3.T1 / R1.T3 | desktop, phone portrait and 852×393 landscape proof | covered |
 | NFR-6 | P1.T3 / P2.T1 | fake clock/transport tests | covered |
 | AC-1 | P1.T1 | `types.test.ts`, `parse.test.ts` | covered |
-| AC-2 | P1.T2 | `room.test.ts`; R2 route test pending | partial (F5) |
+| AC-2 | P1.T2 / R2 | `room.test.ts`, `route.test.ts` (vacated-seat route test) | covered |
 | AC-3 | P1.T3 | `loop.test.ts` (bootstrap regression) | covered |
 | AC-4 | P2.T1 | `route.test.ts` | covered |
 | AC-5 | P3.T1 | `panel.ts`, screenshots | covered |
@@ -88,6 +87,9 @@ as Phase R1.
   - **Requirement:** FR-2 / AC-2
   - **Test gap:** Route-level test for create → join → host disconnect → third
     join verifying seat-to-side alignment and the correct forfeit winner.
+  - **Resolved (Phase R2):** `ready()` sorts seats before building `identities`;
+    non-masked room test and new in-memory route test prove intent alignment and
+    correct forfeit winner. Checkpoint `f4d20715`.
 
 ### Medium
 
@@ -106,6 +108,8 @@ as Phase R1.
   - **Requirement:** FR-6
   - **Test gap:** Pure test that both seats' casts keep `owned` on `keys[0]` and
     `rival` on `keys[1]`, plus a two-client browser assertion.
+  - **Resolved (Phase R1):** cast mapping fixed for both seats; `invite.test.ts`
+    and two-client re-proof (room `J2UV36`) pass. Checkpoint `1c91a9aa`.
 - **F2 — Host disconnect before ready leaves a duplicate seat index**
   - **File:** `apps/server/src/live/room.ts:165`
   - **What:** `join` assigns `room.seats.length === 0 ? 0 : 1`. If seat 0 leaves
@@ -116,6 +120,8 @@ as Phase R1.
   - **Requirement:** FR-2
   - **Test gap:** create → join → host disconnect → third join; assert distinct
     seat indices and both intents honored.
+  - **Resolved (Phase R1/R2):** free-seat assignment and sorted identity order
+    verified by room and route tests. Checkpoints `1c91a9aa`, `f4d20715`.
 - **F3 — Landscape (852×393) live panel unverified**
   - **File:** `apps/client/src/live/live.css:90-99`
   - **What:** Only a `max-width:480px` responsive rule exists; the visual proof
@@ -126,6 +132,7 @@ as Phase R1.
   - **Requirement:** NFR-5
   - **Test gap:** `.conductor/evidence/20261119-live-pvp-foundation/phone-landscape.png`
     with no horizontal scroll, no occluded control, 0 console errors.
+  - **Resolved (Phase R1):** 852×393 pass recorded with no CSS change needed.
 
 ### Low
 
@@ -137,6 +144,7 @@ as Phase R1.
   - **Fix:** Rename to `forfeiterName`.
   - **Requirement:** none
   - **Test gap:** none
+  - **Resolved (Phase R1):** renamed; behavior unchanged.
 
 ## Overrides
 
@@ -146,9 +154,11 @@ as Phase R1.
 
 All three phases are `verified` with checkpoints `1f4fd107`, `1d3c1e9d`,
 `ea0865e0` and evidence files; every `[x]` task was implemented and verified.
-The three recorded deviations are necessary and minimal. No task was dropped.
-The four findings above are new and are not covered by the original tasks, so
-Phase R1 is appended.
+Review phases R1 (`1c91a9aa`) and R2 (`f4d20715`) are also verified with evidence
+files `phase-R1.md` and `phase-R2.md`. The three recorded deviations are
+necessary and minimal. No task was dropped. Findings F1–F5 were new work outside
+the original tasks; they were fixed under strict mode without deferral and all
+pass final delta review.
 
 ## Out of scope
 
@@ -158,11 +168,18 @@ Phase R1 is appended.
 ## Debt
 
 - None filed. `review.issues.enabled` is `false`; findings F1–F4 were fixed in
-  Phase R1 and F5 is scheduled for Phase R2 rather than deferred (strict mode).
+  Phase R1 and F5 in Phase R2. Strict mode is satisfied — no finding deferred.
+- Known thin-slice limitations (not defects): reconnect, pause and spectator
+  modes are excluded by the spec; the invite panel retains its last match state
+  until page reload (recorded in `decision.md`/`integrated.md`).
 
 ## Doc sync
 
-`pending` — updated after Phase R1 and the delta re-review.
+`synced` — `tech-stack.md` carries the 2026-11-20 WebSocket `/live`, 20/50/20
+loop and `app.listen(port)` note; `product-guidelines.md` needed no change;
+`product.md` Phase 4 "live PvP" wording is a product-definition change requiring
+owner approval and was left unchanged; `spec.md` contracts did not change. Final
+delta touched no docs requiring an update.
 
 ## History
 
@@ -170,3 +187,4 @@ Phase R1 is appended.
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | PASS WITH FINDINGS | 0 | 0 | 3 | 1 | 0 (Phase R1 scheduled) |
 | 2 | BLOCK | 0 | 1 | 0 | 0 | F1, F3, F4 fixed; F2 partial, F5 found (Phase R2 scheduled) |
+| 3 | PASS | 0 | 0 | 0 | 0 | F5 fixed in Phase R2 (`f4d20715`); final delta review clean |
