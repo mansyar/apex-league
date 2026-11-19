@@ -6,7 +6,7 @@
 - **Branch:** `feat/20261118-roster-wave-2`
 - **Base commit:** `31bb969e25b9578530f6f8e04f4b9cbc19dda75d`
 - **Head commit:** `72af68ee` (`72af68ee...` artifacts + voxel formatting; preceding `fc0758ef` voxel archetypes, `e110ba80` sim tuning, `ca6a6386` sim species)
-- **Result:** **blocked for owner decision** — the primary authored all nine seed-42 artifact pairs and independently re-ran the full verification chain green, but the subagent changed the discovery sustained-band gate's source from the nine shipped starter/reward kits to `ALL_SPECIES`. The approved spec forbids gate changes, and a probe proves no in-envelope kit solution exists for plant-element `thornvolt` under the frozen signature rules. Owner decision required; see `## Acceptance blocker (owner decision required)`.
+- **Result:** **verified** - the owner approved Thornvolt as wind and a narrowly scoped existing-bound retune; the exact full verification chain was re-run green at the final head with the original nine-kit sustained band restored. See `## Rework 2 (owner-approved wind + minimal retune)` and `## Primary verification` below.
 
 ## Commands and outcomes
 
@@ -170,3 +170,70 @@ A direct probe with the unchanged gate arithmetic confirms:
 The telemetry away-coverage change (`packages/sim/scripts/battle-telemetry.ts`) is diagnostic bookkeeping only: stride 11, 42 pairings, sample size 42, `BOUNDS`, and assertions are unchanged. It is acceptable once the gate-source conflict is resolved.
 
 Per the spec assumption "no in-envelope solution means blocked for owner decision", Phase 1 is blocked pending the owner's choice. No phase gate was emitted and the phase was not squashed.
+
+## Rework 2 (owner-approved wind + minimal retune)
+
+- **Date:** 2026-11-19
+- **Base for rework:** `26915ae8` (`docs(conductor): record owner exception for minimal existing-bound retune`)
+- **Rework commit:** `ff5b7cc6` (`fix(sim): rework thornvolt to wind with owner-approved bound retune`)
+- **Owner decisions applied:** Thornvolt is **wind** (recipe stays `plant + electric`; signatures `gust` / `talon_slash`; kit is the remaining six wind moves); narrowly scoped stat-bound-only adjustment to affected existing rows is permitted.
+
+### Exact applied bounds/kits
+
+| Species | hp | atk | def | spd | Notes |
+| --- | --- | --- | --- | --- | --- |
+| thornvolt | `[145,155]` | `[14,16]` | `[8,10]` | `[14,16]` | element `wind`; kit `feather_dart, gale_cutter, sky_bolt, hurricane_spiral, cyclone_dive, zephyr_veil`; flavor updated for wind identity |
+| siltback | `[160,190]` | `[12,15]` | `[12,15]` | `[6,9]` | unchanged |
+| emberwing | `[135,165]` | `[15,18]` | `[6,9]` | `[13,16]` | ATK +1 each endpoint only |
+| voltfox | `[144,174]` | `[9,12]` | `[6,9]` | `[10,14]` | HP +8, ATK +1 |
+| embercub | `[152,181]` | `[9,13]` | `[8,11]` | `[8,11]` | HP +8, ATK +1 |
+
+Branch ids `thorn_darter` / `bramble_warden` were kept; only their `signatureMove` pins changed (`gust`, `talon_slash`) in `branch-catalog/discoveries.ts`, `branches.test.ts` and `bosses.test.ts`. The GLOBAL branch-signature uniqueness assertions are unchanged and green.
+
+### Band source reverted
+
+`packages/sim/src/battle/species-discovery-balance.test.ts` no longer uses `ALL_SPECIES`:
+`const shipped = [...STARTER_SPECIES, ...REWARD_SPECIES].map((s) => sustainedScore(s.id))`.
+The original nine-kit band (`[29.0167, 32.6967]`) and all gate assertions are restored; `SIBLINGS.thornvolt` now points at `wind_falcon`. The earlier band-source deviation is thereby resolved.
+
+### Diagnostic pins refreshed (no gates, thresholds, fences or assertions changed)
+
+- `breeding/discovery.test.ts`: `thornvolt × electric_hound` now also discovers `voltfox` (wind + electric), so `speciesOptions` includes it once.
+- `balance-report.test.ts`: design-band misses now `plant_ox, water_axolotl, dune_jerboa, emberwing`; near-edge inset rows `cindermoor, fire_drake`; inside-band thin row moved from `dune_jerboa` to `shalemole` (dune_jerboa is now outside 45–55%).
+- `fixture-audit.test.ts`: measured cells A `15/34380/27`, B `12/35040/30`, C `13/29880/29`, D `7/30480/35`.
+- `battle/tune-probe.test.ts`: envelope pins updated and extended to the two owner-approved existing rows.
+
+### Rework verification
+
+| Layer | Command | Exit | Result |
+| --- | --- | --- | --- |
+| Sim suite | `bun test packages/sim/src` | 0 | 1947 pass, 1 skip, 0 fail, 71402 expects, 109 files, 64.26s; pacing debt sample still the original 15-species roster |
+| Workspace verify | `bun run verify` | 0 | 4364 pass, 1 skip, 0 fail, 665342 expects, 4365 tests / 426 files; Biome 1005 files clean; determinism gate 63 pairs + 5 prop digests byte-identical |
+| Build | `bun run build` | 0 | Client Vite build: 428 modules, no errors |
+| Balance | `bun run balance` | 0 | 21/21 species and all global gates green (rework figures below) |
+
+Rework balance figures: 21 species, 1680 fights (ko 1159, time 517, draw 4); thornvolt 46.6% (74/160, 153 distinct, se 4.0%), siltback 52.5% (84/160, 147 distinct), emberwing 44.4% (71/160, 147 distinct); voltfox 51.6%, embercub 47.5%. Global gates: capShare 517/1680 (30.8%), decisive 1574/1680 (93.7%), capWinQuality 415/517 (80.3%), median 32.82s, damageBand 49/49, bosses koda 20/42, hesse 9/42, marlow 19/42, delmar 14/42, fenn 25/42, thessa 20/42 (all ok). Design-band diagnostic misses: plant_ox 44.4%, water_axolotl 57.5%, dune_jerboa 56.9%, emberwing 44.4%.
+
+### Rework blockers (shell permission)
+
+- `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz` — permission denied for the exact chain in this subagent shell. Primary should run it once at the final head; expected all five layers exit 0.
+- `bun run gate:determinism` — permission denied individually, but the same determinism gate ran inside `bun run verify` above and reported all 63 seed-42 artifact pairs plus 5 prop digests byte-identical.
+- `bun run test:fuzz` — permission denied individually. Smoke fuzz shards ran green inside `bun run verify`; the full `APEX_FUZZ_SWEEP=full` sweep still needs the primary's run.
+
+No gate, threshold, fence, assertion, `SIM_VERSION`, save schema, dependency manifest, pacing pin or existing species other than voltfox/embercub bounds was changed. The two-pass telemetry mirror exchange remains as documented diagnostic-only bookkeeping (stride 11, 42 pairings, sample size 42, BOUNDS and assertions unchanged). This evidence section is intentionally left uncommitted for the primary state commit.
+
+## Primary verification
+
+The primary independently re-ran the exact phase command at the final head:
+
+`bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`
+
+| Layer | Result |
+| --- | --- |
+| `bun run verify` | exit 0; 4364 pass / 1 skip / 0 fail; 665342 `expect()` calls; 4365 tests across 426 files; Biome checked 1005 files with no fixes; determinism gate OK |
+| `bun run build` | exit 0; Vite 8.3.4; 428 modules; chunk-size warning only |
+| `bun run balance` | exit 0; 21/21 species ok; cap share 517/1680 (30.8%); decisive share 1574/1680 (93.7%); cap-win quality 415/517 (80.3%); median duration 32.82s; damage band 49/49; all six bosses ok; final hash `0xff6f3d62` |
+| `bun run gate:determinism` | exit 0; 63 seed-42 artifact pairs byte-identical (18 original + 3 wave-1 + 3 wave-2 archetypes x 3 stages) plus 5 prop digests |
+| `bun run test:fuzz` | exit 0; 139 pass / 0 fail; 129015 `expect()` calls; 139 tests across 135 files |
+
+Scope proof: `git status --porcelain` showed only the untracked evidence file before acceptance; `git diff --name-only 31bb969e..HEAD` listed the approved sim, voxel, artifact, choreography, telemetry, and Conductor evidence paths. The owner-authorized existing-row changes are confined to `voltfox` HP +8/ATK +1 and `embercub` HP +8/ATK +1; `emberwing` is a new species with ATK +1. The sustained-band source is restored to the original nine starter/reward kits. No gate, threshold, fence, assertion, pacing pin, `SIM_VERSION`, save schema, or dependency manifest changed. Result: verified.
