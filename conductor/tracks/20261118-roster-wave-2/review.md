@@ -5,11 +5,11 @@
 - **Branch:** `feat/20261118-roster-wave-2`
 - **Range:** `7dd56544a10a203621e522bedaa15ee047b300b3..1ecf3535`
 - **Date:** `2026-11-19`
-- **Verdict:** `PASS WITH FINDINGS`
+- **Verdict:** `PASS` (round 1 `PASS WITH FINDINGS`; round 2 delta `PASS` after Phase R1)
 
 ## Summary
 
-All FR/NFR/AC requirements for Roster Wave 2 are implemented and evidenced. The 21-species hard balance gate, original nine-kit sustained-score source, byte-identical 63-pair determinism gate, full fuzz sweep, order-independent recipes, globally unique signatures, three new voxel archetypes and artifacts, derived client recipe rows, and three-orientation visual evidence are all green. There are no Critical, High, or Medium findings. One Low finding was found: a stale telemetry doc comment names the wrong mirror indices. `review.strict: true` requires fixing it in a Review Fixes phase before completion.
+All FR/NFR/AC requirements for Roster Wave 2 are implemented and evidenced. The 21-species hard balance gate, original nine-kit sustained-score source, byte-identical 63-pair determinism gate, full fuzz sweep, order-independent recipes, globally unique signatures, three new voxel archetypes and artifacts, derived client recipe rows, and three-orientation visual evidence are all green. There are no Critical, High, or Medium findings. One Low finding was found: a stale telemetry doc comment named the wrong mirror indices. `review.strict: true` required fixing it, and Phase R1 corrected the single comment line at checkpoint `61be86bc` with no behavior change. The round-2 delta re-review returned `PASS` with no new findings; the primary re-ran the full exact verification chain green at the R1 head. Final verdict: `PASS`.
 
 ## Verification
 
@@ -79,13 +79,17 @@ All FR/NFR/AC requirements for Roster Wave 2 are implemented and evidenced. The 
   - **Requirement:** none (documentation accuracy).
   - **Test gap:** none.
 
+### Resolution (round 2)
+
+F1 was fixed in Phase R1 at checkpoint `61be86bc` by changing only the "No mirrors" doc comment from home indices 2/4 to 0/2 (correct for `away = roster[(i * 11 + lap) % 21]`). No code, assertion, seed, bound, sample size, stride, pairing, gate, or schema changed. The primary re-ran the exact full chain at the R1 head with exit 0 (4367 pass / 1 skip / 0 fail; Biome 1005 clean; determinism 63 pairs + 5 props; balance 21/21; build 428 modules; fuzz 139 pass / 0 fail). The delta reviewer confirmed F1 fixed with no new in-scope findings and returned `PASS`.
+
 ## Overrides
 
-- <none>
+- <none — the only finding was fixed in Phase R1, not deferred>
 
 ## Plan compliance
 
-Both phases are marked `verified` with checkpoints `64b28e1c` and `4dca8020`, and written evidence (`phase-1.md`, `phase-2.md`, `integrated.md`). All P1/P2 tasks and sub-tasks are checked off. The final diff stays within the approved Touches plus documented owner-approved deviations: wind Thornvolt with `plant + electric` recipe and signatures `gust`/`talon_slash`; owner-approved minimal existing bound adjustments (voltfox HP `[144,174]`/ATK `[9,12]`, embercub HP `[152,181]`/ATK `[9,13]`, emberwing ATK `[15,18]`); original nine-kit sustained band restored; telemetry two-pass mirror exchange; `choreo_wave.ts` and `wave_body.ts` helper splits; retained probe regression tests; gallery mixed-mode registry rotation. No balance gate, threshold, fence, pacing pin, `SIM_VERSION`, save schema, or dependency manifest changed.
+Both phases are marked `verified` with checkpoints `64b28e1c` and `4dca8020`, and written evidence (`phase-1.md`, `phase-2.md`, `integrated.md`). Phase R1 is marked `verified` with checkpoint `61be86bc` and evidence `phase-R1.md`; R1.T1 and R1.T1.1 are checked off. All P1/P2/R1 tasks and sub-tasks are checked off. The final diff stays within the approved Touches plus documented owner-approved deviations: wind Thornvolt with `plant + electric` recipe and signatures `gust`/`talon_slash`; owner-approved minimal existing bound adjustments (voltfox HP `[144,174]`/ATK `[9,12]`, embercub HP `[152,181]`/ATK `[9,13]`, emberwing ATK `[15,18]`); original nine-kit sustained band restored; telemetry two-pass mirror exchange; `choreo_wave.ts` and `wave_body.ts` helper splits; retained probe regression tests; gallery mixed-mode registry rotation. No balance gate, threshold, fence, pacing pin, `SIM_VERSION`, save schema, or dependency manifest changed.
 
 ## Out of scope
 
@@ -97,14 +101,15 @@ Both phases are marked `verified` with checkpoints `64b28e1c` and `4dca8020`, an
 
 ## Debt
 
-- <none — `review.strict: true` forbids deferring F1; it will be fixed in Phase R1.>
+- <none — `review.strict: true` forbids deferring F1; it was fixed in Phase R1.>
 
 ## Doc sync
 
-`pending` — product.md and tech-stack.md were synced pre-review with owner approval; this review will be updated after the R1 fix and final verdict.
+`updated` — product.md and tech-stack.md were synced pre-review with owner approval; this review records the round-2 delta `PASS`, the Phase R1 fix, and `doc_sync: updated` in metadata after review.
 
 ## History
 
 | Round | Verdict | Critical | High | Medium | Low | Fixed |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | PASS WITH FINDINGS | 0 | 0 | 0 | 1 | 0 |
+| 2 (delta) | PASS | 0 | 0 | 0 | 0 | 1 |
