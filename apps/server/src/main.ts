@@ -13,7 +13,9 @@ const db = openDatabase(path)
 const app = createApp({ db, allowedOrigin: process.env.ALLOWED_ORIGIN })
 const port = Number(process.env.PORT ?? 3000)
 
-Bun.serve({ port, fetch: app.fetch })
+// `Bun.serve({ fetch })` alone boots HTTP but leaves `/live` unable to upgrade
+// in a real browser. `app.listen` carries Elysia's own WebSocket handler.
+app.listen(port)
 // The origin is named because a silent default deny is the one failure mode a
 // browser reports as "network error"; this line is what a Coolify log shows.
 console.log(

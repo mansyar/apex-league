@@ -75,36 +75,58 @@ function verdicts(transport: TestTransport): VerdictMessage[] {
 }
 
 describe("authoritative loop cadence", () => {
-  test("50 ms advances two 20 ms sim steps and emits one snapshot", () => {
+  test("the first pump at elapsed 0 boots the client with a step-0 frame", () => {
+    const { clock, transport, game } = setup()
+    game.pump()
+
+    const frames = snapshots(transport)
+    expect(frames).toHaveLength(1)
+    expect(frames[0]?.step).toBe(0)
+    expect(frames[0]?.elapsedMs).toBe(0)
+    expect(frames[0]?.stream.steps).toBe(1)
+    expect(game.snapshotCount).toBe(1)
+
+    // The bootstrap is not repeated, and timed frames stay one per 50 ms.
+    game.pump()
+    expect(snapshots(transport)).toHaveLength(1)
+    clock.set(50)
+    game.pump()
+    clock.set(100)
+    game.pump()
+    expect(snapshots(transport).map((frame) => frame.step)).toEqual([0, 2, 5])
+  })
+
+  test("50 ms advances two 20 ms sim steps and emits the bootstrap plus one frame", () => {
     const { clock, transport, game } = setup()
     clock.set(50)
     game.pump()
 
     expect(game.stepCount).toBe(2)
     const frames = snapshots(transport)
-    expect(frames).toHaveLength(1)
-    expect(frames[0]?.step).toBe(2)
-    expect(frames[0]?.elapsedMs).toBe(40)
-    expect(frames[0]?.stream.steps).toBe(1)
-    expect(frames[0]?.v).toBe(1)
+    expect(frames).toHaveLength(2)
+    expect(frames[0]?.step).toBe(0)
+    expect(frames[1]?.step).toBe(2)
+    expect(frames[1]?.elapsedMs).toBe(40)
+    expect(frames[1]?.stream.steps).toBe(1)
+    expect(frames[1]?.v).toBe(1)
   })
 
-  test("100 ms emits two snapshots at the 20 Hz cadence", () => {
+  test("100 ms emits the bootstrap plus two snapshots at the 20 Hz cadence", () => {
     const { clock, transport, game } = setup()
     clock.set(100)
     game.pump()
 
     expect(game.stepCount).toBe(5)
-    expect(snapshots(transport)).toHaveLength(2)
+    expect(snapshots(transport)).toHaveLength(3)
   })
 
-  test("one second is 50 sim steps and 20 snapshots", () => {
+  test("one second is 50 sim steps and the bootstrap plus 20 snapshots", () => {
     const { clock, transport, game } = setup()
     clock.set(1000)
     game.pump()
 
     expect(game.stepCount).toBe(50)
-    expect(snapshots(transport)).toHaveLength(20)
+    expect(snapshots(transport)).toHaveLength(21)
   })
 })
 
@@ -188,7 +210,9 @@ describe("determinism", () => {
       game.intent(0, 1, ORDER)
       clock.set(500)
       game.pump()
-      const frame = snapshots(transport)[0]
+      // The first frame is the step-0 bootstrap, identical for every seed;
+      // compare the last timed frame instead.
+      const frame = snapshots(transport).at(-1)
       if (!frame) throw new Error("no snapshot was emitted")
       return Array.from(frame.stream.data)
     }

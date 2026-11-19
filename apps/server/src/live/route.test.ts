@@ -194,11 +194,14 @@ describe("live WebSocket route", () => {
 
     await send(adapter, guest, readyMsg("guest"))
     expect(errors(host)).toEqual([])
-    expect(snapshots(host)).toHaveLength(0)
+    // Match start emits the step-0 bootstrap frame on its own; without it the
+    // browser client never starts its intent timer.
+    expect(snapshots(host)).toHaveLength(1)
+    expect(snapshots(host)[0]?.step).toBe(0)
 
     clock.set(50)
     await send(adapter, host, intentMsg(0))
-    expect(snapshots(host)).toHaveLength(1)
+    expect(snapshots(host)).toHaveLength(2)
     expect(snapshots(guest)).toEqual(snapshots(host))
     expect(snapshots(host)[0]?.code).toBe(CODE)
 
@@ -235,14 +238,14 @@ describe("live WebSocket route", () => {
 
     clock.set(50)
     await send(adapter, host, intentMsg(0))
-    expect(snapshots(host)).toHaveLength(1)
+    expect(snapshots(host)).toHaveLength(2)
 
     clock.set(100)
     await send(adapter, host, intentMsg(0))
     expect(errors(host).map((e) => e.code)).toEqual([
       LIVE_ERROR_CODES.staleIntent,
     ])
-    expect(snapshots(host)).toHaveLength(2)
+    expect(snapshots(host)).toHaveLength(3)
     expect(verdicts(host)).toHaveLength(0)
   })
 
@@ -264,7 +267,7 @@ describe("live WebSocket route", () => {
     const { host, guest } = await seated(adapter)
     clock.set(50)
     await send(adapter, host, intentMsg(0))
-    expect(snapshots(guest)).toHaveLength(1)
+    expect(snapshots(guest)).toHaveLength(2)
 
     adapter.close(guest)
 

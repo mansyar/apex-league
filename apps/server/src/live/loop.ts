@@ -64,6 +64,8 @@ export function createMatchLoop(config: MatchLoopConfig): MatchLoop {
   const lastSeq: [number, number] = [-1, -1]
   let stepsSent = 0
   let snapshotsSent = 0
+  let cadenceSent = 0
+  let bootstrapped = false
   let staleIntents = 0
   let verdictCount = 0
   let finished = false
@@ -113,6 +115,13 @@ export function createMatchLoop(config: MatchLoopConfig): MatchLoop {
 
     pump(): void {
       if (finished) return
+      // The client waits for its first frame before starting the intent timer,
+      // and there is no production timer. The opening pump must therefore send
+      // the step-0 frame or neither side will ever move (20 Hz starts here).
+      if (!bootstrapped) {
+        bootstrapped = true
+        sendSnapshot()
+      }
       const elapsed = Math.max(0, config.clock.now() - startMs)
       const targetSteps = Math.floor(elapsed / STEP_MS)
       while (stepsSent < targetSteps && !fight.over) {
@@ -124,8 +133,11 @@ export function createMatchLoop(config: MatchLoopConfig): MatchLoop {
       const targetSnapshots = fight.over
         ? Math.min(due, Math.floor(fight.elapsedMs / SNAPSHOT_INTERVAL_MS))
         : due
-      while (snapshotsSent < targetSnapshots && !finished) {
+      // The bootstrap frame is not part of the timed cadence; counting it
+      // separately keeps the terminal cap from emitting a duplicate frame.
+      while (cadenceSent < targetSnapshots && !finished) {
         sendSnapshot()
+        cadenceSent++
       }
 
       if (fight.over && !finished) {

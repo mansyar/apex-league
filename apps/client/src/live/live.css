@@ -1,0 +1,99 @@
+/* Spar invite (FR-5, AC-5): one modal plate, one code field, one status
+   line. Styles are scoped to `live-*` so they cannot drift into the ranch. */
+
+.live-box {
+  gap: 12px;
+  text-align: left;
+}
+
+.live-notice {
+  text-align: center;
+}
+
+.live-field {
+  display: grid;
+  gap: 6px;
+}
+
+.live-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.live-code-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--kit-keyline-warm);
+  border-radius: 4px;
+  background: var(--kit-panel-bg-solid);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.live-code-input::placeholder {
+  color: var(--ink-dim);
+  letter-spacing: 0.08em;
+}
+
+.live-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.live-controls .kit-button {
+  flex: 1 1 128px;
+}
+
+.live-room {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  padding: 8px;
+  border: 1px dashed var(--kit-keyline-warm);
+  border-radius: 4px;
+}
+
+.live-room-code {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  color: var(--accent);
+}
+
+.live-status,
+.live-result {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--ink-dim);
+}
+
+.live-result {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.is-hidden {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .live-box {
+    gap: 10px;
+    padding: 14px 14px;
+  }
+
+  .live-room-code {
+    font-size: 20px;
+  }
+}
