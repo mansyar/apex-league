@@ -78,7 +78,7 @@
 - **Covers:** FR-3, NFR-1, NFR-3, NFR-6, AC-3, AC-6, AC-7
 - **Touches:** `apps/client/src/live/panel.ts`, `apps/client/src/live/panel.test.ts`, `apps/client/src/live/invite.ts`, `conductor/tracks/20261120-live-pvp-production-acceptance/verification/phase-2.md`, `.conductor/evidence/20261120-live-pvp-production-acceptance/**`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`; visual layer: fixed local client with `VITE_API_ORIGIN` pointed at the production API, second invite at 1440×900 and 393×852, `playwright-cli console` empty.
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Failing regression test for stale invite state** — covers: FR-3, AC-3
   - [ ] **P2.T1.1:** Drive room → verdict → leave in the client DOM harness and assert code input empty, start controls enabled, room/result rows hidden, status idle; confirm it fails before the fix.
