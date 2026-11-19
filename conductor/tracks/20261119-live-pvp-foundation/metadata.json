@@ -6,7 +6,7 @@
   "priority": "high",
   "depends_on": [],
   "created_at": "2026-11-19T22:23:42.9992239+11:00",
-  "updated_at": "2026-11-19T23:04:57.0637372+11:00",
+  "updated_at": "2026-11-19T23:52:41.8210298+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "feat/20261119-live-pvp-foundation",
@@ -14,11 +14,11 @@
   "base_sha": "ab1c83f98a512a9a973e8480dc8fe18faad5be7d",
   "progress": {
     "phases_total": 3,
-    "phases_verified": 1,
+    "phases_verified": 2,
     "tasks_total": 7,
-    "tasks_done": 3
+    "tasks_done": 4
   },
-  "last_checkpoint": "1f4fd107",
+  "last_checkpoint": "1d3c1e9d",
   "review_verdict": null,
   "review_rounds": 0,
   "doc_sync": "pending",

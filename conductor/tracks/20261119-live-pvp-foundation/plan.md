@@ -37,18 +37,15 @@
 - **Covers:** FR-4, AC-4
 - **Touches:** `apps/server/src/live/route.ts`, `apps/server/src/live/route.test.ts`, `apps/server/src/app.ts`, `conductor/tracks/20261119-live-pvp-foundation/verification/phase-2.md`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Wire the WebSocket route** — covers: FR-4, AC-4
-  - [ ] **P2.T1.1: Register the route on the injectable Elysia app and bind it to the room registry and match loop without opening a port**
-  - [ ] **P2.T1.2: Add in-memory integration tests for create, join, ready, intents, verdict, disconnect and malformed messages**
+- [x] **P2.T1: Wire the WebSocket route** — covers: FR-4, AC-4
+  - [x] **P2.T1.1: Register the route on the injectable Elysia app and bind it to the room registry and match loop without opening a port**
+  - [x] **P2.T1.2: Add in-memory integration tests for create, join, ready, intents, verdict, disconnect and malformed messages**
 
-<!--
-The primary appends after acceptance:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 1d3c1e9d
 **Evidence:** conductor/tracks/20261119-live-pvp-foundation/verification/phase-2.md
--->
 
 ## Phase 3: Client slice, decision record, and final proof
 
