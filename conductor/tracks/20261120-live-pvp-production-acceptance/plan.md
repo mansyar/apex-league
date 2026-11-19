@@ -18,7 +18,7 @@
 - **Covers:** FR-1, FR-2, NFR-2, NFR-4, NFR-5, AC-1, AC-2, AC-7, AC-8
 - **Touches:** `conductor/tracks/20261120-live-pvp-production-acceptance/verification/production-proof.md`, `.conductor/evidence/20261120-live-pvp-production-acceptance/**`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`; visual layer: two real browsers at 1440×900 and 393×852 against the deployed client/API origins, plus a disconnected-client forfeit probe; `playwright-cli console` empty.
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Establish production target and throwaway identities** — covers: FR-1, NFR-2, AC-7
   - [ ] **P1.T1.1:** Confirm the deployed bundle carries the live chip and `apex-api.ansyar-world.top`, and `/health` responds OK; capture both as evidence.
