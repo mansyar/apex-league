@@ -64,7 +64,7 @@
   - [x] **P1R.T4.2:** Write `verification/phase-1R.md` with commands, results, boot proof and deviations.
 
 **Result:** verified
-**Checkpoint:** 3b654456
+**Checkpoint:** f9c116bb
 **Evidence:** conductor/tracks/20261120-live-pvp-production-acceptance/verification/phase-1R.md
 
 ## Phase 2: Invite panel reset and second-bout proof
