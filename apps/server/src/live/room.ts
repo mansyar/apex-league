@@ -162,7 +162,7 @@ export function createRoomRegistry(options: RoomRegistryOptions): RoomRegistry {
       }
       const trainer = await identity(claim)
       if (!trainer) return { ok: false, reason: "bad_passphrase" }
-      const seat: SeatIndex = room.seats.length === 0 ? 0 : 1
+      const seat: SeatIndex = room.seats.some((s) => s.seat === 0) ? 1 : 0
       room.seats.push({ ...trainer, seat, ready: false })
       return { ok: true, room: snapshot(room), seat }
     },

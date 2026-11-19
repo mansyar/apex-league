@@ -84,11 +84,11 @@ export function verdictCopy(
     }
     const youWon = winner === selfSeat
     const forfeitingSeat: 0 | 1 = winner === 0 ? 1 : 0
-    const winnerName = names[forfeitingSeat] || "The other trainer"
+    const forfeiterName = names[forfeitingSeat] || "The other trainer"
     return youWon
       ? {
           title: "Opponent forfeited",
-          sub: `${winnerName} left the ring. You keep the win.`,
+          sub: `${forfeiterName} left the ring. You keep the win.`,
         }
       : {
           title: "You forfeited",

@@ -39,8 +39,12 @@ function seedOf(code: string): number {
   return hash >>> 0
 }
 
-/** Seat 0 is the room maker's fire line, seat 1 the joiner's water line. */
-function castingFor(
+/**
+ * The dense stream is positional: side 0 is always the host (`owned`) and
+ * side 1 the guest (`rival`). Both clients must cast the same sides or the
+ * frames land on the wrong fighters. Only the visual seed varies by seat.
+ */
+export function castingFor(
   seat: 0 | 1,
   code: string,
   keys: readonly [string, string],
@@ -48,17 +52,15 @@ function castingFor(
   const seed = seedOf(code) + seat
   return {
     owned: castFighter({
-      speciesId: seat === 0 ? "fire_drake" : "water_axolotl",
-      name: keys[seat] || (seat === 0 ? "Fire trainer" : "Water trainer"),
+      speciesId: "fire_drake",
+      name: keys[0] || "Fire trainer",
       seed,
       key: keys[0],
       context: "the live arena",
     }),
     rival: castFighter({
-      speciesId: seat === 0 ? "water_axolotl" : "fire_drake",
-      name:
-        keys[seat === 0 ? 1 : 0] ||
-        (seat === 0 ? "Water trainer" : "Fire trainer"),
+      speciesId: "water_axolotl",
+      name: keys[1] || "Water trainer",
       seed: seed + 1,
       key: keys[1],
       context: "the live arena",

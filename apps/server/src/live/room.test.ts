@@ -140,6 +140,37 @@ describe("joining and readiness", () => {
     if (!outcome.ok) expect(outcome.reason).toBe("room_not_found")
   })
 
+  test("a host disconnect before ready frees seat 0 for the next joiner", async () => {
+    const rooms = registry()
+    await rooms.create("APEX19", HOST)
+    await rooms.join("APEX19", GUEST)
+    rooms.disconnect("APEX19", "host")
+
+    const third = await rooms.join("APEX19", {
+      trainerId: "third",
+      passphrase: GOOD,
+    })
+    expect(third.ok).toBe(true)
+    if (!third.ok) return
+    expect(third.seat).toBe(0)
+
+    const indices = third.room.seats.map((s) => s.seat)
+    expect(new Set(indices).size).toBe(2)
+    expect(indices.sort()).toEqual([0, 1])
+
+    // Both remaining seats keep their own sequence: each can ready and
+    // together they start exactly one match carrying both identities.
+    expect(rooms.ready("APEX19", "guest").ok).toBe(true)
+    const started = rooms.ready("APEX19", "third")
+    expect(started.ok).toBe(true)
+    if (started.ok) {
+      expect(started.start?.identities.map((i) => i.trainerId).sort()).toEqual([
+        "guest",
+        "third",
+      ])
+    }
+  })
+
   test("both ready starts exactly one match, with a fixed seed and identities", async () => {
     const rooms = await twoSeatRoom()
     expect(rooms.ready("APEX19", "guest").ok).toBe(true)
