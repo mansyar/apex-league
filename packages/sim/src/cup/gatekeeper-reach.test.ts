@@ -274,8 +274,8 @@ describe("authored gatekeepers reach their stage under the widened field", () =>
       expect(legend).toContain(id)
     }
     // The generated legend field is the nine obtainable species plus the
-    // nine wave-3/wave-4/wave-5 discovery lines.
-    expect([...legend, ...DISCOVERY_SPECIES.map((s) => s.id)]).toHaveLength(18)
+    // twelve wave-3/wave-4/wave-5/wave-6 discovery lines.
+    expect([...legend, ...DISCOVERY_SPECIES.map((s) => s.id)]).toHaveLength(21)
   })
 
   test("each stage's field really contains the wider line it has unlocked", () => {

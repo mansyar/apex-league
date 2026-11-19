@@ -12,7 +12,7 @@
 
 import { type BranchDef, branchDef } from "./types"
 
-/** The eighteen discovery forms: two champion branches for each of nine lines. */
+/** The twenty-four discovery forms: two champion branches for each of twelve lines. */
 export const DISCOVERY_BRANCHES: readonly BranchDef[] = Object.freeze([
   branchDef({
     id: "arc_courser",
@@ -211,5 +211,71 @@ export const DISCOVERY_BRANCHES: readonly BranchDef[] = Object.freeze([
     championBoost: { hp: 7, atk: 3, def: 5, spd: 0 },
     signatureMove: "feather_dart",
     accentHue: 155,
+  }),
+  branchDef({
+    id: "thorn_darter",
+    speciesId: "thornvolt",
+    label: "Thorn Darter",
+    line: "Flash between the thorns and land the charged barb first.",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 4, atk: 7, def: 3, spd: 4 },
+    signatureMove: "gust",
+    accentHue: 118,
+  }),
+  branchDef({
+    id: "bramble_warden",
+    speciesId: "thornvolt",
+    label: "Bramble Warden",
+    line: "Root into the thicket and let the charge break on your brambles.",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 7, atk: 3, def: 5, spd: 0 },
+    signatureMove: "talon_slash",
+    accentHue: 105,
+  }),
+  branchDef({
+    id: "silt_lancer",
+    speciesId: "siltback",
+    label: "Silt Lancer",
+    line: "Drive the silt-charged spur in before the current can settle.",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 6, atk: 6, def: 3, spd: 1 },
+    signatureMove: "foam_volley",
+    accentHue: 212,
+  }),
+  branchDef({
+    id: "silt_bulwark",
+    speciesId: "siltback",
+    label: "Silt Bulwark",
+    line: "Sink into the riverbed and let every tide break over your back.",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 7, atk: 2, def: 6, spd: 0 },
+    signatureMove: "mist_spray",
+    accentHue: 200,
+  }),
+  branchDef({
+    id: "cinder_glider",
+    speciesId: "emberwing",
+    label: "Cinder Glider",
+    line: "Skim the cinder line and be gone before the embers settle.",
+    favors: ["atk", "spd"],
+    juvenileBoost: { hp: 2, atk: 4, def: 1, spd: 2 },
+    championBoost: { hp: 4, atk: 7, def: 4, spd: 3 },
+    signatureMove: "blaze_bolt",
+    accentHue: 24,
+  }),
+  branchDef({
+    id: "ash_veilward",
+    speciesId: "emberwing",
+    label: "Ash Veilward",
+    line: "Wrap the ash around you and let the firestorm burn itself out.",
+    favors: ["hp", "def"],
+    juvenileBoost: { hp: 3, atk: 2, def: 3, spd: 0 },
+    championBoost: { hp: 6, atk: 3, def: 7, spd: 0 },
+    signatureMove: "flare_dart",
+    accentHue: 12,
   }),
 ])

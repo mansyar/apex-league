@@ -160,6 +160,10 @@ describe("boss registry", () => {
       "koda/spark",
       // fire_drake wields ember_bank's (cindermoor) signature, a kit row.
       "koda/flame_charge",
+      // fire_drake wields the two unused fire specials now claimed by
+      // emberwing's champion forms, both still kit rows of its own.
+      "koda/blaze_bolt",
+      "koda/flare_dart",
       // plant_ox wields moss_warden's (mossboar) signature, a kit row.
       "hesse/seed_shot",
       // plant_ox wields spore_warden's (fernstag) signature, a kit row.
@@ -168,14 +172,20 @@ describe("boss registry", () => {
       "marlow/bubble",
       // water_axolotl wields mist_courser's (mistkit) signature, a kit row.
       "marlow/splash_bolt",
+      // water_axolotl wields siltback's two signatures, kit rows of its own.
+      "marlow/foam_volley",
+      "marlow/mist_spray",
       // water_axolotl wields foam_warden's (mistkit) signature, a kit row.
       "delmar/bubble",
       // water_axolotl wields tide_sentinel's (reefclaw) signature, a kit row.
       "delmar/tide_shot",
+      "delmar/foam_volley",
+      "delmar/mist_spray",
       // fire_drake wields soot_warden's (embercub) signature, a kit row.
       "fenn/spark",
       // fire_drake again, via both cindermoor forms' signatures.
       "fenn/flame_charge",
+      "fenn/blaze_bolt",
       "fenn/pyre_lance",
       // plant_ox wields moss_warden's (mossboar) signature, a kit row.
       "thessa/seed_shot",

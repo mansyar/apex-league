@@ -812,6 +812,9 @@ describe("breeding-discovery species records (roster_wave_3 + roster_wave_4)", (
   const DUNE_JERBOA = "dune_jerboa"
   const SPARK_RAY = "spark_ray"
   const GALE_MOTH = "gale_moth"
+  const THORNVOLT = "thornvolt"
+  const SILTBACK = "siltback"
+  const EMBERWING = "emberwing"
 
   const DISCOVERY_LINES = [
     {
@@ -958,6 +961,54 @@ describe("breeding-discovery species records (roster_wave_3 + roster_wave_4)", (
         "zephyr_veil",
       ],
     },
+    {
+      id: THORNVOLT,
+      displayName: "Thornvolt",
+      element: "wind",
+      archetypeId: "sprite",
+      temperament: "rush",
+      sibling: "wind_falcon",
+      kit: [
+        "feather_dart",
+        "gale_cutter",
+        "sky_bolt",
+        "hurricane_spiral",
+        "cyclone_dive",
+        "zephyr_veil",
+      ],
+    },
+    {
+      id: SILTBACK,
+      displayName: "Siltback",
+      element: "water",
+      archetypeId: "golem",
+      temperament: "slow",
+      sibling: "water_axolotl",
+      kit: [
+        "bubble",
+        "tide_shot",
+        "splash_bolt",
+        "maelstrom",
+        "riptide_rush",
+        "tide_aegis",
+      ],
+    },
+    {
+      id: EMBERWING,
+      displayName: "Emberwing",
+      element: "fire",
+      archetypeId: "wing",
+      temperament: "rush",
+      sibling: "fire_drake",
+      kit: [
+        "spark",
+        "flame_charge",
+        "cinder_shot",
+        "pyre_lance",
+        "cinder_dive",
+        "pyre_wall",
+      ],
+    },
   ] as const
 
   /** Each discovery line's element siblings: every other line plus the reward line. */
@@ -968,10 +1019,13 @@ describe("breeding-discovery species records (roster_wave_3 + roster_wave_4)", (
     [DUNE_JERBOA]: [SHALEMOLE, TORTOISE],
     [SPARK_RAY]: [VOLTFOX, HOUND],
     [GALE_MOTH]: [GALEHERON, FALCON],
+    [THORNVOLT]: [GALE_MOTH, GALEHERON, FALCON],
+    [SILTBACK]: [MISTKIT, "water_axolotl", REEFCLAW],
+    [EMBERWING]: [EMBERCUB, "fire_drake", CINDERMOOR],
   }
 
-  test("ALL_SPECIES holds 18 species: starters, rewards, discovery", () => {
-    expect(ALL_SPECIES).toHaveLength(18)
+  test("ALL_SPECIES holds 21 species: starters, rewards, discovery", () => {
+    expect(ALL_SPECIES).toHaveLength(21)
     expect(STARTER_SPECIES).toHaveLength(3)
     expect(REWARD_SPECIES.map((s) => s.id)).toEqual([
       HOUND,
@@ -991,6 +1045,9 @@ describe("breeding-discovery species records (roster_wave_3 + roster_wave_4)", (
       DUNE_JERBOA,
       SPARK_RAY,
       GALE_MOTH,
+      THORNVOLT,
+      SILTBACK,
+      EMBERWING,
     ])
     expect(ALL_SPECIES.map((s) => s.id)).toEqual([
       ...STARTER_SPECIES.map((s) => s.id),

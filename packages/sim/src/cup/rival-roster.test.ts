@@ -95,9 +95,9 @@ describe("generated rival rosters (FR-7)", () => {
   /** The wave-4 trio joins the widened pool through DISCOVERY_SPECIES. */
   const WAVE4_IDS: readonly string[] = ["embercub", "mossboar", "mistkit"]
 
-  test("each non-Bronze pool holds the nine discovery lines over the reward gate", () => {
-    expect(DISCOVERY_SPECIES.map((species) => species.id)).toHaveLength(9)
-    const sizes = { silver: 14, gold: 16, legend: 18 } as const
+  test("each non-Bronze pool holds the twelve discovery lines over the reward gate", () => {
+    expect(DISCOVERY_SPECIES.map((species) => species.id)).toHaveLength(12)
+    const sizes = { silver: 17, gold: 19, legend: 21 } as const
     for (const tier of ["silver", "gold", "legend"] as const) {
       const pool = new Set(
         [...obtainableSpecies(tier), ...DISCOVERY_SPECIES].map((s) => s.id),

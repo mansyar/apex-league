@@ -124,7 +124,14 @@ function sample(): Fought[] {
   // new-species pacing is covered by the balance/fuzz gates.
   const roster = ALL_SPECIES.filter(
     (species) =>
-      !["dune_jerboa", "spark_ray", "gale_moth"].includes(species.id),
+      ![
+        "dune_jerboa",
+        "spark_ray",
+        "gale_moth",
+        "thornvolt",
+        "siltback",
+        "emberwing",
+      ].includes(species.id),
   )
   // R1 (battle-balance): three seeds per pairing. One glacial matchup (the
   // tortoise fights at spd 5 against a clamped reference line) used to decide

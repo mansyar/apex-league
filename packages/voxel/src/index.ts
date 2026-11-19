@@ -77,6 +77,13 @@ export {
   VOXEL_SIZE,
 } from "./glb"
 export {
+  buildGolem,
+  GOLEM_GRID,
+  type GolemBuild,
+  golemTemplate,
+  sampleGolemDna,
+} from "./golem"
+export {
   buildHeron,
   HERON_GRID,
   type HeronBuild,
@@ -158,6 +165,13 @@ export {
   smolderTemplate,
 } from "./smolder"
 export {
+  buildSprite,
+  SPRITE_GRID,
+  type SpriteBuild,
+  sampleSpriteDna,
+  spriteTemplate,
+} from "./sprite"
+export {
   CHAMPION_MATURITY,
   JUVENILE_MATURITY,
   matureProportions,
@@ -187,3 +201,10 @@ export {
   type VoxelGrid,
   voxelize,
 } from "./voxelizer"
+export {
+  buildWing,
+  sampleWingDna,
+  WING_GRID,
+  type WingBuild,
+  wingTemplate,
+} from "./wing"
