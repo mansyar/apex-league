@@ -101,7 +101,7 @@
 - **Covers:** F5
 - **Touches:** `apps/server/src/live/room.ts`, `apps/server/src/live/room.test.ts`, `apps/server/src/live/route.ts`, `apps/server/src/live/route.test.ts`, `conductor/tracks/20261119-live-pvp-foundation/verification/phase-R2.md`, `conductor/tracks/20261119-live-pvp-foundation/verification/integrated.md`, `.conductor/evidence/20261119-live-pvp-foundation/**`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R2.T1: Restore seat/side ordering** — covers: F5
   - [ ] **R2.T1.1: Make `ready()` build `identities` in seat-index order so `identities[i]` always corresponds to seat `i`**
