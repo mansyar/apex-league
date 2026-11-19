@@ -64,13 +64,13 @@
 - **Covers:** F1
 - **Touches:** `packages/sim/scripts/battle-telemetry.ts`, `conductor/tracks/20261118-roster-wave-2/verification/phase-R1.md`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **R1.T1: Resolve F1** — covers: F1
-  - [ ] **R1.T1.1:** Update the "No mirrors" doc comment to state home indices 0 and 2 (or the general congruence rule); change no code, assertion, bound, seed, or pairing.
+- [x] **R1.T1: Resolve F1** — covers: F1
+  - [x] **R1.T1.1:** Update the "No mirrors" doc comment to state home indices 0 and 2 (or the general congruence rule); change no code, assertion, bound, seed, or pairing.
 
 <!--
-**Result:** <verified|blocked>
-**Checkpoint:** <short-sha>
+**Result:** verified
+**Checkpoint:** 61be86bc
 **Evidence:** conductor/tracks/20261118-roster-wave-2/verification/phase-R1.md
 -->
