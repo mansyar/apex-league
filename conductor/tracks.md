@@ -53,4 +53,4 @@
 - [x] **Track: Polish & Showcase** - [20261117-polish-showcase](./archive/20261117-polish-showcase/index.md) - feature - medium
 - [x] **Track: Nightly fuzz red: crab boundary** - [20261118-crab-fuzz-boundary](./archive/20261118-crab-fuzz-boundary/index.md) - bug - high
 - [x] **Track: Roster Wave 1** - [20261118-roster-wave-1](./archive/20261118-roster-wave-1/index.md) - feature - medium
-- [~] **Track: Roster Wave 2** - [20261118-roster-wave-2](./tracks/20261118-roster-wave-2/index.md) - feature - medium
+- [x] **Track: Roster Wave 2** - [20261118-roster-wave-2](./archive/20261118-roster-wave-2/index.md) - feature - medium

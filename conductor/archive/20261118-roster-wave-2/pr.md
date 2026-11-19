@@ -64,7 +64,7 @@ Full evidence: [`conductor/archive/20261118-roster-wave-2/verification/integrate
 
 ## Media
 
-![Roster Wave 2 showcase — handbook and new archetypes](.conductor/media/20261118-roster-wave-2/roster-wave-2-showcase.gif)
+![Roster Wave 2 showcase — handbook and new archetypes](https://github.com/user-attachments/assets/f76ceb6c-96eb-42ca-a376-569b980e6de8)
 
 ## Review
 
