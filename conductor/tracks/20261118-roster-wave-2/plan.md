@@ -40,21 +40,20 @@
 - **Covers:** FR-7, FR-8, FR-9, NFR-5, NFR-6, AC-7, AC-8, AC-9, AC-10
 - **Touches:** `apps/client/src/handbook/**`, `apps/client/src/handbook.test.ts`, `apps/client/src/gallery.ts`, `apps/client/src/gallery.test.ts`, `conductor/tracks/20261118-roster-wave-2/verification/phase-2.md`, `.conductor/evidence/20261118-roster-wave-2/**`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz` plus the visual layer per `workflow.md` (`playwright-cli` against `bun run dev`, desktop 1440×900, portrait iPhone 393×852, landscape 852×393, console check)
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Wire client discoverability** — covers: FR-7
-  - [ ] **P2.T1.1: Prove the handbook derives the three new recipe rows without a duplicated client recipe table**
-  - [ ] **P2.T1.2: Prove gallery reachability for sprite, golem, and wing without a hardcoded species list**
-- [ ] **P2.T2: Capture visual evidence** — covers: FR-8, NFR-5, NFR-6
-  - [ ] **P2.T2.1: Capture desktop, 393×852, and 852×393 screenshots of the changed surfaces with zero console errors/warnings**
-  - [ ] **P2.T2.2: Record screenshot paths, console results, and layout observations in the phase evidence report**
-- [ ] **P2.T3: Re-prove final invariants** — covers: FR-9, NFR-6, AC-9, AC-10
-  - [ ] **P2.T3.1: Re-run the full verification chain at the final phase head and record scope proof**
+- [x] **P2.T1: Wire client discoverability** — covers: FR-7
+  - [x] **P2.T1.1: Prove the handbook derives the three new recipe rows without a duplicated client recipe table**
+  - [x] **P2.T1.2: Prove gallery reachability for sprite, golem, and wing without a hardcoded species list**
+- [x] **P2.T2: Capture visual evidence** — covers: FR-8, NFR-5, NFR-6
+  - [x] **P2.T2.1: Capture desktop, 393×852, and 852×393 screenshots of the changed surfaces with zero console errors/warnings**
+  - [x] **P2.T2.2: Record screenshot paths, console results, and layout observations in the phase evidence report**
+- [x] **P2.T3: Re-prove final invariants** — covers: FR-9, NFR-6, AC-9, AC-10
+  - [x] **P2.T3.1: Re-run the full verification chain at the final phase head and record scope proof**
 
 <!--
-The primary appends after acceptance:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 4dca8020
 **Evidence:** conductor/tracks/20261118-roster-wave-2/verification/phase-2.md
 -->
 
