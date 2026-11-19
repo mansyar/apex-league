@@ -18,7 +18,7 @@
 - **Covers:** FR-1, FR-2, NFR-2, NFR-4, NFR-5, AC-1, AC-2, AC-7, AC-8
 - **Touches:** `conductor/tracks/20261120-live-pvp-production-acceptance/verification/production-proof.md`, `.conductor/evidence/20261120-live-pvp-production-acceptance/**`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`; visual layer: two real browsers at 1440×900 and 393×852 against the deployed client/API origins, plus a disconnected-client forfeit probe; `playwright-cli console` empty.
-- **Status:** blocked
+- **Status:** in_progress
 
 - [x] **P1.T1: Establish production target and throwaway identities** — covers: FR-1, NFR-2, AC-7
   - [x] **P1.T1.1:** Confirm the deployed bundle carries the live chip and `apex-api.ansyar-world.top`, and `/health` responds OK; capture both as evidence.
@@ -33,8 +33,8 @@
   - [x] **P1.T4.1:** Write `verification/production-proof.md` with exact URLs, probe commands, counts, screenshot paths and console result.
   - [x] **P1.T4.2:** On an upgrade/CORS failure, mark the phase `blocked` with the raw response and stop; make no deploy, proxy, CORS, or server config change.
 
-**Result:** blocked
-**Blocker:** Deployed WebSocket upgrade to `wss://apex-api.ansyar-world.top/live` initially returned HTTP 404 while `/health` returned 200. On the user-requested retry at 2026-11-20 09:06 +11:00 the origin went fully down: both `/health` and `/live` now return `503 no available server` from Cloudflare, and a bounded retry sequence (6 x 15 s plus a further 60 s) never recovered. No channel can open, so P1.T2 (verdict) and P1.T3 (forfeit) remain unreachable. Per NFR-5 and the approved spec, no deploy, proxy, CORS, `ALLOWED_ORIGIN`, server, or manifest workaround was attempted. The owner must restore a healthy API origin with a working `/live` upgrade before this phase can resume.
+**Result:** in_progress — resumed after Phase 1R and owner redeploy
+**Resolution:** The 404/503 outage was caused by the server image missing `@apex/sim` at boot (PR #83 merged the canonical manifest/lockfile/Dockerfile fix; PR #84 fixed the dockerignore that excluded `packages/sim/src`). The owner redeployed at SHA `8c773f54748677315e2b1221d6d12d98eebd47ce`. Primary re-probe at 2026-11-20 10:22 +11:00: `/health` → 200 `{"status":"ok","schemaVersion":"0003_ghost.sql"}`; `/live` upgrade probe → 400 `Expected a websocket connection` (route present; valid browser handshake expected to return 101). P1.T2 and P1.T3 are now being retried against the deployed origins.
 **Evidence:** conductor/tracks/20261120-live-pvp-production-acceptance/verification/production-proof.md
 
 ## Phase 1R: Container runtime module resolution (approved deviation)
