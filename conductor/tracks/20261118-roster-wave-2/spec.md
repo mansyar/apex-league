@@ -35,7 +35,7 @@ point.
   gate ok, no waivers, and no changed threshold; `bun run verify && bun run
   build`, `bun run balance`, `bun run gate:determinism`, and `bun run test:fuzz`
   all exit 0; nine new seed-42 artifact pairs regenerate byte-identically while
-  the existing 45 pairs remain unchanged; desktop and 393px screenshots show
+  the existing 54 pairs remain unchanged; desktop and 393px screenshots show
   the new recipes/creatures with zero console errors and no horizontal scroll.
 
 ## Scope
@@ -43,7 +43,7 @@ point.
 ### In Scope
 
 - Three new discovery species:
-  - `thornvolt` / **Thornvolt** / primary plant / archetype `sprite` /
+  - `thornvolt` / **Thornvolt** / primary wind / archetype `sprite` /
     recipe **plant + electric** / nimble special.
   - `siltback` / **Siltback** / primary water / archetype `golem` /
     recipe **water + earth** / bulky control.
@@ -69,8 +69,12 @@ point.
 
 - Any change to `SIM_VERSION`, save schema, dependency manifests, balance gate
   thresholds, cap-share/decisive/cap-quality fences, or the D‑1 pacing pin.
-- Retuning existing species stat bounds; only the three new species may be
-  tuned within their authored envelopes.
+- Broad retuning of existing species stat bounds. **Owner decision 2026-11-19:**
+  a narrowly scoped exception permits stat-bound-only adjustments to the few
+  existing rows that fall outside their statistical band in the 21-species
+  matrix, provided every balance gate, threshold, fence, and assertion stays
+  unchanged. The adjustment must be the minimum demonstrated by evidence and
+  recorded in the phase verification report.
 - New acquisition mechanics, tier rewards, starters, or changes to the
   breeding flow beyond adding recipe-table rows.
 - Rewriting the audio seam, crossfade, volume sliders, onboarding, or UX layout
@@ -86,8 +90,8 @@ point.
 | FR-2 | Add the three unordered element recipes `plant+electric -> thornvolt`, `water+earth -> siltback`, and `fire+wind -> emberwing` to the frozen `RECIPES` table. Lookup remains order-independent, same-element pairs still never match, and `speciesOptions` appends each discovered line once. | must |
 | FR-3 | Add two branch forms per new species to the branch catalog using the established discovery branch pattern. Every signature move must come from the species' element vocabulary, be absent from its own kit, and remain globally unique across all 42 branch forms. | must |
 | FR-4 | Register `sprite`, `golem`, and `wing` as voxel archetypes with templates, grids, exports, proportion budgets, `BODY_PROFILES` rows, choreography entries, and boundary/budget/determinism fuzz shards. | must |
-| FR-5 | Author nine new seed-42 artifact pairs (three archetypes × baby/juvenile/champion) through the documented determinism writer, leaving the existing 45 artifact pairs byte-identical. | must |
-| FR-6 | Clear the unchanged balance gate at 21/21 species. Tuning may adjust only the three new species' stat bounds within their authored envelopes; no existing species bounds, global gate, threshold, fence, or assertion may change. The pacing debt test and its diagnostic population must continue to measure the original 15-species roster. | must |
+| FR-5 | Author nine new seed-42 artifact pairs (three archetypes × baby/juvenile/champion) through the documented determinism writer, leaving the existing 54 artifact pairs byte-identical. | must |
+| FR-6 | Clear the unchanged balance gate at 21/21 species. Tuning may adjust the three new species' stat bounds within their authored envelopes and, under the owner's 2026-11-19 exception, make the minimum evidence-demonstrated stat-bound-only adjustment to existing rows needed to keep every row inside its statistical band. No global gate, threshold, fence, or assertion may change. The pacing debt test and its diagnostic population must continue to measure the original 15-species roster. | must |
 | FR-7 | Expose the three new recipes and species through the existing handbook and gallery derivation seams. The client must not maintain a second recipe table or hardcoded species list. | must |
 | FR-8 | Capture visual evidence at desktop 1440×900, portrait 393×852, and landscape 852×393 showing the new recipes/creatures, with zero console errors or warnings and no horizontal scroll. | must |
 | FR-9 | Keep all changes inside the approved sim, voxel, artifact, client, and Conductor evidence paths; re-prove verify, build, balance, determinism, and full fuzz green at the final head. | must |
@@ -112,7 +116,7 @@ point.
 | AC-3 | Six new branch forms exist; all 42 branch signatures are globally unique; each new signature is element-true and absent from its own kit. | FR-3 |
 | AC-4 | All three new archetypes are registered, exported, budgeted, body-profiled, choreographed, and covered by fuzz shards; all proportion, boundary, budget, and determinism fuzz tests pass. | FR-4 |
 | AC-5 | Nine new seed-42 artifact pairs are committed; the determinism gate reports all 54 pairs and 5 prop digests byte-identical. | FR-5 |
-| AC-6 | `bun run balance` reports 21/21 species ok with all global gates ok, no waivers, unchanged thresholds, unchanged existing bounds, and the baseline pacing debt pin intact. | FR-6 |
+| AC-6 | `bun run balance` reports 21/21 species ok with all global gates ok, no waivers, unchanged thresholds/fences/assertions, only the owner-approved minimum existing-row stat-bound adjustment if needed, and the baseline pacing debt pin intact. | FR-6 |
 | AC-7 | Handbook and gallery surfaces derive and show the new recipes/archetypes without a duplicated client recipe table; no hardcoded species list is introduced. | FR-7 |
 | AC-8 | Desktop, portrait, and landscape screenshots exist; console shows zero errors/warnings; `scrollWidth == clientWidth` at 393px and 852px. | FR-8 |
 | AC-9 | `bun run verify && bun run build`, `bun run balance`, `bun run gate:determinism`, and `bun run test:fuzz` all exit 0 at the final head. | FR-9 |
@@ -127,8 +131,11 @@ point.
 - A new kit's sustained score must stay inside the shipped band; adjust the kit
   selection within the element vocabulary rather than changing the band.
 - Adding three species widens the balance matrix and may push an existing edge
-  row outside its statistical bound. Resolve by tuning only the new species
-  within their authored envelopes; do not retune existing rows or gates.
+  row outside its statistical bound. First tune the new species within their
+  authored envelopes. If no solution exists, the owner's 2026-11-19 exception
+  permits the minimum evidence-demonstrated stat-bound-only adjustment to the
+  affected existing rows; gates, thresholds, fences, and assertions still do not
+  change.
 - The pacing debt diagnostic must keep measuring the original 15-species
   population by excluding all six wave-1 and wave-2 ids, while its `test.failing`
   pin, comment, assertion, and seed structure stay byte-for-byte unchanged.
@@ -146,12 +153,21 @@ point.
 
 ## Open Questions & Assumptions
 
+- **Owner decision 2026-11-19:** Thornvolt's primary element is revised from
+  plant to wind so the original nine-kit sustained band and global branch-signature
+  uniqueness remain unchanged. The `plant + electric` recipe is retained as a
+  hybrid breeding input; Thornvolt's signatures are `gust` and `talon_slash`, and
+  its kit uses the remaining six wind moves. No `FR`, `NFR`, or `AC` ID is renumbered.
+- **Owner decision 2026-11-19:** when no in-envelope stat-only solution exists
+  for the three new species, the minimum evidence-demonstrated stat-bound-only
+  adjustment to affected existing species rows is permitted. Balance gates,
+  thresholds, fences, assertions, `SIM_VERSION`, save schema, dependencies, and
+  the pacing debt pin remain unchanged. The adjustment and its justification
+  must be recorded in the phase verification report.
 - **Assumption:** the three named species and element pairs are approved as
-  the frozen wave; balance tuning may adjust only their stat bounds and kit
-  selections within the stated roles and element vocabularies.
-- **Assumption:** authored stat envelopes are starting hypotheses broad enough
-  to admit a no-waiver 21/21 balance solution; if none exists, the phase is
-  blocked for an owner decision rather than resolved by weakening a gate.
+  the frozen wave; balance tuning may adjust their stat bounds and kit
+  selections within the stated roles and element vocabularies, plus the
+  owner-approved minimal existing-row adjustment above.
 - **Assumption:** the physical device-lab pass remains owner-scheduled and
   human-only.
 
