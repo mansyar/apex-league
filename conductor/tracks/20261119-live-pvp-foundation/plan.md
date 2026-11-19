@@ -77,7 +77,7 @@
 - **Covers:** F1, F2, F3, F4
 - **Touches:** `apps/client/src/live/invite.ts`, `apps/client/src/live/invite.test.ts`, `apps/client/src/live/state.ts`, `apps/server/src/live/room.ts`, `apps/server/src/live/room.test.ts`, `conductor/tracks/20261119-live-pvp-foundation/verification/phase-R1.md`, `conductor/tracks/20261119-live-pvp-foundation/verification/integrated.md`, `.conductor/evidence/20261119-live-pvp-foundation/**`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz` plus a two-client browser pass at 1440×900, 393×852 and 852×393 with clean console
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Resolve F1 (joiner cast/stream mapping)** — covers: F1
   - [ ] **R1.T1.1: Make `castingFor` keep `owned` on stream side 0 and `rival` on stream side 1 for both seats, and add a pure test**
