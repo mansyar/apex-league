@@ -101,13 +101,16 @@
 - **Covers:** F5
 - **Touches:** `apps/server/src/live/room.ts`, `apps/server/src/live/room.test.ts`, `apps/server/src/live/route.ts`, `apps/server/src/live/route.test.ts`, `conductor/tracks/20261119-live-pvp-foundation/verification/phase-R2.md`, `conductor/tracks/20261119-live-pvp-foundation/verification/integrated.md`, `.conductor/evidence/20261119-live-pvp-foundation/**`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified — F5 fixed; five commands exit 0 (4443 pass / 1 skip / 0 fail, hash `0xff6f3d62`); new route-level vacated-seat test proves correct intent routing and forfeit winner.
+- **Checkpoint:** f4d20715
+- **Evidence:** conductor/tracks/20261119-live-pvp-foundation/verification/phase-R2.md
 
-- [ ] **R2.T1: Restore seat/side ordering** — covers: F5
-  - [ ] **R2.T1.1: Make `ready()` build `identities` in seat-index order so `identities[i]` always corresponds to seat `i`**
-  - [ ] **R2.T1.2: Remove the masking `.sort()` calls from the vacated-seat room test and assert the exact seat order**
-- [ ] **R2.T2: Prove the vacated-seat flow end to end** — covers: F5
-  - [ ] **R2.T2.1: Add a route-level in-memory test for create → join → host disconnect → third join that sends distinct intents from each socket and asserts each drives its own fighter**
-  - [ ] **R2.T2.2: Assert the forfeit verdict names the remaining seat as winner when the other socket disconnects in that flow**
-- [ ] **R2.T3: Record evidence** — covers: F5
-  - [ ] **R2.T3.1: Capture the five-command results and the new tests in `verification/phase-R2.md` and update `verification/integrated.md`**
+- [x] **R2.T1: Restore seat/side ordering** — covers: F5
+  - [x] **R2.T1.1: Make `ready()` build `identities` in seat-index order so `identities[i]` always corresponds to seat `i`**
+  - [x] **R2.T1.2: Remove the masking `.sort()` calls from the vacated-seat room test and assert the exact seat order**
+- [x] **R2.T2: Prove the vacated-seat flow end to end** — covers: F5
+  - [x] **R2.T2.1: Add a route-level in-memory test for create → join → host disconnect → third join that sends distinct intents from each socket and asserts each drives its own fighter**
+  - [x] **R2.T2.2: Assert the forfeit verdict names the remaining seat as winner when the other socket disconnects in that flow**
+- [x] **R2.T3: Record evidence** — covers: F5
+  - [x] **R2.T3.1: Capture the five-command results and the new tests in `verification/phase-R2.md` and update `verification/integrated.md`**

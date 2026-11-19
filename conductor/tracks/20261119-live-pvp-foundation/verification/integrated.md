@@ -15,7 +15,7 @@ was run with only the API server alive (no Vite, no browser sessions).
 
 | Command | Exit | Result |
 | --- | --- | --- |
-| `bun run verify` | 0 | Final (post-review-fix) 4442 pass, 1 skip, 0 fail; 665675 `expect()` calls; 4443 tests across 435 files; Biome clean; typecheck clean; final sim hash `0xff6f3d62` (pre-fix run: 4438 pass / 1 skip / 0 fail) |
+| `bun run verify` | 0 | Final (post-R2) 4443 pass, 1 skip, 0 fail; 665683 `expect()` calls; 4444 tests across 435 files; Biome clean; typecheck clean; final sim hash `0xff6f3d62` (earlier: 4438 → 4442 pass) |
 | `bun run build` | 0 | Vite build OK |
 | `bun run balance` | 0 | 1680 fights; capShare 30.8% <= 33.3%; decisiveShare 93.7%; all 34 gates OK |
 | `bun run gate:determinism` | 0 | 21 species × 3 stages + 5 props byte-identical; wing champion 151344 bytes / 2158 tris |
@@ -54,6 +54,9 @@ Largest live module is 9561 B (78% of cap). No voxel source changed.
   arena and reached a natural verdict, then returned to the ranch with 0 console
   errors. The 852×393 landscape pass used the same live panel with no horizontal
   scroll and no occluded controls; no orientation media query was needed.
+- Post-R2: a new in-memory route test covers create → join → host disconnect →
+  third join with distinct intents from each socket, proving each drives its own
+  fighter and the forfeit winner is the remaining seat (`phase-R2.md`).
 
 ### Screenshot paths
 
