@@ -15,7 +15,7 @@ was run with only the API server alive (no Vite, no browser sessions).
 
 | Command | Exit | Result |
 | --- | --- | --- |
-| `bun run verify` | 0 | 4438 pass, 1 skip, 0 fail; 665660 `expect()` calls; 4440 tests across 434 files; Biome clean; typecheck clean; final sim hash `0xff6f3d62` |
+| `bun run verify` | 0 | Final (post-review-fix) 4442 pass, 1 skip, 0 fail; 665675 `expect()` calls; 4443 tests across 435 files; Biome clean; typecheck clean; final sim hash `0xff6f3d62` (pre-fix run: 4438 pass / 1 skip / 0 fail) |
 | `bun run build` | 0 | Vite build OK |
 | `bun run balance` | 0 | 1680 fights; capShare 30.8% <= 33.3%; decisiveShare 93.7%; all 34 gates OK |
 | `bun run gate:determinism` | 0 | 21 species × 3 stages + 5 props byte-identical; wing champion 151344 bytes / 2158 tris |
@@ -49,6 +49,11 @@ Largest live module is 9561 B (78% of cap). No voxel source changed.
 - Create by code `A7C2FU`, join by code, both ready, both entered the live arena, both reached a natural verdict (desktop Defeat / phone Victory), both returned to the ranch via "Back to ranch".
 - Mid-match disconnect on a fresh room: guest left; host received `reason: forfeit, winnerSeat: 0` and the browser rendered "Opponent forfeited ... You keep the win.", then returned cleanly.
 - `playwright-cli console`: **0 errors, 0 warnings** on both clients after the full flow and after the forfeit flow.
+- Post-review-fix re-proof: after the F1 cast-mapping fix, room `J2UV36` was
+  created and joined at 1440×900 and 393×852, both readied, both entered the
+  arena and reached a natural verdict, then returned to the ranch with 0 console
+  errors. The 852×393 landscape pass used the same live panel with no horizontal
+  scroll and no occluded controls; no orientation media query was needed.
 
 ### Screenshot paths
 
@@ -63,6 +68,9 @@ Local artifacts (gitignored) under `.conductor/evidence/20261119-live-pvp-founda
 | 393×852 | `.conductor/evidence/20261119-live-pvp-foundation/phone-01-room-joined.png` | room joined, waiting |
 | 393×852 | `.conductor/evidence/20261119-live-pvp-foundation/phone-02-fight-live.png` | live arena |
 | 393×852 | `.conductor/evidence/20261119-live-pvp-foundation/phone-03-verdict.png` | natural verdict |
+| 852×393 | `.conductor/evidence/20261119-live-pvp-foundation/phone-landscape.png` | landscape invite panel (no horizontal scroll, no occluded controls) |
+| 1440×900 | `.conductor/evidence/20261119-live-pvp-foundation/desktop-05-f1-fight.png` | post-F1 live arena |
+| 393×852 | `.conductor/evidence/20261119-live-pvp-foundation/phone-04-f1-fight.png` | post-F1 live arena |
 
 ## Acceptance criteria
 

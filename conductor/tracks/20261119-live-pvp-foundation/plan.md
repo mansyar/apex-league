@@ -77,16 +77,19 @@
 - **Covers:** F1, F2, F3, F4
 - **Touches:** `apps/client/src/live/invite.ts`, `apps/client/src/live/invite.test.ts`, `apps/client/src/live/state.ts`, `apps/server/src/live/room.ts`, `apps/server/src/live/room.test.ts`, `conductor/tracks/20261119-live-pvp-foundation/verification/phase-R1.md`, `conductor/tracks/20261119-live-pvp-foundation/verification/integrated.md`, `.conductor/evidence/20261119-live-pvp-foundation/**`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz` plus a two-client browser pass at 1440×900, 393×852 and 852×393 with clean console
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified — all four findings fixed; five commands exit 0 (4442 pass / 1 skip / 0 fail, hash `0xff6f3d62`); two-client re-proof and 852×393 landscape pass with 0 console errors.
+- **Checkpoint:** 1c91a9aa
+- **Evidence:** conductor/tracks/20261119-live-pvp-foundation/verification/phase-R1.md
 
-- [ ] **R1.T1: Resolve F1 (joiner cast/stream mapping)** — covers: F1
-  - [ ] **R1.T1.1: Make `castingFor` keep `owned` on stream side 0 and `rival` on stream side 1 for both seats, and add a pure test**
-  - [ ] **R1.T1.2: Confirm in a two-client browser run that each client's own-named fighter carries its own seat's frame**
-- [ ] **R1.T2: Resolve F2 (vacated seat reuse)** — covers: F2
-  - [ ] **R1.T2.1: Assign the first free seat on join instead of inferring from `seats.length`**
-  - [ ] **R1.T2.2: Add a room test for create → join → host disconnect → third join with distinct seats and both intents honored**
-- [ ] **R1.T3: Resolve F3 (landscape proof)** — covers: F3
-  - [ ] **R1.T3.1: Capture the live panel at 852×393 with no horizontal scroll, no occluded control and 0 console errors; add an orientation rule only if the pass fails**
-  - [ ] **R1.T3.2: Record the landscape screenshot path and console result in `phase-R1.md` and `integrated.md`**
-- [ ] **R1.T4: Resolve F4 (naming)** — covers: F4
-  - [ ] **R1.T4.1: Rename `winnerName` to `forfeiterName` in the forfeit copy branch**
+- [x] **R1.T1: Resolve F1 (joiner cast/stream mapping)** — covers: F1
+  - [x] **R1.T1.1: Make `castingFor` keep `owned` on stream side 0 and `rival` on stream side 1 for both seats, and add a pure test**
+  - [x] **R1.T1.2: Confirm in a two-client browser run that each client's own-named fighter carries its own seat's frame**
+- [x] **R1.T2: Resolve F2 (vacated seat reuse)** — covers: F2
+  - [x] **R1.T2.1: Assign the first free seat on join instead of inferring from `seats.length`**
+  - [x] **R1.T2.2: Add a room test for create → join → host disconnect → third join with distinct seats and both intents honored**
+- [x] **R1.T3: Resolve F3 (landscape proof)** — covers: F3
+  - [x] **R1.T3.1: Capture the live panel at 852×393 with no horizontal scroll, no occluded control and 0 console errors; add an orientation rule only if the pass fails**
+  - [x] **R1.T3.2: Record the landscape screenshot path and console result in `phase-R1.md` and `integrated.md`**
+- [x] **R1.T4: Resolve F4 (naming)** — covers: F4
+  - [x] **R1.T4.1: Rename `winnerName` to `forfeiterName` in the forfeit copy branch**
