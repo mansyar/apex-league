@@ -54,7 +54,7 @@
 - **Covers:** FR-5, FR-6, FR-7, FR-8, FR-9, NFR-4, NFR-5, AC-5, AC-6, AC-7, AC-8, AC-9, AC-10
 - **Touches:** `apps/client/src/live/**`, `apps/client/src/main.ts`, `apps/client/src/app/**`, `apps/client/src/ui/**`, `apps/client/src/base.css`, `conductor/tracks/20261119-live-pvp-foundation/verification/decision.md`, `conductor/tracks/20261119-live-pvp-foundation/verification/phase-3.md`, `.conductor/evidence/20261119-live-pvp-foundation/**`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz` plus the visual layer per `workflow.md` (`playwright-cli` against `bun run dev`, desktop 1440×900 and phone 393×852, two local clients, console check)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Add the spar-invite surface** — covers: FR-5, AC-5
   - [ ] **P3.T1.1: Add create/join controls, room-code display and connection-state feedback, reusing the broadcast UI kit**
