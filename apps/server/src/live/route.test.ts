@@ -7,10 +7,14 @@
 import { describe, expect, test } from "bun:test"
 import {
   type ErrorMessage,
+  type FightStream,
   LIVE_ERROR_CODES,
   LIVE_PROTOCOL_VERSION,
   type LiveServerMessage,
+  readFrame,
   type SnapshotMessage,
+  STREAM_MOVE_IDS,
+  type StreamFrame,
   type VerdictMessage,
 } from "@apex/sim"
 import { createApp } from "../app"
@@ -20,8 +24,10 @@ import type { LiveClock } from "./loop"
 import type { Authenticate } from "./room"
 import {
   createLiveAdapter,
+  createLiveServer,
   dbAuthenticate,
   type LiveAdapter,
+  type LiveSocket,
   type LiveSocketHost,
 } from "./route"
 
@@ -372,6 +378,79 @@ describe("live WebSocket route", () => {
 
     expect(snapshots(pairA.host)).toEqual(snapshots(pairB.host))
     expect(verdicts(pairA.host)).toEqual(verdicts(pairB.host))
+  })
+
+  test("vacated seat keeps intent and forfeit sides aligned to their owners", async () => {
+    const clock = fakeClock()
+    const server = createLiveServer({ authenticate: fakeAuth(), clock })
+    const peer = () => {
+      const sent: LiveServerMessage[] = []
+      const socket: LiveSocket = {
+        send: (message) => sent.push(message),
+        close: () => {},
+      }
+      return { socket, sent }
+    }
+    const host = peer()
+    const guest = peer()
+    const third = peer()
+    type Peer = ReturnType<typeof peer>
+    const wire = async (p: Peer, payload: unknown): Promise<void> => {
+      await server.receive(p.socket, JSON.stringify(payload))
+    }
+    const frames = (p: Peer): SnapshotMessage[] =>
+      p.sent.filter((m): m is SnapshotMessage => m.kind === "snapshot")
+    const verdictsFor = (p: Peer): VerdictMessage[] =>
+      p.sent.filter((m): m is VerdictMessage => m.kind === "verdict")
+
+    // create -> join -> host disconnect frees seat 0 -> third join takes seat 0.
+    await wire(host, createMsg("host"))
+    await wire(guest, joinMsg("guest"))
+    server.disconnect(host.socket)
+    await wire(third, joinMsg("third"))
+    await wire(guest, readyMsg("guest"))
+    await wire(third, readyMsg("third"))
+
+    // Side 0 is the third trainer (seat 0); side 1 is the guest (seat 1).
+    expect(frames(guest)[0]?.stream.keys).toEqual(["third", "guest"])
+
+    const trigger = (id: string, seq = 0) => ({
+      ...intentMsg(seq),
+      intent: { doctrine: null, triggers: [id] },
+    })
+    // Record both distinct orders while the clock is still at 0, so the next
+    // pump steps the sim once with both intents already applied.
+    await wire(guest, trigger("spark"))
+    await wire(third, trigger("flare_dart"))
+    clock.set(50)
+    await wire(guest, trigger("spark", 1))
+
+    const stream: FightStream | undefined = frames(guest).at(-1)?.stream
+    expect(stream).toBeDefined()
+    if (!stream) return
+    const frameAt = (side: 0 | 1): StreamFrame =>
+      readFrame(stream, 0, side, {
+        x: 0,
+        z: 0,
+        facingX: 0,
+        facingZ: 0,
+        phase: 0,
+        phaseT: 0,
+        hp: 0,
+        hitstunMs: 0,
+        pinned: false,
+      })
+    // The guest's trigger shows up on side 1 (the guest's own fighter) and the
+    // third trainer's on side 0 — intents follow the trainer, not join order.
+    expect(frameAt(1).moveIdx).toBe(STREAM_MOVE_IDS.indexOf("spark") + 1)
+    expect(frameAt(0).moveIdx).toBe(STREAM_MOVE_IDS.indexOf("flare_dart") + 1)
+
+    // Guest (seat 1) forfeits: the remaining third trainer (side 0) wins.
+    server.disconnect(guest.socket)
+    expect(verdictsFor(third)).toHaveLength(1)
+    expect(verdictsFor(third)[0]?.reason).toBe("forfeit")
+    expect(verdictsFor(third)[0]?.winnerSeat).toBe(0)
+    expect(verdictsFor(guest)).toHaveLength(0)
   })
 
   test("injectable app registers /live, keeps /health", async () => {

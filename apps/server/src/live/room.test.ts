@@ -154,19 +154,21 @@ describe("joining and readiness", () => {
     if (!third.ok) return
     expect(third.seat).toBe(0)
 
-    const indices = third.room.seats.map((s) => s.seat)
-    expect(new Set(indices).size).toBe(2)
-    expect(indices.sort()).toEqual([0, 1])
+    // The freed seat 0 is appended, so room seats stay in insertion order:
+    // guest still holds seat 1, the third trainer was seated into seat 0.
+    expect(third.room.seats.map((s) => s.seat)).toEqual([1, 0])
+    expect(third.room.seats.map((s) => s.trainerId)).toEqual(["guest", "third"])
 
     // Both remaining seats keep their own sequence: each can ready and
-    // together they start exactly one match carrying both identities.
+    // together they start exactly one match. Identities are seat-index order
+    // (seat 0 first), never insertion order — sides/intents index by seat.
     expect(rooms.ready("APEX19", "guest").ok).toBe(true)
     const started = rooms.ready("APEX19", "third")
     expect(started.ok).toBe(true)
     if (started.ok) {
-      expect(started.start?.identities.map((i) => i.trainerId).sort()).toEqual([
-        "guest",
+      expect(started.start?.identities.map((i) => i.trainerId)).toEqual([
         "third",
+        "guest",
       ])
     }
   })

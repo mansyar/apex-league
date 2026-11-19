@@ -178,12 +178,17 @@ export function createRoomRegistry(options: RoomRegistryOptions): RoomRegistry {
 
       if (room.seats.length === 2 && room.seats.every((entry) => entry.ready)) {
         room.phase = "fighting"
-        const identities = room.seats.map(
-          ({ trainerId: id, name }): TrainerIdentity => ({
-            trainerId: id,
-            name,
-          }),
-        ) as [TrainerIdentity, TrainerIdentity]
+        // A reused seat is appended, so insertion order is not seat order.
+        // Side/intent/forfeit indices are all room-seat based: identities[i]
+        // must always be the trainer holding seat i.
+        const identities = [...room.seats]
+          .sort((a, b) => a.seat - b.seat)
+          .map(
+            ({ trainerId: id, name }): TrainerIdentity => ({
+              trainerId: id,
+              name,
+            }),
+          ) as [TrainerIdentity, TrainerIdentity]
         return {
           ok: true,
           room: snapshot(room),
