@@ -14,7 +14,7 @@
 - **Covers:** FR-1, FR-2, FR-3, NFR-1, NFR-2, NFR-3, NFR-6, AC-1, AC-2, AC-3
 - **Touches:** `packages/sim/src/live/**`, `packages/sim/src/index.ts`, `apps/server/src/live/**` (excluding `route.ts` and `route.test.ts`), `conductor/tracks/20261119-live-pvp-foundation/verification/phase-1.md`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Define the live-match protocol** — covers: FR-1, AC-1
   - [ ] **P1.T1.1: Add the versioned message union (create, join, ready, intent, snapshot, verdict, error) and its shared types in `packages/sim/src/live/`, exported from the sim package root**
