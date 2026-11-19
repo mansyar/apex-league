@@ -53,12 +53,17 @@ acceptance for a feature its roadmap already treats as delivered.
   Phase 4 entry marking live PvP as landed.
 - Re-running `bun run verify`, `bun run build`, `bun run balance`,
   `bun run gate:determinism` and `bun run test:fuzz` on the final tree.
+- **Owner-approved deviation (2026-11-20):** make the published server image
+  bootable by declaring `@apex/sim` as a workspace dependency of `@apex/server`,
+  updating `bun.lock`, copying `packages/sim` into the Docker runtime stage, and
+  adding a failing-first deploy-contract regression test.
 
 ### Out of Scope
 
 - Changes to deploy configuration, `ALLOWED_ORIGIN`, the reverse proxy/Coolify
   setup, `LIVE_PROTOCOL_VERSION`, `SIM_VERSION`, the save schema, balance gates,
-  pacing pins, dependency manifests, or the lockfile.
+  pacing pins, dependency manifests, or the lockfile — with the sole exception of
+  the owner-approved container-runtime deviation above.
 - Matchmaking, rating, reconnect, pause, spectator, auto-rematch, and the
   physical device-lab pass.
 - Editing the archived ADR itself (`conductor/archive/.../decision.md`); it is
@@ -96,15 +101,16 @@ acceptance for a feature its roadmap already treats as delivered.
 | FR-3 | After a verdict or "Back to ranch", reopening the invite panel starts a fresh invite without a page reload: empty code input, enabled start controls, hidden room/result rows, idle status. | must |
 | FR-4 | Evidence for the production proof is committed in `verification/integrated.md`: exact commands, test counts and sim hash, module caps, screenshot paths, console result, deployed URLs, and the scope proof. | must |
 | FR-5 | Documentation truth: the new verification record notes that the archived ADR's "primary must run the visual proof" line is superseded, and `product.md` Phase 4 records live PvP as landed with the date and PR reference. | must |
+| FR-6 | The published server image boots: `@apex/server` declares `@apex/sim` as a workspace dependency, the lockfile matches, and the Docker runtime stage carries the sim source so `apps/server/src/main.ts` resolves every import in the container. | must |
 
 ## Non-Functional Requirements
 
 | ID | Requirement |
 | --- | --- |
-| NFR-1 | No new runtime dependency; no change to `LIVE_PROTOCOL_VERSION` (1), `SIM_VERSION` (3), save schema, balance gates, pacing pins/fences, CORS, deploy configuration, `package.json` or the lockfile. |
+| NFR-1 | No new runtime dependency; no change to `LIVE_PROTOCOL_VERSION` (1), `SIM_VERSION` (3), save schema, balance gates, pacing pins/fences, CORS or other deploy configuration — except the owner-approved deviation limited to the server's `@apex/sim` workspace declaration, matching `bun.lock`, and the Dockerfile copy that carries sim source into the runtime image. |
 | NFR-2 | Only two throwaway trainer identities and their throwaway saves are written to the production API. No real player data, personal credentials, or passphrases appear in the repo, evidence files, URLs, room codes, or console output; passphrases travel only in the JSON message body. |
 | NFR-3 | Visual proof at 1440×900 and 393×852 against the deployed origin with 0 console errors; module caps (client/sim/server 12,288 B, voxel 24,576 B) remain enforced with no allowlist. |
-| NFR-4 | All repository writes stay inside the client `live/` modules, their tests, and Conductor/docs state; no server, sim, voxel or infrastructure source changes are expected. |
+| NFR-4 | All repository writes stay inside the client `live/` modules, their tests, and Conductor/docs state, plus the owner-approved container-runtime deviation (server manifest, lockfile, Dockerfile and deploy-contract test); no sim, voxel or unrelated infrastructure source changes. |
 | NFR-5 | If the production WebSocket upgrade or CORS fails for a repo-external reason, the phase is recorded as `blocked` with the exact probe output; no deploy/proxy/CORS workaround is attempted. |
 | NFR-6 | The five configured verification commands exit 0 on the final tree and the determinism hash remains `0xff6f3d62`. |
 
@@ -117,9 +123,10 @@ acceptance for a feature its roadmap already treats as delivered.
 | AC-3 | A regression test fails before the panel-reset fix and passes after; with the fixed local client connected to the production API, reopening the panel after a bout shows the fresh state without a reload. | FR-3 |
 | AC-4 | `verification/integrated.md` records exact commands, counts, hash, caps, screenshot paths, console result, deployed URLs and a scope proof. | FR-4 |
 | AC-5 | `product.md` Phase 4 marks live PvP landed with a dated note and PR #82 reference; the new verification record notes the ADR line is superseded; the archived ADR is unchanged. | FR-5 |
-| AC-6 | `bun run verify`, `bun run build`, `bun run balance`, `bun run gate:determinism` and `bun run test:fuzz` all exit 0 with hash `0xff6f3d62`; module caps pass; no manifest, protocol, save, balance, pacing, CORS or deploy file changed. | NFR-1, NFR-3, NFR-6 |
+| AC-6 | `bun run verify`, `bun run build`, `bun run balance`, `bun run gate:determinism` and `bun run test:fuzz` all exit 0 with hash `0xff6f3d62`; module caps pass; the only manifest/deploy changes are the approved container-runtime deviation, with no protocol, save, balance, pacing or CORS change. | NFR-1, NFR-3, NFR-6 |
 | AC-7 | No credentials, passphrases or real player data appear in tracked artifacts; only the two throwaway trainers were used. | NFR-2 |
 | AC-8 | Any repo-external production failure is recorded as a blocked phase with probe output and no config change; no fabricated pass is claimed. | NFR-5 |
+| AC-9 | A deploy-contract test fails before the container-runtime fix and passes after: the server manifest declares `@apex/sim`, the lockfile matches, and the Dockerfile runtime stage copies the sim source; `apps/server/src/main.ts` boots with imports resolved. | FR-6 |
 
 ## Edge Cases
 

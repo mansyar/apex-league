@@ -37,6 +37,38 @@
 **Blocker:** Deployed WebSocket upgrade to `wss://apex-api.ansyar-world.top/live` initially returned HTTP 404 while `/health` returned 200. On the user-requested retry at 2026-11-20 09:06 +11:00 the origin went fully down: both `/health` and `/live` now return `503 no available server` from Cloudflare, and a bounded retry sequence (6 x 15 s plus a further 60 s) never recovered. No channel can open, so P1.T2 (verdict) and P1.T3 (forfeit) remain unreachable. Per NFR-5 and the approved spec, no deploy, proxy, CORS, `ALLOWED_ORIGIN`, server, or manifest workaround was attempted. The owner must restore a healthy API origin with a working `/live` upgrade before this phase can resume.
 **Evidence:** conductor/tracks/20261120-live-pvp-production-acceptance/verification/production-proof.md
 
+## Phase 1R: Container runtime module resolution (approved deviation)
+
+- **Goal:** The published server image boots after PR #82: `@apex/server`
+  declares the `@apex/sim` workspace dependency, the lockfile matches, and the
+  Docker runtime stage carries the sim source so `apps/server/src/main.ts`
+  resolves every import in the container. Proven by a failing-first deploy
+  contract test and a local container-layout boot check.
+- **Depends on:** none — resolves the Phase 1 infra blocker
+- **Covers:** FR-6, NFR-1, NFR-4, NFR-6, AC-6, AC-9
+- **Touches:** `apps/server/package.json`, `bun.lock`, `apps/server/Dockerfile`, `scripts/deploy/server-image.test.ts`, `conductor/tracks/20261120-live-pvp-production-acceptance/verification/phase-1R.md`
+- **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`; plus `bun test scripts/deploy/server-image.test.ts --timeout 120000` and a local container-layout boot check showing `apps/server/src/main.ts` resolves `@apex/sim`. No visual layer (no UI change).
+- **Status:** pending
+
+- [ ] **P1R.T1: Declare the sim workspace dependency** — covers: FR-6, NFR-1, AC-9
+  - [ ] **P1R.T1.1:** Add `"@apex/sim": "workspace:*"` to `apps/server/package.json` dependencies.
+  - [ ] **P1R.T1.2:** Regenerate `bun.lock` with `bun install` and confirm the server workspace lists the dependency.
+- [ ] **P1R.T2: Carry sim source into the runtime image** — covers: FR-6, AC-9
+  - [ ] **P1R.T2.1:** Add Dockerfile runtime-stage copies for `packages/sim/package.json` and `packages/sim/src`.
+  - [ ] **P1R.T2.2:** Prove a minimal image-like layout boots without the module-resolution error, with a boot log showing the listen line.
+- [ ] **P1R.T3: Failing-first deploy contract test** — covers: FR-6, AC-9
+  - [ ] **P1R.T3.1:** Assert in `scripts/deploy/server-image.test.ts` that the server manifest declares `@apex/sim`, the lockfile matches, and the Dockerfile copies the sim source.
+  - [ ] **P1R.T3.2:** Show the test fails on the pre-fix tree and passes after the fix.
+- [ ] **P1R.T4: Verification and evidence** — covers: NFR-6, AC-6
+  - [ ] **P1R.T4.1:** Run all five configured verification commands individually on the final tree and record exact counts and hash.
+  - [ ] **P1R.T4.2:** Write `verification/phase-1R.md` with commands, results, boot proof and deviations.
+
+<!--
+**Result:** verified
+**Checkpoint:** <short-sha>
+**Evidence:** conductor/tracks/20261120-live-pvp-production-acceptance/verification/phase-1R.md
+-->
+
 ## Phase 2: Invite panel reset and second-bout proof
 
 - **Goal:** Reopening "Live PvP" after a verdict or "Back to ranch" starts a
