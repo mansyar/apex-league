@@ -2,11 +2,11 @@
   "id": "20261119-live-pvp-foundation",
   "title": "Live PvP Foundation Spike",
   "type": "feature",
-  "status": "in_progress",
+  "status": "complete",
   "priority": "high",
   "depends_on": [],
   "created_at": "2026-11-19T22:23:42.9992239+11:00",
-  "updated_at": "2026-11-20T01:45:00.0000000+11:00",
+  "updated_at": "2026-11-20T02:55:40.8705423+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "feat/20261119-live-pvp-foundation",
@@ -22,10 +22,10 @@
   "review_verdict": "PASS",
   "review_rounds": 2,
   "doc_sync": "synced",
-  "pr_url": null,
+  "pr_url": "https://github.com/mansyar/apex-league/pull/82",
   "reverted_at": null,
   "revert_commit": null,
   "revert_pr_url": null,
-  "archived_at": null,
-  "archive_path": null
+  "archived_at": "2026-11-20T02:55:40.8705423+11:00",
+  "archive_path": "conductor/archive/20261119-live-pvp-foundation"
 }

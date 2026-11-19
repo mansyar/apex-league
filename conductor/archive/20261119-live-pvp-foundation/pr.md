@@ -26,7 +26,7 @@ and no changes to save schema, balance, pacing, CORS or deploy configuration.
 ## Requirements
 
 - [x] `FR-1` — Versioned, parseable client/server protocol (`packages/sim/src/live/types.test.ts`, `parse.test.ts`)
-- [x] `FR-2` — Two-seat room creation/join/disconnect (`apps/server/src/live/room.test.ts`)
+- [x] `FR-2` — Two-seat room creation/join/disconnect (`apps/server/src/live/room.test.ts`, `route.test.ts`)
 - [x] `FR-3` — Server-authoritative 20/50/20 match loop (`loop.test.ts`, `fight.test.ts`)
 - [x] `FR-4` — Elysia WebSocket transport without a listening port in tests (`route.test.ts`)
 - [x] `FR-5` — Small spar-invite panel with room code entry (`panel.ts`, screenshots)
@@ -57,11 +57,11 @@ and no changes to save schema, balance, pacing, CORS or deploy configuration.
 
 ## Media
 
-![Live arena on desktop](.conductor/media/20261119-live-pvp-foundation/desktop-02-fight-live.png)
+![Live arena on desktop](https://github.com/user-attachments/assets/2d389a75-cd17-455d-82a0-7ed04ccbba73)
 
-![Live arena on phone](.conductor/media/20261119-live-pvp-foundation/phone-02-fight-live.png)
+![Live arena on phone](https://github.com/user-attachments/assets/ff9f7653-7282-438b-a8b4-df6e64311151)
 
-![Forfeit verdict on desktop](.conductor/media/20261119-live-pvp-foundation/desktop-04-forfeit-verdict.png)
+![Forfeit verdict on desktop](https://github.com/user-attachments/assets/335d820a-792a-444f-be1f-9a2b1e317ce7)
 
 ## Review
 
