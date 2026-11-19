@@ -71,3 +71,28 @@ https://apex-league.pages.dev/assets/index-90kZBnoO.js:4220
 - Production infra must be fixed by the primary/owner: the deployed proxy/Coolify layer is not forwarding the WebSocket upgrade for `/live` to the server's Elysia handler. `/health` is healthy, so the API origin itself is reachable. Once the upgrade returns 101 and a room channel opens, this phase's P1.T2/P1.T3 browser proofs can be re-run unchanged.
 - No deploy, proxy, CORS, `ALLOWED_ORIGIN`, server source, or manifest change was attempted, per the brief's stop-on-upgrade-failure rule.
 - Browser sessions `pvpA`/`pvpB` were closed after evidence capture; the generated console log remains under `.playwright-cli/`. No passphrase was written to any file, URL, room code, or screenshot.
+
+## Primary verification (independent re-run)
+
+- Production probe repeated by the primary with `curl.exe`:
+  - `GET https://apex-api.ansyar-world.top/health` → `HTTP/1.1 200`, body
+    `{"status":"ok","schemaVersion":"0003_ghost.sql"}`.
+  - `GET https://apex-api.ansyar-world.top/live` with `Connection: Upgrade`,
+    `Upgrade: websocket`, `Sec-WebSocket-Key`, `Sec-WebSocket-Version: 13` →
+    `HTTP/1.1 404 Not Found`, `Content-Length: 9`, body `NOT_FOUND`, headers
+    `server: cloudflare`, `cf-cache-status: DYNAMIC`.
+  - Conclusion: the blocker is at the deployed proxy/routing layer, not in the
+    client path, the server source, or the sim. No workaround attempted.
+
+| Command | Exit | Summary |
+|---|---|---|
+| `bun run verify` | 0 | 4443 pass / 1 skip / 0 fail, 665683 `expect()` calls, 4444 tests across 435 files, Biome/typecheck clean, sim hash `0xff6f3d62` |
+| `bun run build` | 0 | Vite 438 modules; pre-existing >500 kB chunk warning only |
+| `bun run balance` | 0 | 1680 fights, capShare 30.8% <= 33.3%, decisiveShare 93.7%, 34 gates OK |
+| `bun run gate:determinism` | 0 | All 21 species x 3 stages + 5 props byte-identical |
+| `bun run test:fuzz` | 0 | 139 pass / 0 fail, 129015 `expect()` calls |
+
+**Verdict:** The repository is green; the two subagent-denied commands pass when
+run by the primary. Phase 1 remains **blocked** solely by the deployed
+WebSocket upgrade returning 404. No code regression is claimed or implied.
+

@@ -18,26 +18,24 @@
 - **Covers:** FR-1, FR-2, NFR-2, NFR-4, NFR-5, AC-1, AC-2, AC-7, AC-8
 - **Touches:** `conductor/tracks/20261120-live-pvp-production-acceptance/verification/production-proof.md`, `.conductor/evidence/20261120-live-pvp-production-acceptance/**`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`; visual layer: two real browsers at 1440×900 and 393×852 against the deployed client/API origins, plus a disconnected-client forfeit probe; `playwright-cli console` empty.
-- **Status:** in_progress
+- **Status:** blocked
 
-- [ ] **P1.T1: Establish production target and throwaway identities** — covers: FR-1, NFR-2, AC-7
-  - [ ] **P1.T1.1:** Confirm the deployed bundle carries the live chip and `apex-api.ansyar-world.top`, and `/health` responds OK; capture both as evidence.
-  - [ ] **P1.T1.2:** Create exactly two throwaway trainers on the production API, set their names/passphrases, and push throwaway saves; inject credentials only in the browsers' localStorage.
+- [x] **P1.T1: Establish production target and throwaway identities** — covers: FR-1, NFR-2, AC-7
+  - [x] **P1.T1.1:** Confirm the deployed bundle carries the live chip and `apex-api.ansyar-world.top`, and `/health` responds OK; capture both as evidence.
+  - [x] **P1.T1.2:** Create exactly two throwaway trainers on the production API, set their names/passphrases, and push throwaway saves; inject credentials only in the browsers' localStorage.
 - [ ] **P1.T2: Two-client deployed run to verdict** — covers: FR-1, AC-1
   - [ ] **P1.T2.1:** Desktop 1440×900 creates a room; phone 393×852 joins by code; both ready; fight reaches one natural verdict; both return to the ranch.
   - [ ] **P1.T2.2:** Capture room/fight/verdict screenshots for both viewports and confirm 0 console errors/warnings on both clients.
 - [ ] **P1.T3: Deployed disconnect/forfeit proof** — covers: FR-2, AC-2
   - [ ] **P1.T3.1:** Start a fresh room, then disconnect one client mid-bout; capture the survivor's forfeit verdict and clean return.
   - [ ] **P1.T3.2:** Confirm no zombie room state and 0 console errors; capture the forfeit screenshot.
-- [ ] **P1.T4: Production evidence or infra blocker record** — covers: NFR-5, FR-4, AC-8
-  - [ ] **P1.T4.1:** Write `verification/production-proof.md` with exact URLs, probe commands, counts, screenshot paths and console result.
-  - [ ] **P1.T4.2:** On an upgrade/CORS failure, mark the phase `blocked` with the raw response and stop; make no deploy, proxy, CORS, or server config change.
+- [x] **P1.T4: Production evidence or infra blocker record** — covers: NFR-5, FR-4, AC-8
+  - [x] **P1.T4.1:** Write `verification/production-proof.md` with exact URLs, probe commands, counts, screenshot paths and console result.
+  - [x] **P1.T4.2:** On an upgrade/CORS failure, mark the phase `blocked` with the raw response and stop; make no deploy, proxy, CORS, or server config change.
 
-<!--
-**Result:** verified
-**Checkpoint:** <short-sha>
+**Result:** blocked
+**Blocker:** Deployed WebSocket upgrade to `wss://apex-api.ansyar-world.top/live` returns HTTP 404 from the Cloudflare/Coolify layer while `/health` returns 200. No channel can open, so P1.T2 (verdict) and P1.T3 (forfeit) are unreachable. Per NFR-5 and the approved spec, no deploy, proxy, CORS, `ALLOWED_ORIGIN`, server, or manifest workaround was attempted. Owner/proxy configuration must forward the upgrade before this phase can resume.
 **Evidence:** conductor/tracks/20261120-live-pvp-production-acceptance/verification/production-proof.md
--->
 
 ## Phase 2: Invite panel reset and second-bout proof
 
