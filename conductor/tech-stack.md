@@ -400,6 +400,22 @@
   all three access-control headers, and both a foreign origin and the
   `apex-league.pages.dev.evil.test` lookalike refused. The Coolify deploy itself
   is configuration-complete and has not run.*
+- *2026-11-20 — Live PvP foundation (track `20261119-live-pvp-foundation`):
+  the Elysia app now serves a WebSocket `/live` route alongside the HTTP
+  endpoints. It is registered on the injectable `createApp({db, allowedOrigin})`
+  app and exercised in memory (no port, no network). The transport is a thin
+  adapter over a transport-agnostic room/loop core: a versioned JSON protocol,
+  a two-seat room state machine, and an authoritative 20 Hz intent / 50 Hz sim /
+  20 Hz dense-stream-snapshot loop with one terminal verdict. The live stream
+  reuses the existing `FightStream` dense format and arena renderer — no new
+  runtime dependency, no second visual protocol, no `SIM_VERSION` or save
+  change. `apps/server/src/main.ts` now boots with `app.listen(port)` instead of
+  `Bun.serve({port, fetch})` so Elysia's WebSocket handler upgrades `/live` in a
+  real browser. The client adds `apps/client/src/live/` (pure protocol/state,
+  transport adapter, spar-invite panel) behind a dev-only `VITE_API_ORIGIN`;
+  when the origin is unset the live chip is omitted and the ranch is untouched.
+  `apps/server/tsconfig.json` gains the same `@apex/sim` path mapping the client
+  already had. No new script, dependency, CORS or deployment config.*
 
 ## Asset Pipeline
 - **Creatures and ranch props**: species and scenery defined as versioned JSON

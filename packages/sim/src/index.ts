@@ -78,6 +78,7 @@ export {
   tacticForDoctrine,
   typeFactor,
 } from "./battle"
+export { STEP_MS } from "./battle/continuous/types"
 export {
   BOSSES,
   type BossDef,
@@ -261,6 +262,7 @@ export {
   type RetiredRecord,
   WARM_BOND_START,
 } from "./legacy"
+export * from "./live"
 export {
   clearLoadout,
   defaultLoadout,

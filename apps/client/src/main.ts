@@ -25,6 +25,7 @@ import { createCloudSave } from "./cloud/cloud-save"
 import { readCredentials } from "./cloud/credentials"
 import { buildCloudPanel } from "./cloud/panel"
 import { showFailurePlate } from "./failure-plate"
+import { createLiveInvite } from "./live/invite"
 import { mountMoveLabIfRequested } from "./movelab/entry"
 import { buildRecoveryModal, recoveryFileName } from "./recovery"
 import { buildImportModal } from "./save-transfer"
@@ -229,14 +230,24 @@ const boardPanel = bootBoardsPanel({
   onFight: (ghost) => spar.fightGhost(ghost),
 })
 
+const liveChip = createLiveInvite({
+  app,
+  arena: arenaEntry,
+  staging,
+  storage,
+  apiOrigin: import.meta.env.VITE_API_ORIGIN ?? null,
+})
+
 const hud = createHudScreen({
   ...screenDeps,
   graduation,
   storage,
   askImport: (data) => importModal.ask(data),
-  extraChips: cloudPanel
-    ? [cloudPanel.chip, ...(boardPanel ? [boardPanel.chip] : [])]
-    : undefined,
+  extraChips: [
+    ...(cloudPanel ? [cloudPanel.chip] : []),
+    ...(boardPanel ? [boardPanel.chip] : []),
+    ...(liveChip ? [liveChip] : []),
+  ],
 })
 
 // Appended after the HUD so the replace-save dialog stacks above Settings
