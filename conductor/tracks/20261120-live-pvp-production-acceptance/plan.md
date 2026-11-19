@@ -48,26 +48,24 @@
 - **Covers:** FR-6, NFR-1, NFR-4, NFR-6, AC-6, AC-9
 - **Touches:** `apps/server/package.json`, `bun.lock`, `apps/server/Dockerfile`, `scripts/deploy/server-image.test.ts`, `conductor/tracks/20261120-live-pvp-production-acceptance/verification/phase-1R.md`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`; plus `bun test scripts/deploy/server-image.test.ts --timeout 120000` and a local container-layout boot check showing `apps/server/src/main.ts` resolves `@apex/sim`. No visual layer (no UI change).
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1R.T1: Declare the sim workspace dependency** — covers: FR-6, NFR-1, AC-9
-  - [ ] **P1R.T1.1:** Add `"@apex/sim": "workspace:*"` to `apps/server/package.json` dependencies.
-  - [ ] **P1R.T1.2:** Regenerate `bun.lock` with `bun install` and confirm the server workspace lists the dependency.
-- [ ] **P1R.T2: Carry sim source into the runtime image** — covers: FR-6, AC-9
-  - [ ] **P1R.T2.1:** Add Dockerfile runtime-stage copies for `packages/sim/package.json` and `packages/sim/src`.
-  - [ ] **P1R.T2.2:** Prove a minimal image-like layout boots without the module-resolution error, with a boot log showing the listen line.
-- [ ] **P1R.T3: Failing-first deploy contract test** — covers: FR-6, AC-9
-  - [ ] **P1R.T3.1:** Assert in `scripts/deploy/server-image.test.ts` that the server manifest declares `@apex/sim`, the lockfile matches, and the Dockerfile copies the sim source.
-  - [ ] **P1R.T3.2:** Show the test fails on the pre-fix tree and passes after the fix.
-- [ ] **P1R.T4: Verification and evidence** — covers: NFR-6, AC-6
-  - [ ] **P1R.T4.1:** Run all five configured verification commands individually on the final tree and record exact counts and hash.
-  - [ ] **P1R.T4.2:** Write `verification/phase-1R.md` with commands, results, boot proof and deviations.
+- [x] **P1R.T1: Declare the sim workspace dependency** — covers: FR-6, NFR-1, AC-9
+  - [x] **P1R.T1.1:** Add `"@apex/sim": "workspace:*"` to `apps/server/package.json` dependencies.
+  - [x] **P1R.T1.2:** Regenerate `bun.lock` with `bun install` and confirm the server workspace lists the dependency.
+- [x] **P1R.T2: Carry sim source into the runtime image** — covers: FR-6, AC-9
+  - [x] **P1R.T2.1:** Add Dockerfile runtime-stage copies for `packages/sim/package.json` and `packages/sim/src`.
+  - [x] **P1R.T2.2:** Prove a minimal image-like layout boots without the module-resolution error, with a boot log showing the listen line.
+- [x] **P1R.T3: Failing-first deploy contract test** — covers: FR-6, AC-9
+  - [x] **P1R.T3.1:** Assert in `scripts/deploy/server-image.test.ts` that the server manifest declares `@apex/sim`, the lockfile matches, and the Dockerfile copies the sim source.
+  - [x] **P1R.T3.2:** Show the test fails on the pre-fix tree and passes after the fix.
+- [x] **P1R.T4: Verification and evidence** — covers: NFR-6, AC-6
+  - [x] **P1R.T4.1:** Run all five configured verification commands individually on the final tree and record exact counts and hash.
+  - [x] **P1R.T4.2:** Write `verification/phase-1R.md` with commands, results, boot proof and deviations.
 
-<!--
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 3b654456
 **Evidence:** conductor/tracks/20261120-live-pvp-production-acceptance/verification/phase-1R.md
--->
 
 ## Phase 2: Invite panel reset and second-bout proof
 
