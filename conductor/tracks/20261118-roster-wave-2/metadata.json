@@ -19,7 +19,7 @@
     "tasks_done": 6
   },
   "last_checkpoint": "4dca8020",
-  "review_verdict": "PASS WITH FINDINGS",
+  "review_verdict": "BLOCK",
   "review_rounds": 1,
   "doc_sync": "pending",
   "pr_url": null,

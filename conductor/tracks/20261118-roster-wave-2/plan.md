@@ -57,17 +57,20 @@
 **Evidence:** conductor/tracks/20261118-roster-wave-2/verification/phase-2.md
 -->
 
-<!--
-Review fixes are appended by `conductor-review` as:
-
 ## Phase R1: Review Fixes
 
-- **Goal:** Resolve review findings ...
+- **Goal:** Correct the stale telemetry mirror-index doc comment (F1) without changing behavior.
 - **Depends on:** Phase 2
-- **Covers:** review findings
-- **Touches:** ...
-- **Verification:** ...
+- **Covers:** F1
+- **Touches:** `packages/sim/scripts/battle-telemetry.ts`, `conductor/tracks/20261118-roster-wave-2/verification/phase-R1.md`
+- **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`
 - **Status:** pending
 
-- [ ] **R1.T1: Resolve <finding ID>** — covers: <finding ID>
+- [ ] **R1.T1: Resolve F1** — covers: F1
+  - [ ] **R1.T1.1:** Update the "No mirrors" doc comment to state home indices 0 and 2 (or the general congruence rule); change no code, assertion, bound, seed, or pairing.
+
+<!--
+**Result:** <verified|blocked>
+**Checkpoint:** <short-sha>
+**Evidence:** conductor/tracks/20261118-roster-wave-2/verification/phase-R1.md
 -->
