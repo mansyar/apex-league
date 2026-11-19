@@ -350,6 +350,9 @@ describe("the handbook's Raising page", () => {
       ["Dune Jerboa", "Breed Earth with Wind."],
       ["Spark Ray", "Breed Electric with Fire."],
       ["Gale Moth", "Breed Plant with Wind."],
+      ["Thornvolt", "Breed Electric with Plant."],
+      ["Siltback", "Breed Earth with Water."],
+      ["Emberwing", "Breed Fire with Wind."],
     ]
     for (const [name, recipe] of expected) {
       expect(terms).toContain(name)
@@ -395,6 +398,34 @@ describe("the handbook's wave-1 breeding recipes", () => {
     )
 
     for (const name of ["Dune Jerboa", "Spark Ray", "Gale Moth"]) {
+      expect(terms).toContain(name)
+    }
+  })
+})
+
+/**
+ * The three roster-wave-2 discovery lines. These pin the handbook's output
+ * against the production lookup — the client keeps no second recipe table.
+ */
+describe("the handbook's wave-2 breeding recipes", () => {
+  test("read the new parent pairs from the sim lookup", () => {
+    expect(recipeFor("thornvolt")).toEqual(["electric", "plant"])
+    expect(recipeFor("siltback")).toEqual(["earth", "water"])
+    expect(recipeFor("emberwing")).toEqual(["fire", "wind"])
+  })
+
+  test("teach each new recipe as a one-sentence row", () => {
+    expect(recipeLine("thornvolt")).toBe("Breed Electric with Plant.")
+    expect(recipeLine("siltback")).toBe("Breed Earth with Water.")
+    expect(recipeLine("emberwing")).toBe("Breed Fire with Wind.")
+  })
+
+  test("show all three new display names on the Raising page", () => {
+    const terms = byClass(raisingBody(), "handbook-rule-term").map(
+      (node) => node.textContent,
+    )
+
+    for (const name of ["Thornvolt", "Siltback", "Emberwing"]) {
       expect(terms).toContain(name)
     }
   })
