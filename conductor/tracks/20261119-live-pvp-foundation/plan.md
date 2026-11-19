@@ -14,24 +14,21 @@
 - **Covers:** FR-1, FR-2, FR-3, NFR-1, NFR-2, NFR-3, NFR-6, AC-1, AC-2, AC-3
 - **Touches:** `packages/sim/src/live/**`, `packages/sim/src/index.ts`, `apps/server/src/live/**` (excluding `route.ts` and `route.test.ts`), `conductor/tracks/20261119-live-pvp-foundation/verification/phase-1.md`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Define the live-match protocol** — covers: FR-1, AC-1
-  - [ ] **P1.T1.1: Add the versioned message union (create, join, ready, intent, snapshot, verdict, error) and its shared types in `packages/sim/src/live/`, exported from the sim package root**
-  - [ ] **P1.T1.2: Add pure parse/validate helpers that reject malformed, unknown or oversized messages without throwing, with bun tests**
-- [ ] **P1.T2: Implement the pure room state machine** — covers: FR-2, AC-2
-  - [ ] **P1.T2.1: Create rooms by code, join exactly two identity-authenticated trainers, track ready state and start one match**
-  - [ ] **P1.T2.2: Reject duplicate/third joins and passphrase failures; forfeit on disconnect and tear down the room, with bun tests**
-- [ ] **P1.T3: Implement the authoritative match loop** — covers: FR-3, AC-3
-  - [ ] **P1.T3.1: Accept 20 Hz high-level intents, step the existing continuous sim at 50 Hz and emit 20 Hz dense-stream snapshots through a fake clock and transport**
-  - [ ] **P1.T3.2: Emit one terminal verdict, reuse the existing dense stream, and test stale/out-of-order intents without double-stepping**
+- [x] **P1.T1: Define the live-match protocol** — covers: FR-1, AC-1
+  - [x] **P1.T1.1: Add the versioned message union (create, join, ready, intent, snapshot, verdict, error) and its shared types in `packages/sim/src/live/`, exported from the sim package root**
+  - [x] **P1.T1.2: Add pure parse/validate helpers that reject malformed, unknown or oversized messages without throwing, with bun tests**
+- [x] **P1.T2: Implement the pure room state machine** — covers: FR-2, AC-2
+  - [x] **P1.T2.1: Create rooms by code, join exactly two identity-authenticated trainers, track ready state and start one match**
+  - [x] **P1.T2.2: Reject duplicate/third joins and passphrase failures; forfeit on disconnect and tear down the room, with bun tests**
+- [x] **P1.T3: Implement the authoritative match loop** — covers: FR-3, AC-3
+  - [x] **P1.T3.1: Accept 20 Hz high-level intents, step the existing continuous sim at 50 Hz and emit 20 Hz dense-stream snapshots through a fake clock and transport**
+  - [x] **P1.T3.2: Emit one terminal verdict, reuse the existing dense stream, and test stale/out-of-order intents without double-stepping**
 
-<!--
-The primary appends after acceptance:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 1f4fd107
 **Evidence:** conductor/tracks/20261119-live-pvp-foundation/verification/phase-1.md
--->
 
 ## Phase 2: Elysia WebSocket route
 
