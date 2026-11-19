@@ -93,3 +93,21 @@
   - [x] **R1.T3.2: Record the landscape screenshot path and console result in `phase-R1.md` and `integrated.md`**
 - [x] **R1.T4: Resolve F4 (naming)** — covers: F4
   - [x] **R1.T4.1: Rename `winnerName` to `forfeiterName` in the forfeit copy branch**
+
+## Phase R2: Review Fixes (round 2)
+
+- **Goal:** Resolve the High finding F5 from the round-2 delta review so no finding is deferred under strict mode.
+- **Depends on:** Phase R1
+- **Covers:** F5
+- **Touches:** `apps/server/src/live/room.ts`, `apps/server/src/live/room.test.ts`, `apps/server/src/live/route.ts`, `apps/server/src/live/route.test.ts`, `conductor/tracks/20261119-live-pvp-foundation/verification/phase-R2.md`, `conductor/tracks/20261119-live-pvp-foundation/verification/integrated.md`, `.conductor/evidence/20261119-live-pvp-foundation/**`
+- **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`
+- **Status:** pending
+
+- [ ] **R2.T1: Restore seat/side ordering** — covers: F5
+  - [ ] **R2.T1.1: Make `ready()` build `identities` in seat-index order so `identities[i]` always corresponds to seat `i`**
+  - [ ] **R2.T1.2: Remove the masking `.sort()` calls from the vacated-seat room test and assert the exact seat order**
+- [ ] **R2.T2: Prove the vacated-seat flow end to end** — covers: F5
+  - [ ] **R2.T2.1: Add a route-level in-memory test for create → join → host disconnect → third join that sends distinct intents from each socket and asserts each drives its own fighter**
+  - [ ] **R2.T2.2: Assert the forfeit verdict names the remaining seat as winner when the other socket disconnects in that flow**
+- [ ] **R2.T3: Record evidence** — covers: F5
+  - [ ] **R2.T3.1: Capture the five-command results and the new tests in `verification/phase-R2.md` and update `verification/integrated.md`**

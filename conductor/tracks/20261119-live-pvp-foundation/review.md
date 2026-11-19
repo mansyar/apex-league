@@ -5,7 +5,7 @@
 - **Branch:** `feat/20261119-live-pvp-foundation`
 - **Range:** `ab1c83f98a512a9a973e8480dc8fe18faad5be7d..7ef7d2dd`
 - **Date:** `2026-11-20`
-- **Verdict:** `PASS WITH FINDINGS`
+- **Verdict:** `BLOCK` (round 2 delta review: one new High finding F5)
 
 ## Summary
 
@@ -38,7 +38,7 @@ as Phase R1.
 | ID | Implemented by | Verified by | Status |
 | --- | --- | --- | --- |
 | FR-1 | P1.T1 | `types.test.ts`, `parse.test.ts` | covered |
-| FR-2 | P1.T2 | `room.test.ts` | partial (F2) |
+| FR-2 | P1.T2 | `room.test.ts`; R2 route test pending | partial (F5) |
 | FR-3 | P1.T3 | `loop.test.ts`, `fight.test.ts` | covered |
 | FR-4 | P2.T1 | `route.test.ts` (in-memory) | covered |
 | FR-5 | P3.T1 | `state.test.ts`, screenshots | covered |
@@ -53,7 +53,7 @@ as Phase R1.
 | NFR-5 | P3.T1 | desktop + phone portrait proof | partial (F3) |
 | NFR-6 | P1.T3 / P2.T1 | fake clock/transport tests | covered |
 | AC-1 | P1.T1 | `types.test.ts`, `parse.test.ts` | covered |
-| AC-2 | P1.T2 | `room.test.ts` | covered |
+| AC-2 | P1.T2 | `room.test.ts`; R2 route test pending | partial (F5) |
 | AC-3 | P1.T3 | `loop.test.ts` (bootstrap regression) | covered |
 | AC-4 | P2.T1 | `route.test.ts` | covered |
 | AC-5 | P3.T1 | `panel.ts`, screenshots | covered |
@@ -71,7 +71,23 @@ as Phase R1.
 
 ### High
 
-- <none>
+- **F5 — Vacated-seat flow breaks side/intent alignment and forfeit winner**
+  - **File:** `apps/server/src/live/room.ts:165-167, 179-191`
+  - **What:** The F2 fix frees seat 0 but `join` appends the reused seat, so
+    `room.seats = [guest(seat 1), third(seat 0)]`. `ready()` builds `identities`
+    in insertion order; `sidesForMatch` indexes those identities by side index.
+    Sockets keep their real room seats, so `loop.intent(binding.seat, ...)` and
+    `loop.forfeit(binding.seat)` address the opposite side.
+  - **Why:** In the exact flow F2 targeted, each trainer drives the opponent's
+    fighter and the innocent trainer is told they forfeited. The new room test
+    masks this by sorting both indices and identities.
+  - **Fix:** Sort seats by seat index when building `identities` in `ready()`
+    (or insert the reused seat at its sorted position in `join()`). Remove the
+    `.sort()` from `room.test.ts`, and add a route-level vacated-seat test that
+    sends distinct intents from each socket and checks the forfeit winner.
+  - **Requirement:** FR-2 / AC-2
+  - **Test gap:** Route-level test for create → join → host disconnect → third
+    join verifying seat-to-side alignment and the correct forfeit winner.
 
 ### Medium
 
@@ -141,8 +157,8 @@ Phase R1 is appended.
 
 ## Debt
 
-- None filed. `review.issues.enabled` is `false`; all findings are fixed in
-  Phase R1 rather than deferred (strict mode).
+- None filed. `review.issues.enabled` is `false`; findings F1–F4 were fixed in
+  Phase R1 and F5 is scheduled for Phase R2 rather than deferred (strict mode).
 
 ## Doc sync
 
@@ -153,3 +169,4 @@ Phase R1 is appended.
 | Round | Verdict | Critical | High | Medium | Low | Fixed |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | PASS WITH FINDINGS | 0 | 0 | 3 | 1 | 0 (Phase R1 scheduled) |
+| 2 | BLOCK | 0 | 1 | 0 | 0 | F1, F3, F4 fixed; F2 partial, F5 found (Phase R2 scheduled) |
