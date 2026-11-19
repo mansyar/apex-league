@@ -28,6 +28,10 @@ const dockerfile = readFileSync(
   join(import.meta.dir, "../../apps/server/Dockerfile"),
   "utf8",
 )
+const dockerignore = readFileSync(
+  join(import.meta.dir, "../../apps/server/Dockerfile.dockerignore"),
+  "utf8",
+)
 
 /** `bun.lock` is JSONC (trailing commas); strict JSON.parse needs them gone. */
 function parseLockfile(text: string) {
@@ -202,5 +206,9 @@ describe("the server image resolves its workspace imports", () => {
       "COPY packages/sim/package.json ./packages/sim/package.json",
     )
     expect(dockerfile).toContain("COPY packages/sim/src ./packages/sim/src")
+    // The Dockerfile's sidecar ignore file would otherwise drop the source
+    // from the build context before the COPY could ever see it.
+    expect(dockerignore).toContain("!packages/sim/src")
+    expect(dockerignore).toContain("!packages/sim/src/**")
   })
 })
