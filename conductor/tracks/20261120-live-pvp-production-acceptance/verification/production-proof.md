@@ -96,3 +96,21 @@ https://apex-league.pages.dev/assets/index-90kZBnoO.js:4220
 run by the primary. Phase 1 remains **blocked** solely by the deployed
 WebSocket upgrade returning 404. No code regression is claimed or implied.
 
+## Retry after owner redeploy attempt (2026-11-20 09:06 +11:00)
+
+At the user's request I retried the deployed endpoint. The infra state has changed
+but is still not usable:
+
+| Probe | Result |
+|---|---|
+| `GET https://apex-api.ansyar-world.top/health` | `HTTP/1.1 503 Service Unavailable`, `Content-Length: 20`, body `no available server`, `Server: cloudflare`, `CF-RAY: a5d282099851e6d5-MEL` |
+| `GET /live` with `Connection: Upgrade`, `Upgrade: websocket`, `Sec-WebSocket-Version: 13`, `Sec-WebSocket-Key: ...` | same `503` / `no available server` |
+| 6 further health probes at 15-second intervals | `503` every time |
+| Final probe after a further 60-second wait | `health=503`, `live=503` |
+
+So the previous `404 NOT_FOUND` (stale/misconfigured origin) has become a full
+origin outage: Cloudflare has no healthy upstream. No browser proof was started,
+no source/config was changed, and no workaround was attempted. Phase 1 remains
+**blocked** until the deployed API returns 200 on `/health` and 101 on `/live`.
+
+

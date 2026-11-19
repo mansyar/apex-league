@@ -34,7 +34,7 @@
   - [x] **P1.T4.2:** On an upgrade/CORS failure, mark the phase `blocked` with the raw response and stop; make no deploy, proxy, CORS, or server config change.
 
 **Result:** blocked
-**Blocker:** Deployed WebSocket upgrade to `wss://apex-api.ansyar-world.top/live` returns HTTP 404 from the Cloudflare/Coolify layer while `/health` returns 200. No channel can open, so P1.T2 (verdict) and P1.T3 (forfeit) are unreachable. Per NFR-5 and the approved spec, no deploy, proxy, CORS, `ALLOWED_ORIGIN`, server, or manifest workaround was attempted. Owner/proxy configuration must forward the upgrade before this phase can resume.
+**Blocker:** Deployed WebSocket upgrade to `wss://apex-api.ansyar-world.top/live` initially returned HTTP 404 while `/health` returned 200. On the user-requested retry at 2026-11-20 09:06 +11:00 the origin went fully down: both `/health` and `/live` now return `503 no available server` from Cloudflare, and a bounded retry sequence (6 x 15 s plus a further 60 s) never recovered. No channel can open, so P1.T2 (verdict) and P1.T3 (forfeit) remain unreachable. Per NFR-5 and the approved spec, no deploy, proxy, CORS, `ALLOWED_ORIGIN`, server, or manifest workaround was attempted. The owner must restore a healthy API origin with a working `/live` upgrade before this phase can resume.
 **Evidence:** conductor/tracks/20261120-live-pvp-production-acceptance/verification/production-proof.md
 
 ## Phase 2: Invite panel reset and second-bout proof
