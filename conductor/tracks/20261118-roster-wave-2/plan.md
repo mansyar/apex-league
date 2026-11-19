@@ -40,7 +40,7 @@
 - **Covers:** FR-7, FR-8, FR-9, NFR-5, NFR-6, AC-7, AC-8, AC-9, AC-10
 - **Touches:** `apps/client/src/handbook/**`, `apps/client/src/handbook.test.ts`, `apps/client/src/gallery.ts`, `apps/client/src/gallery.test.ts`, `conductor/tracks/20261118-roster-wave-2/verification/phase-2.md`, `.conductor/evidence/20261118-roster-wave-2/**`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz` plus the visual layer per `workflow.md` (`playwright-cli` against `bun run dev`, desktop 1440×900, portrait iPhone 393×852, landscape 852×393, console check)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Wire client discoverability** — covers: FR-7
   - [ ] **P2.T1.1: Prove the handbook derives the three new recipe rows without a duplicated client recipe table**
