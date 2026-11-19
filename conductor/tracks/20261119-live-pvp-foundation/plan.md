@@ -54,17 +54,21 @@
 - **Covers:** FR-5, FR-6, FR-7, FR-8, FR-9, NFR-4, NFR-5, AC-5, AC-6, AC-7, AC-8, AC-9, AC-10
 - **Touches:** `apps/client/src/live/**`, `apps/client/src/main.ts`, `apps/client/src/app/**`, `apps/client/src/ui/**`, `apps/client/src/base.css`, `conductor/tracks/20261119-live-pvp-foundation/verification/decision.md`, `conductor/tracks/20261119-live-pvp-foundation/verification/phase-3.md`, `.conductor/evidence/20261119-live-pvp-foundation/**`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz` plus the visual layer per `workflow.md` (`playwright-cli` against `bun run dev`, desktop 1440×900 and phone 393×852, two local clients, console check)
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Add the spar-invite surface** — covers: FR-5, AC-5
-  - [ ] **P3.T1.1: Add create/join controls, room-code display and connection-state feedback, reusing the broadcast UI kit**
-  - [ ] **P3.T1.2: Prove visible keyboard focus, polite match-state announcements and 393×852/852×393 layout with no horizontal scroll**
-- [ ] **P3.T2: Wire the client transport and arena handoff** — covers: FR-6, AC-6
-  - [ ] **P3.T2.1: Send high-level intents and apply snapshots to the existing arena renderer without changing staging, camera or choreography contracts**
-  - [ ] **P3.T2.2: Return cleanly to the ranch on verdict or disconnect and prove the full two-client local flow with zero console errors**
-- [ ] **P3.T3: Record decisions and final evidence** — covers: FR-7, FR-8, FR-9, AC-7, AC-8, AC-9, AC-10
-  - [ ] **P3.T3.1: Write `verification/decision.md` covering authority, transport, tick model, command vocabulary, disconnect, spectator, matchmaking and rating with reasons and deferrals**
-  - [ ] **P3.T3.2: Write `verification/phase-3.md` with exact commands, counts, module-cap results, screenshot paths, console result and scope proof**
+- [x] **P3.T1: Add the spar-invite surface** — covers: FR-5, AC-5
+  - [x] **P3.T1.1: Add create/join controls, room-code display and connection-state feedback, reusing the broadcast UI kit**
+  - [x] **P3.T1.2: Prove visible keyboard focus, polite match-state announcements and 393×852/852×393 layout with no horizontal scroll**
+- [x] **P3.T2: Wire the client transport and arena handoff** — covers: FR-6, AC-6
+  - [x] **P3.T2.1: Send high-level intents and apply snapshots to the existing arena renderer without changing staging, camera or choreography contracts**
+  - [x] **P3.T2.2: Return cleanly to the ranch on verdict or disconnect and prove the full two-client local flow with zero console errors**
+- [x] **P3.T3: Record decisions and final evidence** — covers: FR-7, FR-8, FR-9, AC-7, AC-8, AC-9, AC-10
+  - [x] **P3.T3.1: Write `verification/decision.md` covering authority, transport, tick model, command vocabulary, disconnect, spectator, matchmaking and rating with reasons and deferrals**
+  - [x] **P3.T3.2: Write `verification/phase-3.md` with exact commands, counts, module-cap results, screenshot paths, console result and scope proof**
+
+**Result:** verified
+**Checkpoint:** ea0865e0
+**Evidence:** conductor/tracks/20261119-live-pvp-foundation/verification/phase-3.md
 
 <!--
 Review fixes are appended by `conductor-review` as:
