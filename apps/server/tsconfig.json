@@ -1,7 +1,10 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "types": ["bun"]
+    "types": ["bun"],
+    "paths": {
+      "@apex/sim": ["../../packages/sim/src/index.ts"]
+    }
   },
   "include": ["src"]
 }
