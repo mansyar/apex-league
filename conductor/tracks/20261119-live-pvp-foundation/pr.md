@@ -21,7 +21,7 @@ and no changes to save schema, balance, pacing, CORS or deploy configuration.
 | 2: Elysia WebSocket route | `/live` route on the injectable app, in-memory tests | verified | `1d3c1e9d` | Rework fixed two TS errors; production upgrade gap carried to Phase 3 |
 | 3: Client slice, decisions, and visual proof | Two local clients fight and return cleanly | verified | `ea0865e0` | `app.listen(port)` replaced `Bun.serve({ fetch })` so Elysia's WS handler runs; startup snapshot fixed a client deadlock |
 | R1: Review fixes | F1–F4 (cast mapping, seat reuse, landscape, naming) | verified | `1c91a9aa` | No CSS change needed for 852×393 |
-| R2: Review fixes (round 2) | F5 (seat/side ordering in the vacated-seat flow) | pending | — | Final strict-mode fix round |
+| R2: Review fixes (round 2) | F5 (seat/side ordering in the vacated-seat flow) | verified | `f4d20715` | New non-vacuous in-memory route test proves intent alignment and correct forfeit winner |
 
 ## Requirements
 
@@ -46,7 +46,7 @@ and no changes to save schema, balance, pacing, CORS or deploy configuration.
 
 | Layer | Command | Result | Evidence |
 | --- | --- | --- | --- |
-| full verify | `bun run verify` | pass — 4442 pass / 1 skip / 0 fail | `conductor/archive/20261119-live-pvp-foundation/verification/integrated.md` |
+| full verify | `bun run verify` | pass — 4443 pass / 1 skip / 0 fail | `conductor/archive/20261119-live-pvp-foundation/verification/integrated.md` |
 | lint | `biome check` | pass | integrated.md |
 | typecheck | `bun run check` | pass | integrated.md |
 | build | `bun run build` | pass | integrated.md |
@@ -65,8 +65,8 @@ and no changes to save schema, balance, pacing, CORS or deploy configuration.
 
 ## Review
 
-- **Verdict:** pending final delta review
-- **Rounds:** 2 fix rounds (R1, R2)
+- **Verdict:** PASS (final delta review clean, no findings remain)
+- **Rounds:** 2 fix rounds (R1, R2; 3 review passes total)
 - **Fixed:** F1–F4 in R1; F5 in R2
 - **Accepted/deferred:** none (strict mode)
 
