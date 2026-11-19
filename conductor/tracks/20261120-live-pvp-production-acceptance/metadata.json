@@ -1,0 +1,31 @@
+{
+  "id": "20261120-live-pvp-production-acceptance",
+  "title": "Live PvP Production Acceptance",
+  "type": "bug",
+  "status": "new",
+  "priority": "high",
+  "depends_on": ["20261119-live-pvp-foundation"],
+  "created_at": "2026-11-20T07:57:05.0578237+11:00",
+  "updated_at": "2026-11-20T07:57:05.0578237+11:00",
+  "spec": "spec.md",
+  "plan": "plan.md",
+  "branch": "fix/20261120-live-pvp-production-acceptance",
+  "base_branch": "main",
+  "base_sha": "e5459deb4189166756e057262a6439c08aa92ffd",
+  "progress": {
+    "phases_total": 3,
+    "phases_verified": 0,
+    "tasks_total": 10,
+    "tasks_done": 0
+  },
+  "last_checkpoint": null,
+  "review_verdict": null,
+  "review_rounds": 0,
+  "doc_sync": "pending",
+  "pr_url": null,
+  "reverted_at": null,
+  "revert_commit": null,
+  "revert_pr_url": null,
+  "archived_at": null,
+  "archive_path": null
+}
