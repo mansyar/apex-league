@@ -29,5 +29,8 @@ apps/client/**
 !apps/client/package.json
 packages/sim/**
 !packages/sim/package.json
+# The live routes import `@apex/sim`; the runtime stage COPY needs the source.
+!packages/sim/src
+!packages/sim/src/**
 packages/voxel/**
 !packages/voxel/package.json

@@ -55,8 +55,9 @@ acceptance for a feature its roadmap already treats as delivered.
   `bun run gate:determinism` and `bun run test:fuzz` on the final tree.
 - **Owner-approved deviation (2026-11-20):** make the published server image
   bootable by declaring `@apex/sim` as a workspace dependency of `@apex/server`,
-  updating `bun.lock`, copying `packages/sim` into the Docker runtime stage, and
-  adding a failing-first deploy-contract regression test.
+  updating `bun.lock`, copying `packages/sim` into the Docker runtime stage with
+  the matching `Dockerfile.dockerignore` exception, and adding a failing-first
+  deploy-contract regression test.
 
 ### Out of Scope
 
@@ -107,7 +108,7 @@ acceptance for a feature its roadmap already treats as delivered.
 
 | ID | Requirement |
 | --- | --- |
-| NFR-1 | No new runtime dependency; no change to `LIVE_PROTOCOL_VERSION` (1), `SIM_VERSION` (3), save schema, balance gates, pacing pins/fences, CORS or other deploy configuration — except the owner-approved deviation limited to the server's `@apex/sim` workspace declaration, matching `bun.lock`, and the Dockerfile copy that carries sim source into the runtime image. |
+| NFR-1 | No new runtime dependency; no change to `LIVE_PROTOCOL_VERSION` (1), `SIM_VERSION` (3), save schema, balance gates, pacing pins/fences, CORS or other deploy configuration — except the owner-approved deviation limited to the server's `@apex/sim` workspace declaration, matching `bun.lock`, the Dockerfile copy that carries sim source into the runtime image, and its `Dockerfile.dockerignore` exception. |
 | NFR-2 | Only two throwaway trainer identities and their throwaway saves are written to the production API. No real player data, personal credentials, or passphrases appear in the repo, evidence files, URLs, room codes, or console output; passphrases travel only in the JSON message body. |
 | NFR-3 | Visual proof at 1440×900 and 393×852 against the deployed origin with 0 console errors; module caps (client/sim/server 12,288 B, voxel 24,576 B) remain enforced with no allowlist. |
 | NFR-4 | All repository writes stay inside the client `live/` modules, their tests, and Conductor/docs state, plus the owner-approved container-runtime deviation (server manifest, lockfile, Dockerfile and deploy-contract test); no sim, voxel or unrelated infrastructure source changes. |

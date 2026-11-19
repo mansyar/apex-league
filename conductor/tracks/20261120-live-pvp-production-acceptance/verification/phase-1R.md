@@ -178,3 +178,28 @@ outputs are under `C:\Users\Ansyar\AppData\Local\Temp\opencode\p1r-verify\`.
 **Verdict:** AC-6 and AC-9 satisfied. Phase 1R accepted. This does not claim a
 production redeploy or browser proof — those remain Phase 1 work.
 
+## Follow-up: CI image build exposed the dockerignore gap
+
+After PR #83 merged, the `Server image` workflow at commit `45211d83` failed at
+`COPY packages/sim/src ./packages/sim/src` with:
+
+```
+ERROR: failed to calculate checksum ... "/packages/sim/src": not found
+Dockerfile:55
+```
+
+`apps/server/Dockerfile.dockerignore` excludes `packages/sim/**` and re-includes
+only `package.json`; the build context therefore never contained `src`. The
+runtime fix was extended with:
+
+```
+!packages/sim/src
+!packages/sim/src/**
+```
+
+and the deploy-contract test now also asserts both exceptions, so a future
+removal fails locally. This is part of the same owner-approved deviation; no new
+scope. The follow-up fix ships in a separate PR because PR #83 was already
+merged.
+
+

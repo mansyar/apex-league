@@ -46,7 +46,7 @@
   contract test and a local container-layout boot check.
 - **Depends on:** none — resolves the Phase 1 infra blocker
 - **Covers:** FR-6, NFR-1, NFR-4, NFR-6, AC-6, AC-9
-- **Touches:** `apps/server/package.json`, `bun.lock`, `apps/server/Dockerfile`, `scripts/deploy/server-image.test.ts`, `conductor/tracks/20261120-live-pvp-production-acceptance/verification/phase-1R.md`
+- **Touches:** `apps/server/package.json`, `bun.lock`, `apps/server/Dockerfile`, `apps/server/Dockerfile.dockerignore`, `scripts/deploy/server-image.test.ts`, `conductor/tracks/20261120-live-pvp-production-acceptance/verification/phase-1R.md`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`; plus `bun test scripts/deploy/server-image.test.ts --timeout 120000` and a local container-layout boot check showing `apps/server/src/main.ts` resolves `@apex/sim`. No visual layer (no UI change).
 - **Status:** verified
 
