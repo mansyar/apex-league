@@ -14,23 +14,22 @@
 - **Covers:** FR-1, FR-2, FR-3, FR-4, FR-5, FR-6, FR-9, NFR-1, NFR-2, NFR-3, NFR-4, AC-1, AC-2, AC-3, AC-4, AC-5, AC-6, AC-9, AC-10
 - **Touches:** `packages/sim/src/species/**`, `packages/sim/src/species.ts`, `packages/sim/src/breeding/discovery.ts`, `packages/sim/src/breeding/discovery.test.ts`, `packages/sim/src/branch-catalog/**`, `packages/sim/src/branches.test.ts`, `packages/sim/src/bosses.test.ts`, `packages/sim/src/battle/**`, `packages/sim/src/cup/**`, `packages/sim/src/roster-wave-*.test.ts`, `packages/sim/scripts/battle-telemetry.ts`, `packages/voxel/src/**`, `artifacts/{sprite,golem,wing}-42*`, `apps/client/src/choreo.ts`, `apps/client/src/choreo.test.ts`, `conductor/tracks/20261118-roster-wave-2/verification/phase-1.md`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Add sim species, recipes, and branch forms** — covers: FR-1, FR-2, FR-3
-  - [ ] **P1.T1.1: Add thornvolt, siltback, and emberwing discovery definitions with fixed kits, roles, and authored stat envelopes**
-  - [ ] **P1.T1.2: Add the three order-independent recipes and collision/coverage tests**
-  - [ ] **P1.T1.3: Add two branch forms per species with globally unique, element-true signatures**
-- [ ] **P1.T2: Author voxel archetypes and fuzz coverage** — covers: FR-4, NFR-2
-  - [ ] **P1.T2.1: Add sprite, golem, and wing templates, grids, builds, budgets, BodyProfile rows, and choreography entries**
-  - [ ] **P1.T2.2: Add archetype tests and boundary/budget/determinism fuzz shards**
-- [ ] **P1.T3: Author artifacts and clear the hard balance gate** — covers: FR-5, FR-6, FR-9, NFR-1, NFR-3, NFR-4
-  - [ ] **P1.T3.1: Generate nine seed-42 artifact pairs through the determinism writer and confirm the existing 45 pairs are byte-identical**
-  - [ ] **P1.T3.2: Tune only the three new species within their authored envelopes, refresh diagnostic pins, keep the pacing debt pin and baseline-15 diagnostic population, and run the full verification chain**
+- [x] **P1.T1: Add sim species, recipes, and branch forms** — covers: FR-1, FR-2, FR-3
+  - [x] **P1.T1.1: Add thornvolt, siltback, and emberwing discovery definitions with fixed kits, roles, and authored stat envelopes**
+  - [x] **P1.T1.2: Add the three order-independent recipes and collision/coverage tests**
+  - [x] **P1.T1.3: Add two branch forms per species with globally unique, element-true signatures**
+- [x] **P1.T2: Author voxel archetypes and fuzz coverage** — covers: FR-4, NFR-2
+  - [x] **P1.T2.1: Add sprite, golem, and wing templates, grids, builds, budgets, BodyProfile rows, and choreography entries**
+  - [x] **P1.T2.2: Add archetype tests and boundary/budget/determinism fuzz shards**
+- [x] **P1.T3: Author artifacts and clear the hard balance gate** — covers: FR-5, FR-6, FR-9, NFR-1, NFR-3, NFR-4
+  - [x] **P1.T3.1: Generate nine seed-42 artifact pairs through the determinism writer and confirm the existing 54 pairs are byte-identical**
+  - [x] **P1.T3.2: Tune the three new species within their authored envelopes, apply the owner-approved minimal voltfox/embercub bound adjustment, refresh diagnostic pins, keep the pacing debt pin and baseline-15 diagnostic population, and run the full verification chain**
 
 <!--
-The primary appends after acceptance:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 64b28e1c
 **Evidence:** conductor/tracks/20261118-roster-wave-2/verification/phase-1.md
 -->
 
