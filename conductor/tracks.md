@@ -55,4 +55,4 @@
 - [x] **Track: Roster Wave 1** - [20261118-roster-wave-1](./archive/20261118-roster-wave-1/index.md) - feature - medium
 - [x] **Track: Roster Wave 2** - [20261118-roster-wave-2](./archive/20261118-roster-wave-2/index.md) - feature - medium
 - [x] **Track: Live PvP Foundation Spike** - [20261119-live-pvp-foundation](./archive/20261119-live-pvp-foundation/index.md) - feature - high
-- [ ] **Track: Live PvP Production Acceptance** - [20261120-live-pvp-production-acceptance](./tracks/20261120-live-pvp-production-acceptance/index.md) - bug - high
+- [~] **Track: Live PvP Production Acceptance** - [20261120-live-pvp-production-acceptance](./tracks/20261120-live-pvp-production-acceptance/index.md) - bug - high
