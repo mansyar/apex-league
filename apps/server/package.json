@@ -6,6 +6,7 @@
     "check": "bun check"
   },
   "dependencies": {
+    "@apex/sim": "workspace:*",
     "drizzle-orm": "^0.45.4",
     "elysia": "^1.4.30"
   }
