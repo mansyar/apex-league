@@ -802,3 +802,22 @@
     new archetypes are reachable via per-archetype URLs. Full verify 4302 pass,
     balance 18/18, determinism 54 pairs, fuzz 118 pass / 0 fail, desktop + 393px
     visual evidence clean; battle hash `0xff6f3d62` unchanged.*
+-   *2026-11-19 - Roster wave 2 (track `20261118-roster-wave-2`): three
+    breeding-discovery lines take the roster to 21 - Thornvolt (wind/sprite,
+    `plant + electric`), Siltback (water/golem, `water + earth`), Emberwing
+    (fire/wing, `fire + wind`) - each with two globally unique branch forms and
+    three new voxel archetypes. Nine new seed-42 GLB/manifest pairs are authored
+    with `determinism-gate.ts --write-missing`; all 63 pairs and 5 prop digests
+    regenerate byte-identically. The original nine-kit sustained-band source is
+    preserved; Thornvolt uses the six remaining wind moves with `gust` /
+    `talon_slash` signatures. The owner approved a minimum evidence-demonstrated
+    stat-bound adjustment to Voltfox (HP +8/ATK +1), Embercub (HP +8/ATK +1) and
+    new Emberwing (ATK +1); no gate, threshold, fence, pacing pin, `SIM_VERSION`,
+    save schema or dependency changed, and final hash is `0xff6f3d62`. The
+    telemetry diagnostic uses a two-pass mirror-target exchange (stride 11, 42
+    pairings, sample size 42, BOUNDS and assertions unchanged); choreography is
+    split into `choreo_wave.ts` to honor the client module cap without an
+    allowlist. Client recipe rows remain derived from the sim seam; new
+    archetypes are reachable via `?archetype=sprite|golem|wing`. Full verify
+    4367 pass, balance 21/21, determinism 63 pairs, fuzz 139 pass / 0 fail,
+    desktop/portrait/landscape visual evidence clean.*

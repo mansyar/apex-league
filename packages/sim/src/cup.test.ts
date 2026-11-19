@@ -332,7 +332,7 @@ describe("the live cup engine — session resolution", () => {
           : null)
       expect(session.championName).toBe(expected)
     }
-  })
+  }, 60000)
 
   test("placement follows the rounds the player actually fought", () => {
     for (let seed = 1; seed <= 60; seed++) {

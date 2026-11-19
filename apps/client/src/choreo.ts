@@ -9,6 +9,8 @@
  * table-tested here and the ranch can adopt them later (spec FR4).
  */
 
+import { WAVE_PROFILES } from "./choreo_wave"
+
 /** The neutral motion identity: every multiplier is exactly 1. */
 const NEUTRAL: BodyProfile = {
   gaitAmp: 1,
@@ -332,6 +334,7 @@ const PROFILES: Record<string, BodyProfile> = {
     recoilMult: 0.85,
     strikeMult: 1.25,
   },
+  ...WAVE_PROFILES,
 }
 
 export const DEFAULT_PROFILE: BodyProfile = Object.freeze(NEUTRAL)

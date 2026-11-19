@@ -78,6 +78,9 @@ export const BODY_PROFILES: Readonly<Record<string, BodyProfile>> =
     jerboa: profile(190, 700),
     ray: profile(170, 620),
     moth: profile(180, 760),
+    sprite: profile(165, 730),
+    golem: profile(295, 1080),
+    wing: profile(185, 790),
   })
 
 /** The body an archetype opens with, or the default when it has no row. */

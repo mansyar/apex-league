@@ -14,6 +14,7 @@ import { buildDrake, DRAKE_GRID, drakeTemplate } from "./drake"
 import { buildFalcon, FALCON_GRID, falconTemplate } from "./falcon"
 import { buildFox, FOX_GRID, foxTemplate } from "./fox"
 import { buildFrond, FROND_GRID, frondTemplate } from "./frond"
+import { buildGolem, GOLEM_GRID, golemTemplate } from "./golem"
 import { buildHeron, HERON_GRID, heronTemplate } from "./heron"
 import { buildJerboa, JERBOA_GRID, jerboaTemplate } from "./jerboa"
 import { buildMole, MOLE_GRID, moleTemplate } from "./mole"
@@ -23,6 +24,7 @@ import { buildRay, RAY_GRID, rayTemplate } from "./ray"
 import { sampleDna } from "./sample"
 import type { Dna, Template } from "./schema"
 import { buildSmolder, SMOLDER_GRID, smolderTemplate } from "./smolder"
+import { buildSprite, SPRITE_GRID, spriteTemplate } from "./sprite"
 import { parseStage, type Stage } from "./stage"
 import {
   buildStormHound,
@@ -30,6 +32,7 @@ import {
   stormHoundTemplate,
 } from "./storm_hound"
 import { buildTortoise, TORTOISE_GRID, tortoiseTemplate } from "./tortoise"
+import { buildWing, WING_GRID, wingTemplate } from "./wing"
 
 export type { CreatureBuild } from "./build"
 
@@ -148,6 +151,24 @@ export const archetypes: Record<string, ArchetypeDef> = {
     template: mothTemplate,
     grid: MOTH_GRID,
     build: buildMoth,
+  },
+  sprite: {
+    id: "sprite",
+    template: spriteTemplate,
+    grid: SPRITE_GRID,
+    build: buildSprite,
+  },
+  golem: {
+    id: "golem",
+    template: golemTemplate,
+    grid: GOLEM_GRID,
+    build: buildGolem,
+  },
+  wing: {
+    id: "wing",
+    template: wingTemplate,
+    grid: WING_GRID,
+    build: buildWing,
   },
 }
 

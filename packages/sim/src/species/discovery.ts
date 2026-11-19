@@ -11,15 +11,15 @@
  * over `ALL_SPECIES`. Each wave's kit embeds the sibling lines' branch
  * signatures as kit rows, leaving the element's remaining free specials for
  * the new line's own branches. The `archetypeId` values name the voxel
- * recipes: the fox, heron, mole, cub, boar, otter, and — for this wave — the
- * jerboa, the ray, and the moth.
+ * recipes: the fox, heron, mole, cub, boar, otter, jerboa, ray and moth, plus
+ * — for this wave — the sprite, the golem, and the wing.
  *
  * Pure data only — no DOM, no rendering, no I/O.
  */
 
 import type { SpeciesDef } from "./types"
 
-/** The nine breeding-discovery species, in recipe-table order. */
+/** The twelve breeding-discovery species, in recipe-table order. */
 export const DISCOVERY_SPECIES: readonly SpeciesDef[] = Object.freeze([
   {
     id: "voltfox",
@@ -37,7 +37,7 @@ export const DISCOVERY_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "ion_wall",
     ],
     temperament: "obedient",
-    statBounds: { hp: [136, 166], atk: [8, 11], def: [6, 9], spd: [10, 14] },
+    statBounds: { hp: [144, 174], atk: [9, 12], def: [6, 9], spd: [10, 14] },
   },
   {
     id: "galeheron",
@@ -91,7 +91,7 @@ export const DISCOVERY_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "pyre_wall",
     ],
     temperament: "obedient",
-    statBounds: { hp: [144, 173], atk: [8, 12], def: [8, 11], spd: [8, 11] },
+    statBounds: { hp: [152, 181], atk: [9, 13], def: [8, 11], spd: [8, 11] },
   },
   {
     id: "mossboar",
@@ -186,5 +186,62 @@ export const DISCOVERY_SPECIES: readonly SpeciesDef[] = Object.freeze([
     ],
     temperament: "obedient",
     statBounds: { hp: [140, 152], atk: [13, 14], def: [7, 10], spd: [13, 16] },
+  },
+  {
+    id: "thornvolt",
+    archetypeId: "sprite",
+    displayName: "Thornvolt",
+    element: "wind",
+    flavor:
+      "A quick-thinking bramble sprite that rides the gusts between the thorns.",
+    available: false,
+    kit: [
+      "feather_dart",
+      "gale_cutter",
+      "sky_bolt",
+      "hurricane_spiral",
+      "cyclone_dive",
+      "zephyr_veil",
+    ],
+    temperament: "rush",
+    statBounds: { hp: [145, 155], atk: [14, 16], def: [8, 10], spd: [14, 16] },
+  },
+  {
+    id: "siltback",
+    archetypeId: "golem",
+    displayName: "Siltback",
+    element: "water",
+    flavor:
+      "A silt-caked golem that settles into the riverbed and lets the current break.",
+    available: false,
+    kit: [
+      "bubble",
+      "tide_shot",
+      "splash_bolt",
+      "maelstrom",
+      "riptide_rush",
+      "tide_aegis",
+    ],
+    temperament: "slow",
+    statBounds: { hp: [160, 190], atk: [12, 15], def: [12, 15], spd: [6, 9] },
+  },
+  {
+    id: "emberwing",
+    archetypeId: "wing",
+    displayName: "Emberwing",
+    element: "fire",
+    flavor:
+      "A cinder-plumed skirmisher that strikes from above and is gone before the ash falls.",
+    available: false,
+    kit: [
+      "spark",
+      "flame_charge",
+      "cinder_shot",
+      "pyre_lance",
+      "cinder_dive",
+      "pyre_wall",
+    ],
+    temperament: "rush",
+    statBounds: { hp: [135, 165], atk: [15, 18], def: [6, 9], spd: [13, 16] },
   },
 ])

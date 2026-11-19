@@ -315,8 +315,14 @@ Phased delivery plan (each phase is independently playable):
   (Breed Plant with Wind) - taking the roster to eighteen species, each with
   two branch forms, three new voxel archetypes and nine new seed-42 artifact
   pairs; all 18/18 pass the unchanged hard balance gate with no waivers.
-  Still open: the roster's climb toward 20-40
-  species.)*
+  **Landed 2026-11-19: roster wave 2 ships** — Thornvolt (Breed Electric with
+  Plant; wind type), Siltback (Breed Earth with Water) and Emberwing (Breed
+  Fire with Wind) — taking the roster to twenty-one species, each with two
+  branch forms, three new voxel archetypes and nine new seed-42 artifact
+  pairs; all 21/21 pass the unchanged hard balance gate with no waivers.
+  The minimum evidence-demonstrated bound adjustments to Voltfox and Embercub
+  were owner-approved; no gate, threshold, fence or pacing pin changed.
+  The 20-species product goal is now met.)*
 - ElysiaJS backend: cloud save sync, trainer identity (anonymous ID + name),
   global leaderboards, ghost data. *(Landed 2026-10-26: anonymous trainer
   identity and cloud save sync ship as an ElysiaJS container on Coolify —
@@ -347,8 +353,8 @@ Phased delivery plan (each phase is independently playable):
   variants, a third music bed, a pure music-ducking envelope, and a single
   polite live-region announcer with visible focus — proven by desktop/mobile
   captures and a marquee cup-run clip, with determinism unchanged. Still
-  open: the hardware device-lab pass and the roster climb toward 20-40 species
-  (18/18 in band after roster wave 1). **Owner decision
+  open: the hardware device-lab pass. Roster wave 2 reached 21/21 species in
+  band on 2026-11-19; the 20-species goal is met. **Owner decision
   2026-11-18:** the global-pacing D-1 decision is closed — the ≤1/3 cap-share
   fence stays on the 840-fight matrix, the 20/42 fixture miss (D-3) and its
   population bias (D-4) remain recorded debt, the kite band (D-2) stays open,

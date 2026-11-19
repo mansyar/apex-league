@@ -3,16 +3,16 @@
  * `roster_wave_4` FR-3, AC-3): the six discovery kits recompose only their
  * element's existing vocabulary and land inside the sustained-output band
  * the shipped roster already defines — no kit changes, no golden
- * regressions.
+ * regressions. The twelve discovery lines span both roster waves.
  *
  * A kit's sustained score sums, over its six rows, the policy's own expected
  * damage per action window: `strikeDamage` with fixed 10/10 reference stats
  * on a chart-neutral mirror, times accuracy, divided by `1 + cooldown`. The
- * band is read off the nine shipped kits at runtime, so the gate
- * self-calibrates: a kit edit that pushes any line outside the roster's own
- * spread fails here, not in a golden.
+ * band is read off the nine shipped starter/reward kits at runtime, so the
+ * gate self-calibrates: a kit edit that pushes any line outside that band
+ * fails here, not in a golden.
  *
- * The duels smoke the production battle path for the six lines (seeded
+ * The duels smoke the production battle path for the twelve lines (seeded
  * sibling creatures, both side orders, fresh and capped training): every
  * duel must terminate with the winner decided or drawn.
  *
@@ -62,6 +62,9 @@ const SIBLINGS: Readonly<Record<string, string>> = Object.freeze({
   dune_jerboa: "earth_tortoise",
   spark_ray: "electric_hound",
   gale_moth: "wind_falcon",
+  thornvolt: "wind_falcon",
+  siltback: "water_axolotl",
+  emberwing: "fire_drake",
 })
 
 /**
@@ -161,7 +164,7 @@ function report(scores: Readonly<Record<string, number>>): void {
 }
 
 describe("discovery kit sustained band", () => {
-  test("the roster reads nine shipped kits plus the nine discovery kits", () => {
+  test("the roster reads nine shipped kits plus the twelve discovery kits", () => {
     expect([...STARTER_SPECIES, ...REWARD_SPECIES]).toHaveLength(9)
     expect(DISCOVERY_SPECIES.map((s) => s.id)).toEqual([
       "voltfox",
@@ -173,6 +176,9 @@ describe("discovery kit sustained band", () => {
       "dune_jerboa",
       "spark_ray",
       "gale_moth",
+      "thornvolt",
+      "siltback",
+      "emberwing",
     ])
   })
 

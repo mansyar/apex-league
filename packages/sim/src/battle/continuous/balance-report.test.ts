@@ -87,12 +87,12 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     const measured = sample()
     console.log(report(measured).join("\n"))
     expect(measured.matrix.species.length).toBe(ALL_SPECIES.length)
-    expect(measured.matrix.fights).toBe(1224)
+    expect(measured.matrix.fights).toBe(1680)
     expect(measured.doctrines.length).toBe(4)
     for (const row of measured.doctrines) expect(row.fights).toBe(6)
     expect(measured.bosses.length).toBe(6)
     for (const row of measured.bosses) {
-      expect(row.fights).toBe(36)
+      expect(row.fights).toBe(42)
       expect(row.stage.length).toBeGreaterThan(0)
     }
     expect(measured.damage.rows.length).toBe(49)
@@ -100,11 +100,11 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
 
   test("states the sample size in the output", () => {
     const lines = report(sample()).join("\n")
-    expect(lines).toContain("306 ordered pairings x 4 seeds = 1224 fights")
-    expect(lines).toContain("136 games per species")
+    expect(lines).toContain("420 ordered pairings x 4 seeds = 1680 fights")
+    expect(lines).toContain("160 games per species")
     expect(lines).toContain("24 doctrine fights")
-    expect(lines).toContain("216 boss fights")
-  })
+    expect(lines).toContain("252 boss fights")
+  }, 240000)
 
   test("reports distinct fights and a binomial error per row (FR-21, P10.T2.1)", () => {
     const measured = sample()
@@ -150,8 +150,8 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // land 106 distinct; the tortoise stays at 106. DISTINCT_FLOOR is untouched.
     const measured = sample()
     const byId = new Map(measured.matrix.species.map((row) => [row.id, row]))
-    expect(byId.get("earth_tortoise")?.distinct).toBe(124)
-    expect(byId.get("reefclaw")?.distinct).toBe(130)
+    expect(byId.get("earth_tortoise")?.distinct).toBe(144)
+    expect(byId.get("reefclaw")?.distinct).toBe(152)
     // The one-species replay reads the same key, so it must agree.
     for (const id of ["earth_tortoise", "reefclaw"]) {
       expect(measureSpecies(id).distinct).toBe(byId.get(id)?.distinct ?? -1)
@@ -233,7 +233,7 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     expect(base.rate).toBe(gated.rate)
     expect(base.wins).toBe(gated.wins)
     expect(base.games).toBe(gated.games)
-  })
+  }, 240000)
 
   test("excludes mirrors and gives every species the same schedule", () => {
     const measured = sample()
@@ -316,7 +316,7 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
       false,
     )
     const text = report(allCaps).join("\n")
-    expect(text).toContain("knockout band:     0/1224 (0.0%")
+    expect(text).toContain("knockout band:     0/1680 (0.0%")
     expect(text).toContain("diagnostic only")
   })
 
@@ -460,12 +460,16 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // embercub 41.5% — all still inside their statistical bounds, so the gate
     // stays green. The list names exactly the rows outside 45-55% in the
     // measured run, no more and no fewer.
+    // Roster Wave 2 rework: the owner-approved wind Thornvolt and minimal
+    // voltfox/embercub/emberwing retunes move the measured misses to
+    // plant_ox, water_axolotl, dune_jerboa and emberwing. All sit inside their
+    // statistical bounds; no band or gate moved — this is a diagnostic pin
+    // refreshed from the measured output.
     const DESIGN_BAND_MISSES = [
+      "plant_ox",
       "water_axolotl",
-      "cindermoor",
-      "voltfox",
-      "shalemole",
-      "embercub",
+      "dune_jerboa",
+      "emberwing",
     ] as const
     const measured = sample()
     expect(designBandMisses(measured).map((row) => row.id)).toEqual([
@@ -492,9 +496,12 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // longer satisfies this test's premise; fire_drake (53.6%) takes its slot.
     // galeheron holds at 50.9%. The inset is still derived from the band
     // constants, so a band move carries the test with it.
+    // Roster Wave 2 rework: galeheron cooled to 45.3%, inside the band but
+    // outside this inset, so cindermoor (46.3%) takes its slot. The assertion
+    // form, band constants and diagnostic-only intent are unchanged.
     const measured = sample()
     const byId = new Map(measured.matrix.species.map((row) => [row.id, row]))
-    for (const id of ["galeheron", "fire_drake"]) {
+    for (const id of ["cindermoor", "fire_drake"]) {
       const rate = byId.get(id)?.rate ?? -1
       expect(rate).toBeGreaterThanOrEqual(SPECIES_MIN + 0.01)
       expect(rate).toBeLessThanOrEqual(SPECIES_MAX - 0.01)
@@ -508,7 +515,10 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     // embercub are outside the printed band (each still inside its statistical
     // bound), so the inside-only margin pin moves to dune_jerboa (53.7%, 1.3
     // points below the ceiling).
-    const thin = byId.get("dune_jerboa")?.rate ?? -1
+    // Roster Wave 2 rework: dune_jerboa moved to 56.9%, outside the printed
+    // band, so shalemole (53.8%, 1.2 points below the ceiling) takes the
+    // inside-band diagnostic slot. No bound or gate moved.
+    const thin = byId.get("shalemole")?.rate ?? -1
     expect(thin).toBeGreaterThanOrEqual(SPECIES_MIN)
     expect(thin).toBeLessThanOrEqual(SPECIES_MAX)
   })
@@ -601,5 +611,5 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     const twice = report(measure()).join("\n")
     expect(once).toBe(twice)
     expect(/\b\d{2}:\d{2}(:\d{2})?\b/.test(once)).toBe(false)
-  })
+  }, 240000)
 })

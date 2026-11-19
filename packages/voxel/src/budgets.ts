@@ -248,6 +248,37 @@ export const PROPORTION_BUDGETS: Record<string, ProportionBudget> = {
       "bodyLength/bodyHeight": { min: 0.6, max: 5.4 },
     },
   },
+  // Roster Wave 2: the sprite, golem and wing silhouettes share the wave body
+  // plan but differ in mass and stance. Ranges cover the audited 200-seed
+  // lattice across baby/juvenile/champion, with slack for the coarse step-2
+  // sampling; the wings, leaf blades and shoulder plates are separate parts
+  // and do not inflate the torso ratios. The leg floor is zero because the
+  // step-2 audit lattice can see only a single exposed row on low-slung seeds;
+  // the ceiling is the meaningful degenerate-outlier fence.
+  sprite: {
+    ratios: {
+      "legLength/bodyHeight": { min: 0.0, max: 1.8 },
+      "neckLength/bodyLength": { min: 0.0, max: 0.8 },
+      "headHeight/bodyHeight": { min: 0.05, max: 1.1 },
+      "bodyLength/bodyHeight": { min: 0.6, max: 3.2 },
+    },
+  },
+  golem: {
+    ratios: {
+      "legLength/bodyHeight": { min: 0.0, max: 1.5 },
+      "neckLength/bodyLength": { min: 0.0, max: 0.8 },
+      "headHeight/bodyHeight": { min: 0.05, max: 1.1 },
+      "bodyLength/bodyHeight": { min: 0.5, max: 3.0 },
+    },
+  },
+  wing: {
+    ratios: {
+      "legLength/bodyHeight": { min: 0.0, max: 2.0 },
+      "neckLength/bodyLength": { min: 0.0, max: 0.8 },
+      "headHeight/bodyHeight": { min: 0.05, max: 1.1 },
+      "bodyLength/bodyHeight": { min: 0.5, max: 3.4 },
+    },
+  },
 }
 
 /** Inclusive check: a measured ratio inside its budget range. */

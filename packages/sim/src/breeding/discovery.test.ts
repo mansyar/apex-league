@@ -86,6 +86,12 @@ describe("discoverySpeciesForElements", () => {
     expect(discoverySpeciesForElements("electric", "fire")).toBe("spark_ray")
     expect(discoverySpeciesForElements("plant", "wind")).toBe("gale_moth")
     expect(discoverySpeciesForElements("wind", "plant")).toBe("gale_moth")
+    expect(discoverySpeciesForElements("plant", "electric")).toBe("thornvolt")
+    expect(discoverySpeciesForElements("electric", "plant")).toBe("thornvolt")
+    expect(discoverySpeciesForElements("water", "earth")).toBe("siltback")
+    expect(discoverySpeciesForElements("earth", "water")).toBe("siltback")
+    expect(discoverySpeciesForElements("fire", "wind")).toBe("emberwing")
+    expect(discoverySpeciesForElements("wind", "fire")).toBe("emberwing")
   })
 
   test("same-element pairs inherit — no recipe lists a pair with itself", () => {
@@ -102,14 +108,12 @@ describe("discoverySpeciesForElements", () => {
   })
 
   test("unlisted cross-element pairs inherit exactly as before", () => {
-    // earth+wind, fire+electric and plant+wind are listed this wave, so they
-    // are deliberately absent here; every pair below still inherits.
+    // Six more pairs (plant+electric, water+earth, fire+wind and their
+    // reversals) are listed in this wave, so they are deliberately absent here;
+    // every pair below still inherits.
     const unlisted: Array<[Element, Element]> = [
-      ["electric", "plant"],
       ["electric", "water"],
       ["electric", "earth"],
-      ["wind", "fire"],
-      ["earth", "water"],
       ["earth", "plant"],
     ]
     for (const [a, b] of unlisted) {
@@ -119,7 +123,7 @@ describe("discoverySpeciesForElements", () => {
 
   test("no two recipes share an order-independent key", () => {
     // A key collision would silently overwrite one line in RECIPE_INDEX. The
-    // nine parent pairs must stay distinct once sorted.
+    // twelve parent pairs must stay distinct once sorted.
     const pairs: Array<[Element, Element]> = [
       ["electric", "wind"],
       ["wind", "water"],
@@ -130,6 +134,9 @@ describe("discoverySpeciesForElements", () => {
       ["earth", "wind"],
       ["fire", "electric"],
       ["plant", "wind"],
+      ["plant", "electric"],
+      ["water", "earth"],
+      ["fire", "wind"],
     ]
     const keys = pairs.map(([a, b]) => [a, b].sort().join("+"))
     expect(new Set(keys).size).toBe(keys.length)
@@ -193,6 +200,12 @@ describe("speciesOptions with discovery", () => {
       ["fire_drake", "electric_hound", "spark_ray"],
       ["plant_ox", "wind_falcon", "gale_moth"],
       ["wind_falcon", "plant_ox", "gale_moth"],
+      ["plant_ox", "electric_hound", "thornvolt"],
+      ["electric_hound", "plant_ox", "thornvolt"],
+      ["water_axolotl", "earth_tortoise", "siltback"],
+      ["earth_tortoise", "water_axolotl", "siltback"],
+      ["fire_drake", "wind_falcon", "emberwing"],
+      ["wind_falcon", "fire_drake", "emberwing"],
     ]
     for (const [a, b, discovered] of cases) {
       expect(speciesOptions([record(a, 3), record(b, 4)])).toEqual([
@@ -246,6 +259,17 @@ describe("speciesOptions with discovery", () => {
     expect(
       speciesOptions([record("gale_moth", 2), record("plant_ox", 0)]),
     ).toEqual(["gale_moth", "plant_ox"])
+    // Thornvolt is wind, so this pair now also discovers the voltfox line;
+    // the thornvolt parent still appears only once.
+    expect(
+      speciesOptions([record("thornvolt", 2), record("electric_hound", 0)]),
+    ).toEqual(["thornvolt", "electric_hound", "voltfox"])
+    expect(
+      speciesOptions([record("siltback", 2), record("water_axolotl", 0)]),
+    ).toEqual(["siltback", "water_axolotl"])
+    expect(
+      speciesOptions([record("emberwing", 2), record("fire_drake", 0)]),
+    ).toEqual(["emberwing", "fire_drake"])
   })
 })
 
