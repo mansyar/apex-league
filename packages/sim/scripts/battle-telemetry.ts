@@ -266,7 +266,7 @@ export const SAMPLE_SIZE = PAIRINGS * SEEDS_PER_PAIRING
  * its own composition.
  *
  * **No mirrors.** With stride 11 and 21 species the two mirrors sit at home
- * indices 2 and 4. Hopping past a mirror cannot restore away coverage at 21
+ * indices 0 and 2. Hopping past a mirror cannot restore away coverage at 21
  * (the hop always lands on an already-covered species), so the two mirror
  * slots exchange their away targets. The walk stays mirror-free, distinct,
  * and every species still appears away at least twice in the 42-fight sample.
