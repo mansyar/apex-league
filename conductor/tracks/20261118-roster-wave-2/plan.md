@@ -64,7 +64,7 @@
 - **Covers:** F1
 - **Touches:** `packages/sim/scripts/battle-telemetry.ts`, `conductor/tracks/20261118-roster-wave-2/verification/phase-R1.md`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Resolve F1** — covers: F1
   - [ ] **R1.T1.1:** Update the "No mirrors" doc comment to state home indices 0 and 2 (or the general congruence rule); change no code, assertion, bound, seed, or pairing.
