@@ -48,6 +48,11 @@ ENV DATABASE_PATH=/data/apex.sqlite
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/server/node_modules ./apps/server/node_modules
 COPY package.json bun.lock ./
+# The live routes import `@apex/sim`. It resolves locally through a tsconfig
+# path mapping that is not in this image, so the runtime stage needs both the
+# manifest (so Bun links the workspace) and the source it points at (FR-6).
+COPY packages/sim/package.json ./packages/sim/package.json
+COPY packages/sim/src ./packages/sim/src
 COPY apps/server/package.json ./apps/server/package.json
 COPY apps/server/src ./apps/server/src
 # `migrate.ts` reads this folder at boot, resolved from its own file.

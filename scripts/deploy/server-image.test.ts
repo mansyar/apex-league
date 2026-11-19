@@ -29,6 +29,11 @@ const dockerfile = readFileSync(
   "utf8",
 )
 
+/** `bun.lock` is JSONC (trailing commas); strict JSON.parse needs them gone. */
+function parseLockfile(text: string) {
+  return JSON.parse(text.replace(/,(\s*[}\]])/g, "$1"))
+}
+
 /** Every `run:` body, in step order, without needing a YAML parser. */
 function runBodies(source: string): string[] {
   const lines = source.split("\n")
@@ -164,5 +169,38 @@ describe("the container is safe to run as a service", () => {
     expect(dockerfile.indexOf("chown bun:bun /data")).toBeLessThan(
       dockerfile.indexOf("USER bun"),
     )
+  })
+})
+
+describe("the server image resolves its workspace imports", () => {
+  // FR-6 / AC-9: the live routes import `@apex/sim`, which only resolves in the
+  // container when the manifest declares it, the lockfile matches, and the
+  // runtime stage carries the source. Without all three the image dies at boot
+  // with `Cannot find module '@apex/sim'` - the exact production failure.
+  const serverManifest = JSON.parse(
+    readFileSync(
+      join(import.meta.dir, "../../apps/server/package.json"),
+      "utf8",
+    ),
+  )
+  const lockfile = parseLockfile(
+    readFileSync(join(import.meta.dir, "../../bun.lock"), "utf8"),
+  )
+
+  test("the server manifest declares the sim workspace dependency", () => {
+    expect(serverManifest.dependencies["@apex/sim"]).toBe("workspace:*")
+  })
+
+  test("the lockfile records the sim dependency for the server workspace", () => {
+    expect(lockfile.workspaces["apps/server"].dependencies["@apex/sim"]).toBe(
+      "workspace:*",
+    )
+  })
+
+  test("the runtime stage carries the sim source into the image", () => {
+    expect(dockerfile).toContain(
+      "COPY packages/sim/package.json ./packages/sim/package.json",
+    )
+    expect(dockerfile).toContain("COPY packages/sim/src ./packages/sim/src")
   })
 })
