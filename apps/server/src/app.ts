@@ -4,6 +4,7 @@ import { cors } from "./cors"
 import { ghostRoutes } from "./ghost/routes"
 import { identityRoutes } from "./identity/routes"
 import { leaderboardRoutes } from "./leaderboard/routes"
+import { liveRoutes } from "./live/route"
 import { schemaVersion } from "./migrate"
 import { saveRoutes } from "./saves/routes"
 
@@ -30,6 +31,7 @@ export function createApp({ db, allowedOrigin }: AppOptions) {
     .use(saveRoutes({ db }))
     .use(leaderboardRoutes({ db }))
     .use(ghostRoutes({ db }))
+    .use(liveRoutes({ db }))
     .get("/health", () => ({
       status: "ok",
       schemaVersion: schemaVersion(db),
