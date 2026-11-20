@@ -786,8 +786,8 @@ export const BOUNDS: readonly Bound[] = Object.freeze([
   {
     metric: "durationMax",
     kind: "max",
-    value: 40_000,
-    why: "AC-7: no fight may run past the cap; measured max 40.00 s",
+    value: 45_000,
+    why: "AC-7: no fight may run past the cap; measured max 45.00 s under the 45 s cap (20261120 track)",
   },
 ])
 

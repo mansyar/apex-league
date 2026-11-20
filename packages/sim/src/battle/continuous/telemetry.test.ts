@@ -183,7 +183,7 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
     // The band is measured from the sample, not assumed: the floor is the
     // fastest knockout, the ceiling is the cap.
     expect(measured.duration.min).toBeLessThanOrEqual(measured.duration.max)
-    expect(measured.duration.max).toBeLessThanOrEqual(40_000)
+    expect(measured.duration.max).toBeLessThanOrEqual(45_000)
   })
 
   // Phase 8 (FR-20, P8.T4) moved the cap share from 8/14 (57.1%) to 6/14
@@ -208,9 +208,9 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
     // The track's target on the re-composed sample: at most 21 of 42 (52%).
     // 20/42 passes with one fight of headroom; 22/42 fails.
     expect(cap.count * 100).toBeLessThanOrEqual(cap.total * 52)
-    // The one-in-three target is still missed at 20/42 (47.6%). Pinned as debt,
-    // not as met — the spec's own ceiling is the bound above.
-    expect(cap.count * 3).toBeGreaterThan(cap.total)
+    // The 45 s cap (20261120 track) took the sample to 11/42 (26.2%), so the
+    // one-in-three target is now met; this pin flips from debt to met.
+    expect(cap.count * 3).toBeLessThanOrEqual(cap.total)
   })
 
   test("every metric has a bound, so none can be reported unenforced", () => {
@@ -238,7 +238,7 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
       deadZoneShare: 0.5,
       capShare: 0.6,
       durationMin: 8000,
-      durationMax: 40000,
+      durationMax: 45000,
     })
   })
 

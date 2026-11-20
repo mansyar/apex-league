@@ -144,6 +144,8 @@ function serialize(result: BattleResult): string {
  * down; every stream moves.
  * Recaptured in the roster re-tune: the plant_ox cool (atk/def down one)
  * moves the fifteen plant_ox streams; every other stream holds.
+ * Recaptured in the 20261120 narrow re-tune: the axolotl's def floor 8 -> 6
+ * moves the fifteen water_axolotl streams; every other stream holds.
  */
 const GOLDEN: Readonly<Record<string, string>> = {
   // Mirrors: each species fights itself (three kit tiers).
@@ -153,9 +155,9 @@ const GOLDEN: Readonly<Record<string, string>> = {
   "plant_ox|plant_ox|kit2": "e15295dd",
   "plant_ox|plant_ox|kit3": "68dd691d",
   "plant_ox|plant_ox|kit4": "569e153d",
-  "water_axolotl|water_axolotl|kit2": "15b8f825",
-  "water_axolotl|water_axolotl|kit3": "cd951317",
-  "water_axolotl|water_axolotl|kit4": "65256acd",
+  "water_axolotl|water_axolotl|kit2": "32de3eb9",
+  "water_axolotl|water_axolotl|kit3": "14332d9e",
+  "water_axolotl|water_axolotl|kit4": "0aafb28f",
   // Cross-element: fire>plant, water>fire, plant>water, both side orders.
   "fire_drake|plant_ox|kit2": "56b14ef1",
   "fire_drake|plant_ox|kit3": "824b3b7d",
@@ -163,18 +165,18 @@ const GOLDEN: Readonly<Record<string, string>> = {
   "plant_ox|fire_drake|kit2": "cfe03ef1",
   "plant_ox|fire_drake|kit3": "6f72ae37",
   "plant_ox|fire_drake|kit4": "d37d7213",
-  "fire_drake|water_axolotl|kit2": "f971a42d",
-  "fire_drake|water_axolotl|kit3": "dfd9c82f",
-  "fire_drake|water_axolotl|kit4": "7c79ea9b",
-  "water_axolotl|fire_drake|kit2": "2bd633e5",
-  "water_axolotl|fire_drake|kit3": "0cc1cf87",
-  "water_axolotl|fire_drake|kit4": "f49b97c3",
-  "plant_ox|water_axolotl|kit2": "260781b9",
-  "plant_ox|water_axolotl|kit3": "5d792aa7",
-  "plant_ox|water_axolotl|kit4": "a5bde313",
-  "water_axolotl|plant_ox|kit2": "68c8fd1d",
-  "water_axolotl|plant_ox|kit3": "22fec9b1",
-  "water_axolotl|plant_ox|kit4": "b79b862b",
+  "fire_drake|water_axolotl|kit2": "40aecabd",
+  "fire_drake|water_axolotl|kit3": "ca98c525",
+  "fire_drake|water_axolotl|kit4": "5fe8f2ab",
+  "water_axolotl|fire_drake|kit2": "aa1d97c5",
+  "water_axolotl|fire_drake|kit3": "3db02e37",
+  "water_axolotl|fire_drake|kit4": "30ef4327",
+  "plant_ox|water_axolotl|kit2": "061c56bd",
+  "plant_ox|water_axolotl|kit3": "aa51b2d9",
+  "plant_ox|water_axolotl|kit4": "26004bd4",
+  "water_axolotl|plant_ox|kit2": "414b69b5",
+  "water_axolotl|plant_ox|kit3": "ece1f087",
+  "water_axolotl|plant_ox|kit4": "6823e35a",
 }
 
 interface RunSummary {
@@ -263,12 +265,12 @@ describe("seeded battle event-stream contract", () => {
     // clock.test.ts, and the dedicated synthetic fixture below walks the
     // knockback path end to end. The digest matrix still walks stagger and
     // down.
-    // Roster re-tune: the plant_ox cool (atk/def down one) drops the matrix's
-    // only borderline super-effective hits below the 15%-of-pool heavy line
-    // (max impact 25 vs a ~26 line), so the stagger arm is no longer reached
-    // here either; the matrix walks down only. The stagger rule itself stays
-    // unit-tested in clock.test.ts and playback.test.ts, and the digests below
-    // still prove byte-identical replay at full strength.
+    // Roster re-tune: the plant_ox cool (atk/def down one) briefly dropped the
+    // matrix's borderline super-effective hits below the 15%-of-pool heavy
+    // line, so the stagger arm was no longer reached. The 45 s fight cap
+    // (20261120 track) gives those matchups enough exchanges to cross the
+    // stagger line again: impact and reaction stagger are both covered now,
+    // while the knockback arm stays covered by the synthetic fixture below.
     expect({
       impactStagger: coverage.impactStagger > 0,
       impactKnockback: coverage.impactKnockback > 0,
@@ -276,10 +278,10 @@ describe("seeded battle event-stream contract", () => {
       staggers: coverage.staggers > 0,
       knockbacks: coverage.knockbacks > 0,
     }).toEqual({
-      impactStagger: false,
+      impactStagger: true,
       impactKnockback: false,
       downs: true,
-      staggers: false,
+      staggers: true,
       knockbacks: false,
     })
 
@@ -360,9 +362,10 @@ describe("seeded battle event-stream contract", () => {
       }
     }
     // Phase 5 fold (FR-10); R1 (battle-balance) scaled the innate Strike to
-    // power 9, so the best attainable Strike is 16 (still under the lowest
-    // heavy threshold).
-    expect(bestStrike).toBe(16)
+    // power 9, so it was 16. The 20261120 re-tune lowered the axolotl's def
+    // floor 8 -> 6, the roster's lowest DEF, lifting the best attainable
+    // Strike to 22 — still well under the lowest heavy threshold (~50).
+    expect(bestStrike).toBe(22)
     expect(bestStrike).toBeLessThan(lowestThreshold)
   })
 

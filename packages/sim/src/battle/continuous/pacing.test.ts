@@ -36,7 +36,7 @@ import { STEP_MS } from "./types"
  * unchanged.
  */
 const MIN_MS = 8_000
-const MAX_MS = 40_000
+const MAX_MS = 45_000
 
 /**
  * The stat line both sides are ramped to: the middle of the starter band, which

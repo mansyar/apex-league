@@ -36,8 +36,14 @@ import { cupMatchSeed } from "./verdicts"
  * fighter standing inside the inner edge is in the move's blind spot, and a
  * shot loosed from there passes the body. Fights recorded under v2 resolved
  * those swings and shots as hits, so they cannot replay here.
+ *
+ * v4 (2026-11-20, reachable Kite band and 45 s fight cap): the speed-aware
+ * Kite clamp narrows the hold gap a slower Kite can keep against a faster foe,
+ * and the fight cap and duration band move from 40 s to 45 s. Bundles recorded
+ * under v3 resolved those fights against the old band and cap, so they cannot
+ * replay here.
  */
-export const SIM_VERSION = 3
+export const SIM_VERSION = 4
 
 /** A full replay bundle for one cup-winning final: everything a later
  * reader needs to replay the deciding battle without the session. No
