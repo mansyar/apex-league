@@ -14,46 +14,13 @@ import { BASIC_MOVE, getMove } from "../moves"
 import {
   bandFor,
   type ControllerProfile,
-  DOCTRINES,
-  profileForDoctrine,
   type RangeBand,
   reachEdgeMm,
 } from "./controller-profile"
-import { topSpeed } from "./movement"
 import type { FighterState } from "./types"
 
 /** Clearance held outside the foe's melee edge, in mm (tunable). */
 export const REACH_STANDOFF_MM = 80
-
-/**
- * The widest centre gap a fighter can hold while giving ground to a foe closing
- * at top speed, in mm (FR-2). In the time the foe crosses one reach edge the
- * fighter can open `reachEdge * ownTopSpeed / foeTopSpeed` of that edge, so a
- * band beyond one edge plus that opening asks for ground the body cannot make.
- * Speeds are thousandths of a mm per ms (see `topSpeed`); the division is
- * integer, so identical inputs always agree. A fighter at least as fast as its
- * foe needs no cap: `Number.MAX_SAFE_INTEGER` leaves the doctrine band alone.
- */
-export function maintainableGapMm(
-  ownTopSpeed: number,
-  foeTopSpeed: number,
-  reachEdge: number,
-): number {
-  if (foeTopSpeed <= 0 || ownTopSpeed >= foeTopSpeed) {
-    return Number.MAX_SAFE_INTEGER
-  }
-  return reachEdge + Math.trunc((reachEdge * ownTopSpeed) / foeTopSpeed)
-}
-
-/** Kite's authored band identifies a Kite profile without adding a profile field. */
-const KITE_BAND = profileForDoctrine(DOCTRINES.kite, "obedient")
-
-function isKiteBand(profile: ControllerProfile): boolean {
-  return (
-    profile.floorRangeMm === KITE_BAND.floorRangeMm &&
-    profile.ceilingRangeMm === KITE_BAND.ceilingRangeMm
-  )
-}
 
 /**
  * The centre gap at which the foe's own melee threat reaches this body, in mm:
@@ -80,40 +47,16 @@ export function threatBandFor(
   me: FighterState,
   foe: FighterState,
 ): RangeBand {
-  const edge = reachEdgeMm(me, foe)
-  const band = bandFor(profile, edge)
+  const band = bandFor(profile, reachEdgeMm(me, foe))
   if (profile.floorRangeMm === undefined) return band
-  const safeFloorMm = opponentReachMm(me, foe) + REACH_STANDOFF_MM
-  const floorMm = Math.max(band.floorMm, safeFloorMm)
-  const basePreferredMm = Math.max(band.preferredMm, floorMm)
-  const baseCeilingMm = Math.max(band.ceilingMm, basePreferredMm)
-  if (!isKiteBand(profile)) {
-    return {
-      preferredMm: basePreferredMm,
-      floorMm,
-      ceilingMm: baseCeilingMm,
-    }
-  }
-  const cap = maintainableGapMm(topSpeed(me.spd), topSpeed(foe.spd), edge)
-  if (cap === Number.MAX_SAFE_INTEGER) {
-    return {
-      preferredMm: basePreferredMm,
-      floorMm,
-      ceilingMm: baseCeilingMm,
-    }
-  }
-  // One standoff beyond the maintainable edge is the widest hold this body can
-  // keep. Pull floor, hold point and ceiling down together, but never inside
-  // the foe's threat: the reach invariant wins if the two ever disagree.
-  const heldGapMm = cap + REACH_STANDOFF_MM
-  const clampedFloorMm = Math.max(safeFloorMm, Math.min(floorMm, heldGapMm))
-  const clampedPreferredMm = Math.max(
-    clampedFloorMm,
-    Math.min(basePreferredMm, heldGapMm),
+  const floorMm = Math.max(
+    band.floorMm,
+    opponentReachMm(me, foe) + REACH_STANDOFF_MM,
   )
+  const preferredMm = Math.max(band.preferredMm, floorMm)
   return {
-    preferredMm: clampedPreferredMm,
-    floorMm: clampedFloorMm,
-    ceilingMm: Math.max(clampedPreferredMm, Math.min(baseCeilingMm, heldGapMm)),
+    preferredMm,
+    floorMm,
+    ceilingMm: Math.max(band.ceilingMm, preferredMm),
   }
 }

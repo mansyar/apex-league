@@ -77,20 +77,18 @@ describe("fixture audit — the four cells and the attribution (FR-8, FR-9)", ()
       // the only ceiling in play is the telemetry gate's 3/5 cap share (AC-7).
       //
       // A — the telemetry gate as it ships: reference stats, split doctrine.
-      // 16/42 (38.1%), median 38.01 s. The count is the gate's own, asserted
+      // 15/42 (35.7%), median 34.38 s. The count is the gate's own, asserted
       // against `measure()` above rather than trusted from this literal.
-      // Re-pinned for the speed-aware Kite band (20261120 track).
-      ["A", 16, 38_010, 26],
+      ["A", 15, 34_380, 27],
       // B — A with the doctrine moved to press on both sides (the matrix's
       // doctrine), stats still reference. 12/42 (28.6%), median 35.04 s: on
       // the 21-species roster this cell is a drift pin for the doctrine
       // interaction, not a target.
       ["B", 12, 35_040, 30],
       // C — A with the stat basis moved to bounds midpoints (the matrix's stat
-      // line), doctrine still split. 11/42 (26.2%), median 29.94 s: the stat
-      // line alone removes five caps and 8.07 s of median fight.
-      // Re-pinned for the speed-aware Kite band (20261120 track).
-      ["C", 11, 29_940, 31],
+      // line), doctrine still split. 13/42 (31.0%), median 29.88 s: the stat
+      // line alone removes two caps and 4.50 s of median fight.
+      ["C", 13, 29_880, 29],
       // D — both variables moved: midpoint stats, press on both sides. 7/42
       // (16.7%), median 30.48 s. This is a different population from the
       // 420 x 4 matrix (42 strided pairings, one seed each); the residual is
