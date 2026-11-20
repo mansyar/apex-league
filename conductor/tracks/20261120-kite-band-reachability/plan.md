@@ -128,7 +128,7 @@
   their focused tests, `verification/phase-5.md`, `verification/integrated.md`,
   and shipped-only `conductor/product.md` / `conductor/tech-stack.md`.
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`; focused species/controller/ghost tests; pinned trace; full 1680-fight matrix with all 34 gates green and `capShare < 517/1680`.
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P5.T1: Re-apply the Phase 4 candidate** — covers: FR-11
   - [ ] **P5.T1.1: Restore the 13 game-code/test/script files from commit `9fbaabdd` (including the new `controller-profile.test.ts`) so clamp + 45s cap + v4 replay guard are active**
