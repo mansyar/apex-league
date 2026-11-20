@@ -125,7 +125,7 @@
 - **Covers:** F1 (NFR-2, AC-7)
 - **Touches:** `conductor/tracks/20261120-live-pvp-production-acceptance/verification/integrated.md`, `conductor/tracks/20261120-live-pvp-production-acceptance/verification/phase-R1.md`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`; confirm no credential or passphrase appears in tracked artifacts.
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Reconcile throwaway identity count** — covers: F1
   - [ ] **R1.T1.1:** Update `verification/integrated.md` AC-7 and the limitations to state "two concurrent throwaway identities per proof; six total across the blocked attempt, retry and second-bout proof", and record that as the accepted interpretation of NFR-2. No source, config or spec change.
