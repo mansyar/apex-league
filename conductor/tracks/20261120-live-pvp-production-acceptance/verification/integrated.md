@@ -132,7 +132,7 @@ All under `.conductor/evidence/20261120-live-pvp-production-acceptance/` (gitign
 | AC-4 | `integrated.md` records commands, counts, hash, caps, screenshot paths, console, URLs, scope proof | This record (integrated verification + commands + caps + screenshots + scope proof) | pass |
 | AC-5 | `product.md` Phase 4 landed note (dated, PR #82); ADR line noted superseded; ADR unchanged | `product.md:339` now reads "live PvP landed 2026-11-20 (PR #82), with production acceptance in PR #83/#84 and this track."; supersession in `phase-3.md`; archived ADR untouched | pass |
 | AC-6 | Five commands exit 0, hash `0xff6f3d62`, caps pass; only approved manifest/deploy deviation; no protocol/save/balance/pacing/CORS change | Command table + scope proof below; hash `0xff6f3d62`; no allowlist | pass |
-| AC-7 | No credentials, passphrases or real player data in tracked artifacts; only two throwaway trainers | Two throwaway ids only; passphrases browser-derived, never written to file/URL/room code/log/screenshot; credentials only in `apex.trainer` localStorage | pass |
+| AC-7 | No credentials, passphrases or real player data in tracked artifacts; only two throwaway trainers | Two concurrent throwaway identities per proof; six total across the blocked attempt, retry and second-bout proof; passphrases browser-derived, never written to file/URL/room code/log/screenshot; credentials only in `apex.trainer` localStorage | pass |
 | AC-8 | Repo-external production failure recorded as blocked with probe output; no fabricated pass | Historical 404/503 blocked records in `production-proof.md`; resolved by owner redeploy, not by a config workaround | pass |
 | AC-9 | Deploy-contract test fails before container fix and passes after; `main.ts` boots with imports resolved | 10p/3f → 13p/0f; image-like boot + negative control in `phase-1R.md` | pass |
 
@@ -159,7 +159,7 @@ in tracked artifacts.
   spectator or auto-rematch. A flaky socket ends the bout (surfaced in the verdict copy).
 - The physical-device-lab pass is a roadmap item, not a phase gate; mobile proof is at the
   393×852 browser viewport only.
-- Only two throwaway trainer identities were used; no real player data is involved.
+- Each proof used two concurrent throwaway trainer identities (six total across the blocked attempt, retry and second-bout proof); no real player data is involved. This is the accepted interpretation of NFR-2 (a fresh pair per proof attempt).
 - The Phase 2 browser proof used the fixed local bundle served from the real Pages origin
   because the deployed bundle is stale; a post-merge production spot-check of the fixed
   bundle is a follow-up outside this track. The feature itself is landed (PR #82) with
