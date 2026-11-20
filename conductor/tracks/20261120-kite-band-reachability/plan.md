@@ -78,6 +78,41 @@
   - [x] **P3.T3.1: Write `verification/integrated.md` with exact commands, exit codes, counts, before/after `capShare`, new hash, module caps, N/A visual note, scope proof, and the final verdict**
   - [x] **P3.T3.2: Apply the owner-approved dated D-2 closure note to `product.md` only if the fix ships, add a dated `tech-stack.md` note for the sim/replay change, and prove no dependency, save, protocol, API, CORS, deploy, client or server file changed**
 
-**Result:** blocked by design — no policy shipped. Candidate `capShare` equalled the baseline (30.8% / 517 of 1680), so all game-code changes were reverted; final tree has no source diff and all five configured commands plus the pinned trace are green. P3.T2 (replay guard) is not applicable because no policy ships; `SIM_VERSION` remains 3. Owner decision recorded in evidence: move a named pacing fence in a new product-decision track, or accept D-2 as open debt.
+**Result:** blocked by design - no policy shipped. Candidate `capShare` equalled the baseline (30.8% / 517 of 1680), so all game-code changes were reverted; final tree has no source diff and all five configured commands plus the pinned trace are green. P3.T2 (replay guard) is not applicable because no policy ships; `SIM_VERSION` remains 3. Owner decision recorded in evidence: move a named pacing fence in a new product-decision track, or accept D-2 as open debt.
 **Checkpoint:** `a5ee16ca`
 **Evidence:** conductor/tracks/20261120-kite-band-reachability/verification/phase-3.md
+
+## Phase 4: Owner-approved Kite clamp and 45s cap extension
+
+- **Goal:** re-apply the validated speed-aware Kite clamp, extend the single
+  approved pacing fence from 40s to 45s, carry the replay-version guard, and
+  ship only if all 34 gates stay green and `capShare` is strictly below the
+  Phase 1 baseline on the same 1680-fight matrix.
+- **Depends on:** Phase 3
+- **Covers:** FR-8, FR-9, FR-10, FR-4..FR-7, NFR-1..NFR-6, AC-11, AC-12, AC-13, AC-4..AC-10
+- **Touches:** `packages/sim/src/battle/continuous/controller-reach.ts`, `controller-reach.test.ts`, `controller-profile.test.ts`, `fixture-audit.test.ts`, `resolve.ts`, `pacing.test.ts`, `resolve.test.ts`, `battle-trace.test.ts`, `telemetry.test.ts`, `balance-report.test.ts`, `packages/sim/src/cup/ghost.ts`, `ghost.test.ts`, `packages/sim/scripts/battle-balance-report.ts`, `conductor/tracks/20261120-kite-band-reachability/verification/phase-4.md`, `conductor/tracks/20261120-kite-band-reachability/verification/integrated.md`, `conductor/product.md`, `conductor/tech-stack.md`
+- **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`; plus the focused controller/ghost tests and `bun run trace --owned earth_tortoise --rival embercub --doctrine kite --rival-doctrine press --seed 20261120 --check`
+- **Status:** pending
+
+- [ ] **P4.T1: Re-apply the Phase 2 Kite clamp** — covers: FR-8, AC-12
+  - [ ] **P4.T1.1: Restore the exact four-file source/test diff from checkpoint `7fb66b04` (`controller-reach.ts`, `controller-reach.test.ts`, `controller-profile.test.ts`, `fixture-audit.test.ts`), including the failing-first regression suite and its green post-fix counts**
+  - [ ] **P4.T1.2: Confirm the pure integer helper and Kite-only clamp remain unchanged and that no fence or replay change is bundled into this step**
+- [ ] **P4.T2: Extend the approved 40s pacing fence to 45s** — covers: FR-9, AC-11
+  - [ ] **P4.T2.1: Change `FIGHT_CAP_MS` in `resolve.ts`, `BAND_MAX_MS` and `DURATION_MAX_MS` in `battle-balance-report.ts` from 40_000 to 45_000 and update every pinned test that asserts those values**
+  - [ ] **P4.T2.2: Prove no other balance fence moves; `capShare <= 1/3`, decisiveShare, capWinQuality, duration minimum and damage bands stay at their existing values**
+- [ ] **P4.T3: Carry the replay-version guard** — covers: FR-10, AC-4, AC-13
+  - [ ] **P4.T3.1: Bump `SIM_VERSION` 3 -> 4 with a dated v4 note in `ghost.ts`; update ghost pins 3/4 -> 4/5 and prove v3 rejection plus v4 byte-identical replay**
+  - [ ] **P4.T3.2: Record the new battle and trace hashes in `phase-4.md`**
+- [ ] **P4.T4: Measure the ship/no-ship gate** — covers: FR-5, FR-6, AC-5, AC-11, AC-12
+  - [ ] **P4.T4.1: Run the full 1680-fight matrix and require all 34 gates green and `capShare` strictly below 30.8% (517/1680)**
+  - [ ] **P4.T4.2: If equal or higher, or any gate red, stop the phase as `blocked` with the measured grid and do not ship or change another fence**
+- [ ] **P4.T5: Record integrated evidence and owner-approved docs** — covers: FR-7, NFR-1..NFR-6, AC-8, AC-9, AC-10
+  - [ ] **P4.T5.1: Update `verification/integrated.md` and write `verification/phase-4.md` with exact commands, counts, hashes, module caps, scope proof and final verdict**
+  - [ ] **P4.T5.2: If shipped, apply the owner-approved dated D-2 closure note to `product.md` and a dated sim/replay note to `tech-stack.md`; otherwise leave both untouched**
+
+<!--
+The primary appends after acceptance:
+**Result:** verified
+**Checkpoint:** <short-sha>
+**Evidence:** conductor/tracks/20261120-kite-band-reachability/verification/phase-4.md
+-->

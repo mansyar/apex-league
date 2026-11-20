@@ -150,4 +150,37 @@ reason on some slow-body pairings.
 - `packages/sim/src/battle/continuous/controller-profile.ts`, `controller-reach.ts` — current band construction.
 - `packages/sim/src/battle/continuous/balance-report.ts`, `packages/sim/scripts/battle-balance-report.ts` — matrix gates and `capShare` definition.
 - `packages/sim/src/cup/ghost.ts`, `ghost.test.ts` — replay-version guard and pins.
-- `conductor/workflow.md` — verification commands, module caps, phase evidence rules.
+- `conductor/workflow.md` - verification commands, module caps, phase evidence rules.
+
+## Owner decision 2026-11-20 - D-2 unblock (supersedes the no-fence assumption)
+
+The owner decided on 2026-11-20 to continue this track rather than accept D-2
+as open debt. This decision supersedes the earlier "no fence moves" assumption
+**for this track only** and authorizes exactly one named pacing fence move plus
+re-application of the already-tested Kite clamp:
+
+- **FR-8:** re-apply the Phase 2 speed-aware, integer-only Kite clamp from
+  checkpoint `7fb66b04` (`controller-reach.ts`, its tests, and the documented
+  diagnostic re-pin). It is the gameplay fix for the reachability half of D-2.
+- **FR-9:** extend the fight cap and matching duration-band fences from
+  `40_000 ms` to `45_000 ms`: `FIGHT_CAP_MS` in `resolve.ts`,
+  `BAND_MAX_MS` and `DURATION_MAX_MS` in `battle-balance-report.ts`, and every
+  pinned test that asserts those values. No other pacing fence moves.
+- **FR-10:** because sim policy and fight duration change, bump `SIM_VERSION`
+  from 3 to 4 with a dated v4 note in `ghost.ts` and update ghost pins from 3/4
+  to 4/5; v3 bundles must still be rejected and a v4 bundle must verify
+  byte-identically.
+- **AC-11:** all 34 balance gates remain green with `capShare <= 1/3`,
+  `decisiveShare >= 2/3`, `capWinQuality >= 2/3`, duration inside the new
+  25-45s band, and damage/damage-share gates unchanged.
+- **AC-12:** `capShare` on the same 1680-fight matrix is **strictly lower** than
+  the Phase 1 baseline `30.8% (517/1680)`; equal or higher means the track
+  hard-stops as `blocked` with the measured grid.
+- **AC-13:** the replay guard proves v3 rejection and v4 byte-identical replay,
+  and the new battle/trace hashes are recorded in integrated evidence.
+
+Retained constraints: no dependency, save-schema, protocol-version, CORS,
+deploy, client, or server change; module caps unchanged; no allowlist; no real
+player data; no other fence or target may be invented without another owner
+decision. The owner-approved product/tech-stack doc updates become applicable
+only if AC-11 and AC-12 pass and the candidate ships.

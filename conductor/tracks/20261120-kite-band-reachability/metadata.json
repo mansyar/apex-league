@@ -10,16 +10,16 @@
     "20261112-capshare-pacing"
   ],
   "created_at": "2026-11-20T14:14:54.9973800+11:00",
-  "updated_at": "2026-11-20T15:28:24.1627482+11:00",
+  "updated_at": "2026-11-20T18:36:42.0681755+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "chore/20261120-kite-band-reachability",
   "base_branch": "main",
   "base_sha": "1310de206028d4b4cb10ee8aa7fad8ff927af3a6",
   "progress": {
-    "phases_total": 3,
+    "phases_total": 4,
     "phases_verified": 2,
-    "tasks_total": 9,
+    "tasks_total": 14,
     "tasks_done": 8
   },
   "last_checkpoint": "a5ee16ca",
