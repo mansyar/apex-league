@@ -38,7 +38,7 @@
 - **Covers:** FR-4, FR-5, AC-4, AC-5, NFR-1, NFR-2, NFR-3, NFR-4
 - **Touches:** `packages/sim/scripts/fixture-audit.ts`, `packages/sim/src/battle/continuous/fixture-audit.test.ts`, `conductor/tracks/20261120-telemetry-fixture-debt/verification/phase-2.md`, `.conductor/evidence/20261120-telemetry-fixture-debt/**`
 - **Verification:** `bun test packages/sim/src/battle/continuous/fixture-audit.test.ts --timeout 120000`; `bun run fixture-audit`; `bun run telemetry`; `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Prove the stale audit report with a failing test** — covers: FR-5, AC-5, NFR-2
   - [ ] **P2.T1.1:** Add a pure test in `fixture-audit.test.ts` that pins `1680`, `580`, `370`, and `+12.5 points` in the report and rejects the stale `840`, `377`, `224`, and `+18.2 points` values as current claims.
