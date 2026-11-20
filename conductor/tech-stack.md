@@ -416,6 +416,19 @@
   when the origin is unset the live chip is omitted and the ranch is untouched.
   `apps/server/tsconfig.json` gains the same `@apex/sim` path mapping the client
   already had. No new script, dependency, CORS or deployment config.*
+- *2026-11-20 — Live PvP production acceptance (track
+  `20261120-live-pvp-production-acceptance`): the published server image now
+  declares `@apex/sim` as an `@apex/server` workspace dependency in
+  `apps/server/package.json` with a matching `bun.lock` entry; the Dockerfile
+  copies `packages/sim/src` into the runtime stage and `Dockerfile.dockerignore`
+  keeps it in the build context. `scripts/deploy/server-image.test.ts` proves
+  the contract fails without those changes. This fixed the container boot error
+  `Cannot find module '@apex/sim'`; the owner redeployed SHA `8c773f54` and the
+  live `/live` upgrade was proven in two real browsers against the deployed
+  origins. The invite panel resets on reopen after a bout so a second invite
+  needs no page reload. No `$LIVE_PROTOCOL_VERSION`, `SIM_VERSION`, save schema,
+  balance, pacing, CORS or deploy-configuration change; the only manifest change
+  is the approved sim dependency declaration.*
 
 ## Asset Pipeline
 - **Creatures and ranch props**: species and scenery defined as versioned JSON
