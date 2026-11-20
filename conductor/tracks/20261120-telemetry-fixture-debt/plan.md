@@ -61,19 +61,17 @@
 - **Covers:** FR-2, FR-3, FR-6, FR-7, AC-2, AC-3, AC-6, AC-7, AC-8, AC-9, NFR-5, NFR-6
 - **Touches:** `conductor/product.md`, `conductor/tech-stack.md`, `conductor/tracks/20261120-telemetry-fixture-debt/verification/integrated.md`, `conductor/tracks/20261120-telemetry-fixture-debt/verification/phase-3.md`, `.conductor/evidence/20261120-telemetry-fixture-debt/**`
 - **Verification:** `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`; `bun run fixture-audit`; `bun run telemetry`; `bun run trace --owned earth_tortoise --rival embercub --doctrine kite --rival-doctrine press --seed 20261120 --check`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Close D-3 and D-4 in the product roadmap** — covers: FR-2, FR-3, FR-6, AC-2, AC-3
-  - [ ] **P3.T1.1:** Add a dated 2026-11-20 note recording D-3 met by the D-2 cap side effect at `11/42 (26.2%)` and no new pacing change in this track.
-  - [ ] **P3.T1.2:** Record D-4 diagnosed/bounded, the 42-pairing fixture unchanged, and re-stratification deferred to a future product-decision track; preserve historical `20/42` narrative.
-- [ ] **P3.T2: Add the tech-stack reconciliation note** — covers: FR-6, AC-7
-  - [ ] **P3.T2.1:** Add a dated note covering the repaired `1680/580/370` audit arithmetic, `+12.5 points`, unchanged telemetry bounds and fixture, `SIM_VERSION` 4, ghost pins 4/5, and hash `0xff6f3d62`.
-- [ ] **P3.T3: Write integrated evidence and final scope proof** — covers: FR-7, AC-6, AC-8, AC-9, NFR-5, NFR-6
-  - [ ] **P3.T3.1:** Run all final verification commands; record counts, hashes, module caps, and screenshot requirement as N/A (no user-facing change).
-  - [ ] **P3.T3.2:** Write `verification/integrated.md` and `verification/phase-3.md` with the D-3/D-4 disposition, exact commands, scope proof, and verdict.
+- [x] **P3.T1: Close D-3 and D-4 in the product roadmap** — covers: FR-2, FR-3, FR-6, AC-2, AC-3
+  - [x] **P3.T1.1:** Add a dated 2026-11-20 note recording D-3 met by the D-2 cap side effect at `11/42 (26.2%)` and no new pacing change in this track.
+  - [x] **P3.T1.2:** Record D-4 diagnosed/bounded, the 42-pairing fixture unchanged, and re-stratification deferred to a future product-decision track; preserve historical `20/42` narrative.
+- [x] **P3.T2: Add the tech-stack reconciliation note** — covers: FR-6, AC-7
+  - [x] **P3.T2.1:** Add a dated note covering the repaired `1680/580/370` audit arithmetic, `+12.5 points`, unchanged telemetry bounds and fixture, `SIM_VERSION` 4, ghost pins 4/5, and hash `0xff6f3d62`.
+- [x] **P3.T3: Write integrated evidence and final scope proof** — covers: FR-7, AC-6, AC-8, AC-9, NFR-5, NFR-6
+  - [x] **P3.T3.1:** Run all final verification commands; record counts, hashes, module caps, and screenshot requirement as N/A (no user-facing change).
+  - [x] **P3.T3.2:** Write `verification/integrated.md` and `verification/phase-3.md` with the D-3/D-4 disposition, exact commands, scope proof, and verdict.
 
-<!--
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 6aa01b68
 **Evidence:** conductor/tracks/20261120-telemetry-fixture-debt/verification/integrated.md
--->
