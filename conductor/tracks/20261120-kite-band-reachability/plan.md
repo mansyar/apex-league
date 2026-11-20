@@ -66,21 +66,18 @@
 - **Covers:** FR-4, FR-5, FR-6, FR-7, NFR-1..NFR-6, AC-4..AC-10
 - **Touches:** `packages/sim/src/cup/ghost.ts`, `packages/sim/src/cup/ghost.test.ts`, `conductor/tracks/20261120-kite-band-reachability/verification/integrated.md`, `conductor/tracks/20261120-kite-band-reachability/verification/phase-3.md`, `conductor/product.md`, `conductor/tech-stack.md`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`; plus `bun run trace --owned earth_tortoise --rival embercub --doctrine kite --rival-doctrine press --seed 20261120 --check`
-- **Status:** in_progress
+- **Status:** blocked
 
-- [ ] **P3.T1: Measure the candidate and make the ship/no-ship decision** — covers: FR-5, FR-6, AC-5, AC-6, AC-7
-  - [ ] **P3.T1.1: Run `bun run balance` on the final candidate and confirm all 34 gates are green and `capShare` is strictly below the Phase 1 baseline on the same full matrix**
-  - [ ] **P3.T1.2: If no in-scope candidate is both green and lower, revert every game-code change, leave `SIM_VERSION` at 3, write the measured grid and fence-decision request in `phase-3.md`, and report the phase `blocked`**
+- [x] **P3.T1: Measure the candidate and make the ship/no-ship decision** — covers: FR-5, FR-6, AC-5, AC-6, AC-7
+  - [x] **P3.T1.1: Run `bun run balance` on the final candidate and confirm all 34 gates are green and `capShare` is strictly below the Phase 1 baseline on the same full matrix**
+  - [x] **P3.T1.2: If no in-scope candidate is both green and lower, revert every game-code change, leave `SIM_VERSION` at 3, write the measured grid and fence-decision request in `phase-3.md`, and report the phase `blocked`**
 - [ ] **P3.T2: Apply the replay-version guard when policy ships** — covers: FR-4, AC-4
   - [ ] **P3.T2.1: Bump `SIM_VERSION` 3 → 4 with a dated v4 note in `ghost.ts`, and update the ghost pins from 3/4 to 4/5 with mismatched v3 bundles still rejected**
   - [ ] **P3.T2.2: Record the new battle hash, run the trace invariant gate, and re-run only the version/pin tests moved by FR-4**
-- [ ] **P3.T3: Commit integrated evidence and synchronize docs** — covers: FR-7, NFR-1..NFR-6, AC-8, AC-9, AC-10
-  - [ ] **P3.T3.1: Write `verification/integrated.md` with exact commands, exit codes, counts, before/after `capShare`, new hash, module caps, N/A visual note, scope proof, and the final verdict**
-  - [ ] **P3.T3.2: Apply the owner-approved dated D-2 closure note to `product.md` only if the fix ships, add a dated `tech-stack.md` note for the sim/replay change, and prove no dependency, save, protocol, API, CORS, deploy, client or server file changed**
+- [x] **P3.T3: Commit integrated evidence and synchronize docs** — covers: FR-7, NFR-1..NFR-6, AC-8, AC-9, AC-10
+  - [x] **P3.T3.1: Write `verification/integrated.md` with exact commands, exit codes, counts, before/after `capShare`, new hash, module caps, N/A visual note, scope proof, and the final verdict**
+  - [x] **P3.T3.2: Apply the owner-approved dated D-2 closure note to `product.md` only if the fix ships, add a dated `tech-stack.md` note for the sim/replay change, and prove no dependency, save, protocol, API, CORS, deploy, client or server file changed**
 
-<!--
-The primary appends after acceptance:
-**Result:** verified
-**Checkpoint:** <short-sha>
+**Result:** blocked by design — no policy shipped. Candidate `capShare` equalled the baseline (30.8% / 517 of 1680), so all game-code changes were reverted; final tree has no source diff and all five configured commands plus the pinned trace are green. P3.T2 (replay guard) is not applicable because no policy ships; `SIM_VERSION` remains 3. Owner decision recorded in evidence: move a named pacing fence in a new product-decision track, or accept D-2 as open debt.
+**Checkpoint:** `a5ee16ca`
 **Evidence:** conductor/tracks/20261120-kite-band-reachability/verification/phase-3.md
--->
