@@ -14,7 +14,7 @@
 - **Covers:** FR-1, FR-2, FR-3, AC-1, NFR-1, NFR-2
 - **Touches:** `conductor/tracks/20261120-telemetry-fixture-debt/verification/phase-1.md`, `conductor/tracks/20261120-telemetry-fixture-debt/verification/owner-decision.md`, `.conductor/evidence/20261120-telemetry-fixture-debt/**`
 - **Verification:** `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`; `bun run telemetry`; `bun run fixture-audit`; `bun run trace --owned earth_tortoise --rival embercub --doctrine kite --rival-doctrine press --seed 20261120 --check`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Capture the live telemetry and balance baseline** — covers: FR-1, AC-1
   - [ ] **P1.T1.1:** Run `bun run telemetry`; record `11/42 (26.2%)`, all 14 bounds green, and stability readings.
