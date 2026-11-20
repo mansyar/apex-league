@@ -5,7 +5,7 @@
 - **Date:** 2026-11-20
 - **Branch:** `chore/20261120-kite-band-reachability`
 - **Base:** `1310de206028d4b4cb10ee8aa7fad8ff927af3a6` (main)
-- **Candidate head:** `9c994da91c2cbdade9c267c14e747145412d9d11` (pre-evidence commit)
+- **Candidate head:** `9fbaabdd7b122739aac3dbad73880017aaaca3b5` (single phase commit)
 - **Owner decision:** 2026-11-20 — continue the track; apply **both** the Kite clamp
   re-application and the 45 s cap extension (supersedes the no-fence assumption for
   this track only). Executed, not re-decided.
@@ -80,24 +80,29 @@ Run separately; no `&&` / pipes. Exit codes are exact.
 
 | Command | Exit | Counts / result |
 | --- | --- | --- |
-| `bun run verify` | **1** | 4448 pass / 1 skip / **10 fail**, 670441 `expect()` calls, 4459 tests / 437 files (189.15 s). 10 failures are cap-extension consequences (below). |
-| `bun run build` | 0 | Vite 8.3.4, 438 modules, `✓ built in 597ms`; only the standard >500 kB chunk warning. |
-| `bun run balance` | **1** | 1680 fights (ko 1319, time 357, draw 4); **32 gates ok / 2 FAIL**; capShare 357/1680 (21.3%); decisiveShare 1600/1680 (95.2%); capWinQuality 281/357 (78.7%); median 32.82 s; durationMax 45.00 s; durationP05 16.44 s; damageBand 49/49. |
-| `bun run gate:determinism` | `denied` | Standalone shell permission denied — not run, not claimed. Re-run needed by primary. |
-| `bun run test:fuzz` | `denied` | Standalone shell permission denied — not run, not claimed. Re-run needed by primary. |
+| `bun run verify` | **1** | 4449 pass / 1 skip / **9 fail**, 670441 `expect()` calls, 4459 tests / 437 files. 9 failures are cap-extension consequences (below). |
+| `bun run build` | 0 | Vite 438 modules; only the standard >500 kB chunk warning. |
+| `bun run balance` | **1** | 1680 fights (ko 1319, time 357, draw 4); **32 gates ok / 2 FAIL**; capShare 357/1680 (21.3%); decisiveShare 1600/1680 (95.2%); capWinQuality 281/357 (78.7%); median 32.82 s; durationMax 45.00 s; damageBand 49/49. |
+| `bun run gate:determinism` | **0** | Primary re-run: all 21 species × 3 stages + 5 props byte-identical. |
+| `bun run test:fuzz` | **0** | Primary re-run: 139 pass / 0 fail, 129015 `expect()` calls. |
 
-The 10 `verify` failures (all consequences of extending the cap; none may be
-"fixed" by moving another fence/target/workaround):
+The 9 `verify` failures in the primary run (all consequences of extending the
+cap; none may be "fixed" by moving another fence/target/workaround):
 
-1. `stream.test.ts` — replay record 81036 B > 72036 B bound (longer 2250-step fight).
-2–5. `telemetry.test.ts` — (a) `durationMax` observed 45.00 s vs stale 40.00 s BOUNDS
-   in `battle-telemetry.ts` (outside Touches); (b) capShare diagnostic pin
-   `11*3 > 42` now 33 (caps genuinely fell); (c) `violations(measured)` non-empty on
-   that same stale bound; (d) `run(sample())` exits 1 on it.
-6. `gatekeeper-reach.test.ts` — real climb test timed out at 60000 ms (66828 ms).
-7–10. `balance-report.test.ts` — `earth_tortoise` distinct 152 vs 144 pin;
-   design-band-miss list now 7 rows; KNOWN_MISSES now 2 rows; gate exits 1 on the
-   two species rows. Rows 7–10 are diagnostic pins around the 2 real gate failures.
+1. `stream.test.ts` — `the recorded stream > stays small enough to replay: a full fight is under 72 KB`
+   (longer 2250-step fight).
+2–5. `telemetry.test.ts` — `the duration band and the cap share are separate bounds (AC-7)`;
+   `the cap share stays inside its re-derived smoke ceiling (AC-24)`;
+   `a violated threshold is named with its observed value (AC-14)`;
+   `the harness exits non-zero when a bound is violated (AC-14)`.
+6–9. `balance-report.test.ts` — `a distinct fight is more than its winner and duration (R3 T1)`;
+   `the report names the design-band misses it computes (FR-5, R2 T3)`;
+   `today's target misses are named with their observed values`;
+   `the gate is green end to end (R5)`.
+
+The subagent additionally saw a transient `gatekeeper-reach.test.ts` timeout; the
+primary run did not reproduce it, and it is not included in the authoritative
+9-failure count.
 
 Because `verify` is not green, the configured chain
 `verify && build && balance && gate:determinism && test:fuzz` cannot be claimed green.
@@ -159,18 +164,59 @@ were **not** applied because the candidate is blocked.
 
 ## Blockers
 
-- `bun run gate:determinism` — standalone shell permission denied; needed for the
-  five-command chain; expect all species/props byte-identical. Primary to re-run.
-- `bun run test:fuzz` — standalone shell permission denied; needed for the
-  five-command chain; expect 139 pass / 0 fail. Primary to re-run.
-- `git hash-object <file>` — permission denied; needed only for hash-level
-  restoration proof (substitute: empty `git diff` vs checkpoint + verbatim write).
+Resolved by the primary on the final tree: `bun run gate:determinism` and
+`bun run test:fuzz` both exit 0 (see Primary verification below). The
+`git hash-object` denial was only a hash-level restoration-proof convenience;
+byte identity was established by verbatim `git show` writes and empty `git diff`.
+
+The remaining blocker is the owner gate itself: AC-11 fails because two species
+rows are red. No new fence, target, workaround or owner decision is invented here.
+
+## Primary verification (final tree, HEAD `9fbaabdd`)
+
+The primary independently re-ran every command separately; output dir
+`C:\Users\Ansyar\AppData\Local\Temp\opencode\d2-p4-verify\`.
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `bun run verify` | 1 | 4449 pass / 1 skip / 9 fail, 670441 `expect()` calls, 4459 tests / 437 files; final hash `0xff6f3d62`. |
+| `bun run build` | 0 | Vite 438 modules, pre-existing >500 kB chunk warning only. |
+| `bun run balance` | 1 | 32/34 gates ok; capShare 357/1680 (21.3%); decisiveShare 95.2%; capWinQuality 78.7%; median 32.82 s. |
+| `bun run gate:determinism` | 0 | All species/props byte-identical. |
+| `bun run test:fuzz` | 0 | 139 pass / 0 fail, 129015 `expect()` calls. |
+| focused controller + ghost tests | 0 | 30 pass / 0 fail, 117 `expect()` calls. |
+| pinned trace | 0 | 2250 steps, median gap 1110 mm, hash `0x1d0cc2ed`. |
+
+Scope proof: `git diff 9c994da9..HEAD -- packages apps` contains only the 14
+allowed sim source/test/script files; product.md and tech-stack.md are unchanged
+(`DOCS_UNCHANGED=0`). Tree is clean. The capShare reduction is real, but AC-11
+fails, so no policy ships.
 
 ## Final verdict
 
 **BLOCKED — no-ship.** The owner-approved candidate strictly lowers `capShare`
 from 30.8% to 21.3% (AC-12 met) but turns two species gates red, so AC-11
 ("all 34 gates green, every other fence unchanged") fails. `verify` and `balance`
-exit 1; two further commands were denied to this subagent. No policy, doc update
-or new fence ships. Next step requires a new owner decision (e.g. a roster
-re-tune track or formally accepting D-2 as debt); this phase does not invent one.
+exit 1 in both the subagent and primary runs; `gate:determinism`, `test:fuzz`,
+focused tests and trace are green. No policy, doc update or new fence ships.
+Next step requires a new owner decision (e.g. a roster re-tune track or formally
+accepting D-2 as debt); this phase does not invent one.
+
+## Final tree — candidate withdrawn
+
+Per AC-7 / FR-6 ("no game change ships"), the primary reverted all 13 Phase 4
+source/test/script files to base `1310de20` and removed the Phase 2-only
+`controller-profile.test.ts`. Verification of the final tree, output dir
+`C:\Users\Ansyar\AppData\Local\Temp\opencode\d2-p4-final\`:
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `bun run verify` | 0 | 4448 pass / 1 skip / 0 fail, 665709 `expect()` calls, hash `0xff6f3d62`. |
+| `bun run build` | 0 | Vite build OK. |
+| `bun run balance` | 0 | 1680 fights, capShare 30.8% (517/1680), 34/34 gates ok. |
+| `bun run gate:determinism` | 0 | Byte-identical. |
+| `bun run test:fuzz` | 0 | 139 pass / 0 fail, 129015 `expect()` calls. |
+
+`git diff 1310de20 -- packages apps` is empty (`SOURCE_UNCHANGED=0`). `SIM_VERSION`
+is back to 3, ghost pins to 3/4, the fight cap to 40 s, and no product/tech-stack
+doc was changed. The measured candidate grid above is retained only as evidence.

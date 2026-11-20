@@ -52,10 +52,10 @@ import {
 
 /**
  * The cap: how long a fight may run, in ms (tunable). The spec's fights land
- * in the 25-45 s band, so the cap is the top of that band and a normal KO
+ * in the 25-40 s band, so the cap is the top of that band and a normal KO
  * lands well before it. Duration, not steps, is the contract (FR-12).
  */
-export const FIGHT_CAP_MS = 45000
+export const FIGHT_CAP_MS = 40000
 
 /** The cap counted in fixed steps, for the loop bound only. */
 export const FIGHT_CAP_STEPS = FIGHT_CAP_MS / STEP_MS

@@ -229,12 +229,11 @@ describe("ghost bundle — the simulator version gate (FR-15, AC-15)", () => {
     return bundle
   }
 
-  test("the marker is at v4 — another bump is a deliberate act", () => {
-    // v4 is the reachable-Kite-band / 45 s cap generation: the speed-aware
-    // clamp and the longer cap change how those fights resolve. Bumping it
-    // again invalidates every stored bundle, so it must be a decision, not a
-    // side effect of a later phase.
-    expect(SIM_VERSION).toBe(4)
+  test("the marker stays at v3 — another bump is a deliberate act", () => {
+    // v3 is the minimum-reach generation: the inner edge changes which blows
+    // land and which shots pass. Bumping it again invalidates every stored
+    // bundle, so it must be a decision, not a side effect of a later phase.
+    expect(SIM_VERSION).toBe(3)
   })
 
   test("a pre-track (v1) bundle is rejected instead of misreplayed", () => {
@@ -243,20 +242,14 @@ describe("ghost bundle — the simulator version gate (FR-15, AC-15)", () => {
     )
   })
 
-  test("a legacy (v3) bundle is rejected instead of misreplayed", () => {
-    expect(verifyGhostBundle({ ...championBundle(), simVersion: 3 })).toBe(
-      false,
-    )
-  })
-
-  test("a future (v5) bundle is rejected", () => {
+  test("a future (v4) bundle is rejected", () => {
     expect(
       verifyGhostBundle({ ...championBundle(), simVersion: SIM_VERSION + 1 }),
     ).toBe(false)
-    expect(SIM_VERSION + 1).toBe(5)
+    expect(SIM_VERSION + 1).toBe(4)
   })
 
-  test("a v4 bundle still replays byte-identically", () => {
+  test("a matching bundle still replays byte-identically", () => {
     const bundle = championBundle()
     expect(verifyGhostBundle(bundle)).toBe(true)
     expect(replayGhost(bundle).events).toEqual(bundle.events)

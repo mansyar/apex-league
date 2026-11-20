@@ -183,7 +183,7 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
     // The band is measured from the sample, not assumed: the floor is the
     // fastest knockout, the ceiling is the cap.
     expect(measured.duration.min).toBeLessThanOrEqual(measured.duration.max)
-    expect(measured.duration.max).toBeLessThanOrEqual(45_000)
+    expect(measured.duration.max).toBeLessThanOrEqual(40_000)
   })
 
   // Phase 8 (FR-20, P8.T4) moved the cap share from 8/14 (57.1%) to 6/14

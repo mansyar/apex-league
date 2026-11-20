@@ -35,7 +35,7 @@ import { resolveContinuous } from "./resolve"
  */
 const KO = { seed: 20261111, owned: "wind_falcon", rival: "water_axolotl" }
 
-/** The telemetry sample's cap row: fire_drake v earth_tortoise, 45.00 s. */
+/** The telemetry sample's cap row: fire_drake v earth_tortoise, 40.00 s. */
 const CAP = { seed: 20261108, owned: "fire_drake", rival: "earth_tortoise" }
 
 /** Options with the defaults the command line fills in. */
@@ -202,8 +202,8 @@ describe("battle trace — one fight, step by step", () => {
 
     const cap = traceFight(options(CAP.seed, CAP.owned, CAP.rival))
     expect(cap.reason).toBe("time")
-    expect(cap.summary.ms).toBe(45_000)
-    expect(cap.summary.steps).toBe(2250)
+    expect(cap.summary.ms).toBe(40_000)
+    expect(cap.summary.steps).toBe(2000)
     // A cap fight is decided on points, so a winner still exists and both
     // pools are above zero: the summary must not pretend the fight was a draw.
     expect(cap.winner).not.toBeNull()
@@ -265,11 +265,11 @@ describe("battle trace — one fight, step by step", () => {
     ).toBe(true)
   })
 
-  test("a 45 s fight traces well under a second", () => {
+  test("a 40 s fight traces well under a second", () => {
     const started = performance.now()
     const trace = traceFight(options(CAP.seed, CAP.owned, CAP.rival))
     const elapsed = performance.now() - started
-    expect(trace.summary.steps).toBe(2250)
+    expect(trace.summary.steps).toBe(2000)
     expect(elapsed).toBeLessThan(1000)
   })
 

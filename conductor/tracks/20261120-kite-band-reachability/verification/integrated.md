@@ -9,25 +9,25 @@
 
 ## Commands, exit codes, and counts
 
-All commands were run separately on the Phase 4 candidate tree
-(`9c994da91c2cbdade9c267c14e747145412d9d11` plus code/test edits). Commands
-denied to this subagent are marked `denied` and are not claimed as run.
+All commands were run separately on the final Phase 4 candidate tree
+(`9fbaabdd7b122739aac3dbad73880017aaaca3b5`). Results below are the primary's
+independent re-run; output dir
+`C:\Users\Ansyar\AppData\Local\Temp\opencode\d2-p4-verify\`.
 
 | Command | Exit | Counts / result |
 | --- | --- | --- |
-| `bun run verify` | 1 | 4448 pass / 1 skip / 10 fail, 670441 `expect()` calls, 4459 tests / 437 files (189.15 s). 10 failures are cap-extension consequences; see `phase-4.md`. |
-| `bun run build` | 0 | Vite 8.3.4 production build, 438 modules transformed, `✓ built in 597ms` (standard >500 kB chunk warning only). |
+| `bun run verify` | 1 | 4449 pass / 1 skip / **9 fail**, 670441 `expect()` calls, 4459 tests / 437 files; final hash `0xff6f3d62`. Failures are cap-extension consequences; see `phase-4.md`. |
+| `bun run build` | 0 | Vite 438 modules, pre-existing >500 kB chunk warning only. |
 | `bun run balance` | 1 | 1680 fights (ko 1319, time 357, draw 4); 32 gates ok / 2 FAIL (water_axolotl 58.1%, dune_jerboa 58.8%); capShare 357/1680 (21.3%); decisiveShare 1600/1680 (95.2%); capWinQuality 281/357 (78.7%); median 32.82 s; durationMax 45.00 s; damageBand 49/49. |
-| `bun run gate:determinism` | `denied` | Standalone shell permission denied — not run, not claimed. |
-| `bun run test:fuzz` | `denied` | Standalone shell permission denied — not run, not claimed. |
-| focused `bun test controller-profile.test.ts controller-reach.test.ts ghost.test.ts --timeout 120000` | 0 | 30 pass / 0 fail, 117 `expect()` calls, 3 files. |
-| focused `bun test fixture-audit.test.ts --timeout 120000` | 0 | 5 pass / 0 fail, 33 `expect()` calls (after 45 s re-pin). |
+| `bun run gate:determinism` | 0 | All 21 species × 3 stages + 5 props byte-identical. |
+| `bun run test:fuzz` | 0 | 139 pass / 0 fail, 129015 `expect()` calls. |
+| focused controller + ghost tests | 0 | 30 pass / 0 fail, 117 `expect()` calls. |
 | `bun run trace --owned earth_tortoise --rival embercub --doctrine kite --rival-doctrine press --seed 20261120 --check` | 0 | 2250 steps / 45.00 s; median gap 1110 mm; ending `time — Embercub wins`; 5/5 invariants ok; hash `0x1d0cc2ed`. |
 
 The exact configured chain is `bun run verify && bun run build && bun run balance &&
 bun run gate:determinism && bun run test:fuzz`. `&&` was not used; commands were
-run individually. The chain is **not green**: `verify` and `balance` exit 1 and
-two commands were denied.
+run individually. The chain is **not green**: `verify` and `balance` exit 1. All
+three other configured commands passed in the primary run.
 
 ## Metrics: before / candidate / final
 
@@ -86,8 +86,19 @@ applied because the candidate is blocked.
 **BLOCKED — no policy shipped.** The owner-approved candidate strictly lowers
 `capShare` (30.8% → 21.3%, AC-12 met) but fails AC-11: 32/34 gates green, with
 `species:water_axolotl` (58.1%) and `species:dune_jerboa` (58.8%) outside the
-untouched design band. `verify` and `balance` exit 1; `gate:determinism` and
-`test:fuzz` were denied to this subagent and need a primary re-run. No policy,
-doc update or new fence ships. D-2 stays open pending a new owner decision (e.g.
-a roster re-tune track or formally accepting the debt). See `phase-4.md` for the
-full measured grid, deviation and blockers.
+untouched design band. `verify` and `balance` exit 1 in both the subagent and
+primary runs; `gate:determinism`, `test:fuzz`, focused tests and trace are green
+in the primary run. No policy, doc update or new fence ships. D-2 stays open
+pending a new owner decision (e.g. a roster re-tune track or formally accepting
+the debt). See `phase-4.md` for the full measured grid, deviation and blockers.
+
+## Final tree after withdrawal
+
+All Phase 4 source/test/script changes were reverted to base `1310de20`; the
+Phase 2-only `controller-profile.test.ts` was removed. `git diff 1310de20 --
+packages apps` is empty. Final-tree verification (output dir
+`C:\Users\Ansyar\AppData\Local\Temp\opencode\d2-p4-final\`) is green: `verify`
+4448 pass / 1 skip / 0 fail, hash `0xff6f3d62`; `build`, `balance` (34/34 gates,
+capShare 30.8%), `gate:determinism` and `test:fuzz` (139 pass / 0 fail) all exit
+0. `SIM_VERSION` remains 3, ghost pins 3/4, fight cap 40 s; no product/tech-stack
+doc changed. The candidate measurements above are retained only as evidence.
