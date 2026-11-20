@@ -2,7 +2,7 @@
   "id": "20261120-telemetry-fixture-debt",
   "title": "Telemetry Fixture Debt Reconciliation",
   "type": "chore",
-  "status": "new",
+  "status": "in_progress",
   "priority": "medium",
   "depends_on": [
     "20261112-capshare-pacing",
@@ -11,7 +11,7 @@
     "20261120-kite-band-reachability"
   ],
   "created_at": "2026-11-20T22:49:52.4271963+11:00",
-  "updated_at": "2026-11-20T22:49:52.4271963+11:00",
+  "updated_at": "2026-11-20T22:52:35.8516147+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "chore/20261120-telemetry-fixture-debt",
