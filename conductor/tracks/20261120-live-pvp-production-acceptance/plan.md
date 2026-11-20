@@ -78,21 +78,19 @@
 - **Covers:** FR-3, NFR-1, NFR-3, NFR-6, AC-3, AC-6, AC-7
 - **Touches:** `apps/client/src/live/panel.ts`, `apps/client/src/live/panel.test.ts`, `apps/client/src/live/invite.ts`, `conductor/tracks/20261120-live-pvp-production-acceptance/verification/phase-2.md`, `.conductor/evidence/20261120-live-pvp-production-acceptance/**`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`; visual layer: fixed local client with `VITE_API_ORIGIN` pointed at the production API, second invite at 1440×900 and 393×852, `playwright-cli console` empty.
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Failing regression test for stale invite state** — covers: FR-3, AC-3
-  - [ ] **P2.T1.1:** Drive room → verdict → leave in the client DOM harness and assert code input empty, start controls enabled, room/result rows hidden, status idle; confirm it fails before the fix.
-- [ ] **P2.T2: Reset invite state on verdict and leave** — covers: FR-3, NFR-1, NFR-4
-  - [ ] **P2.T2.1:** Add the smallest panel reset API and call it from `finish()` and `leave()` without changing the transport or arena contracts.
-  - [ ] **P2.T2.2:** Keep protocol version, sim version, save schema, dependency manifests and module caps unchanged.
-- [ ] **P2.T3: Second-bout browser re-proof** — covers: AC-3, NFR-3
-  - [ ] **P2.T3.1:** Serve the fixed client with `VITE_API_ORIGIN` pointed at the production API; complete one bout, click "Back to ranch", reopen the panel, and start a second room without reload; capture screenshots and an empty console.
+- [x] **P2.T1: Failing regression test for stale invite state** — covers: FR-3, AC-3
+  - [x] **P2.T1.1:** Drive room → verdict → leave in the client DOM harness and assert code input empty, start controls enabled, room/result rows hidden, status idle; confirm it fails before the fix.
+- [x] **P2.T2: Reset invite state on verdict and leave** — covers: FR-3, NFR-1, NFR-4
+  - [x] **P2.T2.1:** Add the smallest panel reset API and call it from `finish()` and `leave()` without changing the transport or arena contracts.
+  - [x] **P2.T2.2:** Keep protocol version, sim version, save schema, dependency manifests and module caps unchanged.
+- [x] **P2.T3: Second-bout browser re-proof** — covers: AC-3, NFR-3
+  - [x] **P2.T3.1:** Serve the fixed client with `VITE_API_ORIGIN` pointed at the production API; complete one bout, click "Back to ranch", reopen the panel, and start a second room without reload; capture screenshots and an empty console.
 
-<!--
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 32f88e59
 **Evidence:** conductor/tracks/20261120-live-pvp-production-acceptance/verification/phase-2.md
--->
 
 ## Phase 3: Integrated evidence and documentation truth
 
