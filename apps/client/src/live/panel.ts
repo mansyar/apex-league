@@ -21,6 +21,7 @@ export interface LivePanel {
   root: HTMLElement
   open(): void
   close(): void
+  reset(): void
   focusCode(): void
   status(status: LiveStatus): void
   room(code: string): void
@@ -117,7 +118,22 @@ export function createLivePanel(actions: LivePanelActions): LivePanel {
   )
   root.append(box)
 
+  /** Clear the per-invite state so the next open starts a fresh room. */
+  function reset(): void {
+    codeInput.value = ""
+    roomCode.textContent = ""
+    codeInput.disabled = false
+    createButton.disabled = false
+    joinButton.disabled = false
+    readyButton.disabled = false
+    roomRow.classList.add("is-hidden")
+    matchControls.classList.add("is-hidden")
+    result.classList.add("is-hidden")
+    status.textContent = statusCopy("idle")
+  }
+
   function open(): void {
+    reset()
     root.classList.remove("is-hidden")
     codeInput.focus()
   }
@@ -133,6 +149,7 @@ export function createLivePanel(actions: LivePanelActions): LivePanel {
 
     open,
     close,
+    reset,
 
     focusCode() {
       codeInput.focus()

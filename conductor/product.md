@@ -336,7 +336,7 @@ Phased delivery plan (each phase is independently playable):
   Ghost rivals section with preview + Fight opening a local-only spar bout.)*
 
 ### Phase 4 — Post-MVP
-- Async ghost PvP; live PvP (battle code designed for it from Phase 1).
+- Async ghost PvP; live PvP landed 2026-11-20 (PR #82), with production acceptance in PR #83/#84 and this track.
 - Mobile-responsive pass (foundation landed 2026-10-13: breakpoint
   tiers + responsive surfaces + portrait-aware arena camera; touch
   ergonomics landed 2026-10-16 — touch orbit/pinch, camera input locked

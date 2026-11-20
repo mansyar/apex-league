@@ -108,6 +108,7 @@ export function createLiveInvite(
     selfSeat = null
     panel.status("idle")
     panel.close()
+    panel.reset()
   }
 
   function finish(verdict: LiveVerdict): void {
