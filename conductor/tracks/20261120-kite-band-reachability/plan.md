@@ -15,7 +15,7 @@
 - **Covers:** FR-1, AC-1
 - **Touches:** `conductor/tracks/20261120-kite-band-reachability/verification/phase-1.md`, `.conductor/evidence/20261120-kite-band-reachability/**`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`; plus `bun run trace --owned earth_tortoise --rival embercub --doctrine kite --rival-doctrine press --seed 20261120 --check`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Record the unchanged full-matrix baseline** — covers: FR-1
   - [ ] **P1.T1.1: Run `bun run balance` and record `capShare`, `decisiveShare`, `capWinQuality`, `medianDuration`, and all 34 gate results in `verification/phase-1.md`**
