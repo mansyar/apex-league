@@ -31,3 +31,14 @@ No other fence, target, dependency, save schema, protocol version, CORS, deploy,
 client, or server change is authorized. If AC-11 or AC-12 fails, the track
 hard-stops as `blocked` with the measured grid; no further workaround is allowed
 without a new owner decision.
+
+## Owner directive 2026-11-20 - "Fix it here"
+
+After Phase 4 measured `capShare 21.3% (357/1680)` (AC-12 met) but two species
+gates red (`water_axolotl` 58.1%, `dune_jerboa` 58.8%), the owner directed
+**"Fix it here"**. This supersedes the earlier hard-stop boundary for this track
+only: continue with a narrow roster re-tune of **only** those two species stat
+bounds. No third species, fence, target, dependency or content change is authorized.
+If that bounded re-tune cannot satisfy all 34 gates plus the strict capShare
+reduction, the phase reports `blocked` with the measured grid. Recorded in
+`spec.md` as FR-11/FR-12 and AC-14/AC-15; execution is Phase 5 of `plan.md`.

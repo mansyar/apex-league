@@ -115,3 +115,37 @@
 **Checkpoint:** `88158b57`
 
 **Evidence:** conductor/tracks/20261120-kite-band-reachability/verification/phase-4.md
+
+## Phase 5: Narrow roster re-tune for D-2
+
+- **Goal:** re-apply the Phase 4 candidate and bring the two red species gates
+  inside the unchanged 45–55% band by editing only `water_axolotl` and
+  `dune_jerboa` stat bounds, while keeping `capShare` strictly below baseline.
+- **Depends on:** Phase 4
+- **Covers:** FR-11, FR-12, AC-11, AC-12, AC-14, AC-15
+- **Touches:** all Phase 4 source/test/script files plus
+  `packages/sim/src/species/starters.ts`, `packages/sim/src/species/discovery.ts`,
+  their focused tests, `verification/phase-5.md`, `verification/integrated.md`,
+  and shipped-only `conductor/product.md` / `conductor/tech-stack.md`.
+- **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`; focused species/controller/ghost tests; pinned trace; full 1680-fight matrix with all 34 gates green and `capShare < 517/1680`.
+- **Status:** pending
+
+- [ ] **P5.T1: Re-apply the Phase 4 candidate** — covers: FR-11
+  - [ ] **P5.T1.1: Restore the 13 game-code/test/script files from commit `9fbaabdd` (including the new `controller-profile.test.ts`) so clamp + 45s cap + v4 replay guard are active**
+  - [ ] **P5.T1.2: Confirm the baseline failure grid (32/34 gates, water/dune red) is reproduced before any stat change**
+- [ ] **P5.T2: Re-tune only the two red species** — covers: FR-11, FR-12, AC-14
+  - [ ] **P5.T2.1: Adjust `water_axolotl` and `dune_jerboa` stat bounds only; no other species, move, kit, temperament, element or fence changes**
+  - [ ] **P5.T2.2: Let failing focused tests enumerate required pins; record before/after counts and every changed value**
+- [ ] **P5.T3: Prove the ship gate** — covers: AC-11, AC-12
+  - [ ] **P5.T3.1: Run the full matrix and require 34/34 gates green, both species inside 45–55%, and `capShare` strictly below `517/1680`**
+  - [ ] **P5.T3.2: If unattainable within the two-species scope, stop as `blocked` with the measured grid and do not touch a third species or fence**
+- [ ] **P5.T4: Record evidence and shipped docs** — covers: AC-13, AC-14, AC-15
+  - [ ] **P5.T4.1: Write `verification/phase-5.md` and update `verification/integrated.md` with commands, counts, hashes, module caps, scope proof and verdict**
+  - [ ] **P5.T4.2: Only if shipped, apply the owner-approved dated D-2 closure note to `product.md` and v4/45s note to `tech-stack.md`**
+
+<!--
+The primary appends after acceptance:
+**Result:** verified
+**Checkpoint:** <short-sha>
+**Evidence:** conductor/tracks/20261120-kite-band-reachability/verification/phase-5.md
+-->

@@ -184,3 +184,23 @@ deploy, client, or server change; module caps unchanged; no allowlist; no real
 player data; no other fence or target may be invented without another owner
 decision. The owner-approved product/tech-stack doc updates become applicable
 only if AC-11 and AC-12 pass and the candidate ships.
+
+## Owner directive 2026-11-20 - Fix it here
+
+After the Phase 4 candidate achieved AC-12 but failed AC-11 on two species gates,
+the owner directed: **"Fix it here"**. This authorizes a narrow roster re-tune in
+this track rather than opening a new track.
+
+- **FR-11:** re-apply the full Phase 4 candidate (Kite clamp + 45s cap +
+  `SIM_VERSION` 4 guard), then adjust **only** `water_axolotl` and `dune_jerboa`
+  stat bounds in `packages/sim/src/species/` so every balance gate is green.
+  No third species, move, kit, temperament, archetype, element or other content
+  may change.
+- **FR-12:** keep AC-12 intact: final `capShare` must still be strictly below
+  `517/1680`. The two species gates must fall inside the unchanged 45–55%
+  design band.
+- **AC-14:** all 34 balance gates green, `capShare` still strictly lower than
+  baseline, and the only content diff is the two named species' stat bounds.
+- **AC-15:** if no bounded two-species re-tune can satisfy AC-14, the phase
+  reports `blocked` with the measured grid; no third species or fence move is
+  attempted without another owner decision.
