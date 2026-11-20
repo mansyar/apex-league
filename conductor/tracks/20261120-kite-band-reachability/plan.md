@@ -40,24 +40,21 @@
 - **Covers:** FR-2, FR-3, AC-2, AC-3
 - **Touches:** `packages/sim/src/battle/continuous/controller-profile.ts`, `packages/sim/src/battle/continuous/controller-reach.ts`, `packages/sim/src/battle/continuous/controller-profile.test.ts`, `packages/sim/src/battle/continuous/controller-reach.test.ts`, `conductor/tracks/20261120-kite-band-reachability/verification/phase-2.md`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`; plus `bun test packages/sim/src/battle/continuous/controller-profile.test.ts packages/sim/src/battle/continuous/controller-reach.test.ts --timeout 120000`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Add failing-first pure tests** — covers: FR-2, FR-3, AC-2, AC-3
-  - [ ] **P2.T1.1: Add a slow-kiter test that fails before the fix: a `spd 5` Kite floor/hold beyond the maintainable gap against a faster Press foe**
-  - [ ] **P2.T1.2: Add invariant cases for equal speed, fast Kite vs slow foe, very slow Kite vs much faster foe, all three temperaments, and differing radii; assert floor ≤ preferred ≤ ceiling and floor never inside the reach edge**
-- [ ] **P2.T2: Implement the reachability clamp** — covers: FR-2, FR-3
-  - [ ] **P2.T2.1: Add a deterministic integer helper that derives the maximum maintainable gap from own/foe top speed and the pair's reach edge, with no floating-point policy decision, real timer, network or RNG use**
-  - [ ] **P2.T2.2: Apply it only to the Kite doctrine's band construction in `bandFor`/`threatBandFor`; leave movement kinematics, dodge, stamina, frame data, damage, other doctrines and every fence untouched**
-- [ ] **P2.T3: Verify the focused change** — covers: AC-2, AC-3, NFR-3, NFR-5
-  - [ ] **P2.T3.1: Run the focused controller tests and record the before/after pass counts in `verification/phase-2.md`**
-  - [ ] **P2.T3.2: Run the five configured verification commands separately; if any gate is red, report `blocked` with the exact failure and do not proceed to ship**
+- [x] **P2.T1: Add failing-first pure tests** — covers: FR-2, FR-3, AC-2, AC-3
+  - [x] **P2.T1.1: Add a slow-kiter test that fails before the fix: a `spd 5` Kite floor/hold beyond the maintainable gap against a faster Press foe**
+  - [x] **P2.T1.2: Add invariant cases for equal speed, fast Kite vs slow foe, very slow Kite vs much faster foe, all three temperaments, and differing radii; assert floor ≤ preferred ≤ ceiling and floor never inside the reach edge**
+- [x] **P2.T2: Implement the reachability clamp** — covers: FR-2, FR-3
+  - [x] **P2.T2.1: Add a deterministic integer helper that derives the maximum maintainable gap from own/foe top speed and the pair's reach edge, with no floating-point policy decision, real timer, network or RNG use**
+  - [x] **P2.T2.2: Apply it only to the Kite doctrine's band construction in `bandFor`/`threatBandFor`; leave movement kinematics, dodge, stamina, frame data, damage, other doctrines and every fence untouched**
+- [x] **P2.T3: Verify the focused change** — covers: AC-2, AC-3, NFR-3, NFR-5
+  - [x] **P2.T3.1: Run the focused controller tests and record the before/after pass counts in `verification/phase-2.md`**
+  - [x] **P2.T3.2: Run the five configured verification commands separately; if any gate is red, report `blocked` with the exact failure and do not proceed to ship**
 
-<!--
-The primary appends after acceptance:
-**Result:** verified
-**Checkpoint:** <short-sha>
+**Result:** verified as a candidate — failing-first slow-kiter test moved from `11 pass / 5 fail` to `16 pass / 0 fail`; integer-only Kite clamp preserves all band invariants; five configured commands independently re-run with exit 0. `capShare` remains 30.8%, so ship/no-ship is Phase 3.
+**Checkpoint:** `7fb66b04`
 **Evidence:** conductor/tracks/20261120-kite-band-reachability/verification/phase-2.md
--->
 
 ## Phase 3: Measured decision, replay guard, and evidence
 
