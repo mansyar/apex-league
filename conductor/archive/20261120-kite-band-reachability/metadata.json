@@ -2,7 +2,7 @@
   "id": "20261120-kite-band-reachability",
   "title": "D-2 Kite Band Reachability",
   "type": "chore",
-  "status": "in_progress",
+  "status": "complete",
   "priority": "high",
   "depends_on": [
     "20261117-global-pacing",
@@ -10,7 +10,7 @@
     "20261112-capshare-pacing"
   ],
   "created_at": "2026-11-20T14:14:54.9973800+11:00",
-  "updated_at": "2026-11-20T19:56:55.5516809+11:00",
+  "updated_at": "2026-11-20T19:59:35.6844957+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "chore/20261120-kite-band-reachability",
@@ -26,10 +26,10 @@
   "review_verdict": "PASS",
   "review_rounds": 1,
   "doc_sync": "synced",
-  "pr_url": null,
+  "pr_url": "https://github.com/mansyar/apex-league/pull/86",
   "reverted_at": null,
   "revert_commit": null,
   "revert_pr_url": null,
-  "archived_at": null,
-  "archive_path": null
+  "archived_at": "2026-11-20T19:59:35.6844957+11:00",
+  "archive_path": "conductor/archive/20261120-kite-band-reachability"
 }
