@@ -282,6 +282,16 @@ Phased delivery plan (each phase is independently playable):
       decisive subset than the roster — every telemetry bound therefore describes
       that walk, and re-stratifying it is a gate redesign with its own
       before/after, not a fix to smuggle in.
+      *(Reconciled 2026-11-20, track `20261120-telemetry-fixture-debt`: D-3 is
+      closed as met by the approved D-2 45 s fight cap side effect — the 42-pairing
+      telemetry fixture now reads `11/42 (26.2%)`, below the old 21/42 smoke ceiling,
+      and no pacing or fixture change was made in this track. D-4 is closed as
+      diagnosed and bounded, not fixed: the same 42-pairing fixture is deliberately
+      unchanged, its sampling bias stays visible through the four-cell audit and the
+      14/30/42 stability re-pool, and re-stratification is deferred to a future
+      product-decision track with its own before/after. The historical 20/42 and
+      840-fight figures above describe the 2026-11-12/13 measurements and remain
+      accurate as history.)*
       **Infrastructure, same date:** the CI gate now triggers on every pull
       request and skips its heavy steps when the diff touches only `conductor/`.
       A workflow-level path filter had meant a conductor-only PR created no run at
@@ -358,7 +368,11 @@ Phased delivery plan (each phase is independently playable):
   band on 2026-11-19; the 20-species goal is met. **Owner decision
   2026-11-18:** the global-pacing D-1 decision is closed — the ≤1/3 cap-share
   fence stays on the 840-fight matrix, the 20/42 fixture miss (D-3) and its
-  population bias (D-4) remain recorded debt, the kite band (D-2) closed 2026-11-20 with a speed-aware Kite clamp, a 45 s fight cap and a two-species re-tune (track `20261120-kite-band-reachability`),
+  population bias (D-4) were recorded debt on 2026-11-18 and both closed on
+  2026-11-20 (track `20261120-telemetry-fixture-debt`): D-3 met by the D-2 45 s cap
+  side effect at `11/42 (26.2%)` with no new pacing change; D-4 diagnosed and bounded,
+  fixture unchanged and re-stratification deferred to a future product-decision track.
+  The kite band (D-2) closed 2026-11-20 with a speed-aware Kite clamp, a 45 s fight cap and a two-species re-tune (track `20261120-kite-band-reachability`),
   and both debt pins remain in place.)*
 
 ## Target Audience

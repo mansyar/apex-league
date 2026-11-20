@@ -440,6 +440,16 @@
   22.0% (370/1680) with all 34 gates green and both species back inside the
   unchanged 45–55% design band. No dependency, save schema, protocol, API,
   CORS or deploy change; no fence other than the 45 s cap moved.*
+- *2026-11-20 — Telemetry fixture debt reconciliation (track
+  `20261120-telemetry-fixture-debt`): `fixture-audit` now prints the live matrix
+  comparison `1680 / 580 / 370` and the derived `+12.5 points` instead of the stale
+  840-fight arithmetic; its historical 2026-11-12 figures are kept only as an
+  explicitly labelled note. D-3 is closed as met by the D-2 cap side effect at
+  `11/42 (26.2%)` and D-4 as diagnosed and bounded; telemetry bounds and the
+  42-pairing fixture are unchanged, and no gate, fence, controller, species,
+  `SIM_VERSION` (4), ghost pins (4/5), save schema, protocol or dependency changed.
+  Battle hash remains `0xff6f3d62`, balance stays 34/34 green at `370/1680 (22.0%)`,
+  and the audit remains a diagnostic with no pass/fail gate.*
 
 ## Asset Pipeline
 - **Creatures and ranch props**: species and scenery defined as versioned JSON

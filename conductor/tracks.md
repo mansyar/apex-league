@@ -57,3 +57,4 @@
 - [x] **Track: Live PvP Foundation Spike** - [20261119-live-pvp-foundation](./archive/20261119-live-pvp-foundation/index.md) - feature - high
 - [x] **Track: Live PvP Production Acceptance** - [20261120-live-pvp-production-acceptance](./archive/20261120-live-pvp-production-acceptance/index.md) - bug - high
 - [x] **Track: D-2 Kite Band Reachability** - [20261120-kite-band-reachability](./archive/20261120-kite-band-reachability/index.md) - chore - high
+- [x] **Track: Telemetry Fixture Debt Reconciliation** - [20261120-telemetry-fixture-debt](./archive/20261120-telemetry-fixture-debt/index.md) - chore - medium
