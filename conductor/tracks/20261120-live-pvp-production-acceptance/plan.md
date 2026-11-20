@@ -115,3 +115,25 @@
 **Result:** verified
 **Checkpoint:** 8fc63e4f
 **Evidence:** conductor/tracks/20261120-live-pvp-production-acceptance/verification/phase-3.md
+
+## Phase R1: Review Fixes
+
+- **Goal:** Resolve review finding F1: make the integrated record accurately describe the
+  number of throwaway trainer identities used across the blocked attempt, retry and
+  second-bout proof, and record the accepted interpretation of NFR-2.
+- **Depends on:** Phase 3
+- **Covers:** F1 (NFR-2, AC-7)
+- **Touches:** `conductor/tracks/20261120-live-pvp-production-acceptance/verification/integrated.md`, `conductor/tracks/20261120-live-pvp-production-acceptance/verification/phase-R1.md`
+- **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`; confirm no credential or passphrase appears in tracked artifacts.
+- **Status:** pending
+
+- [ ] **R1.T1: Reconcile throwaway identity count** — covers: F1
+  - [ ] **R1.T1.1:** Update `verification/integrated.md` AC-7 and the limitations to state "two concurrent throwaway identities per proof; six total across the blocked attempt, retry and second-bout proof", and record that as the accepted interpretation of NFR-2. No source, config or spec change.
+- [ ] **R1.T2: Record review-fix evidence** — covers: F1
+  - [ ] **R1.T2.1:** Write `verification/phase-R1.md` with the F1 fix, exact command results, scope/credential guard and verdict.
+
+<!--
+**Result:** verified
+**Checkpoint:** <short-sha>
+**Evidence:** conductor/tracks/20261120-live-pvp-production-acceptance/verification/phase-R1.md
+-->
