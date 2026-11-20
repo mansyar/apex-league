@@ -102,7 +102,7 @@
 - **Covers:** FR-4, FR-5, NFR-1, AC-4, AC-5, AC-6, AC-8
 - **Touches:** `conductor/tracks/20261120-live-pvp-production-acceptance/verification/integrated.md`, `conductor/tracks/20261120-live-pvp-production-acceptance/verification/phase-3.md`, `conductor/product.md`, `.conductor/evidence/20261120-live-pvp-production-acceptance/**`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`; evidence review of AC-1..AC-8 and the scope proof.
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Integrated verification record** — covers: FR-4, AC-4, AC-6, AC-8
   - [ ] **P3.T1.1:** Record all five command results, hash `0xff6f3d62`, module caps, deployed URLs, desktop/phone/forfeit/second-invite screenshot paths, console result, AC table and scope proof in `verification/integrated.md`.
