@@ -116,6 +116,75 @@ describe("fixture audit — the four cells and the attribution (FR-8, FR-9)", ()
   })
 })
 
+describe("the recorded same-doctrine line (FR-4, FR-5, AC-4, AC-5)", () => {
+  test("the report states the live 1,680-fight matrix arithmetic (FR-4, FR-5)", () => {
+    // Pure: hand-built readings, no fixture measurement and no game state, so
+    // this pins only the report's recorded-matrix claim. RECORDED is a
+    // diagnostic comparison, not a target and not a gate (NFR-2).
+    const readings: CellReading[] = [
+      {
+        id: "A",
+        statBasis: "reference",
+        doctrine: "split",
+        fights: 42,
+        capCount: 11,
+        capShare: 11 / 42,
+        medianMs: 38_010,
+        koCount: 31,
+      },
+      {
+        id: "B",
+        statBasis: "reference",
+        doctrine: "press",
+        fights: 42,
+        capCount: 8,
+        capShare: 8 / 42,
+        medianMs: 35_120,
+        koCount: 34,
+      },
+      {
+        id: "C",
+        statBasis: "midpoint",
+        doctrine: "split",
+        fights: 42,
+        capCount: 7,
+        capShare: 7 / 42,
+        medianMs: 29_880,
+        koCount: 35,
+      },
+      {
+        id: "D",
+        statBasis: "midpoint",
+        doctrine: "press",
+        fights: 42,
+        capCount: 5,
+        capShare: 5 / 42,
+        medianMs: 31_260,
+        koCount: 37,
+      },
+    ]
+    const lines = report(readings)
+    const start = lines.findIndex((line) =>
+      line.startsWith("same-doctrine check"),
+    )
+    if (start < 0) throw new Error("the report lost the same-doctrine line")
+    const claim = lines.slice(start, start + 2).join("\n")
+
+    // Current claim: the live 1,680-fight matrix comparison.
+    expect(claim).toContain("same-doctrine check at 1680 fights")
+    expect(claim).toContain("reference 580/1680 34.5%")
+    expect(claim).toContain("midpoint 370/1680 22.0%")
+    expect(claim).toContain("+12.5 points")
+    expect(attribution(readings).recordedStatPoints).toBeCloseTo(12.5, 10)
+
+    // The 2026-11-12 figures are historical, never a current claim (AC-4).
+    expect(claim).not.toContain("840")
+    expect(claim).not.toContain("377")
+    expect(claim).not.toContain("224")
+    expect(claim).not.toContain("+18.2")
+  })
+})
+
 describe("the two harnesses agree on what a midpoint is (FR-6)", () => {
   // `battle-telemetry.ts` and `battle-balance-report.ts` each write the same
   // `floor((min + max) / 2)` arithmetic, because a script must not import

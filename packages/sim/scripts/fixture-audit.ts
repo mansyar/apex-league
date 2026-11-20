@@ -1,7 +1,7 @@
 /**
- * Fixture audit — the four cells behind the 47.6%-vs-26.7% gap (FR-8, FR-10).
+ * Fixture audit — the four cells behind the 26.2%-vs-22.0% gap (FR-8, FR-10).
  *
- * The telemetry fixture reads a much higher cap share than the 840-fight
+ * The telemetry fixture reads a higher cap share than the 1,680-fight
  * balance matrix on the same tree, and two things differ between them: the
  * **stat basis** (the fixture ramps both sides to `REFERENCE`, clamped into
  * each species' roll bounds; the matrix fights each species at its roll
@@ -19,7 +19,7 @@
  *
  * **It is a diagnostic, not a gate (NFR-4).** There is no bound, no target, no
  * `ok`/`FAIL` line and no CI step reading this output. It always exits 0. The
- * one thing it must keep doing is reproducing cell A at 20/42: that is the
+ * one thing it must keep doing is reproducing cell A at 11/42: that is the
  * telemetry gate's own count, so a cell A that reads anything else means the
  * call is wrong, not that the gate moved.
  */
@@ -35,19 +35,23 @@ import {
 } from "./battle-telemetry"
 
 /**
- * The two 840-fight figures the balance report already prints, recorded here so
- * the attribution can compare the two axes without re-running a matrix this
+ * The two 1,680-fight figures the balance report already prints, recorded here
+ * so the attribution can compare the two axes without re-running a matrix this
  * script does not own. Both hold doctrine fixed (press on both sides) and move
  * only the stat basis, which is exactly the comparison the audit needs.
  *
  * Source: `bun run balance` on this tree —
- * `reference line cap share: 377/840 (44.9%) — diagnostic only` and
- * `cap share: 224/840 (26.7%)`. `balance-report.test.ts` pins both.
+ * `reference line cap share: 580/1680 (34.5%) — diagnostic only` and
+ * `cap share: 370/1680 (22.0%)`. `balance-report.test.ts` pins the
+ * reference-line format. The 2026-11-12 reading was 377/840 and 224/840
+ * (+18.2 points); that is historical only, not a current claim. The D-2 45 s
+ * cap moved the matrix to 1,680 fights, so this comparison uses live figures
+ * and remains a diagnostic, not a new gate (NFR-2).
  */
 const RECORDED = {
-  fights: 840,
-  referencePress: 377,
-  midpointPress: 224,
+  fights: 1680,
+  referencePress: 580,
+  midpointPress: 370,
 } as const
 
 /** One cell of the 2x2: a stat basis crossed with a doctrine mix. */
@@ -153,7 +157,7 @@ export interface Attribution {
   readonly statAtSplitPoints: number
   /** C - D: the doctrine effect at midpoint stats. */
   readonly doctrineAtMidpointPoints: number
-  /** 44.9 - 26.7 at 840 fights: the stat effect at press doctrine. */
+  /** 34.5 - 22.0 at 1,680 fights: the stat effect at press doctrine. */
   readonly recordedStatPoints: number
 }
 
