@@ -102,18 +102,16 @@
 - **Covers:** FR-4, FR-5, NFR-1, AC-4, AC-5, AC-6, AC-8
 - **Touches:** `conductor/tracks/20261120-live-pvp-production-acceptance/verification/integrated.md`, `conductor/tracks/20261120-live-pvp-production-acceptance/verification/phase-3.md`, `conductor/product.md`, `.conductor/evidence/20261120-live-pvp-production-acceptance/**`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`; evidence review of AC-1..AC-8 and the scope proof.
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Integrated verification record** — covers: FR-4, AC-4, AC-6, AC-8
-  - [ ] **P3.T1.1:** Record all five command results, hash `0xff6f3d62`, module caps, deployed URLs, desktop/phone/forfeit/second-invite screenshot paths, console result, AC table and scope proof in `verification/integrated.md`.
-- [ ] **P3.T2: Product roadmap truth** — covers: FR-5, AC-5
-  - [ ] **P3.T2.1:** Update the Phase 4 "live PvP" bullet in `conductor/product.md` to a dated landed note referencing PR #82, with no other roadmap content changed.
-- [ ] **P3.T3: ADR supersession note and scope guard** — covers: FR-5, NFR-1, AC-5
-  - [ ] **P3.T3.1:** Record in `verification/phase-3.md` that the archived ADR's "primary must run the visual proof" line is superseded by `integrated.md`, leaving the ADR untouched.
-  - [ ] **P3.T3.2:** Confirm no manifest, lockfile, protocol, save, balance, pacing, CORS or deploy file changed and no credentials appear in tracked artifacts.
+- [x] **P3.T1: Integrated verification record** — covers: FR-4, AC-4, AC-6, AC-8
+  - [x] **P3.T1.1:** Record all five command results, hash `0xff6f3d62`, module caps, deployed URLs, desktop/phone/forfeit/second-invite screenshot paths, console result, AC table and scope proof in `verification/integrated.md`.
+- [x] **P3.T2: Product roadmap truth** — covers: FR-5, AC-5
+  - [x] **P3.T2.1:** Update the Phase 4 "live PvP" bullet in `conductor/product.md` to a dated landed note referencing PR #82, with no other roadmap content changed.
+- [x] **P3.T3: ADR supersession note and scope guard** — covers: FR-5, NFR-1, AC-5
+  - [x] **P3.T3.1:** Record in `verification/phase-3.md` that the archived ADR's "primary must run the visual proof" line is superseded by `integrated.md`, leaving the ADR untouched.
+  - [x] **P3.T3.2:** Confirm no manifest, lockfile, protocol, save, balance, pacing, CORS or deploy file changed and no credentials appear in tracked artifacts.
 
-<!--
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 8fc63e4f
 **Evidence:** conductor/tracks/20261120-live-pvp-production-acceptance/verification/phase-3.md
--->
