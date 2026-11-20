@@ -92,7 +92,7 @@
 - **Covers:** FR-8, FR-9, FR-10, FR-4..FR-7, NFR-1..NFR-6, AC-11, AC-12, AC-13, AC-4..AC-10
 - **Touches:** `packages/sim/src/battle/continuous/controller-reach.ts`, `controller-reach.test.ts`, `controller-profile.test.ts`, `fixture-audit.test.ts`, `resolve.ts`, `pacing.test.ts`, `resolve.test.ts`, `battle-trace.test.ts`, `telemetry.test.ts`, `balance-report.test.ts`, `packages/sim/src/cup/ghost.ts`, `ghost.test.ts`, `packages/sim/scripts/battle-balance-report.ts`, `conductor/tracks/20261120-kite-band-reachability/verification/phase-4.md`, `conductor/tracks/20261120-kite-band-reachability/verification/integrated.md`, `conductor/product.md`, `conductor/tech-stack.md`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`; plus the focused controller/ghost tests and `bun run trace --owned earth_tortoise --rival embercub --doctrine kite --rival-doctrine press --seed 20261120 --check`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P4.T1: Re-apply the Phase 2 Kite clamp** — covers: FR-8, AC-12
   - [ ] **P4.T1.1: Restore the exact four-file source/test diff from checkpoint `7fb66b04` (`controller-reach.ts`, `controller-reach.test.ts`, `controller-profile.test.ts`, `fixture-audit.test.ts`), including the failing-first regression suite and its green post-fix counts**
