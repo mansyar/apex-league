@@ -15,12 +15,14 @@ import {
   DOCTRINES,
   profileFor,
   profileForDoctrine,
+  reachEdgeMm,
 } from "./controller-profile"
 import {
   opponentReachMm,
   REACH_STANDOFF_MM,
   threatBandFor,
 } from "./controller-reach"
+import { topSpeed } from "./movement"
 import { createFight } from "./step"
 import type { FighterState } from "./types"
 
@@ -110,5 +112,33 @@ describe("threat band", () => {
     const [me, foe] = pair()
     const rush = profileFor("rush")
     expect(threatBandFor(rush, me, foe)).toEqual(bandFor(rush, 860))
+  })
+
+  test("a slow Kite's hold point is pulled inside its maintainable gap", () => {
+    const fight = createFight({
+      seed: 11,
+      bounds: BOUNDS,
+      fighters: [
+        { key: "home", spd: 5, at: { x: 0, z: 0 }, radiusMm: 220 },
+        { key: "away", spd: 10, at: { x: 1000, z: 0 }, radiusMm: 220 },
+      ],
+    })
+    const me = fight.state.fighters[0]
+    const foe = fight.state.fighters[1]
+    const edge = reachEdgeMm(me, foe)
+    const cap =
+      edge + Math.trunc((edge * topSpeed(5)) / topSpeed(10)) + REACH_STANDOFF_MM
+    const kite = profileForDoctrine(DOCTRINES.kite, "slow")
+    const plain = bandFor(kite, edge)
+    const lifted = threatBandFor(kite, me, foe)
+    // Before the clamp the doctrinal hold point is wider than a spd-5 body can
+    // keep against a spd-10 Press foe; after it, the hold point respects the cap.
+    expect(plain.preferredMm).toBeGreaterThan(cap)
+    expect(lifted.preferredMm).toBeLessThanOrEqual(cap)
+    expect(lifted.floorMm).toBeGreaterThanOrEqual(
+      opponentReachMm(me, foe) + REACH_STANDOFF_MM,
+    )
+    expect(lifted.floorMm).toBeLessThanOrEqual(lifted.preferredMm)
+    expect(lifted.preferredMm).toBeLessThanOrEqual(lifted.ceilingMm)
   })
 })

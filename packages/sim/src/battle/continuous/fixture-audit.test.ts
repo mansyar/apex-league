@@ -77,23 +77,25 @@ describe("fixture audit — the four cells and the attribution (FR-8, FR-9)", ()
       // the only ceiling in play is the telemetry gate's 3/5 cap share (AC-7).
       //
       // A — the telemetry gate as it ships: reference stats, split doctrine.
-      // 15/42 (35.7%), median 34.38 s. The count is the gate's own, asserted
+      // 11/42 (26.2%), median 38.01 s. The count is the gate's own, asserted
       // against `measure()` above rather than trusted from this literal.
-      ["A", 15, 34_380, 27],
+      // Re-pinned for the speed-aware Kite band and 45 s cap (20261120 track).
+      ["A", 11, 38_010, 31],
       // B — A with the doctrine moved to press on both sides (the matrix's
-      // doctrine), stats still reference. 12/42 (28.6%), median 35.04 s: on
+      // doctrine), stats still reference. 6/42 (14.3%), median 35.04 s: on
       // the 21-species roster this cell is a drift pin for the doctrine
       // interaction, not a target.
-      ["B", 12, 35_040, 30],
+      ["B", 6, 35_040, 36],
       // C — A with the stat basis moved to bounds midpoints (the matrix's stat
-      // line), doctrine still split. 13/42 (31.0%), median 29.88 s: the stat
-      // line alone removes two caps and 4.50 s of median fight.
-      ["C", 13, 29_880, 29],
-      // D — both variables moved: midpoint stats, press on both sides. 7/42
-      // (16.7%), median 30.48 s. This is a different population from the
+      // line), doctrine still split. 6/42 (14.3%), median 29.94 s: the stat
+      // line alone removes five caps and 8.07 s of median fight.
+      // Re-pinned for the speed-aware Kite band and 45 s cap (20261120 track).
+      ["C", 6, 29_940, 36],
+      // D — both variables moved: midpoint stats, press on both sides. 5/42
+      // (11.9%), median 30.48 s. This is a different population from the
       // 420 x 4 matrix (42 strided pairings, one seed each); the residual is
       // recorded here rather than explained away.
-      ["D", 7, 30_480, 35],
+      ["D", 5, 30_480, 37],
     ])
   })
 

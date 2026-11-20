@@ -137,7 +137,7 @@ describe("resolveContinuous — the fight's endings", () => {
     expect(lastEvent(result.events).kind).toBe("time")
     expect(hpOf(result.finalHp, "ember")).toBeGreaterThan(0)
     expect(hpOf(result.finalHp, "ember")).toBe(hpOf(result.finalHp, "reed"))
-    expect(FIGHT_CAP_MS).toBe(40000)
+    expect(FIGHT_CAP_MS).toBe(45000)
   })
 
   test("an even seed breaks a dead heat to side 0, an odd seed to side 1", () => {

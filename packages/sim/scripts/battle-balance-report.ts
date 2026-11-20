@@ -144,7 +144,7 @@ const CAP_MAX = 1 / 3
 
 /** FR-4: the window the median must land inside (Rework 2 - outlasting wins). */
 const BAND_MIN_MS = 25_000
-const BAND_MAX_MS = 40_000
+const BAND_MAX_MS = 45_000
 
 /**
  * FR-20 / AC-17: two fights in three must end decisively — a knockout, or an
@@ -169,7 +169,7 @@ export const DECISIVE_SHARE_MIN = 2 / 3
 
 /** The engine's measured floor and the fight cap, in ms (AC-7). */
 const DURATION_MIN_MS = 8_000
-const DURATION_MAX_MS = 40_000
+const DURATION_MAX_MS = 45_000
 
 /** FR-1: the base hit of every catalog move, in percent of the reference pool. */
 const DAMAGE_MIN_PERCENT = 4
@@ -1170,7 +1170,7 @@ export function targets(sample: BalanceSample): Target[] {
   out.push({
     name: "medianDuration",
     observed: `${(cap.median / 1000).toFixed(2)}s`,
-    bound: "inside 25.00s..40.00s (>= 25.00s and < 40.00s)",
+    bound: "inside 25.00s..45.00s (>= 25.00s and < 45.00s)",
     ok: cap.median >= BAND_MIN_MS && cap.median < DURATION_MAX_MS,
     why: "FR-4 / AC-4: the median fight lands inside the window; FR-20 / AC-17: and strictly below the cap",
   })

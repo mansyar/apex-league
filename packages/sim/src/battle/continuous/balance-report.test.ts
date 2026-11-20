@@ -363,7 +363,7 @@ describe("balance report — one deterministic command (FR-7, AC-7)", () => {
     ).toBe(true)
     const atCap: BalanceSample = {
       ...measured,
-      duration: { ...measured.duration, median: 40_000 },
+      duration: { ...measured.duration, median: 45_000 },
     }
     const median = violations(atCap).find(
       (row) => row.name === "medianDuration",
