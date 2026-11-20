@@ -66,7 +66,7 @@
 - **Covers:** FR-4, FR-5, FR-6, FR-7, NFR-1..NFR-6, AC-4..AC-10
 - **Touches:** `packages/sim/src/cup/ghost.ts`, `packages/sim/src/cup/ghost.test.ts`, `conductor/tracks/20261120-kite-band-reachability/verification/integrated.md`, `conductor/tracks/20261120-kite-band-reachability/verification/phase-3.md`, `conductor/product.md`, `conductor/tech-stack.md`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`; plus `bun run trace --owned earth_tortoise --rival embercub --doctrine kite --rival-doctrine press --seed 20261120 --check`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Measure the candidate and make the ship/no-ship decision** — covers: FR-5, FR-6, AC-5, AC-6, AC-7
   - [ ] **P3.T1.1: Run `bun run balance` on the final candidate and confirm all 34 gates are green and `capShare` is strictly below the Phase 1 baseline on the same full matrix**
