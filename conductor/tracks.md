@@ -56,3 +56,4 @@
 - [x] **Track: Roster Wave 2** - [20261118-roster-wave-2](./archive/20261118-roster-wave-2/index.md) - feature - medium
 - [x] **Track: Live PvP Foundation Spike** - [20261119-live-pvp-foundation](./archive/20261119-live-pvp-foundation/index.md) - feature - high
 - [x] **Track: Live PvP Production Acceptance** - [20261120-live-pvp-production-acceptance](./archive/20261120-live-pvp-production-acceptance/index.md) - bug - high
+- [ ] **Track: D-2 Kite Band Reachability** - [20261120-kite-band-reachability](./tracks/20261120-kite-band-reachability/index.md) - chore - high
