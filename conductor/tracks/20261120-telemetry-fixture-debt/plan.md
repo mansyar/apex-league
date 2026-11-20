@@ -14,24 +14,22 @@
 - **Covers:** FR-1, FR-2, FR-3, AC-1, NFR-1, NFR-2
 - **Touches:** `conductor/tracks/20261120-telemetry-fixture-debt/verification/phase-1.md`, `conductor/tracks/20261120-telemetry-fixture-debt/verification/owner-decision.md`, `.conductor/evidence/20261120-telemetry-fixture-debt/**`
 - **Verification:** `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`; `bun run telemetry`; `bun run fixture-audit`; `bun run trace --owned earth_tortoise --rival embercub --doctrine kite --rival-doctrine press --seed 20261120 --check`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Capture the live telemetry and balance baseline** — covers: FR-1, AC-1
-  - [ ] **P1.T1.1:** Run `bun run telemetry`; record `11/42 (26.2%)`, all 14 bounds green, and stability readings.
-  - [ ] **P1.T1.2:** Run `bun run balance`; record `370/1680 (22.0%)`, 34/34 gates, and the diagnostic reference line `580/1680 (34.5%)`.
-- [ ] **P1.T2: Capture the audit and trace baseline** — covers: FR-1, FR-2, FR-3
-  - [ ] **P1.T2.1:** Run `bun run fixture-audit` and `bun run fixture-audit --json`; record cell A `11/42` and the stale `840/377/224`, `+18.2 points` line.
-  - [ ] **P1.T2.2:** Run the pinned trace; record hash `0x1d0cc2ed`, 5/5 invariants, and 45.00 s duration.
-  - [ ] **P1.T2.3:** Write `verification/owner-decision.md` with the resolved decisions: D-3 met by D-2 side effect, D-4 diagnosed/bounded, stale audit arithmetic repaired.
-- [ ] **P1.T3: Record phase evidence and scope proof** — covers: FR-1, NFR-1, NFR-2
-  - [ ] **P1.T3.1:** Prove source tree unchanged at baseline with `git diff <base>..HEAD -- packages apps` empty.
-  - [ ] **P1.T3.2:** Write `verification/phase-1.md` with commands, counts, hashes, disposition, deviations, and notes.
+- [x] **P1.T1: Capture the live telemetry and balance baseline** — covers: FR-1, AC-1
+  - [x] **P1.T1.1:** Run `bun run telemetry`; record `11/42 (26.2%)`, all 14 bounds green, and stability readings.
+  - [x] **P1.T1.2:** Run `bun run balance`; record `370/1680 (22.0%)`, 34/34 gates, and the diagnostic reference line `580/1680 (34.5%)`.
+- [x] **P1.T2: Capture the audit and trace baseline** — covers: FR-1, FR-2, FR-3
+  - [x] **P1.T2.1:** Run `bun run fixture-audit` and `bun run fixture-audit --json`; record cell A `11/42` and the stale `840/377/224`, `+18.2 points` line.
+  - [x] **P1.T2.2:** Run the pinned trace; record hash `0x1d0cc2ed`, 5/5 invariants, and 45.00 s duration.
+  - [x] **P1.T2.3:** Write `verification/owner-decision.md` with the resolved decisions: D-3 met by D-2 side effect, D-4 diagnosed/bounded, stale audit arithmetic repaired.
+- [x] **P1.T3: Record phase evidence and scope proof** — covers: FR-1, NFR-1, NFR-2
+  - [x] **P1.T3.1:** Prove source tree unchanged at baseline with `git diff <base>..HEAD -- packages apps` empty.
+  - [x] **P1.T3.2:** Write `verification/phase-1.md` with commands, counts, hashes, disposition, deviations, and notes.
 
-<!--
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 59ff750e
 **Evidence:** conductor/tracks/20261120-telemetry-fixture-debt/verification/phase-1.md
--->
 
 ## Phase 2: Failing-first fixture audit repair
 

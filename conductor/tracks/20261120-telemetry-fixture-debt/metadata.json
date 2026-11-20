@@ -11,7 +11,7 @@
     "20261120-kite-band-reachability"
   ],
   "created_at": "2026-11-20T22:49:52.4271963+11:00",
-  "updated_at": "2026-11-20T22:52:35.8516147+11:00",
+  "updated_at": "2026-11-20T23:17:18.0690596+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "chore/20261120-telemetry-fixture-debt",
@@ -19,11 +19,11 @@
   "base_sha": "d5baa0abcd9b827e94d72ed31831c9a237a5ccf3",
   "progress": {
     "phases_total": 3,
-    "phases_verified": 0,
+    "phases_verified": 1,
     "tasks_total": 9,
-    "tasks_done": 0
+    "tasks_done": 3
   },
-  "last_checkpoint": null,
+  "last_checkpoint": "59ff750e",
   "review_verdict": null,
   "review_rounds": 0,
   "doc_sync": "pending",
