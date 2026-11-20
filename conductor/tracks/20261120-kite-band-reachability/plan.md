@@ -40,7 +40,7 @@
 - **Covers:** FR-2, FR-3, AC-2, AC-3
 - **Touches:** `packages/sim/src/battle/continuous/controller-profile.ts`, `packages/sim/src/battle/continuous/controller-reach.ts`, `packages/sim/src/battle/continuous/controller-profile.test.ts`, `packages/sim/src/battle/continuous/controller-reach.test.ts`, `conductor/tracks/20261120-kite-band-reachability/verification/phase-2.md`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`; plus `bun test packages/sim/src/battle/continuous/controller-profile.test.ts packages/sim/src/battle/continuous/controller-reach.test.ts --timeout 120000`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Add failing-first pure tests** — covers: FR-2, FR-3, AC-2, AC-3
   - [ ] **P2.T1.1: Add a slow-kiter test that fails before the fix: a `spd 5` Kite floor/hold beyond the maintainable gap against a faster Press foe**
