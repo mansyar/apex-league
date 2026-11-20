@@ -61,7 +61,7 @@
 - **Covers:** FR-2, FR-3, FR-6, FR-7, AC-2, AC-3, AC-6, AC-7, AC-8, AC-9, NFR-5, NFR-6
 - **Touches:** `conductor/product.md`, `conductor/tech-stack.md`, `conductor/tracks/20261120-telemetry-fixture-debt/verification/integrated.md`, `conductor/tracks/20261120-telemetry-fixture-debt/verification/phase-3.md`, `.conductor/evidence/20261120-telemetry-fixture-debt/**`
 - **Verification:** `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`; `bun run fixture-audit`; `bun run telemetry`; `bun run trace --owned earth_tortoise --rival embercub --doctrine kite --rival-doctrine press --seed 20261120 --check`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Close D-3 and D-4 in the product roadmap** — covers: FR-2, FR-3, FR-6, AC-2, AC-3
   - [ ] **P3.T1.1:** Add a dated 2026-11-20 note recording D-3 met by the D-2 cap side effect at `11/42 (26.2%)` and no new pacing change in this track.
