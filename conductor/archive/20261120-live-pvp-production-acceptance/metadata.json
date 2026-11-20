@@ -2,11 +2,11 @@
   "id": "20261120-live-pvp-production-acceptance",
   "title": "Live PvP Production Acceptance",
   "type": "bug",
-  "status": "in_progress",
+  "status": "complete",
   "priority": "high",
   "depends_on": ["20261119-live-pvp-foundation"],
   "created_at": "2026-11-20T07:57:05.0578237+11:00",
-  "updated_at": "2026-11-20T12:11:33.2125362+11:00",
+  "updated_at": "2026-11-20T12:15:12.0938720+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "fix/20261120-live-pvp-production-acceptance",
@@ -22,10 +22,10 @@
   "review_verdict": "PASS",
   "review_rounds": 2,
   "doc_sync": "synced",
-  "pr_url": null,
+  "pr_url": "https://github.com/mansyar/apex-league/pull/85",
   "reverted_at": null,
   "revert_commit": null,
   "revert_pr_url": null,
-  "archived_at": null,
-  "archive_path": null
+  "archived_at": "2026-11-20T12:15:12.0938720+11:00",
+  "archive_path": "conductor/archive/20261120-live-pvp-production-acceptance"
 }
