@@ -57,15 +57,15 @@ Full detail: `conductor/archive/20261120-live-pvp-production-acceptance/verifica
 
 Production two-client fight at 1440×900, captured at the deployed origin:
 
-![Desktop fight live](.conductor/media/20261120-live-pvp-production-acceptance/desktop-02-fight-live.png)
+![Desktop fight live](https://github.com/user-attachments/assets/6126221e-1a3c-4e22-ac0f-31b92c9e60c6)
 
 Production two-client fight at 393×852:
 
-![Phone fight live](.conductor/media/20261120-live-pvp-production-acceptance/phone-02-fight-live.png)
+![Phone fight live](https://github.com/user-attachments/assets/777a57fa-e509-4e1a-b1e2-b07e42ea83c2)
 
 Production mid-bout forfeit verdict (survivor's view):
 
-![Desktop forfeit verdict](.conductor/media/20261120-live-pvp-production-acceptance/desktop-04-forfeit-verdict.png)
+![Desktop forfeit verdict](https://github.com/user-attachments/assets/2f4839e8-4cc4-47f0-9df8-3fcf1641067b)
 
 ## Review
 
