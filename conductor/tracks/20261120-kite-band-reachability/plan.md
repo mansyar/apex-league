@@ -15,24 +15,21 @@
 - **Covers:** FR-1, AC-1
 - **Touches:** `conductor/tracks/20261120-kite-band-reachability/verification/phase-1.md`, `.conductor/evidence/20261120-kite-band-reachability/**`
 - **Verification:** `bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz`; plus `bun run trace --owned earth_tortoise --rival embercub --doctrine kite --rival-doctrine press --seed 20261120 --check`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Record the unchanged full-matrix baseline** — covers: FR-1
-  - [ ] **P1.T1.1: Run `bun run balance` and record `capShare`, `decisiveShare`, `capWinQuality`, `medianDuration`, and all 34 gate results in `verification/phase-1.md`**
-  - [ ] **P1.T1.2: Record the Kite doctrine row and the current battle hash, and cite the exact command output or saved artifact for each number**
-- [ ] **P1.T2: Reproduce the unreachable slow-kiter band** — covers: FR-1
-  - [ ] **P1.T2.1: Run the pinned `earth_tortoise` (Kite) vs `embercub` (Press) trace and record reach edge, Kite floor/preferred gap, median gap, retreat count, commit count, and ending reason**
-  - [ ] **P1.T2.2: State the measured gap between doctrinal floor and the gap the `spd 5` body can maintain, naming the source lines that prove each side of the comparison**
-- [ ] **P1.T3: Write the baseline evidence and prove no source changed** — covers: FR-1, AC-1
-  - [ ] **P1.T3.1: Write `verification/phase-1.md` with the baseline table, reproduction, and the exact five-command results**
-  - [ ] **P1.T3.2: Confirm `git diff <base>..HEAD -- packages apps` is empty apart from the evidence file, so the baseline is not contaminated by a policy change**
+- [x] **P1.T1: Record the unchanged full-matrix baseline** — covers: FR-1
+  - [x] **P1.T1.1: Run `bun run balance` and record `capShare`, `decisiveShare`, `capWinQuality`, `medianDuration`, and all 34 gate results in `verification/phase-1.md`**
+  - [x] **P1.T1.2: Record the Kite doctrine row and the current battle hash, and cite the exact command output or saved artifact for each number**
+- [x] **P1.T2: Reproduce the unreachable slow-kiter band** — covers: FR-1
+  - [x] **P1.T2.1: Run the pinned `earth_tortoise` (Kite) vs `embercub` (Press) trace and record reach edge, Kite floor/preferred gap, median gap, retreat count, commit count, and ending reason**
+  - [x] **P1.T2.2: State the measured gap between doctrinal floor and the gap the `spd 5` body can maintain, naming the source lines that prove each side of the comparison**
+- [x] **P1.T3: Write the baseline evidence and prove no source changed** — covers: FR-1, AC-1
+  - [x] **P1.T3.1: Write `verification/phase-1.md` with the baseline table, reproduction, and the exact five-command results**
+  - [x] **P1.T3.2: Confirm `git diff <base>..HEAD -- packages apps` is empty apart from the evidence file, so the baseline is not contaminated by a policy change**
 
-<!--
-The primary appends after acceptance:
-**Result:** verified
-**Checkpoint:** <short-sha>
+**Result:** verified — baseline `capShare 30.8% (517/1680)` with all 34 gates green; slow-kiter trace pinned at hash `0x1368d19b`; source tree unchanged. Five configured commands independently re-run by primary, all exit 0.
+**Checkpoint:** `474cfe21`
 **Evidence:** conductor/tracks/20261120-kite-band-reachability/verification/phase-1.md
--->
 
 ## Phase 2: Speed-aware reachable Kite band
 
