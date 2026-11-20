@@ -62,6 +62,6 @@ export const STARTER_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "maelstrom",
     ],
     temperament: "obedient",
-    statBounds: { hp: [144, 178], atk: [8, 12], def: [8, 11], spd: [8, 11] },
+    statBounds: { hp: [144, 178], atk: [8, 12], def: [6, 11], spd: [8, 11] },
   },
 ])

@@ -147,7 +147,7 @@ export const DISCOVERY_SPECIES: readonly SpeciesDef[] = Object.freeze([
       "dust_devil",
     ],
     temperament: "rush",
-    statBounds: { hp: [156, 158], atk: [20, 20], def: [8, 11], spd: [17, 17] },
+    statBounds: { hp: [156, 158], atk: [18, 18], def: [8, 11], spd: [17, 17] },
   },
   {
     id: "spark_ray",

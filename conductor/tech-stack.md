@@ -429,6 +429,17 @@
   needs no page reload. No `$LIVE_PROTOCOL_VERSION`, `SIM_VERSION`, save schema,
   balance, pacing, CORS or deploy-configuration change; the only manifest change
   is the approved sim dependency declaration.*
+- *2026-11-20 — D-2 Kite band reachability (track
+  `20261120-kite-band-reachability`): a speed-aware Kite clamp in
+  `controller-reach.ts` keeps a slow Kite's floor inside a gap it can actually
+  hold against a faster Press body; the fight cap, median band and telemetry
+  bound move 40 s → 45 s; `SIM_VERSION` is 4 with ghost pins 4/5 so v3/v5
+  bundles are refused and v4 replays byte-identically. To keep every pacing
+  fence unchanged except the approved cap, `water_axolotl` def min moved 8 → 6
+  and `dune_jerboa` atk 20 → 18. `capShare` fell from 30.8% (517/1680) to
+  22.0% (370/1680) with all 34 gates green and both species back inside the
+  unchanged 45–55% design band. No dependency, save schema, protocol, API,
+  CORS or deploy change; no fence other than the 45 s cap moved.*
 
 ## Asset Pipeline
 - **Creatures and ranch props**: species and scenery defined as versioned JSON

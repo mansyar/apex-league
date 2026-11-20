@@ -357,7 +357,7 @@ Phased delivery plan (each phase is independently playable):
   band on 2026-11-19; the 20-species goal is met. **Owner decision
   2026-11-18:** the global-pacing D-1 decision is closed — the ≤1/3 cap-share
   fence stays on the 840-fight matrix, the 20/42 fixture miss (D-3) and its
-  population bias (D-4) remain recorded debt, the kite band (D-2) stays open,
+  population bias (D-4) remain recorded debt, the kite band (D-2) closed 2026-11-20 with a speed-aware Kite clamp, a 45 s fight cap and a two-species re-tune (track `20261120-kite-band-reachability`),
   and both debt pins remain in place.)*
 
 ## Target Audience

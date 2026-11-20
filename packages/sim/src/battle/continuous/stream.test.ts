@@ -108,9 +108,11 @@ describe("the recorded stream", () => {
     }
   })
 
-  test("stays small enough to replay: a full fight is under 72 KB", () => {
+  test("stays small enough to replay: a full fight is under 81 KB", () => {
     const stream = traced()
-    expect(stream.steps * 2 * STREAM_FIELDS * 2).toBeLessThanOrEqual(72_036)
+    // The 45 s cap (20261120 track) authorises 2250 steps instead of 2000, so
+    // the worst-case recorded stream grows from 72,036 to 81,036 B.
+    expect(stream.steps * 2 * STREAM_FIELDS * 2).toBeLessThanOrEqual(81_036)
     // Nothing derivable is stored: nine numbers per side per step, no more.
     expect(STREAM_FIELDS).toBe(9)
   })
