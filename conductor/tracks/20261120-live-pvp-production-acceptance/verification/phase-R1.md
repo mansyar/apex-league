@@ -95,7 +95,7 @@ rests on the subagent's denied attempts.
   evidence cell and the limitations bullet were corrected.
 - No new screenshots: documentation-only phase with no user-facing change.
 
-## Primary verification (final tree, HEAD `c1a9bbf6`)
+## Primary verification (final tree, HEAD `c1a9bbf6`, squashed to checkpoint `7d6b9bea`)
 
 All five configured commands were re-run separately by the primary on the final tree; all exit 0.
 
