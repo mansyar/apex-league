@@ -261,7 +261,8 @@ Phased delivery plan (each phase is independently playable):
       fixture-only target stays withdrawn, and both debt pins remain in place
       as honest markers. Any future pacing attempt must change the controller
       family or obtain a new product decision to move a fence. The global
-      throughput shortfall and the kite band at `spd 5` remain open debt (D-2).
+      throughput shortfall and the kite band at `spd 5` were open debt (D-2),
+      closed 2026-11-20 by track `20261120-kite-band-reachability`.
       **Audited 2026-11-13:** the fixture-versus-matrix gap is now decomposed
       instead of guessed. On the fixture's 42 pairings the four cells read 47.6%
       (reference stats, press-versus-kite), 40.5% (reference, press-versus-press),
