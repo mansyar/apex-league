@@ -88,7 +88,7 @@
   git status --porcelain
   Test-Path conductor/tracks/20261123-doc-truth-sweep/verification/integrated.md
   ```
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Write integrated evidence** — covers: FR-6
   - [ ] **P3.T1.1: Record the five-command table with counts and hash `0xff6f3d62`, plus the probe and workflow evidence.**
