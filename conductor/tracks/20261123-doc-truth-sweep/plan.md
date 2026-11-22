@@ -115,7 +115,7 @@
   git diff --check 059809f36ff8b0bc7ee51ebf66b68a8ad82345ba..HEAD
   bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz
   ```
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Remove the trailing blank line from `plan.md`** — covers: F1
   - [ ] **R1.T1.1: Ensure the file ends with the final task line plus one newline.**
