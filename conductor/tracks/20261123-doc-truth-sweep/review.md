@@ -62,9 +62,15 @@ The Round-2 delta review found that the Range field ended at the R1 checkpoint `
 
 **Resolved (Phase R2):** the Range field now records the reviewed range ending at the R1 checkpoint, the final-tree SHA `50b7e499`, and the subsequent Phase R2 doc-only fixes. SHAs are labelled historical review points rather than a claim about the current HEAD.
 
+### F4 — Low — `conductor/tracks/20261123-doc-truth-sweep/verification/phase-R2.md:79-82`
+
+Final delta review found one stale Deviations bullet claiming that executor-side permission denials had forced a blocked verdict, while the same file's Blockers section said `None` and its verdict said `Phase R2 accepted`.
+
+**Resolved by primary during post-review sync:** the bullet now states that the primary re-ran both denied commands with exit 0, so there are no blockers and the verdict stands. No further fix round was opened (the two allowed rounds were already used); this is a post-review evidence correction, not a scope change.
+
 ## Overrides
 
-None.
+None. F4 was corrected rather than deferred; strict mode is satisfied and no open finding remains.
 
 ## Plan compliance
 
@@ -88,4 +94,4 @@ None filed (`issues.enabled: false`). The stale inventory is recorded as a confi
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | PASS WITH FINDINGS | 0 | 0 | 1 | 0 | F1 scheduled for Phase R1 |
 | 2 | PASS WITH FINDINGS | 0 | 0 | 0 | 2 | F1 fixed in Phase R1 (`aacae0f3`); delta review found Low F2/F3 |
-| 3 | PASS | 0 | 0 | 0 | 0 | F2/F3 fixed in Phase R2; final delta review clean |
+| 3 | PASS | 0 | 0 | 0 | 1 | F2/F3 fixed in Phase R2; final delta review found Low F4, corrected in post-review sync |

@@ -236,5 +236,6 @@ Round 1: `PASS WITH FINDINGS` with one Medium F1 (false `git diff --check` claim
 a trailing blank line at the review HEAD). Round 2 delta review confirmed F1 resolved but
 reported two Low findings (F2: non-existent FR-7 claim; F3: stale Range) in `review.md`.
 Round 3 final review: `PASS` after Phase R1 (`aacae0f3`) and Phase R2 (`43a5bfc1`) fixed
-all three findings. No Critical/High/Medium/Low findings remain; strict mode is satisfied.
-Full record: `conductor/tracks/20261123-doc-truth-sweep/review.md`.
+F1–F3. The final delta surfaced one Low F4 (a stale Deviations bullet in `phase-R2.md`);
+the primary corrected it during post-review sync, so no finding remains open. Strict mode
+is satisfied. Full record: `conductor/tracks/20261123-doc-truth-sweep/review.md`.

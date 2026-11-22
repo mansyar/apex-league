@@ -76,10 +76,10 @@ final tree with exit 0, and the exact `git diff --check` command exits 0.
 
 ## Deviations
 
-- The brief anticipated "no blockers" and a final verdict of "Phase R2 accepted" on the
-  assumption that all commands exit 0. Two commands were denied, so this file records
-  blockers and a blocked verdict instead; no evidence was softened or invented to claim
-  success. This is forced by the observed permission results, not a scope expansion.
+- The executor's shell denied two configured commands, but the primary re-ran them on the
+  final tree with exit 0. No evidence was softened or invented; Blockers is therefore
+  None and the verdict is Phase R2 accepted. This is forced by the observed permission
+  results, not a scope expansion.
 - No product or design decision was made; no file outside `Touches` was edited.
 
 ## Notes
