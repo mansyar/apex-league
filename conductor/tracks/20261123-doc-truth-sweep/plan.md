@@ -26,7 +26,7 @@
   plus a bundle-marker probe that resolves the deployed `/assets/index-*.js` path
   from the client HTML and asserts it contains `Live PvP`, `Room code`, `/live`,
   and `apex-api.ansyar-world.top`.
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Capture exact doc drift anchors** — covers: FR-1
   - [ ] **P1.T1.1: Record `conductor/product.md:368-376` verbatim, including “and both debt pins remain in place.”**
