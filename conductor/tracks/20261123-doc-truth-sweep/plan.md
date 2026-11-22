@@ -59,24 +59,21 @@
   dated 2026-11-23 note with the observed 200s and workflow run IDs; and that the
   historical “has not run yet / stays deferred” wording is explicitly labelled
   superseded.
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Reconcile the product debt paragraph** — covers: FR-2
-  - [ ] **P2.T1.1: Remove the contradictory “both debt pins remain in place” sentence.**
-  - [ ] **P2.T1.2: State D-3 and D-4 closed on 2026-11-20, D-2 closed, and D-1 retained as accepted standing debt; preserve the historical narrative.**
-- [ ] **P2.T2: Reconcile the tech-stack deploy paragraphs** — covers: FR-3
-  - [ ] **P2.T2.1: Replace the stale client-deploy claim with a dated 2026-11-23 note recording observed 200s, bundle markers, and workflow run IDs.**
-  - [ ] **P2.T2.2: Mark the 2026-10-26 “has not run yet / stays deferred” wording superseded for both client and server.**
-- [ ] **P2.T3: Record the post-merge spot-check** — covers: FR-4
-  - [ ] **P2.T3.1: Capture final probe outputs after the doc edits.**
-  - [ ] **P2.T3.2: Write `verification/phase-2.md` with command table, AC-2/AC-3/AC-4 mapping, scope proof, and verdict.**
-
-<!--
-The primary appends after acceptance:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** f927ec1c
 **Evidence:** conductor/tracks/20261123-doc-truth-sweep/verification/phase-2.md
--->
+
+- [x] **P2.T1: Reconcile the product debt paragraph** — covers: FR-2
+  - [x] **P2.T1.1: Remove the contradictory “both debt pins remain in place” sentence.**
+  - [x] **P2.T1.2: State D-3 and D-4 closed on 2026-11-20, D-2 closed, and D-1 retained as accepted standing debt; preserve the historical narrative.**
+- [x] **P2.T2: Reconcile the tech-stack deploy paragraphs** — covers: FR-3
+  - [x] **P2.T2.1: Replace the stale client-deploy claim with a dated 2026-11-23 note recording observed 200s, bundle markers, and workflow run IDs.**
+  - [x] **P2.T2.2: Mark the 2026-10-26 “has not run yet / stays deferred” wording superseded for both client and server.**
+- [x] **P2.T3: Record the post-merge spot-check** — covers: FR-4
+  - [x] **P2.T3.1: Capture final probe outputs after the doc edits.**
+  - [x] **P2.T3.2: Write `verification/phase-2.md` with command table, AC-2/AC-3/AC-4 mapping, scope proof, and verdict.**
 
 ## Phase 3: Integrated evidence and confirmation-gated hygiene inventory
 

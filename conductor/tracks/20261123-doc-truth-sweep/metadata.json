@@ -11,7 +11,7 @@
     "20261120-telemetry-fixture-debt"
   ],
   "created_at": "2026-11-23T06:56:40.7130466+11:00",
-  "updated_at": "2026-11-23T07:34:00.1937653+11:00",
+  "updated_at": "2026-11-23T07:56:02.8899251+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "chore/20261123-doc-truth-sweep",
@@ -19,11 +19,11 @@
   "base_sha": "059809f36ff8b0bc7ee51ebf66b68a8ad82345ba",
   "progress": {
     "phases_total": 3,
-    "phases_verified": 1,
+    "phases_verified": 2,
     "tasks_total": 25,
-    "tasks_done": 3
+    "tasks_done": 12
   },
-  "last_checkpoint": "c8653920",
+  "last_checkpoint": "f927ec1c",
   "review_verdict": null,
   "review_rounds": 0,
   "doc_sync": "pending",
