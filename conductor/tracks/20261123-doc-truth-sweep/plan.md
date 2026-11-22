@@ -104,4 +104,23 @@
   - [x] **P3.T3.1: Re-run the five configured commands on the final tree and record exact outputs.**
   - [x] **P3.T3.2: Write `verification/phase-3.md` with verdict and no open blockers.**
 
+## Phase R1: Review Fixes
+
+- **Goal:** Resolve review finding F1 by removing the trailing blank line in this plan and correcting the integrated/phase-3 evidence to record the actual final-tree `git diff --check` result.
+- **Depends on:** Phase 3
+- **Covers:** F1 (NFR-5, AC-8)
+- **Touches:** `conductor/tracks/20261123-doc-truth-sweep/plan.md`, `conductor/tracks/20261123-doc-truth-sweep/verification/integrated.md`, `conductor/tracks/20261123-doc-truth-sweep/verification/phase-3.md`, `verification/phase-R1.md`
+- **Verification:**
+  ```
+  git diff --check 059809f36ff8b0bc7ee51ebf66b68a8ad82345ba..HEAD
+  bun run verify && bun run build && bun run balance && bun run gate:determinism && bun run test:fuzz
+  ```
+- **Status:** pending
+
+- [ ] **R1.T1: Remove the trailing blank line from `plan.md`** — covers: F1
+  - [ ] **R1.T1.1: Ensure the file ends with the final task line plus one newline.**
+- [ ] **R1.T2: Correct evidence `git diff --check` claims** — covers: F1
+  - [ ] **R1.T2.1: Record the actual exit code from the final tree in `integrated.md` and `phase-3.md`.**
+- [ ] **R1.T3: Write Phase R1 evidence** — covers: F1
+  - [ ] **R1.T3.1: Re-run the five configured commands and `git diff --check`, then write `verification/phase-R1.md` with verdict and no open blockers.**
 
