@@ -135,7 +135,7 @@
 - **Covers:** F2, F3 (NFR-5)
 - **Touches:** `conductor/tracks/20261123-doc-truth-sweep/review.md`, `verification/phase-R2.md`
 - **Verification:** `git diff --check 059809f36ff8b0bc7ee51ebf66b68a8ad82345ba..HEAD`; five configured commands on the final tree
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R2.T1: Fix F2 and F3 in `review.md`** — covers: F2, F3
 - [ ] **R2.T2: Write Phase R2 evidence** — covers: F2, F3
