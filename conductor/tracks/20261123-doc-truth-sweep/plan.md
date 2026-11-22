@@ -26,24 +26,21 @@
   plus a bundle-marker probe that resolves the deployed `/assets/index-*.js` path
   from the client HTML and asserts it contains `Live PvP`, `Room code`, `/live`,
   and `apex-api.ansyar-world.top`.
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Capture exact doc drift anchors** — covers: FR-1
-  - [ ] **P1.T1.1: Record `conductor/product.md:368-376` verbatim, including “and both debt pins remain in place.”**
-  - [ ] **P1.T1.2: Record `conductor/tech-stack.md:394-402` and `:808-826` verbatim, including the “has not run yet / does not resolve today” claims.**
-- [ ] **P1.T2: Capture live evidence** — covers: FR-1
-  - [ ] **P1.T2.1: Record client HTTP status, bundle asset path and markers, API health payload, and `/live` plain-GET response.**
-  - [ ] **P1.T2.2: Record workflow run IDs for Deploy, Server image, and recent Nightly determinism, plus the exact stale branch and run-file inventory.**
-- [ ] **P1.T3: Write phase-1 evidence** — covers: FR-1
-  - [ ] **P1.T3.1: Write `verification/phase-1.md` with command table, observed outputs, AC-1 mapping, and empty source-diff proof.**
-  - [ ] **P1.T3.2: Commit evidence only; no source, doc, gate, or Conductor state change.**
+- [x] **P1.T1: Capture exact doc drift anchors** — covers: FR-1
+  - [x] **P1.T1.1: Record `conductor/product.md:368-376` verbatim, including “and both debt pins remain in place.”**
+  - [x] **P1.T1.2: Record `conductor/tech-stack.md:394-402` and `:808-826` verbatim, including the “has not run yet / does not resolve today” claims.**
+- [x] **P1.T2: Capture live evidence** — covers: FR-1
+  - [x] **P1.T2.1: Record client HTTP status, bundle asset path and markers, API health payload, and `/live` plain-GET response.**
+  - [x] **P1.T2.2: Record workflow run IDs for Deploy, Server image, and recent Nightly determinism, plus the exact stale branch and run-file inventory.**
+- [x] **P1.T3: Write phase-1 evidence** — covers: FR-1
+  - [x] **P1.T3.1: Write `verification/phase-1.md` with command table, observed outputs, AC-1 mapping, and empty source-diff proof.**
+  - [x] **P1.T3.2: Commit evidence only; no source, doc, gate, or Conductor state change.**
 
-<!--
-The primary appends after acceptance:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** c8653920
 **Evidence:** conductor/tracks/20261123-doc-truth-sweep/verification/phase-1.md
--->
 
 ## Phase 2: Approved documentation reconciliation
 
