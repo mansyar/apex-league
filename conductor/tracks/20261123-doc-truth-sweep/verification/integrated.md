@@ -46,7 +46,7 @@ output: `.conductor/evidence/20261123-doc-truth-sweep/command-results-phase3.md`
 | 3 | `bun run balance` | 0 | **1680 fights** (ko 1306, time 370, draw 4); cap **370/1680 (22.0%)**; decisive 1598/1680 (95.1%); cap-win quality 292/370 (78.9%); median 32.80 s; max 45.00 s; **34/34 gates ok**. |
 | 4 | `bun run gate:determinism` | 0 | Primary final-tree re-run: exit 0, byte-identical regenerations. Executor separately observed the same gate pass inside `bun run verify` (#1). |
 | 5 | `bun run test:fuzz` | 0 | Primary final-tree re-run: exit 0, **139 pass / 0 fail**, 129015 `expect()` calls. |
-| 6 | `git diff --check 059809f36ff8b0bc7ee51ebf66b68a8ad82345ba..HEAD` | 0 | No output — no whitespace errors across the track diff. |
+| 6 | `git diff --check 059809f36ff8b0bc7ee51ebf66b68a8ad82345ba..HEAD` | 0 | No output — no whitespace errors across the track diff. **(See §11: false at review HEAD `9f713a24` — F1.)** |
 | 7 | `git status --porcelain` | 0 | No output at execution (clean tree); clean again after the Phase 3 evidence commit. |
 | 8 | `Test-Path conductor/tracks/20261123-doc-truth-sweep/verification/integrated.md` | 0 | Primary final-tree re-run: `True` (file exists). Not retried or worked around by the executor after its shell rejection. |
 
@@ -117,7 +117,8 @@ record; this track relies on HTTP/probe evidence and workflow history only.
 ## 7. Scope proof
 
 `git diff --check 059809f36ff8b0bc7ee51ebf66b68a8ad82345ba..HEAD` exited 0 with
-no output. `git diff --stat` over the same range lists exactly eleven files on the
+no output **at the Phase 3 evidence HEAD; see §11 — F1 makes this false at review HEAD
+`9f713a24`**. `git diff --stat` over the same range lists exactly eleven files on the
 final tree:
 
 ```
@@ -203,3 +204,32 @@ The primary re-ran every Phase 3 command on the final tree at HEAD
 **Final verdict: Phase 3 accepted.** All configured checks are green, the source
 diff is empty, and the only remaining open item is the confirmation-gated stale
 inventory (§8), which is out of scope for this phase.
+
+## 11. 2026-11-23 — Review finding F1 correction (Phase R1)
+
+**F1 (Medium, NFR-5 / AC-8):** strict review found that the final plan-state commit
+`9dbf5c99` left a trailing blank line at EOF in `plan.md` (committed line 126). As a
+result the command recorded as exit 0 in §2 row 6 and §7 above —
+`git diff --check 059809f36ff8b0bc7ee51ebf66b68a8ad82345ba..HEAD` — **exited 1 at the
+review HEAD `9f713a24`** with:
+`conductor/tracks/20261123-doc-truth-sweep/plan.md:126: new blank line at EOF.`
+
+**Fix:** the primary removed the trailing blank line in the working tree. It is
+uncommitted at the time of this note (`git diff --stat` shows `plan.md | 1 -`) and is to
+be included in the primary's Phase R1 squash. This is a documentation-only correction:
+no source, gate, fence, config, version, ghost, save, protocol, dependency, CORS or
+deploy file was touched.
+
+**Exact results observed for this note (2026-11-23, HEAD `9f713a24`):**
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `git diff --check 059809f36ff8b0bc7ee51ebf66b68a8ad82345ba..HEAD` (exact brief command) | 1 | `plan.md:126: new blank line at EOF` — blank line still in committed HEAD |
+| `git diff --check 059809f36ff8b0bc7ee51ebf66b68a8ad82345ba` (working tree vs base) | 0 | no output — fixed working tree is whitespace-clean |
+| `git diff --check` (working tree vs index) | 0 | no output |
+
+The `..HEAD` form compares committed trees only, so it still sees the blank line until
+the primary commits the fix. It will exit 0 on the final tree once the fix is in the
+squash commit, at which point the §2/§7 exit-0 claims become true. **No claim is made
+that the review HEAD (`9f713a24` / `9dbf5c99`) itself passed.** See
+`verification/phase-R1.md` and `.conductor/evidence/20261123-doc-truth-sweep/command-results-phase-R1.md`.

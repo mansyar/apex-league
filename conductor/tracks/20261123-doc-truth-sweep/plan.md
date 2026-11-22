@@ -123,4 +123,3 @@
   - [ ] **R1.T2.1: Record the actual exit code from the final tree in `integrated.md` and `phase-3.md`.**
 - [ ] **R1.T3: Write Phase R1 evidence** — covers: F1
   - [ ] **R1.T3.1: Re-run the five configured commands and `git diff --check`, then write `verification/phase-R1.md` with verdict and no open blockers.**
-
