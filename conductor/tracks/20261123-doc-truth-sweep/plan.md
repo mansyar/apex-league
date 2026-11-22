@@ -88,21 +88,20 @@
   git status --porcelain
   Test-Path conductor/tracks/20261123-doc-truth-sweep/verification/integrated.md
   ```
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Write integrated evidence** — covers: FR-6
-  - [ ] **P3.T1.1: Record the five-command table with counts and hash `0xff6f3d62`, plus the probe and workflow evidence.**
-  - [ ] **P3.T1.2: Record scope proof, module caps, AC-1..AC-9 table, and final verdict.**
-- [ ] **P3.T2: Record the stale inventory as confirmation-gated** — covers: FR-5
-  - [ ] **P3.T2.1: List exact stale branch names and run-file names/counts from the final tree.**
-  - [ ] **P3.T2.2: State that deletion requires separate owner confirmation and was not performed in this track.**
-- [ ] **P3.T3: Finalize phase-3 evidence** — covers: FR-6
-  - [ ] **P3.T3.1: Re-run the five configured commands on the final tree and record exact outputs.**
-  - [ ] **P3.T3.2: Write `verification/phase-3.md` with verdict and no open blockers.**
-
-<!--
-The primary appends after acceptance:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 61a5275d
 **Evidence:** conductor/tracks/20261123-doc-truth-sweep/verification/phase-3.md
--->
+
+- [x] **P3.T1: Write integrated evidence** — covers: FR-6
+  - [x] **P3.T1.1: Record the five-command table with counts and hash `0xff6f3d62`, plus the probe and workflow evidence.**
+  - [x] **P3.T1.2: Record scope proof, module caps, AC-1..AC-9 table, and final verdict.**
+- [x] **P3.T2: Record the stale inventory as confirmation-gated** — covers: FR-5
+  - [x] **P3.T2.1: List exact stale branch names and run-file names/counts from the final tree.**
+  - [x] **P3.T2.2: State that deletion requires separate owner confirmation and was not performed in this track.**
+- [x] **P3.T3: Finalize phase-3 evidence** — covers: FR-6
+  - [x] **P3.T3.1: Re-run the five configured commands on the final tree and record exact outputs.**
+  - [x] **P3.T3.2: Write `verification/phase-3.md` with verdict and no open blockers.**
+
+
