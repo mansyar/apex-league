@@ -59,7 +59,7 @@
   dated 2026-11-23 note with the observed 200s and workflow run IDs; and that the
   historical “has not run yet / stays deferred” wording is explicitly labelled
   superseded.
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Reconcile the product debt paragraph** — covers: FR-2
   - [ ] **P2.T1.1: Remove the contradictory “both debt pins remain in place” sentence.**
