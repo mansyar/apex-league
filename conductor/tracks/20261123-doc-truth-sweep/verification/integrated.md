@@ -214,22 +214,26 @@ result the command recorded as exit 0 in §2 row 6 and §7 above —
 review HEAD `9f713a24`** with:
 `conductor/tracks/20261123-doc-truth-sweep/plan.md:126: new blank line at EOF.`
 
-**Fix:** the primary removed the trailing blank line in the working tree. It is
-uncommitted at the time of this note (`git diff --stat` shows `plan.md | 1 -`) and is to
-be included in the primary's Phase R1 squash. This is a documentation-only correction:
-no source, gate, fence, config, version, ghost, save, protocol, dependency, CORS or
-deploy file was touched.
+**Fix:** the primary removed the trailing blank line and included it in the Phase R1
+squash commit. This is a documentation-only correction: no source, gate, fence,
+config, version, ghost, save, protocol, dependency, CORS or deploy file was touched.
 
-**Exact results observed for this note (2026-11-23, HEAD `9f713a24`):**
+**Observed results (2026-11-23):**
 
 | Command | Exit | Result |
 | --- | --- | --- |
-| `git diff --check 059809f36ff8b0bc7ee51ebf66b68a8ad82345ba..HEAD` (exact brief command) | 1 | `plan.md:126: new blank line at EOF` — blank line still in committed HEAD |
-| `git diff --check 059809f36ff8b0bc7ee51ebf66b68a8ad82345ba` (working tree vs base) | 0 | no output — fixed working tree is whitespace-clean |
-| `git diff --check` (working tree vs index) | 0 | no output |
+| `git diff --check 059809f36ff8b0bc7ee51ebf66b68a8ad82345ba..HEAD` at review HEAD `9f713a24` | 1 | `plan.md:126: new blank line at EOF` |
+| `git diff --check 059809f36ff8b0bc7ee51ebf66b68a8ad82345ba..HEAD` on final tree | 0 | no output |
 
-The `..HEAD` form compares committed trees only, so it still sees the blank line until
-the primary commits the fix. It will exit 0 on the final tree once the fix is in the
-squash commit, at which point the §2/§7 exit-0 claims become true. **No claim is made
-that the review HEAD (`9f713a24` / `9dbf5c99`) itself passed.** See
+The `..HEAD` form compares committed trees only; it failed at the review HEAD and exits
+0 after the fix was committed. The §2/§7 exit-0 claims are therefore true on the final
+tree. **No claim is made that the review HEAD itself passed.** See
 `verification/phase-R1.md` and `.conductor/evidence/20261123-doc-truth-sweep/command-results-phase-R1.md`.
+
+## 12. Review
+
+Round 1: `PASS WITH FINDINGS` with one Medium F1 (false `git diff --check` claim caused by
+a trailing blank line at the review HEAD). Round 2 final delta review: `PASS` with no
+findings after Phase R1 (`aacae0f3`) removed the blank line and corrected the evidence.
+No Critical/High/Medium/Low findings remain; strict mode is satisfied. Full record:
+`conductor/tracks/20261123-doc-truth-sweep/review.md`.

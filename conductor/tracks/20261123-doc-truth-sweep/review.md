@@ -5,13 +5,13 @@
 | Track | `20261123-doc-truth-sweep` |
 | Type | chore |
 | Branch | `chore/20261123-doc-truth-sweep` |
-| Range | `059809f36ff8b0bc7ee51ebf66b68a8ad82345ba..9dbf5c991d3f98edb6dfaa1d0693fe061f594c6e` |
-| Date | 2026-11-23T08:30:37.6540627+11:00 |
-| Verdict | **PASS WITH FINDINGS** (1 Medium; strict mode requires a fix before PR) |
+| Range | `059809f36ff8b0bc7ee51ebf66b68a8ad82345ba..aacae0f3041babde9148f2fe0730d9d0790ce6f5` |
+| Date | 2026-11-23T08:47:13.3980686+11:00 |
+| Verdict | **PASS** (final delta review clean; no findings remain) |
 
 ## Summary
 
-The track correctly reconciles the two owner-approved doc claims, records an accurate post-merge production spot-check, and inventories stale branch/run artifacts without deleting them. Source diff is empty and all functional checks are green. One Medium documentation defect was found: the final plan-state commit left a trailing blank line in `plan.md`, causing `git diff --check` to fail on the delivered HEAD while three evidence files assert it passes.
+The track correctly reconciles the two owner-approved doc claims, records an accurate post-merge production spot-check, and inventories stale branch/run artifacts without deleting them. Source diff is empty and all functional checks are green. One Medium documentation defect was found in round 1 (a trailing blank line in `plan.md` at the review HEAD), fixed in Phase R1 (`aacae0f3`) with non-vacuous re-verification; final delta review is clean.
 
 ## Verification
 
@@ -23,7 +23,7 @@ The track correctly reconciles the two owner-approved doc claims, records an acc
 | `grep 'both debt pins remain in place' product.md` | pass | 0 matches |
 | `grep 'has not run\|does not resolve today\|stays deferred' tech-stack.md` | pass | 5 matches, all explicit supersession |
 | `git diff <base>..HEAD -- conductor/tracks.md` | pass | only this track's registry line |
-| `git diff --check <base>..HEAD` | **fail** | `plan.md:106: new blank line at EOF` (F1) |
+| `git diff --check <base>..HEAD` | pass | F1 failed at review HEAD; exits 0 with no output on final tree `aacae0f3` |
 | `bun test --timeout 120000` | pass | 4459 pass / 1 skip / 0 fail; expected non-gating smoke diagnostic |
 | `bun x biome check` | pass | 1034 files, no fixes |
 | `bun run check` | pass | no type errors |
@@ -38,7 +38,7 @@ Reviewer `needs` (`git rev-parse HEAD`, `git branch --show-current`) were resolv
 
 ## Requirements
 
-FR-1, FR-2, FR-3, FR-4, FR-5 covered. FR-6 partial solely because of F1 (integrated evidence asserts a false `git diff --check` result). NFR-1, NFR-2, NFR-3, NFR-4, NFR-6, NFR-7 covered; NFR-5 partial for the same reason. AC-1, AC-2, AC-3, AC-4, AC-5, AC-6, AC-7, AC-9 covered; AC-8 partial because the committed integrated evidence contains a stale check result. No functional requirement is unmet.
+FR-1 through FR-7, NFR-1 through NFR-7, and AC-1 through AC-9 are all covered on the final tree. The round-1 partials (FR-6/NFR-5/AC-8) were caused solely by F1 and are resolved by Phase R1's truthful `git diff --check` evidence.
 
 ## Findings
 
@@ -48,13 +48,15 @@ The final state commit `9dbf5c99` left a trailing blank line at EOF. `git diff -
 
 Fix: remove the trailing blank line so `plan.md` ends with the final task line plus one newline, then re-run `git diff --check <base>..HEAD` and record the actual exit code in the Phase R1 evidence. No source or product change is needed.
 
+**Resolved (Phase R1, checkpoint `aacae0f3`):** the primary removed the trailing blank line and committed it; `git diff --check <base>..HEAD` exits 0 on the final tree. `verification/phase-R1.md` records the original failure at the review HEAD, the working-tree proof, and the final exit 0, so NFR-5/AC-8 no longer rely on a false assertion. Delta review found no new findings.
+
 ## Overrides
 
 None.
 
 ## Plan compliance
 
-All three base phases are verified in `plan.md` with checkpoints `c8653920`, `f927ec1c`, `61a5275d`; 25/25 tasks checked. No Review Fixes phase existed in the approved base plan; Phase R1 is appended under review rules for F1.
+All three base phases are verified in `plan.md` with checkpoints `c8653920`, `f927ec1c`, `61a5275d`; Phase R1 is verified with checkpoint `aacae0f3`. All 28/28 tasks checked. Phase R1 was appended under review rules for F1.
 
 ## Out of scope
 
@@ -66,10 +68,11 @@ None filed (`issues.enabled: false`). The stale inventory is recorded as a confi
 
 ## Doc sync
 
-`synced` — owner-approved `product.md` and `tech-stack.md` notes landed in Phase 2 (`f927ec1c`); post-review doc change required only if Phase R1 alters behavior or contracts (it does not).
+`synced` — owner-approved `product.md` and `tech-stack.md` notes landed in Phase 2 (`f927ec1c`); Phase R1 changed only plan whitespace and evidence truthfulness, so no further product or tech-stack edit was required.
 
 ## History
 
 | Round | Verdict | Critical | High | Medium | Low | Fixed |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | PASS WITH FINDINGS | 0 | 0 | 1 | 0 | F1 scheduled for Phase R1 |
+| 2 | PASS | 0 | 0 | 0 | 0 | F1 fixed in Phase R1 (`aacae0f3`); final delta review clean |
