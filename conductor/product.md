@@ -258,8 +258,8 @@ Phased delivery plan (each phase is independently playable):
       **Owner decision 2026-11-18:** D-1 is accepted as standing debt; the
       one-in-three fence stays on the 840-fight matrix (224/840 = 26.7%, already
       inside it). The 20/42 fixture result remains a biased diagnostic, its
-      fixture-only target stays withdrawn, and both debt pins remain in place
-      as honest markers. Any future pacing attempt must change the controller
+      fixture-only target stays withdrawn, and the two debt pins recorded here
+      were resolved by the 2026-11-20 decision below. Any future pacing attempt must change the controller
       family or obtain a new product decision to move a fence. The global
       throughput shortfall and the kite band at `spd 5` were open debt (D-2),
       closed 2026-11-20 by track `20261120-kite-band-reachability`.
@@ -367,13 +367,15 @@ Phased delivery plan (each phase is independently playable):
   open: the hardware device-lab pass. Roster wave 2 reached 21/21 species in
   band on 2026-11-19; the 20-species goal is met. **Owner decision
   2026-11-18:** the global-pacing D-1 decision is closed — the ≤1/3 cap-share
-  fence stays on the 840-fight matrix, the 20/42 fixture miss (D-3) and its
-  population bias (D-4) were recorded debt on 2026-11-18 and both closed on
-  2026-11-20 (track `20261120-telemetry-fixture-debt`): D-3 met by the D-2 45 s cap
-  side effect at `11/42 (26.2%)` with no new pacing change; D-4 diagnosed and bounded,
-  fixture unchanged and re-stratification deferred to a future product-decision track.
-  The kite band (D-2) closed 2026-11-20 with a speed-aware Kite clamp, a 45 s fight cap and a two-species re-tune (track `20261120-kite-band-reachability`),
-  and both debt pins remain in place.)*
+  fence stays on the 840-fight matrix and D-1 remains the accepted standing debt.
+  The 20/42 fixture miss (D-3) and its population bias (D-4) were recorded debt
+  on 2026-11-18 and both closed on 2026-11-20
+  (track `20261120-telemetry-fixture-debt`): D-3 met by the D-2 45 s cap side
+  effect at `11/42 (26.2%)` with no new pacing change; D-4 diagnosed and bounded,
+  fixture unchanged and re-stratification deferred to a future product-decision
+  track. The kite band (D-2) closed 2026-11-20 with a speed-aware Kite clamp,
+  a 45 s fight cap and a two-species re-tune (track
+  `20261120-kite-band-reachability`).)*
 
 ## Target Audience
 Creature-collector fans who love the raising sim subgenre (Digimon World
