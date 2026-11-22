@@ -142,7 +142,7 @@ line-261 phrase fix) and re-ran all seven commands on HEAD `0b863360` with exit
 
 **Phase 2 accepted.**
 
-## Primary verification (final tree, HEAD `68cc4981`)
+## Primary verification (final tree, HEAD `f927ec1c`)
 
 All configured commands were independently re-run on the squashed Phase 2 tree; all exited 0. Raw output: `C:\Users\Ansyar\AppData\Local\Temp\opencode\dts-p2-final\`.
 
@@ -155,4 +155,4 @@ All configured commands were independently re-run on the squashed Phase 2 tree; 
 | `bun run test:fuzz` | 0 | 139 pass / 0 fail; 129015 `expect()` calls |
 | `git diff --quiet 059809f..HEAD -- packages apps` | 0 | empty source diff |
 
-Final tree is clean. Verdict: Phase 2 accepted on the final checkpoint `68cc4981`.
+Final tree is clean. Verdict: Phase 2 accepted on the final checkpoint `f927ec1c`.
