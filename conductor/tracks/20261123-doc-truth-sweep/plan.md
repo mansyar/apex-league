@@ -127,3 +127,16 @@
   - [x] **R1.T2.1: Record the actual exit code from the final tree in `integrated.md` and `phase-3.md`.**
 - [x] **R1.T3: Write Phase R1 evidence** — covers: F1
   - [x] **R1.T3.1: Re-run the five configured commands and `git diff --check`, then write `verification/phase-R1.md` with verdict and no open blockers.**
+
+## Phase R2: Review Findings F2 and F3
+
+- **Goal:** Correct the two Low documentation-accuracy findings in `review.md` (non-existent FR-7 and stale Range) and record final evidence.
+- **Depends on:** Phase R1
+- **Covers:** F2, F3 (NFR-5)
+- **Touches:** `conductor/tracks/20261123-doc-truth-sweep/review.md`, `verification/phase-R2.md`
+- **Verification:** `git diff --check 059809f36ff8b0bc7ee51ebf66b68a8ad82345ba..HEAD`; five configured commands on the final tree
+- **Status:** pending
+
+- [ ] **R2.T1: Fix F2 and F3 in `review.md`** — covers: F2, F3
+- [ ] **R2.T2: Write Phase R2 evidence** — covers: F2, F3
+  - [ ] **R2.T2.1: Re-run `git diff --check` and the five configured commands, then write `verification/phase-R2.md` with final verdict.**
