@@ -14,26 +14,24 @@
 - **Covers:** FR-1, FR-2, NFR-2, NFR-4, AC-1
 - **Touches:** `conductor/tracks/20261123-repo-hygiene-cleanup/verification/phase-1.md`, `.conductor/evidence/20261123-repo-hygiene-cleanup/**`
 - **Verification:** `git for-each-ref --format='%(refname:short)' refs/heads`; `git ls-remote --heads origin`; `git status --porcelain`; `git merge-base --is-ancestor <branch> main`; `git diff --quiet main...<branch>`; `gh pr list --state merged --head <branch> --json number,url`; `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Capture branch and remote baseline** — covers: FR-1
-  - [ ] **P1.T1.1: Record all local branches, excluding `main` and the current track branch.**
-  - [ ] **P1.T1.2: Record all remote heads and confirm no deletion is planned for remotes.**
-- [ ] **P1.T2: Classify each candidate branch with proof** — covers: FR-2
-  - [ ] **P1.T2.1: Check ancestry, empty diff, and merged PR with matching head for every candidate.**
-  - [ ] **P1.T2.2: Mark each branch safe-to-delete or preserve with the exact proof or reason.**
-- [ ] **P1.T3: Capture gitignored artifact baseline and exclusions** — covers: FR-1
-  - [ ] **P1.T3.1: Enumerate stale `.conductor/runs` directories, JSON, brief files, `.log`, `.err`, and scratch artifacts.**
-  - [ ] **P1.T3.2: Exclude the current run, current evidence, and archived evidence paths referenced by verification docs.**
-- [ ] **P1.T4: Record phase evidence and verification results** — covers: FR-1, FR-2
-  - [ ] **P1.T4.1: Run the five configured verification commands separately and record exit codes.**
-  - [ ] **P1.T4.2: Write `verification/phase-1.md` with baseline tables, proof classification, and no deletions.**
+- [x] **P1.T1: Capture branch and remote baseline** — covers: FR-1
+  - [x] **P1.T1.1: Record all local branches, excluding `main` and the current track branch.**
+  - [x] **P1.T1.2: Record all remote heads and confirm no deletion is planned for remotes.**
+- [x] **P1.T2: Classify each candidate branch with proof** — covers: FR-2
+  - [x] **P1.T2.1: Check ancestry, empty diff, and merged PR with matching head for every candidate.**
+  - [x] **P1.T2.2: Mark each branch safe-to-delete or preserve with the exact proof or reason.**
+- [x] **P1.T3: Capture gitignored artifact baseline and exclusions** — covers: FR-1
+  - [x] **P1.T3.1: Enumerate stale `.conductor/runs` directories, JSON, brief files, `.log`, `.err`, and scratch artifacts.**
+  - [x] **P1.T3.2: Exclude the current run, current evidence, and archived evidence paths referenced by verification docs.**
+- [x] **P1.T4: Record phase evidence and verification results** — covers: FR-1, FR-2
+  - [x] **P1.T4.1: Run the five configured verification commands separately and record exit codes.**
+  - [x] **P1.T4.2: Write `verification/phase-1.md` with baseline tables, proof classification, and no deletions.**
 
-<!--
 **Result:** verified
-**Checkpoint:** <short-sha>
-**Evidence:** conductor/tracks/20261123-repo-hygiene-cleanup/verification/phase-1.md
--->
+**Checkpoint:** `1f8ab49b`
+**Evidence:** `conductor/tracks/20261123-repo-hygiene-cleanup/verification/phase-1.md`
 
 ## Phase 2: Proof-backed deletion and artifact pruning
 
