@@ -14,18 +14,18 @@
 - **Covers:** FR-1, FR-2, AC-1, AC-2, AC-5, NFR-2, NFR-4
 - **Touches:** `conductor/tracks/20261124-battle-variance-branch-resolution/verification/phase-1.md`, `.conductor/evidence/20261124-battle-variance-branch-resolution/**`
 - **Verification:** `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`; plus `git log main..feat/20261110-battle-variance`, `git diff --stat <merge-base> feat/20261110-battle-variance`, `git show feat/20261110-battle-variance:conductor/tracks/20261110-battle-variance/frontier.md`, `git cat-file -e main:packages/sim/src/battle/continuous/controller-noise.ts`, `gh pr view 68 --json mergeCommit,body,state`.
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Capture the pre-action baseline** — covers: FR-1
-  - [ ] **P1.T1.1:** Record branch HEAD `7a08d427`, merge base `d7e5af3c`, the 20 unique commits, the 33-file diff stat, branch metadata status (`in_progress`, 0 of 4 phases green), and the `frontier.md` handoff via explicit source commands.
-  - [ ] **P1.T1.2:** Record the 11 remote heads byte-identical baseline (`git ls-remote --heads origin`) and a clean `git status --porcelain` (ignoring gitignored `.conductor/` artifacts).
-- [ ] **P1.T2: Prove or disprove supersession** — covers: FR-2
-  - [ ] **P1.T2.1:** Prove PR #68 merge `e3b9d48c` is an ancestor of `main` and that distinctive branch files (`controller-noise.ts`, `controller-noise.test.ts`) exist on `main`.
-  - [ ] **P1.T2.2:** Quote PR #68's body declaring the variance base stacked and "the variance track closes as superseded"; record the disposition verdict (superseded → delete candidate; unique value → preserve + follow-up).
-- [ ] **P1.T3: Record evidence and verification** — covers: FR-1, FR-2
-  - [ ] **P1.T3.1:** Write `verification/phase-1.md` with the command table, AC-1/AC-2/AC-5 mapping, disposition verdict, scope proof (empty source diff), and blockers if any.
-  - [ ] **P1.T3.2:** Run all five configured verification commands separately (no `&&`), record exact exit codes and battle hash `0xff6f3d62`; if the known load-induced `gatekeeper-reach` timeout occurs, isolate that single test once and record the result without retrying the full sweep.
-  - [ ] **P1.T3.3:** Commit the evidence with one conventional commit; no branch, file, or ref mutation in this phase.
+- [x] **P1.T1: Capture the pre-action baseline** — covers: FR-1
+  - [x] **P1.T1.1:** Record branch HEAD `7a08d427`, merge base `d7e5af3c`, the 20 unique commits, the 33-file diff stat, branch metadata status (`in_progress`, 0 of 4 phases green), and the `frontier.md` handoff via explicit source commands.
+  - [x] **P1.T1.2:** Record the 11 remote heads byte-identical baseline (`git ls-remote --heads origin`) and a clean `git status --porcelain` (ignoring gitignored `.conductor/` artifacts).
+- [x] **P1.T2: Prove or disprove supersession** — covers: FR-2
+  - [x] **P1.T2.1:** Prove PR #68 merge `e3b9d48c` is an ancestor of `main` and that distinctive branch files (`controller-noise.ts`, `controller-noise.test.ts`) exist on `main`.
+  - [x] **P1.T2.2:** Quote PR #68's body declaring the variance base stacked and "the variance track closes as superseded"; record the disposition verdict (superseded → delete candidate; unique value → preserve + follow-up).
+- [x] **P1.T3: Record evidence and verification** — covers: FR-1, FR-2
+  - [x] **P1.T3.1:** Write `verification/phase-1.md` with the command table, AC-1/AC-2/AC-5 mapping, disposition verdict, scope proof (empty source diff), and blockers if any.
+  - [x] **P1.T3.2:** Run all five configured verification commands separately (no `&&`), record exact exit codes and battle hash `0xff6f3d62`; if the known load-induced `gatekeeper-reach` timeout occurs, isolate that single test once and record the result without retrying the full sweep.
+  - [x] **P1.T3.3:** Commit the evidence with one conventional commit; no branch, file, or ref mutation in this phase.
 
 <!--
 The primary appends after acceptance:
@@ -33,6 +33,10 @@ The primary appends after acceptance:
 **Checkpoint:** <short-sha>
 **Evidence:** conductor/tracks/20261124-battle-variance-branch-resolution/verification/phase-1.md
 -->
+
+**Result:** verified
+**Checkpoint:** `69c151d8`
+**Evidence:** `conductor/tracks/20261124-battle-variance-branch-resolution/verification/phase-1.md`
 
 ## Phase 2: Proof-backed disposition and stale artifact cleanup
 
