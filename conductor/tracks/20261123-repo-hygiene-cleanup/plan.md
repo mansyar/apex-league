@@ -40,23 +40,21 @@
 - **Covers:** FR-3, FR-4, NFR-1, NFR-2, NFR-3, NFR-4, AC-2, AC-3, AC-4, AC-5
 - **Touches:** local `refs/heads`; `.conductor/runs/**` excluding the current run; `.conductor/*.log`; `.conductor/evidence/**/*.log`; `.conductor/evidence/*.err`; stale scratch artifacts under `.conductor/evidence/` and `.conductor/backups/`; `conductor/tracks/20261123-repo-hygiene-cleanup/verification/phase-2.md`; `.conductor/evidence/20261123-repo-hygiene-cleanup/**`
 - **Verification:** `git branch --list`; `git ls-remote --heads origin`; `git status --porcelain`; `git diff --quiet 1eee30116b23d4a1d3ecb8d23551dd24b4ca3ed5..HEAD -- packages apps`; `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Delete proof-backed stale local branches** — covers: FR-3
-  - [ ] **P2.T1.1: Use `git branch -d` first; use `git branch -D` only when Phase 1 records a merged PR with matching head.**
-  - [ ] **P2.T1.2: Confirm preserved branches remain and record any deletion denial as a blocker.**
-- [ ] **P2.T2: Prune stale gitignored run/log artifacts** — covers: FR-4
-  - [ ] **P2.T2.1: Remove stale run directories, JSON metadata, and extra brief files excluding the current run.**
-  - [ ] **P2.T2.2: Remove stale log/err/scratch artifacts while preserving referenced evidence paths.**
-- [ ] **P2.T3: Verify cleanup boundary and record phase evidence** — covers: FR-3, FR-4
-  - [ ] **P2.T3.1: Confirm remote head list is unchanged and no tracked source file changed.**
-  - [ ] **P2.T3.2: Run the five configured verification commands and write `verification/phase-2.md`.**
+- [x] **P2.T1: Delete proof-backed stale local branches** — covers: FR-3
+  - [x] **P2.T1.1: Use `git branch -d` first; use `git branch -D` only when Phase 1 records a merged PR with matching head.**
+  - [x] **P2.T1.2: Confirm preserved branches remain and record any deletion denial as a blocker.**
+- [x] **P2.T2: Prune stale gitignored run/log artifacts** — covers: FR-4
+  - [x] **P2.T2.1: Remove stale run directories, JSON metadata, and extra brief files excluding the current run.**
+  - [x] **P2.T2.2: Remove stale log/err/scratch artifacts while preserving referenced evidence paths.**
+- [x] **P2.T3: Verify cleanup boundary and record phase evidence** — covers: FR-3, FR-4
+  - [x] **P2.T3.1: Confirm remote head list is unchanged and no tracked source file changed.**
+  - [x] **P2.T3.2: Run the five configured verification commands and write `verification/phase-2.md`.**
 
-<!--
 **Result:** verified
-**Checkpoint:** <short-sha>
-**Evidence:** conductor/tracks/20261123-repo-hygiene-cleanup/verification/phase-2.md
--->
+**Checkpoint:** `04d3d5a7`
+**Evidence:** `conductor/tracks/20261123-repo-hygiene-cleanup/verification/phase-2.md`
 
 ## Phase 3: Final verification and integrated evidence
 
