@@ -63,7 +63,7 @@
 - **Covers:** FR-5, FR-6, NFR-5, NFR-6, NFR-7, AC-6, AC-7, AC-8, AC-9
 - **Touches:** `conductor/tracks/20261123-repo-hygiene-cleanup/verification/integrated.md`, `conductor/tracks/20261123-repo-hygiene-cleanup/verification/phase-3.md`, `.conductor/evidence/20261123-repo-hygiene-cleanup/**`
 - **Verification:** `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`; `git diff --check 1eee30116b23d4a1d3ecb8d23551dd24b4ca3ed5..HEAD`; `git diff --quiet 1eee30116b23d4a1d3ecb8d23551dd24b4ca3ed5..HEAD -- packages apps`; `git status --porcelain`; `Test-Path conductor/tracks/20261123-repo-hygiene-cleanup/verification/integrated.md`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Re-run final configured verification** — covers: FR-5
   - [ ] **P3.T1.1: Run the five commands separately on the final cleanup tree.**
