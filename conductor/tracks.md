@@ -58,4 +58,5 @@
 - [x] **Track: Live PvP Production Acceptance** - [20261120-live-pvp-production-acceptance](./archive/20261120-live-pvp-production-acceptance/index.md) - bug - high
 - [x] **Track: D-2 Kite Band Reachability** - [20261120-kite-band-reachability](./archive/20261120-kite-band-reachability/index.md) - chore - high
 - [x] **Track: Telemetry Fixture Debt Reconciliation** - [20261120-telemetry-fixture-debt](./archive/20261120-telemetry-fixture-debt/index.md) - chore - medium
-- [x] **Track: Documentation Truth Sweep** — [20261123-doc-truth-sweep](./archive/20261123-doc-truth-sweep/index.md) — chore — medium
+- [x] **Track: Documentation Truth Sweep** - [20261123-doc-truth-sweep](./archive/20261123-doc-truth-sweep/index.md) - chore - medium
+- [ ] **Track: Repository Hygiene Cleanup** - [20261123-repo-hygiene-cleanup](./tracks/20261123-repo-hygiene-cleanup/index.md) - chore - low
