@@ -45,7 +45,7 @@ The primary appends after acceptance:
 - **Covers:** FR-3, FR-4, AC-3, AC-4, NFR-2, NFR-3, NFR-4
 - **Touches:** `conductor/tracks/20261124-battle-variance-branch-resolution/verification/phase-2.md`, `.conductor/evidence/20261124-battle-variance-branch-resolution/**`
 - **Verification:** `git branch --list` (before/after), `git ls-remote --heads origin` (byte-identical before/after), `Test-Path .conductor/runs/20261123-repo-hygiene-cleanup.json` (false), `Test-Path .conductor/runs/20261124-battle-variance-branch-resolution.json` (true), `git diff --quiet <base>..HEAD -- packages apps`; plus `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`.
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Apply the branch disposition** — covers: FR-3
   - [ ] **P2.T1.1:** If Phase 1 proves supersession, delete `feat/20261110-battle-variance` locally with `git branch -d`; if `-d` fails with "not fully merged", use `-D` only with a recorded rationale citing the supersession proof that no content is lost.
