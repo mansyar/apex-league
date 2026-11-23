@@ -86,17 +86,17 @@
 - **Covers:** F1 (NFR-6/NFR-7), F2 (AC-4/AC-5), F3 (FR-6/AC-8)
 - **Touches:** `conductor/tracks/20261123-repo-hygiene-cleanup/verification/phase-1.md`, `conductor/tracks/20261123-repo-hygiene-cleanup/verification/phase-2.md`, `conductor/tracks/20261123-repo-hygiene-cleanup/verification/integrated.md`, `conductor/tracks/20261123-repo-hygiene-cleanup/verification/phase-3.md`, `conductor/tracks/20261123-repo-hygiene-cleanup/verification/phase-R1.md`
 - **Verification:** `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`; `git diff --check 1eee30116b23d4a1d3ecb8d23551dd24b4ca3ed5..HEAD`; `git diff --quiet 1eee30116b23d4a1d3ecb8d23551dd24b4ca3ed5..HEAD -- packages apps`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **R1.T1: Relabel phase-1.md NFR row (F1)** — covers: NFR-6, NFR-7
-  - [ ] **R1.T1.1: Change the five-command/hash row from NFR-7 to NFR-6; add a separate NFR-7 module-caps row.**
-- [ ] **R1.T2: Fix phase-2.md AC-4/AC-5 labels (F2)** — covers: AC-4, AC-5
-  - [ ] **R1.T2.1: Relabel line 116 to AC-4 (remote-head evidence) and line 117 to AC-5 (artifact inventory), moving evidence text with each row.**
-- [ ] **R1.T3: Correct stale pre-rewrite SHA pointers (F3)** — covers: FR-6, AC-8
-  - [ ] **R1.T3.1: Replace `d2085e51` final-tree references in integrated.md and phase-3.md with checkpoint `3e53fce5` (and note final HEAD `9c065563`), or annotate it as the pre-rewrite verification SHA.**
-- [ ] **R1.T4: Record fix evidence and re-run verification** — covers: NFR-6, FR-6
-  - [ ] **R1.T4.1: Write `verification/phase-R1.md` with the exact edits and five-command results.**
+- [x] **R1.T1: Relabel phase-1.md NFR row (F1)** — covers: NFR-6, NFR-7
+  - [x] **R1.T1.1: Change the five-command/hash row from NFR-7 to NFR-6; add a separate NFR-7 module-caps row.**
+- [x] **R1.T2: Fix phase-2.md AC-4/AC-5 labels (F2)** — covers: AC-4, AC-5
+  - [x] **R1.T2.1: Relabel line 116 to AC-4 (remote-head evidence) and line 117 to AC-5 (artifact inventory), moving evidence text with each row.**
+- [x] **R1.T3: Correct stale pre-rewrite SHA pointers (F3)** — covers: FR-6, AC-8
+  - [x] **R1.T3.1: Replace `d2085e51` final-tree references in integrated.md and phase-3.md with checkpoint `3e53fce5` (and note final HEAD `9c065563`), or annotate it as the pre-rewrite verification SHA.**
+- [x] **R1.T4: Record fix evidence and re-run verification** — covers: NFR-6, FR-6
+  - [x] **R1.T4.1: Write `verification/phase-R1.md` with the exact edits and five-command results.**
 
-**Result:** <!-- primary fills on acceptance: verified -->
-**Checkpoint:** <!-- primary fills on acceptance: <short-sha> -->
+**Result:** verified
+**Checkpoint:** `478bc388`
 **Evidence:** `conductor/tracks/20261123-repo-hygiene-cleanup/verification/phase-R1.md`
