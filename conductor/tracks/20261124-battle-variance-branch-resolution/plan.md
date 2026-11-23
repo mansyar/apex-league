@@ -14,7 +14,7 @@
 - **Covers:** FR-1, FR-2, AC-1, AC-2, AC-5, NFR-2, NFR-4
 - **Touches:** `conductor/tracks/20261124-battle-variance-branch-resolution/verification/phase-1.md`, `.conductor/evidence/20261124-battle-variance-branch-resolution/**`
 - **Verification:** `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`; plus `git log main..feat/20261110-battle-variance`, `git diff --stat <merge-base> feat/20261110-battle-variance`, `git show feat/20261110-battle-variance:conductor/tracks/20261110-battle-variance/frontier.md`, `git cat-file -e main:packages/sim/src/battle/continuous/controller-noise.ts`, `gh pr view 68 --json mergeCommit,body,state`.
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Capture the pre-action baseline** — covers: FR-1
   - [ ] **P1.T1.1:** Record branch HEAD `7a08d427`, merge base `d7e5af3c`, the 20 unique commits, the 33-file diff stat, branch metadata status (`in_progress`, 0 of 4 phases green), and the `frontier.md` handoff via explicit source commands.
