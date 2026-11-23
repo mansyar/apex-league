@@ -6,7 +6,7 @@
   "priority": "low",
   "depends_on": ["20261123-doc-truth-sweep"],
   "created_at": "2026-11-24T00:44:42.9143815+11:00",
-  "updated_at": "2026-11-24T01:48:50.4205487+11:00",
+  "updated_at": "2026-11-24T02:16:43.3208531+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "chore/20261123-repo-hygiene-cleanup",
@@ -14,11 +14,11 @@
   "base_sha": "1eee30116b23d4a1d3ecb8d23551dd24b4ca3ed5",
   "progress": {
     "phases_total": 3,
-    "phases_verified": 2,
+    "phases_verified": 3,
     "tasks_total": 10,
-    "tasks_done": 7
+    "tasks_done": 10
   },
-  "last_checkpoint": "04d3d5a7",
+  "last_checkpoint": "3e53fce5",
   "review_verdict": null,
   "review_rounds": 0,
   "doc_sync": "pending",

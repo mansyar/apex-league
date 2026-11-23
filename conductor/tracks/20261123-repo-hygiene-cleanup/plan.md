@@ -63,20 +63,18 @@
 - **Covers:** FR-5, FR-6, NFR-5, NFR-6, NFR-7, AC-6, AC-7, AC-8, AC-9
 - **Touches:** `conductor/tracks/20261123-repo-hygiene-cleanup/verification/integrated.md`, `conductor/tracks/20261123-repo-hygiene-cleanup/verification/phase-3.md`, `.conductor/evidence/20261123-repo-hygiene-cleanup/**`
 - **Verification:** `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`; `git diff --check 1eee30116b23d4a1d3ecb8d23551dd24b4ca3ed5..HEAD`; `git diff --quiet 1eee30116b23d4a1d3ecb8d23551dd24b4ca3ed5..HEAD -- packages apps`; `git status --porcelain`; `Test-Path conductor/tracks/20261123-repo-hygiene-cleanup/verification/integrated.md`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Re-run final configured verification** — covers: FR-5
-  - [ ] **P3.T1.1: Run the five commands separately on the final cleanup tree.**
-  - [ ] **P3.T1.2: Record sim hash `0xff6f3d62` and all exit codes.**
-- [ ] **P3.T2: Write integrated evidence** — covers: FR-6
-  - [ ] **P3.T2.1: Record before/after inventories, deletion proofs, preserved branches, and preserved evidence paths.**
-  - [ ] **P3.T2.2: Record scope proof, command results, and final verdict.**
-- [ ] **P3.T3: Confirm scope boundaries** — covers: NFR-5, NFR-7, AC-9
-  - [ ] **P3.T3.1: Confirm no product, tech-stack, workflow, style-guide, registry, or other Conductor-state change beyond this track.**
-  - [ ] **P3.T3.2: Confirm module caps and no-allowlist invariants remain untouched.**
+- [x] **P3.T1: Re-run final configured verification** — covers: FR-5
+  - [x] **P3.T1.1: Run the five commands separately on the final cleanup tree.**
+  - [x] **P3.T1.2: Record sim hash `0xff6f3d62` and all exit codes.**
+- [x] **P3.T2: Write integrated evidence** — covers: FR-6
+  - [x] **P3.T2.1: Record before/after inventories, deletion proofs, preserved branches, and preserved evidence paths.**
+  - [x] **P3.T2.2: Record scope proof, command results, and final verdict.**
+- [x] **P3.T3: Confirm scope boundaries** — covers: NFR-5, NFR-7, AC-9
+  - [x] **P3.T3.1: Confirm no product, tech-stack, workflow, style-guide, registry, or other Conductor-state change beyond this track.**
+  - [x] **P3.T3.2: Confirm module caps and no-allowlist invariants remain untouched.**
 
-<!--
 **Result:** verified
-**Checkpoint:** <short-sha>
-**Evidence:** conductor/tracks/20261123-repo-hygiene-cleanup/verification/integrated.md
--->
+**Checkpoint:** `3e53fce5`
+**Evidence:** `conductor/tracks/20261123-repo-hygiene-cleanup/verification/integrated.md`
