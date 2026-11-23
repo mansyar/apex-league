@@ -42,7 +42,8 @@ Exit codes follow the executor convention: no `Exit code:` line means exit 0. Ro
 | NFR-2 | No remote changes | `git ls-remote --heads origin` recorded; no push/ref command run | met |
 | NFR-4 | Archived evidence paths preserved and excluded from stale set | Artifact exclusions below; `.conductor/evidence/20261123-doc-truth-sweep/**`, current-run evidence, and all docs-referenced `.conductor/evidence/**` paths excluded | met |
 | AC-4 | Remote head list unchanged | 11 remote heads recorded; no remote command other than `ls-remote` | met |
-| NFR-7 | Five configured verification commands exit 0 with sim hash `0xff6f3d62` | §Primary verification: `bun run verify` (exit 0, hash `0xff6f3d62`), `bun run build` (exit 0), `bun run balance` (exit 0), `bun run gate:determinism` (exit 0), `bun run test:fuzz` (exit 0) | met |
+| NFR-6 | Five configured verification commands exit 0 with sim hash `0xff6f3d62` | §Primary verification: `bun run verify` (exit 0, hash `0xff6f3d62`), `bun run build` (exit 0), `bun run balance` (exit 0), `bun run gate:determinism` (exit 0), `bun run test:fuzz` (exit 0) | met |
+| NFR-7 | Module caps unchanged, no allowlist | Source diff empty (`git diff --quiet base..HEAD -- packages apps` exit 0); module-size guards unchanged at 12,288 B client/sim/server and 24,576 B voxel, no allowlist. | met |
 
 ## Branch classification table
 

@@ -113,8 +113,8 @@ five on the final tree. Exact exit codes recorded.
 |---|---|---|---|
 | AC-2 | Only proof-backed stale local branches deleted | §1 table: 7 branches, each with Phase 1 proof; 6 via `-d`, 1 escalated `-D` with merged-PR proof | **pass** |
 | AC-3 | Unproven branches preserved | §2 table: `main`, current branch, and `feat/20261110-battle-variance` all present in final `git branch --list` | **pass** |
-| AC-4 | Stale gitignored run/log artifacts pruned with evidence references preserved | §3: 169 stale artifacts removed, 0 remaining; current run artifacts and all non-`.log`/`.err` evidence preserved | **pass** |
-| AC-5 | Deletion is owner-confirmed and proof-backed; no tracked file or remote ref touched | Owner confirmation in Phase 1 / `stale-inventory.md`; §4: remote head diff 0, tracked tree clean, source diff exit 0 | **pass** |
+| AC-4 | No remote branch list changed, and no remote deletion/rewrite command was executed | §4: 11 remote heads byte-identical before/after, diff count 0; no remote deletion/rewrite command run | **pass** |
+| AC-5 | Final artifact inventory shows pruned counts and confirms current-track and archived evidence preserved | §3: 169 stale artifacts removed, 0 remaining; current run artifacts and all non-`.log`/`.err` evidence preserved; owner confirmation in Phase 1 / `stale-inventory.md` | **pass** |
 
 ## 7. Deviations
 

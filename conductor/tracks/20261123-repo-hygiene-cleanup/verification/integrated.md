@@ -10,9 +10,9 @@
 | Phase 1 checkpoint | `1f8ab49b` — read-only baseline and safety proofs; no deletions |
 | Phase 2 checkpoint | `04d3d5a7` — seven proof-backed local branches deleted; 169 stale gitignored artifacts removed |
 | Phase 3 base / HEAD at execution | `2cc9bc46ae88ae8a9040453e1c7e647db8761447` |
-| Final checkpoints | Phase 1 `1f8ab49b`; Phase 2 `04d3d5a7`; Phase 3 evidence commit `d2085e51ac04a469f1bb4187630ea6cc84867435` (primary final tree) |
+| Final checkpoints | Phase 1 `1f8ab49b`; Phase 2 `04d3d5a7`; Phase 3 checkpoint `3e53fce5` (final HEAD `9c065563`) |
 | Covers | FR-5, FR-6, NFR-5, NFR-6, NFR-7, AC-6, AC-7, AC-8, AC-9 (AC-1..AC-5 consolidated below from Phases 1–2) |
-| Result | **VERIFIED (by primary, final tree `d2085e51`)** — all configured checks exit 0 with sim hash `0xff6f3d62`; integrated audit complete; no open blockers. |
+| Result | **VERIFIED (by primary, Phase 3 checkpoint `3e53fce5`, final HEAD `9c065563`)** — all configured checks exit 0 with sim hash `0xff6f3d62`; integrated audit complete; no open blockers. |
 
 ## 1. Track summary
 
@@ -81,7 +81,7 @@ Commands were invoked separately (no `&&`, no pipe, no wrapper). Raw output: `.c
 |---|---|---|---|
 | 1 | `bun run verify` — executor (historical) | 1 | Known load-induced timeout only: `gatekeeper-reach.test.ts` 60 s timeout at 63098.19 ms. 4458 pass / 1 skip / 1 fail, 670479 `expect()` calls, 4460 tests / 437 files. `final hash 0xff6f3d62`; determinism gate and 5 invariants `ok` inside the same run. No other failure. |
 | 1b | `bun test packages/sim/src/cup/gatekeeper-reach.test.ts --timeout 120000` — executor (historical) | 0 | Isolated once per brief: 10 pass / 0 fail, 1011 `expect()` calls, 47.62 s. |
-| 1c | `bun run verify` — primary clean re-run | 0 | Final tree `d2085e51`: 4459 pass / 1 skip / 0 fail, 670479 `expect()` calls, sim hash `0xff6f3d62`. |
+| 1c | `bun run verify` — primary clean re-run | 0 | Final tree (checkpoint `3e53fce5`): 4459 pass / 1 skip / 0 fail, 670479 `expect()` calls, sim hash `0xff6f3d62`. |
 | 2 | `bun run build` | 0 | Vite 8.3.4; 438 modules transformed; built in 530 ms; pre-existing >500 kB chunk warning only. |
 | 3 | `bun run balance` | 0 | 21 species, 1680 fights (ko 1306, time 370, draw 4); cap share 370/1680 (22.0%); decisive 1598/1680 (95.1%); median 32.80 s; max 45.00 s; 34/34 gates `ok` incl. all six bosses. |
 | 4 | `bun run gate:determinism` — primary re-run | 0 | 21 species × 3 stages byte-identical; 5 props digests match. (Executor had a `permission.rejected` denial, resolved by primary.) |
@@ -152,7 +152,7 @@ plus this phase's two verification reports added by the Phase 3 evidence commit.
 
 ## 10. Final verdict
 
-**VERIFIED by primary on the final tree `d2085e51ac04a469f1bb4187630ea6cc84867435` — integrated verification complete, no open blockers.** The repository is clean, the scope diff contains only this track's Conductor artifacts and the single added registry line, the source tree is byte-identical to base, all 169 stale artifacts remain pruned with current-run and archived evidence preserved, exactly the three protected branches remain, remote refs are untouched, module caps and the no-allowlist invariant are unchanged, and the sim hash `0xff6f3d62` is confirmed by a clean `bun run verify` (4459 pass / 1 skip / 0 fail). `bun run build`, `bun run balance`, `bun run gate:determinism` and `bun run test:fuzz` all exit 0. AC-1..AC-9 are all met; the track is ready for review. `Verdict: Phase 3 accepted`.
+**VERIFIED by primary on checkpoint `3e53fce5` (final HEAD `9c065563`) — integrated verification complete, no open blockers.** The repository is clean, the scope diff contains only this track's Conductor artifacts and the single added registry line, the source tree is byte-identical to base, all 169 stale artifacts remain pruned with current-run and archived evidence preserved, exactly the three protected branches remain, remote refs are untouched, module caps and the no-allowlist invariant are unchanged, and the sim hash `0xff6f3d62` is confirmed by a clean `bun run verify` (4459 pass / 1 skip / 0 fail). `bun run build`, `bun run balance`, `bun run gate:determinism` and `bun run test:fuzz` all exit 0. AC-1..AC-9 are all met; the track is ready for review. `Verdict: Phase 3 accepted`.
 
 ## Primary verification (final tree)
 

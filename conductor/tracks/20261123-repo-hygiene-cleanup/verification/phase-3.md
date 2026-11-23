@@ -5,9 +5,9 @@
 - **Date:** 2026-11-24
 - **Branch:** `chore/20261123-repo-hygiene-cleanup`
 - **Base / HEAD at execution:** `1eee30116b23d4a1d3ecb8d23551dd24b4ca3ed5` (diff base) / `2cc9bc46ae88ae8a9040453e1c7e647db8761447` (Phase 3 base, matches plan)
-- **Primary final-tree HEAD:** `d2085e51ac04a469f1bb4187630ea6cc84867435`
+- **Phase 3 checkpoint:** `3e53fce5` (final HEAD `9c065563`)
 - **Covers:** FR-5, FR-6, NFR-5, NFR-6, NFR-7, AC-6, AC-7, AC-8, AC-9
-- **Result:** **VERIFIED (by primary, final tree `d2085e51`)** — all configured checks exit 0 with sim hash `0xff6f3d62`; integrated evidence complete and committed. No open blockers. The executor's earlier permission denials and the known load-induced `gatekeeper-reach.test.ts` 60 s timeout were all resolved by primary re-runs (see §5 and the Primary verification section).
+- **Result:** **VERIFIED (by primary, checkpoint `3e53fce5`, final HEAD `9c065563`)** — all configured checks exit 0 with sim hash `0xff6f3d62`; integrated evidence complete and committed. No open blockers. The executor's earlier permission denials and the known load-induced `gatekeeper-reach.test.ts` 60 s timeout were all resolved by primary re-runs (see §5 and the Primary verification section).
 
 ## 1. Commands table
 
@@ -17,7 +17,7 @@ All commands were invoked separately (no `&&`, no pipe, no wrapper). Exit conven
 |---|---|---|---|
 | 1 | `bun run verify` — executor (historical) | 1 | Known load-induced timeout only: `gatekeeper-reach.test.ts` 60 s timeout at 63098.19 ms. 4458 pass / 1 skip / 1 fail, 670479 `expect()` calls, 4460 tests / 437 files. `final hash 0xff6f3d62` printed inside the run; determinism gate and 5 trace invariants `ok` inside the run. No other failure. |
 | 1b | `bun test packages/sim/src/cup/gatekeeper-reach.test.ts --timeout 120000` — executor (historical) | 0 | Isolated exactly once per brief: 10 pass / 0 fail, 1011 `expect()` calls, 47.62 s. Confirms load-induced timeout, not a regression. |
-| 1c | `bun run verify` — primary clean re-run | 0 | Final tree `d2085e51`: 4459 pass / 1 skip / 0 fail, 670479 `expect()` calls, sim hash `0xff6f3d62`. |
+| 1c | `bun run verify` — primary clean re-run | 0 | Final tree (checkpoint `3e53fce5`): 4459 pass / 1 skip / 0 fail, 670479 `expect()` calls, sim hash `0xff6f3d62`. |
 | 2 | `bun run build` | 0 | Vite 8.3.4, 438 modules transformed, built in 530 ms; pre-existing >500 kB chunk warning only. |
 | 3 | `bun run balance` | 0 | 1680 fights (ko 1306, time 370, draw 4); cap share 370/1680 (22.0%); decisive 1598/1680 (95.1%); 34/34 `ok` gates including all six bosses. |
 | 4 | `bun run gate:determinism` — primary re-run | 0 | 21 species × 3 stages byte-identical; 5 props digests match. (Executor had a `permission.rejected` denial, resolved by primary.) |
@@ -63,7 +63,7 @@ None requiring a product or design decision. The executor's `bun run verify` tim
 | B3 | `Test-Path conductor/tracks/20261123-repo-hygiene-cleanup/verification/integrated.md` | resolved — `True` |
 | B4 | `bun run verify` (clean re-run on unloaded tree) | resolved — exit 0; 4459 pass / 1 skip / 0 fail, 670479 `expect()` calls, sim hash `0xff6f3d62` |
 
-The executor-side denials and the load-induced timeout are retained as historical context in §1; all were resolved by the primary on the final tree at `d2085e51`.
+The executor-side denials and the load-induced timeout are retained as historical context in §1; all were resolved by the primary at checkpoint `3e53fce5`.
 
 ## 6. Evidence paths
 
@@ -78,8 +78,8 @@ The executor-side denials and the load-induced timeout are retained as historica
 ## 7. Notes
 
 - Authoritative Phase 1/2 facts were re-verified where safe (branches, artifacts, remotes, scope diff, module caps); no cleanup was repeated.
-- The Phase 3 evidence commit SHA is `d2085e51ac04a469f1bb4187630ea6cc84867435`; this update is an evidence-only follow-up commit that does not alter plan, metadata, registry, or product docs.
-- **Phase 3 verdict: VERIFIED by primary on the final tree `d2085e51` — all configured checks green, no open blockers.** See the Primary verification section below; `Verdict: Phase 3 accepted`.
+- The Phase 3 checkpoint is `3e53fce5` (final HEAD `9c065563`); this update is an evidence-only follow-up commit that does not alter plan, metadata, registry, or product docs.
+- **Phase 3 verdict: VERIFIED by primary at checkpoint `3e53fce5` (final HEAD `9c065563`) — all configured checks green, no open blockers.** See the Primary verification section below; `Verdict: Phase 3 accepted`.
 
 ## Primary verification (final tree)
 
