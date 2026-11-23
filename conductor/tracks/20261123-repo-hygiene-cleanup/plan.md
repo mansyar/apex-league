@@ -14,7 +14,7 @@
 - **Covers:** FR-1, FR-2, NFR-2, NFR-4, AC-1
 - **Touches:** `conductor/tracks/20261123-repo-hygiene-cleanup/verification/phase-1.md`, `.conductor/evidence/20261123-repo-hygiene-cleanup/**`
 - **Verification:** `git for-each-ref --format='%(refname:short)' refs/heads`; `git ls-remote --heads origin`; `git status --porcelain`; `git merge-base --is-ancestor <branch> main`; `git diff --quiet main...<branch>`; `gh pr list --state merged --head <branch> --json number,url`; `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Capture branch and remote baseline** — covers: FR-1
   - [ ] **P1.T1.1: Record all local branches, excluding `main` and the current track branch.**
