@@ -398,8 +398,13 @@
   built and run locally on 2026-10-26: uid 1000, `/health` 200 with
   `schemaVersion 0001_init.sql`, a preflight from the configured origin 204 with
   all three access-control headers, and both a foreign origin and the
-  `apex-league.pages.dev.evil.test` lookalike refused. The Coolify deploy itself
-  is configuration-complete and has not run.*
+  `apex-league.pages.dev.evil.test` lookalike refused.
+- *2026-11-23 — Documentation truth sweep (track `20261123-doc-truth-sweep`):
+  the Coolify `Server image` workflow ran on `main` on 2026-11-20
+  (run `44803326527`) and the SHA-tagged image was redeployed. The earlier
+  "configuration-complete and has not run" statement is superseded. Current
+  `https://apex-api.ansyar-world.top/health` returns 200 with
+  `schemaVersion 0003_ghost.sql`.*
 - *2026-11-20 — Live PvP foundation (track `20261119-live-pvp-foundation`):
   the Elysia app now serves a WebSocket `/live` route alongside the HTTP
   endpoints. It is registered on the injectable `createApp({db, allowedOrigin})`
@@ -811,11 +816,16 @@
     manual `pages project create` is needed. After the upload,
     `scripts/smoke/smoke.ts` loads the deployed URL in a fresh browser context,
     drafts a starter, asserts the ranch canvas and HUD render, and fails the run
-    on any console error/warning or failed asset request. The client deploy is
-    configuration-complete but **has not run yet**: `deploy.yml` has never been
-    on `main`, and the two secrets are the owner's to add, so
-    `https://apex-league.pages.dev/` does not resolve today. The server half
-    stays deferred, unchanged.*
+    on any console error/warning or failed asset request. The 2026-10-26 claim
+    that the client deploy "has not run yet" is superseded.
+-   *2026-11-23 — Documentation truth sweep (track `20261123-doc-truth-sweep`):
+    the client `Deploy` workflow ran on `main` on 2026-11-20
+    (runs `44803326606` and `44708870397`) and `https://apex-league.pages.dev/`
+    resolves with HTTP 200. The deployed bundle `/assets/index-B6REQeQ0.js`
+    (1,107,393 bytes) contains `Live PvP`, `Room code`, `/live`, and
+    `apex-api.ansyar-world.top`; `https://apex-api.ansyar-world.top/health`
+    returns 200 with `schemaVersion 0003_ghost.sql`. The earlier "has not run
+    yet / stays deferred" wording is superseded for both client and server.*
 -   *2026-10-27 - Prod API wiring (track `20261027-prod-api-wiring`): the
     server half is LIVE at `https://apex-api.ansyar-world.top` (Coolify,
     `ALLOWED_ORIGIN=https://apex-league.pages.dev`, SQLite on the named volume

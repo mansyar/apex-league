@@ -1,0 +1,36 @@
+{
+  "id": "20261123-doc-truth-sweep",
+  "title": "Documentation Truth Sweep",
+  "type": "chore",
+  "status": "complete",
+  "priority": "medium",
+  "depends_on": [
+    "20261119-live-pvp-foundation",
+    "20261120-live-pvp-production-acceptance",
+    "20261120-kite-band-reachability",
+    "20261120-telemetry-fixture-debt"
+  ],
+  "created_at": "2026-11-23T06:56:40.7130466+11:00",
+  "updated_at": "2026-11-23T09:07:31.7004224+11:00",
+  "spec": "spec.md",
+  "plan": "plan.md",
+  "branch": "chore/20261123-doc-truth-sweep",
+  "base_branch": "main",
+  "base_sha": "059809f36ff8b0bc7ee51ebf66b68a8ad82345ba",
+  "progress": {
+    "phases_total": 5,
+    "phases_verified": 5,
+    "tasks_total": 30,
+    "tasks_done": 30
+  },
+  "last_checkpoint": "43a5bfc1",
+  "review_verdict": "PASS",
+  "review_rounds": 2,
+  "doc_sync": "synced",
+  "pr_url": "https://github.com/mansyar/apex-league/pull/88",
+  "reverted_at": null,
+  "revert_commit": null,
+  "revert_pr_url": null,
+  "archived_at": "2026-11-23T09:07:31.7004224+11:00",
+  "archive_path": "conductor/archive/20261123-doc-truth-sweep"
+}
