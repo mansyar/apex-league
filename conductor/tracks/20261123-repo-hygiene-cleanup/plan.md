@@ -86,7 +86,7 @@
 - **Covers:** F1 (NFR-6/NFR-7), F2 (AC-4/AC-5), F3 (FR-6/AC-8)
 - **Touches:** `conductor/tracks/20261123-repo-hygiene-cleanup/verification/phase-1.md`, `conductor/tracks/20261123-repo-hygiene-cleanup/verification/phase-2.md`, `conductor/tracks/20261123-repo-hygiene-cleanup/verification/integrated.md`, `conductor/tracks/20261123-repo-hygiene-cleanup/verification/phase-3.md`, `conductor/tracks/20261123-repo-hygiene-cleanup/verification/phase-R1.md`
 - **Verification:** `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`; `git diff --check 1eee30116b23d4a1d3ecb8d23551dd24b4ca3ed5..HEAD`; `git diff --quiet 1eee30116b23d4a1d3ecb8d23551dd24b4ca3ed5..HEAD -- packages apps`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Relabel phase-1.md NFR row (F1)** — covers: NFR-6, NFR-7
   - [ ] **R1.T1.1: Change the five-command/hash row from NFR-7 to NFR-6; add a separate NFR-7 module-caps row.**
