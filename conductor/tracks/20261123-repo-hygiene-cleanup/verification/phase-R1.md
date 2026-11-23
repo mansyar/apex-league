@@ -77,7 +77,7 @@ With this file, the single R1 commit touches exactly the five allowed tracked fi
 
 ## 5. Primary verification (final tree)
 
-The two commands denied to the executor were re-run by the primary on the final tree (`eed2de99`), all exit 0. Raw output: `C:\Users\Ansyar\AppData\Local\Temp\opencode\hyg-r1-final\`.
+The two commands denied to the executor were re-run by the primary on the R1 verification tree (pre-squash SHA `eed2de99`, squashed into Phase R1 checkpoint `478bc388`; final HEAD `cb30b26a`), all exit 0. Raw output: `C:\Users\Ansyar\AppData\Local\Temp\opencode\hyg-r1-final\`.
 
 | Command | Exit code | Result |
 | --- | --- | --- |
@@ -89,8 +89,8 @@ The two commands denied to the executor were re-run by the primary on the final 
 | `git diff --check 1eee3011..HEAD` | 0 | no whitespace errors. |
 | `git diff --quiet 1eee3011..HEAD -- packages apps` | 0 | empty source diff; module caps/allowlist untouched. |
 
-Scope: single R1 commit touches only the five allowed evidence files; clean tree (`git status --porcelain` empty) at HEAD `eed2de99`. The earlier executor denials of `gate:determinism` and `test:fuzz` are resolved by the primary re-runs above.
+Scope: single R1 commit (checkpoint `478bc388`) touches only the five allowed evidence files; clean tree (`git status --porcelain` empty) at final HEAD `cb30b26a`. The earlier executor denials of `gate:determinism` and `test:fuzz` are resolved by the primary re-runs above.
 
 ## 6. Verdict
 
-**VERIFIED by primary.** F1, F2 and F3 are fully applied and self-consistent with the approved spec and branch history; `d2085e51` appears only inside this file as the *description* of the corrected finding. All five configured verification commands and both git diff checks exit 0 on the final tree, the source diff is empty, and the stale-SHA grep is clean. No blockers remain. `Verdict: Phase R1 accepted`.
+**VERIFIED by primary.** F1, F2 and F3 are fully applied and self-consistent with the approved spec and branch history. In tracked files the literal `d2085e51` now survives only in historical finding descriptions — this file, `review.md` (F3 record) and `plan.md` (task R1.T3.1) — and never as a final-tree citation; the four verification evidence files (`phase-1.md`, `phase-2.md`, `phase-3.md`, `integrated.md`) contain zero occurrences. All five configured verification commands and both git diff checks exit 0 on the final tree, the source diff is empty, and the stale-SHA grep is clean. No blockers remain. `Verdict: Phase R1 accepted`.
