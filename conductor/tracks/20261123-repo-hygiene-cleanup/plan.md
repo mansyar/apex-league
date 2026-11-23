@@ -40,7 +40,7 @@
 - **Covers:** FR-3, FR-4, NFR-1, NFR-2, NFR-3, NFR-4, AC-2, AC-3, AC-4, AC-5
 - **Touches:** local `refs/heads`; `.conductor/runs/**` excluding the current run; `.conductor/*.log`; `.conductor/evidence/**/*.log`; `.conductor/evidence/*.err`; stale scratch artifacts under `.conductor/evidence/` and `.conductor/backups/`; `conductor/tracks/20261123-repo-hygiene-cleanup/verification/phase-2.md`; `.conductor/evidence/20261123-repo-hygiene-cleanup/**`
 - **Verification:** `git branch --list`; `git ls-remote --heads origin`; `git status --porcelain`; `git diff --quiet 1eee30116b23d4a1d3ecb8d23551dd24b4ca3ed5..HEAD -- packages apps`; `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Delete proof-backed stale local branches** — covers: FR-3
   - [ ] **P2.T1.1: Use `git branch -d` first; use `git branch -D` only when Phase 1 records a merged PR with matching head.**
