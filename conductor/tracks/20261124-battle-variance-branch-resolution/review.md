@@ -4,8 +4,8 @@
 - **Type:** `chore`
 - **Branch:** `chore/20261124-battle-variance-branch-resolution`
 - **Range:** `13172e387b633142f888f6eaba93feb944e80f0f..11816370`
-- **Date:** `2026-11-24T11:24:20.7037837+11:00`
-- **Verdict:** `PASS WITH FINDINGS`
+- **Date:** `2026-11-24T11:27:38.6169190+11:00`
+- **Verdict:** `PASS`
 
 ## Summary
 
@@ -125,3 +125,4 @@ remote refs untouched.
 | Round | Verdict | Critical | High | Medium | Low | Fixed |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | PASS WITH FINDINGS | 0 | 0 | 0 | 2 | 0 (Phase R1 pending) |
+| 2 | PASS | 0 | 0 | 0 | 0 | 2 (F1, F2 in Phase R1) |
