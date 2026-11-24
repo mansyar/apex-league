@@ -64,3 +64,4 @@
 - [x] **Track: Telemetry Fixture Re-stratification** — [20261124-telemetry-fixture-restratification](./archive/20261124-telemetry-fixture-restratification/index.md) — chore — medium
 - [x] **Track: Controller Cadence Resonance Diagnostic** — [20261124-controller-cadence-resonance-diagnostic](./archive/20261124-controller-cadence-resonance-diagnostic/index.md) — chore — medium
 - [x] **Track: Save Schema Creature Fields** — [20261124-save-schema-creature-fields](./archive/20261124-save-schema-creature-fields/index.md) — chore — medium
+- [x] **Track: Boss Discovery Balance Probes** — [20261124-boss-discovery-balance-probes](./archive/20261124-boss-discovery-balance-probes/index.md) — chore — medium
