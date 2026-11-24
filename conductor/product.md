@@ -377,6 +377,21 @@ Phased delivery plan (each phase is independently playable):
   a 45 s fight cap and a two-species re-tune (track
   `20261120-kite-band-reachability`).)*
 
+*(2026-11-24 — Telemetry Fixture Re-stratification (track
+  `20261124-telemetry-fixture-restratification`): D-4 is re-stratified and
+  closed — `bun run telemetry` now gates the matrix population with midpoint
+  stats and press doctrine over the same 42 stride-11 pairings and one seed
+  each. Exactly two bounds move, with a recorded derivation: `engagementMax`
+  4500 → 8000 and `distinctPositions` 20 → 16; the other twelve stay frozen.
+  The historical reference + split sample is preserved, ungated, as
+  `bun packages/sim/scripts/battle-telemetry.ts --smoke`. The matrix stays
+  1680 fights at `370/1680 (22.0%)`, the D-1 ≤1/3 cap-share fence stays on the
+  matrix as accepted standing debt, and battle hash remains `0xff6f3d62`.
+  One zero-commit fight (`gale_moth v emberwing`, seed `20261146`) is a
+  documented structural artifact tolerated under AC-11; its controller
+  cadence resonance is a separate follow-up. The hardware device-lab pass
+  stays open and out of scope. No new product direction.)*
+
 ## Target Audience
 Creature-collector fans who love the raising sim subgenre (Digimon World
 Championship, Pokémon, Ooblets adjacent) and want a spectator-battle twist;
