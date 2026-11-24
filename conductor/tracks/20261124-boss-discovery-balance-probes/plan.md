@@ -110,7 +110,7 @@ The primary appends after acceptance:
 - **Covers:** F1, F2, AC-4, AC-10
 - **Touches:** `conductor/tracks/20261124-boss-discovery-balance-probes/plan.md`, `conductor/tracks/20261124-boss-discovery-balance-probes/verification/phase-R1.md`, `conductor/tracks/20261124-boss-discovery-balance-probes/review.md`, `conductor/tracks/20261124-boss-discovery-balance-probes/metadata.json`, `.conductor/evidence/20261124-boss-discovery-balance-probes/review/**`
 - **Verification:** `git diff --check 6e4b3893971832ae652a9d21713e906e9e4be459..HEAD`; `git status --porcelain`; byte-level matrix hash comparison; focused probe
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Reconcile nested plan subtask state** — covers: F1
   - [ ] **R1.T1.1:** Check every completed Phase 1 and Phase 3 subtask.
