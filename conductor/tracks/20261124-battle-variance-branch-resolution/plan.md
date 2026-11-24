@@ -106,7 +106,7 @@ The primary appends after acceptance:
 - **Covers:** F1, F2
 - **Touches:** `conductor/tracks/20261124-battle-variance-branch-resolution/verification/integrated.md`, `conductor/tracks/20261124-battle-variance-branch-resolution/verification/phase-2.md`, `conductor/tracks/20261124-battle-variance-branch-resolution/verification/phase-R1.md`
 - **Verification:** re-read both cited lines and confirm the corrected wording is consistent with the determinism command output and the final AC-4 state; `git diff --check <base>..HEAD`; `git status --porcelain`; the five configured commands remain exit 0 with hash `0xff6f3d62`.
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Resolve F1** — covers: F1 (remove the contradictory GLB-count parenthetical in `integrated.md` §13).
 - [ ] **R1.T2: Resolve F2** — covers: F2 (qualify the historical AC-4 statement in `phase-2.md` §8 as denied-subagent state).
