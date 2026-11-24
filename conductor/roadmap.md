@@ -1,6 +1,6 @@
 # Conductor Roadmap
 
-<!-- next-rm-id: 8 -->
+<!-- next-rm-id: 9 -->
 
 > Planned and future work. The roadmap stores **intent** — ordering, priority,
 > and dependencies — not live state. `conductor-status` joins every entry whose
@@ -29,6 +29,7 @@
 
 | id | title | type | priority | depends_on | track | origin |
 | --- | --- | --- | --- | --- | --- | --- |
+| RM-8 | Adopt stage-scaled animation and ranch body profiles | feature | medium | — | — | user |
 | RM-7 | Decide stable capacity, ranch expansion, and pet release | chore | medium | — | — | user |
 | RM-6 | Run a dedicated voxelize performance pass | chore | medium | — | — | user |
 | RM-2 | Complete the hardware device-lab verification pass | chore | medium | — | — | user |
