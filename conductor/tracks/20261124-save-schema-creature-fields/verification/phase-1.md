@@ -7,17 +7,21 @@
 - **Phase base:** `917457c88731a19fa4d22ff6d8ad88636fbc0802`
 - **Track base:** `dda6b8ad9832f3c1870151aafab0d982f036df25`
 - **Head (verified documentation):** `cf80ec80eda3738e3f2edd31b3cf2598fdc0d243`
-- **Result:** `failed`
+- **Plan correction:** `deb0d211b2524e1a81736db65e0f8c256a7fe28b`
+- **Result:** `verified`
 
 ## Result Summary
 
 The two requested rows were added, and the documentation commit changes only
 `docs/save-schema.md` (two insertions). `bun run verify`, `bun run build`, the
-whitespace check, and the phase-base scope check all pass. The brief's exact
-track-base scope command exits 1 because its range already contains pre-existing
-Conductor bookkeeping commits made before Phase 1. Those files are outside this
-phase's `Touches` and must not be edited by the phase executor, so the required
-command cannot be made green within this phase's authority.
+whitespace check, the phase-base scope check, and the corrected track-base scope
+check all pass.
+
+The original track-base scope command was a plan-contract error: it excluded only
+`docs/save-schema.md`, so required Conductor bookkeeping made it exit 1. The
+primary corrected `plan.md` in `deb0d211` to exclude `conductor/**` as well. The
+corrected command passes, resolving the prior failure without changing any
+protected state file.
 
 ## Commands
 
@@ -26,8 +30,8 @@ command cannot be made green within this phase's authority.
 | static + unit + determinism | `bun run verify` | 0 | 4,462 tests pass, 1 skip, 0 fail across 437 files; 1,039 files checked with no fixes; voxel determinism gate passes. |
 | static | `bun run build` | 0 | Vite production build succeeds (438 modules); existing non-fatal large-chunk warning remains. |
 | diff hygiene | `git diff --check dda6b8ad9832f3c1870151aafab0d982f036df25..HEAD` | 0 | No whitespace errors. |
-| track-base scope | `git diff --quiet dda6b8ad9832f3c1870151aafab0d982f036df25..HEAD -- . ':!docs/save-schema.md'` | 1 | No output. The range includes six pre-existing Conductor bookkeeping files from commits before the phase base. |
-| working tree | `git status --porcelain` | 0 | Clean at documentation head `cf80ec80`, before this evidence file was written. |
+| track-base scope | `git diff --quiet dda6b8ad9832f3c1870151aafab0d982f036df25..HEAD -- . ':!docs/save-schema.md' ':!conductor/**'` | 0 | No output. The corrected plan contract excludes required Conductor bookkeeping as well as the documentation file. |
+| working tree | `git status --porcelain` | 0 | Clean at corrected-plan head `deb0d211`, before this evidence rework was written. |
 | baseline diagnosis | `git diff --name-only dda6b8ad9832f3c1870151aafab0d982f036df25..917457c88731a19fa4d22ff6d8ad88636fbc0802` | 0 | Lists `conductor/roadmap.md`, `conductor/tracks.md`, and the track's `index.md`, `metadata.json`, `plan.md`, and `spec.md`. |
 | phase-base scope | `git diff --quiet 917457c88731a19fa4d22ff6d8ad88636fbc0802..HEAD -- . ':!docs/save-schema.md'` | 0 | No non-documentation change in Phase 1. |
 | phase changed paths | `git diff --name-only 917457c88731a19fa4d22ff6d8ad88636fbc0802..HEAD` | 0 | Only `docs/save-schema.md` at documentation head. |
@@ -38,7 +42,7 @@ command cannot be made green within this phase's authority.
 | --- | --- | --- | --- |
 | AC-1 | `Creature.element` row has the correct type and persisted/validation semantics. | `docs/save-schema.md:44` lists all six `Element` values, says the primary element is persisted, initialized from the species at creation, and validated as one of the six known elements, and records type/affinity behavior. Agrees with `packages/sim/src/creature.ts:12,51,237` and `packages/sim/src/save/validators/creature.ts:19,83`. | pass |
 | AC-2 | `Creature.bondedToday` row has boolean type and nightly-reset semantics. | `docs/save-schema.md:54` documents a persisted boolean set by a bonding action and reset to `false` by nightly settlement. Agrees with `packages/sim/src/creature.ts:114-115,253` and the strict boolean validation at `packages/sim/src/save/validators/creature.ts:82`. | pass |
-| AC-3 | Final diff changes only `docs/save-schema.md`, and configured verification remains green. | The phase-base diff contains only `docs/save-schema.md`; verify and build pass. The exact track-base scope command fails on pre-existing Conductor bookkeeping, so configured verification as a whole is not green. This evidence file is the separately required operational artifact. | fail |
+| AC-3 | Final diff changes only `docs/save-schema.md`, and configured verification remains green. | The implementation diff changes only `docs/save-schema.md`; Conductor bookkeeping and this evidence file are the required operational artifacts. Verify, build, diff hygiene, phase-base scope, and the corrected track-base scope check all pass. | pass |
 
 ## Requirements and Scope Proof
 
@@ -67,11 +71,15 @@ None.
 
 ## Notes
 
-- The exact track-base scope command was also run before the documentation edit
-  and already exited 1 at phase base `917457c8`. The cause is the range starting
-  at `dda6b8ad`, which includes the track-initialization and phase-in-progress
-  Conductor commits. Editing or reverting those protected state files is outside
-  this phase's authority, so no in-scope fix exists.
+- **Resolved original failure:** the original track-base scope command was also
+  run before the documentation edit and exited 1 at phase base `917457c8`. Its
+  pathspec excluded only `docs/save-schema.md`, so the range's required
+  Conductor bookkeeping correctly appeared as out-of-scope differences.
+- The primary corrected the plan contract in `deb0d211b2524e1a81736db65e0f8c256a7fe28b`
+  by adding `':!conductor/**'`. The corrected command was run separately for
+  this rework and exited 0; `git status --porcelain` also exited 0 with no output
+  before this evidence update. The original failure is retained here as resolved
+  history; no protected state file was edited by the phase executor.
 - The documentation commit is
   `cf80ec80eda3738e3f2edd31b3cf2598fdc0d243`
   (`docs(save): document persisted creature fields`). The evidence commit is
