@@ -64,10 +64,10 @@ performed and no gate was widened.
 
 | AC | Result | Evidence |
 | --- | --- | --- |
-| AC-6 (full configured check suite green at frozen readings) | satisfied | §1: all configured checks exit 0, including four run unchanged by the primary after subagent denial (determinism byte-identical, fuzz 139 pass / 0 fail, smoke `11/42`, audit `11/8/7/5` / `+12.5`); hash `0xff6f3d62`. |
-| AC-7 (gate / smoke / matrix / audit truth unchanged) | satisfied | §1–§2: gate `5/42`, smoke `11/42`, matrix `370/1680`, audit `11/8/7/5` / `+12.5`, hash `0xff6f3d62`; smoke and audit re-confirmed by primary fallback. |
-| AC-8 (scope and freeze proven) | satisfied | §4: empty source diff, `diff --check` 0, clean worktree, Conductor-artifact-only diff, remote heads unchanged; the deferral of the tolerate-vs-change decision to the owner is unchanged and was not exercised. |
-| AC-9 (integrated record + dated product pointer hand decision back) | satisfied | §5 and `verification/integrated.md` are complete; the single dated `conductor/product.md` note was applied by the primary and committed at `2879fd0b`. Owner question explicitly deferred. |
+| AC-6 (freeze and scope proof) | satisfied | §2 and §4: source diff empty, all NFR-6 checks exit 0 with hash `0xff6f3d62`, and no bound, fence, sample, module-cap, dependency, or allowlist change. |
+| AC-7 (integrated evidence with accurate AC-1..AC-10 mapping) | satisfied | §5 and `verification/integrated.md` are committed with baseline, inventory, mechanism, options, freeze proof, scope proof, and the corrected AC-1..AC-10 mapping. |
+| AC-8 (dated product note deferring the decision) | satisfied | §5: exactly one dated `conductor/product.md` note committed at `2879fd0b` points to the evidence and defers the owner decision; no roadmap, fence, or debt status changed. |
+| AC-9 (final scope boundary proof) | satisfied | §4: name-status lists only Conductor artifacts plus gitignored scratch, `git status --porcelain` empty, `git diff --check` exit 0. |
 
 AC-10 (no fix/re-pin/bound/gate/sample change) is corroborated by §2 and §4;
 no option from `verification/phase-2.md` §5 was implemented.
@@ -135,7 +135,7 @@ resolved. No fix was implemented; the tolerate-under-AC-11 versus
 controller-family-change question stays with the owner. **Verdict: VERIFIED —
 full suite green at frozen readings, scope and freeze proven, decision handed
 back; no evidence of a regression and no scope expansion.**
-## Primary verification
+## 8. Primary verification
 
 The primary independently verified Phase 3 on the clean phase base `254200954e7e71ab58b936824f4ca23e3ee523f3`:
 

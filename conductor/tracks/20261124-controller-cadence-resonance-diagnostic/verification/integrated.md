@@ -221,10 +221,10 @@ allowlist, or deployment was changed.
 | AC-3 per-event inventory | satisfied | §3: all fields for 1 gate + 12 matrix events with counts/rates and the uniqueness statement. |
 | AC-4 per-event mechanism decomposition | satisfied | §4: first-class tick traces, gap deltas, verb censuses, `inBandTicks=0`, `commitOrders=0`, verdict per event. |
 | AC-5 ranked options, tolerate baseline, no implementation | satisfied | §5: O0 baseline, O1–O4 ranked, rejected precedent as evidence only, none implemented. |
-| AC-6 full configured check suite green at frozen readings | satisfied | §6: all configured checks exit 0, including four run unchanged by the primary after subagent denial (determinism byte-identical, fuzz 139 pass / 0 fail, smoke `11/42`, audit `11/8/7/5` / `+12.5`); hash `0xff6f3d62`. |
-| AC-7 gate/smoke/matrix/audit truth unchanged | satisfied | §2 and §6: gate `5/42`, smoke `11/42`, matrix `370/1680`, audit `11/8/7/5` / `+12.5`, hash `0xff6f3d62`; smoke and audit re-confirmed by primary fallback. |
-| AC-8 scope and freeze proven | satisfied | §6–§7: source diff empty, `diff --check` 0, clean worktree, Conductor-artifact-only diff, remote heads unchanged; the deferral of the tolerate-vs-change decision to the owner is unchanged and was not exercised. |
-| AC-9 decision handed back with dated product pointer | satisfied | §5 is complete; the single dated `conductor/product.md` note was applied by the primary and committed at `2879fd0b`. No product direction changed. |
+| AC-6 freeze and scope proof | satisfied | §6–§7: source diff empty (`git diff --quiet dcbe314a..HEAD -- packages apps` exit 0), all NFR-6 checks exit 0 with hash `0xff6f3d62`, and no bound, fence, sample, module-cap, dependency, or allowlist change. |
+| AC-7 integrated evidence with accurate AC-1..AC-10 mapping | satisfied | `verification/integrated.md` is committed (checkpoint `99ea923a`) with baseline §2, inventory §3, mechanism §4, options §5, freeze proof §6, scope proof §7, and this corrected AC-1..AC-10 mapping. |
+| AC-8 dated product note deferring the decision | satisfied | §5: exactly one dated `conductor/product.md` note committed at `2879fd0b` points to the evidence and defers the tolerate-vs-change decision to the owner; no roadmap, fence, or debt status changed. |
+| AC-9 final scope boundary proof | satisfied | §7: final name-status lists only Conductor artifacts plus gitignored scratch, `git status --porcelain` is empty, and `git diff --check dcbe314a..HEAD` exits 0. |
 | AC-10 no fix / re-pin / bound / gate / sample change | satisfied | §5–§7: no option implemented; no bound, gate, sample, controller constant, dependency or deployment touched; denied commands reported, not worked around. |
 
 AC-11 (owner tolerates the named artifact) remains the owner's call; this track

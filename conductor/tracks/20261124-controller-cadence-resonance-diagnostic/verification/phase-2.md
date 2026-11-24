@@ -266,7 +266,7 @@ cadence census (`decisions=188`, `replayFinalStep=2250`, `inBandTicks=0`,
 `commitOrders=0`) without moving any bound. The decision remains intentionally
 open and is handed back to the owner; no product or design decision was made in
 this phase.
-## 10. Primary verification
+## 12. Primary verification
 
 The primary independently verified Phase 2 on the clean phase base `1bf4ce970ff75fa8540d0c57ffd2ad8db31dd38f`:
 
