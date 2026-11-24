@@ -1,6 +1,6 @@
 # Conductor Roadmap
 
-<!-- next-rm-id: 1 -->
+<!-- next-rm-id: 4 -->
 
 > Planned and future work. The roadmap stores **intent** — ordering, priority,
 > and dependencies — not live state. `conductor-status` joins every entry whose
@@ -21,11 +21,14 @@
 
 | id | title | type | priority | depends_on | track | origin |
 | --- | --- | --- | --- | --- | --- | --- |
+| RM-1 | Decide whether to tolerate cadence resonance or authorize a controller-family change | chore | medium | 20261124-controller-cadence-resonance-diagnostic | — | user |
 
 ## Later
 
 | id | title | type | priority | depends_on | track | origin |
 | --- | --- | --- | --- | --- | --- | --- |
+| RM-2 | Complete the hardware device-lab verification pass | chore | medium | — | — | user |
+| RM-3 | Harden thin species band margins only if relative-matrix drift breaks a row | chore | low | — | — | user |
 
 ## Dropped
 
