@@ -78,19 +78,19 @@ The primary appends after acceptance:
 - **Covers:** FR-6, FR-7, AC-6, AC-7, AC-8, AC-9, NFR-1, NFR-2, NFR-3, NFR-5, NFR-6, NFR-8
 - **Touches:** `conductor/tracks/20261124-controller-cadence-resonance-diagnostic/verification/integrated.md`, `conductor/tracks/20261124-controller-cadence-resonance-diagnostic/verification/phase-3.md`, `conductor/product.md`, `.conductor/evidence/20261124-controller-cadence-resonance-diagnostic/final/**`
 - **Verification:** `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`; `bun run telemetry`; `bun packages/sim/scripts/battle-telemetry.ts --smoke`; `bun run fixture-audit`; `git diff --check dcbe314a5a4cea813e424f350e2490bf9f99165f..HEAD`; `git diff --quiet dcbe314a5a4cea813e424f350e2490bf9f99165f..HEAD -- packages apps`; `git status --porcelain`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Re-run all configured checks** — covers: FR-6
+- [x] **P3.T1: Re-run all configured checks** — covers: FR-6
   - [ ] **P3.T1.1:** Run `bun run verify`, `bun run build`, `bun run balance`, `bun run gate:determinism`, `bun run test:fuzz`, `bun run telemetry`, the `--smoke` command, and `bun run fixture-audit` separately; record exit codes and hash `0xff6f3d62`.
   - [ ] **P3.T1.2:** Isolate `gatekeeper-reach` once under low load only if the documented load-induced timeout recurs; never re-run the full sweep or widen a gate.
-- [ ] **P3.T2: Prove scope and freeze** — covers: FR-6
+- [x] **P3.T2: Prove scope and freeze** — covers: FR-6
   - [ ] **P3.T2.1:** Show `git diff --quiet dcbe314a5a4cea813e424f350e2490bf9f99165f..HEAD -- packages apps` exits 0 and `git diff --check` is clean.
   - [ ] **P3.T2.2:** Show no change to bounds, sample, seeds, stride, fence, smoke semantics, module caps, dependencies, allowlists, or credentials.
   - [ ] **P3.T2.3:** Confirm a clean tree and that local branches and remote heads were not mutated.
-- [ ] **P3.T3: Write integrated evidence** — covers: FR-7
+- [x] **P3.T3: Write integrated evidence** — covers: FR-7
   - [ ] **P3.T3.1:** Write `verification/integrated.md` covering baseline, inventory, mechanism, ranked options, freeze proof, scope proof, and an AC-1..AC-10 mapping.
   - [ ] **P3.T3.2:** Write `verification/phase-3.md` with the command table, AC mapping, and verdict.
-- [ ] **P3.T4: Add the dated product pointer and commit** — covers: FR-7
+- [x] **P3.T4: Add the dated product pointer and commit** — covers: FR-7
   - [ ] **P3.T4.1:** Add one dated `conductor/product.md` note pointing to the track evidence and explicitly deferring the fix decision to the owner.
   - [ ] **P3.T4.2:** Commit the evidence and product note together, then confirm a clean tree and empty source diff.
 
@@ -100,3 +100,6 @@ The primary appends after acceptance:
 **Checkpoint:** <short-sha>
 **Evidence:** conductor/tracks/20261124-controller-cadence-resonance-diagnostic/verification/integrated.md
 -->
+**Result:** verified
+**Checkpoint:** 99ea923a
+**Evidence:** conductor/tracks/20261124-controller-cadence-resonance-diagnostic/verification/integrated.md
