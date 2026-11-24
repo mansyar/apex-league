@@ -14,17 +14,17 @@
 - **Covers:** FR-1, AC-1, NFR-1, NFR-2
 - **Touches:** `conductor/tracks/20261124-telemetry-fixture-restratification/verification/phase-1.md`, `.conductor/evidence/20261124-telemetry-fixture-restratification/**`
 - **Verification:** `bun run telemetry`; `bun run balance`; `bun run fixture-audit`; read-only derivation with `pool(matchups().map((matchup) => measureFight(matchup, { statBasis: "midpoint", doctrine: "press" })))`; `git status --porcelain`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Capture the unchanged-tree baseline** — covers: FR-1, AC-1
+- [x] **P1.T1: Capture the unchanged-tree baseline** — covers: FR-1, AC-1
   - [ ] **P1.T1.1:** Record `bun run telemetry` at `11/42 (26.2%)` with reference + split composition and every current bound reading from the frozen before-column.
   - [ ] **P1.T1.2:** Record `bun run balance` at `370/1680 (22.0%)` with all gates green and `bun run fixture-audit` at `1680/580/370` / `+12.5 points`.
   - [ ] **P1.T1.3:** Prove a clean tree and that no source file changed during the baseline sweep.
-- [ ] **P1.T2: Reproduce the frozen derivation** — covers: FR-1, AC-1
+- [x] **P1.T2: Reproduce the frozen derivation** — covers: FR-1, AC-1
   - [ ] **P1.T2.1:** Run the read-only derivation script and record the after-column readings for all 14 metrics at midpoint stats + press doctrine on the unchanged 42-pairing walk.
   - [ ] **P1.T2.2:** Confirm exactly two violations (`engagementMax` 6061 > 4500, `distinctPositions` 19 < 20) and that the other twelve bounds pass.
   - [ ] **P1.T2.3:** Record the approved target values `engagementMax = 8000` and `distinctPositions = 16`, with all other values frozen.
-- [ ] **P1.T3: Write phase evidence** — covers: FR-1, AC-1
+- [x] **P1.T3: Write phase evidence** — covers: FR-1, AC-1
   - [ ] **P1.T3.1:** Write `verification/phase-1.md` with the command table, frozen before/after table, AC-1 mapping, and raw scratch paths.
   - [ ] **P1.T3.2:** Commit the evidence with one conventional commit; no source, config, or package file changed.
 
@@ -34,6 +34,11 @@ The primary appends after acceptance:
 **Checkpoint:** <short-sha>
 **Evidence:** conductor/tracks/20261124-telemetry-fixture-restratification/verification/phase-1.md
 -->
+
+**Result:** verified
+**Checkpoint:** 2ce1a939
+**Evidence:** conductor/tracks/20261124-telemetry-fixture-restratification/verification/phase-1.md
+
 
 ## Phase 2: Representative gate and failing-first tests
 
