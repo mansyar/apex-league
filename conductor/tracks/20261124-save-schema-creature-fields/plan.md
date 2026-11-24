@@ -19,14 +19,14 @@
   - `git diff --check dda6b8ad9832f3c1870151aafab0d982f036df25..HEAD`
   - `git diff --quiet dda6b8ad9832f3c1870151aafab0d982f036df25..HEAD -- . ':!docs/save-schema.md' ':!conductor/**'`
   - `git status --porcelain`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Correct the Creature table** — covers: FR-1, FR-2
-  - [ ] **P1.T1.1:** Add the persisted `element` row with type, creation/validation, and type/affinity semantics.
-  - [ ] **P1.T1.2:** Add the persisted `bondedToday` row with boolean type and nightly-reset semantics.
-- [ ] **P1.T2: Verify scope and record evidence** — covers: FR-3, NFR-1, NFR-2, NFR-3, AC-1, AC-2, AC-3
-  - [ ] **P1.T2.1:** Re-read the updated table against `Creature` and the creature validator; confirm no other table row changed.
-  - [ ] **P1.T2.2:** Run the configured checks, record the command results and scope proof in `verification/phase-1.md`, and commit the documentation change.
+- [x] **P1.T1: Correct the Creature table** — covers: FR-1, FR-2
+  - [x] **P1.T1.1:** Add the persisted `element` row with type, creation/validation, and type/affinity semantics.
+  - [x] **P1.T1.2:** Add the persisted `bondedToday` row with boolean type and nightly-reset semantics.
+- [x] **P1.T2: Verify scope and record evidence** — covers: FR-3, NFR-1, NFR-2, NFR-3, AC-1, AC-2, AC-3
+  - [x] **P1.T2.1:** Re-read the updated table against `Creature` and the creature validator; confirm no other table row changed.
+  - [x] **P1.T2.2:** Run the configured checks, record the command results and scope proof in `verification/phase-1.md`, and commit the documentation change.
 
 <!--
 The primary appends after acceptance:
@@ -34,3 +34,7 @@ The primary appends after acceptance:
 **Checkpoint:** <short-sha>
 **Evidence:** conductor/tracks/20261124-save-schema-creature-fields/verification/phase-1.md
 -->
+
+**Result:** verified
+**Checkpoint:** 95e7fa5b
+**Evidence:** conductor/tracks/20261124-save-schema-creature-fields/verification/phase-1.md
