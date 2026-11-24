@@ -116,3 +116,11 @@ primary's two successful raw report runs already satisfy that verification.
 The earlier typecheck failure was solely Bun's readonly-array `toEqual`
 overload rejection. The two mutable expected copies fix it, and the post-fix
 workspace typecheck is clean.
+
+## Primary verification
+
+The primary independently reran `bun run check` (all four packages clean),
+the focused probe (6 pass / 0 fail), Biome on the new file (clean), and the
+phase diff checks (clean). The two subagent commits are both reported,
+conventional, and scoped to the new probe plus this evidence file; they are
+squashed into one phase checkpoint before acceptance.
