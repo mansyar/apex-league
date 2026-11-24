@@ -78,7 +78,7 @@ The primary appends after acceptance:
 - **Covers:** FR-6, FR-7, AC-6, AC-7, AC-8, AC-9, NFR-1, NFR-2, NFR-3, NFR-5, NFR-6, NFR-8
 - **Touches:** `conductor/tracks/20261124-controller-cadence-resonance-diagnostic/verification/integrated.md`, `conductor/tracks/20261124-controller-cadence-resonance-diagnostic/verification/phase-3.md`, `conductor/product.md`, `.conductor/evidence/20261124-controller-cadence-resonance-diagnostic/final/**`
 - **Verification:** `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`; `bun run telemetry`; `bun packages/sim/scripts/battle-telemetry.ts --smoke`; `bun run fixture-audit`; `git diff --check dcbe314a5a4cea813e424f350e2490bf9f99165f..HEAD`; `git diff --quiet dcbe314a5a4cea813e424f350e2490bf9f99165f..HEAD -- packages apps`; `git status --porcelain`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Re-run all configured checks** — covers: FR-6
   - [ ] **P3.T1.1:** Run `bun run verify`, `bun run build`, `bun run balance`, `bun run gate:determinism`, `bun run test:fuzz`, `bun run telemetry`, the `--smoke` command, and `bun run fixture-audit` separately; record exit codes and hash `0xff6f3d62`.
