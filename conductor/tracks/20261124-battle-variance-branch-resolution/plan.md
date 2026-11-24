@@ -45,19 +45,19 @@ The primary appends after acceptance:
 - **Covers:** FR-3, FR-4, AC-3, AC-4, NFR-2, NFR-3, NFR-4
 - **Touches:** `conductor/tracks/20261124-battle-variance-branch-resolution/verification/phase-2.md`, `.conductor/evidence/20261124-battle-variance-branch-resolution/**`
 - **Verification:** `git branch --list` (before/after), `git ls-remote --heads origin` (byte-identical before/after), `Test-Path .conductor/runs/20261123-repo-hygiene-cleanup.json` (false), `Test-Path .conductor/runs/20261124-battle-variance-branch-resolution.json` (true), `git diff --quiet <base>..HEAD -- packages apps`; plus `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`.
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Apply the branch disposition** — covers: FR-3
-  - [ ] **P2.T1.1:** If Phase 1 proves supersession, delete `feat/20261110-battle-variance` locally with `git branch -d`; if `-d` fails with "not fully merged", use `-D` only with a recorded rationale citing the supersession proof that no content is lost.
-  - [ ] **P2.T1.2:** If Phase 1 does not prove supersession, preserve the branch and record the unique content plus a named follow-up recommendation; no deletion.
-  - [ ] **P2.T1.3:** Record the before/after local branch list and the exact deletion method with its safety proof (or the preserve decision).
-- [ ] **P2.T2: Remove the single stale run file** — covers: FR-4
-  - [ ] **P2.T2.1:** Delete exactly `.conductor/runs/20261123-repo-hygiene-cleanup.json` with an exact-path removal (no wildcards); leave the active `.conductor/runs/20261124-battle-variance-branch-resolution.json` and all other gitignored evidence intact.
-  - [ ] **P2.T2.2:** Record before/after `Test-Path` results for both files and the preserved artifact inventory.
-- [ ] **P2.T3: Prove boundaries and record evidence** — covers: NFR-2, NFR-3
-  - [ ] **P2.T3.1:** Prove the 11 remote heads are byte-identical to the Phase 1 baseline and that no push/force-push/reset/rebase/clean was executed.
-  - [ ] **P2.T3.2:** Write `verification/phase-2.md` with the disposition action, deletion proof, artifact cleanup, remote proof, command table, AC-3/AC-4/AC-5 mapping, and final verdict.
-  - [ ] **P2.T3.3:** Run all five configured verification commands separately and commit the evidence with one conventional commit.
+- [x] **P2.T1: Apply the branch disposition** — covers: FR-3
+  - [x] **P2.T1.1:** If Phase 1 proves supersession, delete `feat/20261110-battle-variance` locally with `git branch -d`; if `-d` fails with "not fully merged", use `-D` only with a recorded rationale citing the supersession proof that no content is lost.
+  - [x] **P2.T1.2:** If Phase 1 does not prove supersession, preserve the branch and record the unique content plus a named follow-up recommendation; no deletion.
+  - [x] **P2.T1.3:** Record the before/after local branch list and the exact deletion method with its safety proof (or the preserve decision).
+- [x] **P2.T2: Remove the single stale run file** — covers: FR-4
+  - [x] **P2.T2.1:** Delete exactly `.conductor/runs/20261123-repo-hygiene-cleanup.json` with an exact-path removal (no wildcards); leave the active `.conductor/runs/20261124-battle-variance-branch-resolution.json` and all other gitignored evidence intact.
+  - [x] **P2.T2.2:** Record before/after `Test-Path` results for both files and the preserved artifact inventory.
+- [x] **P2.T3: Prove boundaries and record evidence** — covers: NFR-2, NFR-3
+  - [x] **P2.T3.1:** Prove the 11 remote heads are byte-identical to the Phase 1 baseline and that no push/force-push/reset/rebase/clean was executed.
+  - [x] **P2.T3.2:** Write `verification/phase-2.md` with the disposition action, deletion proof, artifact cleanup, remote proof, command table, AC-3/AC-4/AC-5 mapping, and final verdict.
+  - [x] **P2.T3.3:** Run all five configured verification commands separately and commit the evidence with one conventional commit.
 
 <!--
 The primary appends after acceptance:
@@ -65,6 +65,10 @@ The primary appends after acceptance:
 **Checkpoint:** <short-sha>
 **Evidence:** conductor/tracks/20261124-battle-variance-branch-resolution/verification/phase-2.md
 -->
+
+**Result:** verified
+**Checkpoint:** e89b1ddc
+**Evidence:** conductor/tracks/20261124-battle-variance-branch-resolution/verification/phase-2.md
 
 ## Phase 3: Final verification and integrated evidence
 
