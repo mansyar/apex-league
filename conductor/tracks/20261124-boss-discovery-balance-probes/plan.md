@@ -102,3 +102,23 @@ The primary appends after acceptance:
 **Result:** verified
 **Checkpoint:** 06b0858a
 **Evidence:** conductor/tracks/20261124-boss-discovery-balance-probes/verification/integrated.md
+
+## Phase R1: Review Fixes
+
+- **Goal:** Resolve F1 and F2 by making nested plan state explicit and proving matrix identity at the byte level.
+- **Depends on:** Phase 3
+- **Covers:** F1, F2, AC-4, AC-10
+- **Touches:** `conductor/tracks/20261124-boss-discovery-balance-probes/plan.md`, `conductor/tracks/20261124-boss-discovery-balance-probes/verification/phase-R1.md`, `conductor/tracks/20261124-boss-discovery-balance-probes/review.md`, `conductor/tracks/20261124-boss-discovery-balance-probes/metadata.json`, `.conductor/evidence/20261124-boss-discovery-balance-probes/review/**`
+- **Verification:** `git diff --check 6e4b3893971832ae652a9d21713e906e9e4be459..HEAD`; `git status --porcelain`; byte-level matrix hash comparison; focused probe
+- **Status:** pending
+
+- [ ] **R1.T1: Reconcile nested plan subtask state** — covers: F1
+  - [ ] **R1.T1.1:** Check every completed Phase 1 and Phase 3 subtask.
+  - [ ] **R1.T1.2:** Mark non-triggered conditional Phase 2 tuning subtasks N/A while retaining completed no-tuning verification tasks.
+- [ ] **R1.T2: Prove byte-identical matrix artifacts** — covers: F2, AC-4
+  - [ ] **R1.T2.1:** Normalize Phase 2 and Phase 3 matrix artifacts to the Phase 1 LF convention without changing report content.
+  - [ ] **R1.T2.2:** Record matching object hashes and a byte-level no-index comparison; update any EOL-sensitive wording if needed.
+- [ ] **R1.T3: Record and verify review fixes** — covers: AC-10
+  - [ ] **R1.T3.1:** Write `verification/phase-R1.md` and commit the scoped documentation/evidence changes.
+  - [ ] **R1.T3.2:** Run diff-check, focused probe, clean-tree check, and re-review.
+
