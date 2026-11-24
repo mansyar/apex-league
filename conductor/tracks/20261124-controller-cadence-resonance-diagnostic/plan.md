@@ -48,7 +48,7 @@ The primary appends after acceptance:
 - **Covers:** FR-4, FR-5, AC-4, AC-5, AC-10, NFR-2, NFR-7
 - **Touches:** `conductor/tracks/20261124-controller-cadence-resonance-diagnostic/verification/phase-2.md`, `.conductor/evidence/20261124-controller-cadence-resonance-diagnostic/mechanism/**`, `.conductor/evidence/20261124-controller-cadence-resonance-diagnostic/options/**`
 - **Verification:** `bun .conductor/evidence/20261124-controller-cadence-resonance-diagnostic/mechanism/trace-resonance.ts`; `bun run telemetry`; `bun run balance`; `git diff --quiet dcbe314a5a4cea813e424f350e2490bf9f99165f..HEAD -- packages apps`; `git diff --check dcbe314a5a4cea813e424f350e2490bf9f99165f..HEAD`; `git status --porcelain`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Trace each resonance event** — covers: FR-4
   - [ ] **P2.T1.1:** Build a gitignored trace script that replays each event with the same seed, noise, and controller loop as `resolveContinuous`.
