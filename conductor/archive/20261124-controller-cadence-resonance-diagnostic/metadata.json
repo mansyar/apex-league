@@ -2,7 +2,7 @@
   "id": "20261124-controller-cadence-resonance-diagnostic",
   "title": "Controller Cadence Resonance Diagnostic",
   "type": "chore",
-  "status": "in_progress",
+  "status": "complete",
   "priority": "medium",
   "depends_on": [
     "20261124-telemetry-fixture-restratification",
@@ -11,7 +11,7 @@
     "20261120-kite-band-reachability"
   ],
   "created_at": "2026-11-24T15:50:11.8015627+11:00",
-  "updated_at": "2026-11-24T16:43:58.2369782+11:00",
+  "updated_at": "2026-11-24T16:45:45.2770765+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "chore/20261124-controller-cadence-resonance-diagnostic",
@@ -27,11 +27,11 @@
   "review_verdict": "PASS",
   "review_rounds": 2,
   "doc_sync": "updated",
-  "pr_url": null,
-  "pr_state": null,
+  "pr_url": "https://github.com/mansyar/apex-league/pull/92",
+  "pr_state": "open",
   "reverted_at": null,
   "revert_commit": null,
   "revert_pr_url": null,
-  "archived_at": null,
-  "archive_path": null
+  "archived_at": "2026-11-24T16:45:45.2770765+11:00",
+  "archive_path": "conductor/archive/20261124-controller-cadence-resonance-diagnostic"
 }
