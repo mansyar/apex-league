@@ -17,7 +17,7 @@
   - `bun run verify`
   - `bun run build`
   - `git diff --check dda6b8ad9832f3c1870151aafab0d982f036df25..HEAD`
-  - `git diff --quiet dda6b8ad9832f3c1870151aafab0d982f036df25..HEAD -- . ':!docs/save-schema.md'`
+  - `git diff --quiet dda6b8ad9832f3c1870151aafab0d982f036df25..HEAD -- . ':!docs/save-schema.md' ':!conductor/**'`
   - `git status --porcelain`
 - **Status:** in_progress
 
