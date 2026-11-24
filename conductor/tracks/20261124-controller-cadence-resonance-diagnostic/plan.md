@@ -115,7 +115,7 @@ The primary appends after acceptance:
 
 **Verification:** Read back the corrected AC rows against the frozen `spec.md` definitions; `git diff --check dcbe314a5a4cea813e424f350e2490bf9f99165f..HEAD`; `git diff --quiet dcbe314a5a4cea813e424f350e2490bf9f99165f..HEAD -- packages apps`; `git status --porcelain`.
 
-**Status:** pending
+**Status:** in_progress
 
 - [ ] **R1.T1: Relabel AC-6..AC-9 in `integrated.md` §8 and `phase-3.md` §3** — covers: F1
   - [ ] Use the exact frozen definitions from `spec.md`: AC-6 freeze/scope proof, AC-7 accurate integrated AC-1..AC-10 mapping, AC-8 dated product note deferring the decision, AC-9 name-status/clean-tree/diff-check proof.
