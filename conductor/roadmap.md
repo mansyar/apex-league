@@ -1,6 +1,6 @@
 # Conductor Roadmap
 
-<!-- next-rm-id: 12 -->
+<!-- next-rm-id: 13 -->
 
 > Planned and future work. The roadmap stores **intent** — ordering, priority,
 > and dependencies — not live state. `conductor-status` joins every entry whose
@@ -29,6 +29,7 @@
 
 | id | title | type | priority | depends_on | track | origin |
 | --- | --- | --- | --- | --- | --- | --- |
+| RM-12 | Author Basic Strike identity and KO/down impact weighting | feature | low | — | — | user |
 | RM-11 | Polish the falcon silhouette for speedster readability | feature | low | — | — | user |
 | RM-10 | Deduplicate verdict presentation across spar, cup, and battle HUD | refactor | low | — | — | user |
 | RM-9 | Continue roster expansion toward the 20–40 species vision | feature | medium | — | — | user |
