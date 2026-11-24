@@ -102,6 +102,18 @@ Exactly two bounds move: `engagementMax` 4500 → 8000 (ceiling raised with ~32%
 | AC-8 | Scope diff excludes `SIM_VERSION`, ghost, controller, species, cap/fence, balance matrix, fixture-audit gate, schema, protocol, and deploy files; only telemetry script, its tests, the audit script, docs, and this track's Conductor artifacts change. | FR-2, FR-4, NFR-1, NFR-2, NFR-3 |
 | AC-9 | All five configured commands pass on the final tree with sim hash `0xff6f3d62`; telemetry stays at 42 fights with no runtime regression. | NFR-4, NFR-6, NFR-7 |
 | AC-10 | `verification/integrated.md` is committed with commands, counts, module-cap result, scope proof, and D-4 disposition. | FR-8 |
+| AC-11 | The pre-existing per-fight structural assertions (both sides commit, and a knockout winner lands a blow) tolerate exactly one zero-commit fight, labelled `gale_moth v emberwing` at seed `20261146`; any other zero-commit fight still fails, and the cadence resonance is recorded as a follow-up. | FR-5 |
+
+## Owner revision (2026-11-24)
+
+Owner decision recorded after Phase 2 failing-first implementation (2026-11-24T13:48:33+11:00). With the approved representative composition (midpoint stats, press doctrine, 42 stride-11 pairings, one seed each), exactly one fight resolves as a 45 s zero-commit stalemate: `gale_moth v emberwing`, seed `20261146`. Instrumentation shows the 240 ms controller decision cadence sampling the gap below the safe retreat floor (~826 mm) or above the hold point (~1270-1372 mm), so the press branch is never reached; the same pairing commits 12-10 times under reference + press and 7-8 under midpoint + split. This is a cadence/body-radius/speed resonance, not a stat-bound violation.
+
+To keep the frozen measurement intact, the owner approved this narrow, dated exception to the stop-and-report edge case below:
+
+- The sample, seeds, doctrine, stat basis, and the two approved bound values remain exactly as frozen above. No bound is widened beyond 8000/16, no game gate is re-pinned, and no controller, species, resolver, or cap-fence code changes.
+- The pre-existing per-fight structural assertions (both sides commit, and a knockout winner lands a blow) may tolerate exactly one zero-commit fight, pinned to the named pairing and seed; they must still fail for any other zero-commit fight. The reason is recorded in the test and in `verification/phase-2.md`.
+- The cadence resonance is recorded as a follow-up for a separate controller-policy track; it is not fixed here.
+- AC-11 is added without renumbering any approved ID.
 
 ## Edge Cases
 

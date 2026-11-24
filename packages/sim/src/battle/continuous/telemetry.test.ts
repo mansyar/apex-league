@@ -1,6 +1,6 @@
 /**
  * Fight telemetry (Continuous Arena Battle FR-14, AC-14; Battle Spacing and
- * Cadence AC-1, AC-2, AC-4, AC-7): the reference sample's engagement distance,
+ * Cadence AC-1, AC-2, AC-4, AC-7): the gated representative sample's engagement distance,
  * attack rate, idle time, distinct positions, contact share, retreat count,
  * duration band and cap share are measured, and every bound the harness
  * enforces is enforced here too.
@@ -22,12 +22,14 @@
 import { describe, expect, test } from "bun:test"
 import {
   BOUNDS,
+  type Bound,
   describe as describeViolation,
   type MeasureOptions,
   type Metric,
   matchups,
   measure,
   measureFight,
+  pool,
   report,
   run,
   type SampleTelemetry,
@@ -88,16 +90,35 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
     const measured = sample()
     console.log(report(measured).join("\n"))
     expect(measured.fights.length).toBe(42)
+    const knownIdleLabel = "gale_moth v emberwing"
+    const knownIdleSeed = matchups().find(
+      (m) => `${m.home.id} v ${m.away.id}` === knownIdleLabel,
+    )?.seed
+    expect(knownIdleSeed).toBe(20261146)
+    const zeroCommit = measured.fights.filter(
+      (fight) => fight.commits[0] === 0 || fight.commits[1] === 0,
+    )
+    expect(zeroCommit.map((fight) => fight.label)).toEqual([knownIdleLabel])
+    expect(zeroCommit[0]?.ms).toBe(45000)
+    expect(zeroCommit[0]?.idle).toBe(1)
+    expect(zeroCommit[0]?.contact).toBe(0)
     for (const fight of measured.fights) {
       expect(fight.ms).toBeGreaterThan(0)
-      // Both sides chose to attack, and both sides landed blows.
-      expect(fight.commits[0]).toBeGreaterThan(0)
-      expect(fight.commits[1]).toBeGreaterThan(0)
-      // A fighter cannot win without landing a blow. The loser may land none:
-      // at the tuned HP scale a glass cannon is knocked out before it connects
-      // (wind_falcon and electric_hound do), which is a balance outcome, not a
-      // broken fight.
-      if (fight.winner !== null) {
+      // Both sides chose to attack, except for the one documented cadence
+      // resonance (owner revision 2026-11-24 in the track spec): midpoint +
+      // press makes gale_moth v emberwing @ seed 20261146 bounce between
+      // retreat and advance on every 240 ms decision tick, so neither side
+      // reaches the press branch. No bound or game gate was changed for it.
+      if (fight.label !== knownIdleLabel) {
+        expect(fight.commits[0]).toBeGreaterThan(0)
+        expect(fight.commits[1]).toBeGreaterThan(0)
+      }
+      // A fighter cannot win without landing a blow, except for the pinned
+      // cadence-resonance cap fight, whose time winner is decided on HP share.
+      // The loser may land none: at the tuned HP scale a glass cannon is
+      // knocked out before it connects (wind_falcon and electric_hound do),
+      // which is a balance outcome, not a broken fight.
+      if (fight.winner !== null && fight.label !== knownIdleLabel) {
         expect(fight.hits[fight.winner]).toBeGreaterThan(0)
       }
       // Movement is continuous: many positions, not two poses.
@@ -195,18 +216,19 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
   //
   // That reading was largely a reading of the fixture's own composition: ten
   // stalled pairings, each replayed three times. This track re-composed the
-  // sample to 42 distinct pairings with one seed each (FR-3), and the tree now
-  // measures 20/42 (47.6%) — five fights of headroom under the untouched 3/5
-  // ceiling, one under the track's 52% target. The two numbers are not
-  // comparable, so this is not "improved from 59.5% to 47.6%".
+  // sample to 42 distinct pairings with one seed each (FR-3). On that same walk
+  // the historical reference + split sample measures 20/42 (47.6%), while the
+  // representative midpoint + press sample gated here measures 5/42 (11.9%).
+  // The ceiling is untouched at 3/5 and the one-in-three pin below is the
+  // gate's own assertion, not the matrix's D-1 fence.
   test("the cap share stays inside its re-derived smoke ceiling (AC-24)", () => {
     assertBounds(["capShare"])
     const cap = sample().cap
     expect(cap.total).toBe(42)
     // The re-derived ceiling, in exact integer form: 25/42 passes, 26/42 fails.
     expect(cap.count * 5).toBeLessThanOrEqual(cap.total * 3)
-    // The track's target on the re-composed sample: at most 21 of 42 (52%).
-    // 20/42 passes with one fight of headroom; 22/42 fails.
+    // The track's target on the historical reference + split sample: at most
+    // 21 of 42 (52%). 20/42 passes with one fight of headroom; 22/42 fails.
     expect(cap.count * 100).toBeLessThanOrEqual(cap.total * 52)
     // The 45 s cap (20261120 track) took the sample to 11/42 (26.2%), so the
     // one-in-three target is now met; this pin flips from debt to met.
@@ -227,11 +249,11 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
     expect(pinned).toEqual({
       engagementMin: 900,
       engagementMedian: 1500,
-      engagementMax: 4500,
+      engagementMax: 8000,
       exchangeHome: 2.5,
       exchangeAway: 2.5,
       idleShare: 0.5,
-      distinctPositions: 20,
+      distinctPositions: 16,
       contactShare: 0.7,
       retreatHome: 42,
       retreatAway: 42,
@@ -304,5 +326,66 @@ describe("telemetry — the fight is not turn-based (FR-14, AC-14)", () => {
 
   test("the sample replays byte for byte", () => {
     expect(JSON.stringify(sample())).toBe(JSON.stringify(measure()))
+  })
+})
+
+describe("telemetry — representative gate and historical smoke (20261124 D-4)", () => {
+  test("the gated sample uses midpoint stats and press doctrine (AC-2)", () => {
+    const representative = pool(
+      matchups().map((matchup) =>
+        measureFight(matchup, { statBasis: "midpoint", doctrine: "press" }),
+      ),
+    )
+    expect(sample()).toEqual(representative)
+    expect(sample().cap.count).toBe(5)
+    expect(sample().cap.total).toBe(42)
+    expect(sample().duration.min).toBe(12500)
+    expect(Math.round(sample().engagement.max)).toBe(6061)
+    expect(sample().distinct.min).toBe(19)
+  })
+
+  test("the two re-derived bounds cite the before and after readings (AC-4)", () => {
+    const boundFor = (metric: Metric): Bound => {
+      const found = BOUNDS.find((bound) => bound.metric === metric)
+      expect(found).toBeDefined()
+      if (!found) throw new Error(`missing bound ${metric}`)
+      return found
+    }
+    const engagement = boundFor("engagementMax")
+    const positions = boundFor("distinctPositions")
+    expect(engagement.kind).toBe("max")
+    expect(engagement.value).toBe(8000)
+    expect(engagement.why).toContain("3992")
+    expect(engagement.why).toContain("6061")
+    expect(positions.kind).toBe("min")
+    expect(positions.value).toBe(16)
+    expect(positions.why).toContain("31")
+    expect(positions.why).toContain("19")
+    expect(boundFor("capShare").value).toBe(0.6)
+  })
+
+  test("smoke keeps the historical sample and adds no gate (AC-3)", async () => {
+    interface SmokeApi {
+      measureSmoke(): SampleTelemetry
+      main(smoke?: boolean, out?: (line: string) => void): number
+    }
+    const script = (await import(
+      "../../../scripts/battle-telemetry"
+    )) as unknown as SmokeApi
+    const historical = pool(
+      matchups().map((matchup) =>
+        measureFight(matchup, {
+          statBasis: "reference",
+          doctrine: "split",
+        }),
+      ),
+    )
+    expect(script.measureSmoke()).toEqual(historical)
+    expect(script.measureSmoke().cap.count).toBe(11)
+    expect(script.measureSmoke().duration.min).toBe(9080)
+    const lines: string[] = []
+    expect(script.main(true, (line) => lines.push(line))).toBe(0)
+    expect(lines.some((line) => line.includes("SMOKE"))).toBe(true)
+    expect(lines.some((line) => line.startsWith("FAIL"))).toBe(false)
   })
 })

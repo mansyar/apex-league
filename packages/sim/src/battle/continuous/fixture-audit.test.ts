@@ -13,7 +13,12 @@
 
 import { describe, expect, test } from "bun:test"
 import { typicalLine } from "../../../scripts/battle-balance-report"
-import { BOUNDS, measure, midpointOf } from "../../../scripts/battle-telemetry"
+import {
+  BOUNDS,
+  measure,
+  measureSmoke,
+  midpointOf,
+} from "../../../scripts/battle-telemetry"
 import {
   attribution,
   audit,
@@ -40,21 +45,23 @@ describe("fixture audit — the four cells and the attribution (FR-8, FR-9)", ()
     for (const reading of readings) expect(reading.fights).toBe(42)
   })
 
-  test("cell A is the telemetry gate's own reading (FR-9, AC-8)", () => {
+  test("cell A is the historical smoke sample and cell D is the gate (FR-9, AC-8)", () => {
     // AC-8 asks for agreement between the two harnesses rather than the same
-    // literal pinned twice: `measure()` is the call the CI gate makes, so this
-    // fails if the audit ever measures a different fixture. The pin below
-    // tracks the gate's cap count at the 21-species roster; a cell A that
-    // reads anything else means the audit's call is wrong, not that the gate
-    // moved.
+    // literal pinned twice. Cell A is the pre-2026-11-24 reference + split
+    // sample, preserved as the named smoke diagnostic; cell D is the midpoint
+    // + press sample the CI gate enforces since the D-4 re-stratification.
+    // Agreement is checked against the calls the scripts actually make.
     const gate = measure()
-    const [cellA] = cells()
-    if (!cellA) throw new Error("the audit returned no cells")
-    expect(cellA.capCount).toBe(gate.cap.count)
-    expect(cellA.capShare).toBe(gate.cap.share)
-    // Cell A is the sample the shipped cap-share ceiling is read against, and
-    // the audit adds no bound of its own (NFR-4): the only ceiling involved is
-    // the gate's, still the 3/5 the telemetry track derived.
+    const smoke = measureSmoke()
+    const [cellA, , , cellD] = cells()
+    if (!cellA || !cellD) throw new Error("the audit returned no cells")
+    expect(cellA.capCount).toBe(smoke.cap.count)
+    expect(cellA.capShare).toBe(smoke.cap.share)
+    expect(cellD.capCount).toBe(gate.cap.count)
+    expect(cellD.capShare).toBe(gate.cap.share)
+    // Cell D is the sample the shipped cap-share ceiling is read against since
+    // 2026-11-24, and the audit adds no bound of its own (NFR-4): the only
+    // ceiling involved is the gate's, still the 3/5 the telemetry track derived.
     const ceiling = BOUNDS.find((bound) => bound.metric === "capShare")
     expect(ceiling?.value).toBe(0.6)
   })
@@ -76,9 +83,9 @@ describe("fixture audit — the four cells and the attribution (FR-8, FR-9)", ()
       // and minimal stat-bound retunes. Nothing here is a bound or a target;
       // the only ceiling in play is the telemetry gate's 3/5 cap share (AC-7).
       //
-      // A — the telemetry gate as it ships: reference stats, split doctrine.
-      // 11/42 (26.2%), median 38.01 s. The count is the gate's own, asserted
-      // against `measure()` above rather than trusted from this literal.
+      // A — the historical reference + split gate, now the named smoke sample.
+      // 11/42 (26.2%), median 38.01 s. The count is asserted against
+      // `measureSmoke()` above rather than trusted from this literal.
       // Re-pinned for the speed-aware Kite band and 45 s cap (20261120 track).
       ["A", 11, 38_010, 31],
       // B — A with the doctrine moved to press on both sides (the matrix's
@@ -91,7 +98,8 @@ describe("fixture audit — the four cells and the attribution (FR-8, FR-9)", ()
       // line alone removes four caps and 8.13 s of median fight. Re-pinned for
       // the 45 s cap / two-species re-tune (20261120 track).
       ["C", 7, 29_880, 35],
-      // D — both variables moved: midpoint stats, press on both sides. 5/42
+      // D — both variables moved: midpoint stats, press on both sides; the
+      // representative gate since 2026-11-24. 5/42
       // (11.9%), median 31.26 s. This is a different population from the
       // 420 x 4 matrix (42 strided pairings, one seed each); the residual is
       // recorded here rather than explained away. Re-pinned for the 45 s cap.

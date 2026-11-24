@@ -1,11 +1,11 @@
 /**
  * Fixture audit — the four cells behind the 26.2%-vs-22.0% gap (FR-8, FR-10).
  *
- * The telemetry fixture reads a higher cap share than the 1,680-fight
+ * Historically the telemetry fixture read a higher cap share than the 1,680-fight
  * balance matrix on the same tree, and two things differ between them: the
- * **stat basis** (the fixture ramps both sides to `REFERENCE`, clamped into
+ * **stat basis** (the historical smoke sample ramps both sides to `REFERENCE`, clamped into
  * each species' roll bounds; the matrix fights each species at its roll
- * midpoint) and the **doctrine mix** (the fixture splits press-versus-specials
+ * midpoint) and the **doctrine mix** (the historical smoke sample splits press-versus-specials
  * by seed parity; the matrix presses on both sides). Neither had been
  * isolated, and `20261112-capshare-pacing` recorded that as debt D-4 after
  * review finding F1 rejected the unmeasured attribution.
@@ -19,9 +19,10 @@
  *
  * **It is a diagnostic, not a gate (NFR-4).** There is no bound, no target, no
  * `ok`/`FAIL` line and no CI step reading this output. It always exits 0. The
- * one thing it must keep doing is reproducing cell A at 11/42: that is the
- * telemetry gate's own count, so a cell A that reads anything else means the
- * call is wrong, not that the gate moved.
+ * one thing it must keep doing is reproducing cell A at 11/42 (historical
+ * reference + split, now the named smoke sample) and cell D at 5/42 (the
+ * representative gate since 2026-11-24): cells that read anything else mean
+ * the call is wrong, not that the gate moved.
  */
 
 import {
@@ -72,7 +73,7 @@ export const CELLS: readonly Cell[] = Object.freeze([
     id: "A",
     statBasis: "reference",
     doctrine: "split",
-    description: "the telemetry gate as it ships",
+    description: "historical gate, now the smoke sample",
   },
   {
     id: "B",
@@ -90,7 +91,7 @@ export const CELLS: readonly Cell[] = Object.freeze([
     id: "D",
     statBasis: "midpoint",
     doctrine: "press",
-    description: "the matrix's stat line and doctrine",
+    description: "representative gate since 2026-11-24",
   },
 ])
 
@@ -219,6 +220,9 @@ export function report(readings: readonly CellReading[]): string[] {
 
   lines.push(
     `Fixture audit — ${a.fights} pairings x 4 cells (FR-8; diagnostic, never gated)`,
+  )
+  lines.push(
+    "cell A = historical reference + split smoke sample; cell D = representative midpoint + press gate (2026-11-24)",
   )
   lines.push(
     "stat basis: reference = both sides at REFERENCE clamped into bounds; midpoint = each species' roll midpoint",
