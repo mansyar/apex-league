@@ -16,7 +16,6 @@
 
 | id | title | type | priority | depends_on | track | origin |
 | --- | --- | --- | --- | --- | --- | --- |
-| RM-4 | Document persisted Creature element and bondedToday fields | chore | medium | — | — | user |
 
 ## Next
 
