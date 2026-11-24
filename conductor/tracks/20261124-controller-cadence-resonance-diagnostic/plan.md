@@ -48,17 +48,17 @@ The primary appends after acceptance:
 - **Covers:** FR-4, FR-5, AC-4, AC-5, AC-10, NFR-2, NFR-7
 - **Touches:** `conductor/tracks/20261124-controller-cadence-resonance-diagnostic/verification/phase-2.md`, `.conductor/evidence/20261124-controller-cadence-resonance-diagnostic/mechanism/**`, `.conductor/evidence/20261124-controller-cadence-resonance-diagnostic/options/**`
 - **Verification:** `bun .conductor/evidence/20261124-controller-cadence-resonance-diagnostic/mechanism/trace-resonance.ts`; `bun run telemetry`; `bun run balance`; `git diff --quiet dcbe314a5a4cea813e424f350e2490bf9f99165f..HEAD -- packages apps`; `git diff --check dcbe314a5a4cea813e424f350e2490bf9f99165f..HEAD`; `git status --porcelain`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Trace each resonance event** — covers: FR-4
+- [x] **P2.T1: Trace each resonance event** — covers: FR-4
   - [ ] **P2.T1.1:** Build a gitignored trace script that replays each event with the same seed, noise, and controller loop as `resolveContinuous`.
   - [ ] **P2.T1.2:** Record decision-tick excerpts with gap samples against the safe floor and hold point, cadence, and travel per tick.
   - [ ] **P2.T1.3:** State explicitly whether the signature is cadence resonance rather than a stat-bound violation.
-- [ ] **P2.T2: Build the ranked options table** — covers: FR-5
+- [x] **P2.T2: Build the ranked options table** — covers: FR-5
   - [ ] **P2.T2.1:** Include "tolerate / do nothing (AC-11)" as the baseline option.
   - [ ] **P2.T2.2:** For every option, name the exact knob and code location, expected effect, validation commands, risk, and which prior decision or fence it would reopen.
   - [ ] **P2.T2.3:** Include the rejected global `DECISION_MS` rungs from `20261117-global-pacing` as evidence, not as a new proposal.
-- [ ] **P2.T3: Commit the decision package** — covers: FR-4, FR-5
+- [x] **P2.T3: Commit the decision package** — covers: FR-4, FR-5
   - [ ] **P2.T3.1:** Write `verification/phase-2.md` with the trace, options table, AC-4/AC-5/AC-10 mapping, and an explicit statement that no option was implemented.
   - [ ] **P2.T3.2:** Commit only the evidence report and confirm a clean tree and empty source diff.
 
@@ -68,7 +68,9 @@ The primary appends after acceptance:
 **Checkpoint:** <short-sha>
 **Evidence:** conductor/tracks/20261124-controller-cadence-resonance-diagnostic/verification/phase-2.md
 -->
-
+**Result:** verified
+**Checkpoint:** c61a5fde
+**Evidence:** conductor/tracks/20261124-controller-cadence-resonance-diagnostic/verification/phase-2.md
 ## Phase 3: Freeze proof, integrated evidence, and dated product pointer
 
 - **Goal:** The full configured check suite is green with unchanged battle hash and empty source diff, and the committed integrated record plus dated product note hand the decision back to the owner.
