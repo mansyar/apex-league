@@ -103,3 +103,33 @@ The primary appends after acceptance:
 **Result:** verified
 **Checkpoint:** 99ea923a
 **Evidence:** conductor/tracks/20261124-controller-cadence-resonance-diagnostic/verification/integrated.md
+## Phase R1: Review Fixes
+
+**Goal:** Correct the frozen acceptance-criteria mapping and report heading numbering recorded in review round 1, without changing any evidence value, runtime, bound, fence, sample, or decision disposition.
+
+**Depends on:** Phase 3
+
+**Covers:** F1 (High), F2 (Low)
+
+**Touches:** `verification/integrated.md`, `verification/phase-2.md`, `verification/phase-3.md`, `verification/phase-R1.md`
+
+**Verification:** Read back the corrected AC rows against the frozen `spec.md` definitions; `git diff --check dcbe314a5a4cea813e424f350e2490bf9f99165f..HEAD`; `git diff --quiet dcbe314a5a4cea813e424f350e2490bf9f99165f..HEAD -- packages apps`; `git status --porcelain`.
+
+**Status:** pending
+
+- [ ] **R1.T1: Relabel AC-6..AC-9 in `integrated.md` §8 and `phase-3.md` §3** — covers: F1
+  - [ ] Use the exact frozen definitions from `spec.md`: AC-6 freeze/scope proof, AC-7 accurate integrated AC-1..AC-10 mapping, AC-8 dated product note deferring the decision, AC-9 name-status/clean-tree/diff-check proof.
+  - [ ] Re-point Evidence cells to the correct sections; leave AC-1..AC-5 and AC-10 unchanged.
+- [ ] **R1.T2: Renumber report headings** — covers: F2
+  - [ ] `phase-2.md`: final section becomes `## 12. Primary verification`.
+  - [ ] `phase-3.md`: final section becomes `## 8. Primary verification`.
+- [ ] **R1.T3: Record and commit the fix evidence** — covers: F1, F2
+  - [ ] Write `verification/phase-R1.md` with findings, corrections, verification results, and verdict.
+  - [ ] Commit only the four evidence files with one conventional commit; keep the worktree clean and source diff empty.
+
+<!--
+The primary appends after acceptance:
+**Result:** verified
+**Checkpoint:** <short-sha>
+**Evidence:** conductor/tracks/20261124-controller-cadence-resonance-diagnostic/verification/phase-R1.md
+-->
