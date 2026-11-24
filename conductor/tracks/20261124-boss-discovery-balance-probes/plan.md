@@ -47,7 +47,7 @@ The primary appends after acceptance:
 - **Covers:** FR-5, FR-6, AC-5, AC-6, NFR-3, NFR-6
 - **Touches:** `packages/sim/src/species/discovery.ts`, `packages/sim/src/bosses.ts` (only when Phase 1 proves a failure), `verification/phase-2.md`, `.conductor/evidence/20261124-boss-discovery-balance-probes/tuning/**`
 - **Verification:** `bun test --timeout 120000 packages/sim/src/battle/species-discovery-boss.balance.test.ts`; `APEX_DISCOVERY_BOSS_REPORT=1 bun test --timeout 120000 packages/sim/src/battle/species-discovery-boss.balance.test.ts`; `bun test --timeout 120000 packages/sim/src/bosses.balance.test.ts packages/sim/src/species-electric.balance.test.ts packages/sim/src/battle/species-balance.test.ts packages/sim/src/battle/species-roster.balance.test.ts packages/sim/src/battle/species-wave4-discovery.balance.test.ts packages/sim/src/battle/species-discovery-balance.test.ts`; `bun run balance`; `bun run verify`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Decide whether tuning is required** — covers: FR-5, AC-5
   - [ ] **P2.T1.1:** If all Phase 1 gates pass, record “no tuning required” and make no balance-data edit.
