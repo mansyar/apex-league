@@ -47,18 +47,18 @@ The primary appends after acceptance:
 - **Covers:** FR-5, FR-6, AC-5, AC-6, NFR-3, NFR-6
 - **Touches:** `packages/sim/src/species/discovery.ts`, `packages/sim/src/bosses.ts` (only when Phase 1 proves a failure), `verification/phase-2.md`, `.conductor/evidence/20261124-boss-discovery-balance-probes/tuning/**`
 - **Verification:** `bun test --timeout 120000 packages/sim/src/battle/species-discovery-boss.balance.test.ts`; `APEX_DISCOVERY_BOSS_REPORT=1 bun test --timeout 120000 packages/sim/src/battle/species-discovery-boss.balance.test.ts`; `bun test --timeout 120000 packages/sim/src/bosses.balance.test.ts packages/sim/src/species-electric.balance.test.ts packages/sim/src/battle/species-balance.test.ts packages/sim/src/battle/species-roster.balance.test.ts packages/sim/src/battle/species-wave4-discovery.balance.test.ts packages/sim/src/battle/species-discovery-balance.test.ts`; `bun run balance`; `bun run verify`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Decide whether tuning is required** — covers: FR-5, AC-5
+- [x] **P2.T1: Decide whether tuning is required** — covers: FR-5, AC-5
   - [ ] **P2.T1.1:** If all Phase 1 gates pass, record “no tuning required” and make no balance-data edit.
   - [ ] **P2.T1.2:** If a gate fails, identify the exact species/boss/training cells and classify the smallest viable adjustment surface.
-- [ ] **P2.T2: Apply minimal tuning only when justified** — covers: FR-5, FR-6, AC-5, AC-6
+- [x] **P2.T2: Apply minimal tuning only when justified** — covers: FR-5, FR-6, AC-5, AC-6
   - [ ] **P2.T2.1:** Change only existing discovery-species or authored-boss data fields within the same identities.
   - [ ] **P2.T2.2:** Keep every existing balance test and pinned value byte-identical; stop blocked if no candidate can preserve them.
-- [ ] **P2.T3: Record before/after matrix and hash** — covers: FR-7, AC-5, AC-7
+- [x] **P2.T3: Record before/after matrix and hash** — covers: FR-7, AC-5, AC-7
   - [ ] **P2.T3.1:** Re-run the full report and record exact changed cells.
   - [ ] **P2.T3.2:** Record the pre/post `bun run balance` hash and explain any delta.
-- [ ] **P2.T4: Verify and commit tuning evidence** — covers: FR-6, FR-7, AC-6
+- [x] **P2.T4: Verify and commit tuning evidence** — covers: FR-6, FR-7, AC-6
   - [ ] **P2.T4.1:** Run every Phase 2 verification command and prove existing pins are unchanged.
   - [ ] **P2.T4.2:** Write `verification/phase-2.md` and commit the minimal data delta plus evidence, or commit evidence-only when no tuning is needed.
 
@@ -68,7 +68,9 @@ The primary appends after acceptance:
 **Checkpoint:** <short-sha>
 **Evidence:** conductor/tracks/20261124-boss-discovery-balance-probes/verification/phase-2.md
 -->
-
+**Result:** verified
+**Checkpoint:** 11a8779b
+**Evidence:** conductor/tracks/20261124-boss-discovery-balance-probes/verification/phase-2.md
 ## Phase 3: Final verification, documentation, and integrated evidence
 
 - **Goal:** All configured checks are green, the final scope is proven, conditional dated docs are accurate, and the integrated record hands off a complete nine-line boss probe.
