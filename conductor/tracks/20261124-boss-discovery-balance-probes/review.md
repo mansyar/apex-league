@@ -3,15 +3,15 @@
 - **Track:** `20261124-boss-discovery-balance-probes`
 - **Type:** chore
 - **Branch:** `chore/20261124-boss-discovery-balance-probes`
-- **Range:** `6e4b3893971832ae652a9d21713e906e9e4be459..8ad2a216aa5ed0a0270484cd80e08fcd476b3cdd`
-- **Date:** `2026-11-25T01:21:11.9448084+11:00`
-- **Verdict:** **PASS WITH FINDINGS**
+- **Range:** `6e4b3893971832ae652a9d21713e906e9e4be459..691a943d`
+- **Date:** `2026-11-25T01:38:08.8125301+11:00`
+- **Verdict:** **PASS**
 
 ## Summary
 
 The new probe covers exactly the nine discovery species without an existing authored-boss matrix, reuses the frozen production methodology, enforces the approved fresh/cap gates, and emits the complete opt-in matrix. Every gate passed, so no production balance data was tuned. The only code change is the new 309-line probe.
 
-Strict mode found two Low evidence/state accuracy issues: all nested plan subtasks remain unchecked, and the saved matrix artifacts differ only by line endings despite byte-identical wording. Both require a scoped Phase R1 fix before completion.
+Strict mode found two Low evidence/state accuracy issues: all nested plan subtasks remained unchecked, and the saved matrix artifacts differed only by line endings despite byte-identical wording. Phase R1 reconciled all 26 nested subtasks and normalized the matrices; the focused re-review returned PASS with both findings resolved.
 
 ## Verification
 
@@ -31,7 +31,7 @@ Strict mode found two Low evidence/state accuracy issues: all nested plan subtas
 | fuzz | `bun run test:fuzz` | pass: 139 pass, 0 fail | `verification/phase-3.md` |
 | verify | `bun run verify` | exit 1 twice; sole `gatekeeper-reach` load timeout; approved isolated fallback passed 1/1 | `verification/phase-3.md` |
 | scope | corrected implementation-scope diff | pass | `verification/integrated.md` |
-| whitespace/tree | `git diff --check`, `git status --porcelain` | pass / empty | `verification/phase-3.md` |
+| whitespace/tree | `git diff --check`, `git status --porcelain` | pass / empty | `verification/phase-3.md`, `verification/phase-R1.md` |
 | branch/base | branch check + `git merge-base --is-ancestor` | pass | primary review |
 
 ## Requirements
@@ -57,7 +57,7 @@ Strict mode found two Low evidence/state accuracy issues: all nested plan subtas
 | AC-1 | P1.T1 | exact nine targets and exclusions | covered |
 | AC-2 | P1.T1 | fixed methodology assertions | covered |
 | AC-3 | P1.T2 | fresh/cap gates; 54 cap cells | covered |
-| AC-4 | P1.T2, P3 | complete report; content matches prior runs; F2 below | covered |
+| AC-4 | P1.T2, P3 | complete report; all three matrices share object ID `f0e41cb9…` after R1 | covered |
 | AC-5 | P1.T3, P2 | pre-tuning baseline and no-tuning result | covered |
 | AC-6 | P2, P3 | frozen existing files/pins and green suites | covered |
 | AC-7 | P3 | checks and fallback recorded; hash unchanged | covered |
@@ -81,8 +81,8 @@ None.
 
 ### Low
 
-- **F1 — Nested plan subtasks remain unchecked.** `plan.md` shows every parent task and phase verified, but all 26 nested checkboxes remain `[ ]`, including conditional Phase 2 work that was explicitly not triggered. Mark applicable completed subtasks `[x]` and mark non-triggered conditional work `N/A` (or remove nested checkboxes if only parent tasks are tracked).
-- **F2 — Matrix identity is EOL-normalized, not byte-identical.** `integrated.md` and `phase-3.md` call the Phase 1/2/3 normalized matrices byte-identical. The saved Phase 1 artifact uses LF while Phase 2/3 use CRLF: object IDs are `f0e41cb9...` vs `35076a16...`; `git diff --no-index --ignore-space-at-eol` is clean, ordinary byte diff is not. Normalize Phase 2/3 artifacts to the Phase 1 newline convention and record a byte-level comparison, or revise every claim to EOL-normalized text identity with the exact comparison recorded.
+- **F1 — Nested plan subtasks remained unchecked (fixed in Phase R1).** `plan.md` shows every parent task and phase verified, but all 26 nested checkboxes remain `[ ]`, including conditional Phase 2 work that was explicitly not triggered. Mark applicable completed subtasks `[x]` and mark non-triggered conditional work `N/A` (or remove nested checkboxes if only parent tasks are tracked).
+- **F2 — Matrix identity was EOL-normalized, not byte-identical (fixed in Phase R1).** `integrated.md` and `phase-3.md` call the Phase 1/2/3 normalized matrices byte-identical. The saved Phase 1 artifact uses LF while Phase 2/3 use CRLF: object IDs are `f0e41cb9...` vs `35076a16...`; `git diff --no-index --ignore-space-at-eol` is clean, ordinary byte diff is not. Normalize Phase 2/3 artifacts to the Phase 1 newline convention and record a byte-level comparison, or revise every claim to EOL-normalized text identity with the exact comparison recorded.
 
 ## Overrides
 
@@ -90,7 +90,7 @@ None.
 
 ## Plan compliance
 
-All three phases are verified with Result/Checkpoint/Evidence and all 12 top-level tasks are checked. Implementation scope is compliant: one new probe plus Conductor artifacts, with no balance-data or existing-test changes. Plan status is partial only because nested subtask state is stale (F1).
+All three phases are verified with Result/Checkpoint/Evidence and all 12 top-level tasks are checked. Implementation scope is compliant: one new probe plus Conductor artifacts, with no balance-data or existing-test changes. All 26 nested Phase 1–3 subtasks are now reconciled: 23 completed and 3 explicitly N/A. Phase R1 is verified at `691a943d`; F1 and F2 are resolved.
 
 ## Out of scope
 
