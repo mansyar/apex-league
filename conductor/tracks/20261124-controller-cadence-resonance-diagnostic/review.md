@@ -5,11 +5,11 @@
 - **Branch:** `chore/20261124-controller-cadence-resonance-diagnostic`
 - **Range:** `dcbe314a5a4cea813e424f350e2490bf9f99165f..ce73697139f266db1c64e877475dbd0af4ae23b0`
 - **Date:** 2026-11-24T16:38:56.2750384+11:00
-- **Verdict:** BLOCK
+- **Verdict:** PASS
 
 ## Summary
 
-The evidence-only diagnostic is substantively complete and scope-clean: the frozen baseline, deterministic inventory, 13-event mechanism trace, ranked owner-facing options, and freeze proof all match first-class command output, and no source, config, bound, fence, sample, gate, or controller constant changed. However, the `integrated.md` §8 and `phase-3.md` §3 acceptance-criteria tables relabel the frozen spec IDs AC-6 through AC-9. Since the spec freezes its IDs and AC-7 explicitly requires an accurate AC-1..AC-10 mapping, this is a contract violation that must be fixed before the PR. A Low-severity heading-numbering issue was also found. Strict mode requires both to be resolved; no overrides are recorded.
+The evidence-only diagnostic is substantively complete and scope-clean: the frozen baseline, deterministic inventory, 13-event mechanism trace, ranked owner-facing options, and freeze proof all match first-class command output, and no source, config, bound, fence, sample, gate, or controller constant changed. Round 1 found that the `integrated.md` §8 and `phase-3.md` §3 acceptance-criteria tables relabeled the frozen spec IDs AC-6 through AC-9, plus a Low-severity heading-numbering issue. Both were fixed in Phase R1 (commit `98665a55`) and re-review confirmed PASS with no Critical, High, Medium, or Low findings remaining. No overrides are recorded.
 
 ## Verification
 
@@ -53,10 +53,10 @@ The evidence-only diagnostic is substantively complete and scope-clean: the froz
 | AC-3 | P1.T3 | `verification/phase-1.md` §4 | covered |
 | AC-4 | P2.T1 | `verification/phase-2.md` §3–4 | covered |
 | AC-5 | P2.T2 | `verification/phase-2.md` §5, §7 | covered |
-| AC-6 | P3.T1, P3.T2 | `verification/phase-3.md` §1–2, §4 | covered (label drift recorded as F1) |
-| AC-7 | P3.T3 | `verification/integrated.md` §8 | partial — mapping relabels frozen AC-7/8/9 (F1) |
-| AC-8 | P3.T4 | `conductor/product.md` dated note | covered (mislabeled in integrated mapping, F1) |
-| AC-9 | P3.T2 | name-status, clean status, diff --check | covered (mislabeled in integrated mapping, F1) |
+| AC-6 | P3.T1, P3.T2 | `verification/phase-3.md` §1–2, §4 | covered |
+| AC-7 | P3.T3 | `verification/integrated.md` §8 | covered |
+| AC-8 | P3.T4 | `conductor/product.md` dated note | covered |
+| AC-9 | P3.T2 | name-status, clean status, diff --check | covered |
 | AC-10 | all phases | no fix, re-pin, bound, gate, or sample change | covered |
 
 ## Findings
@@ -69,6 +69,8 @@ None.
 
 **F1 — Frozen AC IDs renumbered in the final mapping.** `verification/integrated.md` lines 224–227 and `verification/phase-3.md` lines 67–70 redefine AC-6 as "full configured check suite green", AC-7 as "gate/smoke/matrix/audit truth unchanged", AC-8 as "scope and freeze proven", and AC-9 as "decision handed back with dated product pointer". The frozen spec defines AC-6 as freeze/scope proof (empty source diff, NFR-6 checks green with hash `0xff6f3d62`, and no bound/fence/sample/module-cap/dependency/allowlist change), AC-7 as the committed `integrated.md` with an accurate AC-1..AC-10 mapping, AC-8 as the single dated `product.md` note deferring the decision, and AC-9 as the name-status/clean-tree/diff-check proof. Because AC-7 itself requires an accurate mapping, the current tables do not satisfy it. Phase-1 and phase-2 reports use the correct IDs, so the drift is localized. Fix: relabel the four rows in both tables to the frozen definitions and re-point their Evidence cells to the correct sections; no evidence values change.
 
+**Fixed in Phase R1:** Commit `98665a55` restored the frozen AC-6..AC-9 definitions in both tables and re-pointed their Evidence cells; re-review confirmed all rows match `spec.md` lines 80–83 with AC-7's mapping accurate. No evidence value changed.
+
 ### Medium
 
 None.
@@ -77,13 +79,15 @@ None.
 
 **F2 — Duplicated/out-of-order report headings.** `verification/phase-2.md` has `## 10. Deviations`, `## 11. Notes`, then a second `## 10. Primary verification`; `verification/phase-3.md` has an unnumbered `## Primary verification` after `## 7. Notes and verdict`. Fix: renumber to `## 12. Primary verification` in phase-2.md and `## 8. Primary verification` in phase-3.md.
 
+**Fixed in Phase R1:** Commit `98665a55` renumbered the two final sections to `## 12. Primary verification` (phase-2.md) and `## 8. Primary verification` (phase-3.md); re-review confirmed sequential headings and intact cross-references.
+
 ## Overrides
 
 None. Strict mode is enabled and no finding is deferred.
 
 ## Plan compliance
 
-All three phases are marked verified with real checkpoints (`4b7d83a9`, `c61a5fde`, `99ea923a`) and evidence paths. All 11 top-level `P<n>.T` boxes are `[x]`; nested unchecked subtasks are bookkeeping only. No task was silently dropped. P3.T1–P3.T4 are each evidenced. No Review Fixes phase was part of the original plan; one will be appended for these findings.
+All three phases are marked verified with real checkpoints (`4b7d83a9`, `c61a5fde`, `99ea923a`) and evidence paths. All 11 top-level `P<n>.T` boxes are `[x]`; nested unchecked subtasks are bookkeeping only. No task was silently dropped. P3.T1–P3.T4 are each evidenced. Phase R1 was appended for the two round-1 findings and is verified at checkpoint `98665a55` with all three `R1.T` boxes checked.
 
 ## Out of scope
 
@@ -102,3 +106,4 @@ Updated: the single dated `conductor/product.md` note was committed at `2879fd0b
 | Round | Verdict | Critical | High | Medium | Low | Fixed |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | BLOCK | 0 | 1 (F1) | 0 | 1 (F2) | 0 (Phase R1 pending) |
+| 2 | PASS | 0 | 0 | 0 | 0 | 2 (F1, F2 in Phase R1) |
