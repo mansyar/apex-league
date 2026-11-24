@@ -135,3 +135,17 @@ resolved. No fix was implemented; the tolerate-under-AC-11 versus
 controller-family-change question stays with the owner. **Verdict: VERIFIED —
 full suite green at frozen readings, scope and freeze proven, decision handed
 back; no evidence of a regression and no scope expansion.**
+## Primary verification
+
+The primary independently verified Phase 3 on the clean phase base `254200954e7e71ab58b936824f4ca23e3ee523f3`:
+
+| Check | Result |
+| --- | --- |
+| Reported commits | `2ff52552`, `2879fd0b`, `b99341bb`, all present in `25420095..HEAD` |
+| `git status --porcelain` | empty |
+| `git diff --quiet dcbe314a5a4cea813e424f350e2490bf9f99165f..HEAD -- packages apps` | exit 0, empty source diff |
+| `git diff --check dcbe314a5a4cea813e424f350e2490bf9f99165f..HEAD` | exit 0 |
+| First-class fallbacks | determinism, fuzz, smoke and fixture-audit each re-run unchanged by the primary with exit 0; hash `0xff6f3d62` |
+| Dated product note | applied verbatim and committed at `2879fd0b` (12 insertions), decision still deferred to owner |
+
+**Outcome:** Phase 3 is accepted. No runtime, bound, fence, sample, gate, controller constant, dependency, allowlist, or deployment change was made; the owner decision is handed back untouched.
