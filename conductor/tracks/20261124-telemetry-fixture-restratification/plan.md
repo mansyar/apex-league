@@ -47,7 +47,7 @@ The primary appends after acceptance:
 - **Covers:** FR-2, FR-3, FR-4, FR-5, AC-2, AC-3, AC-4, AC-5, NFR-1, NFR-2, NFR-3, NFR-4, NFR-6, NFR-7
 - **Touches:** `packages/sim/scripts/battle-telemetry.ts`, `packages/sim/src/battle/continuous/telemetry.test.ts`, `conductor/tracks/20261124-telemetry-fixture-restratification/verification/phase-2.md`, `.conductor/evidence/20261124-telemetry-fixture-restratification/**`
 - **Verification:** `bun run telemetry`; `bun packages/sim/scripts/battle-telemetry.ts --smoke`; `bun test --timeout 120000 packages/sim/src/battle/continuous/telemetry.test.ts`; `bun run verify`; `bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Add the representative sample and smoke flag** — covers: FR-2, FR-3, AC-2, AC-3
   - [ ] **P2.T1.1:** Make `measure()` and `bun run telemetry` use midpoint stats and press doctrine over the unchanged 42 distinct stride-11 pairings and one seed each.
