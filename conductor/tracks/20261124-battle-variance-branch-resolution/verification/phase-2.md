@@ -153,10 +153,11 @@ Exact denial envelope returned by all six probes:
 | 5 | `bun run gate:determinism` | -1 | Verbatim `permission.rejected` / `Permission denied: shell` denial; no standalone result, no exit code. | true |
 | 6 | `bun run test:fuzz` | -1 | Verbatim `permission.rejected` / `Permission denied: shell` denial; no fuzz result, no exit code. | true |
 
-**Probe conclusion:** the shell permission layer consistently refuses all six commands; the
-retry changed nothing. The stale run file remains on disk (AC-4 still unsatisfied) and the
-two verification commands remain unrun in this subagent. No other file or ref was modified
-by the probe.
+**Probe conclusion (historical):** the shell permission layer consistently refused all six
+commands in that denied subagent run; the retry changed nothing. The stale run file still
+existed and the two verification commands did not run *in that subagent*; the primary
+resolved both in §9, so the final tree has the stale file absent and AC-4 satisfied. No other
+file or ref was modified by the probe.
 
 ## 9. Primary resolution of subagent denials (fallback)
 
