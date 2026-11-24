@@ -121,4 +121,3 @@ The primary appends after acceptance:
 - [ ] **R1.T3: Record and verify review fixes** — covers: AC-10
   - [ ] **R1.T3.1:** Write `verification/phase-R1.md` and commit the scoped documentation/evidence changes.
   - [ ] **R1.T3.2:** Run diff-check, focused probe, clean-tree check, and re-review.
-
