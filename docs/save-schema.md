@@ -41,6 +41,7 @@ interface SaveData {
 |---|---|---|
 | `name` | string | Player-facing name (rivals draw from a separate pool). |
 | `speciesId` | non-empty string, must exist in the species catalog | Drives stats bounds, element, kit. Hand-edited unknown species are rejected on load. |
+| `element` | `"fire"\|"water"\|"plant"\|"electric"\|"earth"\|"wind"` | Persisted primary element, initialized from the species at creation and validated as one of the six known elements. Drives type and affinity behavior. |
 | `archetypeId` | non-empty string | Voxel archetype used for rendering ("draconic", "bovine", ...). |
 | `stage` | `"baby" \| "juvenile" \| "champion"` | Evolution stage. |
 | `ageDays` | integer ≥ 1 | The pet's own age in days (v23+): the number of days it has been alive, counting the day it hatched (1 on its hatch day). The juvenile, champion and graduation gates read this and never the world day, so a pet hatched late matures on its own tenth night. The night settlement advances it by exactly one, and only the active pet is settled. Migrated saves stamp the world day — today's effective age — so a v22 save matures on precisely the night it matures on today. |
@@ -50,6 +51,7 @@ interface SaveData {
 | `stats` | `{hp, atk, def, spd}` | Rolled base stats; effective = base + evolution boost + trained. |
 | `trained` | `{hp, atk, def, spd}` | Training bonuses, each capped (`TRAINED_START` … cap). |
 | `conditions` | `{hunger, energy, health, mood, bond}` | 0–100, clamped nightly by settlement. |
+| `bondedToday` | boolean | Persisted daily care flag: set by a bonding action and reset to `false` by nightly settlement. |
 | `fedToday` | boolean | Feeding gate for the day. |
 | `trainingProgram` | `"power"\|"endurance"\|"sprint"\|"ring" \| null` | Tonight's training program (v18+); null = no program assigned. The four ids map onto a primary and a trickle stat (see the catalog table below). |
 | `trainingResult` | `"gained"\|"sick"\|"hungry"\|"exhausted" \| null` | Last night's training outcome (`exhausted` arrived with v18). |
