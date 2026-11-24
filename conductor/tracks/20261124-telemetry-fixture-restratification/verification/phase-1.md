@@ -133,3 +133,14 @@ files are this evidence report and its earlier revision.
   rephrased, or worked around. The primary then ran both separately on the same
   clean base tree with exit `0`, and those outputs are recorded above as
   primary-run results. No blocker remains.
+
+## Primary verification
+
+- `git status --porcelain` — exit 0, empty after both phase commits.
+- `git diff --name-only d2a08ca0..HEAD` — exit 0, only this evidence file; matches `Touches`.
+- `bun run telemetry` — exit 0; `11/42 (26.2%)` cap share, engagement `345/1102/3992`, idle `28.8%`, contact `5.9%`, positions min `31`, dead zone `2.6%`, duration `9.08s .. 45.00s`; all 14 bounds `ok`.
+- `bun run balance` — exit 0; `370/1680 (22.0%)` cap share, 21 species and all pacing/gate/boss assertions `ok`.
+- `bun run fixture-audit` — exit 0; cells A `11/42 (26.2%)` through D `5/42 (11.9%)`, attribution `+14.3 / +7.1 / +7.1 / +2.4`, same-doctrine `580/1680 (34.5%) -> 370/1680 (22.0%) = +12.5 points`.
+- `bun .conductor/derive-restrat-bounds.ts` — exit 0; 14 rows, `violations_before: 0`, `violations_after: 2` (`engagementMax` 3992 -> 6061, `distinctPositions` 31 -> 19), the other twelve pass.
+
+Outcome: AC-1 is satisfied on first-class primary and subagent evidence. No source, config, package, product doc, or Conductor state file was changed in this phase.
