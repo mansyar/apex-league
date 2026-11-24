@@ -14,7 +14,7 @@
 - **Covers:** FR-1, FR-2, FR-3, FR-4, AC-1, AC-2, AC-3, AC-4, NFR-1, NFR-2, NFR-7, NFR-8
 - **Touches:** `packages/sim/src/battle/species-discovery-boss.balance.test.ts`, `verification/phase-1.md`, `.conductor/evidence/20261124-boss-discovery-balance-probes/baseline/**`
 - **Verification:** `APEX_DISCOVERY_BOSS_REPORT=1 bun test --timeout 120000 packages/sim/src/battle/species-discovery-boss.balance.test.ts`; `bun test --timeout 120000 packages/sim/src/battle/species-discovery-boss.balance.test.ts`; `bun test --timeout 120000 packages/sim/src/bosses.balance.test.ts packages/sim/src/species-electric.balance.test.ts packages/sim/src/battle/species-balance.test.ts packages/sim/src/battle/species-roster.balance.test.ts packages/sim/src/battle/species-wave4-discovery.balance.test.ts packages/sim/src/battle/species-discovery-balance.test.ts`; `bun run check`; `bunx biome check packages/sim/src/battle/species-discovery-boss.balance.test.ts`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Freeze the nine-line target and baseline methodology** — covers: FR-1, FR-2, AC-1, AC-2
   - [ ] **P1.T1.1:** Assert the exact nine target ids and explicitly exclude starters, rewards, and wave-4 lines.
