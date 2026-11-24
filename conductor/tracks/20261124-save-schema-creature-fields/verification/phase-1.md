@@ -85,3 +85,16 @@ None.
   (`docs(save): document persisted creature fields`). The evidence commit is
   recorded in the structured phase report.
 - No new regression test was added, per the owner's explicit decision.
+
+## 10. Primary verification
+
+| Command | Exit | Result |
+| --- | ---: | --- |
+| `bun run verify` | 0 | 4,462 pass, 1 skip, 0 fail across 437 files; 670,507 `expect()` calls; Biome checked 1,039 files with no fixes; determinism gate passed; battle hash `0xff6f3d62`. |
+| `bun run build` | 0 | Vite production build passed (438 modules, 1.00 s); only the existing large-chunk advisory. |
+| `git diff --check dda6b8ad9832f3c1870151aafab0d982f036df25..HEAD` | 0 | No whitespace errors. |
+| `git diff --quiet dda6b8ad9832f3c1870151aafab0d982f036df25..HEAD -- . ':!docs/save-schema.md' ':!conductor/**'` | 0 | No implementation change outside the approved documentation file. |
+| `git diff --stat dda6b8ad9832f3c1870151aafab0d982f036df25..HEAD -- docs/save-schema.md` | 0 | Exactly two inserted rows. |
+| `git status --porcelain` | 0 | Clean after the phase commits. |
+
+**Outcome:** Phase 1 is verified. AC-1, AC-2, and AC-3 are satisfied. The visual layer is not applicable to this documentation-only change.
