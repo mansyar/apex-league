@@ -11,7 +11,7 @@
     "20261120-kite-band-reachability"
   ],
   "created_at": "2026-11-24T15:50:11.8015627+11:00",
-  "updated_at": "2026-11-24T16:34:58.7464873+11:00",
+  "updated_at": "2026-11-24T16:38:56.2750384+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "chore/20261124-controller-cadence-resonance-diagnostic",
@@ -24,9 +24,9 @@
     "tasks_done": 11
   },
   "last_checkpoint": "99ea923a",
-  "review_verdict": null,
-  "review_rounds": 0,
-  "doc_sync": "pending",
+  "review_verdict": "BLOCK",
+  "review_rounds": 1,
+  "doc_sync": "updated",
   "pr_url": null,
   "pr_state": null,
   "reverted_at": null,
