@@ -78,7 +78,7 @@ The primary appends after acceptance:
 - **Covers:** FR-7, FR-8, AC-7, AC-8, AC-9, AC-10, NFR-4, NFR-5, NFR-6, NFR-8
 - **Touches:** `conductor/product.md`, `conductor/tech-stack.md` (only when balance data changed), `verification/integrated.md`, `verification/phase-3.md`, `.conductor/evidence/20261124-boss-discovery-balance-probes/final/**`
 - **Verification:** `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`; `bun test --timeout 120000 packages/sim/src/battle/species-discovery-boss.balance.test.ts`; `APEX_DISCOVERY_BOSS_REPORT=1 bun test --timeout 120000 packages/sim/src/battle/species-discovery-boss.balance.test.ts`; `git diff --check 6e4b3893971832ae652a9d21713e906e9e4be459..HEAD`; `git diff --quiet 6e4b3893971832ae652a9d21713e906e9e4be459..HEAD -- . ':!packages/sim/src/battle/species-discovery-boss.balance.test.ts' ':!packages/sim/src/species/discovery.ts' ':!packages/sim/src/bosses.ts' ':!conductor/**'`; `git status --porcelain`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Run the full configured verification set** — covers: FR-7, AC-7, NFR-6
   - [ ] **P3.T1.1:** Run verify, build, balance, determinism, and fuzz separately; record exit codes and the final hash.
