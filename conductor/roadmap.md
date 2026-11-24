@@ -22,7 +22,7 @@
 | id | title | type | priority | depends_on | track | origin |
 | --- | --- | --- | --- | --- | --- | --- |
 | RM-1 | Decide whether to tolerate cadence resonance or authorize a controller-family change | chore | medium | 20261124-controller-cadence-resonance-diagnostic | — | user |
-| RM-5 | Extend boss balance probes to discovery-species players | chore | medium | — | — | user |
+| RM-5 | Extend boss balance probes to discovery-species players | chore | medium | — | 20261124-boss-discovery-balance-probes | user |
 
 ## Later
 
