@@ -85,15 +85,15 @@ The primary appends after acceptance:
 - **Covers:** FR-7, FR-8, AC-7, AC-8, AC-9, AC-10, NFR-5, NFR-6, NFR-7
 - **Touches:** `conductor/product.md`, `conductor/tech-stack.md`, `conductor/tracks/20261124-telemetry-fixture-restratification/verification/integrated.md`, `conductor/tracks/20261124-telemetry-fixture-restratification/verification/phase-3.md`, `.conductor/evidence/20261124-telemetry-fixture-restratification/**`
 - **Verification:** `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`; `bun run telemetry`; `bun run fixture-audit`; `git diff --check <base>..HEAD`; `git status --porcelain`
-- **Status:** in_progress
+- **Status:** verified
 
 - [x] **P3.T1: Audit explanation moved into Phase 2 (amended 2026-11-24)** — covers: FR-6, AC-6
   - [x] **P3.T1.1:** Completed as P2.T5; `bun run fixture-audit` names both samples and preserves `1680/580/370` and `+12.5 points`.
   - [x] **P3.T1.2:** Completed as P2.T5; historical figures remain labelled historical.
-- [ ] **P3.T2: Record the dated disposition** — covers: FR-7, AC-7
+- [x] **P3.T2: Record the dated disposition** — covers: FR-7, AC-7
   - [ ] **P3.T2.1:** Add a dated 2026-11-24 note to `conductor/product.md` closing D-4 as re-stratified, with the frozen bound table and no new product direction.
   - [ ] **P3.T2.2:** Add a dated note to `conductor/tech-stack.md` covering the new gate composition, the smoke flag, and the unchanged matrix gate and D-1 fence.
-- [ ] **P3.T3: Run final verification and write integrated evidence** — covers: FR-8, AC-8, AC-9, AC-10
+- [x] **P3.T3: Run final verification and write integrated evidence** — covers: FR-8, AC-8, AC-9, AC-10
   - [ ] **P3.T3.1:** Run all five configured commands separately, plus telemetry and fixture-audit, recording exit codes, battle hash `0xff6f3d62`, and the 42-fight budget.
   - [ ] **P3.T3.2:** Prove the scope diff excludes `SIM_VERSION`, ghost, controller, species, fences, matrix, schema, protocol, and deploy files, and that no module-cap allowlist was added.
   - [ ] **P3.T3.3:** Write `verification/integrated.md` and `verification/phase-3.md` with command tables, the frozen bound table, AC-1..AC-10 mapping, scope proof, and D-4 disposition, then commit.
@@ -104,3 +104,8 @@ The primary appends after acceptance:
 **Checkpoint:** <short-sha>
 **Evidence:** conductor/tracks/20261124-telemetry-fixture-restratification/verification/integrated.md
 -->
+
+**Result:** verified
+**Checkpoint:** 81a7fa6c
+**Evidence:** conductor/tracks/20261124-telemetry-fixture-restratification/verification/integrated.md
+
