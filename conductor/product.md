@@ -395,6 +395,18 @@ Phased delivery plan (each phase is independently playable):
   §Frozen bound derivation and `verification/integrated.md` §3. The hardware
   device-lab pass stays open and out of scope. No new product direction.)*
 
+*(2026-11-24 — Controller Cadence Resonance Diagnostic (track
+  `20261124-controller-cadence-resonance-diagnostic`): cadence resonance is now
+  characterized on both frozen samples — 1/42 (2.4%) on the representative gate
+  and 12/1680 (0.7%) on the matrix, all in the electric_hound / gale_moth /
+  emberwing trio at matrix seeds 20261109 and 20261112. Per-event mechanism
+  traces and a ranked owner-facing options table are committed in
+  `verification/integrated.md` and `verification/phase-2.md`. No runtime, gate,
+  bound, fence, sample, or debt status changed and battle hash remains
+  `0xff6f3d62`. Whether to tolerate the artifact under AC-11 or authorize a
+  controller-family change is explicitly deferred to the owner; no fix was
+  implemented in this track.)*
+
 ## Target Audience
 Creature-collector fans who love the raising sim subgenre (Digimon World
 Championship, Pokémon, Ooblets adjacent) and want a spectator-battle twist;
