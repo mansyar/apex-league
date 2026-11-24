@@ -131,7 +131,7 @@ The primary must run the three required denied commands unchanged and supply the
 | AC-7 configured verification and explained hash | BLOCKED | Build/balance/normal focused passed; verify hash is `0xff6f3d62`; direct determinism and fuzz commands were denied. |
 | AC-8 surgical scope and no unrelated changes | PASS | Corrected scope diff exited 0; only the probe plus Conductor artifacts changed. |
 | AC-9 integrated FR/NFR/AC mapping | PASS | `verification/integrated.md` contains the full mapping. |
-| AC-10 clean tree and passing diff-check | POST_COMMIT_RESULT_PENDING | Pre-evidence tree was clean and base-to-HEAD diff-check passed; final post-commit checks are recorded after the evidence commit. |
+| AC-10 clean tree and passing diff-check | PASS | After evidence commit `330817ca`, `git status --porcelain` and `git diff --check <track-base>..HEAD` both exited 0 with no output; corrected scope and frozen-file checks also remained exit 0. See `final/15-post-commit-checks.txt`. |
 
 ## Deviations
 

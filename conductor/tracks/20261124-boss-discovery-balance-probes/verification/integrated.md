@@ -173,7 +173,7 @@ The corrected scope check excluded only the new focused probe, the two frozen da
 | AC-7 configured verification and explained hash | BLOCKED | Hash explained and unchanged; direct determinism/fuzz denied; verify fallback documented. |
 | AC-8 surgical diff/no unrelated changes | PASS | Corrected scope and frozen-file diffs exited 0. |
 | AC-9 integrated FR/NFR/AC mapping | PASS | This document supplies the complete mapping. |
-| AC-10 clean tree and passing diff-check | POST_COMMIT_RESULT_PENDING | Pre-evidence tree and base-to-HEAD diff-check passed; post-evidence commit checks are recorded separately. |
+| AC-10 clean tree and passing diff-check | PASS | After evidence commit `330817ca`, `git status --porcelain` and `git diff --check <track-base>..HEAD` both exited 0 with no output; corrected scope and frozen-file checks also remained exit 0. See `final/15-post-commit-checks.txt`. |
 
 ## Permission blockers and required primary action
 
