@@ -14,7 +14,7 @@
 - **Covers:** FR-1, AC-1, NFR-1, NFR-2
 - **Touches:** `conductor/tracks/20261124-telemetry-fixture-restratification/verification/phase-1.md`, `.conductor/evidence/20261124-telemetry-fixture-restratification/**`
 - **Verification:** `bun run telemetry`; `bun run balance`; `bun run fixture-audit`; read-only derivation with `pool(matchups().map((matchup) => measureFight(matchup, { statBasis: "midpoint", doctrine: "press" })))`; `git status --porcelain`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Capture the unchanged-tree baseline** — covers: FR-1, AC-1
   - [ ] **P1.T1.1:** Record `bun run telemetry` at `11/42 (26.2%)` with reference + split composition and every current bound reading from the frozen before-column.
