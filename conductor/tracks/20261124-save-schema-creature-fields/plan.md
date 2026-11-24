@@ -19,7 +19,7 @@
   - `git diff --check dda6b8ad9832f3c1870151aafab0d982f036df25..HEAD`
   - `git diff --quiet dda6b8ad9832f3c1870151aafab0d982f036df25..HEAD -- . ':!docs/save-schema.md'`
   - `git status --porcelain`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Correct the Creature table** — covers: FR-1, FR-2
   - [ ] **P1.T1.1:** Add the persisted `element` row with type, creation/validation, and type/affinity semantics.
