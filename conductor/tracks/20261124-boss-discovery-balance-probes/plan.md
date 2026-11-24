@@ -14,20 +14,20 @@
 - **Covers:** FR-1, FR-2, FR-3, FR-4, AC-1, AC-2, AC-3, AC-4, NFR-1, NFR-2, NFR-7, NFR-8
 - **Touches:** `packages/sim/src/battle/species-discovery-boss.balance.test.ts`, `verification/phase-1.md`, `.conductor/evidence/20261124-boss-discovery-balance-probes/baseline/**`
 - **Verification:** `APEX_DISCOVERY_BOSS_REPORT=1 bun test --timeout 120000 packages/sim/src/battle/species-discovery-boss.balance.test.ts`; `bun test --timeout 120000 packages/sim/src/battle/species-discovery-boss.balance.test.ts`; `bun test --timeout 120000 packages/sim/src/bosses.balance.test.ts packages/sim/src/species-electric.balance.test.ts packages/sim/src/battle/species-balance.test.ts packages/sim/src/battle/species-roster.balance.test.ts packages/sim/src/battle/species-wave4-discovery.balance.test.ts packages/sim/src/battle/species-discovery-balance.test.ts`; `bun run check`; `bunx biome check packages/sim/src/battle/species-discovery-boss.balance.test.ts`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Freeze the nine-line target and baseline methodology** — covers: FR-1, FR-2, AC-1, AC-2
+- [x] **P1.T1: Freeze the nine-line target and baseline methodology** — covers: FR-1, FR-2, AC-1, AC-2
   - [ ] **P1.T1.1:** Assert the exact nine target ids and explicitly exclude starters, rewards, and wave-4 lines.
   - [ ] **P1.T1.2:** Reuse the frozen creature/battle seeds, training levels, balanced tactic, production boss-side builder, and production resolver.
-- [ ] **P1.T2: Implement fresh/cap gates and measured report mode** — covers: FR-3, FR-4, AC-3, AC-4
+- [x] **P1.T2: Implement fresh/cap gates and measured report mode** — covers: FR-3, FR-4, AC-3, AC-4
   - [ ] **P1.T2.1:** Assert zero wins only for boss-advantaged fresh cells; leave electric/earth/wind fresh cells intentionally unconstrained.
   - [ ] **P1.T2.2:** Assert every target is at least 35% against every authored boss at training cap.
   - [ ] **P1.T2.3:** Add opt-in full 9×6×4 report output with exact won/game tallies.
-- [ ] **P1.T3: Capture the pre-tuning matrix and verify determinism** — covers: FR-4, FR-5, AC-4, AC-5
+- [x] **P1.T3: Capture the pre-tuning matrix and verify determinism** — covers: FR-4, FR-5, AC-4, AC-5
   - [ ] **P1.T3.1:** Run report mode before any balance-data edit and save the complete matrix.
   - [ ] **P1.T3.2:** Run report mode a second time and prove byte-identical output.
   - [ ] **P1.T3.3:** Run the focused probe and every existing balance suite; record any new-gate failure as the tuning trigger.
-- [ ] **P1.T4: Commit phase evidence** — covers: FR-7, AC-5
+- [x] **P1.T4: Commit phase evidence** — covers: FR-7, AC-5
   - [ ] **P1.T4.1:** Write `verification/phase-1.md` with commands, baseline matrix, gate results, scope proof, and AC mapping.
   - [ ] **P1.T4.2:** Commit only the new probe and phase evidence with conventional commits.
 
@@ -37,7 +37,9 @@ The primary appends after acceptance:
 **Checkpoint:** <short-sha>
 **Evidence:** conductor/tracks/20261124-boss-discovery-balance-probes/verification/phase-1.md
 -->
-
+**Result:** verified
+**Checkpoint:** 8edeecc8
+**Evidence:** conductor/tracks/20261124-boss-discovery-balance-probes/verification/phase-1.md
 ## Phase 2: Conditional targeted balance tuning
 
 - **Goal:** The new gates pass with the smallest justified data change, or the phase records a verified no-tuning result; every existing balance pin remains unchanged and green.
