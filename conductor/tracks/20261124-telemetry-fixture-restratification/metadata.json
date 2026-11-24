@@ -11,7 +11,7 @@
     "20261112-capshare-pacing"
   ],
   "created_at": "2026-11-24T12:49:01.0311308+11:00",
-  "updated_at": "2026-11-24T12:58:58.7231637+11:00",
+  "updated_at": "2026-11-24T14:04:34.1324270+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "chore/20261124-telemetry-fixture-restratification",
@@ -19,11 +19,11 @@
   "base_sha": "d29042de1c9019189373beb763baa1805dd78541",
   "progress": {
     "phases_total": 3,
-    "phases_verified": 1,
+    "phases_verified": 2,
     "tasks_total": 11,
-    "tasks_done": 3
+    "tasks_done": 9
   },
-  "last_checkpoint": "2ce1a939",
+  "last_checkpoint": "ae4db559",
   "review_verdict": null,
   "review_rounds": 0,
   "doc_sync": "pending",
