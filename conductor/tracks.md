@@ -63,4 +63,4 @@
 - [x] **Track: Battle Variance Branch Resolution** - [20261124-battle-variance-branch-resolution](./archive/20261124-battle-variance-branch-resolution/index.md) - chore - low
 - [x] **Track: Telemetry Fixture Re-stratification** — [20261124-telemetry-fixture-restratification](./archive/20261124-telemetry-fixture-restratification/index.md) — chore — medium
 - [x] **Track: Controller Cadence Resonance Diagnostic** — [20261124-controller-cadence-resonance-diagnostic](./archive/20261124-controller-cadence-resonance-diagnostic/index.md) — chore — medium
-- [ ] **Track: Save Schema Creature Fields** — [20261124-save-schema-creature-fields](./tracks/20261124-save-schema-creature-fields/index.md) — chore — medium
+- [~] **Track: Save Schema Creature Fields** — [20261124-save-schema-creature-fields](./tracks/20261124-save-schema-creature-fields/index.md) — chore — medium
