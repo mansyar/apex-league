@@ -62,8 +62,8 @@ changed; all five configured verification commands pass with the unchanged battl
 ## Review
 
 - **Verdict:** PASS
-- **Rounds:** 1
-- **Fixed:** 0 findings
+- **Rounds:** 2
+- **Fixed:** 2 Low findings (F1 evidence wording, F2 historical-state wording)
 - **Accepted/deferred:** 0 (see `review.md`)
 
 ## Deviations and risks

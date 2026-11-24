@@ -118,7 +118,7 @@ remote refs untouched.
 
 ## Doc sync
 
-`pending` — no product, tech-stack, workflow, or guideline changes are in scope for this chore.
+`none` — this chore changes only Conductor artifacts; no product, tech-stack, workflow, or guideline changes are in scope.
 
 ## History
 
