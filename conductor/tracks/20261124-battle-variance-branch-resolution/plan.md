@@ -77,17 +77,17 @@ The primary appends after acceptance:
 - **Covers:** FR-5, FR-6, AC-6, AC-7, AC-8, NFR-1, NFR-5, NFR-6, NFR-7
 - **Touches:** `conductor/tracks/20261124-battle-variance-branch-resolution/verification/integrated.md`, `conductor/tracks/20261124-battle-variance-branch-resolution/verification/phase-3.md`, `.conductor/evidence/20261124-battle-variance-branch-resolution/**`
 - **Verification:** `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`; `git diff --check <base>..HEAD`; `git diff --quiet <base>..HEAD -- packages apps`; `git status --porcelain`; `Test-Path .../verification/integrated.md`.
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Re-run final verification** — covers: FR-5
-  - [ ] **P3.T1.1:** Run all five configured commands separately, capture exit codes and battle hash `0xff6f3d62`; isolate the known `gatekeeper-reach` timeout once if it recurs.
-  - [ ] **P3.T1.2:** Prove `git diff --quiet <base>..HEAD -- packages apps` exits 0, `git diff --check <base>..HEAD` exits 0, and the working tree is clean.
-- [ ] **P3.T2: Write integrated evidence** — covers: FR-6
-  - [ ] **P3.T2.1:** Write `verification/integrated.md` with the baseline, supersession proof, disposition, stale-file cleanup, remote proof, module caps, command table, AC-1..AC-8 mapping, scope proof, and final verdict.
-  - [ ] **P3.T2.2:** Write `verification/phase-3.md` with the standard phase header, command table, AC table, and verdict.
-- [ ] **P3.T3: Confirm scope boundaries** — covers: NFR-1, NFR-5, NFR-7
-  - [ ] **P3.T3.1:** Confirm only this track's Conductor artifacts changed versus the base; no product/tech-stack/workflow/style-guide/source change, no new dependency or allowlist, no credential or player data in tracked artifacts.
-  - [ ] **P3.T3.2:** Commit the evidence with one conventional commit.
+- [x] **P3.T1: Re-run final verification** — covers: FR-5
+  - [x] **P3.T1.1:** Run all five configured commands separately, capture exit codes and battle hash `0xff6f3d62`; isolate the known `gatekeeper-reach` timeout once if it recurs.
+  - [x] **P3.T1.2:** Prove `git diff --quiet <base>..HEAD -- packages apps` exits 0, `git diff --check <base>..HEAD` exits 0, and the working tree is clean.
+- [x] **P3.T2: Write integrated evidence** — covers: FR-6
+  - [x] **P3.T2.1:** Write `verification/integrated.md` with the baseline, supersession proof, disposition, stale-file cleanup, remote proof, module caps, command table, AC-1..AC-8 mapping, scope proof, and final verdict.
+  - [x] **P3.T2.2:** Write `verification/phase-3.md` with the standard phase header, command table, AC table, and verdict.
+- [x] **P3.T3: Confirm scope boundaries** — covers: NFR-1, NFR-5, NFR-7
+  - [x] **P3.T3.1:** Confirm only this track's Conductor artifacts changed versus the base; no product/tech-stack/workflow/style-guide/source change, no new dependency or allowlist, no credential or player data in tracked artifacts.
+  - [x] **P3.T3.2:** Commit the evidence with one conventional commit.
 
 <!--
 The primary appends after acceptance:
@@ -95,3 +95,7 @@ The primary appends after acceptance:
 **Checkpoint:** <short-sha>
 **Evidence:** conductor/tracks/20261124-battle-variance-branch-resolution/verification/integrated.md
 -->
+
+**Result:** verified
+**Checkpoint:** 0b08fe4c
+**Evidence:** conductor/tracks/20261124-battle-variance-branch-resolution/verification/integrated.md, conductor/tracks/20261124-battle-variance-branch-resolution/verification/phase-3.md
