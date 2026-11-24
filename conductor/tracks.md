@@ -61,4 +61,4 @@
 - [x] **Track: Documentation Truth Sweep** — [20261123-doc-truth-sweep](./archive/20261123-doc-truth-sweep/index.md) — chore — medium
 - [x] **Track: Repository Hygiene Cleanup** - [20261123-repo-hygiene-cleanup](./archive/20261123-repo-hygiene-cleanup/index.md) - chore - low
 - [x] **Track: Battle Variance Branch Resolution** - [20261124-battle-variance-branch-resolution](./archive/20261124-battle-variance-branch-resolution/index.md) - chore - low
-- [~] **Track: Telemetry Fixture Re-stratification** — [20261124-telemetry-fixture-restratification](./tracks/20261124-telemetry-fixture-restratification/index.md) — chore — medium
+- [x] **Track: Telemetry Fixture Re-stratification** — [20261124-telemetry-fixture-restratification](./archive/20261124-telemetry-fixture-restratification/index.md) — chore — medium
