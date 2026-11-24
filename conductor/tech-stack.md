@@ -464,7 +464,11 @@
   changes; the matrix (1680 fights, `370/1680 (22.0%)` cap share), the D-1
   ≤1/3 fence and its standing-debt status, and battle hash `0xff6f3d62` are
   unchanged. In `fixture-audit`, cell A is the historical smoke sample and
-  cell D is the representative gate. Module caps and allowlists are unchanged.*
+  cell D is the representative gate. The full 14-row before/after bound table
+  is authoritative in
+  `conductor/archive/20261124-telemetry-fixture-restratification/spec.md`
+  §Frozen bound derivation and `verification/integrated.md` §3. Module caps
+  and allowlists are unchanged.*
 
 ## Asset Pipeline
 - **Creatures and ranch props**: species and scenery defined as versioned JSON

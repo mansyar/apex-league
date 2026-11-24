@@ -389,8 +389,11 @@ Phased delivery plan (each phase is independently playable):
   matrix as accepted standing debt, and battle hash remains `0xff6f3d62`.
   One zero-commit fight (`gale_moth v emberwing`, seed `20261146`) is a
   documented structural artifact tolerated under AC-11; its controller
-  cadence resonance is a separate follow-up. The hardware device-lab pass
-  stays open and out of scope. No new product direction.)*
+  cadence resonance is a separate follow-up. The full 14-row before/after
+  bound table is authoritative in
+  `conductor/archive/20261124-telemetry-fixture-restratification/spec.md`
+  §Frozen bound derivation and `verification/integrated.md` §3. The hardware
+  device-lab pass stays open and out of scope. No new product direction.)*
 
 ## Target Audience
 Creature-collector fans who love the raising sim subgenre (Digimon World
