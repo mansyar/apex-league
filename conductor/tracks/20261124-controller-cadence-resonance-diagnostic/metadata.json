@@ -2,7 +2,7 @@
   "id": "20261124-controller-cadence-resonance-diagnostic",
   "title": "Controller Cadence Resonance Diagnostic",
   "type": "chore",
-  "status": "new",
+  "status": "in_progress",
   "priority": "medium",
   "depends_on": [
     "20261124-telemetry-fixture-restratification",
@@ -11,7 +11,7 @@
     "20261120-kite-band-reachability"
   ],
   "created_at": "2026-11-24T15:50:11.8015627+11:00",
-  "updated_at": "2026-11-24T15:50:11.8015627+11:00",
+  "updated_at": "2026-11-24T15:52:07.9671453+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "chore/20261124-controller-cadence-resonance-diagnostic",
