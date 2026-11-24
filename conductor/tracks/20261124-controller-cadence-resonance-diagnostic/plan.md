@@ -14,21 +14,21 @@
 - **Covers:** FR-1, FR-2, FR-3, AC-1, AC-2, AC-3, NFR-1, NFR-4, NFR-5, NFR-8
 - **Touches:** `conductor/tracks/20261124-controller-cadence-resonance-diagnostic/verification/phase-1.md`, `.conductor/evidence/20261124-controller-cadence-resonance-diagnostic/baseline/**`, `.conductor/evidence/20261124-controller-cadence-resonance-diagnostic/inventory/**`
 - **Verification:** `bun run telemetry`; `bun packages/sim/scripts/battle-telemetry.ts --smoke`; `bun run fixture-audit`; `bun run balance`; `bun .conductor/evidence/20261124-controller-cadence-resonance-diagnostic/inventory/scan-resonance.ts`; `git diff --quiet dcbe314a5a4cea813e424f350e2490bf9f99165f..HEAD -- packages apps`; `git status --porcelain`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Reproduce the frozen baseline** — covers: FR-1
+- [x] **P1.T1: Reproduce the frozen baseline** — covers: FR-1
   - [ ] **P1.T1.1:** Run `bun run telemetry`, `bun packages/sim/scripts/battle-telemetry.ts --smoke`, `bun run fixture-audit`, and `bun run balance` separately; record exit codes, representative `5/42`, smoke `11/42`, matrix `370/1680`, and hash `0xff6f3d62`.
   - [ ] **P1.T1.2:** Record the named artifact (`gale_moth v emberwing`, seed `20261146`) and the imported safe-floor/cadence explanation with citations to archived PR #91 evidence.
   - [ ] **P1.T1.3:** Confirm the tree is clean and the source diff against base is empty before and after the baseline sweep.
-- [ ] **P1.T2: Build the gitignored resonance scanner** — covers: FR-2
+- [x] **P1.T2: Build the gitignored resonance scanner** — covers: FR-2
   - [ ] **P1.T2.1:** Implement `scan-resonance.ts` under `.conductor/evidence/20261124-controller-cadence-resonance-diagnostic/inventory/` using only existing exported harness functions and the frozen sample definitions.
   - [ ] **P1.T2.2:** Apply exactly the owner-approved rule: both `commits` zero, `idle` equal to 1, `contact` equal to 0; treat near-resonant stalls as notes, not events.
   - [ ] **P1.T2.3:** Run the scanner twice and confirm byte-identical counts and rows.
-- [ ] **P1.T3: Record the resonance inventory** — covers: FR-3
+- [x] **P1.T3: Record the resonance inventory** — covers: FR-3
   - [ ] **P1.T3.1:** Print and save per-event fields (pairing, seed, stat basis, doctrine, speed, reach edge, safe floor, sampled gaps, commits, idle, contact, duration) for the gate and matrix.
   - [ ] **P1.T3.2:** State explicit counts and rates for both samples and whether the known fight is unique.
   - [ ] **P1.T3.3:** Write `verification/phase-1.md` with command table, AC-1..AC-3 mapping, scope proof, deviations, and verdict.
-- [ ] **P1.T4: Commit the baseline evidence** — covers: FR-1, FR-3
+- [x] **P1.T4: Commit the baseline evidence** — covers: FR-1, FR-3
   - [ ] **P1.T4.1:** Commit only `verification/phase-1.md`; scratch artifacts stay gitignored.
   - [ ] **P1.T4.2:** Confirm `git status --porcelain` is empty after the commit.
 
@@ -38,7 +38,9 @@ The primary appends after acceptance:
 **Checkpoint:** <short-sha>
 **Evidence:** conductor/tracks/20261124-controller-cadence-resonance-diagnostic/verification/phase-1.md
 -->
-
+**Result:** verified
+**Checkpoint:** 4b7d83a9
+**Evidence:** conductor/tracks/20261124-controller-cadence-resonance-diagnostic/verification/phase-1.md
 ## Phase 2: Mechanism decomposition and ranked decision options
 
 - **Goal:** A committed per-event mechanism trace and a ranked, owner-facing options table that changes no runtime and defers the decision to the owner.
