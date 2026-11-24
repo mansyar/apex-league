@@ -266,3 +266,16 @@ cadence census (`decisions=188`, `replayFinalStep=2250`, `inBandTicks=0`,
 `commitOrders=0`) without moving any bound. The decision remains intentionally
 open and is handed back to the owner; no product or design decision was made in
 this phase.
+## 10. Primary verification
+
+The primary independently verified Phase 2 on the clean phase base `1bf4ce970ff75fa8540d0c57ffd2ad8db31dd38f`:
+
+| Check | Result |
+| --- | --- |
+| Reported commits | `1a7d57d3` and `f1af89d4`, both present in `1bf4ce97..HEAD` |
+| `git status --porcelain` | empty |
+| `git diff --quiet dcbe314a5a4cea813e424f350e2490bf9f99165f..HEAD -- packages apps` | exit 0, empty source diff |
+| `git diff --check dcbe314a5a4cea813e424f350e2490bf9f99165f..HEAD` | exit 0 |
+| First-class trace replay | primary ran the unchanged command path to exit 0 after a gitignored-scratch-only TDZ repair; 360-line capture, all 13 events with `inBandTicks=0` and `commitOrders=0` |
+
+**Outcome:** Phase 2 evidence is internally consistent with the first-class trace output. All ranked options remain unimplemented and the fix decision stays with the owner.
