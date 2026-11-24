@@ -20,6 +20,10 @@
 -   [Tracks Directory](./tracks/)
 -   [Track Archive](./archive/) — completed tracks, one folder each (spec/plan/metadata intact)
 
+## Roadmap
+
+-   [Roadmap](./roadmap.md)
+
 ## Capabilities
 
 -   [Phase Executor](../.opencode/agents/conductor-phase.md)
