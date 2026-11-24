@@ -5,11 +5,11 @@
 - **Branch:** `chore/20261124-telemetry-fixture-restratification`
 - **Range:** `d29042de1c9019189373beb763baa1805dd78541..9f6c74635181df21e85b4ccc577c2143f033ca3d`
 - **Date:** `2026-11-24T14:29:48.3532221+11:00`
-- **Verdict:** `PASS WITH FINDINGS`
+- **Verdict:** `PASS`
 
 ## Summary
 
-The re-stratified telemetry gate, preserved smoke diagnostic, two-bound change, audit naming and AC-11 artifact handling are correctly implemented and verified. The read-only reviewer found no Critical, High or Medium issues; two Low-severity evidence/documentation accuracy findings remain. Strict mode requires fixing both before PASS, so Phase R1 is opened. The reviewer's two `needs` items (HEAD confirmation and a full verify run) were denied to the reviewer by its shell permissions; both were first-class primary results on the reviewed tree and are recorded in `verification/integrated.md`.
+The re-stratified telemetry gate, preserved smoke diagnostic, two-bound change, audit naming and AC-11 artifact handling are correctly implemented and verified. The first review found no Critical, High or Medium issues and two Low-severity evidence/documentation accuracy findings; both were fixed in Phase R1 and independently re-reviewed to PASS. No source or test changed in R1, so all first-class check results recorded in `verification/integrated.md` remain valid.
 
 ## Verification
 
@@ -24,7 +24,7 @@ The re-stratified telemetry gate, preserved smoke diagnostic, two-bound change, 
 | historical smoke | `bun packages/sim/scripts/battle-telemetry.ts --smoke` | pass | `.conductor/evidence/.../final/smoke.txt`; ungated |
 | audit | `bun run fixture-audit` | pass | `.conductor/evidence/.../final/fixture-audit.txt`; `1680/580/370`, `+12.5 points` |
 | focused tests | `bun test --timeout 120000 packages/sim/src/battle/continuous/telemetry.test.ts packages/sim/src/battle/continuous/fixture-audit.test.ts` | pass | 24 pass / 0 fail, 915 expect() |
-| scope | `git diff --check d29042de..HEAD` | fail (F1) | primary reported exit 0 before the final plan block was appended; reviewer reproduced exit 1 on the final tree |
+| scope | `git diff --check d29042de..fe8e349` | pass | exit 0 after R1 removed the trailing blank line; re-review confirmed |
 | worktree | `git status --porcelain` | pass | empty before review |
 | code diff | `git diff d29042de..HEAD -- . ':!conductor'` | pass | 4 files, 176 insertions / 53 deletions, fully reviewed |
 
@@ -38,7 +38,7 @@ The re-stratified telemetry gate, preserved smoke diagnostic, two-bound change, 
 | FR-4 | P2.T2 | `battle-telemetry.ts:738-768`, bound pin tests | covered |
 | FR-5 | P2.T3 | `failing-first.txt` + focused re-run | covered |
 | FR-6 | P2.T5 | `fixture-audit.ts`, `fixture-audit.test.ts`, audit run | covered |
-| FR-7 | P3.T2 | `conductor/product.md:380-393`, `conductor/tech-stack.md:458-467` | partial (F2) |
+| FR-7 | P3.T2, R1.T2 | `conductor/product.md:380-397`, `conductor/tech-stack.md:458-473` | covered |
 | FR-8 | P3.T3 | `verification/integrated.md` | covered (F1 note) |
 | NFR-1 | P2.T1, P2.T2 | diff name-status, code diff review | covered |
 | NFR-2 | P2.T2 | `bun run balance`, capShare 0.6 pin | covered |
@@ -53,7 +53,7 @@ The re-stratified telemetry gate, preserved smoke diagnostic, two-bound change, 
 | AC-4 | P2.T2 | BOUNDS diff + pins | covered |
 | AC-5 | P2.T3 | red `14/4` → green `24/0` | covered |
 | AC-6 | P2.T5 | audit cell naming + test | covered |
-| AC-7 | P3.T2 | dated notes | partial (F2) |
+| AC-7 | P3.T2, R1.T2 | dated notes with bound-table pointers | covered |
 | AC-8 | P2.T1, P2.T2, P3.T2 | diff name-status + code review | covered (F1 note) |
 | AC-9 | P3.T3 | primary check results + independent re-runs | covered |
 | AC-10 | P3.T3 | `verification/integrated.md` | covered (F1 note) |
@@ -82,6 +82,7 @@ The re-stratified telemetry gate, preserved smoke diagnostic, two-bound change, 
   - **Fix:** Remove the trailing blank line from `plan.md`, re-run `git diff --check` on the final range, and correct the evidence docs only if the result differs from exit 0.
   - **Requirement:** AC-10
   - **Test gap:** none
+  - **Fixed in Phase R1:** trailing blank line removed; `git diff --check` now exits 0.
 - **F2 — dated notes lack the full authoritative bound table pointer**
   - **File:** `conductor/product.md:380-393`, `conductor/tech-stack.md:458-467`
   - **What:** The notes record the two moved bounds and that the other twelve stay frozen but do not carry the 14-row frozen bound table or an explicit pointer to it, so FR-7/AC-7 are only partially met.
@@ -89,6 +90,7 @@ The re-stratified telemetry gate, preserved smoke diagnostic, two-bound change, 
   - **Fix:** Add an explicit pointer to `spec.md` §Frozen bound derivation and `verification/integrated.md` §3 in both dated notes.
   - **Requirement:** FR-7, AC-7
   - **Test gap:** none
+  - **Fixed in Phase R1:** both dated notes now point to `spec.md` §Frozen bound derivation and `verification/integrated.md` §3.
 
 ## Overrides
 
@@ -108,10 +110,11 @@ Controller cadence resonance behind the named zero-commit artifact is recorded a
 
 ## Doc sync
 
-`updated` — dated product and tech-stack notes are included in the reviewed range. F2 adds authoritative table pointers in Phase R1.
+`updated` — dated product and tech-stack notes are included in the reviewed range; R1 added the authoritative bound-table pointers and no further doc change is needed.
 
 ## History
 
 | Round | Verdict | Critical | High | Medium | Low | Fixed |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | PASS WITH FINDINGS | 0 | 0 | 0 | 2 | 0 (Phase R1 pending) |
+| 2 | PASS | 0 | 0 | 0 | 0 | 2 (F1, F2 in Phase R1) |

@@ -116,14 +116,14 @@ The primary appends after acceptance:
 - **Covers:** F1, F2
 - **Touches:** `conductor/tracks/20261124-telemetry-fixture-restratification/plan.md`, `conductor/product.md`, `conductor/tech-stack.md`, `conductor/tracks/20261124-telemetry-fixture-restratification/verification/integrated.md`, `conductor/tracks/20261124-telemetry-fixture-restratification/verification/phase-3.md`, `conductor/tracks/20261124-telemetry-fixture-restratification/verification/phase-R1.md`
 - **Verification:** `git diff --check d29042de1c9019189373beb763baa1805dd78541..HEAD`; `git status --porcelain`; `bun run verify`; `bun run telemetry`; `bun run fixture-audit`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **R1.T1: Fix F1** — covers: F1
+- [x] **R1.T1: Fix F1** — covers: F1
   - [ ] **R1.T1.1:** Remove the trailing blank line at `plan.md` EOF so the final range's `git diff --check` exits 0.
   - [ ] **R1.T1.2:** Confirm `integrated.md`/`phase-3.md` scope-proof claims of exit 0 remain true; correct only if needed.
-- [ ] **R1.T2: Fix F2** — covers: F2
+- [x] **R1.T2: Fix F2** — covers: F2
   - [ ] **R1.T2.1:** Add explicit pointers to the authoritative 14-row bound table (`spec.md` §Frozen bound derivation and `verification/integrated.md` §3) in the dated product and tech-stack notes.
-- [ ] **R1.T3: Re-verify and record** — covers: F1, F2
+- [x] **R1.T3: Re-verify and record** — covers: F1, F2
   - [ ] **R1.T3.1:** Re-run the affected checks, write `verification/phase-R1.md`, and commit the fixes with one conventional commit.
 
 <!--
@@ -132,3 +132,7 @@ The primary appends after acceptance:
 **Checkpoint:** <short-sha>
 **Evidence:** conductor/tracks/20261124-telemetry-fixture-restratification/verification/phase-R1.md
 -->
+
+**Result:** verified
+**Checkpoint:** fe8e349a
+**Evidence:** conductor/tracks/20261124-telemetry-fixture-restratification/verification/phase-R1.md
