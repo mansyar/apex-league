@@ -200,3 +200,19 @@ The scanner produced byte-identical output on two consecutive runs: SHA-256
 design decision was required; no scope expansion was needed. The post-commit
 `git status --porcelain` was empty, so no tracked source or scratch artifact
 leaked into the commit.
+
+## 10. Primary verification
+
+The primary independently verified the phase before acceptance:
+
+| Check | Result |
+| --- | --- |
+| `git log db983f2e..HEAD` | Exactly two conventional commits, `4e714cbd` and `6157b048`, both reported by the phase subagent. |
+| `git status --porcelain` | Empty before and after the fallback and reconciliation. |
+| `git diff --quiet dcbe314a5a4cea813e424f350e2490bf9f99165f..HEAD -- packages apps` | Exit 0 — no tracked source change. |
+| `git diff --check dcbe314a5a4cea813e424f350e2490bf9f99165f..HEAD` | Exit 0 — no whitespace error. |
+| Verbatim primary fallback | `bun packages/sim/scripts/battle-telemetry.ts --smoke`, `bun run fixture-audit`, and two runs of `bun .conductor/evidence/20261124-controller-cadence-resonance-diagnostic/inventory/scan-resonance.ts` each exited 0. Full values are recorded in `.conductor/runs/20261124-controller-cadence-resonance-diagnostic/phase-1-primary-outputs.md` and the gitignored capture files. |
+
+Outcome: the first-class baseline, deterministic inventory, matrix cap
+equivalence, and unchanged scope are confirmed. AC-1, AC-2 and AC-3 are
+satisfied. No source, config, branch, ref, or remote was mutated.
