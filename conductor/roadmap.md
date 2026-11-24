@@ -1,6 +1,6 @@
 # Conductor Roadmap
 
-<!-- next-rm-id: 5 -->
+<!-- next-rm-id: 6 -->
 
 > Planned and future work. The roadmap stores **intent** — ordering, priority,
 > and dependencies — not live state. `conductor-status` joins every entry whose
@@ -22,6 +22,7 @@
 
 | id | title | type | priority | depends_on | track | origin |
 | --- | --- | --- | --- | --- | --- | --- |
+| RM-5 | Extend boss balance probes to discovery-species players | chore | medium | — | — | user |
 | RM-1 | Decide whether to tolerate cadence resonance or authorize a controller-family change | chore | medium | 20261124-controller-cadence-resonance-diagnostic | — | user |
 
 ## Later
