@@ -78,18 +78,18 @@ The primary appends after acceptance:
 - **Covers:** FR-7, FR-8, AC-7, AC-8, AC-9, AC-10, NFR-4, NFR-5, NFR-6, NFR-8
 - **Touches:** `conductor/product.md`, `conductor/tech-stack.md` (only when balance data changed), `verification/integrated.md`, `verification/phase-3.md`, `.conductor/evidence/20261124-boss-discovery-balance-probes/final/**`
 - **Verification:** `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`; `bun test --timeout 120000 packages/sim/src/battle/species-discovery-boss.balance.test.ts`; `APEX_DISCOVERY_BOSS_REPORT=1 bun test --timeout 120000 packages/sim/src/battle/species-discovery-boss.balance.test.ts`; `git diff --check 6e4b3893971832ae652a9d21713e906e9e4be459..HEAD`; `git diff --quiet 6e4b3893971832ae652a9d21713e906e9e4be459..HEAD -- . ':!packages/sim/src/battle/species-discovery-boss.balance.test.ts' ':!packages/sim/src/species/discovery.ts' ':!packages/sim/src/bosses.ts' ':!conductor/**'`; `git status --porcelain`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Run the full configured verification set** — covers: FR-7, AC-7, NFR-6
+- [x] **P3.T1: Run the full configured verification set** — covers: FR-7, AC-7, NFR-6
   - [ ] **P3.T1.1:** Run verify, build, balance, determinism, and fuzz separately; record exit codes and the final hash.
   - [ ] **P3.T1.2:** Re-run the focused probe and report mode; record exact final matrix and determinism.
-- [ ] **P3.T2: Prove scope and frozen contracts** — covers: AC-6, AC-8, AC-10, NFR-1, NFR-3, NFR-4
+- [x] **P3.T2: Prove scope and frozen contracts** — covers: AC-6, AC-8, AC-10, NFR-1, NFR-3, NFR-4
   - [ ] **P3.T2.1:** Prove existing balance tests/pins are byte-identical and no unrelated runtime/config/dependency file changed.
   - [ ] **P3.T2.2:** Run diff-check, corrected scope check, and clean-tree check.
-- [ ] **P3.T3: Write conditional dated documentation** — covers: FR-8, AC-8
+- [x] **P3.T3: Write conditional dated documentation** — covers: FR-8, AC-8
   - [ ] **P3.T3.1:** If balance data changed, add one dated product note and one tech-stack note describing the measured reason and unchanged product direction.
   - [ ] **P3.T3.2:** If no balance data changed, record doc-sync as none and leave product/tech-stack untouched.
-- [ ] **P3.T4: Commit integrated evidence** — covers: FR-7, AC-9, AC-10
+- [x] **P3.T4: Commit integrated evidence** — covers: FR-7, AC-9, AC-10
   - [ ] **P3.T4.1:** Write `verification/phase-3.md` and `verification/integrated.md` with baseline, matrix, tuning decision, freeze proof, commands, hash, docs, and full AC mapping.
   - [ ] **P3.T4.2:** Commit evidence and any conditional docs with conventional commits; leave a clean tree.
 
@@ -99,3 +99,6 @@ The primary appends after acceptance:
 **Checkpoint:** <short-sha>
 **Evidence:** conductor/tracks/20261124-boss-discovery-balance-probes/verification/integrated.md
 -->
+**Result:** verified
+**Checkpoint:** 06b0858a
+**Evidence:** conductor/tracks/20261124-boss-discovery-balance-probes/verification/integrated.md
