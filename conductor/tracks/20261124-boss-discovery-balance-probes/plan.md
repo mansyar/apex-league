@@ -38,7 +38,7 @@ The primary appends after acceptance:
 **Evidence:** conductor/tracks/20261124-boss-discovery-balance-probes/verification/phase-1.md
 -->
 **Result:** verified
-**Checkpoint:** 8edeecc8
+**Checkpoint:** cd136a46
 **Evidence:** conductor/tracks/20261124-boss-discovery-balance-probes/verification/phase-1.md
 ## Phase 2: Conditional targeted balance tuning
 
