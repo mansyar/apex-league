@@ -14,7 +14,7 @@
 - **Covers:** FR-1, FR-2, FR-3, AC-1, AC-2, AC-3, NFR-1, NFR-4, NFR-5, NFR-8
 - **Touches:** `conductor/tracks/20261124-controller-cadence-resonance-diagnostic/verification/phase-1.md`, `.conductor/evidence/20261124-controller-cadence-resonance-diagnostic/baseline/**`, `.conductor/evidence/20261124-controller-cadence-resonance-diagnostic/inventory/**`
 - **Verification:** `bun run telemetry`; `bun packages/sim/scripts/battle-telemetry.ts --smoke`; `bun run fixture-audit`; `bun run balance`; `bun .conductor/evidence/20261124-controller-cadence-resonance-diagnostic/inventory/scan-resonance.ts`; `git diff --quiet dcbe314a5a4cea813e424f350e2490bf9f99165f..HEAD -- packages apps`; `git status --porcelain`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Reproduce the frozen baseline** — covers: FR-1
   - [ ] **P1.T1.1:** Run `bun run telemetry`, `bun packages/sim/scripts/battle-telemetry.ts --smoke`, `bun run fixture-audit`, and `bun run balance` separately; record exit codes, representative `5/42`, smoke `11/42`, matrix `370/1680`, and hash `0xff6f3d62`.
