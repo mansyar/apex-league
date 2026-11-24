@@ -85,7 +85,7 @@ The primary appends after acceptance:
 - **Covers:** FR-7, FR-8, AC-7, AC-8, AC-9, AC-10, NFR-5, NFR-6, NFR-7
 - **Touches:** `conductor/product.md`, `conductor/tech-stack.md`, `conductor/tracks/20261124-telemetry-fixture-restratification/verification/integrated.md`, `conductor/tracks/20261124-telemetry-fixture-restratification/verification/phase-3.md`, `.conductor/evidence/20261124-telemetry-fixture-restratification/**`
 - **Verification:** `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`; `bun run telemetry`; `bun run fixture-audit`; `git diff --check <base>..HEAD`; `git status --porcelain`
-- **Status:** pending
+- **Status:** in_progress
 
 - [x] **P3.T1: Audit explanation moved into Phase 2 (amended 2026-11-24)** — covers: FR-6, AC-6
   - [x] **P3.T1.1:** Completed as P2.T5; `bun run fixture-audit` names both samples and preserves `1680/580/370` and `+12.5 points`.
