@@ -60,3 +60,4 @@
 - [x] **Track: Telemetry Fixture Debt Reconciliation** - [20261120-telemetry-fixture-debt](./archive/20261120-telemetry-fixture-debt/index.md) - chore - medium
 - [x] **Track: Documentation Truth Sweep** — [20261123-doc-truth-sweep](./archive/20261123-doc-truth-sweep/index.md) — chore — medium
 - [x] **Track: Repository Hygiene Cleanup** - [20261123-repo-hygiene-cleanup](./archive/20261123-repo-hygiene-cleanup/index.md) - chore - low
+- [x] **Track: Battle Variance Branch Resolution** - [20261124-battle-variance-branch-resolution](./archive/20261124-battle-variance-branch-resolution/index.md) - chore - low
