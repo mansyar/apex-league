@@ -77,7 +77,7 @@ The primary appends after acceptance:
 - **Covers:** FR-5, FR-6, AC-6, AC-7, AC-8, NFR-1, NFR-5, NFR-6, NFR-7
 - **Touches:** `conductor/tracks/20261124-battle-variance-branch-resolution/verification/integrated.md`, `conductor/tracks/20261124-battle-variance-branch-resolution/verification/phase-3.md`, `.conductor/evidence/20261124-battle-variance-branch-resolution/**`
 - **Verification:** `bun run verify`; `bun run build`; `bun run balance`; `bun run gate:determinism`; `bun run test:fuzz`; `git diff --check <base>..HEAD`; `git diff --quiet <base>..HEAD -- packages apps`; `git status --porcelain`; `Test-Path .../verification/integrated.md`.
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Re-run final verification** — covers: FR-5
   - [ ] **P3.T1.1:** Run all five configured commands separately, capture exit codes and battle hash `0xff6f3d62`; isolate the known `gatekeeper-reach` timeout once if it recurs.
