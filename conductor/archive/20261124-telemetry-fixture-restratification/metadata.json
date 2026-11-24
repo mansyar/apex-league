@@ -1,0 +1,37 @@
+{
+  "id": "20261124-telemetry-fixture-restratification",
+  "title": "Telemetry Fixture Re-stratification",
+  "type": "chore",
+  "status": "complete",
+  "priority": "medium",
+  "depends_on": [
+    "20261120-telemetry-fixture-debt",
+    "20261120-kite-band-reachability",
+    "20261117-global-pacing",
+    "20261112-capshare-pacing"
+  ],
+  "created_at": "2026-11-24T12:49:01.0311308+11:00",
+  "updated_at": "2026-11-24T14:48:32.9973358+11:00",
+  "spec": "spec.md",
+  "plan": "plan.md",
+  "branch": "chore/20261124-telemetry-fixture-restratification",
+  "base_branch": "main",
+  "base_sha": "d29042de1c9019189373beb763baa1805dd78541",
+  "progress": {
+    "phases_total": 4,
+    "phases_verified": 4,
+    "tasks_total": 14,
+    "tasks_done": 14
+  },
+  "last_checkpoint": "fe8e349a",
+  "review_verdict": "PASS",
+  "review_rounds": 2,
+  "doc_sync": "updated",
+  "pr_url": "https://github.com/mansyar/apex-league/pull/91",
+  "pr_state": "open",
+  "reverted_at": null,
+  "revert_commit": null,
+  "revert_pr_url": null,
+  "archived_at": "2026-11-24T14:48:32.9973358+11:00",
+  "archive_path": "conductor/archive/20261124-telemetry-fixture-restratification"
+}

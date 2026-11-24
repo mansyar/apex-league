@@ -664,9 +664,27 @@ export function pool(fights: readonly FightTelemetry[]): SampleTelemetry {
   }
 }
 
-/** Play the reference sample and pool its metrics. */
+/**
+ * Play the gated representative sample: the same 42 distinct stride-11
+ * pairings, one seed each, with midpoint stats and press doctrine (2026-11-24
+ * D-4). The historical reference + split composition is preserved separately
+ * by `measureSmoke()`.
+ */
 export function measure(): SampleTelemetry {
-  return pool(matchups().map((matchup) => measureFight(matchup)))
+  return pool(
+    matchups().map((matchup) =>
+      measureFight(matchup, { statBasis: "midpoint", doctrine: "press" }),
+    ),
+  )
+}
+
+/** Play the historical reference + split sample without gating it. */
+export function measureSmoke(): SampleTelemetry {
+  return pool(
+    matchups().map((matchup) =>
+      measureFight(matchup, { statBasis: "reference", doctrine: "split" }),
+    ),
+  )
 }
 
 /** The metric a bound constrains. */
@@ -720,8 +738,8 @@ export const BOUNDS: readonly Bound[] = Object.freeze([
   {
     metric: "engagementMax",
     kind: "max",
-    value: 4500,
-    why: "neither side may flee the engagement; measured max 3992 mm on the 42-distinct sample, which is the opening stance, so this bound only catches a gross disengagement",
+    value: 8000,
+    why: "neither side may flee the engagement; historical reference + split max 3992 mm, representative midpoint + press max 6061 mm (2026-11-24 D-4), so the raised ceiling still catches a gross disengagement with ~32% headroom",
   },
   {
     metric: "exchangeHome",
@@ -744,8 +762,8 @@ export const BOUNDS: readonly Bound[] = Object.freeze([
   {
     metric: "distinctPositions",
     kind: "min",
-    value: 20,
-    why: "every side must visit many positions, not hold two poses; measured min 46 cells on the 42-distinct sample (the fastest fight ends in 14.48 s, so it has less time to walk)",
+    value: 16,
+    why: "every side must visit many positions, not hold two poses; historical reference + split min 31 cells, representative midpoint + press min 19 cells (2026-11-24 D-4), leaving three cells of headroom under the faster press bouts",
   },
   {
     metric: "contactShare",
@@ -998,11 +1016,21 @@ export function run(
   return broken.length === 0 ? 0 : 1
 }
 
-/** Measure the reference sample and run the gate. */
-export function main(): number {
-  return run(measure())
+/**
+ * Run the gate on the representative sample. With `smoke = true`, print the
+ * historical reference + split readings under an explicit SMOKE header and
+ * return 0 without enforcing any bound (2026-11-24 D-4).
+ */
+export function main(
+  smoke = false,
+  out: (line: string) => void = console.log,
+): number {
+  if (!smoke) return run(measure(), out)
+  out("Battle telemetry — SMOKE: historical reference + split sample (ungated)")
+  for (const line of report(measureSmoke())) out(line)
+  return 0
 }
 
 if (import.meta.main) {
-  process.exitCode = main()
+  process.exitCode = main(process.argv.includes("--smoke"))
 }

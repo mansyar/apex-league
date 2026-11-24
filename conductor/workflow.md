@@ -79,7 +79,7 @@ pr:
   media: "always"
   watch_ci: true
   watch_timeout_minutes: 15
-  merge_method: "squash"
+  merge_method: "merge"
 ```
 
 ## Development Commands
@@ -396,16 +396,16 @@ The plan update is a separate Conductor state commit.
   (`chore(conductor): Complete and archive track '<track-id>'`) moves the track
   into `conductor/archive/`, records `pr_url` and `pr_state: "open"` in
   `metadata.json`, and is the last commit on the branch.
-- Merging is squash-only (`gh pr merge --squash`) and requires explicit user
+- Merging uses a merge commit (`gh pr merge --merge`) and requires explicit user
   confirmation plus a `PASS` or `PASS WITH FINDINGS` review verdict.
-- **After a merge there is nothing to commit.** The squash commit on `main`
-  (`<type>(<scope>): <title> (#<pr>)`) IS the merge record. Do not create a
+- **After a merge there is nothing to commit.** The merge commit on `main`
+  (`Merge pull request #<pr> from <branch>`) IS the merge record. Do not create a
   post-merge `chore(conductor): Record merge` commit, and never leave
   uncommitted Conductor state when switching branches — commit or restore it
   first, then change branches. Post-merge cleanup is limited to:
   `git checkout main`, pull, delete the branch locally and remotely.
-- Merge proof for dependency checks and status: the squash commit matching the
-  track title on `main`, or `gh pr view <pr> --json state` returning `MERGED`.
+- Merge proof for dependency checks and status: the merge commit matching the
+  track branch on `main`, or `gh pr view <pr> --json state` returning `MERGED`.
   The `metadata.json` merge fields (`pr_state`, `merged_at`, `merge_commit`)
   are optional historical notes — tracks archived before this rule keep what
   they recorded; new tracks may leave them at their "Record PR" values.
