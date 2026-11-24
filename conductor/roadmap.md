@@ -22,22 +22,22 @@
 
 | id | title | type | priority | depends_on | track | origin |
 | --- | --- | --- | --- | --- | --- | --- |
-| RM-5 | Extend boss balance probes to discovery-species players | chore | medium | — | — | user |
 | RM-1 | Decide whether to tolerate cadence resonance or authorize a controller-family change | chore | medium | 20261124-controller-cadence-resonance-diagnostic | — | user |
+| RM-5 | Extend boss balance probes to discovery-species players | chore | medium | — | — | user |
 
 ## Later
 
 | id | title | type | priority | depends_on | track | origin |
 | --- | --- | --- | --- | --- | --- | --- |
-| RM-12 | Author Basic Strike identity and KO/down impact weighting | feature | low | — | — | user |
-| RM-11 | Polish the falcon silhouette for speedster readability | feature | low | — | — | user |
-| RM-10 | Deduplicate verdict presentation across spar, cup, and battle HUD | refactor | low | — | — | user |
-| RM-9 | Continue roster expansion toward the 20–40 species vision | feature | medium | — | — | user |
-| RM-8 | Adopt stage-scaled animation and ranch body profiles | feature | medium | — | — | user |
-| RM-7 | Decide stable capacity, ranch expansion, and pet release | chore | medium | — | — | user |
-| RM-6 | Run a dedicated voxelize performance pass | chore | medium | — | — | user |
 | RM-2 | Complete the hardware device-lab verification pass | chore | medium | — | — | user |
+| RM-6 | Run a dedicated voxelize performance pass | chore | medium | — | — | user |
+| RM-7 | Decide stable capacity, ranch expansion, and pet release | chore | medium | — | — | user |
+| RM-8 | Adopt stage-scaled animation and ranch body profiles | feature | medium | — | — | user |
+| RM-9 | Continue roster expansion toward the 20–40 species vision | feature | medium | — | — | user |
 | RM-3 | Harden thin species band margins only if relative-matrix drift breaks a row | chore | low | — | — | user |
+| RM-10 | Deduplicate verdict presentation across spar, cup, and battle HUD | refactor | low | — | — | user |
+| RM-11 | Polish the falcon silhouette for speedster readability | feature | low | — | — | user |
+| RM-12 | Author Basic Strike identity and KO/down impact weighting | feature | low | — | — | user |
 
 ## Dropped
 
