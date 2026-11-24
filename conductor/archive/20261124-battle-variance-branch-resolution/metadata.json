@@ -2,11 +2,11 @@
   "id": "20261124-battle-variance-branch-resolution",
   "title": "Battle Variance Branch Resolution",
   "type": "chore",
-  "status": "in_progress",
+  "status": "complete",
   "priority": "low",
   "depends_on": ["20261123-repo-hygiene-cleanup"],
   "created_at": "2026-11-24T10:23:14.6076880+11:00",
-  "updated_at": "2026-11-24T11:27:38.6169190+11:00",
+  "updated_at": "2026-11-24T11:29:23.1405848+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "chore/20261124-battle-variance-branch-resolution",
@@ -22,10 +22,10 @@
   "review_verdict": "PASS",
   "review_rounds": 2,
   "doc_sync": "none",
-  "pr_url": null,
+  "pr_url": "https://github.com/mansyar/apex-league/pull/90",
   "reverted_at": null,
   "revert_commit": null,
   "revert_pr_url": null,
-  "archived_at": null,
-  "archive_path": null
+  "archived_at": "2026-11-24T11:29:23.1405848+11:00",
+  "archive_path": "conductor/archive/20261124-battle-variance-branch-resolution"
 }
