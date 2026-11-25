@@ -69,19 +69,17 @@
 - **Verification:** `bun run verify && bun run build`, plus `playwright-cli` desktop and phone captures with a clean console
 - **Status:** in_progress
 
-- [ ] **P3.T1: Capture both beats in the browser** — covers: FR-5, AC-5
-  - [ ] **P3.T1.1: Start `bun run dev`, open `playwright-cli`, and drive the Strike and terminal-KO flows with snapshot refs.**
-  - [ ] **P3.T1.2: Capture desktop and iPhone 15 screenshots under `.conductor/evidence/20261125-basic-strike-identity-impact/`.**
-  - [ ] **P3.T1.3: Run `playwright-cli console` and confirm no new errors.**
-- [ ] **P3.T2: Run integrated verification and write evidence** — covers: AC-7, NFR-3, NFR-4
-  - [ ] **P3.T2.1: Run `biome check`, `bun test --timeout 120000`, `bun run check`, `bun run verify`, and `bun run build`.**
-  - [ ] **P3.T2.2: Write the evidence report with the commands table, AC mapping, screenshot paths, deviations, and notes.**
+- [x] **P3.T1: Capture both beats in the browser** — covers: FR-5, AC-5
+  - [x] **P3.T1.1: Start `bun run dev`, open `playwright-cli`, and drive the Strike and terminal-KO flows with snapshot refs.**
+  - [x] **P3.T1.2: Capture desktop and iPhone 15 screenshots under `.conductor/evidence/20261125-basic-strike-identity-impact/`.**
+  - [x] **P3.T1.3: Run `playwright-cli console` and confirm no new errors.**
+- [x] **P3.T2: Run integrated verification and write evidence** — covers: AC-7, NFR-3, NFR-4
+  - [x] **P3.T2.1: Run `biome check`, `bun test --timeout 120000`, `bun run check`, `bun run verify`, and `bun run build`.**
+  - [x] **P3.T2.2: Write the evidence report with the commands table, AC mapping, screenshot paths, deviations, and notes.**
 
-<!--
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** b33d8765
 **Evidence:** conductor/tracks/20261125-basic-strike-identity-impact/verification/phase-3.md
--->
 
 <!--
 Review fixes are appended by `conductor-review` as:
