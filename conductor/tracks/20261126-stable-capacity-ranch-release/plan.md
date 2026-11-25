@@ -36,7 +36,7 @@
 - **Covers:** FR-5, FR-6, AC-3, AC-4, AC-5, AC-7, NFR-2, NFR-4
 - **Touches:** `conductor/tracks/20261126-stable-capacity-ranch-release/verification/phase-1.md`, `conductor/tracks/20261126-stable-capacity-ranch-release/verification/integrated.md`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Record the decision and doc truth evidence** — covers: FR-5, AC-3, AC-4, AC-6
   - [ ] **P2.T1.1:** Write the revisit trigger and roadmap-only follow-up policy into evidence.
