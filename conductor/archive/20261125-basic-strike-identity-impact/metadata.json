@@ -2,11 +2,11 @@
   "id": "20261125-basic-strike-identity-impact",
   "title": "Author Basic Strike identity and KO/down impact weighting",
   "type": "feature",
-  "status": "in_progress",
+  "status": "complete",
   "priority": "low",
   "depends_on": [],
   "created_at": "2026-11-25T19:57:17.5244858+11:00",
-  "updated_at": "2026-11-25T22:15:00+11:00",
+  "updated_at": "2026-11-25T22:18:27.7374969+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "feat/20261125-basic-strike-identity-impact",
@@ -22,10 +22,10 @@
   "review_verdict": "PASS WITH FINDINGS",
   "review_rounds": 2,
   "doc_sync": "updated",
-  "pr_url": null,
+  "pr_url": "https://github.com/mansyar/apex-league/pull/96",
   "reverted_at": null,
   "revert_commit": null,
   "revert_pr_url": null,
-  "archived_at": null,
-  "archive_path": null
+  "archived_at": "2026-11-25T22:18:27.7374969+11:00",
+  "archive_path": "conductor/archive/20261125-basic-strike-identity-impact"
 }
