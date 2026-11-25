@@ -76,3 +76,21 @@ Re-run independently by the primary agent before acceptance:
 
 The primary's gate re-run and the visual review agree with this report. All
 AC-1..AC-7 are confirmed and the track is ready for post-review doc sync.
+
+## Post-review verification (after review-fix phase R1)
+
+Review round 1 found a High gap in the reduced-motion instant path (F1) and a
+Low dead-data finding (F2). Phase R1 resolved both; the primary independently
+re-ran the affected checks at head `5e53befd`:
+
+| Layer | Command | Exit | Result |
+| --- | --- | --- | --- |
+| Review-fix tests | `bun test --check --parallel=4 --timeout 120000 apps/client/src/steps/down.test.ts apps/client/src/choreo.test.ts` | 0 | 36 pass / 0 fail, 1357 `expect()` calls |
+| Integrated gate | `bun run verify && bun run build` | 0 | 4499 pass / 1 skip / 0 fail; typecheck, biome, determinism (all GLBs + 5 props) and client Vite build green, pre-existing chunk warning only |
+| Scope | `git diff --name-only 4f161768..HEAD` and `git log --oneline --no-merges 4f161768..HEAD` | 0 | `down.ts`, `down.test.ts` and `phase-R1.md` only; the fix squash plus its evidence record |
+
+The fix resolves the reaction once from `step.ko` for both the instant and
+paced branches and scales the staged KO lean by the authored `reelPitch`;
+`dense-playback.ts` and the shared `koFall` pose are unchanged. The visual
+captures above still demonstrate the authored beats, and round 2's re-review
+returned `PASS WITH FINDINGS` with no new code findings.
