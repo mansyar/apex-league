@@ -59,7 +59,7 @@ Review fixes, if any, are appended by `conductor-review` as:
 - **Covers:** F1, FR-4, AC-2, AC-6
 - **Touches:** `docs/save-schema.md`, `conductor/tracks/20261126-stable-capacity-ranch-release/verification/phase-R1.md`, `conductor/tracks/20261126-stable-capacity-ranch-release/verification/integrated.md`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Add the v25 → v26 migration row** — covers: F1, FR-4, AC-2, AC-6
   - [ ] **R1.T1.1:** Source the row from `packages/sim/src/save/migrations/v25.ts`: HP absorbs the 210% arena scale via `round(hp * 21 / 10)`; trained HP folds and clamps to the scaled cap of 13; ATK/DEF/SPD and all other fields forward untouched; frozen cup-session sides gain `doctrine`.
