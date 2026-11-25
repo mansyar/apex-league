@@ -27,7 +27,7 @@
 | id | title | type | priority | depends_on | track | origin |
 | --- | --- | --- | --- | --- | --- | --- |
 | RM-2 | Complete the hardware device-lab verification pass | chore | medium | — | — | user |
-| RM-6 | Run a dedicated voxelize performance pass | chore | medium | — | — | user |
+| RM-6 | Run a dedicated voxelize performance pass | chore | medium | — | 20261125-voxelize-performance-pass | user |
 | RM-7 | Decide stable capacity, ranch expansion, and pet release | chore | medium | — | — | user |
 | RM-8 | Adopt stage-scaled animation and ranch body profiles | feature | medium | — | — | user |
 | RM-9 | Continue roster expansion toward the 20–40 species vision | feature | medium | — | — | user |
