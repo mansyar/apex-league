@@ -3,26 +3,26 @@
 - Track: `20261125-voxelize-performance-pass`
 - Type: chore
 - Branch: `chore/20261125-voxelize-performance-pass`
-- Range: `10af88e843af49ce8ae5657093265a0f8fbf2432..fe36d113d38d206c6f13b78b6f7d17e8a9171672`
-- Date: 2026-11-25T15:05:52.0633661+11:00
-- Verdict: **PASS WITH FINDINGS**
+- Range: `10af88e843af49ce8ae5657093265a0f8fbf2432..7a057d744a6848a5d62ca8f7de7004e58f472ed0`
+- Date: 2026-11-25T18:13:24.0640979+11:00
+- Verdict: **PASS**
 
 ## Summary
 
-The fixed 63-case corpus and every committed artifact remain byte-identical, and
-repeated measurements support both approved targets: 28.095% lower median
-`voxelize()` time and 21.032% lower capped package-gate wall time. Review found two
-Medium evidence/semantics issues and two Low traceability/evidence issues. Strict
-mode requires all four to be fixed before the PR.
+The fixed 63-case corpus and every committed artifact remain byte-identical. The
+R1 load-controlled measurements support both approved targets: 24.186% lower
+sample-paired median `voxelize()` time and 17.173% median paired reduction in capped
+package-gate wall time. All four strict-mode findings are resolved and re-review
+returned PASS with no new findings.
 
 ## Verification
 
 | Layer | Command | Result | Evidence |
 | --- | --- | --- | --- |
-| Benchmark | `bun packages/voxel/scripts/benchmark-voxelize.ts` ×2 | 142.3435 ms median; 28.095% reduction | `verification/phase-3.md` §1 |
-| Package gate | `bun test --check --parallel=4 --timeout 120000 packages/voxel` | 640 pass / 0 fail; 103.2200 s; 21.032% reduction | `verification/phase-3.md` §1 |
-| Serial tests | `bun test --timeout 120000` | 4480 pass / 1 skip / 0 fail; 670883 expects | `.conductor/evidence/20261125-voxelize-performance-pass/review/serial-test.txt` |
-| Verify | `bun run verify` | 4480 pass / 1 skip / 0 fail; hash `0xff6f3d62` | `verification/integrated.md` §6 |
+| Benchmark | sample-level paired baseline/final harness | 181.0602→137.2690 ms; 24.186% reduction; 63/63 identities | `verification/phase-R1.md` §3 |
+| Package gate | capped gate paired twice | 635/641 tests pass; 17.173% median paired wall reduction | `verification/phase-R1.md` §3 |
+| Serial tests | `bun test --timeout 120000` | 4481 pass / 1 skip / 0 fail; 670890 expects; 4482 tests / 439 files | `.conductor/evidence/20261125-voxelize-performance-pass/review-fix/serial-test.txt` |
+| Verify | `bun run verify` | 4481 pass / 1 skip / 0 fail; 670890 expects; hash `0xff6f3d62` | `verification/phase-R1.md` §4 |
 | Typecheck | `bun run check` | all workspaces clean | primary review check |
 | Lint/format | `bunx biome check` | 1044 files clean | primary review check |
 | Build | `bun run build` | exit 0 | `verification/integrated.md` §6 |
@@ -44,27 +44,27 @@ mode requires all four to be fixed before the PR.
 | FR-3 | covered | Voxelizer/SDF/mesher changes tied to measured stages |
 | FR-4 | covered | Cache/worker explicitly N/A |
 | FR-5 | covered | Frozen characterization and artifact/hash identity |
-| FR-6 | covered | Repeated 28.095% / 21.032% reductions |
-| FR-7 | partial | F1 mutable-endpoint regression missing |
+| FR-6 | covered | Paired 24.186% benchmark and 17.173% median paired gate reductions |
+| FR-7 | covered | F1 failing-first mutable-endpoint/fallback regression fixed |
 | FR-8 | covered | Dated tech-stack note and integrated evidence |
 | NFR-1 | covered | No dependency/manifest/lockfile/CI change |
-| NFR-2 | partial | F1 stale round-cone endpoint state for mutable inputs |
+| NFR-2 | covered | F1 endpoint invariants recomputed per sample |
 | NFR-3 | covered | Cache/worker N/A |
 | NFR-4 | covered | Existing artifacts/baselines unchanged |
 | NFR-5 | covered | Typecheck and Biome pass |
 | NFR-6 | covered | All configured checks pass |
 | NFR-7 | covered | Module caps/budgets unchanged |
 | NFR-8 | covered | Benchmark-only timing/debug code |
-| NFR-9 | partial | F2 baseline load context incomplete |
+| NFR-9 | covered | F2 sample-level paired and alternating paired-gate load context |
 | AC-1 | covered | Corpus/order/stages/seed/schema pinned |
 | AC-2 | covered | Baseline/profile evidence |
-| AC-3 | partial | F2 comparable baseline load not fully auditable |
+| AC-3 | covered | F2 untouched baseline/final paired measurements exceed both targets |
 | AC-4 | covered | All deterministic outputs byte-identical |
 | AC-5 | covered | Cache/worker N/A |
 | AC-6 | covered | Focused and configured checks pass |
 | AC-7 | covered | Allowed scope only |
 | AC-8 | covered | One dated tech-stack note |
-| AC-9 | covered | Integrated evidence committed; F4 wording correction pending |
+| AC-9 | covered | F4 test-count wording corrected; integrated evidence committed |
 | AC-10 | covered | Clean diff-check and worktree |
 
 ## Findings
@@ -85,7 +85,7 @@ mode requires all four to be fixed before the PR.
   retaining scalar arithmetic. Add a regression that mutates endpoints across
   the fallback boundary and compares against a freshly constructed SDF.
 - Requirement: NFR-2, FR-7
-- Test gap: mutable-endpoint/fallback regression.
+- Test gap: resolved in Phase R1 (`d9447f13`); failing-first and focused tests retained.
 
 #### F2 — Baseline load context is incomplete
 
@@ -99,7 +99,7 @@ mode requires all four to be fixed before the PR.
   same recorded low-load conditions, retaining process/load context and updating
   Phase 1, Phase 3, and integrated tables.
 - Requirement: NFR-9, AC-3
-- Test gap: none.
+- Test gap: none; resolved by paired measurements with retained load context.
 
 ### Low
 
@@ -111,7 +111,7 @@ mode requires all four to be fixed before the PR.
 - Why: The invalid SHA breaks phase-range traceability.
 - Fix: Correct the checkpoint and all phase-range references.
 - Requirement: none
-- Test gap: none.
+- Test gap: none; corrected in Phase R1.
 
 #### F4 — Package test-count explanation is imprecise
 
@@ -120,9 +120,9 @@ mode requires all four to be fixed before the PR.
   coverage. The seven benchmark tests already existed in the 635-test baseline;
   the net five additions are characterization tests.
 - Why: The count explanation weakens evidence accuracy.
-- Fix: State that benchmark tests were present in both runs and the net five
-  additions are voxelizer/SDF/mesher characterization coverage. Correct
-  `integrated.md` too.
+- Fix: State that seven benchmark tests were present in both runs and the net
+  six additions are five characterization tests plus the mutable-endpoint regression.
+  Correct `integrated.md` too. Resolved in Phase R1.
 - Requirement: AC-9
 - Test gap: none.
 
@@ -132,10 +132,10 @@ None.
 
 ## Plan compliance
 
-All three phases are verified, all 13 top-level tasks and 32 nested subtasks are
-checked, and conditional cache/worker/blocked-target paths are explicitly N/A.
-No task was dropped. The final diff stays within allowed pipeline/tests/benchmark,
-documentation, and Conductor artifacts. F3 is the only checkpoint defect.
+All three implementation phases and Phase R1 are verified; all 16 top-level
+tasks and nested subtasks are reconciled, with conditional cache/worker/blocked-target
+paths explicitly N/A. No task was dropped. The final diff stays within allowed
+pipeline/tests/benchmark, documentation, and Conductor artifacts.
 
 ## Out of scope
 
@@ -144,15 +144,16 @@ API, or deployment change was found.
 
 ## Debt
 
-None. Strict mode requires F1–F4 to be fixed in Phase R1.
+None. F1–F4 are fixed in Phase R1 and re-review returned PASS.
 
 ## Doc sync
 
-Updated — dated 2026-11-25 `conductor/tech-stack.md` note exists; review-fix
-measurement changes may require a follow-up wording update.
+Updated — dated 2026-11-25 `conductor/tech-stack.md` note reflects the final
+paired measurements and smooth-union optimization.
 
 ## History
 
 | Round | Verdict | Critical | High | Medium | Low | Fixed |
 | --- | --- | ---: | ---: | ---: | ---: | --- |
 | 1 | PASS WITH FINDINGS | 0 | 0 | 2 | 2 | 0 (Phase R1 pending) |
+| 2 | PASS | 0 | 0 | 0 | 0 | 4 (F1–F4 in Phase R1) |
