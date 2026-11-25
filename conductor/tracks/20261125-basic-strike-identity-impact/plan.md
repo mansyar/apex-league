@@ -21,22 +21,19 @@
 - **Covers:** FR-1, FR-2, AC-1, AC-2, NFR-1, NFR-2
 - **Touches:** `apps/client/src/move-fx/moves/basic.ts`, `apps/client/src/move-fx/moves/basic.test.ts`, `apps/client/src/move-fx/moves.ts`, `apps/client/src/move-fx.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/move-fx.test.ts apps/client/src/move-fx/`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Pin the authored identity and regression boundary in tests** — covers: FR-1, FR-2, AC-1, AC-2, NFR-1
-  - [ ] **P1.T1.1: Write a failing test that `fxFor("basic", undefined)` is authored, distinct from `DEFAULT_FX`, and carries a melee posture.**
-  - [ ] **P1.T1.2: Write a failing regression test that all 48 special ids and unknown ids with known/unknown elements resolve to their baseline row.**
-- [ ] **P1.T2: Author and register the Strike row** — covers: FR-1, FR-2, NFR-2
-  - [ ] **P1.T2.1: Create `move-fx/moves/basic.ts` with the authored melee-jab windup/recoil/contact/arrival grammar.**
-  - [ ] **P1.T2.2: Spread `BASIC_FX` into `MOVE_FX` in `move-fx/moves.ts` without touching any element table.**
-  - [ ] **P1.T2.3: Update `move-fx.test.ts` catalogue/identity pins so the authored `basic` row satisfies them.**
+- [x] **P1.T1: Pin the authored identity and regression boundary in tests** — covers: FR-1, FR-2, AC-1, AC-2, NFR-1
+  - [x] **P1.T1.1: Write a failing test that `fxFor("basic", undefined)` is authored, distinct from `DEFAULT_FX`, and carries a melee posture.**
+  - [x] **P1.T1.2: Write a failing regression test that all 48 special ids and unknown ids with known/unknown elements resolve to their baseline row.**
+- [x] **P1.T2: Author and register the Strike row** — covers: FR-1, FR-2, NFR-2
+  - [x] **P1.T2.1: Create `move-fx/moves/basic.ts` with the authored melee-jab windup/recoil/contact/arrival grammar.**
+  - [x] **P1.T2.2: Spread `BASIC_FX` into `MOVE_FX` in `move-fx/moves.ts` without touching any element table.**
+  - [x] **P1.T2.3: Update `move-fx.test.ts` catalogue/identity pins so the authored `basic` row satisfies them.**
 
-<!--
-The primary appends after acceptance:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 9bb05250
 **Evidence:** conductor/tracks/20261125-basic-strike-identity-impact/verification/phase-1.md
--->
 
 ## Phase 2: Terminal-KO weighted impact
 
