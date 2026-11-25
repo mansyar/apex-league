@@ -48,23 +48,23 @@ The primary appends after acceptance:
 - **Covers:** FR-3, FR-4, FR-5, FR-7, AC-3, AC-4, AC-5, AC-6, NFR-2, NFR-3, NFR-4, NFR-5, NFR-8
 - **Touches:** `packages/voxel/src/voxelizer.ts`, `packages/voxel/src/sdf.ts`, `packages/voxel/src/mesher.ts`, `packages/voxel/src/ao.ts`, `packages/voxel/src/voxelizer.test.ts`, `packages/voxel/src/sdf.test.ts`, `packages/voxel/src/mesher.test.ts`, `packages/voxel/src/mesher-ao.test.ts`, `packages/voxel/src/ao.test.ts`, `packages/voxel/src/mesh-baseline.test.ts`, `conductor/tracks/20261125-voxelize-performance-pass/verification/phase-2.md`, `.conductor/evidence/20261125-voxelize-performance-pass/optimization/**`
 - **Verification:** `bun packages/voxel/scripts/benchmark-voxelize.ts`; `bun test --timeout 120000 packages/voxel/src/voxelizer.test.ts packages/voxel/src/sdf.test.ts packages/voxel/src/mesher.test.ts packages/voxel/src/mesher-ao.test.ts packages/voxel/src/ao.test.ts packages/voxel/src/mesh-baseline.test.ts`; `bun test --check --parallel=4 --timeout 120000 packages/voxel`; `bun run verify`; `bun run build`; `git diff --check 10af88e843af49ce8ae5657093265a0f8fbf2432..HEAD`; `git status --porcelain`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Add semantic characterization coverage** — covers: FR-5, FR-7
+- [x] **P2.T1: Add semantic characterization coverage** — covers: FR-5, FR-7
   - [ ] **P2.T1.1: Pin voxelizer equivalence** for representative simple and overlapping fields, including paint order and surface classes.
   - [ ] **P2.T1.2: Pin SDF and mesher equivalence** against existing expected geometry and mesh baselines.
   - [ ] **P2.T1.3: Add cache/worker characterization tests first** if Phase 2 introduces either mechanism; otherwise record N/A.
-- [ ] **P2.T2: Optimize the voxelizer/SDF hot path** — covers: FR-3
+- [x] **P2.T2: Optimize the voxelizer/SDF hot path** — covers: FR-3
   - [ ] **P2.T2.1: Apply the smallest profiling-supported change** such as allocation hoisting, precomputation, bounded rejection, or loop restructuring.
   - [ ] **P2.T2.2: Re-run focused parity tests and the fixed benchmark** after each substantive change.
-- [ ] **P2.T3: Optimize mesher/AO only where measured** — covers: FR-3
+- [x] **P2.T3: Optimize mesher/AO only where measured** — covers: FR-3
   - [ ] **P2.T3.1: Address a demonstrated mesher/AO hotspot** or record evidence that no further change is justified.
   - [ ] **P2.T3.2: Preserve greedy-mesh scan order, corner occlusion, classes, and byte output.**
-- [ ] **P2.T4: Evaluate caches or workers conditionally** — covers: FR-4
+- [x] **P2.T4: Evaluate caches or workers conditionally** — covers: FR-4
   - [ ] **P2.T4.1: Use only if profiling shows additional material benefit**; otherwise record N/A with measurements.
   - [ ] **P2.T4.2: If used, document deterministic keys, bounds, invalidation/lifetime, concurrency behavior, and startup overhead.**
   - [ ] **P2.T4.3: Prove mixed-input and concurrent-call correctness** with focused tests.
-- [ ] **P2.T5: Verify optimization and commit evidence** — covers: FR-8
+- [x] **P2.T5: Verify optimization and commit evidence** — covers: FR-8
   - [ ] **P2.T5.1: Record before/after benchmark and package-gate timings** with raw repeated-run evidence.
   - [ ] **P2.T5.2: Run focused tests, package gate, full verify, and build** and record exact outcomes.
   - [ ] **P2.T5.3: Write `verification/phase-2.md`** with techniques, parity proof, conditional N/A decisions, and AC mapping; commit only allowed files.
@@ -76,6 +76,9 @@ The primary appends after acceptance:
 **Evidence:** conductor/tracks/20261125-voxelize-performance-pass/verification/phase-2.md
 -->
 
+**Result:** verified
+**Checkpoint:** e95a1552
+**Evidence:** conductor/tracks/20261125-voxelize-performance-pass/verification/phase-2.md
 ## Phase 3: Final verification, documentation, and integrated evidence
 
 - **Goal:** prove both approved speed targets, full configured verification, byte-identical artifacts, scoped changes, and a dated technology note.
