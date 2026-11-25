@@ -18,25 +18,23 @@
   `apps/client/src/stage-motion.test.ts`, `apps/client/src/roster.ts`,
   `apps/client/src/roster.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/stage-motion.test.ts apps/client/src/roster.test.ts`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Pin the arena stage-profile contract** — covers: FR-1, AC-1
-  - [ ] **P1.T1.1:** Table-test every archetype × baby/juvenile/champion;
+- [x] **P1.T1: Pin the arena stage-profile contract** — covers: FR-1, AC-1
+  - [x] **P1.T1.1:** Table-test every archetype × baby/juvenile/champion;
     assert profile fields scale by `stageScale(stage)` and missing stage
     yields the neutral profile.
-  - [ ] **P1.T1.2:** Pin `bodyScaleFor` values and sim-coordinate inputs as
+  - [x] **P1.T1.2:** Pin `bodyScaleFor` values and sim-coordinate inputs as
     unchanged; observe the expected red before authoring the composer.
-- [ ] **P1.T2: Author and wire the shared stage composer** — covers: FR-1, AC-1
-  - [ ] **P1.T2.1:** Add a pure composer that combines `profileFor(archetype)`
+- [x] **P1.T2: Author and wire the shared stage composer** — covers: FR-1, AC-1
+  - [x] **P1.T2.1:** Add a pure composer that combines `profileFor(archetype)`
     with the existing `stageScale` ladder and returns a `BodyProfile`.
-  - [ ] **P1.T2.2:** Use it in `buildSpot` so downstream gait/lean/hurt/recoil/
+  - [x] **P1.T2.2:** Use it in `buildSpot` so downstream gait/lean/hurt/recoil/
     strike consumers read the composed profile; update pins to green.
 
-<!--
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** c652a56c
 **Evidence:** conductor/tracks/20261126-stage-scaled-animation-ranch-profiles/verification/phase-1.md
--->
 
 ## Phase 2: Ranch ceremony profile and tempo adoption
 

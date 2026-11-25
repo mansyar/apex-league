@@ -6,7 +6,7 @@
   "priority": "medium",
   "depends_on": [],
   "created_at": "2026-11-26T01:31:49.6849216+11:00",
-  "updated_at": "2026-11-26T01:34:26.0806723+11:00",
+  "updated_at": "2026-11-26T01:47:00.4209086+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "feat/20261126-stage-scaled-animation-ranch-profiles",
@@ -14,11 +14,11 @@
   "base_sha": "d8ad0c912b125cdc87f5cfac7806d22f7eebeebb",
   "progress": {
     "phases_total": 3,
-    "phases_verified": 0,
+    "phases_verified": 1,
     "tasks_total": 6,
-    "tasks_done": 0
+    "tasks_done": 2
   },
-  "last_checkpoint": null,
+  "last_checkpoint": "c652a56c",
   "review_verdict": null,
   "review_rounds": 0,
   "doc_sync": "pending",
