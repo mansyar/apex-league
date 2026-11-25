@@ -15,6 +15,7 @@ import { HitStop } from "../fx/loop"
 import type { BattleEffects } from "../staging-fx"
 import type { StepIO } from "./context"
 import { downStep } from "./down"
+import { koFall } from "./pure"
 
 /** A fighter slice the step runner can drive without a scene or driver. */
 function fighter(
@@ -209,6 +210,38 @@ describe("the weighted KO landing (FR-3, AC-3)", () => {
     koIO.run(KO_THUD, koSide.actor, koSide.target)
     expect(koSide.actor.squash.v).toBeCloseTo(reactionFor("ko", p).impulse)
   })
+
+  test("authored KO reelPitch amplifies the KO lean", () => {
+    const baseline = Math.abs(koFall(KO_THUD).pitch)
+    const heavy = profileFor("bovine") // hurtMult 1.25
+    const light = profileFor("tortoise") // hurtMult 0.6
+    const leanOf = (p: ReturnType<typeof profileFor>): number => {
+      const side = pair(p)
+      const io = harness()
+      downStep(stepOf(true), false, side, side.actor, side.target, io.io)
+      io.run(KO_THUD, side.actor, side.target)
+      return Math.abs(side.actor.lean.pitch)
+    }
+    const heavyLean = leanOf(heavy)
+    const lightLean = leanOf(light)
+    expect(heavyLean).toBeGreaterThan(baseline)
+    expect(lightLean).toBeGreaterThan(baseline)
+    expect(heavyLean).toBeCloseTo(
+      baseline * (1 + reactionFor("ko", heavy).reelPitch),
+    )
+    expect(lightLean).toBeCloseTo(
+      baseline * (1 + reactionFor("ko", light).reelPitch),
+    )
+    // hurtMult drives the amplification, so a heavy body leans further.
+    expect(heavyLean).toBeGreaterThan(lightLean)
+
+    // The ordinary down never touches the lean channel.
+    const soft = pair(heavy)
+    const softIO = harness()
+    downStep(stepOf(false), false, soft, soft.actor, soft.target, softIO.io)
+    softIO.run(SOFT_THUD, soft.actor, soft.target)
+    expect(soft.actor.lean.pitch).toBe(0)
+  })
 })
 
 describe("calm, reduced motion and the dense stream (FR-4, AC-4/6, NFR-5)", () => {
@@ -232,6 +265,50 @@ describe("calm, reduced motion and the dense stream (FR-4, AC-4/6, NFR-5)", () =
         { muted: false, reducedMotion: true },
       ),
     ).toBeNull()
+  })
+
+  test("instant reduced-motion KO keeps the authored KO impulse", () => {
+    const p = profileFor("bovine")
+    const side = pair(p)
+    const io = harness(true)
+    const expected = reactionFor("ko", p).impulse * 0.4
+    downStep(stepOf(true), true, side, side.actor, side.target, io.io)
+    expect(side.actor.down).toBe(true)
+    expect(side.actor.fall).toBe(1)
+    expect(side.actor.squash.v).toBeCloseTo(expected)
+    expect(side.actor.squash.v).toBeGreaterThan(
+      reactionFor("down", p).impulse * 0.4,
+    )
+    expect(io.bursts).toBe(0)
+  })
+
+  test("instant reduced-motion ordinary down keeps the down impulse", () => {
+    const p = profileFor("bovine")
+    const side = pair(p)
+    const io = harness(true)
+    const expected = reactionFor("down", p).impulse * 0.4
+    downStep(stepOf(false), true, side, side.actor, side.target, io.io)
+    expect(side.actor.squash.v).toBeCloseTo(expected)
+  })
+
+  test("an instant double KO weights both bodies", () => {
+    const p = profileFor("boar")
+    const left = pair(p)
+    const right = { actor: left.target, target: left.actor }
+    const io = harness(true)
+    const expected = reactionFor("ko", p).impulse * 0.4
+    downStep(stepOf(true), true, left, left.actor, left.target, io.io)
+    downStep(
+      { ...stepOf(true), actor: "b", target: "a" },
+      true,
+      right,
+      right.actor,
+      right.target,
+      io.io,
+    )
+    expect(left.actor.squash.v).toBeCloseTo(expected)
+    expect(right.actor.squash.v).toBeCloseTo(expected)
+    expect(io.bursts).toBe(0)
   })
 
   test("an instant KO down leaves the stream's bodies alone", () => {

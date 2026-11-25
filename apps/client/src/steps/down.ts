@@ -24,7 +24,9 @@ const DUST_RING = {
  */
 export const downStep: StepRunner = (step, instant, side, _o, _r, io) => {
   side.actor.down = true
-  const spec = reactionFor("down", side.actor.profile)
+  // Resolve once from the step flag: the instant (calm/reduced-motion)
+  // dump and the paced beat must land the same authored reaction.
+  const spec = reactionFor(step.ko === true ? "ko" : "down", side.actor.profile)
   if (instant) {
     side.actor.fall = 1
     // The dense stream owns the bodies (FR-13): snapping `smooth` onto
@@ -34,16 +36,17 @@ export const downStep: StepRunner = (step, instant, side, _o, _r, io) => {
     return
   }
   if (step.ko === true) {
-    const koSpec = reactionFor("ko", side.actor.profile)
     let thudded = false
     io.startAction(
       (t, ao) => {
         const f = koFall(t)
-        ao.lean.pitch = f.pitch
+        // The authored reelPitch amplifies the staged lean; the shared
+        // `koFall` pose stays unchanged for the dense stream.
+        ao.lean.pitch = f.pitch * (1 + spec.reelPitch)
         if (f.fall > 0) ao.fall = f.fall
         if (f.thud && !thudded) {
           thudded = true
-          impulse(io, ao, koSpec.impulse)
+          impulse(io, ao, spec.impulse)
           io.effects.spawnBurst(ao.group.position, step.element, DUST_RING)
         }
       },
