@@ -67,7 +67,7 @@
 - **Covers:** FR-5, AC-5, AC-7, NFR-3, NFR-4
 - **Touches:** `conductor/tracks/20261125-basic-strike-identity-impact/verification/phase-3.md`, `conductor/tracks/20261125-basic-strike-identity-impact/verification/integrated.md`, screenshots under gitignored `.conductor/evidence/20261125-basic-strike-identity-impact/`
 - **Verification:** `bun run verify && bun run build`, plus `playwright-cli` desktop and phone captures with a clean console
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Capture both beats in the browser** — covers: FR-5, AC-5
   - [ ] **P3.T1.1: Start `bun run dev`, open `playwright-cli`, and drive the Strike and terminal-KO flows with snapshot refs.**
