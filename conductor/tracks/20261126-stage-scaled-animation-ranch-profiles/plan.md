@@ -84,22 +84,20 @@
   gitignored `.conductor/evidence/20261126-stage-scaled-animation-ranch-profiles/`
 - **Verification:** `bun run verify && bun run build` plus `playwright-cli`
   desktop 1440×900 and iPhone 15 393×852 captures with clean console.
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Capture and inspect visual evidence** — covers: FR-6, AC-6
-  - [ ] **P3.T1.1:** Drive real ranch baby/champion partners and a stage-
+- [x] **P3.T1: Capture and inspect visual evidence** — covers: FR-6, AC-6
+  - [x] **P3.T1.1:** Drive real ranch baby/champion partners and a stage-
     contrasted arena spar; capture desktop and phone screenshots and run
     `playwright-cli console` for each session.
-- [ ] **P3.T2: Record evidence and re-run the integrated gate** — covers:
+- [x] **P3.T2: Record evidence and re-run the integrated gate** — covers:
   AC-7, NFR-2, NFR-3, NFR-4
-  - [ ] **P3.T2.1:** Re-run `bun run verify && bun run build`, confirm module
+  - [x] **P3.T2.1:** Re-run `bun run verify && bun run build`, confirm module
     caps and the absence of dependency/save/voxel/audio diffs.
-  - [ ] **P3.T2.2:** Write `verification/phase-3.md` and
+  - [x] **P3.T2.2:** Write `verification/phase-3.md` and
     `verification/integrated.md` with commands, results, screenshots and AC
     mapping.
 
-<!--
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 033c410c
 **Evidence:** conductor/tracks/20261126-stage-scaled-animation-ranch-profiles/verification/phase-3.md
--->
