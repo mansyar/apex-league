@@ -111,6 +111,32 @@ describe("sdRoundCone", () => {
     expect(cone(vec3(4, 0, 0))).toBeCloseTo(-0.2)
     expect(cone(vec3(2, 0, 0))).toBeLessThan(0)
   })
+
+  test("tracks mutable endpoints across the fallback boundary", () => {
+    const a = vec3(-0.75, 0.25, 0.5)
+    const b = vec3(1.5, 1.25, 1.75)
+    const cone = sdRoundCone(a, b, 0.8, 0.25)
+    const first = vec3(0.125, -1.75, 3.25)
+    const points = [first, vec3(2.5, 0.5, -0.75), vec3(-3.125, 4.25, 1.5)]
+
+    expect(cone(first)).toBe(2.6671504955951946)
+
+    b.x = a.x
+    b.y = a.y
+    b.z = a.z
+    const coincident = sdRoundCone(a, b, 0.8, 0.25)
+    for (const point of points) {
+      expect(cone(point)).toBe(coincident(point))
+    }
+
+    b.x = 2.5
+    b.y = -0.25
+    b.z = 1
+    const separated = sdRoundCone(a, b, 0.8, 0.25)
+    for (const point of points) {
+      expect(cone(point)).toBe(separated(point))
+    }
+  })
 })
 
 describe("sdEllipsoid", () => {

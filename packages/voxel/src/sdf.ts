@@ -113,22 +113,28 @@ export function sdEllipsoid(center: Vec3, radii: Vec3): Sdf {
  * fall back to the union of the two spheres rather than returning NaN.
  */
 export function sdRoundCone(a: Vec3, b: Vec3, r1: number, r2: number): Sdf {
-  const bax = b.x - a.x
-  const bay = b.y - a.y
-  const baz = b.z - a.z
-  const l2 = bax * bax + bay * bay + baz * baz
-  const rr = r1 - r2
-  // Squared cone length; non-positive means the spheres overlap.
-  const a2 = l2 - rr * rr
-  const fallback = union(sdSphere(a, r1), sdSphere(b, r2))
-  const useFallback = l2 === 0 || a2 <= 0
-  const signRr = Math.sign(rr)
-  const il2 = 1 / l2
   return (p) => {
-    if (useFallback) return fallback(p)
+    const bax = b.x - a.x
+    const bay = b.y - a.y
+    const baz = b.z - a.z
+    const l2 = bax * bax + bay * bay + baz * baz
+    const rr = r1 - r2
+    // Squared cone length; non-positive means the spheres overlap.
+    const a2 = l2 - rr * rr
+    const useFallback = l2 === 0 || a2 <= 0
+    const signRr = Math.sign(rr)
+    const il2 = 1 / l2
     const pax = p.x - a.x
     const pay = p.y - a.y
     const paz = p.z - a.z
+    if (useFallback) {
+      const pbx = p.x - b.x
+      const pby = p.y - b.y
+      const pbz = p.z - b.z
+      const d1 = Math.sqrt(pax * pax + pay * pay + paz * paz) - r1
+      const d2 = Math.sqrt(pbx * pbx + pby * pby + pbz * pbz) - r2
+      return Math.min(d1, d2)
+    }
     const y = pax * bax + pay * bay + paz * baz
     const z = y - l2
     const xx = pax * l2 - bax * y
