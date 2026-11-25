@@ -44,21 +44,19 @@
 - **Covers:** FR-3, FR-4, AC-3, AC-4, AC-6, NFR-5
 - **Touches:** `apps/client/src/choreo.ts`, `apps/client/src/choreo.test.ts`, `apps/client/src/steps/down.ts`, `apps/client/src/steps/down.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/choreo.test.ts apps/client/src/steps/down.test.ts`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Pin terminal-KO weighting in tests** — covers: FR-3, AC-3, AC-6, NFR-5
-  - [ ] **P2.T1.1: Add a failing `choreo.test.ts` case that the terminal reaction is heavier than `down` for every archetype while the ordinary row keeps its current values.**
-  - [ ] **P2.T1.2: Add a failing `steps/down.test.ts` case covering the KO branch, double KO, and mid-beat pause/seek with no leaked reaction state.**
-- [ ] **P2.T2: Author and wire the weighted KO reaction** — covers: FR-3, FR-4
-  - [ ] **P2.T2.1: Add an authored terminal-KO reaction in `choreo.ts` keyed off the existing `ko` flag and `hurtMult` weighting.**
-  - [ ] **P2.T2.2: Resolve the weighted spec only in the `ko === true` branch of `steps/down.ts`, leaving the soft-fall branch unchanged.**
-  - [ ] **P2.T2.3: Confirm the calm/reduced-motion path stays dampened and introduces no new cue.**
+- [x] **P2.T1: Pin terminal-KO weighting in tests** — covers: FR-3, AC-3, AC-6, NFR-5
+  - [x] **P2.T1.1: Add a failing `choreo.test.ts` case that the terminal reaction is heavier than `down` for every archetype while the ordinary row keeps its current values.**
+  - [x] **P2.T1.2: Add a failing `steps/down.test.ts` case covering the KO branch, double KO, and mid-beat pause/seek with no leaked reaction state.**
+- [x] **P2.T2: Author and wire the weighted KO reaction** — covers: FR-3, FR-4
+  - [x] **P2.T2.1: Add an authored terminal-KO reaction in `choreo.ts` keyed off the existing `ko` flag and `hurtMult` weighting.**
+  - [x] **P2.T2.2: Resolve the weighted spec only in the `ko === true` branch of `steps/down.ts`, leaving the soft-fall branch unchanged.**
+  - [x] **P2.T2.3: Confirm the calm/reduced-motion path stays dampened and introduces no new cue.**
 
-<!--
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 8bb19400
 **Evidence:** conductor/tracks/20261125-basic-strike-identity-impact/verification/phase-2.md
--->
 
 ## Phase 3: Visual evidence and integrated gate
 
