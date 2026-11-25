@@ -14,18 +14,18 @@
 - **Covers:** FR-1, FR-2, FR-3, FR-4, AC-1, AC-2, AC-6, NFR-1, NFR-3
 - **Touches:** `conductor/product.md`, `docs/save-schema.md`
 - **Verification:** `bun run verify && bun run build` (doc truth check recorded in evidence)
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Pin the doc truth baseline** — covers: FR-1, FR-2, FR-3, FR-4, AC-6
-  - [ ] **P1.T1.1:** Record the current statements in `conductor/product.md` and `docs/save-schema.md` about stable capacity, active partner, and lifecycle.
-  - [ ] **P1.T1.2:** Confirm `SAVE_VERSION` is `26` from the sim source and note the stale `25` in the doc.
-- [ ] **P1.T2: Ratify the decisions in docs** — covers: FR-1, FR-2, FR-3, FR-4, AC-1, AC-2
-  - [ ] **P1.T2.1:** Add an explicit ratification note to `conductor/product.md`: unlimited stable, one active partner, no release seam.
-  - [ ] **P1.T2.2:** Correct `docs/save-schema.md` to version `26` and state no capacity limit, one active `creature`, frozen `stable` pets, and no release path.
+- [x] **P1.T1: Pin the doc truth baseline** — covers: FR-1, FR-2, FR-3, FR-4, AC-6
+  - [x] **P1.T1.1:** Record the current statements in `conductor/product.md` and `docs/save-schema.md` about stable capacity, active partner, and lifecycle.
+  - [x] **P1.T1.2:** Confirm `SAVE_VERSION` is `26` from the sim source and note the stale `25` in the doc.
+- [x] **P1.T2: Ratify the decisions in docs** — covers: FR-1, FR-2, FR-3, FR-4, AC-1, AC-2
+  - [x] **P1.T2.1:** Add an explicit ratification note to `conductor/product.md`: unlimited stable, one active partner, no release seam.
+  - [x] **P1.T2.2:** Correct `docs/save-schema.md` to version `26` and state no capacity limit, one active `creature`, frozen `stable` pets, and no release path.
 
 <!--
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 35dc87a8
 **Evidence:** conductor/tracks/20261126-stable-capacity-ranch-release/verification/phase-1.md
 -->
 
