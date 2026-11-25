@@ -120,7 +120,7 @@ The primary appends after acceptance:
 - **Covers:** F1, F2, F3, F4
 - **Touches:** `packages/voxel/src/voxelizer.ts`, `packages/voxel/src/sdf.ts`, `packages/voxel/src/sdf.test.ts`, `conductor/tracks/20261125-voxelize-performance-pass/plan.md`, `conductor/tracks/20261125-voxelize-performance-pass/verification/phase-1.md`, `conductor/tracks/20261125-voxelize-performance-pass/verification/phase-3.md`, `conductor/tracks/20261125-voxelize-performance-pass/verification/integrated.md`, `conductor/tracks/20261125-voxelize-performance-pass/verification/phase-R1.md`, `conductor/tech-stack.md`, `.conductor/evidence/20261125-voxelize-performance-pass/review-fix/**`
 - **Verification:** focused SDF/pipeline tests; exact repeated benchmark; capped package gate; `bun run verify`; `bun run build`; `bun run gate:determinism`; `bun run test:fuzz`; `bun run telemetry`; `bun run balance`; exact characterization diff; `git diff --check`; `git status --porcelain`
-- **Status:** in_progress
+- **Status:** verified
 
 - [x] **R1.T1: Restore mutable-endpoint semantics and add regression coverage** — covers: F1, NFR-2, FR-7
   - [x] **R1.T1.1: Move `sdRoundCone` endpoint-derived invariants inside the returned callback** while retaining scalar arithmetic.
@@ -133,3 +133,7 @@ The primary appends after acceptance:
   - [x] **R1.T3.1: Correct Phase 2 checkpoint to `e85a1552`** and repair review-range references.
   - [x] **R1.T3.2: Correct the package test-count explanation** in Phase 3 and integrated evidence.
   - [x] **R1.T3.3: Run affected checks and commit `verification/phase-R1.md`** with final measurements, identity proof, and AC mapping.
+
+**Result:** verified
+**Checkpoint:** ff2db813
+**Evidence:** conductor/tracks/20261125-voxelize-performance-pass/verification/phase-R1.md
