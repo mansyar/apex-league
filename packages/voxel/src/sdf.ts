@@ -20,21 +20,14 @@ export function vec3(x: number, y: number, z: number): Vec3 {
 /** A signed distance function over 3D space. */
 export type Sdf = (p: Vec3) => number
 
-function dot(a: Vec3, b: Vec3): number {
-  return a.x * b.x + a.y * b.y + a.z * b.z
-}
-
-function sub(a: Vec3, b: Vec3): Vec3 {
-  return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z }
-}
-
-function length(a: Vec3): number {
-  return Math.sqrt(dot(a, a))
-}
-
 /** Distance field of a sphere. */
 export function sdSphere(center: Vec3, radius: number): Sdf {
-  return (p) => length(sub(p, center)) - radius
+  return (p) => {
+    const x = p.x - center.x
+    const y = p.y - center.y
+    const z = p.z - center.z
+    return Math.sqrt(x * x + y * y + z * z) - radius
+  }
 }
 
 /**
@@ -43,36 +36,44 @@ export function sdSphere(center: Vec3, radius: number): Sdf {
  */
 export function sdBox(center: Vec3, halfExtents: Vec3): Sdf {
   return (p) => {
-    const q = {
-      x: Math.abs(p.x - center.x) - halfExtents.x,
-      y: Math.abs(p.y - center.y) - halfExtents.y,
-      z: Math.abs(p.z - center.z) - halfExtents.z,
-    }
-    const outside = length({
-      x: Math.max(q.x, 0),
-      y: Math.max(q.y, 0),
-      z: Math.max(q.z, 0),
-    })
-    return outside + Math.min(Math.max(q.x, Math.max(q.y, q.z)), 0)
+    const qx = Math.abs(p.x - center.x) - halfExtents.x
+    const qy = Math.abs(p.y - center.y) - halfExtents.y
+    const qz = Math.abs(p.z - center.z) - halfExtents.z
+    const x = Math.max(qx, 0)
+    const y = Math.max(qy, 0)
+    const z = Math.max(qz, 0)
+    const outside = Math.sqrt(x * x + y * y + z * z)
+    return outside + Math.min(Math.max(qx, Math.max(qy, qz)), 0)
   }
 }
 
 /** Distance field of a capsule (segment from `a` to `b`, radius `radius`). */
 export function sdCapsule(a: Vec3, b: Vec3, radius: number): Sdf {
   return (p) => {
-    const pa = sub(p, a)
-    const ba = sub(b, a)
-    const t = Math.max(0, Math.min(1, dot(pa, ba) / dot(ba, ba)))
-    return (
-      length({ x: pa.x - ba.x * t, y: pa.y - ba.y * t, z: pa.z - ba.z * t }) -
-      radius
+    const pax = p.x - a.x
+    const pay = p.y - a.y
+    const paz = p.z - a.z
+    const bax = b.x - a.x
+    const bay = b.y - a.y
+    const baz = b.z - a.z
+    const t = Math.max(
+      0,
+      Math.min(
+        1,
+        (pax * bax + pay * bay + paz * baz) /
+          (bax * bax + bay * bay + baz * baz),
+      ),
     )
+    const x = pax - bax * t
+    const y = pay - bay * t
+    const z = paz - baz * t
+    return Math.sqrt(x * x + y * y + z * z) - radius
   }
 }
 
 /** Moves a distance field by an offset. */
 export function translate(sdf: Sdf, offset: Vec3): Sdf {
-  return (p) => sdf(sub(p, offset))
+  return (p) => sdf({ x: p.x - offset.x, y: p.y - offset.y, z: p.z - offset.z })
 }
 
 /**
@@ -84,17 +85,19 @@ export function translate(sdf: Sdf, offset: Vec3): Sdf {
  */
 export function sdEllipsoid(center: Vec3, radii: Vec3): Sdf {
   return (p) => {
-    const q = sub(p, center)
-    const k0 = length({
-      x: q.x / radii.x,
-      y: q.y / radii.y,
-      z: q.z / radii.z,
-    })
-    const k1 = length({
-      x: q.x / (radii.x * radii.x),
-      y: q.y / (radii.y * radii.y),
-      z: q.z / (radii.z * radii.z),
-    })
+    const x = p.x - center.x
+    const y = p.y - center.y
+    const z = p.z - center.z
+    const k0 = Math.sqrt(
+      (x / radii.x) * (x / radii.x) +
+        (y / radii.y) * (y / radii.y) +
+        (z / radii.z) * (z / radii.z),
+    )
+    const k1 = Math.sqrt(
+      (x / (radii.x * radii.x)) * (x / (radii.x * radii.x)) +
+        (y / (radii.y * radii.y)) * (y / (radii.y * radii.y)) +
+        (z / (radii.z * radii.z)) * (z / (radii.z * radii.z)),
+    )
     // The centre is the one point where both scalings vanish.
     if (k1 === 0) return -Math.min(radii.x, radii.y, radii.z)
     return (k0 * (k0 - 1)) / k1
@@ -110,27 +113,31 @@ export function sdEllipsoid(center: Vec3, radii: Vec3): Sdf {
  * fall back to the union of the two spheres rather than returning NaN.
  */
 export function sdRoundCone(a: Vec3, b: Vec3, r1: number, r2: number): Sdf {
-  const ba = sub(b, a)
-  const l2 = dot(ba, ba)
+  const bax = b.x - a.x
+  const bay = b.y - a.y
+  const baz = b.z - a.z
+  const l2 = bax * bax + bay * bay + baz * baz
   const rr = r1 - r2
   // Squared cone length; non-positive means the spheres overlap.
   const a2 = l2 - rr * rr
   const fallback = union(sdSphere(a, r1), sdSphere(b, r2))
+  const useFallback = l2 === 0 || a2 <= 0
+  const signRr = Math.sign(rr)
+  const il2 = 1 / l2
   return (p) => {
-    if (l2 === 0 || a2 <= 0) return fallback(p)
-    const pa = sub(p, a)
-    const y = dot(pa, ba)
+    if (useFallback) return fallback(p)
+    const pax = p.x - a.x
+    const pay = p.y - a.y
+    const paz = p.z - a.z
+    const y = pax * bax + pay * bay + paz * baz
     const z = y - l2
-    const x = {
-      x: pa.x * l2 - ba.x * y,
-      y: pa.y * l2 - ba.y * y,
-      z: pa.z * l2 - ba.z * y,
-    }
-    const x2 = dot(x, x)
+    const xx = pax * l2 - bax * y
+    const xy = pay * l2 - bay * y
+    const xz = paz * l2 - baz * y
+    const x2 = xx * xx + xy * xy + xz * xz
     const y2 = y * y * l2
     const z2 = z * z * l2
-    const k = Math.sign(rr) * rr * rr * x2
-    const il2 = 1 / l2
+    const k = signRr * rr * rr * x2
     // Near the thin cap, near the thick cap, then the conical flank.
     if (Math.sign(z) * a2 * z2 > k) return Math.sqrt(x2 + z2) * il2 - r2
     if (Math.sign(y) * a2 * y2 < k) return Math.sqrt(x2 + y2) * il2 - r1
