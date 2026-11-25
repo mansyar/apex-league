@@ -193,3 +193,18 @@ field-reference repair were scratch-only.
 
 FR-1 and FR-2 are satisfied. NFR-9 has the required runtime, machine, corpus,
 command, sample counts, and wall-time identity recorded for future comparison.
+
+## Primary verification
+
+- Reviewed phase range `558e06eac2956dd0b58de62da64937cc949bc9b6..aca066b3`.
+- Six commits are conventional. The primary formatting commit `9b052c36` was not
+  reported by the phase executor, so the squash guard does not apply; all commits
+  are retained and the checkpoint is the final head.
+- `bun test --timeout 120000 packages/voxel/scripts/benchmark-voxelize.test.ts`
+  independently passed: 7 tests, 0 failures, 321 expect() calls.
+- The production-source diff remains empty, `git diff --check` exits 0, and the
+  tracked worktree is clean.
+- Authoritative baselines are 197.9614999999976 ms median `voxelize()` time and
+  130.7116318 s capped package-gate wall time.
+- Outcome: Phase 1 VERIFIED.
+
