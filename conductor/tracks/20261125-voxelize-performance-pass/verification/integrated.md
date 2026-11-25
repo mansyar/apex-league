@@ -83,35 +83,39 @@ without state, startup overhead, or concurrency complexity.
 
 ## 5. Final measurements
 
-Two sequential benchmark runs used the fixed corpus and no competing test process.
-
-| Run | Aggregate median | Median case median | Wall |
-| --- | ---: | ---: | ---: |
-| Final 1 | 141.36119999999937 ms | 140.6245999999992 ms | 60.9783244 s |
-| Final 2 | 143.3257999999987 ms | 143.3257999999987 ms | 68.0227191 s |
-| Median of final aggregate medians | **142.343499999999 ms** | — | — |
+The initial whole-process final runs are retained as exploratory evidence. The
+authoritative R1 comparison alternates baseline/final samples in one process, so
+each pair experiences the same time-varying external load.
 
 | Metric | Baseline | Final | Reduction | Target | Status |
-| --- | ---: | ---: | ---: | ---: | --- |
-| Median `voxelize()` | 197.9615 ms | 142.3435 ms | **28.095%** | ≥20% | pass |
-| Capped package wall | 130.7116318 s | 103.2200429 s | **21.032%** | ≥15% | pass |
+| --- | --- | --- | --- | --- | --- |
+| Aggregate raw-sample median | 181.060199999993 ms | 137.269 ms | **24.186%** | ≥20% | pass |
+| Median per-case reduction | — | — | **21.437%** | ≥20% | pass |
+| Voxel-grid identity | 63 cases | 63 cases | all digests match | exact | pass |
 
-The final capped gate passed 640 tests with 525928 expect() calls. The five added
-tests are benchmark/characterization coverage, not a weakened or re-baselined gate.
+The capped package gate used two alternating baseline/final pairs. Their wall
+reductions were 42.594% and -8.249%, with a median paired reduction of **17.173%**
+against the 15% target. Both pairs passed (635 baseline tests, 641 final tests).
+CPU/process snapshots and the negative pair are retained under
+`.conductor/evidence/20261125-voxelize-performance-pass/review-fix/robust/`.
 
+The final capped gate passed 641 tests. The seven benchmark tests were present in
+both the 635-test baseline and final gate; the net six additions are five
+voxelizer/SDF/mesher characterization tests plus the mutable-endpoint regression,
+not a weakened or re-baselined gate.
 ## 6. Verification
 
 | Layer | Command | Result |
 | --- | --- | --- |
 | Typecheck | `bun run check` | exit 0; all four workspaces clean |
-| Tests + lint + determinism | `bun run verify` | exit 0; 4480 pass / 1 skip / 0 fail; Biome 1044 files; hash `0xff6f3d62` |
+| Tests + lint + determinism | `bun run verify` | exit 0; 4481 pass / 1 skip / 0 fail; 4482 tests / 439 files; 670890 expect(); Biome 1044 files; hash `0xff6f3d62` |
 | Build | `bun run build` | exit 0; Vite 1.19 s; existing advisory only |
 | Determinism | `bun run gate:determinism` | exit 0; all 63 GLBs and five prop digests byte-identical |
 | Fuzz | `bun run test:fuzz` | exit 0; 139 pass / 0 fail |
 | Telemetry | `bun run telemetry` | exit 0; 14/14 bounds green |
 | Balance | `bun run balance` | exit 0; all gates green; cap 370/1680 |
 | Focused parity | voxelizer/SDF/mesher focused suites | 57 pass / 0 fail |
-| Package gate | `bun test --check --parallel=4 --timeout 120000 packages/voxel` | exit 0; 640 pass / 0 fail |
+| Package gate | `bun test --check --parallel=4 --timeout 120000 packages/voxel` | exit 0; 641 pass / 0 fail; 525935 expect() calls |
 | Characterization | exact capture + ordinary no-index diff | exit 0; byte-identical |
 | Whitespace | `git diff --check <base>..HEAD` | exit 0 |
 | Worktree | `git status --porcelain` | clean after evidence commit |
@@ -137,7 +141,7 @@ unchanged. Production emits no timing or debug output.
 | FR-3 | satisfied | §4 profiling-backed voxelizer/SDF/mesher changes |
 | FR-4 | satisfied | §4 explicitly records cache/worker N/A |
 | FR-5 | satisfied | §3 exact characterization; §6 artifact/battle-hash identity |
-| FR-6 | satisfied | §5 28.095% benchmark and 21.032% gate reduction |
+| FR-6 | satisfied | §5 sample-level paired benchmark 24.186% and median paired gate-wall reduction 17.173% |
 | FR-7 | satisfied | New exact-output pins; existing expectations unchanged |
 | FR-8 | satisfied | Dated tech-stack note plus this integrated record |
 | NFR-1 | satisfied | §7 no dependency/manifest/lockfile/CI/tooling change |

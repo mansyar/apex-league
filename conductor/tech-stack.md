@@ -28,13 +28,15 @@
   track is the accepted path below the original 10s target).*
 - *2026-11-25: `20261125-voxelize-performance-pass` delivered a semantics-preserving
   voxelize/SDF/mesher pass. Direct claimed-voxel emission removes the second grid
-  scan, scalar SDF arithmetic removes temporary vectors, and shared visible-face
-  slices remove repeated mesher scans. On the fixed 21-archetype × 3-stage seed-42
-  corpus, median `voxelize()` fell from 197.96 ms to 142.34 ms (28.10%); the capped
-  `packages/voxel` test wall fell from 130.71 s to 103.22 s (21.03%). Every voxel,
-  mesh, committed GLB/manifest, prop digest, mesh baseline, and battle hash remains
-  byte-identical. No cache or worker is used. Residual risk is timing variance from
-  machine load; the shipped pipeline has no timing or debug overhead.*
+  scan, scalar SDF arithmetic removes temporary vectors, smooth unions evaluate
+  each child once per sample, and shared visible-face slices remove repeated
+  mesher scans. On the fixed 21-archetype × 3-stage seed-42 corpus, a sample-level
+  paired benchmark measured median `voxelize()` falling from 181.06 ms to 137.27 ms
+  (24.19%); alternating package-gate pairs measured a 17.17% median wall reduction.
+  Every voxel, mesh, committed GLB/manifest, prop digest, mesh baseline, and battle
+  hash remains byte-identical. No cache or worker is used. Residual risk is timing
+  variance from machine load; paired measurements retain that context and the
+  shipped pipeline has no timing or debug overhead.*
 
 ## Client
 - **Build/dev server**: Vite (driven by Bun) — HMR, static output.

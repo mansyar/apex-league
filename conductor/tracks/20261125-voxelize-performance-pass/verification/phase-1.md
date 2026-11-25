@@ -87,6 +87,30 @@ The independent wall time is the Phase 1 timed-gate baseline for Phase 3.
 Raw evidence:
 `.conductor/evidence/20261125-voxelize-performance-pass/baseline/package-gate-primary.txt`.
 
+### R1 controlled baseline load context
+
+The initial baseline above was exploratory and did not retain a load snapshot.
+For the review-fix comparison, the untouched baseline was rerun in a detached
+worktree with the same Bun runtime, corpus, and harness. Two methods control the
+machine's variable external load:
+
+1. A sample-level paired harness imports baseline and final in one process and
+   alternates their order for every sample. Its authoritative baseline aggregate
+   median is **181.060199999993 ms**; the final is **137.269 ms**, a **24.186%**
+   reduction. All 63 voxel-grid digests match.
+2. Alternating whole-process package-gate pairs retain CPU/process snapshots.
+   Their per-pair wall reductions are 42.594% and -8.249%, for a median paired
+   reduction of **17.173%** against the 15% target.
+
+The first method is the authoritative benchmark comparison because adjacent
+baseline/final samples experience the same time-varying load. Raw evidence is
+under
+`.conductor/evidence/20261125-voxelize-performance-pass/review-fix/paired-inprocess.txt`
+and
+`.conductor/evidence/20261125-voxelize-performance-pass/review-fix/robust/`.
+Contaminated earlier attempts are retained there and excluded from claims. No
+external user process was terminated.
+
 ## Measured profile
 
 The corrected scratch profiler measured all 63 cases with one warm-up and three
@@ -205,6 +229,8 @@ command, sample counts, and wall-time identity recorded for future comparison.
 - The production-source diff remains empty. A trailing EOF blank introduced by
   the primary-verification append was normalized; git diff --check now exits 0,
   and the tracked worktree is clean.
-- Authoritative baselines are 197.9614999999976 ms median `voxelize()` time and
-  130.7116318 s capped package-gate wall time.
+- The Phase 1 exploratory baselines are 197.9614999999976 ms median `voxelize()`
+  time and 130.7116318 s capped package-gate wall time. The R1 addendum supersedes
+  them for final comparisons with sample-level paired benchmark and paired-gate
+  measurements under recorded load context.
 - Outcome: Phase 1 VERIFIED.

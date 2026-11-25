@@ -122,14 +122,14 @@ The primary appends after acceptance:
 - **Verification:** focused SDF/pipeline tests; exact repeated benchmark; capped package gate; `bun run verify`; `bun run build`; `bun run gate:determinism`; `bun run test:fuzz`; `bun run telemetry`; `bun run balance`; exact characterization diff; `git diff --check`; `git status --porcelain`
 - **Status:** in_progress
 
-- [ ] **R1.T1: Restore mutable-endpoint semantics and add regression coverage** — covers: F1, NFR-2, FR-7
-  - [ ] **R1.T1.1: Move `sdRoundCone` endpoint-derived invariants inside the returned callback** while retaining scalar arithmetic.
-  - [ ] **R1.T1.2: Add a regression that mutates endpoints across the fallback boundary** and compares against a freshly constructed SDF.
-- [ ] **R1.T2: Establish comparable recorded load conditions** — covers: F2, NFR-9, AC-3
-  - [ ] **R1.T2.1: Repeat the untouched baseline benchmark and capped gate under recorded low-load conditions** using the same machine, Bun, corpus, and command.
-  - [ ] **R1.T2.2: Repeat final benchmark and capped gate under the same recorded conditions** and update before/after tables and dated note.
-  - [ ] **R1.T2.3: If the controlled repeat falls below a frozen target, apply only an additional measured, byte-safe hot-loop optimization** without moving the target or changing outputs.
-- [ ] **R1.T3: Correct traceability and evidence wording** — covers: F3, F4
-  - [ ] **R1.T3.1: Correct Phase 2 checkpoint to `e85a1552`** and repair review-range references.
-  - [ ] **R1.T3.2: Correct the package test-count explanation** in Phase 3 and integrated evidence.
-  - [ ] **R1.T3.3: Run affected checks and commit `verification/phase-R1.md`** with final measurements, identity proof, and AC mapping.
+- [x] **R1.T1: Restore mutable-endpoint semantics and add regression coverage** — covers: F1, NFR-2, FR-7
+  - [x] **R1.T1.1: Move `sdRoundCone` endpoint-derived invariants inside the returned callback** while retaining scalar arithmetic.
+  - [x] **R1.T1.2: Add a regression that mutates endpoints across the fallback boundary** and compares against a freshly constructed SDF.
+- [x] **R1.T2: Establish comparable recorded load conditions** — covers: F2, NFR-9, AC-3
+  - [x] **R1.T2.1: Repeat the untouched baseline benchmark and capped gate under recorded low-load conditions** using the same machine, Bun, corpus, and command.
+  - [x] **R1.T2.2: Repeat final benchmark and capped gate under the same recorded conditions** and update before/after tables and dated note.
+  - [x] **R1.T2.3: If the controlled repeat falls below a frozen target, apply only an additional measured, byte-safe hot-loop optimization** without moving the target or changing outputs.
+- [x] **R1.T3: Correct traceability and evidence wording** — covers: F3, F4
+  - [x] **R1.T3.1: Correct Phase 2 checkpoint to `e85a1552`** and repair review-range references.
+  - [x] **R1.T3.2: Correct the package test-count explanation** in Phase 3 and integrated evidence.
+  - [x] **R1.T3.3: Run affected checks and commit `verification/phase-R1.md`** with final measurements, identity proof, and AC mapping.
