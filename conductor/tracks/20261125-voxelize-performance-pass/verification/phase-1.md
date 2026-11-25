@@ -5,70 +5,111 @@
 - Date: 2026-11-25
 - Branch: `chore/20261125-voxelize-performance-pass`
 - Phase base: `558e06eac2956dd0b58de62da64937cc949bc9b6`
-- Implementation head: `999341e5948e72b700b448e513f0555d95aa2cb9`
-- Result: **BLOCKED**
+- Implementation head: `51bc45074d03a83aa52125041da1d48abfe9ed4a`
+- Result: **BLOCKED — baseline captured; Biome verification and measured profile await primary execution**
 
 ## Summary
 
-The deterministic benchmark harness and focused tests were added without
-changing `packages/voxel/src`. The harness enumerates the public registry in
-order, covers all 21 archetypes across baby/juvenile/champion at seed 42, warms
-each case once, records five `voxelize()` samples, and emits the required stable
-JSON schema.
+The deterministic benchmark harness and focused tests are committed. The
+primary ran the exact benchmark and exact capped package gate successfully on
+the untouched production source, retaining both raw outputs and the independent
+gate wall time. The three Biome diagnostics were applied as formatting/import-
+only changes, and the focused tests plus workspace typecheck pass.
 
-Execution of the benchmark and the required Biome check was denied by the tool
-permission layer before either command ran. Consequently, no untouched
-baseline timings, timed package-gate baseline, or measured bottleneck can be
-claimed. Phase 1 must resume after the primary agent runs or authorizes those
-commands.
+Two required commands remain denied to this subagent's shell: the exact Biome
+check and the scratch stage-timing script. The profile script is prepared under
+the baseline evidence directory, but it has not executed. Phase 1 therefore
+cannot yet be marked VERIFIED or claim a measured bottleneck.
 
 ## Task status
 
 | Task | Status | Evidence |
 | --- | --- | --- |
-| P1.T1 — deterministic benchmark harness | Partial | Harness and seven tests pass; Biome verification blocked |
-| P1.T2 — untouched baseline timings | Partial | Correctness gate passed; benchmark and independent wall timing blocked |
-| P1.T3 — measured bottleneck | Blocked | No profiling run; code inspection is not accepted as measurement |
-| P1.T4 — baseline evidence commit | Partial | Harness committed; this blocked-phase report records the remaining work |
+| P1.T1 — deterministic benchmark harness | Partial | Harness/tests pass; formatting fixes applied; Biome rerun denied |
+| P1.T2 — untouched baseline timings | Done | Primary benchmark and independently timed capped gate retained |
+| P1.T3 — measured bottleneck | Blocked | Scratch profile script prepared; execution denied |
+| P1.T4 — baseline evidence commit | Partial | Harness, formatting, and this reconciliation committed; final verification pending |
 
 ## Command results
 
-All commands were invoked separately without pipes or `&&` chains.
+All commands were invoked separately without pipes or `&&` chains. The capped
+package gate was not rerun by this subagent.
 
 | Command | Exit | Result |
 | --- | --- | --- |
-| `bun packages/voxel/scripts/benchmark-voxelize.ts` | n/a | Permission denied before execution |
+| `bun packages/voxel/scripts/benchmark-voxelize.ts` | 0 | Primary run; raw JSON retained |
 | `bun test --timeout 120000 packages/voxel/scripts/benchmark-voxelize.test.ts` | 0 | 7 passed, 0 failed |
-| `bun test --check --parallel=4 --timeout 120000 packages/voxel` | 0 | 635 passed, 0 failed; runner reported 107.17 s |
+| `bun test --check --parallel=4 --timeout 120000 packages/voxel` | 0 | Primary timed run; 635 passed, 0 failed |
 | `bun run check` | 0 | All workspace type checks passed |
-| `bunx biome check packages/voxel/scripts/benchmark-voxelize.ts packages/voxel/scripts/benchmark-voxelize.test.ts` | n/a | Permission denied before execution |
+| `bunx biome check packages/voxel/scripts/benchmark-voxelize.ts packages/voxel/scripts/benchmark-voxelize.test.ts` | n/a | Subagent rerun denied; primary's pre-fix run found three formatting/import diagnostics |
 | `git diff --quiet 10af88e843af49ce8ae5657093265a0f8fbf2432..HEAD -- packages/voxel/src` | 0 | No production-source diff |
 | `git diff --check 10af88e843af49ce8ae5657093265a0f8fbf2432..HEAD` | 0 | No whitespace errors |
-| `git status --porcelain` | 0 | Clean at implementation head `999341e5` before this report was added |
-
-The 107.17 s package-test duration is the Bun runner's reported test time, not
-an independently measured wall-clock baseline. It must not be used as the
-P1.T2 timed-gate result.
+| `git status --porcelain` | 0 | Clean at implementation head `51bc4507` before this report was added |
+| `bun .conductor/evidence/20261125-voxelize-performance-pass/baseline/profile-voxelize.ts` | n/a | Permission denied before execution |
 
 ## Baseline numbers
 
+### Fixed-corpus `voxelize()` benchmark
+
 | Metric | Value |
 | --- | --- |
+| Timestamp | `2026-11-25T02:31:07.957Z` |
+| Runtime | Bun 1.4.4, win32, x64 |
+| Machine | 20 logical CPUs, 12th Gen Intel Core i9-12900HK, 34,045,304,832 bytes RAM |
 | Fixed corpus | 21 archetypes × 3 stages = 63 cases |
 | Seed | 42 |
 | Warm-up runs per case | 1 |
 | Measured samples per case | 5 |
-| Expected raw sample count | 315 |
-| Aggregate `voxelize()` median | Not captured — benchmark command denied |
-| Median of per-case medians | Not captured — benchmark command denied |
-| Timed capped package gate | Not captured — no independent wall-clock timing |
+| Raw samples | 315 |
+| Aggregate raw-sample median | 197.9614999999976 ms |
+| Median of per-case medians | 200.20379999999932 ms |
+| Total sample time | 73,305.5831 ms |
+
+Raw evidence:
+`.conductor/evidence/20261125-voxelize-performance-pass/baseline/benchmark-primary.txt`.
+
+### Capped voxel-package gate
+
+| Metric | Value |
+| --- | --- |
+| Exact command | `bun test --check --parallel=4 --timeout 120000 packages/voxel` |
+| Exit | 0 |
+| Tests | 635 passed, 0 failed |
+| Expect calls | 525,887 |
+| Files | 174 |
+| Bun runner duration | 130.38 s |
+| Independent wall time | 130.7116318 s |
+
+The independent wall time is the Phase 1 timed-gate baseline for Phase 3.
+Raw evidence:
+`.conductor/evidence/20261125-voxelize-performance-pass/baseline/package-gate-primary.txt`.
 
 ## Profile findings
 
-No measured hotspot is available. The required benchmark invocation was denied,
-so scratch stage instrumentation was not run and no CPU/stage timing evidence
-was produced. The production pipeline was inspected only to design the harness;
-those observations are deliberately not reported as a profiling result.
+No measured profile is available yet. The scratch script
+`.conductor/evidence/20261125-voxelize-performance-pass/baseline/profile-voxelize.ts`
+is ready to time generation, `voxelize()`, and mesher/AO across the same 63-case
+corpus with one warm-up and three samples per case. It also wraps each part SDF
+with a call counter. Its output target is `profile-voxelize.json`.
+
+The script invocation was denied before execution, so no stage medians, stage
+shares, SDF call counts, or measured hotspot can be reported. Code inspection
+and the benchmark's overall `voxelize()` timing are not substituted for the
+required scratch profile.
+
+## Formatting reconciliation
+
+The primary's three diagnostics were addressed without semantic changes:
+
+1. Benchmark test imports now place `BENCHMARK_SCHEMA_VERSION` and
+   `BENCHMARK_SEED` before the imported benchmark types.
+2. The `createBenchmarkReport(...)` call and both long `toThrow(...)` calls are
+   wrapped across lines.
+3. The empty-sample `median()` throw and `cases.map(...)` callback block are
+   reformatted.
+
+Focused tests and workspace typecheck pass after these changes. A successful
+exact Biome rerun is still required before Phase 1 can be VERIFIED.
 
 ## Harness contract
 
@@ -82,7 +123,6 @@ those observations are deliberately not reported as a profiling result.
 - Aggregate raw-sample median, median of case medians, and total sample time
 
 Generation and report construction are outside the timed region. The harness
-has no production imports beyond the public generator/voxelizer surface and
 adds no logging to shipped generator code.
 
 `packages/voxel/scripts/benchmark-voxelize.test.ts` pins the exact registry order,
@@ -96,16 +136,18 @@ assertions.
 Raw scratch evidence is ignored by Git and retained under
 `.conductor/evidence/20261125-voxelize-performance-pass/baseline/`:
 
+- `benchmark-primary.txt`
+- `package-gate-primary.txt`
+- `profile-voxelize.ts`
+- `profile-command.log`
 - `blocked-commands.json`
-- `benchmark-command.log`
 - `biome-command.log`
 - `harness-tests.log`
-- `package-gate.log`
 - `check.log`
 - `source-unchanged.log`
 - `diff-check.log`
-
-The final post-commit source/diff/status checks are also retained there.
+- `git-status.log`
+- `final-verification.json`
 
 ## Deviations
 
@@ -117,23 +159,15 @@ baselines, or prop digests were changed.
 
 | Criterion | Status | Mapping |
 | --- | --- | --- |
-| AC-1 — repeatable baseline and before/after measurement | Partial | Harness/schema/tests exist, but the benchmark could not execute and no baseline JSON was captured |
-| AC-2 — profiling-backed bottleneck record | Not met | No measured profile or stage timing was produced |
+| AC-1 — repeatable baseline and before/after measurement | Met | Fixed-corpus raw benchmark and independently timed capped gate are retained |
+| AC-2 — profiling-backed bottleneck record | Not met | Scratch profile execution is blocked; no measured hotspot is available |
 
-FR-1 and FR-2 are likewise only partially satisfied: the measurement mechanism
-is implemented, but the baseline and measured hotspot records are absent.
-NFR-9 comparability cannot be established until same-machine repeated baseline
-runs are retained.
+FR-1 and FR-2 are satisfied for baseline capture. NFR-9 has the required runtime,
+machine, corpus, command, and wall-time identity recorded for future comparison.
 
-## Resume notes
+## Remaining work
 
-1. Run or authorize `bun packages/voxel/scripts/benchmark-voxelize.ts`; retain
-   the complete JSON as raw baseline evidence. The harness also supports
-   `--output <path>` for an exact raw capture.
-2. Run or authorize the exact Biome command and resolve any diagnostics.
-3. Time the exact capped package gate under comparable load and retain stdout
-   plus elapsed wall time.
-4. Add scratch-only stage/CPU profiling under the baseline evidence directory
-   and record at least one measured hotspot.
-5. Update this report with the baseline numbers, profile finding, final head,
-   and AC-1/AC-2 results before marking Phase 1 complete.
+1. Primary runs `bunx biome check packages/voxel/scripts/benchmark-voxelize.ts packages/voxel/scripts/benchmark-voxelize.test.ts` and confirms exit 0.
+2. Primary runs `bun .conductor/evidence/20261125-voxelize-performance-pass/baseline/profile-voxelize.ts` and retains `profile-voxelize.json`.
+3. Record the measured stage hotspot, successful Biome result, and final head;
+   then change this report's result to VERIFIED.
