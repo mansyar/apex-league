@@ -84,7 +84,7 @@
   gitignored `.conductor/evidence/20261126-stage-scaled-animation-ranch-profiles/`
 - **Verification:** `bun run verify && bun run build` plus `playwright-cli`
   desktop 1440×900 and iPhone 15 393×852 captures with clean console.
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Capture and inspect visual evidence** — covers: FR-6, AC-6
   - [ ] **P3.T1.1:** Drive real ranch baby/champion partners and a stage-
