@@ -14,7 +14,7 @@
 - **Covers:** FR-1, FR-2, FR-3, FR-4, AC-1, AC-2, AC-6, NFR-1, NFR-3
 - **Touches:** `conductor/product.md`, `docs/save-schema.md`
 - **Verification:** `bun run verify && bun run build` (doc truth check recorded in evidence)
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Pin the doc truth baseline** — covers: FR-1, FR-2, FR-3, FR-4, AC-6
   - [ ] **P1.T1.1:** Record the current statements in `conductor/product.md` and `docs/save-schema.md` about stable capacity, active partner, and lifecycle.
