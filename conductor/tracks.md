@@ -65,3 +65,4 @@
 - [x] **Track: Controller Cadence Resonance Diagnostic** — [20261124-controller-cadence-resonance-diagnostic](./archive/20261124-controller-cadence-resonance-diagnostic/index.md) — chore — medium
 - [x] **Track: Save Schema Creature Fields** — [20261124-save-schema-creature-fields](./archive/20261124-save-schema-creature-fields/index.md) — chore — medium
 - [x] **Track: Boss Discovery Balance Probes** — [20261124-boss-discovery-balance-probes](./archive/20261124-boss-discovery-balance-probes/index.md) — chore — medium
+- [ ] **Track: Voxelize Performance Pass** — [20261125-voxelize-performance-pass](./tracks/20261125-voxelize-performance-pass/index.md) — chore — medium
