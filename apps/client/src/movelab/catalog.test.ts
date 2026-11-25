@@ -16,7 +16,9 @@ describe("movelab catalog", () => {
   it("lists every shipped MOVE_FX row exactly once", () => {
     const ids = new Set(labMoveIds())
     for (const id of Object.keys(MOVE_FX)) {
-      expect(ids.has(id)).toBe(true)
+      // The innate Strike is authored outside the 48 kit moves: it has no
+      // element, so it never appears in the lab's element groups.
+      expect(ids.has(id) || id === "basic").toBe(true)
     }
   })
 

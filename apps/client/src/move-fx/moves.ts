@@ -1,4 +1,5 @@
 import { PROJECTILE_LIFE_MS } from "./looks"
+import { BASIC_FX } from "./moves/basic"
 import { EARTH_FX } from "./moves/earth"
 import { ELECTRIC_FX } from "./moves/electric"
 import { fallbackFor } from "./moves/fallback"
@@ -120,8 +121,11 @@ export interface MoveFx {
  * table owns that element's rows and this record only assembles them, so the
  * element seam is also the size seam. All 48 catalog specials are bespoke
  * (elemental-identity track); unknown ids fall back to their element body.
+ * The innate Strike is element-less, so its authored row sits alongside the
+ * six element tables rather than inside one of them.
  */
 export const MOVE_FX: Record<string, MoveFx> = {
+  ...BASIC_FX,
   ...FIRE_FX,
   ...WATER_FX,
   ...PLANT_FX,
