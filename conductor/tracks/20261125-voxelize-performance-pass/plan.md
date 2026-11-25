@@ -86,7 +86,7 @@ The primary appends after acceptance:
 - **Covers:** FR-6, FR-8, AC-3, AC-4, AC-6, AC-7, AC-8, AC-9, AC-10, NFR-1, NFR-6, NFR-7, NFR-9
 - **Touches:** `conductor/tech-stack.md`, `conductor/tracks/20261125-voxelize-performance-pass/verification/phase-3.md`, `conductor/tracks/20261125-voxelize-performance-pass/verification/integrated.md`, `.conductor/evidence/20261125-voxelize-performance-pass/final/**`
 - **Verification:** `bun packages/voxel/scripts/benchmark-voxelize.ts`; `bun test --check --parallel=4 --timeout 120000 packages/voxel`; `bun run verify`; `bun run build`; `bun run gate:determinism`; `bun run test:fuzz`; `bun run telemetry`; `bun run balance`; `git diff --check 10af88e843af49ce8ae5657093265a0f8fbf2432..HEAD`; `git status --porcelain`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Prove the performance targets** — covers: FR-6
   - [ ] **P3.T1.1: Re-run the fixed benchmark** under comparable conditions and calculate median reduction against Phase 1.
