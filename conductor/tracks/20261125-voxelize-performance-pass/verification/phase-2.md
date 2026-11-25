@@ -226,3 +226,18 @@ resolution, palette, rig, or product/Conductor state file was changed.
   AO, winding, and artifact identity checks cover the full corpus.
 
 Outcome: **Phase 2 VERIFIED**.
+
+## Primary verification
+
+- Ran the fixed-corpus benchmark independently: aggregate median
+  123.05219999999827 ms, a 37.836% reduction from 197.9614999999976 ms.
+- Independently timed the exact capped voxel-package gate: 640 passed, 0 failed,
+  525928 expect() calls, Bun 78.14s, wall 78.4396797s. This is a 39.989% reduction
+  from the 130.7116318s baseline.
+- Independently passed typecheck, the 57-test focused parity suite, and Biome over
+  all 12 allowed source/test/benchmark files.
+- Reran the exact characterization capture and proved an ordinary no-index diff
+  against the retained baseline exits 0 with no output.
+- Normalized a trailing EOF blank in the previously accepted Phase 1 evidence so
+  the full-range `git diff --check` is clean.
+- Outcome: Phase 2 VERIFIED; no caches or workers were introduced.

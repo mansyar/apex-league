@@ -202,9 +202,9 @@ command, sample counts, and wall-time identity recorded for future comparison.
   are retained and the checkpoint is the final head.
 - `bun test --timeout 120000 packages/voxel/scripts/benchmark-voxelize.test.ts`
   independently passed: 7 tests, 0 failures, 321 expect() calls.
-- The production-source diff remains empty, `git diff --check` exits 0, and the
-  tracked worktree is clean.
+- The production-source diff remains empty. A trailing EOF blank introduced by
+  the primary-verification append was normalized; git diff --check now exits 0,
+  and the tracked worktree is clean.
 - Authoritative baselines are 197.9614999999976 ms median `voxelize()` time and
   130.7116318 s capped package-gate wall time.
 - Outcome: Phase 1 VERIFIED.
-
