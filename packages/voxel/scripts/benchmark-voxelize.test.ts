@@ -192,9 +192,9 @@ describe("voxelize benchmark report", () => {
     if (!first) throw new Error("missing first measurement")
     measurements[0] = { ...first, samplesMs: [1, 2, 3, 4] }
 
-    expect(() =>
-      createBenchmarkReport(corpus, measurements, CONTEXT),
-    ).toThrow("sample count")
+    expect(() => createBenchmarkReport(corpus, measurements, CONTEXT)).toThrow(
+      "sample count",
+    )
   })
 })
 
@@ -214,12 +214,8 @@ describe("benchmark timing summaries", () => {
   test("rejects empty, non-finite, and negative samples", () => {
     expect(() => median([])).toThrow("at least one sample")
     expect(() =>
-      summarizeSamples([1, Number.NaN, 3]).toThrow(
-        "finite non-negative",
-      ),
+      summarizeSamples([1, Number.NaN, 3]).toThrow("finite non-negative"),
     )
-    expect(() =>
-      summarizeSamples([1, -1, 3]).toThrow("finite non-negative"),
-    )
+    expect(() => summarizeSamples([1, -1, 3]).toThrow("finite non-negative"))
   })
 })
