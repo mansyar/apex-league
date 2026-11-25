@@ -77,7 +77,7 @@ The primary appends after acceptance:
 -->
 
 **Result:** verified
-**Checkpoint:** e95a1552
+**Checkpoint:** e85a1552
 **Evidence:** conductor/tracks/20261125-voxelize-performance-pass/verification/phase-2.md
 ## Phase 3: Final verification, documentation, and integrated evidence
 
@@ -118,7 +118,7 @@ The primary appends after acceptance:
 - **Goal:** Resolve F1–F4 without changing output bytes or moving either performance target.
 - **Depends on:** Phase 3
 - **Covers:** F1, F2, F3, F4
-- **Touches:** `packages/voxel/src/sdf.ts`, `packages/voxel/src/sdf.test.ts`, `conductor/tracks/20261125-voxelize-performance-pass/plan.md`, `conductor/tracks/20261125-voxelize-performance-pass/verification/phase-1.md`, `conductor/tracks/20261125-voxelize-performance-pass/verification/phase-3.md`, `conductor/tracks/20261125-voxelize-performance-pass/verification/integrated.md`, `conductor/tracks/20261125-voxelize-performance-pass/verification/phase-R1.md`, `conductor/tech-stack.md`, `.conductor/evidence/20261125-voxelize-performance-pass/review-fix/**`
+- **Touches:** `packages/voxel/src/voxelizer.ts`, `packages/voxel/src/sdf.ts`, `packages/voxel/src/sdf.test.ts`, `conductor/tracks/20261125-voxelize-performance-pass/plan.md`, `conductor/tracks/20261125-voxelize-performance-pass/verification/phase-1.md`, `conductor/tracks/20261125-voxelize-performance-pass/verification/phase-3.md`, `conductor/tracks/20261125-voxelize-performance-pass/verification/integrated.md`, `conductor/tracks/20261125-voxelize-performance-pass/verification/phase-R1.md`, `conductor/tech-stack.md`, `.conductor/evidence/20261125-voxelize-performance-pass/review-fix/**`
 - **Verification:** focused SDF/pipeline tests; exact repeated benchmark; capped package gate; `bun run verify`; `bun run build`; `bun run gate:determinism`; `bun run test:fuzz`; `bun run telemetry`; `bun run balance`; exact characterization diff; `git diff --check`; `git status --porcelain`
 - **Status:** in_progress
 
@@ -128,6 +128,7 @@ The primary appends after acceptance:
 - [ ] **R1.T2: Establish comparable recorded load conditions** — covers: F2, NFR-9, AC-3
   - [ ] **R1.T2.1: Repeat the untouched baseline benchmark and capped gate under recorded low-load conditions** using the same machine, Bun, corpus, and command.
   - [ ] **R1.T2.2: Repeat final benchmark and capped gate under the same recorded conditions** and update before/after tables and dated note.
+  - [ ] **R1.T2.3: If the controlled repeat falls below a frozen target, apply only an additional measured, byte-safe hot-loop optimization** without moving the target or changing outputs.
 - [ ] **R1.T3: Correct traceability and evidence wording** — covers: F3, F4
   - [ ] **R1.T3.1: Correct Phase 2 checkpoint to `e85a1552`** and repair review-range references.
   - [ ] **R1.T3.2: Correct the package test-count explanation** in Phase 3 and integrated evidence.
