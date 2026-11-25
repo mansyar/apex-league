@@ -34,6 +34,7 @@ export const downStep: StepRunner = (step, instant, side, _o, _r, io) => {
     return
   }
   if (step.ko === true) {
+    const koSpec = reactionFor("ko", side.actor.profile)
     let thudded = false
     io.startAction(
       (t, ao) => {
@@ -42,7 +43,7 @@ export const downStep: StepRunner = (step, instant, side, _o, _r, io) => {
         if (f.fall > 0) ao.fall = f.fall
         if (f.thud && !thudded) {
           thudded = true
-          impulse(io, ao, spec.impulse)
+          impulse(io, ao, koSpec.impulse)
           io.effects.spawnBurst(ao.group.position, step.element, DUST_RING)
         }
       },

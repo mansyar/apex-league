@@ -377,7 +377,13 @@ for (const p of Object.values(PROFILES)) Object.freeze(p)
  * it must agree with the sim's far/near semantics, not a species'
  * personality.
  */
-export type ReactionKind = "glance" | "stagger" | "knockback" | "dodge" | "down"
+export type ReactionKind =
+  | "glance"
+  | "stagger"
+  | "knockback"
+  | "dodge"
+  | "down"
+  | "ko"
 
 /** One reaction's choreography, resolved for a specific body. */
 export interface ReactionSpec {
@@ -435,6 +441,15 @@ const REACTION_BASES: Record<ReactionKind, ReactionBase> = {
     impulse: 0.9,
     reel: 0.7,
     reelPitch: 0,
+    slide: 0,
+    dash: 0,
+    weight: "hurt",
+  },
+  // The terminal blow: a heavier hurt-weighted landing than a soft down.
+  ko: {
+    impulse: 1.5,
+    reel: 0.85,
+    reelPitch: 0.3,
     slide: 0,
     dash: 0,
     weight: "hurt",
