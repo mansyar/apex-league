@@ -36,14 +36,17 @@
 - **Covers:** FR-5, FR-6, AC-3, AC-4, AC-5, AC-7, NFR-2, NFR-4
 - **Touches:** `conductor/tracks/20261126-stable-capacity-ranch-release/verification/phase-1.md`, `conductor/tracks/20261126-stable-capacity-ranch-release/verification/integrated.md`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** `208ddff0`
+- **Evidence:** `conductor/tracks/20261126-stable-capacity-ranch-release/verification/integrated.md`
 
-- [ ] **P2.T1: Record the decision and doc truth evidence** — covers: FR-5, AC-3, AC-4, AC-6
-  - [ ] **P2.T1.1:** Write the revisit trigger and roadmap-only follow-up policy into evidence.
-  - [ ] **P2.T1.2:** Show the final diff touched only Conductor state and the two approved docs; no sim/client/server/save/generated change.
-- [ ] **P2.T2: Run the integrated gate** — covers: FR-6, AC-5, AC-7, NFR-2, NFR-4
-  - [ ] **P2.T2.1:** Run `bun run verify && bun run build` and record typecheck, tests, Biome, determinism, module-size, and build results.
-  - [ ] **P2.T2.2:** Write `verification/integrated.md` mapping AC-1..AC-7 to evidence.
+- [x] **P2.T1: Record the decision and doc truth evidence** — covers: FR-5, AC-3, AC-4, AC-6
+  - [x] **P2.T1.1:** Write the revisit trigger and roadmap-only follow-up policy into evidence.
+  - [x] **P2.T1.2:** Show the final diff touched only Conductor state and the two approved docs; no sim/client/server/save/generated change.
+- [x] **P2.T2: Run the integrated gate** — covers: FR-6, AC-5, AC-7, NFR-2, NFR-4
+  - [x] **P2.T2.1:** Run `bun run verify && bun run build` and record typecheck, tests, Biome, determinism, module-size, and build results.
+  - [x] **P2.T2.2:** Write `verification/integrated.md` mapping AC-1..AC-7 to evidence.
 
 <!--
 Review fixes, if any, are appended by `conductor-review` as:
