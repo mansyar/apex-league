@@ -67,3 +67,4 @@
 - [x] **Track: Boss Discovery Balance Probes** — [20261124-boss-discovery-balance-probes](./archive/20261124-boss-discovery-balance-probes/index.md) — chore — medium
 - [x] **Track: Voxelize Performance Pass** — [20261125-voxelize-performance-pass](./archive/20261125-voxelize-performance-pass/index.md) — chore — medium
 - [x] **Track: Author Basic Strike identity and KO/down impact weighting** — [20261125-basic-strike-identity-impact](./archive/20261125-basic-strike-identity-impact/index.md) — feature — low
+- [x] **Track: Adopt stage-scaled animation and ranch body profiles** - [20261126-stage-scaled-animation-ranch-profiles](./archive/20261126-stage-scaled-animation-ranch-profiles/index.md) - feature - medium

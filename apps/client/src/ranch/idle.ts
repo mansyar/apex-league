@@ -6,6 +6,7 @@ import {
 } from "../scene-logic"
 import type { MoodProfile } from "./mood"
 import { applyGait } from "./poses"
+import { NEUTRAL_MOTION_FACTORS, type RanchMotionFactors } from "./profile"
 import type { RanchState } from "./state"
 
 /** How deep the nibble head-dips go (in the head pivot's local units —
@@ -28,6 +29,7 @@ export function updateIdle(
   dt: number,
   pd: PlayDrive,
   profile: MoodProfile,
+  factors: RanchMotionFactors = NEUTRAL_MOTION_FACTORS,
 ): boolean {
   const creature = s.creatureGroup
   if (!creature) return false
@@ -99,26 +101,36 @@ export function updateIdle(
         drive.targetZ - creature.position.z,
       )
     : 0
+  // The gait clock reads a retimed `t`; its sampled curve and the machine
+  // that owns x/z/yaw are otherwise identical for every factor.
   applyGait(
     creature,
-    gaitPose(t, gaitIntensity(traveling, remaining), s.reducedMotion),
+    gaitPose(
+      t * factors.tempo,
+      gaitIntensity(traveling, remaining),
+      s.reducedMotion,
+    ),
+    factors,
   )
   const head = s.rigParts.head
   if (wd.phase === "nibble" && head) {
     // 2–3 gentle head-dips toward the pile over the existing pivot.
-    head.position.y -= wd.dipOffset * DIP_DEPTH
+    head.position.y -= wd.dipOffset * DIP_DEPTH * factors.amplitude
   }
   if (s.playActive && pd.phase === "celebrate") {
     // Celebrate hop: three quick in-place hops over the machine's
     // bounce envelope — the walk/wander idles underneath stay flat.
-    creature.position.y = pd.bounce * PLAY_BOUNCE_HEIGHT
+    creature.position.y = pd.bounce * PLAY_BOUNCE_HEIGHT * factors.amplitude
   } else if (
     !s.reducedMotion &&
     drive.phase === "idle" &&
     !wandDrive &&
     profile.bounce > 0
   ) {
-    creature.position.y = Math.abs(Math.sin(t * 3.2)) * profile.bounce
+    creature.position.y =
+      Math.abs(Math.sin(t * 3.2 * factors.tempo)) *
+      profile.bounce *
+      factors.amplitude
   } else {
     creature.position.y = 0
   }

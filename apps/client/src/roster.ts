@@ -2,11 +2,11 @@ import type { LifeStage } from "@apex/sim"
 import { generate } from "@apex/voxel"
 import * as THREE from "three"
 import { bodyScaleFor } from "./arena-scale"
-import { profileFor } from "./choreo"
 import { applyBranchTint, buildCreatureGroup } from "./creature"
 import { findEyes } from "./face-motion"
 import type { DriveFighter } from "./fighter-driver"
 import { disposeObject3D, lambertMaterialOf } from "./scene-utils"
+import { composeStageProfile } from "./stage-motion"
 
 /** Canonical home-slot x for a cast fighter, mirrored by `away`. */
 export const HOME_X = 2.6
@@ -80,7 +80,7 @@ export function buildSpot(
     away,
     down: false,
     baseColors: new Map(),
-    profile: profileFor(info.archetypeId),
+    profile: composeStageProfile(info.archetypeId, info.stage),
     stage: new THREE.Vector3(HOME_X * away, 0, 0),
     smooth: new THREE.Vector3(HOME_X * away, 0, 0),
     velocity: new THREE.Vector3(),

@@ -373,6 +373,23 @@
   authored gatekeeper must reach its stage and be fought for real, which is
   why every refreshed pairing was also played end-to-end in the browser.*
 
+-   *2026-11-26 — Stage-scaled animation and ranch body profiles (track
+   `20261126-stage-scaled-animation-ranch-profiles`): the `choreo.ts`
+   `BodyProfile` table is now the single profile source for both battle
+   surfaces. `apps/client/src/stage-motion.ts` composes
+   `profileFor(archetype) × stageScale(stage)` for arena **presentation
+   amplitudes only** (frequencies and `bodyScaleFor` physical footprint stay
+   verbatim; a missing `CastInfo.stage` is neutral `1`).
+   `apps/client/src/ranch/profile.ts` derives stateless amplitude/tempo
+   factors per frame from the same table, the existing stage ladder and the
+   calm/reduced-motion flag, multiplying authored ceremony poses and pose
+   clocks in feed/rest/treat/play/pet/evolution/morning-after — triggers,
+   order, callbacks, machine `dt`, scale journeys and audio cue ids are
+   untouched. `ranch/mount.ts` now records the rig archetype on rebuild so
+   mid-ceremony swaps read the right identity. Client-only; no dependency,
+   save-schema, voxel/determinism-hash, sim-payload or audio change; desktop/
+   iPhone captures record ranch and arena contrast.*
+
 ## Server
 - **Framework**: ElysiaJS on Bun, in `apps/server` (endpoints: trainer
   identity, save sync, leaderboards, ghost data — the last two landed

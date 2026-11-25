@@ -20,6 +20,7 @@ import {
   applyRestPose,
   applyTreatPose,
 } from "./poses"
+import { ranchMotionFactors } from "./profile"
 import type { RanchState } from "./state"
 
 /**
@@ -65,12 +66,21 @@ export function updateRanch(
   const profile = MOOD_PROFILES[s.mode]
   const creatureGroup = s.creatureGroup
   if (ranchActive && creatureGroup) {
+    // Derived here, on every frame, from the live rig identity — never
+    // cached on the state or the module. Every pose writer in this frame
+    // receives the same pair, so amplitude and tempo stay coherent.
+    let factors = ranchMotionFactors(
+      s.archetypeId,
+      s.currentStage,
+      s.reducedMotion,
+    )
     const breath = applyBreath(
       s.rigParts,
       t,
       profile,
       s.restActive,
       s.headBaseY,
+      factors,
     )
     // Evolution ceremony (spec R5): while active it owns the creature's
     // pose, scale, and glow outright — the feed walk and the wanderer
@@ -105,6 +115,13 @@ export function updateRanch(
         const swap = s.evolutionSwap
         s.evolutionSwap = null
         rebuild(s, swap.archetypeId, swap.seed, swap.stage, swap.branch)
+        // The rig just changed archetype/stage mid-ceremony: re-derive
+        // before any later writer in this frame can use a stale factor.
+        factors = ranchMotionFactors(
+          s.archetypeId,
+          s.currentStage,
+          s.reducedMotion,
+        )
       }
       evoGait = evo.phase === "walk" && !evo.pivoting
     }
@@ -140,6 +157,7 @@ export function updateRanch(
           s.archetypeId,
           md,
           s.headBaseY,
+          factors,
         )
       } else {
         if (
@@ -154,11 +172,18 @@ export function updateRanch(
         // Rest (FR3) and treat (FR4) ceremonies: while either is active it
         // owns the creature's pose — walk and wander stay parked.
         if (s.restActive) {
-          applyRestPose(creatureGroup, s.rigParts, rd, breath, s.headBaseY)
+          applyRestPose(
+            creatureGroup,
+            s.rigParts,
+            rd,
+            breath,
+            s.headBaseY,
+            factors,
+          )
         } else if (s.treatActive) {
-          applyTreatPose(creatureGroup, s.rigParts, td, s.headBaseY)
+          applyTreatPose(creatureGroup, s.rigParts, td, s.headBaseY, factors)
         } else {
-          away = away || updateIdle(s, t, dt, pd, profile)
+          away = away || updateIdle(s, t, dt, pd, profile, factors)
         }
         // The day tint (FR-3): the retired latch writes zeros — every
         // morning-after move returns to rest the frame after the night
@@ -185,12 +210,16 @@ export function updateRanch(
         !s.playActive
       ) {
         s.petTime += dt
-        applyPetPose(creatureGroup, s.rigParts, petD, s.petTime)
+        applyPetPose(creatureGroup, s.rigParts, petD, s.petTime, factors)
       }
     } else {
       // During the ceremony the legs stride only on the walk phase; the
       // glow/settle phases hold the pose. The holder sits on the ground.
-      applyGait(creatureGroup, gaitPose(t, evoGait ? 1 : 0, s.reducedMotion))
+      applyGait(
+        creatureGroup,
+        gaitPose(t * factors.tempo, evoGait ? 1 : 0, s.reducedMotion),
+        factors,
+      )
       creatureGroup.position.y = 0
     }
     // Face idle: the lid and the eye-only glance. Reduced motion keeps
