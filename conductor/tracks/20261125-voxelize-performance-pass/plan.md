@@ -120,7 +120,7 @@ The primary appends after acceptance:
 - **Covers:** F1, F2, F3, F4
 - **Touches:** `packages/voxel/src/sdf.ts`, `packages/voxel/src/sdf.test.ts`, `conductor/tracks/20261125-voxelize-performance-pass/plan.md`, `conductor/tracks/20261125-voxelize-performance-pass/verification/phase-1.md`, `conductor/tracks/20261125-voxelize-performance-pass/verification/phase-3.md`, `conductor/tracks/20261125-voxelize-performance-pass/verification/integrated.md`, `conductor/tracks/20261125-voxelize-performance-pass/verification/phase-R1.md`, `conductor/tech-stack.md`, `.conductor/evidence/20261125-voxelize-performance-pass/review-fix/**`
 - **Verification:** focused SDF/pipeline tests; exact repeated benchmark; capped package gate; `bun run verify`; `bun run build`; `bun run gate:determinism`; `bun run test:fuzz`; `bun run telemetry`; `bun run balance`; exact characterization diff; `git diff --check`; `git status --porcelain`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Restore mutable-endpoint semantics and add regression coverage** — covers: F1, NFR-2, FR-7
   - [ ] **R1.T1.1: Move `sdRoundCone` endpoint-derived invariants inside the returned callback** while retaining scalar arithmetic.
