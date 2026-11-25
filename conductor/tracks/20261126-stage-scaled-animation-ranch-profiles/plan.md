@@ -18,7 +18,7 @@
   `apps/client/src/stage-motion.test.ts`, `apps/client/src/roster.ts`,
   `apps/client/src/roster.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/stage-motion.test.ts apps/client/src/roster.test.ts`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Pin the arena stage-profile contract** — covers: FR-1, AC-1
   - [ ] **P1.T1.1:** Table-test every archetype × baby/juvenile/champion;
