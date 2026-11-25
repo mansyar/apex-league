@@ -102,9 +102,10 @@ changed.
 
 ## Doc sync
 
-`pending` at review time — a dated `conductor/tech-stack.md` note already records
-the shared profile, arena amplitude composer, ranch amplitude/tempo adapter, calm
-damping and unchanged freeze lines; the post-review sync marks it `updated`.
+`updated` — a dated `conductor/tech-stack.md` note records the shared profile,
+arena amplitude composer, ranch amplitude/tempo adapter, calm damping and
+unchanged freeze lines. No product or guideline change was needed, so no
+additional verification layer was affected.
 
 ## History
 
