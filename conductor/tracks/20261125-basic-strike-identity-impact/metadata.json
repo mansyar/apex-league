@@ -6,7 +6,7 @@
   "priority": "low",
   "depends_on": [],
   "created_at": "2026-11-25T19:57:17.5244858+11:00",
-  "updated_at": "2026-11-25T21:49:35.3652241+11:00",
+  "updated_at": "2026-11-25T22:12:15.2689681+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "feat/20261125-basic-strike-identity-impact",
@@ -15,10 +15,10 @@
   "progress": {
     "phases_total": 3,
     "phases_verified": 3,
-    "tasks_total": 6,
-    "tasks_done": 6
+    "tasks_total": 8,
+    "tasks_done": 8
   },
-  "last_checkpoint": "b33d8765",
+  "last_checkpoint": "5e53befd",
   "review_verdict": "BLOCK",
   "review_rounds": 1,
   "doc_sync": "pending",

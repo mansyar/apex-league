@@ -89,17 +89,15 @@
 - **Covers:** F1, F2, FR-3, FR-4, AC-3, AC-4
 - **Touches:** `apps/client/src/steps/down.ts`, `apps/client/src/steps/down.test.ts`, `conductor/tracks/20261125-basic-strike-identity-impact/verification/phase-R1.md`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/steps/down.test.ts apps/client/src/choreo.test.ts`, then `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **R1.T1: Resolve F1** — covers: F1, FR-4, AC-4
-  - [ ] **R1.T1.1: Resolve the reaction from `step.ko` before the `instant` branch and use it in both branches.**
-  - [ ] **R1.T1.2: Pin the instant reduced-motion KO impulse and the ordinary instant down with tests.**
-- [ ] **R1.T2: Resolve F2** — covers: F2, AC-3
-  - [ ] **R1.T2.1: Make `koSpec.reelPitch` observable in the staged KO lean without changing the shared `koFall` signature or the dense-stream path.**
-  - [ ] **R1.T2.2: Pin the weighted KO lean and confirm the ordinary down is unchanged.**
+- [x] **R1.T1: Resolve F1** — covers: F1, FR-4, AC-4
+  - [x] **R1.T1.1: Resolve the reaction from `step.ko` before the `instant` branch and use it in both branches.**
+  - [x] **R1.T1.2: Pin the instant reduced-motion KO impulse and the ordinary instant down with tests.**
+- [x] **R1.T2: Resolve F2** — covers: F2, AC-3
+  - [x] **R1.T2.1: Make `koSpec.reelPitch` observable in the staged KO lean without changing the shared `koFall` signature or the dense-stream path.**
+  - [x] **R1.T2.2: Pin the weighted KO lean and confirm the ordinary down is unchanged.**
 
-**Result:** pending
-<!--
-**Checkpoint:** <short-sha>
+**Result:** verified
+**Checkpoint:** 5e53befd
 **Evidence:** conductor/tracks/20261125-basic-strike-identity-impact/verification/phase-R1.md
--->
