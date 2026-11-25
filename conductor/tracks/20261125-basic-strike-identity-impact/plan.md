@@ -67,7 +67,7 @@
 - **Covers:** FR-5, AC-5, AC-7, NFR-3, NFR-4
 - **Touches:** `conductor/tracks/20261125-basic-strike-identity-impact/verification/phase-3.md`, `conductor/tracks/20261125-basic-strike-identity-impact/verification/integrated.md`, screenshots under gitignored `.conductor/evidence/20261125-basic-strike-identity-impact/`
 - **Verification:** `bun run verify && bun run build`, plus `playwright-cli` desktop and phone captures with a clean console
-- **Status:** in_progress
+- **Status:** verified
 
 - [x] **P3.T1: Capture both beats in the browser** — covers: FR-5, AC-5
   - [x] **P3.T1.1: Start `bun run dev`, open `playwright-cli`, and drive the Strike and terminal-KO flows with snapshot refs.**
@@ -81,17 +81,25 @@
 **Checkpoint:** b33d8765
 **Evidence:** conductor/tracks/20261125-basic-strike-identity-impact/verification/phase-3.md
 
-<!--
-Review fixes are appended by `conductor-review` as:
-
 ## Phase R1: Review Fixes
 
-- **Goal:** Resolve review findings ...
+- **Goal:** Resolve F1 (reduced-motion instant path loses the authored KO
+  reaction) and F2 (authored KO reel fields are unobservable).
 - **Depends on:** Phase 3
-- **Covers:** review findings
-- **Touches:** ...
-- **Verification:** ...
+- **Covers:** F1, F2, FR-3, FR-4, AC-3, AC-4
+- **Touches:** `apps/client/src/steps/down.ts`, `apps/client/src/steps/down.test.ts`, `conductor/tracks/20261125-basic-strike-identity-impact/verification/phase-R1.md`
+- **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/steps/down.test.ts apps/client/src/choreo.test.ts`, then `bun run verify && bun run build`
 - **Status:** pending
 
-- [ ] **R1.T1: Resolve <finding ID>** — covers: <finding ID>
+- [ ] **R1.T1: Resolve F1** — covers: F1, FR-4, AC-4
+  - [ ] **R1.T1.1: Resolve the reaction from `step.ko` before the `instant` branch and use it in both branches.**
+  - [ ] **R1.T1.2: Pin the instant reduced-motion KO impulse and the ordinary instant down with tests.**
+- [ ] **R1.T2: Resolve F2** — covers: F2, AC-3
+  - [ ] **R1.T2.1: Make `koSpec.reelPitch` observable in the staged KO lean without changing the shared `koFall` signature or the dense-stream path.**
+  - [ ] **R1.T2.2: Pin the weighted KO lean and confirm the ordinary down is unchanged.**
+
+**Result:** pending
+<!--
+**Checkpoint:** <short-sha>
+**Evidence:** conductor/tracks/20261125-basic-strike-identity-impact/verification/phase-R1.md
 -->
