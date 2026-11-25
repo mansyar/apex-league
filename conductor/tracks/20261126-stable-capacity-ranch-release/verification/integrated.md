@@ -105,3 +105,10 @@ No `apps/**`, `packages/**`, save/schema/generated file, dependency, lockfile, o
 - Earlier independent subagent run in this phase recorded `4531 pass / 1 skip / 0 fail`, `675694 expect()` calls, `Ran 4532 tests across 443 files [164.18s]`, Biome `Checked 1054 files`, and an explicit module-size run `22 pass / 0 fail`; no tracked change was introduced by either gate run.
 - Diff-scope correction: after this evidence file was committed, `git diff --name-only d6502929052316b9b595671eae90fbc1fafc6700..HEAD` lists **10** files, not the 9 noted above — the tenth is this `verification/integrated.md` itself. Every listed path is Conductor state, `conductor/product.md`, `docs/save-schema.md`, or track evidence; there is still no `apps/**`, `packages/**`, save/schema, generated, dependency, lockfile, or determinism-hash change.
 - Conclusion: Phase 2 scope is verified. AC-1..AC-6 and the gate/diff/module-cap portion of AC-7 are confirmed; the terminal Conductor proof portion of AC-7 remains owned by the completion step and is not claimed here. The track is ready for post-review doc sync and completion.
+
+## Doc sync
+
+- `conductor/product.md`: the `Ratified stable & ranch policy (2026-11-26)` note was applied in Phase 1 with explicit owner approval from the spec interview. No further product change is needed.
+- `docs/save-schema.md`: current version corrected to 26 and the stable policy row ratified; historical `v25` references are correct and were left intact. No save-version bump or migration was introduced by this decision-only track.
+- `conductor/product-guidelines.md`, `conductor/tech-stack.md`, `conductor/workflow.md`: no change required. This track ratifies existing product policy, adds no dependency or stack change, and the workflow Release note is already current.
+- `conductor/roadmap.md`: RM-7 retains its track link until the completion commit retires the row; revisit trigger and roadmap-Later-only follow-up policy are recorded above.
