@@ -21,7 +21,6 @@
 
 | id | title | type | priority | depends_on | track | origin |
 | --- | --- | --- | --- | --- | --- | --- |
-| RM-1 | Decide whether to tolerate cadence resonance or authorize a controller-family change | chore | medium | 20261124-controller-cadence-resonance-diagnostic | — | user |
 
 ## Later
 
@@ -41,3 +40,4 @@
 
 | id | title | reason |
 | --- | --- | --- |
+| RM-1 | Decide whether to tolerate cadence resonance or authorize a controller-family change | resolved: owner accepts O0 tolerate under AC-11; no controller change authorized |
