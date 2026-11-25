@@ -89,7 +89,7 @@
 - **Covers:** F1, F2, FR-3, FR-4, AC-3, AC-4
 - **Touches:** `apps/client/src/steps/down.ts`, `apps/client/src/steps/down.test.ts`, `conductor/tracks/20261125-basic-strike-identity-impact/verification/phase-R1.md`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/steps/down.test.ts apps/client/src/choreo.test.ts`, then `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Resolve F1** — covers: F1, FR-4, AC-4
   - [ ] **R1.T1.1: Resolve the reaction from `step.ko` before the `instant` branch and use it in both branches.**
