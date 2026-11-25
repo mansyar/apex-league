@@ -48,7 +48,7 @@ The primary appends after acceptance:
 - **Covers:** FR-3, FR-4, FR-5, FR-7, AC-3, AC-4, AC-5, AC-6, NFR-2, NFR-3, NFR-4, NFR-5, NFR-8
 - **Touches:** `packages/voxel/src/voxelizer.ts`, `packages/voxel/src/sdf.ts`, `packages/voxel/src/mesher.ts`, `packages/voxel/src/ao.ts`, `packages/voxel/src/voxelizer.test.ts`, `packages/voxel/src/sdf.test.ts`, `packages/voxel/src/mesher.test.ts`, `packages/voxel/src/mesher-ao.test.ts`, `packages/voxel/src/ao.test.ts`, `packages/voxel/src/mesh-baseline.test.ts`, `conductor/tracks/20261125-voxelize-performance-pass/verification/phase-2.md`, `.conductor/evidence/20261125-voxelize-performance-pass/optimization/**`
 - **Verification:** `bun packages/voxel/scripts/benchmark-voxelize.ts`; `bun test --timeout 120000 packages/voxel/src/voxelizer.test.ts packages/voxel/src/sdf.test.ts packages/voxel/src/mesher.test.ts packages/voxel/src/mesher-ao.test.ts packages/voxel/src/ao.test.ts packages/voxel/src/mesh-baseline.test.ts`; `bun test --check --parallel=4 --timeout 120000 packages/voxel`; `bun run verify`; `bun run build`; `git diff --check 10af88e843af49ce8ae5657093265a0f8fbf2432..HEAD`; `git status --porcelain`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Add semantic characterization coverage** — covers: FR-5, FR-7
   - [ ] **P2.T1.1: Pin voxelizer equivalence** for representative simple and overlapping fields, including paint order and surface classes.
