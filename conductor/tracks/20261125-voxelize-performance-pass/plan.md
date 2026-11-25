@@ -14,20 +14,20 @@
 - **Covers:** FR-1, FR-2, AC-1, AC-2, NFR-9
 - **Touches:** `packages/voxel/scripts/benchmark-voxelize.ts`, `packages/voxel/scripts/benchmark-voxelize.test.ts`, `conductor/tracks/20261125-voxelize-performance-pass/verification/phase-1.md`, `.conductor/evidence/20261125-voxelize-performance-pass/baseline/**`
 - **Verification:** `bun packages/voxel/scripts/benchmark-voxelize.ts`; `bun test --timeout 120000 packages/voxel/scripts/benchmark-voxelize.test.ts`; `bun test --check --parallel=4 --timeout 120000 packages/voxel`; `bun run check`; `bunx biome check packages/voxel/scripts/benchmark-voxelize.ts packages/voxel/scripts/benchmark-voxelize.test.ts`; `git diff --quiet 10af88e843af49ce8ae5657093265a0f8fbf2432..HEAD -- packages/voxel/src`; `git diff --check 10af88e843af49ce8ae5657093265a0f8fbf2432..HEAD`; `git status --porcelain`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Build the deterministic benchmark harness** — covers: FR-1
+- [x] **P1.T1: Build the deterministic benchmark harness** — covers: FR-1
   - [ ] **P1.T1.1: Enumerate the fixed corpus** — exactly 21 registered archetypes × baby/juvenile/champion at seed 42.
   - [ ] **P1.T1.2: Measure repeatably** — warm up each case, collect repeated `voxelize()` samples, and report per-case plus median timings.
   - [ ] **P1.T1.3: Emit stable evidence** — machine-readable summary with Bun version, platform, timestamp, corpus identity, and raw sample data.
   - [ ] **P1.T1.4: Test the harness** — pin corpus count/order, stage coverage, seed, and report schema without asserting unstable wall-clock values.
-- [ ] **P1.T2: Capture untouched baseline timings** — covers: FR-2
+- [x] **P1.T2: Capture untouched baseline timings** — covers: FR-2
   - [ ] **P1.T2.1: Run the fixed benchmark** on the phase base with no production edits and retain raw output.
   - [ ] **P1.T2.2: Time the capped voxel-package gate** using `bun test --check --parallel=4 --timeout 120000 packages/voxel` under comparable load.
-- [ ] **P1.T3: Identify the measured bottleneck** — covers: FR-2
+- [x] **P1.T3: Identify the measured bottleneck** — covers: FR-2
   - [ ] **P1.T3.1: Profile or instrument the baseline** using scratch-only tooling; do not add production timing output.
   - [ ] **P1.T3.2: Record hotspot evidence** tying the dominant cost to `voxelize()`, SDF evaluation, mesher/AO, or another measured stage.
-- [ ] **P1.T4: Commit baseline evidence** — covers: FR-8
+- [x] **P1.T4: Commit baseline evidence** — covers: FR-8
   - [ ] **P1.T4.1: Write `verification/phase-1.md`** with commands, raw evidence pointers, baseline numbers, profile findings, and AC-1/AC-2 mapping.
   - [ ] **P1.T4.2: Prove no production-source change** and commit only the benchmark harness/tests plus phase evidence.
 
@@ -38,6 +38,9 @@ The primary appends after acceptance:
 **Evidence:** conductor/tracks/20261125-voxelize-performance-pass/verification/phase-1.md
 -->
 
+**Result:** verified
+**Checkpoint:** e95c9766
+**Evidence:** conductor/tracks/20261125-voxelize-performance-pass/verification/phase-1.md
 ## Phase 2: Profiling-driven pipeline optimization
 
 - **Goal:** implement measured voxelize/mesher optimizations that preserve exact semantics and demonstrate progress toward both approved speed targets.
