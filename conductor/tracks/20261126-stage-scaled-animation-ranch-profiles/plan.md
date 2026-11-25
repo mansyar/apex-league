@@ -50,7 +50,7 @@
   `apps/client/src/ranch/frame.test.ts`,
   `apps/client/src/ranch/morning-after.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/ranch/profile.test.ts apps/client/src/ranch/motion.test.ts apps/client/src/ranch/frame.test.ts apps/client/src/ranch/morning-after.test.ts`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Pin ranch profile, tempo, calm and edge boundaries** — covers:
   FR-2, FR-3, FR-4, FR-5, AC-2, AC-3, AC-4, AC-5
