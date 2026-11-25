@@ -44,7 +44,7 @@
 - **Covers:** FR-3, FR-4, AC-3, AC-4, AC-6, NFR-5
 - **Touches:** `apps/client/src/choreo.ts`, `apps/client/src/choreo.test.ts`, `apps/client/src/steps/down.ts`, `apps/client/src/steps/down.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/choreo.test.ts apps/client/src/steps/down.test.ts`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Pin terminal-KO weighting in tests** — covers: FR-3, AC-3, AC-6, NFR-5
   - [ ] **P2.T1.1: Add a failing `choreo.test.ts` case that the terminal reaction is heavier than `down` for every archetype while the ordinary row keeps its current values.**
