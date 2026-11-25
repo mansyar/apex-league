@@ -213,9 +213,9 @@ describe("benchmark timing summaries", () => {
 
   test("rejects empty, non-finite, and negative samples", () => {
     expect(() => median([])).toThrow("at least one sample")
-    expect(() =>
-      summarizeSamples([1, Number.NaN, 3]),
-    ).toThrow("finite non-negative")
+    expect(() => summarizeSamples([1, Number.NaN, 3])).toThrow(
+      "finite non-negative",
+    )
     expect(() => summarizeSamples([1, -1, 3])).toThrow("finite non-negative")
   })
 })

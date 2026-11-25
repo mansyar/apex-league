@@ -109,8 +109,7 @@ export function meshGrid(grid: VoxelGrid): MeshePart[] {
         ) {
           return 0
         }
-        const cell =
-          planeBase + (uCoord - i) * strideU + (vCoord - j) * strideV
+        const cell = planeBase + (uCoord - i) * strideU + (vCoord - j) * strideV
         return owner[cell] === -1 ? 0 : 1
       }
       const corner = (du: number, dv: number): number => {
@@ -223,9 +222,9 @@ export function meshGrid(grid: VoxelGrid): MeshePart[] {
             // Corner levels follow the quad's own winding order, so the
             // -d faces (which wind the other way) get their signature
             // reversed rather than mirrored on screen.
-            let a0 = sig & 3
+            const a0 = sig & 3
             let a1 = (sig >> 2) & 3
-            let a2 = (sig >> 4) & 3
+            const a2 = (sig >> 4) & 3
             let a3 = (sig >> 6) & 3
             if (m < 0) {
               const a1Reversed = a1
