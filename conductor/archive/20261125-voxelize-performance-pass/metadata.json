@@ -1,0 +1,32 @@
+{
+  "id": "20261125-voxelize-performance-pass",
+  "title": "Voxelize Performance Pass",
+  "type": "chore",
+  "status": "complete",
+  "priority": "medium",
+  "depends_on": [],
+  "created_at": "2026-11-25T13:07:44.3562734+11:00",
+  "updated_at": "2026-11-25T18:29:46.5022827+11:00",
+  "spec": "spec.md",
+  "plan": "plan.md",
+  "branch": "chore/20261125-voxelize-performance-pass",
+  "base_branch": "main",
+  "base_sha": "10af88e843af49ce8ae5657093265a0f8fbf2432",
+  "progress": {
+    "phases_total": 4,
+    "phases_verified": 4,
+    "tasks_total": 16,
+    "tasks_done": 16
+  },
+  "last_checkpoint": "ff2db813",
+  "review_verdict": "PASS",
+  "review_rounds": 2,
+  "doc_sync": "updated",
+  "pr_url": "https://github.com/mansyar/apex-league/pull/95",
+  "pr_state": "open",
+  "reverted_at": null,
+  "revert_commit": null,
+  "revert_pr_url": null,
+  "archived_at": "2026-11-25T18:29:46.5022827+11:00",
+  "archive_path": "conductor/archive/20261125-voxelize-performance-pass"
+}

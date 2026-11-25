@@ -41,39 +41,24 @@ export interface VoxelGrid {
  * Output voxels are emitted in a stable (x, y, z) scan order.
  */
 export function voxelize(parts: PartField[], resolution: number): VoxelGrid {
-  const owner = new Int32Array(resolution * resolution * resolution).fill(-1)
-  const classGrid = new Int16Array(resolution * resolution * resolution)
-  const index = (x: number, y: number, z: number) =>
-    x * resolution * resolution + y * resolution + z
-
   const voxelsPerPart: Voxel[][] = parts.map(() => [])
   const classesPerPart: number[][] = parts.map(() => [])
+  const p = vec3(0.5, 0.5, 0.5)
   for (let x = 0; x < resolution; x++) {
+    p.x = x + 0.5
     for (let y = 0; y < resolution; y++) {
+      p.y = y + 0.5
       for (let z = 0; z < resolution; z++) {
-        const p = vec3(x + 0.5, y + 0.5, z + 0.5)
+        p.z = z + 0.5
         for (let i = 0; i < parts.length; i++) {
           const field = parts[i]
           if (field && field.sdf(p) <= 0) {
-            const cell = index(x, y, z)
-            owner[cell] = i
-            const cls = field.classify?.(p) ?? 0
-            classGrid[cell] = cls
+            // The first claimant keeps the cell, so output can be appended in
+            // scan order without an owner grid or a second full-grid pass.
+            voxelsPerPart[i]?.push([x, y, z])
+            classesPerPart[i]?.push(field.classify?.(p) ?? 0)
             break
           }
-        }
-      }
-    }
-  }
-
-  for (let x = 0; x < resolution; x++) {
-    for (let y = 0; y < resolution; y++) {
-      for (let z = 0; z < resolution; z++) {
-        const cell = index(x, y, z)
-        const partIndex = owner[cell]
-        if (partIndex !== undefined && partIndex >= 0) {
-          voxelsPerPart[partIndex]?.push([x, y, z])
-          classesPerPart[partIndex]?.push(classGrid[cell] ?? 0)
         }
       }
     }

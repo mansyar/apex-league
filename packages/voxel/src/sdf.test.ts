@@ -111,6 +111,32 @@ describe("sdRoundCone", () => {
     expect(cone(vec3(4, 0, 0))).toBeCloseTo(-0.2)
     expect(cone(vec3(2, 0, 0))).toBeLessThan(0)
   })
+
+  test("tracks mutable endpoints across the fallback boundary", () => {
+    const a = vec3(-0.75, 0.25, 0.5)
+    const b = vec3(1.5, 1.25, 1.75)
+    const cone = sdRoundCone(a, b, 0.8, 0.25)
+    const first = vec3(0.125, -1.75, 3.25)
+    const points = [first, vec3(2.5, 0.5, -0.75), vec3(-3.125, 4.25, 1.5)]
+
+    expect(cone(first)).toBe(2.6671504955951946)
+
+    b.x = a.x
+    b.y = a.y
+    b.z = a.z
+    const coincident = sdRoundCone(a, b, 0.8, 0.25)
+    for (const point of points) {
+      expect(cone(point)).toBe(coincident(point))
+    }
+
+    b.x = 2.5
+    b.y = -0.25
+    b.z = 1
+    const separated = sdRoundCone(a, b, 0.8, 0.25)
+    for (const point of points) {
+      expect(cone(point)).toBe(separated(point))
+    }
+  })
 })
 
 describe("sdEllipsoid", () => {
@@ -168,5 +194,86 @@ describe("sdf purity", () => {
     const second = sdf(p)
     expect(second).toBe(first)
     expect(p).toEqual(vec3(0.5, 0.5, 0))
+  })
+})
+
+describe("exact SDF characterization", () => {
+  test("primitive and combinator samples retain their floating-point payloads", () => {
+    const points = [
+      vec3(0.125, -1.75, 3.25),
+      vec3(2.5, 0.5, -0.75),
+      vec3(-3.125, 4.25, 1.5),
+    ]
+    const sphere = sdSphere(vec3(0.25, -0.5, 1.75), 1.125)
+    const capsule = sdCapsule(vec3(-1, 0.5, 0), vec3(1.25, 1.75, 0.5), 0.375)
+    const cases = [
+      {
+        name: "sphere",
+        sdf: sphere,
+        samples: [0.8315594803123161, 2.3839172119045497, 4.7072915736441026],
+      },
+      {
+        name: "box",
+        sdf: sdBox(vec3(-0.5, 0.25, 0.75), vec3(0.875, 1.25, 0.625)),
+        samples: [2.019436802675439, 2.2980970388562794, 3.261997087674972],
+      },
+      {
+        name: "capsule",
+        sdf: capsule,
+        samples: [3.7027423845242424, 1.7900635094610968, 4.181915947715676],
+      },
+      {
+        name: "ellipsoid",
+        sdf: sdEllipsoid(vec3(0.5, -0.25, 1), vec3(1.25, 0.75, 1.75)),
+        samples: [1.2053642708867807, 1.2532690137118347, 4.539728207157971],
+      },
+      {
+        name: "round cone",
+        sdf: sdRoundCone(
+          vec3(-0.75, 0.25, 0.5),
+          vec3(1.5, 1.25, 1.75),
+          0.8,
+          0.25,
+        ),
+        samples: [2.6671504955951946, 2.3104703830234783, 3.958216577668571],
+      },
+      {
+        name: "degenerate round cone fallback",
+        sdf: sdRoundCone(vec3(0, 0, 0), vec3(0.25, 0, 0), 0.8, 0.25),
+        samples: [2.8933216756735396, 1.8575364531836625, 4.684352742120076],
+      },
+      {
+        name: "translated sphere",
+        sdf: translate(sphere, vec3(0.5, -1, 0.25)),
+        samples: [0.2947270864500684, 2.699264635194589, 5.826843280742166],
+      },
+      {
+        name: "hard union",
+        sdf: union(sphere, capsule),
+        samples: [0.8315594803123161, 1.7900635094610968, 4.181915947715676],
+      },
+      {
+        name: "smooth union",
+        sdf: smoothUnion(sphere, capsule, 0.625),
+        samples: [0.8315594803123161, 1.7896754727205044, 4.177945941352014],
+      },
+      {
+        name: "hard subtraction",
+        sdf: smoothSubtract(sphere, capsule, 0),
+        samples: [0.8315594803123161, 2.3839172119045497, 4.7072915736441026],
+      },
+      {
+        name: "smooth subtraction",
+        sdf: smoothSubtract(sphere, capsule, 0.375),
+        samples: [0.8315594803123161, 2.3839172119045497, 4.7072915736441026],
+      },
+    ]
+    for (const { sdf, samples } of cases) {
+      for (const [index, point] of points.entries()) {
+        const expected = samples[index]
+        if (expected === undefined) throw new Error("missing SDF sample")
+        expect(sdf(point)).toBe(expected)
+      }
+    }
   })
 })

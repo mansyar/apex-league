@@ -92,7 +92,76 @@ describe("meshGrid", () => {
       expect(cx * nx + cy * ny + cz * nz).toBeGreaterThan(0)
     }
   })
+
+  test("pins class boundaries, greedy quad order, winding, and corner AO", () => {
+    const meshes = meshGrid(characterizationGrid())
+    const projection = meshes.map((part) => ({
+      name: part.name,
+      positions: part.positions,
+      normals: part.normals,
+      indices: part.indices,
+      classes: part.classes,
+      ao: part.ao,
+    }))
+    expect(
+      new Bun.CryptoHasher("sha256")
+        .update(JSON.stringify(projection))
+        .digest("hex"),
+    ).toBe("5b8277356f9dc13aa50ca817e1fd0cb1d03502abfd94ecc13f78b1bd84465f48")
+    expect(quadHeaders(meshes)).toEqual([
+      [
+        1, 1, 1, -1, 0, 0, 2, 1, 1, 1, 1, 1, 1, 2, -1, 0, 0, 3, 1, 1, 1, 1, 3,
+        1, 1, 1, 0, 0, 4, 1, 1, 1, 1, 3, 1, 2, 1, 0, 0, 5, 1, 1, 1, 1, 1, 1, 1,
+        0, -1, 0, 2, 1, 1, 1, 1, 1, 1, 2, 0, -1, 0, 3, 1, 1, 1, 1, 2, 1, 1, 0,
+        -1, 0, 4, 1, 1, 1, 1, 2, 1, 2, 0, -1, 0, 5, 1, 1, 1, 1, 1, 2, 2, 0, 1,
+        0, 3, 0.9066666666666666, 1, 1, 1, 2, 2, 1, 0, 1, 0, 4,
+        0.9066666666666666, 1, 1, 1, 2, 2, 2, 0, 1, 0, 5, 0.9066666666666666, 1,
+        1, 1, 1, 1, 1, 0, 0, -1, 2, 1, 1, 1, 1, 2, 1, 1, 0, 0, -1, 4, 1, 1, 1,
+        1, 1, 1, 3, 0, 0, 1, 3, 1, 1, 1, 1, 2, 1, 3, 0, 0, 1, 5, 1, 1, 1, 1,
+      ],
+      [
+        1, 2, 1, -1, 0, 0, 6, 1, 1, 1, 1, 2, 2, 1, 1, 0, 0, 6,
+        0.9066666666666666, 1, 1, 0.8133333333333334, 1, 3, 1, 0, 1, 0, 6, 1, 1,
+        1, 1, 1, 2, 1, 0, 0, -1, 6, 1, 1, 1, 1, 1, 2, 2, 0, 0, 1, 6,
+        0.9066666666666666, 0.8133333333333334, 1, 1,
+      ],
+    ])
+  })
 })
+
+function characterizationGrid(): VoxelGrid {
+  return {
+    resolution: 4,
+    parts: [
+      {
+        name: "slab",
+        voxels: [
+          [1, 1, 1],
+          [1, 1, 2],
+          [2, 1, 1],
+          [2, 1, 2],
+        ],
+        classes: [2, 3, 4, 5],
+      },
+      { name: "post", voxels: [[1, 2, 1]], classes: [6] },
+    ],
+  }
+}
+
+function quadHeaders(meshes: ReturnType<typeof meshGrid>): number[][] {
+  return meshes.map((part) => {
+    const headers: number[] = []
+    for (let vertex = 0; vertex < part.positions.length / 3; vertex += 4) {
+      headers.push(
+        ...part.positions.slice(vertex * 3, vertex * 3 + 3),
+        ...part.normals.slice(vertex * 3, vertex * 3 + 3),
+        part.classes[vertex] ?? 0,
+        ...part.ao.slice(vertex, vertex + 4),
+      )
+    }
+    return headers
+  })
+}
 
 // --- fixtures -------------------------------------------------------------
 
