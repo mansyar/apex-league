@@ -33,7 +33,7 @@
 | RM-3 | Harden thin species band margins only if relative-matrix drift breaks a row | chore | low | — | — | user |
 | RM-10 | Deduplicate verdict presentation across spar, cup, and battle HUD | refactor | low | — | — | user |
 | RM-11 | Polish the falcon silhouette for speedster readability | feature | low | — | — | user |
-| RM-12 | Author Basic Strike identity and KO/down impact weighting | feature | low | — | — | user |
+| RM-12 | Author Basic Strike identity and KO/down impact weighting | feature | low | — | 20261125-basic-strike-identity-impact | user |
 
 ## Dropped
 
