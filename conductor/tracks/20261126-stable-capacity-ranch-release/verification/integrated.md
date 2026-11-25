@@ -38,6 +38,8 @@ Re-read and grepped both edited docs after the Phase 1 ratification:
 - `docs/save-schema.md` line 11 says `version: number // current: 26 (SAVE_VERSION)`; line 18 is `## \`GameState\` at v26`; line 36 states "no capacity limit", "exactly one pet is active", frozen stabled pets, and "no release path".
 - No `current: 25`, no `GameState at v25` header, no stable-cap claim, no multiple-active-partner claim, and no permanent-release claim remains. Historical `v25` references elsewhere in `docs/save-schema.md` (`claimedTiers`/`pendingRewards` v25+, gift since v25, the v24→v25 migration, the v20→v21 note referencing v25) are correct and were left intact.
 
+**R1 follow-up (F1 closed):** `review.md` marked FR-4, AC-2 and AC-6 `partial` because the migration table stopped at `v24 → v25`. Phase R1 added the authoritative `v25 → v26` stat-fold row (sourced from `packages/sim/src/save/migrations/v25.ts`) as the new terminal row and pinned the invariant that the terminal migration row matches the current `GameState at v26` header; those requirements are now `covered` (the AC rows below remain `verified`). Exact row, doc-truth check and re-run gate results: `verification/phase-R1.md`. AC-7's terminal Conductor proof is untouched by this fix.
+
 ## Diff-scope proof (AC-4 / NFR-1 / NFR-2)
 
 Exact command (bounded git output, no pipes):
@@ -65,11 +67,11 @@ No `apps/**`, `packages/**`, save/schema/generated file, dependency, lockfile, o
 | ID | Criterion | Evidence | Status |
 | --- | --- | --- | --- |
 | AC-1 | `conductor/product.md` states unlimited stable, one active ranch partner, no release seam | `Ratified stable & ranch policy (2026-11-26)` note at lines 38–50; re-read this phase | `verified` |
-| AC-2 | `docs/save-schema.md`: v26, no capacity limit, one active `creature`, frozen stable, no release path | Lines 11, 18, 36; doc truth grep above | `verified` |
+| AC-2 | `docs/save-schema.md`: v26, no capacity limit, one active `creature`, frozen stable, no release path | Lines 11, 18, 36; doc truth grep above; R1 adds the terminal `v25 → v26` row (review F1 `partial` → `covered`) — `verification/phase-R1.md` | `verified` |
 | AC-3 | Revisit trigger and roadmap-only follow-up handling recorded | "Decisions and revisit trigger" section above (~40 pets / multiple partners / new track with save-migration review; roadmap Later only, issues disabled); spec §Edge Cases/Open Questions | `verified` |
 | AC-4 | No sim/client/server/save/generated diff; only Conductor state + approved docs | Diff-scope proof above (9 files, none under `apps/**` or `packages/**`) | `verified` |
 | AC-5 | `bun run verify && bun run build` exits 0 with determinism and module-size gates green | Both commands run separately here, exit 0; determinism OK for all creature GLBs + 5 prop digests; explicit module-size run 22 pass / 0 fail. Primary runs the chained form. | `verified` (chained form pending primary) |
-| AC-6 | No stale cap / release / multi-partner / version-25 claim in the edited docs | Doc truth check above; Phase 1 evidence `verification/phase-1.md` | `verified` |
+| AC-6 | No stale cap / release / multi-partner / version-25 claim in the edited docs | Doc truth check above; Phase 1 evidence `verification/phase-1.md`; R1 terminal-row/header invariant — `verification/phase-R1.md` (review F1 `partial` → `covered`) | `verified` |
 | AC-7 | Conductor completion proof: registry `[x]`, archived metadata `status: complete` + `pr_url`, integrated evidence committed, `review.md` PASS, RM-7 retired | **This phase proves the gate/diff/module-cap portion** (commands table, diff-scope proof, AC-5). The terminal Conductor proof — registry `[x]`, archived metadata `status: complete` with `pr_url`, committed `review.md`, PR open, RM-7 retired — is completed by the primary at track completion; it has not happened yet and is not claimed here. | `partial` (gate/diff done; terminal proof owned by primary) |
 
 ## FR / NFR coverage
