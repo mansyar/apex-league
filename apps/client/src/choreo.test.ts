@@ -333,3 +333,37 @@ describe("reaction library (FR5)", () => {
     }
   })
 })
+
+describe("terminal-KO weighting (FR-3, AC-3)", () => {
+  test("the ordinary down row keeps its shipped values", () => {
+    expect(reactionFor("down", DEFAULT_PROFILE)).toEqual({
+      impulse: 0.9,
+      reel: 0.7,
+      reelPitch: 0,
+      slide: 0,
+      dash: 0,
+    })
+  })
+
+  test("the terminal reaction is heavier for every archetype, weighted by hurtMult", () => {
+    const koBase = reactionFor("ko", DEFAULT_PROFILE)
+    const downBase = reactionFor("down", DEFAULT_PROFILE)
+    expect(koBase.impulse).toBeGreaterThan(downBase.impulse)
+    expect(koBase.reel).toBeGreaterThan(downBase.reel)
+    for (const id of ARCHETYPES) {
+      const p = profileFor(id)
+      const down = reactionFor("down", p)
+      const ko = reactionFor("ko", p)
+      expect(ko.impulse).toBeGreaterThan(down.impulse)
+      expect(ko.reel).toBeGreaterThan(down.reel)
+      expect(ko.reelPitch).toBeGreaterThan(down.reelPitch)
+      // The heavier landing uses the same hurt-body weighting as `down`.
+      expect(ko.impulse).toBeCloseTo(koBase.impulse * p.hurtMult)
+      expect(ko.reelPitch).toBeCloseTo(koBase.reelPitch * p.hurtMult)
+      // Movement stays global so the visual agrees with the sim's range.
+      expect(ko.slide).toBe(down.slide)
+      expect(ko.dash).toBe(down.dash)
+      expect(Object.isFrozen(ko)).toBe(true)
+    }
+  })
+})

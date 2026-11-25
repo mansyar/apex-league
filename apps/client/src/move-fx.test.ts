@@ -16,6 +16,7 @@ import {
   SHOT_LOOKS,
   type ShotLook,
 } from "./move-fx"
+import { ELEMENT_FALLBACK_FX } from "./move-fx/moves/fallback"
 
 /**
  * Pins for the split move-fx surface, the six-element shot identity (FR-5),
@@ -32,6 +33,74 @@ const ELEMENTS: readonly Element[] = [
   "earth",
   "wind",
 ]
+
+/**
+ * The 48 bespoke special ids, grouped by element. This is the no-regression
+ * set for the authored Strike: adding the innate row must not change how a
+ * single catalog special or an unknown id resolves.
+ */
+const SPECIAL_IDS: Readonly<Record<Element, readonly string[]>> = {
+  fire: [
+    "spark",
+    "flame_charge",
+    "cinder_shot",
+    "blaze_bolt",
+    "flare_dart",
+    "pyre_lance",
+    "cinder_dive",
+    "pyre_wall",
+  ],
+  water: [
+    "bubble",
+    "tide_shot",
+    "foam_volley",
+    "splash_bolt",
+    "mist_spray",
+    "maelstrom",
+    "riptide_rush",
+    "tide_aegis",
+  ],
+  plant: [
+    "seed_shot",
+    "thorn_volley",
+    "spore_burst",
+    "bramble_dart",
+    "vine_lash",
+    "root_quake",
+    "thorn_charge",
+    "bramble_guard",
+  ],
+  electric: [
+    "static_jolt",
+    "volt_dash",
+    "arc_shot",
+    "storm_bolt",
+    "ion_dart",
+    "gigavolt",
+    "storm_surge",
+    "ion_wall",
+  ],
+  earth: [
+    "pebble_shot",
+    "dust_devil",
+    "clay_burst",
+    "boulder_toss",
+    "sand_blast",
+    "tectonic_slam",
+    "quake_stomp",
+    "basalt_guard",
+  ],
+  wind: [
+    "gust",
+    "feather_dart",
+    "gale_cutter",
+    "sky_bolt",
+    "talon_slash",
+    "hurricane_spiral",
+    "cyclone_dive",
+    "zephyr_veil",
+  ],
+}
 
 /** What `apps/client/src/move-fx.ts` exported at the split's base commit. */
 const PRE_SPLIT_RUNTIME_EXPORTS = [
@@ -264,6 +333,50 @@ describe("move table", () => {
     for (const moveId of Object.keys(MOVE_FX)) {
       expect(getMove(moveId)).toBeDefined()
     }
+  })
+
+  test("Strike is authored in the table, distinct from the shared default", () => {
+    const strike = MOVE_FX.basic
+    expect(strike).toBeDefined()
+    if (strike === undefined) throw new Error("Strike has no authored row")
+    expect(fxFor("basic", undefined)).toBe(strike)
+    expect(strike).not.toBe(DEFAULT_FX)
+    expect(getMove("basic")?.melee).toBe(true)
+  })
+
+  test("authored Strike is additive: every special and fallback keeps its baseline row", () => {
+    // Red until P1.T2 registers BASIC_FX: the innate move must be present
+    // before the boundary below can prove nothing else moved with it.
+    const strike = MOVE_FX.basic
+    expect(strike).toBeDefined()
+    if (strike === undefined) throw new Error("Strike has no authored row")
+
+    const pairs = ELEMENTS.flatMap((element) =>
+      SPECIAL_IDS[element].map((id) => [id, element] as const),
+    )
+    expect(pairs).toHaveLength(48)
+    for (const [moveId, element] of pairs) {
+      expect(getMove(moveId)).toBeDefined()
+      const row = MOVE_FX[moveId]
+      if (row === undefined) throw new Error(`missing baseline row: ${moveId}`)
+      // Identity, not a copy: the row object is the one that shipped before.
+      expect(row).not.toBe(strike)
+      expect(fxFor(moveId, element)).toBe(row)
+      expect(fxFor(moveId)).toBe(row)
+      expect(fxFor(moveId, element)).not.toBe(DEFAULT_FX)
+    }
+
+    // Unknown ids of known elements still take their element's body; unknown
+    // ids of unknown elements and absent lookups still take DEFAULT_FX.
+    for (const element of ELEMENTS) {
+      const body = ELEMENT_FALLBACK_FX[element]
+      if (body === undefined) throw new Error(`missing fallback: ${element}`)
+      expect(fxFor("__unknown_move__", element)).toBe(body)
+      expect(fxFor("__unknown_move__", element)).not.toBe(DEFAULT_FX)
+    }
+    expect(fxFor("__unknown_move__", "plasma")).toBe(DEFAULT_FX)
+    expect(fxFor("__unknown_move__", undefined)).toBe(DEFAULT_FX)
+    expect(fxFor(undefined)).toBe(DEFAULT_FX)
   })
 
   test("both heavy finishers are authored in their element's grammar", () => {
