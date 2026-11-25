@@ -147,7 +147,9 @@ export function buildBenchmarkCorpus(): BenchmarkCorpus {
 
 /** Standard median: the middle value, or the mean of the two middle values. */
 export function median(samples: number[]): number {
-  if (samples.length === 0) throw new Error("median requires at least one sample")
+  if (samples.length === 0) {
+    throw new Error("median requires at least one sample")
+  }
   if (samples.some((sample) => !Number.isFinite(sample) || sample < 0)) {
     throw new Error("samples must be finite non-negative numbers")
   }
@@ -181,26 +183,28 @@ export function createBenchmarkReport(
     )
   }
 
-  const cases = corpus.cases.map((benchmarkCase, index): BenchmarkCaseResult => {
-    const measurement = measurements[index]
-    if (!measurement) throw new Error(`missing measurement at index ${index}`)
-    if (measurement.key !== benchmarkCase.key) {
-      throw new Error(
-        `measurement order mismatch at index ${index}: expected ${benchmarkCase.key}, found ${measurement.key}`,
-      )
-    }
-    if (measurement.samplesMs.length !== SAMPLE_RUNS) {
-      throw new Error(
-        `${benchmarkCase.key} sample count ${measurement.samplesMs.length} does not match ${SAMPLE_RUNS}`,
-      )
-    }
-    return {
-      ...benchmarkCase,
-      partCount: measurement.partCount,
-      samplesMs: [...measurement.samplesMs],
-      summary: summarizeSamples(measurement.samplesMs),
-    }
-  })
+  const cases = corpus.cases.map(
+    (benchmarkCase, index): BenchmarkCaseResult => {
+      const measurement = measurements[index]
+      if (!measurement) throw new Error(`missing measurement at index ${index}`)
+      if (measurement.key !== benchmarkCase.key) {
+        throw new Error(
+          `measurement order mismatch at index ${index}: expected ${benchmarkCase.key}, found ${measurement.key}`,
+        )
+      }
+      if (measurement.samplesMs.length !== SAMPLE_RUNS) {
+        throw new Error(
+          `${benchmarkCase.key} sample count ${measurement.samplesMs.length} does not match ${SAMPLE_RUNS}`,
+        )
+      }
+      return {
+        ...benchmarkCase,
+        partCount: measurement.partCount,
+        samplesMs: [...measurement.samplesMs],
+        summary: summarizeSamples(measurement.samplesMs),
+      }
+    },
+  )
 
   const allSamples = cases.flatMap((benchmarkCase) => benchmarkCase.samplesMs)
   return {

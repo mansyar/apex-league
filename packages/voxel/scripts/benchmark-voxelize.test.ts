@@ -2,11 +2,11 @@ import { describe, expect, test } from "bun:test"
 import { archetypes } from "../src/archetype"
 import type { Stage } from "../src/stage"
 import {
+  BENCHMARK_SCHEMA_VERSION,
+  BENCHMARK_SEED,
   type BenchmarkContext,
   type BenchmarkCorpus,
   type BenchmarkMeasurement,
-  BENCHMARK_SCHEMA_VERSION,
-  BENCHMARK_SEED,
   buildBenchmarkCorpus,
   createBenchmarkReport,
   median,
@@ -106,7 +106,11 @@ describe("voxelize benchmark report", () => {
     const corpus = buildBenchmarkCorpus()
     const draconic = archetypes.draconic
     if (!draconic) throw new Error("missing draconic archetype")
-    const report = createBenchmarkReport(corpus, measurementsFor(corpus), CONTEXT)
+    const report = createBenchmarkReport(
+      corpus,
+      measurementsFor(corpus),
+      CONTEXT,
+    )
 
     expect(Object.keys(report)).toEqual([
       "schemaVersion",
@@ -209,11 +213,13 @@ describe("benchmark timing summaries", () => {
 
   test("rejects empty, non-finite, and negative samples", () => {
     expect(() => median([])).toThrow("at least one sample")
-    expect(() => summarizeSamples([1, Number.NaN, 3])).toThrow(
-      "finite non-negative",
+    expect(() =>
+      summarizeSamples([1, Number.NaN, 3]).toThrow(
+        "finite non-negative",
+      ),
     )
-    expect(() => summarizeSamples([1, -1, 3])).toThrow(
-      "finite non-negative",
+    expect(() =>
+      summarizeSamples([1, -1, 3]).toThrow("finite non-negative"),
     )
   })
 })
