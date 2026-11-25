@@ -21,7 +21,7 @@
 - **Covers:** FR-1, FR-2, AC-1, AC-2, NFR-1, NFR-2
 - **Touches:** `apps/client/src/move-fx/moves/basic.ts`, `apps/client/src/move-fx/moves/basic.test.ts`, `apps/client/src/move-fx/moves.ts`, `apps/client/src/move-fx.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/move-fx.test.ts apps/client/src/move-fx/`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Pin the authored identity and regression boundary in tests** — covers: FR-1, FR-2, AC-1, AC-2, NFR-1
   - [ ] **P1.T1.1: Write a failing test that `fxFor("basic", undefined)` is authored, distinct from `DEFAULT_FX`, and carries a melee posture.**
