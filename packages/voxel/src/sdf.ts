@@ -181,7 +181,9 @@ export function union(a: Sdf, b: Sdf): Sdf {
  */
 export function smoothUnion(a: Sdf, b: Sdf, k: number): Sdf {
   return (p) => {
-    const ha = Math.max(k - Math.abs(a(p) - b(p)), 0) / k
-    return Math.min(a(p), b(p)) - ha * ha * k * 0.25
+    const da = a(p)
+    const db = b(p)
+    const ha = Math.max(k - Math.abs(da - db), 0) / k
+    return Math.min(da, db) - ha * ha * k * 0.25
   }
 }
