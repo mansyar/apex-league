@@ -455,9 +455,9 @@ API image to GHCR for Coolify on the same trigger.
   when it is absent.
 - **A release candidate must pass `bun run verify && bun run build` locally and
   in CI before any upload.**
-- **The client deploy is configuration-complete but has not run yet.**
-  `deploy.yml` has never been on `main`, and the two secrets are the owner's
-  to add, so `https://apex-league.pages.dev/` does not resolve today.
+- **The client deploy is live.** `deploy.yml` is tracked on `main`, the Pages
+  project exists, and `https://apex-league.pages.dev/` resolves. The two
+  deployment secrets remain owner-managed.
 - **The server deploy is live since 2026-10-27.** The API runs at
   `https://apex-api.ansyar-world.top` with
   `ALLOWED_ORIGIN=https://apex-league.pages.dev`. The production Pages build
