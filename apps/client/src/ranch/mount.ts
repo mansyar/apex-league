@@ -45,6 +45,11 @@ export function rebuild(
   rig.scale.setScalar(stageScale(stage))
   s.creatureGroup = rig
   s.currentStage = stage
+  // The archetype is the other half of the rig identity. Latch it here —
+  // the single rebuild path used by both setCreature and the evolution
+  // swap — so per-frame profile factors (and the morning-after temper)
+  // read the rig that is actually on screen, never a stale identity.
+  s.archetypeId = archetypeId
   rig.traverse((obj) => {
     if (obj instanceof THREE.Mesh) obj.castShadow = true
   })

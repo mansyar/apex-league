@@ -22,6 +22,7 @@ import {
 import { createApi } from "./api"
 import { updateRanch } from "./frame"
 import { applyMorningAfterIdle, applyMorningAfterPose } from "./poses"
+import type { RanchMotionFactors } from "./profile"
 import { createRanchState, type RanchState } from "./state"
 import type { RanchMotion, RanchMotionDeps } from "./types"
 
@@ -309,5 +310,98 @@ describe("the pet handler's morning-after leg (FR-5)", () => {
     expect(s.morningAfterTint.active).toBe(false)
     // …and the first pet of the new day is the mood's own pick again.
     expect(api.startPet()).toBe("wiggle")
+  })
+})
+
+// ---------------------------------------------------------------------------
+// The seventh ceremony reads the same adapter factors (FR-3, AC-3): the
+// lifted head/chest, swagger roll, prance and glow all scale through the
+// writer, while the day tint's soft pose law stays untouched — it composes
+// on top with its authored weights, exactly as before.
+// ---------------------------------------------------------------------------
+
+const BIG_FACTORS: RanchMotionFactors = { amplitude: 1.15, tempo: 1.5 }
+
+describe("morning-after amplitude (FR-3, AC-3)", () => {
+  test("every stance delta and the glow scale by amplitude", () => {
+    const poseDrive = drive(1, 0, 0.8)
+    const neutral = rig()
+    const big = rig()
+    applyMorningAfterPose(
+      neutral.root,
+      neutral.parts,
+      "draconic",
+      poseDrive,
+      HEAD_BASE_Y,
+    )
+    applyMorningAfterPose(
+      big.root,
+      big.parts,
+      "draconic",
+      poseDrive,
+      HEAD_BASE_Y,
+      BIG_FACTORS,
+    )
+    expect(big.head.rotation.x).toBeCloseTo(
+      neutral.head.rotation.x * BIG_FACTORS.amplitude,
+      12,
+    )
+    expect(big.head.position.y - HEAD_BASE_Y).toBeCloseTo(
+      (neutral.head.position.y - HEAD_BASE_Y) * BIG_FACTORS.amplitude,
+      12,
+    )
+    expect(big.body.rotation.z).toBeCloseTo(
+      neutral.body.rotation.z * BIG_FACTORS.amplitude,
+      12,
+    )
+    expect(big.tail.rotation.x).toBeCloseTo(
+      neutral.tail.rotation.x * BIG_FACTORS.amplitude,
+      12,
+    )
+    expect(big.root.position.y).toBeCloseTo(
+      neutral.root.position.y * BIG_FACTORS.amplitude,
+      12,
+    )
+    const neutralGlow = (neutral.body.material as THREE.MeshLambertMaterial)
+      .emissive.r
+    const bigGlow = (big.body.material as THREE.MeshLambertMaterial).emissive.r
+    expect(bigGlow).toBeCloseTo(neutralGlow * BIG_FACTORS.amplitude, 12)
+  })
+
+  test("the day tint's pose law is unchanged — no factor enters the soft idle", () => {
+    const { parts } = rig()
+    const expected = morningAfterPoseOf("draconic", drive(1, 0))
+    applyMorningAfterIdle(parts, "draconic", 1, 0, HEAD_BASE_Y)
+    // The tint keeps its authored 0.4 / 0.15 / 0.3 / 0.04 weights.
+    expect(parts.head.rotation.x).toBeCloseTo(-expected.headLift * 0.4, 12)
+    expect(parts.head.position.y).toBeCloseTo(
+      HEAD_BASE_Y + expected.headLift * 0.15,
+      12,
+    )
+    expect(parts.tail.rotation.x).toBeCloseTo(-expected.tailCarry * 0.3, 12)
+    expect(parts.body.scale.y).toBeCloseTo(1 + expected.chest * 0.04, 12)
+  })
+
+  test("the frame gives a champion a larger stance than a baby, same drive", () => {
+    const bootStance = (stage: "baby" | "champion"): number => {
+      const s = createRanchState(petDeps)
+      const r = rig()
+      s.creatureGroup = r.root
+      s.rigParts = r.parts
+      s.headBaseY = HEAD_BASE_Y
+      s.archetypeId = "draconic"
+      s.currentStage = stage
+      s.morningAfter.begin(
+        { class: "title", amplifiers: [], bossId: null },
+        false,
+      )
+      run(s, 24)
+      return r.head.rotation.x
+    }
+    const baby = bootStance("baby")
+    const champion = bootStance("champion")
+    expect(baby).toBeLessThan(0)
+    expect(champion).toBeLessThan(0)
+    expect(Math.abs(champion)).toBeGreaterThan(Math.abs(baby))
   })
 })

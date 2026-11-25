@@ -10,6 +10,7 @@ import {
 } from "../scene-logic"
 import { lambertMaterialOf } from "../scene-utils"
 import type { MoodProfile } from "./mood"
+import { NEUTRAL_MOTION_FACTORS, type RanchMotionFactors } from "./profile"
 import type { RigParts } from "./state"
 
 /** Deep, slow breathing while the rest ceremony owns the creature
@@ -32,19 +33,26 @@ export function applyGlow(group: THREE.Object3D, intensity: number): void {
 /** Map a gait pose onto the creature rig: hip-pivot swings, weight-shift
  * roll on the body, and the walk bob as the creature's ground height.
  * Called every frame with a zero pose outside walks, so pivots always
- * come back to rest. */
-export function applyGait(creature: THREE.Group, pose: GaitPose): void {
+ * come back to rest. The pose is the authored `gaitPose` sample; the factor
+ * only multiplies its deltas (the caller scales that sample's clock for
+ * tempo), so the diagonal-pair curve itself is never rewritten. */
+export function applyGait(
+  creature: THREE.Group,
+  pose: GaitPose,
+  factors: RanchMotionFactors = NEUTRAL_MOTION_FACTORS,
+): void {
+  const a = factors.amplitude
   const setLeg = (name: string, angle: number): void => {
     const pivot = creature.getObjectByName(name)
-    if (pivot) pivot.rotation.x = angle
+    if (pivot) pivot.rotation.x = angle * a
   }
   setLeg("legFL", pose.fl)
   setLeg("legBR", pose.br)
   setLeg("legFR", pose.fr)
   setLeg("legBL", pose.bl)
   const body = creature.getObjectByName("body")
-  if (body) body.rotation.z = pose.roll
-  creature.position.y = pose.bob
+  if (body) body.rotation.z = pose.roll * a
+  creature.position.y = pose.bob * a
 }
 
 /**
@@ -61,9 +69,15 @@ export function applyBreath(
   profile: MoodProfile,
   restActive: boolean,
   headBaseY: number,
+  factors: RanchMotionFactors = NEUTRAL_MOTION_FACTORS,
 ): number {
-  const bRate = restActive ? REST_BREATH_RATE : profile.breathRate
-  const bAmp = restActive ? REST_BREATH_AMP : profile.breathAmp
+  // Tempo advances the pose clocks; amplitude scales their depth. The
+  // condition-driven droop is a mood law, not an authored curve, so it
+  // composes on top untouched.
+  const bRate =
+    (restActive ? REST_BREATH_RATE : profile.breathRate) * factors.tempo
+  const bAmp =
+    (restActive ? REST_BREATH_AMP : profile.breathAmp) * factors.amplitude
   const breath = Math.sin(t * bRate)
   const body = rig.body
   if (body) {
@@ -78,11 +92,11 @@ export function applyBreath(
     head.position.y =
       headBaseY + breath * bAmp * 0.6 - (restActive ? 0 : profile.headDroop)
   }
-  const sway = Math.sin(t * 1.3)
+  const sway = Math.sin(t * 1.3 * factors.tempo)
   const tail = rig.tail
-  if (tail) tail.rotation.y = sway * 0.06
+  if (tail) tail.rotation.y = sway * 0.06 * factors.amplitude
   const tailTip = rig.tailTip
-  if (tailTip) tailTip.rotation.y = sway * 0.12
+  if (tailTip) tailTip.rotation.y = sway * 0.12 * factors.amplitude
   return breath
 }
 
@@ -97,10 +111,13 @@ export function applyRestPose(
   rd: RestDrive,
   breath: number,
   headBaseY: number,
+  factors: RanchMotionFactors = NEUTRAL_MOTION_FACTORS,
 ): void {
   // Legs come back to rest first (zero gait pose), then fold by curl.
-  applyGait(creature, gaitPose(0, 0, true))
-  const curl = rd.curl
+  applyGait(creature, gaitPose(0, 0, true), factors)
+  const a = factors.amplitude
+  const curl = rd.curl * a
+  const stretch = rd.stretch * a
   const fold = (name: string, angle: number): void => {
     const pivot = creature.getObjectByName(name)
     if (pivot) pivot.rotation.x = angle * curl
@@ -117,14 +134,14 @@ export function applyRestPose(
     // the reach that reads as a stretch.
     head.position.y =
       headBaseY +
-      breath * REST_BREATH_AMP * 0.6 -
+      breath * REST_BREATH_AMP * 0.6 * a -
       curl * (headBaseY * 0.35 + 0.05) +
-      rd.stretch * (headBaseY * 0.35 + 0.05)
+      stretch * (headBaseY * 0.35 + 0.05)
   }
   const body = rig.body
   if (body) {
     // The wake reach stretches the spine tall (on top of the breath scale).
-    body.scale.y *= 1 + rd.stretch * 0.14
+    body.scale.y *= 1 + stretch * 0.14
   }
 }
 
@@ -139,9 +156,10 @@ export function applyTreatPose(
   rig: RigParts,
   td: TreatDrive,
   headBaseY: number,
+  factors: RanchMotionFactors = NEUTRAL_MOTION_FACTORS,
 ): void {
-  applyGait(creature, gaitPose(0, 0, true))
-  const s = td.subdued
+  applyGait(creature, gaitPose(0, 0, true), factors)
+  const s = td.subdued * factors.amplitude
   const head = rig.head
   if (head) head.position.y = headBaseY - s * (headBaseY * 0.45 + 0.06)
   const body = rig.body
@@ -198,24 +216,26 @@ export function applyMorningAfterPose(
   archetypeId: string,
   md: MorningAfterDrive,
   headBaseY: number,
+  factors: RanchMotionFactors = NEUTRAL_MOTION_FACTORS,
 ): void {
-  applyGait(creature, gaitPose(0, 0, true))
+  applyGait(creature, gaitPose(0, 0, true), factors)
   const pose = morningAfterPoseOf(archetypeId, md)
+  const a = factors.amplitude
   const head = rig.head
   if (head) {
-    head.rotation.x = -pose.headLift
-    head.position.y = headBaseY + pose.headLift * 0.3
+    head.rotation.x = -pose.headLift * a
+    head.position.y = headBaseY + pose.headLift * 0.3 * a
   }
   const body = rig.body
   if (body) {
-    body.rotation.x = -pose.chest * 0.08
-    body.rotation.z = pose.roll
-    body.scale.y *= 1 + pose.chest * 0.08
+    body.rotation.x = -pose.chest * 0.08 * a
+    body.rotation.z = pose.roll * a
+    body.scale.y *= 1 + pose.chest * 0.08 * a
   }
   const tail = rig.tail
-  if (tail) tail.rotation.x = -pose.tailCarry
-  creature.position.y = pose.prance * MORNING_AFTER_PRANCE_HEIGHT
-  applyGlow(creature, pose.glow)
+  if (tail) tail.rotation.x = -pose.tailCarry * a
+  creature.position.y = pose.prance * MORNING_AFTER_PRANCE_HEIGHT * a
+  applyGlow(creature, pose.glow * a)
 }
 
 /**
@@ -251,8 +271,9 @@ export function applyPetPose(
   rig: RigParts,
   pd: PetDrive,
   petTime: number,
+  factors: RanchMotionFactors = NEUTRAL_MOTION_FACTORS,
 ): void {
-  const r = pd.react
+  const r = pd.react * factors.amplitude
   const body = rig.body
   const head = rig.head
   const tail = rig.tail
@@ -264,10 +285,14 @@ export function applyPetPose(
   }
   if (pd.variant === "wiggle") {
     // Content wag: a quick side-to-side roll with the tail keeping time.
-    const wobble = Math.sin(petTime * (pd.subtle ? 9 : 16))
+    // Only the wiggle's clock is retimed; the reaction arc stays machine-
+    // owned, so its start/end and cooldown are untouched.
+    const wobble = Math.sin(petTime * (pd.subtle ? 9 : 16) * factors.tempo)
     if (body) body.rotation.z += wobble * r * 0.09
     if (head) head.rotation.z = wobble * r * 0.06
-    if (tail) tail.rotation.y += Math.sin(petTime * 14) * r * 0.25
+    if (tail) {
+      tail.rotation.y += Math.sin(petTime * 14 * factors.tempo) * r * 0.25
+    }
     return
   }
   // "lean" (low mood) and "stir" (sick override): subdued responses — a
