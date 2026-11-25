@@ -50,30 +50,28 @@
   `apps/client/src/ranch/frame.test.ts`,
   `apps/client/src/ranch/morning-after.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/ranch/profile.test.ts apps/client/src/ranch/motion.test.ts apps/client/src/ranch/frame.test.ts apps/client/src/ranch/morning-after.test.ts`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Pin ranch profile, tempo, calm and edge boundaries** — covers:
+- [x] **P2.T1: Pin ranch profile, tempo, calm and edge boundaries** — covers:
   FR-2, FR-3, FR-4, FR-5, AC-2, AC-3, AC-4, AC-5
-  - [ ] **P2.T1.1:** Pin all seven ceremonies' amplitude/tempo multipliers,
+  - [x] **P2.T1.1:** Pin all seven ceremonies' amplitude/tempo multipliers,
     shared-table fallback for unknown archetypes, and neutral stage handling;
     observe the expected red.
-  - [ ] **P2.T1.2:** Pin calm damping with no new cue/state, unchanged ceremony
+  - [x] **P2.T1.2:** Pin calm damping with no new cue/state, unchanged ceremony
     triggers/order/callbacks and authored set-piece curves, plus unknown
     archetype, mid-ceremony swap/evolution, pause/hidden tab and dense-field
     safety.
-- [ ] **P2.T2: Author the ranch adapter and wire every ceremony** — covers:
+- [x] **P2.T2: Author the ranch adapter and wire every ceremony** — covers:
   FR-2, FR-3, FR-4, FR-5, AC-2, AC-3, AC-4, AC-5
-  - [ ] **P2.T2.1:** Add a ranch profile adapter that imports the shared
+  - [x] **P2.T2.1:** Add a ranch profile adapter that imports the shared
     composer, applies calm damping and exposes amplitude/tempo factors.
-  - [ ] **P2.T2.2:** Compose the factors into feed, rest, treat, play, pet,
+  - [x] **P2.T2.2:** Compose the factors into feed, rest, treat, play, pet,
     evolution and morning-after without replacing authored curves or outcomes;
     update pins to green.
 
-<!--
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 1d9129f7
 **Evidence:** conductor/tracks/20261126-stage-scaled-animation-ranch-profiles/verification/phase-2.md
--->
 
 ## Phase 3: Visual evidence and integrated gate
 
