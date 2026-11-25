@@ -244,7 +244,9 @@ describe("exact SDF characterization", () => {
     ]
     for (const { sdf, samples } of cases) {
       for (const [index, point] of points.entries()) {
-        expect(sdf(point)).toBe(samples[index])
+        const expected = samples[index]
+        if (expected === undefined) throw new Error("missing SDF sample")
+        expect(sdf(point)).toBe(expected)
       }
     }
   })
