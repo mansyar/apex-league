@@ -69,4 +69,4 @@
 - [x] **Track: Author Basic Strike identity and KO/down impact weighting** — [20261125-basic-strike-identity-impact](./archive/20261125-basic-strike-identity-impact/index.md) — feature — low
 - [x] **Track: Adopt stage-scaled animation and ranch body profiles** - [20261126-stage-scaled-animation-ranch-profiles](./archive/20261126-stage-scaled-animation-ranch-profiles/index.md) - feature - medium
 - [x] **Track: Decide stable capacity, ranch expansion, and pet release** - [20261126-stable-capacity-ranch-release](./archive/20261126-stable-capacity-ranch-release/index.md) - chore - medium
-- [~] **Track: Deduplicate verdict presentation across spar, cup, and battle HUD** - [20261126-verdict-presentation-dedup](./tracks/20261126-verdict-presentation-dedup/index.md) - refactor - low
+- [x] **Track: Deduplicate verdict presentation across spar, cup, and battle HUD** - [20261126-verdict-presentation-dedup](./archive/20261126-verdict-presentation-dedup/index.md) - refactor - low
