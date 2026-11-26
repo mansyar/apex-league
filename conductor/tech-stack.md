@@ -390,6 +390,22 @@
    save-schema, voxel/determinism-hash, sim-payload or audio change; desktop/
    iPhone captures record ranch and arena contrast.*
 
+-   *2026-11-26 — Verdict presentation dedup (track
+   `20261126-verdict-presentation-dedup`): new
+   `apps/client/src/verdict/copy.ts` is the single source for spar/cup/battle
+   stamp title and sub strings and consumes already-derived inputs; it
+   recomputes no battle state. `apps/client/src/verdict/stamp.ts` builds the
+   shared four-div stamp DOM with configurable classes, optional
+   `role="status"`/`aria-live="polite"` and a `parentChildren` option so cup
+   results keep their original flat siblings under `.cup-result-card`.
+   `battle-session.ts`, `battleHud.ts`, `cup/view-models.ts` and
+   `cup/screens/results.ts` delegate copy/DOM construction to those modules;
+   exact wording, classes, animation restart, combined announcement and the
+   out-of-scope live invite surface are unchanged. Client-only refactor; no
+   sim, save, voxel/determinism, CSS, audio, dependency or generated-file
+   change; desktop and forced iPhone 15 captures cover spar, cup battle and
+   cup results stamps.*
+
 ## Server
 - **Framework**: ElysiaJS on Bun, in `apps/server` (endpoints: trainer
   identity, save sync, leaderboards, ghost data — the last two landed

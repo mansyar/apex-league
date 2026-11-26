@@ -2,6 +2,7 @@
  * The results card (cup_modules_per_screen split): verdict stamp, placement
  * plate, rewards, exit CTA. Moved verbatim from cup-screens.ts.
  */
+import { buildStampView } from "../../verdict/stamp"
 
 /** The results card's writable surfaces. */
 export interface ResultsScreenRefs {
@@ -23,14 +24,19 @@ export function buildResultsScreen(): ResultsScreenRefs {
   screen.className = "cup-screen cup-screen-results"
   const resultCard = document.createElement("div")
   resultCard.className = "cup-result-card kit-surface"
-  const resultStamp = document.createElement("div")
-  resultStamp.className = "cup-result-stamp"
-  const resultTitle = document.createElement("div")
-  resultTitle.className = "cup-result-title"
-  const resultRule = document.createElement("div")
-  resultRule.className = "cup-result-rule"
-  const resultSub = document.createElement("div")
-  resultSub.className = "cup-result-sub"
+  const stamp = buildStampView(
+    {
+      root: "cup-result-stamp",
+      title: "cup-result-title",
+      rule: "cup-result-rule",
+      sub: "cup-result-sub",
+    },
+    { parentChildren: false },
+  )
+  const resultStamp = stamp.root
+  const resultTitle = stamp.title
+  const resultRule = stamp.rule
+  const resultSub = stamp.sub
   const resultPlate = document.createElement("div")
   resultPlate.className = "cup-result-plate kit-line"
   const resultPlateTab = document.createElement("span")

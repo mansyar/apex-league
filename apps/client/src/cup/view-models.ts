@@ -29,6 +29,7 @@ import {
   resultRows,
 } from "../bracket-model"
 import { TIER_NAME } from "../tier-name"
+import { cupResultCopy } from "../verdict/copy"
 
 /** What the sim's `bossForCup` hands the chip (null = regular cup). */
 export type CupGate = NonNullable<ReturnType<typeof bossForCup>>
@@ -143,15 +144,17 @@ export function resultsView(
       ? "Promotion Cup"
       : `${TIER_NAME[ladderBefore?.tier ?? "bronze"]} Cup`
   const player = session.bracket.slots[0]?.name ?? ""
+  const copy = cupResultCopy({
+    won,
+    player,
+    cupName,
+    championName: session.championName,
+  })
   return {
     won,
-    title: won ? "Champion" : "Eliminated",
+    title: copy.title,
     cupName,
-    sub: won
-      ? `${player} takes the ${cupName}!`
-      : session.championName
-        ? `${session.championName} takes the ${cupName}.`
-        : "The cup ends without a champion.",
+    sub: copy.sub,
     tab: ordinalOf(placement),
     line: won
       ? `${player} · unbeaten through three rounds`
