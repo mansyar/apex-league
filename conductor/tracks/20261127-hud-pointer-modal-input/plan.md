@@ -110,3 +110,24 @@
 - **Result:** verified
 - **Checkpoint:** `59551de5`
 - **Evidence:** `conductor/tracks/20261127-hud-pointer-modal-input/verification/phase-R1.md`
+
+## Phase R2: Review Fixes
+
+- **Goal:** Resolve F2 by making the nested board-close → spar-close regression use the same default `closeModal(boardRoot)` options as production and model the inert board opener focus attempt.
+- **Depends on:** Phase R1
+- **Covers:** F2, AC-4, NFR-3
+- **Touches:**
+  - `apps/client/src/ui/modal.test.ts`
+  - `conductor/tracks/20261127-hud-pointer-modal-input/verification/phase-R2.md`
+  - `conductor/tracks/20261127-hud-pointer-modal-input/verification/integrated.md`
+- **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/ui/modal.test.ts apps/client/src/ui/focus.test.ts apps/client/src/spar/panel.test.ts apps/client/src/hud/plates.test.ts` plus the mandatory primary `bun run verify && bun run build` gate.
+- **Status:** pending
+
+- [ ] **R2.T1: Match the production board-close sequence** — covers: F2, AC-4, NFR-3
+  - [ ] Pin the default board close's isolated-opener focus attempt and observe red before changing the close options.
+  - [ ] Use `closeModal(boardRoot)` and prove spar close still focuses `sparButton` without focusing the hidden Fight button.
+- [ ] **R2.T2: Record the test-fidelity fix and integrated evidence** — covers: F2, AC-4
+  - [ ] Record red/green, exact phase command, scope, and primary full-gate results.
+  - [ ] Leave production code, artifacts, sim/state/save/balance/audio/voxel/dependencies, and unrelated roadmap work untouched.
+
+<!-- Primary appends Result/Checkpoint/Evidence after acceptance. -->
