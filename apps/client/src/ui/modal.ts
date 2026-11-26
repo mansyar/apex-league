@@ -6,6 +6,10 @@
  * Roots start hidden via the `is-hidden` class (kit.css hides every overlay
  * root that wears it); the helper only toggles that class. No overlay writes
  * `style.display` on its modal path anymore.
+ *
+ * Opt-in `background` isolation makes chosen elements inert and aria-hidden
+ * for the overlay's lifetime, restoring their exact prior attributes on close
+ * (nested-safe: the last relevant close restores).
  */
 
 import { focusablesIn, focusTrap } from "./focus"
@@ -21,6 +25,11 @@ export interface OpenModalOptions {
   dismissOnScrim?: boolean
   /** Escape closes. Defaults true; blocking dialogs pass false. */
   dismissOnEscape?: boolean
+  /**
+   * Background elements made inert + aria-hidden while open. Omitted means
+   * no isolation at all, so existing overlays keep their current behavior.
+   */
+  background?: HTMLElement | readonly HTMLElement[]
 }
 
 export interface CloseModalOptions {
@@ -36,11 +45,67 @@ interface ModalRecord {
   onClose: (() => void) | null
   dismissOnScrim: boolean
   dismissOnEscape: boolean
+  background: readonly HTMLElement[]
   keydown: (event: KeyboardEvent) => void
   click: (event: MouseEvent) => void
 }
 
 const records = new WeakMap<HTMLElement, ModalRecord>()
+
+interface IsolationState {
+  /** Open roots currently isolating this target; only zero restores. */
+  count: number
+  /** Exact attribute values from before the first mutation. */
+  inert: string | null
+  ariaHidden: string | null
+}
+
+/**
+ * Weak keys keep this bookkeeping from retaining detached background nodes,
+ * so overlapping roots can share a target without a leaked global registry.
+ */
+const isolations = new WeakMap<HTMLElement, IsolationState>()
+
+function backgroundList(
+  background: HTMLElement | readonly HTMLElement[] | undefined,
+): readonly HTMLElement[] {
+  if (!background) return []
+  const list = Array.isArray(background) ? background : [background]
+  return [...new Set(list)]
+}
+
+/** Make targets inert/hidden, recording exact prior state once per target. */
+function isolateBackground(targets: readonly HTMLElement[]): void {
+  for (const target of targets) {
+    let state = isolations.get(target)
+    if (!state) {
+      state = {
+        count: 0,
+        inert: target.getAttribute("inert"),
+        ariaHidden: target.getAttribute("aria-hidden"),
+      }
+      isolations.set(target, state)
+    }
+    state.count += 1
+    target.inert = true
+    target.setAttribute("aria-hidden", "true")
+  }
+}
+
+/** Restore the exact prior attributes when the last isolating root closes. */
+function restoreBackground(targets: readonly HTMLElement[]): void {
+  for (const target of targets) {
+    const state = isolations.get(target)
+    if (!state) continue
+    state.count -= 1
+    if (state.count > 0) continue
+    if (state.inert === null) target.removeAttribute("inert")
+    else target.setAttribute("inert", state.inert)
+    if (state.ariaHidden === null) target.removeAttribute("aria-hidden")
+    else target.setAttribute("aria-hidden", state.ariaHidden)
+    isolations.delete(target)
+  }
+}
 
 /** instanceof without throwing when the DOM is stubbed or absent. */
 function isElement(node: unknown): node is HTMLElement {
@@ -84,6 +149,7 @@ function ensureWired(root: HTMLElement, box: HTMLElement): ModalRecord {
     onClose: null,
     dismissOnScrim: true,
     dismissOnEscape: true,
+    background: [],
     keydown: (event) => {
       focusTrap(record.box)(event)
       if (event.key === "Escape" && record.dismissOnEscape) {
@@ -118,6 +184,8 @@ export function openModal(
   record.dismissOnEscape = opts.dismissOnEscape ?? true
   const active = globalThis.document?.activeElement
   record.opener = isElement(active) ? active : null
+  record.background = backgroundList(opts.background)
+  isolateBackground(record.background)
   root.classList.remove("is-hidden")
   const target = opts.initialFocus ?? firstFocusable(box)
   target?.focus()
@@ -134,20 +202,26 @@ export function closeModal(
   const record = records.get(root)
   if (!isModalOpen(root)) return
   root.classList.add("is-hidden")
-  const notify = opts.notify ?? true
-  if (notify) {
-    try {
-      record?.onClose?.()
-    } finally {
-      if (record) record.onClose = null
+  // The opener can live in the isolated background, so restore it before any
+  // cleanup or focus handoff — and still hand focus back if cleanup throws.
+  try {
+    if (record) restoreBackground(record.background)
+    const notify = opts.notify ?? true
+    if (notify) {
+      try {
+        record?.onClose?.()
+      } finally {
+        if (record) record.onClose = null
+      }
+    } else if (record) {
+      record.onClose = null
     }
-  } else if (record) {
-    record.onClose = null
-  }
-  if (opts.returnFocus ?? true) {
-    returnFocusTo(record?.opener ?? null)
-    if (record) record.opener = null
-  } else if (record) {
-    record.opener = null
+  } finally {
+    if (opts.returnFocus ?? true) {
+      returnFocusTo(record?.opener ?? null)
+      if (record) record.opener = null
+    } else if (record) {
+      record.opener = null
+    }
   }
 }

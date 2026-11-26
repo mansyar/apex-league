@@ -54,8 +54,22 @@ class FakeElement {
     this.attributes[name] = value
   }
 
+  removeAttribute(name: string): void {
+    delete this.attributes[name]
+  }
+
   hasAttribute(name: string): boolean {
     return name in this.attributes
+  }
+
+  /** Boolean `inert` reflects the attribute, just like the real DOM. */
+  get inert(): boolean {
+    return this.hasAttribute("inert")
+  }
+
+  set inert(value: boolean) {
+    if (value) this.setAttribute("inert", "")
+    else this.removeAttribute("inert")
   }
 
   getAttribute(name: string): string | null {
@@ -230,5 +244,176 @@ describe("openModal / closeModal", () => {
     closeModal(of(root), { returnFocus: false })
     expect(calls).toBe(1)
     expect(opener.focused).toBe(false)
+  })
+
+  test("omitted background isolation leaves the page untouched", () => {
+    const { root, box, initial } = setup()
+    const bg = new FakeElement("hud-panel")
+    openModal(of(root), { box: of(box), initialFocus: of(initial) })
+    expect(bg.inert).toBe(false)
+    expect(bg.hasAttribute("inert")).toBe(false)
+    expect(bg.getAttribute("aria-hidden")).toBeNull()
+    closeModal(of(root))
+    expect(bg.inert).toBe(false)
+    expect(bg.getAttribute("aria-hidden")).toBeNull()
+  })
+
+  test("isolates one background target while the modal is open", () => {
+    const { root, box, initial } = setup()
+    const bg = new FakeElement("hud-panel")
+    openModal(of(root), {
+      box: of(box),
+      initialFocus: of(initial),
+      background: of(bg),
+    })
+    expect(bg.inert).toBe(true)
+    expect(bg.getAttribute("aria-hidden")).toBe("true")
+  })
+
+  test("isolates several background targets while the modal is open", () => {
+    const { root, box, initial } = setup()
+    const hud = new FakeElement("hud")
+    const dock = new FakeElement("dock")
+    openModal(of(root), {
+      box: of(box),
+      initialFocus: of(initial),
+      background: [of(hud), of(dock)],
+    })
+    expect(hud.inert).toBe(true)
+    expect(hud.getAttribute("aria-hidden")).toBe("true")
+    expect(dock.inert).toBe(true)
+    expect(dock.getAttribute("aria-hidden")).toBe("true")
+  })
+
+  test("close removes isolation attributes that were absent before", () => {
+    const { root, box, initial } = setup()
+    const bg = new FakeElement("hud-panel")
+    openModal(of(root), {
+      box: of(box),
+      initialFocus: of(initial),
+      background: [of(bg)],
+    })
+    expect(bg.inert).toBe(true)
+    closeModal(of(root))
+    expect(bg.inert).toBe(false)
+    expect(bg.hasAttribute("inert")).toBe(false)
+    expect(bg.getAttribute("aria-hidden")).toBeNull()
+  })
+
+  test("close restores pre-existing inert and aria-hidden values exactly", () => {
+    const { root, box, initial } = setup()
+    const bg = new FakeElement("hud-panel")
+    bg.setAttribute("inert", "")
+    bg.setAttribute("aria-hidden", "false")
+    openModal(of(root), {
+      box: of(box),
+      initialFocus: of(initial),
+      background: [of(bg)],
+    })
+    expect(bg.inert).toBe(true)
+    expect(bg.getAttribute("aria-hidden")).toBe("true")
+    closeModal(of(root))
+    expect(bg.getAttribute("inert")).toBe("")
+    expect(bg.inert).toBe(true)
+    expect(bg.getAttribute("aria-hidden")).toBe("false")
+  })
+
+  test("repeated open/close cycles do not retain stale isolation", () => {
+    const { root, box, initial } = setup()
+    const bg = new FakeElement("hud-panel")
+    openModal(of(root), {
+      box: of(box),
+      initialFocus: of(initial),
+      background: [of(bg)],
+    })
+    closeModal(of(root))
+    expect(bg.hasAttribute("inert")).toBe(false)
+    expect(bg.getAttribute("aria-hidden")).toBeNull()
+    bg.setAttribute("aria-hidden", "custom")
+    openModal(of(root), {
+      box: of(box),
+      initialFocus: of(initial),
+      background: [of(bg)],
+    })
+    expect(bg.getAttribute("aria-hidden")).toBe("true")
+    closeModal(of(root))
+    expect(bg.hasAttribute("inert")).toBe(false)
+    expect(bg.getAttribute("aria-hidden")).toBe("custom")
+  })
+
+  test("closing the inner modal keeps the outer modal's isolation", () => {
+    const outer = new FakeElement("kit-modal is-hidden")
+    const outerBox = new FakeElement("kit-modal-box")
+    const outerOpener = new FakeElement("opener")
+    outerOpener.isConnected = true
+    const inner = new FakeElement("kit-modal is-hidden")
+    const innerBox = new FakeElement("kit-modal-box")
+    const innerOpener = new FakeElement("opener")
+    innerOpener.isConnected = true
+    const bg = new FakeElement("hud-panel")
+    const focusTarget = new FakeElement("kit-button")
+
+    active = outerOpener
+    openModal(of(outer), {
+      box: of(outerBox),
+      initialFocus: of(focusTarget),
+      background: [of(bg)],
+    })
+    active = innerOpener
+    openModal(of(inner), {
+      box: of(innerBox),
+      initialFocus: of(focusTarget),
+      background: [of(bg)],
+    })
+    expect(bg.inert).toBe(true)
+
+    closeModal(of(inner), { returnFocus: false })
+    expect(isModalOpen(of(inner))).toBe(false)
+    expect(bg.inert).toBe(true)
+    expect(bg.getAttribute("aria-hidden")).toBe("true")
+
+    closeModal(of(outer), { returnFocus: false })
+    expect(bg.inert).toBe(false)
+    expect(bg.hasAttribute("inert")).toBe(false)
+    expect(bg.getAttribute("aria-hidden")).toBeNull()
+  })
+
+  test("restores background before handing focus to an opener inside it", () => {
+    const { root, box, initial, opener } = setup()
+    const realFocus = opener.focus.bind(opener)
+    opener.focus = () => {
+      // The opener lives in the isolated background, so it must already be
+      // interactive by the time the helper hands focus back to it.
+      expect(opener.inert).toBe(false)
+      expect(opener.getAttribute("aria-hidden")).toBeNull()
+      realFocus()
+    }
+    openModal(of(root), {
+      box: of(box),
+      initialFocus: of(initial),
+      background: [of(opener)],
+    })
+    expect(opener.inert).toBe(true)
+    opener.focused = false
+    closeModal(of(root))
+    expect(opener.focused).toBe(true)
+  })
+
+  test("restores background even when onClose cleanup throws", () => {
+    const { root, box, opener, initial } = setup()
+    const bg = new FakeElement("hud-panel")
+    openModal(of(root), {
+      box: of(box),
+      initialFocus: of(initial),
+      background: [of(bg)],
+      onClose: () => {
+        throw new Error("cleanup failed")
+      },
+    })
+    opener.focused = false
+    expect(() => closeModal(of(root))).toThrow("cleanup failed")
+    expect(bg.inert).toBe(false)
+    expect(bg.getAttribute("aria-hidden")).toBeNull()
+    expect(opener.focused).toBe(true)
   })
 })
