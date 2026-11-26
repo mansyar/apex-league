@@ -272,6 +272,12 @@ describe("openModal / closeModal", () => {
     const boardInitial = new FakeElement("board-button")
     const boardOpener = new FakeElement("chip")
     boardOpener.isConnected = true
+    // The chip is inert while spar isolates the HUD: the default board close
+    // still attempts to focus it once, but the attempt is a no-op.
+    let isolatedBoardOpenerFocusCalls = 0
+    boardOpener.focus = () => {
+      isolatedBoardOpenerFocusCalls += 1
+    }
     const fightButton = new FakeElement("fight-button")
     fightButton.isConnected = true
     let hiddenFocusCalls = 0
@@ -299,7 +305,8 @@ describe("openModal / closeModal", () => {
 
     // board/panel.ts closes the board modal; its Fight button stays
     // connected but hidden, so spar close must not focus it.
-    closeModal(of(boardRoot), { returnFocus: false })
+    closeModal(of(boardRoot))
+    expect(isolatedBoardOpenerFocusCalls).toBe(1)
     fightButton.focused = false
     sparButton.focused = false
 
