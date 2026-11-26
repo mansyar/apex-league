@@ -21,7 +21,7 @@
 
 | id | title | type | priority | depends_on | track | origin |
 | --- | --- | --- | --- | --- | --- | --- |
-| RM-13 | Fix HUD pointer interception and isolate modal input across desktop and mobile | bug | high | — | — | user |
+| RM-13 | Fix HUD pointer interception and isolate modal input across desktop and mobile | bug | high | — | 20261127-hud-pointer-modal-input | user |
 | RM-14 | Improve arena camera, lighting, and fighter readability on desktop and mobile | feature | high | — | — | user |
 | RM-15 | Streamline spar setup with an explicit start action and stable mobile scrolling | refactor | high | RM-13 | — | user |
 | RM-16 | Rework mobile ranch hierarchy and make action state, costs, and disabled reasons explicit | refactor | high | RM-13 | — | user |
