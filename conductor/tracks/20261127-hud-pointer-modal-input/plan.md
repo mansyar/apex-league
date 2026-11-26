@@ -70,7 +70,7 @@
   - Gitignored `.conductor/evidence/20261127-hud-pointer-modal-input/`
 - **Verification:** `bun run verify && bun run build`
 - **Browser verification:** `playwright-cli` captures and console checks at desktop `1440×900`, phone portrait `393×852`, and phone landscape `852×393`.
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Capture interaction and visual proof** — covers: FR-6, AC-1, AC-2, AC-3, AC-4, AC-5
   - [ ] Record Rename and SPAR normal-click hit tests.
