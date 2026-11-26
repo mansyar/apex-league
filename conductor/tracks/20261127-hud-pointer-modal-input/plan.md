@@ -13,7 +13,7 @@
   - `apps/client/src/ui/modal.test.ts`
   - `apps/client/src/ui/focus.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/ui/modal.test.ts apps/client/src/ui/focus.test.ts`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Pin background isolation and restoration** — covers: FR-3, FR-4, AC-3, AC-4, NFR-5
   - [ ] Add failing tests for inert/aria-hidden background state.
