@@ -1,9 +1,11 @@
 import { describe, expect, test } from "bun:test"
 import { generate } from "./archetype"
+import { PROPORTION_BUDGETS } from "./budgets"
 import { buildFalcon, FALCON_GRID, falconTemplate } from "./falcon"
 import { sampleDna } from "./sample"
+import type { Dna } from "./schema"
 import { assertDnaInBounds, validateTemplate } from "./schema"
-import { matureProportions } from "./stage"
+import { matureProportions, type Stage } from "./stage"
 import { voxelize } from "./voxelizer"
 
 describe("falcon template", () => {
@@ -208,5 +210,314 @@ describe("falcon stage maturation", () => {
   test("baby DNA is untouched by maturity", () => {
     const dna = sampleDna(falconTemplate, 42)
     expect(matureProportions(dna.proportions, "baby")).toEqual(dna.proportions)
+  })
+})
+
+describe("falcon feather silhouette contract", () => {
+  const FEATHER_PARTS = [
+    "wingFeatherLeft",
+    "wingFeatherRight",
+    "tailFeatherLeft",
+    "tailFeatherRight",
+  ] as const
+  const FEATHER_PARENTS: Record<string, string> = {
+    wingFeatherLeft: "wingLeft",
+    wingFeatherRight: "wingRight",
+    tailFeatherLeft: "tail",
+    tailFeatherRight: "tail",
+  }
+  const STAGES: Stage[] = ["baby", "juvenile", "champion"]
+  const WING_STYLES = ["folded", "drooped", "flared"]
+  const TAIL_STYLES = ["fan", "forked", "streamer"]
+
+  const isFiniteTriple = (value: unknown): boolean =>
+    Array.isArray(value) &&
+    value.length === 3 &&
+    value.every((n) => typeof n === "number" && Number.isFinite(n))
+
+  /** One DNA per style pair; params pinned to a slot bound for reach. */
+  const variantDna = (
+    wings: string,
+    tail: string,
+    reach: number,
+    proportions = sampleDna(falconTemplate, 42).proportions,
+  ): Dna => {
+    const base = sampleDna(falconTemplate, 42)
+    return {
+      ...base,
+      proportions: { ...proportions },
+      styles: { ...base.styles, wings, tail },
+      styleParams: {
+        ...base.styleParams,
+        sweep: reach,
+        forkSpread: reach,
+        streamerLength: reach,
+      },
+    }
+  }
+
+  const SEED_PROPORTIONS = sampleDna(falconTemplate, 42).proportions
+  /** Template maxima for the four proportions scaled by the feather SDFs. */
+  const WORST_CASE_PROPORTIONS = {
+    bodyGirth: 1.3,
+    bodyLength: 1.35,
+    wingLength: 1.35,
+    tailLength: 1.35,
+  }
+
+  /** Proportion sets the style × stage sweep must cover. */
+  const PROPORTION_SETS = [
+    { label: "seed42", proportions: SEED_PROPORTIONS },
+    {
+      label: "worst",
+      proportions: { ...SEED_PROPORTIONS, ...WORST_CASE_PROPORTIONS },
+    },
+  ]
+
+  const sweepCases = () =>
+    PROPORTION_SETS.flatMap((set) =>
+      WING_STYLES.flatMap((wings) =>
+        TAIL_STYLES.flatMap((tail) =>
+          [0.6, 1.4].flatMap((reach) =>
+            STAGES.map((stage) => ({ set, wings, tail, reach, stage })),
+          ),
+        ),
+      ),
+    )
+
+  test("style sweep combines template-max proportions with champion extremes", () => {
+    expect(
+      sweepCases().some(
+        ({ set, wings, tail, reach, stage }) =>
+          set.label === "worst" &&
+          wings === "flared" &&
+          tail === "streamer" &&
+          reach === 1.4 &&
+          stage === "champion",
+      ),
+    ).toBe(true)
+  })
+
+  test("four named feathers are rigged base parts in every stage", () => {
+    for (const stage of STAGES) {
+      const build = generate("falcon", 42, stage).build
+      for (const part of FEATHER_PARTS) {
+        // Stable name: exactly one field with that name, in every stage.
+        expect(build.fields.filter((f) => f.name === part).length).toBe(1)
+        expect(isFiniteTriple(build.pivots[part])).toBe(true)
+        expect(isFiniteTriple(build.colors[part])).toBe(true)
+        const parent = build.parents[part]
+        expect(parent).toBeDefined()
+        expect(
+          parent === "wingLeft" || parent === "wingRight" || parent === "tail",
+        ).toBe(true)
+        expect(parent).toBe(FEATHER_PARENTS[part])
+      }
+      const grid = voxelize(build.fields, FALCON_GRID)
+      const byName = new Map(grid.parts.map((p) => [p.name, p.voxels.length]))
+      for (const part of FEATHER_PARTS) {
+        expect(byName.get(part) ?? 0).toBeGreaterThan(0)
+      }
+    }
+  })
+
+  test("feathers are base silhouette, never stage signatures", () => {
+    // Mirrors stage.test.ts (which is not edited here): these are the only
+    // stage-gated falcon parts. A part present in the baby cannot be one.
+    const juvenileSignatures = ["pinionBudLeft", "pinionBudRight"]
+    const championSignatures = ["crownPlumeLeft", "crownPlumeRight"]
+    for (const part of FEATHER_PARTS) {
+      expect(juvenileSignatures).not.toContain(part)
+      expect(championSignatures).not.toContain(part)
+    }
+    const namesOf = (stage: Stage): string[] =>
+      generate("falcon", 42, stage).build.fields.map((f) => f.name)
+    const baby = namesOf("baby")
+    const juv = namesOf("juvenile")
+    const champ = namesOf("champion")
+    for (const part of FEATHER_PARTS) {
+      expect(baby).toContain(part)
+      expect(juv).toContain(part)
+      expect(champ).toContain(part)
+    }
+    for (const part of juvenileSignatures) {
+      expect(baby).not.toContain(part)
+      expect(juv).toContain(part)
+      expect(generate("falcon", 42, "juvenile").build.parents[part]).toBe(
+        "head",
+      )
+      expect(champ).toContain(part)
+    }
+    for (const part of championSignatures) {
+      expect(baby).not.toContain(part)
+      expect(juv).not.toContain(part)
+      expect(generate("falcon", 42, "champion").build.parents[part]).toBe(
+        "head",
+      )
+      expect(champ).toContain(part)
+    }
+    expect(juv.filter((n) => !baby.includes(n)).sort()).toEqual(
+      [...juvenileSignatures].sort(),
+    )
+    expect(champ.filter((n) => !juv.includes(n)).sort()).toEqual(
+      [...championSignatures].sort(),
+    )
+  })
+
+  test("every wing × tail style in every stage is bounded and non-degenerate", () => {
+    const problems: string[] = []
+    for (const { set, wings, tail, reach, stage } of sweepCases()) {
+      const label = `${set.label}/${wings}/${tail}/${stage}/${reach}`
+      const dna = variantDna(wings, tail, reach, set.proportions)
+      if (assertDnaInBounds(dna, falconTemplate).length > 0) {
+        problems.push(`${label}: DNA outside template bounds`)
+      }
+      const build = buildFalcon(dna, stage)
+      for (const field of build.fields) {
+        if (!isFiniteTriple(build.pivots[field.name])) {
+          problems.push(`${label}: ${field.name} non-finite pivot`)
+        }
+        if (!isFiniteTriple(build.colors[field.name])) {
+          problems.push(`${label}: ${field.name} non-finite color`)
+        }
+        for (const sample of [
+          { x: 0.5, y: 0.5, z: 0.5 },
+          { x: FALCON_GRID / 2, y: 12, z: FALCON_GRID / 2 },
+          {
+            x: FALCON_GRID - 0.5,
+            y: FALCON_GRID - 0.5,
+            z: FALCON_GRID - 0.5,
+          },
+        ]) {
+          if (!Number.isFinite(field.sdf(sample))) {
+            problems.push(`${label}: ${field.name} non-finite SDF`)
+          }
+        }
+      }
+      const grid = voxelize(build.fields, FALCON_GRID)
+      const total = grid.parts.reduce((n, p) => n + p.voxels.length, 0)
+      if (total <= 900) problems.push(`${label}: only ${total} voxels`)
+      const r = FALCON_GRID - 1
+      for (const part of grid.parts) {
+        if (part.voxels.length === 0) {
+          problems.push(`${label}: ${part.name} claims no voxels`)
+        }
+        for (const [x, y, z] of part.voxels) {
+          if (x <= 0 || y <= 0 || z <= 0 || x >= r || y >= r || z >= r) {
+            problems.push(
+              `${label}: ${part.name} voxel on boundary (${x},${y},${z})`,
+            )
+            break
+          }
+        }
+      }
+    }
+    expect(problems).toEqual([])
+  }, 120000)
+
+  test("worst-case proportions keep all four feathers finite and grid-bounded", () => {
+    const problems: string[] = []
+    const samples = [
+      { x: 0.5, y: 0.5, z: 0.5 },
+      { x: FALCON_GRID / 2, y: 12, z: FALCON_GRID / 2 },
+      {
+        x: FALCON_GRID - 0.5,
+        y: FALCON_GRID - 0.5,
+        z: FALCON_GRID - 0.5,
+      },
+    ]
+    for (const { set, wings, tail, reach, stage } of sweepCases()) {
+      if (set.label !== "worst") continue
+      const label = `${wings}/${tail}/${stage}/${reach}`
+      const build = buildFalcon(
+        variantDna(wings, tail, reach, set.proportions),
+        stage,
+      )
+      const grid = voxelize(build.fields, FALCON_GRID)
+      const voxelsByName = new Map(grid.parts.map((p) => [p.name, p.voxels]))
+      const r = FALCON_GRID - 1
+      for (const part of FEATHER_PARTS) {
+        if (build.fields.filter((f) => f.name === part).length !== 1) {
+          problems.push(`${label}: ${part} field count`)
+        }
+        if (!isFiniteTriple(build.pivots[part])) {
+          problems.push(`${label}: ${part} non-finite pivot`)
+        }
+        if (!isFiniteTriple(build.colors[part])) {
+          problems.push(`${label}: ${part} non-finite color`)
+        }
+        const field = build.fields.find((f) => f.name === part)
+        for (const sample of samples) {
+          if (!field || !Number.isFinite(field.sdf(sample))) {
+            problems.push(`${label}: ${part} non-finite SDF`)
+          }
+        }
+        const voxels = voxelsByName.get(part) ?? []
+        if (voxels.length === 0) {
+          problems.push(`${label}: ${part} claims no voxels`)
+        }
+        for (const [x, y, z] of voxels) {
+          if (x <= 0 || y <= 0 || z <= 0 || x >= r || y >= r || z >= r) {
+            problems.push(
+              `${label}: ${part} voxel on boundary (${x},${y},${z})`,
+            )
+            break
+          }
+        }
+      }
+    }
+    expect(problems).toEqual([])
+  }, 120000)
+
+  test("biped, template, DNA and budget contracts stay frozen", () => {
+    const build = buildFalcon(sampleDna(falconTemplate, 42))
+    const names = build.fields.map((f) => f.name)
+    expect(names.filter((n) => n.startsWith("leg"))).toEqual(["legFL", "legFR"])
+    expect(names.filter((n) => n === "wingLeft" || n === "wingRight")).toEqual([
+      "wingLeft",
+      "wingRight",
+    ])
+    expect(names.filter((n) => n.startsWith("wing")).sort()).toEqual(
+      [
+        ...FEATHER_PARTS.filter((n) => n.startsWith("wing")),
+        "wingLeft",
+        "wingRight",
+      ].sort(),
+    )
+    expect(names).toContain("tail")
+    expect(names).toContain("tailTip")
+    expect(build.parents.pinionBudLeft).toBeUndefined()
+
+    expect(falconTemplate.id).toBe("falcon")
+    expect(falconTemplate.version).toBe(1)
+    expect(falconTemplate.palette.hue).toBe(165)
+    expect(falconTemplate.rarity).toEqual([{ id: "gilded", weight: 32 }])
+    expect(falconTemplate.proportions).toEqual({
+      bodyLength: { min: 0.75, max: 1.35 },
+      bodyGirth: { min: 0.75, max: 1.3 },
+      legLength: { min: 0.75, max: 1.3 },
+      neckLength: { min: 0.7, max: 1.3 },
+      neckThickness: { min: 0.75, max: 1.3 },
+      headSize: { min: 0.75, max: 1.3 },
+      wingLength: { min: 0.75, max: 1.35 },
+      tailLength: { min: 0.7, max: 1.35 },
+    })
+    expect(Object.keys(falconTemplate.styles)).toEqual(["wings", "tail"])
+    expect(falconTemplate.styles.wings?.map((s) => s.id)).toEqual([
+      "folded",
+      "drooped",
+      "flared",
+    ])
+    expect(falconTemplate.styles.tail?.map((s) => s.id)).toEqual([
+      "fan",
+      "forked",
+      "streamer",
+    ])
+    expect(PROPORTION_BUDGETS.falcon?.ratios).toEqual({
+      "legLength/bodyHeight": { min: 0.25, max: 1.15 },
+      "neckLength/bodyLength": { min: 0.03, max: 0.65 },
+      "headHeight/bodyHeight": { min: 0.05, max: 0.85 },
+      "bodyLength/bodyHeight": { min: 1.0, max: 2.6 },
+    })
   })
 })

@@ -163,23 +163,41 @@ export function buildFalcon(dna: Dna, stage: Stage = "baby"): FalconBuild {
   fields.push({ name: "beak", sdf: beakField })
 
   // --- wings: big tapered blades folded along the flanks, style-driven.
+  // Blade radii are tight so the silhouette reads as a sharp edge at voxel
+  // scale; the outer primaries below extend past that edge as their own
+  // parts instead of hiding inside it.
   const wingStyle = dna.styles.wings ?? "folded"
   const sweep = dna.styleParams.sweep ?? 1
+  const wingFeatherPivots: Record<string, [number, number, number]> = {}
   for (const sx of [-1, 1]) {
     const name = sx === -1 ? "wingLeft" : "wingRight"
     const root = at(sx * 2.6 * bg, 14.2, 1.6 * bl)
     const tip =
       wingStyle === "drooped"
-        ? at(sx * (3.2 + 1.2 * sweep), 7.6, -2.4 - 6.4 * wl)
+        ? at(sx * (3.2 + 1.2 * sweep), 7.6, -2.4 - 8.2 * wl)
         : wingStyle === "flared"
-          ? at(sx * (4.4 + 1.0 * sweep), 12.6, -1.4 - 5.8 * wl)
-          : at(sx * (2.8 + 0.8 * sweep), 9.6, -3.4 - 6.4 * wl)
+          ? at(sx * (4.4 + 1.0 * sweep), 12.6, -1.4 - 7.4 * wl)
+          : at(sx * (2.8 + 0.8 * sweep), 9.6, -3.4 - 8.2 * wl)
     fields.push({
       name,
       sdf: union(
-        sdRoundCone(root, tip, 2.2 * bg, 0.8),
-        sdSphere(root, 1.8 * bg),
+        sdRoundCone(root, tip, 2.3 * bg, 0.7),
+        sdSphere(root, 1.9 * bg),
       ),
+    })
+
+    // Outer primary: starts just past the blade tip and trails back/out.
+    const featherName = sx === -1 ? "wingFeatherLeft" : "wingFeatherRight"
+    const featherBase = vec3(tip.x + sx * 1.8, tip.y + 0.6, tip.z - 1.4)
+    const featherTip = vec3(tip.x + sx * 3.8, tip.y - 1.8, tip.z - 4.0)
+    wingFeatherPivots[featherName] = [
+      featherBase.x,
+      featherBase.y,
+      featherBase.z,
+    ]
+    fields.push({
+      name: featherName,
+      sdf: sdRoundCone(featherBase, featherTip, 1.1, 0.7),
     })
   }
 
@@ -213,9 +231,23 @@ export function buildFalcon(dna: Dna, stage: Stage = "baby"): FalconBuild {
   const streamerLength = dna.styleParams.streamerLength ?? 1
   const tailField = sdBox(
     at(0, 10.6, -3.4 * bl - 4.4 * bg - 1.2 * tl),
-    vec3(2.9 * bg, 0.55, 3.0 * tl),
+    vec3(3.0 * bg, 0.45, 3.2 * tl),
   )
   fields.push({ name: "tail", sdf: tailField })
+  // Side tail feathers sit outside the fan's x extent and trail its rear
+  // edge, so they claim their own voxels under the first-wins paint order.
+  const tailFeatherPivots: Record<string, [number, number, number]> = {}
+  for (const sx of [-1, 1]) {
+    const name = sx === -1 ? "tailFeatherLeft" : "tailFeatherRight"
+    const base = at(sx * 3.2 * bg, 10.5, -3.4 * bl - 4.4 * bg - 4.0 * tl)
+    const tip = at(
+      sx * (5.0 * bg + 0.8 * tl),
+      10.1,
+      -3.4 * bl - 4.4 * bg - 7.0 * tl,
+    )
+    tailFeatherPivots[name] = [base.x, base.y, base.z]
+    fields.push({ name, sdf: sdRoundCone(base, tip, 1.0, 0.6) })
+  }
   // The tailTip trails the fan's back edge by a real margin so it always
   // claims its own voxels under the first-wins paint order.
   const tailTipZ = -3.4 * bl - 4.4 * bg - 4.2 * tl
@@ -260,6 +292,8 @@ export function buildFalcon(dna: Dna, stage: Stage = "baby"): FalconBuild {
     tail: [tailBase.x, tailBase.y, tailBase.z],
     tailTip: [O, 10.5, O - 3.4 * bl - 4.4 * bg - 4.2 * tl],
     ...legPivots,
+    ...wingFeatherPivots,
+    ...tailFeatherPivots,
   }
   const colors: Record<string, [number, number, number]> = {
     body: main,
@@ -272,6 +306,10 @@ export function buildFalcon(dna: Dna, stage: Stage = "baby"): FalconBuild {
     tailTip: dark,
     legFL: dark,
     legFR: dark,
+    wingFeatherLeft: spark,
+    wingFeatherRight: spark,
+    tailFeatherLeft: spark,
+    tailFeatherRight: spark,
   }
   const parents: Record<string, string> = {
     neck: "body",
@@ -283,6 +321,10 @@ export function buildFalcon(dna: Dna, stage: Stage = "baby"): FalconBuild {
     tailTip: "tail",
     legFL: "body",
     legFR: "body",
+    wingFeatherLeft: "wingLeft",
+    wingFeatherRight: "wingRight",
+    tailFeatherLeft: "tail",
+    tailFeatherRight: "tail",
   }
 
   const budY = headC.y + skullHalf.y
