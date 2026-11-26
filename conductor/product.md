@@ -35,6 +35,20 @@ evolution planning.
    frozen until it is brought forward. A tournament reward now joins that
    collection instead of replacing the partner already in the ranch.
 
+### Ratified stable & ranch policy (2026-11-26)
+
+The three open RM-7 policy questions are ratified here to match the shipped save
+contract (`docs/save-schema.md`, save v26):
+
+- **The stable is unlimited.** There is no cap on how many pets the stable holds;
+  no over-cap save exists and no capacity counter is planned.
+- **Exactly one active ranch partner.** Only one `creature` is active in the
+  ranch at a time; every other owned pet waits frozen in `stable` and may be
+  brought forward, never active alongside the partner.
+- **No release seam.** There is no path that permanently deletes a pet. A stabled
+  pet may only be brought forward; retirement and breeding remain the lifecycle
+  path.
+
 ## Key Systems
 - **Creatures**: 20-40 original species in 3-stage branching evolution trees
   (Baby → Juvenile → Champion). Branch requirements partially hidden — hints

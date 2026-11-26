@@ -8,14 +8,14 @@ writes through the `SaveAdapter` seam.
 ```ts
 // packages/sim/src/save/schema.ts
 interface SaveData {
-  version: number // current: 25 (SAVE_VERSION)
+  version: number // current: 26 (SAVE_VERSION)
   state: GameState
   savedAt: number // Date.now() of the persist
   session: CupSession | null // live cup walk (v7+; null outside a cup)
 }
 ```
 
-## `GameState` at v25
+## `GameState` at v26
 
 | Field | Type | Meaning |
 |---|---|---|
@@ -33,7 +33,7 @@ interface SaveData {
 | `evolutionKnowledge` | `{ juvenile: boolean, champion: boolean }` | Which evolution gates the player has already cleared once (v17+). Save-wide and per gate: the night a creature actually evolves through a gate flips that gate to `true` and never back. The Growth panel shows exact thresholds only for a known gate. Migrated saves infer it from the active creature's `stage`. |
 | `claimedTiers` | `("silver" \| "gold" \| "legend")[]` | The per-tier league reward claims (v25+, generalizing v21's one-time `stormGiftClaimed` flag). One entry per reward tier the cup finalize's reward seam has paid out: a non-forfeit cup closing on the post-placement ladder at or above a tier that owns a reward species stamps that tier exactly once — tiers grant independently, in ascending tier order, and never on a forfeit or twice for the same tier. The granted eggs themselves wait in `pendingRewards` (the nursery flow, `breeding.ts`); this record is the league-side guarantee that each tier pays at most once. Migrated v24 saves carry `["silver"]` when the old `stormGiftClaimed` flag was set — the flag was precisely the Silver tier's claim — and `[]` otherwise. |
 | `pendingRewards` | `{ speciesId: string, seed: integer }[]` | The granted reward eggs waiting in the nursery for the player to hatch them (v25+, generalizing v22's single `pendingGift`): one entry per claimed tier whose egg has not hatched, oldest (lowest tier) first, and the nursery claim flow hatches the head of the queue — one egg per claim flow, so a migrated save that jumped straight past several tiers can hold several eggs. Each seed travels with its egg so the nursery preview and the hatch roll the same individual. Empty (`[]`) when nothing is waiting — nothing granted, or everything hatched. |
-| `stable` | `Creature[]` | The stable (v24+): every pet the player owns that is not in the ranch. There is no capacity limit, and exactly one pet is active (`creature`); a swap between the ranch and the stable is free, instant and lossless - every field of a pet travels with it. A stashed pet is frozen: the night settlement touches neither its conditions nor its age, and it cannot train, evolve, graduate or compete until it returns. Migrated saves stamp `[]`: a pre-v24 save owns one pet, and it is the ranch pet. |
+| `stable` | `Creature[]` | The stable (v24+): every pet the player owns that is not in the ranch. **There is no capacity limit** — the stable is unlimited, so no over-cap save exists and no capacity counter is planned. **Exactly one pet is active** (`creature`, the ranch partner); every other owned pet waits in `stable`, and a swap between the ranch and the stable is free, instant and lossless — every field of a pet travels with it. A stashed pet is **frozen**: the night settlement touches neither its conditions nor its age, and it cannot train, evolve, graduate or compete until it returns. **There is no release path**: a stabled pet may only be brought forward, never permanently deleted; retirement and breeding remain the lifecycle path. Migrated saves stamp `[]`: a pre-v24 save owns one pet, and it is the ranch pet. |
 
 ### `Creature`
 
@@ -154,6 +154,7 @@ at a time, through the per-version step modules in
 | v22 → v23 | Adds `creature.ageDays` (the pet's own age, v23+). A v22 payload has no age field, and the world day WAS the effective age - the growth gates read `state.day` - so the migration stamps the world day on the active creature: the pet's gates then behave exactly as they did before the step, and a v22 save matures on precisely the night it matures on today. The Hall of Fame records no age (an age is the living pet's own), so every record forwards untouched, as does the live cup session. |
 | v23 → v24 | Adds `state.stable` (the stable, v24+): the pets the player owns that are not in the ranch. A v23 payload predates the stable, so it holds exactly one pet - the ranch pet - and the migration stamps an empty stable. Nothing is inferred and nothing is carried over: the active pet keeps its own age and its career, the lineage, the ladder, the settings and the live cup session all forward untouched. |
 | v24 → v25 | Generalizes the one-time `stormGiftClaimed: boolean` into the per-tier `claimedTiers` record and the single `pendingGift` into the `pendingRewards` queue (earth/wind species line, FR-8). The mapping is exact and lossless: `stormGiftClaimed: true` was precisely the Silver tier's claim, so it maps onto `claimedTiers` as `["silver"]`, and a pending Storm Gift egg becomes the head of the `pendingRewards` queue - a pending Silver reward the nursery hatches exactly as before. Everything else, including the stable and the live cup session, forwards untouched. |
+| v25 → v26 | Bakes the two multipliers that sat between the sheet and the fight into the stored numbers (stat fold, FR-2/FR-3): the HP stat absorbs the old 210% arena scale via `round(hp * 21 / 10)`, and the trained HP bonus folds the same way clamped to the scaled cap of 13 (`min(13, round(hp * 21 / 10))`), so a fully trained creature keeps the same effective pool (2 × 13 = 26 against the old 2 × 6 × 2.1 = 25.2). The fold applies to the active creature, every Hall of Fame record, every stabled creature, cup bracket slots, `finalRival`, `nextOpponent`, and every frozen verdict side. ATK/DEF/SPD, conditions, kits, settings, ladder, lineage counters, boss ledger and every other non-HP field forward untouched. Each frozen cup-session side also gains `doctrine` from the legacy `tactic` (`specials → kite`, `balanced → press`), while `tactic` stays readable for the frozen legacy path. Nothing else changes; `version` becomes `26`. |
 
 ### v18 → v19 branch mapping
 
