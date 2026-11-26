@@ -2,11 +2,11 @@
   "id": "20261126-stable-capacity-ranch-release",
   "title": "Decide stable capacity, ranch expansion, and pet release",
   "type": "chore",
-  "status": "in_progress",
+  "status": "complete",
   "priority": "medium",
   "depends_on": [],
   "created_at": "2026-11-26T10:11:29.6097815+11:00",
-  "updated_at": "2026-11-26T11:04:48.7977778+11:00",
+  "updated_at": "2026-11-26T11:07:30.7486960+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "chore/20261126-stable-capacity-ranch-release",
@@ -22,10 +22,10 @@
   "review_verdict": "PASS",
   "review_rounds": 3,
   "doc_sync": "updated",
-  "pr_url": null,
+  "pr_url": "https://github.com/mansyar/apex-league/pull/98",
   "reverted_at": null,
   "revert_commit": null,
   "revert_pr_url": null,
-  "archived_at": null,
-  "archive_path": null
+  "archived_at": "2026-11-26T11:07:30.7486960+11:00",
+  "archive_path": "conductor/archive/20261126-stable-capacity-ranch-release"
 }

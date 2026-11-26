@@ -68,4 +68,4 @@
 - [x] **Track: Voxelize Performance Pass** — [20261125-voxelize-performance-pass](./archive/20261125-voxelize-performance-pass/index.md) — chore — medium
 - [x] **Track: Author Basic Strike identity and KO/down impact weighting** — [20261125-basic-strike-identity-impact](./archive/20261125-basic-strike-identity-impact/index.md) — feature — low
 - [x] **Track: Adopt stage-scaled animation and ranch body profiles** - [20261126-stage-scaled-animation-ranch-profiles](./archive/20261126-stage-scaled-animation-ranch-profiles/index.md) - feature - medium
-- [~] **Track: Decide stable capacity, ranch expansion, and pet release** — [20261126-stable-capacity-ranch-release](./tracks/20261126-stable-capacity-ranch-release/index.md) — chore — medium
+- [x] **Track: Decide stable capacity, ranch expansion, and pet release** — [20261126-stable-capacity-ranch-release](./archive/20261126-stable-capacity-ranch-release/index.md) — chore — medium
