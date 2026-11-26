@@ -28,15 +28,17 @@
 
 Full command-by-command detail and exact output live in `verification/phase-1.md`, `verification/phase-2.md` and `verification/phase-3.md`.
 
+**R1 follow-up (2026-11-26):** review finding F1 (worst-case template-max proportions were not combined with style extremes and champion maturity) is **covered**, not review-pending. Test-only commit `6556447b` adds a worst-case proportion set to the falcon sweep and explicit four-feather finite/boundary checks; TDD red and green runs plus evidence are in `verification/phase-R1.md`. The exact phase command is green (`37 pass / 0 fail`) and the voxel module-size gate is green (`5 pass / 0 fail`). No production code or artifact changed in R1.
+
 ## Acceptance criteria
 
 | ID | Status | Evidence |
 |----|--------|----------|
 | AC-1 — four new feather parts, finite pivots/colors/parents, two legs/wings | pass | Phase 1 generator tests and manifest pivots; `verification/phase-1.md`, `verification/phase-2.md`. |
-| AC-2 — bounded non-degenerate wing/tail styles, no new/renamed slots | pass | Phase 1 style sweep; `verification/phase-1.md` FR-2/AC-2. |
+| AC-2 — bounded non-degenerate wing/tail styles, no new/renamed slots | pass | Phase 1 style sweep; `verification/phase-1.md` FR-2/AC-2. R1 extends it to template-max proportions × style extremes × champion (`verification/phase-R1.md`). |
 | AC-3 — stage signatures head-parented, baby signature-free, untouched surfaces byte-identical | pass | Phase 1 tests plus the scope diff (no palette/gilded/DNA/budget/non-falcon/prop/sim/save/balance/audio change). |
 | AC-4 — three canonical GLB+manifest pairs, plain determinism gate, no other artifact change | pass | Phase 2 primary exporter re-runs and determinism gate; re-verified in Phase 3 gate (all 21 pairs + 5 props). |
-| AC-5 — boundary/fuzz/proportion-budget/module-size tests | pass | Phase 1 tests; full suite re-green in Phase 3 (4585 pass / 0 fail). |
+| AC-5 — boundary/fuzz/proportion-budget/module-size tests | pass | Phase 1 tests; full suite re-green in Phase 3 (4585 pass / 0 fail). R1 adds explicit worst-case four-feather finite/boundary checks and green module-size (`verification/phase-R1.md`). |
 | AC-6 — desktop and phone ranch + arena captures with clean consoles and real-sim-seeded state | pass | `verification/phase-3.md` — six ranch PNGs, desktop and phone arena PNGs; both consoles `Errors: 0, Warnings: 0`; states produced only via `createGiftEgg` / `evolveCreature` / `saveGame`. |
 | AC-7 — full gate green, no dependency/save/voxel-outside-falcon/audio diff | pass | `bun run verify && bun run build` exit 0; `git diff --name-status 84a1d194..HEAD` limited to six falcon artifacts, `falcon.ts`, `falcon.test.ts` and Conductor state. |
 
@@ -68,6 +70,7 @@ No dependency or lockfile, no save/schema or sim file, no balance or audio file,
 - `conductor/tracks/20261126-falcon-silhouette-polish/verification/phase-1.md` — generator, tests, reworks and primary verification.
 - `conductor/tracks/20261126-falcon-silhouette-polish/verification/phase-2.md` — artifact manifests, exporter provenance, determinism gate and primary verification.
 - `conductor/tracks/20261126-falcon-silhouette-polish/verification/phase-3.md` — real-UI captures, console reads, integrated gate and scope diff.
+- `conductor/tracks/20261126-falcon-silhouette-polish/verification/phase-R1.md` — review fix F1: worst-case proportion sweep, TDD red/green and module-size evidence.
 - `.conductor/evidence/20261126-falcon-silhouette-polish/` — gitignored screenshots and scratch capture log.
 
 ## Deviations

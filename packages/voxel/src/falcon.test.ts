@@ -236,10 +236,16 @@ describe("falcon feather silhouette contract", () => {
     value.every((n) => typeof n === "number" && Number.isFinite(n))
 
   /** One DNA per style pair; params pinned to a slot bound for reach. */
-  const variantDna = (wings: string, tail: string, reach: number): Dna => {
+  const variantDna = (
+    wings: string,
+    tail: string,
+    reach: number,
+    proportions = sampleDna(falconTemplate, 42).proportions,
+  ): Dna => {
     const base = sampleDna(falconTemplate, 42)
     return {
       ...base,
+      proportions: { ...proportions },
       styles: { ...base.styles, wings, tail },
       styleParams: {
         ...base.styleParams,
@@ -249,6 +255,48 @@ describe("falcon feather silhouette contract", () => {
       },
     }
   }
+
+  const SEED_PROPORTIONS = sampleDna(falconTemplate, 42).proportions
+  /** Template maxima for the four proportions scaled by the feather SDFs. */
+  const WORST_CASE_PROPORTIONS = {
+    bodyGirth: 1.3,
+    bodyLength: 1.35,
+    wingLength: 1.35,
+    tailLength: 1.35,
+  }
+
+  /** Proportion sets the style × stage sweep must cover. */
+  const PROPORTION_SETS = [
+    { label: "seed42", proportions: SEED_PROPORTIONS },
+    {
+      label: "worst",
+      proportions: { ...SEED_PROPORTIONS, ...WORST_CASE_PROPORTIONS },
+    },
+  ]
+
+  const sweepCases = () =>
+    PROPORTION_SETS.flatMap((set) =>
+      WING_STYLES.flatMap((wings) =>
+        TAIL_STYLES.flatMap((tail) =>
+          [0.6, 1.4].flatMap((reach) =>
+            STAGES.map((stage) => ({ set, wings, tail, reach, stage })),
+          ),
+        ),
+      ),
+    )
+
+  test("style sweep combines template-max proportions with champion extremes", () => {
+    expect(
+      sweepCases().some(
+        ({ set, wings, tail, reach, stage }) =>
+          set.label === "worst" &&
+          wings === "flared" &&
+          tail === "streamer" &&
+          reach === 1.4 &&
+          stage === "champion",
+      ),
+    ).toBe(true)
+  })
 
   test("four named feathers are rigged base parts in every stage", () => {
     for (const stage of STAGES) {
@@ -318,50 +366,102 @@ describe("falcon feather silhouette contract", () => {
 
   test("every wing × tail style in every stage is bounded and non-degenerate", () => {
     const problems: string[] = []
-    for (const wings of WING_STYLES) {
-      for (const tail of TAIL_STYLES) {
-        for (const reach of [0.6, 1.4]) {
-          for (const stage of STAGES) {
-            const label = `${wings}/${tail}/${stage}/${reach}`
-            const build = buildFalcon(variantDna(wings, tail, reach), stage)
-            for (const field of build.fields) {
-              if (!isFiniteTriple(build.pivots[field.name])) {
-                problems.push(`${label}: ${field.name} non-finite pivot`)
-              }
-              if (!isFiniteTriple(build.colors[field.name])) {
-                problems.push(`${label}: ${field.name} non-finite color`)
-              }
-              for (const sample of [
-                { x: 0.5, y: 0.5, z: 0.5 },
-                { x: FALCON_GRID / 2, y: 12, z: FALCON_GRID / 2 },
-                {
-                  x: FALCON_GRID - 0.5,
-                  y: FALCON_GRID - 0.5,
-                  z: FALCON_GRID - 0.5,
-                },
-              ]) {
-                if (!Number.isFinite(field.sdf(sample))) {
-                  problems.push(`${label}: ${field.name} non-finite SDF`)
-                }
-              }
-            }
-            const grid = voxelize(build.fields, FALCON_GRID)
-            const total = grid.parts.reduce((n, p) => n + p.voxels.length, 0)
-            if (total <= 900) problems.push(`${label}: only ${total} voxels`)
-            const r = FALCON_GRID - 1
-            for (const part of grid.parts) {
-              if (part.voxels.length === 0) {
-                problems.push(`${label}: ${part.name} claims no voxels`)
-              }
-              for (const [x, y, z] of part.voxels) {
-                if (x <= 0 || y <= 0 || z <= 0 || x >= r || y >= r || z >= r) {
-                  problems.push(
-                    `${label}: ${part.name} voxel on boundary (${x},${y},${z})`,
-                  )
-                  break
-                }
-              }
-            }
+    for (const { set, wings, tail, reach, stage } of sweepCases()) {
+      const label = `${set.label}/${wings}/${tail}/${stage}/${reach}`
+      const dna = variantDna(wings, tail, reach, set.proportions)
+      if (assertDnaInBounds(dna, falconTemplate).length > 0) {
+        problems.push(`${label}: DNA outside template bounds`)
+      }
+      const build = buildFalcon(dna, stage)
+      for (const field of build.fields) {
+        if (!isFiniteTriple(build.pivots[field.name])) {
+          problems.push(`${label}: ${field.name} non-finite pivot`)
+        }
+        if (!isFiniteTriple(build.colors[field.name])) {
+          problems.push(`${label}: ${field.name} non-finite color`)
+        }
+        for (const sample of [
+          { x: 0.5, y: 0.5, z: 0.5 },
+          { x: FALCON_GRID / 2, y: 12, z: FALCON_GRID / 2 },
+          {
+            x: FALCON_GRID - 0.5,
+            y: FALCON_GRID - 0.5,
+            z: FALCON_GRID - 0.5,
+          },
+        ]) {
+          if (!Number.isFinite(field.sdf(sample))) {
+            problems.push(`${label}: ${field.name} non-finite SDF`)
+          }
+        }
+      }
+      const grid = voxelize(build.fields, FALCON_GRID)
+      const total = grid.parts.reduce((n, p) => n + p.voxels.length, 0)
+      if (total <= 900) problems.push(`${label}: only ${total} voxels`)
+      const r = FALCON_GRID - 1
+      for (const part of grid.parts) {
+        if (part.voxels.length === 0) {
+          problems.push(`${label}: ${part.name} claims no voxels`)
+        }
+        for (const [x, y, z] of part.voxels) {
+          if (x <= 0 || y <= 0 || z <= 0 || x >= r || y >= r || z >= r) {
+            problems.push(
+              `${label}: ${part.name} voxel on boundary (${x},${y},${z})`,
+            )
+            break
+          }
+        }
+      }
+    }
+    expect(problems).toEqual([])
+  }, 120000)
+
+  test("worst-case proportions keep all four feathers finite and grid-bounded", () => {
+    const problems: string[] = []
+    const samples = [
+      { x: 0.5, y: 0.5, z: 0.5 },
+      { x: FALCON_GRID / 2, y: 12, z: FALCON_GRID / 2 },
+      {
+        x: FALCON_GRID - 0.5,
+        y: FALCON_GRID - 0.5,
+        z: FALCON_GRID - 0.5,
+      },
+    ]
+    for (const { set, wings, tail, reach, stage } of sweepCases()) {
+      if (set.label !== "worst") continue
+      const label = `${wings}/${tail}/${stage}/${reach}`
+      const build = buildFalcon(
+        variantDna(wings, tail, reach, set.proportions),
+        stage,
+      )
+      const grid = voxelize(build.fields, FALCON_GRID)
+      const voxelsByName = new Map(grid.parts.map((p) => [p.name, p.voxels]))
+      const r = FALCON_GRID - 1
+      for (const part of FEATHER_PARTS) {
+        if (build.fields.filter((f) => f.name === part).length !== 1) {
+          problems.push(`${label}: ${part} field count`)
+        }
+        if (!isFiniteTriple(build.pivots[part])) {
+          problems.push(`${label}: ${part} non-finite pivot`)
+        }
+        if (!isFiniteTriple(build.colors[part])) {
+          problems.push(`${label}: ${part} non-finite color`)
+        }
+        const field = build.fields.find((f) => f.name === part)
+        for (const sample of samples) {
+          if (!field || !Number.isFinite(field.sdf(sample))) {
+            problems.push(`${label}: ${part} non-finite SDF`)
+          }
+        }
+        const voxels = voxelsByName.get(part) ?? []
+        if (voxels.length === 0) {
+          problems.push(`${label}: ${part} claims no voxels`)
+        }
+        for (const [x, y, z] of voxels) {
+          if (x <= 0 || y <= 0 || z <= 0 || x >= r || y >= r || z >= r) {
+            problems.push(
+              `${label}: ${part} voxel on boundary (${x},${y},${z})`,
+            )
+            break
           }
         }
       }
