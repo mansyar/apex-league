@@ -42,7 +42,7 @@
   - `apps/client/src/hud/shell.ts` (only if the Rename fix requires a DOM change)
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/ui/modal.test.ts apps/client/src/ui/focus.test.ts apps/client/src/spar/panel.test.ts apps/client/src/hud/plates.test.ts`
 - **Browser verification:** `playwright-cli` at desktop `1440×900`, phone portrait `393×852`, and phone landscape `852×393`.
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Repair HUD pointer ownership** — covers: FR-1, FR-2, FR-5, AC-1, AC-2
   - [ ] Capture failing normal-click/hit-test evidence before the fix.
