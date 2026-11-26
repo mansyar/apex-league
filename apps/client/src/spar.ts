@@ -209,6 +209,9 @@ export function createSpar(
       openModal(overlay, {
         background: sparModalBackground(root, overlay),
         onClose: teardown,
+        // A ghost spar opens from the board's Fight button, which is hidden
+        // by the time this closes. Name the visible SPAR chip explicitly.
+        returnFocusTo: sparButton,
       })
     }
   }

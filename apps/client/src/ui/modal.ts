@@ -30,6 +30,12 @@ export interface OpenModalOptions {
    * no isolation at all, so existing overlays keep their current behavior.
    */
   background?: HTMLElement | readonly HTMLElement[]
+  /**
+   * Explicit focus target on close. Omitted captures `document.activeElement`
+   * at open time; an element wins over that capture; `null` stores no opener
+   * and keeps the body fallback.
+   */
+  returnFocusTo?: HTMLElement | null
 }
 
 export interface CloseModalOptions {
@@ -183,7 +189,9 @@ export function openModal(
   record.dismissOnScrim = opts.dismissOnScrim ?? true
   record.dismissOnEscape = opts.dismissOnEscape ?? true
   const active = globalThis.document?.activeElement
-  record.opener = isElement(active) ? active : null
+  const captured = isElement(active) ? active : null
+  record.opener =
+    opts.returnFocusTo === undefined ? captured : opts.returnFocusTo
   record.background = backgroundList(opts.background)
   isolateBackground(record.background)
   root.classList.remove("is-hidden")

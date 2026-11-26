@@ -202,6 +202,113 @@ describe("openModal / closeModal", () => {
     expect(body.focused).toBe(true)
   })
 
+  test("omitted returnFocusTo still returns to the active opener", () => {
+    const { root, box, opener, initial } = setup()
+    const sparButton = new FakeElement("spar-button")
+    sparButton.isConnected = true
+    openModal(of(root), { box: of(box), initialFocus: of(initial) })
+    opener.focused = false
+    closeModal(of(root))
+    expect(opener.focused).toBe(true)
+    expect(sparButton.focused).toBe(false)
+  })
+
+  test("explicit return target wins over the active opener", () => {
+    const { root, box, opener, initial } = setup()
+    const target = new FakeElement("spar-button")
+    target.isConnected = true
+    openModal(of(root), {
+      box: of(box),
+      initialFocus: of(initial),
+      returnFocusTo: of(target),
+    })
+    opener.focused = false
+    target.focused = false
+    closeModal(of(root))
+    expect(target.focused).toBe(true)
+    expect(opener.focused).toBe(false)
+  })
+
+  test("a failing connected opener is skipped for an explicit target", () => {
+    const { root, box, initial } = setup()
+    const hiddenOpener = new FakeElement("fight-button")
+    hiddenOpener.isConnected = true
+    let failedFocusCalls = 0
+    hiddenOpener.focus = () => {
+      failedFocusCalls += 1
+      throw new Error("hidden board button cannot take focus")
+    }
+    active = hiddenOpener
+    const target = new FakeElement("spar-button")
+    target.isConnected = true
+    openModal(of(root), {
+      box: of(box),
+      initialFocus: of(initial),
+      returnFocusTo: of(target),
+    })
+    target.focused = false
+    closeModal(of(root))
+    expect(failedFocusCalls).toBe(0)
+    expect(target.focused).toBe(true)
+  })
+
+  test("explicit null falls back to the body instead of the opener", () => {
+    const { root, box, opener, initial } = setup()
+    openModal(of(root), {
+      box: of(box),
+      initialFocus: of(initial),
+      returnFocusTo: null,
+    })
+    opener.focused = false
+    body.focused = false
+    closeModal(of(root))
+    expect(opener.focused).toBe(false)
+    expect(body.focused).toBe(true)
+  })
+
+  test("board-close then spar-close focuses the SPAR chip", () => {
+    const boardRoot = new FakeElement("kit-modal is-hidden")
+    const boardBox = new FakeElement("board-box")
+    const boardInitial = new FakeElement("board-button")
+    const boardOpener = new FakeElement("chip")
+    boardOpener.isConnected = true
+    const fightButton = new FakeElement("fight-button")
+    fightButton.isConnected = true
+    let hiddenFocusCalls = 0
+    fightButton.focus = () => {
+      hiddenFocusCalls += 1
+      // A display:none board button stays connected but cannot take focus.
+    }
+    const sparRoot = new FakeElement("spar-overlay is-hidden")
+    const sparBox = new FakeElement("spar-panel")
+    const sparClose = new FakeElement("spar-panel-close")
+    const sparButton = new FakeElement("spar-button")
+    sparButton.isConnected = true
+
+    active = boardOpener
+    openModal(of(boardRoot), {
+      box: of(boardBox),
+      initialFocus: of(boardInitial),
+    })
+    active = fightButton
+    openModal(of(sparRoot), {
+      box: of(sparBox),
+      initialFocus: of(sparClose),
+      returnFocusTo: of(sparButton),
+    })
+
+    // board/panel.ts closes the board modal; its Fight button stays
+    // connected but hidden, so spar close must not focus it.
+    closeModal(of(boardRoot), { returnFocus: false })
+    fightButton.focused = false
+    sparButton.focused = false
+
+    closeModal(of(sparRoot))
+    expect(hiddenFocusCalls).toBe(0)
+    expect(fightButton.focused).toBe(false)
+    expect(sparButton.focused).toBe(true)
+  })
+
   test("blocking dialogs ignore Escape and the scrim", () => {
     const { root, box, initial } = setup()
     openModal(of(root), {
