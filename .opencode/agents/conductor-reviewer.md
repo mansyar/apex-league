@@ -1,6 +1,7 @@
 ---
 description: Reviews a Conductor track diff for correctness, requirements coverage, and style. Read-only; returns structured findings.
 mode: subagent
+model: opencode-go/hungerg-free
 color: "#e0a800"
 permissions:
   - action: "*"

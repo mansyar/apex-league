@@ -1,6 +1,7 @@
 ---
 description: Executes one Conductor phase, verifies it, and reports structured results. Use only from conductor-implement.
 mode: subagent
+model: opencode-go/hy4-flash-free
 color: "#4f8cff"
 permissions:
   - action: "*"
