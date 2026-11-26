@@ -1,6 +1,6 @@
 # Conductor Roadmap
 
-<!-- next-rm-id: 19 -->
+<!-- next-rm-id: 20 -->
 
 > Planned and future work. The roadmap stores **intent** — ordering, priority,
 > and dependencies — not live state. `conductor-status` joins every entry whose
@@ -27,6 +27,7 @@
 | RM-16 | Rework mobile ranch hierarchy and make action state, costs, and disabled reasons explicit | refactor | high | RM-13 | — | user |
 | RM-17 | Reduce repetitive battle-log noise and add pause/replay playback controls | feature | medium | — | — | user |
 | RM-18 | Correct training, move-list, Stable, and Hall of Fame copy inconsistencies | bug | medium | — | — | user |
+| RM-19 | Improve secondary-text contrast, long-form navigation, and modal accessibility | refactor | medium | RM-13 | — | user |
 
 ## Later
 
