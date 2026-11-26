@@ -2,11 +2,11 @@
   "id": "20261127-hud-pointer-modal-input",
   "title": "Fix HUD pointer interception and isolate modal input across desktop and mobile",
   "type": "bug",
-  "status": "in_progress",
+  "status": "complete",
   "priority": "high",
   "depends_on": [],
   "created_at": "2026-11-27T08:14:13.9899611+11:00",
-  "updated_at": "2026-11-27T10:20:43.3126279+11:00",
+  "updated_at": "2026-11-27T10:23:03.5382620+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "fix/20261127-hud-pointer-modal-input",
@@ -22,10 +22,10 @@
   "review_verdict": "PASS",
   "review_rounds": 3,
   "doc_sync": "updated",
-  "pr_url": null,
+  "pr_url": "https://github.com/mansyar/apex-league/pull/101",
   "reverted_at": null,
   "revert_commit": null,
   "revert_pr_url": null,
-  "archived_at": null,
-  "archive_path": null
+  "archived_at": "2026-11-27T10:23:03.5382620+11:00",
+  "archive_path": "conductor/archive/20261127-hud-pointer-modal-input"
 }
