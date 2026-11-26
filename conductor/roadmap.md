@@ -1,6 +1,6 @@
 # Conductor Roadmap
 
-<!-- next-rm-id: 17 -->
+<!-- next-rm-id: 18 -->
 
 > Planned and future work. The roadmap stores **intent** — ordering, priority,
 > and dependencies — not live state. `conductor-status` joins every entry whose
@@ -25,6 +25,7 @@
 | RM-14 | Improve arena camera, lighting, and fighter readability on desktop and mobile | feature | high | — | — | user |
 | RM-15 | Streamline spar setup with an explicit start action and stable mobile scrolling | refactor | high | RM-13 | — | user |
 | RM-16 | Rework mobile ranch hierarchy and make action state, costs, and disabled reasons explicit | refactor | high | RM-13 | — | user |
+| RM-17 | Reduce repetitive battle-log noise and add pause/replay playback controls | feature | medium | — | — | user |
 
 ## Later
 
