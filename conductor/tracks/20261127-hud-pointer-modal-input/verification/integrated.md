@@ -92,3 +92,9 @@ No sim/state/save/balance/audio/voxel/dependency/generated-file changes and no c
 - **Live DOM spot-check:** a fresh normal-click Playwright probe at 1440×900 opened Rename, focused `.creature-name-input`, selected `Zephyr Falcon` (`selectionStart=0`, `selectionEnd=13`), and preserved the value. The narrow existing inline input scrolls its selected text (`scrollLeft=24`, width `130.47px`); the head row is hidden during editing, so the new head `min-width:0` rule does not affect this input width. This is existing inline-edit sizing, not pointer interception or control occlusion.
 - **Source review:** confirmed the shared modal API is two-argument `openModal(root, options)` / `closeModal(root)` / `isModalOpen(root)`; spar computes background children at open time, uses `--z-modal`, traps focus on the overlay through setup/fight/result, and restores isolation before focus return. CSS changes are limited to pointer ownership, hit stacking and minimal shrink behavior.
 - **Conclusion:** FR-1–FR-6, NFR-1–NFR-5 and implementation evidence for AC-1–AC-7 are independently confirmed. AC-7's terminal registry/archive/review/PR proof remains primary-owned at completion.
+
+## Doc sync
+
+- Added the dated `2026-11-27 — HUD pointer ownership and spar modal input` note in `conductor/tech-stack.md` under Client, recording the opt-in background isolation contract, transparent-wrapper hit ownership, spar's shared modal lifetime/focus handoff, and the three verified viewports.
+- `conductor/product.md`, `conductor/product-guidelines.md` and `conductor/workflow.md` need no change: the existing mobile playability and non-occlusion requirements already cover this bug fix.
+- RM-13 remains linked to this track until the completion commit retires it. The known pre-existing spar-panel internal-scroll sizing and narrow inline Rename input text scrolling are documented, not redesigned.
