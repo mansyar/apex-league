@@ -1,6 +1,6 @@
 # Conductor Roadmap
 
-<!-- next-rm-id: 21 -->
+<!-- next-rm-id: 22 -->
 
 > Planned and future work. The roadmap stores **intent** — ordering, priority,
 > and dependencies — not live state. `conductor-status` joins every entry whose
@@ -36,6 +36,7 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | RM-2 | Complete the hardware device-lab verification pass | chore | medium | — | — | user |
 | RM-9 | Continue roster expansion toward the 20–40 species vision | feature | medium | — | — | user |
+| RM-21 | Polish sparse empty states, badge consistency, and technical-metadata presentation | feature | low | — | — | user |
 | RM-3 | Harden thin species band margins only if relative-matrix drift breaks a row | chore | low | — | — | user |
 
 ## Dropped
