@@ -34,7 +34,7 @@
 - **Covers:** FR-1, FR-2, FR-3, FR-4, AC-2, AC-3, AC-4, AC-7, NFR-3, NFR-5
 - **Touches:** `apps/client/src/verdict/stamp.ts`, `apps/client/src/verdict/stamp.test.ts`, `apps/client/src/battle-session.ts`, `apps/client/src/battle-session.test.ts`, `apps/client/src/battleHud.ts`, `apps/client/src/battleHud.test.ts`, `apps/client/src/cup/view-models.ts`, `apps/client/src/cup/view-models.test.ts`, `apps/client/src/cup/results.ts`, `apps/client/src/cup/screens/results.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/verdict/stamp.test.ts apps/client/src/battle-session.test.ts apps/client/src/battleHud.test.ts apps/client/src/cup/view-models.test.ts apps/client/src/battleUI.test.ts`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Pin stamp DOM and adapter delegation** — covers: AC-2, AC-3, AC-4, AC-7
   - [ ] **P2.T1.1:** Pin class names, rule element, animation restart, `role="status"`, `aria-live="polite"`, and the cup's single combined announcement.
