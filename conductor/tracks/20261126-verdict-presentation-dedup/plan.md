@@ -14,7 +14,7 @@
 - **Covers:** FR-1, FR-2, FR-4, FR-5, AC-1, NFR-2
 - **Touches:** `apps/client/src/verdict/copy.ts`, `apps/client/src/verdict/copy.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/verdict/copy.test.ts apps/client/src/battleUI.test.ts`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Pin the copy contract in a table test** — covers: FR-5, AC-1
   - [ ] **P1.T1.1:** Enumerate null winner, double-KO, time-out, winner keys, mirror-name qualification for spar and cup, and cup Champion/Eliminated copy with exact expected strings.
