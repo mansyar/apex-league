@@ -37,21 +37,17 @@
 - **Covers:** FR-5, AC-4, NFR-4, NFR-5
 - **Touches:** `artifacts/falcon-42.glb`, `artifacts/falcon-42.manifest.json`, `artifacts/falcon-42-juvenile.glb`, `artifacts/falcon-42-juvenile.manifest.json`, `artifacts/falcon-42-champion.glb`, `artifacts/falcon-42-champion.manifest.json`, `verification/phase-2.md`
 - **Verification:** `bun run gate:determinism`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** `d2284f07`
+- **Evidence:** `conductor/tracks/20261126-falcon-silhouette-polish/verification/phase-2.md`
 
-- [ ] **P2.T1: Regenerate canonical falcon artifacts** — covers: FR-5
-  - [ ] **P2.T1.1:** Run `export-artifact.ts` for falcon seed 42 at baby, juvenile and champion.
-  - [ ] **P2.T1.2:** Confirm manifests/pivots/colors reflect the new feather parts and no artifact is hand-edited.
-- [ ] **P2.T2: Prove determinism and change scope** — covers: AC-4, NFR-4, NFR-5
-  - [ ] **P2.T2.1:** Run the plain determinism gate and record byte-identical regeneration.
-  - [ ] **P2.T2.2:** Confirm only the six falcon artifact files changed; all other archetypes and prop digests stay byte-identical.
-
-<!--
-The primary appends after acceptance:
-**Result:** verified
-**Checkpoint:** <short-sha>
-**Evidence:** conductor/tracks/20261126-falcon-silhouette-polish/verification/phase-2.md
--->
+- [x] **P2.T1: Regenerate canonical falcon artifacts** — covers: FR-5
+  - [x] **P2.T1.1:** Run `export-artifact.ts` for falcon seed 42 at baby, juvenile and champion.
+  - [x] **P2.T1.2:** Confirm manifests/pivots/colors reflect the new feather parts and no artifact is hand-edited.
+- [x] **P2.T2: Prove determinism and change scope** — covers: AC-4, NFR-4, NFR-5
+  - [x] **P2.T2.1:** Run the plain determinism gate and record byte-identical regeneration.
+  - [x] **P2.T2.2:** Confirm only the six falcon artifact files changed; all other archetypes and prop digests stay byte-identical.
 
 ## Phase 3: Visual evidence and integrated gate
 
