@@ -114,3 +114,11 @@ No sim/state/save/balance/audio/voxel/dependency/generated-file changes and no c
 - **Fix:** the nested board-close → spar-close regression now calls `closeModal(of(boardRoot))` exactly as production `board/panel.ts` does, and models the inert HUD opener's single default focus attempt as a counter-backed no-op (`isolatedBoardOpenerFocusCalls === 1`). The hidden Fight button stays unfocused and spar close still focuses `.spar-button`. No production code changed.
 - **Evidence:** exact phase command `bun test --check --parallel=4 --timeout 120000 apps/client/src/ui/modal.test.ts apps/client/src/ui/focus.test.ts apps/client/src/spar/panel.test.ts apps/client/src/hud/plates.test.ts` → red `1` (`67 pass / 1 fail / 152 expect()`, `Expected: 1`, `Received: 0` at `modal.test.ts:309`) with the old `returnFocus: false` option; green `0` (`68 pass / 0 fail / 155 expect() calls`, `Ran 68 tests across 4 files`) after the default close. AC-4 and NFR-3 remain covered with no new runtime state or listeners.
 - **Primary-owned:** primary re-ran scoped Biome on `modal.test.ts` → clean; exact phase command → `68 pass / 0 fail / 155 expect()`; final `bun run verify && bun run build` → exit 0 with clean typechecks, `4603 pass / 1 skip / 0 fail`, `676395 expect() calls`, Biome, determinism and Vite build `index-Cc3Jh0VM.js` (only the pre-existing chunk advisory). `git diff --check` passed. R2 is verified; terminal AC-7 registry/metadata/review/PR proof remains primary-owned at completion.
+
+## Post-review verification (after review-fix R2)
+
+- Final delta reviewer verdict: `PASS`; F2 fixed, no new findings, no commands denied.
+- Final review range: `4f2e5de1b7d92e96ec2782b2541a608a1d2e9c68..8ea17edc`.
+- No code, test, CSS, artifact, dependency, save, sim, audio, voxel or generated-file change occurred after the R2 full gate; the remaining edits are final review/evidence/metadata state.
+- FR-1–FR-6, NFR-1–NFR-5 and AC-1–AC-6 are covered. AC-7 implementation gates/caps/scope pass; terminal registry/archive/metadata/review/PR proof remains completion-owned.
+- Track is ready for completion/archive and PR creation.
