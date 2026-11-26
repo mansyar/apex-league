@@ -73,7 +73,7 @@ Ran 5 tests across 1 file. [205.00ms]
 - **Contract test.** `style sweep combines template-max proportions with champion extremes` fails before the matrix update (command #1) and passes after it (command #2), so the new coverage is genuinely pinned rather than incidental.
 - **FR-6.** The strengthened sweep keeps every prior assertion: `assertDnaInBounds` for both proportion sets, finite pivots, finite colors and finite SDF samples for every field, no voxel at coordinate `0` or `55` of the 56-grid, non-zero voxel counts for every claimed part and total voxels `>900`.
 - **AC-2.** Style slots remain `folded/drooped/flared` and `fan/forked/streamer`; the sweep varies only existing slots and params (`sweep`, `forkSpread`, `streamerLength`). No slot or part was renamed or added.
-- **AC-5.** A dedicated `worst-case proportions keep all four feathers finite and grid-bounded` test explicitly checks all four feather parts (`wingFeatherLeft`, `wingFeatherRight`, `tailFeatherFan`, `tailFeatherStreamer`) in every worst-case sweep combination for exactly one field, finite pivot/color/SDF and non-empty, off-boundary voxel sets. The module-size gate (command #3) is green.
+- **AC-5.** A dedicated `worst-case proportions keep all four feathers finite and grid-bounded` test explicitly checks all four feather parts (`wingFeatherLeft`, `wingFeatherRight`, `tailFeatherLeft`, `tailFeatherRight`) in every worst-case sweep combination for exactly one field, finite pivot/color/SDF and non-empty, off-boundary voxel sets. The module-size gate (command #3) is green.
 
 ## Evidence paths
 

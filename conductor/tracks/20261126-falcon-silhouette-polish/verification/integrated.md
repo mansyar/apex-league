@@ -99,3 +99,11 @@ No dependency or lockfile, no save/schema or sim file, no balance or audio file,
 
 - Date: 2026-11-26T21:37:11.6791041+11:00
 - `conductor/tech-stack.md` gained a dated `## Asset Pipeline` note recording the four base feather parts, preserved contracts and signatures, canonical artifact regeneration with determinism re-proof, and desktop/forced-iPhone capture coverage. No product, product-guideline or workflow change is needed; RM-11 stays linked until the completion commit retires it.
+
+## Post-review verification (after review-fix R1)
+
+- Date: 2026-11-26T22:01:55.1987495+11:00
+- Round-1 review returned `PASS WITH FINDINGS` with one Low test-strengthening finding F1. Review-fix R1 added the template-maximum proportion set to the 108-case style/stage/reach sweep with genuine TDD red (35 pass / 1 fail) then green (37 pass / 0 fail / 9316 expect() calls); see `verification/phase-R1.md`.
+- Delta re-review confirmed F1 fixed, no new findings and no open overrides; final review verdict is `PASS` in `review.md`, range `84a1d194..3fd2e1b8`.
+- Only the test file changed in the code delta; no generator, artifact/manifest, save, sim, balance, audio, dependency or cross-species surface changed. The full gate was re-run after R1 and stayed green (exit 0, determinism OK for all archetype GLBs and 5 props, client build `index-BL310Ok0.js` with only the pre-existing chunk advisory). No additional gate run is needed for this documentation-only post-review sync.
+- A non-blocking prose typo in `verification/phase-R1.md` (`tailFeatherFan`/`tailFeatherStreamer`) was corrected to the real part names `tailFeatherLeft`/`tailFeatherRight`; no code or evidence claim changed.
