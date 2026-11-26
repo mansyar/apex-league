@@ -114,3 +114,10 @@ No `apps/**`, `packages/**`, save/schema/generated file, dependency, lockfile, o
 - `docs/save-schema.md`: current version corrected to 26 and the stable policy row ratified; historical `v25` references are correct and were left intact. No save-version bump or migration was introduced by this decision-only track.
 - `conductor/product-guidelines.md`, `conductor/tech-stack.md`, `conductor/workflow.md`: no change required. This track ratifies existing product policy, adds no dependency or stack change, and the workflow Release note is already current.
 - `conductor/roadmap.md`: RM-7 retains its track link until the completion commit retires the row; revisit trigger and roadmap-Later-only follow-up policy are recorded above.
+
+## Post-review verification (after review-fix R1)
+
+- Review rounds: round 1 `PASS WITH FINDINGS` (F1 Medium, missing `v25 → v26` migration row); R1 fixed F1 at `9bc8592c`; round 2 `PASS WITH FINDINGS` (F2 Low, metadata progress counters); primary reconciled `metadata.progress` to `3/3` phases and `6/6` tasks at `0c76ce36`; final reviewer verdict `PASS` with no open findings.
+- R1 doc truth: `docs/save-schema.md:157` now carries the terminal `v25 → v26` stat-fold row, cross-checked against `packages/sim/src/save/migrations/v25.ts`; `current: 26` and `GameState at v26` remain consistent and historical `v25` references are unchanged.
+- No test result changed after the review-fix round: the R1 chained gate re-run by the primary exited 0 with determinism green and the same Vite build output. No new `bun run verify`/`bun run build` run was needed for the metadata-only F2 fix.
+- AC-7 terminal proof remains owned by the completion step; this section does not claim it. All other AC-1..AC-6 requirements are covered.
