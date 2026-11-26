@@ -97,7 +97,7 @@
   - `conductor/tracks/20261127-hud-pointer-modal-input/verification/phase-R1.md`
   - `conductor/tracks/20261127-hud-pointer-modal-input/verification/integrated.md`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/ui/modal.test.ts apps/client/src/ui/focus.test.ts apps/client/src/spar/panel.test.ts apps/client/src/hud/plates.test.ts` plus the mandatory primary `bun run verify && bun run build` gate.
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Pin explicit return-focus and hidden-opener regressions** — covers: F1, FR-4, AC-4
   - [ ] Add red tests for an explicit return target winning over the active opener.
