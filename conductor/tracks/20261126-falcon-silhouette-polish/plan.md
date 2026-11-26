@@ -56,7 +56,7 @@
 - **Covers:** FR-7, AC-6, AC-7, NFR-1, NFR-3
 - **Touches:** `verification/phase-3.md`, `verification/integrated.md`, `.conductor/evidence/20261126-falcon-silhouette-polish/`
 - **Verification:** `bun run verify && bun run build` plus `playwright-cli` captures at 1440×900 and forced iPhone 15 393×852 with clean console
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Capture falcon visuals from the real UI** — covers: FR-7, AC-6
   - [ ] **P3.T1.1:** Capture ranch baby/juvenile/champion and arena falcon views on desktop and phone.
