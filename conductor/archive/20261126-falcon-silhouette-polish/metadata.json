@@ -2,11 +2,11 @@
   "id": "20261126-falcon-silhouette-polish",
   "title": "Polish the falcon silhouette for speedster readability",
   "type": "feature",
-  "status": "in_progress",
+  "status": "complete",
   "priority": "low",
   "depends_on": [],
   "created_at": "2026-11-26T20:03:37.0038925+11:00",
-  "updated_at": "2026-11-26T22:01:55.1987495+11:00",
+  "updated_at": "2026-11-26T22:04:47.5293510+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "feat/20261126-falcon-silhouette-polish",
@@ -22,10 +22,10 @@
   "review_verdict": "PASS",
   "review_rounds": 2,
   "doc_sync": "updated",
-  "pr_url": null,
+  "pr_url": "https://github.com/mansyar/apex-league/pull/100",
   "reverted_at": null,
   "revert_commit": null,
   "revert_pr_url": null,
-  "archived_at": null,
-  "archive_path": null
+  "archived_at": "2026-11-26T22:04:47.5293510+11:00",
+  "archive_path": "conductor/archive/20261126-falcon-silhouette-polish"
 }
