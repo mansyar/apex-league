@@ -832,6 +832,17 @@
   test-pinned. Visual pass: 6 archetypes x 4 moments x 2 viewports with a clean console
   and the reduced-motion instant dump re-proven.
 
+- `2026-11-26` — **Falcon silhouette polish** (`20261126-falcon-silhouette-polish`):
+  `packages/voxel/src/falcon.ts` adds four named rigged parts — `wingFeatherLeft`,
+  `wingFeatherRight`, `tailFeatherLeft`, `tailFeatherRight` — as base-silhouette
+  feathers in every stage, with stable pivots, colors and parents. The wing blade
+  and tail fan are sharpened for speedster readability. Template id/version, DNA
+  bounds, palette hue `165`, gilded weight `32`, budget ranges, juvenile
+  `pinionBud*` and champion `crownPlume*` signatures, other archetypes and prop
+  digests are unchanged. The six `falcon-42` GLB/manifest pairs were regenerated
+  with the canonical exporter and re-proven byte-identical; real-UI desktop and
+  forced iPhone captures cover ranch stage progression and arena spars.
+
 ## Quality Gates
 - `bun check` clean, `biome check` clean, `bun test` green — required before
   any commit lands (see workflow.md).

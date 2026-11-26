@@ -91,3 +91,8 @@ No dependency or lockfile, no save/schema or sim file, no balance or audio file,
 - Independent image inspection of eight captures confirmed the stage labels/stats (`BABY 148/13/8/19`, `JUVENILE 151/15/11/19`, `CHAMPION 158/18/16/19`) and visible falcon silhouette progression on desktop and phone, plus the arena HUD `Zephyr Falcon · Press 158` vs `Ember Drake · Circle 177` with feed `Zephyr Falcon closes the gap.` (desktop) and `Zephyr... 158` vs `Ember... 162` with feed `Ember Drake closes the gap.` (phone).
 - Final console reads after warm reload were `Total messages: 2 (Errors: 0, Warnings: 0)` in both sessions. The cold-start transient errors, wide arena framing, real-sim camera seeding, DOM click workaround and running dev server are recorded as deviations and do not affect the evidence.
 - Conclusion: all FR-1..FR-7, NFR-1..NFR-5 and AC-1..AC-7 are covered; the gate is green and the integrated proof is ready for review.
+
+## Doc sync
+
+- Date: 2026-11-26T21:37:11.6791041+11:00
+- `conductor/tech-stack.md` gained a dated `## Asset Pipeline` note recording the four base feather parts, preserved contracts and signatures, canonical artifact regeneration with determinism re-proof, and desktop/forced-iPhone capture coverage. No product, product-guideline or workflow change is needed; RM-11 stays linked until the completion commit retires it.
