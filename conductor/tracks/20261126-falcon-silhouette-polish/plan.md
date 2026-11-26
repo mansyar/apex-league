@@ -12,7 +12,8 @@
 - **Goal:** Falcon builds in all three stages carry four new rigged feather parts with sharpened wing/tail geometry, while the biped, stage-signature, DNA, palette and budget contracts remain intact.
 - **Depends on:** none
 - **Covers:** FR-1, FR-2, FR-3, FR-4, FR-6, AC-1, AC-2, AC-3, AC-5, NFR-2
-- **Touches:** `packages/voxel/src/falcon.ts`, `packages/voxel/src/falcon.test.ts`
+- **Touches:** `packages/voxel/src/falcon.ts`, `packages/voxel/src/falcon.test.ts`, `artifacts/falcon-42.glb`, `artifacts/falcon-42.manifest.json`, `artifacts/falcon-42-juvenile.glb`, `artifacts/falcon-42-juvenile.manifest.json`, `artifacts/falcon-42-champion.glb`, `artifacts/falcon-42-champion.manifest.json`
+- **Deviation:** The six artifact files were added during acceptance because `verify_phase` requires byte-identical regeneration after the generator change. They were produced only by the canonical exporter, not hand-edited; this is the smallest necessary gate-enabling change.
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 packages/voxel/src/falcon.test.ts packages/voxel/src/stage.test.ts packages/voxel/src/proportion.test.ts`
 - **Status:** in_progress
 
