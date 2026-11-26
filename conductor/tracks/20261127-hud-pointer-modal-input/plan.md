@@ -97,14 +97,16 @@
   - `conductor/tracks/20261127-hud-pointer-modal-input/verification/phase-R1.md`
   - `conductor/tracks/20261127-hud-pointer-modal-input/verification/integrated.md`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/ui/modal.test.ts apps/client/src/ui/focus.test.ts apps/client/src/spar/panel.test.ts apps/client/src/hud/plates.test.ts` plus the mandatory primary `bun run verify && bun run build` gate.
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **R1.T1: Pin explicit return-focus and hidden-opener regressions** — covers: F1, FR-4, AC-4
-  - [ ] Add red tests for an explicit return target winning over the active opener.
-  - [ ] Add a nested board-close → spar-close sequence where the captured opener is connected but hidden.
-- [ ] **R1.T2: Wire the stable SPAR return target through the shared modal API** — covers: F1, FR-4, AC-4, NFR-5
-  - [ ] Add an opt-in explicit return-focus target without changing default modal behavior.
-  - [ ] Pass the SPAR button from `presentSetup` and preserve teardown-before-focus ordering.
-  - [ ] Record red/green, full-gate, scope, and browser evidence; leave other roadmap work untouched.
+- [x] **R1.T1: Pin explicit return-focus and hidden-opener regressions** — covers: F1, FR-4, AC-4
+  - [x] Add red tests for an explicit return target winning over the active opener.
+  - [x] Add a nested board-close → spar-close sequence where the captured opener is connected but hidden.
+- [x] **R1.T2: Wire the stable SPAR return target through the shared modal API** — covers: F1, FR-4, AC-4, NFR-5
+  - [x] Add an opt-in explicit return-focus target without changing default modal behavior.
+  - [x] Pass the SPAR button from `presentSetup` and preserve teardown-before-focus ordering.
+  - [x] Record red/green, full-gate, scope, and browser evidence; leave other roadmap work untouched.
 
-<!-- Primary appends Result/Checkpoint/Evidence after acceptance. -->
+- **Result:** verified
+- **Checkpoint:** `59551de5`
+- **Evidence:** `conductor/tracks/20261127-hud-pointer-modal-input/verification/phase-R1.md`
