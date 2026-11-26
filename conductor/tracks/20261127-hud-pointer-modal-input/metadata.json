@@ -6,7 +6,7 @@
   "priority": "high",
   "depends_on": [],
   "created_at": "2026-11-27T08:14:13.9899611+11:00",
-  "updated_at": "2026-11-27T08:17:05.9954605+11:00",
+  "updated_at": "2026-11-27T08:28:30.0149693+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "fix/20261127-hud-pointer-modal-input",
@@ -14,11 +14,11 @@
   "base_sha": "4f2e5de1b7d92e96ec2782b2541a608a1d2e9c68",
   "progress": {
     "phases_total": 3,
-    "phases_verified": 0,
+    "phases_verified": 1,
     "tasks_total": 6,
-    "tasks_done": 0
+    "tasks_done": 2
   },
-  "last_checkpoint": null,
+  "last_checkpoint": "a878a967",
   "review_verdict": null,
   "review_rounds": 0,
   "doc_sync": "pending",

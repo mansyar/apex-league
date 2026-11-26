@@ -13,18 +13,20 @@
   - `apps/client/src/ui/modal.test.ts`
   - `apps/client/src/ui/focus.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/ui/modal.test.ts apps/client/src/ui/focus.test.ts`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Pin background isolation and restoration** — covers: FR-3, FR-4, AC-3, AC-4, NFR-5
-  - [ ] Add failing tests for inert/aria-hidden background state.
-  - [ ] Pin restoration after close, repeated open/close, and nested-safe behavior.
-  - [ ] Preserve existing scrim, Escape, focus-trap, and return-focus tests.
-- [ ] **P1.T2: Implement opt-in isolation in the shared helper** — covers: FR-3, FR-4, NFR-3, NFR-5
-  - [ ] Record prior `inert`/`aria-hidden` values before isolation.
-  - [ ] Restore prior values exactly on close.
-  - [ ] Keep the default behavior unchanged for existing modals.
+- [x] **P1.T1: Pin background isolation and restoration** — covers: FR-3, FR-4, AC-3, AC-4, NFR-5
+  - [x] Add failing tests for inert/aria-hidden background state.
+  - [x] Pin restoration after close, repeated open/close, and nested-safe behavior.
+  - [x] Preserve existing scrim, Escape, focus-trap, and return-focus tests.
+- [x] **P1.T2: Implement opt-in isolation in the shared helper** — covers: FR-3, FR-4, NFR-3, NFR-5
+  - [x] Record prior `inert`/`aria-hidden` values before isolation.
+  - [x] Restore prior values exactly on close.
+  - [x] Keep the default behavior unchanged for existing modals.
 
-<!-- Primary appends Result / Checkpoint / Evidence after acceptance. -->
+- **Result:** verified
+- **Checkpoint:** `a878a967`
+- **Evidence:** `conductor/tracks/20261127-hud-pointer-modal-input/verification/phase-1.md`
 
 ## Phase 2: HUD pointer ownership and spar modal adapter
 
