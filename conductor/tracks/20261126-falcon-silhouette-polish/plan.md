@@ -77,7 +77,7 @@
 - **Covers:** F1, FR-6, AC-2, AC-5
 - **Touches:** `packages/voxel/src/falcon.test.ts`, `verification/phase-R1.md`, `verification/integrated.md`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 packages/voxel/src/falcon.test.ts packages/voxel/src/stage.test.ts packages/voxel/src/proportion.test.ts` and `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Pin worst-case proportion boundary** — covers: F1, FR-6, AC-2, AC-5
   - [ ] **R1.T1.1:** Add a worst-case proportion set (bodyGirth 1.3, bodyLength 1.35, wingLength 1.35, tailLength 1.35) to the falcon style/stage/reach sweep.
