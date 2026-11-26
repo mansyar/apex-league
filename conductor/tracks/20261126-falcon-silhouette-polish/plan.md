@@ -56,20 +56,16 @@
 - **Covers:** FR-7, AC-6, AC-7, NFR-1, NFR-3
 - **Touches:** `verification/phase-3.md`, `verification/integrated.md`, `.conductor/evidence/20261126-falcon-silhouette-polish/`
 - **Verification:** `bun run verify && bun run build` plus `playwright-cli` captures at 1440×900 and forced iPhone 15 393×852 with clean console
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** `c25bd1cf`
+- **Evidence:** `conductor/tracks/20261126-falcon-silhouette-polish/verification/phase-3.md`
 
-- [ ] **P3.T1: Capture falcon visuals from the real UI** — covers: FR-7, AC-6
-  - [ ] **P3.T1.1:** Capture ranch baby/juvenile/champion and arena falcon views on desktop and phone.
-  - [ ] **P3.T1.2:** Seed saves only through real sim exports; no hand-crafted JSON.
-  - [ ] **P3.T1.3:** Check console for zero errors and zero warnings.
-- [ ] **P3.T2: Record integrated verification evidence** — covers: AC-7, NFR-1, NFR-3
-  - [ ] **P3.T2.1:** Run `bun run verify && bun run build` and record layer results.
-  - [ ] **P3.T2.2:** Confirm no dependency, save, sim, balance, audio, other-archetype or prop drift.
-  - [ ] **P3.T2.3:** Write `verification/phase-3.md` and `verification/integrated.md`.
-
-<!--
-The primary appends after acceptance:
-**Result:** verified
-**Checkpoint:** <short-sha>
-**Evidence:** conductor/tracks/20261126-falcon-silhouette-polish/verification/phase-3.md
--->
+- [x] **P3.T1: Capture falcon visuals from the real UI** — covers: FR-7, AC-6
+  - [x] **P3.T1.1:** Capture ranch baby/juvenile/champion and arena falcon views on desktop and phone.
+  - [x] **P3.T1.2:** Seed saves only through real sim exports; no hand-crafted JSON.
+  - [x] **P3.T1.3:** Check console for zero errors and zero warnings.
+- [x] **P3.T2: Record integrated verification evidence** — covers: AC-7, NFR-1, NFR-3
+  - [x] **P3.T2.1:** Run `bun run verify && bun run build` and record layer results.
+  - [x] **P3.T2.2:** Confirm no dependency, save, sim, balance, audio, other-archetype or prop drift.
+  - [x] **P3.T2.3:** Write `verification/phase-3.md` and `verification/integrated.md`.

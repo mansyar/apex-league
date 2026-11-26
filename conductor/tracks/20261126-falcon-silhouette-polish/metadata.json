@@ -6,7 +6,7 @@
   "priority": "low",
   "depends_on": [],
   "created_at": "2026-11-26T20:03:37.0038925+11:00",
-  "updated_at": "2026-11-26T21:09:40.4301871+11:00",
+  "updated_at": "2026-11-26T21:35:01.7908501+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "feat/20261126-falcon-silhouette-polish",
@@ -14,11 +14,11 @@
   "base_sha": "84a1d1948f22a109de66f65388573cdb823ea715",
   "progress": {
     "phases_total": 3,
-    "phases_verified": 2,
+    "phases_verified": 3,
     "tasks_total": 6,
-    "tasks_done": 4
+    "tasks_done": 6
   },
-  "last_checkpoint": "d2284f07",
+  "last_checkpoint": "c25bd1cf",
   "review_verdict": null,
   "review_rounds": 0,
   "doc_sync": "pending",
