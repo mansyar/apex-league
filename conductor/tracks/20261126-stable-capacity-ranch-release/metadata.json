@@ -6,17 +6,17 @@
   "priority": "medium",
   "depends_on": [],
   "created_at": "2026-11-26T10:11:29.6097815+11:00",
-  "updated_at": "2026-11-26T10:59:38.5046393+11:00",
+  "updated_at": "2026-11-26T11:03:30.0145286+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "chore/20261126-stable-capacity-ranch-release",
   "base_branch": "main",
   "base_sha": "d6502929052316b9b595671eae90fbc1fafc6700",
   "progress": {
-    "phases_total": 2,
-    "phases_verified": 2,
-    "tasks_total": 4,
-    "tasks_done": 4
+    "phases_total": 3,
+    "phases_verified": 3,
+    "tasks_total": 6,
+    "tasks_done": 6
   },
   "last_checkpoint": "9bc8592c",
   "review_verdict": "PASS WITH FINDINGS",
