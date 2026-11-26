@@ -70,15 +70,17 @@
   - Gitignored `.conductor/evidence/20261127-hud-pointer-modal-input/`
 - **Verification:** `bun run verify && bun run build`
 - **Browser verification:** `playwright-cli` captures and console checks at desktop `1440×900`, phone portrait `393×852`, and phone landscape `852×393`.
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Capture interaction and visual proof** — covers: FR-6, AC-1, AC-2, AC-3, AC-4, AC-5
-  - [ ] Record Rename and SPAR normal-click hit tests.
-  - [ ] Record dialog semantics, background inertness, focus trap, dismissal, and focus return.
-  - [ ] Capture desktop, portrait, and landscape screenshots with clean consoles.
-- [ ] **P3.T2: Run integrated verification and scope audit** — covers: AC-6, AC-7, NFR-1, NFR-2, NFR-4
-  - [ ] Run the full configured gate and module-size checks.
-  - [ ] Confirm no sim/save/balance/audio/voxel/dependency/generated-file diff.
-  - [ ] Record exact red/green evidence and final results.
+- [x] **P3.T1: Capture interaction and visual proof** — covers: FR-6, AC-1, AC-2, AC-3, AC-4, AC-5
+  - [x] Record Rename and SPAR normal-click hit tests.
+  - [x] Record dialog semantics, background inertness, focus trap, dismissal, and focus return.
+  - [x] Capture desktop, portrait, and landscape screenshots with clean consoles.
+- [x] **P3.T2: Run integrated verification and scope audit** — covers: AC-6, AC-7, NFR-1, NFR-2, NFR-4
+  - [x] Run the full configured gate and module-size checks.
+  - [x] Confirm no sim/save/balance/audio/voxel/dependency/generated-file diff.
+  - [x] Record exact red/green evidence and final results.
 
-<!-- Primary appends Result / Checkpoint / Evidence after acceptance. -->
+- **Result:** verified
+- **Checkpoint:** `9775267f`
+- **Evidence:** `conductor/tracks/20261127-hud-pointer-modal-input/verification/phase-3.md`
