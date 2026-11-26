@@ -84,3 +84,27 @@
 - **Result:** verified
 - **Checkpoint:** `9775267f`
 - **Evidence:** `conductor/tracks/20261127-hud-pointer-modal-input/verification/phase-3.md`
+
+## Phase R1: Review Fixes
+
+- **Goal:** Resolve F1 so board ghost spar and every other spar entry return focus to the visible SPAR control after background restoration and teardown.
+- **Depends on:** Phase 3
+- **Covers:** F1, FR-4, AC-4, NFR-5
+- **Touches:**
+  - `apps/client/src/ui/modal.ts`
+  - `apps/client/src/ui/modal.test.ts`
+  - `apps/client/src/spar.ts`
+  - `conductor/tracks/20261127-hud-pointer-modal-input/verification/phase-R1.md`
+  - `conductor/tracks/20261127-hud-pointer-modal-input/verification/integrated.md`
+- **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/ui/modal.test.ts apps/client/src/ui/focus.test.ts apps/client/src/spar/panel.test.ts apps/client/src/hud/plates.test.ts` plus the mandatory primary `bun run verify && bun run build` gate.
+- **Status:** pending
+
+- [ ] **R1.T1: Pin explicit return-focus and hidden-opener regressions** — covers: F1, FR-4, AC-4
+  - [ ] Add red tests for an explicit return target winning over the active opener.
+  - [ ] Add a nested board-close → spar-close sequence where the captured opener is connected but hidden.
+- [ ] **R1.T2: Wire the stable SPAR return target through the shared modal API** — covers: F1, FR-4, AC-4, NFR-5
+  - [ ] Add an opt-in explicit return-focus target without changing default modal behavior.
+  - [ ] Pass the SPAR button from `presentSetup` and preserve teardown-before-focus ordering.
+  - [ ] Record red/green, full-gate, scope, and browser evidence; leave other roadmap work untouched.
+
+<!-- Primary appends Result/Checkpoint/Evidence after acceptance. -->
