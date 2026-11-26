@@ -121,7 +121,7 @@
   - `conductor/tracks/20261127-hud-pointer-modal-input/verification/phase-R2.md`
   - `conductor/tracks/20261127-hud-pointer-modal-input/verification/integrated.md`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/ui/modal.test.ts apps/client/src/ui/focus.test.ts apps/client/src/spar/panel.test.ts apps/client/src/hud/plates.test.ts` plus the mandatory primary `bun run verify && bun run build` gate.
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R2.T1: Match the production board-close sequence** — covers: F2, AC-4, NFR-3
   - [ ] Pin the default board close's isolated-opener focus attempt and observe red before changing the close options.
