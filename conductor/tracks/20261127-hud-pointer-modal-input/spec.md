@@ -48,7 +48,8 @@ These are reliability defects in primary interactions, not cosmetic issues.
 2. Expand the creature plate if necessary.
 3. Click the visible **Rename partner** pencil.
 
-**Actual:** No inline editor opens. `document.elementFromPoint()` at the button center returns the Three.js canvas.  
+**Actual:** No inline editor opens. `document.elementFromPoint()` at the button center returns the Three.js canvas.
+
 **Expected:** The inline editor opens, receives focus, and selects the current name.
 
 ### Reproduction B — mobile SPAR
@@ -56,7 +57,8 @@ These are reliability defects in primary interactions, not cosmetic issues.
 1. Load the ranch at `393×852`.
 2. Click the visible **SPAR** button.
 
-**Actual:** `.hud-motion` intercepts the pointer event; spar setup does not open.  
+**Actual:** `.hud-motion` intercepts the pointer event; spar setup does not open.
+
 **Expected:** A normal pointer click opens spar setup.
 
 ### Reproduction C — spar modal isolation
@@ -65,7 +67,8 @@ These are reliability defects in primary interactions, not cosmetic issues.
 2. Inspect the accessibility tree and keyboard focus order.
 3. Attempt Escape and scrim-click dismissal.
 
-**Actual:** Background ranch controls remain exposed; standard modal dismissal is absent.  
+**Actual:** Background ranch controls remain exposed; standard modal dismissal is absent.
+
 **Expected:** Only the spar dialog is interactive and exposed until it closes.
 
 ### Root-cause Hypotheses
