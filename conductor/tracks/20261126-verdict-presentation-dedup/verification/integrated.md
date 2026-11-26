@@ -76,3 +76,7 @@
 The cup result stamp title/rule/sub remain visually separated by the original card gap, consistent with the flat-sibling DOM pinned by Phase 2 tests. Console results in both sessions were reported as 2 messages, 0 errors, 0 warnings.
 
 **Conclusion:** FR-1 through FR-6 and AC-1 through AC-7 are confirmed. The track is ready for Phase 3 acceptance and post-review doc sync.
+
+## Doc sync
+
+2026-11-26: final design is recorded as a dated `## Client` note in `conductor/tech-stack.md` — `verdict/copy.ts` single-sources all spar/cup/battle stamp copy, `verdict/stamp.ts` single-sources the four-div stamp DOM with configurable classes/ARIA and flat cup mode, and adapters delegate without changing wording, animation or accessibility. `conductor/product.md`, `conductor/product-guidelines.md` and `conductor/workflow.md` need no change; the live invite verdict surface remains explicitly out of scope. RM-10 stays linked in `conductor/roadmap.md` until this track's completion commit retires it.
