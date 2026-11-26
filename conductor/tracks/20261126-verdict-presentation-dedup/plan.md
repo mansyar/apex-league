@@ -14,20 +14,18 @@
 - **Covers:** FR-1, FR-2, FR-4, FR-5, AC-1, NFR-2
 - **Touches:** `apps/client/src/verdict/copy.ts`, `apps/client/src/verdict/copy.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/verdict/copy.test.ts apps/client/src/battleUI.test.ts`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Pin the copy contract in a table test** — covers: FR-5, AC-1
-  - [ ] **P1.T1.1:** Enumerate null winner, double-KO, time-out, winner keys, mirror-name qualification for spar and cup, and cup Champion/Eliminated copy with exact expected strings.
-  - [ ] **P1.T1.2:** Observe the red state before the module exists and record it in evidence.
-- [ ] **P1.T2: Author the pure copy module** — covers: FR-1, FR-2, FR-4, NFR-2
-  - [ ] **P1.T2.1:** Derive title/sub from resolved `BattleResult`, fight, and cup-session inputs; reuse `reasonLine` for the battle subline; recompute nothing.
-  - [ ] **P1.T2.2:** Keep the module frozen/small and export seams suitable for the spar, cup, and HUD adapters without changing any pinned string.
+- [x] **P1.T1: Pin the copy contract in a table test** — covers: FR-5, AC-1
+  - [x] **P1.T1.1:** Enumerate null winner, double-KO, time-out, winner keys, mirror-name qualification for spar and cup, and cup Champion/Eliminated copy with exact expected strings.
+  - [x] **P1.T1.2:** Observe the red state before the module exists and record it in evidence.
+- [x] **P1.T2: Author the pure copy module** — covers: FR-1, FR-2, FR-4, NFR-2
+  - [x] **P1.T2.1:** Derive title/sub from resolved `BattleResult`, fight, and cup-session inputs; reuse `reasonLine` for the battle subline; recompute nothing.
+  - [x] **P1.T2.2:** Keep the module frozen/small and export seams suitable for the spar, cup, and HUD adapters without changing any pinned string.
 
-<!--
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** d285abbd
 **Evidence:** conductor/tracks/20261126-verdict-presentation-dedup/verification/phase-1.md
--->
 
 ## Phase 2: Shared stamp view and adapter rewiring
 
