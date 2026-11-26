@@ -15,24 +15,20 @@
 - **Touches:** `packages/voxel/src/falcon.ts`, `packages/voxel/src/falcon.test.ts`, `artifacts/falcon-42.glb`, `artifacts/falcon-42.manifest.json`, `artifacts/falcon-42-juvenile.glb`, `artifacts/falcon-42-juvenile.manifest.json`, `artifacts/falcon-42-champion.glb`, `artifacts/falcon-42-champion.manifest.json`
 - **Deviation:** The six artifact files were added during acceptance because `verify_phase` requires byte-identical regeneration after the generator change. They were produced only by the canonical exporter, not hand-edited; this is the smallest necessary gate-enabling change.
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 packages/voxel/src/falcon.test.ts packages/voxel/src/stage.test.ts packages/voxel/src/proportion.test.ts`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** `c81ab889`
+- **Evidence:** `conductor/tracks/20261126-falcon-silhouette-polish/verification/phase-1.md`
 
-- [ ] **P1.T1: Pin the feather silhouette contract in tests** — covers: FR-1, FR-2, FR-3, FR-6, AC-1, AC-2, AC-5
-  - [ ] **P1.T1.1:** Assert `wingFeatherLeft/Right` and `tailFeatherLeft/Right` exist in baby, juvenile and champion with non-zero voxels, finite pivots/colors and correct parents.
-  - [ ] **P1.T1.2:** Pin wing/tail style variants, biped leg/wing counts, additive stage signatures, palette hue `165`, gilded gate and budget bounds.
-  - [ ] **P1.T1.3:** Run the exact phase command and record the expected TDD red before implementation.
-- [ ] **P1.T2: Author the feather parts and wing/tail polish** — covers: FR-1, FR-2, AC-1, AC-2
-  - [ ] **P1.T2.1:** Add four named SDF fields with stable pivots, colors and parents; no new style slots.
-  - [ ] **P1.T2.2:** Sharpen existing wing blades and tail fan SDF parameters inside the current DNA-driven style variants.
-  - [ ] **P1.T2.3:** Leave DNA sampling, template bounds, palette, gilded gate, stage signatures and budget entries unchanged.
-  - [ ] **P1.T2.4:** Re-run the exact phase command to green.
-
-<!--
-The primary appends after acceptance:
-**Result:** verified
-**Checkpoint:** <short-sha>
-**Evidence:** conductor/tracks/20261126-falcon-silhouette-polish/verification/phase-1.md
--->
+- [x] **P1.T1: Pin the feather silhouette contract in tests** — covers: FR-1, FR-2, FR-3, FR-6, AC-1, AC-2, AC-5
+  - [x] **P1.T1.1:** Assert `wingFeatherLeft/Right` and `tailFeatherLeft/Right` exist in baby, juvenile and champion with non-zero voxels, finite pivots/colors and correct parents.
+  - [x] **P1.T1.2:** Pin wing/tail style variants, biped leg/wing counts, additive stage signatures, palette hue `165`, gilded gate and budget bounds.
+  - [x] **P1.T1.3:** Run the exact phase command and record the expected TDD red before implementation.
+- [x] **P1.T2: Author the feather parts and wing/tail polish** — covers: FR-1, FR-2, AC-1, AC-2
+  - [x] **P1.T2.1:** Add four named SDF fields with stable pivots, colors and parents; no new style slots.
+  - [x] **P1.T2.2:** Sharpen existing wing blades and tail fan SDF parameters inside the current DNA-driven style variants.
+  - [x] **P1.T2.3:** Leave DNA sampling, template bounds, palette, gilded gate, stage signatures and budget entries unchanged.
+  - [x] **P1.T2.4:** Re-run the exact phase command to green.
 
 ## Phase 2: Artifact regeneration and deterministic gate
 
