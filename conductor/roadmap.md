@@ -1,6 +1,6 @@
 # Conductor Roadmap
 
-<!-- next-rm-id: 20 -->
+<!-- next-rm-id: 21 -->
 
 > Planned and future work. The roadmap stores **intent** — ordering, priority,
 > and dependencies — not live state. `conductor-status` joins every entry whose
@@ -28,6 +28,7 @@
 | RM-17 | Reduce repetitive battle-log noise and add pause/replay playback controls | feature | medium | — | — | user |
 | RM-18 | Correct training, move-list, Stable, and Hall of Fame copy inconsistencies | bug | medium | — | — | user |
 | RM-19 | Improve secondary-text contrast, long-form navigation, and modal accessibility | refactor | medium | RM-13 | — | user |
+| RM-20 | Add responsive interaction and visual regression coverage for key UI flows | chore | medium | RM-13, RM-14, RM-15, RM-16 | — | user |
 
 ## Later
 
