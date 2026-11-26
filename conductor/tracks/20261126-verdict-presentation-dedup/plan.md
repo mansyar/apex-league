@@ -54,7 +54,7 @@
 - **Covers:** FR-6, AC-5, AC-6, NFR-1, NFR-2, NFR-4
 - **Touches:** `conductor/tracks/20261126-verdict-presentation-dedup/verification/phase-3.md`, `conductor/tracks/20261126-verdict-presentation-dedup/verification/integrated.md`, gitignored `.conductor/evidence/20261126-verdict-presentation-dedup/`
 - **Verification:** `bun run verify && bun run build`, plus `playwright-cli` captures at 1440x900 and forced iPhone 15 393x852 with clean console checks
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Capture desktop and phone verdict surfaces** — covers: FR-6, AC-5
   - [ ] **P3.T1.1:** Capture the spar stamp, cup results stamp, and live battle HUD stamp through the real UI, using DOM `.click()` only if HUD/onboarding intercepts pointer input.
