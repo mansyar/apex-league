@@ -59,15 +59,14 @@ Review fixes, if any, are appended by `conductor-review` as:
 - **Covers:** F1, FR-4, AC-2, AC-6
 - **Touches:** `docs/save-schema.md`, `conductor/tracks/20261126-stable-capacity-ranch-release/verification/phase-R1.md`, `conductor/tracks/20261126-stable-capacity-ranch-release/verification/integrated.md`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** `9bc8592c`
+- **Evidence:** `conductor/tracks/20261126-stable-capacity-ranch-release/verification/phase-R1.md`
 
-- [ ] **R1.T1: Add the v25 → v26 migration row** — covers: F1, FR-4, AC-2, AC-6
-  - [ ] **R1.T1.1:** Source the row from `packages/sim/src/save/migrations/v25.ts`: HP absorbs the 210% arena scale via `round(hp * 21 / 10)`; trained HP folds and clamps to the scaled cap of 13; ATK/DEF/SPD and all other fields forward untouched; frozen cup-session sides gain `doctrine`.
-  - [ ] **R1.T1.2:** Place the row after the existing `v24 → v25` row without rewriting historical v25 references.
-- [ ] **R1.T2: Pin the doc-truth invariant and re-run the gate** — covers: F1, AC-6
-  - [ ] **R1.T2.1:** Record in evidence that the terminal migration row matches the current `GameState at v<N>` header.
-  - [ ] **R1.T2.2:** Re-run `bun run verify && bun run build` and update `verification/integrated.md`.
-
-<!--
-Result, Checkpoint and Evidence are filled by the primary after acceptance.
--->
+- [x] **R1.T1: Add the v25 → v26 migration row** — covers: F1, FR-4, AC-2, AC-6
+  - [x] **R1.T1.1:** Source the row from `packages/sim/src/save/migrations/v25.ts`: HP absorbs the 210% arena scale via `round(hp * 21 / 10)`; trained HP folds and clamps to the scaled cap of 13; ATK/DEF/SPD and all other fields forward untouched; frozen cup-session sides gain `doctrine`.
+  - [x] **R1.T1.2:** Place the row after the existing `v24 → v25` row without rewriting historical v25 references.
+- [x] **R1.T2: Pin the doc-truth invariant and re-run the gate** — covers: F1, AC-6
+  - [x] **R1.T2.1:** Record in evidence that the terminal migration row matches the current `GameState at v<N>` header.
+  - [x] **R1.T2.2:** Re-run `bun run verify && bun run build` and update `verification/integrated.md`.
