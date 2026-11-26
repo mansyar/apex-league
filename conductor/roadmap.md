@@ -1,6 +1,6 @@
 # Conductor Roadmap
 
-<!-- next-rm-id: 14 -->
+<!-- next-rm-id: 15 -->
 
 > Planned and future work. The roadmap stores **intent** — ordering, priority,
 > and dependencies — not live state. `conductor-status` joins every entry whose
@@ -22,6 +22,7 @@
 | id | title | type | priority | depends_on | track | origin |
 | --- | --- | --- | --- | --- | --- | --- |
 | RM-13 | Fix HUD pointer interception and isolate modal input across desktop and mobile | bug | high | — | — | user |
+| RM-14 | Improve arena camera, lighting, and fighter readability on desktop and mobile | feature | high | — | — | user |
 
 ## Later
 
