@@ -34,20 +34,18 @@
 - **Covers:** FR-1, FR-2, FR-3, FR-4, AC-2, AC-3, AC-4, AC-7, NFR-3, NFR-5
 - **Touches:** `apps/client/src/verdict/stamp.ts`, `apps/client/src/verdict/stamp.test.ts`, `apps/client/src/battle-session.ts`, `apps/client/src/battle-session.test.ts`, `apps/client/src/battleHud.ts`, `apps/client/src/battleHud.test.ts`, `apps/client/src/cup/view-models.ts`, `apps/client/src/cup/view-models.test.ts`, `apps/client/src/cup/results.ts`, `apps/client/src/cup/screens/results.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/verdict/stamp.test.ts apps/client/src/battle-session.test.ts apps/client/src/battleHud.test.ts apps/client/src/cup/view-models.test.ts apps/client/src/battleUI.test.ts`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Pin stamp DOM and adapter delegation** — covers: AC-2, AC-3, AC-4, AC-7
-  - [ ] **P2.T1.1:** Pin class names, rule element, animation restart, `role="status"`, `aria-live="polite"`, and the cup's single combined announcement.
-  - [ ] **P2.T1.2:** Pin that spar/cup title builders and cup results copy delegate to the shared model and that no verdict title/sub literals remain duplicated in those adapters.
-- [ ] **P2.T2: Author the stamp view and rewire the surfaces** — covers: FR-1, FR-2, FR-3, NFR-3, NFR-5
-  - [ ] **P2.T2.1:** Create the reusable stamp view with class-name configuration only; wire it into `battleHud.ts` and the cup results screen.
-  - [ ] **P2.T2.2:** Delegate copy in `battle-session.ts` and `cup/view-models.ts`; leave `live/state.ts`, CSS, audio cues, sim, and save untouched.
+- [x] **P2.T1: Pin stamp DOM and adapter delegation** — covers: AC-2, AC-3, AC-4, AC-7
+  - [x] **P2.T1.1:** Pin class names, rule element, animation restart, `role="status"`, `aria-live="polite"`, and the cup's single combined announcement.
+  - [x] **P2.T1.2:** Pin that spar/cup title builders and cup results copy delegate to the shared model and that no verdict title/sub literals remain duplicated in those adapters.
+- [x] **P2.T2: Author the stamp view and rewire the surfaces** — covers: FR-1, FR-2, FR-3, NFR-3, NFR-5
+  - [x] **P2.T2.1:** Create the reusable stamp view with class-name configuration only; wire it into `battleHud.ts` and the cup results screen.
+  - [x] **P2.T2.2:** Delegate copy in `battle-session.ts` and `cup/view-models.ts`; leave `live/state.ts`, CSS, audio cues, sim, and save untouched.
 
-<!--
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 4908fb3a
 **Evidence:** conductor/tracks/20261126-verdict-presentation-dedup/verification/phase-2.md
--->
 
 ## Phase 3: Visual evidence and integrated gate
 
