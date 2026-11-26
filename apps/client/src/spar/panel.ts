@@ -37,16 +37,21 @@ export function buildSparPanel(
   sparButton.className = "spar-button kit-chip"
   root.append(sparButton)
 
-  // Center overlay panel, hidden until the whistle.
+  // Center overlay panel, hidden until the whistle. It is a labelled dialog
+  // from birth; the shared modal helper owns the `is-hidden` fold from here.
   const overlay = document.createElement("div")
-  overlay.className = "spar-overlay"
-  overlay.style.display = "none"
+  overlay.className = "spar-overlay is-hidden"
+  overlay.setAttribute("role", "dialog")
+  overlay.setAttribute("aria-modal", "true")
 
   const panel = document.createElement("div")
   panel.className = "spar-panel kit-plate"
 
+  const headingId = "spar-heading"
   const heading = document.createElement("div")
   heading.className = "spar-heading"
+  heading.setAttribute("id", headingId)
+  overlay.setAttribute("aria-labelledby", headingId)
   heading.textContent = "Sparring"
 
   const intro = document.createElement("div")
@@ -210,4 +215,17 @@ export function buildSparPanel(
     panelClose,
     chips,
   }
+}
+
+/**
+ * The spar opens on an existing #app root, so the modal background must be
+ * read at open time: every other app child is inert while the dialog shows.
+ */
+export function sparModalBackground(
+  root: HTMLElement,
+  overlay: HTMLElement,
+): HTMLElement[] {
+  return Array.from(root.children).filter(
+    (child): child is HTMLElement => child !== overlay,
+  )
 }

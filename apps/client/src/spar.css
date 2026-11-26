@@ -4,11 +4,15 @@
 .spar-overlay {
   position: fixed;
   inset: 0;
-  z-index: var(--z-veil);
+  z-index: var(--z-modal);
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgb(12 10 8 / 0.6);
+}
+
+.spar-overlay.is-hidden {
+  display: none;
 }
 
 .spar-panel {
@@ -317,6 +321,8 @@
   position: absolute;
   top: 18px;
   right: 18px;
+  z-index: var(--z-dock);
+  pointer-events: auto;
   flex-direction: row;
   align-items: center;
   gap: 8px;
@@ -339,10 +345,10 @@
     right: calc(14px + var(--kit-safe-right));
   }
 
-  /* The six-move picker is taller than the phone viewport, and the top-left
-     chip cluster (z-45) stays above this overlay. Park the panel below the
-     cluster — Settings/Handbook/Stable stack to ~152px — and let it scroll
-     instead of hiding its heading under HANDBOOK. */
+  /* The six-move picker is taller than the phone viewport. The dialog now
+     layers above the chip cluster, but keep the panel below the ~152px
+     Settings/Handbook/Stable stack so its heading and close chip are never
+     clipped; let the panel scroll instead. */
   .spar-overlay {
     align-items: flex-start;
     padding: calc(164px + var(--kit-safe-top)) 12px 12px;

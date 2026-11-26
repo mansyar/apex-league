@@ -133,7 +133,8 @@
   opacity: 0.72;
 }
 
-/* Bottom-left creature lower-third (broadcast kit plate) */
+/* Bottom-left creature lower-third (broadcast kit plate). It owns its hits
+   so the transparent ranch flow wrappers can pass yard gestures through. */
 .creature-plate {
   position: absolute;
   bottom: 18px;
@@ -141,6 +142,8 @@
   width: 300px;
   padding: 14px;
   clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+  z-index: var(--z-dock);
+  pointer-events: auto;
   animation: settle-up 0.5s var(--kit-settle) 0.08s both;
   user-select: none;
 }
@@ -178,6 +181,9 @@
 
 .creature-headrow .creature-head {
   flex: 1;
+  /* Without this the head keeps its 100% width, pushes the pencil outside
+     the plate's clipped box, and the canvas steals the click. */
+  min-width: 0;
   margin-bottom: 0;
 }
 
@@ -236,6 +242,8 @@
 
 .rename-button {
   flex: none;
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1121,15 +1129,15 @@
 }
 
 /* Settings cluster (save v5 chips, now the Settings entry): top-left.
-   Sits above the spar overlay (z-40) so the chip stays reachable during
-   battles — the camera row inside the modal is an arena-only control
-   (coach_knowledge_20261016 Phase 5). Settings stays primary beside the
-   More toggle; every other chip folds into the overflow panel. */
+   The wrapper's transparent box passes hits through so it can never swallow
+   a tap meant for the SPAR chip or the yard; only the real chips and the
+   overflow panel below own pointer events. */
 .hud-motion {
   position: absolute;
   top: 18px;
   left: 18px;
   z-index: var(--z-dock);
+  pointer-events: none;
   animation: settle-down 0.5s var(--kit-settle) 0.24s both;
   user-select: none;
 }
@@ -1155,6 +1163,11 @@
 
 .hud-overflow.is-hidden {
   display: none;
+}
+
+.hud-motion .kit-chip,
+.hud-motion .hud-overflow {
+  pointer-events: auto;
 }
 
 /* Lineage plate (save v10): the family name with its generation numeral
@@ -1483,7 +1496,8 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
-    pointer-events: auto;
+    /* Stretched transparent grid cell: never take hits; its chips do. */
+    pointer-events: none;
   }
 
   .hud-ranch > .hud-lineage {
@@ -1586,13 +1600,13 @@
     pointer-events: auto;
   }
 
-  /* The full-viewport wrapper passes yard gestures through everywhere
-     but the controls: the motion cluster re-enables hits, like the
-     lineage plate above. (The teaching callout keeps its own intentional
-     pass-through below: card none, Got-it button auto.) Without this the
-     More toggle goes dead under the canvas in short landscape. */
+  /* The full-viewport wrapper passes yard gestures through everywhere but
+     the controls. The motion wrapper stays transparent to hits too; its
+     chips and overflow panel re-enable their own, so the More toggle and
+     the SPAR chip both remain reachable in short landscape. (The teaching
+     callout keeps its intentional pass-through below: card none, button auto.) */
   .hud-ranch > .hud-motion {
-    pointer-events: auto;
+    pointer-events: none;
   }
 
   /* 246px ceiling (content-box sizing — the cap bounds the content box;

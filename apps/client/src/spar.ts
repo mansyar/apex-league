@@ -31,10 +31,11 @@ import {
   readGhostContender,
 } from "./spar/ghost"
 import { logToggleLabel } from "./spar/log"
-import { buildSparPanel } from "./spar/panel"
+import { buildSparPanel, sparModalBackground } from "./spar/panel"
 import { resolveSpar } from "./spar/resolve"
 import { refreshPrep, renderRival } from "./spar/setup"
 import type { Spar, SparHandlers } from "./spar/types"
+import { closeModal, isModalOpen, openModal } from "./ui/modal"
 
 export type { Spar, SparHandlers } from "./spar/types"
 
@@ -127,6 +128,17 @@ export function createSpar(
     if (!log.hidden) log.scrollTop = log.scrollHeight
   }
 
+  // One teardown for every exit path (close buttons, Escape, scrim, and the
+  // creature going away). The modal helper runs it before the focus handoff,
+  // so the spar chip is visible again by the time focus lands back on it.
+  const teardown = (): void => {
+    session.stop()
+    pendingGhost = null
+    battleHud.hide()
+    sparButton.style.display = ""
+    handlers.onClose?.()
+  }
+
   const runBattle = (
     playerDoctrine: DoctrineId,
     playerRule: RuleId | null,
@@ -156,6 +168,9 @@ export function createSpar(
     // the chips row is the only control surface left.
     panel.style.display = "none"
     chips.style.display = ""
+    // The focused setup button disappears with the panel; move focus to the
+    // first visible fight control so the dialog's trap keeps its anchor.
+    logToggle.focus()
     showLine(intro.textContent ?? "")
     // The shell shows the HUD fighters, casts the combatants, starts the
     // playback (honoring the reduced-motion preference), and arms the
@@ -188,7 +203,14 @@ export function createSpar(
     for (const { button } of doctrineButtons) button.style.display = ""
     // The Spar chip would collide with the placard's right plate.
     sparButton.style.display = "none"
-    overlay.style.display = ""
+    // The dialog owns the whole spar lifetime. Trap box stays the overlay
+    // (not the panel), because the fight chrome replaces the hidden panel.
+    if (!isModalOpen(overlay)) {
+      openModal(overlay, {
+        background: sparModalBackground(root, overlay),
+        onClose: teardown,
+      })
+    }
   }
 
   const open = (creature: Creature | null): void => {
@@ -222,26 +244,10 @@ export function createSpar(
     return true
   }
 
-  close.addEventListener("click", () => {
-    session.stop()
-    pendingGhost = null
-    overlay.style.display = "none"
-    battleHud.hide()
-    sparButton.style.display = ""
-    sparButton.focus()
-    handlers.onClose?.()
-  })
-  panelClose.addEventListener("click", () => {
-    // Same teardown as the post-fight exit; safe before any fight since
-    // stopping an idle driver is a no-op.
-    session.stop()
-    pendingGhost = null
-    overlay.style.display = "none"
-    battleHud.hide()
-    sparButton.style.display = ""
-    sparButton.focus()
-    handlers.onClose?.()
-  })
+  // Both exits, plus Escape/scrim, converge on the modal's teardown and
+  // focus return; no handler owns its own copy of the cleanup.
+  close.addEventListener("click", () => closeModal(overlay))
+  panelClose.addEventListener("click", () => closeModal(overlay))
   sparButton.addEventListener("click", () => open(owned))
   resetPill.addEventListener("click", () => {
     kitHint.textContent = ""
@@ -271,21 +277,14 @@ export function createSpar(
       // reads the partner as they are right now.
       owned = creature
       sparButton.disabled = creature === null
-      if (creature && overlay.style.display !== "none") {
+      if (creature && isModalOpen(overlay)) {
         refreshPrep(refs, creature, handlers.onSetLoadout)
       }
-      if (!creature && overlay.style.display !== "none") {
-        session.stop()
-        overlay.style.display = "none"
-        battleHud.hide()
-        sparButton.style.display = ""
-        // A stranded ghost contender outlives the partner it was built for:
-        // drop it with the session, like both close handlers do.
-        pendingGhost = null
-        // Same teardown as a manual close — main.ts must drop
-        // app-in-arena and re-show the ranch creature, or the app
-        // strands itself in arena mode.
-        handlers.onClose?.()
+      if (!creature && isModalOpen(overlay)) {
+        // Same teardown as a manual close (session, ghost, HUD, chip,
+        // onClose) plus focus return — main.ts must drop app-in-arena and
+        // re-show the ranch creature, or the app strands itself in arena mode.
+        closeModal(overlay)
       }
     },
     setPaused: (paused) => {
