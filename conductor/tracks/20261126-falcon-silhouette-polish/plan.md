@@ -37,7 +37,7 @@
 - **Covers:** FR-5, AC-4, NFR-4, NFR-5
 - **Touches:** `artifacts/falcon-42.glb`, `artifacts/falcon-42.manifest.json`, `artifacts/falcon-42-juvenile.glb`, `artifacts/falcon-42-juvenile.manifest.json`, `artifacts/falcon-42-champion.glb`, `artifacts/falcon-42-champion.manifest.json`, `verification/phase-2.md`
 - **Verification:** `bun run gate:determinism`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Regenerate canonical falcon artifacts** — covers: FR-5
   - [ ] **P2.T1.1:** Run `export-artifact.ts` for falcon seed 42 at baby, juvenile and champion.
