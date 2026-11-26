@@ -54,17 +54,15 @@
 - **Covers:** FR-6, AC-5, AC-6, NFR-1, NFR-2, NFR-4
 - **Touches:** `conductor/tracks/20261126-verdict-presentation-dedup/verification/phase-3.md`, `conductor/tracks/20261126-verdict-presentation-dedup/verification/integrated.md`, gitignored `.conductor/evidence/20261126-verdict-presentation-dedup/`
 - **Verification:** `bun run verify && bun run build`, plus `playwright-cli` captures at 1440x900 and forced iPhone 15 393x852 with clean console checks
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P3.T1: Capture desktop and phone verdict surfaces** — covers: FR-6, AC-5
-  - [ ] **P3.T1.1:** Capture the spar stamp, cup results stamp, and live battle HUD stamp through the real UI, using DOM `.click()` only if HUD/onboarding intercepts pointer input.
-  - [ ] **P3.T1.2:** Run a console check per session and record 0 errors/0 warnings with screenshot paths.
-- [ ] **P3.T2: Run the integrated gate and write evidence** — covers: AC-6, NFR-1, NFR-2, NFR-4
-  - [ ] **P3.T2.1:** Run `bun run verify && bun run build` and record typecheck, Biome, unit, determinism, module-size, and build results.
-  - [ ] **P3.T2.2:** Prove the final diff contains no sim/cup-result, save/schema, voxel, dependency, lockfile, CSS, audio, or generated-file change.
+- [x] **P3.T1: Capture desktop and phone verdict surfaces** — covers: FR-6, AC-5
+  - [x] **P3.T1.1:** Capture the spar stamp, cup results stamp, and live battle HUD stamp through the real UI, using DOM `.click()` only if HUD/onboarding intercepts pointer input.
+  - [x] **P3.T1.2:** Run a console check per session and record 0 errors/0 warnings with screenshot paths.
+- [x] **P3.T2: Run the integrated gate and write evidence** — covers: AC-6, NFR-1, NFR-2, NFR-4
+  - [x] **P3.T2.1:** Run `bun run verify && bun run build` and record typecheck, Biome, unit, determinism, module-size, and build results.
+  - [x] **P3.T2.2:** Prove the final diff contains no sim/cup-result, save/schema, voxel, dependency, lockfile, CSS, audio, or generated-file change.
 
-<!--
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 30e4dde2
 **Evidence:** conductor/tracks/20261126-verdict-presentation-dedup/verification/phase-3.md
--->
