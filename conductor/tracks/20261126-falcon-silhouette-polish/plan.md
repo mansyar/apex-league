@@ -77,18 +77,14 @@
 - **Covers:** F1, FR-6, AC-2, AC-5
 - **Touches:** `packages/voxel/src/falcon.test.ts`, `verification/phase-R1.md`, `verification/integrated.md`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 packages/voxel/src/falcon.test.ts packages/voxel/src/stage.test.ts packages/voxel/src/proportion.test.ts` and `bun run verify && bun run build`
-- **Status:** in_progress
+- **Status:** verified
+- **Result:** verified
+- **Checkpoint:** `845a7654`
+- **Evidence:** `conductor/tracks/20261126-falcon-silhouette-polish/verification/phase-R1.md`
 
-- [ ] **R1.T1: Pin worst-case proportion boundary** — covers: F1, FR-6, AC-2, AC-5
-  - [ ] **R1.T1.1:** Add a worst-case proportion set (bodyGirth 1.3, bodyLength 1.35, wingLength 1.35, tailLength 1.35) to the falcon style/stage/reach sweep.
-  - [ ] **R1.T1.2:** Assert finite pivots/colors/SDF, non-degenerate geometry and no voxels on the 56-grid boundary for all four feathers.
-- [ ] **R1.T2: Record review-fix evidence** — covers: F1, AC-5
-  - [ ] **R1.T2.1:** Append `verification/phase-R1.md` and update `verification/integrated.md` with the strengthened sweep and green gate.
-  - [ ] **R1.T2.2:** Confirm no generator, artifact, save, sim, balance, audio or cross-species change.
-
-<!--
-The primary appends after acceptance:
-**Result:** verified
-**Checkpoint:** <short-sha>
-**Evidence:** conductor/tracks/20261126-falcon-silhouette-polish/verification/phase-R1.md
--->
+- [x] **R1.T1: Pin worst-case proportion boundary** — covers: F1, FR-6, AC-2, AC-5
+  - [x] **R1.T1.1:** Add a worst-case proportion set (bodyGirth 1.3, bodyLength 1.35, wingLength 1.35, tailLength 1.35) to the falcon style/stage/reach sweep.
+  - [x] **R1.T1.2:** Assert finite pivots/colors/SDF, non-degenerate geometry and no voxels on the 56-grid boundary for all four feathers.
+- [x] **R1.T2: Record review-fix evidence** — covers: F1, AC-5
+  - [x] **R1.T2.1:** Append `verification/phase-R1.md` and update `verification/integrated.md` with the strengthened sweep and green gate.
+  - [x] **R1.T2.2:** Confirm no generator, artifact, save, sim, balance, audio or cross-species change.
