@@ -42,20 +42,22 @@
   - `apps/client/src/hud/shell.ts` (only if the Rename fix requires a DOM change)
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/ui/modal.test.ts apps/client/src/ui/focus.test.ts apps/client/src/spar/panel.test.ts apps/client/src/hud/plates.test.ts`
 - **Browser verification:** `playwright-cli` at desktop `1440×900`, phone portrait `393×852`, and phone landscape `852×393`.
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Repair HUD pointer ownership** — covers: FR-1, FR-2, FR-5, AC-1, AC-2
-  - [ ] Capture failing normal-click/hit-test evidence before the fix.
-  - [ ] Constrain transparent HUD wrappers so only visible controls receive pointer events.
-  - [ ] Give the creature plate/Rename target explicit reliable hit ownership.
-  - [ ] Re-run normal clicks without DOM `.click()` workarounds.
-- [ ] **P2.T2: Adapt spar to the shared modal lifecycle** — covers: FR-3, FR-4, AC-3, AC-4
-  - [ ] Add dialog semantics and an accessible label to the spar overlay.
-  - [ ] Open/close through the shared helper with background isolation.
-  - [ ] Enable Escape and scrim dismissal while preserving explicit close/back controls.
-  - [ ] Return focus to SPAR and verify repeated/mid-fight close behavior.
+- [x] **P2.T1: Repair HUD pointer ownership** — covers: FR-1, FR-2, FR-5, AC-1, AC-2
+  - [x] Capture failing normal-click/hit-test evidence before the fix.
+  - [x] Constrain transparent HUD wrappers so only visible controls receive pointer events.
+  - [x] Give the creature plate/Rename target explicit reliable hit ownership.
+  - [x] Re-run normal clicks without DOM `.click()` workarounds.
+- [x] **P2.T2: Adapt spar to the shared modal lifecycle** — covers: FR-3, FR-4, AC-3, AC-4
+  - [x] Add dialog semantics and an accessible label to the spar overlay.
+  - [x] Open/close through the shared helper with background isolation.
+  - [x] Enable Escape and scrim dismissal while preserving explicit close/back controls.
+  - [x] Return focus to SPAR and verify repeated/mid-fight close behavior.
 
-<!-- Primary appends Result / Checkpoint / Evidence after acceptance. -->
+- **Result:** verified
+- **Checkpoint:** `540d26b8`
+- **Evidence:** `conductor/tracks/20261127-hud-pointer-modal-input/verification/phase-2.md`
 
 ## Phase 3: Visual evidence and integrated gate
 
