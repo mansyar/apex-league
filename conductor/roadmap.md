@@ -29,7 +29,7 @@
 | RM-2 | Complete the hardware device-lab verification pass | chore | medium | — | — | user |
 | RM-9 | Continue roster expansion toward the 20–40 species vision | feature | medium | — | — | user |
 | RM-3 | Harden thin species band margins only if relative-matrix drift breaks a row | chore | low | — | — | user |
-| RM-10 | Deduplicate verdict presentation across spar, cup, and battle HUD | refactor | low | — | — | user |
+| RM-10 | Deduplicate verdict presentation across spar, cup, and battle HUD | refactor | low | — | 20261126-verdict-presentation-dedup | user |
 | RM-11 | Polish the falcon silhouette for speedster readability | feature | low | — | — | user |
 
 ## Dropped
