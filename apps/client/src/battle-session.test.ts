@@ -7,6 +7,7 @@ import {
   type TimerPort,
 } from "./battle-session"
 import type { PlaybackFight } from "./playbackDriver"
+import { battleStampCopy } from "./verdict/copy"
 
 const fight: PlaybackFight = {
   owned: { name: "Ember Drake", key: "left", element: "fire", maxHp: 40 },
@@ -147,4 +148,37 @@ describe("cupStampTitle", () => {
       "Victory — your fighter",
     )
   })
+})
+
+describe("stamp title builders delegate to the shared copy model", () => {
+  const sparCases: [string, BattleResult, PlaybackFight | null][] = [
+    ["draw, null winner", verdict(null), fight],
+    ["distinct names", verdict("Ember Drake"), fight],
+    ["distinct names, rival wins", verdict("Tide Axolotl"), fight],
+    ["mirror names", verdict("Ember Drake"), mirror],
+    ["mirror names, rival wins", verdict("Tide Axolotl"), mirror],
+    ["no fight", verdict("Ember Drake"), null],
+  ]
+  for (const [name, result, bout] of sparCases) {
+    test(`sparStampTitle — ${name}`, () => {
+      expect(sparStampTitle(result, bout)).toBe(
+        battleStampCopy({ verdict: result, fight: bout, flow: "spar" }).title,
+      )
+    })
+  }
+
+  const cupCases: [string, BattleResult, PlaybackFight][] = [
+    ["draw, null winner", verdict(null), fight],
+    ["distinct names", verdict("Ember Drake"), fight],
+    ["distinct names, rival wins", verdict("Tide Axolotl"), fight],
+    ["mirror names", verdict("Ember Drake"), mirror],
+    ["mirror names, rival wins", verdict("Tide Axolotl"), mirror],
+  ]
+  for (const [name, result, bout] of cupCases) {
+    test(`cupStampTitle — ${name}`, () => {
+      expect(cupStampTitle(result, bout)).toBe(
+        battleStampCopy({ verdict: result, fight: bout, flow: "cup" }).title,
+      )
+    })
+  }
 })

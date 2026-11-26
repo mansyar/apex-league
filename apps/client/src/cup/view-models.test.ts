@@ -19,6 +19,7 @@ import {
   resolvePlayerMatch,
   startCupSession,
 } from "@apex/sim"
+import { cupResultCopy } from "../verdict/copy"
 import {
   bracketHeader,
   chipView,
@@ -129,6 +130,57 @@ describe("resultsView — the results screen assembly", () => {
     const view = resultsView(orphan, LADDER_BEFORE, LADDER_BEFORE, 0)
     expect(view.title).toBe("Eliminated")
     expect(view.sub).toBe("The cup ends without a champion.")
+  })
+})
+
+describe("resultsView delegates verdict copy to the shared model", () => {
+  test("a champion's title and sub equal cupResultCopy", () => {
+    const session = play(creature(), CUP_DAY, 17, "balanced")
+    expect(session.status).toBe("champion")
+    const view = resultsView(session, LADDER_AFTER, LADDER_BEFORE, 0)
+    const player = session.bracket.slots[0]?.name ?? ""
+    expect({ title: view.title, sub: view.sub }).toEqual(
+      cupResultCopy({
+        won: true,
+        player,
+        cupName: "Bronze Cup",
+        championName: session.championName,
+      }),
+    )
+  })
+
+  test("an elimination with a champion equals cupResultCopy", () => {
+    const session = play(creature(), CUP_DAY, 13, "specials")
+    expect(session.status).toBe("eliminated")
+    const view = resultsView(session, LADDER_BEFORE, LADDER_BEFORE, 0)
+    const player = session.bracket.slots[0]?.name ?? ""
+    expect({ title: view.title, sub: view.sub }).toEqual(
+      cupResultCopy({
+        won: false,
+        player,
+        cupName: "Bronze Cup",
+        championName: session.championName,
+      }),
+    )
+  })
+
+  test("an elimination without a champion equals cupResultCopy", () => {
+    const live = startCupSession(creature(), CUP_DAY, 101)
+    const orphan: CupSession = {
+      ...live,
+      status: "eliminated",
+      championName: null,
+    }
+    const view = resultsView(orphan, LADDER_BEFORE, LADDER_BEFORE, 0)
+    const player = orphan.bracket.slots[0]?.name ?? ""
+    expect({ title: view.title, sub: view.sub }).toEqual(
+      cupResultCopy({
+        won: false,
+        player,
+        cupName: "Bronze Cup",
+        championName: orphan.championName,
+      }),
+    )
   })
 })
 

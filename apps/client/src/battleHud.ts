@@ -12,6 +12,7 @@ import {
   type RuleId,
 } from "@apex/sim"
 import { crestGlyph, elementHue } from "./element"
+import { buildStampView } from "./verdict/stamp"
 
 /** The rangefinder's two states: bodies touching, or holding at range. */
 export type RangeState = "close" | "hold"
@@ -151,19 +152,21 @@ export function createBattleHud(overlay: HTMLElement): BattleHud {
   lower.append(lowerTab, line)
 
   // --- verdict stamp ---------------------------------------------------
-  const stamp = document.createElement("div")
-  stamp.className = "battle-stamp"
   // Announced as a status change: screen readers hear the verdict even
   // though the panel (and the log inside it) is hidden during fights.
-  stamp.setAttribute("role", "status")
-  stamp.setAttribute("aria-live", "polite")
-  const stampTitle = document.createElement("div")
-  stampTitle.className = "battle-stamp-title"
-  const stampRule = document.createElement("div")
-  stampRule.className = "battle-stamp-rule"
-  const stampSub = document.createElement("div")
-  stampSub.className = "battle-stamp-sub"
-  stamp.append(stampTitle, stampRule, stampSub)
+  const {
+    root: stamp,
+    title: stampTitle,
+    sub: stampSub,
+  } = buildStampView(
+    {
+      root: "battle-stamp",
+      title: "battle-stamp-title",
+      rule: "battle-stamp-rule",
+      sub: "battle-stamp-sub",
+    },
+    { announce: true },
+  )
 
   root.append(top, lower, stamp)
   // Prepend so the panel (a later positioned sibling) paints above the

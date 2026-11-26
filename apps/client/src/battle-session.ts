@@ -1,6 +1,6 @@
 import type { BattleResult, FightStream, PlaybackStep } from "@apex/sim"
 import type { createBattleHud } from "./battleHud"
-import { reasonLine, renderSpeedButton, winningSideKey } from "./battleUI"
+import { reasonLine, renderSpeedButton } from "./battleUI"
 import {
   createPlaybackDriver,
   type PlaybackDriver,
@@ -8,6 +8,7 @@ import {
   type PlaybackRun,
 } from "./playbackDriver"
 import type { FightCasting } from "./staging"
+import { battleStampCopy } from "./verdict/copy"
 
 export type { PlaybackFight }
 
@@ -67,21 +68,7 @@ export function sparStampTitle(
   verdict: Readonly<BattleResult>,
   fight: PlaybackFight | null,
 ): string {
-  if (verdict.winner === null) return "A drawn spar"
-  if (!fight) return `Victory — ${verdict.winner}`
-  const key = winningSideKey(verdict)
-  const mirror = fight.owned.name === fight.rival.name
-  if (key === fight.owned.key) {
-    return mirror
-      ? `Victory — your ${verdict.winner}`
-      : `Victory — ${verdict.winner}`
-  }
-  if (key === fight.rival.key) {
-    return mirror
-      ? `Victory — rival ${verdict.winner}`
-      : `Victory — ${verdict.winner}`
-  }
-  return `Victory — ${verdict.winner}`
+  return battleStampCopy({ verdict, fight, flow: "spar" }).title
 }
 
 /** Cup stamp wording: outcome-first, side-qualified for mirror matches. */
@@ -89,14 +76,7 @@ export function cupStampTitle(
   verdict: Readonly<BattleResult>,
   fight: PlaybackFight,
 ): string {
-  if (verdict.winner === null) return "A draw"
-  if (fight.owned.name !== fight.rival.name) {
-    return verdict.winner === fight.owned.name ? "Victory" : "Defeat"
-  }
-  // Mirror match: qualify by side (the sim reports under stable keys).
-  return winningSideKey(verdict) === fight.owned.key
-    ? "Victory — your fighter"
-    : "Defeat — the rival"
+  return battleStampCopy({ verdict, fight, flow: "cup" }).title
 }
 
 export interface BattleSessionIo {
