@@ -8,8 +8,12 @@ import { describe, expect, test } from "bun:test"
 import {
   type BattleSide,
   createCreature,
+  DOCTRINE_IDS,
+  makeExhibition,
+  type RuleId,
   SIM_VERSION,
   streamOf,
+  tacticForDoctrine,
 } from "@apex/sim"
 import {
   ghostSparSetup,
@@ -161,5 +165,41 @@ describe("ghostSparSetup", () => {
     // bout borrowed from are exactly as they were.
     expect(state).toEqual({ cups: { wins: 3 }, ladder: { points: 12 } })
     expect(frozenBundle).toEqual(bundle)
+  })
+
+  test("arm-then-start parity: the armed doctrine + note wire a ghost bout exactly like a normal spar", () => {
+    const contender = readGhostContender(ghostBundle())
+    expect(contender).not.toBeNull()
+    if (contender === null) return
+    const rule: RuleId = "read_tell"
+    for (const doctrine of DOCTRINE_IDS) {
+      const armed = ghostSparSetup(drake, contender, doctrine, rule)
+      const normal = makeExhibition(
+        drake,
+        tacticForDoctrine(doctrine),
+        contender.seed,
+        doctrine,
+        rule,
+      )
+      // The selection the panel arms is the selection the launch reads: the
+      // player's side is identical across both setup paths.
+      expect(armed.ownedSide).toEqual(normal.ownedSide)
+      expect(armed.ownedSide.doctrine).toBe(doctrine)
+      expect(armed.ownedSide.tactic).toBe(tacticForDoctrine(doctrine))
+      expect(armed.ownedSide.rule).toBe(rule)
+      // The ghost still lends its contender over the shared setup wire.
+      expect(armed.rivalSide.name).toBe(contender.name)
+      expect([...armed.rivalSide.kit]).toEqual(CHAMPION_KIT)
+      // Start resolves the armed ghost bout deterministically (AC-5).
+      expect(resolveSpar(armed, contender.seed)).toEqual(
+        resolveSpar(armed, contender.seed),
+      )
+    }
+    // Different armed doctrines really re-arm the ghost fight.
+    const press = ghostSparSetup(drake, contender, "press")
+    const kite = ghostSparSetup(drake, contender, "kite")
+    expect(press.ownedSide.doctrine).toBe("press")
+    expect(kite.ownedSide.doctrine).toBe("kite")
+    expect(press.ownedSide).not.toEqual(kite.ownedSide)
   })
 })
