@@ -16,16 +16,16 @@
 - **Verification:** `bun test --check apps/client/src/spar/panel.test.ts apps/client/src/spar/ghost.test.ts apps/client/src/spar/casting.test.ts` (0 fail) + `biome check` on touched files
 - **Status:** verified
 
-- [ ] **P1.T1: Decouple tactic pick from battle launch** — covers: FR-1
-  - [ ] **P1.T1.1: Add armed-tactic state with Press default; taps update highlight only**
-  - [ ] **P1.T1.2: Regression tests — tactic/rule/kit taps never call runBattle or enter arena**
-- [ ] **P1.T2: Route ghost setup through the same arm state** — covers: FR-5
-  - [ ] **P1.T2.1: Ghost contender arm-then-start parity test**
+- [x] **P1.T1: Decouple tactic pick from battle launch** — covers: FR-1
+  - [x] **P1.T1.1: Add armed-tactic state with Press default; taps update highlight only**
+  - [x] **P1.T1.2: Regression tests — tactic/rule/kit taps never call runBattle or enter arena**
+- [x] **P1.T2: Route ghost setup through the same arm state** — covers: FR-5
+  - [x] **P1.T2.1: Ghost contender arm-then-start parity test**
 
 <!--
 The primary appends after acceptance:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** `acaf93b3`
 **Evidence:** conductor/tracks/20261128-spar-setup-flow/verification/phase-1.md
 -->
 
@@ -36,18 +36,18 @@ The primary appends after acceptance:
 - **Covers:** FR-3, FR-4, AC-3, AC-4
 - **Touches:** `apps/client/src/spar/panel.ts`, `apps/client/src/spar.css`, `apps/client/src/spar/panel.test.ts`
 - **Verification:** `bun test --check apps/client/src/spar/panel.test.ts` + `playwright-cli` visual (393×852, 852×393, 1440×900, console clean) + `biome check` on touched files
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Build sticky Start footer** — covers: FR-3
-  - [ ] **P2.T1.1: Footer shows armed tactic + active rule; Start launches existing runBattle path**
-  - [ ] **P2.T1.2: Focus-trap/Escape/scrim/returnFocus include the Start control (modal tests)**
-- [ ] **P2.T2: Lock page scroll, stabilize panel scroll** — covers: FR-4
-  - [ ] **P2.T2.1: Footer in-frame on open at 393×852, 852×393, short-landscape; no page-level scroll**
+- [x] **P2.T1: Build sticky Start footer** — covers: FR-3
+  - [x] **P2.T1.1: Footer shows armed tactic + active rule; Start launches existing runBattle path**
+  - [x] **P2.T1.2: Focus-trap/Escape/scrim/returnFocus include the Start control (modal tests)**
+- [x] **P2.T2: Lock page scroll, stabilize panel scroll** — covers: FR-4
+  - [x] **P2.T2.1: Footer in-frame on open at 393×852, 852×393, short-landscape; no page-level scroll**
 
 <!--
 The primary appends after acceptance:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** `d1bdd5b8`
 **Evidence:** conductor/tracks/20261128-spar-setup-flow/verification/phase-2.md
 -->
 
