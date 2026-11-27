@@ -53,11 +53,11 @@
 ## Phase 3: Spar/cup browser proof and integrated gate
 
 - **Goal:** Prove the finished arena in real spar and cup flows at desktop, portrait, and landscape sizes with stills, a short GIF, clean consoles, and the full configured gate.
-- **Depends on:** Phase 1 and Phase 2
+- **Depends on:** Phase 1, Phase 2, and Phase 4
 - **Covers:** FR-7, AC-6, AC-7, NFR-1, NFR-2, NFR-3, NFR-4, NFR-5
 - **Touches:** `conductor/tracks/20261127-arena-readability-pass/verification/phase-3.md`, `conductor/tracks/20261127-arena-readability-pass/verification/integrated.md`, gitignored `.conductor/evidence/20261127-arena-readability-pass/`
 - **Verification:** `bun run verify && bun run build` plus `playwright-cli` captures and measurements at desktop `1440×900`, phone portrait `393×852`, and phone landscape `852×393`
-- **Status:** blocked
+- **Status:** in_progress
 
 - [ ] **P3.T1: Capture real spar and cup evidence** — covers: FR-7, AC-6, AC-7
   - [x] **P3.T1.1:** Capture broadcast and cinematic spar/cup action views plus a wide arena establishing shot at all three viewports using real UI and real sim seeding seams.
@@ -67,8 +67,8 @@
   - [x] **P3.T2.1:** Run the full configured stack and module-size test; record exact results.
   - [x] **P3.T2.2:** Prove no sim/state/save/balance, audio, voxel/determinism, ranch/non-battle UI, dependency, or generated-file diff.
 
-**Result:** blocked
-**Blocking evidence:** conductor/tracks/20261127-arena-readability-pass/verification/phase-3.md — default broadcast action can occlude one fighter and arena contrast remains weak in independent visual review.
+**Result:** in_progress
+**Previous blocking evidence:** conductor/tracks/20261127-arena-readability-pass/verification/phase-3.md — default broadcast action could occlude one fighter and arena contrast remained weak in independent visual review. Phase 4 corrected those issues; this phase is reopened for capture/GIF acceptance.
 
 <!--
 The primary appends after acceptance:
