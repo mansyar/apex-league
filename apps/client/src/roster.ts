@@ -18,6 +18,11 @@ export interface Combatant extends DriveFighter {
    * units. The camera director uses it to size the tracked dolly to the
    * actual rig instead of the authored sim cylinder. */
   bodyHeight: number
+  /** Conservative rendered ground-plane half-width after `bodyScaleFor`
+   * normalization, in world units: half of the measured Box3's widest x/z
+   * span. The broadcast camera uses it to keep both silhouettes apart and
+   * the whole rendered footprint inside the frame. */
+  bodyRadius: number
 }
 
 /** Casting entry: the sim-side description of one side of a fight. The
@@ -82,12 +87,20 @@ export function buildSpot(
   group.updateMatrixWorld(true)
   const renderedBox = new THREE.Box3().setFromObject(group)
   const bodyHeight = renderedBox.max.y - renderedBox.min.y
+  // Half of the widest ground span is a conservative circular footprint:
+  // it covers the rig at its authored yaw and at the mirrored yaw too.
+  const bodyRadius =
+    Math.max(
+      renderedBox.max.x - renderedBox.min.x,
+      renderedBox.max.z - renderedBox.min.z,
+    ) / 2
   const combatant: Combatant = {
     name: info.name,
     key: info.key,
     group,
     home: new THREE.Vector3(HOME_X * away, 0, 0),
     bodyHeight,
+    bodyRadius,
     away,
     down: false,
     baseColors: new Map(),

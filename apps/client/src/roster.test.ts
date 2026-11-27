@@ -77,6 +77,39 @@ describe("buildSpot stage profile (FR-1, AC-1)", () => {
   })
 })
 
+describe("buildSpot rendered body radius feed (FR-1, AC-1, FR-2)", () => {
+  test("bodyRadius is half the rendered Box3's widest ground span", () => {
+    for (const archetypeId of [
+      "ray",
+      "crab",
+      "draconic",
+      "tortoise",
+      "golem",
+    ]) {
+      for (const stage of [undefined, "champion"] as const) {
+        const arena = new THREE.Group()
+        const spot = buildSpot(
+          {
+            archetypeId,
+            seed: 7,
+            name: "measure",
+            key: "q",
+            ...(stage ? { stage } : {}),
+          },
+          1,
+          arena,
+        )
+        arena.updateMatrixWorld(true)
+        const box = new THREE.Box3().setFromObject(spot.group)
+        const widest = Math.max(box.max.x - box.min.x, box.max.z - box.min.z)
+        expect(spot.bodyRadius).toBeCloseTo(widest / 2, 10)
+        expect(Number.isFinite(spot.bodyRadius)).toBe(true)
+        expect(spot.bodyRadius).toBeGreaterThan(0)
+      }
+    }
+  })
+})
+
 describe("buildSpot rendered height feed (FR-1, AC-1)", () => {
   test("bodyHeight is the normalized rig's measured Box3 height", () => {
     for (const archetypeId of [

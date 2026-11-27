@@ -61,6 +61,10 @@ export interface DirectorContext {
    * Optional so hand-written contexts can still pin shot grammar alone. */
   readonly heightA?: number
   readonly heightB?: number
+  /** Conservative rendered ground-plane half-widths matching the heights.
+   * Optional so hand-written contexts can still pin shot grammar alone. */
+  readonly bodyRadiusA?: number
+  readonly bodyRadiusB?: number
 }
 
 /** One camera instruction; the scene eases (or cuts) toward it. Fully
@@ -84,6 +88,10 @@ export interface CameraIntent {
    * five-field callers that pin shot grammar without a live cast. */
   heightA?: number
   heightB?: number
+  /** Rendered body half-widths matching `focusA`/`focusB`. Optional for the
+   * legacy callers that pin shot grammar without a live cast. */
+  bodyRadiusA?: number
+  bodyRadiusB?: number
 }
 
 type Look = "pair" | "victim" | "thrower"
@@ -226,6 +234,8 @@ export function nextShot(
   intent.focusB.z = victim.z
   intent.heightA = ctx.heightA
   intent.heightB = ctx.heightB
+  intent.bodyRadiusA = ctx.bodyRadiusA
+  intent.bodyRadiusB = ctx.bodyRadiusB
 
   intent.radiusMult = radiusMult
   intent.azimuthDelta = azimuthDelta

@@ -204,4 +204,16 @@ describe("camera director core (FR6)", () => {
     expect(shot.heightB).toBe(0.522)
     expect(nextShot(pair()).heightA).toBeUndefined()
   })
+
+  test("measured body radii ride along with the live pair", () => {
+    const ctx: DirectorContext = {
+      ...pair(),
+      bodyRadiusA: 0.041,
+      bodyRadiusB: 0.225,
+    }
+    const shot = nextShot(ctx)
+    expect(shot.bodyRadiusA).toBe(0.041)
+    expect(shot.bodyRadiusB).toBe(0.225)
+    expect(nextShot(pair()).bodyRadiusA).toBeUndefined()
+  })
 })

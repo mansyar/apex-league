@@ -48,6 +48,10 @@ export function createOrbitCamera(
   const focusB = { x: REST_X, z: 0 }
   let heightA = FALLBACK_BODY_HEIGHT
   let heightB = FALLBACK_BODY_HEIGHT
+  // Measured ground-plane half-widths of the live rigs. Zero until the
+  // director feeds them, so hand-built intents keep the legacy framing.
+  let bodyRadiusA = 0
+  let bodyRadiusB = 0
   // Reusable scratch vectors (no per-frame allocations).
   const focusPoint = new THREE.Vector3()
   const directorDesired = new THREE.Vector3()
@@ -114,6 +118,8 @@ export function createOrbitCamera(
       heightA,
       heightB,
       aim,
+      bodyRadiusA,
+      bodyRadiusB,
     )
   }
 
@@ -208,6 +214,10 @@ export function createOrbitCamera(
     const hb = intent.heightB
     if (ha !== undefined && Number.isFinite(ha) && ha > 0) heightA = ha
     if (hb !== undefined && Number.isFinite(hb) && hb > 0) heightB = hb
+    const ra = intent.bodyRadiusA
+    const rb = intent.bodyRadiusB
+    if (ra !== undefined && Number.isFinite(ra) && ra > 0) bodyRadiusA = ra
+    if (rb !== undefined && Number.isFinite(rb) && rb > 0) bodyRadiusB = rb
   }
 
   const track = (away: boolean, x: number, z: number, dt: number): void => {

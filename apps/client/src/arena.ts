@@ -19,22 +19,22 @@ import { disposeObject3D } from "./scene-utils"
  * instead of the ranch's sunset. Darker than the floor: it is the constant
  * backdrop fighters are read against.
  */
-export const ARENA_SKY = 0x2b3447
+export const ARENA_SKY = 0x323d54
 
 /** Fog distance where the stands end and the venue bowl takes over. */
-export const ARENA_FOG_NEAR = 22
-export const ARENA_FOG_FAR = 44
+export const ARENA_FOG_NEAR = 24
+export const ARENA_FOG_FAR = 48
 
 /**
  * Formal-competition palette. Lighter cool slate floor, crisp cream paint,
  * mid-dark stands and near-black crowd silhouettes: bright enough to read
  * as a lit arena, but not so bright that a fighter disappears into it.
  */
-const FLOOR_COLOR = 0x545e6d
-const FLOOR_LINE_COLOR = 0xe6ddc7
-const STAND_COLOR = 0x363c49
-const STAND_EMISSIVE = 0x2b3140
-const CROWD_COLOR = 0x202534
+const FLOOR_COLOR = 0x626d7e
+const FLOOR_LINE_COLOR = 0xf2ead6
+const STAND_COLOR = 0x454d5e
+const STAND_EMISSIVE = 0x384058
+const CROWD_COLOR = 0x171b28
 
 /**
  * Lighting rig targets (applied at blend = 1). Fill and rim rise most so
@@ -43,10 +43,10 @@ const CROWD_COLOR = 0x202534
  * — they are one exposure.
  */
 const RIG = {
-  ambient: { color: 0x6d7888, intensity: 1 },
-  hemi: { sky: 0xd0dae8, ground: 0x3d4659, intensity: 1.5 },
-  key: { color: 0xf4f8fc, intensity: 2.8 },
-  rim: { color: 0xb9cde6, intensity: 1.1 },
+  ambient: { color: 0x8290a5, intensity: 1.25 },
+  hemi: { sky: 0xdce6f4, ground: 0x4d5870, intensity: 1.8 },
+  key: { color: 0xfbfeff, intensity: 3.1 },
+  rim: { color: 0xcadcf2, intensity: 1.35 },
 } as const
 
 export interface ArenaHandle {
@@ -171,7 +171,7 @@ export function buildArena(scene: THREE.Scene): ArenaHandle {
   // venue regardless of what the ranch sky is doing outside it.
   const backdrop = new THREE.Mesh(
     new THREE.SphereGeometry(20, 32, 16),
-    new THREE.MeshBasicMaterial({ color: 0x303a4e, side: THREE.BackSide }),
+    new THREE.MeshBasicMaterial({ color: 0x3b465e, side: THREE.BackSide }),
   )
   group.add(backdrop)
 

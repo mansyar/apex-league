@@ -1,9 +1,10 @@
 import { describe, expect, test } from "bun:test"
-import { PerspectiveCamera, Vector3 } from "three"
+import { Group, PerspectiveCamera, Vector3 } from "three"
 
 import { ARENA_HALF_X, ARENA_HALF_Z } from "../arena-scale"
 import { ACTION_FRAMING } from "../camera/presets"
 import { createOrbitCamera } from "../camera/rig"
+import { buildSpot } from "../roster"
 import {
   arenaFramingAdjust,
   establishingFraming,
@@ -462,6 +463,325 @@ describe("arena camera rig — composition lifecycle (AC3/AC6)", () => {
 
     rig.setMode("ranch")
     expect(camera.fov).toBe(BASE_FOV)
+    rig.dispose()
+  })
+})
+
+/**
+ * Phase 4 (FR-2 / AC-3 / AC-4): a fighter is a rendered volume, not a point.
+ * These extents come from `buildSpot`'s normalized Box3 — the same measurement
+ * the production camera feed consumes — and the boxes below are projected
+ * through a real THREE.PerspectiveCamera, never a centre-point approximation.
+ */
+const measuredRig = (archetypeId: string) => {
+  const spot = buildSpot(
+    { archetypeId, seed: 7, name: archetypeId, key: "q" },
+    1,
+    new Group(),
+  )
+  return { height: spot.bodyHeight, radius: spot.bodyRadius }
+}
+
+interface Body {
+  readonly height: number
+  readonly radius: number
+}
+
+const CASTS = [
+  { name: "ray/ray", a: measuredRig("ray"), b: measuredRig("ray") },
+  {
+    name: "draconic/draconic",
+    a: measuredRig("draconic"),
+    b: measuredRig("draconic"),
+  },
+  {
+    name: "draconic/axolotl",
+    a: measuredRig("draconic"),
+    b: measuredRig("axolotl"),
+  },
+  {
+    name: "axolotl/draconic",
+    a: measuredRig("axolotl"),
+    b: measuredRig("draconic"),
+  },
+  { name: "ray/golem", a: measuredRig("ray"), b: measuredRig("golem") },
+  { name: "golem/ray", a: measuredRig("golem"), b: measuredRig("ray") },
+] as const
+
+interface ScreenBox {
+  readonly minX: number
+  readonly maxX: number
+  readonly minY: number
+  readonly maxY: number
+  readonly centerX: number
+}
+
+/** Project the rendered footprint square (feet and head, +/- measured
+ * radius on both ground axes) through a real perspective camera. */
+function bodyScreenBox(
+  aspect: number,
+  frame: TrackedFraming,
+  x: number,
+  z: number,
+  height: number,
+  radius: number,
+): ScreenBox {
+  const cam = new PerspectiveCamera(frame.fov, aspect, 0.1, 200)
+  cam.position.set(
+    frame.targetX +
+      frame.radius * Math.cos(frame.elevation) * Math.sin(frame.azimuth),
+    frame.targetY + frame.radius * Math.sin(frame.elevation),
+    frame.targetZ +
+      frame.radius * Math.cos(frame.elevation) * Math.cos(frame.azimuth),
+  )
+  cam.lookAt(frame.targetX, frame.targetY, frame.targetZ)
+  cam.updateProjectionMatrix()
+  cam.updateMatrixWorld()
+  let minX = Infinity
+  let maxX = -Infinity
+  let minY = Infinity
+  let maxY = -Infinity
+  for (const dx of [-radius, radius]) {
+    for (const dz of [-radius, radius]) {
+      for (const y of [0, height]) {
+        const ndc = new Vector3(x + dx, y, z + dz).project(cam)
+        minX = Math.min(minX, ndc.x)
+        maxX = Math.max(maxX, ndc.x)
+        minY = Math.min(minY, ndc.y)
+        maxY = Math.max(maxY, ndc.y)
+      }
+    }
+  }
+  const center = new Vector3(x, height / 2, z).project(cam)
+  return { minX, maxX, minY, maxY, centerX: center.x }
+}
+
+const screenWidth = (box: ScreenBox): number => box.maxX - box.minX
+
+interface PairCheck {
+  readonly a: { x: number; z: number }
+  readonly b: { x: number; z: number }
+  readonly castA: Body
+  readonly castB: Body
+  readonly azimuthDelta?: number
+  readonly elevationDelta?: number
+  readonly targetY?: number
+  readonly look?: { x: number; z: number }
+}
+
+/** One whole-body readability assertion: both silhouettes separated by more
+ * than a fraction of their own widths, both fully in frame, both readable. */
+function expectSeparatedPair(
+  vp: (typeof VIEWPORTS)[number],
+  pair: PairCheck,
+  checkFloor = true,
+  separationThreshold = 0.36,
+): void {
+  const aspect = vp.width / vp.height
+  const frame = trackedActionFraming(
+    aspect,
+    pair.a,
+    pair.b,
+    {
+      ...actionPose,
+      azimuth: actionPose.azimuth + (pair.azimuthDelta ?? 0),
+      elevation: actionPose.elevation + (pair.elevationDelta ?? 0),
+      targetY: pair.targetY ?? actionPose.targetY,
+    },
+    pair.castA.height,
+    pair.castB.height,
+    pair.look,
+    pair.castA.radius,
+    pair.castB.radius,
+  )
+  const boxA = bodyScreenBox(
+    aspect,
+    frame,
+    pair.a.x,
+    pair.a.z,
+    pair.castA.height,
+    pair.castA.radius,
+  )
+  const boxB = bodyScreenBox(
+    aspect,
+    frame,
+    pair.b.x,
+    pair.b.z,
+    pair.castB.height,
+    pair.castB.radius,
+  )
+  for (const box of [boxA, boxB]) {
+    expect(box.minX).toBeGreaterThanOrEqual(-1 - 1e-6)
+    expect(box.maxX).toBeLessThanOrEqual(1 + 1e-6)
+    expect(box.minY).toBeGreaterThanOrEqual(-1 - 1e-6)
+    expect(box.maxY).toBeLessThanOrEqual(1 + 1e-6)
+  }
+  // A measured-extent threshold: a small gap between ground-position
+  // centres cannot satisfy this when the bodies fully overlap. The centre
+  // offset must be a meaningful fraction of the rendered silhouettes'
+  // own widths (wide wing spans included).
+  const centerGap = Math.abs(boxA.centerX - boxB.centerX)
+  expect(centerGap).toBeGreaterThan(
+    (separationThreshold * (screenWidth(boxA) + screenWidth(boxB))) / 2,
+  )
+  if (checkFloor) {
+    // The 8% / 32px floor is pinned at authored rest positions. Legal
+    // extremes and cinematic radius widening only promise containment.
+    for (const [p, body] of [
+      [pair.a, pair.castA],
+      [pair.b, pair.castB],
+    ] as const) {
+      const fraction = bodyFraction(aspect, frame, p.x, p.z, body.height)
+      expect(fraction).toBeGreaterThanOrEqual(0.08)
+      expect(fraction * vp.height).toBeGreaterThanOrEqual(32)
+    }
+  }
+}
+
+const restPair = (mirror: 1 | -1, castA: Body, castB: Body): PairCheck => ({
+  a: { x: -1.6 * mirror, z: 0 },
+  b: { x: 1.6 * mirror, z: 0 },
+  castA,
+  castB,
+})
+
+describe("broadcast action separates rendered bodies (FR-2, AC-3/AC-4)", () => {
+  test("same-height casts separate at rest in all viewports and mirrors", () => {
+    for (const vp of VIEWPORTS) {
+      for (const mirror of [1, -1] as const) {
+        for (const cast of [CASTS[0], CASTS[1]]) {
+          expectSeparatedPair(vp, restPair(mirror, cast.a, cast.b))
+        }
+      }
+    }
+  })
+
+  test("mixed-height casts separate at rest in all viewports and mirrors", () => {
+    for (const vp of VIEWPORTS) {
+      for (const mirror of [1, -1] as const) {
+        for (const cast of [CASTS[2], CASTS[3], CASTS[4], CASTS[5]]) {
+          expectSeparatedPair(vp, restPair(mirror, cast.a, cast.b))
+        }
+      }
+    }
+  })
+
+  test("representative legal positions keep both bodies apart and framed", () => {
+    const legal: PairCheck[] = [
+      {
+        a: { x: -3.2, z: -2.4 },
+        b: { x: 3.2, z: 2.4 },
+        castA: CASTS[1].a,
+        castB: CASTS[1].b,
+      },
+      {
+        a: { x: 3.2, z: -2.4 },
+        b: { x: -3.2, z: 2.4 },
+        castA: CASTS[2].a,
+        castB: CASTS[2].b,
+      },
+      {
+        a: { x: -2.6, z: 0 },
+        b: { x: 2.6, z: 0 },
+        castA: CASTS[4].a,
+        castB: CASTS[4].b,
+      },
+      {
+        a: { x: -3.2, z: 2.4 },
+        b: { x: -2.4, z: -2.4 },
+        castA: CASTS[0].a,
+        castB: CASTS[5].b,
+      },
+    ]
+    for (const vp of VIEWPORTS) {
+      for (const pair of legal) {
+        expectSeparatedPair(vp, pair, false)
+        expectSeparatedPair(
+          vp,
+          {
+            ...pair,
+            a: { x: -pair.a.x, z: -pair.a.z },
+            b: { x: -pair.b.x, z: -pair.b.z },
+          },
+          false,
+        )
+      }
+    }
+  })
+
+  test("cinematic offsets never reintroduce full occlusion or crop", () => {
+    for (const vp of VIEWPORTS) {
+      for (const azimuthDelta of [-0.4, -0.1, 0.1, 0.4]) {
+        for (const cast of [CASTS[0], CASTS[1], CASTS[2], CASTS[4]]) {
+          expectSeparatedPair(
+            vp,
+            {
+              ...restPair(1, cast.a, cast.b),
+              azimuthDelta,
+              elevationDelta: 0.08,
+              targetY: 0.7,
+              look: { x: 1.6, z: 0 },
+            },
+            false,
+            // Director look can favour one fighter; the promise here is no
+            // full occlusion and no crop, not the broadcast composition.
+            0.15,
+          )
+        }
+      }
+    }
+  })
+
+  test("the live rig carries measured radii from the director intent", () => {
+    const width = 393
+    const height = 852
+    const canvas = fakeCanvas(width, height)
+    const camera = new PerspectiveCamera(BASE_FOV, width / height, 0.1, 200)
+    const rig = createOrbitCamera(camera, canvas as unknown as HTMLElement)
+    const a = { x: -1.6, z: 0 }
+    const b = { x: 1.6, z: 0 }
+    rig.setMode("arena")
+    rig.applyDirectorIntent({
+      look: { x: 0, y: 0.7, z: 0 },
+      radiusMult: 1,
+      azimuthDelta: 0,
+      elevationDelta: 0,
+      cut: false,
+      focusA: { x: a.x, y: 0, z: a.z },
+      focusB: { x: b.x, y: 0, z: b.z },
+      heightA: CASTS[2].a.height,
+      heightB: CASTS[2].b.height,
+      bodyRadiusA: CASTS[2].a.radius,
+      bodyRadiusB: CASTS[2].b.radius,
+    })
+    for (let i = 0; i < 8; i++) rig.updateArena(i, 0.5, false)
+    // Project through the LIVE camera, not a re-derived frame.
+    camera.updateMatrixWorld()
+    const projectBox = (body: Body, p: { x: number; z: number }): ScreenBox => {
+      let minX = Infinity
+      let maxX = -Infinity
+      let minY = Infinity
+      let maxY = -Infinity
+      for (const dx of [-body.radius, body.radius]) {
+        for (const dz of [-body.radius, body.radius]) {
+          for (const y of [0, body.height]) {
+            const ndc = new Vector3(p.x + dx, y, p.z + dz).project(camera)
+            minX = Math.min(minX, ndc.x)
+            maxX = Math.max(maxX, ndc.x)
+            minY = Math.min(minY, ndc.y)
+            maxY = Math.max(maxY, ndc.y)
+          }
+        }
+      }
+      const center = new Vector3(p.x, body.height / 2, p.z).project(camera)
+      return { minX, maxX, minY, maxY, centerX: center.x }
+    }
+    const liveA = projectBox(CASTS[2].a, a)
+    const liveB = projectBox(CASTS[2].b, b)
+    const centerGap = Math.abs(liveA.centerX - liveB.centerX)
+    expect(centerGap).toBeGreaterThan(
+      (0.36 * (screenWidth(liveA) + screenWidth(liveB))) / 2,
+    )
     rig.dispose()
   })
 })

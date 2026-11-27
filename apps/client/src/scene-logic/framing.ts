@@ -91,22 +91,52 @@ export interface TrackedFraming {
   readonly radius: number
 }
 
-/** Lens factor tying vertical FOV to the smaller rendered fighter. A narrow
- * lens magnifies both fighters; it is the only way a 0.08-world ray can still
- * fill 8% of the frame while its opponent remains visible. */
+/** A narrow lens is the only way a 0.08-world ray fills 8% of the frame. */
 const READABILITY_LENS_FACTOR = 1.6
 
+/** The shortest supported viewport (393 px) makes 32/393 the binding floor. */
+const READABILITY_FLOOR = 0.082
+
+/** Bounded three-quarter offsets; the smallest one that clears both bodies
+ * wins so fighters stay as large as the bounds allow. */
+const SEPARATION_OFFSETS = [
+  0, 0.02, 0.04, 0.06, 0.08, 0.12, 0.18, 0.26, 0.4, 0.55,
+] as const
+
+/** Centre separation as a fraction of summed rendered half-widths. Wide,
+ * short rigs (ray wings) cannot get a clear gap while holding the floor on
+ * portrait, but this keeps the silhouettes from fully overlapping. */
+const MIN_CENTER_SEPARATION = 0.38
+
+interface BodySample {
+  readonly depth: number
+  readonly width: number
+  /** Height/floor: the radius/FOV cap that keeps this body readable. */
+  readonly readable: number
+}
+
+interface BodyCenter {
+  readonly x: number
+  readonly depth: number
+  readonly half: number
+}
+
+interface SeparationSolve {
+  readonly frame: TrackedFraming
+  readonly centerGap: number
+  readonly halfA: number
+  readonly halfB: number
+  readonly fraction: number
+}
+
 /**
- * Closest orbit distance and lens that keep both fighters fully inside the
- * frustum, with the smaller rendered body large enough to read at rest.
- *
- * For a camera at `T + R·d` looking at `T`, a point `P` has depth
- * `R - (P-T)·d`; its right/up offsets do not depend on `R`. Requiring
- * `|x| <= depth·tan(fov/2)·aspect` and `|y| <= depth·tan(fov/2)` therefore
- * gives a closed-form lower bound on `R` — no search, no per-frame camera
- * object. A telephoto lens is chosen from the smaller rig height so the
- * rendered body (not the sim cylinder) clears the size floor; if a spread-out
- * legal pair needs more width, the lens widens until the bound fits the cap.
+ * Closest orbit distance and lens that keep both rendered bodies inside the
+ * frustum, separated on screen, and readable. For a camera at `T + R·d`, a
+ * point `P` has depth `R - (P-T)·d` and fixed right/up offsets, so the
+ * footprint fit gives a closed-form tan/distance bound with no camera object.
+ * At π/2 the pair aligns with the view axis and overlaps at any distance,
+ * so a bounded azimuth-offset search picks the smallest useful three-quarter
+ * angle instead.
  */
 export function trackedActionFraming(
   aspect: number,
@@ -116,85 +146,187 @@ export function trackedActionFraming(
   heightA = 1,
   heightB = 1,
   look: ArenaFocus = { x: (a.x + b.x) / 2, z: (a.z + b.z) / 2 },
+  bodyRadiusA = 0,
+  bodyRadiusB = 0,
 ): TrackedFraming {
   const safeAspect = aspect > 0 ? aspect : 1
   const ha = heightA > 0 && Number.isFinite(heightA) ? heightA : 1
   const hb = heightB > 0 && Number.isFinite(heightB) ? heightB : 1
-  // A mixed cast needs the camera beyond the SMALLER rig, otherwise that
-  // fighter sits behind the taller one's dolly distance and never fills the
-  // frame. Bias the aim to the smaller fighter and look outward past it.
+  const ra = bodyRadiusA > 0 && Number.isFinite(bodyRadiusA) ? bodyRadiusA : 0
+  const rb = bodyRadiusB > 0 && Number.isFinite(bodyRadiusB) ? bodyRadiusB : 0
+  // A mixed cast needs the camera beyond the SMALLER rig, so aim at it.
   let aim = look
   let azimuth = pose.azimuth
   const smaller = Math.min(ha, hb)
   const larger = Math.max(ha, hb)
+  const smallerIsA = ha <= hb
   if (smaller < larger * 0.9) {
-    const small = ha <= hb ? a : b
-    const big = ha <= hb ? b : a
+    const small = smallerIsA ? a : b
+    const big = smallerIsA ? b : a
     aim = { x: small.x, z: small.z }
     const dx = small.x - big.x
     const dz = small.z - big.z
     if (dx !== 0 || dz !== 0) azimuth = Math.atan2(dx, dz)
   }
-  // Aim at the middle of the bodies people actually see, not a fixed height
-  // borrowed from a tall archetype's collision cylinder.
+  // Aim at the middle of the bodies people actually see.
   const targetY = Math.min(pose.targetY, smaller / 2)
-  const sinAz = Math.sin(azimuth)
-  const cosAz = Math.cos(azimuth)
   const sinEl = Math.sin(pose.elevation)
   const cosEl = Math.cos(pose.elevation)
-  // d points from the target to the camera; right/up are orthonormal.
-  const dirX = cosEl * sinAz
   const dirY = sinEl
-  const dirZ = cosEl * cosAz
-  const rightX = cosAz
-  const rightZ = -sinAz
-  const upX = -sinAz * sinEl
   const upY = cosEl
-  const upZ = -cosAz * sinEl
+  const poseTan = Math.tan((pose.fov * Math.PI) / 360)
+  const room = pose.maxRadius / pose.margin
+  const preferredTan = Math.min(poseTan, READABILITY_LENS_FACTOR * smaller)
+  const entries = [
+    { p: a, h: ha, r: ra, small: smallerIsA },
+    { p: b, h: hb, r: rb, small: !smallerIsA },
+  ] as const
 
-  const samples: Array<{ depth: number; width: number }> = []
-  for (const [p, h] of [
-    [a, ha],
-    [b, hb],
-  ] as const) {
-    for (const y of [0, h]) {
-      const vx = p.x - aim.x
-      const vy = y - targetY
-      const vz = p.z - aim.z
-      samples.push({
-        depth: vx * dirX + vy * dirY + vz * dirZ,
-        width: Math.max(
-          Math.abs(vx * rightX + vz * rightZ) / safeAspect,
-          Math.abs(vx * upX + vy * upY + vz * upZ),
+  const solve = (testAzimuth: number): SeparationSolve => {
+    const sinAz = Math.sin(testAzimuth)
+    const cosAz = Math.cos(testAzimuth)
+    // d points target→camera; right/up are orthonormal.
+    const dirX = cosEl * sinAz
+    const dirZ = cosEl * cosAz
+    const rightX = cosAz
+    const rightZ = -sinAz
+    const upX = -sinAz * sinEl
+    const upZ = -cosAz * sinEl
+    // Conservative horizontal half-span of the footprint square.
+    const spreadX = Math.abs(rightX) + Math.abs(rightZ)
+    const samples: BodySample[] = []
+    for (const e of entries) {
+      // Test actual footprint corners: the near one projects wider than a
+      // centre ± radius linearisation suggests.
+      for (const xOffset of [-e.r, e.r]) {
+        for (const zOffset of [-e.r, e.r]) {
+          for (const y of [0, e.h]) {
+            const vx = e.p.x + xOffset - aim.x
+            const vy = y - targetY
+            const vz = e.p.z + zOffset - aim.z
+            const lateral = vx * rightX + vz * rightZ
+            const vertical = vx * upX + vy * upY + vz * upZ
+            samples.push({
+              depth: vx * dirX + vy * dirY + vz * dirZ,
+              width: Math.max(
+                Math.abs(lateral) / safeAspect,
+                Math.abs(vertical),
+              ),
+              readable: e.h / (2 * READABILITY_FLOOR),
+            })
+          }
+        }
+      }
+    }
+    // Radius cap sets a tan floor; minimum dolly distance sets a ceiling.
+    let tanMin = 0
+    let tanMax = poseTan
+    for (const s of samples) {
+      if (room > s.depth) tanMin = Math.max(tanMin, s.width / (room - s.depth))
+      if (pose.minRadius > s.depth) {
+        tanMax = Math.min(tanMax, s.readable / (pose.minRadius - s.depth))
+      }
+    }
+    // Containment wins when the bounds cross: no cropped fighters.
+    const preferred = Math.max(tanMin, Math.min(tanMax, preferredTan))
+    const evaluate = (tan: number): SeparationSolve => {
+      let need = 0
+      for (const s of samples) need = Math.max(need, s.depth + s.width / tan)
+      const radius = Math.min(
+        pose.maxRadius,
+        Math.max(pose.minRadius, need * pose.margin),
+      )
+      const center = (e: (typeof entries)[number]): BodyCenter => {
+        const vx = e.p.x - aim.x
+        const vy = e.h / 2 - targetY
+        const vz = e.p.z - aim.z
+        const depth = radius - (vx * dirX + vy * dirY + vz * dirZ)
+        const scale = Math.max(depth * tan * safeAspect, 1e-6)
+        return {
+          x: (vx * rightX + vz * rightZ) / scale,
+          depth,
+          half: (e.r * spreadX) / scale,
+        }
+      }
+      const centerA = center(entries[0])
+      const centerB = center(entries[1])
+      return {
+        frame: {
+          targetX: aim.x,
+          targetY,
+          targetZ: aim.z,
+          azimuth: testAzimuth,
+          elevation: pose.elevation,
+          fov: (2 * Math.atan(tan) * 180) / Math.PI,
+          radius,
+        },
+        centerGap: Math.abs(centerA.x - centerB.x),
+        halfA: centerA.half,
+        halfB: centerB.half,
+        fraction: Math.min(
+          ha / Math.max(2 * centerA.depth * tan, 1e-6),
+          hb / Math.max(2 * centerB.depth * tan, 1e-6),
         ),
-      })
+      }
+    }
+    let result = evaluate(preferred)
+    // The radius-binding sample can be the OTHER fighter, so the per-sample
+    // ceiling is insufficient. Fraction decreases monotonically with tan.
+    if (result.fraction < READABILITY_FLOOR && preferred > tanMin) {
+      let low = tanMin
+      let high = preferred
+      for (let i = 0; i < 18; i++) {
+        const mid = (low + high) / 2
+        if (evaluate(mid).fraction >= READABILITY_FLOOR) low = mid
+        else high = mid
+      }
+      result = evaluate(low)
+    }
+    return result
+  }
+
+  const initial = solve(azimuth)
+  if (ra === 0 && rb === 0) return initial.frame
+  const pairDx = b.x - a.x
+  const pairDz = b.z - a.z
+  const span = Math.hypot(pairDx, pairDz)
+  if (span < 1e-6) return initial.frame
+  // View-axis azimuth (zero screen gap). The pair is an AXIS, not a
+  // direction: fold onto the nearer axis direction so mirrored orders and
+  // mixed-cast outward looks keep their camera side.
+  const axisAzimuth = Math.PI / 2 - Math.atan2(pairDz, pairDx)
+  const rawDelta = Math.atan2(
+    Math.sin(azimuth - axisAzimuth),
+    Math.cos(azimuth - axisAzimuth),
+  )
+  let base = axisAzimuth
+  let delta = rawDelta
+  if (delta > Math.PI / 2) {
+    base += Math.PI
+    delta -= Math.PI
+  } else if (delta <= -Math.PI / 2) {
+    base += Math.PI
+    delta += Math.PI
+  }
+  const side = delta < 0 ? -1 : 1
+  let best = initial
+  let bestScore =
+    initial.centerGap / Math.max(initial.halfA + initial.halfB, 1e-6)
+  for (const offset of SEPARATION_OFFSETS) {
+    const testAzimuth =
+      Math.abs(delta) >= offset ? azimuth : base + side * offset
+    const candidate = solve(testAzimuth)
+    const readable = candidate.fraction >= READABILITY_FLOOR
+    const score =
+      candidate.centerGap / Math.max(candidate.halfA + candidate.halfB, 1e-6)
+    if (readable && score >= MIN_CENTER_SEPARATION) {
+      best = candidate
+      break
+    }
+    if (readable && score > bestScore) {
+      best = candidate
+      bestScore = score
     }
   }
-  const poseTan = Math.tan((pose.fov * Math.PI) / 360)
-  const readableTan = Math.min(poseTan, READABILITY_LENS_FACTOR * smaller)
-  const room = pose.maxRadius / pose.margin
-  let depth = -Infinity
-  let width = 0
-  for (const s of samples) {
-    depth = Math.max(depth, s.depth)
-    width = Math.max(width, s.width)
-  }
-  // Widen only when containment cannot fit the telephoto shot under the cap.
-  const fitTan = room > depth ? width / (room - depth) : poseTan
-  const tan = Math.min(poseTan, Math.max(readableTan, fitTan))
-  let need = 0
-  for (const s of samples) need = Math.max(need, s.depth + s.width / tan)
-  const radius = Math.min(
-    pose.maxRadius,
-    Math.max(pose.minRadius, need * pose.margin),
-  )
-  return {
-    targetX: aim.x,
-    targetY,
-    targetZ: aim.z,
-    azimuth,
-    elevation: pose.elevation,
-    fov: (2 * Math.atan(tan) * 180) / Math.PI,
-    radius,
-  }
+  return best.frame
 }
