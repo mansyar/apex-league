@@ -33,7 +33,7 @@ import {
 import { logToggleLabel } from "./spar/log"
 import { buildSparPanel, sparModalBackground } from "./spar/panel"
 import { resolveSpar } from "./spar/resolve"
-import { refreshPrep, renderRival } from "./spar/setup"
+import { markArmedTactic, refreshPrep, renderRival } from "./spar/setup"
 import type { Spar, SparHandlers } from "./spar/types"
 import { closeModal, isModalOpen, openModal } from "./ui/modal"
 
@@ -43,13 +43,21 @@ export function createSpar(
   root: HTMLElement,
   handlers: SparHandlers = {},
 ): Spar {
-  const refs = buildSparPanel(
-    root,
-    (doctrine) => runBattle(doctrine, playerRule),
-    (rule) => {
+  // The setup selection lives here so the one launch entry can read it.
+  // Press is pre-armed on every fresh setup (FR-2); a tactic tap only re-arms.
+  let armedDoctrine: DoctrineId = "press"
+  let playerRule: RuleId | null = null
+  const refs = buildSparPanel(root, {
+    arm: (doctrine) => {
+      armedDoctrine = doctrine
+    },
+    pickRule: (rule) => {
       playerRule = rule
     },
-  )
+    launch: () => runBattle(armedDoctrine, playerRule),
+    armed: () => armedDoctrine,
+    rule: () => playerRule,
+  })
   const {
     sparButton,
     overlay,
@@ -79,8 +87,6 @@ export function createSpar(
   // never leak into a later spar — and a ghost bout always re-resolves from
   // the bundle, never from a stale setup.
   let pendingGhost: GhostContender | null = null
-  // The coach's note the panel has selected (FR-13); null is the default.
-  let playerRule: RuleId | null = null
 
   // The shared battle-session shell: driver wiring, HUD updates, the
   // speed pill, and the verdict stamp live there; spar owns its chrome.
@@ -185,6 +191,10 @@ export function createSpar(
   ): void => {
     renderRival(refs, setup, battleSeed)
     refreshPrep(refs, creature, handlers.onSetLoadout)
+    // Both entry points (Spar chip and Fight Ghost) share this setup path, so
+    // a tactic armed in an earlier bout never leaks: Press is lit again.
+    armedDoctrine = "press"
+    markArmedTactic(refs, "press")
 
     intro.textContent = introLine
     log.replaceChildren()

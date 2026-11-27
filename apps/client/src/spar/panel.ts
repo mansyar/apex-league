@@ -8,6 +8,7 @@
 import type { DoctrineId, RuleId } from "@apex/sim"
 import { RULE_IDS, RULE_LABELS } from "@apex/sim"
 import {
+  type ChoiceButton,
   buildChoiceRow,
   buildDoctrineRow,
   renderSpeedButton,
@@ -19,14 +20,44 @@ import type { SparPanelRefs } from "./types"
 
 /** The rule row's values: no note, or exactly one of the four (FR-13). */
 const RULE_CHOICES = ["none", ...RULE_IDS] as const
-type RuleChoice = (typeof RULE_CHOICES)[number]
+export type RuleChoice = (typeof RULE_CHOICES)[number]
+
+/**
+ * The setup seam spar.ts hands the panel: arming and rule picks are separate
+ * from the one launch entry, and the live reads let Phase 2's sticky footer
+ * name the armed tactic and active rule. Tactic/rule/kit taps never launch —
+ * only `launch` starts a bout.
+ */
+export interface SparSetupSeam {
+  /** A tactic tap arms a selection; it must never start a bout (FR-1). */
+  arm: (doctrine: DoctrineId) => void
+  /** The coach's note selection (null = no note). */
+  pickRule: (rule: RuleId | null) => void
+  /** The single launch entry; the Phase 2 footer's Start button calls it. */
+  launch: () => void
+  /** Live read of the armed tactic (Press until a tap re-arms). */
+  armed: () => DoctrineId
+  /** Live read of the active rule (null = no note). */
+  rule: () => RuleId | null
+}
+
+/** Panel refs plus the launch/readout surfaces the sticky footer consumes. */
+export interface SparPanelSetupRefs extends SparPanelRefs {
+  /** The one launch entry Phase 2 wires the Start button to. */
+  launch: () => void
+  /** Live read of the armed tactic for the footer summary. */
+  armed: () => DoctrineId
+  /** Live read of the active rule for the footer summary. */
+  rule: () => RuleId | null
+  /** The rules row's buttons, for the footer readout and tests. */
+  ruleButtons: ChoiceButton<RuleChoice>[]
+}
 
 /** Build the spar's DOM and hand back its writable surfaces. */
 export function buildSparPanel(
   root: HTMLElement,
-  onPickTactic: (doctrine: DoctrineId) => void,
-  onPickRule: (rule: RuleId | null) => void,
-): SparPanelRefs {
+  seam: SparSetupSeam,
+): SparPanelSetupRefs {
   // Top-right spar chip: its own control, separate from the care cluster.
   // Kit chip with the mock's title/sub text stack.
   const { button: sparButton } = chipButton({
@@ -103,14 +134,18 @@ export function buildSparPanel(
       labelClass: "spar-tactic-label",
       previewClass: "spar-preview",
     }),
-    classes: { base: "spar-tactic kit-line" },
-    onPick: (doctrine) => onPickTactic(doctrine),
+    // The row factory owns the .on highlight: a tap re-arms visibly and a
+    // fresh setup opens with Press lit (FR-1, FR-2). The pick only arms; the
+    // fight starts from the launch seam, never from a tactic tap.
+    classes: { base: "spar-tactic kit-line", on: "on" },
+    initialOn: "press",
+    onPick: (doctrine) => seam.arm(doctrine),
   })
 
   // The coach's note (FR-13): exactly one rule, or none. The row is a plain
   // selector; the note itself is read by the sim's controller on every
   // cadence, and the HUD names it on the plate when it fires.
-  const { row: rules } = buildChoiceRow<RuleChoice>({
+  const { row: rules, buttons: ruleButtons } = buildChoiceRow<RuleChoice>({
     rowClass: "spar-rules",
     values: RULE_CHOICES,
     describe: (rule) => ({
@@ -118,7 +153,7 @@ export function buildSparPanel(
     }),
     classes: { base: "spar-rule kit-line", on: "on" },
     initialOn: "none",
-    onPick: (rule) => onPickRule(rule === "none" ? null : rule),
+    onPick: (rule) => seam.pickRule(rule === "none" ? null : rule),
   })
 
   const fastButton = document.createElement("button")
@@ -214,6 +249,10 @@ export function buildSparPanel(
     close,
     panelClose,
     chips,
+    ruleButtons,
+    launch: seam.launch,
+    armed: seam.armed,
+    rule: seam.rule,
   }
 }
 

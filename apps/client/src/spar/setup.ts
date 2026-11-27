@@ -7,6 +7,7 @@
 import {
   battleStats,
   type Creature,
+  type DoctrineId,
   doctrineForTactic,
   formTier,
   getSpecies,
@@ -23,6 +24,21 @@ import {
   toggleKit,
 } from "./loadout-vm"
 import type { SparHandlers, SparPanelRefs, SparSetup } from "./types"
+
+/**
+ * Re-arm the tactic highlight on a fresh setup. The choice-row factory owns
+ * the `.on` class once built, so a tap made in an earlier bout must be visibly
+ * undone when the next opens with Press armed (FR-2). Both the Spar chip and
+ * a board Fight Ghost route call this through `presentSetup`.
+ */
+export function markArmedTactic(
+  refs: SparPanelRefs,
+  doctrine: DoctrineId,
+): void {
+  for (const { button, value } of refs.doctrineButtons) {
+    button.classList.toggle("on", value === doctrine)
+  }
+}
 
 /** Write the rival's row and both fighters' cards for one setup. */
 export function renderRival(
