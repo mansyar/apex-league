@@ -354,7 +354,9 @@
     padding: calc(164px + var(--kit-safe-top)) 12px 12px;
   }
 
-  .spar-panel {
+  /* The later base .spar-panel rule would otherwise win on equal specificity
+     and push the panel (and its sticky footer) below the viewport. */
+  .spar-overlay .spar-panel {
     max-height: calc(100dvh - 176px - var(--kit-safe-top));
     overflow-y: auto;
   }
@@ -370,7 +372,7 @@
     padding: 12px;
   }
 
-  .spar-panel {
+  .spar-overlay .spar-panel {
     max-height: 100%;
     overflow-y: auto;
   }
@@ -428,6 +430,7 @@
 /* Fit the spar panel on any screen (2026-11-10): the panel scrolls, the page does not,
    and the kit wraps into two columns so six moves cost three rows instead of six. */
 .spar-panel {
+  box-sizing: border-box;
   width: min(520px, calc(100vw - 32px));
   max-height: calc(100dvh - 32px);
   overflow-y: auto;
@@ -435,6 +438,32 @@
   scrollbar-gutter: stable;
   padding: 14px 16px;
   gap: 8px;
+}
+
+/* Sticky Start footer (FR-3/FR-4): the panel scrolls, this row does not. The
+   negative margins bleed its ground to the plate edges so scrolling rows
+   never show through behind the launch control. */
+.spar-start-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 4px -16px -14px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--kit-keyline);
+  background: rgb(12 10 8 / 0.94);
+  backdrop-filter: blur(6px) saturate(120%);
+}
+
+.spar-start-summary {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
 }
 
 .spar-heading {
@@ -502,6 +531,13 @@
   .spar-card {
     padding: 6px 8px;
     font-size: 11px;
+  }
+
+  /* The short-screen panel tightens its padding; the sticky footer bleeds
+     by the same amount so it still meets the plate edges. */
+  .spar-start-footer {
+    margin: 4px -14px -12px;
+    padding: 8px 14px;
   }
 }
 @media (max-width: 419.98px) {
