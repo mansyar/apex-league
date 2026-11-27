@@ -1065,3 +1065,203 @@ describe("R1 — real measured ray separation fallback (F4)", () => {
     }
   })
 })
+
+describe("R2 — hard-cut action and deterministic establishing beat", () => {
+  const ray = MEASURED_BODIES.ray
+  const drake = MEASURED_BODIES.draconic
+
+  const framePosition = (frame: TrackedFraming): Vector3 =>
+    new Vector3(
+      frame.targetX +
+        frame.radius * Math.cos(frame.elevation) * Math.sin(frame.azimuth),
+      frame.targetY + frame.radius * Math.sin(frame.elevation),
+      frame.targetZ +
+        frame.radius * Math.cos(frame.elevation) * Math.cos(frame.azimuth),
+    )
+
+  /** Both fighters move on every frame around their authored rest lanes; the
+   * 8% / 32px floor is a rest-promise, while containment holds everywhere. */
+  const movingPair = (
+    i: number,
+  ): { a: { x: number; z: number }; b: { x: number; z: number } } => ({
+    a: { x: -1.6 + i * 0.12, z: -0.4 + i * 0.12 },
+    b: { x: 1.6 - i * 0.12, z: 0.4 - i * 0.12 },
+  })
+
+  const feed = (
+    rig: ReturnType<typeof createOrbitCamera>,
+    a: { x: number; z: number },
+    b: { x: number; z: number },
+    cinematic: boolean,
+  ): void => {
+    rig.applyDirectorIntent({
+      look: { x: b.x, y: 0.7, z: b.z },
+      // The solver must ignore any widening multiplier; a victim look and a
+      // modest elevation offset are the only allowed cinematic variation.
+      radiusMult: cinematic ? 3 : 1,
+      azimuthDelta: cinematic ? 0.4 : 0,
+      elevationDelta: cinematic ? 0.08 : 0,
+      cut: false,
+      focusA: { x: a.x, y: 0, z: a.z },
+      focusB: { x: b.x, y: 0, z: b.z },
+      heightA: ray.height,
+      heightB: drake.height,
+      bodyRadiusA: ray.radius,
+      bodyRadiusB: drake.radius,
+    })
+  }
+
+  const skipBeat = (rig: ReturnType<typeof createOrbitCamera>): void => {
+    rig.updateArena(0, 1 / 60, false)
+    rig.updateArena(0.8, 1 / 60, false)
+  }
+
+  const expectWide = (
+    camera: PerspectiveCamera,
+    aspect: number,
+    a: { x: number; z: number },
+    b: { x: number; z: number },
+  ): void => {
+    const wide = establishingFraming(aspect)
+    const widePos = new Vector3(
+      wide.radius * Math.cos(BASE.elevation) * Math.sin(BASE.azimuth),
+      BASE.targetY + wide.radius * Math.sin(BASE.elevation),
+      wide.radius * Math.cos(BASE.elevation) * Math.cos(BASE.azimuth),
+    )
+    expect(camera.fov).toBeCloseTo(wide.fov, 6)
+    expect(camera.position.distanceTo(widePos)).toBeLessThan(1e-6)
+    camera.updateMatrixWorld()
+    for (const x of [-ARENA_HALF_X, ARENA_HALF_X]) {
+      for (const z of [-ARENA_HALF_Z, ARENA_HALF_Z]) {
+        const ndc = new Vector3(x, 0, z).project(camera)
+        expect(Math.abs(ndc.x)).toBeLessThanOrEqual(1 + 1e-6)
+        expect(Math.abs(ndc.y)).toBeLessThanOrEqual(1 + 1e-6)
+      }
+    }
+    expectLiveContained(camera, a, ray)
+    expectLiveContained(camera, b, drake)
+  }
+
+  const expectSafeAction = (
+    camera: PerspectiveCamera,
+    aspect: number,
+    a: { x: number; z: number },
+    b: { x: number; z: number },
+    cinematic: boolean,
+  ): void => {
+    const frame = trackedActionFraming(
+      aspect,
+      a,
+      b,
+      {
+        ...actionPose,
+        // Choreography is bounded: no azimuth swing, no radius multiplier.
+        azimuth: actionPose.azimuth,
+        elevation: actionPose.elevation,
+        targetY: cinematic
+          ? Math.min(0.7, actionPose.targetY)
+          : actionPose.targetY,
+      },
+      ray.height,
+      drake.height,
+      cinematic ? { x: b.x, z: b.z } : undefined,
+      ray.radius,
+      drake.radius,
+    )
+    expect(camera.position.distanceTo(framePosition(frame))).toBeLessThan(1e-6)
+    expect(camera.fov).toBeCloseTo(frame.fov, 6)
+    for (const [p, body] of [
+      [a, ray],
+      [b, drake],
+    ] as const) {
+      const box = liveBodyBox(camera, p, body)
+      expect(box.minX).toBeGreaterThanOrEqual(-1 - 1e-6)
+      expect(box.maxX).toBeLessThanOrEqual(1 + 1e-6)
+      expect(box.minY).toBeGreaterThanOrEqual(-1 - 1e-6)
+      expect(box.maxY).toBeLessThanOrEqual(1 + 1e-6)
+      const fraction = (box.maxY - box.minY) / 2
+      expect(fraction).toBeGreaterThanOrEqual(0.08)
+    }
+  }
+
+  test("0.75-second establishing beat holds the whole arena, then hard-cuts", () => {
+    for (const vp of VIEWPORTS) {
+      const aspect = vp.width / vp.height
+      const camera = new PerspectiveCamera(BASE_FOV, aspect, 0.1, 200)
+      const rig = createOrbitCamera(
+        camera,
+        fakeCanvas(vp.width, vp.height) as unknown as HTMLElement,
+      )
+      const { a, b } = movingPair(0)
+      rig.setMode("arena")
+      feed(rig, a, b, false)
+      for (let step = 0; step < 12; step++) {
+        rig.updateArena(0.02 + step * 0.06, 1 / 60, false)
+        expectWide(camera, aspect, a, b)
+      }
+      rig.updateArena(0.8, 1 / 60, false)
+      expectSafeAction(camera, aspect, a, b, false)
+      rig.dispose()
+    }
+  })
+
+  test("reduced motion skips the establishing beat and cuts straight to action", () => {
+    for (const vp of VIEWPORTS) {
+      const aspect = vp.width / vp.height
+      const camera = new PerspectiveCamera(BASE_FOV, aspect, 0.1, 200)
+      const rig = createOrbitCamera(
+        camera,
+        fakeCanvas(vp.width, vp.height) as unknown as HTMLElement,
+      )
+      const { a, b } = movingPair(0)
+      rig.setMode("arena")
+      feed(rig, a, b, false)
+      rig.updateArena(0, 1 / 60, true)
+      expect(camera.fov).not.toBeCloseTo(establishingFraming(aspect).fov, 3)
+      expectSafeAction(camera, aspect, a, b, false)
+      rig.dispose()
+    }
+  })
+
+  test("moving broadcast pair cuts to the exact safe pose on every frame", () => {
+    for (const vp of VIEWPORTS) {
+      const aspect = vp.width / vp.height
+      const camera = new PerspectiveCamera(BASE_FOV, aspect, 0.1, 200)
+      const rig = createOrbitCamera(
+        camera,
+        fakeCanvas(vp.width, vp.height) as unknown as HTMLElement,
+      )
+      rig.setMode("arena")
+      skipBeat(rig)
+      for (let i = 0; i < 7; i++) {
+        const { a, b } = movingPair(i)
+        feed(rig, a, b, false)
+        rig.updateArena(1 + i / 60, 1 / 60, false)
+        expectSafeAction(camera, aspect, a, b, false)
+      }
+      rig.dispose()
+    }
+  })
+
+  test("moving cinematic pair has no intermediate easing crop at any viewport", () => {
+    for (const vp of VIEWPORTS) {
+      const aspect = vp.width / vp.height
+      const camera = new PerspectiveCamera(BASE_FOV, aspect, 0.1, 200)
+      const rig = createOrbitCamera(
+        camera,
+        fakeCanvas(vp.width, vp.height) as unknown as HTMLElement,
+      )
+      rig.setMode("arena")
+      rig.setArenaStyle("cinematic")
+      skipBeat(rig)
+      for (let i = 0; i < 7; i++) {
+        const { a, b } = movingPair(i)
+        feed(rig, a, b, true)
+        rig.shake(20)
+        rig.updateArena(1 + i / 60, 1 / 60, false)
+        expectSafeAction(camera, aspect, a, b, true)
+      }
+      rig.dispose()
+    }
+  })
+})

@@ -591,3 +591,218 @@ a raw 39/37 line-box delta without visible text clipping; a clean desktop or
 portrait all-four-corner still was not obtained, so those viewports rely on real
 projection containment plus partial visuals. None reverses the corrected default
 broadcast separation or the materially improved arena contrast.
+
+## R1 — strict review fixes and missing visual proof (2026-11-27)
+
+Branch `feat/20261127-arena-readability-pass`, phase base
+`38605961e81743a6cdde7cec4a56b24188f2c8cb`. Round 1 `BLOCK` findings F1–F4 were
+resolved without an override and without renumbering FR-1..FR-7, NFR-1..NFR-5
+or AC-1..AC-7. Code, tests and TDD evidence are in `phase-R1.md`; this section
+records only the additional real-browser proof and console totals. No tracked
+source was changed in this browser pass, and no evidence file was committed.
+
+### Real-browser method and boundaries
+
+- Sessions `r1d` (1440×900), `r1p` (393×852) and `r1l` (852×393), each resized
+  before navigation. Every save was written only through the real sim's
+  `saveGame(localStorage, state, Date.now(), session)` after real sim exports
+  (`chooseStarter`, `createCreatureFrom`, `renameCreature`, `advanceDay`,
+  `startCupSession`, `setArenaCamera`, `setReducedMotion`); no hand-crafted save
+  JSON and no DOM `.click()` were used.
+- The player was a real `createCreatureFrom(getSpecies("spark_ray"), 12345)`
+  creature renamed `Sunbeam Comet`; day 7 was reached with six real `advanceDay`
+  calls and a real `startCupSession`. Navigation used Playwright pointer/keyboard
+  only: `getByRole("button", { name: /Enter Cup/ })`,
+  `.cup-screen-bracket .cup-cta-go`, `getByRole("button", { name: "Press" })`,
+  and the last `Step into the arena` button. All measurement happened inside one
+  `run-code` call per viewport, using dynamically imported real arena framing
+  modules; no debug global was added to the client.
+- Representative real-sim seed result (393×852, also identical at the other
+  widths): `{"ok":true,"day":7,"phase":"cup","name":"Sunbeam Comet",
+  "speciesId":"spark_ray","stage":"baby","camera":"cinematic",
+  "reducedMotion":false,"nextOpponent":"Pondskipper Grub",
+  "sessionKeys":["bracket","seed","rivalResolutions","rivalVerdicts",
+  "playerVerdicts","completionVerdicts","nextPlayerRound","nextOpponent",
+  "status","championName"],"saveKey":"apex.save","scrollWidth":393,
+  "innerWidth":393}` with `errors:[]`.
+- Prior `corrected-*` artifacts were preserved. New artifacts use the `r1-`
+  prefix under `.conductor/evidence/20261127-arena-readability-pass/`.
+
+### Cup cinematic captures (all three viewports)
+
+Scripts: `r1-seed.js`, `r1-capture-cup.js`, `r1-probe.js`. Captures:
+`r1-cup-cinematic-entry-<tag>.png` and
+`r1-cup-cinematic-action-{a,b,c,d}-<tag>.png` for `1440x900`, `393x852` and
+`852x393`. Each `run-code` returned `errors:[]`; per-viewport console totals from
+`playwright-cli console` are recorded below.
+
+Measured wide / establishing camera from the real `establishingFraming` module:
+
+| Viewport | radius | fov | Four painted corners |
+| --- | --- | --- | --- |
+| 1440×900 | 12.5 | 45 | all `inFrame:true` |
+| 393×852 | 18.75 | 57 | all `inFrame:true` |
+| 852×393 | 12.5 | 45 | all `inFrame:true` |
+
+Exact 1440×900 corner NDC: `(±0.284453 / 0.106846)`, `(-0.463996,-0.388410)`,
+`(0.356195,0.045722)`, `(0.410854,-0.503415)`.
+Exact 852×393 corner NDC: `(±0.209934 / 0.106846)`, `(-0.342442,-0.388410)`,
+`(0.262882,0.045722)`, `(0.303222,-0.503415)`.
+
+Measured tracked cinematic action pose and body projection (real
+`trackedActionFraming` with measured rigs, `ARENA_HALF_X=3.2`,
+`ARENA_HALF_Z=2.4`, `MM_TO_WORLD=0.0008`):
+
+| Viewport | action pose | ray height / CSS px | drake height / CSS px | HUD name widths |
+| --- | --- | --- | --- | --- |
+| 1440×900 | `targetX:-1.6, targetY:0.036757, targetZ:0, azimuth:4.83238898038469, elevation:0, fov:13.416886490521344, radius:1.4` | `0.223214` / `200.893` | `0.336828` / `303.145` | `210/210`, `163/163` |
+| 393×852 | same angles, `fov:13.416886490521344, radius:3.360103071169192` | `0.093003` / `79.239` | `0.235097` / `200.303` | `65/65`, `65/65` |
+| 852×393 | same angles, `fov:13.416886490521344, radius:1.4` | `0.223214` / `87.723` | `0.336828` / `132.373` | `174/174`, `163/163` |
+
+All action bodies were `inFrame:true` in the module projection at all three
+viewports; the 8% / 32 CSS-pixel floor holds at every captured beat. Example
+1440×900 boxes: ray `minX:-0.627480, maxX:0.529363, minY:-0.250261,
+maxY:0.250261`, drake `inFrame:true`; 852×393 ray box
+`[-0.463098,0.390685,-0.250261,0.250261]`, drake
+`[0.135325,0.509589,-0.071912,0.637617]`.
+
+Visual review of action beats: `action-c` at 1440×900 shows two distinct bodies
+with no edge clipping; 393×852 fighters remain visually interlocked in the
+settled beats even though the measured NDC boxes are contained; 852×393
+`action-c` shows two bodies partly clipped at the top edge of the *HUD frame*,
+while the module projection of the camera itself remains contained. The corner
+evidence at 852×393 continues to match the earlier corrected entry still.
+
+### Clean four-corner stills
+
+The live arena has no HUD-free wide frame: `apps/client/src/scene/frame.ts`
+calls `cameraRig.updateArena(...)` before `renderer.render(...)`, and the F1 fix
+cuts establishing→action on the first arena frame, so the wide pose is never
+rendered by the live app. A real-clock attempt (`r1-wide-clock.js`) and a
+1 ms stepped-clock attempt (`r1-wide-steps.js`, 40 steps, `errors:[]`) both
+confirmed this: every still showed the tight action view with HUD and
+`APEX FEED` overlays, never all four corners. Those artifacts were kept as
+`r1-wide-*` evidence of the lifecycle behavior, not as corner proof.
+
+Instead, `r1-wide-render.js` rendered the clean establishing still **in the real
+browser** from the same production modules the app uses: dynamically imported
+`buildArena` (`arena.ts`), `establishingFraming` (`scene-logic/framing.ts`),
+`ARENA_FRAMING` / `BASE_FOV` (`camera/presets.ts`), `ARENA_HALF_X/Z`
+(`arena-scale.ts`), and Three.js from the Vite module graph. The arena was shown
+at full `setBlend(1)`, the canvas was placed over the page (no DOM `.click()`),
+and a single `renderer.render(scene, camera)` produced:
+
+- `r1-wide-clean-1440x900.png` — all four painted corner markers visible, no
+  HUD/overlay text. Measured `radius:12.5, fov:45`; corner NDC
+  `(-3.2,-2.4)→(-0.284453,0.106846)`,
+  `(-3.2,2.4)→(-0.463996,-0.388410)`,
+  `(3.2,-2.4)→(0.356195,0.045722)`,
+  `(3.2,2.4)→(0.410854,-0.503415)`; canvas `1440×900`; `errors:[]`.
+- `r1-wide-clean-393x852.png` — all four painted corner markers visible, no
+  HUD/overlay text. Measured `radius:18.75, fov:57`; corner NDC
+  `(-3.2,-2.4)→(-0.534705,0.057902)`,
+  `(-3.2,2.4)→(-0.789717,-0.190581)`,
+  `(3.2,-2.4)→(0.661041,0.024462)`,
+  `(3.2,2.4)→(0.684243,-0.241703)`; canvas `393×852`; `errors:[]`.
+- `r1-wide-clean-852x393.png` — all four corners visible as an additional
+  landscape check; `radius:12.5, fov:45`, same NDC values as the cup-entry
+  measurement above, canvas `852×393`, `errors:[]`.
+
+Every still was visually reviewed; desktop and portrait show the full cream
+rectangular boundary and center ring over the broadcast floor. No source debug
+hook or save JSON was introduced for these captures.
+
+### Console totals and cleanup
+
+`playwright-cli console` returned `Total messages: 2 (Errors: 0, Warnings: 0)`
+for `r1d`, `r1p` and `r1l`. Every in-run `run-code` returned `errors:[]`.
+`playwright-cli close-all` was run and `playwright-cli list` reported
+`(no browsers)` before the primary gate. The Vite server was left running at
+`http://localhost:5173/` (it was restarted by the harness after a shell
+timeout; no source was changed by the restart).
+
+## Rework 2 — live visual corrections and fresh captures (2026-11-27)
+
+Primary image review rejected the Rework 1 live captures: portrait
+`action-a/b/c` clipped upper bodies and landscape `action-a/b/c` clipped the
+top against the HUD, despite static fixtures being green. Rework 2 removed all
+arena pose easing, suppressed arena shake, restored a deterministic 0.75-second
+full-motion wide establishing beat before the hard cut, and made cinematic use
+zero azimuth delta, zero elevation and no director radius multiplier. Reduced
+motion skips the beat and uses readable broadcast action immediately. Full TDD
+red/green evidence is in `phase-R1.md`; requirement IDs are unchanged and no
+overrides or commits were made.
+
+### Real-browser method and boundaries
+
+- Sessions `r2d` (1440×900), `r2p` (393×852) and `r2l` (852×393) were resized
+  before navigation and kept to one open session at a time. Each capture was
+  preceded by a real-sim-only day-7 cup seed via `r1-seed.js`:
+  `createInitialState`, `chooseStarter(state, "fire_drake", 12345)`, replace
+  the creature with `createCreatureFrom(getSpecies("spark_ray"), 12345)`,
+  `renameCreature`, `setArenaCamera`, `setReducedMotion`, six `advanceDay`
+  calls, `startCupSession`, then `saveGame(localStorage, state, Date.now(),
+  session)`. Typical result: `ok:true`, `day:7`, `phase:"cup"`,
+  `name:"Sunbeam Comet"`, `speciesId:"spark_ray"`, `stage:"baby"`,
+  `camera:"cinematic"`, `reducedMotion:false`,
+  `nextOpponent:"Pondskipper Grub"`, `errors:[]`.
+- Navigation used Playwright pointer/keyboard only (`Enter Cup`,
+  `.cup-screen-bracket .cup-cta-go`, `Press`, last `Step into the arena`). No
+  DOM `.click()` and no hand-crafted save JSON. All measurement happened inside
+  one `run-code` call per viewport, importing the real framing modules; no
+  debug global was added to the client. Prior `r1-` and `corrected-*` artifacts
+  were preserved; new artifacts use the `r2-` prefix under
+  `.conductor/evidence/20261127-arena-readability-pass/`.
+
+### Cup cinematic action (all three viewports)
+
+Scripts: `r2-capture-cup.js`. Captures:
+`r2-cup-cinematic-action-{a,b,c,d}-1440x900.png`,
+`-393x852.png`, `-852x393.png`. Final measured poses and body projections:
+
+| Viewport | radius / fov / targetY | ray fraction / px | drake fraction / px | HUD widths |
+| --- | --- | --- | --- | --- |
+| 1440×900 | `1.4 / 20.011849046899478 / 0.1813335` | `0.148810` / `133.929` | `0.224552` / `202.097` | `210/210`, `163/163` |
+| 393×852 | `2.085498769763847 / 20.011849046899478 / 0.1813335` | `0.099896` / `85.112` | `0.194663` / `165.853` | `65/65`, `65/65` |
+| 852×393 | `1.4 / 20.011849046899478 / 0.1813335` | `0.148810` / `58.482` | `0.224552` / `88.249` | `174/174`, `163/163` |
+
+All four arena corners remained `inFrame:true` for the wide shot at each
+viewport (1440×900 and 852×393 `radius:12.5, fov:45`; 393×852
+`radius:18.75, fov:57`). Final body NDC boxes:
+
+- 1440×900: ray `[-0.418320,0.352908,-0.823075,-0.393930]`, drake
+  `[0.122241,0.460315,-0.236510,0.236510]`; both `inFrame:true`.
+- 393×852: ray `[-0.903166,0.807532,-0.529346,-0.274111]`, drake
+  `[-0.068181,0.939939,-0.203131,0.203131]`; both `inFrame:true`.
+- 852×393: ray `[-0.308732,0.260456,-0.823075,-0.393930]`, drake
+  `[0.090217,0.339726,-0.236510,0.236510]`; both `inFrame:true`.
+
+Visual review of `action-a` and `action-c`: 1440×900 shows both bodies fully
+inside the viewport and meaningfully distinct; 852×393 shows both bodies inside
+the viewport and horizontally offset; 393×852 shows both bodies inside the
+viewport with the ray's wings overlapping the drake's legs. The persistent
+battle HUD banner still covers part of the drake's head in landscape and part
+of the upper arena in portrait. No viewport-edge cropping remains in the
+inspected beats. This is an honest residual limitation, not a module-projection
+failure; the 8% / 32 px floor and NDC containment hold at every captured beat.
+
+### Live-app establishing beat (no synthetic substitute)
+
+`r2-establishing.js` navigated with real pointer/keyboard using the real clock,
+then installed/paused the clock only after the coaching room was visible,
+landed after the 700 ms arena fade plus 40 ms inside the new 750 ms beat,
+and saved `r2-establishing-1440x900.png` and
+`r2-establishing-393x852.png`. Both `run-code` calls returned `errors:[]` and
+`atBeat` reported `.battle-hud`, `#app.app-in-arena`, with canvas sizes
+`1440×900` and `393×852`. Direct image inspection of both stills shows all
+four painted cream arena corners inside the frame; these are real live-app
+captures, not the earlier synthetic `r1-wide-clean-*` renders. Landscape
+establishing capture was optional and was not repeated.
+
+### Console totals and cleanup
+
+`playwright-cli console` returned
+`Total messages: 2 (Errors: 0, Warnings: 0)` for `r2d`, `r2p` and `r2l`.
+Every capture/seed/beat `run-code` returned `errors:[]`.
+`playwright-cli close-all` was run and `playwright-cli list` returned
+`(no browsers)` before the primary gate. No evidence file was committed.

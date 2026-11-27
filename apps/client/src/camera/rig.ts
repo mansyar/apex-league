@@ -12,11 +12,11 @@ import { createCameraShake } from "./shake"
 import type { ArenaStyle, CameraMode, OrbitCameraRig } from "./types"
 
 /**
- * Camera rig: ranch orbit, arena handover, creature track, cinematic ease.
+ * Camera rig: ranch orbit, arena handover, creature track, cinematic cuts.
  * Input/shake/framing/presets live in their own modules. Arena has a tracked
- * ACTION shot (also used under reduced motion) and a distinct wide
- * ESTABLISHING entry beat. Establishing → action hands off with a hard cut:
- * the tight FOV must never be paired with the wide pose, or a fighter at the
+ * ACTION shot (also used under reduced motion) and a 0.75 s wide ESTABLISHING
+ * entry beat. Every arena action frame installs pose and lens together: the
+ * tight FOV must never be paired with an eased wide pose, or a fighter at the
  * frame edge is cropped.
  */
 
@@ -33,10 +33,9 @@ export function createOrbitCamera(
   let cameraMode: CameraMode = "ranch"
   let arenaStyle: ArenaStyle = "broadcast"
   let directorIntent: CameraIntent | null = null
-  // Glide installs the lens before the pose arrives; cut on composition
-  // changes so no frame pairs the tight FOV with the wide shot.
-  let needsActionCut = false
-  let wasReduced = false
+  // Arena entry is a fixed-duration wide beat, then a cut to tracked action.
+  let establishingStart: number | null = null
+  let establishingDone = false
   let intentAt = 0
   let savedOrbit = { azimuth: 0, elevation: 0, radius: 0 }
   const target = new THREE.Vector3(0, 0.8, 0)
@@ -162,11 +161,12 @@ export function createOrbitCamera(
     input.clearGesture()
     if (mode === "arena") {
       savedOrbit = { ...orbit }
-      // Wide establishing beat; the next update cuts to the tracked action
-      // shot (also under reduced motion) with pose and lens together.
+      // Wide establishing beat; the rig's clock is supplied by updateArena.
       applyEstablishing()
-      needsActionCut = true
+      establishingStart = null
+      establishingDone = false
     } else {
+      establishingDone = true
       Object.assign(orbit, savedOrbit)
       // Reset full aim; a director may have left it tracking a fighter.
       target.set(0, 0.8, 0)
@@ -178,15 +178,11 @@ export function createOrbitCamera(
   const setArenaStyle = (style: ArenaStyle): void => {
     if (style === arenaStyle) return
     arenaStyle = style
-    // Style switch is a composition change: cut to a measured pose.
-    if (cameraMode === "arena") needsActionCut = true
-    if (style === "broadcast") {
-      // Re-frame NOW or broadcast freezes at the last director pose. The cut
-      // installs pose and FOV together, so this frame is containment-safe.
+    // Style switch after the entry beat is a composition change: cut to a
+    // measured pose. During the beat the wide shot stays undisturbed.
+    if (cameraMode === "arena" && establishingDone)
       glide(actionFrame(), 1, true)
-      needsActionCut = false
-      directorIntent = null
-    }
+    if (style === "broadcast") directorIntent = null
   }
 
   const applyDirectorIntent = (intent: CameraIntent): void => {
@@ -194,12 +190,6 @@ export function createOrbitCamera(
     intentAt = performance.now()
     // The intent is also the live pair feed; five-field literals keep rest.
     if (intent.focusA && intent.focusB) {
-      // A large pair jump (knockback/re-seed) must cut, not ease through a
-      // pose that can crop a fighter mid-lerp.
-      const jump =
-        Math.hypot(intent.focusA.x - focusA.x, intent.focusA.z - focusA.z) +
-        Math.hypot(intent.focusB.x - focusB.x, intent.focusB.z - focusB.z)
-      if (jump > 0.5) needsActionCut = true
       focusA.x = intent.focusA.x
       focusA.z = intent.focusA.z
       focusB.x = intent.focusB.x
@@ -223,67 +213,40 @@ export function createOrbitCamera(
   }
 
   const updateArena = (t: number, dt: number, reducedMotion: boolean): void => {
-    // Reduced motion: same tracked broadcast shot, no floor exception;
-    // shake is dropped and director choreography is never read.
-    if (reducedMotion !== wasReduced) {
-      needsActionCut = true
-      wasReduced = reducedMotion
-    }
-    if (reducedMotion && cameraMode === "arena") shake.reset()
-    shake.update(t, dt, cameraMode)
-    if (cameraMode !== "arena") return
-    if (reducedMotion) {
-      // Hard cut to the tracked pose: no drift, ornament or director pose.
-      glide(actionFrame(), 1, true)
-      needsActionCut = false
+    if (cameraMode !== "arena") {
+      shake.update(t, dt, cameraMode)
       return
     }
-    if (arenaStyle === "broadcast") {
-      if (needsActionCut) {
-        glide(actionFrame(), 1, true)
-        needsActionCut = false
+    // Arena shake would break the whole-body containment invariant: suppress
+    // it instead of letting an offset move the camera off the safe pose.
+    shake.reset()
+    if (reducedMotion) {
+      establishingStart = null
+      establishingDone = true
+      glide(actionFrame(), 1, true)
+      return
+    }
+    if (!establishingDone) {
+      if (establishingStart === null) establishingStart = t
+      if (t - establishingStart < 0.75) {
+        applyEstablishing()
         return
       }
-      // An active shake owns the frame until it decays so the punch-in
-      // offset cannot fight the tracked dolly.
-      if (!shake.active()) glide(actionFrame(), 1 - Math.exp(-6 * dt), false)
+      establishingDone = true
+    }
+    directorIntent =
+      directorIntent !== null && performance.now() - intentAt < 400
+        ? directorIntent
+        : null
+    if (arenaStyle === "cinematic" && directorIntent) {
+      const intent = directorIntent
+      // Only the victim look varies: no azimuth swing, elevation lift or
+      // radius multiplier, so the tracked solve stays the hard bound and
+      // heads never rise behind the HUD.
+      glide(actionFrame(0, 0, intent.look), 1, true)
       return
     }
-    // Cinematic director (FR6): ease/cut toward intent; a pending safety cut
-    // wins over the director's cut flag.
-    const fresh = directorIntent !== null && performance.now() - intentAt < 400
-    if (fresh && directorIntent) {
-      const intent = directorIntent
-      const frame = actionFrame(
-        intent.azimuthDelta,
-        intent.elevationDelta,
-        intent.look,
-      )
-      // Shot multipliers widen the tracked shot; they can never crop a
-      // fighter. MAX keeps pre-existing five-field literals safe.
-      const widened: TrackedFraming = {
-        ...frame,
-        radius: Math.min(
-          ACTION_FRAMING.maxRadius,
-          frame.radius * Math.max(1, intent.radiusMult),
-        ),
-      }
-      glide(
-        widened,
-        needsActionCut ? 1 : 1 - Math.exp(-2 * dt),
-        needsActionCut || intent.cut,
-      )
-      needsActionCut = false
-    } else {
-      // No live coverage: ease home to the broadcast tracked shot, or cut
-      // there if a resize/style change left a wide pose behind.
-      glide(
-        actionFrame(),
-        needsActionCut ? 1 : 1 - Math.exp(-2 * dt),
-        needsActionCut,
-      )
-      needsActionCut = false
-    }
+    glide(actionFrame(), 1, true)
   }
 
   return {
@@ -300,8 +263,8 @@ export function createOrbitCamera(
     resize(width: number, height: number): void {
       viewportAspect = width / (height || 1)
       if (cameraMode === "arena") {
+        establishingDone = true
         glide(actionFrame(), 1, true)
-        needsActionCut = true
       } else {
         setFov(BASE_FOV)
       }

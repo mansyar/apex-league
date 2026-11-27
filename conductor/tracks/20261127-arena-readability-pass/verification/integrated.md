@@ -6,11 +6,12 @@ Date: 2026-11-27
 Scope: Phases 1–4 (framing/composition, arena dressing + full HUD names,
 browser proof + integrated gate, broadcast separation and arena contrast
 correction).
-Status: **verified after the Phase 4 correction and reopened Phase 3 proof**;
-Phases 1–4 are verified, with documented Phase 3 limitations (landscape HUD
-line-box delta, reduced-motion verdict timing, clean visual four-corner proof
-at 852×393 only). AC-7 terminal registry/archive/review/PR steps are **partial
-by design** and remain owned by the primary agent.
+Status: **verified after the Phase 4 correction, reopened Phase 3 proof and the
+2026-11-27 R1 strict-review fixes**; Phases 1–4 are verified and Round 1 findings
+F1–F4 are resolved (see the R1 section at the end). The remaining non-defects
+are the landscape 39/37 HUD line-box delta without visible clipping and the
+subdued landscape contrast. AC-7 terminal registry/archive/review/PR steps are
+**partial by design** and remain owned by the primary agent.
 
 This report consolidates the already-recorded phase evidence. It does not
 replace the phase reports, which hold the exact commands, outputs and paths:
@@ -267,3 +268,148 @@ or improved arena contrast.
   `conductor/workflow.md` need no change: the owner's framing decision and
   presentation-only freeze are already captured in the approved spec.
 - RM-14 remains linked until the completion commit retires it.
+
+## Review fixes R1 (2026-11-27) — F1–F4 resolved
+
+Phase base `38605961`, branch `feat/20261127-arena-readability-pass`. Round 1
+`BLOCK` findings were all fixed with no override and no spec weakening;
+requirement IDs remain FR-1..FR-7, NFR-1..NFR-5, AC-1..AC-7. No R1 commits were
+made by the phase executor and all evidence files are left uncommitted.
+
+- **F1 (camera handoff):** `rig.ts` now cuts pose and FOV together on
+  establishing→action, cinematic handoff, style switches, resize, reduced-motion
+  transitions and >0.5-unit focus jumps. New live-rig tests check the first and
+  every update from `rig.setMode("arena")` at 1440×900, 393×852 and 852×393,
+  verifying all measured body corners stay inside NDC ±1. Red evidence:
+  `Received: 1.0896512401635225` / `1.0289891048171926` (right-edge crop).
+- **F2 (reduced motion):** the unapproved wide-shot exception and the old
+  `establishingFraming(aspect).fov` assertion were removed. Reduced motion now
+  tracks the readable broadcast action composition with the 8% / 32 CSS-pixel
+  floor, containment, no shake and no director-driven pose at all three
+  viewports. Red evidence: camera-position delta `13.465713020368288`.
+- **F3 (browser proof):** cup cinematic action at all three viewports captured
+  with real sim-saved day-7 cups (`r1-cup-cinematic-*`, `r1-` prefix, prior
+  `corrected-*` artifacts preserved). Module-measured action poses keep both
+  bodies in frame: 1440×900 ray `0.223214`/`200.893` px, drake
+  `0.336828`/`303.145` px; 393×852 ray `0.093003`/`79.239` px, drake
+  `0.235097`/`200.303` px; 852×393 ray `0.223214`/`87.723` px, drake
+  `0.336828`/`132.373` px. Clean desktop and portrait four-corner stills
+  (`r1-wide-clean-1440x900.png`, `r1-wide-clean-393x852.png`) were rendered in
+  the real browser from the production arena/framing modules because the live
+  app's first arena frame is now an action cut; all four corner NDC values are
+  recorded in `phase-3.md`. Console totals: `2 messages, 0 errors, 0 warnings`
+  per session; every capture `errors:[]`; `playwright-cli close-all` →
+  `(no browsers)` before the primary gate.
+- **F4 (separation):** `MIN_CENTER_SEPARATION` is renamed and documented as
+  `TARGET_CENTER_SEPARATION`; an explicit `MIN_DISTINCT_SEPARATION = 0.1`
+  fallback keeps silhouettes distinct when 0.38 is geometrically impossible.
+  Failing-first fixtures use the authoritative measured ray `0.073514/0.136`,
+  draconic `0.364/0.208` and golem `0.450545/0.236` rigs and assert
+  containment, floor, and distinct separation at 393×852 for ray/ray,
+  ray/golem and ray/draconic.
+
+Exact R1 phase command (exit 0):
+`bun test --check --parallel=4 --timeout 120000 apps/client/src/scene-logic/framing.test.ts apps/client/src/scene-logic.test.ts apps/client/src/director.test.ts apps/client/src/roster.test.ts apps/client/src/dense-playback.test.ts apps/client/src/module-size.test.ts`
+→ **68 pass / 0 fail**, 7900 expect() calls, 6 files, 10.10 s. The scoped Biome
+check was permission-denied for this executor and is primary-owned; the full
+`bun run verify && bun run build` gate was not re-run here.
+
+Updated roll-up: FR-1, FR-2, FR-4, FR-6 and FR-7 (and AC-1, AC-2, AC-3, AC-6,
+AC-7) are no longer only partially covered — the lifecycle, measured-floor and
+separation gaps are closed. Prior Phase 1–4 and reopened-pass results stand
+unchanged; `AC-7` terminal steps remain primary-owned. Details and verbatim
+outputs are in `verification/phase-R1.md` and `verification/phase-3.md`.
+
+## Rework 2 — primary visual acceptance corrections (2026-11-27)
+
+Independent image review of the Rework 1 cup-cinematic stills found live crops
+that the static fixtures missed: portrait `action-a/b/c` clipped upper bodies
+and landscape `action-a/b/c` clipped the top against the HUD. No override was
+requested, the approved spec was not weakened, and requirement IDs remain
+FR-1..FR-7, NFR-1..NFR-5, AC-1..AC-7. No commits were made; all evidence stays
+uncommitted for the primary.
+
+Corrections, within the same R1 allowed files:
+
+- `rig.ts`: removed all arena pose easing; broadcast and cinematic updates
+  hard-cut the current measured pose and lens together. Arena shake is reset
+  so it cannot move the camera outside the safe pose. Arena entry holds a
+  deterministic **750 ms full-motion wide establishing beat** containing both
+  bodies; reduced motion skips it and uses readable broadcast action
+  immediately. After the beat, the cut is immediate; style switches and resize
+  cut as well. Cinematic uses victim look only, zero azimuth delta, zero
+  elevation and no director `radiusMult` zoom.
+- `framing.ts`: `READABILITY_LENS_FACTOR = 2.4`; fallback prefers the largest
+  absolute screen gap among readable, distinct candidates; aim height is
+  `min(pose.targetY, max(smaller, larger / 2))` so taller bodies stay below the
+  HUD. `TARGET_CENTER_SEPARATION = 0.38` and `MIN_DISTINCT_SEPARATION = 0.1`
+  remain unchanged and documented; no new runtime exports.
+- `framing.test.ts`: new failing-first R2 block moves both fighters every
+  frame, asserts the exact safe pose after the establishing beat, checks the
+  floor during cinematic action, checks reduced motion skips the beat, and
+  rejects any intermediate easing crop at all three viewports.
+
+Failing-first red evidence (exact phase command): `68 pass / 4 fail`,
+`8554 expect() calls`; establishing FOV `45` vs `13.416886490521344`, floor
+`0.06084677237984924` vs `0.08`, pose distance `2.8` vs `< 0.000001`. Green
+final evidence: `72 pass / 0 fail`, `9127 expect() calls`, `Ran 72 tests across
+6 files. [11.44s]`, exit 0. The scoped Biome command was attempted and again
+permission-denied for this executor; the full gate was not run.
+
+Fresh real-browser `r2-` evidence at 1440×900, 393×852 and 852×393: cup
+cinematic action beats `r2-cup-cinematic-action-{a,b,c,d}-<tag>.png`, with
+final tracked poses `fov:20.011849046899478` and targetY `0.1813335`; ray /
+drake fractions `0.148810`/`133.929` px and `0.224552`/`202.097` px at
+1440×900, `0.099896`/`85.112` px and `0.194663`/`165.853` px at 393×852,
+`0.148810`/`58.482` px and `0.224552`/`88.249` px at 852×393. All measured
+body boxes were `inFrame:true`; all four wide-shot corners remained in frame.
+Real live-app establishing beats `r2-establishing-1440x900.png` and
+`r2-establishing-393x852.png` were captured inside the new 750 ms beat and
+visually show all four painted arena corners; no synthetic render is offered
+as final proof. Console totals were `Total messages: 2 (Errors: 0, Warnings: 0)`
+per session, every `run-code` returned `errors:[]`, and
+`playwright-cli close-all` left `(no browsers)`. Honest residual: the battle
+HUD still overlays the upper arena (part of the drake's head in landscape) and
+the ray's wings overlap the drake's legs in portrait, though both bodies stay
+inside the viewport and no viewport-edge crop remains in the inspected beats.
+Details, exact paths and measurements are in `verification/phase-R1.md` and
+`verification/phase-3.md`.
+
+## Corrective pass — animated-envelope containment (2026-11-28, primary)
+
+Independent vision review of the Rework 2 `r2-` stills found a residual the
+static fixtures missed: live fighters rise above their rest boxes every beat
+(posture windup rise, recoil lift, gait, breath), so portrait beats clipped
+head/horn tips at the viewport top edge even though every static projection
+was green. Root cause: the camera solves from rest boxes, which do not
+envelop animated poses. The day-7 cup drake's kit (`spark`, `flame_charge`,
+`cinder_shot`, `blaze_bolt`) carries no `cinder_dive`, so the 2.2 lift arc is
+excluded by construction — only sub-0.35 excursion had to be covered.
+
+Correction, inside the R1 allowed files (`framing.ts` only):
+
+- `ANIM_HEIGHT_PAD = 0.2` extends ONLY the containment envelope (feet at 0
+  through head plus pad); the readability fraction stays pinned to measured
+  rest height, so the 8%/32 px promise keeps its rest-position meaning. An
+  abandoned `0.35` first attempt broke the portrait small-ray floor (`0.057`
+  < `0.08`) and collapsed separation (`7.17e-16` < `0.1`) — recorded red, then
+  retuned to `0.2` with balanced padded aim
+  (`min(pose.targetY, max(smaller + pad/2, (larger + pad)/2))`).
+- `ANIM_RADIUS_PAD = 0`: lunges already reach the solver through live focus
+  positions. Comment-only trims kept `framing.ts` at 11691 B ≤ 12288 B cap.
+
+Verification at final code: exact R1 phase command
+`72 pass / 0 fail / 9127 expect()` (exit 0), scoped Biome clean, fresh
+`bun run verify` exit 0 + `bun run build` exit 0 with full-suite totals
+**4630 pass / 1 skip / 0 fail**, `685273 expect()` calls, 4631 tests / 446
+files, all seed-42 determinism digests byte-identical. Fresh real-browser
+`r3-` matrix (same day-7 cup seed, all viewports): static NDC has all corners
+and both rest body boxes in frame with zero console/page errors, and
+independent vision review of all 12 final action stills reports zero
+viewport-edge clip, heads clear of HUD/scenery, fighters distinguishable;
+establishing stills show all four painted corners at every viewport. Honest
+residuals: transient lunge beats can stack the fighters visually (authored
+choreography, both bodies in frame) and the 852×393 establishing still catches
+the arena fade mid-transition with partial HUD-panel overlap — disclosed, not
+crop. Full numbers, red evidence and still paths are in
+`verification/phase-R1.md` (corrective appendix) and `verification/phase-3.md`.
