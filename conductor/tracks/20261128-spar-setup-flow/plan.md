@@ -58,7 +58,7 @@ The primary appends after acceptance:
 - **Covers:** AC-6, NFR-1..4
 - **Touches:** `conductor/tracks/20261128-spar-setup-flow/verification/*`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Full gate + evidence** — covers: AC-6
   - [ ] **P3.T1.1: `bun run verify && bun run build` green; r-matrix stills (spar + ghost, 3 viewports) committed under verification/**
