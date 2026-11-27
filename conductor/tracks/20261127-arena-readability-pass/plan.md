@@ -37,21 +37,18 @@
 - **Covers:** FR-3, FR-4, FR-5, FR-6, AC-4, AC-5, AC-6, NFR-1, NFR-2, NFR-3, NFR-4, NFR-5
 - **Touches:** `apps/client/src/arena.ts`, `apps/client/src/battle-hud.css`, `apps/client/src/battleHud.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/battleHud.test.ts apps/client/src/scene-logic/framing.test.ts apps/client/src/director.test.ts apps/client/src/dense-playback.test.ts apps/client/src/module-size.test.ts`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Redress the arena shell and lighting** — covers: FR-3, FR-4, AC-4
-  - [ ] **P2.T1.1:** Retune arena-only floor, backdrop, stands/crowd, visual spacing, ambient/hemi/key/rim lighting, and fog for formal-competition contrast.
-  - [ ] **P2.T1.2:** Keep legal movement bounds, simulation mapping, fighter models/scale, shared ranch lighting/post-processing, and audio unchanged.
-- [ ] **P2.T2: Preserve full battle HUD names** — covers: FR-5, FR-6, AC-5, AC-6
-  - [ ] **P2.T2.1:** Replace ellipsis-prone responsive name layout with full-name wrapping or sizing for desktop, portrait, and landscape.
-  - [ ] **P2.T2.2:** Add long/mirrored-name regression coverage and confirm no page overflow or interactive-control occlusion.
+- [x] **P2.T1: Redress the arena shell and lighting** — covers: FR-3, FR-4, AC-4
+  - [x] **P2.T1.1:** Retune arena-only floor, backdrop, stands/crowd, visual spacing, ambient/hemi/key/rim lighting, and fog for formal-competition contrast.
+  - [x] **P2.T1.2:** Keep legal movement bounds, simulation mapping, fighter models/scale, shared ranch lighting/post-processing, and audio unchanged.
+- [x] **P2.T2: Preserve full battle HUD names** — covers: FR-5, FR-6, AC-5, AC-6
+  - [x] **P2.T2.1:** Replace ellipsis-prone responsive name layout with full-name wrapping or sizing for desktop, portrait, and landscape.
+  - [x] **P2.T2.2:** Add long/mirrored-name regression coverage and confirm no page overflow or interactive-control occlusion.
 
-<!--
-The primary appends after acceptance:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 986c7aeb
 **Evidence:** conductor/tracks/20261127-arena-readability-pass/verification/phase-2.md
--->
 
 ## Phase 3: Spar/cup browser proof and integrated gate
 
