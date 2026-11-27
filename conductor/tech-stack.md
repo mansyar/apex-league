@@ -886,6 +886,21 @@
   with the canonical exporter and re-proven byte-identical; real-UI desktop and
   forced iPhone captures cover ranch stage progression and arena spars.
 
+- `2026-11-28` — **Spar setup arm-then-start** (`20261128-spar-setup-flow`):
+  tactic/rule/kit taps in the Spar modal now arm a selection instead of
+  launching — `spar/panel.ts` exposes a `SparSetupSeam` (`launch` + live
+  `armed()`/`rule()` reads) with Press pre-armed on every fresh setup
+  (`markArmedTactic` in `spar/setup.ts`, re-armed in `presentSetup`), and a
+  sticky Start footer names the armed tactic + active rule with a single
+  `Start bout` control wired to the existing `runBattle` path. Ghost bouts
+  share the panel via `ghostSparSetup` and inherit the flow. Scroll: the
+  page stays locked while the panel scrolls internally (more specific
+  `.spar-overlay .spar-panel` selector plus `box-sizing: border-box` so
+  `max-height` includes padding); footer in-frame at 393×852, 852×393 and
+  1440×900 with zero page scroll and a clean console. Module caps still
+  green; spar + ghost r-matrix stills live under the track's
+  `verification/`.
+
 ## Quality Gates
 - `bun check` clean, `biome check` clean, `bun test` green — required before
   any commit lands (see workflow.md).
